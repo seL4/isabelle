@@ -129,7 +129,7 @@ fun show (Req {path_info, path_translated, script_name,
         fun show (n, v) r = ["\t", n, " = \"", to_string v, "\"\n"] @ r;
       in Symtab.fold show table [] end;
   in
-    concat
+    implode
       (["path_info: \"", path_info, "\"\n",
         "path_translated: \"", path_translated, "\"\n",
         "script_name: \"", script_name, "\"\n",

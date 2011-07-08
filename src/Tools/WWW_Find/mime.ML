@@ -37,10 +37,10 @@ val split_fields =
   #> apsnd (Substring.triml 1)
   #> pairself (Substring.string o strip);
 
-fun show_param (n, v) = concat ["; ", n, "=", v];
+fun show_param (n, v) = implode ["; ", n, "=", v];
 
 fun show_type (Type {main, sub, params}) =
-      concat ([main, "/", sub] @ map show_param params);
+  implode ([main, "/", sub] @ map show_param params);
 
 fun parse_type s =
   (case Substring.fields (Char.contains "/;") (Substring.full s) of

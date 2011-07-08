@@ -169,7 +169,7 @@ fun add_attributes atts' (Tag (nm, atts, inner)) =
 fun append (Tag (nm, atts, inner)) inner' = Tag (nm, atts, inner @ inner')
   | append _ _ = raise Fail "cannot append to a text element";
 
-fun show_att (n, v) = concat [" ", n, "=\"", XML.text v, "\""];
+fun show_att (n, v) = implode [" ", n, "=\"", XML.text v, "\""];
 
 fun show_text (Text t) = XML.text t
   | show_text (RawText t) = t

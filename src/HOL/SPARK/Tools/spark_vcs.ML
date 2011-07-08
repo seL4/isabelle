@@ -886,7 +886,7 @@ fun close thy =
            (proved, []) =>
              (Thm.join_proofs (maps (the o #2 o snd) proved);
               File.write (Path.ext "prv" path)
-                (concat (map (fn (s, _) => snd (strip_number s) ^
+                (implode (map (fn (s, _) => snd (strip_number s) ^
                    " -- proved by " ^ Distribution.version ^ "\n") proved));
               {pfuns = pfuns, type_map = type_map, env = NONE})
          | (_, unproved) => err_vcs (map fst unproved))
