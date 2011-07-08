@@ -23,6 +23,8 @@ sig
   val define_command: command_id -> string -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
+  val state: unit -> state
+  val change_state: (state -> state) -> unit
 end;
 
 structure Document: DOCUMENT =
@@ -358,6 +360,15 @@ fun execute version_id state =
                   (get_node version name) ())];
 
     in (versions, commands, execs, execution') end);
+
+
+
+(** global state **)
+
+val global_state = Synchronized.var "Document" init_state;
+
+fun state () = Synchronized.value global_state;
+val change_state = Synchronized.change global_state;
 
 end;
 
