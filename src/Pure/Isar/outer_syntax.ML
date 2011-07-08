@@ -10,6 +10,7 @@ beginning; for interactive processing it may change dynamically.
 signature OUTER_SYNTAX =
 sig
   type outer_syntax
+  val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
   val command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
@@ -33,8 +34,10 @@ sig
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: TextIO.instream -> bool -> isar
+  val prepare_span: outer_syntax -> Thy_Syntax.span -> Toplevel.transition * bool
+  val prepare_element: outer_syntax -> (Path.T option -> theory) -> Thy_Syntax.element ->
+    (Toplevel.transition * Toplevel.transition list) list
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> (Path.T option -> theory) -> Position.T -> string -> theory * unit future
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -282,42 +285,6 @@ fun prepare_command pos str =
       [span] => #1 (prepare_span outer_syntax span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
-
-
-(* load_thy *)
-
-fun load_thy name init pos text =
-  let
-    val (lexs, outer_syntax) = get_syntax ();
-    val time = ! Toplevel.timing;
-
-    val _ = Present.init_theory name;
-
-    val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
-    val spans = Source.exhaust (Thy_Syntax.span_source toks);
-    val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
-    val elements =
-      Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
-      |> Par_List.map_name "Outer_Syntax.prepare_element" (prepare_element outer_syntax init)
-      |> flat;
-
-    val _ = Present.theory_source name
-      (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
-
-    val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion elements);
-    val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
-
-    val present =
-      singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
-        deps = map Future.task_of results, pri = 0})
-      (fn () =>
-        Thy_Output.present_thy (#1 lexs) Keyword.command_tags (is_markup outer_syntax)
-          (maps Future.join results) toks
-        |> Buffer.content
-        |> Present.theory_output name);
-
-  in (thy, present) end;
 
 end;
 

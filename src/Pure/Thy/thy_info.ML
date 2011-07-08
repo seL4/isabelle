@@ -241,7 +241,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators update_time deps text name parent_thys =
+fun load_thy initiators update_time deps text name parents =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -250,11 +250,8 @@ fun load_thy initiators update_time deps text name parent_thys =
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
     val (_, _, uses) = Thy_Header.read pos text;
-    fun init _ =
-      Thy_Load.begin_theory dir name imports parent_thys uses
-      |> Present.begin_theory update_time dir uses;
 
-    val (theory, present) = Outer_Syntax.load_thy name init pos text;
+    val (theory, present) = Thy_Load.load_thy update_time dir name imports uses pos text parents;
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
 
@@ -332,8 +329,8 @@ fun toplevel_begin_theory master name imports uses =
     val dir = (case master of SOME dir => dir | NONE => Thy_Load.get_master_path ());
     val _ = kill_thy name;
     val _ = use_thys_wrt dir imports;
-    val parent_thys = map (get_theory o base_name) imports;
-  in Thy_Load.begin_theory dir name imports parent_thys uses end;
+    val parents = map (get_theory o base_name) imports;
+  in Thy_Load.begin_theory dir name imports uses parents end;
 
 
 (* register theory *)

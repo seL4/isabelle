@@ -18,7 +18,10 @@ sig
   val all_current: theory -> bool
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
-  val begin_theory: Path.T -> string -> string list -> theory list -> (Path.T * bool) list -> theory
+  val begin_theory: Path.T -> string -> string list -> (Path.T * bool) list ->
+    theory list -> theory
+  val load_thy: int -> Path.T -> string -> string list -> (Path.T * bool) list ->
+    Position.T -> string -> theory list -> theory * unit future
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -149,14 +152,52 @@ fun use_ml src_path =
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 
-(* begin theory *)
+(* load_thy *)
 
-fun begin_theory dir name imports parents uses =
+fun begin_theory dir name imports uses parents =
   Theory.begin_theory name parents
   |> put_deps dir imports
   |> fold (require o fst) uses
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
+
+fun load_thy update_time dir name imports uses pos text parents =
+  let
+    val (lexs, outer_syntax) = Outer_Syntax.get_syntax ();
+    val time = ! Toplevel.timing;
+
+    val _ = Present.init_theory name;
+    fun init _ =
+      begin_theory dir name imports uses parents
+      |> Present.begin_theory update_time dir uses;
+
+    val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
+    val spans = Source.exhaust (Thy_Syntax.span_source toks);
+    val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
+    val elements =
+      Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
+      |> Par_List.map_name "Outer_Syntax.prepare_element"
+        (Outer_Syntax.prepare_element outer_syntax init)
+      |> flat;
+
+    val _ = Present.theory_source name
+      (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
+
+    val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
+    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion elements);
+    val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
+
+    val present =
+      singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
+        deps = map Future.task_of results, pri = 0})
+      (fn () =>
+        Thy_Output.present_thy (#1 lexs) Keyword.command_tags
+          (Outer_Syntax.is_markup outer_syntax)
+          (maps Future.join results) toks
+        |> Buffer.content
+        |> Present.theory_output name);
+
+  in (thy, present) end;
 
 
 (* global master path *)

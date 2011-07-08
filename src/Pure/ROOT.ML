@@ -243,18 +243,18 @@ use "Isar/specification.ML";
 use "Isar/typedecl.ML";
 
 (*toplevel transactions*)
-use "Thy/thy_load.ML";
 use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
 (*theory documents*)
 use "System/isabelle_system.ML";
-use "Thy/present.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
 use "Isar/outer_syntax.ML";
 use "PIDE/document.ML";
+use "Thy/present.ML";
+use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
 use "Thy/rail.ML";
 
