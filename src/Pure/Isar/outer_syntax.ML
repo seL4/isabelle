@@ -9,13 +9,16 @@ beginning; for interactive processing it may change dynamically.
 
 signature OUTER_SYNTAX =
 sig
+  type outer_syntax
+  val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
   val command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val markup_command: Thy_Output.markup -> string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val improper_command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val internal_command: string -> (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val internal_command: string ->
+    (Toplevel.transition -> Toplevel.transition) parser -> unit
   val local_theory': string -> string -> Keyword.T ->
     (bool -> local_theory -> local_theory) parser -> unit
   val local_theory: string -> string -> Keyword.T ->
@@ -77,40 +80,56 @@ fun parse_command do_terminate cmd =
 end;
 
 
+(* type outer_syntax *)
+
+datatype outer_syntax = Outer_Syntax of
+ {commands: command Symtab.table,
+  markups: (string * Thy_Output.markup) list};
+
+fun make_outer_syntax commands markups =
+  Outer_Syntax {commands = commands, markups = markups};
+
+val empty_outer_syntax = make_outer_syntax Symtab.empty [];
+
+
+fun map_commands f (Outer_Syntax {commands, ...}) =
+  let
+    val commands' = f commands;
+    val markups' =
+      Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
+        commands' [];
+  in make_outer_syntax commands' markups' end;
+
+fun dest_commands (Outer_Syntax {commands, ...}) =
+  commands |> Symtab.dest |> sort_wrt #1
+  |> map (fn (name, Command {comment, int_only, ...}) => (name, comment, int_only));
+
+fun lookup_commands (Outer_Syntax {commands, ...}) = Symtab.lookup commands;
+
+fun is_markup (Outer_Syntax {markups, ...}) kind name =
+  AList.lookup (op =) markups name = SOME kind;
+
+
 
 (** global outer syntax **)
 
 local
 
-val global_commands = Unsynchronized.ref (Symtab.empty: command Symtab.table);
-val global_markups = Unsynchronized.ref ([]: (string * Thy_Output.markup) list);
-
-fun change_commands f = CRITICAL (fn () =>
- (Unsynchronized.change global_commands f;
-  global_markups :=
-    Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
-      (! global_commands) []));
-
-in
-
-(* access current syntax *)
-
-fun get_commands () = ! global_commands;
-fun get_markups () = ! global_markups;
-
-fun get_command () = Symtab.lookup (get_commands ());
-fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), get_command ()));
-
-fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
-
-
-(* augment syntax *)
+(*synchronized wrt. Keywords*)
+val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 
 fun add_command name kind cmd = CRITICAL (fn () =>
  (Keyword.command name kind;
-  if not (Symtab.defined (get_commands ()) name) then ()
-  else warning ("Redefining outer syntax command " ^ quote name);
-  change_commands (Symtab.update (name, cmd))));
+  Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
+   (if not (Symtab.defined commands name) then ()
+    else warning ("Redefining outer syntax command " ^ quote name);
+    Symtab.update (name, cmd) commands)))));
+
+in
+
+fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), ! global_outer_syntax));
+
+fun lookup_commands_dynamic () = lookup_commands (! global_outer_syntax);
 
 fun command name comment kind parse =
   add_command name kind (make_command comment NONE false parse);
@@ -121,10 +140,10 @@ fun markup_command markup name comment kind parse =
 fun improper_command name comment kind parse =
   add_command name kind (make_command comment NONE true parse);
 
-end;
-
 fun internal_command name parse =
   command name "(internal)" Keyword.control (parse >> (fn tr => Toplevel.no_timing o tr));
+
+end;
 
 
 (* local_theory commands *)
@@ -141,17 +160,15 @@ val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_p
 
 (* inspect syntax *)
 
-fun dest_commands () =
-  get_commands () |> Symtab.dest |> sort_wrt #1
-  |> map (fn (name, Command {comment, int_only, ...}) => (name, comment, int_only));
-
 fun print_outer_syntax () =
   let
+    val (keywords, outer_syntax) =
+      CRITICAL (fn () => (Keyword.dest_keywords (), #2 (get_syntax ())));
     fun pretty_cmd (name, comment, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = List.partition #3 (dest_commands ());
+    val (int_cmds, cmds) = List.partition #3 (dest_commands outer_syntax);
   in
-    [Pretty.strs ("syntax keywords:" :: map quote (Keyword.dest_keywords ())),
+    [Pretty.strs ("syntax keywords:" :: map quote keywords),
       Pretty.big_list "commands:" (map pretty_cmd cmds),
       Pretty.big_list "interactive-only commands:" (map pretty_cmd int_cmds)]
     |> Pretty.chunks |> Pretty.writeln
@@ -195,7 +212,7 @@ fun parse pos str =
   Source.of_string str
   |> Symbol.source
   |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
-  |> toplevel_source false NONE get_command
+  |> toplevel_source false NONE lookup_commands_dynamic
   |> Source.exhaust;
 
 
@@ -226,15 +243,16 @@ fun isar in_stream term : isar =
   Source.tty in_stream
   |> Symbol.source
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
-  |> toplevel_source term (SOME true) get_command;
+  |> toplevel_source term (SOME true) lookup_commands_dynamic;
 
 
 (* prepare toplevel commands -- fail-safe *)
 
 val not_singleton = "Exactly one command expected";
 
-fun prepare_span commands span =
+fun prepare_span outer_syntax span =
   let
+    val commands = lookup_commands outer_syntax;
     val range_pos = Position.set_range (Thy_Syntax.span_range span);
     val toks = Thy_Syntax.span_content span;
     val _ = List.app Thy_Syntax.report_token toks;
@@ -249,19 +267,19 @@ fun prepare_span commands span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_element commands init {head, proof, proper_proof} =
+fun prepare_element outer_syntax init {head, proof, proper_proof} =
   let
-    val (tr, proper_head) = prepare_span commands head |>> Toplevel.modify_init init;
-    val proof_trs = map (prepare_span commands) proof |> filter #2 |> map #1;
+    val (tr, proper_head) = prepare_span outer_syntax head |>> Toplevel.modify_init init;
+    val proof_trs = map (prepare_span outer_syntax) proof |> filter #2 |> map #1;
   in
     if proper_head andalso proper_proof then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
 
 fun prepare_command pos str =
-  let val (lexs, commands) = get_syntax () in
+  let val (lexs, outer_syntax) = get_syntax () in
     (case Thy_Syntax.parse_spans lexs pos str of
-      [span] => #1 (prepare_span commands span)
+      [span] => #1 (prepare_span outer_syntax span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
 
@@ -270,7 +288,7 @@ fun prepare_command pos str =
 
 fun load_thy name init pos text =
   let
-    val (lexs, commands) = get_syntax ();
+    val (lexs, outer_syntax) = get_syntax ();
     val time = ! Toplevel.timing;
 
     val _ = Present.init_theory name;
@@ -278,8 +296,10 @@ fun load_thy name init pos text =
     val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
-    val elements = Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
-      |> Par_List.map_name "Outer_Syntax.prepare_element" (prepare_element commands init) |> flat;
+    val elements =
+      Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
+      |> Par_List.map_name "Outer_Syntax.prepare_element" (prepare_element outer_syntax init)
+      |> flat;
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
@@ -292,7 +312,7 @@ fun load_thy name init pos text =
       singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
         deps = map Future.task_of results, pri = 0})
       (fn () =>
-        Thy_Output.present_thy (#1 lexs) Keyword.command_tags is_markup
+        Thy_Output.present_thy (#1 lexs) Keyword.command_tags (is_markup outer_syntax)
           (maps Future.join results) toks
         |> Buffer.content
         |> Present.theory_output name);
