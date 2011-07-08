@@ -74,8 +74,9 @@ fun check_file dir file = File.check_file (File.full_path dir file);
 fun digest_file dir file =
   let
     val full_path = check_file dir file;
-    val id = SHA1.digest (File.read full_path);
-  in (full_path, id) end;
+    val text = File.read full_path;
+    val id = SHA1.digest text;
+  in (text, (full_path, id)) end;
 
 fun check_thy dir name =
   let
@@ -112,7 +113,7 @@ fun all_current thy =
     fun current (src_path, (_, id)) =
       (case try (digest_file master_dir) src_path of
         NONE => false
-      | SOME (_, id') => id = id');
+      | SOME (_, (_, id')) => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
@@ -121,17 +122,20 @@ val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded t
 (* provide files *)
 
 fun provide_file src_path thy =
-  provide (src_path, digest_file (master_directory thy) src_path) thy;
+  provide (src_path, #2 (digest_file (master_directory thy) src_path)) thy;
+
+fun eval_file path text = ML_Context.eval_text true (Path.position path) text;
 
 fun use_ml src_path =
   if is_none (Context.thread_data ()) then
-    ML_Context.eval_file (check_file Path.current src_path)
+    let val path = check_file Path.current src_path
+    in eval_file path (File.read path) end
   else
     let
       val thy = ML_Context.the_global_context ();
-      val (path, id) = digest_file (master_directory thy) src_path;
 
-      val _ = ML_Context.eval_file path;
+      val (text, (path, id)) = digest_file (master_directory thy) src_path;
+      val _ = eval_file path text;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
       val provide = provide (src_path, (path, id));
