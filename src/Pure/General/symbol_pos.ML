@@ -11,7 +11,6 @@ sig
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
-  val untabify_content: T list -> string
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : string -> (T list -> 'a) -> T list -> 'a
@@ -42,21 +41,7 @@ type T = Symbol.symbol * Position.T;
 
 fun symbol ((s, _): T) = s;
 
-
-(* content *)
-
 val content = implode o map symbol;
-
-
-val tab_width = (8: int);
-
-fun untabify ("\t", pos) =
-      (case Position.column_of pos of
-        SOME n => Symbol.spaces (tab_width - ((n - 1) mod tab_width))
-      | NONE => Symbol.space)
-  | untabify (s, _) = s;
-
-val untabify_content = implode o map untabify;
 
 
 (* stopper *)

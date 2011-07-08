@@ -123,6 +123,9 @@ INCOMPATIBILITY. Use partial_function instead.
 
 *** Document preparation ***
 
+* Discontinued special treatment of hard tabulators, which are better
+avoided in the first place.  Implicit tab-width is 1.
+
 * Antiquotation @{rail} layouts railroad syntax diagrams, see also
 isar-ref manual.
 

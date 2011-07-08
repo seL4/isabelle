@@ -319,10 +319,10 @@ local
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
 
 fun token k ss =
-  Token ((Symbol_Pos.implode ss, Symbol_Pos.range ss), (k, Symbol_Pos.untabify_content ss), Slot);
+  Token ((Symbol_Pos.implode ss, Symbol_Pos.range ss), (k, Symbol_Pos.content ss), Slot);
 
 fun token_range k (pos1, (ss, pos2)) =
-  Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.untabify_content ss), Slot);
+  Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
   (Symbol_Pos.scan_string_qq >> token_range String ||

@@ -83,6 +83,7 @@ val char_table =
     ("~", "{\\isachartilde}")];
 
 fun output_chr " " = "\\ "
+  | output_chr "\t" = "\\ "
   | output_chr "\n" = "\\isanewline\n"
   | output_chr c =
       (case Symtab.lookup char_table c of
