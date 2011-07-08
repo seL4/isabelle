@@ -25,12 +25,10 @@ object Thy_Header extends Parse.Parser
 
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
-  final case class Header(val name: String, val imports: List[String], val uses: List[String])
+  sealed case class Header(val name: String, val imports: List[String], val uses: List[String])
   {
-    def decode_permissive_utf8: Header =
-      Header(Standard_System.decode_permissive_utf8(name),
-        imports.map(Standard_System.decode_permissive_utf8),
-        uses.map(Standard_System.decode_permissive_utf8))
+    def map(f: String => String): Header =
+      Header(f(name), imports.map(f), uses.map(f))
   }
 
 
@@ -38,14 +36,10 @@ object Thy_Header extends Parse.Parser
 
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
 
-  private val Thy_Path1 = new Regex("([^/]*)\\.thy")
-  private val Thy_Path2 = new Regex("(.*)/([^/]*)\\.thy")
-
-  def split_thy_path(path: String): Option[(String, String)] =
-    path match {
-      case Thy_Path1(name) => Some(("", name))
-      case Thy_Path2(dir, name) => Some((dir, name))
-      case _ => None
+  def split_thy_path(path: Path): (Path, String) =
+    path.split_ext match {
+      case (path1, "thy") => (path1.dir, path1.base.implode)
+      case _ => error("Bad theory file specification: " + path)
     }
 
 
@@ -75,7 +69,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Header =
   {
-    val token = lexicon.token(Isabelle_System.symbols, _ => false)
+    val token = lexicon.token(_ => false)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
@@ -101,7 +95,7 @@ object Thy_Header extends Parse.Parser
   def read(file: File): Header =
   {
     val reader = Scan.byte_reader(file)
-    try { read(reader).decode_permissive_utf8 }
+    try { read(reader).map(Standard_System.decode_permissive_utf8) }
     finally { reader.close }
   }
 

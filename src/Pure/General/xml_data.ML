@@ -28,6 +28,8 @@ sig
   val dest_list: (XML.body -> 'a) -> XML.body -> 'a list
   val make_option: ('a -> XML.body) -> 'a option -> XML.body
   val dest_option: (XML.body -> 'a) -> XML.body -> 'a option
+  val make_variant: ('a -> XML.body) list -> 'a -> XML.body
+  val dest_variant: (XML.body -> 'a) list -> XML.body -> 'a
 end;
 
 structure XML_Data: XML_DATA =
@@ -68,6 +70,11 @@ fun make_node ts = XML.Elem ((":", []), ts);
 
 fun dest_node (XML.Elem ((":", []), ts)) = ts
   | dest_node t = raise XML_BODY [t];
+
+fun make_tagged (tag, ts) = XML.Elem ((make_int_atom tag, []), ts);
+
+fun dest_tagged (XML.Elem ((s, []), ts)) = (dest_int_atom s, ts)
+  | dest_tagged t = raise XML_BODY [t];
 
 
 (* representation of standard types *)
@@ -115,14 +122,21 @@ fun make_list make xs = map (make_node o make) xs;
 fun dest_list dest ts = map (dest o dest_node) ts;
 
 
-fun make_option make NONE = make_list make []
-  | make_option make (SOME x) = make_list make [x];
+fun make_option _ NONE = []
+  | make_option make (SOME x) = [make_node (make x)];
 
-fun dest_option dest ts =
-  (case dest_list dest ts of
-    [] => NONE
-  | [x] => SOME x
-  | _ => raise XML_BODY ts);
+fun dest_option _ [] = NONE
+  | dest_option dest [t] = SOME (dest (dest_node t))
+  | dest_option _ ts = raise XML_BODY ts;
+
+
+fun make_variant makes x =
+  [make_tagged (the (get_index (fn make => try make x) makes))];
+
+fun dest_variant dests [t] =
+      let val (tag, ts) = dest_tagged t
+      in nth dests tag ts end
+  | dest_variant _ ts = raise XML_BODY ts;
 
 end;
 

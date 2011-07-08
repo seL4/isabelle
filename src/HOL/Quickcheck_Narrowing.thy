@@ -5,9 +5,9 @@ header {* Counterexample generator performing narrowing-based testing *}
 theory Quickcheck_Narrowing
 imports Quickcheck_Exhaustive
 uses
-  ("~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")
-  ("~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
-  ("~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML")
+  ("Tools/Quickcheck/PNF_Narrowing_Engine.hs")
+  ("Tools/Quickcheck/Narrowing_Engine.hs")
+  ("Tools/Quickcheck/narrowing_generators.ML")
 begin
 
 subsection {* Counterexample generator *}
@@ -352,9 +352,7 @@ hide_const (open) Constant eval_cfun
 
 subsubsection {* Setting up the counterexample generator *}
 
-setup {* Thy_Load.provide_file (Path.explode ("~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")) *}
-setup {* Thy_Load.provide_file (Path.explode ("~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")) *}
-use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
+use "Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 

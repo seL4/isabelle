@@ -46,7 +46,10 @@ object Document
 
   object Node
   {
-    val empty: Node = new Node(Linear_Set())
+    class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header.Header])
+    val empty_header = new Header(Path.current, Exn.Exn(ERROR("Bad theory header")))
+
+    val empty: Node = new Node(empty_header, Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -62,8 +65,15 @@ object Document
 
   private val block_size = 1024
 
-  class Node(val commands: Linear_Set[Command])
+  class Node(val header: Node.Header, val commands: Linear_Set[Command])
   {
+    /* header */
+
+    def set_header(header: Node.Header): Node = new Node(header, commands)
+
+
+    /* commands */
+
     private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
     {
       val blocks = new mutable.ListBuffer[(Command, Text.Offset)]

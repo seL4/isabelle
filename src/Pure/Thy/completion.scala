@@ -62,15 +62,15 @@ class Completion
 
   def + (keyword: String): Completion = this + (keyword, keyword)
 
-  def + (symbols: Symbol.Interpretation): Completion =
+  def add_symbols: Completion =
   {
     val words =
-      (for ((x, _) <- symbols.names) yield (x, x)).toList :::
-      (for ((x, y) <- symbols.names) yield (y, x)).toList :::
-      (for ((x, y) <- symbols.abbrevs if Completion.is_word(y)) yield (y, x)).toList
+      (for ((x, _) <- Symbol.names) yield (x, x)).toList :::
+      (for ((x, y) <- Symbol.names) yield (y, x)).toList :::
+      (for ((x, y) <- Symbol.abbrevs if Completion.is_word(y)) yield (y, x)).toList
 
     val abbrs =
-      (for ((x, y) <- symbols.abbrevs if !Completion.is_word(y))
+      (for ((x, y) <- Symbol.abbrevs if !Completion.is_word(y))
         yield (y.reverse.toString, (y, x))).toList
 
     val old = this

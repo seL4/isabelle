@@ -17,7 +17,7 @@ struct
 
 val crlf = "\r\n";
 
-fun make_header_field (name, value) = concat [name, ": ", value, crlf];
+fun make_header_field (name, value) = implode [name, ": ", value, crlf];
 
 fun reply_header (status, content_type, extra_fields) =
   let
@@ -25,9 +25,9 @@ fun reply_header (status, content_type, extra_fields) =
     val reason = HttpStatus.to_reason status;
     val show_content_type = pair "Content-Type" o Mime.show_type;
   in
-  concat
+  implode
     (map make_header_field
-      (("Status", concat [code, " ", reason])
+      (("Status", implode [code, " ", reason])
        :: (the_list o Option.map show_content_type) content_type
        @ extra_fields)
     @ [crlf])
@@ -89,7 +89,7 @@ fun join_pairs (n, v) = encode_url n ^ "=" ^ encode_url v;
 val make_query_string =
   Symtab.dest
   #> map join_pairs
-  #> String.concatWith "&";
+  #> space_implode "&";
 
 end;
 

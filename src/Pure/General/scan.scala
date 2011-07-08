@@ -161,7 +161,7 @@ object Scan
 
     /* symbol range */
 
-    def symbol_range(pred: String => Boolean, min_count: Int, max_count: Int): Parser[String] =
+    def symbol_range(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
       new Parser[String]
       {
         def apply(in: Input) =
@@ -187,25 +187,30 @@ object Scan
         }
       }.named("symbol_range")
 
-    def one(pred: String => Boolean): Parser[String] = symbol_range(pred, 1, 1)
-    def many(pred: String => Boolean): Parser[String] = symbol_range(pred, 0, Integer.MAX_VALUE)
-    def many1(pred: String => Boolean): Parser[String] = symbol_range(pred, 1, Integer.MAX_VALUE)
+    def one(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 1, 1)
+
+    def many(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 0, Integer.MAX_VALUE)
+
+    def many1(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 1, Integer.MAX_VALUE)
 
 
     /* quoted strings */
 
-    private def quoted_body(quote: String): Parser[String] =
+    private def quoted_body(quote: Symbol.Symbol): Parser[String] =
     {
       rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
         (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
     }
 
-    private def quoted(quote: String): Parser[String] =
+    private def quoted(quote: Symbol.Symbol): Parser[String] =
     {
       quote ~ quoted_body(quote) ~ quote ^^ { case x ~ y ~ z => x + y + z }
     }.named("quoted")
 
-    def quoted_content(quote: String, source: String): String =
+    def quoted_content(quote: Symbol.Symbol, source: String): String =
     {
       require(parseAll(quoted(quote), source).successful)
       val body = source.substring(1, source.length - 1)
@@ -218,7 +223,7 @@ object Scan
       else body
     }
 
-    def quoted_context(quote: String, ctxt: Context): Parser[(String, Context)] =
+    def quoted_context(quote: Symbol.Symbol, ctxt: Context): Parser[(String, Context)] =
     {
       ctxt match {
         case Finished =>
@@ -335,11 +340,11 @@ object Scan
       string | (alt_string | (verb | cmt))
     }
 
-    private def other_token(symbols: Symbol.Interpretation, is_command: String => Boolean)
+    private def other_token(is_command: String => Boolean)
       : Parser[Token] =
     {
-      val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
-      val nat = many1(symbols.is_digit)
+      val id = one(Symbol.is_letter) ~ many(Symbol.is_letdig) ^^ { case x ~ y => x + y }
+      val nat = many1(Symbol.is_digit)
       val natdot = nat ~ "." ~ nat ^^ { case x ~ y ~ z => x + y + z }
       val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
 
@@ -355,14 +360,14 @@ object Scan
         ("-" ~ natdot ^^ { case x ~ y => x + y } | natdot) ^^ (x => Token(Token.Kind.FLOAT, x))
 
       val sym_ident =
-        (many1(symbols.is_symbolic_char) | one(sym => symbols.is_symbolic(sym))) ^^
+        (many1(Symbol.is_symbolic_char) | one(sym => Symbol.is_symbolic(sym))) ^^
         (x => Token(Token.Kind.SYM_IDENT, x))
 
-      val space = many1(symbols.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
+      val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
       // FIXME check
-      val junk = many(sym => !(symbols.is_blank(sym)))
-      val junk1 = many1(sym => !(symbols.is_blank(sym)))
+      val junk = many(sym => !(Symbol.is_blank(sym)))
+      val junk1 = many1(sym => !(Symbol.is_blank(sym)))
 
       val bad_delimiter =
         ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.UNPARSED, x + y) }
@@ -376,11 +381,10 @@ object Scan
           command_keyword) | bad))
     }
 
-    def token(symbols: Symbol.Interpretation, is_command: String => Boolean): Parser[Token] =
-      delimited_token | other_token(symbols, is_command)
+    def token(is_command: String => Boolean): Parser[Token] =
+      delimited_token | other_token(is_command)
 
-    def token_context(symbols: Symbol.Interpretation, is_command: String => Boolean, ctxt: Context)
-      : Parser[(Token, Context)] =
+    def token_context(is_command: String => Boolean, ctxt: Context): Parser[(Token, Context)] =
     {
       val string =
         quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
@@ -388,7 +392,7 @@ object Scan
         quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
       val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
       val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
-      val other = other_token(symbols, is_command) ^^ { case x => (x, Finished) }
+      val other = other_token(is_command) ^^ { case x => (x, Finished) }
 
       string | (alt_string | (verb | (cmt | other)))
     }

@@ -45,7 +45,7 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer, master_dir: String, thy_name: String): Document_Model =
+  def init(session: Session, buffer: Buffer, master_dir: Path, thy_name: String): Document_Model =
   {
     exit(buffer)
     val model = new Document_Model(session, buffer, master_dir, thy_name)
@@ -57,14 +57,13 @@ object Document_Model
 
 
 class Document_Model(val session: Session,
-  val buffer: Buffer, val master_dir: String, val thy_name: String)
+  val buffer: Buffer, val master_dir: Path, val thy_name: String)
 {
   /* pending text edits */
 
-  private def capture_header(): Exn.Result[Thy_Header.Header] =
-    Exn.capture {
-      Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength))
-    }
+  private def node_header(): Document.Node.Header =
+    new Document.Node.Header(master_dir,
+      Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) })
 
   private object pending_edits  // owned by Swing thread
   {
@@ -78,14 +77,14 @@ class Document_Model(val session: Session,
         case Nil =>
         case edits =>
           pending.clear
-          session.edit_node(master_dir + "/" + thy_name, capture_header(), edits)
+          session.edit_node(thy_name, node_header(), edits)
       }
     }
 
     def init()
     {
       flush()
-      session.init_node(master_dir + "/" + thy_name, capture_header(), Isabelle.buffer_text(buffer))
+      session.init_node(thy_name, node_header(), Isabelle.buffer_text(buffer))
     }
 
     private val delay_flush =
@@ -105,7 +104,8 @@ class Document_Model(val session: Session,
   def snapshot(): Document.Snapshot =
   {
     Swing_Thread.require()
-    session.snapshot(master_dir + "/" + thy_name, pending_edits.snapshot())
+    val node_name = (master_dir + Path.basic(thy_name)).implode  // FIXME
+    session.snapshot(node_name, pending_edits.snapshot())
   }
 
 

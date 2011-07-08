@@ -202,9 +202,7 @@ fi
 
 if [ "$OUTDATED" = true ]
 then
-  echo "###"
   echo "### Building Isabelle/jEdit ..."
-  echo "###"
 
   [ "${#UPDATED[@]}" -gt 0 ] && {
     echo "Changed files:"

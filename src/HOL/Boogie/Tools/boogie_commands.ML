@@ -22,15 +22,14 @@ fun boogie_open ((quiet, base_name), offsets) thy =
         "expected file ending " ^ quote ext)
 
     val base_path = Path.explode base_name |> tap check_ext
-    val full_path = Thy_Load.check_file (Thy_Load.master_directory thy) base_path
+    val (text, thy') = Thy_Load.use_file base_path thy
 
-    val _ = Boogie_VCs.is_closed thy orelse
+    val _ = Boogie_VCs.is_closed thy' orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
   in
-    thy
-    |> Boogie_Loader.load_b2i (not quiet) offsets full_path
-    |> Thy_Load.provide_file base_path
+    thy'
+    |> Boogie_Loader.parse_b2i (not quiet) offsets text
   end
 
 

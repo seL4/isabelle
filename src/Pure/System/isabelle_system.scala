@@ -1,8 +1,8 @@
 /*  Title:      Pure/System/isabelle_system.scala
     Author:     Makarius
 
-Fundamental Isabelle system environment: settings, symbols etc.
-Quasi-static module with optional init operation.
+Fundamental Isabelle system environment: quasi-static module with
+optional init operation.
 */
 
 package isabelle
@@ -24,10 +24,7 @@ object Isabelle_System
 {
   /** implicit state **/
 
-  private case class State(
-    standard_system: Standard_System,
-    settings: Map[String, String],
-    symbols: Symbol.Interpretation)
+  private case class State(standard_system: Standard_System, settings: Map[String, String])
 
   @volatile private var _state: Option[State] = None
 
@@ -39,7 +36,6 @@ object Isabelle_System
 
   def standard_system: Standard_System = check_state().standard_system
   def settings: Map[String, String] = check_state().settings
-  def symbols: Symbol.Interpretation = check_state().symbols
 
   /*
     isabelle_home precedence:
@@ -51,8 +47,9 @@ object Isabelle_System
     if (_state.isEmpty) {
       import scala.collection.JavaConversions._
 
-      val standard_system = new Standard_System
+      System.err.println("### Isabelle system initialization")
 
+      val standard_system = new Standard_System
       val settings =
       {
         val env = Map(System.getenv.toList: _*) +
@@ -89,17 +86,7 @@ object Isabelle_System
                 ("PATH" -> System.getenv("PATH"))
             }
           }
-
-      val symbols =
-      {
-        val isabelle_symbols = settings.getOrElse("ISABELLE_SYMBOLS", "")
-        if (isabelle_symbols == "") error("Undefined environment variable: ISABELLE_SYMBOLS")
-        val files =
-          Path.split(isabelle_symbols).map(p => new File(standard_system.jvm_path(p.implode)))
-        new Symbol.Interpretation(split_lines(Standard_System.try_read(files)))
-      }
-
-      _state = Some(State(standard_system, settings, symbols))
+      _state = Some(State(standard_system, settings))
     }
   }
 

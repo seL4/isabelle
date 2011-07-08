@@ -13,9 +13,10 @@ end
 structure SPARK_Commands: SPARK_COMMANDS =
 struct
 
+(* FIXME proper Thy_Load.use_file, also for fdl_path and rls_path (!?) *)
 fun spark_open (vc_name, prfx) thy =
   let
-    val vc_path = Thy_Load.check_file (Thy_Load.master_directory thy) (Path.explode vc_name);
+    val ((vc_path, vc_id), vc_text) = Thy_Load.load_file thy (Path.explode vc_name);
     val (base, header) =
       (case Path.split_ext vc_path of
         (base, "vcg") => (base, Fdl_Lexer.vcg_header >> K ())
@@ -27,7 +28,7 @@ fun spark_open (vc_name, prfx) thy =
     SPARK_VCs.set_vcs
       (snd (Fdl_Parser.parse_declarations (Path.position fdl_path) (File.read fdl_path)))
       (Fdl_Parser.parse_rules (Path.position rls_path) (File.read rls_path))
-      (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) (File.read vc_path)))
+      (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) vc_text))
       base prfx thy
   end;
 

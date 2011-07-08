@@ -13,6 +13,9 @@ import scala.util.matching.Regex
 
 object Symbol
 {
+  type Symbol = String
+
+
   /* spaces */
 
   val spc = ' '
@@ -64,10 +67,10 @@ object Symbol
 
   def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || '\ud800' <= c && c <= '\udfff')
 
-  def is_physical_newline(s: String): Boolean =
+  def is_physical_newline(s: Symbol): Boolean =
     s == "\n" || s == "\r" || s == "\r\n"
 
-  def is_malformed(s: String): Boolean =
+  def is_malformed(s: Symbol): Boolean =
     !(s.length == 1 && is_plain(s(0))) && malformed_symbol.pattern.matcher(s).matches
 
   class Matcher(text: CharSequence)
@@ -85,13 +88,13 @@ object Symbol
   }
 
 
-  /* efficient iterators */
+  /* iterator */
 
-  private val char_symbols: Array[String] =
+  private val char_symbols: Array[Symbol] =
     (0 until 256).iterator.map(i => new String(Array(i.toChar))).toArray
 
-  def iterator(text: CharSequence): Iterator[String] =
-    new Iterator[String]
+  def iterator(text: CharSequence): Iterator[Symbol] =
+    new Iterator[Symbol]
     {
       private val matcher = new Matcher(text)
       private var i = 0
@@ -203,16 +206,20 @@ object Symbol
 
 
 
-  /** Symbol interpretation **/
+  /** symbol interpretation **/
 
-  class Interpretation(symbol_decls: List[String])
+  private lazy val symbols =
+    new Interpretation(
+      Isabelle_System.try_read(Path.split(Isabelle_System.getenv_strict("ISABELLE_SYMBOLS"))))
+
+  private class Interpretation(symbols_spec: String)
   {
     /* read symbols */
 
     private val empty = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
     private val key = new Regex("""(?xs) (.+): """)
 
-    private def read_decl(decl: String): (String, Map[String, String]) =
+    private def read_decl(decl: String): (Symbol, Map[String, String]) =
     {
       def err() = error("Bad symbol declaration: " + decl)
 
@@ -231,21 +238,21 @@ object Symbol
       }
     }
 
-    private val symbols: List[(String, Map[String, String])] =
+    private val symbols: List[(Symbol, Map[String, String])] =
       Map((
-        for (decl <- symbol_decls if !empty.pattern.matcher(decl).matches)
+        for (decl <- split_lines(symbols_spec) if !empty.pattern.matcher(decl).matches)
           yield read_decl(decl)): _*) toList
 
 
     /* misc properties */
 
-    val names: Map[String, String] =
+    val names: Map[Symbol, String] =
     {
       val name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
 
-    val abbrevs: Map[String, String] =
+    val abbrevs: Map[Symbol, String] =
       Map((
         for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
           yield (sym -> props("abbrev"))): _*)
@@ -291,7 +298,7 @@ object Symbol
 
     /* user fonts */
 
-    val fonts: Map[String, String] =
+    val fonts: Map[Symbol, String] =
       recode_map((
         for ((sym, props) <- symbols if props.isDefinedAt("font"))
           yield (sym -> props("font"))): _*)
@@ -299,12 +306,10 @@ object Symbol
     val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
     val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
 
-    def lookup_font(sym: String): Option[Int] = fonts.get(sym).map(font_index(_))
-
 
     /* classification */
 
-    private val letters = recode_set(
+    val letters = recode_set(
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
       "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
@@ -339,37 +344,20 @@ object Symbol
 
       "\\<^isub>", "\\<^isup>")
 
-    private val blanks =
+    val blanks =
       recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
 
-    private val sym_chars =
+    val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
-
-    def is_letter(sym: String): Boolean = letters.contains(sym)
-    def is_digit(sym: String): Boolean = sym.length == 1 && '0' <= sym(0) && sym(0) <= '9'
-    def is_quasi(sym: String): Boolean = sym == "_" || sym == "'"
-    def is_letdig(sym: String): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
-    def is_blank(sym: String): Boolean = blanks.contains(sym)
-    def is_symbolic_char(sym: String): Boolean = sym_chars.contains(sym)
-    def is_symbolic(sym: String): Boolean =
-      sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
 
 
     /* control symbols */
 
-    private val ctrl_decoded: Set[String] =
+    val ctrl_decoded: Set[Symbol] =
       Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
 
-    def is_ctrl(sym: String): Boolean =
-      sym.startsWith("\\<^") || ctrl_decoded.contains(sym)
-
-    def is_controllable(sym: String): Boolean =
-      !is_blank(sym) && !is_ctrl(sym) && !is_malformed(sym)
-
-    private val subscript_decoded = Set(decode("\\<^sub>"), decode("\\<^isub>"))
-    private val superscript_decoded = Set(decode("\\<^sup>"), decode("\\<^isup>"))
-    def is_subscript_decoded(sym: String): Boolean = subscript_decoded.contains(sym)
-    def is_superscript_decoded(sym: String): Boolean = superscript_decoded.contains(sym)
+    val subscript_decoded = Set(decode("\\<^sub>"), decode("\\<^isub>"))
+    val superscript_decoded = Set(decode("\\<^sup>"), decode("\\<^isup>"))
 
     val bold_decoded = decode("\\<^bold>")
     val bsub_decoded = decode("\\<^bsub>")
@@ -377,4 +365,47 @@ object Symbol
     val bsup_decoded = decode("\\<^bsup>")
     val esup_decoded = decode("\\<^esup>")
   }
+
+
+  /* tables */
+
+  def names: Map[Symbol, String] = symbols.names
+  def abbrevs: Map[Symbol, String] = symbols.abbrevs
+
+  def decode(text: String): String = symbols.decode(text)
+  def encode(text: String): String = symbols.encode(text)
+
+  def fonts: Map[Symbol, String] = symbols.fonts
+  def font_names: List[String] = symbols.font_names
+  def font_index: Map[String, Int] = symbols.font_index
+  def lookup_font(sym: Symbol): Option[Int] = symbols.fonts.get(sym).map(font_index(_))
+
+
+  /* classification */
+
+  def is_letter(sym: Symbol): Boolean = symbols.letters.contains(sym)
+  def is_digit(sym: Symbol): Boolean = sym.length == 1 && '0' <= sym(0) && sym(0) <= '9'
+  def is_quasi(sym: Symbol): Boolean = sym == "_" || sym == "'"
+  def is_letdig(sym: Symbol): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
+  def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
+  def is_symbolic_char(sym: Symbol): Boolean = symbols.sym_chars.contains(sym)
+  def is_symbolic(sym: Symbol): Boolean =
+    sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
+
+
+  /* control symbols */
+
+  def is_ctrl(sym: Symbol): Boolean =
+    sym.startsWith("\\<^") || symbols.ctrl_decoded.contains(sym)
+
+  def is_controllable(sym: Symbol): Boolean =
+    !is_blank(sym) && !is_ctrl(sym) && !is_malformed(sym)
+
+  def is_subscript_decoded(sym: Symbol): Boolean = symbols.subscript_decoded.contains(sym)
+  def is_superscript_decoded(sym: Symbol): Boolean = symbols.superscript_decoded.contains(sym)
+  def is_bold_decoded(sym: Symbol): Boolean = sym == symbols.bold_decoded
+  def is_bsub_decoded(sym: Symbol): Boolean = sym == symbols.bsub_decoded
+  def is_esub_decoded(sym: Symbol): Boolean = sym == symbols.esub_decoded
+  def is_bsup_decoded(sym: Symbol): Boolean = sym == symbols.bsup_decoded
+  def is_esup_decoded(sym: Symbol): Boolean = sym == symbols.esup_decoded
 }

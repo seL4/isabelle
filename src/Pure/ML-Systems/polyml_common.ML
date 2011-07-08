@@ -30,6 +30,7 @@ val _ = PolyML.Compiler.forgetValue "foldl";
 val _ = PolyML.Compiler.forgetValue "foldr";
 val _ = PolyML.Compiler.forgetValue "print";
 val _ = PolyML.Compiler.forgetValue "explode";
+val _ = PolyML.Compiler.forgetValue "concat";
 
 
 (* Compiler options *)

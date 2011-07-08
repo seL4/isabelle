@@ -57,8 +57,6 @@ object HTML
 
   def spans(input: XML.Tree, original_data: Boolean = false): XML.Body =
   {
-    val symbols = Isabelle_System.symbols
-
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
         case XML.Elem(m @ Markup(name, props), ts) =>
@@ -85,14 +83,14 @@ object HTML
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
             if (s1 == "\n") add(XML.elem(BR))
-            else if (s1 == symbols.bsub_decoded) t ++= s1  // FIXME
-            else if (s1 == symbols.esub_decoded) t ++= s1  // FIXME
-            else if (s1 == symbols.bsup_decoded) t ++= s1  // FIXME
-            else if (s1 == symbols.esup_decoded) t ++= s1  // FIXME
-            else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
-            else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
-            else if (s1 == symbols.bold_decoded) { add(hidden(s1)); add(bold(s2())) }
-            else if (symbols.fonts.isDefinedAt(s1)) { add(user_font(symbols.fonts(s1), s1)) }
+            else if (Symbol.is_bsub_decoded(s1)) t ++= s1  // FIXME
+            else if (Symbol.is_esub_decoded(s1)) t ++= s1  // FIXME
+            else if (Symbol.is_bsup_decoded(s1)) t ++= s1  // FIXME
+            else if (Symbol.is_esup_decoded(s1)) t ++= s1  // FIXME
+            else if (Symbol.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
+            else if (Symbol.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
+            else if (Symbol.is_bold_decoded(s1)) { add(hidden(s1)); add(bold(s2())) }
+            else if (Symbol.fonts.isDefinedAt(s1)) { add(user_font(Symbol.fonts(s1), s1)) }
             else t ++= s1
           }
           flush()

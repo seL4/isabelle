@@ -199,10 +199,15 @@ object Isabelle
           case Some(model) => Some(model)
           case None =>
             // FIXME strip protocol prefix of URL
-            Thy_Header.split_thy_path(Isabelle_System.posix_path(buffer.getPath)) match {
-              case Some((master_dir, thy_name)) =>
-                Some(Document_Model.init(session, buffer, master_dir, thy_name))
-              case None => None
+            {
+              try {
+                Some(Thy_Header.split_thy_path(
+                  Path.explode(Isabelle_System.posix_path(buffer.getPath))))
+              }
+              catch { case _ => None }
+            } map {
+              case (master_dir, thy_name) =>
+                Document_Model.init(session, buffer, master_dir, thy_name)
             }
         }
       if (opt_model.isDefined) {

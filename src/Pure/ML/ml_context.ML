@@ -33,7 +33,6 @@ sig
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: bool -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
   val eval_text: bool -> Position.T -> Symbol_Pos.text -> unit
-  val eval_file: Path.T -> unit
   val eval_in: Proof.context option -> bool -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
   val eval_text_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
@@ -207,7 +206,6 @@ end;
 (* derived versions *)
 
 fun eval_text verbose pos txt = eval verbose pos (ML_Lex.read pos txt);
-fun eval_file path = eval_text true (Path.position path) (File.read path);
 
 fun eval_in ctxt verbose pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos ants) ();

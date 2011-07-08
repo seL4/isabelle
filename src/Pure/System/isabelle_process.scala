@@ -92,7 +92,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 
   private def put_result(kind: String, text: String)
   {
-    put_result(kind, Nil, List(XML.Text(Isabelle_System.symbols.decode(text))))
+    put_result(kind, Nil, List(XML.Text(Symbol.decode(text))))
   }
 
 
@@ -341,7 +341,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
-        YXML.parse_body_failsafe(YXML.decode_chars(Isabelle_System.symbols.decode, buf, 0, n))
+        YXML.parse_body_failsafe(YXML.decode_chars(Symbol.decode, buf, 0, n))
         //}}}
       }
 
