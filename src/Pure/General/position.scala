@@ -39,7 +39,6 @@ object Position
 
   private val purge_pos = Map(
     Markup.DEF_LINE -> Markup.LINE,
-    Markup.DEF_COLUMN -> Markup.COLUMN,
     Markup.DEF_OFFSET -> Markup.OFFSET,
     Markup.DEF_END_OFFSET -> Markup.END_OFFSET,
     Markup.DEF_FILE -> Markup.FILE,

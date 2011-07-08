@@ -118,7 +118,7 @@ fun run_actions tr pre post =
     val st = (pre, post, Time.fromSeconds (Config.get_global thy timeout))
 
     val str0 = string_of_int o the_default 0
-    val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
+    val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.offset_of pos)
     val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
   in
     only_within_range thy pos (apply_actions thy pos name info st) (Actions.get thy)

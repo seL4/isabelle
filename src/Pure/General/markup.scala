@@ -114,20 +114,18 @@ object Markup
   /* position */
 
   val LINE = "line"
-  val COLUMN = "column"
   val OFFSET = "offset"
   val END_OFFSET = "end_offset"
   val FILE = "file"
   val ID = "id"
 
   val DEF_LINE = "def_line"
-  val DEF_COLUMN = "def_column"
   val DEF_OFFSET = "def_offset"
   val DEF_END_OFFSET = "def_end_offset"
   val DEF_FILE = "def_file"
   val DEF_ID = "def_id"
 
-  val POSITION_PROPERTIES = Set(LINE, COLUMN, OFFSET, END_OFFSET, FILE, ID)
+  val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, FILE, ID)
   val POSITION = "position"
 
 

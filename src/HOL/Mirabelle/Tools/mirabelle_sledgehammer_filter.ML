@@ -64,8 +64,8 @@ fun init proof_file _ thy =
   let
     fun do_line line =
       case line |> space_explode ":" of
-        [line_num, col_num, proof] =>
-        SOME (pairself (the o Int.fromString) (line_num, col_num),
+        [line_num, offset, proof] =>
+        SOME (pairself (the o Int.fromString) (line_num, offset),
               proof |> space_explode " " |> filter_out (curry (op =) ""))
        | _ => NONE
     val proofs = File.read (Path.explode proof_file)
@@ -105,9 +105,9 @@ val default_prover = ATP_Systems.eN (* arbitrary ATP *)
 fun with_index (i, s) = s ^ "@" ^ string_of_int i
 
 fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
-  case (Position.line_of pos, Position.column_of pos) of
-    (SOME line_num, SOME col_num) =>
-    (case Prooftab.lookup (!proof_table) (line_num, col_num) of
+  case (Position.line_of pos, Position.offset_of pos) of
+    (SOME line_num, SOME offset) =>
+    (case Prooftab.lookup (!proof_table) (line_num, offset) of
        SOME proofs =>
        let
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre

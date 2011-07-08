@@ -18,8 +18,7 @@ fun position_of (loc: PolyML.location) =
         XML.Elem ((e, atts), _) => if e = Markup.positionN then atts else []
       | XML.Text s => Position.file_name s);
   in
-    Position.make
-      {line = line, column = 0, offset = offset, end_offset = end_offset, props = props}
+    Position.make {line = line, offset = offset, end_offset = end_offset, props = props}
   end;
 
 fun exn_position exn =

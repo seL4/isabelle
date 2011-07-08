@@ -245,7 +245,7 @@ fun log_sh_data log
 fun str_of_pos (pos, triv) =
   let val str0 = string_of_int o the_default 0
   in
-    str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos) ^
+    str0 (Position.line_of pos) ^ ":" ^ str0 (Position.offset_of pos) ^
     (if triv then "[T]" else "")
   end
 
