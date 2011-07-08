@@ -116,31 +116,31 @@ Further interpretations are necessary for
 \ {\isaliteral{22}{\isachardoublequoteopen}}lattice\ {\isaliteral{28}{\isacharparenleft}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptxt}%
 \normalsize We have already shown that this is a partial
-	order,%
+        order,%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ unfold{\isaliteral{5F}{\isacharunderscore}}locales%
 \begin{isamarkuptxt}%
 \normalsize hence only the lattice axioms remain to be
-	shown.
+        shown.
         \begin{isabelle}%
 \ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}inf{\isaliteral{2E}{\isachardot}}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}inf\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ x\ y\ inf\isanewline
 \ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}sup{\isaliteral{2E}{\isachardot}}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}sup\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ x\ y\ sup%
 \end{isabelle}
-	By \isa{is{\isaliteral{5F}{\isacharunderscore}}inf} and \isa{is{\isaliteral{5F}{\isacharunderscore}}sup},%
+        By \isa{is{\isaliteral{5F}{\isacharunderscore}}inf} and \isa{is{\isaliteral{5F}{\isacharunderscore}}sup},%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isaliteral{28}{\isacharparenleft}}unfold\ int{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def\ int{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \normalsize the goals are transformed to these
-	statements:
-	\begin{isabelle}%
+        statements:
+        \begin{isabelle}%
 \ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}inf{\isaliteral{5C3C6C653E}{\isasymle}}x{\isaliteral{2E}{\isachardot}}\ inf\ {\isaliteral{5C3C6C653E}{\isasymle}}\ y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ z\ {\isaliteral{5C3C6C653E}{\isasymle}}\ x\ {\isaliteral{5C3C616E643E}{\isasymand}}\ z\ {\isaliteral{5C3C6C653E}{\isasymle}}\ y\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ z\ {\isaliteral{5C3C6C653E}{\isasymle}}\ inf{\isaliteral{29}{\isacharparenright}}\isanewline
 \ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}sup{\isaliteral{5C3C67653E}{\isasymge}}x{\isaliteral{2E}{\isachardot}}\ y\ {\isaliteral{5C3C6C653E}{\isasymle}}\ sup\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6C653E}{\isasymle}}\ z\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{5C3C6C653E}{\isasymle}}\ z\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ sup\ {\isaliteral{5C3C6C653E}{\isasymle}}\ z{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-	This is Presburger arithmetic, which can be solved by the
+        This is Presburger arithmetic, which can be solved by the
         method \isa{arith}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%

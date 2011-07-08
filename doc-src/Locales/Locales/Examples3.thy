@@ -52,17 +52,17 @@ text {* Further interpretations are necessary for
   proof -
     show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       txt {* \normalsize We have already shown that this is a partial
-	order, *}
+        order, *}
       apply unfold_locales
       txt {* \normalsize hence only the lattice axioms remain to be
-	shown.
+        shown.
         @{subgoals [display]}
-	By @{text is_inf} and @{text is_sup}, *}
+        By @{text is_inf} and @{text is_sup}, *}
       apply (unfold int.is_inf_def int.is_sup_def)
       txt {* \normalsize the goals are transformed to these
-	statements:
-	@{subgoals [display]}
-	This is Presburger arithmetic, which can be solved by the
+        statements:
+        @{subgoals [display]}
+        This is Presburger arithmetic, which can be solved by the
         method @{text arith}. *}
       by arith+
     txt {* \normalsize In order to show the equations, we put ourselves
