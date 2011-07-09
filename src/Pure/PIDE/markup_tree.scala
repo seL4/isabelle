@@ -48,7 +48,7 @@ object Markup_Tree
 }
 
 
-case class Markup_Tree(val branches: Markup_Tree.Branches.T)
+sealed case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 {
   import Markup_Tree._
 

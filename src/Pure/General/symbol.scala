@@ -120,7 +120,7 @@ object Symbol
 
   class Index(text: CharSequence)
   {
-    case class Entry(chr: Int, sym: Int)
+    sealed case class Entry(chr: Int, sym: Int)
     val index: Array[Entry] =
     {
       val matcher = new Matcher(text)

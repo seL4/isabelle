@@ -12,7 +12,7 @@ import java.security.MessageDigest
 
 object SHA1
 {
-  case class Digest(rep: String)
+  sealed case class Digest(rep: String)
   {
     override def toString: String = rep
   }
