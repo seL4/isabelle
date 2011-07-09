@@ -1762,6 +1762,9 @@ lemma real_inverse_code [code]: "inverse (Ratreal x) = Ratreal (inverse x)"
 lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
   by (simp add: of_rat_divide)
 
+lemma real_floor_code [code]: "floor (Ratreal x) = floor x"
+  by (metis Ratreal_def floor_le_iff floor_unique le_floor_iff of_int_floor_le of_rat_of_int_eq real_less_eq_code)
+
 definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_ratreal k = Code_Evaluation.valtermify Ratreal {\<cdot>} k"

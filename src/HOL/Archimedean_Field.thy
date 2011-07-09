@@ -271,7 +271,7 @@ subsection {* Ceiling function *}
 
 definition
   ceiling :: "'a::floor_ceiling \<Rightarrow> int" where
-  [code del]: "ceiling x = - floor (- x)"
+  "ceiling x = - floor (- x)"
 
 notation (xsymbols)
   ceiling  ("\<lceil>_\<rceil>")

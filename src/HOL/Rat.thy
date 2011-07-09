@@ -1097,6 +1097,10 @@ proof (cases p)
   by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract)
 qed
 
+lemma rat_floor_code [code]:
+  "floor p = (let (a, b) = quotient_of p in a div b)"
+by (cases p) (simp add: quotient_of_Fract floor_Fract)
+
 instantiation rat :: equal
 begin
 
