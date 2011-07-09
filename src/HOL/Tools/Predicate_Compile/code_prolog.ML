@@ -814,7 +814,7 @@ val scan_ident =
 
 fun dest_Char (Symbol.Char s) = s
 
-val string_of = concat o map (dest_Char o Symbol.decode)
+val string_of = implode o map (dest_Char o Symbol.decode)
 
 val is_atom_ident = forall Symbol.is_ascii_lower
 
