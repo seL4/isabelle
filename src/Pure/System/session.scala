@@ -303,13 +303,14 @@ class Session(val file_store: Session.File_Store)
             global_state.change(_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
+            prover = None
             phase = Session.Inactive
           }
           finished = true
           reply(())
 
-        case Interrupt =>
-          prover.map(_.interrupt)
+        case Interrupt if prover.isDefined =>
+          prover.get.interrupt
 
         case Edit_Node(name, header, text_edits) if prover.isDefined =>
           val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
@@ -331,8 +332,7 @@ class Session(val file_store: Session.File_Store)
         case result: Isabelle_Process.Result =>
           handle_result(result)
 
-        case bad if prover.isDefined =>
-          System.err.println("session_actor: ignoring bad message " + bad)
+        case bad => System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
     //}}}
