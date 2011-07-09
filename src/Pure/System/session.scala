@@ -133,10 +133,10 @@ class Session(val file_store: Session.File_Store)
   def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = new Volatile(Document.State.init)
-  def current_state(): Document.State = global_state.peek()
+  def current_state(): Document.State = global_state()
 
   def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
-    current_state().snapshot(name, pending_edits)
+    global_state().snapshot(name, pending_edits)
 
 
   /* theory files */
@@ -180,13 +180,13 @@ class Session(val file_store: Session.File_Store)
     //{{{
     {
       val syntax = current_syntax()
-      val previous = current_state().history.tip.version
+      val previous = global_state().history.tip.version
       val doc_edits = edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
       val change = global_state.change_yield(_.extend_history(previous, doc_edits, result))
 
       change.version.map(_ => {
-        assignments.await { current_state().is_assigned(previous.get_finished) }
+        assignments.await { global_state().is_assigned(previous.get_finished) }
         this_actor ! Change_Node(name, header, change) })
     }
     //}}}
@@ -200,7 +200,7 @@ class Session(val file_store: Session.File_Store)
       val previous = change.previous.get_finished
       val (node_edits, version) = change.result.get_finished
 
-      var former_assignment = current_state().the_assignment(previous).get_finished
+      var former_assignment = global_state().the_assignment(previous).get_finished
       for {
         (name, Some(cmd_edits)) <- node_edits
         (prev, None) <- cmd_edits
@@ -219,7 +219,7 @@ class Session(val file_store: Session.File_Store)
                     c2 match {
                       case None => None
                       case Some(command) =>
-                        if (current_state().lookup_command(command.id).isEmpty) {
+                        if (global_state().lookup_command(command.id).isEmpty) {
                           global_state.change(_.define_command(command))
                           prover.get.define_command(command.id, Symbol.encode(command.source))
                         }

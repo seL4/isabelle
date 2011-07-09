@@ -10,7 +10,7 @@ package isabelle
 class Volatile[A](init: A)
 {
   @volatile private var state: A = init
-  def peek(): A = state
+  def apply(): A = state
   def change(f: A => A) { state = f(state) }
   def change_yield[B](f: A => (B, A)): B =
   {
