@@ -194,7 +194,7 @@ object Thy_Syntax
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
           doc_edits += (name -> Some(cmd_edits))
-          nodes += (name -> new Document.Node(node.header, commands2))
+          nodes += (name -> Document.Node(node.header, node.blobs, commands2))
       }
       (doc_edits.toList, new Document.Version(Document.new_id(), nodes))
     }

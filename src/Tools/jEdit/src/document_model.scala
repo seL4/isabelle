@@ -62,7 +62,7 @@ class Document_Model(val session: Session,
   /* pending text edits */
 
   private def node_header(): Document.Node.Header =
-    new Document.Node.Header(master_dir,
+    Document.Node.Header(master_dir,
       Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) })
 
   private object pending_edits  // owned by Swing thread

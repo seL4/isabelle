@@ -46,10 +46,10 @@ object Document
 
   object Node
   {
-    class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header.Header])
-    val empty_header = new Header(Path.current, Exn.Exn(ERROR("Bad theory header")))
+    sealed case class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header.Header])
+    val empty_header = Header(Path.current, Exn.Exn(ERROR("Bad theory header")))
 
-    val empty: Node = new Node(empty_header, Linear_Set())
+    val empty: Node = Node(empty_header, Map(), Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -65,11 +65,14 @@ object Document
 
   private val block_size = 1024
 
-  class Node(val header: Node.Header, val commands: Linear_Set[Command])
+  sealed case class Node(
+    val header: Node.Header,
+    val blobs: Map[String, Blob],
+    val commands: Linear_Set[Command])
   {
     /* header */
 
-    def set_header(header: Node.Header): Node = new Node(header, commands)
+    def set_header(new_header: Node.Header): Node = copy(header = new_header)
 
 
     /* commands */
@@ -209,7 +212,7 @@ object Document
     }
   }
 
-  case class State(
+  sealed case class State(
     val versions: Map[Version_ID, Version] = Map(),
     val commands: Map[Command_ID, Command.State] = Map(),
     val execs: Map[Exec_ID, (Command.State, Set[Version])] = Map(),

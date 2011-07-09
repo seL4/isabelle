@@ -30,6 +30,7 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
+  PIDE/blob.scala
   PIDE/command.scala
   PIDE/document.scala
   PIDE/isar_document.scala
