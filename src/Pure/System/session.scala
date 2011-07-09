@@ -58,7 +58,7 @@ class Session(val file_store: Session.File_Store)
   val assignments = new Event_Bus[Session.Assignment.type]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
-  val raw_messages = new Event_Bus[Isabelle_Process.Result]
+  val raw_messages = new Event_Bus[Isabelle_Process.Message]
 
 
 
@@ -276,8 +276,6 @@ class Session(val file_store: Session.File_Store)
           }
           else bad_result(result)
         }
-
-      raw_messages.event(result)
     }
     //}}}
 
@@ -320,8 +318,12 @@ class Session(val file_store: Session.File_Store)
         case Change_Node(name, header, change) if prover.isDefined =>
           handle_change(name, header, change)
 
+        case input: Isabelle_Process.Input =>
+          raw_messages.event(input)
+
         case result: Isabelle_Process.Result =>
           handle_result(result)
+          raw_messages.event(result)
 
         case bad => System.err.println("session_actor: ignoring bad message " + bad)
       }

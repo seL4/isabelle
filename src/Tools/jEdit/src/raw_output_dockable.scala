@@ -30,6 +30,8 @@ class Raw_Output_Dockable(view: View, position: String)
   private val main_actor = actor {
     loop {
       react {
+        case input: Isabelle_Process.Input =>
+
         case result: Isabelle_Process.Result =>
           if (result.is_stdout)
             Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
