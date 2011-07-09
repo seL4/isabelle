@@ -64,7 +64,7 @@ class Document_Model(val session: Session,
   private val node_name = (master_dir + Path.basic(thy_name)).implode
 
   private def node_header(): Document.Node.Header =
-    Document.Node.Header(master_dir,
+    Document.Node.Header(Path.current,  // FIXME master_dir (!?)
       Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) })
 
   private object pending_edits  // owned by Swing thread

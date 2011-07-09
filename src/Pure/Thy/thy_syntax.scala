@@ -99,8 +99,12 @@ object Thy_Syntax
 
   /** text edits **/
 
-  def text_edits(syntax: Outer_Syntax, previous: Document.Version,
-      edits: List[Document.Edit_Text]): (List[Document.Edit_Command], Document.Version) =
+  def text_edits(
+      syntax: Outer_Syntax,
+      previous: Document.Version,
+      edits: List[Document.Edit_Text],
+      headers: List[(String, Document.Node.Header)])
+    : (List[Document.Edit_Command], List[(String, Thy_Header.Header)], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
@@ -169,10 +173,25 @@ object Thy_Syntax
     }
 
 
+    /* node header */
+
+    def node_header(name: String, node: Document.Node)
+        : (List[(String, Thy_Header.Header)], Document.Node.Header) =
+      (node.header.thy_header, headers.find(p => p._1 == name).map(_._2)) match {
+        case (Exn.Res(thy_header0), Some(header @ Document.Node.Header(_, Exn.Res(thy_header))))
+        if thy_header0 != thy_header =>
+          (List((name, thy_header)), header)
+        case (Exn.Exn(_), Some(header @ Document.Node.Header(_, Exn.Res(thy_header)))) =>
+          (List((name, thy_header)), header)
+        case _ => (Nil, node.header)
+      }
+
+
     /* resulting document edits */
 
     {
       val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
+      val header_edits = new mutable.ListBuffer[(String, Thy_Header.Header)]
       var nodes = previous.nodes
 
       edits foreach {
@@ -194,9 +213,13 @@ object Thy_Syntax
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
           doc_edits += (name -> Some(cmd_edits))
-          nodes += (name -> Document.Node(node.header, node.blobs, commands2))
+
+          val (new_headers, new_header) = node_header(name, node)
+          header_edits ++= new_headers
+
+          nodes += (name -> Document.Node(new_header, node.blobs, commands2))
       }
-      (doc_edits.toList, new Document.Version(Document.new_id(), nodes))
+      (doc_edits.toList, header_edits.toList, Document.Version(Document.new_id(), nodes))
     }
   }
 }

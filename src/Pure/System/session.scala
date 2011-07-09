@@ -165,7 +165,12 @@ class Session(val file_store: Session.File_Store)
   private case object Interrupt
   private case class Init_Node(name: String, header: Document.Node.Header, text: String)
   private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
-  private case class Change_Node(name: String, header: Document.Node.Header, change: Document.Change)
+  private case class Change_Node(
+    name: String,
+    doc_edits: List[Document.Edit_Command],
+    header_edits: List[(String, Thy_Header.Header)],
+    previous: Document.Version,
+    version: Document.Version)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -182,27 +187,36 @@ class Session(val file_store: Session.File_Store)
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
       val doc_edits = edits.map(edit => (name, edit))
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
-      val change = global_state.change_yield(_.extend_history(previous, doc_edits, result))
+      val result = Future.fork {
+        Thy_Syntax.text_edits(syntax, previous.join, doc_edits, List((name, header)))
+      }
+      val change =
+        global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._3)))
 
-      change.version.map(_ => {
-        assignments.await { global_state().is_assigned(previous.get_finished) }
-        this_actor ! Change_Node(name, header, change) })
+      result.map {
+        case (doc_edits, header_edits, _) =>
+          assignments.await { global_state().is_assigned(previous.get_finished) }
+          this_actor !
+            Change_Node(name, doc_edits, header_edits, previous.join, change.version.join)
+      }
     }
     //}}}
 
 
     /* resulting changes */
 
-    def handle_change(name: String, header: Document.Node.Header, change: Document.Change)
+    def handle_change(change: Change_Node)
     //{{{
     {
-      val previous = change.previous.get_finished
-      val (node_edits, version) = change.result.get_finished
+      val previous = change.previous
+      val version = change.version
+      val name = change.name
+      val doc_edits = change.doc_edits
+      val header_edits = change.header_edits
 
       var former_assignment = global_state().the_assignment(previous).get_finished
       for {
-        (name, Some(cmd_edits)) <- node_edits
+        (name, Some(cmd_edits)) <- doc_edits
         (prev, None) <- cmd_edits
         removed <- previous.nodes(name).commands.get_after(prev)
       } former_assignment -= removed
@@ -216,14 +230,15 @@ class Session(val file_store: Session.File_Store)
         command.id
       }
       val id_edits =
-        node_edits map {
+        doc_edits map {
           case (name, edits) =>
             val ids =
               edits.map(_.map { case (c1, c2) => (c1.map(id_command), c2.map(id_command)) })
             (name, ids)
         }
+
       global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, id_edits, header_edits)
     }
     //}}}
 
@@ -315,8 +330,8 @@ class Session(val file_store: Session.File_Store)
           handle_edits(name, header, List(Some(text_edits)))
           reply(())
 
-        case Change_Node(name, header, change) if prover.isDefined =>
-          handle_change(name, header, change)
+        case change: Change_Node if prover.isDefined =>
+          handle_change(change)
 
         case input: Isabelle_Process.Input =>
           raw_messages.event(input)
