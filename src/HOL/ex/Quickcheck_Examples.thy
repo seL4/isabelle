@@ -294,6 +294,29 @@ quickcheck[exhaustive, size = 10, expect = counterexample]
 quickcheck[random, size = 10]
 oops
 
+subsubsection {* floor and ceiling functions *}
+
+lemma
+  "floor x + floor y = floor (x + y :: rat)"
+quickcheck[expect = counterexample]
+oops
+
+lemma
+  "floor x + floor y = floor (x + y :: real)"
+quickcheck[expect = counterexample]
+oops
+
+lemma
+  "ceiling x + ceiling y = ceiling (x + y :: rat)"
+quickcheck[expect = counterexample]
+oops
+
+lemma
+  "ceiling x + ceiling y = ceiling (x + y :: real)"
+quickcheck[expect = counterexample]
+oops
+
+
 subsection {* Examples with Records *}
 
 record point =
