@@ -793,6 +793,20 @@ proof
     done
 qed
 
+instantiation real :: floor_ceiling
+begin
+
+definition [code del]:
+  "floor (x::real) = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+
+instance proof
+  fix x :: real
+  show "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
+    unfolding floor_real_def using floor_exists1 by (rule theI')
+qed
+
+end
+
 subsection {* Completeness *}
 
 lemma not_positive_Real:

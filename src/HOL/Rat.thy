@@ -739,6 +739,20 @@ proof
   qed
 qed
 
+instantiation rat :: floor_ceiling
+begin
+
+definition [code del]:
+  "floor (x::rat) = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+
+instance proof
+  fix x :: rat
+  show "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
+    unfolding floor_rat_def using floor_exists1 by (rule theI')
+qed
+
+end
+
 lemma floor_Fract: "floor (Fract a b) = a div b"
   using rat_floor_lemma [of a b]
   by (simp add: floor_unique)

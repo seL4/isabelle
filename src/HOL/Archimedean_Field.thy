@@ -141,18 +141,15 @@ qed
 
 subsection {* Floor function *}
 
-definition
-  floor :: "'a::archimedean_field \<Rightarrow> int" where
-  [code del]: "floor x = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+class floor_ceiling = archimedean_field +
+  fixes floor :: "'a \<Rightarrow> int"
+  assumes floor_correct: "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
 
 notation (xsymbols)
   floor  ("\<lfloor>_\<rfloor>")
 
 notation (HTML output)
   floor  ("\<lfloor>_\<rfloor>")
-
-lemma floor_correct: "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
-  unfolding floor_def using floor_exists1 by (rule theI')
 
 lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> floor x = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
@@ -273,7 +270,7 @@ lemma floor_diff_one [simp]: "floor (x - 1) = floor x - 1"
 subsection {* Ceiling function *}
 
 definition
-  ceiling :: "'a::archimedean_field \<Rightarrow> int" where
+  ceiling :: "'a::floor_ceiling \<Rightarrow> int" where
   [code del]: "ceiling x = - floor (- x)"
 
 notation (xsymbols)
