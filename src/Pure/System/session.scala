@@ -165,6 +165,7 @@ class Session(val file_store: Session.File_Store)
   private case object Interrupt
   private case class Init_Node(name: String, header: Document.Node.Header, text: String)
   private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
+  private case class Change_Node(name: String, header: Document.Node.Header, change: Document.Change)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -174,24 +175,26 @@ class Session(val file_store: Session.File_Store)
 
     /* incoming edits */
 
-    def handle_edits(headers: List[Document.Node.Header], edits: List[Document.Edit_Text])
+    def handle_edits(name: String,
+        header: Document.Node.Header, edits: List[Option[List[Text.Edit]]])
     //{{{
     {
       val syntax = current_syntax()
       val previous = current_state().history.tip.version
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, edits) }
-      val change = global_state.change_yield(_.extend_history(previous, edits, result))
+      val doc_edits = edits.map(edit => (name, edit))
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
+      val change = global_state.change_yield(_.extend_history(previous, doc_edits, result))
 
       change.version.map(_ => {
         assignments.await { current_state().is_assigned(previous.get_finished) }
-        this_actor ! change })
+        this_actor ! Change_Node(name, header, change) })
     }
     //}}}
 
 
     /* resulting changes */
 
-    def handle_change(change: Document.Change)
+    def handle_change(name: String, header: Document.Node.Header, change: Document.Change)
     //{{{
     {
       val previous = change.previous.get_finished
@@ -312,22 +315,17 @@ class Session(val file_store: Session.File_Store)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
-        case Edit_Node(name, header, text_edits) if prover.isDefined =>
-          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
-          handle_edits(List(header), List((node_name, Some(text_edits))))
-          reply(())
-
         case Init_Node(name, header, text) if prover.isDefined =>
           // FIXME compare with existing node
-          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
-          handle_edits(List(header),
-            List(
-              (node_name, None),
-              (node_name, Some(List(Text.Edit.insert(0, text))))))
+          handle_edits(name, header, List(None, Some(List(Text.Edit.insert(0, text)))))
           reply(())
 
-        case change: Document.Change if prover.isDefined =>
-          handle_change(change)
+        case Edit_Node(name, header, text_edits) if prover.isDefined =>
+          handle_edits(name, header, List(Some(text_edits)))
+          reply(())
+
+        case Change_Node(name, header, change) if prover.isDefined =>
+          handle_change(name, header, change)
 
         case result: Isabelle_Process.Result =>
           handle_result(result)
