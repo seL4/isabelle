@@ -349,14 +349,24 @@ lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
   by (unfold Inter_eq) blast
 
 lemma Inter_lower: "B \<in> A ==> Inter A \<subseteq> B"
-  by blast
+  by (fact Inf_lower)
+
+lemma (in complete_lattice) Inf_less_eq:
+  assumes "\<And>v. v \<in> A \<Longrightarrow> v \<sqsubseteq> u"
+    and "A \<noteq> {}"
+  shows "\<Sqinter>A \<le> u"
+proof -
+  from `A \<noteq> {}` obtain v where "v \<in> A" by blast
+  moreover with assms have "v \<sqsubseteq> u" by blast
+  ultimately show ?thesis by (rule Inf_lower2)
+qed
 
 lemma Inter_subset:
   "[| !!X. X \<in> A ==> X \<subseteq> B; A ~= {} |] ==> \<Inter>A \<subseteq> B"
-  by blast
+  by (fact Inf_less_eq)
 
 lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> Inter A"
-  by (iprover intro: InterI subsetI dest: subsetD)
+  by (fact Inf_greatest)
 
 lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
   by (fact Inf_binary [symmetric])
