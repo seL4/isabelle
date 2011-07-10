@@ -190,58 +190,58 @@ lemma INF_leI2: "i \<in> A \<Longrightarrow> M i \<sqsubseteq> u \<Longrightarro
 lemma le_INFI: "(\<And>i. i \<in> A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (\<Sqinter>i\<in>A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)
 
-lemma SUP_le_iff: "(SUP i:A. M i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i \<in> A. M i \<sqsubseteq> u)"
+lemma SUP_le_iff: "(\<Squnion>i\<in>A. M i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i \<in> A. M i \<sqsubseteq> u)"
   unfolding SUPR_def by (auto simp add: Sup_le_iff)
 
-lemma le_INF_iff: "u \<sqsubseteq> (INF i:A. M i) \<longleftrightarrow> (\<forall>i \<in> A. u \<sqsubseteq> M i)"
+lemma le_INF_iff: "u \<sqsubseteq> (\<Sqinter>i\<in>A. M i) \<longleftrightarrow> (\<forall>i \<in> A. u \<sqsubseteq> M i)"
   unfolding INFI_def by (auto simp add: le_Inf_iff)
 
-lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
+lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>A. M) = M"
   by (auto intro: antisym INF_leI le_INFI)
 
-lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
+lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>i\<in>A. M) = M"
   by (auto intro: antisym SUP_leI le_SUPI)
 
 lemma INF_mono:
-  "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> (INF n:A. f n) \<le> (INF n:B. g n)"
+  "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<sqsubseteq> g m) \<Longrightarrow> (\<Sqinter>n\<in>A. f n) \<sqsubseteq> (\<Sqinter>n\<in>B. g n)"
   by (force intro!: Inf_mono simp: INFI_def)
 
 lemma SUP_mono:
-  "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<le> g m) \<Longrightarrow> (SUP n:A. f n) \<le> (SUP n:B. g n)"
+  "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<sqsubseteq> g m) \<Longrightarrow> (\<Squnion>n\<in>A. f n) \<sqsubseteq> (\<Squnion>n\<in>B. g n)"
   by (force intro!: Sup_mono simp: SUPR_def)
 
-lemma INF_subset:  "A \<subseteq> B \<Longrightarrow> INFI B f \<le> INFI A f"
+lemma INF_subset:  "A \<subseteq> B \<Longrightarrow> INFI B f \<sqsubseteq> INFI A f"
   by (intro INF_mono) auto
 
-lemma SUP_subset:  "A \<subseteq> B \<Longrightarrow> SUPR A f \<le> SUPR B f"
+lemma SUP_subset:  "A \<subseteq> B \<Longrightarrow> SUPR A f \<sqsubseteq> SUPR B f"
   by (intro SUP_mono) auto
 
-lemma INF_commute: "(INF i:A. INF j:B. f i j) = (INF j:B. INF i:A. f i j)"
+lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
   by (iprover intro: INF_leI le_INFI order_trans antisym)
 
-lemma SUP_commute: "(SUP i:A. SUP j:B. f i j) = (SUP j:B. SUP i:A. f i j)"
+lemma SUP_commute: "(\<Squnion>i\<in>A. \<Squnion>j\<in>B. f i j) = (\<Squnion>j\<in>B. \<Squnion>i\<in>A. f i j)"
   by (iprover intro: SUP_leI le_SUPI order_trans antisym)
 
 end
 
 lemma Inf_less_iff:
   fixes a :: "'a\<Colon>{complete_lattice,linorder}"
-  shows "Inf S < a \<longleftrightarrow> (\<exists>x\<in>S. x < a)"
+  shows "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
   unfolding not_le[symmetric] le_Inf_iff by auto
 
 lemma less_Sup_iff:
   fixes a :: "'a\<Colon>{complete_lattice,linorder}"
-  shows "a < Sup S \<longleftrightarrow> (\<exists>x\<in>S. a < x)"
+  shows "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
   unfolding not_le[symmetric] Sup_le_iff by auto
 
 lemma INF_less_iff:
   fixes a :: "'a::{complete_lattice,linorder}"
-  shows "(INF i:A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
+  shows "(\<Sqinter>i\<in>A. f i) \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>A. f x \<sqsubset> a)"
   unfolding INFI_def Inf_less_iff by auto
 
 lemma less_SUP_iff:
   fixes a :: "'a::{complete_lattice,linorder}"
-  shows "a < (SUP i:A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
+  shows "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUPR_def less_Sup_iff by auto
 
 subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
@@ -265,7 +265,7 @@ lemma INFI_bool_eq [simp]:
 proof (rule ext)+
   fix A :: "'a set"
   fix P :: "'a \<Rightarrow> bool"
-  show "(INF x:A. P x) \<longleftrightarrow> (\<forall>x \<in> A. P x)"
+  show "(\<Sqinter>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>A. P x)"
     by (auto simp add: Ball_def INFI_def Inf_bool_def)
 qed
 
@@ -274,7 +274,7 @@ lemma SUPR_bool_eq [simp]:
 proof (rule ext)+
   fix A :: "'a set"
   fix P :: "'a \<Rightarrow> bool"
-  show "(SUP x:A. P x) \<longleftrightarrow> (\<exists>x \<in> A. P x)"
+  show "(\<Squnion>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>A. P x)"
     by (auto simp add: Bex_def SUPR_def Sup_bool_def)
 qed
 
@@ -354,7 +354,7 @@ lemma Inter_lower: "B \<in> A \<Longrightarrow> \<Inter>A \<subseteq> B"
 lemma (in complete_lattice) Inf_less_eq:
   assumes "\<And>v. v \<in> A \<Longrightarrow> v \<sqsubseteq> u"
     and "A \<noteq> {}"
-  shows "\<Sqinter>A \<le> u"
+  shows "\<Sqinter>A \<sqsubseteq> u"
 proof -
   from `A \<noteq> {}` obtain v where "v \<in> A" by blast
   moreover with assms have "v \<sqsubseteq> u" by blast
