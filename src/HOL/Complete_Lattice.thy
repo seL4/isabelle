@@ -82,7 +82,7 @@ lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_empty Sup_insert)
 
-lemma le_Inf_iff: "b \<sqsubseteq> Inf A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
+lemma le_Inf_iff: "b \<sqsubseteq> \<Sqinter>A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
   by (auto intro: Inf_greatest dest: Inf_lower)
 
 lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
@@ -227,12 +227,12 @@ end
 lemma Inf_less_iff:
   fixes a :: "'a\<Colon>{complete_lattice,linorder}"
   shows "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
-  unfolding not_le[symmetric] le_Inf_iff by auto
+  unfolding not_le [symmetric] le_Inf_iff by auto
 
 lemma less_Sup_iff:
   fixes a :: "'a\<Colon>{complete_lattice,linorder}"
   shows "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
-  unfolding not_le[symmetric] Sup_le_iff by auto
+  unfolding not_le [symmetric] Sup_le_iff by auto
 
 lemma INF_less_iff:
   fixes a :: "'a::{complete_lattice,linorder}"
