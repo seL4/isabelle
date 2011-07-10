@@ -8,31 +8,33 @@ signature XML_DATA =
 sig
   structure Make:
   sig
-    val properties: Properties.T -> XML.body
-    val string: string -> XML.body
-    val int: int -> XML.body
-    val bool: bool -> XML.body
-    val unit: unit -> XML.body
-    val pair: ('a -> XML.body) -> ('b -> XML.body) -> 'a * 'b -> XML.body
-    val triple: ('a -> XML.body) -> ('b -> XML.body) -> ('c -> XML.body) -> 'a * 'b * 'c -> XML.body
-    val list: ('a -> XML.body) -> 'a list -> XML.body
-    val option: ('a -> XML.body) -> 'a option -> XML.body
-    val variant: ('a -> XML.body) list -> 'a -> XML.body
+    type 'a T = 'a -> XML.body
+    val properties: Properties.T T
+    val string: string T
+    val int: int T
+    val bool: bool T
+    val unit: unit T
+    val pair: 'a T -> 'b T -> ('a * 'b) T
+    val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
+    val list: 'a T -> 'a list T
+    val option: 'a T -> 'a option T
+    val variant: 'a T list -> 'a T
   end
   exception XML_ATOM of string
   exception XML_BODY of XML.body
   structure Dest:
   sig
-    val properties: XML.body -> Properties.T
-    val string : XML.body -> string
-    val int : XML.body -> int
-    val bool: XML.body -> bool
-    val unit: XML.body -> unit
-    val pair: (XML.body -> 'a) -> (XML.body -> 'b) -> XML.body -> 'a * 'b
-    val triple: (XML.body -> 'a) -> (XML.body -> 'b) -> (XML.body -> 'c) -> XML.body -> 'a * 'b * 'c
-    val list: (XML.body -> 'a) -> XML.body -> 'a list
-    val option: (XML.body -> 'a) -> XML.body -> 'a option
-    val variant: (XML.body -> 'a) list -> XML.body -> 'a
+    type 'a T = XML.body -> 'a
+    val properties: Properties.T T
+    val string : string T
+    val int : int T
+    val bool: bool T
+    val unit: unit T
+    val pair: 'a T -> 'b T -> ('a * 'b) T
+    val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
+    val list: 'a T -> 'a list T
+    val option: 'a T -> 'a option T
+    val variant: 'a T list -> 'a T
   end
 end;
 
@@ -43,6 +45,9 @@ struct
 
 structure Make =
 struct
+
+type 'a T = 'a -> XML.body;
+
 
 (* basic values *)
 
@@ -96,6 +101,9 @@ exception XML_BODY of XML.tree list;
 
 structure Dest =
 struct
+
+type 'a T = XML.body -> 'a;
+
 
 (* basic values *)
 

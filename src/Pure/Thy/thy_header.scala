@@ -31,9 +31,12 @@ object Thy_Header extends Parse.Parser
       Header(f(name), imports.map(f), uses.map(f))
   }
 
-  def make_xml_data(header: Header): XML.Body =
-  { import XML_Data.Make._
-    triple(string, list(string), list(string))(header.name, header.imports, header.uses) }
+  val make_xml_data: XML_Data.Make.T[Header] =
+  {
+    case Header(name, imports, uses) =>
+      import XML_Data.Make._
+      triple(string, list(string), list(string))(name, imports, uses)
+  }
 
 
   /* file name */
