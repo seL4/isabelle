@@ -49,6 +49,7 @@ WhileTrue:
 
 code_pred big_step .
 
+declare [[values_timeout = 3600]]
 
 text{* Examples: *}
 
