@@ -85,47 +85,47 @@ lemma Sup_binary:
 lemma le_Inf_iff: "b \<sqsubseteq> Inf A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
   by (auto intro: Inf_greatest dest: Inf_lower)
 
-lemma Sup_le_iff: "Sup A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
+lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
   by (auto intro: Sup_least dest: Sup_upper)
 
 lemma Inf_mono:
   assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<sqsubseteq> b"
-  shows "Inf A \<sqsubseteq> Inf B"
+  shows "\<Sqinter>A \<sqsubseteq> \<Sqinter>B"
 proof (rule Inf_greatest)
   fix b assume "b \<in> B"
   with assms obtain a where "a \<in> A" and "a \<sqsubseteq> b" by blast
-  from `a \<in> A` have "Inf A \<sqsubseteq> a" by (rule Inf_lower)
-  with `a \<sqsubseteq> b` show "Inf A \<sqsubseteq> b" by auto
+  from `a \<in> A` have "\<Sqinter>A \<sqsubseteq> a" by (rule Inf_lower)
+  with `a \<sqsubseteq> b` show "\<Sqinter>A \<sqsubseteq> b" by auto
 qed
 
 lemma Sup_mono:
   assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<sqsubseteq> b"
-  shows "Sup A \<sqsubseteq> Sup B"
+  shows "\<Squnion>A \<sqsubseteq> \<Squnion>B"
 proof (rule Sup_least)
   fix a assume "a \<in> A"
   with assms obtain b where "b \<in> B" and "a \<sqsubseteq> b" by blast
-  from `b \<in> B` have "b \<sqsubseteq> Sup B" by (rule Sup_upper)
-  with `a \<sqsubseteq> b` show "a \<sqsubseteq> Sup B" by auto
+  from `b \<in> B` have "b \<sqsubseteq> \<Squnion>B" by (rule Sup_upper)
+  with `a \<sqsubseteq> b` show "a \<sqsubseteq> \<Squnion>B" by auto
 qed
 
 lemma top_le:
-  "top \<sqsubseteq> x \<Longrightarrow> x = top"
+  "\<top> \<sqsubseteq> x \<Longrightarrow> x = \<top>"
   by (rule antisym) auto
 
 lemma le_bot:
-  "x \<sqsubseteq> bot \<Longrightarrow> x = bot"
+  "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
   by (rule antisym) auto
 
-lemma not_less_bot[simp]: "\<not> (x \<sqsubset> bot)"
+lemma not_less_bot[simp]: "\<not> (x \<sqsubset> \<bottom>)"
   using bot_least[of x] by (auto simp: le_less)
 
-lemma not_top_less[simp]: "\<not> (top \<sqsubset> x)"
+lemma not_top_less[simp]: "\<not> (\<top> \<sqsubset> x)"
   using top_greatest[of x] by (auto simp: le_less)
 
-lemma Sup_upper2: "u \<in> A \<Longrightarrow> v \<sqsubseteq> u \<Longrightarrow> v \<sqsubseteq> Sup A"
+lemma Sup_upper2: "u \<in> A \<Longrightarrow> v \<sqsubseteq> u \<Longrightarrow> v \<sqsubseteq> \<Squnion>A"
   using Sup_upper[of u A] by auto
 
-lemma Inf_lower2: "u \<in> A \<Longrightarrow> u \<sqsubseteq> v \<Longrightarrow> Inf A \<sqsubseteq> v"
+lemma Inf_lower2: "u \<in> A \<Longrightarrow> u \<sqsubseteq> v \<Longrightarrow> \<Sqinter>A \<sqsubseteq> v"
   using Inf_lower[of u A] by auto
 
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
@@ -172,22 +172,22 @@ lemma SUP_cong: "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarr
 lemma INF_cong: "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> INFI A f = INFI A g"
   by (simp add: INFI_def cong: image_cong)
 
-lemma le_SUPI: "i : A \<Longrightarrow> M i \<sqsubseteq> (SUP i:A. M i)"
+lemma le_SUPI: "i \<in> A \<Longrightarrow> M i \<sqsubseteq> (\<Squnion>i\<in>A. M i)"
   by (auto simp add: SUPR_def intro: Sup_upper)
 
-lemma le_SUPI2: "i \<in> A \<Longrightarrow> u \<sqsubseteq> M i \<Longrightarrow> u \<sqsubseteq> (SUP i:A. M i)"
+lemma le_SUPI2: "i \<in> A \<Longrightarrow> u \<sqsubseteq> M i \<Longrightarrow> u \<sqsubseteq> (\<Squnion>i\<in>A. M i)"
   using le_SUPI[of i A M] by auto
 
-lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<sqsubseteq> u) \<Longrightarrow> (SUP i:A. M i) \<sqsubseteq> u"
+lemma SUP_leI: "(\<And>i. i \<in> A \<Longrightarrow> M i \<sqsubseteq> u) \<Longrightarrow> (\<Squnion>i\<in>A. M i) \<sqsubseteq> u"
   by (auto simp add: SUPR_def intro: Sup_least)
 
-lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> M i"
+lemma INF_leI: "i \<in> A \<Longrightarrow> (\<Sqinter>i\<in>A. M i) \<sqsubseteq> M i"
   by (auto simp add: INFI_def intro: Inf_lower)
 
-lemma INF_leI2: "i \<in> A \<Longrightarrow> M i \<sqsubseteq> u \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> u"
+lemma INF_leI2: "i \<in> A \<Longrightarrow> M i \<sqsubseteq> u \<Longrightarrow> (\<Sqinter>i\<in>A. M i) \<sqsubseteq> u"
   using INF_leI[of i A M] by auto
 
-lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (INF i:A. M i)"
+lemma le_INFI: "(\<And>i. i \<in> A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (\<Sqinter>i\<in>A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)
 
 lemma SUP_le_iff: "(SUP i:A. M i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i \<in> A. M i \<sqsubseteq> u)"
@@ -328,27 +328,27 @@ proof (rule set_eqI)
     by (simp add: Inf_fun_def Inf_bool_def) (simp add: mem_def)
 qed
 
-lemma Inter_iff [simp,no_atp]: "(A : Inter C) = (ALL X:C. A:X)"
+lemma Inter_iff [simp,no_atp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in>C. A \<in> X)"
   by (unfold Inter_eq) blast
 
-lemma InterI [intro!]: "(!!X. X:C ==> A:X) ==> A : Inter C"
+lemma InterI [intro!]: "(\<And>X. X \<in> C \<Longrightarrow> A \<in> X) \<Longrightarrow> A \<in> \<Inter>C"
   by (simp add: Inter_eq)
 
 text {*
   \medskip A ``destruct'' rule -- every @{term X} in @{term C}
-  contains @{term A} as an element, but @{prop "A:X"} can hold when
-  @{prop "X:C"} does not!  This rule is analogous to @{text spec}.
+  contains @{term A} as an element, but @{prop "A \<in> X"} can hold when
+  @{prop "X \<in> C"} does not!  This rule is analogous to @{text spec}.
 *}
 
-lemma InterD [elim, Pure.elim]: "A : Inter C ==> X:C ==> A:X"
+lemma InterD [elim, Pure.elim]: "A \<in> \<Inter>C \<Longrightarrow> X \<in> C \<Longrightarrow> A \<in> X"
   by auto
 
-lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
+lemma InterE [elim]: "A \<in> \<Inter>C \<Longrightarrow> (X \<notin> C \<Longrightarrow> R) \<Longrightarrow> (A \<in> X \<Longrightarrow> R) \<Longrightarrow> R"
   -- {* ``Classical'' elimination rule -- does not require proving
-    @{prop "X:C"}. *}
+    @{prop "X \<in> C"}. *}
   by (unfold Inter_eq) blast
 
-lemma Inter_lower: "B \<in> A ==> Inter A \<subseteq> B"
+lemma Inter_lower: "B \<in> A \<Longrightarrow> \<Inter>A \<subseteq> B"
   by (fact Inf_lower)
 
 lemma (in complete_lattice) Inf_less_eq:
@@ -380,18 +380,23 @@ lemma Inter_UNIV [simp]: "\<Inter>UNIV = {}"
 lemma Inter_insert [simp]: "\<Inter>(insert a B) = a \<inter> \<Inter>B"
   by (fact Inf_insert)
 
+lemma (in complete_lattice) Inf_inter_less: "\<Sqinter>A \<squnion> \<Sqinter>B \<sqsubseteq> \<Sqinter>(A \<inter> B)"
+  by (auto intro: Inf_greatest Inf_lower)
+
 lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<inter> B)"
-  by blast
+  by (fact Inf_inter_less)
+
+(*lemma (in complete_lattice) Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"*)
 
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by blast
 
 lemma Inter_UNIV_conv [simp,no_atp]:
-  "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
-  "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
+  "\<Inter>A = UNIV \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
+  "UNIV = \<Inter>A \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   by blast+
 
-lemma Inter_anti_mono: "B \<subseteq> A ==> \<Inter>A \<subseteq> \<Inter>B"
+lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> \<Inter>B"
   by blast
 
 
