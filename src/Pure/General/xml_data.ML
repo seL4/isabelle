@@ -4,38 +4,27 @@
 XML as basic data representation language.
 *)
 
+signature XML_DATA_OPS =
+sig
+  type 'a T
+  val properties: Properties.T T
+  val string: string T
+  val int: int T
+  val bool: bool T
+  val unit: unit T
+  val pair: 'a T -> 'b T -> ('a * 'b) T
+  val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
+  val list: 'a T -> 'a list T
+  val option: 'a T -> 'a option T
+  val variant: 'a T list -> 'a T
+end;
+
 signature XML_DATA =
 sig
-  structure Make:
-  sig
-    type 'a T = 'a -> XML.body
-    val properties: Properties.T T
-    val string: string T
-    val int: int T
-    val bool: bool T
-    val unit: unit T
-    val pair: 'a T -> 'b T -> ('a * 'b) T
-    val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
-    val list: 'a T -> 'a list T
-    val option: 'a T -> 'a option T
-    val variant: 'a T list -> 'a T
-  end
+  structure Make: XML_DATA_OPS where type 'a T = 'a -> XML.body
   exception XML_ATOM of string
   exception XML_BODY of XML.body
-  structure Dest:
-  sig
-    type 'a T = XML.body -> 'a
-    val properties: Properties.T T
-    val string : string T
-    val int : int T
-    val bool: bool T
-    val unit: unit T
-    val pair: 'a T -> 'b T -> ('a * 'b) T
-    val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
-    val list: 'a T -> 'a list T
-    val option: 'a T -> 'a option T
-    val variant: 'a T list -> 'a T
-  end
+  structure Dest: XML_DATA_OPS where type 'a T = XML.body -> 'a
 end;
 
 structure XML_Data: XML_DATA =
