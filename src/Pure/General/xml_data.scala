@@ -100,21 +100,21 @@ object XML_Data
   def dest_unit(ts: XML.Body): Unit = dest_unit_atom(dest_string(ts))
 
 
-  def make_pair[A, B](make1: A => XML.Body)(make2: B => XML.Body)(p: (A, B)): XML.Body =
+  def make_pair[A, B](make1: A => XML.Body, make2: B => XML.Body)(p: (A, B)): XML.Body =
     List(make_node(make1(p._1)), make_node(make2(p._2)))
 
-  def dest_pair[A, B](dest1: XML.Body => A)(dest2: XML.Body => B)(ts: XML.Body): (A, B) =
+  def dest_pair[A, B](dest1: XML.Body => A, dest2: XML.Body => B)(ts: XML.Body): (A, B) =
     ts match {
       case List(t1, t2) => (dest1(dest_node(t1)), dest2(dest_node(t2)))
       case _ => throw new XML_Body(ts)
     }
 
 
-  def make_triple[A, B, C](make1: A => XML.Body)(make2: B => XML.Body)(make3: C => XML.Body)
+  def make_triple[A, B, C](make1: A => XML.Body, make2: B => XML.Body, make3: C => XML.Body)
       (p: (A, B, C)): XML.Body =
     List(make_node(make1(p._1)), make_node(make2(p._2)), make_node(make3(p._3)))
 
-  def dest_triple[A, B, C](dest1: XML.Body => A)(dest2: XML.Body => B)(dest3: XML.Body => C)
+  def dest_triple[A, B, C](dest1: XML.Body => A, dest2: XML.Body => B, dest3: XML.Body => C)
       (ts: XML.Body): (A, B, C) =
     ts match {
       case List(t1, t2, t3) => (dest1(dest_node(t1)), dest2(dest_node(t2)), dest3(dest_node(t3)))

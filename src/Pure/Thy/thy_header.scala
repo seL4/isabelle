@@ -32,8 +32,8 @@ object Thy_Header extends Parse.Parser
   }
 
   def make_xml_data(header: Header): XML.Body =
-    XML_Data.make_triple(XML_Data.make_string)(
-      XML_Data.make_list(XML_Data.make_string))(
+    XML_Data.make_triple(XML_Data.make_string,
+      XML_Data.make_list(XML_Data.make_string),
         XML_Data.make_list(XML_Data.make_string))(header.name, header.imports, header.uses)
 
 
