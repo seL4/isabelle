@@ -362,10 +362,10 @@ proof -
 qed
 
 lemma Inter_subset:
-  "[| !!X. X \<in> A ==> X \<subseteq> B; A ~= {} |] ==> \<Inter>A \<subseteq> B"
+  "(\<And>X. X \<in> A \<Longrightarrow> X \<subseteq> B) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Inter>A \<subseteq> B"
   by (fact Inf_less_eq)
 
-lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> Inter A"
+lemma Inter_greatest: "(\<And>X. X \<in> A \<Longrightarrow> C \<subseteq> X) \<Longrightarrow> C \<subseteq> Inter A"
   by (fact Inf_greatest)
 
 lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
