@@ -32,7 +32,17 @@ object Isabelle_Process
       ('G' : Int) -> Markup.ERROR)
   }
 
-  class Result(val message: XML.Elem)
+  abstract class Message
+
+  class Input(name: String, args: List[String]) extends Message
+  {
+    override def toString: String =
+      XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
+        args.map(s =>
+          List(XML.Text("\n"), XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
+  }
+
+  class Result(val message: XML.Elem) extends Message
   {
     def kind = message.markup.name
     def properties = message.markup.properties
@@ -377,7 +387,10 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
     command_input._2 ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
 
   def input(name: String, args: String*): Unit =
+  {
+    receiver ! new Input(name, args.toList)
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
+  }
 
   def close(): Unit = { close(command_input); close(standard_input) }
 }

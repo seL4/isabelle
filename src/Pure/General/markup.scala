@@ -302,6 +302,12 @@ object Markup
   val EDIT = "edit"
 
 
+  /* prover process */
+
+  val PROVER_COMMAND = "prover_command"
+  val PROVER_ARG = "prover_arg"
+
+
   /* messages */
 
   val Serial = new Long_Property("serial")

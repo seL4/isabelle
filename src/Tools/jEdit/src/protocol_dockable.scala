@@ -28,6 +28,9 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main_actor = actor {
     loop {
       react {
+        case input: Isabelle_Process.Input =>
+          Swing_Thread.now { text_area.append(input.toString + "\n") }
+
         case result: Isabelle_Process.Result =>
           Swing_Thread.now { text_area.append(result.message.toString + "\n") }
 

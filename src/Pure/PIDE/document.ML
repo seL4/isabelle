@@ -16,12 +16,14 @@ sig
   val parse_id: string -> id
   val print_id: id -> string
   type edit = string * ((command_id option * command_id option) list) option
+  type header = string * (string * string list * string list)
   type state
   val init_state: state
   val get_theory: state -> version_id -> Position.T -> string -> theory
   val cancel_execution: state -> unit -> unit
   val define_command: command_id -> string -> state -> state
-  val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
+  val edit: version_id -> version_id -> edit list -> header list ->
+    state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -77,6 +79,8 @@ type edit =
   string *
   (*NONE: remove node, SOME: insert/remove commands*)
   ((command_id option * command_id option) list) option;
+
+type header = string * (string * string list * string list);
 
 fun the_entry (Node {entries, ...}) id =
   (case Entries.lookup entries id of
@@ -309,8 +313,10 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
 
 in
 
-fun edit (old_id: version_id) (new_id: version_id) edits state =
+fun edit (old_id: version_id) (new_id: version_id) edits headers state =
   let
+    (* FIXME apply headers *)
+
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround *)
     val new_version = fold edit_nodes edits old_version;

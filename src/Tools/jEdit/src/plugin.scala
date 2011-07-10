@@ -105,7 +105,7 @@ object Isabelle
 
   /* text area ranges */
 
-  case class Gfx_Range(val x: Int, val y: Int, val length: Int)
+  sealed case class Gfx_Range(val x: Int, val y: Int, val length: Int)
 
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {

@@ -17,7 +17,8 @@ sig
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
   val read_token: string -> Symbol_Pos.T list * Position.T
-  val parse_token: Proof.context -> Markup.T -> string -> Symbol_Pos.T list * Position.T
+  val parse_token: Proof.context -> (XML.tree list -> 'a) ->
+    Markup.T -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -193,11 +194,10 @@ val ambiguity_limit =
   Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
 
 
-(* read token -- with optional YXML encoding of position *)
+(* outer syntax token -- with optional YXML content *)
 
-fun read_token str =
+fun explode_token tree =
   let
-    val tree = YXML.parse str handle Fail msg => error msg;
     val text = XML.content_of [tree];
     val pos =
       (case tree of
@@ -207,14 +207,25 @@ fun read_token str =
       | XML.Text _ => Position.none);
   in (Symbol_Pos.explode (text, pos), pos) end;
 
+fun read_token str = explode_token (YXML.parse str handle Fail msg => error msg);
+
+fun parse_token ctxt decode markup parse str =
+  let
+    fun parse_tree tree =
+      let
+        val (syms, pos) = explode_token tree;
+        val _ = Context_Position.report ctxt pos markup;
+      in parse (syms, pos) end;
+  in
+    (case YXML.parse_body str handle Fail msg => error msg of
+      body as [tree as XML.Elem ((name, _), _)] =>
+        if name = Markup.tokenN then parse_tree tree else decode body
+    | [tree as XML.Text _] => parse_tree tree
+    | body => decode body)
+  end;
+
 
 (* (un)parsing *)
-
-fun parse_token ctxt markup str =
-  let
-    val (syms, pos) = read_token str;
-    val _ = Context_Position.report ctxt pos markup;
-  in (syms, pos) end;
 
 val parse_sort = operation #parse_sort;
 val parse_typ = operation #parse_typ;

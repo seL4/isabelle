@@ -139,8 +139,8 @@ fun xml_of_query {goal=NONE, limit, rem_dups, criteria} =
           |> (if rem_dups then cons ("rem_dups", "") else I)
           |> (if is_some limit then cons ("limit", Markup.print_int (the limit)) else I);
       in
-        XML.Elem (("Query", properties), XML_Data.make_list 
-          (XML_Data.make_pair XML_Data.make_bool (single o xml_of_criterion)) criteria)
+        XML.Elem (("Query", properties), XML_Data.Encode.list
+          (XML_Data.Encode.pair XML_Data.Encode.bool (single o xml_of_criterion)) criteria)
       end
   | xml_of_query _ = raise Fail "cannot serialize goal";
 
@@ -148,8 +148,9 @@ fun query_of_xml (XML.Elem (("Query", properties), body)) =
       let
         val rem_dups = Properties.defined properties "rem_dups";
         val limit = Properties.get properties "limit" |> Option.map Markup.parse_int;
-        val criteria = XML_Data.dest_list (XML_Data.dest_pair XML_Data.dest_bool 
-          (criterion_of_xml o the_single)) body;
+        val criteria =
+          XML_Data.Decode.list (XML_Data.Decode.pair XML_Data.Decode.bool
+            (criterion_of_xml o the_single)) body;
       in
         {goal=NONE, limit=limit, rem_dups=rem_dups, criteria=criteria}
       end
@@ -189,12 +190,12 @@ fun xml_of_result (opt_found, theorems) =
     val properties =
       if is_some opt_found then [("found", Markup.print_int (the opt_found))] else [];
   in
-    XML.Elem (("Result", properties), XML_Data.make_list (single o xml_of_theorem) theorems)
+    XML.Elem (("Result", properties), XML_Data.Encode.list (single o xml_of_theorem) theorems)
   end;
 
 fun result_of_xml (XML.Elem (("Result", properties), body)) =
       (Properties.get properties "found" |> Option.map Markup.parse_int,
-       XML_Data.dest_list (theorem_of_xml o the_single) body)
+       XML_Data.Decode.list (theorem_of_xml o the_single) body)
   | result_of_xml tree = raise XML_Syntax.XML ("result_of_xml: bad tree", tree);
 
 fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm

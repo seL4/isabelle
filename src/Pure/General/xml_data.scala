@@ -10,150 +10,167 @@ package isabelle
 
 object XML_Data
 {
-  /* basic values */
+  /** encode **/
 
-  class XML_Atom(s: String) extends Exception(s)
-
-
-  private def make_long_atom(i: Long): String = i.toString
-
-  private def dest_long_atom(s: String): Long =
-    try { java.lang.Long.parseLong(s) }
-    catch { case e: NumberFormatException => throw new XML_Atom(s) }
-
-
-  private def make_int_atom(i: Int): String = i.toString
-
-  private def dest_int_atom(s: String): Int =
-    try { Integer.parseInt(s) }
-    catch { case e: NumberFormatException => throw new XML_Atom(s) }
-
-
-  private def make_bool_atom(b: Boolean): String = if (b) "1" else "0"
-
-  private def dest_bool_atom(s: String): Boolean =
-    if (s == "1") true
-    else if (s == "0") false
-    else throw new XML_Atom(s)
-
-
-  private def make_unit_atom(u: Unit) = ""
-
-  private def dest_unit_atom(s: String): Unit =
-    if (s == "") () else throw new XML_Atom(s)
-
-
-  /* structural nodes */
-
-  class XML_Body(body: XML.Body) extends Exception
-
-  private def make_node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
-
-  private def dest_node(t: XML.Tree): XML.Body =
-    t match {
-      case XML.Elem(Markup(":", Nil), ts) => ts
-      case _ => throw new XML_Body(List(t))
-    }
-
-  private def make_tagged(tag: Int, ts: XML.Body): XML.Tree =
-    XML.Elem(Markup(make_int_atom(tag), Nil), ts)
-
-  private def dest_tagged(t: XML.Tree): (Int, XML.Body) =
-    t match {
-      case XML.Elem(Markup(s, Nil), ts) => (dest_int_atom(s), ts)
-      case _ => throw new XML_Body(List(t))
-    }
-
-
-  /* representation of standard types */
-
-  def make_properties(props: List[(String, String)]): XML.Body =
-    List(XML.Elem(Markup(":", props), Nil))
-
-  def dest_properties(ts: XML.Body): List[(String, String)] =
-    ts match {
-      case List(XML.Elem(Markup(":", props), Nil)) => props
-      case _ => throw new XML_Body(ts)
-    }
-
-
-  def make_string(s: String): XML.Body = if (s.isEmpty) Nil else List(XML.Text(s))
-
-  def dest_string(ts: XML.Body): String =
-    ts match {
-      case Nil => ""
-      case List(XML.Text(s)) => s
-      case _ => throw new XML_Body(ts)
-    }
-
-
-  def make_long(i: Long): XML.Body = make_string(make_long_atom(i))
-  def dest_long(ts: XML.Body): Long = dest_long_atom(dest_string(ts))
-
-  def make_int(i: Int): XML.Body = make_string(make_int_atom(i))
-  def dest_int(ts: XML.Body): Int = dest_int_atom(dest_string(ts))
-
-  def make_bool(b: Boolean): XML.Body = make_string(make_bool_atom(b))
-  def dest_bool(ts: XML.Body) = dest_bool_atom(dest_string(ts))
-
-  def make_unit(u: Unit): XML.Body = make_string(make_unit_atom(u))
-  def dest_unit(ts: XML.Body): Unit = dest_unit_atom(dest_string(ts))
-
-
-  def make_pair[A, B](make1: A => XML.Body)(make2: B => XML.Body)(p: (A, B)): XML.Body =
-    List(make_node(make1(p._1)), make_node(make2(p._2)))
-
-  def dest_pair[A, B](dest1: XML.Body => A)(dest2: XML.Body => B)(ts: XML.Body): (A, B) =
-    ts match {
-      case List(t1, t2) => (dest1(dest_node(t1)), dest2(dest_node(t2)))
-      case _ => throw new XML_Body(ts)
-    }
-
-
-  def make_triple[A, B, C](make1: A => XML.Body)(make2: B => XML.Body)(make3: C => XML.Body)
-      (p: (A, B, C)): XML.Body =
-    List(make_node(make1(p._1)), make_node(make2(p._2)), make_node(make3(p._3)))
-
-  def dest_triple[A, B, C](dest1: XML.Body => A)(dest2: XML.Body => B)(dest3: XML.Body => C)
-      (ts: XML.Body): (A, B, C) =
-    ts match {
-      case List(t1, t2, t3) => (dest1(dest_node(t1)), dest2(dest_node(t2)), dest3(dest_node(t3)))
-      case _ => throw new XML_Body(ts)
-    }
-
-
-  def make_list[A](make: A => XML.Body)(xs: List[A]): XML.Body =
-    xs.map((x: A) => make_node(make(x)))
-
-  def dest_list[A](dest: XML.Body => A)(ts: XML.Body): List[A] =
-    ts.map((t: XML.Tree) => dest(dest_node(t)))
-
-
-  def make_option[A](make: A => XML.Body)(opt: Option[A]): XML.Body =
-    opt match {
-      case None => Nil
-      case Some(x) => List(make_node(make(x)))
-    }
-
-  def dest_option[A](dest: XML.Body => A)(ts: XML.Body): Option[A] =
-    ts match {
-      case Nil => None
-      case List(t) => Some(dest(dest_node(t)))
-      case _ => throw new XML_Body(ts)
-    }
-
-
-  def make_variant[A](makes: List[PartialFunction[A, XML.Body]])(x: A): XML.Body =
+  object Encode
   {
-    val (make, tag) = makes.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
-    List(make_tagged(tag, make(x)))
+    type T[A] = A => XML.Body
+
+
+    /* basic values */
+
+    private def long_atom(i: Long): String = i.toString
+
+    private def int_atom(i: Int): String = i.toString
+
+    private def bool_atom(b: Boolean): String = if (b) "1" else "0"
+
+    private def unit_atom(u: Unit) = ""
+
+
+    /* structural nodes */
+
+    private def node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
+
+    private def tagged(tag: Int, ts: XML.Body): XML.Tree =
+      XML.Elem(Markup(int_atom(tag), Nil), ts)
+
+
+    /* representation of standard types */
+
+    val properties: T[List[(String, String)]] =
+      (props => List(XML.Elem(Markup(":", props), Nil)))
+
+    val string: T[String] = (s => if (s.isEmpty) Nil else List(XML.Text(s)))
+
+    val long: T[Long] = (x => string(long_atom(x)))
+
+    val int: T[Int] = (x => string(int_atom(x)))
+
+    val bool: T[Boolean] = (x => string(bool_atom(x)))
+
+    val unit: T[Unit] = (x => string(unit_atom(x)))
+
+    def pair[A, B](f: T[A], g: T[B]): T[(A, B)] =
+      (x => List(node(f(x._1)), node(g(x._2))))
+
+    def triple[A, B, C](f: T[A], g: T[B], h: T[C]): T[(A, B, C)] =
+      (x => List(node(f(x._1)), node(g(x._2)), node(h(x._3))))
+
+    def list[A](f: T[A]): T[List[A]] =
+      (xs => xs.map((x: A) => node(f(x))))
+
+    def option[A](f: T[A]): T[Option[A]] =
+    {
+      case None => Nil
+      case Some(x) => List(node(f(x)))
+    }
+
+    def variant[A](fs: List[PartialFunction[A, XML.Body]]): T[A] =
+    {
+      case x =>
+        val (f, tag) = fs.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
+        List(tagged(tag, f(x)))
+    }
   }
 
-  def dest_variant[A](dests: List[XML.Body => A])(ts: XML.Body): A =
-    ts match {
-      case List(t) =>
-        val (tag, ts) = dest_tagged(t)
-        dests(tag)(ts)
-      case _ => throw new XML_Body(ts)
+
+
+  /** decode **/
+
+  class XML_Atom(s: String) extends Exception(s)
+  class XML_Body(body: XML.Body) extends Exception
+
+  object Decode
+  {
+    type T[A] = XML.Body => A
+
+
+     /* basic values */
+
+    private def long_atom(s: String): Long =
+      try { java.lang.Long.parseLong(s) }
+      catch { case e: NumberFormatException => throw new XML_Atom(s) }
+
+    private def int_atom(s: String): Int =
+      try { Integer.parseInt(s) }
+      catch { case e: NumberFormatException => throw new XML_Atom(s) }
+
+    private def bool_atom(s: String): Boolean =
+      if (s == "1") true
+      else if (s == "0") false
+      else throw new XML_Atom(s)
+
+    private def unit_atom(s: String): Unit =
+      if (s == "") () else throw new XML_Atom(s)
+
+
+    /* structural nodes */
+
+    private def node(t: XML.Tree): XML.Body =
+      t match {
+        case XML.Elem(Markup(":", Nil), ts) => ts
+        case _ => throw new XML_Body(List(t))
+      }
+
+    private def tagged(t: XML.Tree): (Int, XML.Body) =
+      t match {
+        case XML.Elem(Markup(s, Nil), ts) => (int_atom(s), ts)
+        case _ => throw new XML_Body(List(t))
+      }
+
+
+    /* representation of standard types */
+
+    val properties: T[List[(String, String)]] =
+    {
+      case List(XML.Elem(Markup(":", props), Nil)) => props
+      case ts => throw new XML_Body(ts)
     }
+
+    val string: T[String] =
+    {
+      case Nil => ""
+      case List(XML.Text(s)) => s
+      case ts => throw new XML_Body(ts)
+    }
+
+    val long: T[Long] = (x => long_atom(string(x)))
+
+    val int: T[Int] = (x => int_atom(string(x)))
+
+    val bool: T[Boolean] = (x => bool_atom(string(x)))
+
+    val unit: T[Unit] = (x => unit_atom(string(x)))
+
+    def pair[A, B](f: T[A], g: T[B]): T[(A, B)] =
+    {
+      case List(t1, t2) => (f(node(t1)), g(node(t2)))
+      case ts => throw new XML_Body(ts)
+    }
+
+    def triple[A, B, C](f: T[A], g: T[B], h: T[C]): T[(A, B, C)] =
+    {
+      case List(t1, t2, t3) => (f(node(t1)), g(node(t2)), h(node(t3)))
+      case ts => throw new XML_Body(ts)
+    }
+
+    def list[A](f: T[A]): T[List[A]] =
+      (ts => ts.map(t => f(node(t))))
+
+    def option[A](f: T[A]): T[Option[A]] =
+    {
+      case Nil => None
+      case List(t) => Some(f(node(t)))
+      case ts => throw new XML_Body(ts)
+    }
+
+    def variant[A](fs: List[T[A]]): T[A] =
+    {
+      case List(t) =>
+        val (tag, ts) = tagged(t)
+        fs(tag)(ts)
+      case ts => throw new XML_Body(ts)
+    }
+  }
 }

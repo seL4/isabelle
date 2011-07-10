@@ -16,7 +16,7 @@ import scala.actors.Actor._
 
 object Session
 {
-  /* abstract file store */
+  /* file store */
 
   abstract class File_Store
   {
@@ -26,6 +26,7 @@ object Session
 
   /* events */
 
+  //{{{
   case object Global_Settings
   case object Perspective
   case object Assignment
@@ -37,6 +38,7 @@ object Session
   case object Failed extends Phase
   case object Ready extends Phase
   case object Shutdown extends Phase  // transient
+  //}}}
 }
 
 
@@ -44,33 +46,29 @@ class Session(val file_store: Session.File_Store)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 
-  // user input (e.g. text edits, cursor movement)
-  val input_delay = Time.seconds(0.3)
-
-  // prover output (markup, common messages)
-  val output_delay = Time.seconds(0.1)
-
-  // GUI layout updates
-  val update_delay = Time.seconds(0.5)
+  val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
+  val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
+  val update_delay = Time.seconds(0.5)  // GUI layout updates
 
 
   /* pervasive event buses */
 
-  val phase_changed = new Event_Bus[Session.Phase]
   val global_settings = new Event_Bus[Session.Global_Settings.type]
-  val raw_messages = new Event_Bus[Isabelle_Process.Result]
-  val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
   val assignments = new Event_Bus[Session.Assignment.type]
+  val commands_changed = new Event_Bus[Session.Commands_Changed]
+  val phase_changed = new Event_Bus[Session.Phase]
+  val raw_messages = new Event_Bus[Isabelle_Process.Message]
+
 
 
   /** buffered command changes (delay_first discipline) **/
 
+  //{{{
   private case object Stop
 
   private val (_, command_change_buffer) =
     Simple_Thread.actor("command_change_buffer", daemon = true)
-  //{{{
   {
     var changed: Set[Command] = Set()
     var flush_time: Option[Long] = None
@@ -115,7 +113,9 @@ class Session(val file_store: Session.File_Store)
 
   /* global state */
 
-  @volatile var loaded_theories: Set[String] = Set()
+  @volatile var verbose: Boolean = false
+
+  @volatile private var loaded_theories: Set[String] = Set()
 
   @volatile private var syntax = new Outer_Syntax
   def current_syntax(): Outer_Syntax = syntax
@@ -124,16 +124,19 @@ class Session(val file_store: Session.File_Store)
   def syslog(): String = reverse_syslog.reverse.map(msg => XML.content(msg).mkString).mkString("\n")
 
   @volatile private var _phase: Session.Phase = Session.Inactive
-  def phase = _phase
   private def phase_=(new_phase: Session.Phase)
   {
     _phase = new_phase
     phase_changed.event(new_phase)
   }
+  def phase = _phase
   def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = new Volatile(Document.State.init)
-  def current_state(): Document.State = global_state.peek()
+  def current_state(): Document.State = global_state()
+
+  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
+    global_state().snapshot(name, pending_edits)
 
 
   /* theory files */
@@ -158,12 +161,16 @@ class Session(val file_store: Session.File_Store)
 
   /* actor messages */
 
-  private case object Interrupt_Prover
-  private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
-  private case class Init_Node(name: String, header: Document.Node.Header, text: String)
   private case class Start(timeout: Time, args: List[String])
-
-  var verbose: Boolean = false
+  private case object Interrupt
+  private case class Init_Node(name: String, header: Document.Node.Header, text: String)
+  private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
+  private case class Change_Node(
+    name: String,
+    doc_edits: List[Document.Edit_Command],
+    header_edits: List[(String, Thy_Header.Header)],
+    previous: Document.Version,
+    version: Document.Version)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -171,60 +178,82 @@ class Session(val file_store: Session.File_Store)
     var prover: Option[Isabelle_Process with Isar_Document] = None
 
 
-    /* document changes */
+    /* incoming edits */
 
-    def handle_change(change: Document.Change)
+    def handle_edits(name: String,
+        header: Document.Node.Header, edits: List[Option[List[Text.Edit]]])
     //{{{
     {
-      val previous = change.previous.get_finished
-      val (node_edits, version) = change.result.get_finished
+      val syntax = current_syntax()
+      val previous = global_state().history.tip.version
+      val doc_edits = edits.map(edit => (name, edit))
+      val result = Future.fork {
+        Thy_Syntax.text_edits(syntax, previous.join, doc_edits, List((name, header)))
+      }
+      val change =
+        global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._3)))
 
-      var former_assignment = global_state.peek().the_assignment(previous).get_finished
+      result.map {
+        case (doc_edits, header_edits, _) =>
+          assignments.await { global_state().is_assigned(previous.get_finished) }
+          this_actor !
+            Change_Node(name, doc_edits, header_edits, previous.join, change.version.join)
+      }
+    }
+    //}}}
+
+
+    /* resulting changes */
+
+    def handle_change(change: Change_Node)
+    //{{{
+    {
+      val previous = change.previous
+      val version = change.version
+      val name = change.name
+      val doc_edits = change.doc_edits
+      val header_edits = change.header_edits
+
+      var former_assignment = global_state().the_assignment(previous).get_finished
       for {
-        (name, Some(cmd_edits)) <- node_edits
+        (name, Some(cmd_edits)) <- doc_edits
         (prev, None) <- cmd_edits
         removed <- previous.nodes(name).commands.get_after(prev)
       } former_assignment -= removed
 
-      val id_edits =
-        node_edits map {
-          case (name, None) => (name, None)
-          case (name, Some(cmd_edits)) =>
-            val ids =
-              cmd_edits map {
-                case (c1, c2) =>
-                  val id1 = c1.map(_.id)
-                  val id2 =
-                    c2 match {
-                      case None => None
-                      case Some(command) =>
-                        if (global_state.peek().lookup_command(command.id).isEmpty) {
-                          global_state.change(_.define_command(command))
-                          prover.get.define_command(command.id, Symbol.encode(command.source))
-                        }
-                        Some(command.id)
-                    }
-                  (id1, id2)
-              }
-            (name -> Some(ids))
+      def id_command(command: Command): Document.Command_ID =
+      {
+        if (global_state().lookup_command(command.id).isEmpty) {
+          global_state.change(_.define_command(command))
+          prover.get.define_command(command.id, Symbol.encode(command.source))
         }
+        command.id
+      }
+      val id_edits =
+        doc_edits map {
+          case (name, edits) =>
+            val ids =
+              edits.map(_.map { case (c1, c2) => (c1.map(id_command), c2.map(id_command)) })
+            (name, ids)
+        }
+
       global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, id_edits, header_edits)
     }
     //}}}
 
 
     /* prover results */
 
-    def bad_result(result: Isabelle_Process.Result)
-    {
-      if (verbose)
-        System.err.println("Ignoring prover result: " + result.message.toString)
-    }
-
     def handle_result(result: Isabelle_Process.Result)
     //{{{
     {
+      def bad_result(result: Isabelle_Process.Result)
+      {
+        if (verbose)
+          System.err.println("Ignoring prover result: " + result.message.toString)
+      }
+
       result.properties match {
         case Position.Id(state_id) =>
           try {
@@ -236,7 +265,7 @@ class Session(val file_store: Session.File_Store)
           if (result.is_syslog) {
             reverse_syslog ::= result.message
             if (result.is_ready) {
-              // FIXME move to ML side
+              // FIXME move to ML side (!?)
               syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
               syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
               phase = Session.Ready
@@ -262,53 +291,16 @@ class Session(val file_store: Session.File_Store)
           }
           else bad_result(result)
         }
-
-      raw_messages.event(result)
-    }
-    //}}}
-
-
-    def edit_version(edits: List[Document.Edit_Text])
-    //{{{
-    {
-      val previous = global_state.peek().history.tip.version
-      val syntax = current_syntax()
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, edits) }
-      val change = global_state.change_yield(_.extend_history(previous, edits, result))
-
-      change.version.map(_ => {
-        assignments.await { global_state.peek().is_assigned(previous.get_finished) }
-        this_actor ! change })
     }
     //}}}
 
 
     /* main loop */
 
+    //{{{
     var finished = false
     while (!finished) {
       receive {
-        case Interrupt_Prover =>
-          prover.map(_.interrupt)
-
-        case Edit_Node(name, header, text_edits) if prover.isDefined =>
-          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
-          edit_version(List((node_name, Some(text_edits))))
-          reply(())
-
-        case Init_Node(name, header, text) if prover.isDefined =>
-          // FIXME compare with existing node
-          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
-          edit_version(List(
-            (node_name, None),
-            (node_name, Some(List(Text.Edit.insert(0, text))))))
-          reply(())
-
-        case change: Document.Change if prover.isDefined =>
-          handle_change(change)
-
-        case result: Isabelle_Process.Result => handle_result(result)
-
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
@@ -320,37 +312,52 @@ class Session(val file_store: Session.File_Store)
             global_state.change(_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
+            prover = None
             phase = Session.Inactive
           }
           finished = true
           reply(())
 
-        case bad if prover.isDefined =>
-          System.err.println("session_actor: ignoring bad message " + bad)
+        case Interrupt if prover.isDefined =>
+          prover.get.interrupt
+
+        case Init_Node(name, header, text) if prover.isDefined =>
+          // FIXME compare with existing node
+          handle_edits(name, header, List(None, Some(List(Text.Edit.insert(0, text)))))
+          reply(())
+
+        case Edit_Node(name, header, text_edits) if prover.isDefined =>
+          handle_edits(name, header, List(Some(text_edits)))
+          reply(())
+
+        case change: Change_Node if prover.isDefined =>
+          handle_change(change)
+
+        case input: Isabelle_Process.Input =>
+          raw_messages.event(input)
+
+        case result: Isabelle_Process.Result =>
+          handle_result(result)
+          raw_messages.event(result)
+
+        case bad => System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
+    //}}}
   }
 
 
-
-  /** main methods **/
+  /* actions */
 
   def start(timeout: Time, args: List[String]) { session_actor ! Start(timeout, args) }
 
   def stop() { command_change_buffer !? Stop; session_actor !? Stop }
 
-  def interrupt() { session_actor ! Interrupt_Prover }
-
-  def edit_node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
-  {
-    session_actor !? Edit_Node(name, header, edits)
-  }
+  def interrupt() { session_actor ! Interrupt }
 
   def init_node(name: String, header: Document.Node.Header, text: String)
-  {
-    session_actor !? Init_Node(name, header, text)
-  }
+  { session_actor !? Init_Node(name, header, text) }
 
-  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
-    global_state.peek().snapshot(name, pending_edits)
+  def edit_node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
+  { session_actor !? Edit_Node(name, header, edits) }
 }

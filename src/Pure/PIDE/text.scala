@@ -52,7 +52,7 @@ object Text
 
   /* information associated with text range */
 
-  case class Info[A](val range: Text.Range, val info: A)
+  sealed case class Info[A](val range: Text.Range, val info: A)
   {
     def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
     def try_restrict(r: Text.Range): Option[Info[A]] =

@@ -16,7 +16,7 @@ object Command
 {
   /** accumulated results from prover **/
 
-  case class State(
+  sealed case class State(
     val command: Command,
     val status: List[Markup] = Nil,
     val results: SortedMap[Long, XML.Tree] = SortedMap.empty,

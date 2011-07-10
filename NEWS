@@ -149,6 +149,12 @@ subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
 *** ML ***
 
+* The inner syntax of sort/type/term/prop supports inlined YXML
+representations within quoted string tokens.  By encoding logical
+entities via Term_XML (in ML or Scala) concrete syntax can be
+bypassed, which is particularly useful for producing bits of text
+under external program control.
+
 * Antiquotations for ML and document preparation are managed as theory
 data, which requires explicit setup.
 
