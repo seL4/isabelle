@@ -250,6 +250,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   term.ML						\
   term_ord.ML						\
   term_subst.ML						\
+  term_xml.ML						\
   theory.ML						\
   thm.ML						\
   type.ML						\
