@@ -386,18 +386,25 @@ lemma (in complete_lattice) Inf_inter_less: "\<Sqinter>A \<squnion> \<Sqinter>B 
 lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<inter> B)"
   by (fact Inf_inter_less)
 
-(*lemma (in complete_lattice) Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"*)
+lemma (in complete_lattice) Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"
+  by (rule antisym) (auto intro: Inf_greatest Inf_lower le_infI1 le_infI2)
 
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
-  by blast
+  by (fact Inf_union_distrib)
+
+(*lemma (in complete_lattice) Inf_top_conv [no_atp]:
+  "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"*)
 
 lemma Inter_UNIV_conv [simp,no_atp]:
   "\<Inter>A = UNIV \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   "UNIV = \<Inter>A \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   by blast+
 
+lemma (in complete_lattice) Inf_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Sqinter>B"
+  by (auto intro: Inf_greatest Inf_lower)
+
 lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> \<Inter>B"
-  by blast
+  by (fact Inf_anti_mono)
 
 
 subsection {* Intersections of families *}
