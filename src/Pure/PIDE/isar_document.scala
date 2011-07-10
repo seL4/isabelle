@@ -143,12 +143,12 @@ trait Isar_Document extends Isabelle_Process
       edits: List[Document.Edit_Command_ID], headers: List[(String, Thy_Header.Header)])
   {
     val arg1 =
-    { import XML_Data.Make._
+    { import XML_Data.Encode._
       list(pair(string, option(list(pair(option(long), option(long))))))(edits) }
 
     val arg2 =
-    { import XML_Data.Make._
-      list(pair(string, Thy_Header.make_xml_data))(headers) }
+    { import XML_Data.Encode._
+      list(pair(string, Thy_Header.encode_xml_data))(headers) }
 
     input("Isar_Document.edit_version",
       Document.ID(old_id), Document.ID(new_id),

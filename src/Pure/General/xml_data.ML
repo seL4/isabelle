@@ -21,18 +21,18 @@ end;
 
 signature XML_DATA =
 sig
-  structure Make: XML_DATA_OPS where type 'a T = 'a -> XML.body
+  structure Encode: XML_DATA_OPS where type 'a T = 'a -> XML.body
   exception XML_ATOM of string
   exception XML_BODY of XML.body
-  structure Dest: XML_DATA_OPS where type 'a T = XML.body -> 'a
+  structure Decode: XML_DATA_OPS where type 'a T = XML.body -> 'a
 end;
 
 structure XML_Data: XML_DATA =
 struct
 
-(** make **)
+(** encode **)
 
-structure Make =
+structure Encode =
 struct
 
 type 'a T = 'a -> XML.body;
@@ -83,12 +83,12 @@ end;
 
 
 
-(** dest **)
+(** decode **)
 
 exception XML_ATOM of string;
 exception XML_BODY of XML.tree list;
 
-structure Dest =
+structure Decode =
 struct
 
 type 'a T = XML.body -> 'a;

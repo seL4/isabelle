@@ -16,6 +16,7 @@ Markup <elem att="val" ...>...body...</elem> is encoded as:
 signature YXML =
 sig
   val escape_controls: string -> string
+  val detect: string -> bool
   val output_markup: Markup.T -> string * string
   val element: string -> XML.attributes -> string list -> string
   val string_of_body: XML.body -> string
@@ -48,6 +49,8 @@ val X = Symbol.ENQ;
 val Y = Symbol.ACK;
 val XY = X ^ Y;
 val XYX = XY ^ X;
+
+val detect = exists_string (fn s => s = X);
 
 
 (* output *)

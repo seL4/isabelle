@@ -15,19 +15,19 @@ end
 
 signature TERM_XML =
 sig
-  structure Make: TERM_XML_OPS where type 'a T = 'a XML_Data.Make.T
-  structure Dest: TERM_XML_OPS where type 'a T = 'a XML_Data.Dest.T
+  structure Encode: TERM_XML_OPS where type 'a T = 'a XML_Data.Encode.T
+  structure Decode: TERM_XML_OPS where type 'a T = 'a XML_Data.Decode.T
 end;
 
 structure Term_XML: TERM_XML =
 struct
 
-(* make *)
+(* encode *)
 
-structure Make =
+structure Encode =
 struct
 
-open XML_Data.Make;
+open XML_Data.Encode;
 
 val indexname = pair string int;
 
@@ -49,12 +49,12 @@ fun term t = t |> variant
 end;
 
 
-(* dest *)
+(* decode *)
 
-structure Dest =
+structure Decode =
 struct
 
-open XML_Data.Dest;
+open XML_Data.Decode;
 
 val indexname = pair string int;
 

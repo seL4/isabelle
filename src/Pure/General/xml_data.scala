@@ -10,9 +10,9 @@ package isabelle
 
 object XML_Data
 {
-  /** make **/
+  /** encode **/
 
-  object Make
+  object Encode
   {
     type T[A] = A => XML.Body
 
@@ -76,12 +76,12 @@ object XML_Data
 
 
 
-  /** dest **/
+  /** decode **/
 
   class XML_Atom(s: String) extends Exception(s)
   class XML_Body(body: XML.Body) extends Exception
 
-  object Dest
+  object Decode
   {
     type T[A] = XML.Body => A
 
