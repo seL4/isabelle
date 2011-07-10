@@ -18,6 +18,7 @@ sig
   val escape_controls: string -> string
   val output_markup: Markup.T -> string * string
   val element: string -> XML.attributes -> string list -> string
+  val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
@@ -59,17 +60,20 @@ fun element name atts body =
   let val (pre, post) = output_markup (name, atts)
   in pre ^ implode body ^ post end;
 
-fun string_of t =
+fun string_of_body body =
   let
     fun attrib (a, x) =
       Buffer.add Y #>
       Buffer.add a #> Buffer.add "=" #> Buffer.add x;
     fun tree (XML.Elem ((name, atts), ts)) =
           Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
-          fold tree ts #>
+          trees ts #>
           Buffer.add XYX
-      | tree (XML.Text s) = Buffer.add s;
-  in Buffer.empty |> tree t |> Buffer.content end;
+      | tree (XML.Text s) = Buffer.add s
+    and trees ts = fold tree ts;
+  in Buffer.empty |> trees body |> Buffer.content end;
+
+val string_of = string_of_body o single;
 
 
 
