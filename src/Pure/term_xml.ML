@@ -8,7 +8,6 @@ signature TERM_XML_OPS =
 sig
   type 'a T
   val indexname: indexname T
-  val class: class T
   val sort: sort T
   val typ: typ T
   val term: term T
@@ -31,8 +30,8 @@ struct
 open XML_Data.Make;
 
 val indexname = pair string int;
-val class = string;
-val sort = list class;
+
+val sort = list string;
 
 fun typ T = T |> variant
  [fn Type x => pair string (list typ) x,
@@ -58,8 +57,8 @@ struct
 open XML_Data.Dest;
 
 val indexname = pair string int;
-val class = string;
-val sort = list class;
+
+val sort = list string;
 
 fun typ T = T |> variant
  [Type o pair string (list typ),

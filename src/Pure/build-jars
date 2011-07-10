@@ -57,6 +57,7 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   library.scala
   package.scala
+  term.scala
 )
 
 
