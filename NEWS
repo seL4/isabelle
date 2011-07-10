@@ -61,7 +61,7 @@ syntax diagrams.
 *** HOL ***
 
 * Archimedian_Field.thy:
-    constant field now is defined as parameter of a separate type class floor_ceiling.
+    floor now is defined as parameter of a separate type class floor_ceiling.
  
 * Finite_Set.thy: more coherent development of fold_set locales:
 
