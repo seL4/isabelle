@@ -359,16 +359,16 @@ lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> In
   by (iprover intro: InterI subsetI dest: subsetD)
 
 lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
-  by blast
+  by (fact Inf_binary [symmetric])
 
 lemma Inter_empty [simp]: "\<Inter>{} = UNIV"
   by (fact Inf_empty)
 
 lemma Inter_UNIV [simp]: "\<Inter>UNIV = {}"
-  by blast
+  by (fact Inf_UNIV)
 
 lemma Inter_insert [simp]: "\<Inter>(insert a B) = a \<inter> \<Inter>B"
-  by blast
+  by (fact Inf_insert)
 
 lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<inter> B)"
   by blast
