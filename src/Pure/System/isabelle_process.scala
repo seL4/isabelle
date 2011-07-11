@@ -45,9 +45,9 @@ object Isabelle_Process
 
   class Result(val message: XML.Elem) extends Message
   {
-    def kind = message.markup.name
-    def properties = message.markup.properties
-    def body = message.body
+    def kind: String = message.markup.name
+    def properties: XML.Attributes = message.markup.properties
+    def body: XML.Body = message.body
 
     def is_init = kind == Markup.INIT
     def is_exit = kind == Markup.EXIT

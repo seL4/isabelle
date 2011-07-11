@@ -72,11 +72,14 @@ object XML
 
   def content_stream(tree: Tree): Stream[String] =
     tree match {
-      case Elem(_, body) => body.toStream.flatten(content_stream(_))
+      case Elem(_, body) => content_stream(body)
       case Text(content) => Stream(content)
     }
+  def content_stream(body: Body): Stream[String] =
+    body.toStream.flatten(content_stream(_))
 
   def content(tree: Tree): Iterator[String] = content_stream(tree).iterator
+  def content(body: Body): Iterator[String] = content_stream(body).iterator
 
 
   /* pipe-lined cache for partial sharing */
