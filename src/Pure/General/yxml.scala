@@ -41,28 +41,6 @@ object YXML
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
 
-  /* decoding pseudo UTF-8 */
-
-  private class Decode_Chars(decode: String => String,
-    buffer: Array[Byte], start: Int, end: Int) extends CharSequence
-  {
-    def length: Int = end - start
-    def charAt(i: Int): Char = (buffer(start + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
-    def subSequence(i: Int, j: Int): CharSequence =
-      new Decode_Chars(decode, buffer, start + i, start + j)
-
-    // toString with adhoc decoding: abuse of CharSequence interface
-    override def toString: String = decode(Standard_System.decode_permissive_utf8(this))
-  }
-
-  def decode_chars(decode: String => String,
-    buffer: Array[Byte], start: Int, end: Int): CharSequence =
-  {
-    require(0 <= start && start <= end && end <= buffer.length)
-    new Decode_Chars(decode, buffer, start, end)
-  }
-
-
   /* parsing */
 
   private def err(msg: String) = error("Malformed YXML: " + msg)

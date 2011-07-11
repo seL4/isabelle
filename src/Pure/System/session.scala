@@ -289,6 +289,7 @@ class Session(val file_store: Session.File_Store)
               case _ => bad_result(result)
             }
           }
+          else if (result.is_raw) { } // FIXME
           else bad_result(result)
         }
     }

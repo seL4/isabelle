@@ -321,6 +321,7 @@ object Markup
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"
+  val RAW = "raw"
   val SYSTEM = "system"
   val STDOUT = "stdout"
   val EXIT = "exit"

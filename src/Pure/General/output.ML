@@ -35,12 +35,14 @@ sig
     val prompt_fn: (output -> unit) Unsynchronized.ref
     val status_fn: (output -> unit) Unsynchronized.ref
     val report_fn: (output -> unit) Unsynchronized.ref
+    val raw_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
   end
   val urgent_message: string -> unit
   val error_msg: string -> unit
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
+  val raw_message: Properties.T -> string -> unit
 end;
 
 structure Output: OUTPUT =
@@ -92,8 +94,9 @@ struct
   val warning_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "### ");
   val error_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "*** ");
   val prompt_fn = Unsynchronized.ref raw_stdout;
-  val status_fn = Unsynchronized.ref (fn _: string => ());
-  val report_fn = Unsynchronized.ref (fn _: string => ());
+  val status_fn = Unsynchronized.ref (fn _: output => ());
+  val report_fn = Unsynchronized.ref (fn _: output => ());
+  val raw_message_fn = Unsynchronized.ref (fn _: Properties.T => fn _: output => ());
 end;
 
 fun writeln s = ! Private_Hooks.writeln_fn (output s);
@@ -104,6 +107,7 @@ fun error_msg s = ! Private_Hooks.error_fn (output s);
 fun prompt s = ! Private_Hooks.prompt_fn (output s);
 fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
+fun raw_message props s = ! Private_Hooks.raw_message_fn props (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
 

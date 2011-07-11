@@ -27,9 +27,9 @@ use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
 
+use "General/properties.ML";
 use "General/output.ML";
 use "General/timing.ML";
-use "General/properties.ML";
 use "General/markup.ML";
 use "General/scan.ML";
 use "General/source.ML";
