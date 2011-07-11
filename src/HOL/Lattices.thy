@@ -68,7 +68,7 @@ begin
 text {* Dual lattice *}
 
 lemma dual_semilattice:
-  "class.semilattice_inf (op \<ge>) (op >) sup"
+  "class.semilattice_inf greater_eq greater sup"
 by (rule class.semilattice_inf.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
 
@@ -104,7 +104,7 @@ lemma le_iff_inf:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<sqinter> y = x"
   by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1])
 
-lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<sqinter> b \<sqsubseteq> c \<sqinter> d"
+lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> a \<sqinter> b \<sqsubseteq> c \<sqinter> d"
   by (fast intro: inf_greatest le_infI1 le_infI2)
 
 lemma mono_inf:
@@ -141,7 +141,7 @@ lemma le_iff_sup:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<squnion> y = y"
   by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1])
 
-lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<squnion> b \<sqsubseteq> c \<squnion> d"
+lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> a \<squnion> b \<sqsubseteq> c \<squnion> d"
   by (fast intro: sup_least le_supI1 le_supI2)
 
 lemma mono_sup:
@@ -420,7 +420,7 @@ class bounded_lattice = bounded_lattice_bot + bounded_lattice_top
 begin
 
 lemma dual_bounded_lattice:
-  "class.bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  "class.bounded_lattice greater_eq greater sup inf \<top> \<bottom>"
   by unfold_locales (auto simp add: less_le_not_le)
 
 end
@@ -432,7 +432,7 @@ class boolean_algebra = distrib_lattice + bounded_lattice + minus + uminus +
 begin
 
 lemma dual_boolean_algebra:
-  "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus greater_eq greater sup inf \<top> \<bottom>"
   by (rule class.boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
     (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
 
@@ -506,7 +506,7 @@ qed
 lemma compl_sup [simp]:
   "- (x \<squnion> y) = - x \<sqinter> - y"
 proof -
-  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
+  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus greater_eq greater sup inf \<top> \<bottom>
     by (rule dual_boolean_algebra)
   then show ?thesis by simp
 qed
@@ -523,7 +523,7 @@ proof -
 qed
 
 lemma compl_le_compl_iff: (* TODO: declare [simp] ? *)
-  "- x \<le> - y \<longleftrightarrow> y \<le> x"
+  "- x \<sqsubseteq> - y \<longleftrightarrow> y \<sqsubseteq> x"
 by (auto dest: compl_mono)
 
 end
