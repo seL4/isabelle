@@ -117,6 +117,8 @@ sig
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
+  val functionN: string
+  val invoke_scala: string -> string -> Properties.T
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -366,6 +368,13 @@ val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
+
+
+(* raw message functions *)
+
+val functionN = "function"
+
+fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 
 
 

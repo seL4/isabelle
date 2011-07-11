@@ -96,7 +96,9 @@ struct
   val prompt_fn = Unsynchronized.ref raw_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
-  val raw_message_fn = Unsynchronized.ref (fn _: Properties.T => fn _: output => ());
+  val raw_message_fn =
+    Unsynchronized.ref
+      (fn _: Properties.T => fn _: output => raise Fail "Output.raw_message undefined");
 end;
 
 fun writeln s = ! Private_Hooks.writeln_fn (output s);

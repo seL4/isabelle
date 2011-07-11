@@ -63,6 +63,7 @@ object Isabelle_Process
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
+        else if (is_raw) "..."
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"

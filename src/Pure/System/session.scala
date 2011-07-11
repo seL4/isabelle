@@ -255,12 +255,20 @@ class Session(val file_store: Session.File_Store)
       }
 
       result.properties match {
-        case Position.Id(state_id) =>
+        case Position.Id(state_id) if !result.is_raw =>
           try {
             val st = global_state.change_yield(_.accumulate(state_id, result.message))
             command_change_buffer ! st.command
           }
-          catch { case _: Document.State.Fail => bad_result(result) }
+          catch {
+            case _: Document.State.Fail => bad_result(result)
+          }
+        case Markup.Invoke_Scala(name, id) if result.is_raw =>
+          Future.fork {
+            val arg = XML.content(result.body).mkString
+            val (tag, res) = Invoke_Scala.method(name, arg)
+            prover.get.invoke_scala(id, tag, res)
+          }
         case _ =>
           if (result.is_syslog) {
             reverse_syslog ::= result.message
@@ -289,9 +297,8 @@ class Session(val file_store: Session.File_Store)
               case _ => bad_result(result)
             }
           }
-          else if (result.is_raw) { } // FIXME
           else bad_result(result)
-        }
+      }
     }
     //}}}
 

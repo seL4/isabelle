@@ -274,6 +274,7 @@ use "Proof/extraction.ML";
 
 use "System/session.ML";
 use "System/isabelle_process.ML";
+use "System/invoke_scala.ML";
 use "PIDE/isar_document.ML";
 use "System/isar.ML";
 

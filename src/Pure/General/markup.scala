@@ -333,6 +333,22 @@ object Markup
   val READY = "ready"
 
 
+  /* raw message functions */
+
+  val FUNCTION = "function"
+  val Function = new Property(FUNCTION)
+
+  val INVOKE_SCALA = "invoke_scala"
+  object Invoke_Scala
+  {
+    def unapply(props: List[(String, String)]): Option[(String, String)] =
+      props match {
+        case List((FUNCTION, INVOKE_SCALA), (NAME, name), (ID, id)) => Some((name, id))
+        case _ => None
+      }
+  }
+
+
   /* system data */
 
   val Data = Markup("data", Nil)

@@ -33,5 +33,9 @@ val _ =
       val state'' = Document.execute new_id state';
     in state'' end));
 
+val _ =
+  Isabelle_Process.add_command "Isar_Document.invoke_scala"
+    (fn [id, tag, res] => Invoke_Scala.fulfill_method id tag res);
+
 end;
 
