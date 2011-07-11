@@ -117,7 +117,7 @@ fun assign_result group result res =
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
-      | Exn.Result _ => true);
+      | Exn.Res _ => true);
   in ok end;
 
 
@@ -482,7 +482,7 @@ fun value (x: 'a) =
     val task = Task_Queue.dummy_task ();
     val group = Task_Queue.group_of_task task;
     val result = Single_Assignment.var "value" : 'a result;
-    val _ = assign_result group result (Exn.Result x);
+    val _ = assign_result group result (Exn.Res x);
   in Future {promised = false, task = task, result = result} end;
 
 fun map_future f x =
@@ -544,7 +544,7 @@ fun fulfill_result (Future {promised, task, result}) res =
         else worker_waiting [task] (fn () => ignore (Single_Assignment.await result));
     in () end;
 
-fun fulfill x res = fulfill_result x (Exn.Result res);
+fun fulfill x res = fulfill_result x (Exn.Res res);
 
 
 (* cancellation *)

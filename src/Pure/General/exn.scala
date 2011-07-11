@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/exn.scala
     Author:     Makarius
 
-Extra support for exceptions (arbitrary throwables).
+Support for exceptions (arbitrary throwables).
 */
 
 package isabelle

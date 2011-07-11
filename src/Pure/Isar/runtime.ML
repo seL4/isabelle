@@ -101,7 +101,7 @@ fun exn_message exn_position exn =
 fun debugging f x =
   if ! debug then
     Exn.release (exception_trace (fn () =>
-      Exn.Result (f x) handle
+      Exn.Res (f x) handle
         exn as UNDEF => Exn.Exn exn
       | exn as EXCURSION_FAIL _ => Exn.Exn exn))
   else f x;

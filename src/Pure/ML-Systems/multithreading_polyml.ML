@@ -97,8 +97,8 @@ fun sync_wait opt_atts time cond lock =
     (sync_interrupts (case opt_atts of SOME atts => atts | NONE => Thread.getAttributes ()))
     (fn _ =>
       (case time of
-        SOME t => Exn.Result (ConditionVar.waitUntil (cond, lock, t))
-      | NONE => (ConditionVar.wait (cond, lock); Exn.Result true))
+        SOME t => Exn.Res (ConditionVar.waitUntil (cond, lock, t))
+      | NONE => (ConditionVar.wait (cond, lock); Exn.Res true))
       handle exn => Exn.Exn exn);
 
 

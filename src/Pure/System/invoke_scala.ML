@@ -48,7 +48,7 @@ fun fulfill_method id tag res =
     val result =
       (case tag of
         "0" => Exn.Exn Null
-      | "1" => Exn.Result res
+      | "1" => Exn.Res res
       | "2" => Exn.Exn (ERROR res)
       | "3" => Exn.Exn (Fail res)
       | _ => raise Fail "Bad tag");

@@ -528,7 +528,7 @@ fun status_of (Thm (Deriv {promises, body}, _)) =
   let
     val ps = map (Future.peek o snd) promises;
     val bodies = body ::
-      map_filter (fn SOME (Exn.Result th) => SOME (raw_body th) | _ => NONE) ps;
+      map_filter (fn SOME (Exn.Res th) => SOME (raw_body th) | _ => NONE) ps;
     val {oracle, unfinished, failed} = Proofterm.status_of bodies;
   in
    {oracle = oracle,
