@@ -81,7 +81,7 @@ object XML
 
   /* pipe-lined cache for partial sharing */
 
-  class Cache(initial_size: Int)
+  class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
     private val cache_actor = actor
     {
@@ -108,7 +108,9 @@ object XML
       def cache_string(x: String): String =
         lookup(x) match {
           case Some(y) => y
-          case None => store(trim_bytes(x))
+          case None =>
+            val z = trim_bytes(x)
+            if (z.length > max_string) z else store(z)
         }
       def cache_props(x: List[(String, String)]): List[(String, String)] =
         if (x.isEmpty) x

@@ -90,7 +90,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
     receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
   }
 
-  private val xml_cache = new XML.Cache(131071)
+  private val xml_cache = new XML.Cache()
 
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
