@@ -7,7 +7,7 @@ JVM method invocation service via Scala layer.
 package isabelle
 
 
-import java.lang.reflect.{Method, Modifier}
+import java.lang.reflect.{Method, Modifier, InvocationTargetException}
 import scala.util.matching.Regex
 
 
@@ -24,15 +24,19 @@ object Invoke_Scala
         val m =
           try { Class.forName(class_name).getMethod(method_name, STRING) }
           catch {
-            case _: ClassNotFoundException =>
-              error("Class not found: " + quote(class_name))
-            case _: NoSuchMethodException =>
-              error("No such method: " + quote(class_name + "." + method_name))
+            case _: ClassNotFoundException | _: NoSuchMethodException =>
+              error("No such method: " + quote(name))
           }
         if (!Modifier.isStatic(m.getModifiers)) error("Not at static method: " + m.toString)
-        if (m.getReturnType != STRING) error("Bad return type of method: " + m.toString)
+        if (m.getReturnType != STRING) error("Bad method return type: " + m.toString)
 
-        (arg: String) => m.invoke(null, arg).asInstanceOf[String]
+        (arg: String) => {
+          try { m.invoke(null, arg).asInstanceOf[String] }
+          catch {
+            case e: InvocationTargetException if e.getCause != null =>
+              throw e.getCause
+          }
+        }
       case _ => error("Malformed method name: " + quote(name))
     }
 
@@ -54,9 +58,9 @@ object Invoke_Scala
           case Exn.Res(null) => (Tag.NULL, "")
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(ERROR(msg)) => (Tag.ERROR, msg)
-          case Exn.Exn(e) => throw e
+          case Exn.Exn(e) => (Tag.ERROR, e.toString)
         }
       case Exn.Exn(ERROR(msg)) => (Tag.FAIL, msg)
-      case Exn.Exn(e) => throw e
+      case Exn.Exn(e) => (Tag.FAIL, e.toString)
     }
 }
