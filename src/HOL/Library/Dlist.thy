@@ -125,6 +125,8 @@ qed (simp add: equal_dlist_def equal list_of_dlist_inject)
 
 end
 
+declare equal_dlist_def [code]
+
 lemma [code nbe]:
   "HOL.equal (dxs :: 'a::equal dlist) dxs \<longleftrightarrow> True"
   by (fact equal_refl)
