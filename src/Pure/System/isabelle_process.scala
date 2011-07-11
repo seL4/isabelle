@@ -29,7 +29,8 @@ object Isabelle_Process
       ('D' : Int) -> Markup.WRITELN,
       ('E' : Int) -> Markup.TRACING,
       ('F' : Int) -> Markup.WARNING,
-      ('G' : Int) -> Markup.ERROR)
+      ('G' : Int) -> Markup.ERROR,
+      ('H' : Int) -> Markup.RAW)
   }
 
   abstract class Message
@@ -44,9 +45,9 @@ object Isabelle_Process
 
   class Result(val message: XML.Elem) extends Message
   {
-    def kind = message.markup.name
-    def properties = message.markup.properties
-    def body = message.body
+    def kind: String = message.markup.name
+    def properties: XML.Attributes = message.markup.properties
+    def body: XML.Body = message.body
 
     def is_init = kind == Markup.INIT
     def is_exit = kind == Markup.EXIT
@@ -54,6 +55,7 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
+    def is_raw = kind == Markup.RAW
     def is_ready = Isar_Document.is_ready(message)
     def is_syslog = is_init || is_exit || is_system || is_ready
 
@@ -61,6 +63,7 @@ object Isabelle_Process
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
+        else if (is_raw) "..."
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
@@ -90,14 +93,18 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
     receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
   }
 
-  private val xml_cache = new XML.Cache(131071)
+  private val xml_cache = new XML.Cache()
 
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
     if (kind == Markup.INIT) rm_fifos()
-    val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
-    xml_cache.cache_tree(msg)((message: XML.Tree) =>
-      receiver ! new Result(message.asInstanceOf[XML.Elem]))
+    if (kind == Markup.RAW)
+      receiver ! new Result(XML.Elem(Markup(kind, props), body))
+    else {
+      val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
+      xml_cache.cache_tree(msg)((message: XML.Tree) =>
+        receiver ! new Result(message.asInstanceOf[XML.Elem]))
+    }
   }
 
   private def put_result(kind: String, text: String)
@@ -324,7 +331,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
-      def read_chunk(): XML.Body =
+      def read_chunk(decode: Boolean): XML.Body =
       {
         //{{{
         // chunk size
@@ -351,19 +358,24 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
-        YXML.parse_body_failsafe(YXML.decode_chars(Symbol.decode, buf, 0, n))
+        if (decode)
+          YXML.parse_body_failsafe(Standard_System.decode_chars(Symbol.decode, buf, 0, n))
+        else List(XML.Text(Standard_System.decode_chars(s => s, buf, 0, n).toString))
         //}}}
       }
 
       do {
         try {
-          val header = read_chunk()
-          val body = read_chunk()
+          val header = read_chunk(true)
           header match {
             case List(XML.Elem(Markup(name, props), Nil))
                 if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
-              put_result(Kind.message_markup(name(0)), props, body)
-            case _ => throw new Protocol_Error("bad header: " + header.toString)
+              val kind = Kind.message_markup(name(0))
+              val body = read_chunk(kind != Markup.RAW)
+              put_result(kind, props, body)
+            case _ =>
+              read_chunk(false)
+              throw new Protocol_Error("bad header: " + header.toString)
           }
         }
         catch {

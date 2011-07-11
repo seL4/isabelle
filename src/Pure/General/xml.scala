@@ -72,16 +72,19 @@ object XML
 
   def content_stream(tree: Tree): Stream[String] =
     tree match {
-      case Elem(_, body) => body.toStream.flatten(content_stream(_))
+      case Elem(_, body) => content_stream(body)
       case Text(content) => Stream(content)
     }
+  def content_stream(body: Body): Stream[String] =
+    body.toStream.flatten(content_stream(_))
 
   def content(tree: Tree): Iterator[String] = content_stream(tree).iterator
+  def content(body: Body): Iterator[String] = content_stream(body).iterator
 
 
   /* pipe-lined cache for partial sharing */
 
-  class Cache(initial_size: Int)
+  class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
     private val cache_actor = actor
     {
@@ -108,7 +111,9 @@ object XML
       def cache_string(x: String): String =
         lookup(x) match {
           case Some(y) => y
-          case None => store(trim_bytes(x))
+          case None =>
+            val z = trim_bytes(x)
+            if (z.length > max_string) z else store(z)
         }
       def cache_props(x: List[(String, String)]): List[(String, String)] =
         if (x.isEmpty) x

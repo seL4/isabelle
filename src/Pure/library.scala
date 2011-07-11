@@ -27,7 +27,7 @@ object Library
       exn match {
         case e: RuntimeException =>
           val msg = e.getMessage
-          Some(if (msg == null) "" else msg)
+          Some(if (msg == null) "Error" else msg)
         case _ => None
       }
   }

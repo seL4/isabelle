@@ -108,6 +108,7 @@ fun setup_channels in_fifo out_fifo =
     Output.Private_Hooks.tracing_fn := standard_message mbox true "E";
     Output.Private_Hooks.warning_fn := standard_message mbox true "F";
     Output.Private_Hooks.error_fn := standard_message mbox true "G";
+    Output.Private_Hooks.raw_message_fn := message mbox "H";
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
     message mbox "A" [] (Session.welcome ());

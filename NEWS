@@ -204,6 +204,12 @@ snapshot of the classical context, which can be recovered via
 INCOMPATIBILITY, classical tactics and derived proof methods require
 proper Proof.context.
 
+* Scala layer provides JVM method invocation service for static
+methods of type (String)String, see Invoke_Scala.method in ML.
+For example:
+
+  Invoke_Scala.method "java.lang.System.getProperty" "java.home"
+
 
 
 New in Isabelle2011 (January 2011)

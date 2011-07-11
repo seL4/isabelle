@@ -154,4 +154,12 @@ trait Isar_Document extends Isabelle_Process
       Document.ID(old_id), Document.ID(new_id),
         YXML.string_of_body(arg1), YXML.string_of_body(arg2))
   }
+
+
+  /* method invocation service */
+
+  def invoke_scala(id: String, tag: Invoke_Scala.Tag.Value, res: String)
+  {
+    input("Isar_Document.invoke_scala", id, tag.toString, res)
+  }
 }
