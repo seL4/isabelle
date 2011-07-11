@@ -8,13 +8,17 @@ TODO: proper cancellation!
 
 signature INVOKE_SCALA =
 sig
-  val method: string -> string -> string future
   exception Null
+  val method: string -> string -> string
+  val promise_method: string -> string -> string future
   val fulfill_method: string -> string -> string -> unit
 end;
 
 structure Invoke_Scala: INVOKE_SCALA =
 struct
+
+exception Null;
+
 
 (* pending promises *)
 
@@ -26,7 +30,7 @@ val promises =
 
 (* method invocation *)
 
-fun method name arg =
+fun promise_method name arg =
   let
     val id = new_id ();
     val promise = Future.promise () : string future;
@@ -34,10 +38,10 @@ fun method name arg =
     val _ = Output.raw_message (Markup.invoke_scala name id) arg;
   in promise end;
 
+fun method name arg = Future.join (promise_method name arg);
+
 
 (* fulfill method *)
-
-exception Null;
 
 fun fulfill_method id tag res =
   let
