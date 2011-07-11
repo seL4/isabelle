@@ -47,8 +47,8 @@ fun timed_access (Var {name, lock, cond, var}) time_limit f =
           (case f x of
             NONE =>
               (case Multithreading.sync_wait NONE (time_limit x) cond lock of
-                Exn.Result true => try_change ()
-              | Exn.Result false => NONE
+                Exn.Res true => try_change ()
+              | Exn.Res false => NONE
               | Exn.Exn exn => reraise exn)
           | SOME (y, x') =>
               uninterruptible (fn _ => fn () =>

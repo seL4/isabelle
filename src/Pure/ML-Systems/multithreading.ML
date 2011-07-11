@@ -55,7 +55,7 @@ fun interrupted () = ();
 
 fun with_attributes _ e = e [];
 
-fun sync_wait _ _ _ _ = Exn.Result true;
+fun sync_wait _ _ _ _ = Exn.Res true;
 
 
 (* tracing *)

@@ -1008,8 +1008,8 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
       (case test_proof goal_state of
-        Exn.Result (SOME _) => goal_state
-      | Exn.Result NONE => error (fail_msg (context_of goal_state))
+        Exn.Res (SOME _) => goal_state
+      | Exn.Res NONE => error (fail_msg (context_of goal_state))
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
   end;
 

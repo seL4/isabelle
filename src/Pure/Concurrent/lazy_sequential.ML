@@ -23,7 +23,7 @@ fun peek (Lazy r) =
   | Result res => SOME res);
 
 fun lazy e = Lazy (Unsynchronized.ref (Expr e));
-fun value a = Lazy (Unsynchronized.ref (Result (Exn.Result a)));
+fun value a = Lazy (Unsynchronized.ref (Result (Exn.Res a)));
 
 
 (* force result *)

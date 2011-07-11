@@ -38,7 +38,7 @@ fun await (v as Var {name, lock, cond, ...}) =
         (case peek v of
           NONE =>
             (case Multithreading.sync_wait NONE NONE cond lock of
-              Exn.Result _ => wait ()
+              Exn.Res _ => wait ()
             | Exn.Exn exn => reraise exn)
         | SOME x => x);
     in wait () end);

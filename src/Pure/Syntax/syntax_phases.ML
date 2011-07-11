@@ -197,7 +197,7 @@ fun ast_to_term ctxt trf =
 (* decode_term -- transform parse tree into raw term *)
 
 fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
-  | decode_term ctxt (reports0, Exn.Result tm) =
+  | decode_term ctxt (reports0, Exn.Res tm) =
       let
         fun get_const a =
           ((true, #1 (Term.dest_Const (Proof_Context.read_const_proper ctxt false a)))
@@ -259,7 +259,7 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
-fun proper_results results = map_filter (fn (y, Exn.Result x) => SOME (y, x) | _ => NONE) results;
+fun proper_results results = map_filter (fn (y, Exn.Res x) => SOME (y, x) | _ => NONE) results;
 fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ => NONE) results;
 
 fun report ctxt = List.app (fn (pos, m) => Context_Position.report ctxt pos m);
@@ -361,7 +361,7 @@ fun parse_term is_prop ctxt =
             else [];
 
           (*brute-force disambiguation via type-inference*)
-          fun check t = (Syntax.check_term ctxt (constrain t); Exn.Result t)
+          fun check t = (Syntax.check_term ctxt (constrain t); Exn.Res t)
             handle exn as ERROR _ => Exn.Exn exn;
 
           val results' =

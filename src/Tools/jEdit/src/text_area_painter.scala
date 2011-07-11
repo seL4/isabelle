@@ -214,37 +214,33 @@ class Text_Area_Painter(doc_view: Document_View)
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
+        val padded_markup =
+          if (markup.isEmpty)
+            Iterator(Text.Info(chunk_range, None))
+          else
+            Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
+            markup.iterator ++
+            Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
+
         var x1 = x + w
         gfx.setFont(chunk_font)
-        if (markup.isEmpty) {
-          gfx.setColor(chunk_color)
-          gfx.drawString(chunk.str, x1, y)
-        }
-        else {
-          for {
-            Text.Info(range, info) <-
-              Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
-              markup.iterator ++
-              Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
-            if !range.is_singularity
-          } {
-            val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
-            gfx.setColor(info.getOrElse(chunk_color))
+        for (Text.Info(range, info) <- padded_markup if !range.is_singularity) {
+          val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
+          gfx.setColor(info.getOrElse(chunk_color))
 
-            range.try_restrict(caret_range) match {
-              case Some(r) if !r.is_singularity =>
-                val astr = new AttributedString(str)
-                val i = r.start - range.start
-                val j = r.stop - range.start
-                astr.addAttribute(TextAttribute.FONT, chunk_font)
-                astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, j)
-                astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, j)
-                gfx.drawString(astr.getIterator, x1, y)
-              case _ =>
-                gfx.drawString(str, x1, y)
-            }
-            x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
+          range.try_restrict(caret_range) match {
+            case Some(r) if !r.is_singularity =>
+              val astr = new AttributedString(str)
+              val i = r.start - range.start
+              val j = r.stop - range.start
+              astr.addAttribute(TextAttribute.FONT, chunk_font)
+              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, j)
+              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, j)
+              gfx.drawString(astr.getIterator, x1, y)
+            case _ =>
+              gfx.drawString(str, x1, y)
           }
+          x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
         }
       }
       w += chunk.width

@@ -217,7 +217,7 @@ fun status_of bodies =
             else
               let val seen' = Inttab.update (i, ()) seen in
                 (case Future.peek body of
-                  SOME (Exn.Result body') => status body' (st, seen')
+                  SOME (Exn.Res body') => status body' (st, seen')
                 | SOME (Exn.Exn _) =>
                     let val (oracle, unfinished, _) = st
                     in ((oracle, unfinished, true), seen') end

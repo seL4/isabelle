@@ -96,9 +96,8 @@ struct
   val prompt_fn = Unsynchronized.ref raw_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
-  val raw_message_fn =
-    Unsynchronized.ref
-      (fn _: Properties.T => fn _: output => raise Fail "Output.raw_message undefined");
+  val raw_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
+    Unsynchronized.ref (fn _ => fn _ => raise Fail "Output.raw_message undefined in TTY mode");
 end;
 
 fun writeln s = ! Private_Hooks.writeln_fn (output s);

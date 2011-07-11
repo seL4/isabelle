@@ -252,8 +252,8 @@ fun run_command thy_name raw_tr st =
             val path = Path.explode thy_name;
             val _ = Thy_Header.consistent_name (Path.implode (Path.base path)) name;
           in Toplevel.modify_master (SOME (Path.dir path)) raw_tr end) ()
-      | NONE => Exn.Result raw_tr) of
-    Exn.Result tr =>
+      | NONE => Exn.Res raw_tr) of
+    Exn.Res tr =>
       let
         val is_init = is_some (Toplevel.init_of tr);
         val is_proof = Keyword.is_proof (Toplevel.name_of tr);
