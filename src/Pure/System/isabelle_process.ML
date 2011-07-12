@@ -68,7 +68,7 @@ fun chunk s = [string_of_int (size s), "\n", s];
 
 fun message mbox ch raw_props body =
   let
-    val robust_props = map (pairself YXML.escape_controls) raw_props;
+    val robust_props = map (pairself YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
   in Mailbox.send mbox (chunk header @ chunk body) end;
 
