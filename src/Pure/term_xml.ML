@@ -14,14 +14,12 @@ end
 
 signature TERM_XML =
 sig
-  structure Encode: TERM_XML_OPS where type 'a T = 'a XML.Encode.T
-  structure Decode: TERM_XML_OPS where type 'a T = 'a XML.Decode.T
+  structure Encode: TERM_XML_OPS
+  structure Decode: TERM_XML_OPS
 end;
 
 structure Term_XML: TERM_XML =
 struct
-
-(* encode *)
 
 structure Encode =
 struct
@@ -44,9 +42,6 @@ fun term t = t |> variant
   fn a $ b => ([], pair term term (a, b))];
 
 end;
-
-
-(* decode *)
 
 structure Decode =
 struct

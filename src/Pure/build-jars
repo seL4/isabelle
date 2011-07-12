@@ -57,6 +57,7 @@ declare -a SOURCES=(
   library.scala
   package.scala
   term.scala
+  term_xml.scala
 )
 
 
