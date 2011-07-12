@@ -165,7 +165,8 @@ val constraints_of = #constraints o rep_data;
 
 val is_declared = Name.is_declared o names_of;
 
-val check_name = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
+val check_name =
+  Long_Name.base_name o Name_Space.full_name Name_Space.default_naming o tap Binding.check;
 
 
 
