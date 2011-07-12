@@ -66,17 +66,18 @@ local
 
 fun chunk s = [string_of_int (size s), "\n", s];
 
-fun message _ _ _ "" = ()
-  | message mbox ch raw_props body =
-      let
-        val robust_props = map (pairself YXML.escape_controls) raw_props;
-        val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
-      in Mailbox.send mbox (chunk header @ chunk body) end;
+fun message mbox ch raw_props body =
+  let
+    val robust_props = map (pairself YXML.escape_controls) raw_props;
+    val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
+  in Mailbox.send mbox (chunk header @ chunk body) end;
 
 fun standard_message mbox with_serial ch body =
-  message mbox ch
-    ((if with_serial then cons (Markup.serialN, serial_string ()) else I)
-      (Position.properties_of (Position.thread_data ()))) body;
+  if body = "" then ()
+  else
+    message mbox ch
+      ((if with_serial then cons (Markup.serialN, serial_string ()) else I)
+        (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox out_stream =
   let
