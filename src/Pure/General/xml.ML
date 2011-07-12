@@ -324,7 +324,11 @@ fun option _ [] = NONE
   | option f [t] = SOME (f (node t))
   | option _ ts = raise XML_BODY ts;
 
-fun variant fs [t] = uncurry (nth fs) (tagged t)
+fun variant fs [t] =
+      let
+        val (tag, ts) = tagged t;
+        val f = nth fs tag handle General.Subscript => raise XML_BODY [t];
+      in f ts end
   | variant _ ts = raise XML_BODY ts;
 
 end;

@@ -361,7 +361,10 @@ object XML
     {
       case List(t) =>
         val (tag, ts) = tagged(t)
-        fs(tag)(ts)
+        val f =
+          try { fs(tag) }
+          catch { case _: IndexOutOfBoundsException => throw new XML_Body(List(t)) }
+        f(ts)
       case ts => throw new XML_Body(ts)
     }
   }
