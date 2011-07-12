@@ -21,7 +21,7 @@ object XML
 
   /* datatype representation */
 
-  type Attributes = List[(String, String)]
+  type Attributes = Properties.T
 
   sealed abstract class Tree { override def toString = string_of_tree(this) }
   case class Elem(markup: Markup, body: List[Tree]) extends Tree
@@ -118,7 +118,7 @@ object XML
             val z = trim_bytes(x)
             if (z.length > max_string) z else store(z)
         }
-      def cache_props(x: List[(String, String)]): List[(String, String)] =
+      def cache_props(x: Properties.T): Properties.T =
         if (x.isEmpty) x
         else
           lookup(x) match {
@@ -232,7 +232,7 @@ object XML
 
     private def node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
 
-    private def vector(xs: List[String]): List[(String, String)] =
+    private def vector(xs: List[String]): Properties.T =
       xs.zipWithIndex.map(p => (int_atom(p._2), p._1))
 
     private def tagged(tag: Int, data: (List[String], XML.Body)): XML.Tree =
@@ -241,7 +241,7 @@ object XML
 
     /* representation of standard types */
 
-    val properties: T[List[(String, String)]] =
+    val properties: T[Properties.T] =
       (props => List(XML.Elem(Markup(":", props), Nil)))
 
     val string: T[String] = (s => if (s.isEmpty) Nil else List(XML.Text(s)))
@@ -310,7 +310,7 @@ object XML
         case _ => throw new XML_Body(List(t))
       }
 
-    private def vector(props: List[(String, String)]): List[String] =
+    private def vector(props: Properties.T): List[String] =
     {
       val xs = new mutable.ListBuffer[String]
       var i = 0
@@ -330,7 +330,7 @@ object XML
 
     /* representation of standard types */
 
-    val properties: T[List[(String, String)]] =
+    val properties: T[Properties.T] =
     {
       case List(XML.Elem(Markup(":", props), Nil)) => props
       case ts => throw new XML_Body(ts)

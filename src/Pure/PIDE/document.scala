@@ -16,12 +16,7 @@ object Document
   /* formal identifiers */
 
   type ID = Long
-
-  object ID
-  {
-    def apply(id: ID): String = Markup.Long.apply(id)
-    def unapply(s: String): Option[ID] = Markup.Long.unapply(s)
-  }
+  val ID = Properties.Value.Long
 
   type Version_ID = ID
   type Command_ID = ID

@@ -20,6 +20,7 @@ declare -a SOURCES=(
   General/path.scala
   General/position.scala
   General/pretty.scala
+  General/properties.scala
   General/scan.scala
   General/sha1.scala
   General/symbol.scala

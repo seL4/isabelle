@@ -46,7 +46,7 @@ object Isabelle_Process
   class Result(val message: XML.Elem) extends Message
   {
     def kind: String = message.markup.name
-    def properties: XML.Attributes = message.markup.properties
+    def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
 
     def is_init = kind == Markup.INIT
@@ -95,7 +95,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 
   private val xml_cache = new XML.Cache()
 
-  private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
+  private def put_result(kind: String, props: Properties.T, body: XML.Body)
   {
     if (kind == Markup.INIT) rm_fifos()
     if (kind == Markup.RAW)

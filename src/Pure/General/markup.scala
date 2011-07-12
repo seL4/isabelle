@@ -9,73 +9,6 @@ package isabelle
 
 object Markup
 {
-  /* plain values */
-
-  object Int
-  {
-    def apply(x: scala.Int): String = x.toString
-    def unapply(s: String): Option[scala.Int] =
-      try { Some(Integer.parseInt(s)) }
-      catch { case _: NumberFormatException => None }
-  }
-
-  object Long
-  {
-    def apply(x: scala.Long): String = x.toString
-    def unapply(s: String): Option[scala.Long] =
-      try { Some(java.lang.Long.parseLong(s)) }
-      catch { case _: NumberFormatException => None }
-  }
-
-  object Double
-  {
-    def apply(x: scala.Double): String = x.toString
-    def unapply(s: String): Option[scala.Double] =
-      try { Some(java.lang.Double.parseDouble(s)) }
-      catch { case _: NumberFormatException => None }
-  }
-
-
-  /* named properties */
-
-  class Property(val name: String)
-  {
-    def apply(value: String): List[(String, String)] = List((name, value))
-    def unapply(props: List[(String, String)]): Option[String] =
-      props.find(_._1 == name).map(_._2)
-  }
-
-  class Int_Property(name: String)
-  {
-    def apply(value: scala.Int): List[(String, String)] = List((name, Int(value)))
-    def unapply(props: List[(String, String)]): Option[Int] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Int.unapply(value)
-      }
-  }
-
-  class Long_Property(name: String)
-  {
-    def apply(value: scala.Long): List[(String, String)] = List((name, Long(value)))
-    def unapply(props: List[(String, String)]): Option[Long] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Long.unapply(value)
-      }
-  }
-
-  class Double_Property(name: String)
-  {
-    def apply(value: scala.Double): List[(String, String)] = List((name, Double(value)))
-    def unapply(props: List[(String, String)]): Option[Double] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Double.unapply(value)
-      }
-  }
-
-
   /* empty */
 
   val Empty = Markup("", Nil)
@@ -84,10 +17,10 @@ object Markup
   /* misc properties */
 
   val NAME = "name"
-  val Name = new Property(NAME)
+  val Name = new Properties.String(NAME)
 
   val KIND = "kind"
-  val Kind = new Property(KIND)
+  val Kind = new Properties.String(KIND)
 
 
   /* formal entities */
@@ -145,9 +78,9 @@ object Markup
 
   /* pretty printing */
 
-  val Indent = new Int_Property("indent")
+  val Indent = new Properties.Int("indent")
   val BLOCK = "block"
-  val Width = new Int_Property("width")
+  val Width = new Properties.Int("width")
   val BREAK = "break"
 
 
@@ -260,13 +193,15 @@ object Markup
   {
     def apply(timing: isabelle.Timing): Markup =
       Markup(TIMING, List(
-        (ELAPSED, Double(timing.elapsed.seconds)),
-        (CPU, Double(timing.cpu.seconds)),
-        (GC, Double(timing.gc.seconds))))
+        (ELAPSED, Properties.Value.Double(timing.elapsed.seconds)),
+        (CPU, Properties.Value.Double(timing.cpu.seconds)),
+        (GC, Properties.Value.Double(timing.gc.seconds))))
     def unapply(markup: Markup): Option[isabelle.Timing] =
       markup match {
         case Markup(TIMING, List(
-          (ELAPSED, Double(elapsed)), (CPU, Double(cpu)), (GC, Double(gc)))) =>
+          (ELAPSED, Properties.Value.Double(elapsed)),
+          (CPU, Properties.Value.Double(cpu)),
+          (GC, Properties.Value.Double(gc)))) =>
             Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
         case _ => None
       }
@@ -310,7 +245,7 @@ object Markup
 
   /* messages */
 
-  val Serial = new Long_Property("serial")
+  val Serial = new Properties.Long("serial")
 
   val MESSAGE = "message"
 
@@ -336,12 +271,12 @@ object Markup
   /* raw message functions */
 
   val FUNCTION = "function"
-  val Function = new Property(FUNCTION)
+  val Function = new Properties.String(FUNCTION)
 
   val INVOKE_SCALA = "invoke_scala"
   object Invoke_Scala
   {
-    def unapply(props: List[(String, String)]): Option[(String, String)] =
+    def unapply(props: Properties.T): Option[(String, String)] =
       props match {
         case List((FUNCTION, INVOKE_SCALA), (NAME, name), (ID, id)) => Some((name, id))
         case _ => None
@@ -354,4 +289,4 @@ object Markup
   val Data = Markup("data", Nil)
 }
 
-sealed case class Markup(name: String, properties: List[(String, String)])
+sealed case class Markup(name: String, properties: Properties.T)
