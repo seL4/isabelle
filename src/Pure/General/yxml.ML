@@ -15,6 +15,8 @@ Markup <elem att="val" ...>...body...</elem> is encoded as:
 
 signature YXML =
 sig
+  val X: Symbol.symbol
+  val Y: Symbol.symbol
   val embed_controls: string -> string
   val detect: string -> bool
   val output_markup: Markup.T -> string * string
@@ -45,8 +47,8 @@ fun embed_controls str =
 
 (* markers *)
 
-val X = Symbol.ENQ;
-val Y = Symbol.ACK;
+val X = chr 5;
+val Y = chr 6;
 val XY = X ^ Y;
 val XYX = XY ^ X;
 

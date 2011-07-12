@@ -22,7 +22,7 @@ struct
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 val test_markupN = "test_markup";          (*XML markup for everything*)
 
-fun special ch = Symbol.SOH ^ ch;
+fun special ch = chr 1 ^ ch;
 
 
 (* render markup *)
