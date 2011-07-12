@@ -58,7 +58,7 @@ fun end_import toks =
                     let
                         val _ = ImportRecorder.load_history thyname
                         val thy = Replay.import_thms thyname int_thms thmnames thy
-                            handle x => (ImportRecorder.save_history thyname; raise x)  (* FIXME avoid handle x ?? *)
+                            (*handle x => (ImportRecorder.save_history thyname; raise x)*)  (* FIXME avoid handle x ?? *)
                         val _ = ImportRecorder.save_history thyname
                         val _ = ImportRecorder.clear_history ()
                     in

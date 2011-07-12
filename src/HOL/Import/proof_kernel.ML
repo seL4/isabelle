@@ -187,60 +187,63 @@ fun mk_syn thy c =
 fun quotename c =
   if Lexicon.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c
 
-fun simple_smart_string_of_cterm ctxt0 ct =
-    let
-        val ctxt = ctxt0
-          |> Config.put show_brackets false
-          |> Config.put show_all_types true
-          |> Config.put show_sorts true
-          |> Config.put Syntax.ambiguity_enabled true;
-        val {t,T,...} = rep_cterm ct
-        (* Hack to avoid parse errors with Trueprop *)
-        val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
-                           handle TERM _ => ct
-    in
-        quote (Print_Mode.setmp [] (Syntax.string_of_term ctxt o Thm.term_of) ct)
-    end
-
 exception SMART_STRING
+
+fun no_vars context tm =
+  let
+    val ctxt = Variable.set_body false context;
+    val ([tm'], _) = Variable.import_terms true [tm] ctxt;
+  in tm' end
 
 fun smart_string_of_cterm ctxt0 ct =
     let
-        val ctxt = ctxt0 |> Config.put Syntax.ambiguity_enabled false;
+        val ctxt = ctxt0
+          |> Config.put Syntax.ambiguity_enabled true
+          |> Config.put show_brackets false
+          |> Config.put show_all_types false
+          |> Config.put show_types false
+          |> Config.put show_sorts false;
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
-        val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
-                   handle TERM _ => ct
-        fun match u = t aconv u
-        fun G 0 f ctxt x = f (Config.put show_types true (Config.put show_sorts true ctxt)) x
-          | G 1 f ctxt x = G 0 f (Config.put show_brackets true ctxt) x
-          | G 2 f ctxt x = G 0 f (Config.put show_all_types true ctxt) x
-          | G 3 f ctxt x = G 2 f (Config.put show_brackets true ctxt) x
+        val t' = HOLogic.dest_Trueprop t
+                 handle TERM _ => t
+        val tn = no_vars ctxt t'
+        fun match u =
+            let val _ = Thm.match (ct, cterm_of (Proof_Context.theory_of ctxt) u) in true end
+            handle MATCH => false
+        fun G 0 f ctxt x = f ctxt x
+          | G 1 f ctxt x = f (Config.put show_types true ctxt) x
+          | G 2 f ctxt x = G 1 f (Config.put show_sorts true ctxt) x
+          | G 3 f ctxt x = G 2 f (Config.put show_all_types true ctxt) x
+          | G 4 f ctxt x = G 3 f (Config.put show_brackets true ctxt) x
           | G _ _ _ _ = raise SMART_STRING
         fun F n =
             let
-                val str =
-                  G n Syntax.string_of_term (Config.put show_brackets false ctxt) (term_of ct)
+                val str = G n Syntax.string_of_term ctxt tn
+                val _ = warning (PolyML.makestring (n, str))
                 val u = Syntax.parse_term ctxt str
-                  |> Type.constraint T |> Syntax.check_term ctxt
+                val u = if t = t' then u else HOLogic.mk_Trueprop u
+                val u = Syntax.check_term ctxt (Type.constraint T u)
             in
                 if match u
                 then quote str
                 else F (n+1)
             end
-            handle ERROR mesg => F (n + 1)
+            handle ERROR _ => F (n + 1)
               | SMART_STRING =>
-                  error ("smart_string failed for: "^ G 0 Syntax.string_of_term ctxt (term_of ct))
+                  let val _ =
+                    warning ("smart_string failed for: "^ G 0 Syntax.string_of_term ctxt (term_of ct))
+                  in quote (G 2 Syntax.string_of_term ctxt tn) end
     in
       Print_Mode.setmp [] F 0
     end
-    handle ERROR mesg => simple_smart_string_of_cterm ctxt0 ct
 
 fun smart_string_of_thm ctxt = smart_string_of_cterm ctxt o cprop_of
 
 fun prth th = writeln (Print_Mode.setmp [] Display.string_of_thm_without_context th);
+val topctxt = ML_Context.the_local_context ();
 fun prin t = writeln (Print_Mode.setmp []
-  (fn () => Syntax.string_of_term (ML_Context.the_local_context ()) t) ());
+  (fn () => Syntax.string_of_term topctxt t) ());
 fun pth (HOLThm(ren,thm)) =
     let
         (*val _ = writeln "Renaming:"
@@ -1363,6 +1366,7 @@ fun intern_store_thm gen_output thyname thmname hth thy =
         val thy' = add_hol4_pending thyname thmname args thy
         val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
         val th = disambiguate_frees th
+        val th = Object_Logic.rulify th
         val thy2 =
           if gen_output
           then

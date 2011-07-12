@@ -160,13 +160,16 @@ fun add_hol4_rewrite (Context.Theory thy, th) =
     let
         val _ = message "Adding HOL4 rewrite"
         val th1 = th RS @{thm eq_reflection}
+                  handle _ => th
         val current_rews = HOL4Rewrites.get thy
         val new_rews = insert Thm.eq_thm th1 current_rews
         val updated_thy  = HOL4Rewrites.put new_rews thy
     in
         (Context.Theory updated_thy,th1)
     end
-  | add_hol4_rewrite (context, th) = (context, th RS eq_reflection);
+  | add_hol4_rewrite (context, th) = (context,
+      (th RS @{thm eq_reflection} handle _ => th)
+    );
 
 fun ignore_hol4 bthy bthm thy =
     let
