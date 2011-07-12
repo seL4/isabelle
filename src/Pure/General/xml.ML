@@ -1,12 +1,17 @@
 (*  Title:      Pure/General/xml.ML
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 
-Simple XML tree values.
+Untyped XML trees.
 *)
 
 signature XML_DATA_OPS =
 sig
+  type 'a A
   type 'a T
+  type 'a V
+  val int_atom: int A
+  val bool_atom: bool A
+  val unit_atom: unit A
   val properties: Properties.T T
   val string: string T
   val int: int T
@@ -16,7 +21,7 @@ sig
   val triple: 'a T -> 'b T -> 'c T -> ('a * 'b * 'c) T
   val list: 'a T -> 'a list T
   val option: 'a T -> 'a option T
-  val variant: 'a T list -> 'a T
+  val variant: 'a V list -> 'a T
 end;
 
 signature XML =
@@ -41,8 +46,8 @@ sig
   val parse: string -> tree
   exception XML_ATOM of string
   exception XML_BODY of body
-  structure Encode: XML_DATA_OPS where type 'a T = 'a -> body
-  structure Decode: XML_DATA_OPS where type 'a T = body -> 'a
+  structure Encode: XML_DATA_OPS
+  structure Decode: XML_DATA_OPS
 end;
 
 structure XML: XML =
@@ -220,10 +225,12 @@ exception XML_BODY of tree list;
 structure Encode =
 struct
 
+type 'a A = 'a -> string;
 type 'a T = 'a -> body;
+type 'a V = 'a -> string list * body;
 
 
-(* basic values *)
+(* atomic values *)
 
 fun int_atom i = signed_string_of_int i;
 
@@ -237,7 +244,9 @@ fun unit_atom () = "";
 
 fun node ts = Elem ((":", []), ts);
 
-fun tagged (tag, ts) = Elem ((int_atom tag, []), ts);
+fun vector xs = map_index (fn (i, x) => (int_atom i, x)) xs;
+
+fun tagged (tag, (xs, ts)) = Elem ((int_atom tag, vector xs), ts);
 
 
 (* representation of standard types *)
@@ -270,10 +279,12 @@ end;
 structure Decode =
 struct
 
+type 'a A = string -> 'a;
 type 'a T = body -> 'a;
+type 'a V = string list * body -> 'a;
 
 
-(* basic values *)
+(* atomic values *)
 
 fun int_atom s =
   (case Int.fromString s of
@@ -293,7 +304,10 @@ fun unit_atom "" = ()
 fun node (Elem ((":", []), ts)) = ts
   | node t = raise XML_BODY [t];
 
-fun tagged (Elem ((s, []), ts)) = (int_atom s, ts)
+val vector =
+  fold_map (fn (a, x) => fn i => if int_atom a = i then (x, i + 1) else raise XML_ATOM a);
+
+fun tagged (Elem ((name, props), ts)) = (int_atom name, (#1 (vector props 0), ts))
   | tagged t = raise XML_BODY [t];
 
 
@@ -326,9 +340,9 @@ fun option _ [] = NONE
 
 fun variant fs [t] =
       let
-        val (tag, ts) = tagged t;
+        val (tag, (xs, ts)) = tagged t;
         val f = nth fs tag handle General.Subscript => raise XML_BODY [t];
-      in f ts end
+      in f (xs, ts) end
   | variant _ ts = raise XML_BODY ts;
 
 end;

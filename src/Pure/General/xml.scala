@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/xml.scala
     Author:     Makarius
 
-Simple XML tree values.
+Untyped XML trees.
 */
 
 package isabelle
@@ -12,6 +12,7 @@ import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
 import scala.actors.Actor._
+import scala.collection.mutable
 
 
 object XML
@@ -216,23 +217,26 @@ object XML
     type T[A] = A => XML.Body
 
 
-    /* basic values */
+    /* atomic values */
 
-    private def long_atom(i: Long): String = i.toString
+    def long_atom(i: Long): String = i.toString
 
-    private def int_atom(i: Int): String = i.toString
+    def int_atom(i: Int): String = i.toString
 
-    private def bool_atom(b: Boolean): String = if (b) "1" else "0"
+    def bool_atom(b: Boolean): String = if (b) "1" else "0"
 
-    private def unit_atom(u: Unit) = ""
+    def unit_atom(u: Unit) = ""
 
 
     /* structural nodes */
 
     private def node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
 
-    private def tagged(tag: Int, ts: XML.Body): XML.Tree =
-      XML.Elem(Markup(int_atom(tag), Nil), ts)
+    private def vector(xs: List[String]): List[(String, String)] =
+      xs.zipWithIndex.map(p => (int_atom(p._2), p._1))
+
+    private def tagged(tag: Int, data: (List[String], XML.Body)): XML.Tree =
+      XML.Elem(Markup(int_atom(tag), vector(data._1)), data._2)
 
 
     /* representation of standard types */
@@ -265,7 +269,7 @@ object XML
       case Some(x) => List(node(f(x)))
     }
 
-    def variant[A](fs: List[PartialFunction[A, XML.Body]]): T[A] =
+    def variant[A](fs: List[PartialFunction[A, (List[String], XML.Body)]]): T[A] =
     {
       case x =>
         val (f, tag) = fs.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
@@ -276,24 +280,25 @@ object XML
   object Decode
   {
     type T[A] = XML.Body => A
+    type V[A] = (List[String], XML.Body) => A
 
 
-     /* basic values */
+    /* atomic values */
 
-    private def long_atom(s: String): Long =
+    def long_atom(s: String): Long =
       try { java.lang.Long.parseLong(s) }
       catch { case e: NumberFormatException => throw new XML_Atom(s) }
 
-    private def int_atom(s: String): Int =
+    def int_atom(s: String): Int =
       try { Integer.parseInt(s) }
       catch { case e: NumberFormatException => throw new XML_Atom(s) }
 
-    private def bool_atom(s: String): Boolean =
+    def bool_atom(s: String): Boolean =
       if (s == "1") true
       else if (s == "0") false
       else throw new XML_Atom(s)
 
-    private def unit_atom(s: String): Unit =
+    def unit_atom(s: String): Unit =
       if (s == "") () else throw new XML_Atom(s)
 
 
@@ -305,9 +310,20 @@ object XML
         case _ => throw new XML_Body(List(t))
       }
 
-    private def tagged(t: XML.Tree): (Int, XML.Body) =
+    private def vector(props: List[(String, String)]): List[String] =
+    {
+      val xs = new mutable.ListBuffer[String]
+      var i = 0
+      for ((a, x) <- props) {
+        if (int_atom(a) == i) { xs += x; i = i + 1 }
+        else throw new XML_Atom(a)
+      }
+      xs.toList
+    }
+
+    private def tagged(t: XML.Tree): (Int, (List[String], XML.Body)) =
       t match {
-        case XML.Elem(Markup(s, Nil), ts) => (int_atom(s), ts)
+        case XML.Elem(Markup(name, props), ts) => (int_atom(name), (vector(props), ts))
         case _ => throw new XML_Body(List(t))
       }
 
@@ -357,14 +373,14 @@ object XML
       case ts => throw new XML_Body(ts)
     }
 
-    def variant[A](fs: List[T[A]]): T[A] =
+    def variant[A](fs: List[V[A]]): T[A] =
     {
       case List(t) =>
-        val (tag, ts) = tagged(t)
+        val (tag, (xs, ts)) = tagged(t)
         val f =
           try { fs(tag) }
           catch { case _: IndexOutOfBoundsException => throw new XML_Body(List(t)) }
-        f(ts)
+        f(xs, ts)
       case ts => throw new XML_Body(ts)
     }
   }
