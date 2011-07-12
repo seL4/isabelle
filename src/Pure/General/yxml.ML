@@ -52,7 +52,7 @@ val Y = chr 6;
 val XY = X ^ Y;
 val XYX = XY ^ X;
 
-val detect = exists_string (fn s => s = X);
+val detect = exists_string (fn s => s = X orelse s = Y);
 
 
 (* output *)

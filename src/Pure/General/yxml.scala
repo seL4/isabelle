@@ -19,6 +19,8 @@ object YXML
   val X_string = X.toString
   val Y_string = Y.toString
 
+  def detect(s: String): Boolean = s.exists(c => c == X || c == Y)
+
 
   /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
 
