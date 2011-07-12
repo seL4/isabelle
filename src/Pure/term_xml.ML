@@ -29,7 +29,7 @@ open XML.Encode;
 val sort = list string;
 
 fun typ T = T |> variant
- [fn Type (a, b) => ([a], (list typ) b),
+ [fn Type (a, b) => ([a], list typ b),
   fn TFree (a, b) => ([a], sort b),
   fn TVar ((a, b), c) => ([a, int_atom b], sort c)];
 
@@ -39,7 +39,7 @@ fun term t = t |> variant
   fn Var ((a, b), c) => ([a, int_atom b], typ c),
   fn Bound a => ([int_atom a], []),
   fn Abs (a, b, c) => ([a], pair typ term (b, c)),
-  fn a $ b => ([], pair term term (a, b))];
+  fn op $ a => ([], pair term term a)];
 
 end;
 
