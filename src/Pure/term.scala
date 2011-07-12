@@ -43,7 +43,7 @@ object Term_XML
 
   object Encode
   {
-    import XML_Data.Encode._
+    import XML.Encode._
 
     val indexname: T[Indexname] = pair(string, int)
 
@@ -67,7 +67,7 @@ object Term_XML
 
   object Decode
   {
-    import XML_Data.Decode._
+    import XML.Decode._
 
     val indexname: T[Indexname] = pair(string, int)
 

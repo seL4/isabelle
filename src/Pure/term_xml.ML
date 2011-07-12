@@ -15,8 +15,8 @@ end
 
 signature TERM_XML =
 sig
-  structure Encode: TERM_XML_OPS where type 'a T = 'a XML_Data.Encode.T
-  structure Decode: TERM_XML_OPS where type 'a T = 'a XML_Data.Decode.T
+  structure Encode: TERM_XML_OPS where type 'a T = 'a XML.Encode.T
+  structure Decode: TERM_XML_OPS where type 'a T = 'a XML.Decode.T
 end;
 
 structure Term_XML: TERM_XML =
@@ -27,7 +27,7 @@ struct
 structure Encode =
 struct
 
-open XML_Data.Encode;
+open XML.Encode;
 
 val indexname = pair string int;
 
@@ -54,7 +54,7 @@ end;
 structure Decode =
 struct
 
-open XML_Data.Decode;
+open XML.Decode;
 
 val indexname = pair string int;
 
