@@ -130,7 +130,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/overloading.ML					\
   Isar/parse.ML						\
   Isar/parse_spec.ML					\
-  Isar/parse_value.ML					\
   Isar/proof.ML						\
   Isar/proof_context.ML					\
   Isar/proof_display.ML					\

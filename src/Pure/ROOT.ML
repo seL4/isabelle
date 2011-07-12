@@ -188,7 +188,6 @@ use "Proof/proofchecker.ML";
 use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
-use "Isar/parse_value.ML";
 use "Isar/args.ML";
 
 (*ML support*)
