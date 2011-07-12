@@ -19,6 +19,9 @@ sig
   val scan_string_q: T list -> (Position.T * (T list * Position.T)) * T list
   val scan_string_qq: T list -> (Position.T * (T list * Position.T)) * T list
   val scan_string_bq: T list -> (Position.T * (T list * Position.T)) * T list
+  val quote_string_q: string -> string
+  val quote_string_qq: string -> string
+  val quote_string_bq: string -> string
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
@@ -75,7 +78,7 @@ fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 val scan_pos = Scan.ahead (Scan.one (K true)) >> (fn (_, pos): T => pos);
 
 
-(* Isabelle strings *)
+(* scan string literals *)
 
 local
 
@@ -100,6 +103,29 @@ in
 val scan_string_q = scan_strs "'";
 val scan_string_qq = scan_strs "\"";
 val scan_string_bq = scan_strs "`";
+
+end;
+
+
+(* quote string literals *)
+
+local
+
+fun char_code i =
+  (if i < 10 then "00" else if i < 100 then "0" else "") ^ string_of_int i;
+
+fun quote_str q s =
+  if Symbol.is_ascii_control s then "\\" ^ char_code (ord s)
+  else if s = q orelse s = "\\" then "\\" ^ s
+  else s;
+
+fun quote_string q = enclose q q o implode o map (quote_str q) o Symbol.explode;
+
+in
+
+val quote_string_q = quote_string "'";
+val quote_string_qq = quote_string "\"";
+val quote_string_bq = quote_string "`";
 
 end;
 

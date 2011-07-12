@@ -9,13 +9,13 @@ package isabelle
 
 object Position
 {
-  type T = List[(String, String)]
+  type T = Properties.T
 
-  val Line = new Markup.Int_Property(Markup.LINE)
-  val Offset = new Markup.Int_Property(Markup.OFFSET)
-  val End_Offset = new Markup.Int_Property(Markup.END_OFFSET)
-  val File = new Markup.Property(Markup.FILE)
-  val Id = new Markup.Long_Property(Markup.ID)
+  val Line = new Properties.Int(Markup.LINE)
+  val Offset = new Properties.Int(Markup.OFFSET)
+  val End_Offset = new Properties.Int(Markup.END_OFFSET)
+  val File = new Properties.String(Markup.FILE)
+  val Id = new Properties.Long(Markup.ID)
 
   object Range
   {

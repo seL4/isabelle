@@ -7,10 +7,7 @@ Generalized characters with infinitely many named symbols.
 signature SYMBOL =
 sig
   type symbol = string
-  val SOH: symbol
   val STX: symbol
-  val ENQ: symbol
-  val ACK: symbol
   val DEL: symbol
   val space: symbol
   val spaces: int -> string
@@ -89,10 +86,7 @@ struct
 
 type symbol = string;
 
-val SOH = chr 1;
 val STX = chr 2;
-val ENQ = chr 5;
-val ACK = chr 6;
 val DEL = chr 127;
 
 val space = chr 32;

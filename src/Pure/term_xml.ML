@@ -7,7 +7,6 @@ XML data representation of lambda terms.
 signature TERM_XML_OPS =
 sig
   type 'a T
-  val indexname: indexname T
   val sort: sort T
   val typ: typ T
   val term: term T
@@ -15,63 +14,54 @@ end
 
 signature TERM_XML =
 sig
-  structure Encode: TERM_XML_OPS where type 'a T = 'a XML_Data.Encode.T
-  structure Decode: TERM_XML_OPS where type 'a T = 'a XML_Data.Decode.T
+  structure Encode: TERM_XML_OPS
+  structure Decode: TERM_XML_OPS
 end;
 
 structure Term_XML: TERM_XML =
 struct
 
-(* encode *)
-
 structure Encode =
 struct
 
-open XML_Data.Encode;
-
-val indexname = pair string int;
+open XML.Encode;
 
 val sort = list string;
 
 fun typ T = T |> variant
- [fn Type x => pair string (list typ) x,
-  fn TFree x => pair string sort x,
-  fn TVar x => pair indexname sort x];
+ [fn Type (a, b) => ([a], (list typ) b),
+  fn TFree (a, b) => ([a], sort b),
+  fn TVar ((a, b), c) => ([a, int_atom b], sort c)];
 
 fun term t = t |> variant
- [fn Const x => pair string typ x,
-  fn Free x => pair string typ x,
-  fn Var x => pair indexname typ x,
-  fn Bound x => int x,
-  fn Abs x => triple string typ term x,
-  fn op $ x => pair term term x];
+ [fn Const (a, b) => ([a], typ b),
+  fn Free (a, b) => ([a], typ b),
+  fn Var ((a, b), c) => ([a, int_atom b], typ c),
+  fn Bound a => ([int_atom a], []),
+  fn Abs (a, b, c) => ([a], pair typ term (b, c)),
+  fn a $ b => ([], pair term term (a, b))];
 
 end;
-
-
-(* decode *)
 
 structure Decode =
 struct
 
-open XML_Data.Decode;
-
-val indexname = pair string int;
+open XML.Decode;
 
 val sort = list string;
 
 fun typ T = T |> variant
- [Type o pair string (list typ),
-  TFree o pair string sort,
-  TVar o pair indexname sort];
+ [fn ([a], b) => Type (a, list typ b),
+  fn ([a], b) => TFree (a, sort b),
+  fn ([a, b], c) => TVar ((a, int_atom b), sort c)];
 
 fun term t = t |> variant
- [Const o pair string typ,
-  Free o pair string typ,
-  Var o pair indexname typ,
-  Bound o int,
-  Abs o triple string typ term,
-  op $ o pair term term];
+ [fn ([a], b) => Const (a, typ b),
+  fn ([a], b) => Free (a, typ b),
+  fn ([a, b], c) => Var ((a, int_atom b), typ c),
+  fn ([a], []) => Bound (int_atom a),
+  fn ([a], b) => let val (c, d) = pair typ term b in Abs (a, c, d) end,
+  fn ([], a) => op $ (pair term term a)];
 
 end;
 

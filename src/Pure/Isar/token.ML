@@ -191,15 +191,12 @@ fun content_of (Token (_, (_, x), _)) = x;
 
 (* unparse *)
 
-fun escape q =
-  implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
-
 fun unparse (Token (_, (kind, x), _)) =
   (case kind of
-    String => x |> quote o escape "\""
-  | AltString => x |> enclose "`" "`" o escape "`"
-  | Verbatim => x |> enclose "{*" "*}"
-  | Comment => x |> enclose "(*" "*)"
+    String => Symbol_Pos.quote_string_qq x
+  | AltString => Symbol_Pos.quote_string_bq x
+  | Verbatim => enclose "{*" "*}" x
+  | Comment => enclose "(*" "*)" x
   | Sync => ""
   | EOF => ""
   | _ => x);

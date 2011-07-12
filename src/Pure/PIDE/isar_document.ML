@@ -18,10 +18,10 @@ val _ =
         val old_id = Document.parse_id old_id_string;
         val new_id = Document.parse_id new_id_string;
         val edits = YXML.parse_body edits_yxml |>
-          let open XML_Data.Decode
+          let open XML.Decode
           in list (pair string (option (list (pair (option int) (option int))))) end;
         val headers = YXML.parse_body headers_yxml |>
-          let open XML_Data.Decode
+          let open XML.Decode
           in list (pair string (triple string (list string) (list string))) end;
 
       val await_cancellation = Document.cancel_execution state;

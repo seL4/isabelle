@@ -76,9 +76,9 @@ sig
   val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
-  val tag_rule: Properties.property -> thm -> thm
+  val tag_rule: Properties.entry -> thm -> thm
   val untag_rule: string -> thm -> thm
-  val tag: Properties.property -> attribute
+  val tag: Properties.entry -> attribute
   val untag: string -> attribute
   val def_name: string -> string
   val def_name_optional: string -> string -> string

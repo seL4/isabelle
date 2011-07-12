@@ -53,7 +53,6 @@ use "General/graph.ML";
 use "General/linear_set.ML";
 use "General/buffer.ML";
 use "General/xml.ML";
-use "General/xml_data.ML";
 use "General/pretty.ML";
 use "General/path.ML";
 use "General/url.ML";
@@ -189,7 +188,6 @@ use "Proof/proofchecker.ML";
 use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
-use "Isar/parse_value.ML";
 use "Isar/args.ML";
 
 (*ML support*)

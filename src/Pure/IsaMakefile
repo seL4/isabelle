@@ -104,7 +104,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/timing.ML					\
   General/url.ML					\
   General/xml.ML					\
-  General/xml_data.ML					\
   General/yxml.ML					\
   Isar/args.ML						\
   Isar/attrib.ML					\
@@ -131,7 +130,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/overloading.ML					\
   Isar/parse.ML						\
   Isar/parse_spec.ML					\
-  Isar/parse_value.ML					\
   Isar/proof.ML						\
   Isar/proof_context.ML					\
   Isar/proof_display.ML					\
