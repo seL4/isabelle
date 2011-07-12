@@ -14,10 +14,10 @@ object YXML
 {
   /* chunk markers */
 
-  private val X = '\5'
-  private val Y = '\6'
-  private val X_string = X.toString
-  private val Y_string = Y.toString
+  val X = '\5'
+  val Y = '\6'
+  val X_string = X.toString
+  val Y_string = Y.toString
 
 
   /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
