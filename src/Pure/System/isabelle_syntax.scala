@@ -15,8 +15,8 @@ object Isabelle_Syntax
   {
     result.append("\"")
     for (c <- str) {
-      if (c < 32 || c == '\\' || c == '\"') {
-        result.append("\\")
+      if ((c < 32 && c != 5 && c != 6) || c == '\\' || c == '\"') {
+        result.append("\\0")
         if (c < 10) result.append('0')
         if (c < 100) result.append('0')
         result.append(c.asInstanceOf[Int].toString)
