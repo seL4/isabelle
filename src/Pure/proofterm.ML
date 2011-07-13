@@ -1048,15 +1048,17 @@ fun oracle_proof name prop =
   if ! proofs = 0 then ((name, dummy), Oracle (name, dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
-val shrink_proof =
+fun shrink_proof thy =
   let
+    val (typ, term) = Term_Sharing.init thy;
+
     fun shrink ls lev (prf as Abst (a, T, body)) =
           let val (b, is, ch, body') = shrink ls (lev+1) body
-          in (b, is, ch, if ch then Abst (a, T, body') else prf) end
+          in (b, is, ch, if ch then Abst (a, Option.map typ T, body') else prf) end
       | shrink ls lev (prf as AbsP (a, t, body)) =
           let val (b, is, ch, body') = shrink (lev::ls) lev body
           in (b orelse member (op =) is 0, map_filter (fn 0 => NONE | i => SOME (i-1)) is,
-            ch, if ch then AbsP (a, t, body') else prf)
+            ch, if ch then AbsP (a, Option.map term t, body') else prf)
           end
       | shrink ls lev prf =
           let val (is, ch, _, prf') = shrink' ls lev [] [] prf
@@ -1071,13 +1073,13 @@ val shrink_proof =
       | shrink' ls lev ts prfs (prf as prf1 % t) =
           let val (is, ch, (ch', t')::ts', prf') = shrink' ls lev (t::ts) prfs prf1
           in (is, ch orelse ch', ts',
-              if ch orelse ch' then prf' % t' else prf) end
+              if ch orelse ch' then prf' % Option.map term t' else prf) end
       | shrink' ls lev ts prfs (prf as PBound i) =
           (if exists (fn SOME (Bound j) => lev-j <= nth ls i | _ => true) ts
              orelse has_duplicates (op =)
                (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
-      | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp (term t))
       | shrink' ls lev ts prfs (prf as MinProof) = ([], false, map (pair false) ts, prf)
       | shrink' ls lev ts prfs (prf as OfClass _) = ([], false, map (pair false) ts, prf)
       | shrink' ls lev ts prfs prf =
@@ -1442,7 +1444,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     val argsP = map OfClass outer_constraints @ map Hyp hyps;
 
     fun full_proof0 () =
-      #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)));
+      #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)));
 
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
