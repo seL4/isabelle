@@ -11,8 +11,7 @@ no_document use_thys [
   "Normalization_by_Evaluation",
   "Hebrew",
   "Chinese",
-  "Serbian",
-  "ATP_Export"
+  "Serbian"
 ];
 
 use_thys [
@@ -77,9 +76,6 @@ use_thys [
   "List_to_Set_Comprehension_Examples",
   "Set_Algebras"
 ];
-
-Unsynchronized.setmp Proofterm.proofs (! Proofterm.proofs)
-  use_thy "CASC_Setup";
 
 if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";
