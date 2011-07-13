@@ -21,6 +21,8 @@ quickcheck can handle quantifiers on finite universes.
 
 *}
 
+declare [[quickcheck_timeout = 3600]]
+
 subsection {* Lists *}
 
 theorem "map g (map f xs) = map (g o f) xs"
