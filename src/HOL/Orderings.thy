@@ -1081,13 +1081,13 @@ apply (blast intro: antisym)
 done
 
 
-subsection {* Top and bottom elements *}
+subsection {* (Unique) top and bottom elements *}
 
-class bot = preorder +
+class bot = order +
   fixes bot :: 'a
   assumes bot_least [simp]: "bot \<le> x"
 
-class top = preorder +
+class top = order +
   fixes top :: 'a
   assumes top_greatest [simp]: "x \<le> top"
 
