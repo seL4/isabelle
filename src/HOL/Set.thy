@@ -416,6 +416,14 @@ lemma ball_one_point1 [simp]: "(ALL x:A. x = a --> P x) = (a:A --> P a)"
 lemma ball_one_point2 [simp]: "(ALL x:A. a = x --> P x) = (a:A --> P a)"
   by blast
 
+lemma ball_conj_distrib:
+  "(\<forall>x\<in>A. P x \<and> Q x) \<longleftrightarrow> ((\<forall>x\<in>A. P x) \<and> (\<forall>x\<in>A. Q x))"
+  by blast
+
+lemma bex_disj_distrib:
+  "(\<exists>x\<in>A. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x\<in>A. P x) \<or> (\<exists>x\<in>A. Q x))"
+  by blast
+
 
 text {* Congruence rules *}
 
@@ -535,7 +543,7 @@ subsubsection {* The empty set *}
 
 lemma empty_def:
   "{} = {x. False}"
-  by (simp add: bot_fun_def bot_bool_def Collect_def)
+  by (simp add: bot_fun_def Collect_def)
 
 lemma empty_iff [simp]: "(c : {}) = False"
   by (simp add: empty_def)
@@ -568,7 +576,7 @@ abbreviation UNIV :: "'a set" where
 
 lemma UNIV_def:
   "UNIV = {x. True}"
-  by (simp add: top_fun_def top_bool_def Collect_def)
+  by (simp add: top_fun_def Collect_def)
 
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
@@ -627,7 +635,7 @@ lemma Pow_not_empty: "Pow A \<noteq> {}"
 subsubsection {* Set complement *}
 
 lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
-  by (simp add: mem_def fun_Compl_def bool_Compl_def)
+  by (simp add: mem_def fun_Compl_def)
 
 lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
   by (unfold mem_def fun_Compl_def bool_Compl_def) blast
@@ -638,7 +646,7 @@ text {*
   right side of the notional turnstile ... *}
 
 lemma ComplD [dest!]: "c : -A ==> c~:A"
-  by (simp add: mem_def fun_Compl_def bool_Compl_def)
+  by (simp add: mem_def fun_Compl_def)
 
 lemmas ComplE = ComplD [elim_format]
 
@@ -658,7 +666,7 @@ notation (HTML output)
 
 lemma Int_def:
   "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
-  by (simp add: inf_fun_def inf_bool_def Collect_def mem_def)
+  by (simp add: inf_fun_def Collect_def mem_def)
 
 lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
   by (unfold Int_def) blast
@@ -692,7 +700,7 @@ notation (HTML output)
 
 lemma Un_def:
   "A \<union> B = {x. x \<in> A \<or> x \<in> B}"
-  by (simp add: sup_fun_def sup_bool_def Collect_def mem_def)
+  by (simp add: sup_fun_def Collect_def mem_def)
 
 lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
   by (unfold Un_def) blast
@@ -724,7 +732,7 @@ lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<uni
 subsubsection {* Set difference *}
 
 lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
-  by (simp add: mem_def fun_diff_def bool_diff_def)
+  by (simp add: mem_def fun_diff_def)
 
 lemma DiffI [intro!]: "c : A ==> c ~: B ==> c : A - B"
   by simp
