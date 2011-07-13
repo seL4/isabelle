@@ -1086,10 +1086,24 @@ subsection {* (Unique) top and bottom elements *}
 class bot = order +
   fixes bot :: 'a
   assumes bot_least [simp]: "bot \<le> x"
+begin
+
+lemma bot_less:
+  "a \<noteq> bot \<longleftrightarrow> bot < a"
+  by (auto simp add: less_le_not_le intro!: antisym)
+
+end
 
 class top = order +
   fixes top :: 'a
   assumes top_greatest [simp]: "x \<le> top"
+begin
+
+lemma less_top:
+  "a \<noteq> top \<longleftrightarrow> a < top"
+  by (auto simp add: less_le_not_le intro!: antisym)
+
+end
 
 
 subsection {* Dense orders *}

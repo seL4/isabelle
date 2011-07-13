@@ -392,15 +392,6 @@ lemma (in complete_lattice) Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqi
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by (fact Inf_union_distrib)
 
-lemma (in bounded_lattice_bot) bot_less:
-  -- {* FIXME: tighten classes bot, top to partial orders (uniqueness!), move lemmas there *}
-  "a \<noteq> bot \<longleftrightarrow> bot < a"
-  by (auto simp add: less_le_not_le intro!: antisym)
-
-lemma (in bounded_lattice_top) less_top:
-  "a \<noteq> top \<longleftrightarrow> a < top"
-  by (auto simp add: less_le_not_le intro!: antisym)
-
 lemma (in complete_lattice) Inf_top_conv [no_atp]:
   "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
   "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
