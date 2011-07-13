@@ -38,6 +38,7 @@ sig
   val element: string -> attributes -> string list -> string
   val output_markup: Markup.T -> Output.output * Output.output
   val string_of: tree -> string
+  val pretty: int -> tree -> Pretty.T
   val output: tree -> TextIO.outstream -> unit
   val parse_comments: string list -> unit * string list
   val parse_string : string -> string option
@@ -112,19 +113,24 @@ fun output_markup (markup as (name, atts)) =
 
 (* output *)
 
-fun buffer_of tree =
+fun buffer_of depth tree =
   let
-    fun traverse (Elem ((name, atts), [])) =
+    fun traverse _ (Elem ((name, atts), [])) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
-      | traverse (Elem ((name, atts), ts)) =
+      | traverse d (Elem ((name, atts), ts)) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
-          fold traverse ts #>
+          traverse_body d ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
-      | traverse (Text s) = Buffer.add (text s);
-  in Buffer.empty |> traverse tree end;
+      | traverse _ (Text s) = Buffer.add (text s)
+    and traverse_body 0 _ = Buffer.add "..."
+      | traverse_body d ts = fold (traverse (d - 1)) ts;
+  in Buffer.empty |> traverse depth tree end;
 
-val string_of = Buffer.content o buffer_of;
-val output = Buffer.output o buffer_of;
+val string_of = Buffer.content o buffer_of ~1;
+val output = Buffer.output o buffer_of ~1;
+
+fun pretty depth tree =
+  Pretty.str (Buffer.content (buffer_of (Int.max (0, depth)) tree));
 
 
 
