@@ -20,7 +20,7 @@ function usage() {
 
 for FILE in "$@"
 do
-  (echo "theory Nitrox_Run imports Main begin" &&
-   echo "ML {* Nitrox.pick_nits_in_fof_file \"$FILE\" *}" &&
-   echo "end;") | isabelle tty
+  echo "theory Scratch imports \"Nitpick\" begin ML {* Nitrox.pick_nits_in_fof_file \"$FILE\" *} end;" \
+    > /tmp/$ISABELLE_TMP/Scratch.thy
+  $ISABELLE_PROCESS -e "use_thy \"/tmp/$ISABELLE_TMP/Scratch\"; exit 1;"
 done
