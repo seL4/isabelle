@@ -115,7 +115,8 @@ fun pick_nits_in_fof_file file_name =
 *)
       val state = Proof.init @{context}
       val params =
-        [("card", "1\<emdash>8"),
+        [("card iota", "1\<emdash>100"),
+         ("card", "1\<emdash>8"),
          ("box", "false"),
          ("sat_solver", "smart"),
          ("max_threads", "1"),
