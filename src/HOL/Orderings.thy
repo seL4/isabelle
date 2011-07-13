@@ -1088,6 +1088,10 @@ class bot = order +
   assumes bot_least [simp]: "bot \<le> x"
 begin
 
+lemma bot_unique:
+  "a \<le> bot \<longleftrightarrow> a = bot"
+  by (auto simp add: intro: antisym)
+
 lemma bot_less:
   "a \<noteq> bot \<longleftrightarrow> bot < a"
   by (auto simp add: less_le_not_le intro!: antisym)
@@ -1098,6 +1102,10 @@ class top = order +
   fixes top :: 'a
   assumes top_greatest [simp]: "x \<le> top"
 begin
+
+lemma top_unique:
+  "top \<le> a \<longleftrightarrow> a = top"
+  by (auto simp add: intro: antisym)
 
 lemma less_top:
   "a \<noteq> top \<longleftrightarrow> a < top"

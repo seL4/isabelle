@@ -60,7 +60,7 @@ syntax diagrams.
 
 *** HOL ***
 
-* classes bot and top require underlying partial order rather than preorder:
+* Classes bot and top require underlying partial order rather than preorder:
 uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
 * Archimedian_Field.thy:
