@@ -6,14 +6,6 @@ theory Complete_Lattice
 imports Set
 begin
 
-lemma ball_conj_distrib:
-  "(\<forall>x\<in>A. P x \<and> Q x) \<longleftrightarrow> ((\<forall>x\<in>A. P x) \<and> (\<forall>x\<in>A. Q x))"
-  by blast
-
-lemma bex_disj_distrib:
-  "(\<exists>x\<in>A. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x\<in>A. P x) \<or> (\<exists>x\<in>A. Q x))"
-  by blast
-
 notation
   less_eq (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
