@@ -30,6 +30,7 @@ sig
   val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
+  val lookup_key: 'a table -> key -> (key * 'a) option
   val lookup: 'a table -> key -> 'a option
   val defined: 'a table -> key -> bool
   val update: key * 'a -> 'a table -> 'a table
@@ -161,24 +162,26 @@ fun forall pred = not o exists (not o pred);
 
 (* lookup *)
 
-fun lookup tab key =
+fun lookup_key tab key =
   let
     fun look Empty = NONE
       | look (Branch2 (left, (k, x), right)) =
           (case Key.ord (key, k) of
             LESS => look left
-          | EQUAL => SOME x
+          | EQUAL => SOME (k, x)
           | GREATER => look right)
       | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
           (case Key.ord (key, k1) of
             LESS => look left
-          | EQUAL => SOME x1
+          | EQUAL => SOME (k1, x1)
           | GREATER =>
               (case Key.ord (key, k2) of
                 LESS => look mid
-              | EQUAL => SOME x2
+              | EQUAL => SOME (k2, x2)
               | GREATER => look right));
   in look tab end;
+
+fun lookup tab key = Option.map #2 (lookup_key tab key);
 
 fun defined tab key =
   let
