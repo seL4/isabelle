@@ -392,13 +392,41 @@ lemma (in complete_lattice) Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqi
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by (fact Inf_union_distrib)
 
-(*lemma (in complete_lattice) Inf_top_conv [no_atp]:
-  "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"*)
+lemma (in bounded_lattice_bot) bot_less:
+  -- {* FIXME: tighten classes bot, top to partial orders (uniqueness!), move lemmas there *}
+  "a \<noteq> bot \<longleftrightarrow> bot < a"
+  by (auto simp add: less_le_not_le intro!: antisym)
+
+lemma (in bounded_lattice_top) less_top:
+  "a \<noteq> top \<longleftrightarrow> a < top"
+  by (auto simp add: less_le_not_le intro!: antisym)
+
+lemma (in complete_lattice) Inf_top_conv [no_atp]:
+  "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
+  "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
+proof -
+  show "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
+  proof
+    assume "\<forall>x\<in>A. x = \<top>"
+    then have "A = {} \<or> A = {\<top>}" by auto
+    then show "\<Sqinter>A = \<top>" by auto
+  next
+    assume "\<Sqinter>A = \<top>"
+    show "\<forall>x\<in>A. x = \<top>"
+    proof (rule ccontr)
+      assume "\<not> (\<forall>x\<in>A. x = \<top>)"
+      then obtain x where "x \<in> A" and "x \<noteq> \<top>" by blast
+      then obtain B where "A = insert x B" by blast
+      with `\<Sqinter>A = \<top>` `x \<noteq> \<top>` show False by (simp add: Inf_insert)
+    qed
+  qed
+  then show "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)" by auto
+qed
 
 lemma Inter_UNIV_conv [simp,no_atp]:
   "\<Inter>A = UNIV \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   "UNIV = \<Inter>A \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
-  by blast+
+  by (fact Inf_top_conv)+
 
 lemma (in complete_lattice) Inf_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Sqinter>B"
   by (auto intro: Inf_greatest Inf_lower)
@@ -448,7 +476,7 @@ lemma INTER_def:
 
 lemma Inter_image_eq [simp]:
   "\<Inter>(B`A) = (\<Inter>x\<in>A. B x)"
-  by (rule sym) (fact INTER_eq_Inter_image)
+  by (rule sym) (fact INFI_def)
 
 lemma INT_iff [simp]: "(b: (INT x:A. B x)) = (ALL x:A. b: B x)"
   by (unfold INTER_def) blast
