@@ -108,7 +108,7 @@ qed (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
 instance bot :: (linorder) linorder proof
 qed (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
 
-instantiation bot :: (preorder) bot
+instantiation bot :: (order) bot
 begin
 
 definition "bot = Bot"
@@ -208,7 +208,7 @@ qed (auto simp add: less_eq_top_def less_top_def split: top.splits)
 instance top :: (linorder) linorder proof
 qed (auto simp add: less_eq_top_def less_top_def split: top.splits)
 
-instantiation top :: (preorder) top
+instantiation top :: (order) top
 begin
 
 definition "top = Top"

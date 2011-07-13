@@ -58,7 +58,7 @@ qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
 instance option :: (linorder) linorder proof
 qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
 
-instantiation option :: (preorder) bot
+instantiation option :: (order) bot
 begin
 
 definition "bot = None"
