@@ -908,7 +908,8 @@ val int_ord = Int.compare;
 val string_ord = String.compare;
 
 fun fast_string_ord (s1, s2) =
-  (case int_ord (size s1, size s2) of EQUAL => string_ord (s1, s2) | ord => ord);
+  if pointer_eq (s1, s2) then EQUAL
+  else (case int_ord (size s1, size s2) of EQUAL => string_ord (s1, s2) | ord => ord);
 
 fun option_ord ord (SOME x, SOME y) = ord (x, y)
   | option_ord _ (NONE, NONE) = EQUAL
