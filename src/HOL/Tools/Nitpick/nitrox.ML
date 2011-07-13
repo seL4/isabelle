@@ -35,10 +35,13 @@ fun parse_include x =
     val (file_name, rest) =
       (parse_keyword "include" |-- $$ "(" |-- parse_file_path --| $$ ")"
        --| $$ ".") x
+    val path = file_name |> Path.explode
+    val path =
+      path |> not (Path.is_absolute path) ? Path.append (Path.explode "$TPTP")
   in
-    ((), (file_name |> Path.explode |> File.read
-                    |> strip_spaces true (K true)
-                    |> raw_explode) @ rest)
+    ((), (path |> File.read
+               |> strip_spaces true (K true)
+               |> raw_explode) @ rest)
   end
 
 val parse_fof_or_cnf =
