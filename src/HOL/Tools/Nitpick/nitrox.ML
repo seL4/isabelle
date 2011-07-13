@@ -126,7 +126,7 @@ fun pick_nits_in_fof_file file_name =
          ("show_consts", "true"),
          ("format", "1000"),
          ("max_potential", "0"),
-         (* ("timeout", "240 s"), *)
+         ("timeout", "none"),
          ("expect", genuineN)]
         |> default_params @{theory}
       val i = 1
