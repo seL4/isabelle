@@ -146,6 +146,7 @@ use "theory.ML";
 use "interpretation.ML";
 use "proofterm.ML";
 use "thm.ML";
+use "term_sharing.ML";
 use "more_thm.ML";
 use "facts.ML";
 use "global_theory.ML";

@@ -161,7 +161,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_sourc
 
 val _ = Context.>> (Context.map_theory
  (inline (Binding.name "const_name")
-    (const_name (fn (consts, c) => (Consts.the_type consts c; c))) #>
+    (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
   inline (Binding.name "const_abbrev")
     (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c))) #>
   inline (Binding.name "const_syntax")

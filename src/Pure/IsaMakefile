@@ -248,6 +248,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   tactical.ML						\
   term.ML						\
   term_ord.ML						\
+  term_sharing.ML					\
   term_subst.ML						\
   term_xml.ML						\
   theory.ML						\

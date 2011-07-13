@@ -449,7 +449,7 @@ fun prep_const_proper ctxt strict (c, pos) =
           Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
       | NONE => Consts.read_const consts (c, pos));
     val _ =
-      if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
+      if strict then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
       else ();
     val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
   in t end;

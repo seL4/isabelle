@@ -13,7 +13,7 @@ sig
   val dest: T ->
    {constants: (typ * term option) Name_Space.table,
     constraints: typ Name_Space.table}
-  val the_type: T -> string -> typ                             (*exception TYPE*)
+  val the_const: T -> string -> string * typ                   (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
   val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
@@ -92,22 +92,22 @@ fun dest (Consts {decls = (space, decls), constraints, ...}) =
 
 (* lookup consts *)
 
-fun the_const (Consts {decls = (_, tab), ...}) c =
-  (case Symtab.lookup tab c of
-    SOME decl => decl
+fun the_entry (Consts {decls = (_, tab), ...}) c =
+  (case Symtab.lookup_key tab c of
+    SOME entry => entry
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
-fun the_type consts c =
-  (case the_const consts c of
-    ({T, ...}, NONE) => T
+fun the_const consts c =
+  (case the_entry consts c of
+    (c', ({T, ...}, NONE)) => (c', T)
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
 
 fun the_abbreviation consts c =
-  (case the_const consts c of
-    ({T, ...}, SOME {rhs, ...}) => (T, rhs)
+  (case the_entry consts c of
+    (_, ({T, ...}, SOME {rhs, ...})) => (T, rhs)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
-val the_decl = #1 oo the_const;
+fun the_decl consts = #1 o #2 o the_entry consts;
 val type_scheme = #T oo the_decl;
 val type_arguments = #typargs oo the_decl;
 
@@ -170,7 +170,7 @@ fun certify pp tsig do_expand consts =
         | Const (c, T) =>
             let
               val T' = certT T;
-              val ({T = U, ...}, abbr) = the_const consts c;
+              val (_, ({T = U, ...}, abbr)) = the_entry consts c;
               fun expand u =
                 Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                   err "Illegal type for abbreviation" (c, T), args');
@@ -245,7 +245,7 @@ fun declare ctxt naming (b, declT) =
 
 fun constrain (c, C) consts =
   consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
-    (the_const consts c handle TYPE (msg, _, _) => error msg;
+    (#2 (the_entry consts c) handle TYPE (msg, _, _) => error msg;
       (decls,
         constraints |> (case C of SOME T => Symtab.update (c, T) | NONE => Symtab.delete_safe c),
         rev_abbrevs)));
