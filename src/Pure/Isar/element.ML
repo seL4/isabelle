@@ -526,7 +526,7 @@ fun activate_i elem ctxt =
 
 fun activate raw_elem ctxt =
   let val elem = raw_elem |> map_ctxt
-   {binding = tap Variable.check_name,
+   {binding = tap (fn b => if Binding.is_empty b then "" else Variable.check_name b),
     typ = I,
     term = I,
     pattern = I,
