@@ -554,15 +554,15 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 
 ## HOL-Import
 
-IMPORTER_FILES = Import/lazy_seq.ML Import/proof_kernel.ML Import/replay.ML \
-  Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
-  Import/HOL4Syntax.thy Import/HOL4Compat.thy Import/import_syntax.ML \
-  Import/hol4rews.ML Import/import.ML Import/ROOT.ML
-
-IMPORTER_HOLLIGHT_FILES = Import/proof_kernel.ML Import/replay.ML \
-  Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
-  Import/HOL4Syntax.thy Import/HOLLightCompat.thy Import/import_syntax.ML \
-  Import/hol4rews.ML Import/import.ML Import/ROOT.ML
+IMPORTER_FILES = \
+  Import/ImportRecorder.thy Import/HOL4Compat.thy \
+  Import/HOLLightCompat.thy Import/HOL4Setup.thy Import/HOL4Syntax.thy \
+  Import/MakeEqual.thy Import/ROOT.ML Import/hol4rews.ML \
+  Import/import.ML Import/importrecorder.ML Import/import_syntax.ML \
+  Import/lazy_seq.ML Import/mono_scan.ML Import/mono_seq.ML \
+  Import/proof_kernel.ML Import/replay.ML Import/scan.ML Import/seq.ML \
+  Import/shuffler.ML Import/xml.ML Import/xmlconv.ML \
+  Library/ContNotDenum.thy Old_Number_Theory/Primes.thy
 
 HOL-Import: HOL $(LOG)/HOL-Import.gz
 
@@ -588,7 +588,7 @@ $(LOG)/HOL-Generate-HOL.gz: $(OUT)/HOL			\
 HOL-Generate-HOLLight: HOL $(LOG)/HOL-Generate-HOLLight.gz
 
 $(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL				\
-  $(IMPORTER_HOLLIGHT_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
+  $(IMPORTER_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
   Import/Generate-HOLLight/ROOT.ML
 	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOLLight
 
@@ -617,7 +617,7 @@ $(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)				\
 
 HOLLight: HOL $(LOG)/HOLLight.gz
 
-$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)		\
+$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_FILES)		\
   Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
   Import/HOLLight/ROOT.ML
 	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
