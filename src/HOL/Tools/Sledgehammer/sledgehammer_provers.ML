@@ -519,6 +519,10 @@ fun effective_atp_lambda_translation ctxt type_enc =
   |> (fn trans =>
          if trans = smartN then
            if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
+         else if trans = lambdasN andalso
+                 not (is_type_enc_higher_order type_enc) then
+           error ("Lambda translation method incompatible with \
+                  \first-order encoding.")
          else
            trans)
 

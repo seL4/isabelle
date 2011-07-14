@@ -1906,13 +1906,6 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
         exporter lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_enc) = choose_format [format] type_enc
-    val _ =
-      if lambda_trans = lambdasN andalso
-         not (is_type_enc_higher_order type_enc) then
-        error ("Lambda translation method incompatible with \
-               \first-order encoding.")
-      else
-        ()
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_enc lambda_trans preproc
                          hyp_ts concl_t facts
