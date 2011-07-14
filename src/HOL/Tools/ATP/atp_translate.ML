@@ -63,6 +63,12 @@ sig
   val prefixed_predicator_name : string
   val prefixed_app_op_name : string
   val prefixed_type_tag_name : string
+  val concealed_lambdasN : string
+  val lambda_liftingN : string
+  val combinatorsN : string
+  val lambdasN : string
+  val smartN : string
+  val lambda_translation : string Config.T
   val ascii_of : string -> string
   val unascii_of : string -> string
   val strip_prefix_and_unascii : string -> string -> string option
@@ -157,6 +163,17 @@ val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
+
+val concealed_lambda_prefix = sledgehammer_weak_prefix ^ "lambda_"
+
+val concealed_lambdasN = "concealed_lambdas"
+val lambda_liftingN = "lambda_lifting"
+val combinatorsN = "combinators"
+val lambdasN = "lambdas"
+val smartN = "smart"
+
+val lambda_translation =
+  Attrib.setup_config_string @{binding atp_lambda_translation} (K smartN)
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -596,6 +613,14 @@ fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Fin_Nonmono_Types
 val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
 
+fun effective_lambda_translation ctxt type_enc =
+  Config.get ctxt lambda_translation
+  |> (fn trans =>
+         if trans = smartN then
+           if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
+         else
+           trans)
+
 fun choose_format formats (Simple_Types (order, level)) =
     if member (op =) formats THF then
       (THF, Simple_Types (order, level))
@@ -896,6 +921,12 @@ fun extensionalize_term ctxt t =
   else
     t
 
+fun conceal_lambdas Ts (t1 $ t2) = conceal_lambdas Ts t1 $ conceal_lambdas Ts t2
+  | conceal_lambdas Ts (Abs (_, T, t)) =
+    Free (concealed_lambda_prefix ^ string_of_int (hash_term t),
+          T --> fastype_of1 (Ts, t))
+  | conceal_lambdas _ t = t
+
 fun process_abstractions_in_term ctxt type_enc kind t =
   let val thy = Proof_Context.theory_of ctxt in
     if Meson.is_fol_term thy t then
@@ -919,17 +950,29 @@ fun process_abstractions_in_term ctxt type_enc kind t =
           | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
             t0 $ aux Ts t1 $ aux Ts t2
-          | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
-                   t
-                 else if is_type_enc_higher_order type_enc then
-                   t |> Envir.eta_contract
-                 else
-                   t |> conceal_bounds Ts
-                     |> Envir.eta_contract
-                     |> cterm_of thy
-                     |> Meson_Clausify.introduce_combinators_in_cterm
-                     |> prop_of |> Logic.dest_equals |> snd
-                     |> reveal_bounds Ts
+          | _ =>
+            if not (exists_subterm (fn Abs _ => true | _ => false) t) then
+              t
+            else
+              let
+                val trans = effective_lambda_translation ctxt type_enc
+                val t = t |> Envir.eta_contract
+              in
+                if trans = concealed_lambdasN then
+                  t |> conceal_lambdas []
+                else if trans = lambda_liftingN then
+                  t (* TODO: implement *)
+                else if trans = combinatorsN then
+                  t |> conceal_bounds Ts
+                    |> cterm_of thy
+                    |> Meson_Clausify.introduce_combinators_in_cterm
+                    |> prop_of |> Logic.dest_equals |> snd
+                    |> reveal_bounds Ts
+                else if trans = lambdasN then
+                  t
+                else
+                  error ("Unknown lambda translation: " ^ quote trans ^ ".")
+              end
         val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
       handle THM _ =>

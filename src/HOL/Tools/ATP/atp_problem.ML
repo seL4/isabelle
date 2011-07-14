@@ -480,7 +480,7 @@ fun readable_name full_name s =
       |> (fn s =>
              if size s > max_readable_name_size then
                String.substring (s, 0, max_readable_name_size div 2 - 4) ^
-               Word.toString (hashw_string (full_name, 0w0)) ^
+               string_of_int (hash_string full_name) ^
                String.extract (s, size s - max_readable_name_size div 2 + 4,
                                NONE)
              else

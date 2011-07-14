@@ -1229,11 +1229,6 @@ fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
   | is_ground_term (Const _) = true
   | is_ground_term _ = false
 
-fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
-  | hashw_term (Const (s, _)) = hashw_string (s, 0w0)
-  | hashw_term _ = 0w0
-val hash_term = Word.toInt o hashw_term
-
 fun special_bounds ts =
   fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o pairself fst)
 

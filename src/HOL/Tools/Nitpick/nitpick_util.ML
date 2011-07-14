@@ -79,8 +79,7 @@ sig
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
   val pretty_maybe_quote : Pretty.T -> Pretty.T
-  val hashw : word * word -> word
-  val hashw_string : string * word -> word
+  val hash_term : term -> int
 end;
 
 structure Nitpick_Util : NITPICK_UTIL =
@@ -298,7 +297,6 @@ fun pretty_maybe_quote pretty =
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
   end
 
-val hashw = ATP_Util.hashw
-val hashw_string = ATP_Util.hashw_string
+val hash_term = ATP_Util.hash_term
 
 end;
