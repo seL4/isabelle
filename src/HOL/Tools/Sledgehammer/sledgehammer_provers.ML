@@ -687,8 +687,11 @@ fun run_atp mode name
                     used_facts_in_unsound_atp_proof ctxt
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
-                           UnsoundProof (is_type_enc_virtually_sound type_enc,
-                                         facts |> sort string_ord))
+                           UnsoundProof
+                               (if is_type_enc_virtually_sound type_enc then
+                                  SOME sound
+                                else
+                                  NONE, facts |> sort string_ord))
                   | _ => outcome
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
