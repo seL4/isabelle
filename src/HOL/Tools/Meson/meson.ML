@@ -575,6 +575,8 @@ val nnf_simps =
          if_eq_cancel cases_simp}
 val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
+(* FIXME: "let_simp" is probably redundant now that we also rewrite with
+  "Let_def_raw". *)
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
@@ -592,7 +594,8 @@ fun presimplify ctxt =
   #> simplify nnf_ss
   (* TODO: avoid introducing "Set.member" in "Ball_def" "Bex_def" above if and
      when "metis_unfold_set_consts" becomes the only mode of operation. *)
-  #> Raw_Simplifier.rewrite_rule (unfold_set_const_simps ctxt)
+  #> Raw_Simplifier.rewrite_rule
+         (@{thm Let_def_raw} :: unfold_set_const_simps ctxt)
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify ctxt |> make_nnf1 ctxt
