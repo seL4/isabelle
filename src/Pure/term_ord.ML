@@ -19,6 +19,7 @@ sig
   val sort_ord: sort * sort -> order
   val typ_ord: typ * typ -> order
   val fast_term_ord: term * term -> order
+  val syntax_term_ord: term * term -> order
   val indexname_ord: indexname * indexname -> order
   val tvar_ord: (indexname * sort) * (indexname * sort) -> order
   val var_ord: (indexname * typ) * (indexname * typ) -> order
@@ -84,7 +85,7 @@ fun atoms_ord (Abs (_, _, t), Abs (_, _, u)) = atoms_ord (t, u)
   | atoms_ord (Free (x, _), Free (y, _)) = fast_string_ord (x, y)
   | atoms_ord (Var (xi, _), Var (yj, _)) = fast_indexname_ord (xi, yj)
   | atoms_ord (Bound i, Bound j) = int_ord (i, j)
-  | atoms_ord _ = raise Fail "atoms_ord";
+  | atoms_ord _ = EQUAL;
 
 fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
       (case typ_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
@@ -93,8 +94,13 @@ fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
   | types_ord (Const (_, T), Const (_, U)) = typ_ord (T, U)
   | types_ord (Free (_, T), Free (_, U)) = typ_ord (T, U)
   | types_ord (Var (_, T), Var (_, U)) = typ_ord (T, U)
-  | types_ord (Bound _, Bound _) = EQUAL
-  | types_ord _ = raise Fail "types_ord";
+  | types_ord _ = EQUAL;
+
+fun comments_ord (Abs (x, _, t), Abs (y, _, u)) =
+      (case fast_string_ord (x, y) of EQUAL => comments_ord (t, u) | ord => ord)
+  | comments_ord (t1 $ t2, u1 $ u2) =
+      (case comments_ord (t1, u1) of EQUAL => comments_ord (t2, u2) | ord => ord)
+  | comments_ord _ = EQUAL;
 
 in
 
@@ -104,6 +110,9 @@ fun fast_term_ord tu =
     (case struct_ord tu of
       EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
     | ord => ord);
+
+fun syntax_term_ord tu =
+  (case fast_term_ord tu of EQUAL => comments_ord tu | ord => ord);
 
 end;
 

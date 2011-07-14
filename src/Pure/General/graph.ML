@@ -20,7 +20,7 @@ sig
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val subgraph: (key -> bool) -> 'a T -> 'a T
-  val get_entry: 'a T -> key -> 'a * (key list * key list)            (*exception UNDEF*)
+  val get_entry: 'a T -> key -> key * ('a * (key list * key list))    (*exception UNDEF*)
   val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
@@ -101,14 +101,14 @@ fun subgraph P G =
   in Graph (fold_graph subg G Table.empty) end;
 
 fun get_entry (Graph tab) x =
-  (case Table.lookup tab x of
+  (case Table.lookup_key tab x of
     SOME entry => entry
   | NONE => raise UNDEF x);
 
-fun map_entry x f (G as Graph tab) = Graph (Table.update (x, f (get_entry G x)) tab);
+fun map_entry x f (G as Graph tab) = Graph (Table.update (x, f (#2 (get_entry G x))) tab);
 
 fun map_entry_yield x f (G as Graph tab) =
-  let val (a, node') = f (get_entry G x)
+  let val (a, node') = f (#2 (get_entry G x))
   in (a, Graph (Table.update (x, node') tab)) end;
 
 
@@ -116,7 +116,7 @@ fun map_entry_yield x f (G as Graph tab) =
 
 fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
 
-fun get_node G = #1 o get_entry G;
+fun get_node G = #1 o #2 o get_entry G;
 
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 
@@ -137,8 +137,8 @@ fun reachable next xs =
   in fold reachs xs ([], empty_keys) end;
 
 (*immediate*)
-fun imm_preds G = #1 o #2 o get_entry G;
-fun imm_succs G = #2 o #2 o get_entry G;
+fun imm_preds G = #1 o #2 o #2 o get_entry G;
+fun imm_succs G = #2 o #2 o #2 o get_entry G;
 
 (*transitive*)
 fun all_preds G = flat o #1 o reachable (imm_preds G);
@@ -167,7 +167,7 @@ fun del_nodes xs (Graph tab) =
 fun del_node x (G as Graph tab) =
   let
     fun del_adjacent which y = Table.map_entry y (fn (i, ps) => (i, (which (remove_key x) ps)));
-    val (preds, succs) = #2 (get_entry G x);
+    val (preds, succs) = #2 (#2 (get_entry G x));
   in
     Graph (tab
       |> Table.delete x

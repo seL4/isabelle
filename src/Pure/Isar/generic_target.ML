@@ -118,7 +118,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = Global_Theory.name_thm true true name th'';
+    val result = Global_Theory.name_thm true true name (Thm.compress th'');
 
     (*import fixes*)
     val (tvars, vars) =

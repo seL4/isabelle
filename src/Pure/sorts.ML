@@ -185,8 +185,8 @@ fun minimal_sorts algebra raw_sorts =
 (* certify *)
 
 fun certify_class algebra c =
-  if can (Graph.get_node (classes_of algebra)) c then c
-  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+  #1 (Graph.get_entry (classes_of algebra) c)
+    handle Graph.UNDEF _ => raise TYPE ("Undeclared class: " ^ quote c, [], []);
 
 fun certify_sort classes = map (certify_class classes);
 

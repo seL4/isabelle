@@ -318,7 +318,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
       | ready (task :: tasks) rest =
           (case try (Task_Graph.get_entry jobs) task of
             NONE => ready tasks rest
-          | SOME entry =>
+          | SOME (_, entry) =>
               (case ready_job task entry of
                 NONE => ready tasks (task :: rest)
               | some => (some, List.revAppend (rest, tasks))));
@@ -327,7 +327,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
       | ready_dep seen (task :: tasks) =
           if Tasks.defined seen task then ready_dep seen tasks
           else
-            let val entry as (_, (ds, _)) = Task_Graph.get_entry jobs task in
+            let val entry as (_, (ds, _)) = #2 (Task_Graph.get_entry jobs task) in
               (case ready_job task entry of
                 NONE => ready_dep (Tasks.update (task, ()) seen) (ds @ tasks)
               | some => some)
