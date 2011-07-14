@@ -385,8 +385,9 @@ fun filter_cnf_ueq_problem problem =
                  #> map negate_conjecture_line))
   |> (fn problem =>
          let
-           val conjs = problem |> maps snd |> filter is_problem_line_negated
-         in if length conjs = 1 then problem else [] end)
+           val lines = problem |> maps snd
+           val conjs = lines |> filter is_problem_line_negated
+         in if length conjs = 1 andalso conjs <> lines then problem else [] end)
 
 
 (** Symbol declarations **)
