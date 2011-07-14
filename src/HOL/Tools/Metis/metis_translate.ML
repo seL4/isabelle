@@ -94,7 +94,7 @@ fun reveal_old_skolem_terms old_skolems =
   map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix old_skolem_const_prefix s then
                    AList.lookup (op =) old_skolems s |> the
-                   |> map_types Type_Infer.paramify_vars
+                   |> map_types (map_type_tvar (K dummyT))
                  else
                    t
                | t => t)
