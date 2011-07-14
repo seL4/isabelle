@@ -63,6 +63,7 @@ sig
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
+  val atp_lambda_translation : string Config.T
   val atp_readable_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -336,6 +337,9 @@ val problem_prefix =
 val measure_run_time =
   Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
 
+val atp_lambda_translation =
+  Attrib.setup_config_string @{binding sledgehammer_atp_lambda_translation}
+                             (K smartN)
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. For these reason, they are enabled
    by default. *)
@@ -510,6 +514,14 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
+fun effective_atp_lambda_translation ctxt type_enc =
+  Config.get ctxt atp_lambda_translation
+  |> (fn trans =>
+         if trans = smartN then
+           if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
+         else
+           trans)
+
 val metis_minimize_max_time = seconds 2.0
 
 fun choose_minimize_command minimize_command name preplay =
@@ -641,8 +653,10 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc sound false (Config.get ctxt atp_readable_names)
-                      true hyp_ts concl_t facts
+                      type_enc sound false
+                      (effective_atp_lambda_translation ctxt type_enc)
+                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
+                      facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
                 val core =

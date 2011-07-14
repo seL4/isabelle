@@ -31,6 +31,11 @@ sig
     Preds of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
+  val concealed_lambdasN : string
+  val lambda_liftingN : string
+  val combinatorsN : string
+  val lambdasN : string
+  val smartN : string
   val bound_var_prefix : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
@@ -63,12 +68,6 @@ sig
   val prefixed_predicator_name : string
   val prefixed_app_op_name : string
   val prefixed_type_tag_name : string
-  val concealed_lambdasN : string
-  val lambda_liftingN : string
-  val combinatorsN : string
-  val lambdasN : string
-  val smartN : string
-  val lambda_translation : string Config.T
   val ascii_of : string -> string
   val unascii_of : string -> string
   val strip_prefix_and_unascii : string -> string -> string option
@@ -82,6 +81,7 @@ sig
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_locality_global : locality -> bool
   val type_enc_from_string : string -> type_enc
+  val is_type_enc_higher_order : type_enc -> bool
   val polymorphism_of_type_enc : type_enc -> polymorphism
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_virtually_sound : type_enc -> bool
@@ -95,7 +95,7 @@ sig
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
-    -> bool -> bool -> bool -> term list -> term
+    -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
@@ -110,8 +110,13 @@ open ATP_Problem
 
 type name = string * string
 
-(* experimental *)
-val generate_info = false
+val concealed_lambdasN = "concealed_lambdas"
+val lambda_liftingN = "lambda_lifting"
+val combinatorsN = "combinators"
+val lambdasN = "lambdas"
+val smartN = "smart"
+
+val generate_info = false (* experimental *)
 
 fun isabelle_info s =
   if generate_info then SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
@@ -165,15 +170,6 @@ val prefixed_type_tag_name = const_prefix ^ type_tag_name
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
 val concealed_lambda_prefix = sledgehammer_weak_prefix ^ "lambda_"
-
-val concealed_lambdasN = "concealed_lambdas"
-val lambda_liftingN = "lambda_lifting"
-val combinatorsN = "combinators"
-val lambdasN = "lambdas"
-val smartN = "smart"
-
-val lambda_translation =
-  Attrib.setup_config_string @{binding atp_lambda_translation} (K smartN)
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -613,14 +609,6 @@ fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Fin_Nonmono_Types
 val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
 
-fun effective_lambda_translation ctxt type_enc =
-  Config.get ctxt lambda_translation
-  |> (fn trans =>
-         if trans = smartN then
-           if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
-         else
-           trans)
-
 fun choose_format formats (Simple_Types (order, level)) =
     if member (op =) formats THF then
       (THF, Simple_Types (order, level))
@@ -923,11 +911,12 @@ fun extensionalize_term ctxt t =
 
 fun conceal_lambdas Ts (t1 $ t2) = conceal_lambdas Ts t1 $ conceal_lambdas Ts t2
   | conceal_lambdas Ts (Abs (_, T, t)) =
+    (* slightly unsound because of hash collisions *)
     Free (concealed_lambda_prefix ^ string_of_int (hash_term t),
           T --> fastype_of1 (Ts, t))
   | conceal_lambdas _ t = t
 
-fun process_abstractions_in_term ctxt type_enc kind t =
+fun process_abstractions_in_term ctxt lambda_trans kind t =
   let val thy = Proof_Context.theory_of ctxt in
     if Meson.is_fol_term thy t then
       t
@@ -954,24 +943,22 @@ fun process_abstractions_in_term ctxt type_enc kind t =
             if not (exists_subterm (fn Abs _ => true | _ => false) t) then
               t
             else
-              let
-                val trans = effective_lambda_translation ctxt type_enc
-                val t = t |> Envir.eta_contract
-              in
-                if trans = concealed_lambdasN then
+              let val t = t |> Envir.eta_contract in
+                if lambda_trans = concealed_lambdasN then
                   t |> conceal_lambdas []
-                else if trans = lambda_liftingN then
+                else if lambda_trans = lambda_liftingN then
                   t (* TODO: implement *)
-                else if trans = combinatorsN then
+                else if lambda_trans = combinatorsN then
                   t |> conceal_bounds Ts
                     |> cterm_of thy
                     |> Meson_Clausify.introduce_combinators_in_cterm
                     |> prop_of |> Logic.dest_equals |> snd
                     |> reveal_bounds Ts
-                else if trans = lambdasN then
+                else if lambda_trans = lambdasN then
                   t
                 else
-                  error ("Unknown lambda translation: " ^ quote trans ^ ".")
+                  error ("Unknown lambda translation method: " ^
+                         quote lambda_trans ^ ".")
               end
         val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
@@ -992,7 +979,7 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-fun preprocess_prop ctxt type_enc presimp_consts kind t =
+fun preprocess_prop ctxt lambda_trans presimp_consts kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -1005,7 +992,7 @@ fun preprocess_prop ctxt type_enc presimp_consts kind t =
       |> extensionalize_term ctxt
       |> presimplify_term ctxt presimp_consts
       |> perhaps (try (HOLogic.dest_Trueprop))
-      |> process_abstractions_in_term ctxt type_enc kind
+      |> process_abstractions_in_term ctxt lambda_trans kind
   end
 
 (* making fact and conjecture formulas *)
@@ -1018,10 +1005,10 @@ fun make_formula thy type_enc eq_as_iff name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_enc eq_as_iff preproc presimp_consts
+fun make_fact ctxt format type_enc lambda_trans eq_as_iff preproc presimp_consts
               ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
-    case t |> preproc ? preprocess_prop ctxt type_enc presimp_consts Axiom
+    case t |> preproc ? preprocess_prop ctxt lambda_trans presimp_consts Axiom
            |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name
                            loc Axiom of
       formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...} =>
@@ -1029,7 +1016,8 @@ fun make_fact ctxt format type_enc eq_as_iff preproc presimp_consts
     | formula => SOME formula
   end
 
-fun make_conjecture ctxt format prem_kind type_enc preproc presimp_consts ts =
+fun make_conjecture ctxt format prem_kind type_enc lambda_trans preproc
+                    presimp_consts ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val last = length ts - 1
@@ -1045,7 +1033,8 @@ fun make_conjecture ctxt format prem_kind type_enc preproc presimp_consts ts =
                     else I)
               in
                 t |> preproc ?
-                     (preprocess_prop ctxt type_enc presimp_consts kind #> freeze_term)
+                     (preprocess_prop ctxt lambda_trans presimp_consts kind
+                      #> freeze_term)
                   |> make_formula thy type_enc (format <> CNF) (string_of_int j)
                                   Local kind
                   |> maybe_negate
@@ -1392,7 +1381,8 @@ fun should_specialize_helper type_enc t =
   level_of_type_enc type_enc <> No_Types andalso
   not (null (Term.hidden_polymorphism t))
 
-fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
+fun helper_facts_for_sym ctxt format type_enc lambda_trans
+                         (s, {types, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -1414,7 +1404,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
         end
         |> map (fn (k, t) => (dub needs_fairly_sound j k, t)) o tag_list 1
       val make_facts =
-        map_filter (make_fact ctxt format type_enc false false [])
+        map_filter (make_fact ctxt format type_enc lambda_trans false false [])
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
       helper_table
@@ -1428,9 +1418,10 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
                     |> make_facts)
     end
   | NONE => []
-fun helper_facts_for_sym_table ctxt format type_enc sym_tab =
-  Symtab.fold_rev (append o helper_facts_for_sym ctxt format type_enc) sym_tab
-                  []
+fun helper_facts_for_sym_table ctxt format type_enc lambda_trans sym_tab =
+  Symtab.fold_rev (append
+                   o helper_facts_for_sym ctxt format type_enc lambda_trans)
+                  sym_tab []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -1470,13 +1461,14 @@ fun add_type_constrs_in_term thy =
 fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
-fun translate_formulas ctxt format prem_kind type_enc preproc hyp_ts concl_t
-                       facts =
+fun translate_formulas ctxt format prem_kind type_enc lambda_trans preproc
+                       hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = facts |> map snd
     val presimp_consts = Meson.presimplified_consts ctxt
-    val make_fact = make_fact ctxt format type_enc true preproc presimp_consts
+    val make_fact =
+      make_fact ctxt format type_enc lambda_trans true preproc presimp_consts
     val (facts, fact_names) =
       facts |> map (fn (name, t) => (name, t) |> make_fact |> rpair name)
             |> map_filter (try (apfst the))
@@ -1493,7 +1485,8 @@ fun translate_formulas ctxt format prem_kind type_enc preproc hyp_ts concl_t
     val tycons = type_constrs_of_terms thy all_ts
     val conjs =
       hyp_ts @ [concl_t]
-      |> make_conjecture ctxt format prem_kind type_enc preproc presimp_consts
+      |> make_conjecture ctxt format prem_kind type_enc lambda_trans preproc
+                         presimp_consts
     val (supers', arity_clauses) =
       if level_of_type_enc type_enc = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -1907,15 +1900,22 @@ val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
-val explicit_apply = NONE (* for experimental purposes *)
+val explicit_apply = NONE (* for experiments *)
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
-        exporter readable_names preproc hyp_ts concl_t facts =
+        exporter lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_enc) = choose_format [format] type_enc
+    val _ =
+      if lambda_trans = lambdasN andalso
+         not (is_type_enc_higher_order type_enc) then
+        error ("Lambda translation method incompatible with \
+               \first-order encoding.")
+      else
+        ()
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
-      translate_formulas ctxt format prem_kind type_enc preproc hyp_ts concl_t
-                         facts
+      translate_formulas ctxt format prem_kind type_enc lambda_trans preproc
+                         hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val nonmono_Ts =
       conjs @ facts |> nonmonotonic_types_for_facts ctxt type_enc sound
@@ -1924,8 +1924,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
     val repaired_sym_tab =
       conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
-      repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
-                       |> map repair
+      repaired_sym_tab
+      |> helper_facts_for_sym_table ctxt format type_enc lambda_trans
+      |> map repair
     val poly_nonmono_Ts =
       if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] orelse
          polymorphism_of_type_enc type_enc <> Polymorphic then

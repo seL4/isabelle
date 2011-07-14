@@ -369,7 +369,8 @@ fun run_sh prover_name prover type_enc max_relevant slicing lambda_translation
     val st' =
       st |> Proof.map_context
                 (change_dir dir
-                 #> (Option.map (Config.put ATP_Translate.lambda_translation)
+                 #> (Option.map (Config.put
+                       Sledgehammer_Provers.atp_lambda_translation)
                        lambda_translation |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.e_weight_method)
                        e_weight_method |> the_default I)
