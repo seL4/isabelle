@@ -980,8 +980,9 @@ and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
 
 \opfalse{sound}{unsound}
 Specifies whether Sledgehammer should run in its fully sound mode. In that mode,
-quasi-sound type encodings are made fully sound, at the cost of some (usually
-needless) clutter.
+quasi-sound type encodings (which are the default) are made fully sound, at the
+cost of some clutter in the generated problems. This option is ignored if
+\textit{type\_enc} is explicitly set to an unsound encoding.
 \end{enum}
 
 \subsection{Relevance Filter}
