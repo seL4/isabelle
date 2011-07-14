@@ -293,9 +293,8 @@ type 'a V = string list * body -> 'a;
 (* atomic values *)
 
 fun int_atom s =
-  (case Int.fromString s of
-    SOME i => i
-  | NONE => raise XML_ATOM s);
+  Markup.parse_int s
+    handle Fail _ => raise XML_ATOM s;
 
 fun bool_atom "0" = false
   | bool_atom "1" = true

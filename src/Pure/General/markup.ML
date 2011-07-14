@@ -136,9 +136,11 @@ struct
 (* integers *)
 
 fun parse_int s =
-  (case Int.fromString s of
-    SOME i => i
-  | NONE => raise Fail ("Bad integer: " ^ quote s));
+  let val i = Int.fromString s in
+    if is_none i orelse String.isPrefix "~" s
+    then raise Fail ("Bad integer: " ^ quote s)
+    else the i
+  end;
 
 val print_int = signed_string_of_int;
 
