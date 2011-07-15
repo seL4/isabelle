@@ -3857,9 +3857,6 @@ lemma EMPTY_NOT_UNIV: "(op ~=::('A::type => bool) => ('A::type => bool) => bool)
 lemma EQ_UNIV: "(ALL x::'A. x : (s::'A => bool)) = (s = UNIV)"
   by (import hollight EQ_UNIV)
 
-lemma UNIV_SUBSET: "(UNIV <= (x::'A => bool)) = (x = UNIV)"
-  by (import hollight UNIV_SUBSET)
-
 lemma SING_SUBSET: "({xa::'q_44493} <= (x::'q_44493 => bool)) = (xa : x)"
   by (import hollight SING_SUBSET)
 
@@ -5205,25 +5202,25 @@ lemma FINITE_SUPPORT: "finite (s::'q_60273 => bool)
   by (import hollight FINITE_SUPPORT)
 
 lemma SUPPORT_CLAUSES: "(ALL x::'q_60297 => 'q_60530.
-    support (u_4372::'q_60530 => 'q_60530 => 'q_60530) x {} = {}) &
+    support (u_4371::'q_60530 => 'q_60530 => 'q_60530) x {} = {}) &
 (ALL (x::'q_60345 => 'q_60530) (xa::'q_60345) xb::'q_60345 => bool.
-    support u_4372 x (insert xa xb) =
-    (if x xa = neutral u_4372 then support u_4372 x xb
-     else insert xa (support u_4372 x xb))) &
+    support u_4371 x (insert xa xb) =
+    (if x xa = neutral u_4371 then support u_4371 x xb
+     else insert xa (support u_4371 x xb))) &
 (ALL (x::'q_60378 => 'q_60530) (xa::'q_60378) xb::'q_60378 => bool.
-    support u_4372 x (xb - {xa}) = support u_4372 x xb - {xa}) &
+    support u_4371 x (xb - {xa}) = support u_4371 x xb - {xa}) &
 (ALL (x::'q_60416 => 'q_60530) (xa::'q_60416 => bool) xb::'q_60416 => bool.
-    support u_4372 x (xa Un xb) =
-    support u_4372 x xa Un support u_4372 x xb) &
+    support u_4371 x (xa Un xb) =
+    support u_4371 x xa Un support u_4371 x xb) &
 (ALL (x::'q_60454 => 'q_60530) (xa::'q_60454 => bool) xb::'q_60454 => bool.
-    support u_4372 x (xa Int xb) =
-    support u_4372 x xa Int support u_4372 x xb) &
+    support u_4371 x (xa Int xb) =
+    support u_4371 x xa Int support u_4371 x xb) &
 (ALL (x::'q_60492 => 'q_60530) (xa::'q_60492 => bool) xb::'q_60492 => bool.
-    support u_4372 x (xa - xb) =
-    support u_4372 x xa - support u_4372 x xb) &
+    support u_4371 x (xa - xb) =
+    support u_4371 x xa - support u_4371 x xb) &
 (ALL (x::'q_60529 => 'q_60520) (xa::'q_60520 => 'q_60530)
     xb::'q_60529 => bool.
-    support u_4372 xa (x ` xb) = x ` support u_4372 (xa o x) xb)"
+    support u_4371 xa (x ` xb) = x ` support u_4371 (xa o x) xb)"
   by (import hollight SUPPORT_CLAUSES)
 
 lemma SUPPORT_DELTA: "support (x::'q_60556 => 'q_60556 => 'q_60556)
@@ -5253,13 +5250,13 @@ lemma ITERATE_EXPAND_CASES: "iterate (x::'q_60661 => 'q_60661 => 'q_60661) (xb::
  else neutral x)"
   by (import hollight ITERATE_EXPAND_CASES)
 
-lemma ITERATE_CLAUSES_GEN: "monoidal (u_4372::'B => 'B => 'B)
-==> (ALL f::'A => 'B. iterate u_4372 {} f = neutral u_4372) &
+lemma ITERATE_CLAUSES_GEN: "monoidal (u_4371::'B => 'B => 'B)
+==> (ALL f::'A => 'B. iterate u_4371 {} f = neutral u_4371) &
     (ALL (f::'A => 'B) (x::'A) s::'A => bool.
-        monoidal u_4372 & finite (support u_4372 f s) -->
-        iterate u_4372 (insert x s) f =
-        (if x : s then iterate u_4372 s f
-         else u_4372 (f x) (iterate u_4372 s f)))"
+        monoidal u_4371 & finite (support u_4371 f s) -->
+        iterate u_4371 (insert x s) f =
+        (if x : s then iterate u_4371 s f
+         else u_4371 (f x) (iterate u_4371 s f)))"
   by (import hollight ITERATE_CLAUSES_GEN)
 
 lemma ITERATE_CLAUSES: "monoidal (x::'q_60857 => 'q_60857 => 'q_60857)
@@ -5270,11 +5267,11 @@ lemma ITERATE_CLAUSES: "monoidal (x::'q_60857 => 'q_60857 => 'q_60857)
         (if xa : s then iterate x s f else x (f xa) (iterate x s f)))"
   by (import hollight ITERATE_CLAUSES)
 
-lemma ITERATE_UNION: "[| monoidal (u_4372::'q_60945 => 'q_60945 => 'q_60945);
+lemma ITERATE_UNION: "[| monoidal (u_4371::'q_60945 => 'q_60945 => 'q_60945);
    finite (s::'q_60930 => bool) &
    finite (x::'q_60930 => bool) & s Int x = {} |]
-==> iterate u_4372 (s Un x) (f::'q_60930 => 'q_60945) =
-    u_4372 (iterate u_4372 s f) (iterate u_4372 x f)"
+==> iterate u_4371 (s Un x) (f::'q_60930 => 'q_60945) =
+    u_4371 (iterate u_4371 s f) (iterate u_4371 x f)"
   by (import hollight ITERATE_UNION)
 
 lemma ITERATE_UNION_GEN: "[| monoidal (x::'B => 'B => 'B);
@@ -5296,33 +5293,33 @@ lemma ITERATE_DIFF_GEN: "[| monoidal (x::'B => 'B => 'B);
 ==> x (iterate x (xb - xc) xa) (iterate x xc xa) = iterate x xb xa"
   by (import hollight ITERATE_DIFF_GEN)
 
-lemma ITERATE_INCL_EXCL: "[| monoidal (u_4372::'q_61316 => 'q_61316 => 'q_61316);
+lemma ITERATE_INCL_EXCL: "[| monoidal (u_4371::'q_61316 => 'q_61316 => 'q_61316);
    finite (s::'q_61298 => bool) & finite (t::'q_61298 => bool) |]
-==> u_4372 (iterate u_4372 s (f::'q_61298 => 'q_61316))
-     (iterate u_4372 t f) =
-    u_4372 (iterate u_4372 (s Un t) f) (iterate u_4372 (s Int t) f)"
+==> u_4371 (iterate u_4371 s (f::'q_61298 => 'q_61316))
+     (iterate u_4371 t f) =
+    u_4371 (iterate u_4371 (s Un t) f) (iterate u_4371 (s Int t) f)"
   by (import hollight ITERATE_INCL_EXCL)
 
-lemma ITERATE_CLOSED: "[| monoidal (u_4372::'B => 'B => 'B);
-   (P::'B => bool) (neutral u_4372) &
-   (ALL (x::'B) y::'B. P x & P y --> P (u_4372 x y));
+lemma ITERATE_CLOSED: "[| monoidal (u_4371::'B => 'B => 'B);
+   (P::'B => bool) (neutral u_4371) &
+   (ALL (x::'B) y::'B. P x & P y --> P (u_4371 x y));
    !!x::'A.
-      x : (s::'A => bool) & (f::'A => 'B) x ~= neutral u_4372 ==> P (f x) |]
-==> P (iterate u_4372 s f)"
+      x : (s::'A => bool) & (f::'A => 'B) x ~= neutral u_4371 ==> P (f x) |]
+==> P (iterate u_4371 s f)"
   by (import hollight ITERATE_CLOSED)
 
-lemma ITERATE_RELATED: "[| monoidal (u_4372::'B => 'B => 'B);
-   (R::'B => 'B => bool) (neutral u_4372) (neutral u_4372) &
+lemma ITERATE_RELATED: "[| monoidal (u_4371::'B => 'B => 'B);
+   (R::'B => 'B => bool) (neutral u_4371) (neutral u_4371) &
    (ALL (x1::'B) (y1::'B) (x2::'B) y2::'B.
-       R x1 x2 & R y1 y2 --> R (u_4372 x1 y1) (u_4372 x2 y2));
+       R x1 x2 & R y1 y2 --> R (u_4371 x1 y1) (u_4371 x2 y2));
    finite (x::'A => bool) &
    (ALL xa::'A. xa : x --> R ((f::'A => 'B) xa) ((g::'A => 'B) xa)) |]
-==> R (iterate u_4372 x f) (iterate u_4372 x g)"
+==> R (iterate u_4371 x f) (iterate u_4371 x g)"
   by (import hollight ITERATE_RELATED)
 
-lemma ITERATE_EQ_NEUTRAL: "[| monoidal (u_4372::'B => 'B => 'B);
-   !!x::'A. x : (s::'A => bool) ==> (f::'A => 'B) x = neutral u_4372 |]
-==> iterate u_4372 s f = neutral u_4372"
+lemma ITERATE_EQ_NEUTRAL: "[| monoidal (u_4371::'B => 'B => 'B);
+   !!x::'A. x : (s::'A => bool) ==> (f::'A => 'B) x = neutral u_4371 |]
+==> iterate u_4371 s f = neutral u_4371"
   by (import hollight ITERATE_EQ_NEUTRAL)
 
 lemma ITERATE_SING: "monoidal (x::'B => 'B => 'B) ==> iterate x {xa::'A} (f::'A => 'B) = f xa"
@@ -5332,110 +5329,110 @@ lemma ITERATE_DELETE: "[| monoidal (u::'B => 'B => 'B); finite (s::'A => bool) &
 ==> u ((f::'A => 'B) a) (iterate u (s - {a}) f) = iterate u s f"
   by (import hollight ITERATE_DELETE)
 
-lemma ITERATE_DELTA: "monoidal (u_4372::'q_61672 => 'q_61672 => 'q_61672)
-==> iterate u_4372 (xb::'q_61691 => bool)
+lemma ITERATE_DELTA: "monoidal (u_4371::'q_61672 => 'q_61672 => 'q_61672)
+==> iterate u_4371 (xb::'q_61691 => bool)
      (%xb::'q_61691.
          if xb = (xa::'q_61691) then (x::'q_61691 => 'q_61672) xb
-         else neutral u_4372) =
-    (if xa : xb then x xa else neutral u_4372)"
+         else neutral u_4371) =
+    (if xa : xb then x xa else neutral u_4371)"
   by (import hollight ITERATE_DELTA)
 
-lemma ITERATE_IMAGE: "[| monoidal (u_4372::'C => 'C => 'C);
+lemma ITERATE_IMAGE: "[| monoidal (u_4371::'C => 'C => 'C);
    !!(x::'A) y::'A.
       x : (s::'A => bool) & y : s & (f::'A => 'B) x = f y ==> x = y |]
-==> iterate u_4372 (f ` s) (g::'B => 'C) = iterate u_4372 s (g o f)"
+==> iterate u_4371 (f ` s) (g::'B => 'C) = iterate u_4371 s (g o f)"
   by (import hollight ITERATE_IMAGE)
 
-lemma ITERATE_BIJECTION: "[| monoidal (u_4372::'B => 'B => 'B);
+lemma ITERATE_BIJECTION: "[| monoidal (u_4371::'B => 'B => 'B);
    (ALL x::'A. x : (s::'A => bool) --> (p::'A => 'A) x : s) &
    (ALL y::'A. y : s --> (EX! x::'A. x : s & p x = y)) |]
-==> iterate u_4372 s (f::'A => 'B) = iterate u_4372 s (f o p)"
+==> iterate u_4371 s (f::'A => 'B) = iterate u_4371 s (f o p)"
   by (import hollight ITERATE_BIJECTION)
 
-lemma ITERATE_ITERATE_PRODUCT: "[| monoidal (u_4372::'C => 'C => 'C);
+lemma ITERATE_ITERATE_PRODUCT: "[| monoidal (u_4371::'C => 'C => 'C);
    finite (x::'A => bool) &
    (ALL i::'A. i : x --> finite ((xa::'A => 'B => bool) i)) |]
-==> iterate u_4372 x
-     (%i::'A. iterate u_4372 (xa i) ((xb::'A => 'B => 'C) i)) =
-    iterate u_4372
+==> iterate u_4371 x
+     (%i::'A. iterate u_4371 (xa i) ((xb::'A => 'B => 'C) i)) =
+    iterate u_4371
      {u::'A * 'B. EX (i::'A) j::'B. (i : x & j : xa i) & u = (i, j)}
      (SOME f::'A * 'B => 'C. ALL (i::'A) j::'B. f (i, j) = xb i j)"
   by (import hollight ITERATE_ITERATE_PRODUCT)
 
-lemma ITERATE_EQ: "[| monoidal (u_4372::'B => 'B => 'B);
+lemma ITERATE_EQ: "[| monoidal (u_4371::'B => 'B => 'B);
    !!x::'A. x : (s::'A => bool) ==> (f::'A => 'B) x = (g::'A => 'B) x |]
-==> iterate u_4372 s f = iterate u_4372 s g"
+==> iterate u_4371 s f = iterate u_4371 s g"
   by (import hollight ITERATE_EQ)
 
-lemma ITERATE_EQ_GENERAL: "[| monoidal (u_4372::'C => 'C => 'C);
+lemma ITERATE_EQ_GENERAL: "[| monoidal (u_4371::'C => 'C => 'C);
    (ALL y::'B.
        y : (t::'B => bool) -->
        (EX! x::'A. x : (s::'A => bool) & (h::'A => 'B) x = y)) &
    (ALL x::'A. x : s --> h x : t & (g::'B => 'C) (h x) = (f::'A => 'C) x) |]
-==> iterate u_4372 s f = iterate u_4372 t g"
+==> iterate u_4371 s f = iterate u_4371 t g"
   by (import hollight ITERATE_EQ_GENERAL)
 
-lemma ITERATE_EQ_GENERAL_INVERSES: "[| monoidal (u_4372::'C => 'C => 'C);
+lemma ITERATE_EQ_GENERAL_INVERSES: "[| monoidal (u_4371::'C => 'C => 'C);
    (ALL y::'B.
        y : (t::'B => bool) -->
        (k::'B => 'A) y : (s::'A => bool) & (h::'A => 'B) (k y) = y) &
    (ALL x::'A.
        x : s -->
        h x : t & k (h x) = x & (g::'B => 'C) (h x) = (f::'A => 'C) x) |]
-==> iterate u_4372 s f = iterate u_4372 t g"
+==> iterate u_4371 s f = iterate u_4371 t g"
   by (import hollight ITERATE_EQ_GENERAL_INVERSES)
 
-lemma ITERATE_INJECTION: "[| monoidal (u_4372::'B => 'B => 'B);
+lemma ITERATE_INJECTION: "[| monoidal (u_4371::'B => 'B => 'B);
    finite (s::'A => bool) &
    (ALL x::'A. x : s --> (p::'A => 'A) x : s) &
    (ALL (x::'A) y::'A. x : s & y : s & p x = p y --> x = y) |]
-==> iterate u_4372 s ((f::'A => 'B) o p) = iterate u_4372 s f"
+==> iterate u_4371 s ((f::'A => 'B) o p) = iterate u_4371 s f"
   by (import hollight ITERATE_INJECTION)
 
-lemma ITERATE_UNION_NONZERO: "[| monoidal (u_4372::'B => 'B => 'B);
+lemma ITERATE_UNION_NONZERO: "[| monoidal (u_4371::'B => 'B => 'B);
    finite (s::'A => bool) &
    finite (t::'A => bool) &
-   (ALL x::'A. x : s Int t --> (f::'A => 'B) x = neutral u_4372) |]
-==> iterate u_4372 (s Un t) f =
-    u_4372 (iterate u_4372 s f) (iterate u_4372 t f)"
+   (ALL x::'A. x : s Int t --> (f::'A => 'B) x = neutral u_4371) |]
+==> iterate u_4371 (s Un t) f =
+    u_4371 (iterate u_4371 s f) (iterate u_4371 t f)"
   by (import hollight ITERATE_UNION_NONZERO)
 
-lemma ITERATE_OP: "[| monoidal (u_4372::'q_62649 => 'q_62649 => 'q_62649);
+lemma ITERATE_OP: "[| monoidal (u_4371::'q_62649 => 'q_62649 => 'q_62649);
    finite (s::'q_62648 => bool) |]
-==> iterate u_4372 s
+==> iterate u_4371 s
      (%x::'q_62648.
-         u_4372 ((f::'q_62648 => 'q_62649) x)
+         u_4371 ((f::'q_62648 => 'q_62649) x)
           ((g::'q_62648 => 'q_62649) x)) =
-    u_4372 (iterate u_4372 s f) (iterate u_4372 s g)"
+    u_4371 (iterate u_4371 s f) (iterate u_4371 s g)"
   by (import hollight ITERATE_OP)
 
-lemma ITERATE_SUPERSET: "[| monoidal (u_4372::'B => 'B => 'B);
+lemma ITERATE_SUPERSET: "[| monoidal (u_4371::'B => 'B => 'B);
    (u::'A => bool) <= (v::'A => bool) &
-   (ALL x::'A. x : v & x ~: u --> (f::'A => 'B) x = neutral u_4372) |]
-==> iterate u_4372 v f = iterate u_4372 u f"
+   (ALL x::'A. x : v & x ~: u --> (f::'A => 'B) x = neutral u_4371) |]
+==> iterate u_4371 v f = iterate u_4371 u f"
   by (import hollight ITERATE_SUPERSET)
 
-lemma ITERATE_IMAGE_NONZERO: "[| monoidal (u_4372::'C => 'C => 'C);
+lemma ITERATE_IMAGE_NONZERO: "[| monoidal (u_4371::'C => 'C => 'C);
    finite (x::'A => bool) &
    (ALL (xa::'A) y::'A.
        xa : x & y : x & xa ~= y & (f::'A => 'B) xa = f y -->
-       (g::'B => 'C) (f xa) = neutral u_4372) |]
-==> iterate u_4372 (f ` x) g = iterate u_4372 x (g o f)"
+       (g::'B => 'C) (f xa) = neutral u_4371) |]
+==> iterate u_4371 (f ` x) g = iterate u_4371 x (g o f)"
   by (import hollight ITERATE_IMAGE_NONZERO)
 
-lemma ITERATE_CASES: "[| monoidal (u_4372::'B => 'B => 'B); finite (s::'A => bool) |]
-==> iterate u_4372 s
+lemma ITERATE_CASES: "[| monoidal (u_4371::'B => 'B => 'B); finite (s::'A => bool) |]
+==> iterate u_4371 s
      (%x::'A.
          if (P::'A => bool) x then (f::'A => 'B) x else (g::'A => 'B) x) =
-    u_4372 (iterate u_4372 {u::'A. EX x::'A. (x : s & P x) & u = x} f)
-     (iterate u_4372 {u::'A. EX x::'A. (x : s & ~ P x) & u = x} g)"
+    u_4371 (iterate u_4371 {u::'A. EX x::'A. (x : s & P x) & u = x} f)
+     (iterate u_4371 {u::'A. EX x::'A. (x : s & ~ P x) & u = x} g)"
   by (import hollight ITERATE_CASES)
 
-lemma ITERATE_OP_GEN: "[| monoidal (u_4372::'B => 'B => 'B);
-   finite (support u_4372 (f::'A => 'B) (s::'A => bool)) &
-   finite (support u_4372 (g::'A => 'B) s) |]
-==> iterate u_4372 s (%x::'A. u_4372 (f x) (g x)) =
-    u_4372 (iterate u_4372 s f) (iterate u_4372 s g)"
+lemma ITERATE_OP_GEN: "[| monoidal (u_4371::'B => 'B => 'B);
+   finite (support u_4371 (f::'A => 'B) (s::'A => bool)) &
+   finite (support u_4371 (g::'A => 'B) s) |]
+==> iterate u_4371 s (%x::'A. u_4371 (f x) (g x)) =
+    u_4371 (iterate u_4371 s f) (iterate u_4371 s g)"
   by (import hollight ITERATE_OP_GEN)
 
 lemma ITERATE_CLAUSES_NUMSEG: "monoidal (x::'q_63246 => 'q_63246 => 'q_63246)
@@ -5448,11 +5445,11 @@ lemma ITERATE_CLAUSES_NUMSEG: "monoidal (x::'q_63246 => 'q_63246 => 'q_63246)
          else iterate x {xa..xb} f))"
   by (import hollight ITERATE_CLAUSES_NUMSEG)
 
-lemma ITERATE_PAIR: "monoidal (u_4372::'q_63421 => 'q_63421 => 'q_63421)
-==> iterate u_4372 {(2::nat) * (m::nat)..(2::nat) * (n::nat) + (1::nat)}
+lemma ITERATE_PAIR: "monoidal (u_4371::'q_63421 => 'q_63421 => 'q_63421)
+==> iterate u_4371 {(2::nat) * (m::nat)..(2::nat) * (n::nat) + (1::nat)}
      (f::nat => 'q_63421) =
-    iterate u_4372 {m..n}
-     (%i::nat. u_4372 (f ((2::nat) * i)) (f ((2::nat) * i + (1::nat))))"
+    iterate u_4371 {m..n}
+     (%i::nat. u_4371 (f ((2::nat) * i)) (f ((2::nat) * i + (1::nat))))"
   by (import hollight ITERATE_PAIR)
 
 definition

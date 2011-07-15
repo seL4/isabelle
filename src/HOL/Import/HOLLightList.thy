@@ -8,6 +8,10 @@ theory HOLLightList
 imports List
 begin
 
+lemma FINITE_SET_OF_LIST:
+  "finite (set l)"
+  by simp
+
 lemma AND_ALL2:
   "(list_all2 P l m \<and> list_all2 Q l m) = list_all2 (\<lambda>x y. P x y \<and> Q x y) l m"
   by (induct l m rule: list_induct2') auto
@@ -298,8 +302,8 @@ lemma DEF_set_of_list:
   done
 
 lemma IN_SET_OF_LIST:
-  "ALL x l. (x\<in>set l) = list_mem x l"
-  by (simp add: member_def)
+  "(x : set l) = (x : set l)"
+  by simp
 
 lemma DEF_BUTLAST:
   "butlast = (SOME B. B [] = [] \<and> (\<forall>h t. B (h # t) = (if t = [] then [] else h # B t)))"
