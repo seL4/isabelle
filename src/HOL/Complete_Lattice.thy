@@ -208,6 +208,12 @@ lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j
 lemma SUP_commute: "(\<Squnion>i\<in>A. \<Squnion>j\<in>B. f i j) = (\<Squnion>j\<in>B. \<Squnion>i\<in>A. f i j)"
   by (iprover intro: SUP_leI le_SUPI order_trans antisym)
 
+lemma INFI_insert: "(\<Sqinter>x\<in>insert a A. B x) = B a \<sqinter> INFI A B"
+  by (simp add: INFI_def Inf_insert)
+
+lemma SUPR_insert: "(\<Squnion>x\<in>insert a A. B x) = B a \<squnion> SUPR A B"
+  by (simp add: SUPR_def Sup_insert)
+
 end
 
 lemma Inf_less_iff:
@@ -468,9 +474,13 @@ lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B
   -- {* "Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}. *}
   by (unfold INTER_def) blast
 
+lemma (in complete_lattice) INFI_cong:
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Sqinter>x\<in>A. C x) = (\<Sqinter>x\<in>B. D x)"
+  by (simp add: INFI_def image_def)
+
 lemma INT_cong [cong]:
-    "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Inter>x\<in>A. C x) = (\<Inter>x\<in>B. D x)"
-  by (simp add: INTER_def)
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Inter>x\<in>A. C x) = (\<Inter>x\<in>B. D x)"
+  by (fact INFI_cong)
 
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
   by blast
@@ -484,17 +494,31 @@ lemma INT_lower: "a \<in> A \<Longrightarrow> (\<Inter>x\<in>A. B x) \<subseteq>
 lemma INT_greatest: "(\<And>x. x \<in> A \<Longrightarrow> C \<subseteq> B x) \<Longrightarrow> C \<subseteq> (\<Inter>x\<in>A. B x)"
   by (fact le_INFI)
 
+lemma (in complete_lattice) INFI_empty:
+  "(\<Sqinter>x\<in>{}. B x) = \<top>"
+  by (simp add: INFI_def)
+
 lemma INT_empty [simp]: "(\<Inter>x\<in>{}. B x) = UNIV"
-  by blast
+  by (fact INFI_empty)
+
+lemma (in complete_lattice) INFI_absorb:
+  assumes "k \<in> I"
+  shows "A k \<sqinter> (\<Sqinter>i\<in>I. A i) = (\<Sqinter>i\<in>I. A i)"
+proof -
+  from assms obtain J where "I = insert k J" by blast
+  then show ?thesis by (simp add: INFI_insert)
+qed
 
 lemma INT_absorb: "k \<in> I \<Longrightarrow> A k \<inter> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. A i)"
-  by blast
+  by (fact INFI_absorb)
 
-lemma INT_subset_iff: "(B \<subseteq> (\<Inter>i\<in>I. A i)) = (\<forall>i\<in>I. B \<subseteq> A i)"
+lemma INT_subset_iff: "B \<subseteq> (\<Inter>i\<in>I. A i) \<longleftrightarrow> (\<forall>i\<in>I. B \<subseteq> A i)"
   by (fact le_INF_iff)
 
 lemma INT_insert [simp]: "(\<Inter>x \<in> insert a A. B x) = B a \<inter> INTER A B"
-  by blast
+  by (fact INFI_insert)
+
+-- {* continue generalization from here *}
 
 lemma INT_Un: "(\<Inter>i \<in> A \<union> B. M i) = (\<Inter>i \<in> A. M i) \<inter> (\<Inter>i\<in>B. M i)"
   by blast
@@ -510,10 +534,10 @@ lemma INT_eq: "(\<Inter>x\<in>A. B x) = \<Inter>({Y. \<exists>x\<in>A. Y = B x})
   -- {* Look: it has an \emph{existential} quantifier *}
   by blast
 
-lemma INTER_UNIV_conv[simp]:
+lemma INTER_UNIV_conv [simp]:
  "(UNIV = (\<Inter>x\<in>A. B x)) = (\<forall>x\<in>A. B x = UNIV)"
  "((\<Inter>x\<in>A. B x) = UNIV) = (\<forall>x\<in>A. B x = UNIV)"
-by blast+
+  by blast+
 
 lemma INT_bool_eq: "(\<Inter>b. A b) = (A True \<inter> A False)"
   by (auto intro: bool_induct)
