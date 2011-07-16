@@ -14,7 +14,7 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val with_tmp_fifo: (Path.T -> 'a) -> 'a
-  val bash_output_stream: string -> (TextIO.instream -> 'a) -> 'a
+  val bash_output_fifo: string -> (Path.T -> 'a) -> 'a
   val bash_output: string -> string * int
   val bash: string -> int
 end;
@@ -87,7 +87,7 @@ fun with_tmp_dir name f =
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
 
 
-(* process output stream *)
+(* fifo *)
 
 fun with_tmp_fifo f =
   with_tmp_file "isabelle-fifo-" ""
@@ -96,14 +96,12 @@ fun with_tmp_fifo f =
         (_, 0) => f path
       | (out, _) => error (perhaps (try (unsuffix "\n")) out)));
 
-fun bash_output_stream script f =
+fun bash_output_fifo script f =
   with_tmp_fifo (fn fifo =>
     uninterruptible (fn restore_attributes => fn () =>
       (case Bash.process (script ^ " > " ^ File.shell_path fifo ^ " &") of
         {rc = 0, terminate, ...} =>
-          Exn.release
-            (Exn.capture (restore_attributes (fn () => File.open_input f fifo)) ()
-              before terminate ())
+          (restore_attributes f fifo handle exn => (terminate (); reraise exn))
       | {output, ...} => error (perhaps (try (unsuffix "\n")) output))) ());
 
 end;
