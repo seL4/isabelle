@@ -310,9 +310,10 @@ fun node (Elem ((":", []), ts)) = ts
   | node t = raise XML_BODY [t];
 
 fun vector atts =
-  fold_map (fn (a, x) => fn i => if int_atom a = i then (x, i + 1) else raise XML_ATOM a) atts;
+  #1 (fold_map (fn (a, x) =>
+        fn i => if int_atom a = i then (x, i + 1) else raise XML_ATOM a) atts 0);
 
-fun tagged (Elem ((name, atts), ts)) = (int_atom name, (#1 (vector atts 0), ts))
+fun tagged (Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
   | tagged t = raise XML_BODY [t];
 
 
