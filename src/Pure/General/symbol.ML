@@ -151,7 +151,7 @@ fun is_ascii_quasi "_" = true
   | is_ascii_quasi _ = false;
 
 val is_ascii_blank =
-  fn " " => true | "\t" => true | "\n" => true | "\^K" => true | "\^L" => true | "\^M" => true
+  fn " " => true | "\t" => true | "\n" => true | "\^K" => true | "\f" => true | "\^M" => true
     | _ => false;
 
 fun is_ascii_control s = is_char s andalso ord s < 32 andalso not (is_ascii_blank s);

@@ -64,6 +64,7 @@ fun print_char s =
   else if s = "\\" then "\\\\"
   else if s = "\t" then "\\t"
   else if s = "\n" then "\\n"
+  else if s = "\f" then "\\f"
   else if s = "\r" then "\\r"
   else
     let val c = ord s in
