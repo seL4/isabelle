@@ -79,11 +79,7 @@ else use "Concurrent/time_limit.ML";
 if Multithreading.available
 then use "Concurrent/bash.ML"
 else use "Concurrent/bash_sequential.ML";
-
-fun bash s =
-  (case bash_output s of
-    ("", rc) => rc
-  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
+use "Concurrent/bash_ops.ML";
 
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";

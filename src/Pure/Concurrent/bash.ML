@@ -4,7 +4,7 @@
 GNU bash processes, with propagation of interrupts.
 *)
 
-val bash_output = uninterruptible (fn restore_attributes => fn script =>
+val bash_process = uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;
@@ -39,7 +39,9 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
           handle exn =>
             (Synchronized.change result (fn Wait => Signal | res => res); reraise exn)));
 
-    fun terminate () =
+    fun get_pid () = Int.fromString (File.read pid_path) handle IO.Io _ => NONE;
+
+    fun terminate opt_pid =
       let
         val sig_test = Posix.Signal.fromWord 0w0;
 
@@ -49,10 +51,9 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
           handle OS.SysErr _ => false;
 
         fun kill s =
-          (case Int.fromString (File.read pid_path) of
+          (case opt_pid of
             NONE => true
-          | SOME pid => (kill_group pid s; kill_group pid sig_test))
-          handle IO.Io _ => true;
+          | SOME pid => (kill_group pid s; kill_group pid sig_test));
 
         fun multi_kill count s =
           count = 0 orelse
@@ -76,8 +77,9 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
 
       val output = the_default "" (try File.read output_path);
       val rc = (case Synchronized.value result of Signal => Exn.interrupt () | Result rc => rc);
+      val pid = get_pid ();
       val _ = cleanup ();
-    in (output, rc) end
-    handle exn => (terminate(); cleanup (); reraise exn)
+    in {output = output, rc = rc, terminate = fn () => terminate pid} end
+    handle exn => (terminate (get_pid ()); cleanup (); reraise exn)
   end);
 
