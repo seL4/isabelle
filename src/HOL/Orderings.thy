@@ -1084,34 +1084,53 @@ done
 subsection {* (Unique) top and bottom elements *}
 
 class bot = order +
-  fixes bot :: 'a
-  assumes bot_least [simp]: "bot \<le> x"
+  fixes bot :: 'a ("\<bottom>")
+  assumes bot_least [simp]: "\<bottom> \<le> a"
 begin
 
+lemma le_bot:
+  "a \<le> \<bottom> \<Longrightarrow> a = \<bottom>"
+  by (auto intro: antisym)
+
 lemma bot_unique:
-  "a \<le> bot \<longleftrightarrow> a = bot"
-  by (auto simp add: intro: antisym)
+  "a \<le> \<bottom> \<longleftrightarrow> a = \<bottom>"
+  by (auto intro: antisym)
+
+lemma not_less_bot [simp]:
+  "\<not> (a < \<bottom>)"
+  using bot_least [of a] by (auto simp: le_less)
 
 lemma bot_less:
-  "a \<noteq> bot \<longleftrightarrow> bot < a"
+  "a \<noteq> \<bottom> \<longleftrightarrow> \<bottom> < a"
   by (auto simp add: less_le_not_le intro!: antisym)
 
 end
 
 class top = order +
-  fixes top :: 'a
-  assumes top_greatest [simp]: "x \<le> top"
+  fixes top :: 'a ("\<top>")
+  assumes top_greatest [simp]: "a \<le> \<top>"
 begin
 
+lemma top_le:
+  "\<top> \<le> a \<Longrightarrow> a = \<top>"
+  by (rule antisym) auto
+
 lemma top_unique:
-  "top \<le> a \<longleftrightarrow> a = top"
-  by (auto simp add: intro: antisym)
+  "\<top> \<le> a \<longleftrightarrow> a = \<top>"
+  by (auto intro: antisym)
+
+lemma not_top_less [simp]: "\<not> (\<top> < a)"
+  using top_greatest [of a] by (auto simp: le_less)
 
 lemma less_top:
-  "a \<noteq> top \<longleftrightarrow> a < top"
+  "a \<noteq> \<top> \<longleftrightarrow> a < \<top>"
   by (auto simp add: less_le_not_le intro!: antisym)
 
 end
+
+no_notation
+  bot ("\<bottom>") and
+  top ("\<top>")
 
 
 subsection {* Dense orders *}

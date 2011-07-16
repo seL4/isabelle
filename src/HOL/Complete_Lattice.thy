@@ -108,20 +108,6 @@ proof (rule Sup_least)
   with `a \<sqsubseteq> b` show "a \<sqsubseteq> \<Squnion>B" by auto
 qed
 
-lemma top_le:
-  "\<top> \<sqsubseteq> x \<Longrightarrow> x = \<top>"
-  by (rule antisym) auto
-
-lemma le_bot:
-  "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
-  by (rule antisym) auto
-
-lemma not_less_bot [simp]: "\<not> (x \<sqsubset> \<bottom>)"
-  using bot_least [of x] by (auto simp: le_less)
-
-lemma not_top_less [simp]: "\<not> (\<top> \<sqsubset> x)"
-  using top_greatest [of x] by (auto simp: le_less)
-
 lemma Sup_upper2: "u \<in> A \<Longrightarrow> v \<sqsubseteq> u \<Longrightarrow> v \<sqsubseteq> \<Squnion>A"
   using Sup_upper[of u A] by auto
 
