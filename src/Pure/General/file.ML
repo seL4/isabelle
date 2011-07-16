@@ -18,11 +18,15 @@ sig
   val is_dir: Path.T -> bool
   val check_dir: Path.T -> Path.T
   val check_file: Path.T -> Path.T
+  val open_dir: (OS.FileSys.dirstream -> 'a) -> Path.T -> 'a
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
   val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
+  val fold_dir: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
+  val read_dir: Path.T -> string list
   val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val fold_pages: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
+  val read_lines: Path.T -> string list
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
@@ -91,7 +95,7 @@ fun check_file path =
   else error ("No such file: " ^ Path.print path);
 
 
-(* open files *)
+(* open streams *)
 
 local
 
@@ -101,11 +105,25 @@ fun with_file open_file close_file f path =
 
 in
 
+fun open_dir f = with_file OS.FileSys.openDir OS.FileSys.closeDir f o platform_path;
 fun open_input f = with_file TextIO.openIn TextIO.closeIn f o platform_path;
 fun open_output f = with_file TextIO.openOut TextIO.closeOut f o platform_path;
 fun open_append f = with_file TextIO.openAppend TextIO.closeOut f o platform_path;
 
 end;
+
+
+(* directory content *)
+
+fun fold_dir f path a = open_dir (fn stream =>
+  let
+    fun read x =
+      (case OS.FileSys.readDir stream of
+        NONE => x
+      | SOME entry => read (f entry x));
+  in read a end) path;
+
+fun read_dir path = rev (fold_dir cons path []);
 
 
 (* input *)
@@ -126,6 +144,8 @@ fun fold_chunks terminator f path a = open_input (fn file =>
 
 fun fold_lines f = fold_chunks #"\n" f;
 fun fold_pages f = fold_chunks #"\f" f;
+
+fun read_lines path = rev (fold_lines cons path []);
 
 val read = open_input TextIO.inputAll;
 
