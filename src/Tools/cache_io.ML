@@ -40,7 +40,7 @@ type result = {
 fun raw_run make_cmd str in_path out_path =
   let
     val _ = File.write in_path str
-    val (out2, rc) = bash_output (make_cmd in_path out_path)
+    val (out2, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
     val out1 = the_default [] (try (rev o File.fold_lines cons out_path) [])
   in {output=split_lines out2, redirected_output=out1, return_code=rc} end
 

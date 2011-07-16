@@ -403,11 +403,13 @@ fun check_code_for thy target strict args naming program names_cs =
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
           module_name args naming program names_cs);
         val cmd = make_command module_name;
-      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
+      in
+        if Isabelle_System.bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
         else ()
       end;
-  in if getenv env_var = ""
+  in
+    if getenv env_var = ""
     then if strict
       then error (env_var ^ " not set; cannot check code for " ^ target)
       else warning (env_var ^ " not set; skipped checking code for " ^ target)

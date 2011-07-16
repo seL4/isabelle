@@ -5,7 +5,10 @@ Generic GNU bash processes (no provisions to propagate interrupts, but
 could work via the controlling tty).
 *)
 
-fun bash_process script =
+structure Bash =
+struct
+
+fun process script =
   let
     val id = serial_string ();
     val script_path = File.tmp_path (Path.basic ("bash_script" ^ id));
@@ -31,4 +34,6 @@ fun bash_process script =
     in {output = output, rc = rc, terminate = fn () => ()} end
     handle exn => (cleanup (); reraise exn)
   end;
+
+end;
 

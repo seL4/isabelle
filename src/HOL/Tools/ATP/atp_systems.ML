@@ -339,7 +339,7 @@ val z3_atp = (z3_atpN, z3_atp_config)
 val systems = Synchronized.var "atp_systems" ([] : string list)
 
 fun get_systems () =
-  case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
+  case Isabelle_System.bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
     (output, 0) => split_lines output
   | (output, _) =>
     error (case extract_known_failure known_perl_failures output of

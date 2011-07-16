@@ -122,7 +122,7 @@ fun run_some_atp ctxt problem =
       " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
       File.shell_path prob_file
   in
-    TimeLimit.timeLimit (seconds 0.3) bash_output command
+    TimeLimit.timeLimit (seconds 0.3) Isabelle_System.bash_output command
     |> fst
     |> extract_tstplike_proof_and_outcome false true proof_delims
                                           known_failures

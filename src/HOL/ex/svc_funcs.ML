@@ -64,7 +64,7 @@ struct
       val svc_output_file = File.tmp_path (Path.basic "SVM_out");
       val _ = File.write svc_input_file svc_input;
       val _ =
-        bash_output (check_valid ^ " -dump-result " ^
+        Isabelle_System.bash_output (check_valid ^ " -dump-result " ^
           File.shell_path svc_output_file ^ " " ^ File.shell_path svc_input_file ^
           ">/dev/null 2>&1")
       val svc_output =

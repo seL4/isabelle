@@ -15,10 +15,24 @@ sig
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val with_tmp_fifo: (Path.T -> 'a) -> 'a
   val bash_output_stream: string -> (TextIO.instream -> 'a) -> 'a
+  val bash_output: string -> string * int
+  val bash: string -> int
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
 struct
+
+(* bash *)
+
+fun bash_output s =
+  let val {output, rc, ...} = Bash.process s
+  in (output, rc) end;
+
+fun bash s =
+  (case bash_output s of
+    ("", rc) => rc
+  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
+
 
 (* system commands *)
 
@@ -72,6 +86,9 @@ fun with_tmp_dir name f =
     val _ = mkdirs path;
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
 
+
+(* process output stream *)
+
 fun with_tmp_fifo f =
   with_tmp_file "isabelle-fifo-" ""
     (fn path =>
@@ -79,13 +96,10 @@ fun with_tmp_fifo f =
         (_, 0) => f path
       | (out, _) => error (perhaps (try (unsuffix "\n")) out)));
 
-
-(* process output stream *)
-
 fun bash_output_stream script f =
   with_tmp_fifo (fn fifo =>
     uninterruptible (fn restore_attributes => fn () =>
-      (case bash_process (script ^ " > " ^ File.shell_path fifo ^ " &") of
+      (case Bash.process (script ^ " > " ^ File.shell_path fifo ^ " &") of
         {rc = 0, terminate, ...} =>
           Exn.release
             (Exn.capture (restore_attributes (fn () => File.open_input f fifo)) ()

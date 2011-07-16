@@ -227,7 +227,7 @@ fun compile cache_patterns const_arity eqs =
         val module_file = tmp_file (module^".hs")
         val object_file = tmp_file (module^".o")
         val _ = writeTextFile module_file source
-        val _ = bash ("exec \"$ISABELLE_GHC\" -c " ^ module_file)
+        val _ = Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -c " ^ module_file)
         val _ =
           if not (fileExists object_file) then
             raise Compile ("Failure compiling haskell code (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
@@ -311,7 +311,7 @@ fun run (guid, module_file, arity) t =
         val term = print_term arity_of 0 t
         val call_source = "module "^call^" where\n\nimport "^module^"\n\ncall = "^module^".calc \""^result_file^"\" ("^term^")"
         val _ = writeTextFile call_file call_source
-        val _ = bash ("exec \"$ISABELLE_GHC\" -e \""^call^".call\" "^module_file^" "^call_file)
+        val _ = Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -e \""^call^".call\" "^module_file^" "^call_file)
         val result = readResultFile result_file handle IO.Io _ =>
           raise Run ("Failure running haskell compiler (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
         val t' = parse_result arity_of result

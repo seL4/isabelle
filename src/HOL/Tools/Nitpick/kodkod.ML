@@ -1034,7 +1034,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
           val outcome =
             let
               val code =
-                bash ("cd " ^ File.shell_quote temp_dir ^ ";\n\
+                Isabelle_System.bash ("cd " ^ File.shell_quote temp_dir ^ ";\n\
                       \\"$KODKODI\"/bin/kodkodi" ^
                       (if ms >= 0 then " -max-msecs " ^ string_of_int ms
                        else "") ^

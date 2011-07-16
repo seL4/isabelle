@@ -682,7 +682,7 @@ fun run_atp mode name
                     upto conjecture_offset + length hyp_ts + 1
                   |> map single
                 val ((output, msecs), (atp_proof, outcome)) =
-                  TimeLimit.timeLimit generous_slice_timeout bash_output command
+                  TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
                   |>> (if overlord then
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
                        else

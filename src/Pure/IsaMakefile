@@ -53,7 +53,6 @@ Pure: $(OUT)/Pure
 
 $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Concurrent/bash.ML 					\
-  Concurrent/bash_ops.ML				\
   Concurrent/bash_sequential.ML				\
   Concurrent/cache.ML					\
   Concurrent/future.ML					\

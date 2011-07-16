@@ -50,7 +50,7 @@ fun run_solver ctxt name exe find_failure input =
     (* call solver *)
     val output_file = filename dir "sos_out"
     val (output, rv) =
-      bash_output
+      Isabelle_System.bash_output
        (if File.exists exe then
           space_implode " " (map File.shell_path [exe, input_file, output_file])
         else error ("Bad executable: " ^ File.platform_path exe))

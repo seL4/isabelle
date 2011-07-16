@@ -280,7 +280,7 @@ struct
 (* ------------------------------------------------------------------------- *)
 
   fun make_external_solver cmd writefn readfn fm =
-    (writefn fm; bash cmd; readfn ());
+    (writefn fm; Isabelle_System.bash cmd; readfn ());
 
 (* ------------------------------------------------------------------------- *)
 (* read_dimacs_cnf_file: returns a propositional formula that corresponds to *)

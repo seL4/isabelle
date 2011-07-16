@@ -79,7 +79,6 @@ else use "Concurrent/time_limit.ML";
 if Multithreading.available
 then use "Concurrent/bash.ML"
 else use "Concurrent/bash_sequential.ML";
-use "Concurrent/bash_ops.ML";
 
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";

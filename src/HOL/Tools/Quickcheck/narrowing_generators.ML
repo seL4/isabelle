@@ -253,9 +253,10 @@ fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
         val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
-        val (result, compilation_time) = elapsed_time "Haskell compilation" (fn () => bash cmd) 
+        val (result, compilation_time) =
+          elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd) 
         val _ = Quickcheck.add_timing compilation_time current_result
-        val _ = if bash cmd <> 0 then error "Compilation with GHC failed" else ()
+        val _ = if Isabelle_System.bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size k =
           if k > size then
             (NONE, !current_result)
@@ -264,7 +265,7 @@ fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
               val _ = message ("Test data size: " ^ string_of_int k)
               val _ = current_size := k
               val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
-                (fn () => bash_output (executable ^ " " ^ string_of_int k))
+                (fn () => Isabelle_System.bash_output (executable ^ " " ^ string_of_int k))
               val _ = Quickcheck.add_timing timing current_result
             in
               if response = "NONE\n" then

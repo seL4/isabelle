@@ -1141,7 +1141,7 @@ fun solve_glpk prog =
     val cplex_path = getenv "GLPK_PATH"
     val cplex = if cplex_path = "" then "glpsol" else cplex_path
     val command = (wrap cplex)^" --lpt "^(wrap lpname)^" --output "^(wrap resultname)
-    val answer = #1 (bash_output command)
+    val answer = #1 (Isabelle_System.bash_output command)
     in
     let
         val result = load_glpkResult resultname
@@ -1174,7 +1174,7 @@ fun solve_cplex prog =
     val cplex = if cplex_path = "" then "cplex" else cplex_path
     val _ = write_script scriptname lpname resultname
     val command = (wrap cplex)^" < "^(wrap scriptname)^" > /dev/null"
-    val answer = "return code " ^ string_of_int (bash command)
+    val answer = "return code " ^ string_of_int (Isabelle_System.bash command)
     in
     let
         val result = load_cplexResult resultname

@@ -4,7 +4,10 @@
 GNU bash processes, with propagation of interrupts.
 *)
 
-val bash_process = uninterruptible (fn restore_attributes => fn script =>
+structure Bash =
+struct
+
+val process = uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;
@@ -82,4 +85,6 @@ val bash_process = uninterruptible (fn restore_attributes => fn script =>
     in {output = output, rc = rc, terminate = fn () => terminate pid} end
     handle exn => (terminate (get_pid ()); cleanup (); reraise exn)
   end);
+
+end;
 

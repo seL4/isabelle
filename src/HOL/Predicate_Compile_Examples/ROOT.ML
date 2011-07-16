@@ -13,7 +13,8 @@ if getenv "ISABELLE_SWIPL" = "" andalso getenv "ISABELLE_YAP" = "" then
   (warning "No prolog system found - skipping some example theories"; ())
 else
   if not (getenv "ISABELLE_SWIPL" = "") orelse
-    #1 (bash_output "\"$ISABELLE_PREDICATE_COMPILE/lib/scripts/swipl_version\"") = "5.10.1"
+    #1 (Isabelle_System.bash_output "\"$ISABELLE_PREDICATE_COMPILE/lib/scripts/swipl_version\"") =
+      "5.10.1"
   then
      (use_thys [
         "Code_Prolog_Examples",
