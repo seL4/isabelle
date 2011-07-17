@@ -3,7 +3,7 @@
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
 
-Translation of HOL to FOL for Sledgehammer.
+Translation of HOL to FOL for Metis and Sledgehammer.
 *)
 
 signature ATP_TRANSLATE =
@@ -92,8 +92,8 @@ sig
   val introduce_combinators : Proof.context -> term -> term
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
-    -> bool -> ((formula_kind * term) list -> term list) -> bool -> bool
-    -> term list -> term -> ((string * locality) * term) list
+    -> bool -> (term list -> term list * term list) -> bool -> bool -> term list
+    -> term -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -120,15 +120,13 @@ val simpN = "simp"
 val bound_var_prefix = "B_"
 val schematic_var_prefix = "V_"
 val fixed_var_prefix = "v_"
-
 val tvar_prefix = "T_"
 val tfree_prefix = "t_"
-
 val const_prefix = "c_"
 val type_const_prefix = "tc_"
 val class_prefix = "cl_"
 
-val skolem_const_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
 val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
@@ -143,6 +141,7 @@ val class_rel_clause_prefix = "clar_"
 val arity_clause_prefix = "arity_"
 val tfree_clause_prefix = "tfree_"
 
+val lambda_fact_prefix = "ATP.lambda_"
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
@@ -158,9 +157,9 @@ val prefixed_app_op_name = const_prefix ^ app_op_name
 val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
 (* Freshness almost guaranteed! *)
-val sledgehammer_weak_prefix = "Sledgehammer:"
+val atp_weak_prefix = "ATP:"
 
-val concealed_lambda_prefix = sledgehammer_weak_prefix ^ "lambda_"
+val concealed_lambda_prefix = atp_weak_prefix ^ "lambda_"
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -879,7 +878,7 @@ fun presimplify_term _ [] t = t
             #> Meson.presimplify ctxt
             #> prop_of)
 
-fun concealed_bound_name j = sledgehammer_weak_prefix ^ string_of_int j
+fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
   subst_bounds (map (Free o apfst concealed_bound_name)
                     (0 upto length Ts - 1 ~~ Ts), t)
@@ -901,29 +900,34 @@ fun extensionalize_term ctxt t =
     t
 
 fun simple_translate_lambdas do_lambdas ctxt t =
-  let
-    fun aux Ts t =
-      case t of
-        @{const Not} $ t1 => @{const Not} $ aux Ts t1
-      | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
-        t0 $ Abs (s, T, aux (T :: Ts) t')
-      | (t0 as Const (@{const_name All}, _)) $ t1 =>
-        aux Ts (t0 $ eta_expand Ts t1 1)
-      | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
-        t0 $ Abs (s, T, aux (T :: Ts) t')
-      | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
-        aux Ts (t0 $ eta_expand Ts t1 1)
-      | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
-          $ t1 $ t2 =>
-        t0 $ aux Ts t1 $ aux Ts t2
-      | _ =>
-        if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
-        else t |> Envir.eta_contract |> do_lambdas ctxt Ts
-    val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
-  in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
+  let val thy = Proof_Context.theory_of ctxt in
+    if Meson.is_fol_term thy t then
+      t
+    else
+      let
+        fun aux Ts t =
+          case t of
+            @{const Not} $ t1 => @{const Not} $ aux Ts t1
+          | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
+            t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as Const (@{const_name All}, _)) $ t1 =>
+            aux Ts (t0 $ eta_expand Ts t1 1)
+          | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
+            t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+            aux Ts (t0 $ eta_expand Ts t1 1)
+          | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
+              $ t1 $ t2 =>
+            t0 $ aux Ts t1 $ aux Ts t2
+          | _ =>
+            if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
+            else t |> Envir.eta_contract |> do_lambdas ctxt Ts
+        val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
+      in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
+  end
 
 fun do_conceal_lambdas Ts (t1 $ t2) =
     do_conceal_lambdas Ts t1 $ do_conceal_lambdas Ts t2
@@ -946,11 +950,16 @@ fun do_introduce_combinators ctxt Ts t =
   handle THM _ => do_conceal_lambdas Ts t
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
-fun process_abstractions_in_terms ctxt trans_lambdas ps =
+fun preprocess_abstractions_in_terms ctxt trans_lambdas facts =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val (fo_ps, ho_ps) = ps |> List.partition (Meson.is_fol_term thy o snd)
-  in map snd fo_ps @ trans_lambdas ho_ps end
+    val (facts, lambda_ts) =
+      facts |> map (snd o snd) |> trans_lambdas 
+            |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
+    val lambda_facts =
+      map2 (fn t => fn j =>
+               ((lambda_fact_prefix ^ Int.toString j, Helper), (Axiom, t)))
+           lambda_ts (1 upto length lambda_ts)
+  in (facts, lambda_facts) end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
    same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
@@ -959,11 +968,11 @@ fun freeze_term t =
     fun aux (t $ u) = aux t $ aux u
       | aux (Abs (s, T, t)) = Abs (s, T, aux t)
       | aux (Var ((s, i), T)) =
-        Free (sledgehammer_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
+        Free (atp_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-fun preprocess_prop ctxt presimp_consts t =
+fun presimp_prop ctxt presimp_consts t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -1002,9 +1011,8 @@ fun make_conjecture ctxt format type_enc ps =
     val thy = Proof_Context.theory_of ctxt
     val last = length ps - 1
   in
-    map2 (fn j => fn (kind, t) =>
-             t |> make_formula thy type_enc (format <> CNF) (string_of_int j)
-                               Local kind
+    map2 (fn j => fn ((name, loc), (kind, t)) =>
+             t |> make_formula thy type_enc (format <> CNF) name loc kind
                |> (j <> last) = (kind = Conjecture) ? update_iformula mk_anot)
          (0 upto last) ps
   end
@@ -1426,29 +1434,32 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
   let
     val thy = Proof_Context.theory_of ctxt
     val presimp_consts = Meson.presimplified_consts ctxt
-    fun preprocess kind =
-      preprocess_prop ctxt presimp_consts
-      #> pair kind #> single
-      #> process_abstractions_in_terms ctxt trans_lambdas
-      #> the_single
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
     val hyp_ts =
       hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
-    val fact_ts = facts |> map snd |> preproc ? map (preprocess Axiom)
+    val fact_ps = facts |> map (apsnd (pair Axiom))
     val conj_ps =
       map (pair prem_kind) hyp_ts @ [(Conjecture, concl_t)]
-      |> preproc
-         ? map (fn (kind, t) => (kind, t |> preprocess kind |> freeze_term))
-    val (facts, fact_names) =
-      map2 (fn (name, _) => fn t =>
-               (make_fact ctxt format type_enc true (name, t), name))
-           facts fact_ts
-      |> map_filter (try (apfst the))
-      |> ListPair.unzip
+      |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
+    val ((conj_ps, fact_ps), lambda_ps) =
+      conj_ps @ fact_ps
+      |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
+      |> (if preproc then preprocess_abstractions_in_terms ctxt trans_lambdas
+          else rpair [])
+      |>> chop (length conj_ps)
+      |>> preproc ? apfst (map (apsnd (apsnd freeze_term)))
     val conjs = make_conjecture ctxt format type_enc conj_ps
+    val (fact_names, facts) =
+      fact_ps
+      |> map_filter (fn (name, (_, t)) =>
+                        make_fact ctxt format type_enc true (name, t)
+                        |> Option.map (pair name))
+      |> ListPair.unzip
+    val lambdas =
+      lambda_ps |> map_filter (make_fact ctxt format type_enc false o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -1458,7 +1469,8 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
-    (fact_names |> map single, (conjs, facts, class_rel_clauses, arity_clauses))
+    (fact_names |> map single,
+     (conjs, facts @ lambdas, class_rel_clauses, arity_clauses))
   end
 
 fun fo_literal_from_type_literal (TyLitVar (class, name)) =

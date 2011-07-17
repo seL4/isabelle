@@ -23,6 +23,11 @@ sig
     -> typ
   val is_type_surely_finite : Proof.context -> bool -> typ -> bool
   val is_type_surely_infinite : Proof.context -> bool -> typ -> bool
+  val s_not : term -> term
+  val s_conj : term * term -> term
+  val s_disj : term * term -> term
+  val s_imp : term * term -> term
+  val s_iff : term * term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_prop : term -> term
@@ -202,6 +207,34 @@ fun tiny_card_of_type ctxt sound default_card T =
 
 fun is_type_surely_finite ctxt sound T = tiny_card_of_type ctxt sound 0 T <> 0
 fun is_type_surely_infinite ctxt sound T = tiny_card_of_type ctxt sound 1 T = 0
+
+(* Simple simplifications to ensure that sort annotations don't leave a trail of
+   spurious "True"s. *)
+fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
+    Const (@{const_name Ex}, T) $ Abs (s, T', s_not t')
+  | s_not (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
+    Const (@{const_name All}, T) $ Abs (s, T', s_not t')
+  | s_not (@{const HOL.implies} $ t1 $ t2) = @{const HOL.conj} $ t1 $ s_not t2
+  | s_not (@{const HOL.conj} $ t1 $ t2) =
+    @{const HOL.disj} $ s_not t1 $ s_not t2
+  | s_not (@{const HOL.disj} $ t1 $ t2) =
+    @{const HOL.conj} $ s_not t1 $ s_not t2
+  | s_not (@{const False}) = @{const True}
+  | s_not (@{const True}) = @{const False}
+  | s_not (@{const Not} $ t) = t
+  | s_not t = @{const Not} $ t
+fun s_conj (@{const True}, t2) = t2
+  | s_conj (t1, @{const True}) = t1
+  | s_conj p = HOLogic.mk_conj p
+fun s_disj (@{const False}, t2) = t2
+  | s_disj (t1, @{const False}) = t1
+  | s_disj p = HOLogic.mk_disj p
+fun s_imp (@{const True}, t2) = t2
+  | s_imp (t1, @{const False}) = s_not t1
+  | s_imp p = HOLogic.mk_imp p
+fun s_iff (@{const True}, t2) = t2
+  | s_iff (t1, @{const True}) = t1
+  | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
 fun monomorphic_term subst =
   map_types (map_type_tvar (fn v =>

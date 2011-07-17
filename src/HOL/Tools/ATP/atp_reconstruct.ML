@@ -251,34 +251,6 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
 
-(* Simple simplifications to ensure that sort annotations don't leave a trail of
-   spurious "True"s. *)
-fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
-    Const (@{const_name Ex}, T) $ Abs (s, T', s_not t')
-  | s_not (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
-    Const (@{const_name All}, T) $ Abs (s, T', s_not t')
-  | s_not (@{const HOL.implies} $ t1 $ t2) = @{const HOL.conj} $ t1 $ s_not t2
-  | s_not (@{const HOL.conj} $ t1 $ t2) =
-    @{const HOL.disj} $ s_not t1 $ s_not t2
-  | s_not (@{const HOL.disj} $ t1 $ t2) =
-    @{const HOL.conj} $ s_not t1 $ s_not t2
-  | s_not (@{const False}) = @{const True}
-  | s_not (@{const True}) = @{const False}
-  | s_not (@{const Not} $ t) = t
-  | s_not t = @{const Not} $ t
-fun s_conj (@{const True}, t2) = t2
-  | s_conj (t1, @{const True}) = t1
-  | s_conj p = HOLogic.mk_conj p
-fun s_disj (@{const False}, t2) = t2
-  | s_disj (t1, @{const False}) = t1
-  | s_disj p = HOLogic.mk_disj p
-fun s_imp (@{const True}, t2) = t2
-  | s_imp (t1, @{const False}) = s_not t1
-  | s_imp p = HOLogic.mk_imp p
-fun s_iff (@{const True}, t2) = t2
-  | s_iff (t1, @{const True}) = t1
-  | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
-
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
 

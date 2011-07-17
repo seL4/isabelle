@@ -60,8 +60,8 @@ sig
   type prover =
     params -> (string -> minimize_command) -> prover_problem -> prover_result
 
-  val concealed_lambdasN : string
-  val lambda_liftingN : string
+  val concealedN : string
+  val liftingN : string
   val combinatorsN : string
   val lambdasN : string
   val smartN : string
@@ -334,8 +334,8 @@ type prover =
 
 (* configuration attributes *)
 
-val concealed_lambdasN = "concealed_lambdas"
-val lambda_liftingN = "lambda_lifting"
+val concealedN = "concealed"
+val liftingN = "lifting"
 val combinatorsN = "combinators"
 val lambdasN = "lambdas"
 val smartN = "smart"
@@ -525,15 +525,6 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
-fun lift_lambdas ctxt ps =
-  let
-    val ts = map snd ps (*###*)
-  in
-    case SMT_Translate.lift_lambdas ctxt false ts |> snd of
-      (defs, [t]) => [foldr1 HOLogic.mk_conj (t :: defs)] (* FIXME: hack *)
-    | (defs, ts) => ts @ defs
-  end
-
 fun translate_atp_lambdas ctxt type_enc =
   Config.get ctxt atp_lambda_translation
   |> (fn trans =>
@@ -546,14 +537,14 @@ fun translate_atp_lambdas ctxt type_enc =
          else
            trans)
   |> (fn trans =>
-         if trans = concealed_lambdasN then
-           map (conceal_lambdas ctxt o snd)
-         else if trans = lambda_liftingN then
-           lift_lambdas ctxt
+         if trans = concealedN then
+           rpair [] o map (conceal_lambdas ctxt)
+         else if trans = liftingN then
+           SMT_Translate.lift_lambdas ctxt false #> snd #> swap
          else if trans = combinatorsN then
-           map (introduce_combinators ctxt o snd)
+           rpair [] o map (introduce_combinators ctxt)
          else if trans = lambdasN then
-           map (Envir.eta_contract o snd)
+           rpair [] o map (Envir.eta_contract)
          else
            error ("Unknown lambda translation method: " ^ quote trans ^ "."))
 
