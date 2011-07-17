@@ -60,6 +60,11 @@ sig
   type prover =
     params -> (string -> minimize_command) -> prover_problem -> prover_result
 
+  val concealed_lambdasN : string
+  val lambda_liftingN : string
+  val combinatorsN : string
+  val lambdasN : string
+  val smartN : string
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
@@ -329,6 +334,12 @@ type prover =
 
 (* configuration attributes *)
 
+val concealed_lambdasN = "concealed_lambdas"
+val lambda_liftingN = "lambda_lifting"
+val combinatorsN = "combinators"
+val lambdasN = "lambdas"
+val smartN = "smart"
+
 (* Empty string means create files in Isabelle's temporary files directory. *)
 val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
@@ -514,7 +525,7 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
-fun effective_atp_lambda_translation ctxt type_enc =
+fun translate_atp_lambdas ctxt type_enc =
   Config.get ctxt atp_lambda_translation
   |> (fn trans =>
          if trans = smartN then
@@ -525,6 +536,17 @@ fun effective_atp_lambda_translation ctxt type_enc =
                   \first-order encoding.")
          else
            trans)
+  |> (fn trans =>
+         if trans = concealed_lambdasN then
+           map (conceal_lambdas ctxt)
+         else if trans = lambda_liftingN then
+           I (* TODO: implement *)
+         else if trans = combinatorsN then
+           map (introduce_combinators ctxt)
+         else if trans = lambdasN then
+           map Envir.eta_contract
+         else
+           error ("Unknown lambda translation method: " ^ quote trans ^ "."))
 
 val metis_minimize_max_time = seconds 2.0
 
@@ -657,8 +679,7 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc sound false
-                      (effective_atp_lambda_translation ctxt type_enc)
+                      type_enc sound false (translate_atp_lambdas ctxt type_enc)
                       (Config.get ctxt atp_readable_names) true hyp_ts concl_t
                       facts
                 fun weights () = atp_problem_weights atp_problem
