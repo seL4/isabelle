@@ -34,14 +34,8 @@ where
 lemma id_apply [simp]: "id x = x"
   by (simp add: id_def)
 
-lemma image_ident [simp]: "(%x. x) ` Y = Y"
-by blast
-
 lemma image_id [simp]: "id ` Y = Y"
 by (simp add: id_def)
-
-lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
-by blast
 
 lemma vimage_id [simp]: "id -` A = A"
 by (simp add: id_def)
