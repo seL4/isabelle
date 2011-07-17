@@ -71,6 +71,10 @@ misunderstandable names:
   le_SUPI ~> le_SUP_I
   le_SUPI2 ~> le_SUP_I2
   le_INFI ~> le_INF_I
+  INFI_bool_eq ~> INF_bool_eq
+  SUPR_bool_eq ~> SUP_bool_eq
+  INFI_apply ~> INF_apply
+  SUPR_apply ~> SUP_apply
 INCOMPATIBILITY.
 
 * Archimedian_Field.thy:

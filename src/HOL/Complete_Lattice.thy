@@ -349,19 +349,19 @@ lemma SUP_bot_conv:
  "(\<Squnion>x\<in>A. B x) = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
   by (auto simp add: SUP_def Sup_bot_conv)
 
-lemma (in complete_lattice) INF_UNIV_range:
+lemma INF_UNIV_range:
   "(\<Sqinter>x. f x) = \<Sqinter>range f"
   by (fact INF_def)
 
-lemma (in complete_lattice) SUP_UNIV_range:
+lemma SUP_UNIV_range:
   "(\<Squnion>x. f x) = \<Squnion>range f"
   by (fact SUP_def)
 
-lemma INF_bool_eq:
+lemma INF_UNIV_bool_expand:
   "(\<Sqinter>b. A b) = A True \<sqinter> A False"
   by (simp add: UNIV_bool INF_empty INF_insert inf_commute)
 
-lemma SUP_bool_eq:
+lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
   by (simp add: UNIV_bool SUP_empty SUP_insert sup_commute)
 
@@ -397,9 +397,45 @@ lemma less_SUP_iff:
   shows "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUP_def less_Sup_iff by auto
 
+-- "FIXME move"
+
+lemma image_ident [simp]: "(%x. x) ` Y = Y"
+  by blast
+
+lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
+  by blast
+
+class complete_boolean_algebra = boolean_algebra + complete_lattice
+begin
+
+lemma uminus_Inf:
+  "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
+proof (rule antisym)
+  show "- \<Sqinter>A \<le> \<Squnion>(uminus ` A)"
+    by (rule compl_le_swap2, rule Inf_greatest, rule compl_le_swap2, rule Sup_upper) simp
+  show "\<Squnion>(uminus ` A) \<le> - \<Sqinter>A"
+    by (rule Sup_least, rule compl_le_swap1, rule Inf_lower) auto
+qed
+
+lemma uminus_Sup:
+  "- (\<Squnion>A) = \<Sqinter>(uminus ` A)"
+proof -
+  have "\<Squnion>A = - \<Sqinter>(uminus ` A)" by (simp add: image_image uminus_Inf)
+  then show ?thesis by simp
+qed
+  
+lemma uminus_INF: "- (\<Sqinter>x\<in>A. B x) = (\<Squnion>x\<in>A. - B x)"
+  by (simp add: INF_def SUP_def uminus_Inf image_image)
+
+lemma uminus_SUP: "- (\<Squnion>x\<in>A. B x) = (\<Sqinter>x\<in>A. - B x)"
+  by (simp add: INF_def SUP_def uminus_Sup image_image)
+
+end
+
+
 subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
 
-instantiation bool :: complete_lattice
+instantiation bool :: complete_boolean_algebra
 begin
 
 definition
@@ -413,7 +449,7 @@ qed (auto simp add: Inf_bool_def Sup_bool_def)
 
 end
 
-lemma INFI_bool_eq [simp]:
+lemma INF_bool_eq [simp]:
   "INFI = Ball"
 proof (rule ext)+
   fix A :: "'a set"
@@ -422,7 +458,7 @@ proof (rule ext)+
     by (auto simp add: Ball_def INF_def Inf_bool_def)
 qed
 
-lemma SUPR_bool_eq [simp]:
+lemma SUP_bool_eq [simp]:
   "SUPR = Bex"
 proof (rule ext)+
   fix A :: "'a set"
@@ -454,13 +490,15 @@ qed (auto simp add: le_fun_def Inf_apply Sup_apply
 
 end
 
-lemma INFI_apply:
+lemma INF_apply:
   "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)"
   by (auto intro: arg_cong [of _ _ Inf] simp add: INF_def Inf_apply)
 
-lemma SUPR_apply:
+lemma SUP_apply:
   "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
   by (auto intro: arg_cong [of _ _ Sup] simp add: SUP_def Sup_apply)
+
+instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
 
 subsection {* Inter *}
@@ -647,7 +685,7 @@ lemma INTER_UNIV_conv [simp]:
   by (fact INF_top_conv)+
 
 lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
-  by (fact INF_bool_eq)
+  by (fact INF_UNIV_bool_expand)
 
 lemma INT_anti_mono:
   "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>B. g x)"
@@ -945,11 +983,11 @@ lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) =
 
 subsection {* Complement *}
 
-lemma Compl_UN [simp]: "- (\<Union>x\<in>A. B x) = (\<Inter>x\<in>A. -B x)"
-  by blast
-
 lemma Compl_INT [simp]: "- (\<Inter>x\<in>A. B x) = (\<Union>x\<in>A. -B x)"
-  by blast
+  by (fact uminus_INF)
+
+lemma Compl_UN [simp]: "- (\<Union>x\<in>A. B x) = (\<Inter>x\<in>A. -B x)"
+  by (fact uminus_SUP)
 
 
 subsection {* Miniscoping and maxiscoping *}
@@ -1047,7 +1085,8 @@ lemmas (in complete_lattice) SUPR_def = SUP_def
 lemmas (in complete_lattice) le_SUPI = le_SUP_I
 lemmas (in complete_lattice) le_SUPI2 = le_SUP_I2
 lemmas (in complete_lattice) le_INFI = le_INF_I
-
+lemmas INFI_apply = INF_apply
+lemmas SUPR_apply = SUP_apply
 
 text {* Finally *}
 

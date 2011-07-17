@@ -524,7 +524,39 @@ qed
 
 lemma compl_le_compl_iff: (* TODO: declare [simp] ? *)
   "- x \<sqsubseteq> - y \<longleftrightarrow> y \<sqsubseteq> x"
-by (auto dest: compl_mono)
+  by (auto dest: compl_mono)
+
+lemma compl_le_swap1:
+  assumes "y \<sqsubseteq> - x" shows "x \<sqsubseteq> -y"
+proof -
+  from assms have "- (- x) \<sqsubseteq> - y" by (simp only: compl_le_compl_iff)
+  then show ?thesis by simp
+qed
+
+lemma compl_le_swap2:
+  assumes "- y \<sqsubseteq> x" shows "- x \<sqsubseteq> y"
+proof -
+  from assms have "- x \<sqsubseteq> - (- y)" by (simp only: compl_le_compl_iff)
+  then show ?thesis by simp
+qed
+
+lemma compl_less_compl_iff: (* TODO: declare [simp] ? *)
+  "- x \<sqsubset> - y \<longleftrightarrow> y \<sqsubset> x"
+  by (auto simp add: less_le compl_le_compl_iff)
+
+lemma compl_less_swap1:
+  assumes "y \<sqsubset> - x" shows "x \<sqsubset> - y"
+proof -
+  from assms have "- (- x) \<sqsubset> - y" by (simp only: compl_less_compl_iff)
+  then show ?thesis by simp
+qed
+
+lemma compl_less_swap2:
+  assumes "- y \<sqsubset> x" shows "- x \<sqsubset> y"
+proof -
+  from assms have "- x \<sqsubset> - (- y)" by (simp only: compl_less_compl_iff)
+  then show ?thesis by simp
+qed
 
 end
 
