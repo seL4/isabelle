@@ -533,8 +533,6 @@ lemma INT_insert_distrib:
   "u \<in> A \<Longrightarrow> (\<Inter>x\<in>A. insert a (B x)) = insert a (\<Inter>x\<in>A. B x)"
   by blast
 
--- {* continue generalization from here *}
-
 lemma (in complete_lattice) INF_constant:
   "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
   by (simp add: INF_empty)
@@ -572,14 +570,14 @@ lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
   by (fact INF_bool_eq)
 
 lemma (in complete_lattice) INF_anti_mono:
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>A. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
+  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>B. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
   -- {* The last inclusion is POSITIVE! *}
-  by (blast dest: subsetD)
+  by (blast intro: INF_mono dest: subsetD)
 
 lemma INT_anti_mono:
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>A. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
+  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>B. g x)"
   -- {* The last inclusion is POSITIVE! *}
-  by (blast dest: subsetD)
+  by (fact INF_anti_mono)
 
 lemma Pow_INT_eq: "Pow (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. Pow (B x))"
   by blast
