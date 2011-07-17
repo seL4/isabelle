@@ -993,41 +993,25 @@ fun make_formula thy type_enc eq_as_iff name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_enc trans_lambdas eq_as_iff preproc
-              presimp_consts ((name, loc), t) =
+fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
-    case t |> preproc ? preprocess_prop ctxt trans_lambdas presimp_consts Axiom
-           |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name
+    case t |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name
                            loc Axiom of
       formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
     | formula => SOME formula
   end
 
-fun make_conjecture ctxt format prem_kind type_enc trans_lambdas preproc
-                    presimp_consts ts =
+fun make_conjecture ctxt format type_enc ps =
   let
     val thy = Proof_Context.theory_of ctxt
-    val last = length ts - 1
+    val last = length ps - 1
   in
-    map2 (fn j => fn t =>
-             let
-               val (kind, maybe_negate) =
-                 if j = last then
-                   (Conjecture, I)
-                 else
-                   (prem_kind,
-                    if prem_kind = Conjecture then update_iformula mk_anot
-                    else I)
-              in
-                t |> preproc ?
-                     (preprocess_prop ctxt trans_lambdas presimp_consts kind
-                      #> freeze_term)
-                  |> make_formula thy type_enc (format <> CNF) (string_of_int j)
-                                  Local kind
-                  |> maybe_negate
-              end)
-         (0 upto last) ts
+    map2 (fn j => fn (kind, t) =>
+             t |> make_formula thy type_enc (format <> CNF) (string_of_int j)
+                               Local kind
+               |> (j <> last) = (kind = Conjecture) ? update_iformula mk_anot)
+         (0 upto last) ps
   end
 
 (** Finite and infinite type inference **)
@@ -1386,8 +1370,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
             [t]
         end
         |> map (fn (k, t) => (dub needs_fairly_sound j k, t)) o tag_list 1
-      val make_facts =
-        map_filter (make_fact ctxt format type_enc I false false [])
+      val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
       helper_table
@@ -1449,10 +1432,12 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = facts |> map snd
     val presimp_consts = Meson.presimplified_consts ctxt
-    val make_fact =
-      make_fact ctxt format type_enc trans_lambdas true preproc presimp_consts
+    val preprocess = preprocess_prop ctxt trans_lambdas presimp_consts
     val (facts, fact_names) =
-      facts |> map (fn (name, t) => (name, t) |> make_fact |> rpair name)
+      facts |> map (fn (name, t) =>
+                       (name, t |> preproc ? preprocess Axiom)
+                       |> make_fact ctxt format type_enc true
+                       |> rpair name)
             |> map_filter (try (apfst the))
             |> ListPair.unzip
     (* Remove existing facts from the conjecture, as this can dramatically
@@ -1466,9 +1451,10 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_constrs_of_terms thy all_ts
     val conjs =
-      hyp_ts @ [concl_t]
-      |> make_conjecture ctxt format prem_kind type_enc trans_lambdas preproc
-                         presimp_consts
+      map (pair prem_kind) hyp_ts @ [(Conjecture, concl_t)]
+      |> preproc
+         ? map (fn (kind, t) => (kind, t |> preprocess kind |> freeze_term))
+      |> make_conjecture ctxt format type_enc
     val (supers', arity_clauses) =
       if level_of_type_enc type_enc = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -1542,8 +1528,7 @@ and ho_term_from_iterm ctxt format nonmono_Ts type_enc =
 and formula_from_iformula ctxt format nonmono_Ts type_enc
                           should_predicate_on_var =
   let
-    fun do_term pos =
-      ho_term_from_iterm ctxt format nonmono_Ts type_enc (Top_Level pos)
+    val do_term = ho_term_from_iterm ctxt format nonmono_Ts type_enc o Top_Level
     val do_bound_type =
       case type_enc of
         Simple_Types (_, level) =>
