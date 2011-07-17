@@ -1430,35 +1430,34 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                        hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_ts = facts |> map snd
     val presimp_consts = Meson.presimplified_consts ctxt
     val preprocess = preprocess_prop ctxt trans_lambdas presimp_consts
-    val (facts, fact_names) =
-      facts |> map (fn (name, t) =>
-                       (name, t |> preproc ? preprocess Axiom)
-                       |> make_fact ctxt format type_enc true
-                       |> rpair name)
-            |> map_filter (try (apfst the))
-            |> ListPair.unzip
+    val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
     val hyp_ts =
       hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
-    val goal_t = Logic.list_implies (hyp_ts, concl_t)
-    val all_ts = goal_t :: fact_ts
-    val subs = tfree_classes_of_terms all_ts
-    val supers = tvar_classes_of_terms all_ts
-    val tycons = type_constrs_of_terms thy all_ts
-    val conjs =
+    val fact_ts = facts |> map snd |> preproc ? map (preprocess Axiom)
+    val conj_ps =
       map (pair prem_kind) hyp_ts @ [(Conjecture, concl_t)]
       |> preproc
          ? map (fn (kind, t) => (kind, t |> preprocess kind |> freeze_term))
-      |> make_conjecture ctxt format type_enc
-    val (supers', arity_clauses) =
+    val (facts, fact_names) =
+      map2 (fn (name, _) => fn t =>
+               (make_fact ctxt format type_enc true (name, t), name))
+           facts fact_ts
+      |> map_filter (try (apfst the))
+      |> ListPair.unzip
+    val conjs = make_conjecture ctxt format type_enc conj_ps
+    val all_ts = concl_t :: hyp_ts @ fact_ts
+    val subs = tfree_classes_of_terms all_ts
+    val supers = tvar_classes_of_terms all_ts
+    val tycons = type_constrs_of_terms thy all_ts
+    val (supers, arity_clauses) =
       if level_of_type_enc type_enc = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
-    val class_rel_clauses = make_class_rel_clauses thy subs supers'
+    val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
     (fact_names |> map single, (conjs, facts, class_rel_clauses, arity_clauses))
   end
