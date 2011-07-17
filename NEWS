@@ -63,6 +63,11 @@ syntax diagrams.
 * Classes bot and top require underlying partial order rather than preorder:
 uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
+* Class 'complete_lattice': generalized a couple of lemmas from sets;
+generalized theorems INF_cong and SUP_cong.  More consistent names: TBD.
+
+INCOMPATIBILITY.
+
 * Archimedian_Field.thy:
     floor now is defined as parameter of a separate type class floor_ceiling.
  
