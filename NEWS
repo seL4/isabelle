@@ -64,8 +64,13 @@ syntax diagrams.
 uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
 * Class 'complete_lattice': generalized a couple of lemmas from sets;
-generalized theorems INF_cong and SUP_cong.  More consistent names: TBD.
-
+generalized theorems INF_cong and SUP_cong.  More consistent and less
+misunderstandable names:
+  INFI_def ~> INF_def
+  SUPR_def ~> SUP_def
+  le_SUPI ~> le_SUP_I
+  le_SUPI2 ~> le_SUP_I2
+  le_INFI ~> le_INF_I
 INCOMPATIBILITY.
 
 * Archimedian_Field.thy:
