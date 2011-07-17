@@ -993,8 +993,8 @@ fun make_formula thy type_enc eq_as_iff name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_enc trans_lambdas eq_as_iff preproc presimp_consts
-              ((name, loc), t) =
+fun make_fact ctxt format type_enc trans_lambdas eq_as_iff preproc
+              presimp_consts ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
     case t |> preproc ? preprocess_prop ctxt trans_lambdas presimp_consts Axiom
            |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name

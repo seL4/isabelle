@@ -525,6 +525,11 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
+fun lift_lambdas ctxt ts =
+  case SMT_Translate.lift_lambdas ctxt false ts |> snd of
+    (defs, [t]) => [foldr1 HOLogic.mk_conj (t :: defs)] (* FIXME: hack *)
+  | (defs, ts) => ts @ defs
+
 fun translate_atp_lambdas ctxt type_enc =
   Config.get ctxt atp_lambda_translation
   |> (fn trans =>
@@ -537,16 +542,11 @@ fun translate_atp_lambdas ctxt type_enc =
          else
            trans)
   |> (fn trans =>
-         if trans = concealed_lambdasN then
-           map (conceal_lambdas ctxt)
-         else if trans = lambda_liftingN then
-           I (* TODO: implement *)
-         else if trans = combinatorsN then
-           map (introduce_combinators ctxt)
-         else if trans = lambdasN then
-           map Envir.eta_contract
-         else
-           error ("Unknown lambda translation method: " ^ quote trans ^ "."))
+         if trans = concealed_lambdasN then map (conceal_lambdas ctxt)
+         else if trans = lambda_liftingN then lift_lambdas ctxt
+         else if trans = combinatorsN then map (introduce_combinators ctxt)
+         else if trans = lambdasN then map Envir.eta_contract
+         else error ("Unknown lambda translation method: " ^ quote trans ^ "."))
 
 val metis_minimize_max_time = seconds 2.0
 
