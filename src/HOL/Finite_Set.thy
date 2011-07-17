@@ -477,19 +477,13 @@ begin
 lemma finite [simp]: "finite (A \<Colon> 'a set)"
   by (rule subset_UNIV finite_UNIV finite_subset)+
 
-lemma finite_code [code]: "finite (A \<Colon> 'a set) = True"
+lemma finite_code [code]: "finite (A \<Colon> 'a set) \<longleftrightarrow> True"
   by simp
 
 end
 
-lemma UNIV_unit [no_atp]:
-  "UNIV = {()}" by auto
-
 instance unit :: finite proof
 qed (simp add: UNIV_unit)
-
-lemma UNIV_bool [no_atp]:
-  "UNIV = {False, True}" by auto
 
 instance bool :: finite proof
 qed (simp add: UNIV_bool)

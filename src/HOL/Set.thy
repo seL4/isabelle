@@ -1487,6 +1487,9 @@ lemma bool_contrapos: "P x \<Longrightarrow> \<not> P False \<Longrightarrow> P 
 lemma ex_bool_eq: "(\<exists>b. P b) \<longleftrightarrow> P True \<or> P False"
   by (auto intro: bool_contrapos)
 
+lemma UNIV_bool [no_atp]: "UNIV = {False, True}"
+  by (auto intro: bool_induct)
+
 text {* \medskip @{text Pow} *}
 
 lemma Pow_empty [simp]: "Pow {} = {{}}"

@@ -84,8 +84,11 @@ text {*
   f} rather than by @{term [source] "%u. f ()"}.
 *}
 
-lemma unit_abs_eta_conv [simp,no_atp]: "(%u::unit. f ()) = f"
+lemma unit_abs_eta_conv [simp, no_atp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
+
+lemma UNIV_unit [no_atp]:
+  "UNIV = {()}" by auto
 
 instantiation unit :: default
 begin

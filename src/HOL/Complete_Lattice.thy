@@ -564,10 +564,6 @@ lemma (in complete_lattice) INFI_UNIV_range:
   "(\<Sqinter>x\<in>UNIV. f x) = \<Sqinter>range f"
   by (simp add: INFI_def)
 
-lemma UNIV_bool [no_atp]: -- "FIXME move"
-  "UNIV = {False, True}"
-  by auto
-
 lemma (in complete_lattice) INF_bool_eq:
   "(\<Sqinter>b. A b) = A True \<sqinter> A False"
   by (simp add: UNIV_bool INF_empty INF_insert inf_commute)
