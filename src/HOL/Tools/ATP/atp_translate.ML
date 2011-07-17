@@ -940,17 +940,18 @@ val conceal_lambdas = simple_translate_lambdas (K do_conceal_lambdas)
 
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
-    t |> conceal_bounds Ts
-      |> cterm_of thy
-      |> Meson_Clausify.introduce_combinators_in_cterm
-      |> prop_of |> Logic.dest_equals |> snd
-      |> reveal_bounds Ts
+    t |> not (Meson.is_fol_term thy t)
+         ? (conceal_bounds Ts
+            #> cterm_of thy
+            #> Meson_Clausify.introduce_combinators_in_cterm
+            #> prop_of #> Logic.dest_equals #> snd
+            #> reveal_bounds Ts)
   end
   (* A type variable of sort "{}" will make abstraction fail. *)
-  handle THM _ => do_conceal_lambdas Ts t
+  handle THM _ => t |> do_conceal_lambdas Ts
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
-fun preprocess_abstractions_in_terms ctxt trans_lambdas facts =
+fun preprocess_abstractions_in_terms trans_lambdas facts =
   let
     val (facts, lambda_ts) =
       facts |> map (snd o snd) |> trans_lambdas 
@@ -1440,26 +1441,28 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val hyp_ts =
       hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
-    val fact_ps = facts |> map (apsnd (pair Axiom))
-    val conj_ps =
+    val facts = facts |> map (apsnd (pair Axiom))
+    val conjs =
       map (pair prem_kind) hyp_ts @ [(Conjecture, concl_t)]
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
-    val ((conj_ps, fact_ps), lambda_ps) =
-      conj_ps @ fact_ps
-      |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
-      |> (if preproc then preprocess_abstractions_in_terms ctxt trans_lambdas
-          else rpair [])
-      |>> chop (length conj_ps)
-      |>> preproc ? apfst (map (apsnd (apsnd freeze_term)))
-    val conjs = make_conjecture ctxt format type_enc conj_ps
+    val ((conjs, facts), lambdas) =
+      if preproc then
+        conjs @ facts
+        |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
+        |> preprocess_abstractions_in_terms trans_lambdas
+        |>> chop (length conjs)
+        |>> apfst (map (apsnd (apsnd freeze_term)))
+      else
+        ((conjs, facts), [])
+    val conjs = conjs |> make_conjecture ctxt format type_enc
     val (fact_names, facts) =
-      fact_ps
+      facts
       |> map_filter (fn (name, (_, t)) =>
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
       |> ListPair.unzip
     val lambdas =
-      lambda_ps |> map_filter (make_fact ctxt format type_enc false o apsnd snd)
+      lambdas |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -1581,8 +1584,7 @@ fun bound_tvars type_enc Ts =
    the remote provers might care. *)
 fun formula_line_for_fact ctxt format prefix encode freshen pos nonmono_Ts
         type_enc (j, {name, locality, kind, iformula, atomic_types}) =
-  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name,
-   kind,
+  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
    iformula
    |> close_iformula_universally
    |> formula_from_iformula ctxt format nonmono_Ts type_enc

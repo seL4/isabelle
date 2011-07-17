@@ -28,6 +28,7 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
+  val close_form : term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_prop : term -> term
@@ -235,6 +236,11 @@ fun s_imp (@{const True}, t2) = t2
 fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
+
+fun close_form t =
+  fold (fn ((x, i), T) => fn t' =>
+           HOLogic.all_const T $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
+       (Term.add_vars t []) t
 
 fun monomorphic_term subst =
   map_types (map_type_tvar (fn v =>

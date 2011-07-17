@@ -62,7 +62,6 @@ sig
 (* Additional functions used by Nitpick (to be factored out)                 *)
 (* ------------------------------------------------------------------------- *)
 
-  val close_form : term -> term
   val get_classdef : theory -> string -> (string * term) option
   val norm_rhs : term -> term
   val get_def : theory -> string * typ -> (string * term) option
