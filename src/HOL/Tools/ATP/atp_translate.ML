@@ -1369,8 +1369,7 @@ fun should_specialize_helper type_enc t =
   level_of_type_enc type_enc <> No_Types andalso
   not (null (Term.hidden_polymorphism t))
 
-fun helper_facts_for_sym ctxt format type_enc trans_lambdas
-                         (s, {types, ...} : sym_info) =
+fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -1392,7 +1391,7 @@ fun helper_facts_for_sym ctxt format type_enc trans_lambdas
         end
         |> map (fn (k, t) => (dub needs_fairly_sound j k, t)) o tag_list 1
       val make_facts =
-        map_filter (make_fact ctxt format type_enc trans_lambdas false false [])
+        map_filter (make_fact ctxt format type_enc I false false [])
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
       helper_table
@@ -1406,10 +1405,9 @@ fun helper_facts_for_sym ctxt format type_enc trans_lambdas
                     |> make_facts)
     end
   | NONE => []
-fun helper_facts_for_sym_table ctxt format type_enc trans_lambdas sym_tab =
-  Symtab.fold_rev (append
-                   o helper_facts_for_sym ctxt format type_enc trans_lambdas)
-                  sym_tab []
+fun helper_facts_for_sym_table ctxt format type_enc sym_tab =
+  Symtab.fold_rev (append o helper_facts_for_sym ctxt format type_enc) sym_tab
+                  []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -1905,9 +1903,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
     val repaired_sym_tab =
       conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
-      repaired_sym_tab
-      |> helper_facts_for_sym_table ctxt format type_enc trans_lambdas
-      |> map repair
+      repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
+                       |> map repair
     val poly_nonmono_Ts =
       if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] orelse
          polymorphism_of_type_enc type_enc <> Polymorphic then
