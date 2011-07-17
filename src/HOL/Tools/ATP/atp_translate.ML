@@ -92,8 +92,8 @@ sig
   val introduce_combinators : Proof.context -> term -> term
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
-    -> bool -> (term list -> term list) -> bool -> bool -> term list -> term
-    -> ((string * locality) * term) list
+    -> bool -> ((formula_kind * term) list -> term list) -> bool -> bool
+    -> term list -> term -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -900,7 +900,7 @@ fun extensionalize_term ctxt t =
   else
     t
 
-fun generic_translate_lambdas do_lambdas ctxt t =
+fun simple_translate_lambdas do_lambdas ctxt t =
   let
     fun aux Ts t =
       case t of
@@ -932,29 +932,25 @@ fun do_conceal_lambdas Ts (t1 $ t2) =
     Free (concealed_lambda_prefix ^ string_of_int (hash_term t),
           T --> fastype_of1 (Ts, t))
   | do_conceal_lambdas _ t = t
-val conceal_lambdas = generic_translate_lambdas (K do_conceal_lambdas)
+val conceal_lambdas = simple_translate_lambdas (K do_conceal_lambdas)
 
-fun do_introduce_combinators ctxt Ts =
+fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
-    conceal_bounds Ts
-    #> cterm_of thy
-    #> Meson_Clausify.introduce_combinators_in_cterm
-    #> prop_of #> Logic.dest_equals #> snd
-    #> reveal_bounds Ts
+    t |> conceal_bounds Ts
+      |> cterm_of thy
+      |> Meson_Clausify.introduce_combinators_in_cterm
+      |> prop_of |> Logic.dest_equals |> snd
+      |> reveal_bounds Ts
   end
-val introduce_combinators = generic_translate_lambdas do_introduce_combinators
+  (* A type variable of sort "{}" will make abstraction fail. *)
+  handle THM _ => do_conceal_lambdas Ts t
+val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
-fun process_abstractions_in_term ctxt trans_lambdas kind t =
-  let val thy = Proof_Context.theory_of ctxt in
-    if Meson.is_fol_term thy t then
-      t
-    else
-      t |> singleton trans_lambdas
-      handle THM _ =>
-             (* A type variable of sort "{}" will make abstraction fail. *)
-             if kind = Conjecture then HOLogic.false_const
-             else HOLogic.true_const
-  end
+fun process_abstractions_in_terms ctxt trans_lambdas ps =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val (fo_ps, ho_ps) = ps |> List.partition (Meson.is_fol_term thy o snd)
+  in map snd fo_ps @ trans_lambdas ho_ps end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
    same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
@@ -967,7 +963,7 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-fun preprocess_prop ctxt trans_lambdas presimp_consts kind t =
+fun preprocess_prop ctxt presimp_consts t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -980,7 +976,6 @@ fun preprocess_prop ctxt trans_lambdas presimp_consts kind t =
       |> extensionalize_term ctxt
       |> presimplify_term ctxt presimp_consts
       |> perhaps (try (HOLogic.dest_Trueprop))
-      |> process_abstractions_in_term ctxt trans_lambdas kind
   end
 
 (* making fact and conjecture formulas *)
@@ -1431,7 +1426,11 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
   let
     val thy = Proof_Context.theory_of ctxt
     val presimp_consts = Meson.presimplified_consts ctxt
-    val preprocess = preprocess_prop ctxt trans_lambdas presimp_consts
+    fun preprocess kind =
+      preprocess_prop ctxt presimp_consts
+      #> pair kind #> single
+      #> process_abstractions_in_terms ctxt trans_lambdas
+      #> the_single
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
