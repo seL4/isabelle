@@ -862,6 +862,8 @@ fun deepen bound f i =
       NONE => deepen bound f (i + 1)
     | SOME x => SOME x);
 
+val active = Attrib.setup_config_bool @{binding quickcheck_inductive_SML_active} (K false);
+    
 val depth_bound = Attrib.setup_config_int @{binding ind_quickcheck_depth} (K 10);
 val depth_start = Attrib.setup_config_int @{binding ind_quickcheck_depth_start} (K 1);
 val random_values = Attrib.setup_config_int @{binding ind_quickcheck_random} (K 5);
@@ -927,6 +929,6 @@ fun test_term ctxt [(t, [])] =
 val test_goal = Quickcheck.generator_test_goal_terms test_term;
 
 val quickcheck_setup =
-  Context.theory_map (Quickcheck.add_tester ("SML_inductive", test_goal));
+  Context.theory_map (Quickcheck.add_tester ("SML_inductive", (active, test_goal)));
 
 end;

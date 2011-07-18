@@ -442,10 +442,12 @@ val test_goals = Quickcheck.generator_test_goal_terms compile_generator_expr;
   
 (** setup **)
 
+val active = Attrib.setup_config_bool @{binding quickcheck_random_active} (K false);
+
 val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
     (((@{sort typerep}, @{sort term_of}), @{sort random}), instantiate_random_datatype))
   #> Code_Target.extend_target (target, (Code_Runtime.target, K I))
-  #> Context.theory_map (Quickcheck.add_tester ("random", test_goals));
+  #> Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals)));
 
 end;

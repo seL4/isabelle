@@ -42,17 +42,14 @@ sig
   val add_timing : (string * int) -> result Unsynchronized.ref -> unit
   val counterexample_of : result -> (string * term) list option
   val timings_of : result -> (string * int) list
-  (* registering generators *)
-  (*val add_generator:
-    string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)
-      -> Context.generic -> Context.generic*)
-  val add_tester:
-    string * (Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list)
-      -> Context.generic -> Context.generic
-  val add_batch_generator:
+  (* registering testers & generators *) 
+  type tester =
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
+  val add_tester : string * (bool Config.T * tester) -> Context.generic -> Context.generic
+  val add_batch_generator :
     string * (Proof.context -> term list -> (int -> term list option) list)
       -> Context.generic -> Context.generic
-  val add_batch_validator:
+  val add_batch_validator :
     string * (Proof.context -> term list -> (int -> bool) list)
       -> Context.generic -> Context.generic
   (* basic operations *)
@@ -61,13 +58,12 @@ sig
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a  
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
-  val collect_results: ('a -> result) -> 'a list -> result list -> result list
-  val generator_test_goal_terms: compile_generator ->
+  val collect_results : ('a -> result) -> 'a list -> result list -> result list
+  val generator_test_goal_terms : compile_generator ->
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
   (* testing terms and proof states *)
   val test_term: compile_generator -> Proof.context -> bool * bool -> term * term list -> result
-  val test_goal_terms:
-    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
+  (*val test_goal_terms : tester*)
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
   val test_terms:
@@ -193,11 +189,13 @@ fun merge_test_params
   make_test_params
     (merge (op =) (default_type1, default_type2), merge_expectation (expect1, expect2));
 
+type tester =
+  Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
+
 structure Data = Generic_Data
 (
   type T =
-    ((string * (Proof.context -> bool * bool ->
-      (string * typ) list -> (term * term list) list -> result list)) list
+    ((string * (bool Config.T * tester)) list
       * ((string * (Proof.context -> term list -> (int -> term list option) list)) list
       * ((string * (Proof.context -> term list -> (int -> bool) list)) list)))
       * test_params;
@@ -476,10 +474,22 @@ fun generator_test_goal_terms compile ctxt (limit_time, is_interactive) insts go
         (maps (map snd) correct_inst_goals) []
   end;
 
+  
+fun active_testers ctxt =
+  let
+    val testers = (map snd o fst o fst o Data.get o Context.Proof) ctxt
+  in
+    map snd (filter (fn (active, _) => Config.get ctxt active) testers)
+  end
+  
 fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
-  case lookup_tester ctxt (Config.get ctxt tester) of
+  (*case lookup_tester ctxt of
     SOME test_goal_terms => test_goal_terms ctxt (limit_time, is_interactive) insts goals
-  | NONE => error ("Unknown tester: " ^ Config.get ctxt tester)
+  | NONE => error ("Unknown tester: " ^ Config.get ctxt tester)*)
+  case active_testers ctxt of
+    [] => error "No active tester for quickcheck"
+  | testers => testers |> ParList.find_some (fn tester =>
+      find_first found_counterexample (tester ctxt (limit_time, is_interactive) insts goals))
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let

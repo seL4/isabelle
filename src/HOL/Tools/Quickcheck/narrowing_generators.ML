@@ -461,11 +461,13 @@ fun test_goals ctxt (limit_time, is_interactive) insts goals =
 
 (* setup *)
 
+val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K true);
+
 val setup =
   Code.datatype_interpretation ensure_partial_term_of
   #> Code.datatype_interpretation ensure_partial_term_of_code
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
     (((@{sort typerep}, @{sort term_of}), @{sort narrowing}), instantiate_narrowing_datatype))
-  #> Context.theory_map (Quickcheck.add_tester ("narrowing", test_goals))
+  #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals)))
     
 end;

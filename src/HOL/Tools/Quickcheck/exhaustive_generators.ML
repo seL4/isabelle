@@ -492,6 +492,8 @@ val test_goals = Quickcheck.generator_test_goal_terms compile_generator_expr;
   
 (* setup *)
 
+val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
+
 val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort full_exhaustive}), instantiate_full_exhaustive_datatype))
@@ -501,7 +503,7 @@ val setup =
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
-  #> Context.theory_map (Quickcheck.add_tester ("exhaustive", test_goals))
+  #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
   #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs));
 
