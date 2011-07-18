@@ -43,9 +43,9 @@ sig
   val counterexample_of : result -> (string * term) list option
   val timings_of : result -> (string * int) list
   (* registering generators *)
-  val add_generator:
+  (*val add_generator:
     string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)
-      -> Context.generic -> Context.generic
+      -> Context.generic -> Context.generic*)
   val add_tester:
     string * (Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list)
       -> Context.generic -> Context.generic
@@ -196,17 +196,16 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    (((string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)) list
-      * (string * (Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list)) list)
+    ((string * (Proof.context -> bool * bool ->
+      (string * typ) list -> (term * term list) list -> result list)) list
       * ((string * (Proof.context -> term list -> (int -> term list option) list)) list
       * ((string * (Proof.context -> term list -> (int -> bool) list)) list)))
       * test_params;
-  val empty = ((([], []), ([], [])), Test_Params {default_type = [], expect = No_Expectation});
+  val empty = (([], ([], [])), Test_Params {default_type = [], expect = No_Expectation});
   val extend = I;
-  fun merge ((((generators1, testers1), (batch_generators1, batch_validators1)), params1),
-    (((generators2, testers2), (batch_generators2, batch_validators2)), params2)) : T =
-    (((AList.merge (op =) (K true) (generators1, generators2),
-       AList.merge (op =) (K true) (testers1, testers2)),
+  fun merge (((testers1, (batch_generators1, batch_validators1)), params1),
+    ((testers2, (batch_generators2, batch_validators2)), params2)) : T =
+    ((AList.merge (op =) (K true) (testers1, testers2),
       (AList.merge (op =) (K true) (batch_generators1, batch_generators2),
        AList.merge (op =) (K true) (batch_validators1, batch_validators2))),
       merge_test_params (params1, params2));
@@ -220,9 +219,9 @@ val expect = snd o dest_test_params o test_params_of
 
 val map_test_params = Data.map o apsnd o map_test_params'
 
-val add_generator = Data.map o apfst o apfst o apfst o AList.update (op =);
+(*val add_generator = Data.map o apfst o apfst o apfst o AList.update (op =);*)
 
-val add_tester = Data.map o apfst o apfst o apsnd o AList.update (op =);
+val add_tester = Data.map o apfst o apfst o AList.update (op =);
 
 val add_batch_generator = Data.map o apfst o apsnd o apfst o AList.update (op =);
 
@@ -255,9 +254,8 @@ val mk_batch_tester =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt))
 val mk_batch_validator =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o snd o fst o Data.get o Context.Proof) ctxt))
-
   
-fun lookup_tester ctxt = AList.lookup (op =) ((snd o fst o fst o Data.get o Context.Proof) ctxt)
+fun lookup_tester ctxt = AList.lookup (op =) ((fst o fst o Data.get o Context.Proof) ctxt)
 
 (* testing propositions *)
 
@@ -578,10 +576,8 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s)
 
-fun valid_tester_name genctxt name =
-  AList.defined (op =) (fst (fst (fst (Data.get genctxt)))) name orelse
-    AList.defined (op =) (snd (fst (fst (Data.get genctxt)))) name
-
+fun valid_tester_name genctxt name = AList.defined (op =) (fst (fst (Data.get genctxt))) name
+  
 fun parse_tester name genctxt =
   if valid_tester_name genctxt name then
     Config.put_generic tester name genctxt

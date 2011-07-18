@@ -924,7 +924,9 @@ fun test_term ctxt [(t, [])] =
   | test_term ctxt _ =
       error "Compilation of multiple instances is not supported by tester SML_inductive";
 
+val test_goal = Quickcheck.generator_test_goal_terms test_term;
+
 val quickcheck_setup =
-  Context.theory_map (Quickcheck.add_generator ("SML_inductive", test_term));
+  Context.theory_map (Quickcheck.add_tester ("SML_inductive", test_goal));
 
 end;
