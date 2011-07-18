@@ -233,7 +233,8 @@ fun active_testers ctxt =
     map snd (filter (fn (active, _) => Config.get ctxt active) testers)
   end
   
-fun set_active_testers testers gen_ctxt =
+fun set_active_testers [] gen_ctxt = gen_ctxt
+  | set_active_testers testers gen_ctxt =
   let
     val registered_testers = (fst o fst o Data.get) gen_ctxt
   in
