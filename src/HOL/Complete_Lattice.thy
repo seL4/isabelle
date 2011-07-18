@@ -397,14 +397,6 @@ lemma less_SUP_iff:
   shows "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUP_def less_Sup_iff by auto
 
--- "FIXME move"
-
-lemma image_ident [simp]: "(%x. x) ` Y = Y"
-  by blast
-
-lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
-  by blast
-
 class complete_boolean_algebra = boolean_algebra + complete_lattice
 begin
 

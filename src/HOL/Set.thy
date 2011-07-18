@@ -880,6 +880,9 @@ text {*
   \medskip Range of a function -- just a translation for image!
 *}
 
+lemma image_ident [simp]: "(%x. x) ` Y = Y"
+  by blast
+
 lemma range_eqI: "b = f x ==> b \<in> range f"
   by simp
 
@@ -1162,6 +1165,12 @@ lemma if_image_distrib [simp]:
 
 lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
   by (simp add: image_def)
+
+lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
+by blast
+
+lemma image_diff_subset: "f`A - f`B <= f`(A - B)"
+by blast
 
 
 text {* \medskip @{text range}. *}
@@ -1673,11 +1682,8 @@ lemma vimage_inter_cong:
   "(\<And> w. w \<in> S \<Longrightarrow> f w = g w) \<Longrightarrow> f -` y \<inter> S = g -` y \<inter> S"
   by auto
 
-lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
-by blast
-
-lemma image_diff_subset: "f`A - f`B <= f`(A - B)"
-by blast
+lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
+  by blast
 
 
 subsubsection {* Getting the Contents of a Singleton Set *}
