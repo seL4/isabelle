@@ -9,6 +9,7 @@ sig
   val allow_existentials : bool Config.T
   val finite_functions : bool Config.T
   val overlord : bool Config.T
+  val active : bool Config.T
   val test_term: Proof.context -> bool * bool -> term * term list -> Quickcheck.result
   datatype counterexample = Universal_Counterexample of (term * counterexample)
     | Existential_Counterexample of (term * counterexample) list
