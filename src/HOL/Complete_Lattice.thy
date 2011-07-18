@@ -730,36 +730,36 @@ lemma UnionE [elim!]:
   by auto
 
 lemma Union_upper: "B \<in> A \<Longrightarrow> B \<subseteq> \<Union>A"
-  by (iprover intro: subsetI UnionI)
+  by (fact Sup_upper)
 
 lemma Union_least: "(\<And>X. X \<in> A \<Longrightarrow> X \<subseteq> C) \<Longrightarrow> \<Union>A \<subseteq> C"
-  by (iprover intro: subsetI elim: UnionE dest: subsetD)
+  by (fact Sup_least)
 
 lemma Un_eq_Union: "A \<union> B = \<Union>{A, B}"
   by blast
 
 lemma Union_empty [simp]: "\<Union>{} = {}"
-  by blast
+  by (fact Sup_empty)
 
 lemma Union_UNIV [simp]: "\<Union>UNIV = UNIV"
-  by blast
+  by (fact Sup_UNIV)
 
 lemma Union_insert [simp]: "\<Union>insert a B = a \<union> \<Union>B"
-  by blast
+  by (fact Sup_insert)
 
 lemma Union_Un_distrib [simp]: "\<Union>(A \<union> B) = \<Union>A \<union> \<Union>B"
-  by blast
+  by (fact Sup_union_distrib)
 
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
-  by blast
+  by (fact Sup_inter_less_eq)
 
 lemma Union_empty_conv [simp,no_atp]: "(\<Union>A = {}) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
-  by blast
+  by (fact Sup_bot_conv)
 
 lemma empty_Union_conv [simp,no_atp]: "({} = \<Union>A) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
-  by blast
+  by (fact Sup_bot_conv)
 
-lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
+lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})" -- "FIXME generalize"
   by blast
 
 lemma subset_Pow_Union: "A \<subseteq> Pow (\<Union>A)"
@@ -769,7 +769,7 @@ lemma Union_Pow_eq [simp]: "\<Union>(Pow A) = A"
   by blast
 
 lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Union>B"
-  by blast
+  by (fact Sup_subset_mono)
 
 
 subsection {* Unions of families *}
