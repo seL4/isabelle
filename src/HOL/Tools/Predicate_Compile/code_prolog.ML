@@ -37,9 +37,13 @@ sig
   val generate : Predicate_Compile_Aux.mode option * bool ->
     Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) -> string list -> int option -> prol_term list list
+  val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) ->
+    string list -> int option -> prol_term list list
   
-  val quickcheck : Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  val active : bool Config.T
+  val test_goals :
+    Proof.context -> (bool * bool) -> (string * typ) list -> (term * term list) list ->
+      Quickcheck.result list
 
   val trace : bool Unsynchronized.ref
   
@@ -1009,7 +1013,9 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 
 (* FIXME: a small clone of Predicate_Compile_Quickcheck - maybe refactor out commons *)
 
-fun quickcheck ctxt [(t, [])] [_, size] =
+val active = Attrib.setup_config_bool @{binding quickcheck_prolog_active} (K true);
+
+fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
     val options = code_options_of (Proof_Context.theory_of ctxt)
@@ -1027,12 +1033,22 @@ fun quickcheck ctxt [(t, [])] [_, size] =
     val tss = run (#timeout system_config, #prolog_system system_config)
       p (translate_const constant_table full_constname, map (Var o fst) vs') (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
-    val res =
+    val counterexample =
       case tss of
         [ts] => SOME (map (restore_term ctxt' constant_table) (ts ~~ map snd vs'))
       | _ => NONE
   in
-    (res, NONE)
-  end; 
+    Quickcheck.Result
+      {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
+       evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
+  end;
 
+fun test_goals ctxt (limit_time, is_interactive) insts goals =
+  let
+    val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
+  in
+    Quickcheck.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+  end
+  
+  
 end;

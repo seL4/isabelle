@@ -23,7 +23,7 @@ setup {* Code_Prolog.map_code_options (K
 
 values 40 "{s. hotel s}"
 
-setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
+setup {* Context.theory_map (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals))) *}
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[tester = random, iterations = 10000, report]
