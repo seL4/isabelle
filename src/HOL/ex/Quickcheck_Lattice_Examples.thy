@@ -18,6 +18,8 @@ notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65)
 
+declare [[quickcheck_narrowing_active = false]]
+
 subsection {* Distributive lattices *}
 
 lemma sup_inf_distrib2:
