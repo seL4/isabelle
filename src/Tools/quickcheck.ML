@@ -13,7 +13,7 @@ sig
   val setup: theory -> theory
   (* configuration *)
   val auto: bool Unsynchronized.ref
-  val tester : string Config.T
+  val batch_tester : string Config.T
   val size : int Config.T
   val iterations : int Config.T
   val no_assms : bool Config.T
@@ -161,7 +161,7 @@ fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation
 
 (* quickcheck configuration -- default parameters, test generators *)
-val tester = Attrib.setup_config_string @{binding quickcheck_tester} (K "")
+val batch_tester = Attrib.setup_config_string @{binding quickcheck_batch_tester} (K "")
 val size = Attrib.setup_config_int @{binding quickcheck_size} (K 10)
 val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100)
 val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
@@ -244,9 +244,9 @@ fun set_active_testers testers gen_ctxt =
 
 fun gen_mk_tester lookup ctxt v =
   let
-    val name = Config.get ctxt tester
+    val name = Config.get ctxt batch_tester
     val tester = case lookup ctxt name
-      of NONE => error ("No such quickcheck tester: " ^ name)
+      of NONE => error ("No such quickcheck batch-tester: " ^ name)
       | SOME tester => tester ctxt;
   in
     if Config.get ctxt quiet then
@@ -259,10 +259,7 @@ fun gen_mk_tester lookup ctxt v =
         | SOME tester => SOME tester
       end
   end
-(*
-val mk_tester =
-  gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o fst o fst o Data.get o Context.Proof) ctxt))
-*)
+
 val mk_batch_tester =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt))
 val mk_batch_validator =

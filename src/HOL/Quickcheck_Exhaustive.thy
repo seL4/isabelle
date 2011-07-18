@@ -452,7 +452,7 @@ use "Tools/Quickcheck/exhaustive_generators.ML"
 
 setup {* Exhaustive_Generators.setup *}
 
-declare [[quickcheck_tester = exhaustive]]
+declare [[quickcheck_batch_tester = exhaustive]]
 
 hide_fact orelse_def catch_match_def
 no_notation orelse (infixr "orelse" 55)
