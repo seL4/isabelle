@@ -361,7 +361,7 @@ context Truth
 begin
 
 lemma "False"
-quickcheck[expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 end
