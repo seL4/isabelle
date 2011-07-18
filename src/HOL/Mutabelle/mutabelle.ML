@@ -6,57 +6,54 @@ Mutation of theorems.
 
 signature MUTABELLE =
 sig
- val testgen_name : string Unsynchronized.ref
- exception WrongPath of string;
- exception WrongArg of string;
- val freeze : term -> term
- val mutate_exc : term -> string list -> int -> term list 
- val mutate_sign : term -> theory -> (string * string) list -> int -> term list 
- val mutate_mix : term -> theory -> string list -> 
+  exception WrongPath of string;
+  exception WrongArg of string;
+  val freeze : term -> term
+  val mutate_exc : term -> string list -> int -> term list 
+  val mutate_sign : term -> theory -> (string * string) list -> int -> term list 
+  val mutate_mix : term -> theory -> string list -> 
    (string * string) list -> int -> term list
- val qc_test : term list -> (typ * typ) list -> theory ->
+(*  val qc_test : term list -> (typ * typ) list -> theory ->
   int -> int -> int * Thm.cterm list * int * (Thm.cterm * (string * Thm.cterm) list) list
- val qc_test_file : bool -> term list -> (typ * typ) list 
+  val qc_test_file : bool -> term list -> (typ * typ) list 
    -> theory -> int -> int -> string -> unit
- val mutqc_file_exc : theory -> string list ->
+  val mutqc_file_exc : theory -> string list ->
   int -> Thm.thm -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_sign : theory -> (string * string) list ->
+  val mutqc_file_sign : theory -> (string * string) list ->
   int -> Thm.thm -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_mix : theory -> string list -> (string * string) list ->
+  val mutqc_file_mix : theory -> string list -> (string * string) list ->
   int -> Thm.thm -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_rec_exc : theory -> string list -> int ->
+  val mutqc_file_rec_exc : theory -> string list -> int ->
   Thm.thm list -> (typ * typ) list -> int -> int -> string list -> unit
- val mutqc_file_rec_sign : theory -> (string * string) list -> int ->
+  val mutqc_file_rec_sign : theory -> (string * string) list -> int ->
   Thm.thm list -> (typ * typ) list -> int -> int -> string list -> unit
- val mutqc_file_rec_mix : theory -> string list -> (string * string) list ->
+  val mutqc_file_rec_mix : theory -> string list -> (string * string) list ->
   int -> Thm.thm list -> (typ * typ) list -> int -> int -> string list -> unit
- val mutqc_thy_exc : theory -> theory ->
+  val mutqc_thy_exc : theory -> theory ->
   string list -> int -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_thy_sign : theory -> theory -> (string * string) list ->
+  val mutqc_thy_sign : theory -> theory -> (string * string) list ->
   int -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_thy_mix : theory -> theory -> string list -> (string * string) list ->
+  val mutqc_thy_mix : theory -> theory -> string list -> (string * string) list ->
   int -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_stat_sign : theory -> (string * string) list ->
+  val mutqc_file_stat_sign : theory -> (string * string) list ->
   int -> Thm.thm list -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_stat_exc : theory -> string list ->
+  val mutqc_file_stat_exc : theory -> string list ->
   int -> Thm.thm list -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_file_stat_mix : theory -> string list -> (string * string) list ->
+  val mutqc_file_stat_mix : theory -> string list -> (string * string) list ->
   int -> Thm.thm list -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_thystat_exc : (string -> thm -> bool) -> theory -> theory ->
+  val mutqc_thystat_exc : (string -> thm -> bool) -> theory -> theory ->
   string list -> int -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_thystat_sign : (string -> thm -> bool) -> theory -> theory -> (string * string) list ->
+  val mutqc_thystat_sign : (string -> thm -> bool) -> theory -> theory -> (string * string) list ->
   int -> (typ * typ) list -> int -> int -> string -> unit
- val mutqc_thystat_mix : (string -> thm -> bool) -> theory -> theory -> string list -> 
+  val mutqc_thystat_mix : (string -> thm -> bool) -> theory -> theory -> string list -> 
   (string * string) list -> int -> (typ * typ) list -> int -> int -> string -> unit
- val canonize_term: term -> string list -> term
- 
- val all_unconcealed_thms_of : theory -> (string * thm) list
+  val canonize_term: term -> string list -> term
+*)  
+  val all_unconcealed_thms_of : theory -> (string * thm) list
 end;
 
 structure Mutabelle : MUTABELLE = 
 struct
-
-val testgen_name = Unsynchronized.ref "random";
 
 fun all_unconcealed_thms_of thy =
   let
@@ -495,44 +492,17 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (freeze t));
 
 fun is_executable thy insts th =
-  ((Quickcheck.test_term 
-      (Proof_Context.init_global thy
+  let
+    val ctxt' = Proof_Context.init_global thy
       |> Config.put Quickcheck.size 1
       |> Config.put Quickcheck.iterations 1
-      |> Config.put Quickcheck.tester (!testgen_name))
-      (true, false) (preprocess thy insts (prop_of th), []);
-    Output.urgent_message "executable"; true) handle ERROR s =>
-    (Output.urgent_message ("not executable: " ^ s); false));
-
-fun qc_recursive usedthy [] insts sz qciter acc = rev acc
- | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
-     (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs));
-     ((x, pretty (the_default [] (Quickcheck.counterexample_of (Quickcheck.test_term
-       ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter
-        #> Config.put Quickcheck.tester (!testgen_name))
-         (Proof_Context.init_global usedthy))
-       (true, false) (preprocess usedthy insts x, []))))) :: acc))
-          handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
-
-
-(*quickcheck-test the mutants created by function mutate with type-instantiation insts, 
-quickcheck-theory usedthy and qciter quickcheck-iterations *)
-
-fun qc_test mutated insts usedthy sz qciter = 
- let 
-   val checked = map (apsnd (map (apsnd (cterm_of usedthy))))
-     (qc_recursive usedthy mutated insts sz qciter []);
-   fun combine (passednum,passed) (cenum,ces) [] = (passednum,passed,cenum,ces)
-     | combine (passednum,passed) (cenum,ces) ((t, []) :: xs) =
-       combine (passednum+1,(cterm_of usedthy t)::passed) (cenum,ces) xs
-     | combine (passednum,passed) (cenum,ces) ((t, x) :: xs) =
-       combine (passednum,passed) 
-         (cenum+1,(cterm_of usedthy t, x) :: ces) xs
- in
-   combine (0,[]) (0,[]) checked
- end;
-
-
+    val test = Quickcheck.test_term Exhaustive_Generators.compile_generator_expr ctxt' (true, false)
+  in  
+    case try test (preprocess thy insts (prop_of th), []) of
+      SOME _ => (Output.urgent_message "executable"; true)
+    | NONE => (Output.urgent_message ("not executable"); false)
+  end;
+(*
 (*create a string of a list of terms*)
 
 fun string_of_ctermlist thy [] acc = acc
@@ -767,5 +737,6 @@ fun mutqc_thystat_sign p mutthy usedthy forbidden_funs iter insts sz qciter file
 
 fun mutqc_thystat_mix p mutthy usedthy commutatives forbidden_funs iter insts sz qciter filename =
  mutqc_thystat 2 p mutthy usedthy commutatives forbidden_funs iter insts sz qciter filename;
+*)
 
 end

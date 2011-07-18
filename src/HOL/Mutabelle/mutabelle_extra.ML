@@ -122,7 +122,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (seconds (!Try.auto_time_limit))
       (fn _ =>
           let
-            val [result] = Quickcheck.test_goal_terms (change_options (Proof_Context.init_global thy))
+            val SOME [result] = Quickcheck.test_goal_terms (change_options (Proof_Context.init_global thy))
               (false, false) [] [(t, [])]
           in
             case Quickcheck.counterexample_of result of 

@@ -63,7 +63,8 @@ sig
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
   (* testing terms and proof states *)
   val test_term: compile_generator -> Proof.context -> bool * bool -> term * term list -> result
-  (*val test_goal_terms : tester*)
+  val test_goal_terms :
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list option
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
   val test_terms:
