@@ -71,6 +71,7 @@ misunderstandable names:
   le_SUPI ~> le_SUP_I
   le_SUPI2 ~> le_SUP_I2
   le_INFI ~> le_INF_I
+  INF_subset ~> INF_superset_mono
   INFI_bool_eq ~> INF_bool_eq
   SUPR_bool_eq ~> SUP_bool_eq
   INFI_apply ~> INF_apply
