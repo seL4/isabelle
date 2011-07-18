@@ -1171,6 +1171,21 @@ instance ..
 
 end
 
+instantiation rat :: partial_term_of
+begin
+
+instance ..
+
+end
+
+lemma [code]:
+  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Var p tt) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
+  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Ctr 0 [l, k]) ==
+     Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''Rat.Fract'')
+     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [],
+        Typerep.Typerep (STR ''Rat.rat'') []]])) (partial_term_of (TYPE(int)) l)) (partial_term_of (TYPE(int)) k)" 
+by (rule partial_term_of_anything)+
+
 instantiation rat :: narrowing
 begin
 
