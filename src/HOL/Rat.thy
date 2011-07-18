@@ -1171,6 +1171,17 @@ instance ..
 
 end
 
+instantiation rat :: narrowing
+begin
+
+definition
+  "narrowing = Quickcheck_Narrowing.apply (Quickcheck_Narrowing.apply (Quickcheck_Narrowing.cons Fract) narrowing) narrowing"
+
+instance ..
+
+end
+
+
 text {* Setup for SML code generator *}
 
 types_code

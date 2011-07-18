@@ -1805,6 +1805,17 @@ instance ..
 
 end
 
+instantiation real :: narrowing
+begin
+
+definition
+  "narrowing = Quickcheck_Narrowing.apply (Quickcheck_Narrowing.cons Ratreal) narrowing"
+
+instance ..
+
+end
+
+
 text {* Setup for SML code generator *}
 
 types_code
