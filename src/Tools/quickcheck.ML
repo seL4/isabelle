@@ -56,17 +56,18 @@ sig
     string * (Proof.context -> term list -> (int -> bool) list)
       -> Context.generic -> Context.generic
   (* basic operations *)
+  type compile_generator =
+    Proof.context -> (term * term list) list -> int list -> term list option * report option
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a  
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
   val collect_results: ('a -> result) -> 'a list -> result list -> result list
-  val generator_test_goal_terms: Proof.context -> bool * bool -> (string * typ) list ->
-    (term * term list) list -> result list
+  val generator_test_goal_terms: compile_generator ->
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
   (* testing terms and proof states *)
-  val test_term: Proof.context -> bool * bool -> term * term list -> result
+  val test_term: compile_generator -> Proof.context -> bool * bool -> term * term list -> result
   val test_goal_terms:
-    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list  
-      -> result list
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
   val test_terms:
@@ -246,9 +247,10 @@ fun gen_mk_tester lookup ctxt v =
         | SOME tester => SOME tester
       end
   end
-
+(*
 val mk_tester =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o fst o fst o Data.get o Context.Proof) ctxt))
+*)
 val mk_batch_tester =
   gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt))
 val mk_batch_validator =
@@ -258,6 +260,9 @@ val mk_batch_validator =
 fun lookup_tester ctxt = AList.lookup (op =) ((snd o fst o fst o Data.get o Context.Proof) ctxt)
 
 (* testing propositions *)
+
+type compile_generator =
+  Proof.context -> (term * term list) list -> int list -> term list option * report option
 
 fun check_test_term t =
   let
@@ -279,7 +284,7 @@ fun limit timeout (limit_time, is_interactive) f exc () =
   else
     f ()
 
-fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
+fun test_term compile ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
     fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
     val _ = check_test_term t
@@ -306,21 +311,14 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
     limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
       let
         val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-          (fn () => mk_tester ctxt [(t, eval_terms)]);
+          (fn () => compile ctxt [(t, eval_terms)]);
         val _ = add_timing comp_time current_result
-      in
-        case test_fun of NONE => !current_result
-          | SOME test_fun =>
-            let
-              val (response, exec_time) =
-                cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
-              val _ = add_response names eval_terms response current_result
-              val _ = add_timing exec_time current_result
-            in
-              !current_result
-            end
-       end)
-     (fn () => (message (excipit ()); !current_result)) ()
+        val (response, exec_time) =
+          cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
+        val _ = add_response names eval_terms response current_result
+        val _ = add_timing exec_time current_result
+      in !current_result end)
+    (fn () => (message (excipit ()); !current_result)) ()
   end;
 
 fun validate_terms ctxt ts =
@@ -361,7 +359,7 @@ fun test_terms ctxt ts =
 (* FIXME: this function shows that many assumptions are made upon the generation *)
 (* In the end there is probably no generic quickcheck interface left... *)
 
-fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
+fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interactive) ts =
   let
     val thy = Proof_Context.theory_of ctxt
     fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
@@ -390,18 +388,12 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   in
     limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
       let
-        val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt ts)
-        val _ = add_timing comp_time current_result
-      in
-        case test_fun of
-          NONE => !current_result
-        | SOME test_fun =>
-          let
-            val _ = case get_first (test_card_size test_fun) enumeration_card_size of
-              SOME (card, ts) => add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
-            | NONE => ()
-          in !current_result end
-      end)
+        val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => compile ctxt ts)
+        val _ = add_timing comp_time current_result     
+        val _ = case get_first (test_card_size test_fun) enumeration_card_size of
+          SOME (card, ts) => add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
+        | NONE => ()
+      in !current_result end)
       (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
   end
 
@@ -471,18 +463,18 @@ fun collect_results f [] results = results
         collect_results f ts (result :: results)
     end  
 
-fun generator_test_goal_terms ctxt (limit_time, is_interactive) insts goals =
+fun generator_test_goal_terms compile ctxt (limit_time, is_interactive) insts goals =
   let
     fun test_term' goal =
       case goal of
-        [(NONE, t)] => test_term ctxt (limit_time, is_interactive) t
-      | ts => test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) (map snd ts)
+        [(NONE, t)] => test_term compile ctxt (limit_time, is_interactive) t
+      | ts => test_term_with_increasing_cardinality compile ctxt (limit_time, is_interactive) (map snd ts)
     val correct_inst_goals = instantiate_goals ctxt insts goals
   in
     if Config.get ctxt finite_types then
       collect_results test_term' correct_inst_goals []
     else
-      collect_results (test_term ctxt (limit_time, is_interactive))
+      collect_results (test_term compile ctxt (limit_time, is_interactive))
         (maps (map snd) correct_inst_goals) []
   end;
 

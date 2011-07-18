@@ -438,7 +438,7 @@ fun compile_generator_expr ctxt ts =
       end
   end;
 
-val test_goals = Quickcheck.generator_test_goal_terms;
+val test_goals = Quickcheck.generator_test_goal_terms compile_generator_expr;
   
 (** setup **)
 
