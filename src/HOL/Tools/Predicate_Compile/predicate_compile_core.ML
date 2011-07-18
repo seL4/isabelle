@@ -1570,7 +1570,10 @@ val code_pred_intro_attrib = attrib' add_intro NONE;
 
 (* values_timeout configuration *)
 
-val values_timeout = Attrib.setup_config_real @{binding values_timeout} (K 20.0)
+val default_values_timeout =
+  if String.isPrefix "smlnj" (getenv "ML_SYSTEM") then 600.0 else 20.0
+
+val values_timeout = Attrib.setup_config_real @{binding values_timeout} (K default_values_timeout)
 
 val setup = PredData.put (Graph.empty) #>
   Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
