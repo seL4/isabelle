@@ -225,6 +225,21 @@ val add_batch_generator = Data.map o apfst o apsnd o apfst o AList.update (op =)
 
 val add_batch_validator = Data.map o apfst o apsnd o apsnd o AList.update (op =);
 
+fun active_testers ctxt =
+  let
+    val testers = (map snd o fst o fst o Data.get o Context.Proof) ctxt
+  in
+    map snd (filter (fn (active, _) => Config.get ctxt active) testers)
+  end
+  
+fun set_active_testers testers gen_ctxt =
+  let
+    val registered_testers = (fst o fst o Data.get) gen_ctxt
+  in
+    fold (fn (name, (config, _)) => Config.put_generic config (member (op =) testers name))
+      registered_testers gen_ctxt
+  end
+    
 (* generating tests *)
 
 fun gen_mk_tester lookup ctxt v =
@@ -339,7 +354,8 @@ fun test_terms ctxt ts =
     val _ = map check_test_term ts
     val size = Config.get ctxt size
     val namess = map (fn t => Term.add_free_names t []) ts
-    val (test_funs, comp_time) = cpu_time "quickcheck batch compilation" (fn () => mk_batch_tester ctxt ts) 
+    val (test_funs, comp_time) =
+      cpu_time "quickcheck batch compilation" (fn () => mk_batch_tester ctxt ts) 
     fun with_size tester k =
       if k > size then NONE
       else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
@@ -367,8 +383,9 @@ fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interacti
     fun test_card_size test_fun (card, size) =
       (* FIXME: why decrement size by one? *)
       let
-        val (ts, timing) = cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-          (fn () => fst (test_fun [card, size - 1]))
+        val (ts, timing) =
+          cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
+            (fn () => fst (test_fun [card, size - 1]))
         val _ = add_timing timing current_result
       in
         Option.map (pair card) ts
@@ -473,21 +490,10 @@ fun generator_test_goal_terms compile ctxt (limit_time, is_interactive) insts go
       collect_results (test_term compile ctxt (limit_time, is_interactive))
         (maps (map snd) correct_inst_goals) []
   end;
-
-  
-fun active_testers ctxt =
-  let
-    val testers = (map snd o fst o fst o Data.get o Context.Proof) ctxt
-  in
-    map snd (filter (fn (active, _) => Config.get ctxt active) testers)
-  end
   
 fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
-  (*case lookup_tester ctxt of
-    SOME test_goal_terms => test_goal_terms ctxt (limit_time, is_interactive) insts goals
-  | NONE => error ("Unknown tester: " ^ Config.get ctxt tester)*)
   case active_testers ctxt of
-    [] => error "No active tester for quickcheck"
+    [] => error "No active testers for quickcheck"
   | testers => testers |> Par_List.get_some (fn tester =>
       tester ctxt (limit_time, is_interactive) insts goals |>
       (fn result => if exists found_counterexample result then SOME result else NONE))
@@ -529,8 +535,8 @@ fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no co
         @ (if null eval_terms then []
            else (Pretty.str ("Evaluated terms:\n") ::
              map (fn (t, u) =>
-               Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1, Syntax.pretty_term ctxt u])
-               (rev eval_terms))));
+               Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1,
+                 Syntax.pretty_term ctxt u]) (rev eval_terms))));
 
 fun pretty_report (Report {iterations = iterations, raised_match_errors = raised_match_errors,
     satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
@@ -589,40 +595,45 @@ fun read_expectation "no_expectation" = No_Expectation
 
 fun valid_tester_name genctxt name = AList.defined (op =) (fst (fst (Data.get genctxt))) name
   
-fun parse_tester name genctxt =
+fun parse_tester name (testers, genctxt) =
   if valid_tester_name genctxt name then
-    Config.put_generic tester name genctxt
+    (insert (op =) name testers, genctxt)  
   else
     error ("Unknown tester: " ^ name)
 
-fun parse_test_param ("tester", [arg]) = parse_tester arg
-  | parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
-  | parse_test_param ("iterations", [arg]) = Config.put_generic iterations (read_nat arg)
-  | parse_test_param ("default_type", arg) = (fn gen_ctxt =>
-    map_test_params
-      ((apfst o K) (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
-  | parse_test_param ("no_assms", [arg]) = Config.put_generic no_assms (read_bool arg)
-  | parse_test_param ("expect", [arg]) = map_test_params ((apsnd o K) (read_expectation arg))
-  | parse_test_param ("report", [arg]) = Config.put_generic report (read_bool arg)
-  | parse_test_param ("quiet", [arg]) = Config.put_generic quiet (read_bool arg)
-  | parse_test_param ("timeout", [arg]) = Config.put_generic timeout (read_real arg)
-  | parse_test_param ("finite_types", [arg]) = Config.put_generic finite_types (read_bool arg)
+fun parse_test_param ("tester", args) = fold parse_tester args
+  | parse_test_param ("size", [arg]) = apsnd (Config.put_generic size (read_nat arg))
+  | parse_test_param ("iterations", [arg]) = apsnd (Config.put_generic iterations (read_nat arg))
+  | parse_test_param ("default_type", arg) = (fn (testers, gen_ctxt) =>
+    (testers, map_test_params
+      ((apfst o K) (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt))
+  | parse_test_param ("no_assms", [arg]) = apsnd (Config.put_generic no_assms (read_bool arg))
+  | parse_test_param ("expect", [arg]) = apsnd (map_test_params ((apsnd o K) (read_expectation arg)))
+  | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
+  | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
+  | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
+  | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
   | parse_test_param ("finite_type_size", [arg]) =
-    Config.put_generic finite_type_size (read_nat arg)
-  | parse_test_param (name, _) = fn genctxt =>
+    apsnd (Config.put_generic finite_type_size (read_nat arg))
+  | parse_test_param (name, _) = (fn (testers, genctxt) =>
     if valid_tester_name genctxt name then
-      Config.put_generic tester name genctxt
-    else error ("Unknown tester or test parameter: " ^ name);
+      (insert (op =) name testers, genctxt)  
+    else error ("Unknown tester or test parameter: " ^ name));
 
-fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
+fun proof_map_result f = apsnd Context.the_proof o f o Context.Proof;
+
+fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
       case try (Proof_Context.read_typ ctxt) name
        of SOME (TFree (v, _)) =>
-         ((AList.update (op =) (v, Proof_Context.read_typ ctxt (the_single arg)) insts, eval_terms), ctxt)
+         ((AList.update (op =) (v, Proof_Context.read_typ ctxt (the_single arg)) insts, eval_terms),
+           (testers, ctxt))
         | NONE => (case name of
-            "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), ctxt)
-          | _ => ((insts, eval_terms), Context.proof_map (parse_test_param (name, arg)) ctxt));
+            "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), (testers, ctxt))
+          | _ => ((insts, eval_terms),
+            proof_map_result (fn gen_ctxt => parse_test_param (name, arg) (testers, gen_ctxt)) ctxt));
 
-fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
+fun quickcheck_params_cmd args = Context.theory_map
+  (fn gen_ctxt => uncurry set_active_testers (fold parse_test_param args ([], gen_ctxt)));
 
 fun check_expectation state results =
   (if is_some results andalso expect (Proof.context_of state) = No_Counterexample
@@ -636,7 +647,9 @@ fun check_expectation state results =
 
 fun gen_quickcheck args i state =
   state
-  |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args (([], []), ctxt))
+  |> Proof.map_context_result (fn ctxt =>
+    apsnd (fn (testers, ctxt) => Context.proof_map (set_active_testers testers) ctxt)
+      (fold parse_test_param_inst args (([], []), ([], ctxt))))
   |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
   |> tap (check_expectation state'))
 
