@@ -23,6 +23,7 @@ setup {*
                 case result of NONE => iterate size (j - 1) | SOME q => SOME q
               end
      in fn [_, size] => (iterate size iterations, NONE) end))
+  #> Context.theory_map (Quickcheck.add_tester ("SML", Quickcheck.generator_test_goal_terms))  
 *}
 
 end

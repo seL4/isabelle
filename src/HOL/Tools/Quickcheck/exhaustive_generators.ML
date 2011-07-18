@@ -488,6 +488,8 @@ fun compile_validator_exprs ctxt ts =
       thy (SOME target) (K I) (HOLogic.mk_list @{typ "code_numeral => bool"} ts') []
   end;
 
+val test_goals = Quickcheck.generator_test_goal_terms;
+  
 (* setup *)
 
 val setup =
@@ -500,6 +502,7 @@ val setup =
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
+  #> Context.theory_map (Quickcheck.add_tester ("exhaustive", test_goals))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
   #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs));
 

@@ -60,6 +60,8 @@ sig
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
   val collect_results: ('a -> result) -> 'a list -> result list -> result list
+  val generator_test_goal_terms: Proof.context -> bool * bool -> (string * typ) list ->
+    (term * term list) list -> result list
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool * bool -> term * term list -> result
   val test_goal_terms:
@@ -469,7 +471,7 @@ fun collect_results f [] results = results
         collect_results f ts (result :: results)
     end  
 
-fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
+fun generator_test_goal_terms ctxt (limit_time, is_interactive) insts goals =
   let
     fun test_term' goal =
       case goal of
@@ -477,14 +479,17 @@ fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
       | ts => test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) (map snd ts)
     val correct_inst_goals = instantiate_goals ctxt insts goals
   in
-    case lookup_tester ctxt (Config.get ctxt tester) of
-      SOME test_goal_terms => test_goal_terms ctxt (limit_time, is_interactive) insts goals
-    | NONE =>
-        if Config.get ctxt finite_types then
-          collect_results test_term' correct_inst_goals []
-        else
-          collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+    if Config.get ctxt finite_types then
+      collect_results test_term' correct_inst_goals []
+    else
+      collect_results (test_term ctxt (limit_time, is_interactive))
+        (maps (map snd) correct_inst_goals) []
   end;
+
+fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
+  case lookup_tester ctxt (Config.get ctxt tester) of
+    SOME test_goal_terms => test_goal_terms ctxt (limit_time, is_interactive) insts goals
+  | NONE => error ("Unknown tester: " ^ Config.get ctxt tester)
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
