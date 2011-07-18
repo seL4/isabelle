@@ -15262,3 +15262,41 @@ decl f16 :: S11
 #271 := [asserted]: #124
 [unit-resolution #271 #651]: false
 unsat
+d578ad7e6589d737d5b50614f48a1b12ef69c636 37 0
+#2 := false
+#11 := 0::Int
+decl f3 :: Int
+#8 := f3
+#13 := (<= f3 0::Int)
+#55 := (not #13)
+decl f4 :: Int
+#9 := f4
+#14 := (<= f4 0::Int)
+#10 := (* f3 f4)
+#12 := (<= #10 0::Int)
+#38 := (not #12)
+#45 := (or #38 #13 #14)
+#48 := (not #45)
+#15 := (or #13 #14)
+#16 := (implies #12 #15)
+#17 := (not #16)
+#51 := (iff #17 #48)
+#39 := (or #38 #15)
+#42 := (not #39)
+#49 := (iff #42 #48)
+#46 := (iff #39 #45)
+#47 := [rewrite]: #46
+#50 := [monotonicity #47]: #49
+#43 := (iff #17 #42)
+#40 := (iff #16 #39)
+#41 := [rewrite]: #40
+#44 := [monotonicity #41]: #43
+#52 := [trans #44 #50]: #51
+#37 := [asserted]: #17
+#53 := [mp #37 #52]: #48
+#56 := [not-or-elim #53]: #55
+#57 := (not #14)
+#58 := [not-or-elim #53]: #57
+#54 := [not-or-elim #53]: #12
+[th-lemma arith farkas 1 1 1 #54 #58 #56]: false
+unsat

@@ -91,7 +91,14 @@ fun try_apply ctxt thms =
             SOME thm => (SMT_Config.trace_msg ctxt I "Z3: succeeded"; thm)
           | NONE => apply provers ct)
 
-  in apply o cons (named ctxt "schematic rules" (by_schematic_rule ctxt)) end
+    fun schematic_label full = "schematic rules" |> full ? suffix " (full)"
+    fun schematic ctxt full ct =
+      ct
+      |> full ? fold_rev (curry Drule.mk_implies o Thm.cprop_of) thms
+      |> named ctxt (schematic_label full) (by_schematic_rule ctxt)
+      |> fold Thm.elim_implies thms
+
+  in apply o cons (schematic ctxt false) o cons (schematic ctxt true) end
 
 local
   val rewr_if =

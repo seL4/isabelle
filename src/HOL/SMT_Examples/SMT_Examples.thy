@@ -414,6 +414,15 @@ lemma
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
   by smt
 
+lemma [z3_rule]:
+  fixes x :: "int"
+  assumes "x * y \<le> 0" and "\<not> y \<le> 0" and "\<not> x \<le> 0"
+  shows False
+  using assms by (metis mult_le_0_iff)
+
+lemma "x * y \<le> (0 :: int) \<Longrightarrow> x \<le> 0 \<or> y \<le> 0" by smt
+
+
 
 subsection {* Linear arithmetic for natural numbers *}
 
