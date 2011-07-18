@@ -488,8 +488,9 @@ fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
   | NONE => error ("Unknown tester: " ^ Config.get ctxt tester)*)
   case active_testers ctxt of
     [] => error "No active tester for quickcheck"
-  | testers => testers |> ParList.find_some (fn tester =>
-      find_first found_counterexample (tester ctxt (limit_time, is_interactive) insts goals))
+  | testers => testers |> Par_List.get_some (fn tester =>
+      tester ctxt (limit_time, is_interactive) insts goals |>
+      (fn result => if exists found_counterexample result then SOME result else NONE))
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
@@ -624,11 +625,11 @@ fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
 
 fun check_expectation state results =
-  (if exists found_counterexample results andalso expect (Proof.context_of state) = No_Counterexample
+  (if is_some results andalso expect (Proof.context_of state) = No_Counterexample
   then
     error ("quickcheck expected to find no counterexample but found one")
   else
-    (if not (exists found_counterexample results) andalso expect (Proof.context_of state) = Counterexample
+    (if is_none results andalso expect (Proof.context_of state) = Counterexample
     then
       error ("quickcheck expected to find a counterexample but did not find one")
     else ()))
@@ -639,12 +640,14 @@ fun gen_quickcheck args i state =
   |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
   |> tap (check_expectation state'))
 
-fun quickcheck args i state = counterexample_of (hd (gen_quickcheck args i state))
+fun quickcheck args i state =
+  Option.map (the o get_first counterexample_of) (gen_quickcheck args i state)
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
+  |> Option.map (the o get_first response_of)
   |> Output.urgent_message o Pretty.string_of
-     o pretty_counterex_and_reports (Toplevel.context_of state) false;
+     o pretty_counterex (Toplevel.context_of state) false;
 
 val parse_arg =
   Parse.name --
@@ -679,9 +682,9 @@ fun try_quickcheck auto state =
       NONE => (unknownN, state)
     | SOME results =>
         let
-          val msg = pretty_counterex_and_reports ctxt auto results
+          val msg = pretty_counterex ctxt auto (Option.map (the o get_first response_of) results)
         in
-          if exists found_counterexample results then
+          if is_some results then
             (genuineN,
              state
              |> (if auto then
