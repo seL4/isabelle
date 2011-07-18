@@ -220,7 +220,7 @@ fun smart_string_of_cterm ctxt0 ct =
         fun F n =
             let
                 val str = G n Syntax.string_of_term ctxt tn
-                val _ = warning (PolyML.makestring (n, str))
+                val _ = warning (@{make_string} (n, str))
                 val u = Syntax.parse_term ctxt str
                 val u = if t = t' then u else HOLogic.mk_Trueprop u
                 val u = Syntax.check_term ctxt (Type.constraint T u)
