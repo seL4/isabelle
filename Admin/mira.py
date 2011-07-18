@@ -452,7 +452,7 @@ def Hollight_proof_objects(env, case, paths, dep_paths, playground):
     os.chdir(os.path.join(hollight_home, 'Proofrecording', 'hol_light'))
 
     subprocess.check_call(['make'])
-    (return_code, _) = run_process.run_process(
+    (return_code, _) = util.run_process.run_process(
        '''echo -e '#use "hol.ml";;\n export_saved_proofs None;;' | ocaml''',
        environment={'HOLPROOFEXPORTDIR': './proofs_extended', 'HOLPROOFOBJECTS': 'EXTENDED'},
        shell=True)
