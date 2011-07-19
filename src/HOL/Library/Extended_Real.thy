@@ -55,7 +55,7 @@ begin
   instance ..
 end
 
-definition "ereal_of_enat n = (case n of Fin n \<Rightarrow> ereal (real n) | \<infinity> \<Rightarrow> \<infinity>)"
+definition "ereal_of_enat n = (case n of enat n \<Rightarrow> ereal (real n) | \<infinity> \<Rightarrow> \<infinity>)"
 
 declare [[coercion "ereal :: real \<Rightarrow> ereal"]]
 declare [[coercion "ereal_of_enat :: enat \<Rightarrow> ereal"]]
