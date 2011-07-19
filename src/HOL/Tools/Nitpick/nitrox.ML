@@ -73,6 +73,7 @@ fun hol_term_from_fo_term res_T (ATerm (x, us)) =
                   "$true" => @{const_name True}
                 | "$false" => @{const_name False}
                 | "=" => @{const_name HOL.eq}
+                | "equal" => @{const_name HOL.eq}
                 | _ => x, map fastype_of ts ---> res_T)
                |> (if is_variable x then Free else Const), ts)
   end
