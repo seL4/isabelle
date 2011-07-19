@@ -940,12 +940,11 @@ val conceal_lambdas = simple_translate_lambdas (K do_conceal_lambdas)
 
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
-    t |> not (Meson.is_fol_term thy t)
-         ? (conceal_bounds Ts
-            #> cterm_of thy
-            #> Meson_Clausify.introduce_combinators_in_cterm
-            #> prop_of #> Logic.dest_equals #> snd
-            #> reveal_bounds Ts)
+    t |> conceal_bounds Ts
+      |> cterm_of thy
+      |> Meson_Clausify.introduce_combinators_in_cterm
+      |> prop_of |> Logic.dest_equals |> snd
+      |> reveal_bounds Ts
   end
   (* A type variable of sort "{}" will make abstraction fail. *)
   handle THM _ => t |> do_conceal_lambdas Ts
