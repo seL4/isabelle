@@ -471,4 +471,4 @@ def HOL_Generate_HOLLight(env, case, paths, dep_paths, playground):
     proofs_dir = path.join(playground, 'proofs_extended')
 
     return isabelle_make('src/HOL', env, case, paths, dep_paths, playground,
-      more_settings=('HOL4PROOFS="%s"' % proofs_dir), target='HOL-Generate-HOLLight')
+      more_settings=('HOL4_PROOFS="%s"' % proofs_dir), target='HOL-Generate-HOLLight')
