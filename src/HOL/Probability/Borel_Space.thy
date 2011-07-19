@@ -1122,7 +1122,7 @@ proof (rule borel.measurable_sigma)
   show "(real -` B \<inter> space borel :: ereal set) \<in> sets borel"
   proof cases
     assume "0 \<in> B"
-    then have *: "real -` B = real -` (B - {0}) \<union> {-\<infinity>, \<infinity>, 0}"
+    then have *: "real -` B = real -` (B - {0}) \<union> {-\<infinity>, \<infinity>, 0::ereal}"
       by (auto simp add: real_of_ereal_eq_0)
     then show "(real -` B :: ereal set) \<inter> space borel \<in> sets borel"
       using open_real by auto
@@ -1148,7 +1148,8 @@ proof
 qed auto
 
 lemma (in sigma_algebra) borel_measurable_ereal_iff_real:
-  "f \<in> borel_measurable M \<longleftrightarrow>
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "f \<in> borel_measurable M \<longleftrightarrow>
     ((\<lambda>x. real (f x)) \<in> borel_measurable M \<and> f -` {\<infinity>} \<inter> space M \<in> sets M \<and> f -` {-\<infinity>} \<inter> space M \<in> sets M)"
 proof safe
   assume *: "(\<lambda>x. real (f x)) \<in> borel_measurable M" "f -` {\<infinity>} \<inter> space M \<in> sets M" "f -` {-\<infinity>} \<inter> space M \<in> sets M"
@@ -1208,7 +1209,8 @@ proof
 qed auto
 
 lemma (in sigma_algebra) borel_measurable_eq_atMost_ereal:
-  "(f::'a \<Rightarrow> ereal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..a} \<inter> space M \<in> sets M)"
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..a} \<inter> space M \<in> sets M)"
 proof (intro iffI allI)
   assume pos[rule_format]: "\<forall>a. f -` {..a} \<inter> space M \<in> sets M"
   show "f \<in> borel_measurable M"
@@ -1226,7 +1228,7 @@ proof (intro iffI allI)
       by (auto simp: not_le)
     then show "f -` {\<infinity>} \<inter> space M \<in> sets M" using pos by (auto simp del: UN_simps intro!: Diff)
     moreover
-    have "{-\<infinity>} = {..-\<infinity>}" by auto
+    have "{-\<infinity>::ereal} = {..-\<infinity>}" by auto
     then show "f -` {-\<infinity>} \<inter> space M \<in> sets M" using pos by auto
     moreover have "{x\<in>space M. f x \<le> ereal a} \<in> sets M"
       using pos[of "ereal a"] by (simp add: vimage_def Int_def conj_commute)

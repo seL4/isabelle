@@ -47,7 +47,6 @@ proof -
   qed
 qed (auto simp add: Fin_def infinity_enat_def Abs_enat_inject)
 
-declare [[coercion_enabled]]
 declare [[coercion "Fin::nat\<Rightarrow>enat"]]
 
 lemma not_Infty_eq[iff]: "(x \<noteq> \<infinity>) = (EX i. x = Fin i)"

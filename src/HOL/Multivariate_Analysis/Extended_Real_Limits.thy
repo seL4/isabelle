@@ -163,6 +163,7 @@ proof-
 qed
 
 lemma ereal_open_affinity_pos:
+  fixes S :: "ereal set"
   assumes "open S" and m: "m \<noteq> \<infinity>" "0 < m" and t: "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "open ((\<lambda>x. m * x + t) ` S)"
 proof -
@@ -209,6 +210,7 @@ proof -
 qed
 
 lemma ereal_open_affinity:
+  fixes S :: "ereal set"
   assumes "open S" and m: "\<bar>m\<bar> \<noteq> \<infinity>" "m \<noteq> 0" and t: "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "open ((\<lambda>x. m * x + t) ` S)"
 proof cases
@@ -268,7 +270,7 @@ from this show ?thesis using ereal_minus_le_minus by auto
 qed
 
 
-lemma ereal_open_atLeast: "open {x..} \<longleftrightarrow> x = -\<infinity>"
+lemma ereal_open_atLeast: fixes x :: ereal shows "open {x..} \<longleftrightarrow> x = -\<infinity>"
 proof
   assume "x = -\<infinity>" then have "{x..} = UNIV" by auto
   then show "open {x..}" by auto
@@ -384,7 +386,7 @@ lemma Liminf_PInfty:
   shows "(f ---> \<infinity>) net \<longleftrightarrow> Liminf net f = \<infinity>"
 proof (intro lim_imp_Liminf iffI assms)
   assume rhs: "Liminf net f = \<infinity>"
-  { fix S assume "open S & \<infinity> : S"
+  { fix S :: "ereal set" assume "open S & \<infinity> : S"
     then obtain m where "{ereal m<..} <= S" using open_PInfty2 by auto
     moreover have "eventually (\<lambda>x. f x \<in> {ereal m<..}) net"
       using rhs unfolding Liminf_Sup top_ereal_def[symmetric] Sup_eq_top_iff
@@ -893,7 +895,7 @@ shows "continuous_on A f <-> continuous_on A (ereal o f)"
    using continuous_at_iff_ereal assms by (auto simp add: continuous_on_eq_continuous_at)
 
 
-lemma continuous_on_real: "continuous_on (UNIV-{\<infinity>,(-\<infinity>)}) real"
+lemma continuous_on_real: "continuous_on (UNIV-{\<infinity>,(-\<infinity>::ereal)}) real"
    using continuous_at_of_ereal continuous_on_eq_continuous_at open_image_ereal by auto
 
 
@@ -1001,7 +1003,9 @@ proof cases
   assume "finite A" then show ?thesis by induct auto
 qed simp
 
-lemma setsum_Pinfty: "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> (finite P \<and> (\<exists>i\<in>P. f i = \<infinity>))"
+lemma setsum_Pinfty:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> (finite P \<and> (\<exists>i\<in>P. f i = \<infinity>))"
 proof safe
   assume *: "setsum f P = \<infinity>"
   show "finite P"
@@ -1023,6 +1027,7 @@ next
 qed
 
 lemma setsum_Inf:
+  fixes f :: "'a \<Rightarrow> ereal"
   shows "\<bar>setsum f A\<bar> = \<infinity> \<longleftrightarrow> (finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>))"
 proof
   assume *: "\<bar>setsum f A\<bar> = \<infinity>"
@@ -1045,6 +1050,7 @@ next
 qed
 
 lemma setsum_real_of_ereal:
+  fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
   shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
 proof -
@@ -1186,6 +1192,7 @@ lemma suminf_cmult_ereal:
            intro!: SUPR_ereal_cmult )
 
 lemma suminf_PInfty:
+  fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>i. 0 \<le> f i" "suminf f \<noteq> \<infinity>"
   shows "f i \<noteq> \<infinity>"
 proof -
@@ -1253,13 +1260,14 @@ proof -
 qed
 
 lemma suminf_ereal_PInf[simp]:
-  "(\<Sum>x. \<infinity>) = \<infinity>"
+  "(\<Sum>x. \<infinity>::ereal) = \<infinity>"
 proof -
-  have "(\<Sum>i<Suc 0. \<infinity>) \<le> (\<Sum>x. \<infinity>)" by (rule suminf_upper) auto
+  have "(\<Sum>i<Suc 0. \<infinity>) \<le> (\<Sum>x. \<infinity>::ereal)" by (rule suminf_upper) auto
   then show ?thesis by simp
 qed
 
 lemma summable_real_of_ereal:
+  fixes f :: "nat \<Rightarrow> ereal"
   assumes f: "\<And>i. 0 \<le> f i" and fin: "(\<Sum>i. f i) \<noteq> \<infinity>"
   shows "summable (\<lambda>i. real (f i))"
 proof (rule summable_def[THEN iffD2])

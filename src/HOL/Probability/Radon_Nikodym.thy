@@ -951,15 +951,15 @@ proof -
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
         and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
-      let "?A i" = "Q0 \<inter> {x \<in> space M. f x < of_nat i}"
+      let "?A i" = "Q0 \<inter> {x \<in> space M. f x < (i::nat)}"
       have "(\<Union>i. ?A i) \<in> null_sets"
       proof (rule null_sets_UN)
-        fix i have "?A i \<in> sets M"
+        fix i ::nat have "?A i \<in> sets M"
           using borel Q0(1) by auto
-        have "?\<nu> (?A i) \<le> (\<integral>\<^isup>+x. of_nat i * indicator (?A i) x \<partial>M)"
+        have "?\<nu> (?A i) \<le> (\<integral>\<^isup>+x. (i::ereal) * indicator (?A i) x \<partial>M)"
           unfolding eq[OF `?A i \<in> sets M`]
           by (auto intro!: positive_integral_mono simp: indicator_def)
-        also have "\<dots> = of_nat i * \<mu> (?A i)"
+        also have "\<dots> = i * \<mu> (?A i)"
           using `?A i \<in> sets M` by (auto intro!: positive_integral_cmult_indicator)
         also have "\<dots> < \<infinity>"
           using `?A i \<in> sets M`[THEN finite_measure] by auto
@@ -1067,7 +1067,7 @@ next
   interpret \<nu>: measure_space ?N
     where "borel_measurable ?N = borel_measurable M" and "measure ?N = \<nu>"
     and "sets ?N = sets M" and "space ?N = space M" using \<nu> by (auto simp: measurable_def)
-  def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. of_nat (Suc n)}) \<inter> space M"
+  def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ereal(of_nat (Suc n))}) \<inter> space M"
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
     apply (rule_tac Int)
@@ -1095,7 +1095,7 @@ next
         case PInf with x show ?thesis unfolding A_def by (auto intro: exI[of _ 0])
       next
         case (real r)
-        with less_PInf_Ex_of_nat[of "f x"] obtain n where "f x < of_nat n" by (auto simp: real_eq_of_nat)
+        with less_PInf_Ex_of_nat[of "f x"] obtain n :: nat where "f x < n" by (auto simp: real_eq_of_nat)
         then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"])
       next
         case MInf with x show ?thesis
@@ -1115,9 +1115,9 @@ next
     next
       case (Suc n)
       then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
-        (\<integral>\<^isup>+x. of_nat (Suc n) * indicator (Q j) x \<partial>M)"
+        (\<integral>\<^isup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
         by (auto intro!: positive_integral_mono simp: indicator_def A_def)
-      also have "\<dots> = of_nat (Suc n) * \<mu> (Q j)"
+      also have "\<dots> = Suc n * \<mu> (Q j)"
         using Q by (auto intro!: positive_integral_cmult_indicator)
       also have "\<dots> < \<infinity>"
         using Q by (auto simp: real_eq_of_nat[symmetric])
