@@ -307,7 +307,7 @@ fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
     (SOME b, [T]) => (b, T)
   | _ => raise HO_TERM [u]
 
-(** Accumulate type constraints in a formula: negative type literals **)
+(* Accumulate type constraints in a formula: negative type literals. *)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
 fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
@@ -329,6 +329,15 @@ fun repair_variable_name f s =
                    | NONE => s)
     | _ => s
   end
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_const_prefix s then
+    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 
@@ -417,7 +426,9 @@ fun term_from_atp ctxt textual sym_tab =
             val T = map slack_fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix_and_unascii fixed_var_prefix a of
-                SOME b => Free (b, T)
+                SOME b =>
+                (* FIXME: reconstruction of lambda-lifting *)
+                Free (b, T)
               | NONE =>
                 case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, var_index), T)

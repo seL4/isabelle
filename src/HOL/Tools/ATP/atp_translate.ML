@@ -71,7 +71,6 @@ sig
   val invert_const : string -> string
   val unproxify_const : string -> string
   val new_skolem_var_name_from_const : string -> string
-  val num_type_args : theory -> string -> int
   val atp_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_locality_global : locality -> bool
@@ -125,6 +124,9 @@ val tfree_prefix = "t_"
 val const_prefix = "c_"
 val type_const_prefix = "tc_"
 val class_prefix = "cl_"
+
+(* TODO: Use a more descriptive prefix in "SMT_Translate.lift_lambdas". *)
+val lambda_lifted_prefix = Name.uu
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
@@ -301,15 +303,6 @@ fun new_skolem_var_name_from_const s =
     nth ss (length ss - 2)
   end
 
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
-fun num_type_args thy s =
-  if String.isPrefix skolem_const_prefix s then
-    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
-  else
-    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
-
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
    handled specially via "fFalse", "fTrue", ..., "fequal". *)
 val atp_irrelevant_consts =
@@ -479,16 +472,16 @@ fun iterm_from_term thy bs (P $ Q) =
       val (Q', Q_atomics_Ts) = iterm_from_term thy bs Q
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | iterm_from_term thy _ (Const (c, T)) =
-    let
-      val tvar_list =
-        (if String.isPrefix old_skolem_const_prefix c then
-           [] |> Term.add_tvarsT T |> map TVar
-         else
-           (c, T) |> Sign.const_typargs thy)
-      val c' = IConst (`make_fixed_const c, T, tvar_list)
-    in (c', atyps_of T) end
-  | iterm_from_term _ _ (Free (v, T)) =
-    (IConst (`make_fixed_var v, T, []), atyps_of T)
+    (IConst (`make_fixed_const c, T,
+             if String.isPrefix old_skolem_const_prefix c then
+               [] |> Term.add_tvarsT T |> map TVar
+             else
+               (c, T) |> Sign.const_typargs thy),
+     atyps_of T)
+  | iterm_from_term _ _ (Free (s, T)) =
+    (IConst (`make_fixed_var s, T,
+             if String.isPrefix lambda_lifted_prefix s then [T] else []),
+     atyps_of T)
   | iterm_from_term _ _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
@@ -1414,7 +1407,8 @@ fun fold_type_constrs f (Type (s, Ts)) x =
     fold (fold_type_constrs f) Ts (f (s, x))
   | fold_type_constrs _ _ x = x
 
-(*Type constructors used to instantiate overloaded constants are the only ones needed.*)
+(* Type constructors used to instantiate overloaded constants are the only ones
+   needed. *)
 fun add_type_constrs_in_term thy =
   let
     fun add (Const (@{const_name Meson.skolem}, _) $ _) = I
@@ -1422,6 +1416,11 @@ fun add_type_constrs_in_term thy =
       | add (Const (x as (s, _))) =
         if String.isPrefix skolem_const_prefix s then I
         else x |> Sign.const_typargs thy |> fold (fold_type_constrs set_insert)
+      | add (Free (s, T)) =
+        if String.isPrefix lambda_lifted_prefix s then
+          T |> fold_type_constrs set_insert
+        else
+          I
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
@@ -1733,7 +1732,7 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
       1 upto num_args |> map (`I o make_bound_var o string_of_int)
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
-    val sym_needs_arg_types = exists (curry (op =) dummyT) T_args)
+    val sym_needs_arg_types = exists (curry (op =) dummyT) T_args
     fun should_keep_arg_type T =
       sym_needs_arg_types orelse
       not (should_predicate_on_type ctxt nonmono_Ts type_enc (K false) T)
