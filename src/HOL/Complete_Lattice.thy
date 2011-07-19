@@ -88,6 +88,12 @@ lemma le_Inf_iff: "b \<sqsubseteq> \<Sqinter>A \<longleftrightarrow> (\<forall>a
 lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
   by (auto intro: Sup_least dest: Sup_upper)
 
+lemma Inf_superset_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Sqinter>B"
+  by (auto intro: Inf_greatest Inf_lower)
+
+lemma Sup_subset_mono: "A \<subseteq> B \<Longrightarrow> \<Squnion>A \<sqsubseteq> \<Squnion>B"
+  by (auto intro: Sup_least Sup_upper)
+
 lemma Inf_mono:
   assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<sqsubseteq> b"
   shows "\<Sqinter>A \<sqsubseteq> \<Sqinter>B"
@@ -134,10 +140,10 @@ proof -
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 
-lemma Inf_inter_less_eq: "\<Sqinter>A \<squnion> \<Sqinter>B \<sqsubseteq> \<Sqinter>(A \<inter> B)"
+lemma less_eq_Inf_inter: "\<Sqinter>A \<squnion> \<Sqinter>B \<sqsubseteq> \<Sqinter>(A \<inter> B)"
   by (auto intro: Inf_greatest Inf_lower)
 
-lemma Sup_inter_greater_eq: "\<Squnion>(A \<inter> B) \<sqsubseteq> \<Squnion>A \<sqinter> \<Squnion>B "
+lemma Sup_inter_less_eq: "\<Squnion>(A \<inter> B) \<sqsubseteq> \<Squnion>A \<sqinter> \<Squnion>B "
   by (auto intro: Sup_least Sup_upper)
 
 lemma Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"
@@ -176,12 +182,6 @@ proof -
     by (fact dual_complete_lattice)
   from dual.Inf_top_conv show ?P and ?Q by simp_all
 qed
-
-lemma Inf_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Sqinter>B"
-  by (auto intro: Inf_greatest Inf_lower)
-
-lemma Sup_anti_mono: "A \<subseteq> B \<Longrightarrow> \<Squnion>A \<sqsubseteq> \<Squnion>B"
-  by (auto intro: Sup_least Sup_upper)
 
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   INF_def: "INFI A f = \<Sqinter> (f ` A)"
@@ -269,6 +269,12 @@ lemma INF_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>A. f) 
 lemma SUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>i\<in>A. f) = f"
   by (auto intro: antisym SUP_leI le_SUP_I)
 
+lemma INF_top: "(\<Sqinter>x\<in>A. \<top>) = \<top>"
+  by (cases "A = {}") (simp_all add: INF_empty)
+
+lemma SUP_bot: "(\<Squnion>x\<in>A. \<bottom>) = \<bottom>"
+  by (cases "A = {}") (simp_all add: SUP_empty)
+
 lemma INF_cong:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Sqinter>x\<in>A. C x) = (\<Sqinter>x\<in>B. D x)"
   by (simp add: INF_def image_def)
@@ -285,13 +291,13 @@ lemma SUP_mono:
   "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<sqsubseteq> g m) \<Longrightarrow> (\<Squnion>n\<in>A. f n) \<sqsubseteq> (\<Squnion>n\<in>B. g n)"
   by (force intro!: Sup_mono simp: SUP_def)
 
-lemma INF_subset:
-  "A \<subseteq> B \<Longrightarrow> INFI B f \<sqsubseteq> INFI A f"
-  by (intro INF_mono) auto
+lemma INF_superset_mono:
+  "B \<subseteq> A \<Longrightarrow> INFI A f \<sqsubseteq> INFI B f"
+  by (rule INF_mono) auto
 
-lemma SUP_subset:
+lemma SUP_subset_mono:
   "A \<subseteq> B \<Longrightarrow> SUPR A f \<sqsubseteq> SUPR B f"
-  by (intro SUP_mono) auto
+  by (rule SUP_mono) auto
 
 lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
   by (iprover intro: INF_leI le_INF_I order_trans antisym)
@@ -365,13 +371,13 @@ lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
   by (simp add: UNIV_bool SUP_empty SUP_insert sup_commute)
 
-lemma INF_anti_mono:
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>B. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
+lemma INF_mono':
+  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
   -- {* The last inclusion is POSITIVE! *}
-  by (blast intro: INF_mono dest: subsetD)
+  by (rule INF_mono) auto
 
-lemma SUP_anti_mono:
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> g x \<sqsubseteq> f x) \<Longrightarrow> (\<Squnion>x\<in>B. g x) \<sqsubseteq> (\<Squnion>x\<in>B. f x)"
+lemma SUP_mono':
+  "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Squnion>x\<in>A. f x) \<sqsubseteq> (\<Squnion>x\<in>B. g x)"
   -- {* The last inclusion is POSITIVE! *}
   by (blast intro: SUP_mono dest: subsetD)
 
@@ -396,14 +402,6 @@ lemma less_SUP_iff:
   fixes a :: "'a::{complete_lattice,linorder}"
   shows "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUP_def less_Sup_iff by auto
-
--- "FIXME move"
-
-lemma image_ident [simp]: "(%x. x) ` Y = Y"
-  by blast
-
-lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
-  by blast
 
 class complete_boolean_algebra = boolean_algebra + complete_lattice
 begin
@@ -562,7 +560,7 @@ lemma Inter_insert [simp]: "\<Inter>(insert a B) = a \<inter> \<Inter>B"
   by (fact Inf_insert)
 
 lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<inter> B)"
-  by (fact Inf_inter_less_eq)
+  by (fact less_eq_Inf_inter)
 
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by (fact Inf_union_distrib)
@@ -573,7 +571,7 @@ lemma Inter_UNIV_conv [simp, no_atp]:
   by (fact Inf_top_conv)+
 
 lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> \<Inter>B"
-  by (fact Inf_anti_mono)
+  by (fact Inf_superset_mono)
 
 
 subsection {* Intersections of families *}
@@ -688,9 +686,9 @@ lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
   by (fact INF_UNIV_bool_expand)
 
 lemma INT_anti_mono:
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>B. g x)"
+  "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
   -- {* The last inclusion is POSITIVE! *}
-  by (fact INF_anti_mono)
+  by (fact INF_mono')
 
 lemma Pow_INT_eq: "Pow (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. Pow (B x))"
   by blast
@@ -732,36 +730,36 @@ lemma UnionE [elim!]:
   by auto
 
 lemma Union_upper: "B \<in> A \<Longrightarrow> B \<subseteq> \<Union>A"
-  by (iprover intro: subsetI UnionI)
+  by (fact Sup_upper)
 
 lemma Union_least: "(\<And>X. X \<in> A \<Longrightarrow> X \<subseteq> C) \<Longrightarrow> \<Union>A \<subseteq> C"
-  by (iprover intro: subsetI elim: UnionE dest: subsetD)
+  by (fact Sup_least)
 
 lemma Un_eq_Union: "A \<union> B = \<Union>{A, B}"
   by blast
 
 lemma Union_empty [simp]: "\<Union>{} = {}"
-  by blast
+  by (fact Sup_empty)
 
 lemma Union_UNIV [simp]: "\<Union>UNIV = UNIV"
-  by blast
+  by (fact Sup_UNIV)
 
 lemma Union_insert [simp]: "\<Union>insert a B = a \<union> \<Union>B"
-  by blast
+  by (fact Sup_insert)
 
 lemma Union_Un_distrib [simp]: "\<Union>(A \<union> B) = \<Union>A \<union> \<Union>B"
-  by blast
+  by (fact Sup_union_distrib)
 
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
-  by blast
+  by (fact Sup_inter_less_eq)
 
 lemma Union_empty_conv [simp,no_atp]: "(\<Union>A = {}) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
-  by blast
+  by (fact Sup_bot_conv)
 
 lemma empty_Union_conv [simp,no_atp]: "({} = \<Union>A) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
-  by blast
+  by (fact Sup_bot_conv)
 
-lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
+lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})" -- "FIXME generalize"
   by blast
 
 lemma subset_Pow_Union: "A \<subseteq> Pow (\<Union>A)"
@@ -771,7 +769,7 @@ lemma Union_Pow_eq [simp]: "\<Union>(Pow A) = A"
   by blast
 
 lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Union>B"
-  by blast
+  by (fact Sup_subset_mono)
 
 
 subsection {* Unions of families *}
@@ -843,12 +841,12 @@ lemma UN_E [elim!]: "b \<in> (\<Union>x\<in>A. B x) \<Longrightarrow> (\<And>x. 
   by (unfold UNION_def) blast
 
 lemma UN_cong [cong]:
-    "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
-  by (simp add: UNION_def)
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
+  by (fact SUP_cong)
 
 lemma strong_UN_cong:
-    "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
-  by (simp add: UNION_def simp_implies_def)
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
+  by (unfold simp_implies_def) (fact UN_cong)
 
 lemma image_eq_UN: "f ` A = (\<Union>x\<in>A. {f x})"
   by blast
@@ -857,7 +855,7 @@ lemma UN_upper: "a \<in> A \<Longrightarrow> B a \<subseteq> (\<Union>x\<in>A. B
   by (fact le_SUP_I)
 
 lemma UN_least: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C) \<Longrightarrow> (\<Union>x\<in>A. B x) \<subseteq> C"
-  by (iprover intro: subsetI elim: UN_E dest: subsetD)
+  by (fact SUP_leI)
 
 lemma Collect_bex_eq [no_atp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
   by blast
@@ -865,58 +863,58 @@ lemma Collect_bex_eq [no_atp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A.
 lemma UN_insert_distrib: "u \<in> A \<Longrightarrow> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
-lemma UN_empty [simp,no_atp]: "(\<Union>x\<in>{}. B x) = {}"
-  by blast
+lemma UN_empty [simp, no_atp]: "(\<Union>x\<in>{}. B x) = {}"
+  by (fact SUP_empty)
 
 lemma UN_empty2 [simp]: "(\<Union>x\<in>A. {}) = {}"
-  by blast
+  by (fact SUP_bot)
 
 lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
 lemma UN_absorb: "k \<in> I \<Longrightarrow> A k \<union> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. A i)"
-  by auto
+  by (fact SUP_absorb)
 
 lemma UN_insert [simp]: "(\<Union>x\<in>insert a A. B x) = B a \<union> UNION A B"
-  by blast
+  by (fact SUP_insert)
 
 lemma UN_Un[simp]: "(\<Union>i \<in> A \<union> B. M i) = (\<Union>i\<in>A. M i) \<union> (\<Union>i\<in>B. M i)"
-  by blast
+  by (fact SUP_union)
 
-lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B y). C x) = (\<Union>y\<in>A. \<Union>x\<in>B y. C x)"
+lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B y). C x) = (\<Union>y\<in>A. \<Union>x\<in>B y. C x)" -- "FIXME generalize"
   by blast
 
 lemma UN_subset_iff: "((\<Union>i\<in>I. A i) \<subseteq> B) = (\<forall>i\<in>I. A i \<subseteq> B)"
   by (fact SUP_le_iff)
 
-lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)"
-  by blast
-
 lemma UN_constant [simp]: "(\<Union>y\<in>A. c) = (if A = {} then {} else c)"
-  by auto
+  by (fact SUP_constant)
 
 lemma UN_eq: "(\<Union>x\<in>A. B x) = \<Union>({Y. \<exists>x\<in>A. Y = B x})"
+  by (fact SUP_eq)
+
+lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)" -- "FIXME generalize"
   by blast
 
 lemma UNION_empty_conv[simp]:
   "{} = (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. B x = {})"
   "(\<Union>x\<in>A. B x) = {} \<longleftrightarrow> (\<forall>x\<in>A. B x = {})"
-by blast+
+  by (fact SUP_bot_conv)+
 
 lemma Collect_ex_eq [no_atp]: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
   by blast
 
-lemma ball_UN: "(\<forall>z \<in> UNION A B. P z) = (\<forall>x\<in>A. \<forall>z \<in> B x. P z)"
+lemma ball_UN: "(\<forall>z \<in> UNION A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>z \<in> B x. P z)"
   by blast
 
-lemma bex_UN: "(\<exists>z \<in> UNION A B. P z) = (\<exists>x\<in>A. \<exists>z\<in>B x. P z)"
+lemma bex_UN: "(\<exists>z \<in> UNION A B. P z) \<longleftrightarrow> (\<exists>x\<in>A. \<exists>z\<in>B x. P z)"
   by blast
 
 lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
   by (auto simp add: split_if_mem2)
 
 lemma UN_bool_eq: "(\<Union>b. A b) = (A True \<union> A False)"
-  by (auto intro: bool_contrapos)
+  by (fact SUP_UNIV_bool_expand)
 
 lemma UN_Pow_subset: "(\<Union>x\<in>A. Pow (B x)) \<subseteq> Pow (\<Union>x\<in>A. B x)"
   by blast
@@ -924,7 +922,7 @@ lemma UN_Pow_subset: "(\<Union>x\<in>A. Pow (B x)) \<subseteq> Pow (\<Union>x\<i
 lemma UN_mono:
   "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow>
     (\<Union>x\<in>A. f x) \<subseteq> (\<Union>x\<in>B. g x)"
-  by (blast dest: subsetD)
+  by (fact SUP_mono')
 
 lemma vimage_Union: "f -` (\<Union>A) = (\<Union>X\<in>A. f -` X)"
   by blast
@@ -1085,6 +1083,7 @@ lemmas (in complete_lattice) SUPR_def = SUP_def
 lemmas (in complete_lattice) le_SUPI = le_SUP_I
 lemmas (in complete_lattice) le_SUPI2 = le_SUP_I2
 lemmas (in complete_lattice) le_INFI = le_INF_I
+lemmas (in complete_lattice) INF_subset = INF_superset_mono 
 lemmas INFI_apply = INF_apply
 lemmas SUPR_apply = SUP_apply
 
