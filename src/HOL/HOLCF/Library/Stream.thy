@@ -424,7 +424,7 @@ lemma slen_take_lemma2: "!x. ~stream_finite x --> #(stream_take i\<cdot>x) = Fin
 apply (simp add: stream.finite_def, auto)
 by (simp add: slen_take_lemma4)
 
-lemma slen_infinite: "stream_finite x = (#x ~= Infty)"
+lemma slen_infinite: "stream_finite x = (#x ~= \<infinity>)"
 by (simp add: slen_def)
 
 lemma slen_mono_lemma: "stream_finite s ==> ALL t. s << t --> #s <= #t"
@@ -849,16 +849,16 @@ by (insert i_th_stream_take_eq [THEN stream.take_lemma],blast)
 (* ----------------------------------------------------------------------- *)
 
 lemma slen_sconc_finite1:
-  "[| #(x ooo y) = Infty; Fin n = #x |] ==> #y = Infty"
-apply (case_tac "#y ~= Infty",auto)
+  "[| #(x ooo y) = \<infinity>; Fin n = #x |] ==> #y = \<infinity>"
+apply (case_tac "#y ~= \<infinity>",auto)
 apply (drule_tac y=y in rt_sconc1)
 apply (insert stream_finite_i_rt [of n "x ooo y"])
 by (simp add: slen_infinite)
 
-lemma slen_sconc_infinite1: "#x=Infty ==> #(x ooo y) = Infty"
+lemma slen_sconc_infinite1: "#x=\<infinity> ==> #(x ooo y) = \<infinity>"
 by (simp add: sconc_def)
 
-lemma slen_sconc_infinite2: "#y=Infty ==> #(x ooo y) = Infty"
+lemma slen_sconc_infinite2: "#y=\<infinity> ==> #(x ooo y) = \<infinity>"
 apply (case_tac "#x")
  apply (simp add: sconc_def)
  apply (rule someI2_ex)
@@ -868,7 +868,7 @@ apply (case_tac "#x")
  apply (fastsimp simp add: slen_infinite,auto)
 by (simp add: sconc_def)
 
-lemma sconc_finite: "(#x~=Infty & #y~=Infty) = (#(x ooo y)~=Infty)"
+lemma sconc_finite: "(#x~=\<infinity> & #y~=\<infinity>) = (#(x ooo y)~=\<infinity>)"
 apply auto
   apply (metis not_Infty_eq slen_sconc_finite1)
  apply (metis not_Infty_eq slen_sconc_infinite1)
@@ -934,7 +934,7 @@ apply (subgoal_tac "(LUB i. a && (s ooo Y i)) = a && (LUB i. s ooo Y i)")
 
 lemma contlub_sconc_lemma:
   "chain Y ==> (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
-apply (case_tac "#x=Infty")
+apply (case_tac "#x=\<infinity>")
  apply (simp add: sconc_def)
 apply (drule finite_lub_sconc,auto simp add: slen_infinite)
 done

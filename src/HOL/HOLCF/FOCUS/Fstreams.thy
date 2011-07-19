@@ -99,7 +99,7 @@ by (simp add: first_def jth_def)
 lemma last_UU[simp]:"last UU = undefined"
 by (simp add: last_def jth_def enat_defs)
 
-lemma last_infinite[simp]:"#s = Infty ==> last s = undefined"
+lemma last_infinite[simp]:"#s = \<infinity> ==> last s = undefined"
 by (simp add: last_def)
 
 lemma jth_slen_lemma1:"n <= k & Fin n = #s ==> jth k s = undefined"

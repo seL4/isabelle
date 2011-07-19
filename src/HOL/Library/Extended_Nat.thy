@@ -9,6 +9,15 @@ theory Extended_Nat
 imports Main
 begin
 
+class infinity =
+  fixes infinity :: "'a"
+
+notation (xsymbols)
+  infinity  ("\<infinity>")
+
+notation (HTML output)
+  infinity  ("\<infinity>")
+
 subsection {* Type definition *}
 
 text {*
@@ -16,25 +25,38 @@ text {*
   infinity.
 *}
 
-datatype enat = Fin nat | Infty
+typedef (open) enat = "UNIV :: nat option set" ..
+ 
+definition Fin :: "nat \<Rightarrow> enat" where
+  "Fin n = Abs_enat (Some n)"
+ 
+instantiation enat :: infinity
+begin
+  definition "\<infinity> = Abs_enat None"
+  instance proof qed
+end
+ 
+rep_datatype Fin "\<infinity> :: enat"
+proof -
+  fix P i assume "\<And>j. P (Fin j)" "P \<infinity>"
+  then show "P i"
+  proof induct
+    case (Abs_enat y) then show ?case
+      by (cases y rule: option.exhaust)
+         (auto simp: Fin_def infinity_enat_def)
+  qed
+qed (auto simp add: Fin_def infinity_enat_def Abs_enat_inject)
 
-notation (xsymbols)
-  Infty  ("\<infinity>")
+declare [[coercion "Fin :: nat \<Rightarrow> enat"]]
 
-notation (HTML output)
-  Infty  ("\<infinity>")
-
-
-lemma not_Infty_eq[iff]: "(x ~= Infty) = (EX i. x = Fin i)"
+lemma not_Infty_eq[iff]: "(x \<noteq> \<infinity>) = (EX i. x = Fin i)"
 by (cases x) auto
 
-lemma not_Fin_eq [iff]: "(ALL y. x ~= Fin y) = (x = Infty)"
+lemma not_Fin_eq [iff]: "(ALL y. x ~= Fin y) = (x = \<infinity>)"
 by (cases x) auto
-
 
 primrec the_Fin :: "enat \<Rightarrow> nat"
 where "the_Fin (Fin n) = n"
-
 
 subsection {* Constructors and numbers *}
 
@@ -69,10 +91,10 @@ lemma Fin_number: "Fin (number_of k) = number_of k"
 lemma one_iSuc: "1 = iSuc 0"
   by (simp add: zero_enat_def one_enat_def iSuc_def)
 
-lemma Infty_ne_i0 [simp]: "\<infinity> \<noteq> 0"
+lemma Infty_ne_i0 [simp]: "(\<infinity>::enat) \<noteq> 0"
   by (simp add: zero_enat_def)
 
-lemma i0_ne_Infty [simp]: "0 \<noteq> \<infinity>"
+lemma i0_ne_Infty [simp]: "0 \<noteq> (\<infinity>::enat)"
   by (simp add: zero_enat_def)
 
 lemma zero_enat_eq [simp]:
@@ -90,16 +112,16 @@ lemma zero_one_enat_neq [simp]:
   "\<not> 1 = (0\<Colon>enat)"
   unfolding zero_enat_def one_enat_def by simp_all
 
-lemma Infty_ne_i1 [simp]: "\<infinity> \<noteq> 1"
+lemma Infty_ne_i1 [simp]: "(\<infinity>::enat) \<noteq> 1"
   by (simp add: one_enat_def)
 
-lemma i1_ne_Infty [simp]: "1 \<noteq> \<infinity>"
+lemma i1_ne_Infty [simp]: "1 \<noteq> (\<infinity>::enat)"
   by (simp add: one_enat_def)
 
-lemma Infty_ne_number [simp]: "\<infinity> \<noteq> number_of k"
+lemma Infty_ne_number [simp]: "(\<infinity>::enat) \<noteq> number_of k"
   by (simp add: number_of_enat_def)
 
-lemma number_ne_Infty [simp]: "number_of k \<noteq> \<infinity>"
+lemma number_ne_Infty [simp]: "number_of k \<noteq> (\<infinity>::enat)"
   by (simp add: number_of_enat_def)
 
 lemma iSuc_Fin: "iSuc (Fin n) = Fin (Suc n)"
@@ -134,9 +156,10 @@ definition [nitpick_simp]:
   "m + n = (case m of \<infinity> \<Rightarrow> \<infinity> | Fin m \<Rightarrow> (case n of \<infinity> \<Rightarrow> \<infinity> | Fin n \<Rightarrow> Fin (m + n)))"
 
 lemma plus_enat_simps [simp, code]:
-  "Fin m + Fin n = Fin (m + n)"
-  "\<infinity> + q = \<infinity>"
-  "q + \<infinity> = \<infinity>"
+  fixes q :: enat
+  shows "Fin m + Fin n = Fin (m + n)"
+    and "\<infinity> + q = \<infinity>"
+    and "q + \<infinity> = \<infinity>"
   by (simp_all add: plus_enat_def split: enat.splits)
 
 instance proof
@@ -195,7 +218,7 @@ definition times_enat_def [nitpick_simp]:
 
 lemma times_enat_simps [simp, code]:
   "Fin m * Fin n = Fin (m * n)"
-  "\<infinity> * \<infinity> = \<infinity>"
+  "\<infinity> * \<infinity> = (\<infinity>::enat)"
   "\<infinity> * Fin n = (if n = 0 then 0 else \<infinity>)"
   "Fin m * \<infinity> = (if m = 0 then 0 else \<infinity>)"
   unfolding times_enat_def zero_enat_def
@@ -274,7 +297,7 @@ end
 lemma idiff_Fin_Fin[simp,code]: "Fin a - Fin b = Fin (a - b)"
 by(simp add: diff_enat_def)
 
-lemma idiff_Infty[simp,code]: "\<infinity> - n = \<infinity>"
+lemma idiff_Infty[simp,code]: "\<infinity> - n = (\<infinity>::enat)"
 by(simp add: diff_enat_def)
 
 lemma idiff_Infty_right[simp,code]: "Fin a - \<infinity> = 0"
@@ -301,7 +324,6 @@ by(simp add: one_enat_def iSuc_Fin[symmetric] zero_enat_def[symmetric])
 
 (*lemmas idiff_self_eq_0_Fin = idiff_self_eq_0[unfolded zero_enat_def]*)
 
-
 subsection {* Ordering *}
 
 instantiation enat :: linordered_ab_semigroup_add
@@ -318,19 +340,19 @@ definition [nitpick_simp]:
 lemma enat_ord_simps [simp]:
   "Fin m \<le> Fin n \<longleftrightarrow> m \<le> n"
   "Fin m < Fin n \<longleftrightarrow> m < n"
-  "q \<le> \<infinity>"
-  "q < \<infinity> \<longleftrightarrow> q \<noteq> \<infinity>"
-  "\<infinity> \<le> q \<longleftrightarrow> q = \<infinity>"
-  "\<infinity> < q \<longleftrightarrow> False"
+  "q \<le> (\<infinity>::enat)"
+  "q < (\<infinity>::enat) \<longleftrightarrow> q \<noteq> \<infinity>"
+  "(\<infinity>::enat) \<le> q \<longleftrightarrow> q = \<infinity>"
+  "(\<infinity>::enat) < q \<longleftrightarrow> False"
   by (simp_all add: less_eq_enat_def less_enat_def split: enat.splits)
 
 lemma enat_ord_code [code]:
   "Fin m \<le> Fin n \<longleftrightarrow> m \<le> n"
   "Fin m < Fin n \<longleftrightarrow> m < n"
-  "q \<le> \<infinity> \<longleftrightarrow> True"
+  "q \<le> (\<infinity>::enat) \<longleftrightarrow> True"
   "Fin m < \<infinity> \<longleftrightarrow> True"
   "\<infinity> \<le> Fin n \<longleftrightarrow> False"
-  "\<infinity> < q \<longleftrightarrow> False"
+  "(\<infinity>::enat) < q \<longleftrightarrow> False"
   by simp_all
 
 instance by default
@@ -414,16 +436,16 @@ lemma min_enat_simps [simp]:
   "min (Fin m) (Fin n) = Fin (min m n)"
   "min q 0 = 0"
   "min 0 q = 0"
-  "min q \<infinity> = q"
-  "min \<infinity> q = q"
+  "min q (\<infinity>::enat) = q"
+  "min (\<infinity>::enat) q = q"
   by (auto simp add: min_def)
 
 lemma max_enat_simps [simp]:
   "max (Fin m) (Fin n) = Fin (max m n)"
   "max q 0 = q"
   "max 0 q = q"
-  "max q \<infinity> = \<infinity>"
-  "max \<infinity> q = \<infinity>"
+  "max q \<infinity> = (\<infinity>::enat)"
+  "max \<infinity> q = (\<infinity>::enat)"
   by (simp_all add: max_def)
 
 lemma Fin_ile: "n \<le> Fin m \<Longrightarrow> \<exists>k. n = Fin k"
@@ -479,7 +501,7 @@ lemma less_FinE:
 by (induct n) auto
 
 lemma less_InftyE:
-  "[| n < Infty; !!k. n = Fin k ==> P |] ==> P"
+  "[| n < \<infinity>; !!k. n = Fin k ==> P |] ==> P"
 by (induct n) auto
 
 lemma enat_less_induct:
@@ -495,7 +517,7 @@ proof -
     fix nat
     show "P (Fin nat)" by (rule P_Fin)
   next
-    show "P Infty"
+    show "P \<infinity>"
       apply (rule prem, clarify)
       apply (erule less_InftyE)
       apply (simp add: P_Fin)

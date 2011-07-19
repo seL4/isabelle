@@ -87,7 +87,7 @@ apply (fast)
 done
 
 
-(* context (theory "Nat_InFinity");*)
+(* context (theory "Extended_Nat");*)
 lemma ile_lemma: "Fin (i + j) <= x ==> Fin i <= x"
   by (rule order_trans) auto
 
