@@ -15,6 +15,7 @@ imports
   Diagonalize
   Dlist_Cset
   Eval_Witness
+  Extended_Nat
   Float
   Formal_Power_Series
   Fraction_Field
@@ -35,7 +36,6 @@ imports
   Monad_Syntax
   More_List
   Multiset
-  Nat_Infinity
   Nested_Environment
   Numeral_Type
   OptionalSugar

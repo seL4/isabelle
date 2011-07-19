@@ -444,25 +444,25 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/AssocList.thy Library/BigO.thy Library/Binomial.thy		\
   Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
-  Library/Code_Char_ord.thy Library/Code_Integer.thy Library/Code_Natural.thy			\
-  Library/Code_Prolog.thy Tools/Predicate_Compile/code_prolog.ML	\
-  Library/ContNotDenum.thy Library/Continuity.thy Library/Convex.thy	\
-  Library/Countable.thy Library/Diagonalize.thy Library/Dlist.thy	\
-  Library/Dlist_Cset.thy 						\
+  Library/Code_Char_ord.thy Library/Code_Integer.thy			\
+  Library/Code_Natural.thy Library/Code_Prolog.thy			\
+  Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
+  Library/Continuity.thy Library/Convex.thy Library/Countable.thy	\
+  Library/Diagonalize.thy Library/Dlist.thy Library/Dlist_Cset.thy 	\
   Library/Efficient_Nat.thy Library/Eval_Witness.thy 			\
   Library/Executable_Set.thy Library/Extended_Reals.thy			\
-  Library/Float.thy Library/Formal_Power_Series.thy			\
-  Library/Fraction_Field.thy Library/FrechetDeriv.thy Library/Cset.thy	\
-  Library/FuncSet.thy Library/Function_Algebras.thy			\
-  Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
-  Library/Indicator_Function.thy Library/Infinite_Set.thy		\
-  Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
-  Library/Lattice_Syntax.thy Library/Library.thy Library/List_Cset.thy 	\
-  Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
-  Library/Monad_Syntax.thy Library/More_List.thy Library/More_Set.thy	\
-  Library/Multiset.thy Library/Nat_Bijection.thy			\
-  Library/Nat_Infinity.thy Library/Nested_Environment.thy		\
+  Library/Extended_Nat.thy Library/Float.thy				\
+  Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
+  Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
+  Library/Function_Algebras.thy Library/Fundamental_Theorem_Algebra.thy	\
+  Library/Glbs.thy Library/Indicator_Function.thy			\
+  Library/Infinite_Set.thy Library/Inner_Product.thy			\
+  Library/Kleene_Algebra.thy Library/LaTeXsugar.thy			\
+  Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
+  Library/Library.thy Library/List_Cset.thy Library/List_Prefix.thy	\
+  Library/List_lexord.thy Library/Mapping.thy Library/Monad_Syntax.thy	\
+  Library/More_List.thy Library/More_Set.thy Library/Multiset.thy	\
+  Library/Nat_Bijection.thy Library/Nested_Environment.thy		\
   Library/Numeral_Type.thy Library/OptionalSugar.thy			\
   Library/Order_Relation.thy Library/Permutation.thy			\
   Library/Permutations.thy Library/Poly_Deriv.thy			\
@@ -481,7 +481,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Sum_of_Squares/sos_wrapper.ML					\
   Library/Sum_of_Squares/sum_of_squares.ML				\
   Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
-  Library/While_Combinator.thy Library/Zorn.thy	\
+  Library/While_Combinator.thy Library/Zorn.thy				\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
   Library/reflection.ML Library/reify_data.ML				\
   Library/document/root.bib Library/document/root.tex
@@ -1576,7 +1576,7 @@ $(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
 HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
-  Library/Nat_Infinity.thy \
+  Library/Extended_Nat.thy \
   HOLCF/Library/Defl_Bifinite.thy \
   HOLCF/Library/Bool_Discrete.thy \
   HOLCF/Library/Char_Discrete.thy \
@@ -1630,7 +1630,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
 $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF HOLCF/FOCUS/ROOT.ML \
-  Library/Nat_Infinity.thy \
+  Library/Extended_Nat.thy \
   HOLCF/Library/Stream.thy \
   HOLCF/FOCUS/Fstreams.thy \
   HOLCF/FOCUS/Fstream.thy \

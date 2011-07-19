@@ -55,7 +55,7 @@ lemma ft_fsingleton[simp]: "ft$(<a>) = Def a"
 by (simp add: fsingleton_def2)
 
 lemma slen_fsingleton[simp]: "#(<a>) = Fin 1"
-by (simp add: fsingleton_def2 inat_defs)
+by (simp add: fsingleton_def2 enat_defs)
 
 lemma slen_fstreams[simp]: "#(<a> ooo s) = iSuc (#s)"
 by (simp add: fsingleton_def2)
@@ -83,11 +83,11 @@ by (simp add: first_def)
 lemma jth_n[simp]: "Fin n = #s ==> jth n (s ooo <a>) = a"
 apply (simp add: jth_def, auto)
 apply (simp add: i_th_def rt_sconc1)
-by (simp add: inat_defs split: inat.splits)
+by (simp add: enat_defs split: enat.splits)
 
 lemma last_sconc[simp]: "Fin n = #s ==> last (s ooo <a>) = a"
 apply (simp add: last_def)
-apply (simp add: inat_defs split:inat.splits)
+apply (simp add: enat_defs split:enat.splits)
 by (drule sym, auto)
 
 lemma last_fsingleton[simp]: "last (<a>) = a"
@@ -97,13 +97,13 @@ lemma first_UU[simp]: "first UU = undefined"
 by (simp add: first_def jth_def)
 
 lemma last_UU[simp]:"last UU = undefined"
-by (simp add: last_def jth_def inat_defs)
+by (simp add: last_def jth_def enat_defs)
 
 lemma last_infinite[simp]:"#s = Infty ==> last s = undefined"
 by (simp add: last_def)
 
 lemma jth_slen_lemma1:"n <= k & Fin n = #s ==> jth k s = undefined"
-by (simp add: jth_def inat_defs split:inat.splits, auto)
+by (simp add: jth_def enat_defs split:enat.splits, auto)
 
 lemma jth_UU[simp]:"jth n UU = undefined" 
 by (simp add: jth_def)

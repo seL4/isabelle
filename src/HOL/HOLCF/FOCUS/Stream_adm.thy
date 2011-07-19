@@ -74,7 +74,7 @@ apply ( rule slen_strict_mono)
 apply (   erule spec)
 apply (  assumption)
 apply ( assumption)
-apply (metis inat_ord_code(4) slen_infinite)
+apply (metis enat_ord_code(4) slen_infinite)
 done
 
 (* should be without reference to stream length? *)

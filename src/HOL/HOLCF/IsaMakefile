@@ -134,7 +134,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
-  ../Library/Nat_Infinity.thy \
+  ../Library/Extended_Nat.thy \
   ex/Concurrency_Monad.thy \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
