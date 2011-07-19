@@ -203,7 +203,7 @@ proof -
 
   from real_RN_deriv[OF fms ac] guess D . note D = this
   with absolutely_continuous_AE[OF ms] ac
-  have D\<nu>: "AE x in M\<lparr>measure := \<nu>\<rparr>. RN_deriv M \<nu> x = extreal (D x)"
+  have D\<nu>: "AE x in M\<lparr>measure := \<nu>\<rparr>. RN_deriv M \<nu> x = ereal (D x)"
     by auto
 
   def f \<equiv> "\<lambda>x. if D x = 0 then 1 else 1 / D x"
@@ -215,7 +215,7 @@ proof -
     by (simp add: integral_cmult)
 
   { fix A assume "A \<in> sets M"
-    with RN D have "\<nu>.\<mu> A = (\<integral>\<^isup>+ x. extreal (D x) * indicator A x \<partial>M)"
+    with RN D have "\<nu>.\<mu> A = (\<integral>\<^isup>+ x. ereal (D x) * indicator A x \<partial>M)"
       by (auto intro!: positive_integral_cong_AE) }
   note D_density = this
 
@@ -231,12 +231,12 @@ proof -
   ultimately have M_int: "integrable M (\<lambda>x. D x * (ln b * entropy_density b M \<nu> x))"
     by simp
 
-  have D_neg: "(\<integral>\<^isup>+ x. extreal (- D x) \<partial>M) = 0"
+  have D_neg: "(\<integral>\<^isup>+ x. ereal (- D x) \<partial>M) = 0"
     using D by (subst positive_integral_0_iff_AE) auto
 
-  have "(\<integral>\<^isup>+ x. extreal (D x) \<partial>M) = \<nu> (space M)"
+  have "(\<integral>\<^isup>+ x. ereal (D x) \<partial>M) = \<nu> (space M)"
     using RN D by (auto intro!: positive_integral_cong_AE)
-  then have D_pos: "(\<integral>\<^isup>+ x. extreal (D x) \<partial>M) = 1"
+  then have D_pos: "(\<integral>\<^isup>+ x. ereal (D x) \<partial>M) = 1"
     using \<nu>.measure_space_1 by simp
 
   have "integrable M D"
@@ -271,16 +271,16 @@ proof -
 
       have "\<mu> {x\<in>space M. D x = 1} = (\<integral>\<^isup>+ x. indicator {x\<in>space M. D x = 1} x \<partial>M)"
         using D(1) by auto
-      also have "\<dots> = (\<integral>\<^isup>+ x. extreal (D x) * indicator {x\<in>space M. D x \<noteq> 0} x \<partial>M)"
-        using disj by (auto intro!: positive_integral_cong_AE simp: indicator_def one_extreal_def)
+      also have "\<dots> = (\<integral>\<^isup>+ x. ereal (D x) * indicator {x\<in>space M. D x \<noteq> 0} x \<partial>M)"
+        using disj by (auto intro!: positive_integral_cong_AE simp: indicator_def one_ereal_def)
       also have "\<dots> = \<nu> {x\<in>space M. D x \<noteq> 0}"
         using D(1) D_density by auto
       also have "\<dots> = \<nu> (space M)"
         using D_density D(1) by (auto intro!: positive_integral_cong simp: indicator_def)
       finally have "AE x. D x = 1"
         using D(1) \<nu>.measure_space_1 by (intro AE_I_eq_1) auto
-      then have "(\<integral>\<^isup>+x. indicator A x\<partial>M) = (\<integral>\<^isup>+x. extreal (D x) * indicator A x\<partial>M)"
-        by (intro positive_integral_cong_AE) (auto simp: one_extreal_def[symmetric])
+      then have "(\<integral>\<^isup>+x. indicator A x\<partial>M) = (\<integral>\<^isup>+x. ereal (D x) * indicator A x\<partial>M)"
+        by (intro positive_integral_cong_AE) (auto simp: one_ereal_def[symmetric])
       also have "\<dots> = \<nu> A"
         using `A \<in> sets M` D_density by simp
       finally show False using `A \<in> sets M` `\<nu> A \<noteq> \<mu> A` by simp
@@ -293,7 +293,7 @@ proof -
       using D(2)
     proof (elim AE_mp, safe intro!: AE_I2)
       fix t assume Dt: "t \<in> space M" "D t \<noteq> 1" "D t \<noteq> 0"
-        and RN: "RN_deriv M \<nu> t = extreal (D t)"
+        and RN: "RN_deriv M \<nu> t = ereal (D t)"
         and eq: "D t - indicator ?D_set t = D t * (ln b * entropy_density b M \<nu> t)"
 
       have "D t - 1 = D t - indicator ?D_set t"
@@ -311,7 +311,7 @@ proof -
     show "AE t. D t - indicator ?D_set t \<le> D t * (ln b * entropy_density b M \<nu> t)"
       using D(2)
     proof (elim AE_mp, intro AE_I2 impI)
-      fix t assume "t \<in> space M" and RN: "RN_deriv M \<nu> t = extreal (D t)"
+      fix t assume "t \<in> space M" and RN: "RN_deriv M \<nu> t = ereal (D t)"
       show "D t - indicator ?D_set t \<le> D t * (ln b * entropy_density b M \<nu> t)"
       proof cases
         assume asm: "D t \<noteq> 0"
@@ -347,7 +347,7 @@ proof -
       using eq by (intro measure_space_cong) auto
     show "absolutely_continuous \<nu>"
       unfolding absolutely_continuous_def using eq by auto
-    show "(\<lambda>x. 1) \<in> borel_measurable M" "AE x. 0 \<le> (1 :: extreal)" by auto
+    show "(\<lambda>x. 1) \<in> borel_measurable M" "AE x. 0 \<le> (1 :: ereal)" by auto
     fix A assume "A \<in> sets M"
     with eq show "\<nu> A = \<integral>\<^isup>+ x. 1 * indicator A x \<partial>M" by simp
   qed
@@ -468,17 +468,17 @@ subsection {* Mutual Information *}
 
 definition (in prob_space)
   "mutual_information b S T X Y =
-    KL_divergence b (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>)
-      (extreal\<circ>joint_distribution X Y)"
+    KL_divergence b (S\<lparr>measure := ereal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := ereal\<circ>distribution Y\<rparr>)
+      (ereal\<circ>joint_distribution X Y)"
 
 lemma (in information_space)
   fixes S T X Y
-  defines "P \<equiv> S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  defines "P \<equiv> S\<lparr>measure := ereal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
   shows "indep_var S X T Y \<longleftrightarrow>
     (random_variable S X \<and> random_variable T Y \<and>
-      measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y) \<and>
-      integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
-        (entropy_density b P (extreal\<circ>joint_distribution X Y)) \<and>
+      measure_space.absolutely_continuous P (ereal\<circ>joint_distribution X Y) \<and>
+      integrable (P\<lparr>measure := (ereal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (ereal\<circ>joint_distribution X Y)) \<and>
      mutual_information b S T X Y = 0)"
 proof safe
   assume indep: "indep_var S X T Y"
@@ -487,16 +487,16 @@ proof safe
   then show "sigma_algebra S" "X \<in> measurable M S" "sigma_algebra T" "Y \<in> measurable M T"
     by blast+
 
-  interpret X: prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  interpret X: prob_space "S\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     by (rule distribution_prob_space) fact
-  interpret Y: prob_space "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret Y: prob_space "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
     by (rule distribution_prob_space) fact
-  interpret XY: pair_prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>" by default
+  interpret XY: pair_prob_space "S\<lparr>measure := ereal\<circ>distribution X\<rparr>" "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>" by default
   interpret XY: information_space XY.P b by default (rule b_gt_1)
 
-  let ?J = "XY.P\<lparr> measure := (extreal\<circ>joint_distribution X Y) \<rparr>"
+  let ?J = "XY.P\<lparr> measure := (ereal\<circ>joint_distribution X Y) \<rparr>"
   { fix A assume "A \<in> sets XY.P"
-    then have "extreal (joint_distribution X Y A) = XY.\<mu> A"
+    then have "ereal (joint_distribution X Y A) = XY.\<mu> A"
       using indep_var_distributionD[OF indep]
       by (simp add: XY.P.finite_measure_eq) }
   note j_eq = this
@@ -504,31 +504,31 @@ proof safe
   interpret J: prob_space ?J
     using j_eq by (intro XY.prob_space_cong) auto
 
-  have ac: "XY.absolutely_continuous (extreal\<circ>joint_distribution X Y)"
+  have ac: "XY.absolutely_continuous (ereal\<circ>joint_distribution X Y)"
     by (simp add: XY.absolutely_continuous_def j_eq)
-  then show "measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y)"
+  then show "measure_space.absolutely_continuous P (ereal\<circ>joint_distribution X Y)"
     unfolding P_def .
 
-  have ed: "entropy_density b XY.P (extreal\<circ>joint_distribution X Y) \<in> borel_measurable XY.P"
+  have ed: "entropy_density b XY.P (ereal\<circ>joint_distribution X Y) \<in> borel_measurable XY.P"
     by (rule XY.measurable_entropy_density) (default | fact)+
 
-  have "AE x in XY.P. 1 = RN_deriv XY.P (extreal\<circ>joint_distribution X Y) x"
+  have "AE x in XY.P. 1 = RN_deriv XY.P (ereal\<circ>joint_distribution X Y) x"
   proof (rule XY.RN_deriv_unique[OF _ ac])
     show "measure_space ?J" by default
     fix A assume "A \<in> sets XY.P"
-    then show "(extreal\<circ>joint_distribution X Y) A = (\<integral>\<^isup>+ x. 1 * indicator A x \<partial>XY.P)"
+    then show "(ereal\<circ>joint_distribution X Y) A = (\<integral>\<^isup>+ x. 1 * indicator A x \<partial>XY.P)"
       by (simp add: j_eq)
   qed (insert XY.measurable_const[of 1 borel], auto)
-  then have ae_XY: "AE x in XY.P. entropy_density b XY.P (extreal\<circ>joint_distribution X Y) x = 0"
+  then have ae_XY: "AE x in XY.P. entropy_density b XY.P (ereal\<circ>joint_distribution X Y) x = 0"
     by (elim XY.AE_mp) (simp add: entropy_density_def)
-  have ae_J: "AE x in ?J. entropy_density b XY.P (extreal\<circ>joint_distribution X Y) x = 0"
+  have ae_J: "AE x in ?J. entropy_density b XY.P (ereal\<circ>joint_distribution X Y) x = 0"
   proof (rule XY.absolutely_continuous_AE)
     show "measure_space ?J" by default
     show "XY.absolutely_continuous (measure ?J)"
       using ac by simp
   qed (insert ae_XY, simp_all)
-  then show "integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
-        (entropy_density b P (extreal\<circ>joint_distribution X Y))"
+  then show "integrable (P\<lparr>measure := (ereal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (ereal\<circ>joint_distribution X Y))"
     unfolding P_def
     using ed XY.measurable_const[of 0 borel]
     by (subst J.integrable_cong_AE) auto
@@ -540,30 +540,30 @@ next
   assume "sigma_algebra S" "X \<in> measurable M S" "sigma_algebra T" "Y \<in> measurable M T"
   then have rvs: "random_variable S X" "random_variable T Y" by blast+
 
-  interpret X: prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  interpret X: prob_space "S\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     by (rule distribution_prob_space) fact
-  interpret Y: prob_space "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret Y: prob_space "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
     by (rule distribution_prob_space) fact
-  interpret XY: pair_prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>" by default
+  interpret XY: pair_prob_space "S\<lparr>measure := ereal\<circ>distribution X\<rparr>" "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>" by default
   interpret XY: information_space XY.P b by default (rule b_gt_1)
 
-  let ?J = "XY.P\<lparr> measure := (extreal\<circ>joint_distribution X Y) \<rparr>"
+  let ?J = "XY.P\<lparr> measure := (ereal\<circ>joint_distribution X Y) \<rparr>"
   interpret J: prob_space ?J
     using rvs by (intro joint_distribution_prob_space) auto
 
-  assume ac: "measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y)"
-  assume int: "integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
-        (entropy_density b P (extreal\<circ>joint_distribution X Y))"
+  assume ac: "measure_space.absolutely_continuous P (ereal\<circ>joint_distribution X Y)"
+  assume int: "integrable (P\<lparr>measure := (ereal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (ereal\<circ>joint_distribution X Y))"
   assume I_eq_0: "mutual_information b S T X Y = 0"
 
-  have eq: "\<forall>A\<in>sets XY.P. (extreal \<circ> joint_distribution X Y) A = XY.\<mu> A"
+  have eq: "\<forall>A\<in>sets XY.P. (ereal \<circ> joint_distribution X Y) A = XY.\<mu> A"
   proof (rule XY.KL_eq_0_imp)
     show "prob_space ?J" by default
-    show "XY.absolutely_continuous (extreal\<circ>joint_distribution X Y)"
+    show "XY.absolutely_continuous (ereal\<circ>joint_distribution X Y)"
       using ac by (simp add: P_def)
-    show "integrable ?J (entropy_density b XY.P (extreal\<circ>joint_distribution X Y))"
+    show "integrable ?J (entropy_density b XY.P (ereal\<circ>joint_distribution X Y))"
       using int by (simp add: P_def)
-    show "KL_divergence b XY.P (extreal\<circ>joint_distribution X Y) = 0"
+    show "KL_divergence b XY.P (ereal\<circ>joint_distribution X Y) = 0"
       using I_eq_0 unfolding mutual_information_def by (simp add: P_def)
   qed
 
@@ -587,13 +587,13 @@ next
         using `Y \<in> measurable M T` by (auto intro: measurable_sets) }
     next
       fix A B assume ab: "A \<in> sets S" "B \<in> sets T"
-      have "extreal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) =
-        extreal (joint_distribution X Y (A \<times> B))"
+      have "ereal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) =
+        ereal (joint_distribution X Y (A \<times> B))"
         unfolding distribution_def
-        by (intro arg_cong[where f="\<lambda>C. extreal (prob C)"]) auto
+        by (intro arg_cong[where f="\<lambda>C. ereal (prob C)"]) auto
       also have "\<dots> = XY.\<mu> (A \<times> B)"
         using ab eq by (auto simp: XY.finite_measure_eq)
-      also have "\<dots> = extreal (distribution X A) * extreal (distribution Y B)"
+      also have "\<dots> = ereal (distribution X A) * ereal (distribution Y B)"
         using ab by (simp add: XY.pair_measure_times)
       finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
         prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
@@ -605,10 +605,10 @@ qed
 lemma (in information_space) mutual_information_commute_generic:
   assumes X: "random_variable S X" and Y: "random_variable T Y"
   assumes ac: "measure_space.absolutely_continuous
-    (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>) (extreal\<circ>joint_distribution X Y)"
+    (S\<lparr>measure := ereal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := ereal\<circ>distribution Y\<rparr>) (ereal\<circ>joint_distribution X Y)"
   shows "mutual_information b S T X Y = mutual_information b T S Y X"
 proof -
-  let ?S = "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" and ?T = "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  let ?S = "S\<lparr>measure := ereal\<circ>distribution X\<rparr>" and ?T = "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
   interpret S: prob_space ?S using X by (rule distribution_prob_space)
   interpret T: prob_space ?T using Y by (rule distribution_prob_space)
   interpret P: pair_prob_space ?S ?T ..
@@ -617,13 +617,13 @@ proof -
     unfolding mutual_information_def
   proof (intro Q.KL_divergence_vimage[OF Q.measure_preserving_swap _ _ _ _ ac b_gt_1])
     show "(\<lambda>(x,y). (y,x)) \<in> measure_preserving
-      (P.P \<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>) (Q.P \<lparr> measure := extreal\<circ>joint_distribution Y X\<rparr>)"
+      (P.P \<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>) (Q.P \<lparr> measure := ereal\<circ>joint_distribution Y X\<rparr>)"
       using X Y unfolding measurable_def
       unfolding measure_preserving_def using P.pair_sigma_algebra_swap_measurable
       by (auto simp add: space_pair_measure distribution_def intro!: arg_cong[where f=\<mu>'])
-    have "prob_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
+    have "prob_space (P.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)"
       using X Y by (auto intro!: distribution_prob_space random_variable_pairI)
-    then show "measure_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
+    then show "measure_space (P.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)"
       unfolding prob_space_def by simp
   qed auto
 qed
@@ -634,33 +634,33 @@ definition (in prob_space)
 abbreviation (in information_space)
   mutual_information_Pow ("\<I>'(_ ; _')") where
   "\<I>(X ; Y) \<equiv> mutual_information b
-    \<lparr> space = X`space M, sets = Pow (X`space M), measure = extreal\<circ>distribution X \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = extreal\<circ>distribution Y \<rparr> X Y"
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = ereal\<circ>distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = ereal\<circ>distribution Y \<rparr> X Y"
 
 lemma (in prob_space) finite_variables_absolutely_continuous:
   assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
   shows "measure_space.absolutely_continuous
-    (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>)
-    (extreal\<circ>joint_distribution X Y)"
+    (S\<lparr>measure := ereal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := ereal\<circ>distribution Y\<rparr>)
+    (ereal\<circ>joint_distribution X Y)"
 proof -
-  interpret X: finite_prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  interpret X: finite_prob_space "S\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     using X by (rule distribution_finite_prob_space)
-  interpret Y: finite_prob_space "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret Y: finite_prob_space "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
     using Y by (rule distribution_finite_prob_space)
   interpret XY: pair_finite_prob_space
-    "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" "T\<lparr> measure := extreal\<circ>distribution Y\<rparr>" by default
-  interpret P: finite_prob_space "XY.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>"
+    "S\<lparr>measure := ereal\<circ>distribution X\<rparr>" "T\<lparr> measure := ereal\<circ>distribution Y\<rparr>" by default
+  interpret P: finite_prob_space "XY.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>"
     using assms by (auto intro!: joint_distribution_finite_prob_space)
   note rv = assms[THEN finite_random_variableD]
-  show "XY.absolutely_continuous (extreal\<circ>joint_distribution X Y)"
+  show "XY.absolutely_continuous (ereal\<circ>joint_distribution X Y)"
   proof (rule XY.absolutely_continuousI)
-    show "finite_measure_space (XY.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)" by default
+    show "finite_measure_space (XY.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
     fix x assume "x \<in> space XY.P" and "XY.\<mu> {x} = 0"
     then obtain a b where "x = (a, b)"
       and "distribution X {a} = 0 \<or> distribution Y {b} = 0"
       by (cases x) (auto simp: space_pair_measure)
     with finite_distribution_order(5,6)[OF X Y]
-    show "(extreal \<circ> joint_distribution X Y) {x} = 0" by auto
+    show "(ereal \<circ> joint_distribution X Y) {x} = 0" by auto
   qed
 qed
 
@@ -676,16 +676,16 @@ lemma (in information_space)
   and mutual_information_positive_generic:
      "0 \<le> mutual_information b MX MY X Y" (is ?positive)
 proof -
-  interpret X: finite_prob_space "MX\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  interpret X: finite_prob_space "MX\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     using MX by (rule distribution_finite_prob_space)
-  interpret Y: finite_prob_space "MY\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret Y: finite_prob_space "MY\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
     using MY by (rule distribution_finite_prob_space)
-  interpret XY: pair_finite_prob_space "MX\<lparr>measure := extreal\<circ>distribution X\<rparr>" "MY\<lparr>measure := extreal\<circ>distribution Y\<rparr>" by default
-  interpret P: finite_prob_space "XY.P\<lparr>measure := extreal\<circ>joint_distribution X Y\<rparr>"
+  interpret XY: pair_finite_prob_space "MX\<lparr>measure := ereal\<circ>distribution X\<rparr>" "MY\<lparr>measure := ereal\<circ>distribution Y\<rparr>" by default
+  interpret P: finite_prob_space "XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>"
     using assms by (auto intro!: joint_distribution_finite_prob_space)
 
-  have P_ms: "finite_measure_space (XY.P\<lparr>measure := extreal\<circ>joint_distribution X Y\<rparr>)" by default
-  have P_ps: "finite_prob_space (XY.P\<lparr>measure := extreal\<circ>joint_distribution X Y\<rparr>)" by default
+  have P_ms: "finite_measure_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
+  have P_ps: "finite_prob_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
 
   show ?sum
     unfolding Let_def mutual_information_def
@@ -739,14 +739,14 @@ subsection {* Entropy *}
 
 abbreviation (in information_space)
   entropy_Pow ("\<H>'(_')") where
-  "\<H>(X) \<equiv> entropy b \<lparr> space = X`space M, sets = Pow (X`space M), measure = extreal\<circ>distribution X \<rparr> X"
+  "\<H>(X) \<equiv> entropy b \<lparr> space = X`space M, sets = Pow (X`space M), measure = ereal\<circ>distribution X \<rparr> X"
 
 lemma (in information_space) entropy_generic_eq:
   fixes X :: "'a \<Rightarrow> 'c"
   assumes MX: "finite_random_variable MX X"
   shows "entropy b MX X = -(\<Sum> x \<in> space MX. distribution X {x} * log b (distribution X {x}))"
 proof -
-  interpret MX: finite_prob_space "MX\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  interpret MX: finite_prob_space "MX\<lparr>measure := ereal\<circ>distribution X\<rparr>"
     using MX by (rule distribution_finite_prob_space)
   let "?X x" = "distribution X {x}"
   let "?XX x y" = "joint_distribution X X {(x, y)}"
@@ -779,9 +779,9 @@ lemma (in information_space) entropy_certainty_eq_0:
   assumes X: "simple_function M X" and "x \<in> X ` space M" and "distribution X {x} = 1"
   shows "\<H>(X) = 0"
 proof -
-  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = extreal\<circ>distribution X\<rparr>"
+  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = ereal\<circ>distribution X\<rparr>"
   note simple_function_imp_finite_random_variable[OF `simple_function M X`]
-  from distribution_finite_prob_space[OF this, of "\<lparr> measure = extreal\<circ>distribution X \<rparr>"]
+  from distribution_finite_prob_space[OF this, of "\<lparr> measure = ereal\<circ>distribution X \<rparr>"]
   interpret X: finite_prob_space ?X by simp
   have "distribution X (X ` space M - {x}) = distribution X (X ` space M) - distribution X {x}"
     using X.measure_compl[of "{x}"] assms by auto
@@ -818,9 +818,9 @@ qed
 
 lemma (in prob_space) measure'_translate:
   assumes X: "random_variable S X" and A: "A \<in> sets S"
-  shows "finite_measure.\<mu>' (S\<lparr> measure := extreal\<circ>distribution X \<rparr>) A = distribution X A"
+  shows "finite_measure.\<mu>' (S\<lparr> measure := ereal\<circ>distribution X \<rparr>) A = distribution X A"
 proof -
-  interpret S: prob_space "S\<lparr> measure := extreal\<circ>distribution X \<rparr>"
+  interpret S: prob_space "S\<lparr> measure := ereal\<circ>distribution X \<rparr>"
     using distribution_prob_space[OF X] .
   from A show "S.\<mu>' A = distribution X A"
     unfolding S.\<mu>'_def by (simp add: distribution_def_raw \<mu>'_def)
@@ -831,9 +831,9 @@ lemma (in information_space) entropy_uniform_max:
   assumes "\<And>x y. \<lbrakk> x \<in> X ` space M ; y \<in> X ` space M \<rbrakk> \<Longrightarrow> distribution X {x} = distribution X {y}"
   shows "\<H>(X) = log b (real (card (X ` space M)))"
 proof -
-  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = undefined\<rparr>\<lparr> measure := extreal\<circ>distribution X\<rparr>"
+  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = undefined\<rparr>\<lparr> measure := ereal\<circ>distribution X\<rparr>"
   note frv = simple_function_imp_finite_random_variable[OF X]
-  from distribution_finite_prob_space[OF this, of "\<lparr> measure = extreal\<circ>distribution X \<rparr>"]
+  from distribution_finite_prob_space[OF this, of "\<lparr> measure = ereal\<circ>distribution X \<rparr>"]
   interpret X: finite_prob_space ?X by simp
   note rv = finite_random_variableD[OF frv]
   have card_gt0: "0 < card (X ` space M)" unfolding card_gt_0_iff
@@ -917,9 +917,9 @@ definition (in prob_space)
 abbreviation (in information_space)
   conditional_mutual_information_Pow ("\<I>'( _ ; _ | _ ')") where
   "\<I>(X ; Y | Z) \<equiv> conditional_mutual_information b
-    \<lparr> space = X`space M, sets = Pow (X`space M), measure = extreal\<circ>distribution X \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = extreal\<circ>distribution Y \<rparr>
-    \<lparr> space = Z`space M, sets = Pow (Z`space M), measure = extreal\<circ>distribution Z \<rparr>
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = ereal\<circ>distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = ereal\<circ>distribution Y \<rparr>
+    \<lparr> space = Z`space M, sets = Pow (Z`space M), measure = ereal\<circ>distribution Z \<rparr>
     X Y Z"
 
 lemma (in information_space) conditional_mutual_information_generic_eq:
@@ -1118,8 +1118,8 @@ definition (in prob_space)
 abbreviation (in information_space)
   conditional_entropy_Pow ("\<H>'(_ | _')") where
   "\<H>(X | Y) \<equiv> conditional_entropy b
-    \<lparr> space = X`space M, sets = Pow (X`space M), measure = extreal\<circ>distribution X \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = extreal\<circ>distribution Y \<rparr> X Y"
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = ereal\<circ>distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = ereal\<circ>distribution Y \<rparr> X Y"
 
 lemma (in information_space) conditional_entropy_positive:
   "simple_function M X \<Longrightarrow> simple_function M Y \<Longrightarrow> 0 \<le> \<H>(X | Y)"

@@ -538,13 +538,13 @@ proof cases
 next
   assume empty: "\<not> (\<forall>j\<in>I. F j \<noteq> {})"
   then have "(\<Prod>j\<in>I. M.\<mu> j (F j)) = 0"
-    by (auto simp: setprod_extreal_0 intro!: bexI)
+    by (auto simp: setprod_ereal_0 intro!: bexI)
   moreover
   have "\<exists>j\<in>I. (SOME F'. Pi\<^isub>E I F = Pi\<^isub>E I F') j = {}"
     by (rule someI2[where P="\<lambda>F'. Pi\<^isub>E I F = Pi\<^isub>E I F'"])
        (insert empty, auto simp: Pi_eq_empty_iff[symmetric])
   then have "(\<Prod>j\<in>I. M.\<mu> j ((SOME F'. Pi\<^isub>E I F = Pi\<^isub>E I F') j)) = 0"
-    by (auto simp: setprod_extreal_0 intro!: bexI)
+    by (auto simp: setprod_ereal_0 intro!: bexI)
   ultimately show ?thesis
     unfolding product_algebra_generator_def by simp
 qed
@@ -601,7 +601,7 @@ lemma (in product_sigma_finite) product_measure_exists:
 using `finite I` proof induct
   case empty
   interpret finite_product_sigma_finite M "{}" by default simp
-  let ?\<nu> = "(\<lambda>A. if A = {} then 0 else 1) :: 'd set \<Rightarrow> extreal"
+  let ?\<nu> = "(\<lambda>A. if A = {} then 0 else 1) :: 'd set \<Rightarrow> ereal"
   show ?case
   proof (intro exI conjI ballI)
     have "sigma_algebra (sigma G \<lparr>measure := ?\<nu>\<rparr>)"
@@ -858,7 +858,7 @@ proof -
 qed
 
 lemma (in product_sigma_finite) product_positive_integral_setprod:
-  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "finite I" and borel: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
   and pos: "\<And>i x. i \<in> I \<Longrightarrow> 0 \<le> f i x"
   shows "(\<integral>\<^isup>+ x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^isub>M I M) = (\<Prod>i\<in>I. integral\<^isup>P (M i) (f i))"
@@ -874,14 +874,14 @@ next
     using insert by (auto intro!: setprod_cong)
   have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow> (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (Pi\<^isub>M J M)"
     using sets_into_space insert
-    by (intro sigma_algebra.borel_measurable_extreal_setprod sigma_algebra_product_algebra
+    by (intro sigma_algebra.borel_measurable_ereal_setprod sigma_algebra_product_algebra
               measurable_comp[OF measurable_component_singleton, unfolded comp_def])
        auto
   then show ?case
     apply (simp add: product_positive_integral_insert[OF insert(1,2) prod])
-    apply (simp add: insert * pos borel setprod_extreal_pos M.positive_integral_multc)
+    apply (simp add: insert * pos borel setprod_ereal_pos M.positive_integral_multc)
     apply (subst I.positive_integral_cmult)
-    apply (auto simp add: pos borel insert setprod_extreal_pos positive_integral_positive)
+    apply (auto simp add: pos borel insert setprod_ereal_pos positive_integral_positive)
     done
 qed
 
@@ -890,8 +890,8 @@ lemma (in product_sigma_finite) product_integral_singleton:
   shows "(\<integral>x. f (x i) \<partial>Pi\<^isub>M {i} M) = integral\<^isup>L (M i) f"
 proof -
   interpret I: finite_product_sigma_finite M "{i}" by default simp
-  have *: "(\<lambda>x. extreal (f x)) \<in> borel_measurable (M i)"
-    "(\<lambda>x. extreal (- f x)) \<in> borel_measurable (M i)"
+  have *: "(\<lambda>x. ereal (f x)) \<in> borel_measurable (M i)"
+    "(\<lambda>x. ereal (- f x)) \<in> borel_measurable (M i)"
     using assms by auto
   show ?thesis
     unfolding lebesgue_integral_def *[THEN product_positive_integral_singleton] ..
@@ -965,17 +965,17 @@ proof -
   proof (unfold integrable_def, intro conjI)
     show "(\<lambda>x. abs (?f x)) \<in> borel_measurable P"
       using borel by auto
-    have "(\<integral>\<^isup>+x. extreal (abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. (\<Prod>i\<in>I. extreal (abs (f i (x i)))) \<partial>P)"
-      by (simp add: setprod_extreal abs_setprod)
-    also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^isup>+x. extreal (abs (f i x)) \<partial>M i))"
+    have "(\<integral>\<^isup>+x. ereal (abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. (\<Prod>i\<in>I. ereal (abs (f i (x i)))) \<partial>P)"
+      by (simp add: setprod_ereal abs_setprod)
+    also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^isup>+x. ereal (abs (f i x)) \<partial>M i))"
       using f by (subst product_positive_integral_setprod) auto
     also have "\<dots> < \<infinity>"
       using integrable[THEN M.integrable_abs]
       by (simp add: setprod_PInf integrable_def M.positive_integral_positive)
-    finally show "(\<integral>\<^isup>+x. extreal (abs (?f x)) \<partial>P) \<noteq> \<infinity>" by auto
-    have "(\<integral>\<^isup>+x. extreal (- abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. 0 \<partial>P)"
+    finally show "(\<integral>\<^isup>+x. ereal (abs (?f x)) \<partial>P) \<noteq> \<infinity>" by auto
+    have "(\<integral>\<^isup>+x. ereal (- abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. 0 \<partial>P)"
       by (intro positive_integral_cong_pos) auto
-    then show "(\<integral>\<^isup>+x. extreal (- abs (?f x)) \<partial>P) \<noteq> \<infinity>" by simp
+    then show "(\<integral>\<^isup>+x. ereal (- abs (?f x)) \<partial>P) \<noteq> \<infinity>" by simp
   qed
   ultimately show ?thesis
     by (rule integrable_abs_iff[THEN iffD1])
