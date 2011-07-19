@@ -1733,7 +1733,7 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
       1 upto num_args |> map (`I o make_bound_var o string_of_int)
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
-    val sym_needs_arg_types = n > 1 orelse exists (curry (op =) dummyT) T_args
+    val sym_needs_arg_types = exists (curry (op =) dummyT) T_args)
     fun should_keep_arg_type T =
       sym_needs_arg_types orelse
       not (should_predicate_on_type ctxt nonmono_Ts type_enc (K false) T)
