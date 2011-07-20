@@ -373,7 +373,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/SMT/smt_config.ML \
   Tools/SMT/smt_datatypes.ML \
   Tools/SMT/smt_failure.ML \
-  Tools/SMT/smt_monomorph.ML \
   Tools/SMT/smt_normalize.ML \
   Tools/SMT/smt_setup_solvers.ML \
   Tools/SMT/smt_solver.ML \

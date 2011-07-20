@@ -10,7 +10,6 @@ uses
   "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_failure.ML"
   "Tools/SMT/smt_config.ML"
-  ("Tools/SMT/smt_monomorph.ML")
   ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_datatypes.ML")
   ("Tools/SMT/smt_normalize.ML")
@@ -135,7 +134,6 @@ definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 subsection {* Setup *}
 
-use "Tools/SMT/smt_monomorph.ML"
 use "Tools/SMT/smt_builtin.ML"
 use "Tools/SMT/smt_datatypes.ML"
 use "Tools/SMT/smt_normalize.ML"
