@@ -19,7 +19,7 @@ declare size_list_simps[code_pred_def]
 declare size_list_def[symmetric, code_pred_inline]
 
 
-setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
+setup {* Context.theory_map (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals))) *}
 
 datatype alphabet = a | b
 
