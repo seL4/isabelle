@@ -350,7 +350,7 @@ context Truth
 begin
 
 lemma "False"
-quickcheck[expect = no_counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
 oops
 
 end
