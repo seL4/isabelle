@@ -295,7 +295,7 @@ fun intro_explicit_application ctxt funcs ts =
           q $ Abs (x, T, in_trigger (T :: Ts) u)
       | (q as Const (@{const_name Ex}, _), [Abs (x, T, u)]) =>
           q $ Abs (x, T, in_trigger (T :: Ts) u)
-      | (q as Const (@{const_name Let}, _), [u1 as Abs _, u2]) =>
+      | (q as Const (@{const_name Let}, _), [u1, u2 as Abs _]) =>
           q $ traverse Ts u1 $ traverse Ts u2
       | (u as Const (c as (_, T)), ts) =>
           (case SMT_Builtin.dest_builtin ctxt c ts of
@@ -537,12 +537,30 @@ fun translate ctxt comments ithms =
       ((make_tr_context prefixes, ctxt), ts1)
       |-> (if with_datatypes then collect_datatypes_and_records else no_dtyps)
 
+    fun is_binder (Const (@{const_name Let}, _) $ _) = true
+      | is_binder t = Lambda_Lifting.is_quantifier t
+
+    fun mk_trigger ((q as Const (@{const_name All}, _)) $ Abs (n, T, t)) =
+          q $ Abs (n, T, mk_trigger t)
+      | mk_trigger (eq as (Const (@{const_name HOL.eq}, T) $ lhs $ _)) =
+          Term.domain_type T --> @{typ SMT.pattern}
+          |> (fn T => Const (@{const_name SMT.pat}, T) $ lhs)
+          |> HOLogic.mk_list @{typ SMT.pattern} o single
+          |> HOLogic.mk_list @{typ "SMT.pattern list"} o single
+          |> (fn t => @{const SMT.trigger} $ t $ eq)
+      | mk_trigger t = t
+
     val (ctxt2, ts3) =
       ts2
       |> eta_expand ctxt1 is_fol funcs
-      |> Lambda_Lifting.lift_lambdas ctxt1 true
-      ||> (op @)
-      |-> (fn ctxt1' => pair ctxt1' o intro_explicit_application ctxt1 funcs)
+      |> rpair ctxt1
+      |>> tap (map (tracing o PolyML.makestring))
+      |-> Lambda_Lifting.lift_lambdas NONE is_binder
+      |-> (fn (ts', defs) => fn ctxt' =>
+          map mk_trigger defs @ ts'
+          |> tap (map (tracing o PolyML.makestring))
+          |> intro_explicit_application ctxt' funcs 
+          |> pair ctxt')
 
     val ((rewrite_rules, extra_thms, builtin), ts4) =
       (if is_fol then folify ctxt2 else pair ([], [], I)) ts3

@@ -7,13 +7,13 @@ header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 theory SMT
 imports Record
 uses
+  "Tools/lambda_lifting.ML"
   "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_failure.ML"
   "Tools/SMT/smt_config.ML"
   ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_datatypes.ML")
   ("Tools/SMT/smt_normalize.ML")
-  ("Tools/lambda_lifting.ML")
   ("Tools/SMT/smt_translate.ML")
   ("Tools/SMT/smt_solver.ML")
   ("Tools/SMT/smtlib_interface.ML")
@@ -138,7 +138,6 @@ subsection {* Setup *}
 use "Tools/SMT/smt_builtin.ML"
 use "Tools/SMT/smt_datatypes.ML"
 use "Tools/SMT/smt_normalize.ML"
-use "Tools/lambda_lifting.ML"
 use "Tools/SMT/smt_translate.ML"
 use "Tools/SMT/smt_solver.ML"
 use "Tools/SMT/smtlib_interface.ML"
