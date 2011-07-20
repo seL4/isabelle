@@ -286,9 +286,8 @@ fun equals_rsp_tac R ctxt =
 fun rep_abs_rsp_tac ctxt =
   SUBGOAL (fn (goal, i) =>
     (case try bare_concl goal of
-      SOME (rel $ _ $ (rep $ (Bound _ $ _))) => no_tac
-    | SOME (rel $ _ $ (rep $ (abs $ _))) =>
-        let
+      SOME (rel $ _ $ (rep $ (abs $ _))) =>
+        (let
           val thy = Proof_Context.theory_of ctxt;
           val (ty_a, ty_b) = dest_funT (fastype_of abs);
           val ty_inst = map (SOME o (ctyp_of thy)) [ty_a, ty_b];
@@ -300,8 +299,8 @@ fun rep_abs_rsp_tac ctxt =
               | NONE => no_tac)
           | NONE => no_tac
         end
+        handle TERM _ => no_tac)
     | _ => no_tac))
-
 
 
 (* Injection means to prove that the regularized theorem implies
