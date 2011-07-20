@@ -75,6 +75,15 @@ lemma
     and MInfty_cases[simp]: "(case - \<infinity> of ereal r \<Rightarrow> f r | PInfty \<Rightarrow> y | MInfty \<Rightarrow> z) = z"
   by (simp_all add: infinity_ereal_def)
 
+declare
+  PInfty_eq_infinity[code_post]
+  MInfty_eq_minfinity[code_post]
+
+lemma [code_unfold]:
+  "\<infinity> = PInfty"
+  "-PInfty = MInfty"
+  by simp_all
+
 lemma inj_ereal[simp]: "inj_on ereal A"
   unfolding inj_on_def by auto
 
@@ -2539,5 +2548,15 @@ lemma ereal_max_mono:
 lemma ereal_max_least:
   "[| (a::ereal) <= x; c <= x |] ==> max a c <= x"
   by (metis sup_ereal_def sup_least)
+
+subsubsection {* Tests for code generator *}
+
+(* A small list of simple arithmetic expressions *)
+
+value [code] "- \<infinity> :: ereal"
+value [code] "\<bar>-\<infinity>\<bar> :: ereal"
+value [code] "4 + 5 / 4 - ereal 2 :: ereal"
+value [code] "ereal 3 < \<infinity>"
+value [code] "real (\<infinity>::ereal) = 0"
 
 end

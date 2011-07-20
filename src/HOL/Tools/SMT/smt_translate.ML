@@ -554,11 +554,9 @@ fun translate ctxt comments ithms =
       ts2
       |> eta_expand ctxt1 is_fol funcs
       |> rpair ctxt1
-      |>> tap (map (tracing o PolyML.makestring))
       |-> Lambda_Lifting.lift_lambdas NONE is_binder
       |-> (fn (ts', defs) => fn ctxt' =>
           map mk_trigger defs @ ts'
-          |> tap (map (tracing o PolyML.makestring))
           |> intro_explicit_application ctxt' funcs 
           |> pair ctxt')
 
