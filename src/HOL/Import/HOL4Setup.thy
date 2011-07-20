@@ -2,7 +2,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4Setup imports MakeEqual ImportRecorder
+theory HOL4Setup imports MakeEqual
   uses ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import.ML") begin
 
 section {* General Setup *}

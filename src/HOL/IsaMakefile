@@ -555,13 +555,11 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 ## HOL-Import
 
 IMPORTER_FILES = \
-  Import/ImportRecorder.thy Import/HOL4Compat.thy \
+  Import/HOL4Compat.thy \
   Import/HOLLightCompat.thy Import/HOL4Setup.thy Import/HOL4Syntax.thy \
   Import/MakeEqual.thy Import/ROOT.ML Import/hol4rews.ML \
-  Import/import.ML Import/importrecorder.ML Import/import_syntax.ML \
-  Import/lazy_seq.ML Import/mono_scan.ML Import/mono_seq.ML \
-  Import/proof_kernel.ML Import/replay.ML Import/scan.ML Import/seq.ML \
-  Import/shuffler.ML Import/xml.ML Import/xmlconv.ML \
+  Import/import.ML Import/import_syntax.ML \
+  Import/proof_kernel.ML Import/replay.ML Import/shuffler.ML \
   Library/ContNotDenum.thy Old_Number_Theory/Primes.thy
 
 HOL-Import: HOL $(LOG)/HOL-Import.gz

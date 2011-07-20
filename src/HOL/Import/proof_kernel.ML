@@ -129,7 +129,7 @@ fun hthm2thm (HOLThm (_, th)) = th
 fun to_hol_thm th = HOLThm ([], th)
 
 val replay_add_dump = add_dump
-fun add_dump s thy = (ImportRecorder.add_dump s; replay_add_dump s thy)
+fun add_dump s thy = replay_add_dump s thy
 
 datatype proof_info
   = Info of {disk_info: (string * string) option Unsynchronized.ref}
@@ -303,85 +303,14 @@ fun get_segment thyname l = (Lib.assoc "s" l
                              handle PK _ => thyname)
 val get_name : (string * string) list -> string = Lib.assoc "n"
 
-local
-    open LazyScan
-    infix 7 |-- --|
-    infix 5 :-- -- ^^
-    infix 3 >>
-    infix 0 ||
-in
 exception XML of string
 
 datatype xml = Elem of string * (string * string) list * xml list
 datatype XMLtype = XMLty of xml | FullType of hol_type
 datatype XMLterm = XMLtm of xml | FullTerm of term
 
-fun pair x y = (x,y)
-
-fun scan_id toks =
-    let
-        val (x,toks2) = one Char.isAlpha toks
-        val (xs,toks3) = any Char.isAlphaNum toks2
-    in
-        (String.implode (x::xs),toks3)
-    end
-
-fun scan_string str c =
-    let
-        fun F [] toks = (c,toks)
-          | F (c::cs) toks =
-            case LazySeq.getItem toks of
-                SOME(c',toks') =>
-                if c = c'
-                then F cs toks'
-                else raise SyntaxError
-              | NONE => raise SyntaxError
-    in
-        F (String.explode str)
-    end
-
-local
-    val scan_entity =
-        (scan_string "amp;" #"&")
-            || scan_string "quot;" #"\""
-            || scan_string "gt;" #">"
-            || scan_string "lt;" #"<"
-            || scan_string "apos;" #"'"
-in
-fun scan_nonquote toks =
-    case LazySeq.getItem toks of
-        SOME (c,toks') =>
-        (case c of
-             #"\"" => raise SyntaxError
-           | #"&" => scan_entity toks'
-           | c => (c,toks'))
-      | NONE => raise SyntaxError
-end
-
-val scan_string = $$ #"\"" |-- repeat scan_nonquote --| $$ #"\"" >>
-                     String.implode
-
-val scan_attribute = scan_id -- $$ #"=" |-- scan_string
-
-val scan_start_of_tag = $$ #"<" |-- scan_id --
-                           repeat ($$ #" " |-- scan_attribute)
-
-fun scan_end_of_tag toks = ($$ #"/" |-- $$ #">" |-- succeed []) toks
-
-val scan_end_tag = $$ #"<" |-- $$ #"/" |-- scan_id --| $$ #">"
-
-fun scan_children id = $$ #">" |-- repeat scan_tag -- scan_end_tag >>
-                       (fn (chldr,id') => if id = id'
-                                          then chldr
-                                          else raise XML "Tag mismatch")
-and scan_tag toks =
-    let
-        val ((id,atts),toks2) = scan_start_of_tag toks
-        val (chldr,toks3) = (scan_children id || scan_end_of_tag) toks2
-    in
-        (Elem (id,atts,chldr),toks3)
-    end
-end
+fun xml_to_import_xml (XML.Elem ((n, l), ts)) = Elem (n, l, map xml_to_import_xml ts)
+  | xml_to_import_xml (XML.Text _) = raise XML "Incorrect proof file: text";
 
 val type_of = Term.type_of
 
@@ -473,7 +402,6 @@ fun protect_varname s =
       let
           val _ = Unsynchronized.inc invented_isavar
           val t = "u_" ^ string_of_int (!invented_isavar)
-          val _ = ImportRecorder.protect_varname s t
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
       in
           t
@@ -927,7 +855,7 @@ fun xml_to_proof thyname types terms prf thy =
 fun import_proof_concl thyname thmname thy =
     let
         val is = TextIO.openIn(proof_file_name thyname thmname thy)
-        val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
+        val proof_xml = xml_to_import_xml (XML.parse (TextIO.inputAll is))
         val _ = TextIO.closeIn is
     in
         case proof_xml of
@@ -948,7 +876,7 @@ fun import_proof_concl thyname thmname thy =
 fun import_proof thyname thmname thy =
     let
         val is = TextIO.openIn(proof_file_name thyname thmname thy)
-        val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
+        val proof_xml = xml_to_import_xml (XML.parse (TextIO.inputAll is))
         val _ = TextIO.closeIn is
     in
         case proof_xml of
@@ -1292,8 +1220,6 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                         val hth as HOLThm args = mk_res th
                         val thy' =  thy |> add_hol4_theorem thyname thmname args
                                         |> add_hol4_mapping thyname thmname isaname
-                        val _ = ImportRecorder.add_hol_theorem thyname thmname (snd args)
-                        val _ = ImportRecorder.add_hol_mapping thyname thmname isaname
                     in
                         (thy',SOME hth)
                     end
@@ -1364,7 +1290,6 @@ fun intern_store_thm gen_output thyname thmname hth thy =
         val rew = rewrite_hol4_term (concl_of th) thy
         val th  = Thm.equal_elim rew th
         val thy' = add_hol4_pending thyname thmname args thy
-        val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
         val th = disambiguate_frees th
         val th = Object_Logic.rulify th
         val thy2 =
@@ -1920,17 +1845,14 @@ fun new_definition thyname constname rhs thy =
         val csyn = mk_syn thy constname
         val thy1 = case HOL4DefThy.get thy of
                        Replaying _ => thy
-                     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)];
-                              Sign.add_consts_i [(Binding.name constname,ctype,csyn)] thy)
+                     | _ => Sign.add_consts_i [(Binding.name constname,ctype,csyn)] thy
         val eq = mk_defeq constname rhs' thy1
         val (thms, thy2) = Global_Theory.add_defs false [((Binding.name thmname,eq),[])] thy1
-        val _ = ImportRecorder.add_defs thmname eq
         val def_thm = hd thms
         val thm' = def_thm RS meta_eq_to_obj_eq_thm
         val (thy',th) = (thy2, thm')
         val fullcname = Sign.intern_const thy' constname
         val thy'' = add_hol4_const_mapping thyname constname true fullcname thy'
-        val _ = ImportRecorder.add_hol_const_mapping thyname constname fullcname
         val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
         val rew = rewrite_hol4_term eq thy''
         val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
@@ -1958,13 +1880,10 @@ fun new_definition thyname constname rhs thy =
                     | NONE => raise ERR "new_definition" "Bad conclusion"
         val fullname = Sign.full_bname thy22 thmname
         val thy22' = case opt_get_output_thy thy22 of
-                         "" => (ImportRecorder.add_hol_mapping thyname thmname fullname;
-                                add_hol4_mapping thyname thmname fullname thy22)
+                         "" => add_hol4_mapping thyname thmname fullname thy22
                        | output_thy =>
                          let
                              val moved_thmname = output_thy ^ "." ^ thyname ^ "." ^ thmname
-                             val _ = ImportRecorder.add_hol_move fullname moved_thmname
-                             val _ = ImportRecorder.add_hol_mapping thyname thmname moved_thmname
                          in
                              thy22 |> add_hol4_move fullname moved_thmname
                                    |> add_hol4_mapping thyname thmname moved_thmname
@@ -2012,7 +1931,6 @@ fun new_specification thyname thmname names hth thy =
                                    acc ^ "\n  " ^ quotename c ^ " :: \"" ^
                                    Syntax.string_of_typ_global thy T ^ "\" " ^ string_of_mixfix csyn) ("consts", consts)
                                val thy' = add_dump str thy
-                               val _ = ImportRecorder.add_consts consts
                            in
                                Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) consts) thy'
                            end
@@ -2024,7 +1942,6 @@ fun new_specification thyname thmname names hth thy =
             val (thy',res) = Choice_Specification.add_specification NONE
                                  names'
                                  (thy1,th)
-            val _ = ImportRecorder.add_specification names' th
             val res' = Thm.unvarify_global res
             val hth = HOLThm(rens,res')
             val rew = rewrite_hol4_term (concl_of res') thy'
@@ -2092,19 +2009,16 @@ fun new_type_definition thyname thmname tycname hth thy =
             val ((_, typedef_info), thy') =
               Typedef.add_typedef_global false (SOME (Binding.name thmname))
                 (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c NONE (rtac th2 1) thy
-            val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
             val th3 = (#type_definition (#2 typedef_info)) RS typedef_hol2hol4
 
             val fulltyname = Sign.intern_type thy' tycname
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
-            val _ = ImportRecorder.add_hol_type_mapping thyname tycname fulltyname
 
             val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th3))
             val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
                     else ()
             val thy4 = add_hol4_pending thyname thmname args thy''
-            val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
 
             val rew = rewrite_hol4_term (concl_of td_th) thy4
             val th  = Thm.equal_elim rew (Thm.transfer thy4 td_th)
@@ -2169,7 +2083,6 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
               Typedef.add_typedef_global false NONE
                 (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c
                 (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
-            val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
             val fulltyname = Sign.intern_type thy' tycname
             val aty = Type (fulltyname, map mk_vartype tnames)
             val abs_ty = tT --> aty
@@ -2186,11 +2099,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
               raise ERR "type_introduction" "no term variables expected any more"
             val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
-            val _ = ImportRecorder.add_hol_type_mapping thyname tycname fulltyname
             val _ = message "step 4"
             val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th4))
             val thy4 = add_hol4_pending thyname thmname args thy''
-            val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
 
             val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
             val c   =
