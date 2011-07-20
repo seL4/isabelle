@@ -285,9 +285,9 @@ fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
             end 
       in with_size 0 end
   in
-    Quickcheck.limit timeout (limit_time, is_interactive) 
-      (fn () => with_tmp_dir tmp_prefix run)
-      (fn () => (message (excipit ()); (NONE, !current_result))) ()
+    (*Quickcheck.limit timeout (limit_time, is_interactive) 
+      (fn () =>*) with_tmp_dir tmp_prefix run
+      (*(fn () => (message (excipit ()); (NONE, !current_result))) ()*)
   end;
 
 fun dynamic_value_strict opts cookie thy postproc t =

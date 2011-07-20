@@ -319,7 +319,7 @@ fun test_term compile ctxt (limit_time, is_interactive) (t, eval_terms) =
           case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
   in
-    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
+    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
       let
         val (test_fun, comp_time) = cpu_time "quickcheck compilation"
           (fn () => compile ctxt [(t, eval_terms)]);
@@ -329,7 +329,7 @@ fun test_term compile ctxt (limit_time, is_interactive) (t, eval_terms) =
         val _ = add_response names eval_terms response current_result
         val _ = add_timing exec_time current_result
       in !current_result end)
-    (fn () => (message (excipit ()); !current_result)) ()
+(*    (fn () => (message (excipit ()); !current_result)) ()*)
   end;
 
 fun validate_terms ctxt ts =
@@ -399,7 +399,7 @@ fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interacti
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
   in
-    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
+    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
       let
         val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => compile ctxt ts)
         val _ = add_timing comp_time current_result     
@@ -407,7 +407,7 @@ fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interacti
           SOME (card, ts) => add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
         | NONE => ()
       in !current_result end)
-      (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
+      (*(fn () => (message "Quickcheck ran out of time"; !current_result)) ()*)
   end
 
 fun get_finite_types ctxt =
@@ -490,14 +490,18 @@ fun generator_test_goal_terms compile ctxt (limit_time, is_interactive) insts go
       collect_results (test_term compile ctxt (limit_time, is_interactive))
         (maps (map snd) correct_inst_goals) []
   end;
+
+fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s
   
 fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
   case active_testers ctxt of
     [] => error "No active testers for quickcheck"
-  | testers => testers |> Par_List.get_some (fn tester =>
+  | testers => limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
+      (fn () => Par_List.get_some (fn tester =>
       tester ctxt (limit_time, is_interactive) insts goals |>
-      (fn result => if exists found_counterexample result then SOME result else NONE))
-
+      (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
+      (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ();
+      
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
