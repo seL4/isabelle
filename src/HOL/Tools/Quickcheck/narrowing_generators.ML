@@ -458,7 +458,9 @@ fun test_goals ctxt (limit_time, is_interactive) insts goals =
   else
     (if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message
       ("Environment variable ISABELLE_GHC is not set. To use narrowing-based quickcheck, please set "
-        ^ "this variable to your GHC Haskell compiler in your settings file."); [Quickcheck.empty_result])
+        ^ "this variable to your GHC Haskell compiler in your settings file. "
+        ^ "To deactivate narrowing-based quickcheck, set quickcheck_narrowing_active to false.");
+      [Quickcheck.empty_result])
 
 (* setup *)
 
