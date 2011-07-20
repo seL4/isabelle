@@ -23,6 +23,7 @@ sig
   val timeout : real Config.T
   val finite_types : bool Config.T
   val finite_type_size : int Config.T
+  val set_active_testers: string list -> Context.generic -> Context.generic
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of {default_type: typ list, expect : expectation};
   val test_params_of : Proof.context -> test_params
