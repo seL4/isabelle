@@ -12,6 +12,7 @@ images: \
   HOL-Library \
   HOL-Algebra \
   HOL-Boogie \
+  HOL-IMP \
   HOL-Multivariate_Analysis \
   HOL-NSA \
   HOL-Nominal \
@@ -39,7 +40,6 @@ test: \
       HOLCF-Library \
       HOLCF-Tutorial \
       HOLCF-ex \
-  HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
       IOA-ABP \
@@ -526,9 +526,9 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy		\
 
 ## HOL-IMP
 
-HOL-IMP: HOL $(LOG)/HOL-IMP.gz
+HOL-IMP: HOL $(OUT)/HOL-IMP
 
-$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
+$(OUT)/HOL-IMP: $(OUT)/HOL IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
   IMP/Big_Step.thy IMP/C_like.thy IMP/Com.thy IMP/Compiler.thy \
   IMP/Comp_Rev.thy IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
   IMP/Def_Ass_Small.thy IMP/Def_Ass_Sound_Big.thy \
@@ -540,7 +540,7 @@ $(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
   IMP/Sec_TypingT.thy IMP/Small_Step.thy IMP/Star.thy IMP/Types.thy \
   IMP/Util.thy IMP/VC.thy IMP/Vars.thy \
   IMP/ROOT.ML IMP/document/root.tex IMP/document/root.bib
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL IMP
+	@cd IMP && $(ISABELLE_TOOL) usedir -g true -b $(OUT)/HOL HOL-IMP
 
 
 ## HOL-IMPP
@@ -1772,7 +1772,7 @@ clean:
 		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
 		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
 		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
-		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
+		$(OUT)/HOL-IMP $(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
 		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
 		$(OUT)/HOL-SPARK					\
