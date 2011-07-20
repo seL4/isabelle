@@ -291,7 +291,7 @@ proof -
         (if x \<in> space M1 then measure M2 (space M2) - ?s A x else 0)"
       by (auto intro!: M2.measure_compl simp: vimage_Diff)
     with `A \<in> sets ?D` top show "space ?D - A \<in> sets ?D"
-      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_extreal_diff)
+      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_ereal_diff)
   next
     fix F :: "nat \<Rightarrow> ('a\<times>'b) set" assume "disjoint_family F" "range F \<subseteq> sets ?D"
     moreover then have "\<And>x. measure M2 (\<Union>i. Pair x -` F i) = (\<Sum>i. ?s (F i) x)"
@@ -401,7 +401,7 @@ lemma (in pair_sigma_finite) pair_measure_alt:
   apply (simp add: pair_measure_def pair_measure_generator_def)
 proof (rule M1.positive_integral_cong)
   fix x assume "x \<in> space M1"
-  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: extreal)"
+  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: ereal)"
     unfolding indicator_def by auto
   show "(\<integral>\<^isup>+ y. indicator A (x, y) \<partial>M2) = measure M2 (Pair x -` A)"
     unfolding *
@@ -656,7 +656,7 @@ proof -
   show "(\<lambda>x. \<integral>\<^isup>+y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
     and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f" using f(2)
     by (auto simp del: vimage_Int cong: measurable_cong
-             intro!: M1.borel_measurable_extreal_setsum setsum_cong
+             intro!: M1.borel_measurable_ereal_setsum setsum_cong
              simp add: M1.positive_integral_setsum simple_integral_def
                        M1.positive_integral_cmult
                        M1.positive_integral_cong[OF eq]
@@ -760,7 +760,7 @@ proof -
     show "M1.\<mu> {x\<in>space M1. M2.\<mu> (Pair x -` N) \<noteq> 0} = 0"
       by (auto simp: pair_measure_alt M1.positive_integral_0_iff)
     show "{x \<in> space M1. M2.\<mu> (Pair x -` N) \<noteq> 0} \<in> sets M1"
-      by (intro M1.borel_measurable_extreal_neq_const measure_cut_measurable_fst N)
+      by (intro M1.borel_measurable_ereal_neq_const measure_cut_measurable_fst N)
     { fix x assume "x \<in> space M1" "M2.\<mu> (Pair x -` N) = 0"
       have "M2.almost_everywhere (\<lambda>y. Q (x, y))"
       proof (rule M2.AE_I)
@@ -822,45 +822,45 @@ lemma (in pair_sigma_finite) integrable_fst_measurable:
   shows "M1.almost_everywhere (\<lambda>x. integrable M2 (\<lambda> y. f (x, y)))" (is "?AE")
     and "(\<integral>x. (\<integral>y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>L P f" (is "?INT")
 proof -
-  let "?pf x" = "extreal (f x)" and "?nf x" = "extreal (- f x)"
+  let "?pf x" = "ereal (f x)" and "?nf x" = "ereal (- f x)"
   have
     borel: "?nf \<in> borel_measurable P""?pf \<in> borel_measurable P" and
     int: "integral\<^isup>P P ?nf \<noteq> \<infinity>" "integral\<^isup>P P ?pf \<noteq> \<infinity>"
     using assms by auto
-  have "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
-     "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
+  have "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. ereal (f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
+     "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. ereal (- f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
     using borel[THEN positive_integral_fst_measurable(1)] int
     unfolding borel[THEN positive_integral_fst_measurable(2)] by simp_all
   with borel[THEN positive_integral_fst_measurable(1)]
-  have AE_pos: "AE x in M1. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<noteq> \<infinity>"
-    "AE x in M1. (\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2) \<noteq> \<infinity>"
+  have AE_pos: "AE x in M1. (\<integral>\<^isup>+y. ereal (f (x, y)) \<partial>M2) \<noteq> \<infinity>"
+    "AE x in M1. (\<integral>\<^isup>+y. ereal (- f (x, y)) \<partial>M2) \<noteq> \<infinity>"
     by (auto intro!: M1.positive_integral_PInf_AE )
-  then have AE: "AE x in M1. \<bar>\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
-    "AE x in M1. \<bar>\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
+  then have AE: "AE x in M1. \<bar>\<integral>\<^isup>+y. ereal (f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
+    "AE x in M1. \<bar>\<integral>\<^isup>+y. ereal (- f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
     by (auto simp: M2.positive_integral_positive)
   from AE_pos show ?AE using assms
     by (simp add: measurable_pair_image_snd integrable_def)
-  { fix f have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. extreal (f x y) \<partial>M2 \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
+  { fix f have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. ereal (f x y) \<partial>M2 \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
       using M2.positive_integral_positive
-      by (intro M1.positive_integral_cong_pos) (auto simp: extreal_uminus_le_reorder)
-    then have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. extreal (f x y) \<partial>M2 \<partial>M1) = 0" by simp }
+      by (intro M1.positive_integral_cong_pos) (auto simp: ereal_uminus_le_reorder)
+    then have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. ereal (f x y) \<partial>M2 \<partial>M1) = 0" by simp }
   note this[simp]
-  { fix f assume borel: "(\<lambda>x. extreal (f x)) \<in> borel_measurable P"
-      and int: "integral\<^isup>P P (\<lambda>x. extreal (f x)) \<noteq> \<infinity>"
-      and AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<noteq> \<infinity>)"
-    have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
+  { fix f assume borel: "(\<lambda>x. ereal (f x)) \<in> borel_measurable P"
+      and int: "integral\<^isup>P P (\<lambda>x. ereal (f x)) \<noteq> \<infinity>"
+      and AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. ereal (f (x, y)) \<partial>M2) \<noteq> \<infinity>)"
+    have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. ereal (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
     proof (intro integrable_def[THEN iffD2] conjI)
       show "?f \<in> borel_measurable M1"
-        using borel by (auto intro!: M1.borel_measurable_real_of_extreal positive_integral_fst_measurable)
-      have "(\<integral>\<^isup>+x. extreal (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (f (x, y))  \<partial>M2) \<partial>M1)"
+        using borel by (auto intro!: M1.borel_measurable_real_of_ereal positive_integral_fst_measurable)
+      have "(\<integral>\<^isup>+x. ereal (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. ereal (f (x, y))  \<partial>M2) \<partial>M1)"
         using AE M2.positive_integral_positive
-        by (auto intro!: M1.positive_integral_cong_AE simp: extreal_real)
-      then show "(\<integral>\<^isup>+x. extreal (?f x) \<partial>M1) \<noteq> \<infinity>"
+        by (auto intro!: M1.positive_integral_cong_AE simp: ereal_real)
+      then show "(\<integral>\<^isup>+x. ereal (?f x) \<partial>M1) \<noteq> \<infinity>"
         using positive_integral_fst_measurable[OF borel] int by simp
-      have "(\<integral>\<^isup>+x. extreal (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
+      have "(\<integral>\<^isup>+x. ereal (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
         by (intro M1.positive_integral_cong_pos)
-           (simp add: M2.positive_integral_positive real_of_extreal_pos)
-      then show "(\<integral>\<^isup>+x. extreal (- ?f x) \<partial>M1) \<noteq> \<infinity>" by simp
+           (simp add: M2.positive_integral_positive real_of_ereal_pos)
+      then show "(\<integral>\<^isup>+x. ereal (- ?f x) \<partial>M1) \<noteq> \<infinity>" by simp
     qed }
   with this[OF borel(1) int(1) AE_pos(2)] this[OF borel(2) int(2) AE_pos(1)]
   show ?INT

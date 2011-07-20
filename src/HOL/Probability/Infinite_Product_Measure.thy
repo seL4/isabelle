@@ -563,7 +563,7 @@ next
             using `0 \<le> ?a` Q_sets J'.measure_space_1
             by (subst J'.positive_integral_add) auto
           finally show "?a / 2^(k+1) \<le> measure (Pi\<^isub>M J' M) (?Q n)" using `?a \<le> 1`
-            by (cases rule: extreal2_cases[of ?a "measure (Pi\<^isub>M J' M) (?Q n)"])
+            by (cases rule: ereal2_cases[of ?a "measure (Pi\<^isub>M J' M) (?Q n)"])
                (auto simp: field_simps)
         qed
         also have "\<dots> = measure (Pi\<^isub>M J' M) (\<Inter>n. ?Q n)"
@@ -712,7 +712,7 @@ next
       with `(\<Inter>i. A i) = {}` show False by auto
     qed
     ultimately show "(\<lambda>i. \<mu>G (A i)) ----> 0"
-      using LIMSEQ_extreal_INFI[of "\<lambda>i. \<mu>G (A i)"] by simp
+      using LIMSEQ_ereal_INFI[of "\<lambda>i. \<mu>G (A i)"] by simp
   qed
 qed
 
@@ -812,7 +812,7 @@ lemma (in finite_product_prob_space) finite_measure_times:
   using assms
   unfolding \<mu>'_def M.\<mu>'_def
   by (subst measure_times[OF assms])
-     (auto simp: finite_measure_eq M.finite_measure_eq setprod_extreal)
+     (auto simp: finite_measure_eq M.finite_measure_eq setprod_ereal)
 
 lemma (in product_prob_space) finite_measure_infprod_emb_Pi:
   assumes J: "finite J" "J \<subseteq> I" "\<And>j. j \<in> J \<Longrightarrow> X j \<in> sets (M j)"

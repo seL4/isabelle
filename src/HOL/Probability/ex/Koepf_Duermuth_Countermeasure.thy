@@ -201,13 +201,13 @@ locale finite_information =
 lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
    by (auto intro!: setsum_nonneg)
 
-sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>"
+sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>"
   by (rule finite_measure_spaceI) (simp_all add: setsum_Un_disjoint finite_subset)
 
-sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>"
-  by default (simp add: one_extreal_def)
+sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>"
+  by default (simp add: one_ereal_def)
 
-sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>" b
+sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. ereal (setsum p S)\<rparr>" b
   by default simp
 
 lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> \<mu>' A = setsum p A"

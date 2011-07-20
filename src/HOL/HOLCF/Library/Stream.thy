@@ -5,7 +5,7 @@
 header {* General Stream domain *}
 
 theory Stream
-imports HOLCF "~~/src/HOL/Library/Nat_Infinity"
+imports HOLCF "~~/src/HOL/Library/Extended_Nat"
 begin
 
 default_sort pcpo
@@ -22,8 +22,8 @@ definition
                                      If p\<cdot>x then x && h\<cdot>p\<cdot>xs else h\<cdot>p\<cdot>xs)"
 
 definition
-  slen :: "'a stream \<Rightarrow> inat"  ("#_" [1000] 1000) where
-  "#s = (if stream_finite s then Fin (LEAST n. stream_take n\<cdot>s = s) else \<infinity>)"
+  slen :: "'a stream \<Rightarrow> enat"  ("#_" [1000] 1000) where
+  "#s = (if stream_finite s then enat (LEAST n. stream_take n\<cdot>s = s) else \<infinity>)"
 
 
 (* concatenation *)
@@ -39,7 +39,7 @@ definition
 definition
   sconc :: "'a stream => 'a stream => 'a stream"  (infixr "ooo" 65) where
   "s1 ooo s2 = (case #s1 of
-                  Fin n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
+                  enat n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
                | \<infinity>     \<Rightarrow> s1)"
 
 primrec constr_sconc' :: "nat => 'a stream => 'a stream => 'a stream"
@@ -51,7 +51,7 @@ where
 definition
   constr_sconc  :: "'a stream => 'a stream => 'a stream" where (* constructive *)
   "constr_sconc s1 s2 = (case #s1 of
-                          Fin n \<Rightarrow> constr_sconc' n s1 s2
+                          enat n \<Rightarrow> constr_sconc' n s1 s2
                         | \<infinity>    \<Rightarrow> s1)"
 
 
@@ -327,12 +327,12 @@ done
 section "slen"
 
 lemma slen_empty [simp]: "#\<bottom> = 0"
-by (simp add: slen_def stream.finite_def zero_inat_def Least_equality)
+by (simp add: slen_def stream.finite_def zero_enat_def Least_equality)
 
 lemma slen_scons [simp]: "x ~= \<bottom> ==> #(x&&xs) = iSuc (#xs)"
 apply (case_tac "stream_finite (x && xs)")
 apply (simp add: slen_def, auto)
-apply (simp add: stream.finite_def, auto simp add: iSuc_Fin)
+apply (simp add: stream.finite_def, auto simp add: iSuc_enat)
 apply (rule Least_Suc2, auto)
 (*apply (drule sym)*)
 (*apply (drule sym scons_eq_UU [THEN iffD1],simp)*)
@@ -340,13 +340,13 @@ apply (erule stream_finite_lemma2, simp)
 apply (simp add: slen_def, auto)
 by (drule stream_finite_lemma1,auto)
 
-lemma slen_less_1_eq: "(#x < Fin (Suc 0)) = (x = \<bottom>)"
-by (cases x, auto simp add: Fin_0 iSuc_Fin[THEN sym])
+lemma slen_less_1_eq: "(#x < enat (Suc 0)) = (x = \<bottom>)"
+by (cases x, auto simp add: enat_0 iSuc_enat[THEN sym])
 
 lemma slen_empty_eq: "(#x = 0) = (x = \<bottom>)"
 by (cases x, auto)
 
-lemma slen_scons_eq: "(Fin (Suc n) < #x) = (? a y. x = a && y &  a ~= \<bottom> &  Fin n < #y)"
+lemma slen_scons_eq: "(enat (Suc n) < #x) = (? a y. x = a && y &  a ~= \<bottom> &  enat n < #y)"
 apply (auto, case_tac "x=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (case_tac "#y") apply simp_all
@@ -359,18 +359,18 @@ by (cases x, auto)
 lemma slen_stream_take_finite [simp]: "#(stream_take n$s) ~= \<infinity>"
 by (simp add: slen_def)
 
-lemma slen_scons_eq_rev: "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < Fin (Suc n))"
+lemma slen_scons_eq_rev: "(#x < enat (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < enat (Suc n))"
  apply (cases x, auto)
-   apply (simp add: zero_inat_def)
-  apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
- apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
+   apply (simp add: zero_enat_def)
+  apply (case_tac "#stream") apply (simp_all add: iSuc_enat)
+ apply (case_tac "#stream") apply (simp_all add: iSuc_enat)
 done
 
 lemma slen_take_lemma4 [rule_format]:
-  "!s. stream_take n$s ~= s --> #(stream_take n$s) = Fin n"
-apply (induct n, auto simp add: Fin_0)
+  "!s. stream_take n$s ~= s --> #(stream_take n$s) = enat n"
+apply (induct n, auto simp add: enat_0)
 apply (case_tac "s=UU", simp)
-by (drule stream_exhaust_eq [THEN iffD1], auto simp add: iSuc_Fin)
+by (drule stream_exhaust_eq [THEN iffD1], auto simp add: iSuc_enat)
 
 (*
 lemma stream_take_idempotent [simp]:
@@ -390,41 +390,41 @@ apply (subgoal_tac "stream_take n$s = stream_take n$(stream_take n$s)")
 by (simp add: chain_def,simp)
 *)
 
-lemma slen_take_eq: "ALL x. (Fin n < #x) = (stream_take n\<cdot>x ~= x)"
+lemma slen_take_eq: "ALL x. (enat n < #x) = (stream_take n\<cdot>x ~= x)"
 apply (induct_tac n, auto)
-apply (simp add: Fin_0, clarsimp)
+apply (simp add: enat_0, clarsimp)
 apply (drule not_sym)
 apply (drule slen_empty_eq [THEN iffD1], simp)
 apply (case_tac "x=UU", simp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
 apply (erule_tac x="y" in allE, auto)
-apply (simp_all add: not_less iSuc_Fin)
+apply (simp_all add: not_less iSuc_enat)
 apply (case_tac "#y") apply simp_all
 apply (case_tac "x=UU", simp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
 apply (erule_tac x="y" in allE, simp)
 apply (case_tac "#y") by simp_all
 
-lemma slen_take_eq_rev: "(#x <= Fin n) = (stream_take n\<cdot>x = x)"
+lemma slen_take_eq_rev: "(#x <= enat n) = (stream_take n\<cdot>x = x)"
 by (simp add: linorder_not_less [symmetric] slen_take_eq)
 
-lemma slen_take_lemma1: "#x = Fin n ==> stream_take n\<cdot>x = x"
+lemma slen_take_lemma1: "#x = enat n ==> stream_take n\<cdot>x = x"
 by (rule slen_take_eq_rev [THEN iffD1], auto)
 
 lemma slen_rt_mono: "#s2 <= #s1 ==> #(rt$s2) <= #(rt$s1)"
 apply (cases s1)
  by (cases s2, simp+)+
 
-lemma slen_take_lemma5: "#(stream_take n$s) <= Fin n"
+lemma slen_take_lemma5: "#(stream_take n$s) <= enat n"
 apply (case_tac "stream_take n$s = s")
  apply (simp add: slen_take_eq_rev)
 by (simp add: slen_take_lemma4)
 
-lemma slen_take_lemma2: "!x. ~stream_finite x --> #(stream_take i\<cdot>x) = Fin i"
+lemma slen_take_lemma2: "!x. ~stream_finite x --> #(stream_take i\<cdot>x) = enat i"
 apply (simp add: stream.finite_def, auto)
 by (simp add: slen_take_lemma4)
 
-lemma slen_infinite: "stream_finite x = (#x ~= Infty)"
+lemma slen_infinite: "stream_finite x = (#x ~= \<infinity>)"
 by (simp add: slen_def)
 
 lemma slen_mono_lemma: "stream_finite s ==> ALL t. s << t --> #s <= #t"
@@ -443,19 +443,19 @@ by (simp add: slen_def)
 lemma iterate_lemma: "F$(iterate n$F$x) = iterate n$F$(F$x)"
 by (insert iterate_Suc2 [of n F x], auto)
 
-lemma slen_rt_mult [rule_format]: "!x. Fin (i + j) <= #x --> Fin j <= #(iterate i$rt$x)"
+lemma slen_rt_mult [rule_format]: "!x. enat (i + j) <= #x --> enat j <= #(iterate i$rt$x)"
 apply (induct i, auto)
-apply (case_tac "x=UU", auto simp add: zero_inat_def)
+apply (case_tac "x=UU", auto simp add: zero_enat_def)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (erule_tac x="y" in allE, auto)
-apply (simp add: not_le) apply (case_tac "#y") apply (simp_all add: iSuc_Fin)
+apply (simp add: not_le) apply (case_tac "#y") apply (simp_all add: iSuc_enat)
 by (simp add: iterate_lemma)
 
 lemma slen_take_lemma3 [rule_format]:
-  "!(x::'a::flat stream) y. Fin n <= #x --> x << y --> stream_take n\<cdot>x = stream_take n\<cdot>y"
+  "!(x::'a::flat stream) y. enat n <= #x --> x << y --> stream_take n\<cdot>x = stream_take n\<cdot>y"
 apply (induct_tac n, auto)
 apply (case_tac "x=UU", auto)
-apply (simp add: zero_inat_def)
+apply (simp add: zero_enat_def)
 apply (simp add: Suc_ile_eq)
 apply (case_tac "y=UU", clarsimp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)+
@@ -478,7 +478,7 @@ apply auto
 apply (subgoal_tac "stream_take n$s ~=s")
  apply (insert slen_take_lemma4 [of n s],auto)
 apply (cases s, simp)
-by (simp add: slen_take_lemma4 iSuc_Fin)
+by (simp add: slen_take_lemma4 iSuc_enat)
 
 (* ----------------------------------------------------------------------- *)
 (* theorems about smap                                                     *)
@@ -546,7 +546,7 @@ by (simp only: i_rt_def,auto)
 lemma i_rt_mono: "x << s ==> i_rt n x  << i_rt n s"
 by (simp add: i_rt_def monofun_rt_mult)
 
-lemma i_rt_ij_lemma: "Fin (i + j) <= #x ==> Fin j <= #(i_rt i x)"
+lemma i_rt_ij_lemma: "enat (i + j) <= #x ==> enat j <= #(i_rt i x)"
 by (simp add: i_rt_def slen_rt_mult)
 
 lemma slen_i_rt_mono: "#s2 <= #s1 ==> #(i_rt n s2) <= #(i_rt n s1)"
@@ -566,14 +566,14 @@ apply auto
  apply (subgoal_tac "#(i_rt n s)=0")
   apply (case_tac "stream_take n$s = s",simp+)
   apply (insert slen_take_eq [rule_format,of n s],simp)
-  apply (cases "#s") apply (simp_all add: zero_inat_def)
+  apply (cases "#s") apply (simp_all add: zero_enat_def)
   apply (simp add: slen_take_eq)
   apply (cases "#s")
   using i_rt_take_lemma1 [of n s]
-  apply (simp_all add: zero_inat_def)
+  apply (simp_all add: zero_enat_def)
   done
 
-lemma i_rt_lemma_slen: "#s=Fin n ==> i_rt n s = UU"
+lemma i_rt_lemma_slen: "#s=enat n ==> i_rt n s = UU"
 by (simp add: i_rt_slen slen_take_lemma1)
 
 lemma stream_finite_i_rt [simp]: "stream_finite (i_rt n s) = stream_finite s"
@@ -581,29 +581,29 @@ apply (induct_tac n, auto)
  apply (cases s, auto simp del: i_rt_Suc)
 by (simp add: i_rt_Suc_back stream_finite_rt_eq)+
 
-lemma take_i_rt_len_lemma: "ALL sl x j t. Fin sl = #x & n <= sl &
-                            #(stream_take n$x) = Fin t & #(i_rt n x)= Fin j
-                                              --> Fin (j + t) = #x"
+lemma take_i_rt_len_lemma: "ALL sl x j t. enat sl = #x & n <= sl &
+                            #(stream_take n$x) = enat t & #(i_rt n x)= enat j
+                                              --> enat (j + t) = #x"
 apply (induct n, auto)
- apply (simp add: zero_inat_def)
+ apply (simp add: zero_enat_def)
 apply (case_tac "x=UU",auto)
- apply (simp add: zero_inat_def)
+ apply (simp add: zero_enat_def)
 apply (drule stream_exhaust_eq [THEN iffD1],clarsimp)
-apply (subgoal_tac "EX k. Fin k = #y",clarify)
+apply (subgoal_tac "EX k. enat k = #y",clarify)
  apply (erule_tac x="k" in allE)
  apply (erule_tac x="y" in allE,auto)
  apply (erule_tac x="THE p. Suc p = t" in allE,auto)
-   apply (simp add: iSuc_def split: inat.splits)
-  apply (simp add: iSuc_def split: inat.splits)
+   apply (simp add: iSuc_def split: enat.splits)
+  apply (simp add: iSuc_def split: enat.splits)
   apply (simp only: the_equality)
- apply (simp add: iSuc_def split: inat.splits)
+ apply (simp add: iSuc_def split: enat.splits)
  apply force
-apply (simp add: iSuc_def split: inat.splits)
+apply (simp add: iSuc_def split: enat.splits)
 done
 
 lemma take_i_rt_len:
-"[| Fin sl = #x; n <= sl; #(stream_take n$x) = Fin t; #(i_rt n x) = Fin j |] ==>
-    Fin (j + t) = #x"
+"[| enat sl = #x; n <= sl; #(stream_take n$x) = enat t; #(i_rt n x) = enat j |] ==>
+    enat (j + t) = #x"
 by (blast intro: take_i_rt_len_lemma [rule_format])
 
 
@@ -690,13 +690,13 @@ apply (simp add: po_eq_conv,auto)
 (* ----------------------------------------------------------------------- *)
 
 lemma UU_sconc [simp]: " UU ooo s = s "
-by (simp add: sconc_def zero_inat_def)
+by (simp add: sconc_def zero_enat_def)
 
 lemma scons_neq_UU: "a~=UU ==> a && s ~=UU"
 by auto
 
 lemma singleton_sconc [rule_format, simp]: "x~=UU --> (x && UU) ooo y = x && y"
-apply (simp add: sconc_def zero_inat_def iSuc_def split: inat.splits, auto)
+apply (simp add: sconc_def zero_enat_def iSuc_def split: enat.splits, auto)
 apply (rule someI2_ex,auto)
  apply (rule_tac x="x && y" in exI,auto)
 apply (simp add: i_rt_Suc_forw)
@@ -704,21 +704,21 @@ apply (case_tac "xa=UU",simp)
 by (drule stream_exhaust_eq [THEN iffD1],auto)
 
 lemma ex_sconc [rule_format]:
-  "ALL k y. #x = Fin k --> (EX w. stream_take k$w = x & i_rt k w = y)"
+  "ALL k y. #x = enat k --> (EX w. stream_take k$w = x & i_rt k w = y)"
 apply (case_tac "#x")
  apply (rule stream_finite_ind [of x],auto)
   apply (simp add: stream.finite_def)
   apply (drule slen_take_lemma1,blast)
- apply (simp_all add: zero_inat_def iSuc_def split: inat.splits)
+ apply (simp_all add: zero_enat_def iSuc_def split: enat.splits)
 apply (erule_tac x="y" in allE,auto)
 by (rule_tac x="a && w" in exI,auto)
 
-lemma rt_sconc1: "Fin n = #x ==> i_rt n (x ooo y) = y"
-apply (simp add: sconc_def split: inat.splits, arith?,auto)
+lemma rt_sconc1: "enat n = #x ==> i_rt n (x ooo y) = y"
+apply (simp add: sconc_def split: enat.splits, arith?,auto)
 apply (rule someI2_ex,auto)
 by (drule ex_sconc,simp)
 
-lemma sconc_inj2: "\<lbrakk>Fin n = #x; x ooo y = x ooo z\<rbrakk> \<Longrightarrow> y = z"
+lemma sconc_inj2: "\<lbrakk>enat n = #x; x ooo y = x ooo z\<rbrakk> \<Longrightarrow> y = z"
 apply (frule_tac y=y in rt_sconc1)
 by (auto elim: rt_sconc1)
 
@@ -734,7 +734,7 @@ apply (case_tac "#s")
  apply (simp add: i_rt_slen)
 by (simp add: sconc_def)
 
-lemma stream_take_sconc [simp]: "Fin n = #x ==> stream_take n$(x ooo y) = x"
+lemma stream_take_sconc [simp]: "enat n = #x ==> stream_take n$(x ooo y) = x"
 apply (simp add: sconc_def)
 apply (cases "#x")
 apply auto
@@ -743,7 +743,7 @@ by (drule ex_sconc,simp)
 
 lemma scons_sconc [rule_format,simp]: "a~=UU --> (a && x) ooo y = a && x ooo y"
 apply (cases "#x",auto)
- apply (simp add: sconc_def iSuc_Fin)
+ apply (simp add: sconc_def iSuc_enat)
  apply (rule someI2_ex)
   apply (drule ex_sconc, simp)
  apply (rule someI2_ex, auto)
@@ -799,9 +799,9 @@ lemma rt_sconc [rule_format, simp]: "s~=UU --> rt$(s ooo x) = rt$s ooo x"
 by (cases s, auto)
 
 lemma i_th_sconc_lemma [rule_format]:
-  "ALL x y. Fin n < #x --> i_th n (x ooo y) = i_th n x"
+  "ALL x y. enat n < #x --> i_th n (x ooo y) = i_th n x"
 apply (induct_tac n, auto)
-apply (simp add: Fin_0 i_th_def)
+apply (simp add: enat_0 i_th_def)
 apply (simp add: slen_empty_eq ft_sconc)
 apply (simp add: i_th_def)
 apply (case_tac "x=UU",auto)
@@ -849,16 +849,16 @@ by (insert i_th_stream_take_eq [THEN stream.take_lemma],blast)
 (* ----------------------------------------------------------------------- *)
 
 lemma slen_sconc_finite1:
-  "[| #(x ooo y) = Infty; Fin n = #x |] ==> #y = Infty"
-apply (case_tac "#y ~= Infty",auto)
+  "[| #(x ooo y) = \<infinity>; enat n = #x |] ==> #y = \<infinity>"
+apply (case_tac "#y ~= \<infinity>",auto)
 apply (drule_tac y=y in rt_sconc1)
 apply (insert stream_finite_i_rt [of n "x ooo y"])
 by (simp add: slen_infinite)
 
-lemma slen_sconc_infinite1: "#x=Infty ==> #(x ooo y) = Infty"
+lemma slen_sconc_infinite1: "#x=\<infinity> ==> #(x ooo y) = \<infinity>"
 by (simp add: sconc_def)
 
-lemma slen_sconc_infinite2: "#y=Infty ==> #(x ooo y) = Infty"
+lemma slen_sconc_infinite2: "#y=\<infinity> ==> #(x ooo y) = \<infinity>"
 apply (case_tac "#x")
  apply (simp add: sconc_def)
  apply (rule someI2_ex)
@@ -868,7 +868,7 @@ apply (case_tac "#x")
  apply (fastsimp simp add: slen_infinite,auto)
 by (simp add: sconc_def)
 
-lemma sconc_finite: "(#x~=Infty & #y~=Infty) = (#(x ooo y)~=Infty)"
+lemma sconc_finite: "(#x~=\<infinity> & #y~=\<infinity>) = (#(x ooo y)~=\<infinity>)"
 apply auto
   apply (metis not_Infty_eq slen_sconc_finite1)
  apply (metis not_Infty_eq slen_sconc_infinite1)
@@ -877,7 +877,7 @@ done
 
 (* ----------------------------------------------------------------------- *)
 
-lemma slen_sconc_mono3: "[| Fin n = #x; Fin k = #(x ooo y) |] ==> n <= k"
+lemma slen_sconc_mono3: "[| enat n = #x; enat k = #(x ooo y) |] ==> n <= k"
 apply (insert slen_mono [of "x" "x ooo y"])
 apply (cases "#x") apply simp_all
 apply (cases "#(x ooo y)") apply simp_all
@@ -887,10 +887,10 @@ done
    subsection "finite slen"
 (* ----------------------------------------------------------------------- *)
 
-lemma slen_sconc: "[| Fin n = #x; Fin m = #y |] ==> #(x ooo y) = Fin (n + m)"
+lemma slen_sconc: "[| enat n = #x; enat m = #y |] ==> #(x ooo y) = enat (n + m)"
 apply (case_tac "#(x ooo y)")
  apply (frule_tac y=y in rt_sconc1)
- apply (insert take_i_rt_len [of "THE j. Fin j = #(x ooo y)" "x ooo y" n n m],simp)
+ apply (insert take_i_rt_len [of "THE j. enat j = #(x ooo y)" "x ooo y" n n m],simp)
  apply (insert slen_sconc_mono3 [of n x _ y],simp)
 by (insert sconc_finite [of x y],auto)
 
@@ -934,7 +934,7 @@ apply (subgoal_tac "(LUB i. a && (s ooo Y i)) = a && (LUB i. s ooo Y i)")
 
 lemma contlub_sconc_lemma:
   "chain Y ==> (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
-apply (case_tac "#x=Infty")
+apply (case_tac "#x=\<infinity>")
  apply (simp add: sconc_def)
 apply (drule finite_lub_sconc,auto simp add: slen_infinite)
 done
@@ -948,7 +948,7 @@ by (simp add: monofun_def sconc_mono)
 (* ----------------------------------------------------------------------- *)
 
 lemma constr_sconc_UUs [simp]: "constr_sconc UU s = s"
-by (simp add: constr_sconc_def zero_inat_def)
+by (simp add: constr_sconc_def zero_enat_def)
 
 lemma "x ooo y = constr_sconc x y"
 apply (case_tac "#x")
@@ -956,7 +956,7 @@ apply (case_tac "#x")
   defer 1
   apply (simp add: constr_sconc_def del: scons_sconc)
   apply (case_tac "#s")
-   apply (simp add: iSuc_Fin)
+   apply (simp add: iSuc_enat)
    apply (case_tac "a=UU",auto simp del: scons_sconc)
    apply (simp)
   apply (simp add: sconc_def)
