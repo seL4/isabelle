@@ -822,9 +822,9 @@ lemma (in prob_space) indep_distribution_eq_measure:
   assumes I: "I \<noteq> {}" "finite I"
   assumes rv: "\<And>i. random_variable (M' i) (X i)"
   shows "indep_vars M' X I \<longleftrightarrow>
-    (\<forall>A\<in>sets (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := extreal\<circ>distribution (X i) \<rparr>)).
+    (\<forall>A\<in>sets (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := ereal\<circ>distribution (X i) \<rparr>)).
       distribution (\<lambda>x. \<lambda>i\<in>I. X i x) A =
-      finite_measure.\<mu>' (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := extreal\<circ>distribution (X i) \<rparr>)) A)"
+      finite_measure.\<mu>' (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := ereal\<circ>distribution (X i) \<rparr>)) A)"
     (is "_ \<longleftrightarrow> (\<forall>X\<in>_. distribution ?D X = finite_measure.\<mu>' (Pi\<^isub>M I ?M) X)")
 proof -
   interpret M': prob_space "?M i" for i
@@ -832,7 +832,7 @@ proof -
   interpret P: finite_product_prob_space ?M I
     proof qed fact
 
-  let ?D' = "(Pi\<^isub>M I ?M) \<lparr> measure := extreal \<circ> distribution ?D \<rparr>"
+  let ?D' = "(Pi\<^isub>M I ?M) \<lparr> measure := ereal \<circ> distribution ?D \<rparr>"
   have "random_variable P.P ?D"
     using `finite I` rv by (intro random_variable_restrict) auto
   then interpret D: prob_space ?D'
@@ -938,24 +938,24 @@ qed
 
 lemma (in prob_space) indep_var_distributionD:
   assumes indep: "indep_var S X T Y"
-  defines "P \<equiv> S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  defines "P \<equiv> S\<lparr>measure := ereal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
   assumes "A \<in> sets P"
   shows "joint_distribution X Y A = finite_measure.\<mu>' P A"
 proof -
   from indep have rvs: "random_variable S X" "random_variable T Y"
     by (blast dest: indep_var_rv1 indep_var_rv2)+
 
-  let ?S = "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
-  let ?T = "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  let ?S = "S\<lparr>measure := ereal\<circ>distribution X\<rparr>"
+  let ?T = "T\<lparr>measure := ereal\<circ>distribution Y\<rparr>"
   interpret X: prob_space ?S by (rule distribution_prob_space) fact
   interpret Y: prob_space ?T by (rule distribution_prob_space) fact
   interpret XY: pair_prob_space ?S ?T by default
 
-  let ?J = "XY.P\<lparr> measure := extreal \<circ> joint_distribution X Y \<rparr>"
+  let ?J = "XY.P\<lparr> measure := ereal \<circ> joint_distribution X Y \<rparr>"
   interpret J: prob_space ?J
     by (rule joint_distribution_prob_space) (simp_all add: rvs)
 
-  have "finite_measure.\<mu>' (XY.P\<lparr> measure := extreal \<circ> joint_distribution X Y \<rparr>) A = XY.\<mu>' A"
+  have "finite_measure.\<mu>' (XY.P\<lparr> measure := ereal \<circ> joint_distribution X Y \<rparr>) A = XY.\<mu>' A"
   proof (rule prob_space_unique_Int_stable)
     show "Int_stable (pair_measure_generator ?S ?T)" (is "Int_stable ?P")
       by fact

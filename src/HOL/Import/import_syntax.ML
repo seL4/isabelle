@@ -19,9 +19,6 @@ sig
     val const_moves   : (theory -> theory) parser
     val const_renames : (theory -> theory) parser
 
-    val skip_import_dir : (theory -> theory) parser
-    val skip_import     : (theory -> theory) parser
-
     val setup        : unit -> unit
 end
 
@@ -39,13 +36,6 @@ val import_theory = Parse.name >> (fn thyname =>
                                       |> Sign.add_path thyname
                                       |> add_dump (";setup_theory " ^ thyname))
 
-fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I: theory -> theory)
-val skip_import_dir = Parse.string >> do_skip_import_dir
-
-val lower = String.map Char.toLower
-fun do_skip_import s = (ImportRecorder.set_skip_import (case lower s of "on" => true | "off" => false | _ => Scan.fail ()); I: theory -> theory)
-val skip_import = Parse.short_ident >> do_skip_import
-
 fun end_import toks =
     Scan.succeed
         (fn thy =>
@@ -54,16 +44,7 @@ fun end_import toks =
                 val segname = get_import_segment thy
                 val (int_thms,facts) = Replay.setup_int_thms thyname thy
                 val thmnames = filter_out (should_ignore thyname thy) facts
-                fun replay thy = 
-                    let
-                        val _ = ImportRecorder.load_history thyname
-                        val thy = Replay.import_thms thyname int_thms thmnames thy
-                            (*handle x => (ImportRecorder.save_history thyname; raise x)*)  (* FIXME avoid handle x ?? *)
-                        val _ = ImportRecorder.save_history thyname
-                        val _ = ImportRecorder.clear_history ()
-                    in
-                        thy
-                    end                                 
+                fun replay thy = Replay.import_thms thyname int_thms thmnames thy
             in
                 thy |> clear_import_thy
                     |> set_segment thyname segname
@@ -225,12 +206,6 @@ fun setup () =
    Outer_Syntax.command "end_import"
                        "End HOL4 import"
                        Keyword.thy_decl (end_import >> Toplevel.theory);
-   Outer_Syntax.command "skip_import_dir" 
-                       "Sets caching directory for skipping importing"
-                       Keyword.thy_decl (skip_import_dir >> Toplevel.theory);
-   Outer_Syntax.command "skip_import" 
-                       "Switches skipping importing on or off"
-                       Keyword.thy_decl (skip_import >> Toplevel.theory);                   
    Outer_Syntax.command "setup_theory"
                        "Setup HOL4 theory replaying"
                        Keyword.thy_decl (setup_theory >> Toplevel.theory);

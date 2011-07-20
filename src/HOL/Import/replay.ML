@@ -6,7 +6,6 @@ structure Replay =  (* FIXME proper signature *)
 struct
 
 open ProofKernel
-open ImportRecorder
 
 exception REPLAY of string * string
 fun ERR f mesg = REPLAY (f,mesg)
@@ -14,7 +13,6 @@ fun NY f = raise ERR f "NOT YET!"
 
 fun replay_proof int_thms thyname thmname prf thy =
     let
-        val _ = ImportRecorder.start_replay_proof thyname thmname 
         fun rp (PRefl tm) thy = ProofKernel.REFL tm thy
           | rp (PInstT(p,lambda)) thy =
             let
@@ -269,13 +267,8 @@ fun replay_proof int_thms thyname thmname prf thy =
                   | _ => rp pc thy
             end
     in
-        let
-            val x = rp' prf thy
-            val _ = ImportRecorder.stop_replay_proof thyname thmname
-        in
-            x
-        end
-    end handle x => (ImportRecorder.abort_replay_proof thyname thmname; reraise x)  (* FIXME avoid handle x ?? *)
+        rp' prf thy
+    end
 
 fun setup_int_thms thyname thy =
     let
@@ -316,74 +309,8 @@ fun import_single_thm thyname int_thms thmname thy =
         replay_fact (thmname,thy)
     end
 
-fun replay_chached_thm int_thms thyname thmname =
-    let
-        fun th_of thy = Skip_Proof.make_thm thy
-        fun err msg = raise ERR "replay_cached_thm" msg
-        val _ = writeln ("Replaying (from cache) "^thmname^" ...")
-        fun rps [] thy = thy
-          | rps (t::ts) thy = rps ts (rp t thy)
-        and rp (ThmEntry (thyname', thmname', aborted, History history)) thy = rps history thy      
-          | rp (DeltaEntry ds) thy = fold delta ds thy
-        and delta (Specification (names, th)) thy = 
-            fst (Choice_Specification.add_specification NONE names (thy,th_of thy th))
-          | delta (Hol_mapping (thyname, thmname, isaname)) thy = 
-            add_hol4_mapping thyname thmname isaname thy
-          | delta (Hol_pending (thyname, thmname, th)) thy = 
-            add_hol4_pending thyname thmname ([], th_of thy th) thy
-          | delta (Consts cs) thy = Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) cs) thy
-          | delta (Hol_const_mapping (thyname, constname, fullcname)) thy = 
-            add_hol4_const_mapping thyname constname true fullcname thy
-          | delta (Hol_move (fullname, moved_thmname)) thy = 
-            add_hol4_move fullname moved_thmname thy
-          | delta (Defs (thmname, eq)) thy =
-            snd (Global_Theory.add_defs false [((Binding.name thmname, eq), [])] thy)
-          | delta (Hol_theorem (thyname, thmname, th)) thy =
-            add_hol4_theorem thyname thmname ([], th_of thy th) thy
-          | delta (Typedef (thmname, (t, vs, mx), c, repabs, th)) thy = 
-            snd (Typedef.add_typedef_global false (Option.map Binding.name thmname)
-              (Binding.name t, map (rpair dummyS) vs, mx) c
-        (Option.map (pairself Binding.name) repabs) (rtac (th_of thy th) 1) thy)
-          | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
-            add_hol4_type_mapping thyname tycname true fulltyname thy
-          | delta (Indexed_theorem (i, th)) thy = 
-            (Array.update (int_thms,i-1,SOME (ProofKernel.to_hol_thm (th_of thy th))); thy)                   
-          | delta (Protect_varname (s,t)) thy = (ProofKernel.replay_protect_varname s t; thy)
-          | delta (Dump s) thy = ProofKernel.replay_add_dump s thy
-    in
-        rps
-    end
-
 fun import_thms thyname int_thms thmnames thy =
     let
-        fun zip names [] = ([], names)
-          | zip [] _ = ([], [])
-          | zip (thmname::names) ((ThmEntry (entry as (thyname',thmname',aborted,History history)))::ys) = 
-            if thyname = thyname' andalso thmname = thmname' then
-                (if aborted then ([], thmname::names) else 
-                 let
-                     val _ = writeln ("theorem is in-sync: "^thmname)
-                     val (cached,normal) = zip names ys
-                 in
-                     (entry::cached, normal)
-                 end)
-            else
-                let
-                    val _ = writeln ("cached theorems are not in-sync,  expected: "^thmname^", found: "^thmname')
-                    val _ = writeln ("proceeding with next uncached theorem...")
-                in
-                    ([], thmname::names)
-                end
-        (*      raise ERR "import_thms" ("cached theorems are not in-sync, expected: "^thmname^", found: "^thmname')*)
-          | zip (thmname::_) (DeltaEntry _ :: _) = 
-            raise ERR "import_thms" ("expected theorem '"^thmname^"', but found a delta")
-        fun zip' xs (History ys) = 
-            let
-                val _ = writeln ("length of xs: "^(string_of_int (length xs)))
-                val _ = writeln ("length of history: "^(string_of_int (length ys)))
-            in
-                zip xs ys
-            end
         fun replay_fact thmname thy = 
             let
                 val prf = mk_proof PDisk        
@@ -393,10 +320,7 @@ fun import_thms thyname int_thms thmnames thy =
             in
                 p
             end
-        fun replay_cache (_,thmname, _, History history) thy = replay_chached_thm int_thms thyname thmname history thy
-        val (cached, normal) = zip' thmnames (ImportRecorder.get_history ())
-        val _ = ImportRecorder.set_history (History (map ThmEntry cached))
-        val res_thy = fold replay_fact normal (fold replay_cache cached thy)
+        val res_thy = fold replay_fact thmnames thy
     in
         res_thy
     end

@@ -112,7 +112,7 @@ next
 qed
 
 lemma (in sigma_algebra) borel_measurable_restricted:
-  fixes f :: "'a \<Rightarrow> extreal" assumes "A \<in> sets M"
+  fixes f :: "'a \<Rightarrow> ereal" assumes "A \<in> sets M"
   shows "f \<in> borel_measurable (restricted_space A) \<longleftrightarrow>
     (\<lambda>x. f x * indicator A x) \<in> borel_measurable M"
     (is "f \<in> borel_measurable ?R \<longleftrightarrow> ?f \<in> borel_measurable M")
@@ -123,7 +123,7 @@ proof -
   show ?thesis unfolding *
     unfolding in_borel_measurable_borel
   proof (simp, safe)
-    fix S :: "extreal set" assume "S \<in> sets borel"
+    fix S :: "ereal set" assume "S \<in> sets borel"
       "\<forall>S\<in>sets borel. ?f -` S \<inter> A \<in> op \<inter> A ` sets M"
     then have "?f -` S \<inter> A \<in> op \<inter> A ` sets M" by auto
     then have f: "?f -` S \<inter> A \<in> sets M"
@@ -142,7 +142,7 @@ proof -
       then show ?thesis using f by auto
     qed
   next
-    fix S :: "extreal set" assume "S \<in> sets borel"
+    fix S :: "ereal set" assume "S \<in> sets borel"
       "\<forall>S\<in>sets borel. ?f -` S \<inter> space M \<in> sets M"
     then have f: "?f -` S \<inter> space M \<in> sets M" by auto
     then show "?f -` S \<inter> A \<in> op \<inter> A ` sets M"
@@ -1095,70 +1095,71 @@ lemma (in sigma_algebra) borel_measurable_log[simp,intro]:
 
 subsection "Borel space on the extended reals"
 
-lemma borel_measurable_extreal_borel:
-  "extreal \<in> borel_measurable borel"
-  unfolding borel_def[where 'a=extreal]
+lemma borel_measurable_ereal_borel:
+  "ereal \<in> borel_measurable borel"
+  unfolding borel_def[where 'a=ereal]
 proof (rule borel.measurable_sigma)
-  fix X :: "extreal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open \<rparr>"
+  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open \<rparr>"
   then have "open X" by (auto simp: mem_def)
-  then have "open (extreal -` X \<inter> space borel)"
-    by (simp add: open_extreal_vimage)
-  then show "extreal -` X \<inter> space borel \<in> sets borel" by auto
+  then have "open (ereal -` X \<inter> space borel)"
+    by (simp add: open_ereal_vimage)
+  then show "ereal -` X \<inter> space borel \<in> sets borel" by auto
 qed auto
 
-lemma (in sigma_algebra) borel_measurable_extreal[simp, intro]:
-  assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. extreal (f x)) \<in> borel_measurable M"
-  using measurable_comp[OF f borel_measurable_extreal_borel] unfolding comp_def .
+lemma (in sigma_algebra) borel_measurable_ereal[simp, intro]:
+  assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M"
+  using measurable_comp[OF f borel_measurable_ereal_borel] unfolding comp_def .
 
-lemma borel_measurable_real_of_extreal_borel:
-  "(real :: extreal \<Rightarrow> real) \<in> borel_measurable borel"
+lemma borel_measurable_real_of_ereal_borel:
+  "(real :: ereal \<Rightarrow> real) \<in> borel_measurable borel"
   unfolding borel_def[where 'a=real]
 proof (rule borel.measurable_sigma)
   fix B :: "real set" assume "B \<in> sets \<lparr>space = UNIV, sets = open \<rparr>"
   then have "open B" by (auto simp: mem_def)
-  have *: "extreal -` real -` (B - {0}) = B - {0}" by auto
-  have open_real: "open (real -` (B - {0}) :: extreal set)"
-    unfolding open_extreal_def * using `open B` by auto
-  show "(real -` B \<inter> space borel :: extreal set) \<in> sets borel"
+  have *: "ereal -` real -` (B - {0}) = B - {0}" by auto
+  have open_real: "open (real -` (B - {0}) :: ereal set)"
+    unfolding open_ereal_def * using `open B` by auto
+  show "(real -` B \<inter> space borel :: ereal set) \<in> sets borel"
   proof cases
     assume "0 \<in> B"
-    then have *: "real -` B = real -` (B - {0}) \<union> {-\<infinity>, \<infinity>, 0}"
-      by (auto simp add: real_of_extreal_eq_0)
-    then show "(real -` B :: extreal set) \<inter> space borel \<in> sets borel"
+    then have *: "real -` B = real -` (B - {0}) \<union> {-\<infinity>, \<infinity>, 0::ereal}"
+      by (auto simp add: real_of_ereal_eq_0)
+    then show "(real -` B :: ereal set) \<inter> space borel \<in> sets borel"
       using open_real by auto
   next
     assume "0 \<notin> B"
-    then have *: "(real -` B :: extreal set) = real -` (B - {0})"
-      by (auto simp add: real_of_extreal_eq_0)
-    then show "(real -` B :: extreal set) \<inter> space borel \<in> sets borel"
+    then have *: "(real -` B :: ereal set) = real -` (B - {0})"
+      by (auto simp add: real_of_ereal_eq_0)
+    then show "(real -` B :: ereal set) \<inter> space borel \<in> sets borel"
       using open_real by auto
   qed
 qed auto
 
-lemma (in sigma_algebra) borel_measurable_real_of_extreal[simp, intro]:
-  assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. real (f x :: extreal)) \<in> borel_measurable M"
-  using measurable_comp[OF f borel_measurable_real_of_extreal_borel] unfolding comp_def .
+lemma (in sigma_algebra) borel_measurable_real_of_ereal[simp, intro]:
+  assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. real (f x :: ereal)) \<in> borel_measurable M"
+  using measurable_comp[OF f borel_measurable_real_of_ereal_borel] unfolding comp_def .
 
-lemma (in sigma_algebra) borel_measurable_extreal_iff:
-  shows "(\<lambda>x. extreal (f x)) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M"
+lemma (in sigma_algebra) borel_measurable_ereal_iff:
+  shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M"
 proof
-  assume "(\<lambda>x. extreal (f x)) \<in> borel_measurable M"
-  from borel_measurable_real_of_extreal[OF this]
+  assume "(\<lambda>x. ereal (f x)) \<in> borel_measurable M"
+  from borel_measurable_real_of_ereal[OF this]
   show "f \<in> borel_measurable M" by auto
 qed auto
 
-lemma (in sigma_algebra) borel_measurable_extreal_iff_real:
-  "f \<in> borel_measurable M \<longleftrightarrow>
+lemma (in sigma_algebra) borel_measurable_ereal_iff_real:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "f \<in> borel_measurable M \<longleftrightarrow>
     ((\<lambda>x. real (f x)) \<in> borel_measurable M \<and> f -` {\<infinity>} \<inter> space M \<in> sets M \<and> f -` {-\<infinity>} \<inter> space M \<in> sets M)"
 proof safe
   assume *: "(\<lambda>x. real (f x)) \<in> borel_measurable M" "f -` {\<infinity>} \<inter> space M \<in> sets M" "f -` {-\<infinity>} \<inter> space M \<in> sets M"
   have "f -` {\<infinity>} \<inter> space M = {x\<in>space M. f x = \<infinity>}" "f -` {-\<infinity>} \<inter> space M = {x\<in>space M. f x = -\<infinity>}" by auto
   with * have **: "{x\<in>space M. f x = \<infinity>} \<in> sets M" "{x\<in>space M. f x = -\<infinity>} \<in> sets M" by simp_all
-  let "?f x" = "if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else extreal (real (f x))"
+  let "?f x" = "if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else ereal (real (f x))"
   have "?f \<in> borel_measurable M" using * ** by (intro measurable_If) auto
-  also have "?f = f" by (auto simp: fun_eq_iff extreal_real)
+  also have "?f = f" by (auto simp: fun_eq_iff ereal_real)
   finally show "f \<in> borel_measurable M" .
-qed (auto intro: measurable_sets borel_measurable_real_of_extreal)
+qed (auto intro: measurable_sets borel_measurable_real_of_ereal)
 
 lemma (in sigma_algebra) less_eq_ge_measurable:
   fixes f :: "'a \<Rightarrow> 'c::linorder"
@@ -1186,95 +1187,96 @@ next
   ultimately show "f -` {a ..} \<inter> space M \<in> sets M" by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_uminus_borel_extreal:
-  "(uminus :: extreal \<Rightarrow> extreal) \<in> borel_measurable borel"
+lemma (in sigma_algebra) borel_measurable_uminus_borel_ereal:
+  "(uminus :: ereal \<Rightarrow> ereal) \<in> borel_measurable borel"
 proof (subst borel_def, rule borel.measurable_sigma)
-  fix X :: "extreal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open\<rparr>"
+  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open\<rparr>"
   then have "open X" by (simp add: mem_def)
   have "uminus -` X = uminus ` X" by (force simp: image_iff)
-  then have "open (uminus -` X)" using `open X` extreal_open_uminus by auto
+  then have "open (uminus -` X)" using `open X` ereal_open_uminus by auto
   then show "uminus -` X \<inter> space borel \<in> sets borel" by auto
 qed auto
 
-lemma (in sigma_algebra) borel_measurable_uminus_extreal[intro]:
+lemma (in sigma_algebra) borel_measurable_uminus_ereal[intro]:
   assumes "f \<in> borel_measurable M"
-  shows "(\<lambda>x. - f x :: extreal) \<in> borel_measurable M"
-  using measurable_comp[OF assms borel_measurable_uminus_borel_extreal] by (simp add: comp_def)
+  shows "(\<lambda>x. - f x :: ereal) \<in> borel_measurable M"
+  using measurable_comp[OF assms borel_measurable_uminus_borel_ereal] by (simp add: comp_def)
 
-lemma (in sigma_algebra) borel_measurable_uminus_eq_extreal[simp]:
-  "(\<lambda>x. - f x :: extreal) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M" (is "?l = ?r")
+lemma (in sigma_algebra) borel_measurable_uminus_eq_ereal[simp]:
+  "(\<lambda>x. - f x :: ereal) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M" (is "?l = ?r")
 proof
-  assume ?l from borel_measurable_uminus_extreal[OF this] show ?r by simp
+  assume ?l from borel_measurable_uminus_ereal[OF this] show ?r by simp
 qed auto
 
-lemma (in sigma_algebra) borel_measurable_eq_atMost_extreal:
-  "(f::'a \<Rightarrow> extreal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..a} \<inter> space M \<in> sets M)"
+lemma (in sigma_algebra) borel_measurable_eq_atMost_ereal:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..a} \<inter> space M \<in> sets M)"
 proof (intro iffI allI)
   assume pos[rule_format]: "\<forall>a. f -` {..a} \<inter> space M \<in> sets M"
   show "f \<in> borel_measurable M"
-    unfolding borel_measurable_extreal_iff_real borel_measurable_iff_le
+    unfolding borel_measurable_ereal_iff_real borel_measurable_iff_le
   proof (intro conjI allI)
     fix a :: real
-    { fix x :: extreal assume *: "\<forall>i::nat. real i < x"
+    { fix x :: ereal assume *: "\<forall>i::nat. real i < x"
       have "x = \<infinity>"
-      proof (rule extreal_top)
+      proof (rule ereal_top)
         fix B from real_arch_lt[of B] guess n ..
-        then have "extreal B < real n" by auto
+        then have "ereal B < real n" by auto
         with * show "B \<le> x" by (metis less_trans less_imp_le)
       qed }
     then have "f -` {\<infinity>} \<inter> space M = space M - (\<Union>i::nat. f -` {.. real i} \<inter> space M)"
       by (auto simp: not_le)
     then show "f -` {\<infinity>} \<inter> space M \<in> sets M" using pos by (auto simp del: UN_simps intro!: Diff)
     moreover
-    have "{-\<infinity>} = {..-\<infinity>}" by auto
+    have "{-\<infinity>::ereal} = {..-\<infinity>}" by auto
     then show "f -` {-\<infinity>} \<inter> space M \<in> sets M" using pos by auto
-    moreover have "{x\<in>space M. f x \<le> extreal a} \<in> sets M"
-      using pos[of "extreal a"] by (simp add: vimage_def Int_def conj_commute)
+    moreover have "{x\<in>space M. f x \<le> ereal a} \<in> sets M"
+      using pos[of "ereal a"] by (simp add: vimage_def Int_def conj_commute)
     moreover have "{w \<in> space M. real (f w) \<le> a} =
-      (if a < 0 then {w \<in> space M. f w \<le> extreal a} - f -` {-\<infinity>} \<inter> space M
-      else {w \<in> space M. f w \<le> extreal a} \<union> (f -` {\<infinity>} \<inter> space M) \<union> (f -` {-\<infinity>} \<inter> space M))" (is "?l = ?r")
+      (if a < 0 then {w \<in> space M. f w \<le> ereal a} - f -` {-\<infinity>} \<inter> space M
+      else {w \<in> space M. f w \<le> ereal a} \<union> (f -` {\<infinity>} \<inter> space M) \<union> (f -` {-\<infinity>} \<inter> space M))" (is "?l = ?r")
       proof (intro set_eqI) fix x show "x \<in> ?l \<longleftrightarrow> x \<in> ?r" by (cases "f x") auto qed
     ultimately show "{w \<in> space M. real (f w) \<le> a} \<in> sets M" by auto
   qed
 qed (simp add: measurable_sets)
 
-lemma (in sigma_algebra) borel_measurable_eq_atLeast_extreal:
-  "(f::'a \<Rightarrow> extreal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {a..} \<inter> space M \<in> sets M)"
+lemma (in sigma_algebra) borel_measurable_eq_atLeast_ereal:
+  "(f::'a \<Rightarrow> ereal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {a..} \<inter> space M \<in> sets M)"
 proof
   assume pos: "\<forall>a. f -` {a..} \<inter> space M \<in> sets M"
   moreover have "\<And>a. (\<lambda>x. - f x) -` {..a} = f -` {-a ..}"
-    by (auto simp: extreal_uminus_le_reorder)
+    by (auto simp: ereal_uminus_le_reorder)
   ultimately have "(\<lambda>x. - f x) \<in> borel_measurable M"
-    unfolding borel_measurable_eq_atMost_extreal by auto
+    unfolding borel_measurable_eq_atMost_ereal by auto
   then show "f \<in> borel_measurable M" by simp
 qed (simp add: measurable_sets)
 
-lemma (in sigma_algebra) borel_measurable_extreal_iff_less:
-  "(f::'a \<Rightarrow> extreal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..< a} \<inter> space M \<in> sets M)"
-  unfolding borel_measurable_eq_atLeast_extreal greater_eq_le_measurable ..
+lemma (in sigma_algebra) borel_measurable_ereal_iff_less:
+  "(f::'a \<Rightarrow> ereal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {..< a} \<inter> space M \<in> sets M)"
+  unfolding borel_measurable_eq_atLeast_ereal greater_eq_le_measurable ..
 
-lemma (in sigma_algebra) borel_measurable_extreal_iff_ge:
-  "(f::'a \<Rightarrow> extreal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {a <..} \<inter> space M \<in> sets M)"
-  unfolding borel_measurable_eq_atMost_extreal less_eq_ge_measurable ..
+lemma (in sigma_algebra) borel_measurable_ereal_iff_ge:
+  "(f::'a \<Rightarrow> ereal) \<in> borel_measurable M \<longleftrightarrow> (\<forall>a. f -` {a <..} \<inter> space M \<in> sets M)"
+  unfolding borel_measurable_eq_atMost_ereal less_eq_ge_measurable ..
 
-lemma (in sigma_algebra) borel_measurable_extreal_eq_const:
-  fixes f :: "'a \<Rightarrow> extreal" assumes "f \<in> borel_measurable M"
+lemma (in sigma_algebra) borel_measurable_ereal_eq_const:
+  fixes f :: "'a \<Rightarrow> ereal" assumes "f \<in> borel_measurable M"
   shows "{x\<in>space M. f x = c} \<in> sets M"
 proof -
   have "{x\<in>space M. f x = c} = (f -` {c} \<inter> space M)" by auto
   then show ?thesis using assms by (auto intro!: measurable_sets)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_neq_const:
-  fixes f :: "'a \<Rightarrow> extreal" assumes "f \<in> borel_measurable M"
+lemma (in sigma_algebra) borel_measurable_ereal_neq_const:
+  fixes f :: "'a \<Rightarrow> ereal" assumes "f \<in> borel_measurable M"
   shows "{x\<in>space M. f x \<noteq> c} \<in> sets M"
 proof -
   have "{x\<in>space M. f x \<noteq> c} = space M - (f -` {c} \<inter> space M)" by auto
   then show ?thesis using assms by (auto intro!: measurable_sets)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_le[intro,simp]:
-  fixes f g :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_le[intro,simp]:
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "{x \<in> space M. f x \<le> g x} \<in> sets M"
@@ -1283,13 +1285,13 @@ proof -
     {x \<in> space M. real (f x) \<le> real (g x)} - (f -` {\<infinity>, -\<infinity>} \<inter> space M \<union> g -` {\<infinity>, -\<infinity>} \<inter> space M) \<union>
     f -` {-\<infinity>} \<inter> space M \<union> g -` {\<infinity>} \<inter> space M" (is "?l = ?r")
   proof (intro set_eqI)
-    fix x show "x \<in> ?l \<longleftrightarrow> x \<in> ?r" by (cases rule: extreal2_cases[of "f x" "g x"]) auto
+    fix x show "x \<in> ?l \<longleftrightarrow> x \<in> ?r" by (cases rule: ereal2_cases[of "f x" "g x"]) auto
   qed
   with f g show ?thesis by (auto intro!: Un simp: measurable_sets)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_less[intro,simp]:
-  fixes f :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_less[intro,simp]:
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "{x \<in> space M. f x < g x} \<in> sets M"
@@ -1298,8 +1300,8 @@ proof -
   then show ?thesis using g f by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_eq[intro,simp]:
-  fixes f :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_eq[intro,simp]:
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "{w \<in> space M. f w = g w} \<in> sets M"
@@ -1308,8 +1310,8 @@ proof -
   then show ?thesis using g f by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_neq[intro,simp]:
-  fixes f :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_neq[intro,simp]:
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "{w \<in> space M. f w \<noteq> g w} \<in> sets M"
@@ -1323,23 +1325,23 @@ lemma (in sigma_algebra) split_sets:
   "{x\<in>space M. P x \<and> Q x} = {x\<in>space M. P x} \<inter> {x\<in>space M. Q x}"
   by auto
 
-lemma (in sigma_algebra) borel_measurable_extreal_add[intro, simp]:
-  fixes f :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_add[intro, simp]:
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
 proof -
   { fix x assume "x \<in> space M" then have "f x + g x =
       (if f x = \<infinity> \<or> g x = \<infinity> then \<infinity>
         else if f x = -\<infinity> \<or> g x = -\<infinity> then -\<infinity>
-        else extreal (real (f x) + real (g x)))"
-      by (cases rule: extreal2_cases[of "f x" "g x"]) auto }
+        else ereal (real (f x) + real (g x)))"
+      by (cases rule: ereal2_cases[of "f x" "g x"]) auto }
   with assms show ?thesis
     by (auto cong: measurable_cong simp: split_sets
              intro!: Un measurable_If measurable_sets)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_setsum[simp, intro]:
-  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_setsum[simp, intro]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
 proof cases
@@ -1348,25 +1350,25 @@ proof cases
     by induct auto
 qed (simp add: borel_measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_extreal_abs[intro, simp]:
-  fixes f :: "'a \<Rightarrow> extreal" assumes "f \<in> borel_measurable M"
+lemma (in sigma_algebra) borel_measurable_ereal_abs[intro, simp]:
+  fixes f :: "'a \<Rightarrow> ereal" assumes "f \<in> borel_measurable M"
   shows "(\<lambda>x. \<bar>f x\<bar>) \<in> borel_measurable M"
 proof -
   { fix x have "\<bar>f x\<bar> = (if 0 \<le> f x then f x else - f x)" by auto }
   then show ?thesis using assms by (auto intro!: measurable_If)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_times[intro, simp]:
-  fixes f :: "'a \<Rightarrow> extreal" assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+lemma (in sigma_algebra) borel_measurable_ereal_times[intro, simp]:
+  fixes f :: "'a \<Rightarrow> ereal" assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x * g x) \<in> borel_measurable M"
 proof -
-  { fix f g :: "'a \<Rightarrow> extreal"
+  { fix f g :: "'a \<Rightarrow> ereal"
     assume b: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
       and pos: "\<And>x. 0 \<le> f x" "\<And>x. 0 \<le> g x"
     { fix x have *: "f x * g x = (if f x = 0 \<or> g x = 0 then 0
         else if f x = \<infinity> \<or> g x = \<infinity> then \<infinity>
-        else extreal (real (f x) * real (g x)))"
-      apply (cases rule: extreal2_cases[of "f x" "g x"])
+        else ereal (real (f x) * real (g x)))"
+      apply (cases rule: ereal2_cases[of "f x" "g x"])
       using pos[of x] by auto }
     with b have "(\<lambda>x. f x * g x) \<in> borel_measurable M"
       by (auto cong: measurable_cong simp: split_sets
@@ -1376,12 +1378,12 @@ proof -
     (\<lambda>x. if 0 \<le> f x \<and> 0 \<le> g x \<or> f x < 0 \<and> g x < 0 then \<bar>f x\<bar> * \<bar>g x\<bar> else - (\<bar>f x\<bar> * \<bar>g x\<bar>))"
     by (auto simp: fun_eq_iff)
   show ?thesis using assms unfolding *
-    by (intro measurable_If pos_times borel_measurable_uminus_extreal)
+    by (intro measurable_If pos_times borel_measurable_uminus_ereal)
        (auto simp: split_sets intro!: Int)
 qed
 
-lemma (in sigma_algebra) borel_measurable_extreal_setprod[simp, intro]:
-  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_setprod[simp, intro]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
 proof cases
@@ -1389,25 +1391,25 @@ proof cases
   thus ?thesis using assms by induct auto
 qed simp
 
-lemma (in sigma_algebra) borel_measurable_extreal_min[simp, intro]:
-  fixes f g :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_min[simp, intro]:
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. min (g x) (f x)) \<in> borel_measurable M"
   using assms unfolding min_def by (auto intro!: measurable_If)
 
-lemma (in sigma_algebra) borel_measurable_extreal_max[simp, intro]:
-  fixes f g :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_max[simp, intro]:
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes "f \<in> borel_measurable M"
   and "g \<in> borel_measurable M"
   shows "(\<lambda>x. max (g x) (f x)) \<in> borel_measurable M"
   using assms unfolding max_def by (auto intro!: measurable_If)
 
 lemma (in sigma_algebra) borel_measurable_SUP[simp, intro]:
-  fixes f :: "'d\<Colon>countable \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "'d\<Colon>countable \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. SUP i : A. f i x) \<in> borel_measurable M" (is "?sup \<in> borel_measurable M")
-  unfolding borel_measurable_extreal_iff_ge
+  unfolding borel_measurable_ereal_iff_ge
 proof
   fix a
   have "?sup -` {a<..} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. a < f i x})"
@@ -1417,10 +1419,10 @@ proof
 qed
 
 lemma (in sigma_algebra) borel_measurable_INF[simp, intro]:
-  fixes f :: "'d :: countable \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "'d :: countable \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. INF i : A. f i x) \<in> borel_measurable M" (is "?inf \<in> borel_measurable M")
-  unfolding borel_measurable_extreal_iff_less
+  unfolding borel_measurable_ereal_iff_less
 proof
   fix a
   have "?inf -` {..<a} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. f i x < a})"
@@ -1430,30 +1432,30 @@ proof
 qed
 
 lemma (in sigma_algebra) borel_measurable_liminf[simp, intro]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. liminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding liminf_SUPR_INFI using assms by auto
 
 lemma (in sigma_algebra) borel_measurable_limsup[simp, intro]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. limsup (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding limsup_INFI_SUPR using assms by auto
 
-lemma (in sigma_algebra) borel_measurable_extreal_diff[simp, intro]:
-  fixes f g :: "'a \<Rightarrow> extreal"
+lemma (in sigma_algebra) borel_measurable_ereal_diff[simp, intro]:
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-  unfolding minus_extreal_def using assms by auto
+  unfolding minus_ereal_def using assms by auto
 
 lemma (in sigma_algebra) borel_measurable_psuminf[simp, intro]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> extreal"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. f i \<in> borel_measurable M" and pos: "\<And>i x. x \<in> space M \<Longrightarrow> 0 \<le> f i x"
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
   apply (subst measurable_cong)
-  apply (subst suminf_extreal_eq_SUPR)
+  apply (subst suminf_ereal_eq_SUPR)
   apply (rule pos)
   using assms by auto
 
@@ -1465,11 +1467,11 @@ lemma (in sigma_algebra) borel_measurable_LIMSEQ:
   and u: "\<And>i. u i \<in> borel_measurable M"
   shows "u' \<in> borel_measurable M"
 proof -
-  have "\<And>x. x \<in> space M \<Longrightarrow> liminf (\<lambda>n. extreal (u n x)) = extreal (u' x)"
-    using u' by (simp add: lim_imp_Liminf trivial_limit_sequentially lim_extreal)
-  moreover from u have "(\<lambda>x. liminf (\<lambda>n. extreal (u n x))) \<in> borel_measurable M"
+  have "\<And>x. x \<in> space M \<Longrightarrow> liminf (\<lambda>n. ereal (u n x)) = ereal (u' x)"
+    using u' by (simp add: lim_imp_Liminf trivial_limit_sequentially lim_ereal)
+  moreover from u have "(\<lambda>x. liminf (\<lambda>n. ereal (u n x))) \<in> borel_measurable M"
     by auto
-  ultimately show ?thesis by (simp cong: measurable_cong add: borel_measurable_extreal_iff)
+  ultimately show ?thesis by (simp cong: measurable_cong add: borel_measurable_ereal_iff)
 qed
 
 end

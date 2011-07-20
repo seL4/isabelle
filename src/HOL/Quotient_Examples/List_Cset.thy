@@ -194,4 +194,11 @@ unfolding coset_def
 apply (lifting union_set_foldr)
 by descending auto
 
+lemma UNION_code [code]:
+  "Cset.UNION (Cset.set []) f = Cset.set []"
+  "Cset.UNION (Cset.set (x#xs)) f =
+     Cset.union (f x) (Cset.UNION (Cset.set xs) f)"
+  by (descending, simp)+
+
+
 end

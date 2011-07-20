@@ -8,7 +8,7 @@ locale finite_space =
   and not_empty[simp]: "S \<noteq> {}"
 
 definition (in finite_space) "M = \<lparr> space = S, sets = Pow S,
-  measure = \<lambda>A. extreal (card A / card S) \<rparr>"
+  measure = \<lambda>A. ereal (card A / card S) \<rparr>"
 
 lemma (in finite_space)
   shows space_M[simp]: "space M = S"
@@ -23,7 +23,7 @@ proof (rule finite_measure_spaceI)
 qed (auto simp: M_def divide_nonneg_nonneg)
 
 sublocale finite_space \<subseteq> information_space M 2
-  by default (simp_all add: M_def one_extreal_def)
+  by default (simp_all add: M_def one_ereal_def)
 
 lemma (in finite_space) \<mu>'_eq[simp]: "\<mu>' A = (if A \<subseteq> S then card A / card S else 0)"
   unfolding \<mu>'_def by (auto simp: M_def)

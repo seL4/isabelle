@@ -253,7 +253,7 @@ proof -
 qed
 
 lemma (in completeable_measure_space) completion_ex_borel_measurable_pos:
-  fixes g :: "'a \<Rightarrow> extreal"
+  fixes g :: "'a \<Rightarrow> ereal"
   assumes g: "g \<in> borel_measurable completion" and "\<And>x. 0 \<le> g x"
   shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
 proof -
@@ -279,7 +279,7 @@ proof -
 qed
 
 lemma (in completeable_measure_space) completion_ex_borel_measurable:
-  fixes g :: "'a \<Rightarrow> extreal"
+  fixes g :: "'a \<Rightarrow> ereal"
   assumes g: "g \<in> borel_measurable completion"
   shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
 proof -

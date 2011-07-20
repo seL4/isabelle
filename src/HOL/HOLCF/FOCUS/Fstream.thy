@@ -144,13 +144,13 @@ lemma slen_fscons: "#(m~> s) = iSuc (#s)"
 by (simp add: fscons_def)
 
 lemma slen_fscons_eq:
-        "(Fin (Suc n) < #x) = (? a y. x = a~> y & Fin n < #y)"
+        "(enat (Suc n) < #x) = (? a y. x = a~> y & enat n < #y)"
 apply (simp add: fscons_def2 slen_scons_eq)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done
 
 lemma slen_fscons_eq_rev:
-        "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a~> y | #y < Fin (Suc n))"
+        "(#x < enat (Suc (Suc n))) = (!a y. x ~= a~> y | #y < enat (Suc n))"
 apply (simp add: fscons_def2 slen_scons_eq_rev)
 apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
 apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
@@ -163,7 +163,7 @@ apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done
 
 lemma slen_fscons_less_eq:
-        "(#(a~> y) < Fin (Suc (Suc n))) = (#y < Fin (Suc n))"
+        "(#(a~> y) < enat (Suc (Suc n))) = (#y < enat (Suc n))"
 apply (subst slen_fscons_eq_rev)
 apply (fast dest!: fscons_inject [THEN iffD1])
 done

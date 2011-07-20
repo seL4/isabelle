@@ -19,8 +19,8 @@ text {*
   Originally from the Hurd/Coble measure theory development, translated by Lawrence Paulson.
 *}
 
-lemma suminf_extreal_2dimen:
-  fixes f:: "nat \<times> nat \<Rightarrow> extreal"
+lemma suminf_ereal_2dimen:
+  fixes f:: "nat \<times> nat \<Rightarrow> ereal"
   assumes pos: "\<And>p. 0 \<le> f p"
   assumes "\<And>m. g m = (\<Sum>n. f (m,n))"
   shows "(\<Sum>i. f (prod_decode i)) = suminf g"
@@ -47,21 +47,21 @@ proof -
   ultimately
   show ?thesis unfolding g_def using pos
     by (auto intro!: SUPR_eq  simp: setsum_cartesian_product reindex le_SUPI2
-                     setsum_nonneg suminf_extreal_eq_SUPR SUPR_pair
-                     SUPR_extreal_setsum[symmetric] incseq_setsumI setsum_nonneg)
+                     setsum_nonneg suminf_ereal_eq_SUPR SUPR_pair
+                     SUPR_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
 
 subsection {* Measure Spaces *}
 
 record 'a measure_space = "'a algebra" +
-  measure :: "'a set \<Rightarrow> extreal"
+  measure :: "'a set \<Rightarrow> ereal"
 
-definition positive where "positive M f \<longleftrightarrow> f {} = (0::extreal) \<and> (\<forall>A\<in>sets M. 0 \<le> f A)"
+definition positive where "positive M f \<longleftrightarrow> f {} = (0::ereal) \<and> (\<forall>A\<in>sets M. 0 \<le> f A)"
 
 definition additive where "additive M f \<longleftrightarrow>
   (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) = f x + f y)"
 
-definition countably_additive :: "('a, 'b) algebra_scheme \<Rightarrow> ('a set \<Rightarrow> extreal) \<Rightarrow> bool" where
+definition countably_additive :: "('a, 'b) algebra_scheme \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
   "countably_additive M f \<longleftrightarrow> (\<forall>A. range A \<subseteq> sets M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> sets M \<longrightarrow>
     (\<Sum>i. f (A i)) = f (\<Union>i. A i))"
 
@@ -168,7 +168,7 @@ lemma lambda_system_sets:
   by (simp add: lambda_system_def)
 
 lemma (in algebra) lambda_system_Compl:
-  fixes f:: "'a set \<Rightarrow> extreal"
+  fixes f:: "'a set \<Rightarrow> ereal"
   assumes x: "x \<in> lambda_system M f"
   shows "space M - x \<in> lambda_system M f"
 proof -
@@ -181,7 +181,7 @@ proof -
 qed
 
 lemma (in algebra) lambda_system_Int:
-  fixes f:: "'a set \<Rightarrow> extreal"
+  fixes f:: "'a set \<Rightarrow> ereal"
   assumes xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "x \<inter> y \<in> lambda_system M f"
 proof -
@@ -215,7 +215,7 @@ proof -
 qed
 
 lemma (in algebra) lambda_system_Un:
-  fixes f:: "'a set \<Rightarrow> extreal"
+  fixes f:: "'a set \<Rightarrow> ereal"
   assumes xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "x \<union> y \<in> lambda_system M f"
 proof -
@@ -321,7 +321,7 @@ next
 qed
 
 lemma (in algebra) increasing_additive_bound:
-  fixes A:: "nat \<Rightarrow> 'a set" and  f :: "'a set \<Rightarrow> extreal"
+  fixes A:: "nat \<Rightarrow> 'a set" and  f :: "'a set \<Rightarrow> ereal"
   assumes f: "positive M f" and ad: "additive M f"
       and inc: "increasing M f"
       and A: "range A \<subseteq> sets M"
@@ -346,7 +346,7 @@ lemma lambda_system_positive:
   by (simp add: positive_def lambda_system_def)
 
 lemma (in algebra) lambda_system_strong_sum:
-  fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> extreal"
+  fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> ereal"
   assumes f: "positive M f" and a: "a \<in> sets M"
       and A: "range A \<subseteq> lambda_system M f"
       and disj: "disjoint_family A"
@@ -537,7 +537,7 @@ lemma (in ring_of_sets) inf_measure_agrees:
   assumes posf: "positive M f" and ca: "countably_additive M f"
       and s: "s \<in> sets M"
   shows "Inf (measure_set M f s) = f s"
-  unfolding Inf_extreal_def
+  unfolding Inf_ereal_def
 proof (safe intro!: Greatest_equality)
   fix z
   assume z: "z \<in> measure_set M f s"
@@ -648,7 +648,7 @@ proof -
 qed
 
 lemma (in ring_of_sets) inf_measure_close:
-  fixes e :: extreal
+  fixes e :: ereal
   assumes posf: "positive M f" and e: "0 < e" and ss: "s \<subseteq> (space M)" and "Inf (measure_set M f s) \<noteq> \<infinity>"
   shows "\<exists>A. range A \<subseteq> sets M \<and> disjoint_family A \<and> s \<subseteq> (\<Union>i. A i) \<and>
                (\<Sum>i. f (A i)) \<le> Inf (measure_set M f s) + e"
@@ -656,7 +656,7 @@ proof -
   from `Inf (measure_set M f s) \<noteq> \<infinity>` have fin: "\<bar>Inf (measure_set M f s)\<bar> \<noteq> \<infinity>"
     using inf_measure_pos[OF posf, of s] by auto
   obtain l where "l \<in> measure_set M f s" "l \<le> Inf (measure_set M f s) + e"
-    using Inf_extreal_close[OF fin e] by auto
+    using Inf_ereal_close[OF fin e] by auto
   thus ?thesis
     by (auto intro!: exI[of _ l] simp: measure_set_def comp_def)
 qed
@@ -672,11 +672,11 @@ proof (simp add: countably_subadditive_def, safe)
      and disj: "disjoint_family A"
      and sb: "(\<Union>i. A i) \<subseteq> space M"
 
-  { fix e :: extreal assume e: "0 < e" and "\<forall>i. ?outer (A i) \<noteq> \<infinity>"
+  { fix e :: ereal assume e: "0 < e" and "\<forall>i. ?outer (A i) \<noteq> \<infinity>"
     hence "\<exists>BB. \<forall>n. range (BB n) \<subseteq> sets M \<and> disjoint_family (BB n) \<and>
         A n \<subseteq> (\<Union>i. BB n i) \<and> (\<Sum>i. f (BB n i)) \<le> ?outer (A n) + e * (1/2)^(Suc n)"
       apply (safe intro!: choice inf_measure_close [of f, OF posf])
-      using e sb by (auto simp: extreal_zero_less_0_iff one_extreal_def)
+      using e sb by (auto simp: ereal_zero_less_0_iff one_ereal_def)
     then obtain BB
       where BB: "\<And>n. (range (BB n) \<subseteq> sets M)"
       and disjBB: "\<And>n. disjoint_family (BB n)"
@@ -686,15 +686,15 @@ proof (simp add: countably_subadditive_def, safe)
     have sll: "(\<Sum>n. \<Sum>i. (f (BB n i))) \<le> (\<Sum>n. ?outer (A n)) + e"
     proof -
       have sum_eq_1: "(\<Sum>n. e*(1/2) ^ Suc n) = e"
-        using suminf_half_series_extreal e
-        by (simp add: extreal_zero_le_0_iff zero_le_divide_extreal suminf_cmult_extreal)
+        using suminf_half_series_ereal e
+        by (simp add: ereal_zero_le_0_iff zero_le_divide_ereal suminf_cmult_ereal)
       have "\<And>n i. 0 \<le> f (BB n i)" using posf[unfolded positive_def] BB by auto
       then have "\<And>n. 0 \<le> (\<Sum>i. f (BB n i))" by (rule suminf_0_le)
       then have "(\<Sum>n. \<Sum>i. (f (BB n i))) \<le> (\<Sum>n. ?outer (A n) + e*(1/2) ^ Suc n)"
         by (rule suminf_le_pos[OF BBle])
       also have "... = (\<Sum>n. ?outer (A n)) + e"
         using sum_eq_1 inf_measure_pos[OF posf] e
-        by (subst suminf_add_extreal) (auto simp add: extreal_zero_le_0_iff)
+        by (subst suminf_add_ereal) (auto simp add: ereal_zero_le_0_iff)
       finally show ?thesis .
     qed
     def C \<equiv> "(split BB) o prod_decode"
@@ -716,7 +716,7 @@ proof (simp add: countably_subadditive_def, safe)
       by (rule ext)  (auto simp add: C_def)
     moreover have "suminf ... = (\<Sum>n. \<Sum>i. f (BB n i))" using BBle
       using BB posf[unfolded positive_def]
-      by (force intro!: suminf_extreal_2dimen simp: o_def)
+      by (force intro!: suminf_ereal_2dimen simp: o_def)
     ultimately have Csums: "(\<Sum>i. f (C i)) = (\<Sum>n. \<Sum>i. f (BB n i))" by (simp add: o_def)
     have "?outer (\<Union>i. A i) \<le> (\<Sum>n. \<Sum>i. f (BB n i))"
       apply (rule inf_measure_le [OF posf(1) inc], auto)
@@ -732,7 +732,7 @@ proof (simp add: countably_subadditive_def, safe)
   proof cases
     assume "\<forall>i. ?outer (A i) \<noteq> \<infinity>"
     with for_finite_Inf show ?thesis
-      by (intro extreal_le_epsilon) auto
+      by (intro ereal_le_epsilon) auto
   next
     assume "\<not> (\<forall>i. ?outer (A i) \<noteq> \<infinity>)"
     then have "\<exists>i. ?outer (A i) = \<infinity>"
@@ -771,7 +771,7 @@ proof (auto dest: sets_into_space
   next
     assume fin: "Inf (measure_set M f s) \<noteq> \<infinity>"
     then have "measure_set M f s \<noteq> {}"
-      by (auto simp: top_extreal_def)
+      by (auto simp: top_ereal_def)
     show ?thesis
     proof (rule complete_lattice_class.Inf_greatest)
       fix r assume "r \<in> measure_set M f s"
@@ -793,7 +793,7 @@ proof (auto dest: sets_into_space
       ultimately have "Inf (measure_set M f (s \<inter> x)) + Inf (measure_set M f (s - x)) \<le>
           (\<Sum>i. f (A i \<inter> x)) + (\<Sum>i. f (A i - x))" by (rule add_mono)
       also have "\<dots> = (\<Sum>i. f (A i \<inter> x) + f (A i - x))"
-        using A(2) x posf by (subst suminf_add_extreal) (auto simp: positive_def)
+        using A(2) x posf by (subst suminf_add_ereal) (auto simp: positive_def)
       also have "\<dots> = (\<Sum>i. f (A i))"
         using A x
         by (subst add[THEN additiveD, symmetric])
@@ -830,7 +830,7 @@ lemma measure_down:
 
 theorem (in ring_of_sets) caratheodory:
   assumes posf: "positive M f" and ca: "countably_additive M f"
-  shows "\<exists>\<mu> :: 'a set \<Rightarrow> extreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and>
+  shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and>
             measure_space \<lparr> space = space M, sets = sets (sigma M), measure = \<mu> \<rparr>"
 proof -
   have inc: "increasing M f"
@@ -873,7 +873,7 @@ proof safe
     by (auto simp: UN_disjointed_eq disjoint_family_disjointed)
   moreover have "(\<lambda>n. (\<Sum>i=0..<n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
     using f(1)[unfolded positive_def] dA
-    by (auto intro!: summable_sumr_LIMSEQ_suminf summable_extreal_pos)
+    by (auto intro!: summable_sumr_LIMSEQ_suminf summable_ereal_pos)
   from LIMSEQ_Suc[OF this]
   have "(\<lambda>n. (\<Sum>i\<le>n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
     unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost .
@@ -936,13 +936,13 @@ next
     show "range (\<lambda>i. A i - (\<Inter>i. A i)) \<subseteq> sets M" "(\<Inter>i. A i - (\<Inter>i. A i)) = {}"
       using A by auto
   qed
-  from INF_Lim_extreal[OF decseq_f this]
+  from INF_Lim_ereal[OF decseq_f this]
   have "(INF n. f (A n - (\<Inter>i. A i))) = 0" .
   moreover have "(INF n. f (\<Inter>i. A i)) = f (\<Inter>i. A i)"
     by auto
   ultimately have "(INF n. f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i)) = 0 + f (\<Inter>i. A i)"
     using A(4) f_fin f_Int_fin
-    by (subst INFI_extreal_add) (auto simp: decseq_f)
+    by (subst INFI_ereal_add) (auto simp: decseq_f)
   moreover {
     fix n
     have "f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i) = f ((A n - (\<Inter>i. A i)) \<union> (\<Inter>i. A i))"
@@ -952,7 +952,7 @@ next
     finally have "f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i) = f (A n)" . }
   ultimately have "(INF n. f (A n)) = f (\<Inter>i. A i)"
     by simp
-  with LIMSEQ_extreal_INFI[OF decseq_fA]
+  with LIMSEQ_ereal_INFI[OF decseq_fA]
   show "(\<lambda>i. f (A i)) ----> f (\<Inter>i. A i)" by simp
 qed
 
@@ -965,9 +965,9 @@ lemma (in ring_of_sets) empty_continuous_imp_continuous_from_below:
   assumes A: "range A \<subseteq> sets M" "incseq A" "(\<Union>i. A i) \<in> sets M"
   shows "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
 proof -
-  have "\<forall>A\<in>sets M. \<exists>x. f A = extreal x"
+  have "\<forall>A\<in>sets M. \<exists>x. f A = ereal x"
   proof
-    fix A assume "A \<in> sets M" with f show "\<exists>x. f A = extreal x"
+    fix A assume "A \<in> sets M" with f show "\<exists>x. f A = ereal x"
       unfolding positive_def by (cases "f A") auto
   qed
   from bchoice[OF this] guess f' .. note f' = this[rule_format]
@@ -981,10 +981,10 @@ proof -
       by auto
     finally have "f' (\<Union>i. A i) - f' (A i) = f' ((\<Union>i. A i) - A i)"
       using A by (subst (asm) (1 2 3) f') auto
-    then have "f ((\<Union>i. A i) - A i) = extreal (f' (\<Union>i. A i) - f' (A i))"
+    then have "f ((\<Union>i. A i) - A i) = ereal (f' (\<Union>i. A i) - f' (A i))"
       using A f' by auto }
   ultimately have "(\<lambda>i. f' (\<Union>i. A i) - f' (A i)) ----> 0"
-    by (simp add: zero_extreal_def)
+    by (simp add: zero_ereal_def)
   then have "(\<lambda>i. f' (A i)) ----> f' (\<Union>i. A i)"
     by (rule LIMSEQ_diff_approach_zero2[OF LIMSEQ_const])
   then show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
@@ -1002,7 +1002,7 @@ lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
 lemma (in ring_of_sets) caratheodory_empty_continuous:
   assumes f: "positive M f" "additive M f" and fin: "\<And>A. A \<in> sets M \<Longrightarrow> f A \<noteq> \<infinity>"
   assumes cont: "\<And>A. range A \<subseteq> sets M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) ----> 0"
-  shows "\<exists>\<mu> :: 'a set \<Rightarrow> extreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and>
+  shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and>
             measure_space \<lparr> space = space M, sets = sets (sigma M), measure = \<mu> \<rparr>"
 proof (intro caratheodory empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>sets M. f A \<noteq> \<infinity>" using fin by auto

@@ -10,14 +10,14 @@ begin
 
 definition
   stream_monoP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool" where
-  "stream_monoP F = (\<exists>Q i. \<forall>P s. Fin i \<le> #s \<longrightarrow>
+  "stream_monoP F = (\<exists>Q i. \<forall>P s. enat i \<le> #s \<longrightarrow>
                     (s \<in> F P) = (stream_take i\<cdot>s \<in> Q \<and> iterate i\<cdot>rt\<cdot>s \<in> P))"
 
 definition
   stream_antiP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool" where
   "stream_antiP F = (\<forall>P x. \<exists>Q i.
-                (#x  < Fin i \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow> y \<in> F P \<longrightarrow> x \<in> F P)) \<and>
-                (Fin i <= #x \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow>
+                (#x  < enat i \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow> y \<in> F P \<longrightarrow> x \<in> F P)) \<and>
+                (enat i <= #x \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow>
                 (y \<in> F P) = (stream_take i\<cdot>y \<in> Q \<and> iterate i\<cdot>rt\<cdot>y \<in> P))))"
 
 definition
@@ -57,7 +57,7 @@ done
 lemma flatstream_adm_lemma:
   assumes 1: "Porder.chain Y"
   assumes 2: "!i. P (Y i)"
-  assumes 3: "(!!Y. [| Porder.chain Y; !i. P (Y i); !k. ? j. Fin k < #((Y j)::'a::flat stream)|]
+  assumes 3: "(!!Y. [| Porder.chain Y; !i. P (Y i); !k. ? j. enat k < #((Y j)::'a::flat stream)|]
   ==> P(LUB i. Y i))"
   shows "P(LUB i. Y i)"
 apply (rule increasing_chain_adm_lemma [of _ P, OF 1 2])
@@ -74,12 +74,12 @@ apply ( rule slen_strict_mono)
 apply (   erule spec)
 apply (  assumption)
 apply ( assumption)
-apply (metis inat_ord_code(4) slen_infinite)
+apply (metis enat_ord_code(4) slen_infinite)
 done
 
 (* should be without reference to stream length? *)
 lemma flatstream_admI: "[|(!!Y. [| Porder.chain Y; !i. P (Y i); 
- !k. ? j. Fin k < #((Y j)::'a::flat stream)|] ==> P(LUB i. Y i))|]==> adm P"
+ !k. ? j. enat k < #((Y j)::'a::flat stream)|] ==> P(LUB i. Y i))|]==> adm P"
 apply (unfold adm_def)
 apply (intro strip)
 apply (erule (1) flatstream_adm_lemma)
@@ -87,13 +87,13 @@ apply (fast)
 done
 
 
-(* context (theory "Nat_InFinity");*)
-lemma ile_lemma: "Fin (i + j) <= x ==> Fin i <= x"
+(* context (theory "Extended_Nat");*)
+lemma ile_lemma: "enat (i + j) <= x ==> enat i <= x"
   by (rule order_trans) auto
 
 lemma stream_monoP2I:
 "!!X. stream_monoP F ==> !i. ? l. !x y. 
-  Fin l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i"
+  enat l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i"
 apply (unfold stream_monoP_def)
 apply (safe)
 apply (rule_tac x="i*ia" in exI)
@@ -120,7 +120,7 @@ apply (assumption)
 done
 
 lemma stream_monoP2_gfp_admI: "[| !i. ? l. !x y. 
- Fin l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i;
+ enat l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i;
     down_cont F |] ==> adm (%x. x:gfp F)"
 apply (erule INTER_down_iterate_is_gfp [THEN ssubst]) (* cont *)
 apply (simp (no_asm))
@@ -153,7 +153,7 @@ apply (simp)
 apply (intro strip)
 apply (erule allE, erule all_dupE, erule exE, erule exE)
 apply (erule conjE)
-apply (case_tac "#x < Fin i")
+apply (case_tac "#x < enat i")
 apply ( fast)
 apply (unfold linorder_not_less)
 apply (drule (1) mp)

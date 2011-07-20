@@ -54,7 +54,7 @@ lemma (in prob_space) distribution_id[simp]:
   by (auto simp: distribution_def intro!: arg_cong[where f=prob])
 
 lemma (in prob_space) prob_space: "prob (space M) = 1"
-  using measure_space_1 unfolding \<mu>'_def by (simp add: one_extreal_def)
+  using measure_space_1 unfolding \<mu>'_def by (simp add: one_ereal_def)
 
 lemma (in prob_space) prob_le_1[simp, intro]: "prob A \<le> 1"
   using bounded_measure[of A] by (simp add: prob_space)
@@ -242,7 +242,7 @@ qed
 
 lemma (in prob_space) distribution_prob_space:
   assumes X: "random_variable S X"
-  shows "prob_space (S\<lparr>measure := extreal \<circ> distribution X\<rparr>)" (is "prob_space ?S")
+  shows "prob_space (S\<lparr>measure := ereal \<circ> distribution X\<rparr>)" (is "prob_space ?S")
 proof (rule prob_space_vimage)
   show "X \<in> measure_preserving M ?S"
     using X
@@ -252,10 +252,10 @@ proof (rule prob_space_vimage)
 qed
 
 lemma (in prob_space) AE_distribution:
-  assumes X: "random_variable MX X" and "AE x in MX\<lparr>measure := extreal \<circ> distribution X\<rparr>. Q x"
+  assumes X: "random_variable MX X" and "AE x in MX\<lparr>measure := ereal \<circ> distribution X\<rparr>. Q x"
   shows "AE x. Q (X x)"
 proof -
-  interpret X: prob_space "MX\<lparr>measure := extreal \<circ> distribution X\<rparr>" using X by (rule distribution_prob_space)
+  interpret X: prob_space "MX\<lparr>measure := ereal \<circ> distribution X\<rparr>" using X by (rule distribution_prob_space)
   obtain N where N: "N \<in> sets MX" "distribution X N = 0" "{x\<in>space MX. \<not> Q x} \<subseteq> N"
     using assms unfolding X.almost_everywhere_def by auto
   from X[unfolded measurable_def] N show "AE x. Q (X x)"
@@ -410,9 +410,9 @@ qed
 
 lemma (in prob_space) distribution_eq_translated_integral:
   assumes "random_variable S X" "A \<in> sets S"
-  shows "distribution X A = integral\<^isup>P (S\<lparr>measure := extreal \<circ> distribution X\<rparr>) (indicator A)"
+  shows "distribution X A = integral\<^isup>P (S\<lparr>measure := ereal \<circ> distribution X\<rparr>) (indicator A)"
 proof -
-  interpret S: prob_space "S\<lparr>measure := extreal \<circ> distribution X\<rparr>"
+  interpret S: prob_space "S\<lparr>measure := ereal \<circ> distribution X\<rparr>"
     using assms(1) by (rule distribution_prob_space)
   show ?thesis
     using S.positive_integral_indicator(1)[of A] assms by simp
@@ -548,7 +548,7 @@ lemma countably_additiveI[case_names countably]:
 
 lemma (in prob_space) joint_distribution_prob_space:
   assumes "random_variable MX X" "random_variable MY Y"
-  shows "prob_space ((MX \<Otimes>\<^isub>M MY) \<lparr> measure := extreal \<circ> joint_distribution X Y\<rparr>)"
+  shows "prob_space ((MX \<Otimes>\<^isub>M MY) \<lparr> measure := ereal \<circ> joint_distribution X Y\<rparr>)"
   using random_variable_pairI[OF assms] by (rule distribution_prob_space)
 
 
@@ -570,12 +570,12 @@ lemma (in finite_product_prob_space) prob_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets (M i)"
   shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
 proof -
-  have "extreal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
+  have "ereal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
     using X by (intro finite_measure_eq[symmetric] in_P) auto
   also have "\<dots> = (\<Prod>i\<in>I. M.\<mu> i (X i))"
     using measure_times X by simp
-  also have "\<dots> = extreal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
-    using X by (simp add: M.finite_measure_eq setprod_extreal)
+  also have "\<dots> = ereal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
+    using X by (simp add: M.finite_measure_eq setprod_ereal)
   finally show ?thesis by simp
 qed
 
@@ -610,9 +610,9 @@ qed
 
 lemma (in prob_space) distribution_finite_prob_space:
   assumes "finite_random_variable MX X"
-  shows "finite_prob_space (MX\<lparr>measure := extreal \<circ> distribution X\<rparr>)"
+  shows "finite_prob_space (MX\<lparr>measure := ereal \<circ> distribution X\<rparr>)"
 proof -
-  interpret X: prob_space "MX\<lparr>measure := extreal \<circ> distribution X\<rparr>"
+  interpret X: prob_space "MX\<lparr>measure := ereal \<circ> distribution X\<rparr>"
     using assms[THEN finite_random_variableD] by (rule distribution_prob_space)
   interpret MX: finite_sigma_algebra MX
     using assms by auto
@@ -853,12 +853,12 @@ lemma (in product_finite_prob_space) prob_finite_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)"
   shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
 proof -
-  have "extreal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
+  have "ereal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
     using X by (intro finite_measure_eq[symmetric] in_P) auto
   also have "\<dots> = (\<Prod>i\<in>I. M.\<mu> i (X i))"
     using measure_finite_times X by simp
-  also have "\<dots> = extreal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
-    using X by (simp add: M.finite_measure_eq setprod_extreal)
+  also have "\<dots> = ereal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
+    using X by (simp add: M.finite_measure_eq setprod_ereal)
   finally show ?thesis by simp
 qed
 
@@ -877,7 +877,7 @@ lemma (in product_finite_prob_space) prob_finite_product:
 lemma (in prob_space) joint_distribution_finite_prob_space:
   assumes X: "finite_random_variable MX X"
   assumes Y: "finite_random_variable MY Y"
-  shows "finite_prob_space ((MX \<Otimes>\<^isub>M MY)\<lparr> measure := extreal \<circ> joint_distribution X Y\<rparr>)"
+  shows "finite_prob_space ((MX \<Otimes>\<^isub>M MY)\<lparr> measure := ereal \<circ> joint_distribution X Y\<rparr>)"
   by (intro distribution_finite_prob_space finite_random_variable_pairI X Y)
 
 lemma finite_prob_space_eq:
@@ -1021,7 +1021,7 @@ proof -
       using real_measure[OF `A \<in> events`] `\<mu> A \<noteq> 0` by auto
     show "positive ?P (measure ?P)"
     proof (simp add: positive_def, safe)
-      show "0 / \<mu> A = 0" using `\<mu> A \<noteq> 0` by (cases "\<mu> A") (auto simp: zero_extreal_def)
+      show "0 / \<mu> A = 0" using `\<mu> A \<noteq> 0` by (cases "\<mu> A") (auto simp: zero_ereal_def)
       fix B assume "B \<in> events"
       with real_measure[of "A \<inter> B"] real_measure[OF `A \<in> events`] `A \<in> sets M`
       show "0 \<le> \<mu> (A \<inter> B) / \<mu> A" by (auto simp: Int)
@@ -1035,12 +1035,12 @@ proof -
         with `A \<in> events` have "F i \<in> events" by auto }
       moreover then have "range F \<subseteq> events" by auto
       moreover have "\<And>S. \<mu> S / \<mu> A = inverse (\<mu> A) * \<mu> S"
-        by (simp add: mult_commute divide_extreal_def)
+        by (simp add: mult_commute divide_ereal_def)
       moreover have "0 \<le> inverse (\<mu> A)"
         using real_measure[OF `A \<in> events`] by auto
       ultimately show "(\<Sum>i. \<mu> (F i) / \<mu> A) = \<mu> (\<Union>i. F i) / \<mu> A"
         using measure_countably_additive[of F] F
-        by (auto simp: suminf_cmult_extreal)
+        by (auto simp: suminf_cmult_ereal)
     qed
   qed
 qed
@@ -1059,7 +1059,7 @@ qed
 
 lemma (in finite_prob_space) finite_measure_space:
   fixes X :: "'a \<Rightarrow> 'x"
-  shows "finite_measure_space \<lparr>space = X ` space M, sets = Pow (X ` space M), measure = extreal \<circ> distribution X\<rparr>"
+  shows "finite_measure_space \<lparr>space = X ` space M, sets = Pow (X ` space M), measure = ereal \<circ> distribution X\<rparr>"
     (is "finite_measure_space ?S")
 proof (rule finite_measure_spaceI, simp_all)
   show "finite (X ` space M)" using finite_space by simp
@@ -1072,13 +1072,13 @@ next
 qed
 
 lemma (in finite_prob_space) finite_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = extreal \<circ> distribution X \<rparr>"
-  by (simp add: finite_prob_space_eq finite_measure_space measure_space_1 one_extreal_def)
+  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = ereal \<circ> distribution X \<rparr>"
+  by (simp add: finite_prob_space_eq finite_measure_space measure_space_1 one_ereal_def)
 
 lemma (in finite_prob_space) finite_product_measure_space:
   fixes X :: "'a \<Rightarrow> 'x" and Y :: "'a \<Rightarrow> 'y"
   assumes "finite s1" "finite s2"
-  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = extreal \<circ> joint_distribution X Y\<rparr>"
+  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = ereal \<circ> joint_distribution X Y\<rparr>"
     (is "finite_measure_space ?M")
 proof (rule finite_measure_spaceI, simp_all)
   show "finite (s1 \<times> s2)"
@@ -1094,14 +1094,14 @@ qed
 lemma (in finite_prob_space) finite_product_measure_space_of_images:
   shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
                                 sets = Pow (X ` space M \<times> Y ` space M),
-                                measure = extreal \<circ> joint_distribution X Y \<rparr>"
+                                measure = ereal \<circ> joint_distribution X Y \<rparr>"
   using finite_space by (auto intro!: finite_product_measure_space)
 
 lemma (in finite_prob_space) finite_product_prob_space_of_images:
   "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M),
-                       measure = extreal \<circ> joint_distribution X Y \<rparr>"
+                       measure = ereal \<circ> joint_distribution X Y \<rparr>"
   (is "finite_prob_space ?S")
-proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images one_extreal_def)
+proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images one_ereal_def)
   have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
   thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
     by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
@@ -1129,7 +1129,7 @@ interpretation pborel: measure_space pborel
   by (simp add: pborel_def)
 
 interpretation pborel: prob_space pborel
-  by default (simp add: one_extreal_def pborel_def)
+  by default (simp add: one_ereal_def pborel_def)
 
 lemma pborel_prob: "pborel.prob A = (if A \<in> sets borel \<and> A \<subseteq> {0 ..< 1} then real (lborel.\<mu> A) else 0)"
   unfolding pborel.\<mu>'_def by (auto simp: pborel_def)
@@ -1171,11 +1171,11 @@ qed
 subsection "Bernoulli space"
 
 definition "bernoulli_space p = \<lparr> space = UNIV, sets = UNIV,
-  measure = extreal \<circ> setsum (\<lambda>b. if b then min 1 (max 0 p) else 1 - min 1 (max 0 p)) \<rparr>"
+  measure = ereal \<circ> setsum (\<lambda>b. if b then min 1 (max 0 p) else 1 - min 1 (max 0 p)) \<rparr>"
 
 interpretation bernoulli: finite_prob_space "bernoulli_space p" for p
   by (rule finite_prob_spaceI)
-     (auto simp: bernoulli_space_def UNIV_bool one_extreal_def setsum_Un_disjoint intro!: setsum_nonneg)
+     (auto simp: bernoulli_space_def UNIV_bool one_ereal_def setsum_Un_disjoint intro!: setsum_nonneg)
 
 lemma bernoulli_measure:
   "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longrightarrow> bernoulli.prob p B = (\<Sum>b\<in>B. if b then p else 1 - p)"

@@ -15,7 +15,7 @@ definition (in prob_space)
     \<and> (\<forall>C\<in>sets N. (\<integral>\<^isup>+x. Y x * indicator C x\<partial>M) = (\<integral>\<^isup>+x. X x * indicator C x\<partial>M)))"
 
 lemma (in prob_space) conditional_expectation_exists:
-  fixes X :: "'a \<Rightarrow> extreal" and N :: "('a, 'b) measure_space_scheme"
+  fixes X :: "'a \<Rightarrow> ereal" and N :: "('a, 'b) measure_space_scheme"
   assumes borel: "X \<in> borel_measurable M" "AE x. 0 \<le> X x"
   and N: "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M" "\<And>A. measure N A = \<mu> A"
   shows "\<exists>Y\<in>borel_measurable N. (\<forall>x. 0 \<le> Y x) \<and> (\<forall>C\<in>sets N.
@@ -52,7 +52,7 @@ proof -
 qed
 
 lemma (in prob_space)
-  fixes X :: "'a \<Rightarrow> extreal" and N :: "('a, 'b) measure_space_scheme"
+  fixes X :: "'a \<Rightarrow> ereal" and N :: "('a, 'b) measure_space_scheme"
   assumes borel: "X \<in> borel_measurable M" "AE x. 0 \<le> X x"
   and N: "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M" "\<And>A. measure N A = \<mu> A"
   shows borel_measurable_conditional_expectation:
@@ -71,7 +71,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) factorize_measurable_function_pos:
-  fixes Z :: "'a \<Rightarrow> extreal" and Y :: "'a \<Rightarrow> 'c"
+  fixes Z :: "'a \<Rightarrow> ereal" and Y :: "'a \<Rightarrow> 'c"
   assumes "sigma_algebra M'" and "Y \<in> measurable M M'" "Z \<in> borel_measurable M"
   assumes Z: "Z \<in> borel_measurable (sigma_algebra.vimage_algebra M' (space M) Y)"
   shows "\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. max 0 (Z x) = g (Y x)"
@@ -98,7 +98,7 @@ proof -
       show "simple_function M' ?g" using B by auto
 
       fix x assume "x \<in> space M"
-      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::extreal)"
+      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::ereal)"
         unfolding indicator_def using B by auto
       then show "f i x = ?g (Y x)" using `x \<in> space M` f(1)[of i]
         by (subst va.simple_function_indicator_representation) auto
@@ -119,7 +119,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) factorize_measurable_function:
-  fixes Z :: "'a \<Rightarrow> extreal" and Y :: "'a \<Rightarrow> 'c"
+  fixes Z :: "'a \<Rightarrow> ereal" and Y :: "'a \<Rightarrow> 'c"
   assumes "sigma_algebra M'" and "Y \<in> measurable M M'" "Z \<in> borel_measurable M"
   shows "Z \<in> borel_measurable (sigma_algebra.vimage_algebra M' (space M) Y)
     \<longleftrightarrow> (\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x))"
@@ -129,7 +129,7 @@ proof safe
   from M'.sigma_algebra_vimage[OF this]
   interpret va: sigma_algebra "M'.vimage_algebra (space M) Y" .
 
-  { fix g :: "'c \<Rightarrow> extreal" assume "g \<in> borel_measurable M'"
+  { fix g :: "'c \<Rightarrow> ereal" assume "g \<in> borel_measurable M'"
     with M'.measurable_vimage_algebra[OF Y]
     have "g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
       by (rule measurable_comp)

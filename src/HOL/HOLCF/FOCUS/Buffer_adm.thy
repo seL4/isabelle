@@ -8,7 +8,7 @@ theory Buffer_adm
 imports Buffer Stream_adm
 begin
 
-declare Fin_0 [simp]
+declare enat_0 [simp]
 
 lemma BufAC_Asm_d2: "a\<leadsto>s:BufAC_Asm ==> ? d. a=Md d"
 by (drule BufAC_Asm_unfold [THEN iffD1], auto)
@@ -116,7 +116,7 @@ apply ( force dest!: fstream_prefix
 done
 
 (*adm_BufAC_Asm,BufAC_Asm_antiton,adm_non_BufAC_Asm,BufAC_Asm_cong*)
-lemma BufAC_Cmt_2stream_monoP: "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> Fin (l i) < #x --> 
+lemma BufAC_Cmt_2stream_monoP: "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> enat (l i) < #x --> 
                      (x,f\<cdot>x):down_iterate BufAC_Cmt_F i --> 
                      (s,f\<cdot>s):down_iterate BufAC_Cmt_F i"
 apply (rule_tac x="%i. 2*i" in exI)
@@ -139,10 +139,10 @@ apply (rename_tac i d xa ya t)
        \<lbrakk>f \<in> BufEq;
           \<forall>x s. s \<in> BufAC_Asm \<longrightarrow>
                 x \<sqsubseteq> s \<longrightarrow>
-                Fin (2 * i) < #x \<longrightarrow>
+                enat (2 * i) < #x \<longrightarrow>
                 (x, f\<cdot>x) \<in> down_iterate BufAC_Cmt_F i \<longrightarrow>
                 (s, f\<cdot>s) \<in> down_iterate BufAC_Cmt_F i;
-          Md d\<leadsto>\<bullet>\<leadsto>xa \<in> BufAC_Asm; Fin (2 * i) < #ya; f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>ya) = d\<leadsto>t;
+          Md d\<leadsto>\<bullet>\<leadsto>xa \<in> BufAC_Asm; enat (2 * i) < #ya; f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>ya) = d\<leadsto>t;
           (ya, t) \<in> down_iterate BufAC_Cmt_F i; ya \<sqsubseteq> xa\<rbrakk>
        \<Longrightarrow> (xa, rt\<cdot>(f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>xa))) \<in> down_iterate BufAC_Cmt_F i
 *)
@@ -158,11 +158,11 @@ apply (            simp)
 apply (erule subst)
 (*
  1. \<And>i d xa ya t ff ffa.
-       \<lbrakk>f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>ya) = d\<leadsto>ffa\<cdot>ya; Fin (2 * i) < #ya;
+       \<lbrakk>f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>ya) = d\<leadsto>ffa\<cdot>ya; enat (2 * i) < #ya;
           (ya, ffa\<cdot>ya) \<in> down_iterate BufAC_Cmt_F i; ya \<sqsubseteq> xa; f \<in> BufEq;
           \<forall>x s. s \<in> BufAC_Asm \<longrightarrow>
                 x \<sqsubseteq> s \<longrightarrow>
-                Fin (2 * i) < #x \<longrightarrow>
+                enat (2 * i) < #x \<longrightarrow>
                 (x, f\<cdot>x) \<in> down_iterate BufAC_Cmt_F i \<longrightarrow>
                 (s, f\<cdot>s) \<in> down_iterate BufAC_Cmt_F i;
           xa \<in> BufAC_Asm; ff \<in> BufEq; ffa \<in> BufEq\<rbrakk>

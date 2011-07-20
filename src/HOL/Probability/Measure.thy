@@ -150,7 +150,7 @@ proof -
   finally have "\<mu> (space M) = \<mu> s + \<mu> (space M - s)" .
   then show ?thesis
     using fin `0 \<le> \<mu> s`
-    unfolding extreal_eq_minus_iff by (auto simp: ac_simps)
+    unfolding ereal_eq_minus_iff by (auto simp: ac_simps)
 qed
 
 lemma (in measure_space) measure_Diff:
@@ -164,7 +164,7 @@ proof -
   also have "\<dots> = \<mu> (A - B) + \<mu> B"
     using measurable by (subst measure_additive[symmetric]) auto
   finally show "\<mu> (A - B) = \<mu> A - \<mu> B"
-    unfolding extreal_eq_minus_iff
+    unfolding ereal_eq_minus_iff
     using finite `0 \<le> \<mu> B` by auto
 qed
 
@@ -207,7 +207,7 @@ proof -
   have A2: "(\<Union>i. A (Suc i) - A i) \<in> sets M"
     by (blast intro: range_subsetD [OF A])
   have "(SUP n. \<Sum>i<n. \<mu> (A (Suc i) - A i)) = (\<Sum>i. \<mu> (A (Suc i) - A i))"
-    using A by (auto intro!: suminf_extreal_eq_SUPR[symmetric])
+    using A by (auto intro!: suminf_ereal_eq_SUPR[symmetric])
   also have "\<dots> = \<mu> (\<Union>i. A (Suc i) - A i)"
     by (rule measure_countably_additive)
        (auto simp add: disjoint_family_Suc ASuc A1 A2)
@@ -244,7 +244,7 @@ lemma (in measure_space) measure_incseq:
 lemma (in measure_space) continuity_from_below_Lim:
   assumes A: "range A \<subseteq> sets M" "incseq A"
   shows "(\<lambda>i. (\<mu> (A i))) ----> \<mu> (\<Union>i. A i)"
-  using LIMSEQ_extreal_SUPR[OF measure_incseq, OF A]
+  using LIMSEQ_ereal_SUPR[OF measure_incseq, OF A]
     continuity_from_below[OF A] by simp
 
 lemma (in measure_space) measure_decseq:
@@ -264,10 +264,10 @@ proof -
   have A0: "0 \<le> \<mu> (A 0)" using A by auto
 
   have "\<mu> (A 0) - (INF n. \<mu> (A n)) = \<mu> (A 0) + (SUP n. - \<mu> (A n))"
-    by (simp add: extreal_SUPR_uminus minus_extreal_def)
+    by (simp add: ereal_SUPR_uminus minus_ereal_def)
   also have "\<dots> = (SUP n. \<mu> (A 0) - \<mu> (A n))"
-    unfolding minus_extreal_def using A0 assms
-    by (subst SUPR_extreal_add) (auto simp add: measure_decseq)
+    unfolding minus_ereal_def using A0 assms
+    by (subst SUPR_ereal_add) (auto simp add: measure_decseq)
   also have "\<dots> = (SUP n. \<mu> (A 0 - A n))"
     using A finite `decseq A`[unfolded decseq_def] by (subst measure_Diff) auto
   also have "\<dots> = \<mu> (\<Union>i. A 0 - A i)"
@@ -280,7 +280,7 @@ proof -
   also have "\<dots> = \<mu> (A 0) - \<mu> (\<Inter>i. A i)"
     using A finite * by (simp, subst measure_Diff) auto
   finally show ?thesis
-    unfolding extreal_minus_eq_minus_iff using finite A0 by auto
+    unfolding ereal_minus_eq_minus_iff using finite A0 by auto
 qed
 
 lemma (in measure_space) measure_insert:
@@ -489,7 +489,7 @@ proof (rule antisym)
     also have "\<dots> \<le> \<mu> (T - S) + \<mu> (S \<inter> T)"
       using assms by (auto intro!: measure_subadditive)
     also have "\<dots> < \<mu> (T - S) + \<mu> S"
-      using fin contr pos by (intro extreal_less_add) auto
+      using fin contr pos by (intro ereal_less_add) auto
     also have "\<dots> = \<mu> (T \<union> S)"
       using assms by (subst measure_additive) auto
     also have "\<dots> \<le> \<mu> (space M)"
@@ -1059,7 +1059,7 @@ lemma (in measure_space) real_measure_Union:
   shows "real (\<mu> (A \<union> B)) = real (\<mu> A) + real (\<mu> B)"
   unfolding measure_additive[symmetric, OF measurable]
   using measurable(1,2)[THEN positive_measure]
-  using finite by (cases rule: extreal2_cases[of "\<mu> A" "\<mu> B"]) auto
+  using finite by (cases rule: ereal2_cases[of "\<mu> A" "\<mu> B"]) auto
 
 lemma (in measure_space) real_measure_finite_Union:
   assumes measurable:
@@ -1067,7 +1067,7 @@ lemma (in measure_space) real_measure_finite_Union:
   assumes finite: "\<And>i. i \<in> S \<Longrightarrow> \<mu> (A i) \<noteq> \<infinity>"
   shows "real (\<mu> (\<Union>i\<in>S. A i)) = (\<Sum>i\<in>S. real (\<mu> (A i)))"
   using finite measurable(2)[THEN positive_measure]
-  by (force intro!: setsum_real_of_extreal[symmetric]
+  by (force intro!: setsum_real_of_ereal[symmetric]
             simp: measure_setsum[OF measurable, symmetric])
 
 lemma (in measure_space) real_measure_Diff:
@@ -1088,7 +1088,7 @@ lemma (in measure_space) real_measure_UNION:
   shows "(\<lambda>i. real (\<mu> (A i))) sums (real (\<mu> (\<Union>i. A i)))"
 proof -
   have "\<And>i. 0 \<le> \<mu> (A i)" using measurable by auto
-  with summable_sums[OF summable_extreal_pos, of "\<lambda>i. \<mu> (A i)"]
+  with summable_sums[OF summable_ereal_pos, of "\<lambda>i. \<mu> (A i)"]
      measure_countably_additive[OF measurable]
   have "(\<lambda>i. \<mu> (A i)) sums (\<mu> (\<Union>i. A i))" by simp
   moreover
@@ -1096,14 +1096,14 @@ proof -
     have "\<mu> (A i) \<le> \<mu> (\<Union>i. A i)"
       using measurable by (auto intro!: measure_mono)
     moreover have "0 \<le> \<mu> (A i)" using measurable by auto
-    ultimately have "\<mu> (A i) = extreal (real (\<mu> (A i)))"
+    ultimately have "\<mu> (A i) = ereal (real (\<mu> (A i)))"
       using finite by (cases "\<mu> (A i)") auto }
   moreover
   have "0 \<le> \<mu> (\<Union>i. A i)" using measurable by auto
-  then have "\<mu> (\<Union>i. A i) = extreal (real (\<mu> (\<Union>i. A i)))"
+  then have "\<mu> (\<Union>i. A i) = ereal (real (\<mu> (\<Union>i. A i)))"
     using finite by (cases "\<mu> (\<Union>i. A i)") auto
   ultimately show ?thesis
-    unfolding sums_extreal[symmetric] by simp
+    unfolding sums_ereal[symmetric] by simp
 qed
 
 lemma (in measure_space) real_measure_subadditive:
@@ -1114,7 +1114,7 @@ proof -
   have "0 \<le> \<mu> (A \<union> B)" using measurable by auto
   then show "real (\<mu> (A \<union> B)) \<le> real (\<mu> A) + real (\<mu> B)"
     using measure_subadditive[OF measurable] fin
-    by (cases rule: extreal3_cases[of "\<mu> (A \<union> B)" "\<mu> A" "\<mu> B"]) auto
+    by (cases rule: ereal3_cases[of "\<mu> (A \<union> B)" "\<mu> A" "\<mu> B"]) auto
 qed
 
 lemma (in measure_space) real_measure_setsum_singleton:
@@ -1123,24 +1123,24 @@ lemma (in measure_space) real_measure_setsum_singleton:
   shows "real (\<mu> S) = (\<Sum>x\<in>S. real (\<mu> {x}))"
   using measure_finite_singleton[OF S] fin
   using positive_measure[OF S(2)]
-  by (force intro!: setsum_real_of_extreal[symmetric])
+  by (force intro!: setsum_real_of_ereal[symmetric])
 
 lemma (in measure_space) real_continuity_from_below:
   assumes A: "range A \<subseteq> sets M" "incseq A" and fin: "\<mu> (\<Union>i. A i) \<noteq> \<infinity>"
   shows "(\<lambda>i. real (\<mu> (A i))) ----> real (\<mu> (\<Union>i. A i))"
 proof -
   have "0 \<le> \<mu> (\<Union>i. A i)" using A by auto
-  then have "extreal (real (\<mu> (\<Union>i. A i))) = \<mu> (\<Union>i. A i)"
-    using fin by (auto intro: extreal_real')
+  then have "ereal (real (\<mu> (\<Union>i. A i))) = \<mu> (\<Union>i. A i)"
+    using fin by (auto intro: ereal_real')
   then show ?thesis
     using continuity_from_below_Lim[OF A]
-    by (intro lim_real_of_extreal) simp
+    by (intro lim_real_of_ereal) simp
 qed
 
 lemma (in measure_space) continuity_from_above_Lim:
   assumes A: "range A \<subseteq> sets M" "decseq A" and fin: "\<And>i. \<mu> (A i) \<noteq> \<infinity>"
   shows "(\<lambda>i. (\<mu> (A i))) ----> \<mu> (\<Inter>i. A i)"
-  using LIMSEQ_extreal_INFI[OF measure_decseq, OF A]
+  using LIMSEQ_ereal_INFI[OF measure_decseq, OF A]
   using continuity_from_above[OF A fin] by simp
 
 lemma (in measure_space) real_continuity_from_above:
@@ -1151,11 +1151,11 @@ proof -
   moreover
   have "\<mu> (\<Inter>i. A i) \<le> \<mu> (A 0)"
     using A by (auto intro!: measure_mono)
-  ultimately have "extreal (real (\<mu> (\<Inter>i. A i))) = \<mu> (\<Inter>i. A i)"
-    using fin by (auto intro: extreal_real')
+  ultimately have "ereal (real (\<mu> (\<Inter>i. A i))) = \<mu> (\<Inter>i. A i)"
+    using fin by (auto intro: ereal_real')
   then show ?thesis
     using continuity_from_above_Lim[OF A fin]
-    by (intro lim_real_of_extreal) simp
+    by (intro lim_real_of_ereal) simp
 qed
 
 lemma (in measure_space) real_measure_countably_subadditive:
@@ -1167,11 +1167,11 @@ proof -
     moreover have "\<mu> (A i) \<noteq> \<infinity>" using A by (intro suminf_PInfty[OF _ fin]) auto
     ultimately have "\<bar>\<mu> (A i)\<bar> \<noteq> \<infinity>" by auto }
   moreover have "0 \<le> \<mu> (\<Union>i. A i)" using A by auto
-  ultimately have "extreal (real (\<mu> (\<Union>i. A i))) \<le> (\<Sum>i. extreal (real (\<mu> (A i))))"
-    using measure_countably_subadditive[OF A] by (auto simp: extreal_real)
-  also have "\<dots> = extreal (\<Sum>i. real (\<mu> (A i)))"
+  ultimately have "ereal (real (\<mu> (\<Union>i. A i))) \<le> (\<Sum>i. ereal (real (\<mu> (A i))))"
+    using measure_countably_subadditive[OF A] by (auto simp: ereal_real)
+  also have "\<dots> = ereal (\<Sum>i. real (\<mu> (A i)))"
     using A
-    by (auto intro!: sums_unique[symmetric] sums_extreal[THEN iffD2] summable_sums summable_real_of_extreal fin)
+    by (auto intro!: sums_unique[symmetric] sums_ereal[THEN iffD2] summable_sums summable_real_of_ereal fin)
   finally show ?thesis by simp
 qed
 
@@ -1199,14 +1199,14 @@ qed
 definition (in finite_measure)
   "\<mu>' A = (if A \<in> sets M then real (\<mu> A) else 0)"
 
-lemma (in finite_measure) finite_measure_eq: "A \<in> sets M \<Longrightarrow> \<mu> A = extreal (\<mu>' A)"
-  by (auto simp: \<mu>'_def extreal_real)
+lemma (in finite_measure) finite_measure_eq: "A \<in> sets M \<Longrightarrow> \<mu> A = ereal (\<mu>' A)"
+  by (auto simp: \<mu>'_def ereal_real)
 
 lemma (in finite_measure) positive_measure'[simp, intro]: "0 \<le> \<mu>' A"
-  unfolding \<mu>'_def by (auto simp: real_of_extreal_pos)
+  unfolding \<mu>'_def by (auto simp: real_of_ereal_pos)
 
 lemma (in finite_measure) real_measure:
-  assumes A: "A \<in> sets M" shows "\<exists>r. 0 \<le> r \<and> \<mu> A = extreal r"
+  assumes A: "A \<in> sets M" shows "\<exists>r. 0 \<le> r \<and> \<mu> A = ereal r"
   using finite_measure[OF A] positive_measure[OF A] by (cases "\<mu> A") auto
 
 lemma (in finite_measure) bounded_measure: "\<mu>' A \<le> \<mu>' (space M)"
@@ -1215,8 +1215,8 @@ proof cases
   moreover then have "\<mu> A \<le> \<mu> (space M)"
     using sets_into_space by (auto intro!: measure_mono)
   ultimately show ?thesis
-    by (auto simp: \<mu>'_def intro!: real_of_extreal_positive_mono)
-qed (simp add: \<mu>'_def real_of_extreal_pos)
+    by (auto simp: \<mu>'_def intro!: real_of_ereal_positive_mono)
+qed (simp add: \<mu>'_def real_of_ereal_pos)
 
 lemma (in finite_measure) restricted_finite_measure:
   assumes "S \<in> sets M"
@@ -1302,8 +1302,8 @@ proof -
   note A[THEN subsetD, THEN finite_measure_eq, simp]
   note countable_UN[OF A, THEN finite_measure_eq, simp]
   from `summable (\<lambda>i. \<mu>' (A i))`
-  have "(\<lambda>i. extreal (\<mu>' (A i))) sums extreal (\<Sum>i. \<mu>' (A i))"
-    by (simp add: sums_extreal) (rule summable_sums)
+  have "(\<lambda>i. ereal (\<mu>' (A i))) sums ereal (\<Sum>i. \<mu>' (A i))"
+    by (simp add: sums_ereal) (rule summable_sums)
   from sums_unique[OF this, symmetric]
        measure_countably_subadditive[OF A]
   show ?thesis by simp
@@ -1440,26 +1440,26 @@ next
 qed
 
 lemma suminf_cmult_indicator:
-  fixes f :: "nat \<Rightarrow> extreal"
+  fixes f :: "nat \<Rightarrow> ereal"
   assumes "disjoint_family A" "x \<in> A i" "\<And>i. 0 \<le> f i"
   shows "(\<Sum>n. f n * indicator (A n) x) = f i"
 proof -
-  have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: extreal)"
+  have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: ereal)"
     using `x \<in> A i` assms unfolding disjoint_family_on_def indicator_def by auto
-  then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: extreal)"
+  then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: ereal)"
     by (auto simp: setsum_cases)
-  moreover have "(SUP n. if i < n then f i else 0) = (f i :: extreal)"
-  proof (rule extreal_SUPI)
-    fix y :: extreal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
+  moreover have "(SUP n. if i < n then f i else 0) = (f i :: ereal)"
+  proof (rule ereal_SUPI)
+    fix y :: ereal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
     from this[of "Suc i"] show "f i \<le> y" by auto
   qed (insert assms, simp)
   ultimately show ?thesis using assms
-    by (subst suminf_extreal_eq_SUPR) (auto simp: indicator_def)
+    by (subst suminf_ereal_eq_SUPR) (auto simp: indicator_def)
 qed
 
 lemma suminf_indicator:
   assumes "disjoint_family A"
-  shows "(\<Sum>n. indicator (A n) x :: extreal) = indicator (\<Union>i. A i) x"
+  shows "(\<Sum>n. indicator (A n) x :: ereal) = indicator (\<Union>i. A i) x"
 proof cases
   assume *: "x \<in> (\<Union>i. A i)"
   then obtain i where "x \<in> A i" by auto
