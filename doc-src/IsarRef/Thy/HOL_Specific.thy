@@ -1382,6 +1382,11 @@ text {*
     @{text "elim:"}, and @{text "dest:"} are passed to the appropriate proof
     methods.
 
+  \item @{command (HOL) "try"} attempts to prove or disprove a subgoal
+    using a combination of provers and disprovers (@{text "solve_direct"},
+    @{text "quickcheck"}, @{text "try_methods"}, @{text "sledgehammer"},
+    @{text "nitpick"}).
+
   \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal using external
     automatic provers (resolution provers and SMT solvers). See the Sledgehammer
     manual \cite{isabelle-sledgehammer} for details.
@@ -1448,17 +1453,24 @@ text {*
     free variables; by default the first subgoal is tested, an other
     can be selected explicitly using an optional goal index.
     Assignments can be chosen exhausting the search space upto a given
-    size or using a fixed number of random assignments in the search space.
+    size, or using a fixed number of random assignments in the search space,
+    or exploring the search space symbolically using narrowing.
     By default, quickcheck uses exhaustive testing.
     A number of configuration options are supported for
     @{command (HOL) "quickcheck"}, notably:
 
     \begin{description}
 
-    \item[@{text tester}] specifies how to explore the search space
-      (e.g. exhaustive or random).
+    \item[@{text tester}] specifies which testing approach to apply.
+      There are three testers, @{text exhaustive},
+      @{text random}, and @{text narrowing}.
       An unknown configuration option is treated as an argument to tester,
       making @{text "tester ="} optional.
+      When multiple testers are given, these are applied in parallel. 
+      If no tester is specified, quickcheck uses the testers that are
+      set active, i.e., configurations
+      @{text quickcheck_exhaustive_active}, @{text quickcheck_random_active},
+      @{text quickcheck_narrowing_active} are set to true.
     \item[@{text size}] specifies the maximum size of the search space
     for assignment values.
 

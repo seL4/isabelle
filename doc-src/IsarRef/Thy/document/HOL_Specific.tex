@@ -2013,6 +2013,11 @@ In addition to the standard proof methods, a number of diagnosis
     \isa{{\isaliteral{22}{\isachardoublequote}}elim{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}}, and \isa{{\isaliteral{22}{\isachardoublequote}}dest{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} are passed to the appropriate proof
     methods.
 
+  \item \hyperlink{command.HOL.try}{\mbox{\isa{\isacommand{try}}}} attempts to prove or disprove a subgoal
+    using a combination of provers and disprovers (\isa{{\isaliteral{22}{\isachardoublequote}}solve{\isaliteral{5F}{\isacharunderscore}}direct{\isaliteral{22}{\isachardoublequote}}},
+    \isa{{\isaliteral{22}{\isachardoublequote}}quickcheck{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}try{\isaliteral{5F}{\isacharunderscore}}methods{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}sledgehammer{\isaliteral{22}{\isachardoublequote}}},
+    \isa{{\isaliteral{22}{\isachardoublequote}}nitpick{\isaliteral{22}{\isachardoublequote}}}).
+
   \item \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}} attempts to prove a subgoal using external
     automatic provers (resolution provers and SMT solvers). See the Sledgehammer
     manual \cite{isabelle-sledgehammer} for details.
@@ -2131,17 +2136,24 @@ Identifying incorrect propositions usually involves evaluation of
     free variables; by default the first subgoal is tested, an other
     can be selected explicitly using an optional goal index.
     Assignments can be chosen exhausting the search space upto a given
-    size or using a fixed number of random assignments in the search space.
+    size, or using a fixed number of random assignments in the search space,
+    or exploring the search space symbolically using narrowing.
     By default, quickcheck uses exhaustive testing.
     A number of configuration options are supported for
     \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}, notably:
 
     \begin{description}
 
-    \item[\isa{tester}] specifies how to explore the search space
-      (e.g. exhaustive or random).
+    \item[\isa{tester}] specifies which testing approach to apply.
+      There are three testers, \isa{exhaustive},
+      \isa{random}, and \isa{narrowing}.
       An unknown configuration option is treated as an argument to tester,
       making \isa{{\isaliteral{22}{\isachardoublequote}}tester\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}} optional.
+      When multiple testers are given, these are applied in parallel. 
+      If no tester is specified, quickcheck uses the testers that are
+      set active, i.e., configurations
+      \isa{quickcheck{\isaliteral{5F}{\isacharunderscore}}exhaustive{\isaliteral{5F}{\isacharunderscore}}active}, \isa{quickcheck{\isaliteral{5F}{\isacharunderscore}}random{\isaliteral{5F}{\isacharunderscore}}active},
+      \isa{quickcheck{\isaliteral{5F}{\isacharunderscore}}narrowing{\isaliteral{5F}{\isacharunderscore}}active} are set to true.
     \item[\isa{size}] specifies the maximum size of the search space
     for assignment values.
 
