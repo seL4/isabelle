@@ -541,7 +541,8 @@ fun translate_atp_lambdas ctxt type_enc =
            rpair [] o map (conceal_lambdas ctxt)
          else if trans = liftingN then
            map (close_form o Envir.eta_contract) #> rpair ctxt
-           #-> Lambda_Lifting.lift_lambdas NONE Lambda_Lifting.is_quantifier
+           #-> Lambda_Lifting.lift_lambdas (SOME polymorphic_free_prefix)
+                                           Lambda_Lifting.is_quantifier
            #> fst
          else if trans = combinatorsN then
            rpair [] o map (introduce_combinators ctxt)

@@ -39,6 +39,7 @@ sig
   val const_prefix : string
   val type_const_prefix : string
   val class_prefix : string
+  val polymorphic_free_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
@@ -125,8 +126,7 @@ val const_prefix = "c_"
 val type_const_prefix = "tc_"
 val class_prefix = "cl_"
 
-(* TODO: Use a more descriptive prefix in "SMT_Translate.lift_lambdas". *)
-val lambda_lifted_prefix = Name.uu
+val polymorphic_free_prefix = "poly_free"
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
@@ -480,7 +480,7 @@ fun iterm_from_term thy bs (P $ Q) =
      atyps_of T)
   | iterm_from_term _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
-             if String.isPrefix lambda_lifted_prefix s then [T] else []),
+             if String.isPrefix polymorphic_free_prefix s then [T] else []),
      atyps_of T)
   | iterm_from_term _ _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
@@ -1417,7 +1417,7 @@ fun add_type_constrs_in_term thy =
         if String.isPrefix skolem_const_prefix s then I
         else x |> Sign.const_typargs thy |> fold (fold_type_constrs set_insert)
       | add (Free (s, T)) =
-        if String.isPrefix lambda_lifted_prefix s then
+        if String.isPrefix polymorphic_free_prefix s then
           T |> fold_type_constrs set_insert
         else
           I
