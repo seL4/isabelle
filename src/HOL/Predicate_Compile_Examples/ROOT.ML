@@ -3,7 +3,7 @@ use_thys [
   "Predicate_Compile_Tests",
 (*  "Predicate_Compile_Quickcheck_Examples", -- should be added again soon *)
   "Specialisation_Examples",
-  "Hotel_Example_Small_Generator",
+(*  "Hotel_Example_Small_Generator",*)
   "IMP_1",
   "IMP_2"
 (*  "IMP_3",
