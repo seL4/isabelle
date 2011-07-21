@@ -88,7 +88,6 @@ sig
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
-  val conceal_lambdas : Proof.context -> term -> term
   val introduce_combinators : Proof.context -> term -> term
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
@@ -160,8 +159,6 @@ val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
 (* Freshness almost guaranteed! *)
 val atp_weak_prefix = "ATP:"
-
-val concealed_lambda_prefix = atp_weak_prefix ^ "lambda_"
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -926,10 +923,8 @@ fun do_conceal_lambdas Ts (t1 $ t2) =
     do_conceal_lambdas Ts t1 $ do_conceal_lambdas Ts t2
   | do_conceal_lambdas Ts (Abs (_, T, t)) =
     (* slightly unsound because of hash collisions *)
-    Free (concealed_lambda_prefix ^ string_of_int (hash_term t),
-          T --> fastype_of1 (Ts, t))
+    Free (polymorphic_free_prefix ^ serial_string (), T --> fastype_of1 (Ts, t))
   | do_conceal_lambdas _ t = t
-val conceal_lambdas = simple_translate_lambdas (K do_conceal_lambdas)
 
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in

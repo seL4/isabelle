@@ -525,6 +525,12 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
+fun lift_lambdas ctxt =
+  map (close_form o Envir.eta_contract) #> rpair ctxt
+  #-> Lambda_Lifting.lift_lambdas (SOME polymorphic_free_prefix)
+                                  Lambda_Lifting.is_quantifier
+  #> fst
+
 fun translate_atp_lambdas ctxt type_enc =
   Config.get ctxt atp_lambda_translation
   |> (fn trans =>
@@ -538,16 +544,13 @@ fun translate_atp_lambdas ctxt type_enc =
            trans)
   |> (fn trans =>
          if trans = concealedN then
-           rpair [] o map (conceal_lambdas ctxt)
+           lift_lambdas ctxt ##> K []
          else if trans = liftingN then
-           map (close_form o Envir.eta_contract) #> rpair ctxt
-           #-> Lambda_Lifting.lift_lambdas (SOME polymorphic_free_prefix)
-                                           Lambda_Lifting.is_quantifier
-           #> fst
+           lift_lambdas ctxt
          else if trans = combinatorsN then
-           rpair [] o map (introduce_combinators ctxt)
+           map (introduce_combinators ctxt) #> rpair []
          else if trans = lambdasN then
-           rpair [] o map (Envir.eta_contract)
+           map (Envir.eta_contract) #> rpair []
          else
            error ("Unknown lambda translation method: " ^ quote trans ^ "."))
 
