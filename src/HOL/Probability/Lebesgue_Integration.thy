@@ -6,7 +6,7 @@
 header {*Lebesgue Integration*}
 
 theory Lebesgue_Integration
-imports Measure Borel_Space
+  imports Measure Borel_Space
 begin
 
 lemma real_ereal_1[simp]: "real (1::ereal) = 1"

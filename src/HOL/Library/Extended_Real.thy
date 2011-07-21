@@ -8,7 +8,7 @@
 header {* Extended real number line *}
 
 theory Extended_Real
-  imports Complex_Main Extended_Nat
+imports Complex_Main Extended_Nat
 begin
 
 text {*
@@ -1244,7 +1244,10 @@ proof
     with Sup_le[of "uminus`A" "-x"] show "x \<le> Inf A"
       unfolding ereal_Sup_uminus_image_eq by force }
 qed
+
 end
+
+instance ereal :: complete_linorder ..
 
 lemma ereal_SUPR_uminus:
   fixes f :: "'a => ereal"
@@ -1335,12 +1338,11 @@ proof (rule Inf_less_iff[THEN iffD1])
     by (cases e) auto
 qed
 
-lemma Sup_eq_top_iff:
-  fixes A :: "'a::{complete_lattice, linorder} set"
-  shows "Sup A = top \<longleftrightarrow> (\<forall>x<top. \<exists>i\<in>A. x < i)"
+lemma (in complete_linorder) Sup_eq_top_iff: -- "FIXME move"
+  "Sup A = top \<longleftrightarrow> (\<forall>x<top. \<exists>i\<in>A. x < i)"
 proof
   assume *: "Sup A = top"
-  show "(\<forall>x<top. \<exists>i\<in>A. x < i)" unfolding *[symmetric]
+  show "(\<forall>x<top. \<exists>i\<in>A. x < i)" unfolding * [symmetric]
   proof (intro allI impI)
     fix x assume "x < Sup A" then show "\<exists>i\<in>A. x < i"
       unfolding less_Sup_iff by auto
@@ -1350,7 +1352,7 @@ next
   show "Sup A = top"
   proof (rule ccontr)
     assume "Sup A \<noteq> top"
-    with top_greatest[of "Sup A"]
+    with top_greatest [of "Sup A"]
     have "Sup A < top" unfolding le_less by auto
     then have "Sup A < Sup A"
       using * unfolding less_Sup_iff by auto
@@ -1358,8 +1360,8 @@ next
   qed
 qed
 
-lemma SUP_eq_top_iff:
-  fixes f :: "'a \<Rightarrow> 'b::{complete_lattice, linorder}"
+lemma (in complete_linorder) SUP_eq_top_iff: -- "FIXME move"
+  fixes f :: "'b \<Rightarrow> 'a"
   shows "(SUP i:A. f i) = top \<longleftrightarrow> (\<forall>x<top. \<exists>i\<in>A. x < f i)"
   unfolding SUPR_def Sup_eq_top_iff by auto
 
@@ -2182,12 +2184,12 @@ definition
   "Limsup net f = (LEAST l. \<forall>y>l. eventually (\<lambda>x. f x < y) net)"
 
 lemma Liminf_Sup:
-  fixes f :: "'a => 'b::{complete_lattice, linorder}"
+  fixes f :: "'a => 'b::complete_linorder"
   shows "Liminf net f = Sup {l. \<forall>y<l. eventually (\<lambda>x. y < f x) net}"
   by (auto intro!: Greatest_equality complete_lattice_class.Sup_upper simp: less_Sup_iff Liminf_def)
 
 lemma Limsup_Inf:
-  fixes f :: "'a => 'b::{complete_lattice, linorder}"
+  fixes f :: "'a => 'b::complete_linorder"
   shows "Limsup net f = Inf {l. \<forall>y>l. eventually (\<lambda>x. f x < y) net}"
   by (auto intro!: Least_equality complete_lattice_class.Inf_lower simp: Inf_less_iff Limsup_def)
 
@@ -2208,7 +2210,7 @@ lemma ereal_InfI:
   using assms by (auto intro!: Greatest_equality)
 
 lemma Limsup_const:
-  fixes c :: "'a::{complete_lattice, linorder}"
+  fixes c :: "'a::complete_linorder"
   assumes ntriv: "\<not> trivial_limit net"
   shows "Limsup net (\<lambda>x. c) = c"
   unfolding Limsup_Inf
@@ -2222,7 +2224,7 @@ proof (safe intro!: antisym complete_lattice_class.Inf_greatest complete_lattice
 qed auto
 
 lemma Liminf_const:
-  fixes c :: "'a::{complete_lattice, linorder}"
+  fixes c :: "'a::complete_linorder"
   assumes ntriv: "\<not> trivial_limit net"
   shows "Liminf net (\<lambda>x. c) = c"
   unfolding Liminf_Sup
@@ -2235,18 +2237,17 @@ proof (safe intro!: antisym complete_lattice_class.Sup_least complete_lattice_cl
   qed
 qed auto
 
-lemma mono_set:
-  fixes S :: "('a::order) set"
-  shows "mono S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
+lemma (in order) mono_set:
+  "mono S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
   by (auto simp: mono_def mem_def)
 
-lemma mono_greaterThan[intro, simp]: "mono {B<..}" unfolding mono_set by auto
-lemma mono_atLeast[intro, simp]: "mono {B..}" unfolding mono_set by auto
-lemma mono_UNIV[intro, simp]: "mono UNIV" unfolding mono_set by auto
-lemma mono_empty[intro, simp]: "mono {}" unfolding mono_set by auto
+lemma (in order) mono_greaterThan [intro, simp]: "mono {B<..}" unfolding mono_set by auto
+lemma (in order) mono_atLeast [intro, simp]: "mono {B..}" unfolding mono_set by auto
+lemma (in order) mono_UNIV [intro, simp]: "mono UNIV" unfolding mono_set by auto
+lemma (in order) mono_empty [intro, simp]: "mono {}" unfolding mono_set by auto
 
-lemma mono_set_iff:
-  fixes S :: "'a::{linorder,complete_lattice} set"
+lemma (in complete_linorder) mono_set_iff:
+  fixes S :: "'a set"
   defines "a \<equiv> Inf S"
   shows "mono S \<longleftrightarrow> (S = {a <..} \<or> S = {a..})" (is "_ = ?c")
 proof
@@ -2257,13 +2258,13 @@ proof
     assume "a \<in> S"
     show ?c
       using mono[OF _ `a \<in> S`]
-      by (auto intro: complete_lattice_class.Inf_lower simp: a_def)
+      by (auto intro: Inf_lower simp: a_def)
   next
     assume "a \<notin> S"
     have "S = {a <..}"
     proof safe
       fix x assume "x \<in> S"
-      then have "a \<le> x" unfolding a_def by (rule complete_lattice_class.Inf_lower)
+      then have "a \<le> x" unfolding a_def by (rule Inf_lower)
       then show "a < x" using `x \<in> S` `a \<notin> S` by (cases "a = x") auto
     next
       fix x assume "a < x"
