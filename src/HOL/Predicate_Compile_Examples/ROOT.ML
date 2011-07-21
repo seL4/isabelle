@@ -2,11 +2,11 @@ use_thys [
   "Examples",
   "Predicate_Compile_Tests",
 (*  "Predicate_Compile_Quickcheck_Examples", -- should be added again soon *)
-  "Specialisation_Examples",
-(*  "Hotel_Example_Small_Generator",*)
+  "Specialisation_Examples"
+(*  "Hotel_Example_Small_Generator",
   "IMP_1",
   "IMP_2"
-(*  "IMP_3",
+  "IMP_3",
   "IMP_4"*)];
 
 if getenv "ISABELLE_SWIPL" = "" andalso getenv "ISABELLE_YAP" = "" then
