@@ -1338,33 +1338,6 @@ proof (rule Inf_less_iff[THEN iffD1])
     by (cases e) auto
 qed
 
-lemma (in complete_linorder) Sup_eq_top_iff: -- "FIXME move"
-  "Sup A = top \<longleftrightarrow> (\<forall>x<top. \<exists>i\<in>A. x < i)"
-proof
-  assume *: "Sup A = top"
-  show "(\<forall>x<top. \<exists>i\<in>A. x < i)" unfolding * [symmetric]
-  proof (intro allI impI)
-    fix x assume "x < Sup A" then show "\<exists>i\<in>A. x < i"
-      unfolding less_Sup_iff by auto
-  qed
-next
-  assume *: "\<forall>x<top. \<exists>i\<in>A. x < i"
-  show "Sup A = top"
-  proof (rule ccontr)
-    assume "Sup A \<noteq> top"
-    with top_greatest [of "Sup A"]
-    have "Sup A < top" unfolding le_less by auto
-    then have "Sup A < Sup A"
-      using * unfolding less_Sup_iff by auto
-    then show False by auto
-  qed
-qed
-
-lemma (in complete_linorder) SUP_eq_top_iff: -- "FIXME move"
-  fixes f :: "'b \<Rightarrow> 'a"
-  shows "(SUP i:A. f i) = top \<longleftrightarrow> (\<forall>x<top. \<exists>i\<in>A. x < f i)"
-  unfolding SUPR_def Sup_eq_top_iff by auto
-
 lemma SUP_nat_Infty: "(SUP i::nat. ereal (real i)) = \<infinity>"
 proof -
   { fix x ::ereal assume "x \<noteq> \<infinity>"
@@ -2373,14 +2346,6 @@ lemma Limsup_eq:
 abbreviation "liminf \<equiv> Liminf sequentially"
 
 abbreviation "limsup \<equiv> Limsup sequentially"
-
-lemma (in complete_lattice) less_INFD:
-  assumes "y < INFI A f"" i \<in> A" shows "y < f i"
-proof -
-  note `y < INFI A f`
-  also have "INFI A f \<le> f i" using `i \<in> A` by (rule INF_leI)
-  finally show "y < f i" .
-qed
 
 lemma liminf_SUPR_INFI:
   fixes f :: "nat \<Rightarrow> ereal"

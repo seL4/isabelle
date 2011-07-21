@@ -356,6 +356,24 @@ lemma SUP_bot_conv:
  "(\<Squnion>x\<in>A. B x) = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
   by (auto simp add: SUP_def Sup_bot_conv)
 
+lemma less_INF_D:
+  assumes "y < (\<Sqinter>i\<in>A. f i)" "i \<in> A" shows "y < f i"
+proof -
+  note `y < (\<Sqinter>i\<in>A. f i)`
+  also have "(\<Sqinter>i\<in>A. f i) \<le> f i" using `i \<in> A`
+    by (rule INF_leI)
+  finally show "y < f i" .
+qed
+
+lemma SUP_lessD:
+  assumes "(\<Squnion>i\<in>A. f i) < y" "i \<in> A" shows "f i < y"
+proof -
+  have "f i \<le> (\<Squnion>i\<in>A. f i)" using `i \<in> A`
+    by (rule le_SUP_I)
+  also note `(\<Squnion>i\<in>A. f i) < y`
+  finally show "f i < y" .
+qed
+
 lemma INF_UNIV_range:
   "(\<Sqinter>x. f x) = \<Sqinter>range f"
   by (fact INF_def)
@@ -376,6 +394,10 @@ end
 
 class complete_boolean_algebra = boolean_algebra + complete_lattice
 begin
+
+lemma dual_complete_boolean_algebra:
+  "class.complete_boolean_algebra Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
+  by (rule class.complete_boolean_algebra.intro, rule dual_complete_lattice, rule dual_boolean_algebra)
 
 lemma uminus_Inf:
   "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
@@ -404,6 +426,10 @@ end
 class complete_linorder = linorder + complete_lattice
 begin
 
+lemma dual_complete_linorder:
+  "class.complete_linorder Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
+
 lemma Inf_less_iff:
   "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
   unfolding not_le [symmetric] le_Inf_iff by auto
@@ -419,6 +445,36 @@ lemma INF_less_iff:
 lemma less_SUP_iff:
   "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUP_def less_Sup_iff by auto
+
+lemma Sup_eq_top_iff:
+  "\<Squnion>A = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < i)"
+proof
+  assume *: "\<Squnion>A = \<top>"
+  show "(\<forall>x<\<top>. \<exists>i\<in>A. x < i)" unfolding * [symmetric]
+  proof (intro allI impI)
+    fix x assume "x < \<Squnion>A" then show "\<exists>i\<in>A. x < i"
+      unfolding less_Sup_iff by auto
+  qed
+next
+  assume *: "\<forall>x<\<top>. \<exists>i\<in>A. x < i"
+  show "\<Squnion>A = \<top>"
+  proof (rule ccontr)
+    assume "\<Squnion>A \<noteq> \<top>"
+    with top_greatest [of "\<Squnion>A"]
+    have "\<Squnion>A < \<top>" unfolding le_less by auto
+    then have "\<Squnion>A < \<Squnion>A"
+      using * unfolding less_Sup_iff by auto
+    then show False by auto
+  qed
+qed
+
+lemma Inf_eq_bot_iff:
+  "\<Sqinter>A = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. i < x)"
+proof -
+  interpret dual: complete_linorder Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+    by (fact dual_complete_linorder)
+  from dual.Sup_eq_top_iff show ?thesis .
+qed
 
 end
 
@@ -1039,6 +1095,17 @@ lemma bex_simps [simp,no_atp]:
   "\<And>A P. (\<not>(\<exists>x\<in>A. P x)) \<longleftrightarrow> (\<forall>x\<in>A. \<not> P x)"
   by auto
 
+lemma (in complete_linorder) INF_eq_bot_iff:
+  fixes f :: "'b \<Rightarrow> 'a"
+  shows "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
+  unfolding INF_def Inf_eq_bot_iff by auto
+
+lemma (in complete_linorder) SUP_eq_top_iff:
+  fixes f :: "'b \<Rightarrow> 'a"
+  shows "(\<Squnion>i\<in>A. f i) = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < f i)"
+  unfolding SUP_def Sup_eq_top_iff by auto
+
+
 text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}
 
 lemma UN_extend_simps:
@@ -1075,6 +1142,7 @@ lemmas (in complete_lattice) SUPR_def = SUP_def
 lemmas (in complete_lattice) le_SUPI = le_SUP_I
 lemmas (in complete_lattice) le_SUPI2 = le_SUP_I2
 lemmas (in complete_lattice) le_INFI = le_INF_I
+lemmas (in complete_lattice) less_INFD = less_INF_D
 
 lemma (in complete_lattice) INF_subset:
   "B \<subseteq> A \<Longrightarrow> INFI A f \<sqsubseteq> INFI B f"
