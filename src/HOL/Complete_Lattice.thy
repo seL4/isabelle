@@ -941,7 +941,7 @@ lemma UN_constant [simp]: "(\<Union>y\<in>A. c) = (if A = {} then {} else c)"
 lemma UN_eq: "(\<Union>x\<in>A. B x) = \<Union>({Y. \<exists>x\<in>A. Y = B x})"
   by (fact SUP_eq)
 
-lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)" -- "FIXME generalize"
+lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)"
   by blast
 
 lemma UNION_empty_conv[simp]:
