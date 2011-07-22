@@ -292,12 +292,13 @@ lemma SUP_mono:
   by (force intro!: Sup_mono simp: SUP_def)
 
 lemma INF_superset_mono:
-  "B \<subseteq> A \<Longrightarrow> INFI A f \<sqsubseteq> INFI B f"
-  by (rule INF_mono) auto
+  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
+  -- {* The last inclusion is POSITIVE! *}
+  by (blast intro: INF_mono dest: subsetD)
 
 lemma SUP_subset_mono:
-  "A \<subseteq> B \<Longrightarrow> SUPR A f \<sqsubseteq> SUPR B f"
-  by (rule SUP_mono) auto
+  "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Squnion>x\<in>A. f x) \<sqsubseteq> (\<Squnion>x\<in>B. g x)"
+  by (blast intro: SUP_mono dest: subsetD)
 
 lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
   by (iprover intro: INF_leI le_INF_I order_trans antisym)
@@ -355,6 +356,24 @@ lemma SUP_bot_conv:
  "(\<Squnion>x\<in>A. B x) = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
   by (auto simp add: SUP_def Sup_bot_conv)
 
+lemma less_INF_D:
+  assumes "y < (\<Sqinter>i\<in>A. f i)" "i \<in> A" shows "y < f i"
+proof -
+  note `y < (\<Sqinter>i\<in>A. f i)`
+  also have "(\<Sqinter>i\<in>A. f i) \<le> f i" using `i \<in> A`
+    by (rule INF_leI)
+  finally show "y < f i" .
+qed
+
+lemma SUP_lessD:
+  assumes "(\<Squnion>i\<in>A. f i) < y" "i \<in> A" shows "f i < y"
+proof -
+  have "f i \<le> (\<Squnion>i\<in>A. f i)" using `i \<in> A`
+    by (rule le_SUP_I)
+  also note `(\<Squnion>i\<in>A. f i) < y`
+  finally show "f i < y" .
+qed
+
 lemma INF_UNIV_range:
   "(\<Sqinter>x. f x) = \<Sqinter>range f"
   by (fact INF_def)
@@ -371,40 +390,14 @@ lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
   by (simp add: UNIV_bool SUP_empty SUP_insert sup_commute)
 
-lemma INF_mono':
-  "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
-  -- {* The last inclusion is POSITIVE! *}
-  by (rule INF_mono) auto
-
-lemma SUP_mono':
-  "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Squnion>x\<in>A. f x) \<sqsubseteq> (\<Squnion>x\<in>B. g x)"
-  -- {* The last inclusion is POSITIVE! *}
-  by (blast intro: SUP_mono dest: subsetD)
-
 end
-
-lemma Inf_less_iff:
-  fixes a :: "'a\<Colon>{complete_lattice,linorder}"
-  shows "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
-  unfolding not_le [symmetric] le_Inf_iff by auto
-
-lemma less_Sup_iff:
-  fixes a :: "'a\<Colon>{complete_lattice,linorder}"
-  shows "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
-  unfolding not_le [symmetric] Sup_le_iff by auto
-
-lemma INF_less_iff:
-  fixes a :: "'a::{complete_lattice,linorder}"
-  shows "(\<Sqinter>i\<in>A. f i) \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>A. f x \<sqsubset> a)"
-  unfolding INF_def Inf_less_iff by auto
-
-lemma less_SUP_iff:
-  fixes a :: "'a::{complete_lattice,linorder}"
-  shows "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
-  unfolding SUP_def less_Sup_iff by auto
 
 class complete_boolean_algebra = boolean_algebra + complete_lattice
 begin
+
+lemma dual_complete_boolean_algebra:
+  "class.complete_boolean_algebra Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
+  by (rule class.complete_boolean_algebra.intro, rule dual_complete_lattice, rule dual_boolean_algebra)
 
 lemma uminus_Inf:
   "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
@@ -427,6 +420,61 @@ lemma uminus_INF: "- (\<Sqinter>x\<in>A. B x) = (\<Squnion>x\<in>A. - B x)"
 
 lemma uminus_SUP: "- (\<Squnion>x\<in>A. B x) = (\<Sqinter>x\<in>A. - B x)"
   by (simp add: INF_def SUP_def uminus_Sup image_image)
+
+end
+
+class complete_linorder = linorder + complete_lattice
+begin
+
+lemma dual_complete_linorder:
+  "class.complete_linorder Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
+
+lemma Inf_less_iff:
+  "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
+  unfolding not_le [symmetric] le_Inf_iff by auto
+
+lemma less_Sup_iff:
+  "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
+  unfolding not_le [symmetric] Sup_le_iff by auto
+
+lemma INF_less_iff:
+  "(\<Sqinter>i\<in>A. f i) \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>A. f x \<sqsubset> a)"
+  unfolding INF_def Inf_less_iff by auto
+
+lemma less_SUP_iff:
+  "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
+  unfolding SUP_def less_Sup_iff by auto
+
+lemma Sup_eq_top_iff:
+  "\<Squnion>A = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < i)"
+proof
+  assume *: "\<Squnion>A = \<top>"
+  show "(\<forall>x<\<top>. \<exists>i\<in>A. x < i)" unfolding * [symmetric]
+  proof (intro allI impI)
+    fix x assume "x < \<Squnion>A" then show "\<exists>i\<in>A. x < i"
+      unfolding less_Sup_iff by auto
+  qed
+next
+  assume *: "\<forall>x<\<top>. \<exists>i\<in>A. x < i"
+  show "\<Squnion>A = \<top>"
+  proof (rule ccontr)
+    assume "\<Squnion>A \<noteq> \<top>"
+    with top_greatest [of "\<Squnion>A"]
+    have "\<Squnion>A < \<top>" unfolding le_less by auto
+    then have "\<Squnion>A < \<Squnion>A"
+      using * unfolding less_Sup_iff by auto
+    then show False by auto
+  qed
+qed
+
+lemma Inf_eq_bot_iff:
+  "\<Sqinter>A = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. i < x)"
+proof -
+  interpret dual: complete_linorder Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+    by (fact dual_complete_linorder)
+  from dual.Sup_eq_top_iff show ?thesis .
+qed
 
 end
 
@@ -688,7 +736,7 @@ lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
 lemma INT_anti_mono:
   "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
   -- {* The last inclusion is POSITIVE! *}
-  by (fact INF_mono')
+  by (fact INF_superset_mono)
 
 lemma Pow_INT_eq: "Pow (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. Pow (B x))"
   by blast
@@ -893,7 +941,7 @@ lemma UN_constant [simp]: "(\<Union>y\<in>A. c) = (if A = {} then {} else c)"
 lemma UN_eq: "(\<Union>x\<in>A. B x) = \<Union>({Y. \<exists>x\<in>A. Y = B x})"
   by (fact SUP_eq)
 
-lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)" -- "FIXME generalize"
+lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)"
   by blast
 
 lemma UNION_empty_conv[simp]:
@@ -922,7 +970,7 @@ lemma UN_Pow_subset: "(\<Union>x\<in>A. Pow (B x)) \<subseteq> Pow (\<Union>x\<i
 lemma UN_mono:
   "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow>
     (\<Union>x\<in>A. f x) \<subseteq> (\<Union>x\<in>B. g x)"
-  by (fact SUP_mono')
+  by (fact SUP_subset_mono)
 
 lemma vimage_Union: "f -` (\<Union>A) = (\<Union>X\<in>A. f -` X)"
   by blast
@@ -1047,6 +1095,17 @@ lemma bex_simps [simp,no_atp]:
   "\<And>A P. (\<not>(\<exists>x\<in>A. P x)) \<longleftrightarrow> (\<forall>x\<in>A. \<not> P x)"
   by auto
 
+lemma (in complete_linorder) INF_eq_bot_iff:
+  fixes f :: "'b \<Rightarrow> 'a"
+  shows "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
+  unfolding INF_def Inf_eq_bot_iff by auto
+
+lemma (in complete_linorder) SUP_eq_top_iff:
+  fixes f :: "'b \<Rightarrow> 'a"
+  shows "(\<Squnion>i\<in>A. f i) = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < f i)"
+  unfolding SUP_def Sup_eq_top_iff by auto
+
+
 text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}
 
 lemma UN_extend_simps:
@@ -1083,7 +1142,12 @@ lemmas (in complete_lattice) SUPR_def = SUP_def
 lemmas (in complete_lattice) le_SUPI = le_SUP_I
 lemmas (in complete_lattice) le_SUPI2 = le_SUP_I2
 lemmas (in complete_lattice) le_INFI = le_INF_I
-lemmas (in complete_lattice) INF_subset = INF_superset_mono 
+lemmas (in complete_lattice) less_INFD = less_INF_D
+
+lemma (in complete_lattice) INF_subset:
+  "B \<subseteq> A \<Longrightarrow> INFI A f \<sqsubseteq> INFI B f"
+  by (rule INF_superset_mono) auto
+
 lemmas INFI_apply = INF_apply
 lemmas SUPR_apply = SUP_apply
 
