@@ -148,9 +148,9 @@ fun parse_cert_tree ctxt input =
 
 (* scanner *)
 
-fun cert_to_pss_tree ctxt input_str = Symbol.scanner "bad certificate" (parse_cert_tree ctxt)
-  (filter_out Symbol.is_blank (Symbol.explode input_str))
+fun cert_to_pss_tree ctxt input_str =
+  Symbol.scanner "Bad certificate" (parse_cert_tree ctxt)
+    (filter_out Symbol.is_blank (Symbol.explode input_str))
 
 end
-
 
