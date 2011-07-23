@@ -35,8 +35,6 @@ val _ = PolyML.Compiler.forgetValue "concat";
 
 (* Compiler options *)
 
-val ml_system_fix_ints = false;
-
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
 

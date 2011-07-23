@@ -62,9 +62,7 @@ use "General/long_name.ML";
 use "General/binding.ML";
 
 use "General/sha1.ML";
-if String.isPrefix "polyml" ml_system
-then use "General/sha1_polyml.ML"
-else ();
+if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 
 
 (* concurrency within the ML runtime *)
@@ -73,8 +71,7 @@ use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()
 else use "Concurrent/single_assignment_sequential.ML";
 
-if String.isPrefix "smlnj" ml_system then ()
-else use "Concurrent/time_limit.ML";
+if ML_System.is_smlnj then () else use "Concurrent/time_limit.ML";
 
 if Multithreading.available
 then use "Concurrent/bash.ML"
@@ -191,7 +188,7 @@ use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "Isar/runtime.ML";
 use "ML/ml_compiler.ML";
-if ml_system = "polyml-5.2.1" orelse String.isPrefix "smlnj" ml_system then ()
+if ML_System.name = "polyml-5.2.1" orelse ML_System.is_smlnj then ()
 else use "ML/ml_compiler_polyml-5.3.ML";
 use "ML/ml_context.ML";
 

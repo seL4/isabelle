@@ -26,6 +26,7 @@ BOOTSTRAP_FILES = 					\
   ML-Systems/compiler_polyml-5.3.ML			\
   ML-Systems/ml_name_space.ML				\
   ML-Systems/ml_pretty.ML				\
+  ML-Systems/ml_system.ML				\
   ML-Systems/multithreading.ML				\
   ML-Systems/multithreading_polyml.ML			\
   ML-Systems/overloading_smlnj.ML			\

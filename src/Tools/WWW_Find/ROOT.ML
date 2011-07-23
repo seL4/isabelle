@@ -1,6 +1,5 @@
-if String.isPrefix "polyml" ml_system
-then 
-  (use "unicode_symbols.ML";
+if ML_System.is_polyml then
+ (use "unicode_symbols.ML";
   use "html_unicode.ML";
   use "mime.ML";
   use "http_status.ML";
@@ -13,4 +12,4 @@ then
   use "html_templates.ML";
   use "find_theorems.ML";
   use "yxml_find_theorems.ML")
-else ()
+else ();

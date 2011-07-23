@@ -53,14 +53,13 @@ val fix_int =
   regular ||
   bad_input;
 
-fun do_fix_ints s =
-  Source.of_string s
-  |> ML_Lex.source
-  |> Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) NONE
-  |> Source.exhaust
-  |> implode;
-
-val fix_ints = if ml_system_fix_ints then do_fix_ints else I;
+val fix_ints =
+  ML_System.is_smlnj ?
+   (Source.of_string #>
+    ML_Lex.source #>
+    Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) NONE #>
+    Source.exhaust #>
+    implode);
 
 
 (* global use_context *)

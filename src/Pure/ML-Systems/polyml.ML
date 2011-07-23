@@ -71,3 +71,5 @@ fun toplevel_pp context (_: string list) pp =
 val ml_make_string =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, get_print_depth ())))))";
 
+use "ML-Systems/ml_system.ML";
+

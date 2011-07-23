@@ -88,8 +88,6 @@ if [ -n "$RAW" ]; then
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "val ml_system = \"$ML_SYSTEM\";" \
-    -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "use\"$COMPAT\" handle _ => exit 1;" \
     -e "structure Isar = struct fun main () = () end;" \
     -e "ml_prompts \"ML> \" \"ML# \";" \
@@ -110,8 +108,6 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "val ml_system = \"$ML_SYSTEM\";" \
-    -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
     -e "ml_prompts \"ML> \" \"ML# \";" \
     -f -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
