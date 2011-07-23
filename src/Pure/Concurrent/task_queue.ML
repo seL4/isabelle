@@ -14,12 +14,14 @@ sig
   val is_canceled: group -> bool
   val group_status: group -> exn list
   val str_of_group: group -> string
+  val str_of_groups: group -> string
   type task
   val dummy_task: unit -> task
   val group_of_task: task -> group
   val name_of_task: task -> string
   val pri_of_task: task -> int
   val str_of_task: task -> string
+  val str_of_task_groups: task -> string
   val timing_of_task: task -> Time.time * Time.time * string list
   val running: task -> (unit -> 'a) -> 'a
   val joining: task -> (unit -> 'a) -> 'a
@@ -64,8 +66,8 @@ fun new_group parent = make_group (parent, new_id (), Synchronized.var "group" [
 fun group_id (Group {id, ...}) = id;
 fun eq_group (group1, group2) = group_id group1 = group_id group2;
 
-fun group_ancestry f (Group {parent = NONE, id, ...}) a = f id a
-  | group_ancestry f (Group {parent = SOME group, id, ...}) a = group_ancestry f group (f id a);
+fun fold_groups f (g as Group {parent = NONE, ...}) a = f g a
+  | fold_groups f (g as Group {parent = SOME group, ...}) a = fold_groups f group (f g a);
 
 
 (* group status *)
@@ -86,6 +88,9 @@ fun group_status (Group {parent, status, ...}) =
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
+
+fun str_of_groups group =
+  space_implode "/" (map str_of_group (rev (fold_groups cons group [])));
 
 end;
 
@@ -114,8 +119,11 @@ fun new_task group name pri =
 fun group_of_task (Task {group, ...}) = group;
 fun name_of_task (Task {name, ...}) = name;
 fun pri_of_task (Task {pri, ...}) = the_default 0 pri;
+
 fun str_of_task (Task {name, id, ...}) =
   if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
+
+fun str_of_task_groups task = str_of_task task ^ " in " ^ str_of_groups (group_of_task task);
 
 fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
 
@@ -263,7 +271,7 @@ fun cancel_all (Queue {jobs, ...}) =
 fun finish task (Queue {groups, jobs}) =
   let
     val group = group_of_task task;
-    val groups' = group_ancestry (fn gid => del_task (gid, task)) group groups;
+    val groups' = fold_groups (fn g => del_task (group_id g, task)) group groups;
     val jobs' = Task_Graph.del_node task jobs;
     val maximal = null (Task_Graph.imm_succs jobs task);
   in (maximal, make_queue groups' jobs') end;
@@ -274,14 +282,14 @@ fun finish task (Queue {groups, jobs}) =
 fun enqueue_passive group abort (Queue {groups, jobs}) =
   let
     val task = new_task group "passive" NONE;
-    val groups' = group_ancestry (fn gid => add_task (gid, task)) group groups;
+    val groups' = fold_groups (fn g => add_task (group_id g, task)) group groups;
     val jobs' = jobs |> Task_Graph.new_node (task, Passive abort);
   in (task, make_queue groups' jobs') end;
 
 fun enqueue name group deps pri job (Queue {groups, jobs}) =
   let
     val task = new_task group name (SOME pri);
-    val groups' = group_ancestry (fn gid => add_task (gid, task)) group groups;
+    val groups' = fold_groups (fn g => add_task (group_id g, task)) group groups;
     val jobs' = jobs
       |> Task_Graph.new_node (task, Job [job])
       |> fold (add_job task) deps;

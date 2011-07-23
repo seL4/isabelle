@@ -208,7 +208,7 @@ fun execute (task, jobs) =
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
     val _ = Multithreading.tracing 2 (fn () =>
       let
-        val s = Task_Queue.str_of_task task;
+        val s = Task_Queue.str_of_task_groups task;
         fun micros time = string_of_int (Time.toNanoseconds time div 1000);
         val (run, wait, deps) = Task_Queue.timing_of_task task;
       in "TASK " ^ s ^ " " ^ micros run ^ " " ^ micros wait ^ " (" ^ commas deps ^ ")" end);
