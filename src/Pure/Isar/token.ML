@@ -50,7 +50,6 @@ sig
   val assign: value option -> T -> unit
   val closure: T -> T
   val ident_or_symbolic: string -> bool
-  val !!! : string -> (Symbol_Pos.T list -> 'a) -> Symbol_Pos.T list -> 'a
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
   val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     (Symbol_Pos.T, 'a) Source.source -> (T, (Symbol_Pos.T, 'a) Source.source) Source.source
@@ -257,7 +256,7 @@ fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Val
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! ("Outer lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! (fn () => "Outer lexical error: " ^ msg);
 
 
 (* scan symbolic idents *)

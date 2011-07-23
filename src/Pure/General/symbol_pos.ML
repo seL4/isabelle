@@ -13,7 +13,7 @@ sig
   val content: T list -> string
   val is_eof: T -> bool
   val stopper: T Scan.stopper
-  val !!! : string -> (T list -> 'a) -> T list -> 'a
+  val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
   val change_prompt: ('a -> 'b) -> 'a -> 'b
   val scan_pos: T list -> Position.T * T list
   val scan_string_q: T list -> (Position.T * (T list * Position.T)) * T list
@@ -65,9 +65,9 @@ fun !!! text scan =
     fun get_pos [] = " (past end-of-text!)"
       | get_pos ((_, pos) :: _) = Position.str_of pos;
 
-    fun err (syms, msg) =
-      text ^ get_pos syms ^ " at " ^ Symbol.beginning 10 (map symbol syms) ^
-      (case msg of NONE => "" | SOME s => "\n" ^ s);
+    fun err (syms, msg) = fn () =>
+      text () ^ get_pos syms ^ " at " ^ Symbol.beginning 10 (map symbol syms) ^
+      (case msg of NONE => "" | SOME m => "\n" ^ m ());
   in Scan.!! err scan end;
 
 fun change_prompt scan = Scan.prompt "# " scan;
@@ -91,11 +91,11 @@ val char_code =
     in if n <= 255 then Scan.succeed [(chr n, pos)] else Scan.fail end);
 
 fun scan_str q =
-  $$$ "\\" |-- !!! "bad escape character in string" ($$$ q || $$$ "\\" || char_code) ||
+  $$$ "\\" |-- !!! (fn () => "bad escape character in string") ($$$ q || $$$ "\\" || char_code) ||
   Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
 
 fun scan_strs q =
-  (scan_pos --| $$$ q) -- !!! "missing quote at end of string"
+  (scan_pos --| $$$ q) -- !!! (fn () => "missing quote at end of string")
     (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- scan_pos)));
 
 in

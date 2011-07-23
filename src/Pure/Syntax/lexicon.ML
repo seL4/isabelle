@@ -114,7 +114,7 @@ fun is_tid s =
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! ("Inner lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! (fn () => "Inner lexical error: " ^ msg);
 
 val scan_id =
   Scan.one (Symbol.is_letter o Symbol_Pos.symbol) :::

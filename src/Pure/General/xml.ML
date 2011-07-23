@@ -138,8 +138,8 @@ fun pretty depth tree =
 
 local
 
-fun err s (xs, _) =
-  "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
+fun err msg (xs, _) =
+  fn () => "XML parsing error: " ^ msg () ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
 
 fun ignored _ = [];
 
@@ -202,10 +202,10 @@ fun parse_content xs =
 and parse_element xs =
   ($$ "<" |-- Symbol.scan_id --
     Scan.repeat (blanks |-- parse_att) --| blanks :-- (fn (s, _) =>
-      !! (err "Expected > or />")
+      !! (err (fn () => "Expected > or />"))
         (Scan.this_string "/>" >> ignored
          || $$ ">" |-- parse_content --|
-            !! (err ("Expected </" ^ s ^ ">"))
+            !! (err (fn () => "Expected </" ^ s ^ ">"))
               (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >> Elem) xs;
 
 val parse_document =
@@ -213,7 +213,7 @@ val parse_document =
   |-- parse_element;
 
 fun parse s =
-  (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
+  (case Scan.finite Symbol.stopper (Scan.error (!! (err (fn () => "Malformed element"))
       (blanks |-- parse_document --| blanks))) (raw_explode s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));

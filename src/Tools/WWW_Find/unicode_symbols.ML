@@ -103,12 +103,13 @@ fun tokenize syms =
       Scan.literal keywords >> token Keyword ||
       scan_ascii_symbol ||
       Lexicon.scan_id >> token Name;
-    val scan_token = Symbol_Pos.!!! "Lexical error" (Scan.bulk scanner);
+    val scan_token = Symbol_Pos.!!! (fn () => "Lexical error") (Scan.bulk scanner);
   in
     (case Scan.error (Scan.finite Symbol_Pos.stopper scan_token) syms of
       (toks, []) => toks
-    | (_, ss) => error ("Lexical error at: " ^ Symbol_Pos.content ss
-                        ^ Position.str_of (#1 (Symbol_Pos.range ss))))
+    | (_, ss) =>
+        error ("Lexical error at: " ^ Symbol_Pos.content ss ^
+          Position.str_of (#1 (Symbol_Pos.range ss))))
   end;
 
 val stopper =

@@ -331,18 +331,19 @@ fun tokenize fold_lines input =
 
 fun stopper i = Scan.stopper (K (i, EOF)) (fn (_, EOF) => true | _ => false)
 
-fun scan_err msg [] = "Boogie (at end of input): " ^ msg
-  | scan_err msg ((i, _) :: _) = "Boogie (at line " ^ string_of_int i ^ "): " ^
-      msg
+fun scan_err msg [] = (fn () => "Boogie (at end of input): " ^ msg ())
+  | scan_err msg ((i, _) :: _) =
+      (fn () => "Boogie (at line " ^ string_of_int i ^ "): " ^ msg ())
 
-fun scan_fail msg = Scan.fail_with (scan_err msg)
+fun scan_fail' msg = Scan.fail_with (scan_err msg)
+fun scan_fail s = scan_fail' (fn () => s)
 
 fun finite scan fold_lines input =
   let val (i, ts) = tokenize fold_lines input
   in
     (case Scan.error (Scan.finite (stopper i) scan) ts of
       (x, []) => x
-    | (_, ts') => error (scan_err "unparsed input" ts'))
+    | (_, ts') => error ((scan_err (fn () => "unparsed input") ts') ()))
   end
 
 fun read_int' s = (case read_int (raw_explode s) of (i, []) => SOME i | _ => NONE)
@@ -361,7 +362,7 @@ fun scan_count scan i =
 fun scan_lookup kind tab key =
   (case Symtab.lookup tab key of
     SOME value => Scan.succeed value
-  | NONE => scan_fail ("undefined " ^ kind ^ ": " ^ quote key))
+  | NONE => scan_fail' (fn () => "undefined " ^ kind ^ ": " ^ quote key))
 
 fun typ tds =
   let

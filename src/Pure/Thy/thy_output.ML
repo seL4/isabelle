@@ -355,7 +355,7 @@ val ignore =
   Scan.depend (fn d => opt_newline |-- Scan.one Token.is_begin_ignore
     >> pair (d + 1)) ||
   Scan.depend (fn d => Scan.one Token.is_end_ignore --|
-    (if d = 0 then Scan.fail_with (K "Bad nesting of meta-comments") else opt_newline)
+    (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
     >> pair (d - 1));
 
 val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (Parse.tag_name --| blank_end);

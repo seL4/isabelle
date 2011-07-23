@@ -72,7 +72,7 @@ val scan_token =
 
 val scan =
   (Scan.repeat scan_token >> flat) --|
-    Symbol_Pos.!!! "Rail lexical error: bad input"
+    Symbol_Pos.!!! (fn () => "Rail lexical error: bad input")
       (Scan.ahead (Scan.one Symbol_Pos.is_eof));
 
 in
@@ -92,17 +92,20 @@ fun !!! scan =
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = Position.str_of (pos_of tok);
 
-    fun err (toks, NONE) = prefix ^ get_pos toks
+    fun err (toks, NONE) = (fn () => prefix ^ get_pos toks)
       | err (toks, SOME msg) =
-          if String.isPrefix prefix msg then msg
-          else prefix ^ get_pos toks ^ ": " ^ msg;
+          (fn () =>
+            let val s = msg () in
+              if String.isPrefix prefix s then s
+              else prefix ^ get_pos toks ^ ": " ^ s
+            end);
   in Scan.!! err scan end;
 
 fun $$$ x =
   Scan.one (fn tok => kind_of tok = Keyword andalso content_of tok = x) ||
   Scan.fail_with
-    (fn [] => print_keyword x ^ " expected (past end-of-file!)"
-      | tok :: _ => print_keyword x ^ " expected,\nbut " ^ print tok ^ " was found");
+    (fn [] => (fn () => print_keyword x ^ " expected (past end-of-file!)")
+      | tok :: _ => (fn () => print_keyword x ^ " expected,\nbut " ^ print tok ^ " was found"));
 
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];

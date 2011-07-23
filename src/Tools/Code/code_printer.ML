@@ -101,7 +101,8 @@ open Code_Thingol;
 
 (** generic nonsense *)
 
-fun eqn_error (SOME thm) s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm)
+fun eqn_error (SOME thm) s =
+      error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm)
   | eqn_error NONE s = error s;
 
 val code_presentationN = "code_presentation";
@@ -132,10 +133,10 @@ fun markup_stmt name = Print_Mode.setmp [code_presentationN]
 
 fun filter_presentation [] tree =
       Buffer.empty
-      |> fold XML.add_content tree 
+      |> fold XML.add_content tree
   | filter_presentation presentation_names tree =
       let
-        fun is_selected (name, attrs) = 
+        fun is_selected (name, attrs) =
           name = code_presentationN
           andalso member (op =) presentation_names (the (Properties.get attrs stmt_nameN));
         fun add_content_with_space tree (is_first, buf) =
@@ -169,8 +170,9 @@ fun intro_vars names (namemap, namectxt) =
     val namemap' = fold2 (curry Symtab.update) names names' namemap;
   in (namemap', namectxt') end;
 
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
+fun lookup_var (namemap, _) name =
+  case Symtab.lookup namemap name of
+    SOME name' => name'
   | NONE => error ("Invalid name in context: " ^ quote name);
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o raw_explode;
@@ -190,7 +192,7 @@ fun aux_params vars lhss =
     val vars' = intro_vars fished3 vars;
   in map (lookup_var vars') fished3 end;
 
-fun intro_base_names no_syntax deresolve names = names 
+fun intro_base_names no_syntax deresolve names = names
   |> map_filter (fn name => if no_syntax name then
       let val name' = deresolve name in
         if Long_Name.is_qualified name' then NONE else SOME name'
@@ -297,7 +299,8 @@ fun requires_args (plain_const_syntax _) = 0
   | requires_args (complex_const_syntax (k, _)) = k;
 
 fun simple_const_syntax syn =
-  complex_const_syntax (apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn);
+  complex_const_syntax
+    (apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn);
 
 type activated_complex_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
   -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T)
@@ -311,20 +314,24 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       fold_map (Code_Thingol.ensure_declared_const thy) cs naming
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
-fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
-  case const_syntax c
-   of NONE => brackify fxy (print_app_expr some_thm vars app)
-    | SOME (Plain_const_syntax (_, s)) => brackify fxy (str s :: map (print_term some_thm vars BR) ts)
-    | SOME (Complex_const_syntax (k, print)) =>
-        let
-          fun print' fxy ts = print (print_term some_thm) some_thm vars fxy (ts ~~ take k function_typs);
-        in if k = length ts
-          then print' fxy ts
+fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
+    (app as ((c, (_, function_typs)), ts)) =
+  case const_syntax c of
+    NONE => brackify fxy (print_app_expr some_thm vars app)
+  | SOME (Plain_const_syntax (_, s)) =>
+      brackify fxy (str s :: map (print_term some_thm vars BR) ts)
+  | SOME (Complex_const_syntax (k, print)) =>
+      let
+        fun print' fxy ts =
+          print (print_term some_thm) some_thm vars fxy (ts ~~ take k function_typs);
+      in
+        if k = length ts
+        then print' fxy ts
         else if k < length ts
-          then case chop k ts of (ts1, ts2) =>
-            brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
-          else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
-        end;
+        then case chop k ts of (ts1, ts2) =>
+          brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
+        else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
+      end;
 
 fun gen_print_bind print_term thm (fxy : fixity) pat vars =
   let
@@ -377,12 +384,14 @@ fun parse_mixfix mk_plain mk_complex prep_arg s =
            (   $$ "'" |-- sym_any
             || Scan.unless ($$ "_" || $$ "/" || $$ "(" |-- $$ "_" |-- $$ ")")
                  sym_any) >> (String o implode)));
-  in case Scan.finite Symbol.stopper parse (Symbol.explode s)
-   of ((false, [String s]), []) => mk_plain s
+    fun err s (_, NONE) = (fn () => "malformed mixfix annotation: " ^ quote s)
+      | err _ (_, SOME msg) = msg;
+  in
+    case Scan.finite Symbol.stopper parse (Symbol.explode s) of
+      ((false, [String s]), []) => mk_plain s
     | ((_, p as [_]), []) => mk_complex (mk_mixfix prep_arg (NOBR, p))
     | ((b, p as _ :: _ :: _), []) => mk_complex (mk_mixfix prep_arg (if b then NOBR else BR, p))
-    | _ => Scan.!!
-        (the_default ("malformed mixfix annotation: " ^ quote s) o snd) Scan.fail ()
+    | _ => Scan.!! (err s) Scan.fail ()
   end;
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");

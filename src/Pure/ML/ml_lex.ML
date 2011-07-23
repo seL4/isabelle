@@ -136,7 +136,7 @@ end;
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! ("SML lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! (fn () => "SML lexical error: " ^ msg);
 
 
 (* blanks *)

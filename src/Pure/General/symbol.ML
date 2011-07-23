@@ -404,13 +404,13 @@ fun is_ident [] = false
 
 fun scanner msg scan chs =
   let
-    fun message (cs, NONE) = msg ^ ": " ^ quote (beginning 10 cs)
-      | message (cs, SOME msg') = msg ^ ", " ^ msg' ^ ": " ^ quote (beginning 10 cs);
+    fun message (cs, NONE) = (fn () => msg ^ ": " ^ quote (beginning 10 cs))
+      | message (cs, SOME msg') = (fn () => msg ^ ", " ^ msg' () ^ ": " ^ quote (beginning 10 cs));
     val fin_scan = Scan.error (Scan.finite stopper (!! message scan));
   in
     (case fin_scan chs of
       (result, []) => result
-    | (_, rest) => error (message (rest, NONE)))
+    | (_, rest) => error (message (rest, NONE) ()))
   end;
 
 val scan_id = Scan.one is_letter ^^ (Scan.many is_letdig >> implode);

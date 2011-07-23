@@ -83,7 +83,7 @@ in
 
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
-    Symbol_Pos.!!! "missing closing brace of antiquotation"
+    Symbol_Pos.!!! (fn () => "missing closing brace of antiquotation")
       (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
   >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
 

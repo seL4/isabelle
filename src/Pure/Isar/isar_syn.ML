@@ -775,8 +775,8 @@ val _ =
     (props_text :|-- (fn (pos, str) =>
       (case Outer_Syntax.parse pos str of
         [tr] => Scan.succeed (K tr)
-      | _ => Scan.fail_with (K "exactly one command expected"))
-      handle ERROR msg => Scan.fail_with (K msg)));
+      | _ => Scan.fail_with (K (fn () => "exactly one command expected")))
+      handle ERROR msg => Scan.fail_with (K (fn () => msg))));
 
 
 

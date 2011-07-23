@@ -20,13 +20,13 @@ fun !!! scan =
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = Position.str_of (ML_Lex.pos_of tok);
 
-    fun err (toks, NONE) = "SML syntax error" ^ get_pos toks
-      | err (toks, SOME msg) = "SML syntax error" ^ get_pos toks ^ ": " ^ msg;
+    fun err (toks, NONE) = (fn () => "SML syntax error" ^ get_pos toks)
+      | err (toks, SOME msg) = (fn () => "SML syntax error" ^ get_pos toks ^ ": " ^ msg ());
   in Scan.!! err scan end;
 
 fun bad_input x =
   (Scan.some (fn tok => (case ML_Lex.kind_of tok of ML_Lex.Error msg => SOME msg | _ => NONE)) :|--
-    (fn msg => Scan.fail_with (K msg))) x;
+    (fn msg => Scan.fail_with (K (fn () => msg)))) x;
 
 
 (** basic parsers **)

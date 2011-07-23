@@ -72,10 +72,10 @@ fun !!! scan =
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = Fdl_Lexer.pos_of tok;
 
-    fun err (syms, msg) =
+    fun err (syms, msg) = fn () =>
       "Syntax error" ^ get_pos syms ^ " at " ^
-      beginning 10 (map Fdl_Lexer.unparse syms) ^
-      (case msg of NONE => "" | SOME s => "\n" ^ s ^ " expected");
+        beginning 10 (map Fdl_Lexer.unparse syms) ^
+        (case msg of NONE => "" | SOME m => "\n" ^ m () ^ " expected");
   in Scan.!! err scan end;
 
 fun parse_all p =
@@ -84,7 +84,7 @@ fun parse_all p =
 
 (** parsers **)
 
-fun group s p = p || Scan.fail_with (K s);
+fun group s p = p || Scan.fail_with (K (fn () => s));
 
 fun $$$ s = group s
   (Scan.one (fn t => Fdl_Lexer.kind_of t = Fdl_Lexer.Keyword andalso

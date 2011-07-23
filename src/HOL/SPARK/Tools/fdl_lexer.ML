@@ -194,9 +194,9 @@ fun !!! text scan =
     fun get_pos [] = " (past end-of-text!)"
       | get_pos ((_, pos) :: _) = Position.str_of pos;
 
-    fun err (syms, msg) =
+    fun err (syms, msg) = fn () =>
       text ^ get_pos syms ^ " at " ^ beginning 10 (map symbol syms) ^
-      (case msg of NONE => "" | SOME s => "\n" ^ s);
+        (case msg of NONE => "" | SOME m => "\n" ^ m ());
   in Scan.!! err scan end;
 
 val any_line' =

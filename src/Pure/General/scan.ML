@@ -11,8 +11,9 @@ infixr 0 ||;
 
 signature BASIC_SCAN =
 sig
+  type message = unit -> string
   (*error msg handler*)
-  val !! : ('a * string option -> string) -> ('a -> 'b) -> 'a -> 'b
+  val !! : ('a * message option -> message) -> ('a -> 'b) -> 'a -> 'b
   (*apply function*)
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   (*alternative*)
@@ -41,7 +42,7 @@ sig
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
   val fail: 'a -> 'b
-  val fail_with: ('a -> string) -> 'a -> 'b
+  val fail_with: ('a -> message) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
   val some: ('a -> 'b option) -> 'a list -> 'b * 'a list
   val one: ('a -> bool) -> 'a list -> 'a * 'a list
@@ -93,19 +94,21 @@ struct
 
 (* exceptions *)
 
+type message = unit -> string;
+
 exception MORE of string option;        (*need more input (prompt)*)
-exception FAIL of string option;        (*try alternatives (reason of failure)*)
-exception ABORT of string;              (*dead end*)
+exception FAIL of message option;       (*try alternatives (reason of failure)*)
+exception ABORT of message;             (*dead end*)
 
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
 fun permissive scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FAIL NONE;
 fun strict scan xs = scan xs handle MORE _ => raise FAIL NONE;
 fun prompt str scan xs = scan xs handle MORE NONE => raise MORE (SOME str);
-fun error scan xs = scan xs handle ABORT msg => Library.error msg;
+fun error scan xs = scan xs handle ABORT msg => Library.error (msg ());
 
 fun catch scan xs = scan xs
-  handle ABORT msg => raise Fail msg
-    | FAIL msg => raise Fail (the_default "Syntax error" msg);
+  handle ABORT msg => raise Fail (msg ())
+    | FAIL msg => raise Fail (case msg of NONE => "Syntax error" | SOME m => m ());
 
 
 (* scanner combinators *)
@@ -236,7 +239,7 @@ fun is_stopper (Stopper (_, is_stopper)) = is_stopper;
 
 fun finite' (Stopper (mk_stopper, is_stopper)) scan (state, input) =
   let
-    fun lost () = raise ABORT "Bad scanner: lost stopper of finite scan!";
+    fun lost () = raise ABORT (fn () => "Bad scanner: lost stopper of finite scan!");
 
     fun stop [] = lost ()
       | stop lst =
@@ -244,7 +247,7 @@ fun finite' (Stopper (mk_stopper, is_stopper)) scan (state, input) =
           in if is_stopper x then ((), xs) else lost () end;
   in
     if exists is_stopper input then
-      raise ABORT "Stopper may not occur in input of finite scan!"
+      raise ABORT (fn () => "Stopper may not occur in input of finite scan!")
     else (strict scan --| lift stop) (state, input @ [mk_stopper input])
   end;
 

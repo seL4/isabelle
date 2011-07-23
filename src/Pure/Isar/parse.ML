@@ -115,13 +115,14 @@ type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic
 (* group atomic parsers (no cuts!) *)
 
 fun fail_with s = Scan.fail_with
-  (fn [] => s ^ " expected (past end-of-file!)"
+  (fn [] => (fn () => s ^ " expected (past end-of-file!)")
     | tok :: _ =>
-        (case Token.text_of tok of
-          (txt, "") =>
-            s ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
-        | (txt1, txt2) =>
-            s ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2));
+        (fn () =>
+          (case Token.text_of tok of
+            (txt, "") =>
+              s ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
+          | (txt1, txt2) =>
+              s ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2)));
 
 fun group s scan = scan || fail_with s;
 
@@ -133,10 +134,13 @@ fun cut kind scan =
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = Token.pos_of tok;
 
-    fun err (toks, NONE) = kind ^ get_pos toks
+    fun err (toks, NONE) = (fn () => kind ^ get_pos toks)
       | err (toks, SOME msg) =
-          if String.isPrefix kind msg then msg
-          else kind ^ get_pos toks ^ ": " ^ msg;
+          (fn () =>
+            let val s = msg () in
+              if String.isPrefix kind s then s
+              else kind ^ get_pos toks ^ ": " ^ s
+            end);
   in Scan.!! err scan end;
 
 fun !!! scan = cut "Outer syntax error" scan;
