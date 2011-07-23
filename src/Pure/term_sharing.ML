@@ -57,7 +57,13 @@ fun init thy =
             val _ = Unsynchronized.change terms (Syntax_Termtab.update (tm', ()));
           in tm' end);
 
-  in (typ, term) end;
+    fun check eq f x =
+      let val x' = f x in
+        if eq (x, x') then x'
+        else raise Fail "Something is utterly wrong"
+      end;
+
+  in (check (op =) typ, check (op =) term) end;
 
 val typs = map o #1 o init;
 val terms = map o #2 o init;

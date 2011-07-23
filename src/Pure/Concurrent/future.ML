@@ -208,7 +208,7 @@ fun execute (task, jobs) =
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
     val _ = Multithreading.tracing 2 (fn () =>
       let
-        val s = Task_Queue.str_of_task task;
+        val s = Task_Queue.str_of_task_groups task;
         fun micros time = string_of_int (Time.toNanoseconds time div 1000);
         val (run, wait, deps) = Task_Queue.timing_of_task task;
       in "TASK " ^ s ^ " " ^ micros run ^ " " ^ micros wait ^ " (" ^ commas deps ^ ")" end);
@@ -253,7 +253,7 @@ fun worker_next () = (*requires SYNCHRONIZED*)
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next ()) of
     NONE => ()
-  | SOME work => (execute work; worker_loop name));
+  | SOME work => (Exn.capture Multithreading.interrupted (); execute work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   Unsynchronized.change workers (cons (Simple_Thread.fork false (fn () => worker_loop name),
