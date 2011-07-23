@@ -183,6 +183,10 @@ val parse_misc =
 val parse_optional_text =
   Scan.optional (parse_chars >> (single o Text)) [];
 
+fun name_start_char c = Symbol.is_ascii_letter c orelse c = ":" orelse c = "_";
+fun name_char c = name_start_char c orelse Symbol.is_ascii_digit c orelse c = "-" orelse c = ".";
+val parse_name = Scan.one name_start_char ::: Scan.many name_char;
+
 in
 
 val parse_comments =
@@ -200,13 +204,14 @@ fun parse_content xs =
       @@@ parse_optional_text) >> flat)) xs
 
 and parse_element xs =
-  ($$ "<" |-- Symbol.scan_id --
-    Scan.repeat (blanks |-- parse_att) --| blanks :-- (fn (s, _) =>
+  ($$ "<" |-- parse_name -- Scan.repeat (blanks |-- parse_att) --| blanks :--
+    (fn (name, _) =>
       !! (err (fn () => "Expected > or />"))
-        (Scan.this_string "/>" >> ignored
-         || $$ ">" |-- parse_content --|
-            !! (err (fn () => "Expected </" ^ s ^ ">"))
-              (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >> Elem) xs;
+       ($$ "/" -- $$ ">" >> ignored ||
+        $$ ">" |-- parse_content --|
+          !! (err (fn () => "Expected </" ^ implode name ^ ">"))
+              ($$ "<" -- $$ "/" -- Scan.this name -- blanks -- $$ ">")))
+    >> (fn ((name, atts), body) => Elem ((implode name, atts), body))) xs;
 
 val parse_document =
   (Scan.repeat parse_misc -- Scan.option parse_doctype -- Scan.repeat parse_misc)
