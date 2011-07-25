@@ -525,10 +525,14 @@ fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
    | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
-fun lift_lambdas ctxt =
+fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
-  #-> Lambda_Lifting.lift_lambdas (SOME polymorphic_free_prefix)
-                                  Lambda_Lifting.is_quantifier
+  #-> Lambda_Lifting.lift_lambdas
+          (if polymorphism_of_type_enc type_enc = Polymorphic then
+             SOME polymorphic_free_prefix
+           else
+             NONE)
+          Lambda_Lifting.is_quantifier
   #> fst
 
 fun translate_atp_lambdas ctxt type_enc =
@@ -544,9 +548,9 @@ fun translate_atp_lambdas ctxt type_enc =
            trans)
   |> (fn trans =>
          if trans = concealedN then
-           lift_lambdas ctxt ##> K []
+           lift_lambdas ctxt type_enc ##> K []
          else if trans = liftingN then
-           lift_lambdas ctxt
+           lift_lambdas ctxt type_enc
          else if trans = combinatorsN then
            map (introduce_combinators ctxt) #> rpair []
          else if trans = lambdasN then

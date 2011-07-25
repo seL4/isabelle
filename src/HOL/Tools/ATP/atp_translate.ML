@@ -1258,7 +1258,8 @@ fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
     fun aux arity (IApp (tm1, tm2)) = IApp (aux (arity + 1) tm1, aux 0 tm2)
       | aux arity (IConst (name as (s, _), T, T_args)) =
         (case strip_prefix_and_unascii const_prefix s of
-           NONE => (name, T_args)
+           NONE =>
+           (name, if level_of_type_enc type_enc = No_Types then [] else T_args)
          | SOME s'' =>
            let
              val s'' = invert_const s''
