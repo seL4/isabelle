@@ -93,7 +93,10 @@ INCOMPATIBILITY.
 * Code generation:
   - theory Library/Code_Char_ord provides native ordering of characters
     in the target language.
-    
+  - commands code_module and code_library are legacy, use export_code instead. 
+  - evaluator "SML" and method evaluation are legacy, use evaluator "code"
+    and method eval instead.
+  
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
 
 * Nitpick:
@@ -132,6 +135,8 @@ INCOMPATIBILITY.
     It requires that the Glasgow Haskell compiler is installed and
     its location is known to Isabelle with the environment variable
     ISABELLE_GHC.
+  - Removed quickcheck tester "SML" based on the SML code generator
+    from HOL-Library
 
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
