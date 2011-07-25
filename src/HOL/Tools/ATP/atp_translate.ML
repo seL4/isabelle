@@ -1155,9 +1155,14 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   fact_lift (formula_fold NONE
                           (K (add_iterm_syms_to_table ctxt explicit_apply)))
 
+val undefined_name = make_fixed_const @{const_name undefined}
+val tvar_a = TVar (("'a", 0), HOLogic.typeS)
+
 val default_sym_tab_entries : (string * sym_info) list =
   (prefixed_predicator_name,
    {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
+  (undefined_name,
+   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
   ([tptp_equal, tptp_old_equal]
@@ -1650,7 +1655,7 @@ fun should_declare_sym type_enc pred_sym s =
 
 fun sym_decl_table_for_facts ctxt type_enc repaired_sym_tab (conjs, facts) =
   let
-    fun add_iterm in_conj tm =
+    fun add_iterm_syms in_conj tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, s'), T, T_args) =>
@@ -1662,15 +1667,31 @@ fun sym_decl_table_for_facts ctxt type_enc repaired_sym_tab (conjs, facts) =
              else
                I
            end
-         | IAbs (_, tm) => add_iterm in_conj tm
+         | IAbs (_, tm) => add_iterm_syms in_conj tm
          | _ => I)
-        #> fold (add_iterm in_conj) args
+        #> fold (add_iterm_syms in_conj) args
       end
-    fun add_fact in_conj = fact_lift (formula_fold NONE (K (add_iterm in_conj)))
+    fun add_fact_syms in_conj =
+      fact_lift (formula_fold NONE (K (add_iterm_syms in_conj)))
+    fun add_formula_var_types (AQuant (_, xs, phi)) =
+        fold (fn (_, SOME T) => insert_type ctxt I T | _ => I) xs
+        #> add_formula_var_types phi
+      | add_formula_var_types (AConn (_, phis)) =
+        fold add_formula_var_types phis
+      | add_formula_var_types _ = I
+    fun var_types () =
+      if polymorphism_of_type_enc type_enc = Polymorphic then [tvar_a]
+      else fold (fact_lift add_formula_var_types) (conjs @ facts) []
+    fun add_undefined_const T =
+      Symtab.map_default (undefined_name, [])
+          (insert_type ctxt #3 (@{const_name undefined}, [T], T, false, 0,
+                                false))
   in
     Symtab.empty
     |> is_type_enc_fairly_sound type_enc
-       ? (fold (add_fact true) conjs #> fold (add_fact false) facts)
+       ? (fold (add_fact_syms true) conjs
+          #> fold (add_fact_syms false) facts
+          #> fold add_undefined_const (var_types ()))
   end
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
@@ -1897,7 +1918,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
          polymorphism_of_type_enc type_enc <> Polymorphic then
         nonmono_Ts
       else
-        [TVar (("'a", 0), HOLogic.typeS)]
+        [tvar_a]
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt type_enc repaired_sym_tab
