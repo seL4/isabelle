@@ -305,7 +305,7 @@ fun genreify_tac ctxt eqs to = SUBGOAL (fn (goal, i) =>
   in rtac th i end);
 
     (* Reflection calls reification and uses the correctness *)
-        (* theorem assumed to be the dead of the list *)
+        (* theorem assumed to be the head of the list *)
 fun gen_reflection_tac ctxt conv corr_thms raw_eqs to = SUBGOAL (fn (goal, i) =>
   let
     val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME x => x)
