@@ -10,7 +10,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide_const (open) implies union inter subset sum quotient 
+hide_const (open) implies union inter subset sum quotient
 
 text {*
   Test data for the MESON proof procedure
@@ -31,7 +31,7 @@ lemma problem_25:
   apply (tactic {* cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val [_, sko25] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses25 = Meson.make_clauses [sko25];   (*7 clauses*)
+    val clauses25 = Meson.make_clauses @{context} [sko25];   (*7 clauses*)
     val horns25 = Meson.make_horns clauses25;     (*16 Horn clauses*)
     val go25 :: _ = Meson.gocls clauses25;
 
@@ -52,7 +52,7 @@ lemma problem_26:
   apply (tactic {* cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val [_, sko26] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses26 = Meson.make_clauses [sko26];                   (*9 clauses*)
+    val clauses26 = Meson.make_clauses @{context} [sko26];                   (*9 clauses*)
     val horns26 = Meson.make_horns clauses26;                     (*24 Horn clauses*)
     val go26 :: _ = Meson.gocls clauses26;
 
@@ -74,7 +74,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
   apply (tactic {* cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val [_, sko43] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses43 = Meson.make_clauses [sko43];   (*6*)
+    val clauses43 = Meson.make_clauses @{context} [sko43];   (*6*)
     val horns43 = Meson.make_horns clauses43;     (*16*)
     val go43 :: _ = Meson.gocls clauses43;
 
