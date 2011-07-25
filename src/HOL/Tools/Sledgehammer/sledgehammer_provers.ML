@@ -63,6 +63,7 @@ sig
   val concealedN : string
   val liftingN : string
   val combinatorsN : string
+  val hybridN : string
   val lambdasN : string
   val smartN : string
   val dest_dir : string Config.T
@@ -337,6 +338,7 @@ type prover =
 val concealedN = "concealed"
 val liftingN = "lifting"
 val combinatorsN = "combinators"
+val hybridN = "hybrid"
 val lambdasN = "lambdas"
 val smartN = "smart"
 
@@ -535,6 +537,19 @@ fun lift_lambdas ctxt type_enc =
           Lambda_Lifting.is_quantifier
   #> fst
 
+fun intentionalize_def (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+    intentionalize_def t
+  | intentionalize_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    let
+      fun lam T t = Abs (Name.uu, T, t)
+      val (head, args) = strip_comb t ||> rev
+      val head_T = fastype_of head
+      val n = length args
+      val arg_Ts = head_T |> binder_types |> take n |> rev
+      val u = u |> subst_atomic (args ~~ map Bound (0 upto n - 1))
+    in HOLogic.eq_const head_T $ head $ fold lam arg_Ts u end
+  | intentionalize_def t = t
+
 fun translate_atp_lambdas ctxt type_enc =
   Config.get ctxt atp_lambda_translation
   |> (fn trans =>
@@ -553,6 +568,10 @@ fun translate_atp_lambdas ctxt type_enc =
            lift_lambdas ctxt type_enc
          else if trans = combinatorsN then
            map (introduce_combinators ctxt) #> rpair []
+         else if trans = hybridN then
+           lift_lambdas ctxt type_enc
+           ##> maps (fn t => [t, introduce_combinators ctxt
+                                     (intentionalize_def t)])
          else if trans = lambdasN then
            map (Envir.eta_contract) #> rpair []
          else
