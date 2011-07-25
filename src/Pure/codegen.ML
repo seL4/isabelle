@@ -916,6 +916,7 @@ fun test_term ctxt t =
 
 fun eval_term ctxt t =
   let
+    val _ = legacy_feature "Old evaluation mechanism -- use evaluator 'code' or method eval instead";
     val thy = Proof_Context.theory_of ctxt;
     val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
       error "Term to be evaluated contains type variables";
