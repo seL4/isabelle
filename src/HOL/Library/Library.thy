@@ -55,7 +55,6 @@ imports
   Reflection
   RBT_Mapping
   Set_Algebras
-  SML_Quickcheck
   State_Monad
   Sum_of_Squares
   Transitive_Closure_Table
