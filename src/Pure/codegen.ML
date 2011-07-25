@@ -1012,6 +1012,7 @@ fun parse_code lib =
    || Scan.repeat1 (Parse.term >> pair "")) >>
   (fn ((((mode, module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
     let
+      val _ = legacy_feature "Old code generation command -- use export_code instead";
       val mode' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode);
       val (code, gr) = generate_code thy mode' modules module xs;
       val thy' = thy |> Context.theory_map (ML_Context.exec (fn () =>
