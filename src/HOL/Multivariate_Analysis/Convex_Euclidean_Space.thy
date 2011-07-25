@@ -2539,7 +2539,7 @@ lemma open_convex_hull[intro]:
   fixes s :: "'a::real_normed_vector set"
   assumes "open s"
   shows "open(convex hull s)"
-  unfolding open_contains_cball convex_hull_explicit unfolding mem_Collect_eq ball_simps(10)
+  unfolding open_contains_cball convex_hull_explicit unfolding mem_Collect_eq ball_simps(8)
 proof(rule, rule) fix a
   assume "\<exists>sa u. finite sa \<and> sa \<subseteq> s \<and> (\<forall>x\<in>sa. 0 \<le> u x) \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = a"
   then obtain t u where obt:"finite t" "t\<subseteq>s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = a" by auto

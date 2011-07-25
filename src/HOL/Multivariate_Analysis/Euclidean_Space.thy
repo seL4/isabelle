@@ -2505,7 +2505,7 @@ next
       by auto
     from inj_on_image_set_diff[OF "2.prems"(3), of "insert a b " "{a}", symmetric]
     have tha: "f ` insert a b - f ` {a} = f ` (insert a b - {a})" by blast
-    from "2.prems"(2)[unfolded dependent_def bex_simps(10), rule_format, of "f a"]
+    from "2.prems"(2) [unfolded dependent_def bex_simps(8), rule_format, of "f a"]
     have "f a \<notin> span (f ` b)" using tha
       using "2.hyps"(2)
       "2.prems"(3) by auto
