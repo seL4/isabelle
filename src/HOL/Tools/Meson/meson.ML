@@ -14,7 +14,9 @@ sig
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
-  val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
+  val make_cnf:
+    thm list -> thm -> Proof.context
+    -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val unfold_set_const_simps : Proof.context -> thm list
   val presimplified_consts : Proof.context -> string list
@@ -26,8 +28,8 @@ sig
   val extensionalize_conv : Proof.context -> conv
   val extensionalize_theorem : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
-  val make_clauses_unsorted: thm list -> thm list
-  val make_clauses: thm list -> thm list
+  val make_clauses_unsorted: Proof.context -> thm list -> thm list
+  val make_clauses: Proof.context -> thm list -> thm list
   val make_horns: thm list -> thm list
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
   val depth_prolog_tac: thm list -> tactic
@@ -366,18 +368,18 @@ fun apply_skolem_theorem (th, rls) =
 (* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
    Strips universal quantifiers and breaks up conjunctions.
    Eliminates existential quantifiers using Skolemization theorems. *)
-fun cnf old_skolem_ths ctxt (th, ths) =
-  let val ctxtr = Unsynchronized.ref ctxt   (* FIXME ??? *)
+fun cnf old_skolem_ths ctxt ctxt0 (th, ths) =
+  let val ctxt0r = Unsynchronized.ref ctxt0   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns [@{const_name All}, @{const_name Ex}, @{const_name HOL.conj}] (prop_of th))
-        then nodups ctxt th :: ths (*no work to do, terminate*)
+        then nodups ctxt0 th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
             Const (@{const_name HOL.conj}, _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
           | Const (@{const_name All}, _) => (*universal quantifier*)
-                let val (th',ctxt') = freeze_spec th (!ctxtr)
-                in  ctxtr := ctxt'; cnf_aux (th', ths) end
+                let val (th',ctxt0') = freeze_spec th (!ctxt0r)
+                in  ctxt0r := ctxt0'; cnf_aux (th', ths) end
           | Const (@{const_name Ex}, _) =>
               (*existential quantifier: Insert Skolem functions*)
               cnf_aux (apply_skolem_theorem (th, old_skolem_ths), ths)
@@ -388,15 +390,17 @@ fun cnf old_skolem_ths ctxt (th, ths) =
                   Misc_Legacy.METAHYPS (resop cnf_nil) 1 THEN
                    (fn st' => st' |> Misc_Legacy.METAHYPS (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
-          | _ => nodups ctxt th :: ths  (*no work to do*)
+          | _ => nodups ctxt0 th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
       val cls =
-            if has_too_many_clauses ctxt (concl_of th)
-            then (trace_msg ctxt (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
-            else cnf_aux (th,ths)
-  in  (cls, !ctxtr)  end;
-
-fun make_cnf old_skolem_ths th ctxt = cnf old_skolem_ths ctxt (th, [])
+        if has_too_many_clauses ctxt (concl_of th) then
+          (trace_msg ctxt (fn () =>
+               "cnf is ignoring: " ^ Display.string_of_thm ctxt0 th); ths)
+        else
+          cnf_aux (th, ths)
+  in (cls, !ctxt0r) end
+fun make_cnf old_skolem_ths th ctxt ctxt0 =
+  cnf old_skolem_ths ctxt ctxt0 (th, [])
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
@@ -657,15 +661,15 @@ fun try_skolemize_etc ctxt =
                                           Display.string_of_thm ctxt th)
                                    | _ => ()))
 
-fun add_clauses th cls =
+fun add_clauses ctxt th cls =
   let val ctxt0 = Variable.global_thm_context th
-      val (cnfs, ctxt) = make_cnf [] th ctxt0
+      val (cnfs, ctxt) = make_cnf [] th ctxt ctxt0
   in Variable.export ctxt ctxt0 cnfs @ cls end;
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses_unsorted ths = fold_rev add_clauses ths [];
-val make_clauses = sort_clauses o make_clauses_unsorted;
+fun make_clauses_unsorted ctxt ths = fold_rev (add_clauses ctxt) ths [];
+val make_clauses = sort_clauses oo make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
@@ -703,12 +707,13 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
 (** Best-first search versions **)
 
 (*ths is a list of additional clauses (HOL disjunctions) to use.*)
-fun best_meson_tac sizef =
-  MESON all_tac make_clauses
+fun best_meson_tac sizef ctxt =
+  MESON all_tac (make_clauses ctxt)
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
-                         (prolog_step_tac (make_horns cls) 1));
+                         (prolog_step_tac (make_horns cls) 1))
+    ctxt
 
 (*First, breaks the goal into independent units*)
 fun safe_best_meson_tac ctxt =
@@ -716,10 +721,10 @@ fun safe_best_meson_tac ctxt =
 
 (** Depth-first search version **)
 
-val depth_meson_tac =
-  MESON all_tac make_clauses
-    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)]);
-
+fun depth_meson_tac ctxt =
+  MESON all_tac (make_clauses ctxt)
+    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)])
+    ctxt
 
 (** Iterative deepening version **)
 
@@ -737,7 +742,7 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac make_clauses
+fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
   (fn cls =>
     (case (gocls (cls @ ths)) of
       [] => no_tac  (*no goal clauses*)

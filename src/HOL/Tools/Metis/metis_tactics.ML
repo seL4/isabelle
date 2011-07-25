@@ -189,9 +189,9 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
                  quote (method_call_for_type_enc fallback_type_syss) ^ "...");
             FOL_SOLVE fallback_type_syss ctxt cls ths0)
 
-val neg_clausify =
+fun neg_clausify ctxt =
   single
-  #> Meson.make_clauses_unsorted
+  #> Meson.make_clauses_unsorted ctxt
   #> map Meson_Clausify.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
@@ -217,7 +217,7 @@ fun generic_metis_tac type_syss ctxt ths i st0 =
       verbose_warning ctxt "Proof state contains the universal sort {}"
     else
       ();
-    Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
+    Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt)) tac ctxt i st0
   end
 
 fun metis_tac [] = generic_metis_tac partial_type_syss

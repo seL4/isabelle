@@ -373,7 +373,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     fun clausify th =
       make_cnf (if new_skolemizer orelse null choice_ths then []
                 else map (old_skolem_theorem_from_def thy) (old_skolem_defs th))
-               th ctxt
+               th ctxt ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
       Thm.instantiate ([], map (pairself (cterm_of thy))
