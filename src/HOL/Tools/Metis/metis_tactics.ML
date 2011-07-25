@@ -249,9 +249,7 @@ fun method default_type_syss (override_type_syss, ths) ctxt facts =
 
 fun setup_method (binding, type_syss) =
   ((Args.parens (Scan.repeat Parse.short_ident)
-    >> maps (fn s => case AList.lookup (op =) type_enc_aliases s of
-                       SOME tss => tss
-                     | NONE => [s]))
+    >> maps (fn s => AList.lookup (op =) type_enc_aliases s |> the_default [s]))
     |> Scan.option |> Scan.lift)
   -- Attrib.thms >> (METHOD oo method type_syss)
   |> Method.setup binding
