@@ -7,7 +7,7 @@ imports Dlist List_Cset
 begin
 
 definition Set :: "'a dlist \<Rightarrow> 'a Cset.set" where
-  "Set dxs = List_Cset.set (list_of_dlist dxs)"
+  "Set dxs = Cset.set (list_of_dlist dxs)"
 
 definition Coset :: "'a dlist \<Rightarrow> 'a Cset.set" where
   "Coset dxs = List_Cset.coset (list_of_dlist dxs)"
@@ -27,6 +27,9 @@ declare filter_set [code del]
 declare forall_set [code del]
 declare exists_set [code del]
 declare card_set [code del]
+declare List_Cset.single_set [code del]
+declare List_Cset.bind_set [code del]
+declare List_Cset.pred_of_cset_set [code del]
 declare inter_project [code del]
 declare subtract_remove [code del]
 declare union_insert [code del]
@@ -50,7 +53,7 @@ lemma member_Coset [simp]:
   by (simp add: Coset_def member_set not_set_compl)
 
 lemma Set_dlist_of_list [code]:
-  "List_Cset.set xs = Set (dlist_of_list xs)"
+  "Cset.set xs = Set (dlist_of_list xs)"
   by (rule Cset.set_eqI) simp
 
 lemma Coset_dlist_of_list [code]:
@@ -136,5 +139,17 @@ lemma Supremum_code [code]:
   by (simp only: Set_def Supremum_sup foldr_def sup.commute)
 
 end
+
+declare Cset.single_code[code]
+
+lemma bind_set [code]:
+  "Cset.bind (Dlist_Cset.Set xs) f = foldl (\<lambda>A x. sup A (f x)) Cset.empty (list_of_dlist xs)"
+by(simp add: List_Cset.bind_set Dlist_Cset.Set_def)
+hide_fact (open) bind_set
+
+lemma pred_of_cset_set [code]:
+  "pred_of_cset (Dlist_Cset.Set xs) = foldr sup (map Predicate.single (list_of_dlist xs)) bot"
+by(simp add: List_Cset.pred_of_cset_set Dlist_Cset.Set_def)
+hide_fact (open) pred_of_cset_set
 
 end
