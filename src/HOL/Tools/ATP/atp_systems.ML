@@ -123,7 +123,7 @@ structure Data = Theory_Data
     handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
 )
 
-fun to_secs time = (Time.toMilliseconds time + 999) div 1000
+fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 
 val sosN = "sos"
 val no_sosN = "no_sos"
@@ -200,7 +200,7 @@ val e_config : atp_config =
    arguments =
      fn ctxt => fn _ => fn method => fn timeout => fn weights =>
         "--tstp-in --tstp-out -l5 " ^ e_weight_arguments ctxt method weights ^
-        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout),
+        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
@@ -240,7 +240,7 @@ val spass_config : atp_config =
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs timeout))
+      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      |> sos = sosN ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
@@ -275,7 +275,7 @@ val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     "--proof tptp --mode casc -t " ^ string_of_int (to_secs timeout) ^
+     "--proof tptp --mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
      |> sos = sosN ? prefix "--sos on ",
    proof_delims =
@@ -313,7 +313,7 @@ val z3_atp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "MBQI=true -p -t:" ^ string_of_int (to_secs timeout),
+     "MBQI=true -p -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures =
      [(Unprovable, "\nsat"),
@@ -373,7 +373,7 @@ fun remote_config system_name system_versions proof_delims known_failures
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs timeout))
+     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @
