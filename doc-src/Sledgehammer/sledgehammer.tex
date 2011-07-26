@@ -886,24 +886,24 @@ with an indication of their soundness in parentheses:
 \item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
 supplied to the ATP. Types are simply erased.
 
-\item[$\bullet$] \textbf{\textit{poly\_preds} (sound):} Types are encoded using
-a predicate \textit{has\_\allowbreak type\/}$(\tau, t)$ that restricts the range
-of bound variables. Constants are annotated with their types, supplied as extra
+\item[$\bullet$] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
+a predicate \textit{has\_\allowbreak type\/}$(\tau, t)$ that guards bound
+variables. Constants are annotated with their types, supplied as additional
 arguments, to resolve overloading.
 
 \item[$\bullet$] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
 tagged with its type using a function $\mathit{type\_info\/}(\tau, t)$.
 
 \item[$\bullet$] \textbf{\textit{poly\_args} (unsound):}
-Like for \textit{poly\_preds} constants are annotated with their types to
+Like for \textit{poly\_guards} constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded. This
 coincides with the default encoding used by the \textit{metis} command.
 
 \item[$\bullet$]
 \textbf{%
-\textit{mono\_preds}, \textit{mono\_tags} (sound);
+\textit{mono\_guards}, \textit{mono\_tags} (sound);
 \textit{mono\_args} (unsound):} \\
-Similar to \textit{poly\_preds}, \textit{poly\_tags}, and \textit{poly\_args},
+Similar to \textit{poly\_guards}, \textit{poly\_tags}, and \textit{poly\_args},
 respectively, but the problem is additionally monomorphized, meaning that type
 variables are instantiated with heuristically chosen ground types.
 Monomorphization can simplify reasoning but also leads to larger fact bases,
@@ -911,11 +911,11 @@ which can slow down the ATPs.
 
 \item[$\bullet$]
 \textbf{%
-\textit{mangled\_preds},
+\textit{mangled\_guards},
 \textit{mangled\_tags} (sound); \\
 \textit{mangled\_args} (unsound):} \\
 Similar to
-\textit{mono\_preds}, \textit{mono\_tags}, and \textit{mono\_args},
+\textit{mono\_guards}, \textit{mono\_tags}, and \textit{mono\_args},
 respectively but types are mangled in constant names instead of being supplied
 as ground term arguments. The binary predicate $\mathit{has\_type\/}(\tau, t)$
 becomes a unary predicate $\mathit{has\_type\_}\tau(t)$, and the binary function
@@ -924,35 +924,35 @@ $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$] \textbf{\textit{simple} (sound):} Exploit simple first-order
 types if the prover supports the TFF or THF syntax; otherwise, fall back on
-\textit{mangled\_preds}. The problem is monomorphized.
+\textit{mangled\_guards}. The problem is monomorphized.
 
 \item[$\bullet$] \textbf{\textit{simple\_higher} (sound):} Exploit simple
 higher-order types if the prover supports the THF syntax; otherwise, fall back
-on \textit{simple} or \textit{mangled\_preds\_heavy}. The problem is
+on \textit{simple} or \textit{mangled\_guards\_heavy}. The problem is
 monomorphized.
 
 \item[$\bullet$]
 \textbf{%
-\textit{poly\_preds}?, \textit{poly\_tags}?, \textit{mono\_preds}?, \textit{mono\_tags}?, \\
-\textit{mangled\_preds}?, \textit{mangled\_tags}?, \textit{simple}?, \textit{simple\_higher}? (quasi-sound):} \\
-The type encodings \textit{poly\_preds}, \textit{poly\_tags},
-\textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
-\textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} are fully
+\textit{poly\_guards}?, \textit{poly\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
+\textit{mangled\_guards}?, \textit{mangled\_tags}?, \textit{simple}? (quasi-sound):} \\
+The type encodings \textit{poly\_guards}, \textit{poly\_tags},
+\textit{mono\_guards}, \textit{mono\_tags}, \textit{mangled\_guards},
+\textit{mangled\_tags}, and \textit{simple} are fully
 typed and sound. For each of these, Sledgehammer also provides a lighter,
 virtually sound variant identified by a question mark (`{?}')\ that detects and
-erases monotonic types, notably infinite types. (For \textit{simple} and
-\textit{simple\_higher}, the types are not actually erased but rather replaced
-by a shared uniform type of individuals.) As argument to the \textit{metis}
-proof method, the question mark is replaced by a \hbox{``\textit{\_query}''}
-suffix. If the \emph{sound} option is enabled, these encodings are fully sound.
+erases monotonic types, notably infinite types. (For \textit{simple}, the types
+are not actually erased but rather replaced by a shared uniform type of
+individuals.) As argument to the \textit{metis} proof method, the question mark
+is replaced by a \hbox{``\textit{\_query}''} suffix. If the \emph{sound} option
+is enabled, these encodings are fully sound.
 
 \item[$\bullet$]
 \textbf{%
-\textit{poly\_preds}!, \textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
-\textit{mangled\_preds}!, \textit{mangled\_tags}!, \textit{simple}!, \textit{simple\_higher}! \\
+\textit{poly\_guards}!, \textit{poly\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
+\textit{mangled\_guards}!, \textit{mangled\_tags}!, \textit{simple}!, \textit{simple\_higher}! \\
 (mildly unsound):} \\
-The type encodings \textit{poly\_preds}, \textit{poly\_tags},
-\textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
+The type encodings \textit{poly\_guards}, \textit{poly\_tags},
+\textit{mono\_guards}, \textit{mono\_tags}, \textit{mangled\_guards},
 \textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} also admit
 a mildly unsound (but very efficient) variant identified by an exclamation mark
 (`{!}') that detects and erases erases all types except those that are clearly
@@ -965,11 +965,11 @@ mark is replaced by a \hbox{``\textit{\_bang}''} suffix.
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
-In addition, all the \textit{preds} and \textit{tags} type encodings are
+In addition, all the \textit{guards} and \textit{tags} type encodings are
 available in two variants, a lightweight and a heavyweight variant. The
 lightweight variants are generally more efficient and are the default; the
 heavyweight variants are identified by a \textit{\_heavy} suffix (e.g.,
-\textit{mangled\_preds\_heavy}{?}).
+\textit{mangled\_guards\_heavy}{?}).
 
 For SMT solvers, the type encoding is always \textit{simple}, irrespective of
 the value of this option.
