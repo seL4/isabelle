@@ -28,7 +28,7 @@ sig
 
   datatype type_enc =
     Simple_Types of order * type_level |
-    Preds of polymorphism * type_level * type_heaviness |
+    Guards of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
   val bound_var_prefix : string
@@ -45,7 +45,7 @@ sig
   val new_skolem_const_prefix : string
   val type_decl_prefix : string
   val sym_decl_prefix : string
-  val preds_sym_formula_prefix : string
+  val guards_sym_formula_prefix : string
   val lightweight_tags_sym_formula_prefix : string
   val fact_prefix : string
   val conjecture_prefix : string
@@ -133,7 +133,7 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
-val preds_sym_formula_prefix = "psy_"
+val guards_sym_formula_prefix = "gsy_"
 val lightweight_tags_sym_formula_prefix = "tsy_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
@@ -518,7 +518,7 @@ datatype type_heaviness = Heavyweight | Lightweight
 
 datatype type_enc =
   Simple_Types of order * type_level |
-  Preds of polymorphism * type_level * type_heaviness |
+  Guards of polymorphism * type_level * type_heaviness |
   Tags of polymorphism * type_level * type_heaviness
 
 fun try_unsuffixes ss s =
@@ -554,14 +554,14 @@ fun type_enc_from_string s =
          | ("simple_higher", (NONE, _, Lightweight)) =>
            if level = Noninf_Nonmono_Types then raise Same.SAME
            else Simple_Types (Higher_Order, level)
-         | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
+         | ("guards", (SOME poly, _, _)) => Guards (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, heaviness)
          | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
          | ("args", (SOME poly, All_Types (* naja *), Lightweight)) =>
-           Preds (poly, Const_Arg_Types, Lightweight)
+           Guards (poly, Const_Arg_Types, Lightweight)
          | ("erased", (NONE, All_Types (* naja *), Lightweight)) =>
-           Preds (Polymorphic, No_Types, Lightweight)
+           Guards (Polymorphic, No_Types, Lightweight)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
@@ -569,15 +569,15 @@ fun is_type_enc_higher_order (Simple_Types (Higher_Order, _)) = true
   | is_type_enc_higher_order _ = false
 
 fun polymorphism_of_type_enc (Simple_Types _) = Mangled_Monomorphic
-  | polymorphism_of_type_enc (Preds (poly, _, _)) = poly
+  | polymorphism_of_type_enc (Guards (poly, _, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _, _)) = poly
 
 fun level_of_type_enc (Simple_Types (_, level)) = level
-  | level_of_type_enc (Preds (_, level, _)) = level
+  | level_of_type_enc (Guards (_, level, _)) = level
   | level_of_type_enc (Tags (_, level, _)) = level
 
 fun heaviness_of_type_enc (Simple_Types _) = Heavyweight
-  | heaviness_of_type_enc (Preds (_, _, heaviness)) = heaviness
+  | heaviness_of_type_enc (Guards (_, _, heaviness)) = heaviness
   | heaviness_of_type_enc (Tags (_, _, heaviness)) = heaviness
 
 fun is_type_level_virtually_sound level =
@@ -595,13 +595,13 @@ fun choose_format formats (Simple_Types (order, level)) =
     else if member (op =) formats TFF then
       (TFF, Simple_Types (First_Order, level))
     else
-      choose_format formats (Preds (Mangled_Monomorphic, level, Heavyweight))
+      choose_format formats (Guards (Mangled_Monomorphic, level, Heavyweight))
   | choose_format formats type_enc =
     (case hd formats of
        CNF_UEQ =>
        (CNF_UEQ, case type_enc of
-                   Preds stuff =>
-                   (if is_type_enc_fairly_sound type_enc then Tags else Preds)
+                   Guards stuff =>
+                   (if is_type_enc_fairly_sound type_enc then Tags else Guards)
                        stuff
                  | _ => type_enc)
      | format => (format, type_enc))
@@ -1035,7 +1035,7 @@ fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
     is_type_surely_finite ctxt false T
   | should_encode_type _ _ _ _ = false
 
-fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, heaviness))
+fun should_predicate_on_type ctxt nonmono_Ts (Guards (_, level, heaviness))
                              should_predicate_on_var T =
     (heaviness = Heavyweight orelse should_predicate_on_var ()) andalso
     should_encode_type ctxt nonmono_Ts level T
@@ -1756,7 +1756,7 @@ fun decl_line_for_sym ctxt format nonmono_Ts type_enc s
           |> ho_type_from_typ format type_enc pred_sym (length T_arg_Ts + ary))
   end
 
-fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
+fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind nonmono_Ts
         poly_nonmono_Ts type_enc n s j (s', T_args, T, _, ary, in_conj) =
   let
     val (kind, maybe_negate) =
@@ -1775,7 +1775,7 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
     val bound_Ts =
       arg_Ts |> map (fn T => if should_keep_arg_type T then SOME T else NONE)
   in
-    Formula (preds_sym_formula_prefix ^ s ^
+    Formula (guards_sym_formula_prefix ^ s ^
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
              IConst ((s, s'), T, T_args)
              |> fold (curry (IApp o swap)) bounds
@@ -1851,7 +1851,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
   case type_enc of
     Simple_Types _ =>
     decls |> map (decl_line_for_sym ctxt format nonmono_Ts type_enc s)
-  | Preds _ =>
+  | Guards _ =>
     let
       val decls =
         case decls of
@@ -1871,7 +1871,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
                          o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
-      |-> map2 (formula_line_for_preds_sym_decl ctxt format conj_sym_kind
+      |-> map2 (formula_line_for_guards_sym_decl ctxt format conj_sym_kind
                    nonmono_Ts poly_nonmono_Ts type_enc n s)
     end
   | Tags (_, _, heaviness) =>

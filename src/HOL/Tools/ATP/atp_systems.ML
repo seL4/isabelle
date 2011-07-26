@@ -219,7 +219,7 @@ val e_config : atp_config =
        (* FUDGE *)
        if method = e_smartN then
          [(0.333, (true, (500, "mangled_tags?", e_fun_weightN))),
-          (0.334, (true, (50, "mangled_preds?", e_fun_weightN))),
+          (0.334, (true, (50, "mangled_guards?", e_fun_weightN))),
           (0.333, (true, (1000, "mangled_tags?", e_sym_offset_weightN)))]
        else
          [(1.0, (true, (500, "mangled_tags?", method)))]
@@ -298,8 +298,8 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, "poly_preds", sosN))),
-      (0.334, (true, (50, "mangled_preds?", no_sosN))),
+     [(0.333, (false, (150, "poly_guards", sosN))),
+      (0.334, (true, (50, "mangled_guards?", no_sosN))),
       (0.333, (false, (500, "mangled_tags?", sosN)))]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -326,10 +326,10 @@ val z3_atp_config : atp_config =
    formats = [FOF],
    best_slices =
      (* FUDGE (FIXME) *)
-     K [(0.5, (false, (250, "mangled_preds?", ""))),
-        (0.25, (false, (125, "mangled_preds?", ""))),
-        (0.125, (false, (62, "mangled_preds?", ""))),
-        (0.125, (false, (31, "mangled_preds?", "")))]}
+     K [(0.5, (false, (250, "mangled_guards?", ""))),
+        (0.25, (false, (125, "mangled_guards?", ""))),
+        (0.125, (false, (62, "mangled_guards?", ""))),
+        (0.125, (false, (31, "mangled_guards?", "")))]}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 
@@ -413,9 +413,9 @@ val remote_e =
                (K (750, "mangled_tags?") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-               (K (200, "mangled_preds?") (* FUDGE *))
+               (K (200, "mangled_guards?") (* FUDGE *))
 val remote_z3_atp =
-  remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_preds?") (* FUDGE *))
+  remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_guards?") (* FUDGE *))
 val remote_leo2 =
   remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
              (K (100, "simple_higher") (* FUDGE *))
@@ -424,7 +424,7 @@ val remote_satallax =
              (K (64, "simple_higher") (* FUDGE *))
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
-             Conjecture [FOF] (K (500, "mangled_preds?") (* FUDGE *))
+             Conjecture [FOF] (K (500, "mangled_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
