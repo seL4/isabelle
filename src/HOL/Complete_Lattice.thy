@@ -476,6 +476,14 @@ proof -
   from dual.Sup_eq_top_iff show ?thesis .
 qed
 
+lemma INF_eq_bot_iff:
+  "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
+  unfolding INF_def Inf_eq_bot_iff by auto
+
+lemma SUP_eq_top_iff:
+  "(\<Squnion>i\<in>A. f i) = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < f i)"
+  unfolding SUP_def Sup_eq_top_iff by auto
+
 end
 
 
@@ -929,7 +937,7 @@ lemma UN_insert [simp]: "(\<Union>x\<in>insert a A. B x) = B a \<union> UNION A 
 lemma UN_Un[simp]: "(\<Union>i \<in> A \<union> B. M i) = (\<Union>i\<in>A. M i) \<union> (\<Union>i\<in>B. M i)"
   by (fact SUP_union)
 
-lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B y). C x) = (\<Union>y\<in>A. \<Union>x\<in>B y. C x)" -- "FIXME generalize"
+lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B y). C x) = (\<Union>y\<in>A. \<Union>x\<in>B y. C x)"
   by blast
 
 lemma UN_subset_iff: "((\<Union>i\<in>I. A i) \<subseteq> B) = (\<forall>i\<in>I. A i \<subseteq> B)"
@@ -1067,43 +1075,12 @@ lemma INT_simps [simp]:
   "\<And>A B f. (\<Inter>x\<in>f`A. B x) = (\<Inter>a\<in>A. B (f a))"
   by auto
 
-lemma ball_simps [simp,no_atp]:
-  "\<And>A P Q. (\<forall>x\<in>A. P x \<or> Q) \<longleftrightarrow> ((\<forall>x\<in>A. P x) \<or> Q)"
-  "\<And>A P Q. (\<forall>x\<in>A. P \<or> Q x) \<longleftrightarrow> (P \<or> (\<forall>x\<in>A. Q x))"
-  "\<And>A P Q. (\<forall>x\<in>A. P \<longrightarrow> Q x) \<longleftrightarrow> (P \<longrightarrow> (\<forall>x\<in>A. Q x))"
-  "\<And>A P Q. (\<forall>x\<in>A. P x \<longrightarrow> Q) \<longleftrightarrow> ((\<exists>x\<in>A. P x) \<longrightarrow> Q)"
-  "\<And>P. (\<forall>x\<in>{}. P x) \<longleftrightarrow> True"
-  "\<And>P. (\<forall>x\<in>UNIV. P x) \<longleftrightarrow> (\<forall>x. P x)"
-  "\<And>a B P. (\<forall>x\<in>insert a B. P x) \<longleftrightarrow> (P a \<and> (\<forall>x\<in>B. P x))"
+lemma UN_ball_bex_simps [simp, no_atp]:
   "\<And>A P. (\<forall>x\<in>\<Union>A. P x) \<longleftrightarrow> (\<forall>y\<in>A. \<forall>x\<in>y. P x)"
-  "\<And>A B P. (\<forall>x\<in> UNION A B. P x) = (\<forall>a\<in>A. \<forall>x\<in> B a. P x)"
-  "\<And>P Q. (\<forall>x\<in>Collect Q. P x) \<longleftrightarrow> (\<forall>x. Q x \<longrightarrow> P x)"
-  "\<And>A P f. (\<forall>x\<in>f`A. P x) \<longleftrightarrow> (\<forall>x\<in>A. P (f x))"
-  "\<And>A P. (\<not> (\<forall>x\<in>A. P x)) \<longleftrightarrow> (\<exists>x\<in>A. \<not> P x)"
-  by auto
-
-lemma bex_simps [simp,no_atp]:
-  "\<And>A P Q. (\<exists>x\<in>A. P x \<and> Q) \<longleftrightarrow> ((\<exists>x\<in>A. P x) \<and> Q)"
-  "\<And>A P Q. (\<exists>x\<in>A. P \<and> Q x) \<longleftrightarrow> (P \<and> (\<exists>x\<in>A. Q x))"
-  "\<And>P. (\<exists>x\<in>{}. P x) \<longleftrightarrow> False"
-  "\<And>P. (\<exists>x\<in>UNIV. P x) \<longleftrightarrow> (\<exists>x. P x)"
-  "\<And>a B P. (\<exists>x\<in>insert a B. P x) \<longleftrightarrow> (P a | (\<exists>x\<in>B. P x))"
+  "\<And>A B P. (\<forall>x\<in>UNION A B. P x) = (\<forall>a\<in>A. \<forall>x\<in> B a. P x)"
   "\<And>A P. (\<exists>x\<in>\<Union>A. P x) \<longleftrightarrow> (\<exists>y\<in>A. \<exists>x\<in>y. P x)"
   "\<And>A B P. (\<exists>x\<in>UNION A B. P x) \<longleftrightarrow> (\<exists>a\<in>A. \<exists>x\<in>B a. P x)"
-  "\<And>P Q. (\<exists>x\<in>Collect Q. P x) \<longleftrightarrow> (\<exists>x. Q x \<and> P x)"
-  "\<And>A P f. (\<exists>x\<in>f`A. P x) \<longleftrightarrow> (\<exists>x\<in>A. P (f x))"
-  "\<And>A P. (\<not>(\<exists>x\<in>A. P x)) \<longleftrightarrow> (\<forall>x\<in>A. \<not> P x)"
   by auto
-
-lemma (in complete_linorder) INF_eq_bot_iff:
-  fixes f :: "'b \<Rightarrow> 'a"
-  shows "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
-  unfolding INF_def Inf_eq_bot_iff by auto
-
-lemma (in complete_linorder) SUP_eq_top_iff:
-  fixes f :: "'b \<Rightarrow> 'a"
-  shows "(\<Squnion>i\<in>A. f i) = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < f i)"
-  unfolding SUP_def Sup_eq_top_iff by auto
 
 
 text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}

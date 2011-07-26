@@ -79,6 +79,10 @@ More consistent and less misunderstandable names:
   SUPR_apply ~> SUP_apply
 INCOMPATIBILITY.
 
+* Theorem collections ball_simps and bex_simps do not contain theorems referring
+to UNION any longer;  these have been moved to collection UN_ball_bex_simps.
+INCOMPATIBILITY.
+
 * Archimedian_Field.thy:
     floor now is defined as parameter of a separate type class floor_ceiling.
  
