@@ -218,25 +218,6 @@ fun string_for_type THF ty =
        tptp_fun_type ^ " " ^ s)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
-fun string_for_term _ (ATerm (s, [])) = s
-  | string_for_term format (ATerm (s, ts)) =
-    if s = tptp_empty_list then
-      (* used for lists in the optional "source" field of a derivation *)
-      "[" ^ commas (map (string_for_term format) ts) ^ "]"
-    else if is_tptp_equal s then
-      space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
-      |> format = THF ? enclose "(" ")"
-    else
-      let val ss = map (string_for_term format) ts in
-        if format = THF then
-          "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
-        else
-          s ^ "(" ^ commas ss ^ ")"
-      end
-  | string_for_term THF (AAbs ((s, ty), tm)) =
-    "(^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm ^ ")"
-  | string_for_term _ _ = raise Fail "unexpected term in first-order format"
-
 fun string_for_quantifier AForall = tptp_forall
   | string_for_quantifier AExists = tptp_exists
 
@@ -253,7 +234,31 @@ fun string_for_bound_var format (s, ty) =
        else
          "")
 
-fun string_for_formula format (AQuant (q, xs, phi)) =
+fun string_for_term _ (ATerm (s, [])) = s
+  | string_for_term format (ATerm (s, ts)) =
+    if s = tptp_empty_list then
+      (* used for lists in the optional "source" field of a derivation *)
+      "[" ^ commas (map (string_for_term format) ts) ^ "]"
+    else if is_tptp_equal s then
+      space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
+      |> format = THF ? enclose "(" ")"
+    else
+      (case (s = tptp_ho_forall orelse s = tptp_ho_exists, ts) of
+         (true, [AAbs ((s', ty), tm)]) =>
+         string_for_formula format
+             (AQuant (if s = tptp_ho_forall then AForall else AExists,
+                      [(s', SOME ty)], AAtom tm))
+       | _ =>
+         let val ss = map (string_for_term format) ts in
+           if format = THF then
+             "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
+           else
+             s ^ "(" ^ commas ss ^ ")"
+         end)
+  | string_for_term THF (AAbs ((s, ty), tm)) =
+    "(^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm ^ ")"
+  | string_for_term _ _ = raise Fail "unexpected term in first-order format"
+and string_for_formula format (AQuant (q, xs, phi)) =
     string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
     string_for_formula format phi
