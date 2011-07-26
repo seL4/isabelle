@@ -117,7 +117,7 @@ text {* Finding the counterexample still seems out of reach for the
  prolog-style generation. *}
 
 lemma "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-quickcheck[tester = random, iterations = 100000, expect = counterexample]
+quickcheck[tester = random, iterations = 100000]
 (*quickcheck[tester = predicate_compile_wo_ff]*)
 (*quickcheck[tester = predicate_compile_ff_fs, iterations = 1]*)
 (*quickcheck[tester = prolog, iterations = 1, size = 1]*)
@@ -133,7 +133,7 @@ lemma
 (*  assumes "s = [N0, N0]"*)
   shows "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
 (*quickcheck[tester = predicate_compile_wo_ff, iterations = 1]*)
-quickcheck[tester = prolog, iterations = 1, size = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, size = 1]
 oops
 
 section {* Checking the counterexample *}
@@ -160,7 +160,7 @@ lemma
   assumes "s = [N0, N0]"
   shows "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
 (*quickcheck[tester = predicate_compile_wo_ff, iterations = 1, expect = counterexample]*)
-quickcheck[tester = prolog, iterations = 1, size = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, size = 1]
 oops
 
 lemma
@@ -171,11 +171,11 @@ lemma
   assumes "s = [N0, N0]"
 shows "prop_regex (n, (k, (p, (q, s))))"
 quickcheck[tester = predicate_compile_wo_ff]
-quickcheck[tester = prolog, expect = counterexample]
+quickcheck[tester = prolog]
 oops
 
 lemma "prop_regex a_sol"
-quickcheck[tester = random, expect = counterexample]
+quickcheck[tester = random]
 quickcheck[tester = predicate_compile_ff_fs]
 oops
 
