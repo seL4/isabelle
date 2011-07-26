@@ -1155,13 +1155,12 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   fact_lift (formula_fold NONE
                           (K (add_iterm_syms_to_table ctxt explicit_apply)))
 
-val undefined_name = make_fixed_const @{const_name undefined}
 val tvar_a = TVar (("'a", 0), HOLogic.typeS)
 
 val default_sym_tab_entries : (string * sym_info) list =
   (prefixed_predicator_name,
    {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
-  (undefined_name,
+  (make_fixed_const @{const_name undefined},
    {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
@@ -1653,7 +1652,8 @@ fun should_declare_sym type_enc pred_sym s =
    | Tags (_, _, Lightweight) => true
    | _ => not pred_sym)
 
-fun sym_decl_table_for_facts ctxt type_enc repaired_sym_tab (conjs, facts) =
+fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
+                             (conjs, facts) =
   let
     fun add_iterm_syms in_conj tm =
       let val (head, args) = strip_iterm_comb tm in
@@ -1683,9 +1683,14 @@ fun sym_decl_table_for_facts ctxt type_enc repaired_sym_tab (conjs, facts) =
       if polymorphism_of_type_enc type_enc = Polymorphic then [tvar_a]
       else fold (fact_lift add_formula_var_types) (conjs @ facts) []
     fun add_undefined_const T =
-      Symtab.map_default (undefined_name, [])
-          (insert_type ctxt #3 (@{const_name undefined}, [T], T, false, 0,
-                                false))
+      let
+        val (s, s') =
+          `make_fixed_const @{const_name undefined}
+          |> mangled_const_name format type_enc [T]
+      in
+        Symtab.map_default (s, [])
+                           (insert_type ctxt #3 (s', [T], T, false, 0, false))
+      end
   in
     Symtab.empty
     |> is_type_enc_fairly_sound type_enc
@@ -1921,7 +1926,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
         [tvar_a]
     val sym_decl_lines =
       (conjs, helpers @ facts)
-      |> sym_decl_table_for_facts ctxt type_enc repaired_sym_tab
+      |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
                                                poly_nonmono_Ts type_enc
     val helper_lines =
