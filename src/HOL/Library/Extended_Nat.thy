@@ -564,6 +564,7 @@ instance proof
 qed (simp_all add: inf_enat_def sup_enat_def)
 end
 
+instance enat :: complete_linorder ..
 
 subsection {* Traditional theorem names *}
 
