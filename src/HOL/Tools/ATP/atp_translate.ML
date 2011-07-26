@@ -1696,7 +1696,9 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
     |> is_type_enc_fairly_sound type_enc
        ? (fold (add_fact_syms true) conjs
           #> fold (add_fact_syms false) facts
-          #> fold add_undefined_const (var_types ()))
+          #> (case type_enc of
+                Simple_Types _ => I
+              | _ => fold add_undefined_const (var_types ())))
   end
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
