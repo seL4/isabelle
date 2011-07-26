@@ -805,32 +805,44 @@ fun unmangled_const s =
 
 fun introduce_proxies type_enc =
   let
-    fun intro top_level (IApp (tm1, tm2)) =
-        IApp (intro top_level tm1, intro false tm2)
-      | intro top_level (IConst (name as (s, _), T, T_args)) =
+    fun tweak_ho_quant ho_quant T [IAbs _] = IConst (`I ho_quant, T, [])
+      | tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _]))
+                       _ =
+        (* Eta-expand "!!" and "??", to work around LEO-II 1.2.8 parser
+           limitation. This works in conjuction with special code in
+           "ATP_Problem" that uses the syntactic sugar "!" and "?" whenever
+           possible. *)
+        IAbs ((`I "P", p_T),
+              IApp (IConst (`I ho_quant, T, []),
+                    IAbs ((`I "X", x_T),
+                          IApp (IConst (`I "P", p_T, []),
+                                IConst (`I "X", x_T, [])))))
+      | tweak_ho_quant _ _ _ = raise Fail "unexpected type for quantifier"
+    fun intro top_level args (IApp (tm1, tm2)) =
+        IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
+      | intro top_level args (IConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
            SOME proxy_base =>
            if top_level orelse is_type_enc_higher_order type_enc then
              case (top_level, s) of
-               (_, "c_False") => (`I tptp_false, [])
-             | (_, "c_True") => (`I tptp_true, [])
-             | (false, "c_Not") => (`I tptp_not, [])
-             | (false, "c_conj") => (`I tptp_and, [])
-             | (false, "c_disj") => (`I tptp_or, [])
-             | (false, "c_implies") => (`I tptp_implies, [])
-             | (false, "c_All") => (`I tptp_ho_forall, [])
-             | (false, "c_Ex") => (`I tptp_ho_exists, [])
+               (_, "c_False") => IConst (`I tptp_false, T, [])
+             | (_, "c_True") => IConst (`I tptp_true, T, [])
+             | (false, "c_Not") => IConst (`I tptp_not, T, [])
+             | (false, "c_conj") => IConst (`I tptp_and, T, [])
+             | (false, "c_disj") => IConst (`I tptp_or, T, [])
+             | (false, "c_implies") => IConst (`I tptp_implies, T, [])
+             | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
+             | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
              | (false, s) =>
-               if is_tptp_equal s then (`I tptp_equal, [])
-               else (proxy_base |>> prefix const_prefix, T_args)
-             | _ => (name, [])
+               if is_tptp_equal s then IConst (`I tptp_equal, T, [])
+               else IConst (proxy_base |>> prefix const_prefix, T, T_args)
+             | _ => IConst (name, T, [])
            else
-             (proxy_base |>> prefix const_prefix, T_args)
-          | NONE => (name, T_args))
-        |> (fn (name, T_args) => IConst (name, T, T_args))
-      | intro _ (IAbs (bound, tm)) = IAbs (bound, intro false tm)
-      | intro _ tm = tm
-  in intro true end
+             IConst (proxy_base |>> prefix const_prefix, T, T_args)
+          | NONE => IConst (name, T, T_args))
+      | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
+      | intro _ _ tm = tm
+  in intro true [] end
 
 fun iformula_from_prop thy type_enc eq_as_iff =
   let

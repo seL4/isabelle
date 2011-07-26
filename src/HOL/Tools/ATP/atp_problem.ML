@@ -245,6 +245,8 @@ fun string_for_term _ (ATerm (s, [])) = s
     else
       (case (s = tptp_ho_forall orelse s = tptp_ho_exists, ts) of
          (true, [AAbs ((s', ty), tm)]) =>
+         (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
+            possible, to work around LEO-II 1.2.8 parser limitation. *)
          string_for_formula format
              (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
@@ -256,7 +258,8 @@ fun string_for_term _ (ATerm (s, [])) = s
              s ^ "(" ^ commas ss ^ ")"
          end)
   | string_for_term THF (AAbs ((s, ty), tm)) =
-    "(^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm ^ ")"
+    "(^[" ^ s ^ " : " ^ string_for_type THF ty ^ "] : " ^
+    string_for_term THF tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
 and string_for_formula format (AQuant (q, xs, phi)) =
     string_for_quantifier q ^
