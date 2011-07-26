@@ -201,7 +201,9 @@ where
 | "test B A"
 | "test B C"
 
-subsubsection {* Invoking with the SML code generator *}
+subsubsection {* Invoking with the (legacy) SML code generator *}
+
+text {* this test can be removed once the SML code generator is deactivated *}
 
 code_module Test
 contains

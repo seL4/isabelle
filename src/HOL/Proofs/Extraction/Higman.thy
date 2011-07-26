@@ -408,6 +408,9 @@ in
 end;
 *}
 
+text {* The same story with the legacy SML code generator,
+this can be removed once the code generator is removed. *}
+
 code_module Higman
 contains
   higman = higman_idx
