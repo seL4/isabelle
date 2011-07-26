@@ -821,7 +821,8 @@ fun run_atp mode name
                   facts |> map untranslated_fact |> filter_used_facts used_facts
                         |> map snd
               in
-                (if mode = Minimize then
+                (if mode = Minimize andalso
+                    Time.> (preplay_timeout, Time.zeroTime) then
                    Output.urgent_message "Preplaying proof..."
                  else
                    ());
