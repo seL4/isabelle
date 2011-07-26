@@ -437,8 +437,10 @@ val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
+
 text {*
-The same story again for the SML code generator.
+The same story again for the (legacy) SML code generator.
+This can be removed once the SML code generator is removed.
 *}
 
 consts_code
