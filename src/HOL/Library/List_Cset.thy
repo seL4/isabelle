@@ -133,7 +133,7 @@ lemma Supremum_sup [code]:
 
 end
 
-declare single_code [code del]
+declare Cset.single_code [code del]
 lemma single_set [code]:
   "Cset.single a = Cset.set [a]"
 by(simp add: Cset.single_code)
