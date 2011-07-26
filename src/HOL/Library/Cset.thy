@@ -86,6 +86,12 @@ end
 
 subsection {* Basic operations *}
 
+abbreviation empty :: "'a Cset.set" where "empty \<equiv> bot"
+hide_const (open) empty
+
+abbreviation UNIV :: "'a Cset.set" where "UNIV \<equiv> top"
+hide_const (open) UNIV
+
 definition is_empty :: "'a Cset.set \<Rightarrow> bool" where
   [simp]: "is_empty A \<longleftrightarrow> More_Set.is_empty (member A)"
 
@@ -124,8 +130,41 @@ definition Supremum :: "'a Cset.set \<Rightarrow> 'a" where
 
 end
 
+subsection {* More operations *}
+
+text {* conversion from @{typ "'a list"} *}
+
+definition set :: "'a list \<Rightarrow> 'a Cset.set" where
+  "set xs = Set (List.set xs)"
+hide_const (open) set
+
+text {* conversion from @{typ "'a Predicate.pred"} *}
+
+definition pred_of_cset :: "'a Cset.set \<Rightarrow> 'a Predicate.pred"
+where [code del]: "pred_of_cset = Predicate.Pred \<circ> Cset.member"
+
+definition of_pred :: "'a Predicate.pred \<Rightarrow> 'a Cset.set"
+where "of_pred = Cset.Set \<circ> Predicate.eval"
+
+definition of_seq :: "'a Predicate.seq \<Rightarrow> 'a Cset.set"
+where "of_seq = of_pred \<circ> Predicate.pred_of_seq"
+
+text {* monad operations *}
+
+definition single :: "'a \<Rightarrow> 'a Cset.set" where
+  "single a = Set {a}"
+
+definition bind :: "'a Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Cset.set) \<Rightarrow> 'b Cset.set"
+                (infixl "\<guillemotright>=" 70)
+  where "A \<guillemotright>= f = Set (\<Union>x \<in> member A. member (f x))"
 
 subsection {* Simplified simprules *}
+
+lemma empty_simp [simp]: "member Cset.empty = {}"
+  by(simp)
+
+lemma UNIV_simp [simp]: "member Cset.UNIV = UNIV"
+  by simp
 
 lemma is_empty_simp [simp]:
   "is_empty A \<longleftrightarrow> member A = {}"
@@ -142,10 +181,103 @@ lemma filter_simp [simp]:
   by (simp add: More_Set.project_def)
 declare filter_def [simp del]
 
+lemma member_set [simp]:
+  "member (Cset.set xs) = set xs"
+  by (simp add: set_def)
+hide_fact (open) member_set set_def
+
+lemma set_simps [simp]:
+  "Cset.set [] = Cset.empty"
+  "Cset.set (x # xs) = insert x (Cset.set xs)"
+by(simp_all add: Cset.set_def)
+
+lemma member_SUPR [simp]:
+  "member (SUPR A f) = SUPR A (member \<circ> f)"
+unfolding SUPR_def by simp
+
+lemma member_bind [simp]:
+  "member (P \<guillemotright>= f) = member (SUPR (member P) f)"
+by (simp add: bind_def Cset.set_eq_iff)
+
+lemma member_single [simp]:
+  "member (single a) = {a}"
+by(simp add: single_def)
+
+lemma single_sup_simps [simp]:
+  shows single_sup: "sup (single a) A = insert a A"
+  and sup_single: "sup A (single a) = insert a A"
+by(auto simp add: Cset.set_eq_iff)
+
+lemma single_bind [simp]:
+  "single a \<guillemotright>= B = B a"
+by(simp add: bind_def single_def)
+
+lemma bind_bind:
+  "(A \<guillemotright>= B) \<guillemotright>= C = A \<guillemotright>= (\<lambda>x. B x \<guillemotright>= C)"
+by(simp add: bind_def)
+
+lemma bind_single [simp]:
+  "A \<guillemotright>= single = A"
+by(simp add: bind_def single_def)
+
+lemma bind_const: "A \<guillemotright>= (\<lambda>_. B) = (if Cset.is_empty A then Cset.empty else B)"
+by(auto simp add: Cset.set_eq_iff)
+
+lemma empty_bind [simp]:
+  "Cset.empty \<guillemotright>= f = Cset.empty"
+by(simp add: Cset.set_eq_iff)
+
+lemma member_of_pred [simp]:
+  "member (of_pred P) = {x. Predicate.eval P x}"
+by(simp add: of_pred_def Collect_def)
+
+lemma member_of_seq [simp]:
+  "member (of_seq xq) = {x. Predicate.member xq x}"
+by(simp add: of_seq_def eval_member)
+
+lemma eval_pred_of_cset [simp]: 
+  "Predicate.eval (pred_of_cset A) = Cset.member A"
+by(simp add: pred_of_cset_def)
+
+subsection {* Default implementations *}
+
+lemma set_code [code]:
+  "Cset.set = foldl (\<lambda>A x. insert x A) Cset.empty"
+proof(rule ext, rule Cset.set_eqI)
+  fix xs
+  show "member (Cset.set xs) = member (foldl (\<lambda>A x. insert x A) Cset.empty xs)"
+    by(induct xs rule: rev_induct)(simp_all)
+qed
+
+lemma single_code [code]:
+  "single a = insert a Cset.empty"
+by(simp add: Cset.single_def)
+
+lemma of_pred_code [code]:
+  "of_pred (Predicate.Seq f) = (case f () of
+     Predicate.Empty \<Rightarrow> Cset.empty
+   | Predicate.Insert x P \<Rightarrow> Cset.insert x (of_pred P)
+   | Predicate.Join P xq \<Rightarrow> sup (of_pred P) (of_seq xq))"
+by(auto split: seq.split 
+        simp add: Predicate.Seq_def of_pred_def eval_member Cset.set_eq_iff)
+
+lemma of_seq_code [code]:
+  "of_seq Predicate.Empty = Cset.empty"
+  "of_seq (Predicate.Insert x P) = Cset.insert x (of_pred P)"
+  "of_seq (Predicate.Join P xq) = sup (of_pred P) (of_seq xq)"
+by(auto simp add: of_seq_def of_pred_def Cset.set_eq_iff)
+
 declare mem_def [simp del]
 
+no_notation bind (infixl "\<guillemotright>=" 70)
 
 hide_const (open) is_empty insert remove map filter forall exists card
-  Inter Union
+  Inter Union bind single of_pred of_seq
+
+hide_fact (open) set_def pred_of_cset_def of_pred_def of_seq_def single_def 
+  bind_def empty_simp UNIV_simp member_set set_simps member_SUPR member_bind 
+  member_single single_sup_simps single_sup sup_single single_bind
+  bind_bind bind_single bind_const empty_bind member_of_pred member_of_seq
+  eval_pred_of_cset set_code single_code of_pred_code of_seq_code
 
 end
