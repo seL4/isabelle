@@ -1236,6 +1236,52 @@ text {*
   \end{description}
 *}
 
+section {* Quotient types *}
+
+text {*
+  The quotient package defines a new quotient type given a raw type
+  and a partial equivalence relation.
+  It also includes automation for transporting definitions and theorems.
+  It can automatically produce definitions and theorems on the quotient type,
+  given the corresponding constants and facts on the raw type.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "print_quotmaps"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
+  \end{matharray}
+
+  @{rail "
+    @@{command (HOL) quotient_type} (spec + @'and');
+
+    spec: @{syntax typespec} @{syntax mixfix}? '=' \\
+     @{syntax type} '/' ('partial' ':')? @{syntax term}; 
+  "}
+
+  @{rail "
+    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
+    @{syntax term} 'is' @{syntax term};
+ 
+    constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
+  "}
+
+  \begin{description}
+  
+  \item @{command (HOL) "quotient_type"} defines quotient types.
+
+  \item @{command (HOL) "quotient_definition"} defines a constant on the quotient type.
+
+  \item @{command (HOL) "print_quotmaps"} prints quotient map functions.
+
+  \item @{command (HOL) "print_quotients"} prints quotients.
+
+  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
+
+  \end{description}
+
+*}
 
 section {* Arithmetic proof support *}
 

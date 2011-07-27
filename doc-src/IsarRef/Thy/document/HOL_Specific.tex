@@ -1754,6 +1754,101 @@ This avoids re-doing basic definitions and proofs from the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Quotient types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The quotient package defines a new quotient type given a raw type
+  and a partial equivalence relation.
+  It also includes automation for transporting definitions and theorems.
+  It can automatically produce definitions and theorems on the quotient type,
+  given the corresponding constants and facts on the raw type.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{quotient\_type}\hypertarget{command.HOL.quotient-type}{\hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{quotient\_definition}\hypertarget{command.HOL.quotient-definition}{\hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotmaps}\hypertarget{command.HOL.print-quotmaps}{\hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotients}\hypertarget{command.HOL.print-quotients}{\hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{command}{print\_quotconsts}\hypertarget{command.HOL.print-quotconsts}{\hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
+\rail@plus
+\rail@nont{\isa{spec}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{spec}}
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@term{\isa{{\isaliteral{2F}{\isacharslash}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{partial}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \begin{railoutput}
+\rail@begin{4}{}
+\rail@term{\hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{constdecl}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@term{\isa{is}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{2}{\isa{constdecl}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+  
+  \item \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} defines quotient types.
+
+  \item \hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}} defines a constant on the quotient type.
+
+  \item \hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}} prints quotient map functions.
+
+  \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints quotients.
+
+  \item \hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}} prints quotient constants.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Arithmetic proof support%
 }
 \isamarkuptrue%
