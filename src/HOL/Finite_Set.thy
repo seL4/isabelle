@@ -280,13 +280,17 @@ next
        blast
 qed
 
-lemma finite_vimageI:
-  "finite F \<Longrightarrow> inj h \<Longrightarrow> finite (h -` F)"
+lemma finite_vimage_IntI:
+  "finite F \<Longrightarrow> inj_on h A \<Longrightarrow> finite (h -` F \<inter> A)"
   apply (induct rule: finite_induct)
    apply simp_all
   apply (subst vimage_insert)
-  apply (simp add: finite_subset [OF inj_vimage_singleton])
+  apply (simp add: finite_subset [OF inj_on_vimage_singleton] Int_Un_distrib2)
   done
+
+lemma finite_vimageI:
+  "finite F \<Longrightarrow> inj h \<Longrightarrow> finite (h -` F)"
+  using finite_vimage_IntI[of F h UNIV] by auto
 
 lemma finite_vimageD:
   assumes fin: "finite (h -` F)" and surj: "surj h"

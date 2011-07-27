@@ -556,6 +556,10 @@ lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x
   apply (blast intro: the_equality [symmetric])
   done
 
+lemma inj_on_vimage_singleton:
+  "inj_on f A \<Longrightarrow> f -` {a} \<inter> A \<subseteq> {THE x. x \<in> A \<and> f x = a}"
+  by (auto simp add: inj_on_def intro: the_equality [symmetric])
+
 lemma (in ordered_ab_group_add) inj_uminus[simp, intro]: "inj_on uminus A"
   by (auto intro!: inj_onI)
 
