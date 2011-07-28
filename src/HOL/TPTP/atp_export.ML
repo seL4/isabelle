@@ -103,8 +103,8 @@ fun add_inferences_to_problem_line infers
                                    (Formula (ident, Axiom, phi, NONE, NONE)) =
     Formula (ident, Lemma, phi, inference infers ident, NONE)
   | add_inferences_to_problem_line _ line = line
-val add_inferences_to_problem =
-  map o apsnd o map o add_inferences_to_problem_line
+fun add_inferences_to_problem infers =
+  map (apsnd (map (add_inferences_to_problem_line infers)))
 
 fun ident_of_problem_line (Decl (ident, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
