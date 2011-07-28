@@ -22,7 +22,6 @@ definition
    | JMPFGE j \<Rightarrow> {n + 1 + j, n + 1}
    | _ \<Rightarrow> {n +1}"
 
-(* FIXME: _Collect? *)
 text {* The possible successors pc's of an instruction list *}
 definition
   "succs P n = {s. \<exists>i. 0 \<le> i \<and> i < isize P \<and> s \<in> isuccs (P!!i) (n+i)}" 
@@ -36,7 +35,7 @@ subsection {* Basic properties of @{term exec_n} *}
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
-  by (induct n arbitrary: c)  (auto intro: exec.step)
+  by (induct n arbitrary: c) auto
 
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
@@ -56,7 +55,7 @@ lemma exec_n_Nil [simp]:
   "[] \<turnstile> c \<rightarrow>^k c' = (c' = c \<and> k = 0)"
   by (induct k) auto
 
-lemma exec1_exec_n [elim,intro!]:
+lemma exec1_exec_n [intro!]:
   "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P \<turnstile> c \<rightarrow>^1 c'"
   by (cases c') simp
 
@@ -133,8 +132,9 @@ proof
 qed
 
 lemma succs_iexec1:
-  "\<lbrakk> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'; 0 \<le> i; i < isize P \<rbrakk> \<Longrightarrow> fst c' \<in> succs P 0"
-  by (auto elim!: iexec1.cases simp: succs_def isuccs_def)
+  assumes "P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'" "0 \<le> i" "i < isize P"
+  shows "fst c' \<in> succs P 0"
+  using assms by (auto elim!: iexec1.cases simp: succs_def isuccs_def)
 
 lemma succs_shift:
   "(p - n \<in> succs P 0) = (p \<in> succs P n)" 
@@ -256,14 +256,15 @@ lemma exec1_split:
   by (auto elim!: iexec1.cases)
 
 lemma exec_n_split:
-  shows "\<lbrakk> P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow>^n (j, s');
-           0 \<le> i; i < isize c; j \<notin> {isize P ..< isize P + isize c} \<rbrakk> \<Longrightarrow>
-         \<exists>s'' i' k m. 
+  assumes "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow>^n (j, s')"
+          "0 \<le> i" "i < isize c" 
+          "j \<notin> {isize P ..< isize P + isize c}"
+  shows "\<exists>s'' i' k m. 
                    c \<turnstile> (i, s) \<rightarrow>^k (i', s'') \<and>
                    i' \<in> exits c \<and> 
                    P @ c @ P' \<turnstile> (isize P + i', s'') \<rightarrow>^m (j, s') \<and>
                    n = k + m" 
-proof (induct n arbitrary: i j s)
+using assms proof (induct n arbitrary: i j s)
   case 0
   thus ?case by simp
 next
@@ -304,14 +305,14 @@ next
 qed
 
 lemma exec_n_drop_right:
-  shows "\<lbrakk> c @ P' \<turnstile> (0, s) \<rightarrow>^n (j, s'); j \<notin> {0..<isize c} \<rbrakk> \<Longrightarrow>
-         \<exists>s'' i' k m. 
-                   (if c = [] then s'' = s \<and> i' = 0 \<and> k = 0
-                   else
-                   c \<turnstile> (0, s) \<rightarrow>^k (i', s'') \<and>
-                   i' \<in> exits c) \<and> 
-                   c @ P' \<turnstile> (i', s'') \<rightarrow>^m (j, s') \<and>
-                   n = k + m"
+  assumes "c @ P' \<turnstile> (0, s) \<rightarrow>^n (j, s')" "j \<notin> {0..<isize c}"
+  shows "\<exists>s'' i' k m. 
+          (if c = [] then s'' = s \<and> i' = 0 \<and> k = 0
+           else c \<turnstile> (0, s) \<rightarrow>^k (i', s'') \<and>
+           i' \<in> exits c) \<and> 
+           c @ P' \<turnstile> (i', s'') \<rightarrow>^m (j, s') \<and>
+           n = k + m"
+  using assms
   by (cases "c = []")
      (auto dest: exec_n_split [where P="[]", simplified])
   
@@ -334,10 +335,10 @@ proof -
 qed
 
 lemma exec_n_drop_left:
-  "\<lbrakk> P @ P' \<turnstile> (i, s, stk) \<rightarrow>^k (n, s', stk'); 
-     isize P \<le> i; exits P' \<subseteq> {0..} \<rbrakk> \<Longrightarrow>
-     P' \<turnstile> (i - isize P, s, stk) \<rightarrow>^k (n - isize P, s', stk')"
-proof (induct k arbitrary: i s stk)
+  assumes "P @ P' \<turnstile> (i, s, stk) \<rightarrow>^k (n, s', stk')"
+          "isize P \<le> i" "exits P' \<subseteq> {0..}"
+  shows "P' \<turnstile> (i - isize P, s, stk) \<rightarrow>^k (n - isize P, s', stk')"
+using assms proof (induct k arbitrary: i s stk)
   case 0 thus ?case by simp
 next
   case (Suc k)
@@ -427,22 +428,21 @@ proof (induct a arbitrary: n s' stk stk')
 qed (auto simp: exec_n_simps)
 
 lemma bcomp_split:
-  shows "\<lbrakk> bcomp b c i @ P' \<turnstile> (0, s, stk) \<rightarrow>^n (j, s', stk'); 
-           j \<notin> {0..<isize (bcomp b c i)}; 0 \<le> i \<rbrakk> \<Longrightarrow>
-         \<exists>s'' stk'' i' k m. 
+  assumes "bcomp b c i @ P' \<turnstile> (0, s, stk) \<rightarrow>^n (j, s', stk')" 
+          "j \<notin> {0..<isize (bcomp b c i)}" "0 \<le> i"
+  shows "\<exists>s'' stk'' i' k m. 
            bcomp b c i \<turnstile> (0, s, stk) \<rightarrow>^k (i', s'', stk'') \<and>
            (i' = isize (bcomp b c i) \<or> i' = i + isize (bcomp b c i)) \<and>
            bcomp b c i @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^m (j, s', stk') \<and>
            n = k + m"
-  by (cases "bcomp b c i = []")
-     (fastsimp dest!: exec_n_drop_right)+
+  using assms by (cases "bcomp b c i = []") (fastsimp dest!: exec_n_drop_right)+
 
 lemma bcomp_exec_n [dest]:
-  "\<lbrakk> bcomp b c j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk');
-     isize (bcomp b c j) \<le> i; 0 \<le> j \<rbrakk> \<Longrightarrow>
-  i = isize(bcomp b c j) + (if c = bval b s then j else 0) \<and>
-  s' = s \<and> stk' = stk"
-proof (induct b arbitrary: c j i n s' stk')
+  assumes "bcomp b c j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk')"
+          "isize (bcomp b c j) \<le> i" "0 \<le> j"
+  shows "i = isize(bcomp b c j) + (if c = bval b s then j else 0) \<and>
+         s' = s \<and> stk' = stk"
+using assms proof (induct b arbitrary: c j i n s' stk')
   case B thus ?case 
     by (simp split: split_if_asm add: exec_n_simps)
 next
@@ -554,7 +554,7 @@ next
       let ?c0 = "WHILE b DO c"
       let ?cs = "ccomp ?c0"
       let ?bs = "bcomp b False (isize (ccomp c) + 1)"
-      let ?jmp = "[JMPB (isize ?bs + isize (ccomp c) + 1)]"
+      let ?jmp = "[JMP (-((isize ?bs + isize (ccomp c) + 1)))]"
       
       from "1.prems" b
       obtain k where

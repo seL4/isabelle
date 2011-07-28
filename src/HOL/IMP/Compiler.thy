@@ -40,10 +40,6 @@ datatype instr =
   JMPFLESS int |
   JMPFGE int
 
-(* reads slightly nicer *)
-abbreviation
-  "JMPB i == JMP (-i)"
-
 type_synonym stack = "val list"
 type_synonym config = "int\<times>state\<times>stack"
 
@@ -51,7 +47,7 @@ abbreviation "hd2 xs == hd(tl xs)"
 abbreviation "tl2 xs == tl(tl xs)"
 
 inductive iexec1 :: "instr \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
-    ("(_/ \<turnstile>i (_ \<rightarrow>/ _))" [50,0,0] 50)
+    ("(_/ \<turnstile>i (_ \<rightarrow>/ _))" [59,0,59] 60)
 where
 "LOADI n \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, n#stk)" |
 "LOAD x  \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, s x # stk)" |
@@ -66,16 +62,17 @@ code_pred iexec1 .
 declare iexec1.intros
 
 definition
-  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"  ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [50,0,0] 50) 
+  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"  ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [59,0,59] 60) 
 where
   "P \<turnstile> c \<rightarrow> c' = 
-   (\<exists>i s stk. c = (i,s,stk) \<and> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c' \<and> 0 \<le> i \<and> i < isize P)"
+  (\<exists>i s stk. c = (i,s,stk) \<and> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c' \<and> 0 \<le> i \<and> i < isize P)"
 
 declare exec1_def [simp] 
 
 lemma exec1I [intro, code_pred_intro]:
-  "\<lbrakk> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'; 0 \<le> i; i < isize P \<rbrakk> \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
-  by simp
+  assumes "P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'" "0 \<le> i" "i < isize P" 
+  shows "P \<turnstile> (i,s,stk) \<rightarrow> c'"
+  using assms by simp
 
 inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("_/ \<turnstile> (_ \<rightarrow>*/ _)" 50)
 where
@@ -245,7 +242,8 @@ fun ccomp :: "com \<Rightarrow> instr list" where
    in cb @ cc\<^isub>1 @ JMP (isize cc\<^isub>2) # cc\<^isub>2)" |
 "ccomp (WHILE b DO c) =
  (let cc = ccomp c; cb = bcomp b False (isize cc + 1)
-  in cb @ cc @ [JMPB (isize cb + isize cc + 1)])"
+  in cb @ cc @ [JMP (-(isize cb + isize cc + 1))])"
+
 
 value "ccomp
  (IF Less (V ''u'') (N 1) THEN ''u'' ::= Plus (V ''u'') (N 1)
