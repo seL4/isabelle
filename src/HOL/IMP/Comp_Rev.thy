@@ -9,7 +9,7 @@ subsection {* Definitions *}
 text {* Execution in @{term n} steps for simpler induction *}
 primrec 
   exec_n :: "instr list \<Rightarrow> config \<Rightarrow> nat \<Rightarrow> config \<Rightarrow> bool" 
-  ("_/ \<turnstile> (_ \<rightarrow>^_/ _)" [65,0,55,55] 55)
+  ("_/ \<turnstile> (_ \<rightarrow>^_/ _)" [65,0,1000,55] 55)
 where 
   "P \<turnstile> c \<rightarrow>^0 c' = (c'=c)" |
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"
@@ -41,7 +41,7 @@ lemma exec_n_exec:
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
 lemma exec_Suc [trans]:
-  "\<lbrakk> P \<turnstile> c \<rightarrow> c'; P \<turnstile> c' \<rightarrow>^n c'' \<rbrakk> \<Longrightarrow> P \<turnstile> c \<rightarrow>^Suc n c''" 
+  "\<lbrakk> P \<turnstile> c \<rightarrow> c'; P \<turnstile> c' \<rightarrow>^n c'' \<rbrakk> \<Longrightarrow> P \<turnstile> c \<rightarrow>^(Suc n) c''" 
   by (fastsimp simp del: split_paired_Ex)
 
 lemma exec_exec_n:

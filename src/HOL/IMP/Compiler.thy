@@ -65,22 +65,17 @@ code_pred iexec1 .
 
 declare iexec1.intros
 
-(* FIXME: why does code gen not work with fun? *)
-inductive
-  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
-    ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [50,0,0] 50) where
- "\<lbrakk> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'; 0 \<le> i; i < isize P \<rbrakk> \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
-
-code_pred exec1 .
-
-declare exec1.intros [intro!]
-
-inductive_cases exec1_elim [elim!]: "P \<turnstile> c \<rightarrow> c'"
-
-lemma exec1_simp [simp]:
+definition
+  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"  ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [50,0,0] 50) 
+where
   "P \<turnstile> c \<rightarrow> c' = 
    (\<exists>i s stk. c = (i,s,stk) \<and> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c' \<and> 0 \<le> i \<and> i < isize P)"
-  by auto
+
+declare exec1_def [simp] 
+
+lemma exec1I [intro, code_pred_intro]:
+  "\<lbrakk> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'; 0 \<le> i; i < isize P \<rbrakk> \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
+  by simp
 
 inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("_/ \<turnstile> (_ \<rightarrow>*/ _)" 50)
 where
@@ -91,7 +86,7 @@ declare refl[intro] step[intro]
 
 lemmas exec_induct = exec.induct[split_format(complete)]
 
-code_pred exec .
+code_pred exec by force
 
 values
   "{(i,map t [''x'',''y''],stk) | i t stk.
