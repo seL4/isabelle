@@ -1699,7 +1699,9 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       let
         val (s, s') =
           `make_fixed_const @{const_name undefined}
-          |> mangled_const_name format type_enc [T]
+          |> (case type_arg_policy type_enc @{const_name undefined} of
+                Mangled_Type_Args _ => mangled_const_name format type_enc [T]
+              | _ => I)
       in
         Symtab.map_default (s, [])
                            (insert_type ctxt #3 (s', [T], T, false, 0, false))
