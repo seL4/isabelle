@@ -1283,6 +1283,63 @@ text {*
 
 *}
 
+section {* Coercive subtyping *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{attribute_def (HOL) coercion} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    @@{attribute (HOL) coercion} (@{syntax term})?
+    ;
+  "}
+  @{rail "
+    @@{attribute (HOL) coercion_map} (@{syntax term})?
+    ;
+  "}
+
+  Coercive subtyping allows the user to omit explicit type conversions,
+  also called \emph{coercions}.  Type inference will add them as
+  necessary when parsing a term. See
+  \cite{traytel-berghofer-nipkow-2011} for details.
+
+  \begin{description}
+
+  \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
+  coercion function @{text "f :: \<sigma>\<^isub>1 \<Rightarrow>
+  \<sigma>\<^isub>2"} where @{text "\<sigma>\<^isub>1"} and @{text
+  "\<sigma>\<^isub>2"} are nullary type constructors. Coercions are
+  composed by the inference algorithm if needed. Note that the type
+  inference algorithm is complete only if the registered coercions form
+  a lattice.
+
+
+  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a new
+  map function to lift coercions through type constructors. The function
+  @{text "map"} must conform to the following type pattern
+
+  \begin{matharray}{lll}
+    @{text "map"} & @{text "::"} &
+      @{text "f\<^isub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^isub>n \<Rightarrow> (\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n) t \<Rightarrow> (\<beta>\<^isub>1, \<dots>, \<beta>\<^isub>n) t"} \\
+  \end{matharray}
+
+  where @{text "t"} is a type constructor and @{text "f\<^isub>i"} is of
+  type @{text "\<alpha>\<^isub>i \<Rightarrow> \<beta>\<^isub>i"} or
+  @{text "\<beta>\<^isub>i \<Rightarrow> \<alpha>\<^isub>i"}.
+  Registering a map function overwrites any existing map function for
+  this particular type constructor.
+
+
+  \item @{attribute (HOL) "coercion_enabled"} enables the coercion
+  inference algorithm.
+
+  \end{description}
+
+*}
+
 section {* Arithmetic proof support *}
 
 text {*

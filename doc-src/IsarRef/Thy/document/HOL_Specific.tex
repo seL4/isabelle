@@ -1849,6 +1849,75 @@ The quotient package defines a new quotient type given a raw type
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Coercive subtyping%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{attribute}{coercion}\hypertarget{attribute.HOL.coercion}{\hyperlink{attribute.HOL.coercion}{\mbox{\isa{coercion}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{coercion\_enabled}\hypertarget{attribute.HOL.coercion-enabled}{\hyperlink{attribute.HOL.coercion-enabled}{\mbox{\isa{coercion{\isaliteral{5F}{\isacharunderscore}}enabled}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{coercion\_map}\hypertarget{attribute.HOL.coercion-map}{\hyperlink{attribute.HOL.coercion-map}{\mbox{\isa{coercion{\isaliteral{5F}{\isacharunderscore}}map}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{attribute.HOL.coercion}{\mbox{\isa{coercion}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{attribute.HOL.coercion-map}{\mbox{\isa{coercion{\isaliteral{5F}{\isacharunderscore}}map}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  Coercive subtyping allows the user to omit explicit type conversions,
+  also called \emph{coercions}.  Type inference will add them as
+  necessary when parsing a term. See
+  \cite{traytel-berghofer-nipkow-2011} for details.
+
+  \begin{description}
+
+  \item \hyperlink{attribute.HOL.coercion}{\mbox{\isa{coercion}}}~\isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}} registers a new
+  coercion function \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} where \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} are nullary type constructors. Coercions are
+  composed by the inference algorithm if needed. Note that the type
+  inference algorithm is complete only if the registered coercions form
+  a lattice.
+
+
+  \item \hyperlink{attribute.HOL.coercion-map}{\mbox{\isa{coercion{\isaliteral{5F}{\isacharunderscore}}map}}}~\isa{{\isaliteral{22}{\isachardoublequote}}map{\isaliteral{22}{\isachardoublequote}}} registers a new
+  map function to lift coercions through type constructors. The function
+  \isa{{\isaliteral{22}{\isachardoublequote}}map{\isaliteral{22}{\isachardoublequote}}} must conform to the following type pattern
+
+  \begin{matharray}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}map{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} &
+      \isa{{\isaliteral{22}{\isachardoublequote}}f\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ f\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  where \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}} is a type constructor and \isa{{\isaliteral{22}{\isachardoublequote}}f\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{22}{\isachardoublequote}}} is of
+  type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{22}{\isachardoublequote}}} or
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{22}{\isachardoublequote}}}.
+  Registering a map function overwrites any existing map function for
+  this particular type constructor.
+
+
+  \item \hyperlink{attribute.HOL.coercion-enabled}{\mbox{\isa{coercion{\isaliteral{5F}{\isacharunderscore}}enabled}}} enables the coercion
+  inference algorithm.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Arithmetic proof support%
 }
 \isamarkuptrue%
