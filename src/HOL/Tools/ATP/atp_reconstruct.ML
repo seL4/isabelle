@@ -206,7 +206,8 @@ fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
   | apply_on_subgoal settings 1 _ = set_settings settings ^ "apply "
   | apply_on_subgoal settings i n =
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
-fun command_call name [] = name
+fun command_call name [] =
+    name |> not (Lexicon.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 fun try_command_line banner time command =
   banner ^ ": " ^ Markup.markup Markup.sendback command ^ show_time time ^ "."
