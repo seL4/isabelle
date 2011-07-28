@@ -931,12 +931,13 @@ fun simple_translate_lambdas do_lambdas ctxt t =
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
   end
 
-fun do_conceal_lambdas Ts (t1 $ t2) =
-    do_conceal_lambdas Ts t1 $ do_conceal_lambdas Ts t2
-  | do_conceal_lambdas Ts (Abs (_, T, t)) =
-    (* slightly unsound because of hash collisions *)
-    Free (polymorphic_free_prefix ^ serial_string (), T --> fastype_of1 (Ts, t))
-  | do_conceal_lambdas _ t = t
+fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
+    do_cheaply_conceal_lambdas Ts t1
+    $ do_cheaply_conceal_lambdas Ts t2
+  | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
+    Free (polymorphic_free_prefix ^ serial_string (),
+          T --> fastype_of1 (T :: Ts, t))
+  | do_cheaply_conceal_lambdas _ t = t
 
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
@@ -947,7 +948,7 @@ fun do_introduce_combinators ctxt Ts t =
       |> reveal_bounds Ts
   end
   (* A type variable of sort "{}" will make abstraction fail. *)
-  handle THM _ => t |> do_conceal_lambdas Ts
+  handle THM _ => t |> do_cheaply_conceal_lambdas Ts
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
 fun preprocess_abstractions_in_terms trans_lambdas facts =
