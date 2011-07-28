@@ -1915,20 +1915,7 @@ lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
 
 subsection{* Explicit vector construction from lists. *}
 
-primrec from_nat :: "nat \<Rightarrow> 'a::{monoid_add,one}"
-where "from_nat 0 = 0" | "from_nat (Suc n) = 1 + from_nat n"
-
-lemma from_nat [simp]: "from_nat = of_nat"
-by (rule ext, induct_tac x, simp_all)
-
-primrec
-  list_fun :: "nat \<Rightarrow> _ list \<Rightarrow> _ \<Rightarrow> _"
-where
-  "list_fun n [] = (\<lambda>x. 0)"
-| "list_fun n (x # xs) = fun_upd (list_fun (Suc n) xs) (from_nat n) x"
-
-definition "vector l = (\<chi> i. list_fun 1 l i)"
-(*definition "vector l = (\<chi> i. if i <= length l then l ! (i - 1) else 0)"*)
+definition "vector l = (\<chi> i. foldr (\<lambda>x f n. fun_upd (f (n+1)) n x) l (\<lambda>n x. 0) 1 i)"
 
 lemma vector_1: "(vector[x]) $1 = x"
   unfolding vector_def by simp
