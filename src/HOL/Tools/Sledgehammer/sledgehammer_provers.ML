@@ -537,7 +537,7 @@ fun lift_lambdas ctxt type_enc =
           Lambda_Lifting.is_quantifier
   #> fst
 
-fun intentionalize_def (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
   | intentionalize_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
     let
