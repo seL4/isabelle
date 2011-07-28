@@ -1335,8 +1335,10 @@ val helper_table =
        equality helpers by default in Metis breaks a few existing proofs. *)
     @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
            fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
-   (("fAll", false), []), (*TODO: add helpers*)
-   (("fEx", false), []), (*TODO: add helpers*)
+   (* Partial characterization of "fAll" and "fEx". A complete characterization
+      would require the axiom of choice for replay with Metis. *)
+   (("fAll", false), [@{lemma "~ fAll P | P x" by (auto simp: fAll_def)}]),
+   (("fEx", false), [@{lemma "~ P x | fEx P" by (auto simp: fEx_def)}]),
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
@@ -1740,7 +1742,7 @@ fun nonmonotonic_types_for_facts ctxt type_enc sound facts =
       [] |> fold (add_fact_nonmonotonic_types ctxt level sound) facts
          (* We must add "bool" in case the helper "True_or_False" is added
             later. In addition, several places in the code rely on the list of
-            nonmonotonic types not being empty. *)
+            nonmonotonic types not being empty. (FIXME?) *)
          |> insert_type ctxt I @{typ bool}
     else
       []
@@ -1889,10 +1891,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
 
 fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
                                      poly_nonmono_Ts type_enc sym_decl_tab =
-  sym_decl_tab
-  |> Symtab.dest
-  |> sort_wrt fst
-  |> rpair []
+  sym_decl_tab |> Symtab.dest |> sort_wrt fst |> rpair []
   |-> fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
                              nonmono_Ts poly_nonmono_Ts type_enc)
 
@@ -1936,7 +1935,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
                        |> map repair
     val poly_nonmono_Ts =
-      if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] orelse
+      if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] (* FIXME? *) orelse
          polymorphism_of_type_enc type_enc <> Polymorphic then
         nonmono_Ts
       else
