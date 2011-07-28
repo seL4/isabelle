@@ -112,7 +112,7 @@ fun ident_of_problem_line (Decl (ident, _, _)) = ident
 fun run_some_atp ctxt problem =
   let
     val thy = Proof_Context.theory_of ctxt
-    val prob_file = Path.explode "/tmp/prob.tptp"  (* FIXME File.tmp_path (?) *)
+    val prob_file = File.tmp_path (Path.explode "prob.tptp")
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy spassN
     val _ = problem |> tptp_lines_for_atp_problem FOF
