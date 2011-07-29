@@ -741,11 +741,12 @@ lemma "f () = False \<or> f () = True"
 by simp
 
 lemma closure_of_bool_cases [no_atp]:
-assumes "(f :: unit \<Rightarrow> bool) = (%u. False) \<Longrightarrow> P f"
-assumes "f = (%u. True) \<Longrightarrow> P f"
-shows "P f"
+  fixes f :: "unit \<Rightarrow> bool"
+  assumes "f = (\<lambda>u. False) \<Longrightarrow> P f"
+  assumes "f = (\<lambda>u. True) \<Longrightarrow> P f"
+  shows "P f"
 proof -
-  have "f = (%u. False) \<or> f = (%u. True)"
+  have "f = (\<lambda>u. False) \<or> f = (\<lambda>u. True)"
     apply (cases "f ()")
     apply (rule disjI2)
     apply (rule ext)
@@ -758,19 +759,18 @@ proof -
 qed
 
 lemma unit_pred_cases:
-assumes "P \<bottom>"
-assumes "P (single ())"
-shows "P Q"
-using assms
-unfolding bot_pred_def Collect_def empty_def single_def
-apply (cases Q)
-apply simp
-apply (rule_tac f="fun" in closure_of_bool_cases)
-apply auto
-apply (subgoal_tac "(%x. () = x) = (%x. True)") 
-apply auto
-done
-
+  assumes "P \<bottom>"
+  assumes "P (single ())"
+  shows "P Q"
+using assms unfolding bot_pred_def Collect_def empty_def single_def proof (cases Q)
+  fix f
+  assume "P (Pred (\<lambda>u. False))" "P (Pred (\<lambda>u. () = u))"
+  then have "P (Pred f)" 
+    by (cases _ f rule: closure_of_bool_cases) simp_all
+  moreover assume "Q = Pred f"
+  ultimately show "P Q" by simp
+qed
+  
 lemma holds_if_pred:
   "holds (if_pred b) = b"
 unfolding if_pred_eq holds_eq
