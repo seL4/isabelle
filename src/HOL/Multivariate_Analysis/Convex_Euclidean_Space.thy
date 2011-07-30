@@ -397,10 +397,6 @@ lemma affine_affine_hull: "affine(affine hull s)"
 lemma affine_hull_eq[simp]: "(affine hull s = s) \<longleftrightarrow> affine s"
 by (metis affine_affine_hull hull_same mem_def)
 
-lemma setsum_restrict_set'': assumes "finite A"
-  shows "setsum f {x \<in> A. P x} = (\<Sum>x\<in>A. if P x  then f x else 0)"
-  unfolding mem_def[of _ P, symmetric] unfolding setsum_restrict_set'[OF assms] ..
-
 subsection {* Some explicit formulations (from Lars Schewe). *}
 
 lemma affine: fixes V::"'a::real_vector set"
