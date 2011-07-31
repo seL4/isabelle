@@ -119,28 +119,34 @@ fun gen_add_domain
        non-pcpo-types and invalid use of recursive type
        replace sorts in type variables on rhs *)
     val rec_tab = Domain_Take_Proofs.get_rec_tab thy
-    fun check_rec rec_ok (T as TFree (v,_))  =
+    fun check_rec no_rec (T as TFree (v,_))  =
         if AList.defined (op =) sorts v then T
         else error ("Free type variable " ^ quote v ^ " on rhs.")
-      | check_rec rec_ok (T as Type (s, Ts)) =
+      | check_rec no_rec (T as Type (s, Ts)) =
         (case AList.lookup (op =) dtnvs' s of
           NONE =>
-            let val rec_ok' = rec_ok andalso Symtab.defined rec_tab s
-            in Type (s, map (check_rec rec_ok') Ts) end
+            let val no_rec' =
+                  if no_rec = NONE then
+                    if Symtab.defined rec_tab s then NONE else SOME s
+                  else no_rec
+            in Type (s, map (check_rec no_rec') Ts) end
         | SOME typevars =>
           if typevars <> Ts
           then error ("Recursion of type " ^ 
                       quote (Syntax.string_of_typ_global tmp_thy T) ^ 
                       " with different arguments")
-          else if rec_ok then T
-          else error ("Illegal indirect recursion of type " ^ 
-                      quote (Syntax.string_of_typ_global tmp_thy T)))
-      | check_rec rec_ok (TVar _) = error "extender:check_rec"
+          else (case no_rec of
+                  NONE => T
+                | SOME c =>
+                  error ("Illegal indirect recursion of type " ^ 
+                         quote (Syntax.string_of_typ_global tmp_thy T) ^
+                         " under type constructor " ^ quote c)))
+      | check_rec no_rec (TVar _) = error "extender:check_rec"
 
     fun prep_arg (lazy, sel, raw_T) =
       let
         val T = prep_typ tmp_thy sorts raw_T
-        val _ = check_rec true T
+        val _ = check_rec NONE T
         val _ = check_pcpo (lazy, sel, T)
       in (lazy, sel, T) end
     fun prep_con (b, args, mx) = (b, map prep_arg args, mx)
