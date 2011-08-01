@@ -470,6 +470,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Polynomial.thy Library/Predicate_Compile_Quickcheck.thy	\
   Library/Preorder.thy Library/Product_Vector.thy			\
   Library/Product_ord.thy Library/Product_plus.thy			\
+  Library/Product_Lattice.thy						\
   Library/Quickcheck_Types.thy						\
   Library/Quotient_List.thy Library/Quotient_Option.thy			\
   Library/Quotient_Product.thy Library/Quotient_Sum.thy			\
