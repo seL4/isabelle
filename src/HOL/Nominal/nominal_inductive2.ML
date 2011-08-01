@@ -165,7 +165,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
-    val induct_cases = map fst (fst (Rule_Cases.get (the
+    val induct_cases = map (fst o fst) (fst (Rule_Cases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;

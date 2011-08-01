@@ -24,9 +24,12 @@ sig
     assumes: (string * term list) list,
     binds: (indexname * term option) list,
     cases: (string * T) list}
+  val case_hypsN: string
   val strip_params: term -> (string * typ) list
-  val make_common: theory * term -> (string * string list) list -> cases
-  val make_nested: term -> theory * term -> (string * string list) list -> cases
+  val make_common: theory * term ->
+    ((string * string list) * string list) list -> cases
+  val make_nested: term -> theory * term ->
+    ((string * string list) * string list) list -> cases
   val apply: term list -> T -> T
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
@@ -38,11 +41,12 @@ sig
   val constraints: int -> attribute
   val name: string list -> thm -> thm
   val case_names: string list -> attribute
+  val cases_hyp_names: string list list -> attribute
   val case_conclusion: string * string list -> attribute
   val is_inner_rule: thm -> bool
   val inner_rule: attribute
   val save: thm -> thm -> thm
-  val get: thm -> (string * string list) list * int
+  val get: thm -> ((string * string list) * string list) list * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
   val internalize_params: thm -> thm
@@ -87,15 +91,21 @@ fun extract_fixes NONE prop = (strip_params prop, [])
   | extract_fixes (SOME outline) prop =
       chop (length (Logic.strip_params outline)) (strip_params prop);
 
-fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
-  | extract_assumes qual (SOME outline) prop =
-      let val (hyps, prems) =
-        chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
-      in ([(qual case_hypsN, hyps)], [(qual case_premsN, prems)]) end;
+fun extract_assumes _ _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
+  | extract_assumes qual hnames (SOME outline) prop =
+      let
+        val (hyps, prems) =
+          chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
+        fun extract ((hname,h)::ps) = (qual hname, h :: map snd ps);
+        val (hyps1,hyps2) = chop (length hnames) hyps;
+        val pairs1 = if hyps1 = [] then [] else hnames ~~ hyps1;
+        val pairs = pairs1 @ (map (pair case_hypsN) hyps2);
+        val named_hyps = map extract (partition_eq (eq_fst op =) pairs)
+      in (named_hyps, [(qual case_premsN, prems)]) end;
 
 fun bindings args = map (apfst Binding.name) args;
 
-fun extract_case thy (case_outline, raw_prop) name concls =
+fun extract_case thy (case_outline, raw_prop) name hnames concls =
   let
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
@@ -108,8 +118,7 @@ fun extract_case thy (case_outline, raw_prop) name concls =
         fun abs_fixes1 t =
           if not nested then abs_fixes t
           else abs fixes1 (app (map (Term.dummy_pattern o #2) fixes2) (abs fixes2 t));
-
-        val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) case_outline prop
+        val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) hnames case_outline prop
           |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = Object_Logic.drop_judgment thy (Logic.strip_assums_concl prop);
@@ -142,11 +151,11 @@ fun make rule_struct (thy, prop) cases =
   let
     val n = length cases;
     val nprems = Logic.count_prems prop;
-    fun add_case (name, concls) (cs, i) =
+    fun add_case ((name, hnames), concls) (cs, i) =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
-      | SOME p => (name, extract_case thy p name concls)) :: cs, i - 1);
+      | SOME p => (name, extract_case thy p name hnames concls)) :: cs, i - 1);
   in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
 
 in
@@ -286,6 +295,26 @@ val name = add_case_names o SOME;
 fun case_names ss = Thm.rule_attribute (K (name ss));
 
 
+(** hyp names **)
+
+val implode_hyps = implode_args o map (suffix "," o space_implode ",");
+val explode_hyps = map (space_explode "," o unsuffix ",") o explode_args;
+
+val cases_hyp_names_tagN = "cases_hyp_names";
+
+fun add_cases_hyp_names NONE = I
+  | add_cases_hyp_names (SOME namess) =
+      Thm.untag_rule cases_hyp_names_tagN
+      #> Thm.tag_rule (cases_hyp_names_tagN, implode_hyps namess);
+
+fun lookup_cases_hyp_names th =
+  AList.lookup (op =) (Thm.get_tags th) cases_hyp_names_tagN
+  |> Option.map explode_hyps;
+
+val save_cases_hyp_names = add_cases_hyp_names o lookup_cases_hyp_names;
+fun cases_hyp_names ss =
+  Thm.rule_attribute (K (add_cases_hyp_names (SOME ss)));
+
 
 (** case conclusions **)
 
@@ -339,6 +368,7 @@ fun save th =
   save_consumes th #>
   save_constraints th #>
   save_case_names th #>
+  save_cases_hyp_names th #>
   save_case_concls th #>
   save_inner_rule th;
 
@@ -349,7 +379,11 @@ fun get th =
       (case lookup_case_names th of
         NONE => map (rpair [] o Library.string_of_int) (1 upto (Thm.nprems_of th - n))
       | SOME names => map (fn name => (name, get_case_concls th name)) names);
-  in (cases, n) end;
+    val cases_hyps = (case lookup_cases_hyp_names th of
+        NONE => replicate (length cases) []
+      | SOME names => names);
+    fun regroup ((name,concls),hyps) = ((name,hyps),concls)
+  in (map regroup (cases ~~ cases_hyps), n) end;
 
 
 (* params *)

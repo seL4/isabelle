@@ -524,7 +524,7 @@ fun add_ind_set_def
       Inductive.declare_rules rec_name coind no_ind cnames (map fst defs)
         (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
         (map (fn th => (to_set [] (Context.Proof lthy3) th,
-           map fst (fst (Rule_Cases.get th)),
+           map (fst o fst) (fst (Rule_Cases.get th)),
            Rule_Cases.get_constraints th)) elims)
         (map (to_set [] (Context.Proof lthy3)) eqs) raw_induct' lthy3;
   in
