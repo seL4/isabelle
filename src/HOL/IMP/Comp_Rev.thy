@@ -188,7 +188,7 @@ lemma acomp_size:
   "1 \<le> isize (acomp a)"
   by (induct a) auto
 
-lemma exits_acomp [simp]:
+lemma acomp_exits [simp]:
   "exits (acomp a) = {isize (acomp a)}"
   by (auto simp: exits_def acomp_size)
 
