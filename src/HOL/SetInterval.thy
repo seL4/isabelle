@@ -14,6 +14,7 @@ begin
 
 context ord
 begin
+
 definition
   lessThan    :: "'a => 'a set" ("(1{..<_})") where
   "{..<u} == {x. x < u}"
@@ -1162,12 +1163,18 @@ lemma setsum_natinterval_difff:
           (if m <= n then f m - f(n + 1) else 0)"
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
-lemmas setsum_restrict_set' = setsum_restrict_set[unfolded Int_def]
+lemma setsum_restrict_set':
+  "finite A \<Longrightarrow> setsum f {x \<in> A. x \<in> B} = (\<Sum>x\<in>A. if x \<in> B then f x else 0)"
+  by (simp add: setsum_restrict_set [symmetric] Int_def)
+
+lemma setsum_restrict_set'':
+  "finite A \<Longrightarrow> setsum f {x \<in> A. P x} = (\<Sum>x\<in>A. if P x  then f x else 0)"
+  by (simp add: setsum_restrict_set' [of A f "{x. P x}", simplified mem_Collect_eq])
 
 lemma setsum_setsum_restrict:
-  "finite S \<Longrightarrow> finite T \<Longrightarrow> setsum (\<lambda>x. setsum (\<lambda>y. f x y) {y. y\<in> T \<and> R x y}) S = setsum (\<lambda>y. setsum (\<lambda>x. f x y) {x. x \<in> S \<and> R x y}) T"
-  by (simp add: setsum_restrict_set'[unfolded mem_def] mem_def)
-     (rule setsum_commute)
+  "finite S \<Longrightarrow> finite T \<Longrightarrow>
+    setsum (\<lambda>x. setsum (\<lambda>y. f x y) {y. y \<in> T \<and> R x y}) S = setsum (\<lambda>y. setsum (\<lambda>x. f x y) {x. x \<in> S \<and> R x y}) T"
+  by (simp add: setsum_restrict_set'') (rule setsum_commute)
 
 lemma setsum_image_gen: assumes fS: "finite S"
   shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
