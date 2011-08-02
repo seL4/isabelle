@@ -61,6 +61,7 @@ imports
   Sum_of_Squares
   Transitive_Closure_Table
   Univ_Poly
+  Wfrec
   While_Combinator
   Zorn
 begin

@@ -6,7 +6,7 @@ S-expressions, general binary trees for defining recursive data
 structures by hand.
 *)
 
-theory Sexp imports Main "~~/src/HOL/Library/Old_Recdef" begin
+theory Sexp imports Main "~~/src/HOL/Library/Wfrec" begin
 
 type_synonym 'a item = "'a Datatype.item"
 abbreviation "Leaf == Datatype.Leaf"
