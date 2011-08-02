@@ -151,6 +151,12 @@ INCOMPATIBILITY. Use partial_function instead.
   - Use extended reals instead of positive extended reals.
     INCOMPATIBILITY.
 
+* Old recdef package has been moved to Library/Old_Recdef.thy, where it
+must be loaded explicitly.  INCOMPATIBILITY.
+
+* Well-founded recursion combinator "wfrec" has been moved to
+Library/Wfrec.thy. INCOMPATIBILY.
+
 
 *** Document preparation ***
 
