@@ -4,7 +4,7 @@
 
 header {* Some of the results in Inductive Invariants for Nested Recursion *}
 
-theory InductiveInvariant imports Main begin
+theory InductiveInvariant imports "~~/src/HOL/Library/Old_Recdef" begin
 
 text {* A formalization of some of the results in \emph{Inductive
   Invariants for Nested Recursion}, by Sava Krsti\'{c} and John

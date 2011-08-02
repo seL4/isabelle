@@ -6,7 +6,7 @@
 header {* Unification Algorithm *}
 
 theory Unify
-imports Unifier
+imports Unifier "~~/src/HOL/Library/Old_Recdef"
 begin
 
 subsection {* Substitution and Unification in Higher-Order Logic. *}

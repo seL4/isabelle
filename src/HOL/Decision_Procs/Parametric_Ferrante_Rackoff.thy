@@ -6,7 +6,7 @@ header{* A formalization of Ferrante and Rackoff's procedure with polynomial par
 
 theory Parametric_Ferrante_Rackoff
 imports Reflected_Multivariate_Polynomial Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Efficient_Nat"
+  "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
 begin
 
 subsection {* Terms *}

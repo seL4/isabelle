@@ -5,7 +5,8 @@ header {* Field, method, interface, and class declarations, whole Java programs
 *}
 
 theory Decl
-imports Term Table (** order is significant, because of clash for "var" **)
+imports Term Table
+  (** order is significant, because of clash for "var" **)
 begin
 
 text {*

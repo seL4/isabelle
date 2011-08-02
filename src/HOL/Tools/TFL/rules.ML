@@ -445,7 +445,7 @@ fun Forall v M = USyntax.mk_forall{Bvar=v, Body=M};
 fun is_cong thm =
   case (Thm.prop_of thm)
      of (Const("==>",_)$(Const(@{const_name Trueprop},_)$ _) $
-         (Const("==",_) $ (Const (@{const_name Recdef.cut},_) $ f $ R $ a $ x) $ _)) => false
+         (Const("==",_) $ (Const (@{const_name Old_Recdef.cut},_) $ f $ R $ a $ x) $ _)) => false
       | _ => true;
 
 
@@ -645,7 +645,7 @@ fun dest_impl tm =
   end;
 
 fun restricted t = is_some (USyntax.find_term
-                            (fn (Const(@{const_name Recdef.cut},_)) =>true | _ => false)
+                            (fn (Const(@{const_name Old_Recdef.cut},_)) =>true | _ => false)
                             t)
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =

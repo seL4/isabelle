@@ -1779,7 +1779,7 @@ fun unfold_defs_in_term
                                    "too many nested definitions (" ^
                                    string_of_int depth ^ ") while expanding " ^
                                    quote s)
-                else if s = @{const_name wfrec'} then
+                else if s = "Old_Recdef.wfrec'" (* FIXME unchecked! *) then
                   (do_term (depth + 1) Ts (s_betapplys Ts (def, ts)), [])
                 else if not unfold andalso
                      size_of_term def > def_inline_threshold () then
@@ -1873,9 +1873,7 @@ val basic_ersatz_table =
   [(@{const_name card}, @{const_name card'}),
    (@{const_name setsum}, @{const_name setsum'}),
    (@{const_name fold_graph}, @{const_name fold_graph'}),
-   (@{const_name wf}, @{const_name wf'}),
-   (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
-   (@{const_name wfrec}, @{const_name wfrec'})]
+   (@{const_name wf}, @{const_name wf'})]
 
 fun ersatz_table ctxt =
  (basic_ersatz_table @ #ersatz_table (Data.get (Context.Proof ctxt)))

@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Presburger Recdef Code_Numeral Quotient ATP
+imports Plain Presburger Code_Numeral Quotient ATP
 uses
   ("Tools/list_code.ML")
   ("Tools/list_to_set_comprehension.ML")
@@ -800,7 +800,7 @@ by (induct xs) auto
 lemma map_eq_conv[simp]: "(map f xs = map g xs) = (!x : set xs. f x = g x)"
 by (induct xs) auto
 
-lemma map_cong [fundef_cong, recdef_cong]:
+lemma map_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> map f xs = map g ys"
   by simp
 
@@ -1237,7 +1237,7 @@ lemma Cons_eq_filter_iff:
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
 by(auto dest:Cons_eq_filterD)
 
-lemma filter_cong[fundef_cong, recdef_cong]:
+lemma filter_cong[fundef_cong]:
  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
 apply simp
 apply(erule thin_rl)
@@ -2003,12 +2003,12 @@ apply(case_tac xs)
 apply(auto)
 done
 
-lemma takeWhile_cong [fundef_cong, recdef_cong]:
+lemma takeWhile_cong [fundef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> takeWhile P l = takeWhile Q k"
 by (induct k arbitrary: l) (simp_all)
 
-lemma dropWhile_cong [fundef_cong, recdef_cong]:
+lemma dropWhile_cong [fundef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> dropWhile P l = dropWhile Q k"
 by (induct k arbitrary: l, simp_all)
@@ -2349,12 +2349,12 @@ lemma foldl_apply:
   shows "foldl (\<lambda>s x. f x s) (h s) xs = h (foldl (\<lambda>s x. g x s) s xs)"
   by (rule sym, insert assms, induct xs arbitrary: s) (simp_all add: fun_eq_iff)
 
-lemma foldl_cong [fundef_cong, recdef_cong]:
+lemma foldl_cong [fundef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
 by (induct k arbitrary: a b l) simp_all
 
-lemma foldr_cong [fundef_cong, recdef_cong]:
+lemma foldr_cong [fundef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
 by (induct k arbitrary: a b l) simp_all
@@ -4586,7 +4586,7 @@ text {* These are useful for termination proofs *}
 definition
   "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
 
-lemma wf_measures[recdef_wf, simp]: "wf (measures fs)"
+lemma wf_measures[simp]: "wf (measures fs)"
 unfolding measures_def
 by blast
 

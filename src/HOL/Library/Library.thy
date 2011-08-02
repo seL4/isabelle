@@ -39,6 +39,7 @@ imports
   Multiset
   Nested_Environment
   Numeral_Type
+  Old_Recdef
   OptionalSugar
   Option_ord
   Permutation

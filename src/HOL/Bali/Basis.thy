@@ -3,7 +3,7 @@
 *)
 header {* Definitions extending HOL as logical basis of Bali *}
 
-theory Basis imports Main begin
+theory Basis imports Main "~~/src/HOL/Library/Old_Recdef" begin
 
 
 section "misc"

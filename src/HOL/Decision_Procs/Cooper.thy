@@ -3,7 +3,7 @@
 *)
 
 theory Cooper
-imports Complex_Main "~~/src/HOL/Library/Efficient_Nat"
+imports Complex_Main "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
 uses ("cooper_tac.ML")
 begin
 

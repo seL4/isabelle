@@ -1,22 +1,22 @@
-(*  Title:      HOL/Recdef.thy
+(*  Title:      HOL/Library/Old_Recdef.thy
     Author:     Konrad Slind and Markus Wenzel, TU Muenchen
 *)
 
 header {* TFL: recursive function definitions *}
 
-theory Recdef
-imports Plain Hilbert_Choice
+theory Old_Recdef
+imports Main
 uses
-  ("Tools/TFL/casesplit.ML")
-  ("Tools/TFL/utils.ML")
-  ("Tools/TFL/usyntax.ML")
-  ("Tools/TFL/dcterm.ML")
-  ("Tools/TFL/thms.ML")
-  ("Tools/TFL/rules.ML")
-  ("Tools/TFL/thry.ML")
-  ("Tools/TFL/tfl.ML")
-  ("Tools/TFL/post.ML")
-  ("Tools/recdef.ML")
+  ("~~/src/HOL/Tools/TFL/casesplit.ML")
+  ("~~/src/HOL/Tools/TFL/utils.ML")
+  ("~~/src/HOL/Tools/TFL/usyntax.ML")
+  ("~~/src/HOL/Tools/TFL/dcterm.ML")
+  ("~~/src/HOL/Tools/TFL/thms.ML")
+  ("~~/src/HOL/Tools/TFL/rules.ML")
+  ("~~/src/HOL/Tools/TFL/thry.ML")
+  ("~~/src/HOL/Tools/TFL/tfl.ML")
+  ("~~/src/HOL/Tools/TFL/post.ML")
+  ("~~/src/HOL/Tools/recdef.ML")
 begin
 
 inductive
@@ -87,6 +87,29 @@ apply (blast intro: wfrec)
 done
 
 
+subsection {* Nitpick setup *}
+
+axiomatization wf_wfrec :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+
+definition wf_wfrec' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+[nitpick_simp]: "wf_wfrec' R F x = F (cut (wf_wfrec R F) R x) x"
+
+definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+"wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x
+                else THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+
+setup {*
+  Nitpick_HOL.register_ersatz_global
+    [(@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
+     (@{const_name wfrec}, @{const_name wfrec'})]
+*}
+
+hide_const (open) wf_wfrec wf_wfrec' wfrec'
+hide_fact (open) wf_wfrec'_def wfrec'_def
+
+
+subsection {* Lemmas for TFL *}
+
 lemma tfl_wf_induct: "ALL R. wf R -->  
        (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
 apply clarify
@@ -128,16 +151,16 @@ lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
 lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
-use "Tools/TFL/casesplit.ML"
-use "Tools/TFL/utils.ML"
-use "Tools/TFL/usyntax.ML"
-use "Tools/TFL/dcterm.ML"
-use "Tools/TFL/thms.ML"
-use "Tools/TFL/rules.ML"
-use "Tools/TFL/thry.ML"
-use "Tools/TFL/tfl.ML"
-use "Tools/TFL/post.ML"
-use "Tools/recdef.ML"
+use "~~/src/HOL/Tools/TFL/casesplit.ML"
+use "~~/src/HOL/Tools/TFL/utils.ML"
+use "~~/src/HOL/Tools/TFL/usyntax.ML"
+use "~~/src/HOL/Tools/TFL/dcterm.ML"
+use "~~/src/HOL/Tools/TFL/thms.ML"
+use "~~/src/HOL/Tools/TFL/rules.ML"
+use "~~/src/HOL/Tools/TFL/thry.ML"
+use "~~/src/HOL/Tools/TFL/tfl.ML"
+use "~~/src/HOL/Tools/TFL/post.ML"
+use "~~/src/HOL/Tools/recdef.ML"
 setup Recdef.setup
 
 text {*Wellfoundedness of @{text same_fst}*}
@@ -175,6 +198,7 @@ lemmas [recdef_simp] =
 
 lemmas [recdef_cong] =
   if_cong let_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
+  map_cong filter_cong takeWhile_cong dropWhile_cong foldl_cong foldr_cong 
 
 lemmas [recdef_wf] =
   wf_trancl
@@ -182,6 +206,7 @@ lemmas [recdef_wf] =
   wf_lex_prod
   wf_inv_image
   wf_measure
+  wf_measures
   wf_pred_nat
   wf_same_fst
   wf_empty

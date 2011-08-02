@@ -4,7 +4,7 @@
 
 theory Ferrack
 imports Complex_Main Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Efficient_Nat"
+  "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
 uses ("ferrack_tac.ML")
 begin
 

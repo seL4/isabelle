@@ -292,7 +292,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Quotient.thy \
   Random.thy \
   Random_Sequence.thy \
-  Recdef.thy \
   Record.thy \
   Refute.thy \
   Semiring_Normalization.thy \
@@ -359,7 +358,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Quotient/quotient_tacs.ML \
   Tools/Quotient/quotient_term.ML \
   Tools/Quotient/quotient_typ.ML \
-  Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
   Tools/Sledgehammer/async_manager.ML \
@@ -389,15 +387,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \
-  Tools/TFL/casesplit.ML \
-  Tools/TFL/dcterm.ML \
-  Tools/TFL/post.ML \
-  Tools/TFL/rules.ML \
-  Tools/TFL/tfl.ML \
-  Tools/TFL/thms.ML \
-  Tools/TFL/thry.ML \
-  Tools/TFL/usyntax.ML \
-  Tools/TFL/utils.ML
 
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
@@ -464,7 +453,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/List_lexord.thy Library/Mapping.thy Library/Monad_Syntax.thy	\
   Library/More_List.thy Library/More_Set.thy Library/Multiset.thy	\
   Library/Nat_Bijection.thy Library/Nested_Environment.thy		\
-  Library/Numeral_Type.thy Library/OptionalSugar.thy			\
+  Library/Numeral_Type.thy Library/Old_Recdef.thy 			\
+  Library/OptionalSugar.thy						\
   Library/Order_Relation.thy Library/Permutation.thy			\
   Library/Permutations.thy Library/Poly_Deriv.thy			\
   Library/Polynomial.thy Library/Predicate_Compile_Quickcheck.thy	\
@@ -486,7 +476,11 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/While_Combinator.thy Library/Zorn.thy				\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
   Library/reflection.ML Library/reify_data.ML				\
-  Library/document/root.bib Library/document/root.tex
+  Library/document/root.bib Library/document/root.tex			\
+  Tools/TFL/casesplit.ML Tools/TFL/dcterm.ML Tools/TFL/post.ML		\
+  Tools/TFL/rules.ML Tools/TFL/tfl.ML Tools/TFL/thms.ML			\
+  Tools/TFL/thry.ML Tools/TFL/usyntax.ML Tools/TFL/utils.ML		\
+  Tools/recdef.ML
 	@cd Library; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOL-Library
 
 

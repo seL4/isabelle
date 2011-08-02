@@ -4,7 +4,7 @@
 
 header {* \isaheader{Relations between Java Types} *}
 
-theory TypeRel imports Decl begin
+theory TypeRel imports Decl "~~/src/HOL/Library/Old_Recdef" begin
 
 -- "direct subclass, cf. 8.1.3"
 

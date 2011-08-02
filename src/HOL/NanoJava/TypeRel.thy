@@ -4,7 +4,7 @@
 
 header "Type relations"
 
-theory TypeRel imports Decl begin
+theory TypeRel imports Decl "~~/src/HOL/Library/Old_Recdef" begin
 
 consts
   subcls1 :: "(cname \<times> cname) set"  --{* subclass *}

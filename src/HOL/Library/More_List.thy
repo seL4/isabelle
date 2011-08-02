@@ -35,7 +35,7 @@ lemma fold_rev_conv [code_unfold]:
   "fold f (rev xs) = foldr f xs"
   by (simp add: foldr_fold_rev)
   
-lemma fold_cong [fundef_cong, recdef_cong]:
+lemma fold_cong [fundef_cong]:
   "a = b \<Longrightarrow> xs = ys \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> f x = g x)
     \<Longrightarrow> fold f xs a = fold g ys b"
   by (induct ys arbitrary: a b xs) simp_all

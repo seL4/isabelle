@@ -82,15 +82,6 @@ definition refl' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> bool" whe
 definition wf' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "wf' r \<equiv> acyclic r \<and> (finite r \<or> unknown)"
 
-axiomatization wf_wfrec :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-
-definition wf_wfrec' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-[nitpick_simp]: "wf_wfrec' R F x = F (Recdef.cut (wf_wfrec R F) R x) x"
-
-definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-"wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x
-                else THE y. wfrec_rel R (%f x. F (Recdef.cut f R x) x) x y"
-
 definition card' :: "('a \<Rightarrow> bool) \<Rightarrow> nat" where
 "card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
@@ -238,14 +229,14 @@ use "Tools/Nitpick/nitrox.ML"
 setup {* Nitpick_Isar.setup *}
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
-    FunBox PairBox Word prod refl' wf' wf_wfrec wf_wfrec' wfrec' card' setsum'
+    FunBox PairBox Word prod refl' wf' card' setsum'
     fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac
     one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
     number_of_frac inverse_frac less_frac less_eq_frac of_frac
 hide_type (open) iota bisim_iterator fun_box pair_box unsigned_bit signed_bit
     word
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
-    prod_def refl'_def wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def
+    prod_def refl'_def wf'_def card'_def setsum'_def
     fold_graph'_def The_psimp Eps_psimp unit_case_unfold nat_case_unfold
     list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
     zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
