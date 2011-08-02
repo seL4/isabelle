@@ -1868,15 +1868,8 @@ fun ground_theorem_table thy =
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
           | _ => I) o prop_of o snd) (Global_Theory.all_thms_of thy) Inttab.empty
 
-(* TODO: Move to "Nitpick.thy" *)
-val basic_ersatz_table =
-  [(@{const_name card}, @{const_name card'}),
-   (@{const_name setsum}, @{const_name setsum'}),
-   (@{const_name fold_graph}, @{const_name fold_graph'}),
-   (@{const_name wf}, @{const_name wf'})]
-
 fun ersatz_table ctxt =
- (basic_ersatz_table @ #ersatz_table (Data.get (Context.Proof ctxt)))
+ #ersatz_table (Data.get (Context.Proof ctxt))
  |> fold (append o snd) (#frac_types (Data.get (Context.Proof ctxt)))
 
 fun add_simps simp_table s eqs =

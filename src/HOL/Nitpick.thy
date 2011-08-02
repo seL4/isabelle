@@ -226,7 +226,14 @@ use "Tools/Nitpick/nitpick_isar.ML"
 use "Tools/Nitpick/nitpick_tests.ML"
 use "Tools/Nitpick/nitrox.ML"
 
-setup {* Nitpick_Isar.setup *}
+setup {*
+  Nitpick_Isar.setup #>
+  Nitpick_HOL.register_ersatz_global
+    [(@{const_name card}, @{const_name card'}),
+     (@{const_name setsum}, @{const_name setsum'}),
+     (@{const_name fold_graph}, @{const_name fold_graph'}),
+     (@{const_name wf}, @{const_name wf'})]
+*}
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
     FunBox PairBox Word prod refl' wf' card' setsum'
