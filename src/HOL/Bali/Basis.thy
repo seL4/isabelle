@@ -8,8 +8,6 @@ theory Basis imports Main begin
 
 section "misc"
 
-declare same_fstI [intro!] (*### TO HOL/Wellfounded_Relations *)
-
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
 declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]

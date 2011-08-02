@@ -320,7 +320,7 @@ lemma wf_is_option_of: "wf is_option_of"
   apply (simp add: wfzf_is_option_of)
   done
 
-lemma wf_option_of[recdef_wf, simp, intro]: "wf option_of"
+lemma wf_option_of[simp, intro]: "wf option_of"
 proof -
   have option_of: "option_of = inv_image is_option_of Rep_game"
     apply (rule set_eqI)

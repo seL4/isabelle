@@ -82,7 +82,7 @@ next
   qed
 qed
 
-lemma wf_lprod[recdef_wf,simp,intro]:
+lemma wf_lprod[simp,intro]:
   assumes wf_R: "wf R"
   shows "wf (lprod R)"
 proof -
@@ -116,7 +116,7 @@ lemma lprod_2_2: "(a, b) \<in> R \<Longrightarrow> ([a, c], [c, b]) \<in> lprod 
   by (auto intro: lprod_list[where a=c and b=c and 
     ah = "[a]" and at = "[]" and bh="[]" and bt="[b]", simplified])
 
-lemma [recdef_wf, simp, intro]: 
+lemma [simp, intro]:
   assumes wfR: "wf R" shows "wf (gprod_2_1 R)"
 proof -
   have "gprod_2_1 R \<subseteq> inv_image (lprod R) (\<lambda> (a,b). [a,b])"
@@ -125,7 +125,7 @@ proof -
     by (rule_tac wf_subset, auto)
 qed
 
-lemma [recdef_wf, simp, intro]: 
+lemma [simp, intro]:
   assumes wfR: "wf R" shows "wf (gprod_2_2 R)"
 proof -
   have "gprod_2_2 R \<subseteq> inv_image (lprod R) (\<lambda> (a,b). [a,b])"
