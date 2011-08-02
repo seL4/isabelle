@@ -65,7 +65,7 @@ uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
 * Class complete_lattice: generalized a couple of lemmas from sets;
 generalized theorems INF_cong and SUP_cong.  New type classes for complete
-boolean algebras and complete linear orderes.  Lemmas Inf_less_iff,
+boolean algebras and complete linear orders.  Lemmas Inf_less_iff,
 less_Sup_iff, INF_less_iff, less_SUP_iff now reside in class complete_linorder.
 More consistent and less misunderstandable names:
   INFI_def ~> INF_def
@@ -83,7 +83,7 @@ INCOMPATIBILITY.
 to UNION any longer;  these have been moved to collection UN_ball_bex_simps.
 INCOMPATIBILITY.
 
-* Archimedian_Field.thy:
+* Archimedean_Field.thy:
     floor now is defined as parameter of a separate type class floor_ceiling.
  
 * Finite_Set.thy: more coherent development of fold_set locales:
@@ -156,6 +156,16 @@ must be loaded explicitly.  INCOMPATIBILITY.
 
 * Well-founded recursion combinator "wfrec" has been moved to
 Library/Wfrec.thy. INCOMPATIBILITY.
+
+* Theory Library/Nat_Infinity has been renamed to Library/Extended_Nat.
+The names of the following types and constants have changed:
+  inat (type) ~> enat
+  Fin         ~> enat
+  Infty       ~> infinity (overloaded)
+  iSuc        ~> eSuc
+  the_Fin     ~> the_enat
+Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
+been renamed accordingly.
 
 
 *** Document preparation ***

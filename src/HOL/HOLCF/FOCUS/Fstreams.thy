@@ -57,12 +57,12 @@ by (simp add: fsingleton_def2)
 lemma slen_fsingleton[simp]: "#(<a>) = enat 1"
 by (simp add: fsingleton_def2 enat_defs)
 
-lemma slen_fstreams[simp]: "#(<a> ooo s) = iSuc (#s)"
+lemma slen_fstreams[simp]: "#(<a> ooo s) = eSuc (#s)"
 by (simp add: fsingleton_def2)
 
-lemma slen_fstreams2[simp]: "#(s ooo <a>) = iSuc (#s)"
+lemma slen_fstreams2[simp]: "#(s ooo <a>) = eSuc (#s)"
 apply (cases "#s")
-apply (auto simp add: iSuc_enat)
+apply (auto simp add: eSuc_enat)
 apply (insert slen_sconc [of _ s "Suc 0" "<a>"], auto)
 by (simp add: sconc_def)
 

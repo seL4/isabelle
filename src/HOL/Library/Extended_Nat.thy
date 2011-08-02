@@ -49,14 +49,14 @@ qed (auto simp add: enat_def infinity_enat_def Abs_enat_inject)
 
 declare [[coercion "enat::nat\<Rightarrow>enat"]]
 
-lemma not_Infty_eq[iff]: "(x \<noteq> \<infinity>) = (EX i. x = enat i)"
-by (cases x) auto
+lemma not_infinity_eq [iff]: "(x \<noteq> \<infinity>) = (EX i. x = enat i)"
+  by (cases x) auto
 
 lemma not_enat_eq [iff]: "(ALL y. x ~= enat y) = (x = \<infinity>)"
-by (cases x) auto
+  by (cases x) auto
 
 primrec the_enat :: "enat \<Rightarrow> nat"
-where "the_enat (enat n) = n"
+  where "the_enat (enat n) = n"
 
 subsection {* Constructors and numbers *}
 
@@ -76,8 +76,8 @@ instance ..
 
 end
 
-definition iSuc :: "enat \<Rightarrow> enat" where
-  "iSuc i = (case i of enat n \<Rightarrow> enat (Suc n) | \<infinity> \<Rightarrow> \<infinity>)"
+definition eSuc :: "enat \<Rightarrow> enat" where
+  "eSuc i = (case i of enat n \<Rightarrow> enat (Suc n) | \<infinity> \<Rightarrow> \<infinity>)"
 
 lemma enat_0: "enat 0 = 0"
   by (simp add: zero_enat_def)
@@ -88,13 +88,13 @@ lemma enat_1: "enat 1 = 1"
 lemma enat_number: "enat (number_of k) = number_of k"
   by (simp add: number_of_enat_def)
 
-lemma one_iSuc: "1 = iSuc 0"
-  by (simp add: zero_enat_def one_enat_def iSuc_def)
+lemma one_eSuc: "1 = eSuc 0"
+  by (simp add: zero_enat_def one_enat_def eSuc_def)
 
-lemma Infty_ne_i0 [simp]: "(\<infinity>::enat) \<noteq> 0"
+lemma infinity_ne_i0 [simp]: "(\<infinity>::enat) \<noteq> 0"
   by (simp add: zero_enat_def)
 
-lemma i0_ne_Infty [simp]: "0 \<noteq> (\<infinity>::enat)"
+lemma i0_ne_infinity [simp]: "0 \<noteq> (\<infinity>::enat)"
   by (simp add: zero_enat_def)
 
 lemma zero_enat_eq [simp]:
@@ -112,35 +112,35 @@ lemma zero_one_enat_neq [simp]:
   "\<not> 1 = (0\<Colon>enat)"
   unfolding zero_enat_def one_enat_def by simp_all
 
-lemma Infty_ne_i1 [simp]: "(\<infinity>::enat) \<noteq> 1"
+lemma infinity_ne_i1 [simp]: "(\<infinity>::enat) \<noteq> 1"
   by (simp add: one_enat_def)
 
-lemma i1_ne_Infty [simp]: "1 \<noteq> (\<infinity>::enat)"
+lemma i1_ne_infinity [simp]: "1 \<noteq> (\<infinity>::enat)"
   by (simp add: one_enat_def)
 
-lemma Infty_ne_number [simp]: "(\<infinity>::enat) \<noteq> number_of k"
+lemma infinity_ne_number [simp]: "(\<infinity>::enat) \<noteq> number_of k"
   by (simp add: number_of_enat_def)
 
-lemma number_ne_Infty [simp]: "number_of k \<noteq> (\<infinity>::enat)"
+lemma number_ne_infinity [simp]: "number_of k \<noteq> (\<infinity>::enat)"
   by (simp add: number_of_enat_def)
 
-lemma iSuc_enat: "iSuc (enat n) = enat (Suc n)"
-  by (simp add: iSuc_def)
+lemma eSuc_enat: "eSuc (enat n) = enat (Suc n)"
+  by (simp add: eSuc_def)
 
-lemma iSuc_number_of: "iSuc (number_of k) = enat (Suc (number_of k))"
-  by (simp add: iSuc_enat number_of_enat_def)
+lemma eSuc_number_of: "eSuc (number_of k) = enat (Suc (number_of k))"
+  by (simp add: eSuc_enat number_of_enat_def)
 
-lemma iSuc_Infty [simp]: "iSuc \<infinity> = \<infinity>"
-  by (simp add: iSuc_def)
+lemma eSuc_infinity [simp]: "eSuc \<infinity> = \<infinity>"
+  by (simp add: eSuc_def)
 
-lemma iSuc_ne_0 [simp]: "iSuc n \<noteq> 0"
-  by (simp add: iSuc_def zero_enat_def split: enat.splits)
+lemma eSuc_ne_0 [simp]: "eSuc n \<noteq> 0"
+  by (simp add: eSuc_def zero_enat_def split: enat.splits)
 
-lemma zero_ne_iSuc [simp]: "0 \<noteq> iSuc n"
-  by (rule iSuc_ne_0 [symmetric])
+lemma zero_ne_eSuc [simp]: "0 \<noteq> eSuc n"
+  by (rule eSuc_ne_0 [symmetric])
 
-lemma iSuc_inject [simp]: "iSuc m = iSuc n \<longleftrightarrow> m = n"
-  by (simp add: iSuc_def split: enat.splits)
+lemma eSuc_inject [simp]: "eSuc m = eSuc n \<longleftrightarrow> m = n"
+  by (simp add: eSuc_def split: enat.splits)
 
 lemma number_of_enat_inject [simp]:
   "(number_of k \<Colon> enat) = number_of l \<longleftrightarrow> (number_of k \<Colon> nat) = number_of l"
@@ -184,28 +184,28 @@ lemma plus_enat_number [simp]:
     else if l < Int.Pls then number_of k else number_of (k + l))"
   unfolding number_of_enat_def plus_enat_simps nat_arith(1) if_distrib [symmetric, of _ enat] ..
 
-lemma iSuc_number [simp]:
-  "iSuc (number_of k) = (if neg (number_of k \<Colon> int) then 1 else number_of (Int.succ k))"
-  unfolding iSuc_number_of
+lemma eSuc_number [simp]:
+  "eSuc (number_of k) = (if neg (number_of k \<Colon> int) then 1 else number_of (Int.succ k))"
+  unfolding eSuc_number_of
   unfolding one_enat_def number_of_enat_def Suc_nat_number_of if_distrib [symmetric] ..
 
-lemma iSuc_plus_1:
-  "iSuc n = n + 1"
-  by (cases n) (simp_all add: iSuc_enat one_enat_def)
+lemma eSuc_plus_1:
+  "eSuc n = n + 1"
+  by (cases n) (simp_all add: eSuc_enat one_enat_def)
   
-lemma plus_1_iSuc:
-  "1 + q = iSuc q"
-  "q + 1 = iSuc q"
-by (simp_all add: iSuc_plus_1 add_ac)
+lemma plus_1_eSuc:
+  "1 + q = eSuc q"
+  "q + 1 = eSuc q"
+  by (simp_all add: eSuc_plus_1 add_ac)
 
-lemma iadd_Suc: "iSuc m + n = iSuc (m + n)"
-by (simp_all add: iSuc_plus_1 add_ac)
+lemma iadd_Suc: "eSuc m + n = eSuc (m + n)"
+  by (simp_all add: eSuc_plus_1 add_ac)
 
-lemma iadd_Suc_right: "m + iSuc n = iSuc (m + n)"
-by (simp only: add_commute[of m] iadd_Suc)
+lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
+  by (simp only: add_commute[of m] iadd_Suc)
 
 lemma iadd_is_0: "(m + n = (0::enat)) = (m = 0 \<and> n = 0)"
-by (cases m, cases n, simp_all add: zero_enat_def)
+  by (cases m, cases n, simp_all add: zero_enat_def)
 
 subsection {* Multiplication *}
 
@@ -251,16 +251,16 @@ qed
 
 end
 
-lemma mult_iSuc: "iSuc m * n = n + m * n"
-  unfolding iSuc_plus_1 by (simp add: algebra_simps)
+lemma mult_eSuc: "eSuc m * n = n + m * n"
+  unfolding eSuc_plus_1 by (simp add: algebra_simps)
 
-lemma mult_iSuc_right: "m * iSuc n = m + m * n"
-  unfolding iSuc_plus_1 by (simp add: algebra_simps)
+lemma mult_eSuc_right: "m * eSuc n = m + m * n"
+  unfolding eSuc_plus_1 by (simp add: algebra_simps)
 
 lemma of_nat_eq_enat: "of_nat n = enat n"
   apply (induct n)
   apply (simp add: enat_0)
-  apply (simp add: plus_1_iSuc iSuc_enat)
+  apply (simp add: plus_1_eSuc eSuc_enat)
   done
 
 instance enat :: number_semiring
@@ -274,11 +274,11 @@ instance enat :: semiring_char_0 proof
   then show "inj (\<lambda>n. of_nat n :: enat)" by (simp add: of_nat_eq_enat)
 qed
 
-lemma imult_is_0[simp]: "((m::enat) * n = 0) = (m = 0 \<or> n = 0)"
-by(auto simp add: times_enat_def zero_enat_def split: enat.split)
+lemma imult_is_0 [simp]: "((m::enat) * n = 0) = (m = 0 \<or> n = 0)"
+  by (auto simp add: times_enat_def zero_enat_def split: enat.split)
 
-lemma imult_is_Infty: "((a::enat) * b = \<infinity>) = (a = \<infinity> \<and> b \<noteq> 0 \<or> b = \<infinity> \<and> a \<noteq> 0)"
-by(auto simp add: times_enat_def zero_enat_def split: enat.split)
+lemma imult_is_infinity: "((a::enat) * b = \<infinity>) = (a = \<infinity> \<and> b \<noteq> 0 \<or> b = \<infinity> \<and> a \<noteq> 0)"
+  by (auto simp add: times_enat_def zero_enat_def split: enat.split)
 
 
 subsection {* Subtraction *}
@@ -294,33 +294,33 @@ instance ..
 
 end
 
-lemma idiff_enat_enat[simp,code]: "enat a - enat b = enat (a - b)"
-by(simp add: diff_enat_def)
+lemma idiff_enat_enat [simp,code]: "enat a - enat b = enat (a - b)"
+  by (simp add: diff_enat_def)
 
-lemma idiff_Infty[simp,code]: "\<infinity> - n = (\<infinity>::enat)"
-by(simp add: diff_enat_def)
+lemma idiff_infinity [simp,code]: "\<infinity> - n = (\<infinity>::enat)"
+  by (simp add: diff_enat_def)
 
-lemma idiff_Infty_right[simp,code]: "enat a - \<infinity> = 0"
-by(simp add: diff_enat_def)
+lemma idiff_infinity_right [simp,code]: "enat a - \<infinity> = 0"
+  by (simp add: diff_enat_def)
 
-lemma idiff_0[simp]: "(0::enat) - n = 0"
-by (cases n, simp_all add: zero_enat_def)
+lemma idiff_0 [simp]: "(0::enat) - n = 0"
+  by (cases n, simp_all add: zero_enat_def)
 
-lemmas idiff_enat_0[simp] = idiff_0[unfolded zero_enat_def]
+lemmas idiff_enat_0 [simp] = idiff_0 [unfolded zero_enat_def]
 
-lemma idiff_0_right[simp]: "(n::enat) - 0 = n"
-by (cases n) (simp_all add: zero_enat_def)
+lemma idiff_0_right [simp]: "(n::enat) - 0 = n"
+  by (cases n) (simp_all add: zero_enat_def)
 
-lemmas idiff_enat_0_right[simp] = idiff_0_right[unfolded zero_enat_def]
+lemmas idiff_enat_0_right [simp] = idiff_0_right [unfolded zero_enat_def]
 
-lemma idiff_self[simp]: "n \<noteq> \<infinity> \<Longrightarrow> (n::enat) - n = 0"
-by(auto simp: zero_enat_def)
+lemma idiff_self [simp]: "n \<noteq> \<infinity> \<Longrightarrow> (n::enat) - n = 0"
+  by (auto simp: zero_enat_def)
 
-lemma iSuc_minus_iSuc [simp]: "iSuc n - iSuc m = n - m"
-by(simp add: iSuc_def split: enat.split)
+lemma eSuc_minus_eSuc [simp]: "eSuc n - eSuc m = n - m"
+  by (simp add: eSuc_def split: enat.split)
 
-lemma iSuc_minus_1 [simp]: "iSuc n - 1 = n"
-by(simp add: one_enat_def iSuc_enat[symmetric] zero_enat_def[symmetric])
+lemma eSuc_minus_1 [simp]: "eSuc n - 1 = n"
+  by (simp add: one_enat_def eSuc_enat[symmetric] zero_enat_def[symmetric])
 
 (*lemmas idiff_self_eq_0_enat = idiff_self_eq_0[unfolded zero_enat_def]*)
 
@@ -378,58 +378,58 @@ lemma i0_lb [simp]: "(0\<Colon>enat) \<le> n"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
 
 lemma ile0_eq [simp]: "n \<le> (0\<Colon>enat) \<longleftrightarrow> n = 0"
-by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
-
-lemma Infty_ileE [elim!]: "\<infinity> \<le> enat m \<Longrightarrow> R"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
 
-lemma Infty_ilessE [elim!]: "\<infinity> < enat m \<Longrightarrow> R"
+lemma infinity_ileE [elim!]: "\<infinity> \<le> enat m \<Longrightarrow> R"
+  by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
+
+lemma infinity_ilessE [elim!]: "\<infinity> < enat m \<Longrightarrow> R"
   by simp
 
 lemma not_iless0 [simp]: "\<not> n < (0\<Colon>enat)"
   by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
 lemma i0_less [simp]: "(0\<Colon>enat) < n \<longleftrightarrow> n \<noteq> 0"
-by (simp add: zero_enat_def less_enat_def split: enat.splits)
+  by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
-lemma iSuc_ile_mono [simp]: "iSuc n \<le> iSuc m \<longleftrightarrow> n \<le> m"
-  by (simp add: iSuc_def less_eq_enat_def split: enat.splits)
+lemma eSuc_ile_mono [simp]: "eSuc n \<le> eSuc m \<longleftrightarrow> n \<le> m"
+  by (simp add: eSuc_def less_eq_enat_def split: enat.splits)
  
-lemma iSuc_mono [simp]: "iSuc n < iSuc m \<longleftrightarrow> n < m"
-  by (simp add: iSuc_def less_enat_def split: enat.splits)
+lemma eSuc_mono [simp]: "eSuc n < eSuc m \<longleftrightarrow> n < m"
+  by (simp add: eSuc_def less_enat_def split: enat.splits)
 
-lemma ile_iSuc [simp]: "n \<le> iSuc n"
-  by (simp add: iSuc_def less_eq_enat_def split: enat.splits)
+lemma ile_eSuc [simp]: "n \<le> eSuc n"
+  by (simp add: eSuc_def less_eq_enat_def split: enat.splits)
 
-lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"
-  by (simp add: zero_enat_def iSuc_def less_eq_enat_def split: enat.splits)
+lemma not_eSuc_ilei0 [simp]: "\<not> eSuc n \<le> 0"
+  by (simp add: zero_enat_def eSuc_def less_eq_enat_def split: enat.splits)
 
-lemma i0_iless_iSuc [simp]: "0 < iSuc n"
-  by (simp add: zero_enat_def iSuc_def less_enat_def split: enat.splits)
+lemma i0_iless_eSuc [simp]: "0 < eSuc n"
+  by (simp add: zero_enat_def eSuc_def less_enat_def split: enat.splits)
 
-lemma iless_iSuc0[simp]: "(n < iSuc 0) = (n = 0)"
-by (simp add: zero_enat_def iSuc_def less_enat_def split: enat.split)
+lemma iless_eSuc0[simp]: "(n < eSuc 0) = (n = 0)"
+  by (simp add: zero_enat_def eSuc_def less_enat_def split: enat.split)
 
-lemma ileI1: "m < n \<Longrightarrow> iSuc m \<le> n"
-  by (simp add: iSuc_def less_eq_enat_def less_enat_def split: enat.splits)
+lemma ileI1: "m < n \<Longrightarrow> eSuc m \<le> n"
+  by (simp add: eSuc_def less_eq_enat_def less_enat_def split: enat.splits)
 
 lemma Suc_ile_eq: "enat (Suc m) \<le> n \<longleftrightarrow> enat m < n"
   by (cases n) auto
 
-lemma iless_Suc_eq [simp]: "enat m < iSuc n \<longleftrightarrow> enat m \<le> n"
-  by (auto simp add: iSuc_def less_enat_def split: enat.splits)
+lemma iless_Suc_eq [simp]: "enat m < eSuc n \<longleftrightarrow> enat m \<le> n"
+  by (auto simp add: eSuc_def less_enat_def split: enat.splits)
 
-lemma imult_Infty: "(0::enat) < n \<Longrightarrow> \<infinity> * n = \<infinity>"
-by (simp add: zero_enat_def less_enat_def split: enat.splits)
+lemma imult_infinity: "(0::enat) < n \<Longrightarrow> \<infinity> * n = \<infinity>"
+  by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
-lemma imult_Infty_right: "(0::enat) < n \<Longrightarrow> n * \<infinity> = \<infinity>"
-by (simp add: zero_enat_def less_enat_def split: enat.splits)
+lemma imult_infinity_right: "(0::enat) < n \<Longrightarrow> n * \<infinity> = \<infinity>"
+  by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
 lemma enat_0_less_mult_iff: "(0 < (m::enat) * n) = (0 < m \<and> 0 < n)"
-by (simp only: i0_less imult_is_0, simp)
+  by (simp only: i0_less imult_is_0, simp)
 
-lemma mono_iSuc: "mono iSuc"
-by(simp add: mono_def)
+lemma mono_eSuc: "mono eSuc"
+  by (simp add: mono_def)
 
 
 lemma min_enat_simps [simp]:
@@ -462,7 +462,7 @@ apply (erule exE)
 apply (drule spec)
 apply (erule exE)
 apply (drule ileI1)
-apply (rule iSuc_enat [THEN subst])
+apply (rule eSuc_enat [THEN subst])
 apply (rule exI)
 apply (erule (1) le_less_trans)
 done
@@ -500,7 +500,7 @@ lemma less_enatE:
   "[| n < enat m; !!k. n = enat k ==> k < m ==> P |] ==> P"
 by (induct n) auto
 
-lemma less_InftyE:
+lemma less_infinityE:
   "[| n < \<infinity>; !!k. n = enat k ==> P |] ==> P"
 by (induct n) auto
 
@@ -519,7 +519,7 @@ proof -
   next
     show "P \<infinity>"
       apply (rule prem, clarify)
-      apply (erule less_InftyE)
+      apply (erule less_infinityE)
       apply (simp add: P_enat)
       done
   qed
@@ -568,7 +568,7 @@ instance enat :: complete_linorder ..
 
 subsection {* Traditional theorem names *}
 
-lemmas enat_defs = zero_enat_def one_enat_def number_of_enat_def iSuc_def
+lemmas enat_defs = zero_enat_def one_enat_def number_of_enat_def eSuc_def
   plus_enat_def less_eq_enat_def less_enat_def
 
 end

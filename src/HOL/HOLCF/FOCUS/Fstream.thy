@@ -140,7 +140,7 @@ by (simp add: fscons_def)
 
 section "slen"
 
-lemma slen_fscons: "#(m~> s) = iSuc (#s)"
+lemma slen_fscons: "#(m~> s) = eSuc (#s)"
 by (simp add: fscons_def)
 
 lemma slen_fscons_eq:
