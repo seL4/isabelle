@@ -1962,10 +1962,6 @@ code_const undefined
 
 subsubsection {* Evaluation and normalization by evaluation *}
 
-setup {*
-  Value.add_evaluator ("SML", Codegen.eval_term)
-*}
-
 ML {*
 fun gen_eval_method conv ctxt = SIMPLE_METHOD'
   (CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 (conv ctxt))) ctxt)
