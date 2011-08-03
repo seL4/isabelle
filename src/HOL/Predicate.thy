@@ -431,7 +431,7 @@ lemma eq_mem [simp]:
   "x \<in> (op =) y \<longleftrightarrow> x = y"
   by (auto simp add: mem_def)
 
-instantiation pred :: (type) "{complete_lattice, boolean_algebra}"
+instantiation pred :: (type) complete_boolean_algebra
 begin
 
 definition
