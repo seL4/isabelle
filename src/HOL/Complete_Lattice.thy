@@ -184,10 +184,10 @@ proof -
 qed
 
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  INF_def: "INFI A f = \<Sqinter> (f ` A)"
+  INF_def: "INFI A f = \<Sqinter>(f ` A)"
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  SUP_def: "SUPR A f = \<Squnion> (f ` A)"
+  SUP_def: "SUPR A f = \<Squnion>(f ` A)"
 
 text {*
   Note: must use names @{const INFI} and @{const SUPR} here instead of
@@ -390,6 +390,26 @@ lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
   by (simp add: UNIV_bool SUP_empty SUP_insert sup_commute)
 
+lemma INF_foundation_dual [no_atp]:
+  "complete_lattice.SUPR Inf = INFI"
+proof (rule ext)+
+  interpret dual: complete_lattice Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+    by (fact dual_complete_lattice)
+  fix f :: "'b \<Rightarrow> 'a" and A
+  show "complete_lattice.SUPR Inf A f = (\<Sqinter>a\<in>A. f a)"
+    by (simp only: dual.SUP_def INF_def)
+qed
+
+lemma SUP_foundation_dual [no_atp]:
+  "complete_lattice.INFI Sup = SUPR"
+proof (rule ext)+
+  interpret dual: complete_lattice Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+    by (fact dual_complete_lattice)
+  fix f :: "'b \<Rightarrow> 'a" and A
+  show "complete_lattice.INFI Sup A f = (\<Squnion>a\<in>A. f a)"
+    by (simp only: dual.INF_def SUP_def)
+qed
+
 end
 
 class complete_distrib_lattice = complete_lattice +
@@ -397,12 +417,13 @@ class complete_distrib_lattice = complete_lattice +
   assumes sup_Inf: "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
 begin
 
-(*lemma dual_complete_distrib_lattice:
+lemma dual_complete_distrib_lattice:
   "class.complete_distrib_lattice Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
   apply (rule class.complete_distrib_lattice.intro)
   apply (fact dual_complete_lattice)
   apply (rule class.complete_distrib_lattice_axioms.intro)
-  apply (simp_all add: inf_Sup sup_Inf)*)
+  apply (simp_all only: INF_foundation_dual SUP_foundation_dual inf_Sup sup_Inf)
+  done
 
 subclass distrib_lattice proof -- {* Question: is it sufficient to include @{class distrib_lattice}
   and prove @{text inf_Sup} and @{text sup_Inf} from that? *}
@@ -413,13 +434,12 @@ qed
 
 end
 
-class complete_boolean_algebra = boolean_algebra + complete_lattice -- {* Question: is this
-  also a @{class complete_distrib_lattice}? *}
+class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
 begin
 
 lemma dual_complete_boolean_algebra:
   "class.complete_boolean_algebra Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
-  by (rule class.complete_boolean_algebra.intro, rule dual_complete_lattice, rule dual_boolean_algebra)
+  by (rule class.complete_boolean_algebra.intro, rule dual_complete_distrib_lattice, rule dual_boolean_algebra)
 
 lemma uminus_Inf:
   "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
@@ -543,7 +563,7 @@ proof (rule ext)+
     by (auto simp add: Bex_def SUP_def Sup_bool_def)
 qed
 
-instance bool :: "{complete_distrib_lattice, complete_boolean_algebra}" proof
+instance bool :: complete_boolean_algebra proof
 qed (auto simp add: Inf_bool_def Sup_bool_def)
 
 instantiation "fun" :: (type, complete_lattice) complete_lattice
@@ -1024,7 +1044,7 @@ lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
 subsection {* Distributive laws *}
 
 lemma Int_Union: "A \<inter> \<Union>B = (\<Union>C\<in>B. A \<inter> C)"
-  by blast
+  by (fact inf_Sup)
 
 lemma Int_Union2: "\<Union>B \<inter> A = (\<Union>C\<in>B. C \<inter> A)"
   by blast
@@ -1039,7 +1059,7 @@ lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A 
   by blast
 
 lemma Un_Inter: "A \<union> \<Inter>B = (\<Inter>C\<in>B. A \<union> C)"
-  by blast
+  by (fact sup_Inf)
 
 lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)"
   by blast
@@ -1078,9 +1098,9 @@ text {* \medskip Miniscoping: pushing in quantifiers and big Unions
 
 lemma UN_simps [simp]:
   "\<And>a B C. (\<Union>x\<in>C. insert a (B x)) = (if C={} then {} else insert a (\<Union>x\<in>C. B x))"
-  "\<And>A B C. (\<Union>x\<in>C. A x \<union>  B) = ((if C={} then {} else (\<Union>x\<in>C. A x) \<union> B))"
+  "\<And>A B C. (\<Union>x\<in>C. A x \<union> B) = ((if C={} then {} else (\<Union>x\<in>C. A x) \<union> B))"
   "\<And>A B C. (\<Union>x\<in>C. A \<union> B x) = ((if C={} then {} else A \<union> (\<Union>x\<in>C. B x)))"
-  "\<And>A B C. (\<Union>x\<in>C. A x \<inter> B) = ((\<Union>x\<in>C. A x) \<inter>B)"
+  "\<And>A B C. (\<Union>x\<in>C. A x \<inter> B) = ((\<Union>x\<in>C. A x) \<inter> B)"
   "\<And>A B C. (\<Union>x\<in>C. A \<inter> B x) = (A \<inter>(\<Union>x\<in>C. B x))"
   "\<And>A B C. (\<Union>x\<in>C. A x - B) = ((\<Union>x\<in>C. A x) - B)"
   "\<And>A B C. (\<Union>x\<in>C. A - B x) = (A - (\<Inter>x\<in>C. B x))"
@@ -1090,7 +1110,7 @@ lemma UN_simps [simp]:
   by auto
 
 lemma INT_simps [simp]:
-  "\<And>A B C. (\<Inter>x\<in>C. A x \<inter> B) = (if C={} then UNIV else (\<Inter>x\<in>C. A x) \<inter>B)"
+  "\<And>A B C. (\<Inter>x\<in>C. A x \<inter> B) = (if C={} then UNIV else (\<Inter>x\<in>C. A x) \<inter> B)"
   "\<And>A B C. (\<Inter>x\<in>C. A \<inter> B x) = (if C={} then UNIV else A \<inter>(\<Inter>x\<in>C. B x))"
   "\<And>A B C. (\<Inter>x\<in>C. A x - B) = (if C={} then UNIV else (\<Inter>x\<in>C. A x) - B)"
   "\<And>A B C. (\<Inter>x\<in>C. A - B x) = (if C={} then UNIV else A - (\<Union>x\<in>C. B x))"
@@ -1114,7 +1134,7 @@ text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}
 
 lemma UN_extend_simps:
   "\<And>a B C. insert a (\<Union>x\<in>C. B x) = (if C={} then {a} else (\<Union>x\<in>C. insert a (B x)))"
-  "\<And>A B C. (\<Union>x\<in>C. A x) \<union>  B  = (if C={} then B else (\<Union>x\<in>C. A x \<union>  B))"
+  "\<And>A B C. (\<Union>x\<in>C. A x) \<union> B = (if C={} then B else (\<Union>x\<in>C. A x \<union> B))"
   "\<And>A B C. A \<union> (\<Union>x\<in>C. B x) = (if C={} then A else (\<Union>x\<in>C. A \<union> B x))"
   "\<And>A B C. ((\<Union>x\<in>C. A x) \<inter> B) = (\<Union>x\<in>C. A x \<inter> B)"
   "\<And>A B C. (A \<inter> (\<Union>x\<in>C. B x)) = (\<Union>x\<in>C. A \<inter> B x)"
