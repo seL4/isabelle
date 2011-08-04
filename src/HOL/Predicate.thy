@@ -431,7 +431,7 @@ lemma eq_mem [simp]:
   "x \<in> (op =) y \<longleftrightarrow> x = y"
   by (auto simp add: mem_def)
 
-instantiation pred :: (type) complete_boolean_algebra
+instantiation pred :: (type) complete_lattice
 begin
 
 definition
@@ -482,6 +482,22 @@ lemma eval_Sup [simp]:
   "eval (\<Squnion>A) = SUPR A eval"
   by (simp add: Sup_pred_def)
 
+instance proof
+qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def)
+
+end
+
+lemma eval_INFI [simp]:
+  "eval (INFI A f) = INFI A (eval \<circ> f)"
+  by (unfold INFI_def) simp
+
+lemma eval_SUPR [simp]:
+  "eval (SUPR A f) = SUPR A (eval \<circ> f)"
+  by (unfold SUPR_def) simp
+
+instantiation pred :: (type) complete_boolean_algebra
+begin
+
 definition
   "- P = Pred (- eval P)"
 
@@ -497,17 +513,9 @@ lemma eval_minus [simp]:
   by (simp add: minus_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def uminus_apply minus_apply)
+qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply)
 
 end
-
-lemma eval_INFI [simp]:
-  "eval (INFI A f) = INFI A (eval \<circ> f)"
-  by (unfold INFI_def) simp
-
-lemma eval_SUPR [simp]:
-  "eval (SUPR A f) = SUPR A (eval \<circ> f)"
-  by (unfold SUPR_def) simp
 
 definition single :: "'a \<Rightarrow> 'a pred" where
   "single x = Pred ((op =) x)"
