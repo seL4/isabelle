@@ -23,40 +23,25 @@ value "aval (Plus (V ''x'') (N 5)) ((%x. 0) (''x'':= 7))"
 
 text {* A little syntax magic to write larger states compactly: *}
 
-nonterminal funlets and funlet
-
-syntax
-  "_funlet"  :: "['a, 'a] => funlet"             ("_ /->/ _")
-   ""         :: "funlet => funlets"             ("_")
-  "_Funlets" :: "[funlet, funlets] => funlets"   ("_,/ _")
-  "_Fun"     :: "funlets => 'a => 'b"            ("(1[_])")
-  "_FunUpd"  :: "['a => 'b, funlets] => 'a => 'b" ("_/'(_')" [900,0]900)
-
-syntax (xsymbols)
-  "_funlet"  :: "['a, 'a] => funlet"             ("_ /\<rightarrow>/ _")
-
 definition
   "null_heap \<equiv> \<lambda>x. 0"
-
+syntax 
+  "_State" :: "updbinds => 'a" ("<_>")
 translations
-  "_FunUpd m (_Funlets xy ms)"  == "_FunUpd (_FunUpd m xy) ms"
-  "_FunUpd m (_funlet  x y)"    == "m(x := y)"
-  "_Fun ms"                     == "_FunUpd (CONST null_heap) ms"
-  "_Fun (_Funlets ms1 ms2)"     <= "_FunUpd (_Fun ms1) ms2"
-  "_Funlets ms1 (_Funlets ms2 ms3)" <= "_Funlets (_Funlets ms1 ms2) ms3"
+  "_State ms" => "_Update (CONST null_heap) ms"
 
 text {* 
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
 *}
-lemma "[a \<rightarrow> Suc 0, b \<rightarrow> 2] = (null_heap (a := Suc 0)) (b := 2)"
+lemma "<a := Suc 0, b := 2> = (null_heap (a := Suc 0)) (b := 2)"
   by (rule refl)
 
-value "aval (Plus (V ''x'') (N 5)) [''x'' \<rightarrow> 7]"
+value "aval (Plus (V ''x'') (N 5)) <''x'' := 7>"
 
 text {* Variables that are not mentioned in the state are 0 by default in 
-  the @{term "[a \<rightarrow> b::int]"} syntax: 
+  the @{term "<a := b::int>"} syntax: 
 *}   
-value "aval (Plus (V ''x'') (N 5)) [''y'' \<rightarrow> 7]"
+value "aval (Plus (V ''x'') (N 5)) <''y'' := 7>"
 
 
 subsection "Optimization"

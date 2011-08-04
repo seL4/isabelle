@@ -88,7 +88,7 @@ code_pred exec by force
 values
   "{(i,map t [''x'',''y''],stk) | i t stk.
     [LOAD ''y'', STORE ''x''] \<turnstile>
-    (0, [''x'' \<rightarrow> 3, ''y'' \<rightarrow> 4], []) \<rightarrow>* (i,t,stk)}"
+    (0, <''x'' := 3, ''y'' := 4>, []) \<rightarrow>* (i,t,stk)}"
 
 
 subsection{* Verification infrastructure *}
@@ -112,7 +112,7 @@ lemma iexec1_simps [simp]:
   "ADD \<turnstile>i c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s, (hd2 stk + hd stk) # tl2 stk))"
   "STORE x \<turnstile>i c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s(x \<rightarrow> hd stk), tl stk))"
+  (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s(x := hd stk), tl stk))"
   "JMP n \<turnstile>i c \<rightarrow> c' = (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1 + n, s, stk))"
    "JMPFLESS n \<turnstile>i c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i, s, stk) \<and> 
