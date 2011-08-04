@@ -405,7 +405,7 @@ begin
   apply (simp_all add: inf_Sup sup_Inf)*)
 
 subclass distrib_lattice proof -- {* Question: is it sufficient to include @{class distrib_lattice}
-  and proof @{fact inf_Sup} and @{fact sup_Inf} from that? *}
+  and proof @{text inf_Sup} and @{text sup_Inf} from that? *}
   fix a b c
   from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
   then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_binary)
