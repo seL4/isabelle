@@ -67,6 +67,7 @@ uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 generalized theorems INF_cong and SUP_cong.  New type classes for complete
 boolean algebras and complete linear orders.  Lemmas Inf_less_iff,
 less_Sup_iff, INF_less_iff, less_SUP_iff now reside in class complete_linorder.
+Changes proposition of lemmas Inf_fun_def, Sup_fun_def, Inf_apply, Sup_apply.
 More consistent and less misunderstandable names:
   INFI_def ~> INF_def
   SUPR_def ~> SUP_def

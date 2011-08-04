@@ -392,7 +392,29 @@ lemma SUP_UNIV_bool_expand:
 
 end
 
-class complete_boolean_algebra = boolean_algebra + complete_lattice
+class complete_distrib_lattice = complete_lattice +
+  assumes inf_Sup: "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
+  assumes sup_Inf: "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
+begin
+
+(*lemma dual_complete_distrib_lattice:
+  "class.complete_distrib_lattice Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  apply (rule class.complete_distrib_lattice.intro)
+  apply (fact dual_complete_lattice)
+  apply (rule class.complete_distrib_lattice_axioms.intro)
+  apply (simp_all add: inf_Sup sup_Inf)*)
+
+subclass distrib_lattice proof -- {* Question: is it sufficient to include @{class distrib_lattice}
+  and prove @{text inf_Sup} and @{text sup_Inf} from that? *}
+  fix a b c
+  from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
+  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_binary)
+qed
+
+end
+
+class complete_boolean_algebra = boolean_algebra + complete_lattice -- {* Question: is this
+  also a @{class complete_distrib_lattice}? *}
 begin
 
 lemma dual_complete_boolean_algebra:
@@ -489,7 +511,7 @@ end
 
 subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
 
-instantiation bool :: complete_boolean_algebra
+instantiation bool :: complete_lattice
 begin
 
 definition
@@ -521,26 +543,28 @@ proof (rule ext)+
     by (auto simp add: Bex_def SUP_def Sup_bool_def)
 qed
 
+instance bool :: "{complete_distrib_lattice, complete_boolean_algebra}" proof
+qed (auto simp add: Inf_bool_def Sup_bool_def)
+
 instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
 
 definition
-  "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+  "\<Sqinter>A = (\<lambda>x. \<Sqinter>f\<in>A. f x)"
 
 lemma Inf_apply:
-  "(\<Sqinter>A) x = \<Sqinter>{y. \<exists>f\<in>A. y = f x}"
+  "(\<Sqinter>A) x = (\<Sqinter>f\<in>A. f x)"
   by (simp add: Inf_fun_def)
 
 definition
-  "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+  "\<Squnion>A = (\<lambda>x. \<Squnion>f\<in>A. f x)"
 
 lemma Sup_apply:
-  "(\<Squnion>A) x = \<Squnion>{y. \<exists>f\<in>A. y = f x}"
+  "(\<Squnion>A) x = (\<Squnion>f\<in>A. f x)"
   by (simp add: Sup_fun_def)
 
 instance proof
-qed (auto simp add: le_fun_def Inf_apply Sup_apply
-  intro: Inf_lower Sup_upper Inf_greatest Sup_least)
+qed (auto simp add: le_fun_def Inf_apply Sup_apply intro: INF_leI le_SUP_I le_INF_I SUP_leI)
 
 end
 
@@ -551,6 +575,9 @@ lemma INF_apply:
 lemma SUP_apply:
   "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
   by (auto intro: arg_cong [of _ _ Sup] simp add: SUP_def Sup_apply)
+
+instance "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice proof
+qed (auto simp add: inf_apply sup_apply Inf_apply Sup_apply INF_def SUP_def inf_Sup sup_Inf image_image)
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
