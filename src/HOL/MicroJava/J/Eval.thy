@@ -189,4 +189,55 @@ apply (drule eval_evals_exec_xcpt [THEN conjunct2, THEN conjunct2, THEN mp])
 apply (fast)
 done
 
+
+lemma eval_LAcc_code: "G\<turnstile>Norm (h, l) -LAcc v\<succ>the (l v)-> Norm (h, l)"
+using LAcc[of G "(h, l)" v] by simp
+
+lemma eval_Call_code:
+  "[| G\<turnstile>Norm s0 -e\<succ>a'-> s1; a = the_Addr a';
+      G\<turnstile>s1 -ps[\<succ>]pvs-> (x,(h,l)); dynT = fst (the (h a));
+      (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
+      G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs)(This\<mapsto>a'))) -blk-> s3;
+      G\<turnstile> s3 -res\<succ>v -> (x4,(h4, l4)) |] ==>
+   G\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\<succ>v-> (x4,(h4,l))"
+using Call[of G s0 e a' s1 a ps pvs x h l dynT md rT pns lvars blk res mn pTs s3 v x4 "(h4, l4)" C]
+by simp
+
+lemmas [code_pred_intro] = XcptE NewC Cast Lit BinOp
+lemmas [code_pred_intro LAcc_code] = eval_LAcc_code
+lemmas [code_pred_intro] = LAss FAcc FAss
+lemmas [code_pred_intro Call_code] = eval_Call_code
+lemmas [code_pred_intro] = XcptEs Nil Cons XcptS Skip Expr Comp Cond LoopF 
+lemmas [code_pred_intro LoopT_code] = LoopT
+
+code_pred
+  (modes: 
+    eval: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> o \<Rightarrow> bool
+  and
+    evals: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> o \<Rightarrow> bool
+  and
+    exec: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool)
+  eval
+proof -
+  case eval
+  from eval.prems show thesis
+  proof(cases (no_simp))
+    case LAcc with LAcc_code show ?thesis by auto
+  next
+    case (Call a b c d e f g h i j k l m n o p q r s t u v s4)
+    with Call_code show ?thesis
+      by(cases "s4")(simp, (erule meta_allE meta_impE|rule conjI refl| assumption)+)
+  qed(erule (3) that[OF refl]|assumption)+
+next
+  case evals
+  from evals.prems show thesis
+    by(cases (no_simp))(erule (3) that[OF refl]|assumption)+
+next
+  case exec
+  from exec.prems show thesis
+  proof(cases (no_simp))
+    case LoopT thus ?thesis by(rule LoopT_code[OF refl])
+  qed(erule (2) that[OF refl]|assumption)+
+qed
+
 end

@@ -11,15 +11,19 @@ begin
 declare [[syntax_ambiguity_level = 100000]]
 
 consts
-  list_name :: cname
+  list_nam :: cnam
   append_name :: mname
-  val_nam :: vnam
-  next_nam :: vnam
-  l_nam :: vnam
-  l1_nam :: vnam
-  l2_nam :: vnam
-  l3_nam :: vnam
-  l4_nam :: vnam
+
+axiomatization val_nam next_nam l_nam l1_nam l2_nam l3_nam l4_nam :: vnam
+where distinct_fields: "val_name \<noteq> next_name"
+  and distinct_vars:
+  "l_nam \<noteq> l1_nam" "l_nam \<noteq> l2_nam" "l_nam \<noteq> l3_nam" "l_nam \<noteq> l4_nam"
+  "l1_nam \<noteq> l2_nam" "l1_nam \<noteq> l3_nam" "l1_nam \<noteq> l4_nam"
+  "l2_nam \<noteq> l3_nam" "l2_nam \<noteq> l4_nam"
+  "l3_nam \<noteq> l4_nam"
+
+definition list_name :: cname where
+  "list_name = Cname list_nam"
 
 definition val_name :: vname where
   "val_name == VName val_nam"
@@ -58,71 +62,119 @@ definition list_class :: "java_mb class" where
 definition example_prg :: "java_mb prog" where
   "example_prg == [ObjectC, (list_name, list_class)]"
 
-types_code
-  cname ("string")
-  vnam ("string")
-  mname ("string")
-  loc' ("int")
+code_datatype list_nam
+lemma equal_cnam_code [code]:
+  "HOL.equal list_nam list_nam \<longleftrightarrow> True"
+  by(simp add: equal_cnam_def)
 
-consts_code
-  "new_Addr" ("\<module>new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *} {* Loc *}")
-attach {*
-fun new_addr p none loc hp =
-  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
-  in nr 0 end;
-*}
+code_datatype append_name
+lemma equal_mname_code [code]:
+  "HOL.equal append_name append_name \<longleftrightarrow> True"
+  by(simp add: equal_mname_def)
 
-  "undefined" ("(raise Match)")
-  "undefined :: val" ("{* Unit *}")
-  "undefined :: cname" ("\"\"")
+code_datatype val_nam next_nam l_nam l1_nam l2_nam l3_nam l4_nam 
+lemma equal_vnam_code [code]: 
+  "HOL.equal val_nam val_nam \<longleftrightarrow> True"
+  "HOL.equal next_nam next_nam \<longleftrightarrow> True"
+  "HOL.equal l_nam l_nam \<longleftrightarrow> True"
+  "HOL.equal l1_nam l1_nam \<longleftrightarrow> True"
+  "HOL.equal l2_nam l2_nam \<longleftrightarrow> True"
+  "HOL.equal l3_nam l3_nam \<longleftrightarrow> True"
+  "HOL.equal l4_nam l4_nam \<longleftrightarrow> True"
 
-  "Object" ("\"Object\"")
-  "list_name" ("\"list\"")
-  "append_name" ("\"append\"")
-  "val_nam" ("\"val\"")
-  "next_nam" ("\"next\"")
-  "l_nam" ("\"l\"")
-  "l1_nam" ("\"l1\"")
-  "l2_nam" ("\"l2\"")
-  "l3_nam" ("\"l3\"")
-  "l4_nam" ("\"l4\"")
+  "HOL.equal val_nam next_nam \<longleftrightarrow> False"
+  "HOL.equal next_nam val_nam \<longleftrightarrow> False"
 
-code_module J
-contains
-  test = "example_prg\<turnstile>Norm (empty, empty)
-    -(Expr (l1_name::=NewC list_name);;
-      Expr ({list_name}(LAcc l1_name)..val_name:=Lit (Intg 1));;
-      Expr (l2_name::=NewC list_name);;
-      Expr ({list_name}(LAcc l2_name)..val_name:=Lit (Intg 2));;
-      Expr (l3_name::=NewC list_name);;
-      Expr ({list_name}(LAcc l3_name)..val_name:=Lit (Intg 3));;
-      Expr (l4_name::=NewC list_name);;
-      Expr ({list_name}(LAcc l4_name)..val_name:=Lit (Intg 4));;
-      Expr ({list_name}(LAcc l1_name)..
-        append_name({[RefT (ClassT list_name)]}[LAcc l2_name]));;
-      Expr ({list_name}(LAcc l1_name)..
-        append_name({[RefT (ClassT list_name)]}[LAcc l3_name]));;
-      Expr ({list_name}(LAcc l1_name)..
-        append_name({[RefT (ClassT list_name)]}[LAcc l4_name])))-> _"
+  "HOL.equal l_nam l1_nam \<longleftrightarrow> False"
+  "HOL.equal l_nam l2_nam \<longleftrightarrow> False"
+  "HOL.equal l_nam l3_nam \<longleftrightarrow> False"
+  "HOL.equal l_nam l4_nam \<longleftrightarrow> False"
 
-section {* Big step execution *}
+  "HOL.equal l1_nam l_nam \<longleftrightarrow> False"
+  "HOL.equal l1_nam l2_nam \<longleftrightarrow> False"
+  "HOL.equal l1_nam l3_nam \<longleftrightarrow> False"
+  "HOL.equal l1_nam l4_nam \<longleftrightarrow> False"
 
-ML {*
+  "HOL.equal l2_nam l_nam \<longleftrightarrow> False"
+  "HOL.equal l2_nam l1_nam \<longleftrightarrow> False"
+  "HOL.equal l2_nam l3_nam \<longleftrightarrow> False"
+  "HOL.equal l2_nam l4_nam \<longleftrightarrow> False"
 
-val SOME ((_, (heap, locs)), _) = DSeq.pull J.test;
-locs J.l1_name;
-locs J.l2_name;
-locs J.l3_name;
-locs J.l4_name;
-snd (J.the (heap (J.Loc 0))) (J.val_name, "list");
-snd (J.the (heap (J.Loc 0))) (J.next_name, "list");
-snd (J.the (heap (J.Loc 1))) (J.val_name, "list");
-snd (J.the (heap (J.Loc 1))) (J.next_name, "list");
-snd (J.the (heap (J.Loc 2))) (J.val_name, "list");
-snd (J.the (heap (J.Loc 2))) (J.next_name, "list");
-snd (J.the (heap (J.Loc 3))) (J.val_name, "list");
-snd (J.the (heap (J.Loc 3))) (J.next_name, "list");
+  "HOL.equal l3_nam l_nam \<longleftrightarrow> False"
+  "HOL.equal l3_nam l1_nam \<longleftrightarrow> False"
+  "HOL.equal l3_nam l2_nam \<longleftrightarrow> False"
+  "HOL.equal l3_nam l4_nam \<longleftrightarrow> False"
 
+  "HOL.equal l4_nam l_nam \<longleftrightarrow> False"
+  "HOL.equal l4_nam l1_nam \<longleftrightarrow> False"
+  "HOL.equal l4_nam l2_nam \<longleftrightarrow> False"
+  "HOL.equal l4_nam l3_nam \<longleftrightarrow> False"
+  by(simp_all add: distinct_fields distinct_fields[symmetric] distinct_vars distinct_vars[symmetric] equal_vnam_def)
+
+axioms nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
+lemma equal_loc'_code [code]:
+  "HOL.equal (nat_to_loc' l) (nat_to_loc' l') \<longleftrightarrow> l = l'"
+  by(simp add: equal_loc'_def nat_to_loc'_inject)
+
+definition undefined_cname :: cname 
+  where [code del]: "undefined_cname = undefined"
+declare undefined_cname_def[symmetric, code_inline]
+code_datatype Object Xcpt Cname undefined_cname
+
+definition undefined_val :: val
+  where [code del]: "undefined_val = undefined"
+declare undefined_val_def[symmetric, code_inline]
+code_datatype Unit Null Bool Intg Addr undefined_val
+
+definition E where 
+  "E = Expr (l1_name::=NewC list_name);;
+       Expr ({list_name}(LAcc l1_name)..val_name:=Lit (Intg 1));;
+       Expr (l2_name::=NewC list_name);;
+       Expr ({list_name}(LAcc l2_name)..val_name:=Lit (Intg 2));;
+       Expr (l3_name::=NewC list_name);;
+       Expr ({list_name}(LAcc l3_name)..val_name:=Lit (Intg 3));;
+       Expr (l4_name::=NewC list_name);;
+       Expr ({list_name}(LAcc l4_name)..val_name:=Lit (Intg 4));;
+       Expr ({list_name}(LAcc l1_name)..
+         append_name({[RefT (ClassT list_name)]}[LAcc l2_name]));;
+       Expr ({list_name}(LAcc l1_name)..
+         append_name({[RefT (ClassT list_name)]}[LAcc l3_name]));;
+       Expr ({list_name}(LAcc l1_name)..
+         append_name({[RefT (ClassT list_name)]}[LAcc l4_name]))"
+
+definition test where
+  "test = Predicate.Pred (\<lambda>s. example_prg\<turnstile>Norm (empty, empty) -E-> s)"
+
+lemma test_code [code]:
+  "test = exec_i_i_i_o example_prg (Norm (empty, empty)) E"
+by(auto intro: exec_i_i_i_oI intro!: pred_eqI elim: exec_i_i_i_oE simp add: test_def)
+
+ML {* 
+  val SOME ((_, (heap, locs)), _) = Predicate.yield @{code test};
+  locs @{code l1_name};
+  locs @{code l2_name};
+  locs @{code l3_name};
+  locs @{code l4_name};
+
+  fun list_fields n = 
+    @{code snd} (@{code the} (heap (@{code Loc} (@{code "nat_to_loc'"} n))));
+  fun val_field n =
+    list_fields n (@{code val_name}, @{code "list_name"});
+  fun next_field n =
+    list_fields n (@{code next_name}, @{code "list_name"});
+  val Suc = @{code Suc};
+
+  val_field @{code "0 :: nat"};
+  next_field @{code "0 :: nat"};
+
+  val_field @{code "1 :: nat"};
+  next_field @{code "1 :: nat"};
+
+  val_field (Suc (Suc @{code "0 :: nat"}));
+  next_field (Suc (Suc @{code "0 :: nat"}));
+
+  val_field (Suc (Suc (Suc @{code "0 :: nat"})));
+  next_field (Suc (Suc (Suc @{code "0 :: nat"})));
 *}
 
 end
