@@ -8,13 +8,20 @@ theory JVMListExample
 imports "../J/SystemClasses" JVMExec
 begin
 
-consts
-  list_nam :: cnam
-  test_nam :: cnam
-  append_name :: mname
-  makelist_name :: mname
-  val_nam :: vnam
-  next_nam :: vnam
+text {*
+  Since the types @{typ cnam}, @{text vnam}, and @{text mname} are 
+  anonymous, we describe distinctness of names in the example by axioms:
+*}
+axiomatization list_nam test_nam :: cnam
+where distinct_classes: "list_nam \<noteq> test_nam"
+
+axiomatization append_name makelist_name :: mname
+where distinct_methods: "append_name \<noteq> makelist_name"
+
+axiomatization val_nam next_nam :: vnam
+where distinct_fields: "val_nam \<noteq> next_nam"
+
+axioms nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
 
 definition list_name :: cname where
   "list_name == Cname list_nam"
@@ -86,96 +93,103 @@ definition test_class :: "jvm_method class" where
 definition E :: jvm_prog where
   "E == SystemClasses @ [(list_name, list_class), (test_name, test_class)]"
 
+code_datatype list_nam test_nam
+lemma equal_cnam_code [code]:
+  "HOL.equal list_nam list_nam \<longleftrightarrow> True"
+  "HOL.equal test_nam test_nam \<longleftrightarrow> True"
+  "HOL.equal list_nam test_nam \<longleftrightarrow> False"
+  "HOL.equal test_nam list_nam \<longleftrightarrow> False"
+  by(simp_all add: distinct_classes distinct_classes[symmetric] equal_cnam_def)
 
-types_code
-  cnam ("string")
-  vnam ("string")
-  mname ("string")
-  loc' ("int")
+code_datatype append_name makelist_name
+lemma equal_mname_code [code]: 
+  "HOL.equal append_name append_name \<longleftrightarrow> True"
+  "HOL.equal makelist_name makelist_name \<longleftrightarrow> True"
+  "HOL.equal append_name makelist_name \<longleftrightarrow> False"
+  "HOL.equal makelist_name append_name \<longleftrightarrow> False"
+  by(simp_all add: distinct_methods distinct_methods[symmetric] equal_mname_def)
 
-consts_code
-  "new_Addr" ("\<module>new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}/ {* Loc *}")
-attach {*
-fun new_addr p none loc hp =
-  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
-  in nr 0 end;
-*}
+code_datatype val_nam next_nam
+lemma equal_vnam_code [code]: 
+  "HOL.equal val_nam val_nam \<longleftrightarrow> True"
+  "HOL.equal next_nam next_nam \<longleftrightarrow> True"
+  "HOL.equal val_nam next_nam \<longleftrightarrow> False"
+  "HOL.equal next_nam val_nam \<longleftrightarrow> False"
+  by(simp_all add: distinct_fields distinct_fields[symmetric] equal_vnam_def)
 
-  "undefined" ("(raise Match)")
-  "undefined :: val" ("{* Unit *}")
-  "undefined :: cname" ("{* Object *}")
 
-  "list_nam" ("\"list\"")
-  "test_nam" ("\"test\"")
-  "append_name" ("\"append\"")
-  "makelist_name" ("\"makelist\"")
-  "val_nam" ("\"val\"")
-  "next_nam" ("\"next\"")
+lemma equal_loc'_code [code]:
+  "HOL.equal (nat_to_loc' l) (nat_to_loc' l') \<longleftrightarrow> l = l'"
+  by(simp add: equal_loc'_def nat_to_loc'_inject)
+
+definition undefined_cname :: cname 
+  where [code del]: "undefined_cname = undefined"
+code_datatype Object Xcpt Cname undefined_cname
+declare undefined_cname_def[symmetric, code_inline]
+
+definition undefined_val :: val
+  where [code del]: "undefined_val = undefined"
+declare undefined_val_def[symmetric, code_inline]
+code_datatype Unit Null Bool Intg Addr undefined_val
 
 definition
   "test = exec (E, start_state E test_name makelist_name)"
 
-
-subsection {* Single step execution *}
-
-code_module JVM
-contains
-  exec = exec
-  test = test
-
-ML {* JVM.test *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
-ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {*
+  @{code test}; 
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+  @{code exec} (@{code E}, @{code the} it);
+*}
 
 end

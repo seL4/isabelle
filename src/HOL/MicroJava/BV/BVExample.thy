@@ -21,13 +21,6 @@ text {*
 *}
 
 section "Setup"
-text {*
-  Since the types @{typ cnam}, @{text vnam}, and @{text mname} are 
-  anonymous, we describe distinctness of names in the example by axioms:
-*}
-axioms 
-  distinct_classes: "list_nam \<noteq> test_nam"
-  distinct_fields:  "val_nam \<noteq> next_nam"
 
 text {* Abbreviations for definitions we will have to use often in the
 proofs below: *}
@@ -415,35 +408,45 @@ definition test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rig
     in  kiljvm G mxs (1+size pTs+mxl) rT et instr start)"
 
 lemma [code]:
-  "unstables r step ss = (UN p:{..<size ss}. if \<not>stable r step ss p then {p} else {})"
-  apply (unfold unstables_def)
-  apply (rule equalityI)
-  apply (rule subsetI)
-  apply (erule CollectE)
-  apply (erule conjE)
-  apply (rule UN_I)
-  apply simp
-  apply simp
-  apply (rule subsetI)
-  apply (erule UN_E)
-  apply (case_tac "\<not> stable r step ss p")
-  apply simp+
-  done
+  "unstables r step ss = 
+   foldr (\<lambda>p A. if \<not>stable r step ss p then insert p A else A) [0..<size ss] {}"
+proof -
+  have "unstables r step ss = (UN p:{..<size ss}. if \<not>stable r step ss p then {p} else {})"
+    apply (unfold unstables_def)
+    apply (rule equalityI)
+    apply (rule subsetI)
+    apply (erule CollectE)
+    apply (erule conjE)
+    apply (rule UN_I)
+    apply simp
+    apply simp
+    apply (rule subsetI)
+    apply (erule UN_E)
+    apply (case_tac "\<not> stable r step ss p")
+    apply simp+
+    done
+  also have "\<And>f. (UN p:{..<size ss}. f p) = Union (set (map f [0..<size ss]))" by auto
+  also note Sup_set_foldr also note foldr_map
+  also have "op \<union> \<circ> (\<lambda>p. if \<not> stable r step ss p then {p} else {}) = 
+            (\<lambda>p A. if \<not>stable r step ss p then insert p A else A)"
+    by(auto simp add: fun_eq_iff)
+  finally show ?thesis .
+qed
 
-definition some_elem :: "'a set \<Rightarrow> 'a" where
+definition some_elem :: "'a set \<Rightarrow> 'a" where [code del]:
   "some_elem = (%S. SOME x. x : S)"
-
-consts_code
-  "some_elem" ("(case/ _ of/ {*Set*}/ xs/ =>/ hd/ xs)")
+code_const some_elem
+  (SML "(case/ _ of/ Set/ xs/ =>/ hd/ xs)")
+setup {* Code.add_signature_cmd ("some_elem", "'a set \<Rightarrow> 'a") *}
 
 text {* This code setup is just a demonstration and \emph{not} sound! *}
 
 lemma False
 proof -
   have "some_elem (set [False, True]) = False"
-    by evaluation
+    by eval
   moreover have "some_elem (set [True, False]) = True"
-    by evaluation
+    by eval
   ultimately show False
     by (simp add: some_elem_def)
 qed
@@ -465,15 +468,35 @@ lemma JVM_sup_unfold [code]:
   by simp
 
 lemmas [code] = JType.sup_def [unfolded exec_lub_def] JVM_le_unfold
+lemmas [code] = lesub_def plussub_def
 
-lemmas [code_ind] = rtranclp.rtrancl_refl converse_rtranclp_into_rtranclp
+setup {*
+  Code.add_signature_cmd ("More_Set.is_empty", "'a set \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("propa", "('s \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set") 
+  #> Code.add_signature_cmd 
+     ("iter", "('s \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list) \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set")
+  #> Code.add_signature_cmd ("unstables", "('s \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list) \<Rightarrow> 's list \<Rightarrow> nat set") 
+*}
 
-code_module BV
-contains
-  test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
+definition [code del]: "mem2 = op :"
+lemma [code]: "mem2 x A = A x"
+  by(simp add: mem2_def mem_def)
+
+lemmas [folded mem2_def, code] =
+  JType.sup_def[unfolded exec_lub_def]
+  wf_class_code
+  widen.equation
+  match_exception_entry_def
+
+definition test1 where
+  "test1 = test_kil E list_name [Class list_name] (PrimT Void) 3 0
     [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
-  test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
-ML BV.test1
-ML BV.test2
+definition test2 where
+  "test2 = test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
+
+ML {* 
+  @{code test1}; 
+  @{code test2};
+*}
 
 end

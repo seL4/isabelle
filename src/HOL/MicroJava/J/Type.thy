@@ -8,6 +8,10 @@ header {* \isaheader{Java types} *}
 theory Type imports JBasis begin
 
 typedecl cnam 
+instantiation cnam :: equal begin
+definition "HOL.equal (cn :: cnam) cn' \<longleftrightarrow> cn = cn'"
+instance proof qed(simp add: equal_cnam_def)
+end
 
  -- "exceptions"
 datatype 
@@ -23,7 +27,16 @@ datatype cname
   | Cname cnam 
 
 typedecl vnam   -- "variable or field name"
+instantiation vnam :: equal begin
+definition "HOL.equal (vn :: vnam) vn' \<longleftrightarrow> vn = vn'"
+instance proof qed(simp add: equal_vnam_def)
+end
+
 typedecl mname  -- "method name"
+instantiation mname :: equal begin
+definition "HOL.equal (M :: mname) M' \<longleftrightarrow> M = M'"
+instance proof qed(simp add: equal_mname_def)
+end
 
 -- "names for @{text This} pointer and local/field variables"
 datatype vname 

@@ -13,18 +13,18 @@ text {*
 *}
 
 definition ObjectC :: "'c cdecl" where
-  "ObjectC \<equiv> (Object, (undefined,[],[]))"
+  [code_inline]: "ObjectC \<equiv> (Object, (undefined,[],[]))"
 
 definition NullPointerC :: "'c cdecl" where
-  "NullPointerC \<equiv> (Xcpt NullPointer, (Object,[],[]))"
+  [code_inline]: "NullPointerC \<equiv> (Xcpt NullPointer, (Object,[],[]))"
 
 definition ClassCastC :: "'c cdecl" where
-  "ClassCastC \<equiv> (Xcpt ClassCast, (Object,[],[]))"
+  [code_inline]: "ClassCastC \<equiv> (Xcpt ClassCast, (Object,[],[]))"
 
 definition OutOfMemoryC :: "'c cdecl" where
-  "OutOfMemoryC \<equiv> (Xcpt OutOfMemory, (Object,[],[]))"
+  [code_inline]: "OutOfMemoryC \<equiv> (Xcpt OutOfMemory, (Object,[],[]))"
 
 definition SystemClasses :: "'c cdecl list" where
-  "SystemClasses \<equiv> [ObjectC, NullPointerC, ClassCastC, OutOfMemoryC]"
+  [code_inline]: "SystemClasses \<equiv> [ObjectC, NullPointerC, ClassCastC, OutOfMemoryC]"
 
 end

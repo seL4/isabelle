@@ -52,8 +52,18 @@ abbreviation
 definition raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option" where
   "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
+text {* Make new_Addr completely specified (at least for the code generator) *}
+(*
 definition new_Addr  :: "aheap => loc \<times> val option" where
   "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"
+*)
+consts nat_to_loc' :: "nat => loc'"
+code_datatype nat_to_loc'
+definition new_Addr  :: "aheap => loc \<times> val option" where
+  "new_Addr h \<equiv> 
+   if \<exists>n. h (Loc (nat_to_loc' n)) = None 
+   then (Loc (nat_to_loc' (LEAST n. h (Loc (nat_to_loc' n)) = None)), None)
+   else (Loc (nat_to_loc' 0), Some (Addr (XcptRef OutOfMemory)))"
 
 definition np    :: "val => val option => val option" where
  "np v == raise_if (v = Null) NullPointer"
@@ -74,11 +84,8 @@ lemma new_AddrD: "new_Addr hp = (ref, xcp) \<Longrightarrow>
   hp ref = None \<and> xcp = None \<or> xcp = Some (Addr (XcptRef OutOfMemory))"
 apply (drule sym)
 apply (unfold new_Addr_def)
-apply(simp add: Pair_fst_snd_eq Eps_split)
-apply(rule someI)
-apply(rule disjI2)
-apply(rule_tac r = "snd (?a,Some (Addr (XcptRef OutOfMemory)))" in trans)
-apply auto
+apply (simp split: split_if_asm)
+apply (erule LeastI)
 done
 
 lemma raise_if_True [simp]: "raise_if True x y \<noteq> None"
@@ -149,5 +156,43 @@ done
 
 lemma c_hupd_fst [simp]: "fst (c_hupd h (x, s)) = x"
 by (simp add: c_hupd_def split_beta)
+
+text {* Naive implementation for @{term "new_Addr"} by exhaustive search *}
+
+definition gen_new_Addr :: "aheap => nat \<Rightarrow> loc \<times> val option" where
+  "gen_new_Addr h n \<equiv> 
+   if \<exists>a. a \<ge> n \<and> h (Loc (nat_to_loc' a)) = None 
+   then (Loc (nat_to_loc' (LEAST a. a \<ge> n \<and> h (Loc (nat_to_loc' a)) = None)), None)
+   else (Loc (nat_to_loc' 0), Some (Addr (XcptRef OutOfMemory)))"
+
+lemma new_Addr_code_code [code]:
+  "new_Addr h = gen_new_Addr h 0"
+by(simp only: new_Addr_def gen_new_Addr_def split: split_if) simp
+
+lemma gen_new_Addr_code [code]:
+  "gen_new_Addr h n = (if h (Loc (nat_to_loc' n)) = None then (Loc (nat_to_loc' n), None) else gen_new_Addr h (Suc n))"
+apply(simp add: gen_new_Addr_def)
+apply(rule impI)
+apply(rule conjI)
+ apply safe[1]
+  apply(auto intro: arg_cong[where f=nat_to_loc'] Least_equality)[1]
+ apply(rule arg_cong[where f=nat_to_loc'])
+ apply(rule arg_cong[where f=Least])
+ apply(rule ext)
+ apply(safe, simp_all)[1]
+ apply(rename_tac "n'")
+ apply(case_tac "n = n'", simp_all)[1]
+apply clarify
+apply(subgoal_tac "a = n")
+ apply(auto intro: Least_equality arg_cong[where f=nat_to_loc'])[1]
+apply(rule ccontr)
+apply(erule_tac x="a" in allE)
+apply simp
+done
+
+instantiation loc' :: equal begin
+definition "HOL.equal (l :: loc') l' \<longleftrightarrow> l = l'"
+instance proof qed(simp add: equal_loc'_def)
+end
 
 end

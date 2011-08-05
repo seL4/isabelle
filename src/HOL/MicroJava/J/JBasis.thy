@@ -7,7 +7,7 @@ header {*
   \isaheader{Some Auxiliary Definitions}
 *}
 
-theory JBasis imports Main begin 
+theory JBasis imports Main "~~/src/HOL/Library/Transitive_Closure_Table" begin 
 
 lemmas [simp] = Let_def
 

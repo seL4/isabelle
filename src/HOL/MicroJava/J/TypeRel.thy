@@ -77,22 +77,112 @@ definition
   "wf_class G = wf ((subcls1 G)^-1)"
 
 
-text {* Code generator setup (FIXME!) *}
 
-consts_code
-  "wfrec"   ("\<module>wfrec?")
-attach {*
-fun wfrec f x = f (wfrec f) x;
-*}
+text {* Code generator setup *}
+
+code_pred 
+  (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool)
+  subcls1p 
+  .
+declare subcls1_def[unfolded Collect_def, code_pred_def]
+code_pred 
+  (modes: i \<Rightarrow> i \<times> o \<Rightarrow> bool, i \<Rightarrow> i \<times> i \<Rightarrow> bool)
+  [inductify]
+  subcls1 
+  .
+
+definition subcls' where "subcls' G = (subcls1p G)^**"
+code_pred
+  (modes: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool)
+  [inductify]
+  subcls'
+.
+lemma subcls_conv_subcls' [code_inline]:
+  "(subcls1 G)^* = (\<lambda>(C, D). subcls' G C D)"
+by(simp add: subcls'_def subcls1_def rtrancl_def)(simp add: Collect_def)
+
+lemma class_rec_code [code]:
+  "class_rec G C t f = 
+  (if wf_class G then 
+    (case class G C of
+       None \<Rightarrow> class_rec G C t f
+     | Some (D, fs, ms) \<Rightarrow> 
+       if C = Object then f Object fs ms t else f C fs ms (class_rec G D t f))
+   else class_rec G C t f)"
+apply(cases "wf_class G")
+ apply(unfold class_rec_def wf_class_def)
+ apply(subst wfrec, assumption)
+ apply(cases "class G C")
+  apply(simp add: wfrec)
+ apply clarsimp
+ apply(rename_tac D fs ms)
+ apply(rule_tac f="f C fs ms" in arg_cong)
+ apply(clarsimp simp add: cut_def)
+ apply(blast intro: subcls1I)
+apply simp
+done
+
+lemma wf_class_code [code]:
+  "wf_class G \<longleftrightarrow> (\<forall>(C, rest) \<in> set G. C \<noteq> Object \<longrightarrow> \<not> G \<turnstile> fst (the (class G C)) \<preceq>C C)"
+proof
+  assume "wf_class G"
+  hence wf: "wf (((subcls1 G)^+)^-1)" unfolding wf_class_def by(rule wf_converse_trancl)
+  hence acyc: "acyclic ((subcls1 G)^+)" by(auto dest: wf_acyclic)
+  show "\<forall>(C, rest) \<in> set G. C \<noteq> Object \<longrightarrow> \<not> G \<turnstile> fst (the (class G C)) \<preceq>C C"
+  proof(safe)
+    fix C D fs ms
+    assume "(C, D, fs, ms) \<in> set G"
+      and "C \<noteq> Object"
+      and subcls: "G \<turnstile> fst (the (class G C)) \<preceq>C C"
+    from `(C, D, fs, ms) \<in> set G` obtain D' fs' ms'
+      where "class": "class G C = Some (D', fs', ms')"
+      unfolding class_def by(auto dest!: weak_map_of_SomeI)
+    hence "G \<turnstile> C \<prec>C1 D'" using `C \<noteq> Object` ..
+    hence "(C, D') \<in> (subcls1 G)^+" ..
+    also with acyc have "C \<noteq> D'" by(auto simp add: acyclic_def)
+    with subcls "class" have "(D', C) \<in> (subcls1 G)^+" by(auto dest: rtranclD)
+    finally show False using acyc by(auto simp add: acyclic_def)
+  qed
+next
+  assume rhs[rule_format]: "\<forall>(C, rest) \<in> set G. C \<noteq> Object \<longrightarrow> \<not> G \<turnstile> fst (the (class G C)) \<preceq>C C"
+  have "acyclic (subcls1 G)"
+  proof(intro acyclicI strip notI)
+    fix C
+    assume "(C, C) \<in> (subcls1 G)\<^sup>+"
+    thus False
+    proof(cases)
+      case base
+      then obtain rest where "class G C = Some (C, rest)"
+        and "C \<noteq> Object" by cases
+      from `class G C = Some (C, rest)` have "(C, C, rest) \<in> set G"
+        unfolding class_def by(rule map_of_SomeD)
+      with `C \<noteq> Object` `class G C = Some (C, rest)`
+      have "\<not> G \<turnstile> C \<preceq>C C" by(auto dest: rhs)
+      thus False by simp
+    next
+      case (step D)
+      from `G \<turnstile> D \<prec>C1 C` obtain rest where "class G D = Some (C, rest)"
+        and "D \<noteq> Object" by cases
+      from `class G D = Some (C, rest)` have "(D, C, rest) \<in> set G"
+        unfolding class_def by(rule map_of_SomeD)
+      with `D \<noteq> Object` `class G D = Some (C, rest)`
+      have "\<not> G \<turnstile> C \<preceq>C D" by(auto dest: rhs)
+      moreover from `(C, D) \<in> (subcls1 G)\<^sup>+`
+      have "G \<turnstile> C \<preceq>C D" by(rule trancl_into_rtrancl)
+      ultimately show False by contradiction
+    qed
+  qed
+  thus "wf_class G" unfolding wf_class_def
+    by(rule finite_acyclic_wf_converse[OF finite_subcls1])
+qed
 
 consts
-
   method :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)
   field  :: "'c prog \<times> cname => ( vname \<rightharpoonup> cname \<times> ty     )" (* ###curry *)
   fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
 
 -- "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
-defs method_def: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
+defs method_def [code]: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
 lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
@@ -106,7 +196,7 @@ done
 
 
 -- "list of fields of a class, including inherited and hidden ones"
-defs fields_def: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
+defs fields_def [code]: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
                            map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
 
 lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
@@ -119,7 +209,7 @@ apply auto
 done
 
 
-defs field_def: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
+defs field_def [code]: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
 lemma field_fields: 
 "field (G,C) fn = Some (fd, fT) \<Longrightarrow> map_of (fields (G,C)) (fn, fd) = Some fT"
@@ -137,6 +227,8 @@ where
   refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T"   -- "identity conv., cf. 5.1.1"
 | subcls         : "G\<turnstile>C\<preceq>C D ==> G\<turnstile>Class C \<preceq> Class D"
 | null   [intro!]:             "G\<turnstile>     NT \<preceq> RefT R"
+
+code_pred widen .
 
 lemmas refl = HOL.refl
 
