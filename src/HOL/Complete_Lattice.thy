@@ -330,6 +330,13 @@ lemma SUP_union:
   "(\<Squnion>i \<in> A \<union> B. M i) = (\<Squnion>i \<in> A. M i) \<squnion> (\<Squnion>i\<in>B. M i)"
   by (auto intro!: antisym SUP_mono intro: le_supI1 le_supI2 SUP_leI le_SUP_I)
 
+lemma INF_inf_distrib: "(\<Sqinter>a\<in>A. f a) \<sqinter> (\<Sqinter>a\<in>A. g a) = (\<Sqinter>a\<in>A. f a \<sqinter> g a)"
+  by (rule antisym) (rule le_INF_I, auto intro: le_infI1 le_infI2 INF_leI INF_mono)
+
+lemma SUP_sup_distrib: "(\<Squnion>a\<in>A. f a) \<squnion> (\<Squnion>a\<in>A. g a) = (\<Squnion>a\<in>A. f a \<squnion> g a)"
+  by (rule antisym) (auto intro: le_supI1 le_supI2 le_SUP_I SUP_mono,
+    rule SUP_leI, auto intro: le_supI1 le_supI2 le_SUP_I SUP_mono)
+
 lemma INF_constant:
   "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
   by (simp add: INF_empty)
@@ -413,9 +420,17 @@ qed
 end
 
 class complete_distrib_lattice = complete_lattice +
-  assumes inf_Sup: "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
   assumes sup_Inf: "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
+  assumes inf_Sup: "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
 begin
+
+lemma sup_INF:
+  "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<squnion> f b)"
+  by (simp add: INF_def sup_Inf image_image)
+
+lemma inf_SUP:
+  "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
+  by (simp add: SUP_def inf_Sup image_image)
 
 lemma dual_complete_distrib_lattice:
   "class.complete_distrib_lattice Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
@@ -431,6 +446,38 @@ subclass distrib_lattice proof -- {* Question: is it sufficient to include @{cla
   from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
   then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_binary)
 qed
+
+lemma Inf_sup:
+  "\<Sqinter>B \<squnion> a = (\<Sqinter>b\<in>B. b \<squnion> a)"
+  by (simp add: sup_Inf sup_commute)
+
+lemma Sup_inf:
+  "\<Squnion>B \<sqinter> a = (\<Squnion>b\<in>B. b \<sqinter> a)"
+  by (simp add: inf_Sup inf_commute)
+
+lemma INF_sup: 
+  "(\<Sqinter>b\<in>B. f b) \<squnion> a = (\<Sqinter>b\<in>B. f b \<squnion> a)"
+  by (simp add: sup_INF sup_commute)
+
+lemma SUP_inf:
+  "(\<Squnion>b\<in>B. f b) \<sqinter> a = (\<Squnion>b\<in>B. f b \<sqinter> a)"
+  by (simp add: inf_SUP inf_commute)
+
+lemma Inf_sup_eq_top_iff:
+  "(\<Sqinter>B \<squnion> a = \<top>) \<longleftrightarrow> (\<forall>b\<in>B. b \<squnion> a = \<top>)"
+  by (simp only: Inf_sup INF_top_conv)
+
+lemma Sup_inf_eq_bot_iff:
+  "(\<Squnion>B \<sqinter> a = \<bottom>) \<longleftrightarrow> (\<forall>b\<in>B. b \<sqinter> a = \<bottom>)"
+  by (simp only: Sup_inf SUP_bot_conv)
+
+lemma INF_sup_distrib2:
+  "(\<Sqinter>a\<in>A. f a) \<squnion> (\<Sqinter>b\<in>B. g b) = (\<Sqinter>a\<in>A. \<Sqinter>b\<in>B. f a \<squnion> g b)"
+  by (subst INF_commute) (simp add: sup_INF INF_sup)
+
+lemma SUP_inf_distrib2:
+  "(\<Squnion>a\<in>A. f a) \<sqinter> (\<Squnion>b\<in>B. g b) = (\<Squnion>a\<in>A. \<Squnion>b\<in>B. f a \<sqinter> g b)"
+  by (subst SUP_commute) (simp add: inf_SUP SUP_inf)
 
 end
 
@@ -862,9 +909,6 @@ lemma Union_empty_conv [simp,no_atp]: "(\<Union>A = {}) \<longleftrightarrow> (\
 lemma empty_Union_conv [simp,no_atp]: "({} = \<Union>A) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
   by (fact Sup_bot_conv)
 
-lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})" -- "FIXME generalize"
-  by blast
-
 lemma subset_Pow_Union: "A \<subseteq> Pow (\<Union>A)"
   by blast
 
@@ -1046,40 +1090,41 @@ subsection {* Distributive laws *}
 lemma Int_Union: "A \<inter> \<Union>B = (\<Union>C\<in>B. A \<inter> C)"
   by (fact inf_Sup)
 
+lemma Un_Inter: "A \<union> \<Inter>B = (\<Inter>C\<in>B. A \<union> C)"
+  by (fact sup_Inf)
+
 lemma Int_Union2: "\<Union>B \<inter> A = (\<Union>C\<in>B. C \<inter> A)"
-  by blast
+  by (fact Sup_inf)
+
+lemma INT_Int_distrib: "(\<Inter>i\<in>I. A i \<inter> B i) = (\<Inter>i\<in>I. A i) \<inter> (\<Inter>i\<in>I. B i)"
+  by (rule sym) (rule INF_inf_distrib)
+
+lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A i) \<union> (\<Union>i\<in>I. B i)"
+  by (rule sym) (rule SUP_sup_distrib)
+
+lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)"
+  by (simp only: INT_Int_distrib INF_def)
 
 lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)"
   -- {* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: *}
   -- {* Union of a family of unions *}
-  by blast
+  by (simp only: UN_Un_distrib SUP_def)
 
-lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A i) \<union> (\<Union>i\<in>I. B i)"
-  -- {* Equivalent version *}
-  by blast
-
-lemma Un_Inter: "A \<union> \<Inter>B = (\<Inter>C\<in>B. A \<union> C)"
-  by (fact sup_Inf)
-
-lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)"
-  by blast
-
-lemma INT_Int_distrib: "(\<Inter>i\<in>I. A i \<inter> B i) = (\<Inter>i\<in>I. A i) \<inter> (\<Inter>i\<in>I. B i)"
-  -- {* Equivalent version *}
-  by blast
+lemma Un_INT_distrib: "B \<union> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. B \<union> A i)"
+  by (fact sup_INF)
 
 lemma Int_UN_distrib: "B \<inter> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. B \<inter> A i)"
   -- {* Halmos, Naive Set Theory, page 35. *}
-  by blast
-
-lemma Un_INT_distrib: "B \<union> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. B \<union> A i)"
-  by blast
+  by (fact inf_SUP)
 
 lemma Int_UN_distrib2: "(\<Union>i\<in>I. A i) \<inter> (\<Union>j\<in>J. B j) = (\<Union>i\<in>I. \<Union>j\<in>J. A i \<inter> B j)"
-  by blast
+  by (fact SUP_inf_distrib2)
 
 lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) = (\<Inter>i\<in>I. \<Inter>j\<in>J. A i \<union> B j)"
-  by blast
+  by (fact INF_sup_distrib2)
+
+lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
+  by (fact Sup_inf_eq_bot_iff)
 
 
 subsection {* Complement *}
