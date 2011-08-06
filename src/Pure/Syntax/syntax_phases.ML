@@ -288,15 +288,17 @@ fun parse_asts ctxt raw root (syms, pos) =
     val len = length pts;
 
     val limit = Config.get ctxt Syntax.ambiguity_limit;
+    val warnings = Config.get ctxt Syntax.ambiguity_warnings;
     val _ =
       if len <= Config.get ctxt Syntax.ambiguity_level then ()
       else if not (Config.get ctxt Syntax.ambiguity_enabled) then error (ambiguity_msg pos)
-      else
+      else if warnings then
         (Context_Position.if_visible ctxt warning (cat_lines
           (("Ambiguous input" ^ Position.str_of pos ^
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))));
+            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))))
+      else ();
 
     val constrain_pos = not raw andalso Config.get ctxt Syntax.positions;
     val parsetree_to_ast = parsetree_to_ast ctxt constrain_pos ast_tr;
@@ -353,6 +355,7 @@ fun parse_term is_prop ctxt =
 
           val level = Config.get ctxt Syntax.ambiguity_level;
           val limit = Config.get ctxt Syntax.ambiguity_limit;
+          val warnings = Config.get ctxt Syntax.ambiguity_warnings;
 
           val ambig_msg =
             if ambiguity > 1 andalso ambiguity <= level then
@@ -381,7 +384,7 @@ fun parse_term is_prop ctxt =
             report_result ctxt pos
               [(reports', Exn.Exn (Exn.EXCEPTIONS (map ERROR ambig_msg @ errs)))]
           else if len = 1 then
-            (if ambiguity > level then
+            (if ambiguity > level andalso warnings then
               Context_Position.if_visible ctxt warning
                 "Fortunately, only one parse tree is type correct.\n\
                 \You may still want to disambiguate your grammar or your input."

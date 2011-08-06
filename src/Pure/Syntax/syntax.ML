@@ -16,6 +16,8 @@ sig
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
+  val ambiguity_warnings_raw: Config.raw
+  val ambiguity_warnings: bool Config.T
   val read_token: string -> Symbol_Pos.T list * Position.T
   val parse_token: Proof.context -> (XML.tree list -> 'a) ->
     Markup.T -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
@@ -192,6 +194,11 @@ val ambiguity_level = Config.int ambiguity_level_raw;
 
 val ambiguity_limit =
   Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
+
+val ambiguity_warnings_raw = 
+  Config.declare "syntax_ambiguity_warnings" (fn _ => Config.Bool true);
+val ambiguity_warnings =
+  Config.bool ambiguity_warnings_raw;
 
 
 (* outer syntax token -- with optional YXML content *)
