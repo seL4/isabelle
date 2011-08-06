@@ -267,6 +267,22 @@ val rule_format = Args.mode "no_asm"
 val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
 
+(* case names *)
+
+fun hname NONE = Rule_Cases.case_hypsN
+  | hname (SOME n) = n;
+
+fun case_names cs =
+  Rule_Cases.case_names (map fst cs) #>
+  Rule_Cases.cases_hyp_names (map (map hname o snd) cs)
+
+val hnamesP =
+  Scan.optional
+    (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]")
+    []
+
+val case_namesP = Scan.lift (Scan.repeat1 (Args.name -- hnamesP))
+
 (* misc rules *)
 
 val no_vars = Thm.rule_attribute (fn context => fn th =>
@@ -300,7 +316,7 @@ val _ = Context.>> (Context.map_theory
     "number of consumed facts" #>
   setup (Binding.name "constraints") (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>
-  setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> Rule_Cases.case_names)
+  setup (Binding.name "case_names") (case_namesP >> case_names)
     "named rule cases" #>
   setup (Binding.name "case_conclusion")
     (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
