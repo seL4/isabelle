@@ -52,7 +52,7 @@ abbreviation
 definition raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option" where
   "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
-text {* Make new_Addr completely specified (at least for the code generator) *}
+text {* Make @{text new_Addr} completely specified (at least for the code generator) *}
 (*
 definition new_Addr  :: "aheap => loc \<times> val option" where
   "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"
