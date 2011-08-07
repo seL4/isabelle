@@ -1,7 +1,7 @@
 Requirements for instantaneous build from sources
 =================================================
 
-* Proper Java JDK from Sun/Oracle/Apple, e.g. 1.6.0_24 or 1.6.0_25
+* Official Java JDK from Sun/Oracle/Apple, e.g. 1.6.0_26
   http://java.sun.com/javase/downloads/index.jsp
 
 * Scala Compiler 2.8.1.final
