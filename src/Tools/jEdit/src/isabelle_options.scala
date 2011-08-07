@@ -27,7 +27,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
   override def _init()
   {
-    addComponent(Isabelle.Property("logic.title"), logic_selector.peer)
+    addComponent(Isabelle.Property("logic.title"),
+      logic_selector.peer.asInstanceOf[java.awt.Component])
 
     addComponent(Isabelle.Property("auto-start.title"), auto_start.peer)
     auto_start.selected = Isabelle.Boolean_Property("auto-start")
