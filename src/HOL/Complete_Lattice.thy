@@ -129,13 +129,13 @@ lemma le_SUP_I2: "i \<in> A \<Longrightarrow> u \<sqsubseteq> f i \<Longrightarr
 lemma le_Inf_iff: "b \<sqsubseteq> \<Sqinter>A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
   by (auto intro: Inf_greatest dest: Inf_lower)
 
-lemma le_INF_iff: "u \<sqsubseteq> (\<Sqinter>i\<in>A. f i) \<longleftrightarrow> (\<forall>i \<in> A. u \<sqsubseteq> f i)"
+lemma le_INF_iff: "u \<sqsubseteq> (\<Sqinter>i\<in>A. f i) \<longleftrightarrow> (\<forall>i\<in>A. u \<sqsubseteq> f i)"
   by (auto simp add: INF_def le_Inf_iff)
 
 lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
   by (auto intro: Sup_least dest: Sup_upper)
 
-lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i \<in> A. f i \<sqsubseteq> u)"
+lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i\<in>A. f i \<sqsubseteq> u)"
   by (auto simp add: SUP_def Sup_le_iff)
 
 lemma Inf_empty [simp]:
@@ -160,13 +160,13 @@ lemma Sup_UNIV [simp]:
   "\<Squnion>UNIV = \<top>"
   by (auto intro!: antisym Sup_upper)
 
-lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
+lemma Inf_insert (*[simp]*): "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
 lemma INF_insert: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFI A f"
   by (simp add: INF_def Inf_insert)
 
-lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+lemma Sup_insert (*[simp]*): "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
 lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPR A f"
@@ -177,22 +177,6 @@ lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> 
 
 lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<sqsubseteq> b}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
-
-lemma Inf_singleton [simp]:
-  "\<Sqinter>{a} = a"
-  by (auto intro: antisym Inf_lower Inf_greatest)
-
-lemma Sup_singleton [simp]:
-  "\<Squnion>{a} = a"
-  by (auto intro: antisym Sup_upper Sup_least)
-
-lemma Inf_binary:
-  "\<Sqinter>{a, b} = a \<sqinter> b"
-  by (simp add: Inf_insert)
-
-lemma Sup_binary:
-  "\<Squnion>{a, b} = a \<squnion> b"
-  by (simp add: Sup_insert)
 
 lemma Inf_superset_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Sqinter>B"
   by (auto intro: Inf_greatest Inf_lower)
@@ -444,7 +428,7 @@ subclass distrib_lattice proof -- {* Question: is it sufficient to include @{cla
   and prove @{text inf_Sup} and @{text sup_Inf} from that? *}
   fix a b c
   from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
-  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_binary)
+  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_insert)
 qed
 
 lemma Inf_sup:
@@ -698,7 +682,7 @@ lemma Inter_greatest: "(\<And>X. X \<in> A \<Longrightarrow> C \<subseteq> X) \<
   by (fact Inf_greatest)
 
 lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
-  by (fact Inf_binary [symmetric])
+  by (simp add: Inf_insert)
 
 lemma Inter_empty [simp]: "\<Inter>{} = UNIV"
   by (fact Inf_empty)
@@ -1205,6 +1189,22 @@ lemma INT_extend_simps:
 
 
 text {* Legacy names *}
+
+lemma Inf_singleton [simp]:
+  "\<Sqinter>{a} = a"
+  by (auto intro: antisym Inf_lower Inf_greatest)
+
+lemma Sup_singleton [simp]:
+  "\<Squnion>{a} = a"
+  by (auto intro: antisym Sup_upper Sup_least)
+
+lemma Inf_binary:
+  "\<Sqinter>{a, b} = a \<sqinter> b"
+  by (simp add: Inf_insert)
+
+lemma Sup_binary:
+  "\<Squnion>{a, b} = a \<squnion> b"
+  by (simp add: Sup_insert)
 
 lemmas (in complete_lattice) INFI_def = INF_def
 lemmas (in complete_lattice) SUPR_def = SUP_def
