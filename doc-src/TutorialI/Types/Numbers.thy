@@ -16,8 +16,7 @@ txt{*
 *};
 oops
 
-consts h :: "nat \<Rightarrow> nat"
-recdef h "{}"
+fun h :: "nat \<Rightarrow> nat" where
 "h i = (if i = 3 then 2 else i)"
 
 text{*
