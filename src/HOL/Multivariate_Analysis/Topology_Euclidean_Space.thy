@@ -2704,6 +2704,139 @@ qed
 
 subsubsection {* Complete the chain of compactness variants *}
 
+lemma islimpt_range_imp_convergent_subsequence:
+  fixes f :: "nat \<Rightarrow> 'a::metric_space"
+  assumes "l islimpt (range f)"
+  shows "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+proof (intro exI conjI)
+  have *: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. 0 < dist (f n) l \<and> dist (f n) l < e"
+    using assms unfolding islimpt_def
+    by (drule_tac x="ball l e" in spec)
+       (auto simp add: zero_less_dist_iff dist_commute)
+
+  def t \<equiv> "\<lambda>e. LEAST n. 0 < dist (f n) l \<and> dist (f n) l < e"
+  have f_t_neq: "\<And>e. 0 < e \<Longrightarrow> 0 < dist (f (t e)) l"
+    unfolding t_def by (rule LeastI2_ex [OF * conjunct1])
+  have f_t_closer: "\<And>e. 0 < e \<Longrightarrow> dist (f (t e)) l < e"
+    unfolding t_def by (rule LeastI2_ex [OF * conjunct2])
+  have t_le: "\<And>n e. 0 < dist (f n) l \<Longrightarrow> dist (f n) l < e \<Longrightarrow> t e \<le> n"
+    unfolding t_def by (simp add: Least_le)
+  have less_tD: "\<And>n e. n < t e \<Longrightarrow> 0 < dist (f n) l \<Longrightarrow> e \<le> dist (f n) l"
+    unfolding t_def by (drule not_less_Least) simp
+  have t_antimono: "\<And>e e'. 0 < e \<Longrightarrow> e \<le> e' \<Longrightarrow> t e' \<le> t e"
+    apply (rule t_le)
+    apply (erule f_t_neq)
+    apply (erule (1) less_le_trans [OF f_t_closer])
+    done
+  have t_dist_f_neq: "\<And>n. 0 < dist (f n) l \<Longrightarrow> t (dist (f n) l) \<noteq> n"
+    by (drule f_t_closer) auto
+  have t_less: "\<And>e. 0 < e \<Longrightarrow> t e < t (dist (f (t e)) l)"
+    apply (subst less_le)
+    apply (rule conjI)
+    apply (rule t_antimono)
+    apply (erule f_t_neq)
+    apply (erule f_t_closer [THEN less_imp_le])
+    apply (rule t_dist_f_neq [symmetric])
+    apply (erule f_t_neq)
+    done
+  have dist_f_t_less':
+    "\<And>e e'. 0 < e \<Longrightarrow> 0 < e' \<Longrightarrow> t e \<le> t e' \<Longrightarrow> dist (f (t e')) l < e"
+    apply (simp add: le_less)
+    apply (erule disjE)
+    apply (rule less_trans)
+    apply (erule f_t_closer)
+    apply (rule le_less_trans)
+    apply (erule less_tD)
+    apply (erule f_t_neq)
+    apply (erule f_t_closer)
+    apply (erule subst)
+    apply (erule f_t_closer)
+    done
+
+  def r \<equiv> "nat_rec (t 1) (\<lambda>_ x. t (dist (f x) l))"
+  have r_simps: "r 0 = t 1" "\<And>n. r (Suc n) = t (dist (f (r n)) l)"
+    unfolding r_def by simp_all
+  have f_r_neq: "\<And>n. 0 < dist (f (r n)) l"
+    by (induct_tac n) (simp_all add: r_simps f_t_neq)
+
+  show "subseq r"
+    unfolding subseq_Suc_iff
+    apply (rule allI)
+    apply (case_tac n)
+    apply (simp_all add: r_simps)
+    apply (rule t_less, rule zero_less_one)
+    apply (rule t_less, rule f_r_neq)
+    done
+  show "((f \<circ> r) ---> l) sequentially"
+    unfolding Lim_sequentially o_def
+    apply (clarify, rule_tac x="t e" in exI, clarify)
+    apply (drule le_trans, rule seq_suble [OF `subseq r`])
+    apply (case_tac n, simp_all add: r_simps dist_f_t_less' f_r_neq)
+    done
+qed
+
+lemma finite_range_imp_infinite_repeats:
+  fixes f :: "nat \<Rightarrow> 'a"
+  assumes "finite (range f)"
+  shows "\<exists>k. infinite {n. f n = k}"
+proof -
+  { fix A :: "'a set" assume "finite A"
+    hence "\<And>f. infinite {n. f n \<in> A} \<Longrightarrow> \<exists>k. infinite {n. f n = k}"
+    proof (induct)
+      case empty thus ?case by simp
+    next
+      case (insert x A)
+     show ?case
+      proof (cases "finite {n. f n = x}")
+        case True
+        with `infinite {n. f n \<in> insert x A}`
+        have "infinite {n. f n \<in> A}" by simp
+        thus "\<exists>k. infinite {n. f n = k}" by (rule insert)
+      next
+        case False thus "\<exists>k. infinite {n. f n = k}" ..
+      qed
+    qed
+  } note H = this
+  from assms show "\<exists>k. infinite {n. f n = k}"
+    by (rule H) simp
+qed
+
+lemma bolzano_weierstrass_imp_compact:
+  fixes s :: "'a::metric_space set"
+  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
+  shows "compact s"
+proof -
+  { fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
+    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    proof (cases "finite (range f)")
+      case True
+      hence "\<exists>l. infinite {n. f n = l}"
+        by (rule finite_range_imp_infinite_repeats)
+      then obtain l where "infinite {n. f n = l}" ..
+      hence "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> {n. f n = l})"
+        by (rule infinite_enumerate)
+      then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = l" by auto
+      hence "subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        unfolding o_def by (simp add: fr Lim_const)
+      hence "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        by - (rule exI)
+      from f have "\<forall>n. f (r n) \<in> s" by simp
+      hence "l \<in> s" by (simp add: fr)
+      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        by (rule rev_bexI) fact
+    next
+      case False
+      with f assms have "\<exists>x\<in>s. x islimpt (range f)" by auto
+      then obtain l where "l \<in> s" "l islimpt (range f)" ..
+      have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        using `l islimpt (range f)`
+        by (rule islimpt_range_imp_convergent_subsequence)
+      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
+    qed
+  }
+  thus ?thesis unfolding compact_def by auto
+qed
+
 primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_2 beyond 0 = beyond 0" |
   "helper_2 beyond (Suc n) = beyond (dist undefined (helper_2 beyond n) + 1 )"
