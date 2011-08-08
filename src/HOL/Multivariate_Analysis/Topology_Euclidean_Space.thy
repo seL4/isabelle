@@ -464,11 +464,10 @@ lemma islimpt_approachable_le:
   by metis 
 
 class perfect_space =
-  (* FIXME: perfect_space should inherit from topological_space *)
-  assumes islimpt_UNIV [simp, intro]: "(x::'a::metric_space) islimpt UNIV"
+  assumes islimpt_UNIV [simp, intro]: "(x::'a::topological_space) islimpt UNIV"
 
 lemma perfect_choose_dist:
-  fixes x :: "'a::perfect_space"
+  fixes x :: "'a::{perfect_space, metric_space}"
   shows "0 < r \<Longrightarrow> \<exists>a. a \<noteq> x \<and> dist a x < r"
 using islimpt_UNIV [of x]
 by (simp add: islimpt_approachable)
@@ -599,22 +598,12 @@ lemma interior_inter[simp]: "interior(S \<inter> T) = interior S \<inter> interi
 lemma interior_limit_point [intro]:
   fixes x :: "'a::perfect_space"
   assumes x: "x \<in> interior S" shows "x islimpt S"
-proof-
-  from x obtain e where e: "e>0" "\<forall>x'. dist x x' < e \<longrightarrow> x' \<in> S"
-    unfolding mem_interior subset_eq Ball_def mem_ball by blast
-  {
-    fix d::real assume d: "d>0"
-    let ?m = "min d e"
-    have mde2: "0 < ?m" using e(1) d(1) by simp
-    from perfect_choose_dist [OF mde2, of x]
-    obtain y where "y \<noteq> x" and "dist y x < ?m" by blast
-    then have "dist y x < e" "dist y x < d" by simp_all
-    from `dist y x < e` e(2) have "y \<in> S" by (simp add: dist_commute)
-    have "\<exists>x'\<in>S. x'\<noteq> x \<and> dist x' x < d"
-      using `y \<in> S` `y \<noteq> x` `dist y x < d` by fast
-  }
-  then show ?thesis unfolding islimpt_approachable by blast
-qed
+  using x islimpt_UNIV [of x]
+  unfolding interior_def islimpt_def
+  apply (clarsimp, rename_tac T T')
+  apply (drule_tac x="T \<inter> T'" in spec)
+  apply (auto simp add: open_Int)
+  done
 
 lemma interior_closed_Un_empty_interior:
   assumes cS: "closed S" and iT: "interior T = {}"
@@ -954,12 +943,13 @@ lemma trivial_limit_at:
   by (simp add: trivial_limit_at_iff)
 
 lemma trivial_limit_at_infinity:
-  "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,zero_neq_one}) net)"
-  (* FIXME: find a more appropriate type class *)
+  "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,perfect_space}) net)"
   unfolding trivial_limit_def eventually_at_infinity
   apply clarsimp
-  apply (rule_tac x="scaleR b (sgn 1)" in exI)
-  apply (simp add: norm_sgn)
+  apply (subgoal_tac "\<exists>x::'a. x \<noteq> 0", clarify)
+   apply (rule_tac x="scaleR (b / norm x) x" in exI, simp)
+  apply (cut_tac islimpt_UNIV [of "0::'a", unfolded islimpt_def])
+  apply (drule_tac x=UNIV in spec, simp)
   done
 
 text {* Some property holds "sufficiently close" to the limit point. *}
@@ -1513,7 +1503,7 @@ apply (rule Lim_ident_at)
 done
 
 lemma netlimit_at:
-  fixes a :: "'a::perfect_space"
+  fixes a :: "'a::{perfect_space,t2_space}"
   shows "netlimit (at a) = a"
   apply (subst within_UNIV[symmetric])
   using netlimit_within[of a UNIV]
@@ -1911,7 +1901,7 @@ lemma cball_eq_empty: "(cball x e = {}) \<longleftrightarrow> e < 0"
 lemma cball_empty: "e < 0 ==> cball x e = {}" by (simp add: cball_eq_empty)
 
 lemma cball_eq_sing:
-  fixes x :: "'a::perfect_space"
+  fixes x :: "'a::{metric_space,perfect_space}"
   shows "(cball x e = {x}) \<longleftrightarrow> e = 0"
 proof (rule linorder_cases)
   assume e: "0 < e"
@@ -1959,7 +1949,7 @@ lemma lim_within_interior:
   by (simp add: at_within_interior)
 
 lemma netlimit_within_interior:
-  fixes x :: "'a::perfect_space"
+  fixes x :: "'a::{t2_space,perfect_space}"
   assumes "x \<in> interior S"
   shows "netlimit (at x within S) = x"
 using assms by (simp add: at_within_interior netlimit_at)
