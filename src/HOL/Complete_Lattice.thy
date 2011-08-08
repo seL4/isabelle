@@ -172,6 +172,12 @@ lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
 lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPR A f"
   by (simp add: SUP_def Sup_insert)
 
+lemma INF_image: "(\<Sqinter>x\<in>f`A. g x) = (\<Sqinter>x\<in>A. g (f x))"
+  by (simp add: INF_def image_image)
+
+lemma SUP_image: "(\<Squnion>x\<in>f`A. g x) = (\<Squnion>x\<in>A. g (f x))"
+  by (simp add: SUP_def image_image)
+
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
