@@ -71,4 +71,27 @@ qed (auto simp add: top_prod_def prod_le_def)
 
 end
 
+text {* A stronger version of the definition holds for partial orders. *}
+
+lemma prod_less_eq:
+  fixes x y :: "'a::order \<times> 'b::ord"
+  shows "x < y \<longleftrightarrow> fst x < fst y \<or> (fst x = fst y \<and> snd x < snd y)"
+  unfolding prod_less_def fst_conv snd_conv le_less by auto
+
+instance prod :: (wellorder, wellorder) wellorder
+proof
+  fix P :: "'a \<times> 'b \<Rightarrow> bool" and z :: "'a \<times> 'b"
+  assume P: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  show "P z"
+  proof (induct z)
+    case (Pair a b)
+    show "P (a, b)"
+      apply (induct a arbitrary: b rule: less_induct)
+      apply (rule less_induct [where 'a='b])
+      apply (rule P)
+      apply (auto simp add: prod_less_eq)
+      done
+  qed
+qed
+
 end
