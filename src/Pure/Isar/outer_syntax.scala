@@ -47,7 +47,9 @@ class Outer_Syntax
   {
     val new_keywords = keywords + (name -> kind)
     val new_lexicon = lexicon + name
-    val new_completion = completion + (name, replace)
+    val new_completion =
+      if (Keyword.control(kind)) completion
+      else completion + (name, replace)
     new Outer_Syntax {
       override val lexicon = new_lexicon
       override val keywords = new_keywords
