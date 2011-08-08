@@ -204,6 +204,10 @@ class Text_Area_Painter(doc_view: Document_View)
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
+        def string_width(s: String): Float =
+          if (s.isEmpty) 0.0f
+          else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
+
         val caret_range =
           if (text_area.hasFocus) doc_view.caret_range()
           else Text.Range(-1)
@@ -230,17 +234,27 @@ class Text_Area_Painter(doc_view: Document_View)
 
           range.try_restrict(caret_range) match {
             case Some(r) if !r.is_singularity =>
-              val astr = new AttributedString(str)
               val i = r.start - range.start
               val j = r.stop - range.start
+              val s1 = str.substring(0, i)
+              val s2 = str.substring(i, j)
+              val s3 = str.substring(j)
+
+              if (!s1.isEmpty) gfx.drawString(s1, x1, y)
+
+              val astr = new AttributedString(s2)
               astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, j)
-              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, j)
-              gfx.drawString(astr.getIterator, x1, y)
+              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor)
+              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
+              gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
+
+              if (!s3.isEmpty)
+                gfx.drawString(s3, x1 + string_width(str.substring(0, j)), y)
+
             case _ =>
               gfx.drawString(str, x1, y)
           }
-          x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
+          x1 += string_width(str)
         }
       }
       w += chunk.width
