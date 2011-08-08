@@ -2955,26 +2955,26 @@ qed
 text{* Hence express everything as an equivalence.   *}
 
 lemma compact_eq_heine_borel:
-  fixes s :: "'a::heine_borel set"
+  fixes s :: "'a::metric_space set"
   shows "compact s \<longleftrightarrow>
            (\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f)
                --> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f')))" (is "?lhs = ?rhs")
 proof
-  assume ?lhs thus ?rhs using compact_imp_heine_borel[of s] by blast
+  assume ?lhs thus ?rhs by (rule compact_imp_heine_borel)
 next
   assume ?rhs
   hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. x islimpt t)"
     by (blast intro: heine_borel_imp_bolzano_weierstrass[of s])
-  thus ?lhs using bolzano_weierstrass_imp_bounded[of s] bolzano_weierstrass_imp_closed[of s] bounded_closed_imp_compact[of s] by blast
+  thus ?lhs by (rule bolzano_weierstrass_imp_compact)
 qed
 
 lemma compact_eq_bolzano_weierstrass:
-  fixes s :: "'a::heine_borel set"
+  fixes s :: "'a::metric_space set"
   shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding compact_eq_heine_borel using heine_borel_imp_bolzano_weierstrass[of s] by auto
 next
-  assume ?rhs thus ?lhs using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed bounded_closed_imp_compact by auto
+  assume ?rhs thus ?lhs by (rule bolzano_weierstrass_imp_compact)
 qed
 
 lemma compact_eq_bounded_closed:
