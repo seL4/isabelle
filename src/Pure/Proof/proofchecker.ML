@@ -10,17 +10,17 @@ sig
   val thm_of_proof : theory -> Proofterm.proof -> thm
 end;
 
-structure ProofChecker : PROOF_CHECKER =
+structure Proof_Checker : PROOF_CHECKER =
 struct
 
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = fold_rev Symtab.update (Global_Theory.all_thms_of thy) Symtab.empty
-  in
-    (fn s => case Symtab.lookup tab s of
-       NONE => error ("Unknown theorem " ^ quote s)
-     | SOME thm => thm)
+  let val tab = fold_rev Symtab.update (Global_Theory.all_thms_of thy) Symtab.empty in
+    fn s =>
+      (case Symtab.lookup tab s of
+        NONE => error ("Unknown theorem " ^ quote s)
+      | SOME thm => thm)
   end;
 
 val beta_eta_convert =
@@ -87,10 +87,12 @@ fun thm_of_proof thy prf =
           let
             val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
             val {prop, ...} = rep_thm thm;
-            val _ = if is_equal prop prop' then () else
-              error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
-                Syntax.string_of_term_global thy prop ^ "\n\n" ^
-                Syntax.string_of_term_global thy prop');
+            val _ =
+              if is_equal prop prop' then ()
+              else
+                error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
+                  Syntax.string_of_term_global thy prop ^ "\n\n" ^
+                  Syntax.string_of_term_global thy prop');
           in thm_of_atom thm Ts end
 
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =

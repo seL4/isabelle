@@ -795,7 +795,7 @@ fun extract thms thy =
              |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
                   Thm.varifyT_global (funpow (length (vars_of corr_prop))
                     (Thm.forall_elim_var 0) (Thm.forall_intr_frees
-                      (ProofChecker.thm_of_proof thy'
+                      (Proof_Checker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))
              |> snd
              |> fold Code.add_default_eqn def_thms
