@@ -546,7 +546,7 @@ with, we need a law that relates the equality of functions to
 equality over all arguments: 
 \begin{isabelle}
 (f\ =\ g)\ =\ ({\isasymforall}x.\ f\ x\ =\ g\ x)
-\rulename{expand_fun_eq}
+\rulename{fun_eq_iff}
 \end{isabelle}
 %
 This is just a restatement of
@@ -556,7 +556,7 @@ states  that an injection can be cancelled from the left  side of
 function composition: 
 \begin{isabelle}
 \isacommand{lemma}\ "inj\ f\ \isasymLongrightarrow\ (f\ o\ g\ =\ f\ o\ h)\ =\ (g\ =\ h)"\isanewline
-\isacommand{apply}\ (simp\ add:\ expand_fun_eq\ inj_on_def)\isanewline
+\isacommand{apply}\ (simp\ add:\ fun_eq_iff\ inj_on_def)\isanewline
 \isacommand{apply}\ auto\isanewline
 \isacommand{done}
 \end{isabelle}
