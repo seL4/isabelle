@@ -644,16 +644,6 @@ lemma tendsto_norm_zero_iff:
   "((\<lambda>x. norm (f x)) ---> 0) net \<longleftrightarrow> (f ---> 0) net"
 unfolding tendsto_iff dist_norm by simp
 
-lemma add_diff_add:
-  fixes a b c d :: "'a::ab_group_add"
-  shows "(a + c) - (b + d) = (a - b) + (c - d)"
-by simp
-
-lemma minus_diff_minus:
-  fixes a b :: "'a::ab_group_add"
-  shows "(- a) - (- b) = - (a - b)"
-by simp
-
 lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) net"
@@ -747,11 +737,6 @@ lemma (in bounded_bilinear) Bfun_prod_Zfun:
   assumes g: "Zfun g net"
   shows "Zfun (\<lambda>x. f x ** g x) net"
 using flip g f by (rule bounded_bilinear.Zfun_prod_Bfun)
-
-lemma inverse_diff_inverse:
-  "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
-   \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: algebra_simps)
 
 lemma Bfun_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"

@@ -42,11 +42,6 @@ by (simp add: deriv_def)
 lemma DERIV_ident [simp]: "DERIV (\<lambda>x. x) x :> 1"
 by (simp add: deriv_def cong: LIM_cong)
 
-lemma add_diff_add:
-  fixes a b c d :: "'a::ab_group_add"
-  shows "(a + c) - (b + d) = (a - b) + (c - d)"
-by simp
-
 lemma DERIV_add:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + g x) x :> D + E"
 by (simp only: deriv_def add_diff_add add_divide_distrib LIM_add)
@@ -140,11 +135,6 @@ done
 
 lemma DERIV_iff2: "(DERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) -- x --> D)"
 by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
-
-lemma inverse_diff_inverse:
-  "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
-   \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: algebra_simps)
 
 lemma DERIV_inverse_lemma:
   "\<lbrakk>a \<noteq> 0; b \<noteq> (0::'a::real_normed_field)\<rbrakk>
