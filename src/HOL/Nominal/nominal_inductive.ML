@@ -158,7 +158,7 @@ fun prove_strong_ind s avoids ctxt =
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
-    val induct_cases = map fst (fst (Rule_Cases.get (the
+    val induct_cases = map (fst o fst) (fst (Rule_Cases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
     val ([raw_induct'], ctxt') = Variable.import_terms false [prop_of raw_induct] ctxt;
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>

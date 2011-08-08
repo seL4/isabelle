@@ -1056,8 +1056,7 @@ proof -
        (is "PROP ?Hyp Env B t A")  
   proof (induct)
     case Skip 
-    from Skip.prems Skip.hyps 
-    show ?case by cases simp
+    then show ?case by cases simp
   next
     case Expr 
     from Expr.prems Expr.hyps 

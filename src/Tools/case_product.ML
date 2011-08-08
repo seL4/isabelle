@@ -90,9 +90,9 @@ fun combine ctxt thm1 thm2 =
 
 fun annotation thm1 thm2 =
   let
-    val (names1, cons1) = apfst (map fst) (Rule_Cases.get thm1)
-    val (names2, cons2) = apfst (map fst) (Rule_Cases.get thm2)
-    val names = map_product (fn x => fn y => x ^ "_" ^y) names1 names2
+    val (cases1, cons1) = apfst (map fst) (Rule_Cases.get thm1)
+    val (cases2, cons2) = apfst (map fst) (Rule_Cases.get thm2)
+    val names = map_product (fn (x,_) => fn (y,_) => x ^ "_" ^y) cases1 cases2
   in
     Rule_Cases.case_names names o Rule_Cases.consumes (cons1 + cons2)
   end

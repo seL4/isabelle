@@ -91,7 +91,7 @@ local
       CASES
         (Rule_Cases.make_common
           (Proof_Context.theory_of ctxt,
-           Thm.prop_of (Rule_Cases.internalize_params st)) names)
+           Thm.prop_of (Rule_Cases.internalize_params st)) (map (rpair []) names))
         Tactical.all_tac st))
 in
 val setup_boogie_cases = Method.setup @{binding boogie_cases}
