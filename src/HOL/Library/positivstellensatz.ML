@@ -170,8 +170,8 @@ fun deduct_antisym_rule tha thb =
     Thm.equal_intr (Thm.implies_intr (cprop_of thb) tha) 
      (Thm.implies_intr (cprop_of tha) thb);
 
-fun prove_hyp tha thb = 
-  if exists (curry op aconv (concl_of tha)) (#hyps (rep_thm thb)) 
+fun prove_hyp tha thb =
+  if exists (curry op aconv (concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
   then Thm.equal_elim (Thm.symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
 val pth = @{lemma "(((x::real) < y) == (y - x > 0))" and "((x <= y) == (y - x >= 0))" and

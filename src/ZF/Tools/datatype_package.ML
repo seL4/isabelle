@@ -339,7 +339,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       end
 
   val constructors =
-      map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
+      map (head_of o #1 o Logic.dest_equals o Thm.prop_of) (tl con_defs);
 
   val free_SEs = map Drule.export_without_context (Ind_Syntax.mk_free_SEs free_iffs);
 

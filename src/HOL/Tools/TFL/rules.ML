@@ -245,9 +245,7 @@ fun organize eq =    (* a bit slow - analogous to insertion sort *)
 
 fun DISJ_CASESL disjth thl =
    let val c = cconcl disjth
-       fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t
-                                       aconv term_of atm)
-                              (#hyps(rep_thm th))
+       fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t aconv term_of atm) (Thm.hyps_of th)
        val tml = Dcterm.strip_disj c
        fun DL th [] = raise RULES_ERR "DISJ_CASESL" "no cases"
          | DL th [th1] = PROVE_HYP th th1

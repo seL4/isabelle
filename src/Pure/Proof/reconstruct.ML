@@ -10,6 +10,7 @@ sig
   val reconstruct_proof : theory -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
+  val proof_of : thm -> Proofterm.proof
   val expand_proof : theory -> (string * term option) list ->
     Proofterm.proof -> Proofterm.proof
 end;
@@ -323,6 +324,10 @@ fun prop_of0 Hs (PBound i) = nth Hs i
 val prop_of' = Envir.beta_eta_contract oo prop_of0;
 val prop_of = prop_of' [];
 
+fun proof_of thm =
+  reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
+
+
 
 (**** expand and reconstruct subproofs ****)
 
@@ -352,8 +357,9 @@ fun expand_proof thy thms prf =
               (case AList.lookup (op =) prfs (a, prop) of
                 NONE =>
                   let
-                    val _ = message ("Reconstructing proof of " ^ a);
-                    val _ = message (Syntax.string_of_term_global thy prop);
+                    val _ =
+                      message ("Reconstructing proof of " ^ a ^ "\n" ^
+                        Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
                       (reconstruct_proof thy prop (Proofterm.join_proof body));
                     val (maxidx', prfs', prf) = expand

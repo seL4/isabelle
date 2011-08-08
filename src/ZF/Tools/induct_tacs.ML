@@ -123,8 +123,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
                               Syntax.string_of_term_global thy eqn);
 
     val constructors =
-        map (head_of o const_of o FOLogic.dest_Trueprop o
-             #prop o rep_thm) case_eqns;
+        map (head_of o const_of o FOLogic.dest_Trueprop o Thm.prop_of) case_eqns;
 
     val Const (@{const_name mem}, _) $ _ $ data =
         FOLogic.dest_Trueprop (hd (prems_of elim));
