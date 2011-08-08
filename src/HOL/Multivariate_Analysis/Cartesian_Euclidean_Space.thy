@@ -1310,25 +1310,19 @@ lemma component_le_infnorm_cart:
 instance cart :: (perfect_space, finite) perfect_space
 proof
   fix x :: "'a ^ 'b"
-  {
-    fix e :: real assume "0 < e"
-    def a \<equiv> "x $ undefined"
-    have "a islimpt UNIV" by (rule islimpt_UNIV)
-    with `0 < e` obtain b where "b \<noteq> a" and "dist b a < e"
-      unfolding islimpt_approachable by auto
-    def y \<equiv> "Cart_lambda ((Cart_nth x)(undefined := b))"
-    from `b \<noteq> a` have "y \<noteq> x"
-      unfolding a_def y_def by (simp add: Cart_eq)
-    from `dist b a < e` have "dist y x < e"
-      unfolding dist_vector_def a_def y_def
-      apply simp
-      apply (rule le_less_trans [OF setL2_le_setsum [OF zero_le_dist]])
-      apply (subst setsum_diff1' [where a=undefined], simp, simp, simp)
-      done
-    from `y \<noteq> x` and `dist y x < e`
-    have "\<exists>y\<in>UNIV. y \<noteq> x \<and> dist y x < e" by auto
-  }
-  then show "x islimpt UNIV" unfolding islimpt_approachable by blast
+  show "x islimpt UNIV"
+    apply (rule islimptI)
+    apply (unfold open_vector_def)
+    apply (drule (1) bspec)
+    apply clarsimp
+    apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>y. y \<in> A i \<and> y \<noteq> x $ i")
+     apply (drule finite_choice [OF finite_UNIV], erule exE)
+     apply (rule_tac x="Cart_lambda f" in exI)
+     apply (simp add: Cart_eq)
+    apply (rule ballI, drule_tac x=i in spec, clarify)
+    apply (cut_tac x="x $ i" in islimpt_UNIV)
+    apply (simp add: islimpt_def)
+    done
 qed
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
