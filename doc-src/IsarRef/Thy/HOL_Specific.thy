@@ -1,5 +1,5 @@
 theory HOL_Specific
-imports Base Main
+imports Base Main "~~/src/HOL/Library/Old_Recdef"
 begin
 
 chapter {* Isabelle/HOL \label{ch:hol} *}
