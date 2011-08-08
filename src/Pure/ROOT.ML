@@ -175,7 +175,7 @@ use "Isar/local_defs.ML";
 use "Proof/reconstruct.ML";
 use "Proof/proof_syntax.ML";
 use "Proof/proof_rewrite_rules.ML";
-use "Proof/proofchecker.ML";
+use "Proof/proof_checker.ML";
 
 (*outer syntax*)
 use "Isar/token.ML";

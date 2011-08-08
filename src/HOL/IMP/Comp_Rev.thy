@@ -479,9 +479,7 @@ lemma ccomp_empty [elim!]:
   "ccomp c = [] \<Longrightarrow> (c,s) \<Rightarrow> s"
   by (induct c) auto
 
-lemma assign [simp]:
-  "(x ::= a,s) \<Rightarrow> s' \<longleftrightarrow> (s' = s(x := aval a s))"
-  by auto
+declare assign_simp [simp]
 
 lemma ccomp_exec_n:
   "ccomp c \<turnstile> (0,s,stk) \<rightarrow>^n (isize(ccomp c),t,stk')

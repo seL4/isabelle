@@ -61,7 +61,7 @@ fun mk_eq_iff(t,u) =
 (*We remove equality assumptions because they confuse the simplifier and
   because only type-checking assumptions are necessary.*)
 fun is_eq_thm th =
-    can FOLogic.dest_eq (FOLogic.dest_Trueprop (#prop (rep_thm th)));
+    can FOLogic.dest_eq (FOLogic.dest_Trueprop (Thm.prop_of th));
 
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
@@ -69,7 +69,7 @@ fun prove_conv name tacs ctxt prems (t,u) =
   if t aconv u then NONE
   else
   let val prems' = filter_out is_eq_thm prems
-      val goal = Logic.list_implies (map (#prop o Thm.rep_thm) prems',
+      val goal = Logic.list_implies (map Thm.prop_of prems',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
   in SOME (prems' MRS Goal.prove ctxt [] [] goal (K (EVERY tacs)))
       handle ERROR msg =>

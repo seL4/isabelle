@@ -113,6 +113,10 @@ proof-
   qed
 qed
 
+(* Using rule inversion to prove simplification rules: *)
+lemma assign_simp:
+  "(x ::= a,s) \<Rightarrow> s' \<longleftrightarrow> (s' = s(x := aval a s))"
+  by auto
 
 subsection "Command Equivalence"
 

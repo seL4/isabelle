@@ -581,7 +581,7 @@ fun print_arities arities = Codegen.message ("Arities:\n" ^
         (ks @ [SOME k]))) arities));
 
 fun prep_intrs intrs =
-  map (Codegen.rename_term o #prop o rep_thm o Drule.export_without_context) intrs;
+  map (Codegen.rename_term o Thm.prop_of o Drule.export_without_context) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) =

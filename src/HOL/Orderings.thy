@@ -531,7 +531,7 @@ end
 setup {*
 let
 
-fun prp t thm = (#prop (rep_thm thm) = t);
+fun prp t thm = Thm.prop_of thm = t;  (* FIXME aconv!? *)
 
 fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
   let val prems = Simplifier.prems_of ss;

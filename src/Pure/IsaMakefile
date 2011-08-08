@@ -158,9 +158,9 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   PIDE/document.ML					\
   PIDE/isar_document.ML					\
   Proof/extraction.ML					\
+  Proof/proof_checker.ML				\
   Proof/proof_rewrite_rules.ML				\
   Proof/proof_syntax.ML					\
-  Proof/proofchecker.ML					\
   Proof/reconstruct.ML					\
   ProofGeneral/pgip.ML					\
   ProofGeneral/pgip_input.ML				\

@@ -20,9 +20,6 @@ fun subsets i j =
     in map (fn ks => i::ks) is @ is end
   else [[]];
 
-fun prf_of thm =
-  Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
-
 fun is_unit t = body_type (fastype_of t) = HOLogic.unitT;
 
 fun tname_of (Type (s, _)) = s
@@ -141,7 +138,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
                end
           | _ => AbsP ("H", SOME p, prf)))
             (rec_fns ~~ prems_of thm)
-            (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0))));
+            (Proofterm.proof_combP
+              (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
 
     val r' =
       if null is then r
@@ -201,9 +199,10 @@ fun make_casedists sorts
           Proofterm.forall_intr_proof' (Logic.varify_global r)
             (AbsP ("H", SOME (Logic.varify_global p), prf)))
         (prems ~~ rs)
-        (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0))));
+        (Proofterm.proof_combP
+          (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
     val prf' = Extraction.abs_corr_shyps thy' exhaust []
-      (map Var (Term.add_vars (prop_of exhaust) [])) (prf_of exhaust);
+      (map Var (Term.add_vars (prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
     val r' = Logic.varify_global (Abs ("y", T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));

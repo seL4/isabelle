@@ -116,8 +116,7 @@ fun eq_var bnd novars =
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
   No vars are allowed here, as simpsets are built from meta-assumptions*)
 fun mk_eqs bnd th =
-    [ if inspect_pair bnd false (Data.dest_eq
-                                   (Data.dest_Trueprop (#prop (rep_thm th))))
+    [ if inspect_pair bnd false (Data.dest_eq (Data.dest_Trueprop (Thm.prop_of th)))
       then th RS Data.eq_reflection
       else Thm.symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle TERM _ => [] | Match => [];
