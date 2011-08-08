@@ -142,14 +142,14 @@ lemma Inf_empty [simp]:
   "\<Sqinter>{} = \<top>"
   by (auto intro: antisym Inf_greatest)
 
-lemma INF_empty: "(\<Sqinter>x\<in>{}. f x) = \<top>"
+lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
   by (simp add: INF_def)
 
 lemma Sup_empty [simp]:
   "\<Squnion>{} = \<bottom>"
   by (auto intro: antisym Sup_least)
 
-lemma SUP_empty: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
+lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
   by (simp add: SUP_def)
 
 lemma Inf_UNIV [simp]:
@@ -700,11 +700,11 @@ lemma Inter_greatest: "(\<And>X. X \<in> A \<Longrightarrow> C \<subseteq> X) \<
 lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
   by (fact Inf_binary [symmetric])
 
-lemma Inter_empty [simp]: "\<Inter>{} = UNIV"
-  by (fact Inf_empty)
+lemma Inter_empty: "\<Inter>{} = UNIV"
+  by (fact Inf_empty) (* already simp *)
 
-lemma Inter_UNIV [simp]: "\<Inter>UNIV = {}"
-  by (fact Inf_UNIV)
+lemma Inter_UNIV: "\<Inter>UNIV = {}"
+  by (fact Inf_UNIV) (* already simp *)
 
 lemma Inter_insert [simp]: "\<Inter>(insert a B) = a \<inter> \<Inter>B"
   by (fact Inf_insert)
@@ -801,8 +801,8 @@ lemma INT_lower: "a \<in> A \<Longrightarrow> (\<Inter>x\<in>A. B x) \<subseteq>
 lemma INT_greatest: "(\<And>x. x \<in> A \<Longrightarrow> C \<subseteq> B x) \<Longrightarrow> C \<subseteq> (\<Inter>x\<in>A. B x)"
   by (fact le_INF_I)
 
-lemma INT_empty [simp]: "(\<Inter>x\<in>{}. B x) = UNIV"
-  by (fact INF_empty)
+lemma INT_empty: "(\<Inter>x\<in>{}. B x) = UNIV"
+  by (fact INF_empty) (* already simp *)
 
 lemma INT_absorb: "k \<in> I \<Longrightarrow> A k \<inter> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. A i)"
   by (fact INF_absorb)
@@ -1010,8 +1010,8 @@ lemma Collect_bex_eq [no_atp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A.
 lemma UN_insert_distrib: "u \<in> A \<Longrightarrow> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
-lemma UN_empty [simp, no_atp]: "(\<Union>x\<in>{}. B x) = {}"
-  by (fact SUP_empty)
+lemma UN_empty [no_atp]: "(\<Union>x\<in>{}. B x) = {}"
+  by (fact SUP_empty) (* already simp *)
 
 lemma UN_empty2 [simp]: "(\<Union>x\<in>A. {}) = {}"
   by (fact SUP_bot)
