@@ -284,7 +284,7 @@ proof -
   proof
     assume "\<forall>x\<in>A. x = \<top>"
     then have "A = {} \<or> A = {\<top>}" by auto
-    then show "\<Sqinter>A = \<top>" by auto
+    then show "\<Sqinter>A = \<top>" by (auto simp add: Inf_insert)
   next
     assume "\<Sqinter>A = \<top>"
     show "\<forall>x\<in>A. x = \<top>"
@@ -1190,19 +1190,19 @@ lemma INT_extend_simps:
 
 text {* Legacy names *}
 
-lemma Inf_singleton [simp]:
+lemma (in complete_lattice) Inf_singleton [simp]:
   "\<Sqinter>{a} = a"
-  by (auto intro: antisym Inf_lower Inf_greatest)
+  by (simp add: Inf_insert)
 
-lemma Sup_singleton [simp]:
+lemma (in complete_lattice) Sup_singleton [simp]:
   "\<Squnion>{a} = a"
-  by (auto intro: antisym Sup_upper Sup_least)
+  by (simp add: Sup_insert)
 
-lemma Inf_binary:
+lemma (in complete_lattice) Inf_binary:
   "\<Sqinter>{a, b} = a \<sqinter> b"
   by (simp add: Inf_insert)
 
-lemma Sup_binary:
+lemma (in complete_lattice) Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_insert)
 
