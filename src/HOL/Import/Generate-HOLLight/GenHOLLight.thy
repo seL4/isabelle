@@ -162,11 +162,11 @@ theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin
   MEASURE > HOLLightCompat.MEASURE
 (*real_of_num > RealDef.real :: "nat => real"
   real_neg > Groups.uminus_class.uminus :: "real => real"
-  real_inv > Rings.inverse_class.inverse :: "real => real"
+  real_inv > Fields.inverse_class.inverse :: "real => real"
   real_add > Groups.plus_class.plus :: "real => real => real"
   real_sub > Groups.minus_class.minus :: "real => real => real"
   real_mul > Groups.times_class.times :: "real => real => real"
-  real_div > Rings.inverse_class.divide :: "real => real => real"
+  real_div > Fields.inverse_class.divide :: "real => real => real"
   real_lt > Orderings.ord_class.less :: "real \<Rightarrow> real \<Rightarrow> bool"
   real_le > Orderings.ord_class.less_eq :: "real \<Rightarrow> real \<Rightarrow> bool"
   real_gt > Orderings.ord_class.greater :: "real \<Rightarrow> real \<Rightarrow> bool"

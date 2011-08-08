@@ -64,7 +64,7 @@ fun svc_abstract t =
     (*abstraction of a real/rational expression*)
     fun rat ((c as Const(@{const_name Groups.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Groups.minus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name Rings.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Fields.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Groups.times}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Groups.uminus}, _)) $ x) = c $ (rat x)
       | rat t = lit t

@@ -52,7 +52,7 @@ const_maps
   real_ge     > HOL4Compat.real_ge
   real_lte    > Orderings.less_eq :: "[real,real] => bool"
   real_sub    > Groups.minus :: "[real,real] => real"
-  "/"         > Rings.divide :: "[real,real] => real"
+  "/"         > Fields.divide :: "[real,real] => real"
   pow         > Power.power :: "[real,nat] => real"
   abs         > Groups.abs :: "real => real"
   real_of_num > RealDef.real :: "nat => real";

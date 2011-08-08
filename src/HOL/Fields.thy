@@ -13,6 +13,225 @@ theory Fields
 imports Rings
 begin
 
+subsection {* Division rings *}
+
+text {*
+  A division ring is like a field, but without the commutativity requirement.
+*}
+
+class inverse =
+  fixes inverse :: "'a \<Rightarrow> 'a"
+    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
+
+class division_ring = ring_1 + inverse +
+  assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+  assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
+  assumes divide_inverse: "a / b = a * inverse b"
+begin
+
+subclass ring_1_no_zero_divisors
+proof
+  fix a b :: 'a
+  assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
+  show "a * b \<noteq> 0"
+  proof
+    assume ab: "a * b = 0"
+    hence "0 = inverse a * (a * b) * inverse b" by simp
+    also have "\<dots> = (inverse a * a) * (b * inverse b)"
+      by (simp only: mult_assoc)
+    also have "\<dots> = 1" using a b by simp
+    finally show False by simp
+  qed
+qed
+
+lemma nonzero_imp_inverse_nonzero:
+  "a \<noteq> 0 \<Longrightarrow> inverse a \<noteq> 0"
+proof
+  assume ianz: "inverse a = 0"
+  assume "a \<noteq> 0"
+  hence "1 = a * inverse a" by simp
+  also have "... = 0" by (simp add: ianz)
+  finally have "1 = 0" .
+  thus False by (simp add: eq_commute)
+qed
+
+lemma inverse_zero_imp_zero:
+  "inverse a = 0 \<Longrightarrow> a = 0"
+apply (rule classical)
+apply (drule nonzero_imp_inverse_nonzero)
+apply auto
+done
+
+lemma inverse_unique: 
+  assumes ab: "a * b = 1"
+  shows "inverse a = b"
+proof -
+  have "a \<noteq> 0" using ab by (cases "a = 0") simp_all
+  moreover have "inverse a * (a * b) = inverse a" by (simp add: ab)
+  ultimately show ?thesis by (simp add: mult_assoc [symmetric])
+qed
+
+lemma nonzero_inverse_minus_eq:
+  "a \<noteq> 0 \<Longrightarrow> inverse (- a) = - inverse a"
+by (rule inverse_unique) simp
+
+lemma nonzero_inverse_inverse_eq:
+  "a \<noteq> 0 \<Longrightarrow> inverse (inverse a) = a"
+by (rule inverse_unique) simp
+
+lemma nonzero_inverse_eq_imp_eq:
+  assumes "inverse a = inverse b" and "a \<noteq> 0" and "b \<noteq> 0"
+  shows "a = b"
+proof -
+  from `inverse a = inverse b`
+  have "inverse (inverse a) = inverse (inverse b)" by (rule arg_cong)
+  with `a \<noteq> 0` and `b \<noteq> 0` show "a = b"
+    by (simp add: nonzero_inverse_inverse_eq)
+qed
+
+lemma inverse_1 [simp]: "inverse 1 = 1"
+by (rule inverse_unique) simp
+
+lemma nonzero_inverse_mult_distrib: 
+  assumes "a \<noteq> 0" and "b \<noteq> 0"
+  shows "inverse (a * b) = inverse b * inverse a"
+proof -
+  have "a * (b * inverse b) * inverse a = 1" using assms by simp
+  hence "a * b * (inverse b * inverse a) = 1" by (simp only: mult_assoc)
+  thus ?thesis by (rule inverse_unique)
+qed
+
+lemma division_ring_inverse_add:
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a + inverse b = inverse a * (a + b) * inverse b"
+by (simp add: algebra_simps)
+
+lemma division_ring_inverse_diff:
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a - inverse b = inverse a * (b - a) * inverse b"
+by (simp add: algebra_simps)
+
+lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> a / b = 1 \<longleftrightarrow> a = b"
+proof
+  assume neq: "b \<noteq> 0"
+  {
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult_assoc)
+    also assume "a / b = 1"
+    finally show "a = b" by simp
+  next
+    assume "a = b"
+    with neq show "a / b = 1" by (simp add: divide_inverse)
+  }
+qed
+
+lemma nonzero_inverse_eq_divide: "a \<noteq> 0 \<Longrightarrow> inverse a = 1 / a"
+by (simp add: divide_inverse)
+
+lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / a = 1"
+by (simp add: divide_inverse)
+
+lemma divide_zero_left [simp]: "0 / a = 0"
+by (simp add: divide_inverse)
+
+lemma inverse_eq_divide: "inverse a = 1 / a"
+by (simp add: divide_inverse)
+
+lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
+by (simp add: divide_inverse algebra_simps)
+
+lemma divide_1 [simp]: "a / 1 = a"
+  by (simp add: divide_inverse)
+
+lemma times_divide_eq_right [simp]: "a * (b / c) = (a * b) / c"
+  by (simp add: divide_inverse mult_assoc)
+
+lemma minus_divide_left: "- (a / b) = (-a) / b"
+  by (simp add: divide_inverse)
+
+lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
+  by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
+  by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma divide_minus_left [simp, no_atp]: "(-a) / b = - (a / b)"
+  by (simp add: divide_inverse)
+
+lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
+  by (simp add: diff_minus add_divide_distrib)
+
+lemma nonzero_eq_divide_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "a = b / c \<longleftrightarrow> a * c = (b / c) * c" by simp
+  also have "... \<longleftrightarrow> a * c = b" by (simp add: divide_inverse mult_assoc)
+  finally show ?thesis .
+qed
+
+lemma nonzero_divide_eq_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> b / c = a \<longleftrightarrow> b = a * c"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "b / c = a \<longleftrightarrow> (b / c) * c = a * c" by simp
+  also have "... \<longleftrightarrow> b = a * c" by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow> b / c = a"
+  by (simp add: divide_inverse mult_assoc)
+
+lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
+  by (drule sym) (simp add: divide_inverse mult_assoc)
+
+end
+
+class division_ring_inverse_zero = division_ring +
+  assumes inverse_zero [simp]: "inverse 0 = 0"
+begin
+
+lemma divide_zero [simp]:
+  "a / 0 = 0"
+  by (simp add: divide_inverse)
+
+lemma divide_self_if [simp]:
+  "a / a = (if a = 0 then 0 else 1)"
+  by simp
+
+lemma inverse_nonzero_iff_nonzero [simp]:
+  "inverse a = 0 \<longleftrightarrow> a = 0"
+  by rule (fact inverse_zero_imp_zero, simp)
+
+lemma inverse_minus_eq [simp]:
+  "inverse (- a) = - inverse a"
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume "a\<noteq>0" 
+  thus ?thesis by (simp add: nonzero_inverse_minus_eq)
+qed
+
+lemma inverse_eq_imp_eq:
+  "inverse a = inverse b \<Longrightarrow> a = b"
+apply (cases "a=0 | b=0") 
+ apply (force dest!: inverse_zero_imp_zero
+              simp add: eq_commute [of "0::'a"])
+apply (force dest!: nonzero_inverse_eq_imp_eq) 
+done
+
+lemma inverse_eq_iff_eq [simp]:
+  "inverse a = inverse b \<longleftrightarrow> a = b"
+  by (force dest!: inverse_eq_imp_eq)
+
+lemma inverse_inverse_eq [simp]:
+  "inverse (inverse a) = a"
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume "a\<noteq>0" 
+  thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
+qed
+
+end
+
+subsection {* Fields *}
+
 class field = comm_ring_1 + inverse +
   assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes field_divide_inverse: "a / b = a * inverse b"
@@ -249,7 +468,7 @@ lemma add_num_frac:
 end
 
 
-text {* Ordered Fields *}
+subsection {* Ordered fields *}
 
 class linordered_field = field + linordered_idom
 begin

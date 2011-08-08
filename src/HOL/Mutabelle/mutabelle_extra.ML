@@ -285,7 +285,7 @@ val forbidden_mutant_consts =
    (@{const_name "Groups.plus_class.plus"}, @{typ "prop => prop => prop"}),
    (@{const_name "Groups.minus_class.minus"}, @{typ "prop => prop => prop"}),
    (@{const_name "Groups.times_class.times"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Rings.inverse_class.divide"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Fields.inverse_class.divide"}, @{typ "prop => prop => prop"}),
    (@{const_name "Lattices.semilattice_inf_class.inf"}, @{typ "prop => prop => prop"}),
    (@{const_name "Lattices.semilattice_sup_class.sup"}, @{typ "prop => prop => prop"}),
    (@{const_name "Orderings.bot_class.bot"}, @{typ "prop => prop => prop"}),

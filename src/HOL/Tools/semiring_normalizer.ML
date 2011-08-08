@@ -185,14 +185,14 @@ fun field_funs key =
   let
     fun numeral_is_const ct =
       case term_of ct of
-       Const (@{const_name Rings.divide},_) $ a $ b =>
+       Const (@{const_name Fields.divide},_) $ a $ b =>
          can HOLogic.dest_number a andalso can HOLogic.dest_number b
-     | Const (@{const_name Rings.inverse},_)$t => can HOLogic.dest_number t
+     | Const (@{const_name Fields.inverse},_)$t => can HOLogic.dest_number t
      | t => can HOLogic.dest_number t
     fun dest_const ct = ((case term_of ct of
-       Const (@{const_name Rings.divide},_) $ a $ b=>
+       Const (@{const_name Fields.divide},_) $ a $ b=>
         Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-     | Const (@{const_name Rings.inverse},_)$t => 
+     | Const (@{const_name Fields.inverse},_)$t => 
                    Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
      | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
        handle TERM _ => error "ring_dest_const")
