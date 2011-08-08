@@ -274,14 +274,14 @@ fun hname NONE = Rule_Cases.case_hypsN
 
 fun case_names cs =
   Rule_Cases.case_names (map fst cs) #>
-  Rule_Cases.cases_hyp_names (map (map hname o snd) cs)
+  Rule_Cases.cases_hyp_names (map (map hname o snd) cs);
 
 val hnamesP =
   Scan.optional
-    (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]")
-    []
+    (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") [];
 
-val case_namesP = Scan.lift (Scan.repeat1 (Args.name -- hnamesP))
+fun case_namesP x = Scan.lift (Scan.repeat1 (Args.name -- hnamesP)) x;
+
 
 (* misc rules *)
 
