@@ -235,8 +235,7 @@ fun method default_type_syss (override_type_syss, ths) ctxt facts =
   let
     val _ =
       if default_type_syss = full_type_syss then
-        legacy_feature "Old 'metisFT' method -- \
-                       \use 'metis (full_types)' instead"
+        legacy_feature "Old \"metisFT\" method -- use \"metis (full_types)\" instead"
       else
         ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
