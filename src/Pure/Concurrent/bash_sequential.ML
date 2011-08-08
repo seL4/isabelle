@@ -5,7 +5,12 @@ Generic GNU bash processes (no provisions to propagate interrupts, but
 could work via the controlling tty).
 *)
 
-structure Bash =
+signature BASH =
+sig
+  val process: string -> {output: string, rc: int, terminate: unit -> unit}
+end;
+
+structure Bash: BASH =
 struct
 
 fun process script =

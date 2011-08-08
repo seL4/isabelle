@@ -4,7 +4,12 @@
 GNU bash processes, with propagation of interrupts.
 *)
 
-structure Bash =
+signature BASH =
+sig
+  val process: string -> {output: string, rc: int, terminate: unit -> unit}
+end;
+
+structure Bash: BASH =
 struct
 
 val process = uninterruptible (fn restore_attributes => fn script =>
