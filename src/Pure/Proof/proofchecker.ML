@@ -86,7 +86,7 @@ fun thm_of_proof thy prf =
     fun thm_of _ _ (PThm (_, ((name, prop', SOME Ts), _))) =
           let
             val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
-            val {prop, ...} = rep_thm thm;
+            val prop = Thm.prop_of thm;
             val _ =
               if is_equal prop prop' then ()
               else

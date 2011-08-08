@@ -1197,7 +1197,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               val prem' = Thm.rhs_of eqn;
               val tprems = map term_of prems;
               val i = 1 + fold Integer.max (map (fn p =>
-                find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn))) ~1;
+                find_index (fn q => q aconv p) tprems) (Thm.hyps_of eqn)) ~1;
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (fold_rev (disch true)

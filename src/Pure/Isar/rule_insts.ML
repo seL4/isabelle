@@ -312,7 +312,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
               (xis ~~ ts));
         (* Lift and instantiate rule *)
-        val {maxidx, ...} = rep_thm st;
+        val maxidx = Thm.maxidx_of st;
         val paramTs = map #2 params
         and inc = maxidx+1
         fun liftvar (Var ((a,j), T)) =

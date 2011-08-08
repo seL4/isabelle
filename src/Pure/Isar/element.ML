@@ -266,7 +266,7 @@ datatype witness = Witness of term * thm;
 
 val mark_witness = Logic.protect;
 fun witness_prop (Witness (t, _)) = t;
-fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
+fun witness_hyps (Witness (_, th)) = Thm.hyps_of th;
 fun map_witness f (Witness witn) = Witness (f witn);
 
 fun morph_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Morphism.thm phi th));

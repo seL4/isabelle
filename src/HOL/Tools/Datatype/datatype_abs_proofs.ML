@@ -46,7 +46,7 @@ fun prove_casedist_thms (config : Datatype_Aux.config)
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
     val newTs = take (length (hd descr)) recTs;
 
-    val {maxidx, ...} = rep_thm induct;
+    val maxidx = Thm.maxidx_of induct;
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
     fun prove_casedist_thm (i, (T, t)) =

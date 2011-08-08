@@ -153,11 +153,13 @@ fun resolve_raw_clauses [] =
         fun resolution (c1, hyps1) (c2, hyps2) =
           let
             val _ =
-              if ! trace_sat then
+              if ! trace_sat then  (* FIXME !? *)
                 tracing ("Resolving clause: " ^ Display.string_of_thm_without_context c1 ^
-                  " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c1)) (#hyps (rep_thm c1))
+                  " (hyps: " ^ ML_Syntax.print_list
+                    (Syntax.string_of_term_global (theory_of_thm c1)) (Thm.hyps_of c1)
                   ^ ")\nwith clause: " ^ Display.string_of_thm_without_context c2 ^
-                  " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
+                  " (hyps: " ^ ML_Syntax.print_list
+                    (Syntax.string_of_term_global (theory_of_thm c2)) (Thm.hyps_of c2) ^ ")")
               else ()
 
             (* the two literals used for resolution *)
@@ -189,7 +191,7 @@ fun resolve_raw_clauses [] =
               if !trace_sat then
                 tracing ("Resulting clause: " ^ Display.string_of_thm_without_context c_new ^
                   " (hyps: " ^ ML_Syntax.print_list
-                      (Syntax.string_of_term_global (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
+                      (Syntax.string_of_term_global (theory_of_thm c_new)) (Thm.hyps_of c_new) ^ ")")
               else ()
             val _ = Unsynchronized.inc counter
           in

@@ -270,7 +270,7 @@ in
 fun lemma thm ct =
   let
     val cu = Z3_Proof_Literals.negate (Thm.dest_arg ct)
-    val hyps = map_filter (try HOLogic.dest_Trueprop) (#hyps (Thm.rep_thm thm))
+    val hyps = map_filter (try HOLogic.dest_Trueprop) (Thm.hyps_of thm)
     val th = Z3_Proof_Tools.under_assumption (intro hyps thm) cu
   in Thm (Z3_Proof_Tools.compose ccontr th) end
 end
