@@ -1,6 +1,7 @@
 (*  title:      HOL/Library/Topology_Euclidian_Space.thy
     Author:     Amine Chaieb, University of Cambridge
     Author:     Robert Himmelmann, TU Muenchen
+    Author:     Brian Huffman, Portland State University
 *)
 
 header {* Elementary topology in Euclidean space. *}
@@ -2171,6 +2172,16 @@ definition
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially))"
 
+lemma compactI:
+  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially"
+  shows "compact S"
+  unfolding compact_def using assms by fast
+
+lemma compactE:
+  assumes "compact S" "\<forall>n. f n \<in> S"
+  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
+  using assms unfolding compact_def by fast
+
 text {*
   A metric space (or topological vector space) is said to have the
   Heine-Borel property if every closed and bounded subset is compact.
@@ -3019,55 +3030,81 @@ lemma compact_empty[simp]:
   unfolding compact_def
   by simp
 
-(* TODO: can any of the next 3 lemmas be generalized to metric spaces? *)
+lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
+  unfolding subseq_def by simp (* TODO: move somewhere else *)
 
-  (* FIXME : Rename *)
-lemma compact_union[intro]:
-  fixes s t :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> compact t ==> compact (s \<union> t)"
-  unfolding compact_eq_bounded_closed
-  using bounded_Un[of s t]
-  using closed_Un[of s t]
-  by simp
+lemma compact_union [intro]:
+  assumes "compact s" and "compact t"
+  shows "compact (s \<union> t)"
+proof (rule compactI)
+  fix f :: "nat \<Rightarrow> 'a"
+  assume "\<forall>n. f n \<in> s \<union> t"
+  hence "infinite {n. f n \<in> s \<union> t}" by simp
+  hence "infinite {n. f n \<in> s} \<or> infinite {n. f n \<in> t}" by simp
+  thus "\<exists>l\<in>s \<union> t. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  proof
+    assume "infinite {n. f n \<in> s}"
+    from infinite_enumerate [OF this]
+    obtain q where "subseq q" "\<forall>n. (f \<circ> q) n \<in> s" by auto
+    obtain r l where "l \<in> s" "subseq r" "((f \<circ> q \<circ> r) ---> l) sequentially"
+      using `compact s` `\<forall>n. (f \<circ> q) n \<in> s` by (rule compactE)
+    hence "l \<in> s \<union> t" "subseq (q \<circ> r)" "((f \<circ> (q \<circ> r)) ---> l) sequentially"
+      using `subseq q` by (simp_all add: subseq_o o_assoc)
+    thus ?thesis by auto
+  next
+    assume "infinite {n. f n \<in> t}"
+    from infinite_enumerate [OF this]
+    obtain q where "subseq q" "\<forall>n. (f \<circ> q) n \<in> t" by auto
+    obtain r l where "l \<in> t" "subseq r" "((f \<circ> q \<circ> r) ---> l) sequentially"
+      using `compact t` `\<forall>n. (f \<circ> q) n \<in> t` by (rule compactE)
+    hence "l \<in> s \<union> t" "subseq (q \<circ> r)" "((f \<circ> (q \<circ> r)) ---> l) sequentially"
+      using `subseq q` by (simp_all add: subseq_o o_assoc)
+    thus ?thesis by auto
+  qed
+qed
 
-lemma compact_inter[intro]:
-  fixes s t :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
-  unfolding compact_eq_bounded_closed
-  using bounded_Int[of s t]
-  using closed_Int[of s t]
-  by simp
-
-lemma compact_inter_closed[intro]:
-  fixes s t :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> closed t ==> compact (s \<inter> t)"
-  unfolding compact_eq_bounded_closed
-  using closed_Int[of s t]
-  using bounded_subset[of "s \<inter> t" s]
-  by blast
-
-lemma closed_inter_compact[intro]:
-  fixes s t :: "'a::heine_borel set"
-  shows "closed s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
-proof-
-  assume "closed s" "compact t"
+lemma compact_inter_closed [intro]:
+  assumes "compact s" and "closed t"
+  shows "compact (s \<inter> t)"
+proof (rule compactI)
+  fix f :: "nat \<Rightarrow> 'a"
+  assume "\<forall>n. f n \<in> s \<inter> t"
+  hence "\<forall>n. f n \<in> s" and "\<forall>n. f n \<in> t" by simp_all
+  obtain l r where "l \<in> s" "subseq r" "((f \<circ> r) ---> l) sequentially"
+    using `compact s` `\<forall>n. f n \<in> s` by (rule compactE)
   moreover
-  have "s \<inter> t = t \<inter> s" by auto ultimately
-  show ?thesis
-    using compact_inter_closed[of t s]
+  from `closed t` `\<forall>n. f n \<in> t` `((f \<circ> r) ---> l) sequentially` have "l \<in> t"
+    unfolding closed_sequential_limits o_def by fast
+  ultimately show "\<exists>l\<in>s \<inter> t. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
     by auto
 qed
 
-lemma finite_imp_compact:
-  fixes s :: "'a::heine_borel set"
-  shows "finite s ==> compact s"
-  unfolding compact_eq_bounded_closed
-  using finite_imp_closed finite_imp_bounded
-  by blast
+lemma closed_inter_compact [intro]:
+  assumes "closed s" and "compact t"
+  shows "compact (s \<inter> t)"
+  using compact_inter_closed [of t s] assms
+  by (simp add: Int_commute)
+
+lemma compact_inter [intro]:
+  assumes "compact s" and "compact t"
+  shows "compact (s \<inter> t)"
+  using assms by (intro compact_inter_closed compact_imp_closed)
 
 lemma compact_sing [simp]: "compact {a}"
   unfolding compact_def o_def subseq_def
   by (auto simp add: tendsto_const)
+
+lemma compact_insert [simp]:
+  assumes "compact s" shows "compact (insert x s)"
+proof -
+  have "compact ({x} \<union> s)"
+    using compact_sing assms by (rule compact_union)
+  thus ?thesis by simp
+qed
+
+lemma finite_imp_compact:
+  shows "finite s \<Longrightarrow> compact s"
+  by (induct set: finite) simp_all
 
 lemma compact_cball[simp]:
   fixes x :: "'a::heine_borel"
@@ -3102,7 +3139,6 @@ lemma open_delete:
 text{* Finite intersection property. I could make it an equivalence in fact. *}
 
 lemma compact_imp_fip:
-  fixes s :: "'a::heine_borel set"
   assumes "compact s"  "\<forall>t \<in> f. closed t"
         "\<forall>f'. finite f' \<and> f' \<subseteq> f --> (s \<inter> (\<Inter> f') \<noteq> {})"
   shows "s \<inter> (\<Inter> f) \<noteq> {}"
