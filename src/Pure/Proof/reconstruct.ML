@@ -352,8 +352,9 @@ fun expand_proof thy thms prf =
               (case AList.lookup (op =) prfs (a, prop) of
                 NONE =>
                   let
-                    val _ = message ("Reconstructing proof of " ^ a);
-                    val _ = message (Syntax.string_of_term_global thy prop);
+                    val _ =
+                      message ("Reconstructing proof of " ^ a ^ "\n" ^
+                        Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
                       (reconstruct_proof thy prop (Proofterm.join_proof body));
                     val (maxidx', prfs', prf) = expand
