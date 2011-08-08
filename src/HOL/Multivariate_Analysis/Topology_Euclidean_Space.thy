@@ -2913,36 +2913,83 @@ proof(rule ccontr)
 qed
 
 lemma sequence_infinite_lemma:
-  fixes l :: "'a::metric_space" (* TODO: generalize *)
-  assumes "\<forall>n::nat. (f n  \<noteq> l)"  "(f ---> l) sequentially"
+  fixes f :: "nat \<Rightarrow> 'a::t1_space"
+  assumes "\<forall>n. f n \<noteq> l" and "(f ---> l) sequentially"
   shows "infinite (range f)"
 proof
-  let ?A = "(\<lambda>x. dist x l) ` range f"
   assume "finite (range f)"
-  hence **:"finite ?A" "?A \<noteq> {}" by auto
-  obtain k where k:"dist (f k) l = Min ?A" using Min_in[OF **] by auto
-  have "0 < Min ?A" using assms(1) unfolding dist_nz unfolding Min_gr_iff[OF **] by auto
-  then obtain N where "dist (f N) l < Min ?A" using assms(2)[unfolded Lim_sequentially, THEN spec[where x="Min ?A"]] by auto
-  moreover have "dist (f N) l \<in> ?A" by auto
-  ultimately show False using Min_le[OF **(1), of "dist (f N) l"] by auto
+  hence "closed (range f)" by (rule finite_imp_closed)
+  hence "open (- range f)" by (rule open_Compl)
+  from assms(1) have "l \<in> - range f" by auto
+  from assms(2) have "eventually (\<lambda>n. f n \<in> - range f) sequentially"
+    using `open (- range f)` `l \<in> - range f` by (rule topological_tendstoD)
+  thus False unfolding eventually_sequentially by auto
 qed
 
+lemma closure_insert:
+  fixes x :: "'a::t1_space"
+  shows "closure (insert x s) = insert x (closure s)"
+apply (rule closure_unique)
+apply (rule conjI [OF insert_mono [OF closure_subset]])
+apply (rule conjI [OF closed_insert [OF closed_closure]])
+apply (simp add: closure_minimal)
+done
+
+lemma islimpt_insert:
+  fixes x :: "'a::t1_space"
+  shows "x islimpt (insert a s) \<longleftrightarrow> x islimpt s"
+proof
+  assume *: "x islimpt (insert a s)"
+  show "x islimpt s"
+  proof (rule islimptI)
+    fix t assume t: "x \<in> t" "open t"
+    show "\<exists>y\<in>s. y \<in> t \<and> y \<noteq> x"
+    proof (cases "x = a")
+      case True
+      obtain y where "y \<in> insert a s" "y \<in> t" "y \<noteq> x"
+        using * t by (rule islimptE)
+      with `x = a` show ?thesis by auto
+    next
+      case False
+      with t have t': "x \<in> t - {a}" "open (t - {a})"
+        by (simp_all add: open_Diff)
+      obtain y where "y \<in> insert a s" "y \<in> t - {a}" "y \<noteq> x"
+        using * t' by (rule islimptE)
+      thus ?thesis by auto
+    qed
+  qed
+next
+  assume "x islimpt s" thus "x islimpt (insert a s)"
+    by (rule islimpt_subset) auto
+qed
+
+lemma islimpt_union_finite:
+  fixes x :: "'a::t1_space"
+  shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
+by (induct set: finite, simp_all add: islimpt_insert)
+ 
 lemma sequence_unique_limpt:
-  fixes l :: "'a::metric_space" (* TODO: generalize *)
-  assumes "\<forall>n::nat. (f n \<noteq> l)"  "(f ---> l) sequentially"  "l' islimpt (range f)"
+  fixes f :: "nat \<Rightarrow> 'a::t2_space"
+  assumes "(f ---> l) sequentially" and "l' islimpt (range f)"
   shows "l' = l"
-proof(rule ccontr)
-  def e \<equiv> "dist l' l"
-  assume "l' \<noteq> l" hence "e>0" unfolding dist_nz e_def by auto
-  then obtain N::nat where N:"\<forall>n\<ge>N. dist (f n) l < e / 2"
-    using assms(2)[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
-  def d \<equiv> "Min (insert (e/2) ((\<lambda>n. if dist (f n) l' = 0 then e/2 else dist (f n) l') ` {0 .. N}))"
-  have "d>0" using `e>0` unfolding d_def e_def using zero_le_dist[of _ l', unfolded order_le_less] by auto
-  obtain k where k:"f k \<noteq> l'"  "dist (f k) l' < d" using `d>0` and assms(3)[unfolded islimpt_approachable, THEN spec[where x="d"]] by auto
-  have "k\<ge>N" using k(1)[unfolded dist_nz] using k(2)[unfolded d_def]
-    by (force simp del: Min.insert_idem)
-  hence "dist l' l < e" using N[THEN spec[where x=k]] using k(2)[unfolded d_def] and dist_triangle_half_r[of "f k" l' e l] by (auto simp del: Min.insert_idem)
-  thus False unfolding e_def by auto
+proof (rule ccontr)
+  assume "l' \<noteq> l"
+  obtain s t where "open s" "open t" "l' \<in> s" "l \<in> t" "s \<inter> t = {}"
+    using hausdorff [OF `l' \<noteq> l`] by auto
+  have "eventually (\<lambda>n. f n \<in> t) sequentially"
+    using assms(1) `open t` `l \<in> t` by (rule topological_tendstoD)
+  then obtain N where "\<forall>n\<ge>N. f n \<in> t"
+    unfolding eventually_sequentially by auto
+
+  have "UNIV = {..<N} \<union> {N..}" by auto
+  hence "l' islimpt (f ` ({..<N} \<union> {N..}))" using assms(2) by simp
+  hence "l' islimpt (f ` {..<N} \<union> f ` {N..})" by (simp add: image_Un)
+  hence "l' islimpt (f ` {N..})" by (simp add: islimpt_union_finite)
+  then obtain y where "y \<in> f ` {N..}" "y \<in> s" "y \<noteq> l'"
+    using `l' \<in> s` `open s` by (rule islimptE)
+  then obtain n where "N \<le> n" "f n \<in> s" "f n \<noteq> l'" by auto
+  with `\<forall>n\<ge>N. f n \<in> t` have "f n \<in> s \<inter> t" by simp
+  with `s \<inter> t = {}` show False by simp
 qed
 
 lemma bolzano_weierstrass_imp_closed:
