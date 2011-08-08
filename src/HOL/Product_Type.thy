@@ -436,11 +436,11 @@ lemma pair_collapse [simp]: "(fst p, snd p) = p"
 
 lemmas surjective_pairing = pair_collapse [symmetric]
 
-lemma Pair_fst_snd_eq: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd t"
+lemma prod_eq_iff: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd t"
   by (cases s, cases t) simp
 
 lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
-  by (simp add: Pair_fst_snd_eq)
+  by (simp add: prod_eq_iff)
 
 lemma split_conv [simp, code]: "split f (a, b) = f a b"
   by (fact prod.cases)
@@ -1225,5 +1225,7 @@ lemma Pair_inject:
 lemmas Pair_eq = prod.inject
 
 lemmas split = split_conv  -- {* for backwards compatibility *}
+
+lemmas Pair_fst_snd_eq = prod_eq_iff
 
 end

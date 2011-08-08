@@ -28,13 +28,13 @@ lemma scaleR_Pair [simp]: "scaleR r (a, b) = (scaleR r a, scaleR r b)"
 instance proof
   fix a b :: real and x y :: "'a \<times> 'b"
   show "scaleR a (x + y) = scaleR a x + scaleR a y"
-    by (simp add: expand_prod_eq scaleR_right_distrib)
+    by (simp add: prod_eq_iff scaleR_right_distrib)
   show "scaleR (a + b) x = scaleR a x + scaleR b x"
-    by (simp add: expand_prod_eq scaleR_left_distrib)
+    by (simp add: prod_eq_iff scaleR_left_distrib)
   show "scaleR a (scaleR b x) = scaleR (a * b) x"
-    by (simp add: expand_prod_eq)
+    by (simp add: prod_eq_iff)
   show "scaleR 1 x = x"
-    by (simp add: expand_prod_eq)
+    by (simp add: prod_eq_iff)
 qed
 
 end
@@ -174,7 +174,7 @@ unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge2)
 instance proof
   fix x y :: "'a \<times> 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
-    unfolding dist_prod_def expand_prod_eq by simp
+    unfolding dist_prod_def prod_eq_iff by simp
 next
   fix x y z :: "'a \<times> 'b"
   show "dist x y \<le> dist x z + dist y z"
@@ -373,7 +373,7 @@ instance proof
     unfolding norm_prod_def by simp
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_prod_def
-    by (simp add: expand_prod_eq)
+    by (simp add: prod_eq_iff)
   show "norm (x + y) \<le> norm x + norm y"
     unfolding norm_prod_def
     apply (rule order_trans [OF _ real_sqrt_sum_squares_triangle_ineq])
@@ -423,7 +423,7 @@ instance proof
     unfolding inner_prod_def
     by (intro add_nonneg_nonneg inner_ge_zero)
   show "inner x x = 0 \<longleftrightarrow> x = 0"
-    unfolding inner_prod_def expand_prod_eq
+    unfolding inner_prod_def prod_eq_iff
     by (simp add: add_nonneg_eq_0_iff)
   show "norm x = sqrt (inner x x)"
     unfolding norm_prod_def inner_prod_def

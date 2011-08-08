@@ -46,7 +46,7 @@ proof
 next
   fix x y :: "'a \<times> 'b"
   assume "x \<sqsubseteq> y" "y \<sqsubseteq> x" thus "x = y"
-    unfolding below_prod_def Pair_fst_snd_eq
+    unfolding below_prod_def prod_eq_iff
     by (fast intro: below_antisym)
 next
   fix x y z :: "'a \<times> 'b"
@@ -142,7 +142,7 @@ instance prod :: (discrete_cpo, discrete_cpo) discrete_cpo
 proof
   fix x y :: "'a \<times> 'b"
   show "x \<sqsubseteq> y \<longleftrightarrow> x = y"
-    unfolding below_prod_def Pair_fst_snd_eq
+    unfolding below_prod_def prod_eq_iff
     by simp
 qed
 

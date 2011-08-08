@@ -317,7 +317,7 @@ lemma trans_of_par4:
       (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)
     else snd(snd(snd(t)))=snd(snd(snd(s)))))"
   (*SLOW*)
-  apply (simp (no_asm) add: par_def actions_asig_comp Pair_fst_snd_eq ioa_projections)
+  apply (simp (no_asm) add: par_def actions_asig_comp prod_eq_iff ioa_projections)
   done
 
 lemma cancel_restrict: "starts_of(restrict ioa acts) = starts_of(ioa) &

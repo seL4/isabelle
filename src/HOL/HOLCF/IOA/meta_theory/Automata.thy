@@ -609,7 +609,7 @@ lemma trans_of_par4:
    (if a:actions(asig_of(D)) then                                             
       (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                       
     else snd(snd(snd(t)))=snd(snd(snd(s)))))"
-  apply (simp (no_asm) add: par_def actions_asig_comp Pair_fst_snd_eq Let_def ioa_projections)
+  apply (simp (no_asm) add: par_def actions_asig_comp prod_eq_iff Let_def ioa_projections)
   done
 
 

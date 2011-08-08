@@ -721,7 +721,7 @@ fun gen_domain_isomorphism
         val rules0 =
             @{thms iterate_0 Pair_strict} @ take_0_thms
         val rules1 =
-            @{thms iterate_Suc Pair_fst_snd_eq fst_conv snd_conv}
+            @{thms iterate_Suc prod_eq_iff fst_conv snd_conv}
             @ take_Suc_thms
         val tac =
             EVERY

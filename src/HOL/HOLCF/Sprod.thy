@@ -63,7 +63,7 @@ by (simp add: spair_def cont_Abs_sprod Abs_sprod_inverse spair_sprod)
 
 lemmas Rep_sprod_simps =
   Rep_sprod_inject [symmetric] below_sprod_def
-  Pair_fst_snd_eq below_prod_def
+  prod_eq_iff below_prod_def
   Rep_sprod_strict Rep_sprod_spair
 
 lemma sprodE [case_names bottom spair, cases type: sprod]:

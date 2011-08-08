@@ -78,39 +78,36 @@ lemma diff_Pair [simp]: "(a, b) - (c, d) = (a - c, b - d)"
 lemma uminus_Pair [simp, code]: "- (a, b) = (- a, - b)"
   unfolding uminus_prod_def by simp
 
-lemmas expand_prod_eq = Pair_fst_snd_eq
-
-
 subsection {* Class instances *}
 
 instance prod :: (semigroup_add, semigroup_add) semigroup_add
-  by default (simp add: expand_prod_eq add_assoc)
+  by default (simp add: prod_eq_iff add_assoc)
 
 instance prod :: (ab_semigroup_add, ab_semigroup_add) ab_semigroup_add
-  by default (simp add: expand_prod_eq add_commute)
+  by default (simp add: prod_eq_iff add_commute)
 
 instance prod :: (monoid_add, monoid_add) monoid_add
-  by default (simp_all add: expand_prod_eq)
+  by default (simp_all add: prod_eq_iff)
 
 instance prod :: (comm_monoid_add, comm_monoid_add) comm_monoid_add
-  by default (simp add: expand_prod_eq)
+  by default (simp add: prod_eq_iff)
 
 instance prod ::
   (cancel_semigroup_add, cancel_semigroup_add) cancel_semigroup_add
-    by default (simp_all add: expand_prod_eq)
+    by default (simp_all add: prod_eq_iff)
 
 instance prod ::
   (cancel_ab_semigroup_add, cancel_ab_semigroup_add) cancel_ab_semigroup_add
-    by default (simp add: expand_prod_eq)
+    by default (simp add: prod_eq_iff)
 
 instance prod ::
   (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
 instance prod :: (group_add, group_add) group_add
-  by default (simp_all add: expand_prod_eq diff_minus)
+  by default (simp_all add: prod_eq_iff diff_minus)
 
 instance prod :: (ab_group_add, ab_group_add) ab_group_add
-  by default (simp_all add: expand_prod_eq)
+  by default (simp_all add: prod_eq_iff)
 
 lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
 by (cases "finite A", induct set: finite, simp_all)

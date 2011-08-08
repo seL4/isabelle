@@ -52,7 +52,7 @@ by (simp add: sinr_def cont_Abs_ssum Abs_ssum_inverse sinr_ssum)
 
 lemmas Rep_ssum_simps =
   Rep_ssum_inject [symmetric] below_ssum_def
-  Pair_fst_snd_eq below_prod_def
+  prod_eq_iff below_prod_def
   Rep_ssum_strict Rep_ssum_sinl Rep_ssum_sinr
 
 subsection {* Properties of \emph{sinl} and \emph{sinr} *}

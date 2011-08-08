@@ -219,7 +219,7 @@ proof (rule fix_eqI)
     by (rule trans [symmetric, OF fix_eq], simp)
   have 2: "snd (F\<cdot>(?x, ?y)) = ?y"
     by (rule trans [symmetric, OF fix_eq], simp)
-  from 1 2 show "F\<cdot>(?x, ?y) = (?x, ?y)" by (simp add: Pair_fst_snd_eq)
+  from 1 2 show "F\<cdot>(?x, ?y) = (?x, ?y)" by (simp add: prod_eq_iff)
 next
   fix z assume F_z: "F\<cdot>z = z"
   obtain x y where z: "z = (x,y)" by (rule prod.exhaust)

@@ -470,7 +470,7 @@ apply (simp only: fix_def2)
 apply (rule lub_eq)
 apply (rule nat.induct)
 apply (simp only: iterate_0 Pair_strict take_0_thms)
-apply (simp only: iterate_Suc Pair_fst_snd_eq fst_conv snd_conv
+apply (simp only: iterate_Suc prod_eq_iff fst_conv snd_conv
                   foo_bar_baz_mapF_beta take_Suc_thms simp_thms)
 done
 
