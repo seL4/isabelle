@@ -25,13 +25,11 @@ where
 lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
   by (induct z) simp
 
-lemma complex_equality [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longrightarrow> x = y"
+lemma complex_eqI [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longrightarrow> x = y"
   by (induct x, induct y) simp
 
-lemma expand_complex_eq: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
+lemma complex_eq_iff: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
   by (induct x, induct y) simp
-
-lemmas complex_Re_Im_cancel_iff = expand_complex_eq
 
 
 subsection {* Addition and Subtraction *}
@@ -152,7 +150,7 @@ instance
   right_distrib left_distrib right_diff_distrib left_diff_distrib
   complex_inverse_def complex_divide_def
   power2_eq_square add_divide_distrib [symmetric]
-  expand_complex_eq)
+  complex_eq_iff)
 
 end
 
@@ -190,7 +188,7 @@ unfolding number_of_eq by (rule complex_Im_of_int)
 
 lemma Complex_eq_number_of [simp]:
   "(Complex a b = number_of w) = (a = number_of w \<and> b = 0)"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 
 subsection {* Scalar Multiplication *}
@@ -215,17 +213,17 @@ instance
 proof
   fix a b :: real and x y :: complex
   show "scaleR a (x + y) = scaleR a x + scaleR a y"
-    by (simp add: expand_complex_eq right_distrib)
+    by (simp add: complex_eq_iff right_distrib)
   show "scaleR (a + b) x = scaleR a x + scaleR b x"
-    by (simp add: expand_complex_eq left_distrib)
+    by (simp add: complex_eq_iff left_distrib)
   show "scaleR a (scaleR b x) = scaleR (a * b) x"
-    by (simp add: expand_complex_eq mult_assoc)
+    by (simp add: complex_eq_iff mult_assoc)
   show "scaleR 1 x = x"
-    by (simp add: expand_complex_eq)
+    by (simp add: complex_eq_iff)
   show "scaleR a x * y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq algebra_simps)
+    by (simp add: complex_eq_iff algebra_simps)
   show "x * scaleR a y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq algebra_simps)
+    by (simp add: complex_eq_iff algebra_simps)
 qed
 
 end
@@ -405,19 +403,19 @@ lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 \<and> y = 1)"
 by (simp add: i_def)
 
 lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_i_not_one [simp]: "ii \<noteq> 1"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_i_not_number_of [simp]: "ii \<noteq> number_of w"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma i_mult_Complex [simp]: "ii * Complex a b = Complex (- b) a"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma Complex_mult_i [simp]: "Complex a b * ii = Complex (- b) a"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma i_complex_of_real [simp]: "ii * complex_of_real r = Complex 0 r"
 by (simp add: i_def complex_of_real_def)
@@ -451,31 +449,31 @@ lemma complex_Im_cnj [simp]: "Im (cnj x) = - Im x"
 by (simp add: cnj_def)
 
 lemma complex_cnj_cancel_iff [simp]: "(cnj x = cnj y) = (x = y)"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_cnj [simp]: "cnj (cnj z) = z"
 by (simp add: cnj_def)
 
 lemma complex_cnj_zero [simp]: "cnj 0 = 0"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_zero_iff [iff]: "(cnj z = 0) = (z = 0)"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_add: "cnj (x + y) = cnj x + cnj y"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_diff: "cnj (x - y) = cnj x - cnj y"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_minus: "cnj (- x) = - cnj x"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_one [simp]: "cnj 1 = 1"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_mult: "cnj (x * y) = cnj x * cnj y"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_inverse: "cnj (inverse x) = inverse (cnj x)"
 by (simp add: complex_inverse_def)
@@ -487,34 +485,34 @@ lemma complex_cnj_power: "cnj (x ^ n) = cnj x ^ n"
 by (induct n, simp_all add: complex_cnj_mult)
 
 lemma complex_cnj_of_nat [simp]: "cnj (of_nat n) = of_nat n"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_of_int [simp]: "cnj (of_int z) = of_int z"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_number_of [simp]: "cnj (number_of w) = number_of w"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_scaleR: "cnj (scaleR r x) = scaleR r (cnj x)"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_mod_cnj [simp]: "cmod (cnj z) = cmod z"
 by (simp add: complex_norm_def)
 
 lemma complex_cnj_complex_of_real [simp]: "cnj (of_real x) = of_real x"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_cnj_i [simp]: "cnj ii = - ii"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_add_cnj: "z + cnj z = complex_of_real (2 * Re z)"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * ii"
-by (simp add: expand_complex_eq)
+by (simp add: complex_eq_iff)
 
 lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<twosuperior> + (Im z)\<twosuperior>)"
-by (simp add: expand_complex_eq power2_eq_square)
+by (simp add: complex_eq_iff power2_eq_square)
 
 lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
 by (simp add: norm_mult power2_eq_square)
@@ -720,5 +718,11 @@ done
 
 lemma expi_two_pi_i [simp]: "expi((2::complex) * complex_of_real pi * ii) = 1"
 by (simp add: expi_def cis_def)
+
+text {* Legacy theorem names *}
+
+lemmas expand_complex_eq = complex_eq_iff
+lemmas complex_Re_Im_cancel_iff = complex_eq_iff
+lemmas complex_equality = complex_eqI
 
 end
