@@ -22,10 +22,8 @@ fun name_of_thm thm =
   | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm_without_context thm));
 
 fun prf_of thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val thm' = Reconstruct.reconstruct_proof thy (Thm.prop_of thm) (Thm.proof_of thm);
-  in Reconstruct.expand_proof thy [("", NONE)] thm' end; (* FIXME *)
+  Reconstruct.proof_of thm
+  |> Reconstruct.expand_proof (Thm.theory_of_thm thm) [("", NONE)];  (* FIXME *)
 
 fun subsets [] = [[]]
   | subsets (x::xs) =
