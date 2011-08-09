@@ -244,7 +244,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/inductive_codegen.ML \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
+  Tools/lambda_lifting.ML \
   Tools/lin_arith.ML \
+  Tools/monomorph.ML \
   Tools/nat_arith.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
@@ -309,10 +311,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/code_evaluation.ML \
   Tools/groebner.ML \
   Tools/int_arith.ML \
-  Tools/lambda_lifting.ML \
   Tools/list_code.ML \
   Tools/list_to_set_comprehension.ML \
-  Tools/monomorph.ML \
   Tools/nat_numeral_simprocs.ML \
   Tools/Nitpick/kodkod.ML \
   Tools/Nitpick/kodkod_sat.ML \
