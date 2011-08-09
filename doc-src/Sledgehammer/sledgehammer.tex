@@ -140,10 +140,10 @@ relies on third-party automatic theorem provers (ATPs) and SMT solvers.
 
 \subsection{Installing ATPs}
 
-Currently, E, SPASS, and Vampire can be run locally; in addition, E, E-SInE,
-E-ToFoF, LEO-II, Satallax, SNARK, Waldmeister, and Vampire are available
-remotely via System\-On\-TPTP \cite{sutcliffe-2000}. If you want better
-performance, you should at least install E and SPASS locally.
+Currently, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
+addition, E, E-SInE, E-ToFoF, LEO-II, Satallax, SNARK, Waldmeister, and Vampire
+are available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. If you want
+better performance, you should at least install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -524,7 +524,7 @@ that can be guessed from the number of facts in the original proof and the time
 it took to find it or replay it).
 
 In addition, some provers (notably CVC3, Satallax, and Yices) do not provide
-proofs or sometimes provide incomplete proofs. The minimizer is then invoked to
+proofs or sometimes produce incomplete proofs. The minimizer is then invoked to
 find out which facts are actually needed from the (large) set of facts that was
 initinally given to the prover. Finally, if a prover returns a proof with lots
 of facts, the minimizer is invoked automatically since Metis would be unlikely
@@ -722,6 +722,23 @@ variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable, or install the prebuilt E package from Isabelle's download page. See
 \S\ref{installation} for details.
 
+\item[$\bullet$] \textbf{\textit{leo2}:} LEO-II is an automatic
+higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
+with support for the TPTP higher-order syntax (THF).
+
+\item[$\bullet$] \textbf{\textit{metis}:} Although it is much less powerful than
+the external provers, Metis itself can be used for proof search.
+
+\item[$\bullet$] \textbf{\textit{metis\_full\_types}:} Fully typed version of
+Metis, corresponding to \textit{metis} (\textit{full\_types}).
+
+\item[$\bullet$] \textbf{\textit{metis\_no\_types}:} Untyped version of Metis,
+corresponding to \textit{metis} (\textit{no\_types}).
+
+\item[$\bullet$] \textbf{\textit{satallax}:} Satallax is an automatic
+higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
+support for the TPTP higher-order syntax (THF).
+
 \item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
@@ -729,16 +746,16 @@ that contains the \texttt{SPASS} executable, or install the prebuilt SPASS
 package from Isabelle's download page. Sledgehammer requires version 3.5 or
 above. See \S\ref{installation} for details.
 
-\item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
-SRI \cite{yices}. To use Yices, set the environment variable
-\texttt{YICES\_SOLVER} to the complete path of the executable, including the
-file name. Sledgehammer has been tested with version 1.0.
-
 \item[$\bullet$] \textbf{\textit{vampire}:} Vampire is a first-order resolution
 prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable. Sledgehammer has been tested with versions 11, 0.6, and 1.0.
+
+\item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
+SRI \cite{yices}. To use Yices, set the environment variable
+\texttt{YICES\_SOLVER} to the complete path of the executable, including the
+file name. Sledgehammer has been tested with version 1.0.
 
 \item[$\bullet$] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
@@ -749,15 +766,6 @@ noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
 \item[$\bullet$] \textbf{\textit{z3\_atp}:} This version of Z3 pretends to be an
 ATP, exploiting Z3's undocumented support for the TPTP format. It is included
 for experimental purposes. It requires version 2.18 or above.
-
-\item[$\bullet$] \textbf{\textit{metis}:} Although it is much less powerful than
-the external provers, Metis itself can be used for proof search.
-
-\item[$\bullet$] \textbf{\textit{metis\_full\_types}:} Fully typed version of
-Metis, corresponding to \textit{metis} (\textit{full\_types}).
-
-\item[$\bullet$] \textbf{\textit{metis\_no\_types}:} Untyped version of Metis,
-corresponding to \textit{metis} (\textit{no\_types}).
 \end{enum}
 
 In addition, the following remote provers are supported:
@@ -779,17 +787,11 @@ developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports the TPTP many-typed first-order format (TFF). The
 remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_leo2}:} LEO-II is an automatic
-higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
-with support for the TPTP higher-order syntax (THF). The remote version of
-LEO-II runs on Geoff Sutcliffe's Miami servers. In the current setup, the
-problems given to LEO-II are only mildly higher-order.
+\item[$\bullet$] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
+runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_satallax}:} Satallax is an automatic
-higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP higher-order syntax (THF). The remote version of Satallax
-runs on Geoff Sutcliffe's Miami servers. In the current setup, the problems
-given to Satallax are only mildly higher-order.
+\item[$\bullet$] \textbf{\textit{remote\_satallax}:} The remote version of
+Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
 resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
