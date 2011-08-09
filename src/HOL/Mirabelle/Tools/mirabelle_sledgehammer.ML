@@ -13,8 +13,7 @@ val soundK = "sound"
 val slicingK = "slicing"
 val lambda_translationK = "lambda_translation"
 val e_weight_methodK = "e_weight_method"
-val spass_force_sosK = "spass_force_sos"
-val vampire_force_sosK = "vampire_force_sos"
+val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
@@ -354,8 +353,8 @@ datatype sh_result =
   SH_ERROR
 
 fun run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method spass_force_sos vampire_force_sos
-        hard_timeout timeout dir pos st =
+        lambda_translation e_weight_method force_sos hard_timeout timeout dir
+        pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -375,10 +374,8 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
                        lambda_translation |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.e_weight_method)
                        e_weight_method |> the_default I)
-                 #> (Option.map (Config.put ATP_Systems.spass_force_sos)
-                       spass_force_sos |> the_default I)
-                 #> (Option.map (Config.put ATP_Systems.vampire_force_sos)
-                       vampire_force_sos |> the_default I)
+                 #> (Option.map (Config.put ATP_Systems.force_sos)
+                       force_sos |> the_default I)
                  #> Config.put Sledgehammer_Provers.measure_run_time true)
     val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
@@ -466,9 +463,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
     val lambda_translation = AList.lookup (op =) args lambda_translationK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
-    val spass_force_sos = AList.lookup (op =) args spass_force_sosK
-      |> Option.map (curry (op <>) "false")
-    val vampire_force_sos = AList.lookup (op =) args vampire_force_sosK
+    val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
@@ -477,8 +472,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method spass_force_sos vampire_force_sos
-        hard_timeout timeout dir pos st
+        lambda_translation e_weight_method force_sos hard_timeout timeout dir
+        pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
