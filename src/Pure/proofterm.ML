@@ -881,23 +881,25 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
-    val prf =  if check_comb prf1 then
+    val prf =
+      if check_comb prf1 then
         combination_axm % NONE % NONE
-      else (case prf1 of
+      else
+        (case prf1 of
           PAxm ("Pure.reflexive", _, _) % _ =>
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
     (case T of
-       Type ("fun", _) => prf %
-         (case head_of f of
-            Abs _ => SOME (remove_types t)
-          | Var _ => SOME (remove_types t)
-          | _ => NONE) %
-         (case head_of g of
-            Abs _ => SOME (remove_types u)
-          | Var _ => SOME (remove_types u)
-          | _ => NONE) %% prf1 %% prf2
+      Type ("fun", _) => prf %
+        (case head_of f of
+          Abs _ => SOME (remove_types t)
+        | Var _ => SOME (remove_types t)
+        | _ => NONE) %
+        (case head_of g of
+           Abs _ => SOME (remove_types u)
+        | Var _ => SOME (remove_types u)
+        | _ => NONE) %% prf1 %% prf2
      | _ => prf % NONE % NONE %% prf1 %% prf2)
   end;
 
