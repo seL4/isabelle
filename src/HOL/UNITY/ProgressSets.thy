@@ -42,25 +42,21 @@ by (simp add: lattice_def)
 
 lemma UN_in_lattice:
      "[|lattice L; !!i. i\<in>I ==> r i \<in> L|] ==> (\<Union>i\<in>I. r i) \<in> L"
-apply (simp add: UN_eq) 
+apply (unfold SUP_def)
 apply (blast intro: Union_in_lattice) 
 done
 
 lemma INT_in_lattice:
      "[|lattice L; !!i. i\<in>I ==> r i \<in> L|] ==> (\<Inter>i\<in>I. r i)  \<in> L"
-apply (simp add: INT_eq) 
+apply (unfold INF_def)
 apply (blast intro: Inter_in_lattice) 
 done
 
 lemma Un_in_lattice: "[|x\<in>L; y\<in>L; lattice L|] ==> x\<union>y \<in> L"
-apply (simp only: Un_eq_Union) 
-apply (blast intro: Union_in_lattice) 
-done
+  using Union_in_lattice [of "{x, y}" L] by simp
 
 lemma Int_in_lattice: "[|x\<in>L; y\<in>L; lattice L|] ==> x\<inter>y \<in> L"
-apply (simp only: Int_eq_Inter) 
-apply (blast intro: Inter_in_lattice) 
-done
+  using Inter_in_lattice [of "{x, y}" L] by simp
 
 lemma lattice_stable: "lattice {X. F \<in> stable X}"
 by (simp add: lattice_def stable_def constrains_def, blast)

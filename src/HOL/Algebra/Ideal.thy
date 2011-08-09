@@ -227,26 +227,14 @@ lemma (in ring) i_Intersect:
     and notempty: "S \<noteq> {}"
   shows "ideal (Inter S) R"
 apply (unfold_locales)
-apply (simp_all add: Inter_def INTER_def)
-      apply (rule, simp) defer 1
+apply (simp_all add: Inter_eq)
+      apply rule unfolding mem_Collect_eq defer 1
       apply rule defer 1
       apply rule defer 1
       apply (fold a_inv_def, rule) defer 1
       apply rule defer 1
       apply rule defer 1
 proof -
-  fix x
-  assume "\<forall>I\<in>S. x \<in> I"
-  hence xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-
-  from notempty have "\<exists>I0. I0 \<in> S" by blast
-  from this obtain I0 where I0S: "I0 \<in> S" by auto
-
-  interpret ideal I0 R by (rule Sideals[OF I0S])
-
-  from xI[OF I0S] have "x \<in> I0" .
-  from this and a_subset show "x \<in> carrier R" by fast
-next
   fix x y
   assume "\<forall>I\<in>S. x \<in> I"
   hence xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
@@ -298,6 +286,20 @@ next
 
   from xI[OF JS] and ycarr
       show "x \<otimes> y \<in> J" by (rule I_r_closed)
+next
+  fix x
+  assume "\<forall>I\<in>S. x \<in> I"
+  hence xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
+
+  from notempty have "\<exists>I0. I0 \<in> S" by blast
+  from this obtain I0 where I0S: "I0 \<in> S" by auto
+
+  interpret ideal I0 R by (rule Sideals[OF I0S])
+
+  from xI[OF I0S] have "x \<in> I0" .
+  from this and a_subset show "x \<in> carrier R" by fast
+next
+
 qed
 
 

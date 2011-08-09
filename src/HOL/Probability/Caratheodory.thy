@@ -6,7 +6,7 @@
 header {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
-  imports Sigma_Algebra Extended_Real_Limits
+imports Sigma_Algebra "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
 begin
 
 lemma sums_def2:
@@ -433,8 +433,7 @@ proof -
             hence eq_fa: "f a = f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i))"
               by (simp add: lambda_system_eq UNION_in)
             have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
-              by (blast intro: increasingD [OF inc] UNION_eq_Union_image
-                               UNION_in U_in)
+              by (blast intro: increasingD [OF inc] UNION_in U_in)
             thus "(\<Sum>i<n. f (a \<inter> A i)) + f (a - (\<Union>i. A i)) \<le> f a"
               by (simp add: lambda_system_strong_sum pos A disj eq_fa add_left_mono atLeast0LessThan[symmetric])
           next

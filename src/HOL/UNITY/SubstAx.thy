@@ -85,16 +85,14 @@ by (simp add: Un_ac)
 
 lemma LeadsTo_UN: 
      "(!!i. i \<in> I ==> F \<in> (A i) LeadsTo B) ==> F \<in> (\<Union>i \<in> I. A i) LeadsTo B"
-apply (simp only: Union_image_eq [symmetric])
+apply (unfold SUP_def)
 apply (blast intro: LeadsTo_Union)
 done
 
 text{*Binary union introduction rule*}
 lemma LeadsTo_Un:
      "[| F \<in> A LeadsTo C; F \<in> B LeadsTo C |] ==> F \<in> (A \<union> B) LeadsTo C"
-apply (subst Un_eq_Union)
-apply (blast intro: LeadsTo_Union)
-done
+  using LeadsTo_UN [of "{A, B}" F id C] by auto
 
 text{*Lets us look at the starting state*}
 lemma single_LeadsTo_I:

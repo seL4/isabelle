@@ -211,9 +211,7 @@ done
 text{*Binary union introduction rule*}
 lemma leadsTo_Un:
      "[| F \<in> A leadsTo C; F \<in> B leadsTo C |] ==> F \<in> (A \<union> B) leadsTo C"
-apply (subst Un_eq_Union)
-apply (blast intro: leadsTo_Union)
-done
+  using leadsTo_Union [of "{A, B}" F C] by auto
 
 lemma single_leadsTo_I: 
      "(!!x. x \<in> A ==> F \<in> {x} leadsTo B) ==> F \<in> A leadsTo B"

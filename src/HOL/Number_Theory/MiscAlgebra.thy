@@ -8,7 +8,7 @@ theory MiscAlgebra
 imports
   "~~/src/HOL/Algebra/Ring"
   "~~/src/HOL/Algebra/FiniteProduct"
-begin;
+begin
 
 (* finiteness stuff *)
 
@@ -34,7 +34,7 @@ done
 definition units_of :: "('a, 'b) monoid_scheme => 'a monoid" where
   "units_of G == (| carrier = Units G,
      Group.monoid.mult = Group.monoid.mult G,
-     one  = one G |)";
+     one  = one G |)"
 
 (*
 
@@ -264,7 +264,7 @@ lemma (in comm_monoid) finprod_Union_disjoint:
       (ALL A:C. ALL B:C. A ~= B --> A Int B = {}) |] 
    ==> finprod G f (Union C) = finprod G (finprod G f) C" 
   apply (frule finprod_UN_disjoint [of C id f])
-  apply (unfold Union_def id_def, auto)
+  apply (auto simp add: SUP_def)
 done
 
 lemma (in comm_monoid) finprod_one [rule_format]: 
