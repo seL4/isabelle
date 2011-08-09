@@ -1,6 +1,6 @@
  (*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel; Florian Haftmann, TU Muenchen *)
 
-header {* Complete lattices, with special focus on sets *}
+header {* Complete lattices *}
 
 theory Complete_Lattice
 imports Set
