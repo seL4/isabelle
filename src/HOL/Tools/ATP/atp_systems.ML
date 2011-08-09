@@ -417,7 +417,7 @@ val remote_vampire =
 val remote_z3_atp =
   remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_guards?") (* FUDGE *))
 val remote_leo2 =
-  remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
+  remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF, FOF]
              (K (100, "simple_higher") (* FUDGE *))
 val remote_satallax =
   remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
