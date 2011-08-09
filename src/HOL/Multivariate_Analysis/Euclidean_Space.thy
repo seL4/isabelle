@@ -1731,8 +1731,10 @@ lemma euclidean_scaleR:
 
 end
 
-interpretation euclidean_component: additive "\<lambda>x. euclidean_component x i"
-proof qed (simp add: euclidean_component_def inner_right.add)
+interpretation euclidean_component:
+  bounded_linear "\<lambda>x. euclidean_component x i"
+  unfolding euclidean_component_def
+  by (rule inner.bounded_linear_right)
 
 subsection{* Euclidean Spaces as Typeclass *}
 

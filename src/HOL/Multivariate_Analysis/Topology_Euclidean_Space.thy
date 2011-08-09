@@ -1250,11 +1250,6 @@ proof(simp add: tendsto_iff, rule+)
     using assms `e>0` unfolding tendsto_iff by auto
 qed
 
-lemma Lim_component: (* TODO: rename and declare [tendsto_intros] *)
-  fixes f :: "'a \<Rightarrow> ('a::euclidean_space)"
-  shows "(f ---> l) net \<Longrightarrow> ((\<lambda>a. f a $$i) ---> l$$i) net"
-  unfolding euclidean_component_def by (intro tendsto_intros)
-
 lemma Lim_transform_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   fixes g :: "'a \<Rightarrow> 'c::real_normed_vector"
@@ -6115,6 +6110,7 @@ lemmas Lim_mul = scaleR.tendsto
 lemmas Lim_vmul = scaleR.tendsto [OF _ tendsto_const]
 lemmas Lim_null_norm = tendsto_norm_zero_iff [symmetric]
 lemmas Lim_linear = bounded_linear.tendsto [COMP swap_prems_rl]
+lemmas Lim_component = euclidean_component.tendsto
 lemmas Lim_intros = Lim_add Lim_const Lim_sub Lim_cmul Lim_vmul Lim_within_id
 
 end
