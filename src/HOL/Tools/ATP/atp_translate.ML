@@ -871,8 +871,13 @@ fun introduce_proxies type_enc =
              | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
              | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
              | (false, s) =>
-               if is_tptp_equal s then IConst (`I tptp_equal, T, [])
-               else IConst (proxy_base |>> prefix const_prefix, T, T_args)
+               if is_tptp_equal s andalso length args = 2 then
+                 IConst (`I tptp_equal, T, [])
+               else
+                 (* Use a proxy even for partially applied THF equality, because
+                    the LEO-II and Satallax parsers complain about not being
+                    able to infer the type of "=". *)
+                 IConst (proxy_base |>> prefix const_prefix, T, T_args)
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
