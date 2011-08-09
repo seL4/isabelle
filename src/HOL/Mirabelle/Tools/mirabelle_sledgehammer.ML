@@ -9,6 +9,7 @@ val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val type_encK = "type_enc"
+val soundK = "sound"
 val slicingK = "slicing"
 val lambda_translationK = "lambda_translation"
 val e_weight_methodK = "e_weight_method"
@@ -354,9 +355,9 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc max_relevant slicing lambda_translation
-      e_weight_method spass_force_sos vampire_force_sos hard_timeout timeout dir
-      st =
+fun run_sh prover_name prover type_enc sound max_relevant slicing
+        lambda_translation e_weight_method spass_force_sos vampire_force_sos
+        hard_timeout timeout dir st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -383,6 +384,7 @@ fun run_sh prover_name prover type_enc max_relevant slicing lambda_translation
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_enc", type_enc),
+           ("sound", sound),
            ("max_relevant", max_relevant),
            ("slicing", slicing),
            ("timeout", string_of_int timeout)]
@@ -458,6 +460,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
+    val sound = AList.lookup (op =) args soundK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
     val lambda_translation = AList.lookup (op =) args lambda_translationK
@@ -472,9 +475,9 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc max_relevant slicing lambda_translation
-        e_weight_method spass_force_sos vampire_force_sos hard_timeout timeout
-        dir st
+      run_sh prover_name prover type_enc sound max_relevant slicing
+        lambda_translation e_weight_method spass_force_sos vampire_force_sos
+        hard_timeout timeout dir st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -511,6 +514,7 @@ fun run_minimize args reconstructor named_thms id
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
+    val sound = AList.lookup (op =) args soundK |> the_default "false"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
@@ -519,6 +523,7 @@ fun run_minimize args reconstructor named_thms id
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
+       ("sound", sound),
        ("timeout", string_of_int timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params
