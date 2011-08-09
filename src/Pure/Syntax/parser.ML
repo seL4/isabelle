@@ -747,7 +747,7 @@ fun prods_for prods chains include_none tk nts =
   in get_prods (connected_with chains nts nts) [] end;
 
 
-fun PROCESSS ctxt warned prods chains Estate i c states =
+fun PROCESSS ctxt prods chains Estate i c states =
   let
     fun all_prods_for nt = prods_for prods chains true c [nt];
 
@@ -773,14 +773,6 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                         val tk_prods = all_prods_for nt;
                         val States' = mk_states i min_prec nt (get_RHS min_prec tk_prods);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
-
-                val _ =
-                  if not (! warned) andalso
-                     length new_states + length States > Config.get ctxt branching_level then
-                    (Context_Position.if_visible ctxt warning
-                      "Currently parsed expression could be extremely ambiguous";
-                     warned := true)
-                  else ();
               in
                 processS used' (new_states @ States) (S :: Si, Sii)
               end
@@ -803,7 +795,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
   in processS Inttab.empty states ([], []) end;
 
 
-fun produce ctxt warned prods tags chains stateset i indata prev_token =
+fun produce ctxt prods tags chains stateset i indata prev_token =
   (case Array.sub (stateset, i) of
     [] =>
       let
@@ -821,10 +813,10 @@ fun produce ctxt warned prods tags chains stateset i indata prev_token =
         [] => s
       | c :: cs =>
           let
-            val (si, sii) = PROCESSS ctxt warned prods chains stateset i c s;
+            val (si, sii) = PROCESSS ctxt prods chains stateset i c s;
             val _ = Array.update (stateset, i, si);
             val _ = Array.update (stateset, i + 1, sii);
-          in produce ctxt warned prods tags chains stateset (i + 1) cs c end));
+          in produce ctxt prods tags chains stateset (i + 1) cs c end));
 
 
 fun get_trees states = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) states;
@@ -841,7 +833,7 @@ fun earley ctxt prods tags chains startsymbol indata =
     val _ = Array.update (Estate, 0, S0);
   in
     get_trees
-      (produce ctxt (Unsynchronized.ref false) prods tags chains Estate 0 indata Lexicon.eof)
+      (produce ctxt prods tags chains Estate 0 indata Lexicon.eof)
   end;
 
 
