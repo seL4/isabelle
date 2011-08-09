@@ -85,15 +85,14 @@ Lawrence C. Paulson \\
 
 Sledgehammer is a tool that applies automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal. The
-supported ATPs are E \cite{schulz-2002}, LEO-II \cite{leo2}, Satallax
-\cite{satallax}, SInE-E \cite{sine}, SNARK \cite{snark}, SPASS
-\cite{weidenbach-et-al-2009}, ToFoF-E \cite{tofof}, Vampire
-\cite{riazanov-voronkov-2002}, and Waldmeister \cite{waldmeister}. The ATPs are
-run either locally or remotely via the System\-On\-TPTP web service
-\cite{sutcliffe-2000}. In addition to the ATPs, the SMT solvers Z3 \cite{z3} is
-used by default, and you can tell Sledgehammer to try CVC3 \cite{cvc3} and Yices
-\cite{yices} as well; these are run either locally or on a server at the TU
-M\"unchen.
+supported ATPs are E \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF
+\cite{tofof}, LEO-II \cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark},
+SPASS \cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
+Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
+the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs,
+the SMT solvers Z3 \cite{z3} is used by default, and you can tell Sledgehammer
+to try CVC3 \cite{cvc3} and Yices \cite{yices} as well; these are run either
+locally or on a server at the TU M\"unchen.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -141,10 +140,10 @@ relies on third-party automatic theorem provers (ATPs) and SMT solvers.
 
 \subsection{Installing ATPs}
 
-Currently, E, SPASS, and Vampire can be run locally; in addition, E, Vampire,
-LEO-II, Satallax, SInE-E, SNARK, ToFoF-E, and Waldmeister are available remotely
-via System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
-should at least install E and SPASS locally.
+Currently, E, SPASS, and Vampire can be run locally; in addition, E, E-SInE,
+E-ToFoF, LEO-II, Satallax, SNARK, Waldmeister, and Vampire are available
+remotely via System\-On\-TPTP \cite{sutcliffe-2000}. If you want better
+performance, you should at least install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -266,7 +265,7 @@ Sledgehammer: ``\textit{remote\_waldmeister}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (15 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_sine\_e}'' on goal \\
+Sledgehammer: ``\textit{remote\_e\_sine}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms). \\[3\smallskipamount]
 %
@@ -275,7 +274,7 @@ $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis list.inject}) (20 ms).
 \postw
 
-Sledgehammer ran E, SInE-E, SPASS, Vampire, Waldmeister, and Z3 in parallel.
+Sledgehammer ran E, E-SInE, SPASS, Vampire, Waldmeister, and Z3 in parallel.
 Depending on which provers are installed and how many processor cores are
 available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
@@ -771,6 +770,15 @@ point).
 \item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
+\item[$\bullet$] \textbf{\textit{remote\_e\_sine}:} E-SInE is a metaprover
+developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
+SInE runs on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
+developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
+servers. This ATP supports the TPTP many-typed first-order format (TFF). The
+remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
+
 \item[$\bullet$] \textbf{\textit{remote\_leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
 with support for the TPTP higher-order syntax (THF). The remote version of
@@ -783,19 +791,10 @@ support for the TPTP higher-order syntax (THF). The remote version of Satallax
 runs on Geoff Sutcliffe's Miami servers. In the current setup, the problems
 given to Satallax are only mildly higher-order.
 
-\item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
-developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
-SInE runs on Geoff Sutcliffe's Miami servers.
-
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
 resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
 TPTP many-typed first-order format (TFF). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
-
-\item[$\bullet$] \textbf{\textit{remote\_tofof\_e}:} ToFoF-E is a metaprover
-developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
-servers. This ATP supports the TPTP many-typed first-order format (TFF). The
-remote version of ToFoF-E runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
@@ -814,12 +813,12 @@ point).
 as an ATP'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer will run E, SPASS, Vampire, SInE-E, and Z3 (or whatever
-the SMT module's \textit{smt\_solver} configuration option is set to) in
-parallel---either locally or remotely, depending on the number of processor
-cores available. For historical reasons, the default value of this option can be
-overridden using the option ``Sledgehammer: Provers'' from the ``Isabelle'' menu
-in Proof General.
+By default, Sledgehammer will run E, E-SInE, SPASS, Vampire, Z3 (or whatever
+the SMT module's \textit{smt\_solver} configuration option is set to), and (if
+appropriate) Waldmeister in parallel---either locally or remotely, depending on
+the number of processor cores available. For historical reasons, the default
+value of this option can be overridden using the option ``Sledgehammer:
+Provers'' from the ``Isabelle'' menu in Proof General.
 
 It is a good idea to run several provers in parallel, although it could slow
 down your machine. Running E, SPASS, and Vampire for 5~seconds yields a similar
