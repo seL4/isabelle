@@ -244,7 +244,7 @@ fun sscase_const (T, U, V) =
     (T ->> V) ->> (U ->> V) ->> mk_ssumT (T, U) ->> V)
 
 fun mk_sscase (t, u) =
-  let val (T, V) = dest_cfunT (fastype_of t)
+  let val (T, _) = dest_cfunT (fastype_of t)
       val (U, V) = dest_cfunT (fastype_of u)
   in sscase_const (T, U, V) ` t ` u end
 

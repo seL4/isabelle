@@ -127,7 +127,7 @@ fun add_axioms
           (dbinds ~~ iso_infos) take_info lub_take_thms thy
 
     (* define map functions *)
-    val (map_info, thy) =
+    val (_, thy) =
         Domain_Isomorphism.define_map_functions
           (dbinds ~~ iso_infos) thy
 

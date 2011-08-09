@@ -154,10 +154,7 @@ fun prove_pcpo
 
 (* prepare_cpodef *)
 
-fun declare_type_name a =
-  Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)))
-
-fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
+fun prepare prep_term name (tname, raw_args, _) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Cpodef" "cpodefs"
 
@@ -186,7 +183,7 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
 fun add_podef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name
-    val ((full_tname, info as ({Rep_name, ...}, {type_definition, set_def, ...})), thy) = thy
+    val ((full_tname, info as ({Rep_name, ...}, {type_definition, ...})), thy) = thy
       |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
@@ -216,7 +213,7 @@ fun prepare_cpodef
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info) * theory) =
   let
-    val (newT, oldT, set, morphs as (Rep_name, Abs_name)) =
+    val (newT, oldT, set, morphs) =
       prepare prep_term name typ raw_set opt_morphs thy
 
     val goal_nonempty =
@@ -249,7 +246,7 @@ fun prepare_pcpodef
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info * pcpo_info) * theory) =
   let
-    val (newT, oldT, set, morphs as (Rep_name, Abs_name)) =
+    val (newT, oldT, set, morphs) =
       prepare prep_term name typ raw_set opt_morphs thy
 
     val goal_bottom_mem =

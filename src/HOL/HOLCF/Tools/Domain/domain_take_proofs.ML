@@ -159,10 +159,6 @@ infixr 6 ->>
 infix -->>
 infix 9 `
 
-fun mapT (T as Type (_, Ts)) =
-    (map (fn T => T ->> T) Ts) -->> (T ->> T)
-  | mapT T = T ->> T
-
 fun mk_deflation t =
   Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t
 
@@ -227,7 +223,7 @@ fun define_take_functions
     val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos
     val rep_abs_consts = map (fn x => (#rep_const x, #abs_const x)) iso_infos
 
-    fun mk_projs []      t = []
+    fun mk_projs []      _ = []
       | mk_projs (x::[]) t = [(x, t)]
       | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t)
 
@@ -239,7 +235,7 @@ fun define_take_functions
     val copy_arg_type = mk_tupleT (map (fn T => T ->> T) newTs)
     val copy_arg = Free ("f", copy_arg_type)
     val copy_args = map snd (mk_projs dbinds copy_arg)
-    fun one_copy_rhs (rep_abs, (lhsT, rhsT)) =
+    fun one_copy_rhs (rep_abs, (_, rhsT)) =
       let
         val body = map_of_typ thy (newTs ~~ copy_args) rhsT
       in
@@ -257,7 +253,7 @@ fun define_take_functions
       end
 
     (* define take constants *)
-    fun define_take_const ((dbind, take_rhs), (lhsT, rhsT)) thy =
+    fun define_take_const ((dbind, take_rhs), (lhsT, _)) thy =
       let
         val take_type = HOLogic.natT --> lhsT ->> lhsT
         val take_bind = Binding.suffix_name "_take" dbind
@@ -285,7 +281,7 @@ fun define_take_functions
       fold_map prove_chain_take (take_consts ~~ dbinds) thy
 
     (* prove take_0 lemmas *)
-    fun prove_take_0 ((take_const, dbind), (lhsT, rhsT)) thy =
+    fun prove_take_0 ((take_const, dbind), (lhsT, _)) thy =
       let
         val lhs = take_const $ @{term "0::nat"}
         val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT))
@@ -302,7 +298,7 @@ fun define_take_functions
     val n = Free ("n", natT)
     val take_is = map (fn t => t $ n) take_consts
     fun prove_take_Suc
-          (((take_const, rep_abs), dbind), (lhsT, rhsT)) thy =
+          (((take_const, rep_abs), dbind), (_, rhsT)) thy =
       let
         val lhs = take_const $ (@{term Suc} $ n)
         val body = map_of_typ thy (newTs ~~ take_is) rhsT
@@ -326,9 +322,6 @@ fun define_take_functions
         val n = Free ("n", natT)
         fun mk_goal take_const = mk_deflation (take_const $ n)
         val goal = mk_trp (foldr1 mk_conj (map mk_goal take_consts))
-        val adm_rules =
-          @{thms adm_conj adm_subst [OF _ adm_deflation]
-                 cont2cont_fst cont2cont_snd cont_id}
         val bottom_rules =
           take_0_thms @ @{thms deflation_bottom simp_thms}
         val deflation_rules =
@@ -345,7 +338,7 @@ fun define_take_functions
                    ORELSE resolve_tac deflation_rules 1
                    ORELSE atac 1)])
       end
-    fun conjuncts [] thm = []
+    fun conjuncts [] _ = []
       | conjuncts (n::[]) thm = [(n, thm)]
       | conjuncts (n::ns) thm = let
           val thmL = thm RS @{thm conjunct1}
@@ -378,7 +371,7 @@ fun define_take_functions
       in
         add_qualified_thm "take_take" (dbind, take_take_thm) thy
       end
-    val (take_take_thms, thy) =
+    val (_, thy) =
       fold_map prove_take_take
         (chain_take_thms ~~ deflation_take_thms ~~ dbinds) thy
 
@@ -391,12 +384,12 @@ fun define_take_functions
       in
         add_qualified_thm "take_below" (dbind, take_below_thm) thy
       end
-    val (take_below_thms, thy) =
+    val (_, thy) =
       fold_map prove_take_below
         (deflation_take_thms ~~ dbinds) thy
 
     (* define finiteness predicates *)
-    fun define_finite_const ((dbind, take_const), (lhsT, rhsT)) thy =
+    fun define_finite_const ((dbind, take_const), (lhsT, _)) thy =
       let
         val finite_type = lhsT --> boolT
         val finite_bind = Binding.suffix_name "_finite" dbind
@@ -517,8 +510,7 @@ fun add_lub_take_theorems
     val iso_infos = map snd spec
     val absTs = map #absT iso_infos
     val repTs = map #repT iso_infos
-    val {take_consts, take_0_thms, take_Suc_thms, ...} = take_info
-    val {chain_take_thms, deflation_take_thms, ...} = take_info
+    val {chain_take_thms, ...} = take_info
 
     (* prove take lemmas *)
     fun prove_take_lemma ((chain_take, lub_take), dbind) thy =
@@ -553,12 +545,12 @@ fun add_lub_take_theorems
       and finite' d (Type (c, Ts)) =
           let val d' = d andalso member (op =) types c
           in forall (finite d') Ts end
-        | finite' d _ = true
+        | finite' _ _ = true
     in
       val is_finite = forall (finite true) repTs
     end
 
-    val ((finite_thms, take_induct_thms), thy) =
+    val ((_, take_induct_thms), thy) =
       if is_finite
       then
         let

@@ -28,8 +28,6 @@ val def_cont_fix_eq = @{thm def_cont_fix_eq}
 val def_cont_fix_ind = @{thm def_cont_fix_ind}
 
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s)
-fun fixrec_eq_err thy s eq =
-  fixrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq))
 
 (*************************************************************************)
 (***************************** building types ****************************)
@@ -41,12 +39,9 @@ fun binder_cfun (Type(@{type_name cfun},[T, U])) = T :: binder_cfun U
   | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
   | binder_cfun _   =  []
 
-fun body_cfun (Type(@{type_name cfun},[T, U])) = body_cfun U
-  | body_cfun (Type(@{type_name "fun"},[T, U])) = body_cfun U
+fun body_cfun (Type(@{type_name cfun},[_, U])) = body_cfun U
+  | body_cfun (Type(@{type_name "fun"},[_, U])) = body_cfun U
   | body_cfun T   =  T
-
-fun strip_cfun T : typ list * typ =
-  (binder_cfun T, body_cfun T)
 
 in
 
@@ -65,10 +60,9 @@ val mk_trp = HOLogic.mk_Trueprop
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
 
 (* similar to Thm.head_of, but for continuous application *)
-fun chead_of (Const(@{const_name Rep_cfun},_)$f$t) = chead_of f
+fun chead_of (Const(@{const_name Rep_cfun},_)$f$_) = chead_of f
   | chead_of u = u
 
-infix 0 ==  val (op ==) = Logic.mk_equals
 infix 1 === val (op ===) = HOLogic.mk_eq
 
 fun mk_mplus (t, u) =
@@ -102,8 +96,8 @@ structure FixrecUnfoldData = Generic_Data
 
 local
 
-fun name_of (Const (n, T)) = n
-  | name_of (Free (n, T)) = n
+fun name_of (Const (n, _)) = n
+  | name_of (Free (n, _)) = n
   | name_of t = raise TERM ("Fixrec.add_unfold: lhs not a constant", [t])
 
 val lhs_name =
@@ -145,7 +139,7 @@ fun add_fixdefs
         Goal.prove lthy [] [] prop (K tac)
       end
 
-    fun one_def (l as Free(n,_)) r =
+    fun one_def (Free(n,_)) r =
           let val b = Long_Name.base_name n
           in ((Binding.name (b^"_def"), []), r) end
       | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form"
@@ -164,7 +158,7 @@ fun add_fixdefs
       |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict}
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
       |> Local_Defs.unfold lthy @{thms split_conv}
-    fun unfolds [] thm = []
+    fun unfolds [] _ = []
       | unfolds (n::[]) thm = [(n, thm)]
       | unfolds (n::ns) thm = let
           val thmL = thm RS @{thm Pair_eqD1}
@@ -184,7 +178,7 @@ fun add_fixdefs
       in
         ((thm_name, [src]), [thm])
       end
-    val (thmss, lthy) = lthy
+    val (_, lthy) = lthy
       |> fold_map Local_Theory.note (induct_note :: map unfold_note unfold_thms)
   in
     (lthy, names, fixdef_thms, map snd unfold_thms)
@@ -303,7 +297,7 @@ fun fixrec_simp_tac ctxt =
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t)
     fun tac (t, i) =
       let
-        val (c, T) =
+        val (c, _) =
             (dest_Const o head_of o chead_of o fst o HOLogic.dest_eq o concl) t
         val unfold_thm = the (Symtab.lookup tab c)
         val rule = unfold_thm RS @{thm ssubst_lhs}
@@ -346,7 +340,7 @@ fun gen_fixrec
     val chead_of_spec =
       chead_of o fst o dest_eqs o Logic.strip_imp_concl o strip_alls o snd
     fun name_of (Free (n, _)) = n
-      | name_of t = fixrec_err ("unknown term")
+      | name_of _ = fixrec_err ("unknown term")
     val all_names = map (name_of o chead_of_spec) spec
     val names = distinct (op =) all_names
     fun block_of_name n =
@@ -362,7 +356,7 @@ fun gen_fixrec
 
     val matches = map (compile_eqs match_name) (map (map (snd o fst)) blocks)
     val spec' = map (pair Attrib.empty_binding) matches
-    val (lthy, cnames, fixdef_thms, unfold_thms) =
+    val (lthy, _, _, unfold_thms) =
       add_fixdefs fixes spec' lthy
 
     val blocks' = map (map fst o filter_out snd) blocks

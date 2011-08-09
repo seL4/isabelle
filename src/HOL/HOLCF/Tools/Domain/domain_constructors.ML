@@ -80,9 +80,9 @@ fun define_consts
     fun mk_decl (b, t, mx) = (b, fastype_of t, mx)
     val decls = map mk_decl specs
     val thy = Cont_Consts.add_consts decls thy
-    fun mk_const (b, T, mx) = Const (Sign.full_name thy b, T)
+    fun mk_const (b, T, _) = Const (Sign.full_name thy b, T)
     val consts = map mk_const decls
-    fun mk_def c (b, t, mx) =
+    fun mk_def c (b, t, _) =
       (Binding.suffix_name "_def" b, Logic.mk_equals (c, t))
     val defs = map2 mk_def consts specs
     val (def_thms, thy) =
@@ -159,7 +159,7 @@ fun add_constructors
     val abs_strict = iso_locale RS @{thm iso.abs_strict}
 
     (* get types of type isomorphism *)
-    val (rhsT, lhsT) = dest_cfunT (fastype_of abs_const)
+    val (_, lhsT) = dest_cfunT (fastype_of abs_const)
 
     fun vars_of args =
       let
@@ -172,7 +172,7 @@ fun add_constructors
     (* define constructor functions *)
     val ((con_consts, con_defs), thy) =
       let
-        fun one_arg (lazy, T) var = if lazy then mk_up var else var
+        fun one_arg (lazy, _) var = if lazy then mk_up var else var
         fun one_con (_,args,_) = mk_stuple (map2 one_arg args (vars_of args))
         fun mk_abs t = abs_const ` t
         val rhss = map mk_abs (mk_sinjects (map one_con spec))
@@ -187,13 +187,13 @@ fun add_constructors
 
     (* replace bindings with terms in constructor spec *)
     val spec' : (term * (bool * typ) list) list =
-      let fun one_con con (b, args, mx) = (con, args)
+      let fun one_con con (_, args, _) = (con, args)
       in map2 one_con con_consts spec end
 
     (* prove exhaustiveness of constructors *)
     local
-      fun arg2typ n (true,  T) = (n+1, mk_upT (TVar (("'a", n), @{sort cpo})))
-        | arg2typ n (false, T) = (n+1, TVar (("'a", n), @{sort pcpo}))
+      fun arg2typ n (true,  _) = (n+1, mk_upT (TVar (("'a", n), @{sort cpo})))
+        | arg2typ n (false, _) = (n+1, TVar (("'a", n), @{sort pcpo}))
       fun args2typ n [] = (n, oneT)
         | args2typ n [arg] = arg2typ n arg
         | args2typ n (arg::args) =
@@ -332,14 +332,14 @@ fun add_constructors
         | prime t             = t
       fun iff_disj (t, []) = mk_not t
         | iff_disj (t, ts) = mk_eq (t, foldr1 mk_disj ts)
-      fun iff_disj2 (t, [], us) = mk_not t
-        | iff_disj2 (t, ts, []) = mk_not t
+      fun iff_disj2 (t, [], _) = mk_not t
+        | iff_disj2 (t, _, []) = mk_not t
         | iff_disj2 (t, ts, us) =
           mk_eq (t, mk_conj (foldr1 mk_disj ts, foldr1 mk_disj us))
       fun dist_le (con1, args1) (con2, args2) =
         let
           val (vs1, zs1) = get_vars args1
-          val (vs2, zs2) = get_vars args2 |> pairself (map prime)
+          val (vs2, _) = get_vars args2 |> pairself (map prime)
           val lhs = mk_below (list_ccomb (con1, vs1), list_ccomb (con2, vs2))
           val rhss = map mk_undef zs1
           val goal = mk_trp (iff_disj (lhs, rhss))
@@ -390,7 +390,6 @@ fun add_case_combinator
     (lhsT : typ)
     (dbind : binding)
     (con_betas : thm list)
-    (exhaust : thm)
     (iso_locale : thm)
     (rep_const : term)
     (thy : theory)
@@ -429,7 +428,7 @@ fun add_case_combinator
         | mk_sscases ts = foldr1 mk_sscase ts
       val body = mk_sscases (map2 one_con fs spec)
       val rhs = big_lambdas fs (mk_cfcomp (body, rep_const))
-      val ((case_consts, case_defs), thy) =
+      val ((_, case_defs), thy) =
           define_consts [(case_bind, rhs, NoSyn)] thy
       val case_name = Sign.full_name thy case_bind
     in
@@ -457,7 +456,7 @@ fun add_case_combinator
           Library.foldl capp (c_ast authentic con, argvars n args)
       fun case1 authentic (n, c) =
           app "_case1" (Ast.strip_positions (con1 authentic n c), expvar n)
-      fun arg1 (n, (con,args)) = List.foldr cabs (expvar n) (argvars n args)
+      fun arg1 (n, (_, args)) = List.foldr cabs (expvar n) (argvars n args)
       fun when1 n (m, c) = if n = m then arg1 (n, c) else Ast.Constant @{const_syntax bottom}
       val case_constant = Ast.Constant (syntax (case_const dummyT))
       fun case_trans authentic =
@@ -541,16 +540,16 @@ fun add_selectors
         fun mk_ssnd s = mk_cfcomp (ssnd_const (dest_sprodT (rangeT s)), s)
         fun mk_down s = mk_cfcomp (from_up (dest_upT (rangeT s)), s)
 
-        fun sels_of_arg s (lazy, NONE,   T) = []
-          | sels_of_arg s (lazy, SOME b, T) =
+        fun sels_of_arg _ (_, NONE, _) = []
+          | sels_of_arg s (lazy, SOME b, _) =
             [(b, if lazy then mk_down s else s, NoSyn)]
-        fun sels_of_args s [] = []
+        fun sels_of_args _ [] = []
           | sels_of_args s (v :: []) = sels_of_arg s v
           | sels_of_args s (v :: vs) =
             sels_of_arg (mk_sfst s) v @ sels_of_args (mk_ssnd s) vs
-        fun sels_of_cons s [] = []
-          | sels_of_cons s ((con, args) :: []) = sels_of_args s args
-          | sels_of_cons s ((con, args) :: cs) =
+        fun sels_of_cons _ [] = []
+          | sels_of_cons s ((_, args) :: []) = sels_of_args s args
+          | sels_of_cons s ((_, args) :: cs) =
             sels_of_args (mk_outl s) args @ sels_of_cons (mk_outr s) cs
         val sel_eqns : (binding * term * mixfix) list =
             sels_of_cons rep_const spec
@@ -598,7 +597,7 @@ fun add_selectors
             val vs : term list = map Free (ns ~~ Ts)
             val con_app : term = list_ccomb (con, vs)
             val vs' : (bool * term) list = map #1 args ~~ vs
-            fun one_same (n, sel, T) =
+            fun one_same (n, sel, _) =
               let
                 val xs = map snd (filter_out fst (nth_drop n vs'))
                 val assms = map (mk_trp o mk_defined) xs
@@ -607,7 +606,7 @@ fun add_selectors
               in
                 prove thy defs goal (K tacs)
               end
-            fun one_diff (n, sel, T) =
+            fun one_diff (_, sel, T) =
               let
                 val goal = mk_trp (mk_eq (sel ` con_app, mk_bottom T))
               in
@@ -615,8 +614,8 @@ fun add_selectors
               end
             fun one_con (j, (_, args')) : thm list =
               let
-                fun prep (i, (lazy, NONE, T)) = NONE
-                  | prep (i, (lazy, SOME sel, T)) = SOME (i, sel, T)
+                fun prep (_, (_, NONE, _)) = NONE
+                  | prep (i, (_, SOME sel, T)) = SOME (i, sel, T)
                 val sels : (int * term * typ) list =
                   map_filter prep (map_index I args')
               in
@@ -646,12 +645,12 @@ fun add_selectors
           in
             prove thy sel_defs goal (K tacs)
           end
-        fun one_arg (false, SOME sel, T) = SOME (sel_defin sel)
+        fun one_arg (false, SOME sel, _) = SOME (sel_defin sel)
           | one_arg _                    = NONE
       in
         case spec2 of
-          [(con, args)] => map_filter one_arg args
-        | _             => []
+          [(_, args)] => map_filter one_arg args
+        | _           => []
       end
 
   in
@@ -672,19 +671,11 @@ fun add_discriminators
     (thy : theory) =
   let
 
-    fun vars_of args =
-      let
-        val Ts = map snd args
-        val ns = Datatype_Prop.make_tnames Ts
-      in
-        map Free (ns ~~ Ts)
-      end
-
     (* define discriminator functions *)
     local
-      fun dis_fun i (j, (con, args)) =
+      fun dis_fun i (j, (_, args)) =
         let
-          val (vs, nonlazy) = get_vars args
+          val (vs, _) = get_vars args
           val tr = if i = j then @{term TT} else @{term FF}
         in
           big_lambdas vs tr
@@ -758,7 +749,6 @@ fun add_match_combinators
     (bindings : binding list)
     (spec : (term * (bool * typ) list) list)
     (lhsT : typ)
-    (exhaust : thm)
     (case_const : typ -> term)
     (case_rews : thm list)
     (thy : theory) =
@@ -776,13 +766,13 @@ fun add_match_combinators
       val x = Free ("x", lhsT)
       fun k args = Free ("k", map snd args -->> mk_matchT resultT)
       val fail = mk_fail resultT
-      fun mat_fun i (j, (con, args)) =
+      fun mat_fun i (j, (_, args)) =
         let
-          val (vs, nonlazy) = get_vars_avoiding ["x","k"] args
+          val (vs, _) = get_vars_avoiding ["x","k"] args
         in
           if i = j then k args else big_lambdas vs fail
         end
-      fun mat_eqn (i, (bind, (con, args))) : binding * term * mixfix =
+      fun mat_eqn (i, (bind, (_, args))) : binding * term * mixfix =
         let
           val mat_bind = Binding.prefix_name "match_" bind
           val funs = map_index (mat_fun i) spec
@@ -866,7 +856,6 @@ fun add_domain_constructors
     val rep_strict = iso_locale RS @{thm iso.rep_strict}
     val abs_strict = iso_locale RS @{thm iso.abs_strict}
     val rep_bottom_iff = iso_locale RS @{thm iso.rep_bottom_iff}
-    val abs_bottom_iff = iso_locale RS @{thm iso.abs_bottom_iff}
     val iso_rews = [abs_iso_thm, rep_iso_thm, abs_strict, rep_strict]
 
     (* qualify constants and theorems with domain name *)
@@ -875,7 +864,7 @@ fun add_domain_constructors
     (* define constructor functions *)
     val (con_result, thy) =
       let
-        fun prep_arg (lazy, sel, T) = (lazy, T)
+        fun prep_arg (lazy, _, T) = (lazy, T)
         fun prep_con (b, args, mx) = (b, map prep_arg args, mx)
         val con_spec = map prep_con spec
       in
@@ -887,8 +876,8 @@ fun add_domain_constructors
     (* prepare constructor spec *)
     val con_specs : (term * (bool * typ) list) list =
       let
-        fun prep_arg (lazy, sel, T) = (lazy, T)
-        fun prep_con c (b, args, mx) = (c, map prep_arg args)
+        fun prep_arg (lazy, _, T) = (lazy, T)
+        fun prep_con c (_, args, _) = (c, map prep_arg args)
       in
         map2 prep_con con_consts spec
       end
@@ -896,13 +885,13 @@ fun add_domain_constructors
     (* define case combinator *)
     val ((case_const : typ -> term, cases : thm list), thy) =
         add_case_combinator con_specs lhsT dbind
-          con_betas exhaust iso_locale rep_const thy
+          con_betas iso_locale rep_const thy
 
     (* define and prove theorems for selector functions *)
     val (sel_thms : thm list, thy : theory) =
       let
         val sel_spec : (term * (bool * binding option * typ) list) list =
-          map2 (fn con => fn (b, args, mx) => (con, args)) con_consts spec
+          map2 (fn con => fn (_, args, _) => (con, args)) con_consts spec
       in
         add_selectors sel_spec rep_const
           abs_iso_thm rep_strict rep_bottom_iff con_betas thy
@@ -916,7 +905,7 @@ fun add_domain_constructors
     (* define and prove theorems for match combinators *)
     val (match_thms : thm list, thy : theory) =
         add_match_combinators bindings con_specs lhsT
-          exhaust case_const cases thy
+          case_const cases thy
 
     (* restore original signature path *)
     val thy = Sign.parent_path thy

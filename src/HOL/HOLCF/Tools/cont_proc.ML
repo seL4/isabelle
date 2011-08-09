@@ -102,7 +102,7 @@ val cont_tac =
     fun new_cont_tac f' i =
       case all_cont_thms f' of
         [] => no_tac
-      | (c::cs) => rtac c i
+      | (c::_) => rtac c i
 
     fun cont_tac_of_term (Const (@{const_name cont}, _) $ f) =
       let

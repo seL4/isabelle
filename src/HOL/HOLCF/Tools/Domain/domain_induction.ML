@@ -221,7 +221,7 @@ let
           if length dnames = 1 then ["bottom"] else
           map (fn s => "bottom_" ^ Long_Name.base_name s) dnames
       fun one_eq bot (constr_info : Domain_Constructors.constr_info) =
-        let fun name_of (c, args) = Long_Name.base_name (fst (dest_Const c))
+        let fun name_of (c, _) = Long_Name.base_name (fst (dest_Const c))
         in bot :: map name_of (#con_specs constr_info) end
     in adms @ flat (map2 one_eq bottoms constr_infos) end
 
@@ -344,7 +344,7 @@ let
       val assm1 = mk_trp (list_comb (bisim_const, Rs))
       val assm2 = mk_trp (R $ x $ y)
       val goal = mk_trp (mk_eq (x, y))
-      fun tacf {prems, context} =
+      fun tacf {prems, context = _} =
         let
           val rule = hd prems RS coind_lemma
         in
@@ -420,7 +420,7 @@ end
 val (take_rewss, thy) =
     take_theorems dbinds take_info constr_infos thy
 
-val {take_lemma_thms, take_0_thms, take_strict_thms, ...} = take_info
+val {take_0_thms, take_strict_thms, ...} = take_info
 
 val take_rews = take_0_thms @ take_strict_thms @ flat take_rewss
 

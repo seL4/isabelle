@@ -76,14 +76,11 @@ fun mk_cast (t, x) =
 
 (* proving class instances *)
 
-fun declare_type_name a =
-  Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)))
-
 fun gen_add_domaindef
       (prep_term: Proof.context -> 'a -> term)
       (def: bool)
       (name: binding)
-      (typ as (tname, raw_args, mx) : binding * (string * sort) list * mixfix)
+      (typ as (tname, raw_args, _) : binding * (string * sort) list * mixfix)
       (raw_defl: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
@@ -104,7 +101,6 @@ fun gen_add_domaindef
 
     (*lhs*)
     val lhs_tfrees = map (Proof_Context.check_tfree tmp_ctxt) raw_args
-    val lhs_sorts = map snd lhs_tfrees
     val full_tname = Sign.full_name thy tname
     val newT = Type (full_tname, map TFree lhs_tfrees)
 

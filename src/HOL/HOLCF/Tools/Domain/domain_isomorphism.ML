@@ -86,15 +86,6 @@ fun dest_LIFTDEFL (Const (@{const_name liftdefl}, _) $ t) = Logic.dest_type t
 
 fun mk_u_defl t = mk_capply (@{const "u_defl"}, t)
 
-fun mk_u_map t =
-  let
-    val (T, U) = dest_cfunT (fastype_of t)
-    val u_map_type = (T ->> U) ->> (mk_upT T ->> mk_upT U)
-    val u_map_const = Const (@{const_name u_map}, u_map_type)
-  in
-    mk_capply (u_map_const, t)
-  end
-
 fun emb_const T = Const (@{const_name emb}, T ->> udomT)
 fun prj_const T = Const (@{const_name prj}, udomT ->> T)
 fun coerce_const (T, U) = mk_cfcomp (prj_const U, emb_const T)
@@ -130,7 +121,7 @@ fun deflation_abs_rep (info : Domain_Take_Proofs.iso_info) : thm =
 (*************** fixed-point definitions and unfolding theorems ***************)
 (******************************************************************************)
 
-fun mk_projs []      t = []
+fun mk_projs []      _ = []
   | mk_projs (x::[]) t = [(x, t)]
   | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t)
 
@@ -187,7 +178,7 @@ fun add_fixdefs
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
       |> Local_Defs.unfold (Proof_Context.init_global thy) @{thms split_conv}
 
-    fun mk_unfold_thms [] thm = []
+    fun mk_unfold_thms [] _ = []
       | mk_unfold_thms (n::[]) thm = [(n, thm)]
       | mk_unfold_thms (n::ns) thm = let
           val thmL = thm RS @{thm Pair_eqD1}
@@ -271,7 +262,7 @@ fun define_map_functions
       | mapT T = T ->> T
 
     (* declare map functions *)
-    fun declare_map_const (tbind, (lhsT, rhsT)) thy =
+    fun declare_map_const (tbind, (lhsT, _)) thy =
       let
         val map_type = mapT lhsT
         val map_bind = Binding.suffix_name "_map" tbind
@@ -290,7 +281,7 @@ fun define_map_functions
       val tab1 = map map_lhs (map_consts ~~ map fst dom_eqns)
       val Ts = (snd o dest_Type o fst o hd) dom_eqns
       val tab = (Ts ~~ map mapvar Ts) @ tab1
-      fun mk_map_spec (((rep_const, abs_const), map_const), (lhsT, rhsT)) =
+      fun mk_map_spec (((rep_const, abs_const), _), (lhsT, rhsT)) =
         let
           val lhs = Domain_Take_Proofs.map_of_typ thy tab lhsT
           val body = Domain_Take_Proofs.map_of_typ thy tab rhsT
@@ -313,7 +304,7 @@ fun define_map_functions
         fun unprime a = Library.unprefix "'" a
         fun mk_f T = Free (unprime (fst (dest_TFree T)), T ->> T)
         fun mk_assm T = mk_trp (mk_deflation (mk_f T))
-        fun mk_goal (map_const, (lhsT, rhsT)) =
+        fun mk_goal (map_const, (lhsT, _)) =
           let
             val (_, Ts) = dest_Type lhsT
             val map_term = list_ccomb (map_const, map mk_f (filter (is_cpo thy) Ts))
@@ -343,7 +334,7 @@ fun define_map_functions
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
       end
-    fun conjuncts [] thm = []
+    fun conjuncts [] _ = []
       | conjuncts (n::[]) thm = [(n, thm)]
       | conjuncts (n::ns) thm = let
           val thmL = thm RS @{thm conjunct1}
@@ -360,7 +351,6 @@ fun define_map_functions
       fun register_map (dname, args) =
         Domain_Take_Proofs.add_rec_type (dname, args)
       val dnames = map (fst o dest_Type o fst) dom_eqns
-      val map_names = map (fst o dest_Const) map_consts
       fun args (T, _) = case T of Type (_, Ts) => map (is_cpo thy) Ts | _ => []
       val argss = map args dom_eqns
     in
@@ -417,7 +407,7 @@ fun gen_domain_isomorphism
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types_global (map (fn (tvs, tbind, mx, _, morphs) =>
+      Sign.add_types_global (map (fn (tvs, tbind, mx, _, _) =>
         (tbind, length tvs, mx)) doms_raw)
 
     fun prep_dom thy (vs, t, mx, typ_raw, morphs) sorts =
@@ -434,28 +424,28 @@ fun gen_domain_isomorphism
     (* declare arities in temporary theory *)
     val tmp_thy =
       let
-        fun arity (vs, tbind, mx, _, _) =
+        fun arity (vs, tbind, _, _, _) =
           (Sign.full_name thy tbind, map the_sort vs, @{sort "domain"})
       in
         fold AxClass.axiomatize_arity (map arity doms) tmp_thy
       end
 
     (* check bifiniteness of right-hand sides *)
-    fun check_rhs (vs, tbind, mx, rhs, morphs) =
+    fun check_rhs (_, _, _, rhs, _) =
       if Sign.of_sort tmp_thy (rhs, @{sort "domain"}) then ()
       else error ("Type not of sort domain: " ^
         quote (Syntax.string_of_typ_global tmp_thy rhs))
     val _ = map check_rhs doms
 
     (* domain equations *)
-    fun mk_dom_eqn (vs, tbind, mx, rhs, morphs) =
+    fun mk_dom_eqn (vs, tbind, _, rhs, _) =
       let fun arg v = TFree (v, the_sort v)
       in (Type (Sign.full_name tmp_thy tbind, map arg vs), rhs) end
     val dom_eqns = map mk_dom_eqn doms
 
     (* check for valid type parameters *)
     val (tyvars, _, _, _, _) = hd doms
-    val new_doms = map (fn (tvs, tname, mx, _, _) =>
+    val _ = map (fn (tvs, tname, _, _, _) =>
       let val full_tname = Sign.full_name tmp_thy tname
       in
         (case duplicates (op =) tvs of
@@ -528,7 +518,7 @@ fun gen_domain_isomorphism
     fun make_repdef ((vs, tbind, mx, _, _), defl) thy =
       let
         val spec = (tbind, map (rpair dummyS) vs, mx)
-        val ((_, _, _, {DEFL, liftemb_def, liftprj_def, ...}), thy) =
+        val ((_, _, _, {DEFL, ...}), thy) =
           Domaindef.add_domaindef false NONE spec defl NONE thy
         (* declare domain_defl_simps rules *)
         val thy = Context.theory_map (RepData.add_thm DEFL) thy
@@ -557,7 +547,7 @@ fun gen_domain_isomorphism
         (DEFL_eq_binds ~~ DEFL_eq_thms)
 
     (* define rep/abs functions *)
-    fun mk_rep_abs ((tbind, morphs), (lhsT, rhsT)) thy =
+    fun mk_rep_abs ((tbind, _), (lhsT, rhsT)) thy =
       let
         val rep_bind = Binding.suffix_name "_rep" tbind
         val abs_bind = Binding.suffix_name "_abs" tbind
@@ -611,8 +601,7 @@ fun gen_domain_isomorphism
     (* definitions and proofs related to map functions *)
     val (map_info, thy) =
         define_map_functions (dbinds ~~ iso_infos) thy
-    val { map_consts, map_apply_thms, map_unfold_thms,
-          map_cont_thm, deflation_map_thms } = map_info
+    val { map_consts, map_apply_thms, map_cont_thm, ...} = map_info
 
     (* prove isodefl rules for map functions *)
     val isodefl_thm =
@@ -627,7 +616,7 @@ fun gen_domain_isomorphism
           | NONE =>
             let val T = dest_DEFL t
             in mk_trp (isodefl_const T $ mk_f T $ mk_d T) end
-        fun mk_goal (map_const, (T, rhsT)) =
+        fun mk_goal (map_const, (T, _)) =
           let
             val (_, Ts) = dest_Type T
             val map_term = list_ccomb (map_const, map mk_f (filter (is_cpo thy) Ts))
@@ -662,7 +651,7 @@ fun gen_domain_isomorphism
            REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end
     val isodefl_binds = map (Binding.prefix_name "isodefl_") dbinds
-    fun conjuncts [] thm = []
+    fun conjuncts [] _ = []
       | conjuncts (n::[]) thm = [(n, thm)]
       | conjuncts (n::ns) thm = let
           val thmL = thm RS @{thm conjunct1}
@@ -709,7 +698,7 @@ fun gen_domain_isomorphism
       let
         val lhs = mk_tuple (map mk_lub take_consts)
         fun is_cpo T = Sign.of_sort thy (T, @{sort cpo})
-        fun mk_map_ID (map_const, (lhsT, rhsT)) =
+        fun mk_map_ID (map_const, (lhsT, _)) =
           list_ccomb (map_const, map mk_ID (filter is_cpo (snd (dest_Type lhsT))))
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns))
         val goal = mk_trp (mk_eq (lhs, rhs))
@@ -736,7 +725,7 @@ fun gen_domain_isomorphism
       end
 
     (* prove lub of take equals ID *)
-    fun prove_lub_take (((dbind, take_const), map_ID_thm), (lhsT, rhsT)) thy =
+    fun prove_lub_take (((dbind, take_const), map_ID_thm), (lhsT, _)) thy =
       let
         val n = Free ("n", natT)
         val goal = mk_eqs (mk_lub (lambda n (take_const $ n)), mk_ID lhsT)

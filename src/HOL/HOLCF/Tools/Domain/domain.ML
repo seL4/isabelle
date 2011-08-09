@@ -35,7 +35,6 @@ open HOLCF_Library
 
 fun first  (x,_,_) = x
 fun second (_,x,_) = x
-fun third  (_,_,x) = x
 
 (* ----- calls for building new thy and thms -------------------------------- *)
 
@@ -78,16 +77,16 @@ fun gen_add_domain
         (binding * (bool * binding option * 'b) list * mixfix) list list =
         map (fn (_,_,_,cons) => cons) raw_specs
     val dtnvs' : (string * typ list) list =
-        map (fn (dbind, vs, mx) => (Sign.full_name thy dbind, vs)) dtnvs
+        map (fn (dbind, vs, _) => (Sign.full_name thy dbind, vs)) dtnvs
 
     val all_cons = map (Binding.name_of o first) (flat raw_rhss)
-    val test_dupl_cons =
+    val _ =
       case duplicates (op =) all_cons of 
         [] => false | dups => error ("Duplicate constructors: " 
                                       ^ commas_quote dups)
     val all_sels =
       (map Binding.name_of o map_filter second o maps second) (flat raw_rhss)
-    val test_dupl_sels =
+    val _ =
       case duplicates (op =) all_sels of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups)
 
@@ -95,7 +94,7 @@ fun gen_add_domain
       case duplicates (op =) (map(fst o dest_TFree)s) of
         [] => false | dups => error("Duplicate type arguments: " 
                                     ^commas_quote dups)
-    val test_dupl_tvars' = exists test_dupl_tvars (map snd dtnvs')
+    val _ = exists test_dupl_tvars (map snd dtnvs')
 
     val sorts : (string * sort) list =
       let val all_sorts = map (map dest_TFree o snd) dtnvs'
@@ -119,7 +118,7 @@ fun gen_add_domain
        non-pcpo-types and invalid use of recursive type
        replace sorts in type variables on rhs *)
     val rec_tab = Domain_Take_Proofs.get_rec_tab thy
-    fun check_rec no_rec (T as TFree (v,_))  =
+    fun check_rec _ (T as TFree (v,_))  =
         if AList.defined (op =) sorts v then T
         else error ("Free type variable " ^ quote v ^ " on rhs.")
       | check_rec no_rec (T as Type (s, Ts)) =
@@ -141,7 +140,7 @@ fun gen_add_domain
                   error ("Illegal indirect recursion of type " ^ 
                          quote (Syntax.string_of_typ_global tmp_thy T) ^
                          " under type constructor " ^ quote c)))
-      | check_rec no_rec (TVar _) = error "extender:check_rec"
+      | check_rec _ (TVar _) = error "extender:check_rec"
 
     fun prep_arg (lazy, sel, raw_T) =
       let
@@ -154,8 +153,8 @@ fun gen_add_domain
     val rhss : (binding * (bool * binding option * typ) list * mixfix) list list =
         map prep_rhs raw_rhss
 
-    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_upT T else T
-    fun mk_con_typ (bind, args, mx) =
+    fun mk_arg_typ (lazy, _, T) = if lazy then mk_upT T else T
+    fun mk_con_typ (_, args, _) =
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args)
     fun mk_rhs_typ cons = foldr1 mk_ssumT (map mk_con_typ cons)
 
@@ -174,7 +173,7 @@ fun gen_add_domain
                 Domain_Constructors.add_domain_constructors dbind cons info)
              (dbinds ~~ rhss ~~ iso_infos)
 
-    val (take_rews, thy) =
+    val (_, thy) =
         Domain_Induction.comp_theorems
           dbinds take_info constr_infos thy
   in
@@ -184,7 +183,7 @@ fun gen_add_domain
 fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   let
     fun prep (dbind, mx, (lhsT, rhsT)) =
-      let val (dname, vs) = dest_Type lhsT
+      let val (_, vs) = dest_Type lhsT
       in (map (fst o dest_TFree) vs, dbind, mx, rhsT, NONE) end
   in
     Domain_Isomorphism.domain_isomorphism (map prep spec)
