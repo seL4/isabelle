@@ -214,6 +214,8 @@ fun inc_reconstructor_posns m pos = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas, pos::posns)) m
 
+val str0 = string_of_int o the_default 0
+
 local
 
 val str = string_of_int
@@ -243,13 +245,9 @@ fun log_sh_data log
     str3 (avg_time time_prover_fail (calls - success)))
   )
 
-
 fun str_of_pos (pos, triv) =
-  let val str0 = string_of_int o the_default 0
-  in
-    str0 (Position.line_of pos) (* ^ ":" ^ str0 (Position.offset_of pos) *) ^
-    (if triv then "[T]" else "")
-  end
+  str0 (Position.line_of pos) (* ^ ":" ^ str0 (Position.offset_of pos) *) ^
+  (if triv then "[T]" else "")
 
 fun log_re_data log tag sh_calls (re_calls, re_success, re_nontriv_calls,
      re_nontriv_success, re_proofs, re_time, re_timeout,
@@ -357,19 +355,21 @@ datatype sh_result =
 
 fun run_sh prover_name prover type_enc sound max_relevant slicing
         lambda_translation e_weight_method spass_force_sos vampire_force_sos
-        hard_timeout timeout dir st =
+        hard_timeout timeout dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
-    fun change_dir (SOME dir) =
+    fun set_file_name (SOME dir) =
         Config.put Sledgehammer_Provers.dest_dir dir
+        #> Config.put Sledgehammer_Provers.problem_prefix
+          ("prob_" ^ str0 (Position.line_of pos))
         #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
-      | change_dir NONE = I
+      | set_file_name NONE = I
     val st' =
       st |> Proof.map_context
-                (change_dir dir
+                (set_file_name dir
                  #> (Option.map (Config.put
                        Sledgehammer_Provers.atp_lambda_translation)
                        lambda_translation |> the_default I)
@@ -453,7 +453,8 @@ fun thms_of_name ctxt name =
 
 in
 
-fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
+fun run_sledgehammer trivial args reconstructor named_thms id
+      ({pre=st, log, pos, ...}: Mirabelle.run_args) =
   let
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
@@ -477,7 +478,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val (msg, result) =
       run_sh prover_name prover type_enc sound max_relevant slicing
         lambda_translation e_weight_method spass_force_sos vampire_force_sos
-        hard_timeout timeout dir st
+        hard_timeout timeout dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
