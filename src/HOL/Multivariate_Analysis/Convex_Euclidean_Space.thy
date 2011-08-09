@@ -3054,7 +3054,7 @@ lemma convex_closure:
   apply(rule,rule,rule,rule,rule,rule,rule,rule,rule) apply(erule_tac exE)+
   apply(rule_tac x="\<lambda>n. u *\<^sub>R xb n + v *\<^sub>R xc n" in exI) apply(rule,rule)
   apply(rule assms[unfolded convex_def, rule_format]) prefer 6
-  apply(rule Lim_add) apply(rule_tac [1-2] Lim_cmul) by auto
+  by (auto intro: tendsto_intros)
 
 lemma convex_interior:
   fixes s :: "'a::real_normed_vector set"

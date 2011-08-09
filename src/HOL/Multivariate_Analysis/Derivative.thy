@@ -137,13 +137,14 @@ subsubsection {* Combining theorems. *}
 
 lemma (in bounded_linear) has_derivative: "(f has_derivative f) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear_axioms)
-  unfolding diff by(simp add: Lim_const)
+  unfolding diff by (simp add: tendsto_const)
 
 lemma has_derivative_id: "((\<lambda>x. x) has_derivative (\<lambda>h. h)) net"
   apply(rule bounded_linear.has_derivative) using bounded_linear_ident[unfolded id_def] by simp
 
 lemma has_derivative_const: "((\<lambda>x. c) has_derivative (\<lambda>h. 0)) net"
-  unfolding has_derivative_def apply(rule,rule bounded_linear_zero) by(simp add: Lim_const)
+  unfolding has_derivative_def
+  by (rule, rule bounded_linear_zero, simp add: tendsto_const)
 
 lemma (in bounded_linear) cmul: shows "bounded_linear (\<lambda>x. (c::real) *\<^sub>R f x)"
 proof -
@@ -156,7 +157,8 @@ qed
 
 lemma has_derivative_cmul: assumes "(f has_derivative f') net" shows "((\<lambda>x. c *\<^sub>R f(x)) has_derivative (\<lambda>h. c *\<^sub>R f'(h))) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear.cmul)
-  using assms[unfolded has_derivative_def] using Lim_cmul[OF assms[unfolded has_derivative_def,THEN conjunct2]]
+  using assms[unfolded has_derivative_def]
+  using scaleR.tendsto[OF tendsto_const assms[unfolded has_derivative_def,THEN conjunct2]]
   unfolding scaleR_right_diff_distrib scaleR_right_distrib by auto 
 
 lemma has_derivative_cmul_eq: assumes "c \<noteq> 0" 
@@ -177,7 +179,7 @@ lemma has_derivative_add:
 proof-
   note as = assms[unfolded has_derivative_def]
   show ?thesis unfolding has_derivative_def apply(rule,rule bounded_linear_add)
-    using Lim_add[OF as(1)[THEN conjunct2] as(2)[THEN conjunct2]] and as
+    using tendsto_add[OF as(1)[THEN conjunct2] as(2)[THEN conjunct2]] and as
     by (auto simp add:algebra_simps scaleR_right_diff_distrib scaleR_right_distrib)
 qed
 
@@ -224,7 +226,8 @@ lemma has_derivative_vmul_component:
     apply (rule bounded_linear_compose [OF scaleR.bounded_linear_left])
     apply (rule bounded_linear_compose [OF bounded_linear_euclidean_component])
     apply (rule derivative_linear [OF assms])
-    apply(subst scaleR_zero_left[THEN sym, of v]) unfolding scaleR_scaleR apply(rule Lim_vmul)
+    apply(subst scaleR_zero_left[THEN sym, of v]) unfolding scaleR_scaleR
+    apply (intro tendsto_intros)
     using assms[unfolded has_derivative_def] unfolding Lim o_def apply- apply(cases "trivial_limit net")
     apply(rule,assumption,rule disjI2,rule,rule) proof-
     have *:"\<And>x. x - 0 = (x::'a)" by auto 
@@ -368,7 +371,7 @@ proof-
     by(rule linear_continuous_within[OF f'[THEN conjunct1]])
   show ?thesis unfolding continuous_within
     using f'[THEN conjunct2, THEN Lim_mul_norm_within]
-    apply- apply(drule Lim_add)
+    apply- apply(drule tendsto_add)
     apply(rule **[unfolded continuous_within])
     unfolding Lim_within and dist_norm
     apply (rule, rule)
@@ -618,7 +621,7 @@ proof-
     fix i assume i:"i<DIM('a)" def e \<equiv> "norm (f' (basis i) - f'' (basis i))"
     assume "f' (basis i) \<noteq> f'' (basis i)"
     hence "e>0" unfolding e_def by auto
-    guess d using Lim_sub[OF as(1,2)[THEN conjunct2], unfolded * Lim_within,rule_format,OF `e>0`] .. note d=this
+    guess d using tendsto_diff [OF as(1,2)[THEN conjunct2], unfolded * Lim_within,rule_format,OF `e>0`] .. note d=this
     guess c using assms(3)[rule_format,OF i d[THEN conjunct1]] .. note c=this
     have *:"norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R basis i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R basis i)) = norm ((1 / abs c) *\<^sub>R (- (f' (c *\<^sub>R basis i)) + f'' (c *\<^sub>R basis i)))"
       unfolding scaleR_right_distrib by auto
@@ -1522,7 +1525,7 @@ proof-
       thus "norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
         apply-
         apply(rule Lim_norm_ubound[OF trivial_limit_sequentially, where f="\<lambda>m. (f n x - f n y) - (f m x - f m y)"])
-        apply(rule Lim_sub Lim_const g[rule_format] as)+ by assumption
+        apply(rule tendsto_intros g[rule_format] as)+ by assumption
     qed
   qed
   show ?thesis unfolding has_derivative_within_alt apply(rule_tac x=g in exI)
@@ -1559,12 +1562,12 @@ proof-
         apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format])
         unfolding lin[unfolded bounded_linear_def bounded_linear_axioms_def,THEN conjunct2,THEN conjunct1,rule_format]
-        apply(rule Lim_cmul) by(rule lem3[rule_format])
+        apply (intro tendsto_intros) by(rule lem3[rule_format])
       show "g' x (y + z) = g' x y + g' x z"
         apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format])
         unfolding lin[unfolded bounded_linear_def additive_def,THEN conjunct1,rule_format]
-        apply(rule Lim_add) by(rule lem3[rule_format])+
+        apply(rule tendsto_add) by(rule lem3[rule_format])+
     qed
     show "\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm (y - x) < d \<longrightarrow> norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
     proof(rule,rule) case goal1
@@ -1613,7 +1616,7 @@ proof(cases "s={}")
     apply(rule has_derivative_sequence[OF assms(1) _ assms(3), of "\<lambda>n x. f n x + (f 0 a - f n a)"])
     apply(rule,rule)
     apply(rule has_derivative_add_const, rule assms(2)[rule_format], assumption)  
-    apply(rule `a\<in>s`) by(auto intro!: Lim_const)
+    apply(rule `a\<in>s`) by(auto intro!: tendsto_const)
 qed auto
 
 lemma has_antiderivative_limit:
@@ -1682,16 +1685,16 @@ proof-
     using assms by auto
   have "((\<lambda>y. f' (y - x)) ---> 0) (at x within s)"
     unfolding f'.zero[THEN sym]
-    apply(rule Lim_linear[of "\<lambda>y. y - x" 0 "at x within s" f'])
-    using Lim_sub[OF Lim_within_id Lim_const, of x x s]
+    using bounded_linear.tendsto [of f' "\<lambda>y. y - x" 0 "at x within s"]
+    using tendsto_diff [OF Lim_within_id tendsto_const, of x x s]
     unfolding id_def using assms(1) unfolding has_derivative_def by auto
   hence "((\<lambda>y. f x + f' (y - x)) ---> f x) (at x within s)"
-    using Lim_add[OF Lim_const, of "\<lambda>y. f' (y - x)" 0 "at x within s" "f x"]
+    using tendsto_add[OF tendsto_const, of "\<lambda>y. f' (y - x)" 0 "at x within s" "f x"]
     by auto
   ultimately
   have *:"((\<lambda>x'. h (f x + f' (x' - x)) ((1/(norm (x' - x))) *\<^sub>R (g x' - (g x + g' (x' - x))))
              + h ((1/ (norm (x' - x))) *\<^sub>R (f x' - (f x + f' (x' - x)))) (g x')) ---> h (f x) 0 + h 0 (g x)) (at x within s)"
-    apply-apply(rule Lim_add) apply(rule_tac[!] Lim_bilinear[OF _ _ assms(3)])
+    apply-apply(rule tendsto_add) apply(rule_tac[!] Lim_bilinear[OF _ _ assms(3)])
     using assms(1-2)  unfolding has_derivative_within by auto
   guess B using bounded_bilinear.pos_bounded[OF assms(3)] .. note B=this
   guess C using f'.pos_bounded .. note C=this
@@ -1725,7 +1728,7 @@ proof-
     apply (rule bounded_linear_compose [OF h.bounded_linear_right `bounded_linear g'`])
     apply (rule bounded_linear_compose [OF h.bounded_linear_left `bounded_linear f'`])
     done
-  thus ?thesis using Lim_add[OF * **] unfolding has_derivative_within 
+  thus ?thesis using tendsto_add[OF * **] unfolding has_derivative_within 
     unfolding g'.add f'.scaleR f'.add g'.scaleR f'.diff g'.diff
      h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right h.diff_right h.diff_left
     scaleR_right_diff_distrib h.zero_right h.zero_left

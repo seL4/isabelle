@@ -4476,7 +4476,7 @@ lemma monotone_convergence_interval: fixes f::"nat \<Rightarrow> 'n::ordered_euc
   "bounded {integral {a..b} (f k) | k . k \<in> UNIV}"
   shows "g integrable_on {a..b} \<and> ((\<lambda>k. integral ({a..b}) (f k)) ---> integral ({a..b}) g) sequentially"
 proof(case_tac[!] "content {a..b} = 0") assume as:"content {a..b} = 0"
-  show ?thesis using integrable_on_null[OF as] unfolding integral_null[OF as] using Lim_const by auto
+  show ?thesis using integrable_on_null[OF as] unfolding integral_null[OF as] using tendsto_const by auto
 next assume ab:"content {a..b} \<noteq> 0"
   have fg:"\<forall>x\<in>{a..b}. \<forall> k. (f k x) $$ 0 \<le> (g x) $$ 0"
   proof safe case goal1 note assms(3)[rule_format,OF this]
@@ -4631,7 +4631,8 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
     proof(rule monotone_convergence_interval,safe)
       case goal1 show ?case using int .
     next case goal2 thus ?case apply-apply(cases "x\<in>s") using assms(3) by auto
-    next case goal3 thus ?case apply-apply(cases "x\<in>s") using assms(4) by auto
+    next case goal3 thus ?case apply-apply(cases "x\<in>s")
+        using assms(4) by (auto intro: tendsto_const)
     next case goal4 note * = integral_nonneg
       have "\<And>k. norm (integral {a..b} (\<lambda>x. if x \<in> s then f k x else 0)) \<le> norm (integral s (f k))"
         unfolding real_norm_def apply(subst abs_of_nonneg) apply(rule *[OF int])
@@ -4681,13 +4682,13 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   proof- case goal1 thus ?case using *[of x 0 "Suc k"] by auto
   next case goal2 thus ?case apply(rule integrable_sub) using assms(1) by auto
   next case goal3 thus ?case using *[of x "Suc k" "Suc (Suc k)"] by auto
-  next case goal4 thus ?case apply-apply(rule Lim_sub) 
-      using seq_offset[OF assms(3)[rule_format],of x 1] by auto
+  next case goal4 thus ?case apply-apply(rule tendsto_diff) 
+      using seq_offset[OF assms(3)[rule_format],of x 1] by (auto intro: tendsto_const)
   next case goal5 thus ?case using assms(4) unfolding bounded_iff
       apply safe apply(rule_tac x="a + norm (integral s (\<lambda>x. f 0 x))" in exI)
       apply safe apply(erule_tac x="integral s (\<lambda>x. f (Suc k) x)" in ballE) unfolding sub
       apply(rule order_trans[OF norm_triangle_ineq4]) by auto qed
-  note conjunctD2[OF this] note Lim_add[OF this(2) Lim_const[of "integral s (f 0)"]]
+  note conjunctD2[OF this] note tendsto_add[OF this(2) tendsto_const[of "integral s (f 0)"]]
     integrable_add[OF this(1) assms(1)[rule_format,of 0]]
   thus ?thesis unfolding sub apply-apply rule defer apply(subst(asm) integral_sub)
     using assms(1) apply auto apply(rule seq_offset_rev[where k=1]) by auto qed
@@ -4702,11 +4703,11 @@ proof- note assm = assms[rule_format]
     apply(rule_tac x=k in exI) unfolding integral_neg[OF assm(1)] by auto
   have "(\<lambda>x. - g x) integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. - f k x))
     ---> integral s (\<lambda>x. - g x))  sequentially" apply(rule monotone_convergence_increasing)
-    apply(safe,rule integrable_neg) apply(rule assm) defer apply(rule Lim_neg)
+    apply(safe,rule integrable_neg) apply(rule assm) defer apply(rule tendsto_minus)
     apply(rule assm,assumption) unfolding * apply(rule bounded_scaling) using assm by auto
   note * = conjunctD2[OF this]
   show ?thesis apply rule using integrable_neg[OF *(1)] defer
-    using Lim_neg[OF *(2)] apply- unfolding integral_neg[OF assm(1)]
+    using tendsto_minus[OF *(2)] apply- unfolding integral_neg[OF assm(1)]
     unfolding integral_neg[OF *(1),THEN sym] by auto qed
 
 subsection {* absolute integrability (this is the same as Lebesgue integrability). *}

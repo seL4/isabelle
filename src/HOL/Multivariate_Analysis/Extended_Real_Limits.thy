@@ -248,7 +248,7 @@ proof cases
     show "eventually (\<lambda>x. a * X x \<in> S) net"
       by (rule eventually_mono[OF _ *]) auto
   qed
-qed auto
+qed (auto intro: tendsto_const)
 
 lemma ereal_lim_uminus:
   fixes X :: "'a \<Rightarrow> ereal" shows "((\<lambda>i. - X i) ---> -L) net \<longleftrightarrow> (X ---> L) net"
@@ -460,12 +460,12 @@ lemma incseq_le_ereal:
   assumes inc: "incseq X" and lim: "X ----> L"
   shows "X N \<le> L"
   using inc
-  by (intro ereal_lim_mono[of N, OF _ Lim_const lim]) (simp add: incseq_def)
+  by (intro ereal_lim_mono[of N, OF _ tendsto_const lim]) (simp add: incseq_def)
 
 lemma decseq_ge_ereal: assumes dec: "decseq X"
   and lim: "X ----> (L::ereal)" shows "X N >= L"
   using dec
-  by (intro ereal_lim_mono[of N, OF _ lim Lim_const]) (simp add: decseq_def)
+  by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
 
 lemma liminf_bounded_open:
   fixes x :: "nat \<Rightarrow> ereal"
@@ -519,7 +519,7 @@ qed
 lemma lim_ereal_increasing: assumes "\<And>n m. n >= m \<Longrightarrow> f n >= f m"
   obtains l where "f ----> (l::ereal)"
 proof(cases "f = (\<lambda>x. - \<infinity>)")
-  case True then show thesis using Lim_const[of "- \<infinity>" sequentially] by (intro that[of "-\<infinity>"]) auto
+  case True then show thesis using tendsto_const[of "- \<infinity>" sequentially] by (intro that[of "-\<infinity>"]) auto
 next
   case False
   from this obtain N where N_def: "f N > (-\<infinity>)" by (auto simp: fun_eq_iff)
@@ -1138,7 +1138,7 @@ proof -
       by (induct i) (insert assms, auto) }
   note this[simp]
   show ?thesis unfolding sums_def
-    by (rule LIMSEQ_offset[of _ n]) (auto simp add: atLeast0LessThan)
+    by (rule LIMSEQ_offset[of _ n]) (auto simp add: atLeast0LessThan intro: tendsto_const)
 qed
 
 lemma suminf_finite:
