@@ -567,13 +567,16 @@ fun prf_subst_pbounds args prf =
 
 (**** Freezing and thawing of variables in proof terms ****)
 
+local
+
 fun frzT names =
-  map_type_tvar (fn (ixn, xs) => TFree ((the o AList.lookup (op =) names) ixn, xs));
+  map_type_tvar (fn (ixn, S) => TFree (the (AList.lookup (op =) names ixn), S));
 
 fun thawT names =
-  map_type_tfree (fn (s, xs) => case AList.lookup (op =) names s of
-      NONE => TFree (s, xs)
-    | SOME ixn => TVar (ixn, xs));
+  map_type_tfree (fn (a, S) =>
+    (case AList.lookup (op =) names a of
+      NONE => TFree (a, S)
+    | SOME ixn => TVar (ixn, S)));
 
 fun freeze names names' (t $ u) =
       freeze names names' t $ freeze names names' u
@@ -582,7 +585,7 @@ fun freeze names names' (t $ u) =
   | freeze names names' (Const (s, T)) = Const (s, frzT names' T)
   | freeze names names' (Free (s, T)) = Free (s, frzT names' T)
   | freeze names names' (Var (ixn, T)) =
-      Free ((the o AList.lookup (op =) names) ixn, frzT names' T)
+      Free (the (AList.lookup (op =) names ixn), frzT names' T)
   | freeze names names' t = t;
 
 fun thaw names names' (t $ u) =
@@ -591,13 +594,15 @@ fun thaw names names' (t $ u) =
       Abs (s, thawT names' T, thaw names names' t)
   | thaw names names' (Const (s, T)) = Const (s, thawT names' T)
   | thaw names names' (Free (s, T)) =
-      let val T' = thawT names' T
-      in case AList.lookup (op =) names s of
+      let val T' = thawT names' T in
+        (case AList.lookup (op =) names s of
           NONE => Free (s, T')
-        | SOME ixn => Var (ixn, T')
+        | SOME ixn => Var (ixn, T'))
       end
   | thaw names names' (Var (ixn, T)) = Var (ixn, thawT names' T)
   | thaw names names' t = t;
+
+in
 
 fun freeze_thaw_prf prf =
   let
@@ -617,6 +622,8 @@ fun freeze_thaw_prf prf =
     (map_proof_terms (freeze names names') (frzT names') prf,
      map_proof_terms (thaw rnames rnames') (thawT rnames'))
   end;
+
+end;
 
 
 (***** implication introduction *****)
@@ -881,23 +888,25 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
-    val prf =  if check_comb prf1 then
+    val prf =
+      if check_comb prf1 then
         combination_axm % NONE % NONE
-      else (case prf1 of
+      else
+        (case prf1 of
           PAxm ("Pure.reflexive", _, _) % _ =>
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
     (case T of
-       Type ("fun", _) => prf %
-         (case head_of f of
-            Abs _ => SOME (remove_types t)
-          | Var _ => SOME (remove_types t)
-          | _ => NONE) %
-         (case head_of g of
-            Abs _ => SOME (remove_types u)
-          | Var _ => SOME (remove_types u)
-          | _ => NONE) %% prf1 %% prf2
+      Type ("fun", _) => prf %
+        (case head_of f of
+          Abs _ => SOME (remove_types t)
+        | Var _ => SOME (remove_types t)
+        | _ => NONE) %
+        (case head_of g of
+           Abs _ => SOME (remove_types u)
+        | Var _ => SOME (remove_types u)
+        | _ => NONE) %% prf1 %% prf2
      | _ => prf % NONE % NONE %% prf1 %% prf2)
   end;
 
