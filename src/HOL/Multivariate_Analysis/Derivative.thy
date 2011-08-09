@@ -73,7 +73,7 @@ proof
       apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa + x" in allE)
       unfolding dist_norm netlimit_at_vector[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
 
-subsection {* These are the only cases we'll care about, probably. *}
+text {* These are the only cases we'll care about, probably. *}
 
 lemma has_derivative_within: "(f has_derivative f') (at x within s) \<longleftrightarrow>
          bounded_linear f' \<and> ((\<lambda>y. (1 / norm(y - x)) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x within s)"
@@ -83,7 +83,7 @@ lemma has_derivative_at: "(f has_derivative f') (at x) \<longleftrightarrow>
          bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x)"
   apply(subst within_UNIV[THEN sym]) unfolding has_derivative_within unfolding within_UNIV by auto
 
-subsection {* More explicit epsilon-delta forms. *}
+text {* More explicit epsilon-delta forms. *}
 
 lemma has_derivative_within':
   "(f has_derivative f')(at x within s) \<longleftrightarrow> bounded_linear f' \<and>
@@ -133,7 +133,7 @@ lemma derivative_is_linear:
   "(f has_derivative f') net \<Longrightarrow> linear f'"
   by (rule derivative_linear [THEN bounded_linear_imp_linear])
 
-subsection {* Combining theorems. *}
+subsubsection {* Combining theorems. *}
 
 lemma (in bounded_linear) has_derivative: "(f has_derivative f) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear_axioms)
@@ -199,7 +199,7 @@ lemma has_derivative_setsum_numseg:
   ((\<lambda>x. setsum (\<lambda>i. f i x) {m..n::nat}) has_derivative (\<lambda>h. setsum (\<lambda>i. f' i h) {m..n})) net"
   by (rule has_derivative_setsum) simp_all
 
-subsection {* somewhat different results for derivative of scalar multiplier. *}
+text {* Somewhat different results for derivative of scalar multiplier. *}
 
 (** move **)
 lemma linear_vmul_component:
@@ -269,7 +269,7 @@ lemmas has_derivative_intros =
   has_derivative_vmul_at has_derivative_vmul_within has_derivative_cmul 
   bounded_linear.has_derivative has_derivative_lift_dot
 
-subsection {* limit transformation for derivatives. *}
+subsubsection {* Limit transformation for derivatives *}
 
 lemma has_derivative_transform_within:
   assumes "0 < d" "x \<in> s" "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'" "(f has_derivative f') (at x within s)"
@@ -291,7 +291,7 @@ lemma has_derivative_transform_within_open:
   apply(rule Lim_transform_within_open[OF assms(1,2)]) defer apply assumption
   apply(rule,rule) apply(drule assms(3)[rule_format]) using assms(3)[rule_format, OF assms(2)] by auto
 
-subsection {* differentiability. *}
+subsection {* Differentiability *}
 
 no_notation Deriv.differentiable (infixl "differentiable" 60)
 
@@ -343,7 +343,7 @@ lemma linear_frechet_derivative:
   unfolding frechet_derivative_works has_derivative_def
   by (auto intro: bounded_linear_imp_linear)
 
-subsection {* Differentiability implies continuity. *}
+subsection {* Differentiability implies continuity *}
 
 lemma Lim_mul_norm_within:
   fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -402,8 +402,8 @@ lemma differentiable_on_subset:
 lemma differentiable_on_empty: "f differentiable_on {}"
   unfolding differentiable_on_def by auto
 
-subsection {* Several results are easier using a "multiplied-out" variant.              *)
-(* (I got this idea from Dieudonne's proof of the chain rule). *}
+text {* Several results are easier using a "multiplied-out" variant.
+(I got this idea from Dieudonne's proof of the chain rule). *}
 
 lemma has_derivative_within_alt:
  "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
@@ -781,7 +781,7 @@ proof (rule ccontr)
     unfolding algebra_simps by (auto intro: mult_pos_pos)
 qed
 
-subsection {* In particular if we have a mapping into @{typ "real"}. *}
+text {* In particular if we have a mapping into @{typ "real"}. *}
 
 lemma differential_zero_maxmin:
   fixes f::"'a\<Colon>euclidean_space \<Rightarrow> real"
@@ -887,7 +887,7 @@ proof (cases "a = b")
   case False thus ?thesis using mvt_simple[OF _ assms(2)] using assms(1) by auto
 qed
 
-subsection {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
+text {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
 
 lemma mvt_general:
   fixes f::"real\<Rightarrow>'a::euclidean_space"
@@ -918,7 +918,7 @@ proof-
   qed
 qed
 
-subsection {* Still more general bound theorem. *}
+text {* Still more general bound theorem. *}
 
 lemma differentiable_bound:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -976,7 +976,7 @@ lemma differentiable_bound_real:
   using differentiable_bound[of s f f' B x y]
   unfolding Ball_def image_iff o_def using assms by auto
 
-subsection {* In particular. *}
+text {* In particular. *}
 
 lemma has_derivative_zero_constant:
   fixes f::"real\<Rightarrow>real"
@@ -1076,7 +1076,7 @@ proof-
   qed
 qed
 
-subsection {* Simply rewrite that based on the domain point x. *}
+text {* Simply rewrite that based on the domain point x. *}
 
 lemma has_derivative_inverse_basic_x:
   fixes f::"'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
@@ -1085,7 +1085,7 @@ lemma has_derivative_inverse_basic_x:
   shows "(g has_derivative g') (at (f(x)))"
   apply(rule has_derivative_inverse_basic) using assms by auto
 
-subsection {* This is the version in Dieudonne', assuming continuity of f and g. *}
+text {* This is the version in Dieudonne', assuming continuity of f and g. *}
 
 lemma has_derivative_inverse_dieudonne:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -1096,7 +1096,7 @@ lemma has_derivative_inverse_dieudonne:
   using assms(3-6) unfolding continuous_on_eq_continuous_at[OF assms(1)]
     continuous_on_eq_continuous_at[OF assms(2)] by auto
 
-subsection {* Here's the simplest way of not assuming much about g. *}
+text {* Here's the simplest way of not assuming much about g. *}
 
 lemma has_derivative_inverse:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -1302,7 +1302,7 @@ proof-
     using assms by auto
 qed
 
-subsection {* A rewrite based on the other domain. *}
+text {* A rewrite based on the other domain. *}
 
 lemma has_derivative_inverse_strong_x:
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a"
@@ -1312,7 +1312,7 @@ lemma has_derivative_inverse_strong_x:
   shows "(g has_derivative g') (at y)"
   using has_derivative_inverse_strong[OF assms(1-6)] unfolding assms(7) by simp
 
-subsection {* On a region. *}
+text {* On a region. *}
 
 lemma has_derivative_inverse_on:
   fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'n"
@@ -1597,7 +1597,7 @@ proof-
   qed
 qed
 
-subsection {* Can choose to line up antiderivatives if we want. *}
+text {* Can choose to line up antiderivatives if we want. *}
 
 lemma has_antiderivative_sequence:
   fixes f::"nat\<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
