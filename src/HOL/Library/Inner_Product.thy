@@ -123,8 +123,7 @@ proof
         unfolding power2_sum power2_norm_eq_inner
         by (simp add: inner_add inner_commute)
       show "0 \<le> norm x + norm y"
-        unfolding norm_eq_sqrt_inner
-        by (simp add: add_nonneg_nonneg)
+        unfolding norm_eq_sqrt_inner by simp
     qed
   have "sqrt (a\<twosuperior> * inner x x) = \<bar>a\<bar> * sqrt (inner x x)"
     by (simp add: real_sqrt_mult_distrib)
@@ -217,7 +216,7 @@ instance proof
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_complex_def by (simp add: right_distrib)
   show "0 \<le> inner x x"
-    unfolding inner_complex_def by (simp add: add_nonneg_nonneg)
+    unfolding inner_complex_def by simp
   show "inner x x = 0 \<longleftrightarrow> x = 0"
     unfolding inner_complex_def
     by (simp add: add_nonneg_eq_0_iff complex_Re_Im_cancel_iff)
