@@ -473,29 +473,15 @@ lemma perfect_choose_dist:
 using islimpt_UNIV [of x]
 by (simp add: islimpt_approachable)
 
-instance real :: perfect_space
-apply default
-apply (rule islimpt_approachable [THEN iffD2])
-apply (clarify, rule_tac x="x + e/2" in bexI)
-apply (auto simp add: dist_norm)
-done
-
-instance euclidean_space \<subseteq> perfect_space
-proof fix x::'a
+instance real_basis_with_inner \<subseteq> perfect_space
+proof
+  fix x :: 'a
   { fix e :: real assume "0 < e"
-    def a \<equiv> "x $$ 0"
-    have "a islimpt UNIV" by (rule islimpt_UNIV)
-    with `0 < e` obtain b where "b \<noteq> a" and "dist b a < e"
-      unfolding islimpt_approachable by auto
-    def y \<equiv> "\<chi>\<chi> i. if i = 0 then b else x$$i :: 'a"
-    from `b \<noteq> a` have "y \<noteq> x" unfolding a_def y_def apply(subst euclidean_eq) apply safe
-      apply(erule_tac x=0 in allE) using DIM_positive[where 'a='a] by auto
-
-    have *:"(\<Sum>i<DIM('a). (dist (y $$ i) (x $$ i))\<twosuperior>) = (\<Sum>i\<in>{0}. (dist (y $$ i) (x $$ i))\<twosuperior>)"
-      apply(rule setsum_mono_zero_right) unfolding y_def by auto
-    from `dist b a < e` have "dist y x < e"
-      apply(subst euclidean_dist_l2)
-      unfolding setL2_def * unfolding y_def a_def using `0 < e` by auto
+    def y \<equiv> "x + scaleR (e/2) (sgn (basis 0))"
+    from `0 < e` have "y \<noteq> x"
+      unfolding y_def by (simp add: sgn_zero_iff basis_eq_0_iff DIM_positive)
+    from `0 < e` have "dist y x < e"
+      unfolding y_def by (simp add: dist_norm norm_sgn)
     from `y \<noteq> x` and `dist y x < e`
     have "\<exists>y\<in>UNIV. y \<noteq> x \<and> dist y x < e" by auto
   }
