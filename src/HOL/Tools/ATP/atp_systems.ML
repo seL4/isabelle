@@ -43,9 +43,9 @@ sig
   val vampireN : string
   val leo2N : string
   val satallaxN : string
-  val sine_eN : string
+  val e_sineN : string
   val snarkN : string
-  val tofof_eN : string
+  val e_tofofN : string
   val waldmeisterN : string
   val z3_atpN : string
   val remote_prefix : string
@@ -108,9 +108,9 @@ val vampireN = "vampire"
 val z3_atpN = "z3_atp"
 val leo2N = "leo2"
 val satallaxN = "satallax"
-val sine_eN = "sine_e"
+val e_sineN = "e_sine"
 val snarkN = "snark"
-val tofof_eN = "tofof_e"
+val e_tofofN = "e_tofof"
 val waldmeisterN = "waldmeister"
 val remote_prefix = "remote_"
 
@@ -422,15 +422,15 @@ val remote_leo2 =
 val remote_satallax =
   remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
              (K (64, "simple_higher") (* FUDGE *))
-val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
+val remote_e_sine =
+  remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture [FOF] (K (500, "mangled_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
              [TFF, FOF] (K (100, "simple") (* FUDGE *))
-val remote_tofof_e =
-  remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
+val remote_e_tofof =
+  remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config)
              Axiom Hypothesis [TFF] (K (150, "simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
@@ -462,7 +462,7 @@ fun refresh_systems_on_tptp () =
 
 val atps =
   [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
-   remote_leo2, remote_satallax, remote_sine_e, remote_snark, remote_tofof_e,
+   remote_leo2, remote_satallax, remote_e_sine, remote_snark, remote_e_tofof,
    remote_waldmeister]
 val setup = fold add_atp atps
 
