@@ -18,7 +18,7 @@ text {* The definition is slightly tricky since we make it work over
   nets of a particular form. This lets us prove theorems generally and use 
   "at a" or "at a within s" for restriction to a set (1-sided on R etc.) *}
 
-definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a net \<Rightarrow> bool)"
+definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a filter \<Rightarrow> bool)"
 (infixl "(has'_derivative)" 12) where
  "(f has_derivative f') net \<equiv> bounded_linear f' \<and> ((\<lambda>y. (1 / (norm (y - netlimit net))) *\<^sub>R
    (f y - (f (netlimit net) + f'(y - netlimit net)))) ---> 0) net"
@@ -291,7 +291,7 @@ subsection {* differentiability. *}
 
 no_notation Deriv.differentiable (infixl "differentiable" 60)
 
-definition differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "differentiable" 30) where
+definition differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool" (infixr "differentiable" 30) where
   "f differentiable net \<equiv> (\<exists>f'. (f has_derivative f') net)"
 
 definition differentiable_on :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "differentiable'_on" 30) where
@@ -469,25 +469,25 @@ lemma diff_chain_at:
 
 subsection {* Composition rules stated just for differentiability. *}
 
-lemma differentiable_const[intro]: "(\<lambda>z. c) differentiable (net::'a::real_normed_vector net)"
+lemma differentiable_const[intro]: "(\<lambda>z. c) differentiable (net::'a::real_normed_vector filter)"
   unfolding differentiable_def using has_derivative_const by auto
 
-lemma differentiable_id[intro]: "(\<lambda>z. z) differentiable (net::'a::real_normed_vector net)"
+lemma differentiable_id[intro]: "(\<lambda>z. z) differentiable (net::'a::real_normed_vector filter)"
     unfolding differentiable_def using has_derivative_id by auto
 
-lemma differentiable_cmul[intro]: "f differentiable net \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) differentiable (net::'a::real_normed_vector net)"
+lemma differentiable_cmul[intro]: "f differentiable net \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) differentiable (net::'a::real_normed_vector filter)"
   unfolding differentiable_def apply(erule exE, drule has_derivative_cmul) by auto
 
-lemma differentiable_neg[intro]: "f differentiable net \<Longrightarrow> (\<lambda>z. -(f z)) differentiable (net::'a::real_normed_vector net)"
+lemma differentiable_neg[intro]: "f differentiable net \<Longrightarrow> (\<lambda>z. -(f z)) differentiable (net::'a::real_normed_vector filter)"
   unfolding differentiable_def apply(erule exE, drule has_derivative_neg) by auto
 
 lemma differentiable_add: "f differentiable net \<Longrightarrow> g differentiable net
-   \<Longrightarrow> (\<lambda>z. f z + g z) differentiable (net::'a::real_normed_vector net)"
+   \<Longrightarrow> (\<lambda>z. f z + g z) differentiable (net::'a::real_normed_vector filter)"
     unfolding differentiable_def apply(erule exE)+ apply(rule_tac x="\<lambda>z. f' z + f'a z" in exI)
     apply(rule has_derivative_add) by auto
 
 lemma differentiable_sub: "f differentiable net \<Longrightarrow> g differentiable net
-  \<Longrightarrow> (\<lambda>z. f z - g z) differentiable (net::'a::real_normed_vector net)"
+  \<Longrightarrow> (\<lambda>z. f z - g z) differentiable (net::'a::real_normed_vector filter)"
   unfolding differentiable_def apply(erule exE)+ apply(rule_tac x="\<lambda>z. f' z - f'a z" in exI)
     apply(rule has_derivative_sub) by auto 
 
@@ -1259,7 +1259,7 @@ lemma has_derivative_bilinear_at:
 
 subsection {* Considering derivative @{typ "real \<Rightarrow> 'b\<Colon>real_normed_vector"} as a vector. *}
 
-definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> (real net \<Rightarrow> bool)"
+definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> (real filter \<Rightarrow> bool)"
 (infixl "has'_vector'_derivative" 12) where
  "(f has_vector_derivative f') net \<equiv> (f has_derivative (\<lambda>x. x *\<^sub>R f')) net"
 

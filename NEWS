@@ -170,6 +170,9 @@ The names of the following types and constants have changed:
 Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
 been renamed accordingly.
 
+* Limits.thy: Type "'a net" has been renamed to "'a filter", in
+accordance with standard mathematical terminology. INCOMPATIBILITY.
+
 
 *** Document preparation ***
 

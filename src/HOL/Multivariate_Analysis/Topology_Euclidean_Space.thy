@@ -882,24 +882,25 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
   using frontier_complement frontier_subset_eq[of "- S"]
   unfolding open_closed by auto
 
-subsection {* Nets and the ``eventually true'' quantifier *}
+subsection {* Filters and the ``eventually true'' quantifier *}
 
-text {* Common nets and The "within" modifier for nets. *}
-
-definition
-  at_infinity :: "'a::real_normed_vector net" where
-  "at_infinity = Abs_net (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
+text {* Common filters and The "within" modifier for filters. *}
 
 definition
-  indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a net" (infixr "indirection" 70) where
+  at_infinity :: "'a::real_normed_vector filter" where
+  "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
+
+definition
+  indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"
+    (infixr "indirection" 70) where
   "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
 
-text{* Prove That They are all nets. *}
+text{* Prove That They are all filters. *}
 
 lemma eventually_at_infinity:
   "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
 unfolding at_infinity_def
-proof (rule eventually_Abs_net, rule is_filter.intro)
+proof (rule eventually_Abs_filter, rule is_filter.intro)
   fix P Q :: "'a \<Rightarrow> bool"
   assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<exists>s. \<forall>x. s \<le> norm x \<longrightarrow> Q x"
   then obtain r s where
@@ -944,7 +945,7 @@ lemma trivial_limit_at:
   by (simp add: trivial_limit_at_iff)
 
 lemma trivial_limit_at_infinity:
-  "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,perfect_space}) net)"
+  "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,perfect_space}) filter)"
   unfolding trivial_limit_def eventually_at_infinity
   apply clarsimp
   apply (subgoal_tac "\<exists>x::'a. x \<noteq> 0", clarify)
@@ -971,12 +972,6 @@ by auto (metis Rats_dense_in_nn_real order_le_less_trans order_refl)
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding trivial_limit_def
   by (auto elim: eventually_rev_mp)
-
-lemma always_eventually: "(\<forall>x. P x) ==> eventually P net"
-proof -
-  assume "\<forall>x. P x" hence "P = (\<lambda>x. True)" by (simp add: ext)
-  thus "eventually P net" by simp
-qed
 
 lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
   unfolding trivial_limit_def by (auto elim: eventually_rev_mp)
@@ -1012,10 +1007,10 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 subsection {* Limits *}
 
-  text{* Notation Lim to avoid collition with lim defined in analysis *}
-definition
-  Lim :: "'a net \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b" where
-  "Lim net f = (THE l. (f ---> l) net)"
+text{* Notation Lim to avoid collition with lim defined in analysis *}
+
+definition Lim :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b"
+  where "Lim A f = (THE l. (f ---> l) A)"
 
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
@@ -1281,9 +1276,9 @@ lemma Lim_mul:
   using assms by (rule scaleR.tendsto)
 
 lemma Lim_inv:
-  fixes f :: "'a \<Rightarrow> real"
-  assumes "(f ---> l) (net::'a net)"  "l \<noteq> 0"
-  shows "((inverse o f) ---> inverse l) net"
+  fixes f :: "'a \<Rightarrow> real" and A :: "'a filter"
+  assumes "(f ---> l) A" and "l \<noteq> 0"
+  shows "((inverse o f) ---> inverse l) A"
   unfolding o_def using assms by (rule tendsto_inverse)
 
 lemma Lim_vmul:
@@ -1485,10 +1480,10 @@ next
   thus "?lhs" by (rule topological_tendstoI)
 qed
 
-text{* It's also sometimes useful to extract the limit point from the net.  *}
+text{* It's also sometimes useful to extract the limit point from the filter. *}
 
 definition
-  netlimit :: "'a::t2_space net \<Rightarrow> 'a" where
+  netlimit :: "'a::t2_space filter \<Rightarrow> 'a" where
   "netlimit net = (SOME a. ((\<lambda>x. x) ---> a) net)"
 
 lemma netlimit_within:
@@ -1943,7 +1938,7 @@ qed
 
 lemma at_within_interior:
   "x \<in> interior S \<Longrightarrow> at x within S = at x"
-  by (simp add: expand_net_eq eventually_within_interior)
+  by (simp add: filter_eq_iff eventually_within_interior)
 
 lemma lim_within_interior:
   "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
@@ -3338,8 +3333,8 @@ subsection {* Continuity *}
 text {* Define continuity over a net to take in restrictions of the set. *}
 
 definition
-  continuous :: "'a::t2_space net \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
-  "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
+  continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
+  where "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
 
 lemma continuous_trivial_limit:
  "trivial_limit net ==> continuous net f"
