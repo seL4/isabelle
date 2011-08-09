@@ -336,14 +336,8 @@ For historical reasons, some tools cannot take the full proof
 \rail@endbar
 \rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
 \rail@end
-\rail@begin{2}{}
+\rail@begin{1}{}
 \rail@term{\hyperlink{method.split}{\mbox{\isa{split}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@term{\isa{asm}}[]
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@endbar
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
 \rail@end
 \end{railoutput}
@@ -388,12 +382,13 @@ For historical reasons, some tools cannot take the full proof
   assumption; this only works for equations of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}} where \isa{x} is a free or bound variable.
 
   \item \hyperlink{method.split}{\mbox{\isa{split}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} performs single-step case
-  splitting using the given rules.  By default, splitting is performed
-  in the conclusion of a goal; the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}asm{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option indicates to
-  operate on assumptions instead.
+  splitting using the given rules.  Splitting is performed in the
+  conclusion or some assumption of the subgoal, depending of the
+  structure of the rule.
   
   Note that the \hyperlink{method.simp}{\mbox{\isa{simp}}} method already involves repeated
-  application of split rules as declared in the current context.
+  application of split rules as declared in the current context, using
+  \hyperlink{attribute.split}{\mbox{\isa{split}}}, for example.
 
   \end{description}%
 \end{isamarkuptext}%
