@@ -974,6 +974,13 @@ qed
 
 end
 
+lemma bounded_linear_intro:
+  assumes "\<And>x y. f (x + y) = f x + f y"
+  assumes "\<And>r x. f (scaleR r x) = scaleR r (f x)"
+  assumes "\<And>x. norm (f x) \<le> norm x * K"
+  shows "bounded_linear f"
+  by default (fast intro: assms)+
+
 locale bounded_bilinear =
   fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
                  \<Rightarrow> 'c::real_normed_vector"
@@ -1030,21 +1037,19 @@ by (rule additive.diff [OF additive_right])
 
 lemma bounded_linear_left:
   "bounded_linear (\<lambda>a. a ** b)"
-apply (unfold_locales)
+apply (cut_tac bounded, safe)
+apply (rule_tac K="norm b * K" in bounded_linear_intro)
 apply (rule add_left)
 apply (rule scaleR_left)
-apply (cut_tac bounded, safe)
-apply (rule_tac x="norm b * K" in exI)
 apply (simp add: mult_ac)
 done
 
 lemma bounded_linear_right:
   "bounded_linear (\<lambda>b. a ** b)"
-apply (unfold_locales)
+apply (cut_tac bounded, safe)
+apply (rule_tac K="norm a * K" in bounded_linear_intro)
 apply (rule add_right)
 apply (rule scaleR_right)
-apply (cut_tac bounded, safe)
-apply (rule_tac x="norm a * K" in exI)
 apply (simp add: mult_ac)
 done
 

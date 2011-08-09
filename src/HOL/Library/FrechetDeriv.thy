@@ -28,29 +28,17 @@ by (simp add: fderiv_def)
 lemma FDERIV_bounded_linear: "FDERIV f x :> D \<Longrightarrow> bounded_linear D"
 by (simp add: fderiv_def)
 
-lemma bounded_linear_zero:
-  "bounded_linear (\<lambda>x::'a::real_normed_vector. 0::'b::real_normed_vector)"
-proof
-  show "(0::'b) = 0 + 0" by simp
-  fix r show "(0::'b) = scaleR r 0" by simp
-  have "\<forall>x::'a. norm (0::'b) \<le> norm x * 0" by simp
-  thus "\<exists>K. \<forall>x::'a. norm (0::'b) \<le> norm x * K" ..
-qed
+lemma bounded_linear_zero: "bounded_linear (\<lambda>x. 0)"
+  by (rule bounded_linear_intro [where K=0], simp_all)
 
 lemma FDERIV_const: "FDERIV (\<lambda>x. k) x :> (\<lambda>h. 0)"
-by (simp add: fderiv_def bounded_linear_zero)
+  by (simp add: fderiv_def bounded_linear_zero)
 
-lemma bounded_linear_ident:
-  "bounded_linear (\<lambda>x::'a::real_normed_vector. x)"
-proof
-  fix x y :: 'a show "x + y = x + y" by simp
-  fix r and x :: 'a show "scaleR r x = scaleR r x" by simp
-  have "\<forall>x::'a. norm x \<le> norm x * 1" by simp
-  thus "\<exists>K. \<forall>x::'a. norm x \<le> norm x * K" ..
-qed
+lemma bounded_linear_ident: "bounded_linear (\<lambda>x. x)"
+  by (rule bounded_linear_intro [where K=1], simp_all)
 
 lemma FDERIV_ident: "FDERIV (\<lambda>x. x) x :> (\<lambda>h. h)"
-by (simp add: fderiv_def bounded_linear_ident)
+  by (simp add: fderiv_def bounded_linear_ident)
 
 subsection {* Addition *}
 
