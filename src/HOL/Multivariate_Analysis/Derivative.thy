@@ -23,23 +23,12 @@ definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_nor
  "(f has_derivative f') net \<equiv> bounded_linear f' \<and> ((\<lambda>y. (1 / (norm (y - netlimit net))) *\<^sub>R
    (f y - (f (netlimit net) + f'(y - netlimit net)))) ---> 0) net"
 
-lemma derivative_linear[dest]:"(f has_derivative f') net \<Longrightarrow> bounded_linear f'"
+lemma derivative_linear[dest]:
+  "(f has_derivative f') net \<Longrightarrow> bounded_linear f'"
   unfolding has_derivative_def by auto
 
-lemma DERIV_conv_has_derivative:"(DERIV f x :> f') = (f has_derivative op * f') (at (x::real))" (is "?l = ?r") proof 
-  assume ?l note as = this[unfolded deriv_def LIM_def,rule_format]
-  show ?r unfolding has_derivative_def Lim_at apply- apply(rule,rule mult.bounded_linear_right)
-    apply safe apply(drule as,safe) apply(rule_tac x=s in exI) apply safe
-    apply(erule_tac x="xa - x" in allE) unfolding dist_norm netlimit_at[of x] unfolding diff_0_right norm_scaleR
-    by(auto simp add:field_simps) 
-next assume ?r note this[unfolded has_derivative_def Lim_at] note as=conjunct2[OF this,rule_format]
-  have *:"\<And>x xa f'. xa \<noteq> 0 \<Longrightarrow> \<bar>(f (xa + x) - f x) / xa - f'\<bar> = \<bar>(f (xa + x) - f x) - xa * f'\<bar> / \<bar>xa\<bar>" by(auto simp add:field_simps) 
-  show ?l unfolding deriv_def LIM_def apply safe apply(drule as,safe)
-    apply(rule_tac x=d in exI,safe) apply(erule_tac x="xa + x" in allE)
-    unfolding dist_norm diff_0_right norm_scaleR
-    unfolding dist_norm netlimit_at[of x] by(auto simp add:algebra_simps *) qed
-
 lemma netlimit_at_vector:
+  (* TODO: move *)
   fixes a :: "'a::real_normed_vector"
   shows "netlimit (at a) = a"
 proof (cases "\<exists>x. x \<noteq> a")
@@ -55,23 +44,15 @@ proof (cases "\<exists>x. x \<noteq> a")
 qed simp
 
 lemma FDERIV_conv_has_derivative:
-  shows "FDERIV f x :> f' = (f has_derivative f') (at x)" (is "?l = ?r")
-proof
-  assume ?l note as = this[unfolded fderiv_def]
-  show ?r unfolding has_derivative_def Lim_at apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
-    fix e::real assume "e>0"
-    guess d using as[THEN conjunct2,unfolded LIM_def,rule_format,OF`e>0`] ..
-    thus "\<exists>d>0. \<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
-      dist ((1 / norm (xa - netlimit (at x))) *\<^sub>R (f xa - (f (netlimit (at x)) + f' (xa - netlimit (at x))))) (0) < e"
-      apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa - x" in allE)
-      unfolding dist_norm netlimit_at_vector[of x] by (auto simp add: diff_diff_eq) qed next
-  assume ?r note as = this[unfolded has_derivative_def]
-  show ?l unfolding fderiv_def LIM_def apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
-    fix e::real assume "e>0"
-    guess d using as[THEN conjunct2,unfolded Lim_at,rule_format,OF`e>0`] ..
-    thus "\<exists>s>0. \<forall>xa. xa \<noteq> 0 \<and> dist xa 0 < s \<longrightarrow> dist (norm (f (x + xa) - f x - f' xa) / norm xa) 0 < e" apply-
-      apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa + x" in allE)
-      unfolding dist_norm netlimit_at_vector[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
+  shows "FDERIV f x :> f' = (f has_derivative f') (at x)"
+  unfolding fderiv_def has_derivative_def netlimit_at_vector
+  by (simp add: diff_diff_eq Lim_at_zero [where a=x]
+    LIM_norm_zero_iff [where 'b='b, symmetric])
+
+lemma DERIV_conv_has_derivative:
+  "(DERIV f x :> f') = (f has_derivative op * f') (at x)"
+  unfolding deriv_fderiv FDERIV_conv_has_derivative
+  by (subst mult_commute, rule refl)
 
 text {* These are the only cases we'll care about, probably. *}
 
