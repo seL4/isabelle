@@ -124,7 +124,8 @@ fun fork_name name e =
     let
       val _ = forked 1;
       val future =
-        singleton (Future.forks {name = name, group = NONE, deps = [], pri = ~1})
+        singleton
+          (Future.forks {name = name, group = NONE, deps = [], pri = ~1, interrupts = true})
           (fn () =>
             (*interruptible*)
             Exn.release

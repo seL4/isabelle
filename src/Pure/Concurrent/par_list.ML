@@ -35,7 +35,7 @@ fun managed_results name f xs =
     let
       val group = Task_Queue.new_group (Future.worker_group ());
       val futures =
-        Future.forks {name = name, group = SOME group, deps = [], pri = 0}
+        Future.forks {name = name, group = SOME group, deps = [], pri = 0, interrupts = true}
           (map (fn x => fn () => f x) xs);
       val results = Future.join_results futures
         handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);

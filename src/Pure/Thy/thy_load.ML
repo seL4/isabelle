@@ -189,7 +189,7 @@ fun load_thy update_time dir name imports uses pos text parents =
 
     val present =
       singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
-        deps = map Future.task_of results, pri = 0})
+        deps = map Future.task_of results, pri = 0, interrupts = true})
       (fn () =>
         Thy_Output.present_thy (#1 lexs) Keyword.command_tags
           (Outer_Syntax.is_markup outer_syntax)
