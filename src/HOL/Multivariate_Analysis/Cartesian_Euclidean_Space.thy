@@ -355,8 +355,10 @@ lemma \<pi>\<pi>'_alt[simp]: "\<And>i. i<CARD('n::finite) \<Longrightarrow> \<pi
 lemma \<pi>_inj_on: "inj_on (\<pi>::nat\<Rightarrow>'n::finite) {..<CARD('n)}"
   using bij_betw_pi[where 'n='n] by (simp add: bij_betw_def)
 
-instantiation cart :: (real_basis,finite) real_basis
+instantiation cart :: (euclidean_space, finite) euclidean_space
 begin
+
+definition "dimension (t :: ('a ^ 'b) itself) = CARD('b) * DIM('a)"
 
 definition "(basis i::'a^'b) =
   (if i < (CARD('b) * DIM('a))
@@ -417,133 +419,84 @@ proof -
   finally show ?thesis by simp
 qed
 
-instance
-proof
-  let ?b = "basis :: nat \<Rightarrow> 'a^'b"
-  let ?b' = "basis :: nat \<Rightarrow> 'a"
+lemma DIM_cart[simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
+  by (rule dimension_cart_def)
 
-  have setsum_basis:
-    "\<And>f. (\<Sum>x\<in>range basis. f (x::'a)) = f 0 + (\<Sum>i<DIM('a). f (basis i))"
-    unfolding range_basis apply (subst setsum.insert)
-    by (auto simp: basis_eq_0_iff setsum.insert setsum_reindex[OF basis_inj])
+lemma all_less_DIM_cart:
+  fixes m n :: nat
+  shows "(\<forall>i<DIM('a^'b). P i) \<longleftrightarrow> (\<forall>x::'b. \<forall>i<DIM('a). P (i + \<pi>' x * DIM('a)))"
+unfolding DIM_cart
+apply safe
+apply (drule spec, erule mp, erule linear_less_than_times [OF pi'_range])
+apply (erule split_CARD_DIM, simp)
+done
 
-  have inj: "inj_on ?b {..<CARD('b)*DIM('a)}"
-    by (auto intro!: inj_onI elim!: split_CARD_DIM split: split_if_asm
-             simp add: Cart_eq basis_eq_pi' all_conj_distrib basis_neq_0
-                       inj_on_iff[OF basis_inj])
-  moreover
-  hence indep: "independent (?b ` {..<CARD('b) * DIM('a)})"
-  proof (rule independent_eq_inj_on[THEN iffD2], safe elim!: split_CARD_DIM del: notI)
-    fix j and i :: 'b and u :: "'a^'b \<Rightarrow> real" assume "j < DIM('a)"
-    let ?x = "j + \<pi>' i * DIM('a)"
-    show "(\<Sum>k\<in>{..<CARD('b) * DIM('a)} - {?x}. u(?b k) *\<^sub>R ?b k) \<noteq> ?b ?x"
-      unfolding Cart_eq not_all
-    proof
-      have "(\<lambda>j. j + \<pi>' i*DIM('a))`({..<DIM('a)}-{j}) =
-        {\<pi>' i*DIM('a)..<Suc (\<pi>' i) * DIM('a)} - {?x}"(is "?S = ?I - _")
-      proof safe
-        fix y assume "y \<in> ?I"
-        moreover def k \<equiv> "y - \<pi>' i*DIM('a)"
-        ultimately have "k < DIM('a)" and "y = k + \<pi>' i * DIM('a)" by auto
-        moreover assume "y \<notin> ?S"
-        ultimately show "y = j + \<pi>' i * DIM('a)" by auto
-      qed auto
+lemma eq_pi_iff:
+  fixes x :: "'c::finite"
+  shows "i < CARD('c::finite) \<Longrightarrow> x = \<pi> i \<longleftrightarrow> \<pi>' x = i"
+  by auto
 
-      have "(\<Sum>k\<in>{..<CARD('b) * DIM('a)} - {?x}. u(?b k) *\<^sub>R ?b k) $ i =
-          (\<Sum>k\<in>{..<CARD('b) * DIM('a)} - {?x}. u(?b k) *\<^sub>R ?b k $ i)" by simp
-      also have "\<dots> = (\<Sum>k\<in>?S. u(?b k) *\<^sub>R ?b k $ i)"
-        unfolding `?S = ?I - {?x}`
-      proof (safe intro!: setsum_mono_zero_cong_right)
-        fix y assume "y \<in> {\<pi>' i*DIM('a)..<Suc (\<pi>' i) * DIM('a)}"
-        moreover have "Suc (\<pi>' i) * DIM('a) \<le> CARD('b) * DIM('a)"
-          unfolding mult_le_cancel2 using pi'_range[of i] by simp
-        ultimately show "y < CARD('b) * DIM('a)" by simp
-      next
-        fix y assume "y < CARD('b) * DIM('a)"
-        with split_CARD_DIM guess l k . note y = this
-        moreover assume "u (?b y) *\<^sub>R ?b y $ i \<noteq> 0"
-        ultimately show "y \<in> {\<pi>' i*DIM('a)..<Suc (\<pi>' i) * DIM('a)}"
-          by (auto simp: basis_eq_pi' split: split_if_asm)
-      qed simp
-      also have "\<dots> = (\<Sum>k\<in>{..<DIM('a)} - {j}. u (?b (k + \<pi>' i*DIM('a))) *\<^sub>R (?b' k))"
-        by (subst setsum_reindex) (auto simp: basis_eq_pi' intro!: inj_onI)
-      also have "\<dots> \<noteq> ?b ?x $ i"
-      proof -
-        note independent_eq_inj_on[THEN iffD1, OF basis_inj independent_basis, rule_format]
-        note this[of j "\<lambda>v. u (\<chi> ka::'b. if ka = i then v else (0\<Colon>'a))"]
-        thus ?thesis by (simp add: `j < DIM('a)` basis_eq pi'_range)
-      qed
-      finally show "(\<Sum>k\<in>{..<CARD('b) * DIM('a)} - {?x}. u(?b k) *\<^sub>R ?b k) $ i \<noteq> ?b ?x $ i" .
-    qed
-  qed
-  ultimately
-  show "\<exists>d>0. ?b ` {d..} = {0} \<and> independent (?b ` {..<d}) \<and> inj_on ?b {..<d}"
-    by (auto intro!: exI[of _ "CARD('b) * DIM('a)"] simp: basis_cart_def)
+lemma all_less_mult:
+  fixes m n :: nat
+  shows "(\<forall>i<(m * n). P i) \<longleftrightarrow> (\<forall>i<m. \<forall>j<n. P (j + i * n))"
+apply safe
+apply (drule spec, erule mp, erule (1) linear_less_than_times)
+apply (erule split_times_into_modulo, simp)
+done
 
-  from indep have exclude_0: "0 \<notin> ?b ` {..<CARD('b) * DIM('a)}"
-    using dependent_0[of "?b ` {..<CARD('b) * DIM('a)}"] by blast
+lemma inner_if:
+  "inner (if a then x else y) z = (if a then inner x z else inner y z)"
+  "inner x (if a then y else z) = (if a then inner x y else inner x z)"
+  by simp_all
 
-  show "span (range ?b) = UNIV"
-  proof -
-    { fix x :: "'a^'b"
-      let "?if i y" = "(\<chi> k::'b. if k = i then ?b' y else (0\<Colon>'a))"
-      have The_if: "\<And>i j. j < DIM('a) \<Longrightarrow> (THE k. (?if i j) $ k \<noteq> 0) = i"
-        by (rule the_equality) (simp_all split: split_if_asm add: basis_neq_0)
-      { fix x :: 'a
-        have "x \<in> span (range basis)"
-          using span_basis by (auto simp: range_basis)
-        hence "\<exists>u. (\<Sum>x<DIM('a). u (?b' x) *\<^sub>R ?b' x) = x"
-          by (subst (asm) span_finite) (auto simp: setsum_basis) }
-      hence "\<forall>i. \<exists>u. (\<Sum>x<DIM('a). u (?b' x) *\<^sub>R ?b' x) = i" by auto
-      then obtain u where u: "\<forall>i. (\<Sum>x<DIM('a). u i (?b' x) *\<^sub>R ?b' x) = i"
-        by (auto dest: choice)
-      have "\<exists>u. \<forall>i. (\<Sum>j<DIM('a). u (?if i j) *\<^sub>R ?b' j) = x $ i"
-        apply (rule exI[of _ "\<lambda>v. let i = (THE i. v$i \<noteq> 0) in u (x$i) (v$i)"])
-        using The_if u by simp }
-    moreover
-    have "\<And>i::'b. {..<CARD('b)} \<inter> {x. i = \<pi> x} = {\<pi>' i}"
-      using pi'_range[where 'n='b] by auto
-    moreover
-    have "range ?b = {0} \<union> ?b ` {..<CARD('b) * DIM('a)}"
-      by (auto simp: image_def basis_cart_def)
-    ultimately
-    show ?thesis
-      by (auto simp add: Cart_eq setsum_reindex[OF inj] range_basis
-          setsum_mult_product basis_eq if_distrib setsum_cases span_finite
-          setsum_reindex[OF basis_inj])
-  qed
+instance proof
+  show "0 < DIM('a ^ 'b)"
+    unfolding dimension_cart_def
+    by (intro mult_pos_pos zero_less_card_finite DIM_positive)
+next
+  fix i :: nat
+  assume "DIM('a ^ 'b) \<le> i" thus "basis i = (0::'a^'b)"
+    unfolding dimension_cart_def basis_cart_def
+    by simp
+next
+  show "\<forall>i<DIM('a ^ 'b). \<forall>j<DIM('a ^ 'b).
+    (basis i :: 'a ^ 'b) \<bullet> basis j = (if i = j then 1 else 0)"
+    apply (simp add: inner_vector_def)
+    apply safe
+    apply (erule split_CARD_DIM, simp add: basis_eq_pi')
+    apply (simp add: inner_if setsum_delta cong: if_cong)
+    apply (simp add: basis_orthonormal)
+    apply (elim split_CARD_DIM, simp add: basis_eq_pi')
+    apply (simp add: inner_if setsum_delta cong: if_cong)
+    apply (clarsimp simp add: basis_orthonormal)
+    done
+next
+  fix x :: "'a ^ 'b"
+  show "(\<forall>i<DIM('a ^ 'b). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
+    unfolding all_less_DIM_cart
+    unfolding inner_vector_def
+    apply (simp add: basis_eq_pi')
+    apply (simp add: inner_if setsum_delta cong: if_cong)
+    apply (simp add: euclidean_all_zero)
+    apply (simp add: Cart_eq)
+    done
 qed
 
 end
 
-lemma DIM_cart[simp]: "DIM('a^'b) = CARD('b) * DIM('a::real_basis)"
-proof (safe intro!: dimension_eq elim!: split_times_into_modulo del: notI)
-  fix i j assume *: "i < CARD('b)" "j < DIM('a)"
-  hence A: "(i * DIM('a) + j) div DIM('a) = i"
-    by (subst div_add1_eq) simp
-  from * have B: "(i * DIM('a) + j) mod DIM('a) = j"
-    unfolding mod_mult_self3 by simp
-  show "basis (j + i * DIM('a)) \<noteq> (0::'a^'b)" unfolding basis_cart_def
-    using * basis_finite[where 'a='a]
-      linear_less_than_times[of i "CARD('b)" j "DIM('a)"]
-    by (auto simp: A B field_simps Cart_eq basis_eq_0_iff)
-qed (auto simp: basis_cart_def)
-
 lemma if_distr: "(if P then f else g) $ i = (if P then f $ i else g $ i)" by simp
 
 lemma split_dimensions'[consumes 1]:
-  assumes "k < DIM('a::real_basis^'b)"
-  obtains i j where "i < CARD('b::finite)" and "j < DIM('a::real_basis)" and "k = j + i * DIM('a::real_basis)"
+  assumes "k < DIM('a::euclidean_space^'b)"
+  obtains i j where "i < CARD('b::finite)" and "j < DIM('a::euclidean_space)" and "k = j + i * DIM('a::euclidean_space)"
 using split_times_into_modulo[OF assms[simplified]] .
 
 lemma cart_euclidean_bound[intro]:
-  assumes j:"j < DIM('a::{real_basis})"
-  shows "j + \<pi>' (i::'b::finite) * DIM('a) < CARD('b) * DIM('a::real_basis)"
+  assumes j:"j < DIM('a::euclidean_space)"
+  shows "j + \<pi>' (i::'b::finite) * DIM('a) < CARD('b) * DIM('a::euclidean_space)"
   using linear_less_than_times[OF pi'_range j, of i] .
 
-instance cart :: (real_basis_with_inner,finite) real_basis_with_inner ..
-
-lemma (in real_basis) forall_CARD_DIM:
+lemma (in euclidean_space) forall_CARD_DIM:
   "(\<forall>i<CARD('b) * DIM('a). P i) \<longleftrightarrow> (\<forall>(i::'b::finite) j. j<DIM('a) \<longrightarrow> P (j + \<pi>' i * DIM('a)))"
    (is "?l \<longleftrightarrow> ?r")
 proof (safe elim!: split_times_into_modulo)
@@ -557,7 +510,7 @@ next
   show "P (j + i * DIM('a))" by simp
 qed
 
-lemma (in real_basis) exists_CARD_DIM:
+lemma (in euclidean_space) exists_CARD_DIM:
   "(\<exists>i<CARD('b) * DIM('a). P i) \<longleftrightarrow> (\<exists>i::'b::finite. \<exists>j<DIM('a). P (j + \<pi>' i * DIM('a)))"
   using forall_CARD_DIM[where 'b='b, of "\<lambda>x. \<not> P x"] by blast
 
@@ -572,7 +525,7 @@ lemma exists_CARD:
 lemmas cart_simps = forall_CARD_DIM exists_CARD_DIM forall_CARD exists_CARD
 
 lemma cart_euclidean_nth[simp]:
-  fixes x :: "('a::real_basis_with_inner, 'b::finite) cart"
+  fixes x :: "('a::euclidean_space, 'b::finite) cart"
   assumes j:"j < DIM('a)"
   shows "x $$ (j + \<pi>' i * DIM('a)) = x $ i $$ j"
   unfolding euclidean_component_def inner_vector_def basis_eq_pi'[OF j] if_distrib cond_application_beta
@@ -605,22 +558,6 @@ proof
   qed simp
   thus "x = y \<and> i = j" using * by simp
 qed simp
-
-instance cart :: (euclidean_space,finite) euclidean_space
-proof (default, safe elim!: split_dimensions')
-  let ?b = "basis :: nat \<Rightarrow> 'a^'b"
-  have if_distrib_op: "\<And>f P Q a b c d.
-    f (if P then a else b) (if Q then c else d) =
-      (if P then if Q then f a c else f a d else if Q then f b c else f b d)"
-    by simp
-
-  fix i j k l
-  assume "i < CARD('b)" "k < CARD('b)" "j < DIM('a)" "l < DIM('a)"
-  thus "?b (j + i * DIM('a)) \<bullet> ?b (l + k * DIM('a)) =
-    (if j + i * DIM('a) = l + k * DIM('a) then 1 else 0)"
-    using inj_on_iff[OF \<pi>_inj_on[where 'n='b], of k i]
-    by (auto simp add: basis_eq inner_vector_def if_distrib_op[of inner] setsum_cases basis_orthonormal mult_split_eq)
-qed
 
 instance cart :: (ordered_euclidean_space,finite) ordered_euclidean_space
 proof

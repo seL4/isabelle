@@ -1582,119 +1582,50 @@ qed
 
 subsection{* Euclidean Spaces as Typeclass*}
 
-class real_basis = real_vector +
+class euclidean_space = real_inner +
+  fixes dimension :: "'a itself \<Rightarrow> nat"
   fixes basis :: "nat \<Rightarrow> 'a"
-  assumes span_basis: "span (range basis) = UNIV"
-  assumes dimension_exists: "\<exists>d>0.
-    basis ` {d..} = {0} \<and>
-    independent (basis ` {..<d}) \<and>
-    inj_on basis {..<d}"
-
-definition (in real_basis) dimension :: "'a itself \<Rightarrow> nat" where
-  "dimension x =
-    (THE d. basis ` {d..} = {0} \<and> independent (basis ` {..<d}) \<and> inj_on basis {..<d})"
+  assumes DIM_positive [intro]:
+    "0 < dimension TYPE('a)"
+  assumes basis_zero [simp]:
+    "dimension TYPE('a) \<le> i \<Longrightarrow> basis i = 0"
+  assumes basis_orthonormal:
+    "\<forall>i<dimension TYPE('a). \<forall>j<dimension TYPE('a).
+      inner (basis i) (basis j) = (if i = j then 1 else 0)"
+  assumes euclidean_all_zero:
+    "(\<forall>i<dimension TYPE('a). inner (basis i) x = 0) \<longleftrightarrow> (x = 0)"
 
 syntax "_type_dimension" :: "type => nat" ("(1DIM/(1'(_')))")
 
 translations "DIM('t)" == "CONST dimension (TYPE('t))"
 
-lemma (in real_basis) dimensionI:
-  assumes "\<And>d. \<lbrakk> 0 < d; basis ` {d..} = {0}; independent (basis ` {..<d});
-    inj_on basis {..<d} \<rbrakk> \<Longrightarrow> P d"
-  shows "P DIM('a)"
-proof -
-  obtain d where "0 < d" and d: "basis ` {d..} = {0} \<and>
-      independent (basis ` {..<d}) \<and> inj_on basis {..<d}" (is "?P d")
-    using dimension_exists by auto
-  show ?thesis unfolding dimension_def
-  proof (rule theI2)
-    fix d' assume "?P d'"
-    with d have "basis d' = 0" "basis d = 0" and
-      "d < d' \<Longrightarrow> basis d \<noteq> 0"
-      "d' < d \<Longrightarrow> basis d' \<noteq> 0"
-      using dependent_0 by auto
-    thus "d' = d" by (cases rule: linorder_cases) auto
-    moreover have "P d" using assms[of d] `0 < d` d by auto
-    ultimately show "P d'" by simp
-  next show "?P d" using `?P d` .
-  qed
-qed
-
-lemma (in real_basis) dimension_eq:
-  assumes "\<And>i. i < d \<Longrightarrow> basis i \<noteq> 0"
-  assumes "\<And>i. d \<le> i \<Longrightarrow> basis i = 0"
-  shows "DIM('a) = d"
-proof (rule dimensionI)
-  let ?b = "basis :: nat \<Rightarrow> 'a"
-  fix d' assume *: "?b ` {d'..} = {0}" "independent (?b ` {..<d'})"
-  show "d' = d"
-  proof (cases rule: linorder_cases)
-    assume "d' < d" hence "basis d' \<noteq> 0" using assms by auto
-    with * show ?thesis by auto
-  next
-    assume "d < d'" hence "basis d \<noteq> 0" using * dependent_0 by auto
-    with assms(2) `d < d'` show ?thesis by auto
-  qed
-qed
-
-lemma (in real_basis)
-  shows basis_finite: "basis ` {DIM('a)..} = {0}"
-  and independent_basis: "independent (basis ` {..<DIM('a)})"
-  and DIM_positive[intro]: "(DIM('a) :: nat) > 0"
-  and basis_inj[simp, intro]: "inj_on basis {..<DIM('a)}"
-  by (auto intro!: dimensionI)
-
-lemma (in real_basis) basis_eq_0_iff: "basis j = 0 \<longleftrightarrow> DIM('a) \<le> j"
-proof
-  show "DIM('a) \<le> j \<Longrightarrow> basis j = 0" using basis_finite by auto
+lemma (in euclidean_space) dot_basis:
+  "inner (basis i) (basis j) = (if i = j \<and> i < DIM('a) then 1 else 0)"
+proof (cases "(i < DIM('a) \<and> j < DIM('a))")
+  case False
+  hence "inner (basis i) (basis j) = 0" by auto
+  thus ?thesis using False by auto
 next
-  have "j < DIM('a) \<Longrightarrow> basis j \<noteq> 0"
-    using independent_basis by (auto intro!: dependent_0)
-  thus "basis j = 0 \<Longrightarrow> DIM('a) \<le> j" unfolding not_le[symmetric] by blast
+  case True thus ?thesis using basis_orthonormal by auto
 qed
 
-lemma (in real_basis) range_basis:
-    "range basis = insert 0 (basis ` {..<DIM('a)})"
+lemma (in euclidean_space) basis_eq_0_iff [simp]:
+  "basis i = 0 \<longleftrightarrow> DIM('a) \<le> i"
 proof -
-  have *: "UNIV = {..<DIM('a)} \<union> {DIM('a)..}" by auto
-  show ?thesis unfolding * image_Un basis_finite by auto
+  have "inner (basis i) (basis i) = 0 \<longleftrightarrow> DIM('a) \<le> i"
+    by (simp add: dot_basis)
+  thus ?thesis by simp
 qed
 
-lemma (in real_basis) range_basis_finite[intro]:
-    "finite (range basis)"
-  unfolding range_basis by auto
+lemma (in euclidean_space) norm_basis [simp]:
+  "norm (basis i) = (if i < DIM('a) then 1 else 0)"
+  unfolding norm_eq_sqrt_inner dot_basis by simp
 
-lemma (in real_basis) basis_neq_0[intro]:
-  assumes "i<DIM('a)" shows "(basis i) \<noteq> 0"
-proof(rule ccontr) assume "\<not> basis i \<noteq> (0::'a)"
-  hence "(0::'a) \<in> basis ` {..<DIM('a)}" using assms by auto
-  from dependent_0[OF this] show False using independent_basis by auto
-qed
+lemma (in euclidean_space) basis_inj[simp, intro]: "inj_on basis {..<DIM('a)}"
+  by (rule inj_onI, rule ccontr, cut_tac i=x and j=y in dot_basis, simp)
 
-lemma (in real_basis) basis_zero[simp]:
-  assumes"i \<ge> DIM('a)" shows "basis i = 0"
-proof-
-  have "(basis i::'a) \<in> basis ` {DIM('a)..}" using assms by auto
-  thus ?thesis unfolding basis_finite by fastsimp
-qed
-
-lemma basis_representation:
-  "\<exists>u. x = (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R (v\<Colon>'a\<Colon>real_basis))"
-proof -
-  have "x\<in>UNIV" by auto from this[unfolded span_basis[THEN sym]]
-  have "\<exists>u. (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R v) = x"
-    unfolding range_basis span_insert_0 apply(subst (asm) span_finite) by auto
-  thus ?thesis by fastsimp
-qed
-
-lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = UNIV"
-  apply(subst span_basis[symmetric]) unfolding range_basis by auto
-
-lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = DIM('a)"
-  apply(subst card_image) using basis_inj by auto
-
-lemma in_span_basis: "(x::'a::real_basis) \<in> span (basis ` {..<DIM('a)})"
-  unfolding span_basis' ..
+lemma (in euclidean_space) basis_finite: "basis ` {DIM('a)..} = {0}"
+  by (auto intro: image_eqI [where x="DIM('a)"])
 
 lemma independent_eq_inj_on:
   fixes D :: nat and f :: "nat \<Rightarrow> 'c::real_vector" assumes *: "inj_on f {..<D}"
@@ -1708,55 +1639,97 @@ proof -
     by (auto simp: eq setsum_reindex[OF inj])
 qed
 
-class real_basis_with_inner = real_inner + real_basis
-begin
+lemma independent_basis:
+  "independent (basis ` {..<DIM('a)} :: 'a::euclidean_space set)"
+  unfolding independent_eq_inj_on [OF basis_inj]
+  apply clarify
+  apply (drule_tac f="inner (basis a)" in arg_cong)
+  apply (simp add: inner_right.setsum dot_basis)
+  done
 
-definition euclidean_component (infixl "$$" 90) where
-  "x $$ i = inner (basis i) x"
+lemma dimensionI:
+  assumes "\<And>d. \<lbrakk> 0 < d; basis ` {d..} = {0::'a::euclidean_space};
+    independent (basis ` {..<d} :: 'a set);
+    inj_on (basis :: nat \<Rightarrow> 'a) {..<d} \<rbrakk> \<Longrightarrow> P d"
+  shows "P DIM('a::euclidean_space)"
+  using DIM_positive basis_finite independent_basis basis_inj
+  by (rule assms)
 
-definition Chi (binder "\<chi>\<chi> " 10) where
-  "(\<chi>\<chi> i. f i) = (\<Sum>i<DIM('a). f i *\<^sub>R basis i)"
+lemma (in euclidean_space) dimension_eq:
+  assumes "\<And>i. i < d \<Longrightarrow> basis i \<noteq> 0"
+  assumes "\<And>i. d \<le> i \<Longrightarrow> basis i = 0"
+  shows "DIM('a) = d"
+proof (rule linorder_cases [of "DIM('a)" d])
+  assume "DIM('a) < d"
+  hence "basis DIM('a) \<noteq> 0" by (rule assms)
+  thus ?thesis by simp
+next
+  assume "d < DIM('a)"
+  hence "basis d \<noteq> 0" by simp
+  thus ?thesis by (simp add: assms)
+next
+  assume "DIM('a) = d" thus ?thesis .
+qed
 
-lemma basis_at_neq_0[intro]:
+lemma (in euclidean_space) range_basis:
+    "range basis = insert 0 (basis ` {..<DIM('a)})"
+proof -
+  have *: "UNIV = {..<DIM('a)} \<union> {DIM('a)..}" by auto
+  show ?thesis unfolding * image_Un basis_finite by auto
+qed
+
+lemma (in euclidean_space) range_basis_finite[intro]:
+    "finite (range basis)"
+  unfolding range_basis by auto
+
+lemma (in euclidean_space) basis_neq_0 [intro]:
+  assumes "i<DIM('a)" shows "(basis i) \<noteq> 0"
+  using assms by simp
+
+subsubsection {* Projecting components *}
+
+definition (in euclidean_space) euclidean_component (infixl "$$" 90)
+  where "x $$ i = inner (basis i) x"
+
+lemma bounded_linear_euclidean_component:
+  "bounded_linear (\<lambda>x. euclidean_component x i)"
+  unfolding euclidean_component_def
+  by (rule inner.bounded_linear_right)
+
+interpretation euclidean_component:
+  bounded_linear "\<lambda>x. euclidean_component x i"
+  by (rule bounded_linear_euclidean_component)
+
+lemma euclidean_eqI:
+  fixes x y :: "'a::euclidean_space"
+  assumes "\<And>i. i < DIM('a) \<Longrightarrow> x $$ i = y $$ i" shows "x = y"
+proof -
+  from assms have "\<forall>i<DIM('a). (x - y) $$ i = 0"
+    by (simp add: euclidean_component.diff)
+  then show "x = y"
+    unfolding euclidean_component_def euclidean_all_zero by simp
+qed
+
+lemma euclidean_eq:
+  fixes x y :: "'a::euclidean_space"
+  shows "x = y \<longleftrightarrow> (\<forall>i<DIM('a). x $$ i = y $$ i)"
+  by (auto intro: euclidean_eqI)
+
+lemma (in euclidean_space) basis_component [simp]:
+  "basis i $$ j = (if i = j \<and> i < DIM('a) then 1 else 0)"
+  unfolding euclidean_component_def dot_basis by auto
+
+lemma (in euclidean_space) basis_at_neq_0 [intro]:
   "i < DIM('a) \<Longrightarrow> basis i $$ i \<noteq> 0"
-  unfolding euclidean_component_def by (auto intro!: basis_neq_0)
+  by simp
 
-lemma euclidean_component_ge[simp]:
+lemma (in euclidean_space) euclidean_component_ge [simp]:
   assumes "i \<ge> DIM('a)" shows "x $$ i = 0"
-  unfolding euclidean_component_def basis_zero[OF assms] by auto
+  unfolding euclidean_component_def basis_zero[OF assms] by simp
 
 lemma euclidean_scaleR:
   shows "(a *\<^sub>R x) $$ i = a * (x$$i)"
   unfolding euclidean_component_def by auto
-
-end
-
-interpretation euclidean_component:
-  bounded_linear "\<lambda>x. euclidean_component x i"
-  unfolding euclidean_component_def
-  by (rule inner.bounded_linear_right)
-
-subsection{* Euclidean Spaces as Typeclass *}
-
-class euclidean_space = real_basis_with_inner +
-  assumes basis_orthonormal: "\<forall>i<DIM('a). \<forall>j<DIM('a).
-    inner (basis i) (basis j) = (if i = j then 1 else 0)"
-
-lemma (in euclidean_space) dot_basis:
-  "inner (basis i) (basis j) = (if i = j \<and> i<DIM('a) then 1 else 0)"
-proof (cases "(i < DIM('a) \<and> j < DIM('a))")
-  case False
-  hence "basis i = 0 \<or> basis j = 0"
-    using basis_finite by fastsimp
-  hence "inner (basis i) (basis j) = 0" by (rule disjE) simp_all
-  thus ?thesis using False by auto
-next
-  case True thus ?thesis using basis_orthonormal by auto
-qed
-
-lemma (in euclidean_space) basis_component[simp]:
-  "basis i $$ j = (if i = j \<and> i < DIM('a) then 1 else 0)"
-  unfolding euclidean_component_def dot_basis by auto
 
 lemmas euclidean_simps =
   euclidean_component.add
@@ -1767,34 +1740,22 @@ lemmas euclidean_simps =
   basis_component
 
 lemma euclidean_representation:
-  "(x\<Colon>'a\<Colon>euclidean_space) = (\<Sum>i\<in>{..<DIM('a)}. (x$$i) *\<^sub>R basis i)"
-proof-
-  from basis_representation[of x] guess u ..
-  hence *:"x = (\<Sum>i\<in>{..<DIM('a)}. u (basis i) *\<^sub>R (basis i))"
-    by (simp add: setsum_reindex)
-  show ?thesis apply(subst *)
-  proof(safe intro!: setsum_cong2)
-    fix i assume i: "i < DIM('a)"
-    hence "x$$i = (\<Sum>x<DIM('a). (if i = x then u (basis x) else 0))"
-      by (auto simp: euclidean_simps * intro!: setsum_cong)
-    also have "... = u (basis i)" using i by (auto simp: setsum_cases)
-    finally show "u (basis i) *\<^sub>R basis i = x $$ i *\<^sub>R basis i" by simp
-  qed
-qed
+  fixes x :: "'a::euclidean_space"
+  shows "x = (\<Sum>i<DIM('a). (x$$i) *\<^sub>R basis i)"
+  apply (rule euclidean_eqI)
+  apply (simp add: euclidean_component.setsum euclidean_component.scaleR)
+  apply (simp add: if_distrib setsum_delta cong: if_cong)
+  done
 
-lemma euclidean_eq:
-  fixes x y :: "'a\<Colon>euclidean_space"
-  shows "x = y \<longleftrightarrow> (\<forall>i<DIM('a). x$$i = y$$i)" (is "?l = ?r")
-proof safe
-  assume "\<forall>i<DIM('a). x $$ i = y $$ i"
-  thus "x = y"
-    by (subst (1 2) euclidean_representation) auto
-qed
+subsubsection {* Binder notation for vectors *}
 
-lemma euclidean_lambda_beta[simp]:
+definition (in euclidean_space) Chi (binder "\<chi>\<chi> " 10) where
+  "(\<chi>\<chi> i. f i) = (\<Sum>i<DIM('a). f i *\<^sub>R basis i)"
+
+lemma euclidean_lambda_beta [simp]:
   "((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ j = (if j < DIM('a) then f j else 0)"
-  by (auto simp: euclidean_simps Chi_def if_distrib setsum_cases
-           intro!: setsum_cong)
+  by (auto simp: euclidean_component.setsum euclidean_component.scaleR
+    Chi_def if_distrib setsum_cases intro!: setsum_cong)
 
 lemma euclidean_lambda_beta':
   "j < DIM('a) \<Longrightarrow> ((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ j = f j"
@@ -1805,7 +1766,7 @@ lemma euclidean_lambda_beta'':"(\<forall>j < DIM('a::euclidean_space). P j (((\<
 
 lemma euclidean_beta_reduce[simp]:
   "(\<chi>\<chi> i. x $$ i) = (x::'a::euclidean_space)"
-  by (subst euclidean_eq) (simp add: euclidean_lambda_beta)
+  by (simp add: euclidean_eq)
 
 lemma euclidean_lambda_beta_0[simp]:
     "((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ 0 = f 0"
@@ -1822,6 +1783,34 @@ proof -
     by (auto simp add: dot_basis if_distrib setsum_cases intro!: setsum_cong)
   finally show ?thesis .
 qed
+
+lemma span_basis: "span (range basis) = (UNIV :: 'a::euclidean_space set)"
+proof -
+  { fix x :: 'a
+    have "(\<Sum>i<DIM('a). (x $$ i) *\<^sub>R basis i) \<in> span (range basis :: 'a set)"
+      by (simp add: span_setsum span_mul span_superset)
+    hence "x \<in> span (range basis)"
+      by (simp only: euclidean_representation [symmetric])
+  } thus ?thesis by auto
+qed
+
+lemma basis_representation:
+  "\<exists>u. x = (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R (v\<Colon>'a\<Colon>euclidean_space))"
+proof -
+  have "x\<in>UNIV" by auto from this[unfolded span_basis[THEN sym]]
+  have "\<exists>u. (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R v) = x"
+    unfolding range_basis span_insert_0 apply(subst (asm) span_finite) by auto
+  thus ?thesis by fastsimp
+qed
+
+lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = UNIV"
+  apply(subst span_basis[symmetric]) unfolding range_basis by auto
+
+lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = DIM('a)"
+  apply(subst card_image) using basis_inj by auto
+
+lemma in_span_basis: "(x::'a::euclidean_space) \<in> span (basis ` {..<DIM('a)})"
+  unfolding span_basis' ..
 
 lemma norm_basis[simp]:"norm (basis i::'a::euclidean_space) = (if i<DIM('a) then 1 else 0)"
   unfolding norm_eq_sqrt_inner dot_basis by auto
@@ -3301,31 +3290,27 @@ done
 
 subsection "Instantiate @{typ real} and @{typ complex} as typeclass @{text ordered_euclidean_space}."
 
-instantiation real :: real_basis_with_inner
+instantiation real :: euclidean_space
 begin
-definition [simp]: "basis i = (if i = 0 then (1::real) else 0)"
+
+definition
+  "dimension (t::real itself) = 1"
+
+definition [simp]:
+  "basis i = (if i = 0 then 1 else (0::real))"
+
+lemma DIM_real [simp]: "DIM(real) = 1"
+  by (rule dimension_real_def)
+
+instance
+  by default simp+
+
+end
 
 lemma basis_real_range: "basis ` {..<1} = {1::real}" by auto
 
-instance proof
-  let ?b = "basis::nat \<Rightarrow> real"
-
-  from basis_real_range have "independent (?b ` {..<1})" by auto
-  thus "\<exists>d>0. ?b ` {d..} = {0} \<and> independent (?b ` {..<d}) \<and> inj_on ?b {..<d}"
-    by (auto intro!: exI[of _ 1] inj_onI)
-
-  { fix x::real
-    have "x \<in> span (range ?b)"
-      using span_mul[of 1 "range ?b" x] span_clauses(1)[of 1 "range ?b"]
-      by auto }
-  thus "span (range ?b) = UNIV" by auto
-qed
-end
-
-lemma DIM_real[simp]: "DIM(real) = 1"
-  by (rule dimension_eq) (auto simp: basis_real_def)
-
-instance real::ordered_euclidean_space proof qed(auto simp add:euclidean_component_def)
+instance real::ordered_euclidean_space
+  by default (auto simp add: euclidean_component_def)
 
 lemma Eucl_real_simps[simp]:
   "(x::real) $$ 0 = x"
@@ -3335,177 +3320,89 @@ lemma Eucl_real_simps[simp]:
   unfolding euclidean_lambda_beta'
   unfolding euclidean_component_def by auto
 
-instantiation complex :: real_basis_with_inner
+instantiation complex :: euclidean_space
 begin
-definition "basis i = (if i = 0 then 1 else if i = 1 then ii else 0)"
 
-lemma complex_basis[simp]:"basis 0 = (1::complex)" "basis 1 = ii" "basis (Suc 0) = ii"
-  unfolding basis_complex_def by auto
+definition
+  "dimension (t::complex itself) = 2"
 
-instance
-proof
-  let ?b = "basis::nat \<Rightarrow> complex"
-  have [simp]: "(range ?b) = {0, basis 0, basis 1}"
-    by (auto simp: basis_complex_def split: split_if_asm)
-  { fix z::complex
-    have "z \<in> span (range ?b)"
-      by (auto simp: span_finite complex_equality
-        intro!: exI[of _ "\<lambda>i. if i = 1 then Re z else if i = ii then Im z else 0"]) }
-  thus "span (range ?b) = UNIV" by auto
+definition
+  "basis i = (if i = 0 then 1 else if i = 1 then ii else 0)"
 
-  have "{..<2} = {0, 1::nat}" by auto
-  hence *: "?b ` {..<2} = {1, ii}"
-    by (auto simp add: basis_complex_def)
-  moreover have "1 \<notin> span {\<i>}"
-    by (simp add: span_finite complex_equality complex_scaleR_def)
-  hence "independent (?b ` {..<2})"
-    by (simp add: * basis_complex_def independent_empty independent_insert)
-  ultimately show "\<exists>d>0. ?b ` {d..} = {0} \<and> independent (?b ` {..<d}) \<and> inj_on ?b {..<d}"
-    by (auto intro!: exI[of _ 2] inj_onI simp: basis_complex_def split: split_if_asm)
+lemma all_less_Suc: "(\<forall>i<Suc n. P i) \<longleftrightarrow> (\<forall>i<n. P i) \<and> P n"
+  by (auto simp add: less_Suc_eq)
+
+instance proof
+  show "0 < DIM(complex)"
+    unfolding dimension_complex_def by simp
+next
+  fix i :: nat
+  assume "DIM(complex) \<le> i" thus "basis i = (0::complex)"
+    unfolding dimension_complex_def basis_complex_def by simp
+next
+  show "\<forall>i<DIM(complex). \<forall>j<DIM(complex).
+    inner (basis i::complex) (basis j) = (if i = j then 1 else 0)"
+    unfolding dimension_complex_def basis_complex_def inner_complex_def
+    by (simp add: numeral_2_eq_2 all_less_Suc)
+next
+  fix x :: complex
+  show "(\<forall>i<DIM(complex). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
+    unfolding dimension_complex_def basis_complex_def inner_complex_def
+    by (simp add: numeral_2_eq_2 all_less_Suc complex_eq_iff)
 qed
+
 end
 
-lemma DIM_complex[simp]: "DIM(complex) = 2"
-  by (rule dimension_eq) (auto simp: basis_complex_def)
+lemma complex_basis[simp]:
+  shows "basis 0 = (1::complex)" and "basis 1 = ii" and "basis (Suc 0) = ii"
+  unfolding basis_complex_def by auto
 
-instance complex :: euclidean_space
-  proof qed (auto simp add: basis_complex_def inner_complex_def)
+lemma DIM_complex[simp]: "DIM(complex) = 2"
+  by (rule dimension_complex_def)
 
 section {* Products Spaces *}
 
-instantiation prod :: (real_basis, real_basis) real_basis
+instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
 
-definition "basis i = (if i < DIM('a) then (basis i, 0) else (0, basis (i - DIM('a))))"
+definition
+  "dimension (t::('a \<times> 'b) itself) = DIM('a) + DIM('b)"
 
-instance
-proof
-  let ?b = "basis :: nat \<Rightarrow> 'a \<times> 'b"
-  let ?b_a = "basis :: nat \<Rightarrow> 'a"
-  let ?b_b = "basis :: nat \<Rightarrow> 'b"
+definition
+  "basis i = (if i < DIM('a) then (basis i, 0) else (0, basis (i - DIM('a))))"
 
-  note image_range =
-    image_add_atLeastLessThan[symmetric, of 0 "DIM('a)" "DIM('b)", simplified]
+lemma all_less_sum:
+  fixes m n :: nat
+  shows "(\<forall>i<(m + n). P i) \<longleftrightarrow> (\<forall>i<m. P i) \<and> (\<forall>i<n. P (m + i))"
+  by (induct n, simp, simp add: all_less_Suc)
 
-  have split_range:
-    "{..<DIM('b) + DIM('a)} = {..<DIM('a)} \<union> {DIM('a)..<DIM('b) + DIM('a)}"
-    by auto
-  have *: "?b ` {DIM('a)..<DIM('b) + DIM('a)} = {0} \<times> (?b_b ` {..<DIM('b)})"
-    "?b ` {..<DIM('a)} = (?b_a ` {..<DIM('a)}) \<times> {0}"
-    unfolding image_range image_image basis_prod_def_raw range_basis
-    by (auto simp: zero_prod_def basis_eq_0_iff)
-  hence b_split:
-    "?b ` {..<DIM('b) + DIM('a)} = (?b_a ` {..<DIM('a)}) \<times> {0} \<union> {0} \<times> (?b_b ` {..<DIM('b)})" (is "_ = ?prod")
-    by (subst split_range) (simp add: image_Un)
-
-  have b_0: "?b ` {DIM('b) + DIM('a)..} = {0}" unfolding basis_prod_def_raw
-    by (auto simp: zero_prod_def image_iff basis_eq_0_iff elim!: ballE[of _ _ "DIM('a) + DIM('b)"])
-
-  have split_UNIV:
-    "UNIV = {..<DIM('b) + DIM('a)} \<union> {DIM('b)+DIM('a)..}"
-    by auto
-
-  have range_b: "range ?b = ?prod \<union> {0}"
-    by (subst split_UNIV) (simp add: image_Un b_split b_0)
-
-  have prod: "\<And>f A B. setsum f (A \<times> B) = (\<Sum>a\<in>A. \<Sum>b\<in>B. f (a, b))"
-    by (simp add: setsum_cartesian_product)
-
-  show "span (range ?b) = UNIV"
-    unfolding span_explicit range_b
-  proof safe
-    fix a::'a and b::'b
-    from in_span_basis[of a] in_span_basis[of b]
-    obtain Sa ua Sb ub where span:
-        "finite Sa" "Sa \<subseteq> basis ` {..<DIM('a)}" "a = (\<Sum>v\<in>Sa. ua v *\<^sub>R v)"
-        "finite Sb" "Sb \<subseteq> basis ` {..<DIM('b)}" "b = (\<Sum>v\<in>Sb. ub v *\<^sub>R v)"
-      unfolding span_explicit by auto
-
-    let ?S = "((Sa - {0}) \<times> {0} \<union> {0} \<times> (Sb - {0}))"
-    have *:
-      "?S \<inter> {v. fst v = 0} \<inter> {v. snd v = 0} = {}"
-      "?S \<inter> - {v. fst v = 0} \<inter> {v. snd v = 0} = (Sa - {0}) \<times> {0}"
-      "?S \<inter> {v. fst v = 0} \<inter> - {v. snd v = 0} = {0} \<times> (Sb - {0})"
-      by (auto simp: zero_prod_def)
-    show "\<exists>S u. finite S \<and> S \<subseteq> ?prod \<union> {0} \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = (a, b)"
-      apply (rule exI[of _ ?S])
-      apply (rule exI[of _ "\<lambda>(v, w). (if w = 0 then ua v else 0) + (if v = 0 then ub w else 0)"])
-      using span
-      apply (simp add: prod_case_unfold setsum_addf if_distrib cond_application_beta setsum_cases prod *)
-      by (auto simp add: setsum_prod intro!: setsum_mono_zero_cong_left)
-  qed simp
-
-  show "\<exists>d>0. ?b ` {d..} = {0} \<and> independent (?b ` {..<d}) \<and> inj_on ?b {..<d}"
-    apply (rule exI[of _ "DIM('b) + DIM('a)"]) unfolding b_0
-  proof (safe intro!: DIM_positive del: notI)
-    show inj_on: "inj_on ?b {..<DIM('b) + DIM('a)}" unfolding split_range
-      using inj_on_iff[OF basis_inj[where 'a='a]] inj_on_iff[OF basis_inj[where 'a='b]]
-      by (auto intro!: inj_onI simp: basis_prod_def basis_eq_0_iff)
-
-    show "independent (?b ` {..<DIM('b) + DIM('a)})"
-      unfolding independent_eq_inj_on[OF inj_on]
-    proof safe
-      fix i u assume i_upper: "i < DIM('b) + DIM('a)" and
-          "(\<Sum>j\<in>{..<DIM('b) + DIM('a)} - {i}. u (?b j) *\<^sub>R ?b j) = ?b i" (is "?SUM = _")
-      let ?left = "{..<DIM('a)}" and ?right = "{DIM('a)..<DIM('b) + DIM('a)}"
-      show False
-      proof cases
-        assume "i < DIM('a)"
-        hence "(basis i, 0) = ?SUM" unfolding `?SUM = ?b i` unfolding basis_prod_def by auto
-        also have "\<dots> = (\<Sum>j\<in>?left - {i}. u (?b j) *\<^sub>R ?b j) +
-          (\<Sum>j\<in>?right. u (?b j) *\<^sub>R ?b j)"
-          using `i < DIM('a)` by (subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
-        also have "\<dots> =  (\<Sum>j\<in>?left - {i}. u (?b_a j, 0) *\<^sub>R (?b_a j, 0)) +
-          (\<Sum>j\<in>?right. u (0, ?b_b (j-DIM('a))) *\<^sub>R (0, ?b_b (j-DIM('a))))"
-          unfolding basis_prod_def by auto
-        finally have "basis i = (\<Sum>j\<in>?left - {i}. u (?b_a j, 0) *\<^sub>R ?b_a j)"
-          by (simp add: setsum_prod)
-        moreover
-        note independent_basis[where 'a='a, unfolded independent_eq_inj_on[OF basis_inj]]
-        note this[rule_format, of i "\<lambda>v. u (v, 0)"]
-        ultimately show False using `i < DIM('a)` by auto
-      next
-        let ?i = "i - DIM('a)"
-        assume not: "\<not> i < DIM('a)" hence "DIM('a) \<le> i" by auto
-        hence "?i < DIM('b)" using `i < DIM('b) + DIM('a)` by auto
-
-        have inj_on: "inj_on (\<lambda>j. j - DIM('a)) {DIM('a)..<DIM('b) + DIM('a)}"
-          by (auto intro!: inj_onI)
-        with i_upper not have *: "{..<DIM('b)} - {?i} = (\<lambda>j. j-DIM('a))`(?right - {i})"
-          by (auto simp: inj_on_image_set_diff image_minus_const_atLeastLessThan_nat)
-
-        have "(0, basis ?i) = ?SUM" unfolding `?SUM = ?b i`
-          unfolding basis_prod_def using not `?i < DIM('b)` by auto
-        also have "\<dots> = (\<Sum>j\<in>?left. u (?b j) *\<^sub>R ?b j) +
-          (\<Sum>j\<in>?right - {i}. u (?b j) *\<^sub>R ?b j)"
-          using not by (subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
-        also have "\<dots> =  (\<Sum>j\<in>?left. u (?b_a j, 0) *\<^sub>R (?b_a j, 0)) +
-          (\<Sum>j\<in>?right - {i}. u (0, ?b_b (j-DIM('a))) *\<^sub>R (0, ?b_b (j-DIM('a))))"
-          unfolding basis_prod_def by auto
-        finally have "basis ?i = (\<Sum>j\<in>{..<DIM('b)} - {?i}. u (0, ?b_b j) *\<^sub>R ?b_b j)"
-          unfolding *
-          by (subst setsum_reindex[OF inj_on[THEN subset_inj_on]])
-             (auto simp: setsum_prod)
-        moreover
-        note independent_basis[where 'a='b, unfolded independent_eq_inj_on[OF basis_inj]]
-        note this[rule_format, of ?i "\<lambda>v. u (0, v)"]
-        ultimately show False using `?i < DIM('b)` by auto
-      qed
-    qed
-  qed
+instance proof
+  show "0 < DIM('a \<times> 'b)"
+    unfolding dimension_prod_def by (intro add_pos_pos DIM_positive)
+next
+  fix i :: nat
+  assume "DIM('a \<times> 'b) \<le> i" thus "basis i = (0::'a \<times> 'b)"
+    unfolding dimension_prod_def basis_prod_def zero_prod_def
+    by simp
+next
+  show "\<forall>i<DIM('a \<times> 'b). \<forall>j<DIM('a \<times> 'b).
+    inner (basis i::'a \<times> 'b) (basis j) = (if i = j then 1 else 0)"
+    unfolding dimension_prod_def basis_prod_def inner_prod_def
+    unfolding all_less_sum prod_eq_iff
+    by (simp add: basis_orthonormal)
+next
+  fix x :: "'a \<times> 'b"
+  show "(\<forall>i<DIM('a \<times> 'b). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
+    unfolding dimension_prod_def basis_prod_def inner_prod_def
+    unfolding all_less_sum prod_eq_iff
+    by (simp add: euclidean_all_zero)
 qed
+
 end
 
-lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::real_basis) + DIM('a::real_basis)"
-  by (rule dimension_eq) (auto simp: basis_prod_def zero_prod_def basis_eq_0_iff)
-
-instance prod :: (euclidean_space, euclidean_space) euclidean_space
-proof (default, safe)
-  let ?b = "basis :: nat \<Rightarrow> 'a \<times> 'b"
-  fix i j assume "i < DIM('a \<times> 'b)" "j < DIM('a \<times> 'b)"
-  thus "?b i \<bullet> ?b j = (if i = j then 1 else 0)"
-    unfolding basis_prod_def by (auto simp: dot_basis)
-qed
+lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::euclidean_space) + DIM('a::euclidean_space)"
+  (* FIXME: why this orientation? Why not "DIM('a) + DIM('b)" ? *)
+  unfolding dimension_prod_def by (rule add_commute)
 
 instantiation prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
 begin

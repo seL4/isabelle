@@ -473,7 +473,7 @@ lemma perfect_choose_dist:
 using islimpt_UNIV [of x]
 by (simp add: islimpt_approachable)
 
-instance real_basis_with_inner \<subseteq> perfect_space
+instance euclidean_space \<subseteq> perfect_space
 proof
   fix x :: 'a
   { fix e :: real assume "0 < e"
