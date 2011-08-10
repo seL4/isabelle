@@ -1526,9 +1526,9 @@ subsection "Derivative"
 
 lemma has_derivative_vmul_component_cart: fixes c::"real^'a \<Rightarrow> real^'b" and v::"real^'c"
   assumes "(c has_derivative c') net"
-  shows "((\<lambda>x. c(x)$k *\<^sub>R v) has_derivative (\<lambda>x. (c' x)$k *\<^sub>R v)) net" 
-  using has_derivative_vmul_component[OF assms] 
-  unfolding nth_conv_component .
+  shows "((\<lambda>x. c(x)$k *\<^sub>R v) has_derivative (\<lambda>x. (c' x)$k *\<^sub>R v)) net"
+  unfolding nth_conv_component
+  by (intro has_derivative_intros assms)
 
 lemma differentiable_at_imp_differentiable_on: "(\<forall>x\<in>(s::(real^'n) set). f differentiable at x) \<Longrightarrow> f differentiable_on s"
   unfolding differentiable_on_def by(auto intro!: differentiable_at_withinI)
@@ -1640,8 +1640,6 @@ lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
 
 lemma vec1_component[simp]: "(vec1 x)$1 = x"
   by (simp_all add:  vec_eq_iff)
-
-declare vec1_dest_vec1(1) [simp]
 
 lemma forall_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (vec1 x))"
   by (metis vec1_dest_vec1(1))

@@ -3763,8 +3763,9 @@ proof- { presume *:"x \<noteq> c \<Longrightarrow> ?thesis" show ?thesis apply(c
       using `x\<in>s` `c\<in>s` as by(auto simp add: algebra_simps)
     have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x)) (at t within {0..1})"
       apply(rule diff_chain_within) apply(rule has_derivative_add)
-      unfolding scaleR_simps apply(rule has_derivative_sub) apply(rule has_derivative_const)
-      apply(rule has_derivative_vmul_within,rule has_derivative_id)+ 
+      unfolding scaleR_simps
+      apply(intro has_derivative_intros)
+      apply(intro has_derivative_intros)
       apply(rule has_derivative_within_subset,rule assms(6)[rule_format])
       apply(rule *) apply safe apply(rule conv[unfolded scaleR_simps]) using `x\<in>s` `c\<in>s` by auto
     thus "((\<lambda>xa. f ((1 - xa) *\<^sub>R c + xa *\<^sub>R x)) has_derivative (\<lambda>h. 0)) (at t within {0..1})" unfolding o_def .
