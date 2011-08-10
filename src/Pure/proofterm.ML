@@ -461,15 +461,15 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.typ_tvars T)) T;
+        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvarsT T [])) T;
 
 fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
-   map_filter (fn Var (ixnT as (_, T)) =>
+        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvars t []),
+   map_filter (fn (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
-        SOME (ixnT, Free ("dummy", T))) (OldTerm.term_vars t)) t;
+        SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
 
 fun norm_proof env =
   let
