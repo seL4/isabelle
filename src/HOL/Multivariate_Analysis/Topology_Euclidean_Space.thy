@@ -6098,6 +6098,8 @@ qed
 (** TODO move this someplace else within this theory **)
 instance euclidean_space \<subseteq> banach ..
 
+declare tendsto_const [intro] (* FIXME: move *)
+
 text {* Legacy theorem names *}
 
 lemmas Lim_ident_at = LIM_ident
