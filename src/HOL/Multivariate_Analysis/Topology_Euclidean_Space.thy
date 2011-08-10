@@ -1031,9 +1031,6 @@ lemma Lim_sequentially:
           (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (S n) l < e)"
   by (auto simp add: tendsto_iff eventually_sequentially)
 
-lemma Lim_sequentially_iff_LIMSEQ: "(S ---> l) sequentially \<longleftrightarrow> S ----> l"
-  unfolding Lim_sequentially LIMSEQ_def ..
-
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
   by (rule topological_tendstoI, auto elim: eventually_rev_mono)
 
