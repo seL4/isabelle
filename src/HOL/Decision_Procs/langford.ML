@@ -113,7 +113,7 @@ fun conj_aci_rule eq =
   val eqI = instantiate' [] [SOME ll, SOME rr] @{thm iffI}
  in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
-fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
+fun contains x ct = member (op aconv) (Misc_Legacy.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
    Const(@{const_name HOL.eq},_)$l$r => l aconv term_of x orelse r aconv term_of x

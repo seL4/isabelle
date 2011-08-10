@@ -511,7 +511,7 @@ fun make_cnfx_thm ctxt t =
             NONE
       in
         Int.max (max, the_default 0 idx)
-      end) (OldTerm.term_frees simp) 0)
+      end) (Misc_Legacy.term_frees simp) 0)
     (* finally, convert to definitional CNF (this should preserve the simplification) *)
     val cnfx_thm = make_under_quantifiers ctxt make_cnfx_thm_from_nnf simp
 (*###

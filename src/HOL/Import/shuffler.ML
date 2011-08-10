@@ -223,8 +223,8 @@ fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) 
 
 fun freeze_thaw_term t =
     let
-        val tvars = OldTerm.term_tvars t
-        val tfree_names = OldTerm.add_term_tfree_names(t,[])
+        val tvars = Misc_Legacy.term_tvars t
+        val tfree_names = Misc_Legacy.add_term_tfree_names(t,[])
         val (type_inst,_) =
             fold (fn (w as (v,_), S) => fn (inst, used) =>
                       let
@@ -243,7 +243,7 @@ fun inst_tfrees thy [] thm = thm
   | inst_tfrees thy ((name,U)::rest) thm =
     let
         val cU = ctyp_of thy U
-        val tfrees = OldTerm.add_term_tfrees (prop_of thm,[])
+        val tfrees = Misc_Legacy.add_term_tfrees (prop_of thm,[])
         val (rens, thm') = Thm.varifyT_global'
     (remove (op = o apsnd fst) name tfrees) thm
         val mid =
@@ -494,7 +494,7 @@ fun close_thm th =
     let
         val thy = Thm.theory_of_thm th
         val c = prop_of th
-        val vars = OldTerm.add_term_frees (c, OldTerm.add_term_vars(c,[]))
+        val vars = Misc_Legacy.add_term_frees (c, Misc_Legacy.add_term_vars(c,[]))
     in
         Drule.forall_intr_list (map (cterm_of thy) vars) th
     end
@@ -560,7 +560,7 @@ succeeds, SOME theorem is returned, otherwise NONE.  *)
 
 fun set_prop thy t =
     let
-        val vars = OldTerm.add_term_frees (t, OldTerm.add_term_vars (t,[]))
+        val vars = Misc_Legacy.add_term_frees (t, Misc_Legacy.add_term_vars (t,[]))
         val closed_t = fold_rev Logic.all vars t
         val rew_th = norm_term thy closed_t
         val rhs = Thm.rhs_of rew_th

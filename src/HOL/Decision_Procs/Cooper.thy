@@ -1996,7 +1996,7 @@ in fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-    val fs = OldTerm.term_frees t;
+    val fs = Misc_Legacy.term_frees t;
     val bs = term_bools [] t;
     val vs = map_index swap fs;
     val ps = map_index swap bs;

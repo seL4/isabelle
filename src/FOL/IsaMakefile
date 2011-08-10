@@ -29,8 +29,9 @@ $(OUT)/Pure: Pure
 
 $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
-  $(SRC)/Tools/case_product.ML $(SRC)/Tools/IsaPlanner/zipper.ML	\
-  $(SRC)/Tools/IsaPlanner/isand.ML $(SRC)/Tools/IsaPlanner/rw_tools.ML	\
+  $(SRC)/Tools/case_product.ML $(SRC)/Tools/misc_legacy.ML		\
+  $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Tools/IsaPlanner/isand.ML	\
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML					\
   $(SRC)/Tools/IsaPlanner/rw_inst.ML $(SRC)/Tools/eqsubst.ML		\
   $(SRC)/Provers/hypsubst.ML $(SRC)/Tools/induct.ML			\
   $(SRC)/Tools/intuitionistic.ML $(SRC)/Tools/atomize_elim.ML		\

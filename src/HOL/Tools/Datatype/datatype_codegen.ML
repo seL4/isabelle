@@ -331,8 +331,8 @@ fun pretty_case thy mode defs dep module brack constrs (c as Const (_, T)) ts gr
       let
         val ts1 = take i ts;
         val t :: ts2 = drop i ts;
-        val names = List.foldr OldTerm.add_term_names
-          (map (fst o fst o dest_Var) (List.foldr OldTerm.add_term_vars [] ts1)) ts1;
+        val names = List.foldr Misc_Legacy.add_term_names
+          (map (fst o fst o dest_Var) (List.foldr Misc_Legacy.add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (take (i+1) (binder_types T));
 
         fun pcase [] [] [] gr = ([], gr)

@@ -71,7 +71,7 @@ fun usednames_of_thm th =
       val (tpairl,tpairr) = Library.split_list (#tpairs rep)
       val prop = #prop rep
     in
-      List.foldr OldTerm.add_term_names [] (prop :: (tpairl @ (tpairr @ hyps)))
+      List.foldr Misc_Legacy.add_term_names [] (prop :: (tpairl @ (tpairr @ hyps)))
     end;
 
 (* Given a list of variables that were bound, and a that has been
@@ -136,13 +136,13 @@ variables *)
 fun mk_renamings tgt rule_inst = 
     let
       val rule_conds = Thm.prems_of rule_inst
-      val names = List.foldr OldTerm.add_term_names [] (tgt :: rule_conds);
+      val names = List.foldr Misc_Legacy.add_term_names [] (tgt :: rule_conds);
       val (conds_tyvs,cond_vs) = 
           Library.foldl (fn ((tyvs, vs), t) => 
-                    (union (op =) (OldTerm.term_tvars t) tyvs,
-                     union (op =) (map Term.dest_Var (OldTerm.term_vars t)) vs))
+                    (union (op =) (Misc_Legacy.term_tvars t) tyvs,
+                     union (op =) (map Term.dest_Var (Misc_Legacy.term_vars t)) vs))
                 (([],[]), rule_conds);
-      val termvars = map Term.dest_Var (OldTerm.term_vars tgt); 
+      val termvars = map Term.dest_Var (Misc_Legacy.term_vars tgt); 
       val vars_to_fix = union (op =) termvars cond_vs;
       val (renamings, names2) = 
           List.foldr (fn (((n,i),ty), (vs, names')) => 
@@ -165,8 +165,8 @@ fun mk_fixtvar_tyinsts ignore_insts ts =
       val ignore_ixs = map fst ignore_insts;
       val (tvars, tfrees) = 
             List.foldr (fn (t, (varixs, tfrees)) => 
-                      (OldTerm.add_term_tvars (t,varixs),
-                       OldTerm.add_term_tfrees (t,tfrees)))
+                      (Misc_Legacy.add_term_tvars (t,varixs),
+                       Misc_Legacy.add_term_tfrees (t,tfrees)))
                   ([],[]) ts;
         val unfixed_tvars = 
             filter (fn (ix,s) => not (member (op =) ignore_ixs ix)) tvars;

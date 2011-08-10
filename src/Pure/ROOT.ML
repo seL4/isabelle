@@ -119,7 +119,6 @@ use "Syntax/syntax.ML";
 use "term_ord.ML";
 use "term_subst.ML";
 use "term_xml.ML";
-use "old_term.ML";
 use "General/name_space.ML";
 use "sorts.ML";
 use "type.ML";

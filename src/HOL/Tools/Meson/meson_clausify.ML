@@ -65,7 +65,7 @@ fun old_skolem_defs th =
     fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (_, T, p))) rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
         let
-          val args = OldTerm.term_frees body
+          val args = Misc_Legacy.term_frees body
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
@@ -75,7 +75,7 @@ fun old_skolem_defs th =
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
       | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
         (*Universal quant: insert a free variable into body and continue*)
-        let val fname = singleton (Name.variant_list (OldTerm.add_term_names (p, []))) a
+        let val fname = singleton (Name.variant_list (Misc_Legacy.add_term_names (p, []))) a
         in dec_sko (subst_bound (Free(fname,T), p)) rhss end
       | dec_sko (@{const conj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
       | dec_sko (@{const disj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
@@ -92,9 +92,9 @@ fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
   | is_quasi_lambda_free (Abs _) = false
   | is_quasi_lambda_free _ = true
 
-val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B}));
-val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
-val [f_S,g_S] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_S}));
+val [f_B,g_B] = map (cterm_of @{theory}) (Misc_Legacy.term_vars (prop_of @{thm abs_B}));
+val [g_C,f_C] = map (cterm_of @{theory}) (Misc_Legacy.term_vars (prop_of @{thm abs_C}));
+val [f_S,g_S] = map (cterm_of @{theory}) (Misc_Legacy.term_vars (prop_of @{thm abs_S}));
 
 (* FIXME: Requires more use of cterm constructors. *)
 fun abstract ct =

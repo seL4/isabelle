@@ -560,7 +560,7 @@ val conv_ss = HOL_basic_ss addsimps
 
 fun conv ctxt p =
   Qelim.gen_qelim_conv (Simplifier.rewrite conv_ss) (Simplifier.rewrite presburger_ss) (Simplifier.rewrite conv_ss)
-    (cons o term_of) (OldTerm.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt)
+    (cons o term_of) (Misc_Legacy.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt)
     (cooperex_conv ctxt) p
   handle CTERM s => raise COOPER "bad cterm"
        | THM s => raise COOPER "bad thm"
@@ -759,8 +759,8 @@ local
 in 
 fun is_relevant ctxt ct = 
  subset (op aconv) (term_constants (term_of ct) , snd (get ctxt))
- andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_frees (term_of ct))
- andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_vars (term_of ct));
+ andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (Misc_Legacy.term_frees (term_of ct))
+ andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (Misc_Legacy.term_vars (term_of ct));
 
 fun int_nat_terms ctxt ct =
  let 

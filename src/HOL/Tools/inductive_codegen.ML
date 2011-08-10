@@ -141,7 +141,7 @@ fun print_modes modes = Codegen.message ("Inferred modes:\n" ^
     (fn (m, rnd) => string_of_mode m ^
        (if rnd then " (random)" else "")) ms)) modes));
 
-val term_vs = map (fst o fst o dest_Var) o OldTerm.term_vars;
+val term_vs = map (fst o fst o dest_Var) o Misc_Legacy.term_vars;
 val terms_vs = distinct (op =) o maps term_vs;
 
 (** collect all Vars in a term (with duplicates!) **)

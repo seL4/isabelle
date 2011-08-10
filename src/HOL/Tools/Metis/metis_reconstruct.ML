@@ -372,7 +372,7 @@ fun equality_inference ctxt old_skolems sym_tab (pos, atom) fp fr =
       val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
       val eq_terms = map (pairself (cterm_of thy))
-        (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
+        (ListPair.zip (Misc_Legacy.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
   in  cterm_instantiate eq_terms subst'  end;
 
 val factor = Seq.hd o distinct_subgoals_tac

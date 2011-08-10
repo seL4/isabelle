@@ -144,7 +144,7 @@ fun indtac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
     fun abstr (t1, t2) =
       (case t1 of
         NONE =>
-          (case flt (OldTerm.term_frees t2) of
+          (case flt (Misc_Legacy.term_frees t2) of
             [Free (s, T)] => SOME (absfree (s, T, t2))
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
