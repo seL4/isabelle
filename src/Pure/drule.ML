@@ -302,20 +302,18 @@ val export_without_context =
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for
-  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
-  Similar code in type/freeze_thaw*)
+  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.*)
 
 fun legacy_freeze_thaw_robust th =
  let val fth = Thm.legacy_freezeT th
      val thy = Thm.theory_of_thm fth
-     val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case Thm.fold_terms Term.add_vars fth [] of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
-         let fun newName (Var(ix,_)) = (ix, legacy_gensym (string_of_indexname ix))
+         let fun newName (ix,_) = (ix, legacy_gensym (string_of_indexname ix))
              val alist = map newName vars
-             fun mk_inst (Var(v,T)) =
+             fun mk_inst (v,T) =
                  (cterm_of thy (Var(v,T)),
                   cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
@@ -330,17 +328,16 @@ fun legacy_freeze_thaw_robust th =
 fun legacy_freeze_thaw th =
  let val fth = Thm.legacy_freezeT th
      val thy = Thm.theory_of_thm fth
-     val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case Thm.fold_terms Term.add_vars fth [] of
        [] => (fth, fn x => x)
      | vars =>
-         let fun newName (Var(ix,_), (pairs,used)) =
+         let fun newName (ix, _) (pairs, used) =
                    let val v = singleton (Name.variant_list used) (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = List.foldr newName ([], Library.foldr OldTerm.add_term_names
-               (prop :: Thm.terms_of_tpairs tpairs, [])) vars
-             fun mk_inst (Var(v,T)) =
+             val (alist, _) =
+                 fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
+             fun mk_inst (v, T) =
                  (cterm_of thy (Var(v,T)),
                   cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
