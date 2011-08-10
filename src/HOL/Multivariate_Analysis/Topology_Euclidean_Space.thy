@@ -2228,15 +2228,10 @@ proof
     by auto
 qed
 
-lemma bounded_component: "bounded s \<Longrightarrow>
-  bounded ((\<lambda>x. x $$ i) ` (s::'a::euclidean_space set))"
-unfolding bounded_def
-apply clarify
-apply (rule_tac x="x $$ i" in exI)
-apply (rule_tac x="e" in exI)
-apply clarify
-apply (rule order_trans[OF dist_nth_le],simp)
-done
+lemma bounded_component: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $$ i) ` s)"
+  apply (erule bounded_linear_image)
+  apply (rule bounded_linear_euclidean_component)
+  done
 
 lemma compact_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
