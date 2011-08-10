@@ -183,6 +183,19 @@ been renamed accordingly.
 * Limits.thy: Type "'a net" has been renamed to "'a filter", in
 accordance with standard mathematical terminology. INCOMPATIBILITY.
 
+* Session Multivariate_Analysis: Type "('a, 'b) cart" has been renamed
+to "('a, 'b) vec" (the syntax "'a ^ 'b" remains unaffected). Constants
+"Cart_nth" and "Cart_lambda" have been respectively renamed to
+"vec_nth" and "vec_lambda"; theorems mentioning those names have
+changed to match. Definition theorems for overloaded constants now use
+the standard "foo_vec_def" naming scheme. A few other theorems have
+been renamed as follows (INCOMPATIBILITY):
+
+  Cart_eq          ~> vec_eq_iff
+  dist_nth_le_cart ~> dist_vec_nth_le
+  tendsto_vector   ~> vec_tendstoI
+  Cauchy_vector    ~> vec_CauchyI
+
 
 *** Document preparation ***
 

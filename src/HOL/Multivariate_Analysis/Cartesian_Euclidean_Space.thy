@@ -36,24 +36,23 @@ qed simp
 
 subsection{* Basic componentwise operations on vectors. *}
 
-instantiation cart :: (times,finite) times
+instantiation vec :: (times, finite) times
 begin
-  definition vector_mult_def : "op * \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
+  definition "op * \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
   instance ..
 end
 
-instantiation cart :: (one,finite) one
+instantiation vec :: (one, finite) one
 begin
-  definition vector_one_def : "1 \<equiv> (\<chi> i. 1)"
+  definition "1 \<equiv> (\<chi> i. 1)"
   instance ..
 end
 
-instantiation cart :: (ord,finite) ord
+instantiation vec :: (ord, finite) ord
 begin
-  definition vector_le_def:
-    "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
-  definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
-  instance by (intro_classes)
+  definition "x \<le> y \<longleftrightarrow> (\<forall>i. x$i \<le> y$i)"
+  definition "x < y \<longleftrightarrow> (\<forall>i. x$i < y$i)"
+  instance ..
 end
 
 text{* The ordering on one-dimensional vectors is linear. *}
@@ -65,12 +64,12 @@ begin
       by (auto intro!: card_ge_0_finite) qed
 end
 
-instantiation cart :: (linorder,cart_one) linorder begin
+instantiation vec :: (linorder,cart_one) linorder begin
 instance proof
   guess a B using UNIV_one[where 'a='b] unfolding card_Suc_eq apply- by(erule exE)+
   hence *:"UNIV = {a}" by auto
   have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P a" unfolding * by auto hence all:"\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a" by auto
-  fix x y z::"'a^'b::cart_one" note * = vector_le_def vector_less_def all Cart_eq
+  fix x y z::"'a^'b::cart_one" note * = less_eq_vec_def less_vec_def all vec_eq_iff
   show "x\<le>x" "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" "x\<le>y \<or> y\<le>x" unfolding * by(auto simp only:field_simps)
   { assume "x\<le>y" "y\<le>z" thus "x\<le>z" unfolding * by(auto simp only:field_simps) }
   { assume "x\<le>y" "y\<le>x" thus "x=y" unfolding * by(auto simp only:field_simps) }
@@ -93,16 +92,16 @@ let
   @{thm setsum_subtractf} RS sym, @{thm setsum_right_distrib},
   @{thm setsum_left_distrib}, @{thm setsum_negf} RS sym]
   val ss2 = @{simpset} addsimps
-             [@{thm vector_add_def}, @{thm vector_mult_def},
-              @{thm vector_minus_def}, @{thm vector_uminus_def},
-              @{thm vector_one_def}, @{thm vector_zero_def}, @{thm vec_def},
-              @{thm vector_scaleR_def},
-              @{thm Cart_lambda_beta}, @{thm vector_scalar_mult_def}]
+             [@{thm plus_vec_def}, @{thm times_vec_def},
+              @{thm minus_vec_def}, @{thm uminus_vec_def},
+              @{thm one_vec_def}, @{thm zero_vec_def}, @{thm vec_def},
+              @{thm scaleR_vec_def},
+              @{thm vec_lambda_beta}, @{thm vector_scalar_mult_def}]
  fun vector_arith_tac ths =
    simp_tac ss1
    THEN' (fn i => rtac @{thm setsum_cong2} i
          ORELSE rtac @{thm setsum_0'} i
-         ORELSE simp_tac (HOL_basic_ss addsimps [@{thm "Cart_eq"}]) i)
+         ORELSE simp_tac (HOL_basic_ss addsimps [@{thm vec_eq_iff}]) i)
    (* THEN' TRY o clarify_tac HOL_cs  THEN' (TRY o rtac @{thm iffI}) *)
    THEN' asm_full_simp_tac (ss2 addsimps ths)
  in
@@ -110,8 +109,8 @@ let
  end
 *} "lift trivial vector statements to real arith statements"
 
-lemma vec_0[simp]: "vec 0 = 0" by (vector vector_zero_def)
-lemma vec_1[simp]: "vec 1 = 1" by (vector vector_one_def)
+lemma vec_0[simp]: "vec 0 = 0" by (vector zero_vec_def)
+lemma vec_1[simp]: "vec 1 = 1" by (vector one_vec_def)
 
 lemma vec_inj[simp]: "vec x = vec y \<longleftrightarrow> x = y" by vector
 
@@ -149,49 +148,47 @@ lemmas vector_component =
 
 subsection {* Some frequently useful arithmetic lemmas over vectors. *}
 
-instance cart :: (semigroup_mult,finite) semigroup_mult
-  apply (intro_classes) by (vector mult_assoc)
+instance vec :: (semigroup_mult, finite) semigroup_mult
+  by default (vector mult_assoc)
 
-instance cart :: (monoid_mult,finite) monoid_mult
-  apply (intro_classes) by vector+
+instance vec :: (monoid_mult, finite) monoid_mult
+  by default vector+
 
-instance cart :: (ab_semigroup_mult,finite) ab_semigroup_mult
-  apply (intro_classes) by (vector mult_commute)
+instance vec :: (ab_semigroup_mult, finite) ab_semigroup_mult
+  by default (vector mult_commute)
 
-instance cart :: (ab_semigroup_idem_mult,finite) ab_semigroup_idem_mult
-  apply (intro_classes) by (vector mult_idem)
+instance vec :: (ab_semigroup_idem_mult, finite) ab_semigroup_idem_mult
+  by default (vector mult_idem)
 
-instance cart :: (comm_monoid_mult,finite) comm_monoid_mult
-  apply (intro_classes) by vector
+instance vec :: (comm_monoid_mult, finite) comm_monoid_mult
+  by default vector
 
-instance cart :: (semiring,finite) semiring
-  apply (intro_classes) by (vector field_simps)+
+instance vec :: (semiring, finite) semiring
+  by default (vector field_simps)+
 
-instance cart :: (semiring_0,finite) semiring_0
-  apply (intro_classes) by (vector field_simps)+
-instance cart :: (semiring_1,finite) semiring_1
-  apply (intro_classes) by vector
-instance cart :: (comm_semiring,finite) comm_semiring
-  apply (intro_classes) by (vector field_simps)+
+instance vec :: (semiring_0, finite) semiring_0
+  by default (vector field_simps)+
+instance vec :: (semiring_1, finite) semiring_1
+  by default vector
+instance vec :: (comm_semiring, finite) comm_semiring
+  by default (vector field_simps)+
 
-instance cart :: (comm_semiring_0,finite) comm_semiring_0 by (intro_classes)
-instance cart :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
-instance cart :: (semiring_0_cancel,finite) semiring_0_cancel by (intro_classes)
-instance cart :: (comm_semiring_0_cancel,finite) comm_semiring_0_cancel by (intro_classes)
-instance cart :: (ring,finite) ring by (intro_classes)
-instance cart :: (semiring_1_cancel,finite) semiring_1_cancel by (intro_classes)
-instance cart :: (comm_semiring_1,finite) comm_semiring_1 by (intro_classes)
+instance vec :: (comm_semiring_0, finite) comm_semiring_0 ..
+instance vec :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
+instance vec :: (semiring_0_cancel, finite) semiring_0_cancel ..
+instance vec :: (comm_semiring_0_cancel, finite) comm_semiring_0_cancel ..
+instance vec :: (ring, finite) ring ..
+instance vec :: (semiring_1_cancel, finite) semiring_1_cancel ..
+instance vec :: (comm_semiring_1, finite) comm_semiring_1 ..
 
-instance cart :: (ring_1,finite) ring_1 ..
+instance vec :: (ring_1, finite) ring_1 ..
 
-instance cart :: (real_algebra,finite) real_algebra
+instance vec :: (real_algebra, finite) real_algebra
   apply intro_classes
-  apply (simp_all add: vector_scaleR_def field_simps)
-  apply vector
-  apply vector
+  apply (simp_all add: vec_eq_iff)
   done
 
-instance cart :: (real_algebra_1,finite) real_algebra_1 ..
+instance vec :: (real_algebra_1, finite) real_algebra_1 ..
 
 lemma of_nat_index:
   "(of_nat n :: 'a::semiring_1 ^'n)$i = of_nat n"
@@ -203,15 +200,15 @@ lemma of_nat_index:
 lemma one_index[simp]:
   "(1 :: 'a::one ^'n)$i = 1" by vector
 
-instance cart :: (semiring_char_0, finite) semiring_char_0
+instance vec :: (semiring_char_0, finite) semiring_char_0
 proof
   fix m n :: nat
   show "inj (of_nat :: nat \<Rightarrow> 'a ^ 'b)"
-    by (auto intro!: injI simp add: Cart_eq of_nat_index)
+    by (auto intro!: injI simp add: vec_eq_iff of_nat_index)
 qed
 
-instance cart :: (comm_ring_1,finite) comm_ring_1 ..
-instance cart :: (ring_char_0,finite) ring_char_0 ..
+instance vec :: (comm_ring_1, finite) comm_ring_1 ..
+instance vec :: (ring_char_0, finite) ring_char_0 ..
 
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"
   by (vector mult_assoc)
@@ -231,7 +228,7 @@ lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
   by (vector field_simps)
 
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
-  by (simp add: Cart_eq)
+  by (simp add: vec_eq_iff)
 
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
 lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
@@ -246,7 +243,7 @@ lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b
   by (metis vector_mul_rcancel)
 
 lemma component_le_norm_cart: "\<bar>x$i\<bar> <= norm x"
-  apply (simp add: norm_vector_def)
+  apply (simp add: norm_vec_def)
   apply (rule member_le_setL2, simp_all)
   done
 
@@ -257,10 +254,10 @@ lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm_cart basic_trans_rules(21))
 
 lemma norm_le_l1_cart: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
-  by (simp add: norm_vector_def setL2_le_setsum)
+  by (simp add: norm_vec_def setL2_le_setsum)
 
 lemma scalar_mult_eq_scaleR: "c *s x = c *\<^sub>R x"
-  unfolding vector_scaleR_def vector_scalar_mult_def by simp
+  unfolding scaleR_vec_def vector_scalar_mult_def by simp
 
 lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y"
   unfolding dist_norm scalar_mult_eq_scaleR
@@ -272,12 +269,12 @@ lemma setsum_component [simp]:
   by (cases "finite S", induct S set: finite, simp_all)
 
 lemma setsum_eq: "setsum f S = (\<chi> i. setsum (\<lambda>x. (f x)$i ) S)"
-  by (simp add: Cart_eq)
+  by (simp add: vec_eq_iff)
 
 lemma setsum_cmul:
   fixes f:: "'c \<Rightarrow> ('a::semiring_1)^'n"
   shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
-  by (simp add: Cart_eq setsum_right_distrib)
+  by (simp add: vec_eq_iff setsum_right_distrib)
 
 (* TODO: use setsum_norm_allsubsets_bound *)
 lemma setsum_norm_allsubsets_bound_cart:
@@ -359,10 +356,10 @@ lemma exists_CARD:
 lemmas cart_simps = forall_CARD_DIM exists_CARD_DIM forall_CARD exists_CARD
 
 lemma cart_euclidean_nth[simp]:
-  fixes x :: "('a::euclidean_space, 'b::finite) cart"
+  fixes x :: "('a::euclidean_space, 'b::finite) vec"
   assumes j:"j < DIM('a)"
   shows "x $$ (j + \<pi>' i * DIM('a)) = x $ i $$ j"
-  unfolding euclidean_component_def inner_vector_def basis_eq_pi'[OF j] if_distrib cond_application_beta
+  unfolding euclidean_component_def inner_vec_def basis_eq_pi'[OF j] if_distrib cond_application_beta
   by (simp add: setsum_cases)
 
 lemma real_euclidean_nth:
@@ -393,13 +390,13 @@ proof
   thus "x = y \<and> i = j" using * by simp
 qed simp
 
-instance cart :: (ordered_euclidean_space,finite) ordered_euclidean_space
+instance vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
 proof
   fix x y::"'a^'b"
-  show "(x \<le> y) = (\<forall>i<DIM(('a, 'b) cart). x $$ i \<le> y $$ i)"
-    unfolding vector_le_def apply(subst eucl_le) by (simp add: cart_simps)
-  show"(x < y) = (\<forall>i<DIM(('a, 'b) cart). x $$ i < y $$ i)"
-    unfolding vector_less_def apply(subst eucl_less) by (simp add: cart_simps)
+  show "(x \<le> y) = (\<forall>i<DIM(('a, 'b) vec). x $$ i \<le> y $$ i)"
+    unfolding less_eq_vec_def apply(subst eucl_le) by (simp add: cart_simps)
+  show"(x < y) = (\<forall>i<DIM(('a, 'b) vec). x $$ i < y $$ i)"
+    unfolding less_vec_def apply(subst eucl_less) by (simp add: cart_simps)
 qed
 
 subsection{* Basis vectors in coordinate directions. *}
@@ -411,7 +408,7 @@ lemma basis_component [simp]: "cart_basis k $ i = (if k=i then 1 else 0)"
 
 lemma norm_basis[simp]:
   shows "norm (cart_basis k :: real ^'n) = 1"
-  apply (simp add: cart_basis_def norm_eq_sqrt_inner) unfolding inner_vector_def
+  apply (simp add: cart_basis_def norm_eq_sqrt_inner) unfolding inner_vec_def
   apply (vector delta_mult_idempotent)
   using setsum_delta[of "UNIV :: 'n set" "k" "\<lambda>k. 1::real"] by auto
 
@@ -431,14 +428,14 @@ proof-
 qed
 
 lemma basis_inj[intro]: "inj (cart_basis :: 'n \<Rightarrow> real ^'n)"
-  by (simp add: inj_on_def Cart_eq)
+  by (simp add: inj_on_def vec_eq_iff)
 
 lemma basis_expansion:
   "setsum (\<lambda>i. (x$i) *s cart_basis i) UNIV = (x::('a::ring_1) ^'n)" (is "?lhs = ?rhs" is "setsum ?f ?S = _")
-  by (auto simp add: Cart_eq if_distrib setsum_delta[of "?S", where ?'b = "'a", simplified] cong del: if_weak_cong)
+  by (auto simp add: vec_eq_iff if_distrib setsum_delta[of "?S", where ?'b = "'a", simplified] cong del: if_weak_cong)
 
 lemma smult_conv_scaleR: "c *s x = scaleR c x"
-  unfolding vector_scalar_mult_def vector_scaleR_def by simp
+  unfolding vector_scalar_mult_def scaleR_vec_def by simp
 
 lemma basis_expansion':
   "setsum (\<lambda>i. (x$i) *\<^sub>R cart_basis i) UNIV = x"
@@ -446,22 +443,22 @@ lemma basis_expansion':
 
 lemma basis_expansion_unique:
   "setsum (\<lambda>i. f i *s cart_basis i) UNIV = (x::('a::comm_ring_1) ^'n) \<longleftrightarrow> (\<forall>i. f i = x$i)"
-  by (simp add: Cart_eq setsum_delta if_distrib cong del: if_weak_cong)
+  by (simp add: vec_eq_iff setsum_delta if_distrib cong del: if_weak_cong)
 
 lemma dot_basis:
   shows "cart_basis i \<bullet> x = x$i" "x \<bullet> (cart_basis i) = (x$i)"
-  by (auto simp add: inner_vector_def cart_basis_def cond_application_beta if_distrib setsum_delta
+  by (auto simp add: inner_vec_def cart_basis_def cond_application_beta if_distrib setsum_delta
            cong del: if_weak_cong)
 
 lemma inner_basis:
   fixes x :: "'a::{real_inner, real_algebra_1} ^ 'n"
   shows "inner (cart_basis i) x = inner 1 (x $ i)"
     and "inner x (cart_basis i) = inner (x $ i) 1"
-  unfolding inner_vector_def cart_basis_def
+  unfolding inner_vec_def cart_basis_def
   by (auto simp add: cond_application_beta if_distrib setsum_delta cong del: if_weak_cong)
 
 lemma basis_eq_0: "cart_basis i = (0::'a::semiring_1^'n) \<longleftrightarrow> False"
-  by (auto simp add: Cart_eq)
+  by (auto simp add: vec_eq_iff)
 
 lemma basis_nonzero:
   shows "cart_basis k \<noteq> (0:: 'a::semiring_1 ^'n)"
@@ -469,14 +466,14 @@ lemma basis_nonzero:
 
 text {* some lemmas to map between Eucl and Cart *}
 lemma basis_real_n[simp]:"(basis (\<pi>' i)::real^'a) = cart_basis i"
-  unfolding basis_cart_def using pi'_range[where 'n='a]
-  by (auto simp: Cart_eq Cart_lambda_beta)
+  unfolding basis_vec_def using pi'_range[where 'n='a]
+  by (auto simp: vec_eq_iff)
 
 subsection {* Orthogonality on cartesian products *}
 
 lemma orthogonal_basis:
   shows "orthogonal (cart_basis i) x \<longleftrightarrow> x$i = (0::real)"
-  by (auto simp add: orthogonal_def inner_vector_def cart_basis_def if_distrib
+  by (auto simp add: orthogonal_def inner_vec_def cart_basis_def if_distrib
                      cond_application_beta setsum_delta cong del: if_weak_cong)
 
 lemma orthogonal_basis_basis:
@@ -518,7 +515,7 @@ proof-
         by (simp add: linear_cmul[OF lf])
       finally have "f x \<bullet> y = x \<bullet> ?w"
         apply (simp only: )
-        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] field_simps)
+        apply (simp add: inner_vec_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] field_simps)
         done}
   }
   then show ?thesis unfolding adjoint_def
@@ -612,25 +609,25 @@ lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
     setsum_delta' cong del: if_weak_cong)
 
 lemma matrix_transpose_mul: "transpose(A ** B) = transpose B ** transpose (A::'a::comm_semiring_1^_^_)"
-  by (simp add: matrix_matrix_mult_def transpose_def Cart_eq mult_commute)
+  by (simp add: matrix_matrix_mult_def transpose_def vec_eq_iff mult_commute)
 
 lemma matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
   shows "A = B \<longleftrightarrow>  (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
   apply auto
-  apply (subst Cart_eq)
+  apply (subst vec_eq_iff)
   apply clarify
-  apply (clarsimp simp add: matrix_vector_mult_def cart_basis_def if_distrib cond_application_beta Cart_eq cong del: if_weak_cong)
+  apply (clarsimp simp add: matrix_vector_mult_def cart_basis_def if_distrib cond_application_beta vec_eq_iff cong del: if_weak_cong)
   apply (erule_tac x="cart_basis ia" in allE)
   apply (erule_tac x="i" in allE)
   by (auto simp add: cart_basis_def if_distrib cond_application_beta setsum_delta[OF finite] cong del: if_weak_cong)
 
 lemma matrix_vector_mul_component:
   shows "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
-  by (simp add: matrix_vector_mult_def inner_vector_def)
+  by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
-  apply (simp add: inner_vector_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib mult_ac)
+  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib mult_ac)
   apply (subst setsum_commute)
   by simp
 
@@ -643,12 +640,12 @@ lemma transpose_transpose: "transpose(transpose A) = A"
 lemma row_transpose:
   fixes A:: "'a::semiring_1^_^_"
   shows "row i (transpose A) = column i A"
-  by (simp add: row_def column_def transpose_def Cart_eq)
+  by (simp add: row_def column_def transpose_def vec_eq_iff)
 
 lemma column_transpose:
   fixes A:: "'a::semiring_1^_^_"
   shows "column i (transpose A) = row i A"
-  by (simp add: row_def column_def transpose_def Cart_eq)
+  by (simp add: row_def column_def transpose_def vec_eq_iff)
 
 lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
 by (auto simp add: rows_def columns_def row_transpose intro: set_eqI)
@@ -658,15 +655,15 @@ lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A" b
 text{* Two sometimes fruitful ways of looking at matrix-vector multiplication. *}
 
 lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
-  by (simp add: matrix_vector_mult_def inner_vector_def)
+  by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma matrix_mult_vsum: "(A::'a::comm_semiring_1^'n^'m) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
-  by (simp add: matrix_vector_mult_def Cart_eq column_def mult_commute)
+  by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult_commute)
 
 lemma vector_componentwise:
   "(x::'a::ring_1^'n) = (\<chi> j. setsum (\<lambda>i. (x$i) * (cart_basis i :: 'a^'n)$j) (UNIV :: 'n set))"
   apply (subst basis_expansion[symmetric])
-  by (vector Cart_eq setsum_component)
+  by (vector vec_eq_iff setsum_component)
 
 lemma linear_componentwise:
   fixes f:: "real ^'m \<Rightarrow> real ^ _"
@@ -696,10 +693,10 @@ definition matrix:: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Ri
 where "matrix f = (\<chi> i j. (f(cart_basis j))$i)"
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
-  by (simp add: linear_def matrix_vector_mult_def Cart_eq field_simps setsum_right_distrib setsum_addf)
+  by (simp add: linear_def matrix_vector_mult_def vec_eq_iff field_simps setsum_right_distrib setsum_addf)
 
 lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::real ^ 'n)"
-apply (simp add: matrix_def matrix_vector_mult_def Cart_eq mult_commute)
+apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult_commute)
 apply clarify
 apply (rule linear_componentwise[OF lf, symmetric])
 done
@@ -717,11 +714,11 @@ lemma matrix_compose:
   by (simp  add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
 lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
-  by (simp add: matrix_vector_mult_def transpose_def Cart_eq mult_commute)
+  by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult_commute)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique)
-  apply (simp add: transpose_def inner_vector_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
+  apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
   apply (subst setsum_commute)
   apply (auto simp add: mult_ac)
   done
@@ -916,10 +913,10 @@ proof-
       let ?x = "\<chi> i. c i"
       have th0:"A *v ?x = 0"
         using c
-        unfolding matrix_mult_vsum Cart_eq
+        unfolding matrix_mult_vsum vec_eq_iff
         by auto
       from k[rule_format, OF th0] i
-      have "c i = 0" by (vector Cart_eq)}
+      have "c i = 0" by (vector vec_eq_iff)}
     hence ?rhs by blast}
   moreover
   {assume H: ?rhs
@@ -1038,17 +1035,17 @@ definition "columnvector v = (\<chi> i j. (v$i))"
 
 lemma transpose_columnvector:
  "transpose(columnvector v) = rowvector v"
-  by (simp add: transpose_def rowvector_def columnvector_def Cart_eq)
+  by (simp add: transpose_def rowvector_def columnvector_def vec_eq_iff)
 
 lemma transpose_rowvector: "transpose(rowvector v) = columnvector v"
-  by (simp add: transpose_def columnvector_def rowvector_def Cart_eq)
+  by (simp add: transpose_def columnvector_def rowvector_def vec_eq_iff)
 
 lemma dot_rowvector_columnvector:
   "columnvector (A *v v) = A ** columnvector v"
   by (vector columnvector_def matrix_matrix_mult_def matrix_vector_mult_def)
 
 lemma dot_matrix_product: "(x::real^'n) \<bullet> y = (((rowvector x ::real^'n^1) ** (columnvector y :: real^1^'n))$1)$1"
-  by (vector matrix_matrix_mult_def rowvector_def columnvector_def inner_vector_def)
+  by (vector matrix_matrix_mult_def rowvector_def columnvector_def inner_vec_def)
 
 lemma dot_matrix_vector_mul:
   fixes A B :: "real ^'n ^'n" and x y :: "real ^'n"
@@ -1078,18 +1075,18 @@ lemma component_le_infnorm_cart:
   unfolding nth_conv_component
   using component_le_infnorm[of x] .
 
-instance cart :: (perfect_space, finite) perfect_space
+instance vec :: (perfect_space, finite) perfect_space
 proof
   fix x :: "'a ^ 'b"
   show "x islimpt UNIV"
     apply (rule islimptI)
-    apply (unfold open_vector_def)
+    apply (unfold open_vec_def)
     apply (drule (1) bspec)
     apply clarsimp
     apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>y. y \<in> A i \<and> y \<noteq> x $ i")
      apply (drule finite_choice [OF finite_UNIV], erule exE)
-     apply (rule_tac x="Cart_lambda f" in exI)
-     apply (simp add: Cart_eq)
+     apply (rule_tac x="vec_lambda f" in exI)
+     apply (simp add: vec_eq_iff)
     apply (rule ballI, drule_tac x=i in spec, clarify)
     apply (cut_tac x="x $ i" in islimpt_UNIV)
     apply (simp add: islimpt_def)
@@ -1122,7 +1119,7 @@ lemma Lim_component_cart:
   apply (clarify)
   apply (drule spec, drule (1) mp)
   apply (erule eventually_elim1)
-  apply (erule le_less_trans [OF dist_nth_le_cart])
+  apply (erule le_less_trans [OF dist_vec_nth_le])
   done
 
 lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
@@ -1131,7 +1128,7 @@ apply clarify
 apply (rule_tac x="x $ i" in exI)
 apply (rule_tac x="e" in exI)
 apply clarify
-apply (rule order_trans [OF dist_nth_le_cart], simp)
+apply (rule order_trans [OF dist_vec_nth_le], simp)
 done
 
 lemma compact_lemma_cart:
@@ -1168,7 +1165,7 @@ proof
   qed
 qed
 
-instance cart :: (heine_borel, finite) heine_borel
+instance vec :: (heine_borel, finite) heine_borel
 proof
   fix s :: "('a ^ 'b) set" and f :: "nat \<Rightarrow> 'a ^ 'b"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
@@ -1184,7 +1181,7 @@ proof
     moreover
     { fix n assume n: "\<forall>i. dist (f (r n) $ i) (l $ i) < e / (real_of_nat (card ?d))"
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>?d. dist (f (r n) $ i) (l $ i))"
-        unfolding dist_vector_def using zero_le_dist by (rule setL2_le_setsum)
+        unfolding dist_vec_def using zero_le_dist by (rule setL2_le_setsum)
       also have "\<dots> < (\<Sum>i\<in>?d. e / (real_of_nat (card ?d)))"
         by (rule setsum_strict_mono) (simp_all add: n)
       finally have "dist (f (r n)) l < e" by simp
@@ -1205,12 +1202,12 @@ unfolding continuous_on_def by (intro ballI tendsto_intros)
 lemma interval_cart: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
-  by (auto simp add: set_eq_iff vector_less_def vector_le_def)
+  by (auto simp add: set_eq_iff less_vec_def less_eq_vec_def)
 
 lemma mem_interval_cart: fixes a :: "'a::ord^'n" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval_cart[of a b] by(auto simp add: set_eq_iff vector_less_def vector_le_def)
+  using interval_cart[of a b] by(auto simp add: set_eq_iff less_vec_def less_eq_vec_def)
 
 lemma interval_eq_empty_cart: fixes a :: "real^'n" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
@@ -1263,7 +1260,7 @@ lemma subset_interval_imp_cart: fixes a :: "real^'n" shows
 
 lemma interval_sing: fixes a :: "'a::linorder^'n" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
-apply(auto simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
+apply(auto simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
@@ -1276,17 +1273,17 @@ proof(simp add: subset_eq, rule)
   { fix i
     have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
-      by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
   }
   moreover
   { fix i
     have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
-      by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
+    by(simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
 qed
 
 lemma subset_interval_cart: fixes a :: "real^'n" shows
@@ -1406,12 +1403,12 @@ qed
 
 lemma dim_substandard_cart:
   shows "dim {x::real^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0} = card d" (is "dim ?A = _")
-proof- have *:"{x. \<forall>i<DIM((real, 'n) cart). i \<notin> \<pi>' ` d \<longrightarrow> x $$ i = 0} = 
+proof- have *:"{x. \<forall>i<DIM((real, 'n) vec). i \<notin> \<pi>' ` d \<longrightarrow> x $$ i = 0} = 
     {x::real^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0}"apply safe
     apply(erule_tac x="\<pi>' i" in allE) defer
     apply(erule_tac x="\<pi> i" in allE)
     unfolding image_iff real_euclidean_nth[symmetric] by (auto simp: pi'_inj[THEN inj_eq])
-  have " \<pi>' ` d \<subseteq> {..<DIM((real, 'n) cart)}" using pi'_range[where 'n='n] by auto
+  have " \<pi>' ` d \<subseteq> {..<DIM((real, 'n) vec)}" using pi'_range[where 'n='n] by auto
   thus ?thesis using dim_substandard[of "\<pi>' ` d", where 'a="real^'n"] 
     unfolding * using card_image[of "\<pi>'" d] using pi'_inj unfolding inj_on_def by auto
 qed
@@ -1464,7 +1461,7 @@ qed
 declare vector_add_ldistrib[simp] vector_ssub_ldistrib[simp] vector_smult_assoc[simp] vector_smult_rneg[simp]
 declare vector_sadd_rdistrib[simp] vector_sub_rdistrib[simp]
 
-lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component vector_le_def Cart_lambda_beta basis_component vector_uminus_component
+lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component less_eq_vec_def vec_lambda_beta basis_component vector_uminus_component
 
 lemma convex_box_cart:
   assumes "\<And>i. convex {x. P i x}"
@@ -1489,7 +1486,7 @@ qed
 
 lemma std_simplex_cart:
   "(insert (0::real^'n) { cart_basis i | i. i\<in>UNIV}) =
-  (insert 0 { basis i | i. i<DIM((real,'n) cart)})"
+  (insert 0 { basis i | i. i<DIM((real,'n) vec)})"
   apply(rule arg_cong[where f="\<lambda>s. (insert 0 s)"])
   unfolding basis_real_n[THEN sym] apply safe
   apply(rule_tac x="\<pi>' i" in exI) defer
@@ -1516,13 +1513,13 @@ lemma kuhn_labelling_lemma_cart:
 lemma interval_bij_cart:"interval_bij = (\<lambda> (a,b) (u,v) (x::real^'n).
     (\<chi> i. u$i + (x$i - a$i) / (b$i - a$i) * (v$i - u$i))::real^'n)"
   unfolding interval_bij_def apply(rule ext)+ apply safe
-  unfolding Cart_eq Cart_lambda_beta unfolding nth_conv_component
+  unfolding vec_eq_iff vec_lambda_beta unfolding nth_conv_component
   apply rule apply(subst euclidean_lambda_beta) using pi'_range by auto
 
 lemma interval_bij_affine_cart:
  "interval_bij (a,b) (u,v) = (\<lambda>x. (\<chi> i. (v$i - u$i) / (b$i - a$i) * x$i) +
             (\<chi> i. u$i - (v$i - u$i) / (b$i - a$i) * a$i)::real^'n)"
-  apply rule unfolding Cart_eq interval_bij_cart vector_component_simps
+  apply rule unfolding vec_eq_iff interval_bij_cart vector_component_simps
   by(auto simp add: field_simps add_divide_distrib[THEN sym]) 
 
 subsection "Derivative"
@@ -1552,7 +1549,7 @@ lemma differential_zero_maxmin_component: fixes f::"real^'a \<Rightarrow> real^'
 
 proof(rule ccontr)
   def D \<equiv> "jacobian f (at x)" assume "jacobian f (at x) $ k \<noteq> 0"
-  then obtain j where j:"D$k$j \<noteq> 0" unfolding Cart_eq D_def by auto
+  then obtain j where j:"D$k$j \<noteq> 0" unfolding vec_eq_iff D_def by auto
   hence *:"abs (jacobian f (at x) $ k $ j) / 2 > 0" unfolding D_def by auto
   note as = assms(3)[unfolded jacobian_works has_derivative_at_alt]
   guess e' using as[THEN conjunct2,rule_format,OF *] .. note e' = this
@@ -1639,10 +1636,10 @@ abbreviation dest_vec1:: "'a ^1 \<Rightarrow> 'a"
   where "dest_vec1 x \<equiv> (x$1)"
 
 lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
-  by (simp_all add:  Cart_eq)
+  by (simp_all add:  vec_eq_iff)
 
 lemma vec1_component[simp]: "(vec1 x)$1 = x"
-  by (simp_all add:  Cart_eq)
+  by (simp_all add:  vec_eq_iff)
 
 declare vec1_dest_vec1(1) [simp]
 
@@ -1661,7 +1658,7 @@ lemma dest_vec1_eq[simp]: "dest_vec1 x = dest_vec1 y \<longleftrightarrow> x = y
 subsection{* The collapse of the general concepts to dimension one. *}
 
 lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
-  by (simp add: Cart_eq)
+  by (simp add: vec_eq_iff)
 
 lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x. P(\<chi> i. x))"
   apply auto
@@ -1670,7 +1667,7 @@ lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x.
   done
 
 lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
-  by (simp add: norm_vector_def)
+  by (simp add: norm_vec_def)
 
 lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
   by (simp add: norm_vector_1)
@@ -1751,7 +1748,7 @@ lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
   by (metis vec1_dest_vec1(1) norm_vec1)
 
 lemmas vec1_dest_vec1_simps = forall_vec1 vec_add[THEN sym] dist_vec1 vec_sub[THEN sym] vec1_dest_vec1 norm_vec1 vector_smult_component
-   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
+   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def real_norm_def
 
 lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
@@ -1770,14 +1767,14 @@ lemma linear_from_scalars:
   unfolding smult_conv_scaleR
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
-  apply (auto simp add: Cart_eq matrix_vector_mult_def column_def mult_commute)
+  apply (auto simp add: vec_eq_iff matrix_vector_mult_def column_def mult_commute)
   done
 
 lemma linear_to_scalars: assumes lf: "linear (f::real ^'n \<Rightarrow> real^1)"
   shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
-  apply (simp add: Cart_eq matrix_vector_mult_def row_def inner_vector_def mult_commute)
+  apply (simp add: vec_eq_iff matrix_vector_mult_def row_def inner_vec_def mult_commute)
   done
 
 lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
@@ -1801,14 +1798,14 @@ lemma continuous_on_o_dest_vec1: fixes f::"real \<Rightarrow> 'a::real_normed_ve
   using assms unfolding continuous_on_iff apply safe
   apply(erule_tac x="x$1" in ballE,erule_tac x=e in allE) apply safe
   apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
-  apply(erule_tac x="dest_vec1 x'" in ballE) by(auto simp add:vector_le_def)
+  apply(erule_tac x="dest_vec1 x'" in ballE) by(auto simp add:less_eq_vec_def)
 
 lemma continuous_on_o_vec1: fixes f::"real^1 \<Rightarrow> 'a::real_normed_vector"
   assumes "continuous_on {a..b} f" shows "continuous_on {dest_vec1 a..dest_vec1 b} (f o vec1)"
   using assms unfolding continuous_on_iff apply safe
   apply(erule_tac x="vec x" in ballE,erule_tac x=e in allE) apply safe
   apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
-  apply(erule_tac x="vec1 x'" in ballE) by(auto simp add:vector_le_def)
+  apply(erule_tac x="vec1 x'" in ballE) by(auto simp add:less_eq_vec_def)
 
 lemma continuous_on_vec1:"continuous_on A (vec1::real\<Rightarrow>real^1)"
   by(rule linear_continuous_on[OF bounded_linear_vec1])
@@ -1816,12 +1813,12 @@ lemma continuous_on_vec1:"continuous_on A (vec1::real\<Rightarrow>real^1)"
 lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_le_def)
+by(simp_all add: vec_eq_iff less_vec_def less_eq_vec_def)
 
 lemma vec1_interval:fixes a::"real" shows
   "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
   "vec1 ` {a<..<b} = {vec1 a<..<vec1 b}"
-  apply(rule_tac[!] set_eqI) unfolding image_iff vector_less_def unfolding mem_interval_cart
+  apply(rule_tac[!] set_eqI) unfolding image_iff less_vec_def unfolding mem_interval_cart
   unfolding forall_1 unfolding vec1_dest_vec1_simps
   apply rule defer apply(rule_tac x="dest_vec1 x" in bexI) prefer 3 apply rule defer
   apply(rule_tac x="dest_vec1 x" in bexI) by auto
@@ -1830,12 +1827,12 @@ lemma vec1_interval:fixes a::"real" shows
 
 lemma interval_cases_1: fixes x :: "real^1" shows
  "x \<in> {a .. b} ==> x \<in> {a<..<b} \<or> (x = a) \<or> (x = b)"
-  unfolding Cart_eq vector_less_def vector_le_def mem_interval_cart by(auto simp del:dest_vec1_eq)
+  unfolding vec_eq_iff less_vec_def less_eq_vec_def mem_interval_cart by(auto simp del:dest_vec1_eq)
 
 lemma in_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b) \<and>
   (x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-  unfolding Cart_eq vector_less_def vector_le_def mem_interval_cart by(auto simp del:dest_vec1_eq)
+  unfolding vec_eq_iff less_vec_def less_eq_vec_def mem_interval_cart by(auto simp del:dest_vec1_eq)
 
 lemma interval_eq_empty_1: fixes a :: "real^1" shows
   "{a .. b} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a"
@@ -1871,10 +1868,10 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding set_eq_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_eq_iff apply simp unfolding less_vec_def and less_eq_vec_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding set_eq_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_eq_iff apply simp unfolding less_vec_def and less_eq_vec_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma Lim_drop_le: fixes f :: "'a \<Rightarrow> real^1" shows
   "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. dest_vec1 (f x) \<le> b) net ==> dest_vec1 l \<le> b"
@@ -1903,7 +1900,7 @@ qed
 lemma dest_vec1_simps[simp]: fixes a::"real^1"
   shows "a$1 = 0 \<longleftrightarrow> a = 0" (*"a \<le> 1 \<longleftrightarrow> dest_vec1 a \<le> 1" "0 \<le> a \<longleftrightarrow> 0 \<le> dest_vec1 a"*)
   "a \<le> b \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 b" "dest_vec1 (1::real^1) = 1"
-  by(auto simp add: vector_le_def Cart_eq)
+  by(auto simp add: less_eq_vec_def vec_eq_iff)
 
 lemma dest_vec1_inverval:
   "dest_vec1 ` {a .. b} = {dest_vec1 a .. dest_vec1 b}"
@@ -1915,18 +1912,18 @@ lemma dest_vec1_inverval:
   apply(rule_tac [!] allI)apply(rule_tac [!] impI)
   apply(rule_tac[2] x="vec1 x" in exI)apply(rule_tac[4] x="vec1 x" in exI)
   apply(rule_tac[6] x="vec1 x" in exI)apply(rule_tac[8] x="vec1 x" in exI)
-  by (auto simp add: vector_less_def vector_le_def)
+  by (auto simp add: less_vec_def less_eq_vec_def)
 
 lemma dest_vec1_setsum: assumes "finite S"
   shows " dest_vec1 (setsum f S) = setsum (\<lambda>x. dest_vec1 (f x)) S"
   using dest_vec1_sum[OF assms] by auto
 
 lemma open_dest_vec1_vimage: "open S \<Longrightarrow> open (dest_vec1 -` S)"
-unfolding open_vector_def forall_1 by auto
+unfolding open_vec_def forall_1 by auto
 
 lemma tendsto_dest_vec1 [tendsto_intros]:
   "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
-by(rule tendsto_Cart_nth)
+by(rule tendsto_vec_nth)
 
 lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
   unfolding continuous_def by (rule tendsto_dest_vec1)
@@ -1952,9 +1949,9 @@ lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
     unfolding vec1_dest_vec1_simps by auto qed
 
 lemma vec1_le[simp]:fixes a::real shows "vec1 a \<le> vec1 b \<longleftrightarrow> a \<le> b"
-  unfolding vector_le_def by auto
+  unfolding less_eq_vec_def by auto
 lemma vec1_less[simp]:fixes a::real shows "vec1 a < vec1 b \<longleftrightarrow> a < b"
-  unfolding vector_less_def by auto
+  unfolding less_vec_def by auto
 
 
 subsection {* Derivatives on real = Derivatives on @{typ "real^1"} *}
@@ -1998,7 +1995,7 @@ subsection {* In particular if we have a mapping into @{typ "real^1"}. *}
 
 lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
   shows "onorm (\<lambda>x. vec1 (f (dest_vec1 x))) = onorm f" proof-
-  have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 by(auto simp add:Cart_eq)
+  have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 by(auto simp add:vec_eq_iff)
   hence 1:"{x. norm x = 1} = {vec1 -1, vec1 (1::real)}" by auto
   have 2:"{norm (vec1 (f (dest_vec1 x))) |x. norm x = 1} = (\<lambda>x. norm (vec1 (f (dest_vec1 x)))) ` {x. norm x=1}" by auto
   have "\<forall>x::real. norm x = 1 \<longleftrightarrow> x\<in>{-1, 1}" by auto hence 3:"{x. norm x = 1} = {-1, (1::real)}" by auto
@@ -2037,11 +2034,11 @@ lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"
   "{a..b} \<inter> {x. x$k \<ge> c} = {(\<chi> i. if i = k then max (a$k) c else a$i) .. b}"
   apply(rule_tac[!] set_eqI) unfolding Int_iff mem_interval_cart mem_Collect_eq
-  unfolding Cart_lambda_beta by auto
+  unfolding vec_lambda_beta by auto
 
 (*lemma content_split_cart:
   "content {a..b::real^'n} = content({a..b} \<inter> {x. x$k \<le> c}) + content({a..b} \<inter> {x. x$k >= c})"
-proof- note simps = interval_split_cart content_closed_interval_cases_cart Cart_lambda_beta vector_le_def
+proof- note simps = interval_split_cart content_closed_interval_cases_cart vec_lambda_beta less_eq_vec_def
   { presume "a\<le>b \<Longrightarrow> ?thesis" thus ?thesis apply(cases "a\<le>b") unfolding simps by auto }
   have *:"UNIV = insert k (UNIV - {k})" "\<And>x. finite (UNIV-{x::'n})" "\<And>x. x\<notin>UNIV-{x}" by auto
   have *:"\<And>X Y Z. (\<Prod>i\<in>UNIV. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>UNIV-{k}. Z i (Y i))"
@@ -2051,7 +2048,7 @@ proof- note simps = interval_split_cart content_closed_interval_cases_cart Cart_
     \<Longrightarrow> x* (b$k - a$k) = x*(max (a $ k) c - a $ k) + x*(b $ k - max (a $ k) c)"
     by  (auto simp add:field_simps)
   moreover have "\<not> a $ k \<le> c \<Longrightarrow> \<not> c \<le> b $ k \<Longrightarrow> False"
-    unfolding not_le using as[unfolded vector_le_def,rule_format,of k] by auto
+    unfolding not_le using as[unfolded less_eq_vec_def,rule_format,of k] by auto
   ultimately show ?thesis 
     unfolding simps unfolding *(1)[of "\<lambda>i x. b$i - x"] *(1)[of "\<lambda>i x. x - a$i"] *(2) by(auto)
 qed*)
@@ -2059,7 +2056,7 @@ qed*)
 lemma has_integral_vec1: assumes "(f has_integral k) {a..b}"
   shows "((\<lambda>x. vec1 (f x)) has_integral (vec1 k)) {a..b}"
 proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
-    unfolding vec_sub Cart_eq by(auto simp add: split_beta)
+    unfolding vec_sub vec_eq_iff by(auto simp add: split_beta)
   show ?thesis using assms unfolding has_integral apply safe
     apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
     apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed

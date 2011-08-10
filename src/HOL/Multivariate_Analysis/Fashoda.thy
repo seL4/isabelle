@@ -46,7 +46,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     apply(rule assms)+ apply(rule continuous_on_compose,subst sqprojection_def)
     apply(rule continuous_on_mul ) apply(rule continuous_at_imp_continuous_on,rule) apply(rule continuous_at_inv[unfolded o_def])
     apply(rule continuous_at_infnorm) unfolding infnorm_eq_0 defer apply(rule continuous_on_id) apply(rule linear_continuous_on) proof-
-    show "bounded_linear negatex" apply(rule bounded_linearI') unfolding Cart_eq proof(rule_tac[!] allI) fix i::2 and x y::"real^2" and c::real
+    show "bounded_linear negatex" apply(rule bounded_linearI') unfolding vec_eq_iff proof(rule_tac[!] allI) fix i::2 and x y::"real^2" and c::real
       show "negatex (x + y) $ i = (negatex x + negatex y) $ i" "negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
         apply-apply(case_tac[!] "i\<noteq>1") prefer 3 apply(drule_tac[1-2] 21) 
         unfolding negatex_def by(auto simp add:vector_2 ) qed qed(insert x0, auto)
@@ -66,7 +66,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     apply- apply(rule_tac[!] allI impI)+ proof- fix x::"real^2" and i::2 assume x:"x\<noteq>0"
     have "inverse (infnorm x) > 0" using x[unfolded infnorm_pos_lt[THEN sym]] by auto
     thus "(0 < sqprojection x $ i) = (0 < x $ i)"   "(sqprojection x $ i < 0) = (x $ i < 0)"
-      unfolding sqprojection_def vector_component_simps Cart_nth.scaleR real_scaleR_def
+      unfolding sqprojection_def vector_component_simps vec_nth.scaleR real_scaleR_def
       unfolding zero_less_mult_iff mult_less_0_iff by(auto simp add:field_simps) qed
   note lem3 = this[rule_format]
   have x1:"x $ 1 \<in> {- 1..1::real}" "x $ 2 \<in> {- 1..1::real}" using x(1) unfolding mem_interval_cart by auto
@@ -77,7 +77,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   next assume as:"x$1 = 1"
     hence *:"f (x $ 1) $ 1 = 1" using assms(6) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 1 < 0"
-      using x(2)[unfolded o_def Cart_eq,THEN spec[where x=1]]
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=1]]
       unfolding as negatex_def vector_2 by auto moreover
     from x1 have "g (x $ 2) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
@@ -85,7 +85,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   next assume as:"x$1 = -1"
     hence *:"f (x $ 1) $ 1 = - 1" using assms(5) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 1 > 0"
-      using x(2)[unfolded o_def Cart_eq,THEN spec[where x=1]]
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=1]]
       unfolding as negatex_def vector_2 by auto moreover
     from x1 have "g (x $ 2) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
@@ -93,7 +93,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   next assume as:"x$2 = 1"
     hence *:"g (x $ 2) $ 2 = 1" using assms(8) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 2 > 0"
-      using x(2)[unfolded o_def Cart_eq,THEN spec[where x=2]]
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]]
       unfolding as negatex_def vector_2 by auto moreover
     from x1 have "f (x $ 1) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
@@ -101,7 +101,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
  next assume as:"x$2 = -1"
     hence *:"g (x $ 2) $ 2 = - 1" using assms(7) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 2 < 0"
-      using x(2)[unfolded o_def Cart_eq,THEN spec[where x=2]]
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]]
       unfolding as negatex_def vector_2 by auto moreover
     from x1 have "f (x $ 1) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
@@ -120,7 +120,7 @@ lemma fashoda_unit_path: fixes f ::"real \<Rightarrow> real^2" and g ::"real \<R
     have *:"continuous_on {- 1..1} iscale" unfolding iscale_def by(rule continuous_on_intros)+
     show "continuous_on {- 1..1} (f \<circ> iscale)" "continuous_on {- 1..1} (g \<circ> iscale)"
       apply-apply(rule_tac[!] continuous_on_compose[OF *]) apply(rule_tac[!] continuous_on_subset[OF _ isc])
-      by(rule assms)+ have *:"(1 / 2) *\<^sub>R (1 + (1::real^1)) = 1" unfolding Cart_eq by auto
+      by(rule assms)+ have *:"(1 / 2) *\<^sub>R (1 + (1::real^1)) = 1" unfolding vec_eq_iff by auto
     show "(f \<circ> iscale) (- 1) $ 1 = - 1" "(f \<circ> iscale) 1 $ 1 = 1" "(g \<circ> iscale) (- 1) $ 2 = -1" "(g \<circ> iscale) 1 $ 2 = 1"
       unfolding o_def iscale_def using assms by(auto simp add:*) qed
   then guess s .. from this(2) guess t .. note st=this
@@ -132,7 +132,7 @@ lemma fashoda_unit_path: fixes f ::"real \<Rightarrow> real^2" and g ::"real \<R
 (* move *)
 lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
   shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
-  unfolding interval_bij_cart split_conv Cart_eq Cart_lambda_beta
+  unfolding interval_bij_cart split_conv vec_eq_iff vec_lambda_beta
   apply(rule,insert assms,erule_tac x=i in allE) by auto
 
 lemma fashoda: fixes b::"real^2"
@@ -142,23 +142,23 @@ lemma fashoda: fixes b::"real^2"
   obtains z where "z \<in> path_image f" "z \<in> path_image g" proof-
   fix P Q S presume "P \<or> Q \<or> S" "P \<Longrightarrow> thesis" "Q \<Longrightarrow> thesis" "S \<Longrightarrow> thesis" thus thesis by auto
 next have "{a..b} \<noteq> {}" using assms(3) using path_image_nonempty by auto
-  hence "a \<le> b" unfolding interval_eq_empty_cart vector_le_def by(auto simp add: not_less)
-  thus "a$1 = b$1 \<or> a$2 = b$2 \<or> (a$1 < b$1 \<and> a$2 < b$2)" unfolding vector_le_def forall_2 by auto
+  hence "a \<le> b" unfolding interval_eq_empty_cart less_eq_vec_def by(auto simp add: not_less)
+  thus "a$1 = b$1 \<or> a$2 = b$2 \<or> (a$1 < b$1 \<and> a$2 < b$2)" unfolding less_eq_vec_def forall_2 by auto
 next assume as:"a$1 = b$1" have "\<exists>z\<in>path_image g. z$2 = (pathstart f)$2" apply(rule connected_ivt_component_cart)
     apply(rule connected_path_image assms)+apply(rule pathstart_in_path_image,rule pathfinish_in_path_image)
     unfolding assms using assms(3)[unfolded path_image_def subset_eq,rule_format,of "f 0"]
-    unfolding pathstart_def by(auto simp add: vector_le_def) then guess z .. note z=this
+    unfolding pathstart_def by(auto simp add: less_eq_vec_def) then guess z .. note z=this
   have "z \<in> {a..b}" using z(1) assms(4) unfolding path_image_def by blast 
-  hence "z = f 0" unfolding Cart_eq forall_2 unfolding z(2) pathstart_def
+  hence "z = f 0" unfolding vec_eq_iff forall_2 unfolding z(2) pathstart_def
     using assms(3)[unfolded path_image_def subset_eq mem_interval_cart,rule_format,of "f 0" 1]
     unfolding mem_interval_cart apply(erule_tac x=1 in allE) using as by auto
   thus thesis apply-apply(rule that[OF _ z(1)]) unfolding path_image_def by auto
 next assume as:"a$2 = b$2" have "\<exists>z\<in>path_image f. z$1 = (pathstart g)$1" apply(rule connected_ivt_component_cart)
     apply(rule connected_path_image assms)+apply(rule pathstart_in_path_image,rule pathfinish_in_path_image)
     unfolding assms using assms(4)[unfolded path_image_def subset_eq,rule_format,of "g 0"]
-    unfolding pathstart_def by(auto simp add: vector_le_def) then guess z .. note z=this
+    unfolding pathstart_def by(auto simp add: less_eq_vec_def) then guess z .. note z=this
   have "z \<in> {a..b}" using z(1) assms(3) unfolding path_image_def by blast 
-  hence "z = g 0" unfolding Cart_eq forall_2 unfolding z(2) pathstart_def
+  hence "z = g 0" unfolding vec_eq_iff forall_2 unfolding z(2) pathstart_def
     using assms(4)[unfolded path_image_def subset_eq mem_interval_cart,rule_format,of "g 0" 2]
     unfolding mem_interval_cart apply(erule_tac x=2 in allE) using as by auto
   thus thesis apply-apply(rule that[OF z(1)]) unfolding path_image_def by auto
@@ -180,7 +180,7 @@ next assume as:"a $ 1 < b $ 1 \<and> a $ 2 < b $ 2"
       "(interval_bij (a, b) (- 1, 1) \<circ> f) 1 $ 1 = 1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 0 $ 2 = -1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 1 $ 2 = 1"
-      unfolding interval_bij_cart Cart_lambda_beta vector_component_simps o_def split_conv
+      unfolding interval_bij_cart vec_lambda_beta vector_component_simps o_def split_conv
       unfolding assms[unfolded pathstart_def pathfinish_def] using as by auto qed note z=this
   from z(1) guess zf unfolding image_iff .. note zf=this
   from z(2) guess zg unfolding image_iff .. note zg=this
@@ -197,7 +197,7 @@ lemma segment_vertical: fixes a::"real^2" assumes "a$1 = b$1"
 proof- 
   let ?L = "\<exists>u. (x $ 1 = (1 - u) * a $ 1 + u * b $ 1 \<and> x $ 2 = (1 - u) * a $ 2 + u * b $ 2) \<and> 0 \<le> u \<and> u \<le> 1"
   { presume "?L \<Longrightarrow> ?R" "?R \<Longrightarrow> ?L" thus ?thesis unfolding closed_segment_def mem_Collect_eq
-      unfolding Cart_eq forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
+      unfolding vec_eq_iff forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
   { assume ?L then guess u apply-apply(erule exE)apply(erule conjE)+ . note u=this
     { fix b a assume "b + u * a > a + u * b"
       hence "(1 - u) * b > (1 - u) * a" by(auto simp add:field_simps)
@@ -221,7 +221,7 @@ lemma segment_horizontal: fixes a::"real^2" assumes "a$2 = b$2"
 proof- 
   let ?L = "\<exists>u. (x $ 1 = (1 - u) * a $ 1 + u * b $ 1 \<and> x $ 2 = (1 - u) * a $ 2 + u * b $ 2) \<and> 0 \<le> u \<and> u \<le> 1"
   { presume "?L \<Longrightarrow> ?R" "?R \<Longrightarrow> ?L" thus ?thesis unfolding closed_segment_def mem_Collect_eq
-      unfolding Cart_eq forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
+      unfolding vec_eq_iff forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
   { assume ?L then guess u apply-apply(erule exE)apply(erule conjE)+ . note u=this
     { fix b a assume "b + u * a > a + u * b"
       hence "(1 - u) * b > (1 - u) * a" by(auto simp add:field_simps)
@@ -274,7 +274,7 @@ proof-
       path_image(linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1])) \<union>
       path_image(linepath(vector[b$1 + 1,a$2 - 1])(vector[b$1 + 1,b$2 + 3]))" using assms(1-2)
       by(auto simp add: path_image_join path_linepath)
-  have abab: "{a..b} \<subseteq> {?a..?b}" by(auto simp add:vector_le_def forall_2 vector_2)
+  have abab: "{a..b} \<subseteq> {?a..?b}" by(auto simp add:less_eq_vec_def forall_2 vector_2)
   guess z apply(rule fashoda[of ?P1 ?P2 ?a ?b])
     unfolding pathstart_join pathfinish_join pathstart_linepath pathfinish_linepath vector_2 proof-
     show "path ?P1" "path ?P2" using assms by auto
@@ -318,11 +318,11 @@ proof-
     qed hence "z \<in> path_image f \<or> z \<in> path_image g" using z unfolding Un_iff by blast
     hence z':"z\<in>{a..b}" using assms(3-4) by auto
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart f $ 1 \<or> z $ 1 = pathfinish f $ 1) \<Longrightarrow> (z = pathstart f \<or> z = pathfinish f)"
-      unfolding Cart_eq forall_2 assms by auto
+      unfolding vec_eq_iff forall_2 assms by auto
     with z' show "z\<in>path_image f" using z(1) unfolding Un_iff mem_interval_cart forall_2 apply-
       apply(simp only: segment_vertical segment_horizontal vector_2) unfolding assms by auto
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart g $ 1 \<or> z $ 1 = pathfinish g $ 1) \<Longrightarrow> (z = pathstart g \<or> z = pathfinish g)"
-      unfolding Cart_eq forall_2 assms by auto
+      unfolding vec_eq_iff forall_2 assms by auto
     with z' show "z\<in>path_image g" using z(2) unfolding Un_iff mem_interval_cart forall_2 apply-
       apply(simp only: segment_vertical segment_horizontal vector_2) unfolding assms by auto
   qed qed
