@@ -5,7 +5,7 @@
 header {* Operator Norm *}
 
 theory Operator_Norm
-imports Euclidean_Space
+imports Linear_Algebra
 begin
 
 definition "onorm f = Sup {norm (f x)| x. norm x = 1}"
