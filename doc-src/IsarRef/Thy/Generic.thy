@@ -201,7 +201,7 @@ text {*
   @{rail "
     @@{method subst} ('(' 'asm' ')')? \\ ('(' (@{syntax nat}+) ')')? @{syntax thmref}
     ;
-    @@{method split} ('(' 'asm' ')')? @{syntax thmrefs}
+    @@{method split} @{syntax thmrefs}
   "}
 
   These methods provide low-level facilities for equational reasoning
@@ -245,12 +245,13 @@ text {*
   t"} where @{text x} is a free or bound variable.
 
   \item @{method split}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} performs single-step case
-  splitting using the given rules.  By default, splitting is performed
-  in the conclusion of a goal; the @{text "(asm)"} option indicates to
-  operate on assumptions instead.
+  splitting using the given rules.  Splitting is performed in the
+  conclusion or some assumption of the subgoal, depending of the
+  structure of the rule.
   
   Note that the @{method simp} method already involves repeated
-  application of split rules as declared in the current context.
+  application of split rules as declared in the current context, using
+  @{attribute split}, for example.
 
   \end{description}
 *}

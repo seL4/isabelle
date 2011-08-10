@@ -31,6 +31,13 @@ sig
     Guards of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
+  val no_lambdasN : string
+  val concealedN : string
+  val liftingN : string
+  val combinatorsN : string
+  val hybridN : string
+  val lambdasN : string
+  val smartN : string
   val bound_var_prefix : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
@@ -88,11 +95,10 @@ sig
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
-  val introduce_combinators : Proof.context -> term -> term
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
-    -> bool -> (term list -> term list * term list) -> bool -> bool -> term list
-    -> term -> ((string * locality) * term) list
+    -> bool -> string -> bool -> bool -> term list -> term
+    -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -105,6 +111,14 @@ open ATP_Util
 open ATP_Problem
 
 type name = string * string
+
+val no_lambdasN = "no_lambdas"
+val concealedN = "concealed"
+val liftingN = "lifting"
+val combinatorsN = "combinators"
+val hybridN = "hybrid"
+val lambdasN = "lambdas"
+val smartN = "smart"
 
 val generate_info = false (* experimental *)
 
@@ -606,6 +620,29 @@ fun choose_format formats (Simple_Types (order, level)) =
                  | _ => type_enc)
      | format => (format, type_enc))
 
+fun lift_lambdas ctxt type_enc =
+  map (close_form o Envir.eta_contract) #> rpair ctxt
+  #-> Lambda_Lifting.lift_lambdas
+          (if polymorphism_of_type_enc type_enc = Polymorphic then
+             SOME polymorphic_free_prefix
+           else
+             NONE)
+          Lambda_Lifting.is_quantifier
+  #> fst
+
+fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+    intentionalize_def t
+  | intentionalize_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    let
+      fun lam T t = Abs (Name.uu, T, t)
+      val (head, args) = strip_comb t ||> rev
+      val head_T = fastype_of head
+      val n = length args
+      val arg_Ts = head_T |> binder_types |> take n |> rev
+      val u = u |> subst_atomic (args ~~ map Bound (0 upto n - 1))
+    in HOLogic.eq_const head_T $ head $ fold lam arg_Ts u end
+  | intentionalize_def t = t
+
 type translated_formula =
   {name : string,
    locality : locality,
@@ -834,8 +871,13 @@ fun introduce_proxies type_enc =
              | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
              | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
              | (false, s) =>
-               if is_tptp_equal s then IConst (`I tptp_equal, T, [])
-               else IConst (proxy_base |>> prefix const_prefix, T, T_args)
+               if is_tptp_equal s andalso length args = 2 then
+                 IConst (`I tptp_equal, T, [])
+               else
+                 (* Use a proxy even for partially applied THF equality, because
+                    the LEO-II and Satallax parsers complain about not being
+                    able to infer the type of "=". *)
+                 IConst (proxy_base |>> prefix const_prefix, T, T_args)
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
@@ -1918,9 +1960,36 @@ val free_typesN = "Type variables"
 val explicit_apply = NONE (* for experiments *)
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
-        exporter trans_lambdas readable_names preproc hyp_ts concl_t facts =
+        exporter lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_enc) = choose_format [format] type_enc
+    val lambda_trans =
+      if lambda_trans = smartN then
+        if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
+      else if lambda_trans = lambdasN andalso
+              not (is_type_enc_higher_order type_enc) then
+        error ("Lambda translation method incompatible with first-order \
+               \encoding.")
+      else
+        lambda_trans
+    val trans_lambdas =
+      if lambda_trans = no_lambdasN then
+        rpair []
+      else if lambda_trans = concealedN then
+        lift_lambdas ctxt type_enc ##> K []
+      else if lambda_trans = liftingN then
+        lift_lambdas ctxt type_enc
+      else if lambda_trans = combinatorsN then
+        map (introduce_combinators ctxt) #> rpair []
+      else if lambda_trans = hybridN then
+        lift_lambdas ctxt type_enc
+        ##> maps (fn t => [t, introduce_combinators ctxt
+                                  (intentionalize_def t)])
+      else if lambda_trans = lambdasN then
+        map (Envir.eta_contract) #> rpair []
+      else
+        error ("Unknown lambda translation method: " ^
+               quote lambda_trans ^ ".")
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts

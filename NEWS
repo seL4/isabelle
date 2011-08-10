@@ -67,17 +67,27 @@ uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 generalized theorems INF_cong and SUP_cong.  New type classes for complete
 boolean algebras and complete linear orders.  Lemmas Inf_less_iff,
 less_Sup_iff, INF_less_iff, less_SUP_iff now reside in class complete_linorder.
-Changes proposition of lemmas Inf_fun_def, Sup_fun_def, Inf_apply, Sup_apply.
+Changed proposition of lemmas Inf_fun_def, Sup_fun_def, Inf_apply, Sup_apply.
+Redundant lemmas Inf_singleton, Sup_singleton, Inf_binary, Sup_binary,
+INF_eq, SUP_eq, INF_UNIV_range, SUP_UNIV_range, Int_eq_Inter,
+INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union, UNION_eq_Union_image,
+Union_def, UN_singleton, UN_eq have been discarded.
 More consistent and less misunderstandable names:
   INFI_def ~> INF_def
   SUPR_def ~> SUP_def
-  le_SUPI ~> le_SUP_I
-  le_SUPI2 ~> le_SUP_I2
-  le_INFI ~> le_INF_I
+  INF_leI ~> INF_lower
+  INF_leI2 ~> INF_lower2
+  le_INFI ~> INF_greatest
+  le_SUPI ~> SUP_upper
+  le_SUPI2 ~> SUP_upper2
+  SUP_leI ~> SUP_least
   INFI_bool_eq ~> INF_bool_eq
   SUPR_bool_eq ~> SUP_bool_eq
   INFI_apply ~> INF_apply
   SUPR_apply ~> SUP_apply
+  INTER_def ~> INTER_eq
+  UNION_def ~> UNION_eq
+
 INCOMPATIBILITY.
 
 * Theorem collections ball_simps and bex_simps do not contain theorems referring

@@ -467,7 +467,7 @@ lemma single_subset_wens_set:
       "single_valued act
        ==> insert (wens_single act B) (range (wens_single_finite act B)) \<subseteq> 
            wens_set (mk_program (init, {act}, allowed)) B"
-apply (simp add: wens_single_eq_Union UN_eq) 
+apply (simp add: SUP_def image_def wens_single_eq_Union) 
 apply (blast intro: wens_set.Union wens_single_finite_in_wens_set)
 done
 

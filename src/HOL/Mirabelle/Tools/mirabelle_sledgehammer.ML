@@ -9,11 +9,11 @@ val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val type_encK = "type_enc"
+val soundK = "sound"
 val slicingK = "slicing"
 val lambda_translationK = "lambda_translation"
 val e_weight_methodK = "e_weight_method"
-val spass_force_sosK = "spass_force_sos"
-val vampire_force_sosK = "vampire_force_sos"
+val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
@@ -213,6 +213,8 @@ fun inc_reconstructor_posns m pos = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas, pos::posns)) m
 
+val str0 = string_of_int o the_default 0
+
 local
 
 val str = string_of_int
@@ -242,13 +244,9 @@ fun log_sh_data log
     str3 (avg_time time_prover_fail (calls - success)))
   )
 
-
 fun str_of_pos (pos, triv) =
-  let val str0 = string_of_int o the_default 0
-  in
-    str0 (Position.line_of pos) (* ^ ":" ^ str0 (Position.offset_of pos) *) ^
-    (if triv then "[T]" else "")
-  end
+  str0 (Position.line_of pos) (* ^ ":" ^ str0 (Position.offset_of pos) *) ^
+  (if triv then "[T]" else "")
 
 fun log_re_data log tag sh_calls (re_calls, re_success, re_nontriv_calls,
      re_nontriv_success, re_proofs, re_time, re_timeout,
@@ -354,35 +352,36 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc max_relevant slicing lambda_translation
-      e_weight_method spass_force_sos vampire_force_sos hard_timeout timeout dir
-      st =
+fun run_sh prover_name prover type_enc sound max_relevant slicing
+        lambda_translation e_weight_method force_sos hard_timeout timeout dir
+        pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
-    fun change_dir (SOME dir) =
+    fun set_file_name (SOME dir) =
         Config.put Sledgehammer_Provers.dest_dir dir
+        #> Config.put Sledgehammer_Provers.problem_prefix
+          ("prob_" ^ str0 (Position.line_of pos))
         #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
-      | change_dir NONE = I
+      | set_file_name NONE = I
     val st' =
       st |> Proof.map_context
-                (change_dir dir
+                (set_file_name dir
                  #> (Option.map (Config.put
                        Sledgehammer_Provers.atp_lambda_translation)
                        lambda_translation |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.e_weight_method)
                        e_weight_method |> the_default I)
-                 #> (Option.map (Config.put ATP_Systems.spass_force_sos)
-                       spass_force_sos |> the_default I)
-                 #> (Option.map (Config.put ATP_Systems.vampire_force_sos)
-                       vampire_force_sos |> the_default I)
+                 #> (Option.map (Config.put ATP_Systems.force_sos)
+                       force_sos |> the_default I)
                  #> Config.put Sledgehammer_Provers.measure_run_time true)
     val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_enc", type_enc),
+           ("sound", sound),
            ("max_relevant", max_relevant),
            ("slicing", slicing),
            ("timeout", string_of_int timeout)]
@@ -451,20 +450,20 @@ fun thms_of_name ctxt name =
 
 in
 
-fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
+fun run_sledgehammer trivial args reconstructor named_thms id
+      ({pre=st, log, pos, ...}: Mirabelle.run_args) =
   let
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
+    val sound = AList.lookup (op =) args soundK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
     val lambda_translation = AList.lookup (op =) args lambda_translationK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
-    val spass_force_sos = AList.lookup (op =) args spass_force_sosK
-      |> Option.map (curry (op <>) "false")
-    val vampire_force_sos = AList.lookup (op =) args vampire_force_sosK
+    val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
@@ -472,9 +471,9 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc max_relevant slicing lambda_translation
-        e_weight_method spass_force_sos vampire_force_sos hard_timeout timeout
-        dir st
+      run_sh prover_name prover type_enc sound max_relevant slicing
+        lambda_translation e_weight_method force_sos hard_timeout timeout dir
+        pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -511,6 +510,7 @@ fun run_minimize args reconstructor named_thms id
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
+    val sound = AList.lookup (op =) args soundK |> the_default "false"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
@@ -519,6 +519,7 @@ fun run_minimize args reconstructor named_thms id
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
+       ("sound", sound),
        ("timeout", string_of_int timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params

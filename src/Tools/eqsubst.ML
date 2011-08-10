@@ -108,10 +108,6 @@ sig
     val searchf_bt_unify_valid :
        searchinfo -> term -> match Seq.seq Seq.seq
 
-    (* syntax tools *)
-    val ith_syntax : int list parser
-    val options_syntax : bool parser
-
     (* Isar level hooks *)
     val eqsubst_asm_meth : Proof.context -> int list -> thm list -> Proof.method
     val eqsubst_meth : Proof.context -> int list -> thm list -> Proof.method
@@ -546,23 +542,15 @@ fun eqsubst_asm_tac ctxt occL thms i th =
 fun eqsubst_asm_meth ctxt occL inthms =
     SIMPLE_METHOD' (eqsubst_asm_tac ctxt occL inthms);
 
-(* syntax for options, given "(asm)" will give back true, without
-   gives back false *)
-val options_syntax =
-    (Args.parens (Args.$$$ "asm") >> (K true)) ||
-     (Scan.succeed false);
-
-val ith_syntax =
-    Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0];
-
 (* combination method that takes a flag (true indicates that subst
    should be done to an assumption, false = apply to the conclusion of
    the goal) as well as the theorems to use *)
 val setup =
   Method.setup @{binding subst}
-    (Scan.lift (options_syntax -- ith_syntax) -- Attrib.thms >>
-      (fn ((asmflag, occL), inthms) => fn ctxt =>
-        (if asmflag then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms))
+    (Args.mode "asm" -- Scan.lift (Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
+        Attrib.thms >>
+      (fn ((asm, occL), inthms) => fn ctxt =>
+        (if asm then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms))
     "single-step substitution";
 
 end;

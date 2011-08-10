@@ -1515,44 +1515,61 @@ fun rename_boundvars pat obj (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hy
        prop = prop'}));
 
 
-(* strip_apply f (A, B) strips off all assumptions/parameters from A
+(* strip_apply f B A strips off all assumptions/parameters from A
    introduced by lifting over B, and applies f to remaining part of A*)
 fun strip_apply f =
-  let fun strip(Const("==>",_)$ A1 $ B1,
-                Const("==>",_)$ _  $ B2) = Logic.mk_implies (A1, strip(B1,B2))
-        | strip((c as Const("all",_)) $ Abs(a,T,t1),
-                      Const("all",_)  $ Abs(_,_,t2)) = c$Abs(a,T,strip(t1,t2))
-        | strip(A,_) = f A
+  let fun strip (Const ("==>", _) $ _  $ B1)
+                (Const ("==>", _) $ A2 $ B2) = Logic.mk_implies (A2, strip B1 B2)
+        | strip ((c as Const ("all", _)) $ Abs (_, _, t1))
+                (      Const ("all", _)  $ Abs (a, T, t2)) = c $ Abs (a, T, strip t1 t2)
+        | strip _ A = f A
   in strip end;
+
+fun strip_lifted (Const ("==>", _) $ _ $ B1)
+                 (Const ("==>", _) $ _ $ B2) = strip_lifted B1 B2
+  | strip_lifted (Const ("all", _) $ Abs (_, _, t1))
+                 (Const ("all", _) $ Abs (_, _, t2)) = strip_lifted t1 t2
+  | strip_lifted _ A = A;
 
 (*Use the alist to rename all bound variables and some unknowns in a term
   dpairs = current disagreement pairs;  tpairs = permanent ones (flexflex);
   Preserves unknowns in tpairs and on lhs of dpairs. *)
-fun rename_bvs([],_,_,_) = I
-  | rename_bvs(al,dpairs,tpairs,B) =
+fun rename_bvs [] _ _ _ _ = K I
+  | rename_bvs al dpairs tpairs B As =
       let
         val add_var = fold_aterms (fn Var ((x, _), _) => insert (op =) x | _ => I);
         val vids = []
           |> fold (add_var o fst) dpairs
           |> fold (add_var o fst) tpairs
           |> fold (add_var o snd) tpairs;
+        val vids' = fold (add_var o strip_lifted B) As [];
         (*unknowns appearing elsewhere be preserved!*)
-        fun rename(t as Var((x,i),T)) =
-              (case AList.lookup (op =) al x of
-                SOME y =>
-                  if member (op =) vids x orelse member (op =) vids y then t
-                  else Var((y,i),T)
-              | NONE=> t)
-          | rename(Abs(x,T,t)) =
+        val al' = distinct ((op =) o pairself fst)
+          (filter_out (fn (x, y) =>
+             not (member (op =) vids' x) orelse
+             member (op =) vids x orelse member (op =) vids y) al);
+        val unchanged = filter_out (AList.defined (op =) al') vids';
+        fun del_clashing clash xs _ [] qs =
+              if clash then del_clashing false xs xs qs [] else qs
+          | del_clashing clash xs ys ((p as (x, y)) :: ps) qs =
+              if member (op =) ys y
+              then del_clashing true (x :: xs) (x :: ys) ps qs
+              else del_clashing clash xs (y :: ys) ps (p :: qs);
+        val al'' = del_clashing false unchanged unchanged al' [];        
+        fun rename (t as Var ((x, i), T)) =
+              (case AList.lookup (op =) al'' x of
+                 SOME y => Var ((y, i), T)
+               | NONE => t)
+          | rename (Abs (x, T, t)) =
               Abs (the_default x (AList.lookup (op =) al x), T, rename t)
-          | rename(f$t) = rename f $ rename t
-          | rename(t) = t;
-        fun strip_ren Ai = strip_apply rename (Ai,B)
+          | rename (f $ t) = rename f $ rename t
+          | rename t = t;
+        fun strip_ren f Ai = f rename B Ai
       in strip_ren end;
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
-fun rename_bvars(dpairs, tpairs, B) =
-        rename_bvs(List.foldr Term.match_bvars [] dpairs, dpairs, tpairs, B);
+fun rename_bvars dpairs =
+  rename_bvs (List.foldr Term.match_bvars [] dpairs) dpairs;
 
 
 (*** RESOLUTION ***)
@@ -1640,9 +1657,11 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
      fun newAs(As0, n, dpairs, tpairs) =
        let val (As1, rder') =
          if not lifted then (As0, rder)
-         else (map (rename_bvars(dpairs,tpairs,B)) As0,
-           deriv_rule1 (Proofterm.map_proof_terms
-             (rename_bvars (dpairs, tpairs, Bound 0)) I) rder);
+         else
+           let val rename = rename_bvars dpairs tpairs B As0
+           in (map (rename strip_apply) As0,
+             deriv_rule1 (Proofterm.map_proof_terms (rename K) I) rder)
+           end;
        in (map (if flatten then (Logic.flatten_params n) else I) As1, As1, rder', n)
           handle TERM _ =>
           raise THM("bicompose: 1st premise", 0, [orule])

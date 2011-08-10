@@ -25,6 +25,7 @@ sig
      best_slices :
        Proof.context -> (real * (bool * (int * string * string))) list}
 
+  val force_sos : bool Config.T
   val e_smartN : string
   val e_autoN : string
   val e_fun_weightN : string
@@ -36,16 +37,14 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
-  val spass_force_sos : bool Config.T
-  val vampire_force_sos : bool Config.T
   val eN : string
   val spassN : string
   val vampireN : string
   val leo2N : string
   val satallaxN : string
-  val sine_eN : string
+  val e_sineN : string
   val snarkN : string
-  val tofof_eN : string
+  val e_tofofN : string
   val waldmeisterN : string
   val z3_atpN : string
   val remote_prefix : string
@@ -103,14 +102,14 @@ val known_perl_failures =
 (* named ATPs *)
 
 val eN = "e"
+val leo2N = "leo2"
+val satallaxN = "satallax"
 val spassN = "spass"
 val vampireN = "vampire"
 val z3_atpN = "z3_atp"
-val leo2N = "leo2"
-val satallaxN = "satallax"
-val sine_eN = "sine_e"
+val e_sineN = "e_sine"
 val snarkN = "snark"
-val tofof_eN = "tofof_e"
+val e_tofofN = "e_tofof"
 val waldmeisterN = "waldmeister"
 val remote_prefix = "remote_"
 
@@ -127,6 +126,8 @@ fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 
 val sosN = "sos"
 val no_sosN = "no_sos"
+
+val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 
 
 (* E *)
@@ -228,10 +229,49 @@ val e_config : atp_config =
 val e = (eN, e_config)
 
 
-(* SPASS *)
+(* LEO-II *)
 
-val spass_force_sos =
-  Attrib.setup_config_bool @{binding atp_spass_force_sos} (K false)
+val leo2_config : atp_config =
+  {exec = ("LEO2_HOME", "leo"),
+   required_execs = [],
+   arguments =
+     fn _ => fn _ => fn sos => fn timeout => fn _ =>
+        "--proofoutput --timeout " ^ string_of_int (to_secs 1 timeout)
+        |> sos = sosN ? prefix "--sos ",
+   proof_delims = tstp_proof_delims,
+   known_failures = [],
+   conj_sym_kind = Axiom,
+   prem_kind = Hypothesis,
+   formats = [THF, FOF],
+   best_slices = fn ctxt =>
+     (* FUDGE *)
+     [(0.667, (false, (150, "simple_higher", sosN))),
+      (0.333, (true, (50, "simple_higher", no_sosN)))]
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
+         else I)}
+
+val leo2 = (leo2N, leo2_config)
+
+
+(* Satallax *)
+
+val satallax_config : atp_config =
+  {exec = ("SATALLAX_HOME", "satallax"),
+   required_execs = [],
+   arguments =
+     fn _ => fn _ => fn _ => fn timeout => fn _ =>
+        "-t " ^ string_of_int (to_secs 1 timeout),
+   proof_delims = tstp_proof_delims,
+   known_failures = [(ProofMissing, "SZS status Theorem")],
+   conj_sym_kind = Axiom,
+   prem_kind = Hypothesis,
+   formats = [THF],
+   best_slices = K [(1.0, (true, (100, "simple_higher", "")))] (* FUDGE *)}
+
+val satallax = (satallaxN, satallax_config)
+
+
+(* SPASS *)
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
@@ -260,16 +300,13 @@ val spass_config : atp_config =
      [(0.333, (false, (150, "mangled_tags", sosN))),
       (0.333, (false, (300, "poly_tags?", sosN))),
       (0.334, (true, (50, "mangled_tags?", no_sosN)))]
-     |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
 val spass = (spassN, spass_config)
 
 
 (* Vampire *)
-
-val vampire_force_sos =
-  Attrib.setup_config_bool @{binding atp_vampire_force_sos} (K false)
 
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
@@ -301,7 +338,7 @@ val vampire_config : atp_config =
      [(0.333, (false, (150, "poly_guards", sosN))),
       (0.334, (true, (50, "mangled_guards?", no_sosN))),
       (0.333, (false, (500, "mangled_tags?", sosN)))]
-     |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
 val vampire = (vampireN, vampire_config)
@@ -411,26 +448,26 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
                (K (750, "mangled_tags?") (* FUDGE *))
+val remote_leo2 =
+  remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
+               (K (100, "simple_higher") (* FUDGE *))
+val remote_satallax =
+  remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
+               (K (100, "simple_higher") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
                (K (200, "mangled_guards?") (* FUDGE *))
 val remote_z3_atp =
   remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_guards?") (* FUDGE *))
-val remote_leo2 =
-  remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
-             (K (100, "simple_higher") (* FUDGE *))
-val remote_satallax =
-  remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
-             (K (64, "simple_higher") (* FUDGE *))
-val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
+val remote_e_sine =
+  remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture [FOF] (K (500, "mangled_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
              [TFF, FOF] (K (100, "simple") (* FUDGE *))
-val remote_tofof_e =
-  remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
+val remote_e_tofof =
+  remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config)
              Axiom Hypothesis [TFF] (K (150, "simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
@@ -461,9 +498,9 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
-   remote_leo2, remote_satallax, remote_sine_e, remote_snark, remote_tofof_e,
-   remote_waldmeister]
+  [e, leo2, satallax, spass, vampire, z3_atp, remote_e, remote_leo2,
+   remote_satallax, remote_vampire, remote_z3_atp, remote_e_sine, remote_snark,
+   remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
 
 end;

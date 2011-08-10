@@ -186,9 +186,7 @@ done
 lemma leadsETo_Un:
      "[| F : A leadsTo[CC] C; F : B leadsTo[CC] C |] 
       ==> F : (A Un B) leadsTo[CC] C"
-apply (subst Un_eq_Union)
-apply (blast intro: leadsETo_Union)
-done
+  using leadsETo_Union [of "{A, B}" F CC C] by auto
 
 lemma single_leadsETo_I:
      "(!!x. x : A ==> F : {x} leadsTo[CC] B) ==> F : A leadsTo[CC] B"
@@ -407,9 +405,7 @@ done
 lemma LeadsETo_Un:
      "[| F : A LeadsTo[CC] C; F : B LeadsTo[CC] C |]  
       ==> F : (A Un B) LeadsTo[CC] C"
-apply (subst Un_eq_Union)
-apply (blast intro: LeadsETo_Union)
-done
+  using LeadsETo_Union [of "{A, B}" F CC C] by auto
 
 (*Lets us look at the starting state*)
 lemma single_LeadsETo_I:

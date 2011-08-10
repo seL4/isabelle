@@ -160,8 +160,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_enc file_name =
       facts
       |> map (fn ((_, loc), th) => ((Thm.get_name_hint th, loc), prop_of th))
       |> prepare_atp_problem ctxt format Axiom Axiom type_enc true true
-                             (rpair [] o map (introduce_combinators ctxt))
-                             false true [] @{prop False}
+                             combinatorsN false true [] @{prop False}
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))

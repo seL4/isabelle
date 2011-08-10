@@ -315,10 +315,10 @@ lemma range_binary_eq: "range(binary a b) = {a,b}"
   by (auto simp add: binary_def)
 
 lemma Un_range_binary: "a \<union> b = (\<Union>i::nat. binary a b i)"
-  by (simp add: UNION_eq_Union_image range_binary_eq)
+  by (simp add: SUP_def range_binary_eq)
 
 lemma Int_range_binary: "a \<inter> b = (\<Inter>i::nat. binary a b i)"
-  by (simp add: INTER_eq_Inter_image range_binary_eq)
+  by (simp add: INF_def range_binary_eq)
 
 lemma sigma_algebra_iff2:
      "sigma_algebra M \<longleftrightarrow>
@@ -1109,7 +1109,7 @@ lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
   done
 
 lemma UN_binaryset_eq: "(\<Union>i. binaryset A B i) = A \<union> B"
-  by (simp add: UNION_eq_Union_image range_binaryset_eq)
+  by (simp add: SUP_def range_binaryset_eq)
 
 section {* Closed CDI *}
 
