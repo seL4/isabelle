@@ -489,7 +489,7 @@ fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 fun future_gram deps e =
   singleton
     (Future.cond_forks {name = "Syntax.gram", group = NONE,
-      deps = map Future.task_of deps, pri = 0}) e;
+      deps = map Future.task_of deps, pri = 0, interrupts = true}) e;
 
 datatype syntax =
   Syntax of {

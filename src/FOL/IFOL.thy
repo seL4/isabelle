@@ -7,6 +7,7 @@ header {* Intuitionistic first-order logic *}
 theory IFOL
 imports Pure
 uses
+  "~~/src/Tools/misc_legacy.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"

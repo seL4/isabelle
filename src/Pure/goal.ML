@@ -124,12 +124,11 @@ fun fork_name name e =
     let
       val _ = forked 1;
       val future =
-        singleton (Future.forks {name = name, group = NONE, deps = [], pri = ~1})
+        singleton
+          (Future.forks {name = name, group = NONE, deps = [], pri = ~1, interrupts = false})
           (fn () =>
-            (*interruptible*)
             Exn.release
-              (Exn.capture Future.status e before forked ~1
-                handle exn => (forked ~1; reraise exn)));
+              (Exn.capture (Future.status o Future.interruptible_task) e before forked ~1));
     in future end) ();
 
 fun fork e = fork_name "Goal.fork" e;

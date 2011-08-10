@@ -358,7 +358,7 @@ fun varify_global fixed t =
 
 local
 
-fun new_name (ix, (pairs, used)) =
+fun new_name ix (pairs, used) =
   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
   in ((ix, v) :: pairs, v :: used) end;
 
@@ -374,18 +374,16 @@ in
 
 fun legacy_freeze_thaw_type T =
   let
-    val used = OldTerm.add_typ_tfree_names (T, [])
-    and tvars = map #1 (OldTerm.add_typ_tvars (T, []));
-    val (alist, _) = List.foldr new_name ([], used) tvars;
+    val used = Term.add_tfree_namesT T [];
+    val (alist, _) = fold_rev new_name (map #1 (Term.add_tvarsT T [])) ([], used);
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
 val legacy_freeze_type = #1 o legacy_freeze_thaw_type;
 
 fun legacy_freeze_thaw t =
   let
-    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
-    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
-    val (alist, _) = List.foldr new_name ([], used) tvars;
+    val used = Term.add_tfree_names t [];
+    val (alist, _) = fold_rev new_name (map #1 (Term.add_tvars t [])) ([], used);
   in
     (case alist of
       [] => (t, fn x => x) (*nothing to do!*)

@@ -19,7 +19,7 @@ struct
 fun inst_real thm =
   let val certT = ctyp_of (Thm.theory_of_thm thm) in
     Drule.export_without_context (Thm.instantiate
-      ([(certT (TVar (hd (OldTerm.term_tvars (prop_of thm)))), certT HOLogic.realT)], []) thm)
+      ([(certT (TVar (hd (Misc_Legacy.term_tvars (prop_of thm)))), certT HOLogic.realT)], []) thm)
   end
 
 local
@@ -57,7 +57,7 @@ fun inst_tvar ty thm =
     let
         val certT = Thm.ctyp_of (Thm.theory_of_thm thm);
         val ord = prod_ord (prod_ord string_ord int_ord) (list_ord string_ord)
-        val v = TVar (hd (sort ord (OldTerm.term_tvars (prop_of thm))))
+        val v = TVar (hd (sort ord (Misc_Legacy.term_tvars (prop_of thm))))
     in
         Drule.export_without_context (Thm.instantiate ([(certT v, certT ty)], []) thm)
     end

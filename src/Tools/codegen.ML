@@ -1,7 +1,7 @@
-(*  Title:      Pure/codegen.ML
+(*  Title:      Tools/codegen.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Generic code generator.
+Old code generator.
 *)
 
 signature CODEGEN =
@@ -273,7 +273,7 @@ fun preprocess thy =
 
 fun preprocess_term thy t =
   let
-    val x = Free (singleton (Name.variant_list (OldTerm.add_term_names (t, []))) "x", fastype_of t);
+    val x = Free (singleton (Name.variant_list (Misc_Legacy.add_term_names (t, []))) "x", fastype_of t);
     (* fake definition *)
     val eq = Skip_Proof.make_thm thy (Logic.mk_equals (x, t));
     fun err () = error "preprocess_term: bad preprocessor"
@@ -446,7 +446,7 @@ fun thyname_of_const thy = #theory_name o Name_Space.the_entry (Sign.const_space
 
 fun rename_terms ts =
   let
-    val names = List.foldr OldTerm.add_term_names
+    val names = List.foldr Misc_Legacy.add_term_names
       (map (fst o fst) (rev (fold Term.add_vars ts []))) ts;
     val reserved = filter ML_Syntax.is_reserved names;
     val (illegal, alt_names) = split_list (map_filter (fn s =>
@@ -471,7 +471,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance T1 T2 =
-  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT_global T2);
+  Type.raw_instance (T1, if null (Misc_Legacy.typ_tfrees T2) then T2 else Logic.varifyT_global T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
@@ -592,8 +592,8 @@ fun mk_app _ p [] = p
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
-  (union (op =) (map (fst o fst o dest_Var) (OldTerm.term_vars t))
-    (OldTerm.add_term_names (t, ML_Syntax.reserved_names))) (map mk_id xs);
+  (union (op =) (map (fst o fst o dest_Var) (Misc_Legacy.term_vars t))
+    (Misc_Legacy.add_term_names (t, ML_Syntax.reserved_names))) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 
@@ -962,7 +962,7 @@ fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
      (   $$ "_" >> K Arg
       || $$ "?" >> K Ignore
-      || $$ "\\<module>" >> K Module
+      || $$ "\<module>" >> K Module
       || $$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length)
       || $$ "{" |-- $$ "*" |-- Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.is_regular
@@ -970,7 +970,7 @@ fun parse_mixfix rd s =
          $$ "*" --| $$ "}" >> (Quote o rd o implode)
       || Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.is_regular
-            || Scan.unless ($$ "_" || $$ "?" || $$ "\\<module>" || $$ "/" || $$ "{" |-- $$ "*")
+            || Scan.unless ($$ "_" || $$ "?" || $$ "\<module>" || $$ "/" || $$ "{" |-- $$ "*")
                  (Scan.one Symbol.is_regular)) >> (Pretty o str o implode)))
        (Symbol.explode s) of
      (p, []) => p

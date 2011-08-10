@@ -210,7 +210,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Tools/xml_syntax.ML					\
   assumption.ML						\
   axclass.ML						\
-  codegen.ML						\
   config.ML						\
   conjunction.ML					\
   consts.ML						\
@@ -233,7 +232,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   morphism.ML						\
   name.ML						\
   net.ML						\
-  old_term.ML						\
   pattern.ML						\
   primitive_defs.ML					\
   proofterm.ML						\

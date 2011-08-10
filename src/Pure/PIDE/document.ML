@@ -228,7 +228,7 @@ fun async_state tr st =
   ignore
     (singleton
       (Future.forks {name = "Document.async_state",
-        group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0})
+        group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0, interrupts = true})
       (fn () =>
         Toplevel.setmp_thread_position tr
           (fn () => Toplevel.print_state false st) ()));
@@ -359,7 +359,8 @@ fun execute version_id state =
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
       val execution' = (* FIXME proper node deps *)
-        Future.forks {name = "Document.execute", group = NONE, deps = [], pri = 1}
+        Future.forks
+          {name = "Document.execute", group = NONE, deps = [], pri = 1, interrupts = true}
           [fn () =>
             node_names_of version |> List.app (fn name =>
               fold_entries NONE (fn (_, exec) => fn () => force_exec exec)

@@ -461,15 +461,15 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.typ_tvars T)) T;
+        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvarsT T [])) T;
 
 fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
-   map_filter (fn Var (ixnT as (_, T)) =>
+        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvars t []),
+   map_filter (fn (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
-        SOME (ixnT, Free ("dummy", T))) (OldTerm.term_vars t)) t;
+        SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
 
 fun norm_proof env =
   let
@@ -674,11 +674,12 @@ fun varify_proof t fixed prf =
 
 local
 
-fun new_name (ix, (pairs,used)) =
+fun new_name ix (pairs, used) =
   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
-  in  ((ix, v) :: pairs, v :: used)  end;
+  in ((ix, v) :: pairs, v :: used) end;
 
-fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
+fun freeze_one alist (ix, sort) =
+  (case AList.lookup (op =) alist ix of
     NONE => TVar (ix, sort)
   | SOME name => TFree (name, sort));
 
@@ -686,15 +687,14 @@ in
 
 fun legacy_freezeT t prf =
   let
-    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
-    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
-    val (alist, _) = List.foldr new_name ([], used) tvars;
+    val used = Term.add_tfree_names t [];
+    val (alist, _) = fold_rev new_name (map #1 (Term.add_tvars t [])) ([], used);
   in
     (case alist of
       [] => prf (*nothing to do!*)
     | _ =>
-      let val frzT = map_type_tvar (freeze_one alist)
-      in map_proof_terms (map_types frzT) frzT prf end)
+        let val frzT = map_type_tvar (freeze_one alist)
+        in map_proof_terms (map_types frzT) frzT prf end)
   end;
 
 end;
@@ -1404,7 +1404,8 @@ fun fulfill_proof_future _ [] postproc body =
   | fulfill_proof_future thy promises postproc body =
       singleton
         (Future.forks {name = "Proofterm.fulfill_proof_future", group = NONE,
-            deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0})
+            deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
+            interrupts = true})
         (fn () =>
           postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
 
@@ -1461,7 +1462,9 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
       else
         singleton
-          (Future.forks {name = "Proofterm.prepare_thm_proof", group = NONE, deps = [], pri = ~1})
+          (Future.forks
+            {name = "Proofterm.prepare_thm_proof", group = NONE, deps = [], pri = ~1,
+              interrupts = true})
           (make_body0 o full_proof0);
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);

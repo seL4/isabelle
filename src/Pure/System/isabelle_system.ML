@@ -96,7 +96,7 @@ fun with_tmp_fifo f =
         (_, 0) => f path
       | (out, _) => error (perhaps (try (unsuffix "\n")) out)));
 
-fun bash_output_fifo script f =
+fun bash_output_fifo script f =  (* FIXME blocks on Cygwin 1.7.x *)
   with_tmp_fifo (fn fifo =>
     uninterruptible (fn restore_attributes => fn () =>
       (case Bash.process (script ^ " > " ^ File.shell_path fifo ^ " &") of

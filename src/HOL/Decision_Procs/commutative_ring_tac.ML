@@ -68,7 +68,7 @@ val cr_sort = @{sort "comm_ring_1"};
 fun reif_eq thy (eq as Const(@{const_name HOL.eq}, Type("fun", [T, _])) $ lhs $ rhs) =
       if Sign.of_sort thy (T, cr_sort) then
         let
-          val fs = OldTerm.term_frees eq;
+          val fs = Misc_Legacy.term_frees eq;
           val cvs = cterm_of thy (HOLogic.mk_list T fs);
           val clhs = cterm_of thy (reif_polex T fs lhs);
           val crhs = cterm_of thy (reif_polex T fs rhs);

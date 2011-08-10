@@ -322,7 +322,7 @@ fun mk_functional thy clauses =
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
                               map_index (fn (i, t) => (t,(i,true))) R)
-     val names = List.foldr OldTerm.add_term_names [] R
+     val names = List.foldr Misc_Legacy.add_term_names [] R
      val atype = type_of(hd pats)
      and aname = singleton (Name.variant_list names) "a"
      val a = Free(aname,atype)
@@ -480,7 +480,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val tych = Thry.typecheck thy
      val WFREC_THM0 = Rules.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
-     val R = Free (singleton (Name.variant_list (List.foldr OldTerm.add_term_names [] eqns)) Rname,
+     val R = Free (singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] eqns)) Rname,
                    Rtype)
      val WFREC_THM = Rules.ISPECL [tych R, tych g] WFREC_THM0
      val ([proto_def, WFR],_) = USyntax.strip_imp(concl WFREC_THM)
@@ -677,7 +677,7 @@ fun complete_cases thy =
  let val tych = Thry.typecheck thy
      val ty_info = Thry.induct_info thy
  in fn pats =>
- let val names = List.foldr OldTerm.add_term_names [] pats
+ let val names = List.foldr Misc_Legacy.add_term_names [] pats
      val T = type_of (hd pats)
      val aname = singleton (Name.variant_list names) "a"
      val vname = singleton (Name.variant_list (aname::names)) "v"
@@ -830,7 +830,7 @@ let val tych = Thry.typecheck thy
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
-    val Pname = singleton (Name.variant_list (List.foldr (Library.foldr OldTerm.add_term_names)
+    val Pname = singleton (Name.variant_list (List.foldr (Library.foldr Misc_Legacy.add_term_names)
                               [] (pats::TCsl))) "P"
     val P = Free(Pname, domain --> HOLogic.boolT)
     val Sinduct = Rules.SPEC (tych P) Sinduction
@@ -843,7 +843,7 @@ let val tych = Thry.typecheck thy
     val proved_cases = map (prove_case fconst thy) tasks
     val v =
       Free (singleton
-        (Name.variant_list (List.foldr OldTerm.add_term_names [] (map concl proved_cases))) "v",
+        (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] (map concl proved_cases))) "v",
           domain)
     val vtyped = tych v
     val substs = map (Rules.SYM o Rules.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
