@@ -1,7 +1,7 @@
-(*  Title:      Pure/codegen.ML
+(*  Title:      Tools/codegen.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Generic code generator.
+Old code generator.
 *)
 
 signature CODEGEN =
@@ -962,7 +962,7 @@ fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
      (   $$ "_" >> K Arg
       || $$ "?" >> K Ignore
-      || $$ "\\<module>" >> K Module
+      || $$ "\<module>" >> K Module
       || $$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length)
       || $$ "{" |-- $$ "*" |-- Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.is_regular
@@ -970,7 +970,7 @@ fun parse_mixfix rd s =
          $$ "*" --| $$ "}" >> (Quote o rd o implode)
       || Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.is_regular
-            || Scan.unless ($$ "_" || $$ "?" || $$ "\\<module>" || $$ "/" || $$ "{" |-- $$ "*")
+            || Scan.unless ($$ "_" || $$ "?" || $$ "\<module>" || $$ "/" || $$ "{" |-- $$ "*")
                  (Scan.one Symbol.is_regular)) >> (Pretty o str o implode)))
        (Symbol.explode s) of
      (p, []) => p

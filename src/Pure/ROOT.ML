@@ -279,8 +279,6 @@ use "Tools/xml_syntax.ML";
 use "Tools/find_theorems.ML";
 use "Tools/find_consts.ML";
 
-use "codegen.ML";
-
 
 (* configuration for Proof General *)
 

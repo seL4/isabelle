@@ -7,6 +7,7 @@ header {* Loading the code generator and related modules *}
 theory Code_Generator
 imports Pure
 uses
+  "~~/src/Tools/codegen.ML"
   "~~/src/Tools/cache_io.ML"
   "~~/src/Tools/try.ML"
   "~~/src/Tools/solve_direct.ML"

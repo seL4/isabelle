@@ -210,7 +210,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Tools/xml_syntax.ML					\
   assumption.ML						\
   axclass.ML						\
-  codegen.ML						\
   config.ML						\
   conjunction.ML					\
   consts.ML						\
