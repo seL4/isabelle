@@ -674,11 +674,12 @@ fun varify_proof t fixed prf =
 
 local
 
-fun new_name (ix, (pairs,used)) =
+fun new_name ix (pairs, used) =
   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
-  in  ((ix, v) :: pairs, v :: used)  end;
+  in ((ix, v) :: pairs, v :: used) end;
 
-fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
+fun freeze_one alist (ix, sort) =
+  (case AList.lookup (op =) alist ix of
     NONE => TVar (ix, sort)
   | SOME name => TFree (name, sort));
 
@@ -686,15 +687,14 @@ in
 
 fun legacy_freezeT t prf =
   let
-    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
-    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
-    val (alist, _) = List.foldr new_name ([], used) tvars;
+    val used = Term.add_tfree_names t [];
+    val (alist, _) = fold_rev new_name (map #1 (Term.add_tvars t [])) ([], used);
   in
     (case alist of
       [] => prf (*nothing to do!*)
     | _ =>
-      let val frzT = map_type_tvar (freeze_one alist)
-      in map_proof_terms (map_types frzT) frzT prf end)
+        let val frzT = map_type_tvar (freeze_one alist)
+        in map_proof_terms (map_types frzT) frzT prf end)
   end;
 
 end;
