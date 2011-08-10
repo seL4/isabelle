@@ -197,6 +197,7 @@ fun worker_exec (task, jobs) =
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
+        val _ = Exn.capture Multithreading.interrupted ();
         val _ =
           if ok then ()
           else if cancel_now group then ()
@@ -397,7 +398,8 @@ fun assign_result group result res =
         | _ => reraise exn);
     val ok =
       (case the (Single_Assignment.peek result) of
-        Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
+        Exn.Exn exn =>
+          (SYNCHRONIZED "cancel" (fn () => Task_Queue.cancel_group group exn); false)
       | Exn.Res _ => true);
   in ok end;
 
