@@ -8,7 +8,7 @@ signature SIMPLE_THREAD =
 sig
   val attributes: bool -> Thread.threadAttribute list
   val fork: bool -> (unit -> unit) -> Thread.thread
-  val interrupt: Thread.thread -> unit
+  val interrupt_unsynchronized: Thread.thread -> unit
   val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
 end;
 
@@ -24,7 +24,7 @@ fun fork interrupts body =
       body () handle exn => if Exn.is_interrupt exn then () else reraise exn),
     attributes interrupts);
 
-fun interrupt thread = Thread.interrupt thread handle Thread _ => ();
+fun interrupt_unsynchronized thread = Thread.interrupt thread handle Thread _ => ();
 
 
 (* basic synchronization *)
