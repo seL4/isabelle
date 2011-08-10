@@ -39,6 +39,7 @@ sig
   val task_of: 'a future -> Task_Queue.task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
+  val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: Task_Queue.group -> unit
   val cancel: 'a future -> unit
   type fork_params =
@@ -57,7 +58,6 @@ sig
   val promise: unit -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
-  val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val shutdown: unit -> unit
   val status: (unit -> 'a) -> 'a
 end;
