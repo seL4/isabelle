@@ -6,5 +6,5 @@ THIS="$(cd $(dirname "$0"); pwd)"
 
 cd "$THIS/../../../src/Pure"
 echo "use \"../../Admin/polyml/future/ROOT.ML\";"
-env ML_SYSTEM=dummy ML_PLATFORM=dummy "$POLY"
+exec "$POLY"
 
