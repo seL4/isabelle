@@ -122,7 +122,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
-  $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_namespace.ML \
@@ -139,7 +138,9 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/case_product.ML \
+  $(SRC)/Tools/codegen.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \
   $(SRC)/Tools/eqsubst.ML \

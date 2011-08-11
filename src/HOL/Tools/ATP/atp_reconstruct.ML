@@ -545,12 +545,12 @@ fun decode_line sym_tab (Definition (name, phi1, phi2)) ctxt =
         |> HOLogic.dest_eq
     in
       (Definition (name, t1, t2),
-       fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
+       fold Variable.declare_term (maps Misc_Legacy.term_frees [t1, t2]) ctxt)
     end
   | decode_line sym_tab (Inference (name, u, deps)) ctxt =
     let val t = u |> uncombined_etc_prop_from_atp ctxt true sym_tab in
       (Inference (name, t, deps),
-       fold Variable.declare_term (OldTerm.term_frees t) ctxt)
+       fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
     end
 fun decode_lines ctxt sym_tab lines =
   fst (fold_map (decode_line sym_tab) lines ctxt)

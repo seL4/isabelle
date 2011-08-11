@@ -73,7 +73,7 @@ val process = uninterruptible (fn restore_attributes => fn script =>
       in () end;
 
     fun cleanup () =
-     (Simple_Thread.interrupt system_thread;
+     (Simple_Thread.interrupt_unsynchronized system_thread;
       try File.rm script_path;
       try File.rm output_path;
       try File.rm pid_path);

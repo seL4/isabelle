@@ -288,9 +288,9 @@ fun reconstruct_proof thy prop cprf =
     val _ = message "Collecting constraints...";
     val (t, prf, cs, env, _) = make_constraints_cprf thy
       (Envir.empty (Proofterm.maxidx_proof cprf ~1)) cprf';
-    val cs' = map (fn p => (true, p, uncurry (union (op =)) 
-        (pairself (map (fst o dest_Var) o OldTerm.term_vars) p)))
-      (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
+    val cs' =
+      map (pairself (Envir.norm_term env)) ((t, prop') :: cs)
+      |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve thy cs' env
   in

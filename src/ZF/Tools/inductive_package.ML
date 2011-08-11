@@ -96,7 +96,7 @@ let
                Syntax.string_of_term ctxt t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = singleton (Name.variant_list (List.foldr OldTerm.add_term_names [] intr_tms));
+  val mk_variant = singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] intr_tms));
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -108,7 +108,7 @@ let
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
     let val prems = map dest_tprop (Logic.strip_imp_prems intr)
         val dummy = List.app (fn rec_hd => List.app (Ind_Syntax.chk_prem rec_hd) prems) rec_hds
-        val exfrees = subtract (op =) rec_params (OldTerm.term_frees intr)
+        val exfrees = subtract (op =) rec_params (Misc_Legacy.term_frees intr)
         val zeq = FOLogic.mk_eq (Free(z', Ind_Syntax.iT), #1 (Ind_Syntax.rule_concl intr))
     in List.foldr FOLogic.mk_exists
              (Balanced_Tree.make FOLogic.mk_conj (zeq::prems)) exfrees
@@ -296,7 +296,7 @@ let
 
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
-       let val quantfrees = map dest_Free (subtract (op =) rec_params (OldTerm.term_frees intr))
+       let val quantfrees = map dest_Free (subtract (op =) rec_params (Misc_Legacy.term_frees intr))
            val iprems = List.foldr (add_induct_prem ind_alist) []
                               (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr

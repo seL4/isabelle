@@ -160,7 +160,7 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
  *---------------------------------------------------------------------------*)
 local val thy = Thm.theory_of_thm disjI1
       val prop = Thm.prop_of disjI1
-      val [P,Q] = OldTerm.term_vars prop
+      val [P,Q] = Misc_Legacy.term_vars prop
       val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj1)
@@ -169,7 +169,7 @@ end;
 
 local val thy = Thm.theory_of_thm disjI2
       val prop = Thm.prop_of disjI2
-      val [P,Q] = OldTerm.term_vars prop
+      val [P,Q] = Misc_Legacy.term_vars prop
       val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
 fun DISJ2 tm thm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj2)
@@ -263,7 +263,7 @@ fun DISJ_CASESL disjth thl =
 local (* this is fragile *)
       val thy = Thm.theory_of_thm spec
       val prop = Thm.prop_of spec
-      val x = hd (tl (OldTerm.term_vars prop))
+      val x = hd (tl (Misc_Legacy.term_vars prop))
       val cTV = ctyp_of thy (type_of x)
       val gspec = Thm.forall_intr (cterm_of thy x) spec
 in
@@ -280,7 +280,7 @@ val ISPECL = fold ISPEC;
 (* Not optimized! Too complicated. *)
 local val thy = Thm.theory_of_thm allI
       val prop = Thm.prop_of allI
-      val [P] = OldTerm.add_term_vars (prop, [])
+      val [P] = Misc_Legacy.add_term_vars (prop, [])
       fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
                              let val ctm2 = cterm_of s tm2
@@ -310,7 +310,7 @@ fun GEN_ALL thm =
    let val thy = Thm.theory_of_thm thm
        val prop = Thm.prop_of thm
        val tycheck = cterm_of thy
-       val vlist = map tycheck (OldTerm.add_term_vars (prop, []))
+       val vlist = map tycheck (Misc_Legacy.add_term_vars (prop, []))
   in GENL vlist thm
   end;
 
@@ -350,7 +350,7 @@ fun CHOOSE (fvar, exth) fact =
 
 local val thy = Thm.theory_of_thm exI
       val prop = Thm.prop_of exI
-      val [P,x] = OldTerm.term_vars prop
+      val [P,x] = Misc_Legacy.term_vars prop
 in
 fun EXISTS (template,witness) thm =
    let val thy = Thm.theory_of_thm thm
@@ -501,7 +501,7 @@ fun get ([],_,L) = rev L
                 val (f,args) = USyntax.strip_comb (get_lhs eq)
                 val (vstrl,_) = USyntax.strip_abs f
                 val names  =
-                  Name.variant_list (OldTerm.add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
+                  Name.variant_list (Misc_Legacy.add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
             in get (rst, n+1, (names,n)::L) end
             handle TERM _ => get (rst, n+1, L)
               | Utils.ERR _ => get (rst, n+1, L);
@@ -742,7 +742,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val thy = Thm.theory_of_thm thm
               val Const("==>",_) $ (Const(@{const_name Trueprop},_) $ A) $ _ = Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
-                                           (OldTerm.add_term_frees(tm,[]))
+                                           (Misc_Legacy.add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm
                             end
               (*--------------------------------------------------------------
@@ -780,7 +780,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) ss thm
     end
     val ctm = cprop_of th
-    val names = OldTerm.add_term_names (term_of ctm, [])
+    val names = Misc_Legacy.add_term_names (term_of ctm, [])
     val th1 = Raw_Simplifier.rewrite_cterm (false,true,false)
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = Thm.equal_elim th1 th

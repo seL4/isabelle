@@ -26,7 +26,7 @@ Pure:
 	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(OUT)/FOLP: $(OUT)/Pure FOLP.thy IFOLP.thy ROOT.ML classical.ML	\
-  hypsubst.ML intprover.ML simp.ML simpdata.ML
+  hypsubst.ML intprover.ML simp.ML simpdata.ML $(SRC)/Tools/misc_legacy.ML
 	@$(ISABELLE_TOOL) usedir -b $(OUT)/Pure FOLP
 
 

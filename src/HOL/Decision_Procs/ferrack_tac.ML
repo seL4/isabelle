@@ -61,7 +61,7 @@ fun prepare_for_linr sg q fm =
     val (fm',np) =  List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (List.foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = HOLogic.natT)
-      (OldTerm.term_frees fm' @ OldTerm.term_vars fm');
+      (Misc_Legacy.term_frees fm' @ Misc_Legacy.term_vars fm');
     val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 

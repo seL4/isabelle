@@ -7,7 +7,7 @@ header {* Intuitionistic First-Order Logic with Proofs *}
 
 theory IFOLP
 imports Pure
-uses ("hypsubst.ML") ("intprover.ML")
+uses "~~/src/Tools/misc_legacy.ML" ("hypsubst.ML") ("intprover.ML")
 begin
 
 setup Pure_Thy.old_appl_syntax_setup

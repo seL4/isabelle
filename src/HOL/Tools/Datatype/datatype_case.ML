@@ -318,7 +318,7 @@ fun gen_dest_case name_of type_of tab d used t =
             val _ = if length zs < i then raise CASE_ERROR ("", 0) else ();
             val (xs, ys) = chop i zs;
             val u = list_abs (ys, strip_abs_body t);
-            val xs' = map Free (Name.variant_list (OldTerm.add_term_names (u, used))
+            val xs' = map Free (Name.variant_list (Misc_Legacy.add_term_names (u, used))
               (map fst xs) ~~ map snd xs)
           in (xs', subst_bounds (rev xs', u)) end;
         fun is_dependent i t =
@@ -379,9 +379,9 @@ val dest_case' = gen_dest_case (try (dest_Const #> fst #> Lexicon.unmark_const))
 fun strip_case'' dest (pat, rhs) =
   (case dest (Term.add_free_names pat []) rhs of
     SOME (exp as Free _, clauses) =>
-      if member op aconv (OldTerm.term_frees pat) exp andalso
+      if member op aconv (Misc_Legacy.term_frees pat) exp andalso
         not (exists (fn (_, rhs') =>
-          member op aconv (OldTerm.term_frees rhs') exp) clauses)
+          member op aconv (Misc_Legacy.term_frees rhs') exp) clauses)
       then
         maps (strip_case'' dest) (map (fn (pat', rhs') =>
           (subst_free [(exp, pat')] pat, rhs')) clauses)

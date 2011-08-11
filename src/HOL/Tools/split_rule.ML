@@ -88,7 +88,7 @@ val split_rule_var = (Drule.export_without_context o remove_internal_split) oo s
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule rl =
-  fold_rev split_rule_var' (OldTerm.term_vars (concl_of rl)) rl
+  fold_rev split_rule_var' (Misc_Legacy.term_vars (concl_of rl)) rl
   |> remove_internal_split
   |> Drule.export_without_context;
 

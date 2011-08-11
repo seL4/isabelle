@@ -18,7 +18,7 @@ struct
 
 fun close_form t =
     fold_rev (fn (s, T) => fn t => HOLogic.mk_all (s, T, t))
-             (map dest_Free (OldTerm.term_frees t)) t
+             (map dest_Free (Misc_Legacy.term_frees t)) t
 
 local
     fun mk_definitional [] arg = arg
@@ -122,7 +122,7 @@ fun process_spec axiomatic cos alt_props thy =
 
         fun proc_single prop =
             let
-                val frees = OldTerm.term_frees prop
+                val frees = Misc_Legacy.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
                 val prop_closed = close_form prop

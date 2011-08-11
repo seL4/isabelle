@@ -30,12 +30,12 @@ fun timeLimit time f x =
       val main = Thread.self ();
       val timeout = Unsynchronized.ref false;
       val watchdog = Simple_Thread.fork true (fn () =>
-        (OS.Process.sleep time; timeout := true; Thread.interrupt main));
+        (OS.Process.sleep time; timeout := true; Simple_Thread.interrupt_unsynchronized main));
 
       val result =
         Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
 
-      val _ = Thread.interrupt watchdog handle Thread _ => ();
+      val _ = Simple_Thread.interrupt_unsynchronized watchdog;
       val _ = while Thread.isActive watchdog do OS.Process.sleep wait_time;
 
       val test = Exn.capture Multithreading.interrupted ();

@@ -1457,8 +1457,8 @@ fun classes_of_terms get_Ts =
   #> List.foldl add_classes Symtab.empty
   #> delete_type #> Symtab.keys
 
-val tfree_classes_of_terms = classes_of_terms OldTerm.term_tfrees
-val tvar_classes_of_terms = classes_of_terms OldTerm.term_tvars
+val tfree_classes_of_terms = classes_of_terms Misc_Legacy.term_tfrees
+val tvar_classes_of_terms = classes_of_terms Misc_Legacy.term_tvars
 
 fun fold_type_constrs f (Type (s, Ts)) x =
     fold (fold_type_constrs f) Ts (f (s, x))

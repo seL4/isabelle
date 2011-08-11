@@ -56,9 +56,9 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val abs_ct = ctermify abst;
       val free_ct = ctermify x;
 
-      val casethm_vars = rev (OldTerm.term_vars (Thm.concl_of case_thm));
+      val casethm_vars = rev (Misc_Legacy.term_vars (Thm.concl_of case_thm));
 
-      val casethm_tvars = OldTerm.term_tvars (Thm.concl_of case_thm);
+      val casethm_tvars = Misc_Legacy.term_tvars (Thm.concl_of case_thm);
       val (Pv, Dv, type_insts) =
           case (Thm.concl_of case_thm) of
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>
