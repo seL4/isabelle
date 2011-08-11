@@ -41,9 +41,6 @@ in
 end
 *}
 
-lemma stupid_ext: "(\<forall>x. f x = g x) \<longleftrightarrow> (f = g)"
-  by auto
-
 lemma vec_eq_iff: "(x = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
   by (simp add: vec_nth_inject [symmetric] fun_eq_iff)
 

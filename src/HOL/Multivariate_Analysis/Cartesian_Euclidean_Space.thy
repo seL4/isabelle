@@ -866,7 +866,7 @@ proof-
     obtain g where g: "linear g" "g o op *v A = id" by blast
     have "matrix g ** A = mat 1"
       unfolding matrix_eq matrix_vector_mul_lid matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) by (simp add: o_def id_def stupid_ext)
+      using g(2) by (simp add: fun_eq_iff)
     then have "\<exists>B. (B::real ^'m^'n) ** A = mat 1" by blast}
   ultimately show ?thesis by blast
 qed
@@ -894,7 +894,7 @@ proof-
     have "A ** (matrix g) = mat 1"
       unfolding matrix_eq  matrix_vector_mul_lid
         matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) unfolding o_def stupid_ext[symmetric] id_def
+      using g(2) unfolding o_def fun_eq_iff id_def
       .
     hence "\<exists>B. A ** (B::real^'m^'n) = mat 1" by blast
   }
