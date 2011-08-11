@@ -608,7 +608,7 @@ lemma ereal_mult_strict_right_mono:
   shows "a * c < b * c"
   using assms
   by (cases rule: ereal3_cases[of a b c])
-     (auto simp: zero_le_mult_iff ereal_less_PInfty)
+     (auto simp: zero_le_mult_iff)
 
 lemma ereal_mult_strict_left_mono:
   "\<lbrakk> a < b ; 0 < c ; c < (\<infinity>::ereal)\<rbrakk> \<Longrightarrow> c * a < c * b"
@@ -619,7 +619,7 @@ lemma ereal_mult_right_mono:
   using assms
   apply (cases "c = 0") apply simp
   by (cases rule: ereal3_cases[of a b c])
-     (auto simp: zero_le_mult_iff ereal_less_PInfty)
+     (auto simp: zero_le_mult_iff)
 
 lemma ereal_mult_left_mono:
   fixes a b c :: ereal shows "\<lbrakk>a \<le> b; 0 \<le> c\<rbrakk> \<Longrightarrow> c * a \<le> c * b"
@@ -710,7 +710,7 @@ lemma ereal_le_real:
   fixes x y :: ereal
   assumes "ALL z. x <= ereal z --> y <= ereal z"
   shows "y <= x"
-by (metis assms ereal_bot ereal_cases ereal_infty_less_eq ereal_less_eq linorder_le_cases)
+by (metis assms ereal_bot ereal_cases ereal_infty_less_eq(2) ereal_less_eq(1) linorder_le_cases)
 
 lemma ereal_le_ereal:
   fixes x y :: ereal
@@ -2037,7 +2037,7 @@ proof (intro topological_tendstoI)
   with `x \<noteq> 0` have "open (S - {0})" "x \<in> S - {0}" by auto
   from tendsto[THEN topological_tendstoD, OF this]
   show "eventually (\<lambda>x. f x \<in> S) net"
-    by (rule eventually_rev_mp) (auto simp: ereal_real real_of_ereal_0)
+    by (rule eventually_rev_mp) (auto simp: ereal_real)
 qed
 
 lemma tendsto_ereal_realI:

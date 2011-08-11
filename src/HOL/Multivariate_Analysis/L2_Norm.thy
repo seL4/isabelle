@@ -109,9 +109,8 @@ qed
 lemma sqrt_sum_squares_le_sum:
   "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<twosuperior> + y\<twosuperior>) \<le> x + y"
   apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum)
-  apply (simp add: mult_nonneg_nonneg)
-  apply (simp add: add_nonneg_nonneg)
+  apply (simp add: power2_sum mult_nonneg_nonneg)
+  apply simp
   done
 
 lemma setL2_le_setsum [rule_format]:
@@ -128,9 +127,8 @@ lemma setL2_le_setsum [rule_format]:
 
 lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<twosuperior> + y\<twosuperior>) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
   apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum)
-  apply (simp add: mult_nonneg_nonneg)
-  apply (simp add: add_nonneg_nonneg)
+  apply (simp add: power2_sum mult_nonneg_nonneg)
+  apply simp
   done
 
 lemma setL2_le_setsum_abs: "setL2 f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
@@ -164,7 +162,7 @@ lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le>
   apply (rule order_trans)
   apply (rule power_mono)
   apply (erule add_left_mono)
-  apply (simp add: add_nonneg_nonneg mult_nonneg_nonneg setsum_nonneg)
+  apply (simp add: mult_nonneg_nonneg setsum_nonneg)
   apply (simp add: power2_sum)
   apply (simp add: power_mult_distrib)
   apply (simp add: right_distrib left_distrib)

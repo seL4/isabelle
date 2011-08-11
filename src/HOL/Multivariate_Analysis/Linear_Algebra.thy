@@ -641,9 +641,9 @@ lemma sqrt_add_le_add_sqrt:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
   shows "sqrt (x + y) \<le> sqrt x + sqrt y"
 apply (rule power2_le_imp_le)
-apply (simp add: real_sum_squared_expand add_nonneg_nonneg x y)
+apply (simp add: real_sum_squared_expand x y)
 apply (simp add: mult_nonneg_nonneg x y)
-apply (simp add: add_nonneg_nonneg x y)
+apply (simp add: x y)
 done
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
@@ -2319,7 +2319,7 @@ lemma linear_indep_image_lemma:
   shows "x = 0"
   using fB ifB fi xsB fx
 proof(induct arbitrary: x rule: finite_induct[OF fB])
-  case 1 thus ?case by (auto simp add:  span_empty)
+  case 1 thus ?case by auto
 next
   case (2 a b x)
   have fb: "finite b" using "2.prems" by simp
@@ -2372,7 +2372,7 @@ lemma linear_independent_extend_lemma:
            \<and> (\<forall>x\<in> B. g x = f x)"
 using ib fi
 proof(induct rule: finite_induct[OF fi])
-  case 1 thus ?case by (auto simp add: span_empty)
+  case 1 thus ?case by auto
 next
   case (2 a b)
   from "2.prems" "2.hyps" have ibf: "independent b" "finite b"

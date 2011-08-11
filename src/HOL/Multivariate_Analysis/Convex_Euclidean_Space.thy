@@ -198,9 +198,6 @@ proof-
   from this show ?thesis by auto
 qed
 
-lemma basis_0[simp]:"(basis i::'a::euclidean_space) = 0 \<longleftrightarrow> i\<ge>DIM('a)"
-  using norm_basis[of i, where 'a='a] unfolding norm_eq_zero[where 'a='a,THEN sym] by auto
-
 lemma basis_to_basis_subspace_isomorphism:
   assumes s: "subspace (S:: ('n::euclidean_space) set)"
   and t: "subspace (T :: ('m::euclidean_space) set)"
@@ -2142,7 +2139,7 @@ lemma mem_rel_interior_ball: "x : rel_interior S <-> x : S & (? e. 0 < e & ((bal
   apply (simp add: rel_interior, safe)
   apply (force simp add: open_contains_ball)
   apply (rule_tac x="ball x e" in exI)
-  apply (simp add: open_ball centre_in_ball)
+  apply (simp add: centre_in_ball)
   done
 
 lemma rel_interior_ball: 

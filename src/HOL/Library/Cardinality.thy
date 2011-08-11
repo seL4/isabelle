@@ -62,7 +62,7 @@ lemma card_set [simp]: "CARD('a set) = 2 ^ CARD('a::finite)"
   by (simp only: card_Pow finite numeral_2_eq_2)
 
 lemma card_nat [simp]: "CARD(nat) = 0"
-  by (simp add: infinite_UNIV_nat card_eq_0_iff)
+  by (simp add: card_eq_0_iff)
 
 
 subsection {* Classes with at least 1 and 2  *}

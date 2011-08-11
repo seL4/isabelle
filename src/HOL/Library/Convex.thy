@@ -49,7 +49,7 @@ lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex 
 
 lemma convex_halfspace_le: "convex {x. inner a x \<le> b}"
   unfolding convex_def
-  by (auto simp: inner_add inner_scaleR intro!: convex_bound_le)
+  by (auto simp: inner_add intro!: convex_bound_le)
 
 lemma convex_halfspace_ge: "convex {x. inner a x \<ge> b}"
 proof -
@@ -209,7 +209,7 @@ lemma convex_finite: assumes "finite s"
   shows "convex s \<longleftrightarrow> (\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1
                       \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) s \<in> s)"
   unfolding convex_explicit
-proof (safe elim!: conjE)
+proof (safe)
   fix t u assume sum: "\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s"
     and as: "finite t" "t \<subseteq> s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = (1::real)"
   have *:"s \<inter> t = t" using as(2) by auto
@@ -480,9 +480,9 @@ proof -
   also have "\<dots> = a * (f x - f y) + f y" by (simp add: field_simps)
   finally have "f t - f y \<le> a * (f x - f y)" by simp
   with t show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
-    by (simp add: times_divide_eq le_divide_eq divide_le_eq field_simps a_def)
+    by (simp add: le_divide_eq divide_le_eq field_simps a_def)
   with t show "(f x - f y) / (x - y) \<le> (f t - f y) / (t - y)"
-    by (simp add: times_divide_eq le_divide_eq divide_le_eq field_simps)
+    by (simp add: le_divide_eq divide_le_eq field_simps)
 qed
 
 lemma pos_convex_function:

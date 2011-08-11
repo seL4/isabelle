@@ -153,7 +153,7 @@ lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) \<oplus> C =
 
 theorem set_plus_rearrange4: "C \<oplus> ((a::'a::comm_monoid_add) +o D) =
     a +o (C \<oplus> D)"
-  apply (auto intro!: subsetI simp add: elt_set_plus_def set_plus_def add_ac)
+  apply (auto simp add: elt_set_plus_def set_plus_def add_ac)
    apply (rule_tac x = "aa + ba" in exI)
    apply (auto simp add: add_ac)
   done
@@ -211,7 +211,7 @@ lemma set_zero_plus [simp]: "(0::'a::comm_monoid_add) +o C = C"
   by (auto simp add: elt_set_plus_def)
 
 lemma set_zero_plus2: "(0::'a::comm_monoid_add) : A ==> B <= A \<oplus> B"
-  apply (auto intro!: subsetI simp add: set_plus_def)
+  apply (auto simp add: set_plus_def)
   apply (rule_tac x = 0 in bexI)
    apply (rule_tac x = x in bexI)
     apply (auto simp add: add_ac)
@@ -264,7 +264,7 @@ lemma set_times_rearrange3: "((a::'a::semigroup_mult) *o B) \<otimes> C =
 
 theorem set_times_rearrange4: "C \<otimes> ((a::'a::comm_monoid_mult) *o D) =
     a *o (C \<otimes> D)"
-  apply (auto intro!: subsetI simp add: elt_set_times_def set_times_def
+  apply (auto simp add: elt_set_times_def set_times_def
     mult_ac)
    apply (rule_tac x = "aa * ba" in exI)
    apply (auto simp add: mult_ac)
@@ -336,7 +336,7 @@ lemma set_times_plus_distrib2: "(a::'a::semiring) *o (B \<oplus> C) =
 
 lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) \<otimes> D <=
     a *o D \<oplus> C \<otimes> D"
-  apply (auto intro!: subsetI simp add:
+  apply (auto simp add:
     elt_set_plus_def elt_set_times_def set_times_def
     set_plus_def ring_distribs)
   apply auto

@@ -420,7 +420,7 @@ next
       using ereal_open_cont_interval2[of S f0] real lim by auto
     then have "eventually (\<lambda>x. f x \<in> {a<..<b}) net"
       unfolding Liminf_Sup Limsup_Inf less_Sup_iff Inf_less_iff
-      by (auto intro!: eventually_conj simp add: greaterThanLessThan_iff)
+      by (auto intro!: eventually_conj)
     with `{a<..<b} \<subseteq> S` show "eventually (%x. f x : S) net"
       by (rule_tac eventually_mono) auto
   qed
@@ -1036,7 +1036,7 @@ proof
   proof (rule ccontr)
     assume "\<not> ?thesis" then have "\<forall>i\<in>A. \<exists>r. f i = ereal r" by auto
     from bchoice[OF this] guess r ..
-    with * show False by (auto simp: setsum_ereal)
+    with * show False by auto
   qed
   ultimately show "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)" by auto
 next
