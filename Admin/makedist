@@ -15,7 +15,7 @@ umask 022
 ## diagnostics
 
 PRG="$(basename "$0")"
-THIS="$(cd $(dirname "$0"); echo "$PWD")"
+THIS="$(cd $(dirname "$0"); pwd)"
 
 function usage()
 {

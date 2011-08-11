@@ -4,7 +4,7 @@
 #
 # DESCRIPTION: Cumulative reports for Poly/ML profiling output.
 
-THIS=$(cd $(dirname "$0"); echo "$PWD")
+THIS="$(cd $(dirname "$0"); pwd)"
 
 SRC="$1"
 DST="$2"
