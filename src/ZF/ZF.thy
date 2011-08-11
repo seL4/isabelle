@@ -7,7 +7,6 @@ header{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF
 imports FOL
-uses "~~/src/Tools/misc_legacy.ML"
 begin
 
 declare [[eta_contract = false]]
