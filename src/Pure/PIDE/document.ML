@@ -15,7 +15,8 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type edit = string * ((command_id option * command_id option) list) option
+  datatype node_edit = Remove | Edits of (command_id option * command_id option) list
+  type edit = string * node_edit
   type header = string * (string * string list * string list)
   type state
   val init_state: state
@@ -75,10 +76,8 @@ val empty_version = Version Graph.empty;
 
 (* node edits and associated executions *)
 
-type edit =
-  string *
-  (*NONE: remove node, SOME: insert/remove commands*)
-  ((command_id option * command_id option) list) option;
+datatype node_edit = Remove | Edits of (command_id option * command_id option) list;
+type edit = string * node_edit;
 
 type header = string * (string * string list * string list);
 
@@ -108,12 +107,12 @@ val node_names_of = Graph.keys o nodes_of;
 fun get_node version name = Graph.get_node (nodes_of version) name
   handle Graph.UNDEF _ => empty_node;
 
-fun edit_nodes (name, SOME edits) (Version nodes) =
+fun edit_nodes (name, Remove) (Version nodes) =
+      Version (perhaps (try (Graph.del_node name)) nodes)
+  | edit_nodes (name, Edits edits) (Version nodes) =
       Version (nodes
         |> Graph.default_node (name, empty_node)
-        |> Graph.map_node name (edit_node edits))
-  | edit_nodes (name, NONE) (Version nodes) =
-      Version (perhaps (try (Graph.del_node name)) nodes);
+        |> Graph.map_node name (edit_node edits));
 
 fun put_node name node (Version nodes) =
   Version (nodes

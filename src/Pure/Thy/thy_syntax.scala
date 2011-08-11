@@ -195,11 +195,11 @@ object Thy_Syntax
       var nodes = previous.nodes
 
       edits foreach {
-        case (name, None) =>
-          doc_edits += (name -> None)
+        case (name, Document.Node.Remove()) =>
+          doc_edits += (name -> Document.Node.Remove())
           nodes -= name
 
-        case (name, Some(text_edits)) =>
+        case (name, Document.Node.Edits(text_edits)) =>
           val node = nodes(name)
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
@@ -212,7 +212,7 @@ object Thy_Syntax
             removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-          doc_edits += (name -> Some(cmd_edits))
+          doc_edits += (name -> Document.Node.Edits(cmd_edits))
 
           val (new_headers, new_header) = node_header(name, node)
           header_edits ++= new_headers

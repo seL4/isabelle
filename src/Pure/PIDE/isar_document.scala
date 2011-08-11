@@ -144,7 +144,12 @@ trait Isar_Document extends Isabelle_Process
   {
     val arg1 =
     { import XML.Encode._
-      list(pair(string, option(list(pair(option(long), option(long))))))(edits) }
+      def encode: T[List[Document.Edit_Command_ID]] =
+        list(pair(string,
+          variant(List(
+            { case Document.Node.Remove() => (Nil, Nil) },
+            { case Document.Node.Edits(a) => (Nil, list(pair(option(long), option(long)))(a)) }))))
+      encode(edits) }
 
     val arg2 =
     { import XML.Encode._

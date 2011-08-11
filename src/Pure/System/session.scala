@@ -181,7 +181,7 @@ class Session(val file_store: Session.File_Store)
     /* incoming edits */
 
     def handle_edits(name: String,
-        header: Document.Node.Header, edits: List[Option[List[Text.Edit]]])
+        header: Document.Node.Header, edits: List[Document.Node.Edit[Text.Edit]])
     //{{{
     {
       val syntax = current_syntax()
@@ -216,7 +216,7 @@ class Session(val file_store: Session.File_Store)
 
       var former_assignment = global_state().the_assignment(previous).get_finished
       for {
-        (name, Some(cmd_edits)) <- doc_edits
+        (name, Document.Node.Edits(cmd_edits)) <- doc_edits  // FIXME proper coverage!?
         (prev, None) <- cmd_edits
         removed <- previous.nodes(name).commands.get_after(prev)
       } former_assignment -= removed
@@ -231,10 +231,8 @@ class Session(val file_store: Session.File_Store)
       }
       val id_edits =
         doc_edits map {
-          case (name, edits) =>
-            val ids =
-              edits.map(_.map { case (c1, c2) => (c1.map(id_command), c2.map(id_command)) })
-            (name, ids)
+          case (name, edit) =>
+            (name, edit.map({ case (c1, c2) => (c1.map(id_command), c2.map(id_command)) }))
         }
 
       global_state.change(_.define_version(version, former_assignment))
@@ -331,11 +329,12 @@ class Session(val file_store: Session.File_Store)
 
         case Init_Node(name, header, text) if prover.isDefined =>
           // FIXME compare with existing node
-          handle_edits(name, header, List(None, Some(List(Text.Edit.insert(0, text)))))
+          handle_edits(name, header,
+            List(Document.Node.Remove(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
           reply(())
 
         case Edit_Node(name, header, text_edits) if prover.isDefined =>
-          handle_edits(name, header, List(Some(text_edits)))
+          handle_edits(name, header, List(Document.Node.Edits(text_edits)))
           reply(())
 
         case change: Change_Node if prover.isDefined =>
