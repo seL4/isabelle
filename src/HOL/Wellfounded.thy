@@ -881,45 +881,6 @@ apply (blast intro: card_mono finite_subset psubset_card_mono dest: psubset_eq[T
 done
 
 
-subsection{*Weakly decreasing sequences (w.r.t. some well-founded order) 
-   stabilize.*}
-
-text{*This material does not appear to be used any longer.*}
-
-lemma sequence_trans: "[| ALL i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*"
-by (induct k) (auto intro: rtrancl_trans)
-
-lemma wf_weak_decr_stable: 
-  assumes as: "ALL i. (f (Suc i), f i) : r^*" "wf (r^+)"
-  shows "EX i. ALL k. f (i+k) = f i"
-proof -
-  have lem: "!!x. [| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
-      ==> ALL m. f m = x --> (EX i. ALL k. f (m+i+k) = f (m+i))"
-  apply (erule wf_induct, clarify)
-  apply (case_tac "EX j. (f (m+j), f m) : r^+")
-   apply clarify
-   apply (subgoal_tac "EX i. ALL k. f ((m+j) +i+k) = f ( (m+j) +i) ")
-    apply clarify
-    apply (rule_tac x = "j+i" in exI)
-    apply (simp add: add_ac, blast)
-  apply (rule_tac x = 0 in exI, clarsimp)
-  apply (drule_tac i = m and k = k in sequence_trans)
-  apply (blast elim: rtranclE dest: rtrancl_into_trancl1)
-  done
-
-  from lem[OF as, THEN spec, of 0, simplified] 
-  show ?thesis by auto
-qed
-
-(* special case of the theorem above: <= *)
-lemma weak_decr_stable:
-     "ALL i. f (Suc i) <= ((f i)::nat) ==> EX i. ALL k. f (i+k) = f i"
-apply (rule_tac r = pred_nat in wf_weak_decr_stable)
-apply (simp add: pred_nat_trancl_eq_le)
-apply (intro wf_trancl wf_pred_nat)
-done
-
-
 subsection {* size of a datatype value *}
 
 use "Tools/Function/size.ML"
