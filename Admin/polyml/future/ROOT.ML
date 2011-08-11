@@ -10,29 +10,42 @@ use "General/basics.ML";
 use "library.ML";
 use "General/alist.ML";
 use "General/table.ML";
-use "General/queue.ML";
 use "General/graph.ML";
+
+structure Position =
+struct
+  fun thread_data () = ();
+  fun setmp_thread_data () f x = f x;
+end;
+
+structure Output =
+struct
+  type output = string;
+  fun escape s : output = s;
+  fun raw_stdout s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+  fun writeln s = raw_stdout (suffix "\n" s);
+  fun warning s = writeln (prefix_lines "### " s);
+  fun status (_: string) = ();
+end;
+val writeln = Output.writeln;
+val warning = Output.warning;
+fun print_mode_value () : string list = [];
+
+use "General/properties.ML";
+use "General/timing.ML";
 
 use "Concurrent/simple_thread.ML";
 use "Concurrent/synchronized.ML";
-
-use "General/properties.ML";
-use "General/print_mode.ML";
-use "General/output.ML";
-use "General/timing.ML";
 use "General/markup.ML";
-use "General/scan.ML";
-use "General/source.ML";
-use "General/symbol.ML";
-use "General/position.ML";
-
 use "Concurrent/single_assignment.ML";
 use "Concurrent/time_limit.ML";
-use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 use "Concurrent/lazy.ML";
 use "Concurrent/par_list.ML";
+
+use "General/queue.ML";
+use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
 
 PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
