@@ -23,8 +23,6 @@ lemma real_arch_invD:
   by(subst(asm) real_arch_inv)
 subsection {* Sundries *}
 
-(*declare basis_component[simp]*)
-
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
 lemma conjunctD4: assumes "a \<and> b \<and> c \<and> d" shows a b c d using assms by auto
@@ -142,7 +140,7 @@ lemma inter_interior_unions_intervals: fixes f::"('a::ordered_euclidean_space) s
       let ?z = "x - (e/2) *\<^sub>R basis k" assume as:"x$$k = a$$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
         fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
         hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
-        hence "y$$k < a$$k" using e[THEN conjunct1] k by(auto simp add:field_simps basis_component as)
+        hence "y$$k < a$$k" using e[THEN conjunct1] k by(auto simp add:field_simps as)
         hence "y \<notin> i" unfolding ab mem_interval not_all apply(rule_tac x=k in exI) using k by auto thus False using yi by auto qed
       moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
         fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
@@ -416,10 +414,6 @@ lemma division_disjoint_union:
   show ?g using d1(5)[OF _ _ as(3)] and d2(5)[OF _ _ as(3)] by auto }
   fix k assume k:"k \<in> p1 \<union> p2"  show "k \<subseteq> s1 \<union> s2" using k d1(2) d2(2) by auto
   show "k \<noteq> {}" using k d1(3) d2(3) by auto show "\<exists>a b. k = {a..b}" using k d1(4) d2(4) by auto qed
-
-(* move *)
-lemma Eucl_nth_inverse[simp]: fixes x::"'a::euclidean_space" shows "(\<chi>\<chi> i. x $$ i) = x"
-  apply(subst euclidean_eq) by auto
 
 lemma partial_division_extend_1:
   assumes "{c..d} \<subseteq> {a..b::'a::ordered_euclidean_space}" "{c..d} \<noteq> {}"
@@ -737,7 +731,7 @@ definition tagged_division_of (infixr "tagged'_division'_of" 40) where
   "(s tagged_division_of i) \<equiv>
         (s tagged_partial_division_of i) \<and> (\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
 
-lemma tagged_division_of_finite[dest]: "s tagged_division_of i \<Longrightarrow> finite s"
+lemma tagged_division_of_finite: "s tagged_division_of i \<Longrightarrow> finite s"
   unfolding tagged_division_of_def tagged_partial_division_of_def by auto
 
 lemma tagged_division_of:

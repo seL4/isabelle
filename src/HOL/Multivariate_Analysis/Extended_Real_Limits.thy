@@ -1146,9 +1146,6 @@ lemma suminf_finite:
   shows "suminf f = (\<Sum>N<n. f N)"
   using sums_finite[OF assms, THEN sums_unique] by simp
 
-lemma suminf_ereal_0[simp]: "(\<Sum>i. 0) = (0::'a::{comm_monoid_add,t2_space})"
-  using suminf_finite[of 0 "\<lambda>x. 0"] by simp
-
 lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"

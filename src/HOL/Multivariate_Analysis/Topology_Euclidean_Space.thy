@@ -479,7 +479,7 @@ proof
   { fix e :: real assume "0 < e"
     def y \<equiv> "x + scaleR (e/2) (sgn (basis 0))"
     from `0 < e` have "y \<noteq> x"
-      unfolding y_def by (simp add: sgn_zero_iff basis_eq_0_iff DIM_positive)
+      unfolding y_def by (simp add: sgn_zero_iff DIM_positive)
     from `0 < e` have "dist y x < e"
       unfolding y_def by (simp add: dist_norm norm_sgn)
     from `y \<noteq> x` and `dist y x < e`
@@ -5646,7 +5646,7 @@ declare euclidean_component.zero[simp]
 
 lemma subspace_substandard:
   "subspace {x::'a::euclidean_space. (\<forall>i<DIM('a). P i \<longrightarrow> x$$i = 0)}"
-  unfolding subspace_def by(auto simp add: euclidean_simps)
+  unfolding subspace_def by(auto simp add: euclidean_simps) (* FIXME: duplicate rewrite rule *)
 
 lemma closed_substandard:
  "closed {x::'a::euclidean_space. \<forall>i<DIM('a). P i --> x$$i = 0}" (is "closed ?A")
@@ -5674,7 +5674,7 @@ proof-
   let ?D = "{..<DIM('a)}"
   let ?B = "(basis::nat => 'a) ` d"
   let ?bas = "basis::nat \<Rightarrow> 'a"
-  have "?B \<subseteq> ?A" by(auto simp add:basis_component)
+  have "?B \<subseteq> ?A" by auto
   moreover
   { fix x::"'a" assume "x\<in>?A"
     hence "finite d" "x\<in>?A" using assms by(auto intro:finite_subset)
@@ -5690,7 +5690,7 @@ proof-
       have y:"x = y + (x$$k) *\<^sub>R basis k" unfolding y_def by auto
       { fix i assume i':"i \<notin> F"
         hence "y $$ i = 0" unfolding y_def 
-          using *[THEN spec[where x=i]] by(auto simp add: euclidean_simps basis_component) }
+          using *[THEN spec[where x=i]] by(auto simp add: euclidean_simps) }
       hence "y \<in> span (basis ` F)" using insert(3) by auto
       hence "y \<in> span (basis ` (insert k F))"
         using span_mono[of "?bas ` F" "?bas ` (insert k F)"]
@@ -6025,7 +6025,7 @@ next
   have lima:"((fst \<circ> (h \<circ> r)) ---> a) sequentially"
    and limb:"((snd \<circ> (h \<circ> r)) ---> b) sequentially"
     using lr
-    unfolding o_def a_def b_def by (simp_all add: tendsto_intros)
+    unfolding o_def a_def b_def by (rule tendsto_intros)+
 
   { fix n::nat
     have *:"\<And>fx fy (x::'a) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_norm by norm

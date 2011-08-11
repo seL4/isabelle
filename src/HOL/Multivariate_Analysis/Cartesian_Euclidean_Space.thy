@@ -1635,20 +1635,14 @@ abbreviation vec1:: "'a \<Rightarrow> 'a ^ 1" where "vec1 x \<equiv> vec x"
 abbreviation dest_vec1:: "'a ^1 \<Rightarrow> 'a"
   where "dest_vec1 x \<equiv> (x$1)"
 
-lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
-  by (simp_all add:  vec_eq_iff)
-
-lemma vec1_component[simp]: "(vec1 x)$1 = x"
-  by (simp_all add:  vec_eq_iff)
+lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x"
+  by (simp add: vec_eq_iff)
 
 lemma forall_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (vec1 x))"
   by (metis vec1_dest_vec1(1))
 
 lemma exists_vec1: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P(vec1 x))"
   by (metis vec1_dest_vec1(1))
-
-lemma vec1_eq[simp]:  "vec1 x = vec1 y \<longleftrightarrow> x = y"
-  by (metis vec1_dest_vec1(2))
 
 lemma dest_vec1_eq[simp]: "dest_vec1 x = dest_vec1 y \<longleftrightarrow> x = y"
   by (metis vec1_dest_vec1(1))
@@ -1741,12 +1735,12 @@ lemma norm_vec1 [simp]: "norm(vec1 x) = abs(x)"
   by (simp add: vec_def norm_real)
 
 lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
-  by (simp only: dist_real vec1_component)
+  by (simp only: dist_real vec_component)
 lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
   by (metis vec1_dest_vec1(1) norm_vec1)
 
 lemmas vec1_dest_vec1_simps = forall_vec1 vec_add[THEN sym] dist_vec1 vec_sub[THEN sym] vec1_dest_vec1 norm_vec1 vector_smult_component
-   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def real_norm_def
+   vec_inj[where 'b=1] vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def real_norm_def
 
 lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
