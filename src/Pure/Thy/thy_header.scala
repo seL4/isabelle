@@ -31,13 +31,6 @@ object Thy_Header extends Parse.Parser
       Header(f(name), imports.map(f), uses.map(f))
   }
 
-  val xml_encode: XML.Encode.T[Header] =
-  {
-    case Header(name, imports, uses) =>
-      import XML.Encode._
-      triple(string, list(string), list(string))(name, imports, uses)
-  }
-
 
   /* file name */
 

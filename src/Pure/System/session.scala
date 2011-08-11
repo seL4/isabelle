@@ -168,7 +168,6 @@ class Session(val file_store: Session.File_Store)
   private case class Change_Node(
     name: String,
     doc_edits: List[Document.Edit_Command],
-    header_edits: List[(String, Thy_Header.Header)],
     previous: Document.Version,
     version: Document.Version)
 
@@ -186,18 +185,16 @@ class Session(val file_store: Session.File_Store)
     {
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
-      val doc_edits = edits.map(edit => (name, edit))
-      val result = Future.fork {
-        Thy_Syntax.text_edits(syntax, previous.join, doc_edits, List((name, header)))
-      }
+      val doc_edits =
+        (name, Document.Node.Update_Header[Text.Edit](header)) :: edits.map(edit => (name, edit))
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
       val change =
-        global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._3)))
+        global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._2)))
 
       result.map {
-        case (doc_edits, header_edits, _) =>
+        case (doc_edits, _) =>
           assignments.await { global_state().is_assigned(previous.get_finished) }
-          this_actor !
-            Change_Node(name, doc_edits, header_edits, previous.join, change.version.join)
+          this_actor ! Change_Node(name, doc_edits, previous.join, change.version.join)
       }
     }
     //}}}
@@ -212,7 +209,6 @@ class Session(val file_store: Session.File_Store)
       val version = change.version
       val name = change.name
       val doc_edits = change.doc_edits
-      val header_edits = change.header_edits
 
       var former_assignment = global_state().the_assignment(previous).get_finished
       for {
@@ -236,7 +232,7 @@ class Session(val file_store: Session.File_Store)
         }
 
       global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, id_edits, header_edits)
+      prover.get.edit_version(previous.id, version.id, id_edits)
     }
     //}}}
 
