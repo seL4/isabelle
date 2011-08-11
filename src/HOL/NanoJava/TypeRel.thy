@@ -4,7 +4,7 @@
 
 header "Type relations"
 
-theory TypeRel imports Decl "~~/src/HOL/Library/Old_Recdef" begin
+theory TypeRel imports Decl "~~/src/HOL/Library/Wfrec" begin
 
 consts
   subcls1 :: "(cname \<times> cname) set"  --{* subclass *}
@@ -96,23 +96,18 @@ lemmas subcls1_acyclic = subcls1_irrefl_lemma2 [THEN acyclicI, standard]
 lemma wf_subcls1: "ws_prog \<Longrightarrow> wf (subcls1\<inverse>)"
 by (auto intro: finite_acyclic_wf_converse finite_subcls1 subcls1_acyclic)
 
-
-consts class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b) list) \<Rightarrow> ('a \<rightharpoonup> 'b)"
-
-recdef (permissive) class_rec "subcls1\<inverse>"
-      "class_rec C = (\<lambda>f. case class C of None   \<Rightarrow> undefined 
-                                        | Some m \<Rightarrow> if wf (subcls1\<inverse>) 
-       then (if C=Object then empty else class_rec (super m) f) ++ map_of (f m)
-       else undefined)"
-(hints intro: subcls1I)
+definition class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b) list) \<Rightarrow> ('a \<rightharpoonup> 'b)"
+where
+  "class_rec \<equiv> wfrec (subcls1\<inverse>) (\<lambda>rec C f.
+     case class C of None \<Rightarrow> undefined
+      | Some m \<Rightarrow> (if C = Object then empty else rec (super m) f) ++ map_of (f m))"
 
 lemma class_rec: "\<lbrakk>class C = Some m;  ws_prog\<rbrakk> \<Longrightarrow>
  class_rec C f = (if C = Object then empty else class_rec (super m) f) ++ 
-                 map_of (f m)";
+                 map_of (f m)"
 apply (drule wf_subcls1)
-apply (rule class_rec.simps [THEN trans [THEN fun_cong]])
-apply  assumption
-apply simp
+apply (subst def_wfrec[OF class_rec_def], auto)
+apply (subst cut_apply, auto intro: subcls1I)
 done
 
 --{* Methods of a class, with inheritance and hiding *}
