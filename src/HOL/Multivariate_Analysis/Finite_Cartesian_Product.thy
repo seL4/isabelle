@@ -373,8 +373,7 @@ begin
 
 definition "norm x = setL2 (\<lambda>i. norm (x$i)) UNIV"
 
-definition vector_sgn_def:
-  "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
+definition "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
 instance proof
   fix a :: real and x y :: "'a ^ 'b"
@@ -393,7 +392,7 @@ instance proof
     unfolding norm_vec_def
     by (simp add: setL2_right_distrib)
   show "sgn x = scaleR (inverse (norm x)) x"
-    by (rule vector_sgn_def)
+    by (rule sgn_vec_def)
   show "dist x y = norm (x - y)"
     unfolding dist_vec_def norm_vec_def
     by (simp add: dist_norm)
