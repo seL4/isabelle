@@ -1581,12 +1581,6 @@ qed
 
 subsection{* Euclidean Spaces as Typeclass*}
 
-lemma (in euclidean_space) basis_inj[simp, intro]: "inj_on basis {..<DIM('a)}"
-  by (rule inj_onI, rule ccontr, cut_tac i=x and j=y in dot_basis, simp)
-
-lemma (in euclidean_space) basis_finite: "basis ` {DIM('a)..} = {0}"
-  by (auto intro: image_eqI [where x="DIM('a)"])
-
 lemma independent_eq_inj_on:
   fixes D :: nat and f :: "nat \<Rightarrow> 'c::real_vector" assumes *: "inj_on f {..<D}"
   shows "independent (f ` {..<D}) \<longleftrightarrow> (\<forall>a u. a < D \<longrightarrow> (\<Sum>i\<in>{..<D}-{a}. u (f i) *\<^sub>R f i) \<noteq> f a)"

@@ -15,21 +15,74 @@ begin
 subsection {* Type class of Euclidean spaces *}
 
 class euclidean_space = real_inner +
+  fixes Basis :: "'a set"
+  assumes nonempty_Basis [simp]: "Basis \<noteq> {}"
+  assumes finite_Basis [simp]: "finite Basis"
+  assumes inner_Basis:
+    "\<lbrakk>u \<in> Basis; v \<in> Basis\<rbrakk> \<Longrightarrow> inner u v = (if u = v then 1 else 0)"
+  assumes euclidean_all_zero_iff:
+    "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> (x = 0)"
+
+  -- "FIXME: make this a separate definition"
   fixes dimension :: "'a itself \<Rightarrow> nat"
+  assumes dimension_def: "dimension TYPE('a) = card Basis"
+
+  -- "FIXME: eventually basis function can be removed"
   fixes basis :: "nat \<Rightarrow> 'a"
-  assumes DIM_positive [intro]:
-    "0 < dimension TYPE('a)"
-  assumes basis_zero [simp]:
-    "dimension TYPE('a) \<le> i \<Longrightarrow> basis i = 0"
-  assumes basis_orthonormal:
-    "\<forall>i<dimension TYPE('a). \<forall>j<dimension TYPE('a).
-      inner (basis i) (basis j) = (if i = j then 1 else 0)"
-  assumes euclidean_all_zero:
-    "(\<forall>i<dimension TYPE('a). inner (basis i) x = 0) \<longleftrightarrow> (x = 0)"
+  assumes image_basis: "basis ` {..<dimension TYPE('a)} = Basis"
+  assumes basis_finite: "basis ` {dimension TYPE('a)..} = {0}"
 
 syntax "_type_dimension" :: "type => nat" ("(1DIM/(1'(_')))")
 
 translations "DIM('t)" == "CONST dimension (TYPE('t))"
+
+lemma (in euclidean_space) norm_Basis: "u \<in> Basis \<Longrightarrow> norm u = 1"
+  unfolding norm_eq_sqrt_inner by (simp add: inner_Basis)
+
+lemma (in euclidean_space) sgn_Basis: "u \<in> Basis \<Longrightarrow> sgn u = u"
+  unfolding sgn_div_norm by (simp add: norm_Basis scaleR_one)
+
+lemma (in euclidean_space) Basis_zero [simp]: "0 \<notin> Basis"
+proof
+  assume "0 \<in> Basis" thus "False"
+    using inner_Basis [of 0 0] by simp
+qed
+
+lemma (in euclidean_space) nonzero_Basis: "u \<in> Basis \<Longrightarrow> u \<noteq> 0"
+  by clarsimp
+
+text {* Lemmas related to @{text basis} function. *}
+
+lemma (in euclidean_space) euclidean_all_zero:
+  "(\<forall>i<DIM('a). inner (basis i) x = 0) \<longleftrightarrow> (x = 0)"
+  using euclidean_all_zero_iff [of x, folded image_basis]
+  unfolding ball_simps by (simp add: Ball_def inner_commute)
+
+lemma (in euclidean_space) basis_zero [simp]:
+  "DIM('a) \<le> i \<Longrightarrow> basis i = 0"
+  using basis_finite by auto
+
+lemma (in euclidean_space) DIM_positive [intro]: "0 < DIM('a)"
+  unfolding dimension_def by (simp add: card_gt_0_iff)
+
+lemma (in euclidean_space) basis_inj [simp, intro]: "inj_on basis {..<DIM('a)}"
+  by (simp add: inj_on_iff_eq_card image_basis dimension_def [symmetric])
+
+lemma (in euclidean_space) basis_in_Basis [simp]:
+  "basis i \<in> Basis \<longleftrightarrow> i < DIM('a)"
+  by (cases "i < DIM('a)", simp add: image_basis [symmetric], simp)
+
+lemma (in euclidean_space) Basis_elim:
+  assumes "u \<in> Basis" obtains i where "i < DIM('a)" and "u = basis i"
+  using assms unfolding image_basis [symmetric] by fast
+
+lemma (in euclidean_space) basis_orthonormal:
+    "\<forall>i<DIM('a). \<forall>j<DIM('a).
+      inner (basis i) (basis j) = (if i = j then 1 else 0)"
+  apply clarify
+  apply (simp add: inner_Basis)
+  apply (simp add: basis_inj [unfolded inj_on_def])
+  done
 
 lemma (in euclidean_space) dot_basis:
   "inner (basis i) (basis j) = (if i = j \<and> i < DIM('a) then 1 else 0)"
@@ -161,6 +214,9 @@ instantiation real :: euclidean_space
 begin
 
 definition
+  "Basis = {1::real}"
+
+definition
   "dimension (t::real itself) = 1"
 
 definition [simp]:
@@ -170,14 +226,34 @@ lemma DIM_real [simp]: "DIM(real) = 1"
   by (rule dimension_real_def)
 
 instance
-  by default simp+
+  by default (auto simp add: Basis_real_def)
 
 end
 
 subsubsection {* Type @{typ complex} *}
 
+ (* TODO: move these to Complex.thy/Inner_Product.thy *)
+
+lemma norm_ii [simp]: "norm ii = 1"
+  unfolding i_def by simp
+
+lemma complex_inner_1 [simp]: "inner 1 x = Re x"
+  unfolding inner_complex_def by simp
+
+lemma complex_inner_1_right [simp]: "inner x 1 = Re x"
+  unfolding inner_complex_def by simp
+
+lemma complex_inner_ii_left [simp]: "inner ii x = Im x"
+  unfolding inner_complex_def by simp
+
+lemma complex_inner_ii_right [simp]: "inner x ii = Im x"
+  unfolding inner_complex_def by simp
+
 instantiation complex :: euclidean_space
 begin
+
+definition Basis_complex_def:
+  "Basis = {1, ii}"
 
 definition
   "dimension (t::complex itself) = 2"
@@ -185,27 +261,9 @@ definition
 definition
   "basis i = (if i = 0 then 1 else if i = 1 then ii else 0)"
 
-lemma all_less_Suc: "(\<forall>i<Suc n. P i) \<longleftrightarrow> (\<forall>i<n. P i) \<and> P n"
-  by (auto simp add: less_Suc_eq)
-
-instance proof
-  show "0 < DIM(complex)"
-    unfolding dimension_complex_def by simp
-next
-  fix i :: nat
-  assume "DIM(complex) \<le> i" thus "basis i = (0::complex)"
-    unfolding dimension_complex_def basis_complex_def by simp
-next
-  show "\<forall>i<DIM(complex). \<forall>j<DIM(complex).
-    inner (basis i::complex) (basis j) = (if i = j then 1 else 0)"
-    unfolding dimension_complex_def basis_complex_def inner_complex_def
-    by (simp add: numeral_2_eq_2 all_less_Suc)
-next
-  fix x :: complex
-  show "(\<forall>i<DIM(complex). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
-    unfolding dimension_complex_def basis_complex_def inner_complex_def
-    by (simp add: numeral_2_eq_2 all_less_Suc complex_eq_iff)
-qed
+instance
+  by default (auto simp add: Basis_complex_def dimension_complex_def
+    basis_complex_def intro: complex_eqI split: split_if_asm)
 
 end
 
@@ -214,8 +272,14 @@ lemma DIM_complex[simp]: "DIM(complex) = 2"
 
 subsubsection {* Type @{typ "'a \<times> 'b"} *}
 
+lemma disjoint_iff: "A \<inter> B = {} \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. x \<noteq> y)"
+  by auto (* TODO: move elsewhere *)
+
 instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
+
+definition
+  "Basis = (\<lambda>u. (u, 0)) ` Basis \<union> (\<lambda>v. (0, v)) ` Basis"
 
 definition
   "dimension (t::('a \<times> 'b) itself) = DIM('a) + DIM('b)"
@@ -223,31 +287,35 @@ definition
 definition
   "basis i = (if i < DIM('a) then (basis i, 0) else (0, basis (i - DIM('a))))"
 
-lemma all_less_sum:
-  fixes m n :: nat
-  shows "(\<forall>i<(m + n). P i) \<longleftrightarrow> (\<forall>i<m. P i) \<and> (\<forall>i<n. P (m + i))"
-  by (induct n, simp, simp add: all_less_Suc)
-
 instance proof
-  show "0 < DIM('a \<times> 'b)"
-    unfolding dimension_prod_def by (intro add_pos_pos DIM_positive)
+  show "(Basis :: ('a \<times> 'b) set) \<noteq> {}"
+    unfolding Basis_prod_def by simp
 next
-  fix i :: nat
-  assume "DIM('a \<times> 'b) \<le> i" thus "basis i = (0::'a \<times> 'b)"
-    unfolding dimension_prod_def basis_prod_def zero_prod_def
-    by simp
+  show "finite (Basis :: ('a \<times> 'b) set)"
+    unfolding Basis_prod_def by simp
 next
-  show "\<forall>i<DIM('a \<times> 'b). \<forall>j<DIM('a \<times> 'b).
-    inner (basis i::'a \<times> 'b) (basis j) = (if i = j then 1 else 0)"
-    unfolding dimension_prod_def basis_prod_def inner_prod_def
-    unfolding all_less_sum prod_eq_iff
-    by (simp add: basis_orthonormal)
+  fix u v :: "'a \<times> 'b"
+  assume "u \<in> Basis" and "v \<in> Basis"
+  thus "inner u v = (if u = v then 1 else 0)"
+    unfolding Basis_prod_def inner_prod_def
+    by (auto simp add: inner_Basis split: split_if_asm)
 next
   fix x :: "'a \<times> 'b"
-  show "(\<forall>i<DIM('a \<times> 'b). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
-    unfolding dimension_prod_def basis_prod_def inner_prod_def
-    unfolding all_less_sum prod_eq_iff
-    by (simp add: euclidean_all_zero)
+  show "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> x = 0"
+    unfolding Basis_prod_def ball_Un ball_simps
+    by (simp add: inner_prod_def prod_eq_iff euclidean_all_zero_iff)
+next
+  show "DIM('a \<times> 'b) = card (Basis :: ('a \<times> 'b) set)"
+    unfolding dimension_prod_def Basis_prod_def
+    by (simp add: card_Un_disjoint disjoint_iff
+      card_image inj_on_def dimension_def)
+next
+  show "basis ` {..<DIM('a \<times> 'b)} = (Basis :: ('a \<times> 'b) set)"
+    by (auto simp add: Basis_prod_def dimension_prod_def basis_prod_def
+      image_def elim!: Basis_elim)
+next
+  show "basis ` {DIM('a \<times> 'b)..} = {0::('a \<times> 'b)}"
+    by (auto simp add: dimension_prod_def basis_prod_def prod_eq_iff image_def)
 qed
 
 end

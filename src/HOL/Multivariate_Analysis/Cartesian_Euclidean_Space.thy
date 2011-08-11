@@ -467,7 +467,7 @@ lemma basis_nonzero:
 text {* some lemmas to map between Eucl and Cart *}
 lemma basis_real_n[simp]:"(basis (\<pi>' i)::real^'a) = cart_basis i"
   unfolding basis_vec_def using pi'_range[where 'n='a]
-  by (auto simp: vec_eq_iff)
+  by (auto simp: vec_eq_iff axis_def)
 
 subsection {* Orthogonality on cartesian products *}
 

@@ -442,7 +442,43 @@ qed
 
 end
 
+
 subsection {* Euclidean space *}
+
+text {* Vectors pointing along a single axis. *}
+
+definition "axis k x = (\<chi> i. if i = k then x else 0)"
+
+lemma axis_nth [simp]: "axis i x $ i = x"
+  unfolding axis_def by simp
+
+lemma axis_eq_axis: "axis i x = axis j y \<longleftrightarrow> x = y \<and> i = j \<or> x = 0 \<and> y = 0"
+  unfolding axis_def vec_eq_iff by auto
+
+lemma inner_axis_axis:
+  "inner (axis i x) (axis j y) = (if i = j then inner x y else 0)"
+  unfolding inner_vec_def
+  apply (cases "i = j")
+  apply clarsimp
+  apply (subst setsum_diff1' [where a=j], simp_all)
+  apply (rule setsum_0', simp add: axis_def)
+  apply (rule setsum_0', simp add: axis_def)
+  done
+
+lemma setsum_single:
+  assumes "finite A" and "k \<in> A" and "f k = y"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> i \<noteq> k \<Longrightarrow> f i = 0"
+  shows "(\<Sum>i\<in>A. f i) = y"
+  apply (subst setsum_diff1' [OF assms(1,2)])
+  apply (simp add: setsum_0' assms(3,4))
+  done
+
+lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
+  unfolding inner_vec_def
+  apply (rule_tac k=i in setsum_single)
+  apply simp_all
+  apply (simp add: axis_def)
+  done
 
 text {* A bijection between @{text "'n::finite"} and @{text "{..<CARD('n)}"} *}
 
@@ -482,16 +518,18 @@ lemma \<pi>_inj_on: "inj_on (\<pi>::nat\<Rightarrow>'n::finite) {..<CARD('n)}"
 instantiation vec :: (euclidean_space, finite) euclidean_space
 begin
 
+definition "Basis = (\<Union>i. \<Union>u\<in>Basis. {axis i u})"
+
 definition "dimension (t :: ('a ^ 'b) itself) = CARD('b) * DIM('a)"
 
-definition "(basis i::'a^'b) =
+definition "basis i =
   (if i < (CARD('b) * DIM('a))
-  then (\<chi> j::'b. if j = \<pi>(i div DIM('a)) then basis (i mod DIM('a)) else 0)
+  then axis (\<pi>(i div DIM('a))) (basis (i mod DIM('a)))
   else 0)"
 
 lemma basis_eq:
   assumes "i < CARD('b)" and "j < DIM('a)"
-  shows "basis (j + i * DIM('a)) = (\<chi> k. if k = \<pi> i then basis j else 0)"
+  shows "basis (j + i * DIM('a)) = axis (\<pi> i) (basis j)"
 proof -
   have "j + i * DIM('a) <  DIM('a) * (i + 1)" using assms by (auto simp: field_simps)
   also have "\<dots> \<le> DIM('a) * CARD('b)" using assms unfolding mult_le_cancel1 by auto
@@ -503,7 +541,7 @@ lemma basis_eq_pi':
   assumes "j < DIM('a)"
   shows "basis (j + \<pi>' i * DIM('a)) $ k = (if k = i then basis j else 0)"
   apply (subst basis_eq)
-  using pi'_range assms by simp_all
+  using pi'_range assms by (simp_all add: axis_def)
 
 lemma split_times_into_modulo[consumes 1]:
   fixes k :: nat
@@ -520,20 +558,6 @@ next
   finally show "k div B < A" by auto
 qed simp
 
-lemma split_CARD_DIM[consumes 1]:
-  fixes k :: nat
-  assumes k: "k < CARD('b) * DIM('a)"
-  obtains i and j::'b where "i < DIM('a)" "k = i + \<pi>' j * DIM('a)"
-proof -
-  from split_times_into_modulo[OF k] guess i j . note ij = this
-  show thesis
-  proof
-    show "j < DIM('a)" using ij by simp
-    show "k = j + \<pi>' (\<pi> i :: 'b) * DIM('a)"
-      using ij by simp
-  qed
-qed
-
 lemma linear_less_than_times:
   fixes i j A B :: nat assumes "i < B" "j < A"
   shows "j + i * A < B * A"
@@ -546,64 +570,43 @@ qed
 lemma DIM_cart[simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
   by (rule dimension_vec_def)
 
-lemma all_less_DIM_cart:
-  fixes m n :: nat
-  shows "(\<forall>i<DIM('a^'b). P i) \<longleftrightarrow> (\<forall>x::'b. \<forall>i<DIM('a). P (i + \<pi>' x * DIM('a)))"
-unfolding DIM_cart
-apply safe
-apply (drule spec, erule mp, erule linear_less_than_times [OF pi'_range])
-apply (erule split_CARD_DIM, simp)
-done
-
-lemma eq_pi_iff:
-  fixes x :: "'c::finite"
-  shows "i < CARD('c::finite) \<Longrightarrow> x = \<pi> i \<longleftrightarrow> \<pi>' x = i"
-  by auto
-
-lemma all_less_mult:
-  fixes m n :: nat
-  shows "(\<forall>i<(m * n). P i) \<longleftrightarrow> (\<forall>i<m. \<forall>j<n. P (j + i * n))"
-apply safe
-apply (drule spec, erule mp, erule (1) linear_less_than_times)
-apply (erule split_times_into_modulo, simp)
-done
-
-lemma inner_if:
-  "inner (if a then x else y) z = (if a then inner x z else inner y z)"
-  "inner x (if a then y else z) = (if a then inner x y else inner x z)"
-  by simp_all
-
 instance proof
-  show "0 < DIM('a ^ 'b)"
-    unfolding dimension_vec_def
-    by (intro mult_pos_pos zero_less_card_finite DIM_positive)
+  show "(Basis :: ('a ^ 'b) set) \<noteq> {}"
+    unfolding Basis_vec_def by simp
 next
-  fix i :: nat
-  assume "DIM('a ^ 'b) \<le> i" thus "basis i = (0::'a^'b)"
-    unfolding dimension_vec_def basis_vec_def
-    by simp
+  show "finite (Basis :: ('a ^ 'b) set)"
+    unfolding Basis_vec_def by simp
 next
-  show "\<forall>i<DIM('a ^ 'b). \<forall>j<DIM('a ^ 'b).
-    inner (basis i :: 'a ^ 'b) (basis j) = (if i = j then 1 else 0)"
-    apply (simp add: inner_vec_def)
-    apply safe
-    apply (erule split_CARD_DIM, simp add: basis_eq_pi')
-    apply (simp add: inner_if setsum_delta cong: if_cong)
-    apply (simp add: basis_orthonormal)
-    apply (elim split_CARD_DIM, simp add: basis_eq_pi')
-    apply (simp add: inner_if setsum_delta cong: if_cong)
-    apply (clarsimp simp add: basis_orthonormal)
-    done
+  fix u v :: "'a ^ 'b"
+  assume "u \<in> Basis" and "v \<in> Basis"
+  thus "inner u v = (if u = v then 1 else 0)"
+    unfolding Basis_vec_def
+    by (auto simp add: inner_axis_axis axis_eq_axis inner_Basis)
 next
   fix x :: "'a ^ 'b"
-  show "(\<forall>i<DIM('a ^ 'b). inner (basis i) x = 0) \<longleftrightarrow> x = 0"
-    unfolding all_less_DIM_cart
-    unfolding inner_vec_def
-    apply (simp add: basis_eq_pi')
-    apply (simp add: inner_if setsum_delta cong: if_cong)
-    apply (simp add: euclidean_all_zero)
-    apply (simp add: vec_eq_iff)
+  show "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> x = 0"
+    unfolding Basis_vec_def
+    by (simp add: inner_axis euclidean_all_zero_iff vec_eq_iff)
+next
+  show "DIM('a ^ 'b) = card (Basis :: ('a ^ 'b) set)"
+    unfolding Basis_vec_def dimension_vec_def dimension_def
+    by (simp add: card_UN_disjoint [unfolded disjoint_iff]
+      axis_eq_axis nonzero_Basis)
+next
+  show "basis ` {..<DIM('a ^ 'b)} = (Basis :: ('a ^ 'b) set)"
+    unfolding Basis_vec_def
+    apply auto
+    apply (erule split_times_into_modulo)
+    apply (simp add: basis_eq axis_eq_axis)
+    apply (erule Basis_elim)
+    apply (simp add: image_def basis_vec_def axis_eq_axis)
+    apply (rule rev_bexI, simp)
+    apply (erule linear_less_than_times [OF pi'_range])
+    apply simp
     done
+next
+  show "basis ` {DIM('a ^ 'b)..} = {0::'a ^ 'b}"
+    by (auto simp add: image_def basis_vec_def)
 qed
 
 end
