@@ -178,51 +178,37 @@ datatype task =
 fun task_finished (Task _) = false
   | task_finished (Finished _) = true;
 
+fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) deps) parents;
+
 local
 
 fun finish_thy ((thy, present, commit): result) =
   (Global_Theory.join_proofs thy; Future.join present; commit (); thy);
 
-fun schedule_seq task_graph =
-  ((Graph.topological_order task_graph, Symtab.empty) |-> fold (fn name => fn tab =>
-    (case Graph.get_node task_graph name of
+val schedule_seq =
+  Graph.schedule (fn deps => fn (_, task) =>
+    (case task of
+      Task (parents, body) => finish_thy (body (task_parents deps parents))
+    | Finished thy => thy)) #> ignore;
+
+val schedule_futures = uninterruptible (fn _ =>
+  Graph.schedule (fn deps => fn (name, task) =>
+    (case task of
       Task (parents, body) =>
-        let val result = body (map (the o Symtab.lookup tab) parents)
-        in Symtab.update (name, finish_thy result) tab end
-    | Finished thy => Symtab.update (name, thy) tab))) |> ignore;
-
-fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
-  let
-    val tasks = Graph.topological_order task_graph;
-    val futures = (tasks, Symtab.empty) |-> fold (fn name => fn tab =>
-      (case Graph.get_node task_graph name of
-        Task (parents, body) =>
-          let
-            val get = the o Symtab.lookup tab;
-            val deps = map (`get) (Graph.imm_preds task_graph name);
-            val task_deps = map (Future.task_of o #1) deps;
-            fun failed (future, parent) = if can Future.join future then NONE else SOME parent;
-
-            val future =
-              singleton
-                (Future.forks
-                  {name = "theory:" ^ name, group = NONE, deps = task_deps, pri = 0,
-                    interrupts = true})
-                (fn () =>
-                  (case map_filter failed deps of
-                    [] => body (map (#1 o Future.join o get) parents)
-                  | bad => error (loader_msg ("failed to load " ^ quote name ^
-                      " (unresolved " ^ commas_quote bad ^ ")") [])));
-          in Symtab.update (name, future) tab end
-      | Finished thy => Symtab.update (name, Future.value (thy, Future.value (), I)) tab));
-    val _ =
-      tasks |> maps (fn name =>
-        let
-          val result = Future.join (the (Symtab.lookup futures name));
-          val _ = finish_thy result;
-        in [] end handle exn => [Exn.Exn exn])
-      |> rev |> Exn.release_all;
-  in () end) ();
+        singleton
+          (Future.forks
+            {name = "theory:" ^ name, group = NONE,
+              deps = map (Future.task_of o #2) deps,
+              pri = 0, interrupts = true})
+          (fn () =>
+            (case filter (not o can Future.join o #2) deps of
+              [] => body (map (#1 o Future.join) (task_parents deps parents))
+            | bad =>
+                error (loader_msg ("failed to load " ^ quote name ^
+                  " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
+    | Finished thy => Future.value (thy, Future.value (), I)))
+  #> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn])
+  #> rev #> Exn.release_all) #> ignore;
 
 in
 

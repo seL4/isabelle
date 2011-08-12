@@ -310,7 +310,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ =
       if mm = 0 orelse ! worker_trend > 50 orelse ! worker_trend < ~50 then
         max_workers := mm
-      else if ! worker_trend > 5 andalso ! max_workers < 2 * m then
+      else if ! worker_trend > 5 andalso ! max_workers < 2 * m orelse ! max_workers = 0 then
         max_workers := Int.min (mm, 2 * m)
       else ();
 
@@ -358,11 +358,11 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     else reraise exn;
 
 fun scheduler_loop () =
-  while
+ (while
     Multithreading.with_attributes
       (Multithreading.sync_interrupts Multithreading.public_interrupts)
       (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
-  do ();
+  do (); last_round := Time.zeroTime);
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);

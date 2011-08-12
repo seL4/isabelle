@@ -20,19 +20,12 @@ object Library
 {
   /* user errors */
 
-  private val runtime_exception = Class.forName("java.lang.RuntimeException")
-
   object ERROR
   {
     def apply(message: String): Throwable = new RuntimeException(message)
     def unapply(exn: Throwable): Option[String] =
       exn match {
-        case e: RuntimeException =>
-          if (e.getClass != runtime_exception) Some(e.toString)
-          else {
-            val msg = e.getMessage
-            Some(if (msg == null) "Error" else msg)
-          }
+        case e: RuntimeException => Some(Exn.message(e))
         case _ => None
       }
   }

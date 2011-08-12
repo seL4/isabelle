@@ -10,6 +10,6 @@ abstract class Thy_Load
 {
   def is_loaded(name: String): Boolean
 
-  def check_thy(dir: Path, name: String): (String, Thy_Header.Header)
+  def check_thy(dir: Path, name: String): (String, Thy_Header)
 }
 
