@@ -1436,7 +1436,7 @@ proof-
       apply (rule setsum_cong2) by (simp del: replicate.simps)
     also have "\<dots> = n" using i by (simp add: setsum_delta)
     finally
-    have "?xs \<in> natpermute n (k+1)" using xsl unfolding natpermute_def Collect_def mem_def
+    have "?xs \<in> natpermute n (k+1)" using xsl unfolding natpermute_def mem_Collect_eq
       by blast
     then have "?xs \<in> ?A"  using nxs  by blast}
   ultimately show ?thesis by auto

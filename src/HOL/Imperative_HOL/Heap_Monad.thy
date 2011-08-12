@@ -411,7 +411,7 @@ subsection {* Partial function definition setup *}
 definition Heap_ord :: "'a Heap \<Rightarrow> 'a Heap \<Rightarrow> bool" where
   "Heap_ord = img_ord execute (fun_ord option_ord)"
 
-definition Heap_lub :: "('a Heap \<Rightarrow> bool) \<Rightarrow> 'a Heap" where
+definition Heap_lub :: "'a Heap set \<Rightarrow> 'a Heap" where
   "Heap_lub = img_lub execute Heap (fun_lub (flat_lub None))"
 
 interpretation heap!: partial_function_definitions Heap_ord Heap_lub

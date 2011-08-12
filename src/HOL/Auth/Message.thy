@@ -841,7 +841,7 @@ lemma analz_keyfree_into_Un: "\<lbrakk>X \<in> analz (G \<union> H); G \<subsete
 apply (erule analz.induct, auto)
 apply (blast dest:parts.Body)
 apply (blast dest: parts.Body)
-apply (metis Un_absorb2 keyfree_KeyE mem_def parts_Un parts_keyfree sup1I2)
+apply (metis Un_absorb2 keyfree_KeyE parts_Un parts_keyfree UnI2)
 done
 
 subsection{*Tactics useful for many protocol proofs*}

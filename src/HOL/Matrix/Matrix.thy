@@ -8,7 +8,7 @@ begin
 
 type_synonym 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"
 
-definition nonzero_positions :: "(nat \<Rightarrow> nat \<Rightarrow> 'a::zero) \<Rightarrow> nat \<times> nat \<Rightarrow> bool" where
+definition nonzero_positions :: "(nat \<Rightarrow> nat \<Rightarrow> 'a::zero) \<Rightarrow> (nat \<times> nat) set" where
   "nonzero_positions A = {pos. A (fst pos) (snd pos) ~= 0}"
 
 typedef 'a matrix = "{(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"

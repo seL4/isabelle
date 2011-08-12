@@ -22,7 +22,7 @@ definition
 
 definition 
   "show" :: "string set \<Rightarrow> string list" where
-  "show S = filter S letters" 
+  "show S = filter (\<lambda>x. x \<in> S) letters" 
 
 value "show {''x'', ''z''}"
 

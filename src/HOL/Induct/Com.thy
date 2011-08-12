@@ -84,11 +84,13 @@ done
 
 lemma [pred_set_conv]:
   "((\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> R) <= (\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> S)) = (R <= S)"
-  by (auto simp add: le_fun_def le_bool_def mem_def)
+  unfolding subset_eq
+  by (auto simp add: le_fun_def le_bool_def)
 
 lemma [pred_set_conv]:
   "((\<lambda>x x' y. ((x, x'), y) \<in> R) <= (\<lambda>x x' y. ((x, x'), y) \<in> S)) = (R <= S)"
-  by (auto simp add: le_fun_def le_bool_def mem_def)
+  unfolding subset_eq
+  by (auto simp add: le_fun_def le_bool_def)
 
 text{*Command execution is functional (deterministic) provided evaluation is*}
 theorem single_valued_exec: "single_valued ev ==> single_valued(exec ev)"

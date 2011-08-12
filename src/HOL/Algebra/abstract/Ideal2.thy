@@ -25,7 +25,7 @@ definition
 text {* Principle ideal domains *}
 
 class pid =
-  assumes pid_ax: "is_ideal (I :: 'a::domain \<Rightarrow> _) \<Longrightarrow> is_pideal I"
+  assumes pid_ax: "is_ideal (I :: ('a::domain) set) \<Longrightarrow> is_pideal I"
 
 (* is_ideal *)
 
