@@ -15,6 +15,7 @@ infix 9 `
 
 val boolT = HOLogic.boolT
 val natT = HOLogic.natT
+val mk_setT = HOLogic.mk_setT
 
 val mk_equals = Logic.mk_equals
 val mk_eq = HOLogic.mk_eq
@@ -56,9 +57,9 @@ fun mk_chain t =
 fun mk_lub t =
   let
     val T = Term.range_type (Term.fastype_of t)
-    val lub_const = Const (@{const_name lub}, (T --> boolT) --> T)
+    val lub_const = Const (@{const_name lub}, mk_setT T --> T)
     val UNIV_const = @{term "UNIV :: nat set"}
-    val image_type = (natT --> T) --> (natT --> boolT) --> T --> boolT
+    val image_type = (natT --> T) --> mk_setT natT --> mk_setT T
     val image_const = Const (@{const_name image}, image_type)
   in
     lub_const $ (image_const $ t $ UNIV_const)

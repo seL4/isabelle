@@ -109,7 +109,7 @@ fun gen_add_domaindef
       |> the_default (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
 
     (*set*)
-    val set = @{term "defl_set :: udom defl => udom => bool"} $ defl
+    val set = @{term "defl_set :: udom defl => udom set"} $ defl
 
     (*pcpodef*)
     val tac1 = rtac @{thm defl_set_bottom} 1
