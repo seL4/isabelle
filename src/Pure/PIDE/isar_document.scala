@@ -150,7 +150,7 @@ trait Isar_Document extends Isabelle_Process
             { case Document.Node.Remove() => (Nil, Nil) },
             { case Document.Node.Edits(a) => (Nil, list(pair(option(long), option(long)))(a)) },
             { case Document.Node.Update_Header(
-                  Document.Node.Header(_, Exn.Res(Thy_Header.Header(a, b, c)))) =>
+                  Document.Node.Header(_, Exn.Res(Thy_Header(a, b, c)))) =>
                 (Nil, triple(string, list(string), list(string))(a, b, c)) },
             { case Document.Node.Update_Header(
                   Document.Node.Header(_, Exn.Exn(e))) => (List(Exn.message(e)), Nil) }))))

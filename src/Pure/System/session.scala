@@ -146,7 +146,7 @@ class Session(val file_store: Session.File_Store)
     override def is_loaded(name: String): Boolean =
       loaded_theories.contains(name)
 
-    override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
+    override def check_thy(dir: Path, name: String): (String, Thy_Header) =
     {
       val file = Isabelle_System.platform_file(dir + Thy_Header.thy_path(name))
       if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))

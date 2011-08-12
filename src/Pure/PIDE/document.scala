@@ -51,7 +51,7 @@ object Document
     case class Edits[A](edits: List[A]) extends Edit[A]
     case class Update_Header[A](header: Header) extends Edit[A]
 
-    sealed case class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header.Header])
+    sealed case class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header])
     val empty_header = Header(Path.current, Exn.Exn(ERROR("Bad theory header")))
 
     val empty: Node = Node(empty_header, Map(), Linear_Set())
