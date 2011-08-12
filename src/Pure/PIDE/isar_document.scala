@@ -153,7 +153,7 @@ trait Isar_Document extends Isabelle_Process
                   Document.Node.Header(_, Exn.Res(Thy_Header.Header(a, b, c)))) =>
                 (Nil, triple(string, list(string), list(string))(a, b, c)) },
             { case Document.Node.Update_Header(
-                  Document.Node.Header(_, Exn.Exn(ERROR(a)))) => (List(a), Nil) }))))
+                  Document.Node.Header(_, Exn.Exn(e))) => (List(Exn.message(e)), Nil) }))))
       YXML.string_of_body(encode(edits)) }
 
     input("Isar_Document.edit_version", Document.ID(old_id), Document.ID(new_id), edits_yxml)
