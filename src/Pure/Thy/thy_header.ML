@@ -9,7 +9,6 @@ sig
   val args: Token.T list -> (string * string list * (string * bool) list) * Token.T list
   val read: Position.T -> string -> string * string list * (Path.T * bool) list
   val thy_path: string -> Path.T
-  val split_thy_path: Path.T -> Path.T * string
   val consistent_name: string -> string -> unit
 end;
 
@@ -72,11 +71,6 @@ fun read pos str =
 (* file name *)
 
 val thy_path = Path.ext "thy" o Path.basic;
-
-fun split_thy_path path =
-  (case Path.split_ext path of
-    (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
-  | _ => error ("Bad theory file specification: " ^ Path.print path));
 
 fun consistent_name name name' =
   if name = name' then ()

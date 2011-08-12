@@ -26,15 +26,14 @@ object Thy_Header extends Parse.Parser
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
 
-  /* file name */
+  /* theory file name */
+
+  private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+
+  def thy_name(s: String): Option[String] =
+    s match { case Thy_Name(name) => Some(name) case _ => None }
 
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
-
-  def split_thy_path(path: Path): (Path, String) =
-    path.split_ext match {
-      case (path1, "thy") => (path1.dir, path1.base.implode)
-      case _ => error("Bad theory file specification: " + path)
-    }
 
 
   /* header */

@@ -45,10 +45,11 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer, master_dir: Path, thy_name: String): Document_Model =
+  def init(session: Session, buffer: Buffer,
+    master_dir: String, node_name: String, thy_name: String): Document_Model =
   {
     exit(buffer)
-    val model = new Document_Model(session, buffer, master_dir, thy_name)
+    val model = new Document_Model(session, buffer, master_dir, node_name, thy_name)
     buffer.setProperty(key, model)
     model.activate()
     model
@@ -56,15 +57,13 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session,
-  val buffer: Buffer, val master_dir: Path, val thy_name: String)
+class Document_Model(val session: Session, val buffer: Buffer,
+  val master_dir: String, val node_name: String, val thy_name: String)
 {
   /* pending text edits */
 
-  private val node_name = (master_dir + Path.basic(thy_name)).implode
-
-  private def node_header(): Document.Node.Header =
-    Document.Node.Header(Path.current,  // FIXME master_dir (!?)
+  def node_header(): Document.Node.Header =
+    Document.Node.Header(master_dir,
       Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) })
 
   private object pending_edits  // owned by Swing thread

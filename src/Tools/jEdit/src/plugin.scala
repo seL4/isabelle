@@ -23,6 +23,7 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
+import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
@@ -185,6 +186,15 @@ object Isabelle
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
+  def buffer_path(buffer: Buffer): (String, String) =
+  {
+    val master_dir = buffer.getDirectory
+    val path = buffer.getSymlinkPath
+    if (VFSManager.getVFSForPath(path).isInstanceOf[FileVFS])
+      (Isabelle_System.posix_path(master_dir), Isabelle_System.posix_path(path))
+    else (master_dir, path)
+  }
+
 
   /* document model and view */
 
@@ -198,16 +208,11 @@ object Isabelle
         document_model(buffer) match {
           case Some(model) => Some(model)
           case None =>
-            // FIXME strip protocol prefix of URL
-            {
-              try {
-                Some(Thy_Header.split_thy_path(
-                  Path.explode(Isabelle_System.posix_path(buffer.getPath))))
-              }
-              catch { case _ => None }
-            } map {
-              case (master_dir, thy_name) =>
-                Document_Model.init(session, buffer, master_dir, thy_name)
+            val (master_dir, path) = buffer_path(buffer)
+            Thy_Header.thy_name(path) match {
+              case Some(name) =>
+                Some(Document_Model.init(session, buffer, master_dir, path, name))
+              case None => None
             }
         }
       if (opt_model.isDefined) {
