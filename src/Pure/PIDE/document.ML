@@ -15,15 +15,17 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type edit = string * ((command_id option * command_id option) list) option
-  type header = string * (string * string list * string list)
+  datatype node_edit =
+    Remove |
+    Edits of (command_id option * command_id option) list |
+    Update_Header of (string * string list * string list) Exn.result
+  type edit = string * node_edit
   type state
   val init_state: state
   val get_theory: state -> version_id -> Position.T -> string -> theory
   val cancel_execution: state -> unit -> unit
   val define_command: command_id -> string -> state -> state
-  val edit: version_id -> version_id -> edit list -> header list ->
-    state -> (command_id * exec_id) list * state
+  val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -75,12 +77,12 @@ val empty_version = Version Graph.empty;
 
 (* node edits and associated executions *)
 
-type edit =
-  string *
-  (*NONE: remove node, SOME: insert/remove commands*)
-  ((command_id option * command_id option) list) option;
+datatype node_edit =
+  Remove |
+  Edits of (command_id option * command_id option) list |
+  Update_Header of (string * string list * string list) Exn.result;
 
-type header = string * (string * string list * string list);
+type edit = string * node_edit;
 
 fun the_entry (Node {entries, ...}) id =
   (case Entries.lookup entries id of
@@ -108,12 +110,15 @@ val node_names_of = Graph.keys o nodes_of;
 fun get_node version name = Graph.get_node (nodes_of version) name
   handle Graph.UNDEF _ => empty_node;
 
-fun edit_nodes (name, SOME edits) (Version nodes) =
-      Version (nodes
+fun edit_nodes (name, node_edit) (Version nodes) =
+  Version
+    (case node_edit of
+      Remove => perhaps (try (Graph.del_node name)) nodes
+    | Edits edits =>
+        nodes
         |> Graph.default_node (name, empty_node)
-        |> Graph.map_node name (edit_node edits))
-  | edit_nodes (name, NONE) (Version nodes) =
-      Version (perhaps (try (Graph.del_node name)) nodes);
+        |> Graph.map_node name (edit_node edits)
+    | Update_Header _ => nodes);  (* FIXME *)
 
 fun put_node name node (Version nodes) =
   Version (nodes
@@ -313,10 +318,8 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
 
 in
 
-fun edit (old_id: version_id) (new_id: version_id) edits headers state =
+fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
-    (* FIXME apply headers *)
-
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround *)
     val new_version = fold edit_nodes edits old_version;

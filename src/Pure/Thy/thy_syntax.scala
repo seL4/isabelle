@@ -102,9 +102,8 @@ object Thy_Syntax
   def text_edits(
       syntax: Outer_Syntax,
       previous: Document.Version,
-      edits: List[Document.Edit_Text],
-      headers: List[(String, Document.Node.Header)])
-    : (List[Document.Edit_Command], List[(String, Thy_Header.Header)], Document.Version) =
+      edits: List[Document.Edit_Text])
+    : (List[Document.Edit_Command], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
@@ -173,33 +172,18 @@ object Thy_Syntax
     }
 
 
-    /* node header */
-
-    def node_header(name: String, node: Document.Node)
-        : (List[(String, Thy_Header.Header)], Document.Node.Header) =
-      (node.header.thy_header, headers.find(p => p._1 == name).map(_._2)) match {
-        case (Exn.Res(thy_header0), Some(header @ Document.Node.Header(_, Exn.Res(thy_header))))
-        if thy_header0 != thy_header =>
-          (List((name, thy_header)), header)
-        case (Exn.Exn(_), Some(header @ Document.Node.Header(_, Exn.Res(thy_header)))) =>
-          (List((name, thy_header)), header)
-        case _ => (Nil, node.header)
-      }
-
-
     /* resulting document edits */
 
     {
       val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
-      val header_edits = new mutable.ListBuffer[(String, Thy_Header.Header)]
       var nodes = previous.nodes
 
       edits foreach {
-        case (name, None) =>
-          doc_edits += (name -> None)
+        case (name, Document.Node.Remove()) =>
+          doc_edits += (name -> Document.Node.Remove())
           nodes -= name
 
-        case (name, Some(text_edits)) =>
+        case (name, Document.Node.Edits(text_edits)) =>
           val node = nodes(name)
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
@@ -212,14 +196,20 @@ object Thy_Syntax
             removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-          doc_edits += (name -> Some(cmd_edits))
+          doc_edits += (name -> Document.Node.Edits(cmd_edits))
+          nodes += (name -> node.copy(commands = commands2))
 
-          val (new_headers, new_header) = node_header(name, node)
-          header_edits ++= new_headers
-
-          nodes += (name -> Document.Node(new_header, node.blobs, commands2))
+        case (name, Document.Node.Update_Header(header)) =>
+          val node = nodes(name)
+          val update_header =
+            (node.header.thy_header, header) match {
+              case (Exn.Res(thy_header0), Document.Node.Header(_, Exn.Res(thy_header)))
+              if thy_header0 != thy_header => true
+              case (Exn.Exn(_), Document.Node.Header(_, Exn.Res(thy_header))) => true
+            }
+          if (update_header) doc_edits += (name -> Document.Node.Update_Header(header))
       }
-      (doc_edits.toList, header_edits.toList, Document.Version(Document.new_id(), nodes))
+      (doc_edits.toList, Document.Version(Document.new_id(), nodes))
     }
   }
 }

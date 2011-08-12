@@ -31,16 +31,26 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Edit[A] =
-   (String,  // node name
-    Option[List[A]])  // None: remove node, Some: edit content
-
+  type Edit[A] = (String, Node.Edit[A])
   type Edit_Text = Edit[Text.Edit]
   type Edit_Command = Edit[(Option[Command], Option[Command])]
   type Edit_Command_ID = Edit[(Option[Command_ID], Option[Command_ID])]
 
   object Node
   {
+    sealed abstract class Edit[A]
+    {
+      def map[B](f: A => B): Edit[B] =
+        this match {
+          case Remove() => Remove()
+          case Edits(es) => Edits(es.map(f))
+          case Update_Header(header: Header) => Update_Header(header)
+        }
+    }
+    case class Remove[A]() extends Edit[A]
+    case class Edits[A](edits: List[A]) extends Edit[A]
+    case class Update_Header[A](header: Header) extends Edit[A]
+
     sealed case class Header(val master_dir: Path, val thy_header: Exn.Result[Thy_Header.Header])
     val empty_header = Header(Path.current, Exn.Exn(ERROR("Bad theory header")))
 
@@ -290,10 +300,10 @@ object Document
       val stable = found_stable.get
       val latest = history.undo_list.head
 
-      // FIXME proper treatment of deleted nodes
+      // FIXME proper treatment of removed nodes
       val edits =
         (pending_edits /: history.undo_list.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, Some(eds)) <- change.edits if a == name) yield eds).flatten ::: edits)
+            (for ((a, Node.Edits(es)) <- change.edits if a == name) yield es).flatten ::: edits)
       lazy val reverse_edits = edits.reverse
 
       new Snapshot

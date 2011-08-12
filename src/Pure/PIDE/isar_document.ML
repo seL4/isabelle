@@ -13,19 +13,24 @@ val _ =
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.edit_version"
-    (fn [old_id_string, new_id_string, edits_yxml, headers_yxml] => Document.change_state (fn state =>
+    (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
         val old_id = Document.parse_id old_id_string;
         val new_id = Document.parse_id new_id_string;
-        val edits = YXML.parse_body edits_yxml |>
-          let open XML.Decode
-          in list (pair string (option (list (pair (option int) (option int))))) end;
-        val headers = YXML.parse_body headers_yxml |>
-          let open XML.Decode
-          in list (pair string (triple string (list string) (list string))) end;
+        val edits =
+          YXML.parse_body edits_yxml |>
+            let open XML.Decode in
+              list (pair string
+                (variant
+                 [fn ([], []) => Document.Remove,
+                  fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
+                  fn ([], a) =>
+                    Document.Update_Header (Exn.Res (triple string (list string) (list string) a)),
+                  fn ([a], []) => Document.Update_Header (Exn.Exn (ERROR a))]))
+            end;
 
       val await_cancellation = Document.cancel_execution state;
-      val (updates, state') = Document.edit old_id new_id edits headers state;
+      val (updates, state') = Document.edit old_id new_id edits state;
       val _ = await_cancellation ();
       val _ =
         Output.status (Markup.markup (Markup.assign new_id)
