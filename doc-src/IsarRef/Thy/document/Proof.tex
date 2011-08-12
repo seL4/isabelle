@@ -1594,11 +1594,24 @@ The Isar provides separate commands to accommodate tactic-style
 \rail@nont{\isa{attributes}}[]
 \rail@endbar
 \rail@end
-\rail@begin{2}{}
+\rail@begin{5}{}
 \rail@term{\hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}}}[]
 \rail@plus
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextplus{1}
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@plus
+\rail@bar
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@nextplus{3}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@nextplus{4}
 \rail@endplus
 \rail@end
 \rail@begin{2}{}
@@ -1642,7 +1655,10 @@ The Isar provides separate commands to accommodate tactic-style
   
   \item \hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} declares names for
   the local contexts of premises of a theorem; \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}}
-  refers to the \emph{suffix} of the list of premises.
+  refers to the \emph{prefix} of the list of premises. Each of the
+  cases \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{22}{\isachardoublequote}}} can be of the form \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{5B}{\isacharbrackleft}}h\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ h\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} where
+  the \isa{{\isaliteral{22}{\isachardoublequote}}h\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ h\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} are the names of the hypotheses in case \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{22}{\isachardoublequote}}}
+  from left to right.
   
   \item \hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}conclusion}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} declares
   names for the conclusions of a named premise \isa{c}; here \isa{{\isaliteral{22}{\isachardoublequote}}d\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} refers to the prefix of arguments of a logical formula
