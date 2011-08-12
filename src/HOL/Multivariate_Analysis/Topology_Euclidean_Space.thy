@@ -22,8 +22,8 @@ lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)
 
 subsection{* General notion of a topology *}
 
-definition "istopology L \<longleftrightarrow> {} \<in> L \<and> (\<forall>S \<in>L. \<forall>T \<in>L. S \<inter> T \<in> L) \<and> (\<forall>K. K \<subseteq>L \<longrightarrow> \<Union> K \<in> L)"
-typedef (open) 'a topology = "{L::('a set) set. istopology L}"
+definition "istopology L \<longleftrightarrow> L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union> K))"
+typedef (open) 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
   unfolding istopology_def by blast
 
@@ -31,7 +31,7 @@ lemma istopology_open_in[intro]: "istopology(openin U)"
   using openin[of U] by blast
 
 lemma topology_inverse': "istopology U \<Longrightarrow> openin (topology U) = U"
-  using topology_inverse[unfolded mem_def Collect_def] .
+  using topology_inverse[unfolded mem_Collect_eq] .
 
 lemma topology_inverse_iff: "istopology U \<longleftrightarrow> openin (topology U) = U"
   using topology_inverse[of U] istopology_open_in[of "topology U"] by auto
@@ -41,7 +41,7 @@ proof-
   {assume "T1=T2" hence "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S" by simp}
   moreover
   {assume H: "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S"
-    hence "openin T1 = openin T2" by (metis mem_def set_eqI)
+    hence "openin T1 = openin T2" by (simp add: fun_eq_iff)
     hence "topology (openin T1) = topology (openin T2)" by simp
     hence "T1 = T2" unfolding openin_inverse .}
   ultimately show ?thesis by blast
@@ -58,8 +58,8 @@ lemma openin_clauses:
   shows "openin U {}"
   "\<And>S T. openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S\<inter>T)"
   "\<And>K. (\<forall>S \<in> K. openin U S) \<Longrightarrow> openin U (\<Union>K)"
-  using openin[of U] unfolding istopology_def Collect_def mem_def
-  unfolding subset_eq Ball_def mem_def by auto
+  using openin[of U] unfolding istopology_def mem_Collect_eq
+  by fast+
 
 lemma openin_subset[intro]: "openin U S \<Longrightarrow> S \<subseteq> topspace U"
   unfolding topspace_def by blast
@@ -130,33 +130,38 @@ qed
 
 subsection{* Subspace topology. *}
 
-definition "subtopology U V = topology {S \<inter> V |S. openin U S}"
+term "{f x |x. P x}"
+term "{y. \<exists>x. y = f x \<and> P x}"
 
-lemma istopology_subtopology: "istopology {S \<inter> V |S. openin U S}" (is "istopology ?L")
+definition "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
+
+lemma istopology_subtopology: "istopology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
+  (is "istopology ?L")
 proof-
-  have "{} \<in> ?L" by blast
-  {fix A B assume A: "A \<in> ?L" and B: "B \<in> ?L"
+  have "?L {}" by blast
+  {fix A B assume A: "?L A" and B: "?L B"
     from A B obtain Sa and Sb where Sa: "openin U Sa" "A = Sa \<inter> V" and Sb: "openin U Sb" "B = Sb \<inter> V" by blast
     have "A\<inter>B = (Sa \<inter> Sb) \<inter> V" "openin U (Sa \<inter> Sb)"  using Sa Sb by blast+
-    then have "A \<inter> B \<in> ?L" by blast}
+    then have "?L (A \<inter> B)" by blast}
   moreover
-  {fix K assume K: "K \<subseteq> ?L"
-    have th0: "?L = (\<lambda>S. S \<inter> V) ` openin U "
+  {fix K assume K: "K \<subseteq> Collect ?L"
+    have th0: "Collect ?L = (\<lambda>S. S \<inter> V) ` Collect (openin U)"
       apply (rule set_eqI)
       apply (simp add: Ball_def image_iff)
-      by (metis mem_def)
+      by metis
     from K[unfolded th0 subset_image_iff]
-    obtain Sk where Sk: "Sk \<subseteq> openin U" "K = (\<lambda>S. S \<inter> V) ` Sk" by blast
+    obtain Sk where Sk: "Sk \<subseteq> Collect (openin U)" "K = (\<lambda>S. S \<inter> V) ` Sk" by blast
     have "\<Union>K = (\<Union>Sk) \<inter> V" using Sk by auto
-    moreover have "openin U (\<Union> Sk)" using Sk by (auto simp add: subset_eq mem_def)
-    ultimately have "\<Union>K \<in> ?L" by blast}
-  ultimately show ?thesis unfolding istopology_def by blast
+    moreover have "openin U (\<Union> Sk)" using Sk by (auto simp add: subset_eq)
+    ultimately have "?L (\<Union>K)" by blast}
+  ultimately show ?thesis
+    unfolding subset_eq mem_Collect_eq istopology_def by blast
 qed
 
 lemma openin_subtopology:
   "openin (subtopology U V) S \<longleftrightarrow> (\<exists> T. (openin U T) \<and> (S = T \<inter> V))"
   unfolding subtopology_def topology_inverse'[OF istopology_subtopology]
-  by (auto simp add: Collect_def)
+  by auto
 
 lemma topspace_subtopology: "topspace(subtopology U V) = topspace U \<inter> V"
   by (auto simp add: topspace_def openin_subtopology)
@@ -210,7 +215,7 @@ lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
   apply (rule cong[where x=S and y=S])
   apply (rule topology_inverse[symmetric])
   apply (auto simp add: istopology_def)
-  by (auto simp add: mem_def subset_eq)
+  done
 
 lemma topspace_euclidean: "topspace euclidean = UNIV"
   apply (simp add: topspace_def)
@@ -266,7 +271,7 @@ lemma diff_le_iff: "(a::real) - b \<ge> 0 \<longleftrightarrow> a \<ge> b" "(a::
   "a - b \<le> c \<longleftrightarrow> a \<le> c +b" "a - b \<ge> c \<longleftrightarrow> a \<ge> c +b"  by arith+
 
 lemma open_ball[intro, simp]: "open (ball x e)"
-  unfolding open_dist ball_def Collect_def Ball_def mem_def
+  unfolding open_dist ball_def mem_Collect_eq Ball_def
   unfolding dist_commute
   apply clarify
   apply (rule_tac x="e - dist xa x" in exI)
@@ -492,7 +497,7 @@ lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<l
   unfolding closed_def
   apply (subst open_subopen)
   apply (simp add: islimpt_def subset_eq)
-  by (metis ComplE ComplI insertCI insert_absorb mem_def)
+  by (metis ComplE ComplI)
 
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
   unfolding islimpt_def by auto
@@ -691,14 +696,13 @@ proof-
   }
   ultimately show ?thesis
     using hull_unique[of S, of "closure S", of closed]
-    unfolding mem_def
     by simp
 qed
 
 lemma closure_eq: "closure S = S \<longleftrightarrow> closed S"
   unfolding closure_hull
-  using hull_eq[of closed, unfolded mem_def, OF  closed_Inter, of S]
-  by (metis mem_def subset_eq)
+  using hull_eq[of closed, OF  closed_Inter, of S]
+  by metis
 
 lemma closure_closed[simp]: "closed S \<Longrightarrow> closure S = S"
   using closure_eq[of S]
@@ -721,12 +725,12 @@ lemma subset_closure: "S \<subseteq> T \<Longrightarrow> closure S \<subseteq> c
 
 lemma closure_minimal: "S \<subseteq> T \<Longrightarrow>  closed T \<Longrightarrow> closure S \<subseteq> T"
   using hull_minimal[of S T closed]
-  unfolding closure_hull mem_def
+  unfolding closure_hull
   by simp
 
 lemma closure_unique: "S \<subseteq> T \<and> closed T \<and> (\<forall> T'. S \<subseteq> T' \<and> closed T' \<longrightarrow> T \<subseteq> T') \<Longrightarrow> closure S = T"
   using hull_unique[of S T closed]
-  unfolding closure_hull mem_def
+  unfolding closure_hull
   by simp
 
 lemma closure_empty[simp]: "closure {} = {}"
@@ -1623,7 +1627,7 @@ proof-
 qed
 
 lemma open_contains_cball_eq: "open S ==> (\<forall>x. x \<in> S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S))"
-  by (metis open_contains_cball subset_eq order_less_imp_le centre_in_cball mem_def)
+  by (metis open_contains_cball subset_eq order_less_imp_le centre_in_cball)
 
 lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
   apply (simp add: interior_def, safe)

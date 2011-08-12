@@ -1584,11 +1584,11 @@ proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
     have lem1: "\<And>f P Q. (\<forall>x k. (x,k) \<in> {(x,f k) | x k. P x k} \<longrightarrow> Q x k) \<longleftrightarrow> (\<forall>x k. P x k \<longrightarrow> Q x (f k))" by auto
     have lem2: "\<And>f s P f. finite s \<Longrightarrow> finite {(x,f k) | x k. (x,k) \<in> s \<and> P x k}"
     proof- case goal1 thus ?case apply-apply(rule finite_subset[of _ "(\<lambda>(x,k). (x,f k)) ` s"]) by auto qed
-    have lem3: "\<And>g::('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool. finite p \<Longrightarrow>
+    have lem3: "\<And>g::'a set \<Rightarrow> 'a set. finite p \<Longrightarrow>
       setsum (\<lambda>(x,k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> ~(g k = {})}
                = setsum (\<lambda>(x,k). content k *\<^sub>R f x) ((\<lambda>(x,k). (x,g k)) ` p)"
       apply(rule setsum_mono_zero_left) prefer 3
-    proof fix g::"('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" and i::"('a) \<times> (('a) set)"
+    proof fix g::"'a set \<Rightarrow> 'a set" and i::"('a) \<times> (('a) set)"
       assume "i \<in> (\<lambda>(x, k). (x, g k)) ` p - {(x, g k) |x k. (x, k) \<in> p \<and> g k \<noteq> {}}"
       then obtain x k where xk:"i=(x,g k)" "(x,k)\<in>p" "(x,g k) \<notin> {(x, g k) |x k. (x, k) \<in> p \<and> g k \<noteq> {}}" by auto
       have "content (g k) = 0" using xk using content_empty by auto
@@ -3004,9 +3004,9 @@ subsection {* Attempt a systematic general set of "offset" results for component
 
 lemma gauge_modify:
   assumes "(\<forall>s. open s \<longrightarrow> open {x. f(x) \<in> s})" "gauge d"
-  shows "gauge (\<lambda>x y. d (f x) (f y))"
+  shows "gauge (\<lambda>x. {y. f y \<in> d (f x)})"
   using assms unfolding gauge_def apply safe defer apply(erule_tac x="f x" in allE)
-  apply(erule_tac x="d (f x)" in allE) unfolding mem_def Collect_def by auto
+  apply(erule_tac x="d (f x)" in allE) by auto
 
 subsection {* Only need trivial subintervals if the interval itself is trivial. *}
 
@@ -3194,7 +3194,7 @@ proof- { presume *:"{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
   show ?thesis unfolding has_integral_def has_integral_compact_interval_def apply(subst if_P) apply(rule,rule,rule wz)
   proof safe fix e::real assume e:"e>0" hence "e * r > 0" using assms(1) by(rule mult_pos_pos)
     from assms(8)[unfolded has_integral,rule_format,OF this] guess d apply-by(erule exE conjE)+ note d=this[rule_format]
-    def d' \<equiv> "\<lambda>x y. d (g x) (g y)" have d':"\<And>x. d' x = {y. g y \<in> (d (g x))}" unfolding d'_def by(auto simp add:mem_def)
+    def d' \<equiv> "\<lambda>x. {y. g y \<in> d (g x)}" have d':"\<And>x. d' x = {y. g y \<in> (d (g x))}" unfolding d'_def ..
     show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of h ` {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e)"
     proof(rule_tac x=d' in exI,safe) show "gauge d'" using d(1) unfolding gauge_def d' using continuous_open_preimage_univ[OF assms(4)] by auto
       fix p assume as:"p tagged_division_of h ` {a..b}" "d' fine p" note p = tagged_division_ofD[OF as(1)] 

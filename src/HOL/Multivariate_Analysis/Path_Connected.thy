@@ -387,16 +387,14 @@ lemma path_component_of_subset: "s \<subseteq> t \<Longrightarrow>  path_compone
 
 subsection {* Can also consider it as a set, as the name suggests. *}
 
-lemma path_component_set: "path_component s x = { y. (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y )}"
-  apply(rule set_eqI) unfolding mem_Collect_eq unfolding mem_def path_component_def by auto
+lemma path_component_set: "{y. path_component s x y} = { y. (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y )}"
+  apply(rule set_eqI) unfolding mem_Collect_eq unfolding path_component_def by auto
 
-lemma mem_path_component_set:"x \<in> path_component s y \<longleftrightarrow> path_component s y x" unfolding mem_def by auto
+lemma path_component_subset: "{y. path_component s x y} \<subseteq> s"
+  apply(rule, rule path_component_mem(2)) by auto
 
-lemma path_component_subset: "(path_component s x) \<subseteq> s"
-  apply(rule, rule path_component_mem(2)) by(auto simp add:mem_def)
-
-lemma path_component_eq_empty: "path_component s x = {} \<longleftrightarrow> x \<notin> s"
-  apply rule apply(drule equals0D[of _ x]) defer apply(rule equals0I) unfolding mem_path_component_set
+lemma path_component_eq_empty: "{y. path_component s x y} = {} \<longleftrightarrow> x \<notin> s"
+  apply rule apply(drule equals0D[of _ x]) defer apply(rule equals0I) unfolding mem_Collect_eq
   apply(drule path_component_mem(1)) using path_component_refl by auto
 
 subsection {* Path connectedness of a space. *}
@@ -406,9 +404,9 @@ definition "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y
 lemma path_connected_component: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. path_component s x y)"
   unfolding path_connected_def path_component_def by auto
 
-lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. path_component s x = s)" 
+lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. {y. path_component s x y} = s)" 
   unfolding path_connected_component apply(rule, rule, rule, rule path_component_subset) 
-  unfolding subset_eq mem_path_component_set Ball_def mem_def by auto
+  unfolding subset_eq mem_Collect_eq Ball_def by auto
 
 subsection {* Some useful lemmas about path-connectedness. *}
 
@@ -435,25 +433,25 @@ lemma path_connected_imp_connected: assumes "path_connected s" shows "connected 
 
 lemma open_path_component:
   fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
-  assumes "open s" shows "open(path_component s x)"
+  assumes "open s" shows "open {y. path_component s x y}"
   unfolding open_contains_ball proof
-  fix y assume as:"y \<in> path_component s x"
-  hence "y\<in>s" apply- apply(rule path_component_mem(2)) unfolding mem_def by auto
+  fix y assume as:"y \<in> {y. path_component s x y}"
+  hence "y\<in>s" apply- apply(rule path_component_mem(2)) unfolding mem_Collect_eq by auto
   then obtain e where e:"e>0" "ball y e \<subseteq> s" using assms[unfolded open_contains_ball] by auto
-  show "\<exists>e>0. ball y e \<subseteq> path_component s x" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule) unfolding mem_ball mem_path_component_set proof-
+  show "\<exists>e>0. ball y e \<subseteq> {y. path_component s x y}" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule) unfolding mem_ball mem_Collect_eq proof-
     fix z assume "dist y z < e" thus "path_component s x z" apply(rule_tac path_component_trans[of _ _ y]) defer 
       apply(rule path_component_of_subset[OF e(2)]) apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) using `e>0`
-      using as[unfolded mem_def] by auto qed qed
+      using as by auto qed qed
 
 lemma open_non_path_component:
   fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
-  assumes "open s" shows "open(s - path_component s x)"
+  assumes "open s" shows "open(s - {y. path_component s x y})"
   unfolding open_contains_ball proof
-  fix y assume as:"y\<in>s - path_component s x" 
+  fix y assume as:"y\<in>s - {y. path_component s x y}"
   then obtain e where e:"e>0" "ball y e \<subseteq> s" using assms[unfolded open_contains_ball] by auto
-  show "\<exists>e>0. ball y e \<subseteq> s - path_component s x" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule,rule) defer proof(rule ccontr)
-    fix z assume "z\<in>ball y e" "\<not> z \<notin> path_component s x" 
-    hence "y \<in> path_component s x" unfolding not_not mem_path_component_set using `e>0` 
+  show "\<exists>e>0. ball y e \<subseteq> s - {y. path_component s x y}" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule,rule) defer proof(rule ccontr)
+    fix z assume "z\<in>ball y e" "\<not> z \<notin> {y. path_component s x y}"
+    hence "y \<in> {y. path_component s x y}" unfolding not_not mem_Collect_eq using `e>0`
       apply- apply(rule path_component_trans,assumption) apply(rule path_component_of_subset[OF e(2)])
       apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) by auto
     thus False using as by auto qed(insert e(2), auto) qed
@@ -462,11 +460,11 @@ lemma connected_open_path_connected:
   fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
   assumes "open s" "connected s" shows "path_connected s"
   unfolding path_connected_component_set proof(rule,rule,rule path_component_subset, rule)
-  fix x y assume "x \<in> s" "y \<in> s" show "y \<in> path_component s x" proof(rule ccontr)
-    assume "y \<notin> path_component s x" moreover
-    have "path_component s x \<inter> s \<noteq> {}" using `x\<in>s` path_component_eq_empty path_component_subset[of s x] by auto
+  fix x y assume "x \<in> s" "y \<in> s" show "y \<in> {y. path_component s x y}" proof(rule ccontr)
+    assume "y \<notin> {y. path_component s x y}" moreover
+    have "{y. path_component s x y} \<inter> s \<noteq> {}" using `x\<in>s` path_component_eq_empty path_component_subset[of s x] by auto
     ultimately show False using `y\<in>s` open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
-    using assms(2)[unfolded connected_def not_ex, rule_format, of"path_component s x" "s - path_component s x"] by auto
+    using assms(2)[unfolded connected_def not_ex, rule_format, of"{y. path_component s x y}" "s - {y. path_component s x y}"] by auto
 qed qed
 
 lemma path_connected_continuous_image:

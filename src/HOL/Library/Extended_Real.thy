@@ -1370,7 +1370,7 @@ proof-
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis Collect_def Collect_mem_eq SUP_leI assms atLeastatMost_empty atLeastatMost_empty_iff
+  by (metis SUP_leI assms atLeastatMost_empty atLeastatMost_empty_iff
       inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
 } ultimately show ?thesis by auto
 qed
@@ -1390,7 +1390,7 @@ proof-
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis Collect_def Collect_mem_eq le_INFI assms atLeastatMost_empty atLeastatMost_empty_iff
+  by (metis le_INFI assms atLeastatMost_empty atLeastatMost_empty_iff
       inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
 } ultimately show ?thesis by auto
 qed
@@ -2210,21 +2210,20 @@ proof (safe intro!: antisym complete_lattice_class.Sup_least complete_lattice_cl
   qed
 qed auto
 
-lemma (in order) mono_set:
-  "mono S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
-  by (auto simp: mono_def mem_def)
+definition (in order) mono_set:
+  "mono_set S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
 
-lemma (in order) mono_greaterThan [intro, simp]: "mono {B<..}" unfolding mono_set by auto
-lemma (in order) mono_atLeast [intro, simp]: "mono {B..}" unfolding mono_set by auto
-lemma (in order) mono_UNIV [intro, simp]: "mono UNIV" unfolding mono_set by auto
-lemma (in order) mono_empty [intro, simp]: "mono {}" unfolding mono_set by auto
+lemma (in order) mono_greaterThan [intro, simp]: "mono_set {B<..}" unfolding mono_set by auto
+lemma (in order) mono_atLeast [intro, simp]: "mono_set {B..}" unfolding mono_set by auto
+lemma (in order) mono_UNIV [intro, simp]: "mono_set UNIV" unfolding mono_set by auto
+lemma (in order) mono_empty [intro, simp]: "mono_set {}" unfolding mono_set by auto
 
 lemma (in complete_linorder) mono_set_iff:
   fixes S :: "'a set"
   defines "a \<equiv> Inf S"
-  shows "mono S \<longleftrightarrow> (S = {a <..} \<or> S = {a..})" (is "_ = ?c")
+  shows "mono_set S \<longleftrightarrow> (S = {a <..} \<or> S = {a..})" (is "_ = ?c")
 proof
-  assume "mono S"
+  assume "mono_set S"
   then have mono: "\<And>x y. x \<le> y \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S" by (auto simp: mono_set)
   show ?c
   proof cases

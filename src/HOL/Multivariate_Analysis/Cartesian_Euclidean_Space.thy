@@ -762,7 +762,7 @@ apply simp
 apply auto
 apply (rule span_mul)
 apply (rule span_superset)
-apply (auto simp add: Collect_def mem_def)
+apply auto
 done
 
 lemma finite_stdbasis: "finite {cart_basis i ::real^'n |i. i\<in> (UNIV:: 'n set)}" (is "finite ?S")
@@ -785,12 +785,12 @@ lemma independent_stdbasis_lemma:
 proof-
   let ?U = "UNIV :: 'n set"
   let ?B = "cart_basis ` S"
-  let ?P = "\<lambda>(x::real^_). \<forall>i\<in> ?U. i \<notin> S \<longrightarrow> x$i =0"
+  let ?P = "{(x::real^_). \<forall>i\<in> ?U. i \<notin> S \<longrightarrow> x$i =0}"
  {fix x::"real^_" assume xS: "x\<in> ?B"
-   from xS have "?P x" by auto}
+   from xS have "x \<in> ?P" by auto}
  moreover
  have "subspace ?P"
-   by (auto simp add: subspace_def Collect_def mem_def)
+   by (auto simp add: subspace_def)
  ultimately show ?thesis
    using x span_induct[of ?B ?P x] iS by blast
 qed
@@ -830,7 +830,7 @@ proof-
     from equalityD2[OF span_stdbasis]
     have IU: " (UNIV :: (real^'m) set) \<subseteq> span ?I" by blast
     from linear_eq[OF lf lg IU] fg x
-    have "f x = g x" unfolding Collect_def  Ball_def mem_def by metis}
+    have "f x = g x" unfolding Ball_def mem_Collect_eq by metis}
   then show ?thesis by (auto intro: ext)
 qed
 

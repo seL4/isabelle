@@ -101,9 +101,9 @@ lemma subspace_Inter: "(!s : f. subspace s) ==> subspace (Inter f)"
 
 lemma span_eq[simp]: "(span s = s) <-> subspace s"
 proof-
-  { fix f assume "f <= subspace"
-    hence "subspace (Inter f)" using subspace_Inter[of f] unfolding subset_eq mem_def by auto  }
-  thus ?thesis using hull_eq[unfolded mem_def, of subspace s] span_def by auto
+  { fix f assume "Ball f subspace"
+    hence "subspace (Inter f)" using subspace_Inter[of f] unfolding Ball_def by auto  }
+  thus ?thesis using hull_eq[of subspace s] span_def by auto
 qed
 
 lemma basis_inj_on: "d \<subseteq> {..<DIM('n)} \<Longrightarrow> inj_on (basis :: nat => 'n::euclidean_space) d"
@@ -391,11 +391,11 @@ lemma affine_Int: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine 
   unfolding affine_def by auto
 
 lemma affine_affine_hull: "affine(affine hull s)"
-  unfolding hull_def using affine_Inter[of "{t \<in> affine. s \<subseteq> t}"]
-  unfolding mem_def by auto
+  unfolding hull_def using affine_Inter[of "{t. affine t \<and> s \<subseteq> t}"]
+  by auto
 
 lemma affine_hull_eq[simp]: "(affine hull s = s) \<longleftrightarrow> affine s"
-by (metis affine_affine_hull hull_same mem_def)
+by (metis affine_affine_hull hull_same)
 
 subsection {* Some explicit formulations (from Lars Schewe). *}
 
@@ -459,7 +459,7 @@ qed
 
 lemma affine_hull_explicit:
   "affine hull p = {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> setsum (\<lambda>v. (u v) *\<^sub>R v) s = y}"
-  apply(rule hull_unique) apply(subst subset_eq) prefer 3 apply rule unfolding mem_Collect_eq and mem_def[of _ affine]
+  apply(rule hull_unique) apply(subst subset_eq) prefer 3 apply rule unfolding mem_Collect_eq
   apply (erule exE)+ apply(erule conjE)+ prefer 2 apply rule proof-
   fix x assume "x\<in>p" thus "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
     apply(rule_tac x="{x}" in exI, rule_tac x="\<lambda>x. 1" in exI) by auto
@@ -500,7 +500,7 @@ next
 subsection {* Stepping theorems and hence small special cases. *}
 
 lemma affine_hull_empty[simp]: "affine hull {} = {}"
-  apply(rule hull_unique) unfolding mem_def by auto
+  apply(rule hull_unique) by auto
 
 lemma affine_hull_finite_step:
   fixes y :: "'a::real_vector"
@@ -812,12 +812,11 @@ lemma cone_Inter[intro]: "(\<forall>s\<in>f. cone s) \<Longrightarrow> cone(\<In
 subsection {* Conic hull. *}
 
 lemma cone_cone_hull: "cone (cone hull s)"
-  unfolding hull_def using cone_Inter[of "{t \<in> conic. s \<subseteq> t}"] 
-  by (auto simp add: mem_def)
+  unfolding hull_def by auto
 
 lemma cone_hull_eq: "(cone hull s = s) \<longleftrightarrow> cone s"
-  apply(rule hull_eq[unfolded mem_def])
-  using cone_Inter unfolding subset_eq by (auto simp add: mem_def)
+  apply(rule hull_eq)
+  using cone_Inter unfolding subset_eq by auto
 
 lemma mem_cone:
   assumes "cone S" "x : S" "c>=0"
@@ -888,7 +887,7 @@ using cone_cone_hull[of S] cone_contains_0[of "cone hull S"] cone_hull_empty_iff
 lemma mem_cone_hull:
   assumes "x : S" "c>=0"
   shows "c *\<^sub>R x : cone hull S"
-by (metis assms cone_cone_hull hull_inc mem_cone mem_def)
+by (metis assms cone_cone_hull hull_inc mem_cone)
 
 lemma cone_hull_expl:
 fixes S :: "('m::euclidean_space) set"
@@ -901,11 +900,11 @@ proof-
   moreover have "(c*cx) >= 0" using c_def x_def using mult_nonneg_nonneg by auto
   ultimately have "c *\<^sub>R x : ?rhs" using x_def by auto
 } hence "cone ?rhs" unfolding cone_def by auto
-  hence "?rhs : cone" unfolding mem_def by auto
+  hence "?rhs : Collect cone" unfolding mem_Collect_eq by auto
 { fix x assume "x : S" hence "1 *\<^sub>R x : ?rhs" apply auto apply(rule_tac x="1" in exI) by auto
   hence "x : ?rhs" by auto
 } hence "S <= ?rhs" by auto
-hence "?lhs <= ?rhs" using `?rhs : cone` hull_minimal[of S "?rhs" "cone"] by auto
+hence "?lhs <= ?rhs" using `?rhs : Collect cone` hull_minimal[of S "?rhs" "cone"] by auto
 moreover
 { fix x assume "x : ?rhs"
   from this obtain cx xx where x_def: "x= cx *\<^sub>R xx & (cx :: real)>=0 & xx : S" by auto
@@ -1081,18 +1080,18 @@ lemma connected_cball:
 subsection {* Convex hull. *}
 
 lemma convex_convex_hull: "convex(convex hull s)"
-  unfolding hull_def using convex_Inter[of "{t\<in>convex. s\<subseteq>t}"]
-  unfolding mem_def by auto
+  unfolding hull_def using convex_Inter[of "{t. convex t \<and> s \<subseteq> t}"]
+  by auto
 
 lemma convex_hull_eq: "convex hull s = s \<longleftrightarrow> convex s"
-by (metis convex_convex_hull hull_same mem_def)
+by (metis convex_convex_hull hull_same)
 
 lemma bounded_convex_hull:
   fixes s :: "'a::real_normed_vector set"
   assumes "bounded s" shows "bounded(convex hull s)"
 proof- from assms obtain B where B:"\<forall>x\<in>s. norm x \<le> B" unfolding bounded_iff by auto
   show ?thesis apply(rule bounded_subset[OF bounded_cball, of _ 0 B])
-    unfolding subset_hull[unfolded mem_def, of convex, OF convex_cball]
+    unfolding subset_hull[of convex, OF convex_cball]
     unfolding subset_eq mem_cball dist_norm using B by auto qed
 
 lemma finite_imp_bounded_convex_hull:
@@ -1125,17 +1124,17 @@ using convex_hull_linear_image[OF assms(1)] assms(2) by auto
 subsection {* Stepping theorems for convex hulls of finite sets. *}
 
 lemma convex_hull_empty[simp]: "convex hull {} = {}"
-  apply(rule hull_unique) unfolding mem_def by auto
+  apply(rule hull_unique) by auto
 
 lemma convex_hull_singleton[simp]: "convex hull {a} = {a}"
-  apply(rule hull_unique) unfolding mem_def by auto
+  apply(rule hull_unique) by auto
 
 lemma convex_hull_insert:
   fixes s :: "'a::real_vector set"
   assumes "s \<noteq> {}"
   shows "convex hull (insert a s) = {x. \<exists>u\<ge>0. \<exists>v\<ge>0. \<exists>b. (u + v = 1) \<and>
                                     b \<in> (convex hull s) \<and> (x = u *\<^sub>R a + v *\<^sub>R b)}" (is "?xyz = ?hull")
- apply(rule,rule hull_minimal,rule) unfolding mem_def[of _ convex] and insert_iff prefer 3 apply rule proof-
+ apply(rule,rule hull_minimal,rule) unfolding insert_iff prefer 3 apply rule proof-
  fix x assume x:"x = a \<or> x \<in> s"
  thus "x\<in>?hull" apply rule unfolding mem_Collect_eq apply(rule_tac x=1 in exI) defer 
    apply(rule_tac x=0 in exI) using assms hull_subset[of s convex] by auto
@@ -1192,7 +1191,7 @@ lemma convex_hull_indexed:
   shows "convex hull s = {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
                             (setsum u {1..k} = 1) \<and>
                             (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}" (is "?xyz = ?hull")
-  apply(rule hull_unique) unfolding mem_def[of _ convex] apply(rule) defer
+  apply(rule hull_unique) apply(rule) defer
   apply(subst convex_def) apply(rule,rule,rule,rule,rule,rule,rule)
 proof-
   fix x assume "x\<in>s"
@@ -1232,7 +1231,7 @@ lemma convex_hull_finite:
   assumes "finite s"
   shows "convex hull s = {y. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and>
          setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}" (is "?HULL = ?set")
-proof(rule hull_unique, auto simp add: mem_def[of _ convex] convex_def[of ?set])
+proof(rule hull_unique, auto simp add: convex_def[of ?set])
   fix x assume "x\<in>s" thus " \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = x" 
     apply(rule_tac x="\<lambda>y. if x=y then 1 else 0" in exI) apply auto
     unfolding setsum_delta'[OF assms] and setsum_delta''[OF assms] by auto 
@@ -1356,8 +1355,8 @@ show ?thesis apply(simp add: convex_hull_finite) unfolding convex_hull_finite_st
   apply(rule_tac x=u in exI) apply simp apply(rule_tac x="\<lambda>x. v" in exI) by simp qed
 
 lemma convex_hull_2_alt: "convex hull {a,b} = {a + u *\<^sub>R (b - a) | u.  0 \<le> u \<and> u \<le> 1}"
-  unfolding convex_hull_2 unfolding Collect_def 
-proof(rule ext) have *:"\<And>x y ::real. x + y = 1 \<longleftrightarrow> x = 1 - y" by auto
+  unfolding convex_hull_2
+proof(rule Collect_cong) have *:"\<And>x y ::real. x + y = 1 \<longleftrightarrow> x = 1 - y" by auto
   fix x show "(\<exists>v u. x = v *\<^sub>R a + u *\<^sub>R b \<and> 0 \<le> v \<and> 0 \<le> u \<and> v + u = 1) = (\<exists>u. x = a + u *\<^sub>R (b - a) \<and> 0 \<le> u \<and> u \<le> 1)"
     unfolding * apply auto apply(rule_tac[!] x=u in exI) by (auto simp add: algebra_simps) qed
 
@@ -1367,8 +1366,8 @@ proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
          "\<And>x y z ::_::euclidean_space. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: field_simps)
-  show ?thesis unfolding convex_hull_finite[OF fin(1)] and Collect_def and convex_hull_finite_step[OF fin(2)] and *
-    unfolding convex_hull_finite_step[OF fin(3)] apply(rule ext) apply simp apply auto
+  show ?thesis unfolding convex_hull_finite[OF fin(1)] and convex_hull_finite_step[OF fin(2)] and *
+    unfolding convex_hull_finite_step[OF fin(3)] apply(rule Collect_cong) apply simp apply auto
     apply(rule_tac x=va in exI) apply (rule_tac x="u c" in exI) apply simp
     apply(rule_tac x="1 - v - w" in exI) apply simp apply(rule_tac x=v in exI) apply simp apply(rule_tac x="\<lambda>x. w" in exI) by simp qed
 
@@ -1392,14 +1391,14 @@ lemma subspace_imp_convex:
 
 lemma affine_hull_subset_span:
   fixes s :: "(_::euclidean_space) set" shows "(affine hull s) \<subseteq> (span s)"
-by (metis hull_minimal mem_def span_inc subspace_imp_affine subspace_span)
+by (metis hull_minimal span_inc subspace_imp_affine subspace_span)
 
 lemma convex_hull_subset_span:
   fixes s :: "(_::euclidean_space) set" shows "(convex hull s) \<subseteq> (span s)"
-by (metis hull_minimal mem_def span_inc subspace_imp_convex subspace_span)
+by (metis hull_minimal span_inc subspace_imp_convex subspace_span)
 
 lemma convex_hull_subset_affine_hull: "(convex hull s) \<subseteq> (affine hull s)"
-by (metis affine_affine_hull affine_imp_convex hull_minimal hull_subset mem_def)
+by (metis affine_affine_hull affine_imp_convex hull_minimal hull_subset)
 
 
 lemma affine_dependent_imp_dependent:
@@ -1572,11 +1571,11 @@ lemma affine_hull_translation:
 proof-
 have "affine ((%x. a + x) ` (affine hull S))" using affine_translation affine_affine_hull by auto
 moreover have "(%x. a + x) `  S <= (%x. a + x) ` (affine hull S)" using hull_subset[of S] by auto
-ultimately have h1: "affine hull ((%x. a + x) `  S) <= (%x. a + x) ` (affine hull S)" by (metis hull_minimal mem_def)
+ultimately have h1: "affine hull ((%x. a + x) `  S) <= (%x. a + x) ` (affine hull S)" by (metis hull_minimal)
 have "affine((%x. -a + x) ` (affine hull ((%x. a + x) `  S)))"  using affine_translation affine_affine_hull by auto
 moreover have "(%x. -a + x) ` (%x. a + x) `  S <= (%x. -a + x) ` (affine hull ((%x. a + x) `  S))" using hull_subset[of "(%x. a + x) `  S"] by auto 
 moreover have "S=(%x. -a + x) ` (%x. a + x) `  S" using  translation_assoc[of "-a" a] by auto
-ultimately have "(%x. -a + x) ` (affine hull ((%x. a + x) `  S)) >= (affine hull S)" by (metis hull_minimal mem_def)
+ultimately have "(%x. -a + x) ` (affine hull ((%x. a + x) `  S)) >= (affine hull S)" by (metis hull_minimal)
 hence "affine hull ((%x. a + x) `  S) >= (%x. a + x) ` (affine hull S)" by auto
 from this show ?thesis using h1 by auto
 qed
@@ -3016,7 +3015,7 @@ proof- let ?k = "\<lambda>c. {x::'a. 0 \<le> inner c x}"
     then obtain a b where ab:"a \<noteq> 0" "0 < b"  "\<forall>x\<in>convex hull c. b < inner a x"
       using separating_hyperplane_closed_0[OF convex_convex_hull, of c]
       using finite_imp_compact_convex_hull[OF c(3), THEN compact_imp_closed] and assms(2)
-      using subset_hull[unfolded mem_def, of convex, OF assms(1), THEN sym, of c] by auto
+      using subset_hull[of convex, OF assms(1), THEN sym, of c] by auto
     hence "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> inner y x)" apply(rule_tac x="inverse(norm a) *\<^sub>R a" in exI)
        using hull_subset[of c convex] unfolding subset_eq and inner_scaleR
        apply- apply rule defer apply rule apply(rule mult_nonneg_nonneg)
@@ -3077,7 +3076,7 @@ subsection {* Moving and scaling convex hulls. *}
 
 lemma convex_hull_translation_lemma:
   "convex hull ((\<lambda>x. a + x) ` s) \<subseteq> (\<lambda>x. a + x) ` (convex hull s)"
-by (metis convex_convex_hull convex_translation hull_minimal hull_subset image_mono mem_def)
+by (metis convex_convex_hull convex_translation hull_minimal hull_subset image_mono)
 
 lemma convex_hull_bilemma: fixes neg
   assumes "(\<forall>s a. (convex hull (up a s)) \<subseteq> up a (convex hull s))"
@@ -3091,7 +3090,7 @@ lemma convex_hull_translation:
 
 lemma convex_hull_scaling_lemma:
  "(convex hull ((\<lambda>x. c *\<^sub>R x) ` s)) \<subseteq> (\<lambda>x. c *\<^sub>R x) ` (convex hull s)"
-by (metis convex_convex_hull convex_scaling hull_subset mem_def subset_hull subset_image_iff)
+by (metis convex_convex_hull convex_scaling hull_subset subset_hull subset_image_iff)
 
 lemma convex_hull_scaling:
   "convex hull ((\<lambda>x. c *\<^sub>R x) ` s) = (\<lambda>x. c *\<^sub>R x) ` (convex hull s)"
@@ -3269,7 +3268,7 @@ show "\<Inter> f \<noteq> {}" apply(cases "n = DIM('a)") apply(rule Suc(5)[rule_
       unfolding mp(2)[unfolded image_Un[THEN sym] gh] by auto
     have *:"g \<inter> h = {}" using mp(1) unfolding gh using inj_on_image_Int[OF True gh(3,4)] by auto
     have "convex hull (X ` h) \<subseteq> \<Inter> g" "convex hull (X ` g) \<subseteq> \<Inter> h"
-      apply(rule_tac [!] hull_minimal) using Suc gh(3-4)  unfolding mem_def unfolding subset_eq
+      apply(rule_tac [!] hull_minimal) using Suc gh(3-4)  unfolding subset_eq
       apply(rule_tac [2] convex_Inter, rule_tac [4] convex_Inter) apply rule prefer 3 apply rule proof-
       fix x assume "x\<in>X ` g" then guess y unfolding image_iff ..
       thus "x\<in>\<Inter>h" using X[THEN bspec[where x=y]] using * f by auto next
@@ -3710,7 +3709,7 @@ proof- have 01:"{0,(\<chi>\<chi> i. 1)} \<subseteq> convex hull ?points" apply r
     apply(rule_tac n2="DIM('a)" in *) prefer 3 apply(subst(2) **) 
     apply(rule card_mono) using 01 and convex_interval(1) prefer 5 apply - apply rule
     unfolding mem_interval apply rule unfolding mem_Collect_eq apply(erule_tac x=i in allE)
-    by(auto simp add: mem_def[of _ convex]) qed
+    by auto qed
 
 subsection {* And this is a finite set of vertices. *}
 
@@ -3883,7 +3882,7 @@ definition
   closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
 
-definition "between = (\<lambda> (a,b). closed_segment a b)"
+definition "between = (\<lambda> (a,b) x. x \<in> closed_segment a b)"
 
 lemmas segment = open_segment_def closed_segment_def
 
@@ -3968,15 +3967,15 @@ lemma segment_bound:
 lemma segment_refl:"closed_segment a a = {a}" unfolding segment by (auto simp add: algebra_simps)
 
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
-  unfolding between_def mem_def by auto
+  unfolding between_def by auto
 
 lemma between:"between (a,b) (x::'a::euclidean_space) \<longleftrightarrow> dist a b = (dist a x) + (dist x b)"
 proof(cases "a = b")
-  case True thus ?thesis unfolding between_def split_conv mem_def[of x, symmetric]
+  case True thus ?thesis unfolding between_def split_conv
     by(auto simp add:segment_refl dist_commute) next
   case False hence Fal:"norm (a - b) \<noteq> 0" and Fal2: "norm (a - b) > 0" by auto 
   have *:"\<And>u. a - ((1 - u) *\<^sub>R a + u *\<^sub>R b) = u *\<^sub>R (a - b)" by (auto simp add: algebra_simps)
-  show ?thesis unfolding between_def split_conv mem_def[of x, symmetric] closed_segment_def mem_Collect_eq
+  show ?thesis unfolding between_def split_conv closed_segment_def mem_Collect_eq
     apply rule apply(erule exE, (erule conjE)+) apply(subst dist_triangle_eq) proof-
       fix u assume as:"x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 \<le> u" "u \<le> 1" 
       hence *:"a - x = u *\<^sub>R (a - b)" "x - b = (1 - u) *\<^sub>R (a - b)"
@@ -4743,8 +4742,8 @@ proof-
   { fix S assume "S : I" hence "y : closure S" using closure_subset y_def by auto }
   hence "y : Inter {closure S |S. S : I}" by auto
 } hence "Inter I <= Inter {closure S |S. S : I}" by auto
-moreover have "Inter {closure S |S. S : I} : closed" 
-  unfolding mem_def closed_Inter closed_closure by auto
+moreover have "closed (Inter {closure S |S. S : I})"
+  unfolding closed_Inter closed_closure by auto
 ultimately show ?thesis using closure_hull[of "Inter I"]
   hull_minimal[of "Inter I" "Inter {closure S |S. S : I}" "closed"] by auto
 qed
@@ -5074,8 +5073,8 @@ proof-
      using I_def u_def by auto
 }
 hence "convex hull (S <*> T) >= (convex hull S) <*> (convex hull T)" by auto
-moreover have "(convex hull S) <*> (convex hull T) : convex" 
-   unfolding mem_def by (simp add: convex_direct_sum convex_convex_hull)
+moreover have "convex ((convex hull S) <*> (convex hull T))" 
+   by (simp add: convex_direct_sum convex_convex_hull)
 ultimately show ?thesis 
    using hull_minimal[of "S <*> T" "(convex hull S) <*> (convex hull T)" "convex"] 
          hull_subset[of S convex] hull_subset[of T convex] by auto
@@ -5384,7 +5383,6 @@ from this obtain p where p_def: "!i:I. p i : S i" by metis
   finally have "u *\<^sub>R x + v *\<^sub>R y = setsum (%i. (e i) *\<^sub>R (q i)) I" by auto
   hence "u *\<^sub>R x + v *\<^sub>R y : ?rhs" using ge0 sum1 qs by auto
 } hence "convex ?rhs" unfolding convex_def by auto
-hence "?rhs : convex" unfolding mem_def by auto
 from this show ?thesis using `?lhs >= ?rhs` * 
    hull_minimal[of "Union (S ` I)" "?rhs" "convex"] by blast
 qed
@@ -5578,7 +5576,7 @@ moreover
     hence "K0 >= K i" unfolding K0_def K_def apply (subst hull_mono) using `!i:I. C0 >= S i` by auto
   }
   hence "K0 >= Union (K ` I)" by auto
-  moreover have "K0 : convex" unfolding mem_def K0_def
+  moreover have "convex K0" unfolding K0_def
      apply (subst convex_cone_hull) apply (subst convex_direct_sum)
      unfolding C0_def using convex_convex_hull by auto
   ultimately have geq: "K0 >= convex hull (Union (K ` I))" using hull_minimal[of _ "K0" "convex"] by blast
@@ -5587,7 +5585,7 @@ moreover
   hence "convex hull Union (K ` I) >= convex hull ({(1 :: real)} <*> Union (S ` I))" by (simp add: hull_mono)
   hence "convex hull Union (K ` I) >= {(1 :: real)} <*> C0" unfolding C0_def
      using convex_hull_direct_sum[of "{(1 :: real)}" "Union (S ` I)"] convex_hull_singleton by auto
-  moreover have "convex hull(Union (K ` I)) : cone" unfolding mem_def apply (subst cone_convex_hull)
+  moreover have "cone (convex hull(Union (K ` I)))" apply (subst cone_convex_hull)
      using cone_Union[of "K ` I"] apply auto unfolding K_def using cone_cone_hull by auto
   ultimately have "convex hull (Union (K ` I)) >= K0"
      unfolding K0_def using hull_minimal[of _ "convex hull (Union (K ` I))" "cone"] by blast

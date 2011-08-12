@@ -648,17 +648,17 @@ done
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
 
-definition hull :: "'a set set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "hull" 75) where
-  "S hull s = Inter {t. t \<in> S \<and> s \<subseteq> t}"
+definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "hull" 75) where
+  "S hull s = Inter {t. S t \<and> s \<subseteq> t}"
 
-lemma hull_same: "s \<in> S \<Longrightarrow> S hull s = s"
+lemma hull_same: "S s \<Longrightarrow> S hull s = s"
   unfolding hull_def by auto
 
-lemma hull_in: "(\<And>T. T \<subseteq> S ==> Inter T \<in> S) ==> (S hull s) \<in> S"
-unfolding hull_def subset_iff by auto
+lemma hull_in: "(\<And>T. Ball T S ==> S (Inter T)) ==> S (S hull s)"
+unfolding hull_def Ball_def by auto
 
-lemma hull_eq: "(\<And>T. T \<subseteq> S ==> Inter T \<in> S) ==> (S hull s) = s \<longleftrightarrow> s \<in> S"
-using hull_same[of s S] hull_in[of S s] by metis
+lemma hull_eq: "(\<And>T. Ball T S ==> S (Inter T)) ==> (S hull s) = s \<longleftrightarrow> S s"
+using hull_same[of S s] hull_in[of S s] by metis
 
 
 lemma hull_hull: "S hull (S hull s) = S hull s"
@@ -670,29 +670,29 @@ lemma hull_subset[intro]: "s \<subseteq> (S hull s)"
 lemma hull_mono: " s \<subseteq> t ==> (S hull s) \<subseteq> (S hull t)"
   unfolding hull_def by blast
 
-lemma hull_antimono: "S \<subseteq> T ==> (T hull s) \<subseteq> (S hull s)"
+lemma hull_antimono: "\<forall>x. S x \<longrightarrow> T x ==> (T hull s) \<subseteq> (S hull s)"
   unfolding hull_def by blast
 
-lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> t \<in> S ==> (S hull s) \<subseteq> t"
+lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t ==> (S hull s) \<subseteq> t"
   unfolding hull_def by blast
 
-lemma subset_hull: "t \<in> S ==> S hull s \<subseteq> t \<longleftrightarrow>  s \<subseteq> t"
+lemma subset_hull: "S t ==> S hull s \<subseteq> t \<longleftrightarrow>  s \<subseteq> t"
   unfolding hull_def by blast
 
-lemma hull_unique: "s \<subseteq> t \<Longrightarrow> t \<in> S \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> t' \<in> S ==> t \<subseteq> t')
+lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' ==> t \<subseteq> t')
            ==> (S hull s = t)"
 unfolding hull_def by auto
 
 lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
   using hull_minimal[of S "{x. P x}" Q]
-  by (auto simp add: subset_eq Collect_def mem_def)
+  by (auto simp add: subset_eq)
 
 lemma hull_inc: "x \<in> S \<Longrightarrow> x \<in> P hull S" by (metis hull_subset subset_eq)
 
 lemma hull_union_subset: "(S hull s) \<union> (S hull t) \<subseteq> (S hull (s \<union> t))"
 unfolding Un_subset_iff by (metis hull_mono Un_upper1 Un_upper2)
 
-lemma hull_union: assumes T: "\<And>T. T \<subseteq> S ==> Inter T \<in> S"
+lemma hull_union: assumes T: "\<And>T. Ball T S ==> S (Inter T)"
   shows "S hull (s \<union> t) = S hull (S hull s \<union> S hull t)"
 apply rule
 apply (rule hull_mono)
@@ -907,24 +907,9 @@ lemma (in real_vector) span_mono: "A \<subseteq> B ==> span A \<subseteq> span B
 
 lemma (in real_vector) subspace_span: "subspace(span S)"
   unfolding span_def
-  apply (rule hull_in[unfolded mem_def])
+  apply (rule hull_in)
   apply (simp only: subspace_def Inter_iff Int_iff subset_eq)
   apply auto
-  apply (erule_tac x="X" in ballE)
-  apply (simp add: mem_def)
-  apply blast
-  apply (erule_tac x="X" in ballE)
-  apply (erule_tac x="X" in ballE)
-  apply (erule_tac x="X" in ballE)
-  apply (clarsimp simp add: mem_def)
-  apply simp
-  apply simp
-  apply simp
-  apply (erule_tac x="X" in ballE)
-  apply (erule_tac x="X" in ballE)
-  apply (simp add: mem_def)
-  apply simp
-  apply simp
   done
 
 lemma (in real_vector) span_clauses:
@@ -935,21 +920,18 @@ lemma (in real_vector) span_clauses:
   by (metis span_def hull_subset subset_eq)
      (metis subspace_span subspace_def)+
 
-lemma (in real_vector) span_induct: assumes SP: "\<And>x. x \<in> S ==> P x"
-  and P: "subspace P" and x: "x \<in> span S" shows "P x"
+lemma (in real_vector) span_induct: assumes SP: "\<And>x. x \<in> S ==> x \<in> P"
+  and P: "subspace P" and x: "x \<in> span S" shows "x \<in> P"
 proof-
-  from SP have SP': "S \<subseteq> P" by (simp add: mem_def subset_eq)
-  from P have P': "P \<in> subspace" by (simp add: mem_def)
-  from x hull_minimal[OF SP' P', unfolded span_def[symmetric]]
-  show "P x" by (metis mem_def subset_eq)
+  from SP have SP': "S \<subseteq> P" by (simp add: subset_eq)
+  from x hull_minimal[where S=subspace, OF SP' P, unfolded span_def[symmetric]]
+  show "x \<in> P" by (metis subset_eq)
 qed
 
 lemma span_empty[simp]: "span {} = {0}"
   apply (simp add: span_def)
   apply (rule hull_unique)
-  apply (auto simp add: mem_def subspace_def)
-  unfolding mem_def[of "0::'a", symmetric]
-  apply simp
+  apply (auto simp add: subspace_def)
   done
 
 lemma (in real_vector) independent_empty[intro]: "independent {}"
@@ -968,21 +950,21 @@ lemma (in real_vector) independent_mono: "independent A \<Longrightarrow> B \<su
   done
 
 lemma (in real_vector) span_subspace: "A \<subseteq> B \<Longrightarrow> B \<le> span A \<Longrightarrow>  subspace B \<Longrightarrow> span A = B"
-  by (metis order_antisym span_def hull_minimal mem_def)
+  by (metis order_antisym span_def hull_minimal)
 
 lemma (in real_vector) span_induct': assumes SP: "\<forall>x \<in> S. P x"
-  and P: "subspace P" shows "\<forall>x \<in> span S. P x"
+  and P: "subspace {x. P x}" shows "\<forall>x \<in> span S. P x"
   using span_induct SP P by blast
 
-inductive (in real_vector) span_induct_alt_help for S:: "'a \<Rightarrow> bool"
+inductive_set (in real_vector) span_induct_alt_help for S:: "'a set"
   where
-  span_induct_alt_help_0: "span_induct_alt_help S 0"
-  | span_induct_alt_help_S: "x \<in> S \<Longrightarrow> span_induct_alt_help S z \<Longrightarrow> span_induct_alt_help S (c *\<^sub>R x + z)"
+  span_induct_alt_help_0: "0 \<in> span_induct_alt_help S"
+  | span_induct_alt_help_S: "x \<in> S \<Longrightarrow> z \<in> span_induct_alt_help S \<Longrightarrow> (c *\<^sub>R x + z) \<in> span_induct_alt_help S"
 
 lemma span_induct_alt':
   assumes h0: "h 0" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c *\<^sub>R x + y)" shows "\<forall>x \<in> span S. h x"
 proof-
-  {fix x:: "'a" assume x: "span_induct_alt_help S x"
+  {fix x:: "'a" assume x: "x \<in> span_induct_alt_help S"
     have "h x"
       apply (rule span_induct_alt_help.induct[OF x])
       apply (rule h0)
@@ -991,19 +973,19 @@ proof-
   note th0 = this
   {fix x assume x: "x \<in> span S"
 
-    have "span_induct_alt_help S x"
+    have "x \<in> span_induct_alt_help S"
       proof(rule span_induct[where x=x and S=S])
         show "x \<in> span S" using x .
       next
         fix x assume xS : "x \<in> S"
           from span_induct_alt_help_S[OF xS span_induct_alt_help_0, of 1]
-          show "span_induct_alt_help S x" by simp
+          show "x \<in> span_induct_alt_help S" by simp
         next
-        have "span_induct_alt_help S 0" by (rule span_induct_alt_help_0)
+        have "0 \<in> span_induct_alt_help S" by (rule span_induct_alt_help_0)
         moreover
-        {fix x y assume h: "span_induct_alt_help S x" "span_induct_alt_help S y"
+        {fix x y assume h: "x \<in> span_induct_alt_help S" "y \<in> span_induct_alt_help S"
           from h
-          have "span_induct_alt_help S (x + y)"
+          have "(x + y) \<in> span_induct_alt_help S"
             apply (induct rule: span_induct_alt_help.induct)
             apply simp
             unfolding add_assoc
@@ -1012,8 +994,8 @@ proof-
             apply simp
             done}
         moreover
-        {fix c x assume xt: "span_induct_alt_help S x"
-          then have "span_induct_alt_help S (c *\<^sub>R x)"
+        {fix c x assume xt: "x \<in> span_induct_alt_help S"
+          then have "(c *\<^sub>R x) \<in> span_induct_alt_help S"
             apply (induct rule: span_induct_alt_help.induct)
             apply (simp add: span_induct_alt_help_0)
             apply (simp add: scaleR_right_distrib)
@@ -1023,7 +1005,7 @@ proof-
             done
         }
         ultimately show "subspace (span_induct_alt_help S)"
-          unfolding subspace_def mem_def Ball_def by blast
+          unfolding subspace_def Ball_def by blast
       qed}
   with th0 show ?thesis by blast
 qed
@@ -1081,23 +1063,22 @@ proof-
       apply (clarsimp simp add: image_iff)
       apply (frule span_superset)
       apply blast
-      apply (simp only: mem_def)
       apply (rule subspace_linear_image[OF lf])
       apply (rule subspace_span)
       apply (rule x)
       done}
   moreover
   {fix x assume x: "x \<in> span S"
-    have th0:"(\<lambda>a. f a \<in> span (f ` S)) = {x. f x \<in> span (f ` S)}" apply (rule set_eqI)
-      unfolding mem_def Collect_def ..
-    have "f x \<in> span (f ` S)"
+    have "x \<in> {x. f x \<in> span (f ` S)}"
       apply (rule span_induct[where S=S])
+      apply simp
       apply (rule span_superset)
       apply simp
-      apply (subst th0)
       apply (rule subspace_linear_preimage[OF lf subspace_span, of "f ` S"])
       apply (rule x)
-      done}
+      done
+    hence "f x \<in> span (f ` S)" by simp
+  }
   ultimately show ?thesis by blast
 qed
 
@@ -1120,29 +1101,27 @@ proof-
         apply (rule exI[where x=0])
         apply (rule span_superset)
         by simp}
-    ultimately have "?P x" by blast}
-  moreover have "subspace ?P"
+    ultimately have "x \<in> Collect ?P" by blast}
+  moreover have "subspace (Collect ?P)"
     unfolding subspace_def
     apply auto
-    apply (simp add: mem_def)
     apply (rule exI[where x=0])
     using span_0[of "S - {b}"]
-    apply (simp add: mem_def)
-    apply (clarsimp simp add: mem_def)
+    apply simp
     apply (rule_tac x="k + ka" in exI)
     apply (subgoal_tac "x + y - (k + ka) *\<^sub>R b = (x - k*\<^sub>R b) + (y - ka *\<^sub>R b)")
     apply (simp only: )
-    apply (rule span_add[unfolded mem_def])
+    apply (rule span_add)
     apply assumption+
     apply (simp add: algebra_simps)
-    apply (clarsimp simp add: mem_def)
     apply (rule_tac x= "c*k" in exI)
     apply (subgoal_tac "c *\<^sub>R x - (c * k) *\<^sub>R b = c*\<^sub>R (x - k*\<^sub>R b)")
     apply (simp only: )
-    apply (rule span_mul[unfolded mem_def])
+    apply (rule span_mul)
     apply assumption
     by (simp add: algebra_simps)
-  ultimately show "?P a" using aS span_induct[where S=S and P= "?P"] by metis
+  ultimately have "a \<in> Collect ?P" using aS by (rule span_induct)
+  thus "?P a" by simp
 qed
 
 lemma span_breakdown_eq:
@@ -1266,13 +1245,13 @@ proof-
       by (auto intro: span_superset span_mul)}
   moreover
   have "\<forall>x \<in> span P. x \<in> ?E"
-    unfolding mem_def Collect_def
   proof(rule span_induct_alt')
-    show "?h 0"
+    show "0 \<in> Collect ?h"
+      unfolding mem_Collect_eq
       apply (rule exI[where x="{}"]) by simp
   next
     fix c x y
-    assume x: "x \<in> P" and hy: "?h y"
+    assume x: "x \<in> P" and hy: "y \<in> Collect ?h"
     from hy obtain S u where fS: "finite S" and SP: "S\<subseteq>P"
       and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y" by blast
     let ?S = "insert x S"
@@ -1303,7 +1282,8 @@ proof-
       by (simp add: th00 setsum_clauses add_commute cong del: if_weak_cong)}
   ultimately have "?Q ?S ?u (c*\<^sub>R x + y)"
     by (cases "x \<in> S", simp, simp)
-    then show "?h (c*\<^sub>R x + y)"
+    then show "(c*\<^sub>R x + y) \<in> Collect ?h"
+      unfolding mem_Collect_eq
       apply -
       apply (rule exI[where x="?S"])
       apply (rule exI[where x="?u"]) by metis
@@ -2268,7 +2248,7 @@ proof-
   with a have a0:"?a  \<noteq> 0" by auto
   have "\<forall>x\<in>span B. ?a \<bullet> x = 0"
   proof(rule span_induct')
-    show "subspace (\<lambda>x. ?a \<bullet> x = 0)" by (auto simp add: subspace_def mem_def inner_simps)
+    show "subspace {x. ?a \<bullet> x = 0}" by (auto simp add: subspace_def inner_simps)
 next
     {fix x assume x: "x \<in> B"
       from x have B': "B = insert x (B - {x})" by blast
@@ -2548,12 +2528,8 @@ by (simp add: linear_add[OF lf] linear_cmul[OF lf] linear_0[OF lf])
 lemma linear_eq_0_span:
   assumes lf: "linear f" and f0: "\<forall>x\<in>B. f x = 0"
   shows "\<forall>x \<in> span B. f x = 0"
-proof
-  fix x assume x: "x \<in> span B"
-  let ?P = "\<lambda>x. f x = 0"
-  from subspace_kernel[OF lf] have "subspace ?P" unfolding Collect_def .
-  with x f0 span_induct[of B "?P" x] show "f x = 0" by blast
-qed
+  using f0 subspace_kernel[OF lf]
+  by (rule span_induct')
 
 lemma linear_eq_0:
   assumes lf: "linear f" and SB: "S \<subseteq> span B" and f0: "\<forall>x\<in>B. f x = 0"
@@ -2594,24 +2570,19 @@ lemma bilinear_eq:
   and fg: "\<forall>x\<in> B. \<forall>y\<in> C. f x y = g x y"
   shows "\<forall>x\<in>S. \<forall>y\<in>T. f x y = g x y "
 proof-
-  let ?P = "\<lambda>x. \<forall>y\<in> span C. f x y = g x y"
+  let ?P = "{x. \<forall>y\<in> span C. f x y = g x y}"
   from bf bg have sp: "subspace ?P"
     unfolding bilinear_def linear_def subspace_def bf bg
-    by(auto simp add: span_0 mem_def bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
+    by(auto simp add: span_0 bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
 
   have "\<forall>x \<in> span B. \<forall>y\<in> span C. f x y = g x y"
-    apply -
+    apply (rule span_induct' [OF _ sp])
     apply (rule ballI)
-    apply (rule span_induct[of B ?P])
-    defer
-    apply (rule sp)
-    apply assumption
-    apply (clarsimp simp add: Ball_def)
-    apply (rule_tac P="\<lambda>y. f xa y = g xa y" and S=C in span_induct)
-    using fg
+    apply (rule span_induct')
+    apply (simp add: fg)
     apply (auto simp add: subspace_def)
     using bf bg unfolding bilinear_def linear_def
-    by(auto simp add: span_0 mem_def bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
+    by(auto simp add: span_0 bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
   then show ?thesis using SB TC by (auto intro: ext)
 qed
 

@@ -102,7 +102,7 @@ proof(rule ccontr)
     then show False using MInf by auto
   next
     case PInf then have "S={\<infinity>}" by (metis Inf_eq_PInfty assms(2))
-    then show False by (metis `Inf S ~: S` insert_code mem_def PInf)
+    then show False using `Inf S ~: S` by simp
   next
     case (real r) then have fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>" by simp
     from ereal_open_cont_interval[OF a this] guess e . note e = this
@@ -284,22 +284,22 @@ qed
 lemma ereal_open_mono_set:
   fixes S :: "ereal set"
   defines "a \<equiv> Inf S"
-  shows "(open S \<and> mono S) \<longleftrightarrow> (S = UNIV \<or> S = {a <..})"
+  shows "(open S \<and> mono_set S) \<longleftrightarrow> (S = UNIV \<or> S = {a <..})"
   by (metis Inf_UNIV a_def atLeast_eq_UNIV_iff ereal_open_atLeast
             ereal_open_closed mono_set_iff open_ereal_greaterThan)
 
 lemma ereal_closed_mono_set:
   fixes S :: "ereal set"
-  shows "(closed S \<and> mono S) \<longleftrightarrow> (S = {} \<or> S = {Inf S ..})"
+  shows "(closed S \<and> mono_set S) \<longleftrightarrow> (S = {} \<or> S = {Inf S ..})"
   by (metis Inf_UNIV atLeast_eq_UNIV_iff closed_ereal_atLeast
             ereal_open_closed mono_empty mono_set_iff open_ereal_greaterThan)
 
 lemma ereal_Liminf_Sup_monoset:
   fixes f :: "'a => ereal"
-  shows "Liminf net f = Sup {l. \<forall>S. open S \<longrightarrow> mono S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
+  shows "Liminf net f = Sup {l. \<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
   unfolding Liminf_Sup
 proof (intro arg_cong[where f="\<lambda>P. Sup (Collect P)"] ext iffI allI impI)
-  fix l S assume ev: "\<forall>y<l. eventually (\<lambda>x. y < f x) net" and "open S" "mono S" "l \<in> S"
+  fix l S assume ev: "\<forall>y<l. eventually (\<lambda>x. y < f x) net" and "open S" "mono_set S" "l \<in> S"
   then have "S = UNIV \<or> S = {Inf S <..}"
     using ereal_open_mono_set[of S] by auto
   then show "eventually (\<lambda>x. f x \<in> S) net"
@@ -310,7 +310,7 @@ proof (intro arg_cong[where f="\<lambda>P. Sup (Collect P)"] ext iffI allI impI)
     then show "eventually (\<lambda>x. f x \<in> S) net"  by (subst S) auto
   qed auto
 next
-  fix l y assume S: "\<forall>S. open S \<longrightarrow> mono S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net" "y < l"
+  fix l y assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net" "y < l"
   have "eventually  (\<lambda>x. f x \<in> {y <..}) net"
     using `y < l` by (intro S[rule_format]) auto
   then show "eventually (\<lambda>x. y < f x) net" by auto
@@ -318,11 +318,11 @@ qed
 
 lemma ereal_Limsup_Inf_monoset:
   fixes f :: "'a => ereal"
-  shows "Limsup net f = Inf {l. \<forall>S. open S \<longrightarrow> mono (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
+  shows "Limsup net f = Inf {l. \<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
   unfolding Limsup_Inf
 proof (intro arg_cong[where f="\<lambda>P. Inf (Collect P)"] ext iffI allI impI)
-  fix l S assume ev: "\<forall>y>l. eventually (\<lambda>x. f x < y) net" and "open S" "mono (uminus`S)" "l \<in> S"
-  then have "open (uminus`S) \<and> mono (uminus`S)" by (simp add: ereal_open_uminus)
+  fix l S assume ev: "\<forall>y>l. eventually (\<lambda>x. f x < y) net" and "open S" "mono_set (uminus`S)" "l \<in> S"
+  then have "open (uminus`S) \<and> mono_set (uminus`S)" by (simp add: ereal_open_uminus)
   then have "S = UNIV \<or> S = {..< Sup S}"
     unfolding ereal_open_mono_set ereal_Inf_uminus_image_eq ereal_image_uminus_shift by simp
   then show "eventually (\<lambda>x. f x \<in> S) net"
@@ -333,7 +333,7 @@ proof (intro arg_cong[where f="\<lambda>P. Inf (Collect P)"] ext iffI allI impI)
     then show "eventually (\<lambda>x. f x \<in> S) net"  by (subst S) auto
   qed auto
 next
-  fix l y assume S: "\<forall>S. open S \<longrightarrow> mono (uminus`S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net" "l < y"
+  fix l y assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus`S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net" "l < y"
   have "eventually  (\<lambda>x. f x \<in> {..< y}) net"
     using `l < y` by (intro S[rule_format]) auto
   then show "eventually (\<lambda>x. f x < y) net" by auto
@@ -469,7 +469,7 @@ lemma decseq_ge_ereal: assumes dec: "decseq X"
 
 lemma liminf_bounded_open:
   fixes x :: "nat \<Rightarrow> ereal"
-  shows "x0 \<le> liminf x \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> mono S \<longrightarrow> x0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. x n \<in> S))" 
+  shows "x0 \<le> liminf x \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> x0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. x n \<in> S))" 
   (is "_ \<longleftrightarrow> ?P x0")
 proof
   assume "?P x0" then show "x0 \<le> liminf x"
@@ -477,7 +477,7 @@ proof
     by (intro complete_lattice_class.Sup_upper) auto
 next
   assume "x0 \<le> liminf x"
-  { fix S :: "ereal set" assume om: "open S & mono S & x0:S"
+  { fix S :: "ereal set" assume om: "open S & mono_set S & x0:S"
     { assume "S = UNIV" hence "EX N. (ALL n>=N. x n : S)" by auto }
     moreover
     { assume "~(S=UNIV)"
@@ -641,7 +641,7 @@ lemma Liminf_within:
   shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S Int ball x e - {x}). f y)"
 proof-
 let ?l="(SUP e:{0<..}. INF y:(S Int ball x e - {x}). f y)"
-{ fix T assume T_def: "open T & mono T & ?l:T"
+{ fix T assume T_def: "open T & mono_set T & ?l:T"
   have "EX d>0. ALL y:S. 0 < dist y x & dist y x < d --> f y : T"
   proof-
   { assume "T=UNIV" hence ?thesis by (simp add: gt_ex) }
@@ -660,7 +660,7 @@ let ?l="(SUP e:{0<..}. INF y:(S Int ball x e - {x}). f y)"
 }
 moreover
 { fix z
-  assume a: "ALL T. open T --> mono T --> z : T -->
+  assume a: "ALL T. open T --> mono_set T --> z : T -->
      (EX d>0. ALL y:S. 0 < dist y x & dist y x < d --> f y : T)"
   { fix B assume "B<z"
     then obtain d where d_def: "d>0 & (ALL y:S. 0 < dist y x & dist y x < d --> B < f y)"
@@ -683,7 +683,7 @@ lemma Limsup_within:
   shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S Int ball x e - {x}). f y)"
 proof-
 let ?l="(INF e:{0<..}. SUP y:(S Int ball x e - {x}). f y)"
-{ fix T assume T_def: "open T & mono (uminus ` T) & ?l:T"
+{ fix T assume T_def: "open T & mono_set (uminus ` T) & ?l:T"
   have "EX d>0. ALL y:S. 0 < dist y x & dist y x < d --> f y : T"
   proof-
   { assume "T=UNIV" hence ?thesis by (simp add: gt_ex) }
@@ -707,7 +707,7 @@ let ?l="(INF e:{0<..}. SUP y:(S Int ball x e - {x}). f y)"
 }
 moreover
 { fix z
-  assume a: "ALL T. open T --> mono (uminus ` T) --> z : T -->
+  assume a: "ALL T. open T --> mono_set (uminus ` T) --> z : T -->
      (EX d>0. ALL y:S. 0 < dist y x & dist y x < d --> f y : T)"
   { fix B assume "z<B"
     then obtain d where d_def: "d>0 & (ALL y:S. 0 < dist y x & dist y x < d --> f y<B)"
