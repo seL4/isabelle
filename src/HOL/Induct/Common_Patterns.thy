@@ -378,4 +378,29 @@ next
   { case 3 show "P3 (Suc n)" sorry }
 qed
 
+
+text {*
+  Cases and hypotheses in each case can be named explicitly.
+*}
+
+inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r
+where
+  refl: "star r x x"
+| step: "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
+
+text{* Underscores are replaced by the default name hyps: *}
+
+lemmas star_induct = star.induct[case_names base step[r _ IH]]
+
+lemma "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
+proof(induct rule: star_induct)
+print_cases
+  case base thus ?case .
+next
+  case (step a b c)
+  from step.prems have "star r b z" by(rule step.IH)
+  from step.r this show ?case by(rule star.step)
+qed
+
+
 end

@@ -1189,7 +1189,7 @@ text {*
     caseref: nameref attributes?
     ;
 
-    @@{attribute case_names} (@{syntax name} +)
+    @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
     ;
     @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
     ;
@@ -1212,7 +1212,10 @@ text {*
   
   \item @{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"} declares names for
   the local contexts of premises of a theorem; @{text "c\<^sub>1, \<dots>, c\<^sub>k"}
-  refers to the \emph{suffix} of the list of premises.
+  refers to the \emph{prefix} of the list of premises. Each of the
+  cases @{text "c\<^isub>i"} can be of the form @{text "c[h\<^isub>1 \<dots> h\<^isub>n]"} where
+  the @{text "h\<^isub>1 \<dots> h\<^isub>n"} are the names of the hypotheses in case @{text "c\<^isub>i"}
+  from left to right.
   
   \item @{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots> d\<^sub>k"} declares
   names for the conclusions of a named premise @{text c}; here @{text
