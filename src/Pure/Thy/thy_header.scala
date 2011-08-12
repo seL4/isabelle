@@ -25,27 +25,20 @@ object Thy_Header extends Parse.Parser
 
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
-  sealed case class Header(val name: String, val imports: List[String], val uses: List[String])
-  {
-    def map(f: String => String): Header =
-      Header(f(name), imports.map(f), uses.map(f))
-  }
 
+  /* theory file name */
 
-  /* file name */
+  private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+
+  def thy_name(s: String): Option[String] =
+    s match { case Thy_Name(name) => Some(name) case _ => None }
 
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
-
-  def split_thy_path(path: Path): (Path, String) =
-    path.split_ext match {
-      case (path1, "thy") => (path1.dir, path1.base.implode)
-      case _ => error("Bad theory file specification: " + path)
-    }
 
 
   /* header */
 
-  val header: Parser[Header] =
+  val header: Parser[Thy_Header] =
   {
     val file_name = atom("file name", _.is_name)
     val theory_name = atom("theory name", _.is_name)
@@ -57,7 +50,7 @@ object Thy_Header extends Parse.Parser
 
     val args =
       theory_name ~ (keyword(IMPORTS) ~! (rep1(theory_name) ~ uses ~ keyword(BEGIN))) ^^
-        { case x ~ (_ ~ (ys ~ zs ~ _)) => Header(x, ys, zs) }
+        { case x ~ (_ ~ (ys ~ zs ~ _)) => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
       ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
@@ -67,7 +60,7 @@ object Thy_Header extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(reader: Reader[Char]): Header =
+  def read(reader: Reader[Char]): Thy_Header =
   {
     val token = lexicon.token(_ => false)
     val toks = new mutable.ListBuffer[Token]
@@ -89,10 +82,10 @@ object Thy_Header extends Parse.Parser
     }
   }
 
-  def read(source: CharSequence): Header =
+  def read(source: CharSequence): Thy_Header =
     read(new CharSequenceReader(source))
 
-  def read(file: File): Header =
+  def read(file: File): Thy_Header =
   {
     val reader = Scan.byte_reader(file)
     try { read(reader).map(Standard_System.decode_permissive_utf8) }
@@ -102,7 +95,7 @@ object Thy_Header extends Parse.Parser
 
   /* check */
 
-  def check(name: String, source: CharSequence): Header =
+  def check(name: String, source: CharSequence): Thy_Header =
   {
     val header = read(source)
     val name1 = header.name
@@ -111,3 +104,14 @@ object Thy_Header extends Parse.Parser
     header
   }
 }
+
+
+sealed case class Thy_Header(val name: String, val imports: List[String], val uses: List[String])
+{
+  def map(f: String => String): Thy_Header =
+    Thy_Header(f(name), imports.map(f), uses.map(f))
+
+  def norm_deps(f: String => String): Thy_Header =
+    copy(imports = imports.map(name => f(name) + ".thy"), uses = uses.map(f))
+}
+

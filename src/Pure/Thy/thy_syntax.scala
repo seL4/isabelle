@@ -203,9 +203,9 @@ object Thy_Syntax
           val node = nodes(name)
           val update_header =
             (node.header.thy_header, header) match {
-              case (Exn.Res(thy_header0), Document.Node.Header(_, Exn.Res(thy_header)))
-              if thy_header0 != thy_header => true
-              case (Exn.Exn(_), Document.Node.Header(_, Exn.Res(thy_header))) => true
+              case (Exn.Res(thy_header0), Document.Node.Header(_, Exn.Res(thy_header))) =>
+                thy_header0 != thy_header
+              case _ => true
             }
           if (update_header) doc_edits += (name -> Document.Node.Update_Header(header))
       }

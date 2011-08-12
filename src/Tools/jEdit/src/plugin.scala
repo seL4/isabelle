@@ -23,6 +23,7 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
+import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
@@ -185,6 +186,15 @@ object Isabelle
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
+  def buffer_path(buffer: Buffer): (String, String) =
+  {
+    val master_dir = buffer.getDirectory
+    val path = buffer.getSymlinkPath
+    if (VFSManager.getVFSForPath(path).isInstanceOf[FileVFS])
+      (Isabelle_System.posix_path(master_dir), Isabelle_System.posix_path(path))
+    else (master_dir, path)
+  }
+
 
   /* document model and view */
 
@@ -198,16 +208,11 @@ object Isabelle
         document_model(buffer) match {
           case Some(model) => Some(model)
           case None =>
-            // FIXME strip protocol prefix of URL
-            {
-              try {
-                Some(Thy_Header.split_thy_path(
-                  Path.explode(Isabelle_System.posix_path(buffer.getPath))))
-              }
-              catch { case _ => None }
-            } map {
-              case (master_dir, thy_name) =>
-                Document_Model.init(session, buffer, master_dir, thy_name)
+            val (master_dir, path) = buffer_path(buffer)
+            Thy_Header.thy_name(path) match {
+              case Some(name) =>
+                Some(Document_Model.init(session, buffer, master_dir, path, name))
+              case None => None
             }
         }
       if (opt_model.isDefined) {
@@ -322,15 +327,20 @@ class Plugin extends EBPlugin
 
   private val file_store = new Session.File_Store
   {
-    def read(path: Path): String =
+    def append(master_dir: String, path: Path): String =
     {
-      val platform_path = Isabelle_System.platform_path(path)
-      val canonical_path = MiscUtilities.resolveSymlinks(platform_path)
+      val vfs = VFSManager.getVFSForPath(master_dir)
+      if (vfs.isInstanceOf[FileVFS])
+        MiscUtilities.resolveSymlinks(
+          vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
+      else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
+    }
 
-      Isabelle.jedit_buffers().find(buffer =>
-          MiscUtilities.resolveSymlinks(buffer.getPath) == canonical_path) match {
-        case Some(buffer) => Isabelle.buffer_text(buffer)
-        case None => Standard_System.read_file(new File(platform_path))
+    def require(canonical_name: String)
+    {
+      Swing_Thread.later {
+        if (!Isabelle.jedit_buffers().exists(_.getSymlinkPath == canonical_name))
+          jEdit.openFile(null: View, canonical_name)
       }
     }
   }

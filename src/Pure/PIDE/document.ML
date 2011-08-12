@@ -249,14 +249,13 @@ fun run int tr st =
 
 in
 
-fun run_command thy_name raw_tr st =
+fun run_command node_name raw_tr st =
   (case
       (case Toplevel.init_of raw_tr of
-        SOME name => Exn.capture (fn () =>
-          let
-            val path = Path.explode thy_name;
-            val _ = Thy_Header.consistent_name (Path.implode (Path.base path)) name;
-          in Toplevel.modify_master (SOME (Path.dir path)) raw_tr end) ()
+        SOME name =>
+          Exn.capture (fn () =>
+            let val master_dir = Path.dir (Path.explode node_name);  (* FIXME move to Scala side *)
+            in Toplevel.modify_master (SOME master_dir) raw_tr end) ()
       | NONE => Exn.Res raw_tr) of
     Exn.Res tr =>
       let

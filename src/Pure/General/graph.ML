@@ -49,6 +49,8 @@ sig
   val topological_order: 'a T -> key list
   val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
+  exception DEP of key * key
+  val schedule: ((key * 'b) list -> key * 'a -> 'b) -> 'a T -> 'b list  (*exception DEP*)
 end;
 
 functor Graph(Key: KEY): GRAPH =
@@ -283,6 +285,24 @@ fun merge_trans_acyclic eq (G1, G2) =
     merge_acyclic eq (G1, G2)
     |> fold add_edge_trans_acyclic (diff_edges G1 G2)
     |> fold add_edge_trans_acyclic (diff_edges G2 G1);
+
+
+(* schedule acyclic graph *)
+
+exception DEP of key * key;
+
+fun schedule f G =
+  let
+    val xs = topological_order G;
+    val results = (xs, Table.empty) |-> fold (fn x => fn tab =>
+      let
+        val a = get_node G x;
+        val deps = imm_preds G x |> map (fn y =>
+          (case Table.lookup tab y of
+            SOME b => (y, b)
+          | NONE => raise DEP (x, y)));
+      in Table.update (x, f deps (x, a)) tab end);
+  in map (the o Table.lookup results) xs end;
 
 
 (*final declarations of this structure!*)

@@ -38,7 +38,7 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  type Deps = Map[String, Exn.Result[(String, Thy_Header.Header)]]  // name -> (text, header)
+  type Deps = Map[String, Exn.Result[(String, Thy_Header)]]  // name -> (text, header)
 
   private def require_thys(ignored: String => Boolean,
       initiators: List[String], dir: Path, deps: Deps, strs: List[String]): Deps =

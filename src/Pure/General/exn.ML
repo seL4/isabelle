@@ -30,7 +30,7 @@ end;
 structure Exn: EXN =
 struct
 
-(* runtime exceptions as values *)
+(* exceptions as values *)
 
 datatype 'a result =
   Res of 'a |

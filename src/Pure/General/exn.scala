@@ -9,7 +9,7 @@ package isabelle
 
 object Exn
 {
-  /* runtime exceptions as values */
+  /* exceptions as values */
 
   sealed abstract class Result[A]
   case class Res[A](res: A) extends Result[A]
@@ -24,5 +24,17 @@ object Exn
       case Res(x) => x
       case Exn(exn) => throw exn
     }
+
+
+  /* message */
+
+  private val runtime_exception = Class.forName("java.lang.RuntimeException")
+
+  def message(exn: Throwable): String =
+    if (exn.getClass == runtime_exception) {
+      val msg = exn.getMessage
+      if (msg == null) "Error" else msg
+    }
+    else exn.toString
 }
 
