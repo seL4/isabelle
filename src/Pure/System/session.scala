@@ -20,7 +20,8 @@ object Session
 
   abstract class File_Store
   {
-    def read(path: Path): String
+    def append(master_dir: String, path: Path): String
+    def require(file: String): Unit
   }
 
 
@@ -186,7 +187,8 @@ class Session(val file_store: Session.File_Store)
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
       val doc_edits =
-        (name, Document.Node.Update_Header[Text.Edit](header)) :: edits.map(edit => (name, edit))
+        (name, Document.Node.Update_Header[Text.Edit](header.norm_deps(file_store.append))) ::
+          edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
       val change =
         global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._2)))

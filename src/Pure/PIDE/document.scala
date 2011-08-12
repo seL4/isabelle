@@ -52,6 +52,15 @@ object Document
     case class Update_Header[A](header: Header) extends Edit[A]
 
     sealed case class Header(val master_dir: String, val thy_header: Exn.Result[Thy_Header])
+    {
+      def norm_deps(f: (String, Path) => String): Header =
+        copy(thy_header =
+          thy_header match {
+            case Exn.Res(header) =>
+              Exn.capture { header.norm_deps(name => f(master_dir, Path.explode(name))) }
+            case exn => exn
+          })
+    }
     val empty_header = Header("", Exn.Exn(ERROR("Bad theory header")))
 
     val empty: Node = Node(empty_header, Map(), Linear_Set())

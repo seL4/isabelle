@@ -110,5 +110,8 @@ sealed case class Thy_Header(val name: String, val imports: List[String], val us
 {
   def map(f: String => String): Thy_Header =
     Thy_Header(f(name), imports.map(f), uses.map(f))
+
+  def norm_deps(f: String => String): Thy_Header =
+    copy(imports = imports.map(name => f(name) + ".thy"), uses = uses.map(f))
 }
 

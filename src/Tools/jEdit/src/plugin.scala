@@ -327,15 +327,20 @@ class Plugin extends EBPlugin
 
   private val file_store = new Session.File_Store
   {
-    def read(path: Path): String =
+    def append(master_dir: String, path: Path): String =
     {
-      val platform_path = Isabelle_System.platform_path(path)
-      val canonical_path = MiscUtilities.resolveSymlinks(platform_path)
+      val vfs = VFSManager.getVFSForPath(master_dir)
+      if (vfs.isInstanceOf[FileVFS])
+        MiscUtilities.resolveSymlinks(
+          vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
+      else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
+    }
 
-      Isabelle.jedit_buffers().find(buffer =>
-          MiscUtilities.resolveSymlinks(buffer.getPath) == canonical_path) match {
-        case Some(buffer) => Isabelle.buffer_text(buffer)
-        case None => Standard_System.read_file(new File(platform_path))
+    def require(canonical_name: String)
+    {
+      Swing_Thread.later {
+        if (!Isabelle.jedit_buffers().exists(_.getSymlinkPath == canonical_name))
+          jEdit.openFile(null: View, canonical_name)
       }
     }
   }
