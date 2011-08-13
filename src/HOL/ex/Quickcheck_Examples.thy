@@ -234,7 +234,7 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
-  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-List.transpose xs. {..<i} (length ys)]"
+  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-List.transpose xs. length ys \<in> {..<i}]"
 quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops
