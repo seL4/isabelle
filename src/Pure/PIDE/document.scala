@@ -36,6 +36,8 @@ object Document
   type Edit_Command = Edit[(Option[Command], Option[Command])]
   type Edit_Command_ID = Edit[(Option[Command_ID], Option[Command_ID])]
 
+  type Node_Header = Exn.Result[Thy_Header]
+
   object Node
   {
     sealed abstract class Edit[A]
@@ -44,26 +46,20 @@ object Document
         this match {
           case Remove() => Remove()
           case Edits(es) => Edits(es.map(f))
-          case Update_Header(header: Header) => Update_Header(header)
+          case Header(header) => Header(header)
         }
     }
     case class Remove[A]() extends Edit[A]
     case class Edits[A](edits: List[A]) extends Edit[A]
-    case class Update_Header[A](header: Header) extends Edit[A]
+    case class Header[A](header: Node_Header) extends Edit[A]
 
-    sealed case class Header(val master_dir: String, val thy_header: Exn.Result[Thy_Header])
-    {
-      def norm_deps(f: (String, Path) => String): Header =
-        copy(thy_header =
-          thy_header match {
-            case Exn.Res(header) =>
-              Exn.capture { header.norm_deps(name => f(master_dir, Path.explode(name))) }
-            case exn => exn
-          })
-    }
-    val empty_header = Header("", Exn.Exn(ERROR("Bad theory header")))
+    def norm_header[A](f: Path => String, header: Node_Header): Header[A] =
+      header match {
+        case Exn.Res(h) => Header[A](Exn.capture { h.norm_deps(name => f(Path.explode(name))) })
+        case exn => Header[A](exn)
+      }
 
-    val empty: Node = Node(empty_header, Map(), Linear_Set())
+    val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Map(), Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -80,7 +76,7 @@ object Document
   private val block_size = 1024
 
   sealed case class Node(
-    val header: Node.Header,
+    val header: Node_Header,
     val blobs: Map[String, Blob],
     val commands: Linear_Set[Command])
   {

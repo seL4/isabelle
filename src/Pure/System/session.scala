@@ -164,8 +164,10 @@ class Session(val file_store: Session.File_Store)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Interrupt
-  private case class Init_Node(name: String, header: Document.Node.Header, text: String)
-  private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
+  private case class Init_Node(
+    name: String, master_dir: String, header: Document.Node_Header, text: String)
+  private case class Edit_Node(
+    name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
   private case class Change_Node(
     name: String,
     doc_edits: List[Document.Edit_Command],
@@ -180,15 +182,15 @@ class Session(val file_store: Session.File_Store)
 
     /* incoming edits */
 
-    def handle_edits(name: String,
-        header: Document.Node.Header, edits: List[Document.Node.Edit[Text.Edit]])
+    def handle_edits(name: String, master_dir: String,
+        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit]])
     //{{{
     {
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
-      val doc_edits =
-        (name, Document.Node.Update_Header[Text.Edit](header.norm_deps(file_store.append))) ::
-          edits.map(edit => (name, edit))
+      val norm_header =
+        Document.Node.norm_header[Text.Edit](file_store.append(master_dir, _), header)
+      val doc_edits = (name, norm_header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
       val change =
         global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._2)))
@@ -325,14 +327,14 @@ class Session(val file_store: Session.File_Store)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
-        case Init_Node(name, header, text) if prover.isDefined =>
+        case Init_Node(name, master_dir, header, text) if prover.isDefined =>
           // FIXME compare with existing node
-          handle_edits(name, header,
+          handle_edits(name, master_dir, header,
             List(Document.Node.Remove(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
           reply(())
 
-        case Edit_Node(name, header, text_edits) if prover.isDefined =>
-          handle_edits(name, header, List(Document.Node.Edits(text_edits)))
+        case Edit_Node(name, master_dir, header, text_edits) if prover.isDefined =>
+          handle_edits(name, master_dir, header, List(Document.Node.Edits(text_edits)))
           reply(())
 
         case change: Change_Node if prover.isDefined =>
@@ -360,9 +362,9 @@ class Session(val file_store: Session.File_Store)
 
   def interrupt() { session_actor ! Interrupt }
 
-  def init_node(name: String, header: Document.Node.Header, text: String)
-  { session_actor !? Init_Node(name, header, text) }
+  def init_node(name: String, master_dir: String, header: Document.Node_Header, text: String)
+  { session_actor !? Init_Node(name, master_dir, header, text) }
 
-  def edit_node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
-  { session_actor !? Edit_Node(name, header, edits) }
+  def edit_node(name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
+  { session_actor !? Edit_Node(name, master_dir, header, edits) }
 }

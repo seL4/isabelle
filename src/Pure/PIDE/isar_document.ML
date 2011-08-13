@@ -25,8 +25,8 @@ val _ =
                  [fn ([], []) => Document.Remove,
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
-                    Document.Update_Header (Exn.Res (triple string (list string) (list string) a)),
-                  fn ([a], []) => Document.Update_Header (Exn.Exn (ERROR a))]))
+                    Document.Header (Exn.Res (triple string (list string) (list string) a)),
+                  fn ([a], []) => Document.Header (Exn.Exn (ERROR a))]))
             end;
 
       val await_cancellation = Document.cancel_execution state;

@@ -15,11 +15,11 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type node_header = string * string list * string list
+  type node_header = (string * string list * string list) Exn.result
   datatype node_edit =
     Remove |
     Edits of (command_id option * command_id option) list |
-    Update_Header of node_header Exn.result
+    Header of node_header
   type edit = string * node_edit
   type state
   val init_state: state
@@ -55,11 +55,11 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-type node_header = string * string list * string list;
+type node_header = (string * string list * string list) Exn.result;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 abstype node = Node of
- {header: node_header Exn.result,
+ {header: node_header,
   entries: exec_id option Entries.T,  (*command entries with excecutions*)
   last: exec_id}  (*last entry with main result*)
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
@@ -90,7 +90,7 @@ val empty_version = Version Graph.empty;
 datatype node_edit =
   Remove |
   Edits of (command_id option * command_id option) list |
-  Update_Header of node_header Exn.result;
+  Header of node_header;
 
 type edit = string * node_edit;
 
@@ -129,7 +129,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
       Remove => perhaps (try (Graph.del_node name)) nodes
     | Edits edits => update_node name (edit_node edits) nodes
     (* FIXME maintain deps; cycles!? *)
-    | Update_Header header => update_node name (set_header header) nodes);
+    | Header header => update_node name (set_header header) nodes);
 
 fun put_node name node (Version nodes) =
   Version (nodes

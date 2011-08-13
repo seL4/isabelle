@@ -199,16 +199,15 @@ object Thy_Syntax
           doc_edits += (name -> Document.Node.Edits(cmd_edits))
           nodes += (name -> node.copy(commands = commands2))
 
-        case (name, Document.Node.Update_Header(header)) =>
+        case (name, Document.Node.Header(header)) =>
           val node = nodes(name)
           val update_header =
-            (node.header.thy_header, header) match {
-              case (Exn.Res(thy_header0), Document.Node.Header(_, Exn.Res(thy_header))) =>
-                thy_header0 != thy_header
+            (node.header, header) match {
+              case (Exn.Res(thy_header0), Exn.Res(thy_header)) => thy_header0 != thy_header
               case _ => true
             }
           if (update_header) {
-            doc_edits += (name -> Document.Node.Update_Header(header))
+            doc_edits += (name -> Document.Node.Header(header))
             nodes += (name -> node.copy(header = header))
           }
       }
