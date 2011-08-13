@@ -314,10 +314,6 @@ apply clarify
 apply (simp add: nth_Cons split: nat.split)
 done
 
-lemma equals0I_aux:
-  "(\<And>y. A y \<Longrightarrow> False) \<Longrightarrow> A = bot_class.bot"
-  by (rule equals0I) (auto simp add: mem_def)
-
 lemma acc_le_listI [intro!]:
   "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
 apply (unfold acc_def)
