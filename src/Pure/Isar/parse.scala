@@ -50,7 +50,7 @@ object Parse
       token(s, pred) ^^ (_.content)
 
     def keyword(name: String): Parser[String] =
-      atom(Token.Kind.KEYWORD.toString + " \"" + name + "\"",
+      atom(Token.Kind.KEYWORD.toString + " " + quote(name),
         tok => tok.kind == Token.Kind.KEYWORD && tok.content == name)
 
     def name: Parser[String] = atom("name declaration", _.is_name)
