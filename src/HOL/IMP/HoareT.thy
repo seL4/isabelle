@@ -1,6 +1,6 @@
 header{* Hoare Logic for Total Correctness *}
 
-theory HoareT imports Hoare_Sound_Complete Util begin
+theory HoareT imports Hoare_Sound_Complete begin
 
 text{*
 Now that we have termination, we can define

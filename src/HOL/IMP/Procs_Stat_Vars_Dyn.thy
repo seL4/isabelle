@@ -1,4 +1,4 @@
-theory Procs_Stat_Vars_Dyn imports Util Procs
+theory Procs_Stat_Vars_Dyn imports Procs
 begin
 
 subsubsection "Static Scoping of Procedures, Dynamic of Variables"

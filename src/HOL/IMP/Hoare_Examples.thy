@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-theory Hoare_Examples imports Hoare Util begin
+theory Hoare_Examples imports Hoare begin
 
 subsection{* Example: Sums *}
 

@@ -1,4 +1,4 @@
-theory Procs_Stat_Vars_Stat imports Util Procs
+theory Procs_Stat_Vars_Stat imports Procs
 begin
 
 subsubsection "Static Scoping of Procedures and Variables"

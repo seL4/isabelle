@@ -1,4 +1,4 @@
-theory Procs_Dyn_Vars_Dyn imports Util Procs
+theory Procs_Dyn_Vars_Dyn imports Procs
 begin
 
 subsubsection "Dynamic Scoping of Procedures and Variables"
