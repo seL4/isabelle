@@ -167,7 +167,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
               new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {
                 override def getShortString: String = content
                 override def getLongString: String = info_text
-                override def toString = "\"" + content + "\" " + range.toString
+                override def toString = quote(content) + " " + range.toString
               })
           })
     }

@@ -167,7 +167,7 @@ fun load_thy update_time dir name imports uses pos text parents =
     val time = ! Toplevel.timing;
 
     val _ = Present.init_theory name;
-    fun init _ =
+    fun init () =
       begin_theory dir name imports uses parents
       |> Present.begin_theory update_time dir uses;
 

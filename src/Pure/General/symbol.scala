@@ -179,7 +179,7 @@ object Symbol
         tab.get(x) match {
           case None => tab += (x -> y)
           case Some(z) =>
-            error("Duplicate mapping of \"" + x + "\" to \"" + y + "\" vs. \"" + z + "\"")
+            error("Duplicate mapping of " + quote(x) + " to " + quote(y) + " vs. " + quote(z))
         }
       }
       tab

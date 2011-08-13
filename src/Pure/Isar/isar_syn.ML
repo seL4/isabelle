@@ -30,9 +30,10 @@ val _ =
   Outer_Syntax.command "theory" "begin theory" (Keyword.tag_theory Keyword.thy_begin)
     (Thy_Header.args >> (fn (name, imports, uses) =>
       Toplevel.print o
-        Toplevel.init_theory NONE name
-          (fn master =>
-            Thy_Info.toplevel_begin_theory master name imports (map (apfst Path.explode) uses))));
+        Toplevel.init_theory
+          (fn () =>
+            Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ())
+              name imports (map (apfst Path.explode) uses))));
 
 val _ =
   Outer_Syntax.command "end" "end (local) theory" (Keyword.tag_theory Keyword.thy_end)

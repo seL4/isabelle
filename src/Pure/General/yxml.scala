@@ -50,7 +50,7 @@ object YXML
   private def err_element() = err("bad element")
   private def err_unbalanced(name: String) =
     if (name == "") err("unbalanced element")
-    else err("unbalanced element \"" + name + "\"")
+    else err("unbalanced element " + quote(name))
 
   private def parse_attrib(source: CharSequence) = {
     val s = source.toString

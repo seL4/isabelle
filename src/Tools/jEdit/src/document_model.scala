@@ -62,9 +62,8 @@ class Document_Model(val session: Session, val buffer: Buffer,
 {
   /* pending text edits */
 
-  def node_header(): Document.Node.Header =
-    Document.Node.Header(master_dir,
-      Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) })
+  def node_header(): Exn.Result[Thy_Header] =
+    Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) }
 
   private object pending_edits  // owned by Swing thread
   {
@@ -78,14 +77,14 @@ class Document_Model(val session: Session, val buffer: Buffer,
         case Nil =>
         case edits =>
           pending.clear
-          session.edit_node(node_name, node_header(), edits)
+          session.edit_node(node_name, master_dir, node_header(), edits)
       }
     }
 
     def init()
     {
       flush()
-      session.init_node(node_name, node_header(), Isabelle.buffer_text(buffer))
+      session.init_node(node_name, master_dir, node_header(), Isabelle.buffer_text(buffer))
     }
 
     private val delay_flush =

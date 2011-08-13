@@ -34,7 +34,6 @@ sig
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
-  val init_of: transition -> string option
   val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
@@ -45,9 +44,9 @@ sig
   val set_print: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: Path.T option -> string -> (Path.T option -> theory) -> transition -> transition
-  val modify_master: Path.T option -> transition -> transition
-  val modify_init: (Path.T option -> theory) -> transition -> transition
+  val init_theory: (unit -> theory) -> transition -> transition
+  val is_init: transition -> bool
+  val modify_init: (unit -> theory) -> transition -> transition
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
@@ -186,8 +185,8 @@ fun proof_position_of state =
   | _ => raise UNDEF);
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
-  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory " ^ Position.str_of pos)
-  | end_theory pos (State (NONE, NONE)) = error ("Missing theory " ^ Position.str_of pos);
+  | end_theory pos (State (NONE, _)) = error ("Missing theory " ^ Position.str_of pos)
+  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory " ^ Position.str_of pos);
 
 
 (* print state *)
@@ -297,16 +296,16 @@ end;
 (* primitive transitions *)
 
 datatype trans =
-  Init of Path.T option * string * (Path.T option -> theory) | (*master dir, theory name, init*)
+  Init of unit -> theory |               (*init theory*)
   Exit |                                 (*formal exit of theory*)
   Keep of bool -> state -> unit |        (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
-fun apply_tr _ (Init (master, _, f)) (State (NONE, _)) =
+fun apply_tr _ (Init f) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
-          (Theory.checkpoint (Runtime.controlled_execution f master)), NONE)), NONE)
+          (Theory.checkpoint (Runtime.controlled_execution f ())), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
@@ -353,10 +352,6 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 
 (* diagnostics *)
 
-fun get_init (Transition {trans = [Init args], ...}) = SOME args
-  | get_init _ = NONE;
-
-val init_of = Option.map #2 o get_init;
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
@@ -397,17 +392,12 @@ val print = set_print true;
 
 (* basic transitions *)
 
-fun init_theory master name f = add_trans (Init (master, name, f));
+fun init_theory f = add_trans (Init f);
 
-fun modify_master master tr =
-  (case get_init tr of
-    SOME (_, name, f) => init_theory master name f (reset_trans tr)
-  | NONE => tr);
+fun is_init (Transition {trans = [Init _], ...}) = true
+  | is_init _ = false;
 
-fun modify_init f tr =
-  (case get_init tr of
-    SOME (master, name, _) => init_theory master name f (reset_trans tr)
-  | NONE => tr);
+fun modify_init f tr = if is_init tr then init_theory f (reset_trans tr) else tr;
 
 val exit = add_trans Exit;
 val keep' = add_trans o Keep;

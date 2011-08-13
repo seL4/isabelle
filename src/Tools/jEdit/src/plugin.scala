@@ -210,8 +210,8 @@ object Isabelle
           case None =>
             val (master_dir, path) = buffer_path(buffer)
             Thy_Header.thy_name(path) match {
-              case Some(name) =>
-                Some(Document_Model.init(session, buffer, master_dir, path, name))
+              case Some((prefix, name)) =>
+                Some(Document_Model.init(session, buffer, master_dir, prefix + name, name))
               case None => None
             }
         }
@@ -327,13 +327,17 @@ class Plugin extends EBPlugin
 
   private val file_store = new Session.File_Store
   {
-    def append(master_dir: String, path: Path): String =
+    def append(master_dir: String, source_path: Path): String =
     {
-      val vfs = VFSManager.getVFSForPath(master_dir)
-      if (vfs.isInstanceOf[FileVFS])
-        MiscUtilities.resolveSymlinks(
-          vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
-      else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
+      val path = source_path.expand
+      if (path.is_absolute) Isabelle_System.platform_path(path)
+      else {
+        val vfs = VFSManager.getVFSForPath(master_dir)
+        if (vfs.isInstanceOf[FileVFS])
+          MiscUtilities.resolveSymlinks(
+            vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
+        else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
+      }
     }
 
     def require(canonical_name: String)
