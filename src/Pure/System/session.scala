@@ -189,7 +189,8 @@ class Session(val file_store: Session.File_Store)
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
       val norm_header =
-        Document.Node.norm_header[Text.Edit](file_store.append(master_dir, _), header)
+        Document.Node.norm_header[Text.Edit](
+          name => file_store.append(master_dir, Path.explode(name)), header)
       val doc_edits = (name, norm_header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
       val change =
