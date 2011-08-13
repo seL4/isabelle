@@ -60,7 +60,7 @@ case "$PLATFORM" in
 esac
 
 if [ "$PLATFORM" = afp ]; then
-  LOG_DIR=~isatest/afp-log
+  LOG_DIR=~isatest/afp/log
   LOG_NAME="afp-test-devel*"
 else
   LOG_DIR=~isatest/log
