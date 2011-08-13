@@ -356,38 +356,18 @@ lemma setsum_clauses:
                  (if x \<in> S then setsum f S else f x + setsum f S)"
   by (auto simp add: insert_absorb)
 
-lemma setsum_norm:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fS: "finite S"
-  shows "norm (setsum f S) <= setsum (\<lambda>x. norm(f x)) S"
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 x S)
-  from "2.hyps" have "norm (setsum f (insert x S)) \<le> norm (f x) + norm (setsum f S)" by (simp add: norm_triangle_ineq)
-  also have "\<dots> \<le> norm (f x) + setsum (\<lambda>x. norm(f x)) S"
-    using "2.hyps" by simp
-  finally  show ?case  using "2.hyps" by simp
-qed
-
 lemma setsum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fS: "finite S"
-  and fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
+  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
   shows "norm (setsum f S) \<le> setsum g S"
-proof-
-  from fg have "setsum (\<lambda>x. norm(f x)) S <= setsum g S"
-    by - (rule setsum_mono, simp)
-  then show ?thesis using setsum_norm[OF fS, of f] fg
-    by arith
-qed
+  by (rule order_trans [OF norm_setsum setsum_mono], simp add: fg)
 
 lemma setsum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fS: "finite S"
   and K: "\<forall>x \<in> S. norm (f x) \<le> K"
   shows "norm (setsum f S) \<le> of_nat (card S) * K"
-  using setsum_norm_le[OF fS K] setsum_constant[symmetric]
+  using setsum_norm_le[OF K] setsum_constant[symmetric]
   by simp
 
 lemma setsum_group:
@@ -1656,7 +1636,7 @@ lemma norm_bound_component_lt: "norm (x::'a::euclidean_space) < e \<Longrightarr
 
 lemma norm_le_l1: "norm (x::'a::euclidean_space) \<le> (\<Sum>i<DIM('a). \<bar>x $$ i\<bar>)"
   apply (subst euclidean_representation[of x])
-  apply (rule order_trans[OF setsum_norm])
+  apply (rule order_trans[OF norm_setsum])
   by (auto intro!: setsum_mono)
 
 lemma setsum_norm_allsubsets_bound:
@@ -1760,7 +1740,7 @@ proof-
       apply (rule mult_mono)
       by (auto simp add: field_simps) }
     then have th: "\<forall>i\<in> ?S. norm ((x$$i) *\<^sub>R f (basis i :: 'a)) \<le> norm (f (basis i)) * norm x" by metis
-    from setsum_norm_le[OF fS, of "\<lambda>i. (x$$i) *\<^sub>R (f (basis i))", OF th]
+    from setsum_norm_le[of _ "\<lambda>i. (x$$i) *\<^sub>R (f (basis i))", OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
   then show ?thesis by blast
 qed

@@ -2228,7 +2228,7 @@ subsection {* Bounds on the norm of Riemann sums and the integral itself. *}
 
 lemma dsum_bound: assumes "p division_of {a..b}" "norm(c) \<le> e"
   shows "norm(setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> e * content({a..b})" (is "?l \<le> ?r")
-  apply(rule order_trans,rule setsum_norm) defer unfolding norm_scaleR setsum_left_distrib[THEN sym]
+  apply(rule order_trans,rule norm_setsum) unfolding norm_scaleR setsum_left_distrib[THEN sym]
   apply(rule order_trans[OF mult_left_mono],rule assms,rule setsum_abs_ge_zero)
   apply(subst mult_commute) apply(rule mult_left_mono)
   apply(rule order_trans[of _ "setsum content p"]) apply(rule eq_refl,rule setsum_cong2)
@@ -2243,7 +2243,7 @@ lemma rsum_bound: assumes "p tagged_division_of {a..b}" "\<forall>x\<in>{a..b}. 
 proof(cases "{a..b} = {}") case True
   show ?thesis using assms(1) unfolding True tagged_division_of_trivial by auto
 next case False show ?thesis
-    apply(rule order_trans,rule setsum_norm) defer unfolding split_def norm_scaleR
+    apply(rule order_trans,rule norm_setsum) unfolding split_def norm_scaleR
     apply(rule order_trans[OF setsum_mono]) apply(rule mult_left_mono[OF _ abs_ge_zero, of _ e]) defer
     unfolding setsum_left_distrib[THEN sym] apply(subst mult_commute) apply(rule mult_left_mono)
     apply(rule order_trans[of _ "setsum (content \<circ> snd) p"]) apply(rule eq_refl,rule setsum_cong2)
@@ -2256,7 +2256,7 @@ next case False show ?thesis
     from tagged_division_ofD(4)[OF assms(1) xk(2)] guess u v apply-by(erule exE)+ note uv=this
     show "0\<le> content (snd xk)" unfolding xk snd_conv uv by(rule content_pos_le)
     show "norm (f (fst xk)) \<le> e" unfolding xk fst_conv using tagged_division_ofD(2,3)[OF assms(1) xk(2)] assms(2) by auto
-  qed(insert assms,auto) qed
+  qed qed
 
 lemma rsum_diff_bound:
   assumes "p tagged_division_of {a..b}"  "\<forall>x\<in>{a..b}. norm(f x - g x) \<le> e"
@@ -2672,7 +2672,7 @@ next fix f::"'b \<Rightarrow> 'a" and a b::"'b" assume assm:"\<forall>x. x \<not
       have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> setsum (\<lambda>i. (real i + 1) *
                      norm(setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {0..N+1}"
         unfolding real_norm_def setsum_right_distrib abs_of_nonneg[OF *] diff_0_right
-        apply(rule order_trans,rule setsum_norm) defer apply(subst sum_sum_product) prefer 3 
+        apply(rule order_trans,rule norm_setsum) apply(subst sum_sum_product) prefer 3 
       proof(rule **,safe) show "finite {(i, j) |i j. i \<in> {0..N + 1} \<and> j \<in> q i}" apply(rule finite_product_dependent) using q by auto
         fix i a b assume as'':"(a,b) \<in> q i" show "0 \<le> (real i + 1) * (content b *\<^sub>R indicator s a)"
           unfolding real_scaleR_def apply(rule mult_nonneg_nonneg) defer apply(rule mult_nonneg_nonneg)
@@ -2998,7 +2998,7 @@ proof safe fix e::real assume e:"e>0"
         unfolding k interval_bounds_real[OF *] using xk(1) unfolding k by(auto simp add:dist_real_def field_simps)
       finally show "norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k))) \<le>
         e * (interval_upperbound k - interval_lowerbound k)" unfolding k interval_bounds_real[OF *] content_real[OF *] .
-    qed(insert as, auto) qed qed
+    qed qed qed
 
 subsection {* Attempt a systematic general set of "offset" results for components. *}
 
@@ -3442,7 +3442,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
     show ?case unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[THEN sym] split_minus
       unfolding setsum_right_distrib apply(subst(2) pA,subst pA) unfolding setsum_Un_disjoint[OF pA(2-)]
     proof(rule norm_triangle_le,rule **) 
-      case goal1 show ?case apply(rule order_trans,rule setsum_norm_le) apply(rule pA) defer apply(subst divide.setsum)
+      case goal1 show ?case apply(rule order_trans,rule setsum_norm_le) defer apply(subst divide.setsum)
       proof(rule order_refl,safe,unfold not_le o_def split_conv fst_conv,rule ccontr) fix x k assume as:"(x,k) \<in> p"
           "e * (interval_upperbound k -  interval_lowerbound k) / 2
           < norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k)))"
@@ -4435,7 +4435,7 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
       apply(rule setsum_Un_disjoint'[THEN sym]) using q(1) q'(1) p'(1) by auto
   next  case goal1 have *:"k * real (card r) / (1 + real (card r)) < k" using k by(auto simp add:field_simps)
     show ?case apply(rule le_less_trans[of _ "setsum (\<lambda>x. k / (real (card r) + 1)) r"])
-      unfolding setsum_subtractf[THEN sym] apply(rule setsum_norm_le,fact)
+      unfolding setsum_subtractf[THEN sym] apply(rule setsum_norm_le)
       apply rule apply(drule qq) defer unfolding divide_inverse setsum_left_distrib[THEN sym]
       unfolding divide_inverse[THEN sym] using * by(auto simp add:field_simps real_eq_of_nat)
   qed finally show "?x \<le> e + k" . qed
@@ -4533,7 +4533,7 @@ next assume ab:"content {a..b} \<noteq> 0"
           b="\<Sum>(x, k)\<in>p. content k *\<^sub>R f (m x) x" and c="\<Sum>(x, k)\<in>p. integral k (f (m x))"])
       proof safe case goal1
          show ?case apply(rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e / (4 * content {a..b}))"])
-           unfolding setsum_subtractf[THEN sym] apply(rule order_trans,rule setsum_norm[OF p'(1)])
+           unfolding setsum_subtractf[THEN sym] apply(rule order_trans,rule norm_setsum)
            apply(rule setsum_mono) unfolding split_paired_all split_conv
            unfolding split_def setsum_left_distrib[THEN sym] scaleR.diff_right[THEN sym]
            unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
@@ -4551,7 +4551,7 @@ next assume ab:"content {a..b} \<noteq> 0"
          proof- show "norm (\<Sum>j = 0..s. \<Sum>(x, k)\<in>{xk \<in> p.
              m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x))) < e / 2"
              apply(rule le_less_trans[of _ "setsum (\<lambda>i. e / 2^(i+2)) {0..s}"])
-             apply(rule setsum_norm_le[OF finite_atLeastAtMost])
+             apply(rule setsum_norm_le)
            proof show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
                unfolding power_add divide_inverse inverse_mult_distrib
                unfolding setsum_right_distrib[THEN sym] setsum_left_distrib[THEN sym]
