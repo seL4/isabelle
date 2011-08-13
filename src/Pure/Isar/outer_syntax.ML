@@ -224,7 +224,7 @@ fun parse pos str =
 fun process_file path thy =
   let
     val trs = parse (Path.position path) (File.read path);
-    val init = Toplevel.init_theory "" (K thy) Toplevel.empty;
+    val init = Toplevel.init_theory (K thy) Toplevel.empty;
     val result = fold Toplevel.command (init :: trs) Toplevel.toplevel;
   in
     (case (Toplevel.is_theory result, Toplevel.generic_theory_of result) of

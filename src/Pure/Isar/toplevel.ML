@@ -34,7 +34,6 @@ sig
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
-  val is_init: transition -> bool
   val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
@@ -45,7 +44,8 @@ sig
   val set_print: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: string -> (unit -> theory) -> transition -> transition
+  val init_theory: (unit -> theory) -> transition -> transition
+  val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
@@ -296,14 +296,14 @@ end;
 (* primitive transitions *)
 
 datatype trans =
-  Init of string * (unit -> theory) | (*theory name, init*)
+  Init of unit -> theory |               (*init theory*)
   Exit |                                 (*formal exit of theory*)
   Keep of bool -> state -> unit |        (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
-fun apply_tr _ (Init (_, f)) (State (NONE, _)) =
+fun apply_tr _ (Init f) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
           (Theory.checkpoint (Runtime.controlled_execution f ())), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
@@ -352,11 +352,6 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 
 (* diagnostics *)
 
-fun get_init (Transition {trans = [Init args], ...}) = SOME args
-  | get_init _ = NONE;
-
-val is_init = is_some o get_init;
-
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
@@ -397,12 +392,12 @@ val print = set_print true;
 
 (* basic transitions *)
 
-fun init_theory name f = add_trans (Init (name, f));
+fun init_theory f = add_trans (Init f);
 
-fun modify_init f tr =
-  (case get_init tr of
-    SOME (name, _) => init_theory name f (reset_trans tr)
-  | NONE => tr);
+fun is_init (Transition {trans = [Init _], ...}) = true
+  | is_init _ = false;
+
+fun modify_init f tr = if is_init tr then init_theory f (reset_trans tr) else tr;
 
 val exit = add_trans Exit;
 val keep' = add_trans o Keep;
