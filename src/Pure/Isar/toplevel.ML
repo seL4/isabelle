@@ -45,9 +45,8 @@ sig
   val set_print: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: Path.T option -> string -> (Path.T option -> theory) -> transition -> transition
-  val modify_master: Path.T option -> transition -> transition
-  val modify_init: (Path.T option -> theory) -> transition -> transition
+  val init_theory: string -> (unit -> theory) -> transition -> transition
+  val modify_init: (unit -> theory) -> transition -> transition
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
@@ -297,16 +296,16 @@ end;
 (* primitive transitions *)
 
 datatype trans =
-  Init of Path.T option * string * (Path.T option -> theory) | (*master dir, theory name, init*)
+  Init of string * (unit -> theory) | (*theory name, init*)
   Exit |                                 (*formal exit of theory*)
   Keep of bool -> state -> unit |        (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
-fun apply_tr _ (Init (master, _, f)) (State (NONE, _)) =
+fun apply_tr _ (Init (_, f)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
-          (Theory.checkpoint (Runtime.controlled_execution f master)), NONE)), NONE)
+          (Theory.checkpoint (Runtime.controlled_execution f ())), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
@@ -398,16 +397,11 @@ val print = set_print true;
 
 (* basic transitions *)
 
-fun init_theory master name f = add_trans (Init (master, name, f));
-
-fun modify_master master tr =
-  (case get_init tr of
-    SOME (_, name, f) => init_theory master name f (reset_trans tr)
-  | NONE => tr);
+fun init_theory name f = add_trans (Init (name, f));
 
 fun modify_init f tr =
   (case get_init tr of
-    SOME (master, name, _) => init_theory master name f (reset_trans tr)
+    SOME (name, _) => init_theory name f (reset_trans tr)
   | NONE => tr);
 
 val exit = add_trans Exit;

@@ -280,12 +280,12 @@ fun run_command (node_name, node_header) raw_tr st =
     val is_init = Toplevel.is_init raw_tr;
     val tr =
       if is_init then
-        raw_tr |> Toplevel.modify_init (fn _ =>
+        raw_tr |> Toplevel.modify_init (fn () =>
           let
             (* FIXME get theories from document state *)
             (* FIXME provide files via Scala layer *)
             val (name, imports, uses) = Exn.release node_header;
-            val master = SOME (Path.dir (Path.explode node_name));
+            val master = Path.dir (Path.explode node_name);
           in Thy_Info.toplevel_begin_theory master name imports (map (apfst Path.explode) uses) end)
       else raw_tr;
 

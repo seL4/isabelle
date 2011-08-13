@@ -35,7 +35,7 @@ sig
   type isar
   val isar: TextIO.instream -> bool -> isar
   val prepare_span: outer_syntax -> Thy_Syntax.span -> Toplevel.transition * bool
-  val prepare_element: outer_syntax -> (Path.T option -> theory) -> Thy_Syntax.element ->
+  val prepare_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
     (Toplevel.transition * Toplevel.transition list) list
   val prepare_command: Position.T -> string -> Toplevel.transition
 end;
@@ -224,7 +224,7 @@ fun parse pos str =
 fun process_file path thy =
   let
     val trs = parse (Path.position path) (File.read path);
-    val init = Toplevel.init_theory NONE "" (K thy) Toplevel.empty;
+    val init = Toplevel.init_theory "" (K thy) Toplevel.empty;
     val result = fold Toplevel.command (init :: trs) Toplevel.toplevel;
   in
     (case (Toplevel.is_theory result, Toplevel.generic_theory_of result) of
