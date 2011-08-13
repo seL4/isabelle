@@ -18,7 +18,7 @@ sig
   val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
   val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
-  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
+  val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
 end
 
 structure Proof_Display: PROOF_DISPLAY =
@@ -115,12 +115,16 @@ fun pretty_var ctxt (x, T) =
 
 fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
 
-in
-
 fun pretty_consts ctxt pred cs =
   (case filter pred (#1 (Proof_Context.inferred_fixes ctxt)) of
     [] => pretty_vars ctxt "constants" cs
   | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
+
+in
+
+fun print_consts do_print ctxt pred cs =
+  if not do_print orelse null cs then ()
+  else Pretty.writeln (pretty_consts ctxt pred cs);
 
 end;
 

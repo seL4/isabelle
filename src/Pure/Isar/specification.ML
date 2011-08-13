@@ -7,7 +7,6 @@ toplevel polymorphism.
 
 signature SPECIFICATION =
 sig
-  val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
   val check_spec:
     (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
@@ -37,23 +36,26 @@ sig
   val definition:
     (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
+  val definition':
+    (binding * typ option * mixfix) option * (Attrib.binding * term) ->
+    bool -> local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd:
     (binding * string option * mixfix) option * (Attrib.binding * string) ->
-    local_theory -> (term * (string * thm)) * local_theory
+    bool -> local_theory -> (term * (string * thm)) * local_theory
   val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option * term ->
-    local_theory -> local_theory
+    bool -> local_theory -> local_theory
   val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option * string ->
-    local_theory -> local_theory
+    bool -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    local_theory -> (string * thm list) list * local_theory
+    bool -> local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
     (Attrib.binding * (Facts.ref * Attrib.src list) list) list ->
-    local_theory -> (string * thm list) list * local_theory
+    bool -> local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Element.context_i list -> Element.statement_i ->
@@ -75,12 +77,6 @@ end;
 
 structure Specification: SPECIFICATION =
 struct
-
-(* diagnostics *)
-
-fun print_consts _ _ [] = ()
-  | print_consts ctxt pred cs = Pretty.writeln (Proof_Display.pretty_consts ctxt pred cs);
-
 
 (* prepare specification *)
 
@@ -166,7 +162,7 @@ end;
 
 (* axiomatization -- within global theory *)
 
-fun gen_axioms do_print prep raw_vars raw_specs thy =
+fun gen_axioms prep raw_vars raw_specs thy =
   let
     val ((vars, specs), _) = prep raw_vars raw_specs (Proof_Context.init_global thy);
     val xs = map (fn ((b, T), _) => (Variable.check_name b, T)) vars;
@@ -188,13 +184,10 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
       |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
       |> Local_Theory.notes axioms;
 
-    val _ =
-      if not do_print then ()
-      else print_consts facts_lthy (K false) xs;
   in ((consts, map #2 facts), Local_Theory.exit_global facts_lthy) end;
 
-val axiomatization = gen_axioms false check_specification;
-val axiomatization_cmd = gen_axioms true read_specification;
+val axiomatization = gen_axioms check_specification;
+val axiomatization_cmd = gen_axioms read_specification;
 
 fun axiom (b, ax) = axiomatization [] [(b, [ax])] #>> (hd o hd o snd);
 fun axiom_cmd (b, ax) = axiomatization_cmd [] [(b, [ax])] #>> (hd o hd o snd);
@@ -202,7 +195,7 @@ fun axiom_cmd (b, ax) = axiomatization_cmd [] [(b, [ax])] #>> (hd o hd o snd);
 
 (* definition *)
 
-fun gen_def do_print prep (raw_var, raw_spec) lthy =
+fun gen_def prep (raw_var, raw_spec) int lthy =
   let
     val (vars, [((raw_name, atts), prop)]) = fst (prep (the_list raw_var) [raw_spec] lthy);
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
@@ -228,18 +221,18 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
         [((name, Code.add_default_eqn_attrib :: atts), [([th], [])])];
 
     val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
-    val _ =
-      if not do_print then ()
-      else print_consts lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+
+    val _ = Proof_Display.print_consts int lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (def_name, th')), lthy4) end;
 
-val definition = gen_def false check_free_spec;
-val definition_cmd = gen_def true read_free_spec;
+val definition' = gen_def check_free_spec;
+fun definition spec = definition' spec false;
+val definition_cmd = gen_def read_free_spec;
 
 
 (* abbreviation *)
 
-fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
+fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
   let
     val ((vars, [(_, prop)]), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
@@ -260,11 +253,11 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
       |> Local_Theory.abbrev mode (var, rhs) |> snd
       |> Proof_Context.restore_syntax_mode lthy;
 
-    val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
+    val _ = Proof_Display.print_consts int lthy' (K false) [(x, T)];
   in lthy' end;
 
-val abbreviation = gen_abbrev false check_free_spec;
-val abbreviation_cmd = gen_abbrev true read_free_spec;
+val abbreviation = gen_abbrev check_free_spec;
+val abbreviation_cmd = gen_abbrev read_free_spec;
 
 
 (* notation *)
@@ -290,14 +283,14 @@ end;
 
 (* fact statements *)
 
-fun gen_theorems prep_fact prep_att kind raw_facts lthy =
+fun gen_theorems prep_fact prep_att kind raw_facts int lthy =
   let
     val attrib = prep_att (Proof_Context.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts;
-    val _ = Proof_Display.print_results true lthy' ((kind, ""), res);
+    val _ = Proof_Display.print_results int lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
@@ -389,12 +382,12 @@ fun gen_theorem schematic prep_att prep_stmt
           (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Binding.is_empty name andalso null atts then
-            (Proof_Display.print_results true lthy' ((kind, ""), res); lthy')
+            (Proof_Display.print_results int lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
                 |> Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
-              val _ = Proof_Display.print_results true lthy' ((kind, res_name), res);
+              val _ = Proof_Display.print_results int lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'
       end;
@@ -411,7 +404,8 @@ fun gen_theorem schematic prep_att prep_stmt
 
 in
 
-val theorem = gen_theorem false (K I) Expression.cert_statement;
+val theorem' = gen_theorem false (K I) Expression.cert_statement;
+fun theorem a b c d e f = theorem' a b c d e f;
 val theorem_cmd = gen_theorem false Attrib.intern_src Expression.read_statement;
 
 val schematic_theorem = gen_theorem true (K I) Expression.cert_statement;

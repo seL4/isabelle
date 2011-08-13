@@ -125,9 +125,7 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
           fs=fs, R=R, defname=defname, is_partial=true }
 
-        val _ =
-          if not is_external then ()
-          else Specification.print_consts lthy (K false) (map fst fixes)
+        val _ = Proof_Display.print_consts is_external lthy (K false) (map fst fixes)
       in
         (info, 
          lthy |> Local_Theory.declaration false (add_function_data o morph_function_data info))

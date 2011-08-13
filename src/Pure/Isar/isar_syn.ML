@@ -218,11 +218,11 @@ val _ =
 (* constant definitions and abbreviations *)
 
 val _ =
-  Outer_Syntax.local_theory "definition" "constant definition" Keyword.thy_decl
-    (Parse_Spec.constdef >> (fn args => #2 o Specification.definition_cmd args));
+  Outer_Syntax.local_theory' "definition" "constant definition" Keyword.thy_decl
+    (Parse_Spec.constdef >> (fn args => #2 oo Specification.definition_cmd args));
 
 val _ =
-  Outer_Syntax.local_theory "abbreviation" "constant abbreviation" Keyword.thy_decl
+  Outer_Syntax.local_theory' "abbreviation" "constant abbreviation" Keyword.thy_decl
     (opt_mode -- (Scan.option Parse_Spec.constdecl -- Parse.prop)
       >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
@@ -263,18 +263,18 @@ val _ =
 (* theorems *)
 
 fun theorems kind =
-  Parse_Spec.name_facts >> (fn args => #2 o Specification.theorems_cmd kind args);
+  Parse_Spec.name_facts >> (fn args => #2 oo Specification.theorems_cmd kind args);
 
 val _ =
-  Outer_Syntax.local_theory "theorems" "define theorems" Keyword.thy_decl (theorems Thm.theoremK);
+  Outer_Syntax.local_theory' "theorems" "define theorems" Keyword.thy_decl (theorems Thm.theoremK);
 
 val _ =
-  Outer_Syntax.local_theory "lemmas" "define lemmas" Keyword.thy_decl (theorems Thm.lemmaK);
+  Outer_Syntax.local_theory' "lemmas" "define lemmas" Keyword.thy_decl (theorems Thm.lemmaK);
 
 val _ =
-  Outer_Syntax.local_theory "declare" "declare theorems" Keyword.thy_decl
+  Outer_Syntax.local_theory' "declare" "declare theorems" Keyword.thy_decl
     (Parse.and_list1 Parse_Spec.xthms1
-      >> (fn args => #2 o Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
+      >> (fn args => #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
 
 
 (* name space entry path *)
