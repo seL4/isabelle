@@ -243,10 +243,10 @@ use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
 use "Isar/outer_syntax.ML";
-use "PIDE/document.ML";
 use "Thy/present.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
+use "PIDE/document.ML";
 use "Thy/rail.ML";
 
 (*theory and proof operations*)

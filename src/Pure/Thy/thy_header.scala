@@ -28,10 +28,10 @@ object Thy_Header extends Parse.Parser
 
   /* theory file name */
 
-  private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+  private val Thy_Name = new Regex("""(.*?)([^/\\:]+)\.thy""")
 
-  def thy_name(s: String): Option[String] =
-    s match { case Thy_Name(name) => Some(name) case _ => None }
+  def thy_name(s: String): Option[(String, String)] =
+    s match { case Thy_Name(prefix, name) => Some((prefix, name)) case _ => None }
 
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
 
@@ -44,7 +44,8 @@ object Thy_Header extends Parse.Parser
     val theory_name = atom("theory name", _.is_name)
 
     val file =
-      keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => x } | file_name
+      keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
+      file_name ^^ (x => (x, true))
 
     val uses = opt(keyword(USES) ~! (rep1(file))) ^^ { case None => Nil case Some(_ ~ xs) => xs }
 
@@ -106,12 +107,13 @@ object Thy_Header extends Parse.Parser
 }
 
 
-sealed case class Thy_Header(val name: String, val imports: List[String], val uses: List[String])
+sealed case class Thy_Header(
+  val name: String, val imports: List[String], val uses: List[(String, Boolean)])
 {
   def map(f: String => String): Thy_Header =
-    Thy_Header(f(name), imports.map(f), uses.map(f))
+    Thy_Header(f(name), imports.map(f), uses.map(p => (f(p._1), p._2)))
 
   def norm_deps(f: String => String): Thy_Header =
-    copy(imports = imports.map(name => f(name) + ".thy"), uses = uses.map(f))
+    copy(imports = imports.map(name => f(name)), uses = uses.map(p => (f(p._1), p._2)))
 }
 

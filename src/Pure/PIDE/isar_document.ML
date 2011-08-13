@@ -22,10 +22,11 @@ val _ =
             let open XML.Decode in
               list (pair string
                 (variant
-                 [fn ([], []) => Document.Remove,
+                 [fn ([], []) => Document.Clear,
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
-                    Document.Header (Exn.Res (triple string (list string) (list string) a)),
+                    Document.Header
+                      (Exn.Res (triple string (list string) (list (pair string bool)) a)),
                   fn ([a], []) => Document.Header (Exn.Exn (ERROR a))]))
             end;
 

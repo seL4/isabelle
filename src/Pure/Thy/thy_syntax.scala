@@ -179,8 +179,8 @@ object Thy_Syntax
       var nodes = previous.nodes
 
       edits foreach {
-        case (name, Document.Node.Remove()) =>
-          doc_edits += (name -> Document.Node.Remove())
+        case (name, Document.Node.Clear()) =>
+          doc_edits += (name -> Document.Node.Clear())
           nodes -= name
 
         case (name, Document.Node.Edits(text_edits)) =>

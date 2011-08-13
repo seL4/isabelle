@@ -188,13 +188,14 @@ class Session(val file_store: Session.File_Store)
     {
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
+
       val norm_header =
         Document.Node.norm_header[Text.Edit](
           name => file_store.append(master_dir, Path.explode(name)), header)
-      val doc_edits = (name, norm_header) :: edits.map(edit => (name, edit))
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, doc_edits) }
+      val text_edits = (name, norm_header) :: edits.map(edit => (name, edit))
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
       val change =
-        global_state.change_yield(_.extend_history(previous, doc_edits, result.map(_._2)))
+        global_state.change_yield(_.extend_history(previous, text_edits, result.map(_._2)))
 
       result.map {
         case (doc_edits, _) =>
@@ -331,7 +332,7 @@ class Session(val file_store: Session.File_Store)
         case Init_Node(name, master_dir, header, text) if prover.isDefined =>
           // FIXME compare with existing node
           handle_edits(name, master_dir, header,
-            List(Document.Node.Remove(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
+            List(Document.Node.Clear(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
           reply(())
 
         case Edit_Node(name, master_dir, header, text_edits) if prover.isDefined =>

@@ -44,12 +44,12 @@ object Document
     {
       def map[B](f: A => B): Edit[B] =
         this match {
-          case Remove() => Remove()
+          case Clear() => Clear()
           case Edits(es) => Edits(es.map(f))
           case Header(header) => Header(header)
         }
     }
-    case class Remove[A]() extends Edit[A]
+    case class Clear[A]() extends Edit[A]
     case class Edits[A](edits: List[A]) extends Edit[A]
     case class Header[A](header: Node_Header) extends Edit[A]
 

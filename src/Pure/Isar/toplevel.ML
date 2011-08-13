@@ -34,7 +34,7 @@ sig
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
-  val init_of: transition -> string option
+  val is_init: transition -> bool
   val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
@@ -356,7 +356,8 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 fun get_init (Transition {trans = [Init args], ...}) = SOME args
   | get_init _ = NONE;
 
-val init_of = Option.map #2 o get_init;
+val is_init = is_some o get_init;
+
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
