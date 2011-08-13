@@ -47,8 +47,6 @@ object Isabelle_System
     if (_state.isEmpty) {
       import scala.collection.JavaConversions._
 
-      System.err.println("### Isabelle system initialization")
-
       val standard_system = new Standard_System
       val settings =
       {
