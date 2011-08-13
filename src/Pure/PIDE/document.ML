@@ -15,10 +15,11 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
+  type node_header = string * string list * string list
   datatype node_edit =
     Remove |
     Edits of (command_id option * command_id option) list |
-    Update_Header of (string * string list * string list) Exn.result
+    Update_Header of node_header Exn.result
   type edit = string * node_edit
   type state
   val init_state: state
@@ -54,24 +55,33 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
+type node_header = string * string list * string list;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 abstype node = Node of
-  {last: exec_id, entries: exec_id option Entries.T}  (*command entries with excecutions*)
+ {header: node_header Exn.result,
+  entries: exec_id option Entries.T,  (*command entries with excecutions*)
+  last: exec_id}  (*last entry with main result*)
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (last, entries) =
-  Node {last = last, entries = entries};
+fun make_node (header, entries, last) =
+  Node {header = header, entries = entries, last = last};
 
-fun get_last (Node {last, ...}) = last;
-fun set_last last (Node {entries, ...}) = make_node (last, entries);
+fun map_node f (Node {header, entries, last}) =
+  make_node (f (header, entries, last));
 
-fun map_entries f (Node {last, entries}) = make_node (last, f entries);
+fun get_header (Node {header, ...}) = header;
+fun set_header header = map_node (fn (_, entries, last) => (header, entries, last));
+
+fun map_entries f (Node {header, entries, last}) = make_node (header, f entries, last);
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
-val empty_node = make_node (no_id, Entries.empty);
+fun get_last (Node {last, ...}) = last;
+fun set_last last = map_node (fn (header, entries, _) => (header, entries, last));
+
+val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), Entries.empty, no_id);
 val empty_version = Version Graph.empty;
 
 
@@ -80,7 +90,7 @@ val empty_version = Version Graph.empty;
 datatype node_edit =
   Remove |
   Edits of (command_id option * command_id option) list |
-  Update_Header of (string * string list * string list) Exn.result;
+  Update_Header of node_header Exn.result;
 
 type edit = string * node_edit;
 
@@ -110,15 +120,16 @@ val node_names_of = Graph.keys o nodes_of;
 fun get_node version name = Graph.get_node (nodes_of version) name
   handle Graph.UNDEF _ => empty_node;
 
+fun update_node name f =
+  Graph.default_node (name, empty_node) #> Graph.map_node name f;
+
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
     (case node_edit of
       Remove => perhaps (try (Graph.del_node name)) nodes
-    | Edits edits =>
-        nodes
-        |> Graph.default_node (name, empty_node)
-        |> Graph.map_node name (edit_node edits)
-    | Update_Header _ => nodes);  (* FIXME *)
+    | Edits edits => update_node name (edit_node edits) nodes
+    (* FIXME maintain deps; cycles!? *)
+    | Update_Header header => update_node name (set_header header) nodes);
 
 fun put_node name node (Version nodes) =
   Version (nodes
@@ -204,7 +215,10 @@ fun the_exec (State {execs, ...}) (id: exec_id) =
 fun get_theory state version_id pos name =
   let
     val last = get_last (get_node (the_version state version_id) name);
-    val st = #2 (Lazy.force (the_exec state last));
+    val st =
+      (case Lazy.peek (the_exec state last) of
+        SOME result => #2 (Exn.release result)
+      | NONE => error ("Unfinished execution for theory " ^ quote name));
   in Toplevel.end_theory pos st end;
 
 
@@ -252,7 +266,7 @@ in
 fun run_command node_name raw_tr st =
   (case
       (case Toplevel.init_of raw_tr of
-        SOME name =>
+        SOME _ =>
           Exn.capture (fn () =>
             let val master_dir = Path.dir (Path.explode node_name);  (* FIXME move to Scala side *)
             in Toplevel.modify_master (SOME master_dir) raw_tr end) ()
@@ -320,7 +334,7 @@ in
 fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
-    val _ = Time.now ();  (* FIXME odd workaround *)
+    val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
     val new_version = fold edit_nodes edits old_version;
 
     fun update_node name (rev_updates, version, st) =
@@ -360,7 +374,7 @@ fun execute version_id state =
       fun force_exec NONE = ()
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
-      val execution' = (* FIXME proper node deps *)
+      val execution' = (* FIXME Graph.schedule *)
         Future.forks
           {name = "Document.execute", group = NONE, deps = [], pri = 1, interrupts = true}
           [fn () =>

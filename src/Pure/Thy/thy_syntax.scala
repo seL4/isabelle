@@ -207,7 +207,10 @@ object Thy_Syntax
                 thy_header0 != thy_header
               case _ => true
             }
-          if (update_header) doc_edits += (name -> Document.Node.Update_Header(header))
+          if (update_header) {
+            doc_edits += (name -> Document.Node.Update_Header(header))
+            nodes += (name -> node.copy(header = header))
+          }
       }
       (doc_edits.toList, Document.Version(Document.new_id(), nodes))
     }
