@@ -25,8 +25,8 @@ proof
   show "(\<lambda>x. True) \<in> ?filter" by (auto intro: is_filter.intro)
 qed
 
-lemma is_filter_Rep_filter: "is_filter (Rep_filter A)"
-  using Rep_filter [of A] by simp
+lemma is_filter_Rep_filter: "is_filter (Rep_filter F)"
+  using Rep_filter [of F] by simp
 
 lemma Abs_filter_inverse':
   assumes "is_filter F" shows "Rep_filter (Abs_filter F) = F"
@@ -36,84 +36,84 @@ lemma Abs_filter_inverse':
 subsection {* Eventually *}
 
 definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  where "eventually P A \<longleftrightarrow> Rep_filter A P"
+  where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
 lemma eventually_Abs_filter:
   assumes "is_filter F" shows "eventually P (Abs_filter F) = F P"
   unfolding eventually_def using assms by (simp add: Abs_filter_inverse)
 
 lemma filter_eq_iff:
-  shows "A = B \<longleftrightarrow> (\<forall>P. eventually P A = eventually P B)"
+  shows "F = F' \<longleftrightarrow> (\<forall>P. eventually P F = eventually P F')"
   unfolding Rep_filter_inject [symmetric] fun_eq_iff eventually_def ..
 
-lemma eventually_True [simp]: "eventually (\<lambda>x. True) A"
+lemma eventually_True [simp]: "eventually (\<lambda>x. True) F"
   unfolding eventually_def
   by (rule is_filter.True [OF is_filter_Rep_filter])
 
-lemma always_eventually: "\<forall>x. P x \<Longrightarrow> eventually P A"
+lemma always_eventually: "\<forall>x. P x \<Longrightarrow> eventually P F"
 proof -
   assume "\<forall>x. P x" hence "P = (\<lambda>x. True)" by (simp add: ext)
-  thus "eventually P A" by simp
+  thus "eventually P F" by simp
 qed
 
 lemma eventually_mono:
-  "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P A \<Longrightarrow> eventually Q A"
+  "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P F \<Longrightarrow> eventually Q F"
   unfolding eventually_def
   by (rule is_filter.mono [OF is_filter_Rep_filter])
 
 lemma eventually_conj:
-  assumes P: "eventually (\<lambda>x. P x) A"
-  assumes Q: "eventually (\<lambda>x. Q x) A"
-  shows "eventually (\<lambda>x. P x \<and> Q x) A"
+  assumes P: "eventually (\<lambda>x. P x) F"
+  assumes Q: "eventually (\<lambda>x. Q x) F"
+  shows "eventually (\<lambda>x. P x \<and> Q x) F"
   using assms unfolding eventually_def
   by (rule is_filter.conj [OF is_filter_Rep_filter])
 
 lemma eventually_mp:
-  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) A"
-  assumes "eventually (\<lambda>x. P x) A"
-  shows "eventually (\<lambda>x. Q x) A"
+  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
+  assumes "eventually (\<lambda>x. P x) F"
+  shows "eventually (\<lambda>x. Q x) F"
 proof (rule eventually_mono)
   show "\<forall>x. (P x \<longrightarrow> Q x) \<and> P x \<longrightarrow> Q x" by simp
-  show "eventually (\<lambda>x. (P x \<longrightarrow> Q x) \<and> P x) A"
+  show "eventually (\<lambda>x. (P x \<longrightarrow> Q x) \<and> P x) F"
     using assms by (rule eventually_conj)
 qed
 
 lemma eventually_rev_mp:
-  assumes "eventually (\<lambda>x. P x) A"
-  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) A"
-  shows "eventually (\<lambda>x. Q x) A"
+  assumes "eventually (\<lambda>x. P x) F"
+  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
+  shows "eventually (\<lambda>x. Q x) F"
 using assms(2) assms(1) by (rule eventually_mp)
 
 lemma eventually_conj_iff:
-  "eventually (\<lambda>x. P x \<and> Q x) A \<longleftrightarrow> eventually P A \<and> eventually Q A"
+  "eventually (\<lambda>x. P x \<and> Q x) F \<longleftrightarrow> eventually P F \<and> eventually Q F"
   by (auto intro: eventually_conj elim: eventually_rev_mp)
 
 lemma eventually_elim1:
-  assumes "eventually (\<lambda>i. P i) A"
+  assumes "eventually (\<lambda>i. P i) F"
   assumes "\<And>i. P i \<Longrightarrow> Q i"
-  shows "eventually (\<lambda>i. Q i) A"
+  shows "eventually (\<lambda>i. Q i) F"
   using assms by (auto elim!: eventually_rev_mp)
 
 lemma eventually_elim2:
-  assumes "eventually (\<lambda>i. P i) A"
-  assumes "eventually (\<lambda>i. Q i) A"
+  assumes "eventually (\<lambda>i. P i) F"
+  assumes "eventually (\<lambda>i. Q i) F"
   assumes "\<And>i. P i \<Longrightarrow> Q i \<Longrightarrow> R i"
-  shows "eventually (\<lambda>i. R i) A"
+  shows "eventually (\<lambda>i. R i) F"
   using assms by (auto elim!: eventually_rev_mp)
 
 subsection {* Finer-than relation *}
 
-text {* @{term "A \<le> B"} means that filter @{term A} is finer than
-filter @{term B}. *}
+text {* @{term "F \<le> F'"} means that filter @{term F} is finer than
+filter @{term F'}. *}
 
 instantiation filter :: (type) complete_lattice
 begin
 
 definition le_filter_def:
-  "A \<le> B \<longleftrightarrow> (\<forall>P. eventually P B \<longrightarrow> eventually P A)"
+  "F \<le> F' \<longleftrightarrow> (\<forall>P. eventually P F' \<longrightarrow> eventually P F)"
 
 definition
-  "(A :: 'a filter) < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> A"
+  "(F :: 'a filter) < F' \<longleftrightarrow> F \<le> F' \<and> \<not> F' \<le> F"
 
 definition
   "top = Abs_filter (\<lambda>P. \<forall>x. P x)"
@@ -122,17 +122,17 @@ definition
   "bot = Abs_filter (\<lambda>P. True)"
 
 definition
-  "sup A B = Abs_filter (\<lambda>P. eventually P A \<and> eventually P B)"
+  "sup F F' = Abs_filter (\<lambda>P. eventually P F \<and> eventually P F')"
 
 definition
-  "inf A B = Abs_filter
-      (\<lambda>P. \<exists>Q R. eventually Q A \<and> eventually R B \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
+  "inf F F' = Abs_filter
+      (\<lambda>P. \<exists>Q R. eventually Q F \<and> eventually R F' \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
 
 definition
-  "Sup S = Abs_filter (\<lambda>P. \<forall>A\<in>S. eventually P A)"
+  "Sup S = Abs_filter (\<lambda>P. \<forall>F\<in>S. eventually P F)"
 
 definition
-  "Inf S = Sup {A::'a filter. \<forall>B\<in>S. A \<le> B}"
+  "Inf S = Sup {F::'a filter. \<forall>F'\<in>S. F \<le> F'}"
 
 lemma eventually_top [simp]: "eventually P top \<longleftrightarrow> (\<forall>x. P x)"
   unfolding top_filter_def
@@ -143,14 +143,14 @@ lemma eventually_bot [simp]: "eventually P bot"
   by (subst eventually_Abs_filter, rule is_filter.intro, auto)
 
 lemma eventually_sup:
-  "eventually P (sup A B) \<longleftrightarrow> eventually P A \<and> eventually P B"
+  "eventually P (sup F F') \<longleftrightarrow> eventually P F \<and> eventually P F'"
   unfolding sup_filter_def
   by (rule eventually_Abs_filter, rule is_filter.intro)
      (auto elim!: eventually_rev_mp)
 
 lemma eventually_inf:
-  "eventually P (inf A B) \<longleftrightarrow>
-   (\<exists>Q R. eventually Q A \<and> eventually R B \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
+  "eventually P (inf F F') \<longleftrightarrow>
+   (\<exists>Q R. eventually Q F \<and> eventually R F' \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
   unfolding inf_filter_def
   apply (rule eventually_Abs_filter, rule is_filter.intro)
   apply (fast intro: eventually_True)
@@ -163,92 +163,80 @@ lemma eventually_inf:
   done
 
 lemma eventually_Sup:
-  "eventually P (Sup S) \<longleftrightarrow> (\<forall>A\<in>S. eventually P A)"
+  "eventually P (Sup S) \<longleftrightarrow> (\<forall>F\<in>S. eventually P F)"
   unfolding Sup_filter_def
   apply (rule eventually_Abs_filter, rule is_filter.intro)
   apply (auto intro: eventually_conj elim!: eventually_rev_mp)
   done
 
 instance proof
-  fix A B :: "'a filter" show "A < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> A"
-    by (rule less_filter_def)
-next
-  fix A :: "'a filter" show "A \<le> A"
-    unfolding le_filter_def by simp
-next
-  fix A B C :: "'a filter" assume "A \<le> B" and "B \<le> C" thus "A \<le> C"
-    unfolding le_filter_def by simp
-next
-  fix A B :: "'a filter" assume "A \<le> B" and "B \<le> A" thus "A = B"
-    unfolding le_filter_def filter_eq_iff by fast
-next
-  fix A :: "'a filter" show "A \<le> top"
-    unfolding le_filter_def eventually_top by (simp add: always_eventually)
-next
-  fix A :: "'a filter" show "bot \<le> A"
-    unfolding le_filter_def by simp
-next
-  fix A B :: "'a filter" show "A \<le> sup A B" and "B \<le> sup A B"
-    unfolding le_filter_def eventually_sup by simp_all
-next
-  fix A B C :: "'a filter" assume "A \<le> C" and "B \<le> C" thus "sup A B \<le> C"
-    unfolding le_filter_def eventually_sup by simp
-next
-  fix A B :: "'a filter" show "inf A B \<le> A" and "inf A B \<le> B"
-    unfolding le_filter_def eventually_inf by (auto intro: eventually_True)
-next
-  fix A B C :: "'a filter" assume "A \<le> B" and "A \<le> C" thus "A \<le> inf B C"
+  fix F F' F'' :: "'a filter" and S :: "'a filter set"
+  { show "F < F' \<longleftrightarrow> F \<le> F' \<and> \<not> F' \<le> F"
+    by (rule less_filter_def) }
+  { show "F \<le> F"
+    unfolding le_filter_def by simp }
+  { assume "F \<le> F'" and "F' \<le> F''" thus "F \<le> F''"
+    unfolding le_filter_def by simp }
+  { assume "F \<le> F'" and "F' \<le> F" thus "F = F'"
+    unfolding le_filter_def filter_eq_iff by fast }
+  { show "F \<le> top"
+    unfolding le_filter_def eventually_top by (simp add: always_eventually) }
+  { show "bot \<le> F"
+    unfolding le_filter_def by simp }
+  { show "F \<le> sup F F'" and "F' \<le> sup F F'"
+    unfolding le_filter_def eventually_sup by simp_all }
+  { assume "F \<le> F''" and "F' \<le> F''" thus "sup F F' \<le> F''"
+    unfolding le_filter_def eventually_sup by simp }
+  { show "inf F F' \<le> F" and "inf F F' \<le> F'"
+    unfolding le_filter_def eventually_inf by (auto intro: eventually_True) }
+  { assume "F \<le> F'" and "F \<le> F''" thus "F \<le> inf F' F''"
     unfolding le_filter_def eventually_inf
-    by (auto elim!: eventually_mono intro: eventually_conj)
-next
-  fix A :: "'a filter" and S assume "A \<in> S" thus "A \<le> Sup S"
-    unfolding le_filter_def eventually_Sup by simp
-next
-  fix S and B :: "'a filter" assume "\<And>A. A \<in> S \<Longrightarrow> A \<le> B" thus "Sup S \<le> B"
-    unfolding le_filter_def eventually_Sup by simp
-next
-  fix C :: "'a filter" and S assume "C \<in> S" thus "Inf S \<le> C"
-    unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp
-next
-  fix S and A :: "'a filter" assume "\<And>B. B \<in> S \<Longrightarrow> A \<le> B" thus "A \<le> Inf S"
-    unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp
+    by (auto elim!: eventually_mono intro: eventually_conj) }
+  { assume "F \<in> S" thus "F \<le> Sup S"
+    unfolding le_filter_def eventually_Sup by simp }
+  { assume "\<And>F. F \<in> S \<Longrightarrow> F \<le> F'" thus "Sup S \<le> F'"
+    unfolding le_filter_def eventually_Sup by simp }
+  { assume "F'' \<in> S" thus "Inf S \<le> F''"
+    unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp }
+  { assume "\<And>F'. F' \<in> S \<Longrightarrow> F \<le> F'" thus "F \<le> Inf S"
+    unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp }
 qed
 
 end
 
 lemma filter_leD:
-  "A \<le> B \<Longrightarrow> eventually P B \<Longrightarrow> eventually P A"
+  "F \<le> F' \<Longrightarrow> eventually P F' \<Longrightarrow> eventually P F"
   unfolding le_filter_def by simp
 
 lemma filter_leI:
-  "(\<And>P. eventually P B \<Longrightarrow> eventually P A) \<Longrightarrow> A \<le> B"
+  "(\<And>P. eventually P F' \<Longrightarrow> eventually P F) \<Longrightarrow> F \<le> F'"
   unfolding le_filter_def by simp
 
 lemma eventually_False:
-  "eventually (\<lambda>x. False) A \<longleftrightarrow> A = bot"
+  "eventually (\<lambda>x. False) F \<longleftrightarrow> F = bot"
   unfolding filter_eq_iff by (auto elim: eventually_rev_mp)
 
 subsection {* Map function for filters *}
 
 definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter"
-  where "filtermap f A = Abs_filter (\<lambda>P. eventually (\<lambda>x. P (f x)) A)"
+  where "filtermap f F = Abs_filter (\<lambda>P. eventually (\<lambda>x. P (f x)) F)"
 
 lemma eventually_filtermap:
-  "eventually P (filtermap f A) = eventually (\<lambda>x. P (f x)) A"
+  "eventually P (filtermap f F) = eventually (\<lambda>x. P (f x)) F"
   unfolding filtermap_def
   apply (rule eventually_Abs_filter)
   apply (rule is_filter.intro)
   apply (auto elim!: eventually_rev_mp)
   done
 
-lemma filtermap_ident: "filtermap (\<lambda>x. x) A = A"
+lemma filtermap_ident: "filtermap (\<lambda>x. x) F = F"
   by (simp add: filter_eq_iff eventually_filtermap)
 
 lemma filtermap_filtermap:
-  "filtermap f (filtermap g A) = filtermap (\<lambda>x. f (g x)) A"
+  "filtermap f (filtermap g F) = filtermap (\<lambda>x. f (g x)) F"
   by (simp add: filter_eq_iff eventually_filtermap)
 
-lemma filtermap_mono: "A \<le> B \<Longrightarrow> filtermap f A \<le> filtermap f B"
+lemma filtermap_mono: "F \<le> F' \<Longrightarrow> filtermap f F \<le> filtermap f F'"
   unfolding le_filter_def eventually_filtermap by simp
 
 lemma filtermap_bot [simp]: "filtermap f bot = bot"
@@ -279,13 +267,13 @@ lemma eventually_False_sequentially [simp]:
   by (simp add: eventually_False)
 
 lemma le_sequentially:
-  "A \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) A)"
+  "F \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) F)"
   unfolding le_filter_def eventually_sequentially
   by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
 
 
 definition trivial_limit :: "'a filter \<Rightarrow> bool"
-  where "trivial_limit A \<longleftrightarrow> eventually (\<lambda>x. False) A"
+  where "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
 
 lemma trivial_limit_sequentially [intro]: "\<not> trivial_limit sequentially"
   by (auto simp add: trivial_limit_def eventually_sequentially)
@@ -293,7 +281,7 @@ lemma trivial_limit_sequentially [intro]: "\<not> trivial_limit sequentially"
 subsection {* Standard filters *}
 
 definition within :: "'a filter \<Rightarrow> 'a set \<Rightarrow> 'a filter" (infixr "within" 70)
-  where "A within S = Abs_filter (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) A)"
+  where "F within S = Abs_filter (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F)"
 
 definition nhds :: "'a::topological_space \<Rightarrow> 'a filter"
   where "nhds a = Abs_filter (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
@@ -302,12 +290,12 @@ definition at :: "'a::topological_space \<Rightarrow> 'a filter"
   where "at a = nhds a within - {a}"
 
 lemma eventually_within:
-  "eventually P (A within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) A"
+  "eventually P (F within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F"
   unfolding within_def
   by (rule eventually_Abs_filter, rule is_filter.intro)
      (auto elim!: eventually_rev_mp)
 
-lemma within_UNIV: "A within UNIV = A"
+lemma within_UNIV: "F within UNIV = F"
   unfolding filter_eq_iff eventually_within by simp
 
 lemma eventually_nhds:
@@ -353,51 +341,51 @@ unfolding at_def eventually_within eventually_nhds_metric by auto
 subsection {* Boundedness *}
 
 definition Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  where "Bfun f A = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) A)"
+  where "Bfun f F = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) F)"
 
 lemma BfunI:
-  assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) A" shows "Bfun f A"
+  assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) F" shows "Bfun f F"
 unfolding Bfun_def
 proof (intro exI conjI allI)
   show "0 < max K 1" by simp
 next
-  show "eventually (\<lambda>x. norm (f x) \<le> max K 1) A"
+  show "eventually (\<lambda>x. norm (f x) \<le> max K 1) F"
     using K by (rule eventually_elim1, simp)
 qed
 
 lemma BfunE:
-  assumes "Bfun f A"
-  obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) A"
+  assumes "Bfun f F"
+  obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) F"
 using assms unfolding Bfun_def by fast
 
 
 subsection {* Convergence to Zero *}
 
 definition Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  where "Zfun f A = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) A)"
+  where "Zfun f F = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) F)"
 
 lemma ZfunI:
-  "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) A) \<Longrightarrow> Zfun f A"
+  "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) F) \<Longrightarrow> Zfun f F"
   unfolding Zfun_def by simp
 
 lemma ZfunD:
-  "\<lbrakk>Zfun f A; 0 < r\<rbrakk> \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) A"
+  "\<lbrakk>Zfun f F; 0 < r\<rbrakk> \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) F"
   unfolding Zfun_def by simp
 
 lemma Zfun_ssubst:
-  "eventually (\<lambda>x. f x = g x) A \<Longrightarrow> Zfun g A \<Longrightarrow> Zfun f A"
+  "eventually (\<lambda>x. f x = g x) F \<Longrightarrow> Zfun g F \<Longrightarrow> Zfun f F"
   unfolding Zfun_def by (auto elim!: eventually_rev_mp)
 
-lemma Zfun_zero: "Zfun (\<lambda>x. 0) A"
+lemma Zfun_zero: "Zfun (\<lambda>x. 0) F"
   unfolding Zfun_def by simp
 
-lemma Zfun_norm_iff: "Zfun (\<lambda>x. norm (f x)) A = Zfun (\<lambda>x. f x) A"
+lemma Zfun_norm_iff: "Zfun (\<lambda>x. norm (f x)) F = Zfun (\<lambda>x. f x) F"
   unfolding Zfun_def by simp
 
 lemma Zfun_imp_Zfun:
-  assumes f: "Zfun f A"
-  assumes g: "eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) A"
-  shows "Zfun (\<lambda>x. g x) A"
+  assumes f: "Zfun f F"
+  assumes g: "eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F"
+  shows "Zfun (\<lambda>x. g x) F"
 proof (cases)
   assume K: "0 < K"
   show ?thesis
@@ -405,9 +393,9 @@ proof (cases)
     fix r::real assume "0 < r"
     hence "0 < r / K"
       using K by (rule divide_pos_pos)
-    then have "eventually (\<lambda>x. norm (f x) < r / K) A"
+    then have "eventually (\<lambda>x. norm (f x) < r / K) F"
       using ZfunD [OF f] by fast
-    with g show "eventually (\<lambda>x. norm (g x) < r) A"
+    with g show "eventually (\<lambda>x. norm (g x) < r) F"
     proof (rule eventually_elim2)
       fix x
       assume *: "norm (g x) \<le> norm (f x) * K"
@@ -425,7 +413,7 @@ next
   proof (rule ZfunI)
     fix r :: real
     assume "0 < r"
-    from g show "eventually (\<lambda>x. norm (g x) < r) A"
+    from g show "eventually (\<lambda>x. norm (g x) < r) F"
     proof (rule eventually_elim1)
       fix x
       assume "norm (g x) \<le> norm (f x) * K"
@@ -437,22 +425,22 @@ next
   qed
 qed
 
-lemma Zfun_le: "\<lbrakk>Zfun g A; \<forall>x. norm (f x) \<le> norm (g x)\<rbrakk> \<Longrightarrow> Zfun f A"
+lemma Zfun_le: "\<lbrakk>Zfun g F; \<forall>x. norm (f x) \<le> norm (g x)\<rbrakk> \<Longrightarrow> Zfun f F"
   by (erule_tac K="1" in Zfun_imp_Zfun, simp)
 
 lemma Zfun_add:
-  assumes f: "Zfun f A" and g: "Zfun g A"
-  shows "Zfun (\<lambda>x. f x + g x) A"
+  assumes f: "Zfun f F" and g: "Zfun g F"
+  shows "Zfun (\<lambda>x. f x + g x) F"
 proof (rule ZfunI)
   fix r::real assume "0 < r"
   hence r: "0 < r / 2" by simp
-  have "eventually (\<lambda>x. norm (f x) < r/2) A"
+  have "eventually (\<lambda>x. norm (f x) < r/2) F"
     using f r by (rule ZfunD)
   moreover
-  have "eventually (\<lambda>x. norm (g x) < r/2) A"
+  have "eventually (\<lambda>x. norm (g x) < r/2) F"
     using g r by (rule ZfunD)
   ultimately
-  show "eventually (\<lambda>x. norm (f x + g x) < r) A"
+  show "eventually (\<lambda>x. norm (f x + g x) < r) F"
   proof (rule eventually_elim2)
     fix x
     assume *: "norm (f x) < r/2" "norm (g x) < r/2"
@@ -465,28 +453,28 @@ proof (rule ZfunI)
   qed
 qed
 
-lemma Zfun_minus: "Zfun f A \<Longrightarrow> Zfun (\<lambda>x. - f x) A"
+lemma Zfun_minus: "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. - f x) F"
   unfolding Zfun_def by simp
 
-lemma Zfun_diff: "\<lbrakk>Zfun f A; Zfun g A\<rbrakk> \<Longrightarrow> Zfun (\<lambda>x. f x - g x) A"
+lemma Zfun_diff: "\<lbrakk>Zfun f F; Zfun g F\<rbrakk> \<Longrightarrow> Zfun (\<lambda>x. f x - g x) F"
   by (simp only: diff_minus Zfun_add Zfun_minus)
 
 lemma (in bounded_linear) Zfun:
-  assumes g: "Zfun g A"
-  shows "Zfun (\<lambda>x. f (g x)) A"
+  assumes g: "Zfun g F"
+  shows "Zfun (\<lambda>x. f (g x)) F"
 proof -
   obtain K where "\<And>x. norm (f x) \<le> norm x * K"
     using bounded by fast
-  then have "eventually (\<lambda>x. norm (f (g x)) \<le> norm (g x) * K) A"
+  then have "eventually (\<lambda>x. norm (f (g x)) \<le> norm (g x) * K) F"
     by simp
   with g show ?thesis
     by (rule Zfun_imp_Zfun)
 qed
 
 lemma (in bounded_bilinear) Zfun:
-  assumes f: "Zfun f A"
-  assumes g: "Zfun g A"
-  shows "Zfun (\<lambda>x. f x ** g x) A"
+  assumes f: "Zfun f F"
+  assumes g: "Zfun g F"
+  shows "Zfun (\<lambda>x. f x ** g x) F"
 proof (rule ZfunI)
   fix r::real assume r: "0 < r"
   obtain K where K: "0 < K"
@@ -494,13 +482,13 @@ proof (rule ZfunI)
     using pos_bounded by fast
   from K have K': "0 < inverse K"
     by (rule positive_imp_inverse_positive)
-  have "eventually (\<lambda>x. norm (f x) < r) A"
+  have "eventually (\<lambda>x. norm (f x) < r) F"
     using f r by (rule ZfunD)
   moreover
-  have "eventually (\<lambda>x. norm (g x) < inverse K) A"
+  have "eventually (\<lambda>x. norm (g x) < inverse K) F"
     using g K' by (rule ZfunD)
   ultimately
-  show "eventually (\<lambda>x. norm (f x ** g x) < r) A"
+  show "eventually (\<lambda>x. norm (f x ** g x) < r) F"
   proof (rule eventually_elim2)
     fix x
     assume *: "norm (f x) < r" "norm (g x) < inverse K"
@@ -515,11 +503,11 @@ proof (rule ZfunI)
 qed
 
 lemma (in bounded_bilinear) Zfun_left:
-  "Zfun f A \<Longrightarrow> Zfun (\<lambda>x. f x ** a) A"
+  "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. f x ** a) F"
   by (rule bounded_linear_left [THEN bounded_linear.Zfun])
 
 lemma (in bounded_bilinear) Zfun_right:
-  "Zfun f A \<Longrightarrow> Zfun (\<lambda>x. a ** f x) A"
+  "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. a ** f x) F"
   by (rule bounded_linear_right [THEN bounded_linear.Zfun])
 
 lemmas Zfun_mult = mult.Zfun
@@ -531,7 +519,7 @@ subsection {* Limits *}
 
 definition tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a filter \<Rightarrow> bool"
     (infixr "--->" 55) where
-  "(f ---> l) A \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) A)"
+  "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
 
 ML {*
 structure Tendsto_Intros = Named_Thms
@@ -543,21 +531,21 @@ structure Tendsto_Intros = Named_Thms
 
 setup Tendsto_Intros.setup
 
-lemma tendsto_mono: "A \<le> A' \<Longrightarrow> (f ---> l) A' \<Longrightarrow> (f ---> l) A"
+lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
 
 lemma topological_tendstoI:
-  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) A)
-    \<Longrightarrow> (f ---> l) A"
+  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F)
+    \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def by auto
 
 lemma topological_tendstoD:
-  "(f ---> l) A \<Longrightarrow> open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) A"
+  "(f ---> l) F \<Longrightarrow> open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F"
   unfolding tendsto_def by auto
 
 lemma tendstoI:
-  assumes "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) A"
-  shows "(f ---> l) A"
+  assumes "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
+  shows "(f ---> l) F"
   apply (rule topological_tendstoI)
   apply (simp add: open_dist)
   apply (drule (1) bspec, clarify)
@@ -566,7 +554,7 @@ lemma tendstoI:
   done
 
 lemma tendstoD:
-  "(f ---> l) A \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) A"
+  "(f ---> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
   apply (drule_tac S="{x. dist x l < e}" in topological_tendstoD)
   apply (clarsimp simp add: open_dist)
   apply (rule_tac x="e - dist x l" in exI, clarsimp)
@@ -577,10 +565,10 @@ lemma tendstoD:
   done
 
 lemma tendsto_iff:
-  "(f ---> l) A \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) A)"
+  "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   using tendstoI tendstoD by fast
 
-lemma tendsto_Zfun_iff: "(f ---> a) A = Zfun (\<lambda>x. f x - a) A"
+lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
 lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a)"
@@ -590,12 +578,12 @@ lemma tendsto_ident_at_within [tendsto_intros]:
   "((\<lambda>x. x) ---> a) (at a within S)"
   unfolding tendsto_def eventually_within eventually_at_topological by auto
 
-lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) A"
+lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
   by (simp add: tendsto_def)
 
 lemma tendsto_const_iff:
   fixes k l :: "'a::metric_space"
-  assumes "A \<noteq> bot" shows "((\<lambda>n. k) ---> l) A \<longleftrightarrow> k = l"
+  assumes "F \<noteq> bot" shows "((\<lambda>n. k) ---> l) F \<longleftrightarrow> k = l"
   apply (safe intro!: tendsto_const)
   apply (rule ccontr)
   apply (drule_tac e="dist k l" in tendstoD)
@@ -604,13 +592,13 @@ lemma tendsto_const_iff:
   done
 
 lemma tendsto_dist [tendsto_intros]:
-  assumes f: "(f ---> l) A" and g: "(g ---> m) A"
-  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) A"
+  assumes f: "(f ---> l) F" and g: "(g ---> m) F"
+  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) F"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   hence e2: "0 < e/2" by simp
   from tendstoD [OF f e2] tendstoD [OF g e2]
-  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) A"
+  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) F"
   proof (rule eventually_elim2)
     fix x assume "dist (f x) l < e/2" "dist (g x) m < e/2"
     then show "dist (dist (f x) (g x)) (dist l m) < e"
@@ -629,68 +617,68 @@ lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
 
 lemma tendsto_norm [tendsto_intros]:
-  "(f ---> a) A \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) A"
+  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) F"
   unfolding norm_conv_dist by (intro tendsto_intros)
 
 lemma tendsto_norm_zero:
-  "(f ---> 0) A \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> 0) A"
+  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> 0) F"
   by (drule tendsto_norm, simp)
 
 lemma tendsto_norm_zero_cancel:
-  "((\<lambda>x. norm (f x)) ---> 0) A \<Longrightarrow> (f ---> 0) A"
+  "((\<lambda>x. norm (f x)) ---> 0) F \<Longrightarrow> (f ---> 0) F"
   unfolding tendsto_iff dist_norm by simp
 
 lemma tendsto_norm_zero_iff:
-  "((\<lambda>x. norm (f x)) ---> 0) A \<longleftrightarrow> (f ---> 0) A"
+  "((\<lambda>x. norm (f x)) ---> 0) F \<longleftrightarrow> (f ---> 0) F"
   unfolding tendsto_iff dist_norm by simp
 
 lemma tendsto_rabs [tendsto_intros]:
-  "(f ---> (l::real)) A \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> \<bar>l\<bar>) A"
+  "(f ---> (l::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> \<bar>l\<bar>) F"
   by (fold real_norm_def, rule tendsto_norm)
 
 lemma tendsto_rabs_zero:
-  "(f ---> (0::real)) A \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> 0) A"
+  "(f ---> (0::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero)
 
 lemma tendsto_rabs_zero_cancel:
-  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) A \<Longrightarrow> (f ---> 0) A"
+  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) F \<Longrightarrow> (f ---> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_cancel)
 
 lemma tendsto_rabs_zero_iff:
-  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) A \<longleftrightarrow> (f ---> 0) A"
+  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) F \<longleftrightarrow> (f ---> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_iff)
 
 subsubsection {* Addition and subtraction *}
 
 lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> a) A; (g ---> b) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) A"
+  shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) F"
   by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
 
 lemma tendsto_add_zero:
   fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>(f ---> 0) A; (g ---> 0) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> 0) A"
+  shows "\<lbrakk>(f ---> 0) F; (g ---> 0) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> 0) F"
   by (drule (1) tendsto_add, simp)
 
 lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
-  shows "(f ---> a) A \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) A"
+  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) F"
   by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
 
 lemma tendsto_minus_cancel:
   fixes a :: "'a::real_normed_vector"
-  shows "((\<lambda>x. - f x) ---> - a) A \<Longrightarrow> (f ---> a) A"
+  shows "((\<lambda>x. - f x) ---> - a) F \<Longrightarrow> (f ---> a) F"
   by (drule tendsto_minus, simp)
 
 lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> a) A; (g ---> b) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) A"
+  shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) F"
   by (simp add: diff_minus tendsto_add tendsto_minus)
 
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) A"
-  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) A"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) F"
+  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
     by (induct, simp add: tendsto_const, simp add: tendsto_add)
@@ -702,43 +690,43 @@ qed
 subsubsection {* Linear operators and multiplication *}
 
 lemma (in bounded_linear) tendsto [tendsto_intros]:
-  "(g ---> a) A \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) A"
+  "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
 
 lemma (in bounded_linear) tendsto_zero:
-  "(g ---> 0) A \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) A"
+  "(g ---> 0) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) F"
   by (drule tendsto, simp only: zero)
 
 lemma (in bounded_bilinear) tendsto [tendsto_intros]:
-  "\<lbrakk>(f ---> a) A; (g ---> b) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) A"
+  "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) F"
   by (simp only: tendsto_Zfun_iff prod_diff_prod
                  Zfun_add Zfun Zfun_left Zfun_right)
 
 lemma (in bounded_bilinear) tendsto_zero:
-  assumes f: "(f ---> 0) A"
-  assumes g: "(g ---> 0) A"
-  shows "((\<lambda>x. f x ** g x) ---> 0) A"
+  assumes f: "(f ---> 0) F"
+  assumes g: "(g ---> 0) F"
+  shows "((\<lambda>x. f x ** g x) ---> 0) F"
   using tendsto [OF f g] by (simp add: zero_left)
 
 lemma (in bounded_bilinear) tendsto_left_zero:
-  "(f ---> 0) A \<Longrightarrow> ((\<lambda>x. f x ** c) ---> 0) A"
+  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. f x ** c) ---> 0) F"
   by (rule bounded_linear.tendsto_zero [OF bounded_linear_left])
 
 lemma (in bounded_bilinear) tendsto_right_zero:
-  "(f ---> 0) A \<Longrightarrow> ((\<lambda>x. c ** f x) ---> 0) A"
+  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. c ** f x) ---> 0) F"
   by (rule bounded_linear.tendsto_zero [OF bounded_linear_right])
 
 lemmas tendsto_mult = mult.tendsto
 
 lemma tendsto_power [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
-  shows "(f ---> a) A \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) A"
+  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) F"
   by (induct n) (simp_all add: tendsto_const tendsto_mult)
 
 lemma tendsto_setprod [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> L i) A"
-  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) ---> (\<Prod>i\<in>S. L i)) A"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> L i) F"
+  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) ---> (\<Prod>i\<in>S. L i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
     by (induct, simp add: tendsto_const, simp add: tendsto_mult)
@@ -750,17 +738,17 @@ qed
 subsubsection {* Inverse and division *}
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
-  assumes f: "Zfun f A"
-  assumes g: "Bfun g A"
-  shows "Zfun (\<lambda>x. f x ** g x) A"
+  assumes f: "Zfun f F"
+  assumes g: "Bfun g F"
+  shows "Zfun (\<lambda>x. f x ** g x) F"
 proof -
   obtain K where K: "0 \<le> K"
     and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
     using nonneg_bounded by fast
   obtain B where B: "0 < B"
-    and norm_g: "eventually (\<lambda>x. norm (g x) \<le> B) A"
+    and norm_g: "eventually (\<lambda>x. norm (g x) \<le> B) F"
     using g by (rule BfunE)
-  have "eventually (\<lambda>x. norm (f x ** g x) \<le> norm (f x) * (B * K)) A"
+  have "eventually (\<lambda>x. norm (f x ** g x) \<le> norm (f x) * (B * K)) F"
   using norm_g proof (rule eventually_elim1)
     fix x
     assume *: "norm (g x) \<le> B"
@@ -788,9 +776,9 @@ lemma (in bounded_bilinear) flip:
   using bounded by fast
 
 lemma (in bounded_bilinear) Bfun_prod_Zfun:
-  assumes f: "Bfun f A"
-  assumes g: "Zfun g A"
-  shows "Zfun (\<lambda>x. f x ** g x) A"
+  assumes f: "Bfun f F"
+  assumes g: "Zfun g F"
+  shows "Zfun (\<lambda>x. f x ** g x) F"
   using flip g f by (rule bounded_bilinear.Zfun_prod_Bfun)
 
 lemma Bfun_inverse_lemma:
@@ -802,16 +790,16 @@ lemma Bfun_inverse_lemma:
 
 lemma Bfun_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes f: "(f ---> a) A"
+  assumes f: "(f ---> a) F"
   assumes a: "a \<noteq> 0"
-  shows "Bfun (\<lambda>x. inverse (f x)) A"
+  shows "Bfun (\<lambda>x. inverse (f x)) F"
 proof -
   from a have "0 < norm a" by simp
   hence "\<exists>r>0. r < norm a" by (rule dense)
   then obtain r where r1: "0 < r" and r2: "r < norm a" by fast
-  have "eventually (\<lambda>x. dist (f x) a < r) A"
+  have "eventually (\<lambda>x. dist (f x) a < r) F"
     using tendstoD [OF f r1] by fast
-  hence "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse (norm a - r)) A"
+  hence "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse (norm a - r)) F"
   proof (rule eventually_elim1)
     fix x
     assume "dist (f x) a < r"
@@ -838,8 +826,8 @@ qed
 
 lemma tendsto_inverse_lemma:
   fixes a :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>(f ---> a) A; a \<noteq> 0; eventually (\<lambda>x. f x \<noteq> 0) A\<rbrakk>
-         \<Longrightarrow> ((\<lambda>x. inverse (f x)) ---> inverse a) A"
+  shows "\<lbrakk>(f ---> a) F; a \<noteq> 0; eventually (\<lambda>x. f x \<noteq> 0) F\<rbrakk>
+         \<Longrightarrow> ((\<lambda>x. inverse (f x)) ---> inverse a) F"
   apply (subst tendsto_Zfun_iff)
   apply (rule Zfun_ssubst)
   apply (erule eventually_elim1)
@@ -853,14 +841,14 @@ lemma tendsto_inverse_lemma:
 
 lemma tendsto_inverse [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes f: "(f ---> a) A"
+  assumes f: "(f ---> a) F"
   assumes a: "a \<noteq> 0"
-  shows "((\<lambda>x. inverse (f x)) ---> inverse a) A"
+  shows "((\<lambda>x. inverse (f x)) ---> inverse a) F"
 proof -
   from a have "0 < norm a" by simp
-  with f have "eventually (\<lambda>x. dist (f x) a < norm a) A"
+  with f have "eventually (\<lambda>x. dist (f x) a < norm a) F"
     by (rule tendstoD)
-  then have "eventually (\<lambda>x. f x \<noteq> 0) A"
+  then have "eventually (\<lambda>x. f x \<noteq> 0) F"
     unfolding dist_norm by (auto elim!: eventually_elim1)
   with f a show ?thesis
     by (rule tendsto_inverse_lemma)
@@ -868,39 +856,39 @@ qed
 
 lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
-  shows "\<lbrakk>(f ---> a) A; (g ---> b) A; b \<noteq> 0\<rbrakk>
-    \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) A"
+  shows "\<lbrakk>(f ---> a) F; (g ---> b) F; b \<noteq> 0\<rbrakk>
+    \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) F"
   by (simp add: mult.tendsto tendsto_inverse divide_inverse)
 
 lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> l) A; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) A"
+  shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
 
 subsubsection {* Uniqueness *}
 
 lemma tendsto_unique:
   fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  assumes "\<not> trivial_limit A"  "(f ---> l) A"  "(f ---> l') A"
+  assumes "\<not> trivial_limit F"  "(f ---> l) F"  "(f ---> l') F"
   shows "l = l'"
 proof (rule ccontr)
   assume "l \<noteq> l'"
   obtain U V where "open U" "open V" "l \<in> U" "l' \<in> V" "U \<inter> V = {}"
     using hausdorff [OF `l \<noteq> l'`] by fast
-  have "eventually (\<lambda>x. f x \<in> U) A"
-    using `(f ---> l) A` `open U` `l \<in> U` by (rule topological_tendstoD)
+  have "eventually (\<lambda>x. f x \<in> U) F"
+    using `(f ---> l) F` `open U` `l \<in> U` by (rule topological_tendstoD)
   moreover
-  have "eventually (\<lambda>x. f x \<in> V) A"
-    using `(f ---> l') A` `open V` `l' \<in> V` by (rule topological_tendstoD)
+  have "eventually (\<lambda>x. f x \<in> V) F"
+    using `(f ---> l') F` `open V` `l' \<in> V` by (rule topological_tendstoD)
   ultimately
-  have "eventually (\<lambda>x. False) A"
+  have "eventually (\<lambda>x. False) F"
   proof (rule eventually_elim2)
     fix x
     assume "f x \<in> U" "f x \<in> V"
     hence "f x \<in> U \<inter> V" by simp
     with `U \<inter> V = {}` show "False" by simp
   qed
-  with `\<not> trivial_limit A` show "False"
+  with `\<not> trivial_limit F` show "False"
     by (simp add: trivial_limit_def)
 qed
 
