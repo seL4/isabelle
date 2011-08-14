@@ -691,8 +691,12 @@ apply (clarify, rule_tac x=N in exI, clarsimp)
 apply (blast intro: seq_suble le_trans dest!: spec) 
 done
 
-subsection {* Bounded Monotonic Sequences *}
+lemma convergent_subseq_convergent:
+  "\<lbrakk>convergent X; subseq f\<rbrakk> \<Longrightarrow> convergent (X o f)"
+  unfolding convergent_def by (auto intro: LIMSEQ_subseq_LIMSEQ)
 
+
+subsection {* Bounded Monotonic Sequences *}
 
 text{*Bounded Sequence*}
 
@@ -1006,11 +1010,6 @@ lemma Cauchy_convergent_iff:
   fixes X :: "nat \<Rightarrow> 'a::complete_space"
   shows "Cauchy X = convergent X"
 by (fast intro: Cauchy_convergent convergent_Cauchy)
-
-lemma convergent_subseq_convergent:
-  fixes X :: "nat \<Rightarrow> 'a::complete_space"
-  shows "\<lbrakk> convergent X; subseq f \<rbrakk> \<Longrightarrow> convergent (X o f)"
-  by (simp add: Cauchy_subseq_Cauchy Cauchy_convergent_iff [symmetric])
 
 text {*
 Proof that Cauchy sequences converge based on the one from
