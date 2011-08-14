@@ -581,15 +581,37 @@ lemma tendsto_ident_at_within [tendsto_intros]:
 lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
   by (simp add: tendsto_def)
 
+lemma tendsto_unique:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space"
+  assumes "\<not> trivial_limit F" and "(f ---> a) F" and "(f ---> b) F"
+  shows "a = b"
+proof (rule ccontr)
+  assume "a \<noteq> b"
+  obtain U V where "open U" "open V" "a \<in> U" "b \<in> V" "U \<inter> V = {}"
+    using hausdorff [OF `a \<noteq> b`] by fast
+  have "eventually (\<lambda>x. f x \<in> U) F"
+    using `(f ---> a) F` `open U` `a \<in> U` by (rule topological_tendstoD)
+  moreover
+  have "eventually (\<lambda>x. f x \<in> V) F"
+    using `(f ---> b) F` `open V` `b \<in> V` by (rule topological_tendstoD)
+  ultimately
+  have "eventually (\<lambda>x. False) F"
+  proof (rule eventually_elim2)
+    fix x
+    assume "f x \<in> U" "f x \<in> V"
+    hence "f x \<in> U \<inter> V" by simp
+    with `U \<inter> V = {}` show "False" by simp
+  qed
+  with `\<not> trivial_limit F` show "False"
+    by (simp add: trivial_limit_def)
+qed
+
 lemma tendsto_const_iff:
-  fixes k l :: "'a::metric_space"
-  assumes "F \<noteq> bot" shows "((\<lambda>n. k) ---> l) F \<longleftrightarrow> k = l"
-  apply (safe intro!: tendsto_const)
-  apply (rule ccontr)
-  apply (drule_tac e="dist k l" in tendstoD)
-  apply (simp add: zero_less_dist_iff)
-  apply (simp add: eventually_False assms)
-  done
+  fixes a b :: "'a::t2_space"
+  assumes "\<not> trivial_limit F" shows "((\<lambda>x. a) ---> b) F \<longleftrightarrow> a = b"
+  by (safe intro!: tendsto_const tendsto_unique [OF assms tendsto_const])
+
+subsubsection {* Distance and norms *}
 
 lemma tendsto_dist [tendsto_intros]:
   assumes f: "(f ---> l) F" and g: "(g ---> m) F"
@@ -610,8 +632,6 @@ proof (rule tendstoI)
       by arith
   qed
 qed
-
-subsubsection {* Norms *}
 
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
@@ -864,32 +884,5 @@ lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
-
-subsubsection {* Uniqueness *}
-
-lemma tendsto_unique:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  assumes "\<not> trivial_limit F"  "(f ---> l) F"  "(f ---> l') F"
-  shows "l = l'"
-proof (rule ccontr)
-  assume "l \<noteq> l'"
-  obtain U V where "open U" "open V" "l \<in> U" "l' \<in> V" "U \<inter> V = {}"
-    using hausdorff [OF `l \<noteq> l'`] by fast
-  have "eventually (\<lambda>x. f x \<in> U) F"
-    using `(f ---> l) F` `open U` `l \<in> U` by (rule topological_tendstoD)
-  moreover
-  have "eventually (\<lambda>x. f x \<in> V) F"
-    using `(f ---> l') F` `open V` `l' \<in> V` by (rule topological_tendstoD)
-  ultimately
-  have "eventually (\<lambda>x. False) F"
-  proof (rule eventually_elim2)
-    fix x
-    assume "f x \<in> U" "f x \<in> V"
-    hence "f x \<in> U \<inter> V" by simp
-    with `U \<inter> V = {}` show "False" by simp
-  qed
-  with `\<not> trivial_limit F` show "False"
-    by (simp add: trivial_limit_def)
-qed
 
 end

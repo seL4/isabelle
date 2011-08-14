@@ -181,32 +181,32 @@ lemma LIM_rabs_zero_cancel: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) \<
 lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -- a --> 0"
   by (rule tendsto_rabs_zero_iff)
 
-lemma at_neq_bot:
+lemma trivial_limit_at:
   fixes a :: "'a::real_normed_algebra_1"
-  shows "at a \<noteq> bot"  -- {* TODO: find a more appropriate class *}
-unfolding eventually_False [symmetric]
+  shows "\<not> trivial_limit (at a)"  -- {* TODO: find a more appropriate class *}
+unfolding trivial_limit_def
 unfolding eventually_at dist_norm
 by (clarsimp, rule_tac x="a + of_real (d/2)" in exI, simp)
 
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_algebra_1"
-  fixes k L :: "'b::metric_space"
+  fixes k L :: "'b::t2_space"
   shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
-by (simp add: tendsto_const_iff at_neq_bot)
+by (simp add: tendsto_const_iff trivial_limit_at)
 
 lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
 
 lemma LIM_const_eq:
   fixes a :: "'a::real_normed_algebra_1"
-  fixes k L :: "'b::metric_space"
+  fixes k L :: "'b::t2_space"
   shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
-by (simp add: tendsto_const_iff at_neq_bot)
+  by (simp add: tendsto_const_iff trivial_limit_at)
 
 lemma LIM_unique:
   fixes a :: "'a::real_normed_algebra_1" -- {* TODO: find a more appropriate class *}
-  fixes L M :: "'b::metric_space"
+  fixes L M :: "'b::t2_space"
   shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
-by (drule (1) tendsto_dist, simp add: tendsto_const_iff at_neq_bot)
+  using trivial_limit_at by (rule tendsto_unique)
 
 lemma LIM_ident [simp]: "(\<lambda>x. x) -- a --> a"
 by (rule tendsto_ident_at)

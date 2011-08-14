@@ -189,7 +189,7 @@ abbreviation
   "X ----> L \<equiv> (X ---> L) sequentially"
 
 definition
-  lim :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a" where
+  lim :: "(nat \<Rightarrow> 'a::t2_space) \<Rightarrow> 'a" where
     --{*Standard definition of limit using choice operator*}
   "lim X = (THE L. X ----> L)"
 
@@ -301,9 +301,9 @@ lemma LIMSEQ_const: "(\<lambda>n. k) ----> k"
 by (rule tendsto_const)
 
 lemma LIMSEQ_const_iff:
-  fixes k l :: "'a::metric_space"
+  fixes k l :: "'a::t2_space"
   shows "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
-by (rule tendsto_const_iff, rule sequentially_bot)
+  using trivial_limit_sequentially by (rule tendsto_const_iff)
 
 lemma LIMSEQ_norm:
   fixes a :: "'a::real_normed_vector"
@@ -366,9 +366,9 @@ lemma LIMSEQ_diff:
 by (rule tendsto_diff)
 
 lemma LIMSEQ_unique:
-  fixes a b :: "'a::metric_space"
+  fixes a b :: "'a::t2_space"
   shows "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
-by (drule (1) tendsto_dist, simp add: LIMSEQ_const_iff)
+  using trivial_limit_sequentially by (rule tendsto_unique)
 
 lemma (in bounded_linear) LIMSEQ:
   "X ----> a \<Longrightarrow> (\<lambda>n. f (X n)) ----> f a"
