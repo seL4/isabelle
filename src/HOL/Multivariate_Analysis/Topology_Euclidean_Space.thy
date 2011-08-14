@@ -432,9 +432,8 @@ lemma connected_empty[simp, intro]: "connected {}"
 
 subsection{* Limit points *}
 
-definition
-  islimpt:: "'a::topological_space \<Rightarrow> 'a set \<Rightarrow> bool"
-    (infixr "islimpt" 60) where
+definition (in topological_space)
+  islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "islimpt" 60) where
   "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
 lemma islimptI:
@@ -469,8 +468,8 @@ lemma islimpt_approachable_le:
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis 
 
-class perfect_space =
-  assumes islimpt_UNIV [simp, intro]: "(x::'a::topological_space) islimpt UNIV"
+class perfect_space = topological_space +
+  assumes islimpt_UNIV [simp, intro]: "x islimpt UNIV"
 
 lemma perfect_choose_dist:
   fixes x :: "'a::{perfect_space, metric_space}"
@@ -1881,8 +1880,8 @@ using assms by (simp add: at_within_interior netlimit_at)
 subsection{* Boundedness. *}
 
   (* FIXME: This has to be unified with BSEQ!! *)
-definition
-  bounded :: "'a::metric_space set \<Rightarrow> bool" where
+definition (in metric_space)
+  bounded :: "'a set \<Rightarrow> bool" where
   "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
 
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
@@ -2110,7 +2109,7 @@ text {*
   Heine-Borel property if every closed and bounded subset is compact.
 *}
 
-class heine_borel =
+class heine_borel = metric_space +
   assumes bounded_imp_convergent_subsequence:
     "bounded s \<Longrightarrow> \<forall>n. f n \<in> s
       \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
