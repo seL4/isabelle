@@ -183,8 +183,8 @@ lemma decseq_eq_incseq:
 
 subsection {* Defintions of limits *}
 
-abbreviation
-  LIMSEQ :: "[nat \<Rightarrow> 'a::topological_space, 'a] \<Rightarrow> bool"
+abbreviation (in topological_space)
+  LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
     ("((_)/ ----> (_))" [60, 60] 60) where
   "X ----> L \<equiv> (X ---> L) sequentially"
 
@@ -193,9 +193,7 @@ definition
     --{*Standard definition of limit using choice operator*}
   "lim X = (THE L. X ----> L)"
 
-definition
-  convergent :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
-    --{*Standard definition of convergence*}
+definition (in topological_space) convergent :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "convergent X = (\<exists>L. X ----> L)"
 
 definition
@@ -203,9 +201,7 @@ definition
     --{*Standard definition for bounded sequence*}
   "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
-definition
-  Cauchy :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
-    --{*Standard definition of the Cauchy condition*}
+definition (in metric_space) Cauchy :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
 
 
@@ -977,7 +973,7 @@ done
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
-class complete_space =
+class complete_space = metric_space +
   assumes Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
 
 class banach = real_normed_vector + complete_space

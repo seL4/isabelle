@@ -283,10 +283,10 @@ subsection {* Standard filters *}
 definition within :: "'a filter \<Rightarrow> 'a set \<Rightarrow> 'a filter" (infixr "within" 70)
   where "F within S = Abs_filter (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F)"
 
-definition nhds :: "'a::topological_space \<Rightarrow> 'a filter"
+definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
   where "nhds a = Abs_filter (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
 
-definition at :: "'a::topological_space \<Rightarrow> 'a filter"
+definition (in topological_space) at :: "'a \<Rightarrow> 'a filter"
   where "at a = nhds a within - {a}"
 
 lemma eventually_within:
@@ -517,8 +517,8 @@ lemmas Zfun_mult_left = mult.Zfun_left
 
 subsection {* Limits *}
 
-definition tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a filter \<Rightarrow> bool"
-    (infixr "--->" 55) where
+definition (in topological_space)
+  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
   "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
 
 ML {*
