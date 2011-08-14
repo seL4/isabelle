@@ -95,7 +95,7 @@ using assms by (rule tendsto_add)
 lemma LIM_add_zero:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- a --> 0; g -- a --> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. f x + g x) -- a --> 0"
-by (drule (1) LIM_add, simp)
+  by (rule tendsto_add_zero)
 
 lemma LIM_minus:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
@@ -170,16 +170,16 @@ lemma LIM_norm_zero_iff:
 by (rule tendsto_norm_zero_iff)
 
 lemma LIM_rabs: "f -- a --> (l::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> \<bar>l\<bar>"
-by (fold real_norm_def, rule LIM_norm)
+  by (rule tendsto_rabs)
 
 lemma LIM_rabs_zero: "f -- a --> (0::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> 0"
-by (fold real_norm_def, rule LIM_norm_zero)
+  by (rule tendsto_rabs_zero)
 
 lemma LIM_rabs_zero_cancel: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) \<Longrightarrow> f -- a --> 0"
-by (fold real_norm_def, rule LIM_norm_zero_cancel)
+  by (rule tendsto_rabs_zero_cancel)
 
 lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -- a --> 0"
-by (fold real_norm_def, rule LIM_norm_zero_iff)
+  by (rule tendsto_rabs_zero_iff)
 
 lemma at_neq_bot:
   fixes a :: "'a::real_normed_algebra_1"
@@ -345,7 +345,7 @@ by (rule LIM [OF LIM_ident])
 
 lemma (in bounded_linear) LIM_zero:
   "g -- a --> 0 \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> 0"
-by (drule LIM, simp only: zero)
+  by (rule tendsto_zero)
 
 text {* Bounded Bilinear Operators *}
 
@@ -358,15 +358,15 @@ lemma (in bounded_bilinear) LIM_prod_zero:
   assumes f: "f -- a --> 0"
   assumes g: "g -- a --> 0"
   shows "(\<lambda>x. f x ** g x) -- a --> 0"
-using LIM [OF f g] by (simp add: zero_left)
+  using f g by (rule tendsto_zero)
 
 lemma (in bounded_bilinear) LIM_left_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. f x ** c) -- a --> 0"
-by (rule bounded_linear.LIM_zero [OF bounded_linear_left])
+  by (rule tendsto_left_zero)
 
 lemma (in bounded_bilinear) LIM_right_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
-by (rule bounded_linear.LIM_zero [OF bounded_linear_right])
+  by (rule tendsto_right_zero)
 
 lemmas LIM_mult = mult.LIM
 
@@ -384,7 +384,7 @@ lemma LIM_power:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
-by (induct n, simp, simp add: LIM_mult f)
+  using assms by (rule tendsto_power)
 
 subsubsection {* Derived theorems about @{term LIM} *}
 
@@ -401,8 +401,7 @@ by (rule LIM_inverse [OF LIM_ident a])
 lemma LIM_sgn:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- a --> l; l \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. sgn (f x)) -- a --> sgn l"
-unfolding sgn_div_norm
-by (simp add: LIM_scaleR LIM_inverse LIM_norm)
+  by (rule tendsto_sgn)
 
 
 subsection {* Continuity *}
@@ -511,11 +510,7 @@ lemma isCont_setsum:
   fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::real_normed_vector"
   fixes A :: "'a set" assumes "finite A"
   shows "\<forall> i \<in> A. isCont (f i) x \<Longrightarrow> isCont (\<lambda> x. \<Sum> i \<in> A. f i x) x"
-  using `finite A`
-proof induct
-  case (insert a F) show "isCont (\<lambda> x. \<Sum> i \<in> (insert a F). f i x) x" 
-    unfolding setsum_insert[OF `finite F` `a \<notin> F`] by (rule isCont_add, auto simp add: insert)
-qed auto
+  unfolding isCont_def by (simp add: tendsto_setsum)
 
 lemma LIM_less_bound: fixes f :: "real \<Rightarrow> real" assumes "b < x"
   and all_le: "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and isCont: "isCont f x"

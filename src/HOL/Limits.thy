@@ -623,6 +623,8 @@ proof (rule tendstoI)
   qed
 qed
 
+subsubsection {* Norms *}
+
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
 
@@ -642,10 +644,33 @@ lemma tendsto_norm_zero_iff:
   "((\<lambda>x. norm (f x)) ---> 0) A \<longleftrightarrow> (f ---> 0) A"
   unfolding tendsto_iff dist_norm by simp
 
+lemma tendsto_rabs [tendsto_intros]:
+  "(f ---> (l::real)) A \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> \<bar>l\<bar>) A"
+  by (fold real_norm_def, rule tendsto_norm)
+
+lemma tendsto_rabs_zero:
+  "(f ---> (0::real)) A \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> 0) A"
+  by (fold real_norm_def, rule tendsto_norm_zero)
+
+lemma tendsto_rabs_zero_cancel:
+  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) A \<Longrightarrow> (f ---> 0) A"
+  by (fold real_norm_def, rule tendsto_norm_zero_cancel)
+
+lemma tendsto_rabs_zero_iff:
+  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) A \<longleftrightarrow> (f ---> 0) A"
+  by (fold real_norm_def, rule tendsto_norm_zero_iff)
+
+subsubsection {* Addition and subtraction *}
+
 lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) A; (g ---> b) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) A"
   by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
+
+lemma tendsto_add_zero:
+  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
+  shows "\<lbrakk>(f ---> 0) A; (g ---> 0) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> 0) A"
+  by (drule (1) tendsto_add, simp)
 
 lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
@@ -668,29 +693,61 @@ lemma tendsto_setsum [tendsto_intros]:
   shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) A"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
-  proof (induct set: finite)
-    case empty show ?case
-      by (simp add: tendsto_const)
-  next
-    case (insert i F) thus ?case
-      by (simp add: tendsto_add)
-  qed
+    by (induct, simp add: tendsto_const, simp add: tendsto_add)
 next
   assume "\<not> finite S" thus ?thesis
     by (simp add: tendsto_const)
 qed
 
+subsubsection {* Linear operators and multiplication *}
+
 lemma (in bounded_linear) tendsto [tendsto_intros]:
   "(g ---> a) A \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) A"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
+
+lemma (in bounded_linear) tendsto_zero:
+  "(g ---> 0) A \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) A"
+  by (drule tendsto, simp only: zero)
 
 lemma (in bounded_bilinear) tendsto [tendsto_intros]:
   "\<lbrakk>(f ---> a) A; (g ---> b) A\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) A"
   by (simp only: tendsto_Zfun_iff prod_diff_prod
                  Zfun_add Zfun Zfun_left Zfun_right)
 
+lemma (in bounded_bilinear) tendsto_zero:
+  assumes f: "(f ---> 0) A"
+  assumes g: "(g ---> 0) A"
+  shows "((\<lambda>x. f x ** g x) ---> 0) A"
+  using tendsto [OF f g] by (simp add: zero_left)
 
-subsection {* Continuity of Inverse *}
+lemma (in bounded_bilinear) tendsto_left_zero:
+  "(f ---> 0) A \<Longrightarrow> ((\<lambda>x. f x ** c) ---> 0) A"
+  by (rule bounded_linear.tendsto_zero [OF bounded_linear_left])
+
+lemma (in bounded_bilinear) tendsto_right_zero:
+  "(f ---> 0) A \<Longrightarrow> ((\<lambda>x. c ** f x) ---> 0) A"
+  by (rule bounded_linear.tendsto_zero [OF bounded_linear_right])
+
+lemmas tendsto_mult = mult.tendsto
+
+lemma tendsto_power [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
+  shows "(f ---> a) A \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) A"
+  by (induct n) (simp_all add: tendsto_const tendsto_mult)
+
+lemma tendsto_setprod [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> L i) A"
+  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) ---> (\<Prod>i\<in>S. L i)) A"
+proof (cases "finite S")
+  assume "finite S" thus ?thesis using assms
+    by (induct, simp add: tendsto_const, simp add: tendsto_mult)
+next
+  assume "\<not> finite S" thus ?thesis
+    by (simp add: tendsto_const)
+qed
+
+subsubsection {* Inverse and division *}
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
   assumes f: "Zfun f A"
@@ -814,6 +871,13 @@ lemma tendsto_divide [tendsto_intros]:
   shows "\<lbrakk>(f ---> a) A; (g ---> b) A; b \<noteq> 0\<rbrakk>
     \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) A"
   by (simp add: mult.tendsto tendsto_inverse divide_inverse)
+
+lemma tendsto_sgn [tendsto_intros]:
+  fixes l :: "'a::real_normed_vector"
+  shows "\<lbrakk>(f ---> l) A; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) A"
+  unfolding sgn_div_norm by (simp add: tendsto_intros)
+
+subsubsection {* Uniqueness *}
 
 lemma tendsto_unique:
   fixes f :: "'a \<Rightarrow> 'b::t2_space"

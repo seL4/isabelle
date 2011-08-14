@@ -441,7 +441,7 @@ by (rule tendsto_divide)
 lemma LIMSEQ_pow:
   fixes a :: "'a::{power, real_normed_algebra}"
   shows "X ----> a \<Longrightarrow> (\<lambda>n. (X n) ^ m) ----> a ^ m"
-by (induct m) (simp_all add: LIMSEQ_const LIMSEQ_mult)
+  by (rule tendsto_power)
 
 lemma LIMSEQ_setsum:
   fixes L :: "'a \<Rightarrow> 'b::real_normed_vector"
@@ -453,23 +453,7 @@ lemma LIMSEQ_setprod:
   fixes L :: "'a \<Rightarrow> 'b::{real_normed_algebra,comm_ring_1}"
   assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
   shows "(\<lambda>m. \<Prod>n\<in>S. X n m) ----> (\<Prod>n\<in>S. L n)"
-proof (cases "finite S")
-  case True
-  thus ?thesis using n
-  proof (induct)
-    case empty
-    show ?case
-      by (simp add: LIMSEQ_const)
-  next
-    case insert
-    thus ?case
-      by (simp add: LIMSEQ_mult)
-  qed
-next
-  case False
-  thus ?thesis
-    by (simp add: setprod_def LIMSEQ_const)
-qed
+  using assms by (rule tendsto_setprod)
 
 lemma LIMSEQ_add_const: (* FIXME: delete *)
   fixes a :: "'a::real_normed_vector"
@@ -501,13 +485,13 @@ text{*A sequence tends to zero iff its abs does*}
 lemma LIMSEQ_norm_zero:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "((\<lambda>n. norm (X n)) ----> 0) \<longleftrightarrow> (X ----> 0)"
-by (simp add: LIMSEQ_iff)
+  by (rule tendsto_norm_zero_iff)
 
 lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
-by (simp add: LIMSEQ_iff)
+  by (rule tendsto_rabs_zero_iff)
 
 lemma LIMSEQ_imp_rabs: "f ----> (l::real) ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
-by (drule LIMSEQ_norm, simp)
+  by (rule tendsto_rabs)
 
 text{*An unbounded sequence's inverse tends to 0*}
 
