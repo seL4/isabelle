@@ -976,20 +976,9 @@ lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. ev
 
 text{* Combining theorems for "eventually" *}
 
-lemma eventually_conjI:
-  "\<lbrakk>eventually (\<lambda>x. P x) net; eventually (\<lambda>x. Q x) net\<rbrakk>
-    \<Longrightarrow> eventually (\<lambda>x. P x \<and> Q x) net"
-by (rule eventually_conj) (* FIXME: delete *)
-
 lemma eventually_rev_mono:
   "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
 using eventually_mono [of P Q] by fast
-
-lemma eventually_and: " eventually (\<lambda>x. P x \<and> Q x) net \<longleftrightarrow> eventually P net \<and> eventually Q net"
-  by (rule eventually_conj_iff) (* FIXME: delete *)
-
-lemma eventually_false: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
-  by (rule eventually_False) (* FIXME: delete *)
 
 lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_limit net) ==> ~(eventually (\<lambda>x. P x) net)"
   by (simp add: eventually_False)
@@ -1255,7 +1244,7 @@ proof(simp add: tendsto_iff, rule+)
     hence "dist (f x) 0 < e" by (simp add: dist_norm)
   }
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
-    using eventually_and[of "\<lambda>x. norm(f x) <= g x" "\<lambda>x. dist (g x) 0 < e" net]
+    using eventually_conj_iff[of "\<lambda>x. norm(f x) <= g x" "\<lambda>x. dist (g x) 0 < e" net]
     using eventually_mono[of "(\<lambda>x. norm (f x) \<le> g x \<and> dist (g x) 0 < e)" "(\<lambda>x. dist (f x) 0 < e)" net]
     using assms `e>0` unfolding tendsto_iff by auto
 qed
@@ -1271,7 +1260,7 @@ proof (rule tendstoI)
     assume "norm (f x) \<le> norm (g x)" "dist (g x) 0 < e"
     hence "dist (f x) 0 < e" by (simp add: dist_norm)}
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
-    using eventually_and[of "\<lambda>x. norm (f x) \<le> norm (g x)" "\<lambda>x. dist (g x) 0 < e" net]
+    using eventually_conj_iff[of "\<lambda>x. norm (f x) \<le> norm (g x)" "\<lambda>x. dist (g x) 0 < e" net]
     using eventually_mono[of "\<lambda>x. norm (f x) \<le> norm (g x) \<and> dist (g x) 0 < e" "\<lambda>x. dist (f x) 0 < e" net]
     using assms `e>0` unfolding tendsto_iff by blast
 qed
@@ -1304,7 +1293,7 @@ proof (rule ccontr)
   with assms(2) have "eventually (\<lambda>x. dist (f x) l < dist a l - e) net"
     by (rule tendstoD)
   with assms(3) have "eventually (\<lambda>x. dist a (f x) \<le> e \<and> dist (f x) l < dist a l - e) net"
-    by (rule eventually_conjI)
+    by (rule eventually_conj)
   then obtain w where "dist a (f w) \<le> e" "dist (f w) l < dist a l - e"
     using assms(1) eventually_happens by auto
   hence "dist a (f w) + dist (f w) l < e + (dist a l - e)"
@@ -1326,7 +1315,7 @@ proof (rule ccontr)
   with assms(2) have "eventually (\<lambda>x. dist (f x) l < norm l - e) net"
     by (rule tendstoD)
   with assms(3) have "eventually (\<lambda>x. norm (f x) \<le> e \<and> dist (f x) l < norm l - e) net"
-    by (rule eventually_conjI)
+    by (rule eventually_conj)
   then obtain w where "norm (f w) \<le> e" "dist (f w) l < norm l - e"
     using assms(1) eventually_happens by auto
   hence "norm (f w - l) < norm l - e" "norm (f w) \<le> e" by (simp_all add: dist_norm)
@@ -1345,7 +1334,7 @@ proof (rule ccontr)
   with assms(2) have "eventually (\<lambda>x. dist (f x) l < e - norm l) net"
     by (rule tendstoD)
   with assms(3) have "eventually (\<lambda>x. e \<le> norm (f x) \<and> dist (f x) l < e - norm l) net"
-    by (rule eventually_conjI)
+    by (rule eventually_conj)
   then obtain w where "e \<le> norm (f w)" "dist (f w) l < e - norm l"
     using assms(1) eventually_happens by auto
   hence "norm (f w - l) + norm l < e" "e \<le> norm (f w)" by (simp_all add: dist_norm)
@@ -4236,7 +4225,7 @@ proof-
   { fix x and e::real assume "x\<in>s" "e>0"
     have "eventually (\<lambda>n. \<forall>x\<in>s. norm (f n x - g x) < e / 3) net" using `e>0` assms(3)[THEN spec[where x="e/3"]] by auto
     then obtain n where n:"\<forall>xa\<in>s. norm (f n xa - g xa) < e / 3"  "continuous_on s (f n)"
-      using eventually_and[of "(\<lambda>n. \<forall>x\<in>s. norm (f n x - g x) < e / 3)" "(\<lambda>n. continuous_on s (f n))" net] assms(1,2) eventually_happens by blast
+      using eventually_conj_iff[of "(\<lambda>n. \<forall>x\<in>s. norm (f n x - g x) < e / 3)" "(\<lambda>n. continuous_on s (f n))" net] assms(1,2) eventually_happens by blast
     have "e / 3 > 0" using `e>0` by auto
     then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f n x') (f n x) < e / 3"
       using n(2)[unfolded continuous_on_iff, THEN bspec[where x=x], OF `x\<in>s`, THEN spec[where x="e/3"]] by blast
@@ -5305,7 +5294,7 @@ qed
 lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$$i = b) net"
   shows "l$$i = b"
-  using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
+  using ev[unfolded order_eq_iff eventually_conj_iff] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
 text{* Limits relative to a union.                                               *}
 
 lemma eventually_within_Un:

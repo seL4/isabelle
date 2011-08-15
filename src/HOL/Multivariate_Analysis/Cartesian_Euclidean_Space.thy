@@ -1370,7 +1370,7 @@ qed
 lemma Lim_component_eq_cart: fixes f :: "'a \<Rightarrow> real^'n"
   assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
   shows "l$i = b"
-  using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge_cart[OF net, of b i] and
+  using ev[unfolded order_eq_iff eventually_conj_iff] using Lim_component_ge_cart[OF net, of b i] and
     Lim_component_le_cart[OF net, of i b] by auto
 
 lemma connected_ivt_component_cart: fixes x::"real^'n" shows
