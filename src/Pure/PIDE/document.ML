@@ -157,7 +157,7 @@ end;
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
-  execs: (bool * Toplevel.state) lazy Inttab.table,  (*exec_id -> execution process*)
+  execs: Toplevel.state lazy Inttab.table,  (*exec_id -> execution process*)
   execution: unit future list}  (*global execution process*)
 with
 
@@ -170,7 +170,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
     Inttab.make [(no_id, Future.value Toplevel.empty)],
-    Inttab.make [(no_id, Lazy.value (true, Toplevel.toplevel))],
+    Inttab.make [(no_id, Lazy.value Toplevel.toplevel)],
     []);
 
 
@@ -229,7 +229,7 @@ fun get_theory state version_id pos name =
     val last = get_last (node_of (the_version state version_id) name);
     val st =
       (case Lazy.peek (the_exec state last) of
-        SOME result => #2 (Exn.release result)
+        SOME result => Exn.release result
       | NONE => error ("Unfinished execution for theory " ^ quote name ^ Position.str_of pos));
   in Toplevel.end_theory pos st end;
 
@@ -300,12 +300,12 @@ fun run_command (node_name, node_header) raw_tr st =
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
-      NONE => (Toplevel.status tr Markup.failed; (false, st))
+      NONE => (Toplevel.status tr Markup.failed; st)
     | SOME st' =>
        (Toplevel.status tr Markup.finished;
         proof_status tr st';
         if do_print then async_state tr st' else ();
-        (true, st')))
+        st'))
   end;
 
 end;
@@ -332,7 +332,7 @@ fun new_exec node_info (id: command_id) (exec_id, updates, state) =
     val exec' =
       Lazy.lazy (fn () =>
         let
-          val st = #2 (Lazy.force exec);
+          val st = Lazy.force exec;
           val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr);
         in run_command node_info exec_tr st end);
     val state' = define_exec exec_id' exec' state;
