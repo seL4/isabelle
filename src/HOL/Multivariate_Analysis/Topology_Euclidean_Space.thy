@@ -5182,19 +5182,27 @@ proof -
   finally show ?thesis .
 qed
 
+lemma continuous_at_Pair: (* TODO: move *)
+  assumes f: "continuous (at x) f"
+  assumes g: "continuous (at x) g"
+  shows "continuous (at x) (\<lambda>x. (f x, g x))"
+  using assms unfolding continuous_at by (rule tendsto_Pair)
+
 lemma closed_Collect_eq:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::t2_space"
   (* FIXME: generalize 'a to topological_space *)
-  (* FIXME: generalize 'b to t2_space *)
   assumes f: "\<And>x. continuous (at x) f"
   assumes g: "\<And>x. continuous (at x) g"
   shows "closed {x. f x = g x}"
 proof -
-  have "closed ((\<lambda>x. g x - f x) -` {0})"
-    using continuous_sub [OF g f] closed_singleton
+  have "open {(x::'b, y::'b). x \<noteq> y}"
+    unfolding open_prod_def by (auto dest!: hausdorff)
+  hence "closed {(x::'b, y::'b). x = y}"
+    unfolding closed_def split_def Collect_neg_eq .
+  with continuous_at_Pair [OF f g]
+  have "closed ((\<lambda>x. (f x, g x)) -` {(x, y). x = y})"
     by (rule continuous_closed_vimage [rule_format])
-  also have "((\<lambda>x. g x - f x) -` {0}) = {x. f x = g x}"
-    by auto
+  also have "\<dots> = {x. f x = g x}" by auto
   finally show ?thesis .
 qed
 
