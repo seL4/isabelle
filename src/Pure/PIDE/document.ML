@@ -123,7 +123,6 @@ val empty_version = Version Graph.empty;
 
 fun nodes_of (Version nodes) = nodes;
 val node_of = get_node o nodes_of;
-val node_names_of = Graph.keys o nodes_of;
 
 fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote names);
 
@@ -324,19 +323,13 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
     val new_version = fold edit_nodes edits old_version;
 
-    (* FIXME futures *)
     val updates =
       nodes_of new_version |> Graph.schedule
         (fn deps => fn (name, node) =>
           (case first_entry NONE (is_changed (node_of old_version name)) node of
-            NONE => (([], [], []), node)
+            NONE => Future.value (([], [], []), node)
           | SOME ((prev, id), _) =>
               let
-                val prev_exec =
-                  (case prev of
-                    NONE => no_id
-                  | SOME prev_id => the_default no_id (the_entry node prev_id));
-
                 fun init () =
                   let
                     val (thy_name, imports, uses) = Exn.release (get_header node);
@@ -347,21 +340,32 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                     val parents =
                       imports |> map (fn import =>
                         (case AList.lookup (op =) deps import of
-                          SOME (_, parent_node) =>
-                            get_theory (Position.file_only (import ^ ".thy")) parent_node
+                          SOME parent_future =>
+                            get_theory (Position.file_only (import ^ ".thy"))
+                              (#2 (Future.join parent_future))
                         | NONE => Thy_Info.get_theory (Thy_Info.base_name import)));
                   in Thy_Load.begin_theory dir thy_name imports files parents end
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));
-
-                val (assigns, execs, result) =
-                  fold_entries (SOME id) (new_exec o get_command o #2 o #1)
-                    node ([], [], the_exec state prev_exec);
-                val node' = node
-                  |> fold update_entry assigns
-                  |> set_result result;
-              in ((assigns, execs, [(name, node')]), node') end))
-      |> map #1;
+              in
+                singleton
+                  (Future.forks {name = "Document.edit", group = NONE,
+                    deps = map (Future.task_of o #2) deps, pri = 2, interrupts = false})
+                  (fn () =>
+                    let
+                      val prev_exec =
+                        (case prev of
+                          NONE => no_id
+                        | SOME prev_id => the_default no_id (the_entry node prev_id));
+                      val (assigns, execs, result) =
+                        fold_entries (SOME id) (new_exec o get_command o #2 o #1)
+                          node ([], [], the_exec state prev_exec);
+                      val node' = node
+                        |> fold update_entry assigns
+                        |> set_result result;
+                    in ((assigns, execs, [(name, node')]), node') end)
+              end))
+      |> Future.join_results |> Exn.release_all |> map #1;
 
     val state' = state
       |> fold (fold define_exec o #2) updates
@@ -382,13 +386,15 @@ fun execute version_id state =
       fun force_exec NONE = ()
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
-      val execution' = (* FIXME Graph.schedule *)
-        Future.forks
-          {name = "Document.execute", group = NONE, deps = [], pri = 1, interrupts = true}
-          [fn () =>
-            node_names_of version |> List.app (fn name =>
-              fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
-                  (node_of version name) ())];
+      val execution' =
+        nodes_of version |> Graph.schedule
+          (fn deps => fn (name, node) =>
+            singleton
+              (Future.forks
+                {name = "theory:" ^ name, group = NONE,
+                  deps = map (Future.task_of o #2) deps,
+                  pri = 1, interrupts = true})
+              (fold_entries NONE (fn (_, exec) => fn () => force_exec exec) node));
 
     in (versions, commands, execs, execution') end);
 
