@@ -78,7 +78,7 @@ fun map_entries f (Node {header, entries, result}) = make_node (header, f entrie
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
-fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.force result);
+fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.get_finished result);
 fun set_result result = map_node (fn (header, entries, _) => (header, entries, result));
 
 val empty_exec = Lazy.value Toplevel.toplevel;
@@ -322,8 +322,8 @@ fun new_exec node_info (command, command_id) (assigns, execs, exec) =
     val exec' =
       Lazy.lazy (fn () =>
         let
-          val tr = Toplevel.put_id (print_id exec_id') (Future.join command); (* FIXME Future.join_finished !? *)
-          val st = Lazy.force exec;  (* FIXME Lazy.force_finished !? *)
+          val tr = Toplevel.put_id (print_id exec_id') (Future.get_finished command);
+          val st = Lazy.get_finished exec;
         in run_command node_info tr st end);
   in ((command_id, exec_id') :: assigns, (exec_id', exec') :: execs, exec') end;
 
