@@ -252,26 +252,7 @@ lemma LIM_compose:
   assumes g: "g -- l --> g l"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. g (f x)) -- a --> g l"
-proof (rule topological_tendstoI)
-  fix C assume C: "open C" "g l \<in> C"
-  obtain B where B: "open B" "l \<in> B"
-    and gC: "\<And>y. y \<in> B \<Longrightarrow> y \<noteq> l \<Longrightarrow> g y \<in> C"
-    using topological_tendstoD [OF g C]
-    unfolding eventually_at_topological by fast
-  obtain A where A: "open A" "a \<in> A"
-    and fB: "\<And>x. x \<in> A \<Longrightarrow> x \<noteq> a \<Longrightarrow> f x \<in> B"
-    using topological_tendstoD [OF f B]
-    unfolding eventually_at_topological by fast
-  show "eventually (\<lambda>x. g (f x) \<in> C) (at a)"
-  unfolding eventually_at_topological
-  proof (intro exI conjI ballI impI)
-    show "open A" and "a \<in> A" using A .
-  next
-    fix x assume "x \<in> A" and "x \<noteq> a"
-    then show "g (f x) \<in> C"
-      by (cases "f x = l", simp add: C, simp add: gC fB)
-  qed
-qed
+  using assms by (rule tendsto_compose)
 
 lemma LIM_compose_eventually:
   assumes f: "f -- a --> b"

@@ -611,6 +611,22 @@ lemma tendsto_const_iff:
   assumes "\<not> trivial_limit F" shows "((\<lambda>x. a) ---> b) F \<longleftrightarrow> a = b"
   by (safe intro!: tendsto_const tendsto_unique [OF assms tendsto_const])
 
+lemma tendsto_compose:
+  assumes g: "(g ---> g l) (at l)"
+  assumes f: "(f ---> l) F"
+  shows "((\<lambda>x. g (f x)) ---> g l) F"
+proof (rule topological_tendstoI)
+  fix B assume B: "open B" "g l \<in> B"
+  obtain A where A: "open A" "l \<in> A"
+    and gB: "\<forall>y. y \<in> A \<longrightarrow> g y \<in> B"
+    using topological_tendstoD [OF g B] B(2)
+    unfolding eventually_at_topological by fast
+  hence "\<forall>x. f x \<in> A \<longrightarrow> g (f x) \<in> B" by simp
+  from this topological_tendstoD [OF f A]
+  show "eventually (\<lambda>x. g (f x) \<in> B) F"
+    by (rule eventually_mono)
+qed
+
 subsubsection {* Distance and norms *}
 
 lemma tendsto_dist [tendsto_intros]:
