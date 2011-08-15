@@ -5152,6 +5152,52 @@ lemma is_interval_univ:
 
 subsection {* Closure of halfspaces and hyperplanes *}
 
+lemma open_Collect_less:
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
+  (* FIXME: generalize to topological_space *)
+  assumes f: "\<And>x. continuous (at x) f"
+  assumes g: "\<And>x. continuous (at x) g"
+  shows "open {x. f x < g x}"
+proof -
+  have "open ((\<lambda>x. g x - f x) -` {0<..})"
+    using continuous_sub [OF g f] open_real_greaterThan
+    by (rule continuous_open_vimage [rule_format])
+  also have "((\<lambda>x. g x - f x) -` {0<..}) = {x. f x < g x}"
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closed_Collect_le:
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
+  (* FIXME: generalize to topological_space *)
+  assumes f: "\<And>x. continuous (at x) f"
+  assumes g: "\<And>x. continuous (at x) g"
+  shows "closed {x. f x \<le> g x}"
+proof -
+  have "closed ((\<lambda>x. g x - f x) -` {0..})"
+    using continuous_sub [OF g f] closed_real_atLeast
+    by (rule continuous_closed_vimage [rule_format])
+  also have "((\<lambda>x. g x - f x) -` {0..}) = {x. f x \<le> g x}"
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closed_Collect_eq:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  (* FIXME: generalize 'a to topological_space *)
+  (* FIXME: generalize 'b to t2_space *)
+  assumes f: "\<And>x. continuous (at x) f"
+  assumes g: "\<And>x. continuous (at x) g"
+  shows "closed {x. f x = g x}"
+proof -
+  have "closed ((\<lambda>x. g x - f x) -` {0})"
+    using continuous_sub [OF g f] closed_singleton
+    by (rule continuous_closed_vimage [rule_format])
+  also have "((\<lambda>x. g x - f x) -` {0}) = {x. f x = g x}"
+    by auto
+  finally show ?thesis .
+qed
+
 lemma Lim_inner:
   assumes "(f ---> l) net"  shows "((\<lambda>y. inner a (f y)) ---> inner a l) net"
   by (intro tendsto_intros assms)
@@ -5168,53 +5214,41 @@ lemma continuous_on_inner:
   unfolding continuous_on by (rule ballI) (intro tendsto_intros)
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
-proof-
-  have "\<forall>x. continuous (at x) (inner a)"
-    unfolding continuous_at by (rule allI) (intro tendsto_intros)
-  hence "closed (inner a -` {..b})"
-    using closed_real_atMost by (rule continuous_closed_vimage)
-  moreover have "{x. inner a x \<le> b} = inner a -` {..b}" by auto
-  ultimately show ?thesis by simp
-qed
+  by (intro closed_Collect_le continuous_at_inner continuous_const)
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
-  using closed_halfspace_le[of "-a" "-b"] unfolding inner_minus_left by auto
+  by (intro closed_Collect_le continuous_at_inner continuous_const)
 
 lemma closed_hyperplane: "closed {x. inner a x = b}"
-proof-
-  have "{x. inner a x = b} = {x. inner a x \<ge> b} \<inter> {x. inner a x \<le> b}" by auto
-  thus ?thesis using closed_halfspace_le[of a b] and closed_halfspace_ge[of b a] using closed_Int by auto
-qed
+  by (intro closed_Collect_eq continuous_at_inner continuous_const)
 
 lemma closed_halfspace_component_le:
   shows "closed {x::'a::euclidean_space. x$$i \<le> a}"
-  using closed_halfspace_le[of "(basis i)::'a" a] unfolding euclidean_component_def .
+  by (intro closed_Collect_le continuous_at_euclidean_component
+    continuous_const)
 
 lemma closed_halfspace_component_ge:
   shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
-  using closed_halfspace_ge[of a "(basis i)::'a"] unfolding euclidean_component_def .
+  by (intro closed_Collect_le continuous_at_euclidean_component
+    continuous_const)
 
 text {* Openness of halfspaces. *}
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
-proof-
-  have "- {x. b \<le> inner a x} = {x. inner a x < b}" by auto
-  thus ?thesis using closed_halfspace_ge[unfolded closed_def, of b a] by auto
-qed
+  by (intro open_Collect_less continuous_at_inner continuous_const)
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
-proof-
-  have "- {x. b \<ge> inner a x} = {x. inner a x > b}" by auto
-  thus ?thesis using closed_halfspace_le[unfolded closed_def, of a b] by auto
-qed
+  by (intro open_Collect_less continuous_at_inner continuous_const)
 
 lemma open_halfspace_component_lt:
   shows "open {x::'a::euclidean_space. x$$i < a}"
-  using open_halfspace_lt[of "(basis i)::'a" a] unfolding euclidean_component_def .
+  by (intro open_Collect_less continuous_at_euclidean_component
+    continuous_const)
 
 lemma open_halfspace_component_gt:
   shows "open {x::'a::euclidean_space. x$$i  > a}"
-  using open_halfspace_gt[of a "(basis i)::'a"] unfolding euclidean_component_def .
+  by (intro open_Collect_less continuous_at_euclidean_component
+    continuous_const)
 
 text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
 
@@ -5252,23 +5286,15 @@ lemma closed_eucl_atMost[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
   shows "closed {.. a}"
   unfolding eucl_atMost_eq_halfspaces
-proof (safe intro!: closed_INT)
-  fix i :: nat
-  have "- {x::'a. x $$ i \<le> a $$ i} = {x. a $$ i < x $$ i}" by auto
-  then show "closed {x::'a. x $$ i \<le> a $$ i}"
-    by (simp add: closed_def open_halfspace_component_gt)
-qed
+  by (intro closed_INT ballI closed_Collect_le
+    continuous_at_euclidean_component continuous_const)
 
 lemma closed_eucl_atLeast[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
   shows "closed {a ..}"
   unfolding eucl_atLeast_eq_halfspaces
-proof (safe intro!: closed_INT)
-  fix i :: nat
-  have "- {x::'a. a $$ i \<le> x $$ i} = {x. x $$ i < a $$ i}" by auto
-  then show "closed {x::'a. a $$ i \<le> x $$ i}"
-    by (simp add: closed_def open_halfspace_component_lt)
-qed
+  by (intro closed_INT ballI closed_Collect_le
+    continuous_at_euclidean_component continuous_const)
 
 lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
   by (auto intro!: continuous_open_vimage)

@@ -1093,34 +1093,21 @@ proof
     done
 qed
 
+lemma continuous_at_component: "continuous (at a) (\<lambda>x. x $ i)"
+unfolding continuous_at by (intro tendsto_intros)
+
+lemma continuous_on_component: "continuous_on s (\<lambda>x. x $ i)"
+unfolding continuous_on_def by (intro ballI tendsto_intros)
+
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
-proof-
-  let ?U = "UNIV :: 'n set"
-  let ?O = "{x::real^'n. \<forall>i. x$i\<ge>0}"
-  {fix x:: "real^'n" and i::'n assume H: "\<forall>e>0. \<exists>x'\<in>?O. x' \<noteq> x \<and> dist x' x < e"
-    and xi: "x$i < 0"
-    from xi have th0: "-x$i > 0" by arith
-    from H[rule_format, OF th0] obtain x' where x': "x' \<in>?O" "x' \<noteq> x" "dist x' x < -x $ i" by blast
-      have th:" \<And>b a (x::real). abs x <= b \<Longrightarrow> b <= a ==> ~(a + x < 0)" by arith
-      have th': "\<And>x (y::real). x < 0 \<Longrightarrow> 0 <= y ==> abs x <= abs (y - x)" by arith
-      have th1: "\<bar>x$i\<bar> \<le> \<bar>(x' - x)$i\<bar>" using x'(1) xi
-        apply (simp only: vector_component)
-        by (rule th') auto
-      have th2: "\<bar>dist x x'\<bar> \<ge> \<bar>(x' - x)$i\<bar>" using  component_le_norm_cart[of "x'-x" i]
-        apply (simp add: dist_norm) by norm
-      from th[OF th1 th2] x'(3) have False by (simp add: dist_commute) }
-  then show ?thesis unfolding closed_limpt islimpt_approachable
-    unfolding not_le[symmetric] by blast
-qed
+  unfolding Collect_all_eq
+  by (intro closed_INT ballI closed_Collect_le continuous_const
+    continuous_at_component)
+
 lemma Lim_component_cart:
   fixes f :: "'a \<Rightarrow> 'b::metric_space ^ 'n"
   shows "(f ---> l) net \<Longrightarrow> ((\<lambda>a. f a $i) ---> l$i) net"
-  unfolding tendsto_iff
-  apply (clarify)
-  apply (drule spec, drule (1) mp)
-  apply (erule eventually_elim1)
-  apply (erule le_less_trans [OF dist_vec_nth_le])
-  done
+  by (intro tendsto_intros)
 
 lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
 unfolding bounded_def
@@ -1192,12 +1179,6 @@ proof
   hence *:"((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
   with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" by auto
 qed
-
-lemma continuous_at_component: "continuous (at a) (\<lambda>x. x $ i)"
-unfolding continuous_at by (intro tendsto_intros)
-
-lemma continuous_on_component: "continuous_on s (\<lambda>x. x $ i)"
-unfolding continuous_on_def by (intro ballI tendsto_intros)
 
 lemma interval_cart: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
@@ -1307,27 +1288,15 @@ lemma inter_interval_cart: fixes a :: "'a::linorder^'n" shows
 
 lemma closed_interval_left_cart: fixes b::"real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
-proof-
-  { fix i
-    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i. x $ i \<le> b $ i}. x' \<noteq> x \<and> dist x' x < e"
-    { assume "x$i > b$i"
-      then obtain y where "y $ i \<le> b $ i"  "y \<noteq> x"  "dist y x < x$i - b$i" using x[THEN spec[where x="x$i - b$i"]] by auto
-      hence False using component_le_norm_cart[of "y - x" i] unfolding dist_norm and vector_minus_component by auto   }
-    hence "x$i \<le> b$i" by(rule ccontr)auto  }
-  thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
-qed
+  unfolding Collect_all_eq
+  by (intro closed_INT ballI closed_Collect_le continuous_const
+    continuous_at_component)
 
 lemma closed_interval_right_cart: fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
-proof-
-  { fix i
-    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i. a $ i \<le> x $ i}. x' \<noteq> x \<and> dist x' x < e"
-    { assume "a$i > x$i"
-      then obtain y where "a $ i \<le> y $ i"  "y \<noteq> x"  "dist y x < a$i - x$i" using x[THEN spec[where x="a$i - x$i"]] by auto
-      hence False using component_le_norm_cart[of "y - x" i] unfolding dist_norm and vector_minus_component by auto   }
-    hence "a$i \<le> x$i" by(rule ccontr)auto  }
-  thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
-qed
+  unfolding Collect_all_eq
+  by (intro closed_INT ballI closed_Collect_le continuous_const
+    continuous_at_component)
 
 lemma is_interval_cart:"is_interval (s::(real^'n) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i))) \<longrightarrow> x \<in> s)"
@@ -1335,19 +1304,19 @@ lemma is_interval_cart:"is_interval (s::(real^'n) set) \<longleftrightarrow>
 
 lemma closed_halfspace_component_le_cart:
   shows "closed {x::real^'n. x$i \<le> a}"
-  using closed_halfspace_le[of "(cart_basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
+  by (intro closed_Collect_le continuous_at_component continuous_const)
 
 lemma closed_halfspace_component_ge_cart:
   shows "closed {x::real^'n. x$i \<ge> a}"
-  using closed_halfspace_ge[of a "(cart_basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
+  by (intro closed_Collect_le continuous_at_component continuous_const)
 
 lemma open_halfspace_component_lt_cart:
   shows "open {x::real^'n. x$i < a}"
-  using open_halfspace_lt[of "(cart_basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
+  by (intro open_Collect_less continuous_at_component continuous_const)
 
 lemma open_halfspace_component_gt_cart:
   shows "open {x::real^'n. x$i  > a}"
-  using open_halfspace_gt[of a "(cart_basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
+  by (intro open_Collect_less continuous_at_component continuous_const)
 
 lemma Lim_component_le_cart: fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$i \<le> b) net"
@@ -1382,23 +1351,14 @@ lemma subspace_substandard_cart:
   unfolding subspace_def by auto
 
 lemma closed_substandard_cart:
- "closed {x::real^'n. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
+  "closed {x::'a::real_normed_vector ^ 'n. \<forall>i. P i \<longrightarrow> x$i = 0}"
 proof-
-  let ?D = "{i. P i}"
-  let ?Bs = "{{x::real^'n. inner (cart_basis i) x = 0}| i. i \<in> ?D}"
-  { fix x
-    { assume "x\<in>?A"
-      hence x:"\<forall>i\<in>?D. x $ i = 0" by auto
-      hence "x\<in> \<Inter> ?Bs" by(auto simp add: inner_basis x) }
-    moreover
-    { assume x:"x\<in>\<Inter>?Bs"
-      { fix i assume i:"i \<in> ?D"
-        then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::real^'n. inner (cart_basis i) x = 0}" by auto
-        hence "x $ i = 0" unfolding B using x unfolding inner_basis by auto  }
-      hence "x\<in>?A" by auto }
-    ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" .. }
-  hence "?A = \<Inter> ?Bs" by auto
-  thus ?thesis by(auto simp add: closed_Inter closed_hyperplane)
+  { fix i::'n
+    have "closed {x::'a ^ 'n. P i \<longrightarrow> x$i = 0}"
+      by (cases "P i", simp_all, intro closed_Collect_eq
+        continuous_at_component continuous_const) }
+  thus ?thesis
+    unfolding Collect_all_eq by (simp add: closed_INT)
 qed
 
 lemma dim_substandard_cart:
