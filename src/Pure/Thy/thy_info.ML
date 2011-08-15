@@ -9,6 +9,7 @@ signature THY_INFO =
 sig
   datatype action = Update | Remove
   val add_hook: (action -> string -> unit) -> unit
+  val base_name: string -> string
   val get_names: unit -> string list
   val status: unit -> unit
   val lookup_theory: string -> theory option

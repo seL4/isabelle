@@ -78,7 +78,7 @@ fun map_entries f (Node {header, entries, result}) = make_node (header, f entrie
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
-fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.get_finished result);
+fun get_theory (Node {result, ...}) = Toplevel.end_theory Position.none (Lazy.get_finished result);
 fun set_result result = map_node (fn (header, entries, _) => (header, entries, result));
 
 val empty_exec = Lazy.value Toplevel.toplevel;
@@ -267,20 +267,9 @@ fun run int tr st =
 
 in
 
-fun run_command (node_name, node_header) raw_tr st =
+fun run_command tr st =
   let
-    val is_init = Toplevel.is_init raw_tr;
-    val tr =
-      if is_init then
-        raw_tr |> Toplevel.modify_init (fn () =>
-          let
-            (* FIXME get theories from document state *)
-            (* FIXME provide files via Scala layer *)
-            val (name, imports, uses) = Exn.release node_header;
-            val master = Path.dir (Path.explode node_name);
-          in Thy_Info.toplevel_begin_theory master name imports (map (apfst Path.explode) uses) end)
-      else raw_tr;
-
+    val is_init = Toplevel.is_init tr;
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
     val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
@@ -316,7 +305,7 @@ fun is_changed node' ((_, id), exec) =
     NONE => true
   | SOME exec' => exec' <> exec);
 
-fun new_exec node_info (command, command_id) (assigns, execs, exec) =
+fun new_exec (command_id, command) (assigns, execs, exec) =
   let
     val exec_id' = new_id ();
     val exec' =
@@ -324,7 +313,7 @@ fun new_exec node_info (command, command_id) (assigns, execs, exec) =
         let
           val tr = Toplevel.put_id (print_id exec_id') (Future.get_finished command);
           val st = Lazy.get_finished exec;
-        in run_command node_info tr st end);
+        in run_command tr st end);
   in ((command_id, exec_id') :: assigns, (exec_id', exec') :: execs, exec') end;
 
 in
@@ -338,7 +327,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     (* FIXME futures *)
     val updates =
       nodes_of new_version |> Graph.schedule
-        (fn _ => fn (name, node) =>
+        (fn deps => fn (name, node) =>
           (case first_entry NONE (is_changed (node_of old_version name)) node of
             NONE => (([], [], []), node)
           | SOME ((prev, id), _) =>
@@ -347,11 +336,29 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                   (case prev of
                     NONE => no_id
                   | SOME prev_id => the_default no_id (the_entry node prev_id));
+
+                fun init () =
+                  let
+                    val (thy_name, imports, uses) = Exn.release (get_header node);
+                    (* FIXME provide files via Scala layer *)
+                    val dir = Path.dir (Path.explode name);
+                    val files = map (apfst Path.explode) uses;
+
+                    val parents =
+                      imports |> map (fn import =>
+                        (case AList.lookup (op =) deps import of
+                          SOME (_, parent_node) => get_theory parent_node
+                        | NONE => Thy_Info.get_theory (Thy_Info.base_name import)));
+                  in Thy_Load.begin_theory dir thy_name imports files parents end
+                fun get_command id =
+                  (id, the_command state id |> Future.map (Toplevel.modify_init init));
+
                 val (assigns, execs, result) =
-                  fold_entries (SOME id)
-                    (new_exec (name, get_header node) o `(the_command state) o #2 o #1)
-                      node ([], [], the_exec state prev_exec);
-                val node' = node |> fold update_entry assigns |> set_result result;
+                  fold_entries (SOME id) (new_exec o get_command o #2 o #1)
+                    node ([], [], the_exec state prev_exec);
+                val node' = node
+                  |> fold update_entry assigns
+                  |> set_result result;
               in ((assigns, execs, [(name, node')]), node') end))
       |> map #1;
 
