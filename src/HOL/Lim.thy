@@ -386,8 +386,6 @@ lemma LIM_power:
   shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
   using assms by (rule tendsto_power)
 
-subsubsection {* Derived theorems about @{term LIM} *}
-
 lemma LIM_inverse:
   fixes L :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
