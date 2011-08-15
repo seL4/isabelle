@@ -78,7 +78,7 @@ fun map_entries f (Node {header, entries, result}) = make_node (header, f entrie
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
-fun get_theory (Node {result, ...}) = Toplevel.end_theory Position.none (Lazy.get_finished result);
+fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.get_finished result);
 fun set_result result = map_node (fn (header, entries, _) => (header, entries, result));
 
 val empty_exec = Lazy.value Toplevel.toplevel;
@@ -347,7 +347,8 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                     val parents =
                       imports |> map (fn import =>
                         (case AList.lookup (op =) deps import of
-                          SOME (_, parent_node) => get_theory parent_node
+                          SOME (_, parent_node) =>
+                            get_theory (Position.file_only (import ^ ".thy")) parent_node
                         | NONE => Thy_Info.get_theory (Thy_Info.base_name import)));
                   in Thy_Load.begin_theory dir thy_name imports files parents end
                 fun get_command id =
