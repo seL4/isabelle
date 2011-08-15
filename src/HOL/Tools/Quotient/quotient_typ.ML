@@ -48,8 +48,8 @@ fun theorem after_qed goals ctxt =
 
 (*** definition of quotient types ***)
 
-val mem_def1 = @{lemma "y : S ==> S y" by (simp add: mem_def)}
-val mem_def2 = @{lemma "S y ==> y : S" by (simp add: mem_def)}
+val mem_def1 = @{lemma "y : Collect S ==> S y" by simp}
+val mem_def2 = @{lemma "S y ==> y : Collect S" by simp}
 
 (* constructs the term lambda (c::rty => bool). EX (x::rty). c = rel x *)
 fun typedef_term rel rty lthy =
@@ -58,9 +58,14 @@ fun typedef_term rel rty lthy =
       [("x", rty), ("c", HOLogic.mk_setT rty)]
       |> Variable.variant_frees lthy [rel]
       |> map Free
+    fun mk_collect T =
+      Const (@{const_name Collect}, (T --> @{typ bool}) --> HOLogic.mk_setT T)
+    val collect_in = mk_collect rty
+    val collect_out = mk_collect (HOLogic.mk_setT rty)
   in
-    lambda c (HOLogic.exists_const rty $
-        lambda x (HOLogic.mk_conj (rel $ x $ x, HOLogic.mk_eq (c, rel $ x))))
+    collect_out $ (lambda c (HOLogic.exists_const rty $
+        lambda x (HOLogic.mk_conj (rel $ x $ x,
+        HOLogic.mk_eq (c, collect_in $ (rel $ x))))))
   end
 
 

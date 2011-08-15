@@ -561,9 +561,9 @@ lemma fset_cong:
   shows "fset S = fset T \<longleftrightarrow> S = T"
   by (descending) (simp)
 
-lemma filter_fset [simp]: 
-  shows "fset (filter_fset P xs) = P \<inter> fset xs"
-  by (descending) (auto simp add: mem_def)
+lemma filter_fset [simp]:
+  shows "fset (filter_fset P xs) = Collect P \<inter> fset xs"
+  by (descending) (auto)
 
 lemma remove_fset [simp]: 
   shows "fset (remove_fset x xs) = fset xs - {x}"
