@@ -4211,31 +4211,35 @@ qed
 
 text {* A uniformly convergent limit of continuous functions is continuous. *}
 
-lemma norm_triangle_lt:
-  fixes x y :: "'a::real_normed_vector"
-  shows "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
-by (rule le_less_trans [OF norm_triangle_ineq])
-
 lemma continuous_uniform_limit:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::real_normed_vector"
-  assumes "\<not> (trivial_limit net)"  "eventually (\<lambda>n. continuous_on s (f n)) net"
-  "\<forall>e>0. eventually (\<lambda>n. \<forall>x \<in> s. norm(f n x - g x) < e) net"
+  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::metric_space"
+  assumes "\<not> trivial_limit F"
+  assumes "eventually (\<lambda>n. continuous_on s (f n)) F"
+  assumes "\<forall>e>0. eventually (\<lambda>n. \<forall>x\<in>s. dist (f n x) (g x) < e) F"
   shows "continuous_on s g"
 proof-
   { fix x and e::real assume "x\<in>s" "e>0"
-    have "eventually (\<lambda>n. \<forall>x\<in>s. norm (f n x - g x) < e / 3) net" using `e>0` assms(3)[THEN spec[where x="e/3"]] by auto
-    then obtain n where n:"\<forall>xa\<in>s. norm (f n xa - g xa) < e / 3"  "continuous_on s (f n)"
-      using eventually_conj_iff[of "(\<lambda>n. \<forall>x\<in>s. norm (f n x - g x) < e / 3)" "(\<lambda>n. continuous_on s (f n))" net] assms(1,2) eventually_happens by blast
+    have "eventually (\<lambda>n. \<forall>x\<in>s. dist (f n x) (g x) < e / 3) F"
+      using `e>0` assms(3)[THEN spec[where x="e/3"]] by auto
+    from eventually_happens [OF eventually_conj [OF this assms(2)]]
+    obtain n where n:"\<forall>x\<in>s. dist (f n x) (g x) < e / 3"  "continuous_on s (f n)"
+      using assms(1) by blast
     have "e / 3 > 0" using `e>0` by auto
     then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f n x') (f n x) < e / 3"
       using n(2)[unfolded continuous_on_iff, THEN bspec[where x=x], OF `x\<in>s`, THEN spec[where x="e/3"]] by blast
-    { fix y assume "y\<in>s" "dist y x < d"
-      hence "dist (f n y) (f n x) < e / 3" using d[THEN bspec[where x=y]] by auto
-      hence "norm (f n y - g x) < 2 * e / 3" using norm_triangle_lt[of "f n y - f n x" "f n x - g x" "2*e/3"]
-        using n(1)[THEN bspec[where x=x], OF `x\<in>s`] unfolding dist_norm unfolding ab_group_add_class.ab_diff_minus by auto
-      hence "dist (g y) (g x) < e" unfolding dist_norm using n(1)[THEN bspec[where x=y], OF `y\<in>s`]
-        unfolding norm_minus_cancel[of "f n y - g y", THEN sym] using norm_triangle_lt[of "f n y - g x" "g y - f n y" e] by (auto simp add: uminus_add_conv_diff)  }
-    hence "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (g x') (g x) < e" using `d>0` by auto  }
+    { fix y assume "y \<in> s" and "dist y x < d"
+      hence "dist (f n y) (f n x) < e / 3"
+        by (rule d [rule_format])
+      hence "dist (f n y) (g x) < 2 * e / 3"
+        using dist_triangle [of "f n y" "g x" "f n x"]
+        using n(1)[THEN bspec[where x=x], OF `x\<in>s`]
+        by auto
+      hence "dist (g y) (g x) < e"
+        using n(1)[THEN bspec[where x=y], OF `y\<in>s`]
+        using dist_triangle3 [of "g y" "g x" "f n y"]
+        by auto }
+    hence "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (g x') (g x) < e"
+      using `d>0` by auto }
   thus ?thesis unfolding continuous_on_iff by auto
 qed
 
