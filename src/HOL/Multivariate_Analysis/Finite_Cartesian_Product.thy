@@ -590,7 +590,7 @@ next
 next
   show "DIM('a ^ 'b) = card (Basis :: ('a ^ 'b) set)"
     unfolding Basis_vec_def dimension_vec_def dimension_def
-    by (simp add: card_UN_disjoint [unfolded disjoint_iff]
+    by (simp add: card_UN_disjoint [unfolded disjoint_iff_not_equal]
       axis_eq_axis nonzero_Basis)
 next
   show "basis ` {..<DIM('a ^ 'b)} = (Basis :: ('a ^ 'b) set)"

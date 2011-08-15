@@ -272,9 +272,6 @@ lemma DIM_complex[simp]: "DIM(complex) = 2"
 
 subsubsection {* Type @{typ "'a \<times> 'b"} *}
 
-lemma disjoint_iff: "A \<inter> B = {} \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. x \<noteq> y)"
-  by auto (* TODO: move elsewhere *)
-
 instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
 
@@ -307,7 +304,7 @@ next
 next
   show "DIM('a \<times> 'b) = card (Basis :: ('a \<times> 'b) set)"
     unfolding dimension_prod_def Basis_prod_def
-    by (simp add: card_Un_disjoint disjoint_iff
+    by (simp add: card_Un_disjoint disjoint_iff_not_equal
       card_image inj_on_def dimension_def)
 next
   show "basis ` {..<DIM('a \<times> 'b)} = (Basis :: ('a \<times> 'b) set)"
