@@ -20,7 +20,7 @@ lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)
   apply(subst(2) euclidean_dist_l2) apply(cases "i<DIM('a)")
   apply(rule member_le_setL2) by auto
 
-subsection{* General notion of a topology *}
+subsection {* General notion of a topologies as values *}
 
 definition "istopology L \<longleftrightarrow> L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union> K))"
 typedef (open) 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
@@ -51,7 +51,7 @@ text{* Infer the "universe" from union of all sets in the topology. *}
 
 definition "topspace T =  \<Union>{S. openin T S}"
 
-subsection{* Main properties of open sets *}
+subsubsection {* Main properties of open sets *}
 
 lemma openin_clauses:
   fixes U :: "'a topology"
@@ -87,7 +87,7 @@ next
   finally show "openin U S" .
 qed
 
-subsection{* Closed sets *}
+subsubsection {* Closed sets *}
 
 definition "closedin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> openin U (topspace U - S)"
 
@@ -128,10 +128,7 @@ proof-
   then show ?thesis using oS cT by (auto simp add: openin_closedin_eq)
 qed
 
-subsection{* Subspace topology. *}
-
-term "{f x |x. P x}"
-term "{y. \<exists>x. y = f x \<and> P x}"
+subsubsection {* Subspace topology *}
 
 definition "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
 
@@ -197,14 +194,13 @@ proof-
   then show ?thesis unfolding topology_eq openin_subtopology by blast
 qed
 
-
 lemma subtopology_topspace[simp]: "subtopology U (topspace U) = U"
   by (simp add: subtopology_superset)
 
 lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
-subsection{* The universal Euclidean versions are what we use most of the time *}
+subsubsection {* The standard Euclidean topology *}
 
 definition
   euclidean :: "'a::topological_space topology" where
@@ -231,7 +227,83 @@ lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
   by (simp add: open_openin openin_subopen[symmetric])
 
-subsection{* Open and closed balls. *}
+text {* Basic "localization" results are handy for connectedness. *}
+
+lemma openin_open: "openin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. open T \<and> (S = U \<inter> T))"
+  by (auto simp add: openin_subtopology open_openin[symmetric])
+
+lemma openin_open_Int[intro]: "open S \<Longrightarrow> openin (subtopology euclidean U) (U \<inter> S)"
+  by (auto simp add: openin_open)
+
+lemma open_openin_trans[trans]:
+ "open S \<Longrightarrow> open T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> openin (subtopology euclidean S) T"
+  by (metis Int_absorb1  openin_open_Int)
+
+lemma open_subset:  "S \<subseteq> T \<Longrightarrow> open S \<Longrightarrow> openin (subtopology euclidean T) S"
+  by (auto simp add: openin_open)
+
+lemma closedin_closed: "closedin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. closed T \<and> S = U \<inter> T)"
+  by (simp add: closedin_subtopology closed_closedin Int_ac)
+
+lemma closedin_closed_Int: "closed S ==> closedin (subtopology euclidean U) (U \<inter> S)"
+  by (metis closedin_closed)
+
+lemma closed_closedin_trans: "closed S \<Longrightarrow> closed T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> closedin (subtopology euclidean S) T"
+  apply (subgoal_tac "S \<inter> T = T" )
+  apply auto
+  apply (frule closedin_closed_Int[of T S])
+  by simp
+
+lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
+  by (auto simp add: closedin_closed)
+
+lemma openin_euclidean_subtopology_iff:
+  fixes S U :: "'a::metric_space set"
+  shows "openin (subtopology euclidean U) S
+  \<longleftrightarrow> S \<subseteq> U \<and> (\<forall>x\<in>S. \<exists>e>0. \<forall>x'\<in>U. dist x' x < e \<longrightarrow> x'\<in> S)" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs thus ?rhs unfolding openin_open open_dist by blast
+next
+  def T \<equiv> "{x. \<exists>a\<in>S. \<exists>d>0. (\<forall>y\<in>U. dist y a < d \<longrightarrow> y \<in> S) \<and> dist x a < d}"
+  have 1: "\<forall>x\<in>T. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> T"
+    unfolding T_def
+    apply clarsimp
+    apply (rule_tac x="d - dist x a" in exI)
+    apply (clarsimp simp add: less_diff_eq)
+    apply (erule rev_bexI)
+    apply (rule_tac x=d in exI, clarify)
+    apply (erule le_less_trans [OF dist_triangle])
+    done
+  assume ?rhs hence 2: "S = U \<inter> T"
+    unfolding T_def
+    apply auto
+    apply (drule (1) bspec, erule rev_bexI)
+    apply auto
+    done
+  from 1 2 show ?lhs
+    unfolding openin_open open_dist by fast
+qed
+
+text {* These "transitivity" results are handy too *}
+
+lemma openin_trans[trans]: "openin (subtopology euclidean T) S \<Longrightarrow> openin (subtopology euclidean U) T
+  \<Longrightarrow> openin (subtopology euclidean U) S"
+  unfolding open_openin openin_open by blast
+
+lemma openin_open_trans: "openin (subtopology euclidean T) S \<Longrightarrow> open T \<Longrightarrow> open S"
+  by (auto simp add: openin_open intro: openin_trans)
+
+lemma closedin_trans[trans]:
+ "closedin (subtopology euclidean T) S \<Longrightarrow>
+           closedin (subtopology euclidean U) T
+           ==> closedin (subtopology euclidean U) S"
+  by (auto simp add: closedin_closed closed_closedin closed_Inter Int_assoc)
+
+lemma closedin_closed_trans: "closedin (subtopology euclidean T) S \<Longrightarrow> closed T \<Longrightarrow> closed S"
+  by (auto simp add: closedin_closed intro: closedin_trans)
+
+
+subsection {* Open and closed balls *}
 
 definition
   ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set" where
@@ -301,82 +373,6 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
 
 lemma ball_empty[intro]: "e \<le> 0 ==> ball x e = {}" by simp
 
-subsection{* Basic "localization" results are handy for connectedness. *}
-
-lemma openin_open: "openin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. open T \<and> (S = U \<inter> T))"
-  by (auto simp add: openin_subtopology open_openin[symmetric])
-
-lemma openin_open_Int[intro]: "open S \<Longrightarrow> openin (subtopology euclidean U) (U \<inter> S)"
-  by (auto simp add: openin_open)
-
-lemma open_openin_trans[trans]:
- "open S \<Longrightarrow> open T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> openin (subtopology euclidean S) T"
-  by (metis Int_absorb1  openin_open_Int)
-
-lemma open_subset:  "S \<subseteq> T \<Longrightarrow> open S \<Longrightarrow> openin (subtopology euclidean T) S"
-  by (auto simp add: openin_open)
-
-lemma closedin_closed: "closedin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. closed T \<and> S = U \<inter> T)"
-  by (simp add: closedin_subtopology closed_closedin Int_ac)
-
-lemma closedin_closed_Int: "closed S ==> closedin (subtopology euclidean U) (U \<inter> S)"
-  by (metis closedin_closed)
-
-lemma closed_closedin_trans: "closed S \<Longrightarrow> closed T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> closedin (subtopology euclidean S) T"
-  apply (subgoal_tac "S \<inter> T = T" )
-  apply auto
-  apply (frule closedin_closed_Int[of T S])
-  by simp
-
-lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
-  by (auto simp add: closedin_closed)
-
-lemma openin_euclidean_subtopology_iff:
-  fixes S U :: "'a::metric_space set"
-  shows "openin (subtopology euclidean U) S
-  \<longleftrightarrow> S \<subseteq> U \<and> (\<forall>x\<in>S. \<exists>e>0. \<forall>x'\<in>U. dist x' x < e \<longrightarrow> x'\<in> S)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
-  {assume ?lhs hence ?rhs unfolding openin_subtopology open_openin[symmetric]
-      by (simp add: open_dist) blast}
-  moreover
-  {assume SU: "S \<subseteq> U" and H: "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>x'\<in>U. dist x' x < e \<longrightarrow> x' \<in> S"
-    from H obtain d where d: "\<And>x . x\<in> S \<Longrightarrow> d x > 0 \<and> (\<forall>x' \<in> U. dist x' x < d x \<longrightarrow> x' \<in> S)"
-      by metis
-    let ?T = "\<Union>{B. \<exists>x\<in>S. B = ball x (d x)}"
-    have oT: "open ?T" by auto
-    { fix x assume "x\<in>S"
-      hence "x \<in> \<Union>{B. \<exists>x\<in>S. B = ball x (d x)}"
-        apply simp apply(rule_tac x="ball x(d x)" in exI) apply auto
-        by (rule d [THEN conjunct1])
-      hence "x\<in> ?T \<inter> U" using SU and `x\<in>S` by auto  }
-    moreover
-    { fix y assume "y\<in>?T"
-      then obtain B where "y\<in>B" "B\<in>{B. \<exists>x\<in>S. B = ball x (d x)}" by auto
-      then obtain x where "x\<in>S" and x:"y \<in> ball x (d x)" by auto
-      assume "y\<in>U"
-      hence "y\<in>S" using d[OF `x\<in>S`] and x by(auto simp add: dist_commute) }
-    ultimately have "S = ?T \<inter> U" by blast
-    with oT have ?lhs unfolding openin_subtopology open_openin[symmetric] by blast}
-  ultimately show ?thesis by blast
-qed
-
-text{* These "transitivity" results are handy too. *}
-
-lemma openin_trans[trans]: "openin (subtopology euclidean T) S \<Longrightarrow> openin (subtopology euclidean U) T
-  \<Longrightarrow> openin (subtopology euclidean U) S"
-  unfolding open_openin openin_open by blast
-
-lemma openin_open_trans: "openin (subtopology euclidean T) S \<Longrightarrow> open T \<Longrightarrow> open S"
-  by (auto simp add: openin_open intro: openin_trans)
-
-lemma closedin_trans[trans]:
- "closedin (subtopology euclidean T) S \<Longrightarrow>
-           closedin (subtopology euclidean U) T
-           ==> closedin (subtopology euclidean U) S"
-  by (auto simp add: closedin_closed closed_closedin closed_Inter Int_assoc)
-
-lemma closedin_closed_trans: "closedin (subtopology euclidean T) S \<Longrightarrow> closed T \<Longrightarrow> closed S"
-  by (auto simp add: closedin_closed intro: closedin_trans)
 
 subsection{* Connectedness *}
 
@@ -430,6 +426,7 @@ qed
 lemma connected_empty[simp, intro]: "connected {}"
   by (simp add: connected_def)
 
+
 subsection{* Limit points *}
 
 definition (in topological_space)
@@ -467,6 +464,8 @@ lemma islimpt_approachable_le:
   unfolding islimpt_approachable
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis 
+
+text {* A perfect space has no isolated points. *}
 
 class perfect_space = topological_space +
   assumes islimpt_UNIV [simp, intro]: "x islimpt UNIV"
@@ -553,7 +552,9 @@ proof-
   then show ?thesis by (metis islimpt_approachable closed_limpt [where 'a='a])
 qed
 
-subsection{* Interior of a Set *}
+
+subsection {* Interior of a Set *}
+
 definition "interior S = {x. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S}"
 
 lemma interior_eq: "interior S = S \<longleftrightarrow> open S"
@@ -622,7 +623,7 @@ next
 qed
 
 
-subsection{* Closure of a Set *}
+subsection {* Closure of a Set *}
 
 definition "closure S = S \<union> {x | x. x islimpt S}"
 
@@ -792,7 +793,8 @@ lemma interior_complement: "interior(- S) = - closure(S)"
   unfolding closure_interior
   by blast
 
-subsection{* Frontier (aka boundary) *}
+
+subsection {* Frontier (aka boundary) *}
 
 definition "frontier S = closure S - interior S"
 
@@ -871,9 +873,8 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
   using frontier_complement frontier_subset_eq[of "- S"]
   unfolding open_closed by auto
 
-subsection {* Filters and the ``eventually true'' quantifier *}
 
-text {* Common filters and The "within" modifier for filters. *}
+subsection {* Filters and the ``eventually true'' quantifier *}
 
 definition
   at_infinity :: "'a::real_normed_vector filter" where
@@ -968,7 +969,6 @@ lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually 
 lemma eventually_False: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
   unfolding trivial_limit_def ..
 
-
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
   apply (safe elim!: trivial_limit_eventually)
   apply (simp add: eventually_False [symmetric])
@@ -979,20 +979,21 @@ text{* Combining theorems for "eventually" *}
 lemma eventually_conjI:
   "\<lbrakk>eventually (\<lambda>x. P x) net; eventually (\<lambda>x. Q x) net\<rbrakk>
     \<Longrightarrow> eventually (\<lambda>x. P x \<and> Q x) net"
-by (rule eventually_conj)
+by (rule eventually_conj) (* FIXME: delete *)
 
 lemma eventually_rev_mono:
   "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
 using eventually_mono [of P Q] by fast
 
 lemma eventually_and: " eventually (\<lambda>x. P x \<and> Q x) net \<longleftrightarrow> eventually P net \<and> eventually Q net"
-  by (auto intro!: eventually_conjI elim: eventually_rev_mono)
+  by (rule eventually_conj_iff) (* FIXME: delete *)
 
 lemma eventually_false: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
-  by (auto simp add: eventually_False)
+  by (rule eventually_False) (* FIXME: delete *)
 
 lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_limit net) ==> ~(eventually (\<lambda>x. P x) net)"
   by (simp add: eventually_False)
+
 
 subsection {* Limits *}
 
@@ -1006,7 +1007,6 @@ lemma Lim:
         trivial_limit net \<or>
         (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
   unfolding tendsto_iff trivial_limit_eq by auto
-
 
 text{* Show that they yield usual definitions in the various cases. *}
 
@@ -1032,7 +1032,7 @@ lemma Lim_at_infinity:
 lemma Lim_sequentially:
  "(S ---> l) sequentially \<longleftrightarrow>
           (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (S n) l < e)"
-  by (auto simp add: tendsto_iff eventually_sequentially)
+  by (rule LIMSEQ_def) (* FIXME: redundant *)
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
   by (rule topological_tendstoI, auto elim: eventually_rev_mono)
@@ -1068,31 +1068,41 @@ lemma Lim_at_within: "(f ---> l) net ==> (f ---> l)(net within S)"
   apply (clarify, drule spec, drule (1) mp, drule (1) mp)
   by (auto elim!: eventually_elim1)
 
+lemma eventually_within_interior:
+  assumes "x \<in> interior S"
+  shows "eventually P (at x within S) \<longleftrightarrow> eventually P (at x)" (is "?lhs = ?rhs")
+proof-
+  from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S"
+    unfolding interior_def by fast
+  { assume "?lhs"
+    then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
+      unfolding Limits.eventually_within Limits.eventually_at_topological
+      by auto
+    with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
+      by auto
+    then have "?rhs"
+      unfolding Limits.eventually_at_topological by auto
+  } moreover
+  { assume "?rhs" hence "?lhs"
+      unfolding Limits.eventually_within
+      by (auto elim: eventually_elim1)
+  } ultimately
+  show "?thesis" ..
+qed
+
+lemma at_within_interior:
+  "x \<in> interior S \<Longrightarrow> at x within S = at x"
+  by (simp add: filter_eq_iff eventually_within_interior)
+
+lemma at_within_open:
+  "\<lbrakk>x \<in> S; open S\<rbrakk> \<Longrightarrow> at x within S = at x"
+  by (simp only: at_within_interior interior_open)
+
 lemma Lim_within_open:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   assumes"a \<in> S" "open S"
-  shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  { fix A assume "open A" "l \<in> A"
-    with `?lhs` have "eventually (\<lambda>x. f x \<in> A) (at a within S)"
-      by (rule topological_tendstoD)
-    hence "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x \<in> A) (at a)"
-      unfolding Limits.eventually_within .
-    then obtain T where "open T" "a \<in> T" "\<forall>x\<in>T. x \<noteq> a \<longrightarrow> x \<in> S \<longrightarrow> f x \<in> A"
-      unfolding eventually_at_topological by fast
-    hence "open (T \<inter> S)" "a \<in> T \<inter> S" "\<forall>x\<in>(T \<inter> S). x \<noteq> a \<longrightarrow> f x \<in> A"
-      using assms by auto
-    hence "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> f x \<in> A)"
-      by fast
-    hence "eventually (\<lambda>x. f x \<in> A) (at a)"
-      unfolding eventually_at_topological .
-  }
-  thus ?rhs by (rule topological_tendstoI)
-next
-  assume ?rhs
-  thus ?lhs by (rule Lim_at_within)
-qed
+  shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
+  using assms by (simp only: at_within_open)
 
 lemma Lim_within_LIMSEQ:
   fixes a :: real and L :: "'a::metric_space"
@@ -1432,6 +1442,16 @@ lemma netlimit_at:
   using netlimit_within[of a UNIV]
   by (simp add: trivial_limit_at within_UNIV)
 
+lemma lim_within_interior:
+  "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
+  by (simp add: at_within_interior)
+
+lemma netlimit_within_interior:
+  fixes x :: "'a::{t2_space,perfect_space}"
+  assumes "x \<in> interior S"
+  shows "netlimit (at x within S) = x"
+using assms by (simp add: at_within_interior netlimit_at)
+
 text{* Transformation of limit. *}
 
 lemma Lim_transform:
@@ -1602,7 +1622,7 @@ proof-
   thus ?thesis unfolding Lim_sequentially dist_norm by simp
 qed
 
-subsection {* More properties of closed balls. *}
+subsection {* More properties of closed balls *}
 
 lemma closed_cball: "closed (cball x e)"
 unfolding cball_def closed_def
@@ -1839,45 +1859,8 @@ lemma cball_sing:
   shows "e = 0 ==> cball x e = {x}"
   by (auto simp add: set_eq_iff)
 
-text{* For points in the interior, localization of limits makes no difference.   *}
 
-lemma eventually_within_interior:
-  assumes "x \<in> interior S"
-  shows "eventually P (at x within S) \<longleftrightarrow> eventually P (at x)" (is "?lhs = ?rhs")
-proof-
-  from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S"
-    unfolding interior_def by fast
-  { assume "?lhs"
-    then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
-      unfolding Limits.eventually_within Limits.eventually_at_topological
-      by auto
-    with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
-      by auto
-    then have "?rhs"
-      unfolding Limits.eventually_at_topological by auto
-  } moreover
-  { assume "?rhs" hence "?lhs"
-      unfolding Limits.eventually_within
-      by (auto elim: eventually_elim1)
-  } ultimately
-  show "?thesis" ..
-qed
-
-lemma at_within_interior:
-  "x \<in> interior S \<Longrightarrow> at x within S = at x"
-  by (simp add: filter_eq_iff eventually_within_interior)
-
-lemma lim_within_interior:
-  "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
-  by (simp add: at_within_interior)
-
-lemma netlimit_within_interior:
-  fixes x :: "'a::{t2_space,perfect_space}"
-  assumes "x \<in> interior S"
-  shows "netlimit (at x within S) = x"
-using assms by (simp add: at_within_interior netlimit_at)
-
-subsection{* Boundedness. *}
+subsection {* Boundedness *}
 
   (* FIXME: This has to be unified with BSEQ!! *)
 definition (in metric_space)
@@ -2076,13 +2059,13 @@ lemma Inf_insert_finite:
   shows "finite S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
   by (rule Inf_insert, rule finite_imp_bounded, simp)
 
-
 (* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
 lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
   apply (frule isGlb_isLb)
   apply (frule_tac x = y in isGlb_isLb)
   apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
   done
+
 
 subsection {* Equivalent versions of compactness *}
 
@@ -2927,7 +2910,7 @@ proof-
   thus ?thesis unfolding closed_sequential_limits by fast
 qed
 
-text{* Hence express everything as an equivalence.   *}
+text {* Hence express everything as an equivalence. *}
 
 lemma compact_eq_heine_borel:
   fixes s :: "'a::metric_space set"
@@ -3116,7 +3099,8 @@ proof
   thus False using f'(3) unfolding subset_eq and Union_iff by blast
 qed
 
-subsection{* Bounded closed nest property (proof does not use Heine-Borel).            *}
+
+subsection {* Bounded closed nest property (proof does not use Heine-Borel) *}
 
 lemma bounded_closed_nest:
   assumes "\<forall>n. closed(s n)" "\<forall>n. (s n \<noteq> {})"
@@ -3146,7 +3130,7 @@ proof-
   thus ?thesis by auto
 qed
 
-text{* Decreasing case does not even need compactness, just completeness.        *}
+text {* Decreasing case does not even need compactness, just completeness. *}
 
 lemma decreasing_closed_nest:
   assumes "\<forall>n. closed(s n)"
@@ -3179,7 +3163,7 @@ proof-
   then show ?thesis by auto
 qed
 
-text{* Strengthen it to the intersection actually being a singleton.             *}
+text {* Strengthen it to the intersection actually being a singleton. *}
 
 lemma decreasing_closed_nest_sing:
   fixes s :: "nat \<Rightarrow> 'a::heine_borel set"
@@ -3249,6 +3233,7 @@ proof-
       using l and assms(2) unfolding Lim_sequentially by blast  }
   ultimately show ?thesis by auto
 qed
+
 
 subsection {* Continuity *}
 
@@ -3423,7 +3408,7 @@ lemma continuous_on_eq:
   unfolding continuous_on_def tendsto_def Limits.eventually_within
   by simp
 
-text{* Characterization of various kinds of continuity in terms of sequences.  *}
+text {* Characterization of various kinds of continuity in terms of sequences. *}
 
 (* \<longrightarrow> could be generalized, but \<longleftarrow> requires metric space *)
 lemma continuous_within_sequentially:
@@ -3798,7 +3783,7 @@ next
   thus ?lhs unfolding continuous_on_open by auto
 qed
 
-text{* Half-global and completely global cases.                                  *}
+text {* Half-global and completely global cases. *}
 
 lemma continuous_open_in_preimage:
   assumes "continuous_on s f"  "open t"
@@ -3866,7 +3851,7 @@ proof- fix x T assume as:"open T" "x \<in> T" "T \<subseteq> f ` s"
   proof- fix x assume "f x \<in> T" hence "f x \<in> f ` s" using as by auto
     thus "x \<in> s" unfolding inj_image_mem_iff[OF assms(2)] . qed auto qed
 
-text{* Equality of continuous functions on closure and related results.          *}
+text {* Equality of continuous functions on closure and related results. *}
 
 lemma continuous_closed_in_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -3909,7 +3894,7 @@ proof-
     unfolding subset_eq apply(erule_tac x="f x" in ballE) by (auto simp add: dist_norm)
 qed
 
-text{* Making a continuous function avoid some value in a neighbourhood.         *}
+text {* Making a continuous function avoid some value in a neighbourhood. *}
 
 lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
@@ -3942,7 +3927,7 @@ lemma continuous_on_open_avoid:
   shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
 using assms(1)[unfolded continuous_on_eq_continuous_at[OF assms(2)], THEN bspec[where x=x], OF assms(3)]  continuous_at_avoid[of x f a]  assms(3,4) by auto
 
-text{* Proving a function is constant by proving open-ness of level set.         *}
+text {* Proving a function is constant by proving open-ness of level set. *}
 
 lemma continuous_levelset_open_in_cases:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -3965,7 +3950,7 @@ lemma continuous_levelset_open:
   shows "\<forall>x \<in> s. f x = a"
 using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open] using assms (3,4) by fast
 
-text{* Some arithmetical combinations (more to prove).                           *}
+text {* Some arithmetical combinations (more to prove). *}
 
 lemma open_scaling[intro]:
   fixes s :: "'a::real_normed_vector set"
@@ -4034,7 +4019,7 @@ next
   thus "x \<in> interior (op + a ` s)" unfolding mem_interior using `e>0` by auto
 qed
 
-text {* We can now extend limit compositions to consider the scalar multiplier.   *}
+text {* We can now extend limit compositions to consider the scalar multiplier. *}
 
 lemma continuous_vmul:
   fixes c :: "'a::metric_space \<Rightarrow> real" and v :: "'b::real_normed_vector"
@@ -4078,7 +4063,7 @@ lemmas continuous_on_intros = continuous_on_add continuous_on_const
   uniformly_continuous_on_cmul uniformly_continuous_on_neg
   uniformly_continuous_on_sub
 
-text{* And so we have continuity of inverse.                                     *}
+text {* And so we have continuity of inverse. *}
 
 lemma continuous_inv:
   fixes f :: "'a::metric_space \<Rightarrow> real"
@@ -4125,7 +4110,7 @@ lemma linear_continuous_on:
   shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
-text{* Also bilinear functions, in composition form.                             *}
+text {* Also bilinear functions, in composition form. *}
 
 lemma bilinear_continuous_at_compose:
   shows "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bounded_bilinear h
@@ -4143,7 +4128,7 @@ lemma bilinear_continuous_on_compose:
   unfolding continuous_on_def
   by (fast elim: bounded_bilinear.tendsto)
 
-text {* Preservation of compactness and connectedness under continuous function.  *}
+text {* Preservation of compactness and connectedness under continuous function. *}
 
 lemma compact_continuous_image:
   assumes "continuous_on s f"  "compact s"
@@ -4175,7 +4160,7 @@ proof-
   thus ?thesis unfolding connected_clopen by auto
 qed
 
-text{* Continuity implies uniform continuity on a compact domain.                *}
+text {* Continuity implies uniform continuity on a compact domain. *}
 
 lemma compact_uniformly_continuous:
   assumes "continuous_on s f"  "compact s"
@@ -4265,8 +4250,8 @@ proof-
   thus ?thesis unfolding continuous_on_iff by auto
 qed
 
-subsection{* Topological stuff lifted from and dropped to R                            *}
 
+subsection {* Topological stuff lifted from and dropped to R *}
 
 lemma open_real:
   fixes s :: "real set" shows
@@ -4311,7 +4296,7 @@ lemma continuous_at_infnorm: "continuous (at x) infnorm"
   apply auto apply (rule_tac x=e in exI) apply auto
   using order_trans[OF real_abs_sub_infnorm infnorm_le_norm, of _ x] by (metis xt1(7))
 
-text{* Hence some handy theorems on distance, diameter etc. of/from a set.       *}
+text {* Hence some handy theorems on distance, diameter etc. of/from a set. *}
 
 lemma compact_attains_sup:
   fixes s :: "real set"
@@ -4376,7 +4361,7 @@ proof (rule continuous_attains_sup [OF assms])
     unfolding continuous_on ..
 qed
 
-text{* For *minimal* distance, we only need closure, not compactness.            *}
+text {* For \emph{minimal} distance, we only need closure, not compactness. *}
 
 lemma distance_attains_inf:
   fixes a :: "'a::heine_borel"
@@ -4412,6 +4397,7 @@ proof-
   thus ?thesis by fastsimp
 qed
 
+
 subsection {* Pasted sets *}
 
 lemma bounded_Times:
@@ -4444,7 +4430,7 @@ apply (drule (1) tendsto_Pair) back
 apply (simp add: o_def)
 done
 
-text{* Hence some useful properties follow quite easily.                         *}
+text{* Hence some useful properties follow quite easily. *}
 
 lemma compact_scaling:
   fixes s :: "'a::real_normed_vector set"
@@ -4497,7 +4483,7 @@ proof-
   thus ?thesis using compact_translation[OF compact_scaling[OF assms], of a c] by auto
 qed
 
-text{* Hence we get the following.                                               *}
+text {* Hence we get the following. *}
 
 lemma compact_sup_maxdistance:
   fixes s :: "'a::real_normed_vector set"
@@ -4512,7 +4498,7 @@ proof-
   thus ?thesis using x(2)[unfolded `x = a - b`] by blast
 qed
 
-text{* We can state this in terms of diameter of a set.                          *}
+text {* We can state this in terms of diameter of a set. *}
 
 definition "diameter s = (if s = {} then 0::real else Sup {norm(x - y) | x y. x \<in> s \<and> y \<in> s})"
   (* TODO: generalize to class metric_space *)
@@ -4565,7 +4551,7 @@ proof-
     by (metis b diameter_bounded_bound order_antisym xys)
 qed
 
-text{* Related results with closure as the conclusion.                           *}
+text {* Related results with closure as the conclusion. *}
 
 lemma closed_scaling:
   fixes s :: "'a::real_normed_vector set"
@@ -4693,7 +4679,8 @@ lemma frontier_translation:
   shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
   unfolding frontier_def translation_diff interior_translation closure_translation by auto
 
-subsection{* Separation between points and sets.                                       *}
+
+subsection {* Separation between points and sets *}
 
 lemma separate_point_closed:
   fixes s :: "'a::heine_borel set"
@@ -4735,6 +4722,7 @@ proof-
     apply auto apply(rule_tac x=d in exI) apply auto apply (erule_tac x=y in ballE)
     by (auto simp add: dist_commute)
 qed
+
 
 subsection {* Intervals *}
   
@@ -5168,7 +5156,8 @@ lemma is_interval_univ:
   unfolding is_interval_def
   by simp
 
-subsection{* Closure of halfspaces and hyperplanes.                                    *}
+
+subsection {* Closure of halfspaces and hyperplanes *}
 
 lemma Lim_inner:
   assumes "(f ---> l) net"  shows "((\<lambda>y. inner a (f y)) ---> inner a l) net"
@@ -5212,7 +5201,7 @@ lemma closed_halfspace_component_ge:
   shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
   using closed_halfspace_ge[of a "(basis i)::'a"] unfolding euclidean_component_def .
 
-text{* Openness of halfspaces.                                                   *}
+text {* Openness of halfspaces. *}
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
 proof-
@@ -5291,7 +5280,7 @@ qed
 lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
   by (auto intro!: continuous_open_vimage)
 
-text{* This gives a simple derivation of limit component bounds.                 *}
+text {* This gives a simple derivation of limit component bounds. *}
 
 lemma Lim_component_le: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$$i \<le> b) net"
@@ -5377,6 +5366,7 @@ lemma connected_ivt_component: fixes x::"'a::euclidean_space" shows
  "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$$k \<le> a \<Longrightarrow> a \<le> y$$k \<Longrightarrow> (\<exists>z\<in>s.  z$$k = a)"
   using connected_ivt_hyperplane[of s x y "(basis k)::'a" a]
   unfolding euclidean_component_def by auto
+
 
 subsection {* Homeomorphisms *}
 
@@ -5642,7 +5632,8 @@ proof-
     unfolding complete_eq_closed[THEN sym] by auto
 qed
 
-subsection{* Some properties of a canonical subspace.                                  *}
+
+subsection {* Some properties of a canonical subspace *}
 
 (** move **)
 declare euclidean_component.zero[simp]  
@@ -5767,6 +5758,7 @@ proof-
   thus ?thesis using dim_subset[OF closure_subset, of s] by auto
 qed
 
+
 subsection {* Affine transformations of intervals *}
 
 lemma real_affinity_le:
@@ -5837,7 +5829,8 @@ lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_sp
   (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
   using image_affinity_interval[of m 0 a b] by auto
 
-subsection{* Banach fixed point theorem (not really topological...) *}
+
+subsection {* Banach fixed point theorem (not really topological...) *}
 
 lemma banach_fix:
   assumes s:"complete s" "s \<noteq> {}" and c:"0 \<le> c" "c < 1" and f:"(f ` s) \<subseteq> s" and
@@ -5967,7 +5960,7 @@ proof-
   ultimately show ?thesis using `x\<in>s` by blast+
 qed
 
-subsection{* Edelstein fixed point theorem.                                            *}
+subsection {* Edelstein fixed point theorem *}
 
 lemma edelstein_fix:
   fixes s :: "'a::real_normed_vector set"
