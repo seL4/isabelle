@@ -35,19 +35,19 @@ sig
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
-  val add_edge: key * key -> 'a T -> 'a T
-  val del_edge: key * key -> 'a T -> 'a T
+  val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
+  val del_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUP*)
   val irreducible_paths: 'a T -> key * key -> key list list
   val all_paths: 'a T -> key * key -> key list list
   exception CYCLES of key list list
-  val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
-  val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
+  val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception UNDEF | CYCLES*)
+  val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception UNDEF | CYCLES*)
   val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T         (*exception CYCLES*)
   val topological_order: 'a T -> key list
-  val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
+  val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception UNDEF | CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
   exception DEP of key * key
   val schedule: ((key * 'b) list -> key * 'a -> 'b) -> 'a T -> 'b list  (*exception DEP*)

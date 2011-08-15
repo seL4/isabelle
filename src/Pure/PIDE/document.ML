@@ -87,7 +87,8 @@ val clear_node = map_node (fn (header, _, _) => (header, Entries.empty, empty_ex
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
 fun remove_node name nodes = Graph.del_node name nodes handle Graph.UNDEF _ => nodes;
-fun update_node name f = Graph.default_node (name, empty_node) #> Graph.map_node name f;
+fun default_node name = Graph.default_node (name, empty_node);
+fun update_node name f = default_node name #> Graph.map_node name f;
 
 
 (* node edits and associated executions *)
@@ -126,27 +127,36 @@ val node_of = get_node o nodes_of;
 
 fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote names);
 
+fun touch_descendants name nodes =
+  fold (fn desc => desc <> name ? update_node desc (map_entries (reset_after NONE)))
+    (Graph.all_succs nodes [name]) nodes;
+
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
-    (case node_edit of
-      Clear => update_node name clear_node nodes
-    | Edits edits => update_node name (edit_node edits) nodes
-    | Header header =>
-        let
-          val node = get_node nodes name;
-          val nodes' = Graph.new_node (name, node) (remove_node name nodes);
-          val parents =
-            (case header of Exn.Res (_, parents, _) => parents | _ => [])
-            |> filter (can (Graph.get_node nodes'));
-          val (header', nodes'') =
-            (header, Graph.add_deps_acyclic (name, parents) nodes')
-              handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes');
-        in Graph.map_node name (set_header header') nodes'' end);
+    (touch_descendants name
+      (case node_edit of
+        Clear => update_node name clear_node nodes
+      | Edits edits =>
+          nodes
+          |> update_node name (edit_node edits)
+      | Header header =>
+          let
+            val node = get_node nodes name;
+            val nodes' = Graph.new_node (name, node) (remove_node name nodes);
+            val parents =
+              (case header of Exn.Res (_, parents, _) => parents | _ => [])
+              |> filter (can (Graph.get_node nodes'));
+            val (header', nodes'') =
+              (header, Graph.add_deps_acyclic (name, parents) nodes')
+                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes')
+                  | Graph.UNDEF d => (Exn.Exn (ERROR ("Undefined theory entry: " ^ quote d)), nodes')
+          in
+            nodes''
+            |> Graph.map_node name (set_header header')
+          end));
 
-fun put_node (name, node) (Version nodes) =
-  Version (nodes
-    |> Graph.default_node (name, empty_node)
-    |> Graph.map_node name (K node));
+fun def_node name (Version nodes) = Version (default_node name nodes);
+fun put_node (name, node) (Version nodes) = Version (update_node name (K node) nodes);
 
 end;
 
@@ -321,7 +331,10 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
-    val new_version = fold edit_nodes edits old_version;
+    val new_version =
+      old_version
+      |> fold (def_node o #1) edits
+      |> fold edit_nodes edits;
 
     val updates =
       nodes_of new_version |> Graph.schedule
