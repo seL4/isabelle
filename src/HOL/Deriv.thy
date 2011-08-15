@@ -1601,29 +1601,26 @@ text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
 lemma LIM_fun_gt_zero:
      "[| f -- c --> (l::real); 0 < l |]  
          ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
-apply (auto simp add: LIM_eq)
-apply (drule_tac x = "l/2" in spec, safe, force)
+apply (drule (1) LIM_D, clarify)
 apply (rule_tac x = s in exI)
-apply (auto simp only: abs_less_iff)
+apply (simp add: abs_less_iff)
 done
 
 lemma LIM_fun_less_zero:
      "[| f -- c --> (l::real); l < 0 |]  
       ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
-apply (auto simp add: LIM_eq)
-apply (drule_tac x = "-l/2" in spec, safe, force)
+apply (drule LIM_D [where r="-l"], simp, clarify)
 apply (rule_tac x = s in exI)
-apply (auto simp only: abs_less_iff)
+apply (simp add: abs_less_iff)
 done
-
 
 lemma LIM_fun_not_zero:
      "[| f -- c --> (l::real); l \<noteq> 0 |] 
       ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
-apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
-apply (drule LIM_fun_less_zero)
-apply (drule_tac [3] LIM_fun_gt_zero)
-apply force+
+apply (rule linorder_cases [of l 0])
+apply (drule (1) LIM_fun_less_zero, force)
+apply simp
+apply (drule (1) LIM_fun_gt_zero, force)
 done
 
 end
