@@ -1100,8 +1100,7 @@ lemma continuous_on_component: "continuous_on s (\<lambda>x. x $ i)"
 unfolding continuous_on_def by (intro ballI tendsto_intros)
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
-  unfolding Collect_all_eq
-  by (intro closed_INT ballI closed_Collect_le isCont_const vec_nth.isCont)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
 
 lemma Lim_component_cart:
   fixes f :: "'a \<Rightarrow> 'b::metric_space ^ 'n"
@@ -1287,13 +1286,11 @@ lemma inter_interval_cart: fixes a :: "'a::linorder^'n" shows
 
 lemma closed_interval_left_cart: fixes b::"real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
-  unfolding Collect_all_eq
-  by (intro closed_INT ballI closed_Collect_le isCont_const vec_nth.isCont)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
 
 lemma closed_interval_right_cart: fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
-  unfolding Collect_all_eq
-  by (intro closed_INT ballI closed_Collect_le isCont_const vec_nth.isCont)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
 
 lemma is_interval_cart:"is_interval (s::(real^'n) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i))) \<longrightarrow> x \<in> s)"
@@ -1301,19 +1298,19 @@ lemma is_interval_cart:"is_interval (s::(real^'n) set) \<longleftrightarrow>
 
 lemma closed_halfspace_component_le_cart:
   shows "closed {x::real^'n. x$i \<le> a}"
-  by (intro closed_Collect_le vec_nth.isCont isCont_const)
+  by (simp add: closed_Collect_le)
 
 lemma closed_halfspace_component_ge_cart:
   shows "closed {x::real^'n. x$i \<ge> a}"
-  by (intro closed_Collect_le vec_nth.isCont isCont_const)
+  by (simp add: closed_Collect_le)
 
 lemma open_halfspace_component_lt_cart:
   shows "open {x::real^'n. x$i < a}"
-  by (intro open_Collect_less vec_nth.isCont isCont_const)
+  by (simp add: open_Collect_less)
 
 lemma open_halfspace_component_gt_cart:
   shows "open {x::real^'n. x$i  > a}"
-  by (intro open_Collect_less vec_nth.isCont isCont_const)
+  by (simp add: open_Collect_less)
 
 lemma Lim_component_le_cart: fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$i \<le> b) net"
@@ -1352,8 +1349,7 @@ lemma closed_substandard_cart:
 proof-
   { fix i::'n
     have "closed {x::'a ^ 'n. P i \<longrightarrow> x$i = 0}"
-      by (cases "P i", simp_all,
-        intro closed_Collect_eq vec_nth.isCont isCont_const) }
+      by (cases "P i", simp_all add: closed_Collect_eq) }
   thus ?thesis
     unfolding Collect_all_eq by (simp add: closed_INT)
 qed

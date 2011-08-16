@@ -175,6 +175,8 @@ interpretation inner_right:
   bounded_linear "\<lambda>y::'a::real_inner. inner x y"
   by (rule inner.bounded_linear_right)
 
+declare inner.isCont [simp]
+
 
 subsection {* Class instances *}
 

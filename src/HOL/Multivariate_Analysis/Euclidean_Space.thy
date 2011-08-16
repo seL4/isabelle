@@ -124,6 +124,8 @@ interpretation euclidean_component:
   bounded_linear "\<lambda>x. euclidean_component x i"
   by (rule bounded_linear_euclidean_component)
 
+declare euclidean_component.isCont [simp]
+
 lemma euclidean_eqI:
   fixes x y :: "'a::euclidean_space"
   assumes "\<And>i. i < DIM('a) \<Longrightarrow> x $$ i = y $$ i" shows "x = y"

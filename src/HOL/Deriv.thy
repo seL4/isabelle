@@ -670,7 +670,7 @@ lemma IVT2: "[| f(b::real) \<le> (y::real); y \<le> f(a);
       |] ==> \<exists>x. a \<le> x & x \<le> b & f(x) = y"
 apply (subgoal_tac "- f a \<le> -y & -y \<le> - f b", clarify)
 apply (drule IVT [where f = "%x. - f x"], assumption)
-apply (auto intro: isCont_minus)
+apply simp_all
 done
 
 (*HOL style here: object-level formulations*)
@@ -750,7 +750,7 @@ proof -
       with M1 have M3: "\<forall>x. a \<le> x & x \<le> b --> f x < M"
         by (fastsimp simp add: linorder_not_le [symmetric])
       hence "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. inverse (M - f x)) x"
-        by (auto simp add: isCont_inverse isCont_diff con)
+        by (auto simp add: con)
       from isCont_bounded [OF le this]
       obtain k where k: "!!x. a \<le> x & x \<le> b --> inverse (M - f x) \<le> k" by auto
       have Minv: "!!x. a \<le> x & x \<le> b --> 0 < inverse (M - f (x))"
@@ -1059,8 +1059,8 @@ theorem MVT:
                    (f(b) - f(a) = (b-a) * l)"
 proof -
   let ?F = "%x. f x - ((f b - f a) / (b-a)) * x"
-  have contF: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?F x" using con
-    by (fast intro: isCont_diff isCont_const isCont_mult isCont_ident)
+  have contF: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?F x"
+    using con by (fast intro: isCont_intros)
   have difF: "\<forall>x. a < x \<and> x < b \<longrightarrow> ?F differentiable x"
   proof (clarify)
     fix x::real
@@ -1353,7 +1353,7 @@ lemma lemma_isCont_inj2:
       ==> \<exists>z. \<bar>z-x\<bar> \<le> d & f z < f x"
 apply (insert lemma_isCont_inj
           [where f = "%x. - f x" and g = "%y. g(-y)" and x = x and d = d])
-apply (simp add: isCont_minus linorder_not_le)
+apply (simp add: linorder_not_le)
 done
 
 text{*Show there's an interval surrounding @{term "f(x)"} in
@@ -1509,27 +1509,9 @@ proof -
   let ?h = "\<lambda>x. (f b - f a)*(g x) - (g b - g a)*(f x)"
   from assms have "a < b" by simp
   moreover have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?h x"
-  proof -
-    have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. f b - f a) x" by simp
-    with gc have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. (f b - f a) * g x) x"
-      by (auto intro: isCont_mult)
-    moreover
-    have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. g b - g a) x" by simp
-    with fc have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. (g b - g a) * f x) x"
-      by (auto intro: isCont_mult)
-    ultimately show ?thesis
-      by (fastsimp intro: isCont_diff)
-  qed
-  moreover
-  have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable x"
-  proof -
-    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. f b - f a) differentiable x" by simp
-    with gd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (f b - f a) * g x) differentiable x" by simp
-    moreover
-    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. g b - g a) differentiable x" by simp
-    with fd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (g b - g a) * f x) differentiable x" by simp
-    ultimately show ?thesis by simp
-  qed
+    using fc gc by simp
+  moreover have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable x"
+    using fd gd by simp
   ultimately have "\<exists>l z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" by (rule MVT)
   then obtain l where ldef: "\<exists>z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" ..
   then obtain c where cdef: "a < c \<and> c < b \<and> DERIV ?h c :> l \<and> ?h b - ?h a = (b - a) * l" ..

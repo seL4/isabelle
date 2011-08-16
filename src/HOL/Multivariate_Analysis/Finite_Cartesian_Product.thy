@@ -408,6 +408,8 @@ apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)
 done
 
+declare vec_nth.isCont [simp]
+
 instance vec :: (banach, finite) banach ..
 
 

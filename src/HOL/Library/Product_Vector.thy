@@ -359,6 +359,16 @@ proof (rule topological_tendstoI)
        (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
 qed
 
+lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
+  unfolding isCont_def by (rule tendsto_fst)
+
+lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (f x)) a"
+  unfolding isCont_def by (rule tendsto_snd)
+
+lemma isCont_Pair [simp]:
+  "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
+  unfolding isCont_def by (rule tendsto_Pair)
+
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
 unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
 
@@ -380,10 +390,6 @@ proof (rule metric_CauchyI)
     using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
   then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
 qed
-
-lemma isCont_Pair [simp]:
-  "\<lbrakk>isCont f x; isCont g x\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) x"
-  unfolding isCont_def by (rule tendsto_Pair)
 
 subsection {* Product is a complete metric space *}
 

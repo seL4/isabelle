@@ -5229,37 +5229,37 @@ lemma continuous_on_inner:
   unfolding continuous_on by (rule ballI) (intro tendsto_intros)
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
-  by (intro closed_Collect_le inner.isCont isCont_const isCont_ident)
+  by (simp add: closed_Collect_le)
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
-  by (intro closed_Collect_le inner.isCont isCont_const isCont_ident)
+  by (simp add: closed_Collect_le)
 
 lemma closed_hyperplane: "closed {x. inner a x = b}"
-  by (intro closed_Collect_eq inner.isCont isCont_const isCont_ident)
+  by (simp add: closed_Collect_eq)
 
 lemma closed_halfspace_component_le:
   shows "closed {x::'a::euclidean_space. x$$i \<le> a}"
-  by (intro closed_Collect_le euclidean_component.isCont isCont_const)
+  by (simp add: closed_Collect_le)
 
 lemma closed_halfspace_component_ge:
   shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
-  by (intro closed_Collect_le euclidean_component.isCont isCont_const)
+  by (simp add: closed_Collect_le)
 
 text {* Openness of halfspaces. *}
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
-  by (intro open_Collect_less inner.isCont isCont_const isCont_ident)
+  by (simp add: open_Collect_less)
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
-  by (intro open_Collect_less inner.isCont isCont_const isCont_ident)
+  by (simp add: open_Collect_less)
 
 lemma open_halfspace_component_lt:
   shows "open {x::'a::euclidean_space. x$$i < a}"
-  by (intro open_Collect_less euclidean_component.isCont isCont_const)
+  by (simp add: open_Collect_less)
 
 lemma open_halfspace_component_gt:
   shows "open {x::'a::euclidean_space. x$$i > a}"
-  by (intro open_Collect_less euclidean_component.isCont isCont_const)
+  by (simp add: open_Collect_less)
 
 text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
 
@@ -5297,15 +5297,13 @@ lemma closed_eucl_atMost[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
   shows "closed {.. a}"
   unfolding eucl_atMost_eq_halfspaces
-  by (intro closed_INT ballI closed_Collect_le
-    euclidean_component.isCont isCont_const)
+  by (simp add: closed_INT closed_Collect_le)
 
 lemma closed_eucl_atLeast[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
   shows "closed {a ..}"
   unfolding eucl_atLeast_eq_halfspaces
-  by (intro closed_INT ballI closed_Collect_le
-    euclidean_component.isCont isCont_const)
+  by (simp add: closed_INT closed_Collect_le)
 
 lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
   by (auto intro!: continuous_open_vimage)
