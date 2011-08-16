@@ -43,6 +43,7 @@ imports
   OptionalSugar
   Option_ord
   Permutation
+  Permutations
   Poly_Deriv
   Polynomial
   Preorder

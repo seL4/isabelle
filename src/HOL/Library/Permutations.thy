@@ -593,7 +593,8 @@ qed
 
 lemma permutation_inverse_works: assumes p: "permutation p"
   shows "inv p o p = id" "p o inv p = id"
-using permutation_bijective[OF p] surj_iff bij_def inj_iff by auto
+  using permutation_bijective [OF p]
+  unfolding bij_def inj_iff surj_iff by auto
 
 lemma permutation_inverse_compose:
   assumes p: "permutation p" and q: "permutation q"
