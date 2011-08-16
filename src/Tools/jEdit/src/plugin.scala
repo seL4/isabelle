@@ -190,9 +190,7 @@ object Isabelle
   {
     val master_dir = buffer.getDirectory
     val path = buffer.getSymlinkPath
-    if (VFSManager.getVFSForPath(path).isInstanceOf[FileVFS])
-      (Isabelle_System.posix_path(master_dir), Isabelle_System.posix_path(path))
-    else (master_dir, path)
+    (master_dir, path)
   }
 
 

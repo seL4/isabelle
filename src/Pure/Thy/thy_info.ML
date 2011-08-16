@@ -9,7 +9,6 @@ signature THY_INFO =
 sig
   datatype action = Update | Remove
   val add_hook: (action -> string -> unit) -> unit
-  val base_name: string -> string
   val get_names: unit -> string list
   val status: unit -> unit
   val lookup_theory: string -> theory option
@@ -46,11 +45,6 @@ end;
 
 (** thy database **)
 
-(* base name *)
-
-fun base_name s = Path.implode (Path.base (Path.explode s));
-
-
 (* messages *)
 
 fun loader_msg txt [] = "Theory loader: " ^ txt
@@ -78,6 +72,7 @@ type deps =
 fun make_deps master imports : deps = {master = master, imports = imports};
 
 fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
+fun base_name s = Path.implode (Path.base (Path.explode s));
 
 local
   val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);

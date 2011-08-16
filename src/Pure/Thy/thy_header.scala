@@ -28,7 +28,11 @@ object Thy_Header extends Parse.Parser
 
   /* theory file name */
 
+  private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+
+  def base_name(s: String): String =
+    s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
   def thy_name(s: String): Option[String] =
     s match { case Thy_Name(name) => Some(name) case _ => None }

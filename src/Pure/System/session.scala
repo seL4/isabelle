@@ -191,7 +191,7 @@ class Session(val file_store: Session.File_Store)
 
       def norm_import(s: String): String =
       {
-        val name = Thy_Info.base_name(s)
+        val name = Thy_Header.base_name(s)
         if (thy_load.is_loaded(name)) name
         else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
       }
