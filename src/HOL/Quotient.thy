@@ -603,65 +603,51 @@ lemma id_prs:
 
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  and   Abs :: "('a \<Rightarrow> bool) \<Rightarrow> 'b"
-  and   Rep :: "'b \<Rightarrow> ('a \<Rightarrow> bool)"
+  and   Abs :: "'a set \<Rightarrow> 'b"
+  and   Rep :: "'b \<Rightarrow> 'a set"
   assumes equivp: "part_equivp R"
-  and     rep_prop: "\<And>y. \<exists>x. R x x \<and> Rep y = R x"
+  and     rep_prop: "\<And>y. \<exists>x. R x x \<and> Rep y = Collect (R x)"
   and     rep_inverse: "\<And>x. Abs (Rep x) = x"
-  and     abs_inverse: "\<And>c. (\<exists>x. ((R x x) \<and> (c = R x))) \<Longrightarrow> (Rep (Abs c)) = c"
+  and     abs_inverse: "\<And>c. (\<exists>x. ((R x x) \<and> (c = Collect (R x)))) \<Longrightarrow> (Rep (Abs c)) = c"
   and     rep_inject: "\<And>x y. (Rep x = Rep y) = (x = y)"
 begin
 
 definition
   abs :: "'a \<Rightarrow> 'b"
 where
-  "abs x = Abs (R x)"
+  "abs x = Abs (Collect (R x))"
 
 definition
   rep :: "'b \<Rightarrow> 'a"
 where
-  "rep a = Eps (Rep a)"
+  "rep a = (SOME x. x \<in> Rep a)"
 
-lemma homeier5:
-  assumes a: "R r r"
-  shows "Rep (Abs (R r)) = R r"
-  apply (subst abs_inverse)
-  using a by auto
-
-theorem homeier6:
-  assumes a: "R r r"
-  and b: "R s s"
-  shows "Abs (R r) = Abs (R s) \<longleftrightarrow> R r = R s"
-  by (metis a b homeier5)
-
-theorem homeier8:
+lemma some_collect:
   assumes "R r r"
-  shows "R (Eps (R r)) = R r"
-  using assms equivp[simplified part_equivp_def]
-  apply clarify
-  by (metis assms exE_some)
+  shows "R (SOME x. x \<in> Collect (R r)) = R r"
+  apply simp
+  by (metis assms exE_some equivp[simplified part_equivp_def])
 
 lemma Quotient:
   shows "Quotient R abs rep"
   unfolding Quotient_def abs_def rep_def
   proof (intro conjI allI)
     fix a r s
-    show "Abs (R (Eps (Rep a))) = a"
-      using [[metis_new_skolemizer = false]]
-      by (metis equivp exE_some part_equivp_def rep_inverse rep_prop)
-    show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (R r) = Abs (R s))"
-      by (metis homeier6 equivp[simplified part_equivp_def])
-    show "R (Eps (Rep a)) (Eps (Rep a))" proof -
-      obtain x where r: "R x x" and rep: "Rep a = R x" using rep_prop[of a] by auto
-      have "R (Eps (R x)) x" using homeier8 r by simp
-      then have "R x (Eps (R x))" using part_equivp_symp[OF equivp] by fast
-      then have "R (Eps (R x)) (Eps (R x))" using homeier8[OF r] by simp
-      then show "R (Eps (Rep a)) (Eps (Rep a))" using rep by simp
+    show x: "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)" proof -
+      obtain x where r: "R x x" and rep: "Rep a = Collect (R x)" using rep_prop[of a] by auto
+      have "R (SOME x. x \<in> Rep a) x"  using r rep some_collect by metis
+      then have "R x (SOME x. x \<in> Rep a)" using part_equivp_symp[OF equivp] by fast
+      then show "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)"
+        using part_equivp_transp[OF equivp] by (metis `R (SOME x. x \<in> Rep a) x`)
     qed
-  qed
-
+    have "Collect (R (SOME x. x \<in> Rep a)) = (Rep a)" by (metis some_collect rep_prop)
+    then show "Abs (Collect (R (SOME x. x \<in> Rep a))) = a" using rep_inverse by auto
+    have "R r r \<Longrightarrow> R s s \<Longrightarrow> Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s"
+      by (metis Collect_def abs_inverse)
+    then show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (Collect (R r)) = Abs (Collect (R s)))"
+      using equivp[simplified part_equivp_def] by metis
+    qed
 end
-
 
 subsection {* ML setup *}
 

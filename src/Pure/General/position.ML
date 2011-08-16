@@ -18,6 +18,7 @@ sig
   val none: T
   val start: T
   val file_name: string -> Properties.T
+  val file_only: string -> T
   val file: string -> T
   val line: int -> T
   val line_file: int -> string -> T
@@ -104,6 +105,7 @@ val start = Pos ((1, 1, 0), []);
 fun file_name "" = []
   | file_name name = [(Markup.fileN, name)];
 
+fun file_only name = Pos ((0, 0, 0), file_name name);
 fun file name = Pos ((1, 1, 0), file_name name);
 
 fun line_file i name = Pos ((i, 1, 0), file_name name);

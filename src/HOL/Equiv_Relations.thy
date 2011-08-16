@@ -402,8 +402,8 @@ lemma part_equivp_transp:
   by (erule part_equivpE, erule transpE)
 
 lemma part_equivp_typedef:
-  "part_equivp R \<Longrightarrow> \<exists>d. d \<in> (\<lambda>c. \<exists>x. R x x \<and> c = R x)"
-  by (auto elim: part_equivpE simp add: mem_def)
+  "part_equivp R \<Longrightarrow> \<exists>d. d \<in> {c. \<exists>x. R x x \<and> c = Collect (R x)}"
+  by (auto elim: part_equivpE)
 
 
 text {* Total equivalences *}

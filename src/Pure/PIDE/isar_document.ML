@@ -33,6 +33,7 @@ val _ =
       val await_cancellation = Document.cancel_execution state;
       val (updates, state') = Document.edit old_id new_id edits state;
       val _ = await_cancellation ();
+      val _ = Document.join_commands state';
       val _ =
         Output.status (Markup.markup (Markup.assign new_id)
           (implode (map (Markup.markup_only o Markup.edit) updates)));
