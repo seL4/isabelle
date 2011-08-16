@@ -5152,56 +5152,63 @@ lemma is_interval_univ:
 
 subsection {* Closure of halfspaces and hyperplanes *}
 
+lemma isCont_open_vimage:
+  assumes "\<And>x. isCont f x" and "open s" shows "open (f -` s)"
+proof -
+  from assms(1) have "continuous_on UNIV f"
+    unfolding isCont_def continuous_on_def within_UNIV by simp
+  hence "open {x \<in> UNIV. f x \<in> s}"
+    using open_UNIV `open s` by (rule continuous_open_preimage)
+  thus "open (f -` s)"
+    by (simp add: vimage_def)
+qed
+
+lemma isCont_closed_vimage:
+  assumes "\<And>x. isCont f x" and "closed s" shows "closed (f -` s)"
+  using assms unfolding closed_def vimage_Compl [symmetric]
+  by (rule isCont_open_vimage)
+
 lemma open_Collect_less:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
-  (* FIXME: generalize to topological_space *)
-  assumes f: "\<And>x. continuous (at x) f"
-  assumes g: "\<And>x. continuous (at x) g"
+  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  assumes f: "\<And>x. isCont f x"
+  assumes g: "\<And>x. isCont g x"
   shows "open {x. f x < g x}"
 proof -
   have "open ((\<lambda>x. g x - f x) -` {0<..})"
-    using continuous_sub [OF g f] open_real_greaterThan
-    by (rule continuous_open_vimage [rule_format])
+    using isCont_diff [OF g f] open_real_greaterThan
+    by (rule isCont_open_vimage)
   also have "((\<lambda>x. g x - f x) -` {0<..}) = {x. f x < g x}"
     by auto
   finally show ?thesis .
 qed
 
 lemma closed_Collect_le:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
-  (* FIXME: generalize to topological_space *)
-  assumes f: "\<And>x. continuous (at x) f"
-  assumes g: "\<And>x. continuous (at x) g"
+  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  assumes f: "\<And>x. isCont f x"
+  assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x \<le> g x}"
 proof -
   have "closed ((\<lambda>x. g x - f x) -` {0..})"
-    using continuous_sub [OF g f] closed_real_atLeast
-    by (rule continuous_closed_vimage [rule_format])
+    using isCont_diff [OF g f] closed_real_atLeast
+    by (rule isCont_closed_vimage)
   also have "((\<lambda>x. g x - f x) -` {0..}) = {x. f x \<le> g x}"
     by auto
   finally show ?thesis .
 qed
 
-lemma continuous_at_Pair: (* TODO: move *)
-  assumes f: "continuous (at x) f"
-  assumes g: "continuous (at x) g"
-  shows "continuous (at x) (\<lambda>x. (f x, g x))"
-  using assms unfolding continuous_at by (rule tendsto_Pair)
-
 lemma closed_Collect_eq:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::t2_space"
-  (* FIXME: generalize 'a to topological_space *)
-  assumes f: "\<And>x. continuous (at x) f"
-  assumes g: "\<And>x. continuous (at x) g"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  assumes f: "\<And>x. isCont f x"
+  assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x = g x}"
 proof -
   have "open {(x::'b, y::'b). x \<noteq> y}"
     unfolding open_prod_def by (auto dest!: hausdorff)
   hence "closed {(x::'b, y::'b). x = y}"
     unfolding closed_def split_def Collect_neg_eq .
-  with continuous_at_Pair [OF f g]
+  with isCont_Pair [OF f g]
   have "closed ((\<lambda>x. (f x, g x)) -` {(x, y). x = y})"
-    by (rule continuous_closed_vimage [rule_format])
+    by (rule isCont_closed_vimage)
   also have "\<dots> = {x. f x = g x}" by auto
   finally show ?thesis .
 qed
@@ -5222,41 +5229,37 @@ lemma continuous_on_inner:
   unfolding continuous_on by (rule ballI) (intro tendsto_intros)
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
-  by (intro closed_Collect_le continuous_at_inner continuous_const)
+  by (intro closed_Collect_le inner.isCont isCont_const isCont_ident)
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
-  by (intro closed_Collect_le continuous_at_inner continuous_const)
+  by (intro closed_Collect_le inner.isCont isCont_const isCont_ident)
 
 lemma closed_hyperplane: "closed {x. inner a x = b}"
-  by (intro closed_Collect_eq continuous_at_inner continuous_const)
+  by (intro closed_Collect_eq inner.isCont isCont_const isCont_ident)
 
 lemma closed_halfspace_component_le:
   shows "closed {x::'a::euclidean_space. x$$i \<le> a}"
-  by (intro closed_Collect_le continuous_at_euclidean_component
-    continuous_const)
+  by (intro closed_Collect_le euclidean_component.isCont isCont_const)
 
 lemma closed_halfspace_component_ge:
   shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
-  by (intro closed_Collect_le continuous_at_euclidean_component
-    continuous_const)
+  by (intro closed_Collect_le euclidean_component.isCont isCont_const)
 
 text {* Openness of halfspaces. *}
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
-  by (intro open_Collect_less continuous_at_inner continuous_const)
+  by (intro open_Collect_less inner.isCont isCont_const isCont_ident)
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
-  by (intro open_Collect_less continuous_at_inner continuous_const)
+  by (intro open_Collect_less inner.isCont isCont_const isCont_ident)
 
 lemma open_halfspace_component_lt:
   shows "open {x::'a::euclidean_space. x$$i < a}"
-  by (intro open_Collect_less continuous_at_euclidean_component
-    continuous_const)
+  by (intro open_Collect_less euclidean_component.isCont isCont_const)
 
 lemma open_halfspace_component_gt:
-  shows "open {x::'a::euclidean_space. x$$i  > a}"
-  by (intro open_Collect_less continuous_at_euclidean_component
-    continuous_const)
+  shows "open {x::'a::euclidean_space. x$$i > a}"
+  by (intro open_Collect_less euclidean_component.isCont isCont_const)
 
 text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
 
@@ -5295,14 +5298,14 @@ lemma closed_eucl_atMost[simp, intro]:
   shows "closed {.. a}"
   unfolding eucl_atMost_eq_halfspaces
   by (intro closed_INT ballI closed_Collect_le
-    continuous_at_euclidean_component continuous_const)
+    euclidean_component.isCont isCont_const)
 
 lemma closed_eucl_atLeast[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
   shows "closed {a ..}"
   unfolding eucl_atLeast_eq_halfspaces
   by (intro closed_INT ballI closed_Collect_le
-    continuous_at_euclidean_component continuous_const)
+    euclidean_component.isCont isCont_const)
 
 lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
   by (auto intro!: continuous_open_vimage)
