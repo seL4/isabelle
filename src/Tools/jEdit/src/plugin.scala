@@ -334,8 +334,8 @@ class Plugin extends EBPlugin
       else {
         val vfs = VFSManager.getVFSForPath(master_dir)
         if (vfs.isInstanceOf[FileVFS])
-          MiscUtilities.resolveSymlinks(
-            vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
+          vfs.constructPath(master_dir, Isabelle_System.platform_path(path))
+          // FIXME MiscUtilities.resolveSymlinks (!?)
         else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
       }
     }
