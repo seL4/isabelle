@@ -86,7 +86,6 @@ val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), Entries.empty, 
 val clear_node = map_node (fn (header, _, _) => (header, Entries.empty, empty_exec));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
-fun remove_node name nodes = Graph.del_node name nodes handle Graph.UNDEF _ => nodes;
 fun default_node name = Graph.default_node (name, empty_node);
 fun update_node name f = default_node name #> Graph.map_node name f;
 
@@ -141,10 +140,12 @@ fun edit_nodes (name, node_edit) (Version nodes) =
           |> update_node name (edit_node edits)
       | Header header =>
           let
-            val node = get_node nodes name;
-            val nodes1 = Graph.new_node (name, node) (remove_node name nodes);
             val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
-            val nodes2 = fold default_node parents nodes1;
+            val nodes1 = nodes
+              |> default_node name
+              |> fold default_node parents;
+            val nodes2 = nodes1
+              |> fold (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
             val (header', nodes3) =
               (header, Graph.add_deps_acyclic (name, parents) nodes2)
                 handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
