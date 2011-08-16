@@ -142,21 +142,16 @@ fun edit_nodes (name, node_edit) (Version nodes) =
       | Header header =>
           let
             val node = get_node nodes name;
-            val nodes' = Graph.new_node (name, node) (remove_node name nodes);
-            val parents =
-              (case header of Exn.Res (_, parents, _) => parents | _ => [])
-              |> filter (can (Graph.get_node nodes'));
-            val (header', nodes'') =
-              (header, Graph.add_deps_acyclic (name, parents) nodes')
-                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes')
-                  | Graph.UNDEF d => (Exn.Exn (ERROR ("Undefined theory entry: " ^ quote d)), nodes')
-          in
-            nodes''
-            |> Graph.map_node name (set_header header')
-          end));
+            val nodes1 = Graph.new_node (name, node) (remove_node name nodes);
+            val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
+            val nodes2 = fold default_node parents nodes1;
+            val (header', nodes3) =
+              (header, Graph.add_deps_acyclic (name, parents) nodes2)
+                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
+          in Graph.map_node name (set_header header') nodes3 end));
 
-fun def_node name (Version nodes) = Version (default_node name nodes);
-fun put_node (name, node) (Version nodes) = Version (update_node name (K node) nodes);
+fun put_node (name, node) (Version nodes) =
+  Version (update_node name (K node) nodes);
 
 end;
 
@@ -331,10 +326,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
-    val new_version =
-      old_version
-      |> fold (def_node o #1) edits
-      |> fold edit_nodes edits;
+    val new_version = fold edit_nodes edits old_version;
 
     val updates =
       nodes_of new_version |> Graph.schedule
@@ -352,11 +344,11 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
 
                     val parents =
                       imports |> map (fn import =>
-                        (case AList.lookup (op =) deps import of
-                          SOME parent_future =>
-                            get_theory (Position.file_only (import ^ ".thy"))
-                              (#2 (Future.join parent_future))
-                        | NONE => Thy_Info.get_theory (Thy_Info.base_name import)));
+                        (case Thy_Info.lookup_theory import of
+                          SOME thy => thy
+                        | NONE =>
+                            get_theory (Position.file_only import)
+                              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
                   in Thy_Load.begin_theory dir thy_name imports files parents end
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));

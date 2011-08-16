@@ -9,6 +9,11 @@ package isabelle
 
 object Thy_Info
 {
+  /* base name */
+
+  def base_name(s: String): String = Path.explode(s).base.implode
+
+
   /* protocol messages */
 
   object Loaded_Theory {
