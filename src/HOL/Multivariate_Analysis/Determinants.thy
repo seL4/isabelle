@@ -5,7 +5,9 @@
 header {* Traces, Determinant of square matrices and some properties *}
 
 theory Determinants
-imports Euclidean_Space Permutations
+imports
+  Cartesian_Euclidean_Space
+  "~~/src/HOL/Library/Permutations"
 begin
 
 subsection{* First some facts about products*}
@@ -272,7 +274,7 @@ proof-
     unfolding det_permute_rows[OF p, of ?At] det_transpose ..
   moreover
   have "?Ap = transpose (\<chi> i. transpose A $ p i)"
-    by (simp add: transpose_def Cart_eq)
+    by (simp add: transpose_def vec_eq_iff)
   ultimately show ?thesis by simp
 qed
 
@@ -287,7 +289,7 @@ proof-
   have th1: "of_int (-1) = - 1" by (metis of_int_1 of_int_minus number_of_Min)
   let ?p = "Fun.swap i j id"
   let ?A = "\<chi> i. A $ ?p i"
-  from r have "A = ?A" by (simp add: Cart_eq row_def swap_def)
+  from r have "A = ?A" by (simp add: vec_eq_iff row_def swap_def)
   hence "det A = det ?A" by simp
   moreover have "det A = - det ?A"
     by (simp add: det_permute_rows[OF permutes_swap_id] sign_swap_id ij th1)
@@ -308,7 +310,7 @@ lemma det_zero_row:
   assumes r: "row i A = 0"
   shows "det A = 0"
 using r
-apply (simp add: row_def det_def Cart_eq)
+apply (simp add: row_def det_def vec_eq_iff)
 apply (rule setsum_0')
 apply (auto simp: sign_nz)
 done
@@ -326,7 +328,7 @@ lemma det_row_add:
   shows "det((\<chi> i. if i = k then a i + b i else c i)::'a::comm_ring_1^'n^'n) =
              det((\<chi> i. if i = k then a i else c i)::'a::comm_ring_1^'n^'n) +
              det((\<chi> i. if i = k then b i else c i)::'a::comm_ring_1^'n^'n)"
-unfolding det_def Cart_lambda_beta setsum_addf[symmetric]
+unfolding det_def vec_lambda_beta setsum_addf[symmetric]
 proof (rule setsum_cong2)
   let ?U = "UNIV :: 'n set"
   let ?pU = "{p. p permutes ?U}"
@@ -366,7 +368,7 @@ lemma det_row_mul:
   shows "det((\<chi> i. if i = k then c *s a i else b i)::'a::comm_ring_1^'n^'n) =
              c* det((\<chi> i. if i = k then a i else b i)::'a::comm_ring_1^'n^'n)"
 
-unfolding det_def Cart_lambda_beta setsum_right_distrib
+unfolding det_def vec_lambda_beta setsum_right_distrib
 proof (rule setsum_cong2)
   let ?U = "UNIV :: 'n set"
   let ?pU = "{p. p permutes ?U}"
@@ -495,8 +497,8 @@ by (metis d det_dependent_rows rows_transpose det_transpose)
 (* Multilinearity and the multiplication formula.                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (Cart_lambda f::'a^'n) = (Cart_lambda g :: 'a^'n)"
-  apply (rule iffD1[OF Cart_lambda_unique]) by vector
+lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (vec_lambda f::'a^'n) = (vec_lambda g :: 'a^'n)"
+  apply (rule iffD1[OF vec_lambda_unique]) by vector
 
 lemma det_linear_row_setsum:
   assumes fS: "finite S"
@@ -823,7 +825,7 @@ proof-
   {fix x assume x: "A *v x = b"
   have "x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
     unfolding x[symmetric]
-    using d0 by (simp add: Cart_eq cramer_lemma field_simps)}
+    using d0 by (simp add: vec_eq_iff cramer_lemma field_simps)}
   with xe show ?thesis by auto
 qed
 
@@ -877,9 +879,9 @@ proof-
       have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
         "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
         by simp_all
-      from fd[rule_format, of "basis i" "basis j", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
+      from fd[rule_format, of "cart_basis i" "cart_basis j", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
       have "?A$i$j = ?m1 $ i $ j"
-        by (simp add: inner_vector_def matrix_matrix_mult_def columnvector_def rowvector_def basis_def th0 setsum_delta[OF fU] mat_def)}
+        by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def cart_basis_def th0 setsum_delta[OF fU] mat_def)}
     hence "orthogonal_matrix ?mf" unfolding orthogonal_matrix by vector
     with lf have ?rhs by blast}
   moreover
@@ -967,8 +969,8 @@ lemma isometry_sphere_extend:
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
 proof-
   {fix x y x' y' x0 y0 x0' y0' :: "real ^'n"
-    assume H: "x = norm x *s x0" "y = norm y *s y0"
-    "x' = norm x *s x0'" "y' = norm y *s y0'"
+    assume H: "x = norm x *\<^sub>R x0" "y = norm y *\<^sub>R y0"
+    "x' = norm x *\<^sub>R x0'" "y' = norm y *\<^sub>R y0'"
     "norm x0 = 1" "norm x0' = 1" "norm y0 = 1" "norm y0' = 1"
     "norm(x0' - y0') = norm(x0 - y0)"
     hence *:"x0 \<bullet> y0 = x0' \<bullet> y0' + y0' \<bullet> x0' - y0 \<bullet> x0 " by(simp add: norm_eq norm_eq_1 inner_simps)
@@ -982,7 +984,7 @@ proof-
       apply (simp add: inner_simps smult_conv_scaleR) unfolding *
       by (simp add: field_simps) }
   note th0 = this
-  let ?g = "\<lambda>x. if x = 0 then 0 else norm x *s f (inverse (norm x) *s x)"
+  let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
   {fix x:: "real ^'n" assume nx: "norm x = 1"
     have "?g x = f x" using nx by auto}
   hence thfg: "\<forall>x. norm x = 1 \<longrightarrow> ?g x = f x" by blast
@@ -1004,14 +1006,14 @@ proof-
         by(simp add: field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
-      have th00: "x = norm x *s (inverse (norm x) *s x)" "y = norm y *s (inverse (norm y) *s y)" "norm x *s f ((inverse (norm x) *s x)) = norm x *s f (inverse (norm x) *s x)"
-        "norm y *s f (inverse (norm y) *s y) = norm y *s f (inverse (norm y) *s y)"
-        "norm (inverse (norm x) *s x) = 1"
-        "norm (f (inverse (norm x) *s x)) = 1"
-        "norm (inverse (norm y) *s y) = 1"
-        "norm (f (inverse (norm y) *s y)) = 1"
-        "norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
-        norm (inverse (norm x) *s x - inverse (norm y) *s y)"
+      have th00: "x = norm x *\<^sub>R (inverse (norm x) *\<^sub>R x)" "y = norm y *\<^sub>R (inverse (norm y) *\<^sub>R y)" "norm x *\<^sub>R f ((inverse (norm x) *\<^sub>R x)) = norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
+        "norm y *\<^sub>R f (inverse (norm y) *\<^sub>R y) = norm y *\<^sub>R f (inverse (norm y) *\<^sub>R y)"
+        "norm (inverse (norm x) *\<^sub>R x) = 1"
+        "norm (f (inverse (norm x) *\<^sub>R x)) = 1"
+        "norm (inverse (norm y) *\<^sub>R y) = 1"
+        "norm (f (inverse (norm y) *\<^sub>R y)) = 1"
+        "norm (f (inverse (norm x) *\<^sub>R x) - f (inverse (norm y) *\<^sub>R y)) =
+        norm (inverse (norm x) *\<^sub>R x - inverse (norm y) *\<^sub>R y)"
         using z
         by (auto simp add: vector_smult_assoc field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
