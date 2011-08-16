@@ -86,7 +86,6 @@ val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), Entries.empty, 
 val clear_node = map_node (fn (header, _, _) => (header, Entries.empty, empty_exec));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
-fun remove_node name nodes = Graph.del_node name nodes handle Graph.UNDEF _ => nodes;
 fun default_node name = Graph.default_node (name, empty_node);
 fun update_node name f = default_node name #> Graph.map_node name f;
 
@@ -141,22 +140,19 @@ fun edit_nodes (name, node_edit) (Version nodes) =
           |> update_node name (edit_node edits)
       | Header header =>
           let
-            val node = get_node nodes name;
-            val nodes' = Graph.new_node (name, node) (remove_node name nodes);
-            val parents =
-              (case header of Exn.Res (_, parents, _) => parents | _ => [])
-              |> filter (can (Graph.get_node nodes'));
-            val (header', nodes'') =
-              (header, Graph.add_deps_acyclic (name, parents) nodes')
-                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes')
-                  | Graph.UNDEF d => (Exn.Exn (ERROR ("Undefined theory entry: " ^ quote d)), nodes')
-          in
-            nodes''
-            |> Graph.map_node name (set_header header')
-          end));
+            val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
+            val nodes1 = nodes
+              |> default_node name
+              |> fold default_node parents;
+            val nodes2 = nodes1
+              |> fold (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
+            val (header', nodes3) =
+              (header, Graph.add_deps_acyclic (name, parents) nodes2)
+                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
+          in Graph.map_node name (set_header header') nodes3 end));
 
-fun def_node name (Version nodes) = Version (default_node name nodes);
-fun put_node (name, node) (Version nodes) = Version (update_node name (K node) nodes);
+fun put_node (name, node) (Version nodes) =
+  Version (update_node name (K node) nodes);
 
 end;
 
@@ -331,10 +327,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
-    val new_version =
-      old_version
-      |> fold (def_node o #1) edits
-      |> fold edit_nodes edits;
+    val new_version = fold edit_nodes edits old_version;
 
     val updates =
       nodes_of new_version |> Graph.schedule
@@ -347,16 +340,17 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                   let
                     val (thy_name, imports, uses) = Exn.release (get_header node);
                     (* FIXME provide files via Scala layer *)
-                    val dir = Path.dir (Path.explode name);
-                    val files = map (apfst Path.explode) uses;
+                    val (dir, files) =
+                      if ML_System.platform_is_cygwin then (Path.current, [])
+                      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
 
                     val parents =
                       imports |> map (fn import =>
-                        (case AList.lookup (op =) deps import of
-                          SOME parent_future =>
-                            get_theory (Position.file_only (import ^ ".thy"))
-                              (#2 (Future.join parent_future))
-                        | NONE => Thy_Info.get_theory (Thy_Info.base_name import)));
+                        (case Thy_Info.lookup_theory import of
+                          SOME thy => thy
+                        | NONE =>
+                            get_theory (Position.file_only import)
+                              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
                   in Thy_Load.begin_theory dir thy_name imports files parents end
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));

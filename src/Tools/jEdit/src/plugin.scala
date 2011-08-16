@@ -190,9 +190,7 @@ object Isabelle
   {
     val master_dir = buffer.getDirectory
     val path = buffer.getSymlinkPath
-    if (VFSManager.getVFSForPath(path).isInstanceOf[FileVFS])
-      (Isabelle_System.posix_path(master_dir), Isabelle_System.posix_path(path))
-    else (master_dir, path)
+    (master_dir, path)
   }
 
 
@@ -210,8 +208,8 @@ object Isabelle
           case None =>
             val (master_dir, path) = buffer_path(buffer)
             Thy_Header.thy_name(path) match {
-              case Some((prefix, name)) =>
-                Some(Document_Model.init(session, buffer, master_dir, prefix + name, name))
+              case Some(name) =>
+                Some(Document_Model.init(session, buffer, master_dir, path, name))
               case None => None
             }
         }
@@ -334,8 +332,8 @@ class Plugin extends EBPlugin
       else {
         val vfs = VFSManager.getVFSForPath(master_dir)
         if (vfs.isInstanceOf[FileVFS])
-          vfs.constructPath(master_dir, Isabelle_System.platform_path(path))
-          // FIXME MiscUtilities.resolveSymlinks (!?)
+          MiscUtilities.resolveSymlinks(
+            vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
         else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
       }
     }

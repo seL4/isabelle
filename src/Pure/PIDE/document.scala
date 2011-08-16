@@ -53,9 +53,9 @@ object Document
     case class Edits[A](edits: List[A]) extends Edit[A]
     case class Header[A](header: Node_Header) extends Edit[A]
 
-    def norm_header[A](f: String => String, header: Node_Header): Header[A] =
+    def norm_header[A](f: String => String, g: String => String, header: Node_Header): Header[A] =
       header match {
-        case Exn.Res(h) => Header[A](Exn.capture { h.norm_deps(f) })
+        case Exn.Res(h) => Header[A](Exn.capture { h.norm_deps(f, g) })
         case exn => Header[A](exn)
       }
 

@@ -28,11 +28,16 @@ object Thy_Header extends Parse.Parser
 
   /* theory file name */
 
-  private val Thy_Name = new Regex("""(.*?)([^/\\:]+)\.thy""")
+  private val Base_Name = new Regex(""".*?([^/\\:]+)""")
+  private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
 
-  def thy_name(s: String): Option[(String, String)] =
-    s match { case Thy_Name(prefix, name) => Some((prefix, name)) case _ => None }
+  def base_name(s: String): String =
+    s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
+  def thy_name(s: String): Option[String] =
+    s match { case Thy_Name(name) => Some(name) case _ => None }
+
+  def thy_path(path: Path): Path = path.ext("thy")
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
 
 
@@ -113,7 +118,7 @@ sealed case class Thy_Header(
   def map(f: String => String): Thy_Header =
     Thy_Header(f(name), imports.map(f), uses.map(p => (f(p._1), p._2)))
 
-  def norm_deps(f: String => String): Thy_Header =
-    copy(imports = imports.map(name => f(name)), uses = uses.map(p => (f(p._1), p._2)))
+  def norm_deps(f: String => String, g: String => String): Thy_Header =
+    copy(imports = imports.map(name => f(name)), uses = uses.map(p => (g(p._1), p._2)))
 }
 
