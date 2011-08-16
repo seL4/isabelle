@@ -340,8 +340,9 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                   let
                     val (thy_name, imports, uses) = Exn.release (get_header node);
                     (* FIXME provide files via Scala layer *)
-                    val dir = Path.dir (Path.explode name);
-                    val files = map (apfst Path.explode) uses;
+                    val (dir, files) =
+                      if ML_System.platform_is_cygwin then (Path.current, [])
+                      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
 
                     val parents =
                       imports |> map (fn import =>
