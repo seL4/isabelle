@@ -9,6 +9,8 @@ sig
   val coercion_enabled: bool Config.T
   val add_type_map: term -> Context.generic -> Context.generic
   val add_coercion: term -> Context.generic -> Context.generic
+  val print_coercions: Proof.context -> unit
+  val print_coercion_maps: Proof.context -> unit
   val setup: theory -> theory
 end;
 
@@ -20,7 +22,7 @@ struct
 datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT | INVARIANT_TO of typ;
 
 datatype data = Data of
-  {coes: term Symreltab.table,  (*coercions table*)
+  {coes: (term * term list) Symreltab.table,  (*coercions table*)
    coes_graph: unit Graph.T,  (*coercions graph*)
    tmaps: (term * variance list) Symtab.table};  (*map functions*)
 
@@ -35,7 +37,7 @@ structure Data = Generic_Data
   fun merge
     (Data {coes = coes1, coes_graph = coes_graph1, tmaps = tmaps1},
       Data {coes = coes2, coes_graph = coes_graph2, tmaps = tmaps2}) =
-    make_data (Symreltab.merge (op aconv) (coes1, coes2),
+    make_data (Symreltab.merge (eq_pair (op aconv) (eq_list (op aconv))) (coes1, coes2),
       Graph.merge (op =) (coes_graph1, coes_graph2),
       Symtab.merge (eq_pair (op aconv) (op =)) (tmaps1, tmaps2));
 );
@@ -166,7 +168,6 @@ val strong_unify = unify false;
 
 (* Typ_Graph shortcuts *)
 
-val add_edge = Typ_Graph.add_edge_acyclic;
 fun get_preds G T = Typ_Graph.all_preds G [T];
 fun get_succs G T = Typ_Graph.all_succs G [T];
 fun maybe_new_typnode T G = perhaps (try (Typ_Graph.new_node (T, ()))) G;
@@ -314,7 +315,7 @@ fun process_constraints ctxt err cs tye_idx =
               | INVARIANT_TO T => (cs, unify_list [T, fst constraint, snd constraint] tye_idx
                   handle NO_UNIFIER (msg, _) =>
                     err_list ctxt (gen_msg err
-                      "failed to unify invariant arguments w.r.t. to the known map function")
+                      "failed to unify invariant arguments w.r.t. to the known map function" ^ msg)
                       (fst tye_idx) Ts)
               | INVARIANT => (cs, strong_unify ctxt constraint tye_idx
                   handle NO_UNIFIER (msg, _) =>
@@ -459,7 +460,7 @@ fun process_constraints ctxt err cs tye_idx =
         else
           let
             val G' = maybe_new_typnodes [T, U] G;
-            val (G'', tye_idx') = (add_edge (T, U) G', tye_idx)
+            val (G'', tye_idx') = (Typ_Graph.add_edge_acyclic (T, U) G', tye_idx)
               handle Typ_Graph.CYCLES cycles =>
                 let
                   val (tye, idx) =
@@ -594,7 +595,7 @@ fun gen_coercion ctxt tye (T1, T2) =
         else
           (case Symreltab.lookup (coes_of ctxt) (a, b) of
             NONE => raise Fail (a ^ " is not a subtype of " ^ b)
-          | SOME co => co)
+          | SOME (co, _) => co)
   | ((Type (a, Ts)), (Type (b, Us))) =>
         if a <> b
         then raise Fail ("Different constructors: " ^ a ^ " and " ^ b)
@@ -605,7 +606,7 @@ fun gen_coercion ctxt tye (T1, T2) =
                 (((Term.add_tvar_namesT (fastype_of t) []) ~~ rev Ts), []) t;
             fun sub_co (COVARIANT, TU) = SOME (gen_coercion ctxt tye TU)
               | sub_co (CONTRAVARIANT, TU) = SOME (gen_coercion ctxt tye (swap TU))
-              | sub_co (INVARIANT_TO T, _) = NONE;
+              | sub_co (INVARIANT_TO _, _) = NONE;
             fun ts_of [] = []
               | ts_of (Type ("fun", [x1, x2]) :: xs) = x1 :: x2 :: (ts_of xs);
           in
@@ -728,11 +729,11 @@ fun add_type_map raw_t context =
     val ctxt = Context.proof_of context;
     val t = singleton (Variable.polymorphic ctxt) raw_t;
 
-    fun err_str t = "\n\nThe provided function has the type\n" ^
+    fun err_str t = "\n\nThe provided function has the type:\n" ^
       Syntax.string_of_typ ctxt (fastype_of t) ^
-      "\n\nThe general type signature of a map function is" ^
+      "\n\nThe general type signature of a map function is:" ^
       "\nf1 => f2 => ... => fn => C [x1, ..., xn] => C [y1, ..., yn]" ^
-      "\nwhere C is a constructor and fi is of type (xi => yi) or (yi => xi)";
+      "\nwhere C is a constructor and fi is of type (xi => yi) or (yi => xi).";
 
     val ((fis, T1), T2) = apfst split_last (strip_type (fastype_of t))
       handle Empty => error ("Not a proper map function:" ^ err_str t);
@@ -766,13 +767,22 @@ fun add_type_map raw_t context =
     map_tmaps (Symtab.update (snd res, (t, res_av))) context
   end;
 
+fun transitive_coercion tab G (a, b) =
+  let
+    val path = hd (Graph.irreducible_paths G (a, b));
+    val path' = fst (split_last path) ~~ tl path;
+    val coercions = map (fst o the o Symreltab.lookup tab) path';
+  in (Abs (Name.uu, Type (a, []),
+      fold (fn t => fn u => t $ u) coercions (Bound 0)), coercions)
+  end;
+
 fun add_coercion raw_t context =
   let
     val ctxt = Context.proof_of context;
     val t = singleton (Variable.polymorphic ctxt) raw_t;
 
-    fun err_coercion () = error ("Bad type for coercion " ^
-        Syntax.string_of_term ctxt t ^ ":\n" ^
+    fun err_coercion () = error ("Bad type for a coercion:\n" ^
+        Syntax.string_of_term ctxt t ^ " :: " ^
         Syntax.string_of_typ ctxt (fastype_of t));
 
     val (T1, T2) = Term.dest_funT (fastype_of t)
@@ -792,30 +802,107 @@ fun add_coercion raw_t context =
       let
         val G' = maybe_new_nodes [a, b] G
         val G'' = Graph.add_edge_trans_acyclic (a, b) G'
-          handle Graph.CYCLES _ => error (a ^ " is already a subtype of " ^ b ^
-            "!\n\nCannot add coercion of type: " ^ a ^ " => " ^ b);
+          handle Graph.CYCLES _ => error (
+            Syntax.string_of_typ ctxt T1 ^ " is already a subtype of " ^
+            Syntax.string_of_typ ctxt T2 ^ "!\n\nCannot add coercion of type: " ^
+            Syntax.string_of_typ ctxt (T1 --> T2));
         val new_edges =
           flat (Graph.dest G'' |> map (fn (x, ys) => ys |> map_filter (fn y =>
             if Graph.is_edge G' (x, y) then NONE else SOME (x, y))));
         val G_and_new = Graph.add_edge (a, b) G';
 
-        fun complex_coercion tab G (a, b) =
-          let
-            val path = hd (Graph.irreducible_paths G (a, b))
-            val path' = fst (split_last path) ~~ tl path
-          in Abs (Name.uu, Type (a, []),
-              fold (fn t => fn u => t $ u) (map (the o Symreltab.lookup tab) path') (Bound 0))
-          end;
-
         val tab' = fold
-          (fn pair => fn tab => Symreltab.update (pair, complex_coercion tab G_and_new pair) tab)
+          (fn pair => fn tab =>
+            Symreltab.update (pair, transitive_coercion tab G_and_new pair) tab)
           (filter (fn pair => pair <> (a, b)) new_edges)
-          (Symreltab.update ((a, b), t) tab);
+          (Symreltab.update ((a, b), (t, [])) tab);
       in
         (tab', G'')
       end;
   in
     map_coes_and_graph coercion_data_update context
+  end;
+
+fun delete_coercion raw_t context =
+  let
+    val ctxt = Context.proof_of context;
+    val t = singleton (Variable.polymorphic ctxt) raw_t;
+
+    fun err_coercion the = error ("Not" ^
+        (if the then " the defined " else  " a ") ^ "coercion:\n" ^
+        Syntax.string_of_term ctxt t ^ " :: " ^
+        Syntax.string_of_typ ctxt (fastype_of t));
+
+    val (T1, T2) = Term.dest_funT (fastype_of t)
+      handle TYPE _ => err_coercion false;
+
+    val a =
+      (case T1 of
+        Type (x, []) => x
+      | _ => err_coercion false);
+
+    val b =
+      (case T2 of
+        Type (x, []) => x
+      | _ => err_coercion false);
+
+    fun delete_and_insert tab G =
+      let
+        val pairs =
+          Symreltab.fold (fn ((a, b), (_, ts)) => fn pairs =>
+            if member (op aconv) ts t then (a, b) :: pairs else pairs) tab [(a, b)];
+        fun delete pair (G, tab) = (Graph.del_edge pair G, Symreltab.delete_safe pair tab);
+        val (G', tab') = fold delete pairs (G, tab);
+        fun reinsert pair (G, xs) = (case (Graph.irreducible_paths G pair) of
+              [] => (G, xs)
+            | _ => (Graph.add_edge pair G, (pair, transitive_coercion tab' G' pair) :: xs));
+        val (G'', ins) = fold reinsert pairs (G', []);
+      in
+        (fold Symreltab.update ins tab', G'')
+      end
+
+    fun show_term t = Pretty.block [Syntax.pretty_term ctxt t,
+      Pretty.str " :: ", Syntax.pretty_typ ctxt (fastype_of t)]
+
+    fun coercion_data_update (tab, G) =
+        (case Symreltab.lookup tab (a, b) of
+          NONE => err_coercion false
+        | SOME (t', []) => if t aconv t'
+            then delete_and_insert tab G
+            else err_coercion true
+        | SOME (t', ts) => if t aconv t'
+            then error ("Cannot delete the automatically derived coercion:\n" ^
+              Syntax.string_of_term ctxt t ^ " :: " ^
+              Syntax.string_of_typ ctxt (fastype_of t) ^
+              Pretty.string_of (Pretty.big_list "\n\nDeleting one of the coercions:"
+                (map show_term ts)) ^
+              "\nwill also remove the transitive coercion.")
+            else err_coercion true);
+  in
+    map_coes_and_graph coercion_data_update context
+  end;
+
+fun print_coercions ctxt =
+  let
+    fun show_coercion ((a, b), (t, _)) = Pretty.block [
+      Syntax.pretty_typ ctxt (Type (a, [])),
+      Pretty.brk 1, Pretty.str "<:", Pretty.brk 1,
+      Syntax.pretty_typ ctxt (Type (b, [])),
+      Pretty.brk 3, Pretty.block [Pretty.str "using", Pretty.brk 1,
+      Pretty.quote (Syntax.pretty_term ctxt t)]];
+  in
+    Pretty.big_list "Coercions:" (map show_coercion (Symreltab.dest (coes_of ctxt)))
+    |> Pretty.writeln
+  end;
+
+fun print_coercion_maps ctxt =
+  let
+    fun show_map (x, (t, _)) = Pretty.block [
+      Pretty.str x, Pretty.str ":", Pretty.brk 1,
+      Pretty.quote (Syntax.pretty_term ctxt t)];
+  in
+    Pretty.big_list "Coercion maps:" (map show_map (Symtab.dest (tmaps_of ctxt)))
+    |> Pretty.writeln
   end;
 
 
@@ -826,8 +913,21 @@ val setup =
   Attrib.setup @{binding coercion}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
     "declaration of new coercions" #>
+  Attrib.setup @{binding coercion_delete}
+    (Args.term >> (fn t => Thm.declaration_attribute (K (delete_coercion t))))
+    "deletion of coercions" #>
   Attrib.setup @{binding coercion_map}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
     "declaration of new map functions";
+
+
+(* outer syntax commands *)
+
+val _ =
+  Outer_Syntax.improper_command "print_coercions" "print all coercions" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)))
+val _ =
+  Outer_Syntax.improper_command "print_coercion_maps" "print all coercion maps" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_coercion_maps o Toplevel.context_of)))
 
 end;
