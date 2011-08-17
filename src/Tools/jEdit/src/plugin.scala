@@ -316,6 +316,24 @@ object Isabelle
     }
     session.start(timeout, modes ::: List(logic))
   }
+
+
+  /* convenience actions */
+
+  private def user_input(text_area: JEditTextArea, s1: String, s2: String = "")
+  {
+    s1.foreach(text_area.userInput(_))
+    s2.foreach(text_area.userInput(_))
+    s2.foreach(_ => text_area.goToPrevCharacter(false))
+  }
+
+  def input_sub(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.sub_decoded)
+  def input_sup(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.sup_decoded)
+  def input_isub(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.isub_decoded)
+  def input_isup(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.isup_decoded)
+  def input_bsub(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bsub_decoded, Symbol.esub_decoded)
+  def input_bsup(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bsup_decoded, Symbol.esup_decoded)
+  def input_bold(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bold_decoded)
 }
 
 

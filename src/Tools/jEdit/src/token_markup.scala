@@ -107,11 +107,11 @@ object Token_Markup
 
   def extended_styles(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
-    // FIXME Symbol.is_bsub_decoded etc.
+    // FIXME Symbol.bsub_decoded etc.
     def ctrl_style(sym: String): Option[Byte => Byte] =
-      if (Symbol.is_subscript_decoded(sym)) Some(subscript(_))
-      else if (Symbol.is_superscript_decoded(sym)) Some(superscript(_))
-      else if (Symbol.is_bold_decoded(sym)) Some(bold(_))
+      if (sym == Symbol.sub_decoded || sym == Symbol.isub_decoded) Some(subscript(_))
+      else if (sym == Symbol.sup_decoded || sym == Symbol.isup_decoded) Some(superscript(_))
+      else if (sym == Symbol.bold_decoded) Some(bold(_))
       else None
 
     var result = Map[Text.Offset, Byte => Byte]()

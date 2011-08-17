@@ -83,13 +83,15 @@ object HTML
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
             if (s1 == "\n") add(XML.elem(BR))
-            else if (Symbol.is_bsub_decoded(s1)) t ++= s1  // FIXME
-            else if (Symbol.is_esub_decoded(s1)) t ++= s1  // FIXME
-            else if (Symbol.is_bsup_decoded(s1)) t ++= s1  // FIXME
-            else if (Symbol.is_esup_decoded(s1)) t ++= s1  // FIXME
-            else if (Symbol.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
-            else if (Symbol.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
-            else if (Symbol.is_bold_decoded(s1)) { add(hidden(s1)); add(bold(s2())) }
+            else if (s1 == Symbol.sub_decoded || s1 == Symbol.isub_decoded)
+              { add(hidden(s1)); add(sub(s2())) }
+            else if (s1 == Symbol.sup_decoded || s1 == Symbol.isup_decoded)
+              { add(hidden(s1)); add(sup(s2())) }
+            else if (s1 == Symbol.bsub_decoded) t ++= s1  // FIXME
+            else if (s1 == Symbol.esub_decoded) t ++= s1  // FIXME
+            else if (s1 == Symbol.bsup_decoded) t ++= s1  // FIXME
+            else if (s1 == Symbol.esup_decoded) t ++= s1  // FIXME
+            else if (s1 == Symbol.bold_decoded) { add(hidden(s1)); add(bold(s2())) }
             else if (Symbol.fonts.isDefinedAt(s1)) { add(user_font(Symbol.fonts(s1), s1)) }
             else t ++= s1
           }

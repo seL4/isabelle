@@ -37,6 +37,11 @@ options.isabelle.startup-timeout=25.0
 options.isabelle.auto-start.title=Auto Start
 options.isabelle.auto-start=true
 
+#actions
+isabelle.input-isub.shortcut=C+e DOWN
+isabelle.input-isup.shortcut=C+e UP
+isabelle.input-bold.shortcut=C+e RIGHT
+
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.raw-output-panel isabelle.protocol-panel

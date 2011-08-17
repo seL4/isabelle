@@ -356,14 +356,15 @@ object Symbol
     val ctrl_decoded: Set[Symbol] =
       Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
 
-    val subscript_decoded = Set(decode("\\<^sub>"), decode("\\<^isub>"))
-    val superscript_decoded = Set(decode("\\<^sup>"), decode("\\<^isup>"))
-
-    val bold_decoded = decode("\\<^bold>")
+    val sub_decoded = decode("\\<^sub>")
+    val sup_decoded = decode("\\<^sup>")
+    val isub_decoded = decode("\\<^isub>")
+    val isup_decoded = decode("\\<^isup>")
     val bsub_decoded = decode("\\<^bsub>")
     val esub_decoded = decode("\\<^esub>")
     val bsup_decoded = decode("\\<^bsup>")
     val esup_decoded = decode("\\<^esup>")
+    val bold_decoded = decode("\\<^bold>")
   }
 
 
@@ -401,11 +402,13 @@ object Symbol
   def is_controllable(sym: Symbol): Boolean =
     !is_blank(sym) && !is_ctrl(sym) && !is_malformed(sym)
 
-  def is_subscript_decoded(sym: Symbol): Boolean = symbols.subscript_decoded.contains(sym)
-  def is_superscript_decoded(sym: Symbol): Boolean = symbols.superscript_decoded.contains(sym)
-  def is_bold_decoded(sym: Symbol): Boolean = sym == symbols.bold_decoded
-  def is_bsub_decoded(sym: Symbol): Boolean = sym == symbols.bsub_decoded
-  def is_esub_decoded(sym: Symbol): Boolean = sym == symbols.esub_decoded
-  def is_bsup_decoded(sym: Symbol): Boolean = sym == symbols.bsup_decoded
-  def is_esup_decoded(sym: Symbol): Boolean = sym == symbols.esup_decoded
+  def sub_decoded: Symbol = symbols.sub_decoded
+  def sup_decoded: Symbol = symbols.sup_decoded
+  def isub_decoded: Symbol = symbols.isub_decoded
+  def isup_decoded: Symbol = symbols.isup_decoded
+  def bsub_decoded: Symbol = symbols.bsub_decoded
+  def esub_decoded: Symbol = symbols.esub_decoded
+  def bsup_decoded: Symbol = symbols.bsup_decoded
+  def esup_decoded: Symbol = symbols.esup_decoded
+  def bold_decoded: Symbol = symbols.bold_decoded
 }

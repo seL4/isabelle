@@ -22,4 +22,40 @@
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.input-sub">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_sub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-sup">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_sup(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-isub">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_isub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-isup">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_isup(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-bsub">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_bsub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-bsup">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_bsup(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-bold">
+	  <CODE>
+	    isabelle.jedit.Isabelle.input_bold(textArea);
+	  </CODE>
+	</ACTION>
+
 </ACTIONS>
