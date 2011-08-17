@@ -58,18 +58,18 @@ ML {*
 (* FIXME does not handle "_idtdummy" *)
 (* FIXME should use Syntax_Trans.mark_bound(T), Syntax_Trans.variant_abs' *)
 
-fun let_tr [Free(id,T),a,b] = Const(@{const_syntax let},dummyT) $ a $ absfree(id,T,b);
+fun let_tr [Free x, a, b] = Const(@{const_syntax let},dummyT) $ a $ absfree x b;
 fun let_tr' [a,Abs(id,T,b)] =
      let val (id',b') = Syntax_Trans.variant_abs(id,T,b)
      in Const(@{syntax_const "_let"},dummyT) $ Free(id',T) $ a $ b' end;
 
-fun letrec_tr [Free(f,S),Free(x,T),a,b] =
-      Const(@{const_syntax letrec},dummyT) $ absfree(x,T,absfree(f,S,a)) $ absfree(f,S,b);
-fun letrec2_tr [Free(f,S),Free(x,T),Free(y,U),a,b] =
-      Const(@{const_syntax letrec2},dummyT) $ absfree(x,T,absfree(y,U,absfree(f,S,a))) $ absfree(f,S,b);
-fun letrec3_tr [Free(f,S),Free(x,T),Free(y,U),Free(z,V),a,b] =
-      Const(@{const_syntax letrec3},dummyT) $
-        absfree(x,T,absfree(y,U,absfree(z,U,absfree(f,S,a)))) $ absfree(f,S,b);
+fun letrec_tr [Free f, Free x, a, b] =
+      Const(@{const_syntax letrec}, dummyT) $ absfree x (absfree f a) $ absfree f b;
+fun letrec2_tr [Free f, Free x, Free y, a, b] =
+      Const(@{const_syntax letrec2}, dummyT) $ absfree x (absfree y (absfree f a)) $ absfree f b;
+fun letrec3_tr [Free f, Free x, Free y, Free z, a, b] =
+      Const(@{const_syntax letrec3}, dummyT) $
+        absfree x (absfree y (absfree z (absfree f a))) $ absfree f b;
 
 fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
      let val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)

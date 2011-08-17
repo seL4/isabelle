@@ -70,7 +70,7 @@ fun mk_none_continuation (x, y) =
   end
 
 fun mk_unit_let (x, y) =
-  Const (@{const_name "Let"}, @{typ "unit => (unit => unit) => unit"}) $ x $ (absdummy (@{typ unit}, y))
+  Const (@{const_name "Let"}, @{typ "unit => (unit => unit) => unit"}) $ x $ absdummy @{typ unit} y
   
 (* handling inductive datatypes *)
 
@@ -113,14 +113,14 @@ fun mk_equation_terms generics (descr, vs, Ts) =
     map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   end
 
-fun gen_mk_call c T =  (T, fn t => c T $ absdummy (T, t) $ size_pred)
+fun gen_mk_call c T =  (T, fn t => c T $ absdummy T t $ size_pred)
 
 fun gen_mk_aux_call functerms fTs (k, _) (tyco, Ts) =
   let
     val T = Type (tyco, Ts)
     val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
   in
-   (T, fn t => nth functerms k $ absdummy (T, t) $ size_pred)
+   (T, fn t => nth functerms k $ absdummy T t $ size_pred)
   end
 
 fun gen_mk_consexpr test_function functerms simpleT (c, xs) =
@@ -184,18 +184,18 @@ fun mk_full_equations functerms =
           Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
             full_exhaustiveT T)
       in
-        (T, (fn t => full_exhaustive $
+        (T, fn t => full_exhaustive $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
-          $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
+          $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_aux_call fTs (k, _) (tyco, Ts) =
       let
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-        (T, (fn t => nth functerms k $
+        (T, fn t => nth functerms k $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
-            $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
+            $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -209,7 +209,7 @@ fun mk_full_equations functerms =
           bounds (Eval_Const $ HOLogic.mk_literal c $ HOLogic.mk_typerep (Ts ---> simpleT))
         val start_term = test_function simpleT $ 
         (HOLogic.pair_const simpleT @{typ "unit => Code_Evaluation.term"}
-          $ (list_comb (constr, bounds)) $ absdummy (@{typ unit}, term))
+          $ (list_comb (constr, bounds)) $ absdummy @{typ unit} term)
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
         @{term "If :: bool => term list option => term list option => term list option"}
@@ -382,7 +382,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
 
 fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
-    ((mk_generator_expr, absdummy (@{typ "code_numeral"}, @{term "None :: term list option"})),
+    ((mk_generator_expr, absdummy @{typ "code_numeral"} @{term "None :: term list option"}),
       @{typ "code_numeral => term list option"})
 
 fun mk_validator_expr ctxt t =
@@ -412,9 +412,9 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
     val return = @{term "Some :: term list => term list option"} $
       (HOLogic.mk_list @{typ "term"}
         (replicate (length frees + length eval_terms) dummy_term))
-    val wrap = absdummy (@{typ bool},
-      @{term "If :: bool => term list option => term list option => term list option"} $
-      Bound 0 $ @{term "None :: term list option"} $ return)
+    val wrap = absdummy @{typ bool}
+      (@{term "If :: bool => term list option => term list option => term list option"} $
+        Bound 0 $ @{term "None :: term list option"} $ return)
   in HOLogic.mk_comp (wrap, mk_validator_expr ctxt t) end
   
 (** generator compiliation **)

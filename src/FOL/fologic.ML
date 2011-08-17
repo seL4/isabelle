@@ -76,10 +76,10 @@ fun dest_eq (Const (@{const_name eq}, _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun all_const T = Const (@{const_name All}, [T --> oT] ---> oT);
-fun mk_all (Free(x,T),P) = all_const T $ (absfree (x,T,P));
+fun mk_all (Free (x, T), P) = all_const T $ absfree (x, T) P;
 
 fun exists_const T = Const (@{const_name Ex}, [T --> oT] ---> oT);
-fun mk_exists (Free(x,T),P) = exists_const T $ (absfree (x,T,P));
+fun mk_exists (Free (x, T), P) = exists_const T $ absfree (x, T) P;
 
 
 (* binary oprations and relations *)

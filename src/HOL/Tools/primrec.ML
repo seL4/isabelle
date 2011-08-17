@@ -154,8 +154,8 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
             val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
               (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                 handle PrimrecError (s, NONE) => primrec_error_eqn s eq
-          in (fnames'', fnss'',
-              (list_abs_free (cargs' @ subs @ ls @ rs, rhs')) :: fns)
+          in
+            (fnames'', fnss'', fold_rev absfree (cargs' @ subs @ ls @ rs) rhs' :: fns)
           end)
 
   in

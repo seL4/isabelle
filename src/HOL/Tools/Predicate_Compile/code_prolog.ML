@@ -1017,7 +1017,7 @@ val active = Attrib.setup_config_bool @{binding quickcheck_prolog_active} (K tru
 
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
-    val t' = list_abs_free (Term.add_frees t [], t)
+    val t' = fold_rev absfree (Term.add_frees t []) t
     val options = code_options_of (Proof_Context.theory_of ctxt)
     val thy = Theory.copy (Proof_Context.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =

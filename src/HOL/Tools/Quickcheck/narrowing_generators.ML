@@ -340,10 +340,11 @@ fun finitize_functions (xTs, t) =
       in
         case dT of
           Type (@{type_name fun}, _) =>
-            (fn t => absdummy (dT, rt' (mk_eval_cfun dT rT' $ incr_boundvars 1 t $ Bound 0)),
-            Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT']))
-        | _ => (fn t => absdummy (dT, rt' (mk_eval_ffun dT rT' $ incr_boundvars 1 t $ Bound 0)),
-            Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT']))
+            (fn t => absdummy dT (rt' (mk_eval_cfun dT rT' $ incr_boundvars 1 t $ Bound 0)),
+              Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT']))
+        | _ =>
+            (fn t => absdummy dT (rt' (mk_eval_ffun dT rT' $ incr_boundvars 1 t $ Bound 0)),
+              Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT']))
       end
       | eval_function T = (I, T)
     val (tt, boundTs') = split_list (map eval_function boundTs)
@@ -432,7 +433,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
       end
     else
       let
-        val t' = Term.list_abs_free (Term.add_frees t [], t)
+        val t' = fold_rev absfree (Term.add_frees t []) t
         fun wrap f t = list_abs (f (strip_abs t))
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =

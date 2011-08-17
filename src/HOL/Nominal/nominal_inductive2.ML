@@ -187,7 +187,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         fun mk s =
           let
             val t = Syntax.read_term ctxt' s;
-            val t' = list_abs_free (params, t) |>
+            val t' = fold_rev absfree params t |>
               funpow (length params) (fn Abs (_, _, t) => t)
           in (t', HOLogic.dest_setT (fastype_of t)) end
           handle TERM _ =>

@@ -658,7 +658,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     fun goal_concl k xs (Const ("all", _) $ Abs (a, T, B)) = goal_concl k ((a, T) :: xs) B
       | goal_concl 0 xs B =
           if not (Term.exists_subterm (fn t => t aconv v) B) then NONE
-          else SOME (xs, Term.absfree (x, T, Term.incr_boundvars 1 B))
+          else SOME (xs, absfree (x, T) (Term.incr_boundvars 1 B))
       | goal_concl k xs (Const ("==>", _) $ _ $ B) = goal_concl (k - 1) xs B
       | goal_concl _ _ _ = NONE;
   in

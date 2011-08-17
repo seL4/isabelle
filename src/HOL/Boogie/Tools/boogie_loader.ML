@@ -393,7 +393,7 @@ local
     quant "forall" HOLogic.all_const ||
     quant "exists" HOLogic.exists_const ||
     scan_fail "illegal quantifier kind"
-  fun mk_quant q (n, T) t = q T $ Term.absfree (n, T, t)
+  fun mk_quant q (x, T) t = q T $ absfree (x, T) t
 
   val patternT = @{typ "SMT.pattern"}
   fun mk_pattern _ [] = raise TERM ("mk_pattern", [])

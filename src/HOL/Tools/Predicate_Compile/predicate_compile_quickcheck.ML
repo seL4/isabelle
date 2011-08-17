@@ -218,7 +218,7 @@ fun cpu_time description e =
 
 fun compile_term compilation options ctxt t =
   let
-    val t' = list_abs_free (Term.add_frees t [], t)
+    val t' = fold_rev absfree (Term.add_frees t []) t
     val thy = Theory.copy (Proof_Context.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
@@ -269,7 +269,7 @@ fun compile_term compilation options ctxt t =
         | Pos_Generator_DSeq => mk_gen_bind (prog,
             mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
             (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
-        | Depth_Limited_Random => fold_rev (curry absdummy)
+        | Depth_Limited_Random => fold_rev absdummy
             [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
              @{typ "code_numeral * code_numeral"}]
             (mk_bind' (list_comb (prog, map Bound (3 downto 0)),

@@ -125,13 +125,13 @@ fun idtypdummy_ast_tr [ty] = Ast.Appl [Ast.Constant "_constrain", Ast.Constant "
 fun lambda_ast_tr [pats, body] = Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr asts = raise Ast.AST ("lambda_ast_tr", asts);
 
-fun absfree_proper (x, T, t) =
+fun absfree_proper (x, T) t =
   if can Name.dest_internal x
   then error ("Illegal internal variable in abstraction: " ^ quote x)
-  else Term.absfree (x, T, t);
+  else absfree (x, T) t;
 
-fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
-  | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
+fun abs_tr [Free x, t] = absfree_proper x t
+  | abs_tr [Const ("_idtdummy", T), t] = absdummy T t
   | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
       Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);

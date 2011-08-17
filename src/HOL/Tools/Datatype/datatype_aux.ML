@@ -145,7 +145,7 @@ fun indtac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
       (case t1 of
         NONE =>
           (case flt (Misc_Legacy.term_frees t2) of
-            [Free (s, T)] => SOME (absfree (s, T, t2))
+            [Free (s, T)] => SOME (absfree (s, T) t2)
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
     val insts = map_filter (fn (t, u) =>

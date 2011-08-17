@@ -56,9 +56,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
                   val rT = nth (rec_result_Ts) i;
                   val vs' = filter_out is_unit vs;
                   val f = Datatype_Aux.mk_Free "f" (map fastype_of vs' ---> rT) j;
-                  val f' = Envir.eta_contract (list_abs_free
-                    (map dest_Free vs, if member (op =) is i then list_comb (f, vs')
-                      else HOLogic.unit));
+                  val f' = Envir.eta_contract (fold_rev (absfree o dest_Free) vs
+                    (if member (op =) is i then list_comb (f, vs') else HOLogic.unit));
                 in (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
                   (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
                 end

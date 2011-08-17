@@ -68,8 +68,8 @@ fun old_skolem_defs th =
           val args = Misc_Legacy.term_frees body
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
-            list_abs_free (map dest_Free args,
-                           HOLogic.choice_const T $ beta_eta_in_abs_body body)
+            fold_rev (absfree o dest_Free) args
+              (HOLogic.choice_const T $ beta_eta_in_abs_body body)
             |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end

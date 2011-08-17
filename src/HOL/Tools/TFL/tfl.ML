@@ -342,8 +342,7 @@ fun mk_functional thy clauses =
  ("The following clauses are redundant (covered by preceding clauses): " ^
                    commas (map (fn i => string_of_int (i + 1)) L))
  in {functional = Abs(Long_Name.base_name fname, ftype,
-                      abstract_over (atom,
-                                     absfree(aname,atype, case_tm))),
+                      abstract_over (atom, absfree (aname,atype) case_tm)),
      pats = patts2}
 end end;
 

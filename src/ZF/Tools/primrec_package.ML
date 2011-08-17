@@ -105,8 +105,8 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     val cnames         = map (#1 o dest_Const) constructors
     and recursor_pairs = map (dest_eqn o concl_of) rec_rewrites
 
-    fun absterm (Free(a,T), body) = absfree (a,T,body)
-      | absterm (t,body) = Abs("rec", Ind_Syntax.iT, abstract_over (t, body))
+    fun absterm (Free x, body) = absfree x body
+      | absterm (t, body) = Abs("rec", Ind_Syntax.iT, abstract_over (t, body))
 
     (*Translate rec equations into function arguments suitable for recursor.
       Missing cases are replaced by 0 and all cases are put into order.*)

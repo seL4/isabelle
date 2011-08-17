@@ -1678,7 +1678,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               fresh_fs @
           map (fn (((P, T), (x, U)), Q) =>
            (Var ((P, 0), Logic.varifyT_global (fsT' --> T --> HOLogic.boolT)),
-            Abs ("z", HOLogic.unitT, absfree (x, U, Q))))
+            Abs ("z", HOLogic.unitT, absfree (x, U) Q)))
               (pnames ~~ recTs ~~ rec_unique_frees ~~ rec_unique_concls) @
           map (fn (s, T) => (Var ((s, 0), Logic.varifyT_global T), Free (s, T)))
             rec_unique_frees)) induct_aux;
@@ -2017,9 +2017,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (Binding.name (Long_Name.base_name name), rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (Global_Theory.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
-           Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
-             set $ Free ("x", T) $ Free ("y", T'))))))
+          (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T)
+           (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
+             (set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
 
     (* prove characteristic equations for primrec combinators *)

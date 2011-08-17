@@ -207,7 +207,7 @@ fun simproc ss redex =
                 val eqs' = map reverse_bounds eqs
                 val pat_eq' = reverse_bounds pat_eq
                 val inner_t =
-                  fold (fn (v, T) => fn t => HOLogic.exists_const T $ absdummy (T, t))
+                  fold (fn (v, T) => fn t => HOLogic.exists_const T $ absdummy T t)
                     (rev bound_vs) (fold (curry HOLogic.mk_conj) eqs' pat_eq')
                 val lhs = term_of redex
                 val rhs = HOLogic.mk_Collect ("x", rT, inner_t)

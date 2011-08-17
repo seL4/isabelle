@@ -235,7 +235,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Misc_Legacy.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
-           absfree ("rec", @{typ i}, list_comb (case_const, recursor_cases)));
+           absfree ("rec", @{typ i}) (list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)
 

@@ -190,10 +190,11 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
       | fun_of ts rts args used [] =
           let val xs = rev (rts @ ts)
           in if conclT = Extraction.nullT
-            then list_abs_free (map dest_Free xs, HOLogic.unit)
-            else list_abs_free (map dest_Free xs, list_comb
-              (Free ("r" ^ Long_Name.base_name (name_of_thm intr),
-                map fastype_of (rev args) ---> conclT), rev args))
+            then fold_rev (absfree o dest_Free) xs HOLogic.unit
+            else fold_rev (absfree o dest_Free) xs
+              (list_comb
+                (Free ("r" ^ Long_Name.base_name (name_of_thm intr),
+                  map fastype_of (rev args) ---> conclT), rev args))
           end
 
   in fun_of args' [] (rev args) used (Logic.strip_imp_prems rule') end;
@@ -223,10 +224,11 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
         let
           val Type ("fun", [U, _]) = T;
           val a :: names' = names
-        in (list_abs_free (("x", U) :: map_filter (fn intr =>
-          Option.map (pair (name_of_fn intr))
-            (AList.lookup (op =) frees (name_of_fn intr))) intrs,
-          list_comb (Const (a, Ts ---> T), fs) $ Free ("x", U)), names')
+        in
+          (fold_rev absfree (("x", U) :: map_filter (fn intr =>
+            Option.map (pair (name_of_fn intr))
+              (AList.lookup (op =) frees (name_of_fn intr))) intrs)
+            (list_comb (Const (a, Ts ---> T), fs) $ Free ("x", U)), names')
         end
       end) concls rec_names)
   end;

@@ -183,7 +183,7 @@ fun dest_set (Const ("Orderings.bot_class.bot", _)) = []
   | dest_set t = raise TERM ("dest_set", [t]);
 
 fun Collect_const T = Const ("Set.Collect", (T --> boolT) --> mk_setT T);
-fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
+fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T) t;
 
 fun mk_mem (x, A) =
   let val setT = fastype_of A in
@@ -258,11 +258,11 @@ fun dest_eq (Const ("HOL.eq", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun all_const T = Const ("HOL.All", [T --> boolT] ---> boolT);
-fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
+fun mk_all (x, T, P) = all_const T $ absfree (x, T) P;
 fun list_all (xs, t) = fold_rev (fn (x, T) => fn P => all_const T $ Abs (x, T, P)) xs t;
 
 fun exists_const T = Const ("HOL.Ex", [T --> boolT] ---> boolT);
-fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
+fun mk_exists (x, T, P) = exists_const T $ absfree (x, T) P;
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
 

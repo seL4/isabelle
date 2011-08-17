@@ -28,17 +28,21 @@ fun mk_vars (Const (@{const_name Collect},_) $ T) = abs2list T
 
 (** abstraction of body over a tuple formed from a list of free variables.
 Types are also built **)
-fun mk_abstupleC []     body = absfree ("x", HOLogic.unitT, body)
-  | mk_abstupleC (v::w) body = let val (n,T) = dest_Free v
-                               in if w=[] then absfree (n, T, body)
-        else let val z  = mk_abstupleC w body;
-                 val T2 = case z of Abs(_,T,_) => T
-                        | Const (_, Type (_,[_, Type (_,[T,_])])) $ _ => T;
-       in
+fun mk_abstupleC [] body = absfree ("x", HOLogic.unitT) body
+  | mk_abstupleC [v] body = absfree (dest_Free v) body
+  | mk_abstupleC (v :: w) body =
+      let
+        val (x, T) = dest_Free v;
+        val z = mk_abstupleC w body;
+        val T2 =
+          (case z of
+            Abs (_, T, _) => T
+          | Const (_, Type (_, [_, Type (_, [T, _])])) $ _ => T);
+      in
         Const (@{const_name prod_case},
-          (T --> T2 --> HOLogic.boolT) --> HOLogic.mk_prodT (T,T2) --> HOLogic.boolT)
-            $ absfree (n, T, z)
-       end end;
+            (T --> T2 --> HOLogic.boolT) --> HOLogic.mk_prodT (T, T2) --> HOLogic.boolT) $
+          absfree (x, T) z
+      end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
 fun mk_bodyC []      = HOLogic.unit

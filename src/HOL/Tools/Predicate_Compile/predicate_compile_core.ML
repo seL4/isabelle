@@ -524,7 +524,7 @@ val pos_generator_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
          Const (@{const_name "Lazy_Sequence.small_lazy_class.small_lazy"},
          @{typ "Int.int"} --> Type (@{type_name "Lazy_Sequence.lazy_sequence"}, [T])) 
       in
-        absdummy (@{typ code_numeral}, small_lazy $ HOLogic.mk_number @{typ int} 3)
+        absdummy @{typ code_numeral} (small_lazy $ HOLogic.mk_number @{typ int} 3)
       end
     ),
   modify_funT = I,
@@ -580,27 +580,29 @@ fun distinct_v (Free (s, T)) nvs = mk_v nvs s T
 
 (** specific rpred functions -- move them to the correct place in this file *)
 fun mk_Eval_of (P as (Free (f, _)), T) mode =
-let
-  fun mk_bounds (Type (@{type_name Product_Type.prod}, [T1, T2])) i =
-    let
-      val (bs2, i') = mk_bounds T2 i 
-      val (bs1, i'') = mk_bounds T1 i'
-    in
-      (HOLogic.pair_const T1 T2 $ bs1 $ bs2, i'' + 1)
-    end
-    | mk_bounds T i = (Bound i, i + 1)
-  fun mk_prod ((t1, T1), (t2, T2)) = (HOLogic.pair_const T1 T2 $ t1 $ t2, HOLogic.mk_prodT (T1, T2))
-  fun mk_tuple [] = (HOLogic.unit, HOLogic.unitT)
-    | mk_tuple tTs = foldr1 mk_prod tTs;
-  fun mk_split_abs (T as Type (@{type_name Product_Type.prod}, [T1, T2])) t = absdummy (T, HOLogic.split_const (T1, T2, @{typ bool}) $ (mk_split_abs T1 (mk_split_abs T2 t)))
-    | mk_split_abs T t = absdummy (T, t)
-  val args = rev (fst (fold_map mk_bounds (rev (binder_types T)) 0))
-  val (inargs, outargs) = split_mode mode args
-  val (inTs, outTs) = split_map_modeT (fn _ => fn T => (SOME T, NONE)) mode (binder_types T)
-  val inner_term = PredicateCompFuns.mk_Eval (list_comb (P, inargs), fst (mk_tuple (outargs ~~ outTs)))
-in
-  fold_rev mk_split_abs (binder_types T) inner_term  
-end
+  let
+    fun mk_bounds (Type (@{type_name Product_Type.prod}, [T1, T2])) i =
+          let
+            val (bs2, i') = mk_bounds T2 i 
+            val (bs1, i'') = mk_bounds T1 i'
+          in
+            (HOLogic.pair_const T1 T2 $ bs1 $ bs2, i'' + 1)
+          end
+      | mk_bounds T i = (Bound i, i + 1)
+    fun mk_prod ((t1, T1), (t2, T2)) = (HOLogic.pair_const T1 T2 $ t1 $ t2, HOLogic.mk_prodT (T1, T2))
+    fun mk_tuple [] = (HOLogic.unit, HOLogic.unitT)
+      | mk_tuple tTs = foldr1 mk_prod tTs
+    fun mk_split_abs (T as Type (@{type_name Product_Type.prod}, [T1, T2])) t =
+          absdummy T
+            (HOLogic.split_const (T1, T2, @{typ bool}) $ (mk_split_abs T1 (mk_split_abs T2 t)))
+      | mk_split_abs T t = absdummy T t
+    val args = rev (fst (fold_map mk_bounds (rev (binder_types T)) 0))
+    val (inargs, outargs) = split_mode mode args
+    val (inTs, outTs) = split_map_modeT (fn _ => fn T => (SOME T, NONE)) mode (binder_types T)
+    val inner_term = PredicateCompFuns.mk_Eval (list_comb (P, inargs), fst (mk_tuple (outargs ~~ outTs)))
+  in
+    fold_rev mk_split_abs (binder_types T) inner_term
+  end
 
 fun compile_arg compilation_modifiers additional_arguments ctxt param_modes arg = 
   let
@@ -1831,7 +1833,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
     val t' =
       if stats andalso compilation = New_Pos_Random_DSeq then
         mk_map compfuns T (HOLogic.mk_prodT (HOLogic.termT, @{typ code_numeral}))
-          (absdummy (T, HOLogic.mk_prod (HOLogic.term_of_const T $ Bound 0,
+          (absdummy T (HOLogic.mk_prod (HOLogic.term_of_const T $ Bound 0,
             @{term Code_Numeral.of_nat} $ (HOLogic.size_const T $ Bound 0)))) t
       else
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t

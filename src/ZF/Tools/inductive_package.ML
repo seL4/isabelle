@@ -127,8 +127,8 @@ let
   val part_intrs = map (subst_free (rec_tms ~~ parts) o fp_part) intr_tms;
 
   val fp_abs =
-    absfree (X', Ind_Syntax.iT,
-        Ind_Syntax.mk_Collect (z', dom_sum,
+    absfree (X', Ind_Syntax.iT)
+        (Ind_Syntax.mk_Collect (z', dom_sum,
             Balanced_Tree.make FOLogic.mk_disj part_intrs));
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs

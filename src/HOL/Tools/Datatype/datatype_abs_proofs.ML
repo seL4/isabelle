@@ -201,10 +201,10 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
       let
         val rec_unique_ts = map (fn (((set_t, T1), T2), i) =>
           Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
-            absfree ("y", T2, set_t $ Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
+            absfree ("y", T2) (set_t $ Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
               (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val cert = cterm_of thy1
-        val insts = map (fn ((i, T), t) => absfree ("x" ^ (string_of_int i), T, t))
+        val insts = map (fn ((i, T), t) => absfree ("x" ^ string_of_int i, T) t)
           ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
@@ -238,9 +238,9 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
       |> (Global_Theory.add_defs false o map Thm.no_attributes)
           (map (fn ((((name, comb), set), T), T') =>
             (Binding.name (Long_Name.base_name name ^ "_def"),
-              Logic.mk_equals (comb, absfree ("x", T,
-               Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
-                 set $ Free ("x", T) $ Free ("y", T'))))))
+              Logic.mk_equals (comb, absfree ("x", T)
+               (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
+                 (set $ Free ("x", T) $ Free ("y", T'))))))
                    (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path
       ||> Theory.checkpoint;
@@ -306,8 +306,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
               val frees = take (length cargs) frees';
               val free = Datatype_Aux.mk_Free "f" (Ts ---> T') j
             in
-             (free, list_abs_free (map dest_Free frees',
-               list_comb (free, frees)))
+              (free, fold_rev (absfree o dest_Free) frees' (list_comb (free, frees)))
             end) (constrs ~~ (1 upto length constrs)));
 
           val caseT = (map (snd o dest_Free) fns1) @ [T] ---> T';

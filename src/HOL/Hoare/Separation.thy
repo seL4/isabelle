@@ -68,11 +68,11 @@ fun emp_tr [] = Syntax.const @{const_syntax is_empty} $ Syntax.free "H"
 fun singl_tr [p, q] = Syntax.const @{const_syntax singl} $ Syntax.free "H" $ p $ q
   | singl_tr ts = raise TERM ("singl_tr", ts);
 fun star_tr [P,Q] = Syntax.const @{const_syntax star} $
-      absfree ("H", dummyT, free_tr P) $ absfree ("H", dummyT, free_tr Q) $
+      absfree ("H", dummyT) (free_tr P) $ absfree ("H", dummyT) (free_tr Q) $
       Syntax.free "H"
   | star_tr ts = raise TERM ("star_tr", ts);
 fun wand_tr [P, Q] = Syntax.const @{const_syntax wand} $
-      absfree ("H", dummyT, P) $ absfree ("H", dummyT, Q) $ Syntax.free "H"
+      absfree ("H", dummyT) P $ absfree ("H", dummyT) Q $ Syntax.free "H"
   | wand_tr ts = raise TERM ("wand_tr", ts);
 *}
 

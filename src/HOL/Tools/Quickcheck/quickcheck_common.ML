@@ -112,7 +112,7 @@ fun gen_mk_parametric_generator_expr ((mk_generator_expr, out_of_bounds), T) ctx
       if_t $ (HOLogic.eq_const @{typ code_numeral} $ Bound 0 $ HOLogic.mk_number @{typ code_numeral} index) $
         (mk_generator_expr ctxt (t, eval_terms)) $ else_t
   in
-    absdummy (@{typ "code_numeral"}, fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds)
+    absdummy @{typ "code_numeral"} (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds)
   end
 
 (** post-processing of function terms **)

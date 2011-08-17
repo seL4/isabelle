@@ -163,8 +163,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
                 (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle RecError s => primrec_eq_err lthy s eq
-            in (fnames'', fnss'',
-                (list_abs_free (cargs' @ subs, rhs'))::fns)
+            in (fnames'', fnss'', fold_rev absfree (cargs' @ subs) rhs' :: fns)
             end)
 
   in (case AList.lookup (op =) fnames i of
@@ -209,8 +208,8 @@ fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
     val used = map fst (fold Term.add_frees fs []);
     val x = (singleton (Name.variant_list used) "x", dummyT);
     val frees = ls @ x :: rs;
-    val raw_rhs = list_abs_free (frees,
-      list_comb (Const (rec_name, dummyT), fs @ [Free x]))
+    val raw_rhs = fold_rev absfree frees
+      (list_comb (Const (rec_name, dummyT), fs @ [Free x]))
     val def_name = Thm.def_name (Long_Name.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>

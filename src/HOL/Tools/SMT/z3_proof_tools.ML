@@ -145,7 +145,7 @@ fun lambda_abstract cvs t =
     val frees = map Free (Term.add_frees t [])
     val cvs' = filter (fn cv => member (op aconv) frees (Thm.term_of cv)) cvs
     val vs = map (Term.dest_Free o Thm.term_of) cvs'
-  in (Term.list_abs_free (vs, t), cvs') end
+  in (fold_rev absfree vs t, cvs') end
 
 fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
   let val (t, cvs') = lambda_abstract cvs (Thm.term_of ct)

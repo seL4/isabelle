@@ -634,7 +634,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
                   fun app f =
                     list_comb (f (), map Bound (length arg_Ts - 1 downto 0))
                 in
-                  List.foldr absdummy (connective $ app pos $ app neg) arg_Ts
+                  fold_rev absdummy arg_Ts (connective $ app pos $ app neg)
                 end
             end
           else

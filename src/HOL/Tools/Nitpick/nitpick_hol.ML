@@ -1555,7 +1555,7 @@ fun optimized_case_def (hol_ctxt as {ctxt, stds, ...}) Ts dataT res_T func_ts =
     else
       fst (hd cases) |> fold_rev (add_constr_case res_T) (tl cases)
   end
-  |> curry absdummy dataT
+  |> absdummy dataT
 
 fun optimized_record_get (hol_ctxt as {thy, ctxt, stds, ...}) s rec_T res_T t =
   let val constr_x = hd (datatype_constrs hol_ctxt rec_T) in
@@ -1968,7 +1968,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
           discriminate_value hol_ctxt x y_var ::
           map2 (nth_sub_bisim x) (index_seq 0 (length arg_Ts)) arg_Ts
           |> foldr1 s_conj
-      in List.foldr absdummy core_t arg_Ts end
+      in fold_rev absdummy arg_Ts core_t end
   in
     [HOLogic.mk_imp
        (HOLogic.mk_disj (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T,

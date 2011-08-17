@@ -491,7 +491,7 @@ fun unify_first_prem_with_concl thy i th =
       case strip_comb flex of
         (Var (z as (_, T)), args) =>
         add_terms (Var z,
-          fold_rev (curry absdummy) (take (length args) (binder_types T)) rigid)
+          fold_rev absdummy (take (length args) (binder_types T)) rigid)
       | _ => I
     fun unify_potential_flex comb atom =
       if is_flex comb then unify_flex comb atom
@@ -541,7 +541,7 @@ fun instantiate_forall_tac thy t i st =
            if k > j then t else t $ u
          | (t, u) => t $ u)
       | repair t = t
-    val t' = t |> repair |> fold (curry absdummy) (map snd params)
+    val t' = t |> repair |> fold (absdummy o snd) params
     fun do_instantiate th =
       case Term.add_vars (prop_of th) []
            |> filter_out ((Meson_Clausify.is_zapped_var_name orf

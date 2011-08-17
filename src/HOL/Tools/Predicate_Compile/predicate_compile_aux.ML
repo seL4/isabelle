@@ -914,7 +914,7 @@ fun make_case_distribs new_type_names descr sorts thy =
             val Ts = binder_types (fastype_of f')
             val bs = map Bound ((length Ts - 1) downto 0)
           in
-            fold (curry absdummy) (rev Ts) (f $ (list_comb (f', bs)))
+            fold_rev absdummy Ts (f $ (list_comb (f', bs)))
           end
         val fs' = map apply_f fs
         val case_c' = Const (case_name, (map fastype_of fs') @ [T] ---> U)
@@ -949,7 +949,7 @@ fun instantiated_case_rewrites thy Tcon =
       val T' = TFree (tname', HOLogic.typeS)
       val U = TFree (uname, HOLogic.typeS)
       val y = Free (yname, U)
-      val f' = absdummy (U --> T', Bound 0 $ y)
+      val f' = absdummy (U --> T') (Bound 0 $ y)
       val th' = Thm.certify_instantiate
         ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
          [((fst (dest_Var f), (U --> T') --> T'), f')]) th

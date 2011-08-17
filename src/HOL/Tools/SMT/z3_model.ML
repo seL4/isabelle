@@ -156,11 +156,11 @@ fun mk_update ([], u) _ = u
         val (dT', rT') = Term.dest_funT rT
       in
         mk_fun_upd dT rT $ f $ t $
-          mk_update (ts, u) (Term.absdummy (dT', Const ("_", rT')))
+          mk_update (ts, u) (absdummy dT' (Const ("_", rT')))
       end
 
 fun mk_lambda Ts (t, pats) =
-  fold_rev (curry Term.absdummy) Ts t |> fold mk_update pats
+  fold_rev absdummy Ts t |> fold mk_update pats
 
 fun translate ((t, k), (e, cs)) =
   let

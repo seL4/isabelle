@@ -95,9 +95,8 @@ sig
   val subst_free: (term * term) list -> term -> term
   val abstract_over: term * term -> term
   val lambda: term -> term -> term
-  val absfree: string * typ * term -> term
-  val absdummy: typ * term -> term
-  val list_abs_free: (string * typ) list * term -> term
+  val absfree: string * typ -> term -> term
+  val absdummy: typ -> term -> term
   val list_all_free: (string * typ) list * term -> term
   val list_all: (string * typ) list * term -> term
   val subst_atomic: (term * term) list -> term -> term
@@ -760,24 +759,18 @@ fun lambda_name (x, v) t =
 
 fun lambda v t = lambda_name ("", v) t;
 
-(*Form an abstraction over a free variable.*)
-fun absfree (a,T,body) = Abs (a, T, abstract_over (Free (a, T), body));
-fun absdummy (T, body) = Abs (Name.uu_, T, body);
-
-(*Abstraction over a list of free variables*)
-fun list_abs_free ([ ] ,     t) = t
-  | list_abs_free ((a,T)::vars, t) =
-      absfree(a, T, list_abs_free(vars,t));
+fun absfree (a, T) body = Abs (a, T, abstract_over (Free (a, T), body));
+fun absdummy T body = Abs (Name.uu_, T, body);
 
 (*Quantification over a list of free variables*)
 fun list_all_free ([], t: term) = t
   | list_all_free ((a,T)::vars, t) =
-        (all T) $ (absfree(a, T, list_all_free(vars,t)));
+        all T $ absfree (a, T) (list_all_free (vars, t));
 
 (*Quantification over a list of variables (already bound in body) *)
 fun list_all ([], t) = t
   | list_all ((a,T)::vars, t) =
-        (all T) $ (Abs(a, T, list_all(vars,t)));
+        all T $ Abs (a, T, list_all (vars, t));
 
 (*Replace the ATOMIC term ti by ui;    inst = [(t1,u1), ..., (tn,un)].
   A simultaneous substitution:  [ (a,b), (b,a) ] swaps a and b.  *)

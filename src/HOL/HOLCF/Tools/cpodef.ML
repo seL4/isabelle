@@ -54,7 +54,7 @@ type pcpo_info =
 (* building terms *)
 
 fun adm_const T = Const (@{const_name adm}, (T --> HOLogic.boolT) --> HOLogic.boolT)
-fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P)
+fun mk_adm (x, T, P) = adm_const T $ absfree (x, T) P
 
 fun below_const T = Const (@{const_name below}, T --> T --> HOLogic.boolT)
 

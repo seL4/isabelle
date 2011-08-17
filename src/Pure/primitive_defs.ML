@@ -74,7 +74,7 @@ fun abs_def eq =
     val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
     val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
     val (lhs', args) = Term.strip_comb lhs;
-    val rhs' = Term.list_abs_free (map Term.dest_Free args, rhs);
+    val rhs' = fold_rev (absfree o dest_Free) args rhs;
   in (lhs', rhs') end;
 
 end;

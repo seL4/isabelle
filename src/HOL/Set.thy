@@ -281,7 +281,7 @@ parse_translation {*
         val eq = Syntax.const @{const_syntax HOL.eq} $ Bound (nvars idts) $ e;
         val P = Syntax.const @{const_syntax HOL.conj} $ eq $ b;
         val exP = ex_tr [idts, P];
-      in Syntax.const @{const_syntax Collect} $ Term.absdummy (dummyT, exP) end;
+      in Syntax.const @{const_syntax Collect} $ absdummy dummyT exP end;
 
   in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end;
 *}

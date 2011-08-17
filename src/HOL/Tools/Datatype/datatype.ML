@@ -323,7 +323,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val (i2, i2', ts, Ts) = fold (process_arg ks) cargs (1, 1, [], []);
         val xs = map (uncurry (Datatype_Aux.mk_Free "x")) (argTs ~~ (1 upto (i2 - 1)));
         val ys = map (uncurry (Datatype_Aux.mk_Free "y")) (Ts ~~ (1 upto (i2' - 1)));
-        val f = list_abs_free (map dest_Free (xs @ ys), mk_univ_inj ts n i);
+        val f = fold_rev (absfree o dest_Free) (xs @ ys) (mk_univ_inj ts n i);
 
         val (_, _, ts', _) = fold (process_arg []) cargs (1, 1, [], []);
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq

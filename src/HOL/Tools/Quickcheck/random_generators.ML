@@ -291,7 +291,7 @@ val target = "Quickcheck";
 fun mk_generator_expr ctxt (t, eval_terms) =
   let  
     val thy = Proof_Context.theory_of ctxt
-    val prop = list_abs_free (Term.add_frees t [], t)
+    val prop = fold_rev absfree (Term.add_frees t []) t
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1;
     val bounds = map_index (fn (i, ty) =>
@@ -317,7 +317,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
 fun mk_reporting_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val prop = list_abs_free (Term.add_frees t [], t)
+    val prop = fold_rev absfree (Term.add_frees t []) t
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1
     val bounds = map_index (fn (i, ty) =>
@@ -360,13 +360,13 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_generator_expr, 
-    absdummy (@{typ code_numeral}, @{term "Pair None :: Random.seed => term list option * Random.seed"})),
+    absdummy @{typ code_numeral} @{term "Pair None :: Random.seed => term list option * Random.seed"}),
     @{typ "code_numeral => Random.seed => term list option * Random.seed"})
 
 val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_reporting_generator_expr,
-    absdummy (@{typ code_numeral},
-      @{term "Pair (None, ([], False)) :: Random.seed => (term list option * (bool list * bool)) * Random.seed"})),
+    absdummy @{typ code_numeral}
+      @{term "Pair (None, ([], False)) :: Random.seed => (term list option * (bool list * bool)) * Random.seed"}),
     @{typ "code_numeral => Random.seed => (term list option * (bool list * bool)) * Random.seed"})
     
     

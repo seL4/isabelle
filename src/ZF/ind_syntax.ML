@@ -26,7 +26,7 @@ fun mk_all_imp (A,P) =
       Abs("v", iT, FOLogic.imp $ (@{const mem} $ Bound 0 $ A) $
                    Term.betapply(P, Bound 0));
 
-fun mk_Collect (a, D, t) = @{const Collect} $ D $ absfree (a, iT, t);
+fun mk_Collect (a, D, t) = @{const Collect} $ D $ absfree (a, iT) t;
 
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd (Const (@{const_name conj}, _) $ _ $ _) =
