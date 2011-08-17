@@ -1580,7 +1580,7 @@ $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   HOLCF/Library/Sum_Cpo.thy \
   HOLCF/Library/HOLCF_Library.thy \
   HOLCF/Library/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
+	@cd HOLCF; $(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
 
 
 ## HOLCF-IMP
