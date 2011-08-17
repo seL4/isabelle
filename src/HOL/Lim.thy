@@ -254,27 +254,7 @@ lemma LIM_compose_eventually:
   assumes g: "g -- b --> c"
   assumes inj: "eventually (\<lambda>x. f x \<noteq> b) (at a)"
   shows "(\<lambda>x. g (f x)) -- a --> c"
-proof (rule topological_tendstoI)
-  fix C assume C: "open C" "c \<in> C"
-  obtain B where B: "open B" "b \<in> B"
-    and gC: "\<And>y. y \<in> B \<Longrightarrow> y \<noteq> b \<Longrightarrow> g y \<in> C"
-    using topological_tendstoD [OF g C]
-    unfolding eventually_at_topological by fast
-  obtain A where A: "open A" "a \<in> A"
-    and fB: "\<And>x. x \<in> A \<Longrightarrow> x \<noteq> a \<Longrightarrow> f x \<in> B"
-    using topological_tendstoD [OF f B]
-    unfolding eventually_at_topological by fast
-  have "eventually (\<lambda>x. f x \<noteq> b \<longrightarrow> g (f x) \<in> C) (at a)"
-  unfolding eventually_at_topological
-  proof (intro exI conjI ballI impI)
-    show "open A" and "a \<in> A" using A .
-  next
-    fix x assume "x \<in> A" and "x \<noteq> a" and "f x \<noteq> b"
-    then show "g (f x) \<in> C" by (simp add: gC fB)
-  qed
-  with inj show "eventually (\<lambda>x. g (f x) \<in> C) (at a)"
-    by (rule eventually_rev_mp)
-qed
+  using g f inj by (rule tendsto_compose_eventually)
 
 lemma metric_LIM_compose2:
   assumes f: "f -- a --> b"
@@ -563,25 +543,9 @@ by (rule isUCont [THEN isUCont_Cauchy])
 subsection {* Relation of LIM and LIMSEQ *}
 
 lemma LIMSEQ_SEQ_conv1:
-  fixes a :: "'a::metric_space" and L :: "'b::metric_space"
   assumes X: "X -- a --> L"
   shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
-proof (safe intro!: metric_LIMSEQ_I)
-  fix S :: "nat \<Rightarrow> 'a"
-  fix r :: real
-  assume rgz: "0 < r"
-  assume as: "\<forall>n. S n \<noteq> a"
-  assume S: "S ----> a"
-  from metric_LIM_D [OF X rgz] obtain s
-    where sgz: "0 < s"
-    and aux: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < s\<rbrakk> \<Longrightarrow> dist (X x) L < r"
-    by fast
-  from metric_LIMSEQ_D [OF S sgz]
-  obtain no where "\<forall>n\<ge>no. dist (S n) a < s" by blast
-  hence "\<forall>n\<ge>no. dist (X (S n)) L < r" by (simp add: aux as)
-  thus "\<exists>no. \<forall>n\<ge>no. dist (X (S n)) L < r" ..
-qed
-
+  using tendsto_compose_eventually [OF X, where F=sequentially] by simp
 
 lemma LIMSEQ_SEQ_conv2:
   fixes a :: real and L :: "'a::metric_space"
@@ -653,12 +617,6 @@ qed
 lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::real) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
    (X -- a --> (L::'a::metric_space))"
-proof
-  assume "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
-  thus "X -- a --> L" by (rule LIMSEQ_SEQ_conv2)
-next
-  assume "(X -- a --> L)"
-  thus "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by (rule LIMSEQ_SEQ_conv1)
-qed
+  using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
 
 end

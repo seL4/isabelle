@@ -627,6 +627,22 @@ proof (rule topological_tendstoI)
     by (rule eventually_mono)
 qed
 
+lemma tendsto_compose_eventually:
+  assumes g: "(g ---> m) (at l)"
+  assumes f: "(f ---> l) F"
+  assumes inj: "eventually (\<lambda>x. f x \<noteq> l) F"
+  shows "((\<lambda>x. g (f x)) ---> m) F"
+proof (rule topological_tendstoI)
+  fix B assume B: "open B" "m \<in> B"
+  obtain A where A: "open A" "l \<in> A"
+    and gB: "\<And>y. y \<in> A \<Longrightarrow> y \<noteq> l \<Longrightarrow> g y \<in> B"
+    using topological_tendstoD [OF g B]
+    unfolding eventually_at_topological by fast
+  show "eventually (\<lambda>x. g (f x) \<in> B) F"
+    using topological_tendstoD [OF f A] inj
+    by (rule eventually_elim2) (simp add: gB)
+qed
+
 lemma metric_tendsto_imp_tendsto:
   assumes f: "(f ---> a) F"
   assumes le: "eventually (\<lambda>x. dist (g x) b \<le> dist (f x) a) F"
