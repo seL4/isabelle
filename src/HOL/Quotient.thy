@@ -643,10 +643,18 @@ lemma Quotient:
     have "Collect (R (SOME x. x \<in> Rep a)) = (Rep a)" by (metis some_collect rep_prop)
     then show "Abs (Collect (R (SOME x. x \<in> Rep a))) = a" using rep_inverse by auto
     have "R r r \<Longrightarrow> R s s \<Longrightarrow> Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s"
-      by (metis Collect_def abs_inverse)
+    proof -
+      assume "R r r" and "R s s"
+      then have "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> Collect (R r) = Collect (R s)"
+        by (metis abs_inverse)
+      also have "Collect (R r) = Collect (R s) \<longleftrightarrow> (\<lambda>A x. x \<in> A) (Collect (R r)) = (\<lambda>A x. x \<in> A) (Collect (R s))"
+        by rule simp_all
+      finally show "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s" by simp
+    qed
     then show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (Collect (R r)) = Abs (Collect (R s)))"
       using equivp[simplified part_equivp_def] by metis
     qed
+
 end
 
 subsection {* ML setup *}
