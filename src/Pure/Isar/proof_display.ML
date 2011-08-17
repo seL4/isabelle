@@ -31,14 +31,18 @@ fun pp_context ctxt =
     Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
+fun default_context thy =
+  Context.cases Syntax.init_pretty_global I
+    (the_default (Context.Theory thy) (try ML_Context.the_generic_context ()));
+
 fun pp_thm th =
   let
-    val thy = Thm.theory_of_thm th;
+    val ctxt = default_context (Thm.theory_of_thm th);
     val flags = {quote = true, show_hyps = false, show_status = true};
-  in Display.pretty_thm_raw (Syntax.init_pretty_global thy) flags th end;
+  in Display.pretty_thm_raw ctxt flags th end;
 
-val pp_typ = Pretty.quote oo Syntax.pretty_typ_global;
-val pp_term = Pretty.quote oo Syntax.pretty_term_global;
+fun pp_typ thy T = Pretty.quote (Syntax.pretty_typ (default_context thy) T);
+fun pp_term thy t = Pretty.quote (Syntax.pretty_term (default_context thy) t);
 
 fun pp_ctyp cT = pp_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
