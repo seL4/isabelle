@@ -42,8 +42,13 @@ fun release_all results =
   if all_res results then map Exn.release results
   else raise make (map_filter Exn.get_exn results);
 
-fun release_first results = release_all results
-  handle Par_Exn ((serial, exn) :: _) => reraise exn;  (* FIXME preserve serial in location (?!?) *)
+fun release_first results =
+  if all_res results then map Exn.release results
+  else
+    (case get_first
+        (fn res => if Exn.is_interrupt_exn res then NONE else Exn.get_exn res) results of
+      NONE => Exn.interrupt ()
+    | SOME exn => reraise exn);
 
 end;
 
