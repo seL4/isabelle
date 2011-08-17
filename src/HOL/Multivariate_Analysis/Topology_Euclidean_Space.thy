@@ -4882,56 +4882,28 @@ lemma inter_interval: fixes a :: "'a::ordered_euclidean_space" shows
 
 (* Moved interval_open_subset_closed a bit upwards *)
 
-lemma open_interval_lemma: fixes x :: "real" shows
- "a < x \<Longrightarrow> x < b ==> (\<exists>d>0. \<forall>x'. abs(x' - x) < d --> a < x' \<and> x' < b)"
-  by(rule_tac x="min (x - a) (b - x)" in exI, auto)
-
-lemma open_interval[intro]: fixes a :: "'a::ordered_euclidean_space" shows "open {a<..<b}"
+lemma open_interval[intro]:
+  fixes a b :: "'a::ordered_euclidean_space" shows "open {a<..<b}"
 proof-
-  { fix x assume x:"x\<in>{a<..<b}"
-    { fix i assume "i<DIM('a)"
-      hence "\<exists>d>0. \<forall>x'. abs (x' - (x$$i)) < d \<longrightarrow> a$$i < x' \<and> x' < b$$i"
-        using x[unfolded mem_interval, THEN spec[where x=i]]
-        using open_interval_lemma[of "a$$i" "x$$i" "b$$i"] by auto  }
-    hence "\<forall>i\<in>{..<DIM('a)}. \<exists>d>0. \<forall>x'. abs (x' - (x$$i)) < d \<longrightarrow> a$$i < x' \<and> x' < b$$i" by auto
-    from bchoice[OF this] guess d .. note d=this
-    let ?d = "Min (d ` {..<DIM('a)})"
-    have **:"finite (d ` {..<DIM('a)})" "d ` {..<DIM('a)} \<noteq> {}" by auto
-    have "?d>0" using Min_gr_iff[OF **] using d by auto
-    moreover
-    { fix x' assume as:"dist x' x < ?d"
-      { fix i assume i:"i<DIM('a)"
-        hence "\<bar>x'$$i - x $$ i\<bar> < d i"
-          using norm_bound_component_lt[OF as[unfolded dist_norm], of i]
-          unfolding euclidean_simps Min_gr_iff[OF **] by auto
-        hence "a $$ i < x' $$ i" "x' $$ i < b $$ i" using i and d[THEN bspec[where x=i]] by auto  }
-      hence "a < x' \<and> x' < b" apply(subst(2) eucl_less,subst(1) eucl_less) by auto  }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a<..<b}" by auto
-  }
-  thus ?thesis unfolding open_dist using open_interval_lemma by auto
+  have "open (\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i<..<b$$i})"
+    by (intro open_INT finite_lessThan ballI continuous_open_vimage allI
+      linear_continuous_at bounded_linear_euclidean_component
+      open_real_greaterThanLessThan)
+  also have "(\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i<..<b$$i}) = {a<..<b}"
+    by (auto simp add: eucl_less [where 'a='a])
+  finally show "open {a<..<b}" .
 qed
 
-lemma closed_interval[intro]: fixes a :: "'a::ordered_euclidean_space" shows "closed {a .. b}"
+lemma closed_interval[intro]:
+  fixes a b :: "'a::ordered_euclidean_space" shows "closed {a .. b}"
 proof-
-  { fix x i assume i:"i<DIM('a)"
-    assume as:"\<forall>e>0. \<exists>x'\<in>{a..b}. x' \<noteq> x \<and> dist x' x < e"(* and xab:"a$$i > x$$i \<or> b$$i < x$$i"*)
-    { assume xa:"a$$i > x$$i"
-      with as obtain y where y:"y\<in>{a..b}" "y \<noteq> x" "dist y x < a$$i - x$$i" by(erule_tac x="a$$i - x$$i" in allE)auto
-      hence False unfolding mem_interval and dist_norm
-        using component_le_norm[of "y-x" i, unfolded euclidean_simps] and xa using i
-        by(auto elim!: allE[where x=i])
-    } hence "a$$i \<le> x$$i" by(rule ccontr)auto
-    moreover
-    { assume xb:"b$$i < x$$i"
-      with as obtain y where y:"y\<in>{a..b}" "y \<noteq> x" "dist y x < x$$i - b$$i"
-        by(erule_tac x="x$$i - b$$i" in allE)auto
-      hence False unfolding mem_interval and dist_norm
-        using component_le_norm[of "y-x" i, unfolded euclidean_simps] and xb using i
-        by(auto elim!: allE[where x=i])
-    } hence "x$$i \<le> b$$i" by(rule ccontr)auto
-    ultimately
-    have "a $$ i \<le> x $$ i \<and> x $$ i \<le> b $$ i" by auto }
-  thus ?thesis unfolding closed_limpt islimpt_approachable mem_interval by auto
+  have "closed (\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i .. b$$i})"
+    by (intro closed_INT ballI continuous_closed_vimage allI
+      linear_continuous_at bounded_linear_euclidean_component
+      closed_real_atLeastAtMost)
+  also have "(\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i .. b$$i}) = {a .. b}"
+    by (auto simp add: eucl_le [where 'a='a])
+  finally show "closed {a .. b}" .
 qed
 
 lemma interior_closed_interval[intro]: fixes a :: "'a::ordered_euclidean_space" shows
