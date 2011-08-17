@@ -11,7 +11,6 @@ sig
   val get_exn: 'a result -> exn option
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
-  val flat_result: 'a result result -> 'a result
   val map_result: ('a -> 'b) -> 'a result -> 'b result
   val maps_result: ('a -> 'b result) -> 'a result -> 'b result
   exception Interrupt
@@ -47,13 +46,10 @@ fun capture f x = Res (f x) handle e => Exn e;
 fun release (Res y) = y
   | release (Exn e) = reraise e;
 
-fun flat_result (Res x) = x
-  | flat_result (Exn e) = Exn e;
-
 fun map_result f (Res x) = Res (f x)
   | map_result f (Exn e) = Exn e;
 
-fun maps_result f = flat_result o map_result f;
+fun maps_result f = (fn Res x => x | Exn e => Exn e) o map_result f;
 
 
 (* interrupts *)
