@@ -132,7 +132,7 @@ lemma equiv_up_to_while_weak:
                simp: hoare_valid_def)
 
 lemma equiv_up_to_if:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<inter> bval b \<Turnstile> c \<sim> c' \<Longrightarrow> (\<lambda>s. P s \<and> \<not>bval b s) \<Turnstile> d \<sim> d' \<Longrightarrow>
+  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow> (\<lambda>s. P s \<and> \<not>bval b s) \<Turnstile> d \<sim> d' \<Longrightarrow>
    P \<Turnstile> IF b THEN c ELSE d \<sim> IF b' THEN c' ELSE d'"
   by (auto simp: bequiv_up_to_def equiv_up_to_def)
 
