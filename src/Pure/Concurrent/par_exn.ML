@@ -7,8 +7,9 @@ evaluations.  Interrupt counts as neutral element.
 
 signature PAR_EXN =
 sig
+  val serial: exn -> serial * exn
   val make: exn list -> exn
-  val dest: exn -> (serial * exn) list option
+  val dest: exn -> exn list option
   val release_all: 'a Exn.result list -> 'a list
   val release_first: 'a Exn.result list -> 'a list
 end;
@@ -16,14 +17,22 @@ end;
 structure Par_Exn =
 struct
 
+(* identification via serial numbers *)
+
+fun serial exn =
+  (case get_exn_serial exn of
+    SOME i => (i, exn)
+  | NONE => let val i = Library.serial () in (i, set_exn_serial i exn) end);
+
+val exn_ord = rev_order o int_ord o pairself (the o get_exn_serial);
+
+
 (* parallel exceptions *)
 
-exception Par_Exn of (serial * exn) Ord_List.T;
-
-fun exn_ord ((i, _), (j, _)) = int_ord (j, i);
+exception Par_Exn of exn Ord_List.T;
 
 fun par_exns (Par_Exn exns) = SOME exns
-  | par_exns exn = if Exn.is_interrupt exn then NONE else SOME [(serial (), exn)];
+  | par_exns exn = if Exn.is_interrupt exn then NONE else SOME [#2 (serial exn)];
 
 fun make exns =
   (case map_filter par_exns exns of
