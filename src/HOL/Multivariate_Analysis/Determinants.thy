@@ -131,7 +131,7 @@ proof-
   {fix p assume p: "p \<in> {p. p permutes ?U}"
     from p have pU: "p permutes ?U" by blast
     have sth: "sign (inv p) = sign p"
-      by (metis sign_inverse fU p mem_def Collect_def permutation_permutes)
+      by (metis sign_inverse fU p mem_Collect_eq permutation_permutes)
     from permutes_inj[OF pU]
     have pi: "inj_on p ?U" by (blast intro: subset_inj_on)
     from permutes_image[OF pU]
