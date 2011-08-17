@@ -76,12 +76,12 @@ done
 
 subsection {* Nitpick setup *}
 
-axiomatization wf_wfrec :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+axiomatization wf_wfrec :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 
-definition wf_wfrec' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+definition wf_wfrec' :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
 [nitpick_simp]: "wf_wfrec' R F x = F (cut (wf_wfrec R F) R x) x"
 
-definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+definition wfrec' ::  "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
 "wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x
                 else THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
