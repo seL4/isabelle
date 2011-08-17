@@ -77,7 +77,7 @@ if Multithreading.available
 then use "Concurrent/bash.ML"
 else use "Concurrent/bash_sequential.ML";
 
-use "Concurrent/mailbox.ML";
+use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 
@@ -89,6 +89,7 @@ use "Concurrent/par_list.ML";
 if Multithreading.available then ()
 else use "Concurrent/par_list_sequential.ML";
 
+use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
 
 
