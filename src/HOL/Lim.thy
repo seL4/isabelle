@@ -543,80 +543,49 @@ by (rule isUCont [THEN isUCont_Cauchy])
 subsection {* Relation of LIM and LIMSEQ *}
 
 lemma LIMSEQ_SEQ_conv1:
-  assumes X: "X -- a --> L"
-  shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
-  using tendsto_compose_eventually [OF X, where F=sequentially] by simp
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes f: "f -- a --> l"
+  shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. f (S n)) ----> l"
+  using tendsto_compose_eventually [OF f, where F=sequentially] by simp
 
-lemma LIMSEQ_SEQ_conv2:
-  fixes a :: real and L :: "'a::metric_space"
-  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
-  shows "X -- a --> L"
+lemma LIMSEQ_SEQ_conv2_lemma:
+  fixes a :: "'a::metric_space"
+  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> eventually (\<lambda>x. P (S x)) sequentially"
+  shows "eventually P (at a)"
 proof (rule ccontr)
-  assume "\<not> (X -- a --> L)"
-  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s --> dist (X x) L < r)"
-    unfolding LIM_def dist_norm .
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x - a\<bar> < s --> dist (X x) L < r)" by simp
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> dist (X x) L \<ge> r)" by (simp add: not_less)
-  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> dist (X x) L \<ge> r))" by auto
-
-  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
-  have "\<And>n. \<exists>x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
-    using rdef by simp
-  hence F: "\<And>n. ?F n \<noteq> a \<and> \<bar>?F n - a\<bar> < inverse (real (Suc n)) \<and> dist (X (?F n)) L \<ge> r"
+  let ?I = "\<lambda>n. inverse (real (Suc n))"
+  let ?F = "\<lambda>n::nat. SOME x. x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x"
+  assume "\<not> eventually P (at a)"
+  hence P: "\<forall>d>0. \<exists>x. x \<noteq> a \<and> dist x a < d \<and> \<not> P x"
+    unfolding eventually_at by simp
+  hence "\<And>n. \<exists>x. x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x" by simp
+  hence F: "\<And>n. ?F n \<noteq> a \<and> dist (?F n) a < ?I n \<and> \<not> P (?F n)"
     by (rule someI_ex)
   hence F1: "\<And>n. ?F n \<noteq> a"
-    and F2: "\<And>n. \<bar>?F n - a\<bar> < inverse (real (Suc n))"
-    and F3: "\<And>n. dist (X (?F n)) L \<ge> r"
+    and F2: "\<And>n. dist (?F n) a < ?I n"
+    and F3: "\<And>n. \<not> P (?F n)"
     by fast+
-
   have "?F ----> a"
-  proof (rule LIMSEQ_I, unfold real_norm_def)
-      fix e::real
-      assume "0 < e"
-        (* choose no such that inverse (real (Suc n)) < e *)
-      then have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
-      then obtain m where nodef: "inverse (real (Suc m)) < e" by auto
-      show "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n - a\<bar> < e"
-      proof (intro exI allI impI)
-        fix n
-        assume mlen: "m \<le> n"
-        have "\<bar>?F n - a\<bar> < inverse (real (Suc n))"
-          by (rule F2)
-        also have "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
-          using mlen by auto
-        also from nodef have
-          "inverse (real (Suc m)) < e" .
-        finally show "\<bar>?F n - a\<bar> < e" .
-      qed
-  qed
-  
+    using LIMSEQ_inverse_real_of_nat
+    by (rule metric_tendsto_imp_tendsto,
+      simp add: dist_norm F2 [THEN less_imp_le])
   moreover have "\<forall>n. ?F n \<noteq> a"
     by (rule allI) (rule F1)
-
-  moreover note `\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L`
-  ultimately have "(\<lambda>n. X (?F n)) ----> L" by simp
-  
-  moreover have "\<not> ((\<lambda>n. X (?F n)) ----> L)"
-  proof -
-    {
-      fix no::nat
-      obtain n where "n = no + 1" by simp
-      then have nolen: "no \<le> n" by simp
-        (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
-      have "dist (X (?F n)) L \<ge> r"
-        by (rule F3)
-      with nolen have "\<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r" by fast
-    }
-    then have "(\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r)" by simp
-    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> e)" by auto
-    thus ?thesis by (unfold LIMSEQ_def, auto simp add: not_less)
-  qed
-  ultimately show False by simp
+  ultimately have "eventually (\<lambda>n. P (?F n)) sequentially"
+    using assms by simp
+  thus "False" by (simp add: F3)
 qed
 
+lemma LIMSEQ_SEQ_conv2:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
+  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. f (S n)) ----> l"
+  shows "f -- a --> l"
+  using assms unfolding tendsto_def [where l=l]
+  by (simp add: LIMSEQ_SEQ_conv2_lemma)
+
 lemma LIMSEQ_SEQ_conv:
-  "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::real) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
-   (X -- a --> (L::'a::metric_space))"
+  "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::metric_space) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
+   (X -- a --> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
 
 end
