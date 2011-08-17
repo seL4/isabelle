@@ -604,12 +604,14 @@ fun is_type_level_fairly_sound level =
 val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
 
 fun choose_format formats (Simple_Types (order, level)) =
-    if member (op =) formats THF then
-      (THF, Simple_Types (order, level))
-    else if member (op =) formats TFF then
-      (TFF, Simple_Types (First_Order, level))
-    else
-      choose_format formats (Guards (Mangled_Monomorphic, level, Heavyweight))
+    (case find_first is_format_thf formats of
+       SOME format => (format, Simple_Types (order, level))
+     | NONE =>
+       if member (op =) formats TFF then
+         (TFF, Simple_Types (First_Order, level))
+       else
+         choose_format formats
+                       (Guards (Mangled_Monomorphic, level, Heavyweight)))
   | choose_format formats type_enc =
     (case hd formats of
        CNF_UEQ =>
@@ -760,7 +762,7 @@ fun ho_term_from_typ format type_enc =
                (true, @{type_name bool}) => `I tptp_bool_type
              | (true, @{type_name fun}) => `I tptp_fun_type
              | _ => if s = homo_infinite_type_name andalso
-                       (format = TFF orelse format = THF) then
+                       is_format_typed format then
                       `I tptp_individual_type
                     else
                       `make_fixed_type_const s,

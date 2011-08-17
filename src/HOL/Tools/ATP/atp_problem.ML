@@ -19,7 +19,14 @@ sig
 
   datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
-  datatype format = CNF | CNF_UEQ | FOF | TFF | THF
+  datatype thf_flavor = Without_Choice | With_Choice
+  datatype format =
+    CNF |
+    CNF_UEQ |
+    FOF |
+    TFF |
+    THF of thf_flavor
+
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
@@ -73,6 +80,7 @@ sig
     bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
+  val is_format_thf : format -> bool
   val is_format_typed : format -> bool
   val tptp_lines_for_atp_problem : format -> string problem -> string list
   val ensure_cnf_problem :
@@ -107,7 +115,14 @@ datatype ('a, 'b, 'c) formula =
 
 datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
-datatype format = CNF | CNF_UEQ | FOF | TFF | THF
+datatype thf_flavor = Without_Choice | With_Choice
+datatype format =
+  CNF |
+  CNF_UEQ |
+  FOF |
+  TFF |
+  THF of thf_flavor
+
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
@@ -189,7 +204,11 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-val is_format_typed = member (op =) [TFF, THF]
+fun is_format_thf (THF _) = true
+  | is_format_thf _ = false
+fun is_format_typed TFF = true
+  | is_format_typed (THF _) = true
+  | is_format_typed _ = false
 
 fun string_for_kind Axiom = "axiom"
   | string_for_kind Definition = "definition"
@@ -202,7 +221,7 @@ fun strip_tff_type (AFun (AType s, ty)) = strip_tff_type ty |>> cons s
     raise Fail "unexpected higher-order type in first-order format"
   | strip_tff_type (AType s) = ([], s)
 
-fun string_for_type THF ty =
+fun string_for_type (THF _) ty =
     let
       fun aux _ (AType s) = s
         | aux rhs (AFun (ty1, ty2)) =
@@ -228,7 +247,7 @@ fun string_for_connective ANot = tptp_not
   | string_for_connective AIff = tptp_iff
 
 fun string_for_bound_var format (s, ty) =
-  s ^ (if format = TFF orelse format = THF then
+  s ^ (if is_format_typed format then
          " " ^ tptp_has_type ^ " " ^
          string_for_type format (ty |> the_default (AType tptp_individual_type))
        else
@@ -241,7 +260,7 @@ fun string_for_term _ (ATerm (s, [])) = s
       "[" ^ commas (map (string_for_term format) ts) ^ "]"
     else if is_tptp_equal s then
       space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
-      |> format = THF ? enclose "(" ")"
+      |> is_format_thf format ? enclose "(" ")"
     else
       (case (s = tptp_ho_forall orelse s = tptp_ho_exists, ts) of
          (true, [AAbs ((s', ty), tm)]) =>
@@ -252,14 +271,14 @@ fun string_for_term _ (ATerm (s, [])) = s
                       [(s', SOME ty)], AAtom tm))
        | _ =>
          let val ss = map (string_for_term format) ts in
-           if format = THF then
+           if is_format_thf format then
              "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
            else
              s ^ "(" ^ commas ss ^ ")"
          end)
-  | string_for_term THF (AAbs ((s, ty), tm)) =
-    "(^[" ^ s ^ " : " ^ string_for_type THF ty ^ "] : " ^
-    string_for_term THF tm ^ ")"
+  | string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
+    "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "] : " ^
+    string_for_term format tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
 and string_for_formula format (AQuant (q, xs, phi)) =
     string_for_quantifier q ^
@@ -270,10 +289,10 @@ and string_for_formula format (AQuant (q, xs, phi)) =
         (AConn (ANot, [AAtom (ATerm ("=" (* tptp_equal *), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (string_for_term format) ts)
-    |> format = THF ? enclose "(" ")"
+    |> is_format_thf format ? enclose "(" ")"
   | string_for_formula format (AConn (c, [phi])) =
     string_for_connective c ^ " " ^
-    (string_for_formula format phi |> format = THF ? enclose "(" ")")
+    (string_for_formula format phi |> is_format_thf format ? enclose "(" ")")
     |> enclose "(" ")"
   | string_for_formula format (AConn (c, phis)) =
     space_implode (" " ^ string_for_connective c ^ " ")
@@ -290,7 +309,7 @@ fun string_for_format CNF = tptp_cnf
   | string_for_format CNF_UEQ = tptp_cnf
   | string_for_format FOF = tptp_fof
   | string_for_format TFF = tptp_tff
-  | string_for_format THF = tptp_thf
+  | string_for_format (THF _) = tptp_thf
 
 fun string_for_problem_line format (Decl (ident, sym, ty)) =
     string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^

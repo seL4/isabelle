@@ -242,7 +242,7 @@ val leo2_config : atp_config =
    known_failures = [],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
-   formats = [THF, FOF],
+   formats = [THF Without_Choice, FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.667, (false, (150, "simple_higher", sosN))),
@@ -265,7 +265,7 @@ val satallax_config : atp_config =
    known_failures = [(ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
-   formats = [THF],
+   formats = [THF With_Choice],
    best_slices = K [(1.0, (true, (100, "simple_higher", "")))] (* FUDGE *)}
 
 val satallax = (satallaxN, satallax_config)
