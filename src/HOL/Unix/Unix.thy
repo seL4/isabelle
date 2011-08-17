@@ -6,8 +6,7 @@ header {* Unix file-systems \label{sec:unix-file-system} *}
 
 theory Unix
 imports
-  Main
-  "~~/src/HOL/Library/Nested_Environment"
+  Nested_Environment
   "~~/src/HOL/Library/List_Prefix"
 begin
 

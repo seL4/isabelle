@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Nested_Environment.thy
+(*  Title:      HOL/Unix/Nested_Environment.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -546,7 +546,7 @@ proof (unfold equal)
     then show ?rhs by (auto split: option.splits)
   next
     assume assm: ?rhs (is "\<forall>z. ?prop z")
-    show ?lhs 
+    show ?lhs
     proof
       fix z
       from assm have "?prop z" ..

@@ -37,7 +37,6 @@ imports
   Monad_Syntax
   More_List
   Multiset
-  Nested_Environment
   Numeral_Type
   Old_Recdef
   OptionalSugar
