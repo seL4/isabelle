@@ -7,6 +7,22 @@ fun reraise exn =
     NONE => raise exn
   | SOME location => PolyML.raiseWithLocation (exn, location));
 
+fun set_exn_serial i exn =
+  let
+    val (file, startLine, endLine) =
+      (case PolyML.exceptionLocation exn of
+        NONE => ("", 0, 0)
+      | SOME {file, startLine, endLine, startPosition, ...} => (file, startLine, endLine));
+    val location =
+      {file = file, startLine = startLine, endLine = endLine,
+        startPosition = ~ i, endPosition = 0};
+  in PolyML.raiseWithLocation (exn, location) handle e => e end;
+
+fun get_exn_serial exn =
+  (case Option.map #startPosition (PolyML.exceptionLocation exn) of
+    NONE => NONE
+  | SOME i => if i >= 0 then NONE else SOME (~ i));
+
 exception Interrupt = SML90.Interrupt;
 val ord = SML90.ord;
 val chr = SML90.chr;
@@ -61,6 +77,7 @@ use "library.ML";
 use "General/alist.ML";
 use "General/table.ML";
 use "General/graph.ML";
+use "General/ord_list.ML";
 
 structure Position =
 struct
@@ -89,6 +106,7 @@ use "Concurrent/synchronized.ML";
 use "General/markup.ML";
 use "Concurrent/single_assignment.ML";
 use "Concurrent/time_limit.ML";
+use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 use "Concurrent/lazy.ML";

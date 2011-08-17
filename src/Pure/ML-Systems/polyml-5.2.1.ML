@@ -13,6 +13,8 @@ struct
 end;
 
 fun reraise exn = raise exn;
+fun set_exn_serial (_: int) (exn: exn) = exn;
+fun get_exn_serial (exn: exn) : int option = NONE;
 
 use "ML-Systems/polyml_common.ML";
 use "ML-Systems/multithreading_polyml.ML";

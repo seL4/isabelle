@@ -60,34 +60,38 @@ fun exn_messages exn_position e =
     fun exn_msgs context exn =
       if Exn.is_interrupt exn then []
       else
-        (case exn of
-          Exn.EXCEPTIONS exns => maps (exn_msgs context) exns
-        | CONTEXT (ctxt, exn) => exn_msgs (SOME ctxt) exn
-        | EXCURSION_FAIL (exn, loc) =>
-            map (fn msg => msg ^ Markup.markup Markup.no_report ("\n" ^ loc)) (exn_msgs context exn)
-        | TERMINATE => ["Exit"]
-        | TimeLimit.TimeOut => ["Timeout"]
-        | TOPLEVEL_ERROR => ["Error"]
-        | ERROR msg => [msg]
-        | Fail msg => [raised exn "Fail" [msg]]
-        | THEORY (msg, thys) =>
-            [raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))]
-        | Ast.AST (msg, asts) =>
-            [raised exn "AST" (msg ::
-              (if detailed then map (Pretty.string_of o Ast.pretty_ast) asts else []))]
-        | TYPE (msg, Ts, ts) =>
-            [raised exn "TYPE" (msg ::
-              (if detailed then
-                if_context context Syntax.string_of_typ Ts @
-                if_context context Syntax.string_of_term ts
-               else []))]
-        | TERM (msg, ts) =>
-            [raised exn "TERM" (msg ::
-              (if detailed then if_context context Syntax.string_of_term ts else []))]
-        | THM (msg, i, thms) =>
-            [raised exn ("THM " ^ string_of_int i) (msg ::
-              (if detailed then if_context context Display.string_of_thm thms else []))]
-        | _ => [raised exn (General.exnMessage exn) []]);
+        (case Par_Exn.dest exn of
+          SOME exns => maps (exn_msgs context) exns
+        | NONE =>
+            (case exn of
+              Exn.EXCEPTIONS exns => maps (exn_msgs context) exns
+            | CONTEXT (ctxt, exn) => exn_msgs (SOME ctxt) exn
+            | EXCURSION_FAIL (exn, loc) =>
+                map (fn msg => msg ^ Markup.markup Markup.no_report ("\n" ^ loc))
+                  (exn_msgs context exn)
+            | TERMINATE => ["Exit"]
+            | TimeLimit.TimeOut => ["Timeout"]
+            | TOPLEVEL_ERROR => ["Error"]
+            | ERROR msg => [msg]
+            | Fail msg => [raised exn "Fail" [msg]]
+            | THEORY (msg, thys) =>
+                [raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))]
+            | Ast.AST (msg, asts) =>
+                [raised exn "AST" (msg ::
+                  (if detailed then map (Pretty.string_of o Ast.pretty_ast) asts else []))]
+            | TYPE (msg, Ts, ts) =>
+                [raised exn "TYPE" (msg ::
+                  (if detailed then
+                    if_context context Syntax.string_of_typ Ts @
+                    if_context context Syntax.string_of_term ts
+                   else []))]
+            | TERM (msg, ts) =>
+                [raised exn "TERM" (msg ::
+                  (if detailed then if_context context Syntax.string_of_term ts else []))]
+            | THM (msg, i, thms) =>
+                [raised exn ("THM " ^ string_of_int i) (msg ::
+                  (if detailed then if_context context Display.string_of_thm thms else []))]
+            | _ => [raised exn (General.exnMessage exn) []]));
   in exn_msgs NONE e end;
 
 fun exn_message exn_position exn =

@@ -207,7 +207,7 @@ val schedule_futures = uninterruptible (fn _ =>
                   " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
     | Finished thy => Future.value (thy, Future.value (), I)))
   #> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn])
-  #> rev #> Exn.release_all) #> ignore;
+  #> rev #> Par_Exn.release_all) #> ignore;
 
 in
 
