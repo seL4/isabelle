@@ -1237,16 +1237,10 @@ lemma Lim_null_comparison:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "eventually (\<lambda>x. norm (f x) \<le> g x) net" "(g ---> 0) net"
   shows "(f ---> 0) net"
-proof(simp add: tendsto_iff, rule+)
-  fix e::real assume "0<e"
-  { fix x
-    assume "norm (f x) \<le> g x" "dist (g x) 0 < e"
-    hence "dist (f x) 0 < e" by (simp add: dist_norm)
-  }
-  thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
-    using eventually_conj_iff[of "\<lambda>x. norm(f x) <= g x" "\<lambda>x. dist (g x) 0 < e" net]
-    using eventually_mono[of "(\<lambda>x. norm (f x) \<le> g x \<and> dist (g x) 0 < e)" "(\<lambda>x. dist (f x) 0 < e)" net]
-    using assms `e>0` unfolding tendsto_iff by auto
+proof (rule metric_tendsto_imp_tendsto)
+  show "(g ---> 0) net" by fact
+  show "eventually (\<lambda>x. dist (f x) 0 \<le> dist (g x) 0) net"
+    using assms(1) by (rule eventually_elim1, simp add: dist_norm)
 qed
 
 lemma Lim_transform_bound:
@@ -1254,16 +1248,8 @@ lemma Lim_transform_bound:
   fixes g :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "eventually (\<lambda>n. norm(f n) <= norm(g n)) net"  "(g ---> 0) net"
   shows "(f ---> 0) net"
-proof (rule tendstoI)
-  fix e::real assume "e>0"
-  { fix x
-    assume "norm (f x) \<le> norm (g x)" "dist (g x) 0 < e"
-    hence "dist (f x) 0 < e" by (simp add: dist_norm)}
-  thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
-    using eventually_conj_iff[of "\<lambda>x. norm (f x) \<le> norm (g x)" "\<lambda>x. dist (g x) 0 < e" net]
-    using eventually_mono[of "\<lambda>x. norm (f x) \<le> norm (g x) \<and> dist (g x) 0 < e" "\<lambda>x. dist (f x) 0 < e" net]
-    using assms `e>0` unfolding tendsto_iff by blast
-qed
+  using assms(1) tendsto_norm_zero [OF assms(2)]
+  by (rule Lim_null_comparison)
 
 text{* Deducing things about the limit from the elements. *}
 
@@ -1287,60 +1273,45 @@ text{* Need to prove closed(cball(x,e)) before deducing this as a corollary. *}
 lemma Lim_dist_ubound:
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. dist a (f x) <= e) net"
   shows "dist a l <= e"
-proof (rule ccontr)
-  assume "\<not> dist a l \<le> e"
-  then have "0 < dist a l - e" by simp
-  with assms(2) have "eventually (\<lambda>x. dist (f x) l < dist a l - e) net"
-    by (rule tendstoD)
-  with assms(3) have "eventually (\<lambda>x. dist a (f x) \<le> e \<and> dist (f x) l < dist a l - e) net"
-    by (rule eventually_conj)
-  then obtain w where "dist a (f w) \<le> e" "dist (f w) l < dist a l - e"
-    using assms(1) eventually_happens by auto
-  hence "dist a (f w) + dist (f w) l < e + (dist a l - e)"
-    by (rule add_le_less_mono)
-  hence "dist a (f w) + dist (f w) l < dist a l"
-    by simp
-  also have "\<dots> \<le> dist a (f w) + dist (f w) l"
-    by (rule dist_triangle)
-  finally show False by simp
+proof-
+  have "dist a l \<in> {..e}"
+  proof (rule Lim_in_closed_set)
+    show "closed {..e}" by simp
+    show "eventually (\<lambda>x. dist a (f x) \<in> {..e}) net" by (simp add: assms)
+    show "\<not> trivial_limit net" by fact
+    show "((\<lambda>x. dist a (f x)) ---> dist a l) net" by (intro tendsto_intros assms)
+  qed
+  thus ?thesis by simp
 qed
 
 lemma Lim_norm_ubound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) <= e) net"
   shows "norm(l) <= e"
-proof (rule ccontr)
-  assume "\<not> norm l \<le> e"
-  then have "0 < norm l - e" by simp
-  with assms(2) have "eventually (\<lambda>x. dist (f x) l < norm l - e) net"
-    by (rule tendstoD)
-  with assms(3) have "eventually (\<lambda>x. norm (f x) \<le> e \<and> dist (f x) l < norm l - e) net"
-    by (rule eventually_conj)
-  then obtain w where "norm (f w) \<le> e" "dist (f w) l < norm l - e"
-    using assms(1) eventually_happens by auto
-  hence "norm (f w - l) < norm l - e" "norm (f w) \<le> e" by (simp_all add: dist_norm)
-  hence "norm (f w - l) + norm (f w) < norm l" by simp
-  hence "norm (f w - l - f w) < norm l" by (rule le_less_trans [OF norm_triangle_ineq4])
-  thus False using `\<not> norm l \<le> e` by simp
+proof-
+  have "norm l \<in> {..e}"
+  proof (rule Lim_in_closed_set)
+    show "closed {..e}" by simp
+    show "eventually (\<lambda>x. norm (f x) \<in> {..e}) net" by (simp add: assms)
+    show "\<not> trivial_limit net" by fact
+    show "((\<lambda>x. norm (f x)) ---> norm l) net" by (intro tendsto_intros assms)
+  qed
+  thus ?thesis by simp
 qed
 
 lemma Lim_norm_lbound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not> (trivial_limit net)"  "(f ---> l) net"  "eventually (\<lambda>x. e <= norm(f x)) net"
   shows "e \<le> norm l"
-proof (rule ccontr)
-  assume "\<not> e \<le> norm l"
-  then have "0 < e - norm l" by simp
-  with assms(2) have "eventually (\<lambda>x. dist (f x) l < e - norm l) net"
-    by (rule tendstoD)
-  with assms(3) have "eventually (\<lambda>x. e \<le> norm (f x) \<and> dist (f x) l < e - norm l) net"
-    by (rule eventually_conj)
-  then obtain w where "e \<le> norm (f w)" "dist (f w) l < e - norm l"
-    using assms(1) eventually_happens by auto
-  hence "norm (f w - l) + norm l < e" "e \<le> norm (f w)" by (simp_all add: dist_norm)
-  hence "norm (f w - l) + norm l < norm (f w)" by (rule less_le_trans)
-  hence "norm (f w - l + l) < norm (f w)" by (rule le_less_trans [OF norm_triangle_ineq])
-  thus False by simp
+proof-
+  have "norm l \<in> {e..}"
+  proof (rule Lim_in_closed_set)
+    show "closed {e..}" by simp
+    show "eventually (\<lambda>x. norm (f x) \<in> {e..}) net" by (simp add: assms)
+    show "\<not> trivial_limit net" by fact
+    show "((\<lambda>x. norm (f x)) ---> norm l) net" by (intro tendsto_intros assms)
+  qed
+  thus ?thesis by simp
 qed
 
 text{* Uniqueness of the limit, when nontrivial. *}
@@ -1371,40 +1342,7 @@ lemma Lim_at_zero:
   fixes a :: "'a::real_normed_vector"
   fixes l :: "'b::topological_space"
   shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
-proof
-  assume "?lhs"
-  { fix S assume "open S" "l \<in> S"
-    with `?lhs` have "eventually (\<lambda>x. f x \<in> S) (at a)"
-      by (rule topological_tendstoD)
-    then obtain d where d: "d>0" "\<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<in> S"
-      unfolding Limits.eventually_at by fast
-    { fix x::"'a" assume "x \<noteq> 0 \<and> dist x 0 < d"
-      hence "f (a + x) \<in> S" using d
-      apply(erule_tac x="x+a" in allE)
-      by (auto simp add: add_commute dist_norm dist_commute)
-    }
-    hence "\<exists>d>0. \<forall>x. x \<noteq> 0 \<and> dist x 0 < d \<longrightarrow> f (a + x) \<in> S"
-      using d(1) by auto
-    hence "eventually (\<lambda>x. f (a + x) \<in> S) (at 0)"
-      unfolding Limits.eventually_at .
-  }
-  thus "?rhs" by (rule topological_tendstoI)
-next
-  assume "?rhs"
-  { fix S assume "open S" "l \<in> S"
-    with `?rhs` have "eventually (\<lambda>x. f (a + x) \<in> S) (at 0)"
-      by (rule topological_tendstoD)
-    then obtain d where d: "d>0" "\<forall>x. x \<noteq> 0 \<and> dist x 0 < d \<longrightarrow> f (a + x) \<in> S"
-      unfolding Limits.eventually_at by fast
-    { fix x::"'a" assume "x \<noteq> a \<and> dist x a < d"
-      hence "f x \<in> S" using d apply(erule_tac x="x-a" in allE)
-        by(auto simp add: add_commute dist_norm dist_commute)
-    }
-    hence "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<in> S" using d(1) by auto
-    hence "eventually (\<lambda>x. f x \<in> S) (at a)" unfolding Limits.eventually_at .
-  }
-  thus "?lhs" by (rule topological_tendstoI)
-qed
+  using LIM_offset_zero LIM_offset_zero_cancel ..
 
 text{* It's also sometimes useful to extract the limit point from the filter. *}
 
@@ -1447,10 +1385,7 @@ lemma Lim_transform:
   fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
   assumes "((\<lambda>x. f x - g x) ---> 0) net" "(f ---> l) net"
   shows "(g ---> l) net"
-proof-
-  from assms have "((\<lambda>x. f x - g x - f x) ---> 0 - l) net" using tendsto_diff[of "\<lambda>x. f x - g x" 0 net f l] by auto
-  thus "?thesis" using tendsto_minus [of "\<lambda> x. - g x" "-l" net] by auto
-qed
+  using tendsto_diff [OF assms(2) assms(1)] by simp
 
 lemma Lim_transform_eventually:
   "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net \<Longrightarrow> (g ---> l) net"
