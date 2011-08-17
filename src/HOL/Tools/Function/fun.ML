@@ -7,6 +7,7 @@ and automated termination proofs.
 
 signature FUNCTION_FUN =
 sig
+  val fun_config : Function_Common.function_config
   val add_fun : (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
     local_theory -> Proof.context
