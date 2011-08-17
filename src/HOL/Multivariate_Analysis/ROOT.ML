@@ -1,1 +1,1 @@
-use_thys ["Multivariate_Analysis"];
+use_thys ["Multivariate_Analysis", "Determinants"];
