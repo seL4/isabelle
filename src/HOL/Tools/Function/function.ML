@@ -14,7 +14,7 @@ sig
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> local_theory -> info * local_theory
+    (Proof.context -> tactic) -> bool -> local_theory -> info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
@@ -22,7 +22,7 @@ sig
 
   val function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
-    local_theory -> Proof.state
+    bool -> local_theory -> Proof.state
 
   val prove_termination: term option -> tactic -> local_theory -> 
     info * local_theory
@@ -76,7 +76,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
   end
 
-fun prepare_function is_external prep default_constraint fixspec eqns config lthy =
+fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
   let
     val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
     val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
@@ -125,19 +125,19 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
           fs=fs, R=R, defname=defname, is_partial=true }
 
-        val _ = Proof_Display.print_consts is_external lthy (K false) (map fst fixes)
+        val _ = Proof_Display.print_consts do_print lthy (K false) (map fst fixes)
       in
-        (info, 
+        (info,
          lthy |> Local_Theory.declaration false (add_function_data o morph_function_data info))
       end
   in
     ((goal_state, afterqed), lthy')
   end
 
-fun gen_add_function is_external prep default_constraint fixspec eqns config tac lthy =
+fun gen_add_function do_print prep default_constraint fixspec eqns config tac lthy =
   let
     val ((goal_state, afterqed), lthy') =
-      prepare_function is_external prep default_constraint fixspec eqns config lthy
+      prepare_function do_print prep default_constraint fixspec eqns config lthy
     val pattern_thm =
       case SINGLE (tac lthy') goal_state of
         NONE => error "pattern completeness and compatibility proof failed"
@@ -149,12 +149,12 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config tac
 
 val add_function =
   gen_add_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
-val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
+fun add_function_cmd a b c d int = gen_add_function int Specification.read_spec "_::type" a b c d
 
-fun gen_function is_external prep default_constraint fixspec eqns config lthy =
+fun gen_function do_print prep default_constraint fixspec eqns config lthy =
   let
     val ((goal_state, afterqed), lthy') =
-      prepare_function is_external prep default_constraint fixspec eqns config lthy
+      prepare_function do_print prep default_constraint fixspec eqns config lthy
   in
     lthy'
     |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (concl_of goal_state), [])]]
@@ -163,7 +163,7 @@ fun gen_function is_external prep default_constraint fixspec eqns config lthy =
 
 val function =
   gen_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
-val function_cmd = gen_function true Specification.read_spec "_::type"
+fun function_cmd a b c int = gen_function int Specification.read_spec "_::type" a b c
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
@@ -277,7 +277,7 @@ fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "function" "define general recursive functions"
+  Outer_Syntax.local_theory_to_proof' "function" "define general recursive functions"
   Keyword.thy_goal
   (function_parser default_config
      >> (fn ((config, fixes), statements) => function_cmd fixes statements config))

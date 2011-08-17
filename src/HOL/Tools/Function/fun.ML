@@ -13,7 +13,7 @@ sig
     local_theory -> Proof.context
   val add_fun_cmd : (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
-    local_theory -> Proof.context
+    bool -> local_theory -> Proof.context
 
   val setup : theory -> theory
 end
@@ -150,7 +150,7 @@ val setup =
 val fun_config = FunctionConfig { sequential=true, default=NONE,
   domintros=false, partials=false }
 
-fun gen_add_fun add fixes statements config lthy =
+fun gen_add_fun add lthy =
   let
     fun pat_completeness_auto ctxt =
       Pat_Completeness.pat_completeness_tac ctxt 1
@@ -160,18 +160,18 @@ fun gen_add_fun add fixes statements config lthy =
         (Function_Common.get_termination_prover lthy lthy) lthy
   in
     lthy
-    |> add fixes statements config pat_completeness_auto |> snd
+    |> add pat_completeness_auto |> snd
     |> Local_Theory.restore
     |> prove_termination |> snd
   end
 
-val add_fun = gen_add_fun Function.add_function
-val add_fun_cmd = gen_add_fun Function.add_function_cmd
+fun add_fun a b c = gen_add_fun (Function.add_function a b c)
+fun add_fun_cmd a b c int = gen_add_fun (fn tac => Function.add_function_cmd a b c tac int)
 
 
 
 val _ =
-  Outer_Syntax.local_theory "fun" "define general recursive functions (short version)"
+  Outer_Syntax.local_theory' "fun" "define general recursive functions (short version)"
   Keyword.thy_decl
   (function_parser fun_config
      >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config))
