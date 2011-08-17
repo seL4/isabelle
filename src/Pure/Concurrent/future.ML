@@ -473,9 +473,9 @@ fun get_result x =
     NONE => Exn.Exn (Fail "Unfinished future")
   | SOME res =>
       if Exn.is_interrupt_exn res then
-        (case Exn.flatten_list (Task_Queue.group_status (Task_Queue.group_of_task (task_of x))) of
-          [] => res
-        | exns => Exn.Exn (Exn.EXCEPTIONS exns))
+        (case Task_Queue.group_status (Task_Queue.group_of_task (task_of x)) of
+          NONE => res
+        | SOME exn => Exn.Exn exn)
       else res);
 
 fun join_next deps = (*requires SYNCHRONIZED*)

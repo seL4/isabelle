@@ -60,6 +60,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Concurrent/lazy.ML					\
   Concurrent/lazy_sequential.ML				\
   Concurrent/mailbox.ML					\
+  Concurrent/par_exn.ML					\
   Concurrent/par_list.ML				\
   Concurrent/par_list_sequential.ML			\
   Concurrent/simple_thread.ML				\

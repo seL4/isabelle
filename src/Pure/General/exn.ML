@@ -20,10 +20,6 @@ sig
   val is_interrupt_exn: 'a result -> bool
   val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
   exception EXCEPTIONS of exn list
-  val flatten: exn -> exn list
-  val flatten_list: exn list -> exn list
-  val release_all: 'a result list -> 'a list
-  val release_first: 'a result list -> 'a list
 end;
 
 structure Exn: EXN =
@@ -71,22 +67,9 @@ fun interruptible_capture f x =
   Res (f x) handle e => if is_interrupt e then reraise e else Exn e;
 
 
-(* nested exceptions *)
+(* concatenated exceptions *)
 
 exception EXCEPTIONS of exn list;
-
-fun flatten (EXCEPTIONS exns) = flatten_list exns
-  | flatten exn = if is_interrupt exn then [] else [exn]
-and flatten_list exns = List.concat (map flatten exns);
-
-fun release_all results =
-  if List.all (fn Res _ => true | _ => false) results
-  then map (fn Res x => x) results
-  else raise EXCEPTIONS (flatten_list (List.mapPartial get_exn results));
-
-fun release_first results = release_all results
-  handle EXCEPTIONS [] => interrupt ()
-    | EXCEPTIONS (exn :: _) => reraise exn;
 
 end;
 
