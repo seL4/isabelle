@@ -132,12 +132,8 @@ lemma metric_LIM_imp_LIM:
   assumes f: "f -- a --> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> dist (g x) m \<le> dist (f x) l"
   shows "g -- a --> m"
-apply (rule tendstoI, drule tendstoD [OF f])
-apply (simp add: eventually_at_topological, safe)
-apply (rule_tac x="S" in exI, safe)
-apply (drule_tac x="x" in bspec, safe)
-apply (erule (1) order_le_less_trans [OF le])
-done
+  by (rule metric_tendsto_imp_tendsto [OF f],
+    auto simp add: eventually_at_topological le)
 
 lemma LIM_imp_LIM:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
@@ -145,9 +141,8 @@ lemma LIM_imp_LIM:
   assumes f: "f -- a --> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> norm (g x - m) \<le> norm (f x - l)"
   shows "g -- a --> m"
-apply (rule metric_LIM_imp_LIM [OF f])
-apply (simp add: dist_norm le)
-done
+  by (rule metric_LIM_imp_LIM [OF f],
+    simp add: dist_norm le)
 
 lemma LIM_norm:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"

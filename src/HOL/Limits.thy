@@ -627,6 +627,17 @@ proof (rule topological_tendstoI)
     by (rule eventually_mono)
 qed
 
+lemma metric_tendsto_imp_tendsto:
+  assumes f: "(f ---> a) F"
+  assumes le: "eventually (\<lambda>x. dist (g x) b \<le> dist (f x) a) F"
+  shows "(g ---> b) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  with f have "eventually (\<lambda>x. dist (f x) a < e) F" by (rule tendstoD)
+  with le show "eventually (\<lambda>x. dist (g x) b < e) F"
+    using le_less_trans by (rule eventually_elim2)
+qed
+
 subsubsection {* Distance and norms *}
 
 lemma tendsto_dist [tendsto_intros]:
