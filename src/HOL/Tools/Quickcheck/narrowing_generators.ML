@@ -251,7 +251,7 @@ fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
           (if contains_existentials then pnf_narrowing_engine else narrowing_engine)
         val _ = File.write main_file main
         val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
-        val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
+        val cmd = "exec \"$ISABELLE_GHC\" -XRankNTypes -XScopedTypeVariables " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
         val (result, compilation_time) =
