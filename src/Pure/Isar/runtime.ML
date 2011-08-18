@@ -61,7 +61,7 @@ fun exn_messages exn_position e =
       if Exn.is_interrupt exn then []
       else
         (case Par_Exn.dest exn of
-          SOME exns => maps (exn_msgs context) exns
+          SOME exns => maps (exn_msgs context) (rev exns)
         | NONE =>
             (case exn of
               Exn.EXCEPTIONS exns => maps (exn_msgs context) exns

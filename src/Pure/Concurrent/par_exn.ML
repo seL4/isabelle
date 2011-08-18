@@ -29,17 +29,19 @@ val exn_ord = rev_order o int_ord o pairself (the o get_exn_serial);
 
 (* parallel exceptions *)
 
-exception Par_Exn of exn Ord_List.T;
+exception Par_Exn of exn list;
+  (*non-empty list with unique identified elements sorted by exn_ord;
+    no occurrences of Par_Exn or Exn.Interrupt*)
 
-fun par_exns (Par_Exn exns) = SOME exns
-  | par_exns exn = if Exn.is_interrupt exn then NONE else SOME [#2 (serial exn)];
+fun par_exns (Par_Exn exns) = exns
+  | par_exns exn = if Exn.is_interrupt exn then [] else [#2 (serial exn)];
 
 fun make exns =
-  (case map_filter par_exns exns of
+  (case Balanced_Tree.make (Ord_List.merge exn_ord) ([] :: map par_exns exns) of
     [] => Exn.Interrupt
-  | e :: es => Par_Exn (Library.foldl (Ord_List.merge exn_ord) (e, es)));
+  | es => Par_Exn es);
 
-fun dest (Par_Exn exns) = SOME (rev exns)
+fun dest (Par_Exn exns) = SOME exns
   | dest _ = NONE;
 
 
