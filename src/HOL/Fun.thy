@@ -10,15 +10,6 @@ imports Complete_Lattice
 uses ("Tools/enriched_type.ML")
 begin
 
-text{*As a simplification rule, it replaces all function equalities by
-  first-order equalities.*}
-lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
-apply (rule iffI)
-apply (simp (no_asm_simp))
-apply (rule ext)
-apply (simp (no_asm_simp))
-done
-
 lemma apply_inverse:
   "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
   by auto
@@ -26,26 +17,22 @@ lemma apply_inverse:
 
 subsection {* The Identity Function @{text id} *}
 
-definition
-  id :: "'a \<Rightarrow> 'a"
-where
+definition id :: "'a \<Rightarrow> 'a" where
   "id = (\<lambda>x. x)"
 
 lemma id_apply [simp]: "id x = x"
   by (simp add: id_def)
 
 lemma image_id [simp]: "id ` Y = Y"
-by (simp add: id_def)
+  by (simp add: id_def)
 
 lemma vimage_id [simp]: "id -` A = A"
-by (simp add: id_def)
+  by (simp add: id_def)
 
 
 subsection {* The Composition Operator @{text "f \<circ> g"} *}
 
-definition
-  comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55)
-where
+definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55) where
   "f o g = (\<lambda>x. f (g x))"
 
 notation (xsymbols)
@@ -53,9 +40,6 @@ notation (xsymbols)
 
 notation (HTML output)
   comp  (infixl "\<circ>" 55)
-
-text{*compatibility*}
-lemmas o_def = comp_def
 
 lemma o_apply [simp]: "(f o g) x = f (g x)"
 by (simp add: comp_def)
@@ -71,7 +55,7 @@ by (simp add: comp_def)
 
 lemma o_eq_dest:
   "a o b = c o d \<Longrightarrow> a (b v) = c (d v)"
-  by (simp only: o_def) (fact fun_cong)
+  by (simp only: comp_def) (fact fun_cong)
 
 lemma o_eq_elim:
   "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
@@ -89,9 +73,7 @@ by (unfold comp_def, blast)
 
 subsection {* The Forward Composition Operator @{text fcomp} *}
 
-definition
-  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60)
-where
+definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60) where
   "f \<circ>> g = (\<lambda>x. g (f x))"
 
 lemma fcomp_apply [simp]:  "(f \<circ>> g) x = g (f x)"
@@ -569,8 +551,7 @@ lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj
 
 subsection{*Function Updating*}
 
-definition
-  fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)" where
+definition fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)" where
   "fun_upd f a b == % x. if x=a then b else f x"
 
 nonterminal updbinds and updbind
@@ -634,9 +615,7 @@ by (auto intro: ext)
 
 subsection {* @{text override_on} *}
 
-definition
-  override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
-where
+definition override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b" where
   "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
 
 lemma override_on_emptyset[simp]: "override_on f g {} = f"
@@ -651,9 +630,7 @@ by(simp add:override_on_def)
 
 subsection {* @{text swap} *}
 
-definition
-  swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
-where
+definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" where
   "swap a b f = f (a := f b, b:= f a)"
 
 lemma swap_self [simp]: "swap a a f = f"
@@ -716,7 +693,7 @@ hide_const (open) swap
 subsection {* Inversion of injective functions *}
 
 definition the_inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
-"the_inv_into A f == %x. THE y. y : A & f y = x"
+  "the_inv_into A f == %x. THE y. y : A & f y = x"
 
 lemma the_inv_into_f_f:
   "[| inj_on f A;  x : A |] ==> the_inv_into A f (f x) = x"
@@ -774,6 +751,11 @@ lemma the_inv_f_f:
   assumes "inj f"
   shows "the_inv f (f x) = x" using assms UNIV_I
   by (rule the_inv_into_f_f)
+
+
+text{*compatibility*}
+lemmas o_def = comp_def
+
 
 subsection {* Cantor's Paradox *}
 

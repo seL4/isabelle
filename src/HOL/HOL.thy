@@ -1394,6 +1394,11 @@ lemma if_distrib:
   "f (if c then x else y) = (if c then f x else f y)"
   by simp
 
+text{*As a simplification rule, it replaces all function equalities by
+  first-order equalities.*}
+lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
+  by auto
+
 
 subsubsection {* Generic cases and induction *}
 

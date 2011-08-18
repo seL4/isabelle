@@ -531,11 +531,8 @@ done
 
 lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = abs n"
 apply(rule antisym)
- apply(rule Max_le_iff[THEN iffD2])
-   apply simp
-  apply fastsimp
- apply (metis Collect_def abs_ge_self dvd_imp_le_int mem_def zle_trans)
-apply simp
+ apply(rule Max_le_iff [THEN iffD2])
+  apply (auto intro: abs_le_D1 dvd_imp_le_int)
 done
 
 lemma gcd_is_Max_divisors_nat:
