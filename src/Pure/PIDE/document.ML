@@ -264,8 +264,8 @@ fun async_state tr st =
 fun run int tr st =
   (case Toplevel.transition int tr st of
     SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME exn_info) =>
-      (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
+  | SOME (_, SOME (exn, _)) =>
+      (case ML_Compiler.exn_messages exn of
         [] => Exn.interrupt ()
       | errs => (errs, NONE))
   | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));

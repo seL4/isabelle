@@ -61,7 +61,7 @@ fun exn_messages exn_position e =
       | flatten context (Exn.EXCEPTIONS exns) = maps (flatten context) exns
       | flatten context exn =
           (case Par_Exn.dest exn of
-            SOME exns => map (pair context) exns
+            SOME exns => maps (flatten context) exns
           | NONE => [(context, Par_Exn.serial exn)]);
 
     fun exn_msgs (context, (i, exn)) =
@@ -98,7 +98,7 @@ fun exn_messages exn_position e =
             | _ => raised exn (General.exnMessage exn) []);
         in [(i, msg)] end)
       and sorted_msgs context exn =
-        sort (int_ord o pairself fst) (maps exn_msgs (flatten context exn));
+        sort_distinct (int_ord o pairself fst) (maps exn_msgs (flatten context exn));
 
   in sorted_msgs NONE e end;
 

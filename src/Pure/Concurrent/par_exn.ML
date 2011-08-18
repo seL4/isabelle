@@ -9,7 +9,7 @@ signature PAR_EXN =
 sig
   val serial: exn -> serial * exn
   val make: exn list -> exn
-  val dest: exn -> (serial * exn) list option
+  val dest: exn -> exn list option
   val release_all: 'a Exn.result list -> 'a list
   val release_first: 'a Exn.result list -> 'a list
 end;
@@ -43,7 +43,7 @@ fun make exns =
     [] => Exn.Interrupt
   | es => Par_Exn es);
 
-fun dest (Par_Exn exns) = SOME (map (`the_serial) exns)
+fun dest (Par_Exn exns) = SOME exns
   | dest exn = if Exn.is_interrupt exn then SOME [] else NONE;
 
 
