@@ -1,19 +1,15 @@
 (*  Title:      Pure/Concurrent/future.ML
     Author:     Makarius
 
-Future values, see also
+Value-oriented parallelism via futures and promises.  See also
 http://www4.in.tum.de/~wenzelm/papers/parallel-isabelle.pdf
 http://www4.in.tum.de/~wenzelm/papers/parallel-ml.pdf
 
 Notes:
 
   * Futures are similar to delayed evaluation, i.e. delay/force is
-    generalized to fork/join (and variants).  The idea is to model
-    parallel value-oriented computations, but *not* communicating
-    processes.
-
-  * Futures are grouped; failure of one group member causes the whole
-    group to be interrupted eventually.  Groups are block-structured.
+    generalized to fork/join.  The idea is to model parallel
+    value-oriented computations (not communicating processes).
 
   * Forked futures are evaluated spontaneously by a farm of worker
     threads in the background; join resynchronizes the computation and
@@ -21,13 +17,23 @@ Notes:
 
   * The pool of worker threads is limited, usually in correlation with
     the number of physical cores on the machine.  Note that allocation
-    of runtime resources is distorted either if workers yield CPU time
-    (e.g. via system sleep or wait operations), or if non-worker
+    of runtime resources may be distorted either if workers yield CPU
+    time (e.g. via system sleep or wait operations), or if non-worker
     threads contend for significant runtime resources independently.
+    There is a limited number of replacement worker threads that get
+    activated in certain explicit wait conditions.
 
-  * Promised futures are fulfilled by external means.  There is no
-    associated evaluation task, but other futures can depend on them
-    as usual.
+  * Future tasks are organized in groups, which are block-structured.
+    When forking a new new task, the default is to open an individual
+    subgroup, unless some common group is specified explicitly.
+    Failure of one group member causes the immediate peers to be
+    interrupted eventually (i.e. none by default).  Interrupted tasks
+    that lack regular result information, will pick up parallel
+    exceptions from the cumulative group context (as Par_Exn).
+
+  * Promised "passive" futures are fulfilled by external means.  There
+    is no associated evaluation task, but other futures can depend on
+    them via regular join operations.
 *)
 
 signature FUTURE =
