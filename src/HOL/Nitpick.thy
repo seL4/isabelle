@@ -76,19 +76,19 @@ by (simp add: trancl_def Collect_def mem_def)
 definition prod :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
 "prod A B = {(a, b). a \<in> A \<and> b \<in> B}"
 
-definition refl' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+definition refl' :: "('a \<times> 'a) set \<Rightarrow> bool" where
 "refl' r \<equiv> \<forall>x. (x, x) \<in> r"
 
-definition wf' :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+definition wf' :: "('a \<times> 'a) set \<Rightarrow> bool" where
 "wf' r \<equiv> acyclic r \<and> (finite r \<or> unknown)"
 
-definition card' :: "('a \<Rightarrow> bool) \<Rightarrow> nat" where
+definition card' :: "'a set \<Rightarrow> nat" where
 "card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
-definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b" where
+definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
 "setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
 
-inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
+inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool" where
 "fold_graph' f z {} z" |
 "\<lbrakk>x \<in> A; fold_graph' f z (A - {x}) y\<rbrakk> \<Longrightarrow> fold_graph' f z A (f x y)"
 

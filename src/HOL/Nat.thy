@@ -39,11 +39,20 @@ where
     Zero_RepI: "Nat Zero_Rep"
   | Suc_RepI: "Nat i \<Longrightarrow> Nat (Suc_Rep i)"
 
-typedef (open Nat) nat = Nat
-  by (rule exI, unfold mem_def, rule Nat.Zero_RepI)
+typedef (open Nat) nat = "{n. Nat n}"
+  using Nat.Zero_RepI by auto
 
-definition Suc :: "nat => nat" where
-  "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
+lemma Nat_Rep_Nat:
+  "Nat (Rep_Nat n)"
+  using Rep_Nat by simp
+
+lemma Nat_Abs_Nat_inverse:
+  "Nat n \<Longrightarrow> Rep_Nat (Abs_Nat n) = n"
+  using Abs_Nat_inverse by simp
+
+lemma Nat_Abs_Nat_inject:
+  "Nat n \<Longrightarrow> Nat m \<Longrightarrow> Abs_Nat n = Abs_Nat m \<longleftrightarrow> n = m"
+  using Abs_Nat_inject by simp
 
 instantiation nat :: zero
 begin
@@ -55,9 +64,11 @@ instance ..
 
 end
 
+definition Suc :: "nat \<Rightarrow> nat" where
+  "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
+
 lemma Suc_not_Zero: "Suc m \<noteq> 0"
-  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def]
-    Rep_Nat [unfolded mem_def] Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def])
+  by (simp add: Zero_nat_def Suc_def Suc_RepI Zero_RepI Nat_Abs_Nat_inject Suc_Rep_not_Zero_Rep Nat_Rep_Nat)
 
 lemma Zero_not_Suc: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
@@ -67,12 +78,12 @@ lemma Suc_Rep_inject': "Suc_Rep x = Suc_Rep y \<longleftrightarrow> x = y"
 
 rep_datatype "0 \<Colon> nat" Suc
   apply (unfold Zero_nat_def Suc_def)
-     apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
-     apply (erule Rep_Nat [unfolded mem_def, THEN Nat.induct])
-     apply (iprover elim: Abs_Nat_inverse [unfolded mem_def, THEN subst])
-    apply (simp_all add: Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def]
-      Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]
-      Suc_Rep_not_Zero_Rep [unfolded mem_def, symmetric]
+  apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
+   apply (erule Nat_Rep_Nat [THEN Nat.induct])
+   apply (iprover elim: Nat_Abs_Nat_inverse [THEN subst])
+    apply (simp_all add: Nat_Abs_Nat_inject Nat_Rep_Nat
+      Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep
+      Suc_Rep_not_Zero_Rep [symmetric]
       Suc_Rep_inject' Rep_Nat_inject)
   done
 
