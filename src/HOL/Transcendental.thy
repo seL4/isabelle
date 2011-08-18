@@ -971,7 +971,7 @@ by (rule exp_add [symmetric])
 
 lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
 unfolding exp_def
-apply (subst of_real.suminf)
+apply (subst suminf_of_real)
 apply (rule summable_exp_generic)
 apply (simp add: scaleR_conv_of_real)
 done

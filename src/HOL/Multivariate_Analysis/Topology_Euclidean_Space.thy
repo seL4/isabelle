@@ -14,7 +14,7 @@ begin
 
 lemma euclidean_dist_l2:"dist x (y::'a::euclidean_space) = setL2 (\<lambda>i. dist(x$$i) (y$$i)) {..<DIM('a)}"
   unfolding dist_norm norm_eq_sqrt_inner setL2_def apply(subst euclidean_inner)
-  apply(auto simp add:power2_eq_square) unfolding euclidean_component.diff ..
+  apply(auto simp add:power2_eq_square) unfolding euclidean_component_diff ..
 
 lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)"
   apply(subst(2) euclidean_dist_l2) apply(cases "i<DIM('a)")
@@ -1912,7 +1912,7 @@ lemma bounded_scaling:
   fixes S :: "'a::real_normed_vector set"
   shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *\<^sub>R x) ` S)"
   apply (rule bounded_linear_image, assumption)
-  apply (rule scaleR.bounded_linear_right)
+  apply (rule bounded_linear_scaleR_right)
   done
 
 lemma bounded_translation:
@@ -3537,7 +3537,7 @@ lemma uniformly_continuous_on_cmul:
 proof-
   { fix x y assume "((\<lambda>n. f (x n) - f (y n)) ---> 0) sequentially"
     hence "((\<lambda>n. c *\<^sub>R f (x n) - c *\<^sub>R f (y n)) ---> 0) sequentially"
-      using scaleR.tendsto [OF tendsto_const, of "(\<lambda>n. f (x n) - f (y n))" 0 sequentially c]
+      using tendsto_scaleR [OF tendsto_const, of "(\<lambda>n. f (x n) - f (y n))" 0 sequentially c]
       unfolding scaleR_zero_right scaleR_right_diff_distrib by auto
   }
   thus ?thesis using assms unfolding uniformly_continuous_on_sequentially'
@@ -4365,7 +4365,7 @@ lemma compact_scaling:
   assumes "compact s"  shows "compact ((\<lambda>x. c *\<^sub>R x) ` s)"
 proof-
   let ?f = "\<lambda>x. scaleR c x"
-  have *:"bounded_linear ?f" by (rule scaleR.bounded_linear_right)
+  have *:"bounded_linear ?f" by (rule bounded_linear_scaleR_right)
   show ?thesis using compact_continuous_image[of s ?f] continuous_at_imp_continuous_on[of s ?f]
     using linear_continuous_at[OF *] assms by auto
 qed
@@ -4951,7 +4951,7 @@ proof-
         unfolding Lim_sequentially by(auto simp add: dist_norm)
       hence "(f ---> x) sequentially" unfolding f_def
         using tendsto_add[OF tendsto_const, of "\<lambda>n::nat. (inverse (real n + 1)) *\<^sub>R ((1 / 2) *\<^sub>R (a + b) - x)" 0 sequentially x]
-        using scaleR.tendsto [OF _ tendsto_const, of "\<lambda>n::nat. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"] by auto  }
+        using tendsto_scaleR [OF _ tendsto_const, of "\<lambda>n::nat. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"] by auto  }
     ultimately have "x \<in> closure {a<..<b}"
       using as and open_interval_midpoint[OF assms] unfolding closure_def unfolding islimpt_sequential by(cases "x=?c")auto  }
   thus ?thesis using closure_minimal[OF interval_open_subset_closed closed_interval, of a b] by blast
@@ -5571,7 +5571,7 @@ qed
 subsection {* Some properties of a canonical subspace *}
 
 (** move **)
-declare euclidean_component.zero[simp]  
+declare euclidean_component_zero[simp]
 
 lemma subspace_substandard:
   "subspace {x::'a::euclidean_space. (\<forall>i<DIM('a). P i \<longrightarrow> x$$i = 0)}"
@@ -6027,15 +6027,15 @@ text {* Legacy theorem names *}
 
 lemmas Lim_ident_at = LIM_ident
 lemmas Lim_const = tendsto_const
-lemmas Lim_cmul = scaleR.tendsto [OF tendsto_const]
+lemmas Lim_cmul = tendsto_scaleR [OF tendsto_const]
 lemmas Lim_neg = tendsto_minus
 lemmas Lim_add = tendsto_add
 lemmas Lim_sub = tendsto_diff
-lemmas Lim_mul = scaleR.tendsto
-lemmas Lim_vmul = scaleR.tendsto [OF _ tendsto_const]
+lemmas Lim_mul = tendsto_scaleR
+lemmas Lim_vmul = tendsto_scaleR [OF _ tendsto_const]
 lemmas Lim_null_norm = tendsto_norm_zero_iff [symmetric]
 lemmas Lim_linear = bounded_linear.tendsto [COMP swap_prems_rl]
-lemmas Lim_component = euclidean_component.tendsto
+lemmas Lim_component = tendsto_euclidean_component
 lemmas Lim_intros = Lim_add Lim_const Lim_sub Lim_cmul Lim_vmul Lim_within_id
 
 end

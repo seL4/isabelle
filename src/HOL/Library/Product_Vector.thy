@@ -489,11 +489,11 @@ end
 
 subsection {* Pair operations are linear *}
 
-interpretation fst: bounded_linear fst
+lemma bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-interpretation snd: bounded_linear snd
+lemma bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 

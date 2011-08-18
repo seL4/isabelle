@@ -5,7 +5,7 @@
 header {* Frechet Derivative *}
 
 theory FrechetDeriv
-imports Lim Complex_Main
+imports Complex_Main
 begin
 
 definition
@@ -398,9 +398,11 @@ next
     by (simp only: FDERIV_lemma)
 qed
 
-lemmas FDERIV_mult = mult.FDERIV
+lemmas FDERIV_mult =
+  bounded_bilinear.FDERIV [OF bounded_bilinear_mult]
 
-lemmas FDERIV_scaleR = scaleR.FDERIV
+lemmas FDERIV_scaleR =
+  bounded_bilinear.FDERIV [OF bounded_bilinear_scaleR]
 
 
 subsection {* Powers *}
@@ -427,10 +429,10 @@ lemma FDERIV_power:
 subsection {* Inverse *}
 
 lemmas bounded_linear_mult_const =
-  mult.bounded_linear_left [THEN bounded_linear_compose]
+  bounded_linear_mult_left [THEN bounded_linear_compose]
 
 lemmas bounded_linear_const_mult =
-  mult.bounded_linear_right [THEN bounded_linear_compose]
+  bounded_linear_mult_right [THEN bounded_linear_compose]
 
 lemma FDERIV_inverse:
   fixes x :: "'a::real_normed_div_algebra"
@@ -510,7 +512,7 @@ lemma field_fderiv_def:
   fixes x :: "'a::real_normed_field" shows
   "FDERIV f x :> (\<lambda>h. h * D) = (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
  apply (unfold fderiv_def)
- apply (simp add: mult.bounded_linear_left)
+ apply (simp add: bounded_linear_mult_left)
  apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
  apply (subst diff_divide_distrib)
  apply (subst times_divide_eq_left [symmetric])

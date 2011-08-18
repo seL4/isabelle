@@ -198,8 +198,8 @@ lemma norm_gt_square: "norm(x) > a \<longleftrightarrow> a < 0 \<or> x \<bullet>
 
 text{* Dot product in terms of the norm rather than conversely. *}
 
-lemmas inner_simps = inner.add_left inner.add_right inner.diff_right inner.diff_left 
-inner.scaleR_left inner.scaleR_right
+lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left 
+inner_scaleR_left inner_scaleR_right
 
 lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
@@ -1558,7 +1558,7 @@ lemma independent_basis:
   unfolding independent_eq_inj_on [OF basis_inj]
   apply clarify
   apply (drule_tac f="inner (basis a)" in arg_cong)
-  apply (simp add: inner_right.setsum dot_basis)
+  apply (simp add: inner_setsum_right dot_basis)
   done
 
 lemma dimensionI:
@@ -1663,10 +1663,10 @@ proof-
     have PpP: "?Pp \<subseteq> P" and PnP: "?Pn \<subseteq> P" by blast+
     have Ppe:"setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp \<le> e"
       using component_le_norm[of "setsum (\<lambda>x. f x) ?Pp" i]  fPs[OF PpP]
-      unfolding euclidean_component.setsum by(auto intro: abs_le_D1)
+      unfolding euclidean_component_setsum by(auto intro: abs_le_D1)
     have Pne: "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn \<le> e"
       using component_le_norm[of "setsum (\<lambda>x. - f x) ?Pn" i]  fPs[OF PnP]
-      unfolding euclidean_component.setsum euclidean_component.minus
+      unfolding euclidean_component_setsum euclidean_component_minus
       by(auto simp add: setsum_negf intro: abs_le_D1)
     have "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) P = setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp + setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn"
       apply (subst thp)
@@ -1756,7 +1756,7 @@ proof-
   have Kp: "?K > 0" by arith
     { assume C: "B < 0"
       have "((\<chi>\<chi> i. 1)::'a) \<noteq> 0" unfolding euclidean_eq[where 'a='a]
-        by(auto intro!:exI[where x=0] simp add:euclidean_component.zero)
+        by(auto intro!:exI[where x=0] simp add:euclidean_component_zero)
       hence "norm ((\<chi>\<chi> i. 1)::'a) > 0" by auto
       with C have "B * norm ((\<chi>\<chi> i. 1)::'a) < 0"
         by (simp add: mult_less_0_iff)
@@ -2829,7 +2829,7 @@ proof-
     unfolding infnorm_def
     unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image ball_simps
-    apply(subst (1) euclidean_eq) unfolding euclidean_component.zero
+    apply(subst (1) euclidean_eq) unfolding euclidean_component_zero
     by auto
   then show ?thesis using infnorm_pos_le[of x] by simp
 qed
@@ -2881,7 +2881,7 @@ qed
 lemma infnorm_mul_lemma: "infnorm(a *\<^sub>R x) <= \<bar>a\<bar> * infnorm x"
   apply (subst infnorm_def)
   unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
-  unfolding infnorm_set_image ball_simps euclidean_scaleR abs_mult
+  unfolding infnorm_set_image ball_simps euclidean_component_scaleR abs_mult
   using component_le_infnorm[of x] by(auto intro: mult_mono) 
 
 lemma infnorm_mul: "infnorm(a *\<^sub>R x) = abs a * infnorm x"

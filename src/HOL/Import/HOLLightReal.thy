@@ -112,7 +112,7 @@ lemma REAL_POS_NZ:
 
 lemma REAL_DIFFSQ:
   "((x :: real) + y) * (x - y) = x * x - y * y"
-  by (simp add: comm_semiring_1_class.normalizing_semiring_rules(7) mult.add_right mult_diff_mult)
+  by (simp add: comm_semiring_1_class.normalizing_semiring_rules(7) right_distrib mult_diff_mult)
 
 lemma REAL_ABS_TRIANGLE_LE:
   "abs (x :: real) + abs (y - x) \<le> z \<longrightarrow> abs y \<le> z"
@@ -295,7 +295,7 @@ lemma REAL_POLY_CLAUSES:
    (\<forall>(x :: real). 0 * x = 0) \<and>
    (\<forall>(x :: real) y z. x * (y + z) = x * y + x * z) \<and>
    (\<forall>(x :: real). x ^ 0 = 1) \<and> (\<forall>(x :: real) n. x ^ Suc n = x * x ^ n)"
-  by (auto simp add: mult.add_right)
+  by (auto simp add: right_distrib)
 
 lemma REAL_COMPLETE:
   "(\<exists>(x :: real). P x) \<and> (\<exists>(M :: real). \<forall>x. P x \<longrightarrow> x \<le> M) \<longrightarrow>

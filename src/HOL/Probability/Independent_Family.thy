@@ -563,7 +563,7 @@ proof -
     with F have "(\<lambda>i. prob X * prob (F i)) sums prob (X \<inter> (\<Union>i. F i))"
       by simp
     moreover have "(\<lambda>i. prob X * prob (F i)) sums (prob X * prob (\<Union>i. F i))"
-      by (intro mult_right.sums finite_measure_UNION F dis)
+      by (intro sums_mult finite_measure_UNION F dis)
     ultimately have "prob (X \<inter> (\<Union>i. F i)) = prob X * prob (\<Union>i. F i)"
       by (auto dest!: sums_unique)
     with F show "(\<Union>i. F i) \<in> sets ?D"

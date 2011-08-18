@@ -121,7 +121,7 @@ qed
 subsection {* Cauchy sequences *}
 
 definition
-  cauchy :: "(nat \<Rightarrow> rat) set"
+  cauchy :: "(nat \<Rightarrow> rat) \<Rightarrow> bool"
 where
   "cauchy X \<longleftrightarrow> (\<forall>r>0. \<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. \<bar>X m - X n\<bar> < r)"
 
