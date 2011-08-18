@@ -48,7 +48,7 @@ use_thys [
   "Primrec",
   "Tarski",
   "Classical",
-  "set",
+  "Set_Theory",
   "Meson_Test",
   "Termination",
   "Coherent",

@@ -1,11 +1,13 @@
-(*  Title:      HOL/ex/set.thy
+(*  Title:      HOL/ex/Set_Theory.thy
     Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1991  University of Cambridge
 *)
 
 header {* Set Theory examples: Cantor's Theorem, Schröder-Bernstein Theorem, etc. *}
 
-theory set imports Main begin
+theory Set_Theory
+imports Main
+begin
 
 text{*
   These two are cited in Benzmueller and Kohlhase's system description
