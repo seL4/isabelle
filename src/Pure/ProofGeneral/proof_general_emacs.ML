@@ -84,7 +84,7 @@ fun setup_messages () =
   Output.Private_Hooks.urgent_message_fn := message (special "I") (special "J") "";
   Output.Private_Hooks.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.Private_Hooks.warning_fn := message (special "K") (special "L") "### ";
-  Output.Private_Hooks.error_fn := message (special "M") (special "N") "*** ";
+  Output.Private_Hooks.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
   Output.Private_Hooks.prompt_fn := (fn s => Output.raw_stdout (render s ^ special "S")));
 
 fun panic s =

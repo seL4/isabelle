@@ -9,7 +9,7 @@ signature PAR_EXN =
 sig
   val serial: exn -> serial * exn
   val make: exn list -> exn
-  val dest: exn -> exn list option
+  val dest: exn -> (serial * exn) list option
   val release_all: 'a Exn.result list -> 'a list
   val release_first: 'a Exn.result list -> 'a list
 end;
@@ -24,7 +24,9 @@ fun serial exn =
     SOME i => (i, exn)
   | NONE => let val i = Library.serial () in (i, set_exn_serial i exn) end);
 
-val exn_ord = rev_order o int_ord o pairself (the o get_exn_serial);
+val the_serial = the o get_exn_serial;
+
+val exn_ord = rev_order o int_ord o pairself the_serial;
 
 
 (* parallel exceptions *)
@@ -41,8 +43,8 @@ fun make exns =
     [] => Exn.Interrupt
   | es => Par_Exn es);
 
-fun dest (Par_Exn exns) = SOME exns
-  | dest _ = NONE;
+fun dest (Par_Exn exns) = SOME (map (`the_serial) exns)
+  | dest exn = if Exn.is_interrupt exn then SOME [] else NONE;
 
 
 (* parallel results *)

@@ -96,7 +96,7 @@ fun op >> tr =
     NONE => false
   | SOME (_, SOME exn_info) =>
      (set_exn (SOME exn_info);
-      Toplevel.error_msg tr (ML_Compiler.exn_message (Runtime.EXCURSION_FAIL exn_info));
+      Toplevel.error_msg tr (serial (), ML_Compiler.exn_message (Runtime.EXCURSION_FAIL exn_info));
       true)
   | SOME (st', NONE) =>
       let

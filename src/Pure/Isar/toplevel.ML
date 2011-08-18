@@ -84,7 +84,7 @@ sig
   val unknown_context: transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
-  val error_msg: transition -> string -> unit
+  val error_msg: transition -> serial * string -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
@@ -567,7 +567,7 @@ fun status tr m =
   setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
 
 fun error_msg tr msg =
-  setmp_thread_position tr (fn () => Output.error_msg msg) ();
+  setmp_thread_position tr (fn () => Output.error_msg' msg) ();
 
 
 (* post-transition hooks *)

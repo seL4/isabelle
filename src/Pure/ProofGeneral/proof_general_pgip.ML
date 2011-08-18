@@ -166,7 +166,7 @@ fun setup_messages () =
   Output.Private_Hooks.urgent_message_fn := (fn s => normalmsg Status s);
   Output.Private_Hooks.tracing_fn := (fn s => normalmsg Tracing s);
   Output.Private_Hooks.warning_fn := (fn s => errormsg Message Warning s);
-  Output.Private_Hooks.error_fn := (fn s => errormsg Message Fatal s));
+  Output.Private_Hooks.error_fn := (fn (_, s) => errormsg Message Fatal s));
 
 
 (* immediate messages *)

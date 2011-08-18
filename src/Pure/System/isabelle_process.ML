@@ -72,11 +72,11 @@ fun message mbox ch raw_props body =
     val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
   in Mailbox.send mbox (chunk header @ chunk body) end;
 
-fun standard_message mbox with_serial ch body =
+fun standard_message mbox opt_serial ch body =
   if body = "" then ()
   else
     message mbox ch
-      ((if with_serial then cons (Markup.serialN, serial_string ()) else I)
+      ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox out_stream =
@@ -103,12 +103,12 @@ fun setup_channels in_fifo out_fifo =
     val mbox = Mailbox.create () : string list Mailbox.T;
     val _ = Simple_Thread.fork false (message_output mbox out_stream);
   in
-    Output.Private_Hooks.status_fn := standard_message mbox false "B";
-    Output.Private_Hooks.report_fn := standard_message mbox false "C";
-    Output.Private_Hooks.writeln_fn := standard_message mbox true "D";
-    Output.Private_Hooks.tracing_fn := standard_message mbox true "E";
-    Output.Private_Hooks.warning_fn := standard_message mbox true "F";
-    Output.Private_Hooks.error_fn := standard_message mbox true "G";
+    Output.Private_Hooks.status_fn := standard_message mbox NONE "B";
+    Output.Private_Hooks.report_fn := standard_message mbox NONE "C";
+    Output.Private_Hooks.writeln_fn := (fn s => standard_message mbox (SOME (serial ())) "D" s);
+    Output.Private_Hooks.tracing_fn := (fn s => standard_message mbox (SOME (serial ())) "E" s);
+    Output.Private_Hooks.warning_fn := (fn s => standard_message mbox (SOME (serial ())) "F" s);
+    Output.Private_Hooks.error_fn := (fn (i, s) => standard_message mbox (SOME i) "G" s);
     Output.Private_Hooks.raw_message_fn := message mbox "H";
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;

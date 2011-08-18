@@ -268,7 +268,7 @@ fun run int tr st =
       (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
         [] => Exn.interrupt ()
       | errs => (errs, NONE))
-  | NONE => ([ML_Compiler.exn_message Runtime.TERMINATE], NONE));
+  | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
 
 in
 
