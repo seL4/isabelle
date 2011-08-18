@@ -518,7 +518,8 @@ next
   qed
 qed
 
-text {* Environments and code generation *}
+
+subsection {* Code generation *}
 
 lemma [code, code del]:
   "(HOL.equal :: (_, _, _) env \<Rightarrow> _) = HOL.equal" ..
@@ -526,39 +527,37 @@ lemma [code, code del]:
 lemma equal_env_code [code]:
   fixes x y :: "'a\<Colon>equal"
     and f g :: "'c\<Colon>{equal, finite} \<Rightarrow> ('b\<Colon>equal, 'a, 'c) env option"
-  shows "HOL.equal (Env x f) (Env y g) \<longleftrightarrow>
-  HOL.equal x y \<and> (\<forall>z\<in>UNIV. case f z
-   of None \<Rightarrow> (case g z
-        of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-    | Some a \<Rightarrow> (case g z
-        of None \<Rightarrow> False | Some b \<Rightarrow> HOL.equal a b))" (is ?env)
+  shows
+    "HOL.equal (Env x f) (Env y g) \<longleftrightarrow>
+      HOL.equal x y \<and> (\<forall>z \<in> UNIV.
+        case f z of
+          None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
+        | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> HOL.equal a b))" (is ?env)
     and "HOL.equal (Val a) (Val b) \<longleftrightarrow> HOL.equal a b"
     and "HOL.equal (Val a) (Env y g) \<longleftrightarrow> False"
     and "HOL.equal (Env x f) (Val b) \<longleftrightarrow> False"
 proof (unfold equal)
-  have "f = g \<longleftrightarrow> (\<forall>z. case f z
-   of None \<Rightarrow> (case g z
-        of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-    | Some a \<Rightarrow> (case g z
-        of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" (is "?lhs = ?rhs")
+  have "f = g \<longleftrightarrow>
+    (\<forall>z. case f z of
+      None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
+    | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" (is "?lhs = ?rhs")
   proof
     assume ?lhs
     then show ?rhs by (auto split: option.splits)
   next
-    assume assm: ?rhs (is "\<forall>z. ?prop z")
+    assume ?rhs (is "\<forall>z. ?prop z")
     show ?lhs
     proof
       fix z
-      from assm have "?prop z" ..
+      from `?rhs` have "?prop z" ..
       then show "f z = g z" by (auto split: option.splits)
     qed
   qed
   then show "Env x f = Env y g \<longleftrightarrow>
-    x = y \<and> (\<forall>z\<in>UNIV. case f z
-     of None \<Rightarrow> (case g z
-          of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-      | Some a \<Rightarrow> (case g z
-          of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
+    x = y \<and> (\<forall>z\<in>UNIV.
+      case f z of
+        None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
+      | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
 
 lemma [code nbe]:
@@ -566,6 +565,8 @@ lemma [code nbe]:
   by (fact equal_refl)
 
 lemma [code, code del]:
-  "(Code_Evaluation.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Evaluation.term_of" ..
+  "(Code_Evaluation.term_of ::
+    ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) =
+      Code_Evaluation.term_of" ..
 
 end
