@@ -157,8 +157,11 @@ text {* A (co)inductive definition of @{text R} provides the following
   \item @{text R.cases} is the case analysis (or elimination) rule;
 
   \item @{text R.induct} or @{text R.coinduct} is the (co)induction
-  rule.
+  rule;
 
+  \item @{text R.simps} is the equation unrolling the fixpoint of the
+  predicate one step.
+ 
   \end{description}
 
   When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are
