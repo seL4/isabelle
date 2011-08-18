@@ -7,6 +7,7 @@ Dummy version of parallel list combinators -- plain sequential evaluation.
 structure Par_List: PAR_LIST =
 struct
 
+fun managed_results _ f = map (Exn.capture f);
 fun map_name _ = map;
 val map = map;
 val get_some = get_first;
