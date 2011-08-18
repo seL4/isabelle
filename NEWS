@@ -57,6 +57,9 @@ may have to be refined after enriching a proof context.
 * Isabelle/Isar reference manual provides more formal references in
 syntax diagrams.
 
+* Attribute case_names has been refined: the assumptions in each case can
+be named now by following the case name with [name1 name2 ...].
+
 
 *** HOL ***
 
