@@ -413,7 +413,7 @@ definition equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> boo
 
 lemma equivpI:
   "reflp R \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> equivp R"
-  by (auto simp add: mem_def elim: reflpE sympE transpE simp add: equivp_def)
+  by (auto elim: reflpE sympE transpE simp add: equivp_def mem_def)
 
 lemma equivpE:
   assumes "equivp R"
