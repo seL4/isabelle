@@ -118,20 +118,38 @@ definition (in euclidean_space) euclidean_component (infixl "$$" 90)
 lemma bounded_linear_euclidean_component:
   "bounded_linear (\<lambda>x. euclidean_component x i)"
   unfolding euclidean_component_def
-  by (rule inner.bounded_linear_right)
+  by (rule bounded_linear_inner_right)
 
-interpretation euclidean_component:
-  bounded_linear "\<lambda>x. euclidean_component x i"
-  by (rule bounded_linear_euclidean_component)
+lemmas tendsto_euclidean_component [tendsto_intros] =
+  bounded_linear.tendsto [OF bounded_linear_euclidean_component]
 
-declare euclidean_component.isCont [simp]
+lemmas isCont_euclidean_component [simp] =
+  bounded_linear.isCont [OF bounded_linear_euclidean_component]
+
+lemma euclidean_component_zero: "0 $$ i = 0"
+  unfolding euclidean_component_def by (rule inner_zero_right)
+
+lemma euclidean_component_add: "(x + y) $$ i = x $$ i + y $$ i"
+  unfolding euclidean_component_def by (rule inner_add_right)
+
+lemma euclidean_component_diff: "(x - y) $$ i = x $$ i - y $$ i"
+  unfolding euclidean_component_def by (rule inner_diff_right)
+
+lemma euclidean_component_minus: "(- x) $$ i = - (x $$ i)"
+  unfolding euclidean_component_def by (rule inner_minus_right)
+
+lemma euclidean_component_scaleR: "(scaleR a x) $$ i = a * (x $$ i)"
+  unfolding euclidean_component_def by (rule inner_scaleR_right)
+
+lemma euclidean_component_setsum: "(\<Sum>x\<in>A. f x) $$ i = (\<Sum>x\<in>A. f x $$ i)"
+  unfolding euclidean_component_def by (rule inner_setsum_right)
 
 lemma euclidean_eqI:
   fixes x y :: "'a::euclidean_space"
   assumes "\<And>i. i < DIM('a) \<Longrightarrow> x $$ i = y $$ i" shows "x = y"
 proof -
   from assms have "\<forall>i<DIM('a). (x - y) $$ i = 0"
-    by (simp add: euclidean_component.diff)
+    by (simp add: euclidean_component_diff)
   then show "x = y"
     unfolding euclidean_component_def euclidean_all_zero by simp
 qed
@@ -153,23 +171,19 @@ lemma (in euclidean_space) euclidean_component_ge [simp]:
   assumes "i \<ge> DIM('a)" shows "x $$ i = 0"
   unfolding euclidean_component_def basis_zero[OF assms] by simp
 
-lemma euclidean_scaleR:
-  shows "(a *\<^sub>R x) $$ i = a * (x$$i)"
-  unfolding euclidean_component_def by auto
-
 lemmas euclidean_simps =
-  euclidean_component.add
-  euclidean_component.diff
-  euclidean_scaleR
-  euclidean_component.minus
-  euclidean_component.setsum
+  euclidean_component_add
+  euclidean_component_diff
+  euclidean_component_scaleR
+  euclidean_component_minus
+  euclidean_component_setsum
   basis_component
 
 lemma euclidean_representation:
   fixes x :: "'a::euclidean_space"
   shows "x = (\<Sum>i<DIM('a). (x$$i) *\<^sub>R basis i)"
   apply (rule euclidean_eqI)
-  apply (simp add: euclidean_component.setsum euclidean_component.scaleR)
+  apply (simp add: euclidean_component_setsum euclidean_component_scaleR)
   apply (simp add: if_distrib setsum_delta cong: if_cong)
   done
 
@@ -180,7 +194,7 @@ definition (in euclidean_space) Chi (binder "\<chi>\<chi> " 10) where
 
 lemma euclidean_lambda_beta [simp]:
   "((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ j = (if j < DIM('a) then f j else 0)"
-  by (auto simp: euclidean_component.setsum euclidean_component.scaleR
+  by (auto simp: euclidean_component_setsum euclidean_component_scaleR
     Chi_def if_distrib setsum_cases intro!: setsum_cong)
 
 lemma euclidean_lambda_beta':
@@ -201,7 +215,7 @@ lemma euclidean_lambda_beta_0[simp]:
 lemma euclidean_inner:
   "inner x (y::'a) = (\<Sum>i<DIM('a::euclidean_space). (x $$ i) * (y $$ i))"
   by (subst (1 2) euclidean_representation,
-    simp add: inner_left.setsum inner_right.setsum
+    simp add: inner_setsum_left inner_setsum_right
     dot_basis if_distrib setsum_cases mult_commute)
 
 lemma component_le_norm: "\<bar>x$$i\<bar> \<le> norm (x::'a::euclidean_space)"

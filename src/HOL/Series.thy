@@ -211,50 +211,54 @@ lemma (in bounded_linear) suminf:
   "summable (\<lambda>n. X n) \<Longrightarrow> f (\<Sum>n. X n) = (\<Sum>n. f (X n))"
 by (intro sums_unique sums summable_sums)
 
+lemmas sums_of_real = bounded_linear.sums [OF bounded_linear_of_real]
+lemmas summable_of_real = bounded_linear.summable [OF bounded_linear_of_real]
+lemmas suminf_of_real = bounded_linear.suminf [OF bounded_linear_of_real]
+
 lemma sums_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. c * f n) sums (c * a)"
-by (rule mult_right.sums)
+  by (rule bounded_linear.sums [OF bounded_linear_mult_right])
 
 lemma summable_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> summable (%n. c * f n)"
-by (rule mult_right.summable)
+  by (rule bounded_linear.summable [OF bounded_linear_mult_right])
 
 lemma suminf_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. c * f n) = c * suminf f"
-by (rule mult_right.suminf [symmetric])
+  by (rule bounded_linear.suminf [OF bounded_linear_mult_right, symmetric])
 
 lemma sums_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n * c) sums (a * c)"
-by (rule mult_left.sums)
+  by (rule bounded_linear.sums [OF bounded_linear_mult_left])
 
 lemma summable_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n * c)"
-by (rule mult_left.summable)
+  by (rule bounded_linear.summable [OF bounded_linear_mult_left])
 
 lemma suminf_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n * c)"
-by (rule mult_left.suminf)
+  by (rule bounded_linear.suminf [OF bounded_linear_mult_left])
 
 lemma sums_divide:
   fixes c :: "'a::real_normed_field"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n / c) sums (a / c)"
-by (rule divide.sums)
+  by (rule bounded_linear.sums [OF bounded_linear_divide])
 
 lemma summable_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n / c)"
-by (rule divide.summable)
+  by (rule bounded_linear.summable [OF bounded_linear_divide])
 
 lemma suminf_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
-by (rule divide.suminf [symmetric])
+  by (rule bounded_linear.suminf [OF bounded_linear_divide, symmetric])
 
 lemma sums_add:
   fixes a b :: "'a::real_normed_field"
@@ -423,7 +427,7 @@ proof -
     by auto
   have "(\<lambda>n. (1/2::real)^Suc n) = (\<lambda>n. (1 / 2) ^ n / 2)"
     by simp
-  thus ?thesis using divide.sums [OF 2, of 2]
+  thus ?thesis using sums_divide [OF 2, of 2]
     by simp
 qed
 

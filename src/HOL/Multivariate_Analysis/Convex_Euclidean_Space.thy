@@ -18,7 +18,7 @@ begin
 (* ------------------------------------------------------------------------- *)
 
 lemma linear_scaleR: "linear (%(x :: 'n::euclidean_space). scaleR c x)"
-  by (metis linear_conv_bounded_linear scaleR.bounded_linear_right)
+  by (metis linear_conv_bounded_linear bounded_linear_scaleR_right)
 
 lemma injective_scaleR: 
 assumes "(c :: real) ~= 0"
@@ -128,7 +128,7 @@ lemma substdbasis_expansion_unique: assumes "d\<subseteq>{..<DIM('a::euclidean_s
 proof- have *:"\<And>x a b P. x * (if P then a else b) = (if P then x*a else x*b)" by auto
   have **:"finite d" apply(rule finite_subset[OF assms]) by fastsimp
   have ***:"\<And>i. (setsum (%i. f i *\<^sub>R ((basis i)::'a)) d) $$ i = (\<Sum>x\<in>d. if x = i then f x else 0)"
-    unfolding euclidean_component.setsum euclidean_scaleR basis_component *
+    unfolding euclidean_component_setsum euclidean_component_scaleR basis_component *
     apply(rule setsum_cong2) using assms by auto
   show ?thesis unfolding euclidean_eq[where 'a='a] *** setsum_delta[OF **] using assms by auto
 qed
@@ -1175,7 +1175,7 @@ next
     have u2:"u2 \<le> 1" unfolding obt2(3)[THEN sym] and not_le using obt2(2) by auto
     have "u1 * u + u2 * v \<le> (max u1 u2) * u + (max u1 u2) * v" apply(rule add_mono)
       apply(rule_tac [!] mult_right_mono) using as(1,2) obt1(1,2) obt2(1,2) by auto
-    also have "\<dots> \<le> 1" unfolding mult.add_right[THEN sym] and as(3) using u1 u2 by auto
+    also have "\<dots> \<le> 1" unfolding right_distrib[THEN sym] and as(3) using u1 u2 by auto
     finally 
     show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull" unfolding mem_Collect_eq apply(rule_tac x="u * u1 + v * u2" in exI)
       apply(rule conjI) defer apply(rule_tac x="1 - u * u1 - v * u2" in exI) unfolding Bex_def
@@ -2229,7 +2229,7 @@ obtain d where "d>0" and d:"ball c d Int affine hull S <= S"
     have *:"y = (1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x" using `e>0` by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
     have "x : affine hull S" using assms hull_subset[of S] by auto
     moreover have "1 / e + - ((1 - e) / e) = 1" 
-       using `e>0` mult_left.diff[of "1" "(1-e)" "1/e"] by auto
+       using `e>0` left_diff_distrib[of "1" "(1-e)" "1/e"] by auto
     ultimately have **: "(1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x : affine hull S"
         using as affine_affine_hull[of S] mem_affine[of "affine hull S" y x "(1 / e)" "-((1 - e) / e)"] by (simp add: algebra_simps)     
     have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = abs(1/e) * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
@@ -2957,7 +2957,7 @@ lemma separating_hyperplane_closed_0:
   thus ?thesis apply(rule_tac x="basis 0" in exI, rule_tac x=1 in exI)
     using True using DIM_positive[where 'a='a] by auto
 next case False thus ?thesis using False using separating_hyperplane_closed_point[OF assms]
-    apply - apply(erule exE)+ unfolding inner.zero_right apply(rule_tac x=a in exI, rule_tac x=b in exI) by auto qed
+    apply - apply(erule exE)+ unfolding inner_zero_right apply(rule_tac x=a in exI, rule_tac x=b in exI) by auto qed
 
 subsection {* Now set-to-set for closed/compact sets. *}
 
@@ -3053,7 +3053,7 @@ lemma convex_closure:
   apply(rule,rule,rule,rule,rule,rule,rule,rule,rule) apply(erule_tac exE)+
   apply(rule_tac x="\<lambda>n. u *\<^sub>R xb n + v *\<^sub>R xc n" in exI) apply(rule,rule)
   apply(rule assms[unfolded convex_def, rule_format]) prefer 6
-  by (auto intro: tendsto_intros)
+  by (auto intro!: tendsto_intros)
 
 lemma convex_interior:
   fixes s :: "'a::real_normed_vector set"
@@ -3221,13 +3221,13 @@ lemma radon_partition:
   ultimately have "z \<in> convex hull {v \<in> c. u v \<le> 0}" unfolding convex_hull_explicit mem_Collect_eq
     apply(rule_tac x="{v \<in> c. u v < 0}" in exI, rule_tac x="\<lambda>y. inverse (setsum u {x\<in>c. u x > 0}) * - u y" in exI)
     using assms(1) unfolding scaleR_scaleR[THEN sym] scaleR_right.setsum [symmetric] and z_def
-    by(auto simp add: setsum_negf mult_right.setsum[THEN sym])
+    by(auto simp add: setsum_negf setsum_right_distrib[THEN sym])
   moreover have "\<forall>x\<in>{v \<in> c. 0 < u v}. 0 \<le> inverse (setsum u {x \<in> c. 0 < u x}) * u x" 
     apply (rule) apply (rule mult_nonneg_nonneg) using * by auto 
   hence "z \<in> convex hull {v \<in> c. u v > 0}" unfolding convex_hull_explicit mem_Collect_eq
     apply(rule_tac x="{v \<in> c. 0 < u v}" in exI, rule_tac x="\<lambda>y. inverse (setsum u {x\<in>c. u x > 0}) * u y" in exI)
     using assms(1) unfolding scaleR_scaleR[THEN sym] scaleR_right.setsum [symmetric] and z_def using *
-    by(auto simp add: setsum_negf mult_right.setsum[THEN sym])
+    by(auto simp add: setsum_negf setsum_right_distrib[THEN sym])
   ultimately show ?thesis apply(rule_tac x="{v\<in>c. u v \<le> 0}" in exI, rule_tac x="{v\<in>c. u v > 0}" in exI) by auto
 qed
 
@@ -4157,7 +4157,7 @@ lemma interior_std_simplex_nonempty: obtains a::"'a::euclidean_space" where
   let ?D = "{..<DIM('a)}" let ?a = "setsum (\<lambda>b::'a. inverse (2 * real DIM('a)) *\<^sub>R b) {(basis i) | i. i<DIM('a)}"
   have *:"{basis i :: 'a | i. i<DIM('a)} = basis ` ?D" by auto
   { fix i assume i:"i<DIM('a)" have "?a $$ i = inverse (2 * real DIM('a))"
-      unfolding euclidean_component.setsum * and setsum_reindex[OF basis_inj] and o_def
+      unfolding euclidean_component_setsum * and setsum_reindex[OF basis_inj] and o_def
       apply(rule trans[of _ "setsum (\<lambda>j. if i = j then inverse (2 * real DIM('a)) else 0) ?D"]) apply(rule setsum_cong2)
       defer apply(subst setsum_delta') unfolding euclidean_component_def using i by(auto simp add:dot_basis) }
   note ** = this
@@ -4270,7 +4270,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
   { fix i assume "i:d" have "?a $$ i = inverse (2 * real (card d))"
       unfolding * setsum_reindex[OF basis_inj_on, OF assms(2)] o_def
       apply(rule trans[of _ "setsum (\<lambda>j. if i = j then inverse (2 * real (card d)) else 0) ?D"]) 
-      unfolding euclidean_component.setsum
+      unfolding euclidean_component_setsum
       apply(rule setsum_cong2)
       using `i:d` `finite d` setsum_delta'[of d i "(%k. inverse (2 * real (card d)))"] d1 assms(2)
       by (auto simp add: Euclidean_Space.basis_component[of i])}
@@ -4678,7 +4678,7 @@ proof-
          hence x1: "x1 : affine hull S" using e1_def hull_subset[of S] by auto
       def x2 == "z+ e2 *\<^sub>R (z-x)"
          hence x2: "x2 : affine hull S" using e2_def hull_subset[of S] by auto
-      have *: "e1/(e1+e2) + e2/(e1+e2) = 1" using divide.add[of e1 e2 "e1+e2"] e1_def e2_def by simp
+      have *: "e1/(e1+e2) + e2/(e1+e2) = 1" using add_divide_distrib[of e1 e2 "e1+e2"] e1_def e2_def by simp
       hence "z = (e2/(e1+e2)) *\<^sub>R x1 + (e1/(e1+e2)) *\<^sub>R x2"
          using x1_def x2_def apply (auto simp add: algebra_simps)
          using scaleR_left_distrib[of "e1/(e1+e2)" "e2/(e1+e2)" z] by auto

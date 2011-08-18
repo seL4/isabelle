@@ -66,7 +66,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     apply- apply(rule_tac[!] allI impI)+ proof- fix x::"real^2" and i::2 assume x:"x\<noteq>0"
     have "inverse (infnorm x) > 0" using x[unfolded infnorm_pos_lt[THEN sym]] by auto
     thus "(0 < sqprojection x $ i) = (0 < x $ i)"   "(sqprojection x $ i < 0) = (x $ i < 0)"
-      unfolding sqprojection_def vector_component_simps vec_nth.scaleR real_scaleR_def
+      unfolding sqprojection_def vector_component_simps vector_scaleR_component real_scaleR_def
       unfolding zero_less_mult_iff mult_less_0_iff by(auto simp add:field_simps) qed
   note lem3 = this[rule_format]
   have x1:"x $ 1 \<in> {- 1..1::real}" "x $ 2 \<in> {- 1..1::real}" using x(1) unfolding mem_interval_cart by auto

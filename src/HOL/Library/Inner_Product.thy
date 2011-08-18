@@ -5,7 +5,7 @@
 header {* Inner Product Spaces and the Gradient Derivative *}
 
 theory Inner_Product
-imports Complex_Main FrechetDeriv
+imports FrechetDeriv
 begin
 
 subsection {* Real inner product spaces *}
@@ -43,6 +43,9 @@ lemma inner_minus_left [simp]: "inner (- x) y = - inner x y"
 lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
   by (simp add: diff_minus inner_add_left)
 
+lemma inner_setsum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
+  by (cases "finite A", induct set: finite, simp_all add: inner_add_left)
+
 text {* Transfer distributivity rules to right argument. *}
 
 lemma inner_add_right: "inner x (y + z) = inner x y + inner x z"
@@ -59,6 +62,9 @@ lemma inner_minus_right [simp]: "inner x (- y) = - inner x y"
 
 lemma inner_diff_right: "inner x (y - z) = inner x y - inner x z"
   using inner_diff_left [of y z x] by (simp only: inner_commute)
+
+lemma inner_setsum_right: "inner x (\<Sum>y\<in>A. f y) = (\<Sum>y\<in>A. inner x (f y))"
+  using inner_setsum_left [of f A x] by (simp only: inner_commute)
 
 lemmas inner_add [algebra_simps] = inner_add_left inner_add_right
 lemmas inner_diff [algebra_simps]  = inner_diff_left inner_diff_right
@@ -148,8 +154,8 @@ setup {* Sign.add_const_constraint
 setup {* Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
 
-interpretation inner:
-  bounded_bilinear "inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real"
+lemma bounded_bilinear_inner:
+  "bounded_bilinear (inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real)"
 proof
   fix x y z :: 'a and r :: real
   show "inner (x + y) z = inner x z + inner y z"
@@ -167,15 +173,20 @@ proof
   qed
 qed
 
-interpretation inner_left:
-  bounded_linear "\<lambda>x::'a::real_inner. inner x y"
-  by (rule inner.bounded_linear_left)
+lemmas tendsto_inner [tendsto_intros] =
+  bounded_bilinear.tendsto [OF bounded_bilinear_inner]
 
-interpretation inner_right:
-  bounded_linear "\<lambda>y::'a::real_inner. inner x y"
-  by (rule inner.bounded_linear_right)
+lemmas isCont_inner [simp] =
+  bounded_bilinear.isCont [OF bounded_bilinear_inner]
 
-declare inner.isCont [simp]
+lemmas FDERIV_inner =
+  bounded_bilinear.FDERIV [OF bounded_bilinear_inner]
+
+lemmas bounded_linear_inner_left =
+  bounded_bilinear.bounded_linear_left [OF bounded_bilinear_inner]
+
+lemmas bounded_linear_inner_right =
+  bounded_bilinear.bounded_linear_right [OF bounded_bilinear_inner]
 
 
 subsection {* Class instances *}
@@ -260,29 +271,29 @@ lemma GDERIV_subst: "\<lbrakk>GDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow
   by simp
 
 lemma GDERIV_const: "GDERIV (\<lambda>x. k) x :> 0"
-  unfolding gderiv_def inner_right.zero by (rule FDERIV_const)
+  unfolding gderiv_def inner_zero_right by (rule FDERIV_const)
 
 lemma GDERIV_add:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x + g x) x :> df + dg"
-  unfolding gderiv_def inner_right.add by (rule FDERIV_add)
+  unfolding gderiv_def inner_add_right by (rule FDERIV_add)
 
 lemma GDERIV_minus:
     "GDERIV f x :> df \<Longrightarrow> GDERIV (\<lambda>x. - f x) x :> - df"
-  unfolding gderiv_def inner_right.minus by (rule FDERIV_minus)
+  unfolding gderiv_def inner_minus_right by (rule FDERIV_minus)
 
 lemma GDERIV_diff:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x - g x) x :> df - dg"
-  unfolding gderiv_def inner_right.diff by (rule FDERIV_diff)
+  unfolding gderiv_def inner_diff_right by (rule FDERIV_diff)
 
 lemma GDERIV_scaleR:
     "\<lbrakk>DERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. scaleR (f x) (g x)) x
       :> (scaleR (f x) dg + scaleR df (g x))"
-  unfolding gderiv_def deriv_fderiv inner_right.add inner_right.scaleR
+  unfolding gderiv_def deriv_fderiv inner_add_right inner_scaleR_right
   apply (rule FDERIV_subst)
-  apply (erule (1) scaleR.FDERIV)
+  apply (erule (1) FDERIV_scaleR)
   apply (simp add: mult_ac)
   done
 
@@ -306,7 +317,7 @@ lemma GDERIV_norm:
   assumes "x \<noteq> 0" shows "GDERIV (\<lambda>x. norm x) x :> sgn x"
 proof -
   have 1: "FDERIV (\<lambda>x. inner x x) x :> (\<lambda>h. inner x h + inner h x)"
-    by (intro inner.FDERIV FDERIV_ident)
+    by (intro FDERIV_inner FDERIV_ident)
   have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
     by (simp add: fun_eq_iff inner_commute)
   have "0 < inner x x" using `x \<noteq> 0` by simp

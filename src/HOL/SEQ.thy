@@ -377,7 +377,7 @@ by (rule tendsto)
 lemma LIMSEQ_mult:
   fixes a b :: "'a::real_normed_algebra"
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
-by (rule mult.tendsto)
+  by (rule tendsto_mult)
 
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"

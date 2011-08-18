@@ -816,7 +816,7 @@ proof (rule borel_measurableI)
   proof cases
     assume "b \<noteq> 0"
     with `open S` have "((\<lambda>x. (- a + x) /\<^sub>R b) ` S) \<in> open" (is "?S \<in> open")
-      by (auto intro!: open_affinity simp: scaleR.add_right mem_def)
+      by (auto intro!: open_affinity simp: scaleR_add_right mem_def)
     hence "?S \<in> sets borel"
       unfolding borel_def by (auto simp: sigma_def intro!: sigma_sets.Basic)
     moreover

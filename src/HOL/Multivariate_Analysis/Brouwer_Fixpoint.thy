@@ -1202,7 +1202,7 @@ lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::orde
       show "\<bar>(f z - z) $$ i\<bar> < d / real n" unfolding euclidean_simps proof(rule *)
         show "\<bar>f x $$ i - x $$ i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as i  by auto
         show "\<bar>f x $$ i - f z $$ i\<bar> \<le> norm (f x - f z)" "\<bar>x $$ i - z $$ i\<bar> \<le> norm (x - z)"
-          unfolding euclidean_component.diff[THEN sym] by(rule component_le_norm)+
+          unfolding euclidean_component_diff[THEN sym] by(rule component_le_norm)+
         have tria:"norm (y - x) \<le> norm (y - z) + norm (x - z)" using dist_triangle[of y x z,unfolded dist_norm]
           unfolding norm_minus_commute by auto
         also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_mono) using as(4,5) by auto
@@ -1234,7 +1234,7 @@ lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::orde
     assume as:"\<forall>i\<in>{1..n}. x i \<le> p" "i \<in> {1..n}"
     { assume "x i = p \<or> x i = 0" 
       have "(\<chi>\<chi> i. real (x (b' i)) / real p) \<in> {0::'a..\<chi>\<chi> i. 1}" unfolding mem_interval 
-        apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+        apply safe unfolding euclidean_lambda_beta euclidean_component_zero
       proof (simp_all only: if_P) fix j assume j':"j<DIM('a)"
         hence j:"b' j \<in> {1..n}" using b' unfolding n_def bij_betw_def by auto
         show "0 \<le> real (x (b' j)) / real p"
@@ -1262,11 +1262,11 @@ lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::orde
     have "\<forall>i<DIM('a). q (b' i) \<in> {0..<p}" using q(1) b'[unfolded bij_betw_def] by auto 
     hence "\<forall>i<DIM('a). q (b' i) \<in> {0..p}" apply-apply(rule,erule_tac x=i in allE) by auto
     hence "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta
-      unfolding euclidean_component.zero apply (simp_all only: if_P)
+      unfolding euclidean_component_zero apply (simp_all only: if_P)
       apply(rule divide_nonneg_pos) using `p>0` unfolding divide_le_eq_1 by auto
     hence d_fz_z:"d \<le> norm (f z - z)" apply(drule_tac d) .
     case goal1 hence as:"\<forall>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar> < d / real n" using `n>0` by(auto simp add:not_le)
-    have "norm (f z - z) \<le> (\<Sum>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar>)" unfolding euclidean_component.diff[THEN sym] by(rule norm_le_l1)
+    have "norm (f z - z) \<le> (\<Sum>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar>)" unfolding euclidean_component_diff[THEN sym] by(rule norm_le_l1)
     also have "\<dots> < (\<Sum>i<DIM('a). d / real n)" apply(rule setsum_strict_mono) using as by auto
     also have "\<dots> = d" unfolding real_eq_of_nat n_def using n using DIM_positive[where 'a='a] by auto
     finally show False using d_fz_z by auto qed then guess i .. note i=this
@@ -1276,15 +1276,15 @@ lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::orde
   def r' \<equiv> "(\<chi>\<chi> i. real (r (b' i)) / real p)::'a"
   have "\<And>i. i<DIM('a) \<Longrightarrow> r (b' i) \<le> p" apply(rule order_trans) apply(rule rs(1)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "r' \<in> {0..\<chi>\<chi> i. 1}"  unfolding r'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+  hence "r' \<in> {0..\<chi>\<chi> i. 1}"  unfolding r'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
     apply (simp only: if_P)
     apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
   def s' \<equiv> "(\<chi>\<chi> i. real (s (b' i)) / real p)::'a"
   have "\<And>i. i<DIM('a) \<Longrightarrow> s (b' i) \<le> p" apply(rule order_trans) apply(rule rs(2)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "s' \<in> {0..\<chi>\<chi> i.1}" unfolding s'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+  hence "s' \<in> {0..\<chi>\<chi> i.1}" unfolding s'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
     apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
-  have "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+  have "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
     apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using q(1)[rule_format,OF b'_im] `p>0` by(auto intro:less_imp_le)
   have *:"\<And>x. 1 + real x = real (Suc x)" by auto
   { have "(\<Sum>i<DIM('a). \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>i<DIM('a). 1)" 

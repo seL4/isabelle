@@ -129,7 +129,7 @@ next
     have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto
     hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastsimp
     hence "(\<Sum> j \<in> s. a j) / (1 - a i) = 1" using i0 by auto
-    hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding divide.setsum by simp
+    hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
     from this asms
     have "(\<Sum>j\<in>s. ?a j *\<^sub>R y j) \<in> C" using a_nonneg by fastsimp
     hence "a i *\<^sub>R y i + (1 - a i) *\<^sub>R (\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
@@ -410,7 +410,7 @@ next
     have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto
     hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastsimp
     hence "(\<Sum> j \<in> s. a j) / (1 - a i) = 1" using i0 by auto
-    hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding divide.setsum by simp
+    hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
     have "convex C" using asms by auto
     hence asum: "(\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
       using asms convex_setsum[OF `finite s`
@@ -433,7 +433,7 @@ next
       using add_right_mono[OF mult_left_mono[of _ _ "1 - a i",
         OF asum_le less_imp_le[OF i0]], of "a i * f (y i)"] by simp
     also have "\<dots> = (\<Sum> j \<in> s. (1 - a i) * ?a j * f (y j)) + a i * f (y i)"
-      unfolding mult_right.setsum[of "1 - a i" "\<lambda> j. ?a j * f (y j)"] using i0 by auto
+      unfolding setsum_right_distrib[of "1 - a i" "\<lambda> j. ?a j * f (y j)"] using i0 by auto
     also have "\<dots> = (\<Sum> j \<in> s. a j * f (y j)) + a i * f (y i)" using i0 by auto
     also have "\<dots> = (\<Sum> j \<in> insert i s. a j * f (y j))" using asms by auto
     finally have "f (\<Sum> j \<in> insert i s. a j *\<^sub>R y j) \<le> (\<Sum> j \<in> insert i s. a j * f (y j))"
