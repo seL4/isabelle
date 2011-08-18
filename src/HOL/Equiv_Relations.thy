@@ -164,7 +164,7 @@ subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}
 
-definition congruent :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"  where
+definition congruent :: "('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"  where
   "congruent r f \<longleftrightarrow> (\<forall>(y, z) \<in> r. f y = f z)"
 
 lemma congruentI:
@@ -229,7 +229,7 @@ subsection {* Defining binary operations upon equivalence classes *}
 
 text{*A congruence-preserving function of two arguments*}
 
-definition congruent2 :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<times> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> bool" where
+definition congruent2 :: "('a \<times> 'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> bool" where
   "congruent2 r1 r2 f \<longleftrightarrow> (\<forall>(y1, z1) \<in> r1. \<forall>(y2, z2) \<in> r2. f y1 y2 = f z1 z2)"
 
 lemma congruent2I':

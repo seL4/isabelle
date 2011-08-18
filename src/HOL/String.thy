@@ -155,7 +155,7 @@ definition chars :: string where
 
 subsection {* Strings as dedicated type *}
 
-typedef (open) literal = "UNIV :: string \<Rightarrow> bool"
+typedef (open) literal = "UNIV :: string set"
   morphisms explode STR ..
 
 instantiation literal :: size
