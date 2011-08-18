@@ -47,19 +47,19 @@ fun dest (Par_Exn exns) = SOME exns
 
 (* parallel results *)
 
-fun all_res results = forall (fn Exn.Res _ => true | _ => false) results;
-
 fun release_all results =
-  if all_res results then map Exn.release results
+  if forall (fn Exn.Res _ => true | _ => false) results
+  then map Exn.release results
   else raise make (map_filter Exn.get_exn results);
 
+fun plain_exn (Exn.Res _) = NONE
+  | plain_exn (Exn.Exn (Par_Exn _)) = NONE
+  | plain_exn (Exn.Exn exn) = if Exn.is_interrupt exn then NONE else SOME exn;
+
 fun release_first results =
-  if all_res results then map Exn.release results
-  else
-    (case get_first
-        (fn res => if Exn.is_interrupt_exn res then NONE else Exn.get_exn res) results of
-      NONE => Exn.interrupt ()
-    | SOME exn => reraise exn);
+  (case get_first plain_exn results of
+    NONE => release_all results
+  | SOME exn => reraise exn);
 
 end;
 
