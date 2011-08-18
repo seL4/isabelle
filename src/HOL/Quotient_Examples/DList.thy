@@ -48,6 +48,14 @@ lemma remdups_eq_map_eq:
   by (induct xa ya arbitrary: fx fy rule: list_induct2')
      (metis (full_types) remdups_nil_noteq_cons(2) remdups_map_remdups)+
 
+lemma remdups_eq_member_eq:
+  assumes "remdups xa = remdups ya"
+    shows "List.member xa = List.member ya"
+  using assms
+  unfolding fun_eq_iff List.member_def
+  by (induct xa ya rule: list_induct2')
+     (metis remdups_nil_noteq_cons set_remdups)+
+
 text {* Setting up the quotient type *}
 
 definition
@@ -91,7 +99,7 @@ lemma [quot_respect]:
   "(op = ===> dlist_eq ===> dlist_eq) map map"
   "(op = ===> dlist_eq ===> dlist_eq) filter filter"
   by (auto intro!: fun_relI simp add: remdups_filter)
-     (metis (full_types) member_set set_remdups remdups_eq_map_eq)+
+     (metis (full_types) set_remdups remdups_eq_map_eq remdups_eq_member_eq)+
 
 quotient_definition empty where "empty :: 'a dlist"
   is "Nil"
