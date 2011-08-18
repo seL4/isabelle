@@ -16,6 +16,7 @@ Notes:
 
 signature PAR_LIST =
 sig
+  val managed_results: string -> ('a -> 'b) -> 'a list -> 'b Exn.result list
   val map_name: string -> ('a -> 'b) -> 'a list -> 'b list
   val map: ('a -> 'b) -> 'a list -> 'b list
   val get_some: ('a -> 'b option) -> 'a list -> 'b option
