@@ -510,9 +510,9 @@ lemma (in bounded_bilinear) Zfun_right:
   "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. a ** f x) F"
   by (rule bounded_linear_right [THEN bounded_linear.Zfun])
 
-lemmas Zfun_mult = mult.Zfun
-lemmas Zfun_mult_right = mult.Zfun_right
-lemmas Zfun_mult_left = mult.Zfun_left
+lemmas Zfun_mult = bounded_bilinear.Zfun [OF bounded_bilinear_mult]
+lemmas Zfun_mult_right = bounded_bilinear.Zfun_right [OF bounded_bilinear_mult]
+lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 
 
 subsection {* Limits *}
@@ -752,7 +752,7 @@ qed
 
 subsubsection {* Linear operators and multiplication *}
 
-lemma (in bounded_linear) tendsto [tendsto_intros]:
+lemma (in bounded_linear) tendsto:
   "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
 
@@ -760,7 +760,7 @@ lemma (in bounded_linear) tendsto_zero:
   "(g ---> 0) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) F"
   by (drule tendsto, simp only: zero)
 
-lemma (in bounded_bilinear) tendsto [tendsto_intros]:
+lemma (in bounded_bilinear) tendsto:
   "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) F"
   by (simp only: tendsto_Zfun_iff prod_diff_prod
                  Zfun_add Zfun Zfun_left Zfun_right)
@@ -779,7 +779,14 @@ lemma (in bounded_bilinear) tendsto_right_zero:
   "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. c ** f x) ---> 0) F"
   by (rule bounded_linear.tendsto_zero [OF bounded_linear_right])
 
-lemmas tendsto_mult = mult.tendsto
+lemmas tendsto_of_real [tendsto_intros] =
+  bounded_linear.tendsto [OF bounded_linear_of_real]
+
+lemmas tendsto_scaleR [tendsto_intros] =
+  bounded_bilinear.tendsto [OF bounded_bilinear_scaleR]
+
+lemmas tendsto_mult [tendsto_intros] =
+  bounded_bilinear.tendsto [OF bounded_bilinear_mult]
 
 lemma tendsto_power [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
@@ -897,7 +904,7 @@ lemma tendsto_inverse_lemma:
   apply (erule (1) inverse_diff_inverse)
   apply (rule Zfun_minus)
   apply (rule Zfun_mult_left)
-  apply (rule mult.Bfun_prod_Zfun)
+  apply (rule bounded_bilinear.Bfun_prod_Zfun [OF bounded_bilinear_mult])
   apply (erule (1) Bfun_inverse)
   apply (simp add: tendsto_Zfun_iff)
   done
@@ -921,7 +928,7 @@ lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F; b \<noteq> 0\<rbrakk>
     \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) F"
-  by (simp add: mult.tendsto tendsto_inverse divide_inverse)
+  by (simp add: tendsto_mult tendsto_inverse divide_inverse)
 
 lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"

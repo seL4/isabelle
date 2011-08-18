@@ -1523,7 +1523,7 @@ proof(rule ccontr)
   have ***:"\<And>y y1 y2 d dx::real. (y1\<le>y\<and>y2\<le>y) \<or> (y\<le>y1\<and>y\<le>y2) \<Longrightarrow> d < abs dx \<Longrightarrow> abs(y1 - y - - dx) \<le> d \<Longrightarrow> (abs (y2 - y - dx) \<le> d) \<Longrightarrow> False" by arith
   show False apply(rule ***[OF **, where dx="d * D $ k $ j" and d="\<bar>D $ k $ j\<bar> / 2 * \<bar>d\<bar>"]) 
     using *[of "-d"] and *[of d] and d[THEN conjunct1] and j unfolding mult_minus_left
-    unfolding abs_mult diff_minus_eq_add scaleR.minus_left unfolding algebra_simps by (auto intro: mult_pos_pos)
+    unfolding abs_mult diff_minus_eq_add scaleR_minus_left unfolding algebra_simps by (auto intro: mult_pos_pos)
 qed
 
 subsection {* Lemmas for working on @{typ "real^1"} *}

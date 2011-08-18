@@ -16,7 +16,7 @@ declare [[smt_oracle=false]]
 
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
   scaleR_zero_right scaleR_minus_right scaleR_right_diff_distrib scaleR_eq_0_iff
-  scaleR_cancel_left scaleR_cancel_right scaleR.add_right scaleR.add_left real_vector_class.scaleR_one
+  scaleR_cancel_left scaleR_cancel_right scaleR_add_right scaleR_add_left real_vector_class.scaleR_one
 
 lemma real_arch_invD:
   "0 < (e::real) \<Longrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
@@ -1225,7 +1225,7 @@ proof- interpret bounded_linear h using assms(2) . from pos_bounded guess B .. n
 lemma has_integral_cmul:
   shows "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
   unfolding o_def[THEN sym] apply(rule has_integral_linear,assumption)
-  by(rule scaleR.bounded_linear_right)
+  by(rule bounded_linear_scaleR_right)
 
 lemma has_integral_neg:
   shows "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
@@ -2262,7 +2262,7 @@ lemma rsum_diff_bound:
   assumes "p tagged_division_of {a..b}"  "\<forall>x\<in>{a..b}. norm(f x - g x) \<le> e"
   shows "norm(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - setsum (\<lambda>(x,k). content k *\<^sub>R g x) p) \<le> e * content({a..b})"
   apply(rule order_trans[OF _ rsum_bound[OF assms]]) apply(rule eq_refl) apply(rule arg_cong[where f=norm])
-  unfolding setsum_subtractf[THEN sym] apply(rule setsum_cong2) unfolding scaleR.diff_right by auto
+  unfolding setsum_subtractf[THEN sym] apply(rule setsum_cong2) unfolding scaleR_diff_right by auto
 
 lemma has_integral_bound: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "0 \<le> B" "(f has_integral i) ({a..b})" "\<forall>x\<in>{a..b}. norm(f x) \<le> B"
@@ -2287,7 +2287,7 @@ subsection {* Similar theorems about relationship among components. *}
 lemma rsum_component_le: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "p tagged_division_of {a..b}"  "\<forall>x\<in>{a..b}. (f x)$$i \<le> (g x)$$i"
   shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)$$i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)$$i"
-  unfolding  euclidean_component.setsum apply(rule setsum_mono) apply safe
+  unfolding  euclidean_component_setsum apply(rule setsum_mono) apply safe
 proof- fix a b assume ab:"(a,b) \<in> p" note assm = tagged_division_ofD(2-4)[OF assms(1) ab]
   from this(3) guess u v apply-by(erule exE)+ note b=this
   show "(content b *\<^sub>R f a) $$ i \<le> (content b *\<^sub>R g a) $$ i" unfolding b
@@ -2988,7 +2988,7 @@ proof safe fix e::real assume e:"e>0"
       have "norm ((v - u) *\<^sub>R f' x - (f v - f u)) \<le>
         norm (f u - f x - (u - x) *\<^sub>R f' x) + norm (f v - f x - (v - x) *\<^sub>R f' x)"
         apply(rule order_trans[OF _ norm_triangle_ineq4]) apply(rule eq_refl) apply(rule arg_cong[where f=norm])
-        unfolding scaleR.diff_left by(auto simp add:algebra_simps)
+        unfolding scaleR_diff_left by(auto simp add:algebra_simps)
       also have "... \<le> e * norm (u - x) + e * norm (v - x)"
         apply(rule add_mono) apply(rule d(2)[of "x" "u",unfolded o_def]) prefer 4
         apply(rule d(2)[of "x" "v",unfolded o_def])
@@ -3123,7 +3123,7 @@ lemma integral_has_vector_derivative: fixes f::"real \<Rightarrow> 'a::banach"
   assumes "continuous_on {a..b} f" "x \<in> {a..b}"
   shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f(x)) (at x within {a..b})"
   unfolding has_vector_derivative_def has_derivative_within_alt
-apply safe apply(rule scaleR.bounded_linear_left)
+apply safe apply(rule bounded_linear_scaleR_left)
 proof- fix e::real assume e:"e>0"
   note compact_uniformly_continuous[OF assms(1) compact_interval,unfolded uniformly_continuous_on_def]
   from this[rule_format,OF e] guess d apply-by(erule conjE exE)+ note d=this[rule_format]
@@ -3223,8 +3223,8 @@ proof- { presume *:"{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
        have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _") unfolding algebra_simps add_left_cancel
         unfolding setsum_reindex[OF *] apply(subst scaleR_right.setsum) defer apply(rule setsum_cong2) unfolding o_def split_paired_all split_conv
         apply(drule p(4)) apply safe unfolding assms(7)[rule_format] using p by auto
-      also have "... = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r") unfolding scaleR.diff_right scaleR.scaleR_left[THEN sym]
-        unfolding real_scaleR_def using assms(1) by auto finally have *:"?l = ?r" .
+      also have "... = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r") unfolding scaleR_diff_right scaleR_scaleR
+        using assms(1) by auto finally have *:"?l = ?r" .
       show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e" using ** unfolding * unfolding norm_scaleR
         using assms(1) by(auto simp add:field_simps) qed qed qed
 
@@ -3256,7 +3256,7 @@ proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis app
 lemma has_integral_affinity: fixes a::"'a::ordered_euclidean_space" assumes "(f has_integral i) {a..b}" "m \<noteq> 0"
   shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral ((1 / (abs(m) ^ DIM('a))) *\<^sub>R i)) ((\<lambda>x. (1 / m) *\<^sub>R x + -((1 / m) *\<^sub>R c)) ` {a..b})"
   apply(rule has_integral_twiddle,safe) apply(rule zero_less_power) unfolding euclidean_eq[where 'a='a]
-  unfolding scaleR_right_distrib euclidean_simps scaleR.scaleR_left[THEN sym]
+  unfolding scaleR_right_distrib euclidean_simps scaleR_scaleR
   defer apply(insert assms(2), simp add:field_simps) apply(insert assms(2), simp add:field_simps)
   apply(rule continuous_intros)+ apply(rule interval_image_affinity_interval)+ apply(rule content_image_affinity_interval) using assms by auto
 
@@ -3442,7 +3442,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
     show ?case unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[THEN sym] split_minus
       unfolding setsum_right_distrib apply(subst(2) pA,subst pA) unfolding setsum_Un_disjoint[OF pA(2-)]
     proof(rule norm_triangle_le,rule **) 
-      case goal1 show ?case apply(rule order_trans,rule setsum_norm_le) defer apply(subst divide.setsum)
+      case goal1 show ?case apply(rule order_trans,rule setsum_norm_le) defer apply(subst setsum_divide_distrib)
       proof(rule order_refl,safe,unfold not_le o_def split_conv fst_conv,rule ccontr) fix x k assume as:"(x,k) \<in> p"
           "e * (interval_upperbound k -  interval_lowerbound k) / 2
           < norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k)))"
@@ -4159,7 +4159,7 @@ proof(subst integrable_cauchy,safe)
       "(\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R g x) \<ge> 0"
       "0 \<le> (\<Sum>(x, k)\<in>p1. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x)" 
       unfolding setsum_subtractf[THEN sym] apply- apply(rule_tac[!] setsum_nonneg)
-      apply safe unfolding real_scaleR_def mult.diff_right[THEN sym]
+      apply safe unfolding real_scaleR_def right_diff_distrib[THEN sym]
       apply(rule_tac[!] mult_nonneg_nonneg)
     proof- fix a b assume ab:"(a,b) \<in> p1"
       show "0 \<le> content b" using *(3)[OF ab] apply safe using content_pos_le . thus "0 \<le> content b" .
@@ -4535,7 +4535,7 @@ next assume ab:"content {a..b} \<noteq> 0"
          show ?case apply(rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e / (4 * content {a..b}))"])
            unfolding setsum_subtractf[THEN sym] apply(rule order_trans,rule norm_setsum)
            apply(rule setsum_mono) unfolding split_paired_all split_conv
-           unfolding split_def setsum_left_distrib[THEN sym] scaleR.diff_right[THEN sym]
+           unfolding split_def setsum_left_distrib[THEN sym] scaleR_diff_right[THEN sym]
            unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
          proof- fix x k assume xk:"(x,k) \<in> p" hence x:"x\<in>{a..b}" using p'(2-3)[OF xk] by auto
            from p'(4)[OF xk] guess u v apply-by(erule exE)+ note uv=this
@@ -5202,7 +5202,7 @@ lemma absolutely_integrable_vector_abs: fixes f::"'a::ordered_euclidean_space =>
 proof- have *:"\<And>x. ((\<chi>\<chi> i. abs(f x$$i))::'c::ordered_euclidean_space) = (setsum (\<lambda>i.
     (((\<lambda>y. (\<chi>\<chi> j. if j = i then y else 0)) o
     (((\<lambda>x. (norm((\<chi>\<chi> j. if j = i then x$$i else 0)::'c::ordered_euclidean_space))) o f))) x)) {..<DIM('c)})"
-    unfolding euclidean_eq[where 'a='c] euclidean_component.setsum apply safe
+    unfolding euclidean_eq[where 'a='c] euclidean_component_setsum apply safe
     unfolding euclidean_lambda_beta'
   proof- case goal1 have *:"\<And>i xa. ((if i = xa then f x $$ xa else 0) * (if i = xa then f x $$ xa else 0)) =
       (if i = xa then (f x $$ xa) * (f x $$ xa) else 0)" by auto
@@ -5220,7 +5220,7 @@ proof- have *:"\<And>x. ((\<chi>\<chi> i. abs(f x$$i))::'c::ordered_euclidean_sp
     apply(rule absolutely_integrable_linear) unfolding o_def apply(rule absolutely_integrable_norm)
     apply(rule absolutely_integrable_linear[OF assms,unfolded o_def]) unfolding linear_linear
     apply(rule_tac[!] linearI) unfolding euclidean_eq[where 'a='c]
-    by(auto simp:euclidean_scaleR[where 'a=real,unfolded real_scaleR_def])
+    by(auto simp:euclidean_component_scaleR[where 'a=real,unfolded real_scaleR_def])
 qed
 
 lemma absolutely_integrable_max: fixes f g::"'m::ordered_euclidean_space \<Rightarrow> 'n::ordered_euclidean_space"
@@ -5266,7 +5266,7 @@ next assume ?r { presume lem:"\<And>f::'n \<Rightarrow> 'm. f integrable_on UNIV
     proof- fix k and i assume "k\<in>d" and i:"i<DIM('m)"
       from d'(4)[OF this(1)] guess a b apply-by(erule exE)+ note ab=this
       show "\<bar>integral k f $$ i\<bar> \<le> integral k (\<lambda>x. (\<chi>\<chi> j. \<bar>f x $$ j\<bar>)::'m) $$ i" apply(rule abs_leI)
-        unfolding euclidean_component.minus[THEN sym] defer apply(subst integral_neg[THEN sym])
+        unfolding euclidean_component_minus[THEN sym] defer apply(subst integral_neg[THEN sym])
         defer apply(rule_tac[1-2] integral_component_le) apply(rule integrable_neg)
         using integrable_on_subinterval[OF assms(1),of a b]
           integrable_on_subinterval[OF assms(2),of a b] unfolding ab by auto
@@ -5276,7 +5276,7 @@ next assume ?r { presume lem:"\<And>f::'n \<Rightarrow> 'm. f integrable_on UNIV
         using integrable_on_subdivision[OF d assms(2)] by auto
       have "(\<Sum>i\<in>d. integral i (\<lambda>x. (\<chi>\<chi> j. \<bar>f x $$ j\<bar>)::'m) $$ j)
         = integral (\<Union>d) (\<lambda>x. (\<chi>\<chi> j. abs(f x$$j)) ::'m::ordered_euclidean_space) $$ j"
-        unfolding euclidean_component.setsum[THEN sym] integral_combine_division_topdown[OF * d] ..
+        unfolding euclidean_component_setsum[THEN sym] integral_combine_division_topdown[OF * d] ..
       also have "... \<le> integral UNIV (\<lambda>x. (\<chi>\<chi> j. \<bar>f x $$ j\<bar>)::'m) $$ j"
         apply(rule integral_subset_component_le) using assms * by auto
       finally show ?case .

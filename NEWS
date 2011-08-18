@@ -199,6 +199,19 @@ been renamed as follows (INCOMPATIBILITY):
   tendsto_vector   ~> vec_tendstoI
   Cauchy_vector    ~> vec_CauchyI
 
+* Complex_Main: The locale interpretations for the bounded_linear and
+bounded_bilinear locales have been removed, in order to reduce the
+number of duplicate lemmas. Users must use the original names for
+distributivity theorems, potential INCOMPATIBILITY.
+
+  divide.add ~> add_divide_distrib
+  divide.diff ~> diff_divide_distrib
+  divide.setsum ~> setsum_divide_distrib
+  mult.add_right ~> right_distrib
+  mult.diff_right ~> right_diff_distrib
+  mult_right.setsum ~> setsum_right_distrib
+  mult_left.diff ~> left_diff_distrib
+
 
 *** Document preparation ***
 

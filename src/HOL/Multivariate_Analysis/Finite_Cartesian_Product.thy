@@ -401,14 +401,15 @@ lemma norm_nth_le: "norm (x $ i) \<le> norm x"
 unfolding norm_vec_def
 by (rule member_le_setL2) simp_all
 
-interpretation vec_nth: bounded_linear "\<lambda>x. x $ i"
+lemma bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
 apply default
 apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)
 done
 
-declare vec_nth.isCont [simp]
+lemmas isCont_vec_nth [simp] =
+  bounded_linear.isCont [OF bounded_linear_vec_nth]
 
 instance vec :: (banach, finite) banach ..
 

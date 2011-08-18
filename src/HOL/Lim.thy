@@ -321,17 +321,23 @@ lemma (in bounded_bilinear) LIM_right_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
   by (rule tendsto_right_zero)
 
-lemmas LIM_mult = mult.LIM
+lemmas LIM_mult =
+  bounded_bilinear.LIM [OF bounded_bilinear_mult]
 
-lemmas LIM_mult_zero = mult.LIM_prod_zero
+lemmas LIM_mult_zero =
+  bounded_bilinear.LIM_prod_zero [OF bounded_bilinear_mult]
 
-lemmas LIM_mult_left_zero = mult.LIM_left_zero
+lemmas LIM_mult_left_zero =
+  bounded_bilinear.LIM_left_zero [OF bounded_bilinear_mult]
 
-lemmas LIM_mult_right_zero = mult.LIM_right_zero
+lemmas LIM_mult_right_zero =
+  bounded_bilinear.LIM_right_zero [OF bounded_bilinear_mult]
 
-lemmas LIM_scaleR = scaleR.LIM
+lemmas LIM_scaleR =
+  bounded_bilinear.LIM [OF bounded_bilinear_scaleR]
 
-lemmas LIM_of_real = of_real.LIM
+lemmas LIM_of_real =
+  bounded_linear.LIM [OF bounded_linear_of_real]
 
 lemma LIM_power:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
@@ -446,11 +452,11 @@ lemma (in bounded_bilinear) isCont:
   "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x ** g x) a"
   unfolding isCont_def by (rule LIM)
 
-lemmas isCont_scaleR [simp] = scaleR.isCont
+lemmas isCont_scaleR [simp] =
+  bounded_bilinear.isCont [OF bounded_bilinear_scaleR]
 
-lemma isCont_of_real [simp]:
-  "isCont f a \<Longrightarrow> isCont (\<lambda>x. of_real (f x)::'b::real_normed_algebra_1) a"
-  by (rule of_real.isCont)
+lemmas isCont_of_real [simp] =
+  bounded_linear.isCont [OF bounded_linear_of_real]
 
 lemma isCont_power [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
