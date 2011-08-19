@@ -618,23 +618,6 @@ proof (rule LIM_zero_cancel)
 qed
 
 
-subsection{* Some properties of factorials *}
-
-lemma real_of_nat_fact_not_zero [simp]: "real (fact (n::nat)) \<noteq> 0"
-by auto
-
-lemma real_of_nat_fact_gt_zero [simp]: "0 < real(fact (n::nat))"
-by auto
-
-lemma real_of_nat_fact_ge_zero [simp]: "0 \<le> real(fact (n::nat))"
-by simp
-
-lemma inv_real_of_nat_fact_gt_zero [simp]: "0 < inverse (real (fact (n::nat)))"
-by (auto simp add: positive_imp_inverse_positive)
-
-lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact (n::nat)))"
-by (auto intro: order_less_imp_le)
-
 subsection {* Derivability of power series *}
 
 lemma DERIV_series': fixes f :: "real \<Rightarrow> nat \<Rightarrow> real"
@@ -1701,7 +1684,8 @@ unfolding One_nat_def
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric]
             del: fact_Suc)
 apply (rule real_mult_inverse_cancel2)
-apply (rule real_of_nat_fact_gt_zero)+
+apply (simp del: fact_Suc)
+apply (simp del: fact_Suc)
 apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc)
 apply (subst fact_lemma)
 apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])

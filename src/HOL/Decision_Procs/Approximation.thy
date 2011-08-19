@@ -959,7 +959,7 @@ proof (cases "real x = 0")
     hence "0 \<le> cos t" using `0 < t` and cos_ge_zero by auto
     ultimately have even: "even n \<Longrightarrow> 0 \<le> ?rest" and odd: "odd n \<Longrightarrow> 0 \<le> - ?rest " by auto
 
-    have "0 < ?fact" by (rule real_of_nat_fact_gt_zero)
+    have "0 < ?fact" by (simp del: fact_Suc)
     have "0 < ?pow" using `0 < real x` by (rule zero_less_power)
 
     {

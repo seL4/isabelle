@@ -65,7 +65,7 @@ next
         apply (rule mult_right_mono)
         apply (subst inverse_eq_divide)
         apply simp
-        apply (rule inv_real_of_nat_fact_ge_zero)
+        apply (simp del: fact_Suc)
         done
       finally show ?thesis .
     qed
