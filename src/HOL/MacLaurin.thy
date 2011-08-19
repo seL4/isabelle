@@ -430,6 +430,7 @@ apply (cut_tac f = sin and n = n and x = x
 apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
+apply (force intro!: DERIV_intros)
 apply (subst (asm) setsum_0', clarify, case_tac "a", simp, simp)
 apply (cases n, simp, simp)
 apply (rule ccontr, simp)
@@ -458,6 +459,7 @@ apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (
 apply safe
 apply simp
 apply (simp (no_asm) add: sin_expansion_lemma)
+apply (force intro!: DERIV_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -474,6 +476,7 @@ apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (
 apply safe
 apply simp
 apply (simp (no_asm) add: sin_expansion_lemma)
+apply (force intro!: DERIV_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
