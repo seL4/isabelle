@@ -272,9 +272,6 @@ unfolding LIMSEQ_def dist_norm ..
 lemma LIMSEQ_iff_nz: "X ----> L = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding LIMSEQ_def by (metis Suc_leD zero_less_Suc)
 
-lemma LIMSEQ_Zfun_iff: "((\<lambda>n. X n) ----> L) = Zfun (\<lambda>n. X n - L) sequentially"
-by (rule tendsto_Zfun_iff)
-
 lemma metric_LIMSEQ_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X ----> L"
 by (simp add: LIMSEQ_def)
@@ -293,18 +290,10 @@ lemma LIMSEQ_D:
   shows "\<lbrakk>X ----> L; 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. norm (X n - L) < r"
 by (simp add: LIMSEQ_iff)
 
-lemma LIMSEQ_const: "(\<lambda>n. k) ----> k"
-by (rule tendsto_const)
-
 lemma LIMSEQ_const_iff:
   fixes k l :: "'a::t2_space"
   shows "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
   using trivial_limit_sequentially by (rule tendsto_const_iff)
-
-lemma LIMSEQ_norm:
-  fixes a :: "'a::real_normed_vector"
-  shows "X ----> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----> norm a"
-by (rule tendsto_norm)
 
 lemma LIMSEQ_ignore_initial_segment:
   "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
@@ -341,43 +330,10 @@ lemma LIMSEQ_linear: "\<lbrakk> X ----> x ; l > 0 \<rbrakk> \<Longrightarrow> (\
   unfolding tendsto_def eventually_sequentially
   by (metis div_le_dividend div_mult_self1_is_m le_trans nat_mult_commute)
 
-lemma LIMSEQ_add:
-  fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n + Y n) ----> a + b"
-by (rule tendsto_add)
-
-lemma LIMSEQ_minus:
-  fixes a :: "'a::real_normed_vector"
-  shows "X ----> a \<Longrightarrow> (\<lambda>n. - X n) ----> - a"
-by (rule tendsto_minus)
-
-lemma LIMSEQ_minus_cancel:
-  fixes a :: "'a::real_normed_vector"
-  shows "(\<lambda>n. - X n) ----> - a \<Longrightarrow> X ----> a"
-by (rule tendsto_minus_cancel)
-
-lemma LIMSEQ_diff:
-  fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n - Y n) ----> a - b"
-by (rule tendsto_diff)
-
 lemma LIMSEQ_unique:
   fixes a b :: "'a::t2_space"
   shows "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
   using trivial_limit_sequentially by (rule tendsto_unique)
-
-lemma (in bounded_linear) LIMSEQ:
-  "X ----> a \<Longrightarrow> (\<lambda>n. f (X n)) ----> f a"
-by (rule tendsto)
-
-lemma (in bounded_bilinear) LIMSEQ:
-  "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n ** Y n) ----> a ** b"
-by (rule tendsto)
-
-lemma LIMSEQ_mult:
-  fixes a b :: "'a::real_normed_algebra"
-  shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
-  by (rule tendsto_mult)
 
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"
@@ -424,33 +380,6 @@ lemma Bseq_inverse:
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
 unfolding Bseq_conv_Bfun by (rule Bfun_inverse)
 
-lemma LIMSEQ_inverse:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> inverse a"
-by (rule tendsto_inverse)
-
-lemma LIMSEQ_divide:
-  fixes a b :: "'a::real_normed_field"
-  shows "\<lbrakk>X ----> a; Y ----> b; b \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>n. X n / Y n) ----> a / b"
-by (rule tendsto_divide)
-
-lemma LIMSEQ_pow:
-  fixes a :: "'a::{power, real_normed_algebra}"
-  shows "X ----> a \<Longrightarrow> (\<lambda>n. (X n) ^ m) ----> a ^ m"
-  by (rule tendsto_power)
-
-lemma LIMSEQ_setsum:
-  fixes L :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
-  shows "(\<lambda>m. \<Sum>n\<in>S. X n m) ----> (\<Sum>n\<in>S. L n)"
-using assms by (rule tendsto_setsum)
-
-lemma LIMSEQ_setprod:
-  fixes L :: "'a \<Rightarrow> 'b::{real_normed_algebra,comm_ring_1}"
-  assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
-  shows "(\<lambda>m. \<Prod>n\<in>S. X n m) ----> (\<Prod>n\<in>S. L n)"
-  using assms by (rule tendsto_setprod)
-
 lemma LIMSEQ_add_const: (* FIXME: delete *)
   fixes a :: "'a::real_normed_vector"
   shows "f ----> a ==> (%n.(f n + b)) ----> a + b"
@@ -470,24 +399,12 @@ by (intro tendsto_intros)
 lemma LIMSEQ_diff_approach_zero:
   fixes L :: "'a::real_normed_vector"
   shows "g ----> L ==> (%x. f x - g x) ----> 0 ==> f ----> L"
-by (drule (1) LIMSEQ_add, simp)
+  by (drule (1) tendsto_add, simp)
 
 lemma LIMSEQ_diff_approach_zero2:
   fixes L :: "'a::real_normed_vector"
   shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L"
-by (drule (1) LIMSEQ_diff, simp)
-
-text{*A sequence tends to zero iff its abs does*}
-lemma LIMSEQ_norm_zero:
-  fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
-  shows "((\<lambda>n. norm (X n)) ----> 0) \<longleftrightarrow> (X ----> 0)"
-  by (rule tendsto_norm_zero_iff)
-
-lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
-  by (rule tendsto_rabs_zero_iff)
-
-lemma LIMSEQ_imp_rabs: "f ----> (l::real) ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
-  by (rule tendsto_rabs)
+  by (drule (1) tendsto_diff, simp)
 
 text{*An unbounded sequence's inverse tends to 0*}
 
@@ -517,16 +434,17 @@ infinity is now easily proved*}
 
 lemma LIMSEQ_inverse_real_of_nat_add:
      "(%n. r + inverse(real(Suc n))) ----> r"
-by (cut_tac LIMSEQ_add [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
+  using tendsto_add [OF tendsto_const LIMSEQ_inverse_real_of_nat] by auto
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus:
      "(%n. r + -inverse(real(Suc n))) ----> r"
-by (cut_tac LIMSEQ_add_minus [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
+  using LIMSEQ_add_minus [OF tendsto_const LIMSEQ_inverse_real_of_nat] by auto
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
      "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r"
-by (cut_tac b=1 in
-        LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat_add_minus], auto)
+  using tendsto_mult [OF tendsto_const
+    LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
+  by auto
 
 lemma LIMSEQ_le_const:
   "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. a \<le> X n\<rbrakk> \<Longrightarrow> a \<le> x"
@@ -542,7 +460,7 @@ lemma LIMSEQ_le_const2:
   "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
 apply (subgoal_tac "- a \<le> - x", simp)
 apply (rule LIMSEQ_le_const)
-apply (erule LIMSEQ_minus)
+apply (erule tendsto_minus)
 apply simp
 done
 
@@ -550,7 +468,7 @@ lemma LIMSEQ_le:
   "\<lbrakk>X ----> x; Y ----> y; \<exists>N. \<forall>n\<ge>N. X n \<le> Y n\<rbrakk> \<Longrightarrow> x \<le> (y::real)"
 apply (subgoal_tac "0 \<le> y - x", simp)
 apply (rule LIMSEQ_le_const)
-apply (erule (1) LIMSEQ_diff)
+apply (erule (1) tendsto_diff)
 apply (simp add: le_diff_eq)
 done
 
@@ -572,14 +490,14 @@ lemma convergent_LIMSEQ_iff: "convergent X = (X ----> lim X)"
 by (auto intro: theI LIMSEQ_unique simp add: convergent_def lim_def)
 
 lemma convergent_const: "convergent (\<lambda>n. c)"
-by (rule convergentI, rule LIMSEQ_const)
+  by (rule convergentI, rule tendsto_const)
 
 lemma convergent_add:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
   assumes "convergent (\<lambda>n. X n)"
   assumes "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n + Y n)"
-using assms unfolding convergent_def by (fast intro: LIMSEQ_add)
+  using assms unfolding convergent_def by (fast intro: tendsto_add)
 
 lemma convergent_setsum:
   fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
@@ -593,19 +511,19 @@ qed (simp add: convergent_const)
 lemma (in bounded_linear) convergent:
   assumes "convergent (\<lambda>n. X n)"
   shows "convergent (\<lambda>n. f (X n))"
-using assms unfolding convergent_def by (fast intro: LIMSEQ)
+  using assms unfolding convergent_def by (fast intro: tendsto)
 
 lemma (in bounded_bilinear) convergent:
   assumes "convergent (\<lambda>n. X n)" and "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n ** Y n)"
-using assms unfolding convergent_def by (fast intro: LIMSEQ)
+  using assms unfolding convergent_def by (fast intro: tendsto)
 
 lemma convergent_minus_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "convergent X \<longleftrightarrow> convergent (\<lambda>n. - X n)"
 apply (simp add: convergent_def)
-apply (auto dest: LIMSEQ_minus)
-apply (drule LIMSEQ_minus, auto)
+apply (auto dest: tendsto_minus)
+apply (drule tendsto_minus, auto)
 done
 
 lemma lim_le:
@@ -661,7 +579,7 @@ proof -
       case True with top_down and `a ----> x` show ?thesis by auto
     next
       case False with `monoseq a`[unfolded monoseq_def] have "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" by auto
-      hence "- a m \<le> - x" using top_down[OF LIMSEQ_minus[OF `a ----> x`]] by blast
+      hence "- a m \<le> - x" using top_down[OF tendsto_minus[OF `a ----> x`]] by blast
       hence False using `a m < x` by auto
       thus ?thesis ..
     qed
@@ -676,7 +594,7 @@ proof -
       show ?thesis by blast
     next
       case False hence "- a m < - x" using `a m \<noteq> x` by auto
-      with when_decided[OF LIMSEQ_minus[OF `a ----> x`] monoseq_minus[OF `monoseq a`], where m2=m]
+      with when_decided[OF tendsto_minus[OF `a ----> x`] monoseq_minus[OF `monoseq a`], where m2=m]
       show ?thesis by auto
     qed
   qed auto
@@ -855,8 +773,8 @@ next
     by (blast intro: const [of 0]) 
   have "X = (\<lambda>n. X 0)"
     by (blast intro: ext X)
-  hence "L = X 0" using LIMSEQ_const [of "X 0"]
-    by (auto intro: LIMSEQ_unique lim) 
+  hence "L = X 0" using tendsto_const [of "X 0" sequentially]
+    by (auto intro: LIMSEQ_unique lim)
   thus ?thesis
     by (blast intro: eq_refl X)
 qed
@@ -867,7 +785,7 @@ proof -
   have inc: "incseq (\<lambda>n. - X n)" using dec
     by (simp add: decseq_eq_incseq)
   have "- X n \<le> - L" 
-    by (blast intro: incseq_le [OF inc] LIMSEQ_minus lim) 
+    by (blast intro: incseq_le [OF inc] tendsto_minus lim) 
   thus ?thesis
     by simp
 qed
@@ -1187,7 +1105,7 @@ lemma LIMSEQ_realpow_zero:
   "\<lbrakk>0 \<le> (x::real); x < 1\<rbrakk> \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
 proof (cases)
   assume "x = 0"
-  hence "(\<lambda>n. x ^ Suc n) ----> 0" by (simp add: LIMSEQ_const)
+  hence "(\<lambda>n. x ^ Suc n) ----> 0" by (simp add: tendsto_const)
   thus ?thesis by (rule LIMSEQ_imp_Suc)
 next
   assume "0 \<le> x" and "x \<noteq> 0"
@@ -1204,14 +1122,14 @@ lemma LIMSEQ_power_zero:
   fixes x :: "'a::{real_normed_algebra_1}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
 apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
-apply (simp only: LIMSEQ_Zfun_iff, erule Zfun_le)
+apply (simp only: tendsto_Zfun_iff, erule Zfun_le)
 apply (simp add: power_abs norm_power_ineq)
 done
 
 lemma LIMSEQ_divide_realpow_zero:
   "1 < (x::real) ==> (%n. a / (x ^ n)) ----> 0"
-apply (cut_tac a = a and x1 = "inverse x" in
-        LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_realpow_zero])
+using tendsto_mult [OF tendsto_const [of a]
+  LIMSEQ_realpow_zero [of "inverse x"]]
 apply (auto simp add: divide_inverse power_inverse)
 apply (simp add: inverse_eq_divide pos_divide_less_eq)
 done
@@ -1222,8 +1140,29 @@ lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar
 by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
 
 lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----> 0"
-apply (rule LIMSEQ_rabs_zero [THEN iffD1])
+apply (rule tendsto_rabs_zero_cancel)
 apply (auto intro: LIMSEQ_rabs_realpow_zero simp add: power_abs)
 done
+
+subsection {* Legacy theorem names *}
+
+lemmas LIMSEQ_Zfun_iff = tendsto_Zfun_iff [where F=sequentially]
+lemmas LIMSEQ_const = tendsto_const [where F=sequentially]
+lemmas LIMSEQ_norm = tendsto_norm [where F=sequentially]
+lemmas LIMSEQ_add = tendsto_add [where F=sequentially]
+lemmas LIMSEQ_minus = tendsto_minus [where F=sequentially]
+lemmas LIMSEQ_minus_cancel = tendsto_minus_cancel [where F=sequentially]
+lemmas LIMSEQ_diff = tendsto_diff [where F=sequentially]
+lemmas (in bounded_linear) LIMSEQ = tendsto [where F=sequentially]
+lemmas (in bounded_bilinear) LIMSEQ = tendsto [where F=sequentially]
+lemmas LIMSEQ_mult = tendsto_mult [where F=sequentially]
+lemmas LIMSEQ_inverse = tendsto_inverse [where F=sequentially]
+lemmas LIMSEQ_divide = tendsto_divide [where F=sequentially]
+lemmas LIMSEQ_pow = tendsto_power [where F=sequentially]
+lemmas LIMSEQ_setsum = tendsto_setsum [where F=sequentially]
+lemmas LIMSEQ_setprod = tendsto_setprod [where F=sequentially]
+lemmas LIMSEQ_norm_zero = tendsto_norm_zero_iff [where F=sequentially]
+lemmas LIMSEQ_rabs_zero = tendsto_rabs_zero_iff [where F=sequentially]
+lemmas LIMSEQ_imp_rabs = tendsto_rabs [where F=sequentially]
 
 end
