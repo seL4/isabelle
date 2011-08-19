@@ -50,7 +50,7 @@ lemma insert_set_compl:
 
 lemma remove_set_compl:
   "remove x (- set xs) = - set (List.insert x xs)"
-  by (auto simp del: mem_def simp add: remove_def List.insert_def)
+  by (auto simp add: remove_def List.insert_def)
 
 lemma image_set:
   "image f (set xs) = set (map f xs)"
