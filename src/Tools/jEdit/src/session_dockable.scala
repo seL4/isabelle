@@ -28,7 +28,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
 
   private val syslog = new TextArea(Isabelle.session.syslog())
-  syslog.editable = false
 
   private val tabs = new TabbedPane {
     pages += new TabbedPane.Page("README", Component.wrap(readme))
