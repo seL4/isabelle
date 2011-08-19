@@ -871,8 +871,15 @@ apply (rule exp_converges [THEN sums_summable, unfolded scaleR_conv_of_real])+
 apply (simp del: of_real_add)
 done
 
-lemma isCont_exp [simp]: "isCont exp x"
-by (rule DERIV_exp [THEN DERIV_isCont])
+lemma isCont_exp: "isCont exp x"
+  by (rule DERIV_exp [THEN DERIV_isCont])
+
+lemma isCont_exp' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. exp (f x)) a"
+  by (rule isCont_o2 [OF _ isCont_exp])
+
+lemma tendsto_exp [tendsto_intros]:
+  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
+  by (rule isCont_tendsto_compose [OF isCont_exp])
 
 
 subsubsection {* Properties of the Exponential Function *}
@@ -1271,12 +1278,25 @@ apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
 apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
 done
 
-lemma isCont_sin [simp]: "isCont sin x"
-by (rule DERIV_sin [THEN DERIV_isCont])
+lemma isCont_sin: "isCont sin x"
+  by (rule DERIV_sin [THEN DERIV_isCont])
 
-lemma isCont_cos [simp]: "isCont cos x"
-by (rule DERIV_cos [THEN DERIV_isCont])
+lemma isCont_cos: "isCont cos x"
+  by (rule DERIV_cos [THEN DERIV_isCont])
 
+lemma isCont_sin' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. sin (f x)) a"
+  by (rule isCont_o2 [OF _ isCont_sin])
+
+lemma isCont_cos' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. cos (f x)) a"
+  by (rule isCont_o2 [OF _ isCont_cos])
+
+lemma tendsto_sin [tendsto_intros]:
+  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. sin (f x)) ---> sin a) F"
+  by (rule isCont_tendsto_compose [OF isCont_sin])
+
+lemma tendsto_cos [tendsto_intros]:
+  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) ---> cos a) F"
+  by (rule isCont_tendsto_compose [OF isCont_cos])
 
 declare
   DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
@@ -1287,10 +1307,10 @@ declare
 subsection {* Properties of Sine and Cosine *}
 
 lemma sin_zero [simp]: "sin 0 = 0"
-unfolding sin_def sin_coeff_def by (simp add: powser_zero)
+  unfolding sin_def sin_coeff_def by (simp add: powser_zero)
 
 lemma cos_zero [simp]: "cos 0 = 1"
-unfolding cos_def cos_coeff_def by (simp add: powser_zero)
+  unfolding cos_def cos_coeff_def by (simp add: powser_zero)
 
 lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
   by (rule DERIV_cong) (* TODO: delete *)
@@ -1336,32 +1356,19 @@ lemma cos_le_one [simp]: "cos x \<le> 1"
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>
       DERIV (%x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"
-unfolding One_nat_def
-apply (rule DERIV_cong)
-apply (rule_tac f = "(%x. x ^ n)" in DERIV_chain2)
-apply (rule DERIV_pow, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma DERIV_fun_exp:
      "DERIV g x :> m ==> DERIV (%x. exp(g x)) x :> exp(g x) * m"
-apply (rule DERIV_cong)
-apply (rule_tac f = exp in DERIV_chain2)
-apply (rule DERIV_exp, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma DERIV_fun_sin:
      "DERIV g x :> m ==> DERIV (%x. sin(g x)) x :> cos(g x) * m"
-apply (rule DERIV_cong)
-apply (rule_tac f = sin in DERIV_chain2)
-apply (rule DERIV_sin, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma DERIV_fun_cos:
      "DERIV g x :> m ==> DERIV (%x. cos(g x)) x :> -sin(g x) * m"
-apply (rule DERIV_cong)
-apply (rule_tac f = cos in DERIV_chain2)
-apply (rule DERIV_cos, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma sin_cos_add_lemma:
      "(sin (x + y) - (sin x * cos y + cos x * sin y)) ^ 2 +
@@ -1485,10 +1492,10 @@ apply (simp_all (no_asm_simp))
 done
 
 lemma sin_gt_zero1: "[|0 < x; x < 2 |] ==> 0 < sin x"
-by (auto intro: sin_gt_zero)
+  by (rule sin_gt_zero)
 
 lemma cos_double_less_one: "[| 0 < x; x < 2 |] ==> cos (2 * x) < 1"
-apply (cut_tac x = x in sin_gt_zero1)
+apply (cut_tac x = x in sin_gt_zero)
 apply (auto simp add: cos_squared_eq cos_double)
 done
 
@@ -1888,59 +1895,41 @@ qed
 
 subsection {* Tangent *}
 
-definition
-  tan :: "real => real" where
-  "tan x = (sin x)/(cos x)"
+definition tan :: "real \<Rightarrow> real" where
+  "tan = (\<lambda>x. sin x / cos x)"
 
 lemma tan_zero [simp]: "tan 0 = 0"
-by (simp add: tan_def)
+  by (simp add: tan_def)
 
 lemma tan_pi [simp]: "tan pi = 0"
-by (simp add: tan_def)
+  by (simp add: tan_def)
 
 lemma tan_npi [simp]: "tan (real (n::nat) * pi) = 0"
-by (simp add: tan_def)
+  by (simp add: tan_def)
 
 lemma tan_minus [simp]: "tan (-x) = - tan x"
-by (simp add: tan_def minus_mult_left)
+  by (simp add: tan_def)
 
 lemma tan_periodic [simp]: "tan (x + 2*pi) = tan x"
-by (simp add: tan_def)
+  by (simp add: tan_def)
 
 lemma lemma_tan_add1:
-      "[| cos x \<noteq> 0; cos y \<noteq> 0 |]
-        ==> 1 - tan(x)*tan(y) = cos (x + y)/(cos x * cos y)"
-apply (simp add: tan_def divide_inverse)
-apply (auto simp del: inverse_mult_distrib
-            simp add: inverse_mult_distrib [symmetric] mult_ac)
-apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
-apply (auto simp del: inverse_mult_distrib
-            simp add: mult_assoc left_diff_distrib cos_add)
-done
+  "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0\<rbrakk> \<Longrightarrow> 1 - tan x * tan y = cos (x + y)/(cos x * cos y)"
+  by (simp add: tan_def cos_add field_simps)
 
 lemma add_tan_eq:
-      "[| cos x \<noteq> 0; cos y \<noteq> 0 |]
-       ==> tan x + tan y = sin(x + y)/(cos x * cos y)"
-apply (simp add: tan_def)
-apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
-apply (auto simp add: mult_assoc left_distrib)
-apply (simp add: sin_add)
-done
+  "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0\<rbrakk> \<Longrightarrow> tan x + tan y = sin(x + y)/(cos x * cos y)"
+  by (simp add: tan_def sin_add field_simps)
 
 lemma tan_add:
      "[| cos x \<noteq> 0; cos y \<noteq> 0; cos (x + y) \<noteq> 0 |]
       ==> tan(x + y) = (tan(x) + tan(y))/(1 - tan(x) * tan(y))"
-apply (simp (no_asm_simp) add: add_tan_eq lemma_tan_add1)
-apply (simp add: tan_def)
-done
+  by (simp add: add_tan_eq lemma_tan_add1, simp add: tan_def)
 
 lemma tan_double:
      "[| cos x \<noteq> 0; cos (2 * x) \<noteq> 0 |]
       ==> tan (2 * x) = (2 * tan x)/(1 - (tan(x) ^ 2))"
-apply (insert tan_add [of x x])
-apply (simp add: mult_2 [symmetric])
-apply (auto simp add: numeral_2_eq_2)
-done
+  using tan_add [of x x] by (simp add: power2_eq_square)
 
 lemma tan_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < tan x"
 by (simp add: tan_def zero_less_divide_iff sin_gt_zero2 cos_gt_zero_pi)
@@ -1968,26 +1957,23 @@ proof -
   finally show ?thesis .
 qed
 
-lemma lemma_DERIV_tan:
-     "cos x \<noteq> 0 ==> DERIV (%x. sin(x)/cos(x)) x :> inverse((cos x)\<twosuperior>)"
-  by (auto intro!: DERIV_intros simp add: field_simps numeral_2_eq_2)
+lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<twosuperior>)"
+  unfolding tan_def
+  by (auto intro!: DERIV_intros, simp add: divide_inverse power2_eq_square)
 
-lemma DERIV_tan [simp]: "cos x \<noteq> 0 ==> DERIV tan x :> inverse((cos x)\<twosuperior>)"
-by (auto dest: lemma_DERIV_tan simp add: tan_def [symmetric])
+lemma isCont_tan: "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
+  by (rule DERIV_tan [THEN DERIV_isCont])
 
-lemma isCont_tan [simp]: "cos x \<noteq> 0 ==> isCont tan x"
-by (rule DERIV_tan [THEN DERIV_isCont])
+lemma isCont_tan' [simp]:
+  "\<lbrakk>isCont f a; cos (f a) \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. tan (f x)) a"
+  by (rule isCont_o2 [OF _ isCont_tan])
 
-lemma LIM_cos_div_sin [simp]: "(%x. cos(x)/sin(x)) -- pi/2 --> 0"
-apply (subgoal_tac "(\<lambda>x. cos x * inverse (sin x)) -- pi * inverse 2 --> 0*1")
-apply (simp add: divide_inverse [symmetric])
-apply (rule LIM_mult)
-apply (rule_tac [2] inverse_1 [THEN subst])
-apply (rule_tac [2] LIM_inverse)
-apply (simp_all add: divide_inverse [symmetric])
-apply (simp_all only: isCont_def [symmetric] cos_pi_half [symmetric] sin_pi_half [symmetric])
-apply (blast intro!: DERIV_isCont DERIV_sin DERIV_cos)+
-done
+lemma tendsto_tan [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) ---> tan a) F"
+  by (rule isCont_tendsto_compose [OF isCont_tan])
+
+lemma LIM_cos_div_sin: "(%x. cos(x)/sin(x)) -- pi/2 --> 0"
+  by (rule LIM_cong_limit, (rule tendsto_intros)+, simp_all)
 
 lemma lemma_tan_total: "0 < y ==> \<exists>x. 0 < x & x < pi/2 & y < tan x"
 apply (cut_tac LIM_cos_div_sin)
