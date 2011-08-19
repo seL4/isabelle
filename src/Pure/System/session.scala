@@ -275,6 +275,8 @@ class Session(val file_store: Session.File_Store)
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }
+        case Markup.Cancel_Scala(id) =>
+          System.err.println("cancel_scala " + id)  // FIXME cancel JVM task
         case _ =>
           if (result.is_syslog) {
             reverse_syslog ::= result.message

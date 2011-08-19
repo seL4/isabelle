@@ -62,8 +62,8 @@ sig
   val value: 'a -> 'a future
   val map: ('a -> 'b) -> 'a future -> 'b future
   val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
-  val promise_group: Task_Queue.group -> 'a future
-  val promise: unit -> 'a future
+  val promise_group: Task_Queue.group -> (unit -> unit) -> 'a future
+  val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
   val shutdown: unit -> unit
@@ -561,19 +561,23 @@ fun cond_forks args es =
 
 (* promised futures -- fulfilled by external means *)
 
-fun promise_group group : 'a future =
+fun promise_group group abort : 'a future =
   let
     val result = Single_Assignment.var "promise" : 'a result;
-    fun abort () = assign_result group result Exn.interrupt_exn
+    fun assign () = assign_result group result Exn.interrupt_exn
       handle Fail _ => true
         | exn =>
-            if Exn.is_interrupt exn then raise Fail "Concurrent attempt to fulfill promise"
+            if Exn.is_interrupt exn
+            then raise Fail "Concurrent attempt to fulfill promise"
             else reraise exn;
+    fun job () =
+      Multithreading.with_attributes Multithreading.no_interrupts
+        (fn _ => assign () before abort ());
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
-      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
+      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group job));
   in Future {promised = true, task = task, result = result} end;
 
-fun promise () = promise_group (worker_subgroup ());
+fun promise abort = promise_group (worker_subgroup ()) abort;
 
 fun fulfill_result (Future {promised, task, result}) res =
   if not promised then raise Fail "Not a promised future"
