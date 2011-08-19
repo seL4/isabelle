@@ -419,9 +419,13 @@ lemma isCont_divide [simp]:
   shows "\<lbrakk>isCont f a; isCont g a; g a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x / g x) a"
   unfolding isCont_def by (rule tendsto_divide)
 
+lemma isCont_tendsto_compose:
+  "\<lbrakk>isCont g l; (f ---> l) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
+  unfolding isCont_def by (rule tendsto_compose)
+
 lemma isCont_LIM_compose:
   "\<lbrakk>isCont g l; f -- a --> l\<rbrakk> \<Longrightarrow> (\<lambda>x. g (f x)) -- a --> g l"
-  unfolding isCont_def by (rule LIM_compose)
+  by (rule isCont_tendsto_compose) (* TODO: delete? *)
 
 lemma metric_isCont_LIM_compose2:
   assumes f [unfolded isCont_def]: "isCont f a"
