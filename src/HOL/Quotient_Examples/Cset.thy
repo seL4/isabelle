@@ -40,8 +40,8 @@ lemma [quot_respect]:
   "set_eq UNIV UNIV"
   "(set_eq ===> set_eq) uminus uminus"
   "(set_eq ===> set_eq ===> set_eq) minus minus"
-  "((set_eq ===> op =) ===> set_eq) Inf Inf"
-  "((set_eq ===> op =) ===> set_eq) Sup Sup"
+  "(set_eq ===> op =) Inf Inf"
+  "(set_eq ===> op =) Sup Sup"
   "(op = ===> set_eq) List.set List.set"
   "(set_eq ===> (op = ===> set_eq) ===> set_eq) UNION UNION"
 by (auto simp: fun_rel_eq)
@@ -84,32 +84,12 @@ quotient_definition uminus where "uminus :: 'a Cset.set \<Rightarrow> 'a Cset.se
 is "uminus_class.uminus :: 'a set \<Rightarrow> 'a set"
 quotient_definition minus where "minus :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
 is "(op -) :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-quotient_definition Inf where "Inf :: 'a Cset.set set \<Rightarrow> 'a Cset.set"
-is "Inf_class.Inf :: 'a set set \<Rightarrow> 'a set"
-quotient_definition Sup where "Sup :: 'a Cset.set set \<Rightarrow> 'a Cset.set"
-is "Sup_class.Sup :: 'a set set \<Rightarrow> 'a set"
+quotient_definition Inf where "Inf :: ('a :: Inf) Cset.set \<Rightarrow> 'a"
+is "Inf_class.Inf :: ('a :: Inf) set \<Rightarrow> 'a"
+quotient_definition Sup where "Sup :: ('a :: Sup) Cset.set \<Rightarrow> 'a"
+is "Sup_class.Sup :: ('a :: Sup) set \<Rightarrow> 'a"
 quotient_definition UNION where "UNION :: 'a Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Cset.set) \<Rightarrow> 'b Cset.set"
 is "Complete_Lattice.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
-
-
-context complete_lattice
-begin
-
-(* FIXME: Would like to use 
-
-quotient_definition "Infimum :: 'a Cset.set \<Rightarrow> 'a"
-is "Inf"
-
-but it fails, presumably because @{term "Inf"} is a Free.
-*)
-
-definition Infimum :: "'a Cset.set \<Rightarrow> 'a" where
-  [simp]: "Infimum A = Inf (\<lambda>x. member x A)"
-
-definition Supremum :: "'a Cset.set \<Rightarrow> 'a" where
-  [simp]: "Supremum A = Sup (\<lambda>x. member x A)"
-
-end
 
 hide_const (open) is_empty insert remove map filter forall exists card
   set subset psubset inter union empty UNIV uminus minus Inf Sup UNION
@@ -118,6 +98,5 @@ hide_fact (open) is_empty_def insert_def remove_def map_def filter_def
   forall_def exists_def card_def set_def subset_def psubset_def
   inter_def union_def empty_def UNIV_def uminus_def minus_def Inf_def Sup_def
   UNION_def
-
 
 end

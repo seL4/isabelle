@@ -89,7 +89,7 @@ by descending simp
 lemma map_set [code]:
   "Cset.map f (Cset.set xs) = Cset.set (remdups (List.map f xs))"
 by descending simp
-  
+
 lemma filter_set [code]:
   "Cset.filter P (Cset.set xs) = Cset.set (List.filter P xs)"
 by descending (simp add: project_set)
@@ -115,30 +115,17 @@ lemma compl_coset [simp, code]:
   "Cset.uminus (coset xs) = Cset.set xs"
 unfolding coset_def by descending simp
 
-context complete_lattice
-begin
+lemma Inf_inf [code]:
+  "Cset.Inf (Cset.set (xs\<Colon>'a\<Colon>complete_lattice list)) = foldr inf xs top"
+  "Cset.Inf (coset ([]\<Colon>'a\<Colon>complete_lattice list)) = bot"
+  unfolding List_Cset.UNIV_set[symmetric]
+  by (lifting Inf_set_foldr Inf_UNIV)
 
-(* FIXME: automated lifting fails, since @{term inf} and @{term top}
-  are variables (???) *)
-lemma Infimum_inf [code]:
-  "Infimum (Cset.set As) = foldr inf As top"
-  "Infimum (coset []) = bot"
-unfolding Infimum_def member_code List.member_def
-apply (simp add: mem_def Inf_set_foldr)
-apply (simp add: Inf_UNIV[unfolded UNIV_def Collect_def])
-done
-
-lemma Supremum_sup [code]:
-  "Supremum (Cset.set As) = foldr sup As bot"
-  "Supremum (coset []) = top"
-unfolding Supremum_def member_code List.member_def
-apply (simp add: mem_def Sup_set_foldr)
-apply (simp add: Sup_UNIV[unfolded UNIV_def Collect_def])
-done
-
-end
-
-
+lemma Sup_sup [code]:
+  "Cset.Sup (Cset.set (xs\<Colon>'a\<Colon>complete_lattice list)) = foldr sup xs bot"
+  "Cset.Sup (coset ([]\<Colon>'a\<Colon>complete_lattice list)) = top"
+  unfolding List_Cset.UNIV_set[symmetric]
+  by (lifting Sup_set_foldr Sup_UNIV)
 
 subsection {* Derived operations *}
 
