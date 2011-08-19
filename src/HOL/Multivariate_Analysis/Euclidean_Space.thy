@@ -126,7 +126,7 @@ lemmas tendsto_euclidean_component [tendsto_intros] =
 lemmas isCont_euclidean_component [simp] =
   bounded_linear.isCont [OF bounded_linear_euclidean_component]
 
-lemma euclidean_component_zero: "0 $$ i = 0"
+lemma euclidean_component_zero [simp]: "0 $$ i = 0"
   unfolding euclidean_component_def by (rule inner_zero_right)
 
 lemma euclidean_component_add: "(x + y) $$ i = x $$ i + y $$ i"

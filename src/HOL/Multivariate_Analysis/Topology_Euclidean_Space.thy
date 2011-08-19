@@ -5570,9 +5570,6 @@ qed
 
 subsection {* Some properties of a canonical subspace *}
 
-(** move **)
-declare euclidean_component_zero[simp]
-
 lemma subspace_substandard:
   "subspace {x::'a::euclidean_space. (\<forall>i<DIM('a). P i \<longrightarrow> x$$i = 0)}"
   unfolding subspace_def by(auto simp add: euclidean_simps) (* FIXME: duplicate rewrite rule *)
