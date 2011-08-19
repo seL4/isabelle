@@ -10,8 +10,8 @@ imports
   "~~/src/HOL/Library/Infinite_Set"
   L2_Norm
   "~~/src/HOL/Library/Convex"
+  "~~/src/HOL/Library/Sum_of_Squares"
 uses
-  "~~/src/HOL/Library/positivstellensatz.ML"  (* FIXME duplicate use!? *)
   ("normarith.ML")
 begin
 
