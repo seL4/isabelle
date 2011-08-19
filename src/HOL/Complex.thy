@@ -339,11 +339,22 @@ by (cases x) simp
 
 subsection {* Completeness of the Complexes *}
 
-interpretation Re: bounded_linear "Re"
+lemma bounded_linear_Re: "bounded_linear Re"
   by (rule bounded_linear_intro [where K=1], simp_all add: complex_norm_def)
 
-interpretation Im: bounded_linear "Im"
+lemma bounded_linear_Im: "bounded_linear Im"
   by (rule bounded_linear_intro [where K=1], simp_all add: complex_norm_def)
+
+lemmas tendsto_Re [tendsto_intros] =
+  bounded_linear.tendsto [OF bounded_linear_Re]
+
+lemmas tendsto_Im [tendsto_intros] =
+  bounded_linear.tendsto [OF bounded_linear_Im]
+
+lemmas isCont_Re [simp] = bounded_linear.isCont [OF bounded_linear_Re]
+lemmas isCont_Im [simp] = bounded_linear.isCont [OF bounded_linear_Im]
+lemmas Cauchy_Re = bounded_linear.Cauchy [OF bounded_linear_Re]
+lemmas Cauchy_Im = bounded_linear.Cauchy [OF bounded_linear_Im]
 
 lemma tendsto_Complex [tendsto_intros]:
   assumes "(f ---> a) net" and "(g ---> b) net"
@@ -370,9 +381,9 @@ instance complex :: banach
 proof
   fix X :: "nat \<Rightarrow> complex"
   assume X: "Cauchy X"
-  from Re.Cauchy [OF X] have 1: "(\<lambda>n. Re (X n)) ----> lim (\<lambda>n. Re (X n))"
+  from Cauchy_Re [OF X] have 1: "(\<lambda>n. Re (X n)) ----> lim (\<lambda>n. Re (X n))"
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  from Im.Cauchy [OF X] have 2: "(\<lambda>n. Im (X n)) ----> lim (\<lambda>n. Im (X n))"
+  from Cauchy_Im [OF X] have 2: "(\<lambda>n. Im (X n)) ----> lim (\<lambda>n. Im (X n))"
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   have "X ----> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
     using LIMSEQ_Complex [OF 1 2] by simp
@@ -511,9 +522,15 @@ by (simp add: complex_eq_iff power2_eq_square)
 lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
 by (simp add: norm_mult power2_eq_square)
 
-interpretation cnj: bounded_linear "cnj"
+lemma bounded_linear_cnj: "bounded_linear cnj"
   using complex_cnj_add complex_cnj_scaleR
   by (rule bounded_linear_intro [where K=1], simp)
+
+lemmas tendsto_cnj [tendsto_intros] =
+  bounded_linear.tendsto [OF bounded_linear_cnj]
+
+lemmas isCont_cnj [simp] =
+  bounded_linear.isCont [OF bounded_linear_cnj]
 
 
 subsection{*The Functions @{term sgn} and @{term arg}*}
