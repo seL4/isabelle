@@ -417,32 +417,32 @@ lemma sin_expansion_lemma:
       cos (x + real (m) * pi / 2)"
 by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
 
+lemma sin_coeff_0 [simp]: "sin_coeff 0 = 0"
+  unfolding sin_coeff_def by simp (* TODO: move *)
+
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
        sin x =
-       (\<Sum>m=0..<n. (if even m then 0
-                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
-                       x ^ m)
+       (\<Sum>m=0..<n. sin_coeff m * x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and x = x
         and diff = "%n x. sin (x + 1/2*real n * pi)" in Maclaurin_all_lt_objl)
 apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
-apply (case_tac "n", clarify, simp, simp add: lemma_STAR_sin)
+apply (subst (asm) setsum_0', clarify, case_tac "a", simp, simp)
+apply (cases n, simp, simp)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 lemma Maclaurin_sin_expansion:
      "\<exists>t. sin x =
-       (\<Sum>m=0..<n. (if even m then 0
-                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
-                       x ^ m)
+       (\<Sum>m=0..<n. sin_coeff m * x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (insert Maclaurin_sin_expansion2 [of x n])
 apply (blast intro: elim:)
@@ -452,9 +452,7 @@ lemma Maclaurin_sin_expansion3:
      "[| n > 0; 0 < x |] ==>
        \<exists>t. 0 < t & t < x &
        sin x =
-       (\<Sum>m=0..<n. (if even m then 0
-                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
-                       x ^ m)
+       (\<Sum>m=0..<n. sin_coeff m * x ^ m)
       + ((sin(t + 1/2 * real(n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
@@ -463,16 +461,14 @@ apply (simp (no_asm) add: sin_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 lemma Maclaurin_sin_expansion4:
      "0 < x ==>
        \<exists>t. 0 < t & t \<le> x &
        sin x =
-       (\<Sum>m=0..<n. (if even m then 0
-                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
-                       x ^ m)
+       (\<Sum>m=0..<n. sin_coeff m * x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
 apply safe
@@ -481,15 +477,17 @@ apply (simp (no_asm) add: sin_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 
 subsection{*Maclaurin Expansion for Cosine Function*}
 
+lemma cos_coeff_0 [simp]: "cos_coeff 0 = 1"
+  unfolding cos_coeff_def by simp (* TODO: move *)
+
 lemma sumr_cos_zero_one [simp]:
- "(\<Sum>m=0..<(Suc n).
-     (if even m then -1 ^ (m div 2)/(real  (fact m)) else 0) * 0 ^ m) = 1"
+  "(\<Sum>m=0..<(Suc n). cos_coeff m * 0 ^ m) = 1"
 by (induct "n", auto)
 
 lemma cos_expansion_lemma:
@@ -499,10 +497,7 @@ by (simp only: cos_add sin_add real_of_nat_Suc left_distrib add_divide_distrib, 
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &
        cos x =
-       (\<Sum>m=0..<n. (if even m
-                       then -1 ^ (m div 2)/(real (fact m))
-                       else 0) *
-                       x ^ m)
+       (\<Sum>m=0..<n. cos_coeff m * x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and x = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_all_lt_objl)
 apply safe
@@ -515,17 +510,14 @@ apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_cos_expansion2:
      "[| 0 < x; n > 0 |] ==>
        \<exists>t. 0 < t & t < x &
        cos x =
-       (\<Sum>m=0..<n. (if even m
-                       then -1 ^ (m div 2)/(real (fact m))
-                       else 0) *
-                       x ^ m)
+       (\<Sum>m=0..<n. cos_coeff m * x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
@@ -534,17 +526,14 @@ apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_minus_cos_expansion:
      "[| x < 0; n > 0 |] ==>
        \<exists>t. x < t & t < 0 &
        cos x =
-       (\<Sum>m=0..<n. (if even m
-                       then -1 ^ (m div 2)/(real (fact m))
-                       else 0) *
-                       x ^ m)
+       (\<Sum>m=0..<n. cos_coeff m * x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_minus_objl)
 apply safe
@@ -553,7 +542,7 @@ apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
 (* ------------------------------------------------------------------------- *)
@@ -565,8 +554,8 @@ lemma sin_bound_lemma:
 by auto
 
 lemma Maclaurin_sin_bound:
-  "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
-  x ^ m))  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"
+  "abs(sin x - (\<Sum>m=0..<n. sin_coeff m * x ^ m))
+  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"
 proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"
     by (rule_tac mult_right_mono,simp_all)
@@ -592,6 +581,7 @@ proof -
     apply (safe dest!: mod_eqD, simp_all)
     done
   show ?thesis
+    unfolding sin_coeff_def
     apply (subst t2)
     apply (rule sin_bound_lemma)
     apply (rule setsum_cong[OF refl])

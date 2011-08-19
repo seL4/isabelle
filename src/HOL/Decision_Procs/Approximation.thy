@@ -839,7 +839,8 @@ proof (cases "real x = 0")
       cos_eq: "cos x = (\<Sum> i = 0 ..< 2 * n. (if even(i) then (-1 ^ (i div 2))/(real (fact i)) else 0) * (real x) ^ i)
       + (cos (t + 1/2 * (2 * n) * pi) / real (fact (2*n))) * (real x)^(2*n)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
-      using Maclaurin_cos_expansion2[OF `0 < real x` `0 < 2 * n`] by auto
+      using Maclaurin_cos_expansion2[OF `0 < real x` `0 < 2 * n`]
+      unfolding cos_coeff_def by auto
 
     have "cos t * -1^n = cos t * cos (n * pi) + sin t * sin (n * pi)" by auto
     also have "\<dots> = cos (t + n * pi)"  using cos_add by auto
@@ -951,7 +952,8 @@ proof (cases "real x = 0")
       sin_eq: "sin x = (\<Sum> i = 0 ..< 2 * n + 1. (if even(i) then 0 else (-1 ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)
       + (sin (t + 1/2 * (2 * n + 1) * pi) / real (fact (2*n + 1))) * (real x)^(2*n + 1)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
-      using Maclaurin_sin_expansion3[OF `0 < 2 * n + 1` `0 < real x`] by auto
+      using Maclaurin_sin_expansion3[OF `0 < 2 * n + 1` `0 < real x`]
+      unfolding sin_coeff_def by auto
 
     have "?rest = cos t * -1^n" unfolding sin_add cos_add real_of_nat_add left_distrib right_distrib by auto
     moreover
