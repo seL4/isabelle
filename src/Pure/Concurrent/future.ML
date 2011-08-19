@@ -52,6 +52,9 @@ sig
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val get_finished: 'a future -> 'a
+  val interruptible_task: ('a -> 'b) -> 'a -> 'b
+  val cancel_group: group -> task list
+  val cancel: 'a future -> task list
   type fork_params =
     {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val forks: fork_params -> (unit -> 'a) list -> 'a future list
@@ -60,12 +63,10 @@ sig
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val join: 'a future -> 'a
+  val join_tasks: task list -> unit
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val map: ('a -> 'b) -> 'a future -> 'b future
-  val cancel_group: group -> unit future
-  val cancel: 'a future -> unit future
-  val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
   val promise_group: group -> (unit -> unit) -> 'a future
   val promise: (unit -> unit) -> 'a future
@@ -189,6 +190,17 @@ fun cancel_now group = (*requires SYNCHRONIZED*)
 fun cancel_later group = (*requires SYNCHRONIZED*)
  (Unsynchronized.change canceled (insert Task_Queue.eq_group group);
   broadcast scheduler_event);
+
+
+fun interruptible_task f x =
+  (if Multithreading.available then
+    Multithreading.with_attributes
+      (if is_some (worker_task ())
+       then Multithreading.private_interrupts
+       else Multithreading.public_interrupts)
+      (fn _ => f x)
+   else interruptible f x)
+  before Multithreading.interrupted ();
 
 
 (* worker threads *)
@@ -386,7 +398,13 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
   if scheduler_active () then ()
   else scheduler := SOME (Simple_Thread.fork false scheduler_loop));
 
-fun scheduler_cancel group = SYNCHRONIZED "scheduler_cancel" (fn () =>
+
+
+(** futures **)
+
+(* cancel *)
+
+fun cancel_group group = SYNCHRONIZED "cancel_group" (fn () =>
   let
     val running = cancel_now group;
     val _ =
@@ -394,9 +412,8 @@ fun scheduler_cancel group = SYNCHRONIZED "scheduler_cancel" (fn () =>
       else (cancel_later group; signal work_available; scheduler_check ());
   in running end);
 
+fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
-
-(** futures **)
 
 (* future jobs *)
 
@@ -467,7 +484,7 @@ fun forks ({name, group, deps, pri, interrupts}: fork_params) es =
     end;
 
 fun fork_pri pri e =
-  singleton (forks {name = "", group = NONE, deps = [], pri = pri, interrupts = true}) e;
+  (singleton o forks) {name = "fork", group = NONE, deps = [], pri = pri, interrupts = true} e;
 
 fun fork e = fork_pri 0 e;
 
@@ -519,6 +536,13 @@ end;
 fun join_result x = singleton join_results x;
 fun join x = Exn.release (join_result x);
 
+fun join_tasks [] = ()
+  | join_tasks tasks =
+      (singleton o forks)
+        {name = "join_tasks", group = SOME (new_group NONE),
+          deps = tasks, pri = 0, interrupts = false} I
+      |> join;
+
 
 (* fast-path versions -- bypassing task queue *)
 
@@ -545,38 +569,15 @@ fun map_future f x =
   in
     if extended then Future {promised = false, task = task, result = result}
     else
-      singleton
-        (forks {name = "Future.map", group = SOME group, deps = [task],
-          pri = Task_Queue.pri_of_task task, interrupts = true})
+      (singleton o forks)
+        {name = "map_future", group = SOME group, deps = [task],
+          pri = Task_Queue.pri_of_task task, interrupts = true}
         (fn () => f (join x))
   end;
 
 fun cond_forks args es =
   if Multithreading.enabled () then forks args es
   else map (fn e => value_result (Exn.interruptible_capture e ())) es;
-
-
-(* cancel *)
-
-fun cancel_group group =
-  (case scheduler_cancel group of
-    [] => value ()
-  | running =>
-      singleton
-        (forks {name = "cancel_group", group = SOME (new_group NONE),
-          deps = running, pri = 0, interrupts = false}) I);
-
-fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
-
-fun interruptible_task f x =
-  (if Multithreading.available then
-    Multithreading.with_attributes
-      (if is_some (worker_task ())
-       then Multithreading.private_interrupts
-       else Multithreading.public_interrupts)
-      (fn _ => f x)
-   else interruptible f x)
-  before Multithreading.interrupted ();
 
 
 (* promised futures -- fulfilled by external means *)

@@ -24,7 +24,7 @@ sig
   type state
   val init_state: state
   val join_commands: state -> unit
-  val cancel_execution: state -> unit future
+  val cancel_execution: state -> Future.task list
   val define_command: command_id -> string -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
