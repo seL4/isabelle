@@ -10,6 +10,8 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
+  val begin_recent_proofs: theory -> theory
+  val join_recent_proofs: theory -> unit
   val join_proofs: theory -> unit
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
@@ -49,10 +51,10 @@ struct
 
 structure Data = Theory_Data
 (
-  type T = Facts.T * thm list;
-  val empty = (Facts.empty, []);
-  fun extend (facts, _) = (facts, []);
-  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
+  type T = Facts.T * (thm list * thm list);
+  val empty = (Facts.empty, ([], []));
+  fun extend (facts, _) = (facts, ([], []));
+  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], []));
 );
 
 
@@ -68,10 +70,11 @@ fun hide_fact fully name = Data.map (apfst (Facts.hide fully name));
 
 (* proofs *)
 
-fun register_proofs (thy, thms) = (Data.map (apsnd (append thms)) thy, thms);
+fun register_proofs (thy, thms) = (Data.map (apsnd (pairself (append thms))) thy, thms);
 
-fun join_proofs thy = Thm.join_proofs (rev (#2 (Data.get thy)));
-
+val begin_recent_proofs = Data.map (apsnd (fn (_, thms) => ([], thms)));
+val join_recent_proofs = Thm.join_proofs o rev o #1 o #2 o Data.get;
+val join_proofs = Thm.join_proofs o rev o #2 o #2 o Data.get;
 
 
 (** retrieve theorems **)

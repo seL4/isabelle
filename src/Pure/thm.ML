@@ -517,9 +517,9 @@ fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
 and fulfill_bodies futures = map fulfill_body (Par_Exn.release_all (Future.join_results futures));
 
-val join_proofs = Proofterm.join_bodies o map fulfill_body;
+fun join_proofs thms = ignore (map fulfill_body thms);
 
-fun proof_body_of thm = (Proofterm.join_bodies [raw_body thm]; fulfill_body thm);
+fun proof_body_of thm = (Proofterm.join_body (raw_body thm); fulfill_body thm);
 val proof_of = Proofterm.proof_of o proof_body_of;
 
 

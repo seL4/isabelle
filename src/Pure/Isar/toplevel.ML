@@ -419,6 +419,14 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 (* theory transitions *)
 
+val global_theory_group =
+  Sign.new_group #>
+  Global_Theory.begin_recent_proofs #> Theory.checkpoint;
+
+val local_theory_group =
+  Local_Theory.new_group #>
+  Local_Theory.raw_theory (Global_Theory.begin_recent_proofs #> Theory.checkpoint);
+
 fun generic_theory f = transaction (fn _ =>
   (fn Theory (gthy, _) => Theory (f gthy, NONE)
     | _ => raise UNDEF));
@@ -426,8 +434,7 @@ fun generic_theory f = transaction (fn _ =>
 fun theory' f = transaction (fn int =>
   (fn Theory (Context.Theory thy, _) =>
       let val thy' = thy
-        |> Sign.new_group
-        |> Theory.checkpoint
+        |> global_theory_group
         |> f int
         |> Sign.reset_group;
       in Theory (Context.Theory thy', NONE) end
@@ -454,7 +461,7 @@ fun local_theory_presentation loc f = present_transaction (fn int =>
         let
           val finish = loc_finish loc gthy;
           val lthy' = loc_begin loc gthy
-            |> Local_Theory.new_group
+            |> local_theory_group
             |> f int
             |> Local_Theory.reset_group;
         in Theory (finish lthy', SOME lthy') end
@@ -506,13 +513,13 @@ fun begin_proof init finish = transaction (fn int =>
 in
 
 fun local_theory_to_proof' loc f = begin_proof
-  (fn int => fn gthy => f int (Local_Theory.new_group (loc_begin loc gthy)))
+  (fn int => fn gthy => f int (local_theory_group (loc_begin loc gthy)))
   (fn gthy => loc_finish loc gthy o Local_Theory.reset_group);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-  (K (fn Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy)) | _ => raise UNDEF))
+  (K (fn Context.Theory thy => f (global_theory_group thy) | _ => raise UNDEF))
   (K (Context.Theory o Sign.reset_group o Proof_Context.theory_of));
 
 end;

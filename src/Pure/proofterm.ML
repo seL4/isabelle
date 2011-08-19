@@ -37,11 +37,11 @@ sig
 
   type oracle = string * term
   type pthm = serial * (string * term * proof_body future)
+  val join_body: proof_body -> unit
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
-  val join_bodies: proof_body list -> unit
   val status_of: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
@@ -171,6 +171,10 @@ and proof_body = PBody of
 type oracle = string * term;
 type pthm = serial * (string * term * proof_body future);
 
+fun join_thm (pthm: pthm) = ignore (Future.join (#3 (#2 pthm)));
+fun join_thms thms = (Future.join_results (map (#3 o #2) thms); List.app join_thm thms);
+fun join_body (PBody {thms, ...}) = join_thms thms;
+
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
 
@@ -195,17 +199,14 @@ fun fold_proof_atoms all f =
 fun fold_body_thms f =
   let
     fun app (PBody {thms, ...}) =
-     (Future.join_results (map (#3 o #2) thms);
-      thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
             val body' = Future.join body;
             val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-          in (f (name, prop, body') x', seen') end));
+          in (f (name, prop, body') x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
-
-fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
 
 fun status_of bodies =
   let
@@ -242,14 +243,13 @@ val merge_thms = Ord_List.union thm_ord;
 val all_oracles_of =
   let
     fun collect (PBody {oracles, thms, ...}) =
-     (Future.join_results (map (#3 o #2) thms);
-      thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
             val body' = Future.join body;
             val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
-          in (merge_oracles oracles x', seen') end));
+          in (merge_oracles oracles x', seen') end);
   in fn body => #1 (collect body ([], Inttab.empty)) end;
 
 fun approximate_proof_body prf =
@@ -1396,16 +1396,17 @@ fun fulfill_norm_proof thy ps body0 =
       | fill _ = NONE;
     val (rules, procs) = get_data thy;
     val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
+    val _ = join_thms thms;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 fun fulfill_proof_future _ [] postproc body =
       if not (Multithreading.enabled ()) then Future.value (postproc (Future.join body))
       else Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
-      singleton
-        (Future.forks {name = "Proofterm.fulfill_proof_future", group = NONE,
-            deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
-            interrupts = true})
+      (singleton o Future.forks)
+        {name = "Proofterm.fulfill_proof_future", group = NONE,
+          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
+          interrupts = true}
         (fn () =>
           postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
 
@@ -1461,10 +1462,9 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
       else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
       else
-        singleton
-          (Future.forks
-            {name = "Proofterm.prepare_thm_proof", group = NONE, deps = [], pri = ~1,
-              interrupts = true})
+        (singleton o Future.forks)
+          {name = "Proofterm.prepare_thm_proof", group = NONE,
+            deps = [], pri = ~1, interrupts = true}
           (make_body0 o full_proof0);
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);

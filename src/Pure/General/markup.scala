@@ -283,6 +283,16 @@ object Markup
       }
   }
 
+  val CANCEL_SCALA = "cancel_scala"
+  object Cancel_Scala
+  {
+    def unapply(props: Properties.T): Option[String] =
+      props match {
+        case List((FUNCTION, CANCEL_SCALA), (ID, id)) => Some(id)
+        case _ => None
+      }
+  }
+
 
   /* system data */
 
