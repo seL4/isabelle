@@ -102,12 +102,6 @@ lemma LIM_minus:
   shows "f -- a --> L \<Longrightarrow> (\<lambda>x. - f x) -- a --> - L"
 by (rule tendsto_minus)
 
-(* TODO: delete *)
-lemma LIM_add_minus:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + -g(x)) -- x --> (l + -m)"
-by (intro LIM_add LIM_minus)
-
 lemma LIM_diff:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- x --> l; g -- x --> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --> l - m"
@@ -234,14 +228,6 @@ lemma LIM_equal2:
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
 by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
-
-text{*Two uses in Transcendental.ML*} (* BH: no longer true; delete? *)
-lemma LIM_trans:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "[| (%x. f(x) + -g(x)) -- a --> 0;  g -- a --> l |] ==> f -- a --> l"
-apply (drule LIM_add, assumption)
-apply (auto simp add: add_assoc)
-done
 
 lemma LIM_compose:
   assumes g: "g -- l --> g l"
