@@ -31,7 +31,7 @@ sig
   val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int, passive: int}
-  val cancel: queue -> group -> bool
+  val cancel: queue -> group -> task list
   val cancel_all: queue -> group list
   val finish: task -> queue -> bool * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
@@ -248,10 +248,12 @@ fun cancel (Queue {groups, jobs}) group =
   let
     val _ = cancel_group group Exn.Interrupt;
     val running =
-      Tasks.fold (#1 #> get_job jobs #> (fn Running t => insert Thread.equal t | _ => I))
+      Tasks.fold (fn (task, _) =>
+          (case get_job jobs task of Running thread => cons (task, thread) | _ => I))
         (get_tasks groups (group_id group)) [];
-    val _ = List.app Simple_Thread.interrupt_unsynchronized running;
-  in null running end;
+    val threads = fold (insert Thread.equal o #2) running [];
+    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
+  in map #1 running end;
 
 fun cancel_all (Queue {jobs, ...}) =
   let

@@ -119,6 +119,7 @@ sig
   val badN: string val bad: T
   val functionN: string
   val invoke_scala: string -> string -> Properties.T
+  val cancel_scala: string -> Properties.T
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -377,6 +378,7 @@ val (badN, bad) = markup_elem "bad";
 val functionN = "function"
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
+fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 
 
 

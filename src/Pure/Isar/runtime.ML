@@ -119,7 +119,7 @@ fun debugging f x =
   else f x;
 
 fun controlled_execution f x =
-  ((f |> debugging |> Future.interruptible_task) x before Multithreading.interrupted ());
+  (f |> debugging |> Future.interruptible_task) x;
 
 fun toplevel_error output_exn f x = f x
   handle exn =>

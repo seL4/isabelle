@@ -194,11 +194,9 @@ val schedule_futures = uninterruptible (fn _ =>
   Graph.schedule (fn deps => fn (name, task) =>
     (case task of
       Task (parents, body) =>
-        singleton
-          (Future.forks
-            {name = "theory:" ^ name, group = NONE,
-              deps = map (Future.task_of o #2) deps,
-              pri = 0, interrupts = true})
+        (singleton o Future.forks)
+          {name = "theory:" ^ name, group = NONE,
+            deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
           (fn () =>
             (case filter (not o can Future.join o #2) deps of
               [] => body (map (#1 o Future.join) (task_parents deps parents))

@@ -22,7 +22,11 @@ struct
 fun serial exn =
   (case get_exn_serial exn of
     SOME i => (i, exn)
-  | NONE => let val i = Library.serial () in (i, set_exn_serial i exn) end);
+  | NONE =>
+      let
+        val i = Library.serial ();
+        val exn' = uninterruptible (fn _ => set_exn_serial i) exn;
+      in (i, exn') end);
 
 val the_serial = the o get_exn_serial;
 
