@@ -524,7 +524,7 @@ lemma lemma_nest_unique: "[| \<forall>n. f(n) \<le> f(Suc n);
                 ((\<forall>n. l \<le> g(n)) & g ----> l)"
 apply (drule lemma_nest, auto)
 apply (subgoal_tac "l = m")
-apply (drule_tac [2] X = f in LIMSEQ_diff)
+apply (drule_tac [2] f = f in LIMSEQ_diff)
 apply (auto intro: LIMSEQ_unique)
 done
 

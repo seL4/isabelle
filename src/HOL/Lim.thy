@@ -81,31 +81,7 @@ lemma LIM_offset_zero_cancel:
   shows "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
 by (drule_tac k="- a" in LIM_offset, simp)
 
-lemma LIM_const [simp]: "(%x. k) -- x --> k"
-by (rule tendsto_const)
-
 lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
-
-lemma LIM_add:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  assumes f: "f -- a --> L" and g: "g -- a --> M"
-  shows "(\<lambda>x. f x + g x) -- a --> (L + M)"
-using assms by (rule tendsto_add)
-
-lemma LIM_add_zero:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>f -- a --> 0; g -- a --> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. f x + g x) -- a --> 0"
-  by (rule tendsto_add_zero)
-
-lemma LIM_minus:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "f -- a --> L \<Longrightarrow> (\<lambda>x. - f x) -- a --> - L"
-by (rule tendsto_minus)
-
-lemma LIM_diff:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>f -- x --> l; g -- x --> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --> l - m"
-by (rule tendsto_diff)
 
 lemma LIM_zero:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
@@ -138,38 +114,6 @@ lemma LIM_imp_LIM:
   by (rule metric_LIM_imp_LIM [OF f],
     simp add: dist_norm le)
 
-lemma LIM_norm:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "f -- a --> l \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> norm l"
-by (rule tendsto_norm)
-
-lemma LIM_norm_zero:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "f -- a --> 0 \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> 0"
-by (rule tendsto_norm_zero)
-
-lemma LIM_norm_zero_cancel:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "(\<lambda>x. norm (f x)) -- a --> 0 \<Longrightarrow> f -- a --> 0"
-by (rule tendsto_norm_zero_cancel)
-
-lemma LIM_norm_zero_iff:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "(\<lambda>x. norm (f x)) -- a --> 0 = f -- a --> 0"
-by (rule tendsto_norm_zero_iff)
-
-lemma LIM_rabs: "f -- a --> (l::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> \<bar>l\<bar>"
-  by (rule tendsto_rabs)
-
-lemma LIM_rabs_zero: "f -- a --> (0::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> 0"
-  by (rule tendsto_rabs_zero)
-
-lemma LIM_rabs_zero_cancel: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) \<Longrightarrow> f -- a --> 0"
-  by (rule tendsto_rabs_zero_cancel)
-
-lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -- a --> 0"
-  by (rule tendsto_rabs_zero_iff)
-
 lemma trivial_limit_at:
   fixes a :: "'a::real_normed_algebra_1"
   shows "\<not> trivial_limit (at a)"  -- {* TODO: find a more appropriate class *}
@@ -196,9 +140,6 @@ lemma LIM_unique:
   fixes L M :: "'b::t2_space"
   shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
   using trivial_limit_at by (rule tendsto_unique)
-
-lemma LIM_ident [simp]: "(\<lambda>x. x) -- a --> a"
-by (rule tendsto_ident_at)
 
 text{*Limits are equal for functions equal except at limit point*}
 lemma LIM_equal:
@@ -229,12 +170,6 @@ lemma LIM_equal2:
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
 by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
 
-lemma LIM_compose:
-  assumes g: "g -- l --> g l"
-  assumes f: "f -- a --> l"
-  shows "(\<lambda>x. g (f x)) -- a --> g l"
-  using assms by (rule tendsto_compose)
-
 lemma LIM_compose_eventually:
   assumes f: "f -- a --> b"
   assumes g: "g -- b --> c"
@@ -247,8 +182,8 @@ lemma metric_LIM_compose2:
   assumes g: "g -- b --> c"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> b"
   shows "(\<lambda>x. g (f x)) -- a --> c"
-using f g inj [folded eventually_at]
-by (rule LIM_compose_eventually)
+  using g f inj [folded eventually_at]
+  by (rule tendsto_compose_eventually)
 
 lemma LIM_compose2:
   fixes a :: "'a::real_normed_vector"
@@ -259,7 +194,7 @@ lemma LIM_compose2:
 by (rule metric_LIM_compose2 [OF f g inj [folded dist_norm]])
 
 lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
-unfolding o_def by (rule LIM_compose)
+  unfolding o_def by (rule tendsto_compose)
 
 lemma real_LIM_sandwich_zero:
   fixes f g :: "'a::topological_space \<Rightarrow> real"
@@ -307,9 +242,6 @@ lemma (in bounded_bilinear) LIM_right_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
   by (rule tendsto_right_zero)
 
-lemmas LIM_mult =
-  bounded_bilinear.LIM [OF bounded_bilinear_mult]
-
 lemmas LIM_mult_zero =
   bounded_bilinear.LIM_prod_zero [OF bounded_bilinear_mult]
 
@@ -319,32 +251,10 @@ lemmas LIM_mult_left_zero =
 lemmas LIM_mult_right_zero =
   bounded_bilinear.LIM_right_zero [OF bounded_bilinear_mult]
 
-lemmas LIM_scaleR =
-  bounded_bilinear.LIM [OF bounded_bilinear_scaleR]
-
-lemmas LIM_of_real =
-  bounded_linear.LIM [OF bounded_linear_of_real]
-
-lemma LIM_power:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
-  assumes f: "f -- a --> l"
-  shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
-  using assms by (rule tendsto_power)
-
-lemma LIM_inverse:
-  fixes L :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
-by (rule tendsto_inverse)
-
 lemma LIM_inverse_fun:
   assumes a: "a \<noteq> (0::'a::real_normed_div_algebra)"
   shows "inverse -- a --> inverse a"
-by (rule LIM_inverse [OF LIM_ident a])
-
-lemma LIM_sgn:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>f -- a --> l; l \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. sgn (f x)) -- a --> sgn l"
-  by (rule tendsto_sgn)
+  by (rule tendsto_inverse [OF tendsto_ident_at a])
 
 
 subsection {* Continuity *}
@@ -360,45 +270,45 @@ lemma isCont_iff:
 by (simp add: isCont_def LIM_isCont_iff)
 
 lemma isCont_ident [simp]: "isCont (\<lambda>x. x) a"
-  unfolding isCont_def by (rule LIM_ident)
+  unfolding isCont_def by (rule tendsto_ident_at)
 
 lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
-  unfolding isCont_def by (rule LIM_const)
+  unfolding isCont_def by (rule tendsto_const)
 
 lemma isCont_norm [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. norm (f x)) a"
-  unfolding isCont_def by (rule LIM_norm)
+  unfolding isCont_def by (rule tendsto_norm)
 
 lemma isCont_rabs [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> real"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. \<bar>f x\<bar>) a"
-  unfolding isCont_def by (rule LIM_rabs)
+  unfolding isCont_def by (rule tendsto_rabs)
 
 lemma isCont_add [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
-  unfolding isCont_def by (rule LIM_add)
+  unfolding isCont_def by (rule tendsto_add)
 
 lemma isCont_minus [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. - f x) a"
-  unfolding isCont_def by (rule LIM_minus)
+  unfolding isCont_def by (rule tendsto_minus)
 
 lemma isCont_diff [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x - g x) a"
-  unfolding isCont_def by (rule LIM_diff)
+  unfolding isCont_def by (rule tendsto_diff)
 
 lemma isCont_mult [simp]:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x * g x) a"
-  unfolding isCont_def by (rule LIM_mult)
+  unfolding isCont_def by (rule tendsto_mult)
 
 lemma isCont_inverse [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   shows "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. inverse (f x)) a"
-  unfolding isCont_def by (rule LIM_inverse)
+  unfolding isCont_def by (rule tendsto_inverse)
 
 lemma isCont_divide [simp]:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_field"
@@ -408,10 +318,6 @@ lemma isCont_divide [simp]:
 lemma isCont_tendsto_compose:
   "\<lbrakk>isCont g l; (f ---> l) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
   unfolding isCont_def by (rule tendsto_compose)
-
-lemma isCont_LIM_compose:
-  "\<lbrakk>isCont g l; f -- a --> l\<rbrakk> \<Longrightarrow> (\<lambda>x. g (f x)) -- a --> g l"
-  by (rule isCont_tendsto_compose) (* TODO: delete? *)
 
 lemma metric_isCont_LIM_compose2:
   assumes f [unfolded isCont_def]: "isCont f a"
@@ -429,18 +335,18 @@ lemma isCont_LIM_compose2:
 by (rule LIM_compose2 [OF f g inj])
 
 lemma isCont_o2: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
-  unfolding isCont_def by (rule LIM_compose)
+  unfolding isCont_def by (rule tendsto_compose)
 
 lemma isCont_o: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (g o f) a"
   unfolding o_def by (rule isCont_o2)
 
 lemma (in bounded_linear) isCont:
   "isCont g a \<Longrightarrow> isCont (\<lambda>x. f (g x)) a"
-  unfolding isCont_def by (rule LIM)
+  unfolding isCont_def by (rule tendsto)
 
 lemma (in bounded_bilinear) isCont:
   "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x ** g x) a"
-  unfolding isCont_def by (rule LIM)
+  unfolding isCont_def by (rule tendsto)
 
 lemmas isCont_scaleR [simp] =
   bounded_bilinear.isCont [OF bounded_bilinear_scaleR]
@@ -451,12 +357,12 @@ lemmas isCont_of_real [simp] =
 lemma isCont_power [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x ^ n) a"
-  unfolding isCont_def by (rule LIM_power)
+  unfolding isCont_def by (rule tendsto_power)
 
 lemma isCont_sgn [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. sgn (f x)) a"
-  unfolding isCont_def by (rule LIM_sgn)
+  unfolding isCont_def by (rule tendsto_sgn)
 
 lemma isCont_setsum [simp]:
   fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::real_normed_vector"
@@ -583,5 +489,30 @@ lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::metric_space) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
    (X -- a --> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
+
+subsection {* Legacy theorem names *}
+
+lemmas LIM_ident [simp] = tendsto_ident_at
+lemmas LIM_const [simp] = tendsto_const [where F="at x", standard]
+lemmas LIM_add = tendsto_add [where F="at x", standard]
+lemmas LIM_add_zero = tendsto_add_zero [where F="at x", standard]
+lemmas LIM_minus = tendsto_minus [where F="at x", standard]
+lemmas LIM_diff = tendsto_diff [where F="at x", standard]
+lemmas LIM_norm = tendsto_norm [where F="at x", standard]
+lemmas LIM_norm_zero = tendsto_norm_zero [where F="at x", standard]
+lemmas LIM_norm_zero_cancel = tendsto_norm_zero_cancel [where F="at x", standard]
+lemmas LIM_norm_zero_iff = tendsto_norm_zero_iff [where F="at x", standard]
+lemmas LIM_rabs = tendsto_rabs [where F="at x", standard]
+lemmas LIM_rabs_zero = tendsto_rabs_zero [where F="at x", standard]
+lemmas LIM_rabs_zero_cancel = tendsto_rabs_zero_cancel [where F="at x", standard]
+lemmas LIM_rabs_zero_iff = tendsto_rabs_zero_iff [where F="at x", standard]
+lemmas LIM_compose = tendsto_compose [where F="at x", standard]
+lemmas LIM_mult = tendsto_mult [where F="at x", standard]
+lemmas LIM_scaleR = tendsto_scaleR [where F="at x", standard]
+lemmas LIM_of_real = tendsto_of_real [where F="at x", standard]
+lemmas LIM_power = tendsto_power [where F="at x", standard]
+lemmas LIM_inverse = tendsto_inverse [where F="at x", standard]
+lemmas LIM_sgn = tendsto_sgn [where F="at x", standard]
+lemmas isCont_LIM_compose = isCont_tendsto_compose [where F="at x", standard]
 
 end
