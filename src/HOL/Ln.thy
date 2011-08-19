@@ -18,7 +18,7 @@ proof -
       inverse(fact(n+2)) * (x ^ (n+2)))" (is "_ = ?a + _")
     by (rule suminf_split_initial_segment)
   also have "?a = 1 + x"
-    by (simp add: numerals)
+    by (simp add: numeral_2_eq_2)
   finally show ?thesis .
 qed
 
@@ -70,13 +70,7 @@ next
       finally show ?thesis .
     qed
     moreover have "x ^ (Suc n + 2) <= x ^ (n + 2)"
-      apply (simp add: mult_compare_simps)
-      apply (simp add: assms)
-      apply (subgoal_tac "0 <= x * (x * x^n)")
-      apply force
-      apply (rule mult_nonneg_nonneg, rule a)+
-      apply (rule zero_le_power, rule a)
-      done
+      by (simp add: mult_left_le_one_le mult_nonneg_nonneg a b)
     ultimately have "inverse (fact (Suc n + 2)) *  x ^ (Suc n + 2) <=
         (1 / 2 * inverse (fact (n + 2))) * x ^ (n + 2)"
       apply (rule mult_mono)
@@ -162,7 +156,7 @@ proof -
     apply auto
     done
   also from a have "... <= 1 + x"
-    by (simp add: field_simps zero_compare_simps)
+    by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
   finally show ?thesis .
 qed
 
@@ -344,24 +338,17 @@ done
 lemma ln_x_over_x_mono: "exp 1 <= x ==> x <= y ==> (ln y / y) <= (ln x / x)"  
 proof -
   assume x: "exp 1 <= x" "x <= y"
-  have a: "0 < x" and b: "0 < y"
-    apply (insert x)
-    apply (subgoal_tac "0 < exp (1::real)")
-    apply arith
-    apply auto
-    apply (subgoal_tac "0 < exp (1::real)")
-    apply arith
-    apply auto
-    done
+  moreover have "0 < exp (1::real)" by simp
+  ultimately have a: "0 < x" and b: "0 < y"
+    by (fast intro: less_le_trans order_trans)+
   have "x * ln y - x * ln x = x * (ln y - ln x)"
     by (simp add: algebra_simps)
   also have "... = x * ln(y / x)"
-    apply (subst ln_div)
-    apply (rule b, rule a, rule refl)
-    done
+    by (simp only: ln_div a b)
   also have "y / x = (x + (y - x)) / x"
     by simp
-  also have "... = 1 + (y - x) / x" using x a by (simp add: field_simps)
+  also have "... = 1 + (y - x) / x"
+    using x a by (simp add: field_simps)
   also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
     apply (rule mult_left_mono)
     apply (rule ln_add_one_self_le_self)
@@ -373,7 +360,7 @@ proof -
   also have "... <= (y - x) * ln x"
     apply (rule mult_left_mono)
     apply (subst ln_le_cancel_iff)
-    apply force
+    apply fact
     apply (rule a)
     apply (rule x)
     using x apply simp

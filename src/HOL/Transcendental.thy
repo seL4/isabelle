@@ -881,7 +881,7 @@ lemma diffs_of_real: "diffs (\<lambda>n. of_real (f n)) = (\<lambda>n. of_real (
 by (simp add: diffs_def)
 
 lemma lemma_exp_ext: "exp = (\<lambda>x. \<Sum>n. x ^ n /\<^sub>R real (fact n))"
-by (auto intro!: ext simp add: exp_def)
+by (auto simp add: exp_def)
 
 lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
 apply (simp add: exp_def)
@@ -1248,7 +1248,7 @@ proof -
       by (rule DERIV_diff)
     thus "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> 0" by auto
   qed (auto simp add: assms)
-  thus ?thesis by (auto simp add: suminf_zero)
+  thus ?thesis by auto
 qed
 
 subsection {* Sine and Cosine *}
@@ -1337,10 +1337,10 @@ lemma lemma_sin_minus: "- sin x = (\<Sum>n. - (sin_coeff n * x ^ n))"
 by (auto intro!: sums_unique sums_minus sin_converges)
 
 lemma lemma_sin_ext: "sin = (\<lambda>x. \<Sum>n. sin_coeff n * x ^ n)"
-by (auto intro!: ext simp add: sin_def)
+  by (auto simp add: sin_def)
 
 lemma lemma_cos_ext: "cos = (\<lambda>x. \<Sum>n. cos_coeff n * x ^ n)"
-by (auto intro!: ext simp add: cos_def)
+  by (auto simp add: cos_def)
 
 lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
 apply (simp add: cos_def)

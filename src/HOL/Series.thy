@@ -26,10 +26,7 @@ definition
    suminf   :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a" where
    "suminf f = (THE s. f sums s)"
 
-syntax
-  "_suminf" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a" ("\<Sum>_. _" [0, 10] 10)
-translations
-  "\<Sum>i. b" == "CONST suminf (%i. b)"
+notation suminf (binder "\<Sum>" 10)
 
 
 lemma [trans]: "f=g ==> g sums z ==> f sums z"
@@ -560,7 +557,7 @@ proof -
   moreover have "summable ?g" by (rule summable_zero)
   moreover from sm have "summable f" .
   ultimately have "suminf ?g \<le> suminf f" by (rule summable_le)
-  then show "0 \<le> suminf f" by (simp add: suminf_zero)
+  then show "0 \<le> suminf f" by simp
 qed
 
 
