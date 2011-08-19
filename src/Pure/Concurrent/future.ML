@@ -174,13 +174,14 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 (* cancellation primitives *)
 
 fun interruptible_task f x =
-  if Multithreading.available then
+  (if Multithreading.available then
     Multithreading.with_attributes
       (if is_some (worker_task ())
        then Multithreading.private_interrupts
        else Multithreading.public_interrupts)
       (fn _ => f x)
-  else interruptible f x;
+   else interruptible f x)
+  before Multithreading.interrupted ();
 
 fun cancel_now group = (*requires SYNCHRONIZED*)
   Task_Queue.cancel (! queue) group;
@@ -209,9 +210,9 @@ fun worker_exec (task, jobs) =
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
-        val _ = Exn.capture Multithreading.interrupted ();
+        val test = Exn.capture Multithreading.interrupted ();
         val _ =
-          if ok then ()
+          if ok andalso not (Exn.is_interrupt_exn test) then ()
           else if cancel_now group then ()
           else cancel_later group;
         val _ = broadcast work_finished;
@@ -245,7 +246,7 @@ fun worker_next () = (*requires SYNCHRONIZED*)
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next ()) of
     NONE => ()
-  | SOME work => (Exn.capture Multithreading.interrupted (); worker_exec work; worker_loop name));
+  | SOME work => (worker_exec work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   Unsynchronized.change workers (cons (Simple_Thread.fork false (fn () => worker_loop name),
@@ -431,8 +432,7 @@ fun future_job group interrupts (e: unit -> 'a) =
               Multithreading.with_attributes
                 (if interrupts
                  then Multithreading.private_interrupts else Multithreading.no_interrupts)
-                (fn _ => Position.setmp_thread_data pos e ()) before
-              Multithreading.interrupted ()) ()
+                (fn _ => Position.setmp_thread_data pos e ())) ()
           else Exn.interrupt_exn;
       in assign_result group result res end;
   in (result, job) end;
