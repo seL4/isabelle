@@ -168,7 +168,7 @@ fun regularize_tac ctxt =
     val eq_eqvs = eq_imp_rel_get ctxt
   in
     simp_tac simpset THEN'
-    REPEAT_ALL_NEW (CHANGED o FIRST'
+    TRY o REPEAT_ALL_NEW (CHANGED o FIRST'
       [resolve_tac @{thms ball_reg_right bex_reg_left bex1_bexeq_reg},
        resolve_tac (Inductive.get_monos ctxt),
        resolve_tac @{thms ball_all_comm bex_ex_comm},
@@ -396,11 +396,11 @@ fun injection_step_tac ctxt rel_refl =
     Cong_Tac.cong_tac @{thm cong} THEN'
                  RANGE [quot_true_tac ctxt (fst o dest_comb), quot_true_tac ctxt (snd o dest_comb)],
 
-    (* (op =) (%x...) (%y...) ----> (op =) (...) (...) *)
-    rtac @{thm ext} THEN' quot_true_tac ctxt unlam,
-
     (* resolving with R x y assumptions *)
     atac,
+
+    (* (op =) (%x...) (%y...) ----> (op =) (...) (...) *)
+    rtac @{thm ext} THEN' quot_true_tac ctxt unlam,
 
     (* reflexivity of the basic relations *)
     (* R ... ... *)
