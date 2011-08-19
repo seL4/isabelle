@@ -200,9 +200,10 @@ fun define_command (id: command_id) text =
   map_state (fn (versions, commands, execs, execution) =>
     let
       val id_string = print_id id;
-      val tr = Future.fork_pri 2 (fn () =>
-        Position.setmp_thread_data (Position.id_only id_string)
-          (fn () => Outer_Syntax.prepare_command (Position.id id_string) text) ());
+      val tr =
+        Future.fork_pri 2 (fn () =>
+          Position.setmp_thread_data (Position.id_only id_string)
+            (fn () => Outer_Syntax.prepare_command (Position.id id_string) text) ());
       val commands' =
         Inttab.update_new (id, tr) commands
           handle Inttab.DUP dup => err_dup "command" dup;
@@ -251,14 +252,13 @@ fun proof_status tr st =
   | NONE => ());
 
 fun async_state tr st =
-  ignore
-    (singleton
-      (Future.forks {name = "Document.async_state",
-        group = SOME (Future.new_group NONE),
-        deps = [], pri = 0, interrupts = true})
-      (fn () =>
-        Toplevel.setmp_thread_position tr
-          (fn () => Toplevel.print_state false st) ()));
+  (singleton o Future.forks)
+    {name = "Document.async_state", group = SOME (Future.new_group NONE),
+      deps = [], pri = 0, interrupts = true}
+    (fn () =>
+      Toplevel.setmp_thread_position tr
+        (fn () => Toplevel.print_state false st) ())
+  |> ignore;
 
 fun run int tr st =
   (case Toplevel.transition int tr st of
@@ -354,9 +354,9 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));
               in
-                singleton
-                  (Future.forks {name = "Document.edit", group = NONE,
-                    deps = map (Future.task_of o #2) deps, pri = 2, interrupts = false})
+                (singleton o Future.forks)
+                  {name = "Document.edit", group = NONE,
+                    deps = map (Future.task_of o #2) deps, pri = 2, interrupts = false}
                   (fn () =>
                     let
                       val prev_exec =
@@ -396,11 +396,9 @@ fun execute version_id state =
       val _ =
         nodes_of version |> Graph.schedule
           (fn deps => fn (name, node) =>
-            singleton
-              (Future.forks
-                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
-                  deps = map (Future.task_of o #2) deps,
-                  pri = 1, interrupts = true})
+            (singleton o Future.forks)
+              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
+                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
               (fold_entries NONE (fn (_, exec) => fn () => force_exec exec) node));
 
     in (versions, commands, execs, execution) end);
