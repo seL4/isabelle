@@ -58,6 +58,7 @@ sig
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val join: 'a future -> 'a
+  val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val map: ('a -> 'b) -> 'a future -> 'b future
   val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
@@ -524,13 +525,15 @@ fun join x = Exn.release (join_result x);
 
 (* fast-path versions -- bypassing task queue *)
 
-fun value (x: 'a) =
+fun value_result (res: 'a Exn.result) =
   let
     val task = Task_Queue.dummy_task ();
     val group = Task_Queue.group_of_task task;
     val result = Single_Assignment.var "value" : 'a result;
-    val _ = assign_result group result (Exn.Res x);
+    val _ = assign_result group result res;
   in Future {promised = false, task = task, result = result} end;
+
+fun value x = value_result (Exn.Res x);
 
 fun map_future f x =
   let
@@ -553,7 +556,7 @@ fun map_future f x =
 
 fun cond_forks args es =
   if Multithreading.enabled () then forks args es
-  else map (fn e => value (e ())) es;
+  else map (fn e => value_result (Exn.interruptible_capture e ())) es;
 
 
 (* promised futures -- fulfilled by external means *)
