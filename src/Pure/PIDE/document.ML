@@ -164,7 +164,7 @@ abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
   execs: Toplevel.state lazy Inttab.table,  (*exec_id -> execution process*)
-  execution: Task_Queue.group}  (*global execution process*)
+  execution: Future.group}  (*global execution process*)
 with
 
 fun make_state (versions, commands, execs, execution) =
@@ -177,7 +177,7 @@ val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
     Inttab.make [(no_id, Future.value Toplevel.empty)],
     Inttab.make [(no_id, empty_exec)],
-    Task_Queue.new_group NONE);
+    Future.new_group NONE);
 
 
 (* document versions *)
@@ -254,7 +254,8 @@ fun async_state tr st =
   ignore
     (singleton
       (Future.forks {name = "Document.async_state",
-        group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0, interrupts = true})
+        group = SOME (Future.new_group NONE),
+        deps = [], pri = 0, interrupts = true})
       (fn () =>
         Toplevel.setmp_thread_position tr
           (fn () => Toplevel.print_state false st) ()));
@@ -391,13 +392,13 @@ fun execute version_id state =
       fun force_exec NONE = ()
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
-      val execution = Task_Queue.new_group NONE;
+      val execution = Future.new_group NONE;
       val _ =
         nodes_of version |> Graph.schedule
           (fn deps => fn (name, node) =>
             singleton
               (Future.forks
-                {name = "theory:" ^ name, group = SOME (Task_Queue.new_group (SOME execution)),
+                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
                   deps = map (Future.task_of o #2) deps,
                   pri = 1, interrupts = true})
               (fold_entries NONE (fn (_, exec) => fn () => force_exec exec) node));

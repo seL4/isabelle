@@ -41,17 +41,19 @@ Notes:
 
 signature FUTURE =
 sig
-  val worker_task: unit -> Task_Queue.task option
-  val worker_group: unit -> Task_Queue.group option
-  val worker_subgroup: unit -> Task_Queue.group
+  type task = Task_Queue.task
+  type group = Task_Queue.group
+  val new_group: group option -> group
+  val worker_task: unit -> task option
+  val worker_group: unit -> group option
+  val worker_subgroup: unit -> group
   type 'a future
-  val task_of: 'a future -> Task_Queue.task
+  val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val get_finished: 'a future -> 'a
   type fork_params =
-   {name: string, group: Task_Queue.group option, deps: Task_Queue.task list,
-    pri: int, interrupts: bool}
+    {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val forks: fork_params -> (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
@@ -61,11 +63,11 @@ sig
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val map: ('a -> 'b) -> 'a future -> 'b future
-  val cancel_group: Task_Queue.group -> unit future
+  val cancel_group: group -> unit future
   val cancel: 'a future -> unit future
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
-  val promise_group: Task_Queue.group -> (unit -> unit) -> 'a future
+  val promise_group: group -> (unit -> unit) -> 'a future
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
@@ -78,17 +80,22 @@ struct
 
 (** future values **)
 
+type task = Task_Queue.task;
+type group = Task_Queue.group;
+val new_group = Task_Queue.new_group;
+
+
 (* identifiers *)
 
 local
-  val tag = Universal.tag () : Task_Queue.task option Universal.tag;
+  val tag = Universal.tag () : task option Universal.tag;
 in
   fun worker_task () = the_default NONE (Thread.getLocal tag);
   fun setmp_worker_task task f x = setmp_thread_data tag (worker_task ()) (SOME task) f x;
 end;
 
 val worker_group = Option.map Task_Queue.group_of_task o worker_task;
-fun worker_subgroup () = Task_Queue.new_group (worker_group ());
+fun worker_subgroup () = new_group (worker_group ());
 
 fun worker_joining e =
   (case worker_task () of
@@ -107,7 +114,7 @@ type 'a result = 'a Exn.result Single_Assignment.var;
 
 datatype 'a future = Future of
  {promised: bool,
-  task: Task_Queue.task,
+  task: task,
   result: 'a result};
 
 fun task_of (Future {task, ...}) = task;
@@ -161,7 +168,7 @@ end;
 val queue = Unsynchronized.ref Task_Queue.empty;
 val next = Unsynchronized.ref 0;
 val scheduler = Unsynchronized.ref (NONE: Thread.thread option);
-val canceled = Unsynchronized.ref ([]: Task_Queue.group list);
+val canceled = Unsynchronized.ref ([]: group list);
 val do_shutdown = Unsynchronized.ref false;
 val max_workers = Unsynchronized.ref 0;
 val max_active = Unsynchronized.ref 0;
@@ -432,8 +439,7 @@ fun future_job group interrupts (e: unit -> 'a) =
 (* fork *)
 
 type fork_params =
- {name: string, group: Task_Queue.group option, deps: Task_Queue.task list,
-  pri: int, interrupts: bool};
+  {name: string, group: group option, deps: task list, pri: int, interrupts: bool};
 
 fun forks ({name, group, deps, pri, interrupts}: fork_params) es =
   if null es then []
@@ -529,7 +535,7 @@ fun value x = value_result (Exn.Res x);
 fun map_future f x =
   let
     val task = task_of x;
-    val group = Task_Queue.new_group (SOME (Task_Queue.group_of_task task));
+    val group = new_group (SOME (Task_Queue.group_of_task task));
     val (result, job) = future_job group true (fn () => f (join x));
 
     val extended = SYNCHRONIZED "extend" (fn () =>
@@ -557,7 +563,7 @@ fun cancel_group group =
     [] => value ()
   | running =>
       singleton
-        (forks {name = "cancel_group", group = SOME (Task_Queue.new_group NONE),
+        (forks {name = "cancel_group", group = SOME (new_group NONE),
           deps = running, pri = 0, interrupts = false}) I);
 
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));

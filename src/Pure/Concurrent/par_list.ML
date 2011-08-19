@@ -34,7 +34,7 @@ fun managed_results name f xs =
   then map (Exn.capture f) xs
   else
     let
-      val group = Task_Queue.new_group (Future.worker_group ());
+      val group = Future.new_group (Future.worker_group ());
       val futures =
         Future.forks {name = name, group = SOME group, deps = [], pri = 0, interrupts = true}
           (map (fn x => fn () => f x) xs);
