@@ -22,10 +22,7 @@ subsection {* Type @{text ind} *}
 
 typedecl ind
 
-axiomatization
-  Zero_Rep :: ind and
-  Suc_Rep :: "ind => ind"
-where
+axiomatization Zero_Rep :: ind and Suc_Rep :: "ind => ind" where
   -- {* the axiom of infinity in 2 parts *}
   Suc_Rep_inject:       "Suc_Rep x = Suc_Rep y ==> x = y" and
   Suc_Rep_not_Zero_Rep: "Suc_Rep x \<noteq> Zero_Rep"
@@ -34,10 +31,9 @@ subsection {* Type nat *}
 
 text {* Type definition *}
 
-inductive Nat :: "ind \<Rightarrow> bool"
-where
-    Zero_RepI: "Nat Zero_Rep"
-  | Suc_RepI: "Nat i \<Longrightarrow> Nat (Suc_Rep i)"
+inductive Nat :: "ind \<Rightarrow> bool" where
+  Zero_RepI: "Nat Zero_Rep"
+| Suc_RepI: "Nat i \<Longrightarrow> Nat (Suc_Rep i)"
 
 typedef (open Nat) nat = "{n. Nat n}"
   using Nat.Zero_RepI by auto
@@ -142,10 +138,9 @@ subsection {* Arithmetic operators *}
 instantiation nat :: "{minus, comm_monoid_add}"
 begin
 
-primrec plus_nat
-where
+primrec plus_nat where
   add_0:      "0 + n = (n\<Colon>nat)"
-  | add_Suc:  "Suc m + n = Suc (m + n)"
+| add_Suc:  "Suc m + n = Suc (m + n)"
 
 lemma add_0_right [simp]: "m + 0 = (m::nat)"
   by (induct m) simp_all
@@ -158,8 +153,7 @@ declare add_0 [code]
 lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
   by simp
 
-primrec minus_nat
-where
+primrec minus_nat where
   diff_0 [code]: "m - 0 = (m\<Colon>nat)"
 | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
@@ -188,10 +182,9 @@ begin
 definition
   One_nat_def [simp]: "1 = Suc 0"
 
-primrec times_nat
-where
+primrec times_nat where
   mult_0:     "0 * n = (0\<Colon>nat)"
-  | mult_Suc: "Suc m * n = n + (m * n)"
+| mult_Suc: "Suc m * n = n + (m * n)"
 
 lemma mult_0_right [simp]: "(m::nat) * 0 = 0"
   by (induct m) simp_all
@@ -364,7 +357,7 @@ begin
 
 primrec less_eq_nat where
   "(0\<Colon>nat) \<le> n \<longleftrightarrow> True"
-  | "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
+| "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
 
 declare less_eq_nat.simps [simp del]
 lemma [code]: "(0\<Colon>nat) \<le> n \<longleftrightarrow> True" by (simp add: less_eq_nat.simps)
@@ -1200,8 +1193,8 @@ overloading
 begin
 
 primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-    "funpow 0 f = id"
-  | "funpow (Suc n) f = f o funpow n f"
+  "funpow 0 f = id"
+| "funpow (Suc n) f = f o funpow n f"
 
 end
 
@@ -1267,7 +1260,7 @@ lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
 
 primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   "of_nat_aux inc 0 i = i"
-  | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
+| "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
 
 lemma of_nat_code:
   "of_nat n = of_nat_aux (\<lambda>i. i + 1) n 0"

@@ -414,8 +414,7 @@ lemma dual_complete_distrib_lattice:
   apply (simp_all only: INF_foundation_dual SUP_foundation_dual inf_Sup sup_Inf)
   done
 
-subclass distrib_lattice proof -- {* Question: is it sufficient to include @{class distrib_lattice}
-  and prove @{text inf_Sup} and @{text sup_Inf} from that? *}
+subclass distrib_lattice proof
   fix a b c
   from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
   then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def Inf_insert)
@@ -556,13 +555,13 @@ instantiation bool :: complete_lattice
 begin
 
 definition
-  "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
+  [simp]: "\<Sqinter>A \<longleftrightarrow> False \<notin> A"
 
 definition
-  "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
+  [simp]: "\<Squnion>A \<longleftrightarrow> True \<in> A"
 
 instance proof
-qed (auto simp add: Inf_bool_def Sup_bool_def)
+qed (auto intro: bool_induct)
 
 end
 
@@ -572,7 +571,7 @@ proof (rule ext)+
   fix A :: "'a set"
   fix P :: "'a \<Rightarrow> bool"
   show "(\<Sqinter>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>A. P x)"
-    by (auto simp add: Ball_def INF_def Inf_bool_def)
+    by (auto simp add: INF_def)
 qed
 
 lemma SUP_bool_eq [simp]:
@@ -581,11 +580,11 @@ proof (rule ext)+
   fix A :: "'a set"
   fix P :: "'a \<Rightarrow> bool"
   show "(\<Squnion>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>A. P x)"
-    by (auto simp add: Bex_def SUP_def Sup_bool_def)
+    by (auto simp add: SUP_def)
 qed
 
 instance bool :: complete_boolean_algebra proof
-qed (auto simp add: Inf_bool_def Sup_bool_def)
+qed (auto intro: bool_induct)
 
 instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
@@ -638,7 +637,7 @@ proof (rule set_eqI)
   have "(\<forall>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<forall>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Inter>A \<longleftrightarrow> x \<in> {x. \<forall>B \<in> A. x \<in> B}"
-    by (simp add: Inf_fun_def Inf_bool_def) (simp add: mem_def)
+    by (simp add: Inf_fun_def) (simp add: mem_def)
 qed
 
 lemma Inter_iff [simp,no_atp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in>C. A \<in> X)"
@@ -821,7 +820,7 @@ proof (rule set_eqI)
   have "(\<exists>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<exists>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Union>A \<longleftrightarrow> x \<in> {x. \<exists>B\<in>A. x \<in> B}"
-    by (simp add: Sup_fun_def Sup_bool_def) (simp add: mem_def)
+    by (simp add: Sup_fun_def) (simp add: mem_def)
 qed
 
 lemma Union_iff [simp, no_atp]:
