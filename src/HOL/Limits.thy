@@ -216,6 +216,13 @@ lemma eventually_False:
   "eventually (\<lambda>x. False) F \<longleftrightarrow> F = bot"
   unfolding filter_eq_iff by (auto elim: eventually_rev_mp)
 
+abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
+  where "trivial_limit F \<equiv> F = bot"
+
+lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
+  by (rule eventually_False [symmetric])
+
+
 subsection {* Map function for filters *}
 
 definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter"
@@ -259,8 +266,10 @@ proof (rule eventually_Abs_filter, rule is_filter.intro)
   then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
 qed auto
 
-lemma sequentially_bot [simp]: "sequentially \<noteq> bot"
+lemma sequentially_bot [simp, intro]: "sequentially \<noteq> bot"
   unfolding filter_eq_iff eventually_sequentially by auto
+
+lemmas trivial_limit_sequentially = sequentially_bot
 
 lemma eventually_False_sequentially [simp]:
   "\<not> eventually (\<lambda>n. False) sequentially"
@@ -271,12 +280,6 @@ lemma le_sequentially:
   unfolding le_filter_def eventually_sequentially
   by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
 
-
-definition trivial_limit :: "'a filter \<Rightarrow> bool"
-  where "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
-
-lemma trivial_limit_sequentially [intro]: "\<not> trivial_limit sequentially"
-  by (auto simp add: trivial_limit_def eventually_sequentially)
 
 subsection {* Standard filters *}
 

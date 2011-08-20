@@ -966,13 +966,8 @@ lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exist
 lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
   unfolding trivial_limit_def by (auto elim: eventually_rev_mp)
 
-lemma eventually_False: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
-  unfolding trivial_limit_def ..
-
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
-  apply (safe elim!: trivial_limit_eventually)
-  apply (simp add: eventually_False [symmetric])
-  done
+  by (simp add: filter_eq_iff)
 
 text{* Combining theorems for "eventually" *}
 
