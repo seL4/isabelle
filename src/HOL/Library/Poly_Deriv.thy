@@ -78,11 +78,11 @@ lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c
 by (simp add: DERIV_cmult mult_commute [of _ c])
 
 lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
-by (rule lemma_DERIV_subst, rule DERIV_pow, simp)
+by (rule DERIV_cong, rule DERIV_pow, simp)
 declare DERIV_pow2 [simp] DERIV_pow [simp]
 
 lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_normed_field) x :> D"
-by (rule lemma_DERIV_subst, rule DERIV_add, auto)
+by (rule DERIV_cong, rule DERIV_add, auto)
 
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
   by (induct p, auto intro!: DERIV_intros simp add: pderiv_pCons)

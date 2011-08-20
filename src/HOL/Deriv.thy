@@ -304,9 +304,6 @@ lemma DERIV_quotient:
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (drule (2) DERIV_divide) (simp add: mult_commute)
 
-lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
-by auto
-
 text {* @{text "DERIV_intros"} *}
 ML {*
 structure Deriv_Intros = Named_Thms

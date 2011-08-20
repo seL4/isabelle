@@ -1166,7 +1166,7 @@ lemma isCont_ln: "0 < x \<Longrightarrow> isCont ln x"
 
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
   apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
-  apply (erule lemma_DERIV_subst [OF DERIV_exp exp_ln])
+  apply (erule DERIV_cong [OF DERIV_exp exp_ln])
   apply (simp_all add: abs_if isCont_ln)
   done
 
@@ -1308,9 +1308,6 @@ lemma sin_zero [simp]: "sin 0 = 0"
 
 lemma cos_zero [simp]: "cos 0 = 1"
   unfolding cos_def cos_coeff_def by (simp add: powser_zero)
-
-lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
-  by (rule DERIV_cong) (* TODO: delete *)
 
 lemma sin_cos_squared_add [simp]: "(sin x)\<twosuperior> + (cos x)\<twosuperior> = 1"
 proof -
