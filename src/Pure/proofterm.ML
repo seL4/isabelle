@@ -37,7 +37,7 @@ sig
 
   type oracle = string * term
   type pthm = serial * (string * term * proof_body future)
-  val join_body: proof_body -> unit
+  val check_body_thms: proof_body -> proof_body future
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
@@ -171,8 +171,13 @@ and proof_body = PBody of
 type oracle = string * term;
 type pthm = serial * (string * term * proof_body future);
 
-fun join_thms thms = ignore (Future.joins (map (#3 o #2) thms));
-fun join_body (PBody {thms, ...}) = join_thms thms;
+fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
+
+fun check_body_thms (body as PBody {thms, ...}) =
+  (singleton o Future.cond_forks)
+    {name = "Proofterm.check_body_thms", group = NONE,
+      deps = map (Future.task_of o #3 o #2) thms, pri = ~1, interrupts = true}
+    (fn () => (join_thms thms; body));
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
@@ -1395,16 +1400,13 @@ fun fulfill_norm_proof thy ps body0 =
       | fill _ = NONE;
     val (rules, procs) = get_data thy;
     val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
-    val _ = join_thms thms;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future _ [] postproc body =
-      if not (Multithreading.enabled ()) then Future.value (postproc (Future.join body))
-      else Future.map postproc body
+fun fulfill_proof_future _ [] postproc body = Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
       (singleton o Future.forks)
         {name = "Proofterm.fulfill_proof_future", group = NONE,
-          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
+          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = ~1,
           interrupts = true}
         (fn () =>
           postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
@@ -1459,14 +1461,19 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
       if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
-      else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
       else
-        (singleton o Future.forks)
+        (singleton o Future.cond_forks)
           {name = "Proofterm.prepare_thm_proof", group = NONE,
             deps = [], pri = ~1, interrupts = true}
           (make_body0 o full_proof0);
 
-    fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
+    fun new_prf () =
+      let
+        val body' = body0
+          |> fulfill_proof_future thy promises postproc
+          |> Future.map (fn body as PBody {thms, ...} => (join_thms thms; body));
+      in (serial (), body') end;
+
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
