@@ -277,6 +277,10 @@ begin
 
 subclass semiring_1_cancel ..
 
+lemma square_diff_one_factored:
+  "x * x - 1 = (x + 1) * (x - 1)"
+  by (simp add: algebra_simps)
+
 end
 
 class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult

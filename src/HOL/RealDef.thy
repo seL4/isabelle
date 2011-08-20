@@ -1630,12 +1630,6 @@ lemma real_two_squares_add_zero_iff [simp]:
   "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
 by (rule sum_squares_eq_zero_iff)
 
-text {* TODO: no longer real-specific; rename and move elsewhere *}
-lemma real_squared_diff_one_factored:
-  fixes x :: "'a::ring_1"
-  shows "x * x - 1 = (x + 1) * (x - 1)"
-by (simp add: algebra_simps)
-
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma realpow_two_sum_zero_iff [simp]:
      "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
