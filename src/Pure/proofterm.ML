@@ -171,8 +171,7 @@ and proof_body = PBody of
 type oracle = string * term;
 type pthm = serial * (string * term * proof_body future);
 
-fun join_thm (pthm: pthm) = ignore (Future.join (#3 (#2 pthm)));
-fun join_thms thms = (Future.join_results (map (#3 o #2) thms); List.app join_thm thms);
+fun join_thms thms = ignore (Future.joins (map (#3 o #2) thms));
 fun join_body (PBody {thms, ...}) = join_thms thms;
 
 fun proof_of (PBody {proof, ...}) = proof;

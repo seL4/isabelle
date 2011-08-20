@@ -371,7 +371,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                         |> set_result result;
                     in ((assigns, execs, [(name, node')]), node') end)
               end))
-      |> Future.join_results |> Par_Exn.release_all |> map #1;
+      |> Future.joins |> map #1;
 
     val state' = state
       |> fold (fold define_exec o #2) updates

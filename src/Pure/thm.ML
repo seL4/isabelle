@@ -515,7 +515,7 @@ fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
   Proofterm.fulfill_norm_proof (Theory.deref thy_ref)
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
-and fulfill_bodies futures = map fulfill_body (Par_Exn.release_all (Future.join_results futures));
+and fulfill_bodies futures = map fulfill_body (Future.joins futures);
 
 fun join_proofs thms = ignore (map fulfill_body thms);
 

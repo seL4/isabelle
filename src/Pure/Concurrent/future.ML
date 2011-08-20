@@ -62,12 +62,13 @@ sig
   val fork: (unit -> 'a) -> 'a future
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
+  val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
   val join_tasks: task list -> unit
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
-  val map: ('a -> 'b) -> 'a future -> 'b future
   val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
+  val map: ('a -> 'b) -> 'a future -> 'b future
   val promise_group: group -> (unit -> unit) -> 'a future
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
@@ -534,6 +535,7 @@ fun join_results xs =
 end;
 
 fun join_result x = singleton join_results x;
+fun joins xs = Par_Exn.release_all (join_results xs);
 fun join x = Exn.release (join_result x);
 
 fun join_tasks [] = ()
@@ -556,6 +558,10 @@ fun value_result (res: 'a Exn.result) =
 
 fun value x = value_result (Exn.Res x);
 
+fun cond_forks args es =
+  if Multithreading.enabled () then forks args es
+  else map (fn e => value_result (Exn.interruptible_capture e ())) es;
+
 fun map_future f x =
   let
     val task = task_of x;
@@ -569,15 +575,11 @@ fun map_future f x =
   in
     if extended then Future {promised = false, task = task, result = result}
     else
-      (singleton o forks)
+      (singleton o cond_forks)
         {name = "map_future", group = SOME group, deps = [task],
           pri = Task_Queue.pri_of_task task, interrupts = true}
         (fn () => f (join x))
   end;
-
-fun cond_forks args es =
-  if Multithreading.enabled () then forks args es
-  else map (fn e => value_result (Exn.interruptible_capture e ())) es;
 
 
 (* promised futures -- fulfilled by external means *)
