@@ -1674,13 +1674,13 @@ by (simp add: abs_if)
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
 by (force simp add: abs_le_iff)
 
-lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
+lemma abs_add_one_gt_zero: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
 
 lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
 by (rule abs_of_nonneg [OF real_of_nat_ge_zero])
 
-lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
+lemma abs_add_one_not_less_self: "~ abs(x) + (1::real) < x"
 by simp
  
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
