@@ -46,8 +46,8 @@ sig
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
-  val merge_oracles: oracle Ord_List.T -> oracle Ord_List.T -> oracle Ord_List.T
-  val merge_thms: pthm Ord_List.T -> pthm Ord_List.T -> pthm Ord_List.T
+  val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
+  val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
   val all_oracles_of: proof_body -> oracle Ord_List.T
   val approximate_proof_body: proof -> proof_body
 
@@ -237,8 +237,8 @@ fun status_of bodies =
 val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
-val merge_oracles = Ord_List.union oracle_ord;
-val merge_thms = Ord_List.union thm_ord;
+val unions_oracles = Ord_List.unions oracle_ord;
+val unions_thms = Ord_List.unions thm_ord;
 
 val all_oracles_of =
   let
@@ -249,8 +249,8 @@ val all_oracles_of =
           let
             val body' = Future.join body;
             val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
-          in (merge_oracles oracles x', seen') end);
-  in fn body => #1 (collect body ([], Inttab.empty)) end;
+          in (if null oracles then x' else oracles :: x', seen') end);
+  in fn body => unions_oracles (#1 (collect body ([], Inttab.empty))) end;
 
 fun approximate_proof_body prf =
   let
@@ -1385,8 +1385,11 @@ fun promise_proof thy i prop =
 fun fulfill_norm_proof thy ps body0 =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-    val oracles = fold (fn (_, PBody {oracles, ...}) => merge_oracles oracles) ps oracles0;
-    val thms = fold (fn (_, PBody {thms, ...}) => merge_thms thms) ps thms0;
+    val oracles =
+      unions_oracles
+        (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
+    val thms =
+      unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
     val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
 
     fun fill (Promise (i, prop, Ts)) =

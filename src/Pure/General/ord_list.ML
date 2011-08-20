@@ -14,6 +14,7 @@ sig
   val remove: ('b * 'a -> order) -> 'b -> 'a T -> 'a T
   val subset: ('b * 'a -> order) -> 'b T * 'a T -> bool
   val union: ('a * 'a -> order) -> 'a T -> 'a T -> 'a T
+  val unions: ('a * 'a -> order) -> 'a T list -> 'a T
   val merge: ('a * 'a -> order) -> 'a T * 'a T -> 'a T
   val inter: ('b * 'a -> order) -> 'b T -> 'a T -> 'a T
   val subtract: ('b * 'a -> order) -> 'b T -> 'a T -> 'a T
@@ -85,6 +86,15 @@ fun union ord list1 list2 =
           | EQUAL => y :: unio xs ys
           | GREATER => y :: unio lst1 ys);
   in if pointer_eq (list1, list2) then list1 else handle_same (unio list1) list2 end;
+
+fun unions ord lists =
+  let
+    fun unios (xs :: ys :: rest) acc = unios rest (union ord xs ys :: acc)
+      | unios [xs] (ys :: acc) = unios (union ord xs ys :: acc) []
+      | unios [xs] [] = xs
+      | unios [] [] = []
+      | unios [] acc = unios acc [];
+  in unios lists [] end;
 
 fun merge ord (list1, list2) = union ord list2 list1;
 

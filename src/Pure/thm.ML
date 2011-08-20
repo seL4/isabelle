@@ -492,8 +492,8 @@ fun deriv_rule2 f
     (Deriv {promises = ps2, body = PBody {oracles = oras2, thms = thms2, proof = prf2}}) =
   let
     val ps = Ord_List.union promise_ord ps1 ps2;
-    val oras = Proofterm.merge_oracles oras1 oras2;
-    val thms = Proofterm.merge_thms thms1 thms2;
+    val oras = Proofterm.unions_oracles [oras1, oras2];
+    val thms = Proofterm.unions_thms [thms1, thms2];
     val prf =
       (case ! Proofterm.proofs of
         2 => f prf1 prf2
