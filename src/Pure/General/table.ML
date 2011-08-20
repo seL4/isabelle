@@ -340,7 +340,7 @@ fun del (SOME k) Empty = raise UNDEF k
 in
 
 fun delete key tab = snd (snd (del (SOME key) tab));
-fun delete_safe key tab = delete key tab handle UNDEF _ => tab;
+fun delete_safe key tab = if defined tab key then delete key tab else tab;
 
 end;
 
