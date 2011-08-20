@@ -176,7 +176,7 @@ fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
 fun check_body_thms (body as PBody {thms, ...}) =
   (singleton o Future.cond_forks)
     {name = "Proofterm.check_body_thms", group = NONE,
-      deps = map (Future.task_of o #3 o #2) thms, pri = ~1, interrupts = true}
+      deps = map (Future.task_of o #3 o #2) thms, pri = 0, interrupts = true}
     (fn () => (join_thms thms; body));
 
 fun proof_of (PBody {proof, ...}) = proof;
@@ -1406,7 +1406,7 @@ fun fulfill_proof_future _ [] postproc body = Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
       (singleton o Future.forks)
         {name = "Proofterm.fulfill_proof_future", group = NONE,
-          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = ~1,
+          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
           interrupts = true}
         (fn () =>
           postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
@@ -1464,7 +1464,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       else
         (singleton o Future.cond_forks)
           {name = "Proofterm.prepare_thm_proof", group = NONE,
-            deps = [], pri = ~1, interrupts = true}
+            deps = [], pri = 0, interrupts = true}
           (make_body0 o full_proof0);
 
     fun new_prf () =
