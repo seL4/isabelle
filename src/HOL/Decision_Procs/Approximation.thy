@@ -712,7 +712,7 @@ proof -
         case False
         hence "real ?DIV \<le> 1" unfolding less_float_def by auto
 
-        have "0 \<le> x / ?R" using `0 \<le> real x` `0 < ?R` unfolding real_0_le_divide_iff by auto
+        have "0 \<le> x / ?R" using `0 \<le> real x` `0 < ?R` unfolding zero_le_divide_iff by auto
         hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
 
         have "arctan x = 2 * arctan (x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 mult_1_left .

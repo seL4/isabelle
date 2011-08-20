@@ -1168,7 +1168,7 @@ next
       thus ?thesis unfolding obt1(5) obt2(5) unfolding * and ** using False
         apply(rule_tac x="((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI) defer
         apply(rule convex_convex_hull[of s, unfolded convex_def, rule_format]) using obt1(4) obt2(4)
-        unfolding add_divide_distrib[THEN sym] and real_0_le_divide_iff
+        unfolding add_divide_distrib[THEN sym] and zero_le_divide_iff
         by (auto simp add: scaleR_left_distrib scaleR_right_distrib)
     qed note * = this
     have u1:"u1 \<le> 1" unfolding obt1(3)[THEN sym] and not_le using obt1(2) by auto

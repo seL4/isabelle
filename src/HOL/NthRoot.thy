@@ -629,7 +629,7 @@ lemma lemma_sqrt_hcomplex_capprox:
 apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
 apply (erule_tac [2] lemma_real_divide_sqrt_less)
 apply (rule power2_le_imp_le)
-apply (auto simp add: real_0_le_divide_iff power_divide)
+apply (auto simp add: zero_le_divide_iff power_divide)
 apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
 apply (auto simp add: four_x_squared intro: power_mono)

@@ -1553,11 +1553,6 @@ declaration {*
 
 subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
 
-text{*Needed in this non-standard form by Hyperreal/Transcendental*}
-lemma real_0_le_divide_iff:
-     "((0::real) \<le> x/y) = ((x \<le> 0 | 0 \<le> y) & (0 \<le> x | y \<le> 0))"
-by (auto simp add: zero_le_divide_iff)
-
 lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
 by arith
 
