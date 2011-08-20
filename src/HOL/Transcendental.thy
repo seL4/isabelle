@@ -2401,9 +2401,6 @@ unfolding tan_def by (simp add: sin_45 cos_45)
 lemma tan_60: "tan (pi / 3) = sqrt 3"
 unfolding tan_def by (simp add: sin_60 cos_60)
 
-lemma DERIV_sin_add: "DERIV (%x. sin (x + k)) xa :> cos (xa + k)"
-  by (auto intro!: DERIV_intros) (* TODO: delete *)
-
 lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
 proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
