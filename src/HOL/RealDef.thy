@@ -1601,12 +1601,6 @@ lemma realpow_minus_mult:
   shows "0 < n \<Longrightarrow> x ^ (n - 1) * x = x ^ n"
 by (simp add: power_commutes split add: nat_diff_split)
 
-text {* TODO: no longer real-specific; rename and move elsewhere *}
-lemma realpow_two_diff:
-  fixes x :: "'a::comm_ring_1"
-  shows "x^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
-by (simp add: algebra_simps)
-
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma real_two_squares_add_zero_iff [simp]:
   "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
