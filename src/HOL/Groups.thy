@@ -411,6 +411,10 @@ next
   ultimately show "a = - b" by simp
 qed
 
+lemma add_eq_0_iff: "x + y = 0 \<longleftrightarrow> y = - x"
+  unfolding eq_neg_iff_add_eq_0 [symmetric]
+  by (rule equation_minus_iff)
+
 end
 
 class ab_group_add = minus + uminus + comm_monoid_add +
@@ -466,7 +470,7 @@ by (simp add: algebra_simps)
 (* FIXME: duplicates right_minus_eq from class group_add *)
 (* but only this one is declared as a simp rule. *)
 lemma diff_eq_0_iff_eq [simp, no_atp]: "a - b = 0 \<longleftrightarrow> a = b"
-by (simp add: algebra_simps)
+  by (rule right_minus_eq)
 
 lemma diff_eq_diff_eq:
   "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"

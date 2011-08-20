@@ -1612,12 +1612,6 @@ lemma realpow_two_diff:
   shows "x^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
 by (simp add: algebra_simps)
 
-text {* TODO: move elsewhere *}
-lemma add_eq_0_iff:
-  fixes x y :: "'a::group_add"
-  shows "x + y = 0 \<longleftrightarrow> y = - x"
-by (auto dest: minus_unique)
-
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma real_two_squares_add_zero_iff [simp]:
   "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
