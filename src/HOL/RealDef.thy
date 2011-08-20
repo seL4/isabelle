@@ -1618,13 +1618,6 @@ lemma add_eq_0_iff:
   shows "x + y = 0 \<longleftrightarrow> y = - x"
 by (auto dest: minus_unique)
 
-text {* TODO: no longer real-specific; rename and move elsewhere *}
-lemma realpow_two_disj:
-  fixes x :: "'a::idom"
-  shows "(x^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)"
-using realpow_two_diff [of x y]
-by (auto simp add: add_eq_0_iff)
-
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma real_two_squares_add_zero_iff [simp]:
   "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
