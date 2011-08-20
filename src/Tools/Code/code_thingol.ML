@@ -921,7 +921,7 @@ fun ensure_value thy algbr eqngr t =
       let
         val Fun (_, ((vs_ty, [(([], t), _)]), _)) =
           Graph.get_node program1 Term.dummy_patternN;
-        val deps = Graph.imm_succs program1 Term.dummy_patternN;
+        val deps = Graph.immediate_succs program1 Term.dummy_patternN;
         val program2 = Graph.del_nodes [Term.dummy_patternN] program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.subgraph (member (op =) deps_all) program2;
@@ -1010,7 +1010,7 @@ fun code_deps thy consts =
     val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
       Symtab.update (const, consts)) consts) constss;
     fun succs consts = consts
-      |> maps (Graph.imm_succs eqngr)
+      |> maps (Graph.immediate_succs eqngr)
       |> subtract (op =) consts
       |> map (the o Symtab.lookup mapping)
       |> distinct (op =);

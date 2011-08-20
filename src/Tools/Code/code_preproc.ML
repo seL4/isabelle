@@ -309,7 +309,7 @@ fun add_classes thy arities eqngr c_k new_classes vardeps_data =
     val diff_classes = new_classes |> subtract (op =) old_classes;
   in if null diff_classes then vardeps_data
   else let
-    val c_ks = Vargraph.imm_succs (fst vardeps_data) c_k |> insert (op =) c_k;
+    val c_ks = Vargraph.immediate_succs (fst vardeps_data) c_k |> insert (op =) c_k;
   in
     vardeps_data
     |> (apfst o Vargraph.map_node c_k o apsnd) (append diff_classes)

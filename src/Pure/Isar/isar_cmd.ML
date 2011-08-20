@@ -407,7 +407,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val {classes = (space, algebra), ...} = Type.rep_tsig (Proof_Context.tsig_of ctxt);
     val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
-      (i, {name = Name_Space.extern ctxt space c, ID = c, parents = cs,
+      (i, {name = Name_Space.extern ctxt space c, ID = c, parents = Graph.Keys.dest cs,
             dir = "", unfold = true, path = ""});
     val gr =
       Graph.fold (cons o entry) classes []

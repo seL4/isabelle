@@ -220,7 +220,9 @@ fun put_trancl_classrel ((c1, c2), th) thy =
       in ((c1_pred, c2_succ), th') end;
 
     val new_classrels =
-      Library.map_product pair (c1 :: Graph.imm_preds classes c1) (c2 :: Graph.imm_succs classes c2)
+      Library.map_product pair
+        (c1 :: Graph.immediate_preds classes c1)
+        (c2 :: Graph.immediate_succs classes c2)
       |> filter_out ((op =) orf Symreltab.defined classrels)
       |> map gen_classrel;
     val needed = not (null new_classrels);

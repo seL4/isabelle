@@ -211,9 +211,11 @@ fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
 
 (* job status *)
 
-fun ready_job task (Job list, ([], _)) = SOME (task, rev list)
-  | ready_job task (Passive abort, ([], _)) =
-      if is_canceled (group_of_task task) then SOME (task, [fn _ => abort ()])
+fun ready_job task (Job list, (deps, _)) =
+      if Task_Graph.Keys.is_empty deps then SOME (task, rev list) else NONE
+  | ready_job task (Passive abort, (deps, _)) =
+      if Task_Graph.Keys.is_empty deps andalso is_canceled (group_of_task task)
+      then SOME (task, [fn _ => abort ()])
       else NONE
   | ready_job _ _ = NONE;
 
@@ -232,7 +234,7 @@ fun status (Queue {jobs, ...}) =
     val (x, y, z, w) =
       Task_Graph.fold (fn (_, (job, (deps, _))) => fn (x, y, z, w) =>
           (case job of
-            Job _ => if null deps then (x + 1, y, z, w) else (x, y + 1, z, w)
+            Job _ => if Task_Graph.Keys.is_empty deps then (x + 1, y, z, w) else (x, y + 1, z, w)
           | Running _ => (x, y, z + 1, w)
           | Passive _ => (x, y, z, w + 1)))
         jobs (0, 0, 0, 0);
@@ -278,7 +280,7 @@ fun finish task (Queue {groups, jobs}) =
     val group = group_of_task task;
     val groups' = fold_groups (fn g => del_task (group_id g, task)) group groups;
     val jobs' = Task_Graph.del_node task jobs;
-    val maximal = null (Task_Graph.imm_succs jobs task);
+    val maximal = Task_Graph.is_maximal jobs task;
   in (maximal, make_queue groups' jobs') end;
 
 
@@ -342,7 +344,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
           else
             let val entry as (_, (ds, _)) = #2 (Task_Graph.get_entry jobs task) in
               (case ready_job task entry of
-                NONE => ready_dep (Tasks.update (task, ()) seen) (ds @ tasks)
+                NONE => ready_dep (Tasks.update (task, ()) seen) (Task_Graph.Keys.dest ds @ tasks)
               | some => some)
             end;
 

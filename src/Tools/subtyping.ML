@@ -171,10 +171,10 @@ fun get_preds G T = Typ_Graph.all_preds G [T];
 fun get_succs G T = Typ_Graph.all_succs G [T];
 fun maybe_new_typnode T G = perhaps (try (Typ_Graph.new_node (T, ()))) G;
 fun maybe_new_typnodes Ts G = fold maybe_new_typnode Ts G;
-fun new_imm_preds G Ts =
-  subtract (op =) Ts (distinct (op =) (maps (Typ_Graph.imm_preds G) Ts));
-fun new_imm_succs G Ts =
-  subtract op= Ts (distinct (op =) (maps (Typ_Graph.imm_succs G) Ts));
+fun new_imm_preds G Ts =  (* FIXME inefficient *)
+  subtract (op =) Ts (distinct (op =) (maps (Typ_Graph.immediate_preds G) Ts));
+fun new_imm_succs G Ts =  (* FIXME inefficient *)
+  subtract (op =) Ts (distinct (op =) (maps (Typ_Graph.immediate_succs G) Ts));
 
 
 (* Graph shortcuts *)
@@ -406,7 +406,7 @@ fun process_constraints ctxt err cs tye_idx =
     (*styps stands either for supertypes or for subtypes of a type T
       in terms of the subtype-relation (excluding T itself)*)
     fun styps super T =
-      (if super then Graph.imm_succs else Graph.imm_preds) coes_graph T
+      (if super then Graph.immediate_succs else Graph.immediate_preds) coes_graph T
         handle Graph.UNDEF _ => [];
 
     fun minmax sup (T :: Ts) =
