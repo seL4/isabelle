@@ -129,6 +129,14 @@ lemma power2_eq_1_iff:
 
 end
 
+context idom
+begin
+
+lemma power2_eq_iff: "x\<twosuperior> = y\<twosuperior> \<longleftrightarrow> x = y \<or> x = - y"
+  unfolding power2_eq_square by (rule square_eq_iff)
+
+end
+
 context linordered_ring
 begin
 
