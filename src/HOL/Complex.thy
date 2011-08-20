@@ -606,14 +606,6 @@ definition
 abbreviation expi :: "complex \<Rightarrow> complex"
   where "expi \<equiv> exp"
 
-lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
-  unfolding cos_coeff_def sin_coeff_def
-  by (simp del: mult_Suc, auto simp add: odd_Suc_mult_two_ex)
-
-lemma sin_coeff_Suc: "sin_coeff (Suc n) = cos_coeff n / real (Suc n)"
-  unfolding cos_coeff_def sin_coeff_def
-  by (simp del: mult_Suc)
-
 lemma expi_imaginary: "expi (Complex 0 b) = cis b"
 proof (rule complex_eqI)
   { fix n have "Complex 0 b ^ n =

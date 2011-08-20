@@ -1220,6 +1220,20 @@ definition sin :: "real \<Rightarrow> real" where
 definition cos :: "real \<Rightarrow> real" where
   "cos = (\<lambda>x. \<Sum>n. cos_coeff n * x ^ n)"
 
+lemma sin_coeff_0 [simp]: "sin_coeff 0 = 0"
+  unfolding sin_coeff_def by simp
+
+lemma cos_coeff_0 [simp]: "cos_coeff 0 = 1"
+  unfolding cos_coeff_def by simp
+
+lemma sin_coeff_Suc: "sin_coeff (Suc n) = cos_coeff n / real (Suc n)"
+  unfolding cos_coeff_def sin_coeff_def
+  by (simp del: mult_Suc)
+
+lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
+  unfolding cos_coeff_def sin_coeff_def
+  by (simp del: mult_Suc, auto simp add: odd_Suc_mult_two_ex)
+
 lemma summable_sin: "summable (\<lambda>n. sin_coeff n * x ^ n)"
 unfolding sin_coeff_def
 apply (rule summable_comparison_test [OF _ summable_exp [where x="\<bar>x\<bar>"]])
@@ -1238,42 +1252,27 @@ unfolding sin_def by (rule summable_sin [THEN summable_sums])
 lemma cos_converges: "(\<lambda>n. cos_coeff n * x ^ n) sums cos(x)"
 unfolding cos_def by (rule summable_cos [THEN summable_sums])
 
-lemma sin_fdiffs: "diffs sin_coeff = cos_coeff"
-unfolding sin_coeff_def cos_coeff_def
-by (auto intro!: ext
-         simp add: diffs_def divide_inverse real_of_nat_def of_nat_mult
-         simp del: mult_Suc of_nat_Suc)
+lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
+  by (simp add: diffs_def sin_coeff_Suc real_of_nat_def del: of_nat_Suc)
 
-lemma sin_fdiffs2: "diffs sin_coeff n = cos_coeff n"
-by (simp only: sin_fdiffs)
-
-lemma cos_fdiffs: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
-unfolding sin_coeff_def cos_coeff_def
-by (auto intro!: ext
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def of_nat_mult
-         simp del: mult_Suc of_nat_Suc)
-
-lemma cos_fdiffs2: "diffs cos_coeff n = - sin_coeff n"
-by (simp only: cos_fdiffs)
+lemma diffs_cos_coeff: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
+  by (simp add: diffs_def cos_coeff_Suc real_of_nat_def del: of_nat_Suc)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
-lemma lemma_sin_minus: "- sin x = (\<Sum>n. - (sin_coeff n * x ^ n))"
-by (auto intro!: sums_unique sums_minus sin_converges)
-
 lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
-unfolding sin_def cos_def
-apply (auto simp add: sin_fdiffs2 [symmetric])
-apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs)
-done
+  unfolding sin_def cos_def
+  apply (rule DERIV_cong, rule termdiffs [where K="1 + \<bar>x\<bar>"])
+  apply (simp_all add: diffs_sin_coeff diffs_cos_coeff
+    summable_minus summable_sin summable_cos)
+  done
 
 lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
-unfolding cos_def
-apply (auto simp add: lemma_sin_minus cos_fdiffs2 [symmetric] minus_mult_left)
-apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
-done
+  unfolding cos_def sin_def
+  apply (rule DERIV_cong, rule termdiffs [where K="1 + \<bar>x\<bar>"])
+  apply (simp_all add: diffs_sin_coeff diffs_cos_coeff diffs_minus
+    summable_minus summable_sin summable_cos suminf_minus)
+  done
 
 lemma isCont_sin: "isCont sin x"
   by (rule DERIV_sin [THEN DERIV_isCont])

@@ -417,9 +417,6 @@ lemma sin_expansion_lemma:
       cos (x + real (m) * pi / 2)"
 by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
 
-lemma sin_coeff_0 [simp]: "sin_coeff 0 = 0"
-  unfolding sin_coeff_def by simp (* TODO: move *)
-
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
        sin x =
@@ -485,9 +482,6 @@ done
 
 
 subsection{*Maclaurin Expansion for Cosine Function*}
-
-lemma cos_coeff_0 [simp]: "cos_coeff 0 = 1"
-  unfolding cos_coeff_def by simp (* TODO: move *)
 
 lemma sumr_cos_zero_one [simp]:
   "(\<Sum>m=0..<(Suc n). cos_coeff m * 0 ^ m) = 1"
