@@ -37,11 +37,11 @@ sig
 
   type oracle = string * term
   type pthm = serial * (string * term * proof_body future)
-  val check_body_thms: proof_body -> proof_body future
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
+  val join_bodies: proof_body list -> unit
   val status_of: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
@@ -171,16 +171,10 @@ and proof_body = PBody of
 type oracle = string * term;
 type pthm = serial * (string * term * proof_body future);
 
-fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
-
-fun check_body_thms (body as PBody {thms, ...}) =
-  (singleton o Future.cond_forks)
-    {name = "Proofterm.check_body_thms", group = NONE,
-      deps = map (Future.task_of o #3 o #2) thms, pri = 0, interrupts = true}
-    (fn () => (join_thms thms; body));
-
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
+
+fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
 
 
 (***** proof atoms *****)
@@ -211,6 +205,8 @@ fun fold_body_thms f =
             val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
           in (f (name, prop, body') x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
+
+fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
 
 fun status_of bodies =
   let
@@ -1467,13 +1463,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
             deps = [], pri = 0, interrupts = true}
           (make_body0 o full_proof0);
 
-    fun new_prf () =
-      let
-        val body' = body0
-          |> fulfill_proof_future thy promises postproc
-          |> Future.map (fn body as PBody {thms, ...} => (join_thms thms; body));
-      in (serial (), body') end;
-
+    fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of

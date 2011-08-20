@@ -95,7 +95,7 @@ sig
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
-  val future_body_of: thm -> proof_body future
+  val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proofs: thm list -> unit
@@ -523,11 +523,17 @@ fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
 and fulfill_promises promises =
   map fst promises ~~ map fulfill_body (Future.joins (map snd promises));
 
-val future_body_of = Proofterm.check_body_thms o fulfill_body;
-val proof_body_of = Future.join o future_body_of;
+fun proof_bodies_of thms =
+  let
+    val _ = join_promises_of thms;
+    val bodies = map fulfill_body thms;
+    val _ = Proofterm.join_bodies bodies;
+  in bodies end;
+
+val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
-fun join_proofs thms = (join_promises_of thms; Future.joins (map future_body_of thms); ());
+val join_proofs = ignore o proof_bodies_of;
 
 
 (* derivation status *)

@@ -40,7 +40,7 @@ fun thm_deps thy thms =
                path = "",
                parents = parents};
           in cons entry end;
-    val deps = Proofterm.fold_body_thms add_dep (Future.joins (map Thm.future_body_of thms)) [];
+    val deps = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) [];
   in Present.display_graph (sort_wrt #ID deps) end;
 
 
@@ -66,7 +66,7 @@ fun unused_thms (base_thys, thys) =
     val used =
       Proofterm.fold_body_thms
         (fn (a, _, _) => a <> "" ? Symtab.update (a, ()))
-        (map Proofterm.strip_thm (Future.joins (map (Thm.future_body_of o #1 o #2) new_thms)))
+        (map Proofterm.strip_thm (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
         Symtab.empty;
 
     fun is_unused a = not (Symtab.defined used a);
