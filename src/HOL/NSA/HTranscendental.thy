@@ -311,7 +311,7 @@ lemma starfun_exp_ln_iff [simp]: "!!x. (( *f* exp)(( *f* ln) x) = x) = (0 < x)"
 by transfer (rule exp_ln_iff)
 
 lemma starfun_exp_ln_eq: "!!u x. ( *f* exp) u = x ==> ( *f* ln) x = u"
-by transfer (rule exp_ln_eq)
+by transfer (rule ln_unique)
 
 lemma starfun_ln_less_self [simp]: "!!x. 0 < x ==> ( *f* ln) x < x"
 by transfer (rule ln_less_self)

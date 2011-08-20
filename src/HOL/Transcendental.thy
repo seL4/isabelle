@@ -1159,9 +1159,6 @@ lemma ln_eq_zero_iff [simp]: "0 < x \<Longrightarrow> (ln x = 0) = (x = 1)"
 lemma ln_less_zero: "\<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> ln x < 0"
   by simp
 
-lemma exp_ln_eq: "exp u = x ==> ln x = u"
-  by (rule ln_unique) (* TODO: delete *)
-
 lemma isCont_ln: "0 < x \<Longrightarrow> isCont ln x"
   apply (subgoal_tac "isCont ln (exp (ln x))", simp)
   apply (rule isCont_inverse_function [where f=exp], simp_all)
