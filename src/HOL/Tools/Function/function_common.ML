@@ -333,7 +333,7 @@ val set_preproc = Preprocessor.map o K
 
 
 local
-  val option_parser = Parse.group "option"
+  val option_parser = Parse.group (fn () => "option")
     ((Parse.reserved "sequential" >> K Sequential)
      || ((Parse.reserved "default" |-- Parse.term) >> Default)
      || (Parse.reserved "domintros" >> K DomIntros)

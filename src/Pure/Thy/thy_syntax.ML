@@ -115,15 +115,15 @@ fun span_range span =
 
 local
 
-val is_whitespace = Token.is_kind Token.Space orf Token.is_kind Token.Comment;
+val whitespace = Scan.many (not o Token.is_proper);
+val whitespace1 = Scan.many1 (not o Token.is_proper);
 
-val body =
-  Scan.unless (Scan.many is_whitespace -- Scan.ahead (Parse.command || Parse.eof)) Parse.not_eof;
+val body = Scan.unless (whitespace -- Scan.ahead (Parse.command || Parse.eof)) Parse.not_eof;
 
 val span =
   Scan.ahead Parse.command -- Parse.not_eof -- Scan.repeat body
     >> (fn ((name, c), bs) => Span (Command name, c :: bs)) ||
-  Scan.many1 is_whitespace >> (fn toks => Span (Ignored, toks)) ||
+  whitespace1 >> (fn toks => Span (Ignored, toks)) ||
   Scan.repeat1 body >> (fn toks => Span (Malformed, toks));
 
 in

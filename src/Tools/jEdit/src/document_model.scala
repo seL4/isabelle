@@ -139,13 +139,13 @@ class Document_Model(val session: Session, val buffer: Buffer,
   {
     buffer.addBufferListener(buffer_listener)
     pending_edits.init()
-    buffer.propertiesChanged()
+    Token_Markup.refresh_buffer(buffer)
   }
 
   private def deactivate()
   {
     pending_edits.flush()
     buffer.removeBufferListener(buffer_listener)
-    buffer.propertiesChanged()
+    Token_Markup.refresh_buffer(buffer)
   }
 }
