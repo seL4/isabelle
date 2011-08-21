@@ -106,6 +106,9 @@ lemma Var_in_subst:
   "v \<in> vars_of t \<Longrightarrow> w \<in> vars_of (t \<lhd> (v, Var(w)) # s)"
 by (induct t) auto
 
+lemma remove_var: "v \<notin> vars_of s \<Longrightarrow> v \<notin> vars_of (t \<lhd> [(v, s)])"
+by (induct t) simp_all
+
 lemma subst_refl[iff]: "s \<doteq> s"
   by (auto simp:subst_eq_def)
 
@@ -115,8 +118,8 @@ lemma subst_sym[sym]: "\<lbrakk>s1 \<doteq> s2\<rbrakk> \<Longrightarrow> s2 \<d
 lemma subst_trans[trans]: "\<lbrakk>s1 \<doteq> s2; s2 \<doteq> s3\<rbrakk> \<Longrightarrow> s1 \<doteq> s3"
   by (auto simp:subst_eq_def)
 
-text {* Composition of Substitutions *}
 
+text {* Composition of Substitutions *}
 
 lemma comp_Nil[simp]: "\<sigma> \<lozenge> [] = \<sigma>"
 by (induct \<sigma>) auto
@@ -139,6 +142,14 @@ lemma comp_assoc: "(a \<lozenge> b) \<lozenge> c \<doteq> a \<lozenge> (b \<loze
 lemma subst_cong: "\<lbrakk>\<sigma> \<doteq> \<sigma>'; \<theta> \<doteq> \<theta>'\<rbrakk> \<Longrightarrow> (\<sigma> \<lozenge> \<theta>) \<doteq> (\<sigma>' \<lozenge> \<theta>')"
   by (auto simp: subst_eq_def)
 
+lemma var_self: "[(v, Var v)] \<doteq> []"
+proof
+  fix t show "t \<lhd> [(v, Var v)] = t \<lhd> []"
+    by (induct t) simp_all
+qed
+
+lemma var_same[simp]: "[(v, t)] \<doteq> [] \<longleftrightarrow> t = Var v"
+by (metis assoc.simps(2) subst.simps(1) subst_eq_def var_self)
 
 
 subsection {* Specification: Most general unifiers *}
@@ -159,6 +170,24 @@ lemma MGU_sym[sym]:
   "MGU \<sigma> s t \<Longrightarrow> MGU \<sigma> t s"
   by (auto simp:MGU_def Unifier_def)
 
+lemma MGU_Var: 
+  assumes "\<not> Var v \<prec> t"
+  shows "MGU [(v,t)] (Var v) t"
+proof (intro MGUI exI)
+  show "Var v \<lhd> [(v,t)] = t \<lhd> [(v,t)]" using assms
+    by (metis assoc.simps(2) repl_invariance subst.simps(1) subst_Nil vars_iff_occseq)
+next
+  fix \<theta> assume th: "Var v \<lhd> \<theta> = t \<lhd> \<theta>" 
+  show "\<theta> \<doteq> [(v,t)] \<lozenge> \<theta>" 
+  proof
+    fix s show "s \<lhd> \<theta> = s \<lhd> [(v,t)] \<lozenge> \<theta>" using th 
+      by (induct s) auto
+  qed
+qed
+
+lemma MGU_Const: "MGU [] (Const c) (Const d) \<longleftrightarrow> c = d"
+  by (auto simp: MGU_def Unifier_def)
+  
 
 definition Idem :: "'a subst \<Rightarrow> bool"
 where "Idem s \<longleftrightarrow> (s \<lozenge> s) \<doteq> s"
@@ -189,89 +218,6 @@ where
                                          Some \<sigma> \<Rightarrow> Some (\<theta> \<lozenge> \<sigma>)))"
   by pat_completeness auto
 
-declare unify.psimps[simp]
-
-subsection {* Partial correctness *}
-
-text {* Some lemmas about occs and MGU: *}
-
-lemma subst_no_occs: "\<not> Var v \<prec> t \<Longrightarrow> Var v \<noteq> t
-  \<Longrightarrow> t \<lhd> [(v,s)] = t"
-by (induct t) auto
-
-lemma MGU_Var[intro]: 
-  assumes no_occs: "\<not> Var v \<prec> t"
-  shows "MGU [(v,t)] (Var v) t"
-proof (intro MGUI exI)
-  show "Var v \<lhd> [(v,t)] = t \<lhd> [(v,t)]" using no_occs
-    by (cases "Var v = t", auto simp:subst_no_occs)
-next
-  fix \<theta> assume th: "Var v \<lhd> \<theta> = t \<lhd> \<theta>" 
-  show "\<theta> \<doteq> [(v,t)] \<lozenge> \<theta>" 
-  proof
-    fix s show "s \<lhd> \<theta> = s \<lhd> [(v,t)] \<lozenge> \<theta>" using th 
-      by (induct s) auto
-  qed
-qed
-
-declare MGU_Var[symmetric, intro]
-
-lemma MGU_Const[simp]: "MGU [] (Const c) (Const d) = (c = d)"
-  unfolding MGU_def Unifier_def
-  by auto
-  
-text {* If unification terminates, then it computes most general unifiers: *}
-
-lemma unify_partial_correctness:
-  assumes "unify_dom (M, N)"
-  assumes "unify M N = Some \<sigma>"
-  shows "MGU \<sigma> M N"
-using assms
-proof (induct M N arbitrary: \<sigma>)
-  case (7 M N M' N' \<sigma>) -- "The interesting case"
-
-  then obtain \<theta>1 \<theta>2 
-    where "unify M M' = Some \<theta>1"
-    and "unify (N \<lhd> \<theta>1) (N' \<lhd> \<theta>1) = Some \<theta>2"
-    and \<sigma>: "\<sigma> = \<theta>1 \<lozenge> \<theta>2"
-    and MGU_inner: "MGU \<theta>1 M M'" 
-    and MGU_outer: "MGU \<theta>2 (N \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
-    by (auto split:option.split_asm)
-
-  show ?case
-  proof
-    from MGU_inner and MGU_outer
-    have "M \<lhd> \<theta>1 = M' \<lhd> \<theta>1" 
-      and "N \<lhd> \<theta>1 \<lhd> \<theta>2 = N' \<lhd> \<theta>1 \<lhd> \<theta>2"
-      unfolding MGU_def Unifier_def
-      by auto
-    thus "M \<cdot> N \<lhd> \<sigma> = M' \<cdot> N' \<lhd> \<sigma>" unfolding \<sigma>
-      by simp
-  next
-    fix \<sigma>' assume "M \<cdot> N \<lhd> \<sigma>' = M' \<cdot> N' \<lhd> \<sigma>'"
-    hence "M \<lhd> \<sigma>' = M' \<lhd> \<sigma>'"
-      and Ns: "N \<lhd> \<sigma>' = N' \<lhd> \<sigma>'" by auto
-
-    with MGU_inner obtain \<delta>
-      where eqv: "\<sigma>' \<doteq> \<theta>1 \<lozenge> \<delta>"
-      unfolding MGU_def Unifier_def
-      by auto
-
-    from Ns have "N \<lhd> \<theta>1 \<lhd> \<delta> = N' \<lhd> \<theta>1 \<lhd> \<delta>"
-      by (simp add:subst_eq_dest[OF eqv])
-
-    with MGU_outer obtain \<rho>
-      where eqv2: "\<delta> \<doteq> \<theta>2 \<lozenge> \<rho>"
-      unfolding MGU_def Unifier_def
-      by auto
-    
-    have "\<sigma>' \<doteq> \<sigma> \<lozenge> \<rho>" unfolding \<sigma>
-      by (rule subst_eq_intro, auto simp:subst_eq_dest[OF eqv] subst_eq_dest[OF eqv2])
-    thus "\<exists>\<gamma>. \<sigma>' \<doteq> \<sigma> \<lozenge> \<gamma>" ..
-  qed
-qed (auto split:split_if_asm) -- "Solve the remaining cases automatically"
-
-
 subsection {* Properties used in termination proof *}
 
 
@@ -286,92 +232,16 @@ lemma elim_intro[intro]: "(\<And>t. v \<notin> vars_of (t \<lhd> \<sigma>)) \<Lo
 lemma elim_dest[dest]: "elim \<sigma> v \<Longrightarrow> v \<notin> vars_of (t \<lhd> \<sigma>)"
   by (auto simp:elim_def)
 
-lemma elim_eqv: "\<sigma> \<doteq> \<theta> \<Longrightarrow> elim \<sigma> x = elim \<theta> x"
+lemma elim_eq: "\<sigma> \<doteq> \<theta> \<Longrightarrow> elim \<sigma> x = elim \<theta> x"
   by (auto simp:elim_def subst_eq_def)
-
-
-text {* Replacing a variable by itself yields an identity subtitution: *}
-
-lemma var_self[intro]: "[(v, Var v)] \<doteq> []"
-proof
-  fix t show "t \<lhd> [(v, Var v)] = t \<lhd> []"
-    by (induct t) simp_all
-qed
-
-lemma var_same: "([(v, t)] \<doteq> []) = (t = Var v)"
-proof
-  assume t_v: "t = Var v"
-  thus "[(v, t)] \<doteq> []"
-    by auto
-next
-  assume id: "[(v, t)] \<doteq> []"
-  show "t = Var v"
-  proof -
-    have "t = Var v \<lhd> [(v, t)]" by simp
-    also from id have "\<dots> = Var v \<lhd> []" ..
-    finally show ?thesis by simp
-  qed
-qed
-
-text {* A lemma about occs and elim *}
-
-lemma remove_var:
-  assumes [simp]: "v \<notin> vars_of s"
-  shows "v \<notin> vars_of (t \<lhd> [(v, s)])"
-  by (induct t) simp_all
 
 lemma occs_elim: "\<not> Var v \<prec> t 
   \<Longrightarrow> elim [(v,t)] v \<or> [(v,t)] \<doteq> []"
-proof (induct t)
-  case (Var x)
-  show ?case
-  proof cases
-    assume "v = x"
-    thus ?thesis
-      by (simp add:var_same)
-  next
-    assume neq: "v \<noteq> x"
-    have "elim [(v, Var x)] v"
-      by (auto intro!:remove_var simp:neq)
-    thus ?thesis ..
-  qed
-next
-  case (Const c)
-  have "elim [(v, Const c)] v"
-    by (auto intro!:remove_var)
-  thus ?case ..
-next
-  case (Comb M N)
-  
-  hence ih1: "elim [(v, M)] v \<or> [(v, M)] \<doteq> []"
-    and ih2: "elim [(v, N)] v \<or> [(v, N)] \<doteq> []"
-    and nonoccs: "Var v \<noteq> M" "Var v \<noteq> N"
-    by auto
-
-  from nonoccs have "\<not> [(v,M)] \<doteq> []"
-    by (simp add:var_same)
-  with ih1 have "elim [(v, M)] v" by blast
-  hence "v \<notin> vars_of (Var v \<lhd> [(v,M)])" ..
-  hence not_in_M: "v \<notin> vars_of M" by simp
-
-  from nonoccs have "\<not> [(v,N)] \<doteq> []"
-    by (simp add:var_same)
-  with ih2 have "elim [(v, N)] v" by blast
-  hence "v \<notin> vars_of (Var v \<lhd> [(v,N)])" ..
-  hence not_in_N: "v \<notin> vars_of N" by simp
-
-  have "elim [(v, M \<cdot> N)] v"
-  proof 
-    fix t 
-    show "v \<notin> vars_of (t \<lhd> [(v, M \<cdot> N)])"
-    proof (induct t)
-      case (Var x) thus ?case by (simp add: not_in_M not_in_N)
-    qed auto
-  qed
-  thus ?case ..
-qed
+by (metis elim_intro remove_var var_same vars_iff_occseq)
 
 text {* The result of a unification never introduces new variables: *}
+
+declare unify.psimps[simp]
 
 lemma unify_vars: 
   assumes "unify_dom (M, N)"
@@ -503,7 +373,7 @@ next
     from ih1 show ?thesis
     proof
       assume "\<exists>v\<in>vars_of M \<union> vars_of M'. elim \<theta>1 v"
-      with elim_eqv[OF `\<sigma> \<doteq> \<theta>1`]
+      with elim_eq[OF `\<sigma> \<doteq> \<theta>1`]
       show ?thesis by auto
     next
       note `\<sigma> \<doteq> \<theta>1`
@@ -513,6 +383,7 @@ next
   qed
 qed
 
+declare unify.psimps[simp del]
 
 subsection {* Termination proof *}
 
@@ -522,7 +393,7 @@ proof
                            \<lambda>(M, N). size M]"
   show "wf ?R" by simp
 
-  fix M N M' N' 
+  fix M N M' N' :: "'a trm"
   show "((M, M'), (M \<cdot> N, M' \<cdot> N')) \<in> ?R" -- "Inner call"
     by (rule measures_lesseq) (auto intro: card_mono)
 
@@ -555,6 +426,56 @@ proof
   qed
 qed
 
-declare unify.psimps[simp del]
+
+subsection {* Other Properties *}
+
+lemma unify_computes_MGU:
+  "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
+using assms
+proof (induct M N arbitrary: \<sigma> rule: unify.induct)
+  case (7 M N M' N' \<sigma>) -- "The interesting case"
+
+  then obtain \<theta>1 \<theta>2 
+    where "unify M M' = Some \<theta>1"
+    and "unify (N \<lhd> \<theta>1) (N' \<lhd> \<theta>1) = Some \<theta>2"
+    and \<sigma>: "\<sigma> = \<theta>1 \<lozenge> \<theta>2"
+    and MGU_inner: "MGU \<theta>1 M M'" 
+    and MGU_outer: "MGU \<theta>2 (N \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
+    by (auto split:option.split_asm)
+
+  show ?case
+  proof
+    from MGU_inner and MGU_outer
+    have "M \<lhd> \<theta>1 = M' \<lhd> \<theta>1" 
+      and "N \<lhd> \<theta>1 \<lhd> \<theta>2 = N' \<lhd> \<theta>1 \<lhd> \<theta>2"
+      unfolding MGU_def Unifier_def
+      by auto
+    thus "M \<cdot> N \<lhd> \<sigma> = M' \<cdot> N' \<lhd> \<sigma>" unfolding \<sigma>
+      by simp
+  next
+    fix \<sigma>' assume "M \<cdot> N \<lhd> \<sigma>' = M' \<cdot> N' \<lhd> \<sigma>'"
+    hence "M \<lhd> \<sigma>' = M' \<lhd> \<sigma>'"
+      and Ns: "N \<lhd> \<sigma>' = N' \<lhd> \<sigma>'" by auto
+
+    with MGU_inner obtain \<delta>
+      where eqv: "\<sigma>' \<doteq> \<theta>1 \<lozenge> \<delta>"
+      unfolding MGU_def Unifier_def
+      by auto
+
+    from Ns have "N \<lhd> \<theta>1 \<lhd> \<delta> = N' \<lhd> \<theta>1 \<lhd> \<delta>"
+      by (simp add:subst_eq_dest[OF eqv])
+
+    with MGU_outer obtain \<rho>
+      where eqv2: "\<delta> \<doteq> \<theta>2 \<lozenge> \<rho>"
+      unfolding MGU_def Unifier_def
+      by auto
+    
+    have "\<sigma>' \<doteq> \<sigma> \<lozenge> \<rho>" unfolding \<sigma>
+      by (rule subst_eq_intro, auto simp:subst_eq_dest[OF eqv] subst_eq_dest[OF eqv2])
+    thus "\<exists>\<gamma>. \<sigma>' \<doteq> \<sigma> \<lozenge> \<gamma>" ..
+  qed
+qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: split_if_asm)
+
+
 
 end
