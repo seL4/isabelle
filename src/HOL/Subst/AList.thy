@@ -23,4 +23,6 @@ lemma alist_induct:
     "P [] \<Longrightarrow> (!!x y xs. P xs \<Longrightarrow> P ((x,y) # xs)) \<Longrightarrow> P l"
   by (induct l) auto
 
+
+
 end
