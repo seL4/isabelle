@@ -17,16 +17,13 @@ begin
 (* To be moved elsewhere                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-lemma linear_scaleR: "linear (%(x :: 'n::euclidean_space). scaleR c x)"
-  by (metis linear_conv_bounded_linear bounded_linear_scaleR_right)
+lemma linear_scaleR: "linear (\<lambda>x. scaleR c x)"
+  by (simp add: linear_def scaleR_add_right)
 
-lemma injective_scaleR: 
-assumes "(c :: real) ~= 0"
-shows "inj (%(x :: 'n::euclidean_space). scaleR c x)"
-  by (metis assms injI real_vector.scale_cancel_left)
+lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>(x::'a::real_vector). scaleR c x)"
+  by (simp add: inj_on_def)
 
 lemma linear_add_cmul:
-fixes f :: "('m::euclidean_space) => ('n::euclidean_space)" 
 assumes "linear f"
 shows "f(a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
 using linear_add[of f] linear_cmul[of f] assms by (simp) 
@@ -50,7 +47,7 @@ lemma inj_on_image_mem_iff: "inj_on f B ==> (A <= B) ==> (f a : f`A) ==> (a : B)
 by (blast dest: inj_onD)
 
 lemma independent_injective_on_span_image:
-  assumes iS: "independent (S::(_::euclidean_space) set)" 
+  assumes iS: "independent S" 
      and lf: "linear f" and fi: "inj_on f (span S)"
   shows "independent (f ` S)"
 proof-
@@ -83,7 +80,6 @@ from this show ?thesis using dim_image_le[of f S] assms by auto
 qed
 
 lemma linear_injective_on_subspace_0:
-fixes f :: "('m::euclidean_space) => ('n::euclidean_space)"
 assumes lf: "linear f" and "subspace S"
   shows "inj_on f S <-> (!x : S. f x = 0 --> x = 0)"
 proof-
@@ -166,7 +162,7 @@ lemma setsum_not_0: "setsum f A ~= 0 ==> EX a:A. f a ~= 0"
   apply(rule ccontr) by auto
 
 lemma translate_inj_on: 
-fixes A :: "('n::euclidean_space) set"
+fixes A :: "('a::ab_group_add) set"
 shows "inj_on (%x. a+x) A" unfolding inj_on_def by auto
 
 lemma translation_assoc:
@@ -241,7 +237,7 @@ proof-
 qed
 
 lemma closure_linear_image:
-fixes f :: "('m::euclidean_space) => ('n::euclidean_space)"
+fixes f :: "('m::euclidean_space) => ('n::real_normed_vector)"
 assumes "linear f"
 shows "f ` (closure S) <= closure (f ` S)"
 using image_closure_subset[of S f "closure (f ` S)"] assms linear_conv_bounded_linear[of f] 
@@ -262,8 +258,8 @@ from this show ?thesis using closure_linear_image[of f S] assms by auto
 qed
 
 lemma closure_direct_sum:
-fixes S :: "('n::euclidean_space) set"
-fixes T :: "('m::euclidean_space) set"
+fixes S :: "('n::real_normed_vector) set"
+fixes T :: "('m::real_normed_vector) set"
 shows "closure (S <*> T) = closure S <*> closure T"
 proof-
 { fix x assume "x : closure S <*> closure T"
@@ -290,7 +286,7 @@ ultimately show ?thesis using closure_minimal[of "S <*> T" "closure S <*> closur
   closure_subset[of S] closure_subset[of T] by auto
 qed
 
-lemma closure_scaleR: 
+lemma closure_scaleR:  (* TODO: generalize to real_normed_vector *)
 fixes S :: "('n::euclidean_space) set"
 shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
 proof-
@@ -347,7 +343,7 @@ lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::'a::ordered_euclidean_s
   using image_affinity_interval[of m 0 a b] by auto
 
 lemma dist_triangle_eq:
-  fixes x y z :: "'a::euclidean_space"
+  fixes x y z :: "'a::real_inner"
   shows "dist x z = dist x y + dist y z \<longleftrightarrow> norm (x - y) *\<^sub>R (y - z) = norm (y - z) *\<^sub>R (x - y)"
 proof- have *:"x - y + (y - z) = x - z" by auto
   show ?thesis unfolding dist_norm norm_triangle_eq[of "x - y" "y - z", unfolded *]
@@ -594,7 +590,6 @@ using mem_affine_3[of S x y z 1 v "-v"] assms by (simp add: algebra_simps)
 subsection {* Some relations between affine hull and subspaces. *}
 
 lemma affine_hull_insert_subset_span:
-  fixes a :: "'a::euclidean_space"
   shows "affine hull (insert a s) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> s}}"
   unfolding subset_eq Ball_def unfolding affine_hull_explicit span_explicit mem_Collect_eq
   apply(rule,rule) apply(erule exE)+ apply(erule conjE)+ proof-
@@ -612,7 +607,6 @@ lemma affine_hull_insert_subset_span:
     unfolding as by simp qed
 
 lemma affine_hull_insert_span:
-  fixes a :: "'a::euclidean_space"
   assumes "a \<notin> s"
   shows "affine hull (insert a s) =
             {a + v | v . v \<in> span {x - a | x.  x \<in> s}}"
@@ -632,7 +626,6 @@ lemma affine_hull_insert_span:
     by (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps *) qed
 
 lemma affine_hull_span:
-  fixes a :: "'a::euclidean_space"
   assumes "a \<in> s"
   shows "affine hull s = {a + v | v. v \<in> span {x - a | x. x \<in> s - {a}}}"
   using affine_hull_insert_span[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
@@ -708,14 +701,12 @@ proof-
   from this show ?thesis using affine_translation assms by auto
 qed
 
-lemma subspace_imp_affine:
-  fixes s :: "(_::euclidean_space) set" shows "subspace s \<Longrightarrow> affine s"
+lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
   unfolding subspace_def affine_def by auto
 
 subsection{* Subspace Parallel to an Affine Set *}
 
 lemma subspace_affine:
-  fixes S :: "('n::euclidean_space) set"
   shows "subspace S <-> (affine S & 0 : S)"
 proof-
 have h0: "subspace S ==> (affine S & 0 : S)" using subspace_imp_affine[of S] subspace_0 by auto
@@ -740,7 +731,6 @@ have h0: "subspace S ==> (affine S & 0 : S)" using subspace_imp_affine[of S] sub
 qed
 
 lemma affine_diffs_subspace:
-  fixes S :: "('n::euclidean_space) set"
   assumes "affine S" "a : S"
   shows "subspace ((%x. (-a)+x) ` S)"
 proof-
@@ -750,7 +740,6 @@ ultimately show ?thesis using subspace_affine by auto
 qed
 
 lemma parallel_subspace_explicit:
-fixes a :: "'n::euclidean_space"
 assumes "affine S" "a : S"
 assumes "L == {y. ? x : S. (-a)+x=y}" 
 shows "subspace L & affine_parallel S L" 
@@ -762,7 +751,6 @@ ultimately show ?thesis using subspace_affine par by auto
 qed
 
 lemma parallel_subspace_aux:
-fixes A B :: "('n::euclidean_space) set"
 assumes "subspace A" "subspace B" "affine_parallel A B"
 shows "A>=B"
 proof-
@@ -773,7 +761,6 @@ from this show ?thesis using assms a_def unfolding subspace_def by auto
 qed
 
 lemma parallel_subspace:
-fixes A B :: "('n::euclidean_space) set"
 assumes "subspace A" "subspace B" "affine_parallel A B"
 shows "A=B"
 proof-
@@ -783,7 +770,6 @@ ultimately show ?thesis by auto
 qed
 
 lemma affine_parallel_subspace:
-fixes S :: "('n::euclidean_space) set"
 assumes "affine S" "S ~= {}"
 shows "?!L. subspace L & affine_parallel S L" 
 proof-
@@ -824,7 +810,6 @@ lemma mem_cone:
   using assms cone_def[of S] by auto
 
 lemma cone_contains_0:
-fixes S :: "('m::euclidean_space) set"
 assumes "cone S"
 shows "(S ~= {}) <-> (0 : S)"
 proof-
@@ -833,15 +818,13 @@ proof-
 } from this show ?thesis by auto
 qed
 
-lemma cone_0:
-shows "cone {(0 :: 'm::euclidean_space)}"
+lemma cone_0: "cone {0}"
 unfolding cone_def by auto
 
 lemma cone_Union[intro]: "(!s:f. cone s) --> (cone (Union f))"
   unfolding cone_def by blast
 
 lemma cone_iff:
-fixes S :: "('m::euclidean_space) set"
 assumes "S ~= {}"
 shows "cone S <-> 0:S & (!c. c>0 --> ((op *\<^sub>R c) ` S) = S)"
 proof-
@@ -875,12 +858,10 @@ lemma cone_hull_empty:
 by (metis cone_empty cone_hull_eq)
 
 lemma cone_hull_empty_iff:
-fixes S :: "('m::euclidean_space) set"
 shows "(S = {}) <-> (cone hull S = {})"
 by (metis bot_least cone_hull_empty hull_subset xtrans(5))
 
 lemma cone_hull_contains_0: 
-fixes S :: "('m::euclidean_space) set"
 shows "(S ~= {}) <-> (0 : cone hull S)"
 using cone_cone_hull[of S] cone_contains_0[of "cone hull S"] cone_hull_empty_iff[of S] by auto
 
@@ -890,7 +871,6 @@ lemma mem_cone_hull:
 by (metis assms cone_cone_hull hull_inc mem_cone)
 
 lemma cone_hull_expl:
-fixes S :: "('m::euclidean_space) set"
 shows "cone hull S = {c *\<^sub>R x | c x. c>=0 & x : S}" (is "?lhs = ?rhs")
 proof-
 { fix x assume "x : ?rhs"
@@ -1365,7 +1345,7 @@ lemma convex_hull_3:
 proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
-         "\<And>x y z ::_::euclidean_space. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: field_simps)
+    by (auto simp add: field_simps)
   show ?thesis unfolding convex_hull_finite[OF fin(1)] and convex_hull_finite_step[OF fin(2)] and *
     unfolding convex_hull_finite_step[OF fin(3)] apply(rule Collect_cong) apply simp apply auto
     apply(rule_tac x=va in exI) apply (rule_tac x="u c" in exI) apply simp
@@ -1379,22 +1359,16 @@ proof- have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y
 
 subsection {* Relations among closure notions and corresponding hulls. *}
 
-text {* TODO: Generalize linear algebra concepts defined in @{text
-Euclidean_Space.thy} so that we can generalize these lemmas. *}
-
 lemma affine_imp_convex: "affine s \<Longrightarrow> convex s"
   unfolding affine_def convex_def by auto
 
-lemma subspace_imp_convex:
-  fixes s :: "(_::euclidean_space) set" shows "subspace s \<Longrightarrow> convex s"
+lemma subspace_imp_convex: "subspace s \<Longrightarrow> convex s"
   using subspace_imp_affine affine_imp_convex by auto
 
-lemma affine_hull_subset_span:
-  fixes s :: "(_::euclidean_space) set" shows "(affine hull s) \<subseteq> (span s)"
+lemma affine_hull_subset_span: "(affine hull s) \<subseteq> (span s)"
 by (metis hull_minimal span_inc subspace_imp_affine subspace_span)
 
-lemma convex_hull_subset_span:
-  fixes s :: "(_::euclidean_space) set" shows "(convex hull s) \<subseteq> (span s)"
+lemma convex_hull_subset_span: "(convex hull s) \<subseteq> (span s)"
 by (metis hull_minimal span_inc subspace_imp_convex subspace_span)
 
 lemma convex_hull_subset_affine_hull: "(convex hull s) \<subseteq> (affine hull s)"
@@ -1402,12 +1376,11 @@ by (metis affine_affine_hull affine_imp_convex hull_minimal hull_subset)
 
 
 lemma affine_dependent_imp_dependent:
-  fixes s :: "(_::euclidean_space) set" shows "affine_dependent s \<Longrightarrow> dependent s"
+  shows "affine_dependent s \<Longrightarrow> dependent s"
   unfolding affine_dependent_def dependent_def 
   using affine_hull_subset_span by auto
 
 lemma dependent_imp_affine_dependent:
-  fixes s :: "(_::euclidean_space) set"
   assumes "dependent {x - a| x . x \<in> s}" "a \<notin> s"
   shows "affine_dependent (insert a s)"
 proof-
@@ -1562,7 +1535,6 @@ lemma affine_independent_empty: "~(affine_dependent {})"
   by (simp add: affine_dependent_def)
 
 lemma affine_independent_sing:
-fixes a :: "'n::euclidean_space" 
 shows "~(affine_dependent {a})"
  by (simp add: affine_dependent_def)
 
@@ -1600,7 +1572,6 @@ proof-
 qed
 
 lemma affine_hull_0_dependent:
-  fixes S ::  "('n::euclidean_space) set"
   assumes "0 : affine hull S"
   shows "dependent S"
 proof-
@@ -1611,7 +1582,6 @@ from this show ?thesis unfolding dependent_explicit[of S] by auto
 qed
 
 lemma affine_dependent_imp_dependent2:
-  fixes S :: "('n::euclidean_space) set" 
   assumes "affine_dependent (insert 0 S)"
   shows "dependent S"
 proof-
@@ -1627,7 +1597,6 @@ moreover
 qed
 
 lemma affine_dependent_iff_dependent:
-  fixes S :: "('n::euclidean_space) set" 
   assumes "a ~: S"
   shows "affine_dependent (insert a S) <-> dependent ((%x. -a + x) ` S)" 
 proof-
@@ -1638,7 +1607,6 @@ from this show ?thesis using affine_dependent_translation_eq[of "(insert a S)" "
 qed
 
 lemma affine_dependent_iff_dependent2:
-  fixes S :: "('n::euclidean_space) set" 
   assumes "a : S"
   shows "affine_dependent S <-> dependent ((%x. -a + x) ` (S-{a}))"
 proof-
@@ -1647,7 +1615,6 @@ from this show ?thesis using assms affine_dependent_iff_dependent[of a "S-{a}"] 
 qed
 
 lemma affine_hull_insert_span_gen:
-  fixes a :: "_::euclidean_space"
   shows "affine hull (insert a s) = (%x. a+x) ` span ((%x. -a+x) ` s)" 
 proof-
 have h1: "{x - a |x. x : s}=((%x. -a+x) ` s)" by auto
@@ -1666,13 +1633,11 @@ ultimately show ?thesis by auto
 qed
 
 lemma affine_hull_span2:
-  fixes a :: "_::euclidean_space"
   assumes "a : s"
   shows "affine hull s = (%x. a+x) ` span ((%x. -a+x) ` (s-{a}))"
   using affine_hull_insert_span_gen[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
 
 lemma affine_hull_span_gen:
-  fixes a :: "_::euclidean_space"
   assumes "a : affine hull s"
   shows "affine hull s = (%x. a+x) ` span ((%x. -a+x) ` s)"
 proof-
@@ -1681,7 +1646,7 @@ from this show ?thesis using affine_hull_insert_span_gen[of a "s"] by auto
 qed
 
 lemma affine_hull_span_0:
-  assumes "(0 :: _::euclidean_space) : affine hull S"
+  assumes "0 : affine hull S"
   shows "affine hull S = span S"
 using affine_hull_span_gen[of "0" S] assms by auto
 
@@ -1859,12 +1824,10 @@ ultimately show ?thesis using aff_independent_finite[of B] card_gt_0_iff[of B] b
 qed
 
 lemma aff_dim_affine_hull:
-fixes S :: "('n::euclidean_space) set"
 shows "aff_dim (affine hull S)=aff_dim S" 
 unfolding aff_dim_def using hull_hull[of _ S] by auto 
 
 lemma aff_dim_affine_hull2:
-fixes S T :: "('n::euclidean_space) set"
 assumes "affine hull S=affine hull T"
 shows "aff_dim S=aff_dim T" unfolding aff_dim_def using assms by auto
 
