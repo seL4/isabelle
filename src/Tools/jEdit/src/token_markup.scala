@@ -81,8 +81,10 @@ object Token_Markup
 
   class Style_Extender extends SyntaxUtilities.StyleExtender
   {
-    if (Symbol.font_names.length > 2)
-      error("Too many user symbol fonts (max 2 permitted): " + Symbol.font_names.mkString(", "))
+    val max_user_fonts = 2
+    if (Symbol.font_names.length > max_user_fonts)
+      error("Too many user symbol fonts (max " + max_user_fonts + " permitted): " +
+        Symbol.font_names.mkString(", "))
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
@@ -93,6 +95,8 @@ object Token_Markup
         new_styles(subscript(i.toByte)) = script_style(style, -1)
         new_styles(superscript(i.toByte)) = script_style(style, 1)
         new_styles(bold(i.toByte)) = bold_style(style)
+        for (idx <- 0 until max_user_fonts)
+          new_styles(user_font(idx, i.toByte)) = style
         for ((family, idx) <- Symbol.font_index)
           new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
       }
