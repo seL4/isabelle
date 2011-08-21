@@ -79,6 +79,8 @@ object Token_Markup
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
 
+  private def hidden_color: Color = new Color(255, 255, 255, 0)
+
   class Style_Extender extends SyntaxUtilities.StyleExtender
   {
     val max_user_fonts = 2
@@ -101,7 +103,7 @@ object Token_Markup
           new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
       }
       new_styles(hidden) =
-        new SyntaxStyle(Color.white, null,
+        new SyntaxStyle(hidden_color, null,
           { val font = styles(0).getFont
             transform_font(new Font(font.getFamily, 0, 1),
               AffineTransform.getScaleInstance(1.0, font.getSize.toDouble)) })
