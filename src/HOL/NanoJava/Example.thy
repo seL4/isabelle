@@ -41,17 +41,18 @@ class Nat {
 
 *}
 
-axioms This_neq_Par [simp]: "This \<noteq> Par"
-       Res_neq_This [simp]: "Res  \<noteq> This"
+axiomatization where
+  This_neq_Par [simp]: "This \<noteq> Par" and
+  Res_neq_This [simp]: "Res  \<noteq> This"
 
 
 subsection "Program representation"
 
-consts N    :: cname ("Nat") (* with mixfix because of clash with NatDef.Nat *)
-consts pred :: fname
-consts suc  :: mname
-       add  :: mname
-consts any  :: vname
+axiomatization 
+  N    :: cname ("Nat") (* with mixfix because of clash with NatDef.Nat *)
+  and pred :: fname
+  and suc add :: mname
+  and any  :: vname
 
 abbreviation
   dummy :: expr ("<>")
@@ -64,19 +65,19 @@ abbreviation
 text {* The following properties could be derived from a more complete
         program model, which we leave out for laziness. *}
 
-axioms Nat_no_subclasses [simp]: "D \<preceq>C Nat = (D=Nat)"
+axiomatization where Nat_no_subclasses [simp]: "D \<preceq>C Nat = (D=Nat)"
 
-axioms method_Nat_add [simp]: "method Nat add = Some 
+axiomatization where method_Nat_add [simp]: "method Nat add = Some 
   \<lparr> par=Class Nat, res=Class Nat, lcl=[], 
    bdy= If((LAcc This..pred)) 
           (Res :== {Nat}(LAcc This..pred)..add({Nat}LAcc Par..suc(<>))) 
         Else Res :== LAcc Par \<rparr>"
 
-axioms method_Nat_suc [simp]: "method Nat suc = Some 
+axiomatization where method_Nat_suc [simp]: "method Nat suc = Some 
   \<lparr> par=NT, res=Class Nat, lcl=[], 
    bdy= Res :== new Nat;; LAcc Res..pred :== LAcc This \<rparr>"
 
-axioms field_Nat [simp]: "field Nat = empty(pred\<mapsto>Class Nat)"
+axiomatization where field_Nat [simp]: "field Nat = empty(pred\<mapsto>Class Nat)"
 
 lemma init_locs_Nat_add [simp]: "init_locs Nat add s = s"
 by (simp add: init_locs_def init_vars_def)

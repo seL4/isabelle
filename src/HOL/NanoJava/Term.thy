@@ -11,14 +11,13 @@ typedecl mname  --{* method   name *}
 typedecl fname  --{* field    name *}
 typedecl vname  --{* variable name *}
 
-consts 
-  This :: vname --{* This pointer *}
-  Par  :: vname --{* method parameter *}
+axiomatization
+  This --{* This pointer *}
+  Par  --{* method parameter *}
   Res  :: vname --{* method result *}
-
-text {* Inequality axioms are not required for the meta theory. *}
+ -- {* Inequality axioms are not required for the meta theory. *}
 (*
-axioms
+where
   This_neq_Par [simp]: "This \<noteq> Par"
   Par_neq_Res  [simp]: "Par \<noteq> Res"
   Res_neq_This [simp]: "Res \<noteq> This"

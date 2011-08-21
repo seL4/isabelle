@@ -6,8 +6,11 @@ header "Type relations"
 
 theory TypeRel imports Decl "~~/src/HOL/Library/Wfrec" begin
 
-consts
-  subcls1 :: "(cname \<times> cname) set"  --{* subclass *}
+text{* Direct subclass relation *}
+
+definition subcls1 :: "(cname \<times> cname) set"
+where
+  "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
 abbreviation
   subcls1_syntax :: "[cname, cname] => bool"  ("_ <=C1 _" [71,71] 70)
@@ -20,16 +23,8 @@ notation (xsymbols)
   subcls1_syntax  ("_ \<prec>C1 _"  [71,71] 70) and
   subcls_syntax  ("_ \<preceq>C _"   [71,71] 70)
 
-consts
-  method :: "cname => (mname \<rightharpoonup> methd)"
-  field  :: "cname => (fname \<rightharpoonup> ty)"
-
 
 subsection "Declarations and properties not used in the meta theory"
-
-text{* Direct subclass relation *}
-defs
- subcls1_def: "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
 text{* Widening, viz. method invocation conversion *}
 inductive
@@ -111,7 +106,8 @@ apply (subst cut_apply, auto intro: subcls1I)
 done
 
 --{* Methods of a class, with inheritance and hiding *}
-defs method_def: "method C \<equiv> class_rec C methods"
+definition method :: "cname => (mname \<rightharpoonup> methd)" where
+  "method C \<equiv> class_rec C methods"
 
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
 method C = (if C=Object then empty else method (super m)) ++ map_of (methods m)"
@@ -122,7 +118,8 @@ done
 
 
 --{* Fields of a class, with inheritance and hiding *}
-defs field_def: "field C \<equiv> class_rec C flds"
+definition field  :: "cname => (fname \<rightharpoonup> ty)" where
+  "field C \<equiv> class_rec C flds"
 
 lemma flds_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
 field C = (if C=Object then empty else field (super m)) ++ map_of (flds m)"

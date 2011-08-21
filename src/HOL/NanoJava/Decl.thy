@@ -44,9 +44,9 @@ translations
   (type) "cdecl" \<leftharpoondown> (type) "cname \<times> class"
   (type) "prog " \<leftharpoondown> (type) "cdecl list"
 
-consts
-
+axiomatization
   Prog    :: prog       --{* program as a global value *}
+and
   Object  :: cname      --{* name of root class *}
 
 
