@@ -249,13 +249,15 @@ fun status (Queue {jobs, ...}) =
 fun cancel (Queue {groups, jobs}) group =
   let
     val _ = cancel_group group Exn.Interrupt;
-    val running =
-      Tasks.fold (fn (task, _) =>
-          (case get_job jobs task of Running thread => cons (task, thread) | _ => I))
-        (get_tasks groups (group_id group)) [];
-    val threads = fold (insert Thread.equal o #2) running [];
+    val (tasks, threads) =
+      Tasks.fold (fn (task, _) => fn (tasks, threads) =>
+          (case get_job jobs task of
+            Running thread => (task :: tasks, insert Thread.equal thread threads)
+          | Passive _ => (task :: tasks, threads)
+          | _ => (tasks, threads)))
+        (get_tasks groups (group_id group)) ([], []);
     val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
-  in map #1 running end;
+  in tasks end;
 
 fun cancel_all (Queue {jobs, ...}) =
   let
