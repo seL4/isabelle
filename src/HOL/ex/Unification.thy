@@ -118,6 +118,9 @@ lemma subst_sym[sym]: "\<lbrakk>s1 \<doteq> s2\<rbrakk> \<Longrightarrow> s2 \<d
 lemma subst_trans[trans]: "\<lbrakk>s1 \<doteq> s2; s2 \<doteq> s3\<rbrakk> \<Longrightarrow> s1 \<doteq> s3"
   by (auto simp:subst_eq_def)
 
+lemma subst_no_occs: "\<not> Var v \<prec> t \<Longrightarrow> Var v \<noteq> t
+  \<Longrightarrow> t \<lhd> [(v,s)] = t"
+by (induct t) auto
 
 text {* Composition of Substitutions *}
 
@@ -169,6 +172,9 @@ lemma MGUI[intro]:
 lemma MGU_sym[sym]:
   "MGU \<sigma> s t \<Longrightarrow> MGU \<sigma> t s"
   by (auto simp:MGU_def Unifier_def)
+
+lemma MGU_is_Unifier: "MGU \<sigma> t u \<Longrightarrow> Unifier \<sigma> t u"
+unfolding MGU_def by (rule conjunct1)
 
 lemma MGU_Var: 
   assumes "\<not> Var v \<prec> t"
@@ -431,7 +437,6 @@ subsection {* Other Properties *}
 
 lemma unify_computes_MGU:
   "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
-using assms
 proof (induct M N arbitrary: \<sigma> rule: unify.induct)
   case (7 M N M' N' \<sigma>) -- "The interesting case"
 
@@ -476,6 +481,62 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
   qed
 qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: split_if_asm)
 
+lemma Idem_Nil [iff]: "Idem []"
+  by (simp add: Idem_def)
 
+lemma Var_Idem: 
+  assumes "~ (Var v \<prec> t)" shows "Idem [(v,t)]"
+  unfolding Idem_def
+proof
+  from assms have [simp]: "t \<lhd> [(v, t)] = t"
+    by (metis assoc.simps(2) subst.simps(1) subst_no_occs)
+
+  fix s show "s \<lhd> [(v, t)] \<lozenge> [(v, t)] = s \<lhd> [(v, t)]"
+    by (induct s) auto
+qed
+
+lemma Unifier_Idem_subst: 
+  "Idem(r) \<Longrightarrow> Unifier s (t \<lhd> r) (u \<lhd> r) \<Longrightarrow>
+    Unifier (r \<lozenge> s) (t \<lhd> r) (u \<lhd> r)"
+by (simp add: Idem_def Unifier_def subst_eq_def)
+
+lemma Idem_comp:
+  "Idem r \<Longrightarrow> Unifier s (t \<lhd> r) (u \<lhd> r) \<Longrightarrow>
+      (!!q. Unifier q (t \<lhd> r) (u \<lhd> r) \<Longrightarrow> s \<lozenge> q \<doteq> q) \<Longrightarrow>
+    Idem (r \<lozenge> s)"
+  apply (frule Unifier_Idem_subst, blast) 
+  apply (force simp add: Idem_def subst_eq_def)
+  done
+
+theorem unify_gives_Idem:
+  "unify M N  = Some \<sigma> \<Longrightarrow> Idem \<sigma>"
+proof (induct M N arbitrary: \<sigma> rule: unify.induct)
+  case (7 M M' N N' \<sigma>)
+
+  then obtain \<theta>1 \<theta>2 
+    where "unify M N = Some \<theta>1"
+    and \<theta>2: "unify (M' \<lhd> \<theta>1) (N' \<lhd> \<theta>1) = Some \<theta>2"
+    and \<sigma>: "\<sigma> = \<theta>1 \<lozenge> \<theta>2"
+    and "Idem \<theta>1" 
+    and "Idem \<theta>2"
+    by (auto split: option.split_asm)
+
+  from \<theta>2 have "Unifier \<theta>2 (M' \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
+    by (rule unify_computes_MGU[THEN MGU_is_Unifier])
+
+  with `Idem \<theta>1`
+  show "Idem \<sigma>" unfolding \<sigma>
+  proof (rule Idem_comp)
+    fix \<sigma> assume "Unifier \<sigma> (M' \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
+    with \<theta>2 obtain \<gamma> where \<sigma>: "\<sigma> \<doteq> \<theta>2 \<lozenge> \<gamma>"
+      using unify_computes_MGU MGU_def by blast
+
+    have "\<theta>2 \<lozenge> \<sigma> \<doteq> \<theta>2 \<lozenge> (\<theta>2 \<lozenge> \<gamma>)" by (rule subst_cong) (auto simp: \<sigma>)
+    also have "... \<doteq> (\<theta>2 \<lozenge> \<theta>2) \<lozenge> \<gamma>" by (rule comp_assoc[symmetric])
+    also have "... \<doteq> \<theta>2 \<lozenge> \<gamma>" by (rule subst_cong) (auto simp: `Idem \<theta>2`[unfolded Idem_def])
+    also have "... \<doteq> \<sigma>" by (rule \<sigma>[symmetric])
+    finally show "\<theta>2 \<lozenge> \<sigma> \<doteq> \<sigma>" .
+  qed
+qed (auto intro!: Var_Idem split: option.splits if_splits)
 
 end
