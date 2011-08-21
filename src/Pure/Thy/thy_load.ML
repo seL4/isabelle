@@ -173,7 +173,6 @@ fun load_thy update_time dir name imports uses pos text parents =
 
     val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
-    val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
     val elements =
       Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
       |> Par_List.map_name "Outer_Syntax.prepare_element"

@@ -20,7 +20,6 @@ sig
   val span_source: (Token.T, 'a) Source.source -> (span, (Token.T, 'a) Source.source) Source.source
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> Output.output
-  val report_span: span -> unit
   type element = {head: span, proof: span list, proper_proof: bool}
   val element_source: (span, 'a) Source.source ->
     (element, (span, 'a) Source.source) Source.source
@@ -152,9 +151,6 @@ in
 
 fun present_span span =
   Markup.enclose (kind_markup (span_kind span)) (implode (map present_token (span_content span)));
-
-fun report_span span =
-  Position.report (Position.set_range (span_range span)) (kind_markup (span_kind span));
 
 end;
 
