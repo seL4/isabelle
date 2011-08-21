@@ -31,8 +31,8 @@ sig
   val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int, passive: int}
-  val cancel: queue -> group -> task list
-  val cancel_all: queue -> group list
+  val cancel: queue -> group -> task list * Thread.thread list
+  val cancel_all: queue -> group list * Thread.thread list
   val finish: task -> queue -> bool * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
@@ -249,15 +249,14 @@ fun status (Queue {jobs, ...}) =
 fun cancel (Queue {groups, jobs}) group =
   let
     val _ = cancel_group group Exn.Interrupt;
-    val (tasks, threads) =
+    val running =
       Tasks.fold (fn (task, _) => fn (tasks, threads) =>
           (case get_job jobs task of
             Running thread => (task :: tasks, insert Thread.equal thread threads)
           | Passive _ => (task :: tasks, threads)
           | _ => (tasks, threads)))
         (get_tasks groups (group_id group)) ([], []);
-    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
-  in tasks end;
+  in running end;
 
 fun cancel_all (Queue {jobs, ...}) =
   let
@@ -270,9 +269,8 @@ fun cancel_all (Queue {jobs, ...}) =
           Running t => (insert eq_group group groups, insert Thread.equal t running)
         | _ => (groups, running))
       end;
-    val (running_groups, running) = Task_Graph.fold cancel_job jobs ([], []);
-    val _ = List.app Simple_Thread.interrupt_unsynchronized running;
-  in running_groups end;
+    val running = Task_Graph.fold cancel_job jobs ([], []);
+  in running end;
 
 
 (* finish *)

@@ -186,12 +186,20 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 (* cancellation primitives *)
 
 fun cancel_now group = (*requires SYNCHRONIZED*)
-  Task_Queue.cancel (! queue) group;
+  let
+    val (tasks, threads) = Task_Queue.cancel (! queue) group;
+    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
+  in tasks end;
+
+fun cancel_all () = (*requires SYNCHRONIZED*)
+  let
+    val (groups, threads) = Task_Queue.cancel_all (! queue);
+    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
+  in groups end;
 
 fun cancel_later group = (*requires SYNCHRONIZED*)
  (Unsynchronized.change canceled (insert Task_Queue.eq_group group);
   broadcast scheduler_event);
-
 
 fun interruptible_task f x =
   (if Multithreading.available then
@@ -380,7 +388,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   handle exn =>
     if Exn.is_interrupt exn then
      (Multithreading.tracing 1 (fn () => "Interrupt");
-      List.app cancel_later (Task_Queue.cancel_all (! queue));
+      List.app cancel_later (cancel_all ());
       broadcast_work (); true)
     else reraise exn;
 
