@@ -41,9 +41,9 @@ where
 
 fun occs :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" (infixl "\<prec>" 54) 
 where
-  "occs u (Var v) = False"
-| "occs u (Const c) = False"
-| "occs u (M \<cdot> N) = (u = M \<or> u = N \<or> occs u M \<or> occs u N)"
+  "u \<prec> Var v \<longleftrightarrow> False"
+| "u \<prec> Const c \<longleftrightarrow> False"
+| "u \<prec> M \<cdot> N \<longleftrightarrow> u = M \<or> u = N \<or> u \<prec> M \<or> u \<prec> N"
 
 
 lemma finite_vars_of[intro]: "finite (vars_of t)"
@@ -175,10 +175,10 @@ where
   "unify (Const c) (M \<cdot> N)   = None"
 | "unify (M \<cdot> N)   (Const c) = None"
 | "unify (Const c) (Var v)   = Some [(v, Const c)]"
-| "unify (M \<cdot> N)   (Var v)   = (if (occs (Var v) (M \<cdot> N)) 
+| "unify (M \<cdot> N)   (Var v)   = (if Var v \<prec> M \<cdot> N 
                                         then None
                                         else Some [(v, M \<cdot> N)])"
-| "unify (Var v)   M         = (if (occs (Var v) M) 
+| "unify (Var v)   M         = (if Var v \<prec> M
                                         then None
                                         else Some [(v, M)])"
 | "unify (Const c) (Const d) = (if c=d then Some [] else None)"
@@ -195,12 +195,12 @@ subsection {* Partial correctness *}
 
 text {* Some lemmas about occs and MGU: *}
 
-lemma subst_no_occs: "\<not>occs (Var v) t \<Longrightarrow> Var v \<noteq> t
+lemma subst_no_occs: "\<not> Var v \<prec> t \<Longrightarrow> Var v \<noteq> t
   \<Longrightarrow> t \<lhd> [(v,s)] = t"
 by (induct t) auto
 
 lemma MGU_Var[intro]: 
-  assumes no_occs: "\<not>occs (Var v) t"
+  assumes no_occs: "\<not> Var v \<prec> t"
   shows "MGU [(v,t)] (Var v) t"
 proof (intro MGUI exI)
   show "Var v \<lhd> [(v,t)] = t \<lhd> [(v,t)]" using no_occs
@@ -320,7 +320,7 @@ lemma remove_var:
   shows "v \<notin> vars_of (t \<lhd> [(v, s)])"
   by (induct t) simp_all
 
-lemma occs_elim: "\<not>occs (Var v) t 
+lemma occs_elim: "\<not> Var v \<prec> t 
   \<Longrightarrow> elim [(v,t)] v \<or> [(v,t)] \<doteq> []"
 proof (induct t)
   case (Var x)
@@ -385,12 +385,12 @@ proof (induct M N arbitrary:\<sigma> t)
   thus ?case by (induct t) auto
 next
   case (4 M N v) 
-  hence "\<not>occs (Var v) (M\<cdot>N)" by (cases "occs (Var v) (M\<cdot>N)", auto)
+  hence "\<not> Var v \<prec> M \<cdot> N" by auto
   with 4 have "\<sigma> = [(v, M\<cdot>N)]" by simp
   thus ?case by (induct t) auto
 next
   case (5 v M)
-  hence "\<not>occs (Var v) M" by (cases "occs (Var v) M", auto)
+  hence "\<not> Var v \<prec> M" by auto
   with 5 have "\<sigma> = [(v, M)]" by simp
   thus ?case by (induct t) auto
 next
@@ -448,19 +448,19 @@ next
   case 2 thus ?case by simp
 next
   case (3 c v)
-  have no_occs: "\<not> occs (Var v) (Const c)" by simp
+  have no_occs: "\<not> Var v \<prec> Const c" by simp
   with 3 have "\<sigma> = [(v, Const c)]" by simp
   with occs_elim[OF no_occs]
   show ?case by auto
 next
   case (4 M N v)
-  hence no_occs: "\<not>occs (Var v) (M\<cdot>N)" by (cases "occs (Var v) (M\<cdot>N)", auto)
+  hence no_occs: "\<not> Var v \<prec> M \<cdot> N" by auto
   with 4 have "\<sigma> = [(v, M\<cdot>N)]" by simp
   with occs_elim[OF no_occs]
   show ?case by auto 
 next
   case (5 v M) 
-  hence no_occs: "\<not>occs (Var v) M" by (cases "occs (Var v) M", auto)
+  hence no_occs: "\<not> Var v \<prec> M" by auto
   with 5 have "\<sigma> = [(v, M)]" by simp
   with occs_elim[OF no_occs]
   show ?case by auto 
