@@ -728,7 +728,7 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   apply (subst matrix_vector_mul[OF lf])
   unfolding adjoint_matrix matrix_of_matrix_vector_mul ..
 
-section {* lambda skolemization on cartesian products *}
+subsection {* lambda skolemization on cartesian products *}
 
 (* FIXME: rename do choice_cart *)
 
@@ -1404,7 +1404,7 @@ proof safe case goal1
   thus ?case using goal1 by auto
 qed
 
-section "Convex Euclidean Space"
+subsection "Convex Euclidean Space"
 
 lemma Cart_1:"(1::real^'n) = (\<chi>\<chi> i. 1)"
   apply(subst euclidean_eq)

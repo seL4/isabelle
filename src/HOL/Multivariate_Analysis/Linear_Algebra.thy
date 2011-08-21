@@ -3107,7 +3107,7 @@ lemma complex_basis[simp]:
   shows "basis 0 = (1::complex)" and "basis 1 = ii" and "basis (Suc 0) = ii"
   unfolding basis_complex_def by auto
 
-section {* Products Spaces *}
+subsection {* Products Spaces *}
 
 lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::euclidean_space) + DIM('a::euclidean_space)"
   (* FIXME: why this orientation? Why not "DIM('a) + DIM('b)" ? *)
