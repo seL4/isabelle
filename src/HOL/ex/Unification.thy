@@ -1,26 +1,30 @@
-(*
-    Author:     Alexander Krauss, Technische Universitaet Muenchen
+(*  Title:      HOL/ex/Unification.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
+    Author:     Konrad Slind, TUM & Cambridge University Computer Laboratory
+    Author:     Alexander Krauss, TUM
 *)
 
-header {* Case study: Unification Algorithm *}
+header {* Substitution and Unification *}
 
 theory Unification
 imports Main
 begin
 
 text {* 
-  This is a formalization of a first-order unification
-  algorithm. It uses the new "function" package to define recursive
-  functions, which allows a better treatment of nested recursion. 
+  Implements Manna & Waldinger's formalization, with Paulson's
+  simplifications, and some new simplifications by Slind and Krauss.
 
-  This is basically a modernized version of a previous formalization
-  by Konrad Slind (see: HOL/Subst/Unify.thy), which itself builds on
-  previous work by Paulson and Manna \& Waldinger (for details, see
-  there).
+  Z Manna & R Waldinger, Deductive Synthesis of the Unification
+  Algorithm.  SCP 1 (1981), 5-48
 
-  Unlike that formalization, where the proofs of termination and
-  some partial correctness properties are intertwined, we can prove
-  partial correctness and termination separately.
+  L C Paulson, Verifying the Unification Algorithm in LCF. SCP 5
+  (1985), 143-170
+
+  K Slind, Reasoning about Terminating Functional Programs,
+  Ph.D. thesis, TUM, 1999, Sect. 5.8
+
+  A Krauss, Partial and Nested Recursive Function Definitions in
+  Higher-Order Logic, JAR 44(4):303–336, 2010. Sect. 6.3
 *}
 
 
@@ -63,14 +67,10 @@ subsection {* Substitutions *}
 
 type_synonym 'a subst = "('a \<times> 'a trm) list"
 
-text {* Applying a substitution to a variable: *}
-
 fun assoc :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> 'b"
 where
   "assoc x d [] = d"
 | "assoc x d ((p,q)#t) = (if x = p then q else assoc x d t)"
-
-text {* Applying a substitution to a term: *}
 
 primrec subst :: "'a trm \<Rightarrow> 'a subst \<Rightarrow> 'a trm" (infixl "\<lhd>" 55)
 where
@@ -86,9 +86,6 @@ fun comp :: "'a subst \<Rightarrow> 'a subst \<Rightarrow> 'a subst" (infixl "\<
 where
   "[] \<lozenge> bl = bl"
 | "((a,b) # al) \<lozenge> bl = (a, b \<lhd> bl) # (al \<lozenge> bl)"
-
-
-subsection {* Basic Laws *}
 
 lemma subst_Nil[simp]: "t \<lhd> [] = t"
 by (induct t) auto
@@ -122,8 +119,6 @@ lemma subst_no_occs: "\<not> Var v \<prec> t \<Longrightarrow> Var v \<noteq> t
   \<Longrightarrow> t \<lhd> [(v,s)] = t"
 by (induct t) auto
 
-text {* Composition of Substitutions *}
-
 lemma comp_Nil[simp]: "\<sigma> \<lozenge> [] = \<sigma>"
 by (induct \<sigma>) auto
 
@@ -155,7 +150,7 @@ lemma var_same[simp]: "[(v, t)] \<doteq> [] \<longleftrightarrow> t = Var v"
 by (metis assoc.simps(2) subst.simps(1) subst_eq_def var_self)
 
 
-subsection {* Specification: Most general unifiers *}
+subsection {* Unifiers and Most General Unifiers *}
 
 definition Unifier :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool"
 where "Unifier \<sigma> t u \<longleftrightarrow> (t \<lhd> \<sigma> = u \<lhd> \<sigma>)"
@@ -195,15 +190,7 @@ lemma MGU_Const: "MGU [] (Const c) (Const d) \<longleftrightarrow> c = d"
   by (auto simp: MGU_def Unifier_def)
   
 
-definition Idem :: "'a subst \<Rightarrow> bool"
-where "Idem s \<longleftrightarrow> (s \<lozenge> s) \<doteq> s"
-
-
-
 subsection {* The unification algorithm *}
-
-
-text {* The unification algorithm: *}
 
 function unify :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> 'a subst option"
 where
@@ -225,7 +212,6 @@ where
   by pat_completeness auto
 
 subsection {* Properties used in termination proof *}
-
 
 text {* Elimination of variables by a substitution: *}
 
@@ -433,7 +419,7 @@ proof
 qed
 
 
-subsection {* Other Properties *}
+subsection {* Unification returns a Most General Unifier *}
 
 lemma unify_computes_MGU:
   "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
@@ -480,6 +466,12 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
     thus "\<exists>\<gamma>. \<sigma>' \<doteq> \<sigma> \<lozenge> \<gamma>" ..
   qed
 qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: split_if_asm)
+
+
+subsection {* Unification returns Idempotent Substitution *}
+
+definition Idem :: "'a subst \<Rightarrow> bool"
+where "Idem s \<longleftrightarrow> (s \<lozenge> s) \<doteq> s"
 
 lemma Idem_Nil [iff]: "Idem []"
   by (simp add: Idem_def)
