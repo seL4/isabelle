@@ -175,9 +175,7 @@ fun load_thy update_time dir name imports uses pos text parents =
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val elements =
       Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
-      |> Par_List.map_name "Outer_Syntax.prepare_element"
-        (Outer_Syntax.prepare_element outer_syntax init)
-      |> flat;
+      |> maps (Outer_Syntax.prepare_element outer_syntax init);
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
