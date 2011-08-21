@@ -24,12 +24,42 @@ text {*
 *}
 
 
-subsection {* Basic definitions *}
+subsection {* Terms *}
+
+text {* Binary trees with leaves that are constants or variables. *}
 
 datatype 'a trm = 
   Var 'a 
   | Const 'a
   | Comb "'a trm" "'a trm" (infix "\<cdot>" 60)
+
+primrec vars_of :: "'a trm \<Rightarrow> 'a set"
+where
+  "vars_of (Var v) = {v}"
+| "vars_of (Const c) = {}"
+| "vars_of (M \<cdot> N) = vars_of M \<union> vars_of N"
+
+fun occs :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" (infixl "\<prec>" 54) 
+where
+  "occs u (Var v) = False"
+| "occs u (Const c) = False"
+| "occs u (M \<cdot> N) = (u = M \<or> u = N \<or> occs u M \<or> occs u N)"
+
+
+lemma finite_vars_of[intro]: "finite (vars_of t)"
+  by (induct t) simp_all
+
+lemma vars_var_iff: "v \<in> vars_of (Var w) \<longleftrightarrow> w = v"
+  by auto
+
+lemma vars_iff_occseq: "x \<in> vars_of t \<longleftrightarrow> Var x \<prec> t \<or> Var x = t"
+  by (induct t) auto
+
+lemma occs_vars_subset: "M \<prec> N \<Longrightarrow> vars_of M \<subseteq> vars_of N"
+  by (induct N) auto
+
+
+subsection {* Substitutions *}
 
 type_synonym 'a subst = "('a \<times> 'a trm) list"
 
@@ -48,73 +78,77 @@ where
 | "(Const c) \<lhd> s = (Const c)"
 | "(M \<cdot> N) \<lhd> s = (M \<lhd> s) \<cdot> (N \<lhd> s)"
 
-text {* Composition of substitutions: *}
+definition subst_eq (infixr "\<doteq>" 52)
+where
+  "s1 \<doteq> s2 \<longleftrightarrow> (\<forall>t. t \<lhd> s1 = t \<lhd> s2)" 
 
-fun
-  comp :: "'a subst \<Rightarrow> 'a subst \<Rightarrow> 'a subst" (infixl "\<lozenge>" 56)
+fun comp :: "'a subst \<Rightarrow> 'a subst \<Rightarrow> 'a subst" (infixl "\<lozenge>" 56)
 where
   "[] \<lozenge> bl = bl"
 | "((a,b) # al) \<lozenge> bl = (a, b \<lhd> bl) # (al \<lozenge> bl)"
 
-text {* Equivalence of substitutions: *}
 
-definition subst_eq (infixr "\<doteq>" 52)
-where
-  "s1 \<doteq> s2 \<equiv> \<forall>t. t \<lhd> s1 = t \<lhd> s2" 
+subsection {* Basic Laws *}
 
-
-subsection {* Basic lemmas *}
-
-lemma apply_empty[simp]: "t \<lhd> [] = t"
+lemma subst_Nil[simp]: "t \<lhd> [] = t"
 by (induct t) auto
 
-lemma compose_empty[simp]: "\<sigma> \<lozenge> [] = \<sigma>"
+lemma subst_mono: "t \<prec> u \<Longrightarrow> t \<lhd> s \<prec> u \<lhd> s"
+by (induct u) auto
+
+lemma agreement: "(t \<lhd> r = t \<lhd> s) \<longleftrightarrow> (\<forall>v \<in> vars_of t. Var v \<lhd> r = Var v \<lhd> s)"
+by (induct t) auto
+
+lemma repl_invariance: "v \<notin> vars_of t \<Longrightarrow> t \<lhd> (v,u) # s = t \<lhd> s"
+by (simp add: agreement)
+
+lemma Var_in_subst:
+  "v \<in> vars_of t \<Longrightarrow> w \<in> vars_of (t \<lhd> (v, Var(w)) # s)"
+by (induct t) auto
+
+lemma subst_refl[iff]: "s \<doteq> s"
+  by (auto simp:subst_eq_def)
+
+lemma subst_sym[sym]: "\<lbrakk>s1 \<doteq> s2\<rbrakk> \<Longrightarrow> s2 \<doteq> s1"
+  by (auto simp:subst_eq_def)
+
+lemma subst_trans[trans]: "\<lbrakk>s1 \<doteq> s2; s2 \<doteq> s3\<rbrakk> \<Longrightarrow> s1 \<doteq> s3"
+  by (auto simp:subst_eq_def)
+
+text {* Composition of Substitutions *}
+
+
+lemma comp_Nil[simp]: "\<sigma> \<lozenge> [] = \<sigma>"
 by (induct \<sigma>) auto
 
-lemma apply_compose[simp]: "t \<lhd> (s1 \<lozenge> s2) = t \<lhd> s1 \<lhd> s2"
+lemma subst_comp[simp]: "t \<lhd> (r \<lozenge> s) = t \<lhd> r \<lhd> s"
 proof (induct t)
-  case Comb thus ?case by simp
-next 
-  case Const thus ?case by simp
-next
   case (Var v) thus ?case
-  proof (induct s1)
-    case Nil show ?case by simp
-  next
-    case (Cons p s1s) thus ?case by (cases p, simp)
-  qed
-qed
+    by (induct r) auto
+qed auto
 
-lemma eqv_refl[intro]: "s \<doteq> s"
+lemma subst_eq_intro[intro]: "(\<And>t. t \<lhd> \<sigma> = t \<lhd> \<theta>) \<Longrightarrow> \<sigma> \<doteq> \<theta>"
   by (auto simp:subst_eq_def)
 
-lemma eqv_trans[trans]: "\<lbrakk>s1 \<doteq> s2; s2 \<doteq> s3\<rbrakk> \<Longrightarrow> s1 \<doteq> s3"
+lemma subst_eq_dest[dest]: "s1 \<doteq> s2 \<Longrightarrow> t \<lhd> s1 = t \<lhd> s2"
   by (auto simp:subst_eq_def)
 
-lemma eqv_sym[sym]: "\<lbrakk>s1 \<doteq> s2\<rbrakk> \<Longrightarrow> s2 \<doteq> s1"
-  by (auto simp:subst_eq_def)
-
-lemma eqv_intro[intro]: "(\<And>t. t \<lhd> \<sigma> = t \<lhd> \<theta>) \<Longrightarrow> \<sigma> \<doteq> \<theta>"
-  by (auto simp:subst_eq_def)
-
-lemma eqv_dest[dest]: "s1 \<doteq> s2 \<Longrightarrow> t \<lhd> s1 = t \<lhd> s2"
-  by (auto simp:subst_eq_def)
-
-lemma compose_eqv: "\<lbrakk>\<sigma> \<doteq> \<sigma>'; \<theta> \<doteq> \<theta>'\<rbrakk> \<Longrightarrow> (\<sigma> \<lozenge> \<theta>) \<doteq> (\<sigma>' \<lozenge> \<theta>')"
-  by (auto simp:subst_eq_def)
-
-lemma compose_assoc: "(a \<lozenge> b) \<lozenge> c \<doteq> a \<lozenge> (b \<lozenge> c)"
+lemma comp_assoc: "(a \<lozenge> b) \<lozenge> c \<doteq> a \<lozenge> (b \<lozenge> c)"
   by auto
+
+lemma subst_cong: "\<lbrakk>\<sigma> \<doteq> \<sigma>'; \<theta> \<doteq> \<theta>'\<rbrakk> \<Longrightarrow> (\<sigma> \<lozenge> \<theta>) \<doteq> (\<sigma>' \<lozenge> \<theta>')"
+  by (auto simp: subst_eq_def)
+
 
 
 subsection {* Specification: Most general unifiers *}
 
-definition
-  "Unifier \<sigma> t u \<equiv> (t\<lhd>\<sigma> = u\<lhd>\<sigma>)"
+definition Unifier :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool"
+where "Unifier \<sigma> t u \<longleftrightarrow> (t \<lhd> \<sigma> = u \<lhd> \<sigma>)"
 
-definition
-  "MGU \<sigma> t u \<equiv> Unifier \<sigma> t u \<and> (\<forall>\<theta>. Unifier \<theta> t u 
-  \<longrightarrow> (\<exists>\<gamma>. \<theta> \<doteq> \<sigma> \<lozenge> \<gamma>))"
+definition MGU :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" where
+  "MGU \<sigma> t u \<longleftrightarrow> 
+   Unifier \<sigma> t u \<and> (\<forall>\<theta>. Unifier \<theta> t u \<longrightarrow> (\<exists>\<gamma>. \<theta> \<doteq> \<sigma> \<lozenge> \<gamma>))"
 
 lemma MGUI[intro]:
   "\<lbrakk>t \<lhd> \<sigma> = u \<lhd> \<sigma>; \<And>\<theta>. t \<lhd> \<theta> = u \<lhd> \<theta> \<Longrightarrow> \<exists>\<gamma>. \<theta> \<doteq> \<sigma> \<lozenge> \<gamma>\<rbrakk>
@@ -126,15 +160,13 @@ lemma MGU_sym[sym]:
   by (auto simp:MGU_def Unifier_def)
 
 
+definition Idem :: "'a subst \<Rightarrow> bool"
+where "Idem s \<longleftrightarrow> (s \<lozenge> s) \<doteq> s"
+
+
+
 subsection {* The unification algorithm *}
 
-text {* Occurs check: Proper subterm relation *}
-
-fun occs :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" (infixl "<:" 54) 
-where
-  "occs u (Var v) = False"
-| "occs u (Const c) = False"
-| "occs u (M \<cdot> N) = (u = M \<or> u = N \<or> occs u M \<or> occs u N)"
 
 text {* The unification algorithm: *}
 
@@ -226,7 +258,7 @@ proof (induct M N arbitrary: \<sigma>)
       by auto
 
     from Ns have "N \<lhd> \<theta>1 \<lhd> \<delta> = N' \<lhd> \<theta>1 \<lhd> \<delta>"
-      by (simp add:eqv_dest[OF eqv])
+      by (simp add:subst_eq_dest[OF eqv])
 
     with MGU_outer obtain \<rho>
       where eqv2: "\<delta> \<doteq> \<theta>2 \<lozenge> \<rho>"
@@ -234,7 +266,7 @@ proof (induct M N arbitrary: \<sigma>)
       by auto
     
     have "\<sigma>' \<doteq> \<sigma> \<lozenge> \<rho>" unfolding \<sigma>
-      by (rule eqv_intro, auto simp:eqv_dest[OF eqv] eqv_dest[OF eqv2])
+      by (rule subst_eq_intro, auto simp:subst_eq_dest[OF eqv] subst_eq_dest[OF eqv2])
     thus "\<exists>\<gamma>. \<sigma>' \<doteq> \<sigma> \<lozenge> \<gamma>" ..
   qed
 qed (auto split:split_if_asm) -- "Solve the remaining cases automatically"
@@ -242,16 +274,6 @@ qed (auto split:split_if_asm) -- "Solve the remaining cases automatically"
 
 subsection {* Properties used in termination proof *}
 
-text {* The variables of a term: *}
-
-fun vars_of:: "'a trm \<Rightarrow> 'a set"
-where
-  "vars_of (Var v) = { v }"
-| "vars_of (Const c) = {}"
-| "vars_of (M \<cdot> N) = vars_of M \<union> vars_of N"
-
-lemma vars_of_finite[intro]: "finite (vars_of t)"
-  by (induct t) simp_all
 
 text {* Elimination of variables by a substitution: *}
 
@@ -474,7 +496,7 @@ next
     assume empty[simp]: "\<theta>2 \<doteq> []"
 
     have "\<sigma> \<doteq> (\<theta>1 \<lozenge> [])" unfolding \<sigma>
-      by (rule compose_eqv) auto
+      by (rule subst_cong) auto
     also have "\<dots> \<doteq> \<theta>1" by auto
     finally have "\<sigma> \<doteq> \<theta>1" .
 
