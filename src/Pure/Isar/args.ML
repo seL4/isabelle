@@ -227,7 +227,7 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 fun parse_args is_symid =
   let
     val keyword_symid = token (Parse.keyword_with is_symid);
-    fun atom blk = Parse.group "argument"
+    fun atom blk = Parse.group (fn () => "argument")
       (ident || keyword_symid || string || alt_string || token Parse.float_number ||
         (if blk then token (Parse.$$$ ",") else Scan.fail));
 

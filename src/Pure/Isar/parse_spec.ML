@@ -136,7 +136,7 @@ fun locale_expression mandatory =
     val expr0 = plus1_unless locale_keyword expr1;
   in expr0 -- Scan.optional (Parse.$$$ "for" |-- Parse.!!! locale_fixes) [] end;
 
-val context_element = Parse.group "context element" loc_element;
+val context_element = Parse.group (fn () => "context element") loc_element;
 
 end;
 
