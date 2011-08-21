@@ -53,9 +53,6 @@ where
 lemma finite_vars_of[intro]: "finite (vars_of t)"
   by (induct t) simp_all
 
-lemma vars_var_iff: "v \<in> vars_of (Var w) \<longleftrightarrow> w = v"
-  by auto
-
 lemma vars_iff_occseq: "x \<in> vars_of t \<longleftrightarrow> Var x \<prec> t \<or> Var x = t"
   by (induct t) auto
 
@@ -98,10 +95,6 @@ by (induct t) auto
 
 lemma repl_invariance: "v \<notin> vars_of t \<Longrightarrow> t \<lhd> (v,u) # s = t \<lhd> s"
 by (simp add: agreement)
-
-lemma Var_in_subst:
-  "v \<in> vars_of t \<Longrightarrow> w \<in> vars_of (t \<lhd> (v, Var(w)) # s)"
-by (induct t) auto
 
 lemma remove_var: "v \<notin> vars_of s \<Longrightarrow> v \<notin> vars_of (t \<lhd> [(v, s)])"
 by (induct t) simp_all
