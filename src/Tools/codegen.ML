@@ -756,7 +756,7 @@ fun output_code gr module xs =
           let val SOME (x, y) = get_first (fn (x, (_, a', _)) =>
             if a = a' then Option.map (pair x)
               (find_first ((fn (_, b', _) => b' = b) o Graph.get_node gr)
-                (Graph.imm_succs gr x))
+                (Graph.immediate_succs gr x))
             else NONE) code
           in x ^ " called by " ^ y ^ "\n" ^ string_of_cycle (b :: cs) end
       | string_of_cycle _ = ""
@@ -767,7 +767,7 @@ fun output_code gr module xs =
         val mod_gr = fold_rev Graph.add_edge_acyclic
           (maps (fn (s, (_, module, _)) => map (pair module)
             (filter_out (fn s => s = module) (map (#2 o Graph.get_node gr)
-              (Graph.imm_succs gr s)))) code)
+              (Graph.immediate_succs gr s)))) code)
           (fold_rev (Graph.new_node o rpair ()) modules Graph.empty);
         val modules' =
           rev (Graph.all_preds mod_gr (map (#2 o Graph.get_node gr) xs))

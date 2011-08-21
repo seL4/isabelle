@@ -31,8 +31,8 @@ sig
   val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int, passive: int}
-  val cancel: queue -> group -> task list
-  val cancel_all: queue -> group list
+  val cancel: queue -> group -> task list * Thread.thread list
+  val cancel_all: queue -> group list * Thread.thread list
   val finish: task -> queue -> bool * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
@@ -211,9 +211,11 @@ fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
 
 (* job status *)
 
-fun ready_job task (Job list, ([], _)) = SOME (task, rev list)
-  | ready_job task (Passive abort, ([], _)) =
-      if is_canceled (group_of_task task) then SOME (task, [fn _ => abort ()])
+fun ready_job task (Job list, (deps, _)) =
+      if Task_Graph.Keys.is_empty deps then SOME (task, rev list) else NONE
+  | ready_job task (Passive abort, (deps, _)) =
+      if Task_Graph.Keys.is_empty deps andalso is_canceled (group_of_task task)
+      then SOME (task, [fn _ => abort ()])
       else NONE
   | ready_job _ _ = NONE;
 
@@ -232,7 +234,7 @@ fun status (Queue {jobs, ...}) =
     val (x, y, z, w) =
       Task_Graph.fold (fn (_, (job, (deps, _))) => fn (x, y, z, w) =>
           (case job of
-            Job _ => if null deps then (x + 1, y, z, w) else (x, y + 1, z, w)
+            Job _ => if Task_Graph.Keys.is_empty deps then (x + 1, y, z, w) else (x, y + 1, z, w)
           | Running _ => (x, y, z + 1, w)
           | Passive _ => (x, y, z, w + 1)))
         jobs (0, 0, 0, 0);
@@ -248,12 +250,13 @@ fun cancel (Queue {groups, jobs}) group =
   let
     val _ = cancel_group group Exn.Interrupt;
     val running =
-      Tasks.fold (fn (task, _) =>
-          (case get_job jobs task of Running thread => cons (task, thread) | _ => I))
-        (get_tasks groups (group_id group)) [];
-    val threads = fold (insert Thread.equal o #2) running [];
-    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
-  in map #1 running end;
+      Tasks.fold (fn (task, _) => fn (tasks, threads) =>
+          (case get_job jobs task of
+            Running thread => (task :: tasks, insert Thread.equal thread threads)
+          | Passive _ => (task :: tasks, threads)
+          | _ => (tasks, threads)))
+        (get_tasks groups (group_id group)) ([], []);
+  in running end;
 
 fun cancel_all (Queue {jobs, ...}) =
   let
@@ -266,9 +269,8 @@ fun cancel_all (Queue {jobs, ...}) =
           Running t => (insert eq_group group groups, insert Thread.equal t running)
         | _ => (groups, running))
       end;
-    val (running_groups, running) = Task_Graph.fold cancel_job jobs ([], []);
-    val _ = List.app Simple_Thread.interrupt_unsynchronized running;
-  in running_groups end;
+    val running = Task_Graph.fold cancel_job jobs ([], []);
+  in running end;
 
 
 (* finish *)
@@ -278,7 +280,7 @@ fun finish task (Queue {groups, jobs}) =
     val group = group_of_task task;
     val groups' = fold_groups (fn g => del_task (group_id g, task)) group groups;
     val jobs' = Task_Graph.del_node task jobs;
-    val maximal = null (Task_Graph.imm_succs jobs task);
+    val maximal = Task_Graph.is_maximal jobs task;
   in (maximal, make_queue groups' jobs') end;
 
 
@@ -342,7 +344,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
           else
             let val entry as (_, (ds, _)) = #2 (Task_Graph.get_entry jobs task) in
               (case ready_job task entry of
-                NONE => ready_dep (Tasks.update (task, ()) seen) (ds @ tasks)
+                NONE => ready_dep (Tasks.update (task, ()) seen) (Task_Graph.Keys.dest ds @ tasks)
               | some => some)
             end;
 

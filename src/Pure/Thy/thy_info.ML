@@ -113,10 +113,6 @@ val get_deps = #1 o get_thy;
 val is_finished = is_none o get_deps;
 val master_directory = master_dir o get_deps;
 
-fun get_parents name =
-  thy_graph Graph.imm_preds name handle Graph.UNDEF _ =>
-    error (loader_msg "nothing known about theory" [name]);
-
 
 (* access theory *)
 
@@ -129,6 +125,8 @@ fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
+
+val get_imports = Thy_Load.imports_of o get_theory;
 
 fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
   (case get_deps name of
@@ -242,7 +240,7 @@ fun load_thy initiators update_time deps text name parents =
 
 fun check_deps dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_parents name)
+    SOME NONE => (true, NONE, get_imports name)
   | NONE =>
       let val {master, text, imports, ...} = Thy_Load.check_thy dir name
       in (false, SOME (make_deps master imports, text), imports) end

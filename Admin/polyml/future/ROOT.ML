@@ -78,7 +78,6 @@ use "General/alist.ML";
 use "General/table.ML";
 use "General/graph.ML";
 use "General/ord_list.ML";
-use "General/balanced_tree.ML";
 
 structure Position =
 struct

@@ -145,7 +145,8 @@ fun edit_nodes (name, node_edit) (Version nodes) =
               |> default_node name
               |> fold default_node parents;
             val nodes2 = nodes1
-              |> fold (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
+              |> Graph.Keys.fold
+                  (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
             val (header', nodes3) =
               (header, Graph.add_deps_acyclic (name, parents) nodes2)
                 handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
@@ -371,7 +372,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                         |> set_result result;
                     in ((assigns, execs, [(name, node')]), node') end)
               end))
-      |> Future.join_results |> Par_Exn.release_all |> map #1;
+      |> Future.joins |> map #1;
 
     val state' = state
       |> fold (fold define_exec o #2) updates

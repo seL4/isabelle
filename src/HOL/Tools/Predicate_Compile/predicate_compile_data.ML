@@ -303,7 +303,7 @@ fun present_graph gr =
     val mapping = Termtab.empty |> fold (fn consts => fold (fn const =>
       Termtab.update (const, consts)) consts) constss;
     fun succs consts = consts
-      |> maps (Term_Graph.imm_succs gr)
+      |> maps (Term_Graph.immediate_succs gr)
       |> subtract eq_cname consts
       |> map (the o Termtab.lookup mapping)
       |> distinct (eq_list eq_cname);

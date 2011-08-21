@@ -95,9 +95,10 @@ sig
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
-  val join_proofs: thm list -> unit
+  val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
+  val join_proofs: thm list -> unit
   val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val derivation_name: thm -> string
@@ -491,8 +492,8 @@ fun deriv_rule2 f
     (Deriv {promises = ps2, body = PBody {oracles = oras2, thms = thms2, proof = prf2}}) =
   let
     val ps = Ord_List.union promise_ord ps1 ps2;
-    val oras = Proofterm.merge_oracles oras1 oras2;
-    val thms = Proofterm.merge_thms thms1 thms2;
+    val oras = Proofterm.unions_oracles [oras1, oras2];
+    val thms = Proofterm.unions_thms [thms1, thms2];
     val prf =
       (case ! Proofterm.proofs of
         2 => f prf1 prf2
@@ -510,17 +511,29 @@ fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, pr
 
 (* fulfilled proofs *)
 
-fun raw_body (Thm (Deriv {body, ...}, _)) = body;
+fun raw_body_of (Thm (Deriv {body, ...}, _)) = body;
+fun raw_promises_of (Thm (Deriv {promises, ...}, _)) = promises;
+
+fun join_promises [] = ()
+  | join_promises promises = join_promises_of (Future.joins (map snd promises))
+and join_promises_of thms = join_promises (maps raw_promises_of thms);
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  Proofterm.fulfill_norm_proof (Theory.deref thy_ref)
-    (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
-and fulfill_bodies futures = map fulfill_body (Par_Exn.release_all (Future.join_results futures));
+  Proofterm.fulfill_norm_proof (Theory.deref thy_ref) (fulfill_promises promises) body
+and fulfill_promises promises =
+  map fst promises ~~ map fulfill_body (Future.joins (map snd promises));
 
-fun join_proofs thms = ignore (map fulfill_body thms);
+fun proof_bodies_of thms =
+  let
+    val _ = join_promises_of thms;
+    val bodies = map fulfill_body thms;
+    val _ = Proofterm.join_bodies bodies;
+  in bodies end;
 
-fun proof_body_of thm = (Proofterm.join_body (raw_body thm); fulfill_body thm);
+val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
+
+val join_proofs = ignore o proof_bodies_of;
 
 
 (* derivation status *)
@@ -529,7 +542,7 @@ fun status_of (Thm (Deriv {promises, body}, _)) =
   let
     val ps = map (Future.peek o snd) promises;
     val bodies = body ::
-      map_filter (fn SOME (Exn.Res th) => SOME (raw_body th) | _ => NONE) ps;
+      map_filter (fn SOME (Exn.Res th) => SOME (raw_body_of th) | _ => NONE) ps;
     val {oracle, unfinished, failed} = Proofterm.status_of bodies;
   in
    {oracle = oracle,
@@ -552,7 +565,7 @@ fun future_result i orig_thy orig_shyps orig_prop thm =
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
     val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
-    val _ = fulfill_bodies (map #2 promises);
+    val _ = join_promises promises;
   in thm end;
 
 fun future future_thm ct =

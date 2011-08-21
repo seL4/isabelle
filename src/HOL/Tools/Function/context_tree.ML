@@ -205,7 +205,7 @@ fun fold_deps G f x =
         SOME _ => (T, x)
       | NONE =>
         let
-          val (T', x') = fold fill_table (Int_Graph.imm_succs G i) (T, x)
+          val (T', x') = Int_Graph.Keys.fold fill_table (Int_Graph.imm_succs G i) (T, x)
           val (v, x'') = f (the o Inttab.lookup T') i x'
         in
           (Inttab.update (i, v) T', x'')
@@ -226,7 +226,7 @@ fun traverse_tree rcOp tr =
             fun sub_step lu i x =
               let
                 val (ctxt', subtree) = nth branches i
-                val used = fold_rev (append o lu) (Int_Graph.imm_succs deps i) u
+                val used = Int_Graph.Keys.fold_rev (append o lu) (Int_Graph.imm_succs deps i) u
                 val (subs, x') = traverse_help (compose ctxt ctxt') subtree used x
                 val exported_subs = map (apfst (compose ctxt')) subs (* FIXME: Right order of composition? *)
               in
@@ -264,7 +264,7 @@ fun rewrite_by_tree thy h ih x tr =
           fun sub_step lu i x =
             let
               val ((fixes, assumes), st) = nth branches i
-              val used = map lu (Int_Graph.imm_succs deps i)
+              val used = map lu (Int_Graph.immediate_succs deps i)
                 |> map (fn u_eq => (u_eq RS sym) RS eq_reflection)
                 |> filter_out Thm.is_reflexive
 

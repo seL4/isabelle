@@ -1598,7 +1598,7 @@ subsection {* Image *}
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
   "image_mset f = fold_mset (op + o single o f) {#}"
 
-interpretation image_fun_commute: comp_fun_commute "op + o single o f"
+interpretation image_fun_commute: comp_fun_commute "op + o single o f" for f
 proof qed (simp add: add_ac fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"

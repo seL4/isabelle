@@ -471,7 +471,7 @@ fun compile_program thy program =
       then (nbe_program, (maxidx, idx_tab))
       else (nbe_program, (maxidx, idx_tab))
         |> compile_stmts thy (map (fn name => ((name, Graph.get_node program name),
-          Graph.imm_succs program name)) names);
+          Graph.immediate_succs program name)) names);
   in
     fold_rev add_stmts (Graph.strong_conn program)
   end;

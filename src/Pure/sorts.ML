@@ -128,7 +128,7 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 fun all_classes (Algebra {classes, ...}) = Graph.all_preds classes (Graph.maximals classes);
 
-val super_classes = Graph.imm_succs o classes_of;
+val super_classes = Graph.immediate_succs o classes_of;
 
 
 (* class relations *)
@@ -413,7 +413,7 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
       end;
 
     fun derive (_, []) = []
-      | derive (T as Type (a, Us), S) =
+      | derive (Type (a, Us), S) =
           let
             val Ss = mg_domain algebra a S;
             val dom = map2 (fn U => fn S => derive (U, S) ~~ S) Us Ss;

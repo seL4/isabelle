@@ -54,19 +54,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Prover status"
 
-  private val interrupt = new Button("Interrupt") {
-    reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
-  }
-  interrupt.tooltip = "Broadcast interrupt to all prover tasks"
-
   private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
   logic.listenTo(logic.selection)
   logic.reactions += {
     case SelectionChanged(_) => Isabelle.Property("logic") = logic.selection.item.name
   }
 
-  private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, interrupt, logic)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(session_phase, logic)
   add(controls.peer, BorderLayout.NORTH)
 
 

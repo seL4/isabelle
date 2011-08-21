@@ -43,7 +43,7 @@ fun par_exns (Par_Exn exns) = exns
   | par_exns exn = if Exn.is_interrupt exn then [] else [#2 (serial exn)];
 
 fun make exns =
-  (case Balanced_Tree.make (Ord_List.merge exn_ord) ([] :: map par_exns exns) of
+  (case Ord_List.unions exn_ord (map par_exns exns) of
     [] => Exn.Interrupt
   | es => Par_Exn es);
 

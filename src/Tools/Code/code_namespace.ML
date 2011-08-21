@@ -86,7 +86,8 @@ fun flat_program labelled_name { module_alias, module_prefix, reserved,
       end;
     val proto_program = Graph.empty
       |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
-      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+      |> Graph.fold (fn (name, (_, (_, names))) =>
+          Graph.Keys.fold (add_dependency name) names) program;
 
     (* name declarations and statement modifications *)
     fun declare name (base, stmt) (gr, nsp) = 
@@ -191,7 +192,8 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
       in (map_module name_fragments_common o apsnd) add_edge end;
     val proto_program = empty_program
       |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
-      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+      |> Graph.fold (fn (name, (_, (_, names))) =>
+          Graph.Keys.fold (add_dependency name) names) program;
 
     (* name declarations, data and statement modifications *)
     fun make_declarations nsps (data, nodes) =
