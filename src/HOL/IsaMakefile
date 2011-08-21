@@ -70,7 +70,6 @@ test: \
   HOL-SPARK-Examples \
   HOL-Word-SMT_Examples \
   HOL-Statespace \
-  HOL-Subst \
       TLA-Buffer \
       TLA-Inc \
       TLA-Memory \
@@ -494,15 +493,6 @@ $(LOG)/HOL-Hahn_Banach.gz: $(OUT)/HOL Hahn_Banach/Bounds.thy		\
   Hahn_Banach/Vector_Space.thy Hahn_Banach/Zorn_Lemma.thy		\
   Hahn_Banach/document/root.bib Hahn_Banach/document/root.tex
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hahn_Banach
-
-
-## HOL-Subst
-
-HOL-Subst: HOL $(LOG)/HOL-Subst.gz
-
-$(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy Subst/ROOT.ML		\
-  Subst/Subst.thy Subst/UTerm.thy Subst/Unifier.thy Subst/Unify.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Subst
 
 
 ## HOL-Induct
@@ -1754,7 +1744,7 @@ clean:
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
 		$(LOG)/HOL-Word-SMT_Examples.gz				\
 		$(LOG)/HOL-SPARK.gz $(LOG)/HOL-SPARK-Examples.gz	\
-		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
+		$(LOG)/HOL-Statespace.gz				\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
 		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
