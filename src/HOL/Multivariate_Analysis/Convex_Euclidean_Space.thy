@@ -258,33 +258,8 @@ from this show ?thesis using closure_linear_image[of f S] assms by auto
 qed
 
 lemma closure_direct_sum:
-fixes S :: "('n::real_normed_vector) set"
-fixes T :: "('m::real_normed_vector) set"
 shows "closure (S <*> T) = closure S <*> closure T"
-proof-
-{ fix x assume "x : closure S <*> closure T"
-  from this obtain xs xt where xst_def: "xs : closure S & xt : closure T & (xs,xt) = x" by auto
-  { fix ee assume ee_def: "(ee :: real) > 0"
-    def e == "ee/2" hence e_def: "(e :: real)>0 & 2*e=ee" using ee_def by auto
-    from this obtain e where e_def: "(e :: real)>0 & 2*e=ee" by auto
-    obtain ys where ys_def: "ys : S & (dist ys xs < e)"
-      using e_def xst_def closure_approachable[of xs S] by auto
-    obtain yt where yt_def: "yt : T & (dist yt xt < e)"
-      using e_def xst_def closure_approachable[of xt T] by auto
-    from ys_def yt_def have "dist (ys,yt) (xs,xt) < sqrt (2*e^2)" 
-      unfolding dist_norm apply (auto simp add: norm_Pair) 
-      using mult_strict_mono'[of "norm (ys - xs)" e "norm (ys - xs)" e] e_def
-      mult_strict_mono'[of "norm (yt - xt)" e "norm (yt - xt)" e] by (simp add: power2_eq_square)
-    hence "((ys,yt) : S <*> T) & (dist (ys,yt) x < 2*e)"
-      using e_def sqrt_add_le_add_sqrt[of "e^2" "e^2"] xst_def ys_def yt_def by auto
-    hence "EX y: S <*> T. dist y x < ee" using e_def by auto
-  } hence "x : closure (S <*> T)" using closure_approachable[of x "S <*> T"] by auto
-}
-hence "closure (S <*> T) >= closure S <*> closure T" by auto
-moreover have "closed (closure S <*> closure T)" using closed_Times by auto
-ultimately show ?thesis using closure_minimal[of "S <*> T" "closure S <*> closure T"]
-  closure_subset[of S] closure_subset[of T] by auto
-qed
+  by (rule closure_Times)
 
 lemma closure_scaleR:  (* TODO: generalize to real_normed_vector *)
 fixes S :: "('n::euclidean_space) set"

@@ -622,6 +622,23 @@ next
   qed
 qed
 
+lemma interior_Times: "interior (A \<times> B) = interior A \<times> interior B"
+proof (rule interior_unique)
+  show "interior A \<times> interior B \<subseteq> A \<times> B"
+    by (intro Sigma_mono interior_subset)
+  show "open (interior A \<times> interior B)"
+    by (intro open_Times open_interior)
+  show "\<forall>T. T \<subseteq> A \<times> B \<and> open T \<longrightarrow> T \<subseteq> interior A \<times> interior B"
+    apply (simp add: open_prod_def, clarify)
+    apply (drule (1) bspec, clarify, rename_tac C D)
+    apply (simp add: interior_def, rule conjI)
+    apply (rule_tac x=C in exI, clarsimp)
+    apply (rule SigmaD1, erule subsetD, erule subsetD, erule (1) SigmaI)
+    apply (rule_tac x=D in exI, clarsimp)
+    apply (rule SigmaD2, erule subsetD, erule subsetD, erule (1) SigmaI)
+    done
+qed
+
 
 subsection {* Closure of a Set *}
 
@@ -792,6 +809,23 @@ qed
 lemma interior_complement: "interior(- S) = - closure(S)"
   unfolding closure_interior
   by blast
+
+lemma closure_Times: "closure (A \<times> B) = closure A \<times> closure B"
+proof (intro closure_unique conjI)
+  show "A \<times> B \<subseteq> closure A \<times> closure B"
+    by (intro Sigma_mono closure_subset)
+  show "closed (closure A \<times> closure B)"
+    by (intro closed_Times closed_closure)
+  show "\<forall>T. A \<times> B \<subseteq> T \<and> closed T \<longrightarrow> closure A \<times> closure B \<subseteq> T"
+    apply (simp add: closed_def open_prod_def, clarify)
+    apply (rule ccontr)
+    apply (drule_tac x="(a, b)" in bspec, simp, clarify, rename_tac C D)
+    apply (simp add: closure_interior interior_def)
+    apply (drule_tac x=C in spec)
+    apply (drule_tac x=D in spec)
+    apply auto
+    done
+qed
 
 
 subsection {* Frontier (aka boundary) *}
