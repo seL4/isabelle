@@ -31,6 +31,8 @@ sig
     Guards of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
+  datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
+
   val no_lambdasN : string
   val concealedN : string
   val liftingN : string
@@ -96,8 +98,8 @@ sig
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> format -> formula_kind -> formula_kind -> type_enc -> bool
-    -> bool -> string -> bool -> bool -> term list -> term
+    Proof.context -> format -> formula_kind -> formula_kind -> type_enc
+    -> soundness -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
@@ -621,6 +623,9 @@ fun choose_format formats (Simple_Types (order, level)) =
                        stuff
                  | _ => type_enc)
      | format => (format, type_enc))
+
+(* Soundness controls how sound the "quasi-sound" encodings should be. *)
+datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
 
 fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
@@ -1770,7 +1775,7 @@ val known_infinite_types =
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
 fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
-  | add_iterm_nonmonotonic_types ctxt level sound locality _
+  | add_iterm_nonmonotonic_types ctxt level soundness locality _
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2)) =
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
@@ -1779,22 +1784,25 @@ fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
         (* Unlike virtually any other polymorphic fact whose type variables can
            be instantiated by a known infinite type, extensionality actually
            encodes a cardinality constraints. *)
-        not (not sound andalso
+        not (soundness <> Sound andalso
              is_type_surely_infinite ctxt
-                 (if locality = Extensionality then []
-                  else known_infinite_types) T)
+                 (if locality = Extensionality orelse
+                     soundness = Sound_Modulo_Infiniteness then
+                    []
+                  else
+                    known_infinite_types) T)
       | Fin_Nonmono_Types => is_type_surely_finite ctxt T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_iterm_nonmonotonic_types _ _ _ _ _ _ = I
-fun add_fact_nonmonotonic_types ctxt level sound
+fun add_fact_nonmonotonic_types ctxt level soundness
         ({kind, locality, iformula, ...} : translated_formula) =
   formula_fold (SOME (kind <> Conjecture))
-               (add_iterm_nonmonotonic_types ctxt level sound locality)
+               (add_iterm_nonmonotonic_types ctxt level soundness locality)
                iformula
-fun nonmonotonic_types_for_facts ctxt type_enc sound facts =
+fun nonmonotonic_types_for_facts ctxt type_enc soundness facts =
   let val level = level_of_type_enc type_enc in
     if level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types then
-      [] |> fold (add_fact_nonmonotonic_types ctxt level sound) facts
+      [] |> fold (add_fact_nonmonotonic_types ctxt level soundness) facts
          (* We must add "bool" in case the helper "True_or_False" is added
             later. In addition, several places in the code rely on the list of
             nonmonotonic types not being empty. (FIXME?) *)
@@ -1972,7 +1980,7 @@ val free_typesN = "Type variables"
 
 val explicit_apply = NONE (* for experiments *)
 
-fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
+fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc soundness
         exporter lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_enc) = choose_format [format] type_enc
@@ -2008,7 +2016,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc sound
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val nonmono_Ts =
-      conjs @ facts |> nonmonotonic_types_for_facts ctxt type_enc sound
+      conjs @ facts |> nonmonotonic_types_for_facts ctxt type_enc soundness
     val repair = repair_fact ctxt format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab =

@@ -65,6 +65,7 @@ sig
   val measure_run_time : bool Config.T
   val atp_lambda_translation : string Config.T
   val atp_readable_names : bool Config.T
+  val atp_sound_modulo_infiniteness : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -341,10 +342,13 @@ val atp_lambda_translation =
   Attrib.setup_config_string @{binding sledgehammer_atp_lambda_translation}
                              (K smartN)
 (* In addition to being easier to read, readable names are often much shorter,
-   especially if types are mangled in names. For these reason, they are enabled
-   by default. *)
+   especially if types are mangled in names. This makes a difference for some
+   provers (e.g., E). For these reason, short names are enabled by default. *)
 val atp_readable_names =
   Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
+val atp_sound_modulo_infiniteness =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_sound_modulo_infiniteness}
+                           (K true)
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -642,10 +646,18 @@ fun run_atp mode name
                     |> Output.urgent_message
                   else
                     ()
+                val soundness =
+                  if sound then
+                    if Config.get ctxt atp_sound_modulo_infiniteness then
+                      Sound_Modulo_Infiniteness
+                    else
+                      Sound
+                  else
+                    Unsound
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc sound false
+                      type_enc soundness false
                       (Config.get ctxt atp_lambda_translation)
                       (Config.get ctxt atp_readable_names) true hyp_ts concl_t
                       facts
