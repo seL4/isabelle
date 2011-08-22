@@ -29,8 +29,8 @@ val header_lexicon = Scan.make_lexicon
 
 (* header args *)
 
-val file_name = Parse.group "file name" Parse.name;
-val theory_name = Parse.group "theory name" Parse.name;
+val file_name = Parse.group (fn () => "file name") Parse.name;
+val theory_name = Parse.group (fn () => "theory name") Parse.name;
 
 val file =
   Parse.$$$ "(" |-- Parse.!!! (file_name --| Parse.$$$ ")") >> rpair false ||

@@ -8,7 +8,7 @@ signature PARSE =
 sig
   type 'a parser = Token.T list -> 'a * Token.T list
   type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic * Token.T list)
-  val group: string -> (Token.T list -> 'a) -> Token.T list -> 'a
+  val group: (unit -> string) -> (Token.T list -> 'a) -> Token.T list -> 'a
   val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val !!!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
@@ -114,17 +114,15 @@ type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic
 
 (* group atomic parsers (no cuts!) *)
 
-fun fail_with s = Scan.fail_with
-  (fn [] => (fn () => s ^ " expected (past end-of-file!)")
+fun group s scan = scan || Scan.fail_with
+  (fn [] => (fn () => s () ^ " expected (past end-of-file!)")
     | tok :: _ =>
         (fn () =>
           (case Token.text_of tok of
             (txt, "") =>
-              s ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
+              s () ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
           | (txt1, txt2) =>
-              s ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2)));
-
-fun group s scan = scan || fail_with s;
+              s () ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2)));
 
 
 (* cut *)
@@ -170,7 +168,8 @@ fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.source_of;
 
 fun kind k =
-  group (Token.str_of_kind k) (RESET_VALUE (Scan.one (Token.is_kind k) >> Token.content_of));
+  group (fn () => Token.str_of_kind k)
+    (RESET_VALUE (Scan.one (Token.is_kind k) >> Token.content_of));
 
 val command = kind Token.Command;
 val keyword = kind Token.Keyword;
@@ -192,10 +191,11 @@ fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token
 val keyword_ident_or_symbolic = keyword_with Token.ident_or_symbolic;
 
 fun $$$ x =
-  group (Token.str_of_kind Token.Keyword ^ " " ^ quote x) (keyword_with (fn y => x = y));
+  group (fn () => Token.str_of_kind Token.Keyword ^ " " ^ quote x)
+    (keyword_with (fn y => x = y));
 
 fun reserved x =
-  group ("reserved identifier " ^ quote x)
+  group (fn () => "reserved identifier " ^ quote x)
     (RESET_VALUE (Scan.one (Token.ident_with (fn y => x = y)) >> Token.content_of));
 
 val semicolon = $$$ ";";
@@ -208,7 +208,7 @@ val nat = number >> (#1 o Library.read_int o Symbol.explode);
 val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
 val real = float_number >> (the o Real.fromString) || int >> Real.fromInt;
 
-val tag_name = group "tag name" (short_ident || string);
+val tag_name = group (fn () => "tag name") (short_ident || string);
 val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
@@ -240,11 +240,17 @@ val properties = $$$ "(" |-- !!! (list (string -- ($$$ "=" |-- string)) --| $$$ 
 
 (* names and text *)
 
-val name = group "name declaration" (short_ident || sym_ident || string || number);
+val name = group (fn () => "name declaration") (short_ident || sym_ident || string || number);
+
 val binding = position name >> Binding.make;
-val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
-val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
-val path = group "file name/path specification" name >> Path.explode;
+
+val xname = group (fn () => "name reference")
+  (short_ident || long_ident || sym_ident || string || number);
+
+val text = group (fn () => "text")
+  (short_ident || long_ident || sym_ident || string || number || verbatim);
+
+val path = group (fn () => "file name/path specification") name >> Path.explode;
 
 val liberal_name = keyword_ident_or_symbolic || xname;
 
@@ -254,7 +260,7 @@ val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
 
 (* sorts and arities *)
 
-val sort = group "sort" (inner_syntax xname);
+val sort = group (fn () => "sort") (inner_syntax xname);
 
 val arity = xname -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
@@ -265,8 +271,9 @@ val multi_arity = and_list1 xname -- ($$$ "::" |-- !!!
 
 (* types *)
 
-val typ_group = group "type"
-  (short_ident || long_ident || sym_ident || type_ident || type_var || string || number);
+val typ_group =
+  group (fn () => "type")
+    (short_ident || long_ident || sym_ident || type_ident || type_var || string || number);
 
 val typ = inner_syntax typ_group;
 
@@ -324,24 +331,24 @@ val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 (* embedded source text *)
 
-val ML_source = source_position (group "ML source" text);
-val doc_source = source_position (group "document source" text);
+val ML_source = source_position (group (fn () => "ML source") text);
+val doc_source = source_position (group (fn () => "document source") text);
 
 
 (* terms *)
 
 val tm = short_ident || long_ident || sym_ident || term_var || number || string;
 
-val term_group = group "term" tm;
-val prop_group = group "proposition" tm;
+val term_group = group (fn () => "term") tm;
+val prop_group = group (fn () => "proposition") tm;
 
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
 
-val type_const = inner_syntax (group "type constructor" xname);
-val const = inner_syntax (group "constant" xname);
+val type_const = inner_syntax (group (fn () => "type constructor") xname);
+val const = inner_syntax (group (fn () => "constant") xname);
 
-val literal_fact = inner_syntax (group "literal fact" alt_string);
+val literal_fact = inner_syntax (group (fn () => "literal fact") alt_string);
 
 
 (* patterns *)

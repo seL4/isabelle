@@ -14,9 +14,10 @@ import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, Line
 import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
-import org.gjt.sp.jedit.Mode
+import org.gjt.sp.jedit.{jEdit, Mode}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler,
   ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 
 import javax.swing.text.Segment
 
@@ -79,10 +80,14 @@ object Token_Markup
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
 
+  private def hidden_color: Color = new Color(255, 255, 255, 0)
+
   class Style_Extender extends SyntaxUtilities.StyleExtender
   {
-    if (Symbol.font_names.length > 2)
-      error("Too many user symbol fonts (max 2 permitted): " + Symbol.font_names.mkString(", "))
+    val max_user_fonts = 2
+    if (Symbol.font_names.length > max_user_fonts)
+      error("Too many user symbol fonts (max " + max_user_fonts + " permitted): " +
+        Symbol.font_names.mkString(", "))
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
@@ -93,11 +98,13 @@ object Token_Markup
         new_styles(subscript(i.toByte)) = script_style(style, -1)
         new_styles(superscript(i.toByte)) = script_style(style, 1)
         new_styles(bold(i.toByte)) = bold_style(style)
+        for (idx <- 0 until max_user_fonts)
+          new_styles(user_font(idx, i.toByte)) = style
         for ((family, idx) <- Symbol.font_index)
           new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
       }
       new_styles(hidden) =
-        new SyntaxStyle(Color.white, null,
+        new SyntaxStyle(hidden_color, null,
           { val font = styles(0).getFont
             transform_font(new Font(font.getFamily, 0, 1),
               AffineTransform.getScaleInstance(1.0, font.getSize.toDouble)) })
@@ -144,7 +151,7 @@ object Token_Markup
 
   private val isabelle_rules = new ParserRuleSet("isabelle", "MAIN")
 
-  private class Line_Context(val context: Scan.Context)
+  private class Line_Context(val context: Option[Scan.Context])
     extends TokenMarker.LineContext(isabelle_rules, null)
   {
     override def hashCode: Int = context.hashCode
@@ -160,17 +167,17 @@ object Token_Markup
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, line: Segment): TokenMarker.LineContext =
     {
+      val line_ctxt =
+        context match {
+          case c: Line_Context => c.context
+          case _ => Some(Scan.Finished)
+        }
       val context1 =
-        if (Isabelle.session.is_ready) {
+        if (line_ctxt.isDefined && Isabelle.session.is_ready) {
           val syntax = Isabelle.session.current_syntax()
     
-          val ctxt =
-            context match {
-              case c: Line_Context => c.context
-              case _ => Scan.Finished
-            }
-          val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
-          val context1 = new Line_Context(ctxt1)
+          val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+          val context1 = new Line_Context(Some(ctxt1))
     
           val extended = extended_styles(line)
     
@@ -196,7 +203,7 @@ object Token_Markup
           context1
         }
         else {
-          val context1 = new Line_Context(Scan.Finished)
+          val context1 = new Line_Context(None)
           handler.handleToken(line, JEditToken.NULL, 0, line.count, context1)
           handler.handleToken(line, JEditToken.END, line.count, 0, context1)
           context1
@@ -210,11 +217,11 @@ object Token_Markup
 
   /* mode provider */
 
+  private val isabelle_token_marker = new Token_Markup.Marker
+
   class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider
   {
     for (mode <- orig_provider.getModes) addMode(mode)
-
-    val isabelle_token_marker = new Token_Markup.Marker
 
     override def loadMode(mode: Mode, xmh: XModeHandler)
     {
@@ -222,6 +229,13 @@ object Token_Markup
       if (mode.getName == "isabelle")
         mode.setTokenMarker(isabelle_token_marker)
     }
+  }
+
+  def refresh_buffer(buffer: JEditBuffer)
+  {
+    buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
+    buffer.setTokenMarker(isabelle_token_marker)
+    buffer.propertiesChanged
   }
 }
 
