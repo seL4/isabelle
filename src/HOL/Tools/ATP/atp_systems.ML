@@ -290,6 +290,7 @@ val spass_config : atp_config =
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
+      (Unprovable, "No formulae and clauses found in input file"),
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
    conj_sym_kind = Hypothesis,
