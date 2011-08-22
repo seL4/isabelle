@@ -167,7 +167,7 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
   let
-    val type_enc = type_enc_from_string Sound type_enc
+    val type_enc = type_enc_from_string Unsound type_enc
     val (conj_clauses, fact_clauses) =
       if polymorphism_of_type_enc type_enc = Polymorphic then
         (conj_clauses, fact_clauses)
@@ -202,7 +202,7 @@ fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
     *)
-    (* "rev" is for compatibility *)
+    (* "rev" is for compatibility. *)
     val axioms =
       atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)
                   |> rev
