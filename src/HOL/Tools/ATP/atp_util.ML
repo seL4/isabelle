@@ -15,6 +15,9 @@ sig
   val maybe_quote : string -> string
   val string_from_ext_time : bool * Time.time -> string
   val string_from_time : Time.time -> string
+  val type_instance : Proof.context -> typ -> typ -> bool
+  val type_generalization : Proof.context -> typ -> typ -> bool
+  val type_aconv : Proof.context -> typ * typ -> bool
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
@@ -22,7 +25,7 @@ sig
     Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
     -> typ
   val is_type_surely_finite : Proof.context -> typ -> bool
-  val is_type_surely_infinite : Proof.context -> typ list -> typ -> bool
+  val is_type_surely_infinite : Proof.context -> bool -> typ list -> typ -> bool
   val s_not : term -> term
   val s_conj : term * term -> term
   val s_disj : term * term -> term
@@ -111,6 +114,12 @@ fun string_from_ext_time (plus, time) =
 
 val string_from_time = string_from_ext_time o pair false
 
+fun type_instance ctxt T T' =
+  Sign.typ_instance (Proof_Context.theory_of ctxt) (T, T')
+fun type_generalization ctxt T T' = type_instance ctxt T' T
+fun type_aconv ctxt (T, T') =
+  type_instance ctxt T T' andalso type_instance ctxt T' T
+
 fun varify_type ctxt T =
   Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
   |> snd |> the_single |> dest_Const |> snd
@@ -149,14 +158,16 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
    cardinality 2 or more. The specified default cardinality is returned if the
    cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt assigns default_card T =
+fun tiny_card_of_type ctxt inst_tvars assigns default_card T =
   let
     val thy = Proof_Context.theory_of ctxt
     val max = 2 (* 1 would be too small for the "fun" case *)
+    val type_cmp =
+      if inst_tvars then uncurry (type_generalization ctxt) else type_aconv ctxt
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case AList.lookup (Sign.typ_instance thy o swap) assigns T of
+      else case AList.lookup type_cmp assigns T of
         SOME k => k
       | NONE =>
         case T of
@@ -208,9 +219,9 @@ fun tiny_card_of_type ctxt assigns default_card T =
         | TVar _ => default_card
   in Int.min (max, aux false [] T) end
 
-fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt [] 0 T <> 0
-fun is_type_surely_infinite ctxt infinite_Ts T =
-  tiny_card_of_type ctxt (map (rpair 0) infinite_Ts) 1 T = 0
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt false [] 0 T <> 0
+fun is_type_surely_infinite ctxt inst_tvars infinite_Ts T =
+  tiny_card_of_type ctxt inst_tvars (map (rpair 0) infinite_Ts) 1 T = 0
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)

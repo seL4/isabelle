@@ -165,6 +165,12 @@ fun is_conjecture_used_in_proof conjecture_shape =
   exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
+(* (quasi-)underapproximation of the truth *)
+fun is_locality_global Local = false
+  | is_locality_global Assum = false
+  | is_locality_global Chained = false
+  | is_locality_global _ = true
+
 fun used_facts_in_unsound_atp_proof _ _ _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt conjecture_shape facts_offset
                                     fact_names atp_proof =
