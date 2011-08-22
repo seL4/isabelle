@@ -36,7 +36,6 @@ sig
      only : bool}
 
   val trace : bool Config.T
-  val new_monomorphizer : bool Config.T
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
   val const_names_in_fact :
@@ -70,8 +69,6 @@ val trace =
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 (* experimental features *)
-val new_monomorphizer =
-  Attrib.setup_config_bool @{binding sledgehammer_new_monomorphizer} (K false)
 val ignore_no_atp =
   Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
 val instantiate_inducts =
