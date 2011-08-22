@@ -702,17 +702,17 @@ fun type_arg_policy type_enc s =
   else case type_enc of
     Tags (_, All_Types, Heavyweight) => No_Type_Args
   | _ =>
-    if level_of_type_enc type_enc = No_Types orelse
-       s = @{const_name HOL.eq} orelse
-       (s = app_op_name andalso
-        level_of_type_enc type_enc = Const_Arg_Types) then
-      No_Type_Args
-    else
-      should_drop_arg_type_args type_enc
-      |> (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-            Mangled_Type_Args
-          else
-            Explicit_Type_Args)
+    let val level = level_of_type_enc type_enc in
+      if level = No_Types orelse s = @{const_name HOL.eq} orelse
+         (s = app_op_name andalso level = Const_Arg_Types) then
+        No_Type_Args
+      else
+        should_drop_arg_type_args type_enc
+        |> (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+              Mangled_Type_Args
+            else
+              Explicit_Type_Args)
+    end
 
 (* Make literals for sorted type variables. *)
 fun generic_add_sorts_on_type (_, []) = I
@@ -1919,7 +1919,8 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     val cst = mk_aterm format type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atyps_of T) pred_sym
-    val should_encode = should_encode_type ctxt nonmono_Ts All_Types
+    val should_encode =
+      should_encode_type ctxt nonmono_Ts (level_of_type_enc type_enc)
     val tag_with = tag_with_type ctxt format nonmono_Ts type_enc NONE
     val add_formula_for_res =
       if should_encode res_T then
@@ -1953,7 +1954,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_enc
   case type_enc of
     Simple_Types _ =>
     decls |> map (decl_line_for_sym ctxt format nonmono_Ts type_enc s)
-  | Guards _ =>
+  | Guards (_, level, _) =>
     let
       val decls =
         case decls of
@@ -1968,8 +1969,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_enc
         | _ => decls
       val n = length decls
       val decls =
-        decls |> filter (should_encode_type ctxt nonmono_Ts
-                             (level_of_type_enc type_enc)
+        decls |> filter (should_encode_type ctxt nonmono_Ts level
                          o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
