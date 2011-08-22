@@ -21,8 +21,8 @@ sig
   val typ_of_dtyp :
     Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
     -> typ
-  val is_type_surely_finite : Proof.context -> bool -> typ -> bool
-  val is_type_surely_infinite : Proof.context -> bool -> typ list -> typ -> bool
+  val is_type_surely_finite : Proof.context -> typ -> bool
+  val is_type_surely_infinite : Proof.context -> typ list -> typ -> bool
   val s_not : term -> term
   val s_conj : term * term -> term
   val s_disj : term * term -> term
@@ -149,17 +149,16 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
    cardinality 2 or more. The specified default cardinality is returned if the
    cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt sound unsound_assigns default_card T =
+fun tiny_card_of_type ctxt assigns default_card T =
   let
     val thy = Proof_Context.theory_of ctxt
     val max = 2 (* 1 would be too small for the "fun" case *)
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case (sound, AList.lookup (Sign.typ_instance thy o swap)
-                                     unsound_assigns T) of
-        (false, SOME k) => k
-      | _ =>
+      else case AList.lookup (Sign.typ_instance thy o swap) assigns T of
+        SOME k => k
+      | NONE =>
         case T of
           Type (@{type_name fun}, [T1, T2]) =>
           (case (aux slack avoid T1, aux slack avoid T2) of
@@ -198,22 +197,20 @@ fun tiny_card_of_type ctxt sound unsound_assigns default_card T =
                          (Logic.varifyT_global abs_type) T
                          (Logic.varifyT_global rep_type)
                      |> aux true avoid of
-                  0 => if sound then default_card else 0
+                  0 => 0
                 | 1 => 1
                 | _ => default_card)
              | [] => default_card)
           (* Very slightly unsound: Type variables are assumed not to be
              constrained to cardinality 1. (In practice, the user would most
              likely have used "unit" directly anyway.) *)
-        | TFree _ =>
-          if default_card = 1 andalso not sound then 2 else default_card
+        | TFree _ => if default_card = 1 then 2 else default_card
         | TVar _ => default_card
   in Int.min (max, aux false [] T) end
 
-fun is_type_surely_finite ctxt sound T =
-  tiny_card_of_type ctxt sound [] 0 T <> 0
-fun is_type_surely_infinite ctxt sound infinite_Ts T =
-  tiny_card_of_type ctxt sound (map (rpair 0) infinite_Ts) 1 T = 0
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt [] 0 T <> 0
+fun is_type_surely_infinite ctxt infinite_Ts T =
+  tiny_card_of_type ctxt (map (rpair 0) infinite_Ts) 1 T = 0
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)

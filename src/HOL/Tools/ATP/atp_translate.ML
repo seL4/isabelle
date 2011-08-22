@@ -1077,7 +1077,7 @@ fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
     exists (curry (type_instance ctxt) (deep_freeze_type T)) nonmono_Ts
   | should_encode_type _ _ All_Types _ = true
   | should_encode_type ctxt _ Fin_Nonmono_Types T =
-    is_type_surely_finite ctxt false T
+    is_type_surely_finite ctxt T
   | should_encode_type _ _ _ _ = false
 
 fun should_predicate_on_type ctxt nonmono_Ts (Guards (_, level, heaviness))
@@ -1779,10 +1779,11 @@ fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
         (* Unlike virtually any other polymorphic fact whose type variables can
            be instantiated by a known infinite type, extensionality actually
            encodes a cardinality constraints. *)
-        not (is_type_surely_infinite ctxt sound
+        not (not sound andalso
+             is_type_surely_infinite ctxt
                  (if locality = Extensionality then []
                   else known_infinite_types) T)
-      | Fin_Nonmono_Types => is_type_surely_finite ctxt false T
+      | Fin_Nonmono_Types => is_type_surely_finite ctxt T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_iterm_nonmonotonic_types _ _ _ _ _ _ = I
 fun add_fact_nonmonotonic_types ctxt level sound
@@ -1829,8 +1830,8 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind nonmono_Ts
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val sym_needs_arg_types = exists (curry (op =) dummyT) T_args
     fun should_keep_arg_type T =
-      sym_needs_arg_types orelse
-      not (should_predicate_on_type ctxt nonmono_Ts type_enc (K false) T)
+      sym_needs_arg_types andalso
+      should_predicate_on_type ctxt nonmono_Ts type_enc (K true) T
     val bound_Ts =
       arg_Ts |> map (fn T => if should_keep_arg_type T then SOME T else NONE)
   in

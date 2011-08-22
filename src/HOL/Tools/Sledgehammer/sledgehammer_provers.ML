@@ -498,7 +498,7 @@ fun has_bound_or_var_of_type pred =
    are omitted. *)
 fun is_dangerous_prop ctxt =
   transform_elim_prop
-  #> (has_bound_or_var_of_type (is_type_surely_finite ctxt false) orf
+  #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf
       is_exhaustive_finite)
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
