@@ -21,8 +21,12 @@ sig
 
   datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+  datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
   datatype type_level =
-    All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
+    All_Types |
+    Noninf_Nonmono_Types of soundness |
+    Fin_Nonmono_Types |
+    Const_Arg_Types |
     No_Types
   datatype type_heaviness = Heavyweight | Lightweight
 
@@ -30,8 +34,6 @@ sig
     Simple_Types of order * type_level |
     Guards of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
-
-  datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
 
   val no_lambdasN : string
   val concealedN : string
@@ -84,11 +86,11 @@ sig
   val atp_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_locality_global : locality -> bool
-  val type_enc_from_string : string -> type_enc
+  val type_enc_from_string : soundness -> string -> type_enc
   val is_type_enc_higher_order : type_enc -> bool
   val polymorphism_of_type_enc : type_enc -> polymorphism
   val level_of_type_enc : type_enc -> type_level
-  val is_type_enc_virtually_sound : type_enc -> bool
+  val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
   val choose_format : format list -> type_enc -> format * type_enc
   val mk_aconns :
@@ -99,7 +101,7 @@ sig
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_enc
-    -> soundness -> bool -> string -> bool -> bool -> term list -> term
+    -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
@@ -527,8 +529,12 @@ fun is_locality_global Local = false
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
 datatype type_level =
-  All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
+  All_Types |
+  Noninf_Nonmono_Types of soundness |
+  Fin_Nonmono_Types |
+  Const_Arg_Types |
   No_Types
 datatype type_heaviness = Heavyweight | Lightweight
 
@@ -540,7 +546,7 @@ datatype type_enc =
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
-fun type_enc_from_string s =
+fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
    | NONE =>
@@ -554,7 +560,7 @@ fun type_enc_from_string s =
           (* "_query" and "_bang" are for the ASCII-challenged Metis and
              Mirabelle. *)
           case try_unsuffixes ["?", "_query"] s of
-            SOME s => (Noninf_Nonmono_Types, s)
+            SOME s => (Noninf_Nonmono_Types soundness, s)
           | NONE =>
             case try_unsuffixes ["!", "_bang"] s of
               SOME s => (Fin_Nonmono_Types, s)
@@ -568,8 +574,9 @@ fun type_enc_from_string s =
            ("simple", (NONE, _, Lightweight)) =>
            Simple_Types (First_Order, level)
          | ("simple_higher", (NONE, _, Lightweight)) =>
-           if level = Noninf_Nonmono_Types then raise Same.SAME
-           else Simple_Types (Higher_Order, level)
+           (case level of
+              Noninf_Nonmono_Types _ => raise Same.SAME
+            | _ => Simple_Types (Higher_Order, level))
          | ("guards", (SOME poly, _, _)) => Guards (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, heaviness)
@@ -596,14 +603,19 @@ fun heaviness_of_type_enc (Simple_Types _) = Heavyweight
   | heaviness_of_type_enc (Guards (_, _, heaviness)) = heaviness
   | heaviness_of_type_enc (Tags (_, _, heaviness)) = heaviness
 
-fun is_type_level_virtually_sound level =
-  level = All_Types orelse level = Noninf_Nonmono_Types
-val is_type_enc_virtually_sound =
-  is_type_level_virtually_sound o level_of_type_enc
+fun is_type_level_quasi_sound All_Types = true
+  | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
+  | is_type_level_quasi_sound _ = false
+val is_type_enc_quasi_sound =
+  is_type_level_quasi_sound o level_of_type_enc
 
 fun is_type_level_fairly_sound level =
-  is_type_level_virtually_sound level orelse level = Fin_Nonmono_Types
+  is_type_level_quasi_sound level orelse level = Fin_Nonmono_Types
 val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
+
+fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
+  | is_type_level_monotonicity_based Fin_Nonmono_Types = true
+  | is_type_level_monotonicity_based _ = false
 
 fun choose_format formats (Simple_Types (order, level)) =
     (case find_first is_format_thf formats of
@@ -623,9 +635,6 @@ fun choose_format formats (Simple_Types (order, level)) =
                        stuff
                  | _ => type_enc)
      | format => (format, type_enc))
-
-(* Soundness controls how sound the "quasi-sound" encodings should be. *)
-datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
 
 fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
@@ -1072,24 +1081,38 @@ fun make_conjecture ctxt format type_enc ps =
 
 (** Finite and infinite type inference **)
 
-fun deep_freeze_atyp (TVar (_, S)) = TFree ("'frozen", S)
-  | deep_freeze_atyp T = T
-val deep_freeze_type = map_atyps deep_freeze_atyp
+(* These types witness that the type classes they belong to allow infinite
+   models and hence that any types with these type classes is monotonic. *)
+val known_infinite_types =
+  [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
+
+fun is_type_infinite ctxt soundness locality T =
+  (* Unlike virtually any other polymorphic fact whose type variables can be
+     instantiated by a known infinite type, extensionality actually encodes a
+     cardinality constraints. *)
+  soundness <> Sound andalso
+  is_type_surely_infinite ctxt
+      (if soundness = Unsound andalso locality <> Extensionality then
+         known_infinite_types
+       else
+         []) T
 
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
    proofs. On the other hand, all HOL infinite types can be given the same
    models in first-order logic (via Löwenheim-Skolem). *)
 
-fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
-    exists (curry (type_instance ctxt) (deep_freeze_type T)) nonmono_Ts
-  | should_encode_type _ _ All_Types _ = true
-  | should_encode_type ctxt _ Fin_Nonmono_Types T =
+fun should_encode_type _ _ All_Types _ = true
+  | should_encode_type ctxt nonmono_Ts (Noninf_Nonmono_Types soundness) T =
+    exists (curry (type_instance ctxt) T) nonmono_Ts andalso
+    not (is_type_infinite ctxt soundness General T)
+  | should_encode_type ctxt nonmono_Ts Fin_Nonmono_Types T =
+    exists (curry (type_instance ctxt) T) nonmono_Ts andalso
     is_type_surely_finite ctxt T
   | should_encode_type _ _ _ _ = false
 
-fun should_predicate_on_type ctxt nonmono_Ts (Guards (_, level, heaviness))
-                             should_predicate_on_var T =
+fun should_predicate_on_type ctxt nonmono_Ts
+        (Guards (_, level, heaviness)) should_predicate_on_var T =
     (heaviness = Heavyweight orelse should_predicate_on_var ()) andalso
     should_encode_type ctxt nonmono_Ts level T
   | should_predicate_on_type _ _ _ _ _ = false
@@ -1105,19 +1128,13 @@ datatype tag_site =
   Elsewhere
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt nonmono_Ts (Tags (poly, level, heaviness)) site
+  | should_tag_with_type ctxt nonmono_Ts (Tags (_, level, heaviness)) site
                          u T =
     (case heaviness of
        Heavyweight => should_encode_type ctxt nonmono_Ts level T
      | Lightweight =>
        case (site, is_var_or_bound_var u) of
-         (Eq_Arg pos, true) =>
-         (* The first disjunct prevents a subtle soundness issue explained in
-            Blanchette's Ph.D. thesis. (FIXME?) *)
-         (pos <> SOME false andalso poly = Polymorphic andalso
-          level <> All_Types andalso heaviness = Lightweight andalso
-          exists (fn T' => type_instance ctxt (T', T)) nonmono_Ts) orelse
-         should_encode_type ctxt nonmono_Ts level T
+         (Eq_Arg _, true) => should_encode_type ctxt nonmono_Ts level T
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -1768,45 +1785,34 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
               | _ => fold add_undefined_const (var_types ())))
   end
 
-(* These types witness that the type classes they belong to allow infinite
-   models and hence that any types with these type classes is monotonic. *)
-val known_infinite_types =
-  [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
-
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
-fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
-  | add_iterm_nonmonotonic_types ctxt level soundness locality _
+fun add_iterm_nonmonotonic_types _ _ _ (SOME false) _ = I
+  | add_iterm_nonmonotonic_types ctxt level locality _
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2)) =
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
-        Noninf_Nonmono_Types =>
-        not (is_locality_global locality) orelse
-        (* Unlike virtually any other polymorphic fact whose type variables can
-           be instantiated by a known infinite type, extensionality actually
-           encodes a cardinality constraints. *)
-        not (soundness <> Sound andalso
-             is_type_surely_infinite ctxt
-                 (if locality = Extensionality orelse
-                     soundness = Sound_Modulo_Infiniteness then
-                    []
-                  else
-                    known_infinite_types) T)
+        Noninf_Nonmono_Types soundness =>
+        (* The second conjunct about globality is not strictly necessary, but it
+           helps prevent finding proofs that are only sound "modulo
+           infiniteness". For example, if the conjecture is
+           "EX x y::nat. x ~= y", its untyped negation "ALL x y. x = y" would
+           lead to a nonsensical proof that we can't replay. *)
+        not (is_type_infinite ctxt soundness locality T
+             (* andalso is_locality_global locality *))
       | Fin_Nonmono_Types => is_type_surely_finite ctxt T
-      | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
-  | add_iterm_nonmonotonic_types _ _ _ _ _ _ = I
-fun add_fact_nonmonotonic_types ctxt level soundness
+      | _ => true)) ? insert_type ctxt I T
+  | add_iterm_nonmonotonic_types _ _ _ _ _ = I
+fun add_fact_nonmonotonic_types ctxt level
         ({kind, locality, iformula, ...} : translated_formula) =
   formula_fold (SOME (kind <> Conjecture))
-               (add_iterm_nonmonotonic_types ctxt level soundness locality)
-               iformula
-fun nonmonotonic_types_for_facts ctxt type_enc soundness facts =
+               (add_iterm_nonmonotonic_types ctxt level locality) iformula
+fun nonmonotonic_types_for_facts ctxt type_enc facts =
   let val level = level_of_type_enc type_enc in
-    if level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types then
-      [] |> fold (add_fact_nonmonotonic_types ctxt level soundness) facts
+    if is_type_level_monotonicity_based level then
+      [] |> fold (add_fact_nonmonotonic_types ctxt level) facts
          (* We must add "bool" in case the helper "True_or_False" is added
-            later. In addition, several places in the code rely on the list of
-            nonmonotonic types not being empty. (FIXME?) *)
+            later. *)
          |> insert_type ctxt I @{typ bool}
     else
       []
@@ -2003,7 +2009,7 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
 fun needs_type_tag_idempotence (Tags (poly, level, heaviness)) =
     poly <> Mangled_Monomorphic andalso
     ((level = All_Types andalso heaviness = Lightweight) orelse
-     level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types)
+     is_type_level_monotonicity_based level)
   | needs_type_tag_idempotence _ = false
 
 fun offset_of_heading_in_problem _ [] j = j
@@ -2022,8 +2028,8 @@ val free_typesN = "Type variables"
 
 val explicit_apply = NONE (* for experiments *)
 
-fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc soundness
-        exporter lambda_trans readable_names preproc hyp_ts concl_t facts =
+fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
+        lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_enc) = choose_format [format] type_enc
     val lambda_trans =
@@ -2057,8 +2063,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc soundness
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
-    val nonmono_Ts =
-      conjs @ facts |> nonmonotonic_types_for_facts ctxt type_enc soundness
+    val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_enc
     val repair = repair_fact ctxt format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab =

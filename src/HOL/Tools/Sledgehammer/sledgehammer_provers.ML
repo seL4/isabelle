@@ -24,7 +24,7 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_enc: type_enc option,
+     type_enc: string option,
      sound: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -291,7 +291,7 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_enc: type_enc option,
+   type_enc: string option,
    sound: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -512,11 +512,10 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val atp_important_message_keep_quotient = 10
 
-fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
-  (case type_enc_opt of
-     SOME ts => ts
-   | NONE => type_enc_from_string best_type_enc)
-  |> choose_format formats
+fun choose_format_and_type_enc soundness best_type_enc formats =
+  the_default best_type_enc
+  #> type_enc_from_string soundness
+  #> choose_format formats
 
 val metis_minimize_max_time = seconds 2.0
 
@@ -616,8 +615,17 @@ fun run_atp mode name
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
+                val soundness =
+                  if sound then
+                    if Config.get ctxt atp_sound_modulo_infiniteness then
+                      Sound_Modulo_Infiniteness
+                    else
+                      Sound
+                  else
+                    Unsound
                 val (format, type_enc) =
-                  choose_format_and_type_enc best_type_enc formats type_enc
+                  choose_format_and_type_enc soundness best_type_enc formats
+                                             type_enc
                 val fairly_sound = is_type_enc_fairly_sound type_enc
                 val facts =
                   facts |> map untranslated_fact
@@ -646,19 +654,10 @@ fun run_atp mode name
                     |> Output.urgent_message
                   else
                     ()
-                val soundness =
-                  if sound then
-                    if Config.get ctxt atp_sound_modulo_infiniteness then
-                      Sound_Modulo_Infiniteness
-                    else
-                      Sound
-                  else
-                    Unsound
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc soundness false
-                      (Config.get ctxt atp_lambda_translation)
+                      type_enc false (Config.get ctxt atp_lambda_translation)
                       (Config.get ctxt atp_readable_names) true hyp_ts concl_t
                       facts
                 fun weights () = atp_problem_weights atp_problem
@@ -706,7 +705,7 @@ fun run_atp mode name
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
                            UnsoundProof
-                               (if is_type_enc_virtually_sound type_enc then
+                               (if is_type_enc_quasi_sound type_enc then
                                   SOME sound
                                 else
                                   NONE, facts |> sort string_ord))

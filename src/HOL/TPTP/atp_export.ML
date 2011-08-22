@@ -152,15 +152,15 @@ fun order_problem_facts _ [] = []
 fun generate_tptp_inference_file_for_theory ctxt thy type_enc file_name =
   let
     val format = FOF
-    val type_enc = type_enc |> type_enc_from_string
+    val type_enc = type_enc |> type_enc_from_string Sound
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = facts_of thy
     val (atp_problem, _, _, _, _, _, _) =
       facts
       |> map (fn ((_, loc), th) => ((Thm.get_name_hint th, loc), prop_of th))
-      |> prepare_atp_problem ctxt format Axiom Axiom type_enc Sound true
-                             combinatorsN false true [] @{prop False}
+      |> prepare_atp_problem ctxt format Axiom Axiom type_enc true combinatorsN
+                             false true [] @{prop False}
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))

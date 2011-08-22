@@ -131,7 +131,7 @@ fun check_and_repair_raw_param ctxt (name, value) =
     (name, value)
   else if is_prover_list ctxt name andalso null value then
     ("provers", [name])
-  else if can type_enc_from_string name andalso null value then
+  else if can (type_enc_from_string Sound) name andalso null value then
     ("type_enc", [name])
   else
     error ("Unknown parameter: " ^ quote name ^ ".")
@@ -269,7 +269,7 @@ fun extract_params mode default_params override_params =
         NONE
       else case lookup_string "type_enc" of
         "smart" => NONE
-      | s => SOME (type_enc_from_string s)
+      | s => (type_enc_from_string Sound s; SOME s)
     val sound = mode = Auto_Try orelse lookup_bool "sound"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
