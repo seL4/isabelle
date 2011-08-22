@@ -28,12 +28,11 @@ const_maps
   TYPE_DEFINITION > HOL4Setup.TYPE_DEFINITION
   LET             > HOL4Compat.LET;
 
-(*ignore_thms
+ignore_thms
   BOUNDED_DEF
   BOUNDED_THM
   UNBOUNDED_DEF
   UNBOUNDED_THM;
-*)
 
 end_import;
 
