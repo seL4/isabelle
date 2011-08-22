@@ -928,8 +928,10 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                  forall (KK.is_problem_trivially_false o fst)
                         sound_problems then
                 print_n (fn () =>
-                    "Warning: The conjecture either trivially holds for the \
-                    \given scopes or lies outside Nitpick's supported \
+                    "Warning: The conjecture " ^
+                    (if falsify then "either trivially holds"
+                     else "is either trivially unsatisfiable") ^
+                    " for the given scopes or lies outside Nitpick's supported \
                     \fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
