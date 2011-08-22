@@ -1598,9 +1598,9 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
-fun should_guard_var_in_formula _ _ (SOME false) _ = false
-  | should_guard_var_in_formula pos phi _ name =
+fun should_guard_var_in_formula pos phi (SOME true) name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
+  | should_guard_var_in_formula _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level, Nonuniform)) _ T =
