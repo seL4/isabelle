@@ -386,7 +386,7 @@ fun term_from_atp ctxt textual sym_tab =
                          | NONE => NONE)
                         (nth us (length us - 2))
               end
-            else if s' = type_pred_name then
+            else if s' = type_guard_name then
               @{const True} (* ignore type predicates *)
             else
               let

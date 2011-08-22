@@ -55,7 +55,7 @@ sig
   val type_decl_prefix : string
   val sym_decl_prefix : string
   val guards_sym_formula_prefix : string
-  val lightweight_tags_sym_formula_prefix : string
+  val tags_sym_formula_prefix : string
   val fact_prefix : string
   val conjecture_prefix : string
   val helper_prefix : string
@@ -67,8 +67,8 @@ sig
   val type_tag_idempotence_helper_name : string
   val predicator_name : string
   val app_op_name : string
+  val type_guard_name : string
   val type_tag_name : string
-  val type_pred_name : string
   val simple_type_prefix : string
   val prefixed_predicator_name : string
   val prefixed_app_op_name : string
@@ -150,7 +150,7 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
 val guards_sym_formula_prefix = "gsy_"
-val lightweight_tags_sym_formula_prefix = "tsy_"
+val tags_sym_formula_prefix = "tsy_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
@@ -165,8 +165,8 @@ val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
 
 val predicator_name = "hBOOL"
 val app_op_name = "hAPP"
-val type_tag_name = "ti"
-val type_pred_name = "is"
+val type_guard_name = "g"
+val type_tag_name = "t"
 val simple_type_prefix = "ty_"
 
 val prefixed_predicator_name = const_prefix ^ predicator_name
@@ -789,6 +789,9 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
     ^ ")"
   | generic_mangled_type_name _ _ = raise Fail "unexpected type abstraction"
 
+fun mangled_type format type_enc =
+  generic_mangled_type_name fst o ho_term_from_typ format type_enc
+
 val bool_atype = AType (`I tptp_bool_type)
 
 fun make_simple_type s =
@@ -1069,7 +1072,7 @@ fun make_conjecture ctxt format type_enc ps =
 
 (** Finite and infinite type inference **)
 
-fun deep_freeze_atyp (TVar (_, S)) = TFree ("v", S)
+fun deep_freeze_atyp (TVar (_, S)) = TFree ("'frozen", S)
   | deep_freeze_atyp T = T
 val deep_freeze_type = map_atyps deep_freeze_atyp
 
@@ -1110,8 +1113,7 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
        case (site, is_var_or_bound_var u) of
          (Eq_Arg pos, true) =>
          (* The first disjunct prevents a subtle soundness issue explained in
-            Blanchette's Ph.D. thesis. See also
-            "formula_lines_for_lightweight_tags_sym_decl". *)
+            Blanchette's Ph.D. thesis. (FIXME?) *)
          (pos <> SOME false andalso poly = Polymorphic andalso
           level <> All_Types andalso heaviness = Lightweight andalso
           exists (fn T' => type_instance ctxt (T', T)) nonmono_Ts) orelse
@@ -1243,7 +1245,7 @@ fun min_arity_of sym_tab s =
       let val s = s |> unmangled_const_name |> invert_const in
         if s = predicator_name then 1
         else if s = app_op_name then 2
-        else if s = type_pred_name then 1
+        else if s = type_guard_name then 1
         else 0
       end
     | NONE => 0
@@ -1545,10 +1547,10 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-val type_pred = `make_fixed_const type_pred_name
+val type_guard = `make_fixed_const type_guard_name
 
-fun type_pred_iterm ctxt format type_enc T tm =
-  IApp (IConst (type_pred, T --> @{typ bool}, [T])
+fun type_guard_iterm ctxt format type_enc T tm =
+  IApp (IConst (type_guard, T --> @{typ bool}, [T])
         |> enforce_type_arg_policy_in_iterm ctxt format type_enc, tm)
 
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
@@ -1614,7 +1616,7 @@ and formula_from_iformula ctxt format nonmono_Ts type_enc
       if should_predicate_on_type ctxt nonmono_Ts type_enc
              (fn () => should_predicate_on_var pos phi universal name) T then
         IVar (name, T)
-        |> type_pred_iterm ctxt format type_enc T
+        |> type_guard_iterm ctxt format type_enc T
         |> do_term pos |> AAtom |> SOME
       else
         NONE
@@ -1712,9 +1714,8 @@ fun formula_lines_for_free_types type_enc facts =
 fun should_declare_sym type_enc pred_sym s =
   is_tptp_user_symbol s andalso not (String.isPrefix bound_var_prefix s) andalso
   (case type_enc of
-     Simple_Types _ => true
-   | Tags (_, _, Lightweight) => true
-   | _ => not pred_sym)
+     Guards _ => not pred_sym
+   | _ => true)
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
@@ -1811,6 +1812,46 @@ fun nonmonotonic_types_for_facts ctxt type_enc soundness facts =
       []
   end
 
+(* FIXME: do the right thing for existentials! *)
+fun formula_line_for_guards_mono_type ctxt format nonmono_Ts type_enc T =
+  Formula (guards_sym_formula_prefix ^
+           ascii_of (mangled_type format type_enc T),
+           Axiom,
+           IConst (`make_bound_var "X", T, [])
+           |> type_guard_iterm ctxt format type_enc T
+           |> AAtom
+           |> formula_from_iformula ctxt format nonmono_Ts type_enc
+                                    (K (K (K (K true)))) (SOME true)
+           |> bound_tvars type_enc (atyps_of T)
+           |> close_formula_universally,
+           isabelle_info introN, NONE)
+
+fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
+  (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
+   else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
+  |> bound_tvars type_enc atomic_Ts
+  |> close_formula_universally
+
+fun formula_line_for_tags_mono_type ctxt format nonmono_Ts type_enc T =
+  let val x_var = ATerm (`make_bound_var "X", []) in
+    Formula (tags_sym_formula_prefix ^
+             ascii_of (mangled_type format type_enc T),
+             Axiom,
+             eq_formula type_enc (atyps_of T) false
+                        (tag_with_type ctxt format nonmono_Ts type_enc NONE T
+                                       x_var)
+                        x_var,
+             isabelle_info simpN, NONE)
+  end
+
+fun problem_lines_for_mono_types ctxt format nonmono_Ts type_enc Ts =
+  case type_enc of
+    Simple_Types _ => []
+  | Guards _ =>
+    map (formula_line_for_guards_mono_type ctxt format nonmono_Ts type_enc) Ts
+  | Tags _ =>
+    map (formula_line_for_tags_mono_type ctxt format nonmono_Ts type_enc) Ts
+
 fun decl_line_for_sym ctxt format nonmono_Ts type_enc s
                       (s', T_args, T, pred_sym, ary, _) =
   let
@@ -1825,7 +1866,7 @@ fun decl_line_for_sym ctxt format nonmono_Ts type_enc s
   end
 
 fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind nonmono_Ts
-        poly_nonmono_Ts type_enc n s j (s', T_args, T, _, ary, in_conj) =
+        type_enc n s j (s', T_args, T, _, ary, in_conj) =
   let
     val (kind, maybe_negate) =
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
@@ -1847,9 +1888,9 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind nonmono_Ts
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
              IConst ((s, s'), T, T_args)
              |> fold (curry (IApp o swap)) bounds
-             |> type_pred_iterm ctxt format type_enc res_T
+             |> type_guard_iterm ctxt format type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_iformula ctxt format poly_nonmono_Ts type_enc
+             |> formula_from_iformula ctxt format nonmono_Ts type_enc
                                       (K (K (K (K true)))) (SOME true)
              |> n > 1 ? bound_tvars type_enc (atyps_of T)
              |> close_formula_universally
@@ -1858,11 +1899,10 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind nonmono_Ts
   end
 
 fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
-        poly_nonmono_Ts type_enc n s
-        (j, (s', T_args, T, pred_sym, ary, in_conj)) =
+        nonmono_Ts type_enc n s (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val ident_base =
-      lightweight_tags_sym_formula_prefix ^ s ^
+      tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
     val (kind, maybe_negate) =
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
@@ -1872,25 +1912,13 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     val cst = mk_aterm format type_enc (s, s') T_args
-    val atomic_Ts = atyps_of T
-    fun eq tms =
-      (if pred_sym then AConn (AIff, map AAtom tms)
-       else AAtom (ATerm (`I tptp_equal, tms)))
-      |> bound_tvars type_enc atomic_Ts
-      |> close_formula_universally
-      |> maybe_negate
-    (* See also "should_tag_with_type". *)
-    fun should_encode T =
-      should_encode_type ctxt poly_nonmono_Ts All_Types T orelse
-      (case type_enc of
-         Tags (Polymorphic, level, Lightweight) =>
-         level <> All_Types andalso Monomorph.typ_has_tvars T
-       | _ => false)
-    val tag_with = tag_with_type ctxt format poly_nonmono_Ts type_enc NONE
+    val eq = maybe_negate oo eq_formula type_enc (atyps_of T) pred_sym
+    val should_encode = should_encode_type ctxt nonmono_Ts All_Types
+    val tag_with = tag_with_type ctxt format nonmono_Ts type_enc NONE
     val add_formula_for_res =
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", kind,
-                       eq [tag_with res_T (cst bounds), cst bounds],
+                       eq (tag_with res_T (cst bounds)) (cst bounds),
                        isabelle_info simpN, NONE))
       else
         I
@@ -1900,8 +1928,8 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
           case chop k bounds of
             (bounds1, bound :: bounds2) =>
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
-                           eq [cst (bounds1 @ tag_with arg_T bound :: bounds2),
-                               cst bounds],
+                           eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
+                              (cst bounds),
                            isabelle_info simpN, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
@@ -1914,8 +1942,8 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
-fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
-                                poly_nonmono_Ts type_enc (s, decls) =
+fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_enc
+                                (s, decls) =
   case type_enc of
     Simple_Types _ =>
     decls |> map (decl_line_for_sym ctxt format nonmono_Ts type_enc s)
@@ -1934,13 +1962,13 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
         | _ => decls
       val n = length decls
       val decls =
-        decls |> filter (should_predicate_on_type ctxt poly_nonmono_Ts type_enc
-                                                  (K true)
+        decls |> filter (should_encode_type ctxt nonmono_Ts
+                             (level_of_type_enc type_enc)
                          o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
       |-> map2 (formula_line_for_guards_sym_decl ctxt format conj_sym_kind
-                   nonmono_Ts poly_nonmono_Ts type_enc n s)
+                                                 nonmono_Ts type_enc n s)
     end
   | Tags (_, _, heaviness) =>
     (case heaviness of
@@ -1949,14 +1977,28 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
          |> maps (formula_lines_for_lightweight_tags_sym_decl ctxt format
-                      conj_sym_kind poly_nonmono_Ts type_enc n s)
+                      conj_sym_kind nonmono_Ts type_enc n s)
        end)
 
 fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
-                                     poly_nonmono_Ts type_enc sym_decl_tab =
-  sym_decl_tab |> Symtab.dest |> sort_wrt fst |> rpair []
-  |-> fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
-                             nonmono_Ts poly_nonmono_Ts type_enc)
+                                     type_enc sym_decl_tab =
+  let
+    val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
+    val mono_Ts =
+      if polymorphism_of_type_enc type_enc = Polymorphic then
+        syms |> maps (map result_type_of_decl o snd)
+             |> filter_out (should_encode_type ctxt nonmono_Ts
+                                (level_of_type_enc type_enc))
+             |> rpair [] |-> fold (insert_type ctxt I)
+      else
+        []
+    val mono_lines =
+      problem_lines_for_mono_types ctxt format nonmono_Ts type_enc mono_Ts
+    val decl_lines =
+      fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
+                                                     nonmono_Ts type_enc)
+               syms []
+  in mono_lines @ decl_lines end
 
 fun needs_type_tag_idempotence (Tags (poly, level, heaviness)) =
     poly <> Mangled_Monomorphic andalso
@@ -2024,21 +2066,15 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc soundness
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
                        |> map repair
-    val poly_nonmono_Ts =
-      if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] (* FIXME? *) orelse
-         polymorphism_of_type_enc type_enc <> Polymorphic then
-        nonmono_Ts
-      else
-        [tvar_a]
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
-                                               poly_nonmono_Ts type_enc
+                                               type_enc
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt format helper_prefix I false true
-                                    poly_nonmono_Ts type_enc)
+                                    nonmono_Ts type_enc)
       |> (if needs_type_tag_idempotence type_enc then
             cons (type_tag_idempotence_fact ())
           else
