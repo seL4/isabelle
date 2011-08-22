@@ -34,7 +34,6 @@ object Document
   type Edit[A] = (String, Node.Edit[A])
   type Edit_Text = Edit[Text.Edit]
   type Edit_Command = Edit[(Option[Command], Option[Command])]
-  type Edit_Command_ID = Edit[(Option[Command_ID], Option[Command_ID])]
 
   type Node_Header = Exn.Result[Thy_Header]
 
@@ -42,12 +41,13 @@ object Document
   {
     sealed abstract class Edit[A]
     {
-      def map[B](f: A => B): Edit[B] =
+      def foreach(f: A => Unit)
+      {
         this match {
-          case Clear() => Clear()
-          case Edits(es) => Edits(es.map(f))
-          case Header(header) => Header(header)
+          case Edits(es) => es.foreach(f)
+          case _ =>
         }
+      }
     }
     case class Clear[A]() extends Edit[A]
     case class Edits[A](edits: List[A]) extends Edit[A]

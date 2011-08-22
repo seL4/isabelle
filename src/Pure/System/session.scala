@@ -229,22 +229,20 @@ class Session(val file_store: Session.File_Store)
         removed <- previous.nodes(name).commands.get_after(prev)
       } former_assignment -= removed
 
-      def id_command(command: Command): Document.Command_ID =
+      def id_command(command: Command)
       {
         if (global_state().lookup_command(command.id).isEmpty) {
           global_state.change(_.define_command(command))
           prover.get.define_command(command.id, Symbol.encode(command.source))
         }
-        command.id
       }
-      val id_edits =
-        doc_edits map {
-          case (name, edit) =>
-            (name, edit.map({ case (c1, c2) => (c1.map(id_command), c2.map(id_command)) }))
-        }
+      doc_edits foreach {
+        case (_, edit) =>
+          edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
+      }
 
       global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, doc_edits)
     }
     //}}}
 
