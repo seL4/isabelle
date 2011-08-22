@@ -42,7 +42,6 @@ sig
   val hybridN : string
   val lambdasN : string
   val smartN : string
-  val bound_var_prefix : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
   val tvar_prefix : string
@@ -134,6 +133,8 @@ val elimN = "elim"
 val simpN = "simp"
 
 val bound_var_prefix = "B_"
+val all_bound_var_prefix = "BA_"
+val exist_bound_var_prefix = "BE_"
 val schematic_var_prefix = "V_"
 val fixed_var_prefix = "v_"
 val tvar_prefix = "T_"
@@ -297,6 +298,8 @@ fun ascii_of_indexname (v, 0) = ascii_of v
   | ascii_of_indexname (v, i) = ascii_of v ^ "_" ^ string_of_int i
 
 fun make_bound_var x = bound_var_prefix ^ ascii_of x
+fun make_all_bound_var x = all_bound_var_prefix ^ ascii_of x
+fun make_exist_bound_var x = exist_bound_var_prefix ^ ascii_of x
 fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
@@ -505,16 +508,14 @@ fun iterm_from_term thy bs (P $ Q) =
      else
        IVar ((make_schematic_var v, s), T), atyps_of T)
   | iterm_from_term _ bs (Bound j) =
-    nth bs j |> (fn (s, T) => (IConst (`make_bound_var s, T, []), atyps_of T))
+    nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atyps_of T))
   | iterm_from_term thy bs (Abs (s, T, t)) =
     let
       fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
       val s = vary s
-      val (tm, atomic_Ts) = iterm_from_term thy ((s, T) :: bs) t
-    in
-      (IAbs ((`make_bound_var s, T), tm),
-       union (op =) atomic_Ts (atyps_of T))
-    end
+      val name = `make_bound_var s
+      val (tm, atomic_Ts) = iterm_from_term thy ((s, (name, T)) :: bs) t
+    in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
 
 datatype locality =
   General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
@@ -901,26 +902,35 @@ fun iformula_from_prop thy type_enc eq_as_iff =
       iterm_from_term thy bs (Envir.eta_contract t)
       |>> (introduce_proxies type_enc #> AAtom)
       ||> union (op =) atomic_types
-    fun do_quant bs q s T t' =
-      let val s = singleton (Name.variant_list (map fst bs)) s in
-        do_formula ((s, T) :: bs) t'
-        #>> mk_aquant q [(`make_bound_var s, SOME T)]
+    fun do_quant bs q pos s T t' =
+      let
+        val s = singleton (Name.variant_list (map fst bs)) s
+        val universal = Option.map (q = AExists ? not) pos
+        val name =
+          s |> `(case universal of
+                   SOME true => make_all_bound_var
+                 | SOME false => make_exist_bound_var
+                 | NONE => make_bound_var)
+      in
+        do_formula ((s, (name, T)) :: bs) pos t'
+        #>> mk_aquant q [(name, SOME T)]
       end
-    and do_conn bs c t1 t2 =
-      do_formula bs t1 ##>> do_formula bs t2 #>> uncurry (mk_aconn c)
-    and do_formula bs t =
+    and do_conn bs c pos1 t1 pos2 t2 =
+      do_formula bs pos1 t1 ##>> do_formula bs pos2 t2 #>> uncurry (mk_aconn c)
+    and do_formula bs pos t =
       case t of
-        @{const Trueprop} $ t1 => do_formula bs t1
-      | @{const Not} $ t1 => do_formula bs t1 #>> mk_anot
+        @{const Trueprop} $ t1 => do_formula bs pos t1
+      | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
-        do_quant bs AForall s T t'
+        do_quant bs AForall pos s T t'
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
-        do_quant bs AExists s T t'
-      | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd t1 t2
-      | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr t1 t2
-      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies t1 t2
+        do_quant bs AExists pos s T t'
+      | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
+      | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
+      | @{const HOL.implies} $ t1 $ t2 =>
+        do_conn bs AImplies (Option.map not pos) t1 pos t2
       | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
-        if eq_as_iff then do_conn bs AIff t1 t2 else do_term bs t
+        if eq_as_iff then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
       | _ => do_term bs t
   in do_formula [] end
 
@@ -1043,7 +1053,7 @@ fun presimp_prop ctxt presimp_consts t =
 fun make_formula thy type_enc eq_as_iff name loc kind t =
   let
     val (iformula, atomic_types) =
-      iformula_from_prop thy type_enc eq_as_iff t []
+      iformula_from_prop thy type_enc eq_as_iff (SOME (kind <> Conjecture)) t []
   in
     {name = name, locality = loc, kind = kind, iformula = iformula,
      atomic_types = atomic_types}
@@ -1118,10 +1128,11 @@ fun should_guard_type ctxt mono (Guards (_, level, uniformity)) should_guard_var
     should_encode_type ctxt mono level T
   | should_guard_type _ _ _ _ _ = false
 
-fun is_var_or_bound_var (IConst ((s, _), _, _)) =
-    String.isPrefix bound_var_prefix s
-  | is_var_or_bound_var (IVar _) = true
-  | is_var_or_bound_var _ = false
+fun is_maybe_universal_var (IConst ((s, _), _, _)) =
+    String.isPrefix bound_var_prefix s orelse
+    String.isPrefix all_bound_var_prefix s
+  | is_maybe_universal_var (IVar _) = true
+  | is_maybe_universal_var _ = false
 
 datatype tag_site =
   Top_Level of bool option |
@@ -1133,7 +1144,7 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
     (case uniformity of
        Uniform => should_encode_type ctxt mono level T
      | Nonuniform =>
-       case (site, is_var_or_bound_var u) of
+       case (site, is_maybe_universal_var u) of
          (Eq_Arg _, true) => should_encode_type ctxt mono level T
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
@@ -1163,7 +1174,7 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
           else
             iter (ary + 1) (range_type T)
       in iter 0 const_T end
-    fun add_var_or_bound_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+    fun add_universal_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
       if explicit_apply = NONE andalso
          (can dest_funT T orelse T = @{typ bool}) then
         let
@@ -1187,8 +1198,9 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, _), T, _) =>
-           if String.isPrefix bound_var_prefix s then
-             add_var_or_bound_var T accum
+           if String.isPrefix bound_var_prefix s orelse
+              String.isPrefix all_bound_var_prefix s then
+             add_universal_var T accum
            else
              let val ary = length args in
                ((bool_vars, fun_var_Ts),
@@ -1226,8 +1238,8 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
                                       sym_tab
                   end)
              end
-         | IVar (_, T) => add_var_or_bound_var T accum
-         | IAbs ((_, T), tm) => accum |> add_var_or_bound_var T |> add false tm
+         | IVar (_, T) => add_universal_var T accum
+         | IAbs ((_, T), tm) => accum |> add_universal_var T |> add false tm
          | _ => accum)
         |> fold (add false) args
       end
@@ -1574,9 +1586,10 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
-fun should_guard_var_in_formula pos phi (SOME true) name =
+
+fun should_guard_var_in_formula _ _ (SOME false) _ = false
+  | should_guard_var_in_formula pos phi _ name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
-  | should_guard_var_in_formula _ _ _ _ = true
 
 fun mk_aterm format type_enc name T_args args =
   ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
@@ -1728,10 +1741,12 @@ fun formula_lines_for_free_types type_enc facts =
 (** Symbol declarations **)
 
 fun should_declare_sym type_enc pred_sym s =
-  is_tptp_user_symbol s andalso not (String.isPrefix bound_var_prefix s) andalso
   (case type_enc of
      Guards _ => not pred_sym
-   | _ => true)
+   | _ => true) andalso
+  is_tptp_user_symbol s andalso
+  forall (fn prefix => not (String.isPrefix prefix s))
+         [bound_var_prefix, all_bound_var_prefix, exist_bound_var_prefix]
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
@@ -1799,7 +1814,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2))
         (mono as {maybe_finite_Ts, surely_finite_Ts, maybe_infinite_Ts,
                   surely_infinite_Ts, maybe_nonmono_Ts}) =
-    if is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] then
+    if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
       case level of
         Noninf_Nonmono_Types soundness =>
         if exists (type_instance ctxt T) surely_infinite_Ts orelse
@@ -1849,7 +1864,6 @@ fun mononotonicity_info_for_facts ctxt type_enc facts =
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end
 
-(* FIXME: do the right thing for existentials! *)
 fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
   Formula (guards_sym_formula_prefix ^
            ascii_of (mangled_type format type_enc T),
