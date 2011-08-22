@@ -99,6 +99,19 @@ class Document_Model(val session: Session, val buffer: Buffer,
   }
 
 
+  /* perspective */
+
+  def perspective(): Text.Perspective =
+  {
+    Swing_Thread.require()
+    Text.perspective(
+      for {
+        doc_view <- Isabelle.document_views(buffer)
+        range <- doc_view.perspective()
+      } yield range)
+  }
+
+
   /* snapshot */
 
   def snapshot(): Document.Snapshot =

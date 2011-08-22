@@ -22,10 +22,7 @@ object Markup_Tree
     type Entry = (Text.Info[Any], Markup_Tree)
     type T = SortedMap[Text.Range, Entry]
 
-    val empty = SortedMap.empty[Text.Range, Entry](new scala.math.Ordering[Text.Range]
-      {
-        def compare(r1: Text.Range, r2: Text.Range): Int = r1 compare r2
-      })
+    val empty = SortedMap.empty[Text.Range, Entry](Text.Range.Ordering)
 
     def update(branches: T, entry: Entry): T = branches + (entry._1.range -> entry)
     def single(entry: Entry): T = update(empty, entry)

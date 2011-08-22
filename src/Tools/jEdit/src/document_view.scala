@@ -10,6 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import scala.collection.mutable
 import scala.actors.Actor._
 
 import java.lang.System
@@ -108,6 +109,22 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.invalidateLineRange(
       model.buffer.getLineOfOffset(range.start),
       model.buffer.getLineOfOffset(range.stop))
+  }
+
+
+  /* perspective */
+
+  def perspective(): Text.Perspective =
+  {
+    Swing_Thread.require()
+    Text.perspective(
+      for {
+        i <- 0 until text_area.getVisibleLines
+        val start = text_area.getScreenLineStartOffset(i)
+        val stop = text_area.getScreenLineEndOffset(i)
+        if start >= 0 && stop >= 0
+      }
+      yield Text.Range(start, stop))
   }
 
 

@@ -199,6 +199,13 @@ object Isabelle
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
   def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
 
+  def document_views(buffer: Buffer): List[Document_View] =
+    for {
+      text_area <- jedit_text_areas(buffer).toList
+      val doc_view = document_view(text_area)
+      if doc_view.isDefined
+    } yield doc_view.get
+
   def init_model(buffer: Buffer)
   {
     swing_buffer_lock(buffer) {
