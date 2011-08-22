@@ -27,8 +27,8 @@ else
 
 ML {*
 if do_it then
-  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy "poly_tags_heavy"
-      "/tmp/infs_poly_tags_heavy.tptp"
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy "poly_tags_uniform"
+      "/tmp/infs_poly_tags_uniform.tptp"
 else
   ()
 *}

@@ -30,8 +30,10 @@ sig
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
-    Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
-               * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
+    Formula of string * formula_kind
+               * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+               * (string, string ho_type) ho_term option
+               * (string, string ho_type) ho_term option
   type 'a problem = (string * 'a problem_line list) list
 
   val tptp_cnf : string

@@ -28,12 +28,12 @@ sig
     Fin_Nonmono_Types |
     Const_Arg_Types |
     No_Types
-  datatype type_heaviness = Heavyweight | Lightweight
+  datatype type_uniformity = Uniform | Nonuniform
 
   datatype type_enc =
     Simple_Types of order * type_level |
-    Guards of polymorphism * type_level * type_heaviness |
-    Tags of polymorphism * type_level * type_heaviness
+    Guards of polymorphism * type_level * type_uniformity |
+    Tags of polymorphism * type_level * type_uniformity
 
   val no_lambdasN : string
   val concealedN : string
@@ -529,12 +529,12 @@ datatype type_level =
   Fin_Nonmono_Types |
   Const_Arg_Types |
   No_Types
-datatype type_heaviness = Heavyweight | Lightweight
+datatype type_uniformity = Uniform | Nonuniform
 
 datatype type_enc =
   Simple_Types of order * type_level |
-  Guards of polymorphism * type_level * type_heaviness |
-  Tags of polymorphism * type_level * type_heaviness
+  Guards of polymorphism * type_level * type_uniformity |
+  Tags of polymorphism * type_level * type_uniformity
 
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
@@ -559,25 +559,25 @@ fun type_enc_from_string soundness s =
               SOME s => (Fin_Nonmono_Types, s)
             | NONE => (All_Types, s))
   ||> apsnd (fn s =>
-                case try (unsuffix "_heavy") s of
-                  SOME s => (Heavyweight, s)
-                | NONE => (Lightweight, s))
-  |> (fn (poly, (level, (heaviness, core))) =>
-         case (core, (poly, level, heaviness)) of
-           ("simple", (NONE, _, Lightweight)) =>
+                case try (unsuffix "_uniform") s of
+                  SOME s => (Uniform, s)
+                | NONE => (Nonuniform, s))
+  |> (fn (poly, (level, (uniformity, core))) =>
+         case (core, (poly, level, uniformity)) of
+           ("simple", (NONE, _, Nonuniform)) =>
            Simple_Types (First_Order, level)
-         | ("simple_higher", (NONE, _, Lightweight)) =>
+         | ("simple_higher", (NONE, _, Nonuniform)) =>
            (case level of
               Noninf_Nonmono_Types _ => raise Same.SAME
             | _ => Simple_Types (Higher_Order, level))
-         | ("guards", (SOME poly, _, _)) => Guards (poly, level, heaviness)
+         | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
          | ("tags", (SOME Polymorphic, _, _)) =>
-           Tags (Polymorphic, level, heaviness)
-         | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
-         | ("args", (SOME poly, All_Types (* naja *), Lightweight)) =>
-           Guards (poly, Const_Arg_Types, Lightweight)
-         | ("erased", (NONE, All_Types (* naja *), Lightweight)) =>
-           Guards (Polymorphic, No_Types, Lightweight)
+           Tags (Polymorphic, level, uniformity)
+         | ("tags", (SOME poly, _, _)) => Tags (poly, level, uniformity)
+         | ("args", (SOME poly, All_Types (* naja *), Nonuniform)) =>
+           Guards (poly, Const_Arg_Types, Nonuniform)
+         | ("erased", (NONE, All_Types (* naja *), Nonuniform)) =>
+           Guards (Polymorphic, No_Types, Nonuniform)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
@@ -592,9 +592,9 @@ fun level_of_type_enc (Simple_Types (_, level)) = level
   | level_of_type_enc (Guards (_, level, _)) = level
   | level_of_type_enc (Tags (_, level, _)) = level
 
-fun heaviness_of_type_enc (Simple_Types _) = Heavyweight
-  | heaviness_of_type_enc (Guards (_, _, heaviness)) = heaviness
-  | heaviness_of_type_enc (Tags (_, _, heaviness)) = heaviness
+fun uniformity_of_type_enc (Simple_Types _) = Uniform
+  | uniformity_of_type_enc (Guards (_, _, uniformity)) = uniformity
+  | uniformity_of_type_enc (Tags (_, _, uniformity)) = uniformity
 
 fun is_type_level_quasi_sound All_Types = true
   | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
@@ -617,8 +617,7 @@ fun choose_format formats (Simple_Types (order, level)) =
        if member (op =) formats TFF then
          (TFF, Simple_Types (First_Order, level))
        else
-         choose_format formats
-                       (Guards (Mangled_Monomorphic, level, Heavyweight)))
+         choose_format formats (Guards (Mangled_Monomorphic, level, Uniform)))
   | choose_format formats type_enc =
     (case hd formats of
        CNF_UEQ =>
@@ -682,7 +681,7 @@ fun should_drop_arg_type_args (Simple_Types _) =
     false (* since TFF doesn't support overloading *)
   | should_drop_arg_type_args type_enc =
     level_of_type_enc type_enc = All_Types andalso
-    heaviness_of_type_enc type_enc = Heavyweight
+    uniformity_of_type_enc type_enc = Uniform
 
 fun type_arg_policy type_enc s =
   if s = type_tag_name then
@@ -691,7 +690,7 @@ fun type_arg_policy type_enc s =
      else
        Explicit_Type_Args) false
   else case type_enc of
-    Tags (_, All_Types, Heavyweight) => No_Type_Args
+    Tags (_, All_Types, Uniform) => No_Type_Args
   | _ =>
     let val level = level_of_type_enc type_enc in
       if level = No_Types orelse s = @{const_name HOL.eq} orelse
@@ -1113,9 +1112,9 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
       is_type_surely_finite ctxt T))
   | should_encode_type _ _ _ _ = false
 
-fun should_guard_type ctxt mono (Guards (_, level, heaviness)) should_guard_var
+fun should_guard_type ctxt mono (Guards (_, level, uniformity)) should_guard_var
                       T =
-    (heaviness = Heavyweight orelse should_guard_var ()) andalso
+    (uniformity = Uniform orelse should_guard_var ()) andalso
     should_encode_type ctxt mono level T
   | should_guard_type _ _ _ _ _ = false
 
@@ -1130,10 +1129,10 @@ datatype tag_site =
   Elsewhere
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level, heaviness)) site u T =
-    (case heaviness of
-       Heavyweight => should_encode_type ctxt mono level T
-     | Lightweight =>
+  | should_tag_with_type ctxt mono (Tags (_, level, uniformity)) site u T =
+    (case uniformity of
+       Uniform => should_encode_type ctxt mono level T
+     | Nonuniform =>
        case (site, is_var_or_bound_var u) of
          (Eq_Arg _, true) => should_encode_type ctxt mono level T
        | _ => false)
@@ -2006,10 +2005,10 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
       |-> map2 (formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono
                                                  type_enc n s)
     end
-  | Tags (_, _, heaviness) =>
-    (case heaviness of
-       Heavyweight => []
-     | Lightweight =>
+  | Tags (_, _, uniformity) =>
+    (case uniformity of
+       Uniform => []
+     | Nonuniform =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
          |> maps (formula_lines_for_lightweight_tags_sym_decl ctxt format
@@ -2036,9 +2035,9 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
                syms []
   in mono_lines @ decl_lines end
 
-fun needs_type_tag_idempotence (Tags (poly, level, heaviness)) =
+fun needs_type_tag_idempotence (Tags (poly, level, uniformity)) =
     poly <> Mangled_Monomorphic andalso
-    ((level = All_Types andalso heaviness = Lightweight) orelse
+    ((level = All_Types andalso uniformity = Nonuniform) orelse
      is_type_level_monotonicity_based level)
   | needs_type_tag_idempotence _ = false
 
