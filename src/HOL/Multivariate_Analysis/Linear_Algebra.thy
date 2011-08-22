@@ -1624,10 +1624,6 @@ lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) 
 lemma in_span_basis: "(x::'a::euclidean_space) \<in> span (basis ` {..<DIM('a)})"
   unfolding span_basis' ..
 
-lemma component_le_norm: "\<bar>x$$i\<bar> \<le> norm (x::'a::euclidean_space)"
-  unfolding euclidean_component_def
-  apply(rule order_trans[OF real_inner_class.Cauchy_Schwarz_ineq2]) by auto
-
 lemma norm_bound_component_le: "norm (x::'a::euclidean_space) \<le> e \<Longrightarrow> \<bar>x$$i\<bar> <= e"
   by (metis component_le_norm order_trans)
 
