@@ -1109,14 +1109,16 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        (Noninf_Nonmono_Types soundness) T =
-    exists (type_instance ctxt T) maybe_nonmono_Ts andalso
+    exists (type_instance ctxt T orf type_generalization ctxt T)
+           maybe_nonmono_Ts andalso
     not (exists (type_instance ctxt T) surely_infinite_Ts orelse
          (not (member (type_aconv ctxt) maybe_finite_Ts T) andalso
           is_type_surely_infinite' ctxt soundness surely_infinite_Ts T))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        Fin_Nonmono_Types T =
-    exists (type_instance ctxt T) maybe_nonmono_Ts andalso
+    exists (type_instance ctxt T orf type_generalization ctxt T)
+           maybe_nonmono_Ts andalso
     (exists (type_instance ctxt T) surely_finite_Ts orelse
      (not (member (type_aconv ctxt) maybe_infinite_Ts T) andalso
       is_type_surely_finite ctxt T))
