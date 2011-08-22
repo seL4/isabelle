@@ -929,7 +929,7 @@ types if the prover supports the TFF or THF syntax; otherwise, fall back on
 
 \item[$\bullet$] \textbf{\textit{simple\_higher} (sound):} Exploit simple
 higher-order types if the prover supports the THF syntax; otherwise, fall back
-on \textit{simple} or \textit{mangled\_guards\_heavy}. The problem is
+on \textit{simple} or \textit{mangled\_guards\_uniform}. The problem is
 monomorphized.
 
 \item[$\bullet$]
@@ -960,17 +960,17 @@ a mildly unsound (but very efficient) variant identified by an exclamation mark
 finite (e.g., \textit{bool}). (For \textit{simple} and \textit{simple\_higher},
 the types are not actually erased but rather replaced by a shared uniform type
 of individuals.) As argument to the \textit{metis} proof method, the exclamation
-mark is replaced by a \hbox{``\textit{\_bang}''} suffix.
+mark is replaced by the suffix \hbox{``\textit{\_bang}''}.
 
 \item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
 In addition, all the \textit{guards} and \textit{tags} type encodings are
-available in two variants, a lightweight and a heavyweight variant. The
-lightweight variants are generally more efficient and are the default; the
-heavyweight variants are identified by a \textit{\_heavy} suffix (e.g.,
-\textit{mangled\_guards\_heavy}{?}).
+available in two variants, a ``uniform'' and a ``nonuniform'' variant. The
+nonuniform variants are generally more efficient and are the default; the
+uniform variants are identified by the suffix \textit{\_uniform} (e.g.,
+\textit{mangled\_guards\_uniform}{?}).
 
 For SMT solvers, the type encoding is always \textit{simple}, irrespective of
 the value of this option.
