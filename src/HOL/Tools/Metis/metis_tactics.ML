@@ -89,12 +89,19 @@ fun reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth =
   end
   |> Meson.make_meta_clause
 
-val clause_params =
+fun clause_params type_enc =
   {ordering = Metis_KnuthBendixOrder.default,
-   orderLiterals = Metis_Clause.UnsignedLiteralOrder,
+   orderLiterals =
+     (* Type axioms seem to benefit from the positive literal order, but for
+        compatibility we keep the unsigned order for Metis's default
+        "partial_types" mode. *)
+     if is_type_enc_fairly_sound type_enc then
+       Metis_Clause.PositiveLiteralOrder
+     else
+       Metis_Clause.UnsignedLiteralOrder,
    orderTerms = true}
-val active_params =
-  {clause = clause_params,
+fun active_params type_enc =
+  {clause = clause_params type_enc,
    prefactor = #prefactor Metis_Active.default,
    postfactor = #postfactor Metis_Active.default}
 val waiting_params =
@@ -102,7 +109,8 @@ val waiting_params =
    variablesWeight = 0.0,
    literalsWeight = 0.0,
    models = []}
-val resolution_params = {active = active_params, waiting = waiting_params}
+fun resolution_params type_enc =
+  {active = active_params type_enc, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
@@ -120,6 +128,8 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
+      val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
+      val type_enc = type_enc_from_string Unsound type_enc
       val (sym_tab, axioms, old_skolems) =
         prepare_metis_problem ctxt type_enc cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
@@ -129,13 +139,13 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = axioms |> map fst
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
-      val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
   in
       case filter (fn t => prop_of t aconv @{prop False}) cls of
           false_th :: _ => [false_th RS @{thm FalseE}]
         | [] =>
-      case Metis_Resolution.new resolution_params {axioms = thms, conjecture = []}
+      case Metis_Resolution.new (resolution_params type_enc)
+                                {axioms = thms, conjecture = []}
            |> Metis_Resolution.loop of
           Metis_Resolution.Contradiction mth =>
             let val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^

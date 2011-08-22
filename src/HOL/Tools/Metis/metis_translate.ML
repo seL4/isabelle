@@ -9,6 +9,8 @@ Translation of HOL to FOL for Metis.
 
 signature METIS_TRANSLATE =
 sig
+  type type_enc = ATP_Translate.type_enc
+
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
     Isa_Raw of thm
@@ -25,7 +27,7 @@ sig
   val metis_name_table : ((string * int) * (string * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val prepare_metis_problem :
-    Proof.context -> string -> thm list -> thm list
+    Proof.context -> type_enc -> thm list -> thm list
     -> int Symtab.table * (Metis_Thm.thm * isa_thm) list * (string * term) list
 end
 
@@ -167,7 +169,6 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
   let
-    val type_enc = type_enc_from_string Unsound type_enc
     val (conj_clauses, fact_clauses) =
       if polymorphism_of_type_enc type_enc = Polymorphic then
         (conj_clauses, fact_clauses)
