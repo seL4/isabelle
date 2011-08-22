@@ -86,7 +86,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* visible line ranges */
+  /* visible text range */
 
   // simplify slightly odd result of TextArea.getScreenLineEndOffset etc.
   // NB: jEdit already normalizes \r\n and \r to \n
@@ -96,14 +96,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     Text.Range(start, stop)
   }
 
-  def screen_lines_range(): Text.Range =
+  def visible_range(): Text.Range =
   {
     val start = text_area.getScreenLineStartOffset(0)
     val raw_end = text_area.getScreenLineEndOffset(text_area.getVisibleLines - 1 max 0)
     proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
   }
 
-  def invalidate_line_range(range: Text.Range)
+  def invalidate_range(range: Text.Range)
   {
     text_area.invalidateLineRange(
       model.buffer.getLineOfOffset(range.start),
@@ -224,9 +224,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
           if (control) init_popup(snapshot, x, y)
 
-          _highlight_range map { case (range, _) => invalidate_line_range(range) }
+          _highlight_range map { case (range, _) => invalidate_range(range) }
           _highlight_range = if (control) subexp_range(snapshot, x, y) else None
-          _highlight_range map { case (range, _) => invalidate_line_range(range) }
+          _highlight_range map { case (range, _) => invalidate_range(range) }
         }
     }
   }
@@ -415,15 +415,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
             val (updated, snapshot) = flush_snapshot()
-            val visible_range = screen_lines_range()
+            val visible = visible_range()
 
             if (updated || changed.exists(snapshot.node.commands.contains))
               overview.repaint()
 
-            if (updated) invalidate_line_range(visible_range)
+            if (updated) invalidate_range(visible)
             else {
               val visible_cmds =
-                snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
+                snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
               if (visible_cmds.exists(changed)) {
                 for {
                   line <- 0 until text_area.getVisibleLines
