@@ -25,7 +25,6 @@ syntax (xsymbols)
 
 subsection {* Predicates as (complete) lattices *}
 
-
 text {*
   Handy introduction and elimination rules for @{text "\<le>"}
   on unary and binary predicates
@@ -423,14 +422,6 @@ lemma pred_eqI:
   "(\<And>w. eval P w \<longleftrightarrow> eval Q w) \<Longrightarrow> P = Q"
   by (cases P, cases Q) (auto simp add: fun_eq_iff)
 
-lemma eval_mem [simp]:
-  "x \<in> eval P \<longleftrightarrow> eval P x"
-  by (simp add: mem_def)
-
-lemma eq_mem [simp]:
-  "x \<in> (op =) y \<longleftrightarrow> x = y"
-  by (auto simp add: mem_def)
-
 instantiation pred :: (type) complete_lattice
 begin
 
@@ -798,11 +789,11 @@ definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b 
   "map f P = P \<guillemotright>= (single o f)"
 
 lemma eval_map [simp]:
-  "eval (map f P) = image f (eval P)"
+  "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
   by (auto simp add: map_def)
 
 enriched_type map: map
-  by (auto intro!: pred_eqI simp add: fun_eq_iff image_compose)
+  by (rule ext, rule pred_eqI, auto)+
 
 
 subsubsection {* Implementation *}
@@ -1039,6 +1030,14 @@ fun yieldn P = anamorph yield P;
 
 end;
 *}
+
+lemma eval_mem [simp]:
+  "x \<in> eval P \<longleftrightarrow> eval P x"
+  by (simp add: mem_def)
+
+lemma eq_mem [simp]:
+  "x \<in> (op =) y \<longleftrightarrow> x = y"
+  by (auto simp add: mem_def)
 
 no_notation
   bot ("\<bottom>") and

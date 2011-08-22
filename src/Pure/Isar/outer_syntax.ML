@@ -62,7 +62,9 @@ fun make_command comment markup int_only parse =
 local
 
 fun terminate false = Scan.succeed ()
-  | terminate true = Parse.group "end of input" (Scan.option Parse.sync -- Parse.semicolon >> K ());
+  | terminate true =
+      Parse.group (fn () => "end of input")
+        (Scan.option Parse.sync -- Parse.semicolon >> K ());
 
 fun body cmd (name, _) =
   (case cmd name of
