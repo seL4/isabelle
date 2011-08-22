@@ -9,7 +9,7 @@ Example that Exercises Metis's (and Hence Sledgehammer's) Type Encodings
 *}
 
 theory Type_Encodings
-imports Main
+imports "~~/src/HOL/Sledgehammer2d"(*###*)
 begin
 
 declare [[metis_new_skolemizer]]

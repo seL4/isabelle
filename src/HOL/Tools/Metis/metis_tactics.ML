@@ -78,7 +78,10 @@ fun reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth =
   let val thy = Proof_Context.theory_of ctxt in
     case hol_clause_from_metis ctxt sym_tab old_skolems mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
-      t |> cterm_of thy |> Thm.reflexive RS @{thm meta_eq_to_obj_eq}
+      let
+        val ct = cterm_of thy t
+        val cT = ctyp_of_term ct
+      in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
       (if can HOLogic.dest_not t1 then t2 else t1)
       |> HOLogic.mk_Trueprop |> cterm_of thy |> Thm.trivial

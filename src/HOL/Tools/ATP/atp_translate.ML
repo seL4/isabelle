@@ -1444,9 +1444,8 @@ val type_tag = `make_fixed_const type_tag_name
 fun type_tag_idempotence_fact type_enc =
   let
     fun var s = ATerm (`I s, [])
-    (* Reconstruction in Metis is strangely dependent on these names. *)
-    fun tag tm = ATerm (type_tag, [var "T", tm])
-    val tagged_var = tag (var "A")
+    fun tag tm = ATerm (type_tag, [var "A", tm])
+    val tagged_var = tag (var "X")
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] false (tag tagged_var) tagged_var,
