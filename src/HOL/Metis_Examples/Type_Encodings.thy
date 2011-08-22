@@ -9,7 +9,7 @@ Example that Exercises Metis's (and Hence Sledgehammer's) Type Encodings
 *}
 
 theory Type_Encodings
-imports "~~/src/HOL/Sledgehammer2d"(*###*)
+imports Main
 begin
 
 declare [[metis_new_skolemizer]]
@@ -22,8 +22,6 @@ text {* Setup for testing Metis exhaustively *}
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
 
 ML {*
-(* The commented-out type systems are too incomplete for our exhaustive
-   tests. *)
 val type_encs =
   ["erased",
    "poly_guards",
@@ -45,7 +43,7 @@ val type_encs =
    "poly_guards?",
    "poly_guards_uniform?",
    "poly_tags?",
-(* "poly_tags_uniform?", *)
+   "poly_tags_uniform?",
    "mono_guards?",
    "mono_guards_uniform?",
    "mono_tags?",
@@ -57,7 +55,7 @@ val type_encs =
    "simple?",
    "poly_guards!",
    "poly_guards_uniform!",
-(* "poly_tags!", *)
+   "poly_tags!",
    "poly_tags_uniform!",
    "mono_guards!",
    "mono_guards_uniform!",
