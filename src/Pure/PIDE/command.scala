@@ -84,6 +84,11 @@ object Command
 
   def span(toks: List[Token]): Command =
     new Command(Document.no_id, toks)
+
+
+  /* perspective */
+
+  type Perspective = List[Command]  // visible commands in canonical order
 }
 
 

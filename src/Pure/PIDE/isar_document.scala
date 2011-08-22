@@ -152,7 +152,8 @@ trait Isar_Document extends Isabelle_Process
             { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
             { case Document.Node.Header(Exn.Res(Thy_Header(a, b, c))) =>
                 (Nil, triple(string, list(string), list(pair(string, bool)))(a, b, c)) },
-            { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) }))))
+            { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
+            { case Document.Node.Perspective(cs) => (cs.map(c => long_atom(c.id)), Nil) }))))
       YXML.string_of_body(encode(edits)) }
 
     input("Isar_Document.edit_version", Document.ID(old_id), Document.ID(new_id), edits_yxml)

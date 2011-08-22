@@ -183,7 +183,7 @@ class Session(val file_store: Session.File_Store)
     /* incoming edits */
 
     def handle_edits(name: String, master_dir: String,
-        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit]])
+        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit, Text.Perspective]])
     //{{{
     {
       val syntax = current_syntax()
@@ -196,7 +196,8 @@ class Session(val file_store: Session.File_Store)
         else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
       }
       def norm_use(s: String): String = file_store.append(master_dir, Path.explode(s))
-      val norm_header = Document.Node.norm_header[Text.Edit](norm_import, norm_use, header)
+      val norm_header =
+        Document.Node.norm_header[Text.Edit, Text.Perspective](norm_import, norm_use, header)
 
       val text_edits = (name, norm_header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }

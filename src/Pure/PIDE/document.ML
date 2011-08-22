@@ -19,7 +19,8 @@ sig
   datatype node_edit =
     Clear |
     Edits of (command_id option * command_id option) list |
-    Header of node_header
+    Header of node_header |
+    Perspective of id list
   type edit = string * node_edit
   type state
   val init_state: state
@@ -95,7 +96,8 @@ fun update_node name f = default_node name #> Graph.map_node name f;
 datatype node_edit =
   Clear |
   Edits of (command_id option * command_id option) list |
-  Header of node_header;
+  Header of node_header |
+  Perspective of id list;
 
 type edit = string * node_edit;
 
@@ -150,7 +152,8 @@ fun edit_nodes (name, node_edit) (Version nodes) =
             val (header', nodes3) =
               (header, Graph.add_deps_acyclic (name, parents) nodes2)
                 handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-          in Graph.map_node name (set_header header') nodes3 end));
+          in Graph.map_node name (set_header header') nodes3 end
+      | Perspective _ => nodes));  (* FIXME *)
 
 fun put_node (name, node) (Version nodes) =
   Version (update_node name (K node) nodes);

@@ -62,7 +62,7 @@ object Text
 
   /* perspective */
 
-  type Perspective = List[Range]  // partitioning in canonical order
+  type Perspective = List[Range]  // visible text partitioning in canonical order
 
   def perspective(ranges: Seq[Range]): Perspective =
   {
