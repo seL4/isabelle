@@ -1446,10 +1446,10 @@ fun type_tag_idempotence_fact type_enc =
     fun var s = ATerm (`I s, [])
     (* Reconstruction in Metis is strangely dependent on these names. *)
     fun tag tm = ATerm (type_tag, [var "T", tm])
-    val tagged_a = tag (var "A")
+    val tagged_var = tag (var "A")
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
-             eq_formula type_enc [] false (tag tagged_a) tagged_a,
+             eq_formula type_enc [] false (tag tagged_var) tagged_var,
              isabelle_info simpN, NONE)
   end
 
@@ -1602,10 +1602,10 @@ fun should_guard_var_in_formula _ _ (SOME false) _ = false
   | should_guard_var_in_formula pos phi _ name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
 
-fun should_generate_tag_equation _ _ _ (SOME true) _ = false
-  | should_generate_tag_equation ctxt mono (Tags (_, level, Nonuniform)) _ T =
+fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
+  | should_generate_tag_bound_decl ctxt mono (Tags (_, level, Nonuniform)) _ T =
     should_encode_type ctxt mono level T
-  | should_generate_tag_equation _ _ _ _ _ = false
+  | should_generate_tag_bound_decl _ _ _ _ _ = false
 
 fun mk_aterm format type_enc name T_args args =
   ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
@@ -1663,8 +1663,12 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
         IVar (name, T)
         |> type_guard_iterm ctxt format type_enc T
         |> do_term pos |> AAtom |> SOME
-      else if should_generate_tag_equation ctxt mono type_enc universal T then
-        NONE (*###*)
+      else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
+        let
+          val var = ATerm (name, [])
+          val tagged_var =
+            ATerm (type_tag, [ho_term_from_typ format type_enc T, var])
+        in SOME (AAtom (ATerm (`I tptp_equal, [tagged_var, var]))) end
       else
         NONE
     fun do_formula pos (AQuant (q, xs, phi)) =
@@ -1955,7 +1959,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              isabelle_info introN, NONE)
   end
 
-fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind mono
+fun formula_lines_for_nonuniform_tags_sym_decl ctxt format conj_sym_kind mono
         type_enc n s (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val ident_base =
@@ -2033,7 +2037,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
      | Nonuniform =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
-         |> maps (formula_lines_for_lightweight_tags_sym_decl ctxt format
+         |> maps (formula_lines_for_nonuniform_tags_sym_decl ctxt format
                       conj_sym_kind mono type_enc n s)
        end)
 
