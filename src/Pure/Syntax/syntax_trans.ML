@@ -255,8 +255,18 @@ fun the_struct structs i =
 fun struct_tr structs [Const ("_indexdefault", _)] =
       Syntax.free (the_struct structs 1)
   | struct_tr structs [t as (Const ("_indexnum", _) $ Const (s, _))] =
-      Syntax.free (the_struct structs
-        (case Lexicon.read_nat s of SOME n => n | NONE => raise TERM ("struct_tr", [t])))
+      (case Lexicon.read_nat s of
+        SOME n =>
+          let
+            val x = the_struct structs n;
+            val advice =
+              if n = 1 then " -- may be omitted"
+              else " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead";
+            val _ =
+              legacy_feature
+                ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ s) ^ advice);
+          in Syntax.free x end
+      | NONE => raise TERM ("struct_tr", [t]))
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
