@@ -260,11 +260,12 @@ fun struct_tr structs [Const ("_indexdefault", _)] =
           let
             val x = the_struct structs n;
             val advice =
-              if n = 1 then " -- may be omitted"
-              else " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead";
+              " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead" ^
+              (if n = 1 then " (may be omitted)" else "");
             val _ =
               legacy_feature
-                ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ s) ^ advice);
+                ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ s) ^
+                  Position.str_of (Position.thread_data ()) ^ advice);
           in Syntax.free x end
       | NONE => raise TERM ("struct_tr", [t]))
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
