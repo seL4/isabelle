@@ -69,6 +69,24 @@ lemma fun_rel_eq:
   shows "((op =) ===> (op =)) = (op =)"
   by (auto simp add: fun_eq_iff elim: fun_relE)
 
+subsection {* set map (vimage) and set relation *}
+
+definition "set_rel R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
+
+lemma vimage_id:
+  "vimage id = id"
+  unfolding vimage_def fun_eq_iff by auto
+
+lemma set_rel_eq:
+  "set_rel op = = op ="
+  by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff set_rel_def)
+
+lemma set_rel_equivp:
+  assumes e: "equivp R"
+  shows "set_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
+  unfolding set_rel_def
+  using equivp_reflp[OF e]
+  by auto (metis equivp_symp[OF e])+
 
 subsection {* Quotient Predicate *}
 
@@ -665,6 +683,7 @@ use "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
 declare [[map "fun" = (map_fun, fun_rel)]]
+declare [[map set = (vimage, set_rel)]]
 
 lemmas [quot_thm] = fun_quotient
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp id_rsp
@@ -680,6 +699,8 @@ lemmas [id_simps] =
   id_o
   o_id
   eq_comp_r
+  set_rel_eq
+  vimage_id
 
 text {* Translation functions for the lifting process. *}
 use "Tools/Quotient/quotient_term.ML"

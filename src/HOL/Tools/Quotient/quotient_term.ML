@@ -208,6 +208,13 @@ fun absrep_fun flag ctxt (rty, qty) =
         in
           list_comb (get_mapfun ctxt "fun", [arg1, arg2])
         end
+(* FIXME: use type_name antiquotation if set type becomes explicit *)
+    | (Type ("Set.set", [ty]), Type ("Set.set", [ty'])) =>
+        let
+          val arg = absrep_fun (negF flag) ctxt (ty, ty')
+        in
+          get_mapfun ctxt "Set.set" $ arg
+        end
     | (Type (s, tys), Type (s', tys')) =>
         if s = s'
         then
