@@ -22,7 +22,7 @@ sig
     Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
     -> typ
   val is_type_surely_finite : Proof.context -> bool -> typ -> bool
-  val is_type_surely_infinite : Proof.context -> bool -> typ -> bool
+  val is_type_surely_infinite : Proof.context -> bool -> typ list -> typ -> bool
   val s_not : term -> term
   val s_conj : term * term -> term
   val s_disj : term * term -> term
@@ -149,65 +149,71 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
    cardinality 2 or more. The specified default cardinality is returned if the
    cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt sound default_card T =
+fun tiny_card_of_type ctxt sound unsound_assigns default_card T =
   let
     val thy = Proof_Context.theory_of ctxt
     val max = 2 (* 1 would be too small for the "fun" case *)
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case T of
-        Type (@{type_name fun}, [T1, T2]) =>
-        (case (aux slack avoid T1, aux slack avoid T2) of
-           (k, 1) => if slack andalso k = 0 then 0 else 1
-         | (0, _) => 0
-         | (_, 0) => 0
-         | (k1, k2) =>
-           if k1 >= max orelse k2 >= max then max
-           else Int.min (max, Integer.pow k2 k1))
-      | @{typ prop} => 2
-      | @{typ bool} => 2 (* optimization *)
-      | @{typ nat} => 0 (* optimization *)
-      | Type ("Int.int", []) => 0 (* optimization *)
-      | Type (s, _) =>
-        (case datatype_constrs thy T of
-           constrs as _ :: _ =>
-           let
-             val constr_cards =
-               map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
-                    o snd) constrs
-           in
-             if exists (curry (op =) 0) constr_cards then 0
-             else Int.min (max, Integer.sum constr_cards)
-           end
-         | [] =>
-           case Typedef.get_info ctxt s of
-             ({abs_type, rep_type, ...}, _) :: _ =>
-             (* We cheat here by assuming that typedef types are infinite if
-                their underlying type is infinite. This is unsound in general
-                but it's hard to think of a realistic example where this would
-                not be the case. We are also slack with representation types:
-                If a representation type has the form "sigma => tau", we
-                consider it enough to check "sigma" for infiniteness. (Look
-                for "slack" in this function.) *)
-             (case varify_and_instantiate_type ctxt
-                       (Logic.varifyT_global abs_type) T
-                       (Logic.varifyT_global rep_type)
-                   |> aux true avoid of
-                0 => if sound then default_card else 0
-              | 1 => 1
-              | _ => default_card)
-           | [] => default_card)
-        (* Very slightly unsound: Type variables are assumed not to be
-           constrained to cardinality 1. (In practice, the user would most
-           likely have used "unit" directly anyway.) *)
-      | TFree _ =>
-        if default_card = 1 andalso not sound then 2 else default_card
-      | TVar _ => default_card
+      else case (sound, AList.lookup (Sign.typ_instance thy o swap)
+                                     unsound_assigns T) of
+        (false, SOME k) => k
+      | _ =>
+        case T of
+          Type (@{type_name fun}, [T1, T2]) =>
+          (case (aux slack avoid T1, aux slack avoid T2) of
+             (k, 1) => if slack andalso k = 0 then 0 else 1
+           | (0, _) => 0
+           | (_, 0) => 0
+           | (k1, k2) =>
+             if k1 >= max orelse k2 >= max then max
+             else Int.min (max, Integer.pow k2 k1))
+        | @{typ prop} => 2
+        | @{typ bool} => 2 (* optimization *)
+        | @{typ nat} => 0 (* optimization *)
+        | Type ("Int.int", []) => 0 (* optimization *)
+        | Type (s, _) =>
+          (case datatype_constrs thy T of
+             constrs as _ :: _ =>
+             let
+               val constr_cards =
+                 map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
+                      o snd) constrs
+             in
+               if exists (curry (op =) 0) constr_cards then 0
+               else Int.min (max, Integer.sum constr_cards)
+             end
+           | [] =>
+             case Typedef.get_info ctxt s of
+               ({abs_type, rep_type, ...}, _) :: _ =>
+               (* We cheat here by assuming that typedef types are infinite if
+                  their underlying type is infinite. This is unsound in general
+                  but it's hard to think of a realistic example where this would
+                  not be the case. We are also slack with representation types:
+                  If a representation type has the form "sigma => tau", we
+                  consider it enough to check "sigma" for infiniteness. (Look
+                  for "slack" in this function.) *)
+               (case varify_and_instantiate_type ctxt
+                         (Logic.varifyT_global abs_type) T
+                         (Logic.varifyT_global rep_type)
+                     |> aux true avoid of
+                  0 => if sound then default_card else 0
+                | 1 => 1
+                | _ => default_card)
+             | [] => default_card)
+          (* Very slightly unsound: Type variables are assumed not to be
+             constrained to cardinality 1. (In practice, the user would most
+             likely have used "unit" directly anyway.) *)
+        | TFree _ =>
+          if default_card = 1 andalso not sound then 2 else default_card
+        | TVar _ => default_card
   in Int.min (max, aux false [] T) end
 
-fun is_type_surely_finite ctxt sound T = tiny_card_of_type ctxt sound 0 T <> 0
-fun is_type_surely_infinite ctxt sound T = tiny_card_of_type ctxt sound 1 T = 0
+fun is_type_surely_finite ctxt sound T =
+  tiny_card_of_type ctxt sound [] 0 T <> 0
+fun is_type_surely_infinite ctxt sound infinite_Ts T =
+  tiny_card_of_type ctxt sound (map (rpair 0) infinite_Ts) 1 T = 0
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)

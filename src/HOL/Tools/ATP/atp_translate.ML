@@ -1762,6 +1762,11 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
               | _ => fold add_undefined_const (var_types ())))
   end
 
+(* These types witness that the type classes they belong to allow infinite
+   models and hence that any types with these type classes is monotonic. *)
+val known_infinite_types =
+  [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
+
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
 fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
@@ -1771,7 +1776,12 @@ fun add_iterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
      (case level of
         Noninf_Nonmono_Types =>
         not (is_locality_global locality) orelse
-        not (is_type_surely_infinite ctxt sound T)
+        (* Unlike virtually any other polymorphic fact whose type variables can
+           be instantiated by a known infinite type, extensionality actually
+           encodes a cardinality constraints. *)
+        not (is_type_surely_infinite ctxt sound
+                 (if locality = Extensionality then []
+                  else known_infinite_types) T)
       | Fin_Nonmono_Types => is_type_surely_finite ctxt false T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_iterm_nonmonotonic_types _ _ _ _ _ _ = I
