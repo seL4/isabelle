@@ -1422,17 +1422,35 @@ val helper_table =
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
+fun fo_literal_from_type_literal (TyLitVar (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
+  | fo_literal_from_type_literal (TyLitFree (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
+
+fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
+
+fun bound_tvars type_enc Ts =
+  mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
+                (type_literals_for_types type_enc add_sorts_on_tvar Ts))
+
+fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
+  (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
+   else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
+  |> bound_tvars type_enc atomic_Ts
+  |> close_formula_universally
+
 val type_tag = `make_fixed_const type_tag_name
 
-fun type_tag_idempotence_fact () =
+fun type_tag_idempotence_fact type_enc =
   let
     fun var s = ATerm (`I s, [])
+    (* Reconstruction in Metis is strangely dependent on these names. *)
     fun tag tm = ATerm (type_tag, [var "T", tm])
     val tagged_a = tag (var "A")
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
-             AAtom (ATerm (`I tptp_equal, [tag tagged_a, tagged_a]))
-             |> close_formula_universally, isabelle_info simpN, NONE)
+             eq_formula type_enc [] false (tag tagged_a) tagged_a,
+             isabelle_info simpN, NONE)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1569,13 +1587,6 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
      (conjs, facts @ lambdas, class_rel_clauses, arity_clauses))
   end
 
-fun fo_literal_from_type_literal (TyLitVar (class, name)) =
-    (true, ATerm (class, [ATerm (name, [])]))
-  | fo_literal_from_type_literal (TyLitFree (class, name)) =
-    (true, ATerm (class, [ATerm (name, [])]))
-
-fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
-
 val type_guard = `make_fixed_const type_guard_name
 
 fun type_guard_iterm ctxt format type_enc T tm =
@@ -1590,6 +1601,11 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
 fun should_guard_var_in_formula _ _ (SOME false) _ = false
   | should_guard_var_in_formula pos phi _ name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
+
+fun should_generate_tag_equation _ _ _ (SOME true) _ = false
+  | should_generate_tag_equation ctxt mono (Tags (_, level, Nonuniform)) _ T =
+    should_encode_type ctxt mono level T
+  | should_generate_tag_equation _ _ _ _ _ = false
 
 fun mk_aterm format type_enc name T_args args =
   ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
@@ -1647,6 +1663,8 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
         IVar (name, T)
         |> type_guard_iterm ctxt format type_enc T
         |> do_term pos |> AAtom |> SOME
+      else if should_generate_tag_equation ctxt mono type_enc universal T then
+        NONE (*###*)
       else
         NONE
     fun do_formula pos (AQuant (q, xs, phi)) =
@@ -1667,10 +1685,6 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
       | do_formula pos (AConn conn) = aconn_map pos do_formula conn
       | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
   in do_formula end
-
-fun bound_tvars type_enc Ts =
-  mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (type_literals_for_types type_enc add_sorts_on_tvar Ts))
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
@@ -1876,12 +1890,6 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> bound_tvars type_enc (atyps_of T)
            |> close_formula_universally,
            isabelle_info introN, NONE)
-
-fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
-  (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
-   else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
-  |> bound_tvars type_enc atomic_Ts
-  |> close_formula_universally
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2124,7 +2132,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> map (formula_line_for_fact ctxt format helper_prefix I false true mono
                                     type_enc)
       |> (if needs_type_tag_idempotence type_enc then
-            cons (type_tag_idempotence_fact ())
+            cons (type_tag_idempotence_fact type_enc)
           else
             I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
