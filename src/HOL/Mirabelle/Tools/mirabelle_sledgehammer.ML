@@ -575,8 +575,10 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
          Metis_Tactics.metis_tac [Metis_Tactics.full_type_enc]
        else if !reconstructor = "metis (no_types)" then
          Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc]
+       else if !reconstructor = "metis" then
+         Metis_Tactics.metis_tac []
        else
-         Metis_Tactics.metis_tac []) ctxt thms
+         K (K (K all_tac))) ctxt thms
     fun apply_reconstructor thms =
       Mirabelle.can_apply timeout (do_reconstructor thms) st
 
