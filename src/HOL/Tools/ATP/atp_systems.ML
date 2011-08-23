@@ -308,8 +308,9 @@ val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     "--proof tptp --mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-     " --thanks \"Andrei and Krystof\" --input_file"
+     "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
+     " --proof tptp --output_axiom_names on \
+     \ --thanks \"Andrei and Krystof\" --input_file"
      |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
