@@ -270,7 +270,7 @@ val satallax = (satallaxN, satallax_config)
 (* SPASS *)
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
-   counteracting the presence of "hAPP". *)
+   counteracting the presence of explicit application operators. *)
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],

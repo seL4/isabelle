@@ -165,8 +165,8 @@ val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
 
-val predicator_name = "hBOOL"
-val app_op_name = "hAPP"
+val predicator_name = "p"
+val app_op_name = "a"
 val type_guard_name = "g"
 val type_tag_name = "t"
 val simple_type_prefix = "ty_"
@@ -1151,7 +1151,7 @@ fun homogenized_type ctxt mono level =
       | homo _ _ = raise Fail "expected function type"
   in homo end
 
-(** "hBOOL" and "hAPP" **)
+(** predicators and application operators **)
 
 type sym_info =
   {pred_sym : bool, min_ary : int, max_ary : int, types : typ list}
@@ -1194,6 +1194,8 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
            if String.isPrefix bound_var_prefix s orelse
               String.isPrefix all_bound_var_prefix s then
              add_universal_var T accum
+           else if String.isPrefix exist_bound_var_prefix s then
+             accum
            else
              let val ary = length args in
                ((bool_vars, fun_var_Ts),
@@ -1238,8 +1240,8 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
       end
   in add true end
 fun add_fact_syms_to_table ctxt explicit_apply =
-  fact_lift (formula_fold NONE
-                          (K (add_iterm_syms_to_table ctxt explicit_apply)))
+  formula_fold NONE (K (add_iterm_syms_to_table ctxt explicit_apply))
+  |> fact_lift
 
 val tvar_a = TVar (("'a", 0), HOLogic.typeS)
 
@@ -1379,6 +1381,9 @@ fun repair_fact ctxt format type_enc sym_tab =
 
 (** Helper facts **)
 
+val not_ffalse = @{lemma "~ fFalse" by (unfold fFalse_def) fast}
+val ftrue = @{lemma "fTrue" by (unfold fTrue_def) fast}
+
 (* The Boolean indicates that a fairly sound type encoding is needed. *)
 val helper_table =
   [(("COMBI", false), @{thms Meson.COMBI_def}),
@@ -1386,9 +1391,10 @@ val helper_table =
    (("COMBB", false), @{thms Meson.COMBB_def}),
    (("COMBC", false), @{thms Meson.COMBC_def}),
    (("COMBS", false), @{thms Meson.COMBS_def}),
-   (("fFalse", false), [@{lemma "~ fFalse" by (unfold fFalse_def) fast}]),
+   ((predicator_name, false), [not_ffalse, ftrue]),
+   (("fFalse", false), [not_ffalse]),
    (("fFalse", true), @{thms True_or_False}),
-   (("fTrue", false), [@{lemma "fTrue" by (unfold fTrue_def) fast}]),
+   (("fTrue", false), [ftrue]),
    (("fTrue", true), @{thms True_or_False}),
    (("fNot", false),
     @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
@@ -1754,9 +1760,7 @@ fun should_declare_sym type_enc pred_sym s =
   (case type_enc of
      Guards _ => not pred_sym
    | _ => true) andalso
-  is_tptp_user_symbol s andalso
-  forall (fn prefix => not (String.isPrefix prefix s))
-         [bound_var_prefix, all_bound_var_prefix, exist_bound_var_prefix]
+  is_tptp_user_symbol s
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
