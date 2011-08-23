@@ -97,6 +97,37 @@ object Thy_Syntax
 
 
 
+  /** command perspective **/
+
+  def command_perspective(node: Document.Node, perspective: Text.Perspective): Command.Perspective =
+  {
+    if (perspective.isEmpty) Nil
+    else {
+      val result = new mutable.ListBuffer[Command]
+      @tailrec
+      def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)])
+      {
+        (ranges, commands) match {
+          case (range :: more_ranges, (command, offset) #:: more_commands) =>
+            val command_range = command.range + offset
+            range compare command_range match {
+              case -1 => check_ranges(more_ranges, commands)
+              case 0 =>
+                result += command
+                check_ranges(ranges, more_commands)
+              case 1 => check_ranges(ranges, more_commands)
+            }
+          case _ =>
+        }
+      }
+      val perspective_range = Text.Range(perspective.head.start, perspective.last.stop)
+      check_ranges(perspective, node.command_range(perspective_range).toStream)
+      result.toList
+    }
+  }
+
+
+
   /** text edits **/
 
   def text_edits(
@@ -168,37 +199,6 @@ object Thy_Syntax
           recover_spans(new_commands)
 
         case None => commands
-      }
-    }
-
-
-    /* command perspective */
-
-    def command_perspective(node: Document.Node, perspective: Text.Perspective)
-        : Command.Perspective =
-    {
-      if (perspective.isEmpty) Nil
-      else {
-        val result = new mutable.ListBuffer[Command]
-        @tailrec
-        def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)])
-        {
-          (ranges, commands) match {
-            case (range :: more_ranges, (command, offset) #:: more_commands) =>
-              val command_range = command.range + offset
-              range compare command_range match {
-                case -1 => check_ranges(more_ranges, commands)
-                case 0 =>
-                  result += command
-                  check_ranges(ranges, more_commands)
-                case 1 => check_ranges(ranges, more_commands)
-              }
-            case _ =>
-          }
-        }
-        val perspective_range = Text.Range(perspective.head.start, perspective.last.stop)
-        check_ranges(perspective, node.command_range(perspective_range).toStream)
-        result.toList
       }
     }
 
