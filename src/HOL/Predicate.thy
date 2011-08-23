@@ -73,20 +73,20 @@ lemma rev_predicate2D:
 
 subsubsection {* Equality *}
 
-lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
-  by (simp add: mem_def)
+lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff mem_def)
 
-lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
-  by (simp add: fun_eq_iff mem_def)
+lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff mem_def)
 
 
 subsubsection {* Order relation *}
 
-lemma pred_subset_eq: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) = (R \<subseteq> S)"
-  by (simp add: mem_def)
+lemma pred_subset_eq: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def mem_def)
 
-lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) = (R \<subseteq> S)"
-  by fast
+lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def mem_def)
 
 
 subsubsection {* Top and bottom elements *}
@@ -463,17 +463,17 @@ lemma eval_Sup [simp]:
   by (simp add: Sup_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def)
+qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def le_fun_def less_fun_def)
 
 end
 
 lemma eval_INFI [simp]:
   "eval (INFI A f) = INFI A (eval \<circ> f)"
-  by (unfold INFI_def) simp
+  by (simp only: INFI_def eval_Inf image_compose)
 
 lemma eval_SUPR [simp]:
   "eval (SUPR A f) = SUPR A (eval \<circ> f)"
-  by (unfold SUPR_def) simp
+  by (simp only: SUPR_def eval_Sup image_compose)
 
 instantiation pred :: (type) complete_boolean_algebra
 begin
@@ -493,7 +493,7 @@ lemma eval_minus [simp]:
   by (simp add: minus_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply)
+qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply INF_apply SUP_apply)
 
 end
 
@@ -513,7 +513,7 @@ lemma eval_bind [simp]:
 
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (rule pred_eqI) auto
+  by (rule pred_eqI) (auto simp add: SUP_apply)
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
@@ -533,7 +533,7 @@ lemma sup_bind:
 
 lemma Sup_bind:
   "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (rule pred_eqI) auto
+  by (rule pred_eqI) (auto simp add: SUP_apply)
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
@@ -578,8 +578,7 @@ lemma single_not_bot [simp]:
 lemma not_bot:
   assumes "A \<noteq> \<bottom>"
   obtains x where "eval A x"
-  using assms by (cases A)
-    (auto simp add: bot_pred_def, auto simp add: mem_def)
+  using assms by (cases A) (auto simp add: bot_pred_def, simp add: mem_def)
   
 
 subsubsection {* Emptiness check and definite choice *}
@@ -750,7 +749,7 @@ lemma unit_pred_cases:
   assumes "P \<bottom>"
   assumes "P (single ())"
   shows "P Q"
-using assms unfolding bot_pred_def Collect_def empty_def single_def proof (cases Q)
+using assms unfolding bot_pred_def bot_fun_def bot_bool_def empty_def single_def proof (cases Q)
   fix f
   assume "P (Pred (\<lambda>u. False))" "P (Pred (\<lambda>u. () = u))"
   then have "P (Pred f)" 
@@ -779,7 +778,7 @@ definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b 
 
 lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
-  by (auto simp add: map_def)
+  by (auto simp add: map_def comp_def)
 
 enriched_type map: map
   by (rule ext, rule pred_eqI, auto)+
@@ -825,9 +824,9 @@ lemma single_code [code]:
   unfolding Seq_def by simp
 
 primrec "apply" :: "('a \<Rightarrow> 'b pred) \<Rightarrow> 'a seq \<Rightarrow> 'b seq" where
-    "apply f Empty = Empty"
-  | "apply f (Insert x P) = Join (f x) (Join (P \<guillemotright>= f) Empty)"
-  | "apply f (Join P xq) = Join (P \<guillemotright>= f) (apply f xq)"
+  "apply f Empty = Empty"
+| "apply f (Insert x P) = Join (f x) (Join (P \<guillemotright>= f) Empty)"
+| "apply f (Join P xq) = Join (P \<guillemotright>= f) (apply f xq)"
 
 lemma apply_bind:
   "pred_of_seq (apply f xq) = pred_of_seq xq \<guillemotright>= f"
@@ -851,9 +850,9 @@ lemma bot_set_code [code]:
   unfolding Seq_def by simp
 
 primrec adjunct :: "'a pred \<Rightarrow> 'a seq \<Rightarrow> 'a seq" where
-    "adjunct P Empty = Join P Empty"
-  | "adjunct P (Insert x Q) = Insert x (Q \<squnion> P)"
-  | "adjunct P (Join Q xq) = Join Q (adjunct P xq)"
+  "adjunct P Empty = Join P Empty"
+| "adjunct P (Insert x Q) = Insert x (Q \<squnion> P)"
+| "adjunct P (Join Q xq) = Join Q (adjunct P xq)"
 
 lemma adjunct_sup:
   "pred_of_seq (adjunct P xq) = P \<squnion> pred_of_seq xq"
@@ -880,13 +879,13 @@ next
 qed
 
 primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
-    "contained Empty Q \<longleftrightarrow> True"
-  | "contained (Insert x P) Q \<longleftrightarrow> eval Q x \<and> P \<le> Q"
-  | "contained (Join P xq) Q \<longleftrightarrow> P \<le> Q \<and> contained xq Q"
+  "contained Empty Q \<longleftrightarrow> True"
+| "contained (Insert x P) Q \<longleftrightarrow> eval Q x \<and> P \<le> Q"
+| "contained (Join P xq) Q \<longleftrightarrow> P \<le> Q \<and> contained xq Q"
 
 lemma single_less_eq_eval:
   "single x \<le> P \<longleftrightarrow> eval P x"
-  by (auto simp add: single_def less_eq_pred_def mem_def)
+  by (auto simp add: less_eq_pred_def le_fun_def)
 
 lemma contained_less_eq:
   "contained xq Q \<longleftrightarrow> pred_of_seq xq \<le> Q"
@@ -923,9 +922,9 @@ lemma eq_is_eq: "eq x y \<equiv> (x = y)"
   by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
 
 primrec null :: "'a seq \<Rightarrow> bool" where
-    "null Empty \<longleftrightarrow> True"
-  | "null (Insert x P) \<longleftrightarrow> False"
-  | "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
+  "null Empty \<longleftrightarrow> True"
+| "null (Insert x P) \<longleftrightarrow> False"
+| "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
 
 lemma null_is_empty:
   "null xq \<longleftrightarrow> is_empty (pred_of_seq xq)"
@@ -937,8 +936,8 @@ lemma is_empty_code [code]:
 
 primrec the_only :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a seq \<Rightarrow> 'a" where
   [code del]: "the_only dfault Empty = dfault ()"
-  | "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault ())"
-  | "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
+| "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault ())"
+| "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
        else let x = singleton dfault P; y = the_only dfault xq in
        if x = y then x else dfault ())"
 
