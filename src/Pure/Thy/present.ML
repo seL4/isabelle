@@ -289,7 +289,8 @@ fun init build info doc doc_graph doc_variants path name dump_prefix
       val documents =
         if doc = "" then []
         else if not (can File.check_dir document_path) then
-          (if verbose then Output.raw_stderr "Warning: missing document directory\n" else (); [])
+          (if verbose then Output.physical_stderr "Warning: missing document directory\n"
+           else (); [])
         else read_variants doc_variants;
 
       val parent_index_path = Path.append Path.parent index_path;
@@ -403,14 +404,14 @@ fun finish () =
         File.copy (Path.explode "~~/etc/isabelle.css") html_prefix;
         List.app finish_html thys;
         List.app (uncurry File.write) files;
-        if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n")
+        if verbose then Output.physical_stderr ("Browser info at " ^ show_path html_prefix ^ "\n")
         else ())
       else ();
 
     val _ =
       (case dump_prefix of NONE => () | SOME (cp, path) =>
        (prepare_sources cp path;
-        if verbose then Output.raw_stderr ("Document sources at " ^ show_path path ^ "\n")
+        if verbose then Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
         else ()));
 
     val doc_paths =
@@ -421,7 +422,8 @@ fun finish () =
         in isabelle_document true doc_format name tags path html_prefix end);
     val _ =
       if verbose then
-        doc_paths |> List.app (fn doc => Output.raw_stderr ("Document at " ^ show_path doc ^ "\n"))
+        doc_paths
+        |> List.app (fn doc => Output.physical_stderr ("Document at " ^ show_path doc ^ "\n"))
       else ();
   in
     browser_info := empty_browser_info;

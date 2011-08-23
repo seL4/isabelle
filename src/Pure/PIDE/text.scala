@@ -8,6 +8,11 @@ Basic operations on plain text.
 package isabelle
 
 
+import scala.collection.mutable
+import scala.math.Ordering
+import scala.util.Sorting
+
+
 object Text
 {
   /* offset */
@@ -20,6 +25,11 @@ object Text
   object Range
   {
     def apply(start: Offset): Range = Range(start, start)
+
+    object Ordering extends scala.math.Ordering[Text.Range]
+    {
+      def compare(r1: Text.Range, r2: Text.Range): Int = r1 compare r2
+    }
   }
 
   sealed case class Range(val start: Offset, val stop: Offset)
@@ -47,6 +57,33 @@ object Text
     def try_restrict(that: Range): Option[Range] =
       try { Some (restrict(that)) }
       catch { case ERROR(_) => None }
+  }
+
+
+  /* perspective */
+
+  type Perspective = List[Range]  // visible text partitioning in canonical order
+
+  def perspective(ranges: Seq[Range]): Perspective =
+  {
+    val sorted_ranges = ranges.toArray
+    Sorting.quickSort(sorted_ranges)(Range.Ordering)
+
+    val result = new mutable.ListBuffer[Text.Range]
+    var last: Option[Text.Range] = None
+    for (range <- sorted_ranges)
+    {
+      last match {
+        case Some(last_range)
+        if ((last_range overlaps range) || last_range.stop == range.start) =>
+          last = Some(Text.Range(last_range.start, range.stop))
+        case _ =>
+          result ++= last
+          last = Some(range)
+      }
+    }
+    result ++= last
+    result.toList
   }
 
 

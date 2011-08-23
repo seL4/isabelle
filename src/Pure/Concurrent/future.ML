@@ -51,12 +51,12 @@ sig
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val get_finished: 'a future -> 'a
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> task list
   val cancel: 'a future -> task list
   type fork_params =
     {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
+  val default_params: fork_params
   val forks: fork_params -> (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
@@ -124,11 +124,6 @@ fun result_of (Future {result, ...}) = result;
 
 fun peek x = Single_Assignment.peek (result_of x);
 fun is_finished x = is_some (peek x);
-
-fun get_finished x =
-  (case peek x of
-    SOME res => Exn.release res
-  | NONE => raise Fail "Unfinished future evaluation");
 
 
 
@@ -466,6 +461,9 @@ fun future_job group interrupts (e: unit -> 'a) =
 
 type fork_params =
   {name: string, group: group option, deps: task list, pri: int, interrupts: bool};
+
+val default_params: fork_params =
+  {name = "", group = NONE, deps = [], pri = 0, interrupts = true};
 
 fun forks ({name, group, deps, pri, interrupts}: fork_params) es =
   if null es then []

@@ -171,7 +171,7 @@ end;
 fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
   let
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
-    val _ = Output.raw_stdout Symbol.STX;
+    val _ = Output.physical_stdout Symbol.STX;
 
     val _ = quick_and_dirty := true;
     val _ = Goal.parallel_proofs := 0;

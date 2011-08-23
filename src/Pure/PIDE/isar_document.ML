@@ -27,7 +27,8 @@ val _ =
                   fn ([], a) =>
                     Document.Header
                       (Exn.Res (triple string (list string) (list (pair string bool)) a)),
-                  fn ([a], []) => Document.Header (Exn.Exn (ERROR a))]))
+                  fn ([a], []) => Document.Header (Exn.Exn (ERROR a)),
+                  fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
       val running = Document.cancel_execution state;

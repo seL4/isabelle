@@ -164,10 +164,10 @@ class Session(val file_store: Session.File_Store)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Interrupt
-  private case class Init_Node(
-    name: String, master_dir: String, header: Document.Node_Header, text: String)
-  private case class Edit_Node(
-    name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
+  private case class Init_Node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+  private case class Edit_Node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
   private case class Change_Node(
     name: String,
     doc_edits: List[Document.Edit_Command],
@@ -183,7 +183,7 @@ class Session(val file_store: Session.File_Store)
     /* incoming edits */
 
     def handle_edits(name: String, master_dir: String,
-        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit]])
+        header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit, Text.Perspective]])
     //{{{
     {
       val syntax = current_syntax()
@@ -196,7 +196,8 @@ class Session(val file_store: Session.File_Store)
         else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
       }
       def norm_use(s: String): String = file_store.append(master_dir, Path.explode(s))
-      val norm_header = Document.Node.norm_header[Text.Edit](norm_import, norm_use, header)
+      val norm_header =
+        Document.Node.norm_header[Text.Edit, Text.Perspective](norm_import, norm_use, header)
 
       val text_edits = (name, norm_header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
@@ -229,22 +230,20 @@ class Session(val file_store: Session.File_Store)
         removed <- previous.nodes(name).commands.get_after(prev)
       } former_assignment -= removed
 
-      def id_command(command: Command): Document.Command_ID =
+      def id_command(command: Command)
       {
         if (global_state().lookup_command(command.id).isEmpty) {
           global_state.change(_.define_command(command))
           prover.get.define_command(command.id, Symbol.encode(command.source))
         }
-        command.id
       }
-      val id_edits =
-        doc_edits map {
-          case (name, edit) =>
-            (name, edit.map({ case (c1, c2) => (c1.map(id_command), c2.map(id_command)) }))
-        }
+      doc_edits foreach {
+        case (_, edit) =>
+          edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
+      }
 
       global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, doc_edits)
     }
     //}}}
 
@@ -337,14 +336,18 @@ class Session(val file_store: Session.File_Store)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
-        case Init_Node(name, master_dir, header, text) if prover.isDefined =>
+        case Init_Node(name, master_dir, header, perspective, text) if prover.isDefined =>
           // FIXME compare with existing node
           handle_edits(name, master_dir, header,
-            List(Document.Node.Clear(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
+            List(Document.Node.Clear(),
+              Document.Node.Edits(List(Text.Edit.insert(0, text))),
+              Document.Node.Perspective(perspective)))
           reply(())
 
-        case Edit_Node(name, master_dir, header, text_edits) if prover.isDefined =>
-          handle_edits(name, master_dir, header, List(Document.Node.Edits(text_edits)))
+        case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
+          handle_edits(name, master_dir, header,
+            List(Document.Node.Edits(text_edits),
+              Document.Node.Perspective(perspective)))
           reply(())
 
         case change: Change_Node if prover.isDefined =>
@@ -372,9 +375,13 @@ class Session(val file_store: Session.File_Store)
 
   def interrupt() { session_actor ! Interrupt }
 
-  def init_node(name: String, master_dir: String, header: Document.Node_Header, text: String)
-  { session_actor !? Init_Node(name, master_dir, header, text) }
+  // FIXME simplify signature
+  def init_node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+  { session_actor !? Init_Node(name, master_dir, header, perspective, text) }
 
-  def edit_node(name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
-  { session_actor !? Edit_Node(name, master_dir, header, edits) }
+  // FIXME simplify signature
+  def edit_node(name: String, master_dir: String, header: Document.Node_Header,
+    perspective: Text.Perspective, edits: List[Text.Edit])
+  { session_actor !? Edit_Node(name, master_dir, header, perspective, edits) }
 }

@@ -72,7 +72,7 @@ lemma Pi_cong:
   by (auto simp: Pi_def)
 
 lemma funcset_id [simp]: "(\<lambda>x. x) \<in> A \<rightarrow> A"
-  by (auto intro: Pi_I)
+  by auto
 
 lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
@@ -257,7 +257,7 @@ definition extensional_funcset
 where "extensional_funcset S T = (S -> T) \<inter> (extensional S)"
 
 lemma extensional_empty[simp]: "extensional {} = {%x. undefined}"
-unfolding extensional_def by (auto intro: ext)
+unfolding extensional_def by auto
 
 lemma extensional_funcset_empty_domain: "extensional_funcset {} T = {%x. undefined}"
 unfolding extensional_funcset_def by simp
