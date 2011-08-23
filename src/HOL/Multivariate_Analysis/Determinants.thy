@@ -515,7 +515,7 @@ lemma finite_bounded_functions:
   shows "finite {f. (\<forall>i \<in> {1.. (k::nat)}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1 .. k} \<longrightarrow> f i = i)}"
 proof(induct k)
   case 0
-  have th: "{f. \<forall>i. f i = i} = {id}" by (auto intro: ext)
+  have th: "{f. \<forall>i. f i = i} = {id}" by auto
   show ?case by (auto simp add: th)
 next
   case (Suc k)
@@ -525,14 +525,14 @@ next
     apply (auto simp add: image_iff)
     apply (rule_tac x="x (Suc k)" in bexI)
     apply (rule_tac x = "\<lambda>i. if i = Suc k then i else x i" in exI)
-    apply (auto intro: ext)
+    apply auto
     done
   with finite_imageI[OF finite_cartesian_product[OF fS Suc.hyps(1)], of ?f]
   show ?case by metis
 qed
 
 
-lemma eq_id_iff[simp]: "(\<forall>x. f x = x) = (f = id)" by (auto intro: ext)
+lemma eq_id_iff[simp]: "(\<forall>x. f x = x) = (f = id)" by auto
 
 lemma det_linear_rows_setsum_lemma:
   assumes fS: "finite S" and fT: "finite T"
@@ -575,7 +575,7 @@ next
       blast intro: finite_cartesian_product fS finite,
       blast intro: finite_cartesian_product fS finite)
     using `z \<notin> T`
-    apply (auto intro: ext)
+    apply auto
     apply (rule cong[OF refl[of det]])
     by vector
 qed
@@ -739,7 +739,7 @@ proof-
       unfolding setsum_diff1'[OF fU iU] setsum_cmul
       apply -
       apply (rule vector_mul_lcancel_imp[OF ci])
-      apply (auto simp add: vector_smult_assoc vector_smult_rneg field_simps)
+      apply (auto simp add: field_simps)
       unfolding stupid ..
     have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
       unfolding thr0
@@ -775,7 +775,7 @@ proof-
   have kUk: "k \<notin> ?Uk" by simp
   have th00: "\<And>k s. x$k *s row k A + s = (x$k - 1) *s row k A + row k A + s"
     by (vector field_simps)
-  have th001: "\<And>f k . (\<lambda>x. if x = k then f k else f x) = f" by (auto intro: ext)
+  have th001: "\<And>f k . (\<lambda>x. if x = k then f k else f x) = f" by auto
   have "(\<chi> i. row i A) = A" by (vector row_def)
   then have thd1: "det (\<chi> i. row i A) = det A"  by simp
   have thd0: "det (\<chi> i. if i = k then row k A + (\<Sum>i \<in> ?Uk. x $ i *s row i A) else row i A) = det A"
@@ -931,7 +931,7 @@ proof-
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
-  show ?thesis unfolding linear_def vector_eq[where 'a="real^'n"] smult_conv_scaleR by (simp add: inner_simps fc field_simps)
+  show ?thesis unfolding linear_def vector_eq[where 'a="real^'n"] smult_conv_scaleR by (simp add: inner_add fc field_simps)
 qed
 
 lemma isometry_linear:
@@ -973,7 +973,7 @@ proof-
     "x' = norm x *\<^sub>R x0'" "y' = norm y *\<^sub>R y0'"
     "norm x0 = 1" "norm x0' = 1" "norm y0 = 1" "norm y0' = 1"
     "norm(x0' - y0') = norm(x0 - y0)"
-    hence *:"x0 \<bullet> y0 = x0' \<bullet> y0' + y0' \<bullet> x0' - y0 \<bullet> x0 " by(simp add: norm_eq norm_eq_1 inner_simps)
+    hence *:"x0 \<bullet> y0 = x0' \<bullet> y0' + y0' \<bullet> x0' - y0 \<bullet> x0 " by(simp add: norm_eq norm_eq_1 inner_add inner_diff)
     have "norm(x' - y') = norm(x - y)"
       apply (subst H(1))
       apply (subst H(2))
@@ -981,7 +981,7 @@ proof-
       apply (subst H(4))
       using H(5-9)
       apply (simp add: norm_eq norm_eq_1)
-      apply (simp add: inner_simps smult_conv_scaleR) unfolding *
+      apply (simp add: inner_diff smult_conv_scaleR) unfolding *
       by (simp add: field_simps) }
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
@@ -1015,7 +1015,7 @@ proof-
         "norm (f (inverse (norm x) *\<^sub>R x) - f (inverse (norm y) *\<^sub>R y)) =
         norm (inverse (norm x) *\<^sub>R x - inverse (norm y) *\<^sub>R y)"
         using z
-        by (auto simp add: vector_smult_assoc field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
+        by (auto simp add: field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
         by (simp add: dist_norm)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
@@ -1049,7 +1049,7 @@ lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: eval_nat_numeral setprod_numseg mult_commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
-  by (simp add: det_def sign_id UNIV_1)
+  by (simp add: det_def sign_id)
 
 lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof-

@@ -533,7 +533,7 @@ next
   case False hence "t = {}" using `finite t` by auto
   show ?thesis
   proof (cases "s = {}")
-    have *:"{f. \<forall>x. f x = d} = {\<lambda>x. d}" by (auto intro: ext)
+    have *:"{f. \<forall>x. f x = d} = {\<lambda>x. d}" by auto
     case True thus ?thesis using `t = {}` by (auto simp: *)
   next
     case False thus ?thesis using `t = {}` by simp

@@ -1659,10 +1659,9 @@ proof-
     have PpP: "?Pp \<subseteq> P" and PnP: "?Pn \<subseteq> P" by blast+
     have Ppe:"setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp \<le> e"
       using component_le_norm[of "setsum (\<lambda>x. f x) ?Pp" i]  fPs[OF PpP]
-      unfolding euclidean_component_setsum by(auto intro: abs_le_D1)
+      by(auto intro: abs_le_D1)
     have Pne: "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn \<le> e"
       using component_le_norm[of "setsum (\<lambda>x. - f x) ?Pn" i]  fPs[OF PnP]
-      unfolding euclidean_component_setsum euclidean_component_minus
       by(auto simp add: setsum_negf intro: abs_le_D1)
     have "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) P = setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp + setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn"
       apply (subst thp)
@@ -2825,7 +2824,7 @@ proof-
     unfolding infnorm_def
     unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image ball_simps
-    apply(subst (1) euclidean_eq) unfolding euclidean_component_zero
+    apply(subst (1) euclidean_eq)
     by auto
   then show ?thesis using infnorm_pos_le[of x] by simp
 qed
@@ -2836,7 +2835,7 @@ lemma infnorm_0: "infnorm 0 = 0"
 lemma infnorm_neg: "infnorm (- x) = infnorm x"
   unfolding infnorm_def
   apply (rule cong[of "Sup" "Sup"])
-  apply blast by(auto simp add: euclidean_component_minus)
+  apply blast by auto
 
 lemma infnorm_sub: "infnorm (x - y) = infnorm (y - x)"
 proof-

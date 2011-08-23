@@ -129,19 +129,19 @@ lemmas isCont_euclidean_component [simp] =
 lemma euclidean_component_zero [simp]: "0 $$ i = 0"
   unfolding euclidean_component_def by (rule inner_zero_right)
 
-lemma euclidean_component_add: "(x + y) $$ i = x $$ i + y $$ i"
+lemma euclidean_component_add [simp]: "(x + y) $$ i = x $$ i + y $$ i"
   unfolding euclidean_component_def by (rule inner_add_right)
 
-lemma euclidean_component_diff: "(x - y) $$ i = x $$ i - y $$ i"
+lemma euclidean_component_diff [simp]: "(x - y) $$ i = x $$ i - y $$ i"
   unfolding euclidean_component_def by (rule inner_diff_right)
 
-lemma euclidean_component_minus: "(- x) $$ i = - (x $$ i)"
+lemma euclidean_component_minus [simp]: "(- x) $$ i = - (x $$ i)"
   unfolding euclidean_component_def by (rule inner_minus_right)
 
-lemma euclidean_component_scaleR: "(scaleR a x) $$ i = a * (x $$ i)"
+lemma euclidean_component_scaleR [simp]: "(scaleR a x) $$ i = a * (x $$ i)"
   unfolding euclidean_component_def by (rule inner_scaleR_right)
 
-lemma euclidean_component_setsum: "(\<Sum>x\<in>A. f x) $$ i = (\<Sum>x\<in>A. f x $$ i)"
+lemma euclidean_component_setsum [simp]: "(\<Sum>x\<in>A. f x) $$ i = (\<Sum>x\<in>A. f x $$ i)"
   unfolding euclidean_component_def by (rule inner_setsum_right)
 
 lemma euclidean_eqI:
@@ -183,7 +183,6 @@ lemma euclidean_representation:
   fixes x :: "'a::euclidean_space"
   shows "x = (\<Sum>i<DIM('a). (x$$i) *\<^sub>R basis i)"
   apply (rule euclidean_eqI)
-  apply (simp add: euclidean_component_setsum euclidean_component_scaleR)
   apply (simp add: if_distrib setsum_delta cong: if_cong)
   done
 
@@ -194,8 +193,7 @@ definition (in euclidean_space) Chi (binder "\<chi>\<chi> " 10) where
 
 lemma euclidean_lambda_beta [simp]:
   "((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ j = (if j < DIM('a) then f j else 0)"
-  by (auto simp: euclidean_component_setsum euclidean_component_scaleR
-    Chi_def if_distrib setsum_cases intro!: setsum_cong)
+  by (auto simp: Chi_def if_distrib setsum_cases intro!: setsum_cong)
 
 lemma euclidean_lambda_beta':
   "j < DIM('a) \<Longrightarrow> ((\<chi>\<chi> i. f i)::'a::euclidean_space) $$ j = f j"

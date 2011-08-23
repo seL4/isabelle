@@ -14,7 +14,7 @@ begin
 
 lemma euclidean_dist_l2:"dist x (y::'a::euclidean_space) = setL2 (\<lambda>i. dist(x$$i) (y$$i)) {..<DIM('a)}"
   unfolding dist_norm norm_eq_sqrt_inner setL2_def apply(subst euclidean_inner)
-  apply(auto simp add:power2_eq_square) unfolding euclidean_component_diff ..
+  by(auto simp add:power2_eq_square)
 
 lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)"
   apply(subst(2) euclidean_dist_l2) apply(cases "i<DIM('a)")
@@ -5601,26 +5601,17 @@ subsection {* Some properties of a canonical subspace *}
 
 lemma subspace_substandard:
   "subspace {x::'a::euclidean_space. (\<forall>i<DIM('a). P i \<longrightarrow> x$$i = 0)}"
-  unfolding subspace_def by(auto simp add: euclidean_simps) (* FIXME: duplicate rewrite rule *)
+  unfolding subspace_def by auto
 
 lemma closed_substandard:
  "closed {x::'a::euclidean_space. \<forall>i<DIM('a). P i --> x$$i = 0}" (is "closed ?A")
 proof-
   let ?D = "{i. P i} \<inter> {..<DIM('a)}"
-  let ?Bs = "{{x::'a. inner (basis i) x = 0}| i. i \<in> ?D}"
-  { fix x
-    { assume "x\<in>?A"
-      hence x:"\<forall>i\<in>?D. x $$ i = 0" by auto
-      hence "x\<in> \<Inter> ?Bs" by(auto simp add: x euclidean_component_def) }
-    moreover
-    { assume x:"x\<in>\<Inter>?Bs"
-      { fix i assume i:"i \<in> ?D"
-        then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::'a. inner (basis i) x = 0}" by auto
-        hence "x $$ i = 0" unfolding B using x unfolding euclidean_component_def by auto  }
-      hence "x\<in>?A" by auto }
-    ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" .. }
-  hence "?A = \<Inter> ?Bs" by auto
-  thus ?thesis by(auto simp add: closed_Inter closed_hyperplane)
+  have "closed (\<Inter>i\<in>?D. {x::'a. x$$i = 0})"
+    by (simp add: closed_INT closed_Collect_eq)
+  also have "(\<Inter>i\<in>?D. {x::'a. x$$i = 0}) = ?A"
+    by auto
+  finally show "closed ?A" .
 qed
 
 lemma dim_substandard: assumes "d\<subseteq>{..<DIM('a::euclidean_space)}"
@@ -5645,7 +5636,7 @@ proof-
       have y:"x = y + (x$$k) *\<^sub>R basis k" unfolding y_def by auto
       { fix i assume i':"i \<notin> F"
         hence "y $$ i = 0" unfolding y_def 
-          using *[THEN spec[where x=i]] by(auto simp add: euclidean_simps) }
+          using *[THEN spec[where x=i]] by auto }
       hence "y \<in> span (basis ` F)" using insert(3) by auto
       hence "y \<in> span (basis ` (insert k F))"
         using span_mono[of "?bas ` F" "?bas ` (insert k F)"]
@@ -5763,25 +5754,25 @@ next
   case False
   { fix y assume "a \<le> y" "y \<le> b" "m > 0"
     hence "m *\<^sub>R a + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding eucl_le[where 'a='a] by(auto simp add: euclidean_simps)
+      unfolding eucl_le[where 'a='a] by auto
   } moreover
   { fix y assume "a \<le> y" "y \<le> b" "m < 0"
     hence "m *\<^sub>R b + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding eucl_le[where 'a='a] by(auto simp add: mult_left_mono_neg euclidean_simps)
+      unfolding eucl_le[where 'a='a] by(auto simp add: mult_left_mono_neg)
   } moreover
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
       apply(auto simp add: pth_3[symmetric] 
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"]) 
-      by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff euclidean_simps)
+      by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
       apply(auto simp add: pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff euclidean_simps)
+      by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff)
   }
   ultimately show ?thesis using False by auto
 qed

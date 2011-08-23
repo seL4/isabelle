@@ -831,7 +831,7 @@ proof-
     have IU: " (UNIV :: (real^'m) set) \<subseteq> span ?I" by blast
     from linear_eq[OF lf lg IU] fg x
     have "f x = g x" unfolding Ball_def mem_Collect_eq by metis}
-  then show ?thesis by (auto intro: ext)
+  then show ?thesis by auto
 qed
 
 lemma bilinear_eq_stdbasis_cart:
@@ -841,7 +841,7 @@ lemma bilinear_eq_stdbasis_cart:
   shows "f = g"
 proof-
   from fg have th: "\<forall>x \<in> {cart_basis i| i. i\<in> (UNIV :: 'm set)}. \<forall>y\<in>  {cart_basis j |j. j \<in> (UNIV :: 'n set)}. f x y = g x y" by blast
-  from bilinear_eq[OF bf bg equalityD2[OF span_stdbasis] equalityD2[OF span_stdbasis] th] show ?thesis by (blast intro: ext)
+  from bilinear_eq[OF bf bg equalityD2[OF span_stdbasis] equalityD2[OF span_stdbasis] th] show ?thesis by blast
 qed
 
 lemma left_invertible_transpose:

@@ -485,7 +485,7 @@ proof- def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfold
     show "k\<subseteq>{a..b}" apply(rule,unfold mem_interval,rule,rule) 
     proof fix i x assume i:"i<DIM('a)" assume "x \<in> k" moreover have "\<pi>' i < l \<or> \<pi>' i = l \<or> \<pi>' i > l" by auto
       ultimately show "a$$i \<le> x$$i" "x$$i \<le> b$$i" using abcd[of i] using l using i
-        by(auto elim:disjE elim!:allE[where x=i] simp add:eucl_le[where 'a='a])
+        by(auto elim!:allE[where x=i] simp add:eucl_le[where 'a='a]) (* FIXME: SLOW *)
     qed have "\<And>l. ?p1 l \<noteq> {}" "\<And>l. ?p2 l \<noteq> {}" unfolding interval_eq_empty not_ex apply(rule_tac[!] allI)
     proof- case goal1 thus ?case using abcd[of x] by auto
     next   case goal2 thus ?case using abcd[of x] by auto
@@ -967,7 +967,7 @@ qed
 subsection {* The set we're concerned with must be closed. *}
 
 lemma division_of_closed: "s division_of i \<Longrightarrow> closed (i::('n::ordered_euclidean_space) set)"
-  unfolding division_of_def by(fastsimp intro!: closed_Union closed_interval)
+  unfolding division_of_def by fastsimp
 
 subsection {* General bisection principle for intervals; might be useful elsewhere. *}
 
@@ -2544,7 +2544,7 @@ proof-
       apply(subst interval_doublesplit[OF k]) apply(rule content_pos_le) apply(rule indicator_pos_le)
     proof- have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) * ?i x) \<le> (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}))"
         apply(rule setsum_mono) unfolding split_paired_all split_conv 
-        apply(rule mult_right_le_one_le) apply(drule p'(4)) by(auto simp add:interval_doublesplit[OF k] intro!:content_pos_le)
+        apply(rule mult_right_le_one_le) apply(drule p'(4)) by(auto simp add:interval_doublesplit[OF k])
       also have "... < e" apply(subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]])
       proof- case goal1 have "content ({u..v} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) \<le> content {u..v}"
           unfolding interval_doublesplit[OF k] apply(rule content_subset) unfolding interval_doublesplit[THEN sym,OF k] by auto
@@ -4627,7 +4627,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
       case goal1 show ?case using int .
     next case goal2 thus ?case apply-apply(cases "x\<in>s") using assms(3) by auto
     next case goal3 thus ?case apply-apply(cases "x\<in>s")
-        using assms(4) by (auto intro: tendsto_const)
+        using assms(4) by auto
     next case goal4 note * = integral_nonneg
       have "\<And>k. norm (integral {a..b} (\<lambda>x. if x \<in> s then f k x else 0)) \<le> norm (integral s (f k))"
         unfolding real_norm_def apply(subst abs_of_nonneg) apply(rule *[OF int])
@@ -4678,7 +4678,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   next case goal2 thus ?case apply(rule integrable_sub) using assms(1) by auto
   next case goal3 thus ?case using *[of x "Suc k" "Suc (Suc k)"] by auto
   next case goal4 thus ?case apply-apply(rule tendsto_diff) 
-      using seq_offset[OF assms(3)[rule_format],of x 1] by (auto intro: tendsto_const)
+      using seq_offset[OF assms(3)[rule_format],of x 1] by auto
   next case goal5 thus ?case using assms(4) unfolding bounded_iff
       apply safe apply(rule_tac x="a + norm (integral s (\<lambda>x. f 0 x))" in exI)
       apply safe apply(erule_tac x="integral s (\<lambda>x. f (Suc k) x)" in ballE) unfolding sub

@@ -180,7 +180,7 @@ next assume as:"a $ 1 < b $ 1 \<and> a $ 2 < b $ 2"
       "(interval_bij (a, b) (- 1, 1) \<circ> f) 1 $ 1 = 1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 0 $ 2 = -1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 1 $ 2 = 1"
-      unfolding interval_bij_cart vec_lambda_beta vector_component_simps o_def split_conv
+      unfolding interval_bij_cart vector_component_simps o_def split_conv
       unfolding assms[unfolded pathstart_def pathfinish_def] using as by auto qed note z=this
   from z(1) guess zf unfolding image_iff .. note zf=this
   from z(2) guess zg unfolding image_iff .. note zg=this

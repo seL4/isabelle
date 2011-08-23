@@ -598,7 +598,7 @@ proof(rule,rule,rule,rule)
     case True thus ?thesis
       apply(rule_tac x="(min (b$$i - a$$i)  e) / 2" in exI)
       using assms(1)[THEN spec[where x=i]] and `e>0` and assms(2)
-      unfolding mem_interval euclidean_simps basis_component
+      unfolding mem_interval euclidean_simps
       using i by (auto simp add: field_simps)
   next note * = assms(2)[unfolded mem_interval,THEN spec[where x=i]]
     case False moreover have "a $$ i < x $$ i" using False * by auto
@@ -614,7 +614,7 @@ proof(rule,rule,rule,rule)
     ultimately show ?thesis
       apply(rule_tac x="- (min (x$$i - a$$i) e) / 2" in exI)
       using assms(1)[THEN spec[where x=i]] and `e>0` and assms(2)
-      unfolding mem_interval euclidean_simps basis_component
+      unfolding mem_interval euclidean_simps
       using i by (auto simp add: field_simps)
   qed
 qed
@@ -655,7 +655,7 @@ lemma linear_componentwise:
 proof -
   have fA: "finite {..<DIM('a)}" by simp
   have "?rhs = (\<Sum>i<DIM('a). x$$i *\<^sub>R f (basis i))$$j"
-    by (simp add: euclidean_simps)
+    by simp
   then show ?thesis
     unfolding linear_setsum_mul[OF lf fA, symmetric]
     unfolding euclidean_representation[symmetric] ..
@@ -1550,7 +1550,7 @@ proof(cases "s={}")
     apply(rule has_derivative_sequence[OF assms(1) _ assms(3), of "\<lambda>n x. f n x + (f 0 a - f n a)"])
     apply(rule,rule)
     apply(rule has_derivative_add_const, rule assms(2)[rule_format], assumption)  
-    apply(rule `a\<in>s`) by(auto intro!: tendsto_const)
+    apply(rule `a\<in>s`) by auto
 qed auto
 
 lemma has_antiderivative_limit:
