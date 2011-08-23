@@ -26,7 +26,7 @@ struct
  fun find_normedterms t acc = case term_of t of
     @{term "op + :: real => _"}$_$_ =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
-      | @{term "op * :: real => _"}$_$n =>
+      | @{term "op * :: real => _"}$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
             augment_norm (dest_ratconst (Thm.dest_arg1 t) >=/ Rat.zero)
                       (Thm.dest_arg t) acc
@@ -39,12 +39,16 @@ struct
  fun cterm_lincomb_sub l r = cterm_lincomb_add l (cterm_lincomb_neg r)
  fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
+(*
  val int_lincomb_neg = FuncUtil.Intfunc.map (K Rat.neg)
+*)
  fun int_lincomb_cmul c t =
     if c =/ Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x */ c) t
  fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
+(*
  fun int_lincomb_sub l r = int_lincomb_add l (int_lincomb_neg r)
  fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
+*)
 
 fun vector_lincomb t = case term_of t of
    Const(@{const_name plus}, _) $ _ $ _ =>
@@ -82,9 +86,11 @@ fun replacenegnorms cv t = case term_of t of
 | @{term "op * :: real => _"}$_$_ =>
     if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
+(*
 fun flip v eq =
   if FuncUtil.Ctermfunc.defined eq v
   then FuncUtil.Ctermfunc.update (v, Rat.neg (FuncUtil.Ctermfunc.apply eq v)) eq else eq
+*)
 fun allsubsets s = case s of
   [] => [[]]
 |(a::t) => let val res = allsubsets t in
@@ -178,8 +184,8 @@ end;
 
 fun headvector t = case t of
   Const(@{const_name plus}, _)$
-   (Const(@{const_name scaleR}, _)$l$v)$r => v
- | Const(@{const_name scaleR}, _)$l$v => v
+   (Const(@{const_name scaleR}, _)$_$v)$_ => v
+ | Const(@{const_name scaleR}, _)$_$v => v
  | _ => error "headvector: non-canonical term"
 
 fun vector_cmul_conv ct =

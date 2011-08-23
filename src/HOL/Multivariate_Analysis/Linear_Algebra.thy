@@ -215,8 +215,8 @@ proof
 next
   assume ?rhs
   then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
-  hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_simps inner_commute)
-  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: field_simps inner_simps inner_commute)
+  hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_diff inner_commute)
+  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: field_simps inner_diff inner_commute)
   then show "x = y" by (simp)
 qed
 
@@ -378,15 +378,15 @@ lemma setsum_group:
   by (auto intro: setsum_0')
 
 lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> y = setsum (\<lambda>x. f x \<bullet> y) S "
-  apply(induct rule: finite_induct) by(auto simp add: inner_simps)
+  apply(induct rule: finite_induct) by(auto simp add: inner_add)
 
 lemma dot_rsum: "finite S \<Longrightarrow> y \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
-  apply(induct rule: finite_induct) by(auto simp add: inner_simps)
+  apply(induct rule: finite_induct) by(auto simp add: inner_add)
 
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
 proof
   assume "\<forall>x. x \<bullet> y = x \<bullet> z"
-  hence "\<forall>x. x \<bullet> (y - z) = 0" by (simp add: inner_simps)
+  hence "\<forall>x. x \<bullet> (y - z) = 0" by (simp add: inner_diff)
   hence "(y - z) \<bullet> (y - z) = 0" ..
   thus "y = z" by simp
 qed simp
@@ -394,7 +394,7 @@ qed simp
 lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
 proof
   assume "\<forall>z. x \<bullet> z = y \<bullet> z"
-  hence "\<forall>z. (x - y) \<bullet> z = 0" by (simp add: inner_simps)
+  hence "\<forall>z. (x - y) \<bullet> z = 0" by (simp add: inner_diff)
   hence "(x - y) \<bullet> (x - y) = 0" ..
   thus "x = y" by simp
 qed simp
@@ -2146,7 +2146,7 @@ next
         apply (subst Cy)
         using C(1) fth
         apply (simp only: setsum_clauses)
-        apply (auto simp add: inner_simps inner_commute[of y a] dot_lsum[OF fth])
+        apply (auto simp add: inner_add inner_commute[of y a] dot_lsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -2163,7 +2163,7 @@ next
         using C(1) fth
         apply (simp only: setsum_clauses)
         apply (subst inner_commute[of x])
-        apply (auto simp add: inner_simps inner_commute[of x a] dot_rsum[OF fth])
+        apply (auto simp add: inner_add inner_commute[of x a] dot_rsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -2224,7 +2224,7 @@ proof-
   with a have a0:"?a  \<noteq> 0" by auto
   have "\<forall>x\<in>span B. ?a \<bullet> x = 0"
   proof(rule span_induct')
-    show "subspace {x. ?a \<bullet> x = 0}" by (auto simp add: subspace_def inner_simps)
+    show "subspace {x. ?a \<bullet> x = 0}" by (auto simp add: subspace_def inner_add)
 next
     {fix x assume x: "x \<in> B"
       from x have B': "B = insert x (B - {x})" by blast
@@ -2233,7 +2233,7 @@ next
         apply (subst B') using fB fth
         unfolding setsum_clauses(2)[OF fth]
         apply simp unfolding inner_simps
-        apply (clarsimp simp add: inner_simps dot_lsum)
+        apply (clarsimp simp add: inner_add dot_lsum)
         apply (rule setsum_0', rule ballI)
         unfolding inner_commute
         by (auto simp add: x field_simps intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
@@ -2534,7 +2534,7 @@ proof-
     from equalityD2[OF span_basis'[where 'a='a]]
     have IU: " (UNIV :: 'a set) \<subseteq> span ?I" by blast
     have "f x = g x" apply(rule linear_eq[OF lf lg IU,rule_format]) using fg x by auto }
-  then show ?thesis by (auto intro: ext)
+  then show ?thesis by auto
 qed
 
 text {* Similar results for bilinear functions. *}
@@ -2559,7 +2559,7 @@ proof-
     apply (auto simp add: subspace_def)
     using bf bg unfolding bilinear_def linear_def
     by(auto simp add: span_0 bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
-  then show ?thesis using SB TC by (auto intro: ext)
+  then show ?thesis using SB TC by auto
 qed
 
 lemma bilinear_eq_stdbasis: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> _"
@@ -2570,7 +2570,7 @@ lemma bilinear_eq_stdbasis: fixes f::"'a::euclidean_space \<Rightarrow> 'b::eucl
 proof-
   from fg have th: "\<forall>x \<in> (basis ` {..<DIM('a)}). \<forall>y\<in> (basis ` {..<DIM('b)}). f x y = g x y" by blast
   from bilinear_eq[OF bf bg equalityD2[OF span_basis'] equalityD2[OF span_basis'] th]
-  show ?thesis by (blast intro: ext)
+  show ?thesis by blast
 qed
 
 text {* Detailed theorems about left and right invertibility in general case. *}
@@ -2836,7 +2836,7 @@ lemma infnorm_0: "infnorm 0 = 0"
 lemma infnorm_neg: "infnorm (- x) = infnorm x"
   unfolding infnorm_def
   apply (rule cong[of "Sup" "Sup"])
-  apply blast by(auto simp add: euclidean_simps)
+  apply blast by(auto simp add: euclidean_component_minus)
 
 lemma infnorm_sub: "infnorm (x - y) = infnorm (y - x)"
 proof-
@@ -2851,7 +2851,7 @@ proof-
   from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
   have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
     "infnorm y \<le> infnorm (x - y) + infnorm x"
-    by (simp_all add: field_simps infnorm_neg diff_minus[symmetric])
+    by (simp_all add: field_simps infnorm_neg)
   from th[OF ths]  show ?thesis .
 qed
 

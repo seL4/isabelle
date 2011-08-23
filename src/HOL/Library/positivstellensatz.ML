@@ -204,10 +204,12 @@ val weak_dnf_simps =
     @{lemma "((P & (Q | R)) = ((P&Q) | (P&R)))" and "((Q | R) & P) = ((Q&P) | (R&P))" and
       "(P & Q) = (Q & P)" and "((P | Q) = (Q | P))" by blast+};
 
+(*
 val nnfD_simps =
   @{lemma "((~(P & Q)) = (~P | ~Q))" and "((~(P | Q)) = (~P & ~Q) )" and
     "((P --> Q) = (~P | Q) )" and "((P = Q) = ((P & Q) | (~P & ~ Q)))" and
     "((~(P = Q)) = ((P & ~ Q) | (~P & Q)) )" and "((~ ~(P)) = P)" by blast+};
+*)
 
 val choice_iff = @{lemma "(ALL x. EX y. P x y) = (EX f. ALL x. P x (f x))" by metis};
 val prenex_simps =
@@ -293,16 +295,18 @@ end;
  | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
 
+(*
 fun find_term p t = if p t then t else 
  case t of
   a$b => (find_term p a handle TERM _ => find_term p b)
  | Abs (_,_,t') => find_term p t'
  | _ => raise TERM ("find_term",[t]);
+*)
 
 fun find_cterm p t = if p t then t else 
  case term_of t of
-  a$b => (find_cterm p (Thm.dest_fun t) handle CTERM _ => find_cterm p (Thm.dest_arg t))
- | Abs (_,_,t') => find_cterm p (Thm.dest_abs NONE t |> snd)
+  _$_ => (find_cterm p (Thm.dest_fun t) handle CTERM _ => find_cterm p (Thm.dest_arg t))
+ | Abs (_,_,_) => find_cterm p (Thm.dest_abs NONE t |> snd)
  | _ => raise CTERM ("find_cterm",[t]);
 
     (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
@@ -477,7 +481,7 @@ let
  val strip_exists =
   let fun h (acc, t) =
    case (term_of t) of
-    Const(@{const_name Ex},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+    Const(@{const_name Ex},_)$Abs(_,_,_) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end
@@ -512,7 +516,7 @@ let
  val strip_forall =
   let fun h (acc, t) =
    case (term_of t) of
-    Const(@{const_name All},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+    Const(@{const_name All},_)$Abs(_,_,_) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end
@@ -725,7 +729,7 @@ end;
 fun gen_prover_real_arith ctxt prover = 
  let
   fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS
-  val {add,mul,neg,pow,sub,main} = 
+  val {add, mul, neg, pow = _, sub = _, main} = 
      Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
       (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) 
      simple_cterm_ord

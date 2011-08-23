@@ -546,7 +546,7 @@ lemma enumerate_in_set: "infinite S \<Longrightarrow> enumerate S n : S"
 apply (induct n arbitrary: S)
  apply (fastsimp intro: LeastI dest!: infinite_imp_nonempty)
 apply simp
-apply (metis Collect_mem_eq DiffE infinite_remove)
+apply (metis DiffE infinite_remove)
 done
 
 declare enumerate_0 [simp del] enumerate_Suc [simp del]
