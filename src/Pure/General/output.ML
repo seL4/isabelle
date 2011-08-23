@@ -22,9 +22,9 @@ sig
   val output_width: string -> output * int
   val output: string -> output
   val escape: output -> string
-  val raw_stdout: output -> unit
-  val raw_stderr: output -> unit
-  val raw_writeln: output -> unit
+  val physical_stdout: output -> unit
+  val physical_stderr: output -> unit
+  val physical_writeln: output -> unit
   structure Private_Hooks:
   sig
     val writeln_fn: (output -> unit) Unsynchronized.ref
@@ -78,24 +78,24 @@ fun escape x = #escape (get_mode ()) x;
 
 (* raw output primitives -- not to be used in user-space *)
 
-fun raw_stdout s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
-fun raw_stderr s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
+fun physical_stdout s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun physical_stderr s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
-fun raw_writeln "" = ()
-  | raw_writeln s = raw_stdout (suffix "\n" s);  (*atomic output!*)
+fun physical_writeln "" = ()
+  | physical_writeln s = physical_stdout (suffix "\n" s);  (*atomic output!*)
 
 
 (* Isabelle output channels *)
 
 structure Private_Hooks =
 struct
-  val writeln_fn = Unsynchronized.ref raw_writeln;
+  val writeln_fn = Unsynchronized.ref physical_writeln;
   val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
   val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
-  val warning_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "### ");
+  val warning_fn = Unsynchronized.ref (physical_stdout o suffix "\n" o prefix_lines "### ");
   val error_fn =
-    Unsynchronized.ref (fn (_: serial, s) => raw_stdout (suffix "\n" (prefix_lines "*** " s)));
-  val prompt_fn = Unsynchronized.ref raw_stdout;
+    Unsynchronized.ref (fn (_: serial, s) => physical_stdout (suffix "\n" (prefix_lines "*** " s)));
+  val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
   val raw_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =

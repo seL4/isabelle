@@ -107,7 +107,7 @@ fun use_dir item root build modes reset info doc doc_graph doc_variants parent
           val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
             |> Real.fmt (StringCvt.FIX (SOME 2));
           val _ =
-            Output.raw_stderr ("Timing " ^ item ^ " (" ^
+            Output.physical_stderr ("Timing " ^ item ^ " (" ^
               string_of_int (Multithreading.max_threads_value ()) ^ " threads, " ^
               Timing.message timing ^ ", factor " ^ factor ^ ")\n");
         in () end
