@@ -45,7 +45,7 @@ sig
   val snarkN : string
   val e_tofofN : string
   val waldmeisterN : string
-  val z3_atpN : string
+  val z3_tptpN : string
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
@@ -104,7 +104,7 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val spassN = "spass"
 val vampireN = "vampire"
-val z3_atpN = "z3_atp"
+val z3_tptpN = "z3_tptp"
 val e_sineN = "e_sine"
 val snarkN = "snark"
 val e_tofofN = "e_tofof"
@@ -349,7 +349,7 @@ val vampire = (vampireN, vampire_config)
 
 (* Z3 with TPTP syntax *)
 
-val z3_atp_config : atp_config =
+val z3_tptp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
@@ -364,13 +364,13 @@ val z3_atp_config : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices =
-     (* FUDGE (FIXME) *)
-     K [(0.5, (false, (250, FOF, "mangled_guards?", ""))),
-        (0.25, (false, (125, FOF, "mangled_guards?", ""))),
-        (0.125, (false, (62, FOF, "mangled_guards?", ""))),
-        (0.125, (false, (31, FOF, "mangled_guards?", "")))]}
+     (* FUDGE *)
+     K [(0.5, (false, (250, TFF, "simple", ""))),
+        (0.25, (false, (125, TFF, "simple", ""))),
+        (0.125, (false, (62, TFF, "simple", ""))),
+        (0.125, (false, (31, TFF, "simple", "")))]}
 
-val z3_atp = (z3_atpN, z3_atp_config)
+val z3_tptp = (z3_tptpN, z3_tptp_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -457,9 +457,8 @@ val remote_satallax =
                (K (100, THF With_Choice, "simple_higher") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"] (K (250, TFF, "simple") (* FUDGE *))
-val remote_z3_atp =
-  remotify_atp z3_atp "Z3" ["2.18"]
-               (K (250, FOF, "mangled_guards?") (* FUDGE *))
+val remote_z3_tptp =
+  remotify_atp z3_tptp "Z3" ["3.0"] (K (250, TFF, "simple") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture (K (500, FOF, "mangled_guards?") (* FUDGE *))
@@ -499,8 +498,8 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, satallax, spass, vampire, z3_atp, remote_e, remote_leo2,
-   remote_satallax, remote_vampire, remote_z3_atp, remote_e_sine, remote_snark,
+  [e, leo2, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
+   remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine, remote_snark,
    remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
 

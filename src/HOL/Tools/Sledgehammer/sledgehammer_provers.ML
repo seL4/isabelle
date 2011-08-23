@@ -536,7 +536,7 @@ fun repair_monomorph_context max_iters max_new_instances =
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.keep_partial_instances false
 
-(* Give the ATPs some slack before interrupting them the hard way. "z3_atp" on
+(* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on
    Linux appears to be the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
 

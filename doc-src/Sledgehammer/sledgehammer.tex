@@ -765,8 +765,8 @@ Microsoft Research \cite{z3}. To use Z3, set the environment variable
 name, and set \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
 noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
 
-\item[$\bullet$] \textbf{\textit{z3\_atp}:} This version of Z3 pretends to be an
-ATP, exploiting Z3's support for the TPTP untyped and many-typed first-order
+\item[$\bullet$] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
+an ATP, exploiting Z3's support for the TPTP untyped and many-typed first-order
 formats (FOF and TFF). It is included for experimental purposes. It requires
 version 3.0 or above.
 \end{enum}
@@ -814,8 +814,8 @@ runs on Geoff Sutcliffe's Miami servers.
 servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
 
-\item[$\bullet$] \textbf{\textit{remote\_z3\_atp}:} The remote version of ``Z3
-as an ATP'' runs on Geoff Sutcliffe's Miami servers.
+\item[$\bullet$] \textbf{\textit{remote\_z3\_tptp}:} The remote version of ``Z3
+with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, Sledgehammer will run E, E-SInE, SPASS, Vampire, Z3 (or whatever
