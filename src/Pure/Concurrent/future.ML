@@ -51,7 +51,6 @@ sig
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val get_finished: 'a future -> 'a
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> task list
   val cancel: 'a future -> task list
@@ -125,11 +124,6 @@ fun result_of (Future {result, ...}) = result;
 
 fun peek x = Single_Assignment.peek (result_of x);
 fun is_finished x = is_some (peek x);
-
-fun get_finished x =
-  (case peek x of
-    SOME res => Exn.release res
-  | NONE => raise Fail "Unfinished future evaluation");
 
 
 

@@ -27,11 +27,6 @@ fun value a = Lazy (Unsynchronized.ref (Result (Exn.Res a)));
 
 fun is_finished x = is_some (peek x);
 
-fun get_finished x =
-  (case peek x of
-    SOME res => Exn.release res
-  | NONE => raise Fail "Unfinished lazy evaluation");
-
 
 (* force result *)
 

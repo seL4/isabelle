@@ -11,7 +11,6 @@ sig
   type 'a lazy
   val peek: 'a lazy -> 'a Exn.result option
   val is_finished: 'a lazy -> bool
-  val get_finished: 'a lazy -> 'a
   val lazy: (unit -> 'a) -> 'a lazy
   val value: 'a -> 'a lazy
   val force_result: 'a lazy -> 'a Exn.result
@@ -41,11 +40,6 @@ fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
 fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
 
 fun is_finished x = is_some (peek x);
-
-fun get_finished x =
-  (case peek x of
-    SOME res => Exn.release res
-  | NONE => raise Fail "Unfinished lazy evaluation");
 
 
 (* force result *)
