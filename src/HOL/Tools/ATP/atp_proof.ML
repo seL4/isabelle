@@ -348,7 +348,6 @@ val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_annotation
                  --| Scan.option ($$ "," |-- parse_annotations)) []
 
-val vampire_unknown_fact = "unknown"
 val waldmeister_conjecture = "conjecture_1"
 
 val tofof_fact_prefix = "fof_"
@@ -408,9 +407,7 @@ fun parse_tstp_line problem =
               case deps of
                 ["file", _, s] =>
                 ((num,
-                  if s = vampire_unknown_fact then
-                    NONE
-                  else if s = waldmeister_conjecture then
+                  if s = waldmeister_conjecture then
                     find_formula_in_problem problem (mk_anot phi)
                   else
                     SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]),

@@ -21,9 +21,8 @@ sig
      known_failures : (failure * string) list,
      conj_sym_kind : formula_kind,
      prem_kind : formula_kind,
-     formats : format list,
      best_slices :
-       Proof.context -> (real * (bool * (int * string * string))) list}
+       Proof.context -> (real * (bool * (int * format * string * string))) list}
 
   val force_sos : bool Config.T
   val e_smartN : string
@@ -46,12 +45,12 @@ sig
   val snarkN : string
   val e_tofofN : string
   val waldmeisterN : string
-  val z3_atpN : string
+  val z3_tptpN : string
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_kind -> formula_kind -> format list
-    -> (Proof.context -> int * string) -> string * atp_config
+    -> (failure * string) list -> formula_kind -> formula_kind
+    -> (Proof.context -> int * format * string) -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -78,9 +77,8 @@ type atp_config =
    known_failures : (failure * string) list,
    conj_sym_kind : formula_kind,
    prem_kind : formula_kind,
-   formats : format list,
    best_slices :
-     Proof.context -> (real * (bool * (int * string * string))) list}
+     Proof.context -> (real * (bool * (int * format * string * string))) list}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
    the ATPs are run in parallel. The "real" components give the faction of the
@@ -106,7 +104,7 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val spassN = "spass"
 val vampireN = "vampire"
-val z3_atpN = "z3_atp"
+val z3_tptpN = "z3_tptp"
 val e_sineN = "e_sine"
 val snarkN = "snark"
 val e_tofofN = "e_tofof"
@@ -131,6 +129,8 @@ val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 
 
 (* E *)
+
+fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
@@ -190,8 +190,6 @@ fun e_weight_arguments ctxt method weights =
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
 
-fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
-
 fun effective_e_weight_method ctxt =
   if is_old_e_version () then e_autoN else Config.get ctxt e_weight_method
 
@@ -214,16 +212,15 @@ val e_config : atp_config =
       (OutOfResources, "SZS status ResourceOut")],
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
-   formats = [FOF],
    best_slices = fn ctxt =>
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (500, "mangled_tags?", e_fun_weightN))),
-          (0.334, (true, (50, "mangled_guards?", e_fun_weightN))),
-          (0.333, (true, (1000, "mangled_tags?", e_sym_offset_weightN)))]
+         [(0.333, (true, (500, FOF, "mangled_tags?", e_fun_weightN))),
+          (0.334, (true, (50, FOF, "mangled_guards?", e_fun_weightN))),
+          (0.333, (true, (1000, FOF, "mangled_tags?", e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (500, "mangled_tags?", method)))]
+         [(1.0, (true, (500, FOF, "mangled_tags?", method)))]
      end}
 
 val e = (eN, e_config)
@@ -242,11 +239,10 @@ val leo2_config : atp_config =
    known_failures = [],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
-   formats = [THF Without_Choice, FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, (150, "simple_higher", sosN))),
-      (0.333, (true, (50, "simple_higher", no_sosN)))]
+     [(0.667, (false, (150, THF Without_Choice, "simple_higher", sosN))),
+      (0.333, (true, (50, THF Without_Choice, "simple_higher", no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -265,8 +261,8 @@ val satallax_config : atp_config =
    known_failures = [(ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
-   formats = [THF With_Choice],
-   best_slices = K [(1.0, (true, (100, "simple_higher", "")))] (* FUDGE *)}
+   best_slices =
+     K [(1.0, (true, (100, THF With_Choice, "simple_higher", "")))] (* FUDGE *)}
 
 val satallax = (satallaxN, satallax_config)
 
@@ -295,12 +291,11 @@ val spass_config : atp_config =
       (InternalError, "Please report this error")],
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
-   formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, "mangled_tags", sosN))),
-      (0.333, (false, (300, "poly_tags?", sosN))),
-      (0.334, (true, (50, "mangled_tags?", no_sosN)))]
+     [(0.333, (false, (150, FOF, "mangled_tags", sosN))),
+      (0.333, (false, (300, FOF, "poly_tags?", sosN))),
+      (0.334, (true, (50, FOF, "mangled_tags?", no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -309,12 +304,16 @@ val spass = (spassN, spass_config)
 
 (* Vampire *)
 
+fun is_old_vampire_version () =
+  string_ord (getenv "VAMPIRE_VERSION", "1.8") = LESS
+
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     "--proof tptp --mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-     " --thanks \"Andrei and Krystof\" --input_file"
+     "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
+     " --proof tptp --output_axiom_names on \
+     \ --thanks \"Andrei and Krystof\" --input_file"
      |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
@@ -333,12 +332,15 @@ val vampire_config : atp_config =
       (Interrupted, "Aborted by signal SIGINT")],
    conj_sym_kind = Conjecture,
    prem_kind = Conjecture,
-   formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, "poly_guards", sosN))),
-      (0.334, (true, (50, "mangled_guards?", no_sosN))),
-      (0.333, (false, (500, "mangled_tags?", sosN)))]
+     (0.333, (false, (150, FOF, "poly_guards", sosN))) ::
+     (if is_old_vampire_version () then
+        [(0.334, (true, (50, FOF, "mangled_guards?", no_sosN))),
+         (0.333, (false, (500, FOF, "mangled_tags?", sosN)))]
+      else
+        [(0.334, (true, (50, TFF, "simple", no_sosN))),
+         (0.333, (false, (500, TFF, "simple", sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -347,29 +349,28 @@ val vampire = (vampireN, vampire_config)
 
 (* Z3 with TPTP syntax *)
 
-val z3_atp_config : atp_config =
+val z3_tptp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "MBQI=true -p -t:" ^ string_of_int (to_secs 1 timeout),
+     "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures =
-     [(Unprovable, "\nsat"),
-      (GaveUp, "\nunknown"),
-      (GaveUp, "SZS status Satisfiable"),
-      (ProofMissing, "\nunsat"),
-      (ProofMissing, "SZS status Unsatisfiable")],
+     [(GaveUp, "SZS status Satisfiable"),
+      (GaveUp, "SZS status CounterSatisfiable"),
+      (GaveUp, "SZS status GaveUp"),
+      (ProofMissing, "SZS status Unsatisfiable"),
+      (ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
-   formats = [FOF],
    best_slices =
-     (* FUDGE (FIXME) *)
-     K [(0.5, (false, (250, "mangled_guards?", ""))),
-        (0.25, (false, (125, "mangled_guards?", ""))),
-        (0.125, (false, (62, "mangled_guards?", ""))),
-        (0.125, (false, (31, "mangled_guards?", "")))]}
+     (* FUDGE *)
+     K [(0.5, (false, (250, TFF, "simple", ""))),
+        (0.25, (false, (125, TFF, "simple", ""))),
+        (0.125, (false, (62, TFF, "simple", ""))),
+        (0.125, (false, (31, TFF, "simple", "")))]}
 
-val z3_atp = (z3_atpN, z3_atp_config)
+val z3_tptp = (z3_tptpN, z3_tptp_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -407,7 +408,7 @@ fun the_system name versions =
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  conj_sym_kind prem_kind formats best_slice : atp_config =
+                  conj_sym_kind prem_kind best_slice : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
@@ -425,58 +426,56 @@ fun remote_config system_name system_versions proof_delims known_failures
       (Inappropriate, "says Inappropriate")],
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
-   formats = formats,
    best_slices = fn ctxt =>
-     let val (max_relevant, type_enc) = best_slice ctxt in
-       [(1.0, (false, (max_relevant, type_enc, "")))]
+     let val (max_relevant, format, type_enc) = best_slice ctxt in
+       [(1.0, (false, (max_relevant, format, type_enc, "")))]
      end}
 
 fun remotify_config system_name system_versions best_slice
-        ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats, ...}
+        ({proof_delims, known_failures, conj_sym_kind, prem_kind, ...}
          : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                conj_sym_kind prem_kind formats best_slice
+                conj_sym_kind prem_kind best_slice
 
 fun remote_atp name system_name system_versions proof_delims known_failures
-        conj_sym_kind prem_kind formats best_slice =
+               conj_sym_kind prem_kind best_slice =
   (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
-                 conj_sym_kind prem_kind formats best_slice)
+                 conj_sym_kind prem_kind best_slice)
 fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice config)
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-               (K (750, "mangled_tags?") (* FUDGE *))
+               (K (750, FOF, "mangled_tags?") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-               (K (100, "simple_higher") (* FUDGE *))
+               (K (100, THF Without_Choice, "simple_higher") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
-               (K (100, "simple_higher") (* FUDGE *))
+               (K (100, THF With_Choice, "simple_higher") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-               (K (200, "mangled_guards?") (* FUDGE *))
-val remote_z3_atp =
-  remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_guards?") (* FUDGE *))
+  remotify_atp vampire "Vampire" ["1.8"] (K (250, TFF, "simple") (* FUDGE *))
+val remote_z3_tptp =
+  remotify_atp z3_tptp "Z3" ["3.0"] (K (250, TFF, "simple") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
-             Conjecture [FOF] (K (500, "mangled_guards?") (* FUDGE *))
+             Conjecture (K (500, FOF, "mangled_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-             [TFF, FOF] (K (100, "simple") (* FUDGE *))
+             (K (100, TFF, "simple") (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Hypothesis [TFF] (K (150, "simple") (* FUDGE *))
+             Axiom Hypothesis (K (150, TFF, "simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]
              [(OutOfResources, "Too many function symbols"),
               (Crashed, "Unrecoverable Segmentation Fault")]
-             Hypothesis Hypothesis [CNF_UEQ]
-             (K (50, "mangled_tags?") (* FUDGE *))
+             Hypothesis Hypothesis
+             (K (50, CNF_UEQ, "mangled_tags?") (* FUDGE *))
 
 (* Setup *)
 
@@ -499,8 +498,8 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, satallax, spass, vampire, z3_atp, remote_e, remote_leo2,
-   remote_satallax, remote_vampire, remote_z3_atp, remote_e_sine, remote_snark,
+  [e, leo2, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
+   remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine, remote_snark,
    remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
 

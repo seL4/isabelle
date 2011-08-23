@@ -154,7 +154,9 @@ fun is_smt_prover ctxt name =
 fun is_unit_equational_atp ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
-      SOME {formats, ...} => member (op =) formats CNF_UEQ
+      SOME {best_slices, ...} =>
+      exists (fn (_, (_, (_, format, _, _))) => format = CNF_UEQ)
+             (best_slices ctxt)
     | NONE => false
   end
 
@@ -512,10 +514,10 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val atp_important_message_keep_quotient = 10
 
-fun choose_format_and_type_enc soundness best_type_enc formats =
+fun choose_type_enc soundness best_type_enc format =
   the_default best_type_enc
   #> type_enc_from_string soundness
-  #> choose_format formats
+  #> adjust_type_enc format
 
 val metis_minimize_max_time = seconds 2.0
 
@@ -534,13 +536,13 @@ fun repair_monomorph_context max_iters max_new_instances =
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.keep_partial_instances false
 
-(* Give the ATPs some slack before interrupting them the hard way. "z3_atp" on
+(* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on
    Linux appears to be the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
 
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
-          conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
+          conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, type_enc, sound, max_relevant,
           max_mono_iters, max_new_mono_instances, isar_proof,
           isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
@@ -609,7 +611,8 @@ fun run_atp mode name
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
             fun run_slice (slice, (time_frac, (complete,
-                                    (best_max_relevant, best_type_enc, extra))))
+                                    (best_max_relevant, format, best_type_enc,
+                                     extra))))
                           time_left =
               let
                 val num_facts =
@@ -623,9 +626,8 @@ fun run_atp mode name
                       Sound
                   else
                     Unsound
-                val (format, type_enc) =
-                  choose_format_and_type_enc soundness best_type_enc formats
-                                             type_enc
+                val type_enc =
+                  type_enc |> choose_type_enc soundness best_type_enc format
                 val fairly_sound = is_type_enc_fairly_sound type_enc
                 val facts =
                   facts |> map untranslated_fact

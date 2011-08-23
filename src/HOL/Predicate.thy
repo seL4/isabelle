@@ -47,7 +47,7 @@ lemma predicate1D [Pure.dest?, dest?]:
   done
 
 lemma rev_predicate1D:
-  "P x ==> P <= Q ==> Q x"
+  "P x \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x"
   by (rule predicate1D)
 
 lemma predicate2I [Pure.intro!, intro!]:
@@ -67,100 +67,100 @@ lemma predicate2D [Pure.dest, dest]:
   done
 
 lemma rev_predicate2D:
-  "P x y ==> P <= Q ==> Q x y"
+  "P x y \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x y"
   by (rule predicate2D)
 
 
 subsubsection {* Equality *}
 
-lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
-  by (simp add: mem_def)
+lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff mem_def)
 
-lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
-  by (simp add: fun_eq_iff mem_def)
+lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
+  by (simp add: set_eq_iff fun_eq_iff mem_def)
 
 
 subsubsection {* Order relation *}
 
-lemma pred_subset_eq: "((\<lambda>x. x \<in> R) <= (\<lambda>x. x \<in> S)) = (R <= S)"
-  by (simp add: mem_def)
+lemma pred_subset_eq: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def mem_def)
 
-lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) <= (\<lambda>x y. (x, y) \<in> S)) = (R <= S)"
-  by fast
+lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+  by (simp add: subset_iff le_fun_def mem_def)
 
 
 subsubsection {* Top and bottom elements *}
 
-lemma bot1E [no_atp, elim!]: "bot x \<Longrightarrow> P"
+lemma bot1E [no_atp, elim!]: "\<bottom> x \<Longrightarrow> P"
   by (simp add: bot_fun_def)
 
-lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
+lemma bot2E [elim!]: "\<bottom> x y \<Longrightarrow> P"
   by (simp add: bot_fun_def)
 
-lemma bot_empty_eq: "bot = (\<lambda>x. x \<in> {})"
+lemma bot_empty_eq: "\<bottom> = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma bot_empty_eq2: "bot = (\<lambda>x y. (x, y) \<in> {})"
+lemma bot_empty_eq2: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma top1I [intro!]: "top x"
+lemma top1I [intro!]: "\<top> x"
   by (simp add: top_fun_def)
 
-lemma top2I [intro!]: "top x y"
+lemma top2I [intro!]: "\<top> x y"
   by (simp add: top_fun_def)
 
 
 subsubsection {* Binary intersection *}
 
-lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
+lemma inf1I [intro!]: "A x \<Longrightarrow> B x \<Longrightarrow> (A \<sqinter> B) x"
   by (simp add: inf_fun_def)
 
-lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
+lemma inf2I [intro!]: "A x y \<Longrightarrow> B x y \<Longrightarrow> (A \<sqinter> B) x y"
   by (simp add: inf_fun_def)
 
-lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
+lemma inf1E [elim!]: "(A \<sqinter> B) x \<Longrightarrow> (A x \<Longrightarrow> B x \<Longrightarrow> P) \<Longrightarrow> P"
   by (simp add: inf_fun_def)
 
-lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
+lemma inf2E [elim!]: "(A \<sqinter> B) x y \<Longrightarrow> (A x y \<Longrightarrow> B x y \<Longrightarrow> P) \<Longrightarrow> P"
   by (simp add: inf_fun_def)
 
-lemma inf1D1: "inf A B x ==> A x"
+lemma inf1D1: "(A \<sqinter> B) x \<Longrightarrow> A x"
   by (simp add: inf_fun_def)
 
-lemma inf2D1: "inf A B x y ==> A x y"
+lemma inf2D1: "(A \<sqinter> B) x y \<Longrightarrow> A x y"
   by (simp add: inf_fun_def)
 
-lemma inf1D2: "inf A B x ==> B x"
+lemma inf1D2: "(A \<sqinter> B) x \<Longrightarrow> B x"
   by (simp add: inf_fun_def)
 
-lemma inf2D2: "inf A B x y ==> B x y"
+lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
   by (simp add: inf_fun_def)
 
-lemma inf_Int_eq: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
+lemma inf_Int_eq: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def mem_def)
 
-lemma inf_Int_eq2 [pred_set_conv]: "inf (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
+lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
   by (simp add: inf_fun_def mem_def)
 
 
 subsubsection {* Binary union *}
 
-lemma sup1I1 [elim?]: "A x \<Longrightarrow> sup A B x"
+lemma sup1I1 [elim?]: "A x \<Longrightarrow> (A \<squnion> B) x"
   by (simp add: sup_fun_def)
 
-lemma sup2I1 [elim?]: "A x y \<Longrightarrow> sup A B x y"
+lemma sup2I1 [elim?]: "A x y \<Longrightarrow> (A \<squnion> B) x y"
   by (simp add: sup_fun_def)
 
-lemma sup1I2 [elim?]: "B x \<Longrightarrow> sup A B x"
+lemma sup1I2 [elim?]: "B x \<Longrightarrow> (A \<squnion> B) x"
   by (simp add: sup_fun_def)
 
-lemma sup2I2 [elim?]: "B x y \<Longrightarrow> sup A B x y"
+lemma sup2I2 [elim?]: "B x y \<Longrightarrow> (A \<squnion> B) x y"
   by (simp add: sup_fun_def)
 
-lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
+lemma sup1E [elim!]: "(A \<squnion> B) x \<Longrightarrow> (A x \<Longrightarrow> P) \<Longrightarrow> (B x \<Longrightarrow> P) \<Longrightarrow> P"
   by (simp add: sup_fun_def) iprover
 
-lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
+lemma sup2E [elim!]: "(A \<squnion> B) x y \<Longrightarrow> (A x y \<Longrightarrow> P) \<Longrightarrow> (B x y \<Longrightarrow> P) \<Longrightarrow> P"
   by (simp add: sup_fun_def) iprover
 
 text {*
@@ -168,76 +168,76 @@ text {*
   @{text B}.
 *}
 
-lemma sup1CI [intro!]: "(~ B x ==> A x) ==> sup A B x"
+lemma sup1CI [intro!]: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A \<squnion> B) x"
   by (auto simp add: sup_fun_def)
 
-lemma sup2CI [intro!]: "(~ B x y ==> A x y) ==> sup A B x y"
+lemma sup2CI [intro!]: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow> (A \<squnion> B) x y"
   by (auto simp add: sup_fun_def)
 
-lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+lemma sup_Un_eq: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
   by (simp add: sup_fun_def mem_def)
 
-lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
+lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
   by (simp add: sup_fun_def mem_def)
 
 
 subsubsection {* Intersections of families *}
 
-lemma INF1_iff: "(INF x:A. B x) b = (ALL x:A. B x b)"
+lemma INF1_iff: "(\<Sqinter>x\<in>A. B x) b = (\<forall>x\<in>A. B x b)"
   by (simp add: INFI_apply)
 
-lemma INF2_iff: "(INF x:A. B x) b c = (ALL x:A. B x b c)"
+lemma INF2_iff: "(\<Sqinter>x\<in>A. B x) b c = (\<forall>x\<in>A. B x b c)"
   by (simp add: INFI_apply)
 
-lemma INF1_I [intro!]: "(!!x. x : A ==> B x b) ==> (INF x:A. B x) b"
+lemma INF1_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
   by (auto simp add: INFI_apply)
 
-lemma INF2_I [intro!]: "(!!x. x : A ==> B x b c) ==> (INF x:A. B x) b c"
+lemma INF2_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
   by (auto simp add: INFI_apply)
 
-lemma INF1_D [elim]: "(INF x:A. B x) b ==> a : A ==> B a b"
+lemma INF1_D [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
   by (auto simp add: INFI_apply)
 
-lemma INF2_D [elim]: "(INF x:A. B x) b c ==> a : A ==> B a b c"
+lemma INF2_D [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
   by (auto simp add: INFI_apply)
 
-lemma INF1_E [elim]: "(INF x:A. B x) b ==> (B a b ==> R) ==> (a ~: A ==> R) ==> R"
+lemma INF1_E [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: INFI_apply)
 
-lemma INF2_E [elim]: "(INF x:A. B x) b c ==> (B a b c ==> R) ==> (a ~: A ==> R) ==> R"
+lemma INF2_E [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: INFI_apply)
 
-lemma INF_INT_eq: "(INF i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (INT i. r i))"
+lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Sqinter>i. r i))"
   by (simp add: INFI_apply fun_eq_iff)
 
-lemma INF_INT_eq2: "(INF i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (INT i. r i))"
+lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Sqinter>i. r i))"
   by (simp add: INFI_apply fun_eq_iff)
 
 
 subsubsection {* Unions of families *}
 
-lemma SUP1_iff: "(SUP x:A. B x) b = (EX x:A. B x b)"
+lemma SUP1_iff: "(\<Squnion>x\<in>A. B x) b = (\<exists>x\<in>A. B x b)"
   by (simp add: SUPR_apply)
 
-lemma SUP2_iff: "(SUP x:A. B x) b c = (EX x:A. B x b c)"
+lemma SUP2_iff: "(\<Squnion>x\<in>A. B x) b c = (\<exists>x\<in>A. B x b c)"
   by (simp add: SUPR_apply)
 
-lemma SUP1_I [intro]: "a : A ==> B a b ==> (SUP x:A. B x) b"
+lemma SUP1_I [intro]: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
   by (auto simp add: SUPR_apply)
 
-lemma SUP2_I [intro]: "a : A ==> B a b c ==> (SUP x:A. B x) b c"
+lemma SUP2_I [intro]: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
   by (auto simp add: SUPR_apply)
 
-lemma SUP1_E [elim!]: "(SUP x:A. B x) b ==> (!!x. x : A ==> B x b ==> R) ==> R"
+lemma SUP1_E [elim!]: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: SUPR_apply)
 
-lemma SUP2_E [elim!]: "(SUP x:A. B x) b c ==> (!!x. x : A ==> B x b c ==> R) ==> R"
+lemma SUP2_E [elim!]: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: SUPR_apply)
 
-lemma SUP_UN_eq: "(SUP i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (UN i. r i))"
+lemma SUP_UN_eq: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
   by (simp add: SUPR_apply fun_eq_iff)
 
-lemma SUP_UN_eq2: "(SUP i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (UN i. r i))"
+lemma SUP_UN_eq2: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
   by (simp add: SUPR_apply fun_eq_iff)
 
 
@@ -245,12 +245,9 @@ subsection {* Predicates as relations *}
 
 subsubsection {* Composition  *}
 
-inductive
-  pred_comp  :: "['a => 'b => bool, 'b => 'c => bool] => 'a => 'c => bool"
-    (infixr "OO" 75)
-  for r :: "'a => 'b => bool" and s :: "'b => 'c => bool"
-where
-  pred_compI [intro]: "r a b ==> s b c ==> (r OO s) a c"
+inductive pred_comp  :: "['a \<Rightarrow> 'b \<Rightarrow> bool, 'b \<Rightarrow> 'c \<Rightarrow> bool] \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> bool" (infixr "OO" 75)
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and s :: "'b \<Rightarrow> 'c \<Rightarrow> bool" where
+  pred_compI [intro]: "r a b \<Longrightarrow> s b c \<Longrightarrow> (r OO s) a c"
 
 inductive_cases pred_compE [elim!]: "(r OO s) a c"
 
@@ -261,12 +258,9 @@ lemma pred_comp_rel_comp_eq [pred_set_conv]:
 
 subsubsection {* Converse *}
 
-inductive
-  conversep :: "('a => 'b => bool) => 'b => 'a => bool"
-    ("(_^--1)" [1000] 1000)
-  for r :: "'a => 'b => bool"
-where
-  conversepI: "r a b ==> r^--1 b a"
+inductive conversep :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(_^--1)" [1000] 1000)
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  conversepI: "r a b \<Longrightarrow> r^--1 b a"
 
 notation (xsymbols)
   conversep  ("(_\<inverse>\<inverse>)" [1000] 1000)
@@ -290,13 +284,13 @@ lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
   by (iprover intro: order_antisym conversepI pred_compI
     elim: pred_compE dest: conversepD)
 
-lemma converse_meet: "(inf r s)^--1 = inf r^--1 s^--1"
+lemma converse_meet: "(r \<sqinter> s)^--1 = r^--1 \<sqinter> s^--1"
   by (simp add: inf_fun_def) (iprover intro: conversepI ext dest: conversepD)
 
-lemma converse_join: "(sup r s)^--1 = sup r^--1 s^--1"
+lemma converse_join: "(r \<squnion> s)^--1 = r^--1 \<squnion> s^--1"
   by (simp add: sup_fun_def) (iprover intro: conversepI ext dest: conversepD)
 
-lemma conversep_noteq [simp]: "(op ~=)^--1 = op ~="
+lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
   by (auto simp add: fun_eq_iff)
 
 lemma conversep_eq [simp]: "(op =)^--1 = op ="
@@ -305,11 +299,9 @@ lemma conversep_eq [simp]: "(op =)^--1 = op ="
 
 subsubsection {* Domain *}
 
-inductive
-  DomainP :: "('a => 'b => bool) => 'a => bool"
-  for r :: "'a => 'b => bool"
-where
-  DomainPI [intro]: "r a b ==> DomainP r a"
+inductive DomainP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  DomainPI [intro]: "r a b \<Longrightarrow> DomainP r a"
 
 inductive_cases DomainPE [elim!]: "DomainP r a"
 
@@ -319,11 +311,9 @@ lemma DomainP_Domain_eq [pred_set_conv]: "DomainP (\<lambda>x y. (x, y) \<in> r)
 
 subsubsection {* Range *}
 
-inductive
-  RangeP :: "('a => 'b => bool) => 'b => bool"
-  for r :: "'a => 'b => bool"
-where
-  RangePI [intro]: "r a b ==> RangeP r b"
+inductive RangeP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  RangePI [intro]: "r a b \<Longrightarrow> RangeP r b"
 
 inductive_cases RangePE [elim!]: "RangeP r b"
 
@@ -333,9 +323,8 @@ lemma RangeP_Range_eq [pred_set_conv]: "RangeP (\<lambda>x y. (x, y) \<in> r) = 
 
 subsubsection {* Inverse image *}
 
-definition
-  inv_imagep :: "('b => 'b => bool) => ('a => 'b) => 'a => 'a => bool" where
-  "inv_imagep r f == %x y. r (f x) (f y)"
+definition inv_imagep :: "('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
+  "inv_imagep r f = (\<lambda>x y. r (f x) (f y))"
 
 lemma [pred_set_conv]: "inv_imagep (\<lambda>x y. (x, y) \<in> r) f = (\<lambda>x y. (x, y) \<in> inv_image r f)"
   by (simp add: inv_image_def inv_imagep_def)
@@ -347,7 +336,7 @@ lemma in_inv_imagep [simp]: "inv_imagep r f x y = r (f x) (f y)"
 subsubsection {* Powerset *}
 
 definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "Powp A == \<lambda>B. \<forall>x \<in> B. A x"
+  "Powp A = (\<lambda>B. \<forall>x \<in> B. A x)"
 
 lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
   by (auto simp add: Powp_def fun_eq_iff)
@@ -357,14 +346,14 @@ lemmas Powp_mono [mono] = Pow_mono [to_pred pred_subset_eq]
 
 subsubsection {* Properties of relations *}
 
-abbreviation antisymP :: "('a => 'a => bool) => bool" where
-  "antisymP r == antisym {(x, y). r x y}"
+abbreviation antisymP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "antisymP r \<equiv> antisym {(x, y). r x y}"
 
-abbreviation transP :: "('a => 'a => bool) => bool" where
-  "transP r == trans {(x, y). r x y}"
+abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transP r \<equiv> trans {(x, y). r x y}"
 
-abbreviation single_valuedP :: "('a => 'b => bool) => bool" where
-  "single_valuedP r == single_valued {(x, y). r x y}"
+abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+  "single_valuedP r \<equiv> single_valued {(x, y). r x y}"
 
 (*FIXME inconsistencies: abbreviations vs. definitions, suffix `P` vs. suffix `p`*)
 
@@ -474,17 +463,17 @@ lemma eval_Sup [simp]:
   by (simp add: Sup_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def)
+qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def le_fun_def less_fun_def)
 
 end
 
 lemma eval_INFI [simp]:
   "eval (INFI A f) = INFI A (eval \<circ> f)"
-  by (unfold INFI_def) simp
+  by (simp only: INFI_def eval_Inf image_compose)
 
 lemma eval_SUPR [simp]:
   "eval (SUPR A f) = SUPR A (eval \<circ> f)"
-  by (unfold SUPR_def) simp
+  by (simp only: SUPR_def eval_Sup image_compose)
 
 instantiation pred :: (type) complete_boolean_algebra
 begin
@@ -504,7 +493,7 @@ lemma eval_minus [simp]:
   by (simp add: minus_pred_def)
 
 instance proof
-qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply)
+qed (auto intro!: pred_eqI simp add: uminus_apply minus_apply INF_apply SUP_apply)
 
 end
 
@@ -524,7 +513,7 @@ lemma eval_bind [simp]:
 
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (rule pred_eqI) auto
+  by (rule pred_eqI) (auto simp add: SUP_apply)
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
@@ -544,7 +533,7 @@ lemma sup_bind:
 
 lemma Sup_bind:
   "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (rule pred_eqI) auto
+  by (rule pred_eqI) (auto simp add: SUP_apply)
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
@@ -589,8 +578,7 @@ lemma single_not_bot [simp]:
 lemma not_bot:
   assumes "A \<noteq> \<bottom>"
   obtains x where "eval A x"
-  using assms by (cases A)
-    (auto simp add: bot_pred_def, auto simp add: mem_def)
+  using assms by (cases A) (auto simp add: bot_pred_def, simp add: mem_def)
   
 
 subsubsection {* Emptiness check and definite choice *}
@@ -761,7 +749,7 @@ lemma unit_pred_cases:
   assumes "P \<bottom>"
   assumes "P (single ())"
   shows "P Q"
-using assms unfolding bot_pred_def Collect_def empty_def single_def proof (cases Q)
+using assms unfolding bot_pred_def bot_fun_def bot_bool_def empty_def single_def proof (cases Q)
   fix f
   assume "P (Pred (\<lambda>u. False))" "P (Pred (\<lambda>u. () = u))"
   then have "P (Pred f)" 
@@ -790,7 +778,7 @@ definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b 
 
 lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
-  by (auto simp add: map_def)
+  by (auto simp add: map_def comp_def)
 
 enriched_type map: map
   by (rule ext, rule pred_eqI, auto)+
@@ -801,9 +789,9 @@ subsubsection {* Implementation *}
 datatype 'a seq = Empty | Insert "'a" "'a pred" | Join "'a pred" "'a seq"
 
 primrec pred_of_seq :: "'a seq \<Rightarrow> 'a pred" where
-    "pred_of_seq Empty = \<bottom>"
-  | "pred_of_seq (Insert x P) = single x \<squnion> P"
-  | "pred_of_seq (Join P xq) = P \<squnion> pred_of_seq xq"
+  "pred_of_seq Empty = \<bottom>"
+| "pred_of_seq (Insert x P) = single x \<squnion> P"
+| "pred_of_seq (Join P xq) = P \<squnion> pred_of_seq xq"
 
 definition Seq :: "(unit \<Rightarrow> 'a seq) \<Rightarrow> 'a pred" where
   "Seq f = pred_of_seq (f ())"
@@ -812,8 +800,8 @@ code_datatype Seq
 
 primrec member :: "'a seq \<Rightarrow> 'a \<Rightarrow> bool"  where
   "member Empty x \<longleftrightarrow> False"
-  | "member (Insert y P) x \<longleftrightarrow> x = y \<or> eval P x"
-  | "member (Join P xq) x \<longleftrightarrow> eval P x \<or> member xq x"
+| "member (Insert y P) x \<longleftrightarrow> x = y \<or> eval P x"
+| "member (Join P xq) x \<longleftrightarrow> eval P x \<or> member xq x"
 
 lemma eval_member:
   "member xq = eval (pred_of_seq xq)"
@@ -836,9 +824,9 @@ lemma single_code [code]:
   unfolding Seq_def by simp
 
 primrec "apply" :: "('a \<Rightarrow> 'b pred) \<Rightarrow> 'a seq \<Rightarrow> 'b seq" where
-    "apply f Empty = Empty"
-  | "apply f (Insert x P) = Join (f x) (Join (P \<guillemotright>= f) Empty)"
-  | "apply f (Join P xq) = Join (P \<guillemotright>= f) (apply f xq)"
+  "apply f Empty = Empty"
+| "apply f (Insert x P) = Join (f x) (Join (P \<guillemotright>= f) Empty)"
+| "apply f (Join P xq) = Join (P \<guillemotright>= f) (apply f xq)"
 
 lemma apply_bind:
   "pred_of_seq (apply f xq) = pred_of_seq xq \<guillemotright>= f"
@@ -862,9 +850,9 @@ lemma bot_set_code [code]:
   unfolding Seq_def by simp
 
 primrec adjunct :: "'a pred \<Rightarrow> 'a seq \<Rightarrow> 'a seq" where
-    "adjunct P Empty = Join P Empty"
-  | "adjunct P (Insert x Q) = Insert x (Q \<squnion> P)"
-  | "adjunct P (Join Q xq) = Join Q (adjunct P xq)"
+  "adjunct P Empty = Join P Empty"
+| "adjunct P (Insert x Q) = Insert x (Q \<squnion> P)"
+| "adjunct P (Join Q xq) = Join Q (adjunct P xq)"
 
 lemma adjunct_sup:
   "pred_of_seq (adjunct P xq) = P \<squnion> pred_of_seq xq"
@@ -891,13 +879,13 @@ next
 qed
 
 primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
-    "contained Empty Q \<longleftrightarrow> True"
-  | "contained (Insert x P) Q \<longleftrightarrow> eval Q x \<and> P \<le> Q"
-  | "contained (Join P xq) Q \<longleftrightarrow> P \<le> Q \<and> contained xq Q"
+  "contained Empty Q \<longleftrightarrow> True"
+| "contained (Insert x P) Q \<longleftrightarrow> eval Q x \<and> P \<le> Q"
+| "contained (Join P xq) Q \<longleftrightarrow> P \<le> Q \<and> contained xq Q"
 
 lemma single_less_eq_eval:
   "single x \<le> P \<longleftrightarrow> eval P x"
-  by (auto simp add: single_def less_eq_pred_def mem_def)
+  by (auto simp add: less_eq_pred_def le_fun_def)
 
 lemma contained_less_eq:
   "contained xq Q \<longleftrightarrow> pred_of_seq xq \<le> Q"
@@ -934,9 +922,9 @@ lemma eq_is_eq: "eq x y \<equiv> (x = y)"
   by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
 
 primrec null :: "'a seq \<Rightarrow> bool" where
-    "null Empty \<longleftrightarrow> True"
-  | "null (Insert x P) \<longleftrightarrow> False"
-  | "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
+  "null Empty \<longleftrightarrow> True"
+| "null (Insert x P) \<longleftrightarrow> False"
+| "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
 
 lemma null_is_empty:
   "null xq \<longleftrightarrow> is_empty (pred_of_seq xq)"
@@ -948,8 +936,8 @@ lemma is_empty_code [code]:
 
 primrec the_only :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a seq \<Rightarrow> 'a" where
   [code del]: "the_only dfault Empty = dfault ()"
-  | "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault ())"
-  | "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
+| "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault ())"
+| "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
        else let x = singleton dfault P; y = the_only dfault xq in
        if x = y then x else dfault ())"
 
@@ -973,22 +961,20 @@ lemma singleton_code [code]:
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)
 
-definition not_unique :: "'a pred => 'a"
-where
-  [code del]: "not_unique A = (THE x. eval A x)"
-
-definition the :: "'a pred => 'a"
-where
+definition the :: "'a pred \<Rightarrow> 'a" where
   "the A = (THE x. eval A x)"
 
 lemma the_eqI:
   "(THE x. eval P x) = x \<Longrightarrow> the P = x"
   by (simp add: the_def)
 
-lemma the_eq [code]: "the A = singleton (\<lambda>x. not_unique A) A"
-  by (rule the_eqI) (simp add: singleton_def not_unique_def)
+definition not_unique :: "'a pred \<Rightarrow> 'a" where
+  [code del]: "not_unique A = (THE x. eval A x)"
 
 code_abort not_unique
+
+lemma the_eq [code]: "the A = singleton (\<lambda>x. not_unique A) A"
+  by (rule the_eqI) (simp add: singleton_def not_unique_def)
 
 code_reflect Predicate
   datatypes pred = Seq and seq = Empty | Insert | Join

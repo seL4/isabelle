@@ -90,7 +90,7 @@ sig
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
-  val choose_format : format list -> type_enc -> format * type_enc
+  val adjust_type_enc : format -> type_enc -> type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -611,23 +611,14 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based Fin_Nonmono_Types = true
   | is_type_level_monotonicity_based _ = false
 
-fun choose_format formats (Simple_Types (order, level)) =
-    (case find_first is_format_thf formats of
-       SOME format => (format, Simple_Types (order, level))
-     | NONE =>
-       if member (op =) formats TFF then
-         (TFF, Simple_Types (First_Order, level))
-       else
-         choose_format formats (Guards (Mangled_Monomorphic, level, Uniform)))
-  | choose_format formats type_enc =
-    (case hd formats of
-       CNF_UEQ =>
-       (CNF_UEQ, case type_enc of
-                   Guards stuff =>
-                   (if is_type_enc_fairly_sound type_enc then Tags else Guards)
-                       stuff
-                 | _ => type_enc)
-     | format => (format, type_enc))
+fun adjust_type_enc (THF _) type_enc = type_enc
+  | adjust_type_enc TFF (Simple_Types (_, level)) =
+    Simple_Types (First_Order, level)
+  | adjust_type_enc format (Simple_Types (_, level)) =
+    adjust_type_enc format (Guards (Mangled_Monomorphic, level, Uniform))
+  | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
+    (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
+  | adjust_type_enc _ type_enc = type_enc
 
 fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
@@ -2087,7 +2078,7 @@ val explicit_apply = NONE (* for experiments *)
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
-    val (format, type_enc) = choose_format [format] type_enc
+    val type_enc = type_enc |> adjust_type_enc format
     val lambda_trans =
       if lambda_trans = smartN then
         if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
