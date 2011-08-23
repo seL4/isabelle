@@ -176,14 +176,14 @@ Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
-with E 1.0 to 1.3, SPASS 3.5 and 3.7, and Vampire 0.6 and 1.0%
+with E 1.0 to 1.3, SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
-reset to 0; hence the (new) Vampire versions 0.6 and 1.0 are more recent than,
-say, Vampire 11.5.}%
+reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
+than, say, Vampire 9.0 or 11.5.}%
 . Since the ATPs' output formats are neither documented nor stable, other
 versions of the ATPs might or might not work well with Sledgehammer. Ideally,
 also set \texttt{E\_VERSION}, \texttt{SPASS\_VERSION}, or
-\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.3'').
+\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.4'').
 \end{enum}
 
 To check whether E and SPASS are successfully installed, follow the example in
@@ -750,7 +750,9 @@ above. See \S\ref{installation} for details.
 prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
-executable. Sledgehammer has been tested with versions 11, 0.6, and 1.0.
+executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
+Sledgehammer has been tested with versions 0.6, 1.0, and 1.8. Vampire 1.8
+supports the TPTP many-typed first-order format (TFF).
 
 \item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -799,7 +801,7 @@ TPTP many-typed first-order format (TFF). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
-Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
+Vampire runs on Geoff Sutcliffe's Miami servers. Version 1.8 is used.
 
 \item[$\bullet$] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
 equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
