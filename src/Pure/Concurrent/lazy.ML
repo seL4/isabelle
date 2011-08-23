@@ -16,6 +16,8 @@ sig
   val value: 'a -> 'a lazy
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
+  val map: ('a -> 'b) -> 'a lazy -> 'b lazy
+  val future: Future.fork_params -> 'a lazy -> 'a future
 end;
 
 structure Lazy: LAZY =
@@ -77,9 +79,19 @@ fun force_result (Lazy var) =
           | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
         end) ());
 
-fun force r = Exn.release (force_result r);
 
 end;
+
+fun force r = Exn.release (force_result r);
+fun map f x = lazy (fn () => f (force x));
+
+
+(* future evaluation *)
+
+fun future params x =
+  if is_finished x then Future.value_result (force_result x)
+  else (singleton o Future.forks) params (fn () => force x);
+
 end;
 
 type 'a lazy = 'a Lazy.lazy;

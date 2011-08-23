@@ -57,6 +57,7 @@ sig
   val cancel: 'a future -> task list
   type fork_params =
     {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
+  val default_params: fork_params
   val forks: fork_params -> (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
@@ -466,6 +467,9 @@ fun future_job group interrupts (e: unit -> 'a) =
 
 type fork_params =
   {name: string, group: group option, deps: task list, pri: int, interrupts: bool};
+
+val default_params: fork_params =
+  {name = "", group = NONE, deps = [], pri = 0, interrupts = true};
 
 fun forks ({name, group, deps, pri, interrupts}: fork_params) es =
   if null es then []

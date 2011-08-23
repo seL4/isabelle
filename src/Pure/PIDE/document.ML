@@ -57,11 +57,12 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 (** document structure **)
 
 type node_header = (string * string list * (string * bool) list) Exn.result;
+type perspective = (command_id -> bool) * command_id list; (*visible commands, canonical order*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,
-  perspective: command_id list,
+  perspective: perspective,
   entries: exec_id option Entries.T,  (*command entries with excecutions*)
   result: Toplevel.state lazy}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
@@ -73,26 +74,37 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
+val no_perspective: perspective = (K false, []);
+val no_print = Lazy.value ();
+val no_result = Lazy.value Toplevel.toplevel;
+
+val empty_node =
+  make_node (Exn.Exn (ERROR "Bad theory header"), no_perspective, Entries.empty, no_result);
+
+val clear_node =
+  map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, no_result));
+
+
+(* basic components *)
+
 fun get_header (Node {header, ...}) = header;
 fun set_header header =
   map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective perspective =
-  map_node (fn (header, _, entries, result) => (header, perspective, entries, result));
+  let val pred = Inttab.defined (Inttab.make (map (rpair ()) perspective)) in
+    map_node (fn (header, _, entries, result) => (header, (pred, perspective), entries, result))
+  end;
 
 fun map_entries f (Node {header, perspective, entries, result}) =
   make_node (header, perspective, f entries, result);
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
-fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.get_finished result);
+fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.force result);
 fun set_result result =
   map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
-
-val empty_exec = Lazy.value Toplevel.toplevel;
-val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), [], Entries.empty, empty_exec);
-val clear_node = map_node (fn (header, _, _, _) => (header, [], Entries.empty, empty_exec));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
 fun default_node name = Graph.default_node (name, empty_node);
@@ -176,7 +188,8 @@ end;
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
-  execs: Toplevel.state lazy Inttab.table,  (*exec_id -> execution process*)
+  execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
+    (*exec_id -> command_id with eval/print process*)
   execution: Future.group}  (*global execution process*)
 with
 
@@ -189,7 +202,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
     Inttab.make [(no_id, Future.value Toplevel.empty)],
-    Inttab.make [(no_id, empty_exec)],
+    Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
     Future.new_group NONE);
 
 
@@ -264,14 +277,9 @@ fun proof_status tr st =
     SOME prf => Toplevel.status tr (Proof.status_markup prf)
   | NONE => ());
 
-fun async_state tr st =
-  (singleton o Future.forks)
-    {name = "Document.async_state", group = SOME (Future.new_group NONE),
-      deps = [], pri = 0, interrupts = true}
-    (fn () =>
-      Toplevel.setmp_thread_position tr
-        (fn () => Toplevel.print_state false st) ())
-  |> ignore;
+fun print_state tr st =
+  (Lazy.lazy o Toplevel.setmp_thread_position tr)
+    (fn () => Toplevel.print_state false st);
 
 fun run int tr st =
   (case Toplevel.transition int tr st of
@@ -298,12 +306,11 @@ fun run_command tr st =
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
-      NONE => (Toplevel.status tr Markup.failed; st)
+      NONE => (Toplevel.status tr Markup.failed; (st, no_print))
     | SOME st' =>
        (Toplevel.status tr Markup.finished;
         proof_status tr st';
-        if do_print then async_state tr st' else ();
-        st'))
+        (st', if do_print then print_state tr st' else no_print)))
   end;
 
 end;
@@ -325,13 +332,10 @@ fun is_changed node' ((_, id), exec) =
 fun new_exec (command_id, command) (assigns, execs, exec) =
   let
     val exec_id' = new_id ();
-    val exec' =
-      Lazy.lazy (fn () =>
-        let
-          val tr = Toplevel.put_id (print_id exec_id') (Future.get_finished command);
-          val st = Lazy.get_finished exec;
-        in run_command tr st end);
-  in ((command_id, exec_id') :: assigns, (exec_id', exec') :: execs, exec') end;
+    val exec' = exec |> Lazy.map (fn (st, _) =>
+      let val tr = Toplevel.put_id (print_id exec_id') (Future.join command)
+      in run_command tr st end);
+  in ((command_id, exec_id') :: assigns, (exec_id', (command_id, exec')) :: execs, exec') end;
 
 in
 
@@ -366,7 +370,6 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                   in Thy_Load.begin_theory dir thy_name imports files parents end;
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));
-                val perspective = get_perspective node;  (* FIXME *)
               in
                 (singleton o Future.forks)
                   {name = "Document.edit", group = NONE,
@@ -377,12 +380,12 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                         (case prev of
                           NONE => no_id
                         | SOME prev_id => the_default no_id (the_entry node prev_id));
-                      val (assigns, execs, result) =
+                      val (assigns, execs, last_exec) =
                         fold_entries (SOME id) (new_exec o get_command o #2 o #1)
-                          node ([], [], the_exec state prev_exec);
+                          node ([], [], #2 (the_exec state prev_exec));
                       val node' = node
                         |> fold update_entry assigns
-                        |> set_result result;
+                        |> set_result (Lazy.map #1 last_exec);
                     in ((assigns, execs, [(name, node')]), node') end)
               end))
       |> Future.joins |> map #1;
@@ -403,8 +406,17 @@ fun execute version_id state =
     let
       val version = the_version state version_id;
 
-      fun force_exec NONE = ()
-        | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
+      fun force_exec _ NONE = ()
+        | force_exec node (SOME exec_id) =
+            let
+              val (command_id, exec) = the_exec state exec_id;
+              val (_, print) = Lazy.force exec;
+              val perspective = get_perspective node;
+              val _ =
+                if #1 (get_perspective node) command_id orelse true  (* FIXME *)
+                then ignore (Lazy.future Future.default_params print)
+                else ();
+            in () end;
 
       val execution = Future.new_group NONE;
       val _ =
@@ -413,7 +425,7 @@ fun execute version_id state =
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
-              (fold_entries NONE (fn (_, exec) => fn () => force_exec exec) node));
+              (fold_entries NONE (fn (_, exec) => fn () => force_exec node exec) node));
 
     in (versions, commands, execs, execution) end);
 
