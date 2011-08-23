@@ -61,7 +61,7 @@ object Document
         case exn => Header[A, B](exn)
       }
 
-    val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Map(), Linear_Set())
+    val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Nil, Map(), Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -79,6 +79,7 @@ object Document
 
   sealed case class Node(
     val header: Node_Header,
+    val perspective: Command.Perspective,
     val blobs: Map[String, Blob],
     val commands: Linear_Set[Command])
   {

@@ -60,42 +60,12 @@ object Document_Model
 class Document_Model(val session: Session, val buffer: Buffer,
   val master_dir: String, val node_name: String, val thy_name: String)
 {
-  /* pending text edits */
+  /* header */
 
   def node_header(): Exn.Result[Thy_Header] =
-    Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) }
-
-  private object pending_edits  // owned by Swing thread
   {
-    private val pending = new mutable.ListBuffer[Text.Edit]
-    def snapshot(): List[Text.Edit] = pending.toList
-
-    def flush()
-    {
-      Swing_Thread.require()
-      snapshot() match {
-        case Nil =>
-        case edits =>
-          pending.clear
-          session.edit_node(node_name, master_dir, node_header(), edits)
-      }
-    }
-
-    def init()
-    {
-      flush()
-      session.init_node(node_name, master_dir, node_header(), Isabelle.buffer_text(buffer))
-    }
-
-    private val delay_flush =
-      Swing_Thread.delay_last(session.input_delay) { flush() }
-
-    def +=(edit: Text.Edit)
-    {
-      Swing_Thread.require()
-      pending += edit
-      delay_flush()
-    }
+    Swing_Thread.require()
+    Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) }
   }
 
 
@@ -109,6 +79,43 @@ class Document_Model(val session: Session, val buffer: Buffer,
         doc_view <- Isabelle.document_views(buffer)
         range <- doc_view.perspective()
       } yield range)
+  }
+
+
+  /* pending text edits */
+
+  private object pending_edits  // owned by Swing thread
+  {
+    private val pending = new mutable.ListBuffer[Text.Edit]
+    def snapshot(): List[Text.Edit] = pending.toList
+
+    def flush()
+    {
+      Swing_Thread.require()
+      snapshot() match {
+        case Nil =>
+        case edits =>
+          pending.clear
+          session.edit_node(node_name, master_dir, node_header(), perspective(), edits)
+      }
+    }
+
+    def init()
+    {
+      flush()
+      session.init_node(node_name, master_dir,
+        node_header(), perspective(), Isabelle.buffer_text(buffer))
+    }
+
+    private val delay_flush =
+      Swing_Thread.delay_last(session.input_delay) { flush() }
+
+    def +=(edit: Text.Edit)
+    {
+      Swing_Thread.require()
+      pending += edit
+      delay_flush()
+    }
   }
 
 

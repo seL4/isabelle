@@ -164,10 +164,10 @@ class Session(val file_store: Session.File_Store)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Interrupt
-  private case class Init_Node(
-    name: String, master_dir: String, header: Document.Node_Header, text: String)
-  private case class Edit_Node(
-    name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
+  private case class Init_Node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+  private case class Edit_Node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
   private case class Change_Node(
     name: String,
     doc_edits: List[Document.Edit_Command],
@@ -336,14 +336,18 @@ class Session(val file_store: Session.File_Store)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
-        case Init_Node(name, master_dir, header, text) if prover.isDefined =>
+        case Init_Node(name, master_dir, header, perspective, text) if prover.isDefined =>
           // FIXME compare with existing node
           handle_edits(name, master_dir, header,
-            List(Document.Node.Clear(), Document.Node.Edits(List(Text.Edit.insert(0, text)))))
+            List(Document.Node.Clear(),
+              Document.Node.Edits(List(Text.Edit.insert(0, text))),
+              Document.Node.Perspective(perspective)))
           reply(())
 
-        case Edit_Node(name, master_dir, header, text_edits) if prover.isDefined =>
-          handle_edits(name, master_dir, header, List(Document.Node.Edits(text_edits)))
+        case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
+          handle_edits(name, master_dir, header,
+            List(Document.Node.Edits(text_edits),
+              Document.Node.Perspective(perspective)))
           reply(())
 
         case change: Change_Node if prover.isDefined =>
@@ -371,9 +375,13 @@ class Session(val file_store: Session.File_Store)
 
   def interrupt() { session_actor ! Interrupt }
 
-  def init_node(name: String, master_dir: String, header: Document.Node_Header, text: String)
-  { session_actor !? Init_Node(name, master_dir, header, text) }
+  // FIXME simplify signature
+  def init_node(name: String, master_dir: String,
+    header: Document.Node_Header, perspective: Text.Perspective, text: String)
+  { session_actor !? Init_Node(name, master_dir, header, perspective, text) }
 
-  def edit_node(name: String, master_dir: String, header: Document.Node_Header, edits: List[Text.Edit])
-  { session_actor !? Edit_Node(name, master_dir, header, edits) }
+  // FIXME simplify signature
+  def edit_node(name: String, master_dir: String, header: Document.Node_Header,
+    perspective: Text.Perspective, edits: List[Text.Edit])
+  { session_actor !? Edit_Node(name, master_dir, header, perspective, edits) }
 }

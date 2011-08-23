@@ -20,7 +20,7 @@ sig
     Clear |
     Edits of (command_id option * command_id option) list |
     Header of node_header |
-    Perspective of id list
+    Perspective of command_id list
   type edit = string * node_edit
   type state
   val init_state: state
@@ -61,30 +61,38 @@ structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,
+  perspective: command_id list,
   entries: exec_id option Entries.T,  (*command entries with excecutions*)
   result: Toplevel.state lazy}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (header, entries, result) =
-  Node {header = header, entries = entries, result = result};
+fun make_node (header, perspective, entries, result) =
+  Node {header = header, perspective = perspective, entries = entries, result = result};
 
-fun map_node f (Node {header, entries, result}) =
-  make_node (f (header, entries, result));
+fun map_node f (Node {header, perspective, entries, result}) =
+  make_node (f (header, perspective, entries, result));
 
 fun get_header (Node {header, ...}) = header;
-fun set_header header = map_node (fn (_, entries, result) => (header, entries, result));
+fun set_header header =
+  map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
-fun map_entries f (Node {header, entries, result}) = make_node (header, f entries, result);
+fun get_perspective (Node {perspective, ...}) = perspective;
+fun set_perspective perspective =
+  map_node (fn (header, _, entries, result) => (header, perspective, entries, result));
+
+fun map_entries f (Node {header, perspective, entries, result}) =
+  make_node (header, perspective, f entries, result);
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
 fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.get_finished result);
-fun set_result result = map_node (fn (header, entries, _) => (header, entries, result));
+fun set_result result =
+  map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
 
 val empty_exec = Lazy.value Toplevel.toplevel;
-val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), Entries.empty, empty_exec);
-val clear_node = map_node (fn (header, _, _) => (header, Entries.empty, empty_exec));
+val empty_node = make_node (Exn.Exn (ERROR "Bad theory header"), [], Entries.empty, empty_exec);
+val clear_node = map_node (fn (header, _, _, _) => (header, [], Entries.empty, empty_exec));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
 fun default_node name = Graph.default_node (name, empty_node);
@@ -97,7 +105,7 @@ datatype node_edit =
   Clear |
   Edits of (command_id option * command_id option) list |
   Header of node_header |
-  Perspective of id list;
+  Perspective of command_id list;
 
 type edit = string * node_edit;
 
@@ -153,7 +161,8 @@ fun edit_nodes (name, node_edit) (Version nodes) =
               (header, Graph.add_deps_acyclic (name, parents) nodes2)
                 handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
           in Graph.map_node name (set_header header') nodes3 end
-      | Perspective _ => nodes));  (* FIXME *)
+      | Perspective perspective =>
+          update_node name (set_perspective perspective) nodes));
 
 fun put_node (name, node) (Version nodes) =
   Version (update_node name (K node) nodes);
@@ -354,9 +363,10 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                         | NONE =>
                             get_theory (Position.file_only import)
                               (#2 (Future.join (the (AList.lookup (op =) deps import))))));
-                  in Thy_Load.begin_theory dir thy_name imports files parents end
+                  in Thy_Load.begin_theory dir thy_name imports files parents end;
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));
+                val perspective = get_perspective node;  (* FIXME *)
               in
                 (singleton o Future.forks)
                   {name = "Document.edit", group = NONE,
