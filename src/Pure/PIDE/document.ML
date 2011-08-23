@@ -329,6 +329,24 @@ fun is_changed node' ((_, id), exec) =
     NONE => true
   | SOME exec' => exec' <> exec);
 
+fun init_theory deps (name, node) =
+  let
+    val (thy_name, imports, uses) = Exn.release (get_header node);
+    (* FIXME provide files via Scala layer *)
+    val (dir, files) =
+      if ML_System.platform_is_cygwin then (Path.current, [])
+      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
+
+    val parents =
+      imports |> map (fn import =>
+        (case Thy_Info.lookup_theory import of
+          SOME thy => thy
+        | NONE =>
+            get_theory (Position.file_only import)
+              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
+  in Thy_Load.begin_theory dir thy_name imports files parents end;
+
+
 fun new_exec (command_id, command) (assigns, execs, exec) =
   let
     val exec_id' = new_id ();
@@ -352,22 +370,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
             NONE => Future.value (([], [], []), node)
           | SOME ((prev, id), _) =>
               let
-                fun init () =
-                  let
-                    val (thy_name, imports, uses) = Exn.release (get_header node);
-                    (* FIXME provide files via Scala layer *)
-                    val (dir, files) =
-                      if ML_System.platform_is_cygwin then (Path.current, [])
-                      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
-
-                    val parents =
-                      imports |> map (fn import =>
-                        (case Thy_Info.lookup_theory import of
-                          SOME thy => thy
-                        | NONE =>
-                            get_theory (Position.file_only import)
-                              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
-                  in Thy_Load.begin_theory dir thy_name imports files parents end;
+                fun init () = init_theory deps (name, node);
                 fun get_command id =
                   (id, the_command state id |> Future.map (Toplevel.modify_init init));
               in
