@@ -612,7 +612,7 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
 fun adjust_type_enc (THF _) type_enc = type_enc
-  | adjust_type_enc TFF (Simple_Types (Higher_Order, level)) =
+  | adjust_type_enc TFF (Simple_Types (_, level)) =
     Simple_Types (First_Order, level)
   | adjust_type_enc format (Simple_Types (_, level)) =
     adjust_type_enc format (Guards (Mangled_Monomorphic, level, Uniform))
