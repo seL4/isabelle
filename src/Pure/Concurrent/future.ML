@@ -51,13 +51,12 @@ sig
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val get_finished: 'a future -> 'a
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> task list
   val cancel: 'a future -> task list
-  type fork_params =
-    {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
-  val forks: fork_params -> (unit -> 'a) list -> 'a future list
+  type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
+  val default_params: params
+  val forks: params -> (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val join_results: 'a future list -> 'a Exn.result list
@@ -67,7 +66,7 @@ sig
   val join_tasks: task list -> unit
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
-  val cond_forks: fork_params -> (unit -> 'a) list -> 'a future list
+  val cond_forks: params -> (unit -> 'a) list -> 'a future list
   val map: ('a -> 'b) -> 'a future -> 'b future
   val promise_group: group -> (unit -> unit) -> 'a future
   val promise: (unit -> unit) -> 'a future
@@ -124,11 +123,6 @@ fun result_of (Future {result, ...}) = result;
 
 fun peek x = Single_Assignment.peek (result_of x);
 fun is_finished x = is_some (peek x);
-
-fun get_finished x =
-  (case peek x of
-    SOME res => Exn.release res
-  | NONE => raise Fail "Unfinished future evaluation");
 
 
 
@@ -464,10 +458,10 @@ fun future_job group interrupts (e: unit -> 'a) =
 
 (* fork *)
 
-type fork_params =
-  {name: string, group: group option, deps: task list, pri: int, interrupts: bool};
+type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool};
+val default_params: params = {name = "", group = NONE, deps = [], pri = 0, interrupts = true};
 
-fun forks ({name, group, deps, pri, interrupts}: fork_params) es =
+fun forks ({name, group, deps, pri, interrupts}: params) es =
   if null es then []
   else
     let

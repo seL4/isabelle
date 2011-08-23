@@ -60,10 +60,29 @@ object Document_Model
 class Document_Model(val session: Session, val buffer: Buffer,
   val master_dir: String, val node_name: String, val thy_name: String)
 {
-  /* pending text edits */
+  /* header */
 
   def node_header(): Exn.Result[Thy_Header] =
+  {
+    Swing_Thread.require()
     Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) }
+  }
+
+
+  /* perspective */
+
+  def perspective(): Text.Perspective =
+  {
+    Swing_Thread.require()
+    Text.perspective(
+      for {
+        doc_view <- Isabelle.document_views(buffer)
+        range <- doc_view.perspective()
+      } yield range)
+  }
+
+
+  /* pending text edits */
 
   private object pending_edits  // owned by Swing thread
   {
@@ -77,14 +96,15 @@ class Document_Model(val session: Session, val buffer: Buffer,
         case Nil =>
         case edits =>
           pending.clear
-          session.edit_node(node_name, master_dir, node_header(), edits)
+          session.edit_node(node_name, master_dir, node_header(), perspective(), edits)
       }
     }
 
     def init()
     {
       flush()
-      session.init_node(node_name, master_dir, node_header(), Isabelle.buffer_text(buffer))
+      session.init_node(node_name, master_dir,
+        node_header(), perspective(), Isabelle.buffer_text(buffer))
     }
 
     private val delay_flush =

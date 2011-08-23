@@ -140,18 +140,20 @@ trait Isar_Document extends Isabelle_Process
   /* document versions */
 
   def edit_version(old_id: Document.Version_ID, new_id: Document.Version_ID,
-    edits: List[Document.Edit_Command_ID])
+    edits: List[Document.Edit_Command])
   {
     val edits_yxml =
     { import XML.Encode._
-      def encode: T[List[Document.Edit_Command_ID]] =
+      def id: T[Command] = (cmd => long(cmd.id))
+      def encode: T[List[Document.Edit_Command]] =
         list(pair(string,
           variant(List(
             { case Document.Node.Clear() => (Nil, Nil) },
-            { case Document.Node.Edits(a) => (Nil, list(pair(option(long), option(long)))(a)) },
+            { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
             { case Document.Node.Header(Exn.Res(Thy_Header(a, b, c))) =>
                 (Nil, triple(string, list(string), list(pair(string, bool)))(a, b, c)) },
-            { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) }))))
+            { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
+            { case Document.Node.Perspective(cs) => (cs.map(c => long_atom(c.id)), Nil) }))))
       YXML.string_of_body(encode(edits)) }
 
     input("Isar_Document.edit_version", Document.ID(old_id), Document.ID(new_id), edits_yxml)

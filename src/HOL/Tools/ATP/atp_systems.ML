@@ -270,7 +270,7 @@ val satallax = (satallaxN, satallax_config)
 (* SPASS *)
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
-   counteracting the presence of "hAPP". *)
+   counteracting the presence of explicit application operators. *)
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
@@ -334,12 +334,13 @@ val vampire_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     (0.333, (false, (150, FOF, "poly_guards", sosN))) ::
      (if is_old_vampire_version () then
-        [(0.334, (true, (50, FOF, "mangled_guards?", no_sosN))),
+        [(0.333, (false, (150, FOF, "poly_guards", sosN))),
+         (0.334, (true, (50, FOF, "mangled_guards?", no_sosN))),
          (0.333, (false, (500, FOF, "mangled_tags?", sosN)))]
       else
-        [(0.334, (true, (50, TFF, "simple", no_sosN))),
+        [(0.333, (false, (150, TFF, "poly_guards", sosN))),
+         (0.334, (true, (50, TFF, "simple", no_sosN))),
          (0.333, (false, (500, TFF, "simple", sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}

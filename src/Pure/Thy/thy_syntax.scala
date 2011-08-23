@@ -97,6 +97,37 @@ object Thy_Syntax
 
 
 
+  /** command perspective **/
+
+  def command_perspective(node: Document.Node, perspective: Text.Perspective): Command.Perspective =
+  {
+    if (perspective.isEmpty) Nil
+    else {
+      val result = new mutable.ListBuffer[Command]
+      @tailrec
+      def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)])
+      {
+        (ranges, commands) match {
+          case (range :: more_ranges, (command, offset) #:: more_commands) =>
+            val command_range = command.range + offset
+            range compare command_range match {
+              case -1 => check_ranges(more_ranges, commands)
+              case 0 =>
+                result += command
+                check_ranges(ranges, more_commands)
+              case 1 => check_ranges(ranges, more_commands)
+            }
+          case _ =>
+        }
+      }
+      val perspective_range = Text.Range(perspective.head.start, perspective.last.stop)
+      check_ranges(perspective, node.command_range(perspective_range).toStream)
+      result.toList
+    }
+  }
+
+
+
   /** text edits **/
 
   def text_edits(
@@ -138,7 +169,7 @@ object Thy_Syntax
 
     @tailrec def recover_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
-      commands.iterator.find(_.is_unparsed) match {
+      commands.iterator.find(cmd => !cmd.is_defined) match {
         case Some(first_unparsed) =>
           val first =
             commands.reverse_iterator(first_unparsed).
@@ -209,6 +240,14 @@ object Thy_Syntax
           if (update_header) {
             doc_edits += (name -> Document.Node.Header(header))
             nodes += (name -> node.copy(header = header))
+          }
+
+        case (name, Document.Node.Perspective(text_perspective)) =>
+          val node = nodes(name)
+          val perspective = command_perspective(node, text_perspective)
+          if (!Command.equal_perspective(node.perspective, perspective)) {
+            doc_edits += (name -> Document.Node.Perspective(perspective))
+            nodes += (name -> node.copy(perspective = perspective))
           }
       }
       (doc_edits.toList, Document.Version(Document.new_id(), nodes))

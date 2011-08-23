@@ -7,22 +7,21 @@ Sledgehammer as a tactic.
 
 signature SLEDGEHAMMER_TACTICS =
 sig
-  val sledgehammer_with_metis_tac : Proof.context -> int -> tactic
-  val sledgehammer_as_unsound_oracle_tac : Proof.context -> int -> tactic
-  val sledgehammer_as_oracle_tac : Proof.context -> int -> tactic
+  val sledgehammer_with_metis_tac :
+    Proof.context -> (string * string) list -> int -> tactic
+  val sledgehammer_as_oracle_tac :
+    Proof.context -> (string * string) list -> int -> tactic
 end;
 
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
 struct
 
-fun run_atp force_full_types timeout i n ctxt goal name =
+fun run_atp override_params i n ctxt goal =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
-    val params as {relevance_thresholds, max_relevant, slicing, ...} =
-      ((if force_full_types then [("sound", "true")] else [])
-       @ [("timeout", string_of_int (Time.toSeconds timeout))])
-       (* @ [("overlord", "true")] *)
-      |> Sledgehammer_Isar.default_params ctxt
+    val params as {provers, relevance_thresholds, max_relevant, slicing, ...} =
+      Sledgehammer_Isar.default_params ctxt override_params
+    val name = hd provers
     val prover =
       Sledgehammer_Provers.get_prover ctxt Sledgehammer_Provers.Normal name
     val default_max_relevant =
@@ -50,8 +49,6 @@ fun run_atp force_full_types timeout i n ctxt goal name =
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
-val atp = "e" (* or "vampire" or "spass" etc. *)
-
 fun thms_of_name ctxt name =
   let
     val lex = Keyword.get_lexicons
@@ -65,25 +62,16 @@ fun thms_of_name ctxt name =
     |> Source.exhaust
   end
 
-fun sledgehammer_with_metis_tac ctxt i th =
-  let
-    val timeout = Time.fromSeconds 30
-  in
-    case run_atp false timeout i i ctxt th atp of
-      SOME facts =>
-      Metis_Tactics.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
-    | NONE => Seq.empty
-  end
+fun sledgehammer_with_metis_tac ctxt override_params i th =
+  case run_atp override_params i i ctxt th of
+    SOME facts =>
+    Metis_Tactics.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
+  | NONE => Seq.empty
 
-fun generic_sledgehammer_as_oracle_tac force_full_types ctxt i th =
+fun sledgehammer_as_oracle_tac ctxt override_params i th =
   let
     val thy = Proof_Context.theory_of ctxt
-    val timeout = Time.fromSeconds 30
-    val xs = run_atp force_full_types timeout i i ctxt th atp
+    val xs = run_atp (override_params @ [("sound", "true")]) i i ctxt th
   in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end
-
-val sledgehammer_as_unsound_oracle_tac =
-  generic_sledgehammer_as_oracle_tac false
-val sledgehammer_as_oracle_tac = generic_sledgehammer_as_oracle_tac true
 
 end;

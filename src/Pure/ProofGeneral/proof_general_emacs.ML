@@ -75,7 +75,7 @@ end;
 fun message bg en prfx text =
   (case render text of
     "" => ()
-  | s => Output.raw_writeln (enclose bg en (prefix_lines prfx s)));
+  | s => Output.physical_writeln (enclose bg en (prefix_lines prfx s)));
 
 fun setup_messages () =
  (Output.Private_Hooks.writeln_fn := message "" "" "";
@@ -85,7 +85,7 @@ fun setup_messages () =
   Output.Private_Hooks.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.Private_Hooks.warning_fn := message (special "K") (special "L") "### ";
   Output.Private_Hooks.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
-  Output.Private_Hooks.prompt_fn := (fn s => Output.raw_stdout (render s ^ special "S")));
+  Output.Private_Hooks.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
 
 fun panic s =
   (message (special "M") (special "N") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);

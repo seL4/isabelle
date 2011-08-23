@@ -84,6 +84,19 @@ object Command
 
   def span(toks: List[Token]): Command =
     new Command(Document.no_id, toks)
+
+
+  /* perspective */
+
+  type Perspective = List[Command]  // visible commands in canonical order
+
+  def equal_perspective(p1: Perspective, p2: Perspective): Boolean =
+  {
+    require(p1.forall(_.is_defined))
+    require(p2.forall(_.is_defined))
+    p1.length == p2.length &&
+      (p1.iterator zip p2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
+  }
 }
 
 
@@ -93,11 +106,11 @@ class Command(
 {
   /* classification */
 
+  def is_defined: Boolean = id != Document.no_id
+
   def is_command: Boolean = !span.isEmpty && span.head.is_command
   def is_ignored: Boolean = span.forall(_.is_ignored)
   def is_malformed: Boolean = !is_command && !is_ignored
-
-  def is_unparsed = id == Document.no_id
 
   def name: String = if (is_command) span.head.content else ""
   override def toString =

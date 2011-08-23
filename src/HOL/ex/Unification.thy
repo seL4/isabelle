@@ -11,10 +11,10 @@ imports Main
 begin
 
 text {* 
-  Implements Manna & Waldinger's formalization, with Paulson's
+  Implements Manna \& Waldinger's formalization, with Paulson's
   simplifications, and some new simplifications by Slind and Krauss.
 
-  Z Manna & R Waldinger, Deductive Synthesis of the Unification
+  Z Manna \& R Waldinger, Deductive Synthesis of the Unification
   Algorithm.  SCP 1 (1981), 5-48
 
   L C Paulson, Verifying the Unification Algorithm in LCF. SCP 5
