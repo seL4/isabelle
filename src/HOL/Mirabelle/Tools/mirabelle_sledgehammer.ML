@@ -361,7 +361,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
     fun set_file_name (SOME dir) =
         Config.put Sledgehammer_Provers.dest_dir dir
         #> Config.put Sledgehammer_Provers.problem_prefix
-          ("prob_" ^ str0 (Position.line_of pos))
+          ("prob_" ^ str0 (Position.line_of pos) ^ "__")
         #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
