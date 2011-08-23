@@ -356,11 +356,11 @@ val z3_atp_config : atp_config =
      "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures =
-     [(Unprovable, "\nsat"),
-      (GaveUp, "\nunknown"),
-      (GaveUp, "SZS status Satisfiable"),
-      (ProofMissing, "\nunsat"),
-      (ProofMissing, "SZS status Unsatisfiable")],
+     [(GaveUp, "SZS status Satisfiable"),
+      (GaveUp, "SZS status CounterSatisfiable"),
+      (GaveUp, "SZS status GaveUp"),
+      (ProofMissing, "SZS status Unsatisfiable"),
+      (ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices =
