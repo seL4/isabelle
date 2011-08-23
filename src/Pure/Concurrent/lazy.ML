@@ -16,7 +16,7 @@ sig
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
-  val future: Future.fork_params -> 'a lazy -> 'a future
+  val future: Future.params -> 'a lazy -> 'a future
 end;
 
 structure Lazy: LAZY =
