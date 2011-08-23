@@ -552,12 +552,14 @@ fun run_minimize args reconstructor named_thms id
 
 val e_override_params =
   [("provers", "e"),
+   ("max_relevant", "0"),
    ("type_enc", "poly_guards?"),
    ("sound", "true"),
    ("slicing", "false")]
 
 val vampire_override_params =
   [("provers", "vampire"),
+   ("max_relevant", "0"),
    ("type_enc", "poly_tags"),
    ("sound", "true"),
    ("slicing", "false")]
