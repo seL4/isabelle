@@ -130,6 +130,8 @@ val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
 
 (* E *)
 
+fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
+
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
    ("% SZS output start CNFRefutation", "% SZS output end CNFRefutation")]
@@ -187,8 +189,6 @@ fun e_weight_arguments ctxt method weights =
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
-
-fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
 
 fun effective_e_weight_method ctxt =
   if is_old_e_version () then e_autoN else Config.get ctxt e_weight_method
@@ -304,6 +304,9 @@ val spass = (spassN, spass_config)
 
 (* Vampire *)
 
+fun is_old_vampire_version () =
+  string_ord (getenv "VAMPIRE_VERSION", "1.8") = LESS
+
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
@@ -331,9 +334,13 @@ val vampire_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, TFF, "poly_guards", sosN))),
-      (0.334, (true, (50, TFF, "mangled_guards?", no_sosN))),
-      (0.333, (false, (500, TFF, "mangled_tags?", sosN)))]
+     (0.333, (false, (150, FOF, "poly_guards", sosN))) ::
+     (if is_old_vampire_version () then
+        [(0.334, (true, (50, FOF, "mangled_guards?", no_sosN))),
+         (0.333, (false, (500, FOF, "mangled_tags?", sosN)))]
+      else
+        [(0.334, (true, (50, TFF, "simple", no_sosN))),
+         (0.333, (false, (500, TFF, "simple", sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -346,7 +353,7 @@ val z3_atp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
-     "MBQI=true -p -t:" ^ string_of_int (to_secs 1 timeout),
+     "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
    known_failures =
      [(Unprovable, "\nsat"),
