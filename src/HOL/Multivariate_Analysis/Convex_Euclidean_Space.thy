@@ -40,9 +40,6 @@ apply (subst mem_convex_2)
 using assms apply (auto simp add: algebra_simps zero_le_divide_iff)
 using add_divide_distrib[of u v "u+v"] by auto
 
-lemma card_ge1: assumes "d ~= {}" "finite d" shows "card d >= 1"
-by (metis Suc_eq_plus1 assms(1) assms(2) card_eq_0_iff fact_ge_one_nat fact_num_eq_if_nat one_le_mult_iff plus_nat.add_0)
-
 lemma inj_on_image_mem_iff: "inj_on f B ==> (A <= B) ==> (f a : f`A) ==> (a : B) ==> (a : A)" 
 by (blast dest: inj_onD)
 
@@ -4217,9 +4214,9 @@ moreover
     unfolding substd_simplex[OF assms] by fastsimp 
   obtain a where a:"a:d" using `d ~= {}` by auto
   let ?d = "(1 - setsum (op $$ x) d) / real (card d)"
-  have "card d >= 1" using `d ~={}` card_ge1[of d] using `finite d` by auto
-  have "Min ((op $$ x) ` d) > 0" apply(rule Min_grI) using as `card d >= 1` `finite d` by auto
-  moreover have "?d > 0" apply(rule divide_pos_pos) using as using `card d >= 1` by(auto simp add: Suc_le_eq)
+  have "0 < card d" using `d ~={}` `finite d` by (simp add: card_gt_0_iff)
+  have "Min ((op $$ x) ` d) > 0" using as `d \<noteq> {}` `finite d` by (simp add: Min_grI)
+  moreover have "?d > 0" apply(rule divide_pos_pos) using as using `0 < card d` by auto
   ultimately have h3: "min (Min ((op $$ x) ` d)) ?d > 0" by auto
 
   have "x : rel_interior (convex hull (insert 0 ?p))"
@@ -4234,14 +4231,14 @@ moreover
         by(auto simp add: norm_minus_commute)
       thus "y $$ i \<le> x $$ i + ?d" by auto qed
     also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat
-      using `card d >= 1` by(auto simp add: Suc_le_eq)
+      using `0 < card d` by auto
     finally show "setsum (op $$ y) d \<le> 1" .
      
     fix i assume "i<DIM('a)" thus "0 \<le> y$$i" 
     proof(cases "i\<in>d") case True
       have "norm (x - y) < x$$i" using y[unfolded min_less_iff_conj dist_norm, THEN conjunct1]
-        using Min_gr_iff[of "op $$ x ` d" "norm (x - y)"] `card d >= 1` `i:d`
-        apply auto by (metis Suc_n_not_le_n True card_eq_0_iff finite_imageI)
+        using Min_gr_iff[of "op $$ x ` d" "norm (x - y)"] `0 < card d` `i:d`
+        by (simp add: card_gt_0_iff)
       thus "0 \<le> y$$i" using component_le_norm[of "x - y" i] and as(1)[rule_format] by auto
     qed(insert y2, auto)
   qed
@@ -4260,7 +4257,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
   let ?D = d let ?a = "setsum (\<lambda>b::'a::euclidean_space. inverse (2 * real (card d)) *\<^sub>R b) {(basis i) | i. i \<in> ?D}"
   have *:"{basis i :: 'a | i. i \<in> ?D} = basis ` ?D" by auto
   have "finite d" apply(rule finite_subset) using assms(2) by auto
-  hence d1: "real(card d) >= 1" using `d ~={}` card_ge1[of d] by auto
+  hence d1: "0 < real(card d)" using `d ~={}` by auto
   { fix i assume "i:d" have "?a $$ i = inverse (2 * real (card d))"
       unfolding * setsum_reindex[OF basis_inj_on, OF assms(2)] o_def
       apply(rule trans[of _ "setsum (\<lambda>j. if i = j then inverse (2 * real (card d)) else 0) ?D"]) 
@@ -4271,7 +4268,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
   note ** = this
   show ?thesis apply(rule that[of ?a]) unfolding rel_interior_substd_simplex[OF assms(2)] mem_Collect_eq
   proof safe fix i assume "i:d" 
-    have "0 < inverse (2 * real (card d))" using d1 by(auto simp add: Suc_le_eq)
+    have "0 < inverse (2 * real (card d))" using d1 by auto
     also have "...=?a $$ i" using **[of i] `i:d` by auto
     finally show "0 < ?a $$ i" by auto
   next have "setsum (op $$ ?a) ?D = setsum (\<lambda>i. inverse (2 * real (card d))) ?D" 
