@@ -15,6 +15,7 @@ val lambda_translationK = "lambda_translation"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
+val max_callsK = "max_calls"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
 val metis_ftK = "metis_ft"
@@ -376,7 +377,8 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
                        e_weight_method |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.force_sos)
                        force_sos |> the_default I)
-                 #> Config.put Sledgehammer_Provers.measure_run_time true)
+                 #> Config.put Sledgehammer_Provers.measure_run_time true
+                 #> Config.put Sledgehammer_Provers.atp_sound_modulo_infiniteness false)
     val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
@@ -607,6 +609,9 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
 
 val try_timeout = seconds 5.0
 
+(* crude hack *)
+val num_sledgehammer_calls = Unsynchronized.ref 0
+
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
     if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
@@ -615,6 +620,9 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       val reconstructor = Unsynchronized.ref ""
       val named_thms =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
+      val max_calls =
+        AList.lookup (op =) args max_callsK |> the_default "10000000"
+        |> Int.fromString |> the
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
       val trivial =
@@ -635,20 +643,23 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           (Mirabelle.catch_result (reconstructor_tag reconstructor) false
             (run_reconstructor trivial false m1 name reconstructor
                  (these (!named_thms))) id st; ())
+      val _ = num_sledgehammer_calls := !num_sledgehammer_calls + 1;
     in 
-      change_data id (set_mini minimize);
-      Mirabelle.catch sh_tag (run_sledgehammer trivial args reconstructor
-                                               named_thms) id st;
-      if is_some (!named_thms)
-      then
-       (apply_reconstructor Unminimized UnminimizedFT;
-        if minimize andalso not (null (these (!named_thms)))
+      if !num_sledgehammer_calls > max_calls then ()
+      else
+        change_data id (set_mini minimize);
+        Mirabelle.catch sh_tag (run_sledgehammer trivial args reconstructor
+                                                 named_thms) id st;
+        if is_some (!named_thms)
         then
-         (Mirabelle.catch minimize_tag
-              (run_minimize args reconstructor named_thms) id st;
-          apply_reconstructor Minimized MinimizedFT)
-        else ())
-      else ()
+         (apply_reconstructor Unminimized UnminimizedFT;
+          if minimize andalso not (null (these (!named_thms)))
+          then
+           (Mirabelle.catch minimize_tag
+                (run_minimize args reconstructor named_thms) id st;
+            apply_reconstructor Minimized MinimizedFT)
+          else ())
+        else ()
     end
   end
 
