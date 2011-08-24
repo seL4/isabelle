@@ -1436,30 +1436,6 @@ lemma independent_basis:
   apply (simp add: inner_setsum_right dot_basis)
   done
 
-lemma dimensionI:
-  assumes "\<And>d. \<lbrakk> 0 < d; basis ` {d..} = {0::'a::euclidean_space};
-    independent (basis ` {..<d} :: 'a set);
-    inj_on (basis :: nat \<Rightarrow> 'a) {..<d} \<rbrakk> \<Longrightarrow> P d"
-  shows "P DIM('a::euclidean_space)"
-  using DIM_positive basis_finite independent_basis basis_inj
-  by (rule assms)
-
-lemma (in euclidean_space) dimension_eq:
-  assumes "\<And>i. i < d \<Longrightarrow> basis i \<noteq> 0"
-  assumes "\<And>i. d \<le> i \<Longrightarrow> basis i = 0"
-  shows "DIM('a) = d"
-proof (rule linorder_cases [of "DIM('a)" d])
-  assume "DIM('a) < d"
-  hence "basis DIM('a) \<noteq> 0" by (rule assms)
-  thus ?thesis by simp
-next
-  assume "d < DIM('a)"
-  hence "basis d \<noteq> 0" by simp
-  thus ?thesis by (simp add: assms)
-next
-  assume "DIM('a) = d" thus ?thesis .
-qed
-
 lemma (in euclidean_space) range_basis:
     "range basis = insert 0 (basis ` {..<DIM('a)})"
 proof -
