@@ -128,6 +128,16 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       yield Text.Range(start, stop))
   }
 
+  private def update_perspective = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      model.update_perspective()
+    }
+  }
+
 
   /* snapshot */
 
@@ -355,15 +365,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* scrolling */
-
-  private val scroll_listener = new ScrollListener
-  {
-    def scrolledVertically(arg: TextArea) { model.update_perspective() }
-    def scrolledHorizontally(arg: TextArea) { }
-  }
-
-
   /* overview of command status left of scrollbar */
 
   private val overview = new JPanel(new BorderLayout)
@@ -477,6 +478,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     text_area_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
@@ -484,7 +486,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getView.addWindowListener(window_listener)
     painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
-    text_area.addScrollListener(scroll_listener)
     text_area.addLeftOfScrollBar(overview)
     session.commands_changed += main_actor
     session.global_settings += main_actor
@@ -499,11 +500,11 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
-    text_area.removeScrollListener(scroll_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()
     painter.removeExtension(tooltip_painter)
+    painter.removeExtension(update_perspective)
     exit_popup()
   }
 }
