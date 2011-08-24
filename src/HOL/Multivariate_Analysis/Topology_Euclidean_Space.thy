@@ -644,59 +644,25 @@ subsection {* Closure of a Set *}
 
 definition "closure S = S \<union> {x | x. x islimpt S}"
 
-lemma closure_interior: "closure S = - interior (- S)"
-proof-
-  { fix x
-    have "x\<in>- interior (- S) \<longleftrightarrow> x \<in> closure S"  (is "?lhs = ?rhs")
-    proof
-      let ?exT = "\<lambda> y. (\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> - S)"
-      assume "?lhs"
-      hence *:"\<not> ?exT x"
-        unfolding interior_def
-        by simp
-      { assume "\<not> ?rhs"
-        hence False using *
-          unfolding closure_def islimpt_def
-          by blast
-      }
-      thus "?rhs"
-        by blast
-    next
-      assume "?rhs" thus "?lhs"
-        unfolding closure_def interior_def islimpt_def
-        by blast
-    qed
-  }
-  thus ?thesis
-    by blast
-qed
-
 lemma interior_closure: "interior S = - (closure (- S))"
-proof-
-  { fix x
-    have "x \<in> interior S \<longleftrightarrow> x \<in> - (closure (- S))"
-      unfolding interior_def closure_def islimpt_def
-      by auto
-  }
-  thus ?thesis
-    by blast
-qed
+  unfolding interior_def closure_def islimpt_def by auto
+
+lemma closure_interior: "closure S = - interior (- S)"
+  unfolding interior_closure by simp
 
 lemma closed_closure[simp, intro]: "closed (closure S)"
-proof-
-  have "closed (- interior (-S))" by blast
-  thus ?thesis using closure_interior[of S] by simp
-qed
+  unfolding closure_interior by (simp add: closed_Compl)
+
+lemma closure_subset: "S \<subseteq> closure S"
+  unfolding closure_def by simp
 
 lemma closure_hull: "closure S = closed hull S"
 proof-
   have "S \<subseteq> closure S"
-    unfolding closure_def
-    by blast
+    by (rule closure_subset)
   moreover
   have "closed (closure S)"
-    using closed_closure[of S]
-    by assumption
+    by (rule closed_closure)
   moreover
   { fix t
     assume *:"S \<subseteq> t" "closed t"
@@ -712,8 +678,7 @@ proof-
       by auto
   }
   ultimately show ?thesis
-    using hull_unique[of S, of "closure S", of closed]
-    by simp
+    by (rule hull_unique [symmetric])
 qed
 
 lemma closure_eq: "closure S = S \<longleftrightarrow> closed S"
@@ -726,24 +691,13 @@ lemma closure_closed[simp]: "closed S \<Longrightarrow> closure S = S"
   by simp
 
 lemma closure_closure[simp]: "closure (closure S) = closure S"
-  unfolding closure_hull
-  using hull_hull[of closed S]
-  by assumption
-
-lemma closure_subset: "S \<subseteq> closure S"
-  unfolding closure_hull
-  using hull_subset[of S closed]
-  by assumption
+  unfolding closure_hull by (rule hull_hull)
 
 lemma subset_closure: "S \<subseteq> T \<Longrightarrow> closure S \<subseteq> closure T"
-  unfolding closure_hull
-  using hull_mono[of S T closed]
-  by assumption
+  unfolding closure_hull by (rule hull_mono)
 
 lemma closure_minimal: "S \<subseteq> T \<Longrightarrow>  closed T \<Longrightarrow> closure S \<subseteq> T"
-  using hull_minimal[of S T closed]
-  unfolding closure_hull
-  by simp
+  unfolding closure_hull by (rule hull_minimal)
 
 lemma closure_unique: "S \<subseteq> T \<and> closed T \<and> (\<forall> T'. S \<subseteq> T' \<and> closed T' \<longrightarrow> T \<subseteq> T') \<Longrightarrow> closure S = T"
   using hull_unique[of S T closed]
@@ -751,12 +705,13 @@ lemma closure_unique: "S \<subseteq> T \<and> closed T \<and> (\<forall> T'. S \
   by simp
 
 lemma closure_empty[simp]: "closure {} = {}"
-  using closed_empty closure_closed[of "{}"]
-  by simp
+  using closed_empty by (rule closure_closed)
 
 lemma closure_univ[simp]: "closure UNIV = UNIV"
-  using closure_closed[of UNIV]
-  by simp
+  using closed_UNIV by (rule closure_closed)
+
+lemma closure_union [simp]: "closure (S \<union> T) = closure S \<union> closure T"
+  unfolding closure_interior by simp
 
 lemma closure_eq_empty: "closure S = {} \<longleftrightarrow> S = {}"
   using closure_empty closure_subset[of S]
@@ -798,17 +753,10 @@ proof
 qed
 
 lemma closure_complement: "closure(- S) = - interior(S)"
-proof-
-  have "S = - (- S)"
-    by auto
-  thus ?thesis
-    unfolding closure_interior
-    by auto
-qed
+  unfolding closure_interior by simp
 
 lemma interior_complement: "interior(- S) = - closure(S)"
-  unfolding closure_interior
-  by blast
+  unfolding closure_interior by simp
 
 lemma closure_Times: "closure (A \<times> B) = closure A \<times> closure B"
 proof (intro closure_unique conjI)
