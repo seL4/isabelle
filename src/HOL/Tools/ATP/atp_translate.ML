@@ -1062,11 +1062,10 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
 fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not_trueprop t = s_not t
 
-fun make_conjecture thy format type_enc ps =
-  map2 (fn j => fn ((name, loc), (kind, t)) =>
-           t |> kind = Conjecture ? s_not_trueprop
-             |> make_formula thy type_enc (format <> CNF) name loc kind)
-       (0 upto length ps - 1) ps
+fun make_conjecture thy format type_enc =
+  map (fn ((name, loc), (kind, t)) =>
+          t |> kind = Conjecture ? s_not_trueprop
+            |> make_formula thy type_enc (format <> CNF) name loc kind)
 
 (** Finite and infinite type inference **)
 
