@@ -33,7 +33,7 @@ lemma empty_set_rsp[quot_respect]:
 lemma collect_rsp[quot_respect]:
   assumes "Quotient R Abs Rep"
   shows "((R ===> op =) ===> set_rel R) Collect Collect"
-  by (auto intro!: fun_relI simp add: fun_rel_def set_rel_def)
+  by (intro fun_relI) (simp add: fun_rel_def set_rel_def)
 
 lemma collect_prs[quot_preserve]:
   assumes "Quotient R Abs Rep"
@@ -44,7 +44,7 @@ lemma collect_prs[quot_preserve]:
 lemma union_rsp[quot_respect]:
   assumes "Quotient R Abs Rep"
   shows "(set_rel R ===> set_rel R ===> set_rel R) op \<union> op \<union>"
-  by (intro fun_relI) (auto simp add: set_rel_def)
+  by (intro fun_relI) (simp add: set_rel_def)
 
 lemma union_prs[quot_preserve]:
   assumes "Quotient R Abs Rep"
@@ -55,7 +55,7 @@ lemma union_prs[quot_preserve]:
 lemma diff_rsp[quot_respect]:
   assumes "Quotient R Abs Rep"
   shows "(set_rel R ===> set_rel R ===> set_rel R) op - op -"
-  by (intro fun_relI) (auto simp add: set_rel_def)
+  by (intro fun_relI) (simp add: set_rel_def)
 
 lemma diff_prs[quot_preserve]:
   assumes "Quotient R Abs Rep"
@@ -73,5 +73,14 @@ lemma inter_prs[quot_preserve]:
   shows "(op -` Abs ---> op -` Abs ---> op -` Rep) op \<inter> = op \<inter>"
   unfolding fun_eq_iff
   by (simp add: Quotient_abs_rep[OF set_quotient[OF assms]])
+
+lemma mem_prs[quot_preserve]:
+  assumes "Quotient R Abs Rep"
+  shows "(Rep ---> op -` Abs ---> id) op \<in> = op \<in>"
+  by (simp add: fun_eq_iff Quotient_abs_rep[OF assms])
+
+lemma mem_rsp[quot_respect]:
+  shows "(R ===> set_rel R ===> op =) op \<in> op \<in>"
+  by (intro fun_relI) (simp add: set_rel_def)
 
 end
