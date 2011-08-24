@@ -327,8 +327,7 @@ lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner 
   unfolding norm_eq_sqrt_inner by simp
 
 
-
-subsection {* Affine set and affine hull.*}
+subsection {* Affine set and affine hull *}
 
 definition
   affine :: "'a::real_vector set \<Rightarrow> bool" where
@@ -359,7 +358,7 @@ lemma affine_affine_hull: "affine(affine hull s)"
 lemma affine_hull_eq[simp]: "(affine hull s = s) \<longleftrightarrow> affine s"
 by (metis affine_affine_hull hull_same)
 
-subsection {* Some explicit formulations (from Lars Schewe). *}
+subsubsection {* Some explicit formulations (from Lars Schewe) *}
 
 lemma affine: fixes V::"'a::real_vector set"
   shows "affine V \<longleftrightarrow> (\<forall>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> V \<and> setsum u s = 1 \<longrightarrow> (setsum (\<lambda>x. (u x) *\<^sub>R x)) s \<in> V)"
@@ -459,7 +458,7 @@ next
   thus "\<exists>u. setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x" apply(rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
     unfolding if_smult scaleR_zero_left and setsum_restrict_set[OF assms, THEN sym] and * by auto qed
 
-subsection {* Stepping theorems and hence small special cases. *}
+subsubsection {* Stepping theorems and hence small special cases *}
 
 lemma affine_hull_empty[simp]: "affine hull {} = {}"
   apply(rule hull_unique) by auto
@@ -553,7 +552,7 @@ lemma mem_affine_3_minus:
 using mem_affine_3[of S x y z 1 v "-v"] assms by (simp add: algebra_simps)
 
 
-subsection {* Some relations between affine hull and subspaces. *}
+subsubsection {* Some relations between affine hull and subspaces *}
 
 lemma affine_hull_insert_subset_span:
   shows "affine hull (insert a s) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> s}}"
@@ -596,7 +595,7 @@ lemma affine_hull_span:
   shows "affine hull s = {a + v | v. v \<in> span {x - a | x. x \<in> s - {a}}}"
   using affine_hull_insert_span[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
 
-subsection{* Parallel Affine Sets *}
+subsubsection {* Parallel affine sets *}
 
 definition affine_parallel :: "'a::real_vector set => 'a::real_vector set => bool"
 where "affine_parallel S T = (? a. T = ((%x. a + x) ` S))"
@@ -670,7 +669,7 @@ qed
 lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
   unfolding subspace_def affine_def by auto
 
-subsection{* Subspace Parallel to an Affine Set *}
+subsubsection {* Subspace parallel to an affine set *}
 
 lemma subspace_affine:
   shows "subspace S <-> (affine S & 0 : S)"
@@ -746,7 +745,7 @@ have ex: "? L. subspace L & affine_parallel S L" using assms  parallel_subspace_
 } from this show ?thesis using ex by auto
 qed
 
-subsection {* Cones. *}
+subsection {* Cones *}
 
 definition
   cone :: "'a::real_vector set \<Rightarrow> bool" where
@@ -761,7 +760,7 @@ lemma cone_univ[intro, simp]: "cone UNIV"
 lemma cone_Inter[intro]: "(\<forall>s\<in>f. cone s) \<Longrightarrow> cone(\<Inter> f)"
   unfolding cone_def by auto
 
-subsection {* Conic hull. *}
+subsubsection {* Conic hull *}
 
 lemma cone_cone_hull: "cone (cone hull s)"
   unfolding hull_def by auto
@@ -874,7 +873,7 @@ moreover
 ultimately show ?thesis by blast
 qed
 
-subsection {* Affine dependence and consequential theorems (from Lars Schewe). *}
+subsection {* Affine dependence and consequential theorems (from Lars Schewe) *}
 
 definition
   affine_dependent :: "'a::real_vector set \<Rightarrow> bool" where
@@ -1016,12 +1015,12 @@ proof-
   thus ?thesis unfolding connected_def by auto
 qed
 
-subsection {* One rather trivial consequence. *}
+text {* One rather trivial consequence. *}
 
 lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
   by(simp add: convex_connected convex_UNIV)
 
-subsection {* Balls, being convex, are connected. *}
+text {* Balls, being convex, are connected. *}
 
 lemma convex_box: fixes a::"'a::euclidean_space"
   assumes "\<And>i. i<DIM('a) \<Longrightarrow> convex {x. P i x}"
@@ -1085,7 +1084,7 @@ lemma connected_cball:
   shows "connected(cball x e)"
   using convex_connected convex_cball by auto
 
-subsection {* Convex hull. *}
+subsection {* Convex hull *}
 
 lemma convex_convex_hull: "convex(convex hull s)"
   unfolding hull_def using convex_Inter[of "{t. convex t \<and> s \<subseteq> t}"]
@@ -1107,7 +1106,7 @@ lemma finite_imp_bounded_convex_hull:
   shows "finite s \<Longrightarrow> bounded(convex hull s)"
   using bounded_convex_hull finite_imp_bounded by auto
 
-subsection {* Convex hull is "preserved" by a linear function. *}
+subsubsection {* Convex hull is "preserved" by a linear function *}
 
 lemma convex_hull_linear_image:
   assumes "bounded_linear f"
@@ -1129,7 +1128,7 @@ lemma in_convex_hull_linear_image:
   shows "(f x) \<in> convex hull (f ` s)"
 using convex_hull_linear_image[OF assms(1)] assms(2) by auto
 
-subsection {* Stepping theorems for convex hulls of finite sets. *}
+subsubsection {* Stepping theorems for convex hulls of finite sets *}
 
 lemma convex_hull_empty[simp]: "convex hull {} = {}"
   apply(rule hull_unique) by auto
@@ -1192,7 +1191,7 @@ next
 qed
 
 
-subsection {* Explicit expression for convex hull. *}
+subsubsection {* Explicit expression for convex hull *}
 
 lemma convex_hull_indexed:
   fixes s :: "'a::real_vector set"
@@ -1263,7 +1262,7 @@ next
     using assms and t(1) by auto
 qed
 
-subsection {* Another formulation from Lars Schewe. *}
+subsubsection {* Another formulation from Lars Schewe *}
 
 lemma setsum_constant_scaleR:
   fixes y :: "'a::real_vector"
@@ -1327,7 +1326,7 @@ proof-
   ultimately show ?thesis unfolding set_eq_iff by blast
 qed
 
-subsection {* A stepping theorem for that expansion. *}
+subsubsection {* A stepping theorem for that expansion *}
 
 lemma convex_hull_finite_step:
   fixes s :: "'a::real_vector set" assumes "finite s"
@@ -1353,7 +1352,7 @@ next
   ultimately show ?lhs apply(rule_tac x="\<lambda>x. if a = x then v else u x" in exI)  unfolding setsum_clauses(2)[OF assms] by auto
 qed
 
-subsection {* Hence some special cases. *}
+subsubsection {* Hence some special cases *}
 
 lemma convex_hull_2:
   "convex hull {a,b} = {u *\<^sub>R a + v *\<^sub>R b | u v. 0 \<le> u \<and> 0 \<le> v \<and> u + v = 1}"
@@ -1385,7 +1384,7 @@ proof- have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y
   show ?thesis unfolding convex_hull_3 apply (auto simp add: *) apply(rule_tac x=v in exI) apply(rule_tac x=w in exI) apply (simp add: algebra_simps)
     apply(rule_tac x=u in exI) apply(rule_tac x=v in exI) by (simp add: algebra_simps) qed
 
-subsection {* Relations among closure notions and corresponding hulls. *}
+subsection {* Relations among closure notions and corresponding hulls *}
 
 lemma affine_imp_convex: "affine s \<Longrightarrow> convex s"
   unfolding affine_def convex_def by auto
@@ -2107,7 +2106,7 @@ have "aff_dim(interior S) <= aff_dim S"
 from this show ?thesis using aff_dim_open[of "interior S"] aff_dim_subset_univ[of S] assms by auto   
 qed
 
-subsection{* Relative Interior of a Set *}
+subsection {* Relative interior of a set *}
 
 definition "rel_interior S = {x. ? T. openin (subtopology euclidean (affine hull S)) T & x : T & T <= S}"
 
@@ -2276,7 +2275,7 @@ proof-
      by (auto split: split_if_asm)
 qed
 
-subsection "Relative open"
+subsubsection {* Relative open sets *}
 
 definition "rel_open S <-> (rel_interior S) = S"
 
@@ -2383,7 +2382,7 @@ have "EX y : S. norm (y - x) * (1 - e) < e * d" proof(cases "x : S")
   thus ?thesis using * by auto 
 qed
 
-subsection{* Relative interior preserves under linear transformations *}
+subsubsection{* Relative interior preserves under linear transformations *}
 
 lemma rel_interior_translation_aux:
 fixes a :: "'n::euclidean_space"
@@ -2891,7 +2890,7 @@ lemma continuous_on_closest_point:
   shows "continuous_on t (closest_point s)"
 by(metis continuous_at_imp_continuous_on continuous_at_closest_point[OF assms])
 
-subsection {* Various point-to-set separating/supporting hyperplane theorems. *}
+subsubsection {* Various point-to-set separating/supporting hyperplane theorems. *}
 
 lemma supporting_hyperplane_closed_point:
   fixes z :: "'a::{real_inner,heine_borel}"
@@ -2950,7 +2949,7 @@ lemma separating_hyperplane_closed_0:
 next case False thus ?thesis using False using separating_hyperplane_closed_point[OF assms]
     apply - apply(erule exE)+ unfolding inner_zero_right apply(rule_tac x=a in exI, rule_tac x=b in exI) by auto qed
 
-subsection {* Now set-to-set for closed/compact sets. *}
+subsubsection {* Now set-to-set for closed/compact sets *}
 
 lemma separating_hyperplane_closed_compact:
   assumes "convex (s::('a::euclidean_space) set)" "closed s" "convex t" "compact t" "t \<noteq> {}" "s \<inter> t = {}"
@@ -2992,7 +2991,7 @@ proof- obtain a b where "(\<forall>x\<in>t. inner a x < b) \<and> (\<forall>x\<i
     using separating_hyperplane_closed_compact[OF assms(4-5,1-2,3)] and assms(6) by auto
   thus ?thesis apply(rule_tac x="-a" in exI, rule_tac x="-b" in exI) by auto qed
 
-subsection {* General case without assuming closure and getting non-strict separation. *}
+subsubsection {* General case without assuming closure and getting non-strict separation *}
 
 lemma separating_hyperplane_set_0:
   assumes "convex s" "(0::'a::euclidean_space) \<notin> s"
@@ -3035,7 +3034,7 @@ proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
     done
 qed
 
-subsection {* More convexity generalities. *}
+subsection {* More convexity generalities *}
 
 lemma convex_closure:
   fixes s :: "'a::real_normed_vector set"
@@ -3147,7 +3146,7 @@ moreover
 ultimately show ?thesis by blast
 qed
 
-subsection {* Convex set as intersection of halfspaces. *}
+subsection {* Convex set as intersection of halfspaces *}
 
 lemma convex_halfspace_intersection:
   fixes s :: "('a::euclidean_space) set"
@@ -3160,7 +3159,7 @@ lemma convex_halfspace_intersection:
     apply(erule exE)+ apply(erule_tac x="-a" in allE, erule_tac x="-b" in allE) by auto
 qed auto
 
-subsection {* Radon's theorem (from Lars Schewe). *}
+subsection {* Radon's theorem (from Lars Schewe) *}
 
 lemma radon_ex_lemma:
   assumes "finite c" "affine_dependent c"
@@ -3229,7 +3228,7 @@ proof- from assms[unfolded affine_dependent_explicit] guess s .. then guess u ..
   from radon_partition[OF *] guess m .. then guess p ..
   thus ?thesis apply(rule_tac that[of p m]) using s by auto qed
 
-subsection {* Helly's theorem. *}
+subsection {* Helly's theorem *}
 
 lemma helly_induct: fixes f::"('a::euclidean_space) set set"
   assumes "card f = n" "n \<ge> DIM('a) + 1"
@@ -3275,7 +3274,7 @@ lemma helly: fixes f::"('a::euclidean_space) set set"
   shows "\<Inter> f \<noteq>{}"
   apply(rule helly_induct) using assms by auto
 
-subsection {* Homeomorphism of all convex compact sets with nonempty interior. *}
+subsection {* Homeomorphism of all convex compact sets with nonempty interior *}
 
 lemma compact_frontier_line_lemma:
   fixes s :: "('a::euclidean_space) set"
@@ -3495,7 +3494,7 @@ lemma homeomorphic_convex_compact: fixes s::"('a::euclidean_space) set" and t::"
   shows "s homeomorphic t"
   using assms by(meson zero_less_one homeomorphic_trans homeomorphic_convex_compact_cball homeomorphic_sym)
 
-subsection {* Epigraphs of convex functions. *}
+subsection {* Epigraphs of convex functions *}
 
 definition "epigraph s (f::_ \<Rightarrow> real) = {xy. fst xy \<in> s \<and> f (fst xy) \<le> snd xy}"
 
@@ -3519,7 +3518,7 @@ lemma convex_epigraph_convex:
   "convex s \<Longrightarrow> convex_on s f \<longleftrightarrow> convex(epigraph s f)"
 by(simp add: convex_epigraph)
 
-subsection {* Use this to derive general bound property of convex function. *}
+subsubsection {* Use this to derive general bound property of convex function *}
 
 lemma convex_on:
   assumes "convex s"
@@ -3538,7 +3537,7 @@ lemma convex_on:
   apply(rule mult_left_mono)using assms[unfolded convex] by auto
 
 
-subsection {* Convexity of general and special intervals. *}
+subsection {* Convexity of general and special intervals *}
 
 lemma convexI: (* TODO: move to Library/Convex.thy *)
   assumes "\<And>x y u v. \<lbrakk>x \<in> s; y \<in> s; 0 \<le> u; 0 \<le> v; u + v = 1\<rbrakk> \<Longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
@@ -3601,7 +3600,7 @@ lemma convex_connected_1:
   "connected s \<longleftrightarrow> convex (s::(real^1) set)" 
 by(metis is_interval_convex convex_connected is_interval_connected_1)
 *)
-subsection {* Another intermediate value theorem formulation. *}
+subsection {* Another intermediate value theorem formulation *}
 
 lemma ivt_increasing_component_on_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b" "continuous_on {a .. b} f" "(f a)$$k \<le> y" "y \<le> (f b)$$k"
@@ -3631,7 +3630,7 @@ lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> 'a::euclidean_spa
 by(rule ivt_decreasing_component_on_1)
   (auto simp: continuous_at_imp_continuous_on)
 
-subsection {* A bound within a convex hull, and so an interval. *}
+subsection {* A bound within a convex hull, and so an interval *}
 
 lemma convex_on_convex_hull_bound:
   assumes "convex_on (convex hull s) f" "\<forall>x\<in>s. f x \<le> b"
@@ -3702,7 +3701,7 @@ proof- have 01:"{0,(\<chi>\<chi> i. 1)} \<subseteq> convex hull ?points" apply r
     unfolding mem_interval apply rule unfolding mem_Collect_eq apply(erule_tac x=i in allE)
     by auto qed
 
-subsection {* And this is a finite set of vertices. *}
+text {* And this is a finite set of vertices. *}
 
 lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. (\<chi>\<chi> i. 1)::'a::ordered_euclidean_space} = convex hull s"
   apply(rule that[of "{x::'a. \<forall>i<DIM('a). x$$i=0 \<or> x$$i=1}"])
@@ -3713,7 +3712,7 @@ lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. (\<chi>\<chi> i. 
     apply(rule image_eqI[where x="{i. i<DIM('a) \<and> x$$i = 1}"])
     using as apply(subst euclidean_eq) by auto qed auto
 
-subsection {* Hence any cube (could do any nonempty interval). *}
+text {* Hence any cube (could do any nonempty interval). *}
 
 lemma cube_convex_hull:
   assumes "0 < d" obtains s::"('a::ordered_euclidean_space) set" where
@@ -3745,7 +3744,7 @@ lemma cube_convex_hull:
   obtain s where "finite s" "{0::'a..\<chi>\<chi> i.1} = convex hull s" using unit_cube_convex_hull by auto
   thus ?thesis apply(rule_tac that[of "(\<lambda>y. x - ?d + (2 * d) *\<^sub>R y)` s"]) unfolding * and convex_hull_affinity by auto qed
 
-subsection {* Bounded convex function on open set is continuous. *}
+subsection {* Bounded convex function on open set is continuous *}
 
 lemma convex_on_bounded_continuous:
   fixes s :: "('a::real_normed_vector) set"
@@ -3796,7 +3795,7 @@ lemma convex_on_bounded_continuous:
     qed(insert `0<e`, auto) 
   qed(insert `0<e` `0<k` `0<B`, auto simp add:field_simps intro!:mult_pos_pos) qed
 
-subsection {* Upper bound on a ball implies upper and lower bounds. *}
+subsection {* Upper bound on a ball implies upper and lower bounds *}
 
 lemma convex_bounds_lemma:
   fixes x :: "'a::real_normed_vector"
@@ -3813,7 +3812,7 @@ next case False fix y assume "y\<in>cball x e"
   hence "dist x y < 0" using False unfolding mem_cball not_le by (auto simp del: dist_not_less_zero)
   thus "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>" using zero_le_dist[of x y] by auto qed
 
-subsection {* Hence a convex function on an open set is continuous. *}
+subsubsection {* Hence a convex function on an open set is continuous *}
 
 lemma convex_on_continuous:
   assumes "open (s::('a::ordered_euclidean_space) set)" "convex_on s f" 
@@ -3856,7 +3855,7 @@ lemma convex_on_continuous:
     using `d>0` by auto 
 qed
 
-subsection {* Line segments, Starlike Sets, etc.*}
+subsection {* Line segments, Starlike Sets, etc. *}
 
 (* Use the same overloading tricks as for intervals, so that 
    segment[a,b] is closed and segment(a,b) is open relative to affine hull. *)
@@ -4002,7 +4001,7 @@ lemma between_mem_convex_hull:
   "between (a,b) x \<longleftrightarrow> x \<in> convex hull {a,b}"
   unfolding between_mem_segment segment_convex_hull ..
 
-subsection {* Shrinking towards the interior of a convex set. *}
+subsection {* Shrinking towards the interior of a convex set *}
 
 lemma mem_interior_convex_shrink:
   fixes s :: "('a::euclidean_space) set"
@@ -4049,7 +4048,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
   thus ?thesis unfolding * apply - apply(rule mem_interior_convex_shrink) 
     using assms(1,4-5) `y\<in>s` by auto qed
 
-subsection {* Some obvious but surprisingly hard simplex lemmas. *}
+subsection {* Some obvious but surprisingly hard simplex lemmas *}
 
 lemma simplex:
   assumes "finite s" "0 \<notin> s"
@@ -4292,7 +4291,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
   qed
 qed
 
-subsection{* Relative Interior of Convex Set *}
+subsection {* Relative interior of convex set *}
 
 lemma rel_interior_convex_nonempty_aux: 
 fixes S :: "('n::euclidean_space) set" 
@@ -4716,7 +4715,7 @@ moreover
 } ultimately show ?thesis by auto
 qed
 
-subsection{* Relative interior and closure under commom operations *}
+subsubsection {* Relative interior and closure under common operations *}
 
 lemma rel_interior_inter_aux: "Inter {rel_interior S |S. S : I} <= Inter I"
 proof- 
@@ -5219,7 +5218,7 @@ hence h2: "!!y z. y : rel_interior {t. f t ~= {}} ==> ((y, z) : rel_interior S) 
 } from this show ?thesis using h2 by blast
 qed
 
-subsection{* Relative interior of convex cone *}
+subsubsection {* Relative interior of convex cone *}
 
 lemma cone_rel_interior:
 fixes S :: "('m::euclidean_space) set"
