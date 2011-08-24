@@ -415,7 +415,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                 in
                   (singleton o Future.forks)
                     {name = "Document.edit", group = NONE,
-                      deps = map (Future.task_of o #2) deps, pri = 2, interrupts = false}
+                      deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
                     (fn () =>
                       let
                         val prev_exec =
