@@ -24,9 +24,10 @@ sig
   type edit = string * node_edit
   type state
   val init_state: state
+  val define_command: command_id -> string -> state -> state
   val join_commands: state -> unit
   val cancel_execution: state -> Future.task list
-  val define_command: command_id -> string -> state -> state
+  val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
   val state: unit -> state
@@ -61,50 +62,62 @@ type perspective = (command_id -> bool) * command_id list; (*visible commands, c
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 abstype node = Node of
- {header: node_header,
+ {touched: bool,
+  header: node_header,
   perspective: perspective,
   entries: exec_id option Entries.T,  (*command entries with excecutions*)
   result: Toplevel.state lazy}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (header, perspective, entries, result) =
-  Node {header = header, perspective = perspective, entries = entries, result = result};
+fun make_node (touched, header, perspective, entries, result) =
+  Node {touched = touched, header = header, perspective = perspective,
+    entries = entries, result = result};
 
-fun map_node f (Node {header, perspective, entries, result}) =
-  make_node (f (header, perspective, entries, result));
+fun map_node f (Node {touched, header, perspective, entries, result}) =
+  make_node (f (touched, header, perspective, entries, result));
 
-val no_perspective: perspective = (K false, []);
+fun make_perspective ids : perspective =
+  (Inttab.defined (Inttab.make (map (rpair ()) ids)), ids);
+
+val no_perspective = make_perspective [];
 val no_print = Lazy.value ();
 val no_result = Lazy.value Toplevel.toplevel;
 
 val empty_node =
-  make_node (Exn.Exn (ERROR "Bad theory header"), no_perspective, Entries.empty, no_result);
+  make_node (false, Exn.Exn (ERROR "Bad theory header"), no_perspective, Entries.empty, no_result);
 
 val clear_node =
-  map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, no_result));
+  map_node (fn (_, header, _, _, _) => (false, header, no_perspective, Entries.empty, no_result));
 
 
 (* basic components *)
 
+fun is_touched (Node {touched, ...}) = touched;
+fun set_touched touched =
+  map_node (fn (_, header, perspective, entries, result) =>
+    (touched, header, perspective, entries, result));
+
 fun get_header (Node {header, ...}) = header;
 fun set_header header =
-  map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
+  map_node (fn (touched, _, perspective, entries, result) =>
+    (touched, header, perspective, entries, result));
 
 fun get_perspective (Node {perspective, ...}) = perspective;
-fun set_perspective perspective =
-  let val pred = Inttab.defined (Inttab.make (map (rpair ()) perspective)) in
-    map_node (fn (header, _, entries, result) => (header, (pred, perspective), entries, result))
-  end;
+fun set_perspective ids =
+  map_node (fn (touched, header, _, entries, result) =>
+    (touched, header, make_perspective ids, entries, result));
 
-fun map_entries f (Node {header, perspective, entries, result}) =
-  make_node (header, perspective, f entries, result);
+fun map_entries f =
+  map_node (fn (touched, header, perspective, entries, result) =>
+    (touched, header, perspective, f entries, result));
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
 fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
 fun get_theory pos (Node {result, ...}) = Toplevel.end_theory pos (Lazy.force result);
 fun set_result result =
-  map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
+  map_node (fn (touched, header, perspective, entries, _) =>
+    (touched, header, perspective, entries, result));
 
 fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
 fun default_node name = Graph.default_node (name, empty_node);
@@ -146,35 +159,47 @@ val empty_version = Version Graph.empty;
 fun nodes_of (Version nodes) = nodes;
 val node_of = get_node o nodes_of;
 
+local
+
 fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote names);
 
-fun touch_descendants name nodes =
-  fold (fn desc => desc <> name ? update_node desc (map_entries (reset_after NONE)))
+fun touch_node name nodes =
+  fold (fn desc =>
+      update_node desc (set_touched true) #>
+      desc <> name ? update_node desc (map_entries (reset_after NONE)))
     (Graph.all_succs nodes [name]) nodes;
+
+in
 
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
-    (touch_descendants name
-      (case node_edit of
-        Clear => update_node name clear_node nodes
-      | Edits edits =>
-          nodes
-          |> update_node name (edit_node edits)
-      | Header header =>
-          let
-            val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
-            val nodes1 = nodes
-              |> default_node name
-              |> fold default_node parents;
-            val nodes2 = nodes1
-              |> Graph.Keys.fold
-                  (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
-            val (header', nodes3) =
-              (header, Graph.add_deps_acyclic (name, parents) nodes2)
-                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-          in Graph.map_node name (set_header header') nodes3 end
-      | Perspective perspective =>
-          update_node name (set_perspective perspective) nodes));
+    (case node_edit of
+      Clear =>
+        nodes
+        |> update_node name clear_node
+        |> touch_node name
+    | Edits edits =>
+        nodes
+        |> update_node name (edit_node edits)
+        |> touch_node name
+    | Header header =>
+        let
+          val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
+          val nodes1 = nodes
+            |> default_node name
+            |> fold default_node parents;
+          val nodes2 = nodes1
+            |> Graph.Keys.fold
+                (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
+          val (header', nodes3) =
+            (header, Graph.add_deps_acyclic (name, parents) nodes2)
+              handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
+        in Graph.map_node name (set_header header') nodes3 end
+        |> touch_node name
+    | Perspective perspective =>
+        update_node name (set_perspective perspective) nodes);
+
+end;
 
 fun put_node (name, node) (Version nodes) =
   Version (update_node name (K node) nodes);
@@ -270,7 +295,8 @@ end;
 
 local
 
-fun timing tr t = Toplevel.status tr (Markup.timing t);
+fun timing tr t =
+  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
@@ -320,6 +346,16 @@ end;
 
 (** editing **)
 
+(* perspective *)
+
+fun update_perspective (old_id: version_id) (new_id: version_id) name perspective state =
+  let
+    val old_version = the_version state old_id;
+    val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 -- needed? *)
+    val new_version = edit_nodes (name, Perspective perspective) old_version;
+  in define_version new_id new_version state end;
+
+
 (* edit *)
 
 local
@@ -329,11 +365,32 @@ fun is_changed node' ((_, id), exec) =
     NONE => true
   | SOME exec' => exec' <> exec);
 
-fun new_exec (command_id, command) (assigns, execs, exec) =
+fun init_theory deps name node =
   let
+    val (thy_name, imports, uses) = Exn.release (get_header node);
+    (* FIXME provide files via Scala layer *)
+    val (dir, files) =
+      if ML_System.platform_is_cygwin then (Path.current, [])
+      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
+
+    val parents =
+      imports |> map (fn import =>
+        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
+          SOME thy => thy
+        | NONE =>
+            get_theory (Position.file_only import)
+              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
+  in Thy_Load.begin_theory dir thy_name imports files parents end;
+
+fun new_exec state init command_id (assigns, execs, exec) =
+  let
+    val command = the_command state command_id;
     val exec_id' = new_id ();
     val exec' = exec |> Lazy.map (fn (st, _) =>
-      let val tr = Toplevel.put_id (print_id exec_id') (Future.join command)
+      let val tr =
+        Future.join command
+        |> Toplevel.modify_init init
+        |> Toplevel.put_id (print_id exec_id');
       in run_command tr st end);
   in ((command_id, exec_id') :: assigns, (exec_id', (command_id, exec')) :: execs, exec') end;
 
@@ -348,46 +405,32 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val updates =
       nodes_of new_version |> Graph.schedule
         (fn deps => fn (name, node) =>
-          (case first_entry NONE (is_changed (node_of old_version name)) node of
-            NONE => Future.value (([], [], []), node)
-          | SOME ((prev, id), _) =>
-              let
-                fun init () =
-                  let
-                    val (thy_name, imports, uses) = Exn.release (get_header node);
-                    (* FIXME provide files via Scala layer *)
-                    val (dir, files) =
-                      if ML_System.platform_is_cygwin then (Path.current, [])
-                      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
-
-                    val parents =
-                      imports |> map (fn import =>
-                        (case Thy_Info.lookup_theory import of
-                          SOME thy => thy
-                        | NONE =>
-                            get_theory (Position.file_only import)
-                              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
-                  in Thy_Load.begin_theory dir thy_name imports files parents end;
-                fun get_command id =
-                  (id, the_command state id |> Future.map (Toplevel.modify_init init));
-              in
-                (singleton o Future.forks)
-                  {name = "Document.edit", group = NONE,
-                    deps = map (Future.task_of o #2) deps, pri = 2, interrupts = false}
-                  (fn () =>
-                    let
-                      val prev_exec =
-                        (case prev of
-                          NONE => no_id
-                        | SOME prev_id => the_default no_id (the_entry node prev_id));
-                      val (assigns, execs, last_exec) =
-                        fold_entries (SOME id) (new_exec o get_command o #2 o #1)
-                          node ([], [], #2 (the_exec state prev_exec));
-                      val node' = node
-                        |> fold update_entry assigns
-                        |> set_result (Lazy.map #1 last_exec);
-                    in ((assigns, execs, [(name, node')]), node') end)
-              end))
+          if not (is_touched node) then Future.value (([], [], []), node)
+          else
+            (case first_entry NONE (is_changed (node_of old_version name)) node of
+              NONE => Future.value (([], [], []), set_touched false node)
+            | SOME ((prev, id), _) =>
+                let
+                  fun init () = init_theory deps name node;
+                in
+                  (singleton o Future.forks)
+                    {name = "Document.edit", group = NONE,
+                      deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
+                    (fn () =>
+                      let
+                        val prev_exec =
+                          (case prev of
+                            NONE => no_id
+                          | SOME prev_id => the_default no_id (the_entry node prev_id));
+                        val (assigns, execs, last_exec) =
+                          fold_entries (SOME id) (new_exec state init o #2 o #1)
+                            node ([], [], #2 (the_exec state prev_exec));
+                        val node' = node
+                          |> fold update_entry assigns
+                          |> set_result (Lazy.map #1 last_exec)
+                          |> set_touched false;
+                      in ((assigns, execs, [(name, node')]), node') end)
+                end))
       |> Future.joins |> map #1;
 
     val state' = state
@@ -411,9 +454,8 @@ fun execute version_id state =
             let
               val (command_id, exec) = the_exec state exec_id;
               val (_, print) = Lazy.force exec;
-              val perspective = get_perspective node;
               val _ =
-                if #1 (get_perspective node) command_id orelse true  (* FIXME *)
+                if #1 (get_perspective node) command_id
                 then ignore (Lazy.future Future.default_params print)
                 else ();
             in () end;

@@ -12,6 +12,22 @@ val _ =
     (fn [id, text] => Document.change_state (Document.define_command (Document.parse_id id) text));
 
 val _ =
+  Isabelle_Process.add_command "Isar_Document.update_perspective"
+    (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
+      let
+        val old_id = Document.parse_id old_id_string;
+        val new_id = Document.parse_id new_id_string;
+        val ids = YXML.parse_body ids_yxml
+          |> let open XML.Decode in list int end;
+
+        val _ = Future.join_tasks (Document.cancel_execution state);
+      in
+        state
+        |> Document.update_perspective old_id new_id name ids
+        |> Document.execute new_id
+      end));
+
+val _ =
   Isabelle_Process.add_command "Isar_Document.edit_version"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
@@ -31,15 +47,15 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-      val running = Document.cancel_execution state;
-      val (updates, state') = Document.edit old_id new_id edits state;
-      val _ = Future.join_tasks running;
-      val _ = Document.join_commands state';
-      val _ =
-        Output.status (Markup.markup (Markup.assign new_id)
-          (implode (map (Markup.markup_only o Markup.edit) updates)));
-      val state'' = Document.execute new_id state';
-    in state'' end));
+        val running = Document.cancel_execution state;
+        val (updates, state') = Document.edit old_id new_id edits state;
+        val _ = Future.join_tasks running;
+        val _ = Document.join_commands state';
+        val _ =
+          Output.status (Markup.markup (Markup.assign new_id)
+            (implode (map (Markup.markup_only o Markup.edit) updates)));
+        val state'' = Document.execute new_id state';
+      in state'' end));
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.invoke_scala"

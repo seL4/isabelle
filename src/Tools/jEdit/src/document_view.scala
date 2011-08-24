@@ -25,7 +25,8 @@ import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter,
+  ScrollListener}
 import org.gjt.sp.jedit.syntax.{SyntaxStyle}
 
 
@@ -125,6 +126,16 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         if start >= 0 && stop >= 0
       }
       yield Text.Range(start, stop))
+  }
+
+  private def update_perspective = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      model.update_perspective()
+    }
   }
 
 
@@ -467,6 +478,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     text_area_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
@@ -492,6 +504,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()
     painter.removeExtension(tooltip_painter)
+    painter.removeExtension(update_perspective)
     exit_popup()
   }
 }
