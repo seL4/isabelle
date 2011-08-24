@@ -7,16 +7,22 @@ Sledgehammer as a tactic.
 
 signature SLEDGEHAMMER_TACTICS =
 sig
+  type relevance_override = Sledgehammer_Filter.relevance_override
+
   val sledgehammer_with_metis_tac :
-    Proof.context -> (string * string) list -> int -> tactic
+    Proof.context -> (string * string) list -> relevance_override -> int
+    -> tactic
   val sledgehammer_as_oracle_tac :
-    Proof.context -> (string * string) list -> int -> tactic
+    Proof.context -> (string * string) list -> relevance_override -> int
+    -> tactic
 end;
 
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
 struct
 
-fun run_atp override_params i n ctxt goal =
+open Sledgehammer_Filter
+
+fun run_atp override_params relevance_override i n ctxt goal =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
     val params as {provers, relevance_thresholds, max_relevant, slicing, ...} =
@@ -30,7 +36,6 @@ fun run_atp override_params i n ctxt goal =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt name
     val relevance_fudge =
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt name
-    val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val facts =
       Sledgehammer_Filter.nearly_all_facts ctxt relevance_override chained_ths
@@ -62,16 +67,17 @@ fun thms_of_name ctxt name =
     |> Source.exhaust
   end
 
-fun sledgehammer_with_metis_tac ctxt override_params i th =
-  case run_atp override_params i i ctxt th of
+fun sledgehammer_with_metis_tac ctxt override_params relevance_override i th =
+  case run_atp override_params relevance_override i i ctxt th of
     SOME facts =>
     Metis_Tactics.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
   | NONE => Seq.empty
 
-fun sledgehammer_as_oracle_tac ctxt override_params i th =
+fun sledgehammer_as_oracle_tac ctxt override_params relevance_override i th =
   let
     val thy = Proof_Context.theory_of ctxt
-    val xs = run_atp (override_params @ [("sound", "true")]) i i ctxt th
+    val xs = run_atp (override_params @ [("sound", "true")]) relevance_override
+                     i i ctxt th
   in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end
 
 end;

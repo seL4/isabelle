@@ -22,6 +22,7 @@ struct
 open ATP_Systems
 open ATP_Translate
 open Sledgehammer_Util
+open Sledgehammer_Filter
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
@@ -46,7 +47,6 @@ val _ =
 
 (** Sledgehammer commands **)
 
-val no_relevance_override = {add = [], del = [], only = false}
 fun add_relevance_override ns : relevance_override =
   {add = ns, del = [], only = false}
 fun del_relevance_override ns : relevance_override =

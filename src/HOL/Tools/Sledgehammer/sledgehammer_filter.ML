@@ -38,6 +38,7 @@ sig
   val trace : bool Config.T
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
+  val no_relevance_override : relevance_override
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
@@ -99,6 +100,8 @@ type relevance_override =
   {add : (Facts.ref * Attrib.src list) list,
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
+
+val no_relevance_override = {add = [], del = [], only = false}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val abs_name = sledgehammer_prefix ^ "abs"

@@ -252,21 +252,22 @@ fun the_struct structs i =
   if 1 <= i andalso i <= length structs then nth structs (i - 1)
   else error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
-fun struct_tr structs [Const ("_indexdefault", _)] =
-      Syntax.free (the_struct structs 1)
+fun legacy_struct structs i =
+  let
+    val x = the_struct structs i;
+    val _ =
+      legacy_feature
+        ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ string_of_int i) ^
+          Position.str_of (Position.thread_data ()) ^
+          " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead" ^
+          (if i = 1 then " (may be omitted)" else ""))
+  in x end;
+
+fun struct_tr structs [Const ("_indexdefault", _)] = Syntax.free (the_struct structs 1)
+  | struct_tr structs [Const ("_index1", _)] = Syntax.free (legacy_struct structs 1)
   | struct_tr structs [t as (Const ("_indexnum", _) $ Const (s, _))] =
       (case Lexicon.read_nat s of
-        SOME n =>
-          let
-            val x = the_struct structs n;
-            val advice =
-              " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead" ^
-              (if n = 1 then " (may be omitted)" else "");
-            val _ =
-              legacy_feature
-                ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ s) ^
-                  Position.str_of (Position.thread_data ()) ^ advice);
-          in Syntax.free x end
+        SOME i => Syntax.free (legacy_struct structs i)
       | NONE => raise TERM ("struct_tr", [t]))
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 

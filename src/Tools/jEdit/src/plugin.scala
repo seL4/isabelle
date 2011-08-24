@@ -409,7 +409,7 @@ class Plugin extends EBPlugin
           Isabelle.start_session()
 
       case msg: BufferUpdate
-      if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+      if msg.getWhat == BufferUpdate.LOADED =>
 
         val buffer = msg.getBuffer
         if (buffer != null && Isabelle.session.is_ready)

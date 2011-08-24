@@ -87,16 +87,25 @@ class Document_Model(val session: Session, val buffer: Buffer,
   private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
+    private var pending_perspective = false
+    private var last_perspective: Text.Perspective = Nil
+
     def snapshot(): List[Text.Edit] = pending.toList
 
     def flush()
     {
       Swing_Thread.require()
+
+      val new_perspective =
+        if (pending_perspective) { pending_perspective = false; perspective() }
+        else last_perspective
+
       snapshot() match {
-        case Nil =>
+        case Nil if new_perspective == last_perspective =>
         case edits =>
           pending.clear
-          session.edit_node(node_name, master_dir, node_header(), perspective(), edits)
+          last_perspective = new_perspective
+          session.edit_node(node_name, master_dir, node_header(), new_perspective, edits)
       }
     }
 
@@ -116,6 +125,18 @@ class Document_Model(val session: Session, val buffer: Buffer,
       pending += edit
       delay_flush()
     }
+
+    def update_perspective()
+    {
+      pending_perspective = true
+      delay_flush()
+    }
+  }
+
+  def update_perspective()
+  {
+    Swing_Thread.require()
+    pending_edits.update_perspective()
   }
 
 

@@ -103,11 +103,6 @@ class one =
 
 hide_const (open) zero one
 
-syntax
-  "_index1"  :: index    ("\<^sub>1")
-translations
-  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
-
 lemma Let_0 [simp]: "Let 0 f = f 0"
   unfolding Let_def ..
 
