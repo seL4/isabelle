@@ -159,6 +159,28 @@ class Session(val file_store: Session.File_Store)
 
   val thy_info = new Thy_Info(thy_load)
 
+  def header_edit(name: String, master_dir: String,
+    header: Document.Node_Header): Document.Edit_Text =
+  {
+    def norm_import(s: String): String =
+    {
+      val thy_name = Thy_Header.base_name(s)
+      if (thy_load.is_loaded(thy_name)) thy_name
+      else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
+    }
+    def norm_use(s: String): String =
+      file_store.append(master_dir, Path.explode(s))
+
+    val header1: Document.Node_Header =
+      header match {
+        case Exn.Res(Thy_Header(thy_name, _, _))
+        if (thy_load.is_loaded(thy_name)) =>
+          Exn.Exn(ERROR("Attempt to update loaded theory " + quote(thy_name)))
+        case _ => Document.Node.norm_header(norm_import, norm_use, header)
+      }
+    (name, Document.Node.Header(header1))
+  }
+
 
   /* actor messages */
 
@@ -210,17 +232,7 @@ class Session(val file_store: Session.File_Store)
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
 
-      def norm_import(s: String): String =
-      {
-        val name = Thy_Header.base_name(s)
-        if (thy_load.is_loaded(name)) name
-        else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
-      }
-      def norm_use(s: String): String = file_store.append(master_dir, Path.explode(s))
-      val norm_header =
-        Document.Node.norm_header[Text.Edit, Text.Perspective](norm_import, norm_use, header)
-
-      val text_edits = (name, norm_header) :: edits.map(edit => (name, edit))
+      val text_edits = header_edit(name, master_dir, header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
       val change =
         global_state.change_yield(_.extend_history(previous, text_edits, result.map(_._2)))

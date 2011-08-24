@@ -54,11 +54,10 @@ object Document
     case class Header[A, B](header: Node_Header) extends Edit[A, B]
     case class Perspective[A, B](perspective: B) extends Edit[A, B]
 
-    def norm_header[A, B](f: String => String, g: String => String, header: Node_Header)
-        : Header[A, B] =
+    def norm_header(f: String => String, g: String => String, header: Node_Header): Node_Header =
       header match {
-        case Exn.Res(h) => Header[A, B](Exn.capture { h.norm_deps(f, g) })
-        case exn => Header[A, B](exn)
+        case Exn.Res(h) => Exn.capture { h.norm_deps(f, g) }
+        case exn => exn
       }
 
     val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Nil, Map(), Linear_Set())
