@@ -428,9 +428,8 @@ fun execute version_id state =
             let
               val (command_id, exec) = the_exec state exec_id;
               val (_, print) = Lazy.force exec;
-              val perspective = get_perspective node;
               val _ =
-                if #1 (get_perspective node) command_id orelse true  (* FIXME *)
+                if #1 (get_perspective node) command_id
                 then ignore (Lazy.future Future.default_params print)
                 else ();
             in () end;
