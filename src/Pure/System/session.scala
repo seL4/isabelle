@@ -213,7 +213,7 @@ class Session(val file_store: Session.File_Store)
         List((name, Document.Node.Perspective(text_perspective)))
       val change =
         global_state.change_yield(
-          _.extend_history(Future.value(previous), text_edits, Future.value(version)))
+          _.continue_history(Future.value(previous), text_edits, Future.value(version)))
 
       val assignment = global_state().the_assignment(previous).get_finished
       global_state.change(_.define_version(version, assignment))
@@ -235,7 +235,7 @@ class Session(val file_store: Session.File_Store)
       val text_edits = header_edit(name, master_dir, header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
       val change =
-        global_state.change_yield(_.extend_history(previous, text_edits, result.map(_._2)))
+        global_state.change_yield(_.continue_history(previous, text_edits, result.map(_._2)))
 
       result.map {
         case (doc_edits, _) =>

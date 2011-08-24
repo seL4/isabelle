@@ -224,8 +224,8 @@ object Document
 
   sealed case class State(
     val versions: Map[Version_ID, Version] = Map(),
-    val commands: Map[Command_ID, Command.State] = Map(),
-    val execs: Map[Exec_ID, (Command.State, Set[Version])] = Map(),
+    val commands: Map[Command_ID, Command.State] = Map(),  // static markup from define_command
+    val execs: Map[Exec_ID, Command.State] = Map(),  // dynamic markup from execution
     val assignments: Map[Version_ID, State.Assignment] = Map(),
     val disposed: Set[ID] = Set(),  // FIXME unused!?
     val history: History = History.init)
@@ -251,15 +251,15 @@ object Document
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
     def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
-    def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
+    def the_exec(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
 
     def accumulate(id: ID, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
-        case Some((st, occs)) =>
+        case Some(st) =>
           val new_st = st.accumulate(message)
-          (new_st, copy(execs = execs + (id -> (new_st, occs))))
+          (new_st, copy(execs = execs + (id -> new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
@@ -272,14 +272,13 @@ object Document
     def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): (List[Command], State) =
     {
       val version = the_version(id)
-      val occs = Set(version)  // FIXME unused (!?)
 
       var new_execs = execs
       val assigned_execs =
         for ((cmd_id, exec_id) <- edits) yield {
           val st = the_command(cmd_id)
           if (new_execs.isDefinedAt(exec_id) || disposed(exec_id)) fail
-          new_execs += (exec_id -> (st, occs))
+          new_execs += (exec_id -> st)
           (st.command, exec_id)
         }
       val new_assignment = the_assignment(version).assign(assigned_execs)
@@ -299,7 +298,8 @@ object Document
     def tip_stable: Boolean = is_stable(history.tip)
     def recent_stable: Option[Change] = history.undo_list.find(is_stable)
 
-    def extend_history(previous: Future[Version],
+    def continue_history(
+        previous: Future[Version],
         edits: List[Edit_Text],
         version: Future[Version]): (Change, State) =
     {
@@ -329,7 +329,7 @@ object Document
         def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
 
         def state(command: Command): Command.State =
-          try { the_exec_state(the_assignment(version).get_finished.getOrElse(command, fail)) }
+          try { the_exec(the_assignment(version).get_finished.getOrElse(command, fail)) }
           catch { case _: State.Fail => command.empty_state }
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))

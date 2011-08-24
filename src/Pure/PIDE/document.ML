@@ -93,7 +93,7 @@ val clear_node =
 
 (* basic components *)
 
-fun get_touched (Node {touched, ...}) = touched;
+fun is_touched (Node {touched, ...}) = touched;
 fun set_touched touched =
   map_node (fn (_, header, perspective, entries, result) =>
     (touched, header, perspective, entries, result));
@@ -405,7 +405,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val updates =
       nodes_of new_version |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if not (get_touched node) then Future.value (([], [], []), node)
+          if not (is_touched node) then Future.value (([], [], []), node)
           else
             (case first_entry NONE (is_changed (node_of old_version name)) node of
               NONE => Future.value (([], [], []), set_touched false node)
