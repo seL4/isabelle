@@ -569,27 +569,34 @@ fun vampire_override_params timeout =
 fun run_reconstructor trivial full m name reconstructor named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
-    fun do_reconstructor thms ctxt =
-      (if !reconstructor = "sledgehammer_tac" then
-         (fn ctxt => fn thms =>
-            Method.insert_tac thms THEN'
-            (Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-                 (e_override_params timeout)
-             ORELSE'
-             Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-                 (vampire_override_params timeout)))
-       else if !reconstructor = "smt" then
-         SMT_Solver.smt_tac
-       else if full orelse !reconstructor = "metis (full_types)" then
-         Metis_Tactics.metis_tac [Metis_Tactics.full_type_enc]
-       else if !reconstructor = "metis (no_types)" then
-         Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc]
-       else if !reconstructor = "metis" then
-         Metis_Tactics.metis_tac []
-       else
-         K (K (K all_tac))) ctxt thms
-    fun apply_reconstructor thms =
-      Mirabelle.can_apply timeout (do_reconstructor thms) st
+    fun do_reconstructor named_thms ctxt =
+      let
+        val ref_of_str =
+          suffix ";" #> Outer_Syntax.scan Position.none #> Parse_Spec.xthm
+          #> fst
+        val thms = named_thms |> maps snd
+        val facts = named_thms |> map (ref_of_str o fst o fst)
+        val relevance_override = {add = facts, del = [], only = true}
+      in
+        if !reconstructor = "sledgehammer_tac" then
+          Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
+             (e_override_params timeout) relevance_override
+          ORELSE'
+          Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
+             (vampire_override_params timeout) relevance_override
+        else if !reconstructor = "smt" then
+          SMT_Solver.smt_tac ctxt thms
+        else if full orelse !reconstructor = "metis (full_types)" then
+          Metis_Tactics.metis_tac [Metis_Tactics.full_type_enc] ctxt thms
+        else if !reconstructor = "metis (no_types)" then
+          Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc] ctxt thms
+        else if !reconstructor = "metis" then
+          Metis_Tactics.metis_tac [] ctxt thms
+        else
+          K all_tac
+      end
+    fun apply_reconstructor named_thms =
+      Mirabelle.can_apply timeout (do_reconstructor named_thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
       | with_time (true, t) = (change_data id (inc_reconstructor_success m);
@@ -601,8 +608,8 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           if name = "proof" then change_data id (inc_reconstructor_proofs m)
           else ();
           "succeeded (" ^ string_of_int t ^ ")")
-    fun timed_reconstructor thms =
-      (with_time (Mirabelle.cpu_time apply_reconstructor thms), true)
+    fun timed_reconstructor named_thms =
+      (with_time (Mirabelle.cpu_time apply_reconstructor named_thms), true)
       handle TimeLimit.TimeOut => (change_data id (inc_reconstructor_timeout m);
                ("timeout", false))
            | ERROR msg => ("error: " ^ msg, false)
@@ -612,7 +619,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
     val _ = if trivial then ()
             else change_data id (inc_reconstructor_nontriv_calls m)
   in
-    maps snd named_thms
+    named_thms
     |> timed_reconstructor
     |>> log o prefix (reconstructor_tag reconstructor id)
     |> snd
