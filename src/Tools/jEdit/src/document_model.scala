@@ -88,17 +88,24 @@ class Document_Model(val session: Session, val buffer: Buffer,
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var pending_perspective = false
+    private var last_perspective: Text.Perspective = Nil
+
     def snapshot(): List[Text.Edit] = pending.toList
 
     def flush()
     {
       Swing_Thread.require()
+
+      val new_perspective =
+        if (pending_perspective) { pending_perspective = false; perspective() }
+        else last_perspective
+
       snapshot() match {
-        case Nil if !pending_perspective =>
+        case Nil if new_perspective == last_perspective =>
         case edits =>
           pending.clear
-          pending_perspective = false
-          session.edit_node(node_name, master_dir, node_header(), perspective(), edits)
+          last_perspective = new_perspective
+          session.edit_node(node_name, master_dir, node_header(), new_perspective, edits)
       }
     }
 
