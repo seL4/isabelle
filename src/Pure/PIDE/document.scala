@@ -82,6 +82,9 @@ object Document
     val blobs: Map[String, Blob],
     val commands: Linear_Set[Command])
   {
+    def clear: Node = Node.empty.copy(header = header)
+
+
     /* commands */
 
     private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =

@@ -232,7 +232,7 @@ object Thy_Syntax
       edits foreach {
         case (name, Document.Node.Clear()) =>
           doc_edits += (name -> Document.Node.Clear())
-          nodes -= name
+          nodes += (name -> nodes(name).clear)
 
         case (name, Document.Node.Edits(text_edits)) =>
           val node = nodes(name)
