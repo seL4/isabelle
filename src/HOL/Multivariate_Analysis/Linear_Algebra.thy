@@ -702,65 +702,6 @@ proof-
   then show ?thesis by blast
 qed
 
-subsection {* Geometric progression *}
-
-lemma sum_gp_basic: "((1::'a::{field}) - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
-  (is "?lhs = ?rhs")
-proof-
-  {assume x1: "x = 1" hence ?thesis by simp}
-  moreover
-  {assume x1: "x\<noteq>1"
-    hence x1': "x - 1 \<noteq> 0" "1 - x \<noteq> 0" "x - 1 = - (1 - x)" "- (1 - x) \<noteq> 0" by auto
-    from geometric_sum[OF x1, of "Suc n", unfolded x1']
-    have "(- (1 - x)) * setsum (\<lambda>i. x^i) {0 .. n} = - (1 - x^(Suc n))"
-      unfolding atLeastLessThanSuc_atLeastAtMost
-      using x1' apply (auto simp only: field_simps)
-      apply (simp add: field_simps)
-      done
-    then have ?thesis by (simp add: field_simps) }
-  ultimately show ?thesis by metis
-qed
-
-lemma sum_gp_multiplied: assumes mn: "m <= n"
-  shows "((1::'a::{field}) - x) * setsum (op ^ x) {m..n} = x^m - x^ Suc n"
-  (is "?lhs = ?rhs")
-proof-
-  let ?S = "{0..(n - m)}"
-  from mn have mn': "n - m \<ge> 0" by arith
-  let ?f = "op + m"
-  have i: "inj_on ?f ?S" unfolding inj_on_def by auto
-  have f: "?f ` ?S = {m..n}"
-    using mn apply (auto simp add: image_iff Bex_def) by arith
-  have th: "op ^ x o op + m = (\<lambda>i. x^m * x^i)"
-    by (rule ext, simp add: power_add power_mult)
-  from setsum_reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
-  have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})" by simp
-  then show ?thesis unfolding sum_gp_basic using mn
-    by (simp add: field_simps power_add[symmetric])
-qed
-
-lemma sum_gp: "setsum (op ^ (x::'a::{field})) {m .. n} =
-   (if n < m then 0 else if x = 1 then of_nat ((n + 1) - m)
-                    else (x^ m - x^ (Suc n)) / (1 - x))"
-proof-
-  {assume nm: "n < m" hence ?thesis by simp}
-  moreover
-  {assume "\<not> n < m" hence nm: "m \<le> n" by arith
-    {assume x: "x = 1"  hence ?thesis by simp}
-    moreover
-    {assume x: "x \<noteq> 1" hence nz: "1 - x \<noteq> 0" by simp
-      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_simps)}
-    ultimately have ?thesis by metis
-  }
-  ultimately show ?thesis by metis
-qed
-
-lemma sum_gp_offset: "setsum (op ^ (x::'a::{field})) {m .. m+n} =
-  (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
-  unfolding sum_gp[of x m "m + n"] power_Suc
-  by (simp add: field_simps power_add)
-
-
 subsection{* A bit of linear algebra. *}
 
 definition (in real_vector)

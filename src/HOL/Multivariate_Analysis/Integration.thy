@@ -4462,6 +4462,61 @@ proof- have *:"e / (2 * (real DIM('n) + 1)) > 0" apply(rule divide_pos_pos) usin
   proof safe case goal1 note * = henstock_lemma_part2[OF assms(1) * d this]
     show ?case apply(rule le_less_trans[OF *]) using `e>0` by(auto simp add:field_simps) qed qed
 
+subsection {* Geometric progression *}
+
+text {* FIXME: Should one or more of these theorems be moved to @{file
+"~~/src/HOL/SetInterval.thy"}, alongside @{text geometric_sum}? *}
+
+lemma sum_gp_basic:
+  fixes x :: "'a::ring_1"
+  shows "(1 - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
+proof-
+  def y \<equiv> "1 - x"
+  have "y * (\<Sum>i=0..n. (1 - y) ^ i) = 1 - (1 - y) ^ Suc n"
+    by (induct n, simp, simp add: algebra_simps)
+  thus ?thesis
+    unfolding y_def by simp
+qed
+
+lemma sum_gp_multiplied: assumes mn: "m <= n"
+  shows "((1::'a::{field}) - x) * setsum (op ^ x) {m..n} = x^m - x^ Suc n"
+  (is "?lhs = ?rhs")
+proof-
+  let ?S = "{0..(n - m)}"
+  from mn have mn': "n - m \<ge> 0" by arith
+  let ?f = "op + m"
+  have i: "inj_on ?f ?S" unfolding inj_on_def by auto
+  have f: "?f ` ?S = {m..n}"
+    using mn apply (auto simp add: image_iff Bex_def) by arith
+  have th: "op ^ x o op + m = (\<lambda>i. x^m * x^i)"
+    by (rule ext, simp add: power_add power_mult)
+  from setsum_reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
+  have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})" by simp
+  then show ?thesis unfolding sum_gp_basic using mn
+    by (simp add: field_simps power_add[symmetric])
+qed
+
+lemma sum_gp: "setsum (op ^ (x::'a::{field})) {m .. n} =
+   (if n < m then 0 else if x = 1 then of_nat ((n + 1) - m)
+                    else (x^ m - x^ (Suc n)) / (1 - x))"
+proof-
+  {assume nm: "n < m" hence ?thesis by simp}
+  moreover
+  {assume "\<not> n < m" hence nm: "m \<le> n" by arith
+    {assume x: "x = 1"  hence ?thesis by simp}
+    moreover
+    {assume x: "x \<noteq> 1" hence nz: "1 - x \<noteq> 0" by simp
+      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_simps)}
+    ultimately have ?thesis by metis
+  }
+  ultimately show ?thesis by metis
+qed
+
+lemma sum_gp_offset: "setsum (op ^ (x::'a::{field})) {m .. m+n} =
+  (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
+  unfolding sum_gp[of x m "m + n"] power_Suc
+  by (simp add: field_simps power_add)
+
 subsection {* monotone convergence (bounded interval first). *}
 
 lemma monotone_convergence_interval: fixes f::"nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
