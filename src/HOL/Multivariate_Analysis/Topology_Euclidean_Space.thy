@@ -7,7 +7,7 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs"
+imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith
 begin
 
 (* to be moved elsewhere *)
@@ -5763,15 +5763,13 @@ next
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
-      apply(auto simp add: pth_3[symmetric] 
-        intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"]) 
+      apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
-      apply(auto simp add: pth_3[symmetric]
-        intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
+      apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff)
   }
   ultimately show ?thesis using False by auto

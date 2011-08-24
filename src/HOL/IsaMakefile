@@ -1175,6 +1175,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/L2_Norm.thy					\
   Multivariate_Analysis/Linear_Algebra.thy				\
   Multivariate_Analysis/Multivariate_Analysis.thy			\
+  Multivariate_Analysis/Norm_Arith.thy					\
   Multivariate_Analysis/Operator_Norm.thy				\
   Multivariate_Analysis/Path_Connected.thy				\
   Multivariate_Analysis/ROOT.ML						\
