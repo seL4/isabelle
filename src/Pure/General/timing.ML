@@ -20,6 +20,7 @@ sig
   val start: unit -> start
   val result: start -> timing
   val timing: ('a -> 'b) -> 'a -> timing * 'b
+  val is_relevant: timing -> bool
   val message: timing -> string
 end
 
@@ -67,17 +68,17 @@ fun timing f x =
 
 (* timing messages *)
 
-fun message {elapsed, cpu, gc} =
-  Time.toString elapsed ^ "s elapsed time, " ^
-  Time.toString cpu ^ "s cpu time, " ^
-  Time.toString gc ^ "s GC time" handle Time.Time => "";
-
 val min_time = Time.fromMilliseconds 1;
 
 fun is_relevant {elapsed, cpu, gc} =
   Time.>= (elapsed, min_time) orelse
   Time.>= (cpu, min_time) orelse
   Time.>= (gc, min_time);
+
+fun message {elapsed, cpu, gc} =
+  Time.toString elapsed ^ "s elapsed time, " ^
+  Time.toString cpu ^ "s cpu time, " ^
+  Time.toString gc ^ "s GC time" handle Time.Time => "";
 
 fun cond_timeit enabled msg e =
   if enabled then

@@ -275,7 +275,8 @@ end;
 
 local
 
-fun timing tr t = Toplevel.status tr (Markup.timing t);
+fun timing tr t =
+  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
