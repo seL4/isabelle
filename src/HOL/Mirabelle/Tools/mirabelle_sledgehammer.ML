@@ -550,19 +550,21 @@ fun run_minimize args reconstructor named_thms id
   end
 
 
-val e_override_params =
+fun e_override_params timeout =
   [("provers", "e"),
    ("max_relevant", "0"),
    ("type_enc", "poly_guards?"),
    ("sound", "true"),
-   ("slicing", "false")]
+   ("slicing", "false"),
+   ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
-val vampire_override_params =
+fun vampire_override_params timeout =
   [("provers", "vampire"),
    ("max_relevant", "0"),
    ("type_enc", "poly_tags"),
    ("sound", "true"),
-   ("slicing", "false")]
+   ("slicing", "false"),
+   ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
 fun run_reconstructor trivial full m name reconstructor named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
@@ -572,10 +574,10 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
          (fn ctxt => fn thms =>
             Method.insert_tac thms THEN'
             (Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-                 e_override_params
+                 (e_override_params timeout)
              ORELSE'
              Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-                 vampire_override_params))
+                 (vampire_override_params timeout)))
        else if !reconstructor = "smt" then
          SMT_Solver.smt_tac
        else if full orelse !reconstructor = "metis (full_types)" then
