@@ -1059,16 +1059,14 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
     | formula => SOME formula
   end
 
-fun make_conjecture ctxt format type_enc ps =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val last = length ps - 1
-  in
-    map2 (fn j => fn ((name, loc), (kind, t)) =>
-             t |> make_formula thy type_enc (format <> CNF) name loc kind
-               |> (j <> last) = (kind = Conjecture) ? update_iformula mk_anot)
-         (0 upto last) ps
-  end
+fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not_trueprop t = s_not t
+
+fun make_conjecture thy format type_enc ps =
+  map2 (fn j => fn ((name, loc), (kind, t)) =>
+           t |> kind = Conjecture ? s_not_trueprop
+             |> make_formula thy type_enc (format <> CNF) name loc kind)
+       (0 upto length ps - 1) ps
 
 (** Finite and infinite type inference **)
 
@@ -1552,7 +1550,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
-      map (pair prem_kind) hyp_ts @ [(Conjecture, concl_t)]
+      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lambdas) =
       if preproc then
@@ -1563,7 +1561,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
         |>> apfst (map (apsnd (apsnd freeze_term)))
       else
         ((conjs, facts), [])
-    val conjs = conjs |> make_conjecture ctxt format type_enc
+    val conjs = conjs |> make_conjecture thy format type_enc
     val (fact_names, facts) =
       facts
       |> map_filter (fn (name, (_, t)) =>

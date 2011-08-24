@@ -272,7 +272,7 @@ fun eta_expand _ t 0 = t
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate
-   the conclusion variable to False. (Cf. "transform_elim_theorem" in
+   the conclusion variable to "False". (Cf. "transform_elim_theorem" in
    "Meson_Clausify".) *)
 fun transform_elim_prop t =
   case Logic.strip_imp_concl t of
