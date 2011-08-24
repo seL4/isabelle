@@ -20,18 +20,9 @@ val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
 val rat_2 = Rat.two;
 val rat_10 = Rat.rat_of_int 10;
-(*
-val rat_1_2 = rat_1 // rat_2;
-*)
 val max = Integer.max;
-(*
-val min = Integer.min;
-*)
 
 val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
-(*
-val numerator_rat = Rat.quotient_of_rat #> fst #> Rat.rat_of_int;
-*)
 fun int_of_rat a =
     case Rat.quotient_of_rat a of (i,1) => i | _ => error "int_of_rat: not an int";
 fun lcm_rat x y = Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
@@ -114,40 +105,11 @@ fun vector_0 n = (n,FuncUtil.Intfunc.empty):vector;
 
 fun dim (v:vector) = fst v;
 
-(*
-fun vector_const c n =
-  if c =/ rat_0 then vector_0 n
-  else (n,fold_rev (fn k => FuncUtil.Intfunc.update (k,c)) (1 upto n) FuncUtil.Intfunc.empty) :vector;
-
-val vector_1 = vector_const rat_1;
-*)
-
 fun vector_cmul c (v:vector) =
  let val n = dim v
  in if c =/ rat_0 then vector_0 n
     else (n,FuncUtil.Intfunc.map (fn _ => fn x => c */ x) (snd v))
  end;
-
-(*
-fun vector_neg (v:vector) = (fst v,FuncUtil.Intfunc.map (K Rat.neg) (snd v)) :vector;
-
-fun vector_add (v1:vector) (v2:vector) =
- let val m = dim v1
-     val n = dim v2
- in if m <> n then error "vector_add: incompatible dimensions"
-    else (n,FuncUtil.Intfunc.combine (curry op +/) (fn x => x =/ rat_0) (snd v1) (snd v2)) :vector
- end;
-
-fun vector_sub v1 v2 = vector_add v1 (vector_neg v2);
-
-fun vector_dot (v1:vector) (v2:vector) =
- let val m = dim v1
-     val n = dim v2
- in if m <> n then error "vector_dot: incompatible dimensions"
-    else FuncUtil.Intfunc.fold (fn (_,x) => fn a => x +/ a)
-        (FuncUtil.Intfunc.combine (curry op */) (fn x => x =/ rat_0) (snd v1) (snd v2)) rat_0
- end;
-*)
 
 fun vector_of_list l =
  let val n = length l
@@ -156,73 +118,13 @@ fun vector_of_list l =
 
 (* Matrices; again rows and columns indexed from 1.                          *)
 
-(*
-fun matrix_0 (m,n) = ((m,n),FuncUtil.Intpairfunc.empty):matrix;
-*)
-
 fun dimensions (m:matrix) = fst m;
-
-(*
-fun matrix_const c (mn as (m,n)) =
-  if m <> n then error "matrix_const: needs to be square"
-  else if c =/ rat_0 then matrix_0 mn
-  else (mn,fold_rev (fn k => FuncUtil.Intpairfunc.update ((k,k), c)) (1 upto n) FuncUtil.Intpairfunc.empty) :matrix;;
-
-val matrix_1 = matrix_const rat_1;
-
-fun matrix_cmul c (m:matrix) =
- let val (i,j) = dimensions m
- in if c =/ rat_0 then matrix_0 (i,j)
-    else ((i,j),FuncUtil.Intpairfunc.map (fn _ => fn x => c */ x) (snd m))
- end;
-
-fun matrix_neg (m:matrix) =
-  (dimensions m, FuncUtil.Intpairfunc.map (K Rat.neg) (snd m)) :matrix;
-
-fun matrix_add (m1:matrix) (m2:matrix) =
- let val d1 = dimensions m1
-     val d2 = dimensions m2
- in if d1 <> d2
-     then error "matrix_add: incompatible dimensions"
-    else (d1,FuncUtil.Intpairfunc.combine (curry op +/) (fn x => x =/ rat_0) (snd m1) (snd m2)) :matrix
- end;;
-
-fun matrix_sub m1 m2 = matrix_add m1 (matrix_neg m2);
-*)
 
 fun row k (m:matrix) =
  let val (_,j) = dimensions m
  in (j,
    FuncUtil.Intpairfunc.fold (fn ((i,j), c) => fn a => if i = k then FuncUtil.Intfunc.update (j,c) a else a) (snd m) FuncUtil.Intfunc.empty ) : vector
  end;
-
-(*
-fun column k (m:matrix) =
-  let val (i,_) = dimensions m
-  in (i,
-   FuncUtil.Intpairfunc.fold (fn ((i,j), c) => fn a => if j = k then FuncUtil.Intfunc.update (i,c) a else a) (snd m)  FuncUtil.Intfunc.empty)
-   : vector
- end;
-
-fun transp (m:matrix) =
-  let val (i,j) = dimensions m
-  in
-  ((j,i),FuncUtil.Intpairfunc.fold (fn ((i,j), c) => fn a => FuncUtil.Intpairfunc.update ((j,i), c) a) (snd m) FuncUtil.Intpairfunc.empty) :matrix
- end;
-
-fun diagonal (v:vector) =
- let val n = dim v
- in ((n,n),FuncUtil.Intfunc.fold (fn (i, c) => fn a => FuncUtil.Intpairfunc.update ((i,i), c) a) (snd v) FuncUtil.Intpairfunc.empty) : matrix
- end;
-
-fun matrix_of_list l =
- let val m = length l
- in if m = 0 then matrix_0 (0,0) else
-   let val n = length (hd l)
-   in ((m,n),itern 1 l (fn v => fn i => itern 1 v (fn c => fn j => FuncUtil.Intpairfunc.update ((i,j), c))) FuncUtil.Intpairfunc.empty)
-   end
- end;
-*)
 
 (* Monomials.                                                                *)
 
@@ -235,29 +137,6 @@ fun monomial_var x = FuncUtil.Ctermfunc.onefunc (x, 1);
 
 val monomial_mul =
   FuncUtil.Ctermfunc.combine Integer.add (K false);
-
-(*
-fun monomial_pow m k =
-  if k = 0 then monomial_1
-  else FuncUtil.Ctermfunc.map (fn _ => fn x => k * x) m;
-
-fun monomial_divides m1 m2 =
-  FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => FuncUtil.Ctermfunc.tryapplyd m2 x 0 >= k andalso a) m1 true;;
-
-fun monomial_div m1 m2 =
- let val m = FuncUtil.Ctermfunc.combine Integer.add
-   (fn x => x = 0) m1 (FuncUtil.Ctermfunc.map (fn _ => fn x => ~ x) m2)
- in if FuncUtil.Ctermfunc.fold (fn (_, k) => fn a => k >= 0 andalso a) m true then m
-  else error "monomial_div: non-divisible"
- end;
-
-fun monomial_degree x m =
-  FuncUtil.Ctermfunc.tryapplyd m x 0;;
-
-fun monomial_lcm m1 m2 =
-  fold_rev (fn x => FuncUtil.Ctermfunc.update (x, max (monomial_degree x m1) (monomial_degree x m2)))
-          (union (is_equal o FuncUtil.cterm_ord) (FuncUtil.Ctermfunc.dom m1) (FuncUtil.Ctermfunc.dom m2)) (FuncUtil.Ctermfunc.empty);
-*)
 
 fun monomial_multidegree m =
  FuncUtil.Ctermfunc.fold (fn (_, k) => fn a => k + a) m 0;;
@@ -299,16 +178,6 @@ fun poly_cmmul (c,m) p =
 fun poly_mul p1 p2 =
   FuncUtil.Monomialfunc.fold (fn (m, c) => fn a => poly_add (poly_cmmul (c,m) p2) a) p1 poly_0;
 
-(*
-fun poly_div p1 p2 =
- if not(poly_isconst p2)
- then error "poly_div: non-constant" else
- let val c = eval FuncUtil.Ctermfunc.empty p2
- in if c =/ rat_0 then error "poly_div: division by zero"
-    else poly_cmul (Rat.inv c) p1
- end;
-*)
-
 fun poly_square p = poly_mul p p;
 
 fun poly_pow p k =
@@ -317,109 +186,11 @@ fun poly_pow p k =
  else let val q = poly_square(poly_pow p (k div 2)) in
       if k mod 2 = 1 then poly_mul p q else q end;
 
-(*
-fun poly_exp p1 p2 =
-  if not(poly_isconst p2)
-  then error "poly_exp: not a constant"
-  else poly_pow p1 (int_of_rat (eval FuncUtil.Ctermfunc.empty p2));
-
-fun degree x p =
- FuncUtil.Monomialfunc.fold (fn (m,_) => fn a => max (monomial_degree x m) a) p 0;
-*)
-
 fun multidegree p =
   FuncUtil.Monomialfunc.fold (fn (m, _) => fn a => max (monomial_multidegree m) a) p 0;
 
 fun poly_variables p =
   sort FuncUtil.cterm_ord (FuncUtil.Monomialfunc.fold_rev (fn (m, _) => union (is_equal o FuncUtil.cterm_ord) (monomial_variables m)) p []);;
-
-(* Order monomials for human presentation.                                   *)
-
-(*
-val humanorder_varpow = prod_ord FuncUtil.cterm_ord (rev_order o int_ord);
-
-local
- fun ord (l1,l2) = case (l1,l2) of
-  (_,[]) => LESS
- | ([],_) => GREATER
- | (h1::t1,h2::t2) =>
-   (case humanorder_varpow (h1, h2) of
-     LESS => LESS
-   | EQUAL => ord (t1,t2)
-   | GREATER => GREATER)
-in fun humanorder_monomial m1 m2 =
- ord (sort humanorder_varpow (FuncUtil.Ctermfunc.dest m1),
-  sort humanorder_varpow (FuncUtil.Ctermfunc.dest m2))
-end;
-*)
-
-(* Conversions to strings.                                                   *)
-
-(*
-fun string_of_vector min_size max_size (v:vector) =
- let val n_raw = dim v
- in if n_raw = 0 then "[]" else
-  let
-   val n = max min_size (min n_raw max_size)
-   val xs = map (Rat.string_of_rat o (fn i => FuncUtil.Intfunc.tryapplyd (snd v) i rat_0)) (1 upto n)
-  in "[" ^ space_implode ", " xs ^
-  (if n_raw > max_size then ", ...]" else "]")
-  end
- end;
-
-fun string_of_matrix max_size (m:matrix) =
- let
-  val (i_raw,j_raw) = dimensions m
-  val i = min max_size i_raw
-  val j = min max_size j_raw
-  val rstr = map (fn k => string_of_vector j j (row k m)) (1 upto i)
- in "["^ space_implode ";\n " rstr ^
-  (if j > max_size then "\n ...]" else "]")
- end;
-
-fun string_of_term t =
- case t of
-   a$b => "("^(string_of_term a)^" "^(string_of_term b)^")"
- | Abs x =>
-    let val (xn, b) = Term.dest_abs x
-    in "(\\"^xn^"."^(string_of_term b)^")"
-    end
- | Const(s,_) => s
- | Free (s,_) => s
- | Var((s,_),_) => s
- | _ => error "string_of_term";
-
-val string_of_cterm = string_of_term o term_of;
-
-fun string_of_varpow x k =
-  if k = 1 then string_of_cterm x
-  else string_of_cterm x^"^"^string_of_int k;
-
-fun string_of_monomial m =
- if FuncUtil.Ctermfunc.is_empty m then "1" else
- let val vps = fold_rev (fn (x,k) => fn a => string_of_varpow x k :: a)
-  (sort humanorder_varpow (FuncUtil.Ctermfunc.dest m)) []
- in space_implode "*" vps
- end;
-
-fun string_of_cmonomial (c,m) =
- if FuncUtil.Ctermfunc.is_empty m then Rat.string_of_rat c
- else if c =/ rat_1 then string_of_monomial m
- else Rat.string_of_rat c ^ "*" ^ string_of_monomial m;;
-
-fun string_of_poly p =
- if FuncUtil.Monomialfunc.is_empty p then "<<0>>" else
- let
-  val cms = sort (fn ((m1,_),(m2,_)) => humanorder_monomial m1  m2) (FuncUtil.Monomialfunc.dest p)
-  val s = fold (fn (m,c) => fn a =>
-             if c </ rat_0 then a ^ " - " ^ string_of_cmonomial(Rat.neg c,m)
-             else a ^ " + " ^ string_of_cmonomial(c,m))
-          cms ""
-  val s1 = String.substring (s, 0, 3)
-  val s2 = String.substring (s, 3, String.size s - 3)
- in "<<" ^(if s1 = " + " then s2 else "-"^s2)^">>"
- end;
-*)
 
 (* Conversion from HOL term.                                                 *)
 
@@ -433,9 +204,6 @@ local
  val pow_tm = @{cterm "op ^ :: real => _"}
  val zero_tm = @{cterm "0:: real"}
  val is_numeral = can (HOLogic.dest_number o term_of)
-(*
- fun is_comb t = case t of _$_ => true | _ => false
-*)
  fun poly_of_term tm =
   if tm aconvc zero_tm then poly_0
   else if RealArith.is_ratconst tm
@@ -492,56 +260,6 @@ fun triple_int_ord ((a,b,c),(a',b',c')) =
     ((a,(b,c)),(a',(b',c')));
 structure Inttriplefunc = FuncFun(type key = int*int*int val ord = triple_int_ord);
 
-(* String for block diagonal matrix numbered k.                              *)
-
-(*
-fun sdpa_of_blockdiagonal k m =
- let
-  val pfx = string_of_int k ^" "
-  val ents =
-    Inttriplefunc.fold (fn ((b,i,j), c) => fn a => if i > j then a else ((b,i,j),c)::a) m []
-  val entss = sort (triple_int_ord o pairself fst) ents
- in  fold_rev (fn ((b,i,j),c) => fn a =>
-     pfx ^ string_of_int b ^ " " ^ string_of_int i ^ " " ^ string_of_int j ^
-     " " ^ decimalize 20 c ^ "\n" ^ a) entss ""
- end;
-*)
-
-(* String for a matrix numbered k, in SDPA sparse format.                    *)
-
-(*
-fun sdpa_of_matrix k (m:matrix) =
- let
-  val pfx = string_of_int k ^ " 1 "
-  val ms = FuncUtil.Intpairfunc.fold (fn ((i,j), c) => fn  a => if i > j then a else ((i,j),c)::a) (snd m) []
-  val mss = sort ((prod_ord int_ord int_ord) o pairself fst) ms
- in fold_rev (fn ((i,j),c) => fn a =>
-     pfx ^ string_of_int i ^ " " ^ string_of_int j ^
-     " " ^ decimalize 20 c ^ "\n" ^ a) mss ""
- end;;
-*)
-
-(* ------------------------------------------------------------------------- *)
-(* String in SDPA sparse format for standard SDP problem:                    *)
-(*                                                                           *)
-(*    X = v_1 * [M_1] + ... + v_m * [M_m] - [M_0] must be PSD                *)
-(*    Minimize obj_1 * v_1 + ... obj_m * v_m                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(*
-fun sdpa_of_problem obj mats =
- let
-  val m = length mats - 1
-  val (n,_) = dimensions (hd mats)
- in
-  string_of_int m ^ "\n" ^
-  "1\n" ^
-  string_of_int n ^ "\n" ^
-  sdpa_of_vector obj ^
-  fold_rev2 (fn k => fn m => fn a => sdpa_of_matrix (k - 1) m ^ a) (1 upto length mats) mats ""
- end;
-*)
-
 fun index_char str chr pos =
   if pos >= String.size str then ~1
   else if String.sub(str,pos) = chr then pos
@@ -557,18 +275,10 @@ fun rat_of_string s =
    end
  end;
 
-(*
-fun isspace x = (x = " ");
-*)
 fun isnum x = member (op =) ["0","1","2","3","4","5","6","7","8","9"] x;
 
 (* More parser basics.                                                       *)
 
-(*
- val word = Scan.this_string
- fun token s =
-  Scan.repeat ($$ " ") |-- word s --| Scan.repeat ($$ " ")
-*)
  val numeral = Scan.one isnum
  val decimalint = Scan.repeat1 numeral >> (rat_of_string o implode)
  val decimalfrac = Scan.repeat1 numeral
@@ -601,47 +311,6 @@ fun emptyin def xs = if null xs then (def,xs) else Scan.fail xs
    ((decimal -- Scan.repeat (Scan.$$ " " |-- Scan.option decimal) >>
     (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
  val parse_csdpoutput = mkparser csdpoutput
-
-(* Run prover on a problem in linear form.                       *)
-
-(*
-fun run_problem prover obj mats =
-  parse_csdpoutput (prover (sdpa_of_problem obj mats))
-*)
-
-(* Try some apparently sensible scaling first. Note that this is purely to   *)
-(* get a cleaner translation to floating-point, and doesn't affect any of    *)
-(* the results, in principle. In practice it seems a lot better when there   *)
-(* are extreme numbers in the original problem.                              *)
-
-  (* Version for (int*int) keys *)
-(*
-local
-  fun max_rat x y = if x </ y then y else x
-  fun common_denominator fld amat acc =
-      fld (fn (m,c) => fn a => lcm_rat (denominator_rat c) a) amat acc
-  fun maximal_element fld amat acc =
-    fld (fn (m,c) => fn maxa => max_rat maxa (abs_rat c)) amat acc
-fun float_of_rat x = let val (a,b) = Rat.quotient_of_rat x
-                     in Real.fromInt a / Real.fromInt b end;
-in
-
-fun pi_scale_then solver (obj:vector)  mats =
- let
-  val cd1 = fold_rev (common_denominator FuncUtil.Intpairfunc.fold) mats (rat_1)
-  val cd2 = common_denominator FuncUtil.Intfunc.fold (snd obj)  (rat_1)
-  val mats' = map (FuncUtil.Intpairfunc.map (fn _ => fn x => cd1 */ x)) mats
-  val obj' = vector_cmul cd2 obj
-  val max1 = fold_rev (maximal_element FuncUtil.Intpairfunc.fold) mats' (rat_0)
-  val max2 = maximal_element FuncUtil.Intfunc.fold (snd obj') (rat_0)
-  val scal1 = pow2 (20 - trunc(Math.ln (float_of_rat max1) / Math.ln 2.0))
-  val scal2 = pow2 (20 - trunc(Math.ln (float_of_rat max2) / Math.ln 2.0))
-  val mats'' = map (FuncUtil.Intpairfunc.map (fn _ => fn x => x */ scal1)) mats'
-  val obj'' = vector_cmul scal2 obj'
- in solver obj'' mats''
-  end
-end;
-*)
 
 (* Try some apparently sensible scaling first. Note that this is purely to   *)
 (* get a cleaner translation to floating-point, and doesn't affect any of    *)
@@ -699,42 +368,6 @@ fun tri_equation_eval assig eq =
  in Inttriplefunc.fold (fn (v, c) => fn a => a +/ value v */ c) eq rat_0
  end;
 
-(* Eliminate among linear equations: return unconstrained variables and      *)
-(* assignments for the others in terms of them. We give one pseudo-variable  *)
-(* "one" that's used for a constant term.                                    *)
-
-(*
-local
-  fun extract_first p l = case l of  (* FIXME : use find_first instead *)
-   [] => error "extract_first"
- | h::t => if p h then (h,t) else
-          let val (k,s) = extract_first p t in (k,h::s) end
-fun eliminate vars dun eqs = case vars of
-  [] => if forall Inttriplefunc.is_empty eqs then dun
-        else raise Unsolvable
- | v::vs =>
-  ((let
-    val (eq,oeqs) = extract_first (fn e => Inttriplefunc.defined e v) eqs
-    val a = Inttriplefunc.apply eq v
-    val eq' = tri_equation_cmul ((Rat.neg rat_1) // a) (Inttriplefunc.delete_safe v eq)
-    fun elim e =
-     let val b = Inttriplefunc.tryapplyd e v rat_0
-     in if b =/ rat_0 then e else
-        tri_equation_add e (tri_equation_cmul (Rat.neg b // a) eq)
-     end
-   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map (K elim) dun)) (map elim oeqs)
-   end)
-  handle Failure _ => eliminate vs dun eqs)
-in
-fun tri_eliminate_equations one vars eqs =
- let
-  val assig = eliminate vars Inttriplefunc.empty eqs
-  val vs = Inttriplefunc.fold (fn (_, f) => fn a => remove (dest_ord triple_int_ord) one (Inttriplefunc.dom f) @ a) assig []
-  in (distinct (dest_ord triple_int_ord) vs, assig)
-  end
-end;
-*)
-
 (* Eliminate all variables, in an essentially arbitrary order.               *)
 
 fun tri_eliminate_all_equations one =
@@ -772,22 +405,6 @@ in fn eqs =>
  end
 end;
 
-(* Solve equations by assigning arbitrary numbers.                           *)
-
-(*
-fun tri_solve_equations one eqs =
- let
-  val (vars,assigs) = tri_eliminate_all_equations one eqs
-  val vfn = fold_rev (fn v => Inttriplefunc.update(v,rat_0)) vars
-            (Inttriplefunc.onefunc(one, Rat.rat_of_int ~1))
-  val ass =
-    Inttriplefunc.combine (curry op +/) (K false)
-    (Inttriplefunc.map (K (tri_equation_eval vfn)) assigs) vfn
- in if forall (fn e => tri_equation_eval ass e =/ rat_0) eqs
-    then Inttriplefunc.delete_safe one ass else raise Sanity
- end;
-*)
-
 (* Multiply equation-parametrized poly by regular poly and add accumulator.  *)
 
 fun tri_epoly_pmul p q acc =
@@ -797,151 +414,6 @@ fun tri_epoly_pmul p q acc =
        val es = FuncUtil.Monomialfunc.tryapplyd b m Inttriplefunc.empty
    in FuncUtil.Monomialfunc.update (m,tri_equation_add (tri_equation_cmul c e) es) b
    end) q a) p acc ;
-
-(* Usual operations on equation-parametrized poly.                           *)
-
-(*
-fun tri_epoly_cmul c l =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (K (tri_equation_cmul c)) l;;
-
-val tri_epoly_neg = tri_epoly_cmul (Rat.rat_of_int ~1);
-
-val tri_epoly_add = Inttriplefunc.combine tri_equation_add Inttriplefunc.is_empty;
-
-fun tri_epoly_sub p q = tri_epoly_add p (tri_epoly_neg q);;
-*)
-
-(* Stuff for "equations" ((int*int)->num functions).                         *)
-
-(*
-fun pi_equation_cmul c eq =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (fn _ => fn d => c */ d) eq;
-
-fun pi_equation_add eq1 eq2 = Inttriplefunc.combine (curry op +/) (fn x => x =/ rat_0) eq1 eq2;
-
-fun pi_equation_eval assig eq =
- let fun value v = Inttriplefunc.apply assig v
- in Inttriplefunc.fold (fn (v, c) => fn a => a +/ value v */ c) eq rat_0
- end;
-*)
-
-(* Eliminate among linear equations: return unconstrained variables and      *)
-(* assignments for the others in terms of them. We give one pseudo-variable  *)
-(* "one" that's used for a constant term.                                    *)
-
-(*
-local
-fun extract_first p l = case l of
-   [] => error "extract_first"
- | h::t => if p h then (h,t) else
-          let val (k,s) = extract_first p t in (k,h::s) end
-fun eliminate vars dun eqs = case vars of
-  [] => if forall Inttriplefunc.is_empty eqs then dun
-        else raise Unsolvable
- | v::vs =>
-   let
-    val (eq,oeqs) = extract_first (fn e => Inttriplefunc.defined e v) eqs
-    val a = Inttriplefunc.apply eq v
-    val eq' = pi_equation_cmul ((Rat.neg rat_1) // a) (Inttriplefunc.delete_safe v eq)
-    fun elim e =
-     let val b = Inttriplefunc.tryapplyd e v rat_0
-     in if b =/ rat_0 then e else
-        pi_equation_add e (pi_equation_cmul (Rat.neg b // a) eq)
-     end
-   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map (K elim) dun)) (map elim oeqs)
-   end
-  handle Failure _ => eliminate vs dun eqs
-in
-fun pi_eliminate_equations one vars eqs =
- let
-  val assig = eliminate vars Inttriplefunc.empty eqs
-  val vs = Inttriplefunc.fold (fn (_, f) => fn a => remove (dest_ord triple_int_ord) one (Inttriplefunc.dom f) @ a) assig []
-  in (distinct (dest_ord triple_int_ord) vs, assig)
-  end
-end;
-*)
-
-(* Eliminate all variables, in an essentially arbitrary order.               *)
-
-(*
-fun pi_eliminate_all_equations one =
- let
-  fun choose_variable eq =
-   let val (v,_) = Inttriplefunc.choose eq
-   in if is_equal (triple_int_ord(v,one)) then
-      let val eq' = Inttriplefunc.delete_safe v eq
-      in if Inttriplefunc.is_empty eq' then error "choose_variable"
-         else fst (Inttriplefunc.choose eq')
-      end
-    else v
-   end
-  fun eliminate dun eqs = case eqs of
-    [] => dun
-  | eq::oeqs =>
-    if Inttriplefunc.is_empty eq then eliminate dun oeqs else
-    let val v = choose_variable eq
-        val a = Inttriplefunc.apply eq v
-        val eq' = pi_equation_cmul ((Rat.rat_of_int ~1) // a)
-                   (Inttriplefunc.delete_safe v eq)
-        fun elim e =
-         let val b = Inttriplefunc.tryapplyd e v rat_0
-         in if b =/ rat_0 then e
-            else pi_equation_add e (pi_equation_cmul (Rat.neg b // a) eq)
-         end
-    in eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map (K elim) dun))
-                 (map elim oeqs)
-    end
-in fn eqs =>
- let
-  val assig = eliminate Inttriplefunc.empty eqs
-  val vs = Inttriplefunc.fold (fn (_, f) => fn a => remove (dest_ord triple_int_ord) one (Inttriplefunc.dom f) @ a) assig []
- in (distinct (dest_ord triple_int_ord) vs,assig)
- end
-end;
-*)
-
-(* Solve equations by assigning arbitrary numbers.                           *)
-
-(*
-fun pi_solve_equations one eqs =
- let
-  val (vars,assigs) = pi_eliminate_all_equations one eqs
-  val vfn = fold_rev (fn v => Inttriplefunc.update(v,rat_0)) vars
-            (Inttriplefunc.onefunc(one, Rat.rat_of_int ~1))
-  val ass =
-    Inttriplefunc.combine (curry op +/) (K false)
-    (Inttriplefunc.map (K (pi_equation_eval vfn)) assigs) vfn
- in if forall (fn e => pi_equation_eval ass e =/ rat_0) eqs
-    then Inttriplefunc.delete_safe one ass else raise Sanity
- end;
-*)
-
-(* Multiply equation-parametrized poly by regular poly and add accumulator.  *)
-
-(*
-fun pi_epoly_pmul p q acc =
- FuncUtil.Monomialfunc.fold (fn (m1, c) => fn a =>
-  FuncUtil.Monomialfunc.fold (fn (m2,e) => fn b =>
-   let val m =  monomial_mul m1 m2
-       val es = FuncUtil.Monomialfunc.tryapplyd b m Inttriplefunc.empty
-   in FuncUtil.Monomialfunc.update (m,pi_equation_add (pi_equation_cmul c e) es) b
-   end) q a) p acc ;
-*)
-
-(* Usual operations on equation-parametrized poly.                           *)
-
-(*
-fun pi_epoly_cmul c l =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (K (pi_equation_cmul c)) l;;
-
-val pi_epoly_neg = pi_epoly_cmul (Rat.rat_of_int ~1);
-
-val pi_epoly_add = Inttriplefunc.combine pi_equation_add Inttriplefunc.is_empty;
-
-fun pi_epoly_sub p q = pi_epoly_add p (pi_epoly_neg q);;
-
-fun allpairs f l1 l2 =  fold_rev (fn x => (curry (op @)) (map (f x) l2)) l1 [];
-*)
 
 (* Hence produce the "relevant" monomials: those whose squares lie in the    *)
 (* Newton polytope of the monomials in the input. (This is enough according  *)
@@ -989,35 +461,6 @@ fun diag m =
     else diagonalize n 1 m
  end
 end;
-
-(*
-fun gcd_rat a b = Rat.rat_of_int (Integer.gcd (int_of_rat a) (int_of_rat b));
-*)
-
-(* Adjust a diagonalization to collect rationals at the start.               *)
-  (* FIXME : Potentially polymorphic keys, but here only: integers!! *)
-(*
-local
- fun upd0 x y a = if y =/ rat_0 then a else FuncUtil.Intfunc.update(x,y) a;
- fun mapa f (d,v) =
-  (d, FuncUtil.Intfunc.fold (fn (i,c) => fn a => upd0 i (f c) a) v FuncUtil.Intfunc.empty)
- fun adj (c,l) =
- let val a =
-  FuncUtil.Intfunc.fold (fn (_,c) => fn a => lcm_rat a (denominator_rat c))
-    (snd l) rat_1 //
-  FuncUtil.Intfunc.fold (fn (i,c) => fn a => gcd_rat a (numerator_rat c))
-    (snd l) rat_0
-  in ((c // (a */ a)),mapa (fn x => a */ x) l)
-  end
-in
-fun deration d = if null d then (rat_0,d) else
- let val d' = map adj d
-     val a = fold (lcm_rat o denominator_rat o fst) d' rat_1 //
-          fold (gcd_rat o numerator_rat o fst) d' rat_0
- in ((rat_1 // a),map (fn (c,l) => (a */ c,l)) d')
- end
-end;
-*)
 
 (* Enumeration of monomials with given multidegree bound.                    *)
 
@@ -1095,9 +538,6 @@ fun bmatrix_cmul c bm =
   else Inttriplefunc.map (fn _ => fn x => c */ x) bm;
 
 val bmatrix_neg = bmatrix_cmul (Rat.rat_of_int ~1);
-(*
-fun bmatrix_sub m1 m2 = bmatrix_add m1 (bmatrix_neg m2);;
-*)
 
 (* Smash a block matrix into components.                                     *)
 
