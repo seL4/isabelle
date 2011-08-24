@@ -180,6 +180,27 @@ class Session(val file_store: Session.File_Store)
     var prover: Option[Isabelle_Process with Isar_Document] = None
 
 
+    /* perspective */
+
+    def update_perspective(name: String, text_perspective: Text.Perspective)
+    {
+      val previous = global_state().history.tip.version.get_finished
+      val (perspective, version) = Thy_Syntax.edit_perspective(previous, name, text_perspective)
+
+      val text_edits: List[Document.Edit_Text] =
+        List((name, Document.Node.Perspective(text_perspective)))
+      val change =
+        global_state.change_yield(
+          _.extend_history(Future.value(previous), text_edits, Future.value(version)))
+
+      val assignment = global_state().the_assignment(previous).get_finished
+      global_state.change(_.define_version(version, assignment))
+      global_state.change_yield(_.assign(version.id, Nil))
+
+      prover.get.update_perspective(previous.id, version.id, name, perspective)
+    }
+
+
     /* incoming edits */
 
     def handle_edits(name: String, master_dir: String,
@@ -209,6 +230,18 @@ class Session(val file_store: Session.File_Store)
           assignments.await { global_state().is_assigned(previous.get_finished) }
           this_actor ! Change_Node(name, doc_edits, previous.join, change.version.join)
       }
+    }
+    //}}}
+
+
+    /* exec state assignment */
+
+    def handle_assign(id: Document.Version_ID, edits: List[(Document.Command_ID, Document.Exec_ID)])
+    //{{{
+    {
+      val cmds = global_state.change_yield(_.assign(id, edits))
+      for (cmd <- cmds) command_change_buffer ! cmd
+      assignments.event(Session.Assignment)
     }
     //}}}
 
@@ -292,11 +325,7 @@ class Session(val file_store: Session.File_Store)
           else if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
-                try {
-                  val cmds: List[Command] = global_state.change_yield(_.assign(id, edits))
-                  for (cmd <- cmds) command_change_buffer ! cmd
-                  assignments.event(Session.Assignment)
-                }
+                try { handle_assign(id, edits) }
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
@@ -345,9 +374,11 @@ class Session(val file_store: Session.File_Store)
           reply(())
 
         case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
-          handle_edits(name, master_dir, header,
-            List(Document.Node.Edits(text_edits),
-              Document.Node.Perspective(perspective)))
+          if (text_edits.isEmpty && global_state().tip_stable)
+            update_perspective(name, perspective)
+          else
+            handle_edits(name, master_dir, header,
+              List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())
 
         case change: Change_Node if prover.isDefined =>

@@ -27,6 +27,7 @@ sig
   val join_commands: state -> unit
   val cancel_execution: state -> Future.task list
   val define_command: command_id -> string -> state -> state
+  val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
   val state: unit -> state
@@ -154,27 +155,31 @@ fun touch_descendants name nodes =
 
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
-    (touch_descendants name
-      (case node_edit of
-        Clear => update_node name clear_node nodes
-      | Edits edits =>
-          nodes
-          |> update_node name (edit_node edits)
-      | Header header =>
-          let
-            val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
-            val nodes1 = nodes
-              |> default_node name
-              |> fold default_node parents;
-            val nodes2 = nodes1
-              |> Graph.Keys.fold
-                  (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
-            val (header', nodes3) =
-              (header, Graph.add_deps_acyclic (name, parents) nodes2)
-                handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
-          in Graph.map_node name (set_header header') nodes3 end
-      | Perspective perspective =>
-          update_node name (set_perspective perspective) nodes));
+    (case node_edit of
+      Clear =>
+        nodes
+        |> update_node name clear_node
+        |> touch_descendants name
+    | Edits edits =>
+        nodes
+        |> update_node name (edit_node edits)
+        |> touch_descendants name
+    | Header header =>
+        let
+          val parents = (case header of Exn.Res (_, parents, _) => parents | _ => []);
+          val nodes1 = nodes
+            |> default_node name
+            |> fold default_node parents;
+          val nodes2 = nodes1
+            |> Graph.Keys.fold
+                (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
+          val (header', nodes3) =
+            (header, Graph.add_deps_acyclic (name, parents) nodes2)
+              handle Graph.CYCLES cs => (Exn.Exn (ERROR (cat_lines (map cycle_msg cs))), nodes2);
+        in Graph.map_node name (set_header header') nodes3 end
+        |> touch_descendants name
+    | Perspective perspective =>
+        update_node name (set_perspective perspective) nodes);
 
 fun put_node (name, node) (Version nodes) =
   Version (update_node name (K node) nodes);
@@ -320,6 +325,16 @@ end;
 
 (** editing **)
 
+(* perspective *)
+
+fun update_perspective (old_id: version_id) (new_id: version_id) name perspective state =
+  let
+    val old_version = the_version state old_id;
+    val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 -- needed? *)
+    val new_version = edit_nodes (name, Perspective perspective) old_version;
+  in define_version new_id new_version state end;
+
+
 (* edit *)
 
 local
@@ -345,7 +360,6 @@ fun init_theory deps (name, node) =
             get_theory (Position.file_only import)
               (#2 (Future.join (the (AList.lookup (op =) deps import))))));
   in Thy_Load.begin_theory dir thy_name imports files parents end;
-
 
 fun new_exec (command_id, command) (assigns, execs, exec) =
   let

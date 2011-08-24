@@ -25,7 +25,8 @@ import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter,
+  ScrollListener}
 import org.gjt.sp.jedit.syntax.{SyntaxStyle}
 
 
@@ -354,6 +355,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
+  /* scrolling */
+
+  private val scroll_listener = new ScrollListener
+  {
+    def scrolledVertically(arg: TextArea) { model.update_perspective() }
+    def scrolledHorizontally(arg: TextArea) { }
+  }
+
+
   /* overview of command status left of scrollbar */
 
   private val overview = new JPanel(new BorderLayout)
@@ -474,6 +484,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getView.addWindowListener(window_listener)
     painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
+    text_area.addScrollListener(scroll_listener)
     text_area.addLeftOfScrollBar(overview)
     session.commands_changed += main_actor
     session.global_settings += main_actor
@@ -488,6 +499,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
+    text_area.removeScrollListener(scroll_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()

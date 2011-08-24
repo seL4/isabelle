@@ -97,7 +97,7 @@ object Thy_Syntax
 
 
 
-  /** command perspective **/
+  /** perspective **/
 
   def command_perspective(node: Document.Node, perspective: Text.Perspective): Command.Perspective =
   {
@@ -124,6 +124,26 @@ object Thy_Syntax
       check_ranges(perspective, node.command_range(perspective_range).toStream)
       result.toList
     }
+  }
+
+  def update_perspective(nodes: Document.Nodes, name: String, text_perspective: Text.Perspective)
+    : (Command.Perspective, Option[Document.Nodes]) =
+  {
+    val node = nodes(name)
+    val perspective = command_perspective(node, text_perspective)
+    val new_nodes =
+      if (Command.equal_perspective(node.perspective, perspective)) None
+      else Some(nodes + (name -> node.copy(perspective = perspective)))
+    (perspective, new_nodes)
+  }
+
+  def edit_perspective(previous: Document.Version, name: String, text_perspective: Text.Perspective)
+    : (Command.Perspective, Document.Version) =
+  {
+    val nodes = previous.nodes
+    val (perspective, new_nodes) = update_perspective(nodes, name, text_perspective)
+    val version = Document.Version(Document.new_id(), new_nodes getOrElse nodes)
+    (perspective, version)
   }
 
 
@@ -243,11 +263,11 @@ object Thy_Syntax
           }
 
         case (name, Document.Node.Perspective(text_perspective)) =>
-          val node = nodes(name)
-          val perspective = command_perspective(node, text_perspective)
-          if (!Command.equal_perspective(node.perspective, perspective)) {
-            doc_edits += (name -> Document.Node.Perspective(perspective))
-            nodes += (name -> node.copy(perspective = perspective))
+          update_perspective(nodes, name, text_perspective) match {
+            case (_, None) =>
+            case (perspective, Some(nodes1)) =>
+              doc_edits += (name -> Document.Node.Perspective(perspective))
+              nodes = nodes1
           }
       }
       (doc_edits.toList, Document.Version(Document.new_id(), nodes))

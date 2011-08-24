@@ -146,7 +146,8 @@ object Document
     val init: Version = Version(no_id, Map().withDefaultValue(Node.empty))
   }
 
-  sealed case class Version(val id: Version_ID, val nodes: Map[String, Node])
+  type Nodes = Map[String, Node]
+  sealed case class Version(val id: Version_ID, val nodes: Nodes)
 
 
   /* changes of plain text, eventually resulting in document edits */
@@ -290,6 +291,12 @@ object Document
         case None => false
       }
 
+    def is_stable(change: Change): Boolean =
+      change.is_finished && is_assigned(change.version.get_finished)
+
+    def tip_stable: Boolean = is_stable(history.tip)
+    def recent_stable: Option[Change] = history.undo_list.find(is_stable)
+
     def extend_history(previous: Future[Version],
         edits: List[Edit_Text],
         version: Future[Version]): (Change, State) =
@@ -302,11 +309,8 @@ object Document
     // persistent user-view
     def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
     {
-      val found_stable = history.undo_list.find(change =>
-        change.is_finished && is_assigned(change.version.get_finished))
-      require(found_stable.isDefined)
-      val stable = found_stable.get
-      val latest = history.undo_list.head
+      val stable = recent_stable.get
+      val latest = history.tip
 
       // FIXME proper treatment of removed nodes
       val edits =
