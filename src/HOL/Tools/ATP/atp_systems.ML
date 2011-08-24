@@ -324,7 +324,6 @@ val vampire_config : atp_config =
      [(GaveUp, "UNPROVABLE"),
       (GaveUp, "CANNOT PROVE"),
       (GaveUp, "SZS status GaveUp"),
-      (ProofIncomplete, "predicate_definition_introduction,[]"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
