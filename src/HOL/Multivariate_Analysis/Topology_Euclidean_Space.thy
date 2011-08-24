@@ -7,7 +7,7 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith
+imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith L2_Norm
 begin
 
 (* to be moved elsewhere *)
@@ -20,7 +20,7 @@ lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)
   apply(subst(2) euclidean_dist_l2) apply(cases "i<DIM('a)")
   apply(rule member_le_setL2) by auto
 
-subsection {* General notion of a topologies as values *}
+subsection {* General notion of a topology as a value *}
 
 definition "istopology L \<longleftrightarrow> L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union> K))"
 typedef (open) 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"

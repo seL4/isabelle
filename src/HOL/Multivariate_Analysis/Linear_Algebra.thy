@@ -8,8 +8,6 @@ theory Linear_Algebra
 imports
   Euclidean_Space
   "~~/src/HOL/Library/Infinite_Set"
-  L2_Norm
-  "~~/src/HOL/Library/Convex"
 begin
 
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
@@ -63,7 +61,7 @@ lemma norm_mul[simp]: "norm(a *\<^sub>R x) = abs(a) * norm x"
 *)
 
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (inner x x = (0::real))"
-  by (simp add: setL2_def power2_eq_square)
+  by (simp add: power2_eq_square)
 
 lemma norm_cauchy_schwarz:
   shows "inner x y <= norm x * norm y"
