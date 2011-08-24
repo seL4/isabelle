@@ -24,9 +24,9 @@ sig
   type edit = string * node_edit
   type state
   val init_state: state
+  val define_command: command_id -> string -> state -> state
   val join_commands: state -> unit
   val cancel_execution: state -> Future.task list
-  val define_command: command_id -> string -> state -> state
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
@@ -75,7 +75,10 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
-val no_perspective: perspective = (K false, []);
+fun make_perspective ids : perspective =
+  (Inttab.defined (Inttab.make (map (rpair ()) ids)), ids);
+
+val no_perspective = make_perspective [];
 val no_print = Lazy.value ();
 val no_result = Lazy.value Toplevel.toplevel;
 
@@ -93,10 +96,8 @@ fun set_header header =
   map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
 fun get_perspective (Node {perspective, ...}) = perspective;
-fun set_perspective perspective =
-  let val pred = Inttab.defined (Inttab.make (map (rpair ()) perspective)) in
-    map_node (fn (header, _, entries, result) => (header, (pred, perspective), entries, result))
-  end;
+fun set_perspective ids =
+  map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
 
 fun map_entries f (Node {header, perspective, entries, result}) =
   make_node (header, perspective, f entries, result);
@@ -345,7 +346,7 @@ fun is_changed node' ((_, id), exec) =
     NONE => true
   | SOME exec' => exec' <> exec);
 
-fun init_theory deps (name, node) =
+fun init_theory deps name node =
   let
     val (thy_name, imports, uses) = Exn.release (get_header node);
     (* FIXME provide files via Scala layer *)
@@ -355,18 +356,22 @@ fun init_theory deps (name, node) =
 
     val parents =
       imports |> map (fn import =>
-        (case Thy_Info.lookup_theory import of
+        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
           SOME thy => thy
         | NONE =>
             get_theory (Position.file_only import)
               (#2 (Future.join (the (AList.lookup (op =) deps import))))));
   in Thy_Load.begin_theory dir thy_name imports files parents end;
 
-fun new_exec (command_id, command) (assigns, execs, exec) =
+fun new_exec state init command_id (assigns, execs, exec) =
   let
+    val command = the_command state command_id;
     val exec_id' = new_id ();
     val exec' = exec |> Lazy.map (fn (st, _) =>
-      let val tr = Toplevel.put_id (print_id exec_id') (Future.join command)
+      let val tr =
+        Future.join command
+        |> Toplevel.modify_init init
+        |> Toplevel.put_id (print_id exec_id');
       in run_command tr st end);
   in ((command_id, exec_id') :: assigns, (exec_id', (command_id, exec')) :: execs, exec') end;
 
@@ -385,9 +390,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
             NONE => Future.value (([], [], []), node)
           | SOME ((prev, id), _) =>
               let
-                fun init () = init_theory deps (name, node);
-                fun get_command id =
-                  (id, the_command state id |> Future.map (Toplevel.modify_init init));
+                fun init () = init_theory deps name node;
               in
                 (singleton o Future.forks)
                   {name = "Document.edit", group = NONE,
@@ -399,7 +402,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                           NONE => no_id
                         | SOME prev_id => the_default no_id (the_entry node prev_id));
                       val (assigns, execs, last_exec) =
-                        fold_entries (SOME id) (new_exec o get_command o #2 o #1)
+                        fold_entries (SOME id) (new_exec state init o #2 o #1)
                           node ([], [], #2 (the_exec state prev_exec));
                       val node' = node
                         |> fold update_entry assigns
