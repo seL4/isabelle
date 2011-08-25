@@ -1378,6 +1378,9 @@ lemma Compl_subset_Compl_iff [iff]: "(-A \<subseteq> -B) = (B \<subseteq> A)"
 lemma Compl_eq_Compl_iff [iff]: "(-A = -B) = (A = (B::'a set))"
   by (fact compl_eq_compl_iff)
 
+lemma Compl_insert: "- insert x A = (-A) - {x}"
+  by blast
+
 text {* \medskip Bounded quantifiers.
 
   The following are not added to the default simpset because
