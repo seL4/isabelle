@@ -1889,9 +1889,8 @@ fun add_iformula_monotonic_types ctxt mono type_enc =
   let
     val level = level_of_type_enc type_enc
     val should_encode = should_encode_type ctxt mono level
-    fun add_type T = should_encode T ? insert_type ctxt I T
-    fun add_term (tm as IApp (tm1, tm2)) =
-        add_type (ityp_of tm) #> add_term tm1 #> add_term tm2
+    fun add_type T = not (should_encode T) ? insert_type ctxt I T
+    fun add_term (tm as IApp (_, tm2)) = add_type (ityp_of tm) #> add_term tm2
       | add_term tm = add_type (ityp_of tm)
   in formula_fold NONE (K add_term) end
 fun add_fact_monotonic_types ctxt mono type_enc =
