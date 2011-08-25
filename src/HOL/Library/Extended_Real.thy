@@ -2391,8 +2391,6 @@ lemma limsup_mono:
   shows "limsup X \<le> limsup Y"
   using Limsup_mono[of X Y sequentially] eventually_sequentially assms by auto
 
-declare trivial_limit_sequentially[simp]
-
 lemma
   fixes X :: "nat \<Rightarrow> ereal"
   shows ereal_incseq_uminus[simp]: "incseq (\<lambda>i. - X i) = decseq X"
