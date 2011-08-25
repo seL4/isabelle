@@ -3094,7 +3094,6 @@ by(simp only: image_image[THEN sym] convex_hull_scaling convex_hull_translation)
 subsection {* Convexity of cone hulls *}
 
 lemma convex_cone_hull:
-fixes S :: "('m::euclidean_space) set"
 assumes "convex S"
 shows "convex (cone hull S)"
 proof-
