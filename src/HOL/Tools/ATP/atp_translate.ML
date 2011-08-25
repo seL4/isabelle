@@ -1095,12 +1095,9 @@ type monotonicity_info =
 val known_infinite_types =
   [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
 
-fun is_type_surely_infinite' ctxt soundness cached_Ts T =
-  (* Unlike virtually any other polymorphic fact whose type variables can be
-     instantiated by a known infinite type, extensionality actually encodes a
-     cardinality constraints. *)
+fun is_type_kind_of_surely_infinite ctxt soundness cached_Ts T =
   soundness <> Sound andalso
-  is_type_surely_infinite ctxt (soundness = Unsound) cached_Ts T
+  is_type_surely_infinite ctxt (soundness <> Unsound) cached_Ts T
 
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
@@ -1114,7 +1111,7 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
     exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
     not (exists (type_instance ctxt T) surely_infinite_Ts orelse
          (not (member (type_aconv ctxt) maybe_finite_Ts T) andalso
-          is_type_surely_infinite' ctxt soundness surely_infinite_Ts T))
+          is_type_kind_of_surely_infinite ctxt soundness surely_infinite_Ts T))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        Fin_Nonmono_Types T =
@@ -1844,8 +1841,8 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         if exists (type_instance ctxt T) surely_infinite_Ts orelse
            member (type_aconv ctxt) maybe_finite_Ts T then
           mono
-        else if is_type_surely_infinite' ctxt soundness surely_infinite_Ts
-                                         T then
+        else if is_type_kind_of_surely_infinite ctxt soundness
+                                                surely_infinite_Ts T then
           {maybe_finite_Ts = maybe_finite_Ts,
            surely_finite_Ts = surely_finite_Ts,
            maybe_infinite_Ts = maybe_infinite_Ts,
