@@ -329,9 +329,24 @@ lemmas [z3_rule] =
   if_True if_False not_not
 
 lemma [z3_rule]:
+  "(P \<and> Q) = (\<not>(\<not>P \<or> \<not>Q))"
+  "(P \<and> Q) = (\<not>(\<not>Q \<or> \<not>P))"
+  "(\<not>P \<and> Q) = (\<not>(P \<or> \<not>Q))"
+  "(\<not>P \<and> Q) = (\<not>(\<not>Q \<or> P))"
+  "(P \<and> \<not>Q) = (\<not>(\<not>P \<or> Q))"
+  "(P \<and> \<not>Q) = (\<not>(Q \<or> \<not>P))"
+  "(\<not>P \<and> \<not>Q) = (\<not>(P \<or> Q))"
+  "(\<not>P \<and> \<not>Q) = (\<not>(Q \<or> P))"
+  by auto
+
+lemma [z3_rule]:
   "(P \<longrightarrow> Q) = (Q \<or> \<not>P)"
   "(\<not>P \<longrightarrow> Q) = (P \<or> Q)"
   "(\<not>P \<longrightarrow> Q) = (Q \<or> P)"
+  "(True \<longrightarrow> P) = P"
+  "(P \<longrightarrow> True) = True"
+  "(False \<longrightarrow> P) = True"
+  "(P \<longrightarrow> P) = True"
   by auto
 
 lemma [z3_rule]:
@@ -339,8 +354,18 @@ lemma [z3_rule]:
   by auto
 
 lemma [z3_rule]:
+  "(\<not>True) = False"
+  "(\<not>False) = True"
+  "(x = x) = True"
+  "(P = True) = P"
+  "(True = P) = P"
+  "(P = False) = (\<not>P)"
+  "(False = P) = (\<not>P)"
   "((\<not>P) = P) = False"
   "(P = (\<not>P)) = False"
+  "((\<not>P) = (\<not>Q)) = (P = Q)"
+  "\<not>(P = (\<not>Q)) = (P = Q)"
+  "\<not>((\<not>P) = Q) = (P = Q)"
   "(P \<noteq> Q) = (Q = (\<not>P))"
   "(P = Q) = ((\<not>P \<or> Q) \<and> (P \<or> \<not>Q))"
   "(P \<noteq> Q) = ((\<not>P \<or> \<not>Q) \<and> (P \<or> Q))"
@@ -351,11 +376,36 @@ lemma [z3_rule]:
   "(if \<not>P then \<not>P else P) = True"
   "(if P then True else False) = P"
   "(if P then False else True) = (\<not>P)"
+  "(if P then Q else True) = ((\<not>P) \<or> Q)"
+  "(if P then Q else True) = (Q \<or> (\<not>P))"
+  "(if P then Q else \<not>Q) = (P = Q)"
+  "(if P then Q else \<not>Q) = (Q = P)"
+  "(if P then \<not>Q else Q) = (P = (\<not>Q))"
+  "(if P then \<not>Q else Q) = ((\<not>Q) = P)"
   "(if \<not>P then x else y) = (if P then y else x)"
+  "(if P then (if Q then x else y) else x) = (if P \<and> (\<not>Q) then y else x)"
+  "(if P then (if Q then x else y) else x) = (if (\<not>Q) \<and> P then y else x)"
+  "(if P then (if Q then x else y) else y) = (if P \<and> Q then x else y)"
+  "(if P then (if Q then x else y) else y) = (if Q \<and> P then x else y)"
+  "(if P then x else if P then y else z) = (if P then x else z)"
+  "(if P then x else if Q then x else y) = (if P \<or> Q then x else y)"
+  "(if P then x else if Q then x else y) = (if Q \<or> P then x else y)"
+  "(if P then x = y else x = z) = (x = (if P then y else z))"
+  "(if P then x = y else y = z) = (y = (if P then x else z))"
+  "(if P then x = y else z = y) = (y = (if P then x else z))"
   "f (if P then x else y) = (if P then f x else f y)"
   by auto
 
 lemma [z3_rule]:
+  "0 + (x::int) = x"
+  "x + 0 = x"
+  "x + x = 2 * x"
+  "0 * x = 0"
+  "1 * x = x"
+  "x + y = y + x"
+  by auto
+
+lemma [z3_rule]:  (* for def-axiom *)
   "P = Q \<or> P \<or> Q"
   "P = Q \<or> \<not>P \<or> \<not>Q"
   "(\<not>P) = Q \<or> \<not>P \<or> Q"
@@ -370,14 +420,18 @@ lemma [z3_rule]:
   "P \<or> Q \<or> (\<not>P) \<noteq> Q"
   "P \<or> \<not>Q \<or> P \<noteq> Q"
   "\<not>P \<or> Q \<or> P \<noteq> Q"
-  by auto
-
-lemma [z3_rule]:
-  "0 + (x::int) = x"
-  "x + 0 = x"
-  "0 * x = 0"
-  "1 * x = x"
-  "x + y = y + x"
+  "P \<or> y = (if P then x else y)"
+  "P \<or> (if P then x else y) = y"
+  "\<not>P \<or> x = (if P then x else y)"
+  "\<not>P \<or>  (if P then x else y) = x"
+  "P \<or> R \<or> \<not>(if P then Q else R)"
+  "\<not>P \<or> Q \<or> \<not>(if P then Q else R)"
+  "\<not>(if P then Q else R) \<or> \<not>P \<or> Q"
+  "\<not>(if P then Q else R) \<or> P \<or> R"
+  "(if P then Q else R) \<or> \<not>P \<or> \<not>Q"
+  "(if P then Q else R) \<or> P \<or> \<not>R"
+  "(if P then \<not>Q else R) \<or> \<not>P \<or> Q"
+  "(if P then Q else \<not>R) \<or> P \<or> R"
   by auto
 
 
