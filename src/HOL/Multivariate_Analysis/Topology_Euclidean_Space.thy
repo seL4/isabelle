@@ -5104,10 +5104,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Lim_inner:
-  assumes "(f ---> l) net"  shows "((\<lambda>y. inner a (f y)) ---> inner a l) net"
-  by (intro tendsto_intros assms)
-
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
 
