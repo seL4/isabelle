@@ -304,8 +304,10 @@ val spass = (spassN, spass_config)
 
 (* Vampire *)
 
+(* Vampire 1.8 has TFF support, but it's buggy and therefore disabled on
+   SystemOnTPTP. *)
 fun is_old_vampire_version () =
-  string_ord (getenv "VAMPIRE_VERSION", "1.8") = LESS
+  string_ord (getenv "VAMPIRE_VERSION", "1.8") <> GREATER
 
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
