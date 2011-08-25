@@ -202,10 +202,10 @@ fun aconn_map pos f (ANot, [phi]) = AConn (ANot, [f (Option.map not pos) phi])
 
 fun formula_fold pos f =
   let
-    fun aux pos (AQuant (_, _, phi)) = aux pos phi
-      | aux pos (AConn conn) = aconn_fold pos aux conn
-      | aux pos (AAtom tm) = f pos tm
-  in aux pos end
+    fun fld pos (AQuant (_, _, phi)) = fld pos phi
+      | fld pos (AConn conn) = aconn_fold pos fld conn
+      | fld pos (AAtom tm) = f pos tm
+  in fld pos end
 
 fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)

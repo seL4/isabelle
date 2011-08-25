@@ -1020,7 +1020,7 @@ val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 fun preprocess_abstractions_in_terms trans_lambdas facts =
   let
     val (facts, lambda_ts) =
-      facts |> map (snd o snd) |> trans_lambdas 
+      facts |> map (snd o snd) |> trans_lambdas
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lambda_facts =
       map2 (fn t => fn j =>
@@ -1246,8 +1246,8 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
       end
   in add true end
 fun add_fact_syms_to_table ctxt explicit_apply =
-  formula_fold NONE (K (add_iterm_syms_to_table ctxt explicit_apply))
-  |> fact_lift
+  K (add_iterm_syms_to_table ctxt explicit_apply)
+  |> formula_fold NONE |> fact_lift
 
 val tvar_a = TVar (("'a", 0), HOLogic.typeS)
 
@@ -1789,7 +1789,7 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
         #> fold (add_iterm_syms in_conj) args
       end
     fun add_fact_syms in_conj =
-      fact_lift (formula_fold NONE (K (add_iterm_syms in_conj)))
+      K (add_iterm_syms in_conj) |> formula_fold NONE |> fact_lift
     fun add_formula_var_types (AQuant (_, xs, phi)) =
         fold (fn (_, SOME T) => insert_type ctxt I T | _ => I) xs
         #> add_formula_var_types phi
@@ -1884,6 +1884,22 @@ fun mononotonicity_info_for_facts ctxt type_enc facts =
     |> is_type_level_monotonicity_based level
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end
+
+fun add_iformula_monotonic_types ctxt mono type_enc =
+  let
+    val level = level_of_type_enc type_enc
+    val should_encode = should_encode_type ctxt mono level
+    fun add_type T = should_encode T ? insert_type ctxt I T
+    fun add_term (tm as IApp (tm1, tm2)) =
+        add_type (ityp_of tm) #> add_term tm1 #> add_term tm2
+      | add_term tm = add_type (ityp_of tm)
+  in formula_fold NONE (K add_term) end
+fun add_fact_monotonic_types ctxt mono type_enc =
+  add_iformula_monotonic_types ctxt mono type_enc |> fact_lift
+fun monotonic_types_for_facts ctxt mono type_enc facts =
+  [] |> (polymorphism_of_type_enc type_enc = Polymorphic andalso
+         is_type_level_monotonicity_based (level_of_type_enc type_enc))
+        ? fold (add_fact_monotonic_types ctxt mono type_enc) facts
 
 fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
   Formula (guards_sym_formula_prefix ^
@@ -2046,17 +2062,9 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
        end)
 
 fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
-                                     sym_decl_tab =
+                                     mono_Ts sym_decl_tab =
   let
     val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
-    val mono_Ts =
-      if polymorphism_of_type_enc type_enc = Polymorphic then
-        syms |> maps (map result_type_of_decl o snd)
-             |> filter_out (should_encode_type ctxt mono
-                                (level_of_type_enc type_enc))
-             |> rpair [] |-> fold (insert_type ctxt I)
-      else
-        []
     val mono_lines =
       problem_lines_for_mono_types ctxt format mono type_enc mono_Ts
     val decl_lines =
@@ -2131,11 +2139,14 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
                        |> map repair
+    val mono_Ts =
+      helpers @ conjs @ facts
+      |> monotonic_types_for_facts ctxt mono type_enc
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono
-                                               type_enc
+                                               type_enc mono_Ts
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt format helper_prefix I false true mono
