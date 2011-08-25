@@ -215,8 +215,8 @@ class Session(val file_store: Session.File_Store)
         global_state.change_yield(
           _.continue_history(Future.value(previous), text_edits, Future.value(version)))
 
-      val assignment = global_state().the_assignment(previous).get_finished
-      global_state.change(_.define_version(version, assignment))
+      val assignment = global_state().the_assignment(previous).check_finished
+      global_state.change(_.define_version(version, assignment.command_execs, assignment.last_execs))
       global_state.change_yield(_.assign(version.id, Document.no_assign))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
@@ -268,12 +268,14 @@ class Session(val file_store: Session.File_Store)
       val name = change.name
       val doc_edits = change.doc_edits
 
-      var former_assignment = global_state().the_assignment(previous).get_finished
+      val previous_assignment = global_state().the_assignment(previous).check_finished
+
+      var command_execs = previous_assignment.command_execs
       for {
         (name, Document.Node.Edits(cmd_edits)) <- doc_edits  // FIXME proper coverage!?
         (prev, None) <- cmd_edits
         removed <- previous.nodes(name).commands.get_after(prev)
-      } former_assignment -= removed
+      } command_execs -= removed.id
 
       def id_command(command: Command)
       {
@@ -287,7 +289,7 @@ class Session(val file_store: Session.File_Store)
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      global_state.change(_.define_version(version, former_assignment))
+      global_state.change(_.define_version(version, command_execs, previous_assignment.last_execs))
       prover.get.edit_version(previous.id, version.id, doc_edits)
     }
     //}}}
