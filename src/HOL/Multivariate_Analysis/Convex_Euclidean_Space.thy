@@ -229,12 +229,18 @@ proof-
   from g(1) gS giS gBC show ?thesis by blast
 qed
 
+lemma closure_bounded_linear_image:
+  assumes f: "bounded_linear f"
+  shows "f ` (closure S) \<subseteq> closure (f ` S)"
+  using linear_continuous_on [OF f] closed_closure closure_subset
+  by (rule image_closure_subset)
+
 lemma closure_linear_image:
 fixes f :: "('m::euclidean_space) => ('n::real_normed_vector)"
 assumes "linear f"
 shows "f ` (closure S) <= closure (f ` S)"
-using image_closure_subset[of S f "closure (f ` S)"] assms linear_conv_bounded_linear[of f] 
-linear_continuous_on[of f "closure S"] closed_closure[of "f ` S"] closure_subset[of "f ` S"] by auto
+  using assms unfolding linear_conv_bounded_linear
+  by (rule closure_bounded_linear_image)
 
 lemma closure_injective_linear_image:
 fixes f :: "('n::euclidean_space) => ('n::euclidean_space)"
@@ -254,23 +260,16 @@ lemma closure_direct_sum:
 shows "closure (S <*> T) = closure S <*> closure T"
   by (rule closure_Times)
 
-lemma closure_scaleR:  (* TODO: generalize to real_normed_vector *)
-fixes S :: "('n::euclidean_space) set"
-shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
-proof-
-{ assume "c ~= 0" hence ?thesis using closure_injective_linear_image[of "(op *\<^sub>R c)" S]
-      linear_scaleR injective_scaleR by auto 
-}
-moreover
-{ assume zero: "c=0 & S ~= {}"
-  hence "closure S ~= {}" using closure_subset by auto
-  hence "op *\<^sub>R c ` (closure S) = {0}" using zero by auto
-  moreover have "op *\<^sub>R 0 ` S = {0}" using zero by auto
-  ultimately have ?thesis using zero by auto
-}
-moreover
-{ assume "S={}" hence ?thesis by auto }
-ultimately show ?thesis by blast
+lemma closure_scaleR:
+  fixes S :: "('a::real_normed_vector) set"
+  shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
+proof
+  show "(op *\<^sub>R c) ` (closure S) \<subseteq> closure ((op *\<^sub>R c) ` S)"
+    using bounded_linear_scaleR_right
+    by (rule closure_bounded_linear_image)
+  show "closure ((op *\<^sub>R c) ` S) \<subseteq> (op *\<^sub>R c) ` (closure S)"
+    by (intro closure_minimal image_mono closure_subset
+      closed_scaling closed_closure)
 qed
 
 lemma fst_linear: "linear fst" unfolding linear_def by (simp add: algebra_simps)
@@ -859,9 +858,8 @@ moreover
 qed
 
 lemma cone_closure:
-fixes S :: "('m::euclidean_space) set"
-assumes "cone S"
-shows "cone (closure S)"
+  fixes S :: "('a::real_normed_vector) set"
+  assumes "cone S" shows "cone (closure S)"
 proof-
 { assume "S = {}" hence ?thesis by auto }
 moreover
@@ -2310,12 +2308,7 @@ qed
 lemma closure_affine_hull:
   fixes S :: "('n::euclidean_space) set"
   shows "closure S <= affine hull S"
-proof-
-have "closure S <= closure (affine hull S)" using closure_mono by auto
-moreover have "closure (affine hull S) = affine hull S" 
-   using affine_affine_hull affine_closed[of "affine hull S"] closure_eq by auto
-ultimately show ?thesis by auto  
-qed
+  by (intro closure_minimal hull_subset affine_closed affine_affine_hull)
 
 lemma closure_same_affine_hull:
   fixes S :: "('n::euclidean_space) set"
@@ -3125,7 +3118,6 @@ proof-
 qed
 
 lemma cone_convex_hull:
-fixes S :: "('m::euclidean_space) set"
 assumes "cone S"
 shows "cone (convex hull S)"
 proof-
