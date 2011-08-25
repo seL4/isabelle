@@ -2001,8 +2001,4 @@ proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - v
     apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
     apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed
 
-text {* Legacy theorem names *}
-
-lemmas Lim_component_cart = tendsto_vec_nth
-
 end

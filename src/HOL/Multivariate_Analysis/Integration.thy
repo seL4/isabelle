@@ -378,7 +378,7 @@ show ?thesis unfolding * proof(rule division_ofI) have "?A \<subseteq> (\<lambda
       interior(x1 \<inter> y1) \<subseteq> interior(x1) \<Longrightarrow> interior(x1 \<inter> y1) \<subseteq> interior(y1) \<Longrightarrow>
       interior(x2 \<inter> y2) \<subseteq> interior(x2) \<Longrightarrow> interior(x2 \<inter> y2) \<subseteq> interior(y2)
       \<Longrightarrow> interior(x1 \<inter> y1) \<inter> interior(x2 \<inter> y2) = {}" by auto
-  show "interior k1 \<inter> interior k2 = {}" unfolding k1 k2 apply(rule *) defer apply(rule_tac[1-4] subset_interior)
+  show "interior k1 \<inter> interior k2 = {}" unfolding k1 k2 apply(rule *) defer apply(rule_tac[1-4] interior_mono)
     using division_ofD(5)[OF assms(1) k1(2) k2(2)]
     using division_ofD(5)[OF assms(2) k1(3) k2(3)] using th by auto qed qed
 
@@ -407,9 +407,9 @@ lemma division_disjoint_union:
   show "finite (p1 \<union> p2)" using d1(1) d2(1) by auto
   show "\<Union>(p1 \<union> p2) = s1 \<union> s2" using d1(6) d2(6) by auto
   { fix k1 k2 assume as:"k1 \<in> p1 \<union> p2" "k2 \<in> p1 \<union> p2" "k1 \<noteq> k2" moreover let ?g="interior k1 \<inter> interior k2 = {}"
-  { assume as:"k1\<in>p1" "k2\<in>p2" have ?g using subset_interior[OF d1(2)[OF as(1)]] subset_interior[OF d2(2)[OF as(2)]]
+  { assume as:"k1\<in>p1" "k2\<in>p2" have ?g using interior_mono[OF d1(2)[OF as(1)]] interior_mono[OF d2(2)[OF as(2)]]
       using assms(3) by blast } moreover
-  { assume as:"k1\<in>p2" "k2\<in>p1" have ?g using subset_interior[OF d1(2)[OF as(2)]] subset_interior[OF d2(2)[OF as(1)]]
+  { assume as:"k1\<in>p2" "k2\<in>p1" have ?g using interior_mono[OF d1(2)[OF as(2)]] interior_mono[OF d2(2)[OF as(1)]]
       using assms(3) by blast} ultimately
   show ?g using d1(5)[OF _ _ as(3)] and d2(5)[OF _ _ as(3)] by auto }
   fix k assume k:"k \<in> p1 \<union> p2"  show "k \<subseteq> s1 \<union> s2" using k d1(2) d2(2) by auto
@@ -573,7 +573,7 @@ lemma partial_division_extend_interval: assumes "p division_of (\<Union>p)" "(\<
         show "finite (q k - {k})" "open (interior k)"  "\<forall>t\<in>q k - {k}. \<exists>a b. t = {a..b}" using qk by auto
         show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}" using qk(5) using q(2)[OF k] by auto
         have *:"\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
-          apply(rule subset_interior *)+ using k by auto qed qed qed auto qed
+          apply(rule interior_mono *)+ using k by auto qed qed qed auto qed
 
 lemma elementary_bounded[dest]: "p division_of s \<Longrightarrow> bounded (s::('a::ordered_euclidean_space) set)"
   unfolding division_of_def by(metis bounded_Union bounded_interval) 
@@ -823,7 +823,7 @@ proof(rule tagged_division_ofI) note p1=tagged_division_ofD[OF assms(1)] and p2=
   fix x k assume xk:"(x,k)\<in>p1\<union>p2" show "x\<in>k" "\<exists>a b. k = {a..b}" using xk p1(2,4) p2(2,4) by auto
   show "k\<subseteq>s1\<union>s2" using xk p1(3) p2(3) by blast
   fix x' k' assume xk':"(x',k')\<in>p1\<union>p2" "(x,k) \<noteq> (x',k')"
-  have *:"\<And>a b. a\<subseteq> s1 \<Longrightarrow> b\<subseteq> s2 \<Longrightarrow> interior a \<inter> interior b = {}" using assms(3) subset_interior by blast
+  have *:"\<And>a b. a\<subseteq> s1 \<Longrightarrow> b\<subseteq> s2 \<Longrightarrow> interior a \<inter> interior b = {}" using assms(3) interior_mono by blast
   show "interior k \<inter> interior k' = {}" apply(cases "(x,k)\<in>p1", case_tac[!] "(x',k')\<in>p1")
     apply(rule p1(5)) prefer 4 apply(rule *) prefer 6 apply(subst Int_commute,rule *) prefer 8 apply(rule p2(5))
     using p1(3) p2(3) using xk xk' by auto qed 
@@ -842,7 +842,7 @@ proof(rule tagged_division_ofI)
   show "x\<in>k" "\<exists>a b. k = {a..b}" "k \<subseteq> \<Union>iset" using assm(2-4)[OF i] using i(1) by auto
   fix x' k' assume xk':"(x',k')\<in>\<Union>pfn ` iset" "(x, k) \<noteq> (x', k')" then obtain i' where i':"i' \<in> iset" "(x', k') \<in> pfn i'" by auto
   have *:"\<And>a b. i\<noteq>i' \<Longrightarrow> a\<subseteq> i \<Longrightarrow> b\<subseteq> i' \<Longrightarrow> interior a \<inter> interior b = {}" using i(1) i'(1)
-    using assms(3)[rule_format] subset_interior by blast
+    using assms(3)[rule_format] interior_mono by blast
   show "interior k \<inter> interior k' = {}" apply(cases "i=i'")
     using assm(5)[OF i _ xk'(2)]  i'(2) using assm(3)[OF i] assm(3)[OF i'] defer apply-apply(rule *) by auto
 qed
@@ -1703,7 +1703,7 @@ proof- guess d using has_integralD[OF assms(1-2)] . note d=this
           by(rule le_less_trans[OF norm_le_l1])
         hence "x + (\<chi>\<chi> i. if i = k then e/2 else 0) \<in> {x. x$$k = c}" using e by auto
         thus False unfolding mem_Collect_eq using e x k by auto
-      qed ultimately have "content b = 0" unfolding uv content_eq_0_interior apply-apply(drule subset_interior) by auto
+      qed ultimately have "content b = 0" unfolding uv content_eq_0_interior apply-apply(drule interior_mono) by auto
       thus "content b *\<^sub>R f a = 0" by auto
     qed auto
     also have "\<dots> < e" by(rule k d(2) p12 fine_union p1 p2)+
@@ -2563,7 +2563,7 @@ proof-
         proof(rule,rule,rule,rule,rule,rule,rule,erule conjE) fix m n u v
           assume as:"{m..n} \<in> snd ` p" "{u..v} \<in> snd ` p" "{m..n} \<noteq> {u..v}"  "{m..n} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d} = {u..v} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}"
           have "({m..n} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) \<inter> ({u..v} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) \<subseteq> {m..n} \<inter> {u..v}" by blast
-          note subset_interior[OF this, unfolded division_ofD(5)[OF p'' as(1-3)] interior_inter[of "{m..n}"]]
+          note interior_mono[OF this, unfolded division_ofD(5)[OF p'' as(1-3)] interior_inter[of "{m..n}"]]
           hence "interior ({m..n} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) = {}" unfolding as Int_absorb by auto
           thus "content ({m..n} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) = 0" unfolding interval_doublesplit[OF k] content_eq_0_interior[THEN sym] .
         qed qed
@@ -3516,7 +3516,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
             proof- fix x k k' assume k:"( a, k) \<in> p" "( a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
               guess v using pa[OF k(1)] .. note v = conjunctD2[OF this]
               guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = " (min (v) (v'))"
-              have "{ a <..< ?v} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note subset_interior[OF this,unfolded interior_inter]
+              have "{ a <..< ?v} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note interior_mono[OF this,unfolded interior_inter]
               moreover have " ((a + ?v)/2) \<in> { a <..< ?v}" using k(3-)
                 unfolding v v' content_eq_0 not_le by(auto simp add:not_le)
               ultimately have " ((a + ?v)/2) \<in> interior k \<inter> interior k'" unfolding interior_open[OF open_interval] by auto
@@ -3528,7 +3528,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
             proof- fix x k k' assume k:"( b, k) \<in> p" "( b, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
               guess v using pb[OF k(1)] .. note v = conjunctD2[OF this]
               guess v' using pb[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = " (max (v) (v'))"
-              have "{?v <..<  b} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note subset_interior[OF this,unfolded interior_inter]
+              have "{?v <..<  b} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note interior_mono[OF this,unfolded interior_inter]
               moreover have " ((b + ?v)/2) \<in> {?v <..<  b}" using k(3-) unfolding v v' content_eq_0 not_le by auto
               ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'" unfolding interior_open[OF open_interval] by auto
               hence *:"k = k'" apply- apply(rule ccontr) using p(5)[OF k(1-2)] by auto
@@ -4390,7 +4390,7 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
     from this(2) guess u v apply-by(erule exE)+ note uv=this
     have "l\<in>snd ` p" unfolding image_iff apply(rule_tac x="(x,l)" in bexI) using as by auto
     hence "l\<in>q" "k\<in>q" "l\<noteq>k" using as(1,3) q(1) unfolding r_def by auto
-    note q'(5)[OF this] hence "interior l = {}" using subset_interior[OF `l \<subseteq> k`] by blast
+    note q'(5)[OF this] hence "interior l = {}" using interior_mono[OF `l \<subseteq> k`] by blast
     thus "content l *\<^sub>R f x = 0" unfolding uv content_eq_0_interior[THEN sym] by auto qed auto
 
   hence "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + setsum (setsum (\<lambda>(x, k). content k *\<^sub>R f x))
@@ -4403,7 +4403,7 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
     have *:"interior (k \<inter> l) = {}" unfolding interior_inter apply(rule q')
       using as unfolding r_def by auto
     have "interior m = {}" unfolding subset_empty[THEN sym] unfolding *[THEN sym]
-      apply(rule subset_interior) using kl(1)[OF as(4,1)] kl(1)[OF as(5,2)] by auto
+      apply(rule interior_mono) using kl(1)[OF as(4,1)] kl(1)[OF as(5,2)] by auto
     thus "content m *\<^sub>R f x = 0" unfolding uv content_eq_0_interior[THEN sym] by auto 
   qed(insert qq, auto)
 

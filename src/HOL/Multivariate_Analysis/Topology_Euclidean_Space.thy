@@ -588,11 +588,14 @@ lemma open_subset_interior: "open S \<Longrightarrow> S \<subseteq> interior T \
 lemma interior_empty [simp]: "interior {} = {}"
   using open_empty by (rule interior_open)
 
+lemma interior_UNIV [simp]: "interior UNIV = UNIV"
+  using open_UNIV by (rule interior_open)
+
 lemma interior_interior [simp]: "interior (interior S) = interior S"
   using open_interior by (rule interior_open)
 
-lemma subset_interior: "S \<subseteq> T \<Longrightarrow> interior S \<subseteq> interior T"
-  by (auto simp add: interior_def) (* TODO: rename to interior_mono *)
+lemma interior_mono: "S \<subseteq> T \<Longrightarrow> interior S \<subseteq> interior T"
+  by (auto simp add: interior_def)
 
 lemma interior_unique:
   assumes "T \<subseteq> S" and "open T"
@@ -601,7 +604,7 @@ lemma interior_unique:
   by (intro equalityI assms interior_subset open_interior interior_maximal)
 
 lemma interior_inter [simp]: "interior (S \<inter> T) = interior S \<inter> interior T"
-  by (intro equalityI Int_mono Int_greatest subset_interior Int_lower1
+  by (intro equalityI Int_mono Int_greatest interior_mono Int_lower1
     Int_lower2 interior_maximal interior_subset open_Int open_interior)
 
 lemma mem_interior: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
@@ -623,7 +626,7 @@ lemma interior_closed_Un_empty_interior:
   shows "interior (S \<union> T) = interior S"
 proof
   show "interior S \<subseteq> interior (S \<union> T)"
-    by (rule subset_interior, rule Un_upper1)
+    by (rule interior_mono, rule Un_upper1)
 next
   show "interior (S \<union> T) \<subseteq> interior S"
   proof
@@ -689,7 +692,7 @@ lemma closure_closed [simp]: "closed S \<Longrightarrow> closure S = S"
 lemma closure_closure [simp]: "closure (closure S) = closure S"
   unfolding closure_hull by (rule hull_hull)
 
-lemma subset_closure: "S \<subseteq> T \<Longrightarrow> closure S \<subseteq> closure T"
+lemma closure_mono: "S \<subseteq> T \<Longrightarrow> closure S \<subseteq> closure T"
   unfolding closure_hull by (rule hull_mono)
 
 lemma closure_minimal: "S \<subseteq> T \<Longrightarrow> closed T \<Longrightarrow> closure S \<subseteq> T"
@@ -704,7 +707,7 @@ lemma closure_unique:
 lemma closure_empty [simp]: "closure {} = {}"
   using closed_empty by (rule closure_closed)
 
-lemma closure_univ [simp]: "closure UNIV = UNIV"
+lemma closure_UNIV [simp]: "closure UNIV = UNIV"
   using closed_UNIV by (rule closure_closed)
 
 lemma closure_union [simp]: "closure (S \<union> T) = closure S \<union> closure T"
@@ -5989,20 +5992,5 @@ qed
 instance euclidean_space \<subseteq> banach ..
 
 declare tendsto_const [intro] (* FIXME: move *)
-
-text {* Legacy theorem names *}
-
-lemmas Lim_ident_at = LIM_ident
-lemmas Lim_const = tendsto_const
-lemmas Lim_cmul = tendsto_scaleR [OF tendsto_const]
-lemmas Lim_neg = tendsto_minus
-lemmas Lim_add = tendsto_add
-lemmas Lim_sub = tendsto_diff
-lemmas Lim_mul = tendsto_scaleR
-lemmas Lim_vmul = tendsto_scaleR [OF _ tendsto_const]
-lemmas Lim_null_norm = tendsto_norm_zero_iff [symmetric]
-lemmas Lim_linear = bounded_linear.tendsto [COMP swap_prems_rl]
-lemmas Lim_component = tendsto_euclidean_component
-lemmas Lim_intros = Lim_add Lim_const Lim_sub Lim_cmul Lim_vmul Lim_within_id
 
 end

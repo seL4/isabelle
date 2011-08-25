@@ -2311,7 +2311,7 @@ lemma closure_affine_hull:
   fixes S :: "('n::euclidean_space) set"
   shows "closure S <= affine hull S"
 proof-
-have "closure S <= closure (affine hull S)" using subset_closure by auto
+have "closure S <= closure (affine hull S)" using closure_mono by auto
 moreover have "closure (affine hull S) = affine hull S" 
    using affine_affine_hull affine_closed[of "affine hull S"] closure_eq by auto
 ultimately show ?thesis by auto  
@@ -4047,7 +4047,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
   then obtain y where "y\<in>s" and y:"norm (y - x) * (1 - e) < e * d" by auto
   def z \<equiv> "c + ((1 - e) / e) *\<^sub>R (x - y)"
   have *:"x - e *\<^sub>R (x - c) = y - e *\<^sub>R (y - z)" unfolding z_def using `e>0` by (auto simp add: scaleR_right_diff_distrib scaleR_right_distrib scaleR_left_diff_distrib)
-  have "z\<in>interior s" apply(rule subset_interior[OF d,unfolded subset_eq,rule_format])
+  have "z\<in>interior s" apply(rule interior_mono[OF d,unfolded subset_eq,rule_format])
     unfolding interior_open[OF open_ball] mem_ball z_def dist_norm using y and assms(4,5)
     by(auto simp add:field_simps norm_minus_commute)
   thus ?thesis unfolding * apply - apply(rule mem_interior_convex_shrink) 
@@ -4385,7 +4385,7 @@ assumes "convex S"
 shows "closure(rel_interior S) = closure S"
 proof-
 have h1: "closure(rel_interior S) <= closure S" 
-   using subset_closure[of "rel_interior S" S] rel_interior_subset[of S] by auto
+   using closure_mono[of "rel_interior S" S] rel_interior_subset[of S] by auto
 { assume "S ~= {}" from this obtain a where a_def: "a : rel_interior S" 
     using rel_interior_convex_nonempty assms by auto
   { fix x assume x_def: "x : closure S"
@@ -4522,7 +4522,7 @@ shows "(closure S1 = closure S2) <->
 proof-
 have "?A --> ?B" by (metis assms closure_subset convex_rel_interior_closure rel_interior_subset)
 moreover have "?B --> (closure S1 <= closure S2)" 
-     by (metis assms(1) convex_closure_rel_interior subset_closure)
+     by (metis assms(1) convex_closure_rel_interior closure_mono)
 moreover have "?B --> (closure S1 >= closure S2)" by (metis closed_closure closure_minimal)
 ultimately show ?thesis by blast
 qed
@@ -4782,7 +4782,7 @@ have "Inter {closure S |S. S : I} <= closure (Inter {rel_interior S |S. S : I})"
   using convex_closure_rel_interior_inter assms by auto
 moreover have "closure (Inter {rel_interior S |S. S : I}) <= closure (Inter I)" 
     using rel_interior_inter_aux 
-          subset_closure[of "Inter {rel_interior S |S. S : I}" "Inter I"] by auto
+          closure_mono[of "Inter {rel_interior S |S. S : I}" "Inter I"] by auto
 ultimately show ?thesis using closure_inter[of I] by auto
 qed
 
@@ -4795,7 +4795,7 @@ have "Inter {closure S |S. S : I} <= closure (Inter {rel_interior S |S. S : I})"
   using convex_closure_rel_interior_inter assms by auto
 moreover have "closure (Inter {rel_interior S |S. S : I}) <= closure (Inter I)" 
     using rel_interior_inter_aux 
-          subset_closure[of "Inter {rel_interior S |S. S : I}" "Inter I"] by auto
+          closure_mono[of "Inter {rel_interior S |S. S : I}" "Inter I"] by auto
 ultimately show ?thesis using closure_inter[of I] by auto
 qed
 
@@ -4891,7 +4891,7 @@ shows "rel_interior S <= rel_interior T"
 proof-
 have *: "S Int closure T = S" using assms by auto
 have "~(rel_interior S <= rel_frontier T)"
-     using subset_closure[of "rel_interior S" "rel_frontier T"] closed_rel_frontier[of T] 
+     using closure_mono[of "rel_interior S" "rel_frontier T"] closed_rel_frontier[of T] 
      closure_closed convex_closure_rel_interior[of S] closure_subset[of S] assms by auto
 hence "(rel_interior S) Int (rel_interior (closure T)) ~= {}" 
      using assms rel_frontier_def[of T] rel_interior_subset convex_rel_interior_closure[of T] by auto
@@ -4916,8 +4916,8 @@ have "f ` S <= f ` (closure S)" unfolding image_mono using closure_subset by aut
 also have "... = f ` (closure (rel_interior S))" using convex_closure_rel_interior assms by auto  
 also have "... <= closure (f ` (rel_interior S))" using closure_linear_image assms by auto 
 finally have "closure (f ` S) = closure (f ` rel_interior S)"
-   using subset_closure[of "f ` S" "closure (f ` rel_interior S)"] closure_closure 
-         subset_closure[of "f ` rel_interior S" "f ` S"] * by auto
+   using closure_mono[of "f ` S" "closure (f ` rel_interior S)"] closure_closure 
+         closure_mono[of "f ` rel_interior S" "f ` S"] * by auto
 hence "rel_interior (f ` S) = rel_interior (f ` rel_interior S)" using assms convex_rel_interior
    linear_conv_bounded_linear[of f] convex_linear_image[of S] convex_linear_image[of "rel_interior S"] 
    closure_eq_rel_interior_eq[of "f ` S" "f ` rel_interior S"] by auto

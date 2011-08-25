@@ -200,6 +200,28 @@ been renamed as follows (INCOMPATIBILITY):
   tendsto_vector   ~> vec_tendstoI
   Cauchy_vector    ~> vec_CauchyI
 
+* Session Multivariate_Analysis: Several duplicate theorems have been
+removed, and other theorems have been renamed. INCOMPATIBILITY.
+
+  eventually_conjI ~> eventually_conj
+  eventually_and ~> eventually_conj_iff
+  eventually_false ~> eventually_False
+  Lim_ident_at ~> LIM_ident
+  Lim_const ~> tendsto_const
+  Lim_cmul ~> tendsto_scaleR [OF tendsto_const]
+  Lim_neg ~> tendsto_minus
+  Lim_add ~> tendsto_add
+  Lim_sub ~> tendsto_diff
+  Lim_mul ~> tendsto_scaleR
+  Lim_vmul ~> tendsto_scaleR [OF _ tendsto_const]
+  Lim_null_norm ~> tendsto_norm_zero_iff [symmetric]
+  Lim_linear ~> bounded_linear.tendsto
+  Lim_component ~> tendsto_euclidean_component
+  Lim_component_cart ~> tendsto_vec_nth
+  subset_interior ~> interior_mono
+  subset_closure ~> closure_mono
+  closure_univ ~> closure_UNIV
+
 * Complex_Main: The locale interpretations for the bounded_linear and
 bounded_bilinear locales have been removed, in order to reduce the
 number of duplicate lemmas. Users must use the original names for
@@ -212,6 +234,16 @@ distributivity theorems, potential INCOMPATIBILITY.
   mult.diff_right ~> right_diff_distrib
   mult_right.setsum ~> setsum_right_distrib
   mult_left.diff ~> left_diff_distrib
+
+* Complex_Main: Several redundant theorems about real numbers have
+been removed or generalized and renamed. INCOMPATIBILITY.
+
+  real_0_le_divide_iff ~> zero_le_divide_iff
+  realpow_two_disj ~> power2_eq_iff
+  real_squared_diff_one_factored ~> square_diff_one_factored
+  realpow_two_diff ~> square_diff_square_factored
+  exp_ln_eq ~> ln_unique
+  lemma_DERIV_subst ~> DERIV_cong
 
 
 *** Document preparation ***
