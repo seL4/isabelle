@@ -3453,22 +3453,27 @@ proof-
         ultimately show ?thesis using injpi by auto qed qed
   qed auto qed
 
-lemma homeomorphic_convex_compact_lemma: fixes s::"('a::euclidean_space) set"
-  assumes "convex s" "compact s" "cball 0 1 \<subseteq> s"
+lemma homeomorphic_convex_compact_lemma:
+  fixes s :: "('a::euclidean_space) set"
+  assumes "convex s" and "compact s" and "cball 0 1 \<subseteq> s"
   shows "s homeomorphic (cball (0::'a) 1)"
-  apply(rule starlike_compact_projective[OF assms(2-3)]) proof(rule,rule,rule,erule conjE)
-  fix x u assume as:"x \<in> s" "0 \<le> u" "u < (1::real)"
-  hence "u *\<^sub>R x \<in> interior s" unfolding interior_def mem_Collect_eq
-    apply(rule_tac x="ball (u *\<^sub>R x) (1 - u)" in exI) apply(rule, rule open_ball)
-    unfolding centre_in_ball apply rule defer apply(rule) unfolding mem_ball proof-
-    fix y assume "dist (u *\<^sub>R x) y < 1 - u"
-    hence "inverse (1 - u) *\<^sub>R (y - u *\<^sub>R x) \<in> s"
-      using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_commute dist_norm
-      unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_scaleR
-      apply (rule mult_left_le_imp_le[of "1 - u"])
-      unfolding mult_assoc[symmetric] using `u<1` by auto
-    thus "y \<in> s" using assms(1)[unfolded convex_def, rule_format, of "inverse(1 - u) *\<^sub>R (y - u *\<^sub>R x)" x "1 - u" u]
-      using as unfolding scaleR_scaleR by auto qed auto
+proof (rule starlike_compact_projective[OF assms(2-3)], clarify)
+  fix x u assume "x \<in> s" and "0 \<le> u" and "u < (1::real)"
+  have "open (ball (u *\<^sub>R x) (1 - u))" by (rule open_ball)
+  moreover have "u *\<^sub>R x \<in> ball (u *\<^sub>R x) (1 - u)"
+    unfolding centre_in_ball using `u < 1` by simp
+  moreover have "ball (u *\<^sub>R x) (1 - u) \<subseteq> s"
+  proof
+    fix y assume "y \<in> ball (u *\<^sub>R x) (1 - u)"
+    hence "dist (u *\<^sub>R x) y < 1 - u" unfolding mem_ball .
+    with `u < 1` have "inverse (1 - u) *\<^sub>R (y - u *\<^sub>R x) \<in> cball 0 1"
+      by (simp add: dist_norm inverse_eq_divide norm_minus_commute)
+    with assms(3) have "inverse (1 - u) *\<^sub>R (y - u *\<^sub>R x) \<in> s" ..
+    with assms(1) have "(1 - u) *\<^sub>R ((y - u *\<^sub>R x) /\<^sub>R (1 - u)) + u *\<^sub>R x \<in> s"
+      using `x \<in> s` `0 \<le> u` `u < 1` [THEN less_imp_le] by (rule mem_convex)
+    thus "y \<in> s" using `u < 1` by simp
+  qed
+  ultimately have "u *\<^sub>R x \<in> interior s" ..
   thus "u *\<^sub>R x \<in> s - frontier s" using frontier_def and interior_subset by auto qed
 
 lemma homeomorphic_convex_compact_cball: fixes e::real and s::"('a::euclidean_space) set"
