@@ -20,7 +20,7 @@ sig
     Chained
 
   datatype order = First_Order | Higher_Order
-  datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+  datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
   datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
   datatype type_level =
     All_Types |
@@ -522,7 +522,7 @@ datatype locality =
   Chained
 
 datatype order = First_Order | Higher_Order
-datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
 datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
 datatype type_level =
   All_Types |
@@ -544,10 +544,10 @@ fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
    | NONE =>
-     case try (unprefix "mono_") s of
-       SOME s => (SOME Monomorphic, s)
+     case try (unprefix "raw_mono_") s of
+       SOME s => (SOME Raw_Monomorphic, s)
      | NONE =>
-       case try (unprefix "mangled_") s of
+       case try (unprefix "mono_") s of
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
   ||> (fn s =>

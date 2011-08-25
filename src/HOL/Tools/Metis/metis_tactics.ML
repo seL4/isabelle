@@ -39,7 +39,7 @@ val full_typesN = "full_types"
 val partial_typesN = "partial_types"
 val no_typesN = "no_types"
 
-val really_full_type_enc = "mangled_tags_uniform"
+val really_full_type_enc = "mono_tags_uniform"
 val full_type_enc = "poly_guards_uniform_query"
 val partial_type_enc = "poly_args"
 val no_type_enc = "erased"

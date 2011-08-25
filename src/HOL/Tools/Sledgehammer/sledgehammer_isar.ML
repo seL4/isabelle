@@ -148,7 +148,7 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
-(* Ensure that type systems such as "simple!" and "mangled_guards?" are handled
+(* Ensure that type systems such as "simple!" and "mono_guards?" are handled
    correctly. *)
 fun implode_param [s, "?"] = s ^ "?"
   | implode_param [s, "!"] = s ^ "!"
