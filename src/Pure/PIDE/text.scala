@@ -64,7 +64,7 @@ object Text
 
   object Perspective
   {
-    val empty = Perspective(Nil)
+    val empty: Perspective = Perspective(Nil)
 
     def apply(ranges: Seq[Range]): Perspective =
     {

@@ -60,7 +60,8 @@ object Document
         case exn => exn
       }
 
-    val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Nil, Map(), Linear_Set())
+    val empty: Node =
+      Node(Exn.Exn(ERROR("Bad theory header")), Command.Perspective.empty, Map(), Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =

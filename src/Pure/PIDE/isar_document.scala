@@ -144,7 +144,7 @@ trait Isar_Document extends Isabelle_Process
   {
     val ids =
     { import XML.Encode._
-      list(long)(perspective.map(_.id)) }
+      list(long)(perspective.commands.map(_.id)) }
 
     input("Isar_Document.update_perspective", Document.ID(old_id), Document.ID(new_id), name,
       YXML.string_of_body(ids))
@@ -164,7 +164,7 @@ trait Isar_Document extends Isabelle_Process
             { case Document.Node.Header(Exn.Res(Thy_Header(a, b, c))) =>
                 (Nil, triple(string, list(string), list(pair(string, bool)))(a, b, c)) },
             { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
-            { case Document.Node.Perspective(cs) => (cs.map(c => long_atom(c.id)), Nil) }))))
+            { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))))
       YXML.string_of_body(encode(edits)) }
 
     input("Isar_Document.edit_version", Document.ID(old_id), Document.ID(new_id), edits_yxml)

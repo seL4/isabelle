@@ -88,14 +88,22 @@ object Command
 
   /* perspective */
 
-  type Perspective = List[Command]  // visible commands in canonical order
-
-  def equal_perspective(p1: Perspective, p2: Perspective): Boolean =
+  object Perspective
   {
-    require(p1.forall(_.is_defined))
-    require(p2.forall(_.is_defined))
-    p1.length == p2.length &&
-      (p1.iterator zip p2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
+    val empty: Perspective = Perspective(Nil)
+  }
+
+  sealed case class Perspective(commands: List[Command])  // visible commands in canonical order
+  {
+    def same(that: Perspective): Boolean =
+    {
+      val cmds1 = this.commands
+      val cmds2 = that.commands
+      require(cmds1.forall(_.is_defined))
+      require(cmds2.forall(_.is_defined))
+      cmds1.length == cmds2.length &&
+        (cmds1.iterator zip cmds2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
+    }
   }
 }
 
