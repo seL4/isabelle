@@ -152,16 +152,14 @@ local
 
   fun prep (ct, vars) (maxidx, all_vars) =
     let
-      val maxidx' = maxidx_of ct + maxidx + 1
+      val maxidx' = maxidx + maxidx_of ct + 1
 
       fun part (v as (i, cv)) =
         (case AList.lookup (op =) all_vars i of
           SOME cu => apfst (if cu aconvc cv then I else cons (cv, cu))
         | NONE =>
-            if not (exists (equal_var cv) all_vars) then apsnd (cons v)
-            else
-              let val cv' = Thm.incr_indexes_cterm maxidx' cv
-              in apfst (cons (cv, cv')) #> apsnd (cons (i, cv')) end)
+            let val cv' = Thm.incr_indexes_cterm maxidx cv
+            in apfst (cons (cv, cv')) #> apsnd (cons (i, cv')) end)
 
       val (inst, vars') =
         if null vars then ([], vars)
@@ -170,7 +168,7 @@ local
     in (Thm.instantiate_cterm ([], inst) ct, (maxidx', vars' @ all_vars)) end
 in
 fun mk_fun f ts =
-  let val (cts, (_, vars)) = fold_map prep ts (~1, [])
+  let val (cts, (_, vars)) = fold_map prep ts (0, [])
   in f cts |> Option.map (rpair vars) end
 end
 
