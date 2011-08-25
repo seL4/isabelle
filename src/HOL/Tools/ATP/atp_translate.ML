@@ -1671,8 +1671,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
       else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
         let
           val var = ATerm (name, [])
-          val tagged_var =
-            ATerm (type_tag, [ho_term_from_typ format type_enc T, var])
+          val tagged_var = var |> tag_with_type ctxt format mono type_enc pos T
         in SOME (AAtom (ATerm (`I tptp_equal, [tagged_var, var]))) end
       else
         NONE
