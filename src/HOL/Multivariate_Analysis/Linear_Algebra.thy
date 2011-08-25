@@ -191,12 +191,6 @@ lemma setsum_group:
   apply (rule setsum_mono_zero_right[OF fT fST])
   by (auto intro: setsum_0')
 
-lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> y = setsum (\<lambda>x. f x \<bullet> y) S "
-  apply(induct rule: finite_induct) by(auto simp add: inner_add)
-
-lemma dot_rsum: "finite S \<Longrightarrow> y \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
-  apply(induct rule: finite_induct) by(auto simp add: inner_add)
-
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
 proof
   assume "\<forall>x. x \<bullet> y = x \<bullet> z"
@@ -1816,7 +1810,7 @@ next
         apply (subst Cy)
         using C(1) fth
         apply (simp only: setsum_clauses)
-        apply (auto simp add: inner_add inner_commute[of y a] dot_lsum[OF fth])
+        apply (auto simp add: inner_add inner_commute[of y a] inner_setsum_left)
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -1833,7 +1827,7 @@ next
         using C(1) fth
         apply (simp only: setsum_clauses)
         apply (subst inner_commute[of x])
-        apply (auto simp add: inner_add inner_commute[of x a] dot_rsum[OF fth])
+        apply (auto simp add: inner_add inner_commute[of x a] inner_setsum_right)
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -1903,7 +1897,7 @@ next
         apply (subst B') using fB fth
         unfolding setsum_clauses(2)[OF fth]
         apply simp unfolding inner_simps
-        apply (clarsimp simp add: inner_add dot_lsum)
+        apply (clarsimp simp add: inner_add inner_setsum_left)
         apply (rule setsum_0', rule ballI)
         unfolding inner_commute
         by (auto simp add: x field_simps intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}

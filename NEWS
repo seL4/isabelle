@@ -218,6 +218,8 @@ removed, and other theorems have been renamed. INCOMPATIBILITY.
   Lim_linear ~> bounded_linear.tendsto
   Lim_component ~> tendsto_euclidean_component
   Lim_component_cart ~> tendsto_vec_nth
+  dot_lsum ~> inner_setsum_left
+  dot_rsum ~> inner_setsum_right
   subset_interior ~> interior_mono
   subset_closure ~> closure_mono
   closure_univ ~> closure_UNIV
