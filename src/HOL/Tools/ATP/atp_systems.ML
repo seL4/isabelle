@@ -338,9 +338,9 @@ val vampire_config : atp_config =
          (0.334, (true, (50, FOF, "mono_guards?", no_sosN))),
          (0.333, (false, (500, FOF, "mono_tags?", sosN)))]
       else
-        [(0.333, (false, (150, TFF, "poly_guards", sosN))),
-         (0.334, (true, (50, TFF, "simple", no_sosN))),
-         (0.333, (false, (500, TFF, "simple", sosN)))])
+        [(0.333, (false, (150, TFF Implicit, "poly_guards", sosN))),
+         (0.334, (true, (50, TFF Implicit, "simple", no_sosN))),
+         (0.333, (false, (500, TFF Implicit, "simple", sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -368,8 +368,8 @@ val z3_tptp_config : atp_config =
      (* FUDGE *)
      K [(0.5, (false, (250, FOF, "mono_guards?", ""))),
         (0.25, (false, (125, FOF, "mono_guards?", ""))),
-        (0.125, (false, (62, TFF, "simple", ""))),
-        (0.125, (false, (31, TFF, "simple", "")))]}
+        (0.125, (false, (62, TFF Implicit, "simple", ""))),
+        (0.125, (false, (31, TFF Implicit, "simple", "")))]}
 
 val z3_tptp = (z3_tptpN, z3_tptp_config)
 
@@ -457,19 +457,21 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
                (K (100, THF With_Choice, "simple_higher") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["1.8"] (K (250, TFF, "simple") (* FUDGE *))
+  remotify_atp vampire "Vampire" ["1.8"]
+               (K (250, TFF Implicit, "simple") (* FUDGE *))
 val remote_z3_tptp =
-  remotify_atp z3_tptp "Z3" ["3.0"] (K (250, TFF, "simple") (* FUDGE *))
+  remotify_atp z3_tptp "Z3" ["3.0"]
+                       (K (250, TFF Implicit, "simple") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture (K (500, FOF, "mono_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-             (K (100, TFF, "simple") (* FUDGE *))
+             (K (100, TFF Explicit, "simple") (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Hypothesis (K (150, TFF, "simple") (* FUDGE *))
+             Axiom Hypothesis (K (150, TFF Explicit, "simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]

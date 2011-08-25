@@ -19,12 +19,13 @@ sig
 
   datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
+  datatype tff_flavor = Implicit | Explicit
   datatype thf_flavor = Without_Choice | With_Choice
   datatype format =
     CNF |
     CNF_UEQ |
     FOF |
-    TFF |
+    TFF of tff_flavor |
     THF of thf_flavor
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -118,12 +119,14 @@ datatype ('a, 'b, 'c) formula =
 
 datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
+datatype tff_flavor = Implicit | Explicit
 datatype thf_flavor = Without_Choice | With_Choice
+
 datatype format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF |
+  TFF of tff_flavor |
   THF of thf_flavor
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
@@ -210,7 +213,7 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
 
 fun is_format_thf (THF _) = true
   | is_format_thf _ = false
-fun is_format_typed TFF = true
+fun is_format_typed (TFF _) = true
   | is_format_typed (THF _) = true
   | is_format_typed _ = false
 
@@ -232,7 +235,7 @@ fun string_for_type (THF _) ty =
           aux false ty1 ^ " " ^ tptp_fun_type ^ " " ^ aux true ty2
           |> not rhs ? enclose "(" ")"
     in aux true ty end
-  | string_for_type TFF ty =
+  | string_for_type (TFF _) ty =
     (case strip_tff_type ty of
        ([], s) => s
      | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
@@ -320,7 +323,7 @@ fun the_source (SOME source) = source
 fun string_for_format CNF = tptp_cnf
   | string_for_format CNF_UEQ = tptp_cnf
   | string_for_format FOF = tptp_fof
-  | string_for_format TFF = tptp_tff
+  | string_for_format (TFF _) = tptp_tff
   | string_for_format (THF _) = tptp_thf
 
 fun string_for_problem_line format (Decl (ident, sym, ty)) =
