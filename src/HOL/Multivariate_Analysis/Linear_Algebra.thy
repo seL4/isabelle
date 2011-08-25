@@ -1766,8 +1766,15 @@ definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<
 lemma vector_sub_project_orthogonal: "(b::'a::euclidean_space) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *\<^sub>R b) = 0"
   unfolding inner_simps by auto
 
+lemma pairwise_orthogonal_insert:
+  assumes "pairwise orthogonal S"
+  assumes "\<And>y. y \<in> S \<Longrightarrow> orthogonal x y"
+  shows "pairwise orthogonal (insert x S)"
+  using assms unfolding pairwise_def
+  by (auto simp add: orthogonal_commute)
+
 lemma basis_orthogonal:
-  fixes B :: "('a::euclidean_space) set"
+  fixes B :: "('a::real_inner) set"
   assumes fB: "finite B"
   shows "\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C"
   (is " \<exists>C. ?P B C")
@@ -1795,48 +1802,20 @@ next
       by (rule span_superset)}
   then have SC: "span ?C = span (insert a B)"
     unfolding set_eq_iff span_breakdown_eq C(3)[symmetric] by auto
-  thm pairwise_def
-  {fix x y assume xC: "x \<in> ?C" and yC: "y \<in> ?C" and xy: "x \<noteq> y"
-    {assume xa: "x = ?a" and ya: "y = ?a"
-      have "orthogonal x y" using xa ya xy by blast}
-    moreover
-    {assume xa: "x = ?a" and ya: "y \<noteq> ?a" "y \<in> C"
-      from ya have Cy: "C = insert y (C - {y})" by blast
-      have fth: "finite (C - {y})" using C by simp
-      have "orthogonal x y"
-        using xa ya
-        unfolding orthogonal_def xa inner_simps diff_eq_0_iff_eq
-        apply simp
-        apply (subst Cy)
-        using C(1) fth
-        apply (simp only: setsum_clauses)
-        apply (auto simp add: inner_add inner_commute[of y a] inner_setsum_left)
-        apply (rule setsum_0')
-        apply clarsimp
-        apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-        by auto}
-    moreover
-    {assume xa: "x \<noteq> ?a" "x \<in> C" and ya: "y = ?a"
-      from xa have Cx: "C = insert x (C - {x})" by blast
-      have fth: "finite (C - {x})" using C by simp
-      have "orthogonal x y"
-        using xa ya
-        unfolding orthogonal_def ya inner_simps diff_eq_0_iff_eq
-        apply simp
-        apply (subst Cx)
-        using C(1) fth
-        apply (simp only: setsum_clauses)
-        apply (subst inner_commute[of x])
-        apply (auto simp add: inner_add inner_commute[of x a] inner_setsum_right)
-        apply (rule setsum_0')
-        apply clarsimp
-        apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-        by auto}
-    moreover
-    {assume xa: "x \<in> C" and ya: "y \<in> C"
-      have "orthogonal x y" using xa ya xy C(4) unfolding pairwise_def by blast}
-    ultimately have "orthogonal x y" using xC yC by blast}
-  then have CPO: "pairwise orthogonal ?C" unfolding pairwise_def by blast
+  { fix y assume yC: "y \<in> C"
+    hence Cy: "C = insert y (C - {y})" by blast
+    have fth: "finite (C - {y})" using C by simp
+    have "orthogonal ?a y"
+      unfolding orthogonal_def
+      unfolding inner_diff inner_setsum_left diff_eq_0_iff_eq
+      unfolding setsum_diff1' [OF `finite C` `y \<in> C`]
+      apply (clarsimp simp add: inner_commute[of y a])
+      apply (rule setsum_0')
+      apply clarsimp
+      apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
+      using `y \<in> C` by auto }
+  with `pairwise orthogonal C` have CPO: "pairwise orthogonal ?C"
+    by (rule pairwise_orthogonal_insert)
   from fC cC SC CPO have "?P (insert a B) ?C" by blast
   then show ?case by blast
 qed
