@@ -335,12 +335,12 @@ val vampire_config : atp_config =
      (* FUDGE *)
      (if is_old_vampire_version () then
         [(0.333, (false, (150, FOF, "poly_guards", sosN))),
-         (0.334, (true, (50, FOF, "mono_guards?", no_sosN))),
-         (0.333, (false, (500, FOF, "mono_tags?", sosN)))]
+         (0.333, (false, (500, FOF, "mono_tags?", sosN))),
+         (0.334, (true, (50, FOF, "mono_guards?", no_sosN)))]
       else
         [(0.333, (false, (150, TFF Implicit, "poly_guards", sosN))),
-         (0.334, (true, (50, TFF Implicit, "simple", no_sosN))),
-         (0.333, (false, (500, TFF Implicit, "simple", sosN)))])
+         (0.333, (false, (500, TFF Implicit, "simple", sosN))),
+         (0.334, (true, (50, TFF Implicit, "simple", no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
