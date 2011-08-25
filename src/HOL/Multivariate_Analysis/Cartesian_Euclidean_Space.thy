@@ -792,7 +792,7 @@ proof-
  have "subspace ?P"
    by (auto simp add: subspace_def)
  ultimately show ?thesis
-   using x span_induct[of ?B ?P x] iS by blast
+   using x span_induct[of x ?B ?P] iS by blast
 qed
 
 lemma independent_stdbasis: "independent {cart_basis i ::real^'n |i. i\<in> (UNIV :: 'n set)}"

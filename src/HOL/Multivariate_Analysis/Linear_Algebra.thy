@@ -628,6 +628,9 @@ lemma subspace_linear_image:
   apply (rule_tac x="c *\<^sub>R x" in bexI, auto)
   done
 
+lemma subspace_linear_vimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace (f -` S)"
+  by (auto simp add: subspace_def linear_def linear_0[of f])
+
 lemma subspace_linear_preimage: "linear f ==> subspace S ==> subspace {x. f x \<in> S}"
   by (auto simp add: subspace_def linear_def linear_0[of f])
 
@@ -636,6 +639,11 @@ lemma subspace_trivial: "subspace {0}"
 
 lemma (in real_vector) subspace_inter: "subspace A \<Longrightarrow> subspace B ==> subspace (A \<inter> B)"
   by (simp add: subspace_def)
+
+lemma subspace_Times: "\<lbrakk>subspace A; subspace B\<rbrakk> \<Longrightarrow> subspace (A \<times> B)"
+  unfolding subspace_def zero_prod_def by simp
+
+text {* Properties of span. *}
 
 lemma (in real_vector) span_mono: "A \<subseteq> B ==> span A \<subseteq> span B"
   by (metis span_def hull_mono)
@@ -655,8 +663,16 @@ lemma (in real_vector) span_clauses:
   by (metis span_def hull_subset subset_eq)
      (metis subspace_span subspace_def)+
 
-lemma (in real_vector) span_induct: assumes SP: "\<And>x. x \<in> S ==> x \<in> P"
-  and P: "subspace P" and x: "x \<in> span S" shows "x \<in> P"
+lemma span_unique:
+  "\<lbrakk>S \<subseteq> T; subspace T; \<And>T'. \<lbrakk>S \<subseteq> T'; subspace T'\<rbrakk> \<Longrightarrow> T \<subseteq> T'\<rbrakk> \<Longrightarrow> span S = T"
+  unfolding span_def by (rule hull_unique)
+
+lemma span_minimal: "S \<subseteq> T \<Longrightarrow> subspace T \<Longrightarrow> span S \<subseteq> T"
+  unfolding span_def by (rule hull_minimal)
+
+lemma (in real_vector) span_induct:
+  assumes x: "x \<in> span S" and P: "subspace P" and SP: "\<And>x. x \<in> S ==> x \<in> P"
+  shows "x \<in> P"
 proof-
   from SP have SP': "S \<subseteq> P" by (simp add: subset_eq)
   from x hull_minimal[where S=subspace, OF SP' P, unfolded span_def[symmetric]]
@@ -788,105 +804,76 @@ lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longle
 
 text {* Mapping under linear image. *}
 
-lemma span_linear_image: assumes lf: "linear f"
+lemma image_subset_iff_subset_vimage: "f ` A \<subseteq> B \<longleftrightarrow> A \<subseteq> f -` B"
+  by auto (* TODO: move *)
+
+lemma span_linear_image:
+  assumes lf: "linear f"
   shows "span (f ` S) = f ` (span S)"
-proof-
-  {fix x
-    assume x: "x \<in> span (f ` S)"
-    have "x \<in> f ` span S"
-      apply (rule span_induct[where x=x and S = "f ` S"])
-      apply (clarsimp simp add: image_iff)
-      apply (frule span_superset)
-      apply blast
-      apply (rule subspace_linear_image[OF lf])
-      apply (rule subspace_span)
-      apply (rule x)
-      done}
-  moreover
-  {fix x assume x: "x \<in> span S"
-    have "x \<in> {x. f x \<in> span (f ` S)}"
-      apply (rule span_induct[where S=S])
-      apply simp
-      apply (rule span_superset)
-      apply simp
-      apply (rule subspace_linear_preimage[OF lf subspace_span, of "f ` S"])
-      apply (rule x)
-      done
-    hence "f x \<in> span (f ` S)" by simp
-  }
-  ultimately show ?thesis by blast
+proof (rule span_unique)
+  show "f ` S \<subseteq> f ` span S"
+    by (intro image_mono span_inc)
+  show "subspace (f ` span S)"
+    using lf subspace_span by (rule subspace_linear_image)
+next
+  fix T assume "f ` S \<subseteq> T" and "subspace T" thus "f ` span S \<subseteq> T"
+    unfolding image_subset_iff_subset_vimage
+    by (intro span_minimal subspace_linear_vimage lf)
+qed
+
+lemma span_union: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
+proof (rule span_unique)
+  show "A \<union> B \<subseteq> (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
+    by safe (force intro: span_clauses)+
+next
+  have "linear (\<lambda>(a, b). a + b)"
+    by (simp add: linear_def scaleR_add_right)
+  moreover have "subspace (span A \<times> span B)"
+    by (intro subspace_Times subspace_span)
+  ultimately show "subspace ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
+    by (rule subspace_linear_image)
+next
+  fix T assume "A \<union> B \<subseteq> T" and "subspace T"
+  thus "(\<lambda>(a, b). a + b) ` (span A \<times> span B) \<subseteq> T"
+    by (auto intro!: subspace_add elim: span_induct)
 qed
 
 text {* The key breakdown property. *}
 
-lemma span_breakdown:
-  assumes bS: "b \<in> S" and aS: "a \<in> span S"
-  shows "\<exists>k. a - k *\<^sub>R b \<in> span (S - {b})" (is "?P a")
-proof-
-  {fix x assume xS: "x \<in> S"
-    {assume ab: "x = b"
-      then have "?P x"
-        apply simp
-        apply (rule exI[where x="1"], simp)
-        by (rule span_0)}
-    moreover
-    {assume ab: "x \<noteq> b"
-      then have "?P x"  using xS
-        apply -
-        apply (rule exI[where x=0])
-        apply (rule span_superset)
-        by simp}
-    ultimately have "x \<in> Collect ?P" by blast}
-  moreover have "subspace (Collect ?P)"
+lemma span_singleton: "span {x} = range (\<lambda>k. k *\<^sub>R x)"
+proof (rule span_unique)
+  show "{x} \<subseteq> range (\<lambda>k. k *\<^sub>R x)"
+    by (fast intro: scaleR_one [symmetric])
+  show "subspace (range (\<lambda>k. k *\<^sub>R x))"
     unfolding subspace_def
-    apply auto
-    apply (rule exI[where x=0])
-    using span_0[of "S - {b}"]
-    apply simp
-    apply (rule_tac x="k + ka" in exI)
-    apply (subgoal_tac "x + y - (k + ka) *\<^sub>R b = (x - k*\<^sub>R b) + (y - ka *\<^sub>R b)")
-    apply (simp only: )
-    apply (rule span_add)
-    apply assumption+
-    apply (simp add: algebra_simps)
-    apply (rule_tac x= "c*k" in exI)
-    apply (subgoal_tac "c *\<^sub>R x - (c * k) *\<^sub>R b = c*\<^sub>R (x - k*\<^sub>R b)")
-    apply (simp only: )
-    apply (rule span_mul)
-    apply assumption
-    by (simp add: algebra_simps)
-  ultimately have "a \<in> Collect ?P" using aS by (rule span_induct)
-  thus "?P a" by simp
+    by (auto intro: scaleR_add_left [symmetric])
+  fix T assume "{x} \<subseteq> T" and "subspace T" thus "range (\<lambda>k. k *\<^sub>R x) \<subseteq> T"
+    unfolding subspace_def by auto
 qed
 
-lemma span_breakdown_eq:
-  "x \<in> span (insert a S) \<longleftrightarrow> (\<exists>k. (x - k *\<^sub>R a) \<in> span S)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
-  {assume x: "x \<in> span (insert a S)"
-    from x span_breakdown[of "a" "insert a S" "x"]
-    have ?rhs apply clarsimp
-      apply (rule_tac x= "k" in exI)
-      apply (rule set_rev_mp[of _ "span (S - {a})" _])
-      apply assumption
-      apply (rule span_mono)
-      apply blast
-      done}
-  moreover
-  { fix k assume k: "x - k *\<^sub>R a \<in> span S"
-    have eq: "x = (x - k *\<^sub>R a) + k *\<^sub>R a" by simp
-    have "(x - k *\<^sub>R a) + k *\<^sub>R a \<in> span (insert a S)"
-      apply (rule span_add)
-      apply (rule set_rev_mp[of _ "span S" _])
-      apply (rule k)
-      apply (rule span_mono)
-      apply blast
-      apply (rule span_mul)
-      apply (rule span_superset)
-      apply blast
-      done
-    then have ?lhs using eq by metis}
-  ultimately show ?thesis by blast
+lemma span_insert:
+  "span (insert a S) = {x. \<exists>k. (x - k *\<^sub>R a) \<in> span S}"
+proof -
+  have "span ({a} \<union> S) = {x. \<exists>k. (x - k *\<^sub>R a) \<in> span S}"
+    unfolding span_union span_singleton
+    apply safe
+    apply (rule_tac x=k in exI, simp)
+    apply (erule rev_image_eqI [OF SigmaI [OF rangeI]])
+    apply simp
+    apply (rule right_minus)
+    done
+  thus ?thesis by simp
 qed
+
+lemma span_breakdown:
+  assumes bS: "b \<in> S" and aS: "a \<in> span S"
+  shows "\<exists>k. a - k *\<^sub>R b \<in> span (S - {b})"
+  using assms span_insert [of b "S - {b}"]
+  by (simp add: insert_absorb)
+
+lemma span_breakdown_eq:
+  "x \<in> span (insert a S) \<longleftrightarrow> (\<exists>k. (x - k *\<^sub>R a) \<in> span S)"
+  by (simp add: span_insert)
 
 text {* Hence some "reversal" results. *}
 
@@ -943,26 +930,16 @@ lemma in_span_delete:
 
 text {* Transitivity property. *}
 
+lemma span_redundant: "x \<in> span S \<Longrightarrow> span (insert x S) = span S"
+  unfolding span_def by (rule hull_redundant)
+
 lemma span_trans:
   assumes x: "x \<in> span S" and y: "y \<in> span (insert x S)"
   shows "y \<in> span S"
-proof-
-  from span_breakdown[of x "insert x S" y, OF insertI1 y]
-  obtain k where k: "y -k*\<^sub>R x \<in> span (S - {x})" by auto
-  have eq: "y = (y - k *\<^sub>R x) + k *\<^sub>R x" by simp
-  show ?thesis
-    apply (subst eq)
-    apply (rule span_add)
-    apply (rule set_rev_mp)
-    apply (rule k)
-    apply (rule span_mono)
-    apply blast
-    apply (rule span_mul)
-    by (rule x)
-qed
+  using assms by (simp only: span_redundant)
 
 lemma span_insert_0[simp]: "span (insert 0 S) = span S"
-  using span_mono[of S "insert 0 S"] by (auto intro: span_trans span_0)
+  by (simp only: span_redundant span_0)
 
 text {* An explicit expansion is sometimes needed. *}
 
@@ -1092,43 +1069,6 @@ proof-
   {fix y u assume u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y"
     then have "y \<in> span S" using fS unfolding span_explicit by auto}
   ultimately show ?thesis by blast
-qed
-
-lemma Int_Un_cancel: "(A \<union> B) \<inter> A = A" "(A \<union> B) \<inter> B = B" by auto
-
-lemma span_union: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
-proof safe
-  fix x assume "x \<in> span (A \<union> B)"
-  then obtain S u where S: "finite S" "S \<subseteq> A \<union> B" and x: "x = (\<Sum>v\<in>S. u v *\<^sub>R v)"
-    unfolding span_explicit by auto
-
-  let ?Sa = "\<Sum>v\<in>S\<inter>A. u v *\<^sub>R v"
-  let ?Sb = "(\<Sum>v\<in>S\<inter>(B - A). u v *\<^sub>R v)"
-  show "x \<in> (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
-  proof
-    show "x = (case (?Sa, ?Sb) of (a, b) \<Rightarrow> a + b)"
-      unfolding x using S
-      by (simp, subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
-
-    from S have "?Sa \<in> span A" unfolding span_explicit
-      by (auto intro!: exI[of _ "S \<inter> A"])
-    moreover from S have "?Sb \<in> span B" unfolding span_explicit
-      by (auto intro!: exI[of _ "S \<inter> (B - A)"])
-    ultimately show "(?Sa, ?Sb) \<in> span A \<times> span B" by simp
-  qed
-next
-  fix a b assume "a \<in> span A" and "b \<in> span B"
-  then obtain Sa ua Sb ub where span:
-    "finite Sa" "Sa \<subseteq> A" "a = (\<Sum>v\<in>Sa. ua v *\<^sub>R v)"
-    "finite Sb" "Sb \<subseteq> B" "b = (\<Sum>v\<in>Sb. ub v *\<^sub>R v)"
-    unfolding span_explicit by auto
-  let "?u v" = "(if v \<in> Sa then ua v else 0) + (if v \<in> Sb then ub v else 0)"
-  from span have "finite (Sa \<union> Sb)" "Sa \<union> Sb \<subseteq> A \<union> B"
-    and "a + b = (\<Sum>v\<in>(Sa\<union>Sb). ?u v *\<^sub>R v)"
-    unfolding setsum_addf scaleR_left_distrib
-    by (auto simp add: if_distrib cond_application_beta setsum_cases Int_Un_cancel)
-  thus "a + b \<in> span (A \<union> B)"
-    unfolding span_explicit by (auto intro!: exI[of _ ?u])
 qed
 
 text {* This is useful for building a basis step-by-step. *}
