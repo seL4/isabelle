@@ -308,8 +308,10 @@ fun make_schematic_type_var (x, i) =
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
 (* "HOL.eq" is mapped to the ATP's equality. *)
-fun make_fixed_const @{const_name HOL.eq} = tptp_old_equal
-  | make_fixed_const c = const_prefix ^ lookup_const c
+fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
+  | make_fixed_const (SOME (THF With_Choice)) "Hilbert_Choice.Eps"(*FIXME*) =
+      tptp_choice
+  | make_fixed_const _ c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
@@ -483,38 +485,38 @@ fun new_skolem_const_name s num_T_args =
 
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
-fun iterm_from_term thy bs (P $ Q) =
+fun iterm_from_term thy format bs (P $ Q) =
     let
-      val (P', P_atomics_Ts) = iterm_from_term thy bs P
-      val (Q', Q_atomics_Ts) = iterm_from_term thy bs Q
+      val (P', P_atomics_Ts) = iterm_from_term thy format bs P
+      val (Q', Q_atomics_Ts) = iterm_from_term thy format bs Q
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
-  | iterm_from_term thy _ (Const (c, T)) =
-    (IConst (`make_fixed_const c, T,
+  | iterm_from_term thy format _ (Const (c, T)) =
+    (IConst (`(make_fixed_const (SOME format)) c, T,
              if String.isPrefix old_skolem_const_prefix c then
                [] |> Term.add_tvarsT T |> map TVar
              else
                (c, T) |> Sign.const_typargs thy),
      atyps_of T)
-  | iterm_from_term _ _ (Free (s, T)) =
+  | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
              if String.isPrefix polymorphic_free_prefix s then [T] else []),
      atyps_of T)
-  | iterm_from_term _ _ (Var (v as (s, _), T)) =
+  | iterm_from_term _ format _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
          val Ts = T |> strip_type |> swap |> op ::
          val s' = new_skolem_const_name s (length Ts)
-       in IConst (`make_fixed_const s', T, Ts) end
+       in IConst (`(make_fixed_const (SOME format)) s', T, Ts) end
      else
        IVar ((make_schematic_var v, s), T), atyps_of T)
-  | iterm_from_term _ bs (Bound j) =
+  | iterm_from_term _ _ bs (Bound j) =
     nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atyps_of T))
-  | iterm_from_term thy bs (Abs (s, T, t)) =
+  | iterm_from_term thy format bs (Abs (s, T, t)) =
     let
       fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
       val s = vary s
       val name = `make_bound_var s
-      val (tm, atomic_Ts) = iterm_from_term thy ((s, (name, T)) :: bs) t
+      val (tm, atomic_Ts) = iterm_from_term thy format ((s, (name, T)) :: bs) t
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
 
 datatype locality =
@@ -882,15 +884,20 @@ fun introduce_proxies type_enc =
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
-          | NONE => IConst (name, T, T_args))
+          | NONE => if s = tptp_choice then
+                      (*this could be made neater by adding c_Eps as a proxy,
+                        but we'd need to be able to "see" Hilbert_Choice.Eps
+                        at this level in order to define fEps*)
+                      tweak_ho_quant tptp_choice T args
+                    else IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
 
-fun iformula_from_prop thy type_enc eq_as_iff =
+fun iformula_from_prop thy format type_enc eq_as_iff =
   let
     fun do_term bs t atomic_types =
-      iterm_from_term thy bs (Envir.eta_contract t)
+      iterm_from_term thy format bs (Envir.eta_contract t)
       |>> (introduce_proxies type_enc #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q pos s T t' =
@@ -1041,10 +1048,10 @@ fun presimp_prop ctxt presimp_consts t =
   end
 
 (* making fact and conjecture formulas *)
-fun make_formula thy type_enc eq_as_iff name loc kind t =
+fun make_formula thy format type_enc eq_as_iff name loc kind t =
   let
     val (iformula, atomic_types) =
-      iformula_from_prop thy type_enc eq_as_iff (SOME (kind <> Conjecture)) t []
+      iformula_from_prop thy format type_enc eq_as_iff (SOME (kind <> Conjecture)) t []
   in
     {name = name, locality = loc, kind = kind, iformula = iformula,
      atomic_types = atomic_types}
@@ -1052,8 +1059,8 @@ fun make_formula thy type_enc eq_as_iff name loc kind t =
 
 fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
-    case t |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name
-                           loc Axiom of
+    case t |> make_formula thy format type_enc (eq_as_iff andalso format <> CNF)
+                           name loc Axiom of
       formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
     | formula => SOME formula
@@ -1065,7 +1072,7 @@ fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
 fun make_conjecture thy format type_enc =
   map (fn ((name, loc), (kind, t)) =>
           t |> kind = Conjecture ? s_not_trueprop
-            |> make_formula thy type_enc (format <> CNF) name loc kind)
+            |> make_formula thy format type_enc (format <> CNF) name loc kind)
 
 (** Finite and infinite type inference **)
 
@@ -1243,14 +1250,14 @@ val tvar_a = TVar (("'a", 0), HOLogic.typeS)
 val default_sym_tab_entries : (string * sym_info) list =
   (prefixed_predicator_name,
    {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
-  (make_fixed_const @{const_name undefined},
+  (make_fixed_const NONE @{const_name undefined},
    {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
 
-fun sym_table_for_facts ctxt explicit_apply facts =
+fun sym_table_for_facts ctxt format explicit_apply facts =
   ((false, []), Symtab.empty)
   |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
   |> fold Symtab.update default_sym_tab_entries
@@ -1280,7 +1287,7 @@ fun is_pred_sym sym_tab s =
   | NONE => false
 
 val predicator_combconst =
-  IConst (`make_fixed_const predicator_name, @{typ "bool => bool"}, [])
+  IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 fun predicator tm = IApp (predicator_combconst, tm)
 
 fun introduce_predicators_in_iterm sym_tab tm =
@@ -1291,7 +1298,7 @@ fun introduce_predicators_in_iterm sym_tab tm =
 
 fun list_app head args = fold (curry (IApp o swap)) args head
 
-val app_op = `make_fixed_const app_op_name
+val app_op = `(make_fixed_const NONE) app_op_name
 
 fun explicit_app arg head =
   let
@@ -1346,7 +1353,8 @@ fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
       | aux arity (IConst (name as (s, _), T, T_args)) =
         (case strip_prefix_and_unascii const_prefix s of
            NONE =>
-           (name, if level_of_type_enc type_enc = No_Types then [] else T_args)
+           (name, if level_of_type_enc type_enc = No_Types orelse s = tptp_choice
+                  then [] else T_args)
          | SOME s'' =>
            let
              val s'' = invert_const s''
@@ -1433,7 +1441,7 @@ fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   |> bound_tvars type_enc atomic_Ts
   |> close_formula_universally
 
-val type_tag = `make_fixed_const type_tag_name
+val type_tag = `(make_fixed_const NONE) type_tag_name
 
 fun type_tag_idempotence_fact type_enc =
   let
@@ -1580,7 +1588,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
      (conjs, facts @ lambdas, class_rel_clauses, arity_clauses))
   end
 
-val type_guard = `make_fixed_const type_guard_name
+val type_guard = `(make_fixed_const NONE) type_guard_name
 
 fun type_guard_iterm ctxt format type_enc T tm =
   IApp (IConst (type_guard, T --> @{typ bool}, [T])
@@ -1790,7 +1798,7 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
     fun add_undefined_const T =
       let
         val (s, s') =
-          `make_fixed_const @{const_name undefined}
+          `(make_fixed_const (SOME format)) @{const_name undefined}
           |> (case type_arg_policy type_enc @{const_name undefined} of
                 Mangled_Type_Args _ => mangled_const_name format type_enc [T]
               | _ => I)
@@ -2108,12 +2116,12 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
+    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt format explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val repair = repair_fact ctxt format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab =
-      conjs @ facts |> sym_table_for_facts ctxt (SOME false)
+      conjs @ facts |> sym_table_for_facts ctxt format (SOME false)
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
                        |> map repair

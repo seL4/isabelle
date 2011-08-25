@@ -50,6 +50,7 @@ sig
   val tptp_ho_forall : string
   val tptp_exists : string
   val tptp_ho_exists : string
+  val tptp_choice : string
   val tptp_not : string
   val tptp_and : string
   val tptp_or : string
@@ -147,6 +148,7 @@ val tptp_forall = "!"
 val tptp_ho_forall = "!!"
 val tptp_exists = "?"
 val tptp_ho_exists = "??"
+val tptp_choice = "@+"
 val tptp_not = "~"
 val tptp_and = "&"
 val tptp_or = "|"
@@ -264,13 +266,21 @@ fun string_for_term _ (ATerm (s, [])) = s
       space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
       |> is_format_thf format ? enclose "(" ")"
     else
-      (case (s = tptp_ho_forall orelse s = tptp_ho_exists, ts) of
-         (true, [AAbs ((s', ty), tm)]) =>
+      (case (s = tptp_ho_forall orelse s = tptp_ho_exists,
+             s = tptp_choice andalso format = THF With_Choice, ts) of
+         (true, _, [AAbs ((s', ty), tm)]) =>
          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
             possible, to work around LEO-II 1.2.8 parser limitation. *)
          string_for_formula format
              (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
+       | (_, true, [AAbs ((s', ty), tm)]) =>
+         (*There is code in ATP_Translate to ensure that Eps is always applied
+           to an abstraction*)
+         tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "] : " ^
+           string_for_term format tm ^ ""
+         |> enclose "(" ")"
+
        | _ =>
          let val ss = map (string_for_term format) ts in
            if is_format_thf format then
