@@ -74,10 +74,10 @@ class Document_Model(val session: Session, val buffer: Buffer,
   def perspective(): Text.Perspective =
   {
     Swing_Thread.require()
-    Text.perspective(
+    Text.Perspective(
       for {
         doc_view <- Isabelle.document_views(buffer)
-        range <- doc_view.perspective()
+        range <- doc_view.perspective().ranges
       } yield range)
   }
 
@@ -88,7 +88,7 @@ class Document_Model(val session: Session, val buffer: Buffer,
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var pending_perspective = false
-    private var last_perspective: Text.Perspective = Nil
+    private var last_perspective: Text.Perspective = Text.Perspective.empty
 
     def snapshot(): List[Text.Edit] = pending.toList
 
