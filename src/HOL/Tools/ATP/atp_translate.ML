@@ -35,6 +35,8 @@ sig
     Guards of polymorphism * type_level * type_uniformity |
     Tags of polymorphism * type_level * type_uniformity
 
+  val type_tag_idempotence : bool Config.T
+  val type_tag_arguments : bool Config.T
   val no_lambdasN : string
   val concealedN : string
   val liftingN : string
@@ -113,6 +115,11 @@ open ATP_Util
 open ATP_Problem
 
 type name = string * string
+
+val type_tag_idempotence =
+  Attrib.setup_config_bool @{binding atp_type_tag_idempotence} (K true)
+val type_tag_arguments =
+  Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K true)
 
 val no_lambdasN = "no_lambdas"
 val concealedN = "concealed"
@@ -1257,7 +1264,7 @@ val default_sym_tab_entries : (string * sym_info) list =
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
 
-fun sym_table_for_facts ctxt format explicit_apply facts =
+fun sym_table_for_facts ctxt explicit_apply facts =
   ((false, []), Symtab.empty)
   |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
   |> fold Symtab.update default_sym_tab_entries
@@ -1998,7 +2005,8 @@ fun formula_lines_for_nonuniform_tags_sym_decl ctxt format conj_sym_kind mono
       end
   in
     [] |> not pred_sym ? add_formula_for_res
-       |> fold add_formula_for_arg (ary - 1 downto 0)
+       |> Config.get ctxt type_tag_arguments
+          ? fold add_formula_for_arg (ary - 1 downto 0)
   end
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
@@ -2060,11 +2068,12 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
                syms []
   in mono_lines @ decl_lines end
 
-fun needs_type_tag_idempotence (Tags (poly, level, uniformity)) =
+fun needs_type_tag_idempotence ctxt (Tags (poly, level, uniformity)) =
+    Config.get ctxt type_tag_idempotence andalso
     poly <> Mangled_Monomorphic andalso
     ((level = All_Types andalso uniformity = Nonuniform) orelse
      is_type_level_monotonicity_based level)
-  | needs_type_tag_idempotence _ = false
+  | needs_type_tag_idempotence _ _ = false
 
 fun offset_of_heading_in_problem _ [] j = j
   | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
@@ -2116,12 +2125,12 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt format explicit_apply
+    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val repair = repair_fact ctxt format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab =
-      conjs @ facts |> sym_table_for_facts ctxt format (SOME false)
+      conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
                        |> map repair
@@ -2134,7 +2143,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt format helper_prefix I false true mono
                                     type_enc)
-      |> (if needs_type_tag_idempotence type_enc then
+      |> (if needs_type_tag_idempotence ctxt type_enc then
             cons (type_tag_idempotence_fact type_enc)
           else
             I)
