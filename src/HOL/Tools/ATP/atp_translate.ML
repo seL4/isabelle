@@ -141,6 +141,7 @@ val tvar_prefix = "T_"
 val tfree_prefix = "t_"
 val const_prefix = "c_"
 val type_const_prefix = "tc_"
+val simple_type_prefix = "s_"
 val class_prefix = "cl_"
 
 val polymorphic_free_prefix = "poly_free"
@@ -165,11 +166,10 @@ val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
 
-val predicator_name = "p"
-val app_op_name = "a"
-val type_guard_name = "g"
-val type_tag_name = "t"
-val simple_type_prefix = "ty_"
+val predicator_name = "pp"
+val app_op_name = "aa"
+val type_guard_name = "gg"
+val type_tag_name = "tt"
 
 val prefixed_predicator_name = const_prefix ^ predicator_name
 val prefixed_app_op_name = const_prefix ^ app_op_name
@@ -1097,17 +1097,15 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        (Noninf_Nonmono_Types soundness) T =
-    exists (type_instance ctxt T orf type_generalization ctxt T)
-           maybe_nonmono_Ts andalso
+    exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
     not (exists (type_instance ctxt T) surely_infinite_Ts orelse
          (not (member (type_aconv ctxt) maybe_finite_Ts T) andalso
           is_type_surely_infinite' ctxt soundness surely_infinite_Ts T))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
                        Fin_Nonmono_Types T =
-    exists (type_instance ctxt T orf type_generalization ctxt T)
-           maybe_nonmono_Ts andalso
-    (exists (type_instance ctxt T) surely_finite_Ts orelse
+    exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
+    (exists (type_generalization ctxt T) surely_finite_Ts orelse
      (not (member (type_aconv ctxt) maybe_infinite_Ts T) andalso
       is_type_surely_finite ctxt T))
   | should_encode_type _ _ _ _ = false
