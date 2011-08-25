@@ -2176,7 +2176,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
             CNF => ensure_cnf_problem
           | CNF_UEQ => filter_cnf_ueq_problem
           | _ => I)
-      |> (if is_format_typed format then
+      |> (if is_format_typed format andalso format <> TFF Implicit then
             declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                    implicit_declsN
           else
