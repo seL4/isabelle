@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Document as collection of named nodes, each consisting of an editable
-list of commands, associated with asynchronous execution process.
+list of commands, with asynchronous read/eval/print processes.
 *)
 
 signature DOCUMENT =
@@ -265,7 +265,7 @@ fun define_command (id: command_id) text =
       val tr =
         Future.fork_pri 2 (fn () =>
           Position.setmp_thread_data (Position.id_only id_string)
-            (fn () => Outer_Syntax.prepare_command (Position.id id_string) text) ());
+            (fn () => Outer_Syntax.read_command (Position.id id_string) text) ());
       val commands' =
         Inttab.update_new (id, tr) commands
           handle Inttab.DUP dup => err_dup "command" dup;
