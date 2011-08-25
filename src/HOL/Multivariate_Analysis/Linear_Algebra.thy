@@ -1359,22 +1359,6 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-subsection {* An ordering on euclidean spaces that will allow us to talk about intervals *}
-
-class ordered_euclidean_space = ord + euclidean_space +
-  assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i \<le> y $$ i)"
-  and eucl_less: "x < y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i < y $$ i)"
-
-lemma eucl_less_not_refl[simp, intro!]: "\<not> x < (x::'a::ordered_euclidean_space)"
-  unfolding eucl_less[where 'a='a] by auto
-
-lemma euclidean_trans[trans]:
-  fixes x y z :: "'a::ordered_euclidean_space"
-  shows "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-  and "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-  and "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-  by (force simp: eucl_less[where 'a='a] eucl_le[where 'a='a])+
-
 subsection {* Linearity and Bilinearity continued *}
 
 lemma linear_bounded:
@@ -2727,7 +2711,23 @@ apply simp
 apply simp
 done
 
-subsection "Instantiate @{typ real} and @{typ complex} as typeclass @{text ordered_euclidean_space}."
+subsection {* An ordering on euclidean spaces that will allow us to talk about intervals *}
+
+class ordered_euclidean_space = ord + euclidean_space +
+  assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i \<le> y $$ i)"
+  and eucl_less: "x < y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i < y $$ i)"
+
+lemma eucl_less_not_refl[simp, intro!]: "\<not> x < (x::'a::ordered_euclidean_space)"
+  unfolding eucl_less[where 'a='a] by auto
+
+lemma euclidean_trans[trans]:
+  fixes x y z :: "'a::ordered_euclidean_space"
+  shows "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
+  and "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
+  and "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
+  unfolding eucl_less[where 'a='a] eucl_le[where 'a='a]
+  by (fast intro: less_trans, fast intro: le_less_trans,
+    fast intro: order_trans)
 
 lemma basis_real_range: "basis ` {..<1} = {1::real}" by auto
 
@@ -2746,8 +2746,6 @@ lemma complex_basis[simp]:
   shows "basis 0 = (1::complex)" and "basis 1 = ii" and "basis (Suc 0) = ii"
   unfolding basis_complex_def by auto
 
-subsection {* Products Spaces *}
-
 lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::euclidean_space) + DIM('a::euclidean_space)"
   (* FIXME: why this orientation? Why not "DIM('a) + DIM('b)" ? *)
   unfolding dimension_prod_def by (rule add_commute)
@@ -2760,6 +2758,5 @@ definition "x < (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<ti
 
 instance proof qed (auto simp: less_prod_def less_eq_prod_def)
 end
-
 
 end
