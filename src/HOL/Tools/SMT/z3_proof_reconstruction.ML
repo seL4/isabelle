@@ -147,13 +147,15 @@ local
   val remove_weight = mk_meta_eq @{thm SMT.weight_def}
   val remove_fun_app = mk_meta_eq @{thm SMT.fun_app_def}
 
-  fun rewrite_conv ctxt eqs = Simplifier.full_rewrite
-    (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
+  fun rewrite_conv _ [] = Conv.all_conv
+    | rewrite_conv ctxt eqs = Simplifier.full_rewrite
+        (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
 
   val prep_rules = [@{thm Let_def}, remove_trigger, remove_weight,
     remove_fun_app, Z3_Proof_Literals.rewrite_true]
 
-  fun rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
+  fun rewrite _ [] = I
+    | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
 
   fun burrow_snd_option f (i, thm) = Option.map (pair i) (f thm)
 
@@ -630,7 +632,8 @@ local
     in (Thm.instantiate ([], vars_of (Thm.prop_of thm) ~~ vs) thm, ctxt') end
 
   val sk_rules = @{lemma
-    "(EX x. P x) = P (SOME x. P x)"   "(~(ALL x. P x)) = (~P (SOME x. ~P x))"
+    "c = (SOME x. P x) ==> (EX x. P x) = P c"
+    "c = (SOME x. ~P x) ==> (~(ALL x. P x)) = (~P c)"
     by (metis someI_ex)+}
 in
 
@@ -638,9 +641,10 @@ fun skolemize vars =
   apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
 
 fun discharge_sk_tac i st = (
-  Tactic.rtac @{thm trans}
-  THEN' Tactic.resolve_tac sk_rules
-  THEN' (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac)) i st
+  Tactic.rtac @{thm trans} i
+  THEN Tactic.resolve_tac sk_rules i
+  THEN (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
+  THEN Tactic.rtac @{thm refl} i) st
 
 end
 
@@ -654,7 +658,7 @@ fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
     Z3_Proof_Tools.by_tac (
       NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
       ORELSE' NAMED ctxt' "simp+arith" (
-        Simplifier.simp_tac simpset
+        Simplifier.asm_full_simp_tac simpset
         THEN_ALL_NEW Arith_Data.arith_tac ctxt')))]
 
 
@@ -717,13 +721,15 @@ fun rewrite simpset ths ct ctxt =
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
+        (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+        THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
+        (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+        THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
@@ -731,7 +737,8 @@ fun rewrite simpset ths ct ctxt =
     Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
       (fn ctxt' =>
         Z3_Proof_Tools.by_tac (
-          NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac simpset)
+          (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+          THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac simpset)
           THEN_ALL_NEW (
             NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')
             ORELSE' NAMED ctxt' "arith (deepen)" (Arith_Data.arith_tac

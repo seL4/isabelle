@@ -17,6 +17,7 @@ sig
   val string_from_time : Time.time -> string
   val type_instance : Proof.context -> typ -> typ -> bool
   val type_generalization : Proof.context -> typ -> typ -> bool
+  val type_intersect : Proof.context -> typ -> typ -> bool
   val type_aconv : Proof.context -> typ * typ -> bool
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
@@ -117,6 +118,8 @@ val string_from_time = string_from_ext_time o pair false
 fun type_instance ctxt T T' =
   Sign.typ_instance (Proof_Context.theory_of ctxt) (T, T')
 fun type_generalization ctxt T T' = type_instance ctxt T' T
+fun type_intersect ctxt T T' =
+  type_instance ctxt T T' orelse type_generalization ctxt T T'
 fun type_aconv ctxt (T, T') =
   type_instance ctxt T T' andalso type_instance ctxt T' T
 

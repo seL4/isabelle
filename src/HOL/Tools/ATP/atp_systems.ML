@@ -216,11 +216,11 @@ val e_config : atp_config =
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (500, FOF, "mangled_tags?", e_fun_weightN))),
-          (0.334, (true, (50, FOF, "mangled_guards?", e_fun_weightN))),
-          (0.333, (true, (1000, FOF, "mangled_tags?", e_sym_offset_weightN)))]
+         [(0.333, (true, (500, FOF, "mono_tags?", e_fun_weightN))),
+          (0.334, (true, (50, FOF, "mono_guards?", e_fun_weightN))),
+          (0.333, (true, (1000, FOF, "mono_tags?", e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (500, FOF, "mangled_tags?", method)))]
+         [(1.0, (true, (500, FOF, "mono_tags?", method)))]
      end}
 
 val e = (eN, e_config)
@@ -293,9 +293,9 @@ val spass_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, FOF, "mangled_tags", sosN))),
+     [(0.333, (false, (150, FOF, "mono_tags", sosN))),
       (0.333, (false, (300, FOF, "poly_tags?", sosN))),
-      (0.334, (true, (50, FOF, "mangled_tags?", no_sosN)))]
+      (0.334, (true, (50, FOF, "mono_tags?", no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -324,7 +324,6 @@ val vampire_config : atp_config =
      [(GaveUp, "UNPROVABLE"),
       (GaveUp, "CANNOT PROVE"),
       (GaveUp, "SZS status GaveUp"),
-      (ProofIncomplete, "predicate_definition_introduction,[]"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
@@ -336,8 +335,8 @@ val vampire_config : atp_config =
      (* FUDGE *)
      (if is_old_vampire_version () then
         [(0.333, (false, (150, FOF, "poly_guards", sosN))),
-         (0.334, (true, (50, FOF, "mangled_guards?", no_sosN))),
-         (0.333, (false, (500, FOF, "mangled_tags?", sosN)))]
+         (0.334, (true, (50, FOF, "mono_guards?", no_sosN))),
+         (0.333, (false, (500, FOF, "mono_tags?", sosN)))]
       else
         [(0.333, (false, (150, TFF, "poly_guards", sosN))),
          (0.334, (true, (50, TFF, "simple", no_sosN))),
@@ -360,14 +359,15 @@ val z3_tptp_config : atp_config =
      [(GaveUp, "SZS status Satisfiable"),
       (GaveUp, "SZS status CounterSatisfiable"),
       (GaveUp, "SZS status GaveUp"),
+      (GaveUp, "SZS status Unknown"),
       (ProofMissing, "SZS status Unsatisfiable"),
       (ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, (false, (250, TFF, "simple", ""))),
-        (0.25, (false, (125, TFF, "simple", ""))),
+     K [(0.5, (false, (250, FOF, "mono_guards?", ""))),
+        (0.25, (false, (125, FOF, "mono_guards?", ""))),
         (0.125, (false, (62, TFF, "simple", ""))),
         (0.125, (false, (31, TFF, "simple", "")))]}
 
@@ -449,7 +449,7 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-               (K (750, FOF, "mangled_tags?") (* FUDGE *))
+               (K (750, FOF, "mono_tags?") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
                (K (100, THF Without_Choice, "simple_higher") (* FUDGE *))
@@ -462,7 +462,7 @@ val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"] (K (250, TFF, "simple") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
-             Conjecture (K (500, FOF, "mangled_guards?") (* FUDGE *))
+             Conjecture (K (500, FOF, "mono_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
@@ -476,7 +476,7 @@ val remote_waldmeister =
              [(OutOfResources, "Too many function symbols"),
               (Crashed, "Unrecoverable Segmentation Fault")]
              Hypothesis Hypothesis
-             (K (50, CNF_UEQ, "mangled_tags?") (* FUDGE *))
+             (K (50, CNF_UEQ, "mono_tags?") (* FUDGE *))
 
 (* Setup *)
 

@@ -39,7 +39,7 @@ val full_typesN = "full_types"
 val partial_typesN = "partial_types"
 val no_typesN = "no_types"
 
-val really_full_type_enc = "mangled_tags_uniform"
+val really_full_type_enc = "mono_tags_uniform"
 val full_type_enc = "poly_guards_uniform_query"
 val partial_type_enc = "poly_args"
 val no_type_enc = "erased"
@@ -74,9 +74,9 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". Type tag idempotence is also handled this way. *)
-fun reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth =
+fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_from_metis ctxt sym_tab old_skolems mth of
+    case hol_clause_from_metis ctxt type_enc sym_tab old_skolems mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
         val ct = cterm_of thy t
@@ -91,14 +91,7 @@ fun reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth =
 
 fun clause_params type_enc =
   {ordering = Metis_KnuthBendixOrder.default,
-   orderLiterals =
-     (* Type axioms seem to benefit from the positive literal order, but for
-        compatibility we keep the unsigned order for Metis's default
-        "partial_types" mode. *)
-     if is_type_enc_fairly_sound type_enc then
-       Metis_Clause.PositiveLiteralOrder
-     else
-       Metis_Clause.UnsignedLiteralOrder,
+   orderLiterals = Metis_Clause.UnsignedLiteralOrder,
    orderTerms = true}
 fun active_params type_enc =
   {clause = clause_params type_enc,
@@ -133,7 +126,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val (sym_tab, axioms, old_skolems) =
         prepare_metis_problem ctxt type_enc cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
-          reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth
+          reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
@@ -155,7 +148,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
                 val proof = Metis_Proof.proof mth
                 val result =
                   axioms
-                  |> fold (replay_one_inference ctxt' old_skolems sym_tab) proof
+                  |> fold (replay_one_inference ctxt' type_enc old_skolems sym_tab) proof
                 val used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
