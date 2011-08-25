@@ -1447,7 +1447,7 @@ fun type_tag_idempotence_fact type_enc =
   end
 
 fun should_specialize_helper type_enc t =
-  polymorphism_of_type_enc type_enc = Mangled_Monomorphic andalso
+  polymorphism_of_type_enc type_enc <> Polymorphic andalso
   level_of_type_enc type_enc <> No_Types andalso
   not (null (Term.hidden_polymorphism t))
 
