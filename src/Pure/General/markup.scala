@@ -232,9 +232,7 @@ object Markup
   /* interactive documents */
 
   val VERSION = "version"
-  val EXEC = "exec"
   val ASSIGN = "assign"
-  val EDIT = "edit"
 
 
   /* prover process */

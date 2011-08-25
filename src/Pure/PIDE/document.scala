@@ -204,20 +204,28 @@ object Document
       : Stream[Text.Info[Option[A]]]
   }
 
+  type Assign =
+   (List[(Document.Command_ID, Document.Exec_ID)],  // exec state assignment
+    List[(String, Option[Document.Command_ID])])  // last exec
+
+  val no_assign: Assign = (Nil, Nil)
+
   object State
   {
     class Fail(state: State) extends Exception
 
-    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)._2
+    val init = State().define_version(Version.init, Map()).assign(Version.init.id, no_assign)._2
 
     case class Assignment(
       val assignment: Map[Command, Exec_ID],
       val is_finished: Boolean = false)
     {
       def get_finished: Map[Command, Exec_ID] = { require(is_finished); assignment }
-      def assign(command_execs: List[(Command, Exec_ID)]): Assignment =
+      def assign(command_execs: List[(Command, Exec_ID)],
+        last_commands: List[(String, Option[Command])]): Assignment =
       {
         require(!is_finished)
+        // FIXME maintain last_commands
         Assignment(assignment ++ command_execs, true)
       }
     }
@@ -270,9 +278,10 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): (List[Command], State) =
+    def assign(id: Version_ID, arg: Assign): (List[Command], State) =
     {
       val version = the_version(id)
+      val (edits, last_ids) = arg
 
       var new_execs = execs
       val assigned_execs =
@@ -282,8 +291,14 @@ object Document
           new_execs += (exec_id -> st)
           (st.command, exec_id)
         }
-      val new_assignment = the_assignment(version).assign(assigned_execs)
+
+      val last_commands =
+        last_ids map {
+          case (name, Some(cmd_id)) => (name, Some(the_command(cmd_id).command))
+          case (name, None) => (name, None) }
+      val new_assignment = the_assignment(version).assign(assigned_execs, last_commands)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
+
       (assigned_execs.map(_._1), new_state)
     }
 

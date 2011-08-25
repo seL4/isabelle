@@ -108,9 +108,7 @@ sig
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val versionN: string
-  val execN: string
   val assignN: string val assign: int -> T
-  val editN: string val edit: int * int -> T
   val serialN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
@@ -353,11 +351,7 @@ val (finishedN, finished) = markup_elem "finished";
 (* interactive documents *)
 
 val versionN = "version";
-val execN = "exec";
 val (assignN, assign) = markup_int "assign" versionN;
-
-val editN = "edit";
-fun edit (cmd_id, exec_id) : T = (editN, [(idN, print_int cmd_id), (execN, print_int exec_id)]);
 
 
 (* messages *)

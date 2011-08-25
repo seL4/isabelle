@@ -14,7 +14,7 @@ sig
   val empty: 'a T
   val is_empty: 'a T -> bool
   val defined: 'a T -> key -> bool
-  val lookup: 'a T -> key -> 'a option
+  val lookup: 'a T -> key -> ('a * key option) option
   val update: key * 'a -> 'a T -> 'a T
   val fold: key option ->
     ((key option * key) * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
@@ -70,7 +70,7 @@ fun is_empty set = is_none (start_of set);
 
 fun defined set key = Table.defined (entries_of set) key;
 
-fun lookup set key = Option.map fst (Table.lookup (entries_of set) key);
+fun lookup set key = Table.lookup (entries_of set) key;
 
 fun update (key, x) = map_set (fn (start, entries) =>
   (start, put_entry (key, (x, next_entry entries key)) entries));

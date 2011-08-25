@@ -217,7 +217,7 @@ class Session(val file_store: Session.File_Store)
 
       val assignment = global_state().the_assignment(previous).get_finished
       global_state.change(_.define_version(version, assignment))
-      global_state.change_yield(_.assign(version.id, Nil))
+      global_state.change_yield(_.assign(version.id, Document.no_assign))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
     }
@@ -248,10 +248,10 @@ class Session(val file_store: Session.File_Store)
 
     /* exec state assignment */
 
-    def handle_assign(id: Document.Version_ID, edits: List[(Document.Command_ID, Document.Exec_ID)])
+    def handle_assign(id: Document.Version_ID, assign: Document.Assign)
     //{{{
     {
-      val cmds = global_state.change_yield(_.assign(id, edits))
+      val cmds = global_state.change_yield(_.assign(id, assign))
       for (cmd <- cmds) command_change_buffer ! cmd
       assignments.event(Session.Assignment)
     }
@@ -336,8 +336,8 @@ class Session(val file_store: Session.File_Store)
           else if (result.is_stdout) { }
           else if (result.is_status) {
             result.body match {
-              case List(Isar_Document.Assign(id, edits)) =>
-                try { handle_assign(id, edits) }
+              case List(Isar_Document.Assign(id, assign)) =>
+                try { handle_assign(id, assign) }
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
