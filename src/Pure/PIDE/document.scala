@@ -296,8 +296,9 @@ object Document
     def is_stable(change: Change): Boolean =
       change.is_finished && is_assigned(change.version.get_finished)
 
-    def tip_stable: Boolean = is_stable(history.tip)
     def recent_stable: Option[Change] = history.undo_list.find(is_stable)
+    def tip_stable: Boolean = is_stable(history.tip)
+    def tip_version: Version = history.tip.version.get_finished
 
     def continue_history(
         previous: Future[Version],

@@ -206,7 +206,7 @@ class Session(val file_store: Session.File_Store)
 
     def update_perspective(name: String, text_perspective: Text.Perspective)
     {
-      val previous = global_state().history.tip.version.get_finished
+      val previous = global_state().tip_version
       val (perspective, version) = Thy_Syntax.edit_perspective(previous, name, text_perspective)
 
       val text_edits: List[Document.Edit_Text] =
