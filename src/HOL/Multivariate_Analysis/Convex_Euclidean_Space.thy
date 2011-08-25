@@ -2573,6 +2573,37 @@ proof-
     done
 qed
 
+lemma finite_imp_compact_convex_hull:
+  fixes s :: "('a::real_normed_vector) set"
+  assumes "finite s" shows "compact (convex hull s)"
+proof (cases "s = {}")
+  case True thus ?thesis by simp
+next
+  case False with assms show ?thesis
+  proof (induct rule: finite_ne_induct)
+    case (singleton x) show ?case by simp
+  next
+    case (insert x A)
+    let ?f = "\<lambda>(u, y::'a). u *\<^sub>R x + (1 - u) *\<^sub>R y"
+    let ?T = "{0..1::real} \<times> (convex hull A)"
+    have "continuous_on ?T ?f"
+      unfolding split_def continuous_on by (intro ballI tendsto_intros)
+    moreover have "compact ?T"
+      by (intro compact_Times compact_interval insert)
+    ultimately have "compact (?f ` ?T)"
+      by (rule compact_continuous_image)
+    also have "?f ` ?T = convex hull (insert x A)"
+      unfolding convex_hull_insert [OF `A \<noteq> {}`]
+      apply safe
+      apply (rule_tac x=a in exI, simp)
+      apply (rule_tac x="1 - a" in exI, simp)
+      apply fast
+      apply (rule_tac x="(u, b)" in image_eqI, simp_all)
+      done
+    finally show "compact (convex hull (insert x A))" .
+  qed
+qed
+
 lemma compact_convex_hull: fixes s::"('a::euclidean_space) set"
   assumes "compact s"  shows "compact(convex hull s)"
 proof(cases "s={}")
@@ -2646,11 +2677,6 @@ next
     qed
   qed
 qed
-
-lemma finite_imp_compact_convex_hull:
-  fixes s :: "('a::euclidean_space) set"
-  shows "finite s \<Longrightarrow> compact(convex hull s)"
-by (metis compact_convex_hull finite_imp_compact)
 
 subsection {* Extremal points of a simplex are some vertices. *}
 
@@ -2731,7 +2757,7 @@ proof(induct_tac rule: finite_induct[of s])
 qed (auto simp add: assms)
 
 lemma simplex_furthest_le:
-  fixes s :: "('a::euclidean_space) set"
+  fixes s :: "('a::real_inner) set"
   assumes "finite s" "s \<noteq> {}"
   shows "\<exists>y\<in>s. \<forall>x\<in>(convex hull s). norm(x - a) \<le> norm(y - a)"
 proof-
@@ -2747,12 +2773,12 @@ proof-
 qed
 
 lemma simplex_furthest_le_exists:
-  fixes s :: "('a::euclidean_space) set"
+  fixes s :: "('a::real_inner) set"
   shows "finite s \<Longrightarrow> (\<forall>x\<in>(convex hull s). \<exists>y\<in>s. norm(x - a) \<le> norm(y - a))"
   using simplex_furthest_le[of s] by (cases "s={}")auto
 
 lemma simplex_extremal_le:
-  fixes s :: "('a::euclidean_space) set"
+  fixes s :: "('a::real_inner) set"
   assumes "finite s" "s \<noteq> {}"
   shows "\<exists>u\<in>s. \<exists>v\<in>s. \<forall>x\<in>convex hull s. \<forall>y \<in> convex hull s. norm(x - y) \<le> norm(u - v)"
 proof-
@@ -2773,7 +2799,7 @@ proof-
 qed 
 
 lemma simplex_extremal_le_exists:
-  fixes s :: "('a::euclidean_space) set"
+  fixes s :: "('a::real_inner) set"
   shows "finite s \<Longrightarrow> x \<in> convex hull s \<Longrightarrow> y \<in> convex hull s
   \<Longrightarrow> (\<exists>u\<in>s. \<exists>v\<in>s. norm(x - y) \<le> norm(u - v))"
   using convex_hull_empty simplex_extremal_le[of s] by(cases "s={}")auto
