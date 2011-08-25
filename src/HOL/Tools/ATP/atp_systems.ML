@@ -366,8 +366,8 @@ val z3_tptp_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, (false, (250, TFF, "simple", ""))),
-        (0.25, (false, (125, TFF, "simple", ""))),
+     K [(0.5, (false, (250, FOF, "mono_guards?", ""))),
+        (0.25, (false, (125, FOF, "mono_guards?", ""))),
         (0.125, (false, (62, TFF, "simple", ""))),
         (0.125, (false, (31, TFF, "simple", "")))]}
 
