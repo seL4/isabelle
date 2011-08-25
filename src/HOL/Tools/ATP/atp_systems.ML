@@ -359,6 +359,7 @@ val z3_tptp_config : atp_config =
      [(GaveUp, "SZS status Satisfiable"),
       (GaveUp, "SZS status CounterSatisfiable"),
       (GaveUp, "SZS status GaveUp"),
+      (GaveUp, "SZS status Unknown"),
       (ProofMissing, "SZS status Unsatisfiable"),
       (ProofMissing, "SZS status Theorem")],
    conj_sym_kind = Hypothesis,
