@@ -117,9 +117,9 @@ open ATP_Problem
 type name = string * string
 
 val type_tag_idempotence =
-  Attrib.setup_config_bool @{binding atp_type_tag_idempotence} (K true)
+  Attrib.setup_config_bool @{binding atp_type_tag_idempotence} (K false)
 val type_tag_arguments =
-  Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K true)
+  Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K false)
 
 val no_lambdasN = "no_lambdas"
 val concealedN = "concealed"
