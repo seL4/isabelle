@@ -322,6 +322,21 @@ object Document
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished
 
+    def last_exec_offset(name: String): Text.Offset =
+    {
+      val version = tip_version
+      the_assignment(version).last_execs.get(name) match {
+        case Some(Some(id)) =>
+          val node = version.nodes(name)
+          val cmd = the_command(id).command
+          node.command_start(cmd) match {
+            case None => 0
+            case Some(start) => start + cmd.length
+          }
+        case _ => 0
+      }
+    }
+
     def continue_history(
         previous: Future[Version],
         edits: List[Edit_Text],

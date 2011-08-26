@@ -380,10 +380,10 @@ class Session(val file_store: Session.File_Store)
           reply(())
 
         case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
-// FIXME
-//          if (text_edits.isEmpty && global_state().tip_stable)
-//            update_perspective(name, perspective)
-//          else
+          if (text_edits.isEmpty && global_state().tip_stable &&
+              perspective.range.stop <= global_state().last_exec_offset(name))
+            update_perspective(name, perspective)
+          else
             handle_edits(name, master_dir, header,
               List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())
