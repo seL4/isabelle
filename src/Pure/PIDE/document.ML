@@ -145,6 +145,11 @@ fun next_entry (Node {entries, ...}) id =
     NONE => err_undef "command entry" id
   | SOME (_, next) => next);
 
+fun lookup_entry (Node {entries, ...}) id =
+  (case Entries.lookup entries id of
+    NONE => NONE
+  | SOME (exec, _) => exec);
+
 fun the_entry (Node {entries, ...}) id =
   (case Entries.lookup entries id of
     NONE => err_undef "command entry" id
@@ -376,14 +381,6 @@ fun update_perspective (old_id: version_id) (new_id: version_id) name perspectiv
 
 local
 
-fun after_perspective node ((prev, _), _) = #2 (get_perspective node) = prev;
-
-fun needs_update node0 ((_, id), SOME exec) =
-      (case try (the_entry node0) id of
-        SOME (SOME exec0) => exec0 <> exec
-      | _ => true)
-  | needs_update _ _ = true;
-
 fun init_theory deps name node =
   let
     val (thy_name, imports, uses) = Exn.release (get_header node);
@@ -400,6 +397,9 @@ fun init_theory deps name node =
             get_theory (Position.file_only import)
               (#2 (Future.join (the (AList.lookup (op =) deps import))))));
   in Thy_Load.begin_theory dir thy_name imports files parents end;
+
+fun after_perspective node ((prev, _), _) = prev = #2 (get_perspective node);
+fun needs_update node0 ((_, id), exec) = is_none exec orelse exec <> lookup_entry node0 id;
 
 fun new_exec state init command_id' (execs, exec) =
   let
@@ -434,27 +434,22 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
             in
               (case first_entry NONE (after_perspective node orf needs_update node0) node of
                 NONE => Future.value (([], [], []), set_touched false node)
-              | SOME ((prev, id), _) =>
+              | SOME (entry as ((prev, id), _)) =>
                   (singleton o Future.forks)
                     {name = "Document.edit", group = NONE,
                       deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
                     (fn () =>
                       let
-                        val (execs, exec) =
-                          fold_entries (SOME id)
-                            (fn entry1 as ((_, id1), _) => fn res =>
-                              if after_perspective node entry1 then NONE
-                              else SOME (new_exec state init id1 res))
-                            node ([], the_exec state (the_default_entry node prev));
+                        val update_start =
+                          Option.map (#2 o #1) (first_entry (SOME id) (needs_update node0) node);
 
-                        val no_execs =
-                          if can (the_entry node0) id then
-                            fold_entries (SOME id)
-                              (fn ((_, id0), exec0) => fn res =>
-                                if is_none exec0 then NONE
-                                else if exists (fn (_, (id1, _)) => id0 = id1) execs then SOME res
-                                else SOME (id0 :: res)) node0 []
-                          else [];
+                        val (execs, exec) =
+                          ([], the_exec state (the_default_entry node prev))
+                          |> not (after_perspective node entry) ?
+                              fold_entries update_start
+                                (fn entry1 as ((_, id1), _) => fn res =>
+                                  if after_perspective node entry1 then NONE
+                                  else SOME (new_exec state init id1 res)) node;
 
                         val node1 =
                           fold (fn (exec_id, (command_id, _)) => update_entry command_id exec_id)
@@ -468,6 +463,15 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                           |> set_last_exec last_exec
                           |> set_result result
                           |> set_touched false;
+
+                        val no_execs =
+                          fold_entries update_start
+                            (fn ((_, id0), exec0) => fn res =>
+                              if is_none exec0 then NONE
+                              else if is_some (lookup_entry node2 id0) then SOME res
+                              else SOME (id0 :: res)) node0 []
+                          handle Entries.UNDEFINED _ => [];
+
                       in ((no_execs, execs, [(name, node2)]), node2) end))
             end)
       |> Future.joins |> map #1;
@@ -511,8 +515,7 @@ fun execute version_id state =
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
-              (fold_entries NONE
-                (fn entry as (_, exec) => fn () => SOME (force_exec node exec)) node));
+              (fold_entries NONE (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
 
     in (versions, commands, execs, execution) end);
 
