@@ -11,7 +11,7 @@ begin
 
 section "Generic Borel spaces"
 
-definition "borel = sigma \<lparr> space = UNIV::'a::topological_space set, sets = open\<rparr>"
+definition "borel = sigma \<lparr> space = UNIV::'a::topological_space set, sets = {S. open S}\<rparr>"
 abbreviation "borel_measurable M \<equiv> measurable M borel"
 
 interpretation borel: sigma_algebra borel
@@ -19,7 +19,7 @@ interpretation borel: sigma_algebra borel
 
 lemma in_borel_measurable:
    "f \<in> borel_measurable M \<longleftrightarrow>
-    (\<forall>S \<in> sets (sigma \<lparr> space = UNIV, sets = open\<rparr>).
+    (\<forall>S \<in> sets (sigma \<lparr> space = UNIV, sets = {S. open S}\<rparr>).
       f -` S \<inter> space M \<in> sets M)"
   by (auto simp add: measurable_def borel_def)
 
@@ -35,7 +35,7 @@ lemma space_borel[simp]: "space borel = UNIV"
 lemma borel_open[simp]:
   assumes "open A" shows "A \<in> sets borel"
 proof -
-  have "A \<in> open" unfolding mem_def using assms .
+  have "A \<in> {S. open S}" unfolding mem_Collect_eq using assms .
   thus ?thesis unfolding borel_def sigma_def by (auto intro!: sigma_sets.Basic)
 qed
 
@@ -71,8 +71,8 @@ lemma (in sigma_algebra) borel_measurableI:
   shows "f \<in> borel_measurable M"
   unfolding borel_def
 proof (rule measurable_sigma, simp_all)
-  fix S :: "'x set" assume "S \<in> open" thus "f -` S \<inter> space M \<in> sets M"
-    using assms[of S] by (simp add: mem_def)
+  fix S :: "'x set" assume "open S" thus "f -` S \<inter> space M \<in> sets M"
+    using assms[of S] by simp
 qed
 
 lemma borel_singleton[simp, intro]:
@@ -391,7 +391,8 @@ lemma open_span_halfspace:
 proof -
   have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) simp
   then interpret sigma_algebra ?SIGMA .
-  { fix S :: "'a set" assume "S \<in> open" then have "open S" unfolding mem_def .
+  { fix S :: "'a set" assume "S \<in> {S. open S}"
+    then have "open S" unfolding mem_Collect_eq .
     from open_UNION[OF this]
     obtain I where *: "S =
       (\<Union>(a, b)\<in>I.
@@ -647,8 +648,8 @@ proof (intro algebra.equality antisym)
   proof -
     have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
     then interpret sigma_algebra ?SIGMA .
-    { fix M :: "'a set" assume "M \<in> open"
-      then have "open M" by (simp add: mem_def)
+    { fix M :: "'a set" assume "M \<in> {S. open S}"
+      then have "open M" by simp
       have "M \<in> sets ?SIGMA"
         apply (subst open_UNION[OF `open M`])
         apply (safe intro!: countable_UN)
@@ -784,7 +785,7 @@ lemma borel_measurable_euclidean_component:
   "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel"
   unfolding borel_def[where 'a=real]
 proof (rule borel.measurable_sigma, simp_all)
-  fix S::"real set" assume "S \<in> open" then have "open S" unfolding mem_def .
+  fix S::"real set" assume "open S"
   from open_vimage_euclidean_component[OF this]
   show "(\<lambda>x. x $$ i) -` S \<in> sets borel"
     by (auto intro: borel_open)
@@ -815,8 +816,8 @@ proof (rule borel_measurableI)
   show "(\<lambda>x. a + b *\<^sub>R f x) -` S \<inter> space M \<in> sets M"
   proof cases
     assume "b \<noteq> 0"
-    with `open S` have "((\<lambda>x. (- a + x) /\<^sub>R b) ` S) \<in> open" (is "?S \<in> open")
-      by (auto intro!: open_affinity simp: scaleR_add_right mem_def)
+    with `open S` have "open ((\<lambda>x. (- a + x) /\<^sub>R b) ` S)" (is "open ?S")
+      by (auto intro!: open_affinity simp: scaleR_add_right)
     hence "?S \<in> sets borel"
       unfolding borel_def by (auto simp: sigma_def intro!: sigma_sets.Basic)
     moreover
@@ -1099,8 +1100,8 @@ lemma borel_measurable_ereal_borel:
   "ereal \<in> borel_measurable borel"
   unfolding borel_def[where 'a=ereal]
 proof (rule borel.measurable_sigma)
-  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open \<rparr>"
-  then have "open X" by (auto simp: mem_def)
+  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = {S. open S} \<rparr>"
+  then have "open X" by simp
   then have "open (ereal -` X \<inter> space borel)"
     by (simp add: open_ereal_vimage)
   then show "ereal -` X \<inter> space borel \<in> sets borel" by auto
@@ -1114,8 +1115,8 @@ lemma borel_measurable_real_of_ereal_borel:
   "(real :: ereal \<Rightarrow> real) \<in> borel_measurable borel"
   unfolding borel_def[where 'a=real]
 proof (rule borel.measurable_sigma)
-  fix B :: "real set" assume "B \<in> sets \<lparr>space = UNIV, sets = open \<rparr>"
-  then have "open B" by (auto simp: mem_def)
+  fix B :: "real set" assume "B \<in> sets \<lparr>space = UNIV, sets = {S. open S} \<rparr>"
+  then have "open B" by simp
   have *: "ereal -` real -` (B - {0}) = B - {0}" by auto
   have open_real: "open (real -` (B - {0}) :: ereal set)"
     unfolding open_ereal_def * using `open B` by auto
@@ -1190,8 +1191,8 @@ qed
 lemma (in sigma_algebra) borel_measurable_uminus_borel_ereal:
   "(uminus :: ereal \<Rightarrow> ereal) \<in> borel_measurable borel"
 proof (subst borel_def, rule borel.measurable_sigma)
-  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = open\<rparr>"
-  then have "open X" by (simp add: mem_def)
+  fix X :: "ereal set" assume "X \<in> sets \<lparr>space = UNIV, sets = {S. open S}\<rparr>"
+  then have "open X" by simp
   have "uminus -` X = uminus ` X" by (force simp: image_iff)
   then have "open (uminus -` X)" using `open X` ereal_open_uminus by auto
   then show "uminus -` X \<inter> space borel \<in> sets borel" by auto

@@ -1136,7 +1136,6 @@ inductive_set
   | Disj:
       "range A \<in> Pow(smallest_ccdi_sets M) \<Longrightarrow> disjoint_family A
        \<Longrightarrow> (\<Union>i::nat. A i) \<in> smallest_ccdi_sets M"
-  monos Pow_mono
 
 
 definition
@@ -1485,7 +1484,7 @@ proof (rule dynkin_systemI)
     using assms dynkin_system_trivial by fastsimp
   ultimately show "A \<subseteq> space (dynkin M)"
     unfolding dynkin_def using assms
-    by simp (metis dynkin_system_def subset_class_def in_mono mem_def)
+    by simp (metis dynkin_system_def subset_class_def in_mono)
 next
   show "space (dynkin M) \<in> sets (dynkin M)"
     unfolding dynkin_def using dynkin_system.space by fastsimp
