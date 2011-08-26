@@ -18,7 +18,7 @@ object Isar_Document
         case XML.Elem(Markup(Markup.ASSIGN, List((Markup.VERSION, Document.ID(id)))), body) =>
           try {
             import XML.Decode._
-            val a = pair(list(pair(long, long)), list(pair(string, option(long))))(body)
+            val a = pair(list(pair(long, option(long))), list(pair(string, option(long))))(body)
             Some(id, a)
           }
           catch {

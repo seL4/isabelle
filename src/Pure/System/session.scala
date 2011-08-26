@@ -216,7 +216,7 @@ class Session(val file_store: Session.File_Store)
           _.continue_history(Future.value(previous), text_edits, Future.value(version)))
 
       val assignment = global_state().the_assignment(previous).check_finished
-      global_state.change(_.define_version(version, assignment.command_execs, assignment.last_execs))
+      global_state.change(_.define_version(version, assignment))
       global_state.change_yield(_.assign(version.id, Document.no_assign))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
@@ -268,15 +268,6 @@ class Session(val file_store: Session.File_Store)
       val name = change.name
       val doc_edits = change.doc_edits
 
-      val previous_assignment = global_state().the_assignment(previous).check_finished
-
-      var command_execs = previous_assignment.command_execs
-      for {
-        (name, Document.Node.Edits(cmd_edits)) <- doc_edits  // FIXME proper coverage!?
-        (prev, None) <- cmd_edits
-        removed <- previous.nodes(name).commands.get_after(prev)
-      } command_execs -= removed.id
-
       def id_command(command: Command)
       {
         if (global_state().lookup_command(command.id).isEmpty) {
@@ -289,7 +280,8 @@ class Session(val file_store: Session.File_Store)
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      global_state.change(_.define_version(version, command_execs, previous_assignment.last_execs))
+      val assignment = global_state().the_assignment(previous).check_finished
+      global_state.change(_.define_version(version, assignment))
       prover.get.edit_version(previous.id, version.id, doc_edits)
     }
     //}}}
@@ -388,9 +380,10 @@ class Session(val file_store: Session.File_Store)
           reply(())
 
         case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
-          if (text_edits.isEmpty && global_state().tip_stable)
-            update_perspective(name, perspective)
-          else
+// FIXME
+//          if (text_edits.isEmpty && global_state().tip_stable)
+//            update_perspective(name, perspective)
+//          else
             handle_edits(name, master_dir, header,
               List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())

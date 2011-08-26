@@ -17,7 +17,7 @@ sig
   val lookup: 'a T -> key -> ('a * key option) option
   val update: key * 'a -> 'a T -> 'a T
   val fold: key option ->
-    ((key option * key) * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
+    ((key option * key) * 'a -> 'b -> 'b option) -> 'a T -> 'b -> 'b
   val get_first: key option ->
     ((key option * key) * 'a -> bool) -> 'a T -> ((key option * key) * 'a) option
   val get_after: 'a T -> key option -> key option
@@ -89,7 +89,11 @@ fun fold opt_start f set =
           let
             val (x, next) = the_entry entries key;
             val item = ((prev, key), x);
-          in apply (SOME key) next (f item y) end;
+          in
+            (case f item y of
+              NONE => y
+            | SOME y' => apply (SOME key) next y')
+          end;
   in apply NONE (optional_start set opt_start) end;
 
 fun get_first opt_start P set =

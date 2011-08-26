@@ -101,7 +101,7 @@ class Document_Model(val session: Session, val buffer: Buffer,
         else last_perspective
 
       snapshot() match {
-        case Nil if new_perspective == last_perspective =>
+        case Nil if last_perspective == new_perspective =>
         case edits =>
           pending.clear
           last_perspective = new_perspective

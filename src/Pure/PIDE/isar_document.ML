@@ -55,7 +55,7 @@ val _ =
           Output.status (Markup.markup (Markup.assign new_id)
             (assignment |>
               let open XML.Encode
-              in pair (list (pair int int)) (list (pair string (option int))) end
+              in pair (list (pair int (option int))) (list (pair string (option int))) end
               |> YXML.string_of_body));
         val state'' = Document.execute new_id state';
       in state'' end));

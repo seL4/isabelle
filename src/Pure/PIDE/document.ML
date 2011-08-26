@@ -29,7 +29,7 @@ sig
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val edit: version_id -> version_id -> edit list -> state ->
-    ((command_id * exec_id) list * (string * command_id option) list) * state
+    ((command_id * exec_id option) list * (string * command_id option) list) * state
   val execute: version_id -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -140,15 +140,18 @@ datatype node_edit =
 
 type edit = string * node_edit;
 
+fun next_entry (Node {entries, ...}) id =
+  (case Entries.lookup entries id of
+    NONE => err_undef "command entry" id
+  | SOME (_, next) => next);
+
 fun the_entry (Node {entries, ...}) id =
   (case Entries.lookup entries id of
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun is_last_entry (Node {entries, ...}) id =
-  (case Entries.lookup entries id of
-    SOME (_, SOME _) => false
-  | _ => true);
+fun the_default_entry node (SOME id) = the_default no_id (the_entry node id)
+  | the_default_entry _ NONE = no_id;
 
 fun update_entry id exec_id =
   map_entries (Entries.update (id, SOME exec_id));
@@ -208,7 +211,9 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         in Graph.map_node name (set_header header') nodes3 end
         |> touch_node name
     | Perspective perspective =>
-        update_node name (set_perspective perspective) nodes);
+        nodes
+        |> update_node name (set_perspective perspective)
+        |> touch_node name (* FIXME more precise!?! *));
 
 end;
 
@@ -371,10 +376,13 @@ fun update_perspective (old_id: version_id) (new_id: version_id) name perspectiv
 
 local
 
-fun is_changed node' ((_, id), exec) =
-  (case try (the_entry node') id of
-    NONE => true
-  | SOME exec' => exec' <> exec);
+fun after_perspective node ((prev, _), _) = #2 (get_perspective node) = prev;
+
+fun needs_update node0 ((_, id), SOME exec) =
+      (case try (the_entry node0) id of
+        SOME (SOME exec0) => exec0 <> exec
+      | _ => true)
+  | needs_update _ _ = true;
 
 fun init_theory deps name node =
   let
@@ -418,49 +426,62 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val updated =
       nodes_of new_version |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if not (is_touched node) then Future.value (([], []), node)
+          if not (is_touched node) then Future.value (([], [], []), node)
           else
-            (case first_entry NONE (is_changed (node_of old_version name)) node of
-              NONE => Future.value (([], []), set_touched false node)
-            | SOME ((prev, id), _) =>
-                let
-                  fun init () = init_theory deps name node;
-                in
+            let
+              val node0 = node_of old_version name;
+              fun init () = init_theory deps name node;
+            in
+              (case first_entry NONE (after_perspective node orf needs_update node0) node of
+                NONE => Future.value (([], [], []), set_touched false node)
+              | SOME ((prev, id), _) =>
                   (singleton o Future.forks)
                     {name = "Document.edit", group = NONE,
                       deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
                     (fn () =>
                       let
-                        val prev_exec =
-                          (case prev of
-                            NONE => no_id
-                          | SOME prev_id => the_default no_id (the_entry node prev_id));
-                        val (execs, last_exec as (last_id, _)) =
-                          fold_entries (SOME id) (new_exec state init o #2 o #1)
-                            node ([], the_exec state prev_exec);
-                        val node' =
+                        val (execs, exec) =
+                          fold_entries (SOME id)
+                            (fn entry1 as ((_, id1), _) => fn res =>
+                              if after_perspective node entry1 then NONE
+                              else SOME (new_exec state init id1 res))
+                            node ([], the_exec state (the_default_entry node prev));
+
+                        val no_execs =
+                          if can (the_entry node0) id then
+                            fold_entries (SOME id)
+                              (fn ((_, id0), exec0) => fn res =>
+                                if is_none exec0 then NONE
+                                else if exists (fn (_, (id1, _)) => id0 = id1) execs then SOME res
+                                else SOME (id0 :: res)) node0 []
+                          else [];
+
+                        val node1 =
                           fold (fn (exec_id, (command_id, _)) => update_entry command_id exec_id)
                             execs node;
+                        val last_exec = if #1 exec = no_id then NONE else SOME (#1 exec);
                         val result =
-                          if is_last_entry node' last_id
-                          then Lazy.map #1 (#2 last_exec)
+                          if is_some last_exec andalso is_none (next_entry node1 (the last_exec))
+                          then Lazy.map #1 (#2 exec)
                           else no_result;
-                        val node'' = node'
-                          |> set_last_exec (if last_id = no_id then NONE else SOME last_id)
+                        val node2 = node1
+                          |> set_last_exec last_exec
                           |> set_result result
                           |> set_touched false;
-                      in ((execs, [(name, node'')]), node'') end)
-                end))
-      |> Future.joins |> map #1 |> rev;  (* FIXME why rev? *)
+                      in ((no_execs, execs, [(name, node2)]), node2) end))
+            end)
+      |> Future.joins |> map #1;
 
-    val updated_nodes = maps #2 updated;
-    val assignment = map (fn (exec_id, (command_id, _)) => (command_id, exec_id)) (maps #1 updated);
+    val command_execs =
+      map (rpair NONE) (maps #1 updated) @
+      map (fn (exec_id, (command_id, _)) => (command_id, SOME exec_id)) (maps #2 updated);
+    val updated_nodes = maps #3 updated;
     val last_execs = map (fn (name, node) => (name, get_last_exec node)) updated_nodes;
 
     val state' = state
-      |> fold (fold define_exec o #1) updated
+      |> fold (fold define_exec o #2) updated
       |> define_version new_id (fold put_node updated_nodes new_version);
-  in ((assignment, last_execs), state') end;
+  in ((command_execs, last_execs), state') end;
 
 end;
 
@@ -490,7 +511,8 @@ fun execute version_id state =
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
-              (fold_entries NONE (fn (_, exec) => fn () => force_exec node exec) node));
+              (fold_entries NONE
+                (fn entry as (_, exec) => fn () => SOME (force_exec node exec)) node));
 
     in (versions, commands, execs, execution) end);
 
