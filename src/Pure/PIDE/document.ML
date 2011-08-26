@@ -113,7 +113,6 @@ fun map_entries f =
   map_node (fn (touched, header, perspective, entries, last_exec, result) =>
     (touched, header, perspective, f entries, last_exec, result));
 fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
-fun first_entry start P (Node {entries, ...}) = Entries.get_first start P entries;
 
 fun get_last_exec (Node {last_exec, ...}) = last_exec;
 fun set_last_exec last_exec =
@@ -140,10 +139,7 @@ datatype node_edit =
 
 type edit = string * node_edit;
 
-fun next_entry (Node {entries, ...}) id =
-  (case Entries.lookup entries id of
-    NONE => err_undef "command entry" id
-  | SOME (_, next) => next);
+fun after_entry (Node {entries, ...}) = Entries.get_after entries;
 
 fun lookup_entry (Node {entries, ...}) id =
   (case Entries.lookup entries id of
@@ -158,8 +154,11 @@ fun the_entry (Node {entries, ...}) id =
 fun the_default_entry node (SOME id) = the_default no_id (the_entry node id)
   | the_default_entry _ NONE = no_id;
 
-fun update_entry id exec_id =
-  map_entries (Entries.update (id, SOME exec_id));
+fun update_entry id exec =
+  map_entries (Entries.update (id, exec));
+
+fun reset_entry id node =
+  if is_some (lookup_entry node id) then update_entry id NONE node else node;
 
 fun reset_after id entries =
   (case Entries.get_after entries id of
@@ -381,25 +380,14 @@ fun update_perspective (old_id: version_id) (new_id: version_id) name perspectiv
 
 local
 
-fun init_theory deps name node =
+fun last_common last_visible node0 node =
   let
-    val (thy_name, imports, uses) = Exn.release (get_header node);
-    (* FIXME provide files via Scala layer *)
-    val (dir, files) =
-      if ML_System.platform_is_cygwin then (Path.current, [])
-      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
-
-    val parents =
-      imports |> map (fn import =>
-        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
-          SOME thy => thy
-        | NONE =>
-            get_theory (Position.file_only import)
-              (#2 (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory dir thy_name imports files parents end;
-
-fun after_perspective node ((prev, _), _) = prev = #2 (get_perspective node);
-fun needs_update node0 ((_, id), exec) = is_none exec orelse exec <> lookup_entry node0 id;
+    fun get_common ((prev, id), exec) (found, (result, visible)) =
+      if found then NONE
+      else
+        let val found' = is_none exec orelse exec <> lookup_entry node0 id
+        in SOME (found', (prev, visible andalso prev <> last_visible)) end;
+  in #2 (fold_entries NONE get_common node (false, (NONE, true))) end;
 
 fun new_exec state init command_id' (execs, exec) =
   let
@@ -414,6 +402,23 @@ fun new_exec state init command_id' (execs, exec) =
         in run_command tr st end)
       |> pair command_id';
   in ((exec_id', exec') :: execs, exec') end;
+
+fun init_theory deps name node =
+  let
+    val (thy_name, imports, uses) = Exn.release (get_header node);
+    (* FIXME provide files via Scala layer *)
+    val (dir, files) =
+      if ML_System.platform_is_cygwin then (Path.current, [])
+      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
+
+    val parents =
+      imports |> map (fn import =>
+        (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
+          SOME thy => thy
+        | NONE =>
+            get_theory (Position.file_only import)
+              (snd (Future.join (the (AList.lookup (op =) deps import))))));
+  in Thy_Load.begin_theory dir thy_name imports files parents end;
 
 in
 
@@ -432,47 +437,41 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
               val node0 = node_of old_version name;
               fun init () = init_theory deps name node;
             in
-              (case first_entry NONE (after_perspective node orf needs_update node0) node of
-                NONE => Future.value (([], [], []), set_touched false node)
-              | SOME (entry as ((prev, id), _)) =>
-                  (singleton o Future.forks)
-                    {name = "Document.update", group = NONE,
-                      deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
-                    (fn () =>
-                      let
-                        val update_start =
-                          Option.map (#2 o #1) (first_entry (SOME id) (needs_update node0) node);
+              (singleton o Future.forks)
+                {name = "Document.update", group = NONE,
+                  deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
+                (fn () =>
+                  let
+                    val last_visible = #2 (get_perspective node);
+                    val (common, visible) = last_common last_visible node0 node;
+                    val common_exec = the_exec state (the_default_entry node common);
 
-                        val (execs, exec) =
-                          ([], the_exec state (the_default_entry node prev))
-                          |> not (after_perspective node entry) ?
-                              fold_entries update_start
-                                (fn entry1 as ((_, id1), _) => fn res =>
-                                  if after_perspective node entry1 then NONE
-                                  else SOME (new_exec state init id1 res)) node;
+                    val (execs, exec) = ([], common_exec) |>
+                      visible ?
+                        fold_entries (after_entry node common)
+                          (fn ((prev, id), _) => fn res =>
+                            if prev = last_visible then NONE
+                            else SOME (new_exec state init id res)) node;
 
-                        val node1 =
-                          fold (fn (exec_id, (command_id, _)) => update_entry command_id exec_id)
-                            execs node;
-                        val last_exec = if #1 exec = no_id then NONE else SOME (#1 exec);
-                        val result =
-                          if is_some last_exec andalso is_none (next_entry node1 (the last_exec))
-                          then Lazy.map #1 (#2 exec)
-                          else no_result;
-                        val node2 = node1
-                          |> set_last_exec last_exec
-                          |> set_result result
-                          |> set_touched false;
+                    val no_execs =
+                      fold_entries (after_entry node0 common)
+                        (fn ((_, id0), exec0) => fn res =>
+                          if is_none exec0 then NONE
+                          else if exists (fn (_, (id, _)) => id0 = id) execs then SOME res
+                          else SOME (id0 :: res)) node0 [];
 
-                        val no_execs =
-                          fold_entries update_start
-                            (fn ((_, id0), exec0) => fn res =>
-                              if is_none exec0 then NONE
-                              else if is_some (lookup_entry node2 id0) then SOME res
-                              else SOME (id0 :: res)) node0 []
-                          handle Entries.UNDEFINED _ => [];
+                    val last_exec = if #1 exec = no_id then NONE else SOME (#1 exec);
+                    val result =
+                      if is_some (after_entry node last_exec) then no_result
+                      else Lazy.map #1 (#2 exec);
 
-                      in ((no_execs, execs, [(name, node2)]), node2) end))
+                    val node' = node
+                      |> fold reset_entry no_execs
+                      |> fold (fn (exec_id, (id, _)) => update_entry id (SOME exec_id)) execs
+                      |> set_last_exec last_exec
+                      |> set_result result
+                      |> set_touched false;
+                  in ((no_execs, execs, [(name, node')]), node') end)
             end)
       |> Future.joins |> map #1;
 
