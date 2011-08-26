@@ -34,7 +34,8 @@ definition
 
 subsubsection {* The order relation *}
 
-context weak_partial_order begin
+context weak_partial_order
+begin
 
 lemma le_cong_l [intro, trans]:
   "\<lbrakk> x .= y; y \<sqsubseteq> z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
@@ -85,7 +86,7 @@ lemma (in weak_partial_order) lless_cong_r [trans]:
     and  yy': "y .= y'"
     and carr: "x \<in> carrier L" "y \<in> carrier L" "y' \<in> carrier L"
   shows "x \<sqsubset> y'"
-  using assms unfolding lless_def by (auto intro: trans sym)
+  using assms unfolding lless_def by (auto intro: trans sym)  (*slow*)
 
 
 lemma (in weak_partial_order) lless_antisym:
@@ -574,8 +575,7 @@ next
   proof (cases "A = {}")
     case True
     with insert show ?thesis
-      by simp (simp add: least_cong [OF weak_sup_of_singleton]
-        sup_of_singleton_closed sup_of_singletonI)
+      by simp (simp add: least_cong [OF weak_sup_of_singleton] sup_of_singletonI)
         (* The above step is hairy; least_cong can make simp loop.
         Would want special version of simp to apply least_cong. *)
   next
@@ -1282,7 +1282,7 @@ theorem powerset_is_complete_lattice:
   (is "complete_lattice ?L")
 proof (rule partial_order.complete_latticeI)
   show "partial_order ?L"
-    proof qed auto
+    by default auto
 next
   fix B
   assume B: "B \<subseteq> carrier ?L"

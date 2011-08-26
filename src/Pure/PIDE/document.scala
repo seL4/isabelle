@@ -60,7 +60,8 @@ object Document
         case exn => exn
       }
 
-    val empty: Node = Node(Exn.Exn(ERROR("Bad theory header")), Nil, Map(), Linear_Set())
+    val empty: Node =
+      Node(Exn.Exn(ERROR("Bad theory header")), Command.Perspective.empty, Map(), Linear_Set())
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -156,7 +157,7 @@ object Document
 
   object Change
   {
-    val init = Change(Future.value(Version.init), Nil, Future.value(Version.init))
+    val init: Change = Change(Future.value(Version.init), Nil, Future.value(Version.init))
   }
 
   sealed case class Change(
@@ -172,7 +173,7 @@ object Document
 
   object History
   {
-    val init = new History(List(Change.init))
+    val init: History = new History(List(Change.init))
   }
 
   // FIXME pruning, purging of state
@@ -203,21 +204,42 @@ object Document
       : Stream[Text.Info[Option[A]]]
   }
 
+  type Assign =
+   (List[(Document.Command_ID, Option[Document.Exec_ID])],  // exec state assignment
+    List[(String, Option[Document.Command_ID])])  // last exec
+
+  val no_assign: Assign = (Nil, Nil)
+
   object State
   {
     class Fail(state: State) extends Exception
 
-    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)._2
+    val init: State =
+      State().define_version(Version.init, Assignment.init).assign(Version.init.id, no_assign)._2
+
+    object Assignment
+    {
+      val init: Assignment = Assignment(Map.empty, Map.empty, false)
+    }
 
     case class Assignment(
-      val assignment: Map[Command, Exec_ID],
-      val is_finished: Boolean = false)
+      val command_execs: Map[Command_ID, Exec_ID],
+      val last_execs: Map[String, Option[Command_ID]],
+      val is_finished: Boolean)
     {
-      def get_finished: Map[Command, Exec_ID] = { require(is_finished); assignment }
-      def assign(command_execs: List[(Command, Exec_ID)]): Assignment =
+      def check_finished: Assignment = { require(is_finished); this }
+      def unfinished: Assignment = copy(is_finished = false)
+
+      def assign(add_command_execs: List[(Command_ID, Option[Exec_ID])],
+        add_last_execs: List[(String, Option[Command_ID])]): Assignment =
       {
         require(!is_finished)
-        Assignment(assignment ++ command_execs, true)
+        val command_execs1 =
+          (command_execs /: add_command_execs) {
+            case (res, (command_id, None)) => res - command_id
+            case (res, (command_id, Some(exec_id))) => res + (command_id -> exec_id)
+          }
+        Assignment(command_execs1, last_execs ++ add_last_execs, true)
       }
     }
   }
@@ -232,12 +254,12 @@ object Document
   {
     private def fail[A]: A = throw new State.Fail(this)
 
-    def define_version(version: Version, former_assignment: Map[Command, Exec_ID]): State =
+    def define_version(version: Version, assignment: State.Assignment): State =
     {
       val id = version.id
       if (versions.isDefinedAt(id) || disposed(id)) fail
       copy(versions = versions + (id -> version),
-        assignments = assignments + (id -> State.Assignment(former_assignment)))
+        assignments = assignments + (id -> assignment.unfinished))
     }
 
     def define_command(command: Command): State =
@@ -250,7 +272,7 @@ object Document
     def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
-    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
+    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)  // FIXME rename
     def the_exec(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
@@ -269,21 +291,22 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): (List[Command], State) =
+    def assign(id: Version_ID, arg: Assign): (List[Command], State) =
     {
       val version = the_version(id)
+      val (command_execs, last_execs) = arg
 
-      var new_execs = execs
-      val assigned_execs =
-        for ((cmd_id, exec_id) <- edits) yield {
-          val st = the_command(cmd_id)
-          if (new_execs.isDefinedAt(exec_id) || disposed(exec_id)) fail
-          new_execs += (exec_id -> st)
-          (st.command, exec_id)
+      val (commands, new_execs) =
+        ((Nil: List[Command], execs) /: command_execs) {
+          case ((commands1, execs1), (cmd_id, Some(exec_id))) =>
+            val st = the_command(cmd_id)
+            (st.command :: commands1, execs1 + (exec_id -> st))
+          case (res, (_, None)) => res
         }
-      val new_assignment = the_assignment(version).assign(assigned_execs)
+      val new_assignment = the_assignment(version).assign(command_execs, last_execs)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
-      (assigned_execs.map(_._1), new_state)
+
+      (commands, new_state)
     }
 
     def is_assigned(version: Version): Boolean =
@@ -295,8 +318,24 @@ object Document
     def is_stable(change: Change): Boolean =
       change.is_finished && is_assigned(change.version.get_finished)
 
-    def tip_stable: Boolean = is_stable(history.tip)
     def recent_stable: Option[Change] = history.undo_list.find(is_stable)
+    def tip_stable: Boolean = is_stable(history.tip)
+    def tip_version: Version = history.tip.version.get_finished
+
+    def last_exec_offset(name: String): Text.Offset =
+    {
+      val version = tip_version
+      the_assignment(version).last_execs.get(name) match {
+        case Some(Some(id)) =>
+          val node = version.nodes(name)
+          val cmd = the_command(id).command
+          node.command_start(cmd) match {
+            case None => 0
+            case Some(start) => start + cmd.length
+          }
+        case _ => 0
+      }
+    }
 
     def continue_history(
         previous: Future[Version],
@@ -329,7 +368,10 @@ object Document
         def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
 
         def state(command: Command): Command.State =
-          try { the_exec(the_assignment(version).get_finished.getOrElse(command, fail)) }
+          try {
+            the_exec(the_assignment(version).check_finished.command_execs
+              .getOrElse(command.id, fail))
+          }
           catch { case _: State.Fail => command.empty_state }
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))

@@ -231,8 +231,8 @@ fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
 
     val raw_symbs = read_mfix sy handle ERROR msg => err_in_mfix msg mfix;
     val args = filter (fn Argument _ => true | _ => false) raw_symbs;
-    val (const', typ', parse_rules) =
-      if not (exists is_index args) then (const, typ, [])
+    val (const', typ', syntax_consts, parse_rules) =
+      if not (exists is_index args) then (const, typ, NONE, NONE)
       else
         let
           val indexed_const =
@@ -247,7 +247,7 @@ fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
           val lhs = Ast.mk_appl (Ast.Constant indexed_const)
             (xs1 @ [Ast.mk_appl (Ast.Constant "_index") [i]] @ xs2);
           val rhs = Ast.mk_appl (Ast.Constant const) (i :: xs);
-        in (indexed_const, rangeT, [(lhs, rhs)]) end;
+        in (indexed_const, rangeT, SOME (indexed_const, const), SOME (lhs, rhs)) end;
 
     val (symbs, lhs) = add_args raw_symbs typ' pris;
 
@@ -273,7 +273,7 @@ fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
       else if exists is_terminal symbs' then xprod
       else XProd (lhs', map rem_pri symbs', "", chain_pri);
 
-  in (xprod', parse_rules) end;
+  in (xprod', syntax_consts, parse_rules) end;
 
 
 
@@ -298,13 +298,15 @@ fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
 
-    val (xprods, parse_rules') = map (mfix_to_xprod is_logtype) mfixes
-      |> split_list |> apsnd (rev o flat);
+    val xprod_results = map (mfix_to_xprod is_logtype) mfixes;
+    val xprods = map #1 xprod_results;
+    val consts' = map_filter #2 xprod_results;
+    val parse_rules' = rev (map_filter #3 xprod_results);
     val mfix_consts = map (fn Mfix x => (#3 x, "")) mfixes @ map (fn XProd x => (#3 x, "")) xprods;
   in
     Syn_Ext {
       xprods = xprods,
-      consts = mfix_consts @ consts,
+      consts = mfix_consts @ consts' @ consts,
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,
       parse_translation = parse_translation,

@@ -118,7 +118,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def perspective(): Text.Perspective =
   {
     Swing_Thread.require()
-    Text.perspective(
+    Text.Perspective(
       for {
         i <- 0 until text_area.getVisibleLines
         val start = text_area.getScreenLineStartOffset(i)

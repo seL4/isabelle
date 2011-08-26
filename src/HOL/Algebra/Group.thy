@@ -154,7 +154,7 @@ proof
     and G: "x \<in> Units G"  "y \<in> carrier G"  "z \<in> carrier G"
   then have "(inv x \<otimes> x) \<otimes> y = (inv x \<otimes> x) \<otimes> z"
     by (simp add: m_assoc Units_closed del: Units_l_inv)
-  with G show "y = z" by (simp add: Units_l_inv)
+  with G show "y = z" by simp
 next
   assume eq: "y = z"
     and G: "x \<in> Units G"  "y \<in> carrier G"  "z \<in> carrier G"
@@ -332,7 +332,7 @@ lemma (in group) r_inv [simp]:
 proof -
   assume x: "x \<in> carrier G"
   then have "inv x \<otimes> (x \<otimes> inv x) = inv x \<otimes> \<one>"
-    by (simp add: m_assoc [symmetric] l_inv)
+    by (simp add: m_assoc [symmetric])
   with x show ?thesis by (simp del: r_one)
 qed
 
@@ -372,7 +372,7 @@ lemma (in group) inv_mult_group:
 proof -
   assume G: "x \<in> carrier G"  "y \<in> carrier G"
   then have "inv (x \<otimes> y) \<otimes> (x \<otimes> y) = (inv y \<otimes> inv x) \<otimes> (x \<otimes> y)"
-    by (simp add: m_assoc l_inv) (simp add: m_assoc [symmetric])
+    by (simp add: m_assoc) (simp add: m_assoc [symmetric])
   with G show ?thesis by (simp del: l_inv Units_l_inv)
 qed
 
@@ -446,7 +446,7 @@ text {*
 lemma (in group) one_in_subset:
   "[| H \<subseteq> carrier G; H \<noteq> {}; \<forall>a \<in> H. inv a \<in> H; \<forall>a\<in>H. \<forall>b\<in>H. a \<otimes> b \<in> H |]
    ==> \<one> \<in> H"
-by (force simp add: l_inv)
+by force
 
 text {* A characterization of subgroups: closed, non-empty subset. *}
 

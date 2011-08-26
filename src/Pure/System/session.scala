@@ -206,7 +206,7 @@ class Session(val file_store: Session.File_Store)
 
     def update_perspective(name: String, text_perspective: Text.Perspective)
     {
-      val previous = global_state().history.tip.version.get_finished
+      val previous = global_state().tip_version
       val (perspective, version) = Thy_Syntax.edit_perspective(previous, name, text_perspective)
 
       val text_edits: List[Document.Edit_Text] =
@@ -215,9 +215,9 @@ class Session(val file_store: Session.File_Store)
         global_state.change_yield(
           _.continue_history(Future.value(previous), text_edits, Future.value(version)))
 
-      val assignment = global_state().the_assignment(previous).get_finished
+      val assignment = global_state().the_assignment(previous).check_finished
       global_state.change(_.define_version(version, assignment))
-      global_state.change_yield(_.assign(version.id, Nil))
+      global_state.change_yield(_.assign(version.id, Document.no_assign))
 
       prover.get.update_perspective(previous.id, version.id, name, perspective)
     }
@@ -248,10 +248,10 @@ class Session(val file_store: Session.File_Store)
 
     /* exec state assignment */
 
-    def handle_assign(id: Document.Version_ID, edits: List[(Document.Command_ID, Document.Exec_ID)])
+    def handle_assign(id: Document.Version_ID, assign: Document.Assign)
     //{{{
     {
-      val cmds = global_state.change_yield(_.assign(id, edits))
+      val cmds = global_state.change_yield(_.assign(id, assign))
       for (cmd <- cmds) command_change_buffer ! cmd
       assignments.event(Session.Assignment)
     }
@@ -268,13 +268,6 @@ class Session(val file_store: Session.File_Store)
       val name = change.name
       val doc_edits = change.doc_edits
 
-      var former_assignment = global_state().the_assignment(previous).get_finished
-      for {
-        (name, Document.Node.Edits(cmd_edits)) <- doc_edits  // FIXME proper coverage!?
-        (prev, None) <- cmd_edits
-        removed <- previous.nodes(name).commands.get_after(prev)
-      } former_assignment -= removed
-
       def id_command(command: Command)
       {
         if (global_state().lookup_command(command.id).isEmpty) {
@@ -287,8 +280,9 @@ class Session(val file_store: Session.File_Store)
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      global_state.change(_.define_version(version, former_assignment))
-      prover.get.edit_version(previous.id, version.id, doc_edits)
+      val assignment = global_state().the_assignment(previous).check_finished
+      global_state.change(_.define_version(version, assignment))
+      prover.get.update(previous.id, version.id, doc_edits)
     }
     //}}}
 
@@ -336,8 +330,8 @@ class Session(val file_store: Session.File_Store)
           else if (result.is_stdout) { }
           else if (result.is_status) {
             result.body match {
-              case List(Isar_Document.Assign(id, edits)) =>
-                try { handle_assign(id, edits) }
+              case List(Isar_Document.Assign(id, assign)) =>
+                try { handle_assign(id, assign) }
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
@@ -386,7 +380,8 @@ class Session(val file_store: Session.File_Store)
           reply(())
 
         case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
-          if (text_edits.isEmpty && global_state().tip_stable)
+          if (text_edits.isEmpty && global_state().tip_stable &&
+              perspective.range.stop <= global_state().last_exec_offset(name))
             update_perspective(name, perspective)
           else
             handle_edits(name, master_dir, header,
