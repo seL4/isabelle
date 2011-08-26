@@ -3473,16 +3473,10 @@ lemma continuous_sub:
 
 text{* Same thing for setwise continuity. *}
 
-lemma continuous_on_const:
- "continuous_on s (\<lambda>x. c)"
+lemma continuous_on_const: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma continuous_on_cmul:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. c *\<^sub>R (f x))"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_neg:
+lemma continuous_on_minus:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
@@ -3493,11 +3487,45 @@ lemma continuous_on_add:
            \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma continuous_on_sub:
+lemma continuous_on_diff:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g
            \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
+
+lemma (in bounded_linear) continuous_on:
+  "continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f (g x))"
+  unfolding continuous_on_def by (fast intro: tendsto)
+
+lemma (in bounded_bilinear) continuous_on:
+  "\<lbrakk>continuous_on s f; continuous_on s g\<rbrakk> \<Longrightarrow> continuous_on s (\<lambda>x. f x ** g x)"
+  unfolding continuous_on_def by (fast intro: tendsto)
+
+lemma continuous_on_scaleR:
+  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "continuous_on s f" and "continuous_on s g"
+  shows "continuous_on s (\<lambda>x. f x *\<^sub>R g x)"
+  using bounded_bilinear_scaleR assms
+  by (rule bounded_bilinear.continuous_on)
+
+lemma continuous_on_mult:
+  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
+  assumes "continuous_on s f" and "continuous_on s g"
+  shows "continuous_on s (\<lambda>x. f x * g x)"
+  using bounded_bilinear_mult assms
+  by (rule bounded_bilinear.continuous_on)
+
+lemma continuous_on_inner:
+  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_inner"
+  assumes "continuous_on s f" and "continuous_on s g"
+  shows "continuous_on s (\<lambda>x. inner (f x) (g x))"
+  using bounded_bilinear_inner assms
+  by (rule bounded_bilinear.continuous_on)
+
+lemma continuous_on_euclidean_component:
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $$ i)"
+  using bounded_linear_euclidean_component
+  by (rule bounded_linear.continuous_on)
 
 text{* Same thing for uniform continuity, using sequential formulations. *}
 
@@ -3942,28 +3970,10 @@ lemma continuous_mul:
 lemmas continuous_intros = continuous_add continuous_vmul continuous_cmul
   continuous_const continuous_sub continuous_at_id continuous_within_id continuous_mul
 
-lemma continuous_on_vmul:
-  fixes c :: "'a::metric_space \<Rightarrow> real" and v :: "'b::real_normed_vector"
-  shows "continuous_on s c ==> continuous_on s (\<lambda>x. c(x) *\<^sub>R v)"
-  unfolding continuous_on_eq_continuous_within using continuous_vmul[of _ c] by auto
-
-lemma continuous_on_mul:
-  fixes c :: "'a::metric_space \<Rightarrow> real"
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s c \<Longrightarrow> continuous_on s f
-             ==> continuous_on s (\<lambda>x. c(x) *\<^sub>R f x)"
-  unfolding continuous_on_eq_continuous_within using continuous_mul[of _ c] by auto
-
-lemma continuous_on_mul_real:
-  fixes f :: "'a::metric_space \<Rightarrow> real"
-  fixes g :: "'a::metric_space \<Rightarrow> real"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g
-             ==> continuous_on s (\<lambda>x. f x * g x)"
-  using continuous_on_mul[of s f g] unfolding real_scaleR_def .
-
 lemmas continuous_on_intros = continuous_on_add continuous_on_const
-  continuous_on_id continuous_on_compose continuous_on_cmul continuous_on_neg
-  continuous_on_sub continuous_on_mul continuous_on_vmul continuous_on_mul_real
+  continuous_on_id continuous_on_compose continuous_on_minus
+  continuous_on_diff continuous_on_scaleR continuous_on_mult
+  continuous_on_inner continuous_on_euclidean_component
   uniformly_continuous_on_add uniformly_continuous_on_const
   uniformly_continuous_on_id uniformly_continuous_on_compose
   uniformly_continuous_on_cmul uniformly_continuous_on_neg
@@ -5110,11 +5120,6 @@ lemma continuous_at_inner: "continuous (at x) (inner a)"
 lemma continuous_at_euclidean_component[intro!, simp]: "continuous (at x) (\<lambda>x. x $$ i)"
   unfolding euclidean_component_def by (rule continuous_at_inner)
 
-lemma continuous_on_inner:
-  fixes s :: "'a::real_inner set"
-  shows "continuous_on s (inner a)"
-  unfolding continuous_on by (rule ballI) (intro tendsto_intros)
-
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
   by (simp add: closed_Collect_le)
 
@@ -5391,8 +5396,7 @@ lemma homeomorphic_scaling:
   unfolding homeomorphic_minimal
   apply(rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
   apply(rule_tac x="\<lambda>x. (1 / c) *\<^sub>R x" in exI)
-  using assms apply auto
-  using continuous_on_cmul[OF continuous_on_id] by auto
+  using assms by (auto simp add: continuous_on_intros)
 
 lemma homeomorphic_translation:
   fixes s :: "'a::real_normed_vector set"

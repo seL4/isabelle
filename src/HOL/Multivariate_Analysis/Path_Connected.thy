@@ -92,7 +92,7 @@ lemma path_image_reversepath[simp]: "path_image(reversepath g) = path_image g" p
 lemma path_reversepath[simp]: "path(reversepath g) \<longleftrightarrow> path g" proof-
   have *:"\<And>g. path g \<Longrightarrow> path(reversepath g)" unfolding path_def reversepath_def
     apply(rule continuous_on_compose[unfolded o_def, of _ "\<lambda>x. 1 - x"])
-    apply(rule continuous_on_sub, rule continuous_on_const, rule continuous_on_id)
+    apply(intro continuous_on_intros)
     apply(rule continuous_on_subset[of "{0..1}"], assumption) by auto
   show ?thesis using *[of "reversepath g"] *[of g] unfolding reversepath_reversepath by (rule iffI) qed
 
@@ -108,8 +108,9 @@ lemma path_join[simp]: assumes "pathfinish g1 = pathstart g2" shows "path (g1 ++
     by auto
   thus "continuous_on {0..1} g1 \<and> continuous_on {0..1} g2" apply -apply rule
     apply(subst *) defer apply(subst *) apply (rule_tac[!] continuous_on_compose)
-    apply (rule continuous_on_cmul, rule continuous_on_add, rule continuous_on_id, rule continuous_on_const) defer
-    apply (rule continuous_on_cmul, rule continuous_on_id) apply(rule_tac[!] continuous_on_eq[of _ "g1 +++ g2"]) defer prefer 3
+    apply (intro continuous_on_intros) defer
+    apply (intro continuous_on_intros)
+    apply(rule_tac[!] continuous_on_eq[of _ "g1 +++ g2"]) defer prefer 3
     apply(rule_tac[1-2] continuous_on_subset[of "{0 .. 1}"]) apply(rule as, assumption, rule as, assumption)
     apply(rule) defer apply rule proof-
     fix x assume "x \<in> op *\<^sub>R (1 / 2) ` {0::real..1}"
@@ -132,10 +133,10 @@ next assume as:"continuous_on {0..1} g1" "continuous_on {0..1} g2"
     done
   show "continuous_on {0..1} (g1 +++ g2)" unfolding * apply(rule continuous_on_union) apply (rule closed_real_atLeastAtMost)+ proof-
     show "continuous_on {0..(1 / 2) *\<^sub>R 1} (g1 +++ g2)" apply(rule continuous_on_eq[of _ "\<lambda>x. g1 (2 *\<^sub>R x)"]) defer
-      unfolding o_def[THEN sym] apply(rule continuous_on_compose) apply(rule continuous_on_cmul, rule continuous_on_id)
+      unfolding o_def[THEN sym] apply(rule continuous_on_compose) apply (intro continuous_on_intros)
       unfolding ** apply(rule as(1)) unfolding joinpaths_def by auto next
     show "continuous_on {(1/2)*\<^sub>R1..1} (g1 +++ g2)" apply(rule continuous_on_eq[of _ "g2 \<circ> (\<lambda>x. 2 *\<^sub>R x - 1)"]) defer
-      apply(rule continuous_on_compose) apply(rule continuous_on_sub, rule continuous_on_cmul, rule continuous_on_id, rule continuous_on_const)
+      apply(rule continuous_on_compose) apply (intro continuous_on_intros)
       unfolding *** o_def joinpaths_def apply(rule as(2)) using assms[unfolded pathstart_def pathfinish_def]
       by (auto simp add: mult_ac) qed qed
 

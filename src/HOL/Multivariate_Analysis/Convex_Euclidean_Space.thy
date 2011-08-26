@@ -3643,8 +3643,8 @@ lemma ivt_decreasing_component_on_1: fixes f::"real \<Rightarrow> 'a::euclidean_
   assumes "a \<le> b" "continuous_on {a .. b} f" "(f b)$$k \<le> y" "y \<le> (f a)$$k"
   shows "\<exists>x\<in>{a..b}. (f x)$$k = y"
   apply(subst neg_equal_iff_equal[THEN sym])
-  using ivt_increasing_component_on_1[of a b "\<lambda>x. - f x" k "- y"] using assms using continuous_on_neg
-  by auto
+  using ivt_increasing_component_on_1[of a b "\<lambda>x. - f x" k "- y"]
+  using assms using continuous_on_minus by auto
 
 lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f

@@ -221,6 +221,13 @@ removed, and other theorems have been renamed. INCOMPATIBILITY.
   Lim_inner ~> tendsto_inner [OF tendsto_const]
   dot_lsum ~> inner_setsum_left
   dot_rsum ~> inner_setsum_right
+  continuous_on_neg ~> continuous_on_minus
+  continuous_on_sub ~> continuous_on_diff
+  continuous_on_cmul ~> continuous_on_scaleR [OF continuous_on_const]
+  continuous_on_vmul ~> continuous_on_scaleR [OF _ continuous_on_const]
+  continuous_on_mul ~> continuous_on_scaleR
+  continuous_on_mul_real ~> continuous_on_mult
+  continuous_on_inner ~> continuous_on_inner [OF continuous_on_const]
   subset_interior ~> interior_mono
   subset_closure ~> closure_mono
   closure_univ ~> closure_UNIV

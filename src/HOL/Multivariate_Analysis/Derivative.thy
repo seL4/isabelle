@@ -785,7 +785,7 @@ proof-
   have "\<exists>x\<in>{a<..<b}. (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)"
     apply(rule rolle[OF assms(1), of "\<lambda>x. f x - (f b - f a) / (b - a) * x"])
     defer
-    apply(rule continuous_on_intros assms(2) continuous_on_cmul[where 'b=real, unfolded real_scaleR_def])+
+    apply(rule continuous_on_intros assms(2))+
   proof
     fix x assume x:"x \<in> {a<..<b}"
     show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
@@ -869,7 +869,7 @@ proof-
     unfolding scaleR_left_diff_distrib scaleR_right_diff_distrib
     by (auto simp add: algebra_simps)
   hence 1:"continuous_on {0..1} (f \<circ> ?p)" apply-
-    apply(rule continuous_on_intros continuous_on_vmul)+
+    apply(rule continuous_on_intros)+
     unfolding continuous_on_eq_continuous_within
     apply(rule,rule differentiable_imp_continuous_within)
     unfolding differentiable_def apply(rule_tac x="f' xa" in exI)

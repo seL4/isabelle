@@ -149,7 +149,7 @@ lemma euclidean_eqI:
   assumes "\<And>i. i < DIM('a) \<Longrightarrow> x $$ i = y $$ i" shows "x = y"
 proof -
   from assms have "\<forall>i<DIM('a). (x - y) $$ i = 0"
-    by (simp add: euclidean_component_diff)
+    by simp
   then show "x = y"
     unfolding euclidean_component_def euclidean_all_zero by simp
 qed

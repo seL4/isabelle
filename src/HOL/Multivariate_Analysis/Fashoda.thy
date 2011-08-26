@@ -44,7 +44,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   have 2:"continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)" apply(rule continuous_on_intros continuous_on_component continuous_on_vec1)+
     prefer 2 apply(rule continuous_on_intros continuous_on_component continuous_on_vec1)+ unfolding *
     apply(rule assms)+ apply(rule continuous_on_compose,subst sqprojection_def)
-    apply(rule continuous_on_mul ) apply(rule continuous_at_imp_continuous_on,rule) apply(rule continuous_at_inv[unfolded o_def])
+    apply(rule continuous_on_scaleR) apply(rule continuous_at_imp_continuous_on,rule) apply(rule continuous_at_inv[unfolded o_def])
     apply(rule continuous_at_infnorm) unfolding infnorm_eq_0 defer apply(rule continuous_on_id) apply(rule linear_continuous_on) proof-
     show "bounded_linear negatex" apply(rule bounded_linearI') unfolding vec_eq_iff proof(rule_tac[!] allI) fix i::2 and x y::"real^2" and c::real
       show "negatex (x + y) $ i = (negatex x + negatex y) $ i" "negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
