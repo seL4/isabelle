@@ -1253,7 +1253,8 @@ val tvar_a = TVar (("'a", 0), HOLogic.typeS)
 
 val default_sym_tab_entries : (string * sym_info) list =
   (prefixed_predicator_name,
-   {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
+   {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
+       (* FIXME: needed? *) ::
   (make_fixed_const NONE @{const_name undefined},
    {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
