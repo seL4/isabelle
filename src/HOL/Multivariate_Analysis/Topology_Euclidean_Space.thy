@@ -3309,56 +3309,41 @@ lemma continuous_on_eq:
 
 text {* Characterization of various kinds of continuity in terms of sequences. *}
 
-(* \<longrightarrow> could be generalized, but \<longleftarrow> requires metric space *)
 lemma continuous_within_sequentially:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous (at a within s) f \<longleftrightarrow>
                 (\<forall>x. (\<forall>n::nat. x n \<in> s) \<and> (x ---> a) sequentially
                      --> ((f o x) ---> f a) sequentially)" (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  { fix x::"nat \<Rightarrow> 'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (x n) a < e"
-    fix e::real assume "e>0"
-    from `?lhs` obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) (f a) < e" unfolding continuous_within Lim_within using `e>0` by auto
-    from x(2) `d>0` obtain N where N:"\<forall>n\<ge>N. dist (x n) a < d" by auto
-    hence "\<exists>N. \<forall>n\<ge>N. dist ((f \<circ> x) n) (f a) < e"
-      apply(rule_tac  x=N in exI) using N d  apply auto using x(1)
-      apply(erule_tac x=n in allE) apply(erule_tac x=n in allE)
-      apply(erule_tac x="x n" in ballE)  apply auto unfolding dist_nz[THEN sym] apply auto using `e>0` by auto
+  { fix x::"nat \<Rightarrow> 'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. eventually (\<lambda>n. dist (x n) a < e) sequentially"
+    fix T::"'b set" assume "open T" and "f a \<in> T"
+    with `?lhs` obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> f x \<in> T"
+      unfolding continuous_within tendsto_def eventually_within by auto
+    have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
+      using x(2) `d>0` by simp
+    hence "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
+    proof (rule eventually_elim1)
+      fix n assume "dist (x n) a < d" thus "(f \<circ> x) n \<in> T"
+        using d x(1) `f a \<in> T` unfolding dist_nz[THEN sym] by auto
+    qed
   }
-  thus ?rhs unfolding continuous_within unfolding Lim_sequentially by simp
+  thus ?rhs unfolding tendsto_iff unfolding tendsto_def by simp
 next
-  assume ?rhs
-  { fix e::real assume "e>0"
-    assume "\<not> (\<exists>d>0. \<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) (f a) < e)"
-    hence "\<forall>d. \<exists>x. d>0 \<longrightarrow> x\<in>s \<and> (0 < dist x a \<and> dist x a < d \<and> \<not> dist (f x) (f a) < e)" by blast
-    then obtain x where x:"\<forall>d>0. x d \<in> s \<and> (0 < dist (x d) a \<and> dist (x d) a < d \<and> \<not> dist (f (x d)) (f a) < e)"
-      using choice[of "\<lambda>d x.0<d \<longrightarrow> x\<in>s \<and> (0 < dist x a \<and> dist x a < d \<and> \<not> dist (f x) (f a) < e)"] by auto
-    { fix d::real assume "d>0"
-      hence "\<exists>N::nat. inverse (real (N + 1)) < d" using real_arch_inv[of d] by (auto, rule_tac x="n - 1" in exI)auto
-      then obtain N::nat where N:"inverse (real (N + 1)) < d" by auto
-      { fix n::nat assume n:"n\<ge>N"
-        hence "dist (x (inverse (real (n + 1)))) a < inverse (real (n + 1))" using x[THEN spec[where x="inverse (real (n + 1))"]] by auto
-        moreover have "inverse (real (n + 1)) < d" using N n by (auto, metis Suc_le_mono le_SucE less_imp_inverse_less nat_le_real_less order_less_trans real_of_nat_Suc real_of_nat_Suc_gt_zero)
-        ultimately have "dist (x (inverse (real (n + 1)))) a < d" by auto
-      }
-      hence "\<exists>N::nat. \<forall>n\<ge>N. dist (x (inverse (real (n + 1)))) a < d" by auto
-    }
-    hence "(\<forall>n::nat. x (inverse (real (n + 1))) \<in> s) \<and> (\<forall>e>0. \<exists>N::nat. \<forall>n\<ge>N. dist (x (inverse (real (n + 1)))) a < e)" using x by auto
-    hence "\<forall>e>0. \<exists>N::nat. \<forall>n\<ge>N. dist (f (x (inverse (real (n + 1))))) (f a) < e"  using `?rhs`[THEN spec[where x="\<lambda>n::nat. x (inverse (real (n+1)))"], unfolded Lim_sequentially] by auto
-    hence "False" apply(erule_tac x=e in allE) using `e>0` using x by auto
-  }
-  thus ?lhs  unfolding continuous_within unfolding Lim_within unfolding Lim_sequentially by blast
+  assume ?rhs thus ?lhs
+    unfolding continuous_within tendsto_def [where l="f a"]
+    by (simp add: sequentially_imp_eventually_within)
 qed
 
 lemma continuous_at_sequentially:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous (at a) f \<longleftrightarrow> (\<forall>x. (x ---> a) sequentially
                   --> ((f o x) ---> f a) sequentially)"
-  using continuous_within_sequentially[of a UNIV f] unfolding within_UNIV by auto
+  using continuous_within_sequentially[of a UNIV f]
+  unfolding within_UNIV by auto
 
 lemma continuous_on_sequentially:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous_on s f \<longleftrightarrow>
     (\<forall>x. \<forall>a \<in> s. (\<forall>n. x(n) \<in> s) \<and> (x ---> a) sequentially
                     --> ((f o x) ---> f(a)) sequentially)" (is "?lhs = ?rhs")
