@@ -196,7 +196,11 @@ lemma sub_list_rsp [quot_respect]:
 
 lemma member_rsp [quot_respect]:
   shows "(op \<approx> ===> op =) List.member List.member"
-  by (auto intro!: fun_relI simp add: mem_def)
+proof
+  fix x y assume "x \<approx> y"
+  then show "List.member x = List.member y"
+    unfolding fun_eq_iff by simp
+qed
 
 lemma nil_rsp [quot_respect]:
   shows "(op \<approx>) Nil Nil"

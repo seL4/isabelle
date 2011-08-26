@@ -536,6 +536,11 @@ fun repair_monomorph_context max_iters max_new_instances =
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.keep_partial_instances false
 
+fun suffix_for_mode Auto_Try = "_auto_try"
+  | suffix_for_mode Try = "_try"
+  | suffix_for_mode Normal = ""
+  | suffix_for_mode Minimize = "_min"
+
 (* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on
    Linux appears to be the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
@@ -557,7 +562,7 @@ fun run_atp mode name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
-                  "_" ^ string_of_int subgoal)
+                  suffix_for_mode mode ^ "_" ^ string_of_int subgoal)
     val problem_path_name =
       if dest_dir = "" then
         File.tmp_path problem_file_name
