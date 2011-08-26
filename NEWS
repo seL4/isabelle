@@ -206,6 +206,7 @@ removed, and other theorems have been renamed. INCOMPATIBILITY.
   eventually_conjI ~> eventually_conj
   eventually_and ~> eventually_conj_iff
   eventually_false ~> eventually_False
+  setsum_norm ~> norm_setsum
   Lim_ident_at ~> LIM_ident
   Lim_const ~> tendsto_const
   Lim_cmul ~> tendsto_scaleR [OF tendsto_const]
