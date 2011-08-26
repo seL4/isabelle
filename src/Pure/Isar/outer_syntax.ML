@@ -34,10 +34,10 @@ sig
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: TextIO.instream -> bool -> isar
-  val prepare_span: outer_syntax -> Thy_Syntax.span -> Toplevel.transition * bool
-  val prepare_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
+  val read_span: outer_syntax -> Thy_Syntax.span -> Toplevel.transition * bool
+  val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
     (Toplevel.transition * Toplevel.transition list) list
-  val prepare_command: Position.T -> string -> Toplevel.transition
+  val read_command: Position.T -> string -> Toplevel.transition
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -251,11 +251,11 @@ fun isar in_stream term : isar =
   |> toplevel_source term (SOME true) lookup_commands_dynamic;
 
 
-(* prepare toplevel commands -- fail-safe *)
+(* read toplevel commands -- fail-safe *)
 
 val not_singleton = "Exactly one command expected";
 
-fun prepare_span outer_syntax span =
+fun read_span outer_syntax span =
   let
     val commands = lookup_commands outer_syntax;
     val range_pos = Position.set_range (Thy_Syntax.span_range span);
@@ -272,19 +272,19 @@ fun prepare_span outer_syntax span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_element outer_syntax init {head, proof, proper_proof} =
+fun read_element outer_syntax init {head, proof, proper_proof} =
   let
-    val (tr, proper_head) = prepare_span outer_syntax head |>> Toplevel.modify_init init;
-    val proof_trs = map (prepare_span outer_syntax) proof |> filter #2 |> map #1;
+    val (tr, proper_head) = read_span outer_syntax head |>> Toplevel.modify_init init;
+    val proof_trs = map (read_span outer_syntax) proof |> filter #2 |> map #1;
   in
     if proper_head andalso proper_proof then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
 
-fun prepare_command pos str =
+fun read_command pos str =
   let val (lexs, outer_syntax) = get_syntax () in
     (case Thy_Syntax.parse_spans lexs pos str of
-      [span] => #1 (prepare_span outer_syntax span)
+      [span] => #1 (read_span outer_syntax span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
 

@@ -101,7 +101,7 @@ object Thy_Syntax
 
   def command_perspective(node: Document.Node, perspective: Text.Perspective): Command.Perspective =
   {
-    if (perspective.isEmpty) Nil
+    if (perspective.is_empty) Command.Perspective.empty
     else {
       val result = new mutable.ListBuffer[Command]
       @tailrec
@@ -120,9 +120,8 @@ object Thy_Syntax
           case _ =>
         }
       }
-      val perspective_range = Text.Range(perspective.head.start, perspective.last.stop)
-      check_ranges(perspective, node.command_range(perspective_range).toStream)
-      result.toList
+      check_ranges(perspective.ranges, node.command_range(perspective.range).toStream)
+      Command.Perspective(result.toList)
     }
   }
 
@@ -132,7 +131,7 @@ object Thy_Syntax
     val node = nodes(name)
     val perspective = command_perspective(node, text_perspective)
     val new_nodes =
-      if (Command.equal_perspective(node.perspective, perspective)) None
+      if (node.perspective same perspective) None
       else Some(nodes + (name -> node.copy(perspective = perspective)))
     (perspective, new_nodes)
   }

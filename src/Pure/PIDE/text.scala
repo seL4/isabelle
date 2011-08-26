@@ -62,28 +62,39 @@ object Text
 
   /* perspective */
 
-  type Perspective = List[Range]  // visible text partitioning in canonical order
-
-  def perspective(ranges: Seq[Range]): Perspective =
+  object Perspective
   {
-    val sorted_ranges = ranges.toArray
-    Sorting.quickSort(sorted_ranges)(Range.Ordering)
+    val empty: Perspective = Perspective(Nil)
 
-    val result = new mutable.ListBuffer[Text.Range]
-    var last: Option[Text.Range] = None
-    for (range <- sorted_ranges)
+    def apply(ranges: Seq[Range]): Perspective =
     {
-      last match {
-        case Some(last_range)
-        if ((last_range overlaps range) || last_range.stop == range.start) =>
-          last = Some(Text.Range(last_range.start, range.stop))
-        case _ =>
-          result ++= last
-          last = Some(range)
+      val sorted_ranges = ranges.toArray
+      Sorting.quickSort(sorted_ranges)(Range.Ordering)
+
+      val result = new mutable.ListBuffer[Text.Range]
+      var last: Option[Text.Range] = None
+      for (range <- sorted_ranges)
+      {
+        last match {
+          case Some(last_range)
+          if ((last_range overlaps range) || last_range.stop == range.start) =>
+            last = Some(Text.Range(last_range.start, range.stop))
+          case _ =>
+            result ++= last
+            last = Some(range)
+        }
       }
+      result ++= last
+      new Perspective(result.toList)
     }
-    result ++= last
-    result.toList
+  }
+
+  sealed case class Perspective(ranges: List[Range]) // visible text partitioning in canonical order
+  {
+    def is_empty: Boolean = ranges.isEmpty
+    def range: Range =
+      if (is_empty) Range(0)
+      else Range(ranges.head.start, ranges.last.stop)
   }
 
 
