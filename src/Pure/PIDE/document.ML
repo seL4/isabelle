@@ -28,7 +28,7 @@ sig
   val join_commands: state -> unit
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
-  val edit: version_id -> version_id -> edit list -> state ->
+  val update: version_id -> version_id -> edit list -> state ->
     ((command_id * exec_id option) list * (string * command_id option) list) * state
   val execute: version_id -> state -> state
   val state: unit -> state
@@ -365,7 +365,7 @@ end;
 
 
 
-(** editing **)
+(** update **)
 
 (* perspective *)
 
@@ -377,7 +377,7 @@ fun update_perspective (old_id: version_id) (new_id: version_id) name perspectiv
   in define_version new_id new_version state end;
 
 
-(* edit *)
+(* edits *)
 
 local
 
@@ -417,7 +417,7 @@ fun new_exec state init command_id' (execs, exec) =
 
 in
 
-fun edit (old_id: version_id) (new_id: version_id) edits state =
+fun update (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
@@ -436,7 +436,7 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
                 NONE => Future.value (([], [], []), set_touched false node)
               | SOME (entry as ((prev, id), _)) =>
                   (singleton o Future.forks)
-                    {name = "Document.edit", group = NONE,
+                    {name = "Document.update", group = NONE,
                       deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
                     (fn () =>
                       let

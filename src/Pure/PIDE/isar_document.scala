@@ -146,7 +146,7 @@ trait Isar_Document extends Isabelle_Process
       YXML.string_of_body(ids))
   }
 
-  def edit_version(old_id: Document.Version_ID, new_id: Document.Version_ID,
+  def update(old_id: Document.Version_ID, new_id: Document.Version_ID,
     edits: List[Document.Edit_Command])
   {
     val edits_yxml =
@@ -163,7 +163,7 @@ trait Isar_Document extends Isabelle_Process
             { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))))
       YXML.string_of_body(encode(edits)) }
 
-    input("Isar_Document.edit_version", Document.ID(old_id), Document.ID(new_id), edits_yxml)
+    input("Isar_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
   }
 
 

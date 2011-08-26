@@ -282,7 +282,7 @@ class Session(val file_store: Session.File_Store)
 
       val assignment = global_state().the_assignment(previous).check_finished
       global_state.change(_.define_version(version, assignment))
-      prover.get.edit_version(previous.id, version.id, doc_edits)
+      prover.get.update(previous.id, version.id, doc_edits)
     }
     //}}}
 

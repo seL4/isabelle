@@ -28,7 +28,7 @@ val _ =
       end));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.edit_version"
+  Isabelle_Process.add_command "Isar_Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
         val old_id = Document.parse_id old_id_string;
@@ -48,7 +48,7 @@ val _ =
             end;
 
         val running = Document.cancel_execution state;
-        val (assignment, state') = Document.edit old_id new_id edits state;
+        val (assignment, state') = Document.update old_id new_id edits state;
         val _ = Future.join_tasks running;
         val _ = Document.join_commands state';
         val _ =
