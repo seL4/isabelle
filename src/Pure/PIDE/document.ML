@@ -112,7 +112,7 @@ fun set_perspective ids =
 fun map_entries f =
   map_node (fn (touched, header, perspective, entries, last_exec, result) =>
     (touched, header, perspective, f entries, last_exec, result));
-fun fold_entries start f (Node {entries, ...}) = Entries.fold start f entries;
+fun iterate_entries start f (Node {entries, ...}) = Entries.iterate start f entries;
 
 fun get_last_exec (Node {last_exec, ...}) = last_exec;
 fun set_last_exec last_exec =
@@ -387,7 +387,7 @@ fun last_common last_visible node0 node =
       else
         let val found' = is_none exec orelse exec <> lookup_entry node0 id
         in SOME (found', (prev, visible andalso prev <> last_visible)) end;
-  in #2 (fold_entries NONE get_common node (false, (NONE, true))) end;
+  in #2 (iterate_entries NONE get_common node (false, (NONE, true))) end;
 
 fun new_exec state init command_id' (execs, exec) =
   let
@@ -448,13 +448,13 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
                     val (execs, exec) = ([], common_exec) |>
                       visible ?
-                        fold_entries (after_entry node common)
+                        iterate_entries (after_entry node common)
                           (fn ((prev, id), _) => fn res =>
                             if prev = last_visible then NONE
                             else SOME (new_exec state init id res)) node;
 
                     val no_execs =
-                      fold_entries (after_entry node0 common)
+                      iterate_entries (after_entry node0 common)
                         (fn ((_, id0), exec0) => fn res =>
                           if is_none exec0 then NONE
                           else if exists (fn (_, (id, _)) => id0 = id) execs then SOME res
@@ -514,7 +514,7 @@ fun execute version_id state =
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
-              (fold_entries NONE (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
+              (iterate_entries NONE (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
 
     in (versions, commands, execs, execution) end);
 

@@ -16,10 +16,8 @@ sig
   val defined: 'a T -> key -> bool
   val lookup: 'a T -> key -> ('a * key option) option
   val update: key * 'a -> 'a T -> 'a T
-  val fold: key option ->
+  val iterate: key option ->
     ((key option * key) * 'a -> 'b -> 'b option) -> 'a T -> 'b -> 'b
-  val get_first: key option ->
-    ((key option * key) * 'a -> bool) -> 'a T -> ((key option * key) * 'a) option
   val get_after: 'a T -> key option -> key option
   val insert_after: key option -> key * 'a -> 'a T -> 'a T
   val delete_after: key option -> 'a T -> 'a T
@@ -81,7 +79,7 @@ fun update (key, x) = map_set (fn (start, entries) =>
 fun optional_start set NONE = start_of set
   | optional_start _ some = some;
 
-fun fold opt_start f set =
+fun iterate opt_start f set =
   let
     val entries = entries_of set;
     fun apply _ NONE y = y
@@ -95,17 +93,6 @@ fun fold opt_start f set =
             | SOME y' => apply (SOME key) next y')
           end;
   in apply NONE (optional_start set opt_start) end;
-
-fun get_first opt_start P set =
-  let
-    val entries = entries_of set;
-    fun first _ NONE = NONE
-      | first prev (SOME key) =
-          let
-            val (x, next) = the_entry entries key;
-            val item = ((prev, key), x);
-          in if P item then SOME item else first (SOME key) next end;
-  in first NONE (optional_start set opt_start) end;
 
 
 (* relative addressing *)
