@@ -161,16 +161,14 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
    cardinality 2 or more. The specified default cardinality is returned if the
    cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt inst_tvars assigns default_card T =
+fun tiny_card_of_type ctxt sound assigns default_card T =
   let
     val thy = Proof_Context.theory_of ctxt
     val max = 2 (* 1 would be too small for the "fun" case *)
-    val type_cmp =
-      if inst_tvars then uncurry (type_generalization ctxt) else type_aconv ctxt
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case AList.lookup type_cmp assigns T of
+      else case AList.lookup (type_aconv ctxt) assigns T of
         SOME k => k
       | NONE =>
         case T of
@@ -218,13 +216,14 @@ fun tiny_card_of_type ctxt inst_tvars assigns default_card T =
           (* Very slightly unsound: Type variables are assumed not to be
              constrained to cardinality 1. (In practice, the user would most
              likely have used "unit" directly anyway.) *)
-        | TFree _ => if default_card = 1 then 2 else default_card
+        | TFree _ =>
+          if not sound andalso default_card = 1 then 2 else default_card
         | TVar _ => default_card
   in Int.min (max, aux false [] T) end
 
-fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt false [] 0 T <> 0
-fun is_type_surely_infinite ctxt inst_tvars infinite_Ts T =
-  tiny_card_of_type ctxt inst_tvars (map (rpair 0) infinite_Ts) 1 T = 0
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt true [] 0 T <> 0
+fun is_type_surely_infinite ctxt sound infinite_Ts T =
+  tiny_card_of_type ctxt sound (map (rpair 0) infinite_Ts) 1 T = 0
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
