@@ -4703,7 +4703,7 @@ next
 qed
 
 
-text{* Accessible part of @{term listrel1} relations: *}
+text{* Accessible part and wellfoundedness: *}
 
 lemma Cons_acc_listrel1I [intro!]:
   "x \<in> acc r \<Longrightarrow> xs \<in> acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> acc (listrel1 r)"
@@ -4728,6 +4728,9 @@ apply clarify
 apply (rule accI)
 apply (fastsimp dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)
 done
+
+lemma wf_listrel1_iff[simp]: "wf(listrel1 r) = wf r"
+by(metis wf_acc_iff in_lists_conv_set lists_accI lists_accD Cons_in_lists_iff)
 
 
 subsubsection {* Lifting Relations to Lists: all elements *}
