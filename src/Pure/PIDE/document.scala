@@ -296,17 +296,22 @@ object Document
       val version = the_version(id)
       val (command_execs, last_execs) = arg
 
-      val (commands, new_execs) =
+      val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: command_execs) {
-          case ((commands1, execs1), (cmd_id, Some(exec_id))) =>
+          case ((commands1, execs1), (cmd_id, exec)) =>
             val st = the_command(cmd_id)
-            (st.command :: commands1, execs1 + (exec_id -> st))
-          case (res, (_, None)) => res
+            val commands2 = st.command :: commands1
+            val execs2 =
+              exec match {
+                case None => execs1
+                case Some(exec_id) => execs1 + (exec_id -> st)
+              }
+            (commands2, execs2)
         }
       val new_assignment = the_assignment(version).assign(command_execs, last_execs)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
 
-      (commands, new_state)
+      (changed_commands, new_state)
     }
 
     def is_assigned(version: Version): Boolean =
