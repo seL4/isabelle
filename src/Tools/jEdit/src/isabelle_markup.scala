@@ -43,7 +43,7 @@ object Isabelle_Markup
   {
     def >= (that: Icon): Boolean = this.priority >= that.priority
   }
-  val warning_icon = new Icon(1, Isabelle.load_icon("16x16/status/dialog-warning.png"))
+  val warning_icon = new Icon(1, Isabelle.load_icon("16x16/status/dialog-information.png"))
   val error_icon = new Icon(2, Isabelle.load_icon("16x16/status/dialog-error.png"))
 
 
