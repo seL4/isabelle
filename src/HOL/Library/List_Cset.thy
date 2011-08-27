@@ -14,9 +14,13 @@ definition coset :: "'a list \<Rightarrow> 'a Cset.set" where
   "coset xs = Set (- set xs)"
 hide_const (open) coset
 
-lemma member_coset [simp]:
-  "member (List_Cset.coset xs) = - set xs"
+lemma set_of_coset [simp]:
+  "set_of (List_Cset.coset xs) = - set xs"
   by (simp add: coset_def)
+
+lemma member_coset [simp]:
+  "member (List_Cset.coset xs) = (\<lambda>x. x \<in> - set xs)"
+  by (simp add: coset_def fun_eq_iff)
 hide_fact (open) member_coset
 
 code_datatype Cset.set List_Cset.coset
@@ -24,18 +28,7 @@ code_datatype Cset.set List_Cset.coset
 lemma member_code [code]:
   "member (Cset.set xs) = List.member xs"
   "member (List_Cset.coset xs) = Not \<circ> List.member xs"
-  by (simp_all add: fun_eq_iff member_def fun_Compl_def bool_Compl_def)
-
-lemma member_image_UNIV [simp]:
-  "member ` UNIV = UNIV"
-proof -
-  have "\<And>A \<Colon> 'a set. \<exists>B \<Colon> 'a Cset.set. A = member B"
-  proof
-    fix A :: "'a set"
-    show "A = member (Set A)" by simp
-  qed
-  then show ?thesis by (simp add: image_def)
-qed
+  by (simp_all add: fun_eq_iff member_def fun_Compl_def member_set)
 
 definition (in term_syntax)
   setify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
@@ -124,12 +117,12 @@ begin
 lemma Infimum_inf [code]:
   "Infimum (Cset.set As) = foldr inf As top"
   "Infimum (List_Cset.coset []) = bot"
-  by (simp_all add: Inf_set_foldr Inf_UNIV)
+  by (simp_all add: Inf_set_foldr)
 
 lemma Supremum_sup [code]:
   "Supremum (Cset.set As) = foldr sup As bot"
   "Supremum (List_Cset.coset []) = top"
-  by (simp_all add: Sup_set_foldr Sup_UNIV)
+  by (simp_all add: Sup_set_foldr)
 
 end
 
@@ -140,29 +133,26 @@ by(simp add: Cset.single_code)
 hide_fact (open) single_set
 
 lemma bind_set [code]:
-  "Cset.bind (Cset.set xs) f = foldl (\<lambda>A x. sup A (f x)) (Cset.set []) xs"
-proof(rule sym)
-  show "foldl (\<lambda>A x. sup A (f x)) (Cset.set []) xs = Cset.bind (Cset.set xs) f"
-    by(induct xs rule: rev_induct)(auto simp add: Cset.bind_def Cset.set_def)
-qed
-hide_fact (open) bind_set
+  "Cset.bind (Cset.set xs) f = fold (sup \<circ> f) xs (Cset.set [])"
+  by (simp add: Cset.bind_def SUPR_set_fold)
 
 lemma pred_of_cset_set [code]:
   "pred_of_cset (Cset.set xs) = foldr sup (map Predicate.single xs) bot"
 proof -
   have "pred_of_cset (Cset.set xs) = Predicate.Pred (\<lambda>x. x \<in> set xs)"
-    by(auto simp add: Cset.pred_of_cset_def mem_def)
+    by (simp add: Cset.pred_of_cset_def member_code member_set)
   moreover have "foldr sup (map Predicate.single xs) bot = \<dots>"
-    by(induct xs)(auto simp add: bot_pred_def simp del: mem_def intro: pred_eqI, simp)
-  ultimately show ?thesis by(simp)
+    by (induct xs) (auto simp add: bot_pred_def simp del: mem_def intro: pred_eqI, simp)
+  ultimately show ?thesis by simp
 qed
 hide_fact (open) pred_of_cset_set
+
 
 subsection {* Derived operations *}
 
 lemma subset_eq_forall [code]:
   "A \<le> B \<longleftrightarrow> Cset.forall (member B) A"
-  by (simp add: subset_eq)
+  by (simp add: subset_eq member_def)
 
 lemma subset_subset_eq [code]:
   "A < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> (A :: 'a Cset.set)"
@@ -175,7 +165,7 @@ definition [code]:
   "HOL.equal A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a Cset.set)"
 
 instance proof
-qed (simp add: equal_set_def set_eq [symmetric] Cset.set_eq_iff)
+qed (simp add: equal_set_def set_eq [symmetric] Cset.set_eq_iff fun_eq_iff member_def)
 
 end
 
@@ -186,14 +176,18 @@ lemma [code nbe]:
 
 subsection {* Functorial operations *}
 
+lemma member_cset_of:
+  "member = set_of"
+  by (rule ext)+ (simp add: member_def)
+
 lemma inter_project [code]:
   "inf A (Cset.set xs) = Cset.set (List.filter (Cset.member A) xs)"
   "inf A (List_Cset.coset xs) = foldr Cset.remove xs A"
 proof -
   show "inf A (Cset.set xs) = Cset.set (List.filter (member A) xs)"
-    by (simp add: inter project_def Cset.set_def)
+    by (simp add: inter project_def Cset.set_def member_cset_of)
   have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member)"
-    by (simp add: fun_eq_iff More_Set.remove_def)
+    by (simp add: fun_eq_iff More_Set.remove_def member_cset_of)
   have "member \<circ> fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs =
     fold More_Set.remove xs \<circ> member"
     by (rule fold_commute) (simp add: fun_eq_iff)
@@ -201,9 +195,9 @@ proof -
     member (fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs A)"
     by (simp add: fun_eq_iff)
   then have "inf A (List_Cset.coset xs) = fold Cset.remove xs A"
-    by (simp add: Diff_eq [symmetric] minus_set *)
+    by (simp add: Diff_eq [symmetric] minus_set * member_cset_of)
   moreover have "\<And>x y :: 'a. Cset.remove y \<circ> Cset.remove x = Cset.remove x \<circ> Cset.remove y"
-    by (auto simp add: More_Set.remove_def * intro: ext)
+    by (auto simp add: More_Set.remove_def * member_cset_of intro: ext)
   ultimately show "inf A (List_Cset.coset xs) = foldr Cset.remove xs A"
     by (simp add: foldr_fold)
 qed
@@ -218,7 +212,7 @@ lemma union_insert [code]:
   "sup (List_Cset.coset xs) A = List_Cset.coset (List.filter (Not \<circ> member A) xs)"
 proof -
   have *: "\<And>x::'a. Cset.insert = (\<lambda>x. Set \<circ> Set.insert x \<circ> member)"
-    by (simp add: fun_eq_iff)
+    by (simp add: fun_eq_iff member_cset_of)
   have "member \<circ> fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs =
     fold Set.insert xs \<circ> member"
     by (rule fold_commute) (simp add: fun_eq_iff)
@@ -226,13 +220,13 @@ proof -
     member (fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs A)"
     by (simp add: fun_eq_iff)
   then have "sup (Cset.set xs) A = fold Cset.insert xs A"
-    by (simp add: union_set *)
+    by (simp add: union_set * member_cset_of)
   moreover have "\<And>x y :: 'a. Cset.insert y \<circ> Cset.insert x = Cset.insert x \<circ> Cset.insert y"
-    by (auto simp add: * intro: ext)
+    by (auto simp add: * member_cset_of intro: ext)
   ultimately show "sup (Cset.set xs) A = foldr Cset.insert xs A"
     by (simp add: foldr_fold)
   show "sup (List_Cset.coset xs) A = List_Cset.coset (List.filter (Not \<circ> member A) xs)"
-    by (auto simp add: coset_def)
+    by (auto simp add: coset_def member_cset_of)
 qed
 
 declare mem_def[simp del]

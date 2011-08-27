@@ -1167,12 +1167,12 @@ pow{\isaliteral{5F}{\isacharunderscore}}int\ k\ x\ {\isaliteral{3D}{\isacharequa
 mult{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Integer\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Integer\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Integer{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 mult{\isaliteral{5F}{\isacharunderscore}}int\ i\ j\ {\isaliteral{3D}{\isacharequal}}\ i\ {\isaliteral{2B}{\isacharplus}}\ j{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Integer{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
 instance\ Semigroup\ Integer\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 {\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-\isanewline
-neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Integer{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 instance\ Monoidl\ Integer\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3B}{\isacharsemicolon}}\isanewline
@@ -1231,8 +1231,8 @@ structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
 \ \ val\ pow{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \ \ val\ pow{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ group\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \ \ val\ mult{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ IntInf{\isaliteral{2E}{\isachardot}}int\isanewline
-\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ semigroup\isanewline
 \ \ val\ neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\isanewline
+\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ semigroup\isanewline
 \ \ val\ monoidl{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ monoidl\isanewline
 \ \ val\ monoid{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ monoid\isanewline
 \ \ val\ inverse{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ IntInf{\isaliteral{2E}{\isachardot}}int\isanewline
@@ -1273,9 +1273,9 @@ fun\ pow{\isaliteral{5F}{\isacharunderscore}}int\ A{\isaliteral{5F}{\isacharunde
 \isanewline
 fun\ mult{\isaliteral{5F}{\isacharunderscore}}int\ i\ j\ {\isaliteral{3D}{\isacharequal}}\ IntInf{\isaliteral{2E}{\isachardot}}{\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ j{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ semigroup{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-\isanewline
 val\ neutral{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
+val\ semigroup{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\ IntInf{\isaliteral{2E}{\isachardot}}int\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 val\ monoidl{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ {\isaliteral{7B}{\isacharbraceleft}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoidl\ {\isaliteral{3D}{\isacharequal}}\ semigroup{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{2C}{\isacharcomma}}\ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\isanewline
@@ -1368,11 +1368,11 @@ def\ pow{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{5B}{\isacharbrackle
 \isanewline
 def\ mult{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{3A}{\isacharcolon}}\ BigInt{\isaliteral{2C}{\isacharcomma}}\ j{\isaliteral{3A}{\isacharcolon}}\ BigInt{\isaliteral{29}{\isacharparenright}}{\isaliteral{3A}{\isacharcolon}}\ BigInt\ {\isaliteral{3D}{\isacharequal}}\ i\ {\isaliteral{2B}{\isacharplus}}\ j\isanewline
 \isanewline
+def\ neutral{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3A}{\isacharcolon}}\ BigInt\ {\isaliteral{3D}{\isacharequal}}\ BigInt{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
 implicit\ def\ semigroup{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3A}{\isacharcolon}}\ semigroup{\isaliteral{5B}{\isacharbrackleft}}BigInt{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ new\ semigroup{\isaliteral{5B}{\isacharbrackleft}}BigInt{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ val\ {\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}mult{\isaliteral{60}{\isacharbackquote}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{3A}{\isacharcolon}}\ BigInt{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{3A}{\isacharcolon}}\ BigInt{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ mult{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\isanewline
 {\isaliteral{7D}{\isacharbraceright}}\isanewline
-\isanewline
-def\ neutral{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3A}{\isacharcolon}}\ BigInt\ {\isaliteral{3D}{\isacharequal}}\ BigInt{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 implicit\ def\ monoidl{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{3A}{\isacharcolon}}\ monoidl{\isaliteral{5B}{\isacharbrackleft}}BigInt{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ new\ monoidl{\isaliteral{5B}{\isacharbrackleft}}BigInt{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ val\ {\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}neutral{\isaliteral{60}{\isacharbackquote}}\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}int\isanewline
