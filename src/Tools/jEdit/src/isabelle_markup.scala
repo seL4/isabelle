@@ -33,7 +33,11 @@ object Isabelle_Markup
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
-  val subexp_color = new Color(0xC0, 0xC0, 0xC0, 100)
+  val string_color = new Color(0, 139, 0, 20)
+  val altstring_color = new Color(139, 139, 0, 20)
+  val verbatim_color = new Color(0, 0, 139, 20)
+
+  val subexp_color = new Color(80, 80, 80, 50)
 
   val keyword1_color = get_color("#006699")
   val keyword2_color = get_color("#009966")
@@ -110,6 +114,13 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
+  val foreground: Markup_Tree.Select[Color] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.STRING, _), _)) => string_color
+    case Text.Info(_, XML.Elem(Markup(Markup.ALTSTRING, _), _)) => altstring_color
+    case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => verbatim_color
+  }
+
   private val text_entity_colors: Map[String, Color] =
     Map(
       Markup.CLASS -> get_color("red"),
@@ -118,6 +129,9 @@ object Isabelle_Markup
 
   private val text_colors: Map[String, Color] =
     Map(
+      Markup.STRING -> get_color("black"),
+      Markup.ALTSTRING -> get_color("black"),
+      Markup.VERBATIM -> get_color("black"),
       Markup.LITERAL -> keyword1_color,
       Markup.DELIMITER -> get_color("black"),
       Markup.IDENT -> get_color("black"),

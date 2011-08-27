@@ -313,6 +313,16 @@ class Text_Area_Painter(doc_view: Document_View)
           if (physical_lines(i) != -1) {
             val line_range = doc_view.proper_line_range(start(i), end(i))
 
+            // foreground color
+            for {
+              Text.Info(range, Some(color)) <-
+                snapshot.select_markup(line_range)(Isabelle_Markup.foreground).iterator
+              r <- Isabelle.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
+
             // highlighted range -- potentially from other snapshot
             doc_view.highlight_range match {
               case Some((range, color)) if line_range.overlaps(range) =>
