@@ -548,19 +548,10 @@ fun run_minimize args reconstructor named_thms id
     | NONE => log (minimize_tag id ^ "failed: " ^ msg)
   end
 
-
-fun e_override_params timeout =
-  [("provers", "e"),
+fun override_params prover type_enc timeout =
+  [("provers", prover),
    ("max_relevant", "0"),
-   ("type_enc", "poly_guards?"),
-   ("sound", "true"),
-   ("slicing", "false"),
-   ("timeout", timeout |> Time.toSeconds |> string_of_int)]
-
-fun vampire_override_params timeout =
-  [("provers", "vampire"),
-   ("max_relevant", "0"),
-   ("type_enc", "poly_tags"),
+   ("type_enc", type_enc),
    ("sound", "true"),
    ("slicing", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
@@ -576,13 +567,14 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
         val relevance_override = {add = facts, del = [], only = true}
+        fun sledge_tac prover type_enc =
+          Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
+            (override_params prover type_enc timeout) relevance_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-             (e_override_params timeout) relevance_override
-          ORELSE'
-          Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-             (vampire_override_params timeout) relevance_override
+          sledge_tac ATP_Systems.z3_tptpN "simple"
+          ORELSE' sledge_tac ATP_Systems.eN "mono_guards?"
+          ORELSE' sledge_tac ATP_Systems.spassN "poly_tags_uniform"
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full orelse !reconstructor = "metis (full_types)" then
