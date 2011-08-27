@@ -413,12 +413,12 @@ mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\
 mult{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{28}{\isacharparenleft}}mult{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
 instance\ Semigroup\ Nat\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 {\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-\isanewline
-neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 instance\ Monoid\ Nat\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \ \ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
@@ -462,8 +462,8 @@ structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
 \ \ val\ neutral\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \ \ val\ pow\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \ \ val\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\isanewline
-\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup\isanewline
 \ \ val\ neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup\isanewline
 \ \ val\ monoid{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ monoid\isanewline
 \ \ val\ bexp\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\isanewline
 end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
@@ -486,9 +486,9 @@ fun\ pow\ A{\isaliteral{5F}{\isacharunderscore}}\ Zero{\isaliteral{5F}{\isacharu
 fun\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\isanewline
 \ \ {\isaliteral{7C}{\isacharbar}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{28}{\isacharparenleft}}mult{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
-\isanewline
 val\ neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{3D}{\isacharequal}}\ Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
+val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 val\ monoid{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3D}{\isacharequal}}\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{2C}{\isacharcomma}}\ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{7D}{\isacharbraceright}}\isanewline
 \ \ {\isaliteral{3A}{\isacharcolon}}\ nat\ monoid{\isaliteral{3B}{\isacharsemicolon}}\isanewline
