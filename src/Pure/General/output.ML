@@ -9,7 +9,6 @@ sig
   val writeln: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val legacy_feature: string -> unit
 end;
 
 signature OUTPUT =
@@ -112,8 +111,6 @@ fun prompt s = ! Private_Hooks.prompt_fn (output s);
 fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
 fun raw_message props s = ! Private_Hooks.raw_message_fn props (output s);
-
-fun legacy_feature s = warning ("Legacy feature! " ^ s);
 
 end;
 

@@ -44,7 +44,8 @@ object Isabelle_Markup
     def >= (that: Icon): Boolean = this.priority >= that.priority
   }
   val warning_icon = new Icon(1, Isabelle.load_icon("16x16/status/dialog-information.png"))
-  val error_icon = new Icon(2, Isabelle.load_icon("16x16/status/dialog-error.png"))
+  val legacy_icon = new Icon(2, Isabelle.load_icon("16x16/status/dialog-warning.png"))
+  val error_icon = new Icon(3, Isabelle.load_icon("16x16/status/dialog-error.png"))
 
 
   /* command status */
@@ -96,7 +97,11 @@ object Isabelle_Markup
 
   val gutter_message: Markup_Tree.Select[Icon] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_icon
+    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body)) =>
+      body match {
+        case List(XML.Elem(Markup(Markup.LEGACY, _), _)) => legacy_icon
+        case _ => warning_icon
+      }
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_icon
   }
 

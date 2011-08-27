@@ -110,6 +110,7 @@ sig
   val versionN: string
   val assignN: string val assign: int -> T
   val serialN: string
+  val legacyN: string val legacy: T
   val promptN: string val prompt: T
   val readyN: string val ready: T
   val reportN: string val report: T
@@ -358,6 +359,7 @@ val (assignN, assign) = markup_int "assign" versionN;
 
 val serialN = "serial";
 
+val (legacyN, legacy) = markup_elem "legacy";
 val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";
 

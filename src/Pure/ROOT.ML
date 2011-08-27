@@ -31,6 +31,7 @@ use "General/properties.ML";
 use "General/output.ML";
 use "General/timing.ML";
 use "General/markup.ML";
+fun legacy_feature s = warning (Markup.markup Markup.legacy ("Legacy feature! " ^ s));
 use "General/scan.ML";
 use "General/source.ML";
 use "General/symbol.ML";

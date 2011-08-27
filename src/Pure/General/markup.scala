@@ -259,6 +259,8 @@ object Markup
   val STDOUT = "stdout"
   val EXIT = "exit"
 
+  val LEGACY = "legacy"
+
   val NO_REPORT = "no_report"
 
   val BAD = "bad"
