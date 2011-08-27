@@ -215,9 +215,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         in Graph.map_node name (set_header header') nodes3 end
         |> touch_node name
     | Perspective perspective =>
-        nodes
-        |> update_node name (set_perspective perspective)
-        |> touch_node name (* FIXME more precise!?! *));
+        update_node name (set_perspective perspective) nodes);
 
 end;
 
@@ -382,7 +380,7 @@ local
 
 fun last_common last_visible node0 node =
   let
-    fun get_common ((prev, id), exec) (found, (result, visible)) =
+    fun get_common ((prev, id), exec) (found, (_, visible)) =
       if found then NONE
       else
         let val found' = is_none exec orelse exec <> lookup_entry node0 id
@@ -402,6 +400,16 @@ fun new_exec state init command_id' (execs, exec) =
         in run_command tr st end)
       |> pair command_id';
   in ((exec_id', exec') :: execs, exec') end;
+
+fun make_required nodes =
+  let
+    val all_visible =
+      Graph.fold (fn (a, (node, _)) => is_some (#2 (get_perspective node)) ? cons a) nodes []
+      |> Graph.all_preds nodes;
+    val required =
+      fold (fn a => exists (fn b => Graph.is_edge nodes (a, b)) all_visible ? Symtab.update (a, ()))
+        all_visible Symtab.empty;
+  in Symtab.defined required end;
 
 fun init_theory deps name node =
   let
@@ -428,10 +436,14 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
     val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
     val new_version = fold edit_nodes edits old_version;
 
+    val nodes = nodes_of new_version;
+    val is_required = make_required nodes;
+
     val updated =
-      nodes_of new_version |> Graph.schedule
+      nodes |> Graph.schedule
         (fn deps => fn (name, node) =>
-          if not (is_touched node) then Future.value (([], [], []), node)
+          if not (is_touched node orelse is_required name)
+          then Future.value (([], [], []), node)
           else
             let
               val node0 = node_of old_version name;
@@ -442,15 +454,16 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                   deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
                 (fn () =>
                   let
+                    val required = is_required name;
                     val last_visible = #2 (get_perspective node);
                     val (common, visible) = last_common last_visible node0 node;
                     val common_exec = the_exec state (the_default_entry node common);
 
                     val (execs, exec) = ([], common_exec) |>
-                      visible ?
+                      (visible orelse required) ?
                         iterate_entries (after_entry node common)
                           (fn ((prev, id), _) => fn res =>
-                            if prev = last_visible then NONE
+                            if not required andalso prev = last_visible then NONE
                             else SOME (new_exec state init id res)) node;
 
                     val no_execs =
