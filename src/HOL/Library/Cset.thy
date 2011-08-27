@@ -152,6 +152,10 @@ definition set :: "'a list \<Rightarrow> 'a Cset.set" where
   "set xs = Set (List.set xs)"
 hide_const (open) set
 
+definition coset :: "'a list \<Rightarrow> 'a Cset.set" where
+  "coset xs = Set (- List.set xs)"
+hide_const (open) coset
+
 text {* conversion from @{typ "'a Predicate.pred"} *}
 
 definition pred_of_cset :: "'a Cset.set \<Rightarrow> 'a Predicate.pred" where
@@ -199,6 +203,21 @@ lemma set_of_set [simp]:
   "set_of (Cset.set xs) = set xs"
   by (simp add: set_def)
 hide_fact (open) set_def
+
+lemma member_set [simp]:
+  "member (Cset.set xs) = (\<lambda>x. x \<in> set xs)"
+  by (simp add: fun_eq_iff member_def)
+hide_fact (open) member_set
+
+lemma set_of_coset [simp]:
+  "set_of (Cset.coset xs) = - set xs"
+  by (simp add: coset_def)
+hide_fact (open) coset_def
+
+lemma member_coset [simp]:
+  "member (Cset.coset xs) = (\<lambda>x. x \<in> - set xs)"
+  by (simp add: fun_eq_iff member_def)
+hide_fact (open) member_coset
 
 lemma set_simps [simp]:
   "Cset.set [] = Cset.empty"
@@ -268,6 +287,82 @@ lemma single_code [code]:
   "single a = insert a Cset.empty"
   by (simp add: Cset.single_def)
 
+lemma compl_set [simp]:
+  "- Cset.set xs = Cset.coset xs"
+  by (simp add: Cset.set_def Cset.coset_def)
+
+lemma compl_coset [simp]:
+  "- Cset.coset xs = Cset.set xs"
+  by (simp add: Cset.set_def Cset.coset_def)
+
+lemma member_cset_of:
+  "member = set_of"
+  by (rule ext)+ (simp add: member_def mem_def)
+
+lemma inter_project:
+  "inf A (Cset.set xs) = Cset.set (List.filter (Cset.member A) xs)"
+  "inf A (Cset.coset xs) = foldr Cset.remove xs A"
+proof -
+  show "inf A (Cset.set xs) = Cset.set (List.filter (member A) xs)"
+    by (simp add: inter project_def Cset.set_def member_def)
+  have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member)"
+    by (simp add: fun_eq_iff More_Set.remove_def member_cset_of)
+  have "member \<circ> fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs =
+    fold More_Set.remove xs \<circ> member"
+    by (rule fold_commute) (simp add: fun_eq_iff mem_def)
+  then have "fold More_Set.remove xs (member A) = 
+    member (fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs A)"
+    by (simp add: fun_eq_iff)
+  then have "inf A (Cset.coset xs) = fold Cset.remove xs A"
+    by (simp add: Diff_eq [symmetric] minus_set * member_cset_of)
+  moreover have "\<And>x y :: 'a. Cset.remove y \<circ> Cset.remove x = Cset.remove x \<circ> Cset.remove y"
+    by (auto simp add: More_Set.remove_def * member_cset_of)
+  ultimately show "inf A (Cset.coset xs) = foldr Cset.remove xs A"
+    by (simp add: foldr_fold)
+qed
+
+lemma subtract_remove:
+  "A - Cset.set xs = foldr Cset.remove xs A"
+  "A - Cset.coset xs = Cset.set (List.filter (member A) xs)"
+  by (simp_all only: diff_eq compl_set compl_coset inter_project)
+
+lemma union_insert:
+  "sup (Cset.set xs) A = foldr Cset.insert xs A"
+  "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
+proof -
+  have *: "\<And>x::'a. Cset.insert = (\<lambda>x. Set \<circ> Set.insert x \<circ> member)"
+    by (simp add: fun_eq_iff member_cset_of)
+  have "member \<circ> fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs =
+    fold Set.insert xs \<circ> member"
+    by (rule fold_commute) (simp add: fun_eq_iff mem_def)
+  then have "fold Set.insert xs (member A) =
+    member (fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs A)"
+    by (simp add: fun_eq_iff)
+  then have "sup (Cset.set xs) A = fold Cset.insert xs A"
+    by (simp add: union_set * member_cset_of)
+  moreover have "\<And>x y :: 'a. Cset.insert y \<circ> Cset.insert x = Cset.insert x \<circ> Cset.insert y"
+    by (auto simp add: * member_cset_of)
+  ultimately show "sup (Cset.set xs) A = foldr Cset.insert xs A"
+    by (simp add: foldr_fold)
+  show "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
+    by (auto simp add: Cset.coset_def member_cset_of mem_def)
+qed
+
+context complete_lattice
+begin
+
+lemma Infimum_inf:
+  "Infimum (Cset.set As) = foldr inf As top"
+  "Infimum (Cset.coset []) = bot"
+  by (simp_all add: Inf_set_foldr)
+
+lemma Supremum_sup:
+  "Supremum (Cset.set As) = foldr sup As bot"
+  "Supremum (Cset.coset []) = top"
+  by (simp_all add: Sup_set_foldr)
+
+end
+
 lemma of_pred_code [code]:
   "of_pred (Predicate.Seq f) = (case f () of
      Predicate.Empty \<Rightarrow> Cset.empty
@@ -286,6 +381,22 @@ lemma of_seq_code [code]:
   apply (unfold Set.insert_def Collect_def sup_apply member_set_of)
   apply simp_all
   done
+
+lemma bind_set:
+  "Cset.bind (Cset.set xs) f = fold (sup \<circ> f) xs (Cset.set [])"
+  by (simp add: Cset.bind_def SUPR_set_fold)
+hide_fact (open) bind_set
+
+lemma pred_of_cset_set:
+  "pred_of_cset (Cset.set xs) = foldr sup (List.map Predicate.single xs) bot"
+proof -
+  have "pred_of_cset (Cset.set xs) = Predicate.Pred (\<lambda>x. x \<in> set xs)"
+    by (simp add: Cset.pred_of_cset_def member_set)
+  moreover have "foldr sup (List.map Predicate.single xs) bot = \<dots>"
+    by (induct xs) (auto simp add: bot_pred_def intro: pred_eqI, simp add: mem_def)
+  ultimately show ?thesis by simp
+qed
+hide_fact (open) pred_of_cset_set
 
 no_notation bind (infixl "\<guillemotright>=" 70)
 
