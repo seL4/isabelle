@@ -64,7 +64,7 @@ lemma insert_set [code]:
 
 declare compl_set [code]
 declare compl_coset [code]
-declare subtract_remove [cpde]
+declare subtract_remove [code]
 
 lemma map_set [code]:
   "Cset.map f (Cset.set xs) = Cset.set (remdups (List.map f xs))"
