@@ -567,14 +567,18 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
         val relevance_override = {add = facts, del = [], only = true}
-        fun sledge_tac prover type_enc =
+        fun my_timeout time_slice =
+          timeout |> Time.toReal |> curry Real.* time_slice |> Time.fromReal
+        fun sledge_tac time_slice prover type_enc =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-            (override_params prover type_enc timeout) relevance_override
+            (override_params prover type_enc (my_timeout time_slice))
+            relevance_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          sledge_tac ATP_Systems.z3_tptpN "simple"
-          ORELSE' sledge_tac ATP_Systems.eN "mono_guards?"
-          ORELSE' sledge_tac ATP_Systems.spassN "poly_tags_uniform"
+          sledge_tac 0.25 ATP_Systems.z3_tptpN "simple"
+          ORELSE' sledge_tac 0.25 ATP_Systems.eN "mono_guards?"
+          ORELSE' sledge_tac 0.25 ATP_Systems.spassN "poly_tags_uniform"
+          ORELSE' Metis_Tactics.metis_tac [] ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full orelse !reconstructor = "metis (full_types)" then
