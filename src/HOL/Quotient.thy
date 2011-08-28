@@ -35,12 +35,11 @@ subsection {* Respects predicate *}
 definition
   Respects :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set"
 where
-  "Respects R x = R x x"
+  "Respects R = {x. R x x}"
 
 lemma in_respects:
   shows "x \<in> Respects R \<longleftrightarrow> R x x"
-  unfolding mem_def Respects_def
-  by simp
+  unfolding Respects_def by simp
 
 subsection {* Function map and function relation *}
 
@@ -268,14 +267,14 @@ lemma bex_reg_eqv:
   by (auto simp add: in_respects)
 
 lemma ball_reg_right:
-  assumes a: "\<And>x. R x \<Longrightarrow> P x \<longrightarrow> Q x"
+  assumes a: "\<And>x. x \<in> R \<Longrightarrow> P x \<longrightarrow> Q x"
   shows "All P \<longrightarrow> Ball R Q"
-  using a by (metis Collect_def Collect_mem_eq)
+  using a by (metis Collect_mem_eq)
 
 lemma bex_reg_left:
-  assumes a: "\<And>x. R x \<Longrightarrow> Q x \<longrightarrow> P x"
+  assumes a: "\<And>x. x \<in> R \<Longrightarrow> Q x \<longrightarrow> P x"
   shows "Bex R Q \<longrightarrow> Ex P"
-  using a by (metis Collect_def Collect_mem_eq)
+  using a by (metis Collect_mem_eq)
 
 lemma ball_reg_left:
   assumes a: "equivp R"
@@ -327,16 +326,16 @@ lemma ex_reg:
   using a b by metis
 
 lemma ball_reg:
-  assumes a: "!x :: 'a. (R x --> P x --> Q x)"
+  assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
   and     b: "Ball R P"
   shows "Ball R Q"
-  using a b by (metis Collect_def Collect_mem_eq)
+  using a b by (metis Collect_mem_eq)
 
 lemma bex_reg:
-  assumes a: "!x :: 'a. (R x --> P x --> Q x)"
+  assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
   and     b: "Bex R P"
   shows "Bex R Q"
-  using a b by (metis Collect_def Collect_mem_eq)
+  using a b by (metis Collect_mem_eq)
 
 
 lemma ball_all_comm:
@@ -599,16 +598,6 @@ lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
   by (auto intro!: fun_relI elim: fun_relE)
 
-lemma mem_rsp:
-  shows "(R1 ===> (R1 ===> R2) ===> R2) op \<in> op \<in>"
-  by (auto intro!: fun_relI elim: fun_relE simp add: mem_def)
-
-lemma mem_prs:
-  assumes a1: "Quotient R1 Abs1 Rep1"
-  and     a2: "Quotient R2 Abs2 Rep2"
-  shows "(Rep1 ---> (Abs1 ---> Rep2) ---> Abs2) op \<in> = op \<in>"
-  by (simp add: fun_eq_iff mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
-
 lemma id_rsp:
   shows "(R ===> R) id id"
   by (auto intro: fun_relI)
@@ -686,8 +675,8 @@ declare [[map "fun" = (map_fun, fun_rel)]]
 declare [[map set = (vimage, set_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp id_rsp
-lemmas [quot_preserve] = if_prs o_prs let_prs mem_prs id_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp id_rsp
+lemmas [quot_preserve] = if_prs o_prs let_prs id_prs
 lemmas [quot_equiv] = identity_equivp
 
 
