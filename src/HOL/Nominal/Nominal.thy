@@ -3608,7 +3608,7 @@ use "nominal_atoms.ML"
 
 (************************************************************)
 (* various tactics for analysing permutations, supports etc *)
-use "nominal_permeq.ML";
+use "nominal_permeq.ML"
 
 method_setup perm_simp =
   {* NominalPermeq.perm_simp_meth *}
@@ -3652,7 +3652,7 @@ method_setup fresh_guess_debug =
 
 (*****************************************************************)
 (* tactics for generating fresh names and simplifying fresh_funs *)
-use "nominal_fresh_fun.ML";
+use "nominal_fresh_fun.ML"
 
 method_setup generate_fresh = 
   {* setup_generate_fresh *} 
@@ -3681,7 +3681,7 @@ use "nominal_inductive2.ML"
 
 (*****************************************)
 (* setup for induction principles method *)
-use "nominal_induct.ML";
+use "nominal_induct.ML"
 method_setup nominal_induct =
   {* NominalInduct.nominal_induct_method *}
   {* nominal induction *}
