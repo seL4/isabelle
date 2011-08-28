@@ -118,7 +118,7 @@ lemma Supremum_code [code]:
 
 end
 
-declare Cset.single_code[code]
+declare Cset.single_code [code]
 
 lemma bind_set [code]:
   "Cset.bind (Dlist_Cset.Set xs) f = fold (sup \<circ> f) (list_of_dlist xs) Cset.empty"
@@ -129,7 +129,5 @@ lemma pred_of_cset_set [code]:
   "pred_of_cset (Dlist_Cset.Set xs) = foldr sup (map Predicate.single (list_of_dlist xs)) bot"
   by (simp add: Cset.pred_of_cset_set Dlist_Cset.Set_def)
 hide_fact (open) pred_of_cset_set
-
-export_code "Cset._" in Haskell
 
 end

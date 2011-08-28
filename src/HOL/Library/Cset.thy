@@ -295,58 +295,54 @@ lemma compl_coset [simp]:
   "- Cset.coset xs = Cset.set xs"
   by (simp add: Cset.set_def Cset.coset_def)
 
-lemma member_cset_of:
-  "member = set_of"
-  by (rule ext)+ (simp add: member_def mem_def)
-
 lemma inter_project:
   "inf A (Cset.set xs) = Cset.set (List.filter (Cset.member A) xs)"
   "inf A (Cset.coset xs) = foldr Cset.remove xs A"
 proof -
   show "inf A (Cset.set xs) = Cset.set (List.filter (member A) xs)"
     by (simp add: inter project_def Cset.set_def member_def)
-  have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member)"
-    by (simp add: fun_eq_iff More_Set.remove_def member_cset_of)
-  have "member \<circ> fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs =
-    fold More_Set.remove xs \<circ> member"
-    by (rule fold_commute) (simp add: fun_eq_iff mem_def)
-  then have "fold More_Set.remove xs (member A) = 
-    member (fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> member) xs A)"
+  have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of)"
+    by (simp add: fun_eq_iff More_Set.remove_def)
+  have "set_of \<circ> fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of) xs =
+    fold More_Set.remove xs \<circ> set_of"
+    by (rule fold_commute) (simp add: fun_eq_iff)
+  then have "fold More_Set.remove xs (set_of A) = 
+    set_of (fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of) xs A)"
     by (simp add: fun_eq_iff)
   then have "inf A (Cset.coset xs) = fold Cset.remove xs A"
-    by (simp add: Diff_eq [symmetric] minus_set * member_cset_of)
+    by (simp add: Diff_eq [symmetric] minus_set *)
   moreover have "\<And>x y :: 'a. Cset.remove y \<circ> Cset.remove x = Cset.remove x \<circ> Cset.remove y"
-    by (auto simp add: More_Set.remove_def * member_cset_of)
+    by (auto simp add: More_Set.remove_def *)
   ultimately show "inf A (Cset.coset xs) = foldr Cset.remove xs A"
     by (simp add: foldr_fold)
+qed
+
+lemma union_insert:
+  "sup (Cset.set xs) A = foldr Cset.insert xs A"
+  "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
+proof -
+  have *: "\<And>x::'a. Cset.insert = (\<lambda>x. Set \<circ> Set.insert x \<circ> set_of)"
+    by (simp add: fun_eq_iff)
+  have "set_of \<circ> fold (\<lambda>x. Set \<circ> Set.insert x \<circ> set_of) xs =
+    fold Set.insert xs \<circ> set_of"
+    by (rule fold_commute) (simp add: fun_eq_iff)
+  then have "fold Set.insert xs (set_of A) =
+    set_of (fold (\<lambda>x. Set \<circ> Set.insert x \<circ> set_of) xs A)"
+    by (simp add: fun_eq_iff)
+  then have "sup (Cset.set xs) A = fold Cset.insert xs A"
+    by (simp add: union_set *)
+  moreover have "\<And>x y :: 'a. Cset.insert y \<circ> Cset.insert x = Cset.insert x \<circ> Cset.insert y"
+    by (auto simp add: *)
+  ultimately show "sup (Cset.set xs) A = foldr Cset.insert xs A"
+    by (simp add: foldr_fold)
+  show "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
+    by (auto simp add: Cset.coset_def Cset.member_def)
 qed
 
 lemma subtract_remove:
   "A - Cset.set xs = foldr Cset.remove xs A"
   "A - Cset.coset xs = Cset.set (List.filter (member A) xs)"
   by (simp_all only: diff_eq compl_set compl_coset inter_project)
-
-lemma union_insert:
-  "sup (Cset.set xs) A = foldr Cset.insert xs A"
-  "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
-proof -
-  have *: "\<And>x::'a. Cset.insert = (\<lambda>x. Set \<circ> Set.insert x \<circ> member)"
-    by (simp add: fun_eq_iff member_cset_of)
-  have "member \<circ> fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs =
-    fold Set.insert xs \<circ> member"
-    by (rule fold_commute) (simp add: fun_eq_iff mem_def)
-  then have "fold Set.insert xs (member A) =
-    member (fold (\<lambda>x. Set \<circ> Set.insert x \<circ> member) xs A)"
-    by (simp add: fun_eq_iff)
-  then have "sup (Cset.set xs) A = fold Cset.insert xs A"
-    by (simp add: union_set * member_cset_of)
-  moreover have "\<And>x y :: 'a. Cset.insert y \<circ> Cset.insert x = Cset.insert x \<circ> Cset.insert y"
-    by (auto simp add: * member_cset_of)
-  ultimately show "sup (Cset.set xs) A = foldr Cset.insert xs A"
-    by (simp add: foldr_fold)
-  show "sup (Cset.coset xs) A = Cset.coset (List.filter (Not \<circ> member A) xs)"
-    by (auto simp add: Cset.coset_def member_cset_of mem_def)
-qed
 
 context complete_lattice
 begin
