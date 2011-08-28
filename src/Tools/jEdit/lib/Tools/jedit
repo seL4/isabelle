@@ -221,11 +221,11 @@ then
   rm -rf dist || failed
   mkdir -p dist dist/classes || failed
 
-  cp -a "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
-  cp -a "${RESOURCES[@]}" dist/classes/.
+  cp -pR "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
+  cp -pR "${RESOURCES[@]}" dist/classes/.
   cp src/jEdit.props dist/properties/.
-  cp -a src/modes/. dist/modes/.
-  cp -a "$SCALA_HOME/misc/scala-tool-support/jedit/modes/scala.xml" dist/modes/.
+  cp -pR src/modes/. dist/modes/.
+  cp -pR "$SCALA_HOME/misc/scala-tool-support/jedit/modes/scala.xml" dist/modes/.
 
   perl -i -e 'while (<>) {
     if (m/NAME="javacc"/) {
@@ -235,7 +235,7 @@ then
       print qq,<MODE NAME="scala" FILE="scala.xml" FILE_NAME_GLOB="*.scala" />\n\n,; }
     print; }' dist/modes/catalog
 
-  cp -a "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar" dist/jars/. || failed
+  cp -pR "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar" dist/jars/. || failed
   (
     for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do
