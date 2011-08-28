@@ -85,17 +85,17 @@ lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow
 
 lemma LIM_zero:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "f -- a --> l \<Longrightarrow> (\<lambda>x. f x - l) -- a --> 0"
+  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. f x - l) ---> 0) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_cancel:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "(\<lambda>x. f x - l) -- a --> 0 \<Longrightarrow> f -- a --> l"
+  shows "((\<lambda>x. f x - l) ---> 0) F \<Longrightarrow> (f ---> l) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_iff:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "(\<lambda>x. f x - l) -- a --> 0 = f -- a --> l"
+  shows "((\<lambda>x. f x - l) ---> 0) F = (f ---> l) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma metric_LIM_imp_LIM:
