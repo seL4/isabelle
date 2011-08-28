@@ -32,13 +32,13 @@ lemma bounded_linear_zero: "bounded_linear (\<lambda>x. 0)"
   by (rule bounded_linear_intro [where K=0], simp_all)
 
 lemma FDERIV_const: "FDERIV (\<lambda>x. k) x :> (\<lambda>h. 0)"
-  by (simp add: fderiv_def bounded_linear_zero)
+  by (simp add: fderiv_def bounded_linear_zero tendsto_const)
 
 lemma bounded_linear_ident: "bounded_linear (\<lambda>x. x)"
   by (rule bounded_linear_intro [where K=1], simp_all)
 
 lemma FDERIV_ident: "FDERIV (\<lambda>x. x) x :> (\<lambda>h. h)"
-  by (simp add: fderiv_def bounded_linear_ident)
+  by (simp add: fderiv_def bounded_linear_ident tendsto_const)
 
 subsection {* Addition *}
 
@@ -90,7 +90,7 @@ next
   from f' g'
   have "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h
            + norm (g (x + h) - g x - G h) / norm h) -- 0 --> 0"
-    by (rule LIM_add_zero)
+    by (rule tendsto_add_zero)
   thus "(\<lambda>h. norm (f (x + h) + g (x + h) - (f x + g x) - (F h + G h))
            / norm h) -- 0 --> 0"
     apply (rule real_LIM_sandwich_zero)
@@ -178,13 +178,13 @@ proof -
   have "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h) -- 0 --> 0"
     by (rule FDERIV_D [OF f])
   hence "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h * norm h) -- 0 --> 0"
-    by (intro LIM_mult_zero LIM_norm_zero LIM_ident)
+    by (intro tendsto_mult_zero tendsto_norm_zero tendsto_ident_at)
   hence "(\<lambda>h. norm (f (x + h) - f x - F h)) -- 0 --> 0"
     by (simp cong: LIM_cong)
   hence "(\<lambda>h. f (x + h) - f x - F h) -- 0 --> 0"
-    by (rule LIM_norm_zero_cancel)
+    by (rule tendsto_norm_zero_cancel)
   hence "(\<lambda>h. f (x + h) - f x - F h + F h) -- 0 --> 0"
-    by (intro LIM_add_zero F.LIM_zero LIM_ident)
+    by (intro tendsto_add_zero F.tendsto_zero tendsto_ident_at)
   hence "(\<lambda>h. f (x + h) - f x) -- 0 --> 0"
     by simp
   thus "isCont f x"
@@ -266,11 +266,11 @@ next
       apply (rule FDERIV_isCont [OF f])
       done
     have Ng: "?Ng -- 0 --> 0"
-      using isCont_LIM_compose [OF Ng1 Ng2] by simp
+      using isCont_tendsto_compose [OF Ng1 Ng2] by simp
 
     have "(\<lambda>h. ?Nf h * kG + ?Ng h * (?Nf h + kF))
            -- 0 --> 0 * kG + 0 * (0 + kF)"
-      by (intro LIM_add LIM_mult LIM_const Nf Ng)
+      by (intro tendsto_intros Nf Ng)
     thus "(\<lambda>h. ?Nf h * kG + ?Ng h * (?Nf h + kF)) -- 0 --> 0"
       by simp
   next
@@ -369,7 +369,7 @@ next
     from f g isCont_iff [THEN iffD1, OF FDERIV_isCont [OF g]]
     have "?fun2 -- 0 -->
           norm (f x) * 0 * K + 0 * norm (g x) * K + KF * norm (0::'b) * K"
-      by (intro LIM_add LIM_mult LIM_const LIM_norm LIM_zero FDERIV_D)
+      by (intro tendsto_intros LIM_zero FDERIV_D)
     thus "?fun2 -- 0 --> 0"
       by simp
   next
@@ -474,12 +474,12 @@ next
     proof (rule real_LIM_sandwich_zero)
       show "(\<lambda>h. norm (?inv (x + h) - ?inv x) * norm (?inv x))
             -- 0 --> 0"
-        apply (rule LIM_mult_left_zero)
-        apply (rule LIM_norm_zero)
+        apply (rule tendsto_mult_left_zero)
+        apply (rule tendsto_norm_zero)
         apply (rule LIM_zero)
         apply (rule LIM_offset_zero)
-        apply (rule LIM_inverse)
-        apply (rule LIM_ident)
+        apply (rule tendsto_inverse)
+        apply (rule tendsto_ident_at)
         apply (rule x)
         done
     next
@@ -517,7 +517,7 @@ lemma field_fderiv_def:
  apply (subst diff_divide_distrib)
  apply (subst times_divide_eq_left [symmetric])
  apply (simp cong: LIM_cong)
- apply (simp add: LIM_norm_zero_iff LIM_zero_iff)
+ apply (simp add: tendsto_norm_zero_iff LIM_zero_iff)
 done
 
 end

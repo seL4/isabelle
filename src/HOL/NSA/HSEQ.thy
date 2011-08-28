@@ -207,10 +207,10 @@ subsubsection {* Derived theorems about @{term NSLIMSEQ} *}
 text{*We prove the NS version from the standard one, since the NS proof
    seems more complicated than the standard one above!*}
 lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----NS> 0) = (X ----NS> 0)"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_norm_zero)
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_norm_zero_iff)
 
 lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_rabs_zero)
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_rabs_zero_iff)
 
 text{*Generalization to other limits*}
 lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"

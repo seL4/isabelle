@@ -791,6 +791,15 @@ lemmas tendsto_scaleR [tendsto_intros] =
 lemmas tendsto_mult [tendsto_intros] =
   bounded_bilinear.tendsto [OF bounded_bilinear_mult]
 
+lemmas tendsto_mult_zero =
+  bounded_bilinear.tendsto_zero [OF bounded_bilinear_mult]
+
+lemmas tendsto_mult_left_zero =
+  bounded_bilinear.tendsto_left_zero [OF bounded_bilinear_mult]
+
+lemmas tendsto_mult_right_zero =
+  bounded_bilinear.tendsto_right_zero [OF bounded_bilinear_mult]
+
 lemma tendsto_power [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) F"

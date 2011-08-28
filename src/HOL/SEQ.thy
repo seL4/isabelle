@@ -772,7 +772,7 @@ next
   have X: "!!n. X n = X 0"
     by (blast intro: const [of 0]) 
   have "X = (\<lambda>n. X 0)"
-    by (blast intro: ext X)
+    by (blast intro: X)
   hence "L = X 0" using tendsto_const [of "X 0" sequentially]
     by (auto intro: LIMSEQ_unique lim)
   thus ?thesis
@@ -1143,26 +1143,5 @@ lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----
 apply (rule tendsto_rabs_zero_cancel)
 apply (auto intro: LIMSEQ_rabs_realpow_zero simp add: power_abs)
 done
-
-subsection {* Legacy theorem names *}
-
-lemmas LIMSEQ_Zfun_iff = tendsto_Zfun_iff [where F=sequentially]
-lemmas LIMSEQ_const = tendsto_const [where F=sequentially]
-lemmas LIMSEQ_norm = tendsto_norm [where F=sequentially]
-lemmas LIMSEQ_add = tendsto_add [where F=sequentially]
-lemmas LIMSEQ_minus = tendsto_minus [where F=sequentially]
-lemmas LIMSEQ_minus_cancel = tendsto_minus_cancel [where F=sequentially]
-lemmas LIMSEQ_diff = tendsto_diff [where F=sequentially]
-lemmas (in bounded_linear) LIMSEQ = tendsto [where F=sequentially]
-lemmas (in bounded_bilinear) LIMSEQ = tendsto [where F=sequentially]
-lemmas LIMSEQ_mult = tendsto_mult [where F=sequentially]
-lemmas LIMSEQ_inverse = tendsto_inverse [where F=sequentially]
-lemmas LIMSEQ_divide = tendsto_divide [where F=sequentially]
-lemmas LIMSEQ_pow = tendsto_power [where F=sequentially]
-lemmas LIMSEQ_setsum = tendsto_setsum [where F=sequentially]
-lemmas LIMSEQ_setprod = tendsto_setprod [where F=sequentially]
-lemmas LIMSEQ_norm_zero = tendsto_norm_zero_iff [where F=sequentially]
-lemmas LIMSEQ_rabs_zero = tendsto_rabs_zero_iff [where F=sequentially]
-lemmas LIMSEQ_imp_rabs = tendsto_rabs [where F=sequentially]
 
 end

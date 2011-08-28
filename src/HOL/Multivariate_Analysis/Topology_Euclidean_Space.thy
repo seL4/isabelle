@@ -1332,10 +1332,10 @@ lemma netlimit_within:
 unfolding netlimit_def
 apply (rule some_equality)
 apply (rule Lim_at_within)
-apply (rule LIM_ident)
+apply (rule tendsto_ident_at)
 apply (erule tendsto_unique [OF assms])
 apply (rule Lim_at_within)
-apply (rule LIM_ident)
+apply (rule tendsto_ident_at)
 done
 
 lemma netlimit_at:
@@ -3569,11 +3569,11 @@ text{* Identity function is continuous in every sense. *}
 
 lemma continuous_within_id:
  "continuous (at a within s) (\<lambda>x. x)"
-  unfolding continuous_within by (rule Lim_at_within [OF LIM_ident])
+  unfolding continuous_within by (rule Lim_at_within [OF tendsto_ident_at])
 
 lemma continuous_at_id:
  "continuous (at a) (\<lambda>x. x)"
-  unfolding continuous_at by (rule LIM_ident)
+  unfolding continuous_at by (rule tendsto_ident_at)
 
 lemma continuous_on_id:
  "continuous_on s (\<lambda>x. x)"
@@ -4260,7 +4260,7 @@ lemma distance_attains_sup:
 proof (rule continuous_attains_sup [OF assms])
   { fix x assume "x\<in>s"
     have "(dist a ---> dist a x) (at x within s)"
-      by (intro tendsto_dist tendsto_const Lim_at_within LIM_ident)
+      by (intro tendsto_dist tendsto_const Lim_at_within tendsto_ident_at)
   }
   thus "continuous_on s (dist a)"
     unfolding continuous_on ..

@@ -246,8 +246,8 @@ distributivity theorems, potential INCOMPATIBILITY.
   mult_right.setsum ~> setsum_right_distrib
   mult_left.diff ~> left_diff_distrib
 
-* Complex_Main: Several redundant theorems about real numbers have
-been removed or generalized and renamed. INCOMPATIBILITY.
+* Complex_Main: Several redundant theorems have been removed or
+replaced by more general versions. INCOMPATIBILITY.
 
   real_0_le_divide_iff ~> zero_le_divide_iff
   realpow_two_disj ~> power2_eq_iff
@@ -255,6 +255,53 @@ been removed or generalized and renamed. INCOMPATIBILITY.
   realpow_two_diff ~> square_diff_square_factored
   exp_ln_eq ~> ln_unique
   lemma_DERIV_subst ~> DERIV_cong
+  LIMSEQ_Zfun_iff ~> tendsto_Zfun_iff
+  LIMSEQ_const ~> tendsto_const
+  LIMSEQ_norm ~> tendsto_norm
+  LIMSEQ_add ~> tendsto_add
+  LIMSEQ_minus ~> tendsto_minus
+  LIMSEQ_minus_cancel ~> tendsto_minus_cancel
+  LIMSEQ_diff ~> tendsto_diff
+  bounded_linear.LIMSEQ ~> bounded_linear.tendsto
+  bounded_bilinear.LIMSEQ ~> bounded_bilinear.tendsto
+  LIMSEQ_mult ~> tendsto_mult
+  LIMSEQ_inverse ~> tendsto_inverse
+  LIMSEQ_divide ~> tendsto_divide
+  LIMSEQ_pow ~> tendsto_power
+  LIMSEQ_setsum ~> tendsto_setsum
+  LIMSEQ_setprod ~> tendsto_setprod
+  LIMSEQ_norm_zero ~> tendsto_norm_zero_iff
+  LIMSEQ_rabs_zero ~> tendsto_rabs_zero_iff
+  LIMSEQ_imp_rabs ~> tendsto_rabs
+  LIM_ident ~> tendsto_ident_at
+  LIM_const ~> tendsto_const
+  LIM_add ~> tendsto_add
+  LIM_add_zero ~> tendsto_add_zero
+  LIM_minus ~> tendsto_minus
+  LIM_diff ~> tendsto_diff
+  LIM_norm ~> tendsto_norm
+  LIM_norm_zero ~> tendsto_norm_zero
+  LIM_norm_zero_cancel ~> tendsto_norm_zero_cancel
+  LIM_norm_zero_iff ~> tendsto_norm_zero_iff
+  LIM_rabs ~> tendsto_rabs
+  LIM_rabs_zero ~> tendsto_rabs_zero
+  LIM_rabs_zero_cancel ~> tendsto_rabs_zero_cancel
+  LIM_rabs_zero_iff ~> tendsto_rabs_zero_iff
+  LIM_compose ~> tendsto_compose
+  LIM_mult ~> tendsto_mult
+  LIM_scaleR ~> tendsto_scaleR
+  LIM_of_real ~> tendsto_of_real
+  LIM_power ~> tendsto_power
+  LIM_inverse ~> tendsto_inverse
+  LIM_sgn ~> tendsto_sgn
+  isCont_LIM_compose ~> isCont_tendsto_compose
+  bounded_linear.LIM ~> bounded_linear.tendsto
+  bounded_linear.LIM_zero ~> bounded_linear.tendsto_zero
+  bounded_bilinear.LIM ~> bounded_bilinear.tendsto
+  bounded_bilinear.LIM_prod_zero ~> bounded_bilinear.tendsto_zero
+  bounded_bilinear.LIM_left_zero ~> bounded_bilinear.tendsto_left_zero
+  bounded_bilinear.LIM_right_zero ~> bounded_bilinear.tendsto_right_zero
+  LIM_inverse_fun ~> tendsto_inverse [OF tendsto_ident_at]
 
 
 *** Document preparation ***

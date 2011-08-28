@@ -211,51 +211,6 @@ proof (rule LIM_imp_LIM [OF f])
   finally show "norm (g x - 0) \<le> norm (f x - 0)" .
 qed
 
-text {* Bounded Linear Operators *}
-
-lemma (in bounded_linear) LIM:
-  "g -- a --> l \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> f l"
-by (rule tendsto)
-
-lemma (in bounded_linear) LIM_zero:
-  "g -- a --> 0 \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> 0"
-  by (rule tendsto_zero)
-
-text {* Bounded Bilinear Operators *}
-
-lemma (in bounded_bilinear) LIM:
-  "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
-by (rule tendsto)
-
-lemma (in bounded_bilinear) LIM_prod_zero:
-  fixes a :: "'d::metric_space"
-  assumes f: "f -- a --> 0"
-  assumes g: "g -- a --> 0"
-  shows "(\<lambda>x. f x ** g x) -- a --> 0"
-  using f g by (rule tendsto_zero)
-
-lemma (in bounded_bilinear) LIM_left_zero:
-  "f -- a --> 0 \<Longrightarrow> (\<lambda>x. f x ** c) -- a --> 0"
-  by (rule tendsto_left_zero)
-
-lemma (in bounded_bilinear) LIM_right_zero:
-  "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
-  by (rule tendsto_right_zero)
-
-lemmas LIM_mult_zero =
-  bounded_bilinear.LIM_prod_zero [OF bounded_bilinear_mult]
-
-lemmas LIM_mult_left_zero =
-  bounded_bilinear.LIM_left_zero [OF bounded_bilinear_mult]
-
-lemmas LIM_mult_right_zero =
-  bounded_bilinear.LIM_right_zero [OF bounded_bilinear_mult]
-
-lemma LIM_inverse_fun:
-  assumes a: "a \<noteq> (0::'a::real_normed_div_algebra)"
-  shows "inverse -- a --> inverse a"
-  by (rule tendsto_inverse [OF tendsto_ident_at a])
-
 
 subsection {* Continuity *}
 
@@ -494,30 +449,5 @@ lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::metric_space) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
    (X -- a --> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
-
-subsection {* Legacy theorem names *}
-
-lemmas LIM_ident [simp] = tendsto_ident_at
-lemmas LIM_const [simp] = tendsto_const [where F="at x", standard]
-lemmas LIM_add = tendsto_add [where F="at x", standard]
-lemmas LIM_add_zero = tendsto_add_zero [where F="at x", standard]
-lemmas LIM_minus = tendsto_minus [where F="at x", standard]
-lemmas LIM_diff = tendsto_diff [where F="at x", standard]
-lemmas LIM_norm = tendsto_norm [where F="at x", standard]
-lemmas LIM_norm_zero = tendsto_norm_zero [where F="at x", standard]
-lemmas LIM_norm_zero_cancel = tendsto_norm_zero_cancel [where F="at x", standard]
-lemmas LIM_norm_zero_iff = tendsto_norm_zero_iff [where F="at x", standard]
-lemmas LIM_rabs = tendsto_rabs [where F="at x", standard]
-lemmas LIM_rabs_zero = tendsto_rabs_zero [where F="at x", standard]
-lemmas LIM_rabs_zero_cancel = tendsto_rabs_zero_cancel [where F="at x", standard]
-lemmas LIM_rabs_zero_iff = tendsto_rabs_zero_iff [where F="at x", standard]
-lemmas LIM_compose = tendsto_compose [where F="at x", standard]
-lemmas LIM_mult = tendsto_mult [where F="at x", standard]
-lemmas LIM_scaleR = tendsto_scaleR [where F="at x", standard]
-lemmas LIM_of_real = tendsto_of_real [where F="at x", standard]
-lemmas LIM_power = tendsto_power [where F="at x", standard]
-lemmas LIM_inverse = tendsto_inverse [where F="at x", standard]
-lemmas LIM_sgn = tendsto_sgn [where F="at x", standard]
-lemmas isCont_LIM_compose = isCont_tendsto_compose [where F="at x", standard]
 
 end

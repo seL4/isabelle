@@ -183,12 +183,12 @@ proof -
     unfolding sums_def
     apply (rule LIMSEQ_offset[of _ n])
     unfolding setsum_const
-    apply (rule LIMSEQ_const)
+    apply (rule tendsto_const)
     done
 qed
 
 lemma sums_zero[simp, intro]: "(\<lambda>n. 0) sums 0"
-unfolding sums_def by (simp add: LIMSEQ_const)
+  unfolding sums_def by (simp add: tendsto_const)
 
 lemma summable_zero[simp, intro]: "summable (\<lambda>n. 0)"
 by (rule sums_zero [THEN sums_summable])
@@ -198,7 +198,7 @@ by (rule sums_zero [THEN sums_unique, symmetric])
 
 lemma (in bounded_linear) sums:
   "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
-unfolding sums_def by (drule LIMSEQ, simp only: setsum)
+  unfolding sums_def by (drule tendsto, simp only: setsum)
 
 lemma (in bounded_linear) summable:
   "summable (\<lambda>n. X n) \<Longrightarrow> summable (\<lambda>n. f (X n))"
@@ -260,7 +260,7 @@ lemma suminf_divide:
 lemma sums_add:
   fixes a b :: "'a::real_normed_field"
   shows "\<lbrakk>X sums a; Y sums b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n + Y n) sums (a + b)"
-unfolding sums_def by (simp add: setsum_addf LIMSEQ_add)
+  unfolding sums_def by (simp add: setsum_addf tendsto_add)
 
 lemma summable_add:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_field"
@@ -275,7 +275,7 @@ by (intro sums_unique sums_add summable_sums)
 lemma sums_diff:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_field"
   shows "\<lbrakk>X sums a; Y sums b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n - Y n) sums (a - b)"
-unfolding sums_def by (simp add: setsum_subtractf LIMSEQ_diff)
+  unfolding sums_def by (simp add: setsum_subtractf tendsto_diff)
 
 lemma summable_diff:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_field"
@@ -290,7 +290,7 @@ by (intro sums_unique sums_diff summable_sums)
 lemma sums_minus:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_field"
   shows "X sums a ==> (\<lambda>n. - X n) sums (- a)"
-unfolding sums_def by (simp add: setsum_negf LIMSEQ_minus)
+  unfolding sums_def by (simp add: setsum_negf tendsto_minus)
 
 lemma summable_minus:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_field"
@@ -344,7 +344,7 @@ lemma series_pos_le:
   shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 \<le> f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} \<le> suminf f"
 apply (drule summable_sums)
 apply (simp add: sums_def)
-apply (cut_tac k = "setsum f {0..<n}" in LIMSEQ_const)
+apply (cut_tac k = "setsum f {0..<n}" in tendsto_const)
 apply (erule LIMSEQ_le, blast)
 apply (rule_tac x="n" in exI, clarify)
 apply (rule setsum_mono2)
@@ -403,7 +403,7 @@ proof -
   from less_1 have lim_0: "(\<lambda>n. x ^ n) ----> 0"
     by (rule LIMSEQ_power_zero)
   hence "(\<lambda>n. x ^ n / (x - 1) - 1 / (x - 1)) ----> 0 / (x - 1) - 1 / (x - 1)"
-    using neq_0 by (intro LIMSEQ_divide LIMSEQ_diff LIMSEQ_const)
+    using neq_0 by (intro tendsto_intros)
   hence "(\<lambda>n. (x ^ n - 1) / (x - 1)) ----> 1 / (1 - x)"
     by (simp add: nonzero_minus_divide_right [OF neq_0] diff_divide_distrib)
   thus "(\<lambda>n. x ^ n) sums (1 / (1 - x))"
@@ -583,7 +583,7 @@ text{*Absolute convergence of series*}
 lemma summable_norm:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   shows "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (suminf f) \<le> (\<Sum>n. norm (f n))"
-by (auto intro: LIMSEQ_le LIMSEQ_norm summable_norm_cancel
+  by (auto intro: LIMSEQ_le tendsto_norm summable_norm_cancel
                 summable_sumr_LIMSEQ_suminf norm_setsum)
 
 lemma summable_rabs:
@@ -692,7 +692,7 @@ proof -
 
   have "(\<lambda>n. (\<Sum>k=0..<n. a k) * (\<Sum>k=0..<n. b k))
            ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
-    by (intro LIMSEQ_mult summable_sumr_LIMSEQ_suminf
+    by (intro tendsto_mult summable_sumr_LIMSEQ_suminf
         summable_norm_cancel [OF a] summable_norm_cancel [OF b])
   hence 1: "(\<lambda>n. setsum ?g (?S1 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (simp only: setsum_product setsum_Sigma [rule_format]
@@ -700,7 +700,7 @@ proof -
 
   have "(\<lambda>n. (\<Sum>k=0..<n. norm (a k)) * (\<Sum>k=0..<n. norm (b k)))
        ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
-    using a b by (intro LIMSEQ_mult summable_sumr_LIMSEQ_suminf)
+    using a b by (intro tendsto_mult summable_sumr_LIMSEQ_suminf)
   hence "(\<lambda>n. setsum ?f (?S1 n)) ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
     by (simp only: setsum_product setsum_Sigma [rule_format]
                    finite_atLeastLessThan)

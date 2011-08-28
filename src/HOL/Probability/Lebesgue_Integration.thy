@@ -2191,9 +2191,9 @@ proof -
   have 3: "\<And>x n. 0 \<le> f n x - f 0 x" using `mono f`
       unfolding mono_def le_fun_def by (auto simp: field_simps)
   have 4: "\<And>x. (\<lambda>i. f i x - f 0 x) ----> u x - f 0 x"
-    using lim by (auto intro!: LIMSEQ_diff)
+    using lim by (auto intro!: tendsto_diff)
   have 5: "(\<lambda>i. (\<integral>x. f i x - f 0 x \<partial>M)) ----> x - integral\<^isup>L M (f 0)"
-    using f ilim by (auto intro!: LIMSEQ_diff simp: integral_diff)
+    using f ilim by (auto intro!: tendsto_diff simp: integral_diff)
   note diff = integral_monotone_convergence_pos[OF 1 2 3 4 5]
   have "integrable M (\<lambda>x. (u x - f 0 x) + f 0 x)"
     using diff(1) f by (rule integral_add(1))
@@ -2329,7 +2329,7 @@ lemma (in measure_space) integral_dominated_convergence:
   and "(\<lambda>i. integral\<^isup>L M (u i)) ----> integral\<^isup>L M u'" (is ?lim)
 proof -
   { fix x j assume x: "x \<in> space M"
-    from u'[OF x] have "(\<lambda>i. \<bar>u i x\<bar>) ----> \<bar>u' x\<bar>" by (rule LIMSEQ_imp_rabs)
+    from u'[OF x] have "(\<lambda>i. \<bar>u i x\<bar>) ----> \<bar>u' x\<bar>" by (rule tendsto_rabs)
     from LIMSEQ_le_const2[OF this]
     have "\<bar>u' x\<bar> \<le> w x" using bound[OF x] by auto }
   note u'_bound = this
@@ -2400,7 +2400,7 @@ proof -
         unfolding ereal_max_0
       proof (rule lim_imp_Liminf[symmetric], unfold lim_ereal)
         have "(\<lambda>i. ?diff i x) ----> 2 * w x - \<bar>u' x - u' x\<bar>"
-          using u'[OF x] by (safe intro!: LIMSEQ_diff LIMSEQ_const LIMSEQ_imp_rabs)
+          using u'[OF x] by (safe intro!: tendsto_intros)
         then show "(\<lambda>i. max 0 (?diff i x)) ----> max 0 (2 * w x)"
           by (auto intro!: tendsto_real_max simp add: lim_ereal)
       qed (rule trivial_limit_sequentially)
@@ -2492,7 +2492,7 @@ proof -
     show "mono ?w'"
       by (auto simp: mono_def le_fun_def intro!: setsum_mono2)
     { fix x show "(\<lambda>n. ?w' n x) ----> ?w x"
-        using w by (cases "x \<in> space M") (simp_all add: LIMSEQ_const sums_def) }
+        using w by (cases "x \<in> space M") (simp_all add: tendsto_const sums_def) }
     have *: "\<And>n. integral\<^isup>L M (?w' n) = (\<Sum>i = 0..< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
       using borel by (simp add: integral_setsum integrable_abs cong: integral_cong)
     from abs_sum

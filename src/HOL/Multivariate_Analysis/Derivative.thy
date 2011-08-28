@@ -47,7 +47,7 @@ lemma FDERIV_conv_has_derivative:
   shows "FDERIV f x :> f' = (f has_derivative f') (at x)"
   unfolding fderiv_def has_derivative_def netlimit_at_vector
   by (simp add: diff_diff_eq Lim_at_zero [where a=x]
-    LIM_norm_zero_iff [where 'b='b, symmetric])
+    tendsto_norm_zero_iff [where 'b='b, symmetric])
 
 lemma DERIV_conv_has_derivative:
   "(DERIV f x :> f') = (f has_derivative op * f') (at x)"

@@ -128,7 +128,7 @@ proof -
         by (induct n)  (auto simp add: binaryset_def f)
     qed
   moreover
-  have "... ----> f A + f B" by (rule LIMSEQ_const)
+  have "... ----> f A + f B" by (rule tendsto_const)
   ultimately
   have "(\<lambda>n. \<Sum>i< Suc (Suc n). f (binaryset A B i)) ----> f A + f B"
     by metis
@@ -985,7 +985,7 @@ proof -
   ultimately have "(\<lambda>i. f' (\<Union>i. A i) - f' (A i)) ----> 0"
     by (simp add: zero_ereal_def)
   then have "(\<lambda>i. f' (A i)) ----> f' (\<Union>i. A i)"
-    by (rule LIMSEQ_diff_approach_zero2[OF LIMSEQ_const])
+    by (rule LIMSEQ_diff_approach_zero2[OF tendsto_const])
   then show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
     using A by (subst (1 2) f') auto
 qed

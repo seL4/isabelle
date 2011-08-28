@@ -209,7 +209,7 @@ proof -
     from finite_continuity_from_below[OF _ A] `range A \<subseteq> sets M`
       M'.finite_continuity_from_below[OF _ A]
     have convergent: "(\<lambda>i. ?d (A i)) ----> ?d (\<Union>i. A i)"
-      by (auto intro!: LIMSEQ_diff)
+      by (auto intro!: tendsto_diff)
     obtain n :: nat where "- ?d (\<Union>i. A i) / e < real n" using reals_Archimedean2 by auto
     moreover from order_trans[OF decseq_le[OF decseq convergent] dA_less]
     have "real n \<le> - ?d (\<Union>i. A i) / e" using `0<e` by (simp add: field_simps)
@@ -295,7 +295,7 @@ proof -
     from
       finite_continuity_from_above[OF `range A \<subseteq> sets M` A]
       M'.finite_continuity_from_above[OF `range A \<subseteq> sets M` A]
-    have "(\<lambda>i. ?d (A i)) ----> ?d (\<Inter>i. A i)" by (intro LIMSEQ_diff)
+    have "(\<lambda>i. ?d (A i)) ----> ?d (\<Inter>i. A i)" by (intro tendsto_diff)
     thus "?d (space M) \<le> ?d (\<Inter>i. A i)" using mono_dA[THEN monoD, of 0 _]
       by (rule_tac LIMSEQ_le_const) (auto intro!: exI)
   next

@@ -294,7 +294,7 @@ proof -
     hence ord: "\<And>n m. m \<le> n \<Longrightarrow> ?a n \<le> ?a m" and ge0: "\<And> n. 0 \<le> ?a n" by auto
     { fix n have "?a (Suc n) \<le> ?a n" using ord[where n="Suc n" and m=n] by auto }
     note monotone = this
-    note leibniz = summable_Leibniz'[OF _ ge0, of "\<lambda>x. x", OF LIMSEQ_minus[OF `a ----> 0`, unfolded minus_zero] monotone]
+    note leibniz = summable_Leibniz'[OF _ ge0, of "\<lambda>x. x", OF tendsto_minus[OF `a ----> 0`, unfolded minus_zero] monotone]
     have "summable (\<lambda> n. (-1)^n * ?a n)" using leibniz(1) by auto
     then obtain l where "(\<lambda> n. (-1)^n * ?a n) sums l" unfolding summable_def by auto
     from this[THEN sums_minus]
@@ -308,7 +308,7 @@ proof -
 
     have ?pos using `0 \<le> ?a 0` by auto
     moreover have ?neg using leibniz(2,4) unfolding mult_minus_right setsum_negf move_minus neg_le_iff_le by auto
-    moreover have ?f and ?g using leibniz(3,5)[unfolded mult_minus_right setsum_negf move_minus, THEN LIMSEQ_minus_cancel] by auto
+    moreover have ?f and ?g using leibniz(3,5)[unfolded mult_minus_right setsum_negf move_minus, THEN tendsto_minus_cancel] by auto
     ultimately show ?thesis by auto
   qed
   from this[THEN conjunct1] this[THEN conjunct2, THEN conjunct1] this[THEN conjunct2, THEN conjunct2, THEN conjunct1] this[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
@@ -2582,21 +2582,21 @@ qed
 
 lemma zeroseq_arctan_series: fixes x :: real
   assumes "\<bar>x\<bar> \<le> 1" shows "(\<lambda> n. 1 / real (n*2+1) * x^(n*2+1)) ----> 0" (is "?a ----> 0")
-proof (cases "x = 0") case True thus ?thesis unfolding One_nat_def by (auto simp add: LIMSEQ_const)
+proof (cases "x = 0") case True thus ?thesis unfolding One_nat_def by (auto simp add: tendsto_const)
 next
   case False
   have "norm x \<le> 1" and "x \<le> 1" and "-1 \<le> x" using assms by auto
   show "?a ----> 0"
   proof (cases "\<bar>x\<bar> < 1")
     case True hence "norm x < 1" by auto
-    from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_power_zero[OF `norm x < 1`, THEN LIMSEQ_Suc]]
+    from tendsto_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_power_zero[OF `norm x < 1`, THEN LIMSEQ_Suc]]
     have "(\<lambda>n. 1 / real (n + 1) * x ^ (n + 1)) ----> 0"
       unfolding inverse_eq_divide Suc_eq_plus1 by simp
     then show ?thesis using pos2 by (rule LIMSEQ_linear)
   next
     case False hence "x = -1 \<or> x = 1" using `\<bar>x\<bar> \<le> 1` by auto
     hence n_eq: "\<And> n. x ^ (n * 2 + 1) = x" unfolding One_nat_def by auto
-    from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat[THEN LIMSEQ_linear, OF pos2, unfolded inverse_eq_divide] LIMSEQ_const[of x]]
+    from tendsto_mult[OF LIMSEQ_inverse_real_of_nat[THEN LIMSEQ_linear, OF pos2, unfolded inverse_eq_divide] tendsto_const[of x]]
     show ?thesis unfolding n_eq Suc_eq_plus1 by auto
   qed
 qed
@@ -2775,8 +2775,8 @@ proof -
       hence "?diff 1 n \<le> ?a 1 n" by auto
     }
     have "?a 1 ----> 0"
-      unfolding LIMSEQ_rabs_zero power_one divide_inverse One_nat_def
-      by (auto intro!: LIMSEQ_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat)
+      unfolding tendsto_rabs_zero_iff power_one divide_inverse One_nat_def
+      by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat)
     have "?diff 1 ----> 0"
     proof (rule LIMSEQ_I)
       fix r :: real assume "0 < r"
@@ -2785,7 +2785,7 @@ proof -
         have "norm (?diff 1 n - 0) < r" by auto }
       thus "\<exists> N. \<forall> n \<ge> N. norm (?diff 1 n - 0) < r" by blast
     qed
-    from this[unfolded LIMSEQ_rabs_zero diff_minus add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]
+    from this[unfolded tendsto_rabs_zero_iff diff_minus add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN tendsto_minus]
     have "(?c 1) sums (arctan 1)" unfolding sums_def by auto
     hence "arctan 1 = (\<Sum> i. ?c 1 i)" by (rule sums_unique)
 

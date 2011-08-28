@@ -37,18 +37,18 @@ lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --> D"
 by (simp add: deriv_def)
 
 lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
-by (simp add: deriv_def)
+  by (simp add: deriv_def tendsto_const)
 
 lemma DERIV_ident [simp]: "DERIV (\<lambda>x. x) x :> 1"
-by (simp add: deriv_def cong: LIM_cong)
+  by (simp add: deriv_def tendsto_const cong: LIM_cong)
 
 lemma DERIV_add:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + g x) x :> D + E"
-by (simp only: deriv_def add_diff_add add_divide_distrib LIM_add)
+  by (simp only: deriv_def add_diff_add add_divide_distrib tendsto_add)
 
 lemma DERIV_minus:
   "DERIV f x :> D \<Longrightarrow> DERIV (\<lambda>x. - f x) x :> - D"
-by (simp only: deriv_def minus_diff_minus divide_minus_left LIM_minus)
+  by (simp only: deriv_def minus_diff_minus divide_minus_left tendsto_minus)
 
 lemma DERIV_diff:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x - g x) x :> D - E"
@@ -64,7 +64,7 @@ proof (unfold isCont_iff)
   hence "(\<lambda>h. (f(x+h) - f(x)) / h) -- 0 --> D"
     by (rule DERIV_D)
   hence "(\<lambda>h. (f(x+h) - f(x)) / h * h) -- 0 --> D * 0"
-    by (intro LIM_mult LIM_ident)
+    by (intro tendsto_mult tendsto_ident_at)
   hence "(\<lambda>h. (f(x+h) - f(x)) * (h / h)) -- 0 --> 0"
     by simp
   hence "(\<lambda>h. f(x+h) - f(x)) -- 0 --> 0"
@@ -90,7 +90,7 @@ proof (unfold deriv_def)
   hence "(\<lambda>h. f(x+h) * ((g(x+h) - g x) / h) +
               ((f(x+h) - f x) / h) * g x)
           -- 0 --> f x * E + D * g x"
-    by (intro LIM_add LIM_mult LIM_const DERIV_D f g)
+    by (intro tendsto_intros DERIV_D f g)
   thus "(\<lambda>h. (f(x+h) * g(x+h) - f x * g x) / h)
          -- 0 --> f x * E + D * g x"
     by (simp only: DERIV_mult_lemma)
@@ -172,7 +172,7 @@ proof (unfold DERIV_iff2)
       by (unfold DERIV_iff2)
     thus "(\<lambda>z. - (inverse (f z) * ((f z - f x) / (z - x)) * inverse (f x)))
           -- x --> ?E"
-      by (intro LIM_mult LIM_inverse LIM_minus LIM_const lim_f neq)
+      by (intro tendsto_intros lim_f neq)
   qed
 qed
 
@@ -245,10 +245,10 @@ proof (unfold DERIV_iff2)
   from f have "f -- x --> f x"
     by (rule DERIV_isCont [unfolded isCont_def])
   with cont_d have "(\<lambda>z. d (f z)) -- x --> d (f x)"
-    by (rule isCont_LIM_compose)
+    by (rule isCont_tendsto_compose)
   hence "(\<lambda>z. d (f z) * ((f z - f x) / (z - x)))
           -- x --> d (f x) * D"
-    by (rule LIM_mult [OF _ f [unfolded DERIV_iff2]])
+    by (rule tendsto_mult [OF _ f [unfolded DERIV_iff2]])
   thus "(\<lambda>z. (g (f z) - g (f x)) / (z - x)) -- x --> E * D"
     by (simp add: d dfx)
 qed
@@ -485,7 +485,7 @@ done
 lemma lim_uminus:
   fixes g :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "convergent g ==> lim (%x. - g x) = - (lim g)"
-apply (rule LIMSEQ_minus [THEN limI])
+apply (rule tendsto_minus [THEN limI])
 apply (simp add: convergent_LIMSEQ_iff)
 done
 
@@ -521,7 +521,7 @@ lemma lemma_nest_unique: "[| \<forall>n. f(n) \<le> f(Suc n);
                 ((\<forall>n. l \<le> g(n)) & g ----> l)"
 apply (drule lemma_nest, auto)
 apply (subgoal_tac "l = m")
-apply (drule_tac [2] f = f in LIMSEQ_diff)
+apply (drule_tac [2] f = f in tendsto_diff)
 apply (auto intro: LIMSEQ_unique)
 done
 
@@ -599,7 +599,7 @@ lemma lemma_BOLZANO:
          a \<le> b |]
       ==> P(a,b)"
 apply (rule Bolzano_nest_unique [where P1=P, THEN exE], assumption+)
-apply (rule LIMSEQ_minus_cancel)
+apply (rule tendsto_minus_cancel)
 apply (simp (no_asm_simp) add: Bolzano_bisect_diff LIMSEQ_divide_realpow_zero)
 apply (rule ccontr)
 apply (drule not_P_Bolzano_bisect', assumption+)
@@ -1488,7 +1488,7 @@ next
     using cont 1 2 by (rule isCont_LIM_compose2)
   thus "(\<lambda>y. inverse ((f (g y) - x) / (g y - g x)))
         -- x --> inverse D"
-    using neq by (rule LIM_inverse)
+    using neq by (rule tendsto_inverse)
 qed
 
 
