@@ -38,37 +38,38 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  type Deps = Map[String, Exn.Result[(String, Thy_Header)]]  // name -> (text, header)
+  type Deps = Map[String, Document.Node_Header]
 
-  private def require_thys(ignored: String => Boolean,
-      initiators: List[String], dir: Path, deps: Deps, strs: List[String]): Deps =
-    (deps /: strs)(require_thy(ignored, initiators, dir, _, _))
+  private def require_thys(initiators: List[String],
+      deps: Deps, thys: List[(String, String)]): Deps =
+    (deps /: thys)(require_thy(initiators, _, _))
 
-  private def require_thy(ignored: String => Boolean,
-      initiators: List[String], dir: Path, deps: Deps, str: String): Deps =
+  private def require_thy(initiators: List[String], deps: Deps, thy: (String, String)): Deps =
   {
+    val (dir, str) = thy
     val path = Path.explode(str)
-    val name = path.base.implode
+    val thy_name = path.base.implode
+    val node_name = thy_load.append(dir, Thy_Header.thy_path(path))
 
-    if (deps.isDefinedAt(name) || ignored(name)) deps
+    if (deps.isDefinedAt(node_name) || thy_load.is_loaded(thy_name)) deps
     else {
-      val dir1 = dir + path.dir
+      val dir1 = thy_load.append(dir, path.dir)
       try {
-        if (initiators.contains(name)) error(cycle_msg(initiators))
-        val (text, header) =
-          try { thy_load.check_thy(dir1, name) }
+        if (initiators.contains(node_name)) error(cycle_msg(initiators))
+        val header =
+          try { thy_load.check_thy(node_name) }
           catch {
             case ERROR(msg) =>
-              cat_error(msg, "The error(s) above occurred while examining theory " +
-                quote(name) + required_by("\n", initiators))
+              cat_error(msg, "The error(s) above occurred while examining theory file " +
+                quote(node_name) + required_by("\n", initiators))
           }
-        require_thys(ignored, name :: initiators, dir1,
-          deps + (name -> Exn.Res(text, header)), header.imports)
+        val thys = header.imports.map(str => (dir1, str))
+        require_thys(node_name :: initiators, deps + (node_name -> Exn.Res(header)), thys)
       }
-      catch { case e: Throwable => deps + (name -> Exn.Exn(e)) }
+      catch { case e: Throwable => deps + (node_name -> Exn.Exn(e)) }
     }
   }
 
-  def dependencies(dir: Path, str: String): Deps =
-    require_thy(thy_load.is_loaded, Nil, dir, Map.empty, str)
+  def dependencies(thys: List[(String, String)]): Deps =
+    require_thys(Nil, Map.empty, thys)
 }

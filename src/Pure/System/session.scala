@@ -16,15 +16,6 @@ import scala.actors.Actor._
 
 object Session
 {
-  /* file store */
-
-  abstract class File_Store
-  {
-    def append(master_dir: String, path: Path): String
-    def require(file: String): Unit
-  }
-
-
   /* events */
 
   //{{{
@@ -43,13 +34,14 @@ object Session
 }
 
 
-class Session(val file_store: Session.File_Store)
+class Session(thy_load: Thy_Load)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 
   val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
   val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
   val update_delay = Time.seconds(0.5)  // GUI layout updates
+  val load_delay = Time.seconds(0.5)  // file load operations (new buffers etc.)
 
 
   /* pervasive event buses */
@@ -116,8 +108,6 @@ class Session(val file_store: Session.File_Store)
 
   @volatile var verbose: Boolean = false
 
-  @volatile private var loaded_theories: Set[String] = Set()
-
   @volatile private var syntax = new Outer_Syntax
   def current_syntax(): Outer_Syntax = syntax
 
@@ -142,23 +132,6 @@ class Session(val file_store: Session.File_Store)
 
   /* theory files */
 
-  val thy_load = new Thy_Load
-  {
-    override def is_loaded(name: String): Boolean =
-      loaded_theories.contains(name)
-
-    override def check_thy(dir: Path, name: String): (String, Thy_Header) =
-    {
-      val file = Isabelle_System.platform_file(dir + Thy_Header.thy_path(name))
-      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-      val text = Standard_System.read_file(file)
-      val header = Thy_Header.read(text)
-      (text, header)
-    }
-  }
-
-  val thy_info = new Thy_Info(thy_load)
-
   def header_edit(name: String, master_dir: String,
     header: Document.Node_Header): Document.Edit_Text =
   {
@@ -166,10 +139,10 @@ class Session(val file_store: Session.File_Store)
     {
       val thy_name = Thy_Header.base_name(s)
       if (thy_load.is_loaded(thy_name)) thy_name
-      else file_store.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
+      else thy_load.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
     }
     def norm_use(s: String): String =
-      file_store.append(master_dir, Path.explode(s))
+      thy_load.append(master_dir, Path.explode(s))
 
     val header1: Document.Node_Header =
       header match {
@@ -335,7 +308,7 @@ class Session(val file_store: Session.File_Store)
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
-              case List(Thy_Info.Loaded_Theory(name)) => loaded_theories += name
+              case List(Thy_Info.Loaded_Theory(name)) => thy_load.register_thy(name)
               case _ => bad_result(result)
             }
           }
