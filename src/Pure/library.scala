@@ -142,6 +142,14 @@ object Library
   def warning_dialog = simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning") _
   def error_dialog = simple_dialog(JOptionPane.ERROR_MESSAGE, "Error") _
 
+  def confirm_dialog(parent: Component, title: String, option_type: Int, message: Any*): Int =
+    Swing_Thread.now {
+      val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
+      JOptionPane.showConfirmDialog(parent,
+        java_message.toArray.asInstanceOf[Array[AnyRef]], title,
+          option_type, JOptionPane.QUESTION_MESSAGE)
+    }
+
 
   /* zoom box */
 

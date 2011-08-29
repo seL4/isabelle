@@ -50,6 +50,7 @@ class Session(val file_store: Session.File_Store)
   val input_delay = Time.seconds(0.3)  // user input (e.g. text edits, cursor movement)
   val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
   val update_delay = Time.seconds(0.5)  // GUI layout updates
+  val load_delay = Time.seconds(0.5)  // file load operations (new buffers etc.)
 
 
   /* pervasive event buses */
@@ -186,6 +187,7 @@ class Session(val file_store: Session.File_Store)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Interrupt
+  private case class Check_Loaded_Files(ask: List[String] => Boolean)
   private case class Init_Node(name: String, master_dir: String,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
   private case class Edit_Node(name: String, master_dir: String,
@@ -371,6 +373,8 @@ class Session(val file_store: Session.File_Store)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
+        case Check_Loaded_Files(ask) => // FIXME
+
         case Init_Node(name, master_dir, header, perspective, text) if prover.isDefined =>
           // FIXME compare with existing node
           handle_edits(name, master_dir, header,
@@ -412,6 +416,11 @@ class Session(val file_store: Session.File_Store)
   def stop() { command_change_buffer !? Stop; session_actor !? Stop }
 
   def interrupt() { session_actor ! Interrupt }
+
+  def check_loaded_files(ask: List[String] => Boolean)
+  {
+    session_actor ! Check_Loaded_Files(ask)
+  }
 
   // FIXME simplify signature
   def init_node(name: String, master_dir: String,

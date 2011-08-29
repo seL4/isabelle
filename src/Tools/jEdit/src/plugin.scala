@@ -12,6 +12,7 @@ import isabelle._
 import java.lang.System
 import java.io.{File, FileInputStream, IOException}
 import java.awt.Font
+import javax.swing.JOptionPane
 
 import scala.collection.mutable
 import scala.swing.ComboBox
@@ -375,6 +376,25 @@ class Plugin extends EBPlugin
 
   /* session manager */
 
+  private lazy val delay_load =
+    Swing_Thread.delay_last(Isabelle.session.load_delay) {
+      def ask(files: List[String]): Boolean = Swing_Thread.now
+        {
+          val file_list = new scala.swing.TextArea(files.mkString("\n"))
+          file_list.editable = false
+          val answer =
+            Library.confirm_dialog(jEdit.getActiveView(),
+            "Auto loading of required files",
+            JOptionPane.YES_NO_OPTION,
+            "The following files are required to resolve theory imports.",
+            "Reload now?",
+            file_list)
+          answer == 0
+        }
+
+      Isabelle.session.check_loaded_files(ask _)
+    }
+
   private val session_manager = actor {
     loop {
       react {
@@ -387,7 +407,10 @@ class Plugin extends EBPlugin
                 Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
               }
 
-            case Session.Ready => Isabelle.jedit_buffers.foreach(Isabelle.init_model)
+            case Session.Ready =>
+              Isabelle.jedit_buffers.foreach(Isabelle.init_model)
+              delay_load()
+
             case Session.Shutdown => Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
             case _ =>
           }
@@ -410,17 +433,17 @@ class Plugin extends EBPlugin
 
       case msg: BufferUpdate
       if msg.getWhat == BufferUpdate.LOADED =>
-
-        val buffer = msg.getBuffer
-        if (buffer != null && Isabelle.session.is_ready)
-          Isabelle.init_model(buffer)
+        if (Isabelle.session.is_ready) {
+          val buffer = msg.getBuffer
+          if (buffer != null) Isabelle.init_model(buffer)
+          delay_load()
+        }
 
       case msg: EditPaneUpdate
       if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
           msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
           msg.getWhat == EditPaneUpdate.CREATED ||
           msg.getWhat == EditPaneUpdate.DESTROYED) =>
-
         val edit_pane = msg.getEditPane
         val buffer = edit_pane.getBuffer
         val text_area = edit_pane.getTextArea
