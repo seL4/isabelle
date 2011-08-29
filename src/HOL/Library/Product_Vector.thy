@@ -154,7 +154,65 @@ proof (rule openI)
   then show "\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> snd ` S" by - (rule exI)
 qed
 
-text {* Product preserves separation axioms. *}
+subsubsection {* Continuity of operations *}
+
+lemma tendsto_fst [tendsto_intros]:
+  assumes "(f ---> a) F"
+  shows "((\<lambda>x. fst (f x)) ---> fst a) F"
+proof (rule topological_tendstoI)
+  fix S assume "open S" and "fst a \<in> S"
+  then have "open (fst -` S)" and "a \<in> fst -` S"
+    by (simp_all add: open_vimage_fst)
+  with assms have "eventually (\<lambda>x. f x \<in> fst -` S) F"
+    by (rule topological_tendstoD)
+  then show "eventually (\<lambda>x. fst (f x) \<in> S) F"
+    by simp
+qed
+
+lemma tendsto_snd [tendsto_intros]:
+  assumes "(f ---> a) F"
+  shows "((\<lambda>x. snd (f x)) ---> snd a) F"
+proof (rule topological_tendstoI)
+  fix S assume "open S" and "snd a \<in> S"
+  then have "open (snd -` S)" and "a \<in> snd -` S"
+    by (simp_all add: open_vimage_snd)
+  with assms have "eventually (\<lambda>x. f x \<in> snd -` S) F"
+    by (rule topological_tendstoD)
+  then show "eventually (\<lambda>x. snd (f x) \<in> S) F"
+    by simp
+qed
+
+lemma tendsto_Pair [tendsto_intros]:
+  assumes "(f ---> a) F" and "(g ---> b) F"
+  shows "((\<lambda>x. (f x, g x)) ---> (a, b)) F"
+proof (rule topological_tendstoI)
+  fix S assume "open S" and "(a, b) \<in> S"
+  then obtain A B where "open A" "open B" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
+    unfolding open_prod_def by fast
+  have "eventually (\<lambda>x. f x \<in> A) F"
+    using `(f ---> a) F` `open A` `a \<in> A`
+    by (rule topological_tendstoD)
+  moreover
+  have "eventually (\<lambda>x. g x \<in> B) F"
+    using `(g ---> b) F` `open B` `b \<in> B`
+    by (rule topological_tendstoD)
+  ultimately
+  show "eventually (\<lambda>x. (f x, g x) \<in> S) F"
+    by (rule eventually_elim2)
+       (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
+qed
+
+lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
+  unfolding isCont_def by (rule tendsto_fst)
+
+lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (f x)) a"
+  unfolding isCont_def by (rule tendsto_snd)
+
+lemma isCont_Pair [simp]:
+  "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
+  unfolding isCont_def by (rule tendsto_Pair)
+
+subsubsection {* Separation axioms *}
 
 lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
   by (induct x) simp (* TODO: move elsewhere *)
@@ -231,9 +289,6 @@ next
     by (intro order_trans [OF _ real_sqrt_sum_squares_triangle_ineq]
         real_sqrt_le_mono add_mono power_mono dist_triangle2 zero_le_dist)
 next
-  (* FIXME: long proof! *)
-  (* Maybe it would be easier to define topological spaces *)
-  (* in terms of neighborhoods instead of open sets? *)
   fix S :: "('a \<times> 'b) set"
   show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
   proof
@@ -264,110 +319,39 @@ next
       thus "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" ..
     qed
   next
-    assume "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" thus "open S"
-    unfolding open_prod_def open_dist
-    apply safe
-    apply (drule (1) bspec)
-    apply clarify
-    apply (subgoal_tac "\<exists>r>0. \<exists>s>0. e = sqrt (r\<twosuperior> + s\<twosuperior>)")
-    apply clarify
-    apply (rule_tac x="{y. dist y a < r}" in exI)
-    apply (rule_tac x="{y. dist y b < s}" in exI)
-    apply (rule conjI)
-    apply clarify
-    apply (rule_tac x="r - dist x a" in exI, rule conjI, simp)
-    apply clarify
-    apply (simp add: less_diff_eq)
-    apply (erule le_less_trans [OF dist_triangle])
-    apply (rule conjI)
-    apply clarify
-    apply (rule_tac x="s - dist x b" in exI, rule conjI, simp)
-    apply clarify
-    apply (simp add: less_diff_eq)
-    apply (erule le_less_trans [OF dist_triangle])
-    apply (rule conjI)
-    apply simp
-    apply (clarify, rename_tac c d)
-    apply (drule spec, erule mp)
-    apply (simp add: dist_Pair_Pair add_strict_mono power_strict_mono)
-    apply (rule_tac x="e / sqrt 2" in exI, simp add: divide_pos_pos)
-    apply (rule_tac x="e / sqrt 2" in exI, simp add: divide_pos_pos)
-    apply (simp add: power_divide)
-    done
+    assume *: "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" show "open S"
+    proof (rule open_prod_intro)
+      fix x assume "x \<in> S"
+      then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
+        using * by fast
+      def r \<equiv> "e / sqrt 2" and s \<equiv> "e / sqrt 2"
+      from `0 < e` have "0 < r" and "0 < s"
+        unfolding r_def s_def by (simp_all add: divide_pos_pos)
+      from `0 < e` have "e = sqrt (r\<twosuperior> + s\<twosuperior>)"
+        unfolding r_def s_def by (simp add: power_divide)
+      def A \<equiv> "{y. dist (fst x) y < r}" and B \<equiv> "{y. dist (snd x) y < s}"
+      have "open A" and "open B"
+        unfolding A_def B_def by (simp_all add: open_ball)
+      moreover have "x \<in> A \<times> B"
+        unfolding A_def B_def mem_Times_iff
+        using `0 < r` and `0 < s` by simp
+      moreover have "A \<times> B \<subseteq> S"
+      proof (clarify)
+        fix a b assume "a \<in> A" and "b \<in> B"
+        hence "dist a (fst x) < r" and "dist b (snd x) < s"
+          unfolding A_def B_def by (simp_all add: dist_commute)
+        hence "dist (a, b) x < e"
+          unfolding dist_prod_def `e = sqrt (r\<twosuperior> + s\<twosuperior>)`
+          by (simp add: add_strict_mono power_strict_mono)
+        thus "(a, b) \<in> S"
+          by (simp add: S)
+      qed
+      ultimately show "\<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S" by fast
+    qed
   qed
 qed
 
 end
-
-subsection {* Continuity of operations *}
-
-lemma tendsto_fst [tendsto_intros]:
-  assumes "(f ---> a) net"
-  shows "((\<lambda>x. fst (f x)) ---> fst a) net"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "fst a \<in> S"
-  then have "open (fst -` S)" "a \<in> fst -` S"
-    unfolding open_prod_def
-    apply simp_all
-    apply clarify
-    apply (rule exI, erule conjI)
-    apply (rule exI, rule conjI [OF open_UNIV])
-    apply auto
-    done
-  with assms have "eventually (\<lambda>x. f x \<in> fst -` S) net"
-    by (rule topological_tendstoD)
-  then show "eventually (\<lambda>x. fst (f x) \<in> S) net"
-    by simp
-qed
-
-lemma tendsto_snd [tendsto_intros]:
-  assumes "(f ---> a) net"
-  shows "((\<lambda>x. snd (f x)) ---> snd a) net"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "snd a \<in> S"
-  then have "open (snd -` S)" "a \<in> snd -` S"
-    unfolding open_prod_def
-    apply simp_all
-    apply clarify
-    apply (rule exI, rule conjI [OF open_UNIV])
-    apply (rule exI, erule conjI)
-    apply auto
-    done
-  with assms have "eventually (\<lambda>x. f x \<in> snd -` S) net"
-    by (rule topological_tendstoD)
-  then show "eventually (\<lambda>x. snd (f x) \<in> S) net"
-    by simp
-qed
-
-lemma tendsto_Pair [tendsto_intros]:
-  assumes "(f ---> a) net" and "(g ---> b) net"
-  shows "((\<lambda>x. (f x, g x)) ---> (a, b)) net"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "(a, b) \<in> S"
-  then obtain A B where "open A" "open B" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
-    unfolding open_prod_def by auto
-  have "eventually (\<lambda>x. f x \<in> A) net"
-    using `(f ---> a) net` `open A` `a \<in> A`
-    by (rule topological_tendstoD)
-  moreover
-  have "eventually (\<lambda>x. g x \<in> B) net"
-    using `(g ---> b) net` `open B` `b \<in> B`
-    by (rule topological_tendstoD)
-  ultimately
-  show "eventually (\<lambda>x. (f x, g x) \<in> S) net"
-    by (rule eventually_elim2)
-       (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
-qed
-
-lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
-  unfolding isCont_def by (rule tendsto_fst)
-
-lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (f x)) a"
-  unfolding isCont_def by (rule tendsto_snd)
-
-lemma isCont_Pair [simp]:
-  "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
-  unfolding isCont_def by (rule tendsto_Pair)
 
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
 unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
@@ -451,43 +435,7 @@ end
 
 instance prod :: (banach, banach) banach ..
 
-subsection {* Product is an inner product space *}
-
-instantiation prod :: (real_inner, real_inner) real_inner
-begin
-
-definition inner_prod_def:
-  "inner x y = inner (fst x) (fst y) + inner (snd x) (snd y)"
-
-lemma inner_Pair [simp]: "inner (a, b) (c, d) = inner a c + inner b d"
-  unfolding inner_prod_def by simp
-
-instance proof
-  fix r :: real
-  fix x y z :: "'a::real_inner * 'b::real_inner"
-  show "inner x y = inner y x"
-    unfolding inner_prod_def
-    by (simp add: inner_commute)
-  show "inner (x + y) z = inner x z + inner y z"
-    unfolding inner_prod_def
-    by (simp add: inner_add_left)
-  show "inner (scaleR r x) y = r * inner x y"
-    unfolding inner_prod_def
-    by (simp add: right_distrib)
-  show "0 \<le> inner x x"
-    unfolding inner_prod_def
-    by (intro add_nonneg_nonneg inner_ge_zero)
-  show "inner x x = 0 \<longleftrightarrow> x = 0"
-    unfolding inner_prod_def prod_eq_iff
-    by (simp add: add_nonneg_eq_0_iff)
-  show "norm x = sqrt (inner x x)"
-    unfolding norm_prod_def inner_prod_def
-    by (simp add: power2_norm_eq_inner)
-qed
-
-end
-
-subsection {* Pair operations are linear *}
+subsubsection {* Pair operations are linear *}
 
 lemma bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
@@ -533,29 +481,65 @@ proof
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
 qed
 
-subsection {* Frechet derivatives involving pairs *}
+subsubsection {* Frechet derivatives involving pairs *}
 
 lemma FDERIV_Pair:
   assumes f: "FDERIV f x :> f'" and g: "FDERIV g x :> g'"
   shows "FDERIV (\<lambda>x. (f x, g x)) x :> (\<lambda>h. (f' h, g' h))"
-apply (rule FDERIV_I)
-apply (rule bounded_linear_Pair)
-apply (rule FDERIV_bounded_linear [OF f])
-apply (rule FDERIV_bounded_linear [OF g])
-apply (simp add: norm_Pair)
-apply (rule real_LIM_sandwich_zero)
-apply (rule tendsto_add_zero)
-apply (rule FDERIV_D [OF f])
-apply (rule FDERIV_D [OF g])
-apply (rename_tac h)
-apply (simp add: divide_nonneg_pos)
-apply (rename_tac h)
-apply (subst add_divide_distrib [symmetric])
-apply (rule divide_right_mono [OF _ norm_ge_zero])
-apply (rule order_trans [OF sqrt_add_le_add_sqrt])
-apply simp
-apply simp
-apply simp
-done
+proof (rule FDERIV_I)
+  show "bounded_linear (\<lambda>h. (f' h, g' h))"
+    using f g by (intro bounded_linear_Pair FDERIV_bounded_linear)
+  let ?Rf = "\<lambda>h. f (x + h) - f x - f' h"
+  let ?Rg = "\<lambda>h. g (x + h) - g x - g' h"
+  let ?R = "\<lambda>h. ((f (x + h), g (x + h)) - (f x, g x) - (f' h, g' h))"
+  show "(\<lambda>h. norm (?R h) / norm h) -- 0 --> 0"
+  proof (rule real_LIM_sandwich_zero)
+    show "(\<lambda>h. norm (?Rf h) / norm h + norm (?Rg h) / norm h) -- 0 --> 0"
+      using f g by (intro tendsto_add_zero FDERIV_D)
+    fix h :: 'a assume "h \<noteq> 0"
+    thus "0 \<le> norm (?R h) / norm h"
+      by (simp add: divide_nonneg_pos)
+    show "norm (?R h) / norm h \<le> norm (?Rf h) / norm h + norm (?Rg h) / norm h"
+      unfolding add_divide_distrib [symmetric]
+      by (simp add: norm_Pair divide_right_mono
+        order_trans [OF sqrt_add_le_add_sqrt])
+  qed
+qed
+
+subsection {* Product is an inner product space *}
+
+instantiation prod :: (real_inner, real_inner) real_inner
+begin
+
+definition inner_prod_def:
+  "inner x y = inner (fst x) (fst y) + inner (snd x) (snd y)"
+
+lemma inner_Pair [simp]: "inner (a, b) (c, d) = inner a c + inner b d"
+  unfolding inner_prod_def by simp
+
+instance proof
+  fix r :: real
+  fix x y z :: "'a::real_inner \<times> 'b::real_inner"
+  show "inner x y = inner y x"
+    unfolding inner_prod_def
+    by (simp add: inner_commute)
+  show "inner (x + y) z = inner x z + inner y z"
+    unfolding inner_prod_def
+    by (simp add: inner_add_left)
+  show "inner (scaleR r x) y = r * inner x y"
+    unfolding inner_prod_def
+    by (simp add: right_distrib)
+  show "0 \<le> inner x x"
+    unfolding inner_prod_def
+    by (intro add_nonneg_nonneg inner_ge_zero)
+  show "inner x x = 0 \<longleftrightarrow> x = 0"
+    unfolding inner_prod_def prod_eq_iff
+    by (simp add: add_nonneg_eq_0_iff)
+  show "norm x = sqrt (inner x x)"
+    unfolding norm_prod_def inner_prod_def
+    by (simp add: power2_norm_eq_inner)
+qed
+
+end
 
 end
