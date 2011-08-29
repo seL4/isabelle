@@ -114,32 +114,25 @@ lemma LIM_imp_LIM:
   by (rule metric_LIM_imp_LIM [OF f],
     simp add: dist_norm le)
 
-lemma trivial_limit_at:
-  fixes a :: "'a::real_normed_algebra_1"
-  shows "\<not> trivial_limit (at a)"  -- {* TODO: find a more appropriate class *}
-unfolding trivial_limit_def
-unfolding eventually_at dist_norm
-by (clarsimp, rule_tac x="a + of_real (d/2)" in exI, simp)
-
 lemma LIM_const_not_eq:
-  fixes a :: "'a::real_normed_algebra_1"
+  fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
   shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
-by (simp add: tendsto_const_iff trivial_limit_at)
+  by (simp add: tendsto_const_iff)
 
 lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
 
 lemma LIM_const_eq:
-  fixes a :: "'a::real_normed_algebra_1"
+  fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
   shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
-  by (simp add: tendsto_const_iff trivial_limit_at)
+  by (simp add: tendsto_const_iff)
 
 lemma LIM_unique:
-  fixes a :: "'a::real_normed_algebra_1" -- {* TODO: find a more appropriate class *}
+  fixes a :: "'a::perfect_space"
   fixes L M :: "'b::t2_space"
   shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
-  using trivial_limit_at by (rule tendsto_unique)
+  using at_neq_bot by (rule tendsto_unique)
 
 text{*Limits are equal for functions equal except at limit point*}
 lemma LIM_equal:

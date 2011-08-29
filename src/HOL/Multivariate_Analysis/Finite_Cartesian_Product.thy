@@ -238,8 +238,34 @@ lemma tendsto_vec_lambda [tendsto_intros]:
   shows "((\<lambda>x. \<chi> i. f x i) ---> (\<chi> i. a i)) net"
   using assms by (simp add: vec_tendstoI)
 
+lemma open_image_vec_nth: assumes "open S" shows "open ((\<lambda>x. x $ i) ` S)"
+proof (rule openI)
+  fix a assume "a \<in> (\<lambda>x. x $ i) ` S"
+  then obtain z where "a = z $ i" and "z \<in> S" ..
+  then obtain A where A: "\<forall>i. open (A i) \<and> z $ i \<in> A i"
+    and S: "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
+    using `open S` unfolding open_vec_def by auto
+  hence "A i \<subseteq> (\<lambda>x. x $ i) ` S"
+    by (clarsimp, rule_tac x="\<chi> j. if j = i then x else z $ j" in image_eqI,
+      simp_all)
+  hence "open (A i) \<and> a \<in> A i \<and> A i \<subseteq> (\<lambda>x. x $ i) ` S"
+    using A `a = z $ i` by simp
+  then show "\<exists>T. open T \<and> a \<in> T \<and> T \<subseteq> (\<lambda>x. x $ i) ` S" by - (rule exI)
+qed
 
-subsection {* Metric *}
+instance vec :: (perfect_space, finite) perfect_space
+proof
+  fix x :: "'a ^ 'b" show "\<not> open {x}"
+  proof
+    assume "open {x}"
+    hence "\<forall>i. open ((\<lambda>x. x $ i) ` {x})" by (fast intro: open_image_vec_nth)   
+    hence "\<forall>i. open {x $ i}" by simp
+    thus "False" by (simp add: not_open_singleton)
+  qed
+qed
+
+
+subsection {* Metric space *}
 
 (* TODO: move somewhere else *)
 lemma finite_choice: "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"

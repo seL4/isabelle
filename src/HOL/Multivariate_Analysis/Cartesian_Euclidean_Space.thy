@@ -1075,24 +1075,6 @@ lemma component_le_infnorm_cart:
   unfolding nth_conv_component
   using component_le_infnorm[of x] .
 
-instance vec :: (perfect_space, finite) perfect_space
-proof
-  fix x :: "'a ^ 'b"
-  show "x islimpt UNIV"
-    apply (rule islimptI)
-    apply (unfold open_vec_def)
-    apply (drule (1) bspec)
-    apply clarsimp
-    apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>y. y \<in> A i \<and> y \<noteq> x $ i")
-     apply (drule finite_choice [OF finite_UNIV], erule exE)
-     apply (rule_tac x="vec_lambda f" in exI)
-     apply (simp add: vec_eq_iff)
-    apply (rule ballI, drule_tac x=i in spec, clarify)
-    apply (cut_tac x="x $ i" in islimpt_UNIV)
-    apply (simp add: islimpt_def)
-    done
-qed
-
 lemma continuous_at_component: "continuous (at a) (\<lambda>x. x $ i)"
 unfolding continuous_at by (intro tendsto_intros)
 

@@ -1191,4 +1191,17 @@ lemma separation_t0:
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
   using t0_space[of x y] by blast
 
+text {* A perfect space is a topological space with no isolated points. *}
+
+class perfect_space = topological_space +
+  assumes not_open_singleton: "\<not> open {x}"
+
+instance real_normed_algebra_1 \<subseteq> perfect_space
+proof
+  fix x::'a
+  show "\<not> open {x}"
+    unfolding open_dist dist_norm
+    by (clarsimp, rule_tac x="x + of_real (e/2)" in exI, simp)
+qed
+
 end

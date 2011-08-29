@@ -465,31 +465,19 @@ lemma islimpt_approachable_le:
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis 
 
+lemma islimpt_UNIV_iff: "x islimpt UNIV \<longleftrightarrow> \<not> open {x}"
+  unfolding islimpt_def by (safe, fast, case_tac "T = {x}", fast, fast)
+
 text {* A perfect space has no isolated points. *}
 
-class perfect_space = topological_space +
-  assumes islimpt_UNIV [simp, intro]: "x islimpt UNIV"
+lemma islimpt_UNIV [simp, intro]: "(x::'a::perfect_space) islimpt UNIV"
+  unfolding islimpt_UNIV_iff by (rule not_open_singleton)
 
 lemma perfect_choose_dist:
   fixes x :: "'a::{perfect_space, metric_space}"
   shows "0 < r \<Longrightarrow> \<exists>a. a \<noteq> x \<and> dist a x < r"
 using islimpt_UNIV [of x]
 by (simp add: islimpt_approachable)
-
-instance euclidean_space \<subseteq> perfect_space
-proof
-  fix x :: 'a
-  { fix e :: real assume "0 < e"
-    def y \<equiv> "x + scaleR (e/2) (sgn (basis 0))"
-    from `0 < e` have "y \<noteq> x"
-      unfolding y_def by (simp add: sgn_zero_iff DIM_positive)
-    from `0 < e` have "dist y x < e"
-      unfolding y_def by (simp add: dist_norm norm_sgn)
-    from `y \<noteq> x` and `dist y x < e`
-    have "\<exists>y\<in>UNIV. y \<noteq> x \<and> dist y x < e" by auto
-  }
-  then show "x islimpt UNIV" unfolding islimpt_approachable by blast
-qed
 
 lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<longrightarrow> x \<in> S)"
   unfolding closed_def
@@ -914,7 +902,7 @@ lemma trivial_limit_at_iff: "trivial_limit (at a) \<longleftrightarrow> \<not> a
 lemma trivial_limit_at:
   fixes a :: "'a::perfect_space"
   shows "\<not> trivial_limit (at a)"
-  by (simp add: trivial_limit_at_iff)
+  by (rule at_neq_bot)
 
 lemma trivial_limit_at_infinity:
   "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,perfect_space}) filter)"

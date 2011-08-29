@@ -220,6 +220,25 @@ lemma component_le_norm: "\<bar>x$$i\<bar> \<le> norm (x::'a::euclidean_space)"
   unfolding euclidean_component_def
   by (rule order_trans [OF Cauchy_Schwarz_ineq2]) simp
 
+subsection {* Subclass relationships *}
+
+instance euclidean_space \<subseteq> perfect_space
+proof
+  fix x :: 'a show "\<not> open {x}"
+  proof
+    assume "open {x}"
+    then obtain e where "0 < e" and e: "\<forall>y. dist y x < e \<longrightarrow> y = x"
+      unfolding open_dist by fast
+    def y \<equiv> "x + scaleR (e/2) (sgn (basis 0))"
+    from `0 < e` have "y \<noteq> x"
+      unfolding y_def by (simp add: sgn_zero_iff DIM_positive)
+    from `0 < e` have "dist y x < e"
+      unfolding y_def by (simp add: dist_norm norm_sgn)
+    from `y \<noteq> x` and `dist y x < e` show "False"
+      using e by simp
+  qed
+qed
+
 subsection {* Class instances *}
 
 subsubsection {* Type @{typ real} *}

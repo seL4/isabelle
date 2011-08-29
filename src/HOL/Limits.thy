@@ -331,6 +331,9 @@ apply (simp only: less_diff_eq)
 apply (erule le_less_trans [OF dist_triangle])
 done
 
+lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
+  unfolding trivial_limit_def eventually_nhds by simp
+
 lemma eventually_at_topological:
   "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
 unfolding at_def eventually_within eventually_nhds by simp
@@ -339,6 +342,13 @@ lemma eventually_at:
   fixes a :: "'a::metric_space"
   shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding at_def eventually_within eventually_nhds_metric by auto
+
+lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
+  unfolding trivial_limit_def eventually_at_topological
+  by (safe, case_tac "S = {a}", simp, fast, fast)
+
+lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
+  by (simp add: at_eq_bot_iff not_open_singleton)
 
 
 subsection {* Boundedness *}

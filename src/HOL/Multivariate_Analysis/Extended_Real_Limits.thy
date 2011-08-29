@@ -62,10 +62,9 @@ lemma ereal_closed_uminus:
 using assms unfolding closed_def
 using ereal_open_uminus[of "- S"] ereal_uminus_complement by auto
 
-lemma not_open_ereal_singleton:
-  "\<not> (open {a :: ereal})"
-proof(rule ccontr)
-  assume "\<not> \<not> open {a}" hence a: "open {a}" by auto
+instance ereal :: perfect_space
+proof (default, rule)
+  fix a :: ereal assume a: "open {a}"
   show False
   proof (cases a)
     case MInf
@@ -138,7 +137,7 @@ proof(rule ccontr)
   { assume "Inf S=(-\<infinity>)" hence False using * assms(3) by auto }
   moreover
   { assume "Inf S=\<infinity>" hence "S={\<infinity>}" by (metis Inf_eq_PInfty `S ~= {}`)
-    hence False by (metis assms(1) not_open_ereal_singleton) }
+    hence False by (metis assms(1) not_open_singleton) }
   moreover
   { assume fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>"
     from ereal_open_cont_interval[OF assms(1) * fin] guess e . note e = this
