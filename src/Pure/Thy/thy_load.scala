@@ -8,8 +8,9 @@ package isabelle
 
 abstract class Thy_Load
 {
-  def is_loaded(name: String): Boolean
-
-  def check_thy(dir: Path, name: String): (String, Thy_Header)
+  def register_thy(thy_name: String)
+  def is_loaded(thy_name: String): Boolean
+  def append(master_dir: String, path: Path): String
+  def check_thy(node_name: String): Thy_Header
 }
 

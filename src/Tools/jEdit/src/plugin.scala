@@ -13,9 +13,11 @@ import java.lang.System
 import java.io.{File, FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JOptionPane
+import javax.swing.text.Segment
 
 import scala.collection.mutable
 import scala.swing.ComboBox
+import scala.util.Sorting
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, MiscUtilities, ServiceManager, View}
@@ -187,12 +189,10 @@ object Isabelle
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
+  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+
   def buffer_path(buffer: Buffer): (String, String) =
-  {
-    val master_dir = buffer.getDirectory
-    val path = buffer.getSymlinkPath
-    (master_dir, path)
-  }
+    (buffer.getDirectory, buffer_name(buffer))
 
 
   /* document model and view */
@@ -347,10 +347,19 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* editor file store */
+  /* theory files via editor document model */
 
-  private val file_store = new Session.File_Store
+  val thy_load = new Thy_Load
   {
+    private var loaded_theories: Set[String] = Set()
+
+    def register_thy(thy_name: String)
+    {
+      synchronized { loaded_theories += thy_name }
+    }
+    def is_loaded(thy_name: String): Boolean =
+      synchronized { loaded_theories.contains(thy_name) }
+
     def append(master_dir: String, source_path: Path): String =
     {
       val path = source_path.expand
@@ -364,36 +373,58 @@ class Plugin extends EBPlugin
       }
     }
 
-    def require(canonical_name: String)
+    def check_thy(node_name: String): Thy_Header =
     {
-      Swing_Thread.later {
-        if (!Isabelle.jedit_buffers().exists(_.getSymlinkPath == canonical_name))
-          jEdit.openFile(null: View, canonical_name)
+      Swing_Thread.now {
+        Isabelle.jedit_buffers().find(buffer => Isabelle.buffer_name(buffer) == node_name) match {
+          case Some(buffer) =>
+            Isabelle.buffer_lock(buffer) {
+              val text = new Segment
+              buffer.getText(0, buffer.getLength, text)
+              Some(Thy_Header.read(text))
+            }
+          case None => None
+        }
+      } getOrElse {
+        val file = new File(node_name)  // FIXME load URL via jEdit VFS (!?)
+        if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
+        Thy_Header.read(file)
       }
     }
   }
 
-
-  /* session manager */
+  val thy_info = new Thy_Info(thy_load)
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Isabelle.session.load_delay) {
-      def ask(files: List[String]): Boolean = Swing_Thread.now
+    Swing_Thread.delay_last(Isabelle.session.load_delay)
+    {
+      val buffers = Isabelle.jedit_buffers().toList
+      def loaded_buffer(name: String): Boolean =
+        buffers.exists(buffer => Isabelle.buffer_name(buffer) == name)
+
+      val thys =
+        for (buffer <- buffers; model <- Isabelle.document_model(buffer))
+          yield (model.master_dir, model.thy_name)
+      val files = thy_info.dependencies(thys).map(_._1).filterNot(loaded_buffer _)
+
+      val do_load = !files.isEmpty &&
         {
-          val file_list = new scala.swing.TextArea(files.mkString("\n"))
-          file_list.editable = false
-          val answer =
-            Library.confirm_dialog(jEdit.getActiveView(),
+          val files_sorted = { val a = files.toArray; Sorting.quickSort(a); a.toList }
+          val files_text = new scala.swing.TextArea(files_sorted.mkString("\n"))
+          files_text.editable = false
+          Library.confirm_dialog(jEdit.getActiveView(),
             "Auto loading of required files",
             JOptionPane.YES_NO_OPTION,
-            "The following files are required to resolve theory imports.",
-            "Reload now?",
-            file_list)
-          answer == 0
+            "The following files are required to resolve theory imports.  Reload now?",
+            files_text) == 0
         }
-
-      Isabelle.session.check_loaded_files(ask _)
+      if (do_load)
+        for (file <- files if !loaded_buffer(file))
+          jEdit.openFile(null: View, file)
     }
+
+
+  /* session manager */
 
   private val session_manager = actor {
     loop {
@@ -471,7 +502,7 @@ class Plugin extends EBPlugin
     Isabelle.setup_tooltips()
     Isabelle_System.init()
     Isabelle_System.install_fonts()
-    Isabelle.session = new Session(file_store)
+    Isabelle.session = new Session(thy_load)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
