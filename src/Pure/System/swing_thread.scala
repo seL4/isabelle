@@ -52,7 +52,7 @@ object Swing_Thread
     val timer = new Timer(time.ms.toInt, listener)
     timer.setRepeats(false)
 
-    def invoke() { if (first) timer.start() else timer.restart() }
+    def invoke() { now { if (first) timer.start() else timer.restart() } }
     invoke _
   }
 
