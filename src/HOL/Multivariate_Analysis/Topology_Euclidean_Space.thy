@@ -443,27 +443,24 @@ lemma islimptE:
   obtains y where "y \<in> S" and "y \<in> T" and "y \<noteq> x"
   using assms unfolding islimpt_def by auto
 
-lemma islimpt_subset: "x islimpt S \<Longrightarrow> S \<subseteq> T ==> x islimpt T" by (auto simp add: islimpt_def)
+lemma islimpt_iff_eventually: "x islimpt S \<longleftrightarrow> \<not> eventually (\<lambda>y. y \<notin> S) (at x)"
+  unfolding islimpt_def eventually_at_topological by auto
+
+lemma islimpt_subset: "\<lbrakk>x islimpt S; S \<subseteq> T\<rbrakk> \<Longrightarrow> x islimpt T"
+  unfolding islimpt_def by fast
 
 lemma islimpt_approachable:
   fixes x :: "'a::metric_space"
   shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e)"
-  unfolding islimpt_def
-  apply auto
-  apply(erule_tac x="ball x e" in allE)
-  apply auto
-  apply(rule_tac x=y in bexI)
-  apply (auto simp add: dist_commute)
-  apply (simp add: open_dist, drule (1) bspec)
-  apply (clarify, drule spec, drule (1) mp, auto)
-  done
+  unfolding islimpt_iff_eventually eventually_at by fast
 
 lemma islimpt_approachable_le:
   fixes x :: "'a::metric_space"
   shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x <= e)"
   unfolding islimpt_approachable
-  using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
-  by metis 
+  using approachable_lt_le [where f="\<lambda>y. dist y x" and P="\<lambda>y. y \<notin> S \<or> y = x",
+    THEN arg_cong [where f=Not]]
+  by (simp add: Bex_def conj_commute conj_left_commute)
 
 lemma islimpt_UNIV_iff: "x islimpt UNIV \<longleftrightarrow> \<not> open {x}"
   unfolding islimpt_def by (safe, fast, case_tac "T = {x}", fast, fast)
@@ -1058,65 +1055,11 @@ lemma Lim_within_open:
   using assms by (simp only: at_within_open)
 
 lemma Lim_within_LIMSEQ:
-  fixes a :: real and L :: "'a::metric_space"
+  fixes a :: "'a::metric_space"
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "(X ---> L) (at a within T)"
-proof (rule ccontr)
-  assume "\<not> (X ---> L) (at a within T)"
-  hence "\<exists>r>0. \<forall>s>0. \<exists>x\<in>T. x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> r \<le> dist (X x) L"
-    unfolding tendsto_iff eventually_within dist_norm by (simp add: not_less[symmetric])
-  then obtain r where r: "r > 0" "\<And>s. s > 0 \<Longrightarrow> \<exists>x\<in>T-{a}. \<bar>x - a\<bar> < s \<and> dist (X x) L \<ge> r" by blast
-
-  let ?F = "\<lambda>n::nat. SOME x. x \<in> T \<and> x \<noteq> a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
-  have "\<And>n. \<exists>x. x \<in> T \<and> x \<noteq> a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
-    using r by (simp add: Bex_def)
-  hence F: "\<And>n. ?F n \<in> T \<and> ?F n \<noteq> a \<and> \<bar>?F n - a\<bar> < inverse (real (Suc n)) \<and> dist (X (?F n)) L \<ge> r"
-    by (rule someI_ex)
-  hence F1: "\<And>n. ?F n \<in> T \<and> ?F n \<noteq> a"
-    and F2: "\<And>n. \<bar>?F n - a\<bar> < inverse (real (Suc n))"
-    and F3: "\<And>n. dist (X (?F n)) L \<ge> r"
-    by fast+
-
-  have "?F ----> a"
-  proof (rule LIMSEQ_I, unfold real_norm_def)
-      fix e::real
-      assume "0 < e"
-        (* choose no such that inverse (real (Suc n)) < e *)
-      then have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
-      then obtain m where nodef: "inverse (real (Suc m)) < e" by auto
-      show "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n - a\<bar> < e"
-      proof (intro exI allI impI)
-        fix n
-        assume mlen: "m \<le> n"
-        have "\<bar>?F n - a\<bar> < inverse (real (Suc n))"
-          by (rule F2)
-        also have "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
-          using mlen by auto
-        also from nodef have
-          "inverse (real (Suc m)) < e" .
-        finally show "\<bar>?F n - a\<bar> < e" .
-      qed
-  qed
-  moreover note `\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L`
-  ultimately have "(\<lambda>n. X (?F n)) ----> L" using F1 by simp
-  
-  moreover have "\<not> ((\<lambda>n. X (?F n)) ----> L)"
-  proof -
-    {
-      fix no::nat
-      obtain n where "n = no + 1" by simp
-      then have nolen: "no \<le> n" by simp
-        (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
-      have "dist (X (?F n)) L \<ge> r"
-        by (rule F3)
-      with nolen have "\<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r" by fast
-    }
-    then have "(\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r)" by simp
-    with r have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> e)" by auto
-    thus ?thesis by (unfold LIMSEQ_def, auto simp add: not_less)
-  qed
-  ultimately show False by simp
-qed
+  using assms unfolding tendsto_def [where l=L]
+  by (simp add: sequentially_imp_eventually_within)
 
 lemma Lim_right_bound:
   fixes f :: "real \<Rightarrow> real"
@@ -1160,21 +1103,18 @@ lemma islimpt_sequential:
 proof
   assume ?lhs
   then obtain f where f:"\<forall>y. y>0 \<longrightarrow> f y \<in> S \<and> f y \<noteq> x \<and> dist (f y) x < y"
-    unfolding islimpt_approachable using choice[of "\<lambda>e y. e>0 \<longrightarrow> y\<in>S \<and> y\<noteq>x \<and> dist y x < e"] by auto
-  { fix n::nat
-    have "f (inverse (real n + 1)) \<in> S - {x}" using f by auto
-  }
-  moreover
-  { fix e::real assume "e>0"
-    hence "\<exists>N::nat. inverse (real (N + 1)) < e" using real_arch_inv[of e] apply (auto simp add: Suc_pred') apply(rule_tac x="n - 1" in exI) by auto
-    then obtain N::nat where "inverse (real (N + 1)) < e" by auto
-    hence "\<forall>n\<ge>N. inverse (real n + 1) < e" by (auto, metis Suc_le_mono le_SucE less_imp_inverse_less nat_le_real_less order_less_trans real_of_nat_Suc real_of_nat_Suc_gt_zero)
-    moreover have "\<forall>n\<ge>N. dist (f (inverse (real n + 1))) x < (inverse (real n + 1))" using f `e>0` by auto
-    ultimately have "\<exists>N::nat. \<forall>n\<ge>N. dist (f (inverse (real n + 1))) x < e" apply(rule_tac x=N in exI) apply auto apply(erule_tac x=n in allE)+ by auto
-  }
-  hence " ((\<lambda>n. f (inverse (real n + 1))) ---> x) sequentially"
-    unfolding Lim_sequentially using f by auto
-  ultimately show ?rhs apply (rule_tac x="(\<lambda>n::nat. f (inverse (real n + 1)))" in exI) by auto
+    unfolding islimpt_approachable
+    using choice[of "\<lambda>e y. e>0 \<longrightarrow> y\<in>S \<and> y\<noteq>x \<and> dist y x < e"] by auto
+  let ?I = "\<lambda>n. inverse (real (Suc n))"
+  have "\<forall>n. f (?I n) \<in> S - {x}" using f by simp
+  moreover have "(\<lambda>n. f (?I n)) ----> x"
+  proof (rule metric_tendsto_imp_tendsto)
+    show "?I ----> 0"
+      by (rule LIMSEQ_inverse_real_of_nat)
+    show "eventually (\<lambda>n. dist (f (?I n)) x \<le> dist (?I n) 0) sequentially"
+      by (simp add: norm_conv_dist [symmetric] less_imp_le f)
+  qed
+  ultimately show ?rhs by fast
 next
   assume ?rhs
   then obtain f::"nat\<Rightarrow>'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding Lim_sequentially by auto
@@ -1331,7 +1271,7 @@ lemma netlimit_at:
   shows "netlimit (at a) = a"
   apply (subst within_UNIV[symmetric])
   using netlimit_within[of a UNIV]
-  by (simp add: trivial_limit_at within_UNIV)
+  by (simp add: within_UNIV)
 
 lemma lim_within_interior:
   "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
@@ -1480,8 +1420,7 @@ lemma sequentially_offset:
 lemma seq_offset:
   assumes "(f ---> l) sequentially"
   shows "((\<lambda>i. f (i + k)) ---> l) sequentially"
-  using assms unfolding tendsto_def
-  by clarify (rule sequentially_offset, simp)
+  using assms by (rule LIMSEQ_ignore_initial_segment) (* FIXME: redundant *)
 
 lemma seq_offset_neg:
   "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
@@ -1494,21 +1433,10 @@ lemma seq_offset_neg:
 
 lemma seq_offset_rev:
   "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
-  apply (rule topological_tendstoI)
-  apply (drule (2) topological_tendstoD)
-  apply (simp only: eventually_sequentially)
-  apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k \<and> (n - k) + k = n")
-  by metis arith
+  by (rule LIMSEQ_offset) (* FIXME: redundant *)
 
 lemma seq_harmonic: "((\<lambda>n. inverse (real n)) ---> 0) sequentially"
-proof-
-  { fix e::real assume "e>0"
-    hence "\<exists>N::nat. \<forall>n::nat\<ge>N. inverse (real n) < e"
-      using real_arch_inv[of e] apply auto apply(rule_tac x=n in exI)
-      by (metis le_imp_inverse_le not_less real_of_nat_gt_zero_cancel_iff real_of_nat_less_iff xt1(7))
-  }
-  thus ?thesis unfolding Lim_sequentially dist_norm by simp
-qed
+  using LIMSEQ_inverse_real_of_nat by (rule LIMSEQ_imp_Suc)
 
 subsection {* More properties of closed balls *}
 
@@ -3154,7 +3082,7 @@ text{* Derive the epsilon-delta forms, which we often use as "definitions" *}
 lemma continuous_within_eps_delta:
   "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
   unfolding continuous_within and Lim_within
-  apply auto unfolding dist_nz[THEN sym] apply(auto elim!:allE) apply(rule_tac x=d in exI) by auto
+  apply auto unfolding dist_nz[THEN sym] apply(auto del: allE elim!:allE) apply(rule_tac x=d in exI) by auto
 
 lemma continuous_at_eps_delta: "continuous (at x) f \<longleftrightarrow>  (\<forall>e>0. \<exists>d>0.
                            \<forall>x'. dist x' x < d --> dist(f x')(f x) < e)"
@@ -4408,7 +4336,7 @@ proof-
   note * = this
   { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
     have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`
-      by simp (blast intro!: Sup_upper *) }
+      by simp (blast del: Sup_upper intro!: * Sup_upper) }
   moreover
   { fix d::real assume "d>0" "d < diameter s"
     hence "s\<noteq>{}" unfolding diameter_def by auto
@@ -4667,39 +4595,26 @@ lemma interval_ne_empty: fixes a :: "'a::ordered_euclidean_space" shows
   "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < b$$i)"
   unfolding interval_eq_empty[of a b] by fastsimp+
 
-lemma interval_sing: fixes a :: "'a::ordered_euclidean_space" shows
- "{a .. a} = {a}" "{a<..<a} = {}"
-  apply(auto simp add: set_eq_iff euclidean_eq[where 'a='a] eucl_less[where 'a='a] eucl_le[where 'a='a])
-  apply (simp add: order_eq_iff) apply(rule_tac x=0 in exI) by (auto simp add: not_less less_imp_le)
+lemma interval_sing:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "{a .. a} = {a}" and "{a<..<a} = {}"
+  unfolding set_eq_iff mem_interval eq_iff [symmetric]
+  by (auto simp add: euclidean_eq[where 'a='a] eq_commute
+    eucl_less[where 'a='a] eucl_le[where 'a='a])
 
 lemma subset_interval_imp: fixes a :: "'a::ordered_euclidean_space" shows
  "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
  "(\<forall>i<DIM('a). a$$i < c$$i \<and> d$$i < b$$i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
  "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
  "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c<..<d} \<subseteq> {a<..<b}"
-  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval 
-  by (auto intro: order_trans less_le_trans le_less_trans less_imp_le) (* BH: Why doesn't just "auto" work here? *)
+  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval
+  by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
 
-lemma interval_open_subset_closed:  fixes a :: "'a::ordered_euclidean_space" shows
- "{a<..<b} \<subseteq> {a .. b}"
-proof(simp add: subset_eq, rule)
-  fix x
-  assume x:"x \<in>{a<..<b}"
-  { fix i assume "i<DIM('a)"
-    hence "a $$ i \<le> x $$ i"
-      using x order_less_imp_le[of "a$$i" "x$$i"] 
-      by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
-  }
-  moreover
-  { fix i assume "i<DIM('a)"
-    hence "x $$ i \<le> b $$ i"
-      using x order_less_imp_le[of "x$$i" "b$$i"]
-      by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
-  }
-  ultimately
-  show "a \<le> x \<and> x \<le> b"
-    by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
-qed
+lemma interval_open_subset_closed:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "{a<..<b} \<subseteq> {a .. b}"
+  unfolding subset_eq [unfolded Ball_def] mem_interval
+  by (fast intro: less_imp_le)
 
 lemma subset_interval: fixes a :: "'a::ordered_euclidean_space" shows
  "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i<DIM('a). c$$i \<le> d$$i) --> (\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i)" (is ?th1) and
@@ -4825,7 +4740,7 @@ next
                      "(x + (e / 2) *\<^sub>R basis i) $$ i \<le> b $$ i"
         using e[THEN spec[where x="x - (e/2) *\<^sub>R basis i"]]
         and   e[THEN spec[where x="x + (e/2) *\<^sub>R basis i"]]
-        unfolding mem_interval by (auto elim!: allE[where x=i])
+        unfolding mem_interval using i by blast+
       hence "a $$ i < x $$ i" and "x $$ i < b $$ i" unfolding euclidean_simps
         unfolding basis_component using `e>0` i by auto  }
     hence "x \<in> {a<..<b}" unfolding mem_interval by auto  }
@@ -5009,9 +4924,8 @@ definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
 
 lemma is_interval_interval: "is_interval {a .. b::'a::ordered_euclidean_space}" (is ?th1)
   "is_interval {a<..<b}" (is ?th2) proof -
-  have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
   show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
-    by(meson order_trans le_less_trans less_le_trans *)+ qed
+    by(meson order_trans le_less_trans less_le_trans less_trans)+ qed
 
 lemma is_interval_empty:
  "is_interval {}"
