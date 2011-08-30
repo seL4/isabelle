@@ -39,7 +39,6 @@ val type_encs =
    "mono_tags",
    "mono_tags_uniform",
    "mono_args",
-   "simple",
    "poly_guards?",
    "poly_guards_uniform?",
    "poly_tags?",
@@ -52,7 +51,6 @@ val type_encs =
    "mono_guards_uniform?",
    "mono_tags?",
    "mono_tags_uniform?",
-   "simple?",
    "poly_guards!",
    "poly_guards_uniform!",
    "poly_tags!",
@@ -64,8 +62,7 @@ val type_encs =
    "mono_guards!",
    "mono_guards_uniform!",
    "mono_tags!",
-   "mono_tags_uniform!",
-   "simple!"]
+   "mono_tags_uniform!"]
 
 fun metis_exhaust_tac ctxt ths =
   let
