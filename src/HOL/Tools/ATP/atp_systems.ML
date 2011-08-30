@@ -389,11 +389,11 @@ val z3_tptp = (z3_tptpN, z3_tptp_config)
 val poly_tff = TFF (TFF_Polymorphic, TFF_Implicit)
 
 val pff_config : atp_config =
-  {exec = ("HOME", ""), (* dummy *)
+  {exec = ("ISABELLE_ATP", "scripts/dummy_atp"),
    required_execs = [],
    arguments = K (K (K (K (K "")))),
    proof_delims = [],
-   known_failures = [],
+   known_failures = [(GaveUp, "SZS status Unknown")],
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices = K [(1.0, (false, (200, poly_tff, "poly_simple", "")))]}
