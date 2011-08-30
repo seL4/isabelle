@@ -13,16 +13,14 @@ text {*
   syntax.
 *}
 
-syntax
-  "_Expr" :: "'a => 'a"    ("EXPR _" [1000] 999)
-
-definition
-  var :: "'a => ('a => nat) => nat"    ("VAR _" [1000] 999)
+definition var :: "'a => ('a => nat) => nat"  ("VAR _" [1000] 999)
   where "var x env = env x"
 
-definition
-  Expr :: "(('a => nat) => nat) => ('a => nat) => nat"
+definition Expr :: "(('a => nat) => nat) => ('a => nat) => nat"
   where "Expr exp env = exp env"
+
+syntax
+  "_Expr" :: "'a => 'a"  ("EXPR _" [1000] 999)
 
 parse_translation {*
   [Syntax_Trans.quote_antiquote_tr

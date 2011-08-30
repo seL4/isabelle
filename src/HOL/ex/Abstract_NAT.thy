@@ -1,4 +1,4 @@
-(*
+(*  Title:      HOL/ex/Abstract_NAT.thy
     Author:     Makarius
 *)
 
@@ -25,8 +25,7 @@ lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
 
 text {* \medskip Primitive recursion as a (functional) relation -- polymorphic! *}
 
-inductive
-  Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
+inductive Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
   for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
 where
     Rec_zero: "Rec e r zero e"
@@ -64,9 +63,8 @@ qed
 
 text {* \medskip The recursion operator -- polymorphic! *}
 
-definition
-  rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a" where
-  "rec e r x = (THE y. Rec e r x y)"
+definition rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
+  where "rec e r x = (THE y. Rec e r x y)"
 
 lemma rec_eval:
   assumes Rec: "Rec e r x y"
@@ -90,9 +88,8 @@ qed
 
 text {* \medskip Example: addition (monomorphic) *}
 
-definition
-  add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n" where
-  "add m n = rec n (\<lambda>_ k. succ k) m"
+definition add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
+  where "add m n = rec n (\<lambda>_ k. succ k) m"
 
 lemma add_zero [simp]: "add zero n = n"
   and add_succ [simp]: "add (succ m) n = succ (add m n)"
@@ -114,9 +111,8 @@ lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
 
 text {* \medskip Example: replication (polymorphic) *}
 
-definition
-  repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list" where
-  "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
+definition repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
+  where "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
 
 lemma repl_zero [simp]: "repl zero x = []"
   and repl_succ [simp]: "repl (succ n) x = x # repl n x"
@@ -140,9 +136,11 @@ proof (rule NAT.intro)
     and succ: "\<And>n. P n \<Longrightarrow> P (Suc n)"
   show "P n"
   proof (induct n)
-    case 0 show ?case by (rule zero)
+    case 0
+    show ?case by (rule zero)
   next
-    case Suc then show ?case by (rule succ)
+    case Suc
+    then show ?case by (rule succ)
   qed
 qed
 
