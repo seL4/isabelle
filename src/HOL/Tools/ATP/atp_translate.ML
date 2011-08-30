@@ -31,7 +31,7 @@ sig
   datatype type_uniformity = Uniform | Nonuniform
 
   datatype type_enc =
-    Simple_Types of order * type_level |
+    Simple_Types of order * polymorphism * type_level |
     Guards of polymorphism * type_level * type_uniformity |
     Tags of polymorphism * type_level * type_uniformity
 
@@ -547,7 +547,7 @@ datatype type_level =
 datatype type_uniformity = Uniform | Nonuniform
 
 datatype type_enc =
-  Simple_Types of order * type_level |
+  Simple_Types of order * polymorphism * type_level |
   Guards of polymorphism * type_level * type_uniformity |
   Tags of polymorphism * type_level * type_uniformity
 
@@ -579,12 +579,15 @@ fun type_enc_from_string soundness s =
                 | NONE => (Nonuniform, s))
   |> (fn (poly, (level, (uniformity, core))) =>
          case (core, (poly, level, uniformity)) of
-           ("simple", (NONE, _, Nonuniform)) =>
-           Simple_Types (First_Order, level)
-         | ("simple_higher", (NONE, _, Nonuniform)) =>
-           (case level of
-              Noninf_Nonmono_Types _ => raise Same.SAME
-            | _ => Simple_Types (Higher_Order, level))
+           ("simple", (SOME poly, _, Nonuniform)) =>
+           (case poly of
+              Raw_Monomorphic => raise Same.SAME
+            | _ => Simple_Types (First_Order, poly, level))
+         | ("simple_higher", (SOME poly, _, Nonuniform)) =>
+           (case (poly, level) of
+              (Raw_Monomorphic, _) => raise Same.SAME
+            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
+            | _ => Simple_Types (Higher_Order, poly, level))
          | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, uniformity)
@@ -596,14 +599,14 @@ fun type_enc_from_string soundness s =
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
-fun is_type_enc_higher_order (Simple_Types (Higher_Order, _)) = true
+fun is_type_enc_higher_order (Simple_Types (Higher_Order, _, _)) = true
   | is_type_enc_higher_order _ = false
 
-fun polymorphism_of_type_enc (Simple_Types _) = Mangled_Monomorphic
+fun polymorphism_of_type_enc (Simple_Types (_, poly, _)) = poly
   | polymorphism_of_type_enc (Guards (poly, _, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _, _)) = poly
 
-fun level_of_type_enc (Simple_Types (_, level)) = level
+fun level_of_type_enc (Simple_Types (_, _, level)) = level
   | level_of_type_enc (Guards (_, level, _)) = level
   | level_of_type_enc (Tags (_, level, _)) = level
 
@@ -625,11 +628,15 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based Fin_Nonmono_Types = true
   | is_type_level_monotonicity_based _ = false
 
-fun adjust_type_enc (THF0 _) type_enc = type_enc
-  | adjust_type_enc (TFF _) (Simple_Types (_, level)) =
-    Simple_Types (First_Order, level)
-  | adjust_type_enc format (Simple_Types (_, level)) =
-    adjust_type_enc format (Guards (Mangled_Monomorphic, level, Uniform))
+fun adjust_type_enc (THF0 _) (Simple_Types (order, Polymorphic, level)) =
+    Simple_Types (order, Mangled_Monomorphic, level)
+  | adjust_type_enc (THF0 _) type_enc = type_enc
+  | adjust_type_enc (TFF (TFF_Monomorphic, _)) (Simple_Types (_, _, level)) =
+    Simple_Types (First_Order, Mangled_Monomorphic, level)
+  | adjust_type_enc (TFF (_, _)) (Simple_Types (_, poly, level)) =
+    Simple_Types (First_Order, poly, level)
+  | adjust_type_enc format (Simple_Types (_, poly, level)) =
+    adjust_type_enc format (Guards (poly, level, Uniform))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
@@ -1662,7 +1669,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
     val do_term = ho_term_from_iterm ctxt format mono type_enc o Top_Level
     val do_bound_type =
       case type_enc of
-        Simple_Types (_, level) =>
+        Simple_Types (_, _, level) =>
         homogenized_type ctxt mono level 0
         #> ho_type_from_typ format type_enc false 0 #> SOME
       | _ => K NONE
@@ -1940,7 +1947,7 @@ fun decl_line_for_sym ctxt format mono type_enc s
   let
     val (T_arg_Ts, level) =
       case type_enc of
-        Simple_Types (_, level) => ([], level)
+        Simple_Types (_, _, level) => ([], level)
       | _ => (replicate (length T_args) homo_infinite_type, No_Types)
   in
     Decl (sym_decl_prefix ^ s, (s, s'),

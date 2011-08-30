@@ -576,7 +576,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
             relevance_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          sledge_tac 0.25 ATP_Systems.z3_tptpN "simple"
+          sledge_tac 0.25 ATP_Systems.z3_tptpN "mono_simple"
           ORELSE' sledge_tac 0.25 ATP_Systems.eN "mono_guards?"
           ORELSE' sledge_tac 0.25 ATP_Systems.spassN "poly_tags_uniform"
           ORELSE' Metis_Tactics.metis_tac [] ctxt thms
