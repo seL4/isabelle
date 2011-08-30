@@ -302,8 +302,7 @@ text {*
   to all kinds of system-calls.
 *}
 
-primrec
-  uid_of :: "operation \<Rightarrow> uid"
+primrec uid_of :: "operation \<Rightarrow> uid"
 where
     "uid_of (Read uid text path) = uid"
   | "uid_of (Write uid text path) = uid"
@@ -314,8 +313,7 @@ where
   | "uid_of (Rmdir uid path) = uid"
   | "uid_of (Readdir uid names path) = uid"
 
-primrec
-  path_of :: "operation \<Rightarrow> path"
+primrec path_of :: "operation \<Rightarrow> path"
 where
     "path_of (Read uid text path) = path"
   | "path_of (Write uid text path) = path"
@@ -349,11 +347,9 @@ text {*
   involved here).
 *}
 
-inductive
-  transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
-    ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
+inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
+  ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
 where
-
   read:
     "access root path uid {Readable} = Some (Val (att, text)) \<Longrightarrow>
       root \<midarrow>(Read uid text path)\<rightarrow> root" |
@@ -500,9 +496,8 @@ text {*
   amount of time.
 *}
 
-inductive
-  transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
-    ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
+inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
+  ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
 where
     nil: "root =[]\<Rightarrow> root"
   | cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
@@ -630,8 +625,7 @@ text {*
   transition.
 *}
 
-definition
-  "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
+definition "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
 
 lemma can_exec_nil: "can_exec root []"
   unfolding can_exec_def by (blast intro: transitions.intros)

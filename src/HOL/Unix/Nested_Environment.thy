@@ -43,9 +43,9 @@ text {*
   @{term None}.
 *}
 
-primrec
-  lookup :: "('a, 'b, 'c) env => 'c list => ('a, 'b, 'c) env option"
-  and lookup_option :: "('a, 'b, 'c) env option => 'c list => ('a, 'b, 'c) env option" where
+primrec lookup :: "('a, 'b, 'c) env => 'c list => ('a, 'b, 'c) env option"
+  and lookup_option :: "('a, 'b, 'c) env option => 'c list => ('a, 'b, 'c) env option"
+where
     "lookup (Val a) xs = (if xs = [] then Some (Val a) else None)"
   | "lookup (Env b es) xs =
       (case xs of
@@ -245,22 +245,22 @@ text {*
   environment is left unchanged.
 *}
 
-primrec
-  update :: "'c list => ('a, 'b, 'c) env option
-    => ('a, 'b, 'c) env => ('a, 'b, 'c) env"
-  and update_option :: "'c list => ('a, 'b, 'c) env option
-    => ('a, 'b, 'c) env option => ('a, 'b, 'c) env option" where
-    "update xs opt (Val a) =
-      (if xs = [] then (case opt of None => Val a | Some e => e)
-      else Val a)"
-  | "update xs opt (Env b es) =
-      (case xs of
-        [] => (case opt of None => Env b es | Some e => e)
-      | y # ys => Env b (es (y := update_option ys opt (es y))))"
-  | "update_option xs opt None =
-      (if xs = [] then opt else None)"
-  | "update_option xs opt (Some e) =
-      (if xs = [] then opt else Some (update xs opt e))"
+primrec update :: "'c list => ('a, 'b, 'c) env option =>
+    ('a, 'b, 'c) env => ('a, 'b, 'c) env"
+  and update_option :: "'c list => ('a, 'b, 'c) env option =>
+    ('a, 'b, 'c) env option => ('a, 'b, 'c) env option"
+where
+  "update xs opt (Val a) =
+    (if xs = [] then (case opt of None => Val a | Some e => e)
+     else Val a)"
+| "update xs opt (Env b es) =
+    (case xs of
+      [] => (case opt of None => Env b es | Some e => e)
+    | y # ys => Env b (es (y := update_option ys opt (es y))))"
+| "update_option xs opt None =
+    (if xs = [] then opt else None)"
+| "update_option xs opt (Some e) =
+    (if xs = [] then opt else Some (update xs opt e))"
 
 hide_const update_option
 
