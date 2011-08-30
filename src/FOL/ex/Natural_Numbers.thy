@@ -46,9 +46,8 @@ next
 qed
 
 
-definition
-  add :: "[nat, nat] => nat"    (infixl "+" 60) where
-  "m + n = rec(m, n, \<lambda>x y. Suc(y))"
+definition add :: "nat => nat => nat"    (infixl "+" 60)
+  where "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
 lemma add_0 [simp]: "0 + n = n"
   unfolding add_def by (rule rec_0)
