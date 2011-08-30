@@ -37,13 +37,14 @@ sig
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
   val eN : string
+  val e_sineN : string
+  val e_tofofN : string
+  val leo2N : string
+  val pffN : string
+  val satallaxN : string
+  val snarkN : string
   val spassN : string
   val vampireN : string
-  val leo2N : string
-  val satallaxN : string
-  val e_sineN : string
-  val snarkN : string
-  val e_tofofN : string
   val waldmeisterN : string
   val z3_tptpN : string
   val remote_prefix : string
@@ -100,15 +101,16 @@ val known_perl_failures =
 (* named ATPs *)
 
 val eN = "e"
+val e_sineN = "e_sine"
+val e_tofofN = "e_tofof"
 val leo2N = "leo2"
+val pffN = "pff"
 val satallaxN = "satallax"
+val snarkN = "snark"
 val spassN = "spass"
 val vampireN = "vampire"
-val z3_tptpN = "z3_tptp"
-val e_sineN = "e_sine"
-val snarkN = "snark"
-val e_tofofN = "e_tofof"
 val waldmeisterN = "waldmeister"
+val z3_tptpN = "z3_tptp"
 val remote_prefix = "remote_"
 
 structure Data = Theory_Data
@@ -380,6 +382,22 @@ val z3_tptp_config : atp_config =
 
 val z3_tptp = (z3_tptpN, z3_tptp_config)
 
+(* Not really a prover: Experimental PFF (Polymorphic TFF) output *)
+
+val poly_tff = TFF (TFF_Polymorphic, TFF_Implicit)
+
+val pff_config : atp_config =
+  {exec = ("HOME", ""), (* dummy *)
+   required_execs = [],
+   arguments = K (K (K (K (K "")))),
+   proof_delims = [],
+   known_failures = [],
+   conj_sym_kind = Hypothesis,
+   prem_kind = Hypothesis,
+   best_slices = K [(1.0, (false, (200, poly_tff, "poly_simple", "")))]}
+
+val pff = (pffN, pff_config)
+
 
 (* Remote ATP invocation via SystemOnTPTP *)
 
@@ -510,7 +528,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
+  [e, leo2, pff, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
    remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine, remote_snark,
    remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
