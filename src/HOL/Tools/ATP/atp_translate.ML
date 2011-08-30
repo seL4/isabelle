@@ -320,7 +320,7 @@ local
   fun default c = const_prefix ^ lookup_const c
 in
   fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
-    | make_fixed_const (SOME (THF With_Choice)) c =
+    | make_fixed_const (SOME (THF0 THF_With_Choice)) c =
         if c = choice_const then tptp_choice else default c
     | make_fixed_const _ c = default c
 end
@@ -625,7 +625,7 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based Fin_Nonmono_Types = true
   | is_type_level_monotonicity_based _ = false
 
-fun adjust_type_enc (THF _) type_enc = type_enc
+fun adjust_type_enc (THF0 _) type_enc = type_enc
   | adjust_type_enc (TFF _) (Simple_Types (_, level)) =
     Simple_Types (First_Order, level)
   | adjust_type_enc format (Simple_Types (_, level)) =
@@ -889,16 +889,17 @@ fun introduce_proxies type_enc =
                if is_tptp_equal s andalso length args = 2 then
                  IConst (`I tptp_equal, T, [])
                else
-                 (* Use a proxy even for partially applied THF equality, because
-                    the LEO-II and Satallax parsers complain about not being
-                    able to infer the type of "=". *)
+                 (* Use a proxy even for partially applied THF0 equality,
+                    because the LEO-II and Satallax parsers complain about not
+                    being able to infer the type of "=". *)
                  IConst (proxy_base |>> prefix const_prefix, T, T_args)
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
           | NONE => if s = tptp_choice then
                       tweak_ho_quant tptp_choice T args
-                    else IConst (name, T, T_args))
+                    else
+                      IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -2177,12 +2178,10 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> (case format of
             CNF => ensure_cnf_problem
           | CNF_UEQ => filter_cnf_ueq_problem
-          | _ => I)
-      |> (if is_format_typed format andalso format <> TFF Implicit then
-            declare_undeclared_syms_in_atp_problem type_decl_prefix
-                                                   implicit_declsN
-          else
-            I)
+          | FOF => I
+          | TFF (_, TFF_Implicit) => I
+          | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
+                                                        implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names
     val helpers_offset = offset_of_heading_in_problem helpersN problem 0
     val typed_helpers =
