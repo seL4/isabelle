@@ -763,11 +763,25 @@ fun iterm_vars (IApp (tm1, tm2)) = fold iterm_vars [tm1, tm2]
   | iterm_vars (IAbs (_, tm)) = iterm_vars tm
 fun close_iformula_universally phi = close_universally iterm_vars phi
 
-fun term_vars bounds (ATerm (name as (s, _), tms)) =
-    (is_tptp_variable s andalso not (member (op =) bounds name))
-    ? insert (op =) (name, NONE) #> fold (term_vars bounds) tms
-  | term_vars bounds (AAbs ((name, _), tm)) = term_vars (name :: bounds) tm
-fun close_formula_universally phi = close_universally (term_vars []) phi
+fun term_vars type_enc =
+  let
+    fun vars bounds (ATerm (name as (s, _), tms)) =
+        (if is_tptp_variable s andalso not (member (op =) bounds name) then
+           (case type_enc of
+              Simple_Types (_, Polymorphic, _) =>
+              if String.isPrefix tvar_prefix s then
+                SOME (AType (`I tptp_type_of_types, []))
+              else
+                NONE
+            | _ => NONE)
+           |> pair name |> insert (op =)
+         else
+           I)
+        #> fold (vars bounds) tms
+      | vars bounds (AAbs ((name, _), tm)) = vars (name :: bounds) tm
+  in vars end
+fun close_formula_universally type_enc =
+  close_universally (term_vars type_enc [])
 
 val homo_infinite_type_name = @{type_name ind} (* any infinite type *)
 val homo_infinite_type = Type (homo_infinite_type_name, [])
@@ -804,7 +818,7 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
 fun mangled_type format type_enc =
   generic_mangled_type_name fst o ho_term_from_typ format type_enc
 
-val bool_atype = AType (`I tptp_bool_type)
+val bool_atype = AType (`I tptp_bool_type, [])
 
 fun make_simple_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
@@ -815,9 +829,14 @@ fun make_simple_type s =
 
 fun ho_type_from_ho_term type_enc pred_sym ary =
   let
-    fun to_atype ty =
+    fun to_mangled_atype ty =
       AType ((make_simple_type (generic_mangled_type_name fst ty),
-              generic_mangled_type_name snd ty))
+              generic_mangled_type_name snd ty), [])
+    fun to_poly_atype (ATerm (name, tys)) = AType (name, map to_poly_atype tys)
+      | to_poly_atype _ = raise Fail "unexpected type abstraction"
+    val to_atype =
+      if polymorphism_of_type_enc type_enc = Polymorphic then to_poly_atype
+      else to_mangled_atype
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
@@ -1454,7 +1473,7 @@ fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
    else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
   |> bound_tvars type_enc atomic_Ts
-  |> close_formula_universally
+  |> close_formula_universally type_enc
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
@@ -1717,7 +1736,7 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
                             should_guard_var_in_formula
                             (if pos then SOME true else NONE)
    |> bound_tvars type_enc atomic_types
-   |> close_formula_universally,
+   |> close_formula_universally type_enc,
    NONE,
    case locality of
      Intro => isabelle_info introN
@@ -1726,13 +1745,13 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
    | _ => NONE)
   |> Formula
 
-fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
-                                       : class_rel_clause) =
+fun formula_line_for_class_rel_clause type_enc
+        ({name, subclass, superclass, ...} : class_rel_clause) =
   let val ty_arg = ATerm (`I "T", []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
-             |> close_formula_universally, isabelle_info introN, NONE)
+             |> close_formula_universally type_enc, isabelle_info introN, NONE)
   end
 
 fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
@@ -1740,14 +1759,14 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
-                                   : arity_clause) =
+fun formula_line_for_arity_clause type_enc
+        ({name, prem_lits, concl_lits, ...} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)
                     (formula_from_fo_literal
                          (fo_literal_from_arity_literal concl_lits))
-           |> close_formula_universally, isabelle_info introN, NONE)
+           |> close_formula_universally type_enc, isabelle_info introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -1756,7 +1775,7 @@ fun formula_line_for_conjecture ctxt format mono type_enc
                should_guard_var_in_formula (SOME false)
                (close_iformula_universally iformula)
            |> bound_tvars type_enc atomic_types
-           |> close_formula_universally, NONE, NONE)
+           |> close_formula_universally type_enc, NONE, NONE)
 
 fun free_type_literals type_enc ({atomic_types, ...} : translated_formula) =
   atomic_types |> type_literals_for_types type_enc add_sorts_on_tfree
@@ -1921,7 +1940,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K true)))) (SOME true)
            |> bound_tvars type_enc (atyps_of T)
-           |> close_formula_universally,
+           |> close_formula_universally type_enc,
            isabelle_info introN, NONE)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
@@ -1983,7 +2002,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K true)))) (SOME true)
              |> n > 1 ? bound_tvars type_enc (atyps_of T)
-             |> close_formula_universally
+             |> close_formula_universally type_enc
              |> maybe_negate,
              isabelle_info introN, NONE)
   end
@@ -2174,8 +2193,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                                    (not exporter) (not exporter) mono
                                    type_enc)
             (0 upto length facts - 1 ~~ facts)),
-       (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
-       (aritiesN, map formula_line_for_arity_clause arity_clauses),
+       (class_relsN,
+        map (formula_line_for_class_rel_clause type_enc) class_rel_clauses),
+       (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
        (helpersN, helper_lines),
        (conjsN,
         map (formula_line_for_conjecture ctxt format mono type_enc) conjs),
