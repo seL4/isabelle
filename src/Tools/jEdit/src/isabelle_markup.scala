@@ -23,7 +23,7 @@ object Isabelle_Markup
 
   def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
-  val outdated_color = new Color(240, 240, 240)
+  val outdated_color = new Color(238, 227, 227)
   val unfinished_color = new Color(255, 228, 225)
 
   val light_color = new Color(240, 240, 240)
