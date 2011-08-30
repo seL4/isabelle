@@ -191,11 +191,11 @@ object Document
 
   abstract class Snapshot
   {
+    val state: State
     val version: Version
     val node: Node
     val is_outdated: Boolean
-    def find_command(id: Command_ID): Option[(String, Node, Command)]
-    def state(command: Command): Command.State
+    def command_state(command: Command): Command.State
     def convert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
@@ -269,8 +269,16 @@ object Document
       copy(commands = commands + (id -> command.empty_state))
     }
 
-    def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
-    def lookup_exec(id: Exec_ID): Option[Command] = execs.get(id).map(_.command)
+    def defined_command(id: Command_ID): Boolean = commands.isDefinedAt(id)
+
+    def find_command(version: Version, id: ID): Option[(String, Node, Command)] =
+      commands.get(id) orElse execs.get(id) match {
+        case None => None
+        case Some(st) =>
+          val command = st.command
+          version.nodes.find({ case (_, node) => node.commands(command) })
+            .map({ case (name, node) => (name, node, command) })
+      }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
     def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)  // FIXME rename
@@ -367,19 +375,12 @@ object Document
 
       new Snapshot
       {
+        val state = State.this
         val version = stable.version.get_finished
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
-        def find_command(id: ID): Option[(String, Node, Command)] =
-          State.this.lookup_command(id) orElse State.this.lookup_exec(id) match {
-            case None => None
-            case Some(command) =>
-              version.nodes.find({ case (_, node) => node.commands(command) })
-                .map({ case (name, node) => (name, node, command) })
-          }
-
-        def state(command: Command): Command.State =
+        def command_state(command: Command): Command.State =
           try {
             the_exec(the_assignment(version).check_finished.command_execs
               .getOrElse(command.id, fail))
@@ -397,7 +398,7 @@ object Document
           val former_range = revert(range)
           for {
             (command, command_start) <- node.command_range(former_range).toStream
-            Text.Info(r0, x) <- state(command).markup.
+            Text.Info(r0, x) <- command_state(command).markup.
               select((former_range - command_start).restrict(command.range)) {
                 case Text.Info(r0, info)
                 if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>

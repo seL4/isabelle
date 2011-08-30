@@ -73,7 +73,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   case _ if !snapshot.is_outdated =>
                     (props, props) match {
                       case (Position.Id(def_id), Position.Offset(def_offset)) =>
-                        snapshot.find_command(def_id) match {
+                        snapshot.state.find_command(snapshot.version, def_id) match {
                           case Some((def_name, def_node, def_cmd)) =>
                             def_node.command_start(def_cmd) match {
                               case Some(def_cmd_start) =>

@@ -243,7 +243,7 @@ class Session(thy_load: Thy_Load)
 
       def id_command(command: Command)
       {
-        if (global_state().lookup_command(command.id).isEmpty) {
+        if (!global_state().defined_command(command.id)) {
           global_state.change(_.define_command(command))
           prover.get.define_command(command.id, Symbol.encode(command.source))
         }

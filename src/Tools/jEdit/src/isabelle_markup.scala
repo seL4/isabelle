@@ -52,7 +52,7 @@ object Isabelle_Markup
 
   def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
-    val state = snapshot.state(command)
+    val state = snapshot.command_state(command)
     if (snapshot.is_outdated) Some(outdated_color)
     else
       Isar_Document.command_status(state.status) match {
@@ -64,7 +64,7 @@ object Isabelle_Markup
 
   def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
-    val state = snapshot.state(command)
+    val state = snapshot.command_state(command)
     if (snapshot.is_outdated) None
     else
       Isar_Document.command_status(state.status) match {
