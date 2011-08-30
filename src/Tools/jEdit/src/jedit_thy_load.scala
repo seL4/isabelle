@@ -49,7 +49,7 @@ class JEdit_Thy_Load extends Thy_Load
   override def check_thy(node_name: String): Thy_Header =
   {
     Swing_Thread.now {
-      Isabelle.jedit_buffers().find(buffer => Isabelle.buffer_name(buffer) == node_name) match {
+      Isabelle.jedit_buffer(node_name) match {
         case Some(buffer) =>
           Isabelle.buffer_lock(buffer) {
             val text = new Segment

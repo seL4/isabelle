@@ -194,7 +194,7 @@ object Document
     val version: Version
     val node: Node
     val is_outdated: Boolean
-    def lookup_command(id: Command_ID): Option[Command]
+    def find_command(id: Command_ID): Option[(String, Node, Command)]
     def state(command: Command): Command.State
     def convert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
@@ -370,7 +370,13 @@ object Document
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
-        def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
+        def find_command(id: Command_ID): Option[(String, Node, Command)] =
+          State.this.lookup_command(id) match {
+            case None => None
+            case Some(command) =>
+              version.nodes.find({ case (_, node) => node.commands(command) })
+                .map({ case (name, node) => (name, node, command) })
+          }
 
         def state(command: Command): Command.State =
           try {

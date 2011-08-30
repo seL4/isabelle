@@ -159,9 +159,26 @@ object Isabelle
   }
 
 
+  /* buffers */
+
+  def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
+    Swing_Thread.now { buffer_lock(buffer) { body } }
+
+  def buffer_text(buffer: JEditBuffer): String =
+    buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
+
+  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+
+  def buffer_path(buffer: Buffer): (String, String) =
+    (buffer.getDirectory, buffer_name(buffer))
+
+
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
+
+  def jedit_buffer(name: String): Option[Buffer] =
+    jedit_buffers().find(buffer => buffer_name(buffer) == name)
 
   def jedit_views(): Iterator[View] = jEdit.getViews().iterator
 
@@ -179,17 +196,6 @@ object Isabelle
     try { buffer.readLock(); body }
     finally { buffer.readUnlock() }
   }
-
-  def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
-    Swing_Thread.now { buffer_lock(buffer) { body } }
-
-  def buffer_text(buffer: JEditBuffer): String =
-    buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
-
-  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
-
-  def buffer_path(buffer: Buffer): (String, String) =
-    (buffer.getDirectory, buffer_name(buffer))
 
 
   /* document model and view */

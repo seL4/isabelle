@@ -16,11 +16,21 @@ import gatchan.jedit.hyperlinks.{Hyperlink, HyperlinkSource, AbstractHyperlink}
 import org.gjt.sp.jedit.{View, jEdit, Buffer, TextUtilities}
 
 
-private class Internal_Hyperlink(start: Int, end: Int, line: Int, def_offset: Int)
+private class Internal_Hyperlink(name: String, start: Int, end: Int, line: Int, offset: Int)
   extends AbstractHyperlink(start, end, line, "")
 {
-  override def click(view: View) {
-    view.getTextArea.moveCaretPosition(def_offset)
+  override def click(view: View)
+  {
+    val text_area = view.getTextArea
+    if (Isabelle.buffer_name(view.getBuffer) == name)
+      text_area.moveCaretPosition(offset)
+    else
+      Isabelle.jedit_buffer(name) match {
+        case Some(buffer) =>
+          view.setBuffer(buffer)
+          text_area.moveCaretPosition(offset)
+        case None =>
+      }
   }
 }
 
@@ -60,21 +70,22 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                 (Position.File.unapply(props), Position.Line.unapply(props)) match {
                   case (Some(def_file), Some(def_line)) =>
                     new External_Hyperlink(begin, end, line, def_file, def_line)
-                  case _ =>
+                  case _ if !snapshot.is_outdated =>
                     (props, props) match {
                       case (Position.Id(def_id), Position.Offset(def_offset)) =>
-                        snapshot.lookup_command(def_id) match {
-                          case Some(def_cmd) =>
-                            snapshot.node.command_start(def_cmd) match {
+                        snapshot.find_command(def_id) match {
+                          case Some((def_name, def_node, def_cmd)) =>
+                            def_node.command_start(def_cmd) match {
                               case Some(def_cmd_start) =>
-                                new Internal_Hyperlink(begin, end, line,
-                                  snapshot.convert(def_cmd_start + def_cmd.decode(def_offset)))
+                                new Internal_Hyperlink(def_name, begin, end, line,
+                                  def_cmd_start + def_cmd.decode(def_offset))
                               case None => null
                             }
                           case None => null
                         }
                       case _ => null
                     }
+                  case _ => null
                 }
             }
           markup match {
