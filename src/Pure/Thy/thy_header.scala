@@ -119,6 +119,8 @@ sealed case class Thy_Header(
     Thy_Header(f(name), imports.map(f), uses.map(p => (f(p._1), p._2)))
 
   def norm_deps(f: String => String, g: String => String): Thy_Header =
-    copy(imports = imports.map(name => f(name)), uses = uses.map(p => (g(p._1), p._2)))
+    copy(imports = imports.map(name => f(name)))
+    // FIXME
+    // copy(imports = imports.map(name => f(name)), uses = uses.map(p => (g(p._1), p._2)))
 }
 
