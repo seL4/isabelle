@@ -5,7 +5,7 @@
 header {* Quicksort with function package *}
 
 theory Quicksort
-imports Main "~~/src/HOL/Library/Multiset"
+imports "~~/src/HOL/Library/Multiset"
 begin
 
 context linorder
