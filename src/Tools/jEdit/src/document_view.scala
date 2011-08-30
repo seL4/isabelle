@@ -118,14 +118,17 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def perspective(): Text.Perspective =
   {
     Swing_Thread.require()
+    val buffer_range = Text.Range(0, (model.buffer.getLength - 1) max 0)
     Text.Perspective(
       for {
         i <- 0 until text_area.getVisibleLines
         val start = text_area.getScreenLineStartOffset(i)
         val stop = text_area.getScreenLineEndOffset(i)
         if start >= 0 && stop >= 0
+        val range <- buffer_range.try_restrict(Text.Range(start, stop))
+        if !range.is_singularity
       }
-      yield Text.Range(start, stop))
+      yield range)
   }
 
   private def update_perspective = new TextAreaExtension
