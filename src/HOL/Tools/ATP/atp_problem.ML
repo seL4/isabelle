@@ -17,16 +17,20 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
-  datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
+  datatype 'a ho_type =
+    AType of 'a * 'a ho_type list |
+    AFun of 'a ho_type * 'a ho_type |
+    ATyAbs of 'a list * 'a ho_type
 
-  datatype tff_flavor = Implicit | Explicit
-  datatype thf_flavor = Without_Choice | With_Choice
+  datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
+  datatype tff_explicitness = TFF_Implicit | TFF_Explicit
+  datatype thf_flavor = THF_Without_Choice | THF_With_Choice
   datatype format =
     CNF |
     CNF_UEQ |
     FOF |
-    TFF of tff_flavor |
-    THF of thf_flavor
+    TFF of tff_polymorphism * tff_explicitness |
+    THF0 of thf_flavor
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
@@ -70,6 +74,9 @@ sig
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
   val is_tptp_user_symbol : string -> bool
+  val atype_of_types : (string * string) ho_type
+  val bool_atype : (string * string) ho_type
+  val individual_atype : (string * string) ho_type
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
     connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
@@ -117,17 +124,21 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
-datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
+datatype 'a ho_type =
+  AType of 'a * 'a ho_type list |
+  AFun of 'a ho_type * 'a ho_type |
+  ATyAbs of 'a list * 'a ho_type
 
-datatype tff_flavor = Implicit | Explicit
-datatype thf_flavor = Without_Choice | With_Choice
+datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
+datatype tff_explicitness = TFF_Implicit | TFF_Explicit
+datatype thf_flavor = THF_Without_Choice | THF_With_Choice
 
 datatype format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF of tff_flavor |
-  THF of thf_flavor
+  TFF of tff_polymorphism * tff_explicitness |
+  THF0 of thf_flavor
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
@@ -211,10 +222,10 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun is_format_thf (THF _) = true
+fun is_format_thf (THF0 _) = true
   | is_format_thf _ = false
 fun is_format_typed (TFF _) = true
-  | is_format_typed (THF _) = true
+  | is_format_typed (THF0 _) = true
   | is_format_typed _ = false
 
 fun string_for_kind Axiom = "axiom"
@@ -223,25 +234,38 @@ fun string_for_kind Axiom = "axiom"
   | string_for_kind Hypothesis = "hypothesis"
   | string_for_kind Conjecture = "conjecture"
 
-fun strip_tff_type (AFun (AType s, ty)) = strip_tff_type ty |>> cons s
-  | strip_tff_type (AFun (AFun _, _)) =
+fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
+  | flatten_type (ty as AFun (ty1 as AType _, ty2)) =
+    (case flatten_type ty2 of
+       AFun (ty' as AType (s, tys), ty) =>
+       AFun (AType (tptp_product_type,
+                    ty1 :: (if s = tptp_product_type then tys else [ty'])), ty)
+     | _ => ty)
+  | flatten_type (ty as AType _) = ty
+  | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
-  | strip_tff_type (AType s) = ([], s)
 
-fun string_for_type (THF _) ty =
-    let
-      fun aux _ (AType s) = s
-        | aux rhs (AFun (ty1, ty2)) =
-          aux false ty1 ^ " " ^ tptp_fun_type ^ " " ^ aux true ty2
-          |> not rhs ? enclose "(" ")"
-    in aux true ty end
-  | string_for_type (TFF _) ty =
-    (case strip_tff_type ty of
-       ([], s) => s
-     | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
-     | (ss, s) =>
-       "(" ^ space_implode (" " ^ tptp_product_type ^ " ") ss ^ ") " ^
-       tptp_fun_type ^ " " ^ s)
+fun str_for_type ty =
+  let
+    fun str _ (AType (s, [])) = s
+      | str _ (AType (s, tys)) =
+        tys |> map (str false) 
+            |> (if s = tptp_product_type then
+                  space_implode (" " ^ tptp_product_type ^ " ")
+                  #> length tys > 1 ? enclose "(" ")"
+                else
+                  commas #> enclose "(" ")" #> prefix s)
+      | str rhs (AFun (ty1, ty2)) =
+        str false ty1 ^ " " ^ tptp_fun_type ^ " " ^ str true ty2
+        |> not rhs ? enclose "(" ")"
+      | str _ (ATyAbs (ss, ty)) =
+        tptp_forall ^ "[" ^
+        commas (map (suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types))
+                    ss) ^ "] : " ^ str false ty
+  in str true ty end
+
+fun string_for_type (THF0 _) ty = str_for_type ty
+  | string_for_type (TFF _) ty = str_for_type (flatten_type ty)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_quantifier AForall = tptp_forall
@@ -254,11 +278,13 @@ fun string_for_connective ANot = tptp_not
   | string_for_connective AIff = tptp_iff
 
 fun string_for_bound_var format (s, ty) =
-  s ^ (if is_format_typed format then
-         " " ^ tptp_has_type ^ " " ^
-         string_for_type format (ty |> the_default (AType tptp_individual_type))
-       else
-         "")
+  s ^
+  (if is_format_typed format then
+     " " ^ tptp_has_type ^ " " ^
+     (ty |> the_default (AType (tptp_individual_type, []))
+         |> string_for_type format)
+   else
+     "")
 
 fun string_for_term _ (ATerm (s, [])) = s
   | string_for_term format (ATerm (s, ts)) =
@@ -270,7 +296,7 @@ fun string_for_term _ (ATerm (s, [])) = s
       |> is_format_thf format ? enclose "(" ")"
     else
       (case (s = tptp_ho_forall orelse s = tptp_ho_exists,
-             s = tptp_choice andalso format = THF With_Choice, ts) of
+             s = tptp_choice andalso format = THF0 THF_With_Choice, ts) of
          (true, _, [AAbs ((s', ty), tm)]) =>
          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
             possible, to work around LEO-II 1.2.8 parser limitation. *)
@@ -291,7 +317,7 @@ fun string_for_term _ (ATerm (s, [])) = s
            else
              s ^ "(" ^ commas ss ^ ")"
          end)
-  | string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
+  | string_for_term (format as THF0 _) (AAbs ((s, ty), tm)) =
     "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "] : " ^
     string_for_term format tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
@@ -324,7 +350,7 @@ fun string_for_format CNF = tptp_cnf
   | string_for_format CNF_UEQ = tptp_cnf
   | string_for_format FOF = tptp_fof
   | string_for_format (TFF _) = tptp_tff
-  | string_for_format (THF _) = tptp_thf
+  | string_for_format (THF0 _) = tptp_thf
 
 fun string_for_problem_line format (Decl (ident, sym, ty)) =
     string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
@@ -438,9 +464,9 @@ fun filter_cnf_ueq_problem problem =
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
    SNARK) require explicit declarations. The situation is similar for THF. *)
 
-val atype_of_types = AType (`I tptp_type_of_types)
-val bool_atype = AType (`I tptp_bool_type)
-val individual_atype = AType (`I tptp_individual_type)
+val atype_of_types = AType (`I tptp_type_of_types, [])
+val bool_atype = AType (`I tptp_bool_type, [])
+val individual_atype = AType (`I tptp_individual_type, [])
 
 fun default_type pred_sym =
   let
@@ -457,8 +483,10 @@ fun undeclared_syms_in_problem declared problem =
   let
     fun do_sym name ty =
       if member (op =) declared name then I else AList.default (op =) (name, ty)
-    fun do_type (AFun (ty1, ty2)) = fold do_type [ty1, ty2]
-      | do_type (AType name) = do_sym name (K atype_of_types)
+    fun do_type_name name = do_sym name (K atype_of_types)
+    fun do_type (AType (name, tys)) = do_type_name name #> fold do_type tys
+      | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
+      | do_type (ATyAbs (names, ty)) = fold do_type_name names #> do_type ty
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
         is_tptp_user_symbol s
         ? do_sym name (fn _ => default_type pred_sym (length tms))
@@ -555,8 +583,11 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
-fun nice_type (AType name) = nice_name name #>> AType
+fun nice_type (AType (name, tys)) =
+    nice_name name ##>> pool_map nice_type tys #>> AType
   | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
+  | nice_type (ATyAbs (names, ty)) =
+    pool_map nice_name names ##>> nice_type ty #>> ATyAbs
 fun nice_term (ATerm (name, ts)) =
     nice_name name ##>> pool_map nice_term ts #>> ATerm
   | nice_term (AAbs ((name, ty), tm)) =

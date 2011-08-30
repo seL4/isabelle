@@ -16,8 +16,8 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype locality =
-    General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
-    Chained
+    General | Helper | Induction | Extensionality | Intro | Elim | Simp |
+    Local | Assum | Chained
 
   datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -31,7 +31,7 @@ sig
   datatype type_uniformity = Uniform | Nonuniform
 
   datatype type_enc =
-    Simple_Types of order * type_level |
+    Simple_Types of order * polymorphism * type_level |
     Guards of polymorphism * type_level * type_uniformity |
     Tags of polymorphism * type_level * type_uniformity
 
@@ -311,14 +311,19 @@ fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
 fun make_schematic_type_var (x, i) =
-      tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
+  tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
-(* "HOL.eq" is mapped to the ATP's equality. *)
-fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
-  | make_fixed_const (SOME (THF With_Choice)) "Hilbert_Choice.Eps"(*FIXME*) =
-      tptp_choice
-  | make_fixed_const _ c = const_prefix ^ lookup_const c
+(* "HOL.eq" and Choice are mapped to the ATP's equivalents *)
+local
+  val choice_const = (fst o dest_Const o HOLogic.choice_const) Term.dummyT
+  fun default c = const_prefix ^ lookup_const c
+in
+  fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
+    | make_fixed_const (SOME (THF0 THF_With_Choice)) c =
+        if c = choice_const then tptp_choice else default c
+    | make_fixed_const _ c = default c
+end
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
@@ -367,9 +372,6 @@ datatype arity_literal =
   TConsLit of name * name * name list |
   TVarLit of name * name
 
-fun gen_TVars 0 = []
-  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1)
-
 val type_class = the_single @{sort type}
 
 fun add_packed_sort tvar =
@@ -383,13 +385,12 @@ type arity_clause =
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
   let
-    val tvars = gen_TVars (length args)
+    val tvars = map (prefix tvar_prefix o string_of_int) (1 upto length args)
     val tvars_srts = ListPair.zip (tvars, args)
   in
     {name = name,
      prem_lits = [] |> fold (uncurry add_packed_sort) tvars_srts |> map TVarLit,
-     concl_lits = TConsLit (`make_type_class cls,
-                            `make_fixed_type_const tcons,
+     concl_lits = TConsLit (`make_type_class cls, `make_fixed_type_const tcons,
                             tvars ~~ tvars)}
   end
 
@@ -490,6 +491,15 @@ fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
+fun robust_const_type thy s =
+  if s = app_op_name then Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
+  else s |> Sign.the_const_type thy
+
+(* This function only makes sense if "T" is as general as possible. *)
+fun robust_const_typargs thy (s, T) =
+  (s, T) |> Sign.const_typargs thy
+  handle TYPE _ => [] |> Term.add_tvarsT T |> rev |> map TVar
+
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
 fun iterm_from_term thy format bs (P $ Q) =
@@ -499,10 +509,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | iterm_from_term thy format _ (Const (c, T)) =
     (IConst (`(make_fixed_const (SOME format)) c, T,
-             if String.isPrefix old_skolem_const_prefix c then
-               [] |> Term.add_tvarsT T |> map TVar
-             else
-               (c, T) |> Sign.const_typargs thy),
+             robust_const_typargs thy (c, T)),
      atyps_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
@@ -527,8 +534,8 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
 
 datatype locality =
-  General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
-  Chained
+  General | Helper | Induction | Extensionality | Intro | Elim | Simp |
+  Local | Assum | Chained
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -542,7 +549,7 @@ datatype type_level =
 datatype type_uniformity = Uniform | Nonuniform
 
 datatype type_enc =
-  Simple_Types of order * type_level |
+  Simple_Types of order * polymorphism * type_level |
   Guards of polymorphism * type_level * type_uniformity |
   Tags of polymorphism * type_level * type_uniformity
 
@@ -574,12 +581,15 @@ fun type_enc_from_string soundness s =
                 | NONE => (Nonuniform, s))
   |> (fn (poly, (level, (uniformity, core))) =>
          case (core, (poly, level, uniformity)) of
-           ("simple", (NONE, _, Nonuniform)) =>
-           Simple_Types (First_Order, level)
-         | ("simple_higher", (NONE, _, Nonuniform)) =>
-           (case level of
-              Noninf_Nonmono_Types _ => raise Same.SAME
-            | _ => Simple_Types (Higher_Order, level))
+           ("simple", (SOME poly, _, Nonuniform)) =>
+           (case poly of
+              Raw_Monomorphic => raise Same.SAME
+            | _ => Simple_Types (First_Order, poly, level))
+         | ("simple_higher", (SOME poly, _, Nonuniform)) =>
+           (case (poly, level) of
+              (Raw_Monomorphic, _) => raise Same.SAME
+            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
+            | _ => Simple_Types (Higher_Order, poly, level))
          | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, uniformity)
@@ -591,14 +601,14 @@ fun type_enc_from_string soundness s =
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
-fun is_type_enc_higher_order (Simple_Types (Higher_Order, _)) = true
+fun is_type_enc_higher_order (Simple_Types (Higher_Order, _, _)) = true
   | is_type_enc_higher_order _ = false
 
-fun polymorphism_of_type_enc (Simple_Types _) = Mangled_Monomorphic
+fun polymorphism_of_type_enc (Simple_Types (_, poly, _)) = poly
   | polymorphism_of_type_enc (Guards (poly, _, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _, _)) = poly
 
-fun level_of_type_enc (Simple_Types (_, level)) = level
+fun level_of_type_enc (Simple_Types (_, _, level)) = level
   | level_of_type_enc (Guards (_, level, _)) = level
   | level_of_type_enc (Tags (_, level, _)) = level
 
@@ -620,11 +630,15 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based Fin_Nonmono_Types = true
   | is_type_level_monotonicity_based _ = false
 
-fun adjust_type_enc (THF _) type_enc = type_enc
-  | adjust_type_enc (TFF _) (Simple_Types (_, level)) =
-    Simple_Types (First_Order, level)
-  | adjust_type_enc format (Simple_Types (_, level)) =
-    adjust_type_enc format (Guards (Mangled_Monomorphic, level, Uniform))
+fun adjust_type_enc (THF0 _) (Simple_Types (order, Polymorphic, level)) =
+    Simple_Types (order, Mangled_Monomorphic, level)
+  | adjust_type_enc (THF0 _) type_enc = type_enc
+  | adjust_type_enc (TFF (TFF_Monomorphic, _)) (Simple_Types (_, _, level)) =
+    Simple_Types (First_Order, Mangled_Monomorphic, level)
+  | adjust_type_enc (TFF (_, _)) (Simple_Types (_, poly, level)) =
+    Simple_Types (First_Order, poly, level)
+  | adjust_type_enc format (Simple_Types (_, poly, level)) =
+    adjust_type_enc format (Guards (poly, level, Uniform))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
@@ -678,8 +692,7 @@ datatype type_arg_policy =
   Mangled_Type_Args of bool |
   No_Type_Args
 
-fun should_drop_arg_type_args (Simple_Types _) =
-    false (* since TFF doesn't support overloading *)
+fun should_drop_arg_type_args (Simple_Types _) = false
   | should_drop_arg_type_args type_enc =
     level_of_type_enc type_enc = All_Types andalso
     uniformity_of_type_enc type_enc = Uniform
@@ -751,14 +764,28 @@ fun iterm_vars (IApp (tm1, tm2)) = fold iterm_vars [tm1, tm2]
   | iterm_vars (IAbs (_, tm)) = iterm_vars tm
 fun close_iformula_universally phi = close_universally iterm_vars phi
 
-fun term_vars bounds (ATerm (name as (s, _), tms)) =
-    (is_tptp_variable s andalso not (member (op =) bounds name))
-    ? insert (op =) (name, NONE) #> fold (term_vars bounds) tms
-  | term_vars bounds (AAbs ((name, _), tm)) = term_vars (name :: bounds) tm
-fun close_formula_universally phi = close_universally (term_vars []) phi
+fun term_vars type_enc =
+  let
+    fun vars bounds (ATerm (name as (s, _), tms)) =
+        (if is_tptp_variable s andalso not (member (op =) bounds name) then
+           (case type_enc of
+              Simple_Types (_, Polymorphic, _) =>
+              if String.isPrefix tvar_prefix s then SOME atype_of_types
+              else NONE
+            | _ => NONE)
+           |> pair name |> insert (op =)
+         else
+           I)
+        #> fold (vars bounds) tms
+      | vars bounds (AAbs ((name, _), tm)) = vars (name :: bounds) tm
+  in vars end
+fun close_formula_universally type_enc =
+  close_universally (term_vars type_enc [])
 
-val homo_infinite_type_name = @{type_name ind} (* any infinite type *)
-val homo_infinite_type = Type (homo_infinite_type_name, [])
+val fused_infinite_type_name = @{type_name ind} (* any infinite type *)
+val fused_infinite_type = Type (fused_infinite_type_name, [])
+
+fun tvar_name (x as (s, _)) = (make_schematic_type_var x, s)
 
 fun ho_term_from_typ format type_enc =
   let
@@ -766,15 +793,14 @@ fun ho_term_from_typ format type_enc =
       ATerm (case (is_type_enc_higher_order type_enc, s) of
                (true, @{type_name bool}) => `I tptp_bool_type
              | (true, @{type_name fun}) => `I tptp_fun_type
-             | _ => if s = homo_infinite_type_name andalso
+             | _ => if s = fused_infinite_type_name andalso
                        is_format_typed format then
                       `I tptp_individual_type
                     else
                       `make_fixed_type_const s,
              map term Ts)
     | term (TFree (s, _)) = ATerm (`make_fixed_type_var s, [])
-    | term (TVar ((x as (s, _)), _)) =
-      ATerm ((make_schematic_type_var x, s), [])
+    | term (TVar (x, _)) = ATerm (tvar_name x, [])
   in term end
 
 fun ho_term_for_type_arg format type_enc T =
@@ -792,8 +818,6 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
 fun mangled_type format type_enc =
   generic_mangled_type_name fst o ho_term_from_typ format type_enc
 
-val bool_atype = AType (`I tptp_bool_type)
-
 fun make_simple_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
      s = tptp_individual_type then
@@ -803,9 +827,14 @@ fun make_simple_type s =
 
 fun ho_type_from_ho_term type_enc pred_sym ary =
   let
-    fun to_atype ty =
+    fun to_mangled_atype ty =
       AType ((make_simple_type (generic_mangled_type_name fst ty),
-              generic_mangled_type_name snd ty))
+              generic_mangled_type_name snd ty), [])
+    fun to_poly_atype (ATerm (name, tys)) = AType (name, map to_poly_atype tys)
+      | to_poly_atype _ = raise Fail "unexpected type abstraction"
+    val to_atype =
+      if polymorphism_of_type_enc type_enc = Polymorphic then to_poly_atype
+      else to_mangled_atype
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
@@ -884,19 +913,17 @@ fun introduce_proxies type_enc =
                if is_tptp_equal s andalso length args = 2 then
                  IConst (`I tptp_equal, T, [])
                else
-                 (* Use a proxy even for partially applied THF equality, because
-                    the LEO-II and Satallax parsers complain about not being
-                    able to infer the type of "=". *)
+                 (* Use a proxy even for partially applied THF0 equality,
+                    because the LEO-II and Satallax parsers complain about not
+                    being able to infer the type of "=". *)
                  IConst (proxy_base |>> prefix const_prefix, T, T_args)
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
           | NONE => if s = tptp_choice then
-                      (*this could be made neater by adding c_Eps as a proxy,
-                        but we'd need to be able to "see" Hilbert_Choice.Eps
-                        at this level in order to define fEps*)
                       tweak_ho_quant tptp_choice T args
-                    else IConst (name, T, T_args))
+                    else
+                      IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1148,14 +1175,14 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
-fun homogenized_type ctxt mono level =
+fun fused_type ctxt mono level =
   let
     val should_encode = should_encode_type ctxt mono level
-    fun homo 0 T = if should_encode T then T else homo_infinite_type
-      | homo ary (Type (@{type_name fun}, [T1, T2])) =
-        homo 0 T1 --> homo (ary - 1) T2
-      | homo _ _ = raise Fail "expected function type"
-  in homo end
+    fun fuse 0 T = if should_encode T then T else fused_infinite_type
+      | fuse ary (Type (@{type_name fun}, [T1, T2])) =
+        fuse 0 T1 --> fuse (ary - 1) T2
+      | fuse _ _ = raise Fail "expected function type"
+  in fuse end
 
 (** predicators and application operators **)
 
@@ -1332,13 +1359,7 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
-    let
-      (* will throw "TYPE" for pseudo-constants *)
-      val U = if s = app_op_name then
-                @{typ "('a => 'b) => 'a => 'b"} |> Logic.varifyT_global
-              else
-                s |> Sign.the_const_type thy
-    in
+    let val U = robust_const_type thy s in
       case Term.add_tvarsT (U |> chop_fun arity |> snd) [] of
         [] => []
       | res_U_vars =>
@@ -1444,7 +1465,7 @@ fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
    else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
   |> bound_tvars type_enc atomic_Ts
-  |> close_formula_universally
+  |> close_formula_universally type_enc
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
@@ -1589,8 +1610,8 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
-    (fact_names |> map single,
-     (conjs, facts @ lambdas, class_rel_clauses, arity_clauses))
+    (fact_names |> map single, union (op =) subs supers, conjs, facts @ lambdas,
+     class_rel_clauses, arity_clauses)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -1659,8 +1680,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
     val do_term = ho_term_from_iterm ctxt format mono type_enc o Top_Level
     val do_bound_type =
       case type_enc of
-        Simple_Types (_, level) =>
-        homogenized_type ctxt mono level 0
+        Simple_Types (_, _, level) => fused_type ctxt mono level 0
         #> ho_type_from_typ format type_enc false 0 #> SOME
       | _ => K NONE
     fun do_out_of_bound_type pos phi universal (name, T) =
@@ -1707,7 +1727,7 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
                             should_guard_var_in_formula
                             (if pos then SOME true else NONE)
    |> bound_tvars type_enc atomic_types
-   |> close_formula_universally,
+   |> close_formula_universally type_enc,
    NONE,
    case locality of
      Intro => isabelle_info introN
@@ -1716,13 +1736,13 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
    | _ => NONE)
   |> Formula
 
-fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
-                                       : class_rel_clause) =
-  let val ty_arg = ATerm (`I "T", []) in
+fun formula_line_for_class_rel_clause type_enc
+        ({name, subclass, superclass, ...} : class_rel_clause) =
+  let val ty_arg = ATerm ((make_schematic_type_var ("'a", 0), "'a"), []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
-             |> close_formula_universally, isabelle_info introN, NONE)
+             |> close_formula_universally type_enc, isabelle_info introN, NONE)
   end
 
 fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
@@ -1730,14 +1750,14 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
-                                   : arity_clause) =
+fun formula_line_for_arity_clause type_enc
+        ({name, prem_lits, concl_lits, ...} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)
                     (formula_from_fo_literal
                          (fo_literal_from_arity_literal concl_lits))
-           |> close_formula_universally, isabelle_info introN, NONE)
+           |> close_formula_universally type_enc, isabelle_info introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -1746,7 +1766,7 @@ fun formula_line_for_conjecture ctxt format mono type_enc
                should_guard_var_in_formula (SOME false)
                (close_iformula_universally iformula)
            |> bound_tvars type_enc atomic_types
-           |> close_formula_universally, NONE, NONE)
+           |> close_formula_universally type_enc, NONE, NONE)
 
 fun free_type_literals type_enc ({atomic_types, ...} : translated_formula) =
   atomic_types |> type_literals_for_types type_enc add_sorts_on_tfree
@@ -1763,11 +1783,15 @@ fun formula_lines_for_free_types type_enc facts =
 
 (** Symbol declarations **)
 
-fun should_declare_sym type_enc pred_sym s =
-  (case type_enc of
-     Guards _ => not pred_sym
-   | _ => true) andalso
-  is_tptp_user_symbol s
+fun decl_line_for_class s =
+  let val name as (s, _) = `make_type_class s in
+    Decl (sym_decl_prefix ^ s, name, AFun (atype_of_types, bool_atype))
+  end
+
+fun decl_lines_for_classes type_enc classes =
+  case type_enc of
+    Simple_Types (_, Polymorphic, _) => map decl_line_for_class classes
+  | _ => []
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
@@ -1776,8 +1800,15 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, s'), T, T_args) =>
-           let val pred_sym = is_pred_sym repaired_sym_tab s in
-             if should_declare_sym type_enc pred_sym s then
+           let
+             val pred_sym = is_pred_sym repaired_sym_tab s
+             val decl_sym =
+               (case type_enc of
+                  Guards _ => not pred_sym
+                | _ => true) andalso
+               is_tptp_user_symbol s
+           in
+             if decl_sym then
                Symtab.map_default (s, [])
                    (insert_type ctxt #3 (s', T_args, T, pred_sym, length args,
                                          in_conj))
@@ -1911,7 +1942,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K true)))) (SOME true)
            |> bound_tvars type_enc (atyps_of T)
-           |> close_formula_universally,
+           |> close_formula_universally type_enc,
            isabelle_info introN, NONE)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
@@ -1935,14 +1966,28 @@ fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
 fun decl_line_for_sym ctxt format mono type_enc s
                       (s', T_args, T, pred_sym, ary, _) =
   let
-    val (T_arg_Ts, level) =
-      case type_enc of
-        Simple_Types (_, level) => ([], level)
-      | _ => (replicate (length T_args) homo_infinite_type, No_Types)
+    val thy = Proof_Context.theory_of ctxt
+    val (T, T_args) =
+      if null T_args then
+        (T, [])
+      else case strip_prefix_and_unascii const_prefix s of
+        SOME s' =>
+        let
+          val s' = s' |> invert_const
+          val T = s' |> robust_const_type thy
+        in (T, robust_const_typargs thy (s', T)) end
+      | NONE =>
+        case strip_prefix_and_unascii fixed_var_prefix s of
+          SOME s' =>
+          if String.isPrefix polymorphic_free_prefix s' then (tvar_a, [tvar_a])
+          else raise Fail "unexpected type arguments to free variable"
+        | NONE => raise Fail "unexpected type arguments"
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
-          (T_arg_Ts ---> (T |> homogenized_type ctxt mono level ary))
-          |> ho_type_from_typ format type_enc pred_sym (length T_arg_Ts + ary))
+          T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
+            |> ho_type_from_typ format type_enc pred_sym ary
+            |> not (null T_args)
+               ? curry ATyAbs (map (tvar_name o fst o dest_TVar) T_args))
   end
 
 fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -1973,7 +2018,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K true)))) (SOME true)
              |> n > 1 ? bound_tvars type_enc (atyps_of T)
-             |> close_formula_universally
+             |> close_formula_universally type_enc
              |> maybe_negate,
              isabelle_info introN, NONE)
   end
@@ -2127,7 +2172,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       else
         error ("Unknown lambda translation method: " ^
                quote lambda_trans ^ ".")
-    val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
+    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
@@ -2142,6 +2187,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val mono_Ts =
       helpers @ conjs @ facts
       |> monotonic_types_for_facts ctxt mono type_enc
+    val class_decl_lines = decl_lines_for_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
@@ -2158,14 +2204,14 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        FLOTTER hack. *)
     val problem =
-      [(explicit_declsN, sym_decl_lines),
+      [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (factsN,
         map (formula_line_for_fact ctxt format fact_prefix ascii_of
-                                   (not exporter) (not exporter) mono
-                                   type_enc)
+                                   (not exporter) (not exporter) mono type_enc)
             (0 upto length facts - 1 ~~ facts)),
-       (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
-       (aritiesN, map formula_line_for_arity_clause arity_clauses),
+       (class_relsN,
+        map (formula_line_for_class_rel_clause type_enc) class_rel_clauses),
+       (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
        (helpersN, helper_lines),
        (conjsN,
         map (formula_line_for_conjecture ctxt format mono type_enc) conjs),
@@ -2175,12 +2221,10 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> (case format of
             CNF => ensure_cnf_problem
           | CNF_UEQ => filter_cnf_ueq_problem
-          | _ => I)
-      |> (if is_format_typed format andalso format <> TFF Implicit then
-            declare_undeclared_syms_in_atp_problem type_decl_prefix
-                                                   implicit_declsN
-          else
-            I)
+          | FOF => I
+          | TFF (_, TFF_Implicit) => I
+          | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
+                                                        implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names
     val helpers_offset = offset_of_heading_in_problem helpersN problem 0
     val typed_helpers =

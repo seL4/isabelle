@@ -89,12 +89,12 @@ fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth =
   end
   |> Meson.make_meta_clause
 
-fun clause_params type_enc =
+val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
    orderLiterals = Metis_Clause.UnsignedLiteralOrder,
    orderTerms = true}
-fun active_params type_enc =
-  {clause = clause_params type_enc,
+val active_params =
+  {clause = clause_params,
    prefactor = #prefactor Metis_Active.default,
    postfactor = #postfactor Metis_Active.default}
 val waiting_params =
@@ -102,8 +102,7 @@ val waiting_params =
    variablesWeight = 0.0,
    literalsWeight = 0.0,
    models = []}
-fun resolution_params type_enc =
-  {active = active_params type_enc, waiting = waiting_params}
+val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
@@ -137,7 +136,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       case filter (fn t => prop_of t aconv @{prop False}) cls of
           false_th :: _ => [false_th RS @{thm FalseE}]
         | [] =>
-      case Metis_Resolution.new (resolution_params type_enc)
+      case Metis_Resolution.new resolution_params
                                 {axioms = thms, conjecture = []}
            |> Metis_Resolution.loop of
           Metis_Resolution.Contradiction mth =>

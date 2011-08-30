@@ -64,7 +64,7 @@ sig
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
   val atp_lambda_translation : string Config.T
-  val atp_readable_names : bool Config.T
+  val atp_full_names : bool Config.T
   val atp_sound_modulo_infiniteness : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -83,6 +83,7 @@ sig
   val is_metis_prover : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
+  val is_ho_atp: Proof.context -> string -> bool  
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -151,14 +152,17 @@ val select_smt_solver = Context.proof_map o SMT_Config.select_solver
 fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
-fun is_unit_equational_atp ctxt name =
+fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME {best_slices, ...} =>
-      exists (fn (_, (_, (_, format, _, _))) => format = CNF_UEQ)
+      exists (fn (_, (_, (_, format, _, _))) => is_format format)
              (best_slices ctxt)
     | NONE => false
   end
+
+val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
+val is_ho_atp = is_atp_for_format is_format_thf
 
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -329,7 +333,6 @@ type prover_result =
 type prover =
   params -> (string -> minimize_command) -> prover_problem -> prover_result
 
-
 (* configuration attributes *)
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
@@ -346,8 +349,8 @@ val atp_lambda_translation =
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_readable_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
+val atp_full_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
 val atp_sound_modulo_infiniteness =
   Attrib.setup_config_bool @{binding sledgehammer_atp_sound_modulo_infiniteness}
                            (K true)
@@ -665,7 +668,7 @@ fun run_atp mode name
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
                       type_enc false (Config.get ctxt atp_lambda_translation)
-                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
+                      (not (Config.get ctxt atp_full_names)) true hyp_ts concl_t
                       facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof

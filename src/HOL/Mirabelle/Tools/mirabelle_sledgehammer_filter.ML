@@ -129,11 +129,12 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val relevance_override = {add = [], del = [], only = false}
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
+         val is_ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
          val facts =
-          Sledgehammer_Filter.nearly_all_facts ctxt relevance_override
+          Sledgehammer_Filter.nearly_all_facts ctxt is_ho_atp relevance_override
                                                chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+          |> Sledgehammer_Filter.relevant_facts ctxt is_ho_atp relevance_thresholds
                  (the_default default_max_relevant max_relevant)
                  is_built_in_const relevance_fudge relevance_override
                  chained_ths hyp_ts concl_t

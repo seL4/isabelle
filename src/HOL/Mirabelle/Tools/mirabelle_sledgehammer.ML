@@ -416,11 +416,12 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
       let
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
+        val is_ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
         val facts =
-          Sledgehammer_Filter.nearly_all_facts ctxt relevance_override
-                                               chained_ths hyp_ts concl_t
+          Sledgehammer_Filter.nearly_all_facts ctxt is_ho_atp
+                          relevance_override chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+          |> Sledgehammer_Filter.relevant_facts ctxt is_ho_atp relevance_thresholds
                  (the_default default_max_relevant max_relevant)
                  is_built_in_const relevance_fudge relevance_override
                  chained_ths hyp_ts concl_t
@@ -575,7 +576,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
             relevance_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          sledge_tac 0.25 ATP_Systems.z3_tptpN "simple"
+          sledge_tac 0.25 ATP_Systems.z3_tptpN "mono_simple"
           ORELSE' sledge_tac 0.25 ATP_Systems.eN "mono_guards?"
           ORELSE' sledge_tac 0.25 ATP_Systems.spassN "poly_tags_uniform"
           ORELSE' Metis_Tactics.metis_tac [] ctxt thms

@@ -144,6 +144,9 @@ fun get_minimizing_prover ctxt mode name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
   |> minimize ctxt mode name params problem
 
+fun is_induction_fact (Untranslated_Fact ((_, Induction), _)) = true
+  | is_induction_fact _ = false
+
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
                               timeout, expect, ...})
         mode minimize_command only
@@ -160,9 +163,15 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
     fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val problem =
-      {state = state, goal = goal, subgoal = subgoal,
-       subgoal_count = subgoal_count, facts = facts |> take num_facts,
-       smt_filter = smt_filter}
+      let
+        val filter_induction = filter_out is_induction_fact
+      in {state = state, goal = goal, subgoal = subgoal,
+         subgoal_count = subgoal_count, facts =
+          ((Sledgehammer_Provers.is_ho_atp ctxt name |> not) ? filter_induction)
+            facts
+          |> take num_facts,
+         smt_filter = smt_filter}
+      end
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode name params minimize_command
@@ -260,8 +269,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val chained_ths = chained_ths |> normalize_chained_theorems
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
-      val facts = nearly_all_facts ctxt relevance_override chained_ths hyp_ts
-                                   concl_t
+      val is_ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
+      val facts = nearly_all_facts ctxt is_ho_atp relevance_override
+                                   chained_ths hyp_ts concl_t
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -313,9 +323,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           |> (case is_appropriate_prop of
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
-          |> relevant_facts ctxt relevance_thresholds max_max_relevant
-                            is_built_in_const relevance_fudge relevance_override
-                            chained_ths hyp_ts concl_t
+          |> relevant_facts ctxt is_ho_atp relevance_thresholds
+                            max_max_relevant is_built_in_const relevance_fudge
+                            relevance_override chained_ths hyp_ts concl_t
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^

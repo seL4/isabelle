@@ -37,13 +37,14 @@ sig
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
   val eN : string
+  val e_sineN : string
+  val e_tofofN : string
+  val leo2N : string
+  val pffN : string
+  val satallaxN : string
+  val snarkN : string
   val spassN : string
   val vampireN : string
-  val leo2N : string
-  val satallaxN : string
-  val e_sineN : string
-  val snarkN : string
-  val e_tofofN : string
   val waldmeisterN : string
   val z3_tptpN : string
   val remote_prefix : string
@@ -100,15 +101,16 @@ val known_perl_failures =
 (* named ATPs *)
 
 val eN = "e"
+val e_sineN = "e_sine"
+val e_tofofN = "e_tofof"
 val leo2N = "leo2"
+val pffN = "pff"
 val satallaxN = "satallax"
+val snarkN = "snark"
 val spassN = "spass"
 val vampireN = "vampire"
-val z3_tptpN = "z3_tptp"
-val e_sineN = "e_sine"
-val snarkN = "snark"
-val e_tofofN = "e_tofof"
 val waldmeisterN = "waldmeister"
+val z3_tptpN = "z3_tptp"
 val remote_prefix = "remote_"
 
 structure Data = Theory_Data
@@ -241,8 +243,10 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, (150, THF Without_Choice, "simple_higher", sosN))),
-      (0.333, (true, (50, THF Without_Choice, "simple_higher", no_sosN)))]
+     [(0.667, (false, (150, THF0 THF_Without_Choice,
+                       "mono_simple_higher", sosN))),
+      (0.333, (true, (50, THF0 THF_Without_Choice,
+                      "mono_simple_higher", no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -262,7 +266,8 @@ val satallax_config : atp_config =
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
    best_slices =
-     K [(1.0, (true, (100, THF With_Choice, "simple_higher", "")))] (* FUDGE *)}
+     K [(1.0, (true, (100, THF0 THF_With_Choice, "mono_simple_higher", "")))]
+     (* FUDGE *)}
 
 val satallax = (satallaxN, satallax_config)
 
@@ -309,6 +314,8 @@ val spass = (spassN, spass_config)
 fun is_old_vampire_version () =
   string_ord (getenv "VAMPIRE_VERSION", "1.8") <> GREATER
 
+val vampire_tff = TFF (TFF_Monomorphic, TFF_Implicit)
+
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
@@ -340,9 +347,9 @@ val vampire_config : atp_config =
          (0.333, (false, (500, FOF, "mono_tags?", sosN))),
          (0.334, (true, (50, FOF, "mono_guards?", no_sosN)))]
       else
-        [(0.333, (false, (150, TFF Implicit, "poly_guards", sosN))),
-         (0.333, (false, (500, TFF Implicit, "simple", sosN))),
-         (0.334, (true, (50, TFF Implicit, "simple", no_sosN)))])
+        [(0.333, (false, (150, vampire_tff, "poly_guards", sosN))),
+         (0.333, (false, (500, vampire_tff, "mono_simple", sosN))),
+         (0.334, (true, (50, vampire_tff, "mono_simple", no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -350,6 +357,8 @@ val vampire = (vampireN, vampire_config)
 
 
 (* Z3 with TPTP syntax *)
+
+val z3_tff = TFF (TFF_Monomorphic, TFF_Implicit)
 
 val z3_tptp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
@@ -368,12 +377,28 @@ val z3_tptp_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, (false, (250, FOF, "mono_guards?", ""))),
-        (0.25, (false, (125, FOF, "mono_guards?", ""))),
-        (0.125, (false, (62, TFF Implicit, "simple", ""))),
-        (0.125, (false, (31, TFF Implicit, "simple", "")))]}
+     K [(0.5, (false, (250, z3_tff, "mono_simple", ""))),
+        (0.25, (false, (125, z3_tff, "mono_simple", ""))),
+        (0.125, (false, (62, z3_tff, "mono_simple", ""))),
+        (0.125, (false, (31, z3_tff, "mono_simple", "")))]}
 
 val z3_tptp = (z3_tptpN, z3_tptp_config)
+
+(* Not really a prover: Experimental PFF (Polymorphic TFF) output *)
+
+val poly_tff = TFF (TFF_Polymorphic, TFF_Implicit)
+
+val pff_config : atp_config =
+  {exec = ("ISABELLE_ATP", "scripts/dummy_atp"),
+   required_execs = [],
+   arguments = K (K (K (K (K "")))),
+   proof_delims = [],
+   known_failures = [(GaveUp, "SZS status Unknown")],
+   conj_sym_kind = Hypothesis,
+   prem_kind = Hypothesis,
+   best_slices = K [(1.0, (false, (200, poly_tff, "poly_simple", "")))]}
+
+val pff = (pffN, pff_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -381,7 +406,8 @@ val z3_tptp = (z3_tptpN, z3_tptp_config)
 val systems = Synchronized.var "atp_systems" ([] : string list)
 
 fun get_systems () =
-  case Isabelle_System.bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
+  case Isabelle_System.bash_output
+           "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
     (output, 0) => split_lines output
   | (output, _) =>
     error (case extract_known_failure known_perl_failures output of
@@ -449,31 +475,34 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice config)
 
+val dumb_tff = TFF (TFF_Monomorphic, TFF_Explicit)
+
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
                (K (750, FOF, "mono_tags?") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-               (K (100, THF Without_Choice, "simple_higher") (* FUDGE *))
+               (K (100, THF0 THF_Without_Choice,
+                   "mono_simple_higher") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
-               (K (100, THF With_Choice, "simple_higher") (* FUDGE *))
+               (K (100, THF0 THF_With_Choice,
+                   "mono_simple_higher") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"]
-               (K (250, TFF Implicit, "simple") (* FUDGE *))
+               (K (250, FOF, "mono_guards?") (* FUDGE *))
 val remote_z3_tptp =
-  remotify_atp z3_tptp "Z3" ["3.0"]
-                       (K (250, TFF Implicit, "simple") (* FUDGE *))
+  remotify_atp z3_tptp "Z3" ["3.0"] (K (250, z3_tff, "mono_simple") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture (K (500, FOF, "mono_guards?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-             (K (100, TFF Explicit, "simple") (* FUDGE *))
+             (K (100, dumb_tff, "mono_simple") (* FUDGE *))
 val remote_e_tofof =
-  remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Hypothesis (K (150, TFF Explicit, "simple") (* FUDGE *))
+  remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Axiom
+             Hypothesis (K (150, dumb_tff, "mono_simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]
@@ -503,7 +532,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
+  [e, leo2, pff, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
    remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine, remote_snark,
    remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps

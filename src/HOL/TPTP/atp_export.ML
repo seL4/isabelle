@@ -27,8 +27,9 @@ open ATP_Systems
 val fact_name_of = prefix fact_prefix o ascii_of
 
 fun facts_of thy =
-  Sledgehammer_Filter.all_facts (Proof_Context.init_global thy) Symtab.empty
-                                true [] []
+  Sledgehammer_Filter.all_facts (Proof_Context.init_global thy)
+                                false(*FIXME works only for first-order*)
+                                Symtab.empty true [] []
   |> filter (curry (op =) @{typ bool} o fastype_of
              o Object_Logic.atomize_term thy o prop_of o snd)
 
