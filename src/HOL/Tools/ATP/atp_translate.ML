@@ -495,6 +495,15 @@ fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
+fun robust_const_type thy s =
+  if s = app_op_name then Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
+  else s |> Sign.the_const_type thy
+
+(* This function only makes sense if "T" is as general as possible. *)
+fun robust_const_typargs thy (s, T) =
+  (s, T) |> Sign.const_typargs thy
+  handle TYPE _ => [] |> Term.add_tvarsT T |> rev |> map TVar
+
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
 fun iterm_from_term thy format bs (P $ Q) =
@@ -504,10 +513,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | iterm_from_term thy format _ (Const (c, T)) =
     (IConst (`(make_fixed_const (SOME format)) c, T,
-             if String.isPrefix old_skolem_const_prefix c then
-               [] |> Term.add_tvarsT T |> map TVar
-             else
-               (c, T) |> Sign.const_typargs thy),
+             robust_const_typargs thy (c, T)),
      atyps_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
@@ -690,8 +696,7 @@ datatype type_arg_policy =
   Mangled_Type_Args of bool |
   No_Type_Args
 
-fun should_drop_arg_type_args (Simple_Types _) =
-    false (* since TFF doesn't support overloading *)
+fun should_drop_arg_type_args (Simple_Types _) = false
   | should_drop_arg_type_args type_enc =
     level_of_type_enc type_enc = All_Types andalso
     uniformity_of_type_enc type_enc = Uniform
@@ -783,8 +788,10 @@ fun term_vars type_enc =
 fun close_formula_universally type_enc =
   close_universally (term_vars type_enc [])
 
-val homo_infinite_type_name = @{type_name ind} (* any infinite type *)
-val homo_infinite_type = Type (homo_infinite_type_name, [])
+val fused_infinite_type_name = @{type_name ind} (* any infinite type *)
+val fused_infinite_type = Type (fused_infinite_type_name, [])
+
+fun tvar_name (x as (s, _)) = (make_schematic_type_var x, s)
 
 fun ho_term_from_typ format type_enc =
   let
@@ -792,15 +799,14 @@ fun ho_term_from_typ format type_enc =
       ATerm (case (is_type_enc_higher_order type_enc, s) of
                (true, @{type_name bool}) => `I tptp_bool_type
              | (true, @{type_name fun}) => `I tptp_fun_type
-             | _ => if s = homo_infinite_type_name andalso
+             | _ => if s = fused_infinite_type_name andalso
                        is_format_typed format then
                       `I tptp_individual_type
                     else
                       `make_fixed_type_const s,
              map term Ts)
     | term (TFree (s, _)) = ATerm (`make_fixed_type_var s, [])
-    | term (TVar ((x as (s, _)), _)) =
-      ATerm ((make_schematic_type_var x, s), [])
+    | term (TVar (x, _)) = ATerm (tvar_name x, [])
   in term end
 
 fun ho_term_for_type_arg format type_enc T =
@@ -1177,14 +1183,14 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
-fun homogenized_type ctxt mono level =
+fun fused_type ctxt mono level =
   let
     val should_encode = should_encode_type ctxt mono level
-    fun homo 0 T = if should_encode T then T else homo_infinite_type
-      | homo ary (Type (@{type_name fun}, [T1, T2])) =
-        homo 0 T1 --> homo (ary - 1) T2
-      | homo _ _ = raise Fail "expected function type"
-  in homo end
+    fun fuse 0 T = if should_encode T then T else fused_infinite_type
+      | fuse ary (Type (@{type_name fun}, [T1, T2])) =
+        fuse 0 T1 --> fuse (ary - 1) T2
+      | fuse _ _ = raise Fail "expected function type"
+  in fuse end
 
 (** predicators and application operators **)
 
@@ -1361,13 +1367,7 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
-    let
-      (* will throw "TYPE" for pseudo-constants *)
-      val U = if s = app_op_name then
-                @{typ "('a => 'b) => 'a => 'b"} |> Logic.varifyT_global
-              else
-                s |> Sign.the_const_type thy
-    in
+    let val U = robust_const_type thy s in
       case Term.add_tvarsT (U |> chop_fun arity |> snd) [] of
         [] => []
       | res_U_vars =>
@@ -1688,8 +1688,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
     val do_term = ho_term_from_iterm ctxt format mono type_enc o Top_Level
     val do_bound_type =
       case type_enc of
-        Simple_Types (_, _, level) =>
-        homogenized_type ctxt mono level 0
+        Simple_Types (_, _, level) => fused_type ctxt mono level 0
         #> ho_type_from_typ format type_enc false 0 #> SOME
       | _ => K NONE
     fun do_out_of_bound_type pos phi universal (name, T) =
@@ -1792,12 +1791,6 @@ fun formula_lines_for_free_types type_enc facts =
 
 (** Symbol declarations **)
 
-fun should_declare_sym type_enc pred_sym s =
-  (case type_enc of
-     Guards _ => not pred_sym
-   | _ => true) andalso
-  is_tptp_user_symbol s
-
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
   let
@@ -1805,8 +1798,15 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, s'), T, T_args) =>
-           let val pred_sym = is_pred_sym repaired_sym_tab s in
-             if should_declare_sym type_enc pred_sym s then
+           let
+             val pred_sym = is_pred_sym repaired_sym_tab s
+             val decl_sym =
+               (case type_enc of
+                  Guards _ => not pred_sym
+                | _ => true) andalso
+               is_tptp_user_symbol s
+           in
+             if decl_sym then
                Symtab.map_default (s, [])
                    (insert_type ctxt #3 (s', T_args, T, pred_sym, length args,
                                          in_conj))
@@ -1964,14 +1964,28 @@ fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
 fun decl_line_for_sym ctxt format mono type_enc s
                       (s', T_args, T, pred_sym, ary, _) =
   let
-    val (T_arg_Ts, level) =
-      case type_enc of
-        Simple_Types (_, _, level) => ([], level)
-      | _ => (replicate (length T_args) homo_infinite_type, No_Types)
+    val thy = Proof_Context.theory_of ctxt
+    val (T, T_args) =
+      if null T_args then
+        (T, [])
+      else case strip_prefix_and_unascii const_prefix s of
+        SOME s' =>
+        let
+          val s' = s' |> invert_const
+          val T = s' |> robust_const_type thy
+        in (T, robust_const_typargs thy (s', T)) end
+      | NONE =>
+        case strip_prefix_and_unascii fixed_var_prefix s of
+          SOME s' =>
+          if String.isPrefix polymorphic_free_prefix s' then (tvar_a, [tvar_a])
+          else raise Fail "unexpected type arguments to free variable"
+        | NONE => raise Fail "unexpected type arguments"
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
-          (T_arg_Ts ---> (T |> homogenized_type ctxt mono level ary))
-          |> ho_type_from_typ format type_enc pred_sym (length T_arg_Ts + ary))
+          T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
+            |> ho_type_from_typ format type_enc pred_sym ary
+            |> not (null T_args)
+               ? curry ATyAbs (map (tvar_name o fst o dest_TVar) T_args))
   end
 
 fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s

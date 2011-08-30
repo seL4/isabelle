@@ -19,7 +19,8 @@ sig
 
   datatype 'a ho_type =
     AType of 'a * 'a ho_type list |
-    AFun of 'a ho_type * 'a ho_type
+    AFun of 'a ho_type * 'a ho_type |
+    ATyAbs of 'a list * 'a ho_type
 
   datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
   datatype tff_explicitness = TFF_Implicit | TFF_Explicit
@@ -122,7 +123,8 @@ datatype ('a, 'b, 'c) formula =
 
 datatype 'a ho_type =
   AType of 'a * 'a ho_type list |
-  AFun of 'a ho_type * 'a ho_type
+  AFun of 'a ho_type * 'a ho_type |
+  ATyAbs of 'a list * 'a ho_type
 
 datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
 datatype tff_explicitness = TFF_Implicit | TFF_Explicit
@@ -229,29 +231,38 @@ fun string_for_kind Axiom = "axiom"
   | string_for_kind Hypothesis = "hypothesis"
   | string_for_kind Conjecture = "conjecture"
 
-fun strip_tff_type (AFun (AFun _, _)) =
+fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
+  | flatten_type (ty as AFun (ty1 as AType _, ty2)) =
+    (case flatten_type ty2 of
+       AFun (ty' as AType (s, tys), ty) =>
+       AFun (AType (tptp_product_type,
+                    ty1 :: (if s = tptp_product_type then tys else [ty'])), ty)
+     | _ => ty)
+  | flatten_type (ty as AType _) = ty
+  | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
-  | strip_tff_type (AFun (ty1, ty2)) = strip_tff_type ty2 |>> cons ty1
-  | strip_tff_type ty = ([], ty)
 
-fun general_string_for_type ty =
+fun str_for_type ty =
   let
     fun str _ (AType (s, [])) = s
-      | str _ (AType (s, tys)) = s ^ "(" ^ commas (map (str false) tys) ^ ")"
+      | str _ (AType (s, tys)) =
+        tys |> map (str false) 
+            |> (if s = tptp_product_type then
+                  space_implode (" " ^ tptp_product_type ^ " ")
+                  #> length tys > 1 ? enclose "(" ")"
+                else
+                  commas #> enclose "(" ")" #> prefix s)
       | str rhs (AFun (ty1, ty2)) =
         str false ty1 ^ " " ^ tptp_fun_type ^ " " ^ str true ty2
         |> not rhs ? enclose "(" ")"
+      | str _ (ATyAbs (ss, ty)) =
+        tptp_forall ^ "[" ^
+        commas (map (suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types))
+                    ss) ^ "] : " ^ str false ty
   in str true ty end
 
-fun string_for_type (THF0 _) ty = general_string_for_type ty
-  | string_for_type (TFF _) ty =
-    (case strip_tff_type ty of
-       ([], ty) => general_string_for_type ty
-     | ([ty1], ty2) => general_string_for_type (AFun (ty1, ty2))
-     | (tys, ty) =>
-       "(" ^ space_implode (" " ^ tptp_product_type ^ " ")
-       (map general_string_for_type tys) ^ ") " ^ tptp_fun_type ^ " " ^
-       general_string_for_type ty)
+fun string_for_type (THF0 _) ty = str_for_type ty
+  | string_for_type (TFF _) ty = str_for_type (flatten_type ty)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_quantifier AForall = tptp_forall
@@ -469,9 +480,10 @@ fun undeclared_syms_in_problem declared problem =
   let
     fun do_sym name ty =
       if member (op =) declared name then I else AList.default (op =) (name, ty)
-    fun do_type (AType (name, tys)) =
-        do_sym name (K atype_of_types) #> fold do_type tys
+    fun do_type_name name = do_sym name (K atype_of_types)
+    fun do_type (AType (name, tys)) = do_type_name name #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
+      | do_type (ATyAbs (names, ty)) = fold do_type_name names #> do_type ty
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
         is_tptp_user_symbol s
         ? do_sym name (fn _ => default_type pred_sym (length tms))
@@ -571,6 +583,8 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
 fun nice_type (AType (name, tys)) =
     nice_name name ##>> pool_map nice_type tys #>> AType
   | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
+  | nice_type (ATyAbs (names, ty)) =
+    pool_map nice_name names ##>> nice_type ty #>> ATyAbs
 fun nice_term (ATerm (name, ts)) =
     nice_name name ##>> pool_map nice_term ts #>> ATerm
   | nice_term (AAbs ((name, ty), tm)) =
