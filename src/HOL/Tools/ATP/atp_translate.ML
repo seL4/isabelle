@@ -314,11 +314,16 @@ fun make_schematic_type_var (x, i) =
       tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
-(* "HOL.eq" is mapped to the ATP's equality. *)
-fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
-  | make_fixed_const (SOME (THF With_Choice)) "Hilbert_Choice.Eps"(*FIXME*) =
-      tptp_choice
-  | make_fixed_const _ c = const_prefix ^ lookup_const c
+(* "HOL.eq" and Choice are mapped to the ATP's equivalents *)
+local
+  val choice_const = (fst o dest_Const o HOLogic.choice_const) Term.dummyT
+  fun default c = const_prefix ^ lookup_const c
+in
+  fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
+    | make_fixed_const (SOME (THF With_Choice)) c =
+        if c = choice_const then tptp_choice else default c
+    | make_fixed_const _ c = default c
+end
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
