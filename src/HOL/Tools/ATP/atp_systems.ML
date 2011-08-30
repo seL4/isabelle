@@ -55,6 +55,7 @@ sig
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
   val is_atp_installed : theory -> string -> bool
+  val is_ho_atp: string -> bool
   val refresh_systems_on_tptp : unit -> unit
   val setup : theory -> theory
 end;
@@ -497,6 +498,15 @@ val supported_atps = Symtab.keys o Data.get
 fun is_atp_installed thy name =
   let val {exec, required_execs, ...} = get_atp thy name in
     forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
+  end
+
+fun is_ho_atp name =
+  let
+    val local_ho_atps = [leo2N, satallaxN]
+    val ho_atps = map (fn n => remote_prefix ^ n) local_ho_atps
+  in List.filter (fn n => n = name) ho_atps
+     |> List.null
+     |> not
   end
 
 fun refresh_systems_on_tptp () =

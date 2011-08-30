@@ -91,6 +91,7 @@ sig
   val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
+  val is_induction_fact: prover_fact -> bool
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
@@ -329,6 +330,10 @@ type prover_result =
 type prover =
   params -> (string -> minimize_command) -> prover_problem -> prover_result
 
+(* checking facts' locality *)
+
+fun is_induction_fact (Untranslated_Fact ((_, Induction), _)) = true
+  | is_induction_fact _ = false
 
 (* configuration attributes *)
 

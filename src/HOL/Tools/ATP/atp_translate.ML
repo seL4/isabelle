@@ -16,8 +16,8 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype locality =
-    General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
-    Chained
+    General | Helper | Induction | Extensionality | Intro | Elim | Simp |
+    Local | Assum | Chained
 
   datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -527,8 +527,8 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
 
 datatype locality =
-  General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
-  Chained
+  General | Helper | Induction | Extensionality | Intro | Elim | Simp |
+  Local | Assum | Chained
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
