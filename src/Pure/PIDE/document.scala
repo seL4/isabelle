@@ -270,6 +270,7 @@ object Document
     }
 
     def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
+    def lookup_exec(id: Exec_ID): Option[Command] = execs.get(id).map(_.command)
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
     def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)  // FIXME rename
@@ -370,8 +371,8 @@ object Document
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
-        def find_command(id: Command_ID): Option[(String, Node, Command)] =
-          State.this.lookup_command(id) match {
+        def find_command(id: ID): Option[(String, Node, Command)] =
+          State.this.lookup_command(id) orElse State.this.lookup_exec(id) match {
             case None => None
             case Some(command) =>
               version.nodes.find({ case (_, node) => node.commands(command) })
