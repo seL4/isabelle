@@ -156,7 +156,7 @@ fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME {best_slices, ...} =>
-      exists (fn (_, (_, (_, format, _, _))) => format = CNF_UEQ)
+      exists (fn (_, (_, (_, format, _, _))) => is_format format)
              (best_slices ctxt)
     | NONE => false
   end
