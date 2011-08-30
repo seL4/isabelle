@@ -4907,7 +4907,7 @@ lemma list_size_map[simp]: "list_size f (map g xs) = list_size (f o g) xs"
 by (induct xs) auto
 
 lemma list_size_pointwise[termination_simp]: 
-  "(\<And>x. x \<in> set xs \<Longrightarrow> f x < g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
+  "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
 by (induct xs) force+
 
 
