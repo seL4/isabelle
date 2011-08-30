@@ -837,8 +837,8 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
     val is_chained = member Thm.eq_thm_prop chained_ths
     val clasimpset_table = clasimpset_rule_table_of ctxt
     fun locality_of_theorem global (name: string) th =
-      if (String.isSubstring ".induct" name) orelse(*FIXME: use structured name*)
-         (String.isSubstring ".inducts" name) then
+      if String.isSubstring ".induct" name orelse(*FIXME: use structured name*)
+         String.isSubstring ".inducts" name then
            Induction
       else if is_chained th then
         Chained

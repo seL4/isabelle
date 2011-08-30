@@ -892,9 +892,6 @@ fun introduce_proxies type_enc =
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
           | NONE => if s = tptp_choice then
-                      (*this could be made neater by adding c_Eps as a proxy,
-                        but we'd need to be able to "see" Hilbert_Choice.Eps
-                        at this level in order to define fEps*)
                       tweak_ho_quant tptp_choice T args
                     else IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)

@@ -83,6 +83,7 @@ sig
   val is_metis_prover : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
+  val is_ho_atp: Proof.context -> string -> bool  
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -91,7 +92,6 @@ sig
   val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
-  val is_induction_fact: prover_fact -> bool
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
@@ -151,6 +151,19 @@ val select_smt_solver = Context.proof_map o SMT_Config.select_solver
 
 fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
+
+fun is_ho_atp ctxt name =
+  let
+    val thy = Proof_Context.theory_of ctxt
+  in case try (get_atp thy) name of
+      SOME {best_slices, ...} =>
+        exists (fn cfg => case cfg of
+                   (_, (_, (_, THF _, _, _))) => true
+                 | _ => false
+               )
+               (best_slices ctxt)
+    | NONE => false
+  end
 
 fun is_unit_equational_atp ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -329,11 +342,6 @@ type prover_result =
 
 type prover =
   params -> (string -> minimize_command) -> prover_problem -> prover_result
-
-(* checking facts' locality *)
-
-fun is_induction_fact (Untranslated_Fact ((_, Induction), _)) = true
-  | is_induction_fact _ = false
 
 (* configuration attributes *)
 
