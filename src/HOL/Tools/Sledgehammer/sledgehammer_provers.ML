@@ -64,7 +64,7 @@ sig
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
   val atp_lambda_translation : string Config.T
-  val atp_readable_names : bool Config.T
+  val atp_full_names : bool Config.T
   val atp_sound_modulo_infiniteness : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -359,8 +359,8 @@ val atp_lambda_translation =
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_readable_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
+val atp_full_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
 val atp_sound_modulo_infiniteness =
   Attrib.setup_config_bool @{binding sledgehammer_atp_sound_modulo_infiniteness}
                            (K true)
@@ -678,7 +678,7 @@ fun run_atp mode name
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
                       type_enc false (Config.get ctxt atp_lambda_translation)
-                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
+                      (not (Config.get ctxt atp_full_names)) true hyp_ts concl_t
                       facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
