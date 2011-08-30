@@ -74,6 +74,9 @@ sig
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
   val is_tptp_user_symbol : string -> bool
+  val atype_of_types : (string * string) ho_type
+  val bool_atype : (string * string) ho_type
+  val individual_atype : (string * string) ho_type
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
     connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula

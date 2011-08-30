@@ -311,7 +311,7 @@ fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
 fun make_schematic_type_var (x, i) =
-      tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
+  tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
 (* "HOL.eq" and Choice are mapped to the ATP's equivalents *)
@@ -372,9 +372,6 @@ datatype arity_literal =
   TConsLit of name * name * name list |
   TVarLit of name * name
 
-fun gen_TVars 0 = []
-  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1)
-
 val type_class = the_single @{sort type}
 
 fun add_packed_sort tvar =
@@ -388,13 +385,12 @@ type arity_clause =
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
   let
-    val tvars = gen_TVars (length args)
+    val tvars = map (prefix tvar_prefix o string_of_int) (1 upto length args)
     val tvars_srts = ListPair.zip (tvars, args)
   in
     {name = name,
      prem_lits = [] |> fold (uncurry add_packed_sort) tvars_srts |> map TVarLit,
-     concl_lits = TConsLit (`make_type_class cls,
-                            `make_fixed_type_const tcons,
+     concl_lits = TConsLit (`make_type_class cls, `make_fixed_type_const tcons,
                             tvars ~~ tvars)}
   end
 
@@ -774,10 +770,8 @@ fun term_vars type_enc =
         (if is_tptp_variable s andalso not (member (op =) bounds name) then
            (case type_enc of
               Simple_Types (_, Polymorphic, _) =>
-              if String.isPrefix tvar_prefix s then
-                SOME (AType (`I tptp_type_of_types, []))
-              else
-                NONE
+              if String.isPrefix tvar_prefix s then SOME atype_of_types
+              else NONE
             | _ => NONE)
            |> pair name |> insert (op =)
          else
@@ -823,8 +817,6 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
 
 fun mangled_type format type_enc =
   generic_mangled_type_name fst o ho_term_from_typ format type_enc
-
-val bool_atype = AType (`I tptp_bool_type, [])
 
 fun make_simple_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
@@ -1618,8 +1610,8 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
-    (fact_names |> map single,
-     (conjs, facts @ lambdas, class_rel_clauses, arity_clauses))
+    (fact_names |> map single, union (op =) subs supers, conjs, facts @ lambdas,
+     class_rel_clauses, arity_clauses)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -1746,7 +1738,7 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
 
 fun formula_line_for_class_rel_clause type_enc
         ({name, subclass, superclass, ...} : class_rel_clause) =
-  let val ty_arg = ATerm (`I "T", []) in
+  let val ty_arg = ATerm ((make_schematic_type_var ("'a", 0), "'a"), []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
@@ -1790,6 +1782,16 @@ fun formula_lines_for_free_types type_enc facts =
   in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
 (** Symbol declarations **)
+
+fun decl_line_for_class s =
+  let val name as (s, _) = `make_type_class s in
+    Decl (sym_decl_prefix ^ s, name, AFun (atype_of_types, bool_atype))
+  end
+
+fun decl_lines_for_classes type_enc classes =
+  case type_enc of
+    Simple_Types (_, Polymorphic, _) => map decl_line_for_class classes
+  | _ => []
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
                              (conjs, facts) =
@@ -2170,7 +2172,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       else
         error ("Unknown lambda translation method: " ^
                quote lambda_trans ^ ".")
-    val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
+    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
@@ -2185,6 +2187,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val mono_Ts =
       helpers @ conjs @ facts
       |> monotonic_types_for_facts ctxt mono type_enc
+    val class_decl_lines = decl_lines_for_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
@@ -2201,11 +2204,10 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        FLOTTER hack. *)
     val problem =
-      [(explicit_declsN, sym_decl_lines),
+      [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (factsN,
         map (formula_line_for_fact ctxt format fact_prefix ascii_of
-                                   (not exporter) (not exporter) mono
-                                   type_enc)
+                                   (not exporter) (not exporter) mono type_enc)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN,
         map (formula_line_for_class_rel_clause type_enc) class_rel_clauses),
