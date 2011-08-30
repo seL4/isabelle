@@ -152,20 +152,7 @@ val select_smt_solver = Context.proof_map o SMT_Config.select_solver
 fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
-fun is_ho_atp ctxt name =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in case try (get_atp thy) name of
-      SOME {best_slices, ...} =>
-        exists (fn cfg => case cfg of
-                   (_, (_, (_, THF _, _, _))) => true
-                 | _ => false
-               )
-               (best_slices ctxt)
-    | NONE => false
-  end
-
-fun is_unit_equational_atp ctxt name =
+fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME {best_slices, ...} =>
@@ -173,6 +160,9 @@ fun is_unit_equational_atp ctxt name =
              (best_slices ctxt)
     | NONE => false
   end
+
+val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
+val is_ho_atp = is_atp_for_format is_format_thf
 
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
