@@ -10,23 +10,20 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.System
-import java.io.{File, FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JOptionPane
-import javax.swing.text.Segment
 
 import scala.collection.mutable
 import scala.swing.ComboBox
 import scala.util.Sorting
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
-  Buffer, EditPane, MiscUtilities, ServiceManager, View}
+  Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
-import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
@@ -347,52 +344,9 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* theory files via editor document model */
+  /* theory files */
 
-  val thy_load = new Thy_Load
-  {
-    private var loaded_theories: Set[String] = Set()
-
-    def register_thy(thy_name: String)
-    {
-      synchronized { loaded_theories += thy_name }
-    }
-    def is_loaded(thy_name: String): Boolean =
-      synchronized { loaded_theories.contains(thy_name) }
-
-    def append(master_dir: String, source_path: Path): String =
-    {
-      val path = source_path.expand
-      if (path.is_absolute) Isabelle_System.platform_path(path)
-      else {
-        val vfs = VFSManager.getVFSForPath(master_dir)
-        if (vfs.isInstanceOf[FileVFS])
-          MiscUtilities.resolveSymlinks(
-            vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
-        else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
-      }
-    }
-
-    def check_thy(node_name: String): Thy_Header =
-    {
-      Swing_Thread.now {
-        Isabelle.jedit_buffers().find(buffer => Isabelle.buffer_name(buffer) == node_name) match {
-          case Some(buffer) =>
-            Isabelle.buffer_lock(buffer) {
-              val text = new Segment
-              buffer.getText(0, buffer.getLength, text)
-              Some(Thy_Header.read(text))
-            }
-          case None => None
-        }
-      } getOrElse {
-        val file = new File(node_name)  // FIXME load URL via jEdit VFS (!?)
-        if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-        Thy_Header.read(file)
-      }
-    }
-  }
-
+  val thy_load = new JEdit_Thy_Load
   val thy_info = new Thy_Info(thy_load)
 
   private lazy val delay_load =

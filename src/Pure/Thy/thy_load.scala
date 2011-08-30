@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/thy_load.scala
     Author:     Makarius
 
-Loading files that contribute to a theory.
+Primitives for loading theory files.
 */
 
 package isabelle
