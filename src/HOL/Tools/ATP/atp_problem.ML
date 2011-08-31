@@ -479,14 +479,19 @@ fun add_declared_syms_in_problem_line (Decl (_, sym, _)) = insert (op =) sym
 fun declared_syms_in_problem problem =
   fold (fold add_declared_syms_in_problem_line o snd) problem []
 
+fun nary_type_constr_type n =
+  funpow n (curry AFun atype_of_types) atype_of_types
+
 fun undeclared_syms_in_problem declared problem =
   let
     fun do_sym name ty =
       if member (op =) declared name then I else AList.default (op =) (name, ty)
-    fun do_type_name name = do_sym name (K atype_of_types)
-    fun do_type (AType (name, tys)) = do_type_name name #> fold do_type tys
+    fun do_type (AType (name as (s, _), tys)) =
+        is_tptp_user_symbol s
+        ? do_sym name (fn _ => nary_type_constr_type (length tys))
+        #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
-      | do_type (ATyAbs (names, ty)) = fold do_type_name names #> do_type ty
+      | do_type (ATyAbs (_, ty)) = do_type ty
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
         is_tptp_user_symbol s
         ? do_sym name (fn _ => default_type pred_sym (length tms))
