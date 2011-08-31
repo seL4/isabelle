@@ -296,44 +296,45 @@ next
     apply (simp add: setL2_mono dist_triangle2)
     done
 next
-  (* FIXME: long proof! *)
   fix S :: "('a ^ 'b) set"
   show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-    unfolding open_vec_def open_dist
-    apply safe
-     apply (drule (1) bspec)
-     apply clarify
-     apply (subgoal_tac "\<exists>e>0. \<forall>i y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
-      apply clarify
-      apply (rule_tac x=e in exI, clarify)
-      apply (drule spec, erule mp, clarify)
-      apply (drule spec, drule spec, erule mp)
-      apply (erule le_less_trans [OF dist_vec_nth_le])
-     apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>e>0. \<forall>y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
-      apply (drule finite_choice [OF finite], clarify)
-      apply (rule_tac x="Min (range f)" in exI, simp)
-     apply clarify
-     apply (drule_tac x=i in spec, clarify)
-     apply (erule (1) bspec)
-    apply (drule (1) bspec, clarify)
-    apply (subgoal_tac "\<exists>r. (\<forall>i::'b. 0 < r i) \<and> e = setL2 r UNIV")
-     apply clarify
-     apply (rule_tac x="\<lambda>i. {y. dist y (x$i) < r i}" in exI)
-     apply (rule conjI)
-      apply clarify
-      apply (rule conjI)
-       apply (clarify, rename_tac y)
-       apply (rule_tac x="r i - dist y (x$i)" in exI, rule conjI, simp)
-       apply clarify
-       apply (simp only: less_diff_eq)
-       apply (erule le_less_trans [OF dist_triangle])
-      apply simp
-     apply clarify
-     apply (drule spec, erule mp)
-     apply (simp add: dist_vec_def setL2_strict_mono)
-    apply (rule_tac x="\<lambda>i. e / sqrt (of_nat CARD('b))" in exI)
-    apply (simp add: divide_pos_pos setL2_constant)
-    done
+  proof
+    assume "open S" show "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
+    proof
+      fix x assume "x \<in> S"
+      obtain A where A: "\<forall>i. open (A i)" "\<forall>i. x $ i \<in> A i"
+        and S: "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
+        using `open S` and `x \<in> S` unfolding open_vec_def by metis
+      have "\<forall>i\<in>UNIV. \<exists>r>0. \<forall>y. dist y (x $ i) < r \<longrightarrow> y \<in> A i"
+        using A unfolding open_dist by simp
+      hence "\<exists>r. \<forall>i\<in>UNIV. 0 < r i \<and> (\<forall>y. dist y (x $ i) < r i \<longrightarrow> y \<in> A i)"
+        by (rule finite_choice [OF finite])
+      then obtain r where r1: "\<forall>i. 0 < r i"
+        and r2: "\<forall>i y. dist y (x $ i) < r i \<longrightarrow> y \<in> A i" by fast
+      have "0 < Min (range r) \<and> (\<forall>y. dist y x < Min (range r) \<longrightarrow> y \<in> S)"
+        by (simp add: r1 r2 S le_less_trans [OF dist_vec_nth_le])
+      thus "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" ..
+    qed
+  next
+    assume *: "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" show "open S"
+    proof (unfold open_vec_def, rule)
+      fix x assume "x \<in> S"
+      then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
+        using * by fast
+      def r \<equiv> "\<lambda>i::'b. e / sqrt (of_nat CARD('b))"
+      from `0 < e` have r: "\<forall>i. 0 < r i"
+        unfolding r_def by (simp_all add: divide_pos_pos)
+      from `0 < e` have e: "e = setL2 r UNIV"
+        unfolding r_def by (simp add: setL2_constant)
+      def A \<equiv> "\<lambda>i. {y. dist (x $ i) y < r i}"
+      have "\<forall>i. open (A i) \<and> x $ i \<in> A i"
+        unfolding A_def by (simp add: open_ball r)
+      moreover have "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
+        by (simp add: A_def S dist_vec_def e setL2_strict_mono dist_commute)
+      ultimately show "\<exists>A. (\<forall>i. open (A i) \<and> x $ i \<in> A i) \<and>
+        (\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S)" by metis
+    qed
+  qed
 qed
 
 end
