@@ -2534,8 +2534,6 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
   unfolding infnorm_set_image  ball_simps
   by (metis component_le_norm)
 
-lemma card_enum: "card {1 .. n} = n" by auto
-
 lemma norm_le_infnorm: "norm(x) <= sqrt(real DIM('a)) * infnorm(x::'a::euclidean_space)"
 proof-
   let ?d = "DIM('a)"

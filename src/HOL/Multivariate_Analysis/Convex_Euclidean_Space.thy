@@ -524,7 +524,7 @@ proof-
   show ?thesis apply(simp add: affine_hull_finite affine_hull_finite_step)
     unfolding * apply auto
     apply(rule_tac x=v in exI) apply(rule_tac x=va in exI) apply auto
-    apply(rule_tac x=u in exI) by(auto intro!: exI)
+    apply(rule_tac x=u in exI) by force
 qed
 
 lemma mem_affine:
@@ -3028,7 +3028,7 @@ proof- let ?k = "\<lambda>c. {x::'a. 0 \<le> inner c x}"
     hence "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> inner y x)" apply(rule_tac x="inverse(norm a) *\<^sub>R a" in exI)
        using hull_subset[of c convex] unfolding subset_eq and inner_scaleR
        apply- apply rule defer apply rule apply(rule mult_nonneg_nonneg)
-       by(auto simp add: inner_commute elim!: ballE)
+       by(auto simp add: inner_commute del: ballE elim!: ballE)
     thus "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}" unfolding c(1) frontier_cball dist_norm by auto
   qed(insert closed_halfspace_ge, auto)
   then obtain x where "norm x = 1" "\<forall>y\<in>s. x\<in>?k y" unfolding frontier_cball dist_norm by auto
@@ -3062,7 +3062,7 @@ lemma convex_closure:
   apply(rule,rule,rule,rule,rule,rule,rule,rule,rule) apply(erule_tac exE)+
   apply(rule_tac x="\<lambda>n. u *\<^sub>R xb n + v *\<^sub>R xc n" in exI) apply(rule,rule)
   apply(rule assms[unfolded convex_def, rule_format]) prefer 6
-  by (auto intro!: tendsto_intros)
+  by (auto del: tendsto_const intro!: tendsto_intros)
 
 lemma convex_interior:
   fixes s :: "'a::real_normed_vector set"
@@ -4156,7 +4156,7 @@ next fix x::"'a" assume as:"\<forall>i<DIM('a). 0 < x $$ i" "setsum (op $$ x) {.
         using component_le_norm[of "y - x" i]
         using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2] by(auto simp add: norm_minus_commute)
       thus "y $$ i \<le> x $$ i + ?d" by auto qed
-    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat by(auto simp add: Suc_le_eq)
+    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant real_eq_of_nat by(auto simp add: Suc_le_eq)
     finally show "(\<forall>i<DIM('a). 0 \<le> y $$ i) \<and> setsum (op $$ y) {..<DIM('a)} \<le> 1" 
     proof safe fix i assume i:"i<DIM('a)"
       have "norm (x - y) < x$$i" apply(rule less_le_trans) 
@@ -4176,7 +4176,7 @@ lemma interior_std_simplex_nonempty: obtains a::"'a::euclidean_space" where
   show ?thesis apply(rule that[of ?a]) unfolding interior_std_simplex mem_Collect_eq proof safe
     fix i assume i:"i<DIM('a)" show "0 < ?a $$ i" unfolding **[OF i] by(auto simp add: Suc_le_eq)
   next have "setsum (op $$ ?a) ?D = setsum (\<lambda>i. inverse (2 * real DIM('a))) ?D" apply(rule setsum_cong2, rule **) by auto
-    also have "\<dots> < 1" unfolding setsum_constant card_enum real_eq_of_nat divide_inverse[THEN sym] by (auto simp add:field_simps)
+    also have "\<dots> < 1" unfolding setsum_constant real_eq_of_nat divide_inverse[THEN sym] by (auto simp add:field_simps)
     finally show "setsum (op $$ ?a) ?D < 1" by auto qed qed
 
 lemma rel_interior_substd_simplex: assumes "d\<subseteq>{..<DIM('a::euclidean_space)}"
@@ -4251,7 +4251,7 @@ moreover
         using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2]
         by(auto simp add: norm_minus_commute)
       thus "y $$ i \<le> x $$ i + ?d" by auto qed
-    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat
+    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant real_eq_of_nat
       using `0 < card d` by auto
     finally show "setsum (op $$ y) d \<le> 1" .
      
@@ -4294,7 +4294,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
     finally show "0 < ?a $$ i" by auto
   next have "setsum (op $$ ?a) ?D = setsum (\<lambda>i. inverse (2 * real (card d))) ?D" 
       by(rule setsum_cong2, rule **) 
-    also have "\<dots> < 1" unfolding setsum_constant card_enum real_eq_of_nat real_divide_def[THEN sym]
+    also have "\<dots> < 1" unfolding setsum_constant real_eq_of_nat real_divide_def[THEN sym]
       by (auto simp add:field_simps)
     finally show "setsum (op $$ ?a) ?D < 1" by auto
   next fix i assume "i<DIM('a)" and "i~:d"
