@@ -14,7 +14,7 @@ import java.awt.Font
 import javax.swing.JOptionPane
 
 import scala.collection.mutable
-import scala.swing.ComboBox
+import scala.swing.{ComboBox, ListView, ScrollPane}
 import scala.util.Sorting
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
@@ -367,20 +367,23 @@ class Plugin extends EBPlugin
           yield (model.master_dir, model.thy_name)
       val files = thy_info.dependencies(thys).map(_._1).filterNot(loaded_buffer _)
 
-      val do_load = !files.isEmpty &&
-        {
-          val files_sorted = { val a = files.toArray; Sorting.quickSort(a); a.toList }
-          val files_text = new scala.swing.TextArea(files_sorted.mkString("\n"))
-          files_text.editable = false
+      if (!files.isEmpty) {
+        val files_sorted = { val a = files.toArray; Sorting.quickSort(a); a.toList }
+        val files_list = new ListView(files_sorted)
+        for (i <- 0 until files_sorted.length)
+          files_list.selection.indices += i
+
+        val answer =
           Library.confirm_dialog(jEdit.getActiveView(),
             "Auto loading of required files",
             JOptionPane.YES_NO_OPTION,
-            "The following files are required to resolve theory imports.  Reload now?",
-            files_text) == 0
-        }
-      if (do_load)
-        for (file <- files if !loaded_buffer(file))
-          jEdit.openFile(null: View, file)
+            "The following files are required to resolve theory imports.",
+            "Reload selected files now?",
+            new ScrollPane(files_list))
+        if (answer == 0)
+          files_list.selection.items foreach (file =>
+            if (!loaded_buffer(file)) jEdit.openFile(null: View, file))
+      }
     }
 
 
