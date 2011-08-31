@@ -73,15 +73,28 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* component state -- owned by Swing thread */
 
-  private var nodes: Set[String] = Set.empty
+  private var nodes_status: Map[String, String] = Map.empty
 
   private def handle_changed(changed_nodes: Set[String])
   {
     Swing_Thread.now {
-      val nodes1 = nodes ++ changed_nodes
-      if (nodes1 != nodes) {
-        nodes = nodes1
-        status.listData = Library.sort_strings(nodes.toList)
+      // FIXME correlation to changed_nodes!?
+      val state = Isabelle.session.current_state()
+      state.recent_stable.map(change => change.version.get_finished) match {
+        case None =>
+        case Some(version) =>
+          var nodes_status1 = nodes_status
+          for {
+            name <- changed_nodes
+            node <- version.nodes.get(name)
+            val status = Isar_Document.node_status(state, version, node)
+          } nodes_status1 += (name -> status.toString)
+
+          if (nodes_status != nodes_status1) {
+            nodes_status = nodes_status1
+            val order = Library.sort_strings(nodes_status.keySet.toList)
+            status.listData = order.map(name => name + " " + nodes_status(name))
+          }
       }
     }
   }

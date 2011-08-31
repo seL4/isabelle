@@ -359,6 +359,16 @@ object Document
       (change, copy(history = history + change))
     }
 
+    def command_state(version: Version, command: Command): Command.State =
+    {
+      require(is_assigned(version))
+      try {
+        the_exec(the_assignment(version).check_finished.command_execs
+          .getOrElse(command.id, fail))
+      }
+      catch { case _: State.Fail => command.empty_state }
+    }
+
 
     // persistent user-view
     def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
@@ -378,13 +388,7 @@ object Document
         val version = stable.version.get_finished
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
-
-        def command_state(command: Command): Command.State =
-          try {
-            the_exec(the_assignment(version).check_finished.command_execs
-              .getOrElse(command.id, fail))
-          }
-          catch { case _: State.Fail => command.empty_state }
+        def command_state(command: Command): Command.State = state.command_state(version, command)
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))

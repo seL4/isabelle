@@ -33,8 +33,8 @@ object Isar_Document
   /* toplevel transactions */
 
   sealed abstract class Status
-  case class Forked(forks: Int) extends Status
   case object Unprocessed extends Status
+  case class Forked(forks: Int) extends Status
   case object Finished extends Status
   case object Failed extends Status
 
@@ -49,6 +49,25 @@ object Isar_Document
     else if (markup.exists(_.name == Markup.FAILED)) Failed
     else if (markup.exists(_.name == Markup.FINISHED)) Finished
     else Unprocessed
+  }
+
+  sealed case class Node_Status(unprocessed: Int, running: Int, finished: Int, failed: Int)
+
+  def node_status(
+    state: Document.State, version: Document.Version, node: Document.Node): Node_Status =
+  {
+    var unprocessed = 0
+    var running = 0
+    var finished = 0
+    var failed = 0
+    node.commands.foreach(command =>
+      command_status(state.command_state(version, command).status) match {
+        case Unprocessed => unprocessed += 1
+        case Forked(_) => running += 1
+        case Finished => finished += 1
+        case Failed => failed += 1
+      })
+    Node_Status(unprocessed, running, finished, failed)
   }
 
 
