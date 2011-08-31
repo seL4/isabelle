@@ -7,18 +7,8 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith L2_Norm
+imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith
 begin
-
-(* to be moved elsewhere *)
-
-lemma euclidean_dist_l2:"dist x (y::'a::euclidean_space) = setL2 (\<lambda>i. dist(x$$i) (y$$i)) {..<DIM('a)}"
-  unfolding dist_norm norm_eq_sqrt_inner setL2_def apply(subst euclidean_inner)
-  by(auto simp add:power2_eq_square)
-
-lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)"
-  apply(subst(2) euclidean_dist_l2) apply(cases "i<DIM('a)")
-  apply(rule member_le_setL2) by auto
 
 subsection {* General notion of a topology as a value *}
 

@@ -7,7 +7,7 @@ header {* Finite-Dimensional Inner Product Spaces *}
 
 theory Euclidean_Space
 imports
-  Complex_Main
+  L2_Norm
   "~~/src/HOL/Library/Inner_Product"
   "~~/src/HOL/Library/Product_Vector"
 begin
@@ -216,9 +216,19 @@ lemma euclidean_inner:
     simp add: inner_setsum_left inner_setsum_right
     dot_basis if_distrib setsum_cases mult_commute)
 
+lemma euclidean_dist_l2:
+  fixes x y :: "'a::euclidean_space"
+  shows "dist x y = setL2 (\<lambda>i. dist (x $$ i) (y $$ i)) {..<DIM('a)}"
+  unfolding dist_norm norm_eq_sqrt_inner setL2_def
+  by (simp add: euclidean_inner power2_eq_square)
+
 lemma component_le_norm: "\<bar>x$$i\<bar> \<le> norm (x::'a::euclidean_space)"
   unfolding euclidean_component_def
   by (rule order_trans [OF Cauchy_Schwarz_ineq2]) simp
+
+lemma dist_nth_le: "dist (x $$ i) (y $$ i) \<le> dist x (y::'a::euclidean_space)"
+  unfolding euclidean_dist_l2 [where 'a='a]
+  by (cases "i < DIM('a)", rule member_le_setL2, auto)
 
 subsection {* Subclass relationships *}
 
