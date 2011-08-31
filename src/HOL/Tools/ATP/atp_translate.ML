@@ -365,12 +365,6 @@ fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 
-(* The first component is the type class; the second is a "TVar" or "TFree". *)
-datatype type_literal =
-  TyLitVar of name * name |
-  TyLitFree of name * name
-
-
 (** Isabelle arities **)
 
 datatype arity_literal =
@@ -732,10 +726,10 @@ fun generic_add_sorts_on_type (_, []) = I
     #> (if s = the_single @{sort HOL.type} then
           I
         else if i = ~1 then
-          insert (op =) (TyLitFree (`make_type_class s, `make_fixed_type_var x))
+          insert (op =) (`make_type_class s, `make_fixed_type_var x)
         else
-          insert (op =) (TyLitVar (`make_type_class s,
-                                   (make_schematic_type_var (x, i), x))))
+          insert (op =) (`make_type_class s,
+                         (make_schematic_type_var (x, i), x)))
 fun add_sorts_on_tfree (TFree (s, S)) = generic_add_sorts_on_type ((s, ~1), S)
   | add_sorts_on_tfree _ = I
 fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
@@ -1470,12 +1464,8 @@ fun type_class_aterm type_enc class arg =
     else ATerm (class, [arg, ATerm (TYPE_name, [arg])])
   | _ => ATerm (class, [arg])
 
-fun fo_literal_from_type_literal type_enc (TyLitVar (class, name)) =
-    (true, type_class_aterm type_enc class (ATerm (name, [])))
-  | fo_literal_from_type_literal type_enc (TyLitFree (class, name)) =
-    (true, type_class_aterm type_enc class (ATerm (name, [])))
-(* FIXME: Really "true" in both cases? If so, merge "TyLitVar" and
-   "TyLitFree". *)
+fun fo_literal_from_type_literal type_enc (class, name) =
+  (true, type_class_aterm type_enc class (ATerm (name, [])))
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
