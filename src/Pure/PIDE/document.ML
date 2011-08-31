@@ -345,11 +345,13 @@ fun run_command tr st =
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
     val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
+    val _ = Toplevel.status tr Markup.forked;
     val start = Timing.start ();
     val (errs, result) =
       if Toplevel.is_toplevel st andalso not is_init then ([], SOME st)
       else run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
     val _ = timing tr (Timing.result start);
+    val _ = Toplevel.status tr Markup.joined;
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
