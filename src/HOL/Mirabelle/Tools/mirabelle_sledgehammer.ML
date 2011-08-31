@@ -416,12 +416,12 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
       let
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
-        val is_ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
+        val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
         val facts =
-          Sledgehammer_Filter.nearly_all_facts ctxt is_ho_atp
-                          relevance_override chained_ths hyp_ts concl_t
+          Sledgehammer_Filter.nearly_all_facts ctxt ho_atp relevance_override
+            chained_ths hyp_ts concl_t
           |> filter (is_appropriate_prop o prop_of o snd)
-          |> Sledgehammer_Filter.relevant_facts ctxt is_ho_atp relevance_thresholds
+          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
                  (the_default default_max_relevant max_relevant)
                  is_built_in_const relevance_fudge relevance_override
                  chained_ths hyp_ts concl_t

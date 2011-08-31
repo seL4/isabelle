@@ -52,7 +52,7 @@ sig
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * locality) * thm) list
   val relevant_facts :
-    Proof.context -> bool -> real * real -> int
+    Proof.context -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
     -> relevance_override -> thm list -> term list -> term
     -> (((unit -> string) * locality) * thm) list
@@ -586,7 +586,7 @@ fun could_benefit_from_ext is_built_in_const facts =
    facts are included. *)
 val special_fact_index = 75
 
-fun relevance_filter ctxt ho_atp threshold0 decay max_relevant is_built_in_const
+fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts chained_ts hyp_ts concl_t =
   let
@@ -938,9 +938,9 @@ fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
     |> uniquify
   end
 
-fun relevant_facts ctxt ho_atp (threshold0, threshold1) max_relevant
-                   is_built_in_const fudge (override as {only, ...}) chained_ths
-                   hyp_ts concl_t facts =
+fun relevant_facts ctxt (threshold0, threshold1) max_relevant is_built_in_const
+                   fudge (override as {only, ...}) chained_ths hyp_ts concl_t
+                   facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
@@ -954,9 +954,9 @@ fun relevant_facts ctxt ho_atp (threshold0, threshold1) max_relevant
              max_relevant = 0 then
        []
      else
-       relevance_filter ctxt ho_atp threshold0 decay max_relevant
-           is_built_in_const fudge override facts (chained_ths |> map prop_of)
-           hyp_ts (concl_t |> theory_constify fudge (Context.theory_name thy)))
+       relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
+           fudge override facts (chained_ths |> map prop_of) hyp_ts
+           (concl_t |> theory_constify fudge (Context.theory_name thy)))
     |> map (apfst (apfst (fn f => f ())))
   end
 

@@ -367,17 +367,17 @@ fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 (** Isabelle arities **)
 
-type arity_literal = name * name * name list
+type arity_atom = name * name * name list
 
 val type_class = the_single @{sort type}
 
-fun add_packed_sort tvar =
-  fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar, []))
-
 type arity_clause =
   {name : string,
-   prem_lits : arity_literal list,
-   concl_lit : arity_literal}
+   prem_atoms : arity_atom list,
+   concl_atom : arity_atom}
+
+fun add_prem_atom tvar =
+  fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar, []))
 
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
@@ -386,9 +386,9 @@ fun make_axiom_arity_clause (tcons, name, (cls, args)) =
     val tvars_srts = ListPair.zip (tvars, args)
   in
     {name = name,
-     prem_lits = [] |> fold (uncurry add_packed_sort) tvars_srts,
-     concl_lit = (`make_type_class cls, `make_fixed_type_const tcons,
-                  tvars ~~ tvars)}
+     prem_atoms = [] |> fold (uncurry add_prem_atom) tvars_srts,
+     concl_atom = (`make_type_class cls, `make_fixed_type_const tcons,
+                   tvars ~~ tvars)}
   end
 
 fun arity_clause _ _ (_, []) = []
@@ -715,7 +715,7 @@ fun type_arg_policy type_enc s =
               Explicit_Type_Args)
     end
 
-(* Make literals for sorted type variables. *)
+(* Make atoms for sorted type variables. *)
 fun generic_add_sorts_on_type (_, []) = I
   | generic_add_sorts_on_type ((x, i), s :: ss) =
     generic_add_sorts_on_type ((x, i), ss)
@@ -731,8 +731,24 @@ fun add_sorts_on_tfree (TFree (s, S)) = generic_add_sorts_on_type ((s, ~1), S)
 fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
   | add_sorts_on_tvar _ = I
 
-fun type_literals_for_types type_enc add_sorts_on_typ Ts =
+val tvar_a_str = "'a"
+val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
+val itself_name = `make_fixed_type_const @{type_name itself}
+val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
+val tvar_a_atype = AType (tvar_a_name, [])
+val a_itself_atype = AType (itself_name, [tvar_a_atype])
+
+fun type_class_formula type_enc class arg =
+  AAtom (ATerm (class, arg ::
+      (case type_enc of
+         Simple_Types (_, Polymorphic, _) =>
+         if exploit_tff1_dummy_type_vars then [] else [ATerm (TYPE_name, [arg])]
+       | _ => [])))
+fun formulas_for_types type_enc add_sorts_on_typ Ts =
   [] |> level_of_type_enc type_enc <> No_Types ? fold add_sorts_on_typ Ts
+     |> map (fn (class, name) =>
+                type_class_formula type_enc class (ATerm (name, [])))
 
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -1273,14 +1289,6 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   K (add_iterm_syms_to_table ctxt explicit_apply)
   |> formula_fold NONE |> fact_lift
 
-val tvar_a_str = "'a"
-val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
-val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
-val itself_name = `make_fixed_type_const @{type_name itself}
-val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
-val tvar_a_atype = AType (tvar_a_name, [])
-val a_itself_atype = AType (itself_name, [tvar_a_atype])
-
 val default_sym_tab_entries : (string * sym_info) list =
   (prefixed_predicator_name,
    {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
@@ -1453,22 +1461,8 @@ val helper_table =
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
-fun type_class_aterm type_enc class arg =
-  case type_enc of
-    Simple_Types (_, Polymorphic, _) =>
-    if exploit_tff1_dummy_type_vars then ATerm (class, [arg])
-    else ATerm (class, [arg, ATerm (TYPE_name, [arg])])
-  | _ => ATerm (class, [arg])
-
-fun fo_literal_from_type_literal type_enc (class, name) =
-  (true, type_class_aterm type_enc class (ATerm (name, [])))
-
-fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
-
-fun bound_tvars type_enc Ts =
-  mk_ahorn (map (formula_from_fo_literal
-                 o fo_literal_from_type_literal type_enc)
-                (type_literals_for_types type_enc add_sorts_on_tvar Ts))
+fun bound_tvars type_enc =
+  mk_ahorn o formulas_for_types type_enc add_sorts_on_tvar
 
 fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
@@ -1750,22 +1744,20 @@ fun formula_line_for_class_rel_clause type_enc
   let val ty_arg = ATerm (tvar_a_name, []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies,
-                    [AAtom (type_class_aterm type_enc subclass ty_arg),
-                     AAtom (type_class_aterm type_enc superclass ty_arg)])
+                    [type_class_formula type_enc subclass ty_arg,
+                     type_class_formula type_enc superclass ty_arg])
              |> close_formula_universally type_enc, isabelle_info introN, NONE)
   end
 
-fun fo_literal_from_arity_literal type_enc (class, t, args) =
-  (true, type_class_aterm type_enc class
-                          (ATerm (t, map (fn arg => ATerm (arg, [])) args)))
+fun formula_from_arity_atom type_enc (class, t, args) =
+  ATerm (t, map (fn arg => ATerm (arg, [])) args)
+  |> type_class_formula type_enc class
 
 fun formula_line_for_arity_clause type_enc
-        ({name, prem_lits, concl_lit, ...} : arity_clause) =
+        ({name, prem_atoms, concl_atom, ...} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
-           mk_ahorn (map (formula_from_fo_literal
-                          o fo_literal_from_arity_literal type_enc) prem_lits)
-                    (formula_from_fo_literal
-                         (fo_literal_from_arity_literal type_enc concl_lit))
+           mk_ahorn (map (formula_from_arity_atom type_enc) prem_atoms)
+                    (formula_from_arity_atom type_enc concl_atom)
            |> close_formula_universally type_enc, isabelle_info introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
@@ -1777,18 +1769,14 @@ fun formula_line_for_conjecture ctxt format mono type_enc
            |> bound_tvars type_enc atomic_types
            |> close_formula_universally type_enc, NONE, NONE)
 
-fun free_type_literals type_enc ({atomic_types, ...} : translated_formula) =
-  atomic_types |> type_literals_for_types type_enc add_sorts_on_tfree
-               |> map (fo_literal_from_type_literal type_enc)
-
-fun formula_line_for_free_type j lit =
-  Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
-           formula_from_fo_literal lit, NONE, NONE)
+fun formula_line_for_free_type j phi =
+  Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, NONE)
 fun formula_lines_for_free_types type_enc facts =
   let
-    val litss = map (free_type_literals type_enc) facts
-    val lits = fold (union (op =)) litss []
-  in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
+    val phis =
+      fold (union (op =)) (map #atomic_types facts) []
+      |> formulas_for_types type_enc add_sorts_on_tfree
+  in map2 formula_line_for_free_type (0 upto length phis - 1) phis end
 
 (** Symbol declarations **)
 
