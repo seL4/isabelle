@@ -367,19 +367,17 @@ fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 (** Isabelle arities **)
 
-datatype arity_literal =
-  AryLitConst of name * name * name list |
-  AryLitVar of name * name
+type arity_literal = name * name * name list
 
 val type_class = the_single @{sort type}
 
 fun add_packed_sort tvar =
-  fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar))
+  fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar, []))
 
 type arity_clause =
   {name : string,
    prem_lits : arity_literal list,
-   concl_lits : arity_literal}
+   concl_lit : arity_literal}
 
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
@@ -388,11 +386,9 @@ fun make_axiom_arity_clause (tcons, name, (cls, args)) =
     val tvars_srts = ListPair.zip (tvars, args)
   in
     {name = name,
-     prem_lits =
-       [] |> fold (uncurry add_packed_sort) tvars_srts |> map AryLitVar,
-     concl_lits =
-       AryLitConst (`make_type_class cls, `make_fixed_type_const tcons,
-                    tvars ~~ tvars)}
+     prem_lits = [] |> fold (uncurry add_packed_sort) tvars_srts,
+     concl_lit = (`make_type_class cls, `make_fixed_type_const tcons,
+                  tvars ~~ tvars)}
   end
 
 fun arity_clause _ _ (_, []) = []
@@ -1759,19 +1755,17 @@ fun formula_line_for_class_rel_clause type_enc
              |> close_formula_universally type_enc, isabelle_info introN, NONE)
   end
 
-fun fo_literal_from_arity_literal type_enc (AryLitConst (class, t, args)) =
-    (true, type_class_aterm type_enc class
-                            (ATerm (t, map (fn arg => ATerm (arg, [])) args)))
-  | fo_literal_from_arity_literal type_enc (AryLitVar (class, var)) =
-    (false, type_class_aterm type_enc class (ATerm (var, [])))
+fun fo_literal_from_arity_literal type_enc (class, t, args) =
+  (true, type_class_aterm type_enc class
+                          (ATerm (t, map (fn arg => ATerm (arg, [])) args)))
 
 fun formula_line_for_arity_clause type_enc
-        ({name, prem_lits, concl_lits, ...} : arity_clause) =
+        ({name, prem_lits, concl_lit, ...} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
-           mk_ahorn (map (formula_from_fo_literal o apfst not
+           mk_ahorn (map (formula_from_fo_literal
                           o fo_literal_from_arity_literal type_enc) prem_lits)
                     (formula_from_fo_literal
-                         (fo_literal_from_arity_literal type_enc concl_lits))
+                         (fo_literal_from_arity_literal type_enc concl_lit))
            |> close_formula_universally type_enc, isabelle_info introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
