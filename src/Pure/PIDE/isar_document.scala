@@ -135,6 +135,11 @@ trait Isar_Document extends Isabelle_Process
 
   /* document versions */
 
+  def cancel_execution()
+  {
+    input("Isar_Document.cancel_execution")
+  }
+
   def update_perspective(old_id: Document.Version_ID, new_id: Document.Version_ID,
     name: String, perspective: Command.Perspective)
   {

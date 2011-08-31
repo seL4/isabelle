@@ -213,6 +213,8 @@ class Session(thy_load: Thy_Load)
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
 
+      prover.get.cancel_execution()
+
       val text_edits = header_edit(name, master_dir, header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
       val change =

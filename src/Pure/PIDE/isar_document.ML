@@ -12,6 +12,10 @@ val _ =
     (fn [id, text] => Document.change_state (Document.define_command (Document.parse_id id) text));
 
 val _ =
+  Isabelle_Process.add_command "Isar_Document.cancel_execution"
+    (fn [] => ignore (Document.cancel_execution (Document.state ())));
+
+val _ =
   Isabelle_Process.add_command "Isar_Document.update_perspective"
     (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
       let
