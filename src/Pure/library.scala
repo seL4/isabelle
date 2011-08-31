@@ -14,6 +14,7 @@ import javax.swing.JOptionPane
 import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
 import scala.collection.mutable
+import scala.util.Sorting
 
 
 object Library
@@ -60,6 +61,13 @@ object Library
     }
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
+
+  def sort_strings(args: Seq[String]): List[String] =
+  {
+    val a = args.toArray
+    Sorting.quickSort(a)
+    a.toList
+  }
 
 
   /* iterate over chunks (cf. space_explode) */

@@ -15,7 +15,6 @@ import javax.swing.JOptionPane
 
 import scala.collection.mutable
 import scala.swing.{ComboBox, ListView, ScrollPane}
-import scala.util.Sorting
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
@@ -365,12 +364,11 @@ class Plugin extends EBPlugin
       val thys =
         for (buffer <- buffers; model <- Isabelle.document_model(buffer))
           yield (model.master_dir, model.thy_name)
-      val files = thy_info.dependencies(thys).map(_._1).filterNot(loaded_buffer _)
+      val files = thy_info.dependencies(thys).toList.map(_._1).filterNot(loaded_buffer _)
 
       if (!files.isEmpty) {
-        val files_sorted = { val a = files.toArray; Sorting.quickSort(a); a.toList }
-        val files_list = new ListView(files_sorted)
-        for (i <- 0 until files_sorted.length)
+        val files_list = new ListView(Library.sort_strings(files))
+        for (i <- 0 until files.length)
           files_list.selection.indices += i
 
         val answer =
