@@ -1771,7 +1771,7 @@ fun formula_line_for_conjecture ctxt format mono type_enc
 
 fun formula_line_for_free_type j phi =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, NONE)
-fun formula_lines_for_free_types type_enc facts =
+fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
   let
     val phis =
       fold (union (op =)) (map #atomic_types facts) []
