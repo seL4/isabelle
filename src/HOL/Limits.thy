@@ -916,21 +916,6 @@ proof -
   thus ?thesis by (rule BfunI)
 qed
 
-lemma tendsto_inverse_lemma:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>(f ---> a) F; a \<noteq> 0; eventually (\<lambda>x. f x \<noteq> 0) F\<rbrakk>
-         \<Longrightarrow> ((\<lambda>x. inverse (f x)) ---> inverse a) F"
-  apply (subst tendsto_Zfun_iff)
-  apply (rule Zfun_ssubst)
-  apply (erule eventually_elim1)
-  apply (erule (1) inverse_diff_inverse)
-  apply (rule Zfun_minus)
-  apply (rule Zfun_mult_left)
-  apply (rule bounded_bilinear.Bfun_prod_Zfun [OF bounded_bilinear_mult])
-  apply (erule (1) Bfun_inverse)
-  apply (simp add: tendsto_Zfun_iff)
-  done
-
 lemma tendsto_inverse [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"
   assumes f: "(f ---> a) F"
@@ -942,8 +927,15 @@ proof -
     by (rule tendstoD)
   then have "eventually (\<lambda>x. f x \<noteq> 0) F"
     unfolding dist_norm by (auto elim!: eventually_elim1)
-  with f a show ?thesis
-    by (rule tendsto_inverse_lemma)
+  with a have "eventually (\<lambda>x. inverse (f x) - inverse a =
+    - (inverse (f x) * (f x - a) * inverse a)) F"
+    by (auto elim!: eventually_elim1 simp: inverse_diff_inverse)
+  moreover have "Zfun (\<lambda>x. - (inverse (f x) * (f x - a) * inverse a)) F"
+    by (intro Zfun_minus Zfun_mult_left
+      bounded_bilinear.Bfun_prod_Zfun [OF bounded_bilinear_mult]
+      Bfun_inverse [OF f a] f [unfolded tendsto_Zfun_iff])
+  ultimately show ?thesis
+    unfolding tendsto_Zfun_iff by (rule Zfun_ssubst)
 qed
 
 lemma tendsto_divide [tendsto_intros]:
