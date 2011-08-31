@@ -74,10 +74,10 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                     (props, props) match {
                       case (Position.Id(def_id), Position.Offset(def_offset)) =>
                         snapshot.state.find_command(snapshot.version, def_id) match {
-                          case Some((def_name, def_node, def_cmd)) =>
+                          case Some((def_node, def_cmd)) =>
                             def_node.command_start(def_cmd) match {
                               case Some(def_cmd_start) =>
-                                new Internal_Hyperlink(def_name, begin, end, line,
+                                new Internal_Hyperlink(def_cmd.node_name, begin, end, line,
                                   def_cmd_start + def_cmd.decode(def_offset))
                               case None => null
                             }

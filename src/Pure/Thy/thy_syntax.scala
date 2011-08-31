@@ -27,7 +27,8 @@ object Thy_Syntax
       def length: Int = command.length
     }
 
-    def parse(syntax: Outer_Syntax, root_name: String, text: CharSequence): Entry =
+    def parse(syntax: Outer_Syntax, node_name: String, root_name: String, text: CharSequence)
+      : Entry =
     {
       /* stack operations */
 
@@ -67,7 +68,7 @@ object Thy_Syntax
       /* result structure */
 
       val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command.span(span)))
+      spans.foreach(span => add(Command.span(node_name, span)))
       result()
     }
   }
@@ -186,7 +187,8 @@ object Thy_Syntax
 
     /* phase 2: recover command spans */
 
-    @tailrec def recover_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
+    @tailrec def recover_spans(node_name: String, commands: Linear_Set[Command])
+      : Linear_Set[Command] =
     {
       commands.iterator.find(cmd => !cmd.is_defined) match {
         case Some(first_unparsed) =>
@@ -212,10 +214,10 @@ object Thy_Syntax
               (Some(last), spans1.take(spans1.length - 1))
             else (commands.next(last), spans1)
 
-          val inserted = spans2.map(span => new Command(Document.new_id(), span))
+          val inserted = spans2.map(span => new Command(Document.new_id(), node_name, span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
-          recover_spans(new_commands)
+          recover_spans(node_name, new_commands)
 
         case None => commands
       }
@@ -237,7 +239,7 @@ object Thy_Syntax
           val node = nodes(name)
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
-          val commands2 = recover_spans(commands1)   // FIXME somewhat slow
+          val commands2 = recover_spans(name, commands1)   // FIXME somewhat slow
 
           val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
           val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList

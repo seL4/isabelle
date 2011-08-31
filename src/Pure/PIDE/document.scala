@@ -271,13 +271,12 @@ object Document
 
     def defined_command(id: Command_ID): Boolean = commands.isDefinedAt(id)
 
-    def find_command(version: Version, id: ID): Option[(String, Node, Command)] =
+    def find_command(version: Version, id: ID): Option[(Node, Command)] =
       commands.get(id) orElse execs.get(id) match {
         case None => None
         case Some(st) =>
           val command = st.command
-          version.nodes.find({ case (_, node) => node.commands(command) })
-            .map({ case (name, node) => (name, node, command) })
+          version.nodes.get(command.node_name).map((_, command))
       }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
