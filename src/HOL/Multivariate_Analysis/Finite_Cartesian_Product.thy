@@ -206,6 +206,9 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
+lemma isCont_vec_nth [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x $ i) a"
+  unfolding isCont_def by (rule tendsto_vec_nth)
+
 lemma eventually_Ball_finite: (* TODO: move *)
   assumes "finite A" and "\<forall>y\<in>A. eventually (\<lambda>x. P x y) net"
   shows "eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
@@ -434,9 +437,6 @@ apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)
 done
-
-lemmas isCont_vec_nth [simp] =
-  bounded_linear.isCont [OF bounded_linear_vec_nth]
 
 instance vec :: (banach, finite) banach ..
 
