@@ -442,27 +442,29 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val main_actor = actor {
     loop {
       react {
-        case Session.Commands_Changed(changed) =>
+        case changed: Session.Commands_Changed =>
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
             val (updated, snapshot) = flush_snapshot()
             val visible = visible_range()
 
-            if (updated || changed.exists(snapshot.node.commands.contains))
+            if (updated ||
+                (changed.nodes.contains(model.node_name) &&
+                 changed.commands.exists(snapshot.node.commands.contains)))
               overview.repaint()
 
             if (updated) invalidate_range(visible)
             else {
               val visible_cmds =
                 snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
-              if (visible_cmds.exists(changed)) {
+              if (visible_cmds.exists(changed.commands)) {
                 for {
                   line <- 0 until text_area.getVisibleLines
                   val start = text_area.getScreenLineStartOffset(line) if start >= 0
                   val end = text_area.getScreenLineEndOffset(line) if end >= 0
                   val range = proper_line_range(start, end)
                   val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
-                  if line_cmds.exists(changed)
+                  if line_cmds.exists(changed.commands)
                 } text_area.invalidateScreenLineRange(line, line)
               }
             }

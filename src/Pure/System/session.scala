@@ -22,7 +22,7 @@ object Session
   case object Global_Settings
   case object Perspective
   case object Assignment
-  case class Commands_Changed(set: Set[Command])
+  case class Commands_Changed(nodes: Set[String], commands: Set[Command])
 
   sealed abstract class Phase
   case object Inactive extends Phase
@@ -63,7 +63,10 @@ class Session(thy_load: Thy_Load)
   private val (_, command_change_buffer) =
     Simple_Thread.actor("command_change_buffer", daemon = true)
   {
-    var changed: Set[Command] = Set()
+    var changed_nodes: Set[String] = Set.empty
+    var changed_commands: Set[Command] = Set.empty
+    def changed: Boolean = !changed_nodes.isEmpty || !changed_commands.isEmpty
+
     var flush_time: Option[Long] = None
 
     def flush_timeout: Long =
@@ -74,8 +77,10 @@ class Session(thy_load: Thy_Load)
 
     def flush()
     {
-      if (!changed.isEmpty) commands_changed.event(Session.Commands_Changed(changed))
-      changed = Set()
+      if (changed)
+        commands_changed.event(Session.Commands_Changed(changed_nodes, changed_commands))
+      changed_nodes = Set.empty
+      changed_commands = Set.empty
       flush_time = None
     }
 
@@ -91,7 +96,10 @@ class Session(thy_load: Thy_Load)
     var finished = false
     while (!finished) {
       receiveWithin(flush_timeout) {
-        case command: Command => changed += command; invoke()
+        case command: Command =>
+          changed_nodes += command.node_name
+          changed_commands += command
+          invoke()
         case TIMEOUT => flush()
         case Stop => finished = true; reply(())
         case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)

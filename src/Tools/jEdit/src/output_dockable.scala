@@ -105,7 +105,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     loop {
       react {
         case Session.Global_Settings => handle_resize()
-        case Session.Commands_Changed(changed) => handle_update(Some(changed))
+        case changed: Session.Commands_Changed => handle_update(Some(changed.commands))
         case Session.Perspective => if (follow_caret && handle_perspective()) handle_update()
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
