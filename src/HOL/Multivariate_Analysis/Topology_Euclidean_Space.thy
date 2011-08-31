@@ -2242,6 +2242,8 @@ proof
     unfolding convergent_def by auto
 qed
 
+instance euclidean_space \<subseteq> banach ..
+
 lemma complete_univ: "complete (UNIV :: 'a::complete_space set)"
 proof(simp add: complete_def, rule, rule)
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
@@ -2276,21 +2278,13 @@ qed
 
 lemma convergent_eq_cauchy:
   fixes s :: "nat \<Rightarrow> 'a::complete_space"
-  shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
-proof
-  assume ?lhs then obtain l where "(s ---> l) sequentially" by auto
-  thus ?rhs using convergent_imp_cauchy by auto
-next
-  assume ?rhs thus ?lhs using complete_univ[unfolded complete_def, THEN spec[where x=s]] by auto
-qed
+  shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s"
+  unfolding Cauchy_convergent_iff convergent_def ..
 
 lemma convergent_imp_bounded:
   fixes s :: "nat \<Rightarrow> 'a::metric_space"
-  shows "(s ---> l) sequentially ==> bounded (s ` (UNIV::(nat set)))"
-  using convergent_imp_cauchy[of s]
-  using cauchy_imp_bounded[of s]
-  unfolding image_def
-  by auto
+  shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
+  by (intro cauchy_imp_bounded convergent_imp_cauchy)
 
 subsubsection{* Total boundedness *}
 
@@ -2943,7 +2937,7 @@ lemma decreasing_closed_nest:
           "\<forall>n. (s n \<noteq> {})"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y \<in> (s n). dist x y < e"
-  shows "\<exists>a::'a::heine_borel. \<forall>n::nat. a \<in> s n"
+  shows "\<exists>a::'a::complete_space. \<forall>n::nat. a \<in> s n"
 proof-
   have "\<forall>n. \<exists> x. x\<in>s n" using assms(2) by auto
   hence "\<exists>t. \<forall>n. t n \<in> s n" using choice[of "\<lambda> n x. x \<in> s n"] by auto
@@ -2972,7 +2966,7 @@ qed
 text {* Strengthen it to the intersection actually being a singleton. *}
 
 lemma decreasing_closed_nest_sing:
-  fixes s :: "nat \<Rightarrow> 'a::heine_borel set"
+  fixes s :: "nat \<Rightarrow> 'a::complete_space set"
   assumes "\<forall>n. closed(s n)"
           "\<forall>n. s n \<noteq> {}"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
@@ -5863,10 +5857,6 @@ next
       using `g a = a` and `a\<in>s` by auto  }
   ultimately show "\<exists>!x\<in>s. g x = x" using `a\<in>s` by blast
 qed
-
-
-(** TODO move this someplace else within this theory **)
-instance euclidean_space \<subseteq> banach ..
 
 declare tendsto_const [intro] (* FIXME: move *)
 
