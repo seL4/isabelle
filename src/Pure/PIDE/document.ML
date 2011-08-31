@@ -25,7 +25,7 @@ sig
   type state
   val init_state: state
   val define_command: command_id -> string -> state -> state
-  val join_commands: state -> unit
+  val join_commands: state -> state
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
@@ -230,7 +230,9 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
+  commands:
+    Toplevel.transition future Inttab.table *  (*command_id -> transition (future parsing)*)
+    Toplevel.transition future list,  (*recent commands to be joined*)
   execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
     (*exec_id -> command_id with eval/print process*)
   execution: Future.group}  (*global execution process*)
@@ -244,7 +246,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    Inttab.make [(no_id, Future.value Toplevel.empty)],
+    (Inttab.make [(no_id, Future.value Toplevel.empty)], []),
     Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
     Future.new_group NONE);
 
@@ -266,7 +268,7 @@ fun the_version (State {versions, ...}) (id: version_id) =
 (* commands *)
 
 fun define_command (id: command_id) text =
-  map_state (fn (versions, commands, execs, execution) =>
+  map_state (fn (versions, (commands, recent), execs, execution) =>
     let
       val id_string = print_id id;
       val tr =
@@ -276,15 +278,16 @@ fun define_command (id: command_id) text =
       val commands' =
         Inttab.update_new (id, tr) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-    in (versions, commands', execs, execution) end);
+    in (versions, (commands', tr :: recent), execs, execution) end);
 
 fun the_command (State {commands, ...}) (id: command_id) =
-  (case Inttab.lookup commands id of
+  (case Inttab.lookup (#1 commands) id of
     NONE => err_undef "command" id
   | SOME tr => tr);
 
-fun join_commands (State {commands, ...}) =
-  Inttab.fold (fn (_, tr) => fn () => ignore (Future.join_result tr)) commands ();
+val join_commands =
+    map_state (fn (versions, (commands, recent), execs, execution) =>
+      (Future.join_results recent; (versions, (commands, []), execs, execution)));
 
 
 (* command executions *)
