@@ -3304,8 +3304,8 @@ proof-
     by auto
   have *:"\<And>x A B. x\<in>A \<Longrightarrow> x\<in>B \<Longrightarrow> A\<inter>B \<noteq> {}" by blast
   have "compact ?A" unfolding A apply(rule compact_continuous_image, rule continuous_at_imp_continuous_on)
-    apply(rule, rule continuous_vmul)
-    apply(rule continuous_at_id) by(rule compact_interval)
+    apply(rule, intro continuous_intros)
+    by(rule compact_interval)
   moreover have "{y. \<exists>u\<ge>0. u \<le> b / norm x \<and> y = u *\<^sub>R x} \<inter> s \<noteq> {}" apply(rule *[OF _ assms(2)])
     unfolding mem_Collect_eq using `b>0` assms(3) by(auto intro!: divide_nonneg_pos)
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
@@ -3343,11 +3343,8 @@ proof-
 
   have contpi:"continuous_on (UNIV - {0}) pi" apply(rule continuous_at_imp_continuous_on)
     apply rule unfolding pi_def
-    apply (rule continuous_mul)
-    apply (rule continuous_at_inv[unfolded o_def])
-    apply (rule continuous_at_norm)
+    apply (intro continuous_intros)
     apply simp
-    apply (rule continuous_at_id)
     done
   def sphere \<equiv> "{x::'a. norm x = 1}"
   have pi:"\<And>x. x \<noteq> 0 \<Longrightarrow> pi x \<in> sphere" "\<And>x u. u>0 \<Longrightarrow> pi (u *\<^sub>R x) = pi x" unfolding pi_def sphere_def by auto
@@ -3433,7 +3430,7 @@ proof-
     prefer 4 apply(rule continuous_at_imp_continuous_on, rule) apply(rule_tac [3] hom2) proof-
     fix x::"'a" assume as:"x \<in> cball 0 1"
     thus "continuous (at x) (\<lambda>x. norm x *\<^sub>R surf (pi x))" proof(cases "x=0")
-      case False thus ?thesis apply(rule_tac continuous_mul, rule_tac continuous_at_norm)
+      case False thus ?thesis apply (intro continuous_intros)
         using cont_surfpi unfolding continuous_on_eq_continuous_at[OF open_delete[OF open_UNIV]] o_def by auto
     next obtain B where B:"\<forall>x\<in>s. norm x \<le> B" using compact_imp_bounded[OF assms(1)] unfolding bounded_iff by auto
       hence "B > 0" using assms(2) unfolding subset_eq apply(erule_tac x="basis 0" in ballE) defer 

@@ -1075,11 +1075,13 @@ lemma component_le_infnorm_cart:
   unfolding nth_conv_component
   using component_le_infnorm[of x] .
 
-lemma continuous_at_component: "continuous (at a) (\<lambda>x. x $ i)"
-unfolding continuous_at by (intro tendsto_intros)
+lemma continuous_component:
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $ i)"
+  unfolding continuous_def by (rule tendsto_vec_nth)
 
-lemma continuous_on_component: "continuous_on s (\<lambda>x. x $ i)"
-unfolding continuous_on_def by (intro ballI tendsto_intros)
+lemma continuous_on_component:
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $ i)"
+  unfolding continuous_on_def by (fast intro: tendsto_vec_nth)
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
   by (simp add: Collect_all_eq closed_INT closed_Collect_le)

@@ -201,7 +201,8 @@ been renamed as follows (INCOMPATIBILITY):
   Cauchy_vector    ~> vec_CauchyI
 
 * Session Multivariate_Analysis: Several duplicate theorems have been
-removed, and other theorems have been renamed. INCOMPATIBILITY.
+removed, and other theorems have been renamed or replaced with more
+general versions. INCOMPATIBILITY.
 
   eventually_conjI ~> eventually_conj
   eventually_and ~> eventually_conj_iff
@@ -222,6 +223,17 @@ removed, and other theorems have been renamed. INCOMPATIBILITY.
   Lim_inner ~> tendsto_inner [OF tendsto_const]
   dot_lsum ~> inner_setsum_left
   dot_rsum ~> inner_setsum_right
+  continuous_cmul ~> continuous_scaleR [OF continuous_const]
+  continuous_neg ~> continuous_minus
+  continuous_sub ~> continuous_diff
+  continuous_vmul ~> continuous_scaleR [OF _ continuous_const]
+  continuous_mul ~> continuous_scaleR
+  continuous_inv ~> continuous_inverse
+  continuous_at_within_inv ~> continuous_at_within_inverse
+  continuous_at_inv ~> continuous_at_inverse
+  continuous_at_norm ~> continuous_norm [OF continuous_at_id]
+  continuous_at_infnorm ~> continuous_infnorm [OF continuous_at_id]
+  continuous_at_component ~> continuous_component [OF continuous_at_id]
   continuous_on_neg ~> continuous_on_minus
   continuous_on_sub ~> continuous_on_diff
   continuous_on_cmul ~> continuous_on_scaleR [OF continuous_on_const]
@@ -229,6 +241,8 @@ removed, and other theorems have been renamed. INCOMPATIBILITY.
   continuous_on_mul ~> continuous_on_scaleR
   continuous_on_mul_real ~> continuous_on_mult
   continuous_on_inner ~> continuous_on_inner [OF continuous_on_const]
+  continuous_on_norm ~> continuous_on_norm [OF continuous_on_id]
+  continuous_on_inverse ~> continuous_on_inv
   subset_interior ~> interior_mono
   subset_closure ~> closure_mono
   closure_univ ~> closure_UNIV

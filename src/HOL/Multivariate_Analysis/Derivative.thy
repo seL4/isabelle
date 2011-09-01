@@ -1049,7 +1049,7 @@ proof-
   show ?thesis
     apply(rule has_derivative_inverse_basic_x[OF assms(6-8)])
     apply(rule continuous_on_interior[OF _ assms(3)])
-    apply(rule continuous_on_inverse[OF assms(4,1)])
+    apply(rule continuous_on_inv[OF assms(4,1)])
     apply(rule assms(2,5) assms(5)[rule_format] open_interior assms(3))+
     by(rule, rule *, assumption)
 qed

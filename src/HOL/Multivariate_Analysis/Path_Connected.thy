@@ -567,9 +567,8 @@ next
     unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
   have **:"{x::'a. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_eqI,rule)
     unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto split:split_if_asm)
-  have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
-    apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
-    apply(rule continuous_at_norm[unfolded o_def]) by auto
+  have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)"
+    unfolding field_divide_inverse by (simp add: continuous_on_intros)
   thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
     by(auto intro!: path_connected_continuous_image continuous_on_intros)
 qed

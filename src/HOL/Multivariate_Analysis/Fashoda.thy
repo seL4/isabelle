@@ -41,15 +41,19 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     hence "x \<noteq> 0" using as[of "w$1" "w$2"] unfolding mem_interval_cart by auto} note x0=this
   have 21:"\<And>i::2. i\<noteq>1 \<Longrightarrow> i=2" using UNIV_2 by auto
   have 1:"{- 1<..<1::real^2} \<noteq> {}" unfolding interval_eq_empty_cart by auto
-  have 2:"continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)" apply(rule continuous_on_intros continuous_on_component continuous_on_vec1)+
-    prefer 2 apply(rule continuous_on_intros continuous_on_component continuous_on_vec1)+ unfolding *
-    apply(rule assms)+ apply(rule continuous_on_compose,subst sqprojection_def)
-    apply(rule continuous_on_scaleR) apply(rule continuous_at_imp_continuous_on,rule) apply(rule continuous_at_inv[unfolded o_def])
-    apply(rule continuous_at_infnorm) unfolding infnorm_eq_0 defer apply(rule continuous_on_id) apply(rule linear_continuous_on) proof-
+  have 2:"continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)"
+    apply(intro continuous_on_intros continuous_on_component)
+    unfolding * apply(rule assms)+
+    apply(subst sqprojection_def)
+    apply(intro continuous_on_intros)
+    apply(simp add: infnorm_eq_0 x0)
+    apply(rule linear_continuous_on)
+  proof-
     show "bounded_linear negatex" apply(rule bounded_linearI') unfolding vec_eq_iff proof(rule_tac[!] allI) fix i::2 and x y::"real^2" and c::real
       show "negatex (x + y) $ i = (negatex x + negatex y) $ i" "negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
         apply-apply(case_tac[!] "i\<noteq>1") prefer 3 apply(drule_tac[1-2] 21) 
-        unfolding negatex_def by(auto simp add:vector_2 ) qed qed(insert x0, auto)
+        unfolding negatex_def by(auto simp add:vector_2 ) qed
+  qed
   have 3:"(negatex \<circ> sqprojection \<circ> ?F) ` {- 1..1} \<subseteq> {- 1..1}" unfolding subset_eq apply rule proof-
     case goal1 then guess y unfolding image_iff .. note y=this have "?F y \<noteq> 0" apply(rule x0) using y(1) by auto
     hence *:"infnorm (sqprojection (?F y)) = 1" unfolding y o_def apply- by(rule lem2[rule_format])
