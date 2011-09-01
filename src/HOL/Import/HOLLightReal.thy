@@ -301,10 +301,7 @@ lemma REAL_COMPLETE:
   "(\<exists>(x :: real). P x) \<and> (\<exists>(M :: real). \<forall>x. P x \<longrightarrow> x \<le> M) \<longrightarrow>
    (\<exists>M. (\<forall>x. P x \<longrightarrow> x \<le> M) \<and>
           (\<forall>M'. (\<forall>x. P x \<longrightarrow> x \<le> M') \<longrightarrow> M \<le> M'))"
-  apply (intro allI impI, elim conjE)
-  apply (drule complete_real[unfolded Ball_def mem_def])
-  apply simp_all
-  done
+  using complete_real[unfolded Ball_def, of "Collect P"] by auto
 
 lemma REAL_COMPLETE_SOMEPOS:
   "(\<exists>(x :: real). P x \<and> 0 \<le> x) \<and> (\<exists>M. \<forall>x. P x \<longrightarrow> x \<le> M) \<longrightarrow>

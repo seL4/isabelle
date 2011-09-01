@@ -759,12 +759,12 @@ lemma WF_REC_num: "(!!(f::nat => 'A) (g::nat => 'A) x::nat.
 ==> EX f::nat => 'A. ALL x::nat. f x = H f x"
   by (import hollight WF_REC_num)
 
-lemma WF_MEASURE: "wfP (%(a::'A) b::'A. measure (m::'A => nat) (a, b))"
+lemma WF_MEASURE: "wfP (%(a::'A) b::'A. (a, b) : measure (m::'A => nat))"
   by (import hollight WF_MEASURE)
 
 lemma MEASURE_LE: "(ALL x::'q_12099.
-    measure (m::'q_12099 => nat) (x, a::'q_12099) -->
-    measure m (x, b::'q_12099)) =
+    (x, a::'q_12099) : measure (m::'q_12099 => nat) -->
+    (x, b::'q_12099) : measure m) =
 (m a <= m b)"
   by (import hollight MEASURE_LE)
 
