@@ -27,13 +27,14 @@ object Thy_Syntax
       def length: Int = command.length
     }
 
-    def parse(syntax: Outer_Syntax, node_name: String, root_name: String, text: CharSequence)
+    def parse(syntax: Outer_Syntax, node_name: Document.Node.Name, text: CharSequence)
       : Entry =
     {
       /* stack operations */
 
       def buffer(): mutable.ListBuffer[Entry] = new mutable.ListBuffer[Entry]
-      var stack: List[(Int, String, mutable.ListBuffer[Entry])] = List((0, root_name, buffer()))
+      var stack: List[(Int, String, mutable.ListBuffer[Entry])] =
+        List((0, "theory " + node_name.theory, buffer()))
 
       @tailrec def close(level: Int => Boolean)
       {
@@ -126,7 +127,8 @@ object Thy_Syntax
     }
   }
 
-  def update_perspective(nodes: Document.Nodes, name: String, text_perspective: Text.Perspective)
+  def update_perspective(nodes: Document.Nodes,
+      name: Document.Node.Name, text_perspective: Text.Perspective)
     : (Command.Perspective, Option[Document.Nodes]) =
   {
     val node = nodes(name)
@@ -137,7 +139,8 @@ object Thy_Syntax
     (perspective, new_nodes)
   }
 
-  def edit_perspective(previous: Document.Version, name: String, text_perspective: Text.Perspective)
+  def edit_perspective(previous: Document.Version,
+      name: Document.Node.Name, text_perspective: Text.Perspective)
     : (Command.Perspective, Document.Version) =
   {
     val nodes = previous.nodes
@@ -187,7 +190,7 @@ object Thy_Syntax
 
     /* phase 2: recover command spans */
 
-    @tailrec def recover_spans(node_name: String, commands: Linear_Set[Command])
+    @tailrec def recover_spans(node_name: Document.Node.Name, commands: Linear_Set[Command])
       : Linear_Set[Command] =
     {
       commands.iterator.find(cmd => !cmd.is_defined) match {

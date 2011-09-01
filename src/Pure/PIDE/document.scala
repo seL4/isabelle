@@ -31,7 +31,7 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Edit[A, B] = (String, Node.Edit[A, B])
+  type Edit[A, B] = (Node.Name, Node.Edit[A, B])
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[(Option[Command], Option[Command]), Command.Perspective]
 
@@ -39,6 +39,16 @@ object Document
 
   object Node
   {
+    sealed case class Name(node: String, master_dir: String, theory: String)
+    {
+      override def hashCode: Int = node.hashCode
+      override def equals(that: Any): Boolean =
+        that match {
+          case other: Name => node == other.node
+          case _ => false
+        }
+    }
+
     sealed abstract class Edit[A, B]
     {
       def foreach(f: A => Unit)
@@ -149,7 +159,7 @@ object Document
     val init: Version = Version(no_id, Map().withDefaultValue(Node.empty))
   }
 
-  type Nodes = Map[String, Node]
+  type Nodes = Map[Node.Name, Node]
   sealed case class Version(val id: Version_ID, val nodes: Nodes)
 
 
@@ -335,10 +345,10 @@ object Document
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished
 
-    def last_exec_offset(name: String): Text.Offset =
+    def last_exec_offset(name: Node.Name): Text.Offset =
     {
       val version = tip_version
-      the_assignment(version).last_execs.get(name) match {
+      the_assignment(version).last_execs.get(name.node) match {
         case Some(Some(id)) =>
           val node = version.nodes(name)
           val cmd = the_command(id).command
@@ -371,7 +381,7 @@ object Document
 
 
     // persistent user-view
-    def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
+    def snapshot(name: Node.Name, pending_edits: List[Text.Edit]): Snapshot =
     {
       val stable = recent_stable.get
       val latest = history.tip

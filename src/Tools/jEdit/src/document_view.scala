@@ -449,7 +449,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             val visible = visible_range()
 
             if (updated ||
-                (changed.nodes.contains(model.node_name) &&
+                (changed.nodes.contains(model.name) &&
                  changed.commands.exists(snapshot.node.commands.contains)))
               overview.repaint()
 

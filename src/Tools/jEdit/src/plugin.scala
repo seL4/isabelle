@@ -168,9 +168,6 @@ object Isabelle
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def buffer_path(buffer: Buffer): (String, String) =
-    (buffer.getDirectory, buffer_name(buffer))
-
 
   /* main jEdit components */
 
@@ -216,10 +213,11 @@ object Isabelle
         document_model(buffer) match {
           case Some(model) => Some(model)
           case None =>
-            val (master_dir, path) = buffer_path(buffer)
-            Thy_Header.thy_name(path) match {
-              case Some(name) =>
-                Some(Document_Model.init(session, buffer, master_dir, path, name))
+            val name = buffer_name(buffer)
+            Thy_Header.thy_name(name) match {
+              case Some(theory) =>
+                val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
+                Some(Document_Model.init(session, buffer, node_name))
               case None => None
             }
         }
@@ -363,8 +361,8 @@ class Plugin extends EBPlugin
 
       val thys =
         for (buffer <- buffers; model <- Isabelle.document_model(buffer))
-          yield (model.master_dir, model.thy_name)
-      val files = thy_info.dependencies(thys).toList.map(_._1).filterNot(loaded_buffer _)
+          yield model.name
+      val files = thy_info.dependencies(thys).toList.map(_._1.node).filterNot(loaded_buffer _)
 
       if (!files.isEmpty) {
         val files_list = new ListView(Library.sort_strings(files))

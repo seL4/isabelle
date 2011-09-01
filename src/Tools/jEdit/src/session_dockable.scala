@@ -75,7 +75,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   private var nodes_status: Map[String, String] = Map.empty
 
-  private def handle_changed(changed_nodes: Set[String])
+  private def handle_changed(changed_nodes: Set[Document.Node.Name])
   {
     Swing_Thread.now {
       // FIXME correlation to changed_nodes!?
@@ -88,7 +88,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
             name <- changed_nodes
             node <- version.nodes.get(name)
             val status = Isar_Document.node_status(state, version, node)
-          } nodes_status1 += (name -> status.toString)
+          } nodes_status1 += (name.node -> status.toString)
 
           if (nodes_status != nodes_status1) {
             nodes_status = nodes_status1

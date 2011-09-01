@@ -45,11 +45,10 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer,
-    master_dir: String, node_name: String, thy_name: String): Document_Model =
+  def init(session: Session, buffer: Buffer, name: Document.Node.Name): Document_Model =
   {
     exit(buffer)
-    val model = new Document_Model(session, buffer, master_dir, node_name, thy_name)
+    val model = new Document_Model(session, buffer, name)
     buffer.setProperty(key, model)
     model.activate()
     model
@@ -57,15 +56,14 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session, val buffer: Buffer,
-  val master_dir: String, val node_name: String, val thy_name: String)
+class Document_Model(val session: Session, val buffer: Buffer, val name: Document.Node.Name)
 {
   /* header */
 
   def node_header(): Exn.Result[Thy_Header] =
   {
     Swing_Thread.require()
-    Exn.capture { Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength)) }
+    Exn.capture { Thy_Header.check(name.theory, buffer.getSegment(0, buffer.getLength)) }
   }
 
 
@@ -105,15 +103,14 @@ class Document_Model(val session: Session, val buffer: Buffer,
         case edits =>
           pending.clear
           last_perspective = new_perspective
-          session.edit_node(node_name, master_dir, node_header(), new_perspective, edits)
+          session.edit_node(name, node_header(), new_perspective, edits)
       }
     }
 
     def init()
     {
       flush()
-      session.init_node(node_name, master_dir,
-        node_header(), perspective(), Isabelle.buffer_text(buffer))
+      session.init_node(name, node_header(), perspective(), Isabelle.buffer_text(buffer))
     }
 
     private val delay_flush =
@@ -145,7 +142,7 @@ class Document_Model(val session: Session, val buffer: Buffer,
   def snapshot(): Document.Snapshot =
   {
     Swing_Thread.require()
-    session.snapshot(node_name, pending_edits.snapshot())
+    session.snapshot(name, pending_edits.snapshot())
   }
 
 

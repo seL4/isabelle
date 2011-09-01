@@ -160,14 +160,14 @@ trait Isar_Document extends Isabelle_Process
   }
 
   def update_perspective(old_id: Document.Version_ID, new_id: Document.Version_ID,
-    name: String, perspective: Command.Perspective)
+    name: Document.Node.Name, perspective: Command.Perspective)
   {
     val ids =
     { import XML.Encode._
       list(long)(perspective.commands.map(_.id)) }
 
-    input("Isar_Document.update_perspective", Document.ID(old_id), Document.ID(new_id), name,
-      YXML.string_of_body(ids))
+    input("Isar_Document.update_perspective", Document.ID(old_id), Document.ID(new_id),
+      name.node, YXML.string_of_body(ids))
   }
 
   def update(old_id: Document.Version_ID, new_id: Document.Version_ID,
@@ -177,7 +177,7 @@ trait Isar_Document extends Isabelle_Process
     { import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
       def encode: T[List[Document.Edit_Command]] =
-        list(pair(string,
+        list(pair((name => string(name.node)),
           variant(List(
             { case Document.Node.Clear() => (Nil, Nil) },
             { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
