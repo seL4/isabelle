@@ -112,7 +112,8 @@ fun set_perspective ids =
 fun map_entries f =
   map_node (fn (touched, header, perspective, entries, last_exec, result) =>
     (touched, header, perspective, f entries, last_exec, result));
-fun iterate_entries start f (Node {entries, ...}) = Entries.iterate start f entries;
+fun get_entries (Node {entries, ...}) = entries;
+fun iterate_entries start f = Entries.iterate start f o get_entries;
 
 fun get_last_exec (Node {last_exec, ...}) = last_exec;
 fun set_last_exec last_exec =
@@ -183,8 +184,9 @@ fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote
 
 fun touch_node name nodes =
   fold (fn desc =>
-      update_node desc (set_touched true) #>
-      desc <> name ? update_node desc (map_entries (reset_after NONE)))
+      update_node desc
+        (set_touched true #>
+          desc <> name ? (map_entries (reset_after NONE) #> set_result no_result)))
     (Graph.all_succs nodes [name]) nodes;
 
 in
@@ -391,7 +393,10 @@ fun last_common last_visible node0 node =
       else
         let val found' = is_none exec orelse exec <> lookup_entry node0 id
         in SOME (found', (prev, visible andalso prev <> last_visible)) end;
-  in #2 (iterate_entries NONE get_common node (false, (NONE, true))) end;
+    val (found, (common, visible)) = iterate_entries NONE get_common node (false, (NONE, true));
+    val common' = if found then common else Entries.get_after (get_entries node) common;
+    val visible' = visible andalso common' <> last_visible;
+  in (common', visible') end;
 
 fun new_exec state init command_id' (execs, exec) =
   let
