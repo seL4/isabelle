@@ -73,7 +73,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* component state -- owned by Swing thread */
 
-  private var nodes_status: Map[String, String] = Map.empty
+  private var nodes_status: Map[Document.Node.Name, String] = Map.empty
 
   private def handle_changed(changed_nodes: Set[Document.Node.Name])
   {
@@ -88,12 +88,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
             name <- changed_nodes
             node <- version.nodes.get(name)
             val status = Isar_Document.node_status(state, version, node)
-          } nodes_status1 += (name.node -> status.toString)
+          } nodes_status1 += (name -> status.toString)
 
           if (nodes_status != nodes_status1) {
             nodes_status = nodes_status1
-            val order = Library.sort_strings(nodes_status.keySet.toList)
-            status.listData = order.map(name => name + " " + nodes_status(name))
+            val order =
+              Library.sort_wrt((name: Document.Node.Name) => name.node, nodes_status.keySet.toList)
+            status.listData = order.map(name => name.theory + " " + nodes_status(name))
           }
       }
     }
