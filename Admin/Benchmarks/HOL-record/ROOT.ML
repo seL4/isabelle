@@ -3,7 +3,7 @@
 Some benchmark on large record.
 *)
 
-val tests = ["RecordBenchmark"];
+val tests = ["Record_Benchmark"];
 
 Toplevel.timing := true;
 

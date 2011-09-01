@@ -1,10 +1,10 @@
-(*  Title:      Admin/Benchmarks/HOL-record/RecordBenchmark.thy
+(*  Title:      Admin/Benchmarks/HOL-record/Record_Benchmark.thy
     Author:     Norbert Schirmer, DFKI
 *)
 
 header {* Benchmark for large record *}
 
-theory RecordBenchmark
+theory Record_Benchmark
 imports Main
 begin
 
