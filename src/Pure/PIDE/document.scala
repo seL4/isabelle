@@ -47,6 +47,7 @@ object Document
           case other: Name => node == other.node
           case _ => false
         }
+      override def toString: String = theory
     }
 
     sealed abstract class Edit[A, B]
