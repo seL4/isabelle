@@ -2556,6 +2556,14 @@ proof-
   show ?thesis unfolding norm_eq_sqrt_inner id_def .
 qed
 
+lemma tendsto_infnorm [tendsto_intros]:
+  assumes "(f ---> a) F" shows "((\<lambda>x. infnorm (f x)) ---> infnorm a) F"
+proof (rule tendsto_compose [OF LIM_I assms])
+  fix r :: real assume "0 < r"
+  thus "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (infnorm x - infnorm a) < r"
+    by (metis real_norm_def le_less_trans real_abs_sub_infnorm infnorm_le_norm)
+qed
+
 text {* Equality in Cauchy-Schwarz and triangle inequalities. *}
 
 lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x" (is "?lhs \<longleftrightarrow> ?rhs")
