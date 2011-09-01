@@ -10,7 +10,7 @@ abstract class Thy_Load
 {
   def register_thy(thy_name: String)
   def is_loaded(thy_name: String): Boolean
-  def append(master_dir: String, path: Path): String
+  def append(dir: String, path: Path): String
   def check_thy(node_name: Document.Node.Name): Thy_Header
 }
 

@@ -146,10 +146,9 @@ class Session(thy_load: Thy_Load)
     {
       val thy_name = Thy_Header.base_name(s)
       if (thy_load.is_loaded(thy_name)) thy_name
-      else thy_load.append(name.master_dir, Thy_Header.thy_path(Path.explode(s)))
+      else thy_load.append(name.dir, Thy_Header.thy_path(Path.explode(s)))
     }
-    def norm_use(s: String): String =
-      thy_load.append(name.master_dir, Path.explode(s))
+    def norm_use(s: String): String = thy_load.append(name.dir, Path.explode(s))
 
     val header1: Document.Node_Header =
       header match {

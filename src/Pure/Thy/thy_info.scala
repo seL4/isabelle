@@ -38,12 +38,13 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  def import_name(master_dir: String, str: String): Document.Node.Name =
+  def import_name(dir: String, str: String): Document.Node.Name =
   {
     val path = Path.explode(str)
-    val node_name = thy_load.append(master_dir, Thy_Header.thy_path(path))
-    val master_dir1 = thy_load.append(master_dir, path.dir)
-    Document.Node.Name(node_name, master_dir1, path.base.implode)
+    val node = thy_load.append(dir, Thy_Header.thy_path(path))
+    val dir1 = thy_load.append(dir, path.dir)
+    val theory = path.base.implode
+    Document.Node.Name(node, dir1, theory)
   }
 
   type Deps = Map[Document.Node.Name, Document.Node_Header]
@@ -66,7 +67,7 @@ class Thy_Info(thy_load: Thy_Load)
               cat_error(msg, "The error(s) above occurred while examining theory " +
                 quote(name.theory) + required_by(initiators))
           }
-        val imports = header.imports.map(import_name(name.master_dir, _))
+        val imports = header.imports.map(import_name(name.dir, _))
         require_thys(name :: initiators, deps + (name -> Exn.Res(header)), imports)
       }
       catch { case e: Throwable => deps + (name -> Exn.Exn(e)) }

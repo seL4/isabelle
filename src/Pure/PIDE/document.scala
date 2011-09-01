@@ -39,7 +39,7 @@ object Document
 
   object Node
   {
-    sealed case class Name(node: String, master_dir: String, theory: String)
+    sealed case class Name(node: String, dir: String, theory: String)
     {
       override def hashCode: Int = node.hashCode
       override def equals(that: Any): Boolean =
