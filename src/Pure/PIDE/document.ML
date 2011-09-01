@@ -331,10 +331,7 @@ fun print_state tr st =
 fun run int tr st =
   (case Toplevel.transition int tr st of
     SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) =>
-      (case ML_Compiler.exn_messages exn of
-        [] => Exn.interrupt ()
-      | errs => (errs, NONE))
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
   | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
 
 in
@@ -345,6 +342,7 @@ fun run_command tr st =
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
     val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
+    val _ = Multithreading.interrupted ();
     val _ = Toplevel.status tr Markup.forked;
     val start = Timing.start ();
     val (errs, result) =
@@ -355,7 +353,10 @@ fun run_command tr st =
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
-      NONE => (Toplevel.status tr Markup.failed; (st, no_print))
+      NONE =>
+       (if null errs then Exn.interrupt () else ();
+        Toplevel.status tr Markup.failed;
+        (st, no_print))
     | SOME st' =>
        (Toplevel.status tr Markup.finished;
         proof_status tr st';
@@ -531,7 +532,7 @@ fun execute version_id state =
           (fn deps => fn (name, node) =>
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
-                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
+                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
               (iterate_entries NONE (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
 
     in (versions, commands, execs, execution) end);
