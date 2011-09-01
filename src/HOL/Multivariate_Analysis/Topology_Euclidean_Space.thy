@@ -3253,7 +3253,7 @@ next
   assume ?lhs thus ?rhs unfolding continuous_on_eq_continuous_within using continuous_within_sequentially[of _ s f] by auto
 qed
 
-lemma uniformly_continuous_on_sequentially':
+lemma uniformly_continuous_on_sequentially:
   "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
                     ((\<lambda>n. dist (x n) (y n)) ---> 0) sequentially
                     \<longrightarrow> ((\<lambda>n. dist (f(x n)) (f(y n))) ---> 0) sequentially)" (is "?lhs = ?rhs")
@@ -3295,15 +3295,6 @@ next
   thus ?lhs unfolding uniformly_continuous_on_def by blast
 qed
 
-lemma uniformly_continuous_on_sequentially:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  shows "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
-                    ((\<lambda>n. x n - y n) ---> 0) sequentially
-                    \<longrightarrow> ((\<lambda>n. f(x n) - f(y n)) ---> 0) sequentially)" (is "?lhs = ?rhs")
-(* BH: maybe the previous lemma should replace this one? *)
-unfolding uniformly_continuous_on_sequentially'
-unfolding dist_norm tendsto_norm_zero_iff ..
-
 text{* The usual transformation theorems. *}
 
 lemma continuous_transform_within:
@@ -3330,7 +3321,7 @@ lemma continuous_transform_at:
   using continuous_transform_within [of d x UNIV f g] assms
   by (simp add: within_UNIV)
 
-text{* Combination results for pointwise continuity. *}
+subsubsection {* Structural rules for pointwise continuity *}
 
 lemma continuous_within_id: "continuous (at a within s) (\<lambda>x. x)"
   unfolding continuous_within by (rule tendsto_ident_at_within)
@@ -3413,7 +3404,7 @@ lemmas continuous_intros = continuous_at_id continuous_within_id
   continuous_inner continuous_euclidean_component
   continuous_at_inverse continuous_at_within_inverse
 
-text{* Same thing for setwise continuity. *}
+subsubsection {* Structural rules for setwise continuity *}
 
 lemma continuous_on_id: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
@@ -3486,62 +3477,83 @@ lemma continuous_on_inverse:
   shows "continuous_on s (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_on by (fast intro: tendsto_inverse)
 
-text{* Same thing for uniform continuity, using sequential formulations. *}
+subsubsection {* Structural rules for uniform continuity *}
 
 lemma uniformly_continuous_on_id:
- "uniformly_continuous_on s (\<lambda>x. x)"
+  shows "uniformly_continuous_on s (\<lambda>x. x)"
   unfolding uniformly_continuous_on_def by auto
 
 lemma uniformly_continuous_on_const:
- "uniformly_continuous_on s (\<lambda>x. c)"
+  shows "uniformly_continuous_on s (\<lambda>x. c)"
   unfolding uniformly_continuous_on_def by simp
+
+lemma uniformly_continuous_on_dist:
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "uniformly_continuous_on s f"
+  assumes "uniformly_continuous_on s g"
+  shows "uniformly_continuous_on s (\<lambda>x. dist (f x) (g x))"
+proof -
+  { fix a b c d :: 'b have "\<bar>dist a b - dist c d\<bar> \<le> dist a c + dist b d"
+      using dist_triangle2 [of a b c] dist_triangle2 [of b c d]
+      using dist_triangle3 [of c d a] dist_triangle [of a d b]
+      by arith
+  } note le = this
+  { fix x y
+    assume f: "(\<lambda>n. dist (f (x n)) (f (y n))) ----> 0"
+    assume g: "(\<lambda>n. dist (g (x n)) (g (y n))) ----> 0"
+    have "(\<lambda>n. \<bar>dist (f (x n)) (g (x n)) - dist (f (y n)) (g (y n))\<bar>) ----> 0"
+      by (rule Lim_transform_bound [OF _ tendsto_add_zero [OF f g]],
+        simp add: le)
+  }
+  thus ?thesis using assms unfolding uniformly_continuous_on_sequentially
+    unfolding dist_real_def by simp
+qed
+
+lemma uniformly_continuous_on_norm:
+  assumes "uniformly_continuous_on s f"
+  shows "uniformly_continuous_on s (\<lambda>x. norm (f x))"
+  unfolding norm_conv_dist using assms
+  by (intro uniformly_continuous_on_dist uniformly_continuous_on_const)
+
+lemma (in bounded_linear) uniformly_continuous_on:
+  assumes "uniformly_continuous_on s g"
+  shows "uniformly_continuous_on s (\<lambda>x. f (g x))"
+  using assms unfolding uniformly_continuous_on_sequentially
+  unfolding dist_norm tendsto_norm_zero_iff diff[symmetric]
+  by (auto intro: tendsto_zero)
 
 lemma uniformly_continuous_on_cmul:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. c *\<^sub>R f(x))"
-proof-
-  { fix x y assume "((\<lambda>n. f (x n) - f (y n)) ---> 0) sequentially"
-    hence "((\<lambda>n. c *\<^sub>R f (x n) - c *\<^sub>R f (y n)) ---> 0) sequentially"
-      using tendsto_scaleR [OF tendsto_const, of "(\<lambda>n. f (x n) - f (y n))" 0 sequentially c]
-      unfolding scaleR_zero_right scaleR_right_diff_distrib by auto
-  }
-  thus ?thesis using assms unfolding uniformly_continuous_on_sequentially'
-    unfolding dist_norm tendsto_norm_zero_iff by auto
-qed
+  using bounded_linear_scaleR_right assms
+  by (rule bounded_linear.uniformly_continuous_on)
 
 lemma dist_minus:
   fixes x y :: "'a::real_normed_vector"
   shows "dist (- x) (- y) = dist x y"
   unfolding dist_norm minus_diff_minus norm_minus_cancel ..
 
-lemma uniformly_continuous_on_neg:
+lemma uniformly_continuous_on_minus:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "uniformly_continuous_on s f
-         ==> uniformly_continuous_on s (\<lambda>x. -(f x))"
+  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. - f x)"
   unfolding uniformly_continuous_on_def dist_minus .
 
 lemma uniformly_continuous_on_add:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "uniformly_continuous_on s f" "uniformly_continuous_on s g"
+  assumes "uniformly_continuous_on s f"
+  assumes "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f x + g x)"
-proof-
-  {  fix x y assume "((\<lambda>n. f (x n) - f (y n)) ---> 0) sequentially"
-                    "((\<lambda>n. g (x n) - g (y n)) ---> 0) sequentially"
-    hence "((\<lambda>xa. f (x xa) - f (y xa) + (g (x xa) - g (y xa))) ---> 0 + 0) sequentially"
-      using tendsto_add[of "\<lambda> n. f (x n) - f (y n)" 0  sequentially "\<lambda> n. g (x n) - g (y n)" 0] by auto
-    hence "((\<lambda>n. f (x n) + g (x n) - (f (y n) + g (y n))) ---> 0) sequentially" unfolding Lim_sequentially and add_diff_add [symmetric] by auto  }
-  thus ?thesis using assms unfolding uniformly_continuous_on_sequentially'
-    unfolding dist_norm tendsto_norm_zero_iff by auto
-qed
+  using assms unfolding uniformly_continuous_on_sequentially
+  unfolding dist_norm tendsto_norm_zero_iff add_diff_add
+  by (auto intro: tendsto_add_zero)
 
-lemma uniformly_continuous_on_sub:
+lemma uniformly_continuous_on_diff:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s g
-           ==> uniformly_continuous_on s  (\<lambda>x. f x - g x)"
-  unfolding ab_diff_minus
-  using uniformly_continuous_on_add[of s f "\<lambda>x. - g x"]
-  using uniformly_continuous_on_neg[of s g] by auto
+  assumes "uniformly_continuous_on s f" and "uniformly_continuous_on s g"
+  shows "uniformly_continuous_on s (\<lambda>x. f x - g x)"
+  unfolding ab_diff_minus using assms
+  by (intro uniformly_continuous_on_add uniformly_continuous_on_minus)
 
 text{* Continuity of all kinds is preserved under composition. *}
 
@@ -3587,10 +3599,11 @@ lemmas continuous_on_intros = continuous_on_id continuous_on_const
   continuous_on_add continuous_on_minus continuous_on_diff
   continuous_on_scaleR continuous_on_mult continuous_on_inverse
   continuous_on_inner continuous_on_euclidean_component
-  uniformly_continuous_on_add uniformly_continuous_on_const
-  uniformly_continuous_on_id uniformly_continuous_on_compose
-  uniformly_continuous_on_cmul uniformly_continuous_on_neg
-  uniformly_continuous_on_sub
+  uniformly_continuous_on_id uniformly_continuous_on_const
+  uniformly_continuous_on_dist uniformly_continuous_on_norm
+  uniformly_continuous_on_compose uniformly_continuous_on_add
+  uniformly_continuous_on_minus uniformly_continuous_on_diff
+  uniformly_continuous_on_cmul
 
 text{* Continuity in terms of open preimages. *}
 

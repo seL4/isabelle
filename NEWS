@@ -243,6 +243,8 @@ general versions. INCOMPATIBILITY.
   continuous_on_inner ~> continuous_on_inner [OF continuous_on_const]
   continuous_on_norm ~> continuous_on_norm [OF continuous_on_id]
   continuous_on_inverse ~> continuous_on_inv
+  uniformly_continuous_on_neg ~> uniformly_continuous_on_minus
+  uniformly_continuous_on_sub ~> uniformly_continuous_on_diff
   subset_interior ~> interior_mono
   subset_closure ~> closure_mono
   closure_univ ~> closure_UNIV
