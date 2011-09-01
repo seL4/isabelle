@@ -959,7 +959,7 @@ fun sort ord = quicksort false ord;
 fun sort_distinct ord = quicksort true ord;
 
 val sort_strings = sort string_ord;
-fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
+fun sort_wrt key xs = sort (string_ord o pairself key) xs;
 
 
 (* items tagged by integer index *)

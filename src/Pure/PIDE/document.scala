@@ -31,7 +31,7 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Edit[A, B] = (String, Node.Edit[A, B])
+  type Edit[A, B] = (Node.Name, Node.Edit[A, B])
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[(Option[Command], Option[Command]), Command.Perspective]
 
@@ -39,6 +39,16 @@ object Document
 
   object Node
   {
+    sealed case class Name(node: String, dir: String, theory: String)
+    {
+      override def hashCode: Int = node.hashCode
+      override def equals(that: Any): Boolean =
+        that match {
+          case other: Name => node == other.node
+          case _ => false
+        }
+    }
+
     sealed abstract class Edit[A, B]
     {
       def foreach(f: A => Unit)
@@ -149,7 +159,7 @@ object Document
     val init: Version = Version(no_id, Map().withDefaultValue(Node.empty))
   }
 
-  type Nodes = Map[String, Node]
+  type Nodes = Map[Node.Name, Node]
   sealed case class Version(val id: Version_ID, val nodes: Nodes)
 
 
@@ -271,13 +281,12 @@ object Document
 
     def defined_command(id: Command_ID): Boolean = commands.isDefinedAt(id)
 
-    def find_command(version: Version, id: ID): Option[(String, Node, Command)] =
+    def find_command(version: Version, id: ID): Option[(Node, Command)] =
       commands.get(id) orElse execs.get(id) match {
         case None => None
         case Some(st) =>
           val command = st.command
-          version.nodes.find({ case (_, node) => node.commands(command) })
-            .map({ case (name, node) => (name, node, command) })
+          version.nodes.get(command.node_name).map((_, command))
       }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
@@ -336,10 +345,10 @@ object Document
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished
 
-    def last_exec_offset(name: String): Text.Offset =
+    def last_exec_offset(name: Node.Name): Text.Offset =
     {
       val version = tip_version
-      the_assignment(version).last_execs.get(name) match {
+      the_assignment(version).last_execs.get(name.node) match {
         case Some(Some(id)) =>
           val node = version.nodes(name)
           val cmd = the_command(id).command
@@ -360,9 +369,19 @@ object Document
       (change, copy(history = history + change))
     }
 
+    def command_state(version: Version, command: Command): Command.State =
+    {
+      require(is_assigned(version))
+      try {
+        the_exec(the_assignment(version).check_finished.command_execs
+          .getOrElse(command.id, fail))
+      }
+      catch { case _: State.Fail => command.empty_state }
+    }
+
 
     // persistent user-view
-    def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
+    def snapshot(name: Node.Name, pending_edits: List[Text.Edit]): Snapshot =
     {
       val stable = recent_stable.get
       val latest = history.tip
@@ -379,13 +398,7 @@ object Document
         val version = stable.version.get_finished
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
-
-        def command_state(command: Command): Command.State =
-          try {
-            the_exec(the_assignment(version).check_finished.command_execs
-              .getOrElse(command.id, fail))
-          }
-          catch { case _: State.Fail => command.empty_state }
+        def command_state(command: Command): Command.State = state.command_state(version, command)
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))

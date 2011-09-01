@@ -22,7 +22,7 @@ object Session
   case object Global_Settings
   case object Perspective
   case object Assignment
-  case class Commands_Changed(set: Set[Command])
+  case class Commands_Changed(nodes: Set[Document.Node.Name], commands: Set[Command])
 
   sealed abstract class Phase
   case object Inactive extends Phase
@@ -63,7 +63,10 @@ class Session(thy_load: Thy_Load)
   private val (_, command_change_buffer) =
     Simple_Thread.actor("command_change_buffer", daemon = true)
   {
-    var changed: Set[Command] = Set()
+    var changed_nodes: Set[Document.Node.Name] = Set.empty
+    var changed_commands: Set[Command] = Set.empty
+    def changed: Boolean = !changed_nodes.isEmpty || !changed_commands.isEmpty
+
     var flush_time: Option[Long] = None
 
     def flush_timeout: Long =
@@ -74,8 +77,10 @@ class Session(thy_load: Thy_Load)
 
     def flush()
     {
-      if (!changed.isEmpty) commands_changed.event(Session.Commands_Changed(changed))
-      changed = Set()
+      if (changed)
+        commands_changed.event(Session.Commands_Changed(changed_nodes, changed_commands))
+      changed_nodes = Set.empty
+      changed_commands = Set.empty
       flush_time = None
     }
 
@@ -91,7 +96,10 @@ class Session(thy_load: Thy_Load)
     var finished = false
     while (!finished) {
       receiveWithin(flush_timeout) {
-        case command: Command => changed += command; invoke()
+        case command: Command =>
+          changed_nodes += command.node_name
+          changed_commands += command
+          invoke()
         case TIMEOUT => flush()
         case Stop => finished = true; reply(())
         case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)
@@ -126,23 +134,21 @@ class Session(thy_load: Thy_Load)
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
 
-  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
+  def snapshot(name: Document.Node.Name, pending_edits: List[Text.Edit]): Document.Snapshot =
     global_state().snapshot(name, pending_edits)
 
 
   /* theory files */
 
-  def header_edit(name: String, master_dir: String,
-    header: Document.Node_Header): Document.Edit_Text =
+  def header_edit(name: Document.Node.Name, header: Document.Node_Header): Document.Edit_Text =
   {
     def norm_import(s: String): String =
     {
       val thy_name = Thy_Header.base_name(s)
       if (thy_load.is_loaded(thy_name)) thy_name
-      else thy_load.append(master_dir, Thy_Header.thy_path(Path.explode(s)))
+      else thy_load.append(name.dir, Thy_Header.thy_path(Path.explode(s)))
     }
-    def norm_use(s: String): String =
-      thy_load.append(master_dir, Path.explode(s))
+    def norm_use(s: String): String = thy_load.append(name.dir, Path.explode(s))
 
     val header1: Document.Node_Header =
       header match {
@@ -159,12 +165,12 @@ class Session(thy_load: Thy_Load)
 
   private case class Start(timeout: Time, args: List[String])
   private case object Interrupt
-  private case class Init_Node(name: String, master_dir: String,
+  private case class Init_Node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
-  private case class Edit_Node(name: String, master_dir: String,
+  private case class Edit_Node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
   private case class Change_Node(
-    name: String,
+    name: Document.Node.Name,
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -177,7 +183,7 @@ class Session(thy_load: Thy_Load)
 
     /* perspective */
 
-    def update_perspective(name: String, text_perspective: Text.Perspective)
+    def update_perspective(name: Document.Node.Name, text_perspective: Text.Perspective)
     {
       val previous = global_state().tip_version
       val (perspective, version) = Thy_Syntax.edit_perspective(previous, name, text_perspective)
@@ -198,14 +204,16 @@ class Session(thy_load: Thy_Load)
 
     /* incoming edits */
 
-    def handle_edits(name: String, master_dir: String,
+    def handle_edits(name: Document.Node.Name,
         header: Document.Node_Header, edits: List[Document.Node.Edit[Text.Edit, Text.Perspective]])
     //{{{
     {
       val syntax = current_syntax()
       val previous = global_state().history.tip.version
 
-      val text_edits = header_edit(name, master_dir, header) :: edits.map(edit => (name, edit))
+      prover.get.cancel_execution()
+
+      val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
       val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
       val change =
         global_state.change_yield(_.continue_history(previous, text_edits, result.map(_._2)))
@@ -344,20 +352,20 @@ class Session(thy_load: Thy_Load)
         case Interrupt if prover.isDefined =>
           prover.get.interrupt
 
-        case Init_Node(name, master_dir, header, perspective, text) if prover.isDefined =>
+        case Init_Node(name, header, perspective, text) if prover.isDefined =>
           // FIXME compare with existing node
-          handle_edits(name, master_dir, header,
+          handle_edits(name, header,
             List(Document.Node.Clear(),
               Document.Node.Edits(List(Text.Edit.insert(0, text))),
               Document.Node.Perspective(perspective)))
           reply(())
 
-        case Edit_Node(name, master_dir, header, perspective, text_edits) if prover.isDefined =>
+        case Edit_Node(name, header, perspective, text_edits) if prover.isDefined =>
           if (text_edits.isEmpty && global_state().tip_stable &&
               perspective.range.stop <= global_state().last_exec_offset(name))
             update_perspective(name, perspective)
           else
-            handle_edits(name, master_dir, header,
+            handle_edits(name, header,
               List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())
 
@@ -386,13 +394,11 @@ class Session(thy_load: Thy_Load)
 
   def interrupt() { session_actor ! Interrupt }
 
-  // FIXME simplify signature
-  def init_node(name: String, master_dir: String,
+  def init_node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
-  { session_actor !? Init_Node(name, master_dir, header, perspective, text) }
+  { session_actor !? Init_Node(name, header, perspective, text) }
 
-  // FIXME simplify signature
-  def edit_node(name: String, master_dir: String, header: Document.Node_Header,
-    perspective: Text.Perspective, edits: List[Text.Edit])
-  { session_actor !? Edit_Node(name, master_dir, header, perspective, edits) }
+  def edit_node(name: Document.Node.Name,
+    header: Document.Node_Header, perspective: Text.Perspective, edits: List[Text.Edit])
+  { session_actor !? Edit_Node(name, header, perspective, edits) }
 }

@@ -33,23 +33,23 @@ class JEdit_Thy_Load extends Thy_Load
 
   /* file-system operations */
 
-  override def append(master_dir: String, source_path: Path): String =
+  override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
     if (path.is_absolute) Isabelle_System.platform_path(path)
     else {
-      val vfs = VFSManager.getVFSForPath(master_dir)
+      val vfs = VFSManager.getVFSForPath(dir)
       if (vfs.isInstanceOf[FileVFS])
         MiscUtilities.resolveSymlinks(
-          vfs.constructPath(master_dir, Isabelle_System.platform_path(path)))
-      else vfs.constructPath(master_dir, Isabelle_System.standard_path(path))
+          vfs.constructPath(dir, Isabelle_System.platform_path(path)))
+      else vfs.constructPath(dir, Isabelle_System.standard_path(path))
     }
   }
 
-  override def check_thy(node_name: String): Thy_Header =
+  override def check_thy(name: Document.Node.Name): Thy_Header =
   {
     Swing_Thread.now {
-      Isabelle.jedit_buffer(node_name) match {
+      Isabelle.jedit_buffer(name.node) match {
         case Some(buffer) =>
           Isabelle.buffer_lock(buffer) {
             val text = new Segment
@@ -59,7 +59,7 @@ class JEdit_Thy_Load extends Thy_Load
         case None => None
       }
     } getOrElse {
-      val file = new File(node_name)  // FIXME load URL via jEdit VFS (!?)
+      val file = new File(name.node)  // FIXME load URL via jEdit VFS (!?)
       if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
       Thy_Header.read(file)
     }

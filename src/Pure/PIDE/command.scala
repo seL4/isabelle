@@ -80,10 +80,11 @@ object Command
   /* dummy commands */
 
   def unparsed(source: String): Command =
-    new Command(Document.no_id, List(Token(Token.Kind.UNPARSED, source)))
+    new Command(Document.no_id, Document.Node.Name("", "", ""),
+      List(Token(Token.Kind.UNPARSED, source)))
 
-  def span(toks: List[Token]): Command =
-    new Command(Document.no_id, toks)
+  def span(node_name: Document.Node.Name, toks: List[Token]): Command =
+    new Command(Document.no_id, node_name, toks)
 
 
   /* perspective */
@@ -110,6 +111,7 @@ object Command
 
 class Command(
     val id: Document.Command_ID,
+    val node_name: Document.Node.Name,
     val span: List[Token])
 {
   /* classification */

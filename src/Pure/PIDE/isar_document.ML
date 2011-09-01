@@ -12,6 +12,10 @@ val _ =
     (fn [id, text] => Document.change_state (Document.define_command (Document.parse_id id) text));
 
 val _ =
+  Isabelle_Process.add_command "Isar_Document.cancel_execution"
+    (fn [] => ignore (Document.cancel_execution (Document.state ())));
+
+val _ =
   Isabelle_Process.add_command "Isar_Document.update_perspective"
     (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
       let
@@ -48,17 +52,17 @@ val _ =
             end;
 
         val running = Document.cancel_execution state;
-        val (assignment, state') = Document.update old_id new_id edits state;
+        val (assignment, state1) = Document.update old_id new_id edits state;
         val _ = Future.join_tasks running;
-        val _ = Document.join_commands state';
+        val state2 = Document.join_commands state1;
         val _ =
           Output.status (Markup.markup (Markup.assign new_id)
             (assignment |>
               let open XML.Encode
               in pair (list (pair int (option int))) (list (pair string (option int))) end
               |> YXML.string_of_body));
-        val state'' = Document.execute new_id state';
-      in state'' end));
+        val state3 = Document.execute new_id state2;
+      in state3 end));
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.invoke_scala"

@@ -14,8 +14,7 @@ import java.awt.Font
 import javax.swing.JOptionPane
 
 import scala.collection.mutable
-import scala.swing.ComboBox
-import scala.util.Sorting
+import scala.swing.{ComboBox, ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
@@ -169,9 +168,6 @@ object Isabelle
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def buffer_path(buffer: Buffer): (String, String) =
-    (buffer.getDirectory, buffer_name(buffer))
-
 
   /* main jEdit components */
 
@@ -217,10 +213,11 @@ object Isabelle
         document_model(buffer) match {
           case Some(model) => Some(model)
           case None =>
-            val (master_dir, path) = buffer_path(buffer)
-            Thy_Header.thy_name(path) match {
-              case Some(name) =>
-                Some(Document_Model.init(session, buffer, master_dir, path, name))
+            val name = buffer_name(buffer)
+            Thy_Header.thy_name(name) match {
+              case Some(theory) =>
+                val node_name = Document.Node.Name(name, buffer.getDirectory, theory)
+                Some(Document_Model.init(session, buffer, node_name))
               case None => None
             }
         }
@@ -364,23 +361,25 @@ class Plugin extends EBPlugin
 
       val thys =
         for (buffer <- buffers; model <- Isabelle.document_model(buffer))
-          yield (model.master_dir, model.thy_name)
-      val files = thy_info.dependencies(thys).map(_._1).filterNot(loaded_buffer _)
+          yield model.name
+      val files = thy_info.dependencies(thys).toList.map(_._1.node).filterNot(loaded_buffer _)
 
-      val do_load = !files.isEmpty &&
-        {
-          val files_sorted = { val a = files.toArray; Sorting.quickSort(a); a.toList }
-          val files_text = new scala.swing.TextArea(files_sorted.mkString("\n"))
-          files_text.editable = false
+      if (!files.isEmpty) {
+        val files_list = new ListView(Library.sort_strings(files))
+        for (i <- 0 until files.length)
+          files_list.selection.indices += i
+
+        val answer =
           Library.confirm_dialog(jEdit.getActiveView(),
             "Auto loading of required files",
             JOptionPane.YES_NO_OPTION,
-            "The following files are required to resolve theory imports.  Reload now?",
-            files_text) == 0
-        }
-      if (do_load)
-        for (file <- files if !loaded_buffer(file))
-          jEdit.openFile(null: View, file)
+            "The following files are required to resolve theory imports.",
+            "Reload selected files now?",
+            new ScrollPane(files_list))
+        if (answer == 0)
+          files_list.selection.items foreach (file =>
+            if (!loaded_buffer(file)) jEdit.openFile(null: View, file))
+      }
     }
 
 

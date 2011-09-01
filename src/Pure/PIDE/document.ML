@@ -25,7 +25,7 @@ sig
   type state
   val init_state: state
   val define_command: command_id -> string -> state -> state
-  val join_commands: state -> unit
+  val join_commands: state -> state
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
@@ -230,7 +230,9 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
+  commands:
+    Toplevel.transition future Inttab.table *  (*command_id -> transition (future parsing)*)
+    Toplevel.transition future list,  (*recent commands to be joined*)
   execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
     (*exec_id -> command_id with eval/print process*)
   execution: Future.group}  (*global execution process*)
@@ -244,7 +246,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    Inttab.make [(no_id, Future.value Toplevel.empty)],
+    (Inttab.make [(no_id, Future.value Toplevel.empty)], []),
     Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
     Future.new_group NONE);
 
@@ -266,7 +268,7 @@ fun the_version (State {versions, ...}) (id: version_id) =
 (* commands *)
 
 fun define_command (id: command_id) text =
-  map_state (fn (versions, commands, execs, execution) =>
+  map_state (fn (versions, (commands, recent), execs, execution) =>
     let
       val id_string = print_id id;
       val tr =
@@ -276,15 +278,16 @@ fun define_command (id: command_id) text =
       val commands' =
         Inttab.update_new (id, tr) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-    in (versions, commands', execs, execution) end);
+    in (versions, (commands', tr :: recent), execs, execution) end);
 
 fun the_command (State {commands, ...}) (id: command_id) =
-  (case Inttab.lookup commands id of
+  (case Inttab.lookup (#1 commands) id of
     NONE => err_undef "command" id
   | SOME tr => tr);
 
-fun join_commands (State {commands, ...}) =
-  Inttab.fold (fn (_, tr) => fn () => ignore (Future.join_result tr)) commands ();
+val join_commands =
+    map_state (fn (versions, (commands, recent), execs, execution) =>
+      (Future.join_results recent; (versions, (commands, []), execs, execution)));
 
 
 (* command executions *)
@@ -328,10 +331,7 @@ fun print_state tr st =
 fun run int tr st =
   (case Toplevel.transition int tr st of
     SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) =>
-      (case ML_Compiler.exn_messages exn of
-        [] => Exn.interrupt ()
-      | errs => (errs, NONE))
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
   | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
 
 in
@@ -342,15 +342,21 @@ fun run_command tr st =
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
     val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
+    val _ = Multithreading.interrupted ();
+    val _ = Toplevel.status tr Markup.forked;
     val start = Timing.start ();
     val (errs, result) =
       if Toplevel.is_toplevel st andalso not is_init then ([], SOME st)
       else run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
     val _ = timing tr (Timing.result start);
+    val _ = Toplevel.status tr Markup.joined;
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
-      NONE => (Toplevel.status tr Markup.failed; (st, no_print))
+      NONE =>
+       (if null errs then Exn.interrupt () else ();
+        Toplevel.status tr Markup.failed;
+        (st, no_print))
     | SOME st' =>
        (Toplevel.status tr Markup.finished;
         proof_status tr st';
@@ -526,7 +532,7 @@ fun execute version_id state =
           (fn deps => fn (name, node) =>
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
-                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = true}
+                deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
               (iterate_entries NONE (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
 
     in (versions, commands, execs, execution) end);

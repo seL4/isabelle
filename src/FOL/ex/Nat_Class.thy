@@ -26,9 +26,8 @@ class nat =
     and rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 begin
 
-definition
-  add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 60) where
-  "m + n = rec(m, n, \<lambda>x y. Suc(y))"
+definition add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 60)
+  where "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
 lemma Suc_n_not_n: "Suc(k) \<noteq> (k::'a)"
   apply (rule_tac n = k in induct)

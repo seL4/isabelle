@@ -25,51 +25,55 @@ class Thy_Info(thy_load: Thy_Load)
 {
   /* messages */
 
-  private def show_path(names: List[String]): String =
-    names.map(quote).mkString(" via ")
+  private def show_path(names: List[Document.Node.Name]): String =
+    names.map(name => quote(name.theory)).mkString(" via ")
 
-  private def cycle_msg(names: List[String]): String =
+  private def cycle_msg(names: List[Document.Node.Name]): String =
     "Cyclic dependency of " + show_path(names)
 
-  private def required_by(s: String, initiators: List[String]): String =
+  private def required_by(initiators: List[Document.Node.Name]): String =
     if (initiators.isEmpty) ""
-    else s + "(required by " + show_path(initiators.reverse) + ")"
+    else "\n(required by " + show_path(initiators.reverse) + ")"
 
 
   /* dependencies */
 
-  type Deps = Map[String, Document.Node_Header]
-
-  private def require_thys(initiators: List[String],
-      deps: Deps, thys: List[(String, String)]): Deps =
-    (deps /: thys)(require_thy(initiators, _, _))
-
-  private def require_thy(initiators: List[String], deps: Deps, thy: (String, String)): Deps =
+  def import_name(dir: String, str: String): Document.Node.Name =
   {
-    val (dir, str) = thy
     val path = Path.explode(str)
-    val thy_name = path.base.implode
-    val node_name = thy_load.append(dir, Thy_Header.thy_path(path))
+    val node = thy_load.append(dir, Thy_Header.thy_path(path))
+    val dir1 = thy_load.append(dir, path.dir)
+    val theory = path.base.implode
+    Document.Node.Name(node, dir1, theory)
+  }
 
-    if (deps.isDefinedAt(node_name) || thy_load.is_loaded(thy_name)) deps
+  type Deps = Map[Document.Node.Name, Document.Node_Header]
+
+  private def require_thys(initiators: List[Document.Node.Name],
+      deps: Deps, names: List[Document.Node.Name]): Deps =
+    (deps /: names)(require_thy(initiators, _, _))
+
+  private def require_thy(initiators: List[Document.Node.Name],
+      deps: Deps, name: Document.Node.Name): Deps =
+  {
+    if (deps.isDefinedAt(name) || thy_load.is_loaded(name.theory)) deps
     else {
-      val dir1 = thy_load.append(dir, path.dir)
       try {
-        if (initiators.contains(node_name)) error(cycle_msg(initiators))
+        if (initiators.contains(name)) error(cycle_msg(initiators))
         val header =
-          try { thy_load.check_thy(node_name) }
+          try { thy_load.check_thy(name) }
           catch {
             case ERROR(msg) =>
-              cat_error(msg, "The error(s) above occurred while examining theory file " +
-                quote(node_name) + required_by("\n", initiators))
+              cat_error(msg, "The error(s) above occurred while examining theory " +
+                quote(name.theory) + required_by(initiators))
           }
-        val thys = header.imports.map(str => (dir1, str))
-        require_thys(node_name :: initiators, deps + (node_name -> Exn.Res(header)), thys)
+        val imports = header.imports.map(import_name(name.dir, _))
+        require_thys(name :: initiators, deps + (name -> Exn.Res(header)), imports)
       }
-      catch { case e: Throwable => deps + (node_name -> Exn.Exn(e)) }
+      catch { case e: Throwable => deps + (name -> Exn.Exn(e)) }
     }
   }
 
-  def dependencies(thys: List[(String, String)]): Deps =
-    require_thys(Nil, Map.empty, thys)
+  def dependencies(names: List[Document.Node.Name]): Deps =
+    require_thys(Nil, Map.empty, names)
 }
