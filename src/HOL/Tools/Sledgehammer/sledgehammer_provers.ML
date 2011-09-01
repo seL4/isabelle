@@ -62,7 +62,6 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
-  val measure_run_time : bool Config.T
   val atp_lambda_translation : string Config.T
   val atp_full_names : bool Config.T
   val smt_triggers : bool Config.T
@@ -339,8 +338,6 @@ val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val measure_run_time =
-  Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
 
 val atp_lambda_translation =
   Attrib.setup_config_string @{binding sledgehammer_atp_lambda_translation}
@@ -506,9 +503,6 @@ fun is_dangerous_prop ctxt =
   #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf
       is_exhaustive_finite)
 
-fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
-  | int_opt_add _ _ = NONE
-
 (* Important messages are important but not so important that users want to see
    them each time. *)
 val atp_important_message_keep_quotient = 10
@@ -569,7 +563,6 @@ fun run_atp mode name
         Path.append (Path.explode dest_dir) problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir ^ ".")
-    val measure_run_time = verbose orelse Config.get ctxt measure_run_time
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     fun split_time s =
       let
@@ -581,7 +574,7 @@ fun run_atp mode name
         val num3 = as_num (digit ::: digit ::: (digit >> single))
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
         val as_time = Scan.read Symbol.stopper time o raw_explode
-      in (output, as_time t) end
+      in (output, as_time t |> the_default 0 (* can't happen *)) end
     fun run_on prob_file =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
@@ -666,11 +659,7 @@ fun run_atp mode name
                   File.shell_path command ^ " " ^
                   arguments ctxt full_proof extra slice_timeout weights ^ " " ^
                   File.shell_path prob_file
-                val command =
-                  (if measure_run_time then
-                     "TIMEFORMAT='%3R'; { time " ^ core ^ " ; }"
-                   else
-                     "exec " ^ core) ^ " 2>&1"
+                val command = "TIMEFORMAT='%3R'; { time " ^ core ^ " ; } 2>&1"
                 val _ =
                   atp_problem
                   |> tptp_lines_for_atp_problem format
@@ -681,13 +670,13 @@ fun run_atp mode name
                     upto conjecture_offset + length hyp_ts + 1
                   |> map single
                 val ((output, msecs), (atp_proof, outcome)) =
-                  TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
+                  TimeLimit.timeLimit generous_slice_timeout
+                                      Isabelle_System.bash_output command
                   |>> (if overlord then
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
                        else
                          I)
-                  |> fst
-                  |> (if measure_run_time then split_time else rpair NONE)
+                  |> fst |> split_time
                   |> (fn accum as (output, _) =>
                          (accum,
                           extract_tstplike_proof_and_outcome verbose complete
@@ -696,7 +685,7 @@ fun run_atp mode name
                           handle UNRECOGNIZED_ATP_PROOF () =>
                                  ([], SOME ProofIncomplete)))
                   handle TimeLimit.TimeOut =>
-                         (("", SOME (Time.toMilliseconds slice_timeout)),
+                         (("", Time.toMilliseconds slice_timeout),
                           ([], SOME TimedOut))
                 val outcome =
                   case outcome of
@@ -723,15 +712,15 @@ fun run_atp mode name
                   if Time.<= (time_left, Time.zeroTime) then
                     result
                   else
-                    (run_slice slice time_left
-                     |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
-                            (stuff, (output, int_opt_add msecs0 msecs,
-                                     atp_proof, outcome))))
+                    run_slice slice time_left
+                    |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
+                           (stuff, (output, msecs0 + msecs, atp_proof,
+                                    outcome)))
                 end
               | maybe_run_slice _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty),
-             ("", SOME 0, [], SOME InternalError))
+             ("", 0, [], SOME InternalError))
             |> fold maybe_run_slice actual_slices
           end
         else
@@ -792,7 +781,7 @@ fun run_atp mode name
               in proof_text ctxt isar_proof isar_params one_line_params end,
            (if verbose then
               "\nATP real CPU time: " ^
-              string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+              string_from_time (Time.fromMilliseconds msecs) ^ "."
             else
               "") ^
            (if important_message <> "" then
@@ -804,7 +793,7 @@ fun run_atp mode name
       | SOME failure =>
         ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time_in_msecs = msecs,
+    {outcome = outcome, used_facts = used_facts, run_time_in_msecs = SOME msecs,
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
