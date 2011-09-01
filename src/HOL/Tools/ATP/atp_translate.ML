@@ -21,7 +21,7 @@ sig
 
   datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-  datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
+  datatype soundness = Sound_Modulo_Infiniteness | Sound
   datatype type_level =
     All_Types |
     Noninf_Nonmono_Types of soundness |
@@ -536,7 +536,7 @@ datatype locality =
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-datatype soundness = Unsound | Sound_Modulo_Infiniteness | Sound
+datatype soundness = Sound_Modulo_Infiniteness | Sound
 datatype type_level =
   All_Types |
   Noninf_Nonmono_Types of soundness |
@@ -1133,11 +1133,10 @@ type monotonicity_info =
 (* These types witness that the type classes they belong to allow infinite
    models and hence that any types with these type classes is monotonic. *)
 val known_infinite_types =
-  [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
+  [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}]
 
 fun is_type_kind_of_surely_infinite ctxt soundness cached_Ts T =
-  soundness <> Sound andalso
-  is_type_surely_infinite ctxt (soundness <> Unsound) cached_Ts T
+  soundness <> Sound andalso is_type_surely_infinite ctxt true cached_Ts T
 
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
@@ -1860,11 +1859,14 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
   end
 
 (* We add "bool" in case the helper "True_or_False" is included later. *)
-val default_mono =
+fun default_mono level =
   {maybe_finite_Ts = [@{typ bool}],
    surely_finite_Ts = [@{typ bool}],
    maybe_infinite_Ts = known_infinite_types,
-   surely_infinite_Ts = known_infinite_types,
+   surely_infinite_Ts =
+     case level of
+       Noninf_Nonmono_Types Sound => []
+     | _ => known_infinite_types,
    maybe_nonmono_Ts = [@{typ bool}]}
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
@@ -1919,7 +1921,7 @@ fun add_fact_mononotonicity_info ctxt level
                (add_iterm_mononotonicity_info ctxt level) iformula
 fun mononotonicity_info_for_facts ctxt type_enc facts =
   let val level = level_of_type_enc type_enc in
-    default_mono
+    default_mono level
     |> is_type_level_monotonicity_based level
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end

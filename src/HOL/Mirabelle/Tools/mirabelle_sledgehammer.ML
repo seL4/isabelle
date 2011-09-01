@@ -379,8 +379,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
                        e_weight_method |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.force_sos)
                        force_sos |> the_default I)
-                 #> Config.put Sledgehammer_Provers.measure_run_time true
-                 #> Config.put Sledgehammer_Provers.atp_sound_modulo_infiniteness false)
+                 #> Config.put Sledgehammer_Provers.measure_run_time true)
     val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),

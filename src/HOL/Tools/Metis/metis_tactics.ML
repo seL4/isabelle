@@ -121,7 +121,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
-      val type_enc = type_enc_from_string Unsound type_enc
+      val type_enc = type_enc_from_string Sound type_enc
       val (sym_tab, axioms, old_skolems) =
         prepare_metis_problem ctxt type_enc cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =

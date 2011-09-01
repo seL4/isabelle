@@ -65,7 +65,6 @@ sig
   val measure_run_time : bool Config.T
   val atp_lambda_translation : string Config.T
   val atp_full_names : bool Config.T
-  val atp_sound_modulo_infiniteness : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -351,9 +350,6 @@ val atp_lambda_translation =
    provers (e.g., E). For these reason, short names are enabled by default. *)
 val atp_full_names =
   Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
-val atp_sound_modulo_infiniteness =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_sound_modulo_infiniteness}
-                           (K true)
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -627,13 +623,7 @@ fun run_atp mode name
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
                 val soundness =
-                  if sound then
-                    if Config.get ctxt atp_sound_modulo_infiniteness then
-                      Sound_Modulo_Infiniteness
-                    else
-                      Sound
-                  else
-                    Unsound
+                  if sound then Sound else Sound_Modulo_Infiniteness
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format
                 val fairly_sound = is_type_enc_fairly_sound type_enc
