@@ -2929,6 +2929,14 @@ proof (rule zip_obtain_same_length)
     by (induct xs' ys' rule: list_induct2) (auto elim: in_set_zipE)
 qed
 
+(* The next two lemmas help Sledgehammer. *)
+
+lemma distinct_singleton: "distinct [x]" by simp
+
+lemma distinct_length_2_or_more:
+"distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
+by (metis distinct.simps(2) hd.simps hd_in_set list.simps(2) set_ConsD set_rev_mp set_subset_Cons)
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
