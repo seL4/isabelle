@@ -93,7 +93,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
           if (nodes_status != nodes_status1) {
             nodes_status = nodes_status1
             val order =
-              Library.sort_wrt((name: Document.Node.Name) => name.node, nodes_status.keySet.toList)
+              Library.sort_wrt((name: Document.Node.Name) => name.theory,
+                nodes_status.keySet.toList)
             status.listData = order.map(name => name.theory + " " + nodes_status(name))
           }
       }
