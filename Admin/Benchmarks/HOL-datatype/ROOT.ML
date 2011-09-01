@@ -5,7 +5,7 @@ Some rather large datatype examples (from John Harrison).
 
 val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 
-timing := true;
+Toplevel.timing := true;
 
 warning "\nset quick_and_dirty\n"; quick_and_dirty := true;
 use_thys tests;
