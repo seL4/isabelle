@@ -53,6 +53,7 @@ sig
   val tptp_product_type : string
   val tptp_forall : string
   val tptp_ho_forall : string
+  val tptp_pi_binder : string
   val tptp_exists : string
   val tptp_ho_exists : string
   val tptp_choice : string
@@ -160,6 +161,7 @@ val tptp_fun_type = ">"
 val tptp_product_type = "*"
 val tptp_forall = "!"
 val tptp_ho_forall = "!!"
+val tptp_pi_binder = "!>"
 val tptp_exists = "?"
 val tptp_ho_exists = "??"
 val tptp_choice = "@+"
@@ -259,7 +261,7 @@ fun str_for_type ty =
         str false ty1 ^ " " ^ tptp_fun_type ^ " " ^ str true ty2
         |> not rhs ? enclose "(" ")"
       | str _ (ATyAbs (ss, ty)) =
-        tptp_forall ^ "[" ^
+        tptp_pi_binder ^ "[" ^
         commas (map (suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types))
                     ss) ^ "] : " ^ str false ty
   in str true ty end
