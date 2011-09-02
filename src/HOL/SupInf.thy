@@ -79,7 +79,7 @@ lemma Sup_upper2: (*REAL_IMP_LE_SUP in HOL4*)
 lemma Sup_real_iff : (*REAL_SUP_LE in HOL4*)
   fixes z :: real
   shows "X ~= {} ==> (!!x. x \<in> X ==> x \<le> z) ==> (\<exists>x\<in>X. y<x) <-> y < Sup X"
-  by (metis Sup_least Sup_upper linorder_not_le le_less_trans)
+  by (rule iffI, metis less_le_trans Sup_upper, metis Sup_least not_less)
 
 lemma Sup_eq:
   fixes a :: real
