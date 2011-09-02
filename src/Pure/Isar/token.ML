@@ -18,6 +18,7 @@ sig
   val position_of: T -> Position.T
   val end_position_of: T -> Position.T
   val pos_of: T -> string
+  val range: T list -> Position.range
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -121,6 +122,13 @@ fun position_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_position_of (Token ((_, (_, pos)), _, _)) = pos;
 
 val pos_of = Position.str_of o position_of;
+
+fun range [] = (Position.none, Position.none)
+  | range toks =
+      let
+        val start_pos = position_of (hd toks);
+        val end_pos = end_position_of (List.last toks);
+      in (start_pos, end_pos) end;
 
 
 (* control tokens *)

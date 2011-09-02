@@ -34,7 +34,6 @@ sig
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: TextIO.instream -> bool -> isar
-  val read_span: outer_syntax -> Thy_Syntax.span -> Toplevel.transition * bool
   val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
     (Toplevel.transition * Toplevel.transition list) list
   val read_command: Position.T -> string -> Toplevel.transition
@@ -255,17 +254,16 @@ fun isar in_stream term : isar =
 
 val not_singleton = "Exactly one command expected";
 
-fun read_span outer_syntax span =
+fun read_span outer_syntax toks =
   let
     val commands = lookup_commands outer_syntax;
-    val range_pos = Position.set_range (Thy_Syntax.span_range span);
-    val toks = Thy_Syntax.span_content span;
+    val range_pos = Position.set_range (Token.range toks);
     val _ = List.app Thy_Syntax.report_token toks;
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] =>
         if Keyword.is_control (Toplevel.name_of tr) then
-          (Toplevel.malformed range_pos "Illegal control command", true)
+          (Toplevel.malformed (Toplevel.pos_of tr) "Illegal control command", true)
         else (tr, true)
     | [] => (Toplevel.ignored range_pos, false)
     | _ => (Toplevel.malformed range_pos not_singleton, true))
@@ -274,19 +272,19 @@ fun read_span outer_syntax span =
 
 fun read_element outer_syntax init {head, proof, proper_proof} =
   let
-    val (tr, proper_head) = read_span outer_syntax head |>> Toplevel.modify_init init;
-    val proof_trs = map (read_span outer_syntax) proof |> filter #2 |> map #1;
+    val read = read_span outer_syntax o Thy_Syntax.span_content;
+    val (tr, proper_head) = read head |>> Toplevel.modify_init init;
+    val proof_trs = map read proof |> filter #2 |> map #1;
   in
     if proper_head andalso proper_proof then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
 
 fun read_command pos str =
-  let val (lexs, outer_syntax) = get_syntax () in
-    (case Thy_Syntax.parse_spans lexs pos str of
-      [span] => #1 (read_span outer_syntax span)
-    | _ => Toplevel.malformed pos not_singleton)
-  end;
+  let
+    val (lexs, outer_syntax) = get_syntax ();
+    val toks = Thy_Syntax.parse_tokens lexs pos str;
+  in #1 (read_span outer_syntax toks) end;
 
 end;
 
