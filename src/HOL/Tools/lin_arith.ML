@@ -22,7 +22,7 @@ sig
   val split_limit: int Config.T
   val neq_limit: int Config.T
   val verbose: bool Config.T
-  val trace: bool Unsynchronized.ref
+  val trace: bool Config.T
 end;
 
 structure Lin_Arith: LIN_ARITH =
@@ -102,14 +102,16 @@ fun add_inj_const c = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
 
 val split_limit = Attrib.setup_config_int @{binding linarith_split_limit} (K 9);
 val neq_limit = Attrib.setup_config_int @{binding linarith_neq_limit} (K 9);
-val verbose  = Attrib.setup_config_bool @{binding linarith_verbose} (K true);
+val verbose = Attrib.setup_config_bool @{binding linarith_verbose} (K true);
+val trace = Attrib.setup_config_bool @{binding linarith_trace} (K false);
 
 
 structure LA_Data =
 struct
 
-val fast_arith_neq_limit = neq_limit;
-val fast_arith_verbose = verbose;
+val neq_limit = neq_limit;
+val verbose = verbose;
+val trace = trace;
 
 
 (* Decomposition of terms *)
@@ -779,7 +781,6 @@ val set_number_of = Fast_Arith.set_number_of;
 
 fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
 val lin_arith_tac = Fast_Arith.lin_arith_tac;
-val trace = Fast_Arith.trace;
 
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics. *)

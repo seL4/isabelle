@@ -28,9 +28,6 @@ text {*
   does not do.)
 *}
 
-(*
-ML {* set Lin_Arith.trace; *}
-*)
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term minus}, @{term nat}, @{term Divides.mod},
@@ -242,9 +239,5 @@ text {* Again, but different order. *}
 lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
   by linarith
-
-(*
-ML {* reset Lin_Arith.trace; *}
-*)
 
 end
