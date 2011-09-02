@@ -33,7 +33,7 @@ $(LOG)/HOL-datatype.gz: $(OUT)/HOL HOL-datatype/ROOT.ML		\
 HOL-record: HOL $(LOG)/HOL-record.gz
 
 $(LOG)/HOL-record.gz: $(OUT)/HOL HOL-record/ROOT.ML	\
-   HOL-record/RecordBenchmark.thy
+   HOL-record/Record_Benchmark.thy
 	@$(ISABELLE_TOOL) usedir -s record $(OUT)/HOL HOL-record
 
 

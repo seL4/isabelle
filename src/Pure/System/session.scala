@@ -253,7 +253,7 @@ class Session(thy_load: Thy_Load)
       {
         if (!global_state().defined_command(command.id)) {
           global_state.change(_.define_command(command))
-          prover.get.define_command(command.id, Symbol.encode(command.source))
+          prover.get.define_command(command)
         }
       }
       doc_edits foreach {

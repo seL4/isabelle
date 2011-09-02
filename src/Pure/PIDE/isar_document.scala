@@ -148,8 +148,9 @@ trait Isar_Document extends Isabelle_Process
 {
   /* commands */
 
-  def define_command(id: Document.Command_ID, text: String): Unit =
-    input("Isar_Document.define_command", Document.ID(id), text)
+  def define_command(command: Command): Unit =
+    input("Isar_Document.define_command",
+      Document.ID(command.id), Symbol.encode(command.name), Symbol.encode(command.source))
 
 
   /* document versions */

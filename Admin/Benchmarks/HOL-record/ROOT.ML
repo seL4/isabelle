@@ -3,9 +3,9 @@
 Some benchmark on large record.
 *)
 
-val tests = ["RecordBenchmark"];
+val tests = ["Record_Benchmark"];
 
-timing := true;
+Toplevel.timing := true;
 
 warning "\nset quick_and_dirty\n"; quick_and_dirty := true;
 use_thys tests;
