@@ -25,7 +25,6 @@ sig
   type state
   val init_state: state
   val define_command: command_id -> string -> string -> state -> state
-  val join_commands: state -> state
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
   val update: version_id -> version_id -> edit list -> state ->
@@ -237,9 +236,7 @@ end;
 
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
-  commands:
-    (string * Toplevel.transition future) Inttab.table *  (*command_id -> name * transition*)
-    Toplevel.transition future list,  (*recent commands to be joined*)
+  commands: (string * Toplevel.transition future) Inttab.table,  (*command_id -> name * transition*)
   execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
     (*exec_id -> command_id with eval/print process*)
   execution: Future.group}  (*global execution process*)
@@ -253,7 +250,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    (Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))], []),
+    Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))],
     Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
     Future.new_group NONE);
 
@@ -275,26 +272,25 @@ fun the_version (State {versions, ...}) (id: version_id) =
 (* commands *)
 
 fun define_command (id: command_id) name text =
-  map_state (fn (versions, (commands, recent), execs, execution) =>
+  map_state (fn (versions, commands, execs, execution) =>
     let
       val id_string = print_id id;
-      val tr =
-        Future.fork_pri 2 (fn () =>
-          Position.setmp_thread_data (Position.id_only id_string)
-            (fn () => Outer_Syntax.read_command (Position.id id_string) text) ());
+      val future =
+        (singleton o Future.forks)
+          {name = "Document.define_command", group = SOME (Future.new_group NONE),
+            deps = [], pri = ~1, interrupts = false}
+          (fn () =>
+            Position.setmp_thread_data (Position.id_only id_string)
+              (fn () => Outer_Syntax.read_command (Position.id id_string) text) ());
       val commands' =
-        Inttab.update_new (id, (name, tr)) commands
+        Inttab.update_new (id, (name, future)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-    in (versions, (commands', tr :: recent), execs, execution) end);
+    in (versions, commands', execs, execution) end);
 
 fun the_command (State {commands, ...}) (id: command_id) =
-  (case Inttab.lookup (#1 commands) id of
+  (case Inttab.lookup commands id of
     NONE => err_undef "command" id
   | SOME command => command);
-
-val join_commands =
-    map_state (fn (versions, (commands, recent), execs, execution) =>
-      (Future.join_results recent; (versions, (commands, []), execs, execution)));
 
 
 (* command executions *)
@@ -419,20 +415,16 @@ fun new_exec state bad_init command_id' (execs, exec, init) =
   if bad_init andalso is_none init then NONE
   else
     let
-      val (name, tr0) = the_command state command_id';
+      val (name, tr0) = the_command state command_id' ||> Future.join;
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (the_default illegal_init init), NONE)
         else (I, init);
-        val exec_id' = new_id ();
-      val exec' =
-        snd exec |> Lazy.map (fn (st, _) =>
-          let val tr =
-            Future.join tr0
-            |> modify_init
-            |> Toplevel.put_id (print_id exec_id');
-          in run_command tr st end)
-        |> pair command_id';
+      val exec_id' = new_id ();
+      val tr = tr0
+        |> modify_init
+        |> Toplevel.put_id (print_id exec_id');
+      val exec' = (command_id', Lazy.map (fn (st, _) => run_command tr st) (snd exec));
     in SOME ((exec_id', exec') :: execs, exec', init') end;
 
 fun make_required nodes =

@@ -107,8 +107,6 @@ sig
   val joinedN: string val joined: T
   val failedN: string val failed: T
   val finishedN: string val finished: T
-  val versionN: string
-  val assignN: string val assign: int -> T
   val serialN: string
   val legacyN: string val legacy: T
   val promptN: string val prompt: T
@@ -117,6 +115,7 @@ sig
   val no_reportN: string val no_report: T
   val badN: string val bad: T
   val functionN: string
+  val assign_execs: Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
   val no_output: Output.output * Output.output
@@ -349,12 +348,6 @@ val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 
 
-(* interactive documents *)
-
-val versionN = "version";
-val (assignN, assign) = markup_int "assign" versionN;
-
-
 (* messages *)
 
 val serialN = "serial";
@@ -372,6 +365,8 @@ val (badN, bad) = markup_elem "bad";
 (* raw message functions *)
 
 val functionN = "function"
+
+val assign_execs = [(functionN, "assign_execs")];
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];

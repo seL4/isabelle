@@ -273,6 +273,8 @@ object Markup
   val FUNCTION = "function"
   val Function = new Properties.String(FUNCTION)
 
+  val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
+
   val INVOKE_SCALA = "invoke_scala"
   object Invoke_Scala
   {

@@ -201,6 +201,7 @@ class Text_Area_Painter(doc_view: Document_View)
           x + w < clip_rect.x + clip_rect.width && chunk.accessable)
       {
         val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
+        val chunk_str = if (chunk.str == null) " " * chunk.length else chunk.str
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
@@ -229,7 +230,7 @@ class Text_Area_Painter(doc_view: Document_View)
         var x1 = x + w
         gfx.setFont(chunk_font)
         for (Text.Info(range, info) <- padded_markup if !range.is_singularity) {
-          val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
+          val str = chunk_str.substring(range.start - chunk_offset, range.stop - chunk_offset)
           gfx.setColor(info.getOrElse(chunk_color))
 
           range.try_restrict(caret_range) match {

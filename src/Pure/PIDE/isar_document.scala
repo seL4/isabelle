@@ -13,19 +13,16 @@ object Isar_Document
 
   object Assign
   {
-    def unapply(msg: XML.Tree): Option[(Document.Version_ID, Document.Assign)] =
-      msg match {
-        case XML.Elem(Markup(Markup.ASSIGN, List((Markup.VERSION, Document.ID(id)))), body) =>
-          try {
-            import XML.Decode._
-            val a = pair(list(pair(long, option(long))), list(pair(string, option(long))))(body)
-            Some(id, a)
-          }
-          catch {
-            case _: XML.XML_Atom => None
-            case _: XML.XML_Body => None
-          }
-        case _ => None
+    def unapply(text: String): Option[(Document.Version_ID, Document.Assign)] =
+      try {
+        import XML.Decode._
+        val body = YXML.parse_body(text)
+        Some(pair(long, pair(list(pair(long, option(long))), list(pair(string, option(long)))))(body))
+      }
+      catch {
+        case ERROR(_) => None
+        case _: XML.XML_Atom => None
+        case _: XML.XML_Body => None
       }
   }
 
