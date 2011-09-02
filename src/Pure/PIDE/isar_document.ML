@@ -9,7 +9,8 @@ struct
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.define_command"
-    (fn [id, text] => Document.change_state (Document.define_command (Document.parse_id id) text));
+    (fn [id, name, text] =>
+      Document.change_state (Document.define_command (Document.parse_id id) name text));
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.cancel_execution"

@@ -24,7 +24,7 @@ sig
   type edit = string * node_edit
   type state
   val init_state: state
-  val define_command: command_id -> string -> state -> state
+  val define_command: command_id -> string -> string -> state -> state
   val join_commands: state -> state
   val cancel_execution: state -> Future.task list
   val update_perspective: version_id -> version_id -> string -> command_id list -> state -> state
@@ -233,7 +233,7 @@ end;
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands:
-    Toplevel.transition future Inttab.table *  (*command_id -> transition (future parsing)*)
+    (string * Toplevel.transition future) Inttab.table *  (*command_id -> name * transition*)
     Toplevel.transition future list,  (*recent commands to be joined*)
   execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
     (*exec_id -> command_id with eval/print process*)
@@ -248,7 +248,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    (Inttab.make [(no_id, Future.value Toplevel.empty)], []),
+    (Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))], []),
     Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
     Future.new_group NONE);
 
@@ -269,7 +269,7 @@ fun the_version (State {versions, ...}) (id: version_id) =
 
 (* commands *)
 
-fun define_command (id: command_id) text =
+fun define_command (id: command_id) name text =
   map_state (fn (versions, (commands, recent), execs, execution) =>
     let
       val id_string = print_id id;
@@ -278,14 +278,14 @@ fun define_command (id: command_id) text =
           Position.setmp_thread_data (Position.id_only id_string)
             (fn () => Outer_Syntax.read_command (Position.id id_string) text) ());
       val commands' =
-        Inttab.update_new (id, tr) commands
+        Inttab.update_new (id, (name, tr)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, (commands', tr :: recent), execs, execution) end);
 
 fun the_command (State {commands, ...}) (id: command_id) =
   (case Inttab.lookup (#1 commands) id of
     NONE => err_undef "command" id
-  | SOME tr => tr);
+  | SOME command => command);
 
 val join_commands =
     map_state (fn (versions, (commands, recent), execs, execution) =>
@@ -400,12 +400,12 @@ fun last_common last_visible node0 node =
 
 fun new_exec state init command_id' (execs, exec) =
   let
-    val command' = the_command state command_id';
+    val (_, tr0) = the_command state command_id';
     val exec_id' = new_id ();
     val exec' =
       snd exec |> Lazy.map (fn (st, _) =>
         let val tr =
-          Future.join command'
+          Future.join tr0
           |> Toplevel.modify_init init
           |> Toplevel.put_id (print_id exec_id');
         in run_command tr st end)
