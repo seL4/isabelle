@@ -505,7 +505,7 @@ fun is_dangerous_prop ctxt =
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
-val atp_important_message_keep_quotient = 10
+val atp_important_message_keep_quotient = 25
 
 fun choose_type_enc soundness best_type_enc format =
   the_default best_type_enc
