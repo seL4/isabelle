@@ -233,10 +233,10 @@ lemma abelian_subgroupI:
   shows "abelian_subgroup H G"
 proof -
   interpret normal "H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  by (rule a_normal)
+    by (rule a_normal)
 
   show "abelian_subgroup H G"
-  proof qed (simp add: a_comm)
+    by default (simp add: a_comm)
 qed
 
 lemma abelian_subgroupI2:

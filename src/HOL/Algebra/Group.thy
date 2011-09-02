@@ -286,7 +286,7 @@ proof -
   qed
   then have carrier_subset_Units: "carrier G <= Units G"
     by (unfold Units_def) fast
-  show ?thesis proof qed (auto simp: r_one m_assoc carrier_subset_Units)
+  show ?thesis by default (auto simp: r_one m_assoc carrier_subset_Units)
 qed
 
 lemma (in monoid) group_l_invI:
@@ -694,7 +694,7 @@ lemma (in group) group_comm_groupI:
   assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==>
       x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
-  proof qed (simp_all add: m_comm)
+  by default (simp_all add: m_comm)
 
 lemma comm_groupI:
   fixes G (structure)
@@ -722,7 +722,7 @@ text_raw {* \label{sec:subgroup-lattice} *}
 
 theorem (in group) subgroups_partial_order:
   "partial_order (| carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq> |)"
-  proof qed simp_all
+  by default simp_all
 
 lemma (in group) subgroup_self:
   "subgroup (carrier G) G"

@@ -25,14 +25,14 @@ lemma (in monoid) monoid_cancelI:
       and r_cancel: 
           "\<And>a b c. \<lbrakk>a \<otimes> c = b \<otimes> c; a \<in> carrier G; b \<in> carrier G; c \<in> carrier G\<rbrakk> \<Longrightarrow> a = b"
   shows "monoid_cancel G"
-  proof qed fact+
+    by default fact+
 
 lemma (in monoid_cancel) is_monoid_cancel:
   "monoid_cancel G"
   ..
 
 sublocale group \<subseteq> monoid_cancel
-  proof qed simp+
+  by default simp_all
 
 
 locale comm_monoid_cancel = monoid_cancel + comm_monoid
@@ -3655,7 +3655,7 @@ apply (metis properfactor_fcount)
 done
 
 sublocale factorial_monoid \<subseteq> primeness_condition_monoid
-  proof qed (rule irreducible_is_prime)
+  by default (rule irreducible_is_prime)
 
 
 lemma (in factorial_monoid) primeness_condition:
@@ -3664,10 +3664,10 @@ lemma (in factorial_monoid) primeness_condition:
 
 lemma (in factorial_monoid) gcd_condition [simp]:
   shows "gcd_condition_monoid G"
-  proof qed (rule gcdof_exists)
+  by default (rule gcdof_exists)
 
 sublocale factorial_monoid \<subseteq> gcd_condition_monoid
-  proof qed (rule gcdof_exists)
+  by default (rule gcdof_exists)
 
 lemma (in factorial_monoid) division_weak_lattice [simp]:
   shows "weak_lattice (division_rel G)"

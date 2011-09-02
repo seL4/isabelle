@@ -1764,7 +1764,7 @@ lemma remainder_theorem_expression:
     and deg_r_0: "deg R r = 0"
     shows "r = monom P (eval R R id a f) 0"
 proof -
-  interpret UP_pre_univ_prop R R id P proof qed simp
+  interpret UP_pre_univ_prop R R id P by default simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R"
     using eval_ring_hom [OF a] by simp
   have "eval R R id a f = eval R R id a ?gq \<oplus>\<^bsub>R\<^esub> eval R R id a r"

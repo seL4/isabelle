@@ -921,7 +921,7 @@ text {* Introduction rule: the usual definition of total order *}
 lemma (in weak_partial_order) weak_total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "weak_total_order L"
-  proof qed (rule total)
+  by default (rule total)
 
 text {* Total orders are lattices. *}
 
@@ -985,7 +985,7 @@ lemma (in weak_partial_order) weak_complete_latticeI:
     and inf_exists:
     "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
   shows "weak_complete_lattice L"
-  proof qed (auto intro: sup_exists inf_exists)
+  by default (auto intro: sup_exists inf_exists)
 
 definition
   top :: "_ => 'a" ("\<top>\<index>")
@@ -1133,14 +1133,14 @@ locale upper_semilattice = partial_order +
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
 
 sublocale upper_semilattice < weak: weak_upper_semilattice
-  proof qed (rule sup_of_two_exists)
+  by default (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
 sublocale lower_semilattice < weak: weak_lower_semilattice
-  proof qed (rule inf_of_two_exists)
+  by default (rule inf_of_two_exists)
 
 locale lattice = upper_semilattice + lower_semilattice
 
@@ -1191,19 +1191,19 @@ locale total_order = partial_order +
   assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
 sublocale total_order < weak: weak_total_order
-  proof qed (rule total_order_total)
+  by default (rule total_order_total)
 
 text {* Introduction rule: the usual definition of total order *}
 
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "total_order L"
-  proof qed (rule total)
+  by default (rule total)
 
 text {* Total orders are lattices. *}
 
 sublocale total_order < weak: lattice
-  proof qed (auto intro: sup_of_two_exists inf_of_two_exists)
+  by default (auto intro: sup_of_two_exists inf_of_two_exists)
 
 
 text {* Complete lattices *}
@@ -1215,7 +1215,7 @@ locale complete_lattice = lattice +
     "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
 
 sublocale complete_lattice < weak: weak_complete_lattice
-  proof qed (auto intro: sup_exists inf_exists)
+  by default (auto intro: sup_exists inf_exists)
 
 text {* Introduction rule: the usual definition of complete lattice *}
 
@@ -1225,7 +1225,7 @@ lemma (in partial_order) complete_latticeI:
     and inf_exists:
     "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
   shows "complete_lattice L"
-  proof qed (auto intro: sup_exists inf_exists)
+  by default (auto intro: sup_exists inf_exists)
 
 theorem (in partial_order) complete_lattice_criterion1:
   assumes top_exists: "EX g. greatest L g (carrier L)"
