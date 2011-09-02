@@ -16,7 +16,6 @@ sig
   type span
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
-  val span_range: span -> Position.range
   val span_source: (Token.T, 'a) Source.source -> (span, (Token.T, 'a) Source.source) Source.source
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> Output.output
@@ -100,15 +99,6 @@ datatype span = Span of span_kind * Token.T list;
 
 fun span_kind (Span (k, _)) = k;
 fun span_content (Span (_, toks)) = toks;
-
-fun span_range span =
-  (case span_content span of
-    [] => (Position.none, Position.none)
-  | toks =>
-      let
-        val start_pos = Token.position_of (hd toks);
-        val end_pos = Token.end_position_of (List.last toks);
-      in (start_pos, end_pos) end);
 
 
 (* parse *)

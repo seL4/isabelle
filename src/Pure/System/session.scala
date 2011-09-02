@@ -288,6 +288,13 @@ class Session(thy_load: Thy_Load)
           catch {
             case _: Document.State.Fail => bad_result(result)
           }
+        case Markup.Assign_Execs if result.is_raw =>
+          XML.content(result.body).mkString match {
+            case Isar_Document.Assign(id, assign) =>
+              try { handle_assign(id, assign) }
+              catch { case _: Document.State.Fail => bad_result(result) }
+            case _ => bad_result(result)
+          }
         case Markup.Invoke_Scala(name, id) if result.is_raw =>
           Future.fork {
             val arg = XML.content(result.body).mkString
@@ -311,9 +318,6 @@ class Session(thy_load: Thy_Load)
           else if (result.is_stdout) { }
           else if (result.is_status) {
             result.body match {
-              case List(Isar_Document.Assign(id, assign)) =>
-                try { handle_assign(id, assign) }
-                catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
               case List(Thy_Info.Loaded_Theory(name)) => thy_load.register_thy(name)
