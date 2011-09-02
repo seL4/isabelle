@@ -34,9 +34,9 @@ sig
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: TextIO.instream -> bool -> isar
+  val read_command: Position.T -> string -> Toplevel.transition
   val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
     (Toplevel.transition * Toplevel.transition list) list
-  val read_command: Position.T -> string -> Toplevel.transition
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -270,6 +270,12 @@ fun read_span outer_syntax toks =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
+fun read_command pos str =
+  let
+    val (lexs, outer_syntax) = get_syntax ();
+    val toks = Thy_Syntax.parse_tokens lexs pos str;
+  in #1 (read_span outer_syntax toks) end;
+
 fun read_element outer_syntax init {head, proof, proper_proof} =
   let
     val read = read_span outer_syntax o Thy_Syntax.span_content;
@@ -279,12 +285,6 @@ fun read_element outer_syntax init {head, proof, proper_proof} =
     if proper_head andalso proper_proof then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
-
-fun read_command pos str =
-  let
-    val (lexs, outer_syntax) = get_syntax ();
-    val toks = Thy_Syntax.parse_tokens lexs pos str;
-  in #1 (read_span outer_syntax toks) end;
 
 end;
 
