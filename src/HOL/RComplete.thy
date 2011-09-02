@@ -113,50 +113,25 @@ text{* This density proof is due to Stefan Richter and was ported by TN.  The
 original source is \emph{Real Analysis} by H.L. Royden.
 It employs the Archimedean property of the reals. *}
 
-lemma Rats_dense_in_nn_real: fixes x::real
-assumes "0\<le>x" and "x<y" shows "\<exists>r \<in> \<rat>.  x<r \<and> r<y"
+lemma Rats_dense_in_real:
+  fixes x :: real
+  assumes "x < y" shows "\<exists>r\<in>\<rat>. x < r \<and> r < y"
 proof -
   from `x<y` have "0 < y-x" by simp
   with reals_Archimedean obtain q::nat 
-    where q: "inverse (real q) < y-x" and "0 < real q" by auto  
-  def p \<equiv> "LEAST n.  y \<le> real (Suc n)/real q"  
-  from reals_Archimedean2 obtain n::nat where "y * real q < real n" by auto
-  with `0 < real q` have ex: "y \<le> real n/real q" (is "?P n")
-    by (simp add: pos_less_divide_eq[THEN sym])
-  also from assms have "\<not> y \<le> real (0::nat) / real q" by simp
-  ultimately have main: "(LEAST n. y \<le> real n/real q) = Suc p"
-    by (unfold p_def) (rule Least_Suc)
-  also from ex have "?P (LEAST x. ?P x)" by (rule LeastI)
-  ultimately have suc: "y \<le> real (Suc p) / real q" by simp
-  def r \<equiv> "real p/real q"
-  have "x = y-(y-x)" by simp
-  also from suc q have "\<dots> < real (Suc p)/real q - inverse (real q)" by arith
-  also have "\<dots> = real p / real q"
-    by (simp only: inverse_eq_divide diff_minus real_of_nat_Suc 
-    minus_divide_left add_divide_distrib[THEN sym]) simp
-  finally have "x<r" by (unfold r_def)
-  have "p<Suc p" .. also note main[THEN sym]
-  finally have "\<not> ?P p"  by (rule not_less_Least)
-  hence "r<y" by (simp add: r_def)
-  from r_def have "r \<in> \<rat>" by simp
-  with `x<r` `r<y` show ?thesis by fast
-qed
-
-theorem Rats_dense_in_real: fixes x y :: real
-assumes "x<y" shows "\<exists>r \<in> \<rat>.  x<r \<and> r<y"
-proof -
-  from reals_Archimedean2 obtain n::nat where "-x < real n" by auto
-  hence "0 \<le> x + real n" by arith
-  also from `x<y` have "x + real n < y + real n" by arith
-  ultimately have "\<exists>r \<in> \<rat>. x + real n < r \<and> r < y + real n"
-    by(rule Rats_dense_in_nn_real)
-  then obtain r where "r \<in> \<rat>" and r2: "x + real n < r" 
-    and r3: "r < y + real n"
-    by blast
-  have "r - real n = r + real (int n)/real (-1::int)" by simp
-  also from `r\<in>\<rat>` have "r + real (int n)/real (-1::int) \<in> \<rat>" by simp
-  also from r2 have "x < r - real n" by arith
-  moreover from r3 have "r - real n < y" by arith
+    where q: "inverse (real q) < y-x" and "0 < q" by auto
+  def p \<equiv> "ceiling (y * real q) - 1"
+  def r \<equiv> "of_int p / real q"
+  from q have "x < y - inverse (real q)" by simp
+  also have "y - inverse (real q) \<le> r"
+    unfolding r_def p_def
+    by (simp add: le_divide_eq left_diff_distrib le_of_int_ceiling `0 < q`)
+  finally have "x < r" .
+  moreover have "r < y"
+    unfolding r_def p_def
+    by (simp add: divide_less_eq diff_less_eq `0 < q`
+      less_ceiling_iff [symmetric])
+  moreover from r_def have "r \<in> \<rat>" by simp
   ultimately show ?thesis by fast
 qed
 

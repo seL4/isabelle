@@ -914,7 +914,7 @@ unfolding eventually_within eventually_at dist_nz by auto
 lemma eventually_within_le: "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)" (is "?lhs = ?rhs")
 unfolding eventually_within
-by auto (metis Rats_dense_in_nn_real order_le_less_trans order_refl) 
+by auto (metis dense order_le_less_trans)
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding trivial_limit_def
