@@ -26,7 +26,7 @@ sig
   val get_info: theory -> string -> info option
   val the_info: theory -> string -> info
   val get_hierarchy: theory -> (string * typ list) -> (string * ((string * sort) * typ) list) list
-  val add_record: bool -> (string * sort) list * binding -> (typ list * string) option ->
+  val add_record: (string * sort) list * binding -> (typ list * string) option ->
     (binding * typ * mixfix) list -> theory -> theory
 
   val last_extT: typ -> (string * typ list) option
@@ -2438,12 +2438,9 @@ fun read_field raw_field ctxt =
 
 in
 
-fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
+fun add_record (params, binding) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
-    val _ =
-      if quiet_mode then ()
-      else writeln ("Defining record " ^ Binding.print binding ^ " ...");
 
     val ctxt = Proof_Context.init_global thy;
     fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)
@@ -2493,7 +2490,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
   end
   handle ERROR msg => cat_error msg ("Failed to define record " ^ Binding.print binding);
 
-fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
+fun add_record_cmd (raw_params, binding) raw_parent raw_fields thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
@@ -2501,7 +2498,7 @@ fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
     val (parent, ctxt2) = read_parent raw_parent ctxt1;
     val (fields, ctxt3) = fold_map read_field raw_fields ctxt2;
     val params' = map (Proof_Context.check_tfree ctxt3) params;
-  in thy |> add_record quiet_mode (params', binding) parent fields end;
+  in thy |> add_record (params', binding) parent fields end;
 
 end;
 
@@ -2521,6 +2518,6 @@ val _ =
     (Parse.type_args_constrained -- Parse.binding --
       (Parse.$$$ "=" |-- Scan.option (Parse.typ --| Parse.$$$ "+") --
         Scan.repeat1 Parse.const_binding)
-    >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd false x y z)));
+    >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd x y z)));
 
 end;
