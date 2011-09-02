@@ -1,3 +1,5 @@
+no_document use_thys ["~~/src/HOL/ex/Interpretation_with_Defs"];
+
 use_thys
 ["BExp",
  "ASM",
@@ -10,6 +12,7 @@ use_thys
  "Def_Ass_Sound_Big",
  "Def_Ass_Sound_Small",
  "Live",
+ "AbsInt1_ivl",
  "Hoare_Examples",
  "VC",
  "HoareT",
