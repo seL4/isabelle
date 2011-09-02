@@ -299,7 +299,7 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val default_minimize_prover = Metis_Tactics.metisN
+val default_minimize_prover = Metis_Tactic.metisN
 
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param

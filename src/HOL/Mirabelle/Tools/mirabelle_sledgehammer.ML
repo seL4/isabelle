@@ -577,15 +577,15 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           sledge_tac 0.25 ATP_Systems.z3_tptpN "mono_simple"
           ORELSE' sledge_tac 0.25 ATP_Systems.eN "mono_guards?"
           ORELSE' sledge_tac 0.25 ATP_Systems.spassN "poly_tags_uniform"
-          ORELSE' Metis_Tactics.metis_tac [] ctxt thms
+          ORELSE' Metis_Tactic.metis_tac [] ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full orelse !reconstructor = "metis (full_types)" then
-          Metis_Tactics.metis_tac [Metis_Tactics.full_type_enc] ctxt thms
+          Metis_Tactic.metis_tac [Metis_Tactic.full_type_enc] ctxt thms
         else if !reconstructor = "metis (no_types)" then
-          Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc] ctxt thms
+          Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc] ctxt thms
         else if !reconstructor = "metis" then
-          Metis_Tactics.metis_tac [] ctxt thms
+          Metis_Tactic.metis_tac [] ctxt thms
         else
           K all_tac
       end

@@ -128,9 +128,9 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
-val metisN = Metis_Tactics.metisN
-val metis_full_typesN = metisN ^ "_" ^ Metis_Tactics.full_typesN
-val metis_no_typesN = metisN ^ "_" ^ Metis_Tactics.no_typesN
+val metisN = Metis_Tactic.metisN
+val metis_full_typesN = metisN ^ "_" ^ Metis_Tactic.full_typesN
+val metis_no_typesN = metisN ^ "_" ^ Metis_Tactic.no_typesN
 
 val metis_prover_infos =
   [(metisN, Metis),
@@ -413,15 +413,15 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor Metis =
-    Metis_Tactics.metis_tac [Metis_Tactics.partial_type_enc]
+    Metis_Tactic.metis_tac [Metis_Tactic.partial_type_enc]
   | tac_for_reconstructor Metis_Full_Types =
-    Metis_Tactics.metis_tac Metis_Tactics.full_type_syss
+    Metis_Tactic.metis_tac Metis_Tactic.full_type_syss
   | tac_for_reconstructor Metis_No_Types =
-    Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc]
+    Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc]
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
 
 fun timed_reconstructor reconstructor debug timeout ths =
-  (Config.put Metis_Tactics.verbose debug
+  (Config.put Metis_Tactic.verbose debug
    #> (fn ctxt => tac_for_reconstructor reconstructor ctxt ths))
   |> timed_apply timeout
 

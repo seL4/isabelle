@@ -11,7 +11,7 @@ imports ATP
 uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/Metis/metis_translate.ML")
      ("Tools/Metis/metis_reconstruct.ML")
-     ("Tools/Metis/metis_tactics.ML")
+     ("Tools/Metis/metis_tactic.ML")
      ("Tools/try_methods.ML")
 begin
 
@@ -36,9 +36,9 @@ subsection {* Metis package *}
 
 use "Tools/Metis/metis_translate.ML"
 use "Tools/Metis/metis_reconstruct.ML"
-use "Tools/Metis/metis_tactics.ML"
+use "Tools/Metis/metis_tactic.ML"
 
-setup {* Metis_Tactics.setup *}
+setup {* Metis_Tactic.setup *}
 
 hide_const (open) fFalse fTrue fNot fconj fdisj fimplies fequal select
 hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Metis/metis_tactics.ML
+(*  Title:      HOL/Tools/Metis/metis_tactic.ML
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -7,7 +7,7 @@
 HOL setup for the Metis prover.
 *)
 
-signature METIS_TACTICS =
+signature METIS_TACTIC =
 sig
   val metisN : string
   val full_typesN : string
@@ -26,7 +26,7 @@ sig
   val setup : theory -> theory
 end
 
-structure Metis_Tactics : METIS_TACTICS =
+structure Metis_Tactic : METIS_TACTIC =
 struct
 
 open ATP_Translate
