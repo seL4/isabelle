@@ -274,6 +274,7 @@ replaced by more general versions. INCOMPATIBILITY.
   realpow_two_disj ~> power2_eq_iff
   real_squared_diff_one_factored ~> square_diff_one_factored
   realpow_two_diff ~> square_diff_square_factored
+  reals_complete2 ~> complete_real
   exp_ln_eq ~> ln_unique
   lemma_DERIV_subst ~> DERIV_cong
   LIMSEQ_Zfun_iff ~> tendsto_Zfun_iff

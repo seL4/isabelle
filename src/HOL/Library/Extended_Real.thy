@@ -1110,7 +1110,7 @@ proof cases
     with `S \<noteq> {}` `\<infinity> \<notin> S` obtain x where "x \<in> S - {-\<infinity>}" "x \<noteq> \<infinity>" by auto
     with y `\<infinity> \<notin> S` have "\<forall>z\<in>real ` (S - {-\<infinity>}). z \<le> y"
       by (auto simp: real_of_ereal_ord_simps)
-    with reals_complete2[of "real ` (S - {-\<infinity>})"] `x \<in> S - {-\<infinity>}`
+    with complete_real[of "real ` (S - {-\<infinity>})"] `x \<in> S - {-\<infinity>}`
     obtain s where s:
        "\<forall>y\<in>S - {-\<infinity>}. real y \<le> s" "\<And>z. (\<forall>y\<in>S - {-\<infinity>}. real y \<le> z) \<Longrightarrow> s \<le> z"
        by auto

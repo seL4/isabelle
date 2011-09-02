@@ -80,14 +80,6 @@ proof -
       Collect_def mem_def isUb_def UNIV_def by simp
 qed
 
-text{*A version of the same theorem without all those predicates!*}
-lemma reals_complete2:
-  fixes S :: "(real set)"
-  assumes "\<exists>y. y\<in>S" and "\<exists>(x::real). \<forall>y\<in>S. y \<le> x"
-  shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) & 
-               (\<forall>z. ((\<forall>y\<in>S. y \<le> z) --> x \<le> z))"
-using assms by (rule complete_real)
-
 
 subsection {* The Archimedean Property of the Reals *}
 

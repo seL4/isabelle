@@ -30,7 +30,7 @@ lemma Sup_upper [intro]: (*REAL_SUP_UBOUND in HOL4*)
       and z: "!!x. x \<in> X \<Longrightarrow> x \<le> z"
   shows "x \<le> Sup X"
 proof (auto simp add: Sup_real_def) 
-  from reals_complete2
+  from complete_real
   obtain s where s: "(\<forall>y\<in>X. y \<le> s) & (\<forall>z. ((\<forall>y\<in>X. y \<le> z) --> s \<le> z))"
     by (blast intro: x z)
   hence "x \<le> s"
@@ -46,7 +46,7 @@ lemma Sup_least [intro]: (*REAL_IMP_SUP_LE in HOL4*)
       and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
   shows "Sup X \<le> z"
 proof (auto simp add: Sup_real_def) 
-  from reals_complete2 x
+  from complete_real x
   obtain s where s: "(\<forall>y\<in>X. y \<le> s) & (\<forall>z. ((\<forall>y\<in>X. y \<le> z) --> s \<le> z))"
     by (blast intro: z)
   hence "(LEAST z. \<forall>x\<in>X. x \<le> z) = s"
@@ -119,7 +119,7 @@ next
     apply (metis ex_in_conv x)
     apply (rule Sup_upper_EX) 
     apply blast
-    apply (metis insert_iff linear order_refl order_trans z)
+    apply (metis insert_iff linear order_trans z)
     done
   moreover 
   have "Sup (insert a X) \<le> Sup X"
@@ -333,7 +333,7 @@ next
     apply (metis ex_in_conv x)
     apply (rule Inf_lower_EX)
     apply (erule insertI2)
-    apply (metis insert_iff linear order_refl order_trans z)
+    apply (metis insert_iff linear order_trans z)
     done
   moreover 
   have "Inf X \<le> Inf (insert a X)"
