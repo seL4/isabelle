@@ -106,27 +106,6 @@ lemma reals_Archimedean3:
   unfolding real_of_nat_def using `0 < x`
   by (auto intro: ex_less_of_nat_mult)
 
-lemma reals_Archimedean6:
-     "0 \<le> r ==> \<exists>(n::nat). real (n - 1) \<le> r & r < real (n)"
-unfolding real_of_nat_def
-apply (rule exI [where x="nat (floor r + 1)"])
-apply (insert floor_correct [of r])
-apply (simp add: nat_add_distrib of_nat_nat)
-done
-
-lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < real (Suc n)"
-  by (drule reals_Archimedean6) auto
-
-text {* TODO: delete *}
-lemma reals_Archimedean_6b_int:
-     "0 \<le> r ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
-  unfolding real_of_int_def by (rule floor_exists)
-
-text {* TODO: delete *}
-lemma reals_Archimedean_6c_int:
-     "r < 0 ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
-  unfolding real_of_int_def by (rule floor_exists)
-
 
 subsection{*Density of the Rational Reals in the Reals*}
 
