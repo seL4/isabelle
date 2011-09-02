@@ -47,6 +47,7 @@ val s_truth = Long_Name.append this "truth";
 val s_Holds = Long_Name.append this "Holds";
 
 val target = "Eval";
+val structure_generated = "Generated_Code";
 
 datatype truth = Holds;
 
@@ -227,7 +228,7 @@ fun register_code new_tycos new_consts ctxt =
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code (Proof_Context.theory_of ctxt) "Code" tycos' consts'
+      evaluation_code (Proof_Context.theory_of ctxt) structure_generated tycos' consts'
       |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
@@ -434,7 +435,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |-> (fn ([Const (const, _)], _) =>
      Code_Target.add_const_syntax target const
        (SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))
-  #> tap (fn thy => Code_Target.produce_code thy [const] target NONE "Code" []));
+  #> tap (fn thy => Code_Target.produce_code thy [const] target NONE structure_generated []));
 
 fun process_file filepath (definienda, thy) =
   let
