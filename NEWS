@@ -248,6 +248,11 @@ general versions. INCOMPATIBILITY.
   subset_interior ~> interior_mono
   subset_closure ~> closure_mono
   closure_univ ~> closure_UNIV
+  real_arch_lt ~> reals_Archimedean2
+  real_arch ~> reals_Archimedean3
+  real_abs_norm ~> abs_norm_cancel
+  real_abs_sub_norm ~> norm_triangle_ineq3
+  norm_cauchy_schwarz_abs ~> Cauchy_Schwarz_ineq2
 
 * Complex_Main: The locale interpretations for the bounded_linear and
 bounded_bilinear locales have been removed, in order to reduce the

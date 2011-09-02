@@ -55,44 +55,35 @@ lemma real_div_sqrt: "0 <= x ==> x / sqrt(x) = sqrt(x)"
 
 text{* Hence derive more interesting properties of the norm. *}
 
-(* FIXME: same as norm_scaleR
-lemma norm_mul[simp]: "norm(a *\<^sub>R x) = abs(a) * norm x"
-  by (simp add: norm_vector_def setL2_right_distrib abs_mult)
-*)
-
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (inner x x = (0::real))"
-  by (simp add: power2_eq_square)
+  by simp (* TODO: delete *)
 
 lemma norm_cauchy_schwarz:
+  (* TODO: move to Inner_Product.thy *)
   shows "inner x y <= norm x * norm y"
   using Cauchy_Schwarz_ineq2[of x y] by auto
-
-lemma norm_cauchy_schwarz_abs:
-  shows "\<bar>inner x y\<bar> \<le> norm x * norm y"
-  by (rule Cauchy_Schwarz_ineq2)
 
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
   shows "norm x \<le> norm y  + norm (x - y)"
   using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
 
-lemma real_abs_norm: "\<bar>norm x\<bar> = norm x"
-  by (rule abs_norm_cancel)
-lemma real_abs_sub_norm: "\<bar>norm x - norm y\<bar> <= norm(x - y)"
-  by (rule norm_triangle_ineq3)
 lemma norm_le: "norm(x) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner) 
+
 lemma norm_lt: "norm(x) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner)
+
 lemma norm_eq: "norm(x) = norm (y) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
   apply(subst order_eq_iff) unfolding norm_le by auto
+
 lemma norm_eq_1: "norm(x) = 1 \<longleftrightarrow> x \<bullet> x = 1"
-  unfolding norm_eq_sqrt_inner by auto
+  by (simp add: norm_eq_sqrt_inner)
 
 text{* Squaring equations and inequalities involving norms.  *}
 
 lemma dot_square_norm: "x \<bullet> x = norm(x)^2"
-  by (simp add: norm_eq_sqrt_inner)
+  by (simp only: power2_norm_eq_inner) (* TODO: move? *)
 
 lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x = a^2"
   by (auto simp add: norm_eq_sqrt_inner)
@@ -159,10 +150,10 @@ lemma norm_triangle_half_l: assumes "norm (x - y) < e / 2" "norm (x' - (y)) < e 
   unfolding dist_norm[THEN sym] .
 
 lemma norm_triangle_le: "norm(x) + norm y <= e ==> norm(x + y) <= e"
-  by (metis order_trans norm_triangle_ineq)
+  by (rule norm_triangle_ineq [THEN order_trans])
 
 lemma norm_triangle_lt: "norm(x) + norm(y) < e ==> norm(x + y) < e"
-  by (metis basic_trans_rules(21) norm_triangle_ineq)
+  by (rule norm_triangle_ineq [THEN le_less_trans])
 
 lemma setsum_clauses:
   shows "setsum f {} = 0"
@@ -225,8 +216,8 @@ lemma orthogonal_clauses:
   "orthogonal x a \<Longrightarrow> orthogonal (-x) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x + y) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x - y) a"
-  unfolding orthogonal_def inner_simps inner_add_left inner_add_right inner_diff_left inner_diff_right (*FIXME*) by auto
- 
+  unfolding orthogonal_def inner_add inner_diff by auto
+
 end
 
 lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
@@ -497,13 +488,10 @@ lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> (S hull (inse
 lemma hull_redundant: "a \<in> (S hull s) ==> (S hull (insert a s) = S hull s)"
 by (metis hull_redundant_eq)
 
-text{* Archimedian properties and useful consequences. *}
+subsection {* Archimedean properties and useful consequences *}
 
 lemma real_arch_simple: "\<exists>n. x <= real (n::nat)"
-  using reals_Archimedean2[of x] apply auto by (rule_tac x="Suc n" in exI, auto)
-lemmas real_arch_lt = reals_Archimedean2
-
-lemmas real_arch = reals_Archimedean3
+  unfolding real_of_nat_def by (rule ex_le_of_nat)
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
   using reals_Archimedean
@@ -530,7 +518,7 @@ qed
 lemma real_arch_pow: assumes x: "1 < (x::real)" shows "\<exists>n. y < x^n"
 proof-
   from x have x0: "x - 1 > 0" by arith
-  from real_arch[OF x0, rule_format, of y]
+  from reals_Archimedean3[OF x0, rule_format, of y]
   obtain n::nat where n:"y < real n * (x - 1)" by metis
   from x0 have x00: "x- 1 \<ge> 0" by arith
   from real_pow_lbound[OF x00, of n] n
@@ -570,7 +558,8 @@ lemma real_archimedian_rdiv_eq_0: assumes x0: "x \<ge> 0" and c: "c \<ge> 0" and
   shows "x = 0"
 proof-
   {assume "x \<noteq> 0" with x0 have xp: "x > 0" by arith
-    from real_arch[OF xp, rule_format, of c] obtain n::nat where n: "c < real n * x"  by blast
+    from reals_Archimedean3[OF xp, rule_format, of c]
+    obtain n::nat where n: "c < real n * x" by blast
     with xc[rule_format, of n] have "n = 0" by arith
     with n c have False by simp}
   then show ?thesis by blast

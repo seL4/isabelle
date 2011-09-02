@@ -41,7 +41,7 @@ proof- fix x::'a and i assume as:"x\<in>ball 0 (real n)" "i<DIM('a)"
 qed
 
 lemma mem_big_cube: obtains n where "x \<in> cube n"
-proof- from real_arch_lt[of "norm x"] guess n ..
+proof- from reals_Archimedean2[of "norm x"] guess n ..
   thus ?thesis apply-apply(rule that[where n=n])
     apply(rule ball_subset_cube[unfolded subset_eq,rule_format])
     by (auto simp add:dist_norm)
@@ -805,7 +805,7 @@ proof -
   have "sets ?G = sets (\<Pi>\<^isub>M i\<in>I.
        sigma \<lparr> space = UNIV::real set, sets = range lessThan, measure = lebesgue.\<mu> \<rparr>)"
     by (subst sigma_product_algebra_sigma_eq[of I "\<lambda>_ i. {..<real i}" ])
-       (auto intro!: measurable_sigma_sigma incseq_SucI real_arch_lt
+       (auto intro!: measurable_sigma_sigma incseq_SucI reals_Archimedean2
              simp: product_algebra_def)
   then show ?thesis
     unfolding lborel_def borel_eq_lessThan lebesgue_def sigma_def by simp

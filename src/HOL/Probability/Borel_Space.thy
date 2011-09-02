@@ -509,7 +509,7 @@ proof -
     also have *: "{x::'a. a < x$$i} = (\<Union>k::nat. {(\<chi>\<chi> n. if n = i then a else -real k) <..})" using `i <DIM('a)`
     proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
       fix x
-      from real_arch_lt[of "Max ((\<lambda>i. -x$$i)`{..<DIM('a)})"]
+      from reals_Archimedean2[of "Max ((\<lambda>i. -x$$i)`{..<DIM('a)})"]
       guess k::nat .. note k = this
       { fix i assume "i < DIM('a)"
         then have "-x$$i < real k"
@@ -544,7 +544,7 @@ proof -
     also have *: "{x::'a. x$$i < a} = (\<Union>k::nat. {..< (\<chi>\<chi> n. if n = i then a else real k)})" using `i <DIM('a)`
     proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
       fix x
-      from real_arch_lt[of "Max ((\<lambda>i. x$$i)`{..<DIM('a)})"]
+      from reals_Archimedean2[of "Max ((\<lambda>i. x$$i)`{..<DIM('a)})"]
       guess k::nat .. note k = this
       { fix i assume "i < DIM('a)"
         then have "x$$i < real k"
@@ -1221,7 +1221,7 @@ proof (intro iffI allI)
     { fix x :: ereal assume *: "\<forall>i::nat. real i < x"
       have "x = \<infinity>"
       proof (rule ereal_top)
-        fix B from real_arch_lt[of B] guess n ..
+        fix B from reals_Archimedean2[of B] guess n ..
         then have "ereal B < real n" by auto
         with * show "B \<le> x" by (metis less_trans less_imp_le)
       qed }

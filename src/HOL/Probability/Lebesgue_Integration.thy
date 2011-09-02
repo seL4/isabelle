@@ -392,10 +392,10 @@ proof -
       proof (cases y)
         case (real r)
         with * have *: "\<And>i. f x i \<le> r * 2^i" by (auto simp: divide_le_eq)
-        from real_arch_lt[of r] * have "u x \<noteq> \<infinity>" by (auto simp: f_def) (metis less_le_not_le)
+        from reals_Archimedean2[of r] * have "u x \<noteq> \<infinity>" by (auto simp: f_def) (metis less_le_not_le)
         then have "\<exists>p. max 0 (u x) = ereal p \<and> 0 \<le> p" by (cases "u x") (auto simp: max_def)
         then guess p .. note ux = this
-        obtain m :: nat where m: "p < real m" using real_arch_lt ..
+        obtain m :: nat where m: "p < real m" using reals_Archimedean2 ..
         have "p \<le> r"
         proof (rule ccontr)
           assume "\<not> p \<le> r"
