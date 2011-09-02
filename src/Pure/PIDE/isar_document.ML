@@ -55,15 +55,14 @@ val _ =
         val running = Document.cancel_execution state;
         val (assignment, state1) = Document.update old_id new_id edits state;
         val _ = Future.join_tasks running;
-        val state2 = Document.join_commands state1;
         val _ =
           Output.status (Markup.markup (Markup.assign new_id)
             (assignment |>
               let open XML.Encode
               in pair (list (pair int (option int))) (list (pair string (option int))) end
               |> YXML.string_of_body));
-        val state3 = Document.execute new_id state2;
-      in state3 end));
+        val state2 = Document.execute new_id state1;
+      in state2 end));
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.invoke_scala"
