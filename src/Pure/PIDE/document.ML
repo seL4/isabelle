@@ -62,11 +62,15 @@ type node_header = (string * string list * (string * bool) list) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
+type exec = exec_id * (Toplevel.state * unit lazy) lazy;  (*eval/print process*)
+val no_print = Lazy.value ();
+val no_exec = (no_id, Lazy.value (Toplevel.toplevel, no_print));
+
 abstype node = Node of
  {touched: bool,
   header: node_header,
   perspective: perspective,
-  entries: exec_id option Entries.T,  (*command entries with excecutions*)
+  entries: exec option Entries.T,  (*command entries with excecutions*)
   last_exec: command_id option,  (*last command with exec state assignment*)
   result: Toplevel.state lazy}
 and version = Version of node Graph.T  (*development graph wrt. static imports*)
@@ -84,7 +88,6 @@ fun make_perspective command_ids : perspective =
 
 val no_header = Exn.Exn (ERROR "Bad theory header");
 val no_perspective = make_perspective [];
-val no_print = Lazy.value ();
 val no_result = Lazy.value Toplevel.toplevel;
 
 val empty_node = make_node (false, no_header, no_perspective, Entries.empty, NONE, no_result);
@@ -157,8 +160,8 @@ fun the_entry (Node {entries, ...}) id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = the_default no_id (the_entry node id)
-  | the_default_entry _ NONE = no_id;
+fun the_default_entry node (SOME id) = (id, (the_default no_exec (the_entry node id)))
+  | the_default_entry _ NONE = (no_id, no_exec);
 
 fun update_entry id exec =
   map_entries (Entries.update (id, exec));
@@ -238,33 +241,30 @@ end;
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands: (string * Toplevel.transition future) Inttab.table,  (*command_id -> name * transition*)
-  execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
-    (*exec_id -> command_id with eval/print process*)
   execution: version_id * Future.group}  (*current execution process*)
 with
 
-fun make_state (versions, commands, execs, execution) =
-  State {versions = versions, commands = commands, execs = execs, execution = execution};
+fun make_state (versions, commands, execution) =
+  State {versions = versions, commands = commands, execution = execution};
 
-fun map_state f (State {versions, commands, execs, execution}) =
-  make_state (f (versions, commands, execs, execution));
+fun map_state f (State {versions, commands, execution}) =
+  make_state (f (versions, commands, execution));
 
-val empty_commands =
+val empty_commands =  (* FIXME no_id ??? *)
   Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))];
-val empty_execs = Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))];
 val empty_execution = (no_id, Future.new_group NONE);
 
 val init_state =
-  make_state (Inttab.make [(no_id, empty_version)], empty_commands, empty_execs, empty_execution);
+  make_state (Inttab.make [(no_id, empty_version)], empty_commands, empty_execution);
 
 
 (* document versions *)
 
 fun define_version (id: version_id) version =
-  map_state (fn (versions, commands, execs, execution) =>
+  map_state (fn (versions, commands, execution) =>
     let val versions' = Inttab.update_new (id, version) versions
       handle Inttab.DUP dup => err_dup "document version" dup
-    in (versions', commands, execs, execution) end);
+    in (versions', commands, execution) end);
 
 fun the_version (State {versions, ...}) (id: version_id) =
   (case Inttab.lookup versions id of
@@ -278,7 +278,7 @@ fun delete_version (id: version_id) versions = Inttab.delete id versions
 (* commands *)
 
 fun define_command (id: command_id) name text =
-  map_state (fn (versions, commands, execs, execution) =>
+  map_state (fn (versions, commands, execution) =>
     let
       val id_string = print_id id;
       val future =
@@ -291,26 +291,12 @@ fun define_command (id: command_id) name text =
       val commands' =
         Inttab.update_new (id, (name, future)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-    in (versions, commands', execs, execution) end);
+    in (versions, commands', execution) end);
 
 fun the_command (State {commands, ...}) (id: command_id) =
   (case Inttab.lookup commands id of
     NONE => err_undef "command" id
   | SOME command => command);
-
-
-(* command executions *)
-
-fun define_exec (exec_id, exec) =
-  map_state (fn (versions, commands, execs, execution) =>
-    let val execs' = Inttab.update_new (exec_id, exec) execs
-      handle Inttab.DUP dup => err_dup "command execution" dup
-    in (versions, commands, execs', execution) end);
-
-fun the_exec (State {execs, ...}) exec_id =
-  (case Inttab.lookup execs exec_id of
-    NONE => err_undef "command execution" exec_id
-  | SOME exec => exec);
 
 
 (* document execution *)
@@ -404,7 +390,8 @@ fun last_common state last_visible node0 node =
     fun get_common ((prev, id), exec) (found, (_, flags)) =
       if found then NONE
       else
-        let val found' = is_none exec orelse exec <> lookup_entry node0 id
+        let val found' =
+          is_none exec orelse op <> (pairself (Option.map #1) (exec, lookup_entry node0 id));
         in SOME (found', (prev, update_flags prev flags)) end;
     val (found, (common, flags)) =
       iterate_entries get_common node (false, (NONE, (true, true)));
@@ -417,7 +404,7 @@ fun last_common state last_visible node0 node =
 
 fun illegal_init () = error "Illegal theory header after end of theory";
 
-fun new_exec state bad_init command_id' (execs, exec, init) =
+fun new_exec state bad_init command_id' (execs, command_exec, init) =
   if bad_init andalso is_none init then NONE
   else
     let
@@ -430,8 +417,9 @@ fun new_exec state bad_init command_id' (execs, exec, init) =
       val tr = tr0
         |> modify_init
         |> Toplevel.put_id (print_id exec_id');
-      val exec' = (command_id', Lazy.map (fn (st, _) => run_command tr st) (snd exec));
-    in SOME ((exec_id', exec') :: execs, exec', init') end;
+      val exec' = snd (snd command_exec) |> Lazy.map (fn (st, _) => run_command tr st);
+      val command_exec' = (command_id', (exec_id', exec'));
+    in SOME (command_exec' :: execs, command_exec', init') end;
 
 fun make_required nodes =
   let
@@ -495,10 +483,10 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                     val required = is_required name;
                     val last_visible = #2 (get_perspective node);
                     val (common, (visible, initial)) = last_common state last_visible node0 node;
-                    val common_exec = the_exec state (the_default_entry node common);
+                    val common_command_exec = the_default_entry node common;
 
-                    val (execs, exec, _) =
-                      ([], common_exec, if initial then SOME init else NONE) |>
+                    val (execs, (command_id, (_, exec)), _) =
+                      ([], common_command_exec, if initial then SOME init else NONE) |>
                       (visible orelse required) ?
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
@@ -512,14 +500,14 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                           else if exists (fn (_, (id, _)) => id0 = id) execs then SOME res
                           else SOME (id0 :: res)) node0 [];
 
-                    val last_exec = if #1 exec = no_id then NONE else SOME (#1 exec);
+                    val last_exec = if command_id = no_id then NONE else SOME command_id;
                     val result =
                       if is_some (after_entry node last_exec) then no_result
-                      else Lazy.map #1 (#2 exec);
+                      else Lazy.map #1 exec;
 
                     val node' = node
                       |> fold reset_entry no_execs
-                      |> fold (fn (exec_id, (id, _)) => update_entry id (SOME exec_id)) execs
+                      |> fold (fn (id, exec) => update_entry id (SOME exec)) execs
                       |> set_last_exec last_exec
                       |> set_result result
                       |> set_touched false;
@@ -529,12 +517,11 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
     val command_execs =
       map (rpair NONE) (maps #1 updated) @
-      map (fn (exec_id, (command_id, _)) => (command_id, SOME exec_id)) (maps #2 updated);
+      map (fn (command_id, (exec_id, _)) => (command_id, SOME exec_id)) (maps #2 updated);
     val updated_nodes = maps #3 updated;
     val last_execs = map (fn (name, node) => (name, get_last_exec node)) updated_nodes;
 
     val state' = state
-      |> fold (fold define_exec o #2) updated
       |> define_version new_id (fold put_node updated_nodes new_version);
   in ((command_execs, last_execs), state') end;
 
@@ -544,14 +531,13 @@ end;
 (* execute *)
 
 fun execute version_id state =
-  state |> map_state (fn (versions, commands, execs, _) =>
+  state |> map_state (fn (versions, commands, _) =>
     let
       val version = the_version state version_id;
 
-      fun force_exec _ NONE = ()
-        | force_exec node (SOME exec_id) =
+      fun force_exec _ _ NONE = ()
+        | force_exec node command_id (SOME (_, exec)) =
             let
-              val (command_id, exec) = the_exec state exec_id;
               val (_, print) = Lazy.force exec;
               val _ =
                 if #1 (get_perspective node) command_id
@@ -566,32 +552,27 @@ fun execute version_id state =
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
-              (iterate_entries (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
+              (iterate_entries (fn ((_, id), exec) => fn () =>
+                SOME (force_exec node id exec)) node));
 
-    in (versions, commands, execs, (version_id, group)) end);
+    in (versions, commands, (version_id, group)) end);
 
 
 (* remove versions *)
 
-fun remove_versions ids state = state |> map_state (fn (versions, _, _, execution) =>
+fun remove_versions ids state = state |> map_state (fn (versions, _, execution) =>
   let
     val _ = member (op =) ids (#1 execution) andalso
       error ("Attempt to remove execution version " ^ print_id (#1 execution));
 
     val versions' = fold delete_version ids versions;
-    val (commands', execs') =
-      (versions', (empty_commands, empty_execs)) |->
+    val commands' =
+      (versions', empty_commands) |->
         Inttab.fold (fn (_, version) => nodes_of version |>
           Graph.fold (fn (_, (node, _)) => node |>
-            iterate_entries (fn ((_, id), exec) => fn (commands, execs) =>
-              let
-                val commands' = Inttab.insert (K true) (id, the_command state id) commands;
-                val execs' =
-                  (case exec of
-                    NONE => execs
-                  | SOME exec_id => Inttab.insert (K true) (exec_id, the_exec state exec_id) execs);
-              in SOME (commands', execs') end)));
-  in (versions', commands', execs', execution) end);
+            iterate_entries (fn ((_, id), _) =>
+              SOME o Inttab.insert (K true) (id, the_command state id))));
+  in (versions', commands', execution) end);
 
 
 
