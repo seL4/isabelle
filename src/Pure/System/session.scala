@@ -42,6 +42,8 @@ class Session(thy_load: Thy_Load)
   val output_delay = Time.seconds(0.1)  // prover output (markup, common messages)
   val update_delay = Time.seconds(0.5)  // GUI layout updates
   val load_delay = Time.seconds(0.5)  // file load operations (new buffers etc.)
+  val prune_delay = Time.seconds(60.0)  // prune history -- delete old versions
+  val prune_size = 0  // size of retained history
 
 
   /* pervasive event buses */
@@ -180,6 +182,8 @@ class Session(thy_load: Thy_Load)
     val this_actor = self
     var prover: Option[Isabelle_Process with Isar_Document] = None
 
+    var prune_next = System.currentTimeMillis() + prune_delay.ms
+
 
     /* perspective */
 
@@ -239,6 +243,16 @@ class Session(thy_load: Thy_Load)
     //}}}
 
 
+    /* removed versions */
+
+    def handle_removed(removed: List[Document.Version_ID])
+    //{{{
+    {
+      global_state.change(_.removed_versions(removed))
+    }
+    //}}}
+
+
     /* resulting changes */
 
     def handle_change(change: Change_Node)
@@ -292,6 +306,19 @@ class Session(thy_load: Thy_Load)
           XML.content(result.body).mkString match {
             case Isar_Document.Assign(id, assign) =>
               try { handle_assign(id, assign) }
+              catch { case _: Document.State.Fail => bad_result(result) }
+            case _ => bad_result(result)
+          }
+          // FIXME separate timeout event/message!?
+          if (prover.isDefined && System.currentTimeMillis() > prune_next) {
+            val old_versions = global_state.change_yield(_.prune_history(prune_size))
+            if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
+            prune_next = System.currentTimeMillis() + prune_delay.ms
+          }
+        case Markup.Removed_Versions if result.is_raw =>
+          XML.content(result.body).mkString match {
+            case Isar_Document.Removed(removed) =>
+              try { handle_removed(removed) }
               catch { case _: Document.State.Fail => bad_result(result) }
             case _ => bad_result(result)
           }

@@ -26,6 +26,20 @@ object Isar_Document
       }
   }
 
+  object Removed
+  {
+    def unapply(text: String): Option[List[Document.Version_ID]] =
+      try {
+        import XML.Decode._
+        Some(list(long)(YXML.parse_body(text)))
+      }
+      catch {
+        case ERROR(_) => None
+        case _: XML.XML_Atom => None
+        case _: XML.XML_Body => None
+      }
+  }
+
 
   /* toplevel transactions */
 
@@ -186,6 +200,14 @@ trait Isar_Document extends Isabelle_Process
       YXML.string_of_body(encode(edits)) }
 
     input("Isar_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
+  }
+
+  def remove_versions(versions: List[Document.Version])
+  {
+    val versions_yxml =
+      { import XML.Encode._
+        YXML.string_of_body(list(long)(versions.map(_.id))) }
+    input("Isar_Document.remove_versions", versions_yxml)
   }
 
 
