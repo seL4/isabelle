@@ -334,44 +334,30 @@ lemma real_natfloor_le: "0 <= x ==> real(natfloor x) <= x"
   by (unfold natfloor_def, simp)
 
 lemma natfloor_neg: "x <= 0 ==> natfloor x = 0"
-  apply (unfold natfloor_def)
-  apply (subgoal_tac "floor x <= floor 0")
-  apply simp
-  apply (erule floor_mono)
-done
+  unfolding natfloor_def by simp
+
+lemma nat_mono: "x \<le> y \<Longrightarrow> nat x \<le> nat y"
+  by simp (* TODO: move to Int.thy *)
 
 lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
-  apply (case_tac "0 <= x")
-  apply (subst natfloor_def)+
-  apply (subst nat_le_eq_zle)
-  apply force
-  apply (erule floor_mono)
-  apply (subst natfloor_neg)
-  apply simp
-  apply simp
-done
+  unfolding natfloor_def by (intro nat_mono floor_mono)
 
 lemma le_natfloor: "real x <= a ==> x <= natfloor a"
   apply (unfold natfloor_def)
   apply (subst nat_int [THEN sym])
-  apply (subst nat_le_eq_zle)
-  apply simp
+  apply (rule nat_mono)
   apply (rule le_floor)
   apply simp
 done
 
+lemma natfloor_less_iff: "0 \<le> x \<Longrightarrow> natfloor x < n \<longleftrightarrow> x < real n"
+  unfolding natfloor_def real_of_nat_def
+  by (simp add: nat_less_iff floor_less_iff)
+
 lemma less_natfloor:
   assumes "0 \<le> x" and "x < real (n :: nat)"
   shows "natfloor x < n"
-proof (rule ccontr)
-  assume "\<not> ?thesis" hence *: "n \<le> natfloor x" by simp
-  note assms(2)
-  also have "real n \<le> real (natfloor x)"
-    using * unfolding real_of_nat_le_iff .
-  finally have "x < real (natfloor x)" .
-  with real_natfloor_le[OF assms(1)]
-  show False by auto
-qed
+  using assms by (simp add: natfloor_less_iff)
 
 lemma le_natfloor_eq: "0 <= x ==> (a <= natfloor x) = (real a <= x)"
   apply (rule iffI)
@@ -402,14 +388,7 @@ lemma le_natfloor_eq_one [simp]: "(1 <= natfloor x) = (1 <= x)"
 done
 
 lemma natfloor_eq: "real n <= x ==> x < real n + 1 ==> natfloor x = n"
-  apply (unfold natfloor_def)
-  apply (subst (2) nat_int [THEN sym])
-  apply (subst eq_nat_nat_iff)
-  apply simp
-  apply simp
-  apply (rule floor_eq2)
-  apply auto
-done
+  unfolding natfloor_def by (simp add: floor_eq2 [where n="int n"])
 
 lemma real_natfloor_add_one_gt: "x < real(natfloor x) + 1"
   apply (case_tac "0 <= x")
@@ -428,110 +407,48 @@ lemma ge_natfloor_plus_one_imp_gt: "natfloor z + 1 <= n ==> z < real n"
 done
 
 lemma natfloor_add [simp]: "0 <= x ==> natfloor (x + real a) = natfloor x + a"
-  apply (unfold natfloor_def)
-  apply (subgoal_tac "real a = real (int a)")
-  apply (erule ssubst)
-  apply (simp add: nat_add_distrib del: real_of_int_of_nat_eq)
-  apply simp
-done
+  unfolding natfloor_def
+  unfolding real_of_int_of_nat_eq [symmetric] floor_add
+  by (simp add: nat_add_distrib)
 
 lemma natfloor_add_number_of [simp]:
     "~neg ((number_of n)::int) ==> 0 <= x ==>
       natfloor (x + number_of n) = natfloor x + number_of n"
-  apply (subst natfloor_add [THEN sym])
-  apply simp_all
-done
+  by (simp add: natfloor_add [symmetric])
 
 lemma natfloor_add_one: "0 <= x ==> natfloor(x + 1) = natfloor x + 1"
-  apply (subst natfloor_add [THEN sym])
-  apply assumption
-  apply simp
-done
+  by (simp add: natfloor_add [symmetric] del: One_nat_def)
 
 lemma natfloor_subtract [simp]: "real a <= x ==>
     natfloor(x - real a) = natfloor x - a"
-  apply (unfold natfloor_def)
-  apply (subgoal_tac "real a = real (int a)")
-  apply (erule ssubst)
-  apply (simp del: real_of_int_of_nat_eq)
-  apply simp
-done
+  unfolding natfloor_def
+  unfolding real_of_int_of_nat_eq [symmetric] floor_subtract
+  by simp
 
 lemma natfloor_div_nat:
   assumes "1 <= x" and "y > 0"
   shows "natfloor (x / real y) = natfloor x div y"
-proof -
-  have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
-    by simp
-  then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +
-    real((natfloor x) mod y)"
-    by (simp only: real_of_nat_add [THEN sym] real_of_nat_mult [THEN sym])
-  have "x = real(natfloor x) + (x - real(natfloor x))"
-    by simp
-  then have "x = real ((natfloor x) div y) * real y +
-      real((natfloor x) mod y) + (x - real(natfloor x))"
-    by (simp add: a)
-  then have "x / real y = ... / real y"
-    by simp
-  also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y"
-    by (auto simp add: algebra_simps add_divide_distrib diff_divide_distrib)
-  finally have "natfloor (x / real y) = natfloor(...)" by simp
-  also have "... = natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y + real((natfloor x) div y))"
-    by (simp add: add_ac)
-  also have "... = natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y) + (natfloor x) div y"
-    apply (rule natfloor_add)
-    apply (rule add_nonneg_nonneg)
-    apply (rule divide_nonneg_pos)
-    apply simp
-    apply (simp add: assms)
-    apply (rule divide_nonneg_pos)
-    apply (simp add: algebra_simps)
-    apply (rule real_natfloor_le)
-    using assms apply auto
-    done
-  also have "natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y) = 0"
-    apply (rule natfloor_eq)
-    apply simp
-    apply (rule add_nonneg_nonneg)
-    apply (rule divide_nonneg_pos)
-    apply force
-    apply (force simp add: assms)
-    apply (rule divide_nonneg_pos)
-    apply (simp add: algebra_simps)
-    apply (rule real_natfloor_le)
-    apply (auto simp add: assms)
-    using assms apply arith
-    using assms apply (simp add: add_divide_distrib [THEN sym])
-    apply (subgoal_tac "real y = real y - 1 + 1")
-    apply (erule ssubst)
-    apply (rule add_le_less_mono)
-    apply (simp add: algebra_simps)
-    apply (subgoal_tac "1 + real(natfloor x mod y) =
-      real(natfloor x mod y + 1)")
-    apply (erule ssubst)
-    apply (subst real_of_nat_le_iff)
-    apply (subgoal_tac "natfloor x mod y < y")
-    apply arith
+proof (rule natfloor_eq)
+  have "(natfloor x) div y * y \<le> natfloor x"
+    by (rule add_leD1 [where k="natfloor x mod y"], simp)
+  thus "real (natfloor x div y) \<le> x / real y"
+    using assms by (simp add: le_divide_eq le_natfloor_eq)
+  have "natfloor x < (natfloor x) div y * y + y"
+    apply (subst mod_div_equality [symmetric])
+    apply (rule add_strict_left_mono)
     apply (rule mod_less_divisor)
-    apply auto
-    using real_natfloor_add_one_gt
-    apply (simp add: algebra_simps)
+    apply fact
     done
-  finally show ?thesis by simp
+  thus "x / real y < real (natfloor x div y) + 1"
+    using assms
+    by (simp add: divide_less_eq natfloor_less_iff left_distrib)
 qed
 
 lemma le_mult_natfloor:
   assumes "0 \<le> (a :: real)" and "0 \<le> b"
   shows "natfloor a * natfloor b \<le> natfloor (a * b)"
-  unfolding natfloor_def
-  apply (subst nat_mult_distrib[symmetric])
-  using assms apply simp
-  apply (subst nat_le_eq_zle)
-  using assms le_mult_floor by (auto intro!: mult_nonneg_nonneg)
+  using assms
+  by (simp add: le_natfloor_eq mult_nonneg_nonneg mult_mono' real_natfloor_le)
 
 lemma natceiling_zero [simp]: "natceiling 0 = 0"
   by (unfold natceiling_def, simp)
@@ -549,126 +466,57 @@ lemma natceiling_real_of_nat [simp]: "natceiling(real n) = n"
   by (unfold natceiling_def, simp)
 
 lemma real_natceiling_ge: "x <= real(natceiling x)"
-  apply (unfold natceiling_def)
-  apply (case_tac "x < 0")
-  apply simp
-  apply (subst real_nat_eq_real)
-  apply (subgoal_tac "ceiling 0 <= ceiling x")
-  apply simp
-  apply (rule ceiling_mono)
-  apply simp
-  apply simp
-done
+  unfolding natceiling_def by (cases "x < 0", simp_all)
 
 lemma natceiling_neg: "x <= 0 ==> natceiling x = 0"
-  apply (unfold natceiling_def)
-  apply simp
-done
+  unfolding natceiling_def by simp
 
 lemma natceiling_mono: "x <= y ==> natceiling x <= natceiling y"
-  apply (case_tac "0 <= x")
-  apply (subst natceiling_def)+
-  apply (subst nat_le_eq_zle)
-  apply (rule disjI2)
-  apply (subgoal_tac "real (0::int) <= real(ceiling y)")
-  apply simp
-  apply (rule order_trans)
-  apply simp
-  apply (erule order_trans)
-  apply simp
-  apply (erule ceiling_mono)
-  apply (subst natceiling_neg)
-  apply simp_all
-done
+  unfolding natceiling_def by (intro nat_mono ceiling_mono)
+
+lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> int n"
+  by auto (* TODO: move to Int.thy *)
 
 lemma natceiling_le: "x <= real a ==> natceiling x <= a"
-  apply (unfold natceiling_def)
-  apply (case_tac "x < 0")
-  apply simp
-  apply (subst (2) nat_int [THEN sym])
-  apply (subst nat_le_eq_zle)
-  apply simp
-  apply (rule ceiling_le)
-  apply simp
-done
+  unfolding natceiling_def real_of_nat_def
+  by (simp add: nat_le_iff ceiling_le_iff)
 
 lemma natceiling_le_eq: "0 <= x ==> (natceiling x <= a) = (x <= real a)"
-  apply (rule iffI)
-  apply (rule order_trans)
-  apply (rule real_natceiling_ge)
-  apply (subst real_of_nat_le_iff)
-  apply assumption
-  apply (erule natceiling_le)
-done
+  unfolding natceiling_def real_of_nat_def (* FIXME: unused assumption *)
+  by (simp add: nat_le_iff ceiling_le_iff)
 
 lemma natceiling_le_eq_number_of [simp]:
     "~ neg((number_of n)::int) ==> 0 <= x ==>
       (natceiling x <= number_of n) = (x <= number_of n)"
-  apply (subst natceiling_le_eq, assumption)
-  apply simp
-done
+  by (simp add: natceiling_le_eq)
 
 lemma natceiling_le_eq_one: "(natceiling x <= 1) = (x <= 1)"
-  apply (case_tac "0 <= x")
-  apply (subst natceiling_le_eq)
-  apply assumption
-  apply simp
-  apply (subst natceiling_neg)
-  apply simp
-  apply simp
-done
+  unfolding natceiling_def
+  by (simp add: nat_le_iff ceiling_le_iff)
 
 lemma natceiling_eq: "real n < x ==> x <= real n + 1 ==> natceiling x = n + 1"
-  apply (unfold natceiling_def)
-  apply (simplesubst nat_int [THEN sym]) back back
-  apply (subgoal_tac "nat(int n) + 1 = nat(int n + 1)")
-  apply (erule ssubst)
-  apply (subst eq_nat_nat_iff)
-  apply (subgoal_tac "ceiling 0 <= ceiling x")
-  apply simp
-  apply (rule ceiling_mono)
-  apply force
-  apply force
-  apply (rule ceiling_eq2)
-  apply (simp, simp)
-  apply (subst nat_add_distrib)
-  apply auto
-done
+  unfolding natceiling_def
+  by (simp add: ceiling_eq2 [where n="int n"])
 
 lemma natceiling_add [simp]: "0 <= x ==>
     natceiling (x + real a) = natceiling x + a"
-  apply (unfold natceiling_def)
-  apply (subgoal_tac "real a = real (int a)")
-  apply (erule ssubst)
-  apply (simp del: real_of_int_of_nat_eq)
-  apply (subst nat_add_distrib)
-  apply (subgoal_tac "0 = ceiling 0")
-  apply (erule ssubst)
-  apply (erule ceiling_mono)
-  apply simp_all
-done
+  unfolding natceiling_def
+  unfolding real_of_int_of_nat_eq [symmetric] ceiling_add
+  by (simp add: nat_add_distrib)
 
 lemma natceiling_add_number_of [simp]:
     "~ neg ((number_of n)::int) ==> 0 <= x ==>
       natceiling (x + number_of n) = natceiling x + number_of n"
-  apply (subst natceiling_add [THEN sym])
-  apply simp_all
-done
+  by (simp add: natceiling_add [symmetric])
 
 lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"
-  apply (subst natceiling_add [THEN sym])
-  apply assumption
-  apply simp
-done
+  by (simp add: natceiling_add [symmetric] del: One_nat_def)
 
 lemma natceiling_subtract [simp]: "real a <= x ==>
     natceiling(x - real a) = natceiling x - a"
-  apply (unfold natceiling_def)
-  apply (subgoal_tac "real a = real (int a)")
-  apply (erule ssubst)
-  apply (simp del: real_of_int_of_nat_eq)
-  apply simp
-done
+  unfolding natceiling_def
+  unfolding real_of_int_of_nat_eq [symmetric] ceiling_subtract
+  by simp
 
 subsection {* Exponentiation with floor *}
 
