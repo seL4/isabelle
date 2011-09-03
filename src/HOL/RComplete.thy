@@ -255,12 +255,6 @@ qed
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
   unfolding real_of_nat_def by simp
 
-lemma ceiling_floor [simp]: "ceiling (real (floor r)) = floor r"
-  unfolding real_of_int_def by simp
-
-lemma floor_ceiling [simp]: "floor (real (ceiling r)) = ceiling r"
-  unfolding real_of_int_def by simp
-
 lemma real_of_int_ceiling_ge [simp]: "r \<le> real (ceiling r)"
   unfolding real_of_int_def by (rule le_of_int_ceiling)
 
