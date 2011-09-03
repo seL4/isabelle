@@ -155,9 +155,9 @@ fun projections rule =
 val supp_prod = @{thm supp_prod};
 val fresh_prod = @{thm fresh_prod};
 val supports_fresh = @{thm supports_fresh};
-val supports_def = @{thm Nominal.supports_def};
-val fresh_def = @{thm fresh_def};
-val supp_def = @{thm supp_def};
+val supports_def = Simpdata.mk_eq @{thm Nominal.supports_def};
+val fresh_def = Simpdata.mk_eq @{thm fresh_def};
+val supp_def = Simpdata.mk_eq @{thm supp_def};
 val rev_simps = @{thms rev.simps};
 val app_simps = @{thms append.simps};
 val at_fin_set_supp = @{thm at_fin_set_supp};
@@ -306,7 +306,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val _ = warning ("length new_type_names: " ^ string_of_int (length new_type_names));
 
     val perm_indnames = Datatype_Prop.make_tnames (map body_type perm_types);
-    val perm_fun_def = Global_Theory.get_thm thy2 "perm_fun_def";
+    val perm_fun_def = Simpdata.mk_eq @{thm perm_fun_def};
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
