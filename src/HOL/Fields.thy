@@ -207,18 +207,6 @@ next
   thus ?thesis by (simp add: nonzero_inverse_minus_eq)
 qed
 
-lemma inverse_eq_imp_eq:
-  "inverse a = inverse b \<Longrightarrow> a = b"
-apply (cases "a=0 | b=0") 
- apply (force dest!: inverse_zero_imp_zero
-              simp add: eq_commute [of "0::'a"])
-apply (force dest!: nonzero_inverse_eq_imp_eq) 
-done
-
-lemma inverse_eq_iff_eq [simp]:
-  "inverse a = inverse b \<longleftrightarrow> a = b"
-  by (force dest!: inverse_eq_imp_eq)
-
 lemma inverse_inverse_eq [simp]:
   "inverse (inverse a) = a"
 proof cases
@@ -227,6 +215,14 @@ next
   assume "a\<noteq>0" 
   thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
 qed
+
+lemma inverse_eq_imp_eq:
+  "inverse a = inverse b \<Longrightarrow> a = b"
+  by (drule arg_cong [where f="inverse"], simp)
+
+lemma inverse_eq_iff_eq [simp]:
+  "inverse a = inverse b \<longleftrightarrow> a = b"
+  by (force dest!: inverse_eq_imp_eq)
 
 end
 
