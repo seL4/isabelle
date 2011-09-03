@@ -168,15 +168,19 @@ object Document
 
   object Change
   {
-    val init: Change = Change(Future.value(Version.init), Nil, Future.value(Version.init))
+    val init: Change = Change(Some(Future.value(Version.init)), Nil, Future.value(Version.init))
   }
 
   sealed case class Change(
-    val previous: Future[Version],
+    val previous: Option[Future[Version]],
     val edits: List[Edit_Text],
     val version: Future[Version])
   {
-    def is_finished: Boolean = previous.is_finished && version.is_finished
+    def is_finished: Boolean =
+      (previous match { case None => true case Some(future) => future.is_finished }) &&
+      version.is_finished
+
+    def truncate: Change = copy(previous = None, edits = Nil)
   }
 
 
@@ -184,16 +188,16 @@ object Document
 
   object History
   {
-    val init: History = new History(List(Change.init))
+    val init: History = History(List(Change.init))
   }
 
   // FIXME pruning, purging of state
-  class History(val undo_list: List[Change])
+  sealed case class History(val undo_list: List[Change])
   {
     require(!undo_list.isEmpty)
 
     def tip: Change = undo_list.head
-    def +(change: Change): History = new History(change :: undo_list)
+    def +(change: Change): History = copy(undo_list = change :: undo_list)
   }
 
 
@@ -260,7 +264,6 @@ object Document
     val commands: Map[Command_ID, Command.State] = Map(),  // static markup from define_command
     val execs: Map[Exec_ID, Command.State] = Map(),  // dynamic markup from execution
     val assignments: Map[Version_ID, State.Assignment] = Map(),
-    val disposed: Set[ID] = Set(),  // FIXME unused!?
     val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
@@ -268,7 +271,6 @@ object Document
     def define_version(version: Version, assignment: State.Assignment): State =
     {
       val id = version.id
-      if (versions.isDefinedAt(id) || disposed(id)) fail
       copy(versions = versions + (id -> version),
         assignments = assignments + (id -> assignment.unfinished))
     }
@@ -276,7 +278,6 @@ object Document
     def define_command(command: Command): State =
     {
       val id = command.id
-      if (commands.isDefinedAt(id) || disposed(id)) fail
       copy(commands = commands + (id -> command.empty_state))
     }
 
@@ -342,7 +343,7 @@ object Document
     def is_stable(change: Change): Boolean =
       change.is_finished && is_assigned(change.version.get_finished)
 
-    def recent_stable: Option[Change] = history.undo_list.find(is_stable)
+    def recent_stable: Change = history.undo_list.find(is_stable) getOrElse fail
     def tip_stable: Boolean = is_stable(history.tip)
     def tip_version: Version = history.tip.version.get_finished
 
@@ -366,8 +367,47 @@ object Document
         edits: List[Edit_Text],
         version: Future[Version]): (Change, State) =
     {
-      val change = Change(previous, edits, version)
+      val change = Change(Some(previous), edits, version)
       (change, copy(history = history + change))
+    }
+
+    def prune_history(retain: Int = 0): (List[Version], State) =
+    {
+      val undo_list = history.undo_list
+      val n = undo_list.iterator.zipWithIndex.find(p => is_stable(p._1)).get._2 + 1
+      val (retained, dropped) = undo_list.splitAt(n max retain)
+
+      retained.splitAt(retained.length - 1) match {
+        case (prefix, List(last)) =>
+          val dropped_versions = dropped.map(change => change.version.get_finished)
+          val state1 = copy(history = History(prefix ::: List(last.truncate)))
+          (dropped_versions, state1)
+        case _ => fail
+      }
+    }
+
+    def removed_versions(removed: List[Version_ID]): State =
+    {
+      val versions1 = versions -- removed
+      val assignments1 = assignments -- removed
+      var commands1 = Map.empty[Command_ID, Command.State]
+      var execs1 = Map.empty[Exec_ID, Command.State]
+      for {
+        (version_id, version) <- versions1.iterator
+        val command_execs = assignments1(version_id).command_execs
+        (_, node) <- version.nodes.iterator
+        command <- node.commands.iterator
+      } {
+        val id = command.id
+        if (!commands1.isDefinedAt(id) && commands.isDefinedAt(id))
+          commands1 += (id -> commands(id))
+        if (command_execs.isDefinedAt(id)) {
+          val exec_id = command_execs(id)
+          if (!execs1.isDefinedAt(exec_id) && execs.isDefinedAt(exec_id))
+            execs1 += (exec_id -> execs(exec_id))
+        }
+      }
+      copy(versions = versions1, commands = commands1, execs = execs1, assignments = assignments1)
     }
 
     def command_state(version: Version, command: Command): Command.State =
@@ -384,7 +424,7 @@ object Document
     // persistent user-view
     def snapshot(name: Node.Name, pending_edits: List[Text.Edit]): Snapshot =
     {
-      val stable = recent_stable.get
+      val stable = recent_stable
       val latest = history.tip
 
       // FIXME proper treatment of removed nodes

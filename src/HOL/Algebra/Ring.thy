@@ -367,7 +367,7 @@ lemma l_minus:
 proof -
   assume R: "x \<in> carrier R" "y \<in> carrier R"
   then have "(\<ominus> x) \<otimes> y \<oplus> x \<otimes> y = (\<ominus> x \<oplus> x) \<otimes> y" by (simp add: l_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg l_null)
+  also from R have "... = \<zero>" by (simp add: l_neg)
   finally have "(\<ominus> x) \<otimes> y \<oplus> x \<otimes> y = \<zero>" .
   with R have "(\<ominus> x) \<otimes> y \<oplus> x \<otimes> y \<oplus> \<ominus> (x \<otimes> y) = \<zero> \<oplus> \<ominus> (x \<otimes> y)" by simp
   with R show ?thesis by (simp add: a_assoc r_neg)
@@ -378,7 +378,7 @@ lemma r_minus:
 proof -
   assume R: "x \<in> carrier R" "y \<in> carrier R"
   then have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y = x \<otimes> (\<ominus> y \<oplus> y)" by (simp add: r_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg r_null)
+  also from R have "... = \<zero>" by (simp add: l_neg)
   finally have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y = \<zero>" .
   with R have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y \<oplus> \<ominus> (x \<otimes> y) = \<zero> \<oplus> \<ominus> (x \<otimes> y)" by simp
   with R show ?thesis by (simp add: a_assoc r_neg )
@@ -464,7 +464,6 @@ lemma
 proof -
   interpret ring R by fact
   interpret cring S by fact
-ML_val {* Algebra.print_structures @{context} *}
   from RS show ?thesis by algebra
 qed
 

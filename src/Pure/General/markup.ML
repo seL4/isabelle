@@ -116,6 +116,7 @@ sig
   val badN: string val bad: T
   val functionN: string
   val assign_execs: Properties.T
+  val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
   val no_output: Output.output * Output.output
@@ -367,6 +368,7 @@ val (badN, bad) = markup_elem "bad";
 val functionN = "function"
 
 val assign_execs = [(functionN, "assign_execs")];
+val removed_versions = [(functionN, "removed_versions")];
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
