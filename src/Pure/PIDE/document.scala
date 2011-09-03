@@ -264,7 +264,6 @@ object Document
     val commands: Map[Command_ID, Command.State] = Map(),  // static markup from define_command
     val execs: Map[Exec_ID, Command.State] = Map(),  // dynamic markup from execution
     val assignments: Map[Version_ID, State.Assignment] = Map(),
-    val disposed: Set[ID] = Set(),  // FIXME unused!?
     val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
@@ -272,7 +271,6 @@ object Document
     def define_version(version: Version, assignment: State.Assignment): State =
     {
       val id = version.id
-      if (versions.isDefinedAt(id) || disposed(id)) fail
       copy(versions = versions + (id -> version),
         assignments = assignments + (id -> assignment.unfinished))
     }
@@ -280,7 +278,6 @@ object Document
     def define_command(command: Command): State =
     {
       val id = command.id
-      if (commands.isDefinedAt(id) || disposed(id)) fail
       copy(commands = commands + (id -> command.empty_state))
     }
 
@@ -387,6 +384,30 @@ object Document
           (dropped_versions, state1)
         case _ => fail
       }
+    }
+
+    def removed_versions(removed: List[Version_ID]): State =
+    {
+      val versions1 = versions -- removed
+      val assignments1 = assignments -- removed
+      var commands1 = Map.empty[Command_ID, Command.State]
+      var execs1 = Map.empty[Exec_ID, Command.State]
+      for {
+        (version_id, version) <- versions1.iterator
+        val command_execs = assignments1(version_id).command_execs
+        (_, node) <- version.nodes.iterator
+        command <- node.commands.iterator
+      } {
+        val id = command.id
+        if (!commands1.isDefinedAt(id) && commands.isDefinedAt(id))
+          commands1 += (id -> commands(id))
+        if (command_execs.isDefinedAt(id)) {
+          val exec_id = command_execs(id)
+          if (!execs1.isDefinedAt(exec_id) && execs.isDefinedAt(exec_id))
+            execs1 += (exec_id -> execs(exec_id))
+        }
+      }
+      copy(versions = versions1, commands = commands1, execs = execs1, assignments = assignments1)
     }
 
     def command_state(version: Version, command: Command): Command.State =

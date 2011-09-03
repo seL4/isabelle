@@ -26,6 +26,20 @@ object Isar_Document
       }
   }
 
+  object Removed
+  {
+    def unapply(text: String): Option[List[Document.Version_ID]] =
+      try {
+        import XML.Decode._
+        Some(list(long)(YXML.parse_body(text)))
+      }
+      catch {
+        case ERROR(_) => None
+        case _: XML.XML_Atom => None
+        case _: XML.XML_Body => None
+      }
+  }
+
 
   /* toplevel transactions */
 
