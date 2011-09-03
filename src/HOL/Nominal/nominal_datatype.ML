@@ -1205,7 +1205,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val ind_prems' =
       map (fn (_, f as Free (_, T)) => list_all_free ([("x", fsT')],
         HOLogic.mk_Trueprop (Const ("Finite_Set.finite",
-          (List.last (binder_types T) --> HOLogic.boolT) -->
+          Term.range_type T -->
             HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
       maps (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
         map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $

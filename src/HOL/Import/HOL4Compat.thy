@@ -421,16 +421,6 @@ proof safe
   assume allx': "ALL x. P x \<longrightarrow> x < z"
   have "EX s. ALL y. (EX x : Collect P. y < x) = (y < s)"
   proof (rule posreal_complete)
-    show "ALL x : Collect P. 0 < x"
-    proof safe
-      fix x
-      assume P: "P x"
-      from allx
-      have "P x \<longrightarrow> 0 < x"
-        ..
-      with P show "0 < x" by simp
-    qed
-  next
     from px
     show "EX x. x : Collect P"
       by auto
