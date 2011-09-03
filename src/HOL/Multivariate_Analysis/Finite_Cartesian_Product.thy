@@ -270,13 +270,6 @@ qed
 
 subsection {* Metric space *}
 
-(* TODO: move somewhere else *)
-lemma finite_choice: "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"
-apply (induct set: finite, simp_all)
-apply (clarify, rename_tac y)
-apply (rule_tac x="f(x:=y)" in exI, simp)
-done
-
 instantiation vec :: (metric_space, finite) metric_space
 begin
 
@@ -311,7 +304,7 @@ next
       have "\<forall>i\<in>UNIV. \<exists>r>0. \<forall>y. dist y (x $ i) < r \<longrightarrow> y \<in> A i"
         using A unfolding open_dist by simp
       hence "\<exists>r. \<forall>i\<in>UNIV. 0 < r i \<and> (\<forall>y. dist y (x $ i) < r i \<longrightarrow> y \<in> A i)"
-        by (rule finite_choice [OF finite])
+        by (rule finite_set_choice [OF finite])
       then obtain r where r1: "\<forall>i. 0 < r i"
         and r2: "\<forall>i y. dist y (x $ i) < r i \<longrightarrow> y \<in> A i" by fast
       have "0 < Min (range r) \<and> (\<forall>y. dist y x < Min (range r) \<longrightarrow> y \<in> S)"

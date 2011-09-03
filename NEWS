@@ -204,6 +204,7 @@ been renamed as follows (INCOMPATIBILITY):
 removed, and other theorems have been renamed or replaced with more
 general versions. INCOMPATIBILITY.
 
+  finite_choice ~> finite_set_choice
   eventually_conjI ~> eventually_conj
   eventually_and ~> eventually_conj_iff
   eventually_false ~> eventually_False
