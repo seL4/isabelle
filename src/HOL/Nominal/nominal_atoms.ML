@@ -714,48 +714,48 @@ fun create_nom_typedecls ak_names thy =
              fold (fn ak_name => fn thy =>
              let
                val qu_class = Sign.full_bname thy ("pt_"^ak_name);
-               val simp_s = HOL_basic_ss addsimps [defn];
+               val simp_s = HOL_basic_ss addsimps [Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
              in 
-               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names;
 
           fun discrete_fs_inst discrete_ty defn = 
              fold (fn ak_name => fn thy =>
              let
                val qu_class = Sign.full_bname thy ("fs_"^ak_name);
-               val supp_def = @{thm "Nominal.supp_def"};
-               val simp_s = HOL_ss addsimps [supp_def,Collect_const,finite_emptyI,defn];
+               val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
+               val simp_s = HOL_ss addsimps [supp_def, Collect_const, finite_emptyI, Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
-               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names;
 
           fun discrete_cp_inst discrete_ty defn = 
              fold (fn ak_name' => (fold (fn ak_name => fn thy =>
              let
                val qu_class = Sign.full_bname thy ("cp_"^ak_name^"_"^ak_name');
-               val supp_def = @{thm "Nominal.supp_def"};
-               val simp_s = HOL_ss addsimps [defn];
+               val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
+               val simp_s = HOL_ss addsimps [Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in
-               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names)) ak_names;
 
         in
          thy26
-         |> discrete_pt_inst @{type_name nat}  @{thm "perm_nat_def"}
-         |> discrete_fs_inst @{type_name nat}  @{thm "perm_nat_def"}
-         |> discrete_cp_inst @{type_name nat}  @{thm "perm_nat_def"}
-         |> discrete_pt_inst @{type_name bool} @{thm "perm_bool"}
-         |> discrete_fs_inst @{type_name bool} @{thm "perm_bool"}
-         |> discrete_cp_inst @{type_name bool} @{thm "perm_bool"}
-         |> discrete_pt_inst @{type_name int} @{thm "perm_int_def"}
-         |> discrete_fs_inst @{type_name int} @{thm "perm_int_def"}
-         |> discrete_cp_inst @{type_name int} @{thm "perm_int_def"}
-         |> discrete_pt_inst @{type_name char} @{thm "perm_char_def"}
-         |> discrete_fs_inst @{type_name char} @{thm "perm_char_def"}
-         |> discrete_cp_inst @{type_name char} @{thm "perm_char_def"}
+         |> discrete_pt_inst @{type_name nat} @{thm perm_nat_def}
+         |> discrete_fs_inst @{type_name nat} @{thm perm_nat_def}
+         |> discrete_cp_inst @{type_name nat} @{thm perm_nat_def}
+         |> discrete_pt_inst @{type_name bool} @{thm perm_bool}
+         |> discrete_fs_inst @{type_name bool} @{thm perm_bool}
+         |> discrete_cp_inst @{type_name bool} @{thm perm_bool}
+         |> discrete_pt_inst @{type_name int} @{thm perm_int_def}
+         |> discrete_fs_inst @{type_name int} @{thm perm_int_def}
+         |> discrete_cp_inst @{type_name int} @{thm perm_int_def}
+         |> discrete_pt_inst @{type_name char} @{thm perm_char_def}
+         |> discrete_fs_inst @{type_name char} @{thm perm_char_def}
+         |> discrete_cp_inst @{type_name char} @{thm perm_char_def}
         end;
 
 

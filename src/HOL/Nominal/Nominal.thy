@@ -32,7 +32,7 @@ datatype ('a,'b) nprod = nPair 'a 'b
 (* an auxiliary constant for the decision procedure involving *) 
 (* permutations (to avoid loops when using perm-compositions)  *)
 definition
-  "perm_aux pi x \<equiv> pi\<bullet>x"
+  "perm_aux pi x = pi\<bullet>x"
 
 (* overloaded permutation operations *)
 overloading
@@ -51,61 +51,42 @@ overloading
 begin
 
 definition
-  perm_fun_def: "perm_fun pi (f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
+  perm_fun_def: "perm_fun pi (f::'a\<Rightarrow>'b) = (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
-fun
-  perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool"
-where
+primrec perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
   true_eqvt:  "perm_bool pi True  = True"
 | false_eqvt: "perm_bool pi False = False"
 
-fun
-  perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit" 
-where 
+primrec perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit"  where 
   "perm_unit pi () = ()"
   
-fun
-  perm_prod :: "'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"
-where
+primrec perm_prod :: "'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)" where
   "perm_prod pi (x,y) = (pi\<bullet>x,pi\<bullet>y)"
 
-fun
-  perm_list :: "'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"
-where
+primrec perm_list :: "'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   nil_eqvt:  "perm_list pi []     = []"
 | cons_eqvt: "perm_list pi (x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
 
-fun
-  perm_option :: "'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option"
-where
+primrec perm_option :: "'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option" where
   some_eqvt:  "perm_option pi (Some x) = Some (pi\<bullet>x)"
 | none_eqvt:  "perm_option pi None     = None"
 
-definition
-  perm_char :: "'x prm \<Rightarrow> char \<Rightarrow> char"
-where
-  perm_char_def: "perm_char pi c \<equiv> c"
+definition perm_char :: "'x prm \<Rightarrow> char \<Rightarrow> char" where
+  perm_char_def: "perm_char pi c = c"
 
-definition
-  perm_nat :: "'x prm \<Rightarrow> nat \<Rightarrow> nat"
-where
-  perm_nat_def: "perm_nat pi i \<equiv> i"
+definition perm_nat :: "'x prm \<Rightarrow> nat \<Rightarrow> nat" where
+  perm_nat_def: "perm_nat pi i = i"
 
-definition
-  perm_int :: "'x prm \<Rightarrow> int \<Rightarrow> int"
-where
-  perm_int_def: "perm_int pi i \<equiv> i"
+definition perm_int :: "'x prm \<Rightarrow> int \<Rightarrow> int" where
+  perm_int_def: "perm_int pi i = i"
 
-fun
-  perm_noption :: "'x prm \<Rightarrow> 'a noption \<Rightarrow> 'a noption"
-where
+primrec perm_noption :: "'x prm \<Rightarrow> 'a noption \<Rightarrow> 'a noption" where
   nsome_eqvt:  "perm_noption pi (nSome x) = nSome (pi\<bullet>x)"
 | nnone_eqvt:  "perm_noption pi nNone     = nNone"
 
-fun
-  perm_nprod :: "'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b) nprod"
-where
+primrec perm_nprod :: "'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b) nprod" where
   "perm_nprod pi (nPair x y) = nPair (pi\<bullet>x) (pi\<bullet>y)"
+
 end
 
 
@@ -188,18 +169,18 @@ section {* permutation equality *}
 (*==============================*)
 
 definition prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool" (" _ \<triangleq> _ " [80,80] 80) where
-  "pi1 \<triangleq> pi2 \<equiv> \<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a"
+  "pi1 \<triangleq> pi2 \<longleftrightarrow> (\<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a)"
 
 section {* Support, Freshness and Supports*}
 (*========================================*)
 definition supp :: "'a \<Rightarrow> ('x set)" where  
-   "supp x \<equiv> {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
+   "supp x = {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
 
 definition fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80) where
-   "a \<sharp> x \<equiv> a \<notin> supp x"
+   "a \<sharp> x \<longleftrightarrow> a \<notin> supp x"
 
 definition supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80) where
-   "S supports x \<equiv> \<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x)"
+   "S supports x \<longleftrightarrow> (\<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x))"
 
 (* lemmas about supp *)
 lemma supp_fresh_iff: 
@@ -1731,7 +1712,7 @@ next
   hence "infinite ({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b})" 
     by (force dest: Diff_infinite_finite)
   hence "({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b}) \<noteq> {}"
-    by (metis Collect_def finite_set set_empty2)
+    by (metis finite_set set_empty2)
   hence "\<exists>c. c\<in>({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b})" by (force)
   then obtain c 
     where eq1: "[(a,c)]\<bullet>x = x" 
