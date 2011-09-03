@@ -250,12 +250,8 @@ fun make_state (versions, commands, execution) =
 fun map_state f (State {versions, commands, execution}) =
   make_state (f (versions, commands, execution));
 
-val empty_commands =  (* FIXME no_id ??? *)
-  Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))];
-val empty_execution = (no_id, Future.new_group NONE);
-
 val init_state =
-  make_state (Inttab.make [(no_id, empty_version)], empty_commands, empty_execution);
+  make_state (Inttab.make [(no_id, empty_version)], Inttab.empty, (no_id, Future.new_group NONE));
 
 
 (* document versions *)
@@ -567,7 +563,7 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
 
     val versions' = fold delete_version ids versions;
     val commands' =
-      (versions', empty_commands) |->
+      (versions', Inttab.empty) |->
         Inttab.fold (fn (_, version) => nodes_of version |>
           Graph.fold (fn (_, (node, _)) => node |>
             iterate_entries (fn ((_, id), _) =>
