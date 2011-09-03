@@ -188,6 +188,14 @@ trait Isar_Document extends Isabelle_Process
     input("Isar_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
   }
 
+  def remove_versions(versions: List[Document.Version])
+  {
+    val versions_yxml =
+      { import XML.Encode._
+        YXML.string_of_body(list(long)(versions.map(_.id))) }
+    input("Isar_Document.remove_versions", versions_yxml)
+  }
+
 
   /* method invocation service */
 

@@ -65,6 +65,15 @@ val _ =
       in state2 end));
 
 val _ =
+  Isabelle_Process.add_command "Isar_Document.remove_versions"
+    (fn [versions_yxml] => Document.change_state (fn state =>
+      let
+        val versions =
+          YXML.parse_body versions_yxml |>
+            let open XML.Decode in list int end;
+      in Document.remove_versions versions state end));
+
+val _ =
   Isabelle_Process.add_command "Isar_Document.invoke_scala"
     (fn [id, tag, res] => Invoke_Scala.fulfill_method id tag res);
 

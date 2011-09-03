@@ -30,6 +30,7 @@ sig
   val update: version_id -> version_id -> edit list -> state ->
     ((command_id * exec_id option) list * (string * command_id option) list) * state
   val execute: version_id -> state -> state
+  val remove_versions: version_id list -> state -> state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -239,7 +240,7 @@ abstype state = State of
   commands: (string * Toplevel.transition future) Inttab.table,  (*command_id -> name * transition*)
   execs: (command_id * (Toplevel.state * unit lazy) lazy) Inttab.table,
     (*exec_id -> command_id with eval/print process*)
-  execution: Future.group}  (*global execution process*)
+  execution: version_id * Future.group}  (*current execution process*)
 with
 
 fun make_state (versions, commands, execs, execution) =
@@ -248,11 +249,13 @@ fun make_state (versions, commands, execs, execution) =
 fun map_state f (State {versions, commands, execs, execution}) =
   make_state (f (versions, commands, execs, execution));
 
+val empty_commands =
+  Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))];
+val empty_execs = Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))];
+val empty_execution = (no_id, Future.new_group NONE);
+
 val init_state =
-  make_state (Inttab.make [(no_id, empty_version)],
-    Inttab.make [(no_id, (Toplevel.name_of Toplevel.empty, Future.value Toplevel.empty))],
-    Inttab.make [(no_id, (no_id, Lazy.value (Toplevel.toplevel, no_print)))],
-    Future.new_group NONE);
+  make_state (Inttab.make [(no_id, empty_version)], empty_commands, empty_execs, empty_execution);
 
 
 (* document versions *)
@@ -267,6 +270,9 @@ fun the_version (State {versions, ...}) (id: version_id) =
   (case Inttab.lookup versions id of
     NONE => err_undef "document version" id
   | SOME version => version);
+
+fun delete_version (id: version_id) versions = Inttab.delete id versions
+  handle Inttab.UNDEF _ => err_undef "document version" id;
 
 
 (* commands *)
@@ -309,7 +315,7 @@ fun the_exec (State {execs, ...}) exec_id =
 
 (* document execution *)
 
-fun cancel_execution (State {execution, ...}) = Future.cancel_group execution;
+fun cancel_execution (State {execution, ...}) = Future.cancel_group (#2 execution);
 
 end;
 
@@ -553,16 +559,39 @@ fun execute version_id state =
                 else ();
             in () end;
 
-      val execution = Future.new_group NONE;
+      val group = Future.new_group NONE;
       val _ =
         nodes_of version |> Graph.schedule
           (fn deps => fn (name, node) =>
             (singleton o Future.forks)
-              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME execution)),
+              {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
                 deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
               (iterate_entries (fn (_, exec) => fn () => SOME (force_exec node exec)) node));
 
-    in (versions, commands, execs, execution) end);
+    in (versions, commands, execs, (version_id, group)) end);
+
+
+(* remove versions *)
+
+fun remove_versions ids state = state |> map_state (fn (versions, _, _, execution) =>
+  let
+    val _ = member (op =) ids (#1 execution) andalso
+      error ("Attempt to remove execution version " ^ print_id (#1 execution));
+
+    val versions' = fold delete_version ids versions;
+    val (commands', execs') =
+      (versions', (empty_commands, empty_execs)) |->
+        Inttab.fold (fn (_, version) => nodes_of version |>
+          Graph.fold (fn (_, (node, _)) => node |>
+            iterate_entries (fn ((_, id), exec) => fn (commands, execs) =>
+              let
+                val commands' = Inttab.insert (K true) (id, the_command state id) commands;
+                val execs' =
+                  (case exec of
+                    NONE => execs
+                  | SOME exec_id => Inttab.insert (K true) (exec_id, the_exec state exec_id) execs);
+              in SOME (commands', execs') end)));
+  in (versions', commands', execs', execution) end);
 
 
 
