@@ -10,7 +10,7 @@ uses
   ("nominal_primrec.ML")
   ("nominal_inductive.ML")
   ("nominal_inductive2.ML")
-begin 
+begin
 
 section {* Permutations *}
 (*======================*)
@@ -27,7 +27,7 @@ consts
 datatype 'a noption = nSome 'a | nNone
 
 (* a "private" copy of the product type used in the nominal induct method *)
-datatype ('a,'b) nprod = nPair 'a 'b
+datatype ('a, 'b) nprod = nPair 'a 'b
 
 (* an auxiliary constant for the decision procedure involving *) 
 (* permutations (to avoid loops when using perm-compositions)  *)
@@ -39,7 +39,7 @@ overloading
   perm_fun    \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<Rightarrow>'b) \<Rightarrow> ('a\<Rightarrow>'b)"   (unchecked)
   perm_bool   \<equiv> "perm :: 'x prm \<Rightarrow> bool \<Rightarrow> bool"           (unchecked)
   perm_unit   \<equiv> "perm :: 'x prm \<Rightarrow> unit \<Rightarrow> unit"           (unchecked)
-  perm_prod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"     (unchecked)
+  perm_prod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"    (unchecked)
   perm_list   \<equiv> "perm :: 'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"     (unchecked)
   perm_option \<equiv> "perm :: 'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option" (unchecked)
   perm_char   \<equiv> "perm :: 'x prm \<Rightarrow> char \<Rightarrow> char"           (unchecked)
@@ -53,9 +53,8 @@ begin
 definition
   perm_fun_def: "perm_fun pi (f::'a\<Rightarrow>'b) = (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
-primrec perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
-  true_eqvt:  "perm_bool pi True  = True"
-| false_eqvt: "perm_bool pi False = False"
+definition perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
+  perm_bool_def: "perm_bool pi b = b"
 
 primrec perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit"  where 
   "perm_unit pi () = ()"
@@ -89,11 +88,16 @@ primrec perm_nprod :: "'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b
 
 end
 
-
 (* permutations on booleans *)
-lemma perm_bool:
-  shows "pi\<bullet>(b::bool) = b"
-  by (cases b) auto
+lemmas perm_bool = perm_bool_def
+
+lemma true_eqvt [simp]:
+  "pi \<bullet> True \<longleftrightarrow> True"
+  by (simp add: perm_bool_def)
+
+lemma false_eqvt [simp]:
+  "pi \<bullet> False \<longleftrightarrow> False"
+  by (simp add: perm_bool_def)
 
 lemma perm_boolI:
   assumes a: "P"

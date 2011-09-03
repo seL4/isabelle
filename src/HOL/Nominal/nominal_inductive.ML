@@ -32,7 +32,7 @@ fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val fresh_prod = @{thm fresh_prod};
 
-val perm_bool = mk_meta_eq @{thm perm_bool};
+val perm_bool = mk_meta_eq @{thm perm_bool_def};
 val perm_boolI = @{thm perm_boolI};
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
   (Drule.strip_imp_concl (cprop_of perm_boolI))));
