@@ -747,9 +747,9 @@ fun create_nom_typedecls ak_names thy =
          |> discrete_pt_inst @{type_name nat} @{thm perm_nat_def}
          |> discrete_fs_inst @{type_name nat} @{thm perm_nat_def}
          |> discrete_cp_inst @{type_name nat} @{thm perm_nat_def}
-         |> discrete_pt_inst @{type_name bool} @{thm perm_bool}
-         |> discrete_fs_inst @{type_name bool} @{thm perm_bool}
-         |> discrete_cp_inst @{type_name bool} @{thm perm_bool}
+         |> discrete_pt_inst @{type_name bool} @{thm perm_bool_def}
+         |> discrete_fs_inst @{type_name bool} @{thm perm_bool_def}
+         |> discrete_cp_inst @{type_name bool} @{thm perm_bool_def}
          |> discrete_pt_inst @{type_name int} @{thm perm_int_def}
          |> discrete_fs_inst @{type_name int} @{thm perm_int_def}
          |> discrete_cp_inst @{type_name int} @{thm perm_int_def}
