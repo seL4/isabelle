@@ -403,10 +403,6 @@ qed
 lemma nat_int [simp]: "nat (of_nat n) = n"
 by (simp add: nat int_def)
 
-(* FIXME: duplicates nat_0 *)
-lemma nat_zero [simp]: "nat 0 = 0"
-by (simp add: Zero_int_def nat)
-
 lemma int_nat_eq [simp]: "of_nat (nat z) = (if 0 \<le> z then z else 0)"
 by (cases z) (simp add: nat le int_def Zero_int_def)
 
@@ -1623,8 +1619,7 @@ declare One_int_def [symmetric, simp]
 
 lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 
-(* FIXME: duplicates nat_zero *)
-lemma nat_0: "nat 0 = 0"
+lemma nat_0 [simp]: "nat 0 = 0"
 by (simp add: nat_eq_iff)
 
 lemma nat_1: "nat 1 = Suc 0"
