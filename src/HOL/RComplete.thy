@@ -33,8 +33,8 @@ text {*
 text {* Only used in HOL/Import/HOL4Compat.thy; delete? *}
 
 lemma posreal_complete:
-  assumes positive_P: "\<forall>x \<in> P. (0::real) < x"
-    and not_empty_P: "\<exists>x. x \<in> P"
+  fixes P :: "real set"
+  assumes not_empty_P: "\<exists>x. x \<in> P"
     and upper_bound_Ex: "\<exists>y. \<forall>x \<in> P. x<y"
   shows "\<exists>S. \<forall>y. (\<exists>x \<in> P. y < x) = (y < S)"
 proof -
