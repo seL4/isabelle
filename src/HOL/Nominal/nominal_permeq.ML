@@ -56,10 +56,10 @@ val finite_emptyI = @{thm "finite.emptyI"};
 val finite_Un     = @{thm "finite_Un"};
 val conj_absorb   = @{thm "conj_absorb"};
 val not_false     = @{thm "not_False_eq_True"}
-val perm_fun_def  = @{thm "Nominal.perm_fun_def"};
+val perm_fun_def  = Simpdata.mk_eq @{thm "Nominal.perm_fun_def"};
 val perm_eq_app   = @{thm "Nominal.pt_fun_app_eq"};
-val supports_def  = @{thm "Nominal.supports_def"};
-val fresh_def     = @{thm "Nominal.fresh_def"};
+val supports_def  = Simpdata.mk_eq @{thm "Nominal.supports_def"};
+val fresh_def     = Simpdata.mk_eq @{thm "Nominal.fresh_def"};
 val fresh_prod    = @{thm "Nominal.fresh_prod"};
 val fresh_unit    = @{thm "Nominal.fresh_unit"};
 val supports_rule = @{thm "supports_finite"};
@@ -130,7 +130,7 @@ fun perm_simproc_fun' sg ss redex =
      case redex of 
        (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)     
        (Const("Nominal.perm",_) $ pi $ f)  => 
-          (if (applicable_fun f) then SOME (perm_fun_def) else NONE)
+          (if (applicable_fun f) then SOME perm_fun_def else NONE)
       | _ => NONE
    end
 

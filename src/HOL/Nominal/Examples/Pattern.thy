@@ -1,7 +1,7 @@
 header {* Simply-typed lambda-calculus with let and tuple patterns *}
 
 theory Pattern
-imports Nominal
+imports "../Nominal"
 begin
 
 no_syntax
@@ -622,7 +622,7 @@ lemma valid_app_freshs: assumes "valid (\<Gamma> @ \<Delta>)"
     (auto simp add: Cons_eq_append_conv fresh_star_def
      fresh_list_nil fresh_list_cons supp_list_nil supp_list_cons fresh_list_append
      supp_prod fresh_prod supp_atm fresh_atm
-     dest: notE [OF iffD1 [OF fresh_def [THEN meta_eq_to_obj_eq]]])
+     dest: notE [OF iffD1 [OF fresh_def]])
 
 lemma perm_mem_left: "(x::name) \<in> ((pi::name prm) \<bullet> A) \<Longrightarrow> (rev pi \<bullet> x) \<in> A"
   by (drule perm_boolI [of _ "rev pi"]) (simp add: eqvts perm_pi_simp)
