@@ -58,7 +58,6 @@ sig
   val propN: string val prop: T
   val ML_keywordN: string val ML_keyword: T
   val ML_delimiterN: string val ML_delimiter: T
-  val ML_identN: string val ML_ident: T
   val ML_tvarN: string val ML_tvar: T
   val ML_numeralN: string val ML_numeral: T
   val ML_charN: string val ML_char: T
@@ -80,7 +79,6 @@ sig
   val keywordN: string val keyword: T
   val operatorN: string val operator: T
   val commandN: string val command: T
-  val identN: string val ident: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
@@ -257,7 +255,6 @@ val (propN, prop) = markup_elem "prop";
 
 val (ML_keywordN, ML_keyword) = markup_elem "ML_keyword";
 val (ML_delimiterN, ML_delimiter) = markup_elem "ML_delimiter";
-val (ML_identN, ML_ident) = markup_elem "ML_ident";
 val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
 val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
 val (ML_charN, ML_char) = markup_elem "ML_char";
@@ -292,7 +289,6 @@ fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)])
 val (keywordN, keyword) = markup_elem "keyword";
 val (operatorN, operator) = markup_elem "operator";
 val (commandN, command) = markup_elem "command";
-val (identN, ident) = markup_elem "ident";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
