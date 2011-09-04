@@ -159,6 +159,7 @@ object XML
           case Cache_Markup(x, f) => f(cache_markup(x))
           case Cache_Tree(x, f) => f(cache_tree(x))
           case Cache_Body(x, f) => f(cache_body(x))
+          case Cache_Ignore(x, f) => f(x)
           case bad => System.err.println("XML.cache_actor: ignoring bad input " + bad)
         }
       }
@@ -168,12 +169,14 @@ object XML
     private case class Cache_Markup(x: Markup, f: Markup => Unit)
     private case class Cache_Tree(x: XML.Tree, f: XML.Tree => Unit)
     private case class Cache_Body(x: XML.Body, f: XML.Body => Unit)
+    private case class Cache_Ignore[A](x: A, f: A => Unit)
 
     // main methods
     def cache_string(x: String)(f: String => Unit) { cache_actor ! Cache_String(x, f) }
     def cache_markup(x: Markup)(f: Markup => Unit) { cache_actor ! Cache_Markup(x, f) }
     def cache_tree(x: XML.Tree)(f: XML.Tree => Unit) { cache_actor ! Cache_Tree(x, f) }
     def cache_body(x: XML.Body)(f: XML.Body => Unit) { cache_actor ! Cache_Body(x, f) }
+    def cache_ignore[A](x: A)(f: A => Unit) { cache_actor ! Cache_Ignore(x, f) }
   }
 
 

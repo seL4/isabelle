@@ -99,7 +99,8 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
   {
     if (kind == Markup.INIT) rm_fifos()
     if (kind == Markup.RAW)
-      receiver ! new Result(XML.Elem(Markup(kind, props), body))
+      xml_cache.cache_ignore(
+        new Result(XML.Elem(Markup(kind, props), body)))((result: Result) => receiver ! result)
     else {
       val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
       xml_cache.cache_tree(msg)((message: XML.Tree) =>
