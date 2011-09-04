@@ -736,12 +736,6 @@ by (auto simp add: DeMoivre)
 lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
 by (auto simp add: DeMoivre)
 
-lemma expi_add: "expi(a + b) = expi(a) * expi(b)"
-  by (rule exp_add) (* FIXME: redundant *)
-
-lemma expi_zero: "expi (0::complex) = 1"
-  by (rule exp_zero) (* FIXME: redundant *)
-
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
 apply (auto simp add: expi_def rcis_def mult_assoc [symmetric])

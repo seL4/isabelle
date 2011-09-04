@@ -277,6 +277,8 @@ replaced by more general versions. INCOMPATIBILITY.
   realpow_two_diff ~> square_diff_square_factored
   reals_complete2 ~> complete_real
   exp_ln_eq ~> ln_unique
+  expi_add ~> exp_add
+  expi_zero ~> exp_zero
   lemma_DERIV_subst ~> DERIV_cong
   LIMSEQ_Zfun_iff ~> tendsto_Zfun_iff
   LIMSEQ_const ~> tendsto_const
