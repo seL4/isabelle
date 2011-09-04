@@ -446,6 +446,12 @@ apply (cases w)
 apply (simp add: nat le int_def Zero_int_def linorder_not_le[symmetric], arith)
 done
 
+lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> of_nat n"
+  by (cases x, simp add: nat le int_def le_diff_conv)
+
+lemma nat_mono: "x \<le> y \<Longrightarrow> nat x \<le> nat y"
+  by (cases x, cases y, simp add: nat le)
+
 lemma nat_0_iff[simp]: "nat(i::int) = 0 \<longleftrightarrow> i\<le>0"
 by(simp add: nat_eq_iff) arith
 

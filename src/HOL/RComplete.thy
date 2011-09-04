@@ -336,9 +336,6 @@ lemma real_natfloor_le: "0 <= x ==> real(natfloor x) <= x"
 lemma natfloor_neg: "x <= 0 ==> natfloor x = 0"
   unfolding natfloor_def by simp
 
-lemma nat_mono: "x \<le> y \<Longrightarrow> nat x \<le> nat y"
-  by simp (* TODO: move to Int.thy *)
-
 lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
   unfolding natfloor_def by (intro nat_mono floor_mono)
 
@@ -473,9 +470,6 @@ lemma natceiling_neg: "x <= 0 ==> natceiling x = 0"
 
 lemma natceiling_mono: "x <= y ==> natceiling x <= natceiling y"
   unfolding natceiling_def by (intro nat_mono ceiling_mono)
-
-lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> int n"
-  by auto (* TODO: move to Int.thy *)
 
 lemma natceiling_le: "x <= real a ==> natceiling x <= a"
   unfolding natceiling_def real_of_nat_def
