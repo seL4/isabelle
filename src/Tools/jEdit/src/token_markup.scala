@@ -186,7 +186,8 @@ object Token_Markup
             val style = Isabelle_Markup.token_markup(syntax, token)
             val length = token.source.length
             val end_offset = offset + length
-            if ((offset until end_offset) exists extended.isDefinedAt) {
+            if ((offset until end_offset) exists
+                (i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {
               for (i <- offset until end_offset) {
                 val style1 =
                   extended.get(i) match {
