@@ -151,12 +151,10 @@ object XML
         }
 
     // main methods
-    // FIXME simplify signatures
-    def cache_string(x: String)(f: String => Unit): Unit = f(synchronized { _cache_string(x) })
-    def cache_markup(x: Markup)(f: Markup => Unit): Unit = f(synchronized { _cache_markup(x) })
-    def cache_tree(x: XML.Tree)(f: XML.Tree => Unit): Unit = f(synchronized { _cache_tree(x) })
-    def cache_body(x: XML.Body)(f: XML.Body => Unit): Unit = f(synchronized { _cache_body(x) })
-    def cache_ignore[A](x: A)(f: A => Unit): Unit = f(x)
+    def cache_string(x: String): String = synchronized { _cache_string(x) }
+    def cache_markup(x: Markup): Markup = synchronized { _cache_markup(x) }
+    def cache_tree(x: XML.Tree): XML.Tree = synchronized { _cache_tree(x) }
+    def cache_body(x: XML.Body): XML.Body = synchronized { _cache_body(x) }
   }
 
 
