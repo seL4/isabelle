@@ -123,8 +123,10 @@ object Isabelle
         Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
       HTML.encode(text) + "</pre></html>"
 
+  private val tooltip_lb = Time.seconds(0.5)
+  private val tooltip_ub = Time.seconds(60.0)
   def tooltip_dismiss_delay(): Time =
-    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)) max Time.seconds(0.5)
+    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)) max tooltip_lb min tooltip_ub
 
   def setup_tooltips()
   {

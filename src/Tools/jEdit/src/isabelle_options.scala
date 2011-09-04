@@ -63,6 +63,6 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
       tooltip_margin.getValue().asInstanceOf[Int]
 
     Isabelle.Time_Property("tooltip-dismiss-delay") =
-      Time.seconds(tooltip_dismiss_delay.getValue().asInstanceOf[Int])
+      Time.ms(tooltip_dismiss_delay.getValue().asInstanceOf[Int])
   }
 }

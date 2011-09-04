@@ -9,6 +9,7 @@ package isabelle
 object Time
 {
   def seconds(s: Double): Time = new Time((s * 1000.0) round)
+  def ms(m: Long): Time = new Time(m)
 }
 
 class Time(val ms: Long)
