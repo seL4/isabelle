@@ -131,13 +131,17 @@ lemma neg_eqvt:
   by (simp add: perm_bool)
 
 (* permutation on sets *)
+lemma perm_set_def:
+  "pi \<bullet> A = {x. rev pi \<bullet> x \<in> A}"
+  by (simp add: perm_fun_def perm_bool_def Collect_def mem_def)
+
 lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
-  by (simp add: perm_fun_def perm_bool empty_iff [unfolded mem_def] fun_eq_iff)
+  by (simp add: perm_set_def fun_eq_iff)
 
 lemma union_eqvt:
   shows "(pi\<bullet>(X\<union>Y)) = (pi\<bullet>X) \<union> (pi\<bullet>Y)"
-  by (simp add: perm_fun_def perm_bool Un_iff [unfolded mem_def] fun_eq_iff)
+  by (simp add: perm_set_def fun_eq_iff Un_def)
 
 (* permutations on products *)
 lemma fst_eqvt:
@@ -192,7 +196,6 @@ lemma supp_fresh_iff:
   shows "(supp x) = {a::'x. \<not>a\<sharp>x}"
   by (simp add: fresh_def)
 
-
 lemma supp_unit:
   shows "supp () = {}"
   by (simp add: supp_def)
@@ -215,8 +218,7 @@ lemma supp_nprod:
 
 lemma supp_list_nil:
   shows "supp [] = {}"
-apply(simp add: supp_def)
-done
+  by (simp add: supp_def)
 
 lemma supp_list_cons:
   fixes x  :: "'a"
@@ -996,6 +998,52 @@ lemma at_fresh_ineq:
 section {* permutation type instances *}
 (* ===================================*)
 
+lemma pt_fun_inst:
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('b) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  shows  "pt TYPE('a\<Rightarrow>'b) TYPE('x)"
+apply(auto simp only: pt_def)
+apply(simp_all add: perm_fun_def)
+apply(simp add: pt1[OF pta] pt1[OF ptb])
+apply(simp add: pt2[OF pta] pt2[OF ptb])
+apply(subgoal_tac "(rev pi1) \<triangleq> (rev pi2)")(*A*)
+apply(simp add: pt3[OF pta] pt3[OF ptb])
+(*A*)
+apply(simp add: at_prm_rev_eq[OF at])
+done
+
+lemma pt_bool_inst:
+  shows  "pt TYPE(bool) TYPE('x)"
+  by (simp add: pt_def perm_bool_def)
+
+lemma pt_set_inst:
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  shows "pt TYPE('a set) TYPE('x)"
+proof -
+  from pta pt_bool_inst at
+    have "pt TYPE('a \<Rightarrow> bool) TYPE('x)" by (rule pt_fun_inst)
+  then show ?thesis by (simp add: pt_def perm_set_def)
+qed
+
+lemma pt_unit_inst:
+  shows  "pt TYPE(unit) TYPE('x)"
+  by (simp add: pt_def)
+
+lemma pt_prod_inst:
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('b) TYPE('x)"
+  shows  "pt TYPE('a \<times> 'b) TYPE('x)"
+  apply(auto simp add: pt_def)
+  apply(rule pt1[OF pta])
+  apply(rule pt1[OF ptb])
+  apply(rule pt2[OF pta])
+  apply(rule pt2[OF ptb])
+  apply(rule pt3[OF pta],assumption)
+  apply(rule pt3[OF ptb],assumption)
+  done
+
 lemma pt_list_nil: 
   fixes xs :: "'a list"
   assumes pt: "pt TYPE('a) TYPE ('x)"
@@ -1033,51 +1081,6 @@ apply(rule pt_list_append[OF pt])
 apply(rule pt_list_prm_eq[OF pt],assumption)
 done
 
-lemma pt_unit_inst:
-  shows  "pt TYPE(unit) TYPE('x)"
-  by (simp add: pt_def)
-
-lemma pt_prod_inst:
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     ptb: "pt TYPE('b) TYPE('x)"
-  shows  "pt TYPE('a \<times> 'b) TYPE('x)"
-  apply(auto simp add: pt_def)
-  apply(rule pt1[OF pta])
-  apply(rule pt1[OF ptb])
-  apply(rule pt2[OF pta])
-  apply(rule pt2[OF ptb])
-  apply(rule pt3[OF pta],assumption)
-  apply(rule pt3[OF ptb],assumption)
-  done
-
-lemma pt_nprod_inst:
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     ptb: "pt TYPE('b) TYPE('x)"
-  shows  "pt TYPE(('a,'b) nprod) TYPE('x)"
-  apply(auto simp add: pt_def)
-  apply(case_tac x)
-  apply(simp add: pt1[OF pta] pt1[OF ptb])
-  apply(case_tac x)
-  apply(simp add: pt2[OF pta] pt2[OF ptb])
-  apply(case_tac x)
-  apply(simp add: pt3[OF pta] pt3[OF ptb])
-  done
-
-lemma pt_fun_inst:
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     ptb: "pt TYPE('b) TYPE('x)"
-  and     at:  "at TYPE('x)"
-  shows  "pt TYPE('a\<Rightarrow>'b) TYPE('x)"
-apply(auto simp only: pt_def)
-apply(simp_all add: perm_fun_def)
-apply(simp add: pt1[OF pta] pt1[OF ptb])
-apply(simp add: pt2[OF pta] pt2[OF ptb])
-apply(subgoal_tac "(rev pi1) \<triangleq> (rev pi2)")(*A*)
-apply(simp add: pt3[OF pta] pt3[OF ptb])
-(*A*)
-apply(simp add: at_prm_rev_eq[OF at])
-done
-
 lemma pt_option_inst:
   assumes pta: "pt TYPE('a) TYPE('x)"
   shows  "pt TYPE('a option) TYPE('x)"
@@ -1102,9 +1105,18 @@ apply(case_tac "x")
 apply(simp_all add: pt3[OF pta])
 done
 
-lemma pt_bool_inst:
-  shows  "pt TYPE(bool) TYPE('x)"
-  by (simp add: pt_def perm_bool)
+lemma pt_nprod_inst:
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('b) TYPE('x)"
+  shows  "pt TYPE(('a,'b) nprod) TYPE('x)"
+  apply(auto simp add: pt_def)
+  apply(case_tac x)
+  apply(simp add: pt1[OF pta] pt1[OF ptb])
+  apply(case_tac x)
+  apply(simp add: pt2[OF pta] pt2[OF ptb])
+  apply(case_tac x)
+  apply(simp add: pt3[OF pta] pt3[OF ptb])
+  done
 
 section {* further lemmas for permutation types *}
 (*==============================================*)
