@@ -24,8 +24,6 @@ declare -a SOURCES=(
   General/scan.scala
   General/sha1.scala
   General/symbol.scala
-  General/xml.scala
-  General/yxml.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
@@ -36,6 +34,8 @@ declare -a SOURCES=(
   PIDE/isar_document.scala
   PIDE/markup_tree.scala
   PIDE/text.scala
+  PIDE/xml.scala
+  PIDE/yxml.scala
   System/cygwin.scala
   System/download.scala
   System/event_bus.scala

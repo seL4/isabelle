@@ -1,7 +1,8 @@
-/*  Title:      Pure/General/yxml.scala
+/*  Title:      Pure/PIDE/yxml.scala
     Author:     Makarius
 
-Efficient text representation of XML trees.
+Efficient text representation of XML trees.  Suitable for direct
+inlining into plain text.
 */
 
 package isabelle

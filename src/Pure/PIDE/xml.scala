@@ -1,7 +1,7 @@
-/*  Title:      Pure/General/xml.scala
+/*  Title:      Pure/PIDE/xml.scala
     Author:     Makarius
 
-Untyped XML trees.
+Untyped XML trees and basic data representation.
 */
 
 package isabelle
