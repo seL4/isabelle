@@ -658,7 +658,6 @@ lemma Bseq_isUb:
   "!!(X::nat=>real). Bseq X ==> \<exists>U. isUb (UNIV::real set) {x. \<exists>n. X n = x} U"
 by (auto intro: isUbI setleI simp add: Bseq_def abs_le_iff)
 
-
 text{* Use completeness of reals (supremum property)
    to show that any bounded sequence has a least upper bound*}
 
@@ -669,15 +668,8 @@ by (blast intro: reals_complete Bseq_isUb)
 
 subsubsection{*A Bounded and Monotonic Sequence Converges*}
 
-lemma lemma_converg1:
-     "!!(X::nat=>real). [| \<forall>m. \<forall> n \<ge> m. X m \<le> X n;
-                  isLub (UNIV::real set) {x. \<exists>n. X n = x} (X ma)
-               |] ==> \<forall>n \<ge> ma. X n = X ma"
-apply safe
-apply (drule_tac y = "X n" in isLubD2)
-apply (blast dest: order_antisym)+
-done
-
+(* TODO: delete *)
+(* FIXME: one use in NSA/HSEQ.thy *)
 lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X ----> L)"
 unfolding tendsto_def eventually_sequentially
 apply (rule_tac x = "X m" in exI, safe)
@@ -685,50 +677,45 @@ apply (rule_tac x = m in exI, safe)
 apply (drule spec, erule impE, auto)
 done
 
-lemma lemma_converg2:
-   "!!(X::nat=>real).
-    [| \<forall>m. X m ~= U;  isLub UNIV {x. \<exists>n. X n = x} U |] ==> \<forall>m. X m < U"
-apply safe
-apply (drule_tac y = "X m" in isLubD2)
-apply (auto dest!: order_le_imp_less_or_eq)
-done
+text {* A monotone sequence converges to its least upper bound. *}
 
-lemma lemma_converg3: "!!(X ::nat=>real). \<forall>m. X m \<le> U ==> isUb UNIV {x. \<exists>n. X n = x} U"
-by (rule setleI [THEN isUbI], auto)
-
-text{* FIXME: @{term "U - T < U"} is redundant *}
-lemma lemma_converg4: "!!(X::nat=> real).
-               [| \<forall>m. X m ~= U;
-                  isLub UNIV {x. \<exists>n. X n = x} U;
-                  0 < T;
-                  U + - T < U
-               |] ==> \<exists>m. U + -T < X m & X m < U"
-apply (drule lemma_converg2, assumption)
-apply (rule ccontr, simp)
-apply (simp add: linorder_not_less)
-apply (drule lemma_converg3)
-apply (drule isLub_le_isUb, assumption)
-apply (auto dest: order_less_le_trans)
-done
+lemma isLub_mono_imp_LIMSEQ:
+  fixes X :: "nat \<Rightarrow> real"
+  assumes u: "isLub UNIV {x. \<exists>n. X n = x} u" (* FIXME: use 'range X' *)
+  assumes X: "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
+  shows "X ----> u"
+proof (rule LIMSEQ_I)
+  have 1: "\<forall>n. X n \<le> u"
+    using isLubD2 [OF u] by auto
+  have "\<forall>y. (\<forall>n. X n \<le> y) \<longrightarrow> u \<le> y"
+    using isLub_le_isUb [OF u] by (auto simp add: isUb_def setle_def)
+  hence 2: "\<forall>y<u. \<exists>n. y < X n"
+    by (metis not_le)
+  fix r :: real assume "0 < r"
+  hence "u - r < u" by simp
+  hence "\<exists>m. u - r < X m" using 2 by simp
+  then obtain m where "u - r < X m" ..
+  with X have "\<forall>n\<ge>m. u - r < X n"
+    by (fast intro: less_le_trans)
+  hence "\<exists>m. \<forall>n\<ge>m. u - r < X n" ..
+  thus "\<exists>m. \<forall>n\<ge>m. norm (X n - u) < r"
+    using 1 by (simp add: diff_less_eq add_commute)
+qed
 
 text{*A standard proof of the theorem for monotone increasing sequence*}
 
 lemma Bseq_mono_convergent:
      "[| Bseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> convergent (X::nat=>real)"
-apply (simp add: convergent_def)
-apply (frule Bseq_isLub, safe)
-apply (case_tac "\<exists>m. X m = U", auto)
-apply (blast dest: lemma_converg1 Bmonoseq_LIMSEQ)
-(* second case *)
-apply (rule_tac x = U in exI)
-apply (subst LIMSEQ_iff, safe)
-apply (frule lemma_converg2, assumption)
-apply (drule lemma_converg4, auto)
-apply (rule_tac x = m in exI, safe)
-apply (subgoal_tac "X m \<le> X n")
- prefer 2 apply blast
-apply (drule_tac x=n and P="%m. X m < U" in spec, arith)
-done
+proof -
+  assume "Bseq X"
+  then obtain u where u: "isLub UNIV {x. \<exists>n. X n = x} u"
+    using Bseq_isLub by fast
+  assume "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
+  with u have "X ----> u"
+    by (rule isLub_mono_imp_LIMSEQ)
+  thus "convergent X"
+    by (rule convergentI)
+qed
 
 lemma Bseq_minus_iff: "Bseq (%n. -(X n)) = Bseq X"
 by (simp add: Bseq_def)
