@@ -380,22 +380,6 @@ lemma Bseq_inverse:
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
 unfolding Bseq_conv_Bfun by (rule Bfun_inverse)
 
-lemma LIMSEQ_add_const: (* FIXME: delete *)
-  fixes a :: "'a::real_normed_vector"
-  shows "f ----> a ==> (%n.(f n + b)) ----> a + b"
-by (intro tendsto_intros)
-
-(* FIXME: delete *)
-lemma LIMSEQ_add_minus:
-  fixes a b :: "'a::real_normed_vector"
-  shows "[| X ----> a; Y ----> b |] ==> (%n. X n + -Y n) ----> a + -b"
-by (intro tendsto_intros)
-
-lemma LIMSEQ_diff_const: (* FIXME: delete *)
-  fixes a b :: "'a::real_normed_vector"
-  shows "f ----> a ==> (%n.(f n  - b)) ----> a - b"
-by (intro tendsto_intros)
-
 lemma LIMSEQ_diff_approach_zero:
   fixes L :: "'a::real_normed_vector"
   shows "g ----> L ==> (%x. f x - g x) ----> 0 ==> f ----> L"
@@ -438,7 +422,8 @@ lemma LIMSEQ_inverse_real_of_nat_add:
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus:
      "(%n. r + -inverse(real(Suc n))) ----> r"
-  using LIMSEQ_add_minus [OF tendsto_const LIMSEQ_inverse_real_of_nat] by auto
+  using tendsto_add [OF tendsto_const
+    tendsto_minus [OF LIMSEQ_inverse_real_of_nat]] by auto
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
      "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r"

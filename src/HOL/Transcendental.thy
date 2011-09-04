@@ -1999,7 +1999,7 @@ apply (cut_tac linorder_linear [of 0 y], safe)
 apply (drule tan_total_pos)
 apply (cut_tac [2] y="-y" in tan_total_pos, safe)
 apply (rule_tac [3] x = "-x" in exI)
-apply (auto intro!: exI)
+apply (auto del: exI intro!: exI)
 done
 
 lemma tan_total: "EX! x. -(pi/2) < x & x < (pi/2) & tan x = y"
@@ -2009,7 +2009,7 @@ apply (subgoal_tac [2] "\<exists>z. y < z & z < xa & DERIV tan z :> 0")
 apply (subgoal_tac "\<exists>z. xa < z & z < y & DERIV tan z :> 0")
 apply (rule_tac [4] Rolle)
 apply (rule_tac [2] Rolle)
-apply (auto intro!: DERIV_tan DERIV_isCont exI
+apply (auto del: exI intro!: DERIV_tan DERIV_isCont exI
             simp add: differentiable_def)
 txt{*Now, simulate TRYALL*}
 apply (rule_tac [!] DERIV_tan asm_rl)
@@ -2785,7 +2785,7 @@ proof -
         have "norm (?diff 1 n - 0) < r" by auto }
       thus "\<exists> N. \<forall> n \<ge> N. norm (?diff 1 n - 0) < r" by blast
     qed
-    from this[unfolded tendsto_rabs_zero_iff diff_minus add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN tendsto_minus]
+    from this [unfolded tendsto_rabs_zero_iff, THEN tendsto_add [OF _ tendsto_const], of "- arctan 1", THEN tendsto_minus]
     have "(?c 1) sums (arctan 1)" unfolding sums_def by auto
     hence "arctan 1 = (\<Sum> i. ?c 1 i)" by (rule sums_unique)
 

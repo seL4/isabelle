@@ -122,7 +122,7 @@ lemma sums_split_initial_segment:
   shows "f sums s ==> (\<lambda>n. f(n + k)) sums (s - (SUM i = 0..< k. f i))"
   apply (unfold sums_def)
   apply (simp add: sumr_offset)
-  apply (rule LIMSEQ_diff_const)
+  apply (rule tendsto_diff [OF _ tendsto_const])
   apply (rule LIMSEQ_ignore_initial_segment)
   apply assumption
 done
@@ -166,7 +166,7 @@ lemma sums_Suc:
 proof -
   from sumSuc[unfolded sums_def]
   have "(\<lambda>i. \<Sum>n = Suc 0..<Suc i. f n) ----> l" unfolding setsum_reindex[OF inj_Suc] image_Suc_atLeastLessThan[symmetric] comp_def .
-  from LIMSEQ_add_const[OF this, where b="f 0"]
+  from tendsto_add[OF this tendsto_const, where b="f 0"]
   have "(\<lambda>i. \<Sum>n = 0..<Suc i. f n) ----> l + f 0" unfolding add_commute setsum_head_upt_Suc[OF zero_less_Suc] .
   thus ?thesis unfolding sums_def by (rule LIMSEQ_imp_Suc)
 qed
@@ -625,7 +625,7 @@ apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
  apply (simp add:diff_Suc split:nat.splits)
  apply (blast intro: norm_ratiotest_lemma)
 apply (rule_tac x = "Suc N" in exI, clarify)
-apply(simp cong:setsum_ivl_cong)
+apply(simp cong del: setsum_cong cong: setsum_ivl_cong)
 done
 
 lemma ratio_test:
