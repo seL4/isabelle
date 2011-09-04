@@ -105,8 +105,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/table.ML					\
   General/timing.ML					\
   General/url.ML					\
-  General/xml.ML					\
-  General/yxml.ML					\
   Isar/args.ML						\
   Isar/attrib.ML					\
   Isar/auto_bind.ML					\
@@ -158,6 +156,8 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   ML/ml_thms.ML						\
   PIDE/document.ML					\
   PIDE/isar_document.ML					\
+  PIDE/xml.ML						\
+  PIDE/yxml.ML						\
   Proof/extraction.ML					\
   Proof/proof_checker.ML				\
   Proof/proof_rewrite_rules.ML				\

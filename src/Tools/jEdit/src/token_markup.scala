@@ -173,41 +173,42 @@ object Token_Markup
           case _ => Some(Scan.Finished)
         }
       val context1 =
-        if (line_ctxt.isDefined && Isabelle.session.is_ready) {
-          val syntax = Isabelle.session.current_syntax()
-    
-          val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
-          val context1 = new Line_Context(Some(ctxt1))
-    
-          val extended = extended_styles(line)
-    
-          var offset = 0
-          for (token <- tokens) {
-            val style = Isabelle_Markup.token_markup(syntax, token)
-            val length = token.source.length
-            val end_offset = offset + length
-            if ((offset until end_offset) exists extended.isDefinedAt) {
-              for (i <- offset until end_offset) {
-                val style1 =
-                  extended.get(i) match {
-                    case None => style
-                    case Some(ext) => ext(style)
-                  }
-                handler.handleToken(line, style1, i, 1, context1)
-              }
-            }
-            else handler.handleToken(line, style, offset, length, context1)
-            offset += length
+      {
+        val (styled_tokens, context1) =
+          if (line_ctxt.isDefined && Isabelle.session.is_ready) {
+            val syntax = Isabelle.session.current_syntax()
+            val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+            val styled_tokens = tokens.map(tok => (Isabelle_Markup.token_markup(syntax, tok), tok))
+            (styled_tokens, new Line_Context(Some(ctxt1)))
           }
-          handler.handleToken(line, JEditToken.END, line.count, 0, context1)
-          context1
+          else {
+            val token = Token(Token.Kind.UNPARSED, line.subSequence(0, line.count).toString)
+            (List((JEditToken.NULL, token)), new Line_Context(None))
+          }
+
+        val extended = extended_styles(line)
+
+        var offset = 0
+        for ((style, token) <- styled_tokens) {
+          val length = token.source.length
+          val end_offset = offset + length
+          if ((offset until end_offset) exists
+              (i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {
+            for (i <- offset until end_offset) {
+              val style1 =
+                extended.get(i) match {
+                  case None => style
+                  case Some(ext) => ext(style)
+                }
+              handler.handleToken(line, style1, i, 1, context1)
+            }
+          }
+          else handler.handleToken(line, style, offset, length, context1)
+          offset += length
         }
-        else {
-          val context1 = new Line_Context(None)
-          handler.handleToken(line, JEditToken.NULL, 0, line.count, context1)
-          handler.handleToken(line, JEditToken.END, line.count, 0, context1)
-          context1
-        }
+        handler.handleToken(line, JEditToken.END, line.count, 0, context1)
+        context1
+      }
       val context2 = context1.intern
       handler.setLineContext(context2)
       context2

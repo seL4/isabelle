@@ -190,8 +190,8 @@ val is_terminal = member (op =) terminals;
 
 val token_kind_markup =
  fn Literal     => Markup.literal
-  | IdentSy     => Markup.ident
-  | LongIdentSy => Markup.ident
+  | IdentSy     => Markup.empty
+  | LongIdentSy => Markup.empty
   | VarSy       => Markup.var
   | TFreeSy     => Markup.tfree
   | TVarSy      => Markup.tvar

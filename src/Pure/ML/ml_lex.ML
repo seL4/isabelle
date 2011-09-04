@@ -106,8 +106,8 @@ local
 
 val token_kind_markup =
  fn Keyword   => Markup.ML_keyword
-  | Ident     => Markup.ML_ident
-  | LongIdent => Markup.ML_ident
+  | Ident     => Markup.empty
+  | LongIdent => Markup.empty
   | TypeVar   => Markup.ML_tvar
   | Word      => Markup.ML_numeral
   | Int       => Markup.ML_numeral
