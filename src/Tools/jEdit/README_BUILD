@@ -16,7 +16,7 @@ Important settings within Isabelle environment
 
 - JAVA_HOME
 - SCALA_HOME
-- JEDIT_BUILD_HOME (via "init_component .../jedit_build...")
+- ISABELLE_JEDIT_BUILD_HOME (via "init_component .../jedit_build...")
 
 
 Build and run
