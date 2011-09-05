@@ -304,8 +304,7 @@ by (intro sums_unique [symmetric] sums_minus summable_sums)
 
 lemma sums_group:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
-  shows "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
-apply (drule summable_sums)
+  shows "\<lbrakk>f sums s; 0 < k\<rbrakk> \<Longrightarrow> (\<lambda>n. setsum f {n*k..<n*k+k}) sums s"
 apply (simp only: sums_def sumr_group)
 apply (unfold LIMSEQ_iff, safe)
 apply (drule_tac x="r" in spec, safe)
@@ -380,7 +379,7 @@ apply (subst suminf_split_initial_segment [where k="k"])
 apply assumption
 apply simp
 apply (drule_tac k="k" in summable_ignore_initial_segment)
-apply (drule_tac k="Suc (Suc 0)" in sums_group, simp)
+apply (drule_tac k="Suc (Suc 0)" in sums_group [OF summable_sums], simp)
 apply simp
 apply (frule sums_unique)
 apply (drule sums_summable)
