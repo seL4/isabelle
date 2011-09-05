@@ -592,15 +592,14 @@ by (auto simp add: linorder_neq_iff cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_
 
 subsection{*Finally! Polar Form for Complex Numbers*}
 
-definition
+text {* An abbreviation for @{text "cos a + i sin a"}. *}
 
-  (* abbreviation for (cos a + i sin a) *)
-  cis :: "real => complex" where
+definition cis :: "real \<Rightarrow> complex" where
   "cis a = Complex (cos a) (sin a)"
 
-definition
-  (* abbreviation for r*(cos a + i sin a) *)
-  rcis :: "[real, real] => complex" where
+text {* An abbreviation for @{text "r(cos a + i sin a)"}. *}
+
+definition rcis :: "[real, real] \<Rightarrow> complex" where
   "rcis r a = complex_of_real r * cis a"
 
 abbreviation expi :: "complex \<Rightarrow> complex"
@@ -659,11 +658,6 @@ by (simp add: cmod_def power2_eq_square)
 
 lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
 by simp
-
-
-(*---------------------------------------------------------------------------*)
-(*  (r1 * cis a) * (r2 * cis b) = r1 * r2 * cis (a + b)                      *)
-(*---------------------------------------------------------------------------*)
 
 lemma cis_rcis_eq: "cis a = rcis 1 a"
 by (simp add: rcis_def)
