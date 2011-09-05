@@ -124,18 +124,6 @@ fun is_prover_list ctxt s =
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
   | _ => false
 
-(* "provers =" and "type_enc =" can be left out. The latter is a secret
-   feature. *)
-fun check_and_repair_raw_param ctxt (name, value) =
-  if is_known_raw_param name then
-    (name, value)
-  else if is_prover_list ctxt name andalso null value then
-    ("provers", [name])
-  else if can (type_enc_from_string Sound) name andalso null value then
-    ("type_enc", [name])
-  else
-    error ("Unknown parameter: " ^ quote name ^ ".")
-
 fun unalias_raw_param (name, value) =
   case AList.lookup (op =) alias_params name of
     SOME name' => (name', value)
@@ -147,6 +135,21 @@ fun unalias_raw_param (name, value) =
                             | [] => ["false"]
                             | _ => value)
     | NONE => (name, value)
+
+(* "provers =" and "type_enc =" can be left out. The latter is a secret
+   feature. *)
+fun normalize_raw_param ctxt =
+  unalias_raw_param
+  #> (fn (name, value) =>
+         if is_known_raw_param name then
+           (name, value)
+         else if is_prover_list ctxt name andalso null value then
+           ("provers", [name])
+         else if can (type_enc_from_string Sound) name andalso null value then
+           ("type_enc", [name])
+         else
+           error ("Unknown parameter: " ^ quote name ^ "."))
+
 
 (* Ensure that type systems such as "mono_simple!" and "mono_guards?" are
    handled correctly. *)
@@ -205,7 +208,10 @@ fun default_provers_param_value ctxt =
                                   max_default_remote_threads)
   |> implode_param
 
-val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
+fun set_default_raw_param param thy =
+  let val ctxt = Proof_Context.init_global thy in
+    thy |> Data.map (AList.update (op =) (normalize_raw_param ctxt param))
+  end
 fun default_raw_params ctxt =
   let val thy = Proof_Context.theory_of ctxt in
     Data.get thy
@@ -224,7 +230,6 @@ val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
 fun extract_params mode default_params override_params =
   let
-    val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
     val lookup = Option.map implode_param o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
@@ -294,15 +299,15 @@ fun extract_params mode default_params override_params =
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
-fun get_params mode ctxt = extract_params mode (default_raw_params ctxt)
+fun get_params mode = extract_params mode o default_raw_params
 fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
 val default_minimize_prover = Metis_Tactic.metisN
 
-val is_raw_param_relevant_for_minimize =
-  member (op =) params_for_minimize o fst o unalias_raw_param
+fun is_raw_param_relevant_for_minimize (name, _) =
+  member (op =) params_for_minimize name
 fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
@@ -324,8 +329,7 @@ fun minimize_command override_params i prover_name fact_names =
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val ctxt = Proof.context_of state
-    val override_params =
-      override_params |> map (check_and_repair_raw_param ctxt)
+    val override_params = override_params |> map (normalize_raw_param ctxt)
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
@@ -368,8 +372,7 @@ fun sledgehammer_params_trans params =
                              (case default_raw_params ctxt |> rev of
                                 [] => "none"
                               | params =>
-                                params |> map (check_and_repair_raw_param ctxt)
-                                       |> map string_for_raw_param
+                                params |> map string_for_raw_param
                                        |> sort_strings |> cat_lines))
                   end))
 
