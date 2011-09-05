@@ -40,7 +40,6 @@ body { background-color: #FFFFFF; }
 .keyword        { font-weight: bold; }
 .operator       { }
 .command        { font-weight: bold; }
-.ident          { }
 .string         { color: #008B00; }
 .altstring      { color: #8B8B00; }
 .verbatim       { color: #00008B; }

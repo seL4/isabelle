@@ -9,7 +9,7 @@ imports Main
 begin
 
 text {*
-  Consider a partial function @{term [source] "e :: 'a => 'b option"};
+  Consider a partial function @{term [source] "e :: 'a \<Rightarrow> 'b option"};
   this may be understood as an \emph{environment} mapping indexes
   @{typ 'a} to optional entry values @{typ 'b} (cf.\ the basic theory
   @{text Map} of Isabelle/HOL).  This basic idea is easily generalized
@@ -21,7 +21,7 @@ text {*
 
 datatype ('a, 'b, 'c) env =
     Val 'a
-  | Env 'b  "'c => ('a, 'b, 'c) env option"
+  | Env 'b  "'c \<Rightarrow> ('a, 'b, 'c) env option"
 
 text {*
   \medskip In the type @{typ "('a, 'b, 'c) env"} the parameter @{typ
@@ -43,14 +43,14 @@ text {*
   @{term None}.
 *}
 
-primrec lookup :: "('a, 'b, 'c) env => 'c list => ('a, 'b, 'c) env option"
-  and lookup_option :: "('a, 'b, 'c) env option => 'c list => ('a, 'b, 'c) env option"
+primrec lookup :: "('a, 'b, 'c) env \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"
+  and lookup_option :: "('a, 'b, 'c) env option \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"
 where
     "lookup (Val a) xs = (if xs = [] then Some (Val a) else None)"
   | "lookup (Env b es) xs =
       (case xs of
-        [] => Some (Env b es)
-      | y # ys => lookup_option (es y) ys)"
+        [] \<Rightarrow> Some (Env b es)
+      | y # ys \<Rightarrow> lookup_option (es y) ys)"
   | "lookup_option None xs = None"
   | "lookup_option (Some e) xs = lookup e xs"
 
@@ -70,8 +70,8 @@ theorem lookup_val_cons: "lookup (Val a) (x # xs) = None"
 theorem lookup_env_cons:
   "lookup (Env b es) (x # xs) =
     (case es x of
-      None => None
-    | Some e => lookup e xs)"
+      None \<Rightarrow> None
+    | Some e \<Rightarrow> lookup e xs)"
   by (cases "es x") simp_all
 
 lemmas lookup_lookup_option.simps [simp del]
@@ -80,14 +80,14 @@ lemmas lookup_lookup_option.simps [simp del]
 theorem lookup_eq:
   "lookup env xs =
     (case xs of
-      [] => Some env
-    | x # xs =>
+      [] \<Rightarrow> Some env
+    | x # xs \<Rightarrow>
       (case env of
-        Val a => None
-      | Env b es =>
+        Val a \<Rightarrow> None
+      | Env b es \<Rightarrow>
           (case es x of
-            None => None
-          | Some e => lookup e xs)))"
+            None \<Rightarrow> None
+          | Some e \<Rightarrow> lookup e xs)))"
   by (simp split: list.split env.split)
 
 text {*
@@ -245,18 +245,18 @@ text {*
   environment is left unchanged.
 *}
 
-primrec update :: "'c list => ('a, 'b, 'c) env option =>
-    ('a, 'b, 'c) env => ('a, 'b, 'c) env"
-  and update_option :: "'c list => ('a, 'b, 'c) env option =>
-    ('a, 'b, 'c) env option => ('a, 'b, 'c) env option"
+primrec update :: "'c list \<Rightarrow> ('a, 'b, 'c) env option \<Rightarrow>
+    ('a, 'b, 'c) env \<Rightarrow> ('a, 'b, 'c) env"
+  and update_option :: "'c list \<Rightarrow> ('a, 'b, 'c) env option \<Rightarrow>
+    ('a, 'b, 'c) env option \<Rightarrow> ('a, 'b, 'c) env option"
 where
   "update xs opt (Val a) =
-    (if xs = [] then (case opt of None => Val a | Some e => e)
+    (if xs = [] then (case opt of None \<Rightarrow> Val a | Some e \<Rightarrow> e)
      else Val a)"
 | "update xs opt (Env b es) =
     (case xs of
-      [] => (case opt of None => Env b es | Some e => e)
-    | y # ys => Env b (es (y := update_option ys opt (es y))))"
+      [] \<Rightarrow> (case opt of None \<Rightarrow> Env b es | Some e \<Rightarrow> e)
+    | y # ys \<Rightarrow> Env b (es (y := update_option ys opt (es y))))"
 | "update_option xs opt None =
     (if xs = [] then opt else None)"
 | "update_option xs opt (Some e) =
@@ -286,8 +286,8 @@ theorem update_cons_cons_env:
   "update (x # y # ys) opt (Env b es) =
     Env b (es (x :=
       (case es x of
-        None => None
-      | Some e => Some (update (y # ys) opt e))))"
+        None \<Rightarrow> None
+      | Some e \<Rightarrow> Some (update (y # ys) opt e))))"
   by (cases "es x") simp_all
 
 lemmas update_update_option.simps [simp del]
@@ -297,21 +297,21 @@ lemmas update_update_option.simps [simp del]
 lemma update_eq:
   "update xs opt env =
     (case xs of
-      [] =>
+      [] \<Rightarrow>
         (case opt of
-          None => env
-        | Some e => e)
-    | x # xs =>
+          None \<Rightarrow> env
+        | Some e \<Rightarrow> e)
+    | x # xs \<Rightarrow>
         (case env of
-          Val a => Val a
-        | Env b es =>
+          Val a \<Rightarrow> Val a
+        | Env b es \<Rightarrow>
             (case xs of
-              [] => Env b (es (x := opt))
-            | y # ys =>
+              [] \<Rightarrow> Env b (es (x := opt))
+            | y # ys \<Rightarrow>
                 Env b (es (x :=
                   (case es x of
-                    None => None
-                  | Some e => Some (update (y # ys) opt e)))))))"
+                    None \<Rightarrow> None
+                  | Some e \<Rightarrow> Some (update (y # ys) opt e)))))))"
   by (simp split: list.split env.split option.split)
 
 text {*
