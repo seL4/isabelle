@@ -11,7 +11,6 @@ import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
-import scala.actors.Actor._
 import scala.collection.mutable
 
 

@@ -27,8 +27,7 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
 
-import scala.actors.Actor
-import Actor._
+import scala.actors.Actor._
 
 
 object Isabelle

@@ -10,7 +10,6 @@ package isabelle
 import java.lang.System
 
 import scala.actors.TIMEOUT
-import scala.actors.Actor
 import scala.actors.Actor._
 
 
