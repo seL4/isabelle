@@ -54,7 +54,7 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
-  fixes x z :: "'a::{real_normed_field,banach}"
+  fixes x z :: "'a::real_normed_field"
   assumes 1: "summable (\<lambda>n. f n * x ^ n)"
   assumes 2: "norm z < norm x"
   shows "summable (\<lambda>n. norm (f n * z ^ n))"
@@ -65,7 +65,7 @@ proof -
   hence "convergent (\<lambda>n. f n * x ^ n)"
     by (rule convergentI)
   hence "Cauchy (\<lambda>n. f n * x ^ n)"
-    by (simp add: Cauchy_convergent_iff)
+    by (rule convergent_Cauchy)
   hence "Bseq (\<lambda>n. f n * x ^ n)"
     by (rule Cauchy_Bseq)
   then obtain K where 3: "0 < K" and 4: "\<forall>n. norm (f n * x ^ n) \<le> K"

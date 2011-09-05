@@ -435,7 +435,7 @@ lemma summable_convergent_sumr_iff:
 by (simp add: summable_def sums_def convergent_def)
 
 lemma summable_LIMSEQ_zero:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "summable f \<Longrightarrow> f ----> 0"
 apply (drule summable_convergent_sumr_iff [THEN iffD1])
 apply (drule convergent_Cauchy)
