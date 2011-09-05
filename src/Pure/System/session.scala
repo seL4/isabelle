@@ -61,49 +61,15 @@ class Session(thy_load: Thy_Load)
   //{{{
   private case object Stop
 
-  private val (_, command_change_buffer) =
-    Simple_Thread.actor("command_change_buffer", daemon = true)
+  private val (_, commands_changed_buffer) =
+    Simple_Thread.actor("commands_changed_buffer", daemon = true)
   {
-    var changed_nodes: Set[Document.Node.Name] = Set.empty
-    var changed_commands: Set[Command] = Set.empty
-    def changed: Boolean = !changed_nodes.isEmpty || !changed_commands.isEmpty
-
-    var flush_time: Option[Long] = None
-
-    def flush_timeout: Long =
-      flush_time match {
-        case None => 5000L
-        case Some(time) => (time - System.currentTimeMillis()) max 0
-      }
-
-    def flush()
-    {
-      if (changed)
-        commands_changed.event(Session.Commands_Changed(changed_nodes, changed_commands))
-      changed_nodes = Set.empty
-      changed_commands = Set.empty
-      flush_time = None
-    }
-
-    def invoke()
-    {
-      val now = System.currentTimeMillis()
-      flush_time match {
-        case None => flush_time = Some(now + output_delay.ms)
-        case Some(time) => if (now >= time) flush()
-      }
-    }
-
     var finished = false
     while (!finished) {
-      receiveWithin(flush_timeout) {
-        case command: Command =>
-          changed_nodes += command.node_name
-          changed_commands += command
-          invoke()
-        case TIMEOUT => flush()
+      receive {
         case Stop => finished = true; reply(())
-        case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)
+        case changed: Session.Commands_Changed => commands_changed.event(changed)
+        case bad => System.err.println("commands_changed_buffer: ignoring bad message " + bad)
       }
     }
   }
@@ -184,6 +150,44 @@ class Session(thy_load: Thy_Load)
     var prune_next = System.currentTimeMillis() + prune_delay.ms
 
 
+    /* delayed command changes */
+
+    object commands_changed_delay
+    {
+      private var changed_nodes: Set[Document.Node.Name] = Set.empty
+      private var changed_commands: Set[Command] = Set.empty
+      private def changed: Boolean = !changed_nodes.isEmpty || !changed_commands.isEmpty
+
+      private var flush_time: Option[Long] = None
+
+      def flush_timeout: Long =
+        flush_time match {
+          case None => 5000L
+          case Some(time) => (time - System.currentTimeMillis()) max 0
+        }
+
+      def flush()
+      {
+        if (changed)
+          commands_changed_buffer ! Session.Commands_Changed(changed_nodes, changed_commands)
+        changed_nodes = Set.empty
+        changed_commands = Set.empty
+        flush_time = None
+      }
+
+      def invoke(command: Command)
+      {
+        changed_nodes += command.node_name
+        changed_commands += command
+        val now = System.currentTimeMillis()
+        flush_time match {
+          case None => flush_time = Some(now + output_delay.ms)
+          case Some(time) => if (now >= time) flush()
+        }
+      }
+    }
+
+
     /* perspective */
 
     def update_perspective(name: Document.Node.Name, text_perspective: Text.Perspective)
@@ -236,7 +240,7 @@ class Session(thy_load: Thy_Load)
     //{{{
     {
       val cmds = global_state.change_yield(_.assign(id, assign))
-      for (cmd <- cmds) command_change_buffer ! cmd
+      for (cmd <- cmds) commands_changed_delay.invoke(cmd)
       assignments.event(Session.Assignment)
     }
     //}}}
@@ -296,7 +300,7 @@ class Session(thy_load: Thy_Load)
         case Position.Id(state_id) if !result.is_raw =>
           try {
             val st = global_state.change_yield(_.accumulate(state_id, result.message))
-            command_change_buffer ! st.command
+            commands_changed_delay.invoke(st.command)
           }
           catch {
             case _: Document.State.Fail => bad_result(result)
@@ -361,7 +365,9 @@ class Session(thy_load: Thy_Load)
     //{{{
     var finished = false
     while (!finished) {
-      receive {
+      receiveWithin(commands_changed_delay.flush_timeout) {
+        case TIMEOUT => commands_changed_delay.flush()
+
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
@@ -420,7 +426,7 @@ class Session(thy_load: Thy_Load)
 
   def start(timeout: Time, args: List[String]) { session_actor ! Start(timeout, args) }
 
-  def stop() { command_change_buffer !? Stop; session_actor !? Stop }
+  def stop() { commands_changed_buffer !? Stop; session_actor !? Stop }
 
   def interrupt() { session_actor ! Interrupt }
 
