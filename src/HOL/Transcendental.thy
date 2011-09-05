@@ -2230,14 +2230,26 @@ done
 lemma arctan_zero_zero [simp]: "arctan 0 = 0"
 by (insert arctan_tan [of 0], simp)
 
-lemma cos_arctan_not_zero [simp]: "cos(arctan x) \<noteq> 0"
-apply (auto simp add: cos_zero_iff)
-apply (case_tac "n")
-apply (case_tac [3] "n")
-apply (cut_tac [2] y = x in arctan_ubound)
-apply (cut_tac [4] y = x in arctan_lbound)
-apply (auto simp add: real_of_nat_Suc left_distrib mult_less_0_iff)
-done
+lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
+  by (intro less_imp_neq [symmetric] cos_gt_zero_pi
+    arctan_lbound arctan_ubound)
+
+lemma cos_arctan: "cos (arctan x) = 1 / sqrt (1 + x\<twosuperior>)"
+proof (rule power2_eq_imp_eq)
+  have "0 < 1 + x\<twosuperior>" by (simp add: add_pos_nonneg)
+  show "0 \<le> 1 / sqrt (1 + x\<twosuperior>)" by simp
+  show "0 \<le> cos (arctan x)"
+    by (intro less_imp_le cos_gt_zero_pi arctan_lbound arctan_ubound)
+  have "(cos (arctan x))\<twosuperior> * (1 + (tan (arctan x))\<twosuperior>) = 1"
+    unfolding tan_def by (simp add: right_distrib power_divide)
+  thus "(cos (arctan x))\<twosuperior> = (1 / sqrt (1 + x\<twosuperior>))\<twosuperior>"
+    using `0 < 1 + x\<twosuperior>` by (simp add: power_divide eq_divide_eq)
+qed
+
+lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<twosuperior>)"
+  using add_pos_nonneg [OF zero_less_one zero_le_power2 [of x]]
+  using tan_arctan [of x] unfolding tan_def cos_arctan
+  by (simp add: eq_divide_eq)
 
 lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
 apply (rule power_inverse [THEN subst])
