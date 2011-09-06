@@ -12,17 +12,20 @@ append_dump {*theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin*};
 
 import_theory bool;
 
+type_maps
+  bool            > HOL.bool;
+
 const_maps
-  T               > True
-  F               > False
-  "!"             > All
+  T               > HOL.True
+  F               > HOL.False
+  "!"             > HOL.All
   "/\\"           > HOL.conj
   "\\/"           > HOL.disj
-  "?"             > Ex
-  "?!"            > Ex1
-  "~"             > Not
+  "?"             > HOL.Ex
+  "?!"            > HOL.Ex1
+  "~"             > HOL.Not
   COND            > HOL.If
-  bool_case       > Datatype.bool.bool_case
+  bool_case       > Product_Type.bool.bool_case
   ONE_ONE         > HOL4Setup.ONE_ONE
   ONTO            > Fun.surj
   TYPE_DEFINITION > HOL4Setup.TYPE_DEFINITION
@@ -46,7 +49,7 @@ end_import;
 import_theory sum;
 
 type_maps
-  sum > "+";
+  sum > Sum_Type.sum;
 
 const_maps
   INL      > Sum_Type.Inl
@@ -55,7 +58,7 @@ const_maps
   ISR      > HOL4Compat.ISR
   OUTL     > HOL4Compat.OUTL
   OUTR     > HOL4Compat.OUTR
-  sum_case > Datatype.sum.sum_case;
+  sum_case > Sum_Type.sum.sum_case;
 
 ignore_thms
   sum_TY_DEF
@@ -63,7 +66,6 @@ ignore_thms
   IS_SUM_REP
   INL_DEF
   INR_DEF
-  sum_axiom
   sum_Axiom;
 
 end_import;
@@ -125,13 +127,13 @@ type_maps
     prod > Product_Type.prod;
 
 const_maps
-    ","       > Pair
-    FST       > fst
-    SND       > snd
-    CURRY     > curry
-    UNCURRY   > split
-    "##"      > map_pair
-    pair_case > split;
+    ","       > Product_Type.Pair
+    FST       > Product_Type.fst
+    SND       > Product_Type.snd
+    CURRY     > Product_Type.curry
+    UNCURRY   > Product_Type.prod.prod_case
+    "##"      > Product_Type.map_pair
+    pair_case > Product_Type.prod.prod_case;
 
 ignore_thms
     prod_TY_DEF
@@ -145,11 +147,11 @@ end_import;
 import_theory num;
 
 type_maps
-  num > nat;
+  num > Nat.nat;
 
 const_maps
-  SUC > Suc
-  0   > 0 :: nat;
+  SUC > Nat.Suc
+  0   > Groups.zero_class.zero :: nat;
 
 ignore_thms
     num_TY_DEF
@@ -165,7 +167,7 @@ end_import;
 import_theory prim_rec;
 
 const_maps
-    "<" > Orderings.less :: "[nat,nat]=>bool";
+    "<" > Orderings.ord_class.less :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
@@ -180,15 +182,15 @@ const_maps
   ">"          > HOL4Compat.nat_gt
   ">="         > HOL4Compat.nat_ge
   FUNPOW       > HOL4Compat.FUNPOW
-  "<="         > Orderings.less_eq :: "[nat,nat]=>bool"
-  "+"          > Groups.plus :: "[nat,nat]=>nat"
-  "*"          > Groups.times :: "[nat,nat]=>nat"
-  "-"          > Groups.minus :: "[nat,nat]=>nat"
-  MIN          > Orderings.min :: "[nat,nat]=>nat"
-  MAX          > Orderings.max :: "[nat,nat]=>nat"
-  DIV          > Divides.div :: "[nat,nat]=>nat"
-  MOD          > Divides.mod :: "[nat,nat]=>nat"
-  EXP          > Power.power :: "[nat,nat]=>nat";
+  "<="         > Orderings.ord_class.less_eq :: "nat \<Rightarrow> nat \<Rightarrow> bool"
+  "+"          > Groups.plus_class.plus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  "*"          > Groups.times_class.times :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  "-"          > Groups.minus_class.minus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  MIN          > Orderings.ord_class.min :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  MAX          > Orderings.ord_class.max :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  DIV          > Divides.div_class.div :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  MOD          > Divides.div_class.mod :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  EXP          > Power.power_class.power :: "nat \<Rightarrow> nat \<Rightarrow> nat";
 
 end_import;
 
@@ -207,7 +209,7 @@ end_import;
 import_theory divides;
 
 const_maps
-  divides > Divides.times_class.dvd :: "[nat,nat]=>bool";
+  divides > Rings.dvd_class.dvd :: "nat \<Rightarrow> nat \<Rightarrow> bool";
 
 end_import;
 
@@ -227,7 +229,7 @@ const_maps
   HD        > List.hd
   TL        > List.tl
   MAP       > List.map
-  MEM       > "List.op mem"
+  MEM       > HOL4Compat.list_mem
   FILTER    > List.filter
   FOLDL     > List.foldl
   EVERY     > List.list_all
@@ -236,12 +238,12 @@ const_maps
   FRONT     > List.butlast
   APPEND    > List.append
   FLAT      > List.concat
-  LENGTH    > Nat.size
+  LENGTH    > Nat.size_class.size
   REPLICATE > List.replicate
   list_size > HOL4Compat.list_size
   SUM       > HOL4Compat.sum
   FOLDR     > HOL4Compat.FOLDR
-  EXISTS    > HOL4Compat.list_exists
+  EXISTS    > List.list_ex
   MAP2      > HOL4Compat.map2
   ZIP       > HOL4Compat.ZIP
   UNZIP     > HOL4Compat.unzip;
