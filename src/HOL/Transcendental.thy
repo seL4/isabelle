@@ -1722,19 +1722,29 @@ qed
 lemma sin_ge_zero: "[| 0 \<le> x; x \<le> pi |] ==> 0 \<le> sin x"
 by (auto simp add: order_le_less sin_gt_zero_pi)
 
+text {* FIXME: This proof is almost identical to lemma @{text cos_is_zero}.
+  It should be possible to factor out some of the common parts. *}
+
 lemma cos_total: "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. 0 \<le> x & x \<le> pi & (cos x = y)"
-apply (subgoal_tac "\<exists>x. 0 \<le> x & x \<le> pi & cos x = y")
-apply (rule_tac [2] IVT2)
-apply (auto intro: order_less_imp_le DERIV_isCont DERIV_cos)
-apply (cut_tac x = xa and y = y in linorder_less_linear)
-apply (rule ccontr, auto)
-apply (drule_tac f = cos in Rolle)
-apply (drule_tac [5] f = cos in Rolle)
-apply (auto intro: order_less_imp_le DERIV_isCont DERIV_cos
-            dest!: DERIV_cos [THEN DERIV_unique]
-            simp add: differentiable_def)
-apply (auto dest: sin_gt_zero_pi [OF order_le_less_trans order_less_le_trans])
-done
+proof (rule ex_ex1I)
+  assume y: "-1 \<le> y" "y \<le> 1"
+  show "\<exists>x. 0 \<le> x & x \<le> pi & cos x = y"
+    by (rule IVT2, simp_all add: y)
+next
+  fix a b
+  assume a: "0 \<le> a \<and> a \<le> pi \<and> cos a = y"
+  assume b: "0 \<le> b \<and> b \<le> pi \<and> cos b = y"
+  have [simp]: "\<forall>x. cos differentiable x"
+    unfolding differentiable_def by (auto intro: DERIV_cos)
+  from a b show "a = b"
+    apply (cut_tac less_linear [of a b], auto)
+    apply (drule_tac f = cos in Rolle)
+    apply (drule_tac [5] f = cos in Rolle)
+    apply (auto dest!: DERIV_cos [THEN DERIV_unique])
+    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
+    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
+    done
+qed
 
 lemma sin_total:
      "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. -(pi/2) \<le> x & x \<le> pi/2 & (sin x = y)"
