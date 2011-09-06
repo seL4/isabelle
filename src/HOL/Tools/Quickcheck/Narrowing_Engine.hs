@@ -4,7 +4,7 @@ import Monad;
 import Control.Exception;
 import System.IO;
 import System.Exit;
-import Code;
+import Generated_Code;
 
 type Pos = [Int];
 
