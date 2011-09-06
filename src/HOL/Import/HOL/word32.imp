@@ -284,7 +284,7 @@ thm_maps
   "HB_primdef" > "HOL4Word32.word32.HB_primdef"
   "HB_def" > "HOL4Word32.word32.HB_def"
   "FUNPOW_THM2" > "HOL4Word32.word32.FUNPOW_THM2"
-  "FUNPOW_THM" > "HOL4Word32.word32.FUNPOW_THM"
+  "FUNPOW_THM" > "Nat.funpow_swap1"
   "FUNPOW_COMP" > "HOL4Word32.word32.FUNPOW_COMP"
   "EQ_ADD_RCANCELw" > "HOL4Word32.word32.EQ_ADD_RCANCELw"
   "EQ_ADD_RCANCEL_QT" > "HOL4Word32.word32.EQ_ADD_RCANCEL_QT"

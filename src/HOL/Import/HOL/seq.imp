@@ -106,7 +106,7 @@ thm_maps
   "MAX_LEMMA" > "HOL4Real.seq.MAX_LEMMA"
   "GP_FINITE" > "HOL4Real.seq.GP_FINITE"
   "GP" > "HOL4Real.seq.GP"
-  "BOLZANO_LEMMA" > "HOL4Real.seq.BOLZANO_LEMMA"
-  "ABS_NEG_LEMMA" > "HOL4Real.seq.ABS_NEG_LEMMA"
+  "BOLZANO_LEMMA" > "Deriv.lemma_BOLZANO"
+  "ABS_NEG_LEMMA" > "Series.rabs_ratiotest_lemma"
 
 end

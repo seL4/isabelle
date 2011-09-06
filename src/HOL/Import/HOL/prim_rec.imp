@@ -18,7 +18,7 @@ const_maps
   "PRIM_REC_FUN" > "HOL4Base.prim_rec.PRIM_REC_FUN"
   "PRIM_REC" > "HOL4Base.prim_rec.PRIM_REC"
   "PRE" > "HOL4Base.prim_rec.PRE"
-  "<" > "Orderings.less" :: "nat => nat => bool"
+  "<" > "Orderings.ord_class.less" :: "nat => nat => bool"
 
 thm_maps
   "wellfounded_primdef" > "HOL4Base.prim_rec.wellfounded_primdef"
@@ -65,7 +65,7 @@ thm_maps
   "LESS_DEF" > "HOL4Compat.LESS_DEF"
   "LESS_0_0" > "HOL4Base.prim_rec.LESS_0_0"
   "LESS_0" > "Nat.zero_less_Suc"
-  "INV_SUC_EQ" > "Nat.nat.simps_3"
+  "INV_SUC_EQ" > "Nat.nat.inject"
   "EQ_LESS" > "HOL4Base.prim_rec.EQ_LESS"
   "DC" > "HOL4Base.prim_rec.DC"
 

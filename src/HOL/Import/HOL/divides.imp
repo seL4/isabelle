@@ -3,22 +3,22 @@ import
 import_segment "hol4"
 
 const_maps
-  "divides" > Divides.times_class.dvd :: "nat => nat => bool"
+  "divides" > "Rings.dvd_class.dvd" :: "nat => nat => bool"
 
 thm_maps
   "divides_def" > "HOL4Compat.divides_def"
-  "ONE_DIVIDES_ALL" > "HOL4Base.divides.ONE_DIVIDES_ALL"
-  "NOT_LT_DIV" > "NatSimprocs.nat_dvd_not_less"
-  "DIVIDES_TRANS" > "Rings.dvd_trans"
-  "DIVIDES_SUB" > "Rings.dvd_diff"
-  "DIVIDES_REFL" > "Rings.dvd_refl"
+  "ONE_DIVIDES_ALL" > "GCD.gcd_lcm_complete_lattice_nat.bot_least"
+  "NOT_LT_DIV" > "Nat.nat_dvd_not_less"
+  "DIVIDES_TRANS" > "Nat.dvd.order_trans"
+  "DIVIDES_SUB" > "Nat.dvd_diff_nat"
+  "DIVIDES_REFL" > "Nat.dvd.order_refl"
   "DIVIDES_MULT_LEFT" > "HOL4Base.divides.DIVIDES_MULT_LEFT"
-  "DIVIDES_MULT" > "Divides.dvd_mult2"
-  "DIVIDES_LE" > "Divides.dvd_imp_le"
+  "DIVIDES_MULT" > "Rings.comm_semiring_1_class.dvd_mult2"
+  "DIVIDES_LE" > "Nat.dvd_imp_le"
   "DIVIDES_FACT" > "HOL4Base.divides.DIVIDES_FACT"
-  "DIVIDES_ANTISYM" > "Divides.dvd_antisym"
-  "DIVIDES_ADD_2" > "HOL4Base.divides.DIVIDES_ADD_2"
-  "DIVIDES_ADD_1" > "Rings.dvd_add"
-  "ALL_DIVIDES_0" > "Divides.dvd_0_right"
+  "DIVIDES_ANTISYM" > "Nat.dvd.antisym"
+  "DIVIDES_ADD_2" > "Primes.divides_add_revr"
+  "DIVIDES_ADD_1" > "Rings.comm_semiring_1_class.dvd_add"
+  "ALL_DIVIDES_0" > "GCD.gcd_lcm_complete_lattice_nat.top_greatest"
 
 end
