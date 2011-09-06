@@ -108,11 +108,11 @@ Isabelle/HOL, with explicit inferences going through the kernel. Thus its
 results are correct by construction.
 
 In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
-Sledgehammer also provides an automatic mode that can be enabled via the
-``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof General. In
-this mode, Sledgehammer is run on every newly entered theorem. The time limit
-for Auto Sledgehammer and other automatic tools can be set using the ``Auto
-Tools Time Limit'' option.
+Sledgehammer also provides an automatic mode that can be enabled via the ``Auto
+Sledgehammer'' option in Proof General's ``Isabelle'' menu. In this mode,
+Sledgehammer is run on every newly entered theorem. The time limit for Auto
+Sledgehammer and other automatic tools can be set using the ``Auto Tools Time
+Limit'' option.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
@@ -633,8 +633,8 @@ proceed as usual except that it should consider \qty{facts\/_{\mathrm{1}}}
 highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
 
 You can instruct Sledgehammer to run automatically on newly entered theorems by
-enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
-General. For automatic runs, only the first prover set using \textit{provers}
+enabling the ``Auto Sledgehammer'' option in Proof General's ``Isabelle'' menu.
+For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
 \textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{sound}
 (\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
@@ -724,7 +724,7 @@ executable, or install the prebuilt E package from Isabelle's download page. See
 
 \item[$\bullet$] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
-with support for the TPTP higher-order syntax (THF).
+with support for the TPTP many-typed higher-order syntax (THF0).
 
 \item[$\bullet$] \textbf{\textit{metis}:} Although it is much less powerful than
 the external provers, Metis itself can be used for proof search.
@@ -737,7 +737,7 @@ corresponding to \textit{metis} (\textit{no\_types}).
 
 \item[$\bullet$] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP higher-order syntax (THF).
+support for the TPTP many-typed higher-order syntax (THF0).
 
 \item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
@@ -752,7 +752,7 @@ prover developed by Andrei Voronkov and his colleagues
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
 Sledgehammer has been tested with versions 0.6, 1.0, and 1.8. Vampire 1.8
-supports the TPTP many-typed first-order format (TFF).
+supports the TPTP many-typed first-order format (TFF0).
 
 \item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -767,7 +767,7 @@ noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
 
 \item[$\bullet$] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
 an ATP, exploiting Z3's support for the TPTP untyped and many-typed first-order
-formats (FOF and TFF). It is included for experimental purposes. It requires
+formats (FOF and TFF0). It is included for experimental purposes. It requires
 version 3.0 or above.
 \end{enum}
 
@@ -787,7 +787,7 @@ SInE runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
-servers. This ATP supports the TPTP many-typed first-order format (TFF). The
+servers. This ATP supports the TPTP many-typed first-order format (TFF0). The
 remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
@@ -798,7 +798,7 @@ Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
 resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
-TPTP many-typed first-order format (TFF). The remote version of SNARK runs on
+TPTP many-typed first-order format (TFF0). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
@@ -818,17 +818,16 @@ point).
 with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer will run E, E-SInE, SPASS, Vampire, Z3 (or whatever
+By default, Sledgehammer runs E, E-SInE, SPASS, Vampire, Z3 (or whatever
 the SMT module's \textit{smt\_solver} configuration option is set to), and (if
 appropriate) Waldmeister in parallel---either locally or remotely, depending on
 the number of processor cores available. For historical reasons, the default
 value of this option can be overridden using the option ``Sledgehammer:
-Provers'' from the ``Isabelle'' menu in Proof General.
+Provers'' in Proof General's ``Isabelle'' menu.
 
-It is a good idea to run several provers in parallel, although it could slow
-down your machine. Running E, SPASS, and Vampire for 5~seconds yields a similar
-success rate to running the most effective of these for 120~seconds
-\cite{boehme-nipkow-2010}.
+It is generally a good idea to run several provers in parallel. Running E,
+SPASS, and Vampire for 5~seconds yields a similar success rate to running the
+most effective of these for 120~seconds \cite{boehme-nipkow-2010}.
 
 For the \textit{min} subcommand, the default prover is \textit{metis}. If
 several provers are set, the first one is used.
@@ -884,7 +883,13 @@ safely remove them after Sledgehammer has run.
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
 (unreconstructible using Metis). The supported type encodings are listed below,
-with an indication of their soundness in parentheses:
+with an indication of their soundness in parentheses.
+%
+All the encodings with \textit{guards} or \textit{tags} in their name are
+available in a ``uniform'' and a ``nonuniform'' variant. The nonuniform variants
+are generally more efficient and are the default; the uniform variants are
+identified by the suffix \textit{\_uniform} (e.g.,
+\textit{mono\_guards\_uniform}{?}).
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
@@ -926,27 +931,27 @@ $\mathit{has\_type\_}\tau(t)$, and the binary function
 $\mathit{type\/}(\tau, t)$ becomes a unary function
 $\mathit{type\_}\tau(t)$.
 
-\item[$\bullet$] \textbf{\textit{simple} (sound):} Exploit simple first-order
-types if the prover supports the TFF or THF syntax; otherwise, fall back on
-\textit{mono\_guards}. The problem is monomorphized.
+\item[$\bullet$] \textbf{\textit{mono\_simple} (sound):} Exploits simple
+first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
+falls back on \textit{mono\_guards\_uniform}. The problem is monomorphized.
 
-\item[$\bullet$] \textbf{\textit{simple\_higher} (sound):} Exploit simple
-higher-order types if the prover supports the THF syntax; otherwise, fall back
-on \textit{simple} or \textit{mono\_guards\_uniform}. The problem is
+\item[$\bullet$] \textbf{\textit{mono\_simple\_higher} (sound):} Exploits simple
+higher-order types if the prover supports the THF0 syntax; otherwise, falls back
+on \textit{mono\_simple} or \textit{mono\_guards\_uniform}. The problem is
 monomorphized.
 
 \item[$\bullet$]
 \textbf{%
 \textit{poly\_guards}?, \textit{poly\_tags}?, \textit{raw\_mono\_guards}?, \\
 \textit{raw\_mono\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
-\textit{simple}? (quasi-sound):} \\
+\textit{mono\_simple}? (quasi-sound):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, and \textit{simple} are fully
+\textit{mono\_tags}, and \textit{mono\_simple} are fully
 typed and sound. For each of these, Sledgehammer also provides a lighter,
 virtually sound variant identified by a question mark (`{?}')\ that detects and
-erases monotonic types, notably infinite types. (For \textit{simple}, the types
-are not actually erased but rather replaced by a shared uniform type of
+erases monotonic types, notably infinite types. (For \textit{mono\_simple}, the
+types are not actually erased but rather replaced by a shared uniform type of
 individuals.) As argument to the \textit{metis} proof method, the question mark
 is replaced by a \hbox{``\textit{\_query}''} suffix. If the \emph{sound} option
 is enabled, these encodings are fully sound.
@@ -954,30 +959,25 @@ is enabled, these encodings are fully sound.
 \item[$\bullet$]
 \textbf{%
 \textit{poly\_guards}!, \textit{poly\_tags}!, \textit{raw\_mono\_guards}!, \\
-\textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \textit{simple}!, \\
-\textit{simple\_higher}! (mildly unsound):} \\
+\textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
+\textit{mono\_simple}!, \textit{mono\_simple\_higher}! (mildly unsound):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, \textit{simple}, and \textit{simple\_higher} also admit
-a mildly unsound (but very efficient) variant identified by an exclamation mark
-(`{!}') that detects and erases erases all types except those that are clearly
-finite (e.g., \textit{bool}). (For \textit{simple} and \textit{simple\_higher},
-the types are not actually erased but rather replaced by a shared uniform type
-of individuals.) As argument to the \textit{metis} proof method, the exclamation
-mark is replaced by the suffix \hbox{``\textit{\_bang}''}.
+\textit{mono\_tags}, \textit{mono\_simple}, and \textit{mono\_simple\_higher}
+also admit a mildly unsound (but very efficient) variant identified by an
+exclamation mark (`{!}') that detects and erases erases all types except those
+that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_simple} and
+\textit{mono\_simple\_higher}, the types are not actually erased but rather
+replaced by a shared uniform type of individuals.) As argument to the
+\textit{metis} proof method, the exclamation mark is replaced by the suffix
+\hbox{``\textit{\_bang}''}.
 
 \item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
-In addition, all the \textit{guards} and \textit{tags} type encodings are
-available in two variants, a ``uniform'' and a ``nonuniform'' variant. The
-nonuniform variants are generally more efficient and are the default; the
-uniform variants are identified by the suffix \textit{\_uniform} (e.g.,
-\textit{mono\_guards\_uniform}{?}).
-
-For SMT solvers, the type encoding is always \textit{simple}, irrespective of
-the value of this option.
+For SMT solvers, the type encoding is always \textit{mono\_simple}, irrespective
+of the value of this option.
 
 \nopagebreak
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
@@ -1091,8 +1091,7 @@ is useful for regression testing.
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 For historical reasons, the default value of this option can be overridden using
-the option ``Sledgehammer: Time Limit'' from the ``Isabelle'' menu in Proof
-General.
+the option ``Sledgehammer: Time Limit'' in Proof General's ``Isabelle'' menu.
 
 \opdefault{preplay\_timeout}{float\_or\_none}{\upshape 4}
 Specifies the maximum number of seconds that Metis should be spent trying to
