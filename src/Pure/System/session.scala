@@ -56,6 +56,8 @@ class Session(thy_load: Thy_Load)
   val assignments = new Event_Bus[Session.Assignment.type]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
+  val syslog_messages = new Event_Bus[Isabelle_Process.Result]
+  val raw_output_messages = new Event_Bus[Isabelle_Process.Result]
   val raw_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
 
 
@@ -451,6 +453,8 @@ class Session(thy_load: Thy_Load)
 
             case result: Isabelle_Process.Result =>
               handle_result(result)
+              if (result.is_syslog) syslog_messages.event(result)
+              if (result.is_stdout) raw_output_messages.event(result)
               raw_messages.event(result)
           }
 

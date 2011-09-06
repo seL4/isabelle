@@ -29,8 +29,6 @@ class Raw_Output_Dockable(view: View, position: String)
   private val main_actor = actor {
     loop {
       react {
-        case input: Isabelle_Process.Input =>
-
         case result: Isabelle_Process.Result =>
           if (result.is_stdout)
             Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
@@ -40,6 +38,6 @@ class Raw_Output_Dockable(view: View, position: String)
     }
   }
 
-  override def init() { Isabelle.session.raw_messages += main_actor }
-  override def exit() { Isabelle.session.raw_messages -= main_actor }
+  override def init() { Isabelle.session.raw_output_messages += main_actor }
+  override def exit() { Isabelle.session.raw_output_messages -= main_actor }
 }
