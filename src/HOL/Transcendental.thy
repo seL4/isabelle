@@ -1065,22 +1065,24 @@ lemma exp_eq_one_iff [simp]: "exp (x::real) = 1 \<longleftrightarrow> x = 0"
   using exp_inj_iff [where x=x and y=0] by simp
 
 lemma lemma_exp_total: "1 \<le> y ==> \<exists>x. 0 \<le> x & x \<le> y - 1 & exp(x::real) = y"
-apply (rule IVT)
-apply (auto intro: isCont_exp simp add: le_diff_eq)
-apply (subgoal_tac "1 + (y - 1) \<le> exp (y - 1)")
-apply simp
-apply (rule exp_ge_add_one_self_aux, simp)
-done
+proof (rule IVT)
+  assume "1 \<le> y"
+  hence "0 \<le> y - 1" by simp
+  hence "1 + (y - 1) \<le> exp (y - 1)" by (rule exp_ge_add_one_self_aux)
+  thus "y \<le> exp (y - 1)" by simp
+qed (simp_all add: le_diff_eq)
 
 lemma exp_total: "0 < (y::real) ==> \<exists>x. exp x = y"
-apply (rule_tac x = 1 and y = y in linorder_cases)
-apply (drule order_less_imp_le [THEN lemma_exp_total])
-apply (rule_tac [2] x = 0 in exI)
-apply (frule_tac [3] one_less_inverse)
-apply (drule_tac [4] order_less_imp_le [THEN lemma_exp_total], auto)
-apply (rule_tac x = "-x" in exI)
-apply (simp add: exp_minus)
-done
+proof (rule linorder_le_cases [of 1 y])
+  assume "1 \<le> y" thus "\<exists>x. exp x = y"
+    by (fast dest: lemma_exp_total)
+next
+  assume "0 < y" and "y \<le> 1"
+  hence "1 \<le> inverse y" by (simp add: one_le_inverse_iff)
+  then obtain x where "exp x = inverse y" by (fast dest: lemma_exp_total)
+  hence "exp (- x) = y" by (simp add: exp_minus)
+  thus "\<exists>x. exp x = y" ..
+qed
 
 
 subsection {* Natural Logarithm *}
