@@ -33,7 +33,7 @@ object Isabelle_Process
       ('H' : Int) -> Markup.RAW)
   }
 
-  abstract class Message
+  sealed abstract class Message
 
   class Input(name: String, args: List[String]) extends Message
   {
