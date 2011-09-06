@@ -528,12 +528,6 @@ definition arg :: "complex => real" where
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
   by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult_commute)
 
-lemma i_mult_eq: "ii * ii = complex_of_real (-1)"
-  by (simp add: i_def complex_of_real_def)
-
-lemma i_mult_eq2 [simp]: "ii * ii = -(1::complex)"
-  by (simp add: i_def complex_one_def)
-
 lemma complex_eq_cancel_iff2 [simp]:
   shows "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
   by (simp add: complex_of_real_def)

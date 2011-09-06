@@ -163,8 +163,8 @@ apply (drule minus_unique)
 apply (simp add: minus_equation_iff [of x y])
 done
 
-lemma hcomplex_i_mult_eq [simp]: "iii * iii = - 1"
-by transfer (rule i_mult_eq2)
+lemma hcomplex_i_mult_eq [simp]: "iii * iii = -1"
+by transfer (rule i_squared)
 
 lemma hcomplex_i_mult_left [simp]: "!!z. iii * (iii * z) = -z"
 by transfer (rule complex_i_mult_minus)
