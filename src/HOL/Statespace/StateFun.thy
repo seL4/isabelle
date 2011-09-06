@@ -28,7 +28,7 @@ lemma K_statefun_apply [simp]: "K_statefun c x = c"
   by (simp add: K_statefun_def)
 
 lemma K_statefun_comp [simp]: "(K_statefun c \<circ> f) = K_statefun c"
-  by (rule ext) (simp add: K_statefun_apply comp_def)
+  by (rule ext) (simp add: comp_def)
 
 lemma K_statefun_cong [cong]: "K_statefun c x = K_statefun c x"
   by (rule refl)

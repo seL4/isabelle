@@ -7,7 +7,7 @@
 header "Examples of word operations"
 
 theory WordExamples
-imports Word
+imports "../Word"
 begin
 
 type_synonym word32 = "32 word"
