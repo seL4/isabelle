@@ -579,14 +579,18 @@ fun type_enc_from_string soundness s =
   |> (fn (poly, (level, (uniformity, core))) =>
          case (core, (poly, level, uniformity)) of
            ("simple", (SOME poly, _, Nonuniform)) =>
-           (case poly of
-              Raw_Monomorphic => raise Same.SAME
-            | _ => Simple_Types (First_Order, poly, level))
+           (case (poly, level) of
+              (Polymorphic, All_Types) =>
+              Simple_Types (First_Order, Polymorphic, All_Types)
+            | (Mangled_Monomorphic, _) =>
+              Simple_Types (First_Order, Mangled_Monomorphic, level)
+            | _ => raise Same.SAME)
          | ("simple_higher", (SOME poly, _, Nonuniform)) =>
            (case (poly, level) of
-              (Raw_Monomorphic, _) => raise Same.SAME
-            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
-            | _ => Simple_Types (Higher_Order, poly, level))
+              (_, Noninf_Nonmono_Types _) => raise Same.SAME
+            | (Mangled_Monomorphic, _) =>
+              Simple_Types (Higher_Order, Mangled_Monomorphic, level)
+            | _ => raise Same.SAME)
          | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, uniformity)
