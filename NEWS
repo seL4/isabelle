@@ -301,6 +301,7 @@ replaced by more general versions. INCOMPATIBILITY.
   LIMSEQ_add_minus ~> tendsto_add [OF _ tendsto_minus]
   LIMSEQ_add_const ~> tendsto_add [OF _ tendsto_const]
   LIMSEQ_diff_const ~> tendsto_diff [OF _ tendsto_const]
+  LIMSEQ_Complex ~> tendsto_Complex
   LIM_ident ~> tendsto_ident_at
   LIM_const ~> tendsto_const
   LIM_add ~> tendsto_add
