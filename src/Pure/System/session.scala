@@ -145,6 +145,7 @@ class Session(thy_load: Thy_Load)
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     val this_actor = self
+    def receiver(msg: Isabelle_Process.Message) { this_actor ! msg }
     var prover: Option[Isabelle_Process with Isar_Document] = None
 
     var prune_next = System.currentTimeMillis() + prune_delay.ms
@@ -371,7 +372,7 @@ class Session(thy_load: Thy_Load)
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = Some(new Isabelle_Process(timeout, this_actor, args:_*) with Isar_Document)
+            prover = Some(new Isabelle_Process(timeout, receiver _, args:_*) with Isar_Document)
           }
 
         case Stop =>

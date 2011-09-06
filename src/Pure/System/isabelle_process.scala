@@ -75,22 +75,21 @@ object Isabelle_Process
 }
 
 
-class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
+class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit, args: String*)
 {
   import Isabelle_Process._
 
 
   /* demo constructor */
 
-  def this(args: String*) =
-    this(Time.seconds(10), actor { loop { react { case res => Console.println(res) } } }, args: _*)
+  def this(args: String*) = this(Time.seconds(10), Console.println(_), args: _*)
 
 
   /* results */
 
   private def system_result(text: String)
   {
-    receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
+    receiver(new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
   private val xml_cache = new XML.Cache()
@@ -99,10 +98,10 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
   {
     if (kind == Markup.INIT) rm_fifos()
     if (kind == Markup.RAW)
-      receiver ! new Result(XML.Elem(Markup(kind, props), body))
+      receiver(new Result(XML.Elem(Markup(kind, props), body)))
     else {
       val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
-      receiver ! new Result(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem])
+      receiver(new Result(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
     }
   }
 
@@ -399,7 +398,7 @@ class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 
   def input(name: String, args: String*): Unit =
   {
-    receiver ! new Input(name, args.toList)
+    receiver(new Input(name, args.toList))
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
   }
 
