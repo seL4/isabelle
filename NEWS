@@ -6,6 +6,30 @@ New in this Isabelle version
 
 *** General ***
 
+* Improved Isabelle/jEdit Prover IDE (PIDE), which can be invoked as
+"isabelle jedit" on the command line.
+
+  . Management of multiple theory files directly from the editor
+    buffer store -- bypassing the file-system (no requirement to save
+    files for checking).
+
+  . Markup of formal entities within the text buffer, with semantic
+    highlighting, tooltips and hyperlinks to jump to defining source
+    positions.
+
+  . Refined scheduling of proof checking and printing of results,
+    based on interactive editor view.  (Note: jEdit folding and
+    narrowing allows to restrict buffer perspectives explicitly.)
+
+  . Reduced CPU performance requirements, usable on machines with few
+    cores.
+
+  . Reduced memory requirements due to pruning of unused document
+    versions (garbage collection).
+
+See also ~~/src/Tools/jEdit/README.html for further information,
+including some remaining limitations.
+
 * Theory loader: source files are identified by content via SHA1
 digests.  Discontinued former path/modtime identification and optional
 ISABELLE_FILE_IDENT plugin scripts.
