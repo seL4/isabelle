@@ -2054,6 +2054,11 @@ apply(subst card_insert)
  apply(auto intro:ccontr)
 done
 
+lemma card_le_Suc_iff: "finite A \<Longrightarrow>
+  Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
+by (fastsimp simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
+  dest: subset_singletonD split: nat.splits if_splits)
+
 lemma finite_fun_UNIVD2:
   assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
   shows "finite (UNIV :: 'b set)"

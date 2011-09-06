@@ -785,6 +785,26 @@ qed
 lemma insert_ident: "x ~: A ==> x ~: B ==> (insert x A = insert x B) = (A = B)"
 by auto
 
+lemma insert_eq_iff: assumes "a \<notin> A" "b \<notin> B"
+shows "insert a A = insert b B \<longleftrightarrow>
+  (if a=b then A=B else \<exists>C. A = insert b C \<and> b \<notin> C \<and> B = insert a C \<and> a \<notin> C)"
+  (is "?L \<longleftrightarrow> ?R")
+proof
+  assume ?L
+  show ?R
+  proof cases
+    assume "a=b" with assms `?L` show ?R by (simp add: insert_ident)
+  next
+    assume "a\<noteq>b"
+    let ?C = "A - {b}"
+    have "A = insert b ?C \<and> b \<notin> ?C \<and> B = insert a ?C \<and> a \<notin> ?C"
+      using assms `?L` `a\<noteq>b` by auto
+    thus ?R using `a\<noteq>b` by auto
+  qed
+next
+  assume ?R thus ?L by(auto split: if_splits)
+qed
+
 subsubsection {* Singletons, using insert *}
 
 lemma singletonI [intro!,no_atp]: "a : {a}"
