@@ -415,16 +415,6 @@ proof-
   from power2_le_imp_le[OF th yz] show ?thesis .
 qed
 
-text {* TODO: move to NthRoot *}
-lemma sqrt_add_le_add_sqrt:
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "sqrt (x + y) \<le> sqrt x + sqrt y"
-apply (rule power2_le_imp_le)
-apply (simp add: power2_sum x y)
-apply (simp add: mult_nonneg_nonneg x y)
-apply (simp add: x y)
-done
-
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
 
 definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "hull" 75) where
