@@ -66,27 +66,29 @@ local
 
 fun chunk s = [string_of_int (size s), "\n", s];
 
-fun message mbox ch raw_props body =
+fun message do_flush mbox ch raw_props body =
   let
     val robust_props = map (pairself YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
-  in Mailbox.send mbox (chunk header @ chunk body) end;
+  in Mailbox.send mbox (chunk header @ chunk body, do_flush) end;
 
 fun standard_message mbox opt_serial ch body =
   if body = "" then ()
   else
-    message mbox ch
+    message false mbox ch
       ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox out_stream =
   let
+    fun flush () = ignore (try TextIO.flushOut out_stream);
     fun loop receive =
       (case receive mbox of
-        SOME msg =>
+        SOME (msg, do_flush) =>
          (List.app (fn s => TextIO.output (out_stream, s)) msg;
+          if do_flush then flush () else ();
           loop (Mailbox.receive_timeout (seconds 0.02)))
-      | NONE => (try TextIO.flushOut out_stream; loop (SOME o Mailbox.receive)));
+      | NONE => (flush (); loop (SOME o Mailbox.receive)));
   in fn () => loop (SOME o Mailbox.receive) end;
 
 in
@@ -100,7 +102,7 @@ fun setup_channels in_fifo out_fifo =
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
 
-    val mbox = Mailbox.create () : string list Mailbox.T;
+    val mbox = Mailbox.create () : (string list * bool) Mailbox.T;
     val _ = Simple_Thread.fork false (message_output mbox out_stream);
   in
     Output.Private_Hooks.status_fn := standard_message mbox NONE "B";
@@ -109,10 +111,10 @@ fun setup_channels in_fifo out_fifo =
     Output.Private_Hooks.tracing_fn := (fn s => standard_message mbox (SOME (serial ())) "E" s);
     Output.Private_Hooks.warning_fn := (fn s => standard_message mbox (SOME (serial ())) "F" s);
     Output.Private_Hooks.error_fn := (fn (i, s) => standard_message mbox (SOME i) "G" s);
-    Output.Private_Hooks.raw_message_fn := message mbox "H";
+    Output.Private_Hooks.raw_message_fn := message true mbox "H";
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message mbox "A" [] (Session.welcome ());
+    message true mbox "A" [] (Session.welcome ());
     in_stream
   end;
 
