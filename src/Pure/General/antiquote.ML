@@ -12,7 +12,7 @@ sig
     Open of Position.T |
     Close of Position.T
   val is_text: 'a antiquote -> bool
-  val report: ('a -> unit) -> 'a antiquote -> unit
+  val reports_of: ('a -> Position.report list) -> 'a antiquote list -> Position.report list
   val check_nesting: 'a antiquote list -> unit
   val scan_antiq: Symbol_Pos.T list -> (Symbol_Pos.T list * Position.range) * Symbol_Pos.T list
   val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
@@ -35,14 +35,14 @@ fun is_text (Text _) = true
   | is_text _ = false;
 
 
-(* report *)
+(* reports *)
 
-fun report_antiq pos = Position.report pos Markup.antiq;
-
-fun report report_text (Text x) = report_text x
-  | report _ (Antiq (_, (pos, _))) = report_antiq pos
-  | report _ (Open pos) = report_antiq pos
-  | report _ (Close pos) = report_antiq pos;
+fun reports_of text =
+  maps
+    (fn Text x => text x
+      | Antiq (_, (pos, _)) => [(pos, Markup.antiq)]
+      | Open pos => [(pos, Markup.antiq)]
+      | Close pos => [(pos, Markup.antiq)]);
 
 
 (* check_nesting *)
@@ -97,7 +97,7 @@ end;
 
 fun read (syms, pos) =
   (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_text) syms of
-    SOME xs => (List.app (report (K ())) xs; check_nesting xs; xs)
+    SOME xs => (Position.reports (reports_of (K []) xs); check_nesting xs; xs)
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 end;

@@ -34,31 +34,31 @@ val exn_message = Runtime.exn_message exn_position;
 
 fun report_parse_tree depth space =
   let
-    val report_text =
+    val reported_text =
       (case Context.thread_data () of
-        SOME (Context.Proof ctxt) => Context_Position.report_text ctxt
-      | _ => Position.report_text);
+        SOME (Context.Proof ctxt) => Context_Position.reported_text ctxt
+      | _ => Position.reported_text);
 
-    fun report_entity kind loc decl =
-      report_text (position_of loc)
+    fun reported_entity kind loc decl =
+      reported_text (position_of loc)
         (Markup.entityN, (Markup.kindN, kind) :: Position.def_properties_of (position_of decl)) "";
 
-    fun report loc (PolyML.PTtype types) =
-          cons (fn () =>
-            PolyML.NameSpace.displayTypeExpression (types, depth, space)
-            |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-            |> report_text (position_of loc) Markup.ML_typing)
-      | report loc (PolyML.PTdeclaredAt decl) =
-          cons (fn () => report_entity Markup.ML_defN loc decl)
-      | report loc (PolyML.PTopenedAt decl) =
-          cons (fn () => report_entity Markup.ML_openN loc decl)
-      | report loc (PolyML.PTstructureAt decl) =
-          cons (fn () => report_entity Markup.ML_structN loc decl)
-      | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
-      | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
-      | report _ _ = I
-    and report_tree (loc, props) = fold (report loc) props;
-  in fn tree => List.app (fn e => e ()) (report_tree tree []) end;
+    fun reported loc (PolyML.PTtype types) =
+          cons
+            (PolyML.NameSpace.displayTypeExpression (types, depth, space)
+              |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
+              |> reported_text (position_of loc) Markup.ML_typing)
+      | reported loc (PolyML.PTdeclaredAt decl) =
+          cons (reported_entity Markup.ML_defN loc decl)
+      | reported loc (PolyML.PTopenedAt decl) =
+          cons (reported_entity Markup.ML_openN loc decl)
+      | reported loc (PolyML.PTstructureAt decl) =
+          cons (reported_entity Markup.ML_structN loc decl)
+      | reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
+      | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
+      | reported _ _ = I
+    and reported_tree (loc, props) = fold (reported loc) props;
+  in fn tree => Output.report (implode (reported_tree tree [])) end;
 
 
 (* eval ML source tokens *)

@@ -20,7 +20,6 @@ sig
   val content_of: token -> string
   val check_content_of: token -> string
   val flatten: token list -> string
-  val report_token: token -> unit
   val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
@@ -126,7 +125,7 @@ fun token_markup kind x =
 
 in
 
-fun report_token (Token ((pos, _), (kind, x))) = Position.report pos (token_markup kind x);
+fun report_of_token (Token ((pos, _), (kind, x))) = (pos, token_markup kind x);
 
 end;
 
@@ -293,7 +292,7 @@ fun read pos txt =
         |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
           (SOME (false, fn msg => recover msg >> map Antiquote.Text))
         |> Source.exhaust
-        |> tap (List.app (Antiquote.report report_token))
+        |> tap (Position.reports o Antiquote.reports_of (single o report_of_token))
         |> tap Antiquote.check_nesting
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
       handle ERROR msg =>

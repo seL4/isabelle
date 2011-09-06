@@ -258,7 +258,7 @@ fun read_span outer_syntax toks =
   let
     val commands = lookup_commands outer_syntax;
     val range_pos = Position.set_range (Token.range toks);
-    val _ = List.app Thy_Syntax.report_token toks;
+    val _ = Position.reports (maps Thy_Syntax.reports_of_token toks);
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] =>

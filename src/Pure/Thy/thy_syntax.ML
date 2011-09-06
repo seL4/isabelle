@@ -11,7 +11,7 @@ sig
       Source.source) Source.source) Source.source) Source.source
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
   val present_token: Token.T -> Output.output
-  val report_token: Token.T -> unit
+  val reports_of_token: Token.T -> Position.report list
   datatype span_kind = Command of string | Ignored | Malformed
   type span
   val span_kind: span -> span_kind
@@ -74,17 +74,17 @@ fun token_markup tok =
         else I;
     in props (token_kind_markup kind) end;
 
-fun report_symbol (sym, pos) =
-  if Symbol.is_malformed sym then Position.report pos Markup.malformed else ();
+fun reports_of_symbol (sym, pos) =
+  if Symbol.is_malformed sym then [(pos, Markup.malformed)] else [];
 
 in
 
 fun present_token tok =
   Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
 
-fun report_token tok =
- (Position.report (Token.position_of tok) (token_markup tok);
-  List.app report_symbol (Symbol_Pos.explode (Token.source_position_of tok)));
+fun reports_of_token tok =
+  (Token.position_of tok, token_markup tok) ::
+    maps reports_of_symbol (Symbol_Pos.explode (Token.source_position_of tok));
 
 end;
 

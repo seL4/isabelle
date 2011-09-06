@@ -105,8 +105,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val main_actor = actor {
     loop {
       react {
-        case input: Isabelle_Process.Input =>
-
         case result: Isabelle_Process.Result =>
           if (result.is_syslog)
             Swing_Thread.now {
@@ -127,13 +125,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
 
   override def init() {
-    Isabelle.session.raw_messages += main_actor
+    Isabelle.session.syslog_messages += main_actor
     Isabelle.session.phase_changed += main_actor
     Isabelle.session.commands_changed += main_actor
   }
 
   override def exit() {
-    Isabelle.session.raw_messages -= main_actor
+    Isabelle.session.syslog_messages -= main_actor
     Isabelle.session.phase_changed -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
