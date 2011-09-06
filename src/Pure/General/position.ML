@@ -36,7 +36,7 @@ sig
   val report_text: T -> Markup.T -> string -> unit
   val report: T -> Markup.T -> unit
   type reports = (T * Markup.T) list
-  val reports: reports Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
+  val store_reports: reports Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
   val str_of: T -> string
   type range = T * T
   val no_range: range
@@ -156,8 +156,8 @@ fun report pos markup = report_text pos markup "";
 
 type reports = (T * Markup.T) list;
 
-fun reports _ [] _ _ = ()
-  | reports (r: reports Unsynchronized.ref) ps markup x =
+fun store_reports _ [] _ _ = ()
+  | store_reports (r: reports Unsynchronized.ref) ps markup x =
       let val ms = markup x
       in Unsynchronized.change r (fold (fn p => fold (fn m => cons (p, m)) ms) ps) end;
 

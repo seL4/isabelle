@@ -127,7 +127,7 @@ fun typ_of_term get_sort tm =
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.reports);
-    fun report pos = Position.reports reports [pos];
+    fun report pos = Position.store_reports reports [pos];
 
     fun trans a args =
       (case trf a of
@@ -207,7 +207,7 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
         val decodeT = typ_of_term (Proof_Context.get_sort ctxt (term_sorts tm));
 
         val reports = Unsynchronized.ref reports0;
-        fun report ps = Position.reports reports ps;
+        fun report ps = Position.store_reports reports ps;
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
