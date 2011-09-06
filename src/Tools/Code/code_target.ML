@@ -394,7 +394,7 @@ fun present_code_for thy target some_width module_name args =
 
 fun check_code_for thy target strict args naming program names_cs =
   let
-    val module_name = "Code";
+    val module_name = "Generated_Code";
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
     fun ext_check p =
@@ -435,7 +435,7 @@ fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
 fun evaluator thy target naming program consts =
   let
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target NONE "Code" [] naming program consts;
+      target NONE "Generated_Code" [] naming program consts;
   in evaluation mounted_serializer prepared_program consts end;
 
 end; (* local *)

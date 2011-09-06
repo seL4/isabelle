@@ -22,15 +22,15 @@ sig
     AFun of 'a ho_type * 'a ho_type |
     ATyAbs of 'a list * 'a ho_type
 
-  datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
-  datatype tff_explicitness = TFF_Implicit | TFF_Explicit
+  datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
+  datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_flavor = THF_Without_Choice | THF_With_Choice
-  datatype format =
+  datatype tptp_format =
     CNF |
     CNF_UEQ |
     FOF |
-    TFF of tff_polymorphism * tff_explicitness |
-    THF0 of thf_flavor
+    TFF of tptp_polymorphism * tptp_explicitness |
+    THF of tptp_polymorphism * tptp_explicitness * thf_flavor
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
@@ -92,9 +92,9 @@ sig
     bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
-  val is_format_thf : format -> bool
-  val is_format_typed : format -> bool
-  val tptp_lines_for_atp_problem : format -> string problem -> string list
+  val is_format_thf : tptp_format -> bool
+  val is_format_typed : tptp_format -> bool
+  val tptp_lines_for_atp_problem : tptp_format -> string problem -> string list
   val ensure_cnf_problem :
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
@@ -130,16 +130,16 @@ datatype 'a ho_type =
   AFun of 'a ho_type * 'a ho_type |
   ATyAbs of 'a list * 'a ho_type
 
-datatype tff_polymorphism = TFF_Monomorphic | TFF_Polymorphic
-datatype tff_explicitness = TFF_Implicit | TFF_Explicit
+datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
+datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_flavor = THF_Without_Choice | THF_With_Choice
 
-datatype format =
+datatype tptp_format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF of tff_polymorphism * tff_explicitness |
-  THF0 of thf_flavor
+  TFF of tptp_polymorphism * tptp_explicitness |
+  THF of tptp_polymorphism * tptp_explicitness * thf_flavor
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
@@ -224,10 +224,10 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun is_format_thf (THF0 _) = true
+fun is_format_thf (THF _) = true
   | is_format_thf _ = false
 fun is_format_typed (TFF _) = true
-  | is_format_typed (THF0 _) = true
+  | is_format_typed (THF _) = true
   | is_format_typed _ = false
 
 fun string_for_kind Axiom = "axiom"
@@ -266,7 +266,7 @@ fun str_for_type ty =
                     ss) ^ "]: " ^ str false ty
   in str true ty end
 
-fun string_for_type (THF0 _) ty = str_for_type ty
+fun string_for_type (THF _) ty = str_for_type ty
   | string_for_type (TFF _) ty = str_for_type (flatten_type ty)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
@@ -288,6 +288,9 @@ fun string_for_bound_var format (s, ty) =
    else
      "")
 
+fun is_format_with_choice (THF (_, _, THF_With_Choice)) = true
+  | is_format_with_choice _ = false
+
 fun string_for_term _ (ATerm (s, [])) = s
   | string_for_term format (ATerm (s, ts)) =
     if s = tptp_empty_list then
@@ -298,7 +301,7 @@ fun string_for_term _ (ATerm (s, [])) = s
       |> is_format_thf format ? enclose "(" ")"
     else
       (case (s = tptp_ho_forall orelse s = tptp_ho_exists,
-             s = tptp_choice andalso format = THF0 THF_With_Choice, ts) of
+             s = tptp_choice andalso is_format_with_choice format, ts) of
          (true, _, [AAbs ((s', ty), tm)]) =>
          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
             possible, to work around LEO-II 1.2.8 parser limitation. *)
@@ -306,8 +309,8 @@ fun string_for_term _ (ATerm (s, [])) = s
              (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
        | (_, true, [AAbs ((s', ty), tm)]) =>
-         (*There is code in ATP_Translate to ensure that Eps is always applied
-           to an abstraction*)
+         (* There is code in "ATP_Translate" to ensure that "Eps" is always
+            applied to an abstraction. *)
          tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
            string_for_term format tm ^ ""
          |> enclose "(" ")"
@@ -319,7 +322,7 @@ fun string_for_term _ (ATerm (s, [])) = s
            else
              s ^ "(" ^ commas ss ^ ")"
          end)
-  | string_for_term (format as THF0 _) (AAbs ((s, ty), tm)) =
+  | string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
     "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
     string_for_term format tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
@@ -352,7 +355,7 @@ fun string_for_format CNF = tptp_cnf
   | string_for_format CNF_UEQ = tptp_cnf
   | string_for_format FOF = tptp_fof
   | string_for_format (TFF _) = tptp_tff
-  | string_for_format (THF0 _) = tptp_thf
+  | string_for_format (THF _) = tptp_thf
 
 fun string_for_problem_line format (Decl (ident, sym, ty)) =
     string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^

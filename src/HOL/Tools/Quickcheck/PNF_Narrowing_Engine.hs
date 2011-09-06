@@ -8,7 +8,7 @@ import Control.Exception
 import System.Exit
 import Maybe
 import List (partition, findIndex)
-import Code
+import Generated_Code
 
 
 type Pos = [Int]

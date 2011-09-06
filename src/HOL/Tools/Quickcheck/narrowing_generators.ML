@@ -235,17 +235,17 @@ fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
     fun run in_path = 
       let
-        val code_file = Path.append in_path (Path.basic "Code.hs")
+        val code_file = Path.append in_path (Path.basic "Generated_Code.hs")
         val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
           "import System;\n" ^
           "import Narrowing_Engine;\n" ^
-          "import Code;\n\n" ^
-          "main = getArgs >>= \\[size] -> Narrowing_Engine.depthCheck (read size) (Code.value ())\n\n" ^
+          "import Generated_Code;\n\n" ^
+          "main = getArgs >>= \\[size] -> Narrowing_Engine.depthCheck (read size) (Generated_Code.value ())\n\n" ^
           "}\n"
-        val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
-          (unprefix "module Code where {" code)
+        val code' = prefix "module Generated_Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
+          (unprefix "module Generated_Code where {" code)
         val _ = File.write code_file code'
         val _ = File.write narrowing_engine_file
           (if contains_existentials then pnf_narrowing_engine else narrowing_engine)

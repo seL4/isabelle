@@ -201,6 +201,9 @@ lemma
   "(\<forall>x y z. f x y = f z y \<longrightarrow> x = z) \<and> a \<noteq> d \<longrightarrow> f a b \<noteq> f d b"
   by smt+
 
+
+section {* Guidance for quantifier heuristics: patterns and weights *}
+
 lemma
   assumes "\<forall>x. SMT.trigger [[SMT.pat (f x)]] (f x = x)"
   shows "f 1 = 1"
@@ -209,6 +212,38 @@ lemma
 lemma
   assumes "\<forall>x y. SMT.trigger [[SMT.pat (f x), SMT.pat (g y)]] (f x = g y)"
   shows "f 1 = g 2"
+  using assms by smt
+
+lemma
+  assumes "ALL x. SMT.trigger [[SMT.pat (P x)]] (P x --> Q x)"
+  and "P t"
+  shows "Q t"
+  using assms by smt
+
+lemma
+  assumes "ALL x. SMT.trigger [[SMT.pat (P x), SMT.pat (Q x)]]
+    (P x & Q x --> R x)"
+  and "P t" and "Q t"
+  shows "R t"
+  using assms by smt
+
+lemma
+  assumes "ALL x. SMT.trigger [[SMT.pat (P x)], [SMT.pat (Q x)]]
+    ((P x --> R x) & (Q x --> R x))"
+  and "P t | Q t"
+  shows "R t"
+  using assms by smt
+
+lemma
+  assumes "ALL x. SMT.trigger [[SMT.pat (P x)]] (SMT.weight 2 (P x --> Q x))"
+  and "P t"
+  shows "Q t"
+  using assms by smt
+
+lemma
+  assumes "ALL x. SMT.weight 1 (P x --> Q x)"
+  and "P t"
+  shows "Q t"
   using assms by smt
 
 

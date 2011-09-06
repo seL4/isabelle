@@ -11,7 +11,7 @@ sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type connective = ATP_Problem.connective
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
-  type format = ATP_Problem.format
+  type tptp_format = ATP_Problem.tptp_format
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
 
@@ -92,7 +92,7 @@ sig
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
-  val adjust_type_enc : format -> type_enc -> type_enc
+  val adjust_type_enc : tptp_format -> type_enc -> type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -100,7 +100,7 @@ sig
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> format -> formula_kind -> formula_kind -> type_enc
+    Proof.context -> tptp_format -> formula_kind -> formula_kind -> type_enc
     -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
@@ -142,7 +142,7 @@ val simpN = "simp"
 (* TFF1 is still in development, and it is still unclear whether symbols will be
    allowed to have types like "$tType > $o" (i.e., "![A : $tType] : $o"), with
    "dummy" type variables. *)
-val exploit_tff1_dummy_type_vars = false
+val avoid_first_order_dummy_type_vars = true
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "BA_"
@@ -325,8 +325,8 @@ local
   fun default c = const_prefix ^ lookup_const c
 in
   fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
-    | make_fixed_const (SOME (THF0 THF_With_Choice)) c =
-        if c = choice_const then tptp_choice else default c
+    | make_fixed_const (SOME (THF (_, _, THF_With_Choice))) c =
+      if c = choice_const then tptp_choice else default c
     | make_fixed_const _ c = default c
 end
 
@@ -587,7 +587,9 @@ fun type_enc_from_string soundness s =
             | _ => raise Same.SAME)
          | ("simple_higher", (SOME poly, _, Nonuniform)) =>
            (case (poly, level) of
-              (_, Noninf_Nonmono_Types _) => raise Same.SAME
+              (Polymorphic, All_Types) =>
+              Simple_Types (Higher_Order, Polymorphic, All_Types)
+            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
               Simple_Types (Higher_Order, Mangled_Monomorphic, level)
             | _ => raise Same.SAME)
@@ -631,12 +633,13 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based Fin_Nonmono_Types = true
   | is_type_level_monotonicity_based _ = false
 
-fun adjust_type_enc (THF0 _) (Simple_Types (order, Polymorphic, level)) =
+fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
+                    (Simple_Types (order, _, level)) =
     Simple_Types (order, Mangled_Monomorphic, level)
-  | adjust_type_enc (THF0 _) type_enc = type_enc
-  | adjust_type_enc (TFF (TFF_Monomorphic, _)) (Simple_Types (_, _, level)) =
+  | adjust_type_enc (THF _) type_enc = type_enc
+  | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Simple_Types (_, _, level)) =
     Simple_Types (First_Order, Mangled_Monomorphic, level)
-  | adjust_type_enc (TFF (_, _)) (Simple_Types (_, poly, level)) =
+  | adjust_type_enc (TFF _) (Simple_Types (_, poly, level)) =
     Simple_Types (First_Order, poly, level)
   | adjust_type_enc format (Simple_Types (_, poly, level)) =
     adjust_type_enc format (Guards (poly, level, Uniform))
@@ -746,8 +749,9 @@ val a_itself_atype = AType (itself_name, [tvar_a_atype])
 fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
       (case type_enc of
-         Simple_Types (_, Polymorphic, _) =>
-         if exploit_tff1_dummy_type_vars then [] else [ATerm (TYPE_name, [arg])]
+         Simple_Types (First_Order, Polymorphic, _) =>
+         if avoid_first_order_dummy_type_vars then [ATerm (TYPE_name, [arg])]
+         else []
        | _ => [])))
 fun formulas_for_types type_enc add_sorts_on_typ Ts =
   [] |> level_of_type_enc type_enc <> No_Types ? fold add_sorts_on_typ Ts
@@ -1779,18 +1783,19 @@ fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
 
 (** Symbol declarations **)
 
-fun decl_line_for_class s =
+fun decl_line_for_class order s =
   let val name as (s, _) = `make_type_class s in
     Decl (sym_decl_prefix ^ s, name,
-          if exploit_tff1_dummy_type_vars then
-            AFun (atype_of_types, bool_atype)
+          if order = First_Order andalso avoid_first_order_dummy_type_vars then
+            ATyAbs ([tvar_a_name], AFun (a_itself_atype, bool_atype))
           else
-            ATyAbs ([tvar_a_name], AFun (a_itself_atype, bool_atype)))
+            AFun (atype_of_types, bool_atype))
   end
 
 fun decl_lines_for_classes type_enc classes =
   case type_enc of
-    Simple_Types (_, Polymorphic, _) => map decl_line_for_class classes
+    Simple_Types (order, Polymorphic, _) =>
+    map (decl_line_for_class order) classes
   | _ => []
 
 fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
@@ -2232,7 +2237,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
             CNF => ensure_cnf_problem
           | CNF_UEQ => filter_cnf_ueq_problem
           | FOF => I
-          | TFF (_, TFF_Implicit) => I
+          | TFF (_, TPTP_Implicit) => I
+          | THF (_, TPTP_Implicit, _) => I
           | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                         implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names
