@@ -24,7 +24,6 @@ object Isabelle_Markup
   def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
   val outdated_color = new Color(238, 227, 227)
-  val outdated1_color = new Color(238, 227, 227, 50)
   val running_color = new Color(97, 0, 97)
   val running1_color = new Color(97, 0, 97, 100)
   val unfinished_color = new Color(255, 160, 160)
@@ -57,7 +56,7 @@ object Isabelle_Markup
   def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
     val state = snapshot.command_state(command)
-    if (snapshot.is_outdated) Some(outdated1_color)
+    if (snapshot.is_outdated) Some(outdated_color)
     else
       Isar_Document.command_status(state.status) match {
         case Isar_Document.Forked(i) if i > 0 => Some(running1_color)
