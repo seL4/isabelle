@@ -263,7 +263,7 @@ fun str_for_type ty =
       | str _ (ATyAbs (ss, ty)) =
         tptp_pi_binder ^ "[" ^
         commas (map (suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types))
-                    ss) ^ "] : " ^ str false ty
+                    ss) ^ "]: " ^ str false ty
   in str true ty end
 
 fun string_for_type (THF0 _) ty = str_for_type ty
@@ -308,7 +308,7 @@ fun string_for_term _ (ATerm (s, [])) = s
        | (_, true, [AAbs ((s', ty), tm)]) =>
          (*There is code in ATP_Translate to ensure that Eps is always applied
            to an abstraction*)
-         tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "] : " ^
+         tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
            string_for_term format tm ^ ""
          |> enclose "(" ")"
 
@@ -320,12 +320,12 @@ fun string_for_term _ (ATerm (s, [])) = s
              s ^ "(" ^ commas ss ^ ")"
          end)
   | string_for_term (format as THF0 _) (AAbs ((s, ty), tm)) =
-    "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "] : " ^
+    "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
     string_for_term format tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
 and string_for_formula format (AQuant (q, xs, phi)) =
     string_for_quantifier q ^
-    "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
+    "[" ^ commas (map (string_for_bound_var format) xs) ^ "]: " ^
     string_for_formula format phi
     |> enclose "(" ")"
   | string_for_formula format
