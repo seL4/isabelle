@@ -579,14 +579,18 @@ fun type_enc_from_string soundness s =
   |> (fn (poly, (level, (uniformity, core))) =>
          case (core, (poly, level, uniformity)) of
            ("simple", (SOME poly, _, Nonuniform)) =>
-           (case poly of
-              Raw_Monomorphic => raise Same.SAME
-            | _ => Simple_Types (First_Order, poly, level))
+           (case (poly, level) of
+              (Polymorphic, All_Types) =>
+              Simple_Types (First_Order, Polymorphic, All_Types)
+            | (Mangled_Monomorphic, _) =>
+              Simple_Types (First_Order, Mangled_Monomorphic, level)
+            | _ => raise Same.SAME)
          | ("simple_higher", (SOME poly, _, Nonuniform)) =>
            (case (poly, level) of
-              (Raw_Monomorphic, _) => raise Same.SAME
-            | (_, Noninf_Nonmono_Types _) => raise Same.SAME
-            | _ => Simple_Types (Higher_Order, poly, level))
+              (_, Noninf_Nonmono_Types _) => raise Same.SAME
+            | (Mangled_Monomorphic, _) =>
+              Simple_Types (Higher_Order, Mangled_Monomorphic, level)
+            | _ => raise Same.SAME)
          | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, uniformity)
@@ -1369,16 +1373,14 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
-    let val U = robust_const_type thy s in
-      case Term.add_tvarsT (U |> chop_fun arity |> snd) [] of
-        [] => []
-      | res_U_vars =>
-        let val U_args = (s, U) |> Sign.const_typargs thy in
-          U_args ~~ T_args
-          |> map (fn (U, T) =>
-                     if member (op =) res_U_vars (dest_TVar U) then T
-                     else dummyT)
-        end
+    let
+      val U = robust_const_type thy s
+      val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun arity |> fst) []
+      val U_args = (s, U) |> robust_const_typargs thy
+    in
+      U_args ~~ T_args
+      |> map (fn (U, T) =>
+                 if member (op =) arg_U_vars (dest_TVar U) then dummyT else T)
     end
     handle TYPE _ => T_args
 
@@ -1394,14 +1396,13 @@ fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
          | SOME s'' =>
            let
              val s'' = invert_const s''
-             fun filtered_T_args false = T_args
-               | filtered_T_args true = filter_type_args thy s'' arity T_args
+             fun filter_T_args false = T_args
+               | filter_T_args true = filter_type_args thy s'' arity T_args
            in
              case type_arg_policy type_enc s'' of
-               Explicit_Type_Args drop_args =>
-               (name, filtered_T_args drop_args)
+               Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
              | Mangled_Type_Args drop_args =>
-               (mangled_const_name format type_enc (filtered_T_args drop_args)
+               (mangled_const_name format type_enc (filter_T_args drop_args)
                                    name, [])
              | No_Type_Args => (name, [])
            end)
@@ -1555,9 +1556,8 @@ fun add_type_constrs_in_term thy =
   let
     fun add (Const (@{const_name Meson.skolem}, _) $ _) = I
       | add (t $ u) = add t #> add u
-      | add (Const (x as (s, _))) =
-        if String.isPrefix skolem_const_prefix s then I
-        else x |> Sign.const_typargs thy |> fold (fold_type_constrs set_insert)
+      | add (Const x) =
+        x |> robust_const_typargs thy |> fold (fold_type_constrs set_insert)
       | add (Free (s, T)) =
         if String.isPrefix polymorphic_free_prefix s then
           T |> fold_type_constrs set_insert

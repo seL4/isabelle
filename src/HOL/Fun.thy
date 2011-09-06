@@ -612,6 +612,10 @@ by auto
 lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
 by (auto intro: ext)
 
+lemma UNION_fun_upd:
+  "UNION J (A(i:=B)) = (UNION (J-{i}) A \<union> (if i\<in>J then B else {}))"
+by (auto split: if_splits)
+
 
 subsection {* @{text override_on} *}
 

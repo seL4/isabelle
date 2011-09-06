@@ -63,6 +63,14 @@ lemma OUTL: "OUTL (Inl x) = x"
 lemma OUTR: "OUTR (Inr x) = x"
   by simp
 
+lemma sum_axiom: "EX! h. h o Inl = f & h o Inr = g"
+  apply (intro allI ex1I[of _ "sum_case f g"] conjI)
+  apply (simp_all add: o_def fun_eq_iff)
+  apply (rule)
+  apply (induct_tac x)
+  apply simp_all
+  done
+
 lemma sum_case_def: "(ALL f g x. sum_case f g (Inl x) = f x) & (ALL f g y. sum_case f g (Inr y) = g y)"
   by simp
 
@@ -490,5 +498,7 @@ lemma [hol4rew]: "real_ge x y = (y <= x)"
 
 lemma real_ge: "ALL x y. (y <= x) = (y <= x)"
   by simp
+
+definition [hol4rew]: "list_mem x xs = List.member xs x"
 
 end
