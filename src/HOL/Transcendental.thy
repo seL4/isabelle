@@ -1922,21 +1922,9 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma tan_half: fixes x :: real assumes "- (pi / 2) < x" and "x < pi / 2"
-  shows "tan x = sin (2 * x) / (cos (2 * x) + 1)"
-proof -
-  from cos_gt_zero_pi[OF `- (pi / 2) < x` `x < pi / 2`]
-  have "cos x \<noteq> 0" by auto
-
-  have minus_cos_2x: "\<And>X. X - cos (2*x) = X - (cos x) ^ 2 + (sin x) ^ 2" unfolding cos_double by algebra
-
-  have "tan x = (tan x + tan x) / 2" by auto
-  also have "\<dots> = sin (x + x) / (cos x * cos x) / 2" unfolding add_tan_eq[OF `cos x \<noteq> 0` `cos x \<noteq> 0`] ..
-  also have "\<dots> = sin (2 * x) / ((cos x) ^ 2 + (cos x) ^ 2 + cos (2*x) - cos (2*x))" unfolding divide_divide_eq_left numeral_2_eq_2 by auto
-  also have "\<dots> = sin (2 * x) / ((cos x) ^ 2 + cos (2*x) + (sin x)^2)" unfolding minus_cos_2x by auto
-  also have "\<dots> = sin (2 * x) / (cos (2*x) + 1)" by auto
-  finally show ?thesis .
-qed
+lemma tan_half: "tan x = sin (2 * x) / (cos (2 * x) + 1)"
+  unfolding tan_def sin_double cos_double sin_squared_eq
+  by (simp add: power2_eq_square)
 
 lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<twosuperior>)"
   unfolding tan_def
@@ -2803,7 +2791,7 @@ proof -
 
   have "arctan x = y" using arctan_tan low high y_eq by auto
   also have "\<dots> = 2 * (arctan (tan (y/2)))" using arctan_tan[OF low2 high2] by auto
-  also have "\<dots> = 2 * (arctan (sin y / (cos y + 1)))" unfolding tan_half[OF low2 high2] by auto
+  also have "\<dots> = 2 * (arctan (sin y / (cos y + 1)))" unfolding tan_half by auto
   finally show ?thesis unfolding eq `tan y = x` .
 qed
 
