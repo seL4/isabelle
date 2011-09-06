@@ -1434,37 +1434,30 @@ proof -
   thus ?thesis unfolding One_nat_def sin_coeff_def by (simp add: mult_ac)
 qed
 
-text {* FIXME: This is a long, ugly proof! *}
-lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
-apply (subgoal_tac
-       "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
-              -1 ^ k / real (fact (2 * k + 1)) * x ^ (2 * k + 1))
-     sums sin x")
- prefer 2
- apply (rule sin_paired [THEN sums_group], simp)
-apply (simp del: fact_Suc)
-apply (subst sums_unique, assumption)
-apply (erule suminf_gt_zero [OF sums_summable, rule_format])
-apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc)
-apply (simp only: fact_Suc real_of_nat_mult)
-apply (simp add: divide_inverse del: fact_Suc)
-apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc)
-apply (rule_tac c="real (Suc (Suc (4*n)))" in mult_less_imp_less_right)
-apply (auto simp add: mult_assoc simp del: fact_Suc)
-apply (rule_tac c="real (Suc (Suc (Suc (4*n))))" in mult_less_imp_less_right)
-apply (auto simp add: mult_assoc mult_less_cancel_left simp del: fact_Suc)
-apply (subgoal_tac "x * (x * x ^ (4*n)) = (x ^ (4*n)) * (x * x)")
-apply (erule ssubst)+
-apply (auto simp del: fact_Suc)
-apply (subgoal_tac "0 < x ^ (4 * n)")
- prefer 2 apply (simp only: zero_less_power)
-apply (simp (no_asm_simp) add: mult_less_cancel_left)
-apply (rule mult_strict_mono)
-apply (simp_all (no_asm_simp))
-done
-
-lemma sin_gt_zero1: "[|0 < x; x < 2 |] ==> 0 < sin x"
-  by (rule sin_gt_zero)
+lemma sin_gt_zero:
+  assumes "0 < x" and "x < 2" shows "0 < sin x"
+proof -
+  let ?f = "\<lambda>n. \<Sum>k = n*2..<n*2+2. -1 ^ k / real (fact (2*k+1)) * x^(2*k+1)"
+  have pos: "\<forall>n. 0 < ?f n"
+  proof
+    fix n :: nat
+    let ?k2 = "real (Suc (Suc (4 * n)))"
+    let ?k3 = "real (Suc (Suc (Suc (4 * n))))"
+    have "x * x < ?k2 * ?k3"
+      using assms by (intro mult_strict_mono', simp_all)
+    hence "x * x * x * x ^ (n * 4) < ?k2 * ?k3 * x * x ^ (n * 4)"
+      by (intro mult_strict_right_mono zero_less_power `0 < x`)
+    thus "0 < ?f n"
+      by (simp del: mult_Suc,
+        simp add: less_divide_eq mult_pos_pos field_simps del: mult_Suc)
+  qed
+  have sums: "?f sums sin x"
+    by (rule sin_paired [THEN sums_group], simp)
+  show "0 < sin x"
+    unfolding sums_unique [OF sums]
+    using sums_summable [OF sums] pos
+    by (rule suminf_gt_zero)
+qed
 
 lemma cos_double_less_one: "[| 0 < x; x < 2 |] ==> cos (2 * x) < 1"
 apply (cut_tac x = x in sin_gt_zero)
