@@ -130,7 +130,7 @@ fun perm_simproc_fun' sg ss redex =
      case redex of 
        (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)     
        (Const("Nominal.perm",_) $ pi $ f)  => 
-          (if (applicable_fun f) then SOME perm_fun_def else NONE)
+          (if applicable_fun f then SOME perm_fun_def else NONE)
       | _ => NONE
    end
 

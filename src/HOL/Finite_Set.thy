@@ -486,21 +486,8 @@ lemma finite_code [code]: "finite (A \<Colon> 'a set) \<longleftrightarrow> True
 
 end
 
-instance unit :: finite proof
-qed (simp add: UNIV_unit)
-
-instance bool :: finite proof
-qed (simp add: UNIV_bool)
-
 instance prod :: (finite, finite) finite proof
 qed (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
-
-lemma finite_option_UNIV [simp]:
-  "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
-  by (auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
-
-instance option :: (finite) finite proof
-qed (simp add: UNIV_option_conv)
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: set_eq_iff fun_eq_iff)
@@ -519,8 +506,21 @@ proof
   qed
 qed
 
+instance bool :: finite proof
+qed (simp add: UNIV_bool)
+
+instance unit :: finite proof
+qed (simp add: UNIV_unit)
+
 instance sum :: (finite, finite) finite proof
 qed (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
+
+lemma finite_option_UNIV [simp]:
+  "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
+  by (auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
+
+instance option :: (finite) finite proof
+qed (simp add: UNIV_option_conv)
 
 
 subsection {* A basic fold functional for finite sets *}
