@@ -1528,19 +1528,24 @@ lemmas cos_two_neq_zero [simp] = cos_two_less_zero [THEN less_imp_neq]
 lemmas cos_two_le_zero [simp] = cos_two_less_zero [THEN order_less_imp_le]
 
 lemma cos_is_zero: "EX! x. 0 \<le> x & x \<le> 2 & cos x = 0"
-apply (subgoal_tac "\<exists>x. 0 \<le> x & x \<le> 2 & cos x = 0")
-apply (rule_tac [2] IVT2)
-apply (auto intro: DERIV_isCont DERIV_cos)
-apply (cut_tac x = xa and y = y in linorder_less_linear)
-apply (rule ccontr)
-apply (subgoal_tac " (\<forall>x. cos differentiable x) & (\<forall>x. isCont cos x) ")
-apply (auto intro: DERIV_cos DERIV_isCont simp add: differentiable_def)
-apply (drule_tac f = cos in Rolle)
-apply (drule_tac [5] f = cos in Rolle)
-apply (auto dest!: DERIV_cos [THEN DERIV_unique] simp add: differentiable_def)
-apply (metis order_less_le_trans less_le sin_gt_zero)
-apply (metis order_less_le_trans less_le sin_gt_zero)
-done
+proof (rule ex_ex1I)
+  show "\<exists>x. 0 \<le> x & x \<le> 2 & cos x = 0"
+    by (rule IVT2, simp_all)
+next
+  fix x y
+  assume x: "0 \<le> x \<and> x \<le> 2 \<and> cos x = 0"
+  assume y: "0 \<le> y \<and> y \<le> 2 \<and> cos y = 0"
+  have [simp]: "\<forall>x. cos differentiable x"
+    unfolding differentiable_def by (auto intro: DERIV_cos)
+  from x y show "x = y"
+    apply (cut_tac less_linear [of x y], auto)
+    apply (drule_tac f = cos in Rolle)
+    apply (drule_tac [5] f = cos in Rolle)
+    apply (auto dest!: DERIV_cos [THEN DERIV_unique])
+    apply (metis order_less_le_trans less_le sin_gt_zero)
+    apply (metis order_less_le_trans less_le sin_gt_zero)
+    done
+qed
 
 lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
 by (simp add: pi_def)
