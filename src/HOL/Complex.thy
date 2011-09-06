@@ -321,8 +321,6 @@ lemma complex_mod_minus_le_complex_mod [simp]: "- cmod x \<le> cmod x"
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
   by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
-lemmas real_sum_squared_expand = power2_sum [where 'a=real]
-
 lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
   by (cases x) simp
 
