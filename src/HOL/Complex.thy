@@ -592,21 +592,20 @@ by (auto simp add: linorder_neq_iff cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_
 
 subsection{*Finally! Polar Form for Complex Numbers*}
 
-definition
+text {* An abbreviation for @{text "cos a + i sin a"}. *}
 
-  (* abbreviation for (cos a + i sin a) *)
-  cis :: "real => complex" where
+definition cis :: "real \<Rightarrow> complex" where
   "cis a = Complex (cos a) (sin a)"
 
-definition
-  (* abbreviation for r*(cos a + i sin a) *)
-  rcis :: "[real, real] => complex" where
+text {* An abbreviation for @{text "r(cos a + i sin a)"}. *}
+
+definition rcis :: "[real, real] \<Rightarrow> complex" where
   "rcis r a = complex_of_real r * cis a"
 
 abbreviation expi :: "complex \<Rightarrow> complex"
   where "expi \<equiv> exp"
 
-lemma expi_imaginary: "expi (Complex 0 b) = cis b"
+lemma cis_conv_exp: "cis b = exp (Complex 0 b)"
 proof (rule complex_eqI)
   { fix n have "Complex 0 b ^ n =
     real (fact n) *\<^sub>R Complex (cos_coeff n * b ^ n) (sin_coeff n * b ^ n)"
@@ -614,23 +613,18 @@ proof (rule complex_eqI)
       apply (simp add: cos_coeff_def sin_coeff_def)
       apply (simp add: sin_coeff_Suc cos_coeff_Suc del: mult_Suc)
       done } note * = this
-  show "Re (exp (Complex 0 b)) = Re (cis b)"
+  show "Re (cis b) = Re (exp (Complex 0 b))"
     unfolding exp_def cis_def cos_def
     by (subst bounded_linear.suminf[OF bounded_linear_Re summable_exp_generic],
       simp add: * mult_assoc [symmetric])
-  show "Im (exp (Complex 0 b)) = Im (cis b)"
+  show "Im (cis b) = Im (exp (Complex 0 b))"
     unfolding exp_def cis_def sin_def
     by (subst bounded_linear.suminf[OF bounded_linear_Im summable_exp_generic],
       simp add: * mult_assoc [symmetric])
 qed
 
 lemma expi_def: "expi z = complex_of_real (exp (Re z)) * cis (Im z)"
-proof -
-  have "expi z = expi (complex_of_real (Re z) + Complex 0 (Im z))"
-    by simp
-  thus ?thesis
-    unfolding exp_add exp_of_real expi_imaginary .
-qed
+  unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by simp
 
 lemma complex_split_polar:
      "\<exists>r a. z = complex_of_real r * (Complex (cos a) (sin a))"
@@ -664,11 +658,6 @@ by (simp add: cmod_def power2_eq_square)
 
 lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
 by simp
-
-
-(*---------------------------------------------------------------------------*)
-(*  (r1 * cis a) * (r2 * cis b) = r1 * r2 * cis (a + b)                      *)
-(*---------------------------------------------------------------------------*)
 
 lemma cis_rcis_eq: "cis a = rcis 1 a"
 by (simp add: rcis_def)
@@ -735,12 +724,6 @@ by (auto simp add: DeMoivre)
 
 lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
 by (auto simp add: DeMoivre)
-
-lemma expi_add: "expi(a + b) = expi(a) * expi(b)"
-  by (rule exp_add) (* FIXME: redundant *)
-
-lemma expi_zero: "expi (0::complex) = 1"
-  by (rule exp_zero) (* FIXME: redundant *)
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])

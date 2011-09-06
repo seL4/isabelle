@@ -148,13 +148,11 @@ fun mk_quant is_forall ctxt =
 end
 
 local
-  fun equal_var cv (_, cu) = (cv aconvc cu)
-
   fun prep (ct, vars) (maxidx, all_vars) =
     let
       val maxidx' = maxidx + maxidx_of ct + 1
 
-      fun part (v as (i, cv)) =
+      fun part (i, cv) =
         (case AList.lookup (op =) all_vars i of
           SOME cu => apfst (if cu aconvc cv then I else cons (cv, cu))
         | NONE =>

@@ -613,7 +613,7 @@ lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a
 by (simp add: NSDeMoivre_ext)
 
 lemma hexpi_add: "!!a b. hexpi(a + b) = hexpi(a) * hexpi(b)"
-by transfer (rule expi_add)
+by transfer (rule exp_add)
 
 
 subsection{*@{term hcomplex_of_complex}: the Injection from

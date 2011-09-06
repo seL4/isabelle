@@ -475,12 +475,12 @@ lemma natceiling_le: "x <= real a ==> natceiling x <= a"
   unfolding natceiling_def real_of_nat_def
   by (simp add: nat_le_iff ceiling_le_iff)
 
-lemma natceiling_le_eq: "0 <= x ==> (natceiling x <= a) = (x <= real a)"
-  unfolding natceiling_def real_of_nat_def (* FIXME: unused assumption *)
+lemma natceiling_le_eq: "(natceiling x <= a) = (x <= real a)"
+  unfolding natceiling_def real_of_nat_def
   by (simp add: nat_le_iff ceiling_le_iff)
 
 lemma natceiling_le_eq_number_of [simp]:
-    "~ neg((number_of n)::int) ==> 0 <= x ==>
+    "~ neg((number_of n)::int) ==>
       (natceiling x <= number_of n) = (x <= number_of n)"
   by (simp add: natceiling_le_eq)
 

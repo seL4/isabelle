@@ -1,8 +1,9 @@
-(*  Title:      Pure/General/yxml.ML
+(*  Title:      Pure/PIDE/yxml.ML
     Author:     Makarius
 
 Efficient text representation of XML trees using extra characters X
-and Y -- no escaping, may nest marked text verbatim.
+and Y -- no escaping, may nest marked text verbatim.  Suitable for
+direct inlining into plain text.
 
 Markup <elem att="val" ...>...body...</elem> is encoded as:
 

@@ -12,7 +12,12 @@ body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
 
 <body>
 
-<h2>The Isabelle/jEdit Prover IDE</h2>
+<h2>The Isabelle/jEdit Prover IDE (based on Isabelle/Scala)</h2>
+
+The Isabelle/Scala layer that is already part of Isabelle/Pure
+provides some general infrastructure for advanced prover interaction
+and integration.  The Isabelle/jEdit application serves as an example
+for asynchronous proof checking with support for parallel processing.
 
 <ul>
 
@@ -116,30 +121,23 @@ body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
 </ul>
 
 
-<h2>Limitations and workrounds (January 2011)</h2>
+<h2>Limitations and workrounds (September 2011)</h2>
 
 <ul>
   <li>No way to start/stop prover or switch to a different logic.<br/>
   <em>Workaround:</em> Change options and restart editor.</li>
 
-  <li>Limited support for dependencies between multiple theory buffers.<br/>
-  <em>Workaround:</em> Load required files manually.</li>
-
-  <li>No reclaiming of old/unused document versions in prover or
-  editor.<br/>
-  <em>Workaround:</em> Avoid large files; restart after a few hours of use.</li>
-
   <li>Incremental reparsing sometimes produces unexpected command
   spans.<br/>
   <em>Workaround:</em> Cut/paste larger parts or reload buffer.</li>
 
-  <li>Command execution sometimes gets stuck (purple background).<br/>
-  <em>Workaround:</em> Force reparsing as above.</li>
-
-  <li>Odd behavior of some diagnostic commands, notably those
-  starting external processes asynchronously
-  (e.g. <tt>thy_deps</tt>, <tt>sledgehammer</tt>).<br/>
+  <li>Odd behavior of some diagnostic commands, notably those starting
+  external processes asynchronously (e.g. <tt>thy_deps</tt>).<br/>
   <em>Workaround:</em> Avoid such commands.</li>
+
+  <li>Lack of dependency managed for auxiliary files that contribute
+  to a theory ("<b>uses</b>").<br/>
+  <em>Workaround:</em> Re-use files manually within the prover.</li>
 
   <li>No support for non-local markup, e.g. commands reporting on
   previous commands (proof end on proof head), or markup produced by
@@ -149,6 +147,59 @@ body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
   General.</li>
 </ul>
 
+
+<h2>Known problems with Mac OS</h2>
+
+<ul>
+
+<li>The MacOSX plugin for jEdit disrupts regular C-X/C/V operations,
+  e.g. between the editor and the Console plugin, which is a standard
+  swing text box.  Similar for search boxes etc.</li>
+
+<li>ToggleButton selected state is not rendered if window focus is
+  lost, which is probably a genuine feature of the Apple
+  look-and-feel.</li>
+
+<li>Font.createFont mangles the font family of non-regular fonts,
+  e.g. bold.  IsabelleText font files need to be installed/updated
+  manually.</li>
+
+<li>Missing glyphs are collected from other fonts (like Emacs,
+  Firefox).  This is actually an advantage over the Oracle/Sun JVM on
+  Windows or Linux, but probably also the deeper reason for the other
+  oddities of Apple font management.</li>
+
+<li>The native font renderer of -Dapple.awt.graphics.UseQuartz=true
+  (not enabled by default) fails to handle the infinitesimal font size
+  of "hidden" text (e.g.  used in Isabelle sub/superscripts).</li>
+
+</ul>
+
+
+<h2>Known problems with OpenJDK 1.6.x</h2>
+
+<ul>
+
+<li>The 2D rendering engine of OpenJDK 1.6.x distorts the appearance
+  of the jEdit text area.  Always use official JRE 1.6.x from
+  Sun/Oracle/Apple.</li>
+
+<li>jEdit on OpenJDK is generally not supported.</li>
+
+</ul>
+
+
+<h2>Licenses and home sites of contributing systems</h2>
+
+<ul>
+
+<li>Scala: BSD-style <br/> http://www.scala-lang.org</li>
+
+<li>jEdit: GPL (with special cases) <br/> http://www.jedit.org/</li>
+
+<li>Lobo/Cobra: GPL and LGPL <br/> http://lobobrowser.org/</li>
+
+</ul>
+
 </body>
 </html>
-

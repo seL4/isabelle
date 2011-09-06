@@ -475,8 +475,7 @@ local
     "op * = (%a b. nat (int a * int b))"
     "op div = (%a b. nat (int a div int b))"
     "op mod = (%a b. nat (int a mod int b))"
-    by (auto intro!: ext simp add: nat_mult_distrib nat_div_distrib
-      nat_mod_distrib)}
+    by (fastsimp simp add: nat_mult_distrib nat_div_distrib nat_mod_distrib)+}
 
   val ints = map mk_meta_eq @{lemma
     "int 0 = 0"

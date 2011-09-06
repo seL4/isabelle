@@ -1,7 +1,7 @@
-/*  Title:      Pure/General/xml.scala
+/*  Title:      Pure/PIDE/xml.scala
     Author:     Makarius
 
-Untyped XML trees.
+Untyped XML trees and basic data representation.
 */
 
 package isabelle
@@ -89,94 +89,72 @@ object XML
 
   class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
-    private val cache_actor = actor
+    private var table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
+
+    private def lookup[A](x: A): Option[A] =
     {
-      val table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
-
-      def lookup[A](x: A): Option[A] =
-      {
-        val ref = table.get(x)
-        if (ref == null) None
-        else {
-          val y = ref.asInstanceOf[WeakReference[A]].get
-          if (y == null) None
-          else Some(y)
-        }
-      }
-      def store[A](x: A): A =
-      {
-        table.put(x, new WeakReference[Any](x))
-        x
-      }
-
-      def trim_bytes(s: String): String = new String(s.toCharArray)
-
-      def cache_string(x: String): String =
-        lookup(x) match {
-          case Some(y) => y
-          case None =>
-            val z = trim_bytes(x)
-            if (z.length > max_string) z else store(z)
-        }
-      def cache_props(x: Properties.T): Properties.T =
-        if (x.isEmpty) x
-        else
-          lookup(x) match {
-            case Some(y) => y
-            case None => store(x.map(p => (trim_bytes(p._1).intern, cache_string(p._2))))
-          }
-      def cache_markup(x: Markup): Markup =
-        lookup(x) match {
-          case Some(y) => y
-          case None =>
-            x match {
-              case Markup(name, props) =>
-                store(Markup(cache_string(name), cache_props(props)))
-            }
-        }
-      def cache_tree(x: XML.Tree): XML.Tree =
-        lookup(x) match {
-          case Some(y) => y
-          case None =>
-            x match {
-              case XML.Elem(markup, body) =>
-                store(XML.Elem(cache_markup(markup), cache_body(body)))
-              case XML.Text(text) => store(XML.Text(cache_string(text)))
-            }
-        }
-      def cache_body(x: XML.Body): XML.Body =
-        if (x.isEmpty) x
-        else
-          lookup(x) match {
-            case Some(y) => y
-            case None => x.map(cache_tree(_))
-          }
-
-      // main loop
-      loop {
-        react {
-          case Cache_String(x, f) => f(cache_string(x))
-          case Cache_Markup(x, f) => f(cache_markup(x))
-          case Cache_Tree(x, f) => f(cache_tree(x))
-          case Cache_Body(x, f) => f(cache_body(x))
-          case Cache_Ignore(x, f) => f(x)
-          case bad => System.err.println("XML.cache_actor: ignoring bad input " + bad)
-        }
+      val ref = table.get(x)
+      if (ref == null) None
+      else {
+        val y = ref.asInstanceOf[WeakReference[A]].get
+        if (y == null) None
+        else Some(y)
       }
     }
+    private def store[A](x: A): A =
+    {
+      table.put(x, new WeakReference[Any](x))
+      x
+    }
 
-    private case class Cache_String(x: String, f: String => Unit)
-    private case class Cache_Markup(x: Markup, f: Markup => Unit)
-    private case class Cache_Tree(x: XML.Tree, f: XML.Tree => Unit)
-    private case class Cache_Body(x: XML.Body, f: XML.Body => Unit)
-    private case class Cache_Ignore[A](x: A, f: A => Unit)
+    private def trim_bytes(s: String): String = new String(s.toCharArray)
+
+    private def _cache_string(x: String): String =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          val z = trim_bytes(x)
+          if (z.length > max_string) z else store(z)
+      }
+    private def _cache_props(x: Properties.T): Properties.T =
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => store(x.map(p => (trim_bytes(p._1).intern, _cache_string(p._2))))
+        }
+    private def _cache_markup(x: Markup): Markup =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          x match {
+            case Markup(name, props) =>
+              store(Markup(_cache_string(name), _cache_props(props)))
+          }
+      }
+    private def _cache_tree(x: XML.Tree): XML.Tree =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          x match {
+            case XML.Elem(markup, body) =>
+              store(XML.Elem(_cache_markup(markup), _cache_body(body)))
+            case XML.Text(text) => store(XML.Text(_cache_string(text)))
+          }
+      }
+    private def _cache_body(x: XML.Body): XML.Body =
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => x.map(_cache_tree(_))
+        }
 
     // main methods
-    def cache_string(x: String)(f: String => Unit) { cache_actor ! Cache_String(x, f) }
-    def cache_markup(x: Markup)(f: Markup => Unit) { cache_actor ! Cache_Markup(x, f) }
-    def cache_tree(x: XML.Tree)(f: XML.Tree => Unit) { cache_actor ! Cache_Tree(x, f) }
-    def cache_body(x: XML.Body)(f: XML.Body => Unit) { cache_actor ! Cache_Body(x, f) }
-    def cache_ignore[A](x: A)(f: A => Unit) { cache_actor ! Cache_Ignore(x, f) }
+    def cache_string(x: String): String = synchronized { _cache_string(x) }
+    def cache_markup(x: Markup): Markup = synchronized { _cache_markup(x) }
+    def cache_tree(x: XML.Tree): XML.Tree = synchronized { _cache_tree(x) }
+    def cache_body(x: XML.Body): XML.Body = synchronized { _cache_body(x) }
   }
 
 

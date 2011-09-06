@@ -277,6 +277,8 @@ replaced by more general versions. INCOMPATIBILITY.
   realpow_two_diff ~> square_diff_square_factored
   reals_complete2 ~> complete_real
   exp_ln_eq ~> ln_unique
+  expi_add ~> exp_add
+  expi_zero ~> exp_zero
   lemma_DERIV_subst ~> DERIV_cong
   LIMSEQ_Zfun_iff ~> tendsto_Zfun_iff
   LIMSEQ_const ~> tendsto_const
@@ -296,6 +298,9 @@ replaced by more general versions. INCOMPATIBILITY.
   LIMSEQ_norm_zero ~> tendsto_norm_zero_iff
   LIMSEQ_rabs_zero ~> tendsto_rabs_zero_iff
   LIMSEQ_imp_rabs ~> tendsto_rabs
+  LIMSEQ_add_minus ~> tendsto_add [OF _ tendsto_minus]
+  LIMSEQ_add_const ~> tendsto_add [OF _ tendsto_const]
+  LIMSEQ_diff_const ~> tendsto_diff [OF _ tendsto_const]
   LIM_ident ~> tendsto_ident_at
   LIM_const ~> tendsto_const
   LIM_add ~> tendsto_add

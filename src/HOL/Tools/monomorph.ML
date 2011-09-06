@@ -319,7 +319,7 @@ fun monomorph schematic_consts_of rthms ctxt =
     val (thm_infos, (known_grounds, subs)) = prepare schematic_consts_of rthms
   in
     if Symtab.is_empty known_grounds then
-      (map (single o pair 0 o snd) rthms, ctxt)
+      (map (fn Ground thm => [(0, thm)] | _ => []) thm_infos, ctxt)
     else
       make_subst_ctxt ctxt thm_infos known_grounds subs
       |> limit_rounds ctxt (collect_substitutions thm_infos)

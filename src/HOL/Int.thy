@@ -162,7 +162,10 @@ proof
     by (simp add: Zero_int_def One_int_def)
 qed
 
-lemma int_def: "of_nat m = Abs_Integ (intrel `` {(m, 0)})"
+abbreviation int :: "nat \<Rightarrow> int" where
+  "int \<equiv> of_nat"
+
+lemma int_def: "int m = Abs_Integ (intrel `` {(m, 0)})"
 by (induct m) (simp_all add: Zero_int_def One_int_def add)
 
 
@@ -218,7 +221,7 @@ text{*Strict Monotonicity of Multiplication*}
 
 text{*strict, in 1st argument; proof is by induction on k>0*}
 lemma zmult_zless_mono2_lemma:
-     "(i::int)<j ==> 0<k ==> of_nat k * i < of_nat k * j"
+     "(i::int)<j ==> 0<k ==> int k * i < int k * j"
 apply (induct k)
 apply simp
 apply (simp add: left_distrib)
@@ -226,13 +229,13 @@ apply (case_tac "k=0")
 apply (simp_all add: add_strict_mono)
 done
 
-lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = of_nat n"
+lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = int n"
 apply (cases k)
 apply (auto simp add: le add int_def Zero_int_def)
 apply (rule_tac x="x-y" in exI, simp)
 done
 
-lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = of_nat n"
+lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = int n"
 apply (cases k)
 apply (simp add: less int_def Zero_int_def)
 apply (rule_tac x="x-y" in exI, simp)
@@ -261,7 +264,7 @@ apply (simp add: less le add One_int_def)
 done
 
 lemma zless_iff_Suc_zadd:
-  "(w \<Colon> int) < z \<longleftrightarrow> (\<exists>n. z = w + of_nat (Suc n))"
+  "(w \<Colon> int) < z \<longleftrightarrow> (\<exists>n. z = w + int (Suc n))"
 apply (cases z, cases w)
 apply (auto simp add: less add int_def)
 apply (rename_tac a b c d) 
@@ -314,7 +317,7 @@ apply (simp add: algebra_simps of_int mult of_nat_mult)
 done
 
 text{*Collapse nested embeddings*}
-lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
+lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
 by (induct n) auto
 
 lemma of_int_power:
@@ -400,13 +403,13 @@ proof -
     by (simp add: nat_def UN_equiv_class [OF equiv_intrel])
 qed
 
-lemma nat_int [simp]: "nat (of_nat n) = n"
+lemma nat_int [simp]: "nat (int n) = n"
 by (simp add: nat int_def)
 
-lemma int_nat_eq [simp]: "of_nat (nat z) = (if 0 \<le> z then z else 0)"
+lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
 by (cases z) (simp add: nat le int_def Zero_int_def)
 
-corollary nat_0_le: "0 \<le> z ==> of_nat (nat z) = z"
+corollary nat_0_le: "0 \<le> z ==> int (nat z) = z"
 by simp
 
 lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
@@ -431,14 +434,14 @@ done
 
 lemma nonneg_eq_int:
   fixes z :: int
-  assumes "0 \<le> z" and "\<And>m. z = of_nat m \<Longrightarrow> P"
+  assumes "0 \<le> z" and "\<And>m. z = int m \<Longrightarrow> P"
   shows P
   using assms by (blast dest: nat_0_le sym)
 
-lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = of_nat m else m=0)"
+lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
 by (cases w) (simp add: nat le int_def Zero_int_def, arith)
 
-corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = of_nat m else m=0)"
+corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
 by (simp only: eq_commute [of m] nat_eq_iff)
 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
@@ -446,7 +449,7 @@ apply (cases w)
 apply (simp add: nat le int_def Zero_int_def linorder_not_le[symmetric], arith)
 done
 
-lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> of_nat n"
+lemma nat_le_iff: "nat x \<le> n \<longleftrightarrow> x \<le> int n"
   by (cases x, simp add: nat le int_def le_diff_conv)
 
 lemma nat_mono: "x \<le> y \<Longrightarrow> nat x \<le> nat y"
@@ -470,10 +473,10 @@ lemma nat_diff_distrib:
 by (cases z, cases z')
   (simp add: nat add minus diff_minus le Zero_int_def)
 
-lemma nat_zminus_int [simp]: "nat (- (of_nat n)) = 0"
+lemma nat_zminus_int [simp]: "nat (- int n) = 0"
 by (simp add: int_def minus nat Zero_int_def) 
 
-lemma zless_nat_eq_int_zless: "(m < nat z) = (of_nat m < z)"
+lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
 by (cases z) (simp add: nat less int_def, arith)
 
 context ring_1
@@ -491,31 +494,31 @@ lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
 
 subsection{*Lemmas about the Function @{term of_nat} and Orderings*}
 
-lemma negative_zless_0: "- (of_nat (Suc n)) < (0 \<Colon> int)"
+lemma negative_zless_0: "- (int (Suc n)) < (0 \<Colon> int)"
 by (simp add: order_less_le del: of_nat_Suc)
 
-lemma negative_zless [iff]: "- (of_nat (Suc n)) < (of_nat m \<Colon> int)"
+lemma negative_zless [iff]: "- (int (Suc n)) < int m"
 by (rule negative_zless_0 [THEN order_less_le_trans], simp)
 
-lemma negative_zle_0: "- of_nat n \<le> (0 \<Colon> int)"
+lemma negative_zle_0: "- int n \<le> 0"
 by (simp add: minus_le_iff)
 
-lemma negative_zle [iff]: "- of_nat n \<le> (of_nat m \<Colon> int)"
+lemma negative_zle [iff]: "- int n \<le> int m"
 by (rule order_trans [OF negative_zle_0 of_nat_0_le_iff])
 
-lemma not_zle_0_negative [simp]: "~ (0 \<le> - (of_nat (Suc n) \<Colon> int))"
+lemma not_zle_0_negative [simp]: "~ (0 \<le> - (int (Suc n)))"
 by (subst le_minus_iff, simp del: of_nat_Suc)
 
-lemma int_zle_neg: "((of_nat n \<Colon> int) \<le> - of_nat m) = (n = 0 & m = 0)"
+lemma int_zle_neg: "(int n \<le> - int m) = (n = 0 & m = 0)"
 by (simp add: int_def le minus Zero_int_def)
 
-lemma not_int_zless_negative [simp]: "~ ((of_nat n \<Colon> int) < - of_nat m)"
+lemma not_int_zless_negative [simp]: "~ (int n < - int m)"
 by (simp add: linorder_not_less)
 
-lemma negative_eq_positive [simp]: "((- of_nat n \<Colon> int) = of_nat m) = (n = 0 & m = 0)"
+lemma negative_eq_positive [simp]: "(- int n = of_nat m) = (n = 0 & m = 0)"
 by (force simp add: order_eq_iff [of "- of_nat n"] int_zle_neg)
 
-lemma zle_iff_zadd: "(w\<Colon>int) \<le> z \<longleftrightarrow> (\<exists>n. z = w + of_nat n)"
+lemma zle_iff_zadd: "w \<le> z \<longleftrightarrow> (\<exists>n. z = w + int n)"
 proof -
   have "(w \<le> z) = (0 \<le> z - w)"
     by (simp only: le_diff_eq add_0_left)
@@ -526,10 +529,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma zadd_int_left: "of_nat m + (of_nat n + z) = of_nat (m + n) + (z\<Colon>int)"
+lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
 by simp
 
-lemma int_Suc0_eq_1: "of_nat (Suc 0) = (1\<Colon>int)"
+lemma int_Suc0_eq_1: "int (Suc 0) = 1"
 by simp
 
 text{*This version is proved for all ordered rings, not just integers!
@@ -540,7 +543,7 @@ lemma abs_split [arith_split,no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
-lemma negD: "(x \<Colon> int) < 0 \<Longrightarrow> \<exists>n. x = - (of_nat (Suc n))"
+lemma negD: "x < 0 \<Longrightarrow> \<exists>n. x = - (int (Suc n))"
 apply (cases x)
 apply (auto simp add: le minus Zero_int_def int_def order_less_le)
 apply (rule_tac x="y - Suc x" in exI, arith)
@@ -553,7 +556,7 @@ text{*Now we replace the case analysis rule by a more conventional one:
 whether an integer is negative or not.*}
 
 theorem int_cases [case_names nonneg neg, cases type: int]:
-  "[|!! n. (z \<Colon> int) = of_nat n ==> P;  !! n. z =  - (of_nat (Suc n)) ==> P |] ==> P"
+  "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
 apply (cases "z < 0")
 apply (blast dest!: negD)
 apply (simp add: linorder_not_less del: of_nat_Suc)
@@ -562,12 +565,12 @@ apply (blast dest: nat_0_le [THEN sym])
 done
 
 theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
-     "[|!! n. P (of_nat n \<Colon> int);  !!n. P (- (of_nat (Suc n))) |] ==> P z"
+     "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z) auto
 
 text{*Contributed by Brian Huffman*}
 theorem int_diff_cases:
-  obtains (diff) m n where "(z\<Colon>int) = of_nat m - of_nat n"
+  obtains (diff) m n where "z = int m - int n"
 apply (cases z rule: eq_Abs_Integ)
 apply (rule_tac m=x and n=y in diff)
 apply (simp add: int_def minus add diff_minus)
@@ -944,11 +947,11 @@ class number_ring = number + comm_ring_1 +
   assumes number_of_eq: "number_of k = of_int k"
 
 class number_semiring = number + comm_semiring_1 +
-  assumes number_of_int: "number_of (of_nat n) = of_nat n"
+  assumes number_of_int: "number_of (int n) = of_nat n"
 
 instance number_ring \<subseteq> number_semiring
 proof
-  fix n show "number_of (of_nat n) = (of_nat n :: 'a)"
+  fix n show "number_of (int n) = (of_nat n :: 'a)"
     unfolding number_of_eq by (rule of_int_of_nat_eq)
 qed
 
@@ -1124,7 +1127,7 @@ next
   show ?thesis
   proof
     assume eq: "1 + z + z = 0"
-    have "(0::int) < 1 + (of_nat n + of_nat n)"
+    have "(0::int) < 1 + (int n + int n)"
       by (simp add: le_imp_0_less add_increasing) 
     also have "... = - (1 + z + z)" 
       by (simp add: neg add_assoc [symmetric]) 
@@ -1644,7 +1647,7 @@ text{*This simplifies expressions of the form @{term "int n = z"} where
 lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v", standard]
 
 lemma split_nat [arith_split]:
-  "P(nat(i::int)) = ((\<forall>n. i = of_nat n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
+  "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L & ?R)")
 proof (cases "i < 0")
   case True thus ?thesis by auto
@@ -1736,11 +1739,6 @@ proof -
   thus ?thesis 
     by (rule wf_subset [OF wf_measure]) 
 qed
-
-abbreviation
-  int :: "nat \<Rightarrow> int"
-where
-  "int \<equiv> of_nat"
 
 (* `set:int': dummy construction *)
 theorem int_ge_induct [case_names base step, induct set: int]:

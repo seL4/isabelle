@@ -1,7 +1,9 @@
-(*  Title:      Pure/General/xml.ML
-    Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
+(*  Title:      Pure/PIDE/xml.ML
+    Author:     David Aspinall
+    Author:     Stefan Berghofer
+    Author:     Makarius
 
-Untyped XML trees.
+Untyped XML trees and basic data representation.
 *)
 
 signature XML_DATA_OPS =
@@ -134,7 +136,7 @@ fun pretty depth tree =
 
 
 
-(** XML parsing (slow) **)
+(** XML parsing **)
 
 local
 
