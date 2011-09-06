@@ -10,7 +10,7 @@ sig
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
   val decode_term: Proof.context ->
-    Position.reports * term Exn.result -> Position.reports * term Exn.result
+    Position.report list * term Exn.result -> Position.report list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
 end
@@ -126,7 +126,7 @@ fun typ_of_term get_sort tm =
 
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
-    val reports = Unsynchronized.ref ([]: Position.reports);
+    val reports = Unsynchronized.ref ([]: Position.report list);
     fun report pos = Position.store_reports reports [pos];
 
     fun trans a args =
@@ -196,7 +196,7 @@ fun ast_to_term ctxt trf =
 
 (* decode_term -- transform parse tree into raw term *)
 
-fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
+fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Res tm) =
       let
         fun get_const a =
@@ -262,12 +262,10 @@ fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 fun proper_results results = map_filter (fn (y, Exn.Res x) => SOME (y, x) | _ => NONE) results;
 fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ => NONE) results;
 
-fun report ctxt = List.app (fn (pos, m) => Context_Position.report ctxt pos m);
-
 fun report_result ctxt pos results =
   (case (proper_results results, failed_results results) of
-    ([], (reports, exn) :: _) => (report ctxt reports; reraise exn)
-  | ([(reports, x)], _) => (report ctxt reports; x)
+    ([], (reports, exn) :: _) => (Context_Position.reports ctxt reports; reraise exn)
+  | ([(reports, x)], _) => (Context_Position.reports ctxt reports; x)
   | _ => error (ambiguity_msg pos));
 
 
@@ -279,7 +277,7 @@ fun parse_asts ctxt raw root (syms, pos) =
     val ast_tr = Syntax.parse_ast_translation syn;
 
     val toks = Syntax.tokenize syn raw syms;
-    val _ = List.app (Lexicon.report_token ctxt) toks;
+    val _ = Context_Position.reports ctxt (map Lexicon.report_of_token toks);
 
     val pts = Syntax.parse ctxt syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>

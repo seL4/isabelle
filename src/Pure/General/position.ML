@@ -35,8 +35,9 @@ sig
   val reported_text: T -> Markup.T -> string -> string
   val report_text: T -> Markup.T -> string -> unit
   val report: T -> Markup.T -> unit
-  type reports = (T * Markup.T) list
-  val store_reports: reports Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
+  type report = T * Markup.T
+  val reports: report list -> unit
+  val store_reports: report list Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
   val str_of: T -> string
   type range = T * T
   val no_range: range
@@ -154,10 +155,14 @@ fun reported_text pos m txt = if is_reported pos then Markup.markup (markup pos 
 fun report_text pos markup txt = Output.report (reported_text pos markup txt);
 fun report pos markup = report_text pos markup "";
 
-type reports = (T * Markup.T) list;
+type report = T * Markup.T;
+
+val reports =
+  map (fn (pos, m) => if is_reported pos then Markup.markup_only (markup pos m) else "")
+  #> implode #> Output.report;
 
 fun store_reports _ [] _ _ = ()
-  | store_reports (r: reports Unsynchronized.ref) ps markup x =
+  | store_reports (r: report list Unsynchronized.ref) ps markup x =
       let val ms = markup x
       in Unsynchronized.change r (fold (fn p => fold (fn m => cons (p, m)) ms) ps) end;
 

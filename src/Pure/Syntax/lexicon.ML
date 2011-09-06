@@ -44,7 +44,7 @@ sig
   val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
-  val report_token: Proof.context -> token -> unit
+  val report_of_token: token -> Position.report
   val reported_token_range: Proof.context -> token -> string
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
@@ -203,11 +203,11 @@ val token_kind_markup =
   | Comment     => Markup.inner_comment
   | EOF         => Markup.empty;
 
-fun report_token ctxt (Token (kind, s, (pos, _))) =
+fun report_of_token (Token (kind, s, (pos, _))) =
   let val markup =
     if kind = Literal andalso not (is_ascii_identifier s) then Markup.delimiter
     else token_kind_markup kind
-  in Context_Position.report ctxt pos markup end;
+  in (pos, markup) end;
 
 fun reported_token_range ctxt tok =
   if is_proper tok
