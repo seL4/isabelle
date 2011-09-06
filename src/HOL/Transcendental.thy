@@ -1722,19 +1722,29 @@ qed
 lemma sin_ge_zero: "[| 0 \<le> x; x \<le> pi |] ==> 0 \<le> sin x"
 by (auto simp add: order_le_less sin_gt_zero_pi)
 
+text {* FIXME: This proof is almost identical to lemma @{text cos_is_zero}.
+  It should be possible to factor out some of the common parts. *}
+
 lemma cos_total: "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. 0 \<le> x & x \<le> pi & (cos x = y)"
-apply (subgoal_tac "\<exists>x. 0 \<le> x & x \<le> pi & cos x = y")
-apply (rule_tac [2] IVT2)
-apply (auto intro: order_less_imp_le DERIV_isCont DERIV_cos)
-apply (cut_tac x = xa and y = y in linorder_less_linear)
-apply (rule ccontr, auto)
-apply (drule_tac f = cos in Rolle)
-apply (drule_tac [5] f = cos in Rolle)
-apply (auto intro: order_less_imp_le DERIV_isCont DERIV_cos
-            dest!: DERIV_cos [THEN DERIV_unique]
-            simp add: differentiable_def)
-apply (auto dest: sin_gt_zero_pi [OF order_le_less_trans order_less_le_trans])
-done
+proof (rule ex_ex1I)
+  assume y: "-1 \<le> y" "y \<le> 1"
+  show "\<exists>x. 0 \<le> x & x \<le> pi & cos x = y"
+    by (rule IVT2, simp_all add: y)
+next
+  fix a b
+  assume a: "0 \<le> a \<and> a \<le> pi \<and> cos a = y"
+  assume b: "0 \<le> b \<and> b \<le> pi \<and> cos b = y"
+  have [simp]: "\<forall>x. cos differentiable x"
+    unfolding differentiable_def by (auto intro: DERIV_cos)
+  from a b show "a = b"
+    apply (cut_tac less_linear [of a b], auto)
+    apply (drule_tac f = cos in Rolle)
+    apply (drule_tac [5] f = cos in Rolle)
+    apply (auto dest!: DERIV_cos [THEN DERIV_unique])
+    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
+    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
+    done
+qed
 
 lemma sin_total:
      "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. -(pi/2) \<le> x & x \<le> pi/2 & (sin x = y)"
@@ -2196,15 +2206,24 @@ by auto
 lemma arctan_ubound: "arctan y < pi/2"
 by (auto simp only: arctan)
 
+lemma arctan_unique:
+  assumes "-(pi/2) < x" and "x < pi/2" and "tan x = y"
+  shows "arctan y = x"
+  using assms arctan [of y] tan_total [of y] by (fast elim: ex1E)
+
 lemma arctan_tan:
       "[|-(pi/2) < x; x < pi/2 |] ==> arctan(tan x) = x"
-apply (unfold arctan_def)
-apply (rule the1_equality)
-apply (rule tan_total, auto)
-done
+  by (rule arctan_unique, simp_all)
 
 lemma arctan_zero_zero [simp]: "arctan 0 = 0"
-by (insert arctan_tan [of 0], simp)
+  by (rule arctan_unique, simp_all)
+
+lemma arctan_minus: "arctan (- x) = - arctan x"
+  apply (rule arctan_unique)
+  apply (simp only: neg_less_iff_less arctan_ubound)
+  apply (metis minus_less_iff arctan_lbound)
+  apply simp
+  done
 
 lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
   by (intro less_imp_neq [symmetric] cos_gt_zero_pi
@@ -2234,6 +2253,30 @@ apply (auto dest: field_power_not_zero
         simp add: power_mult_distrib left_distrib power_divide tan_def
                   mult_assoc power_inverse [symmetric])
 done
+
+lemma arctan_less_iff: "arctan x < arctan y \<longleftrightarrow> x < y"
+  by (metis tan_monotone' arctan_lbound arctan_ubound tan_arctan)
+
+lemma arctan_le_iff: "arctan x \<le> arctan y \<longleftrightarrow> x \<le> y"
+  by (simp only: not_less [symmetric] arctan_less_iff)
+
+lemma arctan_eq_iff: "arctan x = arctan y \<longleftrightarrow> x = y"
+  by (simp only: eq_iff [where 'a=real] arctan_le_iff)
+
+lemma zero_less_arctan_iff [simp]: "0 < arctan x \<longleftrightarrow> 0 < x"
+  using arctan_less_iff [of 0 x] by simp
+
+lemma arctan_less_zero_iff [simp]: "arctan x < 0 \<longleftrightarrow> x < 0"
+  using arctan_less_iff [of x 0] by simp
+
+lemma zero_le_arctan_iff [simp]: "0 \<le> arctan x \<longleftrightarrow> 0 \<le> x"
+  using arctan_le_iff [of 0 x] by simp
+
+lemma arctan_le_zero_iff [simp]: "arctan x \<le> 0 \<longleftrightarrow> x \<le> 0"
+  using arctan_le_iff [of x 0] by simp
+
+lemma arctan_eq_zero_iff [simp]: "arctan x = 0 \<longleftrightarrow> x = 0"
+  using arctan_eq_iff [of x 0] by simp
 
 lemma isCont_inverse_function2:
   fixes f g :: "real \<Rightarrow> real" shows
@@ -2427,97 +2470,33 @@ by (cut_tac x = x in sin_cos_squared_add3, auto)
 
 subsection {* Machins formula *}
 
+lemma arctan_one: "arctan 1 = pi / 4"
+  by (rule arctan_unique, simp_all add: tan_45 m2pi_less_pi)
+
 lemma tan_total_pi4: assumes "\<bar>x\<bar> < 1"
   shows "\<exists> z. - (pi / 4) < z \<and> z < pi / 4 \<and> tan z = x"
-proof -
-  obtain z where "- (pi / 2) < z" and "z < pi / 2" and "tan z = x" using tan_total by blast
-  have "tan (pi / 4) = 1" and "tan (- (pi / 4)) = - 1" using tan_45 tan_minus by auto
-  have "z \<noteq> pi / 4"
-  proof (rule ccontr)
-    assume "\<not> (z \<noteq> pi / 4)" hence "z = pi / 4" by auto
-    have "tan z = 1" unfolding `z = pi / 4` `tan (pi / 4) = 1` ..
-    thus False unfolding `tan z = x` using `\<bar>x\<bar> < 1` by auto
-  qed
-  have "z \<noteq> - (pi / 4)"
-  proof (rule ccontr)
-    assume "\<not> (z \<noteq> - (pi / 4))" hence "z = - (pi / 4)" by auto
-    have "tan z = - 1" unfolding `z = - (pi / 4)` `tan (- (pi / 4)) = - 1` ..
-    thus False unfolding `tan z = x` using `\<bar>x\<bar> < 1` by auto
-  qed
-
-  have "z < pi / 4"
-  proof (rule ccontr)
-    assume "\<not> (z < pi / 4)" hence "pi / 4 < z" using `z \<noteq> pi / 4` by auto
-    have "- (pi / 2) < pi / 4" using m2pi_less_pi by auto
-    from tan_monotone[OF this `pi / 4 < z` `z < pi / 2`]
-    have "1 < x" unfolding `tan z = x` `tan (pi / 4) = 1` .
-    thus False using `\<bar>x\<bar> < 1` by auto
-  qed
-  moreover
-  have "-(pi / 4) < z"
-  proof (rule ccontr)
-    assume "\<not> (-(pi / 4) < z)" hence "z < - (pi / 4)" using `z \<noteq> - (pi / 4)` by auto
-    have "-(pi / 4) < pi / 2" using m2pi_less_pi by auto
-    from tan_monotone[OF `-(pi / 2) < z` `z < -(pi / 4)` this]
-    have "x < - 1" unfolding `tan z = x` `tan (-(pi / 4)) = - 1` .
-    thus False using `\<bar>x\<bar> < 1` by auto
-  qed
-  ultimately show ?thesis using `tan z = x` by auto
+proof
+  show "- (pi / 4) < arctan x \<and> arctan x < pi / 4 \<and> tan (arctan x) = x"
+    unfolding arctan_one [symmetric] arctan_minus [symmetric]
+    unfolding arctan_less_iff using assms by auto
 qed
 
 lemma arctan_add: assumes "\<bar>x\<bar> \<le> 1" and "\<bar>y\<bar> < 1"
   shows "arctan x + arctan y = arctan ((x + y) / (1 - x * y))"
-proof -
-  obtain y' where "-(pi/4) < y'" and "y' < pi/4" and "tan y' = y" using tan_total_pi4[OF `\<bar>y\<bar> < 1`] by blast
-
-  have "pi / 4 < pi / 2" by auto
-
-  have "\<exists> x'. -(pi/4) \<le> x' \<and> x' \<le> pi/4 \<and> tan x' = x"
-  proof (cases "\<bar>x\<bar> < 1")
-    case True from tan_total_pi4[OF this] obtain x' where "-(pi/4) < x'" and "x' < pi/4" and "tan x' = x" by blast
-    hence "-(pi/4) \<le> x'" and "x' \<le> pi/4" and "tan x' = x" by auto
-    thus ?thesis by auto
-  next
-    case False
-    show ?thesis
-    proof (cases "x = 1")
-      case True hence "tan (pi/4) = x" using tan_45 by auto
-      moreover
-      have "- pi \<le> pi" unfolding minus_le_self_iff by auto
-      hence "-(pi/4) \<le> pi/4" and "pi/4 \<le> pi/4" by auto
-      ultimately show ?thesis by blast
-    next
-      case False hence "x = -1" using `\<not> \<bar>x\<bar> < 1` and `\<bar>x\<bar> \<le> 1` by auto
-      hence "tan (-(pi/4)) = x" using tan_45 tan_minus by auto
-      moreover
-      have "- pi \<le> pi" unfolding minus_le_self_iff by auto
-      hence "-(pi/4) \<le> pi/4" and "-(pi/4) \<le> -(pi/4)" by auto
-      ultimately show ?thesis by blast
-    qed
-  qed
-  then obtain x' where "-(pi/4) \<le> x'" and "x' \<le> pi/4" and "tan x' = x" by blast
-  hence "-(pi/2) < x'" and "x' < pi/2" using order_le_less_trans[OF `x' \<le> pi/4` `pi / 4 < pi / 2`] by auto
-
-  have "cos x' \<noteq> 0" using cos_gt_zero_pi[THEN less_imp_neq] and `-(pi/2) < x'` and `x' < pi/2` by auto
-  moreover have "cos y' \<noteq> 0" using cos_gt_zero_pi[THEN less_imp_neq] and `-(pi/4) < y'` and `y' < pi/4` by auto
-  ultimately have "cos x' * cos y' \<noteq> 0" by auto
-
-  have divide_nonzero_divide: "\<And> A B C :: real. C \<noteq> 0 \<Longrightarrow> (A / C) / (B / C) = A / B" by auto
-  have divide_mult_commute: "\<And> A B C D :: real. A * B / (C * D) = (A / C) * (B / D)" by auto
-
-  have "tan (x' + y') = sin (x' + y') / (cos x' * cos y' - sin x' * sin y')" unfolding tan_def cos_add ..
-  also have "\<dots> = (tan x' + tan y') / ((cos x' * cos y' - sin x' * sin y') / (cos x' * cos y'))" unfolding add_tan_eq[OF `cos x' \<noteq> 0` `cos y' \<noteq> 0`] divide_nonzero_divide[OF `cos x' * cos y' \<noteq> 0`] ..
-  also have "\<dots> = (tan x' + tan y') / (1 - tan x' * tan y')" unfolding tan_def diff_divide_distrib divide_self[OF `cos x' * cos y' \<noteq> 0`] unfolding divide_mult_commute ..
-  finally have tan_eq: "tan (x' + y') = (x + y) / (1 - x * y)" unfolding `tan y' = y` `tan x' = x` .
-
-  have "arctan (tan (x' + y')) = x' + y'" using `-(pi/4) < y'` `-(pi/4) \<le> x'` `y' < pi/4` and `x' \<le> pi/4` by (auto intro!: arctan_tan)
-  moreover have "arctan (tan (x')) = x'" using `-(pi/2) < x'` and `x' < pi/2` by (auto intro!: arctan_tan)
-  moreover have "arctan (tan (y')) = y'" using `-(pi/4) < y'` and `y' < pi/4` by (auto intro!: arctan_tan)
-  ultimately have "arctan x + arctan y = arctan (tan (x' + y'))" unfolding `tan y' = y` [symmetric] `tan x' = x`[symmetric] by auto
-  thus "arctan x + arctan y = arctan ((x + y) / (1 - x * y))" unfolding tan_eq .
+proof (rule arctan_unique [symmetric])
+  have "- (pi / 4) \<le> arctan x" and "- (pi / 4) < arctan y"
+    unfolding arctan_one [symmetric] arctan_minus [symmetric]
+    unfolding arctan_le_iff arctan_less_iff using assms by auto
+  from add_le_less_mono [OF this]
+  show 1: "- (pi / 2) < arctan x + arctan y" by simp
+  have "arctan x \<le> pi / 4" and "arctan y < pi / 4"
+    unfolding arctan_one [symmetric]
+    unfolding arctan_le_iff arctan_less_iff using assms by auto
+  from add_le_less_mono [OF this]
+  show 2: "arctan x + arctan y < pi / 2" by simp
+  show "tan (arctan x + arctan y) = (x + y) / (1 - x * y)"
+    using cos_gt_zero_pi [OF 1 2] by (simp add: tan_add)
 qed
-
-lemma arctan1_eq_pi4: "arctan 1 = pi / 4" unfolding tan_45[symmetric] by (rule arctan_tan, auto simp add: m2pi_less_pi)
 
 theorem machin: "pi / 4 = 4 * arctan (1/5) - arctan (1 / 239)"
 proof -
@@ -2533,8 +2512,9 @@ proof -
   from arctan_add[OF this]
   have "arctan 1 + arctan (1 / 239) = arctan (120 / 119)" by auto
   ultimately have "arctan 1 + arctan (1 / 239) = 4 * arctan (1 / 5)" by auto
-  thus ?thesis unfolding arctan1_eq_pi4 by algebra
+  thus ?thesis unfolding arctan_one by algebra
 qed
+
 subsection {* Introducing the arcus tangens power series *}
 
 lemma monoseq_arctan_series: fixes x :: real
@@ -2827,65 +2807,34 @@ qed
 
 lemma arctan_monotone: assumes "x < y"
   shows "arctan x < arctan y"
-proof -
-  obtain z where "-(pi / 2) < z" and "z < pi / 2" and "tan z = x" using tan_total by blast
-  obtain w where "-(pi / 2) < w" and "w < pi / 2" and "tan w = y" using tan_total by blast
-  have "z < w" unfolding tan_monotone'[OF `-(pi / 2) < z` `z < pi / 2` `-(pi / 2) < w` `w < pi / 2`] `tan z = x` `tan w = y` using `x < y` .
-  thus ?thesis
-    unfolding `tan z = x`[symmetric] arctan_tan[OF `-(pi / 2) < z` `z < pi / 2`]
-    unfolding `tan w = y`[symmetric] arctan_tan[OF `-(pi / 2) < w` `w < pi / 2`] .
-qed
+  using assms by (simp only: arctan_less_iff)
 
 lemma arctan_monotone': assumes "x \<le> y" shows "arctan x \<le> arctan y"
-proof (cases "x = y")
-  case False hence "x < y" using `x \<le> y` by auto from arctan_monotone[OF this] show ?thesis by auto
-qed auto
+  using assms by (simp only: arctan_le_iff)
 
-lemma arctan_minus: "arctan (- x) = - arctan x"
-proof -
-  obtain y where "- (pi / 2) < y" and "y < pi / 2" and "tan y = x" using tan_total by blast
-  thus ?thesis unfolding `tan y = x`[symmetric] tan_minus[symmetric] using arctan_tan[of y] arctan_tan[of "-y"] by auto
-qed
-
-lemma arctan_inverse: assumes "x \<noteq> 0" shows "arctan (1 / x) = sgn x * pi / 2 - arctan x"
-proof -
-  obtain y where "- (pi / 2) < y" and "y < pi / 2" and "tan y = x" using tan_total by blast
-  hence "y = arctan x" unfolding `tan y = x`[symmetric] using arctan_tan by auto
-
-  { fix y x :: real assume "0 < y" and "y < pi /2" and "y = arctan x" and "tan y = x" hence "- (pi / 2) < y" by auto
-    have "tan y > 0" using tan_monotone'[OF _ _ `- (pi / 2) < y` `y < pi / 2`, of 0] tan_zero `0 < y` by auto
-    hence "x > 0" using `tan y = x` by auto
-
-    have "- (pi / 2) < pi / 2 - y" using `y > 0` `y < pi / 2` by auto
-    moreover have "pi / 2 - y < pi / 2" using `y > 0` `y < pi / 2` by auto
-    ultimately have "arctan (1 / x) = pi / 2 - y" unfolding `tan y = x`[symmetric] tan_inverse using arctan_tan by auto
-    hence "arctan (1 / x) = sgn x * pi / 2 - arctan x" unfolding `y = arctan x` real_sgn_pos[OF `x > 0`] by auto
-  } note pos_y = this
-
-  show ?thesis
-  proof (cases "y > 0")
-    case True from pos_y[OF this `y < pi / 2` `y = arctan x` `tan y = x`] show ?thesis .
-  next
-    case False hence "y \<le> 0" by auto
-    moreover have "y \<noteq> 0"
-    proof (rule ccontr)
-      assume "\<not> y \<noteq> 0" hence "y = 0" by auto
-      have "x = 0" unfolding `tan y = x`[symmetric] `y = 0` tan_zero ..
-      thus False using `x \<noteq> 0` by auto
-    qed
-    ultimately have "y < 0" by auto
-    hence "0 < - y" and "-y < pi / 2" using `- (pi / 2) < y` by auto
-    moreover have "-y = arctan (-x)" unfolding arctan_minus `y = arctan x` ..
-    moreover have "tan (-y) = -x" unfolding tan_minus `tan y = x` ..
-    ultimately have "arctan (1 / -x) = sgn (-x) * pi / 2 - arctan (-x)" using pos_y by blast
-    hence "arctan (- (1 / x)) = - (sgn x * pi / 2 - arctan x)" unfolding arctan_minus[of x] divide_minus_right sgn_minus by auto
-    thus ?thesis unfolding arctan_minus neg_equal_iff_equal .
-  qed
+lemma arctan_inverse:
+  assumes "x \<noteq> 0" shows "arctan (1 / x) = sgn x * pi / 2 - arctan x"
+proof (rule arctan_unique)
+  show "- (pi / 2) < sgn x * pi / 2 - arctan x"
+    using arctan_bounded [of x] assms
+    unfolding sgn_real_def
+    apply (auto simp add: algebra_simps)
+    apply (drule zero_less_arctan_iff [THEN iffD2])
+    apply arith
+    done
+  show "sgn x * pi / 2 - arctan x < pi / 2"
+    using arctan_bounded [of "- x"] assms
+    unfolding sgn_real_def arctan_minus
+    by auto
+  show "tan (sgn x * pi / 2 - arctan x) = 1 / x"
+    unfolding tan_inverse [of "arctan x", unfolded tan_arctan]
+    unfolding sgn_real_def
+    by (simp add: tan_def cos_arctan sin_arctan sin_diff cos_diff)
 qed
 
 theorem pi_series: "pi / 4 = (\<Sum> k. (-1)^k * 1 / real (k*2+1))" (is "_ = ?SUM")
 proof -
-  have "pi / 4 = arctan 1" using arctan1_eq_pi4 by auto
+  have "pi / 4 = arctan 1" using arctan_one by auto
   also have "\<dots> = ?SUM" using arctan_series[of 1] by auto
   finally show ?thesis by auto
 qed

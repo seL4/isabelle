@@ -321,8 +321,6 @@ lemma complex_mod_minus_le_complex_mod [simp]: "- cmod x \<le> cmod x"
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
   by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
-lemmas real_sum_squared_expand = power2_sum [where 'a=real]
-
 lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
   by (cases x) simp
 
@@ -366,10 +364,6 @@ proof (rule tendstoI)
        (simp add: dist_norm real_sqrt_sum_squares_less)
 qed
 
-lemma LIMSEQ_Complex:
-  "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. Complex (X n) (Y n)) ----> Complex a b"
-  by (rule tendsto_Complex)
-
 instance complex :: banach
 proof
   fix X :: "nat \<Rightarrow> complex"
@@ -379,7 +373,7 @@ proof
   from Cauchy_Im [OF X] have 2: "(\<lambda>n. Im (X n)) ----> lim (\<lambda>n. Im (X n))"
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   have "X ----> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
-    using LIMSEQ_Complex [OF 1 2] by simp
+    using tendsto_Complex [OF 1 2] by simp
   thus "convergent X"
     by (rule convergentI)
 qed
