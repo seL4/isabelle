@@ -61,13 +61,19 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Prover status"
 
+  private val cancel = new Button("Cancel") {
+    reactions += { case ButtonClicked(_) => Isabelle.session.cancel_execution }
+  }
+  cancel.tooltip = "Cancel current proof checking process"
+
   private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
   logic.listenTo(logic.selection)
   logic.reactions += {
     case SelectionChanged(_) => Isabelle.Property("logic") = logic.selection.item.name
   }
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(session_phase, logic)
+  private val controls =
+    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, cancel, logic)
   add(controls.peer, BorderLayout.NORTH)
 
 

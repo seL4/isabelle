@@ -205,12 +205,6 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
 
   def join() { process_manager.join() }
 
-  def interrupt()
-  {
-    try { process.interrupt }
-    catch { case e: IOException => system_result("Failed to interrupt Isabelle: " + e.getMessage) }
-  }
-
   def terminate()
   {
     close()

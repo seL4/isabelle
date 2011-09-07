@@ -137,7 +137,7 @@ class Session(thy_load: Thy_Load)
   /* actor messages */
 
   private case class Start(timeout: Time, args: List[String])
-  private case object Interrupt
+  private case object Cancel_Execution
   private case class Init_Node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
   private case class Edit_Node(name: Document.Node.Name,
@@ -423,8 +423,8 @@ class Session(thy_load: Thy_Load)
           receiver.cancel()
           reply(())
 
-        case Interrupt if prover.isDefined =>
-          prover.get.interrupt
+        case Cancel_Execution if prover.isDefined =>
+          prover.get.cancel_execution()
 
         case Init_Node(name, header, perspective, text) if prover.isDefined =>
           // FIXME compare with existing node
@@ -471,7 +471,7 @@ class Session(thy_load: Thy_Load)
 
   def stop() { commands_changed_buffer !? Stop; session_actor !? Stop }
 
-  def interrupt() { session_actor ! Interrupt }
+  def cancel_execution() { session_actor ! Cancel_Execution }
 
   def init_node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
