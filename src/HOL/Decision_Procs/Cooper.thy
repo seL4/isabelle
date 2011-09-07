@@ -1318,7 +1318,7 @@ proof(induct p rule: iszlfm.induct)
     also have "\<dots> = (j dvd (- (c*x - ?e)))"
     by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
-    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus zadd_ac zminus_zadd_distrib)
+    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus add_ac minus_add_distrib)
     by (simp add: algebra_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CN 0 c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
@@ -1330,7 +1330,7 @@ next
     also have "\<dots> = (j dvd (- (c*x - ?e)))"
     by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
-    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus zadd_ac zminus_zadd_distrib)
+    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus add_ac minus_add_distrib)
     by (simp add: algebra_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CN 0 c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]

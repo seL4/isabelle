@@ -312,7 +312,7 @@ lemma mod_power_lem:
   apply safe
    apply (simp add: dvd_eq_mod_eq_0 [symmetric])
    apply (drule le_iff_add [THEN iffD1])
-   apply (force simp: zpower_zadd_distrib)
+   apply (force simp: power_add)
   apply (rule mod_pos_pos_trivial)
    apply (simp)
   apply (rule power_strict_increasing)

@@ -35,8 +35,8 @@ apply (rule cringI)
   apply (rule abelian_groupI, simp_all)
   defer 1
   apply (rule comm_monoidI, simp_all)
- apply (rule zadd_zmult_distrib)
-apply (fast intro: zadd_zminus_inverse2)
+ apply (rule left_distrib)
+apply (fast intro: left_minus)
 done
 
 (*
@@ -298,7 +298,7 @@ next
   from this obtain x 
       where "1 = x * p" by best
   from this [symmetric]
-      have "p * x = 1" by (subst zmult_commute)
+      have "p * x = 1" by (subst mult_commute)
   hence "\<bar>p * x\<bar> = 1" by simp
   hence "\<bar>p\<bar> = 1" by (rule abs_zmult_eq_1)
   from this and prime

@@ -4590,7 +4590,7 @@ moreover
   hence "b : affine hull S1" using rel_interior_subset hull_subset[of S2] ** by auto
   hence "b : S1" using T_def b_def by auto
   hence False using b_def assms unfolding rel_frontier_def by auto
-} ultimately show ?thesis using zless_le by auto
+} ultimately show ?thesis using less_le by auto
 qed
 
 

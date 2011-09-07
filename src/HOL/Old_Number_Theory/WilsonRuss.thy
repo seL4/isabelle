@@ -122,7 +122,7 @@ lemma inv_less_p_minus_1:
 lemma inv_inv_aux: "5 \<le> p ==>
     nat (p - 2) * nat (p - 2) = Suc (nat (p - 1) * nat (p - 3))"
   apply (subst int_int_eq [symmetric])
-  apply (simp add: zmult_int [symmetric])
+  apply (simp add: of_nat_mult)
   apply (simp add: left_diff_distrib right_diff_distrib)
   done
 

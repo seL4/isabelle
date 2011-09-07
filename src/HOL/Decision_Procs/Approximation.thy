@@ -295,7 +295,7 @@ proof (induct n)
         unfolding real_sqrt_mult[of _ "pow2 (?E mod 2)"] real_sqrt_abs2 by auto
       also have "\<dots> < pow2 (?E div 2) * 2"
         by (rule mult_strict_left_mono, auto intro: E_mod_pow)
-      also have "\<dots> = pow2 (?E div 2 + 1)" unfolding zadd_commute[of _ 1] pow2_add1 by auto
+      also have "\<dots> = pow2 (?E div 2 + 1)" unfolding add_commute[of _ 1] pow2_add1 by auto
       finally show ?thesis by auto
     qed
     finally show ?thesis

@@ -699,7 +699,7 @@ lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
   by (simp del: minus_mult_right [symmetric]
       add: minus_mult_right nat_mult_distrib zgcd_def abs_if
-          mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
+          mult_less_0_iff gcd_mult_distrib2 [symmetric] of_nat_mult)
 
 lemma zgcd_zmult_distrib2_abs: "zgcd (k * m) (k * n) = abs k * zgcd m n"
   by (simp add: abs_if zgcd_zmult_distrib2)

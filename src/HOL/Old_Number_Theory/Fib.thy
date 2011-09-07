@@ -87,7 +87,7 @@ theorem fib_Cassini:
    else fib (Suc n) * fib (Suc n) + 1)"
   apply (rule int_int_eq [THEN iffD1]) 
   apply (simp add: fib_Cassini_int)
-  apply (subst zdiff_int [symmetric]) 
+  apply (subst of_nat_diff)
    apply (insert fib_Suc_gr_0 [of n], simp_all)
   done
 

@@ -274,7 +274,7 @@ proof -
   then have "int ((nat_of k div 2) * 2 + nat_of k mod 2) = int (nat_of k)" 
     by simp
   then have "int (nat_of k) = int (nat_of k div 2) * 2 + int (nat_of k mod 2)" 
-    unfolding int_mult zadd_int [symmetric] by simp
+    unfolding of_nat_mult of_nat_add by simp
   then show ?thesis by (auto simp add: int_of_def mult_ac)
 qed
 

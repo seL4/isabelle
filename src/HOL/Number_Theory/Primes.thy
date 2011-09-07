@@ -174,7 +174,7 @@ lemma not_prime_eq_prod_int: "(n::int) > 1 \<Longrightarrow> ~ prime n \<Longrig
     EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
   unfolding prime_int_altdef dvd_def
   apply auto
-  by(metis div_mult_self1_is_id div_mult_self2_is_id int_div_less_self int_one_le_iff_zero_less zero_less_mult_pos zless_le)
+  by(metis div_mult_self1_is_id div_mult_self2_is_id int_div_less_self int_one_le_iff_zero_less zero_less_mult_pos less_le)
 
 lemma prime_dvd_power_nat [rule_format]: "prime (p::nat) -->
     n > 0 --> (p dvd x^n --> p dvd x)"
@@ -220,7 +220,7 @@ lemma prime_int_code [code]:
   "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?L = ?R")
 proof
   assume "?L" thus "?R"
-    by (clarsimp simp: prime_gt_1_int) (metis int_one_le_iff_zero_less prime_int_altdef zless_le)
+    by (clarsimp simp: prime_gt_1_int) (metis int_one_le_iff_zero_less prime_int_altdef less_le)
 next
     assume "?R" thus "?L" by (clarsimp simp:Ball_def) (metis dvdI not_prime_eq_prod_int)
 qed
@@ -272,7 +272,7 @@ done
 lemma primes_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   apply (rule prime_imp_coprime_int, assumption)
   apply (unfold prime_int_altdef)
-  apply (metis int_one_le_iff_zero_less zless_le)
+  apply (metis int_one_le_iff_zero_less less_le)
 done
 
 lemma primes_imp_powers_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"

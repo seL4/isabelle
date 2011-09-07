@@ -77,10 +77,10 @@ text {* Now, let's prove the three hard assertions of @{text max}: *}
 boogie_vc max (examine: L_14_5c L_14_5b L_14_5a) 
 proof boogie_cases
   case L_14_5c
-  thus ?case by (metis less_le_not_le zle_add1_eq_le zless_linear)
+  thus ?case by (metis less_le_not_le zle_add1_eq_le less_linear)
 next
   case L_14_5b
-  thus ?case by (metis less_le_not_le xt1(10) zle_linear zless_add1_eq)
+  thus ?case by (metis less_le_not_le xt1(10) linorder_linear zless_add1_eq)
 next
   case L_14_5a
   note max0 = `max0 = array 0`

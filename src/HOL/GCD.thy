@@ -485,16 +485,16 @@ lemma gcd_red_int: "gcd (x::int) y = gcd y (x mod y)"
 done
 
 lemma gcd_add1_int [simp]: "gcd ((m::int) + n) n = gcd m n"
-by (metis gcd_red_int mod_add_self1 zadd_commute)
+by (metis gcd_red_int mod_add_self1 add_commute)
 
 lemma gcd_add2_int [simp]: "gcd m ((m::int) + n) = gcd m n"
-by (metis gcd_add1_int gcd_commute_int zadd_commute)
+by (metis gcd_add1_int gcd_commute_int add_commute)
 
 lemma gcd_add_mult_nat: "gcd (m::nat) (k * m + n) = gcd m n"
 by (metis mod_mult_self3 gcd_commute_nat gcd_red_nat)
 
 lemma gcd_add_mult_int: "gcd (m::int) (k * m + n) = gcd m n"
-by (metis gcd_commute_int gcd_red_int mod_mult_self1 zadd_commute)
+by (metis gcd_commute_int gcd_red_int mod_mult_self1 add_commute)
 
 
 (* to do: differences, and all variations of addition rules
@@ -1030,8 +1030,7 @@ proof (induct x y rule: gcd_nat_induct)
       apply (subst mod_div_equality [of m n, symmetric])
       (* applying simp here undoes the last substitution!
          what is procedure cancel_div_mod? *)
-      apply (simp only: field_simps zadd_int [symmetric]
-        zmult_int [symmetric])
+      apply (simp only: field_simps of_nat_add of_nat_mult)
       done
 qed
 
@@ -1237,7 +1236,7 @@ subsection {* LCM properties *}
 
 lemma lcm_altdef_int [code]: "lcm (a::int) b = (abs a) * (abs b) div gcd a b"
   by (simp add: lcm_int_def lcm_nat_def zdiv_int
-    zmult_int [symmetric] gcd_int_def)
+    of_nat_mult gcd_int_def)
 
 lemma prod_gcd_lcm_nat: "(m::nat) * n = gcd m n * lcm m n"
   unfolding lcm_nat_def

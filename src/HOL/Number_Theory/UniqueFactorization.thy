@@ -766,7 +766,7 @@ by (metis gcd_lcm_complete_lattice_nat.top_greatest le_refl multiplicity_dvd_nat
 lemma multiplicity_dvd'_int: "(0::int) < x \<Longrightarrow> 0 <= y \<Longrightarrow>
     \<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y \<Longrightarrow> x dvd y"
 by (metis eq_imp_le gcd_lcm_complete_lattice_nat.top_greatest int_eq_0_conv multiplicity_dvd_int
-          multiplicity_nonprime_int nat_int transfer_nat_int_relations(4) zless_le)
+          multiplicity_nonprime_int nat_int transfer_nat_int_relations(4) less_le)
 
 lemma dvd_multiplicity_eq_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarrow>
     (x dvd y) = (ALL p. multiplicity p x <= multiplicity p y)"
