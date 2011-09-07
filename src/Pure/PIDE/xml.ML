@@ -47,6 +47,7 @@ sig
   val parse_element: string list -> tree * string list
   val parse_document: string list -> tree * string list
   val parse: string -> tree
+  val cache: unit -> tree -> tree
   exception XML_ATOM of string
   exception XML_BODY of body
   structure Encode: XML_DATA_OPS
@@ -226,6 +227,23 @@ fun parse s =
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
 
 end;
+
+
+(** cache for partial sharing (strings only) **)
+
+fun cache () =
+  let
+    val strings = Unsynchronized.ref (Symtab.empty: unit Symtab.table);
+
+    fun string s =
+      (case Symtab.lookup_key (! strings) s of
+        SOME (s', ()) => s'
+      | NONE => (Unsynchronized.change strings (Symtab.update (s, ())); s));
+
+    fun tree (Elem ((name, props), body)) =
+          Elem ((string name, map (pairself string) props), map tree body)
+      | tree (Text s) = Text (string s);
+  in tree end;
 
 
 
