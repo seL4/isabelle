@@ -152,7 +152,7 @@ fun add_fact _ facts_offset fact_names (Inference (name, _, [])) =
     union (op =) (resolve_fact facts_offset fact_names name)
   | add_fact ctxt _ _ (Inference (_, _, deps)) =
     if AList.defined (op =) deps leo2_ext then
-      insert (op =) (ext_name ctxt, Extensionality)
+      insert (op =) (ext_name ctxt, General)
     else
       I
   | add_fact _ _ _ _ = I
