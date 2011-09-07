@@ -621,13 +621,6 @@ lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
 lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
   by (simp add: rcis_def cis_def)
 
-lemma sin_cos_squared_add2_mult: "(r * cos a)\<twosuperior> + (r * sin a)\<twosuperior> = r\<twosuperior>"
-proof -
-  have "(r * cos a)\<twosuperior> + (r * sin a)\<twosuperior> = r\<twosuperior> * ((cos a)\<twosuperior> + (sin a)\<twosuperior>)"
-    by (simp only: power_mult_distrib right_distrib)
-  thus ?thesis by simp
-qed
-
 lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
   by (simp add: rcis_def cis_def norm_mult)
 
