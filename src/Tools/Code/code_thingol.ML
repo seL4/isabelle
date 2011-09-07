@@ -786,16 +786,17 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
         then translation_error thy permissive some_thm
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-    val arg_typs = Sign.const_typargs thy (c, ty);
+    val (annotate, ty') = (case ty of Type("", [ty']) => (true, ty') | ty' => (false, ty'))
+    val arg_typs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
-    val (function_typs, body_typ) = Term.strip_type ty;
+    val (function_typs, body_typ) = Term.strip_type ty';
   in
     ensure_const thy algbr eqngr permissive c
     ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
     ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (arg_typs ~~ sorts)
     ##>> fold_map (translate_typ thy algbr eqngr permissive) (body_typ :: function_typs)
     #>> (fn (((c, arg_typs), dss), body_typ :: function_typs) =>
-      IConst (c, (((arg_typs, dss), (function_typs, body_typ)), false))) (* FIXME *)
+      IConst (c, (((arg_typs, dss), (function_typs, body_typ)), annotate)))
   end
 and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
   translate_const thy algbr eqngr permissive some_thm (c_ty, some_abs)

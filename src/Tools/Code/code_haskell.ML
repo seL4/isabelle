@@ -75,20 +75,14 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app_expr tyvars some_thm vars ((c, ((_, (function_typs, _)), _)), ts) = case contr_classparam_typs c
-     of [] => (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
-      | fingerprint => let
-          val ts_fingerprint = ts ~~ take (length ts) fingerprint;
-          val needs_annotation = forall (fn (_, NONE) => true | (t, SOME _) =>
-            (not o Code_Thingol.locally_monomorphic) t) ts_fingerprint;
-          fun print_term_anno (t, NONE) _ = print_term tyvars some_thm vars BR t
-            | print_term_anno (t, SOME _) ty =
-                brackets [print_term tyvars some_thm vars NOBR t, str "::", print_typ tyvars NOBR ty];
-        in
-          if needs_annotation then
-            (str o deresolve) c :: map2 print_term_anno ts_fingerprint (take (length ts) function_typs)
-          else (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
-        end
+    and print_app_expr tyvars some_thm vars ((c, ((_, (function_typs, body_typ)), annotate)), ts) =
+      let
+        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (function_typs, body_typ)
+        fun put_annotation c = brackets [c, str "::", print_typ tyvars NOBR ty]
+      in 
+        ((if annotate then put_annotation else I)
+          ((str o deresolve) c)) :: map (print_term tyvars some_thm vars BR) ts
+      end
     and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
