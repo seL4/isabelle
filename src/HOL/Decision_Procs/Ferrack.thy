@@ -676,13 +676,13 @@ proof-
   {assume nz: "n = 0" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
   moreover
   { assume nnz: "n \<noteq> 0"
-    {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci) }
+    {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simp_num_pair_def) }
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
       hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith 
       hence "?g'= 1 \<or> ?g' > 1" by arith
-      moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci)}
+      moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
       moreover {assume g'1:"?g'>1"
         from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff ?t' ?g" ..
         let ?tt = "reducecoeffh ?t' ?g'"
@@ -800,32 +800,34 @@ lemma simpfm_bound0: "bound0 p \<Longrightarrow> bound0 (simpfm p)"
 proof(induct p rule: simpfm.induct)
   case (6 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
   case (7 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
   case (8 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
   case (9 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
   case (10 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
   case (11 a) hence nb: "numbound0 a" by simp
   hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
-  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+  thus ?case by (cases "simpnum a") (auto simp add: Let_def)
 qed(auto simp add: disj_def imp_def iff_def conj_def not_bn)
 
 lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
-by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
- (case_tac "simpnum a",auto)+
+  apply (induct p rule: simpfm.induct)
+  apply (auto simp add: Let_def)
+  apply (case_tac "simpnum a", auto)+
+  done
 
 consts prep :: "fm \<Rightarrow> fm"
 recdef prep "measure fmsize"
@@ -854,7 +856,7 @@ recdef prep "measure fmsize"
   "prep p = p"
 (hints simp add: fmsize_pos)
 lemma prep: "\<And> bs. Ifm bs (prep p) = Ifm bs p"
-by (induct p rule: prep.induct, auto)
+  by (induct p rule: prep.induct) auto
 
   (* Generic quantifier elimination *)
 function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm" where
@@ -1037,7 +1039,7 @@ lemma rlfm_I:
   assumes qfp: "qfree p"
   shows "(Ifm bs (rlfm p) = Ifm bs p) \<and> isrlfm (rlfm p)"
   using qfp 
-by (induct p rule: rlfm.induct, auto simp add: lt le gt ge eq neq conj disj conj_lin disj_lin)
+by (induct p rule: rlfm.induct) (auto simp add: lt le gt ge eq neq conj disj conj_lin disj_lin)
 
     (* Operations needed for Ferrante and Rackoff *)
 lemma rminusinf_inf:
@@ -1045,9 +1047,11 @@ lemma rminusinf_inf:
   shows "\<exists> z. \<forall> x < z. Ifm (x#bs) (minusinf p) = Ifm (x#bs) p" (is "\<exists> z. \<forall> x. ?P z x p")
 using lp
 proof (induct p rule: minusinf.induct)
-  case (1 p q) thus ?case by (auto,rule_tac x= "min z za" in exI) auto 
+  case (1 p q)
+  thus ?case apply auto apply (rule_tac x= "min z za" in exI) apply auto done
 next
-  case (2 p q) thus ?case by (auto,rule_tac x= "min z za" in exI) auto
+  case (2 p q)
+  thus ?case apply auto apply (rule_tac x= "min z za" in exI) apply auto done
 next
   case (3 c e) 
   from 3 have nb: "numbound0 e" by simp
