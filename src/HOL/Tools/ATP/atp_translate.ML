@@ -2236,13 +2236,22 @@ val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
-val explicit_apply = NONE (* for experiments *)
+val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
+    (* Forcing explicit applications is expensive for polymorphic encodings,
+       because it takes only one existential variable ranging over "'a => 'b" to
+       ruin everything. Hence we do it only if there are few facts. *)
+    val explicit_apply =
+      if polymorphism_of_type_enc type_enc <> Polymorphic orelse
+         length facts <= explicit_apply_threshold then
+        NONE
+      else
+        SOME false
     val lambda_trans =
       if lambda_trans = smartN then
         if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
