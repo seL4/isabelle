@@ -575,7 +575,7 @@ fun consider_arities is_built_in_const th =
         | _ => SOME tab
   in aux (prop_of th) [] end
 
-(* FIXME: This is currently only useful for polymorphic type systems. *)
+(* FIXME: This is currently only useful for polymorphic type encodings. *)
 fun could_benefit_from_ext is_built_in_const facts =
   fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
   |> is_none

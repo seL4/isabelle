@@ -571,11 +571,25 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based (Fin_Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
+(* "_query", "_bang", and "_at" are for the ASCII-challenged Metis and
+   Mirabelle. *)
+val queries = ["?", "_query"]
+val bangs = ["!", "_bang"]
+val ats = ["@", "_at"]
+
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
-val queries = ["?", "_query"]
-val bangs = ["!", "_bang"]
+fun try_nonmono constr suffixes fallback s =
+  case try_unsuffixes suffixes s of
+    SOME s =>
+    (case try_unsuffixes suffixes s of
+       SOME s => (constr Ann_Light, s)
+     | NONE =>
+       case try_unsuffixes ats s of
+         SOME s => (constr Arg_Light, s)
+       | NONE => (constr Heavy, s))
+  | NONE => fallback s
 
 fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
@@ -587,21 +601,9 @@ fun type_enc_from_string soundness s =
        case try (unprefix "mono_") s of
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
-  ||> (fn s =>
-          (* "_query" and "_bang" are for the ASCII-challenged Metis and
-             Mirabelle. *)
-          case try_unsuffixes queries s of
-            SOME s =>
-            (case try_unsuffixes queries s of
-               SOME s => (Noninf_Nonmono_Types (soundness, Ann_Light), s)
-             | NONE => (Noninf_Nonmono_Types (soundness, Heavy), s))
-          | NONE =>
-            case try_unsuffixes bangs s of
-              SOME s =>
-              (case try_unsuffixes bangs s of
-                 SOME s => (Fin_Nonmono_Types Ann_Light, s)
-               | NONE => (Fin_Nonmono_Types Heavy, s))
-            | NONE => (All_Types, s))
+  ||> (pair All_Types
+       |> try_nonmono Fin_Nonmono_Types bangs
+       |> try_nonmono (curry Noninf_Nonmono_Types soundness) queries)
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("simple", (SOME poly, _)) =>
@@ -633,7 +635,7 @@ fun type_enc_from_string soundness s =
          | ("erased", (NONE, All_Types (* naja *))) =>
            Guards (Polymorphic, No_Types)
          | _ => raise Same.SAME)
-  handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
+  handle Same.SAME => error ("Unknown type encoding: " ^ quote s ^ ".")
 
 fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
                     (Simple_Types (order, _, level)) =

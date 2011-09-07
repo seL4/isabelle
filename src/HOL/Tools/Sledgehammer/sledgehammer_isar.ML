@@ -152,8 +152,8 @@ fun normalize_raw_param ctxt =
            error ("Unknown parameter: " ^ quote name ^ "."))
 
 
-(* Ensure that type systems such as "mono_simple?" and "poly_guards!!" are
-   handled correctly. *)
+(* Ensures that type encodings such as "mono_simple?" and "poly_guards!!" are
+   read correctly. *)
 val implode_param = strip_spaces_except_between_idents o space_implode " "
 
 structure Data = Theory_Data
