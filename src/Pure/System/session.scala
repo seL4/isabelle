@@ -22,7 +22,7 @@ object Session
 
   //{{{
   case object Global_Settings
-  case object Perspective
+  case object Caret_Focus
   case object Assignment
   case class Commands_Changed(nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -52,7 +52,7 @@ class Session(thy_load: Thy_Load)
   /* pervasive event buses */
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
-  val perspective = new Event_Bus[Session.Perspective.type]
+  val caret_focus = new Event_Bus[Session.Caret_Focus.type]
   val assignments = new Event_Bus[Session.Assignment.type]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
