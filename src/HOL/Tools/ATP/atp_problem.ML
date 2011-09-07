@@ -236,6 +236,12 @@ fun string_for_kind Axiom = "axiom"
   | string_for_kind Hypothesis = "hypothesis"
   | string_for_kind Conjecture = "conjecture"
 
+fun string_for_app format func args =
+  if is_format_thf format then
+    "(" ^ space_implode (" " ^ tptp_app ^ " ") (func :: args) ^ ")"
+  else
+    func ^ "(" ^ commas args ^ ")"
+
 fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
   | flatten_type (ty as AFun (ty1 as AType _, ty2)) =
     (case flatten_type ty2 of
@@ -247,16 +253,17 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
   | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
 
-fun str_for_type ty =
+fun str_for_type format ty =
   let
     fun str _ (AType (s, [])) = s
       | str _ (AType (s, tys)) =
-        tys |> map (str false) 
-            |> (if s = tptp_product_type then
-                  space_implode (" " ^ tptp_product_type ^ " ")
-                  #> length tys > 1 ? enclose "(" ")"
-                else
-                  commas #> enclose "(" ")" #> prefix s)
+        let val ss = tys |> map (str false) in
+          if s = tptp_product_type then
+            ss |> space_implode (" " ^ tptp_product_type ^ " ")
+               |> length ss > 1 ? enclose "(" ")"
+          else
+            string_for_app format s ss
+        end
       | str rhs (AFun (ty1, ty2)) =
         str false ty1 ^ " " ^ tptp_fun_type ^ " " ^ str true ty2
         |> not rhs ? enclose "(" ")"
@@ -266,8 +273,8 @@ fun str_for_type ty =
                     ss) ^ "]: " ^ str false ty
   in str true ty end
 
-fun string_for_type (THF _) ty = str_for_type ty
-  | string_for_type (TFF _) ty = str_for_type (flatten_type ty)
+fun string_for_type (format as THF _) ty = str_for_type format ty
+  | string_for_type (format as TFF _) ty = str_for_type format (flatten_type ty)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_quantifier AForall = tptp_forall
@@ -293,35 +300,27 @@ fun is_format_with_choice (THF (_, _, THF_With_Choice)) = true
 
 fun string_for_term _ (ATerm (s, [])) = s
   | string_for_term format (ATerm (s, ts)) =
-    if s = tptp_empty_list then
-      (* used for lists in the optional "source" field of a derivation *)
-      "[" ^ commas (map (string_for_term format) ts) ^ "]"
-    else if is_tptp_equal s then
-      space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
-      |> is_format_thf format ? enclose "(" ")"
-    else
-      (case (s = tptp_ho_forall orelse s = tptp_ho_exists,
-             s = tptp_choice andalso is_format_with_choice format, ts) of
-         (true, _, [AAbs ((s', ty), tm)]) =>
-         (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
-            possible, to work around LEO-II 1.2.8 parser limitation. *)
-         string_for_formula format
-             (AQuant (if s = tptp_ho_forall then AForall else AExists,
-                      [(s', SOME ty)], AAtom tm))
-       | (_, true, [AAbs ((s', ty), tm)]) =>
-         (* There is code in "ATP_Translate" to ensure that "Eps" is always
-            applied to an abstraction. *)
-         tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
-           string_for_term format tm ^ ""
-         |> enclose "(" ")"
-
-       | _ =>
-         let val ss = map (string_for_term format) ts in
-           if is_format_thf format then
-             "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
-           else
-             s ^ "(" ^ commas ss ^ ")"
-         end)
+    (if s = tptp_empty_list then
+       (* used for lists in the optional "source" field of a derivation *)
+       "[" ^ commas (map (string_for_term format) ts) ^ "]"
+     else if is_tptp_equal s then
+       space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
+       |> is_format_thf format ? enclose "(" ")"
+     else case (s = tptp_ho_forall orelse s = tptp_ho_exists,
+                s = tptp_choice andalso is_format_with_choice format, ts) of
+       (true, _, [AAbs ((s', ty), tm)]) =>
+       (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
+          possible, to work around LEO-II 1.2.8 parser limitation. *)
+       string_for_formula format
+           (AQuant (if s = tptp_ho_forall then AForall else AExists,
+                    [(s', SOME ty)], AAtom tm))
+     | (_, true, [AAbs ((s', ty), tm)]) =>
+       (* There is code in "ATP_Translate" to ensure that "Eps" is always
+          applied to an abstraction. *)
+       tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
+         string_for_term format tm ^ ""
+       |> enclose "(" ")"
+     | _ => string_for_app format s (map (string_for_term format) ts))
   | string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
     "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
     string_for_term format tm ^ ")"
