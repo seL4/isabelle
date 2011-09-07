@@ -702,7 +702,7 @@ fun insert_type ctxt get_T x xs =
 (* The Booleans indicate whether all type arguments should be kept. *)
 datatype type_arg_policy =
   Explicit_Type_Args of bool |
-  Mangled_Type_Args of bool |
+  Mangled_Type_Args |
   No_Type_Args
 
 fun should_drop_arg_type_args (Simple_Types _) = false
@@ -711,10 +711,10 @@ fun should_drop_arg_type_args (Simple_Types _) = false
 
 fun type_arg_policy type_enc s =
   if s = type_tag_name then
-    (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-       Mangled_Type_Args
-     else
-       Explicit_Type_Args) false
+    if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+      Mangled_Type_Args
+    else
+      Explicit_Type_Args false
   else case type_enc of
     Tags (_, All_Types) => No_Type_Args
   | _ =>
@@ -722,12 +722,10 @@ fun type_arg_policy type_enc s =
       if level = No_Types orelse s = @{const_name HOL.eq} orelse
          (s = app_op_name andalso level = Const_Arg_Types) then
         No_Type_Args
+      else if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+        Mangled_Type_Args
       else
-        should_drop_arg_type_args type_enc
-        |> (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-              Mangled_Type_Args
-            else
-              Explicit_Type_Args)
+        Explicit_Type_Args (should_drop_arg_type_args type_enc)
     end
 
 (* Make atoms for sorted type variables. *)
@@ -1411,9 +1409,8 @@ fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
            in
              case type_arg_policy type_enc s'' of
                Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
-             | Mangled_Type_Args drop_args =>
-               (mangled_const_name format type_enc (filter_T_args drop_args)
-                                   name, [])
+             | Mangled_Type_Args =>
+               (mangled_const_name format type_enc T_args name, [])
              | No_Type_Args => (name, [])
            end)
         |> (fn (name, T_args) => IConst (name, T, T_args))
@@ -1846,7 +1843,7 @@ fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
         val (s, s') =
           `(make_fixed_const NONE) @{const_name undefined}
           |> (case type_arg_policy type_enc @{const_name undefined} of
-                Mangled_Type_Args _ => mangled_const_name format type_enc [T]
+                Mangled_Type_Args => mangled_const_name format type_enc [T]
               | _ => I)
       in
         Symtab.map_default (s, [])
