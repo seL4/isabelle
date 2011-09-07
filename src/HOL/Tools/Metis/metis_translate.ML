@@ -59,7 +59,7 @@ val metis_name_table =
    ((prefixed_predicator_name, 1), (K metis_predicator, false)),
    ((prefixed_app_op_name, 2), (K metis_app_op, false)),
    ((prefixed_type_tag_name, 2),
-    (fn Tags (_, All_Types, Uniform) => metis_systematic_type_tag
+    (fn Tags (_, All_Types) => metis_systematic_type_tag
       | _ => metis_ad_hoc_type_tag, true))]
 
 fun old_skolem_const_name i j num_T_args =

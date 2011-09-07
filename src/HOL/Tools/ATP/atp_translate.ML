@@ -22,18 +22,18 @@ sig
   datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
   datatype soundness = Sound_Modulo_Infiniteness | Sound
+  datatype uniformity = Uniform | Nonuniform
   datatype type_level =
     All_Types |
-    Noninf_Nonmono_Types of soundness |
-    Fin_Nonmono_Types |
+    Noninf_Nonmono_Types of soundness * uniformity |
+    Fin_Nonmono_Types of uniformity |
     Const_Arg_Types |
     No_Types
-  datatype type_uniformity = Uniform | Nonuniform
 
   datatype type_enc =
     Simple_Types of order * polymorphism * type_level |
-    Guards of polymorphism * type_level * type_uniformity |
-    Tags of polymorphism * type_level * type_uniformity
+    Guards of polymorphism * type_level |
+    Tags of polymorphism * type_level
 
   val type_tag_idempotence : bool Config.T
   val type_tag_arguments : bool Config.T
@@ -86,12 +86,12 @@ sig
   val new_skolem_var_name_from_const : string -> string
   val atp_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
-  val type_enc_from_string : soundness -> string -> type_enc
   val is_type_enc_higher_order : type_enc -> bool
   val polymorphism_of_type_enc : type_enc -> polymorphism
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
+  val type_enc_from_string : soundness -> string -> type_enc
   val adjust_type_enc : tptp_format -> type_enc -> type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
@@ -537,21 +537,52 @@ datatype locality =
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
 datatype soundness = Sound_Modulo_Infiniteness | Sound
+datatype uniformity = Uniform | Nonuniform
 datatype type_level =
   All_Types |
-  Noninf_Nonmono_Types of soundness |
-  Fin_Nonmono_Types |
+  Noninf_Nonmono_Types of soundness * uniformity |
+  Fin_Nonmono_Types of uniformity |
   Const_Arg_Types |
   No_Types
-datatype type_uniformity = Uniform | Nonuniform
 
 datatype type_enc =
   Simple_Types of order * polymorphism * type_level |
-  Guards of polymorphism * type_level * type_uniformity |
-  Tags of polymorphism * type_level * type_uniformity
+  Guards of polymorphism * type_level |
+  Tags of polymorphism * type_level
+
+fun is_type_enc_higher_order (Simple_Types (Higher_Order, _, _)) = true
+  | is_type_enc_higher_order _ = false
+
+fun polymorphism_of_type_enc (Simple_Types (_, poly, _)) = poly
+  | polymorphism_of_type_enc (Guards (poly, _)) = poly
+  | polymorphism_of_type_enc (Tags (poly, _)) = poly
+
+fun level_of_type_enc (Simple_Types (_, _, level)) = level
+  | level_of_type_enc (Guards (_, level)) = level
+  | level_of_type_enc (Tags (_, level)) = level
+
+fun is_level_uniform (Noninf_Nonmono_Types (_, Nonuniform)) = false
+  | is_level_uniform (Fin_Nonmono_Types Nonuniform) = false
+  | is_level_uniform _ = true
+
+fun is_type_level_quasi_sound All_Types = true
+  | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
+  | is_type_level_quasi_sound _ = false
+val is_type_enc_quasi_sound = is_type_level_quasi_sound o level_of_type_enc
+
+fun is_type_level_fairly_sound (Fin_Nonmono_Types _) = true
+  | is_type_level_fairly_sound level = is_type_level_quasi_sound level
+val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
+
+fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
+  | is_type_level_monotonicity_based (Fin_Nonmono_Types _) = true
+  | is_type_level_monotonicity_based _ = false
 
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
+
+val queries = ["?", "_query"]
+val bangs = ["!", "_bang"]
 
 fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
@@ -566,72 +597,50 @@ fun type_enc_from_string soundness s =
   ||> (fn s =>
           (* "_query" and "_bang" are for the ASCII-challenged Metis and
              Mirabelle. *)
-          case try_unsuffixes ["?", "_query"] s of
-            SOME s => (Noninf_Nonmono_Types soundness, s)
+          case try_unsuffixes queries s of
+            SOME s =>
+            (case try_unsuffixes queries s of
+               SOME s => (Noninf_Nonmono_Types (soundness, Nonuniform), s)
+             | NONE => (Noninf_Nonmono_Types (soundness, Uniform), s))
           | NONE =>
-            case try_unsuffixes ["!", "_bang"] s of
-              SOME s => (Fin_Nonmono_Types, s)
+            case try_unsuffixes bangs s of
+              SOME s =>
+              (case try_unsuffixes bangs s of
+                 SOME s => (Fin_Nonmono_Types Nonuniform, s)
+               | NONE => (Fin_Nonmono_Types Uniform, s))
             | NONE => (All_Types, s))
-  ||> apsnd (fn s =>
-                case try (unsuffix "_uniform") s of
-                  SOME s => (Uniform, s)
-                | NONE => (Nonuniform, s))
-  |> (fn (poly, (level, (uniformity, core))) =>
-         case (core, (poly, level, uniformity)) of
-           ("simple", (SOME poly, _, Nonuniform)) =>
+  |> (fn (poly, (level, core)) =>
+         case (core, (poly, level)) of
+           ("simple", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
               Simple_Types (First_Order, Polymorphic, All_Types)
             | (Mangled_Monomorphic, _) =>
-              Simple_Types (First_Order, Mangled_Monomorphic, level)
+              if is_level_uniform level then
+                Simple_Types (First_Order, Mangled_Monomorphic, level)
+              else
+                raise Same.SAME
             | _ => raise Same.SAME)
-         | ("simple_higher", (SOME poly, _, Nonuniform)) =>
+         | ("simple_higher", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
               Simple_Types (Higher_Order, Polymorphic, All_Types)
             | (_, Noninf_Nonmono_Types _) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
-              Simple_Types (Higher_Order, Mangled_Monomorphic, level)
+              if is_level_uniform level then
+                Simple_Types (Higher_Order, Mangled_Monomorphic, level)
+              else
+                raise Same.SAME
             | _ => raise Same.SAME)
-         | ("guards", (SOME poly, _, _)) => Guards (poly, level, uniformity)
-         | ("tags", (SOME Polymorphic, _, _)) =>
-           Tags (Polymorphic, level, uniformity)
-         | ("tags", (SOME poly, _, _)) => Tags (poly, level, uniformity)
-         | ("args", (SOME poly, All_Types (* naja *), Nonuniform)) =>
-           Guards (poly, Const_Arg_Types, Nonuniform)
-         | ("erased", (NONE, All_Types (* naja *), Nonuniform)) =>
-           Guards (Polymorphic, No_Types, Nonuniform)
+         | ("guards", (SOME poly, _)) => Guards (poly, level)
+         | ("tags", (SOME Polymorphic, _)) => Tags (Polymorphic, level)
+         | ("tags", (SOME poly, _)) => Tags (poly, level)
+         | ("args", (SOME poly, All_Types (* naja *))) =>
+           Guards (poly, Const_Arg_Types)
+         | ("erased", (NONE, All_Types (* naja *))) =>
+           Guards (Polymorphic, No_Types)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
-
-fun is_type_enc_higher_order (Simple_Types (Higher_Order, _, _)) = true
-  | is_type_enc_higher_order _ = false
-
-fun polymorphism_of_type_enc (Simple_Types (_, poly, _)) = poly
-  | polymorphism_of_type_enc (Guards (poly, _, _)) = poly
-  | polymorphism_of_type_enc (Tags (poly, _, _)) = poly
-
-fun level_of_type_enc (Simple_Types (_, _, level)) = level
-  | level_of_type_enc (Guards (_, level, _)) = level
-  | level_of_type_enc (Tags (_, level, _)) = level
-
-fun uniformity_of_type_enc (Simple_Types _) = Uniform
-  | uniformity_of_type_enc (Guards (_, _, uniformity)) = uniformity
-  | uniformity_of_type_enc (Tags (_, _, uniformity)) = uniformity
-
-fun is_type_level_quasi_sound All_Types = true
-  | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
-  | is_type_level_quasi_sound _ = false
-val is_type_enc_quasi_sound =
-  is_type_level_quasi_sound o level_of_type_enc
-
-fun is_type_level_fairly_sound level =
-  is_type_level_quasi_sound level orelse level = Fin_Nonmono_Types
-val is_type_enc_fairly_sound = is_type_level_fairly_sound o level_of_type_enc
-
-fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
-  | is_type_level_monotonicity_based Fin_Nonmono_Types = true
-  | is_type_level_monotonicity_based _ = false
 
 fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
                     (Simple_Types (order, _, level)) =
@@ -642,7 +651,7 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
   | adjust_type_enc (TFF _) (Simple_Types (_, poly, level)) =
     Simple_Types (First_Order, poly, level)
   | adjust_type_enc format (Simple_Types (_, poly, level)) =
-    adjust_type_enc format (Guards (poly, level, Uniform))
+    adjust_type_enc format (Guards (poly, level))
   | adjust_type_enc CNF_UEQ (type_enc as Guards stuff) =
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
@@ -698,8 +707,7 @@ datatype type_arg_policy =
 
 fun should_drop_arg_type_args (Simple_Types _) = false
   | should_drop_arg_type_args type_enc =
-    level_of_type_enc type_enc = All_Types andalso
-    uniformity_of_type_enc type_enc = Uniform
+    level_of_type_enc type_enc = All_Types
 
 fun type_arg_policy type_enc s =
   if s = type_tag_name then
@@ -708,7 +716,7 @@ fun type_arg_policy type_enc s =
      else
        Explicit_Type_Args) false
   else case type_enc of
-    Tags (_, All_Types, Uniform) => No_Type_Args
+    Tags (_, All_Types) => No_Type_Args
   | _ =>
     let val level = level_of_type_enc type_enc in
       if level = No_Types orelse s = @{const_name HOL.eq} orelse
@@ -1154,23 +1162,22 @@ fun is_type_kind_of_surely_infinite ctxt soundness cached_Ts T =
 fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
-                       (Noninf_Nonmono_Types soundness) T =
+                       (Noninf_Nonmono_Types (soundness, _)) T =
     exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
     not (exists (type_instance ctxt T) surely_infinite_Ts orelse
          (not (member (type_aconv ctxt) maybe_finite_Ts T) andalso
           is_type_kind_of_surely_infinite ctxt soundness surely_infinite_Ts T))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
-                       Fin_Nonmono_Types T =
+                       (Fin_Nonmono_Types _) T =
     exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
     (exists (type_generalization ctxt T) surely_finite_Ts orelse
      (not (member (type_aconv ctxt) maybe_infinite_Ts T) andalso
       is_type_surely_finite ctxt T))
   | should_encode_type _ _ _ _ = false
 
-fun should_guard_type ctxt mono (Guards (_, level, uniformity)) should_guard_var
-                      T =
-    (uniformity = Uniform orelse should_guard_var ()) andalso
+fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
+    (is_level_uniform level orelse should_guard_var ()) andalso
     should_encode_type ctxt mono level T
   | should_guard_type _ _ _ _ _ = false
 
@@ -1186,13 +1193,12 @@ datatype tag_site =
   Elsewhere
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level, uniformity)) site u T =
-    (case uniformity of
-       Uniform => should_encode_type ctxt mono level T
-     | Nonuniform =>
-       case (site, is_maybe_universal_var u) of
-         (Eq_Arg _, true) => should_encode_type ctxt mono level T
-       | _ => false)
+  | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
+    (if is_level_uniform level then
+       should_encode_type ctxt mono level T
+     else case (site, is_maybe_universal_var u) of
+       (Eq_Arg _, true) => should_encode_type ctxt mono level T
+     | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
 fun fused_type ctxt mono level =
@@ -1636,8 +1642,8 @@ fun should_guard_var_in_formula pos phi (SOME true) name =
   | should_guard_var_in_formula _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
-  | should_generate_tag_bound_decl ctxt mono (Tags (_, level, Nonuniform)) _ T =
-    should_encode_type ctxt mono level T
+  | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
+    not (is_level_uniform level) andalso should_encode_type ctxt mono level T
   | should_generate_tag_bound_decl _ _ _ _ _ = false
 
 fun mk_aterm format type_enc name T_args args =
@@ -1870,7 +1876,7 @@ fun default_mono level =
    maybe_infinite_Ts = known_infinite_types,
    surely_infinite_Ts =
      case level of
-       Noninf_Nonmono_Types Sound => []
+       Noninf_Nonmono_Types (Sound, _) => []
      | _ => known_infinite_types,
    maybe_nonmono_Ts = [@{typ bool}]}
 
@@ -1883,7 +1889,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
                   surely_infinite_Ts, maybe_nonmono_Ts}) =
     if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
       case level of
-        Noninf_Nonmono_Types soundness =>
+        Noninf_Nonmono_Types (soundness, _) =>
         if exists (type_instance ctxt T) surely_infinite_Ts orelse
            member (type_aconv ctxt) maybe_finite_Ts T then
           mono
@@ -1900,7 +1906,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
            maybe_infinite_Ts = maybe_infinite_Ts,
            surely_infinite_Ts = surely_infinite_Ts,
            maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type ctxt I T}
-      | Fin_Nonmono_Types =>
+      | Fin_Nonmono_Types _ =>
         if exists (type_instance ctxt T) surely_finite_Ts orelse
            member (type_aconv ctxt) maybe_infinite_Ts T then
           mono
@@ -2089,7 +2095,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
   case type_enc of
     Simple_Types _ =>
     decls |> map (decl_line_for_sym ctxt format mono type_enc s)
-  | Guards (_, level, _) =>
+  | Guards (_, level) =>
     let
       val decls =
         case decls of
@@ -2111,15 +2117,15 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
       |-> map2 (formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono
                                                  type_enc n s)
     end
-  | Tags (_, _, uniformity) =>
-    (case uniformity of
-       Uniform => []
-     | Nonuniform =>
-       let val n = length decls in
-         (0 upto n - 1 ~~ decls)
-         |> maps (formula_lines_for_nonuniform_tags_sym_decl ctxt format
-                      conj_sym_kind mono type_enc n s)
-       end)
+  | Tags (_, level) =>
+    if is_level_uniform level then
+      []
+    else
+      let val n = length decls in
+        (0 upto n - 1 ~~ decls)
+        |> maps (formula_lines_for_nonuniform_tags_sym_decl ctxt format
+                     conj_sym_kind mono type_enc n s)
+      end
 
 fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
                                      mono_Ts sym_decl_tab =
@@ -2133,11 +2139,10 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
                syms []
   in mono_lines @ decl_lines end
 
-fun needs_type_tag_idempotence ctxt (Tags (poly, level, uniformity)) =
+fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
     Config.get ctxt type_tag_idempotence andalso
-    poly <> Mangled_Monomorphic andalso
-    ((level = All_Types andalso uniformity = Nonuniform) orelse
-     is_type_level_monotonicity_based level)
+    is_type_level_monotonicity_based level andalso
+    poly <> Mangled_Monomorphic
   | needs_type_tag_idempotence _ _ = false
 
 fun offset_of_heading_in_problem _ [] j = j

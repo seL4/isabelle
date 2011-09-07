@@ -151,10 +151,12 @@ fun normalize_raw_param ctxt =
            error ("Unknown parameter: " ^ quote name ^ "."))
 
 
-(* Ensure that type systems such as "mono_simple!" and "mono_guards?" are
+(* Ensure that type systems such as "mono_simple?" and "mono_guards!!" are
    handled correctly. *)
 fun implode_param [s, "?"] = s ^ "?"
+  | implode_param [s, "??"] = s ^ "??"
   | implode_param [s, "!"] = s ^ "!"
+  | implode_param [s, "!!"] = s ^ "!!"
   | implode_param ss = space_implode " " ss
 
 structure Data = Theory_Data
@@ -376,12 +378,11 @@ fun sledgehammer_params_trans params =
                                        |> sort_strings |> cat_lines))
                   end))
 
+val parse_query_bang = Parse.$$$ "?" || Parse.$$$ "!" || Parse.$$$ "!!"
 val parse_key =
-  Scan.repeat1 (Parse.typ_group || Parse.$$$ "?" || Parse.$$$ "!")
-  >> implode_param
+  Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
 val parse_value =
-  Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "?"
-                || Parse.$$$ "!")
+  Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
