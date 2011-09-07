@@ -37,14 +37,18 @@ class Isabelle_Charset_Provider extends CharsetProvider
 {
   override def charsetForName(name: String): Charset =
   {
-    if (name.equalsIgnoreCase(Isabelle_Charset.name)) Isabelle_Charset.charset
-    else null
+    // FIXME inactive
+    // if (name.equalsIgnoreCase(Isabelle_Charset.name)) Isabelle_Charset.charset
+    // else null
+    null
   }
 
   override def charsets(): java.util.Iterator[Charset] =
   {
     import scala.collection.JavaConversions._
-    Iterator(Isabelle_Charset.charset)
+    // FIXME inactive
+    // Iterator(Isabelle_Charset.charset)
+    Iterator()
   }
 }
 
