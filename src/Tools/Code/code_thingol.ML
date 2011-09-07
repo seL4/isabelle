@@ -607,7 +607,7 @@ fun annotate_term (Const (c', T'), Const (c, T)) tvar_names =
 
 fun annotate_eqns thy eqns = 
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = ProofContext.init_global thy |> Config.put Type_Infer_Context.const_sorts false
     val erase = map_types (fn _ => Type_Infer.anyT [])
     val reinfer = singleton (Type_Infer_Context.infer_types ctxt)
     fun add_annotations ((args, (rhs, some_abs)), (SOME th, proper)) =
