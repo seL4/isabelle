@@ -1361,21 +1361,21 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   K (add_iterm_syms_to_table ctxt explicit_apply)
   |> formula_fold NONE |> fact_lift
 
-val default_sym_tab_entries : (string * sym_info) list =
-  (prefixed_predicator_name,
-   {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
-       (* FIXME: needed? *) ::
+fun default_sym_tab_entries type_enc =
   (make_fixed_const NONE @{const_name undefined},
-   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
+                   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
+  |> not (is_type_enc_higher_order type_enc)
+     ? cons (prefixed_predicator_name,
+             {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
 
-fun sym_table_for_facts ctxt explicit_apply facts =
+fun sym_table_for_facts ctxt type_enc explicit_apply facts =
   ((false, []), Symtab.empty)
   |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
-  |> fold Symtab.update default_sym_tab_entries
+  |> fold Symtab.update (default_sym_tab_entries type_enc)
 
 fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -1873,8 +1873,8 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
        ? (fold (add_fact_syms true) conjs
           #> fold (add_fact_syms false) facts
           #> (case type_enc of
-                Simple_Types (_, poly, _) =>
-                if poly = Polymorphic then add_TYPE_const () else I
+                Simple_Types (First_Order, Polymorphic, _) => add_TYPE_const ()
+              | Simple_Types _ => I
               | _ => fold add_undefined_const (var_types ())))
   end
 
@@ -2205,11 +2205,13 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
+    val sym_tab =
+      conjs @ facts |> sym_table_for_facts ctxt type_enc explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val firstorderize = firstorderize_fact thy format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt (SOME false)
+    val sym_tab =
+      conjs @ facts |> sym_table_for_facts ctxt type_enc (SOME false)
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map firstorderize

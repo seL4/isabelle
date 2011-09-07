@@ -403,11 +403,11 @@ fun dummy_config format type_enc : atp_config =
    prem_kind = Hypothesis,
    best_slices = K [(1.0, (false, (200, format, type_enc, "")))]}
 
-val pff_format = TFF (TPTP_Polymorphic, TPTP_Implicit)
+val pff_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
 val pff_config = dummy_config pff_format "poly_simple"
 val pff = (pffN, pff_config)
 
-val phf_format = THF (TPTP_Polymorphic, TPTP_Implicit, THF_With_Choice)
+val phf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
 val phf_config = dummy_config phf_format "poly_simple_higher"
 val phf = (phfN, phf_config)
 
