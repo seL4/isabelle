@@ -55,7 +55,6 @@ sig
   val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
-  val locally_monomorphic: iterm -> bool
   val add_constnames: iterm -> string list -> string list
   val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
@@ -262,12 +261,6 @@ fun contains_dict_var t =
       | cont_term (_ `|=> t) = cont_term t
       | cont_term (ICase (_, t)) = cont_term t;
   in cont_term t end;
-  
-fun locally_monomorphic (IConst _) = false
-  | locally_monomorphic (IVar _) = true
-  | locally_monomorphic (t `$ _) = locally_monomorphic t
-  | locally_monomorphic (_ `|=> t) = locally_monomorphic t
-  | locally_monomorphic (ICase ((_, ds), _)) = exists (locally_monomorphic o snd) ds;
 
 
 (** namings **)
