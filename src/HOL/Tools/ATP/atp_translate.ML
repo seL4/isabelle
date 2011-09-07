@@ -710,23 +710,22 @@ fun should_drop_arg_type_args (Simple_Types _) = false
     level_of_type_enc type_enc = All_Types
 
 fun type_arg_policy type_enc s =
-  if s = type_tag_name then
-    if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-      Mangled_Type_Args
-    else
-      Explicit_Type_Args false
-  else case type_enc of
-    Tags (_, All_Types) => No_Type_Args
-  | _ =>
-    let val level = level_of_type_enc type_enc in
-      if level = No_Types orelse s = @{const_name HOL.eq} orelse
-         (s = app_op_name andalso level = Const_Arg_Types) then
-        No_Type_Args
-      else if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-        Mangled_Type_Args
-      else
-        Explicit_Type_Args (should_drop_arg_type_args type_enc)
-    end
+  let val mangled = (polymorphism_of_type_enc type_enc = Mangled_Monomorphic) in
+    if s = type_tag_name then
+      if mangled then Mangled_Type_Args else Explicit_Type_Args false
+    else case type_enc of
+      Tags (_, All_Types) => No_Type_Args
+    | _ =>
+      let val level = level_of_type_enc type_enc in
+        if level = No_Types orelse s = @{const_name HOL.eq} orelse
+           (s = app_op_name andalso level = Const_Arg_Types) then
+          No_Type_Args
+        else if mangled then
+          Mangled_Type_Args
+        else
+          Explicit_Type_Args (should_drop_arg_type_args type_enc)
+      end
+  end
 
 (* Make atoms for sorted type variables. *)
 fun generic_add_sorts_on_type (_, []) = I
@@ -955,13 +954,32 @@ fun introduce_proxies_in_iterm type_enc =
       | intro _ _ tm = tm
   in intro true [] end
 
+fun mangle_type_args_in_iterm format type_enc =
+  if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+    let
+      fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
+        | mangle (tm as IConst (_, _, [])) = tm
+        | mangle (tm as IConst (name as (s, _), T, T_args)) =
+          (case strip_prefix_and_unascii const_prefix s of
+             NONE => tm
+           | SOME s'' =>
+             case type_arg_policy type_enc (invert_const s'') of
+               Mangled_Type_Args =>
+               IConst (mangled_const_name format type_enc T_args name, T, [])
+             | _ => tm)
+        | mangle (IAbs (bound, tm)) = IAbs (bound, mangle tm)
+        | mangle tm = tm
+    in mangle end
+  else
+    I
+
 fun chop_fun 0 T = ([], T)
   | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ T = ([], T)
 
-fun filter_type_args _ _ _ [] = []
-  | filter_type_args thy s ary T_args =
+fun filter_const_type_args _ _ _ [] = []
+  | filter_const_type_args thy s ary T_args =
     let
       val U = robust_const_type thy s
       val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun ary |> fst) []
@@ -973,31 +991,33 @@ fun filter_type_args _ _ _ [] = []
     end
     handle TYPE _ => T_args
 
-fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
+fun filter_type_args_in_iterm thy type_enc =
   let
-    val thy = Proof_Context.theory_of ctxt
-    fun aux ary (IApp (tm1, tm2)) = IApp (aux (ary + 1) tm1, aux 0 tm2)
-      | aux ary (IConst (name as (s, _), T, T_args)) =
+    fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
+      | filt _ (tm as IConst (_, _, [])) = tm
+      | filt ary (IConst (name as (s, _), T, T_args)) =
         (case strip_prefix_and_unascii const_prefix s of
            NONE =>
-           (name, if level_of_type_enc type_enc = No_Types orelse s = tptp_choice
-                  then [] else T_args)
+           (name,
+            if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then
+              []
+            else
+              T_args)
          | SOME s'' =>
            let
              val s'' = invert_const s''
              fun filter_T_args false = T_args
-               | filter_T_args true = filter_type_args thy s'' ary T_args
+               | filter_T_args true = filter_const_type_args thy s'' ary T_args
            in
              case type_arg_policy type_enc s'' of
                Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
-             | Mangled_Type_Args =>
-               (mangled_const_name format type_enc T_args name, [])
              | No_Type_Args => (name, [])
+             | Mangled_Type_Args => raise Fail "unexpected (un)mangled symbol"
            end)
         |> (fn (name, T_args) => IConst (name, T, T_args))
-      | aux _ (IAbs (bound, tm)) = IAbs (bound, aux 0 tm)
-      | aux _ tm = tm
-  in aux 0 end
+      | filt _ (IAbs (bound, tm)) = IAbs (bound, filt 0 tm)
+      | filt _ tm = tm
+  in filt 0 end
 
 fun iformula_from_prop ctxt format type_enc eq_as_iff =
   let
@@ -1005,7 +1025,7 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
     fun do_term bs t atomic_types =
       iterm_from_term thy format bs (Envir.eta_contract t)
       |>> (introduce_proxies_in_iterm type_enc
-           #> enforce_type_arg_policy_in_iterm ctxt format type_enc
+           #> mangle_type_args_in_iterm format type_enc
            #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q pos s T t' =
@@ -1393,7 +1413,7 @@ val predicator_combconst =
 fun list_app head args = fold (curry (IApp o swap)) args head
 fun predicator tm = IApp (predicator_combconst, tm)
 
-fun firstorderize_fact ctxt format type_enc sym_tab =
+fun firstorderize_fact thy format type_enc sym_tab =
   let
     fun do_app arg head =
       let
@@ -1401,7 +1421,7 @@ fun firstorderize_fact ctxt format type_enc sym_tab =
         val (arg_T, res_T) = dest_funT head_T
         val app =
           IConst (app_op, head_T --> head_T, [arg_T, res_T])
-          |> enforce_type_arg_policy_in_iterm ctxt format type_enc
+          |> mangle_type_args_in_iterm format type_enc
       in list_app app [head, arg] end
     fun list_app_ops head args = fold do_app args head
     fun introduce_app_ops tm =
@@ -1420,6 +1440,7 @@ fun firstorderize_fact ctxt format type_enc sym_tab =
     val do_iterm =
       not (is_type_enc_higher_order type_enc)
       ? (introduce_app_ops #> introduce_predicators)
+      #> filter_type_args_in_iterm thy type_enc
   in update_iformula (formula_map do_iterm) end
 
 (** Helper facts **)
@@ -1621,9 +1642,9 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
 
-fun type_guard_iterm ctxt format type_enc T tm =
+fun type_guard_iterm format type_enc T tm =
   IApp (IConst (type_guard, T --> @{typ bool}, [T])
-        |> enforce_type_arg_policy_in_iterm ctxt format type_enc, tm)
+        |> mangle_type_args_in_iterm format type_enc, tm)
 
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
@@ -1644,7 +1665,7 @@ fun mk_aterm format type_enc name T_args args =
 
 fun tag_with_type ctxt format mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
-  |> enforce_type_arg_policy_in_iterm ctxt format type_enc
+  |> mangle_type_args_in_iterm format type_enc
   |> ho_term_from_iterm ctxt format mono type_enc (Top_Level pos)
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
@@ -1692,7 +1713,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
       if should_guard_type ctxt mono type_enc
              (fn () => should_guard_var pos phi universal name) T then
         IVar (name, T)
-        |> type_guard_iterm ctxt format type_enc T
+        |> type_guard_iterm format type_enc T
         |> do_term pos |> AAtom |> SOME
       else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
         let
@@ -1950,7 +1971,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            ascii_of (mangled_type format type_enc T),
            Axiom,
            IConst (`make_bound_var "X", T, [])
-           |> type_guard_iterm ctxt format type_enc T
+           |> type_guard_iterm format type_enc T
            |> AAtom
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K true)))) (SOME true)
@@ -2026,7 +2047,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
              IConst ((s, s'), T, T_args)
              |> fold (curry (IApp o swap)) bounds
-             |> type_guard_iterm ctxt format type_enc res_T
+             |> type_guard_iterm format type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K true)))) (SOME true)
@@ -2156,6 +2177,7 @@ val explicit_apply = NONE (* for experiments *)
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         lambda_trans readable_names preproc hyp_ts concl_t facts =
   let
+    val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
     val lambda_trans =
       if lambda_trans = smartN then
@@ -2189,7 +2211,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
-    val firstorderize = firstorderize_fact ctxt format type_enc sym_tab
+    val firstorderize = firstorderize_fact thy format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
