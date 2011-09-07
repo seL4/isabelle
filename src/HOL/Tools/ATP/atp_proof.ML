@@ -92,9 +92,6 @@ datatype failure =
   InternalError |
   UnknownError of string
 
-fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-val strip_spaces_except_between_ident_chars = strip_spaces true is_ident_char
-
 fun elide_string threshold s =
   if size s > threshold then
     String.extract (s, 0, SOME (threshold div 2 - 5)) ^ " ...... " ^
@@ -475,7 +472,7 @@ fun parse_spass_line spass_names x =
 fun parse_line problem spass_names =
   parse_tstp_line problem || parse_spass_line spass_names
 fun parse_proof problem spass_names tstp =
-  tstp |> strip_spaces_except_between_ident_chars
+  tstp |> strip_spaces_except_between_idents
        |> raw_explode
        |> Scan.finite Symbol.stopper
               (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
