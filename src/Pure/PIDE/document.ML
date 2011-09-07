@@ -331,7 +331,6 @@ fun run_command tr st =
   let
     val is_init = Toplevel.is_init tr;
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
-    val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
     val _ = Multithreading.interrupted ();
     val _ = Toplevel.status tr Markup.forked;
@@ -343,13 +342,18 @@ fun run_command tr st =
   in
     (case result of
       NONE =>
-       (if null errs then Exn.interrupt () else ();
-        Toplevel.status tr Markup.failed;
-        (st, no_print))
+        let
+          val _ = if null errs then Exn.interrupt () else ();
+          val _ = Toplevel.status tr Markup.failed;
+        in (st, no_print) end
     | SOME st' =>
-       (Toplevel.status tr Markup.finished;
-        proof_status tr st';
-        (st', if do_print then print_state tr st' else no_print)))
+        let
+          val _ = Toplevel.status tr Markup.finished;
+          val _ = proof_status tr st';
+          val do_print =
+            not is_init andalso
+              (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+        in (st', if do_print then print_state tr st' else no_print) end)
   end;
 
 end;

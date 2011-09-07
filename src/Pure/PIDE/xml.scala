@@ -84,7 +84,8 @@ object XML
   def content(body: Body): Iterator[String] = content_stream(body).iterator
 
 
-  /* pipe-lined cache for partial sharing */
+
+  /** cache for partial sharing (weak table) **/
 
   class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
