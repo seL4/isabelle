@@ -1411,16 +1411,13 @@ done
 lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x" 
 by (insert real_of_nat_div2 [of n x], simp)
 
-lemma real_of_int_real_of_nat: "real (int n) = real n"
-by (simp add: real_of_nat_def real_of_int_def)
-
 lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
 by (simp add: real_of_int_def real_of_nat_def)
 
 lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
   apply (subgoal_tac "real(int(nat x)) = real(nat x)")
   apply force
-  apply (simp only: real_of_int_real_of_nat)
+  apply (simp only: real_of_int_of_nat_eq)
 done
 
 lemma Nats_real_of_nat [simp]: "real (n::nat) \<in> Nats"
@@ -1534,7 +1531,7 @@ lemma real_of_nat_number_of [simp]:
      "real (number_of v :: nat) =  
         (if neg (number_of v :: int) then 0  
          else (number_of v :: real))"
-by (simp add: real_of_int_real_of_nat [symmetric])
+by (simp add: real_of_int_of_nat_eq [symmetric])
 
 declaration {*
   K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]

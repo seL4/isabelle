@@ -299,6 +299,7 @@ distributivity theorems, potential INCOMPATIBILITY.
 * Complex_Main: Several redundant theorems have been removed or
 replaced by more general versions. INCOMPATIBILITY.
 
+  real_of_int_real_of_nat ~> real_of_int_of_nat_eq
   real_0_le_divide_iff ~> zero_le_divide_iff
   realpow_two_disj ~> power2_eq_iff
   real_squared_diff_one_factored ~> square_diff_one_factored
