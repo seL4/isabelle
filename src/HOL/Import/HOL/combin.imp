@@ -18,8 +18,8 @@ const_maps
   "C" > "HOL4Base.combin.C"
 
 thm_maps
-  "o_THM" > "Fun.o_apply"
-  "o_DEF" > "Fun.o_apply"
+  "o_THM" > "Fun.comp_def"
+  "o_DEF" > "Fun.comp_def"
   "o_ASSOC" > "Fun.o_assoc"
   "W_def" > "HOL4Base.combin.W_def"
   "W_THM" > "HOL4Base.combin.W_def"

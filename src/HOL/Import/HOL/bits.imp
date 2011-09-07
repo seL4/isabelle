@@ -83,7 +83,7 @@ thm_maps
   "DIVMOD_2EXP_def" > "HOL4Word32.bits.DIVMOD_2EXP_def"
   "DIV2_primdef" > "HOL4Word32.bits.DIV2_primdef"
   "DIV2_def" > "HOL4Word32.bits.DIV2_def"
-  "DIV1" > "HOL4Word32.bits.DIV1"
+  "DIV1" > "Divides.semiring_div_class.div_by_1"
   "BIT_def" > "HOL4Word32.bits.BIT_def"
   "BIT_SLICE_THM" > "HOL4Word32.bits.BIT_SLICE_THM"
   "BIT_SLICE_LEM" > "HOL4Word32.bits.BIT_SLICE_LEM"
