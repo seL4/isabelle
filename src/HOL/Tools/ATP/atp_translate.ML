@@ -591,6 +591,9 @@ fun try_nonmono constr suffixes fallback s =
        | NONE => (constr Heavy, s))
   | NONE => fallback s
 
+fun is_mangled_arg_light poly level =
+  poly = Mangled_Monomorphic andalso heaviness_of_level level = Arg_Light
+
 fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
@@ -627,9 +630,12 @@ fun type_enc_from_string soundness s =
               else
                 raise Same.SAME
             | _ => raise Same.SAME)
-         | ("guards", (SOME poly, _)) => Guards (poly, level)
-         | ("tags", (SOME Polymorphic, _)) => Tags (Polymorphic, level)
-         | ("tags", (SOME poly, _)) => Tags (poly, level)
+         | ("guards", (SOME poly, _)) =>
+           if is_mangled_arg_light poly level then raise Same.SAME
+           else Guards (poly, level)
+         | ("tags", (SOME poly, _)) =>
+           if is_mangled_arg_light poly level then raise Same.SAME
+           else Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
            Guards (poly, Const_Arg_Types)
          | ("erased", (NONE, All_Types (* naja *))) =>
