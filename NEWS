@@ -34,6 +34,13 @@ New in this Isabelle version
 See also ~~/src/Tools/jEdit/README.html for further information,
 including some remaining limitations.
 
+* Theory loader: source files are exclusively located via the master
+directory of each theory node (where the .thy file itself resides).
+The global load path (such as src/HOL/Library) has been discontinued.
+Note that the path element ~~ may be used to reference theories in the
+Isabelle home folder -- for instance, "~~/src/HOL/Library/FuncSet".
+INCOMPATIBILITY.
+
 * Theory loader: source files are identified by content via SHA1
 digests.  Discontinued former path/modtime identification and optional
 ISABELLE_FILE_IDENT plugin scripts.
@@ -47,13 +54,6 @@ without proper multithreading and TimeLimit implementation.
 
 * Discontinued old lib/scripts/polyml-platform, which has been
 obsolete since Isabelle2009-2.
-
-* Theory loader: source files are exclusively located via the master
-directory of each theory node (where the .thy file itself resides).
-The global load path (such as src/HOL/Library) has been discontinued.
-Note that the path element ~~ may be used to reference theories in the
-Isabelle home folder -- for instance, "~~/src/HOL/Library/FuncSet".
-INCOMPATIBILITY.
 
 * Various optional external tools are referenced more robustly and
 uniformly by explicit Isabelle settings as follows:
@@ -82,29 +82,35 @@ Minor INCOMPATIBILITY, need to declare options in context like this:
 that the result needs to be unique, which means fact specifications
 may have to be refined after enriching a proof context.
 
+* Attribute "case_names" has been refined: the assumptions in each case
+can be named now by following the case name with [name1 name2 ...].
+
 * Isabelle/Isar reference manual provides more formal references in
 syntax diagrams.
-
-* Attribute case_names has been refined: the assumptions in each case can
-be named now by following the case name with [name1 name2 ...].
 
 
 *** HOL ***
 
-* Classes bot and top require underlying partial order rather than preorder:
-uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
+* Classes bot and top require underlying partial order rather than
+preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
 * Class complete_lattice: generalized a couple of lemmas from sets;
-generalized theorems INF_cong and SUP_cong.  New type classes for complete
-boolean algebras and complete linear orders.  Lemmas Inf_less_iff,
-less_Sup_iff, INF_less_iff, less_SUP_iff now reside in class complete_linorder.
-Changed proposition of lemmas Inf_bool_def, Sup_bool_def, Inf_fun_def, Sup_fun_def,
-Inf_apply, Sup_apply.
+generalized theorems INF_cong and SUP_cong.  New type classes for
+complete boolean algebras and complete linear orders.  Lemmas
+Inf_less_iff, less_Sup_iff, INF_less_iff, less_SUP_iff now reside in
+class complete_linorder.
+
+Changed proposition of lemmas Inf_bool_def, Sup_bool_def, Inf_fun_def,
+Sup_fun_def, Inf_apply, Sup_apply.
+
 Redundant lemmas Inf_singleton, Sup_singleton, Inf_binary, Sup_binary,
 INF_eq, SUP_eq, INF_UNIV_range, SUP_UNIV_range, Int_eq_Inter,
-INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union, UNION_eq_Union_image,
-Union_def, UN_singleton, UN_eq have been discarded.
-More consistent and less misunderstandable names:
+INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union,
+UNION_eq_Union_image, Union_def, UN_singleton, UN_eq have been
+discarded.
+
+More consistent and comprehensive names:
+
   INFI_def ~> INF_def
   SUPR_def ~> SUP_def
   INF_leI ~> INF_lower
@@ -122,30 +128,35 @@ More consistent and less misunderstandable names:
 
 INCOMPATIBILITY.
 
-* Theorem collections ball_simps and bex_simps do not contain theorems referring
-to UNION any longer;  these have been moved to collection UN_ball_bex_simps.
-INCOMPATIBILITY.
+* Theorem collections ball_simps and bex_simps do not contain theorems
+referring to UNION any longer; these have been moved to collection
+UN_ball_bex_simps.  INCOMPATIBILITY.
 
-* Archimedean_Field.thy:
-    floor now is defined as parameter of a separate type class floor_ceiling.
- 
-* Finite_Set.thy: more coherent development of fold_set locales:
+* Theory Archimedean_Field: floor now is defined as parameter of a
+separate type class floor_ceiling.
+
+* Theory Finite_Set: more coherent development of fold_set locales:
 
     locale fun_left_comm ~> locale comp_fun_commute
     locale fun_left_comm_idem ~> locale comp_fun_idem
-    
-Both use point-free characterisation; interpretation proofs may need adjustment.
-INCOMPATIBILITY.
+
+Both use point-free characterization; interpretation proofs may need
+adjustment.  INCOMPATIBILITY.
 
 * Code generation:
-  - theory Library/Code_Char_ord provides native ordering of characters
-    in the target language.
-  - commands code_module and code_library are legacy, use export_code instead. 
-  - method evaluation is legacy, use method eval instead.
-  - legacy evaluator "SML" is deactivated by default. To activate it, add the following
-    line in your theory:
+
+  - Theory Library/Code_Char_ord provides native ordering of
+    characters in the target language.
+
+  - Commands code_module and code_library are legacy, use export_code instead.
+
+  - Method "evaluation" is legacy, use method "eval" instead.
+
+  - Legacy evaluator "SML" is deactivated by default.  May be
+    reactivated by the following theory command:
+
       setup {* Value.add_evaluator ("SML", Codegen.eval_term) *}
- 
+
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
 
 * Nitpick:
@@ -168,51 +179,57 @@ INCOMPATIBILITY.
   - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
   - Obsoleted "metisFT" -- use "metis (full_types)" instead. INCOMPATIBILITY.
 
-* "try":
-  - Renamed "try_methods" and added "simp:", "intro:", "dest:", and "elim:"
-    options. INCOMPATIBILITY.
-  - Introduced "try" that not only runs "try_methods" but also "solve_direct",
-    "sledgehammer", "quickcheck", and "nitpick".
+* Command 'try':
+  - Renamed 'try_methods' and added "simp:", "intro:", "dest:", and
+    "elim:" options. INCOMPATIBILITY.
+  - Introduced 'tryÄ that not only runs 'try_methods' but also
+    'solve_direct', 'sledgehammer', 'quickcheck', and 'nitpick'.
 
 * Quickcheck:
+
   - Added "eval" option to evaluate terms for the found counterexample
-    (currently only supported by the default (exhaustive) tester)
+    (currently only supported by the default (exhaustive) tester).
+
   - Added post-processing of terms to obtain readable counterexamples
-    (currently only supported by the default (exhaustive) tester)
+    (currently only supported by the default (exhaustive) tester).
+
   - New counterexample generator quickcheck[narrowing] enables
-    narrowing-based testing.
-    It requires that the Glasgow Haskell compiler is installed and
-    its location is known to Isabelle with the environment variable
-    ISABELLE_GHC.
+    narrowing-based testing.  Requires the Glasgow Haskell compiler
+    with its installation location defined in the Isabelle settings
+    environment as ISABELLE_GHC.
+
   - Removed quickcheck tester "SML" based on the SML code generator
-    from HOL-Library
+    (formly in HOL/Library).
 
 * Function package: discontinued option "tailrec".
-INCOMPATIBILITY. Use partial_function instead.
+INCOMPATIBILITY. Use 'partial_function' instead.
 
-* HOL-Probability:
+* Session HOL-Probability:
   - Caratheodory's extension lemma is now proved for ring_of_sets.
   - Infinite products of probability measures are now available.
-  - Use extended reals instead of positive extended reals.
-    INCOMPATIBILITY.
+  - Use extended reals instead of positive extended
+    reals. INCOMPATIBILITY.
 
-* Old recdef package has been moved to Library/Old_Recdef.thy, where it
-must be loaded explicitly.  INCOMPATIBILITY.
+* Old 'recdef' package has been moved to theory Library/Old_Recdef,
+from where it must be imported explicitly.  INCOMPATIBILITY.
 
-* Well-founded recursion combinator "wfrec" has been moved to
-Library/Wfrec.thy. INCOMPATIBILITY.
+* Well-founded recursion combinator "wfrec" has been moved to theory
+Library/Wfrec. INCOMPATIBILITY.
 
-* Theory Library/Nat_Infinity has been renamed to Library/Extended_Nat.
-The names of the following types and constants have changed:
-  inat (type) ~> enat
+* Theory Library/Nat_Infinity has been renamed to
+Library/Extended_Nat, with name changes of the following types and
+constants:
+
+  type inat   ~> type enat
   Fin         ~> enat
   Infty       ~> infinity (overloaded)
   iSuc        ~> eSuc
   the_Fin     ~> the_enat
+
 Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
 been renamed accordingly.
 
-* Limits.thy: Type "'a net" has been renamed to "'a filter", in
+* Theory Limits: Type "'a net" has been renamed to "'a filter", in
 accordance with standard mathematical terminology. INCOMPATIBILITY.
 
 * Session Multivariate_Analysis: Type "('a, 'b) cart" has been renamed
@@ -283,10 +300,10 @@ general versions. INCOMPATIBILITY.
   real_abs_sub_norm ~> norm_triangle_ineq3
   norm_cauchy_schwarz_abs ~> Cauchy_Schwarz_ineq2
 
-* Complex_Main: The locale interpretations for the bounded_linear and
-bounded_bilinear locales have been removed, in order to reduce the
-number of duplicate lemmas. Users must use the original names for
-distributivity theorems, potential INCOMPATIBILITY.
+* Theory Complex_Main: The locale interpretations for the
+bounded_linear and bounded_bilinear locales have been removed, in
+order to reduce the number of duplicate lemmas. Users must use the
+original names for distributivity theorems, potential INCOMPATIBILITY.
 
   divide.add ~> add_divide_distrib
   divide.diff ~> diff_divide_distrib
@@ -296,7 +313,7 @@ distributivity theorems, potential INCOMPATIBILITY.
   mult_right.setsum ~> setsum_right_distrib
   mult_left.diff ~> left_diff_distrib
 
-* Complex_Main: Several redundant theorems have been removed or
+* Theory Complex_Main: Several redundant theorems have been removed or
 replaced by more general versions. INCOMPATIBILITY.
 
   real_0_le_divide_iff ~> zero_le_divide_iff
@@ -364,25 +381,29 @@ replaced by more general versions. INCOMPATIBILITY.
 
 *** Document preparation ***
 
-* Discontinued special treatment of hard tabulators, which are better
-avoided in the first place.  Implicit tab-width is 1.
-
-* Antiquotation @{rail} layouts railroad syntax diagrams, see also
-isar-ref manual.
-
-* Antiquotation @{value} evaluates the given term and presents its result.
-
 * Localized \isabellestyle switch can be used within blocks or groups
 like this:
 
   \isabellestyle{it}  %preferred default
   {\isabellestylett @{text "typewriter stuff"}}
 
-* New term style "isub" as ad-hoc conversion of variables x1, y23 into
-subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
+* Antiquotation @{rail} layouts railroad syntax diagrams, see also
+isar-ref manual, both for description and actual application of the
+same.
+
+* Antiquotation @{value} evaluates the given term and presents its
+result.
+
+* Antiquotations: term style "isub" provides ad-hoc conversion of
+variables x1, y23 into subscripted form x\<^isub>1,
+y\<^isub>2\<^isub>3.
 
 * Predefined LaTeX macros for Isabelle symbols \<bind> and \<then>
 (e.g. see ~~/src/HOL/Library/Monad_Syntax.thy).
+
+* Discontinued special treatment of hard tabulators, which are better
+avoided in the first place (no universally agreed standard expansion).
+Implicit tab-width is now 1.
 
 
 *** ML ***
@@ -443,10 +464,13 @@ INCOMPATIBILITY, classical tactics and derived proof methods require
 proper Proof.context.
 
 * Scala layer provides JVM method invocation service for static
-methods of type (String)String, see Invoke_Scala.method in ML.
-For example:
+methods of type (String)String, see Invoke_Scala.method in ML.  For
+example:
 
   Invoke_Scala.method "java.lang.System.getProperty" "java.home"
+
+Togeter with YXML.string_of_body/parse_body and XML.Encode/Decode this
+allows to pass structured values between ML and Scala.
 
 
 
