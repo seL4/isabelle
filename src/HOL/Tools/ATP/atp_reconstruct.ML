@@ -21,7 +21,7 @@ sig
 
   datatype play =
     Played of reconstructor * Time.time |
-    Trust_Playable of reconstructor * Time.time option|
+    Trust_Playable of reconstructor * Time.time option |
     Failed_to_Play of reconstructor
 
   type minimize_command = string list -> string
@@ -41,8 +41,8 @@ sig
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ
   val term_from_atp :
-    Proof.context -> bool -> int Symtab.table -> typ option -> (string, string) ho_term
-    -> term
+    Proof.context -> bool -> int Symtab.table -> typ option
+    -> (string, string) ho_term -> term
   val prop_from_atp :
     Proof.context -> bool -> int Symtab.table
     -> (string, string, (string, string) ho_term) formula -> term
@@ -360,10 +360,10 @@ fun term_from_atp ctxt textual sym_tab =
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
       case u of
-        ATerm (a, us) =>
-        if String.isPrefix simple_type_prefix a then
+        ATerm (s, us) =>
+        if String.isPrefix simple_type_prefix s then
           @{const True} (* ignore TPTP type information *)
-        else if a = tptp_equal then
+        else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in
             if textual andalso length ts = 2 andalso
               hd ts aconv List.last ts then
@@ -372,10 +372,11 @@ fun term_from_atp ctxt textual sym_tab =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        else case strip_prefix_and_unascii const_prefix a of
-          SOME s =>
+        else case strip_prefix_and_unascii const_prefix s of
+          SOME s' =>
           let
-            val ((s', s), mangled_us) = s |> unmangled_const |>> `invert_const
+            val ((s', s''), mangled_us) =
+              s' |> unmangled_const |>> `invert_const
           in
             if s' = type_tag_name then
               case mangled_us @ us of
@@ -396,7 +397,7 @@ fun term_from_atp ctxt textual sym_tab =
               @{const True} (* ignore type predicates *)
             else
               let
-                val new_skolem = String.isPrefix new_skolem_const_prefix s
+                val new_skolem = String.isPrefix new_skolem_const_prefix s''
                 val num_ty_args =
                   length us - the_default 0 (Symtab.lookup sym_tab s)
                 val (type_us, term_us) =
@@ -422,7 +423,7 @@ fun term_from_atp ctxt textual sym_tab =
                                   | NONE => HOLogic.typeT))
                 val t =
                   if new_skolem then
-                    Var ((new_skolem_var_name_from_const s, var_index), T)
+                    Var ((new_skolem_var_name_from_const s'', var_index), T)
                   else
                     Const (unproxify_const s', T)
               in list_comb (t, term_ts @ extra_ts) end
@@ -432,15 +433,15 @@ fun term_from_atp ctxt textual sym_tab =
             val ts = map (do_term [] NONE) us @ extra_ts
             val T = map slack_fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix_and_unascii fixed_var_prefix a of
-                SOME b =>
+              case strip_prefix_and_unascii fixed_var_prefix s of
+                SOME s =>
                 (* FIXME: reconstruction of lambda-lifting *)
-                Free (b, T)
+                Free (s, T)
               | NONE =>
-                case strip_prefix_and_unascii schematic_var_prefix a of
-                  SOME b => Var ((b, var_index), T)
+                case strip_prefix_and_unascii schematic_var_prefix s of
+                  SOME s => Var ((s, var_index), T)
                 | NONE =>
-                  Var ((a |> textual ? repair_variable_name Char.toLower,
+                  Var ((s |> textual ? repair_variable_name Char.toLower,
                         var_index), T)
           in list_comb (t, ts) end
   in do_term [] end
@@ -627,7 +628,8 @@ fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
   | add_desired_line isar_shrink_factor conjecture_shape fact_names frees
                      (Inference (name, t, deps)) (j, lines) =
     (j + 1,
-     if is_fact fact_names name orelse is_conjecture conjecture_shape name orelse
+     if is_fact fact_names name orelse
+        is_conjecture conjecture_shape name orelse
         (* the last line must be kept *)
         j = 0 orelse
         (not (is_only_type_information t) andalso

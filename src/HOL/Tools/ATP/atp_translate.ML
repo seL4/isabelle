@@ -906,7 +906,7 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun introduce_proxies type_enc =
+fun introduce_proxies_in_iterm type_enc =
   let
     fun tweak_ho_quant ho_quant T [IAbs _] = IConst (`I ho_quant, T, [])
       | tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _]))
@@ -955,11 +955,58 @@ fun introduce_proxies type_enc =
       | intro _ _ tm = tm
   in intro true [] end
 
-fun iformula_from_prop thy format type_enc eq_as_iff =
+fun chop_fun 0 T = ([], T)
+  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
+    chop_fun (n - 1) ran_T |>> cons dom_T
+  | chop_fun _ T = ([], T)
+
+fun filter_type_args _ _ _ [] = []
+  | filter_type_args thy s ary T_args =
+    let
+      val U = robust_const_type thy s
+      val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun ary |> fst) []
+      val U_args = (s, U) |> robust_const_typargs thy
+    in
+      U_args ~~ T_args
+      |> map (fn (U, T) =>
+                 if member (op =) arg_U_vars (dest_TVar U) then dummyT else T)
+    end
+    handle TYPE _ => T_args
+
+fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
   let
+    val thy = Proof_Context.theory_of ctxt
+    fun aux ary (IApp (tm1, tm2)) = IApp (aux (ary + 1) tm1, aux 0 tm2)
+      | aux ary (IConst (name as (s, _), T, T_args)) =
+        (case strip_prefix_and_unascii const_prefix s of
+           NONE =>
+           (name, if level_of_type_enc type_enc = No_Types orelse s = tptp_choice
+                  then [] else T_args)
+         | SOME s'' =>
+           let
+             val s'' = invert_const s''
+             fun filter_T_args false = T_args
+               | filter_T_args true = filter_type_args thy s'' ary T_args
+           in
+             case type_arg_policy type_enc s'' of
+               Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
+             | Mangled_Type_Args =>
+               (mangled_const_name format type_enc T_args name, [])
+             | No_Type_Args => (name, [])
+           end)
+        |> (fn (name, T_args) => IConst (name, T, T_args))
+      | aux _ (IAbs (bound, tm)) = IAbs (bound, aux 0 tm)
+      | aux _ tm = tm
+  in aux 0 end
+
+fun iformula_from_prop ctxt format type_enc eq_as_iff =
+  let
+    val thy = Proof_Context.theory_of ctxt
     fun do_term bs t atomic_types =
       iterm_from_term thy format bs (Envir.eta_contract t)
-      |>> (introduce_proxies type_enc #> AAtom)
+      |>> (introduce_proxies_in_iterm type_enc
+           #> enforce_type_arg_policy_in_iterm ctxt format type_enc
+           #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q pos s T t' =
       let
@@ -1109,31 +1156,30 @@ fun presimp_prop ctxt presimp_consts t =
   end
 
 (* making fact and conjecture formulas *)
-fun make_formula thy format type_enc eq_as_iff name loc kind t =
+fun make_formula ctxt format type_enc eq_as_iff name loc kind t =
   let
     val (iformula, atomic_types) =
-      iformula_from_prop thy format type_enc eq_as_iff (SOME (kind <> Conjecture)) t []
+      iformula_from_prop ctxt format type_enc eq_as_iff
+                         (SOME (kind <> Conjecture)) t []
   in
     {name = name, locality = loc, kind = kind, iformula = iformula,
      atomic_types = atomic_types}
   end
 
 fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
-  let val thy = Proof_Context.theory_of ctxt in
-    case t |> make_formula thy format type_enc (eq_as_iff andalso format <> CNF)
-                           name loc Axiom of
-      formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
-      if s = tptp_true then NONE else SOME formula
-    | formula => SOME formula
-  end
+  case t |> make_formula ctxt format type_enc (eq_as_iff andalso format <> CNF)
+                         name loc Axiom of
+    formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
+    if s = tptp_true then NONE else SOME formula
+  | formula => SOME formula
 
 fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not_trueprop t = s_not t
 
-fun make_conjecture thy format type_enc =
+fun make_conjecture ctxt format type_enc =
   map (fn ((name, loc), (kind, t)) =>
           t |> kind = Conjecture ? s_not_trueprop
-            |> make_formula thy format type_enc (format <> CNF) name loc kind)
+            |> make_formula ctxt format type_enc (format <> CNF) name loc kind)
 
 (** Finite and infinite type inference **)
 
@@ -1340,91 +1386,41 @@ fun is_pred_sym sym_tab s =
     pred_sym andalso min_ary = max_ary
   | NONE => false
 
+val app_op = `(make_fixed_const NONE) app_op_name
 val predicator_combconst =
   IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
-fun predicator tm = IApp (predicator_combconst, tm)
-
-fun introduce_predicators_in_iterm sym_tab tm =
-  case strip_iterm_comb tm of
-    (IConst ((s, _), _, _), _) =>
-    if is_pred_sym sym_tab s then tm else predicator tm
-  | _ => predicator tm
 
 fun list_app head args = fold (curry (IApp o swap)) args head
+fun predicator tm = IApp (predicator_combconst, tm)
 
-val app_op = `(make_fixed_const NONE) app_op_name
-
-fun explicit_app arg head =
+fun firstorderize_fact ctxt format type_enc sym_tab =
   let
-    val head_T = ityp_of head
-    val (arg_T, res_T) = dest_funT head_T
-    val explicit_app = IConst (app_op, head_T --> head_T, [arg_T, res_T])
-  in list_app explicit_app [head, arg] end
-fun list_explicit_app head args = fold explicit_app args head
-
-fun introduce_explicit_apps_in_iterm sym_tab =
-  let
-    fun aux tm =
+    fun do_app arg head =
+      let
+        val head_T = ityp_of head
+        val (arg_T, res_T) = dest_funT head_T
+        val app =
+          IConst (app_op, head_T --> head_T, [arg_T, res_T])
+          |> enforce_type_arg_policy_in_iterm ctxt format type_enc
+      in list_app app [head, arg] end
+    fun list_app_ops head args = fold do_app args head
+    fun introduce_app_ops tm =
       case strip_iterm_comb tm of
         (head as IConst ((s, _), _, _), args) =>
-        args |> map aux
+        args |> map introduce_app_ops
              |> chop (min_ary_of sym_tab s)
              |>> list_app head
-             |-> list_explicit_app
-      | (head, args) => list_explicit_app head (map aux args)
-  in aux end
-
-fun chop_fun 0 T = ([], T)
-  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
-    chop_fun (n - 1) ran_T |>> cons dom_T
-  | chop_fun _ T = ([], T)
-
-fun filter_type_args _ _ _ [] = []
-  | filter_type_args thy s ary T_args =
-    let
-      val U = robust_const_type thy s
-      val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun ary |> fst) []
-      val U_args = (s, U) |> robust_const_typargs thy
-    in
-      U_args ~~ T_args
-      |> map (fn (U, T) =>
-                 if member (op =) arg_U_vars (dest_TVar U) then dummyT else T)
-    end
-    handle TYPE _ => T_args
-
-fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    fun aux ary (IApp (tm1, tm2)) = IApp (aux (ary + 1) tm1, aux 0 tm2)
-      | aux ary (IConst (name as (s, _), T, T_args)) =
-        (case strip_prefix_and_unascii const_prefix s of
-           NONE =>
-           (name, if level_of_type_enc type_enc = No_Types orelse s = tptp_choice
-                  then [] else T_args)
-         | SOME s'' =>
-           let
-             val s'' = invert_const s''
-             fun filter_T_args false = T_args
-               | filter_T_args true = filter_type_args thy s'' ary T_args
-           in
-             case type_arg_policy type_enc s'' of
-               Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
-             | Mangled_Type_Args =>
-               (mangled_const_name format type_enc T_args name, [])
-             | No_Type_Args => (name, [])
-           end)
-        |> (fn (name, T_args) => IConst (name, T, T_args))
-      | aux _ (IAbs (bound, tm)) = IAbs (bound, aux 0 tm)
-      | aux _ tm = tm
-  in aux 0 end
-
-fun repair_iterm ctxt format type_enc sym_tab =
-  not (is_type_enc_higher_order type_enc)
-  ? (introduce_explicit_apps_in_iterm sym_tab
-     #> introduce_predicators_in_iterm sym_tab)
-  #> enforce_type_arg_policy_in_iterm ctxt format type_enc
-fun repair_fact ctxt format type_enc sym_tab =
-  update_iformula (formula_map (repair_iterm ctxt format type_enc sym_tab))
+             |-> list_app_ops
+      | (head, args) => list_app_ops head (map introduce_app_ops args)
+    fun introduce_predicators tm =
+      case strip_iterm_comb tm of
+        (IConst ((s, _), _, _), _) =>
+        if is_pred_sym sym_tab s then tm else predicator tm
+      | _ => predicator tm
+    val do_iterm =
+      not (is_type_enc_higher_order type_enc)
+      ? (introduce_app_ops #> introduce_predicators)
+  in update_iformula (formula_map do_iterm) end
 
 (** Helper facts **)
 
@@ -1601,7 +1597,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
         |>> apfst (map (apsnd (apsnd freeze_term)))
       else
         ((conjs, facts), [])
-    val conjs = conjs |> make_conjecture thy format type_enc
+    val conjs = conjs |> make_conjecture ctxt format type_enc
     val (fact_names, facts) =
       facts
       |> map_filter (fn (name, (_, t)) =>
@@ -1801,15 +1797,14 @@ fun decl_lines_for_classes type_enc classes =
     map (decl_line_for_class order) classes
   | _ => []
 
-fun sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
-                             (conjs, facts) =
+fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
   let
     fun add_iterm_syms in_conj tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, s'), T, T_args) =>
            let
-             val pred_sym = is_pred_sym repaired_sym_tab s
+             val pred_sym = is_pred_sym sym_tab s
              val decl_sym =
                (case type_enc of
                   Guards _ => not pred_sym
@@ -2194,20 +2189,19 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                          hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
-    val repair = repair_fact ctxt format type_enc sym_tab
-    val (conjs, facts) = (conjs, facts) |> pairself (map repair)
-    val repaired_sym_tab =
-      conjs @ facts |> sym_table_for_facts ctxt (SOME false)
+    val firstorderize = firstorderize_fact ctxt format type_enc sym_tab
+    val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
+    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
-      repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_enc
-                       |> map repair
+      sym_tab |> helper_facts_for_sym_table ctxt format type_enc
+              |> map firstorderize
     val mono_Ts =
       helpers @ conjs @ facts
       |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts)
-      |> sym_decl_table_for_facts ctxt format type_enc repaired_sym_tab
+      |> sym_decl_table_for_facts ctxt format type_enc sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono
                                                type_enc mono_Ts
     val helper_lines =
@@ -2252,12 +2246,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                  ((helpers_offset + 1 upto helpers_offset + length helpers)
                   ~~ helpers)
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
-      if min_ary > 0 then
-        case strip_prefix_and_unascii const_prefix s of
-          SOME s => Symtab.insert (op =) (s, min_ary)
-        | NONE => I
-      else
-        I
+      min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
