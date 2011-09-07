@@ -611,7 +611,6 @@ fun not_wellsorted thy permissive some_thm ty sort e =
 
 (* inference of type annotations for disambiguation with type classes *)
 
-
 fun annotate_term (Const (c', T'), Const (c, T)) tvar_names =
     let
       val tvar_names' = Term.add_tvar_namesT T' tvar_names
@@ -671,11 +670,12 @@ and ensure_const thy algbr eqngr permissive c =
     fun stmt_fun cert =
       let
         val ((vs, ty), eqns) = Code.equations_of_cert thy cert;
+        val eqns' = annotate_eqns thy eqns
         val some_case_cong = Code.get_case_cong thy c;
       in
         fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
         ##>> translate_typ thy algbr eqngr permissive ty
-        ##>> translate_eqns thy algbr eqngr permissive eqns
+        ##>> translate_eqns thy algbr eqngr permissive eqns'
         #>> (fn info => Fun (c, (info, some_case_cong)))
       end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
