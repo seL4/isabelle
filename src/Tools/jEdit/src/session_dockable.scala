@@ -66,6 +66,18 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
   cancel.tooltip = "Cancel current proof checking process"
 
+  private val check = new Button("Check") {
+    reactions +=
+    {
+      case ButtonClicked(_) =>
+        Isabelle.document_model(view.getBuffer) match {
+          case None =>
+          case Some(model) => model.full_perspective()
+        }
+    }
+  }
+  check.tooltip = "Commence full proof checking of current buffer"
+
   private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
   logic.listenTo(logic.selection)
   logic.reactions += {
@@ -73,7 +85,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, cancel, logic)
+    new FlowPanel(FlowPanel.Alignment.Right)(check, cancel, session_phase, logic)
   add(controls.peer, BorderLayout.NORTH)
 
 

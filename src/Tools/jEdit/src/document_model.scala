@@ -69,6 +69,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* perspective */
 
+  def buffer_range(): Text.Range = Text.Range(0, (buffer.getLength - 1) max 0)
+
   def perspective(): Text.Perspective =
   {
     Swing_Thread.require()
@@ -134,6 +136,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   {
     Swing_Thread.require()
     pending_edits.update_perspective()
+  }
+
+  def full_perspective()
+  {
+    pending_edits.flush()
+    session.edit_node(name, node_header(), Text.Perspective(List(buffer_range())), Nil)
   }
 
 
