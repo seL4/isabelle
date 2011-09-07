@@ -315,7 +315,7 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
-    (app as ((c, (_, function_typs)), ts)) =
+    (app as ((c, ((_, function_typs), _)), ts)) =
   case const_syntax c of
     NONE => brackify fxy (print_app_expr some_thm vars app)
   | SOME (Plain_const_syntax (_, s)) =>

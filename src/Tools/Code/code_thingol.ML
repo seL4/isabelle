@@ -22,7 +22,7 @@ sig
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
-  type const = string * ((itype list * dict list list) * itype list)
+  type const = string * (((itype list * dict list list) * itype list) * bool)
     (* f [T1..Tn] {dicts} (_::S1) .. (_..Sm) =^= (f, (([T1..Tn], dicts), [S1..Sm]) *)
   datatype iterm =
       IConst of const
@@ -145,7 +145,8 @@ datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
 
-type const = string * ((itype list * dict list list) * itype list (*types of arguments*))
+type const = string * (((itype list * dict list list) * itype list (*types of arguments*))
+  * bool (*requires type annotation*))
 
 datatype iterm =
     IConst of const
@@ -198,7 +199,7 @@ val add_constnames = fold_constexprs (fn (c, _) => insert (op =) c);
 fun add_tycos (tyco `%% tys) = insert (op =) tyco #> fold add_tycos tys
   | add_tycos (ITyVar _) = I;
 
-val add_tyconames = fold_constexprs (fn (_, ((tys, _), _)) => fold add_tycos tys);
+val add_tyconames = fold_constexprs (fn (_, (((tys, _), _), _)) => fold add_tycos tys);
 
 fun fold_varnames f =
   let
@@ -240,7 +241,7 @@ fun unfold_abs_eta [] t = ([], t)
         val vs_tys = (map o apfst) SOME (Name.invent_names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
-fun eta_expand k (c as (name, (_, tys)), ts) =
+fun eta_expand k (c as (name, ((_, tys), _)), ts) =
   let
     val j = length ts;
     val l = k - j;
@@ -256,7 +257,7 @@ fun contains_dict_var t =
     fun cont_dict (Dict (_, d)) = cont_plain_dict d
     and cont_plain_dict (Dict_Const (_, dss)) = (exists o exists) cont_dict dss
       | cont_plain_dict (Dict_Var _) = true;
-    fun cont_term (IConst (_, ((_, dss), _))) = (exists o exists) cont_dict dss
+    fun cont_term (IConst (_, (((_, dss), _), _))) = (exists o exists) cont_dict dss
       | cont_term (IVar _) = false
       | cont_term (t1 `$ t2) = cont_term t1 orelse cont_term t2
       | cont_term (_ `|=> t) = cont_term t
@@ -756,7 +757,8 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
     ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
     ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (arg_typs ~~ sorts)
     ##>> fold_map (translate_typ thy algbr eqngr permissive) function_typs
-    #>> (fn (((c, arg_typs), dss), function_typs) => IConst (c, ((arg_typs, dss), function_typs)))
+    #>> (fn (((c, arg_typs), dss), function_typs) =>
+      IConst (c, (((arg_typs, dss), function_typs), false))) (* FIXME *)
   end
 and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
   translate_const thy algbr eqngr permissive some_thm (c_ty, some_abs)
@@ -801,7 +803,7 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
         val ts_clause = nth_drop t_pos ts;
         val clauses = if null case_pats
           then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
-          else maps (fn ((constr as IConst (_, (_, tys)), n), t) =>
+          else maps (fn ((constr as IConst (_, ((_, tys), _)), n), t) =>
             mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
               (constrs ~~ ts_clause);
       in ((t, ty), clauses) end;

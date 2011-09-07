@@ -75,7 +75,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app_expr tyvars some_thm vars ((c, (_, function_typs)), ts) = case contr_classparam_typs c
+    and print_app_expr tyvars some_thm vars ((c, ((_, function_typs), _)), ts) = case contr_classparam_typs c
      of [] => (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
       | fingerprint => let
           val ts_fingerprint = ts ~~ take (length ts) fingerprint;
@@ -230,14 +230,14 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                     ]
                 | SOME k =>
                     let
-                      val (c, (_, tys)) = const;
+                      val (c, ((_, tys), _)) = const; (* FIXME: pass around the need annotation flag here? *)
                       val (vs, rhs) = (apfst o map) fst
                         (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
                       val s = if (is_some o const_syntax) c
                         then NONE else (SOME o Long_Name.base_name o deresolve) c;
                       val vars = reserved
                         |> intro_vars (map_filter I (s :: vs));
-                      val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
+                      val lhs = IConst (classparam, ((([], []), tys), false (* FIXME *))) `$$ map IVar vs;
                         (*dictionaries are not relevant at this late stage*)
                     in
                       semicolon [
