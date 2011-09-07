@@ -883,13 +883,7 @@ safely remove them after Sledgehammer has run.
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
 (unreconstructible using Metis). The supported type encodings are listed below,
-with an indication of their soundness in parentheses.
-%
-All the encodings with \textit{guards} or \textit{tags} in their name are
-available in a ``uniform'' and a ``nonuniform'' variant. The nonuniform variants
-are generally more efficient and are the default; the uniform variants are
-identified by the suffix \textit{\_uniform} (e.g.,
-\textit{mono\_guards\_uniform}{?}).
+with an indication of their soundness in parentheses:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
@@ -933,12 +927,11 @@ $\mathit{type\_}\tau(t)$.
 
 \item[$\bullet$] \textbf{\textit{mono\_simple} (sound):} Exploits simple
 first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
-falls back on \textit{mono\_guards\_uniform}. The problem is monomorphized.
+falls back on \textit{mono\_guards}. The problem is monomorphized.
 
 \item[$\bullet$] \textbf{\textit{mono\_simple\_higher} (sound):} Exploits simple
 higher-order types if the prover supports the THF0 syntax; otherwise, falls back
-on \textit{mono\_simple} or \textit{mono\_guards\_uniform}. The problem is
-monomorphized.
+on \textit{mono\_simple} or \textit{mono\_guards}. The problem is monomorphized.
 
 \item[$\bullet$]
 \textbf{%
@@ -958,6 +951,13 @@ is enabled, these encodings are fully sound.
 
 \item[$\bullet$]
 \textbf{%
+\textit{poly\_guards}??, \textit{poly\_tags}??, \textit{raw\_mono\_guards}??, \\
+\textit{raw\_mono\_tags}??, \textit{mono\_guards}??, \textit{mono\_tags}?? \\
+(quasi-sound):} \\
+Even lighter versions of the `{?}' encodings.
+
+\item[$\bullet$]
+\textbf{%
 \textit{poly\_guards}!, \textit{poly\_tags}!, \textit{raw\_mono\_guards}!, \\
 \textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
 \textit{mono\_simple}!, \textit{mono\_simple\_higher}! (mildly unsound):} \\
@@ -971,6 +971,13 @@ that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_simple} and
 replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the exclamation mark is replaced by the suffix
 \hbox{``\textit{\_bang}''}.
+
+\item[$\bullet$]
+\textbf{%
+\textit{poly\_guards}!!, \textit{poly\_tags}!!, \textit{raw\_mono\_guards}!!, \\
+\textit{raw\_mono\_tags}!!, \textit{mono\_guards}!!, \textit{mono\_tags}!! \\
+(mildly unsound):} \\
+Even lighter versions of the `{!}' encodings.
 
 \item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
