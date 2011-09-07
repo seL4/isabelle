@@ -99,6 +99,7 @@ sig
   val string_of_sort_global: theory -> sort -> string
   type syntax
   val eq_syntax: syntax * syntax -> bool
+  val join_syntax: syntax -> unit
   val lookup_const: syntax -> string -> string option
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
@@ -507,6 +508,8 @@ datatype syntax =
     prtabs: Printer.prtabs} * stamp;
 
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
+
+fun join_syntax (Syntax ({gram, ...}, _)) = ignore (Future.join gram);
 
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
