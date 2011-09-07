@@ -144,7 +144,6 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
                  (j + 1,
                   ((nth_name j,
                     if member Thm.eq_thm_prop chained_ths th then Chained
-                    else if Thm.eq_thm_prop (th, @{thm ext}) then Extensionality
                     else General), th) :: rest))
     |> snd
   end
@@ -576,7 +575,7 @@ fun consider_arities is_built_in_const th =
         | _ => SOME tab
   in aux (prop_of th) [] end
 
-(* FIXME: This is currently only useful for polymorphic type systems. *)
+(* FIXME: This is currently only useful for polymorphic type encodings. *)
 fun could_benefit_from_ext is_built_in_const facts =
   fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
   |> is_none
@@ -845,8 +844,7 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
       else if global then
         case Termtab.lookup clasimpset_table (prop_of th) of
           SOME loc => loc
-        | NONE => if Thm.eq_thm_prop (th, @{thm ext}) then Extensionality
-                  else General
+        | NONE => General
       else if is_assum th then Assum else Local
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso

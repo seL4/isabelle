@@ -16,24 +16,18 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype locality =
-    General | Helper | Induction | Extensionality | Intro | Elim | Simp |
-    Local | Assum | Chained
+    General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
-  datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
   datatype soundness = Sound_Modulo_Infiniteness | Sound
-  datatype uniformity = Uniform | Nonuniform
+  datatype heaviness = Heavy | Ann_Light | Arg_Light
   datatype type_level =
     All_Types |
-    Noninf_Nonmono_Types of soundness * uniformity |
-    Fin_Nonmono_Types of uniformity |
+    Noninf_Nonmono_Types of soundness * heaviness |
+    Fin_Nonmono_Types of heaviness |
     Const_Arg_Types |
     No_Types
-
-  datatype type_enc =
-    Simple_Types of order * polymorphism * type_level |
-    Guards of polymorphism * type_level |
-    Tags of polymorphism * type_level
+  type type_enc
 
   val type_tag_idempotence : bool Config.T
   val type_tag_arguments : bool Config.T
@@ -531,17 +525,16 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
 
 datatype locality =
-  General | Helper | Induction | Extensionality | Intro | Elim | Simp |
-  Local | Assum | Chained
+  General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
 datatype soundness = Sound_Modulo_Infiniteness | Sound
-datatype uniformity = Uniform | Nonuniform
+datatype heaviness = Heavy | Ann_Light | Arg_Light
 datatype type_level =
   All_Types |
-  Noninf_Nonmono_Types of soundness * uniformity |
-  Fin_Nonmono_Types of uniformity |
+  Noninf_Nonmono_Types of soundness * heaviness |
+  Fin_Nonmono_Types of heaviness |
   Const_Arg_Types |
   No_Types
 
@@ -561,9 +554,9 @@ fun level_of_type_enc (Simple_Types (_, _, level)) = level
   | level_of_type_enc (Guards (_, level)) = level
   | level_of_type_enc (Tags (_, level)) = level
 
-fun is_level_uniform (Noninf_Nonmono_Types (_, Nonuniform)) = false
-  | is_level_uniform (Fin_Nonmono_Types Nonuniform) = false
-  | is_level_uniform _ = true
+fun heaviness_of_level (Noninf_Nonmono_Types (_, heaviness)) = heaviness
+  | heaviness_of_level (Fin_Nonmono_Types heaviness) = heaviness
+  | heaviness_of_level _ = Heavy
 
 fun is_type_level_quasi_sound All_Types = true
   | is_type_level_quasi_sound (Noninf_Nonmono_Types _) = true
@@ -578,11 +571,25 @@ fun is_type_level_monotonicity_based (Noninf_Nonmono_Types _) = true
   | is_type_level_monotonicity_based (Fin_Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
+(* "_query", "_bang", and "_at" are for the ASCII-challenged Metis and
+   Mirabelle. *)
+val queries = ["?", "_query"]
+val bangs = ["!", "_bang"]
+val ats = ["@", "_at"]
+
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
-val queries = ["?", "_query"]
-val bangs = ["!", "_bang"]
+fun try_nonmono constr suffixes fallback s =
+  case try_unsuffixes suffixes s of
+    SOME s =>
+    (case try_unsuffixes suffixes s of
+       SOME s => (constr Ann_Light, s)
+     | NONE =>
+       case try_unsuffixes ats s of
+         SOME s => (constr Arg_Light, s)
+       | NONE => (constr Heavy, s))
+  | NONE => fallback s
 
 fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
@@ -594,21 +601,9 @@ fun type_enc_from_string soundness s =
        case try (unprefix "mono_") s of
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
-  ||> (fn s =>
-          (* "_query" and "_bang" are for the ASCII-challenged Metis and
-             Mirabelle. *)
-          case try_unsuffixes queries s of
-            SOME s =>
-            (case try_unsuffixes queries s of
-               SOME s => (Noninf_Nonmono_Types (soundness, Nonuniform), s)
-             | NONE => (Noninf_Nonmono_Types (soundness, Uniform), s))
-          | NONE =>
-            case try_unsuffixes bangs s of
-              SOME s =>
-              (case try_unsuffixes bangs s of
-                 SOME s => (Fin_Nonmono_Types Nonuniform, s)
-               | NONE => (Fin_Nonmono_Types Uniform, s))
-            | NONE => (All_Types, s))
+  ||> (pair All_Types
+       |> try_nonmono Fin_Nonmono_Types bangs
+       |> try_nonmono (curry Noninf_Nonmono_Types soundness) queries)
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("simple", (SOME poly, _)) =>
@@ -616,7 +611,7 @@ fun type_enc_from_string soundness s =
               (Polymorphic, All_Types) =>
               Simple_Types (First_Order, Polymorphic, All_Types)
             | (Mangled_Monomorphic, _) =>
-              if is_level_uniform level then
+              if heaviness_of_level level = Heavy then
                 Simple_Types (First_Order, Mangled_Monomorphic, level)
               else
                 raise Same.SAME
@@ -627,7 +622,7 @@ fun type_enc_from_string soundness s =
               Simple_Types (Higher_Order, Polymorphic, All_Types)
             | (_, Noninf_Nonmono_Types _) => raise Same.SAME
             | (Mangled_Monomorphic, _) =>
-              if is_level_uniform level then
+              if heaviness_of_level level = Heavy then
                 Simple_Types (Higher_Order, Mangled_Monomorphic, level)
               else
                 raise Same.SAME
@@ -640,7 +635,7 @@ fun type_enc_from_string soundness s =
          | ("erased", (NONE, All_Types (* naja *))) =>
            Guards (Polymorphic, No_Types)
          | _ => raise Same.SAME)
-  handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
+  handle Same.SAME => error ("Unknown type encoding: " ^ quote s ^ ".")
 
 fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
                     (Simple_Types (order, _, level)) =
@@ -1241,7 +1236,7 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type _ _ _ _ = false
 
 fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
-    (is_level_uniform level orelse should_guard_var ()) andalso
+    (heaviness_of_level level = Heavy orelse should_guard_var ()) andalso
     should_encode_type ctxt mono level T
   | should_guard_type _ _ _ _ _ = false
 
@@ -1258,7 +1253,7 @@ datatype tag_site =
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
   | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
-    (if is_level_uniform level then
+    (if heaviness_of_level level = Heavy then
        should_encode_type ctxt mono level T
      else case (site, is_maybe_universal_var u) of
        (Eq_Arg _, true) => should_encode_type ctxt mono level T
@@ -1366,21 +1361,21 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   K (add_iterm_syms_to_table ctxt explicit_apply)
   |> formula_fold NONE |> fact_lift
 
-val default_sym_tab_entries : (string * sym_info) list =
-  (prefixed_predicator_name,
-   {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
-       (* FIXME: needed? *) ::
+fun default_sym_tab_entries type_enc =
   (make_fixed_const NONE @{const_name undefined},
-   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
+                   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
+  |> not (is_type_enc_higher_order type_enc)
+     ? cons (prefixed_predicator_name,
+             {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
 
-fun sym_table_for_facts ctxt explicit_apply facts =
+fun sym_table_for_facts ctxt type_enc explicit_apply facts =
   ((false, []), Symtab.empty)
   |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
-  |> fold Symtab.update default_sym_tab_entries
+  |> fold Symtab.update (default_sym_tab_entries type_enc)
 
 fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -1657,7 +1652,8 @@ fun should_guard_var_in_formula pos phi (SOME true) name =
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
-    not (is_level_uniform level) andalso should_encode_type ctxt mono level T
+    heaviness_of_level level <> Heavy andalso
+    should_encode_type ctxt mono level T
   | should_generate_tag_bound_decl _ _ _ _ _ = false
 
 fun mk_aterm format type_enc name T_args args =
@@ -1877,8 +1873,8 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
        ? (fold (add_fact_syms true) conjs
           #> fold (add_fact_syms false) facts
           #> (case type_enc of
-                Simple_Types (_, poly, _) =>
-                if poly = Polymorphic then add_TYPE_const () else I
+                Simple_Types (First_Order, Polymorphic, _) => add_TYPE_const ()
+              | Simple_Types _ => I
               | _ => fold add_undefined_const (var_types ())))
   end
 
@@ -2131,7 +2127,7 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
                                                  type_enc n s)
     end
   | Tags (_, level) =>
-    if is_level_uniform level then
+    if heaviness_of_level level = Heavy then
       []
     else
       let val n = length decls in
@@ -2209,11 +2205,13 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
+    val sym_tab =
+      conjs @ facts |> sym_table_for_facts ctxt type_enc explicit_apply
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val firstorderize = firstorderize_fact thy format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
-    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt (SOME false)
+    val sym_tab =
+      conjs @ facts |> sym_table_for_facts ctxt type_enc (SOME false)
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map firstorderize

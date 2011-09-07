@@ -10,6 +10,7 @@ sig
   val hash_string : string -> int
   val hash_term : term -> int
   val strip_spaces : bool -> (char -> bool) -> string -> string
+  val strip_spaces_except_between_idents : string -> string
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
@@ -87,6 +88,9 @@ and strip_spaces_in_list _ _ [] = []
       str c1 :: strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
 fun strip_spaces skip_comments is_evil =
   implode o strip_spaces_in_list skip_comments is_evil o String.explode
+
+fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
+val strip_spaces_except_between_idents = strip_spaces true is_ident_char
 
 val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =

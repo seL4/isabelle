@@ -21,8 +21,7 @@ open Nitpick_Isar
 
 exception SYNTAX of string
 
-fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-val tptp_explode = raw_explode o strip_spaces true is_ident_char
+val tptp_explode = raw_explode o strip_spaces_except_between_idents
 
 fun parse_file_path (c :: ss) =
     if c = "'" orelse c = "\"" then

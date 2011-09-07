@@ -19,6 +19,7 @@ end;
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
+open ATP_Util
 open ATP_Systems
 open ATP_Translate
 open Sledgehammer_Util
@@ -151,13 +152,9 @@ fun normalize_raw_param ctxt =
            error ("Unknown parameter: " ^ quote name ^ "."))
 
 
-(* Ensure that type systems such as "mono_simple?" and "mono_guards!!" are
-   handled correctly. *)
-fun implode_param [s, "?"] = s ^ "?"
-  | implode_param [s, "??"] = s ^ "??"
-  | implode_param [s, "!"] = s ^ "!"
-  | implode_param [s, "!!"] = s ^ "!!"
-  | implode_param ss = space_implode " " ss
+(* Ensures that type encodings such as "mono_simple?" and "poly_guards!!" are
+   read correctly. *)
+val implode_param = strip_spaces_except_between_idents o space_implode " "
 
 structure Data = Theory_Data
 (
