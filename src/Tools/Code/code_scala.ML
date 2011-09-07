@@ -72,7 +72,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                 else print_app tyvars is_pat some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
     and print_app tyvars is_pat some_thm vars fxy
-        (app as ((c, (((arg_typs, _), function_typs), _)), ts)) =
+        (app as ((c, (((arg_typs, _), (function_typs, _)), _)), ts)) =
       let
         val k = length ts;
         val arg_typs' = if is_pat orelse
@@ -265,7 +265,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
           let
             val tyvars = intro_tyvars vs reserved;
             val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
-            fun print_classparam_instance ((classparam, const as (_, ((_, tys), _))), (thm, _)) =
+            fun print_classparam_instance ((classparam, const as (_, ((_, (tys, _)), _))), (thm, _)) =
               let
                 val aux_tys = Name.invent_names (snd reserved) "a" tys;
                 val auxs = map fst aux_tys;

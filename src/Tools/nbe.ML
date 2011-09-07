@@ -425,7 +425,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
         val params = Name.invent Name.context "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
-            [([IConst (class, ((([], []), []), false)) `$$ map (IVar o SOME) params],
+            [([IConst (class, ((([], []), ([], ITyVar "")), false)) `$$ map (IVar o SOME) params],
               IVar (SOME (nth params k)))]));
       in map_index mk names end
   | eqns_of_stmt (_, Code_Thingol.Classrel _) =
@@ -433,8 +433,8 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
   | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arity_args)), (super_instances, (classparam_instances, _)))) =
-      [(inst, (arity_args, [([], IConst (class, ((([], []), []), false)) `$$
-        map (fn (_, (_, (inst, dss))) => IConst (inst, ((([], dss), []), false))) super_instances
+      [(inst, (arity_args, [([], IConst (class, ((([], []), ([], ITyVar "")), false)) `$$
+        map (fn (_, (_, (inst, dss))) => IConst (inst, ((([], dss), ([], ITyVar "")), false))) super_instances
         @ map (IConst o snd o fst) classparam_instances)]))];
 
 

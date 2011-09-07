@@ -75,7 +75,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app_expr tyvars some_thm vars ((c, ((_, function_typs), _)), ts) = case contr_classparam_typs c
+    and print_app_expr tyvars some_thm vars ((c, ((_, (function_typs, _)), _)), ts) = case contr_classparam_typs c
      of [] => (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
       | fingerprint => let
           val ts_fingerprint = ts ~~ take (length ts) fingerprint;

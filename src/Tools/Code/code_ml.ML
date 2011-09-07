@@ -117,7 +117,7 @@ fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deres
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), function_typs), _)), ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (function_typs, _)), _)), ts)) =
       if is_cons c then
         let val k = length function_typs in
           if k < 2 orelse length ts = k
@@ -417,7 +417,7 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), tys), _)), ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (tys, _)), _)), ts)) =
       if is_cons c then
         let val k = length tys in
           if length ts = k
