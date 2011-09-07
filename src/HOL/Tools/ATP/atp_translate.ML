@@ -1094,28 +1094,31 @@ fun simple_translate_lambdas do_lambdas ctxt t =
       t
     else
       let
-        fun aux Ts t =
+        fun trans Ts t =
           case t of
-            @{const Not} $ t1 => @{const Not} $ aux Ts t1
+            @{const Not} $ t1 => @{const Not} $ trans Ts t1
           | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
-            t0 $ Abs (s, T, aux (T :: Ts) t')
+            t0 $ Abs (s, T, trans (T :: Ts) t')
           | (t0 as Const (@{const_name All}, _)) $ t1 =>
-            aux Ts (t0 $ eta_expand Ts t1 1)
+            trans Ts (t0 $ eta_expand Ts t1 1)
           | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
-            t0 $ Abs (s, T, aux (T :: Ts) t')
+            t0 $ Abs (s, T, trans (T :: Ts) t')
           | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
-            aux Ts (t0 $ eta_expand Ts t1 1)
-          | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+            trans Ts (t0 $ eta_expand Ts t1 1)
+          | (t0 as @{const HOL.conj}) $ t1 $ t2 =>
+            t0 $ trans Ts t1 $ trans Ts t2
+          | (t0 as @{const HOL.disj}) $ t1 $ t2 =>
+            t0 $ trans Ts t1 $ trans Ts t2
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
+            t0 $ trans Ts t1 $ trans Ts t2
           | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
-            t0 $ aux Ts t1 $ aux Ts t2
+            t0 $ trans Ts t1 $ trans Ts t2
           | _ =>
             if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
             else t |> Envir.eta_contract |> do_lambdas ctxt Ts
         val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
-      in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
+      in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
   end
 
 fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
@@ -1153,12 +1156,12 @@ fun preprocess_abstractions_in_terms trans_lambdas facts =
    same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
 fun freeze_term t =
   let
-    fun aux (t $ u) = aux t $ aux u
-      | aux (Abs (s, T, t)) = Abs (s, T, aux t)
-      | aux (Var ((s, i), T)) =
+    fun freeze (t $ u) = freeze t $ freeze u
+      | freeze (Abs (s, T, t)) = Abs (s, T, freeze t)
+      | freeze (Var ((s, i), T)) =
         Free (atp_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
-      | aux t = t
-  in t |> exists_subterm is_Var t ? aux end
+      | freeze t = t
+  in t |> exists_subterm is_Var t ? freeze end
 
 fun presimp_prop ctxt presimp_consts t =
   let
@@ -1202,6 +1205,30 @@ fun make_conjecture ctxt format type_enc =
             |> make_formula ctxt format type_enc (format <> CNF) name loc kind)
 
 (** Finite and infinite type inference **)
+
+fun tvar_footprint thy s ary =
+  (case strip_prefix_and_unascii const_prefix s of
+     SOME s =>
+     s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
+       |> map (fn T => Term.add_tvarsT T [] |> map fst)
+   | NONE => [])
+  handle TYPE _ => []
+
+fun ghost_type_args thy s ary =
+  let
+    val footprint = tvar_footprint thy s ary
+    fun ghosts _ [] = []
+      | ghosts seen ((i, tvars) :: args) =
+        ghosts (union (op =) seen tvars) args
+        |> exists (not o member (op =) seen) tvars ? cons i
+  in
+    if forall null footprint then
+      []
+    else
+      0 upto length footprint - 1 ~~ footprint
+      |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
+      |> ghosts []
+  end
 
 type monotonicity_info =
   {maybe_finite_Ts : typ list,
@@ -1256,15 +1283,21 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) =
 datatype tag_site =
   Top_Level of bool option |
   Eq_Arg of bool option |
+  Arg of string * int |
   Elsewhere
 
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
   | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
-    (if granularity_of_type_level level = All_Vars then
-       should_encode_type ctxt mono level T
-     else case (site, is_maybe_universal_var u) of
-       (Eq_Arg _, true) => should_encode_type ctxt mono level T
-     | _ => false)
+    (case granularity_of_type_level level of
+       All_Vars => should_encode_type ctxt mono level T
+     | grain =>
+       case (site, is_maybe_universal_var u) of
+         (Eq_Arg _, true) => should_encode_type ctxt mono level T
+       | (Arg (s, j), true) =>
+         grain = Ghost_Type_Arg_Vars andalso
+         member (op =)
+                (ghost_type_args (Proof_Context.theory_of ctxt) s (j + 1)) j
+       | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
 fun fused_type ctxt mono level =
@@ -1653,30 +1686,6 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
-fun tvar_footprint thy s ary =
-  (case strip_prefix_and_unascii const_prefix s of
-     SOME s =>
-     s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
-       |> map (fn T => Term.add_tvarsT T [] |> map fst)
-   | NONE => [])
-  handle TYPE _ => []
-
-fun ghost_type_args thy s ary =
-  let
-    val footprint = tvar_footprint thy s ary
-    fun ghosts _ [] = []
-      | ghosts seen ((i, tvars) :: args) =
-        ghosts (union (op =) seen tvars) args
-        |> exists (not o member (op =) seen) tvars ? cons i
-  in
-    if forall null footprint then
-      []
-    else
-      0 upto length footprint - 1 ~~ footprint
-      |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
-      |> ghosts []
-  end
-
 fun is_var_ghost_type_arg_in_term thy name pos tm accum =
   is_var_positively_naked_in_term name pos tm accum orelse
   let
@@ -1721,27 +1730,29 @@ fun tag_with_type ctxt format mono type_enc pos T tm =
        | _ => raise Fail "unexpected lambda-abstraction")
 and ho_term_from_iterm ctxt format mono type_enc =
   let
-    fun aux site u =
+    fun term site u =
       let
         val (head, args) = strip_iterm_comb u
         val pos =
           case site of
             Top_Level pos => pos
           | Eq_Arg pos => pos
-          | Elsewhere => NONE
+          | _ => NONE
         val t =
           case head of
             IConst (name as (s, _), _, T_args) =>
             let
-              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
+              fun arg_site j =
+                if is_tptp_equal s then Eq_Arg pos else Arg (s, j)
             in
-              mk_aterm format type_enc name T_args (map (aux arg_site) args)
+              mk_aterm format type_enc name T_args
+                       (map2 (term o arg_site) (0 upto length args - 1) args)
             end
           | IVar (name, _) =>
-            mk_aterm format type_enc name [] (map (aux Elsewhere) args)
+            mk_aterm format type_enc name [] (map (term Elsewhere) args)
           | IAbs ((name, T), tm) =>
             AAbs ((name, ho_type_from_typ format type_enc true 0 T),
-                  aux Elsewhere tm)
+                  term Elsewhere tm)
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in
@@ -1750,7 +1761,7 @@ and ho_term_from_iterm ctxt format mono type_enc =
               else
                 I)
       end
-  in aux end
+  in term end
 and formula_from_iformula ctxt format mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2087,9 +2098,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
       else (Axiom, I)
     val (arg_Ts, res_T) = chop_fun ary T
-    val num_args = length arg_Ts
-    val bound_names =
-      1 upto num_args |> map (`I o make_bound_var o string_of_int)
+    val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
@@ -2100,12 +2109,12 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
           if granularity_of_type_level level = Ghost_Type_Arg_Vars then
             let val ghosts = ghost_type_args thy s ary in
               map2 (fn j => if member (op =) ghosts j then SOME else K NONE)
-                   (0 upto num_args - 1) arg_Ts
+                   (0 upto ary - 1) arg_Ts
             end
           else
-            replicate num_args NONE
+            replicate ary NONE
       else
-        replicate num_args NONE
+        replicate ary NONE
   in
     Formula (guards_sym_formula_prefix ^ s ^
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
@@ -2124,6 +2133,9 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
+    val thy = Proof_Context.theory_of ctxt
+    val level = level_of_type_enc type_enc
+    val grain = granularity_of_type_level level
     val ident_base =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
@@ -2131,19 +2143,28 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
       else (Axiom, I)
     val (arg_Ts, res_T) = chop_fun ary T
-    val bound_names =
-      1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
+    val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     val cst = mk_aterm format type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atyps_of T) pred_sym
-    val should_encode =
-      should_encode_type ctxt mono (level_of_type_enc type_enc)
+    val should_encode = should_encode_type ctxt mono level
     val tag_with = tag_with_type ctxt format mono type_enc NONE
     val add_formula_for_res =
       if should_encode res_T then
-        cons (Formula (ident_base ^ "_res", kind,
-                       eq (tag_with res_T (cst bounds)) (cst bounds),
-                       isabelle_info simpN, NONE))
+        let
+          val tagged_bounds =
+            if grain = Ghost_Type_Arg_Vars then
+              let val ghosts = ghost_type_args thy s ary in
+                map2 (fn (j, arg_T) => member (op =) ghosts j ? tag_with arg_T)
+                     (0 upto ary - 1 ~~ arg_Ts) bounds
+              end
+            else
+              bounds
+        in
+          cons (Formula (ident_base ^ "_res", kind,
+                         eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
+                         isabelle_info simpN, NONE))
+        end
       else
         I
     fun add_formula_for_arg k =
@@ -2161,7 +2182,8 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
       end
   in
     [] |> not pred_sym ? add_formula_for_res
-       |> Config.get ctxt type_tag_arguments
+       |> (Config.get ctxt type_tag_arguments andalso
+           grain = Positively_Naked_Vars)
           ? fold add_formula_for_arg (ary - 1 downto 0)
   end
 
