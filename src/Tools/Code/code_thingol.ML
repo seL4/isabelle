@@ -88,7 +88,6 @@ sig
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_cons: program -> string -> bool
   val is_case: stmt -> bool
-  val contr_classparam_typs: program -> string -> itype option list
   val labelled_name: theory -> program -> string -> string
   val group_stmts: theory -> program
     -> ((string * stmt) list * (string * stmt) list
@@ -481,28 +480,6 @@ fun lookup_classparam_instance program name = program |> Graph.get_first
   (fn (_, (Classinst ((class, _), (_, (param_insts, _))), _)) =>
     Option.map (fn ((const, _), _) => (class, const))
       (find_first (fn ((_, (inst_const, _)), _) => inst_const = name) param_insts) | _ => NONE)
-
-fun contr_classparam_typs program name = 
-  let
-    fun contr_classparam_typs' (class, name) =
-      let
-        val Class (_, (_, (_, params))) = Graph.get_node program class;
-        val SOME ty = AList.lookup (op =) params name;
-        val (tys, res_ty) = unfold_fun ty;
-        fun no_tyvar (_ `%% tys) = forall no_tyvar tys
-          | no_tyvar (ITyVar _) = false;
-      in if no_tyvar res_ty
-        then map (fn ty => if no_tyvar ty then NONE else SOME ty) tys
-        else []
-      end
- in 
-   case Graph.get_node program name
-   of Classparam (_, class) => contr_classparam_typs' (class, name)
-    | Fun (c, _) => (case lookup_classparam_instance program name
-      of NONE => []
-       | SOME (class, name) => the_default [] (try contr_classparam_typs' (class, name)))
-    | _ => []
-  end;
   
 fun labelled_name thy program name =
   let val ctxt = Proof_Context.init_global thy in

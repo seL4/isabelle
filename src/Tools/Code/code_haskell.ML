@@ -25,7 +25,7 @@ infixr 5 @|;
 (** Haskell serializer **)
 
 fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
-    reserved deresolve contr_classparam_typs deriving_show =
+    reserved deresolve deriving_show =
   let
     fun class_name class = case class_syntax class
      of NONE => deresolve class
@@ -298,7 +298,6 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
       labelled_name module_alias module_prefix (Name.make_context reserved) program;
 
     (* print statements *)
-    val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
     fun deriving_show tyco =
       let
         fun deriv _ "fun" = false
@@ -314,7 +313,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
       in deriv [] tyco end;
     fun print_stmt deresolve = print_haskell_stmt labelled_name
       class_syntax tyco_syntax const_syntax (make_vars reserved)
-      deresolve contr_classparam_typs
+      deresolve
       (if string_classes then deriving_show else K false);
 
     (* print modules *)
