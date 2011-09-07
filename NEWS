@@ -463,6 +463,9 @@ snapshot of the classical context, which can be recovered via
 INCOMPATIBILITY, classical tactics and derived proof methods require
 proper Proof.context.
 
+
+*** System ***
+
 * Scala layer provides JVM method invocation service for static
 methods of type (String)String, see Invoke_Scala.method in ML.  For
 example:
@@ -472,6 +475,10 @@ example:
 Togeter with YXML.string_of_body/parse_body and XML.Encode/Decode this
 allows to pass structured values between ML and Scala.
 
+* The IsabelleText fonts includes some further glyphs to support the
+Prover IDE.  Potential INCOMPATIBILITY: users who happen to have
+installed a local copy (which is normally *not* required) need to
+delete or update it from ~~/lib/fonts/.
 
 
 New in Isabelle2011 (January 2011)
