@@ -408,7 +408,7 @@ fun arity_clause _ _ (_, []) = []
 
 fun multi_arity_clause [] = []
   | multi_arity_clause ((tcons, ars) :: tc_arlists) =
-      arity_clause [] 1 (tcons, ars) @ multi_arity_clause tc_arlists
+    arity_clause [] 1 (tcons, ars) @ multi_arity_clause tc_arlists
 
 (* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
    theory thy provided its arguments have the corresponding sorts. *)
@@ -1215,7 +1215,7 @@ type sym_info =
 
 fun add_iterm_syms_to_table ctxt explicit_apply =
   let
-    fun consider_var_arity const_T var_T max_ary =
+    fun consider_var_ary const_T var_T max_ary =
       let
         fun iter ary T =
           if ary = max_ary orelse type_instance ctxt var_T T orelse
@@ -1229,9 +1229,9 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
          (can dest_funT T orelse T = @{typ bool}) then
         let
           val bool_vars' = bool_vars orelse body_type T = @{typ bool}
-          fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
+          fun repair_min_ary {pred_sym, min_ary, max_ary, types} =
             {pred_sym = pred_sym andalso not bool_vars',
-             min_ary = fold (fn T' => consider_var_arity T' T) types min_ary,
+             min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
              max_ary = max_ary, types = types}
           val fun_var_Ts' =
             fun_var_Ts |> can dest_funT T ? insert_type ctxt I T
@@ -1240,7 +1240,7 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
              pointer_eq (fun_var_Ts', fun_var_Ts) then
             accum
           else
-            ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_arity) sym_tab)
+            ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_ary) sym_tab)
         end
       else
         accum
@@ -1267,7 +1267,7 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
                          pointer_eq (types', types) then
                         min_ary
                       else
-                        fold (consider_var_arity T) fun_var_Ts min_ary
+                        fold (consider_var_ary T) fun_var_Ts min_ary
                   in
                     Symtab.update (s, {pred_sym = pred_sym,
                                        min_ary = Int.min (ary, min_ary),
@@ -1282,7 +1282,7 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
                       case explicit_apply of
                         SOME true => 0
                       | SOME false => ary
-                      | NONE => fold (consider_var_arity T) fun_var_Ts ary
+                      | NONE => fold (consider_var_ary T) fun_var_Ts ary
                   in
                     Symtab.update_new (s, {pred_sym = pred_sym,
                                            min_ary = min_ary, max_ary = ary,
@@ -1316,7 +1316,7 @@ fun sym_table_for_facts ctxt explicit_apply facts =
   |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
   |> fold Symtab.update default_sym_tab_entries
 
-fun min_arity_of sym_tab s =
+fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
     SOME ({min_ary, ...} : sym_info) => min_ary
   | NONE =>
@@ -1368,7 +1368,7 @@ fun introduce_explicit_apps_in_iterm sym_tab =
       case strip_iterm_comb tm of
         (head as IConst ((s, _), _, _), args) =>
         args |> map aux
-             |> chop (min_arity_of sym_tab s)
+             |> chop (min_ary_of sym_tab s)
              |>> list_app head
              |-> list_explicit_app
       | (head, args) => list_explicit_app head (map aux args)
@@ -1380,10 +1380,10 @@ fun chop_fun 0 T = ([], T)
   | chop_fun _ T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
-  | filter_type_args thy s arity T_args =
+  | filter_type_args thy s ary T_args =
     let
       val U = robust_const_type thy s
-      val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun arity |> fst) []
+      val arg_U_vars = fold Term.add_tvarsT (U |> chop_fun ary |> fst) []
       val U_args = (s, U) |> robust_const_typargs thy
     in
       U_args ~~ T_args
@@ -1395,8 +1395,8 @@ fun filter_type_args _ _ _ [] = []
 fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
   let
     val thy = Proof_Context.theory_of ctxt
-    fun aux arity (IApp (tm1, tm2)) = IApp (aux (arity + 1) tm1, aux 0 tm2)
-      | aux arity (IConst (name as (s, _), T, T_args)) =
+    fun aux ary (IApp (tm1, tm2)) = IApp (aux (ary + 1) tm1, aux 0 tm2)
+      | aux ary (IConst (name as (s, _), T, T_args)) =
         (case strip_prefix_and_unascii const_prefix s of
            NONE =>
            (name, if level_of_type_enc type_enc = No_Types orelse s = tptp_choice
@@ -1405,7 +1405,7 @@ fun enforce_type_arg_policy_in_iterm ctxt format type_enc =
            let
              val s'' = invert_const s''
              fun filter_T_args false = T_args
-               | filter_T_args true = filter_type_args thy s'' arity T_args
+               | filter_T_args true = filter_type_args thy s'' ary T_args
            in
              case type_arg_policy type_enc s'' of
                Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
@@ -2251,7 +2251,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                      else NONE)
                  ((helpers_offset + 1 upto helpers_offset + length helpers)
                   ~~ helpers)
-    fun add_sym_arity (s, {min_ary, ...} : sym_info) =
+    fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       if min_ary > 0 then
         case strip_prefix_and_unascii const_prefix s of
           SOME s => Symtab.insert (op =) (s, min_ary)
@@ -2265,7 +2265,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
      offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList,
      typed_helpers,
-     Symtab.empty |> Symtab.fold add_sym_arity sym_tab)
+     Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end
 
 (* FUDGE *)
