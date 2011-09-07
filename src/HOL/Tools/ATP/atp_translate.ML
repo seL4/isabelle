@@ -1379,7 +1379,7 @@ fun introduce_explicit_apps_in_iterm sym_tab =
 fun chop_fun 0 T = ([], T)
   | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
     chop_fun (n - 1) ran_T |>> cons dom_T
-  | chop_fun _ _ = raise Fail "unexpected non-function"
+  | chop_fun _ T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
