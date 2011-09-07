@@ -6,6 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2011: Peter Gammie
+  Theory HOL/Libary/Saturated: numbers with saturated arithmetic.
+
+* August 2011: Florian Haftmann, Johannes Hölzl and Lars Noschinski, TUM
+  Refined theory on complete lattices.
+
 
 Contributions to Isabelle2011
 -----------------------------
