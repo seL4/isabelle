@@ -364,7 +364,7 @@ subsubsection{*Successor *}
 
 lemma Suc_nat_eq_nat_zadd1: "(0::int) <= z ==> Suc (nat z) = nat (1 + z)"
 apply (rule sym)
-apply (simp add: nat_eq_iff int_Suc)
+apply (simp add: nat_eq_iff)
 done
 
 lemma Suc_nat_number_of_add:

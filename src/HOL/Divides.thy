@@ -1732,16 +1732,16 @@ by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
     1 div z and 1 mod z **)
 
 lemmas div_pos_pos_1_number_of [simp] =
-    div_pos_pos [OF int_0_less_1, of "number_of w", standard]
+    div_pos_pos [OF zero_less_one, of "number_of w", standard]
 
 lemmas div_pos_neg_1_number_of [simp] =
-    div_pos_neg [OF int_0_less_1, of "number_of w", standard]
+    div_pos_neg [OF zero_less_one, of "number_of w", standard]
 
 lemmas mod_pos_pos_1_number_of [simp] =
-    mod_pos_pos [OF int_0_less_1, of "number_of w", standard]
+    mod_pos_pos [OF zero_less_one, of "number_of w", standard]
 
 lemmas mod_pos_neg_1_number_of [simp] =
-    mod_pos_neg [OF int_0_less_1, of "number_of w", standard]
+    mod_pos_neg [OF zero_less_one, of "number_of w", standard]
 
 
 lemmas posDivAlg_eqn_1_number_of [simp] =
@@ -1790,7 +1790,7 @@ apply (subgoal_tac "b*q < b* (q' + 1) ")
 apply (subgoal_tac "b*q = r' - r + b'*q'")
  prefer 2 apply simp
 apply (simp (no_asm_simp) add: right_distrib)
-apply (subst add_commute, rule zadd_zless_mono, arith)
+apply (subst add_commute, rule add_less_le_mono, arith)
 apply (rule mult_right_mono, auto)
 done
 

@@ -22,7 +22,7 @@ proof -
   from finite_A have "a * setsum id A = setsum (%x. a * x) A"
     by (auto simp add: setsum_const_mult id_def)
   also have "setsum (%x. a * x) = setsum (%x. x * a)"
-    by (auto simp add: zmult_commute)
+    by (auto simp add: mult_commute)
   also have "setsum (%x. x * a) A = setsum id B"
     by (simp add: B_def setsum_reindex_id[OF inj_on_xa_A])
   also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"
@@ -71,7 +71,7 @@ lemma QRLemma3: "(a - 1) * setsum id A =
     p * (setsum (%x. ((x * a) div p)) A - int(card E)) + 2 * setsum id E"
 proof -
   have "(a - 1) * setsum id A = a * setsum id A - setsum id A"
-    by (auto simp add: zdiff_zmult_distrib)
+    by (auto simp add: left_diff_distrib)
   also note QRLemma1
   also from QRLemma2 have "p * (\<Sum>x \<in> A. x * a div p) + setsum id D +
      setsum id E - setsum id A =
@@ -82,7 +82,7 @@ proof -
       p * int (card E) + 2 * setsum id E"
     by arith
   finally show ?thesis
-    by (auto simp only: zdiff_zmult_distrib2)
+    by (auto simp only: right_diff_distrib)
 qed
 
 lemma QRLemma4: "a \<in> zOdd ==>
@@ -284,7 +284,7 @@ lemma S1_Union_S2_prop: "S = S1 \<union> S2"
 proof -
   fix a and b
   assume "~ q * a < p * b" and b1: "0 < b" and b2: "b \<le> (q - 1) div 2"
-  with zless_linear have "(p * b < q * a) | (p * b = q * a)" by auto
+  with less_linear have "(p * b < q * a) | (p * b = q * a)" by auto
   moreover from pb_neq_qa b1 b2 have "(p * b \<noteq> q * a)" by auto
   ultimately show "p * b < q * a" by auto
 qed
@@ -388,7 +388,7 @@ proof-
     by (auto simp add: int_distrib)
   then have "((p - 1) * q) div 2 < (((q - 1) * p) + (2 * p)) div 2"
     apply (rule_tac x = "((p - 1) * q)" in even_div_2_l)
-    by (auto simp add: even3, auto simp add: zmult_ac)
+    by (auto simp add: even3, auto simp add: mult_ac)
   also have "((p - 1) * q) div 2 = q * ((p - 1) div 2)"
     by (auto simp add: even1 even_prod_div_2)
   also have "(((q - 1) * p) + (2 * p)) div 2 = (((q - 1) div 2) * p) + p"
@@ -557,11 +557,11 @@ qed
 
 lemma S1_carda: "int (card(S1)) =
     setsum (%j. (j * q) div p) P_set"
-  by (auto simp add: S1_card zmult_ac)
+  by (auto simp add: S1_card mult_ac)
 
 lemma S2_carda: "int (card(S2)) =
     setsum (%j. (j * p) div q) Q_set"
-  by (auto simp add: S2_card zmult_ac)
+  by (auto simp add: S2_card mult_ac)
 
 lemma pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
     (setsum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"
@@ -610,7 +610,7 @@ proof -
     by auto
   also have "... = (-1::int) ^ (nat(setsum (%x. ((x * p) div q)) Q_set) +
                    nat(setsum (%x. ((x * q) div p)) P_set))"
-    by (auto simp add: zpower_zadd_distrib)
+    by (auto simp add: power_add)
   also have "nat(setsum (%x. ((x * p) div q)) Q_set) +
       nat(setsum (%x. ((x * q) div p)) P_set) =
         nat((setsum (%x. ((x * p) div q)) Q_set) +

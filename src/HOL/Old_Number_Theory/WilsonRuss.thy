@@ -80,7 +80,7 @@ lemma inv_not_1:
 lemma inv_not_p_minus_1_aux:
     "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   apply (unfold zcong_def)
-  apply (simp add: diff_diff_eq diff_diff_eq2 zdiff_zmult_distrib2)
+  apply (simp add: diff_diff_eq diff_diff_eq2 right_diff_distrib)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
    apply (simp add: algebra_simps)
   apply (subst dvd_minus_iff)
@@ -123,13 +123,13 @@ lemma inv_inv_aux: "5 \<le> p ==>
     nat (p - 2) * nat (p - 2) = Suc (nat (p - 1) * nat (p - 3))"
   apply (subst int_int_eq [symmetric])
   apply (simp add: zmult_int [symmetric])
-  apply (simp add: zdiff_zmult_distrib zdiff_zmult_distrib2)
+  apply (simp add: left_diff_distrib right_diff_distrib)
   done
 
 lemma zcong_zpower_zmult:
     "[x^y = 1] (mod p) \<Longrightarrow> [x^(y * z) = 1] (mod p)"
   apply (induct z)
-   apply (auto simp add: zpower_zadd_distrib)
+   apply (auto simp add: power_add)
   apply (subgoal_tac "zcong (x^y * x^(y * z)) (1 * 1) p")
    apply (rule_tac [2] zcong_zmult, simp_all)
   done
@@ -261,7 +261,7 @@ lemma wset_zcong_prod_1 [rule_format]:
       apply (subgoal_tac [5]
         "zcong (a * inv p a * (\<Prod>x\<in>wset (a - 1) p. x)) (1 * 1) p")
        prefer 5
-       apply (simp add: zmult_assoc)
+       apply (simp add: mult_assoc)
       apply (rule_tac [5] zcong_zmult)
        apply (rule_tac [5] inv_is_inv)
          apply (tactic "clarify_tac @{context} 4")

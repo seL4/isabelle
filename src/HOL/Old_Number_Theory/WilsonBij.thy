@@ -75,7 +75,7 @@ lemma inv_not_1:
 lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   -- {* same as @{text WilsonRuss} *}
   apply (unfold zcong_def)
-  apply (simp add: diff_diff_eq diff_diff_eq2 zdiff_zmult_distrib2)
+  apply (simp add: diff_diff_eq diff_diff_eq2 right_diff_distrib)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
    apply (simp add: algebra_simps)
   apply (subst dvd_minus_iff)
@@ -213,7 +213,7 @@ lemma reciP_uniq: "zprime p ==> uniqP (reciR p)"
 
 lemma reciP_sym: "zprime p ==> symP (reciR p)"
   apply (unfold reciR_def symP_def)
-  apply (simp add: zmult_commute)
+  apply (simp add: mult_commute)
   apply auto
   done
 
@@ -240,7 +240,7 @@ lemma bijER_zcong_prod_1:
     apply (subst setprod_insert)
       apply (auto simp add: fin_bijER)
   apply (subgoal_tac "zcong ((a * b) * \<Prod>A) (1 * 1) p")
-   apply (simp add: zmult_assoc)
+   apply (simp add: mult_assoc)
   apply (rule zcong_zmult)
    apply auto
   done

@@ -719,11 +719,11 @@ lemma real_of_int_div_mult:
   shows "real (x div y) \<le> real (x * c div y) * inverse (real c)"
 proof -
   have "c * (x div y) + 0 \<le> c * x div y" unfolding zdiv_zmult1_eq[of c x y]
-    by (rule zadd_left_mono, 
+    by (rule add_left_mono, 
         auto intro!: mult_nonneg_nonneg 
              simp add: pos_imp_zdiv_nonneg_iff[OF `0 < y`] `0 < c`[THEN less_imp_le] pos_mod_sign[OF `0 < y`])
   hence "real (x div y) * real c \<le> real (x * c div y)" 
-    unfolding real_of_int_mult[symmetric] real_of_int_le_iff zmult_commute by auto
+    unfolding real_of_int_mult[symmetric] real_of_int_le_iff mult_commute by auto
   hence "real (x div y) * real c * inverse (real c) \<le> real (x * c div y) * inverse (real c)"
     using `0 < c` by auto
   thus ?thesis unfolding mult_assoc using `0 < c` by auto
@@ -777,7 +777,7 @@ proof -
 
     have "?X = y * (?X div y) + ?X mod y" by auto
     also have "\<dots> \<le> y * (?X div y) + y" by (rule add_mono, auto simp add: pos_mod_bound[OF `0 < y`, THEN less_imp_le])
-    also have "\<dots> = y * (?X div y + 1)" unfolding zadd_zmult_distrib2 by auto
+    also have "\<dots> = y * (?X div y + 1)" unfolding right_distrib by auto
     finally have "real ?X \<le> real y * real (?X div y + 1)" unfolding real_of_int_le_iff real_of_int_mult[symmetric] .
     hence "real ?X / (real y * 2^?l) \<le> real y * real (?X div y + 1) / (real y * 2^?l)" 
       by (rule divide_right_mono, simp only: `0 \<le> real y * 2^?l`)
@@ -1144,7 +1144,7 @@ proof (cases x)
     have "2^(prec - 1) * m \<le> 2^(prec - 1) * 2^?b"
       using `m < 2^?b`[THEN less_imp_le] by (rule mult_left_mono) auto
     also have "\<dots> = 2 ^ nat (int prec + bitlen m - 1)"
-      unfolding pow_split zpower_zadd_distrib by auto
+      unfolding pow_split power_add by auto
     finally have "2^(prec - 1) * m div m \<le> 2 ^ nat (int prec + bitlen m - 1) div m"
       using `0 < m` by (rule zdiv_mono1)
     hence "2^(prec - 1) \<le> 2 ^ nat (int prec + bitlen m - 1) div m"
@@ -1273,7 +1273,7 @@ proof (cases x)
     next
       case False
       have "m = m div ?p * ?p + m mod ?p" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
-      also have "\<dots> \<le> (m div ?p + 1) * ?p" unfolding left_distrib zmult_1 by (rule add_left_mono, rule pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
+      also have "\<dots> \<le> (m div ?p + 1) * ?p" unfolding left_distrib mult_1 by (rule add_left_mono, rule pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
       finally have "real (Float m e) \<le> real (Float (m div ?p + 1) (e + ?d))" unfolding real_of_float_simp add_commute[of e]
         unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of m, symmetric]
         by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)
@@ -1361,7 +1361,7 @@ proof (cases "normfloat (x * y)")
     have "real m \<le> real (m div 2^(nat ?l) + 1) * pow2 ?l"
     proof -
       have "m mod 2^(nat ?l) < 2^(nat ?l)" by (rule pos_mod_bound) auto
-      hence mod_uneq: "real (m mod 2^(nat ?l)) \<le> 1 * 2^(nat ?l)" unfolding zmult_1 real_of_int_less_iff[symmetric] by auto
+      hence mod_uneq: "real (m mod 2^(nat ?l)) \<le> 1 * 2^(nat ?l)" unfolding mult_1 real_of_int_less_iff[symmetric] by auto
       
       have "real m = real (2^(nat ?l) * (m div 2^(nat ?l)) + m mod 2^(nat ?l))" unfolding zmod_zdiv_equality[symmetric] ..
       also have "\<dots> = real (m div 2^(nat ?l)) * 2^(nat ?l) + real (m mod 2^(nat ?l))" unfolding real_of_int_add by auto

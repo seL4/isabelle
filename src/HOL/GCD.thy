@@ -1452,7 +1452,7 @@ lemma lcm_0_iff_nat[simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m=0 \<or> n
 by (metis lcm_0_left_nat lcm_0_nat mult_is_0 prod_gcd_lcm_nat)
 
 lemma lcm_0_iff_int[simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
-by (metis lcm_0_int lcm_0_left_int lcm_pos_int zless_le)
+by (metis lcm_0_int lcm_0_left_int lcm_pos_int less_le)
 
 lemma lcm_1_iff_nat[simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> n=1"
 by (metis gcd_1_nat lcm_unique_nat nat_mult_1 prod_gcd_lcm_nat)

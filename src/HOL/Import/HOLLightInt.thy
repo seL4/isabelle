@@ -11,7 +11,7 @@ fun int_coprime where "int_coprime ((a :: int), (b :: int)) = coprime a b"
 lemma DEF_int_coprime:
   "int_coprime = (\<lambda>u. \<exists>x y. ((fst u) * x) + ((snd u) * y) = int 1)"
   apply (auto simp add: fun_eq_iff)
-  apply (metis bezout_int zmult_commute)
+  apply (metis bezout_int mult_commute)
   by (metis coprime_divisors_nat dvd_triv_left gcd_1_int gcd_add2_int)
 
 lemma INT_FORALL_POS:
@@ -24,7 +24,7 @@ lemma INT_LT_DISCRETE:
 
 lemma INT_ABS_MUL_1:
   "(abs (x * y) = int 1) = (abs x = int 1 \<and> abs y = int 1)"
-  by simp (metis dvd_mult_right zdvd1_eq abs_zmult_eq_1 abs_mult zmult_1_right)
+  by simp (metis dvd_mult_right zdvd1_eq abs_zmult_eq_1 abs_mult mult_1_right)
 
 lemma dest_int_rep:
   "\<exists>(n :: nat). real (i :: int) = real n \<or> real i = - real n"
@@ -56,19 +56,19 @@ lemma int_sgn_th:
 
 lemma DEF_int_max:
   "max = (\<lambda>u ua. floor (max (real u) (real ua)))"
-  by (metis floor_real_of_int real_of_int_le_iff sup_absorb1 sup_commute sup_max zle_linear)
+  by (metis floor_real_of_int real_of_int_le_iff sup_absorb1 sup_commute sup_max linorder_linear)
 
 lemma int_max_th:
   "real (max (x :: int) y) = max (real x) (real y)"
-  by (metis min_max.le_iff_sup min_max.sup_absorb1 real_of_int_le_iff zle_linear)
+  by (metis min_max.le_iff_sup min_max.sup_absorb1 real_of_int_le_iff linorder_linear)
 
 lemma DEF_int_min:
   "min = (\<lambda>u ua. floor (min (real u) (real ua)))"
-  by (metis floor_real_of_int inf_absorb1 inf_absorb2 inf_int_def inf_real_def real_of_int_le_iff zle_linear)
+  by (metis floor_real_of_int inf_absorb1 inf_absorb2 inf_int_def inf_real_def real_of_int_le_iff linorder_linear)
 
 lemma int_min_th:
   "real (min (x :: int) y) = min (real x) (real y)"
-  by (metis inf_absorb1 inf_absorb2 inf_int_def inf_real_def real_of_int_le_iff zle_linear)
+  by (metis inf_absorb1 inf_absorb2 inf_int_def inf_real_def real_of_int_le_iff linorder_linear)
 
 lemma INT_IMAGE:
   "(\<exists>n. x = int n) \<or> (\<exists>n. x = - int n)"
@@ -119,7 +119,7 @@ definition "hl_div k l = (if 0 \<le> l then k div l else -(k div (-l)))"
 lemma hl_mod_div:
   "n \<noteq> (0\<Colon>int) \<Longrightarrow> m = hl_div m n * n + hl_mod m n"
   unfolding hl_div_def hl_mod_def
-  by auto (metis zmod_zdiv_equality zmult_commute zmult_zminus)
+  by auto (metis zmod_zdiv_equality mult_commute mult_minus_left)
 
 lemma sth:
   "(\<forall>(x :: int) y z. x + (y + z) = x + y + z) \<and>
@@ -131,7 +131,7 @@ lemma sth:
    (\<forall>(x :: int). int 0 * x = int 0) \<and>
    (\<forall>(x :: int) y z. x * (y + z) = x * y + x * z) \<and>
    (\<forall>(x :: int). x ^ 0 = int 1) \<and> (\<forall>(x :: int) n. x ^ Suc n = x * x ^ n)"
-  by (simp_all add: zadd_zmult_distrib2)
+  by (simp_all add: right_distrib)
 
 lemma INT_DIVISION:
   "n ~= int 0 \<Longrightarrow> m = hl_div m n * n + hl_mod m n \<and> int 0 \<le> hl_mod m n \<and> hl_mod m n < abs n"
@@ -160,7 +160,7 @@ lemma DEF_div:
   apply (simp add: hl_mod_def hl_div_def)
   apply (case_tac "xa > 0")
   apply (simp add: hl_mod_def hl_div_def)
-  apply (metis comm_semiring_1_class.normalizing_semiring_rules(24) div_mult_self2 not_less_iff_gr_or_eq order_less_le zadd_0 zdiv_eq_0_iff zmult_commute)
+  apply (metis comm_semiring_1_class.normalizing_semiring_rules(24) div_mult_self2 not_less_iff_gr_or_eq order_less_le add_0 zdiv_eq_0_iff mult_commute)
   apply (simp add: hl_mod_def hl_div_def)
   by (metis add.comm_neutral add_pos_nonneg div_mult_self1 less_minus_iff minus_add minus_add_cancel minus_minus mult_zero_right not_square_less_zero zdiv_eq_0_iff zdiv_zminus2)
 
@@ -182,14 +182,14 @@ lemma DEF_rem:
   apply (simp add: hl_mod_def hl_div_def)
   apply (metis add_left_cancel mod_div_equality)
   apply (simp add: hl_mod_def hl_div_def)
-  by (metis minus_mult_right mod_mult_self2 mod_pos_pos_trivial zadd_commute zminus_zmod zmod_zminus2 zmult_commute)
+  by (metis minus_mult_right mod_mult_self2 mod_pos_pos_trivial add_commute zminus_zmod zmod_zminus2 mult_commute)
 
 lemma DEF_int_gcd:
   "int_gcd = (SOME d. \<forall>a b. (int 0) \<le> (d (a, b)) \<and> (d (a, b)) dvd a \<and>
        (d (a, b)) dvd b \<and> (\<exists>x y. d (a, b) = (a * x) + (b * y)))"
   apply (rule some_equality[symmetric])
   apply auto
-  apply (metis bezout_int zmult_commute)
+  apply (metis bezout_int mult_commute)
   apply (auto simp add: fun_eq_iff)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="b" in spec)

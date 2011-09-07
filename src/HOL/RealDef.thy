@@ -1412,7 +1412,7 @@ lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x"
 by (insert real_of_nat_div2 [of n x], simp)
 
 lemma real_of_int_real_of_nat: "real (int n) = real n"
-by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)
+by (simp add: real_of_nat_def real_of_int_def)
 
 lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
 by (simp add: real_of_int_def real_of_nat_def)

@@ -39,7 +39,7 @@ proof -
     then have "2 * (a::int) - 2 * (b :: int) = 1"
       by arith
     then have "2 * (a - b) = 1"
-      by (auto simp add: zdiff_zmult_distrib)
+      by (auto simp add: left_diff_distrib)
     moreover have "(2 * (a - b)):zEven"
       by (auto simp only: zEven_def)
     ultimately have False
@@ -66,7 +66,7 @@ proof (rule classical)
   then have "2 * a * y - 2 * b = 1"
     by arith
   then have "2 * (a * y - b) = 1"
-    by (auto simp add: zdiff_zmult_distrib)
+    by (auto simp add: left_diff_distrib)
   moreover have "(2 * (a * y - b)):zEven"
     by (auto simp only: zEven_def)
   ultimately have False
@@ -85,7 +85,7 @@ lemma even_div_2_prop2: "x \<in> zEven ==> (2 * (x div 2)) = x"
 
 lemma even_plus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x + y \<in> zEven"
   apply (auto simp add: zEven_def)
-  apply (auto simp only: zadd_zmult_distrib2 [symmetric])
+  apply (auto simp only: right_distrib [symmetric])
   done
 
 lemma even_times_either: "x \<in> zEven ==> x * y \<in> zEven"
@@ -93,12 +93,12 @@ lemma even_times_either: "x \<in> zEven ==> x * y \<in> zEven"
 
 lemma even_minus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x - y \<in> zEven"
   apply (auto simp add: zEven_def)
-  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  apply (auto simp only: right_diff_distrib [symmetric])
   done
 
 lemma odd_minus_odd: "[| x \<in> zOdd; y \<in> zOdd |] ==> x - y \<in> zEven"
   apply (auto simp add: zOdd_def zEven_def)
-  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  apply (auto simp only: right_diff_distrib [symmetric])
   done
 
 lemma even_minus_odd: "[| x \<in> zEven; y \<in> zOdd |] ==> x - y \<in> zOdd"
@@ -109,13 +109,13 @@ lemma even_minus_odd: "[| x \<in> zEven; y \<in> zOdd |] ==> x - y \<in> zOdd"
 
 lemma odd_minus_even: "[| x \<in> zOdd; y \<in> zEven |] ==> x - y \<in> zOdd"
   apply (auto simp add: zOdd_def zEven_def)
-  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  apply (auto simp only: right_diff_distrib [symmetric])
   done
 
 lemma odd_times_odd: "[| x \<in> zOdd;  y \<in> zOdd |] ==> x * y \<in> zOdd"
-  apply (auto simp add: zOdd_def zadd_zmult_distrib zadd_zmult_distrib2)
+  apply (auto simp add: zOdd_def left_distrib right_distrib)
   apply (rule_tac x = "2 * ka * k + ka + k" in exI)
-  apply (auto simp add: zadd_zmult_distrib)
+  apply (auto simp add: left_distrib)
   done
 
 lemma odd_iff_not_even: "(x \<in> zOdd) = (~ (x \<in> zEven))"
@@ -195,7 +195,7 @@ proof -
   finally have "(-1::int)^nat x = (-1)^(2 * nat a + 1)"
     by simp
   also have "... = ((-1::int)^2)^ (nat a) * (-1)^1"
-    by (auto simp add: zpower_zpower [symmetric] zpower_zadd_distrib)
+    by (auto simp add: power_mult power_add)
   also have "(-1::int)^2 = 1"
     by simp
   finally show ?thesis

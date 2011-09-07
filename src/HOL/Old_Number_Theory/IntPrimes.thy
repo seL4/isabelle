@@ -43,7 +43,7 @@ subsection {* Euclid's Algorithm and GCD *}
 
 lemma zrelprime_zdvd_zmult_aux:
      "zgcd n k = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
-    by (metis abs_of_nonneg dvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs zmult_1_right)
+    by (metis abs_of_nonneg dvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs mult_1_right)
 
 lemma zrelprime_zdvd_zmult: "zgcd n k = 1 ==> k dvd m * n ==> k dvd m"
   apply (case_tac "0 \<le> m")
@@ -93,7 +93,7 @@ lemma zgcd_zmult_zdvd_zgcd:
   apply (simp add: zgcd_greatest_iff)
   apply (rule_tac n = k in zrelprime_zdvd_zmult)
    prefer 2
-   apply (simp add: zmult_commute)
+   apply (simp add: mult_commute)
   apply (metis zgcd_1 zgcd_commute zgcd_left_commute)
   done
 
@@ -142,8 +142,8 @@ lemma zcong_zmult:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a * c = b * d] (mod m)"
   apply (rule_tac b = "b * c" in zcong_trans)
    apply (unfold zcong_def)
-  apply (metis zdiff_zmult_distrib2 dvd_mult zmult_commute)
-  apply (metis zdiff_zmult_distrib2 dvd_mult)
+  apply (metis right_diff_distrib dvd_mult mult_commute)
+  apply (metis right_diff_distrib dvd_mult)
   done
 
 lemma zcong_scalar: "[a = b] (mod m) ==> [a * k = b * k] (mod m)"
@@ -165,7 +165,7 @@ lemma zcong_square:
     apply (rule_tac [3] s = "a * a - 1 + p * (1 - a)" in subst)
      prefer 4
      apply (simp add: zdvd_reduce)
-    apply (simp_all add: zdiff_zmult_distrib zmult_commute zdiff_zmult_distrib2)
+    apply (simp_all add: left_diff_distrib mult_commute right_diff_distrib)
   done
 
 lemma zcong_cancel:
@@ -179,7 +179,7 @@ lemma zcong_cancel:
    apply (subst zcong_sym)
    apply (unfold zcong_def)
    apply (rule_tac [!] zrelprime_zdvd_zmult)
-     apply (simp_all add: zdiff_zmult_distrib)
+     apply (simp_all add: left_diff_distrib)
   apply (subgoal_tac "m dvd (-(a * k - b * k))")
    apply simp
   apply (subst dvd_minus_iff, assumption)
@@ -188,7 +188,7 @@ lemma zcong_cancel:
 lemma zcong_cancel2:
   "0 \<le> m ==>
     zgcd k m = 1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
-  by (simp add: zmult_commute zcong_cancel)
+  by (simp add: mult_commute zcong_cancel)
 
 lemma zcong_zgcd_zmult_zmod:
   "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd m n = 1
@@ -197,9 +197,9 @@ lemma zcong_zgcd_zmult_zmod:
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
     apply (case_tac [2] "0 \<le> ka")
-  apply (metis zdvd_mult_div_cancel dvd_refl dvd_mult_left zmult_commute zrelprime_zdvd_zmult)
-  apply (metis abs_dvd_iff abs_of_nonneg zadd_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs zmult_1_right zmult_commute)
-  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff zle_antisym zle_linear zle_refl zmult_commute zrelprime_zdvd_zmult)
+  apply (metis zdvd_mult_div_cancel dvd_refl dvd_mult_left mult_commute zrelprime_zdvd_zmult)
+  apply (metis abs_dvd_iff abs_of_nonneg add_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs mult_1_right mult_commute)
+  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff order_antisym linorder_linear order_refl mult_commute zrelprime_zdvd_zmult)
   apply (metis dvd_triv_left)
   done
 
@@ -208,7 +208,7 @@ lemma zcong_zless_imp_eq:
     a < m ==> 0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
   apply (unfold zcong_def dvd_def, auto)
   apply (drule_tac f = "\<lambda>z. z mod m" in arg_cong)
-  apply (metis diff_add_cancel mod_pos_pos_trivial zadd_0 zadd_commute zmod_eq_0_iff mod_add_right_eq)
+  apply (metis diff_add_cancel mod_pos_pos_trivial add_0 add_commute zmod_eq_0_iff mod_add_right_eq)
   done
 
 lemma zcong_square_zless:
@@ -253,7 +253,7 @@ lemma zgcd_zcong_zgcd:
 
 lemma zcong_zmod_aux:
      "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
-  by(simp add: zdiff_zmult_distrib2 add_diff_eq eq_diff_eq add_ac)
+  by(simp add: right_diff_distrib add_diff_eq eq_diff_eq add_ac)
 
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)
@@ -261,7 +261,7 @@ lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (rule_tac m = m in zcong_zmod_aux)
   apply (rule trans)
    apply (rule_tac [2] k = m and m = "a div m - b div m" in zdvd_reduce)
-  apply (simp add: zadd_commute)
+  apply (simp add: add_commute)
   done
 
 lemma zcong_zmod_eq: "0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
@@ -282,7 +282,7 @@ lemma "[a = b] (mod m) = (a mod m = b mod m)"
   apply (erule disjE)  
    prefer 2 apply (simp add: zcong_zmod_eq)
   txt{*Remainding case: @{term "m<0"}*}
-  apply (rule_tac t = m in zminus_zminus [THEN subst])
+  apply (rule_tac t = m in minus_minus [THEN subst])
   apply (subst zcong_zminus)
   apply (subst zcong_zmod_eq, arith)
   apply (frule neg_mod_bound [of _ a], frule neg_mod_bound [of _ b]) 
@@ -324,7 +324,7 @@ lemma xzgcd_correct_aux2:
   apply (case_tac "r' mod r = 0")
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign, auto)
-  apply (metis Pair_eq xzgcda.simps zle_refl)
+  apply (metis Pair_eq xzgcda.simps order_refl)
   done
 
 lemma xzgcd_correct:
@@ -341,7 +341,7 @@ text {* \medskip @{term xzgcd} linear *}
 lemma xzgcda_linear_aux1:
   "(a - r * b) * m + (c - r * d) * (n::int) =
    (a * m + c * n) - r * (b * m + d * n)"
-  by (simp add: zdiff_zmult_distrib zadd_zmult_distrib2 zmult_assoc)
+  by (simp add: left_diff_distrib right_distrib mult_assoc)
 
 lemma xzgcda_linear_aux2:
   "r' = s' * m + t' * n ==> r = s * m + t * n
@@ -391,7 +391,7 @@ lemma zcong_lineq_ex:
    prefer 2
    apply simp
   apply (unfold zcong_def)
-  apply (simp (no_asm) add: zmult_commute)
+  apply (simp (no_asm) add: mult_commute)
   done
 
 lemma zcong_lineq_unique:
@@ -407,7 +407,7 @@ lemma zcong_lineq_unique:
   apply (cut_tac a = a and n = n in zcong_lineq_ex, auto)
   apply (rule_tac x = "x * b mod n" in exI, safe)
     apply (simp_all (no_asm_simp))
-  apply (metis zcong_scalar zcong_zmod zmod_zmult1_eq zmult_1 zmult_assoc)
+  apply (metis zcong_scalar zcong_zmod zmod_zmult1_eq mult_1 mult_assoc)
   done
 
 end

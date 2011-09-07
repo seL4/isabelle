@@ -308,7 +308,7 @@ next
   {fix x
     have "P x \<longrightarrow> P (x + i * d)" using step.hyps by blast
     also have "\<dots> \<longrightarrow> P(x + (i + 1) * d)" using plus[THEN spec, of "x + i * d"]
-      by (simp add:int_distrib zadd_ac)
+      by (simp add:int_distrib add_ac)
     ultimately have "P x \<longrightarrow> P(x + (i + 1) * d)" by blast}
   thus ?case ..
 qed

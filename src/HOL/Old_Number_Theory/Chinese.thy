@@ -241,7 +241,7 @@ lemma chinese_remainder:
           "0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
           \<and> [kf i * mhf mf n i * xilin_sol i n kf bf mf = bf i] (mod mf i)")
          prefer 6
-         apply (simp add: zmult_ac)
+         apply (simp add: mult_ac)
         apply (unfold xilin_sol_def)
         apply (tactic {* asm_simp_tac @{simpset} 6 *})
         apply (rule_tac [6] ex1_implies_ex [THEN someI_ex])

@@ -67,7 +67,7 @@ proof
   then have "[j * j = (a * MultInv p j) * j] (mod p)"
     by (auto simp add: zcong_scalar)
   then have a:"[j * j = a * (MultInv p j * j)] (mod p)"
-    by (auto simp add: zmult_ac)
+    by (auto simp add: mult_ac)
   have "[j * j = a] (mod p)"
   proof -
     from assms(1,2,4) have "[MultInv p j * j = 1] (mod p)"
@@ -148,7 +148,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                    c = "a * (x * MultInv p x)" in  zcong_trans, force)
   apply (frule_tac p = p and x = x in MultInv_prop2, auto)
 apply (metis StandardRes_SRStar_prop3 mult_1_right mult_commute zcong_sym zcong_zmult_prop1)
-  apply (auto simp add: zmult_ac)
+  apply (auto simp add: mult_ac)
   done
 
 lemma aux1: "[| 0 < x; (x::int) < a; x \<noteq> (a - 1) |] ==> x < a - 1"
@@ -237,7 +237,7 @@ proof -
   then have "a ^ (nat p) =  a ^ (1 + (nat p - 1))"
     by (auto simp add: diff_add_assoc)
   also have "... = (a ^ 1) * a ^ (nat(p) - 1)"
-    by (simp only: zpower_zadd_distrib)
+    by (simp only: power_add)
   also have "... = a * a ^ (nat(p) - 1)"
     by auto
   finally show ?thesis .
@@ -286,7 +286,7 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   apply (auto simp add: zpower_zpower) 
   apply (rule zcong_trans)
   apply (auto simp add: zcong_sym [of "x ^ nat ((p - 1) div 2)"])
-  apply (metis Little_Fermat even_div_2_prop2 mult_Bit0 number_of_is_id odd_minus_one_even one_is_num_one zmult_1 aux__2)
+  apply (metis Little_Fermat even_div_2_prop2 mult_Bit0 number_of_is_id odd_minus_one_even one_is_num_one mult_1 aux__2)
   done
 
 
