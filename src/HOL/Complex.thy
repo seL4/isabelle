@@ -253,6 +253,10 @@ lemma complex_of_real_mult_Complex:
   shows "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
   by (simp add: complex_of_real_def)
 
+lemma complex_eq_cancel_iff2 [simp]:
+  shows "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
+  by (simp add: complex_of_real_def)
+
 lemma complex_split_polar:
      "\<exists>r a. z = complex_of_real r * (Complex (cos a) (sin a))"
   by (simp add: complex_eq_iff polar_Ex)
@@ -538,10 +542,6 @@ definition arg :: "complex => real" where
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
   by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult_commute)
-
-lemma complex_eq_cancel_iff2 [simp]:
-  shows "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
-  by (simp add: complex_of_real_def)
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
   by (simp add: complex_sgn_def divide_inverse)
