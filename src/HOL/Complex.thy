@@ -649,10 +649,6 @@ lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
 lemma rcis_zero_arg [simp]: "rcis r 0 = complex_of_real r"
   by (simp add: rcis_def)
 
-lemma complex_of_real_minus_one:
-   "complex_of_real (-(1::real)) = -(1::complex)"
-  by (simp add: complex_of_real_def complex_one_def)
-
 lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
   by (simp add: mult_assoc [symmetric])
 
