@@ -335,6 +335,17 @@ lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
 lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
   by (cases x) simp
 
+text {* Properties of complex signum. *}
+
+lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
+  by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult_commute)
+
+lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
+  by (simp add: complex_sgn_def divide_inverse)
+
+lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
+  by (simp add: complex_sgn_def divide_inverse)
+
 
 subsection {* Completeness of the Complexes *}
 
@@ -535,19 +546,10 @@ lemmas isCont_cnj [simp] =
   bounded_linear.isCont [OF bounded_linear_cnj]
 
 
-subsection {* Complex Signum and Argument *}
+subsection {* Complex Argument *}
 
 definition arg :: "complex => real" where
   "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
-
-lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
-  by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult_commute)
-
-lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
-  by (simp add: complex_sgn_def divide_inverse)
-
-lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
-  by (simp add: complex_sgn_def divide_inverse)
 
 (*----------------------------------------------------------------------------*)
 (* Many of the theorems below need to be moved elsewhere e.g. Transc. Also *)
