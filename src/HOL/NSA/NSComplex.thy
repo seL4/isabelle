@@ -457,14 +457,6 @@ by transfer simp
 (*  harg                                                                     *)
 (*---------------------------------------------------------------------------*)
 
-lemma cos_harg_i_mult_zero_pos:
-     "!!y. 0 < y ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
-by transfer (rule cos_arg_i_mult_zero_pos)
-
-lemma cos_harg_i_mult_zero_neg:
-     "!!y. y < 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
-by transfer (rule cos_arg_i_mult_zero_neg)
-
 lemma cos_harg_i_mult_zero [simp]:
      "!!y. y \<noteq> 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
 by transfer (rule cos_arg_i_mult_zero)

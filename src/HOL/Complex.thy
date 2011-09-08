@@ -746,14 +746,6 @@ lemma cis_arg: "z \<noteq> 0 \<Longrightarrow> cis (arg z) = sgn z"
 lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
   by (cases "z = 0", simp_all add: rcis_def cis_arg sgn_div_norm of_real_def)
 
-lemma cos_arg_i_mult_zero_pos: (* TODO: delete *)
-   "0 < y ==> cos (arg(Complex 0 y)) = 0"
-  using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
-
-lemma cos_arg_i_mult_zero_neg: (* TODO: delete *)
-   "y < 0 ==> cos (arg(Complex 0 y)) = 0"
-  using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
-
 lemma cos_arg_i_mult_zero [simp]:
      "y \<noteq> 0 ==> cos (arg(Complex 0 y)) = 0"
   using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
