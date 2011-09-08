@@ -434,12 +434,6 @@ by transfer (rule Re_sgn)
 lemma hIm_hsgn [simp]: "!!z. hIm(hsgn z) = hIm(z)/hcmod z"
 by transfer (rule Im_sgn)
 
-lemma hcomplex_inverse_complex_split:
-     "!!x y. inverse(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y) =
-      hcomplex_of_hypreal(x/(x ^ 2 + y ^ 2)) -
-      iii * hcomplex_of_hypreal(y/(x ^ 2 + y ^ 2))"
-by transfer (rule complex_inverse_complex_split)
-
 lemma HComplex_inverse:
      "!!x y. inverse (HComplex x y) =
       HComplex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"

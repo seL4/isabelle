@@ -549,12 +549,6 @@ lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
 lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
   by (simp add: complex_sgn_def divide_inverse)
 
-lemma complex_inverse_complex_split:
-     "inverse(complex_of_real x + ii * complex_of_real y) =
-      complex_of_real(x/(x ^ 2 + y ^ 2)) -
-      ii * complex_of_real(y/(x ^ 2 + y ^ 2))"
-  by (simp add: complex_of_real_def i_def diff_minus divide_inverse)
-
 (*----------------------------------------------------------------------------*)
 (* Many of the theorems below need to be moved elsewhere e.g. Transc. Also *)
 (* many of the theorems are not used - so should they be kept?                *)
