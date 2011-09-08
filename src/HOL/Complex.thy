@@ -595,6 +595,15 @@ lemma Im_cis [simp]: "Im (cis a) = sin a"
 lemma cis_zero [simp]: "cis 0 = 1"
   by (simp add: cis_def)
 
+lemma norm_cis [simp]: "norm (cis a) = 1"
+  by (simp add: cis_def)
+
+lemma sgn_cis [simp]: "sgn (cis a) = cis a"
+  by (simp add: sgn_div_norm)
+
+lemma cis_neq_zero [simp]: "cis a \<noteq> 0"
+  by (metis norm_cis norm_zero zero_neq_one)
+
 lemma cis_mult: "cis a * cis b = cis (a + b)"
   by (simp add: cis_def cos_add sin_add)
 
@@ -619,30 +628,30 @@ definition rcis :: "[real, real] \<Rightarrow> complex" where
   "rcis r a = complex_of_real r * cis a"
 
 lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
-  by (simp add: rcis_def cis_def)
+  by (simp add: rcis_def)
 
 lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
-  by (simp add: rcis_def cis_def)
+  by (simp add: rcis_def)
 
 lemma rcis_Ex: "\<exists>r a. z = rcis r a"
-apply (induct z)
-apply (simp add: rcis_def cis_def polar_Ex complex_of_real_mult_Complex)
-done
+  by (simp add: complex_eq_iff polar_Ex)
 
 lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
-  by (simp add: rcis_def cis_def norm_mult)
+  by (simp add: rcis_def norm_mult)
 
 lemma cis_rcis_eq: "cis a = rcis 1 a"
   by (simp add: rcis_def)
 
 lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
-  by (simp add: rcis_def cis_def cos_add sin_add right_distrib
-    right_diff_distrib complex_of_real_def)
+  by (simp add: rcis_def cis_mult)
 
 lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
   by (simp add: rcis_def)
 
 lemma rcis_zero_arg [simp]: "rcis r 0 = complex_of_real r"
+  by (simp add: rcis_def)
+
+lemma rcis_eq_zero_iff [simp]: "rcis r a = 0 \<longleftrightarrow> r = 0"
   by (simp add: rcis_def)
 
 lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
@@ -652,10 +661,7 @@ lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
   by (simp add: divide_inverse rcis_def)
 
 lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
-apply (simp add: complex_divide_def)
-apply (case_tac "r2=0", simp)
-apply (simp add: rcis_inverse rcis_mult diff_minus)
-done
+  by (simp add: rcis_def cis_divide [symmetric])
 
 subsubsection {* Complex exponential *}
 
@@ -682,6 +688,12 @@ qed
 
 lemma expi_def: "expi z = complex_of_real (exp (Re z)) * cis (Im z)"
   unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by simp
+
+lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
+  unfolding expi_def by simp
+
+lemma Im_exp: "Im (exp z) = exp (Re z) * sin (Im z)"
+  unfolding expi_def by simp
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
