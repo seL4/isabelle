@@ -1312,9 +1312,25 @@ fun fused_type ctxt mono level =
 (** predicators and application operators **)
 
 type sym_info =
-  {pred_sym : bool, min_ary : int, max_ary : int, types : typ list}
+  {pred_sym : bool, min_ary : int, max_ary : int, types : typ list,
+   in_conj : bool}
 
-fun add_iterm_syms_to_table ctxt explicit_apply =
+fun default_sym_tab_entries type_enc =
+  (make_fixed_const NONE @{const_name undefined},
+       {pred_sym = false, min_ary = 0, max_ary = 0, types = [],
+        in_conj = false}) ::
+  ([tptp_false, tptp_true]
+   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [],
+                  in_conj = false})) @
+  ([tptp_equal, tptp_old_equal]
+   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [],
+                  in_conj = false}))
+  |> not (is_type_enc_higher_order type_enc)
+     ? cons (prefixed_predicator_name,
+             {pred_sym = true, min_ary = 1, max_ary = 1, types = [],
+              in_conj = false})
+
+fun sym_table_for_facts ctxt type_enc explicit_apply conjs facts =
   let
     fun consider_var_ary const_T var_T max_ary =
       let
@@ -1330,10 +1346,10 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
          (can dest_funT T orelse T = @{typ bool}) then
         let
           val bool_vars' = bool_vars orelse body_type T = @{typ bool}
-          fun repair_min_ary {pred_sym, min_ary, max_ary, types} =
+          fun repair_min_ary {pred_sym, min_ary, max_ary, types, in_conj} =
             {pred_sym = pred_sym andalso not bool_vars',
              min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
-             max_ary = max_ary, types = types}
+             max_ary = max_ary, types = types, in_conj = in_conj}
           val fun_var_Ts' =
             fun_var_Ts |> can dest_funT T ? insert_type ctxt I T
         in
@@ -1345,77 +1361,70 @@ fun add_iterm_syms_to_table ctxt explicit_apply =
         end
       else
         accum
-    fun add top_level tm (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
-      let val (head, args) = strip_iterm_comb tm in
-        (case head of
-           IConst ((s, _), T, _) =>
-           if String.isPrefix bound_var_prefix s orelse
-              String.isPrefix all_bound_var_prefix s then
-             add_universal_var T accum
-           else if String.isPrefix exist_bound_var_prefix s then
-             accum
-           else
-             let val ary = length args in
-               ((bool_vars, fun_var_Ts),
-                case Symtab.lookup sym_tab s of
-                  SOME {pred_sym, min_ary, max_ary, types} =>
-                  let
-                    val pred_sym =
-                      pred_sym andalso top_level andalso not bool_vars
-                    val types' = types |> insert_type ctxt I T
-                    val min_ary =
-                      if is_some explicit_apply orelse
-                         pointer_eq (types', types) then
-                        min_ary
-                      else
-                        fold (consider_var_ary T) fun_var_Ts min_ary
-                  in
-                    Symtab.update (s, {pred_sym = pred_sym,
-                                       min_ary = Int.min (ary, min_ary),
-                                       max_ary = Int.max (ary, max_ary),
-                                       types = types'})
-                                  sym_tab
-                  end
-                | NONE =>
-                  let
-                    val pred_sym = top_level andalso not bool_vars
-                    val min_ary =
-                      case explicit_apply of
-                        SOME true => 0
-                      | SOME false => ary
-                      | NONE => fold (consider_var_ary T) fun_var_Ts ary
-                  in
-                    Symtab.update_new (s, {pred_sym = pred_sym,
-                                           min_ary = min_ary, max_ary = ary,
-                                           types = [T]})
+    fun add_fact_syms conj_fact =
+      let
+        fun add_iterm_syms top_level tm
+                           (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+          let val (head, args) = strip_iterm_comb tm in
+            (case head of
+               IConst ((s, _), T, _) =>
+               if String.isPrefix bound_var_prefix s orelse
+                  String.isPrefix all_bound_var_prefix s then
+                 add_universal_var T accum
+               else if String.isPrefix exist_bound_var_prefix s then
+                 accum
+               else
+                 let val ary = length args in
+                   ((bool_vars, fun_var_Ts),
+                    case Symtab.lookup sym_tab s of
+                      SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
+                      let
+                        val pred_sym =
+                          pred_sym andalso top_level andalso not bool_vars
+                        val types' = types |> insert_type ctxt I T
+                        val in_conj = in_conj orelse conj_fact
+                        val min_ary =
+                          if is_some explicit_apply orelse
+                             pointer_eq (types', types) then
+                            min_ary
+                          else
+                            fold (consider_var_ary T) fun_var_Ts min_ary
+                      in
+                        Symtab.update (s, {pred_sym = pred_sym,
+                                           min_ary = Int.min (ary, min_ary),
+                                           max_ary = Int.max (ary, max_ary),
+                                           types = types', in_conj = in_conj})
                                       sym_tab
-                  end)
-             end
-         | IVar (_, T) => add_universal_var T accum
-         | IAbs ((_, T), tm) => accum |> add_universal_var T |> add false tm
-         | _ => accum)
-        |> fold (add false) args
-      end
-  in add true end
-fun add_fact_syms_to_table ctxt explicit_apply =
-  K (add_iterm_syms_to_table ctxt explicit_apply)
-  |> formula_fold NONE |> fact_lift
-
-fun default_sym_tab_entries type_enc =
-  (make_fixed_const NONE @{const_name undefined},
-                   {pred_sym = false, min_ary = 0, max_ary = 0, types = []}) ::
-  ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
-  ([tptp_equal, tptp_old_equal]
-   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
-  |> not (is_type_enc_higher_order type_enc)
-     ? cons (prefixed_predicator_name,
-             {pred_sym = true, min_ary = 1, max_ary = 1, types = []})
-
-fun sym_table_for_facts ctxt type_enc explicit_apply facts =
-  ((false, []), Symtab.empty)
-  |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
-  |> fold Symtab.update (default_sym_tab_entries type_enc)
+                      end
+                    | NONE =>
+                      let
+                        val pred_sym = top_level andalso not bool_vars
+                        val min_ary =
+                          case explicit_apply of
+                            SOME true => 0
+                          | SOME false => ary
+                          | NONE => fold (consider_var_ary T) fun_var_Ts ary
+                      in
+                        Symtab.update_new (s,
+                            {pred_sym = pred_sym, min_ary = min_ary,
+                             max_ary = ary, types = [T], in_conj = conj_fact})
+                            sym_tab
+                      end)
+                 end
+             | IVar (_, T) => add_universal_var T accum
+             | IAbs ((_, T), tm) =>
+               accum |> add_universal_var T |> add_iterm_syms false tm
+             | _ => accum)
+            |> fold (add_iterm_syms false) args
+          end
+      in K (add_iterm_syms true) |> formula_fold NONE |> fact_lift end
+  in
+    ((false, []), Symtab.empty)
+    |> fold (add_fact_syms true) conjs
+    |> fold (add_fact_syms false) facts
+    |> snd
+    |> fold Symtab.update (default_sym_tab_entries type_enc)
+  end
 
 fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -1883,12 +1892,15 @@ fun decl_lines_for_classes type_enc classes =
 
 fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
   let
-    fun add_iterm_syms in_conj tm =
+    fun add_iterm_syms tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
            IConst ((s, s'), T, T_args) =>
            let
-             val pred_sym = is_pred_sym sym_tab s
+             val (pred_sym, in_conj) =
+               case Symtab.lookup sym_tab s of
+                 SOME {pred_sym, in_conj, ...} => (pred_sym, in_conj)
+               | NONE => (false, false)
              val decl_sym =
                (case type_enc of
                   Guards _ => not pred_sym
@@ -1902,12 +1914,11 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
              else
                I
            end
-         | IAbs (_, tm) => add_iterm_syms in_conj tm
+         | IAbs (_, tm) => add_iterm_syms tm
          | _ => I)
-        #> fold (add_iterm_syms in_conj) args
+        #> fold add_iterm_syms args
       end
-    fun add_fact_syms in_conj =
-      K (add_iterm_syms in_conj) |> formula_fold NONE |> fact_lift
+    val add_fact_syms = K add_iterm_syms |> formula_fold NONE |> fact_lift
     fun add_formula_var_types (AQuant (_, xs, phi)) =
         fold (fn (_, SOME T) => insert_type ctxt I T | _ => I) xs
         #> add_formula_var_types phi
@@ -1937,8 +1948,7 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
   in
     Symtab.empty
     |> is_type_enc_fairly_sound type_enc
-       ? (fold (add_fact_syms true) conjs
-          #> fold (add_fact_syms false) facts
+       ? (fold (fold add_fact_syms) [conjs, facts]
           #> (case type_enc of
                 Simple_Types (First_Order, Polymorphic, _) => add_TYPE_const ()
               | Simple_Types _ => I
@@ -2305,12 +2315,11 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
     val sym_tab =
-      conjs @ facts |> sym_table_for_facts ctxt type_enc explicit_apply
+      sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val firstorderize = firstorderize_fact thy format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
-    val sym_tab =
-      conjs @ facts |> sym_table_for_facts ctxt type_enc (SOME false)
+    val sym_tab = sym_table_for_facts ctxt type_enc (SOME false) conjs facts
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map firstorderize
