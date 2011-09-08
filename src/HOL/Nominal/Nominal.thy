@@ -50,17 +50,17 @@ overloading
   perm_nprod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b) nprod" (unchecked)
 begin
 
-definition
-  perm_fun_def: "perm_fun pi (f::'a\<Rightarrow>'b) = (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
+definition perm_fun :: "'x prm \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+  "perm_fun pi f = (\<lambda>x. pi \<bullet> f (rev pi \<bullet> x))"
 
 definition perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
-  perm_bool_def: "perm_bool pi b = b"
+  "perm_bool pi b = b"
 
 primrec perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit"  where 
   "perm_unit pi () = ()"
   
 primrec perm_prod :: "'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)" where
-  "perm_prod pi (x,y) = (pi\<bullet>x,pi\<bullet>y)"
+  "perm_prod pi (x, y) = (pi\<bullet>x, pi\<bullet>y)"
 
 primrec perm_list :: "'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   nil_eqvt:  "perm_list pi []     = []"
@@ -71,13 +71,13 @@ primrec perm_option :: "'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option" 
 | none_eqvt:  "perm_option pi None     = None"
 
 definition perm_char :: "'x prm \<Rightarrow> char \<Rightarrow> char" where
-  perm_char_def: "perm_char pi c = c"
+  "perm_char pi c = c"
 
 definition perm_nat :: "'x prm \<Rightarrow> nat \<Rightarrow> nat" where
-  perm_nat_def: "perm_nat pi i = i"
+  "perm_nat pi i = i"
 
 definition perm_int :: "'x prm \<Rightarrow> int \<Rightarrow> int" where
-  perm_int_def: "perm_int pi i = i"
+  "perm_int pi i = i"
 
 primrec perm_noption :: "'x prm \<Rightarrow> 'a noption \<Rightarrow> 'a noption" where
   nsome_eqvt:  "perm_noption pi (nSome x) = nSome (pi\<bullet>x)"
@@ -962,7 +962,7 @@ lemma dj_perm_set_forget:
   fixes pi::"'y prm"
   and   x ::"'x set"
   assumes dj: "disjoint TYPE('x) TYPE('y)"
-  shows "(pi\<bullet>x)=x" 
+  shows "pi\<bullet>x=x" 
   using dj by (simp_all add: perm_fun_def disjoint_def perm_bool)
 
 lemma dj_perm_perm_forget:
@@ -1028,7 +1028,7 @@ proof -
 qed
 
 lemma pt_unit_inst:
-  shows  "pt TYPE(unit) TYPE('x)"
+  shows "pt TYPE(unit) TYPE('x)"
   by (simp add: pt_def)
 
 lemma pt_prod_inst:
