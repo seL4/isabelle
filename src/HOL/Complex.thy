@@ -546,35 +546,6 @@ lemmas isCont_cnj [simp] =
   bounded_linear.isCont [OF bounded_linear_cnj]
 
 
-subsection {* Complex Argument *}
-
-definition arg :: "complex => real" where
-  "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
-
-(*----------------------------------------------------------------------------*)
-(* Many of the theorems below need to be moved elsewhere e.g. Transc. Also *)
-(* many of the theorems are not used - so should they be kept?                *)
-(*----------------------------------------------------------------------------*)
-
-lemma cos_arg_i_mult_zero_pos:
-   "0 < y ==> cos (arg(Complex 0 y)) = 0"
-apply (simp add: arg_def abs_if)
-apply (rule_tac a = "pi/2" in someI2, auto)
-apply (rule order_less_trans [of _ 0], auto)
-done
-
-lemma cos_arg_i_mult_zero_neg:
-   "y < 0 ==> cos (arg(Complex 0 y)) = 0"
-apply (simp add: arg_def abs_if)
-apply (rule_tac a = "- pi/2" in someI2, auto)
-apply (rule order_trans [of _ 0], auto)
-done
-
-lemma cos_arg_i_mult_zero [simp]:
-     "y \<noteq> 0 ==> cos (arg(Complex 0 y)) = 0"
-by (auto simp add: linorder_neq_iff cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_neg)
-
-
 subsection{*Finally! Polar Form for Complex Numbers*}
 
 subsubsection {* $\cos \theta + i \sin \theta$ *}
@@ -699,6 +670,93 @@ done
 
 lemma expi_two_pi_i [simp]: "expi((2::complex) * complex_of_real pi * ii) = 1"
   by (simp add: expi_def cis_def)
+
+subsubsection {* Complex argument *}
+
+definition arg :: "complex \<Rightarrow> real" where
+  "arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi))"
+
+lemma arg_zero: "arg 0 = 0"
+  by (simp add: arg_def)
+
+lemma of_nat_less_of_int_iff: (* TODO: move *)
+  "(of_nat n :: 'a::linordered_idom) < of_int x \<longleftrightarrow> int n < x"
+  by (metis of_int_of_nat_eq of_int_less_iff)
+
+lemma real_of_nat_less_number_of_iff [simp]: (* TODO: move *)
+  "real (n::nat) < number_of w \<longleftrightarrow> n < number_of w"
+  unfolding real_of_nat_def nat_number_of_def number_of_eq
+  by (simp add: of_nat_less_of_int_iff zless_nat_eq_int_zless)
+
+lemma arg_unique:
+  assumes "sgn z = cis x" and "-pi < x" and "x \<le> pi"
+  shows "arg z = x"
+proof -
+  from assms have "z \<noteq> 0" by auto
+  have "(SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi) = x"
+  proof
+    fix a def d \<equiv> "a - x"
+    assume a: "sgn z = cis a \<and> - pi < a \<and> a \<le> pi"
+    from a assms have "- (2*pi) < d \<and> d < 2*pi"
+      unfolding d_def by simp
+    moreover from a assms have "cos a = cos x" and "sin a = sin x"
+      by (simp_all add: complex_eq_iff)
+    hence "cos d = 1" unfolding d_def cos_diff by simp
+    moreover hence "sin d = 0" by (rule cos_one_sin_zero)
+    ultimately have "d = 0"
+      unfolding sin_zero_iff even_mult_two_ex
+      by (safe, auto simp add: numeral_2_eq_2 less_Suc_eq)
+    thus "a = x" unfolding d_def by simp
+  qed (simp add: assms del: Re_sgn Im_sgn)
+  with `z \<noteq> 0` show "arg z = x"
+    unfolding arg_def by simp
+qed
+
+lemma arg_correct:
+  assumes "z \<noteq> 0" shows "sgn z = cis (arg z) \<and> -pi < arg z \<and> arg z \<le> pi"
+proof (simp add: arg_def assms, rule someI_ex)
+  obtain r a where z: "z = rcis r a" using rcis_Ex by fast
+  with assms have "r \<noteq> 0" by auto
+  def b \<equiv> "if 0 < r then a else a + pi"
+  have b: "sgn z = cis b"
+    unfolding z b_def rcis_def using `r \<noteq> 0`
+    by (simp add: of_real_def sgn_scaleR sgn_if, simp add: cis_def)
+  have cis_2pi_nat: "\<And>n. cis (2 * pi * real_of_nat n) = 1"
+    by (induct_tac n, simp_all add: right_distrib cis_mult [symmetric],
+      simp add: cis_def)
+  have cis_2pi_int: "\<And>x. cis (2 * pi * real_of_int x) = 1"
+    by (case_tac x rule: int_diff_cases,
+      simp add: right_diff_distrib cis_divide [symmetric] cis_2pi_nat)
+  def c \<equiv> "b - 2*pi * of_int \<lceil>(b - pi) / (2*pi)\<rceil>"
+  have "sgn z = cis c"
+    unfolding b c_def
+    by (simp add: cis_divide [symmetric] cis_2pi_int)
+  moreover have "- pi < c \<and> c \<le> pi"
+    using ceiling_correct [of "(b - pi) / (2*pi)"]
+    by (simp add: c_def less_divide_eq divide_le_eq algebra_simps)
+  ultimately show "\<exists>a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi" by fast
+qed
+
+lemma arg_bounded: "- pi < arg z \<and> arg z \<le> pi"
+  by (cases "z = 0", simp_all add: arg_zero arg_correct)
+
+lemma cis_arg: "z \<noteq> 0 \<Longrightarrow> cis (arg z) = sgn z"
+  by (simp add: arg_correct)
+
+lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
+  by (cases "z = 0", simp_all add: rcis_def cis_arg sgn_div_norm of_real_def)
+
+lemma cos_arg_i_mult_zero_pos: (* TODO: delete *)
+   "0 < y ==> cos (arg(Complex 0 y)) = 0"
+  using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
+
+lemma cos_arg_i_mult_zero_neg: (* TODO: delete *)
+   "y < 0 ==> cos (arg(Complex 0 y)) = 0"
+  using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
+
+lemma cos_arg_i_mult_zero [simp]:
+     "y \<noteq> 0 ==> cos (arg(Complex 0 y)) = 0"
+  using cis_arg [of "Complex 0 y"] by (simp add: complex_eq_iff)
 
 text {* Legacy theorem names *}
 
