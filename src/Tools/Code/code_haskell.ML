@@ -446,7 +446,7 @@ val setup =
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>
-          "\"$ISABELLE_GHC\" -XRankNTypes -XScopedTypeVariables -odir build -hidir build -stubdir build -e \"\" " ^
+          "\"$ISABELLE_GHC\" -XRankNTypes -XScopedTypeVariables -XEmptyDataDecls -odir build -hidir build -stubdir build -e \"\" " ^
             module_name ^ ".hs" } })
   #> Code_Target.add_tyco_syntax target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
