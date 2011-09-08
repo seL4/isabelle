@@ -253,6 +253,10 @@ lemma complex_of_real_mult_Complex:
   shows "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
   by (simp add: complex_of_real_def)
 
+lemma complex_split_polar:
+     "\<exists>r a. z = complex_of_real r * (Complex (cos a) (sin a))"
+  by (simp add: complex_eq_iff polar_Ex)
+
 
 subsection {* Vector Norm *}
 
@@ -379,7 +383,7 @@ proof
 qed
 
 
-subsection {* The Complex Number @{term "\<i>"} *}
+subsection {* The Complex Number $i$ *}
 
 definition "ii" :: complex  ("\<i>")
   where i_def: "ii \<equiv> Complex 0 1"
@@ -422,6 +426,9 @@ lemma power2_i [simp]: "ii\<twosuperior> = -1"
 
 lemma inverse_i [simp]: "inverse ii = - ii"
   by (rule inverse_unique, simp)
+
+lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
+  by (simp add: mult_assoc [symmetric])
 
 
 subsection {* Complex Conjugation *}
@@ -507,6 +514,12 @@ lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<twosuperior> + (Im
 lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
   by (simp add: norm_mult power2_eq_square)
 
+lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
+  by (simp add: cmod_def power2_eq_square)
+
+lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
+  by simp
+
 lemma bounded_linear_cnj: "bounded_linear cnj"
   using complex_cnj_add complex_cnj_scaleR
   by (rule bounded_linear_intro [where K=1], simp)
@@ -518,9 +531,7 @@ lemmas isCont_cnj [simp] =
   bounded_linear.isCont [OF bounded_linear_cnj]
 
 
-subsection{*The Functions @{term sgn} and @{term arg}*}
-
-text {*------------ Argand -------------*}
+subsection {* Complex Signum and Argument *}
 
 definition arg :: "complex => real" where
   "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
@@ -570,15 +581,83 @@ by (auto simp add: linorder_neq_iff cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_
 
 subsection{*Finally! Polar Form for Complex Numbers*}
 
-text {* An abbreviation for @{text "cos a + i sin a"}. *}
+subsubsection {* $\cos \theta + i \sin \theta$ *}
 
 definition cis :: "real \<Rightarrow> complex" where
   "cis a = Complex (cos a) (sin a)"
 
-text {* An abbreviation for @{text "r(cos a + i sin a)"}. *}
+lemma Re_cis [simp]: "Re (cis a) = cos a"
+  by (simp add: cis_def)
+
+lemma Im_cis [simp]: "Im (cis a) = sin a"
+  by (simp add: cis_def)
+
+lemma cis_zero [simp]: "cis 0 = 1"
+  by (simp add: cis_def)
+
+lemma cis_mult: "cis a * cis b = cis (a + b)"
+  by (simp add: cis_def cos_add sin_add)
+
+lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
+  by (induct n, simp_all add: real_of_nat_Suc algebra_simps cis_mult)
+
+lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
+  by (simp add: cis_def)
+
+lemma cis_divide: "cis a / cis b = cis (a - b)"
+  by (simp add: complex_divide_def cis_mult diff_minus)
+
+lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re(cis a ^ n)"
+  by (auto simp add: DeMoivre)
+
+lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
+  by (auto simp add: DeMoivre)
+
+subsubsection {* $r(\cos \theta + i \sin \theta)$ *}
 
 definition rcis :: "[real, real] \<Rightarrow> complex" where
   "rcis r a = complex_of_real r * cis a"
+
+lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
+  by (simp add: rcis_def cis_def)
+
+lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
+  by (simp add: rcis_def cis_def)
+
+lemma rcis_Ex: "\<exists>r a. z = rcis r a"
+apply (induct z)
+apply (simp add: rcis_def cis_def polar_Ex complex_of_real_mult_Complex)
+done
+
+lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
+  by (simp add: rcis_def cis_def norm_mult)
+
+lemma cis_rcis_eq: "cis a = rcis 1 a"
+  by (simp add: rcis_def)
+
+lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
+  by (simp add: rcis_def cis_def cos_add sin_add right_distrib
+    right_diff_distrib complex_of_real_def)
+
+lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
+  by (simp add: rcis_def)
+
+lemma rcis_zero_arg [simp]: "rcis r 0 = complex_of_real r"
+  by (simp add: rcis_def)
+
+lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
+  by (simp add: rcis_def power_mult_distrib DeMoivre)
+
+lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
+  by (simp add: divide_inverse rcis_def)
+
+lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
+apply (simp add: complex_divide_def)
+apply (case_tac "r2=0", simp)
+apply (simp add: rcis_inverse rcis_mult diff_minus)
+done
+
+subsubsection {* Complex exponential *}
 
 abbreviation expi :: "complex \<Rightarrow> complex"
   where "expi \<equiv> exp"
@@ -603,87 +682,6 @@ qed
 
 lemma expi_def: "expi z = complex_of_real (exp (Re z)) * cis (Im z)"
   unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by simp
-
-lemma complex_split_polar:
-     "\<exists>r a. z = complex_of_real r * (Complex (cos a) (sin a))"
-apply (induct z)
-apply (auto simp add: polar_Ex complex_of_real_mult_Complex)
-done
-
-lemma rcis_Ex: "\<exists>r a. z = rcis r a"
-apply (induct z)
-apply (simp add: rcis_def cis_def polar_Ex complex_of_real_mult_Complex)
-done
-
-lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
-  by (simp add: rcis_def cis_def)
-
-lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
-  by (simp add: rcis_def cis_def)
-
-lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
-  by (simp add: rcis_def cis_def norm_mult)
-
-lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
-  by (simp add: cmod_def power2_eq_square)
-
-lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
-  by simp
-
-lemma cis_rcis_eq: "cis a = rcis 1 a"
-  by (simp add: rcis_def)
-
-lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
-  by (simp add: rcis_def cis_def cos_add sin_add right_distrib
-    right_diff_distrib complex_of_real_def)
-
-lemma cis_mult: "cis a * cis b = cis (a + b)"
-  by (simp add: cis_rcis_eq rcis_mult)
-
-lemma cis_zero [simp]: "cis 0 = 1"
-  by (simp add: cis_def complex_one_def)
-
-lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
-  by (simp add: rcis_def)
-
-lemma rcis_zero_arg [simp]: "rcis r 0 = complex_of_real r"
-  by (simp add: rcis_def)
-
-lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
-  by (simp add: mult_assoc [symmetric])
-
-lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
-  by (induct n, simp_all add: real_of_nat_Suc algebra_simps cis_mult)
-
-lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
-  by (simp add: rcis_def power_mult_distrib DeMoivre)
-
-lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
-  by (simp add: cis_def complex_inverse_complex_split diff_minus)
-
-lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
-  by (simp add: divide_inverse rcis_def)
-
-lemma cis_divide: "cis a / cis b = cis (a - b)"
-  by (simp add: complex_divide_def cis_mult diff_minus)
-
-lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
-apply (simp add: complex_divide_def)
-apply (case_tac "r2=0", simp)
-apply (simp add: rcis_inverse rcis_mult diff_minus)
-done
-
-lemma Re_cis [simp]: "Re(cis a) = cos a"
-  by (simp add: cis_def)
-
-lemma Im_cis [simp]: "Im(cis a) = sin a"
-  by (simp add: cis_def)
-
-lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re(cis a ^ n)"
-  by (auto simp add: DeMoivre)
-
-lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
-  by (auto simp add: DeMoivre)
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
