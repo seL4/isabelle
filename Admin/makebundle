@@ -75,7 +75,13 @@ tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 )
 
 case "$PLATFORM" in
-  x86-cygwin)
+  *-darwin)
+    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
+      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
+    ;;
+  *-cygwin)
+    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
+      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
     rm "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
     ln -s ProofGeneral-3.7.1.1 "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
     ;;

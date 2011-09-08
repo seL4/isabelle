@@ -657,46 +657,6 @@ lemma less_Suc_eq_0_disj: "(m < Suc n) = (m = 0 | (\<exists>j. m = Suc j & j < n
 by (cases m) simp_all
 
 
-subsubsection {* @{term min} and @{term max} *}
-
-lemma mono_Suc: "mono Suc"
-by (rule monoI) simp
-
-lemma min_0L [simp]: "min 0 n = (0::nat)"
-by (rule min_leastL) simp
-
-lemma min_0R [simp]: "min n 0 = (0::nat)"
-by (rule min_leastR) simp
-
-lemma min_Suc_Suc [simp]: "min (Suc m) (Suc n) = Suc (min m n)"
-by (simp add: mono_Suc min_of_mono)
-
-lemma min_Suc1:
-   "min (Suc n) m = (case m of 0 => 0 | Suc m' => Suc(min n m'))"
-by (simp split: nat.split)
-
-lemma min_Suc2:
-   "min m (Suc n) = (case m of 0 => 0 | Suc m' => Suc(min m' n))"
-by (simp split: nat.split)
-
-lemma max_0L [simp]: "max 0 n = (n::nat)"
-by (rule max_leastL) simp
-
-lemma max_0R [simp]: "max n 0 = (n::nat)"
-by (rule max_leastR) simp
-
-lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc(max m n)"
-by (simp add: mono_Suc max_of_mono)
-
-lemma max_Suc1:
-   "max (Suc n) m = (case m of 0 => Suc n | Suc m' => Suc(max n m'))"
-by (simp split: nat.split)
-
-lemma max_Suc2:
-   "max m (Suc n) = (case m of 0 => Suc n | Suc m' => Suc(max m' n))"
-by (simp split: nat.split)
-
-
 subsubsection {* Monotonicity of Addition *}
 
 lemma Suc_pred [simp]: "n>0 ==> Suc (n - Suc 0) = n"
@@ -753,11 +713,85 @@ proof
   fix a::nat and b::nat show "a ~= 0 \<Longrightarrow> b ~= 0 \<Longrightarrow> a * b ~= 0" by auto
 qed
 
-lemma nat_mult_1: "(1::nat) * n = n"
-by simp
 
-lemma nat_mult_1_right: "n * (1::nat) = n"
-by simp
+subsubsection {* @{term min} and @{term max} *}
+
+lemma mono_Suc: "mono Suc"
+by (rule monoI) simp
+
+lemma min_0L [simp]: "min 0 n = (0::nat)"
+by (rule min_leastL) simp
+
+lemma min_0R [simp]: "min n 0 = (0::nat)"
+by (rule min_leastR) simp
+
+lemma min_Suc_Suc [simp]: "min (Suc m) (Suc n) = Suc (min m n)"
+by (simp add: mono_Suc min_of_mono)
+
+lemma min_Suc1:
+   "min (Suc n) m = (case m of 0 => 0 | Suc m' => Suc(min n m'))"
+by (simp split: nat.split)
+
+lemma min_Suc2:
+   "min m (Suc n) = (case m of 0 => 0 | Suc m' => Suc(min m' n))"
+by (simp split: nat.split)
+
+lemma max_0L [simp]: "max 0 n = (n::nat)"
+by (rule max_leastL) simp
+
+lemma max_0R [simp]: "max n 0 = (n::nat)"
+by (rule max_leastR) simp
+
+lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc(max m n)"
+by (simp add: mono_Suc max_of_mono)
+
+lemma max_Suc1:
+   "max (Suc n) m = (case m of 0 => Suc n | Suc m' => Suc(max n m'))"
+by (simp split: nat.split)
+
+lemma max_Suc2:
+   "max m (Suc n) = (case m of 0 => Suc n | Suc m' => Suc(max m' n))"
+by (simp split: nat.split)
+
+lemma nat_add_min_left:
+  fixes m n q :: nat
+  shows "min m n + q = min (m + q) (n + q)"
+  by (simp add: min_def)
+
+lemma nat_add_min_right:
+  fixes m n q :: nat
+  shows "m + min n q = min (m + n) (m + q)"
+  by (simp add: min_def)
+
+lemma nat_mult_min_left:
+  fixes m n q :: nat
+  shows "min m n * q = min (m * q) (n * q)"
+  by (simp add: min_def not_le) (auto dest: mult_right_le_imp_le mult_right_less_imp_less le_less_trans)
+
+lemma nat_mult_min_right:
+  fixes m n q :: nat
+  shows "m * min n q = min (m * n) (m * q)"
+  by (simp add: min_def not_le) (auto dest: mult_left_le_imp_le mult_left_less_imp_less le_less_trans)
+
+lemma nat_add_max_left:
+  fixes m n q :: nat
+  shows "max m n + q = max (m + q) (n + q)"
+  by (simp add: max_def)
+
+lemma nat_add_max_right:
+  fixes m n q :: nat
+  shows "m + max n q = max (m + n) (m + q)"
+  by (simp add: max_def)
+
+lemma nat_mult_max_left:
+  fixes m n q :: nat
+  shows "max m n * q = max (m * q) (n * q)"
+  by (simp add: max_def not_le) (auto dest: mult_right_le_imp_le mult_right_less_imp_less le_less_trans)
+
+lemma nat_mult_max_right:
+  fixes m n q :: nat
+  shows "m * max n q = max (m * n) (m * q)"
+  by (simp add: max_def not_le) (auto dest: mult_left_le_imp_le mult_left_less_imp_less le_less_trans)
 
 
 subsubsection {* Additional theorems about @{term "op \<le>"} *}
@@ -1698,6 +1732,15 @@ lemma nat_dvd_not_less:
   fixes m n :: nat
   shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
 by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+
+
+subsection {* aliasses *}
+
+lemma nat_mult_1: "(1::nat) * n = n"
+  by simp
+ 
+lemma nat_mult_1_right: "n * (1::nat) = n"
+  by simp
 
 
 subsection {* size of a datatype value *}

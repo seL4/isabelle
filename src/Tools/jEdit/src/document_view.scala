@@ -362,7 +362,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val caret_listener = new CaretListener {
     private val delay = Swing_Thread.delay_last(session.input_delay) {
-      session.perspective.event(Session.Perspective)
+      session.caret_focus.event(Session.Caret_Focus)
     }
     override def caretUpdate(e: CaretEvent) { delay() }
   }

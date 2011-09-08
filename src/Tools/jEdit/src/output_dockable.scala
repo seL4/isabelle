@@ -106,7 +106,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       react {
         case Session.Global_Settings => handle_resize()
         case changed: Session.Commands_Changed => handle_update(Some(changed.commands))
-        case Session.Perspective => if (follow_caret && handle_perspective()) handle_update()
+        case Session.Caret_Focus => if (follow_caret && handle_perspective()) handle_update()
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
@@ -116,14 +116,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Isabelle.session.global_settings += main_actor
     Isabelle.session.commands_changed += main_actor
-    Isabelle.session.perspective += main_actor
+    Isabelle.session.caret_focus += main_actor
   }
 
   override def exit()
   {
     Isabelle.session.global_settings -= main_actor
     Isabelle.session.commands_changed -= main_actor
-    Isabelle.session.perspective -= main_actor
+    Isabelle.session.caret_focus -= main_actor
   }
 
 
