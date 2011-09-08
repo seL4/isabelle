@@ -33,7 +33,7 @@ class complete_lattice = bounded_lattice + Inf + Sup +
 begin
 
 lemma dual_complete_lattice:
-  "class.complete_lattice Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  "class.complete_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   by (auto intro!: class.complete_lattice.intro dual_bounded_lattice)
     (unfold_locales, (fact bot_least top_greatest
         Sup_upper Sup_least Inf_lower Inf_greatest)+)
@@ -85,7 +85,7 @@ begin
 lemma INF_foundation_dual [no_atp]:
   "complete_lattice.SUPR Inf = INFI"
 proof (rule ext)+
-  interpret dual: complete_lattice Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+  interpret dual: complete_lattice Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
     by (fact dual_complete_lattice)
   fix f :: "'b \<Rightarrow> 'a" and A
   show "complete_lattice.SUPR Inf A f = (\<Sqinter>a\<in>A. f a)"
@@ -95,7 +95,7 @@ qed
 lemma SUP_foundation_dual [no_atp]:
   "complete_lattice.INFI Sup = SUPR"
 proof (rule ext)+
-  interpret dual: complete_lattice Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+  interpret dual: complete_lattice Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
     by (fact dual_complete_lattice)
   fix f :: "'b \<Rightarrow> 'a" and A
   show "complete_lattice.INFI Sup A f = (\<Squnion>a\<in>A. f a)"
@@ -313,7 +313,7 @@ lemma Sup_bot_conv (*[simp]*) [no_atp]:
   "\<Squnion>A = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?P)
   "\<bottom> = \<Squnion>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?Q)
 proof -
-  interpret dual: complete_lattice Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+  interpret dual: complete_lattice Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
     by (fact dual_complete_lattice)
   from dual.Inf_top_conv show ?P and ?Q by simp_all
 qed
@@ -407,7 +407,7 @@ lemma inf_SUP:
   by (simp add: SUP_def inf_Sup image_image)
 
 lemma dual_complete_distrib_lattice:
-  "class.complete_distrib_lattice Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  "class.complete_distrib_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   apply (rule class.complete_distrib_lattice.intro)
   apply (fact dual_complete_lattice)
   apply (rule class.complete_distrib_lattice_axioms.intro)
@@ -458,7 +458,7 @@ class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
 begin
 
 lemma dual_complete_boolean_algebra:
-  "class.complete_boolean_algebra Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
+  "class.complete_boolean_algebra Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
   by (rule class.complete_boolean_algebra.intro, rule dual_complete_distrib_lattice, rule dual_boolean_algebra)
 
 lemma uminus_Inf:
@@ -489,7 +489,7 @@ class complete_linorder = linorder + complete_lattice
 begin
 
 lemma dual_complete_linorder:
-  "class.complete_linorder Sup Inf (op \<ge>) (op >) sup inf \<top> \<bottom>"
+  "class.complete_linorder Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
 lemma Inf_less_iff (*[simp]*):
@@ -537,7 +537,7 @@ lemma SUP_eq_top_iff (*[simp]*):
 lemma Inf_eq_bot_iff (*[simp]*):
   "\<Sqinter>A = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. i < x)"
 proof -
-  interpret dual: complete_linorder Sup Inf "op \<ge>" "op >" sup inf \<top> \<bottom>
+  interpret dual: complete_linorder Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
     by (fact dual_complete_linorder)
   from dual.Sup_eq_top_iff show ?thesis .
 qed

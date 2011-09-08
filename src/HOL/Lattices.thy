@@ -51,15 +51,18 @@ notation
   bot ("\<bottom>") and
   top ("\<top>")
 
-
-class semilattice_inf = order +
+class inf =
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
+
+class sup = 
+  fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+
+class semilattice_inf =  order + inf +
   assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
   and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
-class semilattice_sup = order +
-  fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+class semilattice_sup = order + sup +
   assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
   and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
@@ -68,7 +71,7 @@ begin
 text {* Dual lattice *}
 
 lemma dual_semilattice:
-  "class.semilattice_inf greater_eq greater sup"
+  "class.semilattice_inf sup greater_eq greater"
 by (rule class.semilattice_inf.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
 
@@ -236,7 +239,7 @@ context lattice
 begin
 
 lemma dual_lattice:
-  "class.lattice (op \<ge>) (op >) sup inf"
+  "class.lattice sup (op \<ge>) (op >) inf"
   by (rule class.lattice.intro, rule dual_semilattice, rule class.semilattice_sup.intro, rule dual_order)
     (unfold_locales, auto)
 
@@ -307,7 +310,7 @@ begin
 lemma less_supI1:
   "x \<sqsubset> a \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: semilattice_inf "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf sup "op \<ge>" "op >"
     by (fact dual_semilattice)
   assume "x \<sqsubset> a"
   then show "x \<sqsubset> a \<squnion> b"
@@ -317,7 +320,7 @@ qed
 lemma less_supI2:
   "x \<sqsubset> b \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: semilattice_inf "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf sup "op \<ge>" "op >"
     by (fact dual_semilattice)
   assume "x \<sqsubset> b"
   then show "x \<sqsubset> a \<squnion> b"
@@ -348,7 +351,7 @@ lemma inf_sup_distrib2:
 by(simp add: inf_sup_aci inf_sup_distrib1)
 
 lemma dual_distrib_lattice:
-  "class.distrib_lattice (op \<ge>) (op >) sup inf"
+  "class.distrib_lattice sup (op \<ge>) (op >) inf"
   by (rule class.distrib_lattice.intro, rule dual_lattice)
     (unfold_locales, fact inf_sup_distrib1)
 
@@ -420,7 +423,7 @@ class bounded_lattice = bounded_lattice_bot + bounded_lattice_top
 begin
 
 lemma dual_bounded_lattice:
-  "class.bounded_lattice greater_eq greater sup inf \<top> \<bottom>"
+  "class.bounded_lattice sup greater_eq greater inf \<top> \<bottom>"
   by unfold_locales (auto simp add: less_le_not_le)
 
 end
@@ -432,7 +435,7 @@ class boolean_algebra = distrib_lattice + bounded_lattice + minus + uminus +
 begin
 
 lemma dual_boolean_algebra:
-  "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus greater_eq greater sup inf \<top> \<bottom>"
+  "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus sup greater_eq greater inf \<top> \<bottom>"
   by (rule class.boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
     (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
 
@@ -506,7 +509,7 @@ qed
 lemma compl_sup [simp]:
   "- (x \<squnion> y) = - x \<sqinter> - y"
 proof -
-  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus greater_eq greater sup inf \<top> \<bottom>
+  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus sup greater_eq greater inf \<top> \<bottom>
     by (rule dual_boolean_algebra)
   then show ?thesis by simp
 qed
@@ -591,7 +594,7 @@ qed
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
-sublocale linorder < min_max!: distrib_lattice less_eq less min max
+sublocale linorder < min_max!: distrib_lattice min less_eq less max
 proof
   fix x y z
   show "max x (min y z) = min (max x y) (max x z)"

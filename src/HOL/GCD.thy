@@ -1463,17 +1463,17 @@ by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric]
 subsubsection {* The complete divisibility lattice *}
 
 
-interpretation gcd_semilattice_nat: semilattice_inf "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" gcd
+interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
 proof
   case goal3 thus ?case by(metis gcd_unique_nat)
 qed auto
 
-interpretation lcm_semilattice_nat: semilattice_sup "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm
+interpretation lcm_semilattice_nat: semilattice_sup lcm "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
 proof
   case goal3 thus ?case by(metis lcm_unique_nat)
 qed auto
 
-interpretation gcd_lcm_lattice_nat: lattice "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" gcd lcm ..
+interpretation gcd_lcm_lattice_nat: lattice gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm ..
 
 text{* Lifting gcd and lcm to finite (Gcd/Lcm) and infinite sets (GCD/LCM).
 GCD is defined via LCM to facilitate the proof that we have a complete lattice.
@@ -1579,7 +1579,7 @@ proof -
 qed
 
 interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice GCD LCM "op dvd" "%m n::nat. m dvd n & ~ n dvd m" gcd lcm 1 0
+  complete_lattice GCD LCM gcd "op dvd" "%m n::nat. m dvd n & ~ n dvd m" lcm 1 0
 proof
   case goal1 show ?case by simp
 next

@@ -125,7 +125,7 @@ lemma inf_top_right [simp]:
   by (rule inf_absorb1) simp
 
 lemma inf_eq_top_iff [simp]:
-  "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
+  "(x :: 'a :: bounded_lattice_top) \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
   quickcheck[expect = no_counterexample]
   by (simp add: eq_iff)
 

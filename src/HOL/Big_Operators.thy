@@ -1517,7 +1517,7 @@ lemma ab_semigroup_idem_mult_max:
   proof qed (auto simp add: max_def)
 
 lemma max_lattice:
-  "class.semilattice_inf (op \<ge>) (op >) max"
+  "class.semilattice_inf max (op \<ge>) (op >)"
   by (fact min_max.dual_semilattice)
 
 lemma dual_max:
@@ -1611,7 +1611,7 @@ lemma Max_ge [simp]:
   assumes "finite A" and "x \<in> A"
   shows "x \<le> Max A"
 proof -
-  interpret semilattice_inf "op \<ge>" "op >" max
+  interpret semilattice_inf max "op \<ge>" "op >"
     by (rule max_lattice)
   from assms show ?thesis by (simp add: Max_def fold1_belowI)
 qed
@@ -1625,7 +1625,7 @@ lemma Max_le_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
 proof -
-  interpret semilattice_inf "op \<ge>" "op >" max
+  interpret semilattice_inf max "op \<ge>" "op >"
     by (rule max_lattice)
   from assms show ?thesis by (simp add: Max_def below_fold1_iff)
 qed
