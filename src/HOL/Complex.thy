@@ -656,15 +656,8 @@ lemma complex_of_real_minus_one:
 lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
   by (simp add: mult_assoc [symmetric])
 
-
-lemma cis_real_of_nat_Suc_mult:
-   "cis (real (Suc n) * a) = cis a * cis (real n * a)"
-  by (simp add: cis_def real_of_nat_Suc left_distrib cos_add sin_add right_distrib)
-
 lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
-apply (induct_tac "n")
-apply (auto simp add: cis_real_of_nat_Suc_mult)
-done
+  by (induct n, simp_all add: real_of_nat_Suc algebra_simps cis_mult)
 
 lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
   by (simp add: rcis_def power_mult_distrib DeMoivre)
