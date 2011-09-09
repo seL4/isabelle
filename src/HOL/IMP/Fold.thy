@@ -2,7 +2,7 @@ header "Constant Folding"
 
 theory Fold imports Sem_Equiv begin
 
-section "Simple folding of arithmetic expressions"
+subsection "Simple folding of arithmetic expressions"
 
 types
   tab = "name \<Rightarrow> val option"
@@ -226,7 +226,7 @@ theorem constant_folding_equiv:
 
 
 
-section {* More ambitious folding including boolean expressions *}
+subsection {* More ambitious folding including boolean expressions *}
 
 
 fun bsimp_const :: "bexp \<Rightarrow> tab \<Rightarrow> bexp" where
