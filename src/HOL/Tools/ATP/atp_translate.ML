@@ -1899,7 +1899,8 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
            let
              val (pred_sym, in_conj) =
                case Symtab.lookup sym_tab s of
-                 SOME {pred_sym, in_conj, ...} => (pred_sym, in_conj)
+                 SOME ({pred_sym, in_conj, ...} : sym_info) =>
+                 (pred_sym, in_conj)
                | NONE => (false, false)
              val decl_sym =
                (case type_enc of
