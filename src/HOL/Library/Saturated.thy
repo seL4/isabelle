@@ -63,7 +63,7 @@ by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min_ma
 
 end
 
-instantiation sat :: (len) "{minus, comm_semiring_0, comm_semiring_1}"
+instantiation sat :: (len) "{minus, comm_semiring_1}"
 begin
 
 definition
@@ -145,13 +145,17 @@ by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min_ma
 
 end
 
-instantiation sat :: (len) number
+lemma Sat_eq_of_nat: "Sat n = of_nat n"
+  by (rule sat_eqI, induct n, simp_all)
+
+instantiation sat :: (len) number_semiring
 begin
 
 definition
   number_of_sat_def [code del]: "number_of = Sat \<circ> nat"
 
-instance ..
+instance
+  by default (simp add: number_of_sat_def Sat_eq_of_nat)
 
 end
 
