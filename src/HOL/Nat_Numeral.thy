@@ -791,15 +791,16 @@ by (simp only: nat_number_of_def)
 lemma of_nat_number_of_lemma:
      "of_nat (number_of v :: nat) =  
          (if 0 \<le> (number_of v :: int) 
-          then (number_of v :: 'a :: number_ring)
+          then (number_of v :: 'a :: number_semiring)
           else 0)"
-by (simp add: int_number_of_def nat_number_of_def number_of_eq of_nat_nat)
+  by (auto simp add: int_number_of_def nat_number_of_def number_of_int
+    elim!: nonneg_int_cases)
 
 lemma of_nat_number_of_eq [simp]:
      "of_nat (number_of v :: nat) =  
          (if neg (number_of v :: int) then 0  
-          else (number_of v :: 'a :: number_ring))"
-by (simp only: of_nat_number_of_lemma neg_def, simp) 
+          else (number_of v :: 'a :: number_semiring))"
+  by (simp only: of_nat_number_of_lemma neg_def, simp)
 
 
 subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
