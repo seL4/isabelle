@@ -598,22 +598,21 @@ fun annotate_term (Const (c', T'), Const (c, T)) tvar_names =
     apfst (fn t => Abs (x, T, t)) (annotate_term (t1, t) tvar_names)
   | annotate_term (_, t) tvar_names = (t, tvar_names)
 
-fun annotate_eqns thy eqns = 
+fun annotate_eqns thy (c, ty) eqns = 
   let
     val ctxt = ProofContext.init_global thy |> Config.put Type_Infer_Context.const_sorts false
     val erase = map_types (fn _ => Type_Infer.anyT [])
     val reinfer = singleton (Type_Infer_Context.infer_types ctxt)
-    fun add_annotations ((args, (rhs, some_abs)), (SOME th, proper)) =
+    fun add_annotations (args, (rhs, some_abs)) =
       let
-        val (lhs, drhs) = Logic.dest_equals (prop_of (Thm.unvarify_global th))
-        val drhs' = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase drhs))))
-        val (rhs', _) = annotate_term (drhs', rhs) []
+        val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
+        val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
+        val (rhs', _) = annotate_term (reinferred_rhs, rhs) []
      in
-        ((args, (rhs', some_abs)), (SOME th, proper))
+        (args, (rhs', some_abs))
      end
-     | add_annotations eqn = eqn
   in
-    map add_annotations eqns
+    map (apfst add_annotations) eqns
   end;
 
 (* translation *)
@@ -640,7 +639,7 @@ and ensure_const thy algbr eqngr permissive c =
     fun stmt_fun cert =
       let
         val ((vs, ty), eqns) = Code.equations_of_cert thy cert;
-        val eqns' = annotate_eqns thy eqns
+        val eqns' = annotate_eqns thy (c, ty) eqns
         val some_case_cong = Code.get_case_cong thy c;
       in
         fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
