@@ -19,7 +19,7 @@ sig
   val type_instance : Proof.context -> typ -> typ -> bool
   val type_generalization : Proof.context -> typ -> typ -> bool
   val type_intersect : Proof.context -> typ -> typ -> bool
-  val type_aconv : Proof.context -> typ * typ -> bool
+  val type_equiv : Proof.context -> typ * typ -> bool
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
@@ -123,9 +123,8 @@ fun type_instance ctxt T T' =
   Sign.typ_instance (Proof_Context.theory_of ctxt) (T, T')
 fun type_generalization ctxt T T' = type_instance ctxt T' T
 fun type_intersect ctxt T T' =
-  type_instance ctxt T T' orelse type_generalization ctxt T T'
-fun type_aconv ctxt (T, T') =
-  type_instance ctxt T T' andalso type_instance ctxt T' T
+  can (Sign.typ_unify (Proof_Context.theory_of ctxt) (T, T')) (Vartab.empty, 0)
+val type_equiv = Sign.typ_equiv o Proof_Context.theory_of
 
 fun varify_type ctxt T =
   Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
@@ -172,7 +171,7 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case AList.lookup (type_aconv ctxt) assigns T of
+      else case AList.lookup (type_equiv ctxt) assigns T of
         SOME k => k
       | NONE =>
         case T of

@@ -1257,7 +1257,7 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
     grain = Ghost_Type_Arg_Vars orelse
     (exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
      not (exists (type_instance ctxt T) surely_infinite_Ts orelse
-          (not (member (type_aconv ctxt) maybe_finite_Ts T) andalso
+          (not (member (type_equiv ctxt) maybe_finite_Ts T) andalso
            is_type_kind_of_surely_infinite ctxt soundness surely_infinite_Ts
                                            T)))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
@@ -1266,7 +1266,7 @@ fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
     grain = Ghost_Type_Arg_Vars orelse
     (exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
      (exists (type_generalization ctxt T) surely_finite_Ts orelse
-      (not (member (type_aconv ctxt) maybe_infinite_Ts T) andalso
+      (not (member (type_equiv ctxt) maybe_infinite_Ts T) andalso
        is_type_surely_finite ctxt T)))
   | should_encode_type _ _ _ _ = false
 
@@ -1978,7 +1978,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
       case level of
         Noninf_Nonmono_Types (soundness, _) =>
         if exists (type_instance ctxt T) surely_infinite_Ts orelse
-           member (type_aconv ctxt) maybe_finite_Ts T then
+           member (type_equiv ctxt) maybe_finite_Ts T then
           mono
         else if is_type_kind_of_surely_infinite ctxt soundness
                                                 surely_infinite_Ts T then
@@ -1988,14 +1988,14 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
            surely_infinite_Ts = surely_infinite_Ts |> insert_type ctxt I T,
            maybe_nonmono_Ts = maybe_nonmono_Ts}
         else
-          {maybe_finite_Ts = maybe_finite_Ts |> insert (type_aconv ctxt) T,
+          {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv ctxt) T,
            surely_finite_Ts = surely_finite_Ts,
            maybe_infinite_Ts = maybe_infinite_Ts,
            surely_infinite_Ts = surely_infinite_Ts,
            maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type ctxt I T}
       | Fin_Nonmono_Types _ =>
         if exists (type_instance ctxt T) surely_finite_Ts orelse
-           member (type_aconv ctxt) maybe_infinite_Ts T then
+           member (type_equiv ctxt) maybe_infinite_Ts T then
           mono
         else if is_type_surely_finite ctxt T then
           {maybe_finite_Ts = maybe_finite_Ts,
@@ -2006,7 +2006,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         else
           {maybe_finite_Ts = maybe_finite_Ts,
            surely_finite_Ts = surely_finite_Ts,
-           maybe_infinite_Ts = maybe_infinite_Ts |> insert (type_aconv ctxt) T,
+           maybe_infinite_Ts = maybe_infinite_Ts |> insert (type_equiv ctxt) T,
            surely_infinite_Ts = surely_infinite_Ts,
            maybe_nonmono_Ts = maybe_nonmono_Ts}
       | _ => mono
