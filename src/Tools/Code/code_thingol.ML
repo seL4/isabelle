@@ -596,7 +596,9 @@ fun annotate_term (Const (c', T'), Const (c, T)) tvar_names =
     end
   | annotate_term (Abs (_, _, t1) , Abs (x, T, t)) tvar_names =
     apfst (fn t => Abs (x, T, t)) (annotate_term (t1, t) tvar_names)
-  | annotate_term (_, t) tvar_names = (t, tvar_names)
+  | annotate_term (Free _, t as Free _) tvar_names = (t, tvar_names)
+  | annotate_term (Var _, t as Var _) tvar_names = (t, tvar_names)
+  | annotate_term (Bound   _, t as Bound _) tvar_names = (t, tvar_names)
 
 fun annotate_eqns thy (c, ty) eqns = 
   let
