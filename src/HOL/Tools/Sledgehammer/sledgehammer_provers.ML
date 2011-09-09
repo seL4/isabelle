@@ -690,14 +690,22 @@ fun run_atp mode name
                 val outcome =
                   case outcome of
                     NONE =>
-                    used_facts_in_unsound_atp_proof ctxt
-                        conjecture_shape facts_offset fact_names atp_proof
-                    |> Option.map (fn facts =>
-                           UnsoundProof
-                               (if is_type_enc_quasi_sound type_enc then
-                                  SOME sound
-                                else
-                                  NONE, facts |> sort string_ord))
+                    (case used_facts_in_unsound_atp_proof ctxt
+                              conjecture_shape facts_offset fact_names atp_proof
+                          |> Option.map (sort string_ord) of
+                       SOME facts =>
+                       let
+                         val failure =
+                           (if is_type_enc_quasi_sound type_enc then SOME sound
+                            else NONE, facts)
+                           |> UnsoundProof
+                       in
+                         if debug then
+                           (warning (string_for_failure failure); NONE)
+                         else
+                           SOME failure
+                       end
+                     | NONE => NONE)
                   | _ => outcome
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
