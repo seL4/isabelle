@@ -753,16 +753,6 @@ lemma max_Suc2:
    "max m (Suc n) = (case m of 0 => Suc n | Suc m' => Suc(max m' n))"
 by (simp split: nat.split)
 
-lemma nat_add_min_left:
-  fixes m n q :: nat
-  shows "min m n + q = min (m + q) (n + q)"
-  by (simp add: min_def)
-
-lemma nat_add_min_right:
-  fixes m n q :: nat
-  shows "m + min n q = min (m + n) (m + q)"
-  by (simp add: min_def)
-
 lemma nat_mult_min_left:
   fixes m n q :: nat
   shows "min m n * q = min (m * q) (n * q)"

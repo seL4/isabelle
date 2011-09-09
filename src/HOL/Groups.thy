@@ -596,6 +596,14 @@ lemma min_add_distrib_left:
   "min x y + z = min (x + z) (y + z)"
   unfolding min_def by auto
 
+lemma max_add_distrib_right:
+  "x + max y z = max (x + y) (x + z)"
+  unfolding max_def by auto
+
+lemma min_add_distrib_right:
+  "x + min y z = min (x + y) (x + z)"
+  unfolding min_def by auto
+
 end
 
 subsection {* Support for reasoning about signs *}

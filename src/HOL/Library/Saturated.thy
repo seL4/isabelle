@@ -131,7 +131,7 @@ next
     case True thus ?thesis by (simp add: sat_eq_iff)
   next
     case False thus ?thesis
-      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib nat_add_min_left nat_add_min_right min_max.inf_assoc min_max.inf_absorb2)
+      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib min_add_distrib_left min_add_distrib_right min_max.inf_assoc min_max.inf_absorb2)
   qed
 qed (simp_all add: sat_eq_iff mult.commute)
 
