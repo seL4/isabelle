@@ -131,6 +131,10 @@ More consistent and comprehensive names:
 
 INCOMPATIBILITY.
 
+* Added syntactic classes "inf" and "sup" for the respective
+constants.  INCOMPATIBILITY: Changes in the argument order of the
+(mostly internal) locale predicates for some derived classes.
+
 * Theorem collections ball_simps and bex_simps do not contain theorems
 referring to UNION any longer; these have been moved to collection
 UN_ball_bex_simps.  INCOMPATIBILITY.

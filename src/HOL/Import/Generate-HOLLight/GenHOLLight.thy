@@ -145,9 +145,9 @@ theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin
   GEQ > HOL.eq
   GSPEC > Set.Collect
   SETSPEC > HOLLightCompat.SETSPEC
-  UNION > Lattices.semilattice_sup_class.sup :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  UNION > Lattices.sup_class.sup :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   UNIONS > Complete_Lattice.Sup_class.Sup :: "(('a \<Rightarrow> bool) \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
-  INTER > Lattices.semilattice_inf_class.inf :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  INTER > Lattices.inf_class.inf :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   INTERS > Complete_Lattice.Inf_class.Inf :: "(('a \<Rightarrow> bool) \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   DIFF > Groups.minus_class.minus :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   SUBSET > Orderings.ord_class.less_eq :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
