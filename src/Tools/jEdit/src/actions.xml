@@ -57,5 +57,14 @@
 	    isabelle.jedit.Isabelle.input_bold(textArea);
 	  </CODE>
 	</ACTION>
-
+	<ACTION NAME="isabelle.check-buffer">
+	  <CODE>
+	    isabelle.jedit.Isabelle.check_buffer(buffer);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.cancel-execution">
+	  <CODE>
+	    isabelle.jedit.Isabelle.cancel_execution();
+	  </CODE>
+	</ACTION>
 </ACTIONS>

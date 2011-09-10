@@ -62,19 +62,12 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   session_phase.tooltip = "Prover status"
 
   private val cancel = new Button("Cancel") {
-    reactions += { case ButtonClicked(_) => Isabelle.session.cancel_execution }
+    reactions += { case ButtonClicked(_) => Isabelle.cancel_execution() }
   }
   cancel.tooltip = "Cancel current proof checking process"
 
   private val check = new Button("Check") {
-    reactions +=
-    {
-      case ButtonClicked(_) =>
-        Isabelle.document_model(view.getBuffer) match {
-          case None =>
-          case Some(model) => model.full_perspective()
-        }
-    }
+    reactions += { case ButtonClicked(_) => Isabelle.check_buffer(view.getBuffer) }
   }
   check.tooltip = "Commence full proof checking of current buffer"
 
