@@ -57,6 +57,7 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo
   echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
+  echo "(default Scratch.thy)."
   echo
   exit 1
 }
