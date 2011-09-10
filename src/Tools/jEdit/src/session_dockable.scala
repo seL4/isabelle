@@ -90,7 +90,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   {
     override def paintComponent(gfx: Graphics)
     {
-      super.paintComponent(gfx)
       nodes_status.get(Document.Node.Name(getText, "", "")) match {
         case Some(st) if st.total > 0 =>
           val w = getWidth
@@ -99,8 +98,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
           for {
             (n, color) <- List(
               (st.unprocessed, Isabelle_Markup.unprocessed1_color),
-              (st.running, Isabelle_Markup.running1_color),
-              (st.failed, Isabelle_Markup.error1_color)) }
+              (st.running, Isabelle_Markup.running_color),
+              (st.failed, Isabelle_Markup.error_color)) }
           {
             gfx.setColor(color)
             val v = (n * w / st.total) max (if (n > 0) 2 else 0)
@@ -109,6 +108,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
           }
         case _ =>
       }
+      super.paintComponent(gfx)
     }
   }
 
