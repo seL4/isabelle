@@ -181,7 +181,9 @@ done
 
 lemma Constrains_cancel:
      "[| F \<in> A Co (A' \<union> B); F \<in> B Co B' |] ==> F \<in> A Co (A' \<union> B')"
-by (simp add: Constrains_eq_constrains constrains_def, blast)
+apply (simp add: Constrains_eq_constrains constrains_def)
+apply best
+done
 
 
 subsection{*Stable*}
