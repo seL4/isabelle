@@ -19,7 +19,7 @@ import java.awt.BorderLayout
 import javax.swing.JList
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{View, jEdit}
 
 
 class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
@@ -64,12 +64,12 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val cancel = new Button("Cancel") {
     reactions += { case ButtonClicked(_) => Isabelle.cancel_execution() }
   }
-  cancel.tooltip = "Cancel current proof checking process"
+  cancel.tooltip = jEdit.getProperty("isabelle.cancel-execution.label")
 
   private val check = new Button("Check") {
     reactions += { case ButtonClicked(_) => Isabelle.check_buffer(view.getBuffer) }
   }
-  check.tooltip = "Commence full proof checking of current buffer"
+  check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 
   private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
   logic.listenTo(logic.selection)

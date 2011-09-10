@@ -38,8 +38,15 @@ options.isabelle.auto-start.title=Auto Start
 options.isabelle.auto-start=true
 
 #actions
+isabelle.check-buffer.label=Commence full proof checking of current buffer
+isabelle.check-buffer.shortcut=C+e SPACE
+isabelle.cancel-execution.label=Cancel current proof checking process
+isabelle.cancel-execution.shortcut=C+e BACK_SPACE
+isabelle.input-isub.label=Input subscript
 isabelle.input-isub.shortcut=C+e DOWN
+isabelle.input-isup.label=Input superscript
 isabelle.input-isup.shortcut=C+e UP
+isabelle.input-bold.label=Input bold face
 isabelle.input-bold.shortcut=C+e RIGHT
 
 #menu actions
