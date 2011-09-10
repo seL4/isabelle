@@ -275,9 +275,6 @@ locale System =
                   (plam x: lessThan Nclients. rename client_map Client))"
 **)
 
-(*Perhaps equalities.ML shouldn't add this in the first place!*)
-declare image_Collect [simp del]
-
 declare subset_preserves_o [THEN [2] rev_subsetD, intro]
 declare subset_preserves_o [THEN [2] rev_subsetD, simp]
 declare funPair_o_distrib [simp]
@@ -332,7 +329,7 @@ end
 ML {*
 fun record_auto_tac ctxt =
   let val ctxt' =
-    (ctxt addIs [ext])
+    ctxt
     |> map_claset (fn cs => cs addSWrapper Record.split_wrapper)
     |> map_simpset (fn ss => ss addsimps
        [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},

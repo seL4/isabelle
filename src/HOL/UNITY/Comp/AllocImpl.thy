@@ -5,7 +5,7 @@
 
 header{*Implementation of a multiple-client allocator from a single-client allocator*}
 
-theory AllocImpl imports AllocBase Follows PPROD begin
+theory AllocImpl imports AllocBase "../Follows" "../PPROD" begin
 
 
 (** State definitions.  OUTPUT variables are locals **)

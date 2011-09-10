@@ -17,11 +17,11 @@ consts
   ftime :: "nat=>nat"
   gtime :: "nat=>nat"
 
-axioms
-  fmono: "m \<le> n ==> ftime m \<le> ftime n"
-  gmono: "m \<le> n ==> gtime m \<le> gtime n"
+axiomatization where
+  fmono: "m \<le> n ==> ftime m \<le> ftime n" and
+  gmono: "m \<le> n ==> gtime m \<le> gtime n" and
 
-  fasc:  "m \<le> ftime n"
+  fasc:  "m \<le> ftime n" and
   gasc:  "m \<le> gtime n"
 
 definition common :: "nat set" where

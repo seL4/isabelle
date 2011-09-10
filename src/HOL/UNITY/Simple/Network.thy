@@ -7,7 +7,7 @@ The Communication Network.
 From Misra, "A Logic for Concurrent Programming" (1994), section 5.7.
 *)
 
-theory Network imports UNITY begin
+theory Network imports "../UNITY" begin
 
 (*The state assigns a number to each process variable*)
 

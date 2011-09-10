@@ -17,9 +17,9 @@ consts
 definition minSet :: "nat set => nat option" where
     "minSet A == if A={} then None else Some (LEAST x. x \<in> A)"
 
-axioms
+axiomatization where
 
-  UC1:  "F \<in> (minSet -` {Some x}) co (minSet -` (Some`atLeast x))"
+  UC1:  "F \<in> (minSet -` {Some x}) co (minSet -` (Some`atLeast x))" and
 
   (*  UC1  "F \<in> {s. minSet s = x} co {s. x \<subseteq> minSet s}"  *)
 

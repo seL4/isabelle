@@ -7,7 +7,6 @@ The Lift-Control Example.
 
 theory Lift
 imports "../UNITY_Main"
-
 begin
 
 record state =
