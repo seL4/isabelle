@@ -309,8 +309,7 @@ lemma guarantees_JN_I:
       ==> (\<Squnion>i \<in> I. (F i)) \<in> X guarantees Y"
 apply (unfold guar_def, clarify)
 apply (drule_tac x = "JOIN (I-{i}) F\<squnion>G" in spec)
-apply (auto intro: OK_imp_ok 
-            simp add: JN_Join_diff JN_Join_diff Join_assoc [symmetric])
+apply (auto intro: OK_imp_ok simp add: JN_Join_diff Join_assoc [symmetric])
 done
 
 
@@ -431,9 +430,9 @@ by (auto simp add: wx_def)
 lemma wx'_ex_prop: "ex_prop({F. \<forall>G. F ok G --> F\<squnion>G \<in> X})"
 apply (unfold ex_prop_def, safe)
  apply (drule_tac x = "G\<squnion>Ga" in spec)
- apply (force simp add: ok_Join_iff1 Join_assoc)
+ apply (force simp add: Join_assoc)
 apply (drule_tac x = "F\<squnion>Ga" in spec)
-apply (simp add: ok_Join_iff1 ok_commute  Join_ac) 
+apply (simp add: ok_commute  Join_ac) 
 done
 
 text{* Equivalence with the other definition of wx *}
@@ -466,7 +465,7 @@ lemma stable_guarantees_Always:
 apply (rule guaranteesI)
 apply (simp add: Join_commute)
 apply (rule stable_Join_Always1)
- apply (simp_all add: invariant_def Join_stable)
+ apply (simp_all add: invariant_def)
 done
 
 lemma constrains_guarantees_leadsTo:

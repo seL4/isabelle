@@ -6,11 +6,11 @@ Deadlock examples from section 5.6 of
     Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-theory Deadlock imports UNITY begin
+theory Deadlock imports "../UNITY" begin
 
 (*Trivial, two-process case*)
 lemma "[| F \<in> (A \<inter> B) co A;  F \<in> (B \<inter> A) co B |] ==> F \<in> stable (A \<inter> B)"
-by (unfold constrains_def stable_def, blast)
+  unfolding constrains_def stable_def by blast
 
 
 (*a simplification step*)

@@ -34,7 +34,7 @@ definition metric :: "state => nat"
 
 
 text{**We assume that the set of vertices is finite*}
-axioms 
+axiomatization where
   finite_graph:  "finite (UNIV :: vertex set)"
   
 
