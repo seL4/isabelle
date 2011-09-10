@@ -185,9 +185,20 @@ fun eval (Variable s) = rep (explode_path (getenv_strict s))
 val expand = rep #> maps eval #> norm #> Path;
 
 
-(* source position *)
+(* source position -- with smart replacement ISABELLE_HOME *)
 
-val position = Position.file o implode_path o expand;
+val isabelle_home = explode_path "~~";
+
+fun position path =
+  let
+    val s = implode_path path;
+    val prfx = implode_path (expand isabelle_home) ^ "/";
+  in
+    Position.file
+      (case try (unprefix prfx) s of
+        NONE => s
+      | SOME s' => "~~/" ^ s')
+  end;
 
 
 (*final declarations of this structure!*)
