@@ -343,6 +343,16 @@ object Isabelle
   def input_bsub(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bsub_decoded, Symbol.esub_decoded)
   def input_bsup(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bsup_decoded, Symbol.esup_decoded)
   def input_bold(text_area: JEditTextArea): Unit = user_input(text_area, Symbol.bold_decoded)
+
+  def check_buffer(buffer: Buffer)
+  {
+    document_model(buffer) match {
+      case None =>
+      case Some(model) => model.full_perspective()
+    }
+  }
+
+  def cancel_execution() { session.cancel_execution() }
 }
 
 

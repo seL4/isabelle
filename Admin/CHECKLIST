@@ -11,6 +11,8 @@ Checklist for official releases
 
 - check persistent sessions with PG and Poly/ML 5.x;
 
+- check file positions within logic images (hyperlinks etc.);
+
 - Admin/update-keywords;
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;

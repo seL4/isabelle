@@ -15,11 +15,11 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ListView,
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.lang.System
-import java.awt.BorderLayout
-import javax.swing.JList
+import java.awt.{BorderLayout, Graphics}
+import javax.swing.{JList, DefaultListCellRenderer}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{View, jEdit}
 
 
 class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
@@ -62,21 +62,14 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   session_phase.tooltip = "Prover status"
 
   private val cancel = new Button("Cancel") {
-    reactions += { case ButtonClicked(_) => Isabelle.session.cancel_execution }
+    reactions += { case ButtonClicked(_) => Isabelle.cancel_execution() }
   }
-  cancel.tooltip = "Cancel current proof checking process"
+  cancel.tooltip = jEdit.getProperty("isabelle.cancel-execution.label")
 
   private val check = new Button("Check") {
-    reactions +=
-    {
-      case ButtonClicked(_) =>
-        Isabelle.document_model(view.getBuffer) match {
-          case None =>
-          case Some(model) => model.full_perspective()
-        }
-    }
+    reactions += { case ButtonClicked(_) => Isabelle.check_buffer(view.getBuffer) }
   }
-  check.tooltip = "Commence full proof checking of current buffer"
+  check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 
   private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
   logic.listenTo(logic.selection)
@@ -91,7 +84,35 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* component state -- owned by Swing thread */
 
-  private var nodes_status: Map[Document.Node.Name, String] = Map.empty
+  private var nodes_status: Map[Document.Node.Name, Isar_Document.Node_Status] = Map.empty
+
+  val node_renderer = new DefaultListCellRenderer
+  {
+    override def paintComponent(gfx: Graphics)
+    {
+      nodes_status.get(Document.Node.Name(getText, "", "")) match {
+        case Some(st) if st.total > 0 =>
+          val w = getWidth
+          val h = getHeight
+          var end = w
+          for {
+            (n, color) <- List(
+              (st.unprocessed, Isabelle_Markup.unprocessed1_color),
+              (st.running, Isabelle_Markup.running_color),
+              (st.failed, Isabelle_Markup.error_color)) }
+          {
+            gfx.setColor(color)
+            val v = (n * w / st.total) max (if (n > 0) 2 else 0)
+            gfx.fillRect(end - v, 0, v, h)
+            end -= v
+          }
+        case _ =>
+      }
+      super.paintComponent(gfx)
+    }
+  }
+
+  status.peer.setCellRenderer(node_renderer)
 
   private def handle_changed(changed_nodes: Set[Document.Node.Name])
   {
@@ -105,14 +126,13 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         name <- changed_nodes
         node <- version.nodes.get(name)
         val status = Isar_Document.node_status(state, version, node)
-      } nodes_status1 += (name -> status.toString)
+      } nodes_status1 += (name -> status)
 
       if (nodes_status != nodes_status1) {
         nodes_status = nodes_status1
-        val order =
-          Library.sort_wrt((name: Document.Node.Name) => name.theory,
-            nodes_status.keySet.toList)
-        status.listData = order.map(name => name.theory + " " + nodes_status(name))
+        status.listData =
+          Library.sort_wrt((name: Document.Node.Name) => name.node, nodes_status.keySet.toList)
+            .map(_.node)
       }
     }
   }

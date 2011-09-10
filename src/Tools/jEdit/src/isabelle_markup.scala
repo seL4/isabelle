@@ -26,13 +26,14 @@ object Isabelle_Markup
   val outdated_color = new Color(238, 227, 227)
   val running_color = new Color(97, 0, 97)
   val running1_color = new Color(97, 0, 97, 100)
-  val unfinished_color = new Color(255, 160, 160)
-  val unfinished1_color = new Color(255, 160, 160, 50)
+  val unprocessed_color = new Color(255, 160, 160)
+  val unprocessed1_color = new Color(255, 160, 160, 50)
 
   val light_color = new Color(240, 240, 240)
   val regular_color = new Color(192, 192, 192)
   val warning_color = new Color(255, 140, 0)
   val error_color = new Color(178, 34, 34)
+  val error1_color = new Color(178, 34, 34, 50)
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
@@ -60,7 +61,7 @@ object Isabelle_Markup
     else
       Isar_Document.command_status(state.status) match {
         case Isar_Document.Forked(i) if i > 0 => Some(running1_color)
-        case Isar_Document.Unprocessed => Some(unfinished1_color)
+        case Isar_Document.Unprocessed => Some(unprocessed1_color)
         case _ => None
       }
   }
@@ -72,7 +73,7 @@ object Isabelle_Markup
     else
       Isar_Document.command_status(state.status) match {
         case Isar_Document.Forked(i) => if (i > 0) Some(running_color) else None
-        case Isar_Document.Unprocessed => Some(unfinished_color)
+        case Isar_Document.Unprocessed => Some(unprocessed_color)
         case Isar_Document.Failed => Some(error_color)
         case Isar_Document.Finished =>
           if (state.results.exists(r => Isar_Document.is_error(r._2))) Some(error_color)
