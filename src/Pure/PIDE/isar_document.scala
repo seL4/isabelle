@@ -63,6 +63,9 @@ object Isar_Document
   }
 
   sealed case class Node_Status(unprocessed: Int, running: Int, finished: Int, failed: Int)
+  {
+    def total: Int = unprocessed + running + finished + failed
+  }
 
   def node_status(
     state: Document.State, version: Document.Version, node: Document.Node): Node_Status =
