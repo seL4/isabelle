@@ -31,7 +31,6 @@ sig
   val mono_del: attribute
   val get_monos: Proof.context -> thm list
   val mk_cases: Proof.context -> term -> thm
-  val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
   val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
@@ -92,7 +91,6 @@ struct
 
 (** theory context references **)
 
-val inductive_forall_name = "HOL.induct_forall";
 val inductive_forall_def = @{thm induct_forall_def};
 val inductive_conj_name = "HOL.induct_conj";
 val inductive_conj_def = @{thm induct_conj_def};

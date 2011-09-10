@@ -15,7 +15,6 @@ end
 structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
 struct
 
-val inductive_forall_name = "HOL.induct_forall";
 val inductive_forall_def = @{thm induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
@@ -240,10 +239,8 @@ fun prove_strong_ind s alt_name avoids ctxt =
     fun lift_prem (t as (f $ u)) =
           let val (p, ts) = strip_comb t
           in
-            if member (op =) ps p then
-              Const (inductive_forall_name,
-                (fsT --> HOLogic.boolT) --> HOLogic.boolT) $
-                  Abs ("z", fsT, lift_pred p (map (incr_boundvars 1) ts))
+            if member (op =) ps p then HOLogic.mk_induct_forall fsT $
+              Abs ("z", fsT, lift_pred p (map (incr_boundvars 1) ts))
             else lift_prem f $ lift_prem u
           end
       | lift_prem (Abs (s, T, t)) = Abs (s, T, lift_prem t)

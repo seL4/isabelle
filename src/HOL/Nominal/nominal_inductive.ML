@@ -14,7 +14,6 @@ end
 structure NominalInductive : NOMINAL_INDUCTIVE =
 struct
 
-val inductive_forall_name = "HOL.induct_forall";
 val inductive_forall_def = @{thm induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
@@ -42,7 +41,7 @@ fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
 
 fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
   (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn thy => fn ss =>
-    fn Const ("Nominal.perm", _) $ _ $ t =>
+    fn Const (@{const_name Nominal.perm}, _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE
      | _ => NONE);
@@ -93,13 +92,13 @@ fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
       (case head_of p of
          Const (name, _) =>
            if member (op =) names name then SOME (HOLogic.mk_conj (p,
-             Const ("Fun.id", HOLogic.boolT --> HOLogic.boolT) $
+             Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
                (subst_bounds (pis, strip_all pis q))))
            else NONE
        | _ => NONE)
   | inst_conj_all names ps pis t u =
       if member (op aconv) ps (head_of u) then
-        SOME (Const ("Fun.id", HOLogic.boolT --> HOLogic.boolT) $
+        SOME (Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
           (subst_bounds (pis, strip_all pis t)))
       else NONE
   | inst_conj_all _ _ _ _ _ = NONE;
@@ -214,10 +213,8 @@ fun prove_strong_ind s avoids ctxt =
     fun lift_prem (t as (f $ u)) =
           let val (p, ts) = strip_comb t
           in
-            if member (op =) ps p then
-              Const (inductive_forall_name,
-                (fsT --> HOLogic.boolT) --> HOLogic.boolT) $
-                  Abs ("z", fsT, lift_pred p (map (incr_boundvars 1) ts))
+            if member (op =) ps p then HOLogic.mk_induct_forall fsT $
+              Abs ("z", fsT, lift_pred p (map (incr_boundvars 1) ts))
             else lift_prem f $ lift_prem u
           end
       | lift_prem (Abs (s, T, t)) = Abs (s, T, lift_prem t)
@@ -276,7 +273,7 @@ fun prove_strong_ind s avoids ctxt =
       ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
     val eqvt_ss = Simplifier.global_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
-      addsimprocs [mk_perm_bool_simproc ["Fun.id"],
+      addsimprocs [mk_perm_bool_simproc [@{const_name Fun.id}],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
@@ -292,7 +289,7 @@ fun prove_strong_ind s avoids ctxt =
         (** protect terms to avoid that fresh_prod interferes with  **)
         (** pairs used in introduction rules of inductive predicate **)
         fun protect t =
-          let val T = fastype_of t in Const ("Fun.id", T --> T) $ t end;
+          let val T = fastype_of t in Const (@{const_name Fun.id}, T --> T) $ t end;
         val p = foldr1 HOLogic.mk_prod (map protect ts @ freshs1);
         val ex = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop
             (HOLogic.exists_const T $ Abs ("x", T,
@@ -335,7 +332,7 @@ fun prove_strong_ind s avoids ctxt =
                  fun concat_perm pi1 pi2 =
                    let val T = fastype_of pi1
                    in if T = fastype_of pi2 then
-                       Const ("List.append", T --> T --> T) $ pi1 $ pi2
+                       Const (@{const_name List.append}, T --> T --> T) $ pi1 $ pi2
                      else pi2
                    end;
                  val pis'' = fold (concat_perm #> map) pis' pis;
