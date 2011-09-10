@@ -20,40 +20,35 @@ begin
 subsection {* Main definitions *}
 
 class binomial =
-
-fixes 
-  binomial :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "choose" 65)
+  fixes binomial :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "choose" 65)
 
 (* definitions for the natural numbers *)
 
 instantiation nat :: binomial
-
 begin 
 
-fun
-  binomial_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+fun binomial_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "binomial_nat n k =
    (if k = 0 then 1 else
     if n = 0 then 0 else
       (binomial (n - 1) k) + (binomial (n - 1) (k - 1)))"
 
-instance proof qed
+instance ..
 
 end
 
 (* definitions for the integers *)
 
 instantiation int :: binomial
-
 begin 
 
-definition
-  binomial_int :: "int => int \<Rightarrow> int"
-where
-  "binomial_int n k = (if n \<ge> 0 \<and> k \<ge> 0 then int (binomial (nat n) (nat k))
-      else 0)"
-instance proof qed
+definition binomial_int :: "int => int \<Rightarrow> int" where
+  "binomial_int n k =
+   (if n \<ge> 0 \<and> k \<ge> 0 then int (binomial (nat n) (nat k))
+    else 0)"
+
+instance ..
 
 end
 
@@ -97,10 +92,11 @@ lemma zero_choose_nat [rule_format,simp]: "ALL (k::nat) > n. n choose k = 0"
   by (induct n rule: induct'_nat, auto)
 
 lemma zero_choose_int [rule_format,simp]: "(k::int) > n \<Longrightarrow> n choose k = 0"
-  unfolding binomial_int_def apply (case_tac "n < 0")
+  unfolding binomial_int_def
+  apply (cases "n < 0")
   apply force
   apply (simp del: binomial_nat.simps)
-done
+  done
 
 lemma choose_reduce_nat: "(n::nat) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
     (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
@@ -108,10 +104,10 @@ lemma choose_reduce_nat: "(n::nat) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
 
 lemma choose_reduce_int: "(n::int) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
     (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  unfolding binomial_int_def apply (subst choose_reduce_nat)
-    apply (auto simp del: binomial_nat.simps 
-      simp add: nat_diff_distrib)
-done
+  unfolding binomial_int_def
+  apply (subst choose_reduce_nat)
+    apply (auto simp del: binomial_nat.simps simp add: nat_diff_distrib)
+  done
 
 lemma choose_plus_one_nat: "((n::nat) + 1) choose (k + 1) = 
     (n choose (k + 1)) + (n choose k)"
@@ -128,13 +124,13 @@ lemma choose_plus_one_int: "n \<ge> 0 \<Longrightarrow> k \<ge> 0 \<Longrightarr
 declare binomial_nat.simps [simp del]
 
 lemma choose_self_nat [simp]: "((n::nat) choose n) = 1"
-  by (induct n rule: induct'_nat, auto simp add: choose_plus_one_nat)
+  by (induct n rule: induct'_nat) (auto simp add: choose_plus_one_nat)
 
 lemma choose_self_int [simp]: "n \<ge> 0 \<Longrightarrow> ((n::int) choose n) = 1"
   by (auto simp add: binomial_int_def)
 
 lemma choose_one_nat [simp]: "(n::nat) choose 1 = n"
-  by (induct n rule: induct'_nat, auto simp add: choose_reduce_nat)
+  by (induct n rule: induct'_nat) (auto simp add: choose_reduce_nat)
 
 lemma choose_one_int [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 1 = n"
   by (auto simp add: binomial_int_def)
@@ -165,7 +161,7 @@ lemma choose_pos_nat [rule_format]: "ALL k <= (n::nat).
   apply force
   apply (subst choose_reduce_nat)
   apply auto
-done
+  done
 
 lemma choose_pos_int: "n \<ge> 0 \<Longrightarrow> k >= 0 \<Longrightarrow> k \<le> n \<Longrightarrow>
     ((n::int) choose k) > 0"
@@ -183,7 +179,7 @@ lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow>
   apply (drule_tac x = n in spec) back back 
   apply (drule_tac x = "k - 1" in spec) back back back
   apply auto
-done
+  done
 
 lemma choose_altdef_aux_nat: "(k::nat) \<le> n \<Longrightarrow> 
     fact k * fact (n - k) * (n choose k) = fact n"
@@ -193,10 +189,9 @@ proof -
   fix k :: nat and n
   assume less: "k < n"
   assume ih1: "fact k * fact (n - k) * (n choose k) = fact n"
-  hence one: "fact (k + 1) * fact (n - k) * (n choose k) = (k + 1) * fact n"
+  then have one: "fact (k + 1) * fact (n - k) * (n choose k) = (k + 1) * fact n"
     by (subst fact_plus_one_nat, auto)
-  assume ih2: "fact (k + 1) * fact (n - (k + 1)) * (n choose (k + 1)) = 
-      fact n"
+  assume ih2: "fact (k + 1) * fact (n - (k + 1)) * (n choose (k + 1)) =  fact n"
   with less have "fact (k + 1) * fact ((n - (k + 1)) + 1) * 
       (n choose (k + 1)) = (n - k) * fact n"
     by (subst (2) fact_plus_one_nat, auto)
@@ -222,7 +217,7 @@ lemma choose_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
   apply (frule choose_altdef_aux_nat)
   apply (erule subst)
   apply (simp add: mult_ac)
-done
+  done
 
 
 lemma choose_altdef_int: 
@@ -238,7 +233,7 @@ lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) 
   (* why don't blast and auto get this??? *)
   apply (rule exI)
   apply (erule sym)
-done
+  done
 
 lemma choose_dvd_int: 
   assumes "(0::int) <= k" and "k <= n"
@@ -293,7 +288,8 @@ lemma card_subsets_nat:
   fixes S :: "'a set"
   shows "finite S \<Longrightarrow> card {T. T \<le> S \<and> card T = k} = card S choose k"
 proof (induct arbitrary: k set: finite)
-  case empty show ?case by (auto simp add: Collect_conv_if)
+  case empty
+  show ?case by (auto simp add: Collect_conv_if)
 next
   case (insert x F)
   note iassms = insert(1,2)
@@ -303,11 +299,11 @@ next
     case zero
     from iassms have "{T. T \<le> (insert x F) \<and> card T = 0} = {{}}"
       by (auto simp: finite_subset)
-    thus ?case by auto
+    then show ?case by auto
   next
     case (plus1 k)
     from iassms have fin: "finite (insert x F)" by auto
-    hence "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
+    then have "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
       {T. T \<le> F & card T = k + 1} Un 
       {T. T \<le> insert x F & x : T & card T = k + 1}"
       by auto
@@ -326,14 +322,14 @@ next
       let ?f = "%T. T Un {x}"
       from iassms have "inj_on ?f {T. T <= F & card T = k}"
         unfolding inj_on_def by auto
-      hence "card ({T. T <= F & card T = k}) = 
+      then have "card ({T. T <= F & card T = k}) = 
         card(?f ` {T. T <= F & card T = k})"
         by (rule card_image [symmetric])
       also have "?f ` {T. T <= F & card T = k} = 
         {T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}" (is "?L=?R")
       proof-
         { fix S assume "S \<subseteq> F"
-          hence "card(insert x S) = card S +1"
+          then have "card(insert x S) = card S +1"
             using iassms by (auto simp: finite_subset) }
         moreover
         { fix T assume 1: "T \<subseteq> insert x F" "x : T" "card T = k+1"
@@ -352,6 +348,5 @@ next
       by (auto simp del: card.insert)
   qed
 qed
-
 
 end

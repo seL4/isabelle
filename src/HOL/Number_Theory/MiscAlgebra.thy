@@ -12,7 +12,7 @@ begin
 
 (* finiteness stuff *)
 
-lemma bounded_set1_int [intro]: "finite {(x::int). a < x & x < b & P x}" 
+lemma bounded_set1_int [intro]: "finite {(x::int). a < x & x < b & P x}"
   apply (subgoal_tac "{x. a < x & x < b & P x} <= {a<..<b}")
   apply (erule finite_subset)
   apply auto
@@ -64,7 +64,7 @@ lemma (in monoid) units_group: "group(units_of G)"
   apply auto
   apply (rule_tac x = "inv x" in bexI)
   apply auto
-done
+  done
 
 lemma (in comm_monoid) units_comm_group: "comm_group(units_of G)"
   apply (rule group.group_comm_groupI)
@@ -75,15 +75,15 @@ lemma (in comm_monoid) units_comm_group: "comm_group(units_of G)"
   done
 
 lemma units_of_carrier: "carrier (units_of G) = Units G"
-  by (unfold units_of_def, auto)
+  unfolding units_of_def by auto
 
 lemma units_of_mult: "mult(units_of G) = mult G"
-  by (unfold units_of_def, auto)
+  unfolding units_of_def by auto
 
 lemma units_of_one: "one(units_of G) = one G"
-  by (unfold units_of_def, auto)
+  unfolding units_of_def by auto
 
-lemma (in monoid) units_of_inv: "x : Units G ==> 
+lemma (in monoid) units_of_inv: "x : Units G ==>
     m_inv (units_of G) x = m_inv G x"
   apply (rule sym)
   apply (subst m_inv_def)
@@ -105,12 +105,12 @@ lemma (in monoid) units_of_inv: "x : Units G ==>
   apply (erule group.l_inv, assumption)
 done
 
-lemma (in group) inj_on_const_mult: "a: (carrier G) ==> 
+lemma (in group) inj_on_const_mult: "a: (carrier G) ==>
     inj_on (%x. a \<otimes> x) (carrier G)"
-  by (unfold inj_on_def, auto)
+  unfolding inj_on_def by auto
 
 lemma (in group) surj_const_mult: "a : (carrier G) ==>
-    (%x. a \<otimes> x) ` (carrier G) = (carrier G)" 
+    (%x. a \<otimes> x) ` (carrier G) = (carrier G)"
   apply (auto simp add: image_def)
   apply (rule_tac x = "(m_inv G a) \<otimes> x" in bexI)
   apply auto
@@ -118,7 +118,7 @@ lemma (in group) surj_const_mult: "a : (carrier G) ==>
    for mult_ac rewriting. *)
   apply (subst m_assoc [symmetric])
   apply auto
-done
+  done
 
 lemma (in group) l_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
     (x \<otimes> a = x) = (a = one G)"
@@ -127,7 +127,7 @@ lemma (in group) l_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carri
   prefer 4
   apply (erule ssubst)
   apply auto
-done
+  done
 
 lemma (in group) r_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
     (a \<otimes> x = x) = (a = one G)"
@@ -136,28 +136,32 @@ lemma (in group) r_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carri
   prefer 4
   apply (erule ssubst)
   apply auto
-done
+  done
 
 (* Is there a better way to do this? *)
 
 lemma (in group) l_cancel_one' [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
     (x = x \<otimes> a) = (a = one G)"
-  by (subst eq_commute, simp)
+  apply (subst eq_commute)
+  apply simp
+  done
 
 lemma (in group) r_cancel_one' [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
     (x = a \<otimes> x) = (a = one G)"
-  by (subst eq_commute, simp)
+  apply (subst eq_commute)
+  apply simp
+  done
 
 (* This should be generalized to arbitrary groups, not just commutative
    ones, using Lagrange's theorem. *)
 
 lemma (in comm_group) power_order_eq_one:
-    assumes fin [simp]: "finite (carrier G)"
-        and a [simp]: "a : carrier G" 
-      shows "a (^) card(carrier G) = one G" 
+  assumes fin [simp]: "finite (carrier G)"
+    and a [simp]: "a : carrier G"
+  shows "a (^) card(carrier G) = one G"
 proof -
   have "(\<Otimes>x:carrier G. x) = (\<Otimes>x:carrier G. a \<otimes> x)"
-    by (subst (2) finprod_reindex [symmetric], 
+    by (subst (2) finprod_reindex [symmetric],
       auto simp add: Pi_def inj_on_const_mult surj_const_mult)
   also have "\<dots> = (\<Otimes>x:carrier G. a) \<otimes> (\<Otimes>x:carrier G. x)"
     by (auto simp add: finprod_multf Pi_def)
@@ -178,7 +182,7 @@ lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> ~= \<one>\<^bsub>R\<^es
   apply (rule trans)
   apply (subgoal_tac "a = (a \<otimes> b) \<otimes> inv b")
   apply assumption
-  apply (subst m_assoc) 
+  apply (subst m_assoc)
   apply auto
   apply (unfold Units_def)
   apply auto
@@ -200,20 +204,20 @@ lemma (in comm_monoid) comm_inv_char: "x : carrier G \<Longrightarrow> y : carri
   x \<otimes> y = \<one> \<Longrightarrow> inv x = y"
   apply (rule inv_char)
   apply auto
-  apply (subst m_comm, auto) 
+  apply (subst m_comm, auto)
   done
 
-lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"  
+lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"
   apply (rule inv_char)
   apply (auto simp add: l_minus r_minus)
   done
 
-lemma (in monoid) inv_eq_imp_eq: "x : Units G \<Longrightarrow> y : Units G \<Longrightarrow> 
+lemma (in monoid) inv_eq_imp_eq: "x : Units G \<Longrightarrow> y : Units G \<Longrightarrow>
     inv x = inv y \<Longrightarrow> x = y"
   apply (subgoal_tac "inv(inv x) = inv(inv y)")
   apply (subst (asm) Units_inv_inv)+
   apply auto
-done
+  done
 
 lemma (in ring) Units_minus_one_closed [intro]: "\<ominus> \<one> : Units R"
   apply (unfold Units_def)
@@ -221,24 +225,24 @@ lemma (in ring) Units_minus_one_closed [intro]: "\<ominus> \<one> : Units R"
   apply (rule_tac x = "\<ominus> \<one>" in bexI)
   apply auto
   apply (simp add: l_minus r_minus)
-done
+  done
 
 lemma (in monoid) inv_one [simp]: "inv \<one> = \<one>"
   apply (rule inv_char)
   apply auto
-done
+  done
 
 lemma (in ring) inv_eq_neg_one_eq: "x : Units R \<Longrightarrow> (inv x = \<ominus> \<one>) = (x = \<ominus> \<one>)"
   apply auto
   apply (subst Units_inv_inv [symmetric])
   apply auto
-done
+  done
 
 lemma (in monoid) inv_eq_one_eq: "x : Units G \<Longrightarrow> (inv x = \<one>) = (x = \<one>)"
   apply auto
   apply (subst Units_inv_inv [symmetric])
   apply auto
-done
+  done
 
 
 (* This goes in FiniteProduct *)
@@ -256,29 +260,28 @@ lemma (in comm_monoid) finprod_UN_disjoint:
   apply (erule finite_UN_I)
   apply blast
   apply (fastsimp)
-  apply (auto intro!: funcsetI finprod_closed) 
-done
+  apply (auto intro!: funcsetI finprod_closed)
+  done
 
 lemma (in comm_monoid) finprod_Union_disjoint:
   "[| finite C; (ALL A:C. finite A & (ALL x:A. f x : carrier G));
-      (ALL A:C. ALL B:C. A ~= B --> A Int B = {}) |] 
-   ==> finprod G f (Union C) = finprod G (finprod G f) C" 
+      (ALL A:C. ALL B:C. A ~= B --> A Int B = {}) |]
+   ==> finprod G f (Union C) = finprod G (finprod G f) C"
   apply (frule finprod_UN_disjoint [of C id f])
   apply (auto simp add: SUP_def)
-done
+  done
 
-lemma (in comm_monoid) finprod_one [rule_format]: 
-  "finite A \<Longrightarrow> (ALL x:A. f x = \<one>) \<longrightarrow>
-     finprod G f A = \<one>"
-by (induct set: finite) auto
+lemma (in comm_monoid) finprod_one:
+    "finite A \<Longrightarrow> (\<And>x. x:A \<Longrightarrow> f x = \<one>) \<Longrightarrow> finprod G f A = \<one>"
+  by (induct set: finite) auto
 
 
 (* need better simplification rules for rings *)
 (* the next one holds more generally for abelian groups *)
 
 lemma (in cring) sum_zero_eq_neg:
-  "x : carrier R \<Longrightarrow> y : carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
-  apply (subgoal_tac "\<ominus> y = \<zero> \<oplus> \<ominus> y") 
+    "x : carrier R \<Longrightarrow> y : carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
+  apply (subgoal_tac "\<ominus> y = \<zero> \<oplus> \<ominus> y")
   apply (erule ssubst)back
   apply (erule subst)
   apply (simp_all add: ring_simprules)
@@ -287,7 +290,7 @@ lemma (in cring) sum_zero_eq_neg:
 (* there's a name conflict -- maybe "domain" should be
    "integral_domain" *)
 
-lemma (in Ring.domain) square_eq_one: 
+lemma (in Ring.domain) square_eq_one:
   fixes x
   assumes [simp]: "x : carrier R" and
     "x \<otimes> x = \<one>"
@@ -298,15 +301,15 @@ proof -
   also with `x \<otimes> x = \<one>` have "\<dots> = \<zero>"
     by (simp add: ring_simprules)
   finally have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = \<zero>" .
-  hence "(x \<oplus> \<one>) = \<zero> | (x \<oplus> \<ominus> \<one>) = \<zero>"
+  then have "(x \<oplus> \<one>) = \<zero> | (x \<oplus> \<ominus> \<one>) = \<zero>"
     by (intro integral, auto)
-  thus ?thesis
+  then show ?thesis
     apply auto
     apply (erule notE)
     apply (rule sum_zero_eq_neg)
     apply auto
     apply (subgoal_tac "x = \<ominus> (\<ominus> \<one>)")
-    apply (simp add: ring_simprules) 
+    apply (simp add: ring_simprules)
     apply (rule sum_zero_eq_neg)
     apply auto
     done
@@ -318,7 +321,7 @@ lemma (in Ring.domain) inv_eq_self: "x : Units R \<Longrightarrow>
   apply auto
   apply (erule ssubst)back
   apply (erule Units_r_inv)
-done
+  done
 
 
 (*
@@ -327,15 +330,15 @@ done
   needed.)
 *)
 
-lemma (in ring) finite_ring_finite_units [intro]: "finite (carrier R) \<Longrightarrow> 
-    finite (Units R)"
-  by (rule finite_subset, auto)
+lemma (in ring) finite_ring_finite_units [intro]:
+    "finite (carrier R) \<Longrightarrow> finite (Units R)"
+  by (rule finite_subset) auto
 
 (* this belongs with MiscAlgebra.thy *)
-lemma (in monoid) units_of_pow: 
+lemma (in monoid) units_of_pow:
     "x : Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> (n::nat) = x (^)\<^bsub>G\<^esub> n"
   apply (induct n)
-  apply (auto simp add: units_group group.is_monoid  
+  apply (auto simp add: units_group group.is_monoid
     monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult)
   done
 
