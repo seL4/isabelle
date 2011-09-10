@@ -2,7 +2,7 @@
 
 header {* Complete lattices *}
 
-theory Complete_Lattice
+theory Complete_Lattices
 imports Set
 begin
 

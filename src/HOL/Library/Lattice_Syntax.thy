@@ -3,7 +3,7 @@
 header {* Pretty syntax for lattice operations *}
 
 theory Lattice_Syntax
-imports Complete_Lattice
+imports Complete_Lattices
 begin
 
 notation

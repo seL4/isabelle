@@ -5,7 +5,7 @@
 header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
 theory Inductive 
-imports Complete_Lattice
+imports Complete_Lattices
 uses
   ("Tools/inductive.ML")
   "Tools/dseq.ML"

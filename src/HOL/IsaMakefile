@@ -171,7 +171,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Tools/Metis/metis.ML \
   $(SRC)/Tools/rat.ML \
   ATP.thy \
-  Complete_Lattice.thy \
+  Complete_Lattices.thy \
   Complete_Partial_Order.thy \
   Datatype.thy \
   Extraction.thy \

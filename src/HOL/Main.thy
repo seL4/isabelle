@@ -21,7 +21,7 @@ lemma Sup_bool_def:
   "Sup A \<longleftrightarrow> (\<exists>x\<in>A. x)"
   by auto
 
-declare Complete_Lattice.Inf_bool_def [simp del]
-declare Complete_Lattice.Sup_bool_def [simp del]
+declare Complete_Lattices.Inf_bool_def [simp del]
+declare Complete_Lattices.Sup_bool_def [simp del]
 
 end

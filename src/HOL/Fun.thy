@@ -6,7 +6,7 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Complete_Lattice
+imports Complete_Lattices
 uses ("Tools/enriched_type.ML")
 begin
 

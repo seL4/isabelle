@@ -199,17 +199,17 @@ lemma [code_unfold]:
   by simp
 
 definition Inf :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  [simp]: "Inf = Complete_Lattice.Inf"
+  [simp]: "Inf = Complete_Lattices.Inf"
 
 lemma [code_unfold]:
-  "Complete_Lattice.Inf = Inf"
+  "Complete_Lattices.Inf = Inf"
   by simp
 
 definition Sup :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  [simp]: "Sup = Complete_Lattice.Sup"
+  [simp]: "Sup = Complete_Lattices.Sup"
 
 lemma [code_unfold]:
-  "Complete_Lattice.Sup = Sup"
+  "Complete_Lattices.Sup = Sup"
   by simp
 
 definition Inter :: "'a set set \<Rightarrow> 'a set" where

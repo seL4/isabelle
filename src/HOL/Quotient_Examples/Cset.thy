@@ -89,7 +89,7 @@ is "Inf_class.Inf :: ('a :: Inf) set \<Rightarrow> 'a"
 quotient_definition Sup where "Sup :: ('a :: Sup) Cset.set \<Rightarrow> 'a"
 is "Sup_class.Sup :: ('a :: Sup) set \<Rightarrow> 'a"
 quotient_definition UNION where "UNION :: 'a Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Cset.set) \<Rightarrow> 'b Cset.set"
-is "Complete_Lattice.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+is "Complete_Lattices.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
 
 hide_const (open) is_empty insert remove map filter forall exists card
   set subset psubset inter union empty UNIV uminus minus Inf Sup UNION
