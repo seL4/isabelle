@@ -110,6 +110,7 @@ lemma (in vectorspace) subspace_refl [intro]: "V \<unlhd> V"
 proof
   show "V \<noteq> {}" ..
   show "V \<subseteq> V" ..
+next
   fix x y assume x: "x \<in> V" and y: "y \<in> V"
   fix a :: real
   from x y show "x + y \<in> V" by simp
@@ -142,9 +143,8 @@ text {*
   scalar multiples of @{text x}.
 *}
 
-definition
-  lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set" where
-  "lin x = {a \<cdot> x | a. True}"
+definition lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set"
+  where "lin x = {a \<cdot> x | a. True}"
 
 lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"
   unfolding lin_def by blast
@@ -175,16 +175,18 @@ qed
 text {* Any linear closure is a subspace. *}
 
 lemma (in vectorspace) lin_subspace [intro]:
-  "x \<in> V \<Longrightarrow> lin x \<unlhd> V"
+  assumes x: "x \<in> V"
+  shows "lin x \<unlhd> V"
 proof
-  assume x: "x \<in> V"
-  then show "lin x \<noteq> {}" by (auto simp add: x_lin_x)
+  from x show "lin x \<noteq> {}" by auto
+next
   show "lin x \<subseteq> V"
   proof
     fix x' assume "x' \<in> lin x"
     then obtain a where "x' = a \<cdot> x" ..
     with x show "x' \<in> V" by simp
   qed
+next
   fix x' x'' assume x': "x' \<in> lin x" and x'': "x'' \<in> lin x"
   show "x' + x'' \<in> lin x"
   proof -
@@ -290,6 +292,7 @@ proof -
         "u \<in> U" and "v \<in> V" ..
       then show "x \<in> E" by simp
     qed
+  next
     fix x y assume x: "x \<in> U \<oplus> V" and y: "y \<in> U \<oplus> V"
     show "x + y \<in> U \<oplus> V"
     proof -
@@ -467,8 +470,9 @@ text {*
 lemma h'_definite:
   fixes H
   assumes h'_def:
-    "h' \<equiv> (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
-                in (h y) + a * xi)"
+    "h' \<equiv> \<lambda>x.
+      let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
+      in (h y) + a * xi"
     and x: "x = y + a \<cdot> x'"
   assumes "vectorspace E" "subspace H E"
   assumes y: "y \<in> H"

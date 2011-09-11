@@ -50,8 +50,7 @@ proof -
   interpret vectorspace V by fact
   assume x: "x \<in> V"
   then have "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
-  also from x have "\<parallel>\<dots>\<parallel> = \<bar>- 1\<bar> * \<parallel>x\<parallel>"
-    by (rule abs_homogenous)
+  also from x have "\<parallel>\<dots>\<parallel> = \<bar>- 1\<bar> * \<parallel>x\<parallel>" by (rule abs_homogenous)
   also have "\<dots> = \<parallel>x\<parallel>" by simp
   finally show ?thesis .
 qed
@@ -80,13 +79,13 @@ locale normed_vectorspace = vectorspace + norm
 declare normed_vectorspace.intro [intro?]
 
 lemma (in normed_vectorspace) gt_zero [intro?]:
-  "x \<in> V \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> 0 < \<parallel>x\<parallel>"
+  assumes x: "x \<in> V" and neq: "x \<noteq> 0"
+  shows "0 < \<parallel>x\<parallel>"
 proof -
-  assume x: "x \<in> V" and neq: "x \<noteq> 0"
   from x have "0 \<le> \<parallel>x\<parallel>" ..
-  also have [symmetric]: "\<dots> \<noteq> 0"
+  also have "0 \<noteq> \<parallel>x\<parallel>"
   proof
-    assume "\<parallel>x\<parallel> = 0"
+    assume "0 = \<parallel>x\<parallel>"
     with x have "x = 0" by simp
     with neq show False by contradiction
   qed

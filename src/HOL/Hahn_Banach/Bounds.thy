@@ -15,9 +15,8 @@ locale lub =
 
 lemmas [elim?] = lub.least lub.upper
 
-definition
-  the_lub :: "'a::order set \<Rightarrow> 'a" where
-  "the_lub A = The (lub A)"
+definition the_lub :: "'a::order set \<Rightarrow> 'a"
+  where "the_lub A = The (lub A)"
 
 notation (xsymbols)
   the_lub  ("\<Squnion>_" [90] 90)
