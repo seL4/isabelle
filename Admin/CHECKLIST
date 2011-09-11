@@ -38,7 +38,7 @@ Checklist for official releases
 Packaging
 =========
 
-- makedist -r DISTNAME
+- makedist -j jedit_build-XXXX -r DISTNAME
 
 - makebin (multiplatform);
 
