@@ -71,16 +71,36 @@ EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="true"
 
 # run interface with error feedback
 
+ISABELLE_INTERFACE_CHOICE="$("$ISABELLE_TOOL" getenv -b ISABELLE_INTERFACE_CHOICE)"
+if [ "$ISABELLE_INTERFACE_CHOICE" != emacs -a "$ISABELLE_INTERFACE_CHOICE" != jedit ]
+then
+  declare -a CHOICE
+  CHOICE=($("$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" dropdown \
+    --title Isabelle \
+    --text "Which Isabelle interface?" \
+    --items "Emacs / Proof General" "Isabelle/jEdit PIDE" \
+    --button2 "OK, do not ask again" --button1 "OK"))
+  if [ "${CHOICE[1]}" = 0 ]; then
+    ISABELLE_INTERFACE_CHOICE=emacs
+  else
+    ISABELLE_INTERFACE_CHOICE=jedit
+  fi
+  if [ "${CHOICE[0]}" = 2 ]; then
+    ISABELLE_HOME_USER="$("$ISABELLE_TOOL" getenv -b ISABELLE_HOME_USER)"
+    mkdir -p "$ISABELLE_HOME_USER/etc"
+    ( echo; echo "ISABELLE_INTERFACE_CHOICE=$ISABELLE_INTERFACE_CHOICE"; ) \
+      >> "$ISABELLE_HOME_USER/etc/settings"
+    "$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" ok-msgbox \
+      --title Isabelle \
+      --text Note \
+      --informative-text "ISABELLE_INTERFACE_CHOICE stored in $ISABELLE_HOME_USER/etc/settings" \
+      --no-cancel
+  fi
+fi
+
 OUTPUT="/tmp/isabelle$$.out"
 
-declare -a CHOICE
-CHOICE=($("$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" dropdown \
-  --title Isabelle \
-  --text "Which Isabelle interface?" \
-  --items "Emacs / Proof General" "Isabelle/jEdit PIDE" \
-  --button1 "OK"))
-
-if [ "${CHOICE[1]}" = 0 ]; then
+if [ "$ISABELLE_INTERFACE_CHOICE" = emacs ]; then
   ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 else
