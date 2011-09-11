@@ -22,16 +22,16 @@ lemma sat_eq_iff:
   "m = n \<longleftrightarrow> nat_of m = nat_of n"
   by (simp add: nat_of_inject)
 
-lemma Abs_sa_nat_of [code abstype]:
+lemma Abs_sat_nat_of [code abstype]:
   "Abs_sat (nat_of n) = n"
   by (fact nat_of_inverse)
 
-definition Sat :: "nat \<Rightarrow> 'a::len sat" where
-  "Sat n = Abs_sat (min (len_of TYPE('a)) n)"
+definition Abs_sat' :: "nat \<Rightarrow> 'a::len sat" where
+  "Abs_sat' n = Abs_sat (min (len_of TYPE('a)) n)"
 
-lemma nat_of_Sat [simp]:
-  "nat_of (Sat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
-  unfolding Sat_def by (rule Abs_sat_inverse) simp
+lemma nat_of_Abs_sat' [simp]:
+  "nat_of (Abs_sat' n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  unfolding Abs_sat'_def by (rule Abs_sat_inverse) simp
 
 lemma nat_of_le_len_of [simp]:
   "nat_of (n :: ('a::len) sat) \<le> len_of TYPE('a)"
@@ -45,9 +45,9 @@ lemma min_nat_of_len_of [simp]:
   "min (nat_of (n::('a::len) sat)) (len_of TYPE('a)) = nat_of n"
   by (subst min_max.inf.commute) simp
 
-lemma Sat_nat_of [simp]:
-  "Sat (nat_of n) = n"
-  by (simp add: Sat_def nat_of_inverse)
+lemma Abs_sat'_nat_of [simp]:
+  "Abs_sat' (nat_of n) = n"
+  by (simp add: Abs_sat'_def nat_of_inverse)
 
 instantiation sat :: (len) linorder
 begin
@@ -67,10 +67,10 @@ instantiation sat :: (len) "{minus, comm_semiring_1}"
 begin
 
 definition
-  "0 = Sat 0"
+  "0 = Abs_sat' 0"
 
 definition
-  "1 = Sat 1"
+  "1 = Abs_sat' 1"
 
 lemma nat_of_zero_sat [simp, code abstract]:
   "nat_of 0 = 0"
@@ -81,14 +81,14 @@ lemma nat_of_one_sat [simp, code abstract]:
   by (simp add: one_sat_def)
 
 definition
-  "x + y = Sat (nat_of x + nat_of y)"
+  "x + y = Abs_sat' (nat_of x + nat_of y)"
 
 lemma nat_of_plus_sat [simp, code abstract]:
   "nat_of (x + y) = min (nat_of x + nat_of y) (len_of TYPE('a))"
   by (simp add: plus_sat_def)
 
 definition
-  "x - y = Sat (nat_of x - nat_of y)"
+  "x - y = Abs_sat' (nat_of x - nat_of y)"
 
 lemma nat_of_minus_sat [simp, code abstract]:
   "nat_of (x - y) = nat_of x - nat_of y"
@@ -98,7 +98,7 @@ proof -
 qed
 
 definition
-  "x * y = Sat (nat_of x * nat_of y)"
+  "x * y = Abs_sat' (nat_of x * nat_of y)"
 
 lemma nat_of_times_sat [simp, code abstract]:
   "nat_of (x * y) = min (nat_of x * nat_of y) (len_of TYPE('a))"
@@ -145,8 +145,15 @@ by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min_ma
 
 end
 
-lemma Sat_eq_of_nat: "Sat n = of_nat n"
+lemma Abs_sat'_eq_of_nat: "Abs_sat' n = of_nat n"
   by (rule sat_eqI, induct n, simp_all)
+
+abbreviation Sat :: "nat \<Rightarrow> 'a::len sat" where
+  "Sat \<equiv> of_nat"
+
+lemma nat_of_Sat [simp]:
+  "nat_of (Sat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  by (rule nat_of_Abs_sat' [unfolded Abs_sat'_eq_of_nat])
 
 instantiation sat :: (len) number_semiring
 begin
@@ -155,7 +162,7 @@ definition
   number_of_sat_def [code del]: "number_of = Sat \<circ> nat"
 
 instance
-  by default (simp add: number_of_sat_def Sat_eq_of_nat)
+  by default (simp add: number_of_sat_def)
 
 end
 
