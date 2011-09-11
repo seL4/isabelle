@@ -334,7 +334,7 @@ proof
   proof
     fix x assume "x \<in> H"
     with M cM graph
-    obtain H' h' where x: "x \<in> H'" and H'E: "H' \<unlhd> E"
+    obtain H' where x: "x \<in> H'" and H'E: "H' \<unlhd> E"
       by (rule some_H'h' [elim_format]) blast
     from H'E have "H' \<subseteq> E" ..
     with x show "x \<in> E" ..

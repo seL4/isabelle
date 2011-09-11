@@ -143,7 +143,7 @@ proof -
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
           then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
-          also have "c * 1 \<le> b" by (simp add: b_def le_maxI1)
+          also have "c * 1 \<le> b" by (simp add: b_def)
           finally show "y \<le> b" .
         qed
       qed

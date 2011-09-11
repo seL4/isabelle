@@ -23,9 +23,8 @@ text {*
 
 type_synonym 'a graph = "('a \<times> real) set"
 
-definition
-  graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph" where
-  "graph F f = {(x, f x) | x. x \<in> F}"
+definition graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph"
+  where "graph F f = {(x, f x) | x. x \<in> F}"
 
 lemma graphI [intro]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
   unfolding graph_def by blast
@@ -34,8 +33,9 @@ lemma graphI2 [intro?]: "x \<in> F \<Longrightarrow> \<exists>t \<in> graph F f.
   unfolding graph_def by blast
 
 lemma graphE [elim?]:
-    "(x, y) \<in> graph F f \<Longrightarrow> (x \<in> F \<Longrightarrow> y = f x \<Longrightarrow> C) \<Longrightarrow> C"
-  unfolding graph_def by blast
+  assumes "(x, y) \<in> graph F f"
+  obtains "x \<in> F" and "y = f x"
+  using assms unfolding graph_def by blast
 
 
 subsection {* Functions ordered by domain extension *}
@@ -50,12 +50,10 @@ lemma graph_extI:
     \<Longrightarrow> graph H h \<subseteq> graph H' h'"
   unfolding graph_def by blast
 
-lemma graph_extD1 [dest?]:
-  "graph H h \<subseteq> graph H' h' \<Longrightarrow> x \<in> H \<Longrightarrow> h x = h' x"
+lemma graph_extD1 [dest?]: "graph H h \<subseteq> graph H' h' \<Longrightarrow> x \<in> H \<Longrightarrow> h x = h' x"
   unfolding graph_def by blast
 
-lemma graph_extD2 [dest?]:
-  "graph H h \<subseteq> graph H' h' \<Longrightarrow> H \<subseteq> H'"
+lemma graph_extD2 [dest?]: "graph H h \<subseteq> graph H' h' \<Longrightarrow> H \<subseteq> H'"
   unfolding graph_def by blast
 
 
@@ -66,13 +64,11 @@ text {*
   funct}.
 *}
 
-definition
-  "domain" :: "'a graph \<Rightarrow> 'a set" where
-  "domain g = {x. \<exists>y. (x, y) \<in> g}"
+definition domain :: "'a graph \<Rightarrow> 'a set"
+  where "domain g = {x. \<exists>y. (x, y) \<in> g}"
 
-definition
-  funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)" where
-  "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
+definition funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
+  where "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
 text {*
   The following lemma states that @{text g} is the graph of a function
@@ -107,21 +103,26 @@ text {*
 definition
   norm_pres_extensions ::
     "'a::{plus, minus, uminus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
-      \<Rightarrow> 'a graph set" where
-    "norm_pres_extensions E p F f
-      = {g. \<exists>H h. g = graph H h
-          \<and> linearform H h
-          \<and> H \<unlhd> E
-          \<and> F \<unlhd> H
-          \<and> graph F f \<subseteq> graph H h
-          \<and> (\<forall>x \<in> H. h x \<le> p x)}"
+      \<Rightarrow> 'a graph set"
+where
+  "norm_pres_extensions E p F f
+    = {g. \<exists>H h. g = graph H h
+        \<and> linearform H h
+        \<and> H \<unlhd> E
+        \<and> F \<unlhd> H
+        \<and> graph F f \<subseteq> graph H h
+        \<and> (\<forall>x \<in> H. h x \<le> p x)}"
 
 lemma norm_pres_extensionE [elim]:
-  "g \<in> norm_pres_extensions E p F f
-  \<Longrightarrow> (\<And>H h. g = graph H h \<Longrightarrow> linearform H h
-        \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H \<Longrightarrow> graph F f \<subseteq> graph H h
-        \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x \<Longrightarrow> C) \<Longrightarrow> C"
-  unfolding norm_pres_extensions_def by blast
+  assumes "g \<in> norm_pres_extensions E p F f"
+  obtains H h
+    where "g = graph H h"
+    and "linearform H h"
+    and "H \<unlhd> E"
+    and "F \<unlhd> H"
+    and "graph F f \<subseteq> graph H h"
+    and "\<forall>x \<in> H. h x \<le> p x"
+  using assms unfolding norm_pres_extensions_def by blast
 
 lemma norm_pres_extensionI2 [intro]:
   "linearform H h \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H
