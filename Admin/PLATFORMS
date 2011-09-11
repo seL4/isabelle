@@ -10,15 +10,16 @@ and packages.
 
 The basic Isabelle system infrastructure provides some facilities to
 make this work, e.g. see the ML structures File and Path, or functions
-like bash_output.  The settings environment also provides some means
-for portability, e.g. jvm_path to hold up the impression that Java on
-Windows/Cygwin adheres to Isabelle/POSIX standards.
+like Isabelle_System.bash.  The settings environment also provides
+some means for portability, e.g. jvm_path to keep the impression that
+Java on Windows/Cygwin adheres to Isabelle/POSIX standards (inside the
+JVM itself there are many Windows-specific things, though).
 
 When producing add-on tools, it is important to stay within this clean
 room of Isabelle, and refrain from overly ambitious system hacking.
 The existing Isabelle scripts follow a certain style that might look
-odd at first sight, but reflects long years of experience in getting
-system plumbing right (which is quite hard).
+odd at first sight, but it reflects long years of experience in
+getting system plumbing right (which is quite hard).
 
 
 Supported platforms
@@ -29,31 +30,34 @@ supported by the Isabelle distribution (and bundled tools), with the
 following reference versions (which have been selected to be neither
 too old nor too new):
 
-  x86-linux         SuSE 11.0 (atbroy51) (??)
+  x86-linux         Ubuntu 10.04 LTS
   x86-darwin        Mac OS Leopard (macbroy30)
-  x86-cygwin        Cygwin 1.7 (atbroy102)
+  x86-cygwin        Cygwin 1.7 (vmbroy9)
 
-  x86_64-linux      SuSE 11.0 (atbroy100)
+  x86_64-linux      Ubuntu 10.04 LTS
   x86_64-darwin     Mac OS Leopard (macbroy30)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
-should not have to care about the differences at all.  There are also
-some secondary platforms where Poly/ML also happens to work:
+should not have to care about the differences (at least in theory).
+There are also some additional platforms where Poly/ML also happens to
+work, but they are *not* covered by the official Isabelle
+distribution:
 
   ppc-darwin
   sparc-solaris
   x86-solaris
   x86-bsd
 
-There is no guarantee that Isabelle add-ons work on these fringe
-platforms.  Even Isabelle/Scala already fails on ppc-darwin due to
-lack of JVM 1.6 support by Apple.
+There are increasing problems to make contributing components of
+Isabelle work on such fringe platforms.  Note that x86-bsd is silently
+treated like x86-linux -- this works if certain Linux compatibility
+packages are installed on BSD.
 
 
 32 bit vs. 64 bit platforms
 ---------------------------
 
-64 bit hardware becomes more and more important for power users.
+64 bit hardware becomes more and more important for many users.
 Add-on tools need to work seamlessly without manual user
 configuration, although it is often sufficient to fall back on 32 bit
 executables.
@@ -77,15 +81,15 @@ The following portable system tools can be taken for granted:
 
 * GNU bash as uniform shell on all platforms.  The POSIX "standard"
   shell /bin/sh is *not* appropriate, because there are too many
-  different implementations of it.
+  non-standard implementations of it.
 
 * Perl as largely portable system programming language.  In some
   situations Python may serve as an alternative, but it usually
   performs not as well in addressing various delicate details of
   operating system concepts (processes, signals, sockets etc.).
 
-* Scala with Java Runtime 1.6.  The Isabelle/Pure.jar library irons
-  out many oddities and portability problems of the Java platform.
+* Scala with Java Runtime 1.6.  The Isabelle/Scala layer irons out
+  many oddities and portability issues of the Java platform.
 
 
 Known problems
