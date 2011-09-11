@@ -73,9 +73,20 @@ EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="true"
 
 OUTPUT="/tmp/isabelle$$.out"
 
-# ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
-( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
-RC=$?
+declare -a CHOICE
+CHOICE=($("$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" dropdown \
+  --title Isabelle \
+  --text "Which Isabelle interface?" \
+  --items "Emacs / Proof General" "Isabelle/jEdit PIDE" \
+  --button1 "OK"))
+
+if [ "${CHOICE[1]}" = 0 ]; then
+  ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
+  RC=$?
+else
+  ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
+  RC=$?
+fi
 
 if [ "$RC" != 0 ]; then
   echo >> "$OUTPUT"
