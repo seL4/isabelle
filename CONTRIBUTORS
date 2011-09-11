@@ -12,6 +12,10 @@ Contributions to Isabelle2011-1
 * August 2011: Florian Haftmann, Johannes Hölzl and Lars Noschinski, TUM
   Refined theory on complete lattices.
 
+* 2011: Makarius Wenzel, Université Paris-Sud / LRI
+  Various building blocks for Isabelle/Scala layer and Isabelle/jEdit
+  Prover IDE.
+
 
 Contributions to Isabelle2011
 -----------------------------
