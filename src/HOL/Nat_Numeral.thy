@@ -334,10 +334,10 @@ lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
 by (simp add: nat_number_of_def)
 
 lemma nat_numeral_0_eq_0 [simp, code_post]: "Numeral0 = (0::nat)"
-by (simp add: nat_number_of_def)
+  by (rule semiring_numeral_0_eq_0)
 
 lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
-by (simp add: nat_number_of_def)
+  by (rule semiring_numeral_1_eq_1)
 
 lemma Numeral1_eq1_nat:
   "(1::nat) = Numeral1"
@@ -354,7 +354,7 @@ lemma int_nat_number_of [simp]:
          (if neg (number_of v :: int) then 0  
           else (number_of v :: int))"
   unfolding nat_number_of_def number_of_is_id neg_def
-  by simp
+  by simp (* FIXME: redundant with of_nat_number_of_eq *)
 
 lemma nonneg_int_cases:
   fixes k :: int assumes "0 \<le> k" obtains n where "k = of_nat n"
