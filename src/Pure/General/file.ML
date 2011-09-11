@@ -27,6 +27,7 @@ sig
   val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val fold_pages: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read_lines: Path.T -> string list
+  val read_pages: Path.T -> string list
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
@@ -128,7 +129,11 @@ fun read_dir path = rev (fold_dir cons path []);
 
 (* input *)
 
-(*scalable iterator -- avoid size limit of TextIO.inputAll, and overhead of many TextIO.inputLine*)
+(*
+  scalable iterator:
+  . avoid size limit of TextIO.inputAll and overhead of many TextIO.inputLine
+  . optional terminator at end-of-file
+*)
 fun fold_chunks terminator f path a = open_input (fn file =>
   let
     fun read buf x =
@@ -146,6 +151,7 @@ fun fold_lines f = fold_chunks #"\n" f;
 fun fold_pages f = fold_chunks #"\f" f;
 
 fun read_lines path = rev (fold_lines cons path []);
+fun read_pages path = rev (fold_pages cons path []);
 
 val read = open_input TextIO.inputAll;
 
