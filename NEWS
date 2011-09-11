@@ -94,6 +94,10 @@ syntax diagrams.
 * Theory Library/Saturated provides type of numbers with saturated
 arithmetic.
 
+* Theory Library/Product_Lattice defines a pointwise ordering for the
+product type 'a * 'b, and provides instance proofs for various order
+and lattice type classes.
+
 * Classes bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
@@ -234,7 +238,7 @@ constants:
   the_Fin     ~> the_enat
 
 Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
-been renamed accordingly.
+been renamed accordingly. INCOMPATIBILITY.
 
 * Theory Limits: Type "'a net" has been renamed to "'a filter", in
 accordance with standard mathematical terminology. INCOMPATIBILITY.
