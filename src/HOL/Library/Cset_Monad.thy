@@ -1,6 +1,8 @@
-(* Author: Andreas Lochbihler, KIT *)
+(* Title: HOL/Library/Cset_Monad.thy
+   Author: Andreas Lochbihler, Karlsruhe Institute of Technology
+*)
 
-header {* Add monad syntax for Csets *}
+header {* Monad notation for computable sets (cset) *}
 
 theory Cset_Monad
 imports Cset Monad_Syntax 
