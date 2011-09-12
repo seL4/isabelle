@@ -229,7 +229,7 @@ INCOMPATIBILITY. Use 'partial_function' instead.
     reals. INCOMPATIBILITY.
 
 * Theory Library/Extended_Reals replaces now the positive extended reals
-  found in probabilty thoery. This file is extended by
+  found in probability theory. This file is extended by
   Multivariate_Analysis/Extended_Real_Limits.
 
 * Old 'recdef' package has been moved to theory Library/Old_Recdef,
