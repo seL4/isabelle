@@ -98,6 +98,9 @@ arithmetic.
 product type 'a * 'b, and provides instance proofs for various order
 and lattice type classes.
 
+* Theory Library/Countable now provides the "countable_datatype" proof
+method for proving "countable" class instances for datatypes.
+
 * Classes bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
@@ -423,6 +426,10 @@ replaced by more general versions. INCOMPATIBILITY.
 * Theory Complex_Main: The definition of infinite series was generalized.
   Now it is defined on the type class {topological_space, comm_monoid_add}.
   Hence it is useable also for extended real numbers.
+
+* Theory Complex_Main: The complex exponential function "expi" is now
+a type-constrained abbreviation for "exp :: complex => complex"; thus
+several polymorphic lemmas about "exp" are now applicable to "expi".
 
 
 *** Document preparation ***

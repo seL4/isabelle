@@ -7,7 +7,7 @@ Contributions to Isabelle2011-1
 -------------------------------
 
 * September 2011: Peter Gammie
-  Theory HOL/Libary/Saturated: numbers with saturated arithmetic.
+  Theory HOL/Library/Saturated: numbers with saturated arithmetic.
 
 * August 2011: Florian Haftmann, Johannes Hölzl and Lars Noschinski, TUM
   Refined theory on complete lattices.
@@ -29,6 +29,13 @@ Contributions to Isabelle2011-1
   and Bogdan Grechuk, Univeristy of Edinburgh
   Theory HOL/Library/Extended_Reals: real numbers extended with
   plus and minus infinity.
+
+* June 2011: Brian Huffman, Portland State University
+  Proof method 'countable_datatype' for theory Library/Countable.
+
+* August 2011: Brian Huffman, Portland State University
+  Misc cleanup of Complex_Main and Multivariate_Analysis.
+
 
 Contributions to Isabelle2011
 -----------------------------
