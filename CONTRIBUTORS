@@ -25,6 +25,11 @@ Contributions to Isabelle2011-1
   Theory HOL/Library/Cset_Monad allows do notation for computable
   sets (cset) via the generic monad ad-hoc overloading facility.
 
+* 2011: Johannes Hölzl, Armin Heller, TUM,
+  and Bogdan Grechuk, Univeristy of Edinburgh
+  Theory HOL/Library/Extended_Reals: real numbers extended with
+  plus and minus infinity.
+
 Contributions to Isabelle2011
 -----------------------------
 

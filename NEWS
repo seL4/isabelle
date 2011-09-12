@@ -224,8 +224,13 @@ INCOMPATIBILITY. Use 'partial_function' instead.
 * Session HOL-Probability:
   - Caratheodory's extension lemma is now proved for ring_of_sets.
   - Infinite products of probability measures are now available.
+  - Sigma closure is independent, if the generator is independent
   - Use extended reals instead of positive extended
     reals. INCOMPATIBILITY.
+
+* Theory Library/Extended_Reals replaces now the positive extended reals
+  found in probabilty thoery. This file is extended by
+  Multivariate_Analysis/Extended_Real_Limits.
 
 * Old 'recdef' package has been moved to theory Library/Old_Recdef,
 from where it must be imported explicitly.  INCOMPATIBILITY.
@@ -408,6 +413,9 @@ replaced by more general versions. INCOMPATIBILITY.
   bounded_bilinear.LIM_right_zero ~> bounded_bilinear.tendsto_right_zero
   LIM_inverse_fun ~> tendsto_inverse [OF tendsto_ident_at]
 
+* Theory Complex_Main: The definition of infinite series was generalized.
+  Now it is defined on the type class {topological_spaces, comm_monoid_add}.
+  Hence it is useable also for extended real numbers.
 
 *** Document preparation ***
 
