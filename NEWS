@@ -230,6 +230,18 @@ from where it must be imported explicitly.  INCOMPATIBILITY.
 * Well-founded recursion combinator "wfrec" has been moved to theory
 Library/Wfrec. INCOMPATIBILITY.
 
+* Theory HOL/Library/Cset_Monad allows do notation for computable
+  sets (cset) via the generic monad ad-hoc overloading facility.
+
+* Theories of common data structures are split into theories for
+  implementation, an invariant-ensuring type, and connection to
+  an abstract type. INCOMPATIBILITY.
+
+  - RBT is split into RBT and RBT_Mapping.
+  - AssocList is split and renamed into AList_Impl and AList_Mapping.
+  - DList is split into DList_Impl, DList, and DList_Cset.
+  - Cset is split into Cset and List_Cset.
+  
 * Theory Library/Nat_Infinity has been renamed to
 Library/Extended_Nat, with name changes of the following types and
 constants:
