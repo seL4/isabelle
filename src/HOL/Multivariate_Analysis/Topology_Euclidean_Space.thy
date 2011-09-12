@@ -763,50 +763,9 @@ lemma frontier_closures: "frontier S = (closure S) \<inter> (closure(- S))"
 
 lemma frontier_straddle:
   fixes a :: "'a::metric_space"
-  shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))" (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume "?lhs"
-  { fix e::real
-    assume "e > 0"
-    let ?rhse = "(\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e)"
-    { assume "a\<in>S"
-      have "\<exists>x\<in>S. dist a x < e" using `e>0` `a\<in>S` by(rule_tac x=a in bexI) auto
-      moreover have "\<exists>x. x \<notin> S \<and> dist a x < e" using `?lhs` `a\<in>S`
-        unfolding frontier_closures closure_def islimpt_def using `e>0`
-        by (auto, erule_tac x="ball a e" in allE, auto)
-      ultimately have ?rhse by auto
-    }
-    moreover
-    { assume "a\<notin>S"
-      hence ?rhse using `?lhs`
-        unfolding frontier_closures closure_def islimpt_def
-        using open_ball[of a e] `e > 0`
-          by simp (metis centre_in_ball mem_ball open_ball) 
-    }
-    ultimately have ?rhse by auto
-  }
-  thus ?rhs by auto
-next
-  assume ?rhs
-  moreover
-  { fix T assume "a\<notin>S" and
-    as:"\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e)" "a \<notin> S" "a \<in> T" "open T"
-    from `open T` `a \<in> T` have "\<exists>e>0. ball a e \<subseteq> T" unfolding open_contains_ball[of T] by auto
-    then obtain e where "e>0" "ball a e \<subseteq> T" by auto
-    then obtain y where y:"y\<in>S" "dist a y < e"  using as(1) by auto
-    have "\<exists>y\<in>S. y \<in> T \<and> y \<noteq> a"
-      using `dist a y < e` `ball a e \<subseteq> T` unfolding ball_def using `y\<in>S` `a\<notin>S` by auto
-  }
-  hence "a \<in> closure S" unfolding closure_def islimpt_def using `?rhs` by auto
-  moreover
-  { fix T assume "a \<in> T"  "open T" "a\<in>S"
-    then obtain e where "e>0" and balle: "ball a e \<subseteq> T" unfolding open_contains_ball using `?rhs` by auto
-    obtain x where "x \<notin> S" "dist a x < e" using `?rhs` using `e>0` by auto
-    hence "\<exists>y\<in>- S. y \<in> T \<and> y \<noteq> a" using balle `a\<in>S` unfolding ball_def by (rule_tac x=x in bexI)auto
-  }
-  hence "a islimpt (- S) \<or> a\<notin>S" unfolding islimpt_def by auto
-  ultimately show ?lhs unfolding frontier_closures using closure_def[of "- S"] by auto
-qed
+  shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))"
+  unfolding frontier_def closure_interior
+  by (auto simp add: mem_interior subset_eq ball_def)
 
 lemma frontier_subset_closed: "closed S \<Longrightarrow> frontier S \<subseteq> S"
   by (metis frontier_def closure_closed Diff_subset)
