@@ -16,6 +16,9 @@ Contributions to Isabelle2011-1
   Various building blocks for Isabelle/Scala layer and Isabelle/jEdit
   Prover IDE.
 
+* 2011: Andreas Lochbihler, Karlsruhe Institute of Technology
+  Theory HOL/Library/Cset_Monad allows do notation for computable
+  sets (cset) via the generic monad ad-hoc overloading facility.
 
 Contributions to Isabelle2011
 -----------------------------

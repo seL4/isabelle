@@ -2,7 +2,7 @@
 theory Library
 imports
   Abstract_Rat
-  AssocList
+  AList_Mapping
   BigO
   Binomial
   Bit
