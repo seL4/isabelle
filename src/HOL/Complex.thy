@@ -412,6 +412,9 @@ lemma complex_Im_i [simp]: "Im ii = 1"
 lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 \<and> y = 1)"
   by (simp add: i_def)
 
+lemma norm_ii [simp]: "norm ii = 1"
+  by (simp add: i_def)
+
 lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
   by (simp add: complex_eq_iff)
 

@@ -275,23 +275,6 @@ end
 
 subsubsection {* Type @{typ complex} *}
 
- (* TODO: move these to Complex.thy/Inner_Product.thy *)
-
-lemma norm_ii [simp]: "norm ii = 1"
-  unfolding i_def by simp
-
-lemma complex_inner_1 [simp]: "inner 1 x = Re x"
-  unfolding inner_complex_def by simp
-
-lemma complex_inner_1_right [simp]: "inner x 1 = Re x"
-  unfolding inner_complex_def by simp
-
-lemma complex_inner_ii_left [simp]: "inner ii x = Im x"
-  unfolding inner_complex_def by simp
-
-lemma complex_inner_ii_right [simp]: "inner x ii = Im x"
-  unfolding inner_complex_def by simp
-
 instantiation complex :: euclidean_space
 begin
 
