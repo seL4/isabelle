@@ -1817,7 +1817,7 @@ proof-
       apply(induct_tac n) apply simp using assms(2) apply(erule_tac x="na" in allE) by(auto simp add: not_less_eq_eq)  }
   hence "\<forall>m n. m \<le> n \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)" by auto
   then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>dest_vec1 (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a] unfolding monoseq_def by auto
-  thus ?thesis unfolding Lim_sequentially apply(rule_tac x="vec1 l" in exI)
+  thus ?thesis unfolding LIMSEQ_def apply(rule_tac x="vec1 l" in exI)
     unfolding dist_norm unfolding abs_dest_vec1  by auto
 qed
 

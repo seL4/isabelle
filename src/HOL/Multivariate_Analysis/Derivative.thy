@@ -1466,7 +1466,7 @@ proof-
     apply(rule,rule,rule g[rule_format],assumption)
   proof fix x assume "x\<in>s"
     have lem3:"\<forall>u. ((\<lambda>n. f' n x u) ---> g' x u) sequentially"
-      unfolding Lim_sequentially
+      unfolding LIMSEQ_def
     proof(rule,rule,rule)
       fix u and e::real assume "e>0"
       show "\<exists>N. \<forall>n\<ge>N. dist (f' n x u) (g' x u) < e"

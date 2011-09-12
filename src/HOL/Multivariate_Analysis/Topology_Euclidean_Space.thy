@@ -967,11 +967,6 @@ lemma Lim_at_infinity:
   "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x >= b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at_infinity)
 
-lemma Lim_sequentially:
- "(S ---> l) sequentially \<longleftrightarrow>
-          (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (S n) l < e)"
-  by (rule LIMSEQ_def) (* FIXME: redundant *)
-
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
   by (rule topological_tendstoI, auto elim: eventually_rev_mono)
 
@@ -1104,7 +1099,7 @@ proof
   ultimately show ?rhs by fast
 next
   assume ?rhs
-  then obtain f::"nat\<Rightarrow>'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding Lim_sequentially by auto
+  then obtain f::"nat\<Rightarrow>'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding LIMSEQ_def by auto
   { fix e::real assume "e>0"
     then obtain N where "dist (f N) x < e" using f(2) by auto
     moreover have "f N\<in>S" "f N \<noteq> x" using f(1) by auto
@@ -1987,7 +1982,7 @@ proof-
   hence "\<forall>m n. m \<le> n \<longrightarrow> (s m) \<le> (s n)" by auto
   then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar> (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a]
     unfolding monoseq_def by auto
-  thus ?thesis unfolding Lim_sequentially apply(rule_tac x="l" in exI)
+  thus ?thesis unfolding LIMSEQ_def apply(rule_tac x="l" in exI)
     unfolding dist_norm  by auto
 qed
 
@@ -2184,7 +2179,7 @@ lemma convergent_imp_cauchy:
  "(s ---> l) sequentially ==> Cauchy s"
 proof(simp only: cauchy_def, rule, rule)
   fix e::real assume "e>0" "(s ---> l) sequentially"
-  then obtain N::nat where N:"\<forall>n\<ge>N. dist (s n) l < e/2" unfolding Lim_sequentially by(erule_tac x="e/2" in allE) auto
+  then obtain N::nat where N:"\<forall>n\<ge>N. dist (s n) l < e/2" unfolding LIMSEQ_def by(erule_tac x="e/2" in allE) auto
   thus "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"  using dist_triangle_half_l[of _ l e _] by (rule_tac x=N in exI) auto
 qed
 
@@ -2211,14 +2206,14 @@ proof-
 
     { fix e::real assume "e>0"
       from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2" unfolding cauchy_def using `e>0` apply (erule_tac x="e/2" in allE) by auto
-      from lr(3)[unfolded Lim_sequentially, THEN spec[where x="e/2"]] obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2" using `e>0` by auto
+      from lr(3)[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2" using `e>0` by auto
       { fix n::nat assume n:"n \<ge> max N M"
         have "dist ((f \<circ> r) n) l < e/2" using n M by auto
         moreover have "r n \<ge> N" using lr'[of n] n by auto
         hence "dist (f n) ((f \<circ> r) n) < e / 2" using N using n by auto
         ultimately have "dist (f n) l < e" using dist_triangle_half_r[of "f (r n)" "f n" e l] by (auto simp add: dist_commute)  }
       hence "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast  }
-    hence "\<exists>l\<in>s. (f ---> l) sequentially" using `l\<in>s` unfolding Lim_sequentially by auto  }
+    hence "\<exists>l\<in>s. (f ---> l) sequentially" using `l\<in>s` unfolding LIMSEQ_def by auto  }
   thus ?thesis unfolding complete_def by auto
 qed
 
@@ -2341,7 +2336,7 @@ proof(rule ccontr)
     using assms(3)[THEN bspec[where x=b]] unfolding open_dist by auto
 
   then obtain N1 where N1:"\<forall>n\<ge>N1. dist ((f \<circ> r) n) l < e / 2"
-    using lr[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
+    using lr[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
 
   obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
   have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
@@ -2476,8 +2471,8 @@ proof (intro exI conjI)
     apply (rule t_less, rule f_r_neq)
     done
   show "((f \<circ> r) ---> l) sequentially"
-    unfolding Lim_sequentially o_def
-    apply (clarify, rule_tac x="t e" in exI, clarify)
+    unfolding LIMSEQ_def o_def
+    apply (clarify, rename_tac e, rule_tac x="t e" in exI, clarify)
     apply (drule le_trans, rule seq_suble [OF `subseq r`])
     apply (case_tac n, simp_all add: r_simps dist_f_t_less' f_r_neq)
     done
@@ -2912,7 +2907,7 @@ proof-
 
   { fix n::nat
     { fix e::real assume "e>0"
-      with lr(3) obtain N where N:"\<forall>m\<ge>N. dist ((x \<circ> r) m) l < e" unfolding Lim_sequentially by auto
+      with lr(3) obtain N where N:"\<forall>m\<ge>N. dist ((x \<circ> r) m) l < e" unfolding LIMSEQ_def by auto
       hence "dist ((x \<circ> r) (max N n)) l < e" by auto
       moreover
       have "r (max N n) \<ge> n" using lr(2) using subseq_bigger[of r "max N n"] by auto
@@ -2951,7 +2946,7 @@ proof-
   then obtain l where l:"(t ---> l) sequentially" using complete_univ unfolding complete_def by auto
   { fix n::nat
     { fix e::real assume "e>0"
-      then obtain N::nat where N:"\<forall>n\<ge>N. dist (t n) l < e" using l[unfolded Lim_sequentially] by auto
+      then obtain N::nat where N:"\<forall>n\<ge>N. dist (t n) l < e" using l[unfolded LIMSEQ_def] by auto
       have "t (max n N) \<in> s n" using assms(3) unfolding subset_eq apply(erule_tac x=n in allE) apply (erule_tac x="max n N" in allE) using t by auto
       hence "\<exists>y\<in>s n. dist y l < e" apply(rule_tac x="t (max n N)" in bexI) using N by auto
     }
@@ -3008,7 +3003,7 @@ next
       using `?rhs`[THEN spec[where x="e/2"]] by auto
     { fix x assume "P x"
       then obtain M where M:"\<forall>n\<ge>M. dist (s n x) (l x) < e/2"
-        using l[THEN spec[where x=x], unfolded Lim_sequentially] using `e>0` by(auto elim!: allE[where x="e/2"])
+        using l[THEN spec[where x=x], unfolded LIMSEQ_def] using `e>0` by(auto elim!: allE[where x="e/2"])
       fix n::nat assume "n\<ge>N"
       hence "dist(s n x)(l x) < e"  using `P x`and N[THEN spec[where x=n], THEN spec[where x="N+M"], THEN spec[where x=x]]
         using M[THEN spec[where x="N+M"]] and dist_triangle_half_l[of "s n x" "s (N+M) x" e "l x"] by (auto simp add: dist_commute)  }
@@ -3027,7 +3022,7 @@ proof-
   moreover
   { fix x assume "P x"
     hence "l x = l' x" using tendsto_unique[OF trivial_limit_sequentially, of "\<lambda>n. s n x" "l x" "l' x"]
-      using l and assms(2) unfolding Lim_sequentially by blast  }
+      using l and assms(2) unfolding LIMSEQ_def by blast  }
   ultimately show ?thesis by auto
 qed
 
@@ -3260,13 +3255,13 @@ proof
     { fix e::real assume "e>0"
       then obtain d where "d>0" and d:"\<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
         using `?lhs`[unfolded uniformly_continuous_on_def, THEN spec[where x=e]] by auto
-      obtain N where N:"\<forall>n\<ge>N. dist (x n) (y n) < d" using xy[unfolded Lim_sequentially dist_norm] and `d>0` by auto
+      obtain N where N:"\<forall>n\<ge>N. dist (x n) (y n) < d" using xy[unfolded LIMSEQ_def dist_norm] and `d>0` by auto
       { fix n assume "n\<ge>N"
         hence "dist (f (x n)) (f (y n)) < e"
           using N[THEN spec[where x=n]] using d[THEN bspec[where x="x n"], THEN bspec[where x="y n"]] using x and y
           unfolding dist_commute by simp  }
       hence "\<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e"  by auto  }
-    hence "((\<lambda>n. dist (f(x n)) (f(y n))) ---> 0) sequentially" unfolding Lim_sequentially and dist_real_def by auto  }
+    hence "((\<lambda>n. dist (f(x n)) (f(y n))) ---> 0) sequentially" unfolding LIMSEQ_def and dist_real_def by auto  }
   thus ?rhs by auto
 next
   assume ?rhs
@@ -3287,7 +3282,7 @@ next
         finally have "inverse (real n + 1) < e" by auto
         hence "dist (x n) (y n) < e" using xy0[THEN spec[where x=n]] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist (x n) (y n) < e" by auto  }
-    hence "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e" using `?rhs`[THEN spec[where x=x], THEN spec[where x=y]] and xyn unfolding Lim_sequentially dist_real_def by auto
+    hence "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e" using `?rhs`[THEN spec[where x=x], THEN spec[where x=y]] and xyn unfolding LIMSEQ_def dist_real_def by auto
     hence False using fxy and `e>0` by auto  }
   thus ?lhs unfolding uniformly_continuous_on_def by blast
 qed
@@ -3974,10 +3969,10 @@ proof-
     then obtain l r where "l\<in>s" and r:"subseq r" and lr:"((y \<circ> r) ---> l) sequentially" using assms(2)[unfolded compact_def, THEN spec[where x=y]] by auto
     { fix e::real assume "e>0"
       then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' l < d \<longrightarrow> dist (f x') (f l) < e" using assms(1)[unfolded continuous_on_iff, THEN bspec[where x=l], OF `l\<in>s`] by auto
-      then obtain N::nat where N:"\<forall>n\<ge>N. dist ((y \<circ> r) n) l < d" using lr[unfolded Lim_sequentially, THEN spec[where x=d]] by auto
+      then obtain N::nat where N:"\<forall>n\<ge>N. dist ((y \<circ> r) n) l < d" using lr[unfolded LIMSEQ_def, THEN spec[where x=d]] by auto
       { fix n::nat assume "n\<ge>N" hence "dist ((x \<circ> r) n) (f l) < e" using N[THEN spec[where x=n]] d[THEN bspec[where x="y (r n)"]] y[THEN spec[where x="r n"]] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist ((x \<circ> r) n) (f l) < e" by auto  }
-    hence "\<exists>l\<in>f ` s. \<exists>r. subseq r \<and> ((x \<circ> r) ---> l) sequentially" unfolding Lim_sequentially using r lr `l\<in>s` by auto  }
+    hence "\<exists>l\<in>f ` s. \<exists>r. subseq r \<and> ((x \<circ> r) ---> l) sequentially" unfolding LIMSEQ_def using r lr `l\<in>s` by auto  }
   thus ?thesis unfolding compact_def by auto
 qed
 
@@ -4403,11 +4398,11 @@ next
       { fix e::real assume "e>0"
         hence "0 < e *\<bar>c\<bar>"  using `c\<noteq>0` mult_pos_pos[of e "abs c"] by auto
         then obtain N where "\<forall>n\<ge>N. dist (x n) l < e * \<bar>c\<bar>"
-          using as(2)[unfolded Lim_sequentially, THEN spec[where x="e * abs c"]] by auto
+          using as(2)[unfolded LIMSEQ_def, THEN spec[where x="e * abs c"]] by auto
         hence "\<exists>N. \<forall>n\<ge>N. dist (scaleR (1 / c) (x n)) (scaleR (1 / c) l) < e"
           unfolding dist_norm unfolding scaleR_right_diff_distrib[THEN sym]
           using mult_imp_div_pos_less[of "abs c" _ e] `c\<noteq>0` by auto  }
-      hence "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially" unfolding Lim_sequentially by auto
+      hence "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially" unfolding LIMSEQ_def by auto
       ultimately have "l \<in> scaleR c ` s"
         using assms[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. scaleR (1/c) (x n)"], THEN spec[where x="scaleR (1/c) l"]]
         unfolding image_iff using `c\<noteq>0` apply(rule_tac x="scaleR (1 / c) l" in bexI) by auto  }
@@ -4837,7 +4832,7 @@ proof-
         hence "\<forall>n\<ge>N. inverse (real n + 1) < e" by (auto, metis Suc_le_mono le_SucE less_imp_inverse_less nat_le_real_less order_less_trans real_of_nat_Suc real_of_nat_Suc_gt_zero)
         hence "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < e" by auto  }
       hence "((\<lambda>n. inverse (real n + 1)) ---> 0) sequentially"
-        unfolding Lim_sequentially by(auto simp add: dist_norm)
+        unfolding LIMSEQ_def by(auto simp add: dist_norm)
       hence "(f ---> x) sequentially" unfolding f_def
         using tendsto_add[OF tendsto_const, of "\<lambda>n::nat. (inverse (real n + 1)) *\<^sub>R ((1 / 2) *\<^sub>R (a + b) - x)" 0 sequentially x]
         using tendsto_scaleR [OF _ tendsto_const, of "\<lambda>n::nat. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"] by auto  }
@@ -5734,7 +5729,7 @@ proof-
     assume "e \<noteq> 0" hence "e>0" unfolding e_def using zero_le_dist[of "f x" x]
       by (metis dist_eq_0_iff dist_nz e_def)
     then obtain N where N:"\<forall>n\<ge>N. dist (z n) x < e / 2"
-      using x[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
+      using x[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
     hence N':"dist (z N) x < e / 2" by auto
 
     have *:"c * dist (z N) x \<le> dist (z N) x" unfolding mult_le_cancel_right2
@@ -5831,7 +5826,7 @@ next
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
         and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-        using lima limb unfolding h_def Lim_sequentially by (fastforce simp del: less_divide_eq_number_of1)
+        using lima limb unfolding h_def LIMSEQ_def by (fastforce simp del: less_divide_eq_number_of1)
       hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
         apply(erule_tac x="Na+Nb+n" in allE)
         apply(erule_tac x="Na+Nb+n" in allE) apply simp
@@ -5852,8 +5847,8 @@ next
     def e \<equiv> "dist a b - dist (g a) (g b)"
     assume "a\<noteq>b" hence "e > 0" unfolding e_def using dist by fastforce
     hence "\<exists>n. dist (f n x) a < e/2 \<and> dist (f n y) b < e/2"
-      using lima limb unfolding Lim_sequentially
-      apply (auto elim!: allE[where x="e/2"]) apply(rule_tac x="r (max N Na)" in exI) unfolding h_def by fastforce
+      using lima limb unfolding LIMSEQ_def
+      apply (auto elim!: allE[where x="e/2"]) apply(rename_tac N N', rule_tac x="r (max N N')" in exI) unfolding h_def by fastforce
     then obtain n where n:"dist (f n x) a < e/2 \<and> dist (f n y) b < e/2" by auto
     have "dist (f (Suc n) x) (g a) \<le> dist (f n x) a"
       using dist[THEN bspec[where x="f n x"], THEN bspec[where x="a"]] and fs by auto
