@@ -196,7 +196,7 @@ adjustment.  INCOMPATIBILITY.
 * Command 'try':
   - Renamed 'try_methods' and added "simp:", "intro:", "dest:", and
     "elim:" options. INCOMPATIBILITY.
-  - Introduced 'tryÄ that not only runs 'try_methods' but also
+  - Introduced 'try' that not only runs 'try_methods' but also
     'solve_direct', 'sledgehammer', 'quickcheck', and 'nitpick'.
 
 * Quickcheck:
