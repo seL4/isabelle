@@ -123,7 +123,9 @@ fun type_instance ctxt T T' =
   Sign.typ_instance (Proof_Context.theory_of ctxt) (T, T')
 fun type_generalization ctxt T T' = type_instance ctxt T' T
 fun type_intersect ctxt T T' =
-  can (Sign.typ_unify (Proof_Context.theory_of ctxt) (T, T')) (Vartab.empty, 0)
+  can (Sign.typ_unify (Proof_Context.theory_of ctxt)
+                      (T, Logic.incr_tvar (maxidx_of_typ T + 1) T'))
+      (Vartab.empty, 0)
 val type_equiv = Sign.typ_equiv o Proof_Context.theory_of
 
 fun varify_type ctxt T =
