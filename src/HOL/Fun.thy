@@ -461,7 +461,7 @@ by simp
 lemma surj_vimage_empty:
   assumes "surj f" shows "f -` A = {} \<longleftrightarrow> A = {}"
   using surj_image_vimage_eq[OF `surj f`, of A]
-  by (intro iffI) fastsimp+
+  by (intro iffI) fastforce+
 
 lemma inj_vimage_image_eq: "inj f ==> f -` (f ` A) = A"
 by (simp add: inj_on_def, blast)
@@ -603,7 +603,7 @@ lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
 
 lemma inj_on_fun_updI: "\<lbrakk> inj_on f A; y \<notin> f`A \<rbrakk> \<Longrightarrow> inj_on (f(x:=y)) A"
-by (fastsimp simp:inj_on_def image_def)
+by (fastforce simp:inj_on_def image_def)
 
 lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"

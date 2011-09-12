@@ -191,7 +191,7 @@ lemma "VARS H p q r
 apply vcg
 apply(simp_all add: star_def ortho_def singl_def)
 
-apply fastsimp
+apply fastforce
 
 apply (clarsimp simp add:List_non_null)
 apply(rename_tac ps')
@@ -214,7 +214,7 @@ apply(subgoal_tac "p \<notin> set qs")
 apply(simp)
 apply fast
 
-apply(fastsimp)
+apply(fastforce)
 done
 
 end

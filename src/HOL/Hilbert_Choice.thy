@@ -148,7 +148,7 @@ by (simp add: o_assoc[symmetric])
 
 lemma inv_into_image_cancel[simp]:
   "inj_on f A ==> S <= A ==> inv_into A f ` f ` S = S"
-by(fastsimp simp: image_def)
+by(fastforce simp: image_def)
 
 lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
 by (blast intro!: surjI inv_into_f_f)

@@ -901,7 +901,7 @@ proof -
     then have "False" by induct auto
   }  
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 
@@ -914,7 +914,7 @@ proof -
     then have "False" by induct auto
   }
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 lemma eval_InsInitV: "G\<turnstile>Norm s\<midarrow>InsInitV c w=\<succ>v\<rightarrow> s' = False"
@@ -926,7 +926,7 @@ proof -
     then have "False" by induct auto
   }  
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 lemma eval_FinA: "G\<turnstile>Norm s\<midarrow>FinA a c\<rightarrow> s' = False"
@@ -938,7 +938,7 @@ proof -
     then have "False" by induct auto
   }  
   then show ?thesis
-    by (cases s') fastsimp 
+    by (cases s') fastforce 
 qed
 
 lemma eval_no_abrupt_lemma: 

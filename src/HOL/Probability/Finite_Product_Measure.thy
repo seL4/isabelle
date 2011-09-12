@@ -477,7 +477,7 @@ lemma (in product_sigma_algebra) measurable_component_singleton:
 proof (unfold measurable_def, intro CollectI conjI ballI)
   fix A assume "A \<in> sets (M i)"
   then have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>M I M) = (\<Pi>\<^isub>E j\<in>I. if i = j then A else space (M j))"
-    using M.sets_into_space `i \<in> I` by (fastsimp dest: Pi_mem split: split_if_asm)
+    using M.sets_into_space `i \<in> I` by (fastforce dest: Pi_mem split: split_if_asm)
   then show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>M I M) \<in> sets (Pi\<^isub>M I M)"
     using `A \<in> sets (M i)` by (auto intro!: product_algebraI)
 qed (insert `i \<in> I`, auto)
@@ -641,8 +641,8 @@ next
       show "?m (Pi\<^isub>E (insert i I) A) = (\<Prod>i\<in>insert i I. M.\<mu> i (A i))"
         unfolding * using A
         apply (subst P.pair_measure_times)
-        using A apply fastsimp
-        using A apply fastsimp
+        using A apply fastforce
+        using A apply fastforce
         using `i \<notin> I` `finite I` prod[of A] A by (auto simp: ac_simps) }
     note product = this
     have *: "sigma I'.G\<lparr> measure := ?\<nu> \<rparr> = I'.P\<lparr> measure := ?\<nu> \<rparr>"

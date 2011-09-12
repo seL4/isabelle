@@ -58,7 +58,7 @@ subsection {* Misc properties of @{text "par_beta"} *}
 
 lemma par_beta_lift [simp]:
     "t => t' \<Longrightarrow> lift t n => lift t' n"
-  by (induct t arbitrary: t' n) fastsimp+
+  by (induct t arbitrary: t' n) fastforce+
 
 lemma par_beta_subst:
     "s => s' \<Longrightarrow> t => t' \<Longrightarrow> t[s/n] => t'[s'/n]"
@@ -67,8 +67,8 @@ lemma par_beta_subst:
    apply (erule par_beta_cases)
     apply simp
    apply (simp add: subst_subst [symmetric])
-   apply (fastsimp intro!: par_beta_lift)
-  apply fastsimp
+   apply (fastforce intro!: par_beta_lift)
+  apply fastforce
   done
 
 

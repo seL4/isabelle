@@ -68,7 +68,7 @@ lemma square_rtrancl:
 lemma square_rtrancl_reflcl_commute:
     "square R S (S^**) (R^==) ==> commute (R^**) (S^**)"
   apply (unfold commute_def)
-  apply (fastsimp dest: square_reflcl square_sym [THEN square_rtrancl])
+  apply (fastforce dest: square_reflcl square_sym [THEN square_rtrancl])
   done
 
 

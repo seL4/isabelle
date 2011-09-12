@@ -503,7 +503,7 @@ proof (cases "finite K")
     thus ?case by simp
   next
     case insert
-    thus ?case using add_mono by fastsimp
+    thus ?case using add_mono by fastforce
   qed
 next
   case False
@@ -893,11 +893,11 @@ by (auto simp add: setprod_reindex)
 
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: setprod_def intro: fold_image_cong)
+by(fastforce simp: setprod_def intro: fold_image_cong)
 
 lemma strong_setprod_cong[cong]:
   "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: simp_implies_def setprod_def intro: fold_image_cong)
+by(fastforce simp: simp_implies_def setprod_def intro: fold_image_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
@@ -1590,7 +1590,7 @@ lemma Min_in [simp]:
 proof -
   interpret ab_semigroup_idem_mult min
     by (rule ab_semigroup_idem_mult_min)
-  from assms fold1_in show ?thesis by (fastsimp simp: Min_def min_def)
+  from assms fold1_in show ?thesis by (fastforce simp: Min_def min_def)
 qed
 
 lemma Max_in [simp]:
@@ -1599,7 +1599,7 @@ lemma Max_in [simp]:
 proof -
   interpret ab_semigroup_idem_mult max
     by (rule ab_semigroup_idem_mult_max)
-  from assms fold1_in [of A] show ?thesis by (fastsimp simp: Max_def max_def)
+  from assms fold1_in [of A] show ?thesis by (fastforce simp: Max_def max_def)
 qed
 
 lemma Min_le [simp]:
@@ -1739,8 +1739,8 @@ proof (induct rule: finite_psubset_induct)
     then have A: "?A = A" using insert_Diff_single insert_absorb by auto
     then have "P ?B" using `P {}` step IH[of ?B] by blast
     moreover 
-    have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastsimp
-    ultimately show "P A" using A insert_Diff_single step[OF `finite ?B`] by fastsimp
+    have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastforce
+    ultimately show "P A" using A insert_Diff_single step[OF `finite ?B`] by fastforce
   qed
 qed
 

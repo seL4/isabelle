@@ -105,7 +105,7 @@ next
     proof
       fix i
       assume "max n m < i"
-      with boundn and boundm and UP show "p i \<oplus> q i = \<zero>" by fastsimp
+      with boundn and boundm and UP show "p i \<oplus> q i = \<zero>" by fastforce
     qed
     then show ?thesis ..
   qed
@@ -780,7 +780,7 @@ proof -
     then have "EX m. deg R p <= m & coeff P p m ~= \<zero>" by (simp add: deg minus)
     then show ?thesis by (auto intro: that)
   qed
-  with deg_belowI R have "deg R p = m" by fastsimp
+  with deg_belowI R have "deg R p = m" by fastforce
   with m_coeff show ?thesis by simp
 qed
 
@@ -827,7 +827,7 @@ lemma deg_monom_le:
 
 lemma deg_monom [simp]:
   "[| a ~= \<zero>; a \<in> carrier R |] ==> deg R (monom P a n) = n"
-  by (fastsimp intro: le_antisym deg_aboveI deg_belowI)
+  by (fastforce intro: le_antisym deg_aboveI deg_belowI)
 
 lemma deg_const [simp]:
   assumes R: "a \<in> carrier R" shows "deg R (monom P a 0) = 0"
@@ -1061,7 +1061,7 @@ proof -
     finally have "coeff P p 0 \<otimes> coeff P q 0 = \<zero>" .
     with R have "coeff P p 0 = \<zero> | coeff P q 0 = \<zero>"
       by (simp add: R.integral_iff)
-    with p q show "p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>" by fastsimp
+    with p q show "p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>" by fastforce
   qed
 qed
 

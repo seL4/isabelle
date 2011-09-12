@@ -2788,7 +2788,7 @@ proof -
       proof -
         from im statM statT isT_statT wf not_Private_statM 
         have "is_static im = is_static statM"
-          by (fastsimp dest: wf_imethds_hiding_objmethdsD)
+          by (fastforce dest: wf_imethds_hiding_objmethdsD)
         with wf isT_statT statT im 
         have "\<not> is_static statM"
           by (auto dest: wf_prog_idecl imethds_wf_mhead)

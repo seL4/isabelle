@@ -101,7 +101,7 @@ val named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
    ("fast", ((false, false), clas_attrs)),
-   ("fastsimp", ((false, false), full_attrs)),
+   ("fastforce", ((false, false), full_attrs)),
    ("force", ((false, false), full_attrs)),
    ("blast", ((false, true), clas_attrs)),
    ("metis", ((false, true), metis_attrs)),

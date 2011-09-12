@@ -133,7 +133,7 @@ apply      (tactic "ax_tac 1" (* FVar *))
 apply       (tactic "ax_tac 2", tactic "ax_tac 2", tactic "ax_tac 2")
 apply      (tactic "ax_tac 1")
 apply     (tactic {* inst1_tac @{context} "R" "\<lambda>a'. Normal ((\<lambda>Vals:vs (x, s) Z. arr_inv s \<and> inited Ext (globs s) \<and> a' \<noteq> Null \<and> vs = [Null]) \<and>. heap_free two)" *})
-apply     fastsimp
+apply     fastforce
 prefer 4
 apply    (rule ax_derivs.Done [THEN conseq1],force)
 apply   (rule ax_subst_Val_allI)

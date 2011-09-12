@@ -127,7 +127,7 @@ proof -
       "\<forall>S\<in>sets borel. ?f -` S \<inter> A \<in> op \<inter> A ` sets M"
     then have "?f -` S \<inter> A \<in> op \<inter> A ` sets M" by auto
     then have f: "?f -` S \<inter> A \<in> sets M"
-      using `A \<in> sets M` sets_into_space by fastsimp
+      using `A \<in> sets M` sets_into_space by fastforce
     show "?f -` S \<inter> space M \<in> sets M"
     proof cases
       assume "0 \<in> S"

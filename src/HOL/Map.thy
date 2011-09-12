@@ -332,7 +332,7 @@ done
 
 lemma inj_on_map_add_dom [iff]:
   "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
-by (fastsimp simp: map_add_def dom_def inj_on_def split: option.splits)
+by (fastforce simp: map_add_def dom_def inj_on_def split: option.splits)
 
 lemma map_upds_fold_map_upd:
   "m(ks[\<mapsto>]vs) = foldl (\<lambda>m (k, v). m(k \<mapsto> v)) m (zip ks vs)"
@@ -443,7 +443,7 @@ done
 
 lemma map_upds_twist [simp]:
   "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
-using set_take_subset by (fastsimp simp add: map_upd_upds_conv_if)
+using set_take_subset by (fastforce simp add: map_upd_upds_conv_if)
 
 lemma map_upds_apply_nontin [simp]:
   "x ~: set xs ==> (f(xs[|->]ys)) x = f x"
@@ -631,7 +631,7 @@ lemma upd_None_map_le [simp]: "f(x := None) \<subseteq>\<^sub>m f"
 by (force simp add: map_le_def)
 
 lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
-by (fastsimp simp add: map_le_def)
+by (fastforce simp add: map_le_def)
 
 lemma map_le_imp_upd_le [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(x := None) \<subseteq>\<^sub>m m2(x \<mapsto> y)"
 by (force simp add: map_le_def)
@@ -645,7 +645,7 @@ apply (case_tac bs)
 done
 
 lemma map_le_implies_dom_le: "(f \<subseteq>\<^sub>m g) \<Longrightarrow> (dom f \<subseteq> dom g)"
-by (fastsimp simp add: map_le_def dom_def)
+by (fastforce simp add: map_le_def dom_def)
 
 lemma map_le_refl [simp]: "f \<subseteq>\<^sub>m f"
 by (simp add: map_le_def)
@@ -657,17 +657,17 @@ lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m 
 unfolding map_le_def
 apply (rule ext)
 apply (case_tac "x \<in> dom f", simp)
-apply (case_tac "x \<in> dom g", simp, fastsimp)
+apply (case_tac "x \<in> dom g", simp, fastforce)
 done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
-by (fastsimp simp add: map_le_def)
+by (fastforce simp add: map_le_def)
 
 lemma map_le_iff_map_add_commute: "(f \<subseteq>\<^sub>m f ++ g) = (f++g = g++f)"
-by(fastsimp simp: map_add_def map_le_def fun_eq_iff split: option.splits)
+by(fastforce simp: map_add_def map_le_def fun_eq_iff split: option.splits)
 
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
-by (fastsimp simp add: map_le_def map_add_def dom_def)
+by (fastforce simp add: map_le_def map_add_def dom_def)
 
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)

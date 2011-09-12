@@ -78,7 +78,7 @@ proof (induct a i j arbitrary: h h' rule: rev.induct)
       by (auto elim: effect_elims)
     from swp rev 1 True show ?thesis
       unfolding swap.simps
-      by (elim effect_elims) fastsimp
+      by (elim effect_elims) fastforce
   next
     case False
     with 1[unfolded rev.simps[of a i j]]

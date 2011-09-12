@@ -241,7 +241,7 @@ lemma oconf_heap_update:
   "\<lbrakk> hp a = Some obj'; obj_ty obj' = obj_ty obj''; G,hp\<turnstile>obj\<surd> \<rbrakk>
   \<Longrightarrow> G,hp(a\<mapsto>obj'')\<turnstile>obj\<surd>"
   apply (unfold oconf_def lconf_def)
-  apply (fastsimp intro: approx_val_heap_update)
+  apply (fastforce intro: approx_val_heap_update)
   done
 
 section {* hconf *}
@@ -257,7 +257,7 @@ lemma hconf_field_update:
      G,hp\<turnstile>v::\<preceq>T; G\<turnstile>h hp\<surd> \<rbrakk> 
   \<Longrightarrow> G\<turnstile>h hp(a \<mapsto> (oT, fs(X\<mapsto>v)))\<surd>"
   apply (simp add: hconf_def)
-  apply (fastsimp intro: oconf_heap_update oconf_field_update 
+  apply (fastforce intro: oconf_heap_update oconf_field_update 
                   simp add: obj_ty_def)
   done
 

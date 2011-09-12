@@ -14,7 +14,7 @@ next
   then obtain bv where "bval b s = Some bv" by (auto dest!:bval_Some)
   then show ?case
     by(cases bv)(auto intro: small_step.IfTrue small_step.IfFalse)
-qed (fastsimp intro: small_step.intros)+
+qed (fastforce intro: small_step.intros)+
 
 lemma D_mono:  "D A c M \<Longrightarrow> A \<subseteq> A' \<Longrightarrow> EX M'. D A' c M' & M <= M'"
 proof (induct c arbitrary: A A' M)
@@ -26,7 +26,7 @@ next
   with If.hyps `A \<subseteq> A'` obtain M1' M2'
     where "D A' c1 M1'" "D A' c2 M2'" and "M1 \<subseteq> M1'" "M2 \<subseteq> M2'" by metis
   hence "D A' (IF b THEN c1 ELSE c2) (M1' \<inter> M2')" and "M \<subseteq> M1' \<inter> M2'"
-    using `vars b \<subseteq> A` `A \<subseteq> A'` `M = M1 \<inter> M2` by(fastsimp intro: D.intros)+
+    using `vars b \<subseteq> A` `A \<subseteq> A'` `M = M1 \<inter> M2` by(fastforce intro: D.intros)+
   thus ?case by metis
 next
   case While thus ?case by auto (metis D.intros(5) subset_trans)

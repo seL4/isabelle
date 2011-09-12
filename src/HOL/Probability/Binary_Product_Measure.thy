@@ -106,7 +106,7 @@ proof -
       apply - apply (rule bexI[of _ "space M1"]) apply (rule bexI[of _ X])
       using M2.sets_into_space by force+ }
   ultimately have "?fst \<and> ?snd"
-    by (fastsimp simp: measurable_def sets_sigma space_pair_measure
+    by (fastforce simp: measurable_def sets_sigma space_pair_measure
                  intro!: sigma_sets.Basic)
   then show ?fst ?snd by auto
 qed
@@ -437,7 +437,7 @@ proof -
   show ?thesis unfolding space_pair_measure
   proof (intro exI[of _ ?F] conjI allI)
     show "range ?F \<subseteq> sets E" using F1 F2
-      by (fastsimp intro!: pair_measure_generatorI)
+      by (fastforce intro!: pair_measure_generatorI)
   next
     have "space M1 \<times> space M2 \<subseteq> (\<Union>i. ?F i)"
     proof (intro subsetI)

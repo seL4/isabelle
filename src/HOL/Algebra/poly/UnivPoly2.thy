@@ -209,7 +209,7 @@ proof -
         fix i
         assume "max n m < i"
         with boundn and boundm show "f i + g i = 0"
-          by (fastsimp simp add: algebra_simps)
+          by (fastforce simp add: algebra_simps)
       qed
       then show "(%i. (f i + g i)) : UP"
         by (unfold UP_def) fast
@@ -516,7 +516,7 @@ proof -
     then have "EX m. deg p <= m & coeff p m ~= 0" by (simp add: deg minus)
     then show ?thesis by (auto intro: that)
   qed
-  with deg_belowI have "deg p = m" by fastsimp
+  with deg_belowI have "deg p = m" by fastforce
   with m_coeff show ?thesis by simp
 qed
 
@@ -564,7 +564,7 @@ by (rule deg_aboveI) simp
 
 lemma deg_monom [simp]:
   "a ~= 0 ==> deg (monom a n::'a::ring up) = n"
-by (fastsimp intro: le_antisym deg_aboveI deg_belowI)
+by (fastforce intro: le_antisym deg_aboveI deg_belowI)
 
 lemma deg_const [simp]:
   "deg (monom (a::'a::ring) 0) = 0"
@@ -769,7 +769,7 @@ next
     also from pq have "... = 0" by simp
     finally have "coeff p 0 * coeff q 0 = 0" .
     then have "coeff p 0 = 0 | coeff q 0 = 0" by (simp only: integral_iff)
-    with p q show "p = 0 | q = 0" by fastsimp
+    with p q show "p = 0 | q = 0" by fastforce
   qed
 qed
 

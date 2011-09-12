@@ -50,8 +50,8 @@ proof -
     let ?H = "x + c"
     from X have "c<?H & ?H<b \<and> f b = (\<Sum>m = 0..<n. diff m c / real (fact m) * (b - c) ^ m) +
       diff n ?H / real (fact n) * (b - c) ^ n"
-      by fastsimp
-    thus ?thesis by fastsimp
+      by fastforce
+    thus ?thesis by fastforce
   qed
 qed
 
@@ -90,8 +90,8 @@ proof -
     let ?H = "x + c"
     from X have "a<?H & ?H<c \<and> f a = (\<Sum>m = 0..<n. diff m c / real (fact m) * (a - c) ^ m) +
       diff n ?H / real (fact n) * (a - c) ^ n"
-      by fastsimp
-    thus ?thesis by fastsimp
+      by fastforce
+    thus ?thesis by fastforce
   qed
 qed
 
@@ -107,7 +107,7 @@ proof (cases "x<c")
   note INIT
   moreover from DERIV and INTERV
   have "\<forall>m t. m < n \<and> x \<le> t \<and> t \<le> b \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
-    by fastsimp
+    by fastforce
   moreover note True
   moreover from INTERV have "c \<le> b" by simp
   ultimately have EX: "\<exists>t>x. t < c \<and> f x =
@@ -120,7 +120,7 @@ next
   note INIT
   moreover from DERIV and INTERV
   have "\<forall>m t. m < n \<and> a \<le> t \<and> t \<le> x \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
-    by fastsimp
+    by fastforce
   moreover from INTERV have "a \<le> c" by arith
   moreover from False and INTERV have "c < x" by arith
   ultimately have EX: "\<exists>t>c. t < x \<and> f x =

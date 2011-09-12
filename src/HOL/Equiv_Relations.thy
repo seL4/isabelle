@@ -349,7 +349,7 @@ apply(simp add:quotient_def)
 apply(subst card_UN_disjoint)
    apply assumption
   apply simp
- apply(fastsimp simp add:inj_on_def)
+ apply(fastforce simp add:inj_on_def)
 apply simp
 done
 

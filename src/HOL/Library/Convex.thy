@@ -112,7 +112,7 @@ next
     hence "(\<Sum> j \<in> s. a j) = 0"
       using asms by auto
     hence "\<And> j. j \<in> s \<Longrightarrow> a j = 0"
-      using setsum_nonneg_0[where 'b=real] asms by fastsimp
+      using setsum_nonneg_0[where 'b=real] asms by fastforce
     hence ?case using asms by auto }
   moreover
   { assume asm: "a i \<noteq> 1"
@@ -125,13 +125,13 @@ next
     { fix j assume "j \<in> s"
       hence "?a j \<ge> 0"
         using i0 asms divide_nonneg_pos
-        by fastsimp } note a_nonneg = this
+        by fastforce } note a_nonneg = this
     have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto
-    hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastsimp
+    hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastforce
     hence "(\<Sum> j \<in> s. a j) / (1 - a i) = 1" using i0 by auto
     hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
     from this asms
-    have "(\<Sum>j\<in>s. ?a j *\<^sub>R y j) \<in> C" using a_nonneg by fastsimp
+    have "(\<Sum>j\<in>s. ?a j *\<^sub>R y j) \<in> C" using a_nonneg by fastforce
     hence "a i *\<^sub>R y i + (1 - a i) *\<^sub>R (\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
       using asms[unfolded convex_def, rule_format] yai ai1 by auto
     hence "a i *\<^sub>R y i + (\<Sum> j \<in> s. (1 - a i) *\<^sub>R (?a j *\<^sub>R y j)) \<in> C"
@@ -256,7 +256,7 @@ proof-
     using assms(4,5) by (auto simp add: mult_left_mono add_mono)
   also have "\<dots> = max (f x) (f y)" using assms(6) unfolding distrib[THEN sym] by auto
   finally show ?thesis
-    using assms unfolding convex_on_def by fastsimp
+    using assms unfolding convex_on_def by fastforce
 qed
 
 lemma convex_distance[intro]:
@@ -363,7 +363,7 @@ proof safe
     hence "\<mu> > 0" "(1 - \<mu>) > 0" using asms by auto
     hence "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using asms
       by (auto simp add: add_pos_pos mult_pos_pos) }
-  ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0" using assms by fastsimp
+  ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0" using assms by fastforce
 qed
 
 lemma convex_on_setsum:
@@ -393,7 +393,7 @@ next
     hence "(\<Sum> j \<in> s. a j) = 0"
       using asms by auto
     hence "\<And> j. j \<in> s \<Longrightarrow> a j = 0"
-      using setsum_nonneg_0[where 'b=real] asms by fastsimp
+      using setsum_nonneg_0[where 'b=real] asms by fastforce
     hence ?case using asms by auto }
   moreover
   { assume asm: "a i \<noteq> 1"
@@ -406,9 +406,9 @@ next
     { fix j assume "j \<in> s"
       hence "?a j \<ge> 0"
         using i0 asms divide_nonneg_pos
-        by fastsimp } note a_nonneg = this
+        by fastforce } note a_nonneg = this
     have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto
-    hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastsimp
+    hence "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastforce
     hence "(\<Sum> j \<in> s. a j) / (1 - a i) = 1" using i0 by auto
     hence a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
     have "convex C" using asms by auto
@@ -497,7 +497,7 @@ proof safe
   let ?x = "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y"
   assume asm: "convex C" "x \<in> C" "y \<in> C" "\<mu> \<ge> 0" "\<mu> \<le> 1"
   hence "1 - \<mu> \<ge> 0" by auto
-  hence xpos: "?x \<in> C" using asm unfolding convex_alt by fastsimp
+  hence xpos: "?x \<in> C" using asm unfolding convex_alt by fastforce
   have geq: "\<mu> * (f x - f ?x) + (1 - \<mu>) * (f y - f ?x)
             \<ge> \<mu> * f' ?x * (x - ?x) + (1 - \<mu>) * f' ?x * (y - ?x)"
     using add_mono[OF mult_left_mono[OF leq[OF xpos asm(2)] `\<mu> \<ge> 0`]
@@ -550,7 +550,7 @@ proof -
         THEN f', THEN MVT2[OF `x < y`, rule_format, unfolded atLeastAtMost_iff[symmetric]]]
       by auto
     hence "z1 \<in> C" using atMostAtLeast_subset_convex
-      `convex C` `x \<in> C` `y \<in> C` `x < y` by fastsimp
+      `convex C` `x \<in> C` `y \<in> C` `x < y` by fastforce
     from z1 have z1': "f x - f y = (x - y) * f' z1"
       by (simp add:field_simps)
     obtain z2 where z2: "z2 > x" "z2 < z1" "f' z1 - f' x = (z1 - x) * f'' z2"
@@ -567,7 +567,7 @@ proof -
     finally have cool': "f' y - (f x - f y) / (x - y) = (y - z1) * f'' z3" by simp
     have A': "y - z1 \<ge> 0" using z1 by auto
     have "z3 \<in> C" using z3 asm atMostAtLeast_subset_convex
-      `convex C` `x \<in> C` `z1 \<in> C` `x < z1` by fastsimp
+      `convex C` `x \<in> C` `z1 \<in> C` `x < z1` by fastforce
     hence B': "f'' z3 \<ge> 0" using assms by auto
     from A' B' have "(y - z1) * f'' z3 \<ge> 0" using mult_nonneg_nonneg by auto
     from cool' this have "f' y - (f x - f y) / (x - y) \<ge> 0" by auto
@@ -582,7 +582,7 @@ proof -
     finally have cool: "(f y - f x) / (y - x) - f' x = (z1 - x) * f'' z2" by simp
     have A: "z1 - x \<ge> 0" using z1 by auto
     have "z2 \<in> C" using z2 z1 asm atMostAtLeast_subset_convex
-      `convex C` `z1 \<in> C` `y \<in> C` `z1 < y` by fastsimp
+      `convex C` `z1 \<in> C` `y \<in> C` `z1 < y` by fastforce
     hence B: "f'' z2 \<ge> 0" using assms by auto
     from A B have "(z1 - x) * f'' z2 \<ge> 0" using mult_nonneg_nonneg by auto
     from cool this have "(f y - f x) / (y - x) - f' x \<ge> 0" by auto
@@ -608,7 +608,7 @@ lemma f''_ge0_imp_convex:
   assumes f'': "\<And> x. x \<in> C \<Longrightarrow> DERIV f' x :> (f'' x)"
   assumes pos: "\<And> x. x \<in> C \<Longrightarrow> f'' x \<ge> 0"
   shows "convex_on C f"
-using f''_imp_f'[OF conv f' f'' pos] assms pos_convex_function by fastsimp
+using f''_imp_f'[OF conv f' f'' pos] assms pos_convex_function by fastforce
 
 lemma minus_log_convex:
   fixes b :: real

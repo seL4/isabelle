@@ -115,7 +115,7 @@ lemma substdbasis_expansion_unique: assumes "d\<subseteq>{..<DIM('a::euclidean_s
   shows "setsum (%i. f i *\<^sub>R basis i) d = (x::'a::euclidean_space)
       <-> (!i<DIM('a). (i:d --> f i = x$$i) & (i ~: d --> x $$ i = 0))"
 proof- have *:"\<And>x a b P. x * (if P then a else b) = (if P then x*a else x*b)" by auto
-  have **:"finite d" apply(rule finite_subset[OF assms]) by fastsimp
+  have **:"finite d" apply(rule finite_subset[OF assms]) by fastforce
   have ***:"\<And>i. (setsum (%i. f i *\<^sub>R ((basis i)::'a)) d) $$ i = (\<Sum>x\<in>d. if x = i then f x else 0)"
     unfolding euclidean_component_setsum euclidean_component_scaleR basis_component *
     apply(rule setsum_cong2) using assms by auto
@@ -1319,7 +1319,7 @@ proof-
       using setsum_cong2 [of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u] unfolding obt(4,5) by auto
     
     ultimately have "\<exists>k u x. (\<forall>i\<in>{1..k}. 0 \<le> u i \<and> x i \<in> p) \<and> setsum u {1..k} = 1 \<and> (\<Sum>i::nat = 1..k. u i *\<^sub>R x i) = y"
-      apply(rule_tac x="card s" in exI) apply(rule_tac x="u \<circ> f" in exI) apply(rule_tac x=f in exI) by fastsimp
+      apply(rule_tac x="card s" in exI) apply(rule_tac x="u \<circ> f" in exI) apply(rule_tac x=f in exI) by fastforce
     hence "y \<in> ?lhs" unfolding convex_hull_indexed by auto  }
   ultimately show ?thesis unfolding set_eq_iff by blast
 qed
@@ -2884,7 +2884,7 @@ lemma closest_point_lt:
   shows "dist a (closest_point s a) < dist a x"
   apply(rule ccontr) apply(rule_tac notE[OF assms(4)])
   apply(rule closest_point_unique[OF assms(1-3), of a])
-  using closest_point_le[OF assms(2), of _ a] by fastsimp
+  using closest_point_le[OF assms(2), of _ a] by fastforce
 
 lemma closest_point_lipschitz:
   assumes "convex s" "closed s" "s \<noteq> {}"
@@ -4229,7 +4229,7 @@ moreover
   ultimately 
   have "!i. ( (ALL i:d. 0 < x$$i) & (ALL i. i ~: d --> x$$i = 0) ) --> 0 <= x$$i" by metis
   hence h2: "x : convex hull (insert 0 ?p)" using as assms 
-    unfolding substd_simplex[OF assms] by fastsimp 
+    unfolding substd_simplex[OF assms] by fastforce 
   obtain a where a:"a:d" using `d ~= {}` by auto
   let ?d = "(1 - setsum (op $$ x) d) / real (card d)"
   have "0 < card d" using `d ~={}` `finite d` by (simp add: card_gt_0_iff)

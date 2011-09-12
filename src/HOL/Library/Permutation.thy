@@ -153,7 +153,7 @@ lemma perm_set_eq: "xs <~~> ys ==> set xs = set ys"
 lemma perm_distinct_iff: "xs <~~> ys ==> distinct xs = distinct ys"
   apply (induct pred: perm)
      apply simp_all
-   apply fastsimp
+   apply fastforce
   apply (metis perm_set_eq)
   done
 
@@ -171,7 +171,7 @@ lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
     apply (metis Cons Cons_eq_appendI distinct.simps(2)
       distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
    apply (subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
-    apply (fastsimp simp add: insert_ident)
+    apply (fastforce simp add: insert_ident)
    apply (metis distinct_remdups set_remdups)
    apply (subgoal_tac "length (remdups xs) < Suc (length xs)")
    apply simp

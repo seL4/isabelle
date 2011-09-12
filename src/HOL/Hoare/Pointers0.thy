@@ -51,15 +51,15 @@ where
 
 lemma [iff]: "Path h Null xs y = (xs = [] \<and> y = Null)"
 apply(case_tac xs)
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
 done
 
 lemma [simp]: "a \<noteq> Null \<Longrightarrow> Path h a as z =
  (as = [] \<and> z = a  \<or>  (\<exists>bs. as = a#bs \<and> Path h (h a) bs z))"
 apply(case_tac as)
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
 done
 
 lemma [simp]: "\<And>x. Path f x (as@bs) z = (\<exists>y. Path f x as y \<and> Path f y bs z)"
@@ -110,12 +110,12 @@ by(induct as, simp, clarsimp)
 lemma List_hd_not_in_tl[simp]: "List h (h a) as \<Longrightarrow> a \<notin> set as"
 apply (clarsimp simp add:in_set_conv_decomp)
 apply(frule List_app[THEN iffD1])
-apply(fastsimp dest: List_unique)
+apply(fastforce dest: List_unique)
 done
 
 lemma List_distinct[simp]: "\<And>x. List h x as \<Longrightarrow> distinct as"
 apply(induct as, simp)
-apply(fastsimp dest:List_hd_not_in_tl)
+apply(fastforce dest:List_hd_not_in_tl)
 done
 
 subsection "Functional abstraction"
@@ -152,7 +152,7 @@ by(simp add:list_def)
 lemma list_Ref_conv[simp]:
  "\<lbrakk> a \<noteq> Null; islist h (h a) \<rbrakk> \<Longrightarrow> list h a = a # list h (h a)"
 apply(insert List_Ref[of _ h])
-apply(fastsimp simp:List_conv_islist_list)
+apply(fastforce simp:List_conv_islist_list)
 done
 
 lemma [simp]: "islist h (h a) \<Longrightarrow> a \<notin> set(list h (h a))"
@@ -187,8 +187,8 @@ lemma "VARS tl p q r
   DO r := p; p := p^.tl; r^.tl := q; q := r OD
   {List tl q (rev Ps @ Qs)}"
 apply vcg_simp
-  apply fastsimp
- apply(fastsimp intro:notin_List_update[THEN iffD2])
+  apply fastforce
+ apply(fastforce intro:notin_List_update[THEN iffD2])
 (* explicily:
  apply clarify
  apply(rename_tac ps qs)
@@ -199,7 +199,7 @@ apply vcg_simp
  apply(rule_tac x = "p#qs" in exI)
  apply simp
 *)
-apply fastsimp
+apply fastforce
 done
 
 
@@ -216,19 +216,19 @@ proof vcg
   fix tl p q r
   assume "List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {}"
   thus "\<exists>ps qs. List tl p ps \<and> List tl q qs \<and> set ps \<inter> set qs = {} \<and>
-                rev ps @ qs = rev Ps @ Qs" by fastsimp
+                rev ps @ qs = rev Ps @ Qs" by fastforce
 next
   fix tl p q r
   assume "(\<exists>ps qs. List tl p ps \<and> List tl q qs \<and> set ps \<inter> set qs = {} \<and>
                    rev ps @ qs = rev Ps @ Qs) \<and> p \<noteq> Null"
          (is "(\<exists>ps qs. ?I ps qs) \<and> _")
   then obtain ps qs where I: "?I ps qs \<and> p \<noteq> Null" by fast
-  then obtain ps' where "ps = p # ps'" by fastsimp
+  then obtain ps' where "ps = p # ps'" by fastforce
   hence "List (tl(p := q)) (p^.tl) ps' \<and>
          List (tl(p := q)) p       (p#qs) \<and>
          set ps' \<inter> set (p#qs) = {} \<and>
          rev ps' @ (p#qs) = rev Ps @ Qs"
-    using I by fastsimp
+    using I by fastforce
   thus "\<exists>ps' qs'. List (tl(p := q)) (p^.tl) ps' \<and>
                   List (tl(p := q)) p       qs' \<and>
                   set ps' \<inter> set qs' = {} \<and>
@@ -237,7 +237,7 @@ next
   fix tl p q r
   assume "(\<exists>ps qs. List tl p ps \<and> List tl q qs \<and> set ps \<inter> set qs = {} \<and>
                    rev ps @ qs = rev Ps @ Qs) \<and> \<not> p \<noteq> Null"
-  thus "List tl q (rev Ps @ Qs)" by fastsimp
+  thus "List tl q (rev Ps @ Qs)" by fastforce
 qed
 
 
@@ -276,9 +276,9 @@ lemma "VARS tl p
 apply vcg_simp
   apply(case_tac "p = Null")
    apply clarsimp
-  apply fastsimp
+  apply fastforce
  apply clarsimp
- apply fastsimp
+ apply fastforce
 apply clarsimp
 done
 
@@ -293,7 +293,7 @@ lemma "VARS tl p
   {p = X}"
 apply vcg_simp
   apply blast
- apply fastsimp
+ apply fastforce
 apply clarsimp
 done
 
@@ -311,7 +311,7 @@ apply vcg_simp
  apply(erule converse_rtranclE)
   apply simp
  apply(simp)
-apply(fastsimp elim:converse_rtranclE)
+apply(fastforce elim:converse_rtranclE)
 done
 
 
@@ -350,7 +350,7 @@ lemma "VARS hd tl p q r s
  {List tl r (merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y))}"
 apply vcg_simp
 
-apply (fastsimp)
+apply (fastforce)
 
 apply clarsimp
 apply(rule conjI)
@@ -359,7 +359,7 @@ apply(simp add:eq_sym_conv)
 apply(rule_tac x = "rs @ [s]" in exI)
 apply simp
 apply(rule_tac x = "bs" in exI)
-apply (fastsimp simp:eq_sym_conv)
+apply (fastforce simp:eq_sym_conv)
 
 apply clarsimp
 apply(rule conjI)
@@ -428,7 +428,7 @@ lemma "~finite(UNIV::('a::ref)set) \<Longrightarrow>
   {islist next p \<and> map elem (rev(list next p)) = Xs}"
 apply vcg_simp
  apply (clarsimp simp: subset_insert_iff neq_Nil_conv fun_upd_apply new_notin)
-apply fastsimp
+apply fastforce
 done
 
 

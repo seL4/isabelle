@@ -41,7 +41,7 @@ lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
 lemma exec_Suc [trans]:
   "\<lbrakk> P \<turnstile> c \<rightarrow> c'; P \<turnstile> c' \<rightarrow>^n c'' \<rbrakk> \<Longrightarrow> P \<turnstile> c \<rightarrow>^(Suc n) c''" 
-  by (fastsimp simp del: split_paired_Ex)
+  by (fastforce simp del: split_paired_Ex)
 
 lemma exec_exec_n:
   "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> \<exists>n. P \<turnstile> c \<rightarrow>^n c'"
@@ -118,7 +118,7 @@ proof
   { fix p assume "p \<in> ?x \<or> p \<in> ?xs"
     hence "p \<in> succs (x#xs) n"
     proof
-      assume "p \<in> ?x" thus ?thesis by (fastsimp simp: succs_def)
+      assume "p \<in> ?x" thus ?thesis by (fastforce simp: succs_def)
     next
       assume "p \<in> ?xs"
       then obtain i where "?isuccs p xs (1+n) i"
@@ -138,7 +138,7 @@ lemma succs_iexec1:
 
 lemma succs_shift:
   "(p - n \<in> succs P 0) = (p \<in> succs P n)" 
-  by (fastsimp simp: succs_def isuccs_def split: instr.split)
+  by (fastforce simp: succs_def isuccs_def split: instr.split)
   
 lemma inj_op_plus [simp]:
   "inj (op + (i::int))"
@@ -227,7 +227,7 @@ next
   case (Semi c1 c2)
   from Semi.prems
   show ?case 
-    by (fastsimp dest: Semi.hyps [THEN subsetD])
+    by (fastforce dest: Semi.hyps [THEN subsetD])
 next
   case (If b c1 c2)
   from If.prems
@@ -289,7 +289,7 @@ next
   { assume "j0 \<in> {0 ..< isize c}"
     with j0 j rest c
     have ?case
-      by (fastsimp dest!: Suc.hyps intro!: exec_Suc)
+      by (fastforce dest!: Suc.hyps intro!: exec_Suc)
   } moreover {
     assume "j0 \<notin> {0 ..< isize c}"
     moreover
@@ -298,7 +298,7 @@ next
     ultimately
     have "j0 \<in> exits c" by (simp add: exits_def)
     with c j0 rest
-    have ?case by fastsimp
+    have ?case by fastforce
   }
   ultimately
   show ?case by cases
@@ -352,7 +352,7 @@ next
     by (rule exec1_drop_left)
   also
   then have "i' - isize P \<in> succs P' 0"
-    by (fastsimp dest!: succs_iexec1)
+    by (fastforce dest!: succs_iexec1)
   with `exits P' \<subseteq> {0..}`
   have "isize P \<le> i'" by (auto simp: exits_def)
   from rest this `exits P' \<subseteq> {0..}`     
@@ -383,7 +383,7 @@ lemma exec_n_split_full:
                            P' \<turnstile> (0,s'',stk'') \<rightarrow>^k2 (j - isize P, s', stk')"
 proof (cases "P")
   case Nil with exec
-  show ?thesis by fastsimp
+  show ?thesis by fastforce
 next
   case Cons
   hence "0 < isize P" by simp
@@ -398,7 +398,7 @@ next
   then obtain j0 where "j = isize P + j0" ..
   ultimately
   show ?thesis using exits
-    by (fastsimp dest: exec_n_drop_left)
+    by (fastforce dest: exec_n_drop_left)
 qed
 
 
@@ -424,7 +424,7 @@ proof (induct a arbitrary: n s' stk stk')
        "[ADD] \<turnstile> (0,s2,stk2) \<rightarrow>^n3 (1, s', stk')"
     by (auto dest!: exec_n_split_full)
 
-  thus ?case by (fastsimp dest: Plus.hyps simp: exec_n_simps)
+  thus ?case by (fastforce dest: Plus.hyps simp: exec_n_simps)
 qed (auto simp: exec_n_simps)
 
 lemma bcomp_split:
@@ -435,7 +435,7 @@ lemma bcomp_split:
            (i' = isize (bcomp b c i) \<or> i' = i + isize (bcomp b c i)) \<and>
            bcomp b c i @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^m (j, s', stk') \<and>
            n = k + m"
-  using assms by (cases "bcomp b c i = []") (fastsimp dest!: exec_n_drop_right)+
+  using assms by (cases "bcomp b c i = []") (fastforce dest!: exec_n_drop_right)+
 
 lemma bcomp_exec_n [dest]:
   assumes "bcomp b c j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk')"
@@ -448,7 +448,7 @@ using assms proof (induct b arbitrary: c j i n s' stk')
 next
   case (Not b) 
   from Not.prems show ?case
-    by (fastsimp dest!: Not.hyps) 
+    by (fastforce dest!: Not.hyps) 
 next
   case (And b1 b2)
   
@@ -469,7 +469,7 @@ next
     by (auto dest!: And.hyps)
   with b2 j
   show ?case 
-    by (fastsimp dest!: And.hyps simp: exec_n_end split: split_if_asm)
+    by (fastforce dest!: And.hyps simp: exec_n_end split: split_if_asm)
 next
   case Less
   thus ?case by (auto dest!: exec_n_split_full simp: exec_n_simps) (* takes time *) 
@@ -490,10 +490,10 @@ proof (induct c arbitrary: s t stk stk' n)
 next
   case (Assign x a)
   thus ?case
-    by simp (fastsimp dest!: exec_n_split_full simp: exec_n_simps)
+    by simp (fastforce dest!: exec_n_split_full simp: exec_n_simps)
 next
   case (Semi c1 c2)
-  thus ?case by (fastsimp dest!: exec_n_split_full)
+  thus ?case by (fastforce dest!: exec_n_split_full)
 next
   case (If b c1 c2)
   note If.hyps [dest!]
@@ -518,14 +518,14 @@ next
     "ccomp c1@JMP (isize (ccomp c2))#ccomp c2 \<turnstile> 
        (if bval b s then 0 else isize (ccomp c1)+1, s, stk) \<rightarrow>^m
        (1 + isize (ccomp c1) + isize (ccomp c2), t, stk')"
-    by (fastsimp dest: exec_n_drop_left simp: exits_Cons isuccs_def algebra_simps)
+    by (fastforce dest: exec_n_drop_left simp: exits_Cons isuccs_def algebra_simps)
      
   show ?case
   proof (cases "bval b s")
     case True with cs'
     show ?thesis
       by simp
-         (fastsimp dest: exec_n_drop_right 
+         (fastforce dest: exec_n_drop_right 
                    split: split_if_asm simp: exec_n_simps)
   next
     case False with cs'
@@ -545,7 +545,7 @@ next
       with "1.prems"
       have ?case
         by simp
-           (fastsimp dest!: bcomp_exec_n bcomp_split 
+           (fastforce dest!: bcomp_exec_n bcomp_split 
                      simp: exec_n_simps)
     } moreover {
       assume b: "bval b s"
@@ -558,7 +558,7 @@ next
       obtain k where
         cs: "?cs \<turnstile> (isize ?bs, s, stk) \<rightarrow>^k (isize ?cs, t, stk')" and
         k:  "k \<le> n"
-        by (fastsimp dest!: bcomp_split)
+        by (fastforce dest!: bcomp_split)
       
       have ?case
       proof cases

@@ -198,7 +198,7 @@ subsubsection{*lemmas on parts, synth and analz*}
 
 lemma parts_invKey [rule_format,dest]:"X:parts {Y} ==>
 X:analz (insert (Crypt K Y) H) --> X ~:analz H --> Key (invKey K):analz H"
-by (erule parts.induct, (fastsimp dest: parts.Fst parts.Snd parts.Body)+)
+by (erule parts.induct, (fastforce dest: parts.Fst parts.Snd parts.Body)+)
 
 lemma in_analz: "Y:analz H ==> EX X. X:H & Y:parts {X}"
 by (erule analz.induct, auto intro: parts.Fst parts.Snd parts.Body)

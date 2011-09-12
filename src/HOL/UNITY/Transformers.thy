@@ -440,7 +440,7 @@ lemma wens_set_subset_single:
 apply (rule subsetI)  
 apply (erule wens_set.induct)
   txt{*Basis*} 
-  apply (fastsimp simp add: wens_single_finite_def)
+  apply (fastforce simp add: wens_single_finite_def)
  txt{*Wens inductive step*}
  apply (case_tac "acta = Id", simp)
  apply (simp add: wens_single_eq)

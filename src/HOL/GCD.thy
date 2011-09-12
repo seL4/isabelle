@@ -525,7 +525,7 @@ qed
 
 lemma Max_divisors_self_nat[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
 apply(rule antisym)
- apply (fastsimp intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
+ apply (fastforce intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
 apply simp
 done
 
@@ -1604,7 +1604,7 @@ apply(rule antisym)
  apply simp
 apply (rule Max_le_iff[THEN iffD2])
   apply (metis all_not_in_conv finite_divisors_nat finite_INT)
- apply fastsimp
+ apply fastforce
 apply clarsimp
 apply (metis Gcd_dvd_nat Max_in dvd_0_left dvd_Gcd_nat dvd_imp_le linorder_antisym_conv3 not_less0)
 done
@@ -1670,9 +1670,9 @@ proof-
          apply(rule Lcm_eq_Max_nat)
             apply simp
            apply blast
-          apply fastsimp
+          apply fastforce
          apply clarsimp
-        apply(fastsimp intro: finite_divisors_nat intro!: finite_INT)
+        apply(fastforce intro: finite_divisors_nat intro!: finite_INT)
         done
     qed
   qed

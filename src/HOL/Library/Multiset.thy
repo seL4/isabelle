@@ -218,7 +218,7 @@ lemma single_is_union:
 
 lemma add_eq_conv_diff:
   "M + {#a#} = N + {#b#} \<longleftrightarrow> M = N \<and> a = b \<or> M = N - {#a#} + {#b#} \<and> N = M - {#b#} + {#a#}"  (is "?lhs = ?rhs")
-(* shorter: by (simp add: multiset_eq_iff) fastsimp *)
+(* shorter: by (simp add: multiset_eq_iff) fastforce *)
 proof
   assume ?rhs then show ?lhs
   by (auto simp add: add_assoc add_commute [of "{#b#}"])

@@ -2733,7 +2733,7 @@ apply(rule iffI)
 prefer 2
 apply(drule minusinfinity)
 apply assumption+
-apply(fastsimp)
+apply(fastforce)
 apply clarsimp
 apply(subgoal_tac "!!k. 0<=k \<Longrightarrow> !x. P x \<longrightarrow> P (x - k*D)")
 apply(frule_tac x = x and z=z in decr_lemma)
@@ -2741,7 +2741,7 @@ apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
 prefer 2
 apply(subgoal_tac "0 <= (\<bar>x - z\<bar> + 1)")
 prefer 2 apply arith
- apply fastsimp
+ apply fastforce
 apply(drule (1)  periodic_finite_ex)
 apply blast
 apply(blast dest:decr_mult_lemma)

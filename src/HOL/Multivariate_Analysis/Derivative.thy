@@ -700,7 +700,7 @@ proof (rule ccontr)
     have "\<bar>(f (x + c *\<^sub>R basis j) - f x - ?v) $$ k\<bar> \<le>
         norm (f (x + c *\<^sub>R basis j) - f x - ?v)" by (rule component_le_norm)
     also have "\<dots> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>"
-      using e'[THEN conjunct2, rule_format, OF *] and norm_basis[of j] by fastsimp
+      using e'[THEN conjunct2, rule_format, OF *] and norm_basis[of j] by fastforce
     finally have "\<bar>(f (x + c *\<^sub>R basis j) - f x - ?v) $$ k\<bar> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>" by simp
     hence "\<bar>f (x + c *\<^sub>R basis j) $$ k - f x $$ k - c * ?D k $$ j\<bar> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>"
       unfolding euclidean_simps euclidean_lambda_beta using j k
@@ -1285,7 +1285,7 @@ proof-
   have "g' (f' a (\<chi>\<chi> i.1)) = (\<chi>\<chi> i.1)" "(\<chi>\<chi> i.1) \<noteq> (0::'n)" defer 
     apply(subst euclidean_eq) using f'g' by auto
   hence *:"0 < onorm g'"
-    unfolding onorm_pos_lt[OF assms(3)[unfolded linear_linear]] by fastsimp
+    unfolding onorm_pos_lt[OF assms(3)[unfolded linear_linear]] by fastforce
   def k \<equiv> "1 / onorm g' / 2" have *:"k>0" unfolding k_def using * by auto
   guess d1 using assms(6)[rule_format,OF *] .. note d1=this
   from `open s` obtain d2 where "d2>0" "ball a d2 \<subseteq> s" using `a\<in>s` ..

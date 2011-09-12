@@ -48,8 +48,8 @@ done
 
 lemma D_implies_eval: "!s t. D c\<cdot>(Discr s) = (Def t) --> (c,s) \<Rightarrow> t"
 apply (induct c)
-    apply fastsimp
-   apply fastsimp
+    apply fastforce
+   apply fastforce
   apply force
  apply (simp (no_asm))
  apply force

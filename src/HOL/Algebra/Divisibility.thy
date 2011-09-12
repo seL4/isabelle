@@ -650,7 +650,7 @@ proof (clarsimp, elim dividesE)
   finally have linv: "\<one> = c \<otimes> b" .
 
   from ccarr linv[symmetric] rinv[symmetric]
-  have "b \<in> Units G" unfolding Units_def by fastsimp
+  have "b \<in> Units G" unfolding Units_def by fastforce
   with nunit
       show "False" ..
 qed
@@ -710,8 +710,8 @@ lemma properfactor_lless:
   fixes G (structure)
   shows "properfactor G = lless (division_rel G)"
 apply (rule ext) apply (rule ext) apply rule
- apply (fastsimp elim: properfactorE2 intro: weak_llessI)
-apply (fastsimp elim: weak_llessE intro: properfactorI2)
+ apply (fastforce elim: properfactorE2 intro: weak_llessI)
+apply (fastforce elim: weak_llessE intro: properfactorI2)
 done
 
 lemma (in monoid) properfactor_cong_l [trans]:
@@ -751,26 +751,26 @@ lemma (in monoid_cancel) properfactor_mult_lI [intro]:
     and carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "properfactor G (c \<otimes> a) (c \<otimes> b)"
 using ab carr
-by (fastsimp elim: properfactorE intro: properfactorI)
+by (fastforce elim: properfactorE intro: properfactorI)
 
 lemma (in monoid_cancel) properfactor_mult_l [simp]:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "properfactor G (c \<otimes> a) (c \<otimes> b) = properfactor G a b"
 using carr
-by (fastsimp elim: properfactorE intro: properfactorI)
+by (fastforce elim: properfactorE intro: properfactorI)
 
 lemma (in comm_monoid_cancel) properfactor_mult_rI [intro]:
   assumes ab: "properfactor G a b"
     and carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "properfactor G (a \<otimes> c) (b \<otimes> c)"
 using ab carr
-by (fastsimp elim: properfactorE intro: properfactorI)
+by (fastforce elim: properfactorE intro: properfactorI)
 
 lemma (in comm_monoid_cancel) properfactor_mult_r [simp]:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "properfactor G (a \<otimes> c) (b \<otimes> c) = properfactor G a b"
 using carr
-by (fastsimp elim: properfactorE intro: properfactorI)
+by (fastforce elim: properfactorE intro: properfactorI)
 
 lemma (in monoid) properfactor_prod_r:
   assumes ab: "properfactor G a b"
@@ -1811,7 +1811,7 @@ lemma (in monoid) assocs_self:
   assumes "x \<in> carrier G"
   shows "x \<in> assocs G x"
 using assms
-by (fastsimp intro: closure_ofI2)
+by (fastforce intro: closure_ofI2)
 
 lemma (in monoid) assocs_repr_independenceD:
   assumes repr: "assocs G x = assocs G y"
@@ -2007,7 +2007,7 @@ proof -
 
   from tm as'carr[THEN subsetD] bscarr[THEN subsetD]
   have "as' [\<sim>] bs"
-    by (induct as' arbitrary: bs) (simp, fastsimp dest: assocs_eqD[THEN associated_sym])
+    by (induct as' arbitrary: bs) (simp, fastforce dest: assocs_eqD[THEN associated_sym])
 
   from tp and this
     show "essentially_equal G as bs" by (fast intro: essentially_equalI)
@@ -3451,7 +3451,7 @@ proof -
       by (intro ih[of a']) simp
 
   hence ee1: "essentially_equal G (ah # as) (ah # take i as' @ drop (Suc i) as')"
-    apply (elim essentially_equalE) apply (fastsimp intro: essentially_equalI)
+    apply (elim essentially_equalE) apply (fastforce intro: essentially_equalI)
   done
 
   from carr

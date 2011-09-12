@@ -35,7 +35,7 @@ proof -
   have "convex_on {0 <..} (\<lambda> x. - log b x)"
     by (rule minus_log_convex[OF `b > 1`])
   hence "- log b (\<Sum> i \<in> s. a i * y i) \<le> (\<Sum> i \<in> s. a i * - log b (y i))"
-    using convex_on_setsum[of _ _ "\<lambda> x. - log b x"] assms pos_is_convex by fastsimp
+    using convex_on_setsum[of _ _ "\<lambda> x. - log b x"] assms pos_is_convex by fastforce
   thus ?thesis by (auto simp add:setsum_negf le_imp_neg_le)
 qed
 
@@ -1327,7 +1327,7 @@ lemma subvimage_finite:
   shows "finite (g`A)"
 proof -
   from subvimage_translator_image[OF svi]
-  obtain h where "g`A = h`f`A" by fastsimp
+  obtain h where "g`A = h`f`A" by fastforce
   with fin show "finite (g`A)" by simp
 qed
 

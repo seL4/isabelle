@@ -644,7 +644,7 @@ proof (rule finite_sup_insertI)
   show "x \<squnion> (y \<squnion> z) .= s"
   proof (rule weak_le_antisym)
     from sup L show "x \<squnion> (y \<squnion> z) \<sqsubseteq> s"
-      by (fastsimp intro!: join_le elim: least_Upper_above)
+      by (fastforce intro!: join_le elim: least_Upper_above)
   next
     from sup L show "s \<sqsubseteq> x \<squnion> (y \<squnion> z)"
     by (erule_tac least_le)
@@ -885,7 +885,7 @@ proof (rule finite_inf_insertI)
   show "x \<sqinter> (y \<sqinter> z) .= i"
   proof (rule weak_le_antisym)
     from inf L show "i \<sqsubseteq> x \<sqinter> (y \<sqinter> z)"
-      by (fastsimp intro!: meet_le elim: greatest_Lower_below)
+      by (fastforce intro!: meet_le elim: greatest_Lower_below)
   next
     from inf L show "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> i"
     by (erule_tac greatest_le)
@@ -1289,7 +1289,7 @@ next
   show "EX s. least ?L s (Upper ?L B)"
   proof
     from B show "least ?L (\<Union> B) (Upper ?L B)"
-      by (fastsimp intro!: least_UpperI simp: Upper_def)
+      by (fastforce intro!: least_UpperI simp: Upper_def)
   qed
 next
   fix B
@@ -1299,7 +1299,7 @@ next
     from B show "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
       txt {* @{term "\<Inter> B"} is not the infimum of @{term B}:
         @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
-      by (fastsimp intro!: greatest_LowerI simp: Lower_def)
+      by (fastforce intro!: greatest_LowerI simp: Lower_def)
   qed
 qed
 

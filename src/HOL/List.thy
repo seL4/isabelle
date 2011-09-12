@@ -659,10 +659,10 @@ done
 lemma append_eq_append_conv2: "(xs @ ys = zs @ ts) =
   (EX us. xs = zs @ us & us @ ys = ts | xs @ us = zs & ys = us@ ts)"
 apply (induct xs arbitrary: ys zs ts)
- apply fastsimp
+ apply fastforce
 apply(case_tac zs)
  apply simp
-apply fastsimp
+apply fastforce
 done
 
 lemma same_append_eq [iff, induct_simp]: "(xs @ ys = xs @ zs) = (ys = zs)"
@@ -997,9 +997,9 @@ next
   case (Cons a xs)
   show ?case
   proof cases
-    assume "x = a" thus ?case using Cons by fastsimp
+    assume "x = a" thus ?case using Cons by fastforce
   next
-    assume "x \<noteq> a" thus ?case using Cons by(fastsimp intro!: Cons_eq_appendI)
+    assume "x \<noteq> a" thus ?case using Cons by(fastforce intro!: Cons_eq_appendI)
   qed
 qed
 
@@ -1016,7 +1016,7 @@ next
   proof cases
     assume "x = a" thus ?case using snoc by (metis List.set.simps(1) emptyE)
   next
-    assume "x \<noteq> a" thus ?case using snoc by fastsimp
+    assume "x \<noteq> a" thus ?case using snoc by fastforce
   qed
 qed
 
@@ -1078,7 +1078,7 @@ next
   next
     assume "\<not> P x"
     hence "\<exists>x\<in>set xs. P x" using snoc(2) by simp
-    thus ?thesis using `\<not> P x` snoc(1) by fastsimp
+    thus ?thesis using `\<not> P x` snoc(1) by fastforce
   qed
 qed
 
@@ -1216,7 +1216,7 @@ next
     qed
   next
     assume "\<not> P y"
-    with Cons obtain us vs where "?P (y#ys) (y#us) vs" by fastsimp
+    with Cons obtain us vs where "?P (y#ys) (y#us) vs" by fastforce
     then have "?Q (y#us)" by simp
     then show ?thesis ..
   qed
@@ -2986,7 +2986,7 @@ lemma elem_le_listsum_nat:
   "k < size ns \<Longrightarrow> ns ! k \<le> listsum (ns::nat list)"
 apply(induct ns arbitrary: k)
  apply simp
-apply(fastsimp simp add:nth_Cons split: nat.split)
+apply(fastforce simp add:nth_Cons split: nat.split)
 done
 
 lemma listsum_update_nat:
@@ -4671,7 +4671,7 @@ lemma snoc_listrel1_snoc_iff:
     \<longleftrightarrow> (xs, ys) \<in> listrel1 r \<and> x = y \<or> xs = ys \<and> (x,y) \<in> r" (is "?L \<longleftrightarrow> ?R")
 proof
   assume ?L thus ?R
-    by (fastsimp simp: listrel1_def snoc_eq_iff_butlast butlast_append)
+    by (fastforce simp: listrel1_def snoc_eq_iff_butlast butlast_append)
 next
   assume ?R then show ?L unfolding listrel1_def by force
 qed
@@ -4734,7 +4734,7 @@ lemma lists_accI: "xs \<in> acc (listrel1 r) \<Longrightarrow> xs \<in> lists (a
 apply (induct set: acc)
 apply clarify
 apply (rule accI)
-apply (fastsimp dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)
+apply (fastforce dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)
 done
 
 lemma wf_listrel1_iff[simp]: "wf(listrel1 r) = wf r"

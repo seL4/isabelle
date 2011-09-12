@@ -487,7 +487,7 @@ lemma finite_enat_bounded:
 proof (rule finite_subset)
   show "finite (enat ` {..n})" by blast
 
-  have "A \<subseteq> {..enat n}" using le_fin by fastsimp
+  have "A \<subseteq> {..enat n}" using le_fin by fastforce
   also have "\<dots> \<subseteq> enat ` {..n}"
     by (rule subsetI) (case_tac x, auto)
   finally show "A \<subseteq> enat ` {..n}" .

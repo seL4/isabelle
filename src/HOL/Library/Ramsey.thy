@@ -64,7 +64,7 @@ next
       have "V = insert v (?M \<union> ?N)" using `v : V` by auto
       hence "card V = card(insert v (?M \<union> ?N))" by metis
       also have "\<dots> = card ?M + card ?N + 1" using `finite V`
-        by(fastsimp intro: card_Un_disjoint)
+        by(fastforce intro: card_Un_disjoint)
       finally have "card V = card ?M + card ?N + 1" .
       hence "r1+r2 \<le> card ?M + card ?N + 1" using `r1+r2 \<le> card V` by simp
       hence "r1 \<le> card ?M \<or> r2 \<le> card ?N" by arith
@@ -325,7 +325,7 @@ corollary Ramsey2:
    "\<exists>Y t. Y \<subseteq> Z & infinite Y & t < s & (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y --> f{x,y} = t)"
 proof -
   have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
-    using part by (fastsimp simp add: eval_nat_numeral card_Suc_eq)
+    using part by (fastforce simp add: eval_nat_numeral card_Suc_eq)
   obtain Y t 
     where "Y \<subseteq> Z" "infinite Y" "t < s"
           "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"

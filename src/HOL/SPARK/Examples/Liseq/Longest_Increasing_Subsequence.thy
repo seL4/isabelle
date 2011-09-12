@@ -110,7 +110,7 @@ lemma liseq'_eq:
   js \<noteq> {} \<Longrightarrow> (\<And>js'. js' \<in> iseq xs (Suc i) \<Longrightarrow> Max js' = i \<Longrightarrow> finite js' \<Longrightarrow>
     js' \<noteq> {} \<Longrightarrow> card js' \<le> card js) \<Longrightarrow>
   j = liseq' xs i"
-  by (fastsimp simp add: liseq'_def iseq_finite
+  by (fastforce simp add: liseq'_def iseq_finite
     intro: Max_eqI [symmetric])
 
 lemma liseq_ge:
@@ -122,7 +122,7 @@ lemma liseq_eq:
   (\<And>js'. js' \<in> iseq xs i \<Longrightarrow> finite js' \<Longrightarrow>
     js' \<noteq> {} \<Longrightarrow> card js' \<le> card js) \<Longrightarrow>
   j = liseq xs i"
-  by (fastsimp simp add: liseq_def iseq_finite
+  by (fastforce simp add: liseq_def iseq_finite
     intro: Max_eqI [symmetric])
 
 lemma max_notin: "finite xs \<Longrightarrow> Max xs < x \<Longrightarrow> x \<notin> xs"

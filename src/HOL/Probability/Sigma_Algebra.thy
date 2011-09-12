@@ -810,7 +810,7 @@ lemma (in sigma_algebra) measurable_iff_sigma:
   assumes "sets E \<subseteq> Pow (space E)" and "f \<in> space M \<rightarrow> space E"
   shows "f \<in> measurable M (sigma E) \<longleftrightarrow> (\<forall>A\<in>sets E. f -` A \<inter> space M \<in> sets M)"
   using measurable_sigma[OF assms]
-  by (fastsimp simp: measurable_def sets_sigma intro: sigma_sets.intros)
+  by (fastforce simp: measurable_def sets_sigma intro: sigma_sets.intros)
 
 section "Disjoint families"
 
@@ -1426,7 +1426,7 @@ lemma sigma_algebra_imp_dynkin_system:
   assumes "sigma_algebra M" shows "dynkin_system M"
 proof -
   interpret sigma_algebra M by fact
-  show ?thesis using sets_into_space by (fastsimp intro!: dynkin_systemI)
+  show ?thesis using sets_into_space by (fastforce intro!: dynkin_systemI)
 qed
 
 subsection "Intersection stable algebras"
@@ -1481,13 +1481,13 @@ proof (rule dynkin_systemI)
   { fix D assume "A \<in> D" and d: "dynkin_system \<lparr> space = space M, sets = D \<rparr>"
     then have "A \<subseteq> space M" by (auto simp: dynkin_system_def subset_class_def) }
   moreover have "{D. dynkin_system \<lparr> space = space M, sets = D\<rparr> \<and> sets M \<subseteq> D} \<noteq> {}"
-    using assms dynkin_system_trivial by fastsimp
+    using assms dynkin_system_trivial by fastforce
   ultimately show "A \<subseteq> space (dynkin M)"
     unfolding dynkin_def using assms
     by simp (metis dynkin_system_def subset_class_def in_mono)
 next
   show "space (dynkin M) \<in> sets (dynkin M)"
-    unfolding dynkin_def using dynkin_system.space by fastsimp
+    unfolding dynkin_def using dynkin_system.space by fastforce
 next
   fix A assume "A \<in> sets (dynkin M)"
   then show "space (dynkin M) - A \<in> sets (dynkin M)"
@@ -1532,7 +1532,7 @@ next
   assume "disjoint_family A" "range A \<subseteq> {Q. Q \<subseteq> space M \<and> Q \<inter> D \<in> sets M}"
   then have "\<And>i. A i \<subseteq> space M" "disjoint_family (\<lambda>i. A i \<inter> D)"
     "range (\<lambda>i. A i \<inter> D) \<subseteq> sets M" "(\<Union>x. A x) \<inter> D = (\<Union>x. A x \<inter> D)"
-    by ((fastsimp simp: disjoint_family_on_def)+)
+    by ((fastforce simp: disjoint_family_on_def)+)
   then show "(\<Union>x. A x) \<subseteq> space M \<and> (\<Union>x. A x) \<inter> D \<in> sets M"
     by (auto simp del: UN_simps)
 qed

@@ -70,7 +70,7 @@ apply(rule Assign')
 apply (simp add: atLeastAtMostPlus1_int_conv algebra_simps)
 apply clarsimp
 apply arith
-apply fastsimp
+apply fastforce
 apply(rule Semi)
 prefer 2
 apply(rule Assign)
@@ -95,7 +95,7 @@ proof(unfold hoare_tvalid_def, induct rule: hoaret.induct)
   qed
 next
   case If thus ?case by auto blast
-qed fastsimp+
+qed fastforce+
 
 
 text{*

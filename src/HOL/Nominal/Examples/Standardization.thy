@@ -296,7 +296,7 @@ lemma Cons_step1_Cons [iff]:
    apply (erule exE)
    apply (rename_tac ts)
    apply (case_tac ts)
-    apply fastsimp
+    apply fastforce
    apply force
   apply (erule disjE)
    apply blast

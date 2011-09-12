@@ -1134,7 +1134,7 @@ lemma poly_gcd_dvd1 [iff]: "poly_gcd x y dvd x"
   and poly_gcd_dvd2 [iff]: "poly_gcd x y dvd y"
   apply (induct x y rule: poly_gcd.induct)
   apply (simp_all add: poly_gcd.simps)
-  apply (fastsimp simp add: smult_dvd_iff dest: inverse_zero_imp_zero)
+  apply (fastforce simp add: smult_dvd_iff dest: inverse_zero_imp_zero)
   apply (blast dest: dvd_mod_imp_dvd)
   done
 

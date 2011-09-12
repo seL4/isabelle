@@ -141,7 +141,7 @@ next
       case None
       with l'_l Some x_l_Some del
       show ?thesis
-        by (fastsimp split: split_if_asm)
+        by (fastforce split: split_if_asm)
     qed
   next
     case None
@@ -154,12 +154,12 @@ next
         by simp
       with Some x_l_None del
       show ?thesis
-        by (fastsimp split: split_if_asm)
+        by (fastforce split: split_if_asm)
     next
       case None
       with x_l_None del
       show ?thesis
-        by (fastsimp split: split_if_asm)
+        by (fastforce split: split_if_asm)
     qed
   qed
 qed
@@ -198,12 +198,12 @@ next
       
       with dist_l' dist_r' l'_l Some x_l_Some del d dist_l_r
       show ?thesis
-        by fastsimp
+        by fastforce
     next
       case None
       with l'_l dist_l'  x_l_Some del d dist_l_r dist_r
       show ?thesis
-        by fastsimp
+        by fastforce
     qed
   next
     case None
@@ -218,12 +218,12 @@ next
       have "set_of r' \<subseteq> set_of r".
       with Some dist_r' x_l_None del dist_l d dist_l_r
       show ?thesis
-        by fastsimp
+        by fastforce
     next
       case None
       with x_l_None del dist_l dist_r d dist_l_r
       show ?thesis
-        by (fastsimp split: split_if_asm)
+        by (fastforce split: split_if_asm)
     qed
   qed
 qed

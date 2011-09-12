@@ -320,7 +320,7 @@ lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = Suc 0 & n = Suc 0)"
 
 lemma one_eq_mult_iff [simp,no_atp]: "(Suc 0 = m * n) = (m = Suc 0 & n = Suc 0)"
   apply (rule trans)
-  apply (rule_tac [2] mult_eq_1_iff, fastsimp)
+  apply (rule_tac [2] mult_eq_1_iff, fastforce)
   done
 
 lemma nat_mult_eq_1_iff [simp]: "m * n = (1::nat) \<longleftrightarrow> m = 1 \<and> n = 1"

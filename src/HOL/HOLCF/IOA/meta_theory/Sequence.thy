@@ -836,7 +836,7 @@ lemma divide_Seq3: "~Forall P y
   ==> ? x bs rs. y= (bs @@ (x>>rs)) & Finite bs & Forall P bs & (~ P x)"
 apply (drule divide_Seq2)
 (*Auto_tac no longer proves it*)
-apply fastsimp
+apply fastforce
 done
 
 lemmas [simp] = FilterPQ FilterConc Conc_cong

@@ -295,20 +295,20 @@ proof (vcg)
             proof
               show "?L \<subseteq> ?R"
               proof (rule still_reachable)
-                show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B" by(fastsimp simp:addrs_def relS_def rel_def addr_p_eq 
+                show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B" by(fastforce simp:addrs_def relS_def rel_def addr_p_eq 
                      intro:oneStep_reachable Image_iff[THEN iffD2])
                 show "\<forall>(x,y) \<in> ?Ra-?Rb. y \<in> (?Rb\<^sup>* `` addrs ?B)" by (clarsimp simp:relS_def) 
-                     (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+                     (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd1)
               qed
               show "?R \<subseteq> ?L"
               proof (rule still_reachable)
                 show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-                  by(fastsimp simp:addrs_def rel_defs addr_p_eq 
+                  by(fastforce simp:addrs_def rel_defs addr_p_eq 
                       intro:oneStep_reachable Image_iff[THEN iffD2])
               next
                 show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
                   by (clarsimp simp:relS_def) 
-                     (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd2)
+                     (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd2)
               qed
             qed
             with i3 have poI3: "R = reachable ?Rb ?B"  by (simp add:reachable_def) 
@@ -326,10 +326,10 @@ proof (vcg)
               have rewrite: "\<forall>s\<in>set stack_tl. (r(p \<rightarrow> t)) s = r s"
                 by (auto simp add:p_notin_stack_tl intro:fun_upd_other) 
               show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-                by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
+                by (fastforce cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
               show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
                 by (clarsimp simp:restr_def relS_def) 
-                  (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+                  (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd1)
             qed
             -- "We now bring a term from the right to the left of the subset relation."
             hence subset: "?Ra\<^sup>* `` addrs ?A - ?Rb\<^sup>* `` addrs ?T \<subseteq> ?Rb\<^sup>* `` addrs ?B"
@@ -404,16 +404,16 @@ proof (vcg)
             have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
             proof (rule still_reachable_eq)
               show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
-                by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+                by(fastforce simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
             next
               show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-                by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+                by(fastforce simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
             next
               show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
-                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
+                by (clarsimp simp:relS_def) (fastforce simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
             next
               show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
-                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
+                by (clarsimp simp:relS_def) (fastforce simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
             qed
             with i3
             have swI3: "?swI3" by (simp add:reachable_def) 
@@ -428,10 +428,10 @@ proof (vcg)
               have rewrite: "(\<forall>s\<in>set stack_tl. (r(addr p := l(addr p))) s = r s)"
                 by (auto simp add:p_notin_stack_tl intro:fun_upd_other)
               show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-                by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
+                by (fastforce cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
             next
               show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
-                by (clarsimp simp:relS_def restr_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
+                by (clarsimp simp:relS_def restr_def) (fastforce simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
             qed
             then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
               by blast
@@ -501,16 +501,16 @@ proof (vcg)
             have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
             proof (rule still_reachable_eq)
               show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
-                by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+                by(fastforce simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
             next
               show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-                by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+                by(fastforce simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
             next
               show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
-                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+                by (clarsimp simp:relS_def) (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd1)
             next
               show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
-                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
+                by (clarsimp simp:relS_def) (fastforce simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
             qed
             with i3
             have puI3: "?puI3" by (simp add:reachable_def) 
@@ -523,11 +523,11 @@ proof (vcg)
             have "?Ra\<^sup>*``addrs ?A \<subseteq> ?Rb\<^sup>*``(addrs ?B \<union> addrs ?T)"
             proof (rule still_reachable)
               show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-                by (fastsimp simp:new_stack_eq addrs_def intro:self_reachable)
+                by (fastforce simp:new_stack_eq addrs_def intro:self_reachable)
             next
               show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
                 by (clarsimp simp:relS_def new_stack_eq restr_un restr_upd) 
-                   (fastsimp simp add:rel_def Image_iff restr_def addrs_def fun_upd_apply addr_t_eq dest:rel_upd3)
+                   (fastforce simp add:rel_def Image_iff restr_def addrs_def fun_upd_apply addr_t_eq dest:rel_upd3)
             qed
             then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
               by blast
@@ -537,7 +537,7 @@ proof (vcg)
               assume a: "x \<in> R \<and> \<not> ?new_m x"
               have xDisj: "x=(addr t) \<or> x\<noteq>(addr t)" by simp
               with i4 a have inc: "x \<in> ?Ra\<^sup>*``addrs ?A"
-                by (fastsimp simp:addr_t_eq addrs_def reachable_def intro:self_reachable)
+                by (fastforce simp:addr_t_eq addrs_def reachable_def intro:self_reachable)
               have exc: "x \<notin> ?Rb\<^sup>*`` addrs ?T"
                 using xDisj a n_m_addr_t
                 by (clarsimp simp add:addrs_def addr_t_eq) 

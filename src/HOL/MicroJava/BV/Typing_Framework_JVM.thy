@@ -73,44 +73,44 @@ theorem exec_pres_type:
 
   apply (clarsimp simp add: not_Err_eq)
   apply (drule listE_nth_in, assumption)
-  apply fastsimp
+  apply fastforce
 
-  apply (fastsimp simp add: not_None_eq)
+  apply (fastforce simp add: not_None_eq)
 
-  apply (fastsimp simp add: not_None_eq typeof_empty_is_type)
+  apply (fastforce simp add: not_None_eq typeof_empty_is_type)
 
   apply clarsimp
   apply (erule disjE)
-   apply fastsimp
+   apply fastforce
   apply clarsimp
   apply (rule_tac x="1" in exI)
-  apply fastsimp
+  apply fastforce
 
   apply clarsimp
   apply (erule disjE)
-   apply (fastsimp dest: field_fields fields_is_type)
+   apply (fastforce dest: field_fields fields_is_type)
   apply (simp add: match_some_entry image_iff)
   apply (rule_tac x=1 in exI)
-  apply fastsimp
+  apply fastforce
 
   apply clarsimp
   apply (erule disjE)
-   apply fastsimp
+   apply fastforce
   apply (simp add: match_some_entry image_iff)
   apply (rule_tac x=1 in exI)
-  apply fastsimp
+  apply fastforce
 
   apply clarsimp
   apply (erule disjE)
-   apply fastsimp
+   apply fastforce
   apply clarsimp
   apply (rule_tac x=1 in exI)
-  apply fastsimp
+  apply fastforce
 
   defer 
 
-  apply fastsimp
-  apply fastsimp
+  apply fastforce
+  apply fastforce
 
   apply clarsimp
   apply (rule_tac x="n'+2" in exI)  
@@ -124,26 +124,26 @@ theorem exec_pres_type:
   apply (rule_tac x="Suc (Suc (Suc (Suc (length ST))))" in exI)  
   apply simp
 
-  apply fastsimp
-  apply fastsimp
-  apply fastsimp
-  apply fastsimp
+  apply fastforce
+  apply fastforce
+  apply fastforce
+  apply fastforce
 
   apply clarsimp
   apply (erule disjE)
-   apply fastsimp
+   apply fastforce
   apply clarsimp
   apply (rule_tac x=1 in exI)
-  apply fastsimp
+  apply fastforce
   
   apply (erule disjE)
    apply clarsimp
    apply (drule method_wf_mdecl, assumption+)
    apply (clarsimp simp add: wf_mdecl_def wf_mhead_def)
-   apply fastsimp
+   apply fastforce
   apply clarsimp
   apply (rule_tac x=1 in exI)
-  apply fastsimp
+  apply fastforce
   done
 
 lemmas [iff] = not_None_eq

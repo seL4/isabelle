@@ -657,7 +657,7 @@ proof cases
     case (insert b A)
     moreover hence "b ~: A" by auto
     moreover have "A <= {k..<k+card A}" and "b = k+card A"
-      using `b ~: A` insert by fastsimp+
+      using `b ~: A` insert by fastforce+
     ultimately show ?case by auto
   qed
 next
@@ -688,7 +688,7 @@ qed
 lemma UN_le_add_shift:
   "(\<Union>i\<le>n::nat. M(i+k)) = (\<Union>i\<in>{k..n+k}. M i)" (is "?A = ?B")
 proof
-  show "?A <= ?B" by fastsimp
+  show "?A <= ?B" by fastforce
 next
   show "?B <= ?A"
   proof
@@ -899,7 +899,7 @@ qed
 lemma card_less_Suc2: "0 \<notin> M \<Longrightarrow> card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
 apply (rule card_bij_eq [of Suc _ _ "\<lambda>x. x - Suc 0"])
 apply simp
-apply fastsimp
+apply fastforce
 apply auto
 apply (rule inj_on_diff_nat)
 apply auto
@@ -1020,7 +1020,7 @@ apply(auto simp:linorder_not_le)
 apply(rule ccontr)
 apply(insert linorder_le_less_linear[of i n])
 apply(clarsimp simp:linorder_not_le)
-apply(fastsimp)
+apply(fastforce)
 done
 
 

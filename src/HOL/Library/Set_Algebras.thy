@@ -356,7 +356,7 @@ lemma set_neg_intro2: "(a::'a::ring_1) : C ==>
 
 lemma set_plus_image:
   fixes S T :: "'n::semigroup_add set" shows "S \<oplus> T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
-  unfolding set_plus_def by (fastsimp simp: image_iff)
+  unfolding set_plus_def by (fastforce simp: image_iff)
 
 lemma set_setsum_alt:
   assumes fin: "finite I"

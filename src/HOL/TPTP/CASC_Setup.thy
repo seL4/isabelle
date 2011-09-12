@@ -141,7 +141,7 @@ fun isabellep_tac ctxt max_secs =
    ORELSE
    SOLVE_TIMEOUT (max_secs div 10) "force" (ALLGOALS (force_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT max_secs "fastsimp" (ALLGOALS (fast_simp_tac ctxt))
+   SOLVE_TIMEOUT max_secs "fastforce" (ALLGOALS (fast_force_tac ctxt))
 *}
 
 method_setup isabellep = {*

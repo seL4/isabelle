@@ -299,7 +299,7 @@ apply assumption
 apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
 
 (* a~: act B; a~: act A *)
-apply (fastsimp intro!: ext_is_act simp: externals_of_par)
+apply (fastforce intro!: ext_is_act simp: externals_of_par)
 done
 
 declare FiniteConc [simp]
@@ -452,7 +452,7 @@ apply assumption
 apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
 
 (* Case a~:A, a~:B *)
-apply (fastsimp intro!: ext_is_act simp: externals_of_par)
+apply (fastforce intro!: ext_is_act simp: externals_of_par)
 done
 
 

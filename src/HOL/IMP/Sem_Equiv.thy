@@ -107,7 +107,7 @@ proof (induct rule: big_step_induct)
 next
   case WhileFalse
   thus ?case by (auto simp: bequiv_up_to_def)
-qed (fastsimp simp: equiv_up_to_def bequiv_up_to_def hoare_valid_def)+
+qed (fastforce simp: equiv_up_to_def bequiv_up_to_def hoare_valid_def)+
 
 lemma bequiv_context_subst:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (P s \<and> bval b s) = (P s \<and> bval b' s)"
@@ -128,7 +128,7 @@ lemma equiv_up_to_while:
 lemma equiv_up_to_while_weak:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow> \<Turnstile> {P} c {P} \<Longrightarrow> 
    P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
-  by (fastsimp elim!: equiv_up_to_while equiv_up_to_weaken 
+  by (fastforce elim!: equiv_up_to_while equiv_up_to_weaken 
                simp: hoare_valid_def)
 
 lemma equiv_up_to_if:
@@ -139,7 +139,7 @@ lemma equiv_up_to_if:
 lemma equiv_up_to_if_weak:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow> P \<Turnstile> d \<sim> d' \<Longrightarrow>
    P \<Turnstile> IF b THEN c ELSE d \<sim> IF b' THEN c' ELSE d'"
-  by (fastsimp elim!: equiv_up_to_if equiv_up_to_weaken)
+  by (fastforce elim!: equiv_up_to_if equiv_up_to_weaken)
 
 lemma equiv_up_to_if_True [intro!]:
   "(\<And>s. P s \<Longrightarrow> bval b s) \<Longrightarrow> P \<Turnstile> IF b THEN c1 ELSE c2 \<sim> c1"

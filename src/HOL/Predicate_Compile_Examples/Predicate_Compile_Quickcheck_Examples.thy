@@ -283,8 +283,8 @@ qed
 
 code_pred [random_dseq inductify] matrix
   apply (cases x)
-  unfolding matrix_def apply fastsimp
-  apply fastsimp done
+  unfolding matrix_def apply fastforce
+  apply fastforce done
 
 
 values [random_dseq 2, 2, 15] 6 "{(M::int list list, n, m). matrix M n m}"

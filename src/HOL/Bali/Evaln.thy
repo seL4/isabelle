@@ -305,7 +305,7 @@ proof -
     then have "False" by induct auto
   }
   then show ?thesis
-    by (cases s') fastsimp 
+    by (cases s') fastforce 
 qed
 
 lemma evaln_InsInitE: "G\<turnstile>Norm s\<midarrow>In1l (InsInitE c e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -317,7 +317,7 @@ proof -
     then have "False" by induct auto
   }
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 lemma evaln_InsInitV: "G\<turnstile>Norm s\<midarrow>In2 (InsInitV c w)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -329,7 +329,7 @@ proof -
     then have "False" by induct auto
   }  
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 lemma evaln_FinA: "G\<turnstile>Norm s\<midarrow>In1r (FinA a c)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -341,7 +341,7 @@ proof -
     then have "False" by induct auto
   } 
   then show ?thesis
-    by (cases s') fastsimp
+    by (cases s') fastforce
 qed
 
 lemma evaln_abrupt_lemma: "G\<turnstile>s \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (v,s') \<Longrightarrow> 
@@ -602,7 +602,7 @@ next
   moreover
   from Try.hyps obtain n2 where
     "if G,s2\<turnstile>catch catchC then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<midarrow>n2\<rightarrow> s3 else s3 = s2"
-    by fastsimp 
+    by fastforce 
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>Try c1 Catch(catchC vn) c2\<midarrow>max n1 n2\<rightarrow> s3"
     by (auto intro!: evaln.Try le_maxI1 le_maxI2)

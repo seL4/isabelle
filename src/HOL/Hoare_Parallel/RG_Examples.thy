@@ -286,7 +286,7 @@ apply(rule While)
     apply force
    apply(rule Basic)
       apply force
-     apply fastsimp
+     apply fastforce
     apply force
    apply force
   apply(rule Basic)

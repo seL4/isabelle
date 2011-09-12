@@ -114,7 +114,7 @@ apply (rename_tac M T)
 apply (case_tac "EX C. Class C : M")
  prefer 2
  apply (case_tac T)
-  apply (fastsimp simp add: PrimT_PrimT2)
+  apply (fastforce simp add: PrimT_PrimT2)
  apply simp
  apply (subgoal_tac "ref_ty = NullT")
   apply simp

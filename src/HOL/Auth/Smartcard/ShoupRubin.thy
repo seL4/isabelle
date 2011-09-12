@@ -605,7 +605,7 @@ lemma Outpts_A_Card_unique_nonce:
            \<in> set evs;   
          evs \<in> sr \<rbrakk> \<Longrightarrow> A=A'"
 apply (erule rev_mp, erule rev_mp, erule sr.induct, simp_all)
-apply (fastsimp dest: Outpts_parts_used)
+apply (fastforce dest: Outpts_parts_used)
 apply blast
 done
 
@@ -615,7 +615,7 @@ lemma Outpts_B_Card_unique_nonce:
          Outpts (Card B') B' \<lbrace>Nonce Nb, Key SK', Cert1', Cert2'\<rbrace> \<in> set evs;   
          evs \<in> sr \<rbrakk> \<Longrightarrow> B=B' \<and> SK=SK' \<and> Cert1=Cert1' \<and> Cert2=Cert2'"
 apply (erule rev_mp, erule rev_mp, erule sr.induct, simp_all)
-apply (fastsimp dest: Outpts_parts_used)
+apply (fastforce dest: Outpts_parts_used)
 apply blast
 done
 
@@ -626,7 +626,7 @@ lemma Outpts_B_Card_unique_key:
          Outpts (Card B') B' \<lbrace>Nonce Nb', Key SK, Cert1', Cert2'\<rbrace> \<in> set evs;   
          evs \<in> sr \<rbrakk> \<Longrightarrow> B=B' \<and> Nb=Nb' \<and> Cert1=Cert1' \<and> Cert2=Cert2'"
 apply (erule rev_mp, erule rev_mp, erule sr.induct, simp_all)
-apply (fastsimp dest: Outpts_parts_used)
+apply (fastforce dest: Outpts_parts_used)
 apply blast
 done
 
@@ -644,9 +644,9 @@ lemma Outpts_A_Card_Unique:
   "\<lbrakk> Outpts (Card A) A \<lbrace>Nonce Na, rest\<rbrace> \<in> set evs; evs \<in> sr \<rbrakk>  
      \<Longrightarrow> Unique (Outpts (Card A) A \<lbrace>Nonce Na, rest\<rbrace>) on evs"
 apply (erule rev_mp, erule sr.induct, simp_all add: Unique_def)
-apply (fastsimp dest: Outpts_parts_used)
+apply (fastforce dest: Outpts_parts_used)
 apply blast
-apply (fastsimp dest: Outpts_parts_used)
+apply (fastforce dest: Outpts_parts_used)
 apply blast
 done
 
@@ -699,7 +699,7 @@ lemma Pairkey_Inputs_analz_knows_Spy:
          evs \<in> sr \<rbrakk>     
      \<Longrightarrow> Nonce (Pairkey(A,B)) \<in> analz (knows Spy evs)"
 apply (case_tac "A = Spy")
-apply (fastsimp dest!: Inputs_imp_knows_Spy_secureM [THEN analz.Inj])
+apply (fastforce dest!: Inputs_imp_knows_Spy_secureM [THEN analz.Inj])
 apply (blast dest!: Pairkey_Inputs_imp_Gets [THEN Pairkey_Gets_analz_knows_Spy])
 done
 
@@ -977,7 +977,7 @@ apply (simp_all (no_asm_simp))
 (*fake*)
 apply spy_analz
 (*forge*)
-apply (fastsimp dest: analz.Inj)
+apply (fastforce dest: analz.Inj)
 (*SR7: used B\<noteq>Spy*)
 (*SR7F*)
 apply clarify
@@ -1028,7 +1028,7 @@ apply spy_analz
 (*Forge*)
 apply (rotate_tac 7)
 apply (drule parts.Inj)
-apply (fastsimp dest: Outpts_B_Card_form_7)
+apply (fastforce dest: Outpts_B_Card_form_7)
 (*SR7*)
 apply (blast dest!: Outpts_B_Card_form_7)
 (*SR7F*)
@@ -1036,10 +1036,10 @@ apply clarify
 apply (drule Outpts_parts_used)
 apply simp
 (*faster than
-  apply (fastsimp dest: Outpts_parts_used)
+  apply (fastforce dest: Outpts_parts_used)
 *)
 (*SR10*)
-apply (fastsimp dest: Outpts_B_Card_form_7)
+apply (fastforce dest: Outpts_B_Card_form_7)
 (*SR10F - uses assumption Card A not cloned*)
 apply clarify
 apply (drule Outpts_B_Card_form_7, assumption)
@@ -1346,7 +1346,7 @@ lemma step8_integrity:
           Outpts (Card B) B \<lbrace>Nonce Nb, Key K, Certificate, Cert2\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule sr.induct)
-prefer 18 apply (fastsimp dest: Outpts_A_Card_form_10)
+prefer 18 apply (fastforce dest: Outpts_A_Card_form_10)
 apply auto
 done
 

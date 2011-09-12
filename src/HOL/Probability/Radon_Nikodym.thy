@@ -32,7 +32,7 @@ proof -
   show ?thesis
   proof (safe intro!: bexI[of _ ?h] del: notI)
     have "\<And>i. A i \<in> sets M"
-      using range by fastsimp+
+      using range by fastforce+
     then have "integral\<^isup>P M ?h = (\<Sum>i. n i * \<mu> (A i))" using pos
       by (simp add: positive_integral_suminf positive_integral_cmult_indicator)
     also have "\<dots> \<le> (\<Sum>i. (1 / 2)^Suc i)"
@@ -640,7 +640,7 @@ proof -
   have Union: "(SUP i. \<mu> (?O i)) = \<mu> (\<Union>i. ?O i)"
   proof (rule continuity_from_below[of ?O])
     show "range ?O \<subseteq> sets M" using Q' by (auto intro!: finite_UN)
-    show "incseq ?O" by (fastsimp intro!: incseq_SucI)
+    show "incseq ?O" by (fastforce intro!: incseq_SucI)
   qed
   have Q'_sets: "\<And>i. Q' i \<in> sets M" using Q' by auto
   have O_sets: "\<And>i. ?O i \<in> sets M"
@@ -654,7 +654,7 @@ proof -
     also have "\<dots> < \<infinity>" using Q' by (simp add: setsum_Pinfty)
     finally show "\<nu> (?O i) \<noteq> \<infinity>" by simp
   qed auto
-  have O_mono: "\<And>n. ?O n \<subseteq> ?O (Suc n)" by fastsimp
+  have O_mono: "\<And>n. ?O n \<subseteq> ?O (Suc n)" by fastforce
   have a_eq: "?a = \<mu> (\<Union>i. ?O i)" unfolding Union[symmetric]
   proof (rule antisym)
     show "?a \<le> (SUP i. \<mu> (?O i))" unfolding a_Lim
@@ -676,7 +676,7 @@ proof -
   show ?thesis
   proof (intro bexI exI conjI ballI impI allI)
     show "disjoint_family Q"
-      by (fastsimp simp: disjoint_family_on_def Q_def
+      by (fastforce simp: disjoint_family_on_def Q_def
         split: nat.split_asm)
     show "range Q \<subseteq> sets M"
       using Q_sets by auto
@@ -697,7 +697,7 @@ proof -
           proof (rule continuity_from_below[of "\<lambda>i. ?O i \<union> A", symmetric, simplified])
             show "range (\<lambda>i. ?O i \<union> A) \<subseteq> sets M"
               using `\<nu> A \<noteq> \<infinity>` O_sets A by auto
-          qed (fastsimp intro!: incseq_SucI)
+          qed (fastforce intro!: incseq_SucI)
           also have "\<dots> \<le> ?a"
           proof (safe intro!: SUP_leI)
             fix i have "?O i \<union> A \<in> ?Q"
@@ -734,14 +734,14 @@ proof -
         case 0 then show ?case by (simp add: Q_def)
       next
         case (Suc j)
-        have eq: "\<And>j. (\<Union>i\<le>j. ?O i) = (\<Union>i\<le>j. Q' i)" by fastsimp
+        have eq: "\<And>j. (\<Union>i\<le>j. ?O i) = (\<Union>i\<le>j. Q' i)" by fastforce
         have "{..j} \<union> {..Suc j} = {..Suc j}" by auto
         then have "(\<Union>i\<le>Suc j. Q' i) = (\<Union>i\<le>j. Q' i) \<union> Q (Suc j)"
           by (simp add: UN_Un[symmetric] Q_def del: UN_Un)
         then show ?case using Suc by (auto simp add: eq atMost_Suc)
       qed }
     then have "(\<Union>j. (\<Union>i\<le>j. ?O i)) = (\<Union>j. (\<Union>i\<le>j. Q i))" by simp
-    then show "space M - ?O_0 = space M - (\<Union>i. Q i)" by fastsimp
+    then show "space M - ?O_0 = space M - (\<Union>i. Q i)" by fastforce
   qed
 qed
 

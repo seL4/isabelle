@@ -1887,7 +1887,7 @@ proof
     proof safe case goal1
       have "ereal B < ereal (B + 1)" by auto
       also have "... <= f n" using goal1 N by auto
-      finally show ?case using B by fastsimp
+      finally show ?case using B by fastforce
     qed
   qed
 next
@@ -1916,7 +1916,7 @@ proof
     proof safe case goal1
       have "ereal (B - 1) >= f n" using goal1 N by auto
       also have "... < ereal B" by auto
-      finally show ?case using B by fastsimp
+      finally show ?case using B by fastforce
     qed
   qed
 next assume ?l show ?r

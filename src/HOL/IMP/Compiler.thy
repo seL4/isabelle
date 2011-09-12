@@ -94,7 +94,7 @@ values
 subsection{* Verification infrastructure *}
 
 lemma exec_trans: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
-  by (induct rule: exec.induct) fastsimp+
+  by (induct rule: exec.induct) fastforce+
 
 inductive_cases iexec1_cases [elim!]:
   "LOADI n \<turnstile>i c \<rightarrow> c'" 
@@ -131,7 +131,7 @@ lemma exec1_appendR: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P@P' \
   by auto
 
 lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
-  by (induct rule: exec.induct) (fastsimp intro: exec1_appendR)+
+  by (induct rule: exec.induct) (fastforce intro: exec1_appendR)+
 
 lemma iexec1_shiftI:
   assumes "X \<turnstile>i (i,s,stk) \<rightarrow> (i',s',stk')"
@@ -201,7 +201,7 @@ fun acomp :: "aexp \<Rightarrow> instr list" where
 
 lemma acomp_correct[intro]:
   "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (isize(acomp a),s,aval a s#stk)"
-  by (induct a arbitrary: stk) fastsimp+
+  by (induct a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
 "bcomp (B bv) c n = (if bv=c then [JMP n] else [])" |
@@ -224,14 +224,14 @@ lemma bcomp_correct[intro]:
  (0,s,stk)  \<rightarrow>*  (isize(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
 proof(induct b arbitrary: c n m)
   case Not
-  from Not(1)[where c="~c"] Not(2) show ?case by fastsimp
+  from Not(1)[where c="~c"] Not(2) show ?case by fastforce
 next
   case (And b1 b2)
   from And(1)[of "if c then isize (bcomp b2 c n) else isize (bcomp b2 c n) + n" 
                  "False"] 
        And(2)[of n  "c"] And(3) 
-  show ?case by fastsimp
-qed fastsimp+
+  show ?case by fastforce
+qed fastforce+
 
 fun ccomp :: "com \<Rightarrow> instr list" where
 "ccomp SKIP = []" |
@@ -258,15 +258,15 @@ lemma ccomp_bigstep:
   "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk)"
 proof(induct arbitrary: stk rule: big_step_induct)
   case (Assign x a s)
-  show ?case by (fastsimp simp:fun_upd_def cong: if_cong)
+  show ?case by (fastforce simp:fun_upd_def cong: if_cong)
 next
   case (Semi c1 s1 s2 c2 s3)
   let ?cc1 = "ccomp c1"  let ?cc2 = "ccomp c2"
   have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cc1,s2,stk)"
-    using Semi.hyps(2) by fastsimp
+    using Semi.hyps(2) by fastforce
   moreover
   have "?cc1 @ ?cc2 \<turnstile> (isize ?cc1,s2,stk) \<rightarrow>* (isize(?cc1 @ ?cc2),s3,stk)"
-    using Semi.hyps(4) by fastsimp
+    using Semi.hyps(4) by fastforce
   ultimately show ?case by simp (blast intro: exec_trans)
 next
   case (WhileTrue b s1 c s2 s3)
@@ -274,13 +274,13 @@ next
   let ?cb = "bcomp b False (isize ?cc + 1)"
   let ?cw = "ccomp(WHILE b DO c)"
   have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cb + isize ?cc,s2,stk)"
-    using WhileTrue(1,3) by fastsimp
+    using WhileTrue(1,3) by fastforce
   moreover
   have "?cw \<turnstile> (isize ?cb + isize ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
-    by fastsimp
+    by fastforce
   moreover
   have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (isize ?cw,s3,stk)" by(rule WhileTrue(5))
   ultimately show ?case by(blast intro: exec_trans)
-qed fastsimp+
+qed fastforce+
 
 end

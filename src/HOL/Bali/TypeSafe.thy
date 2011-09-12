@@ -1335,7 +1335,7 @@ next
     proof (cases "(tab(x\<mapsto>y)) vn \<noteq> Some z")
       case True
       with some ys have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = Some z"
-        by (fastsimp intro: Cons.hyps)
+        by (fastforce intro: Cons.hyps)
       with ys show ?thesis 
         by simp
     next
@@ -3012,7 +3012,7 @@ proof -
                  mode: "mode = invmode statM e" and
                     T: "T =Inl (resTy statM)" and
         eq_accC_accC': "accC=accC'"
-      by (rule wt_elim_cases) fastsimp+
+      by (rule wt_elim_cases) fastforce+
     from Call.prems obtain E where
       da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                \<turnstile> (dom (locals (store ((Norm s0)::state))))\<guillemotright>In1l e\<guillemotright> E" and

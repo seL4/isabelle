@@ -171,12 +171,12 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
 proof(induct c arbitrary: s t S)
-  case SKIP thus ?case by fastsimp
+  case SKIP thus ?case by fastforce
 next
   case Assign thus ?case
     by (auto simp: lookup_update aval'_sound)
 next
-  case Semi thus ?case by fastsimp
+  case Semi thus ?case by fastforce
 next
   case If thus ?case by (auto simp: in_rep_join_UpI bfilter_sound)
 next

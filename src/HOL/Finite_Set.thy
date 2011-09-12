@@ -124,7 +124,7 @@ qed
 
 lemma finite_Collect_less_nat [iff]:
   "finite {n::nat. n < k}"
-  by (fastsimp simp: finite_conv_nat_seg_image)
+  by (fastforce simp: finite_conv_nat_seg_image)
 
 lemma finite_Collect_le_nat [iff]:
   "finite {n::nat. n \<le> k}"
@@ -2040,7 +2040,7 @@ proof -
     show "A = insert b (A-{b})" using b by blast
     show "b \<notin> A - {b}" by blast
     show "card (A - {b}) = k" and "k = 0 \<longrightarrow> A - {b} = {}"
-      using assms b fin by(fastsimp dest:mk_disjoint_insert)+
+      using assms b fin by(fastforce dest:mk_disjoint_insert)+
   qed
 qed
 
@@ -2056,7 +2056,7 @@ done
 
 lemma card_le_Suc_iff: "finite A \<Longrightarrow>
   Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
-by (fastsimp simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
+by (fastforce simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
   dest: subset_singletonD split: nat.splits if_splits)
 
 lemma finite_fun_UNIVD2:
@@ -2242,7 +2242,7 @@ by (blast intro: finite_surj_inj subset_UNIV)
 
 lemma finite_UNIV_inj_surj: fixes f :: "'a \<Rightarrow> 'a"
 shows "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
-by(fastsimp simp:surj_def dest!: endo_inj_surj)
+by(fastforce simp:surj_def dest!: endo_inj_surj)
 
 corollary infinite_UNIV_nat[iff]: "~finite(UNIV::nat set)"
 proof

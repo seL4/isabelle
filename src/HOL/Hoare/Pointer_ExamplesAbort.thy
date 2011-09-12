@@ -21,9 +21,9 @@ lemma "VARS tl p q r
   DO r := p; (p \<noteq> Null \<rightarrow> p := p^.tl); r^.tl := q; q := r OD
   {List tl q (rev Ps @ Qs)}"
 apply vcg_simp
-  apply fastsimp
- apply(fastsimp intro:notin_List_update[THEN iffD2])
-apply fastsimp
+  apply fastforce
+ apply(fastforce intro:notin_List_update[THEN iffD2])
+apply fastforce
 done
 
 end

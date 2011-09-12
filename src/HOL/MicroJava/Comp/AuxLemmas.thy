@@ -81,7 +81,7 @@ lemma map_map_upds [simp]:
   "(\<forall>y\<in>set ys. y \<notin> set xs) \<Longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) xs = map (the \<circ> f) xs"
 apply (induct xs arbitrary: f vs)
  apply simp
-apply fastsimp
+apply fastforce
 done
 
 lemma map_upds_distinct [simp]: 

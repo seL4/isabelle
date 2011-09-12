@@ -940,7 +940,7 @@ proof -
   proof (intro exI[of _ "\<lambda>n. \<Union>i\<le>n. F i"] conjI allI)
     from F have "\<And>x. x \<in> space M \<Longrightarrow> \<exists>i. x \<in> F i" by auto
     then show "(\<Union>n. \<Union> i\<le>n. F i) = space M"
-      using F by fastsimp
+      using F by fastforce
   next
     fix n
     have "\<mu> (\<Union> i\<le>n. F i) \<le> (\<Sum>i\<le>n. \<mu> (F i))" using F

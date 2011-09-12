@@ -25,7 +25,7 @@ apply (rule_tac P = "\<lambda>(A, B). (A \<subseteq> U \<and> B = f A \<and> A \
    apply assumption
   apply clarsimp
   apply (blast dest: monoD)
- apply (fastsimp intro!: lfp_lowerbound)
+ apply (fastforce intro!: lfp_lowerbound)
  apply (blast intro: wf_finite_psubset Int_lower2 [THEN [2] wf_subset])
 apply (clarsimp simp add: finite_psubset_def order_less_le)
 apply (blast dest: monoD)

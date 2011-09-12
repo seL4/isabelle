@@ -527,7 +527,7 @@ proof -
   ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set"
     by auto
   also have "... = setsum (%j. q * j div p) P_set"
-    using aux3a by(fastsimp intro: setsum_cong)
+    using aux3a by(fastforce intro: setsum_cong)
   finally show ?thesis .
 qed
 
@@ -551,7 +551,7 @@ proof -
   ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set"
     by auto
   also have "... = setsum (%j. p * j div q) Q_set"
-    using aux3b by(fastsimp intro: setsum_cong)
+    using aux3b by(fastforce intro: setsum_cong)
   finally show ?thesis .
 qed
 

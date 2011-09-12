@@ -259,7 +259,7 @@ lemma (in comm_monoid) finprod_UN_disjoint:
   apply blast
   apply (erule finite_UN_I)
   apply blast
-  apply (fastsimp)
+  apply (fastforce)
   apply (auto intro!: funcsetI finprod_closed)
   done
 

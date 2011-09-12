@@ -288,7 +288,7 @@ txt{*Two subcases of Message 2. Subcase: used before*}
 apply (blast dest: used_evs_rev [THEN equalityD2, THEN contra_subsetD] 
                    used_takeWhile_used)
 txt{*subcase: CT before*}
-apply (fastsimp dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
+apply (fastforce dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
 done
 
 

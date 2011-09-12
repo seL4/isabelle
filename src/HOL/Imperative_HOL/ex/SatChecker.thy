@@ -83,7 +83,7 @@ lemma interpClause_resolvants':
 proof -
   from resolv_clauses interp have "(\<exists>l \<in> cli - {lit}. interpLit a l) \<or> interpLit a lit"
     "(\<exists>l \<in> clj - {compl lit}. interpLit a l) \<or> interpLit a (compl lit)" by auto
-  with lit_not_zero show ?thesis by (fastsimp simp add: bex_Un)
+  with lit_not_zero show ?thesis by (fastforce simp add: bex_Un)
 qed
 
 lemma interpClause_resolvants:
@@ -132,7 +132,7 @@ lemma array_ran_upd_array_Some:
 proof -
   have "set (Array.get h a[i := Some b]) \<subseteq> insert (Some b) (set (Array.get h a))" by (rule set_update_subset_insert)
   with assms show ?thesis 
-    unfolding array_ran_def Array.update_def by fastsimp
+    unfolding array_ran_def Array.update_def by fastforce
 qed
 
 lemma array_ran_upd_array_None:
@@ -243,7 +243,7 @@ next
   case (3 l v va r)
   thus ?case
     unfolding resolve1.simps
-    by (fastsimp dest!: res_mem)
+    by (fastforce dest!: res_mem)
 qed
 
 lemma resolve2_Inv: 
@@ -264,7 +264,7 @@ next
   case (3 l v va r)
   thus ?case
     unfolding resolve2.simps
-    by (fastsimp dest!: res_mem simp add: merge_Nil)
+    by (fastforce dest!: res_mem simp add: merge_Nil)
 qed
 
 lemma res_thm'_Inv:
@@ -279,14 +279,14 @@ case (1 l x xs y ys r)
     assume resolve2: "effect (resolve2 (compl x) xs (y # ys)) h h' r"   
     from resolve2_Inv [OF resolve2] cond have ?case
       apply -
-      by (rule exI[of _ "x"]) fastsimp
+      by (rule exI[of _ "x"]) fastforce
   } moreover
   {
     assume cond: "\<not> (x = l \<or> x = compl l)" "y = l \<or> y = compl l" 
     assume resolve1: "effect (resolve1 (compl y) (x # xs) ys) h h' r"
     from resolve1_Inv [OF resolve1] cond have ?case
       apply -
-      by (rule exI[of _ "compl y"]) fastsimp
+      by (rule exI[of _ "compl y"]) fastforce
   } moreover
   {
     fix r'
@@ -317,7 +317,7 @@ case (1 l x xs y ys r)
     apply simp
     apply simp
     apply simp
-    apply fastsimp
+    apply fastforce
     done
 next
   case (2 l ys r)
@@ -517,7 +517,7 @@ next
   case (Cons x xs)
   {
     fix h1 ret
-    obtain l j where x_is: "x = (l, j)" by fastsimp
+    obtain l j where x_is: "x = (l, j)" by fastforce
     assume res_thm2: "effect (res_thm2 a x cli) h h1 ret"
     with x_is have res_thm2': "effect (res_thm2 a (l, j) cli) h h1 ret" by simp
     note step = res_thm2_Inv [OF res_thm2' Cons.prems(2) Cons.prems(3)]
@@ -616,7 +616,7 @@ proof -
   have "set (xs[i := Some b]) \<subseteq> insert (Some b) (set xs)"
     by (simp only: set_update_subset_insert)
   with assms have "Some cl \<in> insert (Some b) (set xs)"
-    unfolding list_ran_def by fastsimp
+    unfolding list_ran_def by fastforce
   thus ?thesis
     unfolding list_ran_def by auto
 qed

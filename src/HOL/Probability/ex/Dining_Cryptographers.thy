@@ -201,7 +201,7 @@ proof -
       have *: "\<And>j. j < n \<Longrightarrow>
         (x ! j = x ! (Suc j mod n)) = (y ! j = y ! (Suc j mod n))"
         using inv unfolding inversion_def map_eq_conv payer_def coin_def
-        by fastsimp
+        by fastforce
       show "x = y"
       proof (rule nth_equalityI, simp, rule allI, rule impI)
         fix j assume "j < length x" hence "j < n" using `length xs = n` by simp

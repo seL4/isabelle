@@ -487,7 +487,7 @@ lemma tranclp_converseD: "(r^--1)^++ x y ==> (r^++)^--1 x y"
 lemmas trancl_converseD = tranclp_converseD [to_set]
 
 lemma tranclp_converse: "(r^--1)^++ = (r^++)^--1"
-  by (fastsimp simp add: fun_eq_iff
+  by (fastforce simp add: fun_eq_iff
     intro!: tranclp_converseI dest!: tranclp_converseD)
 
 lemmas trancl_converse = tranclp_converse [to_set]
@@ -730,7 +730,7 @@ lemma rel_pow_Suc_I:
 
 lemma rel_pow_Suc_I2:
   "(x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
-  by (induct n arbitrary: z) (simp, fastsimp)
+  by (induct n arbitrary: z) (simp, fastforce)
 
 lemma rel_pow_0_E:
   "(x, y) \<in> R ^^ 0 \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
@@ -821,7 +821,7 @@ lemma trancl_power:
    apply (clarsimp simp: rtrancl_is_UN_rel_pow)
    apply (rule_tac x="Suc n" in exI)
    apply (clarsimp simp: rel_comp_def)
-   apply fastsimp
+   apply fastforce
   apply clarsimp
   apply (case_tac n, simp)
   apply clarsimp
@@ -942,7 +942,7 @@ using rel_pow_finite_bounded1[OF assms, of k] by auto
 
 lemma rtrancl_finite_eq_rel_pow:
   "finite R \<Longrightarrow> R^* = (UN n : {n. n <= card R}. R^^n)"
-by(fastsimp simp: rtrancl_power dest: rel_pow_finite_bounded)
+by(fastforce simp: rtrancl_power dest: rel_pow_finite_bounded)
 
 lemma trancl_finite_eq_rel_pow:
   "finite R \<Longrightarrow> R^+ = (UN n : {n. 0 < n & n <= card R}. R^^n)"

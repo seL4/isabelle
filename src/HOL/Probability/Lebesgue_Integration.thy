@@ -216,7 +216,7 @@ lemma (in sigma_algebra) simple_function_eq_borel_measurable:
   shows "simple_function M f \<longleftrightarrow> finite (f`space M) \<and> f \<in> borel_measurable M"
   using simple_function_borel_measurable[of f]
     borel_measurable_simple_function[of f]
-  by (fastsimp simp: simple_function_def)
+  by (fastforce simp: simple_function_def)
 
 lemma (in sigma_algebra) simple_function_const[intro, simp]:
   "simple_function M (\<lambda>x. c)"
@@ -462,7 +462,7 @@ proof -
   have f: "finite (f`A) \<longleftrightarrow> finite (?f`space M)"
   proof cases
     assume "A = space M"
-    then have "f`A = ?f`space M" by (fastsimp simp: image_iff)
+    then have "f`A = ?f`space M" by (fastforce simp: image_iff)
     then show ?thesis by simp
   next
     assume "A \<noteq> space M"

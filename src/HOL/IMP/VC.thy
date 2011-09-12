@@ -100,7 +100,7 @@ next
   show ?case (is "\<exists>ac. ?C ac")
   proof
     show "?C(Asemi ac1 ac2)"
-      using ih1 ih2 by (fastsimp elim!: pre_mono vc_mono)
+      using ih1 ih2 by (fastforce elim!: pre_mono vc_mono)
   qed
 next
   case (If P b c1 Q c2)

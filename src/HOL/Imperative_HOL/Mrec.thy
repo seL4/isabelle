@@ -95,11 +95,11 @@ proof -
   from mrec have "P x h (snd (the (mrec x h))) (fst (the (mrec x h)))"
   proof (induct arbitrary: r h' rule: mrec.pinduct[OF dom])
     case (1 x h)
-    obtain rr h' where "the (mrec x h) = (rr, h')" by fastsimp
+    obtain rr h' where "the (mrec x h) = (rr, h')" by fastforce
     show ?case
     proof (cases "execute (f x) h")
       case (Some result)
-      then obtain a h1 where exec_f: "execute (f x) h = Some (a, h1)" by fastsimp
+      then obtain a h1 where exec_f: "execute (f x) h = Some (a, h1)" by fastforce
       note Inl' = this
       show ?thesis
       proof (cases a)
@@ -112,7 +112,7 @@ proof -
         show ?thesis
         proof (cases "mrec b h1")
           case (Some result)
-          then obtain aaa h2 where mrec_rec: "mrec b h1 = Some (aaa, h2)" by fastsimp
+          then obtain aaa h2 where mrec_rec: "mrec b h1 = Some (aaa, h2)" by fastforce
           moreover from this have "P b h1 (snd (the (mrec b h1))) (fst (the (mrec b h1)))"
             apply (intro 1(2))
             apply (auto simp add: Inr Inl')

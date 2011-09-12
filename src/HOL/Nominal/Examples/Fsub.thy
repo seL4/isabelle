@@ -665,7 +665,7 @@ equivariance subtype_of
 
 nominal_inductive subtype_of
   apply (simp_all add: abs_fresh)
-  apply (fastsimp simp add: valid_ty_dom_fresh dest: subtype_implies_ok)
+  apply (fastforce simp add: valid_ty_dom_fresh dest: subtype_implies_ok)
   apply (force simp add: closed_in_fresh dest: subtype_implies_closed subtype_implies_ok)+
   done
 
@@ -1030,7 +1030,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       case (SA_all T\<^isub>1 S\<^isub>1 Y S\<^isub>2 T\<^isub>2 \<Gamma> X \<Delta>)
       have IH_inner\<^isub>1: "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> T\<^isub>1 <: S\<^isub>1" 
         and IH_inner\<^isub>2: "(((TVarB Y T\<^isub>1)#\<Delta>)@[(TVarB X P)]@\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2"
-        by (fastsimp intro: SA_all)+
+        by (fastforce intro: SA_all)+
       then show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> (\<forall>Y<:S\<^isub>1. S\<^isub>2) <: (\<forall>Y<:T\<^isub>1. T\<^isub>2)" by auto
     qed
   } 
@@ -1401,7 +1401,7 @@ next
   show ?case using h1 h2 by auto
 next
   case (SA_all T1 S1 X S2 T2)
-  have h1:"((TVarB X T1 # \<Gamma>) @ \<Delta>)\<turnstile>S2<:T2" by (fastsimp intro: SA_all)
+  have h1:"((TVarB X T1 # \<Gamma>) @ \<Delta>)\<turnstile>S2<:T2" by (fastforce intro: SA_all)
   have h2:"(\<Gamma> @ \<Delta>)\<turnstile>T1<:S1" using SA_all by auto
   then show ?case using h1 h2 by auto
 qed (auto)
@@ -1421,16 +1421,16 @@ lemma narrow_type: -- {* A.7 *}
     then show ?case by force
   next
     case (T_Abs x T1 t2 T2 P D)
-    then show ?case by (fastsimp dest: typing_ok)
+    then show ?case by (fastforce dest: typing_ok)
   next
     case (T_Sub t S T P D)
-    then show ?case using subtype_narrow by fastsimp
+    then show ?case using subtype_narrow by fastforce
   next
     case (T_TAbs X' T1 t2 T2 P D)
-    then show ?case by (fastsimp dest: typing_ok)
+    then show ?case by (fastforce dest: typing_ok)
   next
     case (T_TApp X' t1 T2 T11 T12 P D)
-    then have "D @ TVarB X P # \<Gamma> \<turnstile> t1 : Forall X' T12 T11" by fastsimp
+    then have "D @ TVarB X P # \<Gamma> \<turnstile> t1 : Forall X' T12 T11" by fastforce
     moreover have "(D @ [TVarB X Q] @ \<Gamma>) \<turnstile> T2<:T11" using T_TApp by auto
     then have "(D @ [TVarB X P] @ \<Gamma>) \<turnstile> T2<:T11" using `\<Gamma>\<turnstile>P<:Q`
       by (rule subtype_narrow)
@@ -1474,7 +1474,7 @@ theorem subst_type: -- {* A.8 *}
    case (T_TAbs X T1 t2 T2 x u D)
    from `TVarB X T1 # D @ VarB x U # \<Gamma> \<turnstile> t2 : T2` have "X \<sharp> T1"
      by (auto simp add: valid_ty_dom_fresh dest: typing_ok intro!: closed_in_fresh)
-   with `X \<sharp> u` and T_TAbs show ?case by fastsimp
+   with `X \<sharp> u` and T_TAbs show ?case by fastforce
  next
    case (T_TApp X t1 T2 T11 T12 x u D)
    then have "(D@\<Gamma>) \<turnstile>T2<:T11" using T_TApp by (auto dest: strengthening)

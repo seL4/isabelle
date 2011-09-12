@@ -865,7 +865,7 @@ apply (case_tac "#x")
   apply (drule ex_sconc,auto)
  apply (erule contrapos_pp)
  apply (insert stream_finite_i_rt)
- apply (fastsimp simp add: slen_infinite,auto)
+ apply (fastforce simp add: slen_infinite,auto)
 by (simp add: sconc_def)
 
 lemma sconc_finite: "(#x~=\<infinity> & #y~=\<infinity>) = (#(x ooo y)~=\<infinity>)"

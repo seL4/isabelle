@@ -190,7 +190,7 @@ lemma Maclaurin2:
   (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
   diff n t / real (fact n) * h ^ n"
 proof (cases "n")
-  case 0 with INIT1 INIT2 show ?thesis by fastsimp
+  case 0 with INIT1 INIT2 show ?thesis by fastforce
 next
   case Suc
   hence "n > 0" by simp
@@ -198,7 +198,7 @@ next
     f h =
     (\<Sum>m = 0..<n. diff m 0 / real (fact m) * h ^ m) + diff n t / real (fact n) * h ^ n"
     by (rule Maclaurin)
-  thus ?thesis by fastsimp
+  thus ?thesis by fastforce
 qed
 
 lemma Maclaurin2_objl:

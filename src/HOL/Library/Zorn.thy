@@ -480,12 +480,12 @@ proof-
         by(auto simp add:wf_eq_minimal Field_def Domain_def Range_def) metis
       thus ?thesis using `wf(m-Id)` `x \<notin> Field m`
         wf_subset[OF `wf ?s` Diff_subset]
-        by (fastsimp intro!: wf_Un simp add: Un_Diff Field_def)
+        by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
     qed
     ultimately have "Well_order ?m" by(simp add:order_on_defs)
 --{*We show that the extension is above m*}
     moreover hence "(m,?m) : I" using `Well_order m` `x \<notin> Field m`
-      by(fastsimp simp:I_def init_seg_of_def Field_def Domain_def Range_def)
+      by(fastforce simp:I_def init_seg_of_def Field_def Domain_def Range_def)
     ultimately
 --{*This contradicts maximality of m:*}
     have False using max `x \<notin> Field m` unfolding Field_def by blast
@@ -501,7 +501,7 @@ proof -
     using well_ordering[where 'a = "'a"] by blast
   let ?r = "{(x,y). x:A & y:A & (x,y):r}"
   have 1: "Field ?r = A" using wo univ
-    by(fastsimp simp: Field_def Domain_def Range_def order_on_defs refl_on_def)
+    by(fastforce simp: Field_def Domain_def Range_def order_on_defs refl_on_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf(r-Id)"
     using `Well_order r` by(simp_all add:order_on_defs)
   have "Refl ?r" using `Refl r` by(auto simp:refl_on_def 1 univ)

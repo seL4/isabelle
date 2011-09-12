@@ -385,7 +385,7 @@ local
   val apply_rules = [
     @{lemma "(~n | P) & (n | ~P) ==> P == n" by (atomize(full)) fast},
     @{lemma "(~P | n = s) & (P | n = t) ==> (if P then s else t) == n"
-      by (atomize(full)) fastsimp} ]
+      by (atomize(full)) fastforce} ]
 
   val inst_rule = Z3_Proof_Tools.match_instantiate Thm.dest_arg
 

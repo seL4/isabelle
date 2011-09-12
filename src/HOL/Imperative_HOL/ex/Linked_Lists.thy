@@ -238,7 +238,7 @@ assumes "refs_of h (Ref.get h p) rs"
   shows "p \<notin> set rs"
 proof (rule ccontr)
   assume a: "\<not> (p \<notin> set rs)"
-  from this obtain as bs where split:"rs = as @ p # bs" by (fastsimp dest: split_list)
+  from this obtain as bs where split:"rs = as @ p # bs" by (fastforce dest: split_list)
   with assms obtain q where "refs_of h q (p # bs)" by (fast dest: refs_of_append)
   with assms split show "False"
     by (cases q,auto dest: refs_of_is_fun)
@@ -255,7 +255,7 @@ qed
 
 lemma refs_of'_distinct: "refs_of' h p rs \<Longrightarrow> distinct rs"
   unfolding refs_of'_def'
-  by (fastsimp simp add: refs_of_distinct refs_of_next)
+  by (fastforce simp add: refs_of_distinct refs_of_next)
 
 
 subsection {* Interaction of these predicates with our heap transitions *}
@@ -272,7 +272,7 @@ next
   next
     case (Node a ref)
     from Cons(2) Node obtain rs' where 1: "refs_of h (Ref.get h ref) rs'" and rs_rs': "rs = ref # rs'" by auto
-    from Cons(3) rs_rs' have "ref \<noteq> p" by fastsimp
+    from Cons(3) rs_rs' have "ref \<noteq> p" by fastforce
     hence ref_eq: "Ref.get (Ref.set p v h) ref = (Ref.get h ref)" by (auto simp add: Ref.get_set_neq)
     from rs_rs' Cons(3) have 2: "p \<notin> set rs'" by simp
     from Cons.hyps[OF 1 2] Node ref_eq show ?thesis by simp
@@ -290,7 +290,7 @@ next
   next
     case (Node a ref)
     from Cons(2) Node obtain rs' where 1: "refs_of h (Ref.get h ref) rs'" and rs_rs': "rs = ref # rs'" by auto
-    from Cons(3) rs_rs' have "ref \<noteq> p" by fastsimp
+    from Cons(3) rs_rs' have "ref \<noteq> p" by fastforce
     hence ref_eq: "Ref.get (Ref.set p v h) ref = (Ref.get h ref)" by (auto simp add: Ref.get_set_neq)
     from rs_rs' Cons(3) have 2: "p \<notin> set rs'" by simp
     from Cons.hyps[OF 1 2] Node ref_eq show ?thesis by auto
@@ -308,7 +308,7 @@ next
   next
     case (Node a ref)
     from Cons(2) Node have 1:"refs_of (Ref.set p v h) (Ref.get (Ref.set p v h) ref) xs" and x_ref: "x = ref" by auto
-    from Cons(3) this have "ref \<noteq> p" by fastsimp
+    from Cons(3) this have "ref \<noteq> p" by fastforce
     hence ref_eq: "Ref.get (Ref.set p v h) ref = (Ref.get h ref)" by (auto simp add: Ref.get_set_neq)
     from Cons(3) have 2: "p \<notin> set xs" by simp
     with Cons.hyps 1 2 Node ref_eq show ?thesis
@@ -395,9 +395,9 @@ next
   from Cons(2-3) Node have ref_eq: "Ref.get h x = Ref.get h' x" by auto
   from ref_eq refs_of_next have 1: "refs_of h (Ref.get h' x) xs'" by simp
   from Cons(2) Cons(3) have "\<forall>ref \<in> set xs'. Ref.present h ref \<and> Ref.present h' ref \<and> Ref.get h ref = Ref.get h' ref"
-    by fastsimp
+    by fastforce
   with Cons(3) 1 have 2: "\<forall>refs. refs_of h (Ref.get h' x) refs \<longrightarrow> (\<forall>ref \<in> set refs. Ref.present h ref \<and> Ref.present h' ref \<and> Ref.get h ref = Ref.get h' ref)"
-    by (fastsimp dest: refs_of_is_fun)
+    by (fastforce dest: refs_of_is_fun)
   from Cons.hyps[OF 1 2] have "refs_of h' (Ref.get h' x) xs'" .
   with Node show ?case by simp
 qed
@@ -410,10 +410,10 @@ using assms
 proof -
   from assms obtain prs where refs:"refs_of h (Ref.get h r) prs" and xs_def: "xs = r # prs"
     unfolding refs_of'_def' by auto
-  from xs_def assms have x_eq: "Ref.get h r = Ref.get h' r" by fastsimp
+  from xs_def assms have x_eq: "Ref.get h r = Ref.get h' r" by fastforce
   from refs assms xs_def have 2: "\<forall>refs. refs_of h (Ref.get h r) refs \<longrightarrow>
      (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h' ref \<and> Ref.get h ref = Ref.get h' ref)" 
-    by (fastsimp dest: refs_of_is_fun)
+    by (fastforce dest: refs_of_is_fun)
   from refs_of_invariant [OF refs 2] xs_def x_eq show ?thesis
     unfolding refs_of'_def' by auto
 qed
@@ -490,7 +490,7 @@ next
   from refs_unchanged rs'_def have refs_still_present: "\<forall>ref\<in>set rs'. Ref.present h' ref" by auto
   from refs_of_invariant[OF rs'_def refs_unchanged] refs_unchanged Node effect_refnew refs_still_present
   have sndgoal: "\<forall>rs. refs_of h' r rs \<longrightarrow> (\<forall>ref\<in>set rs. Ref.present h' ref)"
-    by (fastsimp elim!: effect_refE dest: refs_of_is_fun)
+    by (fastforce elim!: effect_refE dest: refs_of_is_fun)
   from fstgoal sndgoal show ?case ..
 qed
 
@@ -516,7 +516,7 @@ proof -
     by (auto elim!: effect_bindE)
   from make_llist[OF makell] have "list_of h1 r1 xs" ..
   from traverse [OF this] trav show ?thesis
-    using effect_deterministic by fastsimp
+    using effect_deterministic by fastforce
 qed
 
 section {* Proving correctness of in-place reversal *}
@@ -568,8 +568,8 @@ next
     by (auto simp add: rev'.simps [of q p] elim!: effect_bindE effect_lookupE effect_updateE)
   from Cons(3) obtain qrs where qrs_def: "refs_of' h q qrs" by (elim list_of'_refs_of')
   from Cons(4) obtain prs where prs_def: "refs_of' h p prs" by (elim list_of'_refs_of')
-  from qrs_def prs_def Cons(5) have distinct_pointers: "set qrs \<inter> set prs = {}" by fastsimp
-  from qrs_def prs_def distinct_pointers refs_of'E have p_notin_qrs: "p \<notin> set qrs" by fastsimp
+  from qrs_def prs_def Cons(5) have distinct_pointers: "set qrs \<inter> set prs = {}" by fastforce
+  from qrs_def prs_def distinct_pointers refs_of'E have p_notin_qrs: "p \<notin> set qrs" by fastforce
   from Cons(3) qrs_def this have 1: "list_of' (Ref.set p (Node x q) h) p (x#qs)"
     unfolding list_of'_def  
     apply (simp)
@@ -578,7 +578,7 @@ next
   from list_of'_refs_of'2[OF Cons(4)] p_is_Node prs_def obtain refs where refs_def: "refs_of' h ref refs" and prs_refs: "prs = p # refs"
     unfolding refs_of'_def' by auto
   from prs_refs prs_def have p_not_in_refs: "p \<notin> set refs"
-    by (fastsimp dest!: refs_of'_distinct)
+    by (fastforce dest!: refs_of'_distinct)
   with refs_def p_is_Node list_of'_ref have 2: "list_of' (Ref.set p (Node x q) h) ref xs"
     by (auto simp add: list_of'_set_ref)
   from p_notin_qrs qrs_def have refs_of1: "refs_of' (Ref.set p (Node x q) h) p (p#qrs)"
@@ -621,7 +621,7 @@ next
     by (auto elim!: effect_ref)
   from list_of_h obtain refs where refs_def: "refs_of h r refs" by (rule list_of_refs_of)
   from validHeap init refs_def have heap_eq: "\<forall>refs. refs_of h r refs \<longrightarrow> (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h2 ref \<and> Ref.get h ref = Ref.get h2 ref)"
-    by (fastsimp elim!: effect_ref dest: refs_of_is_fun)
+    by (fastforce elim!: effect_ref dest: refs_of_is_fun)
   from list_of_invariant[OF list_of_h heap_eq] have "list_of h2 r xs" .
   from init this Node have a2: "list_of' h2 p xs"
     apply -
@@ -642,7 +642,7 @@ next
   with init all_ref_present have q_is_new: "q \<notin> set (p#refs)"
     by (auto elim!: effect_refE intro!: Ref.noteq_I)
   from refs_of_p refs_of_q q_is_new have a3: "\<forall>qrs prs. refs_of' h2 q qrs \<and> refs_of' h2 p prs \<longrightarrow> set prs \<inter> set qrs = {}"
-    by (fastsimp simp only: set.simps dest: refs_of'_is_fun)
+    by (fastforce simp only: set.simps dest: refs_of'_is_fun)
   from rev'_invariant [OF effect_rev' a1 a2 a3] have "list_of h3 (Ref.get h3 v) (List.rev xs)" 
     unfolding list_of'_def by auto
   with lookup show ?thesis
@@ -891,7 +891,7 @@ proof -
   show ?thesis using assms(1) assms(2) assms(4) assms(5)
   proof (induct arbitrary: xs ys rs rule: merge_induct3[OF ps_def qs_def assms(3)])
     case 1
-    from 1(5) 1(7) have "rs = ys" by (fastsimp simp add: refs_of'_is_fun)
+    from 1(5) 1(7) have "rs = ys" by (fastforce simp add: refs_of'_is_fun)
     thus ?case by auto
   next
     case 2
@@ -947,10 +947,10 @@ next
     where pnrs_def: "prs = p#pnrs"
     and refs_of'_pn: "refs_of' h pn pnrs"
     by (rule refs_of'_Node)
-  from prs_def qrs_def 3(9) pnrs_def refs_of'_distinct[OF prs_def] have p_in: "p \<notin> set pnrs \<union> set qrs" by fastsimp
-  from prs_def qrs_def 3(9) pnrs_def have no_inter: "set pnrs \<inter> set qrs = {}" by fastsimp
+  from prs_def qrs_def 3(9) pnrs_def refs_of'_distinct[OF prs_def] have p_in: "p \<notin> set pnrs \<union> set qrs" by fastforce
+  from prs_def qrs_def 3(9) pnrs_def have no_inter: "set pnrs \<inter> set qrs = {}" by fastforce
   from no_inter refs_of'_pn qrs_def have no_inter2: "\<forall>qrs prs. refs_of' h q qrs \<and> refs_of' h pn prs \<longrightarrow> set prs \<inter> set qrs = {}"
-    by (fastsimp dest: refs_of'_is_fun)
+    by (fastforce dest: refs_of'_is_fun)
   from merge_unchanged[OF refs_of'_pn qrs_def 3(6) no_inter p_in] have p_stays: "Ref.get h1 p = Ref.get h p" ..
   from 3(7)[OF no_inter2] obtain rs where rs_def: "refs_of' h1 r1 rs" by (rule list_of'_refs_of')
   from refs_of'_merge[OF refs_of'_pn qrs_def 3(6) no_inter this] p_in have p_rs: "p \<notin> set rs" by auto
@@ -964,10 +964,10 @@ next
     where qnrs_def: "qrs = q#qnrs"
     and refs_of'_qn: "refs_of' h qn qnrs"
     by (rule refs_of'_Node)
-  from prs_def qrs_def 4(9) qnrs_def refs_of'_distinct[OF qrs_def] have q_in: "q \<notin> set prs \<union> set qnrs" by fastsimp
-  from prs_def qrs_def 4(9) qnrs_def have no_inter: "set prs \<inter> set qnrs = {}" by fastsimp
+  from prs_def qrs_def 4(9) qnrs_def refs_of'_distinct[OF qrs_def] have q_in: "q \<notin> set prs \<union> set qnrs" by fastforce
+  from prs_def qrs_def 4(9) qnrs_def have no_inter: "set prs \<inter> set qnrs = {}" by fastforce
   from no_inter refs_of'_qn prs_def have no_inter2: "\<forall>qrs prs. refs_of' h qn qrs \<and> refs_of' h p prs \<longrightarrow> set prs \<inter> set qrs = {}"
-    by (fastsimp dest: refs_of'_is_fun)
+    by (fastforce dest: refs_of'_is_fun)
   from merge_unchanged[OF prs_def refs_of'_qn 4(6) no_inter q_in] have q_stays: "Ref.get h1 q = Ref.get h q" ..
   from 4(7)[OF no_inter2] obtain rs where rs_def: "refs_of' h1 r1 rs" by (rule list_of'_refs_of')
   from refs_of'_merge[OF prs_def refs_of'_qn 4(6) no_inter this] q_in have q_rs: "q \<notin> set rs" by auto

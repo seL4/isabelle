@@ -19,7 +19,7 @@ done
 lemma subarray_upd2: " i < n  \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h"
 apply (simp add: subarray_def Array.update_def)
 apply (subst sublist'_update2)
-apply fastsimp
+apply fastforce
 apply simp
 done
 

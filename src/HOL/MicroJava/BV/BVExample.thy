@@ -275,10 +275,10 @@ lemma wt_append [simp]:
   apply clarify
   apply (elim pc_end pc_next pc_0)
   apply simp
-  apply (fastsimp simp add: match_exception_entry_def sup_state_conv subcls1)
+  apply (fastforce simp add: match_exception_entry_def sup_state_conv subcls1)
   apply simp
   apply simp
-  apply (fastsimp simp add: sup_state_conv subcls1)
+  apply (fastforce simp add: sup_state_conv subcls1)
   apply simp
   apply (simp add: app_def xcpt_app_def)
   apply simp

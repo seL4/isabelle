@@ -459,7 +459,7 @@ next
     show "P (In2 vf) s1 Z \<and> s1\<Colon>\<preceq>(G, L)"
     proof 
       from eval normal_s0 obtain "s1=s0" "vf=lvar vn (store s0)"
-        by (fastsimp elim: evaln_elim_cases)
+        by (fastforce elim: evaln_elim_cases)
       with P show "P (In2 vf) s1 Z"
         by simp
     next
@@ -500,7 +500,7 @@ next
         eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>a\<midarrow>n\<rightarrow> s2" and 
         fvar: "(vf,s2')=fvar statDeclC stat fn a s2" and
         s3: "s3 = check_field_access G accC statDeclC fn stat a s2'"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases) 
+        using normal_s0 by (fastforce elim: evaln_elim_cases) 
       have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init statDeclC)\<Colon>\<surd>"
       proof -
         from wf wt_e 
@@ -593,7 +593,7 @@ next
         eval_e1: "G\<turnstile>s0 \<midarrow>e1-\<succ>a\<midarrow>n\<rightarrow> s1" and
         eval_e2: "G\<turnstile>s1 \<midarrow>e2-\<succ>i\<midarrow>n\<rightarrow> s2" and
         avar: "avar G i a s2 =(vf, s2')"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e1 P valid_A conf_s0 eval_e1 wt_e1 da_e1
       obtain Q: "Q \<lfloor>a\<rfloor>\<^sub>e s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G, L)"
         by (rule validE)
@@ -654,7 +654,7 @@ next
         eval_init: "G\<turnstile>s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s1" and 
         alloc: "G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2" and
         v: "v=Addr a"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_init P valid_A conf_s0 eval_init wt_init da_init
       obtain "(Alloc G (CInst C) Q) \<diamondsuit> s1 Z" 
         by (rule validE)
@@ -696,7 +696,7 @@ next
         eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>i\<midarrow>n\<rightarrow> s2" and
         alloc: "G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3" and
         v: "v=Addr a"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       obtain I where
         da_init:
         "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>dom (locals (store s0)) \<guillemotright>\<langle>init_comp_ty T\<rangle>\<^sub>s\<guillemotright> I"
@@ -766,7 +766,7 @@ next
       from eval obtain s1 where
         eval_e: "G\<turnstile>s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1" and
         s2: "s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits T) ClassCast) s1"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e P valid_A conf_s0 eval_e wt_e da_e
       have "(\<lambda>Val:v:. \<lambda>s.. abupd (raise_if (\<not> G,s\<turnstile>v fits T) ClassCast) .;
                   Q\<leftarrow>In1 v) \<lfloor>v\<rfloor>\<^sub>e s1 Z"
@@ -805,7 +805,7 @@ next
       from eval obtain a where
         eval_e: "G\<turnstile>s0 \<midarrow>e-\<succ>a\<midarrow>n\<rightarrow> s1" and
         v: "v = Bool (a \<noteq> Null \<and> G,store s1\<turnstile>a fits RefT T)"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e P valid_A conf_s0 eval_e wt_e da_e
       have "(\<lambda>Val:v:. \<lambda>s.. Q\<leftarrow>In1 (Bool (v \<noteq> Null \<and> G,s\<turnstile>v fits RefT T))) 
               \<lfloor>a\<rfloor>\<^sub>e s1 Z"
@@ -859,7 +859,7 @@ next
       from eval obtain ve where
         eval_e: "G\<turnstile>s0 \<midarrow>e-\<succ>ve\<midarrow>n\<rightarrow> s1" and
         v: "v = eval_unop unop ve"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e P valid_A conf_s0 eval_e wt_e da_e
       have "(\<lambda>Val:v:. Q\<leftarrow>In1 (eval_unop unop v)) \<lfloor>ve\<rfloor>\<^sub>e s1 Z"
         by (rule validE)
@@ -912,7 +912,7 @@ next
         eval_e2: "G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then \<langle>e2\<rangle>\<^sub>e else \<langle>Skip\<rangle>\<^sub>s)
                         \<succ>\<midarrow>n\<rightarrow> (\<lfloor>v2\<rfloor>\<^sub>e, s2)" and
         v: "v=eval_binop binop v1 v2"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e1 P valid_A conf_s0 eval_e1 wt_e1 da_e1
       obtain Q: "Q \<lfloor>v1\<rfloor>\<^sub>e s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"
         by (rule validE)
@@ -994,7 +994,7 @@ next
         by (cases "\<exists> n. var=LVar n") (insert da.LVar,auto elim!: da_elim_cases)
       from eval obtain w upd where
         eval_var: "G\<turnstile>s0 \<midarrow>var=\<succ>(v, upd)\<midarrow>n\<rightarrow> s1"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_var P valid_A conf_s0 eval_var wt_var da_var
       have "(\<lambda>Var:(v, f):. Q\<leftarrow>In1 v) \<lfloor>(v, upd)\<rfloor>\<^sub>v s1 Z"
         by (rule validE)
@@ -1151,7 +1151,7 @@ next
       from eval obtain b s1 where
         eval_e0: "G\<turnstile>s0 \<midarrow>e0-\<succ>b\<midarrow>n\<rightarrow> s1" and
         eval_then_else: "G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<midarrow>n\<rightarrow> s2"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e0 P valid_A conf_s0 eval_e0 wt_e0 da_e0
       obtain "P' \<lfloor>b\<rfloor>\<^sub>e s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"  
         by (rule validE)
@@ -1246,7 +1246,7 @@ next
                  mode: "mode = invmode statM e" and
                     T: "T =(resTy statM)" and
         eq_accC_accC': "accC=accC'"
-        by cases fastsimp+
+        by cases fastforce+
       from da obtain C where
         da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s0)))\<guillemotright>\<langle>e\<rangle>\<^sub>e\<guillemotright> C" and
         da_args: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> nrm C \<guillemotright>\<langle>args\<rangle>\<^sub>l\<guillemotright> E" 
@@ -1635,7 +1635,7 @@ next
                          abrupt s2 = Some (Jump (Cont l))
                   then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)"and
         s4: "s4 = abupd (absorb Ret) s3"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       obtain C' where 
         da_c': "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>\<langle>c\<rangle>\<^sub>s\<guillemotright> C'"
       proof -
@@ -1720,7 +1720,7 @@ next
         eval_e: "G\<turnstile>s0 \<midarrow>e-\<succ>ve\<midarrow>n\<rightarrow> s1" and
         eval_es: "G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<midarrow>n\<rightarrow> s2" and
         v: "v=ve#vs"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e P valid_A conf_s0 eval_e wt_e da_e 
       obtain Q: "Q \<lfloor>ve\<rfloor>\<^sub>e s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"
         by (rule validE)
@@ -1768,7 +1768,7 @@ next
     show "P \<diamondsuit> s1 Z \<and> s1\<Colon>\<preceq>(G, L)"
     proof -
       from eval obtain "s1=s0"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       with P conf_s0 show ?thesis
         by simp
     qed
@@ -1796,7 +1796,7 @@ next
         by cases simp
       from eval obtain v where
         eval_e: "G\<turnstile>s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_e P valid_A conf_s0 eval_e wt_e da_e
       obtain Q: "(Q\<leftarrow>\<diamondsuit>) \<lfloor>v\<rfloor>\<^sub>e s1 Z" and "s1\<Colon>\<preceq>(G,L)"
         by (rule validE)
@@ -1827,7 +1827,7 @@ next
       from eval obtain s1 where
         eval_c: "G\<turnstile>s0 \<midarrow>c\<midarrow>n\<rightarrow> s1" and
         s2: "s2 = abupd (absorb l) s1"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from valid_c P valid_A conf_s0 eval_c wt_c da_c
       obtain Q: "(abupd (absorb l) .; Q) \<diamondsuit> s1 Z" 
         by (rule validE)
@@ -1859,7 +1859,7 @@ next
       from eval  obtain s1 where
         eval_c1: "G\<turnstile>s0 \<midarrow>c1 \<midarrow>n\<rightarrow> s1" and
         eval_c2: "G\<turnstile>s1 \<midarrow>c2 \<midarrow>n\<rightarrow> s2"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from wt obtain 
         wt_c1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
         wt_c2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c2\<Colon>\<surd>"
@@ -2297,7 +2297,7 @@ next
         s3: "if G,s2\<turnstile>catch C 
                 then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<midarrow>n\<rightarrow> s3 
                 else s3 = s2"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from wt obtain
         wt_c1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
         wt_c2: "\<lparr>prg=G,cls=accC,lcl=L(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
@@ -2429,7 +2429,7 @@ next
         s3: "s3 = (if \<exists>err. abr1 = Some (Error err) 
                       then (abr1, s1)
                       else abupd (abrupt_if (abr1 \<noteq> None) abr1) s2)"
-        using normal_s0 by (fastsimp elim: evaln_elim_cases)
+        using normal_s0 by (fastforce elim: evaln_elim_cases)
       from wt obtain
         wt_c1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
         wt_c2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c2\<Colon>\<surd>"

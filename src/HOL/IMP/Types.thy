@@ -120,7 +120,7 @@ where "\<Gamma> \<turnstile> s  \<longleftrightarrow>  (\<forall>x. type (s x) =
 lemma apreservation:
   "\<Gamma> \<turnstile> a : \<tau> \<Longrightarrow> taval a s v \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> type v = \<tau>"
 apply(induct arbitrary: v rule: atyping.induct)
-apply (fastsimp simp: styping_def)+
+apply (fastforce simp: styping_def)+
 done
 
 lemma aprogress: "\<Gamma> \<turnstile> a : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> \<exists>v. taval a s v"
@@ -131,11 +131,11 @@ proof(induct rule: atyping.induct)
   proof (cases v1)
     case Iv
     with Plus_ty(1,3,5) v show ?thesis
-      by(fastsimp intro: taval.intros(4) dest!: apreservation)
+      by(fastforce intro: taval.intros(4) dest!: apreservation)
   next
     case Rv
     with Plus_ty(1,3,5) v show ?thesis
-      by(fastsimp intro: taval.intros(5) dest!: apreservation)
+      by(fastforce intro: taval.intros(5) dest!: apreservation)
   qed
 qed (auto intro: taval.intros)
 
@@ -148,11 +148,11 @@ proof(induct rule: btyping.induct)
   proof (cases v1)
     case Iv
     with Less_ty v show ?thesis
-      by (fastsimp intro!: tbval.intros(4) dest!:apreservation)
+      by (fastforce intro!: tbval.intros(4) dest!:apreservation)
   next
     case Rv
     with Less_ty v show ?thesis
-      by (fastsimp intro!: tbval.intros(5) dest!:apreservation)
+      by (fastforce intro!: tbval.intros(5) dest!:apreservation)
   qed
 qed (auto intro: tbval.intros)
 

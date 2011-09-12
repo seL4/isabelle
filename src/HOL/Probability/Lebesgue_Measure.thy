@@ -18,7 +18,7 @@ lemma cube_closed[intro]: "closed (cube n)"
   unfolding cube_def by auto
 
 lemma cube_subset[intro]: "n \<le> N \<Longrightarrow> cube n \<subseteq> cube N"
-  by (fastsimp simp: eucl_le[where 'a='a] cube_def)
+  by (fastforce simp: eucl_le[where 'a='a] cube_def)
 
 lemma cube_subset_iff:
   "cube n \<subseteq> cube N \<longleftrightarrow> n \<le> N"
@@ -26,9 +26,9 @@ proof
   assume subset: "cube n \<subseteq> (cube N::'a set)"
   then have "((\<chi>\<chi> i. real n)::'a) \<in> cube N"
     using DIM_positive[where 'a='a]
-    by (fastsimp simp: cube_def eucl_le[where 'a='a])
+    by (fastforce simp: cube_def eucl_le[where 'a='a])
   then show "n \<le> N"
-    by (fastsimp simp: cube_def eucl_le[where 'a='a])
+    by (fastforce simp: cube_def eucl_le[where 'a='a])
 next
   assume "n \<le> N" then show "cube n \<subseteq> (cube N::'a set)" by (rule cube_subset)
 qed
@@ -873,7 +873,7 @@ proof (rule measure_unique_Int_stable_vimage)
   show "Int_stable ?E" using Int_stable_cuboids .
   show "range cube \<subseteq> sets ?E" unfolding cube_def_raw by auto
   show "incseq cube" using cube_subset_Suc by (auto intro!: incseq_SucI)
-  { fix x have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastsimp }
+  { fix x have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastforce }
   then show "(\<Union>i. cube i) = space ?E" by auto
   { fix i show "lborel.\<mu> (cube i) \<noteq> \<infinity>" unfolding cube_def by auto }
   show "A \<in> sets (sigma ?E)" "sets (sigma ?E) = sets lborel" "space ?E = space lborel"
@@ -997,7 +997,7 @@ proof -
   proof (rule measure_unique_Int_stable[where X=X, OF Int_stable_atLeastAtMost], unfold * **)
     show "X \<in> sets (sigma ?E)"
       unfolding borel_eq_atLeastAtMost[symmetric] by fact
-    have "\<And>x. \<exists>xa. x \<in> cube xa" apply(rule_tac x=x in mem_big_cube) by fastsimp
+    have "\<And>x. \<exists>xa. x \<in> cube xa" apply(rule_tac x=x in mem_big_cube) by fastforce
     then show "(\<Union>i. cube i) = space ?E" by auto
     show "incseq cube" by (intro incseq_SucI cube_subset_Suc)
     show "range cube \<subseteq> sets ?E"

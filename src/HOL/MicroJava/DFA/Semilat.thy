@@ -300,7 +300,7 @@ done
 lemma is_lub_some_lub:
   "\<lbrakk> single_valued r; acyclic r; (x,u)\<in>r^*; (y,u)\<in>r^* \<rbrakk> 
   \<Longrightarrow> is_lub (r^* ) x y (some_lub (r^* ) x y)";
-  (*<*) by (fastsimp dest: single_valued_has_lubs simp add: some_lub_conv) (*>*)
+  (*<*) by (fastforce dest: single_valued_has_lubs simp add: some_lub_conv) (*>*)
 
 subsection{*An executable lub-finder*}
 
@@ -369,6 +369,6 @@ done
 lemma is_lub_exec_lub:
   "\<lbrakk> single_valued r; acyclic r; (x,u):r^*; (y,u):r^*; \<forall>x y. (x,y) \<in> r \<longrightarrow> f x = y \<rbrakk>
   \<Longrightarrow> is_lub (r^* ) x y (exec_lub r f x y)"
-  (*<*) by (fastsimp dest: single_valued_has_lubs simp add: exec_lub_conv) (*>*)
+  (*<*) by (fastforce dest: single_valued_has_lubs simp add: exec_lub_conv) (*>*)
 
 end

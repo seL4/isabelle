@@ -251,7 +251,7 @@ lemma DmdImpl:
   assumes prem: "|- F --> G"
   shows "|- <>F --> <>G"
   apply (unfold dmd_def)
-  apply (fastsimp intro!: prem [temp_use] elim!: STL4E [temp_use])
+  apply (fastforce intro!: prem [temp_use] elim!: STL4E [temp_use])
   done
 
 lemma DmdImplE: "[| sigma |= <>F; |- F --> G |] ==> sigma |= <>G"
@@ -262,7 +262,7 @@ lemma STL5: "|- ([]F & []G) = ([](F & G))"
   apply auto
   apply (subgoal_tac "sigma |= [] (G --> (F & G))")
      apply (erule normalT [temp_use])
-     apply (fastsimp elim!: STL4E [temp_use])+
+     apply (fastforce elim!: STL4E [temp_use])+
   done
 
 (* rewrite rule to split conjunctions under boxes *)
@@ -322,7 +322,7 @@ lemmas all_box = allT [temp_unlift, symmetric, standard]
 
 lemma DmdOr: "|- (<>(F | G)) = (<>F | <>G)"
   apply (auto simp add: dmd_def split_box_conj [try_rewrite])
-  apply (erule contrapos_np, merge_box, fastsimp elim!: STL4E [temp_use])+
+  apply (erule contrapos_np, merge_box, fastforce elim!: STL4E [temp_use])+
   done
 
 lemma exT: "|- (EX x. <>(F x)) = (<>(EX x. F x))"
@@ -343,7 +343,7 @@ lemma DmdImpl2:
   apply auto
   apply (erule notE)
   apply merge_box
-  apply (fastsimp elim!: STL4E [temp_use])
+  apply (fastforce elim!: STL4E [temp_use])
   done
 
 lemma InfImpl:
@@ -354,7 +354,7 @@ lemma InfImpl:
   apply (insert 1 2)
   apply (erule_tac F = G in dup_boxE)
   apply merge_box
-  apply (fastsimp elim!: STL4E [temp_use] DmdImpl2 [temp_use] intro!: 3 [temp_use])
+  apply (fastforce elim!: STL4E [temp_use] DmdImpl2 [temp_use] intro!: 3 [temp_use])
   done
 
 (* ------------------------ STL6 ------------------------------------------- *)
@@ -365,7 +365,7 @@ lemma BoxDmd: "|- []F & <>G --> <>([]F & G)"
   apply (erule dup_boxE)
   apply merge_box
   apply (erule contrapos_np)
-  apply (fastsimp elim!: STL4E [temp_use])
+  apply (fastforce elim!: STL4E [temp_use])
   done
 
 (* weaker than BoxDmd, but more polymorphic (and often just right) *)
@@ -373,14 +373,14 @@ lemma BoxDmd_simple: "|- []F & <>G --> <>(F & G)"
   apply (unfold dmd_def)
   apply clarsimp
   apply merge_box
-  apply (fastsimp elim!: notE STL4E [temp_use])
+  apply (fastforce elim!: notE STL4E [temp_use])
   done
 
 lemma BoxDmd2_simple: "|- []F & <>G --> <>(G & F)"
   apply (unfold dmd_def)
   apply clarsimp
   apply merge_box
-  apply (fastsimp elim!: notE STL4E [temp_use])
+  apply (fastforce elim!: notE STL4E [temp_use])
   done
 
 lemma DmdImpldup:
@@ -406,7 +406,7 @@ lemma STL6: "|- <>[]F & <>[]G --> <>[](F & G)"
   apply (drule BoxDmd [temp_use])
    apply assumption
   apply (erule thin_rl)
-  apply (fastsimp elim!: DmdImplE [temp_use])
+  apply (fastforce elim!: DmdImplE [temp_use])
   done
 
 
@@ -467,7 +467,7 @@ lemmas more_temp_simps2 = more_temp_simps1 BoxDmdBox [temp_rewrite] DmdBoxDmd [t
 (* ------------------------ Miscellaneous ----------------------------------- *)
 
 lemma BoxOr: "!!sigma. [| sigma |= []F | []G |] ==> sigma |= [](F | G)"
-  by (fastsimp elim!: STL4E [temp_use])
+  by (fastforce elim!: STL4E [temp_use])
 
 (* "persistently implies infinitely often" *)
 lemma DBImplBD: "|- <>[]F --> []<>F"
@@ -487,7 +487,7 @@ lemma BoxDmdDmdBox: "|- []<>F & <>[]G --> []<>(F & G)"
    apply assumption
   apply (subgoal_tac "sigma |= <>[]~F")
    apply (force simp: dmd_def)
-  apply (fastsimp elim: DmdImplE [temp_use] STL4E [temp_use])
+  apply (fastforce elim: DmdImplE [temp_use] STL4E [temp_use])
   done
 
 
@@ -498,7 +498,7 @@ section "priming"
 
 (* ------------------------ TLA2 ------------------------------------------- *)
 lemma STL2_pr: "|- []P --> Init P & Init P`"
-  by (fastsimp intro!: STL2_gen [temp_use] primeI [temp_use])
+  by (fastforce intro!: STL2_gen [temp_use] primeI [temp_use])
 
 (* Auxiliary lemma allows priming of boxed actions *)
 lemma BoxPrime: "|- []P --> []($P & P$)"
@@ -523,7 +523,7 @@ lemma TLA2E: "[| sigma |= []P; |- $P & P$ --> A |] ==> sigma |= []A"
 
 lemma DmdPrime: "|- (<>P`) --> (<>P)"
   apply (unfold dmd_def)
-  apply (fastsimp elim!: TLA2E [temp_use])
+  apply (fastforce elim!: TLA2E [temp_use])
   done
 
 lemmas PrimeDmd = InitDmd_gen [temp_use, THEN DmdPrime [temp_use], standard]
@@ -557,7 +557,7 @@ lemma INV1:
 lemma StableT: 
     "!!P. |- $P & A --> P` ==> |- []A --> stable P"
   apply (unfold stable_def)
-  apply (fastsimp elim!: STL4E [temp_use])
+  apply (fastforce elim!: STL4E [temp_use])
   done
 
 lemma Stable: "[| sigma |= []A; |- $P & A --> P` |] ==> sigma |= stable P"
@@ -617,7 +617,7 @@ lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
   apply (clarsimp dest!: BoxPrime [temp_use])
   apply merge_box
   apply (erule contrapos_np)
-  apply (fastsimp elim!: Stable [temp_use])
+  apply (fastforce elim!: Stable [temp_use])
   done
 
 
@@ -627,7 +627,7 @@ section "recursive expansions"
 (* Recursive expansions of [] and <> for state predicates *)
 lemma BoxRec: "|- ([]P) = (Init P & []P`)"
   apply (auto intro!: STL2_gen [temp_use])
-   apply (fastsimp elim!: TLA2E [temp_use])
+   apply (fastforce elim!: TLA2E [temp_use])
   apply (auto simp: stable_def elim!: INV1 [temp_use] STL4E [temp_use])
   done
 
@@ -645,12 +645,12 @@ lemma InfinitePrime: "|- ([]<>P) = ([]<>P`)"
    apply (rule classical)
    apply (rule DBImplBD [temp_use])
    apply (subgoal_tac "sigma |= <>[]P")
-    apply (fastsimp elim!: DmdImplE [temp_use] TLA2E [temp_use])
+    apply (fastforce elim!: DmdImplE [temp_use] TLA2E [temp_use])
    apply (subgoal_tac "sigma |= <>[] (<>P & []~P`)")
     apply (force simp: boxInit_stp [temp_use]
       elim!: DmdImplE [temp_use] STL4E [temp_use] DmdRec2 [temp_use])
    apply (force intro!: STL6 [temp_use] simp: more_temp_simps3)
-  apply (fastsimp intro: DmdPrime [temp_use] elim!: STL4E [temp_use])
+  apply (fastforce intro: DmdPrime [temp_use] elim!: STL4E [temp_use])
   done
 
 lemma InfiniteEnsures:
@@ -666,12 +666,12 @@ section "fairness"
 (* alternative definitions of fairness *)
 lemma WF_alt: "|- WF(A)_v = ([]<>~Enabled(<A>_v) | []<><A>_v)"
   apply (unfold WF_def dmd_def)
-  apply fastsimp
+  apply fastforce
   done
 
 lemma SF_alt: "|- SF(A)_v = (<>[]~Enabled(<A>_v) | []<><A>_v)"
   apply (unfold SF_def dmd_def)
-  apply fastsimp
+  apply fastforce
   done
 
 (* theorems to "box" fairness conditions *)
@@ -679,19 +679,19 @@ lemma BoxWFI: "|- WF(A)_v --> []WF(A)_v"
   by (auto simp: WF_alt [try_rewrite] more_temp_simps3 intro!: BoxOr [temp_use])
 
 lemma WF_Box: "|- ([]WF(A)_v) = WF(A)_v"
-  by (fastsimp intro!: BoxWFI [temp_use] dest!: STL2 [temp_use])
+  by (fastforce intro!: BoxWFI [temp_use] dest!: STL2 [temp_use])
 
 lemma BoxSFI: "|- SF(A)_v --> []SF(A)_v"
   by (auto simp: SF_alt [try_rewrite] more_temp_simps3 intro!: BoxOr [temp_use])
 
 lemma SF_Box: "|- ([]SF(A)_v) = SF(A)_v"
-  by (fastsimp intro!: BoxSFI [temp_use] dest!: STL2 [temp_use])
+  by (fastforce intro!: BoxSFI [temp_use] dest!: STL2 [temp_use])
 
 lemmas more_temp_simps = more_temp_simps3 WF_Box [temp_rewrite] SF_Box [temp_rewrite]
 
 lemma SFImplWF: "|- SF(A)_v --> WF(A)_v"
   apply (unfold SF_def WF_def)
-  apply (fastsimp dest!: DBImplBD [temp_use])
+  apply (fastforce dest!: DBImplBD [temp_use])
   done
 
 (* A tactic that "boxes" all fairness conditions. Apply more_temp_simps to "unbox". *)
@@ -716,13 +716,13 @@ lemma streett_leadsto: "|- ([]<>Init F --> []<>G) = (<>(F ~> G))"
   apply (unfold leadsto_def)
   apply auto
     apply (simp add: more_temp_simps)
-    apply (fastsimp elim!: DmdImplE [temp_use] STL4E [temp_use])
-   apply (fastsimp intro!: InitDmd [temp_use] elim!: STL4E [temp_use])
+    apply (fastforce elim!: DmdImplE [temp_use] STL4E [temp_use])
+   apply (fastforce intro!: InitDmd [temp_use] elim!: STL4E [temp_use])
   apply (subgoal_tac "sigma |= []<><>G")
    apply (simp add: more_temp_simps)
   apply (drule BoxDmdDmdBox [temp_use])
    apply assumption
-  apply (fastsimp elim!: DmdImplE [temp_use] STL4E [temp_use])
+  apply (fastforce elim!: DmdImplE [temp_use] STL4E [temp_use])
   done
 
 lemma leadsto_infinite: "|- []<>F & (F ~> G) --> []<>G"
@@ -880,7 +880,7 @@ lemma LatticeDiamond: "|- (A ~> B | C) & (B ~> D) & (C ~> D) --> (A ~> D)"
   apply clarsimp
   apply (subgoal_tac "sigma |= (B | C) ~> D")
   apply (erule_tac G = "LIFT (B | C)" in LatticeTransitivity [temp_use])
-   apply (fastsimp intro!: LatticeDisjunctionIntro [temp_use])+
+   apply (fastforce intro!: LatticeDisjunctionIntro [temp_use])+
   done
 
 lemma LatticeTriangle: "|- (A ~> D | B) & (B ~> D) --> (A ~> D)"

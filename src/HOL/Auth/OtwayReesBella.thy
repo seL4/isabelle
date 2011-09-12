@@ -277,7 +277,7 @@ apply (frule_tac [9] Says_Server_message_form)
 apply disentangle
 apply (drule_tac [5] Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Snd, THEN analz.Snd, THEN  analz.Snd])
 prefer 8 apply clarify
-apply (analz_freshCryptK, spy_analz, fastsimp)
+apply (analz_freshCryptK, spy_analz, fastforce)
 done
 
 
@@ -365,7 +365,7 @@ lemma A_keydist_to_B:
 apply (drule Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Snd], assumption)
 apply (drule analz_hard, assumption, assumption, assumption, assumption)
 apply (drule OR4_imp_Gets, assumption, assumption)
-apply (fastsimp dest!: Gets_imp_knows [THEN analz.Inj] analz.Decrypt)
+apply (fastforce dest!: Gets_imp_knows [THEN analz.Inj] analz.Decrypt)
 done
 
 

@@ -32,15 +32,15 @@ primrec Path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a
 
 lemma [iff]: "Path h Null xs y = (xs = [] \<and> y = Null)"
 apply(case_tac xs)
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
 done
 
 lemma [simp]: "Path h (Ref a) as z =
  (as = [] \<and> z = Ref a  \<or>  (\<exists>bs. as = a#bs \<and> Path h (h a) bs z))"
 apply(case_tac as)
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
 done
 
 lemma [simp]: "\<And>x. Path f x (as@bs) z = (\<exists>y. Path f x as y \<and> Path f y bs z)"
@@ -116,12 +116,12 @@ by(induct as, simp, clarsimp)
 lemma List_hd_not_in_tl[simp]: "List h (h a) as \<Longrightarrow> a \<notin> set as"
 apply (clarsimp simp add:in_set_conv_decomp)
 apply(frule List_app[THEN iffD1])
-apply(fastsimp dest: List_unique)
+apply(fastforce dest: List_unique)
 done
 
 lemma List_distinct[simp]: "\<And>x. List h x as \<Longrightarrow> distinct as"
 apply(induct as, simp)
-apply(fastsimp dest:List_hd_not_in_tl)
+apply(fastforce dest:List_hd_not_in_tl)
 done
 
 lemma Path_is_List:
@@ -165,7 +165,7 @@ by(simp add:list_def)
 lemma list_Ref_conv[simp]:
  "islist h (h a) \<Longrightarrow> list h (Ref a) = a # list h (h a)"
 apply(insert List_Ref[of h])
-apply(fastsimp simp:List_conv_islist_list)
+apply(fastforce simp:List_conv_islist_list)
 done
 
 lemma [simp]: "islist h (h a) \<Longrightarrow> a \<notin> set(list h (h a))"

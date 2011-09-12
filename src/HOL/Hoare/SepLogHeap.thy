@@ -72,7 +72,7 @@ by (induct as) auto
 lemma List_hd_not_in_tl[simp]: "List h b as \<Longrightarrow> h a = Some b \<Longrightarrow> a \<notin> set as"
 apply (clarsimp simp add:in_set_conv_decomp)
 apply(frule List_app[THEN iffD1])
-apply(fastsimp dest: List_unique)
+apply(fastforce dest: List_unique)
 done
 
 lemma List_distinct[simp]: "\<And>x. List h x as \<Longrightarrow> distinct as"

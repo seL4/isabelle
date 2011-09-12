@@ -71,7 +71,7 @@ proof-
   let ?F = "lift f x0"
   obtain k where "pfp_above f x0 = (?F^^k) x0"
     using pfp_funpow `pfp_above f x0 \<noteq> Top`
-    by(fastsimp simp add: pfp_above_def)
+    by(fastforce simp add: pfp_above_def)
   moreover
   { fix n have "(?F^^n) x0 \<sqsubseteq> p"
     proof(induct n)
@@ -97,7 +97,7 @@ proof-
   let ?p = "pfp_above f x0"
   obtain k where 1: "?p = ((f\<up>x0)^^k) x0"
     using pfp_funpow `?p \<noteq> Top`
-    by(fastsimp simp add: pfp_above_def)
+    by(fastforce simp add: pfp_above_def)
   thus ?thesis using chain mono by simp
 qed
 
@@ -174,7 +174,7 @@ fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Right
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
-  case SKIP thus ?case by fastsimp
+  case SKIP thus ?case by fastforce
 next
   case Assign thus ?case by (auto simp: aval'_sound)
 next

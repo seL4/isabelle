@@ -856,7 +856,7 @@ lemma list_exhaust_size_gt0:
   shows "0 < length y \<Longrightarrow> P"
   apply (cases y, simp)
   apply (rule y)
-  apply fastsimp
+  apply fastforce
   done
 
 lemma list_exhaust_size_eq0:

@@ -353,7 +353,7 @@ proof
   }
   from `x : A` this show "Inf A <= x"
     unfolding Inf_flat_complete_lattice_def
-    by fastsimp
+    by fastforce
 next
   fix z A
   assume z: "\<And>x. x : A ==> z <= (x :: 'a flat_complete_lattice)"
@@ -412,7 +412,7 @@ next
   }
   from `x : A` this show "x <= Sup A"
     unfolding Sup_flat_complete_lattice_def
-    by fastsimp
+    by fastforce
 next
   fix z A
   assume z: "\<And>x. x : A ==> x <= (z :: 'a flat_complete_lattice)"

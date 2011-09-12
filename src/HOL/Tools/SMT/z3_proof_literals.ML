@@ -276,7 +276,7 @@ fun iff_intro thm1 thm2 = thm2 COMP (thm1 COMP @{thm iffI})
 
 local
   val cp1 = @{lemma "(~P) = (~Q) ==> P = Q" by simp}
-  val cp2 = @{lemma "(~P) = Q ==> P = (~Q)" by fastsimp}
+  val cp2 = @{lemma "(~P) = Q ==> P = (~Q)" by fastforce}
   val cp3 = @{lemma "P = (~Q) ==> (~P) = Q" by simp}
 in
 fun contrapos1 prove (ct, cu) = prove (negate ct, negate cu) COMP cp1

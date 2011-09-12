@@ -102,7 +102,7 @@ proof-
         by clarify (rule pp_ub1)
       with sum have "\<forall>x \<in> set (?map ss1). x <=_r ?s1" by simp
       with less have "\<forall>x \<in> set (?map ss2). x <=_r ?s1"
-        by (fastsimp dest!: mapD lesub_step_typeD intro: trans_r)
+        by (fastforce dest!: mapD lesub_step_typeD intro: trans_r)
       moreover 
       from map1 x have "x <=_r (?sum ss1)" by (rule pp_ub2)
       with sum have "x <=_r ?s1" by simp

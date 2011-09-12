@@ -49,11 +49,11 @@ by (auto simp add: mem_def)
 
 lemma subset_eq[code_pred_inline]:
   "(P :: 'a => bool) < (Q :: 'a => bool) == ((\<exists>x. Q x \<and> (\<not> P x)) \<and> (\<forall> x. P x --> Q x))"
-by (rule eq_reflection) (fastsimp simp add: mem_def)
+by (rule eq_reflection) (fastforce simp add: mem_def)
 
 lemma set_equality[code_pred_inline]:
   "(A = B) = ((\<forall>x. A x \<longrightarrow> B x) \<and> (\<forall>x. B x \<longrightarrow> A x))"
-by (fastsimp simp add: mem_def)
+by (fastforce simp add: mem_def)
 
 section {* Setup for Numerals *}
 
@@ -218,7 +218,7 @@ proof -
     unfolding mem_def[symmetric, of _ xc]
     apply auto
     unfolding mem_def
-    apply fastsimp
+    apply fastforce
     done
 qed
 
@@ -240,7 +240,7 @@ proof -
     apply auto
     apply (case_tac xc)
     apply auto
-    apply fastsimp
+    apply fastforce
     done
 qed
 

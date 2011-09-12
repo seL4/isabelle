@@ -65,7 +65,7 @@ next
   case False
   with eval obtain s0' abr where "G\<turnstile>(Some abr,s0') \<midarrow>Body D c-\<succ>v\<rightarrow>s1"
                                  "s0 = (Some abr, s0')"
-    by (cases s0) fastsimp
+    by (cases s0) fastforce
   with this jump
   show ?thesis
     by (cases) (simp)
@@ -89,7 +89,7 @@ next
   case False
   with eval obtain s0' abr where "G\<turnstile>(Some abr,s0') \<midarrow>Methd D sig-\<succ>v\<rightarrow>s1"
                                  "s0 = (Some abr, s0')"
-    by (cases s0) fastsimp
+    by (cases s0) fastforce
   with this jump
   show ?thesis
     by (cases) (simp)
@@ -1102,7 +1102,7 @@ next
     apply (rule jumpNestingOk_evalE)
     apply assumption
     apply simp
-    apply fastsimp
+    apply fastforce
     done
 qed
 
@@ -2789,7 +2789,7 @@ proof -
         by blast
       moreover from brk_c2' brk_c2 A
       have "?BreakAssigned s1 s2 A" 
-        by fastsimp
+        by fastforce
       with True 
       have "?BreakAssigned (Norm s0) s2 A" by simp
       moreover from res_c2 True
@@ -2874,7 +2874,7 @@ proof -
           by blast
         moreover from brk_c1' brk_c1 A
         have "?BreakAssigned s1 s2 A" 
-          by fastsimp
+          by fastforce
         with normal_s1
         have "?BreakAssigned (Norm s0) s2 A" by simp
         moreover from res_c1 normal_s1 have "?ResAssigned (Norm s0) s2"
@@ -2904,7 +2904,7 @@ proof -
           by blast
         moreover from brk_c2' brk_c2 A
         have "?BreakAssigned s1 s2 A" 
-          by fastsimp
+          by fastforce
         with normal_s1
         have "?BreakAssigned (Norm s0) s2 A" by simp
         moreover from res_c2 normal_s1 have "?ResAssigned (Norm s0) s2"
@@ -3025,7 +3025,7 @@ proof -
           proof -
             from brk_A_A' brk_A' 
             have "?BreakAssigned (abupd (absorb (Cont l)) s2) s3 A" 
-              by fastsimp
+              by fastforce
             moreover
             from True have "normal (abupd (absorb (Cont l)) s2)"
               by (cases s2) auto
@@ -3046,11 +3046,11 @@ proof -
             by auto
           with nrm_C_C' nrm_C' A
           have "?NormalAssigned s3 A"
-            by fastsimp
+            by fastforce
           moreover
           from eq_s3_s2 brk_C_C' brk_C' normal_s1 A
           have "?BreakAssigned (Norm s0) s3 A"
-            by fastsimp
+            by fastforce
           moreover 
           from eq_s3_s2 res_s2 normal_s1 have "?ResAssigned (Norm s0) s3"
             by simp
@@ -3275,7 +3275,7 @@ proof -
             from brkAss_C2 have "?BreakAssigned (Norm s0) s3 C2'"
               by (cases s2) (auto simp add: new_xcpt_var_def)
             with brk_C2' A show ?thesis 
-              by fastsimp
+              by fastforce
           qed
           moreover
           from resAss_s3 have "?ResAssigned (Norm s0) s3"
@@ -3353,7 +3353,7 @@ proof -
         by blast
       moreover
       from brkAss_C2' brk_C2' have "?BreakAssigned (Norm s1) s2 C2"
-        by fastsimp
+        by fastforce
       ultimately
       show ?thesis
         using that resAss_s2' by simp
@@ -3379,7 +3379,7 @@ proof -
             by (cases s2) (simp add: abrupt_if_def)
           with normal_s3 nrmAss_C1 s3 s1_s2
           show ?thesis
-            by fastsimp
+            by fastforce
         qed
         moreover 
         have "nrm C2 \<subseteq> dom (locals (snd s3))"
@@ -3389,7 +3389,7 @@ proof -
             by (cases s2) (simp add: abrupt_if_def)
           with normal_s3 nrmAss_C2 s3 s1_s2
           show ?thesis
-            by fastsimp
+            by fastforce
         qed
         ultimately have "nrm C1 \<union> nrm C2 \<subseteq> \<dots>"
           by (rule Un_least)

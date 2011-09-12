@@ -36,7 +36,7 @@ fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
-  case SKIP thus ?case by fastsimp
+  case SKIP thus ?case by fastforce
 next
   case Assign thus ?case
     by (auto simp: lookup_update aval'_sound)

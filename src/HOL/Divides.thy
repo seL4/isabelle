@@ -194,7 +194,7 @@ apply (cases "a = 0")
 apply (unfold dvd_def)
 apply auto
  apply(blast intro:mult_assoc[symmetric])
-apply(fastsimp simp add: mult_assoc)
+apply(fastforce simp add: mult_assoc)
 done
 
 lemma dvd_mod_imp_dvd: "[| k dvd m mod n;  k dvd n |] ==> k dvd m"
@@ -2232,7 +2232,7 @@ done
 
 lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 ==> m mod k \<le> m"
 apply (rule split_zmod[THEN iffD2])
-apply(fastsimp dest: q_pos_lemma intro: split_mult_pos_le)
+apply(fastforce dest: q_pos_lemma intro: split_mult_pos_le)
 done
 
 

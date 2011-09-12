@@ -24,10 +24,10 @@ apply (subgoal_tac "{ja. Suc ja < j} = {0..<j - Suc 0}")
 apply (subgoal_tac "{ja. j \<le> Suc ja \<and> Suc ja < k} = {j - Suc 0..<k - Suc 0}")
 apply (subgoal_tac "{j. Suc j < k} = {0..<k - Suc 0}")
 apply simp
-apply fastsimp
-apply fastsimp
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
+apply fastforce
+apply fastforce
 apply (erule_tac x="i - 1" in meta_allE)
 apply (erule_tac x="j - 1" in meta_allE)
 apply (erule_tac x="k - 1" in meta_allE)
@@ -36,10 +36,10 @@ apply (subgoal_tac " {ja. j \<le> Suc ja \<and> Suc ja < k} = {j - 1..<k - 1}")
 apply (subgoal_tac "{j. i \<le> Suc j \<and> Suc j < k} = {i - 1..<k - 1}")
 apply (subgoal_tac " i - 1 \<le> j - 1 \<and> j - 1 \<le> k - 1")
 apply simp
-apply fastsimp
-apply fastsimp
-apply fastsimp
-apply fastsimp
+apply fastforce
+apply fastforce
+apply fastforce
+apply fastforce
 done
 
 lemma sublist_update1: "i \<notin> inds \<Longrightarrow> sublist (xs[i := v]) inds = sublist xs inds"
@@ -143,18 +143,18 @@ lemma sublist_eq_subseteq: " \<lbrakk> inds' \<subseteq> inds; sublist xs inds =
 apply (induct xs arbitrary: ys inds inds')
 apply simp
 apply (drule sym, rule sym)
-apply (simp add: sublist_Nil, fastsimp)
+apply (simp add: sublist_Nil, fastforce)
 apply (case_tac ys)
-apply (simp add: sublist_Nil, fastsimp)
+apply (simp add: sublist_Nil, fastforce)
 apply (auto simp add: sublist_Cons)
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds'}" in meta_allE)
-apply fastsimp
+apply fastforce
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds'}" in meta_allE)
-apply fastsimp
+apply fastforce
 done
 
 lemma sublist_eq: "\<lbrakk> \<forall>i \<in> inds. ((i < length xs) \<and> (i < length ys)) \<or> ((i \<ge> length xs ) \<and> (i \<ge> length ys)); \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> sublist xs inds = sublist ys inds"
@@ -166,10 +166,10 @@ apply (simp add: sublist_Nil)
 apply (auto simp add: sublist_Cons)
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
-apply fastsimp
+apply fastforce
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
-apply fastsimp
+apply fastforce
 done
 
 lemma sublist_eq_samelength: "\<lbrakk> length xs = length ys; \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> sublist xs inds = sublist ys inds"

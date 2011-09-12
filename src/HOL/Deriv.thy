@@ -745,7 +745,7 @@ proof -
     proof (rule ccontr)
       assume "\<not> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
       with M1 have M3: "\<forall>x. a \<le> x & x \<le> b --> f x < M"
-        by (fastsimp simp add: linorder_not_le [symmetric])
+        by (fastforce simp add: linorder_not_le [symmetric])
       hence "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. inverse (M - f x)) x"
         by (auto simp add: con)
       from isCont_bounded [OF le this]

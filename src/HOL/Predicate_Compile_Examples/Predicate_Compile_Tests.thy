@@ -244,7 +244,7 @@ proof -
     from alt_nil nil show thesis by auto
   next
     case cons
-    from alt_cons cons show thesis by fastsimp
+    from alt_cons cons show thesis by fastforce
   qed
 qed
 
@@ -469,7 +469,7 @@ proof -
   next
     fix xs ys zs x
     assume "xa = x # xs" "xb = ys" "xc = x # zs" "append2 xs ys zs"
-    from this append2(2) show thesis by fastsimp
+    from this append2(2) show thesis by fastforce
   qed
 qed
 
@@ -913,7 +913,7 @@ proof -
   assume "has_length xs i" "has_length ys i" "r (x, y)"
   from this has_length show "lexn r (Suc i) (x # xs, y # ys)"
     unfolding lexn_conv Collect_def mem_def
-    by fastsimp
+    by fastforce
 next
   assume "lexn r i (xs, ys)"
   thm lexn_conv
@@ -935,8 +935,8 @@ proof -
     apply (auto simp add: has_length)
     apply (case_tac xys)
     apply auto
-    apply fastsimp
-    apply fastsimp done
+    apply fastforce
+    apply fastforce done
 qed
 
 values [random_dseq 1, 2, 5] 10 "{(n, xs, ys::int list). lexn (%(x, y). x <= y) n (xs, ys)}"

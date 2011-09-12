@@ -275,7 +275,7 @@ done
 lemma Finite_cons_a: "Finite x --> a~=UU --> x=a##xs --> Finite xs"
 apply (intro strip)
 apply (erule Finite.cases)
-apply fastsimp
+apply fastforce
 apply simp
 done
 

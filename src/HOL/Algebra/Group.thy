@@ -549,7 +549,7 @@ definition
 
 lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
-by (fastsimp simp add: hom_def compose_def)
+by (fastforce simp add: hom_def compose_def)
 
 definition
   iso :: "_ => _ => ('a => 'b) set" (infixr "\<cong>" 60)
@@ -781,7 +781,7 @@ next
   fix A
   assume L: "A \<subseteq> carrier ?L" and non_empty: "A ~= {}"
   then have Int_subgroup: "subgroup (\<Inter>A) G"
-    by (fastsimp intro: subgroups_Inter)
+    by (fastforce intro: subgroups_Inter)
   show "\<exists>I. greatest ?L I (Lower ?L A)"
   proof
     show "greatest ?L (\<Inter>A) (Lower ?L A)"
@@ -794,13 +794,13 @@ next
         by (rule subgroup_imp_group)
       from groupH have monoidH: "monoid ?H"
         by (rule group.is_monoid)
-      from H have Int_subset: "?Int \<subseteq> H" by fastsimp
+      from H have Int_subset: "?Int \<subseteq> H" by fastforce
       then show "le ?L ?Int H" by simp
     next
       fix H
       assume H: "H \<in> Lower ?L A"
       with L Int_subgroup show "le ?L H ?Int"
-        by (fastsimp simp: Lower_def intro: Inter_greatest)
+        by (fastforce simp: Lower_def intro: Inter_greatest)
     next
       show "A \<subseteq> carrier ?L" by (rule L)
     next

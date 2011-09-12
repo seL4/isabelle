@@ -158,7 +158,7 @@ proof (induct U)
               (is "listsp IT (?ls as)")
             proof induct
               case Nil
-              show ?case by fastsimp
+              show ?case by fastforce
             next
               case (Cons b bs)
               hence I: "?R b" by simp
@@ -197,7 +197,7 @@ proof (induct U)
         hence "listsp IT (map (\<lambda>x. x[u/i]) rs)"
         proof induct
           case Nil
-          show ?case by fastsimp
+          show ?case by fastforce
         next
           case (Cons a as)
           hence I: "?R a" by simp
@@ -214,7 +214,7 @@ proof (induct U)
       assume "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
         and "\<And>e T' u i. PROP ?Q r e T' u i T"
       with uIT uT show "IT (Abs r[u/i])"
-        by fastsimp
+        by fastforce
     next
       case (Beta r a as e_ T'_ u_ i_)
       assume T: "e\<langle>i:T\<rangle> \<turnstile> Abs r \<degree> a \<degree>\<degree> as : T'"

@@ -4224,8 +4224,8 @@ proof-
     unfolding compact_eq_bounded_closed
     using bounded_Int and closed_Int and assms(1) by auto
   ultimately obtain x where "x\<in>cball a (dist b a) \<inter> s" "\<forall>y\<in>cball a (dist b a) \<inter> s. dist a x \<le> dist a y"
-    using continuous_attains_inf[of ?B "dist a"] by fastsimp
-  thus ?thesis by fastsimp
+    using continuous_attains_inf[of ?B "dist a"] by fastforce
+  thus ?thesis by fastforce
 qed
 
 
@@ -4603,7 +4603,7 @@ qed
 lemma interval_ne_empty: fixes a :: "'a::ordered_euclidean_space" shows
   "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i \<le> b$$i)" and
   "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < b$$i)"
-  unfolding interval_eq_empty[of a b] by fastsimp+
+  unfolding interval_eq_empty[of a b] by fastforce+
 
 lemma interval_sing:
   fixes a :: "'a::ordered_euclidean_space"
@@ -4672,7 +4672,7 @@ proof-
   } note part1 = this
   show ?th3 unfolding subset_eq and Ball_def and mem_interval 
     apply(rule,rule,rule,rule) apply(rule part1) unfolding subset_eq and Ball_def and mem_interval
-    prefer 4 apply auto by(erule_tac x=i in allE,erule_tac x=i in allE,fastsimp)+ 
+    prefer 4 apply auto by(erule_tac x=i in allE,erule_tac x=i in allE,fastforce)+ 
   { assume as:"{c<..<d} \<subseteq> {a<..<b}" "\<forall>i<DIM('a). c$$i < d$$i"
     fix i assume i:"i<DIM('a)"
     from as(1) have "{c<..<d} \<subseteq> {a..b}" using interval_open_subset_closed[of a b] by auto
@@ -5834,7 +5834,7 @@ next
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
         and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-        using lima limb unfolding h_def Lim_sequentially by (fastsimp simp del: less_divide_eq_number_of1)
+        using lima limb unfolding h_def Lim_sequentially by (fastforce simp del: less_divide_eq_number_of1)
       hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
         apply(erule_tac x="Na+Nb+n" in allE)
         apply(erule_tac x="Na+Nb+n" in allE) apply simp
@@ -5853,10 +5853,10 @@ next
 
   have [simp]:"a = b" proof(rule ccontr)
     def e \<equiv> "dist a b - dist (g a) (g b)"
-    assume "a\<noteq>b" hence "e > 0" unfolding e_def using dist by fastsimp
+    assume "a\<noteq>b" hence "e > 0" unfolding e_def using dist by fastforce
     hence "\<exists>n. dist (f n x) a < e/2 \<and> dist (f n y) b < e/2"
       using lima limb unfolding Lim_sequentially
-      apply (auto elim!: allE[where x="e/2"]) apply(rule_tac x="r (max N Na)" in exI) unfolding h_def by fastsimp
+      apply (auto elim!: allE[where x="e/2"]) apply(rule_tac x="r (max N Na)" in exI) unfolding h_def by fastforce
     then obtain n where n:"dist (f n x) a < e/2 \<and> dist (f n y) b < e/2" by auto
     have "dist (f (Suc n) x) (g a) \<le> dist (f n x) a"
       using dist[THEN bspec[where x="f n x"], THEN bspec[where x="a"]] and fs by auto
@@ -5869,7 +5869,7 @@ next
   have [simp]:"\<And>n. f (Suc n) x = f n y" unfolding f_def y_def by(induct_tac n)auto
   { fix x y assume "x\<in>s" "y\<in>s" moreover
     fix e::real assume "e>0" ultimately
-    have "dist y x < e \<longrightarrow> dist (g y) (g x) < e" using dist by fastsimp }
+    have "dist y x < e \<longrightarrow> dist (g y) (g x) < e" using dist by fastforce }
   hence "continuous_on s g" unfolding continuous_on_iff by auto
 
   hence "((snd \<circ> h \<circ> r) ---> g a) sequentially" unfolding continuous_on_sequentially

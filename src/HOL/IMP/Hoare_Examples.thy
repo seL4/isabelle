@@ -59,8 +59,8 @@ apply(rule Semi)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
-apply(fastsimp simp: atLeastAtMostPlus1_int_conv algebra_simps)
-apply(fastsimp)
+apply(fastforce simp: atLeastAtMostPlus1_int_conv algebra_simps)
+apply(fastforce)
 apply(rule Semi)
 prefer 2
 apply(rule Assign)

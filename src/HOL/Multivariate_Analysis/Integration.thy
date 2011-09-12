@@ -133,7 +133,7 @@ lemma inter_interior_unions_intervals: fixes f::"('a::ordered_euclidean_space) s
     case True show ?thesis proof(cases "x\<in>{a<..<b}")
       case True then guess d unfolding open_contains_ball_eq[OF open_interval,rule_format] ..
       thus ?thesis apply(rule_tac x=i in bexI,rule_tac x=x in exI,rule_tac x="min d e" in exI)
-        unfolding ab using interval_open_subset_closed[of a b] and e by fastsimp+ next
+        unfolding ab using interval_open_subset_closed[of a b] and e by fastforce+ next
     case False then obtain k where "x$$k \<le> a$$k \<or> x$$k \<ge> b$$k" and k:"k<DIM('a)" unfolding mem_interval by(auto simp add:not_less) 
     hence "x$$k = a$$k \<or> x$$k = b$$k" using True unfolding ab and mem_interval apply(erule_tac x=k in allE) by auto
     hence "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)" proof(erule_tac disjE)
@@ -232,7 +232,7 @@ lemma content_eq_0: "content{a..b::'a::ordered_euclidean_space} = 0 \<longleftri
   case True thus ?thesis unfolding content_def if_P[OF True] unfolding interval_eq_empty apply-
     apply(rule,erule exE) apply(rule_tac x=i in exI) by auto next
   case False note this[unfolded interval_eq_empty not_ex not_less]
-  hence as:"\<forall>i<DIM('a). b $$ i \<ge> a $$ i" by fastsimp
+  hence as:"\<forall>i<DIM('a). b $$ i \<ge> a $$ i" by fastforce
   show ?thesis unfolding content_def if_not_P[OF False] setprod_zero_iff[OF finite_lessThan]
     apply(rule) apply(erule_tac[!] exE bexE) unfolding interval_bounds[OF as] apply(rule_tac x=x in exI) defer
     apply(rule_tac x=i in bexI) using as apply(erule_tac x=i in allE) by auto qed
@@ -251,7 +251,7 @@ lemma content_eq_0_interior: "content {a..b} = 0 \<longleftrightarrow> interior(
 
 lemma content_pos_lt_eq: "0 < content {a..b::'a::ordered_euclidean_space} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < b$$i)"
   apply(rule) defer apply(rule content_pos_lt,assumption) proof- assume "0 < content {a..b}"
-  hence "content {a..b} \<noteq> 0" by auto thus "\<forall>i<DIM('a). a$$i < b$$i" unfolding content_eq_0 not_ex not_le by fastsimp qed
+  hence "content {a..b} \<noteq> 0" by auto thus "\<forall>i<DIM('a). a$$i < b$$i" unfolding content_eq_0 not_ex not_le by fastforce qed
 
 lemma content_empty[simp]: "content {} = 0" unfolding content_def by auto
 
@@ -270,7 +270,7 @@ lemma content_subset: assumes "{a..b} \<subseteq> {c..d}" shows "content {a..b::
       using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(1),of i] using i by auto qed qed
 
 lemma content_lt_nz: "0 < content {a..b} \<longleftrightarrow> content {a..b} \<noteq> 0"
-  unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastsimp
+  unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
 
 subsection {* The notion of a gauge --- simply an open set containing the point. *}
 
@@ -343,7 +343,7 @@ lemma division_contains: "s division_of i \<Longrightarrow> \<forall>x\<in>i. \<
 
 lemma forall_in_division:
  "d division_of i \<Longrightarrow> ((\<forall>x\<in>d. P x) \<longleftrightarrow> (\<forall>a b. {a..b} \<in> d \<longrightarrow> P {a..b}))"
-  unfolding division_of_def by fastsimp
+  unfolding division_of_def by fastforce
 
 lemma division_of_subset: assumes "p division_of (\<Union>p)" "q \<subseteq> p" shows "q division_of (\<Union>q)"
   apply(rule division_ofI) proof- note as=division_ofD[OF assms(1)]
@@ -621,7 +621,7 @@ next assume as:"{a..b}={}" show thesis apply(rule that) unfolding as using assms
 next assume as:"interior {a..b} = {}" "{a..b} \<noteq> {}"
   show thesis apply(rule that[of "insert {a..b} p"],rule division_ofI)
     unfolding finite_insert apply(rule assm(1)) unfolding Union_insert  
-    using assm(2-4) as apply- by(fastsimp dest: assm(5))+
+    using assm(2-4) as apply- by(fastforce dest: assm(5))+
 next assume as:"p \<noteq> {}" "interior {a..b} \<noteq> {}" "{a..b}\<noteq>{}"
   have "\<forall>k\<in>p. \<exists>q. (insert {a..b} q) division_of ({a..b} \<union> k)" proof case goal1
     from assm(4)[OF this] guess c .. then guess d ..
@@ -763,7 +763,7 @@ lemma division_of_tagged_division: assumes"s tagged_division_of i"  shows "(snd 
 proof(rule division_ofI) note assm=tagged_division_ofD[OF assms]
   show "\<Union>snd ` s = i" "finite (snd ` s)" using assm by auto
   fix k assume k:"k \<in> snd ` s" then obtain xk where xk:"(xk, k) \<in> s" by auto
-  thus  "k \<subseteq> i" "k \<noteq> {}" "\<exists>a b. k = {a..b}" using assm apply- by fastsimp+
+  thus  "k \<subseteq> i" "k \<noteq> {}" "\<exists>a b. k = {a..b}" using assm apply- by fastforce+
   fix k' assume k':"k' \<in> snd ` s" "k \<noteq> k'" from this(1) obtain xk' where xk':"(xk', k') \<in> s" by auto
   thus "interior k \<inter> interior k' = {}" apply-apply(rule assm(5)) apply(rule xk xk')+ using k' by auto
 qed
@@ -967,7 +967,7 @@ qed
 subsection {* The set we're concerned with must be closed. *}
 
 lemma division_of_closed: "s division_of i \<Longrightarrow> closed (i::('n::ordered_euclidean_space) set)"
-  unfolding division_of_def by fastsimp
+  unfolding division_of_def by fastforce
 
 subsection {* General bisection principle for intervals; might be useful elsewhere. *}
 
@@ -1015,8 +1015,8 @@ proof- have "{a..b} \<noteq> {}" using assms(1,3) by auto
     assume "s \<noteq> t" hence "\<not> (c = e \<and> d = f)" unfolding c_d e_f by auto
     then obtain i where "c$$i \<noteq> e$$i \<or> d$$i \<noteq> f$$i" and i':"i<DIM('a)" unfolding de_Morgan_conj euclidean_eq[where 'a='a] by auto
     hence i:"c$$i \<noteq> e$$i" "d$$i \<noteq> f$$i" apply- apply(erule_tac[!] disjE)
-    proof- assume "c$$i \<noteq> e$$i" thus "d$$i \<noteq> f$$i" using c_d(2)[of i] e_f(2)[of i] by fastsimp
-    next   assume "d$$i \<noteq> f$$i" thus "c$$i \<noteq> e$$i" using c_d(2)[of i] e_f(2)[of i] by fastsimp
+    proof- assume "c$$i \<noteq> e$$i" thus "d$$i \<noteq> f$$i" using c_d(2)[of i] e_f(2)[of i] by fastforce
+    next   assume "d$$i \<noteq> f$$i" thus "c$$i \<noteq> e$$i" using c_d(2)[of i] e_f(2)[of i] by fastforce
     qed have *:"\<And>s t. (\<And>a. a\<in>s \<Longrightarrow> a\<in>t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}" by auto
     show "interior s \<inter> interior t = {}" unfolding e_f c_d interior_closed_interval proof(rule *)
       fix x assume "x\<in>{c<..<d}" "x\<in>{e<..<f}"
@@ -1024,9 +1024,9 @@ proof- have "{a..b} \<noteq> {}" using assms(1,3) by auto
         apply-apply(erule_tac[!] x=i in allE)+ by auto
       show False using c_d(2)[OF i'] apply- apply(erule_tac disjE)
       proof(erule_tac[!] conjE) assume as:"c $$ i = a $$ i" "d $$ i = (a $$ i + b $$ i) / 2"
-        show False using e_f(2)[of i] and i x unfolding as by(fastsimp simp add:field_simps)
+        show False using e_f(2)[of i] and i x unfolding as by(fastforce simp add:field_simps)
       next assume as:"c $$ i = (a $$ i + b $$ i) / 2" "d $$ i = b $$ i"
-        show False using e_f(2)[of i] and i x unfolding as by(fastsimp simp add:field_simps)
+        show False using e_f(2)[of i] and i x unfolding as by(fastforce simp add:field_simps)
       qed qed qed
   also have "\<Union> ?A = {a..b}" proof(rule set_eqI,rule)
     fix x assume "x\<in>\<Union>?A" then guess Y unfolding Union_iff ..
@@ -1606,7 +1606,7 @@ proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
       thus "l \<subseteq> d1 x" unfolding xl' by auto
       show "x\<in>l" "l \<subseteq> {a..b} \<inter> {x. x $$ k \<le> c}" unfolding xl' using p(4-6)[OF xl'(3)] using xl'(4)
         using lem0(1)[OF xl'(3-4)] by auto
-      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastsimp simp add: interval_split[OF k,where c=c])
+      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastforce simp add: interval_split[OF k,where c=c])
       fix y r let ?goal = "interior l \<inter> interior r = {}" assume yr:"(y,r)\<in>?M1"
       then guess y' r' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note yr'=this
       assume as:"(x,l) \<noteq> (y,r)" show "interior l \<inter> interior r = {}"
@@ -1626,7 +1626,7 @@ proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
       thus "l \<subseteq> d2 x" unfolding xl' by auto
       show "x\<in>l" "l \<subseteq> {a..b} \<inter> {x. x $$ k \<ge> c}" unfolding xl' using p(4-6)[OF xl'(3)] using xl'(4)
         using lem0(2)[OF xl'(3-4)] by auto
-      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastsimp simp add: interval_split[OF k, where c=c])
+      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastforce simp add: interval_split[OF k, where c=c])
       fix y r let ?goal = "interior l \<inter> interior r = {}" assume yr:"(y,r)\<in>?M2"
       then guess y' r' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note yr'=this
       assume as:"(x,l) \<noteq> (y,r)" show "interior l \<inter> interior r = {}"
@@ -1689,11 +1689,11 @@ proof- guess d using has_integralD[OF assms(1-2)] . note d=this
       apply(subst setsum_Un_zero) apply(rule p1 p2)+ apply(rule) unfolding split_paired_all split_conv
     proof- fix a b assume ab:"(a,b) \<in> p1 \<inter> p2"
       have "(a,b) \<in> p1" using ab by auto from p1(4)[OF this] guess u v apply-by(erule exE)+ note uv =this
-      have "b \<subseteq> {x. x$$k = c}" using ab p1(3)[of a b] p2(3)[of a b] by fastsimp
+      have "b \<subseteq> {x. x$$k = c}" using ab p1(3)[of a b] p2(3)[of a b] by fastforce
       moreover have "interior {x::'a. x $$ k = c} = {}" 
       proof(rule ccontr) case goal1 then obtain x where x:"x\<in>interior {x::'a. x$$k = c}" by auto
         then guess e unfolding mem_interior .. note e=this
-        have x:"x$$k = c" using x interior_subset by fastsimp
+        have x:"x$$k = c" using x interior_subset by fastforce
         have *:"\<And>i. i<DIM('a) \<Longrightarrow> \<bar>(x - (x + (\<chi>\<chi> i. if i = k then e / 2 else 0))) $$ i\<bar>
           = (if i = k then e/2 else 0)" using e by auto
         have "(\<Sum>i<DIM('a). \<bar>(x - (x + (\<chi>\<chi> i. if i = k then e / 2 else 0))) $$ i\<bar>) =
@@ -1790,7 +1790,7 @@ definition "monoidal opp \<equiv>  (\<forall>x y. opp x y = opp y x) \<and>
 lemma monoidalI: assumes "\<And>x y. opp x y = opp y x"
   "\<And>x y z. opp x (opp y z) = opp (opp x y) z"
   "\<And>x. opp (neutral opp) x = x" shows "monoidal opp"
-  unfolding monoidal_def using assms by fastsimp
+  unfolding monoidal_def using assms by fastforce
 
 lemma monoidal_ac: assumes "monoidal opp"
   shows "opp (neutral opp) a = a" "opp a (neutral opp) = a" "opp a b = opp b a"
@@ -2721,7 +2721,7 @@ lemma has_integral_spike_eq:
 lemma integrable_spike: assumes "negligible s" "\<forall>x\<in>(t - s). g x = f x" "f integrable_on t"
   shows "g integrable_on  t"
   using assms unfolding integrable_on_def apply-apply(erule exE)
-  apply(rule,rule has_integral_spike) by fastsimp+
+  apply(rule,rule has_integral_spike) by fastforce+
 
 lemma integral_spike: assumes "negligible s" "\<forall>x\<in>(t - s). g x = f x"
   shows "integral t f = integral t g"
@@ -2860,7 +2860,7 @@ proof(rule integrable_uniform_limit,safe) fix e::real assume e:"0 < e"
     proof safe show "(\<lambda>y. f x) integrable_on l" unfolding integrable_on_def l by(rule,rule has_integral_const)
       fix y assume y:"y\<in>l" note fineD[OF p(2) as,unfolded subset_eq,rule_format,OF this]
       note d(2)[OF _ _ this[unfolded mem_ball]]
-      thus "norm (f y - f x) \<le> e" using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastsimp qed qed
+      thus "norm (f y - f x) \<le> e" using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastforce qed qed
   from e have "0 \<le> e" by auto from approximable_on_division[OF this division_of_tagged_division[OF p(1)] *] guess g .
   thus "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}" by auto qed 
 
@@ -3034,7 +3034,7 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
     def y \<equiv> "(\<chi>\<chi> j. if j = i then if c$$i \<le> (a$$i + b$$i) / 2 then c$$i +
       min e (b$$i - c$$i) / 2 else c$$i - min e (c$$i - a$$i) / 2 else x$$j)::'a"
     show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x=y in bexI) 
-    proof have "d \<in> {c..d}" using s(3)[OF k(1)] unfolding k interval_eq_empty mem_interval by(fastsimp simp add: not_less)
+    proof have "d \<in> {c..d}" using s(3)[OF k(1)] unfolding k interval_eq_empty mem_interval by(fastforce simp add: not_less)
       hence "d \<in> {a..b}" using s(2)[OF k(1)] unfolding k by auto note di = this[unfolded mem_interval,THEN spec[where x=i]]
       hence xyi:"y$$i \<noteq> x$$i" unfolding y_def unfolding i xi euclidean_lambda_beta'[OF i(2)] if_P[OF refl]
         apply(cases) apply(subst if_P,assumption) unfolding if_not_P not_le using as(2)
@@ -3099,7 +3099,7 @@ lemma integral_combine: fixes f::"real \<Rightarrow> 'a::banach"
 
 lemma integrable_combine: fixes f::"real \<Rightarrow> 'a::banach"
   assumes "a \<le> c" "c \<le> b" "f integrable_on {a..c}" "f integrable_on {c..b}"
-  shows "f integrable_on {a..b}" using assms unfolding integrable_on_def by(fastsimp intro!:has_integral_combine)
+  shows "f integrable_on {a..b}" using assms unfolding integrable_on_def by(fastforce intro!:has_integral_combine)
 
 subsection {* Reduce integrability to "local" integrability. *}
 
@@ -3219,7 +3219,7 @@ proof- { presume *:"{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
         thus "x \<in> \<Union>{k. \<exists>x. (x, k) \<in> (\<lambda>(x, k). (g x, g ` k)) ` p}" apply-
           apply(rule_tac X="g ` X" in UnionI) defer apply(rule_tac x="h x" in image_eqI)
           using X(2) assms(3)[rule_format,of x] by auto
-      qed note ** = d(2)[OF this] have *:"inj_on (\<lambda>(x, k). (g x, g ` k)) p" using inj(1) unfolding inj_on_def by fastsimp
+      qed note ** = d(2)[OF this] have *:"inj_on (\<lambda>(x, k). (g x, g ` k)) p" using inj(1) unfolding inj_on_def by fastforce
        have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _") unfolding algebra_simps add_left_cancel
         unfolding setsum_reindex[OF *] apply(subst scaleR_right.setsum) defer apply(rule setsum_cong2) unfolding o_def split_paired_all split_conv
         apply(drule p(4)) apply safe unfolding assms(7)[rule_format] using p by auto
@@ -4347,7 +4347,7 @@ lemma henstock_lemma_part1: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 
   shows "norm(setsum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e" (is "?x \<le> e")
 proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis by (blast intro: field_le_epsilon) }
   fix k::real assume k:"k>0" note p' = tagged_partial_division_ofD[OF p(1)]
-  have "\<Union>snd ` p \<subseteq> {a..b}" using p'(3) by fastsimp
+  have "\<Union>snd ` p \<subseteq> {a..b}" using p'(3) by fastforce
   note partial_division_of_tagged_division[OF p(1)] this
   from partial_division_extend_interval[OF this] guess q . note q=this and q' = division_ofD[OF this(2)]
   def r \<equiv> "q - snd ` p" have "snd ` p \<inter> r = {}" unfolding r_def by auto
@@ -4380,7 +4380,7 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
         apply(rule,rule q') using q(1) p' unfolding r_def by auto qed
     moreover have "\<Union>snd ` p \<union> \<Union>r = {a..b}" "{qq i |i. i \<in> r} = qq ` r"
       unfolding Union_Un_distrib[THEN sym] r_def using q by auto
-    ultimately show "?p tagged_division_of {a..b}" by fastsimp qed
+    ultimately show "?p tagged_division_of {a..b}" by fastforce qed
 
   hence "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>\<Union>qq ` r. content k *\<^sub>R f x) -
     integral {a..b} f) < e" apply(subst setsum_Un_zero[THEN sym]) apply(rule p') prefer 3 
@@ -5448,7 +5448,7 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
 
       have "\<exists>y\<in>?S. \<not> y \<ge> i + e"
       proof(rule ccontr) case goal1 hence "i \<ge> i + e" apply-
-          apply(rule isGlb_le_isLb[OF i]) apply(rule isLbI) unfolding setge_def by fastsimp+
+          apply(rule isGlb_le_isLb[OF i]) apply(rule isLbI) unfolding setge_def by fastforce+
         thus False using e by auto
       qed then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
@@ -5492,7 +5492,7 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
       
       have "\<exists>y\<in>?S. \<not> y \<le> i - e"
       proof(rule ccontr) case goal1 hence "i \<le> i - e" apply-
-          apply(rule isLub_le_isUb[OF i]) apply(rule isUbI) unfolding setle_def by fastsimp+
+          apply(rule isLub_le_isUb[OF i]) apply(rule isUbI) unfolding setle_def by fastforce+
         thus False using e by auto
       qed then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]

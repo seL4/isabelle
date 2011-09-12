@@ -171,7 +171,7 @@ lemma (in LCD) foldD_insert_aux:
     (EX y. (A, y) \<in> foldSetD D f e & v = f x y)"
   apply auto
   apply (rule_tac A1 = A in finite_imp_foldSetD [THEN exE])
-     apply (fastsimp dest: foldSetD_imp_finite)
+     apply (fastforce dest: foldSetD_imp_finite)
     apply assumption
    apply assumption
   apply (blast intro: foldSetD_determ)
@@ -328,7 +328,7 @@ lemma finprod_insert [simp]:
            apply fast
           apply fast
          apply assumption
-        apply (fastsimp intro: m_closed)
+        apply (fastforce intro: m_closed)
        apply simp+
    apply fast
   apply (auto simp add: finprod_def)
@@ -431,13 +431,13 @@ proof -
       next
         assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
-        thus "f \<in> B -> carrier G" by fastsimp
+        thus "f \<in> B -> carrier G" by fastforce
       next
         assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
-        thus "f x \<in> carrier G" by fastsimp
+        thus "f x \<in> carrier G" by fastforce
       qed
-      also from insert have "... = g x \<otimes> finprod G g B" by fastsimp
+      also from insert have "... = g x \<otimes> finprod G g B" by fastforce
       also from insert have "... = finprod G g (insert x B)"
       by (intro finprod_insert [THEN sym]) auto
       finally show ?case .

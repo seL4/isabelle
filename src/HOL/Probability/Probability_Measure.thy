@@ -989,8 +989,8 @@ proof -
   also have "\<dots> = real_of_nat (card (space M)) * prob {x}" by simp
   finally have one: "1 = real (card (space M)) * prob {x}"
     using real_eq_of_nat by auto
-  hence two: "real (card (space M)) \<noteq> 0" by fastsimp
-  from one have three: "prob {x} \<noteq> 0" by fastsimp
+  hence two: "real (card (space M)) \<noteq> 0" by fastforce
+  from one have three: "prob {x} \<noteq> 0" by fastforce
   thus ?thesis using one two three divide_cancel_right
     by (auto simp:field_simps)
 qed

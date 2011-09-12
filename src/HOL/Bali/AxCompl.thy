@@ -303,14 +303,14 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
        (is "G,A\<turnstile>{Normal ?P} .Init C. {?R}")
   proof (rule ax_cases [where ?C="initd C"])
     show "G,A\<turnstile>{Normal ?P  \<and>. initd C} .Init C. {?R}"
-      by (rule ax_derivs.Done [THEN conseq1]) (fastsimp intro: init_done)
+      by (rule ax_derivs.Done [THEN conseq1]) (fastforce intro: init_done)
   next
     have "G,A\<turnstile>{Normal (?P  \<and>. Not \<circ> initd C)} .Init C. {?R}" 
     proof (cases n)
       case 0
       with is_cls
       show ?thesis
-        by - (rule ax_impossible [THEN conseq1],fastsimp dest: nyinitcls_emptyD)
+        by - (rule ax_impossible [THEN conseq1],fastforce dest: nyinitcls_emptyD)
     next
       case (Suc m)
       with mgf_hyp have mgf_hyp': "\<And> t. G,A\<turnstile>{=:m} t\<succ> {G\<rightarrow>}"
@@ -342,7 +342,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
             case False
             from mgf_hyp'
             have "G,A\<turnstile>{?P'} .Init (super c). {?Q}"
-              by (rule MGFnD' [THEN conseq12]) (fastsimp simp add: False c)
+              by (rule MGFnD' [THEN conseq12]) (fastforce simp add: False c)
             with False show ?thesis
               by simp
           qed
@@ -350,7 +350,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
           from Suc is_cls
           show "Normal (?P \<and>. Not \<circ> initd C ;. supd (init_class_obj G C))
                 \<Rightarrow> ?P'"
-            by (fastsimp elim: nyinitcls_le_SucD)
+            by (fastforce elim: nyinitcls_le_SucD)
         qed
       next
         from mgf_hyp'
@@ -390,7 +390,7 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
                  mode: "mode = invmode statM e" and
                     T: "T =Inl (resTy statM)" and
         eq_accC_accC': "accC=accC'"
-        by cases fastsimp+
+        by cases fastforce+
   let ?Q="(\<lambda>Y s1 (x,s) . x = None \<and> 
               (\<exists>a. G\<turnstile>Norm s \<midarrow>e-\<succ>a\<rightarrow> s1 \<and> 
                    (normal s1 \<longrightarrow> G, store s1\<turnstile>a\<Colon>\<preceq>RefT statT)
@@ -1072,7 +1072,7 @@ proof (induct rule: full_nat_induct)
         apply  (rule MGFnD [OF mgf_e1, THEN ax_NormalD])
         apply (rule allI)
         apply (rule MGFnD' [OF mgf_e2, THEN conseq12])
-        apply (fastsimp intro: eval.AVar)
+        apply (fastforce intro: eval.AVar)
         done
     next
       case (InsInitV c v)
@@ -1084,7 +1084,7 @@ proof (induct rule: full_nat_induct)
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.NewC)
         apply (rule MGFn_InitD [OF hyp, THEN conseq2])
-        apply (fastsimp intro: eval.NewC)
+        apply (fastforce intro: eval.NewC)
         done
     next
       case (NewA T e)
@@ -1102,7 +1102,7 @@ proof (induct rule: full_nat_induct)
         apply  (rule ax_derivs.Skip [THEN conseq1])
         apply  (clarsimp intro: eval.Skip)
         apply (erule MGFnD' [THEN conseq12])
-        apply (fastsimp intro: eval.NewA)
+        apply (fastforce intro: eval.NewA)
         done
     next
       case (Cast C e)
@@ -1110,7 +1110,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Cast])
-        apply (fastsimp intro: eval.Cast)
+        apply (fastforce intro: eval.Cast)
         done
     next
       case (Inst e C)
@@ -1118,7 +1118,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Inst])
-        apply (fastsimp intro: eval.Inst)
+        apply (fastforce intro: eval.Inst)
         done
     next
       case (Lit v)
@@ -1126,7 +1126,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.Lit [THEN conseq1])
-        apply (fastsimp intro: eval.Lit)
+        apply (fastforce intro: eval.Lit)
         done
     next
       case (UnOp unop e)
@@ -1135,7 +1135,7 @@ proof (induct rule: full_nat_induct)
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.UnOp)
         apply (erule MGFnD' [THEN conseq12])
-        apply (fastsimp intro: eval.UnOp)
+        apply (fastforce intro: eval.UnOp)
         done
     next
       case (BinOp binop e1 e2)
@@ -1148,7 +1148,7 @@ proof (induct rule: full_nat_induct)
         apply (case_tac "need_second_arg binop v1")
         apply  simp
         apply  (erule MGFnD' [THEN conseq12])
-        apply  (fastsimp intro: eval.BinOp)
+        apply  (fastforce intro: eval.BinOp)
         apply simp
         apply (rule ax_Normal_cases)
         apply  (rule ax_derivs.Skip [THEN conseq1])
@@ -1157,7 +1157,7 @@ proof (induct rule: full_nat_induct)
         apply   simp
         apply  simp
         apply (rule ax_derivs.Abrupt [THEN conseq1], clarsimp simp add: Let_def)
-        apply (fastsimp intro: eval.BinOp)
+        apply (fastforce intro: eval.BinOp)
         done
     next
       case Super
@@ -1165,7 +1165,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.Super [THEN conseq1])
-        apply (fastsimp intro: eval.Super)
+        apply (fastforce intro: eval.Super)
         done
     next
       case (Acc v)
@@ -1173,7 +1173,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Acc])
-        apply (fastsimp intro: eval.Acc simp add: split_paired_all)
+        apply (fastforce intro: eval.Acc simp add: split_paired_all)
         done
     next
       case (Ass v e)
@@ -1184,7 +1184,7 @@ proof (induct rule: full_nat_induct)
         apply  (erule MGFnD [THEN ax_NormalD])
         apply (rule allI)
         apply (erule MGFnD'[THEN conseq12])
-        apply (fastsimp intro: eval.Ass simp add: split_paired_all)
+        apply (fastforce intro: eval.Ass simp add: split_paired_all)
         done
     next
       case (Cond e1 e2 e3)
@@ -1197,14 +1197,14 @@ proof (induct rule: full_nat_induct)
         apply (rule ax_Normal_cases)
         prefer 2
         apply  (rule ax_derivs.Abrupt [THEN conseq1],clarsimp simp add: Let_def)
-        apply  (fastsimp intro: eval.Cond)
+        apply  (fastforce intro: eval.Cond)
         apply (case_tac "b")
         apply  simp
         apply  (erule MGFnD'[THEN conseq12])
-        apply  (fastsimp intro: eval.Cond)
+        apply  (fastforce intro: eval.Cond)
         apply simp
         apply (erule MGFnD'[THEN conseq12])
-        apply (fastsimp intro: eval.Cond)
+        apply (fastforce intro: eval.Cond)
         done
     next
       case (Call accC statT mode e mn pTs' ps)
@@ -1238,7 +1238,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.Skip [THEN conseq1])
-        apply (fastsimp intro: eval.Skip)
+        apply (fastforce intro: eval.Skip)
         done
     next
       case (Expr e)
@@ -1246,7 +1246,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Expr])
-        apply (fastsimp intro: eval.Expr)
+        apply (fastforce intro: eval.Expr)
         done
     next
       case (Lab l c)
@@ -1254,7 +1254,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD' [THEN conseq12, THEN ax_derivs.Lab])
-        apply (fastsimp intro: eval.Lab)
+        apply (fastforce intro: eval.Lab)
         done
     next
       case (Comp c1 c2)
@@ -1264,7 +1264,7 @@ proof (induct rule: full_nat_induct)
         apply (rule ax_derivs.Comp)
         apply  (erule MGFnD [THEN ax_NormalD])
         apply (erule MGFnD' [THEN conseq12])
-        apply (fastsimp intro: eval.Comp) 
+        apply (fastforce intro: eval.Comp) 
         done
     next
       case (If' e c1 c2)
@@ -1277,14 +1277,14 @@ proof (induct rule: full_nat_induct)
         apply (rule ax_Normal_cases)
         prefer 2
         apply  (rule ax_derivs.Abrupt [THEN conseq1],clarsimp simp add: Let_def)
-        apply  (fastsimp intro: eval.If)
+        apply  (fastforce intro: eval.If)
         apply (case_tac "b")
         apply  simp
         apply  (erule MGFnD' [THEN conseq12])
-        apply  (fastsimp intro: eval.If)
+        apply  (fastforce intro: eval.If)
         apply simp
         apply (erule MGFnD' [THEN conseq12])
-        apply (fastsimp intro: eval.If)
+        apply (fastforce intro: eval.If)
         done
     next
       case (Loop l e c)
@@ -1307,7 +1307,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (erule MGFnD' [THEN conseq12, THEN ax_derivs.Throw])
-        apply (fastsimp intro: eval.Throw)
+        apply (fastforce intro: eval.Throw)
         done
     next
       case (TryC c1 C vn c2)
@@ -1318,10 +1318,10 @@ proof (induct rule: full_nat_induct)
           ?Q = " (\<lambda>Y' s' s. normal s \<and> (\<exists>s''. G\<turnstile>s \<midarrow>\<langle>c1\<rangle>\<^sub>s\<succ>\<rightarrow> (Y',s'') \<and> 
                             G\<turnstile>s'' \<midarrow>sxalloc\<rightarrow> s')) \<and>. G\<turnstile>init\<le>n"])
         apply   (erule MGFnD [THEN ax_NormalD, THEN conseq2])
-        apply   (fastsimp elim: sxalloc_gext [THEN card_nyinitcls_gext])
+        apply   (fastforce elim: sxalloc_gext [THEN card_nyinitcls_gext])
         apply  (erule MGFnD'[THEN conseq12])
-        apply  (fastsimp intro: eval.Try)
-        apply (fastsimp intro: eval.Try)
+        apply  (fastforce intro: eval.Try)
+        apply (fastforce intro: eval.Try)
         done
     next
       case (Fin c1 c2)
@@ -1345,7 +1345,7 @@ proof (induct rule: full_nat_induct)
         apply -
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.Nil [THEN conseq1])
-        apply (fastsimp intro: eval.Nil)
+        apply (fastforce intro: eval.Nil)
         done
     next
       case (Cons_expr e es)
@@ -1356,7 +1356,7 @@ proof (induct rule: full_nat_induct)
         apply  (erule MGFnD [THEN ax_NormalD])
         apply (rule allI)
         apply (erule MGFnD'[THEN conseq12])
-        apply (fastsimp intro: eval.Cons)
+        apply (fastforce intro: eval.Cons)
         done
     qed
   }

@@ -476,11 +476,11 @@ proof -
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"
     apply (subst SIGMA_image_vimage[symmetric, of "OB`msgs" t])
     apply (subst setsum_reindex)
-    apply (fastsimp intro!: inj_onI)
+    apply (fastforce intro!: inj_onI)
     apply simp
     apply (subst setsum_Sigma[symmetric, unfolded split_def])
-    using finite_space apply fastsimp
-    using finite_space apply fastsimp
+    using finite_space apply fastforce
+    using finite_space apply fastforce
     apply (safe intro!: setsum_cong)
     using P_t_sum_P_O
     by (simp add: setsum_divide_distrib[symmetric] field_simps **

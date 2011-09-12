@@ -1256,7 +1256,7 @@ proof -
   have "x\<in>UNIV" by auto from this[unfolded span_basis[THEN sym]]
   have "\<exists>u. (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R v) = x"
     unfolding range_basis span_insert_0 apply(subst (asm) span_finite) by auto
-  thus ?thesis by fastsimp
+  thus ?thesis by fastforce
 qed
 
 lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = UNIV"

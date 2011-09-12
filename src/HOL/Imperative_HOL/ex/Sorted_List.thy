@@ -77,7 +77,7 @@ apply (induct xs)
 apply (auto simp add: sorted_Cons)
 apply (subgoal_tac "x \<notin> set xs")
 apply (simp add: notinset_remove)
-apply fastsimp
+apply fastforce
 done
 
 lemma sorted_remove1:

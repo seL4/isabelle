@@ -56,7 +56,7 @@ primrec fold where
 
 lemma approx_merge:
   "approx t1 s \<or> approx t2 s \<Longrightarrow> approx (merge t1 t2) s"
-  by (fastsimp simp: merge_def approx_def)
+  by (fastforce simp: merge_def approx_def)
 
 lemma approx_map_le:
   "approx t2 s \<Longrightarrow> t1 \<subseteq>\<^sub>m t2 \<Longrightarrow> approx t1 s"
@@ -385,7 +385,7 @@ next
                    IF Fold.bsimp_const b t THEN bfold c1 t ELSE bfold c2 t"
     by (auto intro: equiv_up_to_if_weak simp: bequiv_up_to_def) 
   thus ?case using If
-    by (fastsimp simp: bvalsimp_const_B split: bexp.splits bool.splits 
+    by (fastforce simp: bvalsimp_const_B split: bexp.splits bool.splits 
                  intro: equiv_up_to_trans)
   next
   case (While b c)

@@ -76,7 +76,7 @@ by (auto simp:Valid_def)
 lemma CondRule:
  "p \<subseteq> {s. (s \<in> b \<longrightarrow> s \<in> w) \<and> (s \<notin> b \<longrightarrow> s \<in> w')}
   \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
-by (fastsimp simp:Valid_def image_def)
+by (fastforce simp:Valid_def image_def)
 
 lemma While_aux:
   assumes "Sem (WHILE b INV {i} DO c OD) s s'"

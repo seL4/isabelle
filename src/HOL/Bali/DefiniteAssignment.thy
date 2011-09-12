@@ -972,7 +972,7 @@ proof -
     case (UnOp unop e) 
     thus ?case
       by - (erule wt_elim_cases,cases unop,
-            (fastsimp simp add: assignsE_const_simp)+)
+            (fastforce simp add: assignsE_const_simp)+)
   next
     case (BinOp binop e1 e2)
     from BinOp.prems obtain e1T e2T

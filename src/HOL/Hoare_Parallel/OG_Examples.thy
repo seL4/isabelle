@@ -192,7 +192,7 @@ apply force
 --{* 6 subgoals left *}
 prefer 6
 apply(erule_tac x=i in allE)
-apply fastsimp
+apply fastforce
 --{* 5 subgoals left *}
 prefer 5
 apply(case_tac [!] "j=k")

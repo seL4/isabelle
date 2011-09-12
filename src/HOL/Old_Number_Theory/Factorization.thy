@@ -128,7 +128,7 @@ lemma primel_nempty_g_one:
     "primel xs \<Longrightarrow> xs \<noteq> [] \<Longrightarrow> Suc 0 < prod xs"
   apply (induct xs)
    apply simp
-  apply (fastsimp simp: primel_def prime_def elim: one_less_mult)
+  apply (fastforce simp: primel_def prime_def elim: one_less_mult)
   done
 
 lemma primel_prod_gz: "primel xs ==> 0 < prod xs"

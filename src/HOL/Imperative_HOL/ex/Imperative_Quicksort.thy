@@ -105,7 +105,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from rec_condition have "l \<le> r - 1" by arith
-      from 1(2) [OF rec_condition False rec2 `l \<le> r - 1`] show ?thesis by fastsimp
+      from 1(2) [OF rec_condition False rec2 `l \<le> r - 1`] show ?thesis by fastforce
     qed
   qed
 qed
@@ -128,7 +128,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
     case False (* recursive case *)
     with cr 1 show ?thesis
       unfolding part1.simps [of a l r p] swap_def
-      by (auto elim!: effect_bindE effect_ifE effect_nthE effect_returnE effect_updE) fastsimp
+      by (auto elim!: effect_bindE effect_ifE effect_nthE effect_returnE effect_updE) fastforce
   qed
 qed
 
@@ -158,7 +158,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from 1(1)[OF rec_condition True rec1]
-      show ?thesis by fastsimp
+      show ?thesis by fastforce
     next
       case False
       with rec_condition cr
@@ -170,7 +170,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h a ! i = Array.get h1 a ! i"
         unfolding swap_def
         by (elim effect_bindE effect_nthE effect_updE effect_returnE) auto
-      with 1(2) [OF rec_condition False rec2] show ?thesis by fastsimp
+      with 1(2) [OF rec_condition False rec2] show ?thesis by fastforce
     qed
   qed
 qed
@@ -205,7 +205,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from True part_outer_remains[OF rec1] have a_l: "Array.get h' a ! l \<le> p"
-        by fastsimp
+        by fastforce
       have "\<forall>i. (l \<le> i = (l = i \<or> Suc l \<le> i))" by arith
       with 1(1)[OF False True rec1] a_l show ?thesis
         by auto
@@ -220,7 +220,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding swap_def
         by (auto simp add: Array.length_def elim!: effect_bindE effect_nthE effect_updE effect_returnE)
       with part_outer_remains [OF rec2] lr have a_r: "Array.get h' a ! r \<ge> p"
-        by fastsimp
+        by fastforce
       have "\<forall>i. (i \<le> r = (i = r \<or> i \<le> r - 1))" by arith
       with 1(2)[OF lr False rec2] a_r show ?thesis
         by auto
@@ -268,7 +268,7 @@ lemma partition_outer_remains:
 proof -
   from assms part_outer_remains part_returns_index_in_bounds show ?thesis
     unfolding partition.simps swap_def
-    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) fastsimp
+    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) fastforce
 qed
 
 lemma partition_returns_index_in_bounds:
@@ -311,7 +311,7 @@ proof -
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
   from part_outer_remains[OF part] `l < r`
   have "Array.get h a ! r = Array.get h1 a ! r"
-    by fastsimp
+    by fastforce
   with swap
   have right_remains: "Array.get h a ! r = Array.get h' a ! rs"
     unfolding swap_def
@@ -328,7 +328,7 @@ proof -
       have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
       from i_is_left rs_equals have "l \<le> i \<and> i < middle \<or> i = middle" by arith
       with part_partitions[OF part] right_remains True
-      have "Array.get h1 a ! i \<le> Array.get h' a ! rs" by fastsimp
+      have "Array.get h1 a ! i \<le> Array.get h' a ! rs" by fastforce
       with i_props h'_def in_bounds have "Array.get h' a ! i \<le> Array.get h' a ! rs"
         unfolding Array.update_def Array.length_def by simp
     }
@@ -345,15 +345,15 @@ proof -
         have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "Array.get h' a ! rs \<le> Array.get h1 a ! i"
-          by fastsimp
-        with i_props h'_def show ?thesis by fastsimp
+          by fastforce
+        with i_props h'_def show ?thesis by fastforce
       next
         assume i_is: "rs < i \<and> i = r"
         with rs_equals have "Suc middle \<noteq> r" by arith
         with middle_in_bounds `l < r` have "Suc middle \<le> r - 1" by arith
         with part_partitions[OF part] right_remains 
         have "Array.get h' a ! rs \<le> Array.get h1 a ! (Suc middle)"
-          by fastsimp
+          by fastforce
         with i_is True rs_equals right_remains h'_def
         show ?thesis using in_bounds
           unfolding Array.update_def Array.length_def
@@ -370,7 +370,7 @@ proof -
       with swap_length_remains in_bounds middle_in_bounds rs_equals
       have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
       from part_partitions[OF part] rs_equals right_remains i_is_left
-      have "Array.get h1 a ! i \<le> Array.get h' a ! rs" by fastsimp
+      have "Array.get h1 a ! i \<le> Array.get h' a ! rs" by fastforce
       with i_props h'_def have "Array.get h' a ! i \<le> Array.get h' a ! rs"
         unfolding Array.update_def by simp
     }
@@ -386,8 +386,8 @@ proof -
         have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "Array.get h' a ! rs \<le> Array.get h1 a ! i"
-          by fastsimp
-        with i_props h'_def show ?thesis by fastsimp
+          by fastforce
+        with i_props h'_def show ?thesis by fastforce
       next
         assume i_is: "i = r"
         from i_is False rs_equals right_remains h'_def
@@ -469,7 +469,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       assume pivot: "l \<le> p \<and> p \<le> r"
       assume i_outer: "i < l \<or> r < i"
       from  partition_outer_remains [OF part True] i_outer
-      have "Array.get h a !i = Array.get h1 a ! i" by fastsimp
+      have "Array.get h a !i = Array.get h1 a ! i" by fastforce
       moreover
       with 1(1) [OF True pivot qs1] pivot i_outer
       have "Array.get h1 a ! i = Array.get h2 a ! i" by auto
@@ -579,7 +579,7 @@ next
     unfolding Array.length_def subarray_def by auto
   with length_remains[OF effect] have "sorted (Array.get h' a)"
     unfolding Array.length_def by simp
-  with quicksort_permutes [OF effect] properties_for_sort show ?thesis by fastsimp
+  with quicksort_permutes [OF effect] properties_for_sort show ?thesis by fastforce
 qed
 
 subsection {* No Errors in quicksort *}

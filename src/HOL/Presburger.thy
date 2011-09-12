@@ -28,7 +28,7 @@ lemma minf:
   "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (d dvd x + s) = (d dvd x + s)"
   "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x<z. F = F"
-  by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastsimp)+) simp_all
+  by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastforce)+) simp_all
 
 lemma pinf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x>z. P x = P' x; \<exists>z.\<forall>x>z. Q x = Q' x\<rbrakk> 
@@ -44,7 +44,7 @@ lemma pinf:
   "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (d dvd x + s) = (d dvd x + s)"
   "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x>z. F = F"
-  by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastsimp)+) simp_all
+  by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastforce)+) simp_all
 
 lemma inf_period:
   "\<lbrakk>\<forall>x k. P x = P (x - k*D); \<forall>x k. Q x = Q (x - k*D)\<rbrakk> 
@@ -342,7 +342,7 @@ qed
 
 lemma simp_from_to: "{i..j::int} = (if j < i then {} else insert i {i+1..j})"
 apply(simp add:atLeastAtMost_def atLeast_def atMost_def)
-apply(fastsimp)
+apply(fastforce)
 done
 
 theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Rings.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"

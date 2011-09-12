@@ -655,7 +655,7 @@ lemma word_size_bl: "size w = size (to_bl w)"
 
 lemma to_bl_use_of_bl:
   "(to_bl w = bl) = (w = of_bl bl \<and> length bl = length (to_bl w))"
-  by (fastsimp elim!: word_bl.Abs_inverse [simplified])
+  by (fastforce elim!: word_bl.Abs_inverse [simplified])
 
 lemma to_bl_word_rev: "to_bl (word_reverse w) = rev (to_bl w)"
   unfolding word_reverse_def by (simp add: word_bl.Abs_inverse)
@@ -3702,7 +3702,7 @@ lemma test_bit_split_eq: "word_split c = (a, b) <->
   apply (case_tac "word_split c")
   apply (frule test_bit_split)
   apply (erule trans)
-  apply (fastsimp intro ! : word_eqI simp add : word_size)
+  apply (fastforce intro ! : word_eqI simp add : word_size)
   done
 
 -- {* this odd result is analogous to @{text "ucast_id"}, 

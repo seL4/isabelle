@@ -1014,7 +1014,7 @@ lemma reduced_labelling_unique: fixes x::"nat \<Rightarrow> nat"
   using reduced_labelling[of label n x] using assms by auto
 
 lemma reduced_labelling_0: assumes "j\<in>{1..n}" "label x j = 0" shows "reduced label n x \<noteq> j - 1"
-  using reduced_labelling[of label n x] using assms by fastsimp 
+  using reduced_labelling[of label n x] using assms by fastforce 
 
 lemma reduced_labelling_1: assumes "j\<in>{1..n}" "label x j \<noteq> 0" shows "reduced label n x < j"
   using assms and reduced_labelling[of label n x] apply(erule_tac x=j in allE) by auto
@@ -1077,8 +1077,8 @@ lemma kuhn_induction:
       case True then guess j .. hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab (n + 1) x \<noteq> j - 1" apply-apply(rule reduced_labelling_0) apply assumption
         apply(rule assms(2)[rule_format]) using sa(1)[unfolded ksimplex_def] unfolding sa by auto moreover
       have "j - 1 \<in> {0..n}" using `j\<in>{1..n+1}` by auto
-      ultimately have False unfolding sa(4)[THEN sym] unfolding image_iff by fastsimp thus ?thesis by auto next
-      case False hence "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p" using sa(5) by fastsimp then guess j .. note j=this
+      ultimately have False unfolding sa(4)[THEN sym] unfolding image_iff by fastforce thus ?thesis by auto next
+      case False hence "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p" using sa(5) by fastforce then guess j .. note j=this
       thus ?thesis proof(cases "j = n+1")
         case False hence *:"j\<in>{1..n}" using j by auto
         hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab n x < j" apply(rule reduced_labelling_1) proof- fix x assume "x\<in>f"
