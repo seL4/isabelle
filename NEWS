@@ -170,6 +170,9 @@ adjustment.  INCOMPATIBILITY.
 
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
 
+* The misleading name fastsimp has been renamed to fastforce,
+  but fastsimp is still available as a legacy feature.
+
 * Nitpick:
   - Added "need" and "total_consts" options.
   - Reintroduced "show_skolems" option by popular demand.
