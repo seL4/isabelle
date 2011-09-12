@@ -266,6 +266,12 @@ been renamed accordingly. INCOMPATIBILITY.
 * Theory Limits: Type "'a net" has been renamed to "'a filter", in
 accordance with standard mathematical terminology. INCOMPATIBILITY.
 
+* Session Multivariate_Analysis: The euclidean_space type class now
+fixes a constant "Basis :: 'a set" consisting of the standard
+orthonormal basis for the type. Users now have the option of
+quantifying over this set instead of using the "basis" function, e.g.
+"ALL x:Basis. P x" vs "ALL i<DIM('a). P (basis i)".
+
 * Session Multivariate_Analysis: Type "('a, 'b) cart" has been renamed
 to "('a, 'b) vec" (the syntax "'a ^ 'b" remains unaffected). Constants
 "Cart_nth" and "Cart_lambda" have been respectively renamed to
@@ -414,8 +420,9 @@ replaced by more general versions. INCOMPATIBILITY.
   LIM_inverse_fun ~> tendsto_inverse [OF tendsto_ident_at]
 
 * Theory Complex_Main: The definition of infinite series was generalized.
-  Now it is defined on the type class {topological_spaces, comm_monoid_add}.
+  Now it is defined on the type class {topological_space, comm_monoid_add}.
   Hence it is useable also for extended real numbers.
+
 
 *** Document preparation ***
 
