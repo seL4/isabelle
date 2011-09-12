@@ -1439,7 +1439,7 @@ next assume "\<forall>e>0. \<exists>d. ?P e d" hence "\<forall>n::nat. \<exists>
         apply(rule less_trans[OF _ N[THEN conjunct2,THEN conjunct2]]) apply(subst *) apply(rule d(2))
         using dp p(1) using mn by auto 
     qed qed
-  then guess y unfolding convergent_eq_cauchy[THEN sym] .. note y=this[unfolded Lim_sequentially,rule_format]
+  then guess y unfolding convergent_eq_cauchy[THEN sym] .. note y=this[THEN LIMSEQ_D]
   show ?l unfolding integrable_on_def has_integral apply(rule_tac x=y in exI)
   proof(rule,rule) fix e::real assume "e>0" hence *:"e/2 > 0" by auto
     then guess N1 unfolding real_arch_inv[of "e/2"] .. note N1=this hence N1':"N1 = N1 - 1 + 1" by auto
@@ -1451,7 +1451,7 @@ next assume "\<forall>e>0. \<exists>d. ?P e d" hence "\<forall>n::nat. \<exists>
       have *:"inverse (real (N1 + N2 + 1)) < e / 2" apply(rule less_trans) using N1 by auto
       show "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e" apply(rule norm_triangle_half_r)
         apply(rule less_trans[OF _ *]) apply(subst N1', rule d(2)[of "p (N1+N2)"]) defer
-        using N2[rule_format,unfolded dist_norm,of "N1+N2"]
+        using N2[rule_format,of "N1+N2"]
         using as dp[of "N1 - 1 + 1 + N2" "N1 + N2"] using p(1)[of "N1 + N2"] using N1 by auto qed qed qed
 
 subsection {* Additivity of integral on abutting intervals. *}
@@ -2435,7 +2435,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
   show ?thesis unfolding integrable_on_def apply(rule_tac x=s in exI) unfolding has_integral
   proof(rule,rule)  
     case goal1 hence *:"e/3 > 0" by auto
-    from s[unfolded Lim_sequentially,rule_format,OF this] guess N1 .. note N1=this
+    from LIMSEQ_D [OF s this] guess N1 .. note N1=this
     from goal1 as have "e / 3 / content {a..b} > 0" by(auto simp add:field_simps)
     from real_arch_invD[OF this] guess N2 apply-by(erule exE conjE)+ note N2=this
     from i[of "N1 + N2",unfolded has_integral,rule_format,OF *] guess g' .. note g'=conjunctD2[OF this,rule_format]
@@ -2456,7 +2456,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
           apply-apply(rule less_le_trans,assumption) using `e>0` by auto 
         thus "inverse (real (N1 + N2) + 1) * content {a..b} \<le> e / 3"
           unfolding inverse_eq_divide by(auto simp add:field_simps)
-        show "norm (i (N1 + N2) - s) < e / 3" by(rule N1[rule_format,unfolded dist_norm],auto)
+        show "norm (i (N1 + N2) - s) < e / 3" by(rule N1[rule_format],auto)
       qed qed qed qed
 
 subsection {* Negligible sets. *}
@@ -3066,7 +3066,7 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
     apply(rule division_ofI) defer apply(rule_tac[1-4] s) using assm(1) by auto
   moreover have "{ka \<in> s - {k}. content ka \<noteq> 0} = {k \<in> s. content k \<noteq> 0}" using k by auto ultimately show ?thesis by auto qed
 
-subsection {* Integrabibility on subintervals. *}
+subsection {* Integrability on subintervals. *}
 
 lemma operative_integrable: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach" shows
   "operative op \<and> (\<lambda>i. f integrable_on i)"
@@ -4104,7 +4104,7 @@ next assume ?r note as = conjunctD2[OF this,rule_format]
           using n N by(auto simp add:field_simps) qed }
     thus ?case apply-apply(rule_tac x=N in exI) apply safe unfolding dist_norm apply(rule B(2)) by auto
   qed from this[unfolded convergent_eq_cauchy[THEN sym]] guess i ..
-  note i = this[unfolded Lim_sequentially, rule_format]
+  note i = this[THEN LIMSEQ_D]
 
   show ?l unfolding integrable_on_def has_integral_alt'[of f] apply(rule_tac x=i in exI)
     apply safe apply(rule as(1)[unfolded integrable_on_def])
@@ -4117,7 +4117,7 @@ next assume ?r note as = conjunctD2[OF this,rule_format]
       from real_arch_simple[of ?B] guess n .. note n=this
       show "norm (integral {a..b} (\<lambda>x. if x \<in> s then f x else 0) - i) < e"
         apply(rule norm_triangle_half_l) apply(rule B(2)) defer apply(subst norm_minus_commute)
-        apply(rule N[unfolded dist_norm, of n])
+        apply(rule N[of n])
       proof safe show "N \<le> n" using n by auto
         fix x::"'n::ordered_euclidean_space" assume x:"x \<in> ball 0 B" hence "x\<in> ball 0 ?B" by auto
         thus "x\<in>{a..b}" using ab by blast 
@@ -4555,17 +4555,17 @@ next assume ab:"content {a..b} \<noteq> 0"
 
     have "\<exists>r. \<forall>k\<ge>r. 0 \<le> i$$0 - (integral {a..b} (f k)) \<and> i$$0 - (integral {a..b} (f k)) < e / 4"
     proof- case goal1 have "e/4 > 0" using e by auto
-      from i[unfolded Lim_sequentially,rule_format,OF this] guess r ..
+      from LIMSEQ_D [OF i this] guess r ..
       thus ?case apply(rule_tac x=r in exI) apply rule
         apply(erule_tac x=k in allE)
-      proof- case goal1 thus ?case using i'[of k] unfolding dist_real_def by auto qed qed
+      proof- case goal1 thus ?case using i'[of k] by auto qed qed
     then guess r .. note r=conjunctD2[OF this[rule_format]]
 
     have "\<forall>x\<in>{a..b}. \<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)$$0 - (f k x)$$0 \<and>
            (g x)$$0 - (f k x)$$0 < e / (4 * content({a..b}))"
     proof case goal1 have "e / (4 * content {a..b}) > 0" apply(rule divide_pos_pos,fact)
         using ab content_pos_le[of a b] by auto
-      from assms(3)[rule_format,OF goal1,unfolded Lim_sequentially,rule_format,OF this]
+      from assms(3)[rule_format, OF goal1, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       thus ?case apply(rule_tac x="n + r" in exI) apply safe apply(erule_tac[2-3] x=k in allE)
         unfolding dist_real_def using fg[rule_format,OF goal1] by(auto simp add:field_simps) qed
@@ -4697,22 +4697,22 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
 
     have "(g has_integral i) s" unfolding has_integral_alt' apply safe apply(rule g(1))
     proof- case goal1 hence "e/4>0" by auto
-      from i[unfolded Lim_sequentially,rule_format,OF this] guess N .. note N=this
+      from LIMSEQ_D [OF i this] guess N .. note N=this
       note assms(2)[of N,unfolded has_integral_integral has_integral_alt'[of "f N"]]
       from this[THEN conjunct2,rule_format,OF `e/4>0`] guess B .. note B=conjunctD2[OF this]
       show ?case apply(rule,rule,rule B,safe)
       proof- fix a b::"'n::ordered_euclidean_space" assume ab:"ball 0 B \<subseteq> {a..b}"
         from `e>0` have "e/2>0" by auto
-        from g(2)[unfolded Lim_sequentially,of a b,rule_format,OF this] guess M .. note M=this
+        from LIMSEQ_D [OF g(2)[of a b] this] guess M .. note M=this
         have **:"norm (integral {a..b} (\<lambda>x. if x \<in> s then f N x else 0) - i) < e/2"
           apply(rule norm_triangle_half_l) using B(2)[rule_format,OF ab] N[rule_format,of N]
-          unfolding dist_norm apply-defer apply(subst norm_minus_commute) by auto
+          apply-defer apply(subst norm_minus_commute) by auto
         have *:"\<And>f1 f2 g. abs(f1 - i) < e / 2 \<longrightarrow> abs(f2 - g) < e / 2 \<longrightarrow> f1 \<le> f2 \<longrightarrow> f2 \<le> i
           \<longrightarrow> abs(g - i) < e" unfolding Eucl_real_simps by arith
         show "norm (integral {a..b} (\<lambda>x. if x \<in> s then g x else 0) - i) < e" 
           unfolding real_norm_def apply(rule *[rule_format])
           apply(rule **[unfolded real_norm_def])
-          apply(rule M[rule_format,of "M + N",unfolded dist_real_def]) apply(rule le_add1)
+          apply(rule M[rule_format,of "M + N",unfolded real_norm_def]) apply(rule le_add1)
           apply(rule integral_le[OF int int]) defer
           apply(rule order_trans[OF _ i'[rule_format,of "M + N",unfolded Eucl_real_simps]])
         proof safe case goal2 have "\<And>m. x\<in>s \<Longrightarrow> \<forall>n\<ge>m. (f m x)$$0 \<le> (f n x)$$0"
@@ -5440,23 +5440,22 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
       apply(rule_tac x=xa in bexI) by auto
     let ?S = "{f j x| j.  m \<le> j}" def i \<equiv> "Inf ?S"
     show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
-      unfolding Lim_sequentially
-    proof safe case goal1 note e=this have i:"isGlb UNIV ?S i" unfolding i_def apply(rule Inf)
+    proof (rule LIMSEQ_I) case goal1 note r=this have i:"isGlb UNIV ?S i" unfolding i_def apply(rule Inf)
         defer apply(rule_tac x="- h x - 1" in exI) unfolding setge_def
       proof safe case goal1 thus ?case using assms(3)[rule_format,OF x, of j] by auto
       qed auto
 
-      have "\<exists>y\<in>?S. \<not> y \<ge> i + e"
-      proof(rule ccontr) case goal1 hence "i \<ge> i + e" apply-
+      have "\<exists>y\<in>?S. \<not> y \<ge> i + r"
+      proof(rule ccontr) case goal1 hence "i \<ge> i + r" apply-
           apply(rule isGlb_le_isLb[OF i]) apply(rule isLbI) unfolding setge_def by fastforce+
-        thus False using e by auto
+        thus False using r by auto
       qed then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
       
       show ?case apply(rule_tac x=N in exI)
       proof safe case goal1
-        have *:"\<And>y ix. y < i + e \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < e" by arith
-        show ?case unfolding dist_real_def apply(rule *[rule_format,OF y(2)])
+        have *:"\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r" by arith
+        show ?case unfolding real_norm_def apply(rule *[rule_format,OF y(2)])
           unfolding i_def apply(rule real_le_inf_subset) prefer 3
           apply(rule,rule isGlbD1[OF i]) prefer 3 apply(subst Inf_finite_le_iff)
           prefer 3 apply(rule_tac x=y in bexI) using N goal1 by auto
@@ -5484,23 +5483,22 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
       defer apply rule apply(subst Sup_finite_ge_iff) prefer 3 apply(rule_tac x=y in bexI) by auto
     let ?S = "{f j x| j.  m \<le> j}" def i \<equiv> "Sup ?S"
     show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
-      unfolding Lim_sequentially
-    proof safe case goal1 note e=this have i:"isLub UNIV ?S i" unfolding i_def apply(rule Sup)
+    proof (rule LIMSEQ_I) case goal1 note r=this have i:"isLub UNIV ?S i" unfolding i_def apply(rule Sup)
         defer apply(rule_tac x="h x" in exI) unfolding setle_def
       proof safe case goal1 thus ?case using assms(3)[rule_format,OF x, of j] by auto
       qed auto
       
-      have "\<exists>y\<in>?S. \<not> y \<le> i - e"
-      proof(rule ccontr) case goal1 hence "i \<le> i - e" apply-
+      have "\<exists>y\<in>?S. \<not> y \<le> i - r"
+      proof(rule ccontr) case goal1 hence "i \<le> i - r" apply-
           apply(rule isLub_le_isUb[OF i]) apply(rule isUbI) unfolding setle_def by fastforce+
-        thus False using e by auto
+        thus False using r by auto
       qed then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
       
       show ?case apply(rule_tac x=N in exI)
       proof safe case goal1
-        have *:"\<And>y ix. i - e < y \<longrightarrow> ix \<le> i \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - i) < e" by arith
-        show ?case unfolding dist_real_def apply(rule *[rule_format,OF y(2)])
+        have *:"\<And>y ix. i - r < y \<longrightarrow> ix \<le> i \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - i) < r" by arith
+        show ?case unfolding real_norm_def apply(rule *[rule_format,OF y(2)])
           unfolding i_def apply(rule real_ge_sup_subset) prefer 3
           apply(rule,rule isLubD1[OF i]) prefer 3 apply(subst Sup_finite_ge_iff)
           prefer 3 apply(rule_tac x=y in bexI) using N goal1 by auto
@@ -5521,12 +5519,12 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
       apply(rule real_le_inf_subset) prefer 3 unfolding setge_def
       apply(rule_tac x="- h x" in exI) apply safe apply(rule *)
       using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
-    show "((\<lambda>k. Inf {f j x |j. k \<le> j}) ---> g x) sequentially" unfolding Lim_sequentially
-    proof safe case goal1 hence "0<e/2" by auto
-      from assms(4)[unfolded Lim_sequentially,rule_format,OF x this] guess N .. note N=this
-      show ?case apply(rule_tac x=N in exI,safe) unfolding dist_real_def
-        apply(rule le_less_trans[of _ "e/2"]) apply(rule Inf_asclose) apply safe
-        defer apply(rule less_imp_le) using N goal1 unfolding dist_real_def by auto
+    show "((\<lambda>k. Inf {f j x |j. k \<le> j}) ---> g x) sequentially"
+    proof (rule LIMSEQ_I) case goal1 hence "0<r/2" by auto
+      from assms(4)[THEN bspec, THEN LIMSEQ_D, OF x this] guess N .. note N=this
+      show ?case apply(rule_tac x=N in exI,safe) unfolding real_norm_def
+        apply(rule le_less_trans[of _ "r/2"]) apply(rule Inf_asclose) apply safe
+        defer apply(rule less_imp_le) using N goal1 by auto
     qed qed note inc2 = conjunctD2[OF this]
 
   have "g integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) ---> integral s g) sequentially"
@@ -5543,23 +5541,23 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
       apply(rule real_ge_sup_subset) prefer 3 unfolding setle_def
       apply(rule_tac x="h x" in exI) apply safe
       using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
-    show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially" unfolding Lim_sequentially
-    proof safe case goal1 hence "0<e/2" by auto
-      from assms(4)[unfolded Lim_sequentially,rule_format,OF x this] guess N .. note N=this
-      show ?case apply(rule_tac x=N in exI,safe) unfolding dist_real_def
-        apply(rule le_less_trans[of _ "e/2"]) apply(rule Sup_asclose) apply safe
-        defer apply(rule less_imp_le) using N goal1 unfolding dist_real_def by auto
+    show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
+    proof (rule LIMSEQ_I) case goal1 hence "0<r/2" by auto
+      from assms(4)[THEN bspec, THEN LIMSEQ_D, OF x this] guess N .. note N=this
+      show ?case apply(rule_tac x=N in exI,safe) unfolding real_norm_def
+        apply(rule le_less_trans[of _ "r/2"]) apply(rule Sup_asclose) apply safe
+        defer apply(rule less_imp_le) using N goal1 by auto
     qed qed note dec2 = conjunctD2[OF this]
 
   show "g integrable_on s" by fact
-  show "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially" unfolding Lim_sequentially
-  proof safe case goal1
-    from inc2(2)[unfolded Lim_sequentially,rule_format,OF goal1] guess N1 .. note N1=this[unfolded dist_real_def]
-    from dec2(2)[unfolded Lim_sequentially,rule_format,OF goal1] guess N2 .. note N2=this[unfolded dist_real_def]
+  show "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+  proof (rule LIMSEQ_I) case goal1
+    from LIMSEQ_D [OF inc2(2) goal1] guess N1 .. note N1=this[unfolded real_norm_def]
+    from LIMSEQ_D [OF dec2(2) goal1] guess N2 .. note N2=this[unfolded real_norm_def]
     show ?case apply(rule_tac x="N1+N2" in exI,safe)
     proof- fix n assume n:"n \<ge> N1 + N2"
-      have *:"\<And>i0 i i1 g. \<bar>i0 - g\<bar> < e \<longrightarrow> \<bar>i1 - g\<bar> < e \<longrightarrow> i0 \<le> i \<longrightarrow> i \<le> i1 \<longrightarrow> \<bar>i - g\<bar> < e" by arith
-      show "dist (integral s (f n)) (integral s g) < e" unfolding dist_real_def
+      have *:"\<And>i0 i i1 g. \<bar>i0 - g\<bar> < r \<longrightarrow> \<bar>i1 - g\<bar> < r \<longrightarrow> i0 \<le> i \<longrightarrow> i \<le> i1 \<longrightarrow> \<bar>i - g\<bar> < r" by arith
+      show "norm (integral s (f n) - integral s g) < r" unfolding real_norm_def
         apply(rule *[rule_format,OF N1[rule_format] N2[rule_format], of n n])
       proof- show "integral s (\<lambda>x. Inf {f j x |j. n \<le> j}) \<le> integral s (f n)"
         proof(rule integral_le[OF dec1(1) assms(1)],safe) 
