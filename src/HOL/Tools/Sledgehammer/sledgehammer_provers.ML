@@ -696,9 +696,8 @@ fun run_atp mode name
                        SOME facts =>
                        let
                          val failure =
-                           (if is_type_enc_quasi_sound type_enc then SOME sound
-                            else NONE, facts)
-                           |> UnsoundProof
+                           UnsoundProof (is_type_enc_quasi_sound type_enc,
+                                         facts)
                        in
                          if debug then
                            (warning (string_for_failure failure); NONE)
