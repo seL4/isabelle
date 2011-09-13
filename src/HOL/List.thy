@@ -3867,6 +3867,9 @@ lemma insort_not_Nil [simp]:
 lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
 by (cases xs) auto
 
+lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
+  by (induct xs) (auto simp add: sorted_Cons insort_is_Cons)
+
 lemma sorted_map_remove1:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
   by (induct xs) (auto simp add: sorted_Cons)
