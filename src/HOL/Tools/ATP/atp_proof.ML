@@ -19,7 +19,7 @@ sig
     GaveUp |
     ProofMissing |
     ProofIncomplete |
-    UnsoundProof of bool option * string list | (* FIXME: doesn't belong here *)
+    UnsoundProof of bool * string list |
     CantConnect |
     TimedOut |
     Inappropriate |
@@ -76,7 +76,7 @@ datatype failure =
   GaveUp |
   ProofMissing |
   ProofIncomplete |
-  UnsoundProof of bool option * string list |
+  UnsoundProof of bool * string list |
   CantConnect |
   TimedOut |
   Inappropriate |
@@ -120,15 +120,11 @@ fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure ProofIncomplete =
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \proof."
-  | string_for_failure (UnsoundProof (NONE, ss)) =
+  | string_for_failure (UnsoundProof (false, ss)) =
     "The prover found a type-unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Specify a sound type \
     \encoding or omit the \"type_enc\" option."
-  | string_for_failure (UnsoundProof (SOME false, ss)) =
-    "The prover found a type-unsound proof " ^ involving ss ^
-    "(or, less likely, your axioms are inconsistent). Try passing the \
-    \\"sound\" option to Sledgehammer to avoid such spurious proofs."
-  | string_for_failure (UnsoundProof (SOME true, ss)) =
+  | string_for_failure (UnsoundProof (true, ss)) =
     "The prover found a type-unsound proof " ^ involving ss ^
     "even though a supposedly type-sound encoding was used (or, less likely, \
     \your axioms are inconsistent). Please report this to the Isabelle \
