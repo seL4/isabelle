@@ -933,7 +933,7 @@ text {*
     @{method_def fast} & : & @{text method} \\
     @{method_def slow} & : & @{text method} \\
     @{method_def best} & : & @{text method} \\
-    @{method_def fastsimp} & : & @{text method} \\
+    @{method_def fastforce} & : & @{text method} \\
     @{method_def slowsimp} & : & @{text method} \\
     @{method_def bestsimp} & : & @{text method} \\
     @{method_def deepen} & : & @{text method} \\
@@ -948,7 +948,7 @@ text {*
     ;
     (@@{method fast} | @@{method slow} | @@{method best}) (@{syntax clamod} * )
     ;
-    (@@{method fastsimp} | @@{method slowsimp} | @@{method bestsimp})
+    (@@{method fastforce} | @@{method slowsimp} | @@{method bestsimp})
       (@{syntax clasimpmod} * )
     ;
     @@{method deepen} (@{syntax nat} ?) (@{syntax clamod} * )
@@ -975,7 +975,7 @@ text {*
   \begin{itemize}
 
   \item It does not use the classical wrapper tacticals, such as the
-  integration with the Simplifier of @{method fastsimp}.
+  integration with the Simplifier of @{method fastforce}.
 
   \item It does not perform higher-order unification, as needed by the
   rule @{thm [source=false] rangeI} in HOL.  There are often
@@ -1033,9 +1033,11 @@ text {*
   search: it may, when backtracking from a failed proof attempt, undo
   even the step of proving a subgoal by assumption.
 
-  \item @{method fastsimp}, @{method slowsimp}, @{method bestsimp} are
+  \item @{method fastforce}, @{method slowsimp}, @{method bestsimp} are
   like @{method fast}, @{method slow}, @{method best}, respectively,
-  but use the Simplifier as additional wrapper.
+  but use the Simplifier as additional wrapper. The name @{method fastforce},
+  as opposed to @{text fastsimp}, reflects the behaviour of this popular
+  method better without requiring an understanding of its implementation.
 
   \item @{method deepen} works by exhaustive search up to a certain
   depth.  The start depth is 4 (unless specified explicitly), and the

@@ -1379,7 +1379,7 @@ The proof tools of the Classical Reasoner depend on
     \indexdef{}{method}{fast}\hypertarget{method.fast}{\hyperlink{method.fast}{\mbox{\isa{fast}}}} & : & \isa{method} \\
     \indexdef{}{method}{slow}\hypertarget{method.slow}{\hyperlink{method.slow}{\mbox{\isa{slow}}}} & : & \isa{method} \\
     \indexdef{}{method}{best}\hypertarget{method.best}{\hyperlink{method.best}{\mbox{\isa{best}}}} & : & \isa{method} \\
-    \indexdef{}{method}{fastsimp}\hypertarget{method.fastsimp}{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}} & : & \isa{method} \\
+    \indexdef{}{method}{fastforce}\hypertarget{method.fastforce}{\hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}} & : & \isa{method} \\
     \indexdef{}{method}{slowsimp}\hypertarget{method.slowsimp}{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{deepen}\hypertarget{method.deepen}{\hyperlink{method.deepen}{\mbox{\isa{deepen}}}} & : & \isa{method} \\
@@ -1431,7 +1431,7 @@ The proof tools of the Classical Reasoner depend on
 \rail@end
 \rail@begin{3}{}
 \rail@bar
-\rail@term{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}}[]
+\rail@term{\hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}}[]
 \rail@nextbar{1}
 \rail@term{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}}[]
 \rail@nextbar{2}
@@ -1549,7 +1549,7 @@ The proof tools of the Classical Reasoner depend on
   \begin{itemize}
 
   \item It does not use the classical wrapper tacticals, such as the
-  integration with the Simplifier of \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}.
+  integration with the Simplifier of \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}.
 
   \item It does not perform higher-order unification, as needed by the
   rule \isa{{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ range\ {\isaliteral{3F}{\isacharquery}}f} in HOL.  There are often
@@ -1605,9 +1605,11 @@ The proof tools of the Classical Reasoner depend on
   search: it may, when backtracking from a failed proof attempt, undo
   even the step of proving a subgoal by assumption.
 
-  \item \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} are
+  \item \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} are
   like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, respectively,
-  but use the Simplifier as additional wrapper.
+  but use the Simplifier as additional wrapper. The name \hyperlink{method.fastforce}{\mbox{\isa{fastforce}}},
+  as opposed to \isa{fastsimp}, reflects the behaviour of this popular
+  method better without requiring an understanding of its implementation.
 
   \item \hyperlink{method.deepen}{\mbox{\isa{deepen}}} works by exhaustive search up to a certain
   depth.  The start depth is 4 (unless specified explicitly), and the
