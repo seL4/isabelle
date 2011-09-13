@@ -1433,11 +1433,10 @@ lemma Inf_fin_Inf:
 proof -
   interpret ab_semigroup_idem_mult inf
     by (rule ab_semigroup_idem_mult_inf)
-  from `A \<noteq> {}` obtain b B where "A = insert b B" by auto
+  from `A \<noteq> {}` obtain b B where "A = {b} \<union> B" by auto
   moreover with `finite A` have "finite B" by simp
-  ultimately show ?thesis  
-  by (simp add: Inf_fin_def fold1_eq_fold_idem inf_Inf_fold_inf [symmetric])
-    (simp add: Inf_fold_inf)
+  ultimately show ?thesis
+    by (simp add: Inf_fin_def fold1_eq_fold_idem inf_Inf_fold_inf [symmetric])
 qed
 
 lemma Sup_fin_Sup:
@@ -1446,11 +1445,10 @@ lemma Sup_fin_Sup:
 proof -
   interpret ab_semigroup_idem_mult sup
     by (rule ab_semigroup_idem_mult_sup)
-  from `A \<noteq> {}` obtain b B where "A = insert b B" by auto
+  from `A \<noteq> {}` obtain b B where "A = {b} \<union> B" by auto
   moreover with `finite A` have "finite B" by simp
   ultimately show ?thesis  
   by (simp add: Sup_fin_def fold1_eq_fold_idem sup_Sup_fold_sup [symmetric])
-    (simp add: Sup_fold_sup)
 qed
 
 end

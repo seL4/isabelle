@@ -1506,7 +1506,8 @@ next
       proof cases
         assume "\<forall>i. f i = 0"
         moreover then have "range f = {0}" by auto
-        ultimately show "c * SUPR UNIV f \<le> y" using * by (auto simp: SUPR_def)
+        ultimately show "c * SUPR UNIV f \<le> y" using *
+          by (auto simp: SUPR_def min_max.sup_absorb1)
       next
         assume "\<not> (\<forall>i. f i = 0)"
         then obtain i where "f i \<noteq> 0" by auto
@@ -1568,7 +1569,8 @@ proof (cases "Sup A")
         hence "0 < r" using `0 < e` by auto
         then obtain n ::nat where *: "1 / real n < r" "0 < n"
           using ex_inverse_of_nat_less by (auto simp: real_eq_of_nat inverse_eq_divide)
-        have "Sup A \<le> f n + 1 / ereal (real n)" using f[THEN spec, of n] by auto
+        have "Sup A \<le> f n + 1 / ereal (real n)" using f[THEN spec, of n]
+          by auto
         also have "1 / ereal (real n) \<le> e" using real * by (auto simp: one_ereal_def )
         with bound have "f n + 1 / ereal (real n) \<le> y + e" by (rule add_mono) simp
         finally show "Sup A \<le> y + e" .
@@ -1625,7 +1627,7 @@ proof (rule antisym)
   then show "Sup ((\<lambda>x. a + x) ` A) \<le> a + Sup A" .
   show "a + Sup A \<le> Sup ((\<lambda>x. a + x) ` A)"
   proof (cases a)
-    case PInf with `A \<noteq> {}` show ?thesis by (auto simp: image_constant)
+    case PInf with `A \<noteq> {}` show ?thesis by (auto simp: image_constant min_max.sup_absorb1)
   next
     case (real r)
     then have **: "op + (- a) ` op + a ` A = A"

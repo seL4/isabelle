@@ -613,7 +613,7 @@ lemma (in ring_of_sets) inf_measure_increasing:
   assumes posf: "positive M f"
   shows "increasing \<lparr> space = space M, sets = Pow (space M) \<rparr>
                     (\<lambda>x. Inf (measure_set M f x))"
-apply (auto simp add: increasing_def)
+apply (clarsimp simp add: increasing_def)
 apply (rule complete_lattice_class.Inf_greatest)
 apply (rule complete_lattice_class.Inf_lower)
 apply (clarsimp simp add: measure_set_def, rule_tac x=A in exI, blast)

@@ -77,7 +77,7 @@ lemma cl_mono: "r \<subseteq> r' ==> cl L r \<subseteq> cl L r'"
 by (simp add: cl_def, blast)
 
 lemma subset_cl: "r \<subseteq> cl L r"
-by (simp add: cl_def, blast)
+by (simp add: cl_def le_Inf_iff)
 
 text{*A reformulation of @{thm subset_cl}*}
 lemma clI: "x \<in> r ==> x \<in> cl L r"

@@ -377,19 +377,18 @@ proof
   have [simp]: "1 \<le> star a"
     unfolding star_cont[of 1 a 1, simplified] 
     by (subst power_0[symmetric]) (rule le_SUPI [OF UNIV_I])
-  
-  show "1 + a * star a \<le> star a"
-    apply (rule plus_leI, simp)
-    apply (simp add:star_cont[of a a 1, simplified])
-    apply (simp add:star_cont[of 1 a 1, simplified])
-    apply (subst power_Suc[symmetric])
-    by (intro SUP_leI le_SUPI UNIV_I)
 
-  show "1 + star a * a \<le> star a" 
-    apply (rule plus_leI, simp)
-    apply (simp add:star_cont[of 1 a a, simplified])
-    apply (simp add:star_cont[of 1 a 1, simplified])
-    by (auto intro: SUP_leI le_SUPI simp add: power_Suc[symmetric] power_commutes simp del: power_Suc)
+  have "a * star a \<le> star a"
+    using star_cont[of a a 1] star_cont[of 1 a 1]
+    by (auto simp add: power_Suc[symmetric] simp del: power_Suc
+      intro: SUP_leI le_SUPI)
+
+  then show "1 + a * star a \<le> star a"
+    by simp
+
+  then show "1 + star a * a \<le> star a"
+    using star_cont[of a a 1] star_cont[of 1 a a]
+    by (simp add: power_commutes)
 
   show "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
   proof -

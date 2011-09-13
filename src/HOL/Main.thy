@@ -11,17 +11,4 @@ text {*
 
 text {* See further \cite{Nipkow-et-al:2002:tutorial} *}
 
-text {* Compatibility layer -- to be dropped *}
-
-lemma Inf_bool_def:
-  "Inf A \<longleftrightarrow> (\<forall>x\<in>A. x)"
-  by (auto intro: bool_induct)
-
-lemma Sup_bool_def:
-  "Sup A \<longleftrightarrow> (\<exists>x\<in>A. x)"
-  by auto
-
-declare Complete_Lattices.Inf_bool_def [simp del]
-declare Complete_Lattices.Sup_bool_def [simp del]
-
 end

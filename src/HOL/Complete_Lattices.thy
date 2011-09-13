@@ -126,16 +126,16 @@ lemma Sup_upper2: "u \<in> A \<Longrightarrow> v \<sqsubseteq> u \<Longrightarro
 lemma SUP_upper2: "i \<in> A \<Longrightarrow> u \<sqsubseteq> f i \<Longrightarrow> u \<sqsubseteq> (\<Squnion>i\<in>A. f i)"
   using SUP_upper [of i A f] by auto
 
-lemma le_Inf_iff (*[simp]*): "b \<sqsubseteq> \<Sqinter>A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
+lemma le_Inf_iff: "b \<sqsubseteq> \<Sqinter>A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
   by (auto intro: Inf_greatest dest: Inf_lower)
 
-lemma le_INF_iff (*[simp]*): "u \<sqsubseteq> (\<Sqinter>i\<in>A. f i) \<longleftrightarrow> (\<forall>i\<in>A. u \<sqsubseteq> f i)"
+lemma le_INF_iff: "u \<sqsubseteq> (\<Sqinter>i\<in>A. f i) \<longleftrightarrow> (\<forall>i\<in>A. u \<sqsubseteq> f i)"
   by (auto simp add: INF_def le_Inf_iff)
 
-lemma Sup_le_iff (*[simp]*): "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
+lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
   by (auto intro: Sup_least dest: Sup_upper)
 
-lemma SUP_le_iff (*[simp]*): "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i\<in>A. f i \<sqsubseteq> u)"
+lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i\<in>A. f i \<sqsubseteq> u)"
   by (auto simp add: SUP_def Sup_le_iff)
 
 lemma Inf_empty [simp]:
@@ -160,22 +160,22 @@ lemma Sup_UNIV [simp]:
   "\<Squnion>UNIV = \<top>"
   by (auto intro!: antisym Sup_upper)
 
-lemma Inf_insert (*[simp]*): "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
+lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
 lemma INF_insert: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFI A f"
   by (simp add: INF_def Inf_insert)
 
-lemma Sup_insert (*[simp]*): "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
 lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPR A f"
   by (simp add: SUP_def Sup_insert)
 
-lemma INF_image (*[simp]*): "(\<Sqinter>x\<in>f`A. g x) = (\<Sqinter>x\<in>A. g (f x))"
+lemma INF_image [simp]: "(\<Sqinter>x\<in>f`A. g x) = (\<Sqinter>x\<in>A. g (f x))"
   by (simp add: INF_def image_image)
 
-lemma SUP_image (*[simp]*): "(\<Squnion>x\<in>f`A. g x) = (\<Squnion>x\<in>A. g (f x))"
+lemma SUP_image [simp]: "(\<Squnion>x\<in>f`A. g x) = (\<Squnion>x\<in>A. g (f x))"
   by (simp add: SUP_def image_image)
 
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> a}"
@@ -210,7 +210,7 @@ qed
 
 lemma INF_mono:
   "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<sqsubseteq> g m) \<Longrightarrow> (\<Sqinter>n\<in>A. f n) \<sqsubseteq> (\<Sqinter>n\<in>B. g n)"
-  by (force intro!: Inf_mono simp: INF_def)
+  unfolding INF_def by (rule Inf_mono) fast
 
 lemma Sup_mono:
   assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<sqsubseteq> b"
@@ -224,7 +224,7 @@ qed
 
 lemma SUP_mono:
   "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<sqsubseteq> g m) \<Longrightarrow> (\<Squnion>n\<in>A. f n) \<sqsubseteq> (\<Squnion>n\<in>B. g n)"
-  by (force intro!: Sup_mono simp: SUP_def)
+  unfolding SUP_def by (rule Sup_mono) fast
 
 lemma INF_superset_mono:
   "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
@@ -278,11 +278,14 @@ lemma SUP_union:
 lemma INF_inf_distrib: "(\<Sqinter>a\<in>A. f a) \<sqinter> (\<Sqinter>a\<in>A. g a) = (\<Sqinter>a\<in>A. f a \<sqinter> g a)"
   by (rule antisym) (rule INF_greatest, auto intro: le_infI1 le_infI2 INF_lower INF_mono)
 
-lemma SUP_sup_distrib: "(\<Squnion>a\<in>A. f a) \<squnion> (\<Squnion>a\<in>A. g a) = (\<Squnion>a\<in>A. f a \<squnion> g a)"
-  by (rule antisym) (auto intro: le_supI1 le_supI2 SUP_upper SUP_mono,
-    rule SUP_least, auto intro: le_supI1 le_supI2 SUP_upper SUP_mono)
+lemma SUP_sup_distrib: "(\<Squnion>a\<in>A. f a) \<squnion> (\<Squnion>a\<in>A. g a) = (\<Squnion>a\<in>A. f a \<squnion> g a)" (is "?L = ?R")
+proof (rule antisym)
+  show "?L \<le> ?R" by (auto intro: le_supI1 le_supI2 SUP_upper SUP_mono)
+next
+  show "?R \<le> ?L" by (rule SUP_least) (auto intro: le_supI1 le_supI2 SUP_upper)
+qed
 
-lemma Inf_top_conv (*[simp]*) [no_atp]:
+lemma Inf_top_conv [simp, no_atp]:
   "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
   "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
 proof -
@@ -304,12 +307,12 @@ proof -
   then show "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)" by auto
 qed
 
-lemma INF_top_conv (*[simp]*):
+lemma INF_top_conv [simp]:
  "(\<Sqinter>x\<in>A. B x) = \<top> \<longleftrightarrow> (\<forall>x\<in>A. B x = \<top>)"
  "\<top> = (\<Sqinter>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. B x = \<top>)"
   by (auto simp add: INF_def Inf_top_conv)
 
-lemma Sup_bot_conv (*[simp]*) [no_atp]:
+lemma Sup_bot_conv [simp, no_atp]:
   "\<Squnion>A = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?P)
   "\<bottom> = \<Squnion>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?Q)
 proof -
@@ -318,7 +321,7 @@ proof -
   from dual.Inf_top_conv show ?P and ?Q by simp_all
 qed
 
-lemma SUP_bot_conv (*[simp]*):
+lemma SUP_bot_conv [simp]:
  "(\<Squnion>x\<in>A. B x) = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
  "\<bottom> = (\<Squnion>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
   by (auto simp add: SUP_def Sup_bot_conv)
@@ -329,10 +332,10 @@ lemma INF_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>A. f) 
 lemma SUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>i\<in>A. f) = f"
   by (auto intro: antisym SUP_upper SUP_least)
 
-lemma INF_top (*[simp]*): "(\<Sqinter>x\<in>A. \<top>) = \<top>"
+lemma INF_top [simp]: "(\<Sqinter>x\<in>A. \<top>) = \<top>"
   by (cases "A = {}") (simp_all add: INF_empty)
 
-lemma SUP_bot (*[simp]*): "(\<Squnion>x\<in>A. \<bottom>) = \<bottom>"
+lemma SUP_bot [simp]: "(\<Squnion>x\<in>A. \<bottom>) = \<bottom>"
   by (cases "A = {}") (simp_all add: SUP_empty)
 
 lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
@@ -492,23 +495,23 @@ lemma dual_complete_linorder:
   "class.complete_linorder Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
-lemma Inf_less_iff (*[simp]*):
+lemma Inf_less_iff:
   "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
   unfolding not_le [symmetric] le_Inf_iff by auto
 
-lemma INF_less_iff (*[simp]*):
+lemma INF_less_iff:
   "(\<Sqinter>i\<in>A. f i) \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>A. f x \<sqsubset> a)"
   unfolding INF_def Inf_less_iff by auto
 
-lemma less_Sup_iff (*[simp]*):
+lemma less_Sup_iff:
   "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
   unfolding not_le [symmetric] Sup_le_iff by auto
 
-lemma less_SUP_iff (*[simp]*):
+lemma less_SUP_iff:
   "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
   unfolding SUP_def less_Sup_iff by auto
 
-lemma Sup_eq_top_iff (*[simp]*):
+lemma Sup_eq_top_iff [simp]:
   "\<Squnion>A = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < i)"
 proof
   assume *: "\<Squnion>A = \<top>"
@@ -530,11 +533,11 @@ next
   qed
 qed
 
-lemma SUP_eq_top_iff (*[simp]*):
+lemma SUP_eq_top_iff [simp]:
   "(\<Squnion>i\<in>A. f i) = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < f i)"
   unfolding SUP_def Sup_eq_top_iff by auto
 
-lemma Inf_eq_bot_iff (*[simp]*):
+lemma Inf_eq_bot_iff [simp]:
   "\<Sqinter>A = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. i < x)"
 proof -
   interpret dual: complete_linorder Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
@@ -542,7 +545,7 @@ proof -
   from dual.Sup_eq_top_iff show ?thesis .
 qed
 
-lemma INF_eq_bot_iff (*[simp]*):
+lemma INF_eq_bot_iff [simp]:
   "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
   unfolding INF_def Inf_eq_bot_iff by auto
 

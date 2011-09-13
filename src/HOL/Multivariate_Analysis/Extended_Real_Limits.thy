@@ -101,7 +101,7 @@ proof(rule ccontr)
     then show False using MInf by auto
   next
     case PInf then have "S={\<infinity>}" by (metis Inf_eq_PInfty assms(2))
-    then show False using `Inf S ~: S` by simp
+    then show False using `Inf S ~: S` by (simp add: top_ereal_def)
   next
     case (real r) then have fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>" by simp
     from ereal_open_cont_interval[OF a this] guess e . note e = this
@@ -143,7 +143,8 @@ proof(rule ccontr)
     from ereal_open_cont_interval[OF assms(1) * fin] guess e . note e = this
     then obtain b where b_def: "Inf S-e<b & b<Inf S"
       using fin ereal_between[of "Inf S" e] ereal_dense[of "Inf S-e"] by auto
-    hence "b: {Inf S-e <..< Inf S+e}" using e fin ereal_between[of "Inf S" e] by auto
+    hence "b: {Inf S-e <..< Inf S+e}" using e fin ereal_between[of "Inf S" e]
+      by auto
     hence "b:S" using e by auto
     hence False using b_def by (metis complete_lattice_class.Inf_lower leD)
   } ultimately show False by auto
@@ -247,7 +248,7 @@ proof cases
     show "eventually (\<lambda>x. a * X x \<in> S) net"
       by (rule eventually_mono[OF _ *]) auto
   qed
-qed (auto intro: tendsto_const)
+qed auto
 
 lemma ereal_lim_uminus:
   fixes X :: "'a \<Rightarrow> ereal" shows "((\<lambda>i. - X i) ---> -L) net \<longleftrightarrow> (X ---> L) net"
@@ -306,7 +307,7 @@ proof (intro arg_cong[where f="\<lambda>P. Sup (Collect P)"] ext iffI allI impI)
     assume S: "S = {Inf S<..}"
     then have "Inf S < l" using `l \<in> S` by auto
     then have "eventually (\<lambda>x. Inf S < f x) net" using ev by auto
-    then show "eventually (\<lambda>x. f x \<in> S) net"  by (subst S) auto
+    then show "eventually (\<lambda>x. f x \<in> S) net" by (subst S) auto
   qed auto
 next
   fix l y assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net" "y < l"

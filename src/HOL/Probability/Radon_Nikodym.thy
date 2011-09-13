@@ -411,7 +411,9 @@ proof -
   also have "\<dots> = ?y"
   proof (rule antisym)
     show "(SUP i. integral\<^isup>P M (?g i)) \<le> ?y"
-      using g_in_G by (auto intro!: exI Sup_mono simp: SUPR_def)
+      using g_in_G
+      using [[simp_trace]]
+      by (auto intro!: exI Sup_mono simp: SUPR_def)
     show "?y \<le> (SUP i. integral\<^isup>P M (?g i))" unfolding y_eq
       by (auto intro!: SUP_mono positive_integral_mono Max_ge)
   qed

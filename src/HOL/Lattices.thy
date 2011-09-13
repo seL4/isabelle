@@ -180,10 +180,10 @@ lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
 lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
   by (fact inf.left_commute)
 
-lemma inf_idem (*[simp]*): "x \<sqinter> x = x"
+lemma inf_idem [simp]: "x \<sqinter> x = x"
   by (fact inf.idem)
 
-lemma inf_left_idem (*[simp]*): "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+lemma inf_left_idem [simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
   by (fact inf.left_idem)
 
 lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
@@ -219,10 +219,10 @@ lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
 lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
   by (fact sup.left_commute)
 
-lemma sup_idem (*[simp]*): "x \<squnion> x = x"
+lemma sup_idem [simp]: "x \<squnion> x = x"
   by (fact sup.idem)
 
-lemma sup_left_idem (*[simp]*): "x \<squnion> (x \<squnion> y) = x \<squnion> y"
+lemma sup_left_idem [simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
   by (fact sup.left_idem)
 
 lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
@@ -243,10 +243,10 @@ lemma dual_lattice:
   by (rule class.lattice.intro, rule dual_semilattice, rule class.semilattice_sup.intro, rule dual_order)
     (unfold_locales, auto)
 
-lemma inf_sup_absorb (*[simp]*): "x \<sqinter> (x \<squnion> y) = x"
+lemma inf_sup_absorb [simp]: "x \<sqinter> (x \<squnion> y) = x"
   by (blast intro: antisym inf_le1 inf_greatest sup_ge1)
 
-lemma sup_inf_absorb (*[simp]*): "x \<squnion> (x \<sqinter> y) = x"
+lemma sup_inf_absorb [simp]: "x \<squnion> (x \<sqinter> y) = x"
   by (blast intro: antisym sup_ge1 sup_least inf_le1)
 
 lemmas inf_sup_aci = inf_aci sup_aci
@@ -267,8 +267,9 @@ lemma distrib_imp1:
 assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
 shows "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
 proof-
-  have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by(simp add:sup_inf_absorb)
-  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_commute sup_assoc)
+  have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by simp
+  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))"
+    by (simp add: D inf_commute sup_assoc del: sup_inf_absorb)
   also have "\<dots> = ((x \<squnion> y) \<sqinter> x) \<squnion> ((x \<squnion> y) \<sqinter> z)"
     by(simp add:inf_sup_absorb inf_commute)
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> z)" by(simp add:D)
@@ -279,8 +280,9 @@ lemma distrib_imp2:
 assumes D: "!!x y z. x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
 shows "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
 proof-
-  have "x \<sqinter> (y \<squnion> z) = (x \<sqinter> (x \<squnion> z)) \<sqinter> (y \<squnion> z)" by(simp add:inf_sup_absorb)
-  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_commute inf_assoc)
+  have "x \<sqinter> (y \<squnion> z) = (x \<sqinter> (x \<squnion> z)) \<sqinter> (y \<squnion> z)" by simp
+  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))"
+    by (simp add: D sup_commute inf_assoc del: inf_sup_absorb)
   also have "\<dots> = ((x \<sqinter> y) \<squnion> x) \<sqinter> ((x \<sqinter> y) \<squnion> z)"
     by(simp add:sup_inf_absorb sup_commute)
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
@@ -439,11 +441,11 @@ lemma dual_boolean_algebra:
   by (rule class.boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
     (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
 
-lemma compl_inf_bot (*[simp]*):
+lemma compl_inf_bot [simp]:
   "- x \<sqinter> x = \<bottom>"
   by (simp add: inf_commute inf_compl_bot)
 
-lemma compl_sup_top (*[simp]*):
+lemma compl_sup_top [simp]:
   "- x \<squnion> x = \<top>"
   by (simp add: sup_commute sup_compl_top)
 
@@ -525,7 +527,7 @@ proof -
   then show "- y \<sqsubseteq> - x" by (simp only: le_iff_inf)
 qed
 
-lemma compl_le_compl_iff (*[simp]*):
+lemma compl_le_compl_iff [simp]:
   "- x \<sqsubseteq> - y \<longleftrightarrow> y \<sqsubseteq> x"
   by (auto dest: compl_mono)
 

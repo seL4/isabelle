@@ -73,7 +73,7 @@ lemma Scons_D: "Scons M N \<in> sexp ==> M \<in> sexp & N \<in> sexp"
 (** Introduction rules for 'pred_sexp' **)
 
 lemma pred_sexp_subset_Sigma: "pred_sexp <= sexp <*> sexp"
-by (simp add: pred_sexp_def, blast)
+  by (simp add: pred_sexp_def) blast
 
 (* (a,b) \<in> pred_sexp^+ ==> a \<in> sexp *)
 lemmas trancl_pred_sexpD1 = 
