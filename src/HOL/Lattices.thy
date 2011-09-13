@@ -271,7 +271,7 @@ proof-
   also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))"
     by (simp add: D inf_commute sup_assoc del: sup_inf_absorb)
   also have "\<dots> = ((x \<squnion> y) \<sqinter> x) \<squnion> ((x \<squnion> y) \<sqinter> z)"
-    by(simp add:inf_sup_absorb inf_commute)
+    by(simp add: inf_commute)
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> z)" by(simp add:D)
   finally show ?thesis .
 qed
@@ -284,7 +284,7 @@ proof-
   also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))"
     by (simp add: D sup_commute inf_assoc del: inf_sup_absorb)
   also have "\<dots> = ((x \<sqinter> y) \<squnion> x) \<sqinter> ((x \<sqinter> y) \<squnion> z)"
-    by(simp add:sup_inf_absorb sup_commute)
+    by(simp add: sup_commute)
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
   finally show ?thesis .
 qed
@@ -547,7 +547,7 @@ qed
 
 lemma compl_less_compl_iff: (* TODO: declare [simp] ? *)
   "- x \<sqsubset> - y \<longleftrightarrow> y \<sqsubset> x"
-  by (auto simp add: less_le compl_le_compl_iff)
+  by (auto simp add: less_le)
 
 lemma compl_less_swap1:
   assumes "y \<sqsubset> - x" shows "x \<sqsubset> - y"
