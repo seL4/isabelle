@@ -249,7 +249,7 @@ Library/Wfrec. INCOMPATIBILITY.
   an abstract type. INCOMPATIBILITY.
 
   - RBT is split into RBT and RBT_Mapping.
-  - AssocList is split and renamed into AList_Impl and AList_Mapping.
+  - AssocList is split and renamed into AList and AList_Mapping.
   - DList is split into DList_Impl, DList, and DList_Cset.
   - Cset is split into Cset and List_Cset.
   
