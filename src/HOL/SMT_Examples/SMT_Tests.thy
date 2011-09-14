@@ -937,32 +937,26 @@ lemma
 
 section {* Sets *}
 
-lemma smt_sets:
-  "\<not>({} x)"
-  "UNIV x"
-  "(A \<union> B) x = (A x \<or> B x)"
-  "(A \<inter> B) x = (A x \<and> B x)"
-  by auto
+lemma Empty: "x \<notin> {}" by simp
+
+lemmas smt_sets = Empty UNIV_I Un_iff Int_iff
 
 lemma
-  "x \<in> P = P x"
-  "x \<in> {x. P x} = P x"
   "x \<notin> {}"
   "x \<in> UNIV"
-  "x \<in> P \<union> Q = (P x \<or> Q x)"
-  "x \<in> P \<union> {} = P x"
+  "x \<in> A \<union> B \<longleftrightarrow> x \<in> A \<or> x \<in> B"
+  "x \<in> P \<union> {} \<longleftrightarrow> x \<in> P"
   "x \<in> P \<union> UNIV"
-  "(x \<in> P \<union> Q) = (x \<in> Q \<union> P)"
-  "(x \<in> P \<union> P) = (x \<in> P)"
-  "(x \<in> P \<union> (Q \<union> R)) = (x \<in> (P \<union> Q) \<union> R)"
-  "(x \<in> P \<inter> Q) = (P x \<and> Q x)"
+  "x \<in> P \<union> Q \<longleftrightarrow> x \<in> Q \<union> P"
+  "x \<in> P \<union> P \<longleftrightarrow> x \<in> P"
+  "x \<in> P \<union> (Q \<union> R) \<longleftrightarrow> x \<in> (P \<union> Q) \<union> R"
+  "x \<in> A \<inter> B \<longleftrightarrow> x \<in> A \<and> x \<in> B"
   "x \<notin> P \<inter> {}"
-  "(x \<in> P \<inter> UNIV) = (x \<in> P)"
-  "(x \<in> P \<inter> Q) = (x \<in> Q \<inter> P)"
-  "(x \<in> P \<inter> P) = (x \<in> P)"
-  "(x \<in> P \<inter> (Q \<inter> R)) = (x \<in> (P \<inter> Q) \<inter> R)"
-  "{x. P x} = {y. P y}"
-  unfolding mem_def Collect_def
+  "x \<in> P \<inter> UNIV \<longleftrightarrow> x \<in> P"
+  "x \<in> P \<inter> Q \<longleftrightarrow> x \<in> Q \<inter> P"
+  "x \<in> P \<inter> P \<longleftrightarrow> x \<in> P"
+  "x \<in> P \<inter> (Q \<inter> R) \<longleftrightarrow> x \<in> (P \<inter> Q) \<inter> R"
+  "{x. x \<in> P} = {y. y \<in> P}"
   by (smt smt_sets)+
 
 end
