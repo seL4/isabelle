@@ -55,9 +55,9 @@ text {*
   constant K.
 
   If we prove the access/update theorem on this type with the
-  analagous steps to the tuple tree, we consume @{text "O(log(n)^2)"}
+  analogous steps to the tuple tree, we consume @{text "O(log(n)^2)"}
   time as the intermediate terms are @{text "O(log(n))"} in size and
-  the types needed have size bounded by K.  To enable this analagous
+  the types needed have size bounded by K.  To enable this analogous
   traversal, we define the functions seen below: @{text
   "iso_tuple_fst"}, @{text "iso_tuple_snd"}, @{text "iso_tuple_fst_update"}
   and @{text "iso_tuple_snd_update"}. These functions generalise tuple
@@ -229,61 +229,62 @@ lemma iso_tuple_access_update_fst_fst:
     (f o iso_tuple_fst isom) o (iso_tuple_fst_update isom o h) g =
       j o (f o iso_tuple_fst isom)"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_fst_def simps
-    intro!: ext elim!: o_eq_elim)
+    fun_eq_iff)
 
 lemma iso_tuple_access_update_snd_snd:
   "f o h g = j o f \<Longrightarrow>
     (f o iso_tuple_snd isom) o (iso_tuple_snd_update isom o h) g =
       j o (f o iso_tuple_snd isom)"
   by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_snd_def simps
-    intro!: ext elim!: o_eq_elim)
+    fun_eq_iff)
 
 lemma iso_tuple_access_update_fst_snd:
   "(f o iso_tuple_fst isom) o (iso_tuple_snd_update isom o h) g =
     id o (f o iso_tuple_fst isom)"
   by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_fst_def simps
-    intro!: ext elim!: o_eq_elim)
+    fun_eq_iff)
 
 lemma iso_tuple_access_update_snd_fst:
   "(f o iso_tuple_snd isom) o (iso_tuple_fst_update isom o h) g =
     id o (f o iso_tuple_snd isom)"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_def simps
-    intro!: ext elim!: o_eq_elim)
+    fun_eq_iff)
 
 lemma iso_tuple_update_swap_fst_fst:
   "h f o j g = j g o h f \<Longrightarrow>
     (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g =
       (iso_tuple_fst_update isom o j) g o (iso_tuple_fst_update isom o h) f"
-  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose intro!: ext)
+  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose fun_eq_iff)
 
 lemma iso_tuple_update_swap_snd_snd:
   "h f o j g = j g o h f \<Longrightarrow>
     (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g =
       (iso_tuple_snd_update isom o j) g o (iso_tuple_snd_update isom o h) f"
-  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose intro!: ext)
+  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose fun_eq_iff)
 
 lemma iso_tuple_update_swap_fst_snd:
   "(iso_tuple_snd_update isom o h) f o (iso_tuple_fst_update isom o j) g =
     (iso_tuple_fst_update isom o j) g o (iso_tuple_snd_update isom o h) f"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def
-    simps intro!: ext)
+    simps fun_eq_iff)
 
 lemma iso_tuple_update_swap_snd_fst:
   "(iso_tuple_fst_update isom o h) f o (iso_tuple_snd_update isom o j) g =
     (iso_tuple_snd_update isom o j) g o (iso_tuple_fst_update isom o h) f"
-  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def simps intro!: ext)
+  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def simps
+    fun_eq_iff)
 
 lemma iso_tuple_update_compose_fst_fst:
   "h f o j g = k (f o g) \<Longrightarrow>
     (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g =
       (iso_tuple_fst_update isom o k) (f o g)"
-  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose intro!: ext)
+  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose fun_eq_iff)
 
 lemma iso_tuple_update_compose_snd_snd:
   "h f o j g = k (f o g) \<Longrightarrow>
     (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g =
       (iso_tuple_snd_update isom o k) (f o g)"
-  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose intro!: ext)
+  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose fun_eq_iff)
 
 lemma iso_tuple_surjective_proof_assist_step:
   "iso_tuple_surjective_proof_assist v a (iso_tuple_fst isom o f) \<Longrightarrow>
