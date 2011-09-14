@@ -153,7 +153,6 @@ next
     where "(bury ?w X,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
   with `bval b t1` `(bury c (L ?w X), t1) \<Rightarrow> t2` show ?case by auto
-    (* FIXME why does s/h fail here? *)
 qed
 
 corollary final_bury_sound: "(c,s) \<Rightarrow> s' \<Longrightarrow> (bury c UNIV,s) \<Rightarrow> s'"
