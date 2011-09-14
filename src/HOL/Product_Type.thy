@@ -830,10 +830,10 @@ lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = prod_case g (f x)"
   by (simp add: scomp_unfold prod_case_unfold)
 
 lemma Pair_scomp: "Pair x \<circ>\<rightarrow> f = f x"
-  by (simp add: fun_eq_iff scomp_apply)
+  by (simp add: fun_eq_iff)
 
 lemma scomp_Pair: "x \<circ>\<rightarrow> Pair = x"
-  by (simp add: fun_eq_iff scomp_apply)
+  by (simp add: fun_eq_iff)
 
 lemma scomp_scomp: "(f \<circ>\<rightarrow> g) \<circ>\<rightarrow> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>\<rightarrow> h)"
   by (simp add: fun_eq_iff scomp_unfold)
@@ -842,7 +842,7 @@ lemma scomp_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarro
   by (simp add: fun_eq_iff scomp_unfold fcomp_def)
 
 lemma fcomp_scomp: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
-  by (simp add: fun_eq_iff scomp_unfold fcomp_apply)
+  by (simp add: fun_eq_iff scomp_unfold)
 
 code_const scomp
   (Eval infixl 3 "#->")
@@ -863,7 +863,7 @@ lemma map_pair_simp [simp, code]:
   by (simp add: map_pair_def)
 
 enriched_type map_pair: map_pair
-  by (auto simp add: split_paired_all intro: ext)
+  by (auto simp add: split_paired_all)
 
 lemma fst_map_pair [simp]:
   "fst (map_pair f g x) = f (fst x)"
@@ -1110,10 +1110,10 @@ lemma Times_empty[simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B
   by auto
 
 lemma fst_image_times[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
-  by (auto intro!: image_eqI)
+  by force
 
 lemma snd_image_times[simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
-  by (auto intro!: image_eqI)
+  by force
 
 lemma insert_times_insert[simp]:
   "insert a A \<times> insert b B =

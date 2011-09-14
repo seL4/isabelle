@@ -123,7 +123,7 @@ lemma inv_f_eq: "[| inj f; f x = y |] ==> inv f y = x"
 by (simp add:inv_into_f_eq)
 
 lemma inj_imp_inv_eq: "[| inj f; ALL x. f(g x) = x |] ==> inv f = g"
-by (blast intro: ext inv_into_f_eq)
+  by (blast intro: inv_into_f_eq)
 
 text{*But is it useful?*}
 lemma inj_transfer:
@@ -286,7 +286,7 @@ proof -
   hence "?f'' a = a'"
     using `a \<in> A` 1 3 by (auto simp add: f_inv_into_f bij_betw_def)
   moreover have "f a = a'" using assms 2 3
-    by (auto simp add: inv_into_f_f bij_betw_def)
+    by (auto simp add: bij_betw_def)
   ultimately show "?f'' a = f a" by simp
 qed
 

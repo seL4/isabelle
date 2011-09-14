@@ -451,10 +451,11 @@ lemma f_inc_g_dec_Beq_f: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. f(n) \<le> g(n) |]
       ==> Bseq (f :: nat \<Rightarrow> real)"
 apply (rule_tac k = "f 0" and K = "g 0" in BseqI2, rule allI)
+apply (rule conjI)
 apply (induct_tac "n")
 apply (auto intro: order_trans)
-apply (rule_tac y = "g (Suc na)" in order_trans)
-apply (induct_tac [2] "na")
+apply (rule_tac y = "g n" in order_trans)
+apply (induct_tac [2] "n")
 apply (auto intro: order_trans)
 done
 
@@ -470,17 +471,7 @@ done
 lemma f_inc_imp_le_lim:
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>\<forall>n. f n \<le> f (Suc n); convergent f\<rbrakk> \<Longrightarrow> f n \<le> lim f"
-apply (rule linorder_not_less [THEN iffD1])
-apply (auto simp add: convergent_LIMSEQ_iff LIMSEQ_iff monoseq_Suc)
-apply (drule_tac x = "f n - lim f" in spec, clarsimp)
-apply (drule_tac P = "%na. no\<le>na --> ?Q na" and x = "no + n" in spec, auto)
-apply (subgoal_tac "lim f \<le> f (no + n) ")
-apply (drule_tac no=no and m=n in lemma_f_mono_add)
-apply (auto simp add: add_commute)
-apply (induct_tac "no")
-apply simp
-apply (auto intro: order_trans simp add: diff_minus abs_if)
-done
+  by (rule incseq_le, simp add: incseq_SucI, simp add: convergent_LIMSEQ_iff)
 
 lemma lim_uminus:
   fixes g :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -492,10 +483,7 @@ done
 lemma g_dec_imp_lim_le:
   fixes g :: "nat \<Rightarrow> real"
   shows "\<lbrakk>\<forall>n. g (Suc n) \<le> g(n); convergent g\<rbrakk> \<Longrightarrow> lim g \<le> g n"
-apply (subgoal_tac "- (g n) \<le> - (lim g) ")
-apply (cut_tac [2] f = "%x. - (g x)" in f_inc_imp_le_lim)
-apply (auto simp add: lim_uminus convergent_minus_iff [symmetric])
-done
+  by (rule decseq_le, simp add: decseq_SucI, simp add: convergent_LIMSEQ_iff)
 
 lemma lemma_nest: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. g(Suc n) \<le> g(n);
@@ -938,7 +926,7 @@ done
 lemma lemma_interval: "[| a < x;  x < b |] ==>
         \<exists>d::real. 0 < d &  (\<forall>y. \<bar>x-y\<bar> < d --> a \<le> y & y \<le> b)"
 apply (drule lemma_interval_lt, auto)
-apply (auto intro!: exI)
+apply force
 done
 
 text{*Rolle's Theorem.

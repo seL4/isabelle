@@ -265,7 +265,7 @@ subsection {* @{term [source] map_comp} related *}
 lemma map_comp_empty [simp]:
   "m \<circ>\<^sub>m empty = empty"
   "empty \<circ>\<^sub>m m = empty"
-by (auto simp add: map_comp_def intro: ext split: option.splits)
+by (auto simp add: map_comp_def split: option.splits)
 
 lemma map_comp_simps [simp]:
   "m2 k = None \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = None"
@@ -354,7 +354,7 @@ lemma restrict_map_to_empty [simp]: "m|`{} = empty"
 by (simp add: restrict_map_def)
 
 lemma restrict_map_insert: "f |` (insert a A) = (f |` A)(a := f a)"
-by (auto simp add: restrict_map_def intro: ext)
+by (auto simp add: restrict_map_def)
 
 lemma restrict_map_empty [simp]: "empty|`D = empty"
 by (simp add: restrict_map_def)
@@ -485,7 +485,7 @@ done
 subsection {* @{term [source] dom} *}
 
 lemma dom_eq_empty_conv [simp]: "dom f = {} \<longleftrightarrow> f = empty"
-by(auto intro!:ext simp: dom_def)
+  by (auto simp: dom_def)
 
 lemma domI: "m a = Some b ==> a : dom m"
 by(simp add:dom_def)

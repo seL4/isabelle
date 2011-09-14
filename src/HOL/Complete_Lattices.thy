@@ -84,23 +84,13 @@ begin
 
 lemma INF_foundation_dual [no_atp]:
   "complete_lattice.SUPR Inf = INFI"
-proof (rule ext)+
-  interpret dual: complete_lattice Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
-    by (fact dual_complete_lattice)
-  fix f :: "'b \<Rightarrow> 'a" and A
-  show "complete_lattice.SUPR Inf A f = (\<Sqinter>a\<in>A. f a)"
-    by (simp only: dual.SUP_def INF_def)
-qed
+  by (simp add: fun_eq_iff INF_def
+    complete_lattice.SUP_def [OF dual_complete_lattice])
 
 lemma SUP_foundation_dual [no_atp]:
   "complete_lattice.INFI Sup = SUPR"
-proof (rule ext)+
-  interpret dual: complete_lattice Sup Inf sup "op \<ge>" "op >" inf \<top> \<bottom>
-    by (fact dual_complete_lattice)
-  fix f :: "'b \<Rightarrow> 'a" and A
-  show "complete_lattice.INFI Sup A f = (\<Squnion>a\<in>A. f a)"
-    by (simp only: dual.INF_def SUP_def)
-qed
+  by (simp add: fun_eq_iff SUP_def
+    complete_lattice.INF_def [OF dual_complete_lattice])
 
 lemma INF_lower: "i \<in> A \<Longrightarrow> (\<Sqinter>i\<in>A. f i) \<sqsubseteq> f i"
   by (auto simp add: INF_def intro: Inf_lower)
@@ -330,10 +320,10 @@ lemma SUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>i\<in>A. f) 
   by (auto intro: antisym SUP_upper SUP_least)
 
 lemma INF_top [simp]: "(\<Sqinter>x\<in>A. \<top>) = \<top>"
-  by (cases "A = {}") (simp_all add: INF_empty)
+  by (cases "A = {}") simp_all
 
 lemma SUP_bot [simp]: "(\<Squnion>x\<in>A. \<bottom>) = \<bottom>"
-  by (cases "A = {}") (simp_all add: SUP_empty)
+  by (cases "A = {}") simp_all
 
 lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
   by (iprover intro: INF_lower INF_greatest order_trans antisym)
@@ -359,11 +349,11 @@ qed
 
 lemma INF_constant:
   "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
-  by (simp add: INF_empty)
+  by simp
 
 lemma SUP_constant:
   "(\<Squnion>y\<in>A. c) = (if A = {} then \<bottom> else c)"
-  by (simp add: SUP_empty)
+  by simp
 
 lemma less_INF_D:
   assumes "y < (\<Sqinter>i\<in>A. f i)" "i \<in> A" shows "y < f i"
@@ -385,11 +375,11 @@ qed
 
 lemma INF_UNIV_bool_expand:
   "(\<Sqinter>b. A b) = A True \<sqinter> A False"
-  by (simp add: UNIV_bool INF_empty INF_insert inf_commute)
+  by (simp add: UNIV_bool INF_insert inf_commute)
 
 lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
-  by (simp add: UNIV_bool SUP_empty SUP_insert sup_commute)
+  by (simp add: UNIV_bool SUP_insert sup_commute)
 
 end
 

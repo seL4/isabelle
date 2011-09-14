@@ -1394,7 +1394,7 @@ lemma inf_Sup2_distrib:
   shows "inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
-    by(simp add: inf_Sup1_distrib [OF B] fold1_singleton_def [OF Sup_fin_def])
+    by(simp add: inf_Sup1_distrib [OF B])
 next
   case (insert x A)
   have finB: "finite {inf x b |b. b \<in> B}"
@@ -1608,11 +1608,7 @@ lemma Min_le [simp]:
 lemma Max_ge [simp]:
   assumes "finite A" and "x \<in> A"
   shows "x \<le> Max A"
-proof -
-  interpret semilattice_inf max "op \<ge>" "op >"
-    by (rule max_lattice)
-  from assms show ?thesis by (simp add: Max_def fold1_belowI)
-qed
+  by (simp add: Max_def semilattice_inf.fold1_belowI [OF max_lattice] assms)
 
 lemma Min_ge_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -1622,11 +1618,7 @@ lemma Min_ge_iff [simp, no_atp]:
 lemma Max_le_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
-proof -
-  interpret semilattice_inf max "op \<ge>" "op >"
-    by (rule max_lattice)
-  from assms show ?thesis by (simp add: Max_def below_fold1_iff)
-qed
+  by (simp add: Max_def semilattice_inf.below_fold1_iff [OF max_lattice] assms)
 
 lemma Min_gr_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -1636,12 +1628,8 @@ lemma Min_gr_iff [simp, no_atp]:
 lemma Max_less_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
-proof -
-  interpret dual: linorder "op \<ge>" "op >"
-    by (rule dual_linorder)
-  from assms show ?thesis
-    by (simp add: Max_def dual.strict_below_fold1_iff [folded dual.dual_max])
-qed
+  by (simp add: Max_def linorder.dual_max [OF dual_linorder]
+    linorder.strict_below_fold1_iff [OF dual_linorder] assms)
 
 lemma Min_le_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -1651,12 +1639,8 @@ lemma Min_le_iff [no_atp]:
 lemma Max_ge_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
-proof -
-  interpret dual: linorder "op \<ge>" "op >"
-    by (rule dual_linorder)
-  from assms show ?thesis
-    by (simp add: Max_def dual.fold1_below_iff [folded dual.dual_max])
-qed
+  by (simp add: Max_def linorder.dual_max [OF dual_linorder]
+    linorder.fold1_below_iff [OF dual_linorder] assms)
 
 lemma Min_less_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -1666,12 +1650,8 @@ lemma Min_less_iff [no_atp]:
 lemma Max_gr_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
-proof -
-  interpret dual: linorder "op \<ge>" "op >"
-    by (rule dual_linorder)
-  from assms show ?thesis
-    by (simp add: Max_def dual.fold1_strict_below_iff [folded dual.dual_max])
-qed
+  by (simp add: Max_def linorder.dual_max [OF dual_linorder]
+    linorder.fold1_strict_below_iff [OF dual_linorder] assms)
 
 lemma Min_eqI:
   assumes "finite A"
@@ -1705,12 +1685,8 @@ lemma Min_antimono:
 lemma Max_mono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Max M \<le> Max N"
-proof -
-  interpret dual: linorder "op \<ge>" "op >"
-    by (rule dual_linorder)
-  from assms show ?thesis
-    by (simp add: Max_def dual.fold1_antimono [folded dual.dual_max])
-qed
+  by (simp add: Max_def linorder.dual_max [OF dual_linorder]
+    linorder.fold1_antimono [OF dual_linorder] assms)
 
 lemma finite_linorder_max_induct[consumes 1, case_names empty insert]:
  assumes fin: "finite A"

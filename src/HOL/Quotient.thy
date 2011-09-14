@@ -85,7 +85,7 @@ lemma set_rel_equivp:
   shows "set_rel R xs ys \<longleftrightarrow> xs = ys \<and> (\<forall>x y. x \<in> xs \<longrightarrow> R x y \<longrightarrow> y \<in> xs)"
   unfolding set_rel_def
   using equivp_reflp[OF e]
-  by auto (metis equivp_symp[OF e])+
+  by auto (metis, metis equivp_symp[OF e])
 
 subsection {* Quotient Predicate *}
 
@@ -269,12 +269,12 @@ lemma bex_reg_eqv:
 lemma ball_reg_right:
   assumes a: "\<And>x. x \<in> R \<Longrightarrow> P x \<longrightarrow> Q x"
   shows "All P \<longrightarrow> Ball R Q"
-  using a by (metis Collect_mem_eq)
+  using a by fast
 
 lemma bex_reg_left:
   assumes a: "\<And>x. x \<in> R \<Longrightarrow> Q x \<longrightarrow> P x"
   shows "Bex R Q \<longrightarrow> Ex P"
-  using a by (metis Collect_mem_eq)
+  using a by fast
 
 lemma ball_reg_left:
   assumes a: "equivp R"
@@ -317,25 +317,25 @@ lemma all_reg:
   assumes a: "!x :: 'a. (P x --> Q x)"
   and     b: "All P"
   shows "All Q"
-  using a b by (metis)
+  using a b by fast
 
 lemma ex_reg:
   assumes a: "!x :: 'a. (P x --> Q x)"
   and     b: "Ex P"
   shows "Ex Q"
-  using a b by metis
+  using a b by fast
 
 lemma ball_reg:
   assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
   and     b: "Ball R P"
   shows "Ball R Q"
-  using a b by (metis Collect_mem_eq)
+  using a b by fast
 
 lemma bex_reg:
   assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
   and     b: "Bex R P"
   shows "Bex R Q"
-  using a b by (metis Collect_mem_eq)
+  using a b by fast
 
 
 lemma ball_all_comm:
@@ -569,7 +569,7 @@ lemma o_prs:
 lemma o_rsp:
   "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) op \<circ> op \<circ>"
   "(op = ===> (R1 ===> op =) ===> R1 ===> op =) op \<circ> op \<circ>"
-  by (auto intro!: fun_relI elim: fun_relE)
+  by (force elim: fun_relE)+
 
 lemma cond_prs:
   assumes a: "Quotient R absf repf"
@@ -585,7 +585,7 @@ lemma if_prs:
 lemma if_rsp:
   assumes q: "Quotient R Abs Rep"
   shows "(op = ===> R ===> R ===> R) If If"
-  by (auto intro!: fun_relI)
+  by force
 
 lemma let_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -596,11 +596,11 @@ lemma let_prs:
 
 lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
-  by (auto intro!: fun_relI elim: fun_relE)
+  by (force elim: fun_relE)
 
 lemma id_rsp:
   shows "(R ===> R) id id"
-  by (auto intro: fun_relI)
+  by auto
 
 lemma id_prs:
   assumes a: "Quotient R Abs Rep"

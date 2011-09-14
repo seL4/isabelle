@@ -180,8 +180,8 @@ lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
 lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
   by (fact inf.left_commute)
 
-lemma inf_idem [simp]: "x \<sqinter> x = x"
-  by (fact inf.idem)
+lemma inf_idem: "x \<sqinter> x = x"
+  by (fact inf.idem) (* already simp *)
 
 lemma inf_left_idem [simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
   by (fact inf.left_idem)
@@ -219,8 +219,8 @@ lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
 lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
   by (fact sup.left_commute)
 
-lemma sup_idem [simp]: "x \<squnion> x = x"
-  by (fact sup.idem)
+lemma sup_idem: "x \<squnion> x = x"
+  by (fact sup.idem) (* already simp *)
 
 lemma sup_left_idem [simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
   by (fact sup.left_idem)
@@ -311,23 +311,13 @@ begin
 
 lemma less_supI1:
   "x \<sqsubset> a \<Longrightarrow> x \<sqsubset> a \<squnion> b"
-proof -
-  interpret dual: semilattice_inf sup "op \<ge>" "op >"
-    by (fact dual_semilattice)
-  assume "x \<sqsubset> a"
-  then show "x \<sqsubset> a \<squnion> b"
-    by (fact dual.less_infI1)
-qed
+  using dual_semilattice
+  by (rule semilattice_inf.less_infI1)
 
 lemma less_supI2:
   "x \<sqsubset> b \<Longrightarrow> x \<sqsubset> a \<squnion> b"
-proof -
-  interpret dual: semilattice_inf sup "op \<ge>" "op >"
-    by (fact dual_semilattice)
-  assume "x \<sqsubset> b"
-  then show "x \<sqsubset> a \<squnion> b"
-    by (fact dual.less_infI2)
-qed
+  using dual_semilattice
+  by (rule semilattice_inf.less_infI2)
 
 end
 
@@ -341,16 +331,16 @@ context distrib_lattice
 begin
 
 lemma sup_inf_distrib2:
- "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
-by(simp add: inf_sup_aci sup_inf_distrib1)
+  "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
+  by (simp add: sup_commute sup_inf_distrib1)
 
 lemma inf_sup_distrib1:
- "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-by(rule distrib_imp2[OF sup_inf_distrib1])
+  "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
+  by (rule distrib_imp2 [OF sup_inf_distrib1])
 
 lemma inf_sup_distrib2:
- "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
-by(simp add: inf_sup_aci inf_sup_distrib1)
+  "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
+  by (simp add: inf_commute inf_sup_distrib1)
 
 lemma dual_distrib_lattice:
   "class.distrib_lattice sup (op \<ge>) (op >) inf"
@@ -510,11 +500,8 @@ qed
 
 lemma compl_sup [simp]:
   "- (x \<squnion> y) = - x \<sqinter> - y"
-proof -
-  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus sup greater_eq greater inf \<top> \<bottom>
-    by (rule dual_boolean_algebra)
-  then show ?thesis by simp
-qed
+  using dual_boolean_algebra
+  by (rule boolean_algebra.compl_inf)
 
 lemma compl_mono:
   "x \<sqsubseteq> y \<Longrightarrow> - y \<sqsubseteq> - x"

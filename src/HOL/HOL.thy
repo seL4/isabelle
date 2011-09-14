@@ -1635,7 +1635,7 @@ lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (rule iffI)
   apply (rule_tac a = "%x. THE y. P x y" in ex1I)
   apply (fast dest!: theI')
-  apply (fast intro: ext the1_equality [symmetric])
+  apply (fast intro: the1_equality [symmetric])
   apply (erule ex1E)
   apply (rule allI)
   apply (rule ex1I)

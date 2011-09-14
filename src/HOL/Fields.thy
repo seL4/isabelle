@@ -270,7 +270,11 @@ by (simp add: mult_commute [of _ c])
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse mult_ac)
 
-text {* These are later declared as simp rules. *}
+text{*It's not obvious whether @{text times_divide_eq} should be
+  simprules or not. Their effect is to gather terms into one big
+  fraction, like a*b*c / x*y*z. The rationale for that is unclear, but
+  many proofs seem to need them.*}
+
 lemmas times_divide_eq [no_atp] = times_divide_eq_right times_divide_eq_left
 
 lemma add_frac_eq:
@@ -777,15 +781,15 @@ text{*The last premise ensures that @{term a} and @{term b}
       have the same sign*}
 lemma divide_strict_left_mono:
   "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / b"
-by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_strict_right_mono)
+  by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono)
 
 lemma divide_left_mono:
   "[|b \<le> a; 0 \<le> c; 0 < a*b|] ==> c / a \<le> c / b"
-by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_right_mono)
+  by (auto simp: field_simps zero_less_mult_iff mult_right_mono)
 
 lemma divide_strict_left_mono_neg:
   "[|a < b; c < 0; 0 < a*b|] ==> c / a < c / b"
-by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_strict_right_mono_neg)
+  by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono_neg)
 
 lemma mult_imp_div_pos_le: "0 < y ==> x <= z * y ==>
     x / y <= z"
@@ -831,11 +835,6 @@ lemma frac_less2: "0 < x ==>
   apply (erule mult_le_less_imp_less)
   apply simp_all
 done
-
-text{*It's not obvious whether these should be simprules or not. 
-  Their effect is to gather terms into one big fraction, like
-  a*b*c / x*y*z. The rationale for that is unclear, but many proofs 
-  seem to need them.*}
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1)"
 by (simp add: field_simps zero_less_two)

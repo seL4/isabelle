@@ -1176,7 +1176,7 @@ next
     have "length (filter p (x # xs)) = Suc(card ?S)"
       using Cons `p x` by simp
     also have "\<dots> = Suc(card(Suc ` ?S))" using fin
-      by (simp add: card_image inj_Suc)
+      by (simp add: card_image)
     also have "\<dots> = card ?S'" using eq fin
       by (simp add:card_insert_if) (simp add:image_def)
     finally show ?thesis .
@@ -1187,7 +1187,7 @@ next
     have "length (filter p (x # xs)) = card ?S"
       using Cons `\<not> p x` by simp
     also have "\<dots> = card(Suc ` ?S)" using fin
-      by (simp add: card_image inj_Suc)
+      by (simp add: card_image)
     also have "\<dots> = card ?S'" using eq fin
       by (simp add:card_insert_if)
     finally show ?thesis .
@@ -1529,10 +1529,10 @@ lemma butlast_snoc [simp]: "butlast (xs @ [x]) = xs"
 by (induct xs) auto
 
 lemma last_ConsL: "xs = [] \<Longrightarrow> last(x#xs) = x"
-by(simp add:last.simps)
+  by simp
 
 lemma last_ConsR: "xs \<noteq> [] \<Longrightarrow> last(x#xs) = last xs"
-by(simp add:last.simps)
+  by simp
 
 lemma last_append: "last(xs @ ys) = (if ys = [] then last xs else last ys)"
 by (induct xs) (auto)
@@ -2627,7 +2627,7 @@ by (induct n) auto
 lemma nth_map_upt: "i < n-m ==> (map f [m..<n]) ! i = f(m+i)"
 apply (induct n m  arbitrary: i rule: diff_induct)
 prefer 3 apply (subst map_Suc_upt[symmetric])
-apply (auto simp add: less_diff_conv nth_upt)
+apply (auto simp add: less_diff_conv)
 done
 
 lemma nth_take_lemma:
@@ -2647,9 +2647,7 @@ done
 
 lemma nth_equalityI:
  "[| length xs = length ys; ALL i < length xs. xs!i = ys!i |] ==> xs = ys"
-apply (frule nth_take_lemma [OF le_refl eq_imp_le])
-apply (simp_all add: take_all)
-done
+  by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
 
 lemma map_nth:
   "map (\<lambda>i. xs ! i) [0..<length xs] = xs"
@@ -2666,7 +2664,7 @@ lemma list_all2_antisym:
 lemma take_equalityI: "(\<forall>i. take i xs = take i ys) ==> xs = ys"
 -- {* The famous take-lemma. *}
 apply (drule_tac x = "max (length xs) (length ys)" in spec)
-apply (simp add: le_max_iff_disj take_all)
+apply (simp add: le_max_iff_disj)
 done
 
 
@@ -2880,8 +2878,8 @@ apply (metis Cons_eq_appendI eq_Nil_appendI split_list)
 done
 
 lemma length_remdups_concat:
- "length(remdups(concat xss)) = card(\<Union>xs \<in> set xss. set xs)"
-by(simp add: set_concat distinct_card[symmetric])
+  "length (remdups (concat xss)) = card (\<Union>xs\<in>set xss. set xs)"
+  by (simp add: distinct_card [symmetric])
 
 lemma length_remdups_card_conv: "length(remdups xs) = card(set xs)"
 proof -
@@ -3519,7 +3517,7 @@ lemma sublist_append:
      "sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
 apply (unfold sublist_def)
 apply (induct l' rule: rev_induct, simp)
-apply (simp add: upt_add_eq_append[of 0] zip_append sublist_shift_lemma)
+apply (simp add: upt_add_eq_append[of 0] sublist_shift_lemma)
 apply (simp add: add_commute)
 done
 
@@ -3838,7 +3836,7 @@ lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and>
 by(induct xs)(auto simp:set_insort)
 
 lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
-by(induct xs)(simp_all add:distinct_insort set_sort)
+  by (induct xs) (simp_all add: distinct_insort)
 
 lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
   by (induct xs) (auto simp:sorted_Cons set_insort)

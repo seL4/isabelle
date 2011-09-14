@@ -57,7 +57,7 @@ definition range :: "code_numeral \<Rightarrow> seed \<Rightarrow> code_numeral 
 
 lemma range:
   "k > 0 \<Longrightarrow> fst (range k s) < k"
-  by (simp add: range_def scomp_apply split_def del: log.simps iterate.simps)
+  by (simp add: range_def split_def del: log.simps iterate.simps)
 
 definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select xs = range (Code_Numeral.of_nat (length xs))
@@ -73,7 +73,7 @@ proof -
   then have
     "Code_Numeral.nat_of (fst (range (Code_Numeral.of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
-    by (simp add: scomp_apply split_beta select_def)
+    by (simp add: split_beta select_def)
 qed
 
 primrec pick :: "(code_numeral \<times> 'a) list \<Rightarrow> code_numeral \<Rightarrow> 'a" where
@@ -188,4 +188,3 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 end
-

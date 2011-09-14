@@ -220,7 +220,7 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (rename_tac a b)
   apply (case_tac "a = b")
    apply blast
-  apply (blast intro!: r_into_rtrancl)
+  apply blast
   done
 
 lemma rtranclp_r_diff_Id: "(inf r op ~=)^** = r^**"

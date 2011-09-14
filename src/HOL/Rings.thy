@@ -1100,7 +1100,7 @@ lemma mult_sgn_abs:
 
 lemma abs_one [simp]:
   "\<bar>1\<bar> = 1"
-  by (simp add: abs_if zero_less_one [THEN less_not_sym])
+  by (simp add: abs_if)
 
 end
 

@@ -1309,10 +1309,10 @@ end
 
 instance "fun" :: (type, preorder) preorder proof
 qed (auto simp add: le_fun_def less_fun_def
-  intro: order_trans antisym intro!: ext)
+  intro: order_trans antisym)
 
 instance "fun" :: (type, order) order proof
-qed (auto simp add: le_fun_def intro: antisym ext)
+qed (auto simp add: le_fun_def intro: antisym)
 
 instantiation "fun" :: (type, bot) bot
 begin

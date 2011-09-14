@@ -190,7 +190,7 @@ lemma wfP_empty [iff]:
   "wfP (\<lambda>x y. False)"
 proof -
   have "wfP bot" by (fact wf_empty [to_pred bot_empty_eq2])
-  then show ?thesis by (simp add: bot_fun_def bot_bool_def)
+  then show ?thesis by (simp add: bot_fun_def)
 qed
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"
@@ -573,7 +573,7 @@ theorem accp_downwards: "accp r a ==> r\<^sup>*\<^sup>* b a ==> accp r b"
 
 theorem accp_wfPI: "\<forall>x. accp r x ==> wfP r"
   apply (rule wfPUNIVI)
-  apply (induct_tac P x rule: accp_induct)
+  apply (rule_tac P=P in accp_induct)
    apply blast
   apply blast
   done
