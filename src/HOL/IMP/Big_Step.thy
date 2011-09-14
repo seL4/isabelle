@@ -37,7 +37,7 @@ code_pred big_step .
 text{* For inductive definitions we need command
        \texttt{values} instead of \texttt{value}. *}
 
-values "{t. (SKIP, %_. 0) \<Rightarrow> t}"
+values "{t. (SKIP, \<lambda>_. 0) \<Rightarrow> t}"
 
 text{* We need to translate the result state into a list
 to display it. *}

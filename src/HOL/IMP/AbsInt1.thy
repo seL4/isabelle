@@ -167,7 +167,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 "AI (IF b THEN c1 ELSE c2) S =
   AI c1 (bfilter b True S) \<squnion> AI c2 (bfilter b False S)" |
 "AI (WHILE b DO c) S =
-  bfilter b False (pfp_above (%S. AI c (bfilter b True S)) S)"
+  bfilter b False (iter_above (\<lambda>S. AI c (bfilter b True S)) 3 S)"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
 proof(induct c arbitrary: s t S)
@@ -181,9 +181,9 @@ next
   case If thus ?case by (auto simp: in_rep_join_UpI bfilter_sound)
 next
   case (While b c)
-  let ?P = "pfp_above (%S. AI c (bfilter b True S)) S"
+  let ?P = "iter_above (\<lambda>S. AI c (bfilter b True S)) 3 S"
   have pfp: "AI c (bfilter b True ?P) \<sqsubseteq> ?P" and "S \<sqsubseteq> ?P"
-    by (rule pfp_above_pfp(1), rule pfp_above_pfp(2))
+    by (rule iter_above_pfp(1), rule iter_above_pfp(2))
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <:: ?P \<Longrightarrow>
           t <:: bfilter b False ?P"
@@ -199,20 +199,6 @@ next
   with in_rep_up_trans[OF `s <:: S` `S \<sqsubseteq> ?P`] While(2,3) AI.simps(5)
   show ?case by simp
 qed
-
-text{* Exercise: *}
-
-lemma afilter_strict: "afilter e res bot = bot"
-by (induct e arbitrary: res) simp_all
-
-lemma bfilter_strict: "bfilter b res bot = bot"
-by (induct b arbitrary: res) (simp_all add: afilter_strict)
-
-lemma pfp_strict: "f bot = bot \<Longrightarrow> pfp_above f bot = bot"
-by(simp add: pfp_above_def pfp_def eval_nat_numeral)
-
-lemma AI_strict: "AI c bot = bot"
-by(induct c) (simp_all add: bfilter_strict pfp_strict)
 
 end
 

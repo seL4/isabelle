@@ -30,9 +30,9 @@ definition "le_astate F G = (ALL x : set(dom G). lookup F x \<sqsubseteq> fun G 
 
 definition
 "join_astate F G =
- FunDom (%x. fun F x \<squnion> fun G x) ([x\<leftarrow>dom F. x : set(dom G)])"
+ FunDom (\<lambda>x. fun F x \<squnion> fun G x) ([x\<leftarrow>dom F. x : set(dom G)])"
 
-definition "Top = FunDom (%x. Top) []"
+definition "Top = FunDom (\<lambda>x. Top) []"
 
 instance
 proof

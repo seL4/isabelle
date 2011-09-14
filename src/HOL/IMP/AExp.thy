@@ -16,32 +16,36 @@ fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (Plus a1 a2) s = aval a1 s + aval a2 s"
 
 
-value "aval (Plus (V ''x'') (N 5)) (%x. if x = ''x'' then 7 else 0)"
+value "aval (Plus (V ''x'') (N 5)) (\<lambda>x. if x = ''x'' then 7 else 0)"
 
 text {* The same state more concisely: *}
-value "aval (Plus (V ''x'') (N 5)) ((%x. 0) (''x'':= 7))"
+value "aval (Plus (V ''x'') (N 5)) ((\<lambda>x. 0) (''x'':= 7))"
 
 text {* A little syntax magic to write larger states compactly: *}
 
-definition
-  "null_heap \<equiv> \<lambda>x. 0"
+definition null_state ("<>") where
+  "null_state \<equiv> \<lambda>x. 0"
 syntax 
   "_State" :: "updbinds => 'a" ("<_>")
 translations
-  "_State ms" => "_Update (CONST null_heap) ms"
+  "_State ms" => "_Update <> ms"
 
 text {* 
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
 *}
-lemma "<a := Suc 0, b := 2> = (null_heap (a := Suc 0)) (b := 2)"
+lemma "<a := Suc 0, b := 2> = (<> (a := Suc 0)) (b := 2)"
   by (rule refl)
 
 value "aval (Plus (V ''x'') (N 5)) <''x'' := 7>"
 
+
 text {* Variables that are not mentioned in the state are 0 by default in 
   the @{term "<a := b::int>"} syntax: 
-*}   
+*}
 value "aval (Plus (V ''x'') (N 5)) <''y'' := 7>"
+
+text{* Note that this @{text"<\<dots>>"} syntax works for any function space
+@{text"\<tau>\<^isub>1 \<Rightarrow> \<tau>\<^isub>2"} where @{text "\<tau>\<^isub>2"} has a @{text 0}. *}
 
 
 subsection "Optimization"
@@ -71,16 +75,11 @@ fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "plus a (N i) = (if i=0 then a else Plus a (N i))" |
 "plus a1 a2 = Plus a1 a2"
 
-code_thms plus
-code_thms plus
-
-(* FIXME: dropping subsumed code eqns?? *)
 lemma aval_plus[simp]:
   "aval (plus a1 a2) s = aval a1 s + aval a2 s"
 apply(induct a1 a2 rule: plus.induct)
 apply simp_all (* just for a change from auto *)
 done
-code_thms plus
 
 fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (N n) = N n" |

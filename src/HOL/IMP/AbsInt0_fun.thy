@@ -31,47 +31,45 @@ begin
 lemma join_le_iff[simp]: "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
 by (metis join_ge1 join_ge2 join_least le_trans)
 
-fun bpfp where
-"bpfp f 0 _ = Top" |
-"bpfp f (Suc n) x = (if f x \<sqsubseteq> x then x else bpfp f n (f x))"
+fun iter where
+"iter f 0 _ = Top" |
+"iter f (Suc n) x = (if f x \<sqsubseteq> x then x else iter f n (f x))"
 
-definition "pfp f = bpfp f 3"
-
-lemma postfixedpoint: "f(bpfp f n x) \<sqsubseteq> bpfp f n x"
+lemma iter_pfp: "f(iter f n x) \<sqsubseteq> iter f n x"
 apply (induct n arbitrary: x)
  apply (simp)
 apply (simp)
 done
 
-lemma bpfp_funpow: "bpfp f n x \<noteq> Top \<Longrightarrow> EX k. bpfp f n x = (f^^k) x"
+definition "iter_above f n x0 = iter (\<lambda>x. x0 \<squnion> f x) n x0"
+
+lemma iter_above_pfp:
+shows "f(iter_above f n x0) \<sqsubseteq> iter_above f n x0" and "x0 \<sqsubseteq> iter_above f n x0"
+using iter_pfp[of "\<lambda>x. x0 \<squnion> f x"]
+by(auto simp add: iter_above_def)
+
+text{* So much for soundness. But how good an approximation of the post-fixed
+point does @{const iter_above} yield? *}
+
+lemma iter_funpow: "iter f n x \<noteq> Top \<Longrightarrow> EX k. iter f n x = (f^^k) x"
 apply(induct n arbitrary: x)
-apply simp
-apply simp
+ apply simp
 apply (auto)
 apply(rule_tac x=0 in exI)
 apply simp
 by (metis funpow.simps(2) funpow_swap1 o_apply)
 
-lemma pfp_funpow: "pfp f x \<noteq> Top \<Longrightarrow> EX k. pfp f x = (f^^k) x"
-by(simp add: pfp_def bpfp_funpow)
+text{* For monotone @{text f}, @{term "iter_above f n x0"} yields the least
+post-fixed point above @{text x0}, unless it yields @{text Top}. *}
 
-abbreviation (input) lift (infix "\<up>" 65) where "f\<up>x0 == (%x. x0 \<squnion> f x)"
-
-definition "pfp_above f x0 = pfp (f\<up>x0) x0"
-
-lemma pfp_above_pfp:
-shows "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0" and "x0 \<sqsubseteq> pfp_above f x0"
-using postfixedpoint[of "lift f x0"]
-by(auto simp add: pfp_above_def pfp_def)
-
-lemma least_pfp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "pfp_above f x0 \<noteq> Top"
-and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "pfp_above f x0 \<sqsubseteq> p"
+lemma iter_least_pfp:
+assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above f n x0 \<noteq> Top"
+and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter_above f n x0 \<sqsubseteq> p"
 proof-
-  let ?F = "lift f x0"
-  obtain k where "pfp_above f x0 = (?F^^k) x0"
-    using pfp_funpow `pfp_above f x0 \<noteq> Top`
-    by(fastforce simp add: pfp_above_def)
+  let ?F = "\<lambda>x. x0 \<squnion> f x"
+  obtain k where "iter_above f n x0 = (?F^^k) x0"
+    using iter_funpow `iter_above f n x0 \<noteq> Top`
+    by(fastforce simp add: iter_above_def)
   moreover
   { fix n have "(?F^^n) x0 \<sqsubseteq> p"
     proof(induct n)
@@ -84,20 +82,20 @@ proof-
 qed
 
 lemma chain: assumes "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-shows "((f\<up>x0)^^i) x0 \<sqsubseteq> ((f\<up>x0)^^(i+1)) x0"
+shows "((\<lambda>x. x0 \<squnion> f x)^^i) x0 \<sqsubseteq> ((\<lambda>x. x0 \<squnion> f x)^^(i+1)) x0"
 apply(induct i)
  apply simp
 apply simp
 by (metis assms join_ge2 le_trans)
 
-lemma pfp_almost_fp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "pfp_above f x0 \<noteq> Top"
-shows "pfp_above f x0 \<sqsubseteq> x0 \<squnion> f(pfp_above f x0)"
+lemma iter_above_almost_fp:
+assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above f n x0 \<noteq> Top"
+shows "iter_above f n x0 \<sqsubseteq> x0 \<squnion> f(iter_above f n x0)"
 proof-
-  let ?p = "pfp_above f x0"
-  obtain k where 1: "?p = ((f\<up>x0)^^k) x0"
-    using pfp_funpow `?p \<noteq> Top`
-    by(fastforce simp add: pfp_above_def)
+  let ?p = "iter_above f n x0"
+  obtain k where 1: "?p = ((\<lambda>x. x0 \<squnion> f x)^^k) x0"
+    using iter_funpow `?p \<noteq> Top`
+    by(fastforce simp add: iter_above_def)
   thus ?thesis using chain mono by simp
 qed
 
@@ -157,7 +155,7 @@ fun aval' :: "aexp \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> 'a" ("ava
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
 abbreviation fun_in_rep (infix "<:" 50) where
-"f <: F == ALL x. f x <: F x"
+"f <: F == \<forall>x. f x <: F x"
 
 lemma fun_in_rep_le: "(s::state) <: S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarrow> s <: T"
 by (metis le_fun_def le_rep subsetD)
@@ -170,7 +168,7 @@ fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Right
 "AI (x ::= a) S = S(x := aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = pfp_above (AI c) S"
+"AI (WHILE b DO c) S = iter_above (AI c) 3 S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -183,14 +181,13 @@ next
   case If thus ?case by(auto simp: in_rep_join)
 next
   case (While b c)
-  let ?P = "pfp_above (AI c) S0"
-  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P"
-    by(simp_all add: SL_top_class.pfp_above_pfp)
+  let ?P = "iter_above (AI c) 3 S0"
+  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P" by (simp_all add: iter_above_pfp)
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp
     next
-      case WhileTrue thus ?case using While.hyps pfp fun_in_rep_le by metis
+      case WhileTrue thus ?case by(metis While.hyps pfp fun_in_rep_le)
     qed
   }
   with fun_in_rep_le[OF `s <: S0` `S0 \<sqsubseteq> ?P`]
@@ -203,11 +200,5 @@ end
 text{* Problem: not executable because of the comparison of abstract states,
 i.e. functions, in the post-fixedpoint computation. Need to implement
 abstract states concretely. *}
-
-
-(* Exercises: show that <= is a preorder if
-1. v1 <= v2  =  rep v1 <= rep v2
-2. v1 <= v2  =  ALL x. lookup v1 x <= lookup v2 x
-*)
 
 end

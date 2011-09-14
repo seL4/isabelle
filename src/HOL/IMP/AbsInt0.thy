@@ -32,7 +32,7 @@ fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 "AI (x ::= a) S = update S x (aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = pfp_above (AI c) S"
+"AI (WHILE b DO c) S = iter_above (AI c) 3 S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -47,9 +47,8 @@ next
     by (metis AI.simps(4) IfE astate_in_rep_le join_ge1 join_ge2)
 next
   case (While b c)
-  let ?P = "pfp_above (AI c) S0"
-  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P"
-    by(simp_all add: SL_top_class.pfp_above_pfp)
+  let ?P = "iter_above (AI c) 3 S0"
+  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P" by(simp_all add: iter_above_pfp)
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp

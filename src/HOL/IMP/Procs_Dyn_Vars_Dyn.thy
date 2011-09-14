@@ -31,10 +31,9 @@ Proc: "pe(p := cp) \<turnstile> (c,s) \<Rightarrow> t  \<Longrightarrow>  pe \<t
 
 code_pred big_step .
 
-(* FIXME: example state syntax *)
 values "{map t [''x'',''y'',''z''] |t. 
-          (\<lambda>p. SKIP) \<turnstile> (CALL ''p'', (%_. 0)(''x'' := 42, ''y'' := 43)) \<Rightarrow> t}"
+          (\<lambda>p. SKIP) \<turnstile> (CALL ''p'', <''x'' := 42, ''y'' := 43>) \<Rightarrow> t}"
 
-values "{map t [''x'',''y'',''z''] |t. (\<lambda>p. SKIP) \<turnstile> (test_com, (%_. 0)) \<Rightarrow> t}"
+values "{map t [''x'',''y'',''z''] |t. (\<lambda>p. SKIP) \<turnstile> (test_com, <>) \<Rightarrow> t}"
 
 end

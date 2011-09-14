@@ -44,10 +44,11 @@ Proc: "((p,cp,ve)#pe,ve,f) \<turnstile> (c,s) \<Rightarrow> t
 
 code_pred big_step .
 
-values "{map t [0,1] |t. ([], \<lambda>n. 0, 0) \<turnstile> (CALL ''p'', nth [42, 43]) \<Rightarrow> t}"
 
-(* FIXME: syntax *)
-values "{map t [0, 1, 2] |t. ([], (\<lambda>_. 3)(''x'' := 0, ''y'' := 1,''z'' := 2), 0) \<turnstile> (test_com, (%_. 0)) \<Rightarrow> t}"
+values "{map t [0,1] |t. ([], <>, 0) \<turnstile> (CALL ''p'', nth [42, 43]) \<Rightarrow> t}"
 
+values "{map t [0, 1, 2] |t.
+  ([], <''x'' := 0, ''y'' := 1,''z'' := 2>, 0)
+  \<turnstile> (test_com, <>) \<Rightarrow> t}"
 
 end

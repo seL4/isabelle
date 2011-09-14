@@ -153,7 +153,7 @@ proof
     by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
 qed
 
-interpretation Val_abs rep_ivl "%n. I (Some n) (Some n)" plus_ivl
+interpretation Val_abs rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl
 proof
   case goal1 thus ?case by(simp add: rep_ivl_def)
 next
@@ -169,7 +169,7 @@ next
   case goal2 show ?case by(auto simp add: Bot_ivl_def rep_ivl_def empty_def)
 qed
 
-interpretation Val_abs1 rep_ivl "%n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
+interpretation Val_abs1 rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
 proof
   case goal1 thus ?case
     by(auto simp add: inv_plus_ivl_def)
@@ -180,7 +180,7 @@ next
       auto simp: rep_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
 qed
 
-interpretation Abs_Int1 rep_ivl "%n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
+interpretation Abs_Int1 rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and AI_ivl is AI
