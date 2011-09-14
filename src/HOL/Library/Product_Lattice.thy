@@ -161,7 +161,7 @@ definition
 
 instance
   by default (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
-    INF_leI le_SUPI le_INF_iff SUP_le_iff)
+    INF_lower SUP_upper le_INF_iff SUP_le_iff)
 
 end
 
@@ -178,21 +178,21 @@ lemma snd_Inf: "snd (Inf A) = (INF x:A. snd x)"
   unfolding Inf_prod_def by simp
 
 lemma fst_SUP: "fst (SUP x:A. f x) = (SUP x:A. fst (f x))"
-  by (simp add: SUPR_def fst_Sup image_image)
+  by (simp add: SUP_def fst_Sup image_image)
 
 lemma snd_SUP: "snd (SUP x:A. f x) = (SUP x:A. snd (f x))"
-  by (simp add: SUPR_def snd_Sup image_image)
+  by (simp add: SUP_def snd_Sup image_image)
 
 lemma fst_INF: "fst (INF x:A. f x) = (INF x:A. fst (f x))"
-  by (simp add: INFI_def fst_Inf image_image)
+  by (simp add: INF_def fst_Inf image_image)
 
 lemma snd_INF: "snd (INF x:A. f x) = (INF x:A. snd (f x))"
-  by (simp add: INFI_def snd_Inf image_image)
+  by (simp add: INF_def snd_Inf image_image)
 
 lemma SUP_Pair: "(SUP x:A. (f x, g x)) = (SUP x:A. f x, SUP x:A. g x)"
-  by (simp add: SUPR_def Sup_prod_def image_image)
+  by (simp add: SUP_def Sup_prod_def image_image)
 
 lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
-  by (simp add: INFI_def Inf_prod_def image_image)
+  by (simp add: INF_def Inf_prod_def image_image)
 
 end

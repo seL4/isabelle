@@ -360,10 +360,10 @@ end
 
 subsection {* Complete lattices are Kleene algebras *}
 
-lemma (in complete_lattice) le_SUPI':
+lemma (in complete_lattice) SUP_upper':
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
-  using assms by (rule order_trans) (rule le_SUPI [OF UNIV_I])
+  using assms by (rule order_trans) (rule SUP_upper [OF UNIV_I])
 
 class kleene_by_complete_lattice = pre_kleene
   + complete_lattice + power + star +
@@ -376,12 +376,12 @@ proof
   
   have [simp]: "1 \<le> star a"
     unfolding star_cont[of 1 a 1, simplified] 
-    by (subst power_0[symmetric]) (rule le_SUPI [OF UNIV_I])
+    by (subst power_0[symmetric]) (rule SUP_upper [OF UNIV_I])
 
   have "a * star a \<le> star a"
     using star_cont[of a a 1] star_cont[of 1 a 1]
     by (auto simp add: power_Suc[symmetric] simp del: power_Suc
-      intro: SUP_leI le_SUPI)
+      intro: SUP_least SUP_upper)
 
   then show "1 + a * star a \<le> star a"
     by simp
@@ -422,7 +422,7 @@ proof
     
     show "star a * x \<le> x"
       unfolding star_cont[of 1 a x, simplified]
-      by (rule SUP_leI) (rule b)
+      by (rule SUP_least) (rule b)
   qed
 
   show "x * a \<le> x \<Longrightarrow> x * star a \<le> x" (* symmetric *)
@@ -457,7 +457,7 @@ proof
     
     show "x * star a \<le> x"
       unfolding star_cont[of x a 1, simplified]
-      by (rule SUP_leI) (rule b)
+      by (rule SUP_least) (rule b)
   qed
 qed
 

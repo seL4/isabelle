@@ -21,12 +21,12 @@ definition
 lemma SUP_nat_conv:
   "(SUP n. M n) = sup (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
- apply(rule SUP_leI)
+ apply(rule SUP_least)
  apply(case_tac n)
   apply simp
- apply (fast intro:le_SUPI le_supI2)
+ apply (fast intro:SUP_upper le_supI2)
 apply(simp)
-apply (blast intro:SUP_leI le_SUPI)
+apply (blast intro:SUP_least SUP_upper)
 done
 
 lemma continuous_mono: fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
@@ -61,7 +61,7 @@ proof -
       also have "\<dots> = lfp F" by(simp add:lfp_unfold[OF mono, symmetric])
       finally show ?case .
     qed }
-  hence "(SUP i. (F ^^ i) bot) \<le> lfp F" by (blast intro!:SUP_leI)
+  hence "(SUP i. (F ^^ i) bot) \<le> lfp F" by (blast intro!:SUP_least)
   moreover have "lfp F \<le> (SUP i. (F ^^ i) bot)" (is "_ \<le> ?U")
   proof (rule lfp_lowerbound)
     have "chain(%i. (F ^^ i) bot)"
@@ -75,7 +75,7 @@ proof -
       thus ?thesis by(auto simp add:chain_def)
     qed
     hence "F ?U = (SUP i. (F ^^ (i+1)) bot)" using `continuous F` by (simp add:continuous_def)
-    also have "\<dots> \<le> ?U" by(fast intro:SUP_leI le_SUPI)
+    also have "\<dots> \<le> ?U" by(fast intro:SUP_least SUP_upper)
     finally show "F ?U \<le> ?U" .
   qed
   ultimately show ?thesis by (blast intro:order_antisym)

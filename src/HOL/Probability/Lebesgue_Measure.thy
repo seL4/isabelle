@@ -125,7 +125,7 @@ proof
     fix A assume "A \<in> sets lebesgue"
     then show "0 \<le> measure lebesgue A"
       unfolding lebesgue_def
-      by (auto intro!: le_SUPI2 integral_nonneg)
+      by (auto intro!: SUP_upper2 integral_nonneg)
   qed
 next
   show "countably_additive lebesgue (measure lebesgue)"
@@ -146,7 +146,7 @@ next
     next
       fix i n show "0 \<le> ereal (?m n i)"
         using rA unfolding lebesgue_def
-        by (auto intro!: le_SUPI2 integral_nonneg)
+        by (auto intro!: SUP_upper2 integral_nonneg)
     next
       show "(SUP n. \<Sum>i. ereal (?m n i)) = (SUP n. ereal (?M n UNIV))"
       proof (intro arg_cong[where f="SUPR UNIV"] ext sums_unique[symmetric] sums_ereal[THEN iffD2] sums_def[THEN iffD2])
@@ -642,7 +642,7 @@ proof -
   { fix i
     note u_eq
     also have "integral\<^isup>P lebesgue (u i) \<le> (\<integral>\<^isup>+x. max 0 (f x) \<partial>lebesgue)"
-      by (intro lebesgue.positive_integral_mono) (auto intro: le_SUPI simp: u(4)[symmetric])
+      by (intro lebesgue.positive_integral_mono) (auto intro: SUP_upper simp: u(4)[symmetric])
     finally have "integral\<^isup>S lebesgue (u i) \<noteq> \<infinity>"
       unfolding positive_integral_max_0 using f by auto }
   note u_fin = this
@@ -687,7 +687,7 @@ proof -
         using lebesgue.positive_integral_eq_simple_integral[OF u(1,5)] by simp
       also have "\<dots> \<le> real (integral\<^isup>P lebesgue f)" using f
         by (auto intro!: real_of_ereal_positive_mono lebesgue.positive_integral_positive
-             lebesgue.positive_integral_mono le_SUPI simp: SUP_eq[symmetric])
+             lebesgue.positive_integral_mono SUP_upper simp: SUP_eq[symmetric])
       finally show "\<bar>integral UNIV (u' k)\<bar> \<le> real (integral\<^isup>P lebesgue f)" .
     qed
   qed

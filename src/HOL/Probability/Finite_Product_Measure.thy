@@ -716,9 +716,9 @@ proof -
     unfolding positive_integral_def simple_function_def simple_integral_def_raw
   proof (simp add: P_empty, intro antisym)
     show "f (\<lambda>k. undefined) \<le> (SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined))"
-      by (intro le_SUPI) (auto simp: le_fun_def split: split_max)
+      by (intro SUP_upper) (auto simp: le_fun_def split: split_max)
     show "(SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined)) \<le> f (\<lambda>k. undefined)" using pos
-      by (intro SUP_leI) (auto simp: le_fun_def simp: max_def split: split_if_asm)
+      by (intro SUP_least) (auto simp: le_fun_def simp: max_def split: split_if_asm)
   qed
 qed
 

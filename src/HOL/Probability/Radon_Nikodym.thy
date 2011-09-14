@@ -358,7 +358,7 @@ proof -
       show "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M"
         using f by (auto simp: G_def)
       { fix x show "0 \<le> (SUP i. f i x)"
-          using f by (auto simp: G_def intro: le_SUPI2) }
+          using f by (auto simp: G_def intro: SUP_upper2) }
     next
       fix A assume "A \<in> sets M"
       have "(\<integral>\<^isup>+x. (SUP i. f i x) * indicator A x \<partial>M) =
@@ -369,12 +369,12 @@ proof -
         by (intro positive_integral_monotone_convergence_SUP)
            (auto simp: G_def incseq_Suc_iff le_fun_def split: split_indicator)
       finally show "(\<integral>\<^isup>+x. (SUP i. f i x) * indicator A x \<partial>M) \<le> \<nu> A"
-        using f `A \<in> sets M` by (auto intro!: SUP_leI simp: G_def)
+        using f `A \<in> sets M` by (auto intro!: SUP_least simp: G_def)
     qed }
   note SUP_in_G = this
   let ?y = "SUP g : G. integral\<^isup>P M g"
   have "?y \<le> \<nu> (space M)" unfolding G_def
-  proof (safe intro!: SUP_leI)
+  proof (safe intro!: SUP_least)
     fix g assume "\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> \<nu> A"
     from this[THEN bspec, OF top] show "integral\<^isup>P M g \<le> \<nu> (space M)"
       by (simp cong: positive_integral_cong)
@@ -413,14 +413,14 @@ proof -
     show "(SUP i. integral\<^isup>P M (?g i)) \<le> ?y"
       using g_in_G
       using [[simp_trace]]
-      by (auto intro!: exI Sup_mono simp: SUPR_def)
+      by (auto intro!: exI Sup_mono simp: SUP_def)
     show "?y \<le> (SUP i. integral\<^isup>P M (?g i))" unfolding y_eq
       by (auto intro!: SUP_mono positive_integral_mono Max_ge)
   qed
   finally have int_f_eq_y: "integral\<^isup>P M f = ?y" .
   have "\<And>x. 0 \<le> f x"
     unfolding f_def using `\<And>i. gs i \<in> G`
-    by (auto intro!: le_SUPI2 Max_ge_iff[THEN iffD2] simp: G_def)
+    by (auto intro!: SUP_upper2 Max_ge_iff[THEN iffD2] simp: G_def)
   let "?t A" = "\<nu> A - (\<integral>\<^isup>+x. ?F A x \<partial>M)"
   let ?M = "M\<lparr> measure := ?t\<rparr>"
   interpret M: sigma_algebra ?M
@@ -591,11 +591,11 @@ proof -
     hence "0 < b * \<mu> A0" using b by (auto simp: ereal_zero_less_0_iff)
     with int_f_finite have "?y + 0 < integral\<^isup>P M f + b * \<mu> A0" unfolding int_f_eq_y
       using `f \<in> G`
-      by (intro ereal_add_strict_mono) (auto intro!: le_SUPI2 positive_integral_positive)
+      by (intro ereal_add_strict_mono) (auto intro!: SUP_upper2 positive_integral_positive)
     also have "\<dots> = integral\<^isup>P M ?f0" using f0_eq[OF top] `A0 \<in> sets M` sets_into_space
       by (simp cong: positive_integral_cong)
     finally have "?y < integral\<^isup>P M ?f0" by simp
-    moreover from `?f0 \<in> G` have "integral\<^isup>P M ?f0 \<le> ?y" by (auto intro!: le_SUPI)
+    moreover from `?f0 \<in> G` have "integral\<^isup>P M ?f0 \<le> ?y" by (auto intro!: SUP_upper)
     ultimately show False by auto
   qed
   show ?thesis
@@ -628,7 +628,7 @@ proof -
   have "{} \<in> ?Q" using v.empty_measure by auto
   then have Q_not_empty: "?Q \<noteq> {}" by blast
   have "?a \<le> \<mu> (space M)" using sets_into_space
-    by (auto intro!: SUP_leI measure_mono top)
+    by (auto intro!: SUP_least measure_mono top)
   then have "?a \<noteq> \<infinity>" using finite_measure_of_space
     by auto
   from SUPR_countable_SUPR[OF Q_not_empty, of \<mu>]
@@ -661,7 +661,7 @@ proof -
   proof (rule antisym)
     show "?a \<le> (SUP i. \<mu> (?O i))" unfolding a_Lim
       using Q' by (auto intro!: SUP_mono measure_mono finite_UN)
-    show "(SUP i. \<mu> (?O i)) \<le> ?a" unfolding SUPR_def
+    show "(SUP i. \<mu> (?O i)) \<le> ?a" unfolding SUP_def
     proof (safe intro!: Sup_mono, unfold bex_simps)
       fix i
       have *: "(\<Union>Q' ` {..i}) = ?O i" by auto
@@ -701,7 +701,7 @@ proof -
               using `\<nu> A \<noteq> \<infinity>` O_sets A by auto
           qed (fastforce intro!: incseq_SucI)
           also have "\<dots> \<le> ?a"
-          proof (safe intro!: SUP_leI)
+          proof (safe intro!: SUP_least)
             fix i have "?O i \<union> A \<in> ?Q"
             proof (safe del: notI)
               show "?O i \<union> A \<in> sets M" using O_sets A by auto
@@ -711,7 +711,7 @@ proof -
               ultimately show "\<nu> (?O i \<union> A) \<noteq> \<infinity>"
                 using `\<nu> A \<noteq> \<infinity>` by auto
             qed
-            then show "\<mu> (?O i \<union> A) \<le> ?a" by (rule le_SUPI)
+            then show "\<mu> (?O i \<union> A) \<le> ?a" by (rule SUP_upper)
           qed
           finally have "\<mu> A = 0"
             unfolding a_eq using real_measure[OF `?O_0 \<in> sets M`] real_measure[OF A(1)] by auto

@@ -30,11 +30,11 @@ qed auto
 
 lemma SUPR_pair:
   "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
-  by (rule antisym) (auto intro!: SUP_leI le_SUPI2)
+  by (rule antisym) (auto intro!: SUP_least SUP_upper2)
 
 lemma INFI_pair:
   "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
-  by (rule antisym) (auto intro!: le_INFI INF_leI2)
+  by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
 subsection {* Definition and basic properties *}
 
@@ -1252,7 +1252,7 @@ instance ereal :: complete_linorder ..
 lemma ereal_SUPR_uminus:
   fixes f :: "'a => ereal"
   shows "(SUP i : R. -(f i)) = -(INF i : R. f i)"
-  unfolding SUPR_def INFI_def
+  unfolding SUP_def INF_def
   using ereal_Sup_uminus_image_eq[of "f`R"]
   by (simp add: image_image)
 
@@ -1313,7 +1313,7 @@ lemma ereal_SUPI:
   assumes "!!i. i : A ==> f i <= x"
   assumes "!!y. (!!i. i : A ==> f i <= y) ==> x <= y"
   shows "(SUP i:A. f i) = x"
-  unfolding SUPR_def Sup_ereal_def
+  unfolding SUP_def Sup_ereal_def
   using assms by (auto intro!: Least_equality)
 
 lemma ereal_INFI:
@@ -1321,7 +1321,7 @@ lemma ereal_INFI:
   assumes "!!i. i : A ==> f i >= x"
   assumes "!!y. (!!i. i : A ==> f i >= y) ==> x >= y"
   shows "(INF i:A. f i) = x"
-  unfolding INFI_def Inf_ereal_def
+  unfolding INF_def Inf_ereal_def
   using assms by (auto intro!: Greatest_equality)
 
 lemma Sup_ereal_close:
@@ -1364,13 +1364,13 @@ proof-
   { assume "~(x <= (SUP i:A. f i))" hence "(SUP i:A. f i)<x" by (simp add: not_le)
     from this obtain y where y_def: "(SUP i:A. f i)<y & y<x" using ereal_dense by auto
     from this obtain i where "i : A & y <= f i" using `?rhs` by auto
-    hence "y <= (SUP i:A. f i)" using le_SUPI[of i A f] by auto
+    hence "y <= (SUP i:A. f i)" using SUP_upper[of i A f] by auto
     hence False using y_def by auto
   } hence "?lhs" by auto
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis SUP_leI assms atLeastatMost_empty atLeastatMost_empty_iff
+  by (metis SUP_least assms atLeastatMost_empty atLeastatMost_empty_iff
       inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
 } ultimately show ?thesis by auto
 qed
@@ -1384,13 +1384,13 @@ proof-
   { assume "~((INF i:A. f i) <= x)" hence "x < (INF i:A. f i)" by (simp add: not_le)
     from this obtain y where y_def: "x<y & y<(INF i:A. f i)" using ereal_dense by auto
     from this obtain i where "i : A & f i <= y" using `?rhs` by auto
-    hence "(INF i:A. f i) <= y" using INF_leI[of i A f] by auto
+    hence "(INF i:A. f i) <= y" using INF_lower[of i A f] by auto
     hence False using y_def by auto
   } hence "?lhs" by auto
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis le_INFI assms atLeastatMost_empty atLeastatMost_empty_iff
+  by (metis INF_greatest assms atLeastatMost_empty atLeastatMost_empty_iff
       inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
 } ultimately show ?thesis by auto
 qed
@@ -1402,7 +1402,7 @@ lemma Inf_less:
 proof(rule ccontr)
   assume "~ (EX i. i : A & f i <= x)"
   hence "ALL i:A. f i > x" by auto
-  hence "(INF i:A. f i) >= x" apply (subst le_INFI) by auto
+  hence "(INF i:A. f i) >= x" apply (subst INF_greatest) by auto
   thus False using assms by auto
 qed
 
@@ -1411,7 +1411,7 @@ lemma same_INF:
   shows "(INF e:A. f e) = (INF e:A. g e)"
 proof-
 have "f ` A = g ` A" unfolding image_def using assms by auto
-thus ?thesis unfolding INFI_def by auto
+thus ?thesis unfolding INF_def by auto
 qed
 
 lemma same_SUP:
@@ -1419,7 +1419,7 @@ lemma same_SUP:
   shows "(SUP e:A. f e) = (SUP e:A. g e)"
 proof-
 have "f ` A = g ` A" unfolding image_def using assms by auto
-thus ?thesis unfolding SUPR_def by auto
+thus ?thesis unfolding SUP_def by auto
 qed
 
 lemma SUPR_eq:
@@ -1428,9 +1428,9 @@ lemma SUPR_eq:
   shows "(SUP i:A. f i) = (SUP j:B. g j)"
 proof (intro antisym)
   show "(SUP i:A. f i) \<le> (SUP j:B. g j)"
-    using assms by (metis SUP_leI le_SUPI2)
+    using assms by (metis SUP_least SUP_upper2)
   show "(SUP i:B. g i) \<le> (SUP j:A. f j)"
-    using assms by (metis SUP_leI le_SUPI2)
+    using assms by (metis SUP_least SUP_upper2)
 qed
 
 lemma SUP_ereal_le_addI:
@@ -1440,7 +1440,7 @@ lemma SUP_ereal_le_addI:
 proof (cases y)
   case (real r)
   then have "\<And>i. f i \<le> z - y" using assms by (simp add: ereal_le_minus_iff)
-  then have "SUPR UNIV f \<le> z - y" by (rule SUP_leI)
+  then have "SUPR UNIV f \<le> z - y" by (rule SUP_least)
   then show ?thesis using real by (simp add: ereal_le_minus_iff)
 qed (insert assms, auto)
 
@@ -1451,7 +1451,7 @@ lemma SUPR_ereal_add:
 proof (rule ereal_SUPI)
   fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> f i + g i \<le> y"
   have f: "SUPR UNIV f \<noteq> -\<infinity>" using pos
-    unfolding SUPR_def Sup_eq_MInfty by (auto dest: image_eqD)
+    unfolding SUP_def Sup_eq_MInfty by (auto dest: image_eqD)
   { fix j
     { fix i
       have "f i + g j \<le> f i + g (max i j)"
@@ -1466,7 +1466,7 @@ proof (rule ereal_SUPI)
   then have "SUPR UNIV g + SUPR UNIV f \<le> y"
     using f by (rule SUP_ereal_le_addI)
   then show "SUPR UNIV f + SUPR UNIV g \<le> y" by (simp add: ac_simps)
-qed (auto intro!: add_mono le_SUPI)
+qed (auto intro!: add_mono SUP_upper)
 
 lemma SUPR_ereal_add_pos:
   fixes f g :: "nat \<Rightarrow> ereal"
@@ -1489,7 +1489,7 @@ lemma SUPR_ereal_cmult:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>i. 0 \<le> f i" "0 \<le> c"
   shows "(SUP i. c * f i) = c * SUPR UNIV f"
 proof (rule ereal_SUPI)
-  fix i have "f i \<le> SUPR UNIV f" by (rule le_SUPI) auto
+  fix i have "f i \<le> SUPR UNIV f" by (rule SUP_upper) auto
   then show "c * f i \<le> c * SUPR UNIV f"
     using `0 \<le> c` by (rule ereal_mult_left_mono)
 next
@@ -1498,7 +1498,7 @@ next
   proof cases
     assume c: "0 < c \<and> c \<noteq> \<infinity>"
     with * have "SUPR UNIV f \<le> y / c"
-      by (intro SUP_leI) (auto simp: ereal_le_divide_pos)
+      by (intro SUP_least) (auto simp: ereal_le_divide_pos)
     with c show ?thesis
       by (auto simp: ereal_le_divide_pos)
   next
@@ -1507,7 +1507,7 @@ next
         assume "\<forall>i. f i = 0"
         moreover then have "range f = {0}" by auto
         ultimately show "c * SUPR UNIV f \<le> y" using *
-          by (auto simp: SUPR_def min_max.sup_absorb1)
+          by (auto simp: SUP_def min_max.sup_absorb1)
       next
         assume "\<not> (\<forall>i. f i = 0)"
         then obtain i where "f i \<noteq> 0" by auto
@@ -1522,7 +1522,7 @@ lemma SUP_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<And>n::nat. \<exists>i\<in>A. ereal (real n) \<le> f i"
   shows "(SUP i:A. f i) = \<infinity>"
-  unfolding SUPR_def Sup_eq_top_iff[where 'a=ereal, unfolded top_ereal_def]
+  unfolding SUP_def Sup_eq_top_iff[where 'a=ereal, unfolded top_ereal_def]
   apply simp
 proof safe
   fix x :: ereal assume "x \<noteq> \<infinity>"
@@ -1616,7 +1616,7 @@ qed
 
 lemma SUPR_countable_SUPR:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
-  using Sup_countable_SUPR[of "g`A"] by (auto simp: SUPR_def)
+  using Sup_countable_SUPR[of "g`A"] by (auto simp: SUP_def)
 
 lemma Sup_ereal_cadd:
   fixes A :: "ereal set" assumes "A \<noteq> {}" and "a \<noteq> -\<infinity>"
@@ -1649,7 +1649,7 @@ lemma SUPR_ereal_cminus:
   fixes A assumes "A \<noteq> {}" and "a \<noteq> -\<infinity>"
   shows "(SUP x:A. a - f x) = a - (INF x:A. f x)"
   using Sup_ereal_cminus[of "f`A" a] assms
-  unfolding SUPR_def INFI_def image_image by auto
+  unfolding SUP_def INF_def image_image by auto
 
 lemma Inf_ereal_cminus:
   fixes A :: "ereal set" assumes "A \<noteq> {}" and "\<bar>a\<bar> \<noteq> \<infinity>"
@@ -1667,7 +1667,7 @@ lemma INFI_ereal_cminus:
   fixes a :: ereal assumes "A \<noteq> {}" and "\<bar>a\<bar> \<noteq> \<infinity>"
   shows "(INF x:A. a - f x) = a - (SUP x:A. f x)"
   using Inf_ereal_cminus[of "f`A" a] assms
-  unfolding SUPR_def INFI_def image_image
+  unfolding SUP_def INF_def image_image
   by auto
 
 lemma uminus_ereal_add_uminus_uminus:
@@ -2358,14 +2358,14 @@ proof (safe intro!: antisym complete_lattice_class.Sup_least)
     fix y assume "y < x"
     with * obtain N where "\<And>n. N \<le> n \<Longrightarrow> y < f n" by auto
     then have "y \<le> (INF m:{N..}. f m)" by (force simp: le_INF_iff)
-    also have "\<dots> \<le> (SUP n. INF m:{n..}. f m)" by (intro le_SUPI) auto
+    also have "\<dots> \<le> (SUP n. INF m:{n..}. f m)" by (intro SUP_upper) auto
     finally show "y \<le> (SUP n. INF m:{n..}. f m)" .
   qed
 next
   show "(SUP n. INF m:{n..}. f m) \<le> Sup {l. \<forall>y<l. \<exists>N. \<forall>n\<ge>N. y < f n}"
-  proof (unfold SUPR_def, safe intro!: Sup_mono bexI)
+  proof (unfold SUP_def, safe intro!: Sup_mono bexI)
     fix y n assume "y < INFI {n..} f"
-    from less_INFD[OF this] show "\<exists>N. \<forall>n\<ge>N. y < f n" by (intro exI[of _ n]) auto
+    from less_INF_D[OF this] show "\<exists>N. \<forall>n\<ge>N. y < f n" by (intro exI[of _ n]) auto
   qed (rule order_refl)
 qed
 
@@ -2418,14 +2418,14 @@ proof safe
   fix B assume "B < C" "C \<le> liminf x"
   then have "B < liminf x" by auto
   then obtain N where "B < (INF m:{N..}. x m)"
-    unfolding liminf_SUPR_INFI SUPR_def less_Sup_iff by auto
-  from less_INFD[OF this] show "\<exists>N. \<forall>n\<ge>N. B < x n" by auto
+    unfolding liminf_SUPR_INFI SUP_def less_Sup_iff by auto
+  from less_INF_D[OF this] show "\<exists>N. \<forall>n\<ge>N. B < x n" by auto
 next
   assume *: "\<forall>B<C. \<exists>N. \<forall>n\<ge>N. B < x n"
   { fix B assume "B<C"
     then obtain N where "\<forall>n\<ge>N. B < x n" using `?rhs` by auto
-    hence "B \<le> (INF m:{N..}. x m)" by (intro le_INFI) auto
-    also have "... \<le> liminf x" unfolding liminf_SUPR_INFI by (intro le_SUPI) simp
+    hence "B \<le> (INF m:{N..}. x m)" by (intro INF_greatest) auto
+    also have "... \<le> liminf x" unfolding liminf_SUPR_INFI by (intro SUP_upper) simp
     finally have "B \<le> liminf x" .
   } then show "?lhs" by (metis * leD liminf_bounded linorder_le_less_linear)
 qed

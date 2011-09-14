@@ -246,7 +246,7 @@ lemma invariant_JoinI:
 by (simp add: invariant_def, blast)
 
 lemma FP_JN: "FP (\<Squnion>i \<in> I. F i) = (\<Inter>i \<in> I. FP (F i))"
-by (simp add: FP_def JN_stable INTER_def)
+by (simp add: FP_def JN_stable INTER_eq)
 
 
 subsection{*Progress: transient, ensures*}

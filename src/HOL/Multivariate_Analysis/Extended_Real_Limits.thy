@@ -653,7 +653,7 @@ let ?l="(SUP e:{0<..}. INF y:(S Int ball x e - {x}). f y)"
       unfolding less_SUP_iff by auto
     { fix y assume "y:S & 0 < dist y x & dist y x < d"
       hence "y:(S Int ball x d - {x})" unfolding ball_def by (auto simp add: dist_commute)
-      hence "f y:T" using d_def INF_leI[of y "S Int ball x d - {x}" f] `T={B<..}` by auto
+      hence "f y:T" using d_def INF_lower[of y "S Int ball x d - {x}" f] `T={B<..}` by auto
     } hence ?thesis apply(rule_tac x="d" in exI) using d_def by auto
   } ultimately show ?thesis by auto
   qed
@@ -669,8 +669,8 @@ moreover
       hence "y:S & 0 < dist y x & dist y x < d" unfolding ball_def apply (simp add: dist_commute)
          by (metis dist_eq_0_iff real_less_def zero_le_dist)
       hence "B <= f y" using d_def by auto
-    } hence "B <= INFI (S Int ball x d - {x}) f" apply (subst le_INFI) by auto
-    also have "...<=?l" apply (subst le_SUPI) using d_def by auto
+    } hence "B <= INFI (S Int ball x d - {x}) f" apply (subst INF_greatest) by auto
+    also have "...<=?l" apply (subst SUP_upper) using d_def by auto
     finally have "B<=?l" by auto
   } hence "z <= ?l" using ereal_le_ereal[of z "?l"] by auto
 }
@@ -700,7 +700,7 @@ let ?l="(INF e:{0<..}. SUP y:(S Int ball x e - {x}). f y)"
       unfolding INF_less_iff by auto
     { fix y assume "y:S & 0 < dist y x & dist y x < d"
       hence "y:(S Int ball x d - {x})" unfolding ball_def by (auto simp add: dist_commute)
-      hence "f y:T" using d_def le_SUPI[of y "S Int ball x d - {x}" f] `T={..<B}` by auto
+      hence "f y:T" using d_def SUP_upper[of y "S Int ball x d - {x}" f] `T={..<B}` by auto
     } hence ?thesis apply(rule_tac x="d" in exI) using d_def by auto
   } ultimately show ?thesis by auto
   qed
@@ -716,8 +716,8 @@ moreover
       hence "y:S & 0 < dist y x & dist y x < d" unfolding ball_def apply (simp add: dist_commute)
          by (metis dist_eq_0_iff real_less_def zero_le_dist)
       hence "f y <= B" using d_def by auto
-    } hence "SUPR (S Int ball x d - {x}) f <= B" apply (subst SUP_leI) by auto
-    moreover have "?l<=SUPR (S Int ball x d - {x}) f" apply (subst INF_leI) using d_def by auto
+    } hence "SUPR (S Int ball x d - {x}) f <= B" apply (subst SUP_least) by auto
+    moreover have "?l<=SUPR (S Int ball x d - {x}) f" apply (subst INF_lower) using d_def by auto
     ultimately have "?l<=B" by auto
   } hence "?l <= z" using ereal_ge_ereal[of z "?l"] by auto
 }
@@ -1149,7 +1149,7 @@ lemma suminf_finite:
 lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
-  unfolding suminf_ereal_eq_SUPR[OF assms] SUPR_def
+  unfolding suminf_ereal_eq_SUPR[OF assms] SUP_def
   by (auto intro: complete_lattice_class.Sup_upper image_eqI)
 
 lemma suminf_0_le:
@@ -1291,7 +1291,7 @@ proof -
   show ?thesis using assms
     apply (subst (1 2) suminf_ereal_eq_SUPR)
     unfolding *
-    apply (auto intro!: le_SUPI2)
+    apply (auto intro!: SUP_upper2)
     apply (subst SUP_commute) ..
 qed
 

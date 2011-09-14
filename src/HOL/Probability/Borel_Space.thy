@@ -1414,7 +1414,7 @@ lemma (in sigma_algebra) borel_measurable_SUP[simp, intro]:
 proof
   fix a
   have "?sup -` {a<..} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. a < f i x})"
-    by (auto simp: less_SUP_iff SUPR_apply)
+    by (auto simp: less_SUP_iff SUP_apply)
   then show "?sup -` {a<..} \<inter> space M \<in> sets M"
     using assms by auto
 qed
@@ -1427,7 +1427,7 @@ lemma (in sigma_algebra) borel_measurable_INF[simp, intro]:
 proof
   fix a
   have "?inf -` {..<a} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. f i x < a})"
-    by (auto simp: INF_less_iff INFI_apply)
+    by (auto simp: INF_less_iff INF_apply)
   then show "?inf -` {..<a} \<inter> space M \<in> sets M"
     using assms by auto
 qed

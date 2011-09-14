@@ -184,61 +184,61 @@ lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<
 subsubsection {* Intersections of families *}
 
 lemma INF1_iff: "(\<Sqinter>x\<in>A. B x) b = (\<forall>x\<in>A. B x b)"
-  by (simp add: INFI_apply)
+  by (simp add: INF_apply)
 
 lemma INF2_iff: "(\<Sqinter>x\<in>A. B x) b c = (\<forall>x\<in>A. B x b c)"
-  by (simp add: INFI_apply)
+  by (simp add: INF_apply)
 
 lemma INF1_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF2_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF1_D [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF2_D [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF1_E [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF2_E [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INFI_apply)
+  by (auto simp add: INF_apply)
 
 lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Sqinter>i. r i))"
-  by (simp add: INFI_apply fun_eq_iff)
+  by (simp add: INF_apply fun_eq_iff)
 
 lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Sqinter>i. r i))"
-  by (simp add: INFI_apply fun_eq_iff)
+  by (simp add: INF_apply fun_eq_iff)
 
 
 subsubsection {* Unions of families *}
 
 lemma SUP1_iff: "(\<Squnion>x\<in>A. B x) b = (\<exists>x\<in>A. B x b)"
-  by (simp add: SUPR_apply)
+  by (simp add: SUP_apply)
 
 lemma SUP2_iff: "(\<Squnion>x\<in>A. B x) b c = (\<exists>x\<in>A. B x b c)"
-  by (simp add: SUPR_apply)
+  by (simp add: SUP_apply)
 
 lemma SUP1_I [intro]: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
-  by (auto simp add: SUPR_apply)
+  by (auto simp add: SUP_apply)
 
 lemma SUP2_I [intro]: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
-  by (auto simp add: SUPR_apply)
+  by (auto simp add: SUP_apply)
 
 lemma SUP1_E [elim!]: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUPR_apply)
+  by (auto simp add: SUP_apply)
 
 lemma SUP2_E [elim!]: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUPR_apply)
+  by (auto simp add: SUP_apply)
 
 lemma SUP_UN_eq: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
-  by (simp add: SUPR_apply fun_eq_iff)
+  by (simp add: SUP_apply fun_eq_iff)
 
 lemma SUP_UN_eq2: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
-  by (simp add: SUPR_apply fun_eq_iff)
+  by (simp add: SUP_apply fun_eq_iff)
 
 
 subsection {* Predicates as relations *}
@@ -469,11 +469,11 @@ end
 
 lemma eval_INFI [simp]:
   "eval (INFI A f) = INFI A (eval \<circ> f)"
-  by (simp only: INFI_def eval_Inf image_compose)
+  by (simp only: INF_def eval_Inf image_compose)
 
 lemma eval_SUPR [simp]:
   "eval (SUPR A f) = SUPR A (eval \<circ> f)"
-  by (simp only: SUPR_def eval_Sup image_compose)
+  by (simp only: SUP_def eval_Sup image_compose)
 
 instantiation pred :: (type) complete_boolean_algebra
 begin

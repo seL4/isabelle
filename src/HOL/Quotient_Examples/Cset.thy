@@ -97,6 +97,6 @@ hide_const (open) is_empty insert remove map filter forall exists card
 hide_fact (open) is_empty_def insert_def remove_def map_def filter_def
   forall_def exists_def card_def set_def subset_def psubset_def
   inter_def union_def empty_def UNIV_def uminus_def minus_def Inf_def Sup_def
-  UNION_def
+  UNION_eq
 
 end

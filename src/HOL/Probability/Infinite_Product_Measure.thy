@@ -503,7 +503,7 @@ next
     proof (rule ccontr)
       assume "(INF i. \<mu>G (A i)) \<noteq> 0" (is "?a \<noteq> 0")
       moreover have "0 \<le> ?a"
-        using A positive_\<mu>G by (auto intro!: le_INFI simp: positive_def)
+        using A positive_\<mu>G by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
       have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = measure (Pi\<^isub>M J M) X"
@@ -525,7 +525,7 @@ next
 
       have a_le_1: "?a \<le> 1"
         using \<mu>G_spec[of "J 0" "A 0" "X 0"] J A_eq
-        by (auto intro!: INF_leI2[of 0] J.measure_le_1)
+        by (auto intro!: INF_lower2[of 0] J.measure_le_1)
 
       let "?M K Z y" = "merge K y (I - K) -` Z \<inter> space (Pi\<^isub>M I M)"
 
@@ -544,7 +544,7 @@ next
         note Q_sets = this
 
         have "?a / 2^(k+1) \<le> (INF n. measure (Pi\<^isub>M J' M) (?Q n))"
-        proof (intro le_INFI)
+        proof (intro INF_greatest)
           fix n
           have "?a / 2^k \<le> \<mu>G (Z n)" using Z by auto
           also have "\<dots> \<le> (\<integral>\<^isup>+ x. indicator (?Q n) x + ?a / 2^(k+1) \<partial>Pi\<^isub>M J' M)"
@@ -592,7 +592,7 @@ next
 
       let "?q k n y" = "\<mu>G (?M (J k) (A n) y)"
 
-      have "\<forall>n. ?a / 2 ^ 0 \<le> \<mu>G (A n)" by (auto intro: INF_leI)
+      have "\<forall>n. ?a / 2 ^ 0 \<le> \<mu>G (A n)" by (auto intro: INF_lower)
       from Ex_w[OF A(1,2) this J(1-3), of 0] guess w0 .. note w0 = this
 
       let "?P k wk w" =

@@ -270,7 +270,7 @@ lemmas primrecdef_list = "pre.simps" "assertions.simps" "atomics.simps" "atom_co
 lemmas my_simp_list = list_lemmas fst_conv snd_conv
 not_less0 refl le_Suc_eq_insert Suc_not_Zero Zero_not_Suc nat.inject
 Collect_mem_eq ball_simps option.simps primrecdef_list
-lemmas ParallelConseq_list = INTER_def Collect_conj_eq length_map length_upt length_append list_length
+lemmas ParallelConseq_list = INTER_eq Collect_conj_eq length_map length_upt length_append list_length
 
 ML {*
 val before_interfree_simp_tac = simp_tac (HOL_basic_ss addsimps [@{thm com.simps}, @{thm post.simps}])

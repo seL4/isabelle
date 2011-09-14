@@ -1017,7 +1017,7 @@ thm rel_comp.equation
 code_pred [inductify] Image .
 thm Image.equation
 declare singleton_iff[code_pred_inline]
-declare Id_on_def[unfolded Bex_def UNION_def singleton_iff, code_pred_def]
+declare Id_on_def[unfolded Bex_def UNION_eq singleton_iff, code_pred_def]
 
 code_pred (expected_modes:
   (o => bool) => o => bool,

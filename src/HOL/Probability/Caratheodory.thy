@@ -46,7 +46,7 @@ proof -
       by (auto intro!: setsum_mono3 simp: pos) }
   ultimately
   show ?thesis unfolding g_def using pos
-    by (auto intro!: SUPR_eq  simp: setsum_cartesian_product reindex le_SUPI2
+    by (auto intro!: SUPR_eq  simp: setsum_cartesian_product reindex SUP_upper2
                      setsum_nonneg suminf_ereal_eq_SUPR SUPR_pair
                      SUPR_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed

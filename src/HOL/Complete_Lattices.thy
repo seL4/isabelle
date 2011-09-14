@@ -1150,19 +1150,6 @@ lemma (in complete_lattice) Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by simp
 
-lemmas (in complete_lattice) INFI_def = INF_def
-lemmas (in complete_lattice) SUPR_def = SUP_def
-lemmas (in complete_lattice) INF_leI = INF_lower
-lemmas (in complete_lattice) INF_leI2 = INF_lower2
-lemmas (in complete_lattice) le_INFI = INF_greatest
-lemmas (in complete_lattice) le_SUPI = SUP_upper
-lemmas (in complete_lattice) le_SUPI2 = SUP_upper2
-lemmas (in complete_lattice) SUP_leI = SUP_least
-lemmas (in complete_lattice) less_INFD = less_INF_D
-
-lemmas INFI_apply = INF_apply
-lemmas SUPR_apply = SUP_apply
-
 text {* Grep and put to news from here *}
 
 lemma (in complete_lattice) INF_eq:
@@ -1195,9 +1182,6 @@ lemma INTER_eq_Inter_image:
 lemma Inter_def:
   "\<Inter>S = (\<Inter>x\<in>S. x)"
   by (simp add: INTER_eq_Inter_image image_def)
-
-lemmas INTER_def = INTER_eq
-lemmas UNION_def = UNION_eq
 
 lemma INT_eq: "(\<Inter>x\<in>A. B x) = \<Inter>({Y. \<exists>x\<in>A. Y = B x})"
   by (fact INF_eq)

@@ -590,7 +590,7 @@ qed simp_all
 lemma UN_from_nat: "(\<Union>i. N i) = (\<Union>i. N (Countable.from_nat i))"
 proof -
   have "(\<Union>i. N i) = (\<Union>i. (N \<circ> Countable.from_nat) i)"
-    unfolding SUPR_def image_compose
+    unfolding SUP_def image_compose
     unfolding surj_from_nat ..
   then show ?thesis by simp
 qed

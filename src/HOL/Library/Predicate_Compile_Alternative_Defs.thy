@@ -41,7 +41,7 @@ declare subset_iff[code_pred_inline]
 
 declare Int_def[code_pred_inline]
 declare eq_reflection[OF Un_def, code_pred_inline]
-declare eq_reflection[OF UNION_def, code_pred_inline]
+declare eq_reflection[OF UNION_eq, code_pred_inline]
 
 lemma Diff[code_pred_inline]:
   "(A - B) = (%x. A x \<and> \<not> B x)"

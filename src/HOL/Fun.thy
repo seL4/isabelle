@@ -181,7 +181,7 @@ lemma inj_on_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
          INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
   shows "inj_on f (\<Union> i \<in> I. A i)"
-proof(unfold inj_on_def UNION_def, auto)
+proof(unfold inj_on_def UNION_eq, auto)
   fix i j x y
   assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
          and ***: "f x = f y"

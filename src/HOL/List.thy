@@ -2549,12 +2549,12 @@ qed
 
 lemma (in complete_lattice) INFI_set_fold:
   "INFI (set xs) f = foldl (\<lambda>y x. inf (f x) y) top xs"
-  unfolding INFI_def set_map [symmetric] Inf_set_fold foldl_map
+  unfolding INF_def set_map [symmetric] Inf_set_fold foldl_map
     by (simp add: inf_commute)
 
 lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
-  unfolding SUPR_def set_map [symmetric] Sup_set_fold foldl_map
+  unfolding SUP_def set_map [symmetric] Sup_set_fold foldl_map
     by (simp add: sup_commute)
 
 
@@ -4987,8 +4987,8 @@ lemma in_set_member [code_unfold]:
   "x \<in> set xs \<longleftrightarrow> member xs x"
   by (simp add: member_def)
 
-declare INFI_def [code_unfold]
-declare SUPR_def [code_unfold]
+declare INF_def [code_unfold]
+declare SUP_def [code_unfold]
 
 declare set_map [symmetric, code_unfold]
 

@@ -262,11 +262,11 @@ lemma (in complete_lattice) Sup_set_foldr [code_unfold]:
 
 lemma (in complete_lattice) INFI_set_fold:
   "INFI (set xs) f = fold (inf \<circ> f) xs top"
-  unfolding INFI_def set_map [symmetric] Inf_set_fold fold_map ..
+  unfolding INF_def set_map [symmetric] Inf_set_fold fold_map ..
 
 lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
-  unfolding SUPR_def set_map [symmetric] Sup_set_fold fold_map ..
+  unfolding SUP_def set_map [symmetric] Sup_set_fold fold_map ..
 
 text {* @{text nth_map} *}
 

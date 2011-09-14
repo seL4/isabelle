@@ -888,13 +888,13 @@ lemma (in measure_space) positive_integral_cong_measure:
 
 lemma (in measure_space) positive_integral_positive:
   "0 \<le> integral\<^isup>P M f"
-  by (auto intro!: le_SUPI2[of "\<lambda>x. 0"] simp: positive_integral_def le_fun_def)
+  by (auto intro!: SUP_upper2[of "\<lambda>x. 0"] simp: positive_integral_def le_fun_def)
 
 lemma (in measure_space) positive_integral_def_finite:
   "integral\<^isup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f \<and> range g \<subseteq> {0 ..< \<infinity>}}. integral\<^isup>S M g)"
     (is "_ = SUPR ?A ?f")
   unfolding positive_integral_def
-proof (safe intro!: antisym SUP_leI)
+proof (safe intro!: antisym SUP_least)
   fix g assume g: "simple_function M g" "g \<le> max 0 \<circ> f"
   let ?G = "{x \<in> space M. \<not> g x \<noteq> \<infinity>}"
   note gM = g(1)[THEN borel_measurable_simple_function]
@@ -910,7 +910,7 @@ proof (safe intro!: antisym SUP_leI)
     assume "\<mu> ?G = 0"
     with gM have "AE x. x \<notin> ?G" by (simp add: AE_iff_null_set)
     with gM g show ?thesis
-      by (intro le_SUPI2[OF g0] simple_integral_mono_AE)
+      by (intro SUP_upper2[OF g0] simple_integral_mono_AE)
          (auto simp: max_def intro!: simple_function_If)
   next
     assume \<mu>G: "\<mu> ?G \<noteq> 0"
@@ -932,7 +932,7 @@ proof (safe intro!: antisym SUP_leI)
     qed
     then show ?thesis by simp
   qed
-qed (auto intro: le_SUPI)
+qed (auto intro: SUP_upper)
 
 lemma (in measure_space) positive_integral_mono_AE:
   assumes ae: "AE x. u x \<le> v x" shows "integral\<^isup>P M u \<le> integral\<^isup>P M v"
@@ -979,10 +979,10 @@ proof -
   with f(2) have [simp]: "max 0 \<circ> ?f = ?f"
     by (auto simp: fun_eq_iff max_def split: split_indicator)
   have "integral\<^isup>P M ?f \<le> integral\<^isup>S M ?f" using f'
-    by (force intro!: SUP_leI simple_integral_mono simp: le_fun_def positive_integral_def)
+    by (force intro!: SUP_least simple_integral_mono simp: le_fun_def positive_integral_def)
   moreover have "integral\<^isup>S M ?f \<le> integral\<^isup>P M ?f"
     unfolding positive_integral_def
-    using f' by (auto intro!: le_SUPI)
+    using f' by (auto intro!: SUP_upper)
   ultimately show ?thesis
     by (simp cong: positive_integral_cong simple_integral_cong)
 qed
@@ -1004,7 +1004,7 @@ lemma (in measure_space) positive_integral_SUP_approx:
   shows "integral\<^isup>S M u \<le> (SUP i. integral\<^isup>P M (f i))" (is "_ \<le> ?S")
 proof (rule ereal_le_mult_one_interval)
   have "0 \<le> (SUP i. integral\<^isup>P M (f i))"
-    using f(3) by (auto intro!: le_SUPI2 positive_integral_positive)
+    using f(3) by (auto intro!: SUP_upper2 positive_integral_positive)
   then show "(SUP i. integral\<^isup>P M (f i)) \<noteq> -\<infinity>" by auto
   have u_range: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> u x \<and> u x \<noteq> \<infinity>"
     using u(3) by auto
@@ -1044,8 +1044,8 @@ proof (rule ereal_le_mult_one_interval)
         with `a < 1` u_range[OF `x \<in> space M`]
         have "a * u x < 1 * u x"
           by (intro ereal_mult_strict_right_mono) (auto simp: image_iff)
-        also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def SUPR_apply)
-        finally obtain i where "a * u x < f i x" unfolding SUPR_def
+        also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def SUP_apply)
+        finally obtain i where "a * u x < f i x" unfolding SUP_def
           by (auto simp add: less_Sup_iff)
         hence "a * u x \<le> f i x" by auto
         thus ?thesis using `x \<in> space M` by auto
@@ -1104,18 +1104,18 @@ lemma (in measure_space) positive_integral_monotone_convergence_SUP:
   shows "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^isup>P M (f i))"
 proof (rule antisym)
   show "(SUP j. integral\<^isup>P M (f j)) \<le> (\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M)"
-    by (auto intro!: SUP_leI le_SUPI positive_integral_mono)
+    by (auto intro!: SUP_least SUP_upper positive_integral_mono)
 next
   show "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) \<le> (SUP j. integral\<^isup>P M (f j))"
     unfolding positive_integral_def_finite[of "\<lambda>x. SUP i. f i x"]
-  proof (safe intro!: SUP_leI)
+  proof (safe intro!: SUP_least)
     fix g assume g: "simple_function M g"
       and "g \<le> max 0 \<circ> (\<lambda>x. SUP i. f i x)" "range g \<subseteq> {0..<\<infinity>}"
     moreover then have "\<And>x. 0 \<le> (SUP i. f i x)" and g': "g`space M \<subseteq> {0..<\<infinity>}"
-      using f by (auto intro!: le_SUPI2)
+      using f by (auto intro!: SUP_upper2)
     ultimately show "integral\<^isup>S M g \<le> (SUP j. integral\<^isup>P M (f j))"
       by (intro  positive_integral_SUP_approx[OF f g _ g'])
-         (auto simp: le_fun_def max_def SUPR_apply)
+         (auto simp: le_fun_def max_def SUP_apply)
   qed
 qed
 
@@ -1419,10 +1419,10 @@ proof -
     (SUP n. \<integral>\<^isup>+ x. (INF i:{n..}. u i x) \<partial>M)"
     unfolding liminf_SUPR_INFI using pos u
     by (intro positive_integral_monotone_convergence_SUP_AE)
-       (elim AE_mp, auto intro!: AE_I2 intro: le_INFI INF_subset)
+       (elim AE_mp, auto intro!: AE_I2 intro: INF_greatest INF_subset)
   also have "\<dots> \<le> liminf (\<lambda>n. integral\<^isup>P M (u n))"
     unfolding liminf_SUPR_INFI
-    by (auto intro!: SUP_mono exI le_INFI positive_integral_mono INF_leI)
+    by (auto intro!: SUP_mono exI INF_greatest positive_integral_mono INF_lower)
   finally show ?thesis .
 qed
 
