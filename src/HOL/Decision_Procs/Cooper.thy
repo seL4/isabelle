@@ -1871,11 +1871,9 @@ where
 
 ML {* @{code cooper_test} () *}
 
-(*
-code_reflect Cooper_Procedure
+(* code_reflect Cooper_Procedure
   functions pa
-  file "~~/src/HOL/Tools/Qelim/generated_cooper.ML"
-*)
+  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML" *)
 
 oracle linzqe_oracle = {*
 let
