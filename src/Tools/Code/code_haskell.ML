@@ -6,6 +6,7 @@ Serializer for Haskell.
 
 signature CODE_HASKELL =
 sig
+  val language_params: string
   val target: string
   val setup: theory -> theory
 end;
@@ -14,6 +15,15 @@ structure Code_Haskell : CODE_HASKELL =
 struct
 
 val target = "Haskell";
+
+val language_extensions =
+    ["EmptyDataDecls", "RankNTypes", "ScopedTypeVariables"];
+
+val language_pragma =
+    "{-# LANGUAGE " ^ commas language_extensions ^ " #-}";
+
+val language_params =
+    space_implode " " (map (prefix "-X") language_extensions);
 
 open Basic_Code_Thingol;
 open Code_Printer;
@@ -348,7 +358,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
             val _ = Isabelle_System.mkdirs (Path.dir filepath);
           in
             (File.write filepath o format [] width o Pretty.chunks2)
-              [str "{-# LANGUAGE ScopedTypeVariables #-}", content]
+              [str language_pragma, content]
           end
       | write_module width NONE (_, content) = writeln (format [] width content);
   in
@@ -446,7 +456,7 @@ val setup =
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>
-          "\"$ISABELLE_GHC\" -XRankNTypes -XScopedTypeVariables -XEmptyDataDecls -odir build -hidir build -stubdir build -e \"\" " ^
+          "\"$ISABELLE_GHC\" " ^ language_params  ^ " -odir build -hidir build -stubdir build -e \"\" " ^
             module_name ^ ".hs" } })
   #> Code_Target.add_tyco_syntax target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
