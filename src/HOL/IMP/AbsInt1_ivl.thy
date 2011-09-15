@@ -8,9 +8,18 @@ subsection "Interval Analysis"
 
 datatype ivl = I "int option" "int option"
 
+text{* We assume an important invariant: arithmetic operations are never
+applied to empty intervals @{term"I (Some i) (Some j)"} with @{term"j <
+i"}. This avoids special cases. Why can we assume this? Because an empty
+interval of values for a variable means that the current program point is
+unreachable. But this should actually translate into the bottom state, not a
+state where some variables have empty intervals. *}
+
 definition "rep_ivl i =
  (case i of I (Some l) (Some h) \<Rightarrow> {l..h} | I (Some l) None \<Rightarrow> {l..}
   | I None (Some h) \<Rightarrow> {..h} | I None None \<Rightarrow> UNIV)"
+
+definition "num_ivl n = I (Some n) (Some n)"
 
 instantiation option :: (plus)plus
 begin
@@ -36,16 +45,16 @@ by(auto split:option.split)
 lemma [simp]: "is_empty i \<Longrightarrow> rep_ivl i = {}"
 by(auto simp add: rep_ivl_def split: ivl.split option.split)
 
-definition "plus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty
-  else case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
+definition "plus_ivl i1 i2 = ((*if is_empty i1 | is_empty i2 then empty else*)
+  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
 
 instantiation ivl :: SL_top
 begin
 
 definition le_option :: "bool \<Rightarrow> int option \<Rightarrow> int option \<Rightarrow> bool" where
 "le_option pos x y =
- (case x of (Some i) \<Rightarrow> (case y of (Some j) \<Rightarrow> (i<=j) | None \<Rightarrow> pos)
-  | None \<Rightarrow> (case y of Some j \<Rightarrow> (~pos) | None \<Rightarrow> True))"
+ (case x of (Some i) \<Rightarrow> (case y of Some j \<Rightarrow> i\<le>j | None \<Rightarrow> pos)
+  | None \<Rightarrow> (case y of Some j \<Rightarrow> \<not>pos | None \<Rightarrow> True))"
 
 fun le_aux where
 "le_aux (I l1 h1) (I l2 h2) = (le_option False l2 l1 & le_option True h1 h2)"
@@ -95,8 +104,9 @@ end
 instantiation ivl :: L_top_bot
 begin
 
-definition "i1 \<sqinter> i2 = (if is_empty i1 | is_empty i2 then empty
-  else case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (max_option False l1 l2) (min_option True h1 h2))"
+definition "i1 \<sqinter> i2 = (if is_empty i1 \<or> is_empty i2 then empty else
+  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
+    I (max_option False l1 l2) (min_option True h1 h2))"
 
 definition "Bot = empty"
 
@@ -127,24 +137,22 @@ instance proof qed
 
 end
 
-definition "minus_ivl i1 i2 =
- (if is_empty i1 | is_empty i2 then empty
-  else case (i1,i2) of
-    (I l1 h1, I l2 h2) \<Rightarrow> I (l1-h2) (h1-l2))"
+definition "minus_ivl i1 i2 = ((*if is_empty i1 | is_empty i2 then empty else*)
+  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1-h2) (h1-l2))"
 
 lemma rep_minus_ivl:
   "n1 : rep_ivl i1 \<Longrightarrow> n2 : rep_ivl i2 \<Longrightarrow> n1-n2 : rep_ivl(minus_ivl i1 i2)"
 by(auto simp add: minus_ivl_def rep_ivl_def split: ivl.splits option.splits)
 
 
-definition "inv_plus_ivl i1 i2 i =
-  (if is_empty i then empty
-   else i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
+definition "inv_plus_ivl i1 i2 i = ((*if is_empty i then empty else*)
+  i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
 
 fun inv_less_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> bool \<Rightarrow> ivl * ivl" where
 "inv_less_ivl (I l1 h1) (I l2 h2) res =
   (if res
-   then (I l1 (min_option True h1 (h2 - Some 1)), I (max_option False (l1 + Some 1) l2) h2)
+   then (I l1 (min_option True h1 (h2 - Some 1)),
+         I (max_option False (l1 + Some 1) l2) h2)
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
 
 interpretation Rep rep_ivl
@@ -153,9 +161,9 @@ proof
     by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
 qed
 
-interpretation Val_abs rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl
+interpretation Val_abs rep_ivl num_ivl plus_ivl
 proof
-  case goal1 thus ?case by(simp add: rep_ivl_def)
+  case goal1 thus ?case by(simp add: rep_ivl_def num_ivl_def)
 next
   case goal2 thus ?case
     by(auto simp add: rep_ivl_def plus_ivl_def split: ivl.split option.splits)
@@ -169,7 +177,8 @@ next
   case goal2 show ?case by(auto simp add: Bot_ivl_def rep_ivl_def empty_def)
 qed
 
-interpretation Val_abs1 rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
+interpretation
+  Val_abs1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl
 proof
   case goal1 thus ?case
     by(auto simp add: inv_plus_ivl_def)
@@ -180,12 +189,13 @@ next
       auto simp: rep_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
 qed
 
-interpretation Abs_Int1 rep_ivl "\<lambda>n. I (Some n) (Some n)" plus_ivl inv_plus_ivl inv_less_ivl
+interpretation
+  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter_above 3)"
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and AI_ivl is AI
 and aval_ivl is aval'
-..
+proof qed (auto simp: iter_above_pfp)
 
 
 fun list_up where
@@ -227,5 +237,17 @@ definition "test2_ivl =
  ''y'' ::= N 7;
  WHILE Less (V ''x'') (N 100) DO ''y'' ::= Plus (V ''y'') (N 1)"
 value [code] "list_up(AI_ivl test2_ivl Top)"
+
+definition "test3_ivl =
+ ''x'' ::= N 0; ''y'' ::= N 100; ''z'' ::= Plus (V ''x'') (V ''y'');
+ WHILE Less (V ''x'') (N 11)
+ DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N -1))"
+value [code] "list_up(AI_ivl test3_ivl Top)"
+
+definition "test4_ivl =
+ ''x'' ::= N 0; ''y'' ::= N 0;
+ WHILE Less (V ''x'') (N 1001)
+ DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
+value [code] "list_up(AI_ivl test4_ivl Top)"
 
 end

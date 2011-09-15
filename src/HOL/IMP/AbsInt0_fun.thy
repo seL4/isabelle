@@ -31,44 +31,44 @@ begin
 lemma join_le_iff[simp]: "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
 by (metis join_ge1 join_ge2 join_least le_trans)
 
-fun iter where
-"iter f 0 _ = Top" |
-"iter f (Suc n) x = (if f x \<sqsubseteq> x then x else iter f n (f x))"
+fun iter :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+"iter 0 f _ = Top" |
+"iter (Suc n) f x = (if f x \<sqsubseteq> x then x else iter n f (f x))"
 
-lemma iter_pfp: "f(iter f n x) \<sqsubseteq> iter f n x"
+lemma iter_pfp: "f(iter n f x) \<sqsubseteq> iter n f x"
 apply (induct n arbitrary: x)
  apply (simp)
 apply (simp)
 done
 
-definition "iter_above f n x0 = iter (\<lambda>x. x0 \<squnion> f x) n x0"
+definition iter_above :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+"iter_above n f x0 = iter n (\<lambda>x. x0 \<squnion> f x) x0"
 
 lemma iter_above_pfp:
-shows "f(iter_above f n x0) \<sqsubseteq> iter_above f n x0" and "x0 \<sqsubseteq> iter_above f n x0"
+shows "f(iter_above n f x0) \<sqsubseteq> iter_above n f x0" and "x0 \<sqsubseteq> iter_above n f x0"
 using iter_pfp[of "\<lambda>x. x0 \<squnion> f x"]
 by(auto simp add: iter_above_def)
 
 text{* So much for soundness. But how good an approximation of the post-fixed
 point does @{const iter_above} yield? *}
 
-lemma iter_funpow: "iter f n x \<noteq> Top \<Longrightarrow> EX k. iter f n x = (f^^k) x"
+lemma iter_funpow: "iter n f x \<noteq> Top \<Longrightarrow> \<exists>k. iter n f x = (f^^k) x"
 apply(induct n arbitrary: x)
  apply simp
 apply (auto)
-apply(rule_tac x=0 in exI)
-apply simp
+ apply(metis funpow.simps(1) id_def)
 by (metis funpow.simps(2) funpow_swap1 o_apply)
 
 text{* For monotone @{text f}, @{term "iter_above f n x0"} yields the least
 post-fixed point above @{text x0}, unless it yields @{text Top}. *}
 
 lemma iter_least_pfp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above f n x0 \<noteq> Top"
-and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter_above f n x0 \<sqsubseteq> p"
+assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above n f x0 \<noteq> Top"
+and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter_above n f x0 \<sqsubseteq> p"
 proof-
   let ?F = "\<lambda>x. x0 \<squnion> f x"
-  obtain k where "iter_above f n x0 = (?F^^k) x0"
-    using iter_funpow `iter_above f n x0 \<noteq> Top`
+  obtain k where "iter_above n f x0 = (?F^^k) x0"
+    using iter_funpow `iter_above n f x0 \<noteq> Top`
     by(fastforce simp add: iter_above_def)
   moreover
   { fix n have "(?F^^n) x0 \<sqsubseteq> p"
@@ -89,10 +89,10 @@ apply simp
 by (metis assms join_ge2 le_trans)
 
 lemma iter_above_almost_fp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above f n x0 \<noteq> Top"
-shows "iter_above f n x0 \<sqsubseteq> x0 \<squnion> f(iter_above f n x0)"
+assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above n f x0 \<noteq> Top"
+shows "iter_above n f x0 \<sqsubseteq> x0 \<squnion> f(iter_above n f x0)"
 proof-
-  let ?p = "iter_above f n x0"
+  let ?p = "iter_above n f x0"
   obtain k where 1: "?p = ((\<lambda>x. x0 \<squnion> f x)^^k) x0"
     using iter_funpow `?p \<noteq> Top`
     by(fastforce simp add: iter_above_def)
@@ -117,8 +117,8 @@ end
 
 locale Val_abs = Rep rep
   for rep :: "'a::SL_top \<Rightarrow> val set" +
-fixes num' :: "val \<Rightarrow> 'a"  ("num\<^isup>#")
-and plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  ("plus\<^isup>#")
+fixes num' :: "val \<Rightarrow> 'a"
+and plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 assumes rep_num': "rep(num' n) = {n}"
 and rep_plus': "n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1+n2 <: plus' a1 a2"
 
@@ -143,13 +143,18 @@ end
 
 subsection "Abstract Interpretation Abstractly"
 
-text{* Abstract interpretation over abstract values.
-Abstract states are simply functions. *}
+text{* Abstract interpretation over abstract values. Abstract states are
+simply functions. The post-fixed point finder is parameterized over. *}
 
-locale Abs_Int_Fun = Val_abs
+type_synonym 'a st = "name \<Rightarrow> 'a"
+
+locale Abs_Int_Fun = Val_abs +
+fixes pfp_above :: "('a st \<Rightarrow> 'a st) \<Rightarrow> 'a st \<Rightarrow> 'a st"
+assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
+assumes above: "x0 \<sqsubseteq> pfp_above f x0"
 begin
 
-fun aval' :: "aexp \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> 'a" ("aval\<^isup>#") where
+fun aval' :: "aexp \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> 'a" where
 "aval' (N n) _ = num' n" |
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
@@ -168,7 +173,7 @@ fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Right
 "AI (x ::= a) S = S(x := aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = iter_above (AI c) 3 S"
+"AI (WHILE b DO c) S = pfp_above (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -181,8 +186,7 @@ next
   case If thus ?case by(auto simp: in_rep_join)
 next
   case (While b c)
-  let ?P = "iter_above (AI c) 3 S0"
-  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P" by (simp_all add: iter_above_pfp)
+  let ?P = "pfp_above (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp
@@ -190,7 +194,7 @@ next
       case WhileTrue thus ?case by(metis While.hyps pfp fun_in_rep_le)
     qed
   }
-  with fun_in_rep_le[OF `s <: S0` `S0 \<sqsubseteq> ?P`]
+  with fun_in_rep_le[OF `s <: S0` above]
   show ?case by (metis While(2) AI.simps(5))
 qed
 

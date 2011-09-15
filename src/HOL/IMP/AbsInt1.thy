@@ -64,8 +64,6 @@ by (cases x) simp_all
 
 definition "Top = Up Top"
 
-(* register <= as transitive - see orderings *)
-
 instance proof
   case goal1 show ?case by(cases x, simp_all)
 next
@@ -84,7 +82,10 @@ qed
 end
 
 
-locale Abs_Int1 = Val_abs1
+locale Abs_Int1 = Val_abs1 +
+fixes pfp_above :: "('a astate up \<Rightarrow> 'a astate up) \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up"
+assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
+assumes above: "x0 \<sqsubseteq> pfp_above f x0"
 begin
 
 (* FIXME avoid duplicating this defn *)
@@ -114,10 +115,20 @@ fun afilter :: "aexp \<Rightarrow> 'a \<Rightarrow> 'a astate up \<Rightarrow> '
 "afilter (N n) a S = (if n <: a then S else bot)" |
 "afilter (V x) a S = (case S of bot \<Rightarrow> bot | Up S \<Rightarrow>
   let a' = lookup S x \<sqinter> a in
-  if a'\<sqsubseteq> Bot then bot else Up(update S x a'))" |
+  if a' \<sqsubseteq> Bot then bot else Up(update S x a'))" |
 "afilter (Plus e1 e2) a S =
  (let (a1,a2) = inv_plus' (aval' e1 S) (aval' e2 S) a
   in afilter e1 a1 (afilter e2 a2 S))"
+
+text{* The test for @{const Bot} in the @{const V}-case is important: @{const
+Bot} indicates that a variable has no possible values, i.e.\ that the current
+program point is unreachable. But then the abstract state should collaps to
+@{const bot}. Put differently, we maintain the invariant that in an abstract
+state all variables are mapped to non-@{const Bot} values. Otherwise the
+(pointwise) join of two abstract states, one of which contains @{const Bot}
+values, may produce too large a result, thus making the analysis less
+precise. *}
+
 
 fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 "bfilter (B bv) res S = (if bv=res then S else bot)" |
@@ -167,7 +178,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 "AI (IF b THEN c1 ELSE c2) S =
   AI c1 (bfilter b True S) \<squnion> AI c2 (bfilter b False S)" |
 "AI (WHILE b DO c) S =
-  bfilter b False (iter_above (\<lambda>S. AI c (bfilter b True S)) 3 S)"
+  bfilter b False (pfp_above (\<lambda>S. AI c (bfilter b True S)) S)"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
 proof(induct c arbitrary: s t S)
@@ -181,9 +192,7 @@ next
   case If thus ?case by (auto simp: in_rep_join_UpI bfilter_sound)
 next
   case (While b c)
-  let ?P = "iter_above (\<lambda>S. AI c (bfilter b True S)) 3 S"
-  have pfp: "AI c (bfilter b True ?P) \<sqsubseteq> ?P" and "S \<sqsubseteq> ?P"
-    by (rule iter_above_pfp(1), rule iter_above_pfp(2))
+  let ?P = "pfp_above (\<lambda>S. AI c (bfilter b True S)) S"
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <:: ?P \<Longrightarrow>
           t <:: bfilter b False ?P"
@@ -196,7 +205,7 @@ next
            rule bfilter_sound[OF WhileTrue.prems], simp add: WhileTrue(1))
     qed
   }
-  with in_rep_up_trans[OF `s <:: S` `S \<sqsubseteq> ?P`] While(2,3) AI.simps(5)
+  with in_rep_up_trans[OF `s <:: S` above] While(2,3) AI.simps(5)
   show ?case by simp
 qed
 
