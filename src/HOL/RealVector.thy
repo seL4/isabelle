@@ -452,22 +452,19 @@ lemma open_Un [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (
   using open_Union [of "{S, T}"] by simp
 
 lemma open_UN [intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
-  unfolding UN_eq by (rule open_Union) auto
-
-lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
-  by (induct set: finite) auto
+  unfolding SUP_def by (rule open_Union) auto
 
 lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
-  unfolding Inter_def by (rule open_INT)
+  by (induct set: finite) auto
+
+lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
+  unfolding INF_def by (rule open_Inter) auto
 
 lemma closed_empty [intro, simp]:  "closed {}"
   unfolding closed_def by simp
 
 lemma closed_Un [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<union> T)"
   unfolding closed_def by auto
-
-lemma closed_Inter [intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
-  unfolding closed_def Inter_def by auto
 
 lemma closed_UNIV [intro, simp]: "closed UNIV"
   unfolding closed_def by simp
@@ -478,11 +475,14 @@ lemma closed_Int [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow>
 lemma closed_INT [intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
   unfolding closed_def by auto
 
-lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
-  by (induct set: finite) auto
+lemma closed_Inter [intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
+  unfolding closed_def uminus_Inf by auto
 
 lemma closed_Union [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
-  unfolding Union_def by (rule closed_UN)
+  by (induct set: finite) auto
+
+lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
+  unfolding SUP_def by (rule closed_Union) auto
 
 lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
   unfolding closed_def by simp

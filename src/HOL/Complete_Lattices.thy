@@ -1131,7 +1131,6 @@ lemma INT_extend_simps:
   "\<And>A B f. (\<Inter>a\<in>A. B (f a)) = (\<Inter>x\<in>f`A. B x)"
   by auto
 
-
 text {* Legacy names *}
 
 lemma (in complete_lattice) Inf_singleton [simp]:
@@ -1142,67 +1141,8 @@ lemma (in complete_lattice) Sup_singleton [simp]:
   "\<Squnion>{a} = a"
   by simp
 
-lemma (in complete_lattice) Inf_binary:
-  "\<Sqinter>{a, b} = a \<sqinter> b"
-  by simp
-
-lemma (in complete_lattice) Sup_binary:
-  "\<Squnion>{a, b} = a \<squnion> b"
-  by simp
-
-text {* Grep and put to news from here *}
-
-lemma (in complete_lattice) INF_eq:
-  "(\<Sqinter>x\<in>A. B x) = \<Sqinter>({Y. \<exists>x\<in>A. Y = B x})"
-  by (simp add: INF_def image_def)
-
-lemma (in complete_lattice) SUP_eq:
-  "(\<Squnion>x\<in>A. B x) = \<Squnion>({Y. \<exists>x\<in>A. Y = B x})"
-  by (simp add: SUP_def image_def)
-
-lemma (in complete_lattice) INF_subset:
-  "B \<subseteq> A \<Longrightarrow> INFI A f \<sqsubseteq> INFI B f"
-  by (rule INF_superset_mono) auto
-
-lemma (in complete_lattice) INF_UNIV_range:
-  "(\<Sqinter>x. f x) = \<Sqinter>range f"
-  by (fact INF_def)
-
-lemma (in complete_lattice) SUP_UNIV_range:
-  "(\<Squnion>x. f x) = \<Squnion>range f"
-  by (fact SUP_def)
-
-lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
-  by simp
-
-lemma INTER_eq_Inter_image:
-  "(\<Inter>x\<in>A. B x) = \<Inter>(B`A)"
-  by (fact INF_def)
-  
-lemma Inter_def:
-  "\<Inter>S = (\<Inter>x\<in>S. x)"
-  by (simp add: INTER_eq_Inter_image image_def)
-
-lemma INT_eq: "(\<Inter>x\<in>A. B x) = \<Inter>({Y. \<exists>x\<in>A. Y = B x})"
-  by (fact INF_eq)
-
-lemma Un_eq_Union: "A \<union> B = \<Union>{A, B}"
-  by blast
-
-lemma UNION_eq_Union_image:
-  "(\<Union>x\<in>A. B x) = \<Union>(B ` A)"
-  by (fact SUP_def)
-
-lemma Union_def:
-  "\<Union>S = (\<Union>x\<in>S. x)"
-  by (simp add: UNION_eq_Union_image image_def)
-
 lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
-
-lemma UN_eq: "(\<Union>x\<in>A. B x) = \<Union>({Y. \<exists>x\<in>A. Y = B x})"
-  by (fact SUP_eq)
-
 
 text {* Finally *}
 

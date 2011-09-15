@@ -312,14 +312,14 @@ qed
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
 directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
 lemma setsum_Union_disjoint:
-  "[| (ALL A:C. finite A);
-      (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) |]
-   ==> setsum f (Union C) = setsum (setsum f) C"
-apply (cases "finite C") 
- prefer 2 apply (force dest: finite_UnionD simp add: setsum_def)
-  apply (frule setsum_UN_disjoint [of C id f])
- apply (unfold Union_def id_def, assumption+)
-done
+  assumes "\<forall>A\<in>C. finite A" "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A Int B = {}"
+  shows "setsum f (Union C) = setsum (setsum f) C"
+proof cases
+  assume "finite C"
+  from setsum_UN_disjoint[OF this assms]
+  show ?thesis
+    by (simp add: SUP_def)
+qed (force dest: finite_UnionD simp add: setsum_def)
 
 (*But we can't get rid of finite A. If infinite, although the lhs is 0, 
   the rhs need not be, since SIGMA A B could still be finite.*)
@@ -801,7 +801,7 @@ lemma card_Union_disjoint:
    (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
    ==> card (Union C) = setsum card C"
 apply (frule card_UN_disjoint [of C id])
-apply (unfold Union_def id_def, assumption+)
+apply (simp_all add: SUP_def id_def)
 done
 
 text{*The image of a finite set can be expressed using @{term fold_image}.*}
@@ -996,14 +996,14 @@ lemma setprod_UN_disjoint:
   by (simp add: setprod_def fold_image_UN_disjoint)
 
 lemma setprod_Union_disjoint:
-  "[| (ALL A:C. finite A);
-      (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) |] 
-   ==> setprod f (Union C) = setprod (setprod f) C"
-apply (cases "finite C") 
- prefer 2 apply (force dest: finite_UnionD simp add: setprod_def)
-  apply (frule setprod_UN_disjoint [of C id f])
- apply (unfold Union_def id_def, assumption+)
-done
+  assumes "\<forall>A\<in>C. finite A" "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A Int B = {}" 
+  shows "setprod f (Union C) = setprod (setprod f) C"
+proof cases
+  assume "finite C"
+  from setprod_UN_disjoint[OF this assms]
+  show ?thesis
+    by (simp add: SUP_def)
+qed (force dest: finite_UnionD simp add: setprod_def)
 
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =

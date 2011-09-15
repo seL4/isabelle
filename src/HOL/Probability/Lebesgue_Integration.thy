@@ -1419,7 +1419,7 @@ proof -
     (SUP n. \<integral>\<^isup>+ x. (INF i:{n..}. u i x) \<partial>M)"
     unfolding liminf_SUPR_INFI using pos u
     by (intro positive_integral_monotone_convergence_SUP_AE)
-       (elim AE_mp, auto intro!: AE_I2 intro: INF_greatest INF_subset)
+       (elim AE_mp, auto intro!: AE_I2 intro: INF_greatest INF_superset_mono)
   also have "\<dots> \<le> liminf (\<lambda>n. integral\<^isup>P M (u n))"
     unfolding liminf_SUPR_INFI
     by (auto intro!: SUP_mono exI INF_greatest positive_integral_mono INF_lower)
