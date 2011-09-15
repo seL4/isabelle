@@ -9,10 +9,13 @@ subsection "Computable Abstract Interpretation"
 text{* Abstract interpretation over type @{text astate} instead of
 functions. *}
 
-locale Abs_Int = Val_abs
+locale Abs_Int = Val_abs +
+fixes pfp_above :: "('a astate \<Rightarrow> 'a astate) \<Rightarrow> 'a astate \<Rightarrow> 'a astate"
+assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
+assumes above: "x0 \<sqsubseteq> pfp_above f x0"
 begin
 
-fun aval' :: "aexp \<Rightarrow> 'a astate \<Rightarrow> 'a"  ("aval\<^isup>#") where
+fun aval' :: "aexp \<Rightarrow> 'a astate \<Rightarrow> 'a" where
 "aval' (N n) _ = num' n" |
 "aval' (V x) S = lookup S x" |
 "aval' (Plus e1 e2) S = plus' (aval' e1 S) (aval' e2 S)"
@@ -32,7 +35,7 @@ fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 "AI (x ::= a) S = update S x (aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = iter_above (AI c) 3 S"
+"AI (WHILE b DO c) S = pfp_above (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -47,8 +50,7 @@ next
     by (metis AI.simps(4) IfE astate_in_rep_le join_ge1 join_ge2)
 next
   case (While b c)
-  let ?P = "iter_above (AI c) 3 S0"
-  have pfp: "AI c ?P \<sqsubseteq> ?P" and "S0 \<sqsubseteq> ?P" by(simp_all add: iter_above_pfp)
+  let ?P = "pfp_above (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp
@@ -56,7 +58,7 @@ next
       case WhileTrue thus ?case using While.hyps pfp astate_in_rep_le by metis
     qed
   }
-  with astate_in_rep_le[OF `s <: S0` `S0 \<sqsubseteq> ?P`]
+  with astate_in_rep_le[OF `s <: S0` above]
   show ?case by (metis While(2) AI.simps(5))
 qed
 

@@ -1,4 +1,7 @@
-no_document use_thys ["~~/src/HOL/ex/Interpretation_with_Defs"];
+no_document use_thys
+  ["~~/src/HOL/ex/Interpretation_with_Defs",
+   "~~/src/HOL/Library/Char_ord", "~~/src/HOL/Library/List_lexord"
+  ];
 
 use_thys
 ["BExp",
@@ -12,7 +15,7 @@ use_thys
  "Def_Ass_Sound_Big",
  "Def_Ass_Sound_Small",
  "Live",
- "AbsInt1_ivl",
+ "AbsInt2",
  "Hoare_Examples",
  "VC",
  "HoareT",
