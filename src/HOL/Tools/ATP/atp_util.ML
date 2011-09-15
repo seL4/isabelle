@@ -61,33 +61,38 @@ fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
 fun hash_string s = Word.toInt (hashw_string (s, 0w0))
 val hash_term = Word.toInt o hashw_term
 
-fun strip_c_style_comment _ [] = []
-  | strip_c_style_comment is_evil (#"*" :: #"/" :: cs) =
-    strip_spaces_in_list true is_evil cs
-  | strip_c_style_comment is_evil (_ :: cs) = strip_c_style_comment is_evil cs
-and strip_spaces_in_list _ _ [] = []
-  | strip_spaces_in_list true is_evil (#"%" :: cs) =
-    strip_spaces_in_list true is_evil
-                         (cs |> chop_while (not_equal #"\n") |> snd)
-  | strip_spaces_in_list true is_evil (#"/" :: #"*" :: cs) =
-    strip_c_style_comment is_evil cs
-  | strip_spaces_in_list _ _ [c1] = if Char.isSpace c1 then [] else [str c1]
-  | strip_spaces_in_list skip_comments is_evil [c1, c2] =
-    strip_spaces_in_list skip_comments is_evil [c1] @
-    strip_spaces_in_list skip_comments is_evil [c2]
-  | strip_spaces_in_list skip_comments is_evil (c1 :: c2 :: c3 :: cs) =
-    if Char.isSpace c1 then
-      strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
-    else if Char.isSpace c2 then
-      if Char.isSpace c3 then
-        strip_spaces_in_list skip_comments is_evil (c1 :: c3 :: cs)
-      else
-        str c1 :: (if forall is_evil [c1, c3] then [" "] else []) @
-        strip_spaces_in_list skip_comments is_evil (c3 :: cs)
-    else
-      str c1 :: strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
 fun strip_spaces skip_comments is_evil =
-  implode o strip_spaces_in_list skip_comments is_evil o String.explode
+  let
+    fun strip_c_style_comment [] accum = accum
+      | strip_c_style_comment (#"*" :: #"/" :: cs) accum =
+        strip_spaces_in_list true cs accum
+      | strip_c_style_comment (_ :: cs) accum = strip_c_style_comment cs accum
+    and strip_spaces_in_list _ [] accum = rev accum
+      | strip_spaces_in_list true (#"%" :: cs) accum =
+        strip_spaces_in_list true (cs |> chop_while (not_equal #"\n") |> snd)
+                             accum
+      | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum =
+        strip_c_style_comment cs accum
+      | strip_spaces_in_list _ [c1] accum =
+        accum |> not (Char.isSpace c1) ? cons c1
+      | strip_spaces_in_list skip_comments (cs as [_, _]) accum =
+        accum |> fold (strip_spaces_in_list skip_comments o single) cs
+      | strip_spaces_in_list skip_comments (c1 :: c2 :: c3 :: cs) accum =
+        if Char.isSpace c1 then
+          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) accum
+        else if Char.isSpace c2 then
+          if Char.isSpace c3 then
+            strip_spaces_in_list skip_comments (c1 :: c3 :: cs) accum
+          else
+            strip_spaces_in_list skip_comments (c3 :: cs)
+                (c1 :: accum |> forall is_evil [c1, c3] ? cons #" ")
+        else
+          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) (cons c1 accum)
+  in
+    String.explode
+    #> rpair [] #-> strip_spaces_in_list skip_comments
+    #> rev #> String.implode
+  end
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_idents = strip_spaces true is_ident_char
