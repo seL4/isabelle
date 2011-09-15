@@ -1650,12 +1650,26 @@ sets to lattices:
   INTER_fold_inter              ~> INFI_fold_inf
   UNION_fold_union              ~> SUPR_fold_sup
 
-* Theory "Complete_Lattice": lemmas top_def and bot_def have been
-replaced by the more convenient lemmas Inf_empty and Sup_empty.
-Dropped lemmas Inf_insert_simp and Sup_insert_simp, which are subsumed
-by Inf_insert and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace
-former Inf_Univ and Sup_Univ.  Lemmas inf_top_right and sup_bot_right
-subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
+* Theory "Complete_Lattice":
+
+  - renamed to "Complete_Lattices". minor INCOMPATIBILITY.
+
+  - lemmas top_def and bot_def have been replaced by the more convenient
+    lemmas Inf_empty and Sup_empty.  Dropped lemmas Inf_insert_simp and
+    Sup_insert_simp, which are subsumed by Inf_insert and Sup_insert.
+    Lemmas Inf_UNIV and Sup_UNIV replace former Inf_Univ and Sup_Univ.
+    Lemmas inf_top_right and sup_bot_right subsume inf_top and sup_bot
+    respectively.  INCOMPATIBILITY.
+
+  - lemmas Inf_eq_top_iff, INF_eq_top_iff, INF_image, Inf_insert, INF_top,
+    Inf_top_conv, INF_top_conv, SUP_bot, Sup_bot_conv, SUP_bot_conv,
+    Sup_eq_top_iff, SUP_eq_top_iff, SUP_image, Sup_insert are now declared
+    as [simp]. minor INCOMPATIBILITY.
+
+* Theory "Lattice": lemmas compl_inf_bot, compl_le_comp_iff, compl_sup_top,
+inf_idem, inf_left_idem, inf_sup_absorb, sup_idem, sup_inf_absob,
+sup_left_idem are now declared as [simp]. minor INCOMPATIBILITY.
+
 
 * Reorganized theory Multiset: swapped notation of pointwise and
 multiset order:
