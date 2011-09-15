@@ -22,6 +22,7 @@ sig
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
+  val type_has_top_sort : typ -> bool
   val metis_tac : string list -> Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end

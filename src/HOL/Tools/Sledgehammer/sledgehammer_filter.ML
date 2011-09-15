@@ -63,6 +63,7 @@ structure Sledgehammer_Filter : SLEDGEHAMMER_FILTER =
 struct
 
 open ATP_Translate
+open Metis_Tactic
 open Sledgehammer_Util
 
 val trace =
@@ -785,9 +786,6 @@ fun is_that_fact th =
   String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
-
-val type_has_top_sort =
-  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
