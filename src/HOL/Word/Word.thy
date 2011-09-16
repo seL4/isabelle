@@ -4514,7 +4514,7 @@ lemma unat_plus_if_size:
   apply (simp add:  mod_nat_add word_size)
   done
 
-lemma word_neq_0_conv [simp]:
+lemma word_neq_0_conv:
   fixes w :: "'a :: len word"
   shows "(w \<noteq> 0) = (0 < w)"
 proof -
