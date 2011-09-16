@@ -21,9 +21,6 @@ sig
   val prove_conv2: tactic -> (simpset -> tactic) -> simpset -> term * term -> thm
   val simp_all_tac: thm list -> simpset -> tactic
   val simplify_meta_eq: thm list -> simpset -> thm -> thm
-  val trans_tac: thm option -> tactic
-  val prep_simproc: theory -> string * string list * (theory -> simpset -> term -> thm option)
-    -> simproc
 
   val setup: theory -> theory
 end;
@@ -80,21 +77,20 @@ fun mk_minus t =
   in Const (@{const_name Groups.uminus}, T --> T) $ t end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
-fun mk_sum T []        = mk_number T 0
-  | mk_sum T [t,u]     = mk_plus (t, u)
+fun mk_sum T [] = mk_number T 0
+  | mk_sum T [t, u] = mk_plus (t, u)
   | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
 (*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum T []        = mk_number T 0
+fun long_mk_sum T [] = mk_number T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
 (*decompose additions AND subtractions as a sum*)
 fun dest_summing (pos, Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
-        dest_summing (pos, t, dest_summing (pos, u, ts))
+      dest_summing (pos, t, dest_summing (pos, u, ts))
   | dest_summing (pos, Const (@{const_name Groups.minus}, _) $ t $ u, ts) =
-        dest_summing (pos, t, dest_summing (not pos, u, ts))
-  | dest_summing (pos, t, ts) =
-        if pos then t::ts else mk_minus t :: ts;
+      dest_summing (pos, t, dest_summing (not pos, u, ts))
+  | dest_summing (pos, t, ts) = (if pos then t else mk_minus t) :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 
@@ -120,11 +116,5 @@ fun simp_all_tac rules =
 fun simplify_meta_eq rules =
   let val ss0 = HOL_basic_ss addeqcongs [@{thm eq_cong2}] addsimps rules
   in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end
-
-fun trans_tac NONE  = all_tac
-  | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
-
-fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc_global thy name pats proc;
 
 end;

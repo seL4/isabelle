@@ -681,9 +681,10 @@ fun reorient_proc sg _ (_ $ t $ u) =
                                  meta_number_of_approx_reorient);
 
 in
-val approx_reorient_simproc =
-  Arith_Data.prep_simproc @{theory}
-    ("reorient_simproc", ["0@=x", "1@=x", "number_of w @= x"], reorient_proc);
+
+val approx_reorient_simproc = Simplifier.simproc_global @{theory}
+  "reorient_simproc" ["0@=x", "1@=x", "number_of w @= x"] reorient_proc;
+
 end;
 
 Addsimprocs [approx_reorient_simproc];
