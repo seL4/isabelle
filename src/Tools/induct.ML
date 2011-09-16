@@ -746,10 +746,16 @@ fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
           |> tap (trace_rules ctxt inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
-    fun rule_cases ctxt rule =
-      let val rule' = (if simp then simplified_rule ctxt else I)
-        (Rule_Cases.internalize_params rule);
-      in Rule_Cases.make_nested (Thm.prop_of rule') (rulified_term rule') end;
+    fun rule_cases ctxt rule cases =
+      let
+        val rule' = Rule_Cases.internalize_params rule;
+        val rule'' = (if simp then simplified_rule ctxt else I) rule';
+        val nonames = map (fn ((cn,_),cls) => ((cn,[]),cls))
+        val cases' =
+          if Thm.eq_thm_prop (rule', rule'') then cases else nonames cases
+      in Rule_Cases.make_nested (Thm.prop_of rule'') (rulified_term rule'')
+           cases'
+      end;
   in
     (fn i => fn st =>
       ruleq
