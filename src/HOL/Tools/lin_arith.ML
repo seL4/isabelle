@@ -79,8 +79,8 @@ structure Lin_Arith_Data = Generic_Data
   val empty = {splits = [], inj_consts = [], discrete = []};
   val extend = I;
   fun merge
-   ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
-    {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) : T =
+   ({splits = splits1, inj_consts = inj_consts1, discrete = discrete1},
+    {splits = splits2, inj_consts = inj_consts2, discrete = discrete2}) : T =
    {splits = Thm.merge_thms (splits1, splits2),
     inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
     discrete = Library.merge (op =) (discrete1, discrete2)};
