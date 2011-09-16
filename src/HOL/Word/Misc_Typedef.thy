@@ -1,8 +1,7 @@
 (* 
-    Author:     Jeremy Dawson and Gerwin Klein, NICTA
+  Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
-  consequences of type definition theorems, 
-  and of extended type definition theorems
+  Consequences of type definition theorems, and of extended type definition. theorems
 *)
 
 header {* Type Definition Theorems *}

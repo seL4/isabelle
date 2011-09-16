@@ -11,13 +11,6 @@ begin
 lemma the_elemI: "y = {x} ==> the_elem y = x" 
   by simp
 
-lemmas split_split = prod.split
-lemmas split_split_asm = prod.split_asm
-lemmas split_splits = split_split split_split_asm
-
-lemmas funpow_0 = funpow.simps(1)
-lemmas funpow_Suc = funpow.simps(2)
-
 lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R" by auto
 
 lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by arith 

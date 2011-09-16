@@ -1,8 +1,7 @@
 (* 
   Author: Jeremy Dawson, NICTA
 
-  contains basic definition to do with integers
-  expressed using Pls, Min, BIT
+  Basic definitions to do with integers, expressed using Pls, Min, BIT.
 *) 
 
 header {* Basic Definitions for Binary Integers *}
@@ -876,8 +875,7 @@ lemma size_Cons_lem_eq_bin:
     size list = number_of k"
   by (auto simp: pred_def succ_def split add : split_if_asm)
 
-lemmas ls_splits = 
-  prod.split split_split prod.split_asm split_split_asm split_if_asm
+lemmas ls_splits = prod.split prod.split_asm split_if_asm
 
 lemma not_B1_is_B0: "y \<noteq> (1::bit) \<Longrightarrow> y = (0::bit)"
   by (cases y) auto

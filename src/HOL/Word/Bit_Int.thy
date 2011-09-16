@@ -1,9 +1,9 @@
 (* 
   Author: Jeremy Dawson and Gerwin Klein, NICTA
 
-  definition and basic theorems for bit-wise logical operations 
+  Definitions and basic theorems for bit-wise logical operations 
   for integers expressed using Pls, Min, BIT,
-  and converting them to and from lists of bools
+  and converting them to and from lists of bools.
 *) 
 
 header {* Bitwise Operations on Binary Integers *}

@@ -1,7 +1,7 @@
 (* 
   Author: Jeremy Dawson, NICTA
 
-  contains theorems to do with integers, expressed using Pls, Min, BIT,
+  Theorems to do with integers, expressed using Pls, Min, BIT,
   theorems linking them to lists of booleans, and repeated splitting 
   and concatenation.
 *) 
@@ -60,8 +60,10 @@ lemma map2_Cons [simp]:
 
 subsection "Arithmetic in terms of bool lists"
 
-(* arithmetic operations in terms of the reversed bool list,
-  assuming input list(s) the same length, and don't extend them *)
+text {* 
+  Arithmetic operations in terms of the reversed bool list,
+  assuming input list(s) the same length, and don't extend them. 
+*}
 
 primrec rbl_succ :: "bool list => bool list" where
   Nil: "rbl_succ Nil = Nil"
@@ -72,13 +74,13 @@ primrec rbl_pred :: "bool list => bool list" where
   | Cons: "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
 
 primrec rbl_add :: "bool list => bool list => bool list" where
-    (* result is length of first arg, second arg may be longer *)
+  -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_add Nil x = Nil"
   | Cons: "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
     (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
 
 primrec rbl_mult :: "bool list => bool list => bool list" where
-    (* result is length of first arg, second arg may be longer *)
+  -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_mult Nil x = Nil"
   | Cons: "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
     if y then rbl_add ws x else ws)"
@@ -112,7 +114,7 @@ lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
     bin_to_bl_aux (n - 1) w (True # bl)"
   by (cases n) auto
 
-(** link between bin and bool list **)
+text {* Link between bin and bool list. *}
 
 lemma bl_to_bin_aux_append: 
   "bl_to_bin_aux (bs @ cs) w = bl_to_bin_aux cs (bl_to_bin_aux bs w)"
