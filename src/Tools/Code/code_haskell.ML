@@ -17,13 +17,13 @@ struct
 val target = "Haskell";
 
 val language_extensions =
-    ["EmptyDataDecls", "RankNTypes", "ScopedTypeVariables"];
+  ["EmptyDataDecls", "RankNTypes", "ScopedTypeVariables"];
 
 val language_pragma =
-    "{-# LANGUAGE " ^ commas language_extensions ^ " #-}";
+  "{-# LANGUAGE " ^ commas language_extensions ^ " #-}";
 
 val language_params =
-    space_implode " " (map (prefix "-X") language_extensions);
+  space_implode " " (map (prefix "-X") language_extensions);
 
 open Basic_Code_Thingol;
 open Code_Printer;
