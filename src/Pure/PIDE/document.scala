@@ -42,6 +42,13 @@ object Document
     object Name
     {
       val empty = Name("", "", "")
+      def apply(path: Path): Name =
+      {
+        val node = path.implode
+        val dir = path.dir.implode
+        val theory = Thy_Header.thy_name(node) getOrElse error("Bad theory file name: " + path)
+        Name(node, dir, theory)
+      }
     }
     sealed case class Name(node: String, dir: String, theory: String)
     {

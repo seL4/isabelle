@@ -80,7 +80,7 @@ object Command
   /* dummy commands */
 
   def unparsed(source: String): Command =
-    new Command(Document.no_id, Document.Node.Name("", "", ""),
+    new Command(Document.no_id, Document.Node.Name.empty,
       List(Token(Token.Kind.UNPARSED, source)))
 
   def span(node_name: Document.Node.Name, toks: List[Token]): Command =
