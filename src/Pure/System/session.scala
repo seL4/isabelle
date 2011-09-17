@@ -107,7 +107,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
 
-  def snapshot(name: Document.Node.Name, pending_edits: List[Text.Edit]): Document.Snapshot =
+  def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
+      pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
     global_state().snapshot(name, pending_edits)
 
 

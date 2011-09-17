@@ -173,6 +173,20 @@ object Document
 
   type Nodes = Map[Node.Name, Node]
   sealed case class Version(val id: Version_ID, val nodes: Nodes)
+  {
+    def topological_order: List[Node.Name] =
+    {
+      val names = nodes.map({ case (name, node) => (name.node -> name) })
+      def next(x: Node.Name): List[Node.Name] =
+        nodes(x).header match {
+          case Exn.Res(header) =>
+            for (imp <- header.imports; name <- names.get(imp)) yield(name)
+          case Exn.Exn(_) => Nil
+        }
+      Library.topological_order(next,
+        Library.sort_wrt((name: Node.Name) => name.node, nodes.keys.toList))
+    }
+  }
 
 
   /* changes of plain text, eventually resulting in document edits */

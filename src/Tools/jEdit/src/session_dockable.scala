@@ -138,20 +138,20 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   {
     Swing_Thread.now {
       // FIXME correlation to changed_nodes!?
-      val state = Isabelle.session.current_state()
-      val version = state.recent_stable.version.get_finished
+      val snapshot = Isabelle.session.snapshot()
 
       var nodes_status1 = nodes_status
       for {
         name <- changed_nodes
-        node <- version.nodes.get(name)
-        val status = Isar_Document.node_status(state, version, node)
+        node <- snapshot.version.nodes.get(name)
+        val status = Isar_Document.node_status(snapshot.state, snapshot.version, node)
       } nodes_status1 += (name -> status)
 
       if (nodes_status != nodes_status1) {
         nodes_status = nodes_status1
         status.listData =
-          Library.sort_wrt((name: Document.Node.Name) => name.node, nodes_status.keySet.toList)
+          snapshot.version.topological_order.filter(
+            (name: Document.Node.Name) => nodes_status.isDefinedAt(name))
       }
     }
   }
