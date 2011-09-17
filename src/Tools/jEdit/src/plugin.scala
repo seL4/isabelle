@@ -373,7 +373,7 @@ class Plugin extends EBPlugin
       val thys =
         for (buffer <- buffers; model <- Isabelle.document_model(buffer))
           yield model.name
-      val files = thy_info.dependencies(thys).toList.map(_._1.node).filterNot(loaded_buffer _)
+      val files = thy_info.dependencies(thys).map(_._1.node).filterNot(loaded_buffer _)
 
       if (!files.isEmpty) {
         val files_list = new ListView(Library.sort_strings(files))
@@ -388,8 +388,10 @@ class Plugin extends EBPlugin
             "Reload selected files now?",
             new ScrollPane(files_list))
         if (answer == 0)
-          files_list.selection.items foreach (file =>
-            if (!loaded_buffer(file)) jEdit.openFile(null: View, file))
+          for {
+            file <- files
+            if !loaded_buffer(file) && files_list.selection.items.contains(file)
+          } jEdit.openFile(null: View, file)
       }
     }
 

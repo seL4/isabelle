@@ -47,16 +47,19 @@ class Thy_Info(thy_load: Thy_Load)
     Document.Node.Name(node, dir1, theory)
   }
 
-  type Deps = Map[Document.Node.Name, Document.Node_Header]
+  type Dep = (Document.Node.Name, Document.Node_Header)
+  private type Required = (List[Dep], Set[Document.Node.Name])
 
   private def require_thys(initiators: List[Document.Node.Name],
-      deps: Deps, names: List[Document.Node.Name]): Deps =
-    (deps /: names)(require_thy(initiators, _, _))
+      required: Required, names: List[Document.Node.Name]): Required =
+    (required /: names)(require_thy(initiators, _, _))
 
   private def require_thy(initiators: List[Document.Node.Name],
-      deps: Deps, name: Document.Node.Name): Deps =
+      required: Required, name: Document.Node.Name): Required =
   {
-    if (deps.isDefinedAt(name) || thy_load.is_loaded(name.theory)) deps
+    val (deps, seen) = required
+    if (seen(name)) required
+    else if (thy_load.is_loaded(name.theory)) (deps, seen + name)
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
@@ -68,12 +71,13 @@ class Thy_Info(thy_load: Thy_Load)
                 quote(name.theory) + required_by(initiators))
           }
         val imports = header.imports.map(import_name(name.dir, _))
-        require_thys(name :: initiators, deps + (name -> Exn.Res(header)), imports)
+        val (deps1, seen1) = require_thys(name :: initiators, (deps, seen + name), imports)
+        ((name, Exn.Res(header)) :: deps1, seen1)
       }
-      catch { case e: Throwable => deps + (name -> Exn.Exn(e)) }
+      catch { case e: Throwable => (((name, Exn.Exn(e)): Dep) :: deps, seen + name) }
     }
   }
 
-  def dependencies(names: List[Document.Node.Name]): Deps =
-    require_thys(Nil, Map.empty, names)
+  def dependencies(names: List[Document.Node.Name]): List[Dep] =
+    require_thys(Nil, (Nil, Set.empty), names)._1.reverse
 }
