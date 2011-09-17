@@ -36,7 +36,7 @@ sig
   val bal_add2: thm
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
-  val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
+  val trans_tac: thm option -> tactic            (*applies the initial lemma*)
   val norm_tac: simpset -> tactic                (*proves the initial lemma*)
   val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
   val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
@@ -92,12 +92,12 @@ fun proc ss t =
     Option.map (export o Data.simplify_meta_eq ss)
       (if n2 <= n1 then
          Data.prove_conv
-           [Data.trans_tac ss reshape, rtac Data.bal_add1 1,
+           [Data.trans_tac reshape, rtac Data.bal_add1 1,
             Data.numeral_simp_tac ss] ctxt prems
            (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
        else
          Data.prove_conv
-           [Data.trans_tac ss reshape, rtac Data.bal_add2 1,
+           [Data.trans_tac reshape, rtac Data.bal_add2 1,
             Data.numeral_simp_tac ss] ctxt prems
            (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
   end

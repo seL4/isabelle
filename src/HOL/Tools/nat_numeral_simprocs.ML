@@ -148,7 +148,7 @@ struct
   val mk_coeff = mk_coeff
   val dest_coeff = dest_coeff
   val find_first_coeff = find_first_coeff []
-  val trans_tac = K Numeral_Simprocs.trans_tac
+  val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @
     [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
@@ -233,7 +233,7 @@ struct
   val dest_coeff = dest_coeff
   val left_distrib = @{thm left_add_mult_distrib} RS trans
   val prove_conv = Arith_Data.prove_conv_nohyps
-  val trans_tac = K Numeral_Simprocs.trans_tac
+  val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms add_ac}
   val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
@@ -259,7 +259,7 @@ structure CancelNumeralFactorCommon =
 struct
   val mk_coeff = mk_coeff
   val dest_coeff = dest_coeff
-  val trans_tac = K Numeral_Simprocs.trans_tac
+  val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 = Numeral_Simprocs.num_ss addsimps
     numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
@@ -361,7 +361,7 @@ struct
   val mk_coeff = mk_coeff
   val dest_coeff = dest_coeff
   val find_first = find_first_t []
-  val trans_tac = K Numeral_Simprocs.trans_tac
+  val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   val simplify_meta_eq  = cancel_simplify_meta_eq

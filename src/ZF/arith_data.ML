@@ -165,7 +165,7 @@ structure EqCancelNumeralsData =
   val dest_bal = FOLogic.dest_eq
   val bal_add1 = @{thm eq_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm eq_add_iff} RS @{thm iff_trans}
-  fun trans_tac _ = gen_trans_tac @{thm iff_trans}
+  val trans_tac = gen_trans_tac @{thm iff_trans}
   end;
 
 structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
@@ -178,7 +178,7 @@ structure LessCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin @{const_name Ordinal.lt} iT
   val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
-  fun trans_tac _ = gen_trans_tac @{thm iff_trans}
+  val trans_tac = gen_trans_tac @{thm iff_trans}
   end;
 
 structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
@@ -191,7 +191,7 @@ structure DiffCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin @{const_name Arith.diff} iT
   val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
   val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
-  fun trans_tac _ = gen_trans_tac @{thm trans}
+  val trans_tac = gen_trans_tac @{thm trans}
   end;
 
 structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);

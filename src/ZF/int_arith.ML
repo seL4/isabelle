@@ -156,7 +156,7 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  fun trans_tac _       = ArithData.gen_trans_tac @{thm iff_trans}
+  val trans_tac         = ArithData.gen_trans_tac @{thm iff_trans}
 
   val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac}
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
@@ -234,7 +234,7 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff 1
   val left_distrib      = @{thm left_zadd_zmult_distrib} RS @{thm trans}
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
-  fun trans_tac _       = ArithData.gen_trans_tac @{thm trans}
+  val trans_tac         = ArithData.gen_trans_tac @{thm trans}
 
   val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
@@ -276,7 +276,7 @@ structure CombineNumeralsProdData =
   fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
   val left_distrib      = @{thm zmult_assoc} RS @{thm sym} RS @{thm trans}
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
-  fun trans_tac _       = ArithData.gen_trans_tac @{thm trans}
+  val trans_tac         = ArithData.gen_trans_tac @{thm trans}
 
 
 
