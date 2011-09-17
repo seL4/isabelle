@@ -10,13 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, Label, ListView,
+import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
   ScrollPane, TabbedPane, Component, Swing}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics}
-import javax.swing.{JList, DefaultListCellRenderer}
+import java.awt.{BorderLayout, Graphics2D}
+import javax.swing.{JList, DefaultListCellRenderer, UIManager}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
@@ -29,7 +29,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val readme = new HTML_Panel("SansSerif", 14)
   readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
 
-  val status = new ListView(Nil: List[String])
+  val status = new ListView(Nil: List[Document.Node.Name])
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
@@ -86,11 +86,15 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   private var nodes_status: Map[Document.Node.Name, Isar_Document.Node_Status] = Map.empty
 
-  val node_renderer = new DefaultListCellRenderer
+  private class Node_Renderer_Component extends Label
   {
-    override def paintComponent(gfx: Graphics)
+    xAlignment = Alignment.Leading
+    border = UIManager.getBorder("List.cellNoFocusBorder")
+
+    var node_name = Document.Node.Name.empty
+    override def paintComponent(gfx: Graphics2D)
     {
-      nodes_status.get(Document.Node.Name(getText, "", "")) match {
+      nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
           val w = getWidth
           val h = getHeight
@@ -112,7 +116,19 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     }
   }
 
-  status.peer.setCellRenderer(node_renderer)
+  private class Node_Renderer extends
+    ListView.AbstractRenderer[Document.Node.Name, Node_Renderer_Component](
+      new Node_Renderer_Component)
+  {
+    def configure(list: ListView[_], isSelected: Boolean, focused: Boolean,
+      name: Document.Node.Name, index: Int)
+    {
+      component.opaque = false
+      component.node_name = name
+      component.text = name.theory
+    }
+  }
+  status.renderer = new Node_Renderer
 
   private def handle_changed(changed_nodes: Set[Document.Node.Name])
   {
@@ -132,7 +148,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         nodes_status = nodes_status1
         status.listData =
           Library.sort_wrt((name: Document.Node.Name) => name.node, nodes_status.keySet.toList)
-            .map(_.node)
       }
     }
   }

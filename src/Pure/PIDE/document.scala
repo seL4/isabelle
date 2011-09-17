@@ -39,6 +39,10 @@ object Document
 
   object Node
   {
+    object Name
+    {
+      val empty = Name("", "", "")
+    }
     sealed case class Name(node: String, dir: String, theory: String)
     {
       override def hashCode: Int = node.hashCode
