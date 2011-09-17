@@ -18,21 +18,6 @@ import org.gjt.sp.jedit.MiscUtilities
 
 class JEdit_Thy_Load extends Thy_Load
 {
-  /* loaded theories provided by prover */
-
-  private var loaded_theories: Set[String] = Set()
-
-  override def register_thy(thy_name: String)
-  {
-    synchronized { loaded_theories += thy_name }
-  }
-
-  override def is_loaded(thy_name: String): Boolean =
-    synchronized { loaded_theories.contains(thy_name) }
-
-
-  /* file-system operations */
-
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand

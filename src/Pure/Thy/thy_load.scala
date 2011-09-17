@@ -6,11 +6,34 @@ Primitives for loading theory files.
 
 package isabelle
 
-abstract class Thy_Load
+
+import java.io.File
+
+
+
+class Thy_Load
 {
-  def register_thy(thy_name: String)
-  def is_loaded(thy_name: String): Boolean
-  def append(dir: String, path: Path): String
-  def check_thy(node_name: Document.Node.Name): Thy_Header
+  /* loaded theories provided by prover */
+
+  private var loaded_theories: Set[String] = Set()
+
+  def register_thy(thy_name: String): Unit =
+    synchronized { loaded_theories += thy_name }
+
+  def is_loaded(thy_name: String): Boolean =
+    synchronized { loaded_theories.contains(thy_name) }
+
+
+  /* file-system operations */
+
+  def append(dir: String, source_path: Path): String =
+    (Path.explode(dir) + source_path).implode
+
+  def check_thy(name: Document.Node.Name): Thy_Header =
+  {
+    val file = new File(name.node)
+    if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
+    Thy_Header.read(file)
+  }
 }
 
