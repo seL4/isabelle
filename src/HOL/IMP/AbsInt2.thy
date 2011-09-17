@@ -40,15 +40,15 @@ apply (induct n arbitrary: x)
 apply (simp add: Let_def)
 done
 
-definition iter_above :: "nat \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-"iter_above m n f x =
+definition iter' :: "nat \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+"iter' m n f x =
   (let f' = (\<lambda>y. x \<squnion> f y) in iter_down f' n (iter_up f' m x))"
 
-lemma iter_above_pfp:
-shows "f(iter_above m n f x0) \<sqsubseteq> iter_above m n f x0"
-and "x0 \<sqsubseteq> iter_above m n f x0"
+lemma iter'_pfp_above:
+shows "f(iter' m n f x0) \<sqsubseteq> iter' m n f x0"
+and "x0 \<sqsubseteq> iter' m n f x0"
 using iter_up_pfp[of "\<lambda>x. x0 \<squnion> f x"] iter_down_pfp[of "\<lambda>x. x0 \<squnion> f x"]
-by(auto simp add: iter_above_def Let_def)
+by(auto simp add: iter'_def Let_def)
 
 end
 
@@ -126,12 +126,12 @@ qed
 end
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter_above 3 2)"
+  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter' 3 2)"
 defines afilter_ivl' is afilter
 and bfilter_ivl' is bfilter
 and AI_ivl' is AI
 and aval_ivl' is aval'
-proof qed (auto simp: iter_above_pfp)
+proof qed (auto simp: iter'_pfp_above)
 
 value [code] "list_up(AI_ivl' test3_ivl Top)"
 value [code] "list_up(AI_ivl' test4_ivl Top)"

@@ -10,9 +10,9 @@ text{* Abstract interpretation over type @{text astate} instead of
 functions. *}
 
 locale Abs_Int = Val_abs +
-fixes pfp_above :: "('a astate \<Rightarrow> 'a astate) \<Rightarrow> 'a astate \<Rightarrow> 'a astate"
-assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
-assumes above: "x0 \<sqsubseteq> pfp_above f x0"
+fixes pfp :: "('a astate \<Rightarrow> 'a astate) \<Rightarrow> 'a astate \<Rightarrow> 'a astate"
+assumes pfp: "f(pfp f x0) \<sqsubseteq> pfp f x0"
+assumes above: "x0 \<sqsubseteq> pfp f x0"
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'a astate \<Rightarrow> 'a" where
@@ -35,7 +35,7 @@ fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 "AI (x ::= a) S = update S x (aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = pfp_above (AI c) S"
+"AI (WHILE b DO c) S = pfp (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -50,7 +50,7 @@ next
     by (metis AI.simps(4) IfE astate_in_rep_le join_ge1 join_ge2)
 next
   case (While b c)
-  let ?P = "pfp_above (AI c) S0"
+  let ?P = "pfp (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp

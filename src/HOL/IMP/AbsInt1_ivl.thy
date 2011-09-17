@@ -190,12 +190,12 @@ next
 qed
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter_above 3)"
+  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter' 3)"
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and AI_ivl is AI
 and aval_ivl is aval'
-proof qed (auto simp: iter_above_pfp)
+proof qed (auto simp: iter'_pfp_above)
 
 
 fun list_up where

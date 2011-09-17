@@ -83,9 +83,9 @@ end
 
 
 locale Abs_Int1 = Val_abs1 +
-fixes pfp_above :: "('a astate up \<Rightarrow> 'a astate up) \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up"
-assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
-assumes above: "x0 \<sqsubseteq> pfp_above f x0"
+fixes pfp :: "('a astate up \<Rightarrow> 'a astate up) \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up"
+assumes pfp: "f(pfp f x0) \<sqsubseteq> pfp f x0"
+assumes above: "x0 \<sqsubseteq> pfp f x0"
 begin
 
 (* FIXME avoid duplicating this defn *)
@@ -178,7 +178,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 "AI (IF b THEN c1 ELSE c2) S =
   AI c1 (bfilter b True S) \<squnion> AI c2 (bfilter b False S)" |
 "AI (WHILE b DO c) S =
-  bfilter b False (pfp_above (\<lambda>S. AI c (bfilter b True S)) S)"
+  bfilter b False (pfp (\<lambda>S. AI c (bfilter b True S)) S)"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
 proof(induct c arbitrary: s t S)
@@ -192,7 +192,7 @@ next
   case If thus ?case by (auto simp: in_rep_join_UpI bfilter_sound)
 next
   case (While b c)
-  let ?P = "pfp_above (\<lambda>S. AI c (bfilter b True S)) S"
+  let ?P = "pfp (\<lambda>S. AI c (bfilter b True S)) S"
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <:: ?P \<Longrightarrow>
           t <:: bfilter b False ?P"

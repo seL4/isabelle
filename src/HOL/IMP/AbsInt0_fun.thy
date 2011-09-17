@@ -41,16 +41,15 @@ apply (induct n arbitrary: x)
 apply (simp)
 done
 
-definition iter_above :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-"iter_above n f x0 = iter n (\<lambda>x. x0 \<squnion> f x) x0"
+abbreviation iter' :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+"iter' n f x0 == iter n (\<lambda>x. x0 \<squnion> f x) x0"
 
-lemma iter_above_pfp:
-shows "f(iter_above n f x0) \<sqsubseteq> iter_above n f x0" and "x0 \<sqsubseteq> iter_above n f x0"
-using iter_pfp[of "\<lambda>x. x0 \<squnion> f x"]
-by(auto simp add: iter_above_def)
+lemma iter'_pfp_above:
+  "f(iter' n f x0) \<sqsubseteq> iter' n f x0"  "x0 \<sqsubseteq> iter' n f x0"
+using iter_pfp[of "\<lambda>x. x0 \<squnion> f x"] by auto
 
 text{* So much for soundness. But how good an approximation of the post-fixed
-point does @{const iter_above} yield? *}
+point does @{const iter} yield? *}
 
 lemma iter_funpow: "iter n f x \<noteq> Top \<Longrightarrow> \<exists>k. iter n f x = (f^^k) x"
 apply(induct n arbitrary: x)
@@ -59,19 +58,17 @@ apply (auto)
  apply(metis funpow.simps(1) id_def)
 by (metis funpow.simps(2) funpow_swap1 o_apply)
 
-text{* For monotone @{text f}, @{term "iter_above f n x0"} yields the least
+text{* For monotone @{text f}, @{term "iter f n x0"} yields the least
 post-fixed point above @{text x0}, unless it yields @{text Top}. *}
 
 lemma iter_least_pfp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above n f x0 \<noteq> Top"
-and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter_above n f x0 \<sqsubseteq> p"
+assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter n f x0 \<noteq> Top"
+and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter n f x0 \<sqsubseteq> p"
 proof-
-  let ?F = "\<lambda>x. x0 \<squnion> f x"
-  obtain k where "iter_above n f x0 = (?F^^k) x0"
-    using iter_funpow `iter_above n f x0 \<noteq> Top`
-    by(fastforce simp add: iter_above_def)
+  obtain k where "iter n f x0 = (f^^k) x0"
+    using iter_funpow[OF `iter n f x0 \<noteq> Top`] by blast
   moreover
-  { fix n have "(?F^^n) x0 \<sqsubseteq> p"
+  { fix n have "(f^^n) x0 \<sqsubseteq> p"
     proof(induct n)
       case 0 show ?case by(simp add: `x0 \<sqsubseteq> p`)
     next
@@ -79,24 +76,6 @@ proof-
         by (simp add: `x0 \<sqsubseteq> p`)(metis Suc assms(3) le_trans mono)
     qed
   } ultimately show ?thesis by simp
-qed
-
-lemma chain: assumes "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-shows "((\<lambda>x. x0 \<squnion> f x)^^i) x0 \<sqsubseteq> ((\<lambda>x. x0 \<squnion> f x)^^(i+1)) x0"
-apply(induct i)
- apply simp
-apply simp
-by (metis assms join_ge2 le_trans)
-
-lemma iter_above_almost_fp:
-assumes mono: "!!x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" and "iter_above n f x0 \<noteq> Top"
-shows "iter_above n f x0 \<sqsubseteq> x0 \<squnion> f(iter_above n f x0)"
-proof-
-  let ?p = "iter_above n f x0"
-  obtain k where 1: "?p = ((\<lambda>x. x0 \<squnion> f x)^^k) x0"
-    using iter_funpow `?p \<noteq> Top`
-    by(fastforce simp add: iter_above_def)
-  thus ?thesis using chain mono by simp
 qed
 
 end
@@ -149,9 +128,9 @@ simply functions. The post-fixed point finder is parameterized over. *}
 type_synonym 'a st = "name \<Rightarrow> 'a"
 
 locale Abs_Int_Fun = Val_abs +
-fixes pfp_above :: "('a st \<Rightarrow> 'a st) \<Rightarrow> 'a st \<Rightarrow> 'a st"
-assumes pfp: "f(pfp_above f x0) \<sqsubseteq> pfp_above f x0"
-assumes above: "x0 \<sqsubseteq> pfp_above f x0"
+fixes pfp :: "('a st \<Rightarrow> 'a st) \<Rightarrow> 'a st \<Rightarrow> 'a st"
+assumes pfp: "f(pfp f x) \<sqsubseteq> pfp f x"
+assumes above: "x \<sqsubseteq> pfp f x"
 begin
 
 fun aval' :: "aexp \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> 'a" where
@@ -173,7 +152,7 @@ fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Right
 "AI (x ::= a) S = S(x := aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
-"AI (WHILE b DO c) S = pfp_above (AI c) S"
+"AI (WHILE b DO c) S = pfp (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
 proof(induct c arbitrary: s t S0)
@@ -186,7 +165,7 @@ next
   case If thus ?case by(auto simp: in_rep_join)
 next
   case (While b c)
-  let ?P = "pfp_above (AI c) S0"
+  let ?P = "pfp (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
     proof(induct "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp

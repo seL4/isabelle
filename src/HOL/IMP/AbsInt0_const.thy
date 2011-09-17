@@ -61,10 +61,10 @@ next
     by(cases a1, cases a2, simp, simp, cases a2, simp, simp)
 qed
 
-interpretation Abs_Int rep_cval Const plus_cval "(iter_above 3)"
+interpretation Abs_Int rep_cval Const plus_cval "(iter' 3)"
 defines AI_const is AI
 and aval'_const is aval'
-proof qed (auto simp: iter_above_pfp)
+proof qed (auto simp: iter'_pfp_above)
 
 text{* Straight line code: *}
 definition "test1_const =
