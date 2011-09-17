@@ -96,9 +96,11 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     {
       nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
-          val w = getWidth
-          val h = getHeight
-          var end = w
+          val size = peer.getSize()
+          val insets = border.getBorderInsets(this.peer)
+          val w = size.width - insets.left - insets.right
+          val h = size.height - insets.top - insets.bottom
+          var end = size.width - insets.right
           for {
             (n, color) <- List(
               (st.unprocessed, Isabelle_Markup.unprocessed1_color),
@@ -107,7 +109,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
           {
             gfx.setColor(color)
             val v = (n * w / st.total) max (if (n > 0) 2 else 0)
-            gfx.fillRect(end - v, 0, v, h)
+            gfx.fillRect(end - v, insets.top, v, h)
             end -= v
           }
         case _ =>
@@ -124,6 +126,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       name: Document.Node.Name, index: Int)
     {
       component.opaque = false
+      component.background = list.background
+      component.foreground = list.foreground
       component.node_name = name
       component.text = name.theory
     }
