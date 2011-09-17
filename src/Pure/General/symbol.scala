@@ -115,6 +115,8 @@ object Symbol
       }
     }
 
+  def explode(text: CharSequence): List[Symbol] = iterator(text).toList
+
 
   /* decoding offsets */
 
