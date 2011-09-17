@@ -48,17 +48,19 @@ tar -C "$TMP" -x -z -f "$ARCHIVE"
 
 echo "#bundled components" >> "$ISABELLE_HOME/etc/components"
 
-for CONTRIB in "$ARCHIVE_DIR"/contrib/*.tar.gz
+for CONTRIB in "$ARCHIVE_DIR/contrib/"*.tar.gz "$ARCHIVE_DIR/contrib/$PLATFORM"/*.tar.gz
 do
-  tar -C "$ISABELLE_HOME/contrib" -x -z -f "$CONTRIB"
-  NAME="$(basename "$CONTRIB" .tar.gz)"
-  [ -d "$ISABELLE_HOME/contrib/$NAME" ] || fail "Bad archive content $CONTRIB"
+  if [ -f "$CONTRIB" ]; then
+    tar -C "$ISABELLE_HOME/contrib" -x -z -f "$CONTRIB"
+    NAME="$(basename "$CONTRIB" .tar.gz)"
+    [ -d "$ISABELLE_HOME/contrib/$NAME" ] || fail "Bad archive content $CONTRIB"
 
-  if [ -e "$ISABELLE_HOME/contrib/$NAME/etc/settings" ]; then
-    echo "component $NAME"
-    echo "contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
-  else
-    echo "package $NAME"
+    if [ -e "$ISABELLE_HOME/contrib/$NAME/etc/settings" ]; then
+      echo "component $NAME"
+      echo "contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+    else
+      echo "package $NAME"
+    fi
   fi
 done
 
@@ -75,6 +77,10 @@ tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 )
 
 case "$PLATFORM" in
+  x86_64-linux)
+    perl -pi -e 's,^ML_PLATFORM=.*$,ML_PLATFORM="\$ISABELLE_PLATFORM64",g;' "$TMP/$ISABELLE_NAME/etc/settings"
+    perl -pi -e "s,^ML_OPTIONS=.*$,ML_OPTIONS=\"-H 400\",g;" "$TMP/$ISABELLE_NAME/etc/settings"
+    ;;
   *-darwin)
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"

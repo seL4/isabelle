@@ -15,7 +15,7 @@
 # not invent new ML system names unless you know what you are doing.
 # Only one of the sections below should be activated.
 
-# Poly/ML 32 bit (automated settings)
+# Poly/ML default (automated settings)
 ML_PLATFORM="$ISABELLE_PLATFORM"
 ML_HOME="$(choosefrom \
   "$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM" \
