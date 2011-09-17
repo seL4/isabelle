@@ -37,6 +37,9 @@ object Isabelle
   var plugin: Plugin = null
   var session: Session = null
 
+  val thy_load = new JEdit_Thy_Load
+  val thy_info = new Thy_Info(thy_load)
+
 
   /* properties */
 
@@ -360,9 +363,6 @@ class Plugin extends EBPlugin
 {
   /* theory files */
 
-  val thy_load = new JEdit_Thy_Load
-  val thy_info = new Thy_Info(thy_load)
-
   private lazy val delay_load =
     Swing_Thread.delay_last(Isabelle.session.load_delay)
     {
@@ -373,7 +373,7 @@ class Plugin extends EBPlugin
       val thys =
         for (buffer <- buffers; model <- Isabelle.document_model(buffer))
           yield model.name
-      val files = thy_info.dependencies(thys).map(_._1.node).filterNot(loaded_buffer _)
+      val files = Isabelle.thy_info.dependencies(thys).map(_._1.node).filterNot(loaded_buffer _)
 
       if (!files.isEmpty) {
         val files_list = new ListView(Library.sort_strings(files))
@@ -474,7 +474,7 @@ class Plugin extends EBPlugin
     Isabelle.setup_tooltips()
     Isabelle_System.init()
     Isabelle_System.install_fonts()
-    Isabelle.session = new Session(thy_load)
+    Isabelle.session = new Session(Isabelle.thy_load)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
