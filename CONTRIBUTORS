@@ -12,29 +12,29 @@ Contributions to Isabelle2011-1
 * August 2011: Florian Haftmann, Johannes Hölzl and Lars Noschinski, TUM
   Refined theory on complete lattices.
 
+* August 2011: Brian Huffman, Portland State University
+  Miscellaneous cleanup of Complex_Main and Multivariate_Analysis.
+
+* June 2011: Brian Huffman, Portland State University
+  Proof method "countable_datatype" for theory Library/Countable.
+
+* 2011: Jasmin Blanchette, TUM
+  Various improvements to Sledgehammer, notably: use of sound
+  translations, support for more provers (Waldmeister, LEO-II,
+  Satallax). Further development of Nitpick and 'try' command.
+
+* 2011: Andreas Lochbihler, Karlsruhe Institute of Technology
+  Theory HOL/Library/Cset_Monad allows do notation for computable sets
+  (cset) via the generic monad ad-hoc overloading facility.
+
+* 2011: Johannes Hölzl, Armin Heller, TUM and
+  Bogdan Grechuk, University of Edinburgh
+  Theory HOL/Library/Extended_Reals: real numbers extended with plus
+  and minus infinity.
+
 * 2011: Makarius Wenzel, Université Paris-Sud / LRI
   Various building blocks for Isabelle/Scala layer and Isabelle/jEdit
   Prover IDE.
-
-* 2011: Jasmin Blanchette, TUM
-  Various improvements to Sledgehammer, notably: use of sound translations,
-  support for more provers (Waldmeister, LEO-II, Satallax). Further development
-  of Nitpick and "try".
-
-* 2011: Andreas Lochbihler, Karlsruhe Institute of Technology
-  Theory HOL/Library/Cset_Monad allows do notation for computable
-  sets (cset) via the generic monad ad-hoc overloading facility.
-
-* 2011: Johannes Hölzl, Armin Heller, TUM,
-  and Bogdan Grechuk, University of Edinburgh
-  Theory HOL/Library/Extended_Reals: real numbers extended with
-  plus and minus infinity.
-
-* June 2011: Brian Huffman, Portland State University
-  Proof method 'countable_datatype' for theory Library/Countable.
-
-* August 2011: Brian Huffman, Portland State University
-  Misc cleanup of Complex_Main and Multivariate_Analysis.
 
 
 Contributions to Isabelle2011

@@ -55,18 +55,6 @@ without proper multithreading and TimeLimit implementation.
 * Discontinued old lib/scripts/polyml-platform, which has been
 obsolete since Isabelle2009-2.
 
-* Various optional external tools are referenced more robustly and
-uniformly by explicit Isabelle settings as follows:
-
-  ISABELLE_CSDP   (formerly CSDP_EXE)
-  ISABELLE_GHC    (formerly EXEC_GHC or GHC_PATH)
-  ISABELLE_OCAML  (formerly EXEC_OCAML)
-  ISABELLE_SWIPL  (formerly EXEC_SWIPL)
-  ISABELLE_YAP    (formerly EXEC_YAP)
-
-Note that automated detection from the file-system or search path has
-been discontinued.  INCOMPATIBILITY.
-
 * Name space: former unsynchronized references are now proper
 configuration options, with more conventional names:
 
@@ -162,7 +150,8 @@ adjustment.  INCOMPATIBILITY.
   - Theory Library/Code_Char_ord provides native ordering of
     characters in the target language.
 
-  - Commands code_module and code_library are legacy, use export_code instead.
+  - Commands code_module and code_library are legacy, use export_code
+    instead.
 
   - Method "evaluation" is legacy, use method "eval" instead.
 
@@ -173,8 +162,8 @@ adjustment.  INCOMPATIBILITY.
 
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
 
-* The misleading name fastsimp has been renamed to fastforce,
-  but fastsimp is still available as a legacy feature.
+* Method "fastsimp" has been renamed to "fastforce", but "fastsimp" is
+still available as a legacy feature for some time.
 
 * Nitpick:
   - Added "need" and "total_consts" options.
@@ -184,20 +173,21 @@ adjustment.  INCOMPATIBILITY.
 
 * Sledgehammer:
   - Use quasi-sound (and efficient) translations by default.
-  - Added support for the following provers: E-ToFoF, LEO-II, Satallax, SNARK,
-    Waldmeister, and Z3 with TPTP syntax.
-  - Automatically preplay and minimize proofs before showing them if this can be
-    done within reasonable time.
+  - Added support for the following provers: E-ToFoF, LEO-II,
+    Satallax, SNARK, Waldmeister, and Z3 with TPTP syntax.
+  - Automatically preplay and minimize proofs before showing them if
+    this can be done within reasonable time.
   - sledgehammer available_provers ~> sledgehammer supported_provers.
     INCOMPATIBILITY.
-  - Added "preplay_timeout", "slicing", "type_enc", "sound", "max_mono_iters",
-    and "max_new_mono_instances" options.
-  - Removed "explicit_apply" and "full_types" options as well as "Full Types"
-    Proof General menu item. INCOMPATIBILITY.
+  - Added "preplay_timeout", "slicing", "type_enc", "sound",
+    "max_mono_iters", and "max_new_mono_instances" options.
+  - Removed "explicit_apply" and "full_types" options as well as "Full
+    Types" Proof General menu item. INCOMPATIBILITY.
 
 * Metis:
   - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
-  - Obsoleted "metisFT" -- use "metis (full_types)" instead. INCOMPATIBILITY.
+  - Obsoleted "metisFT" -- use "metis (full_types)" instead.
+    INCOMPATIBILITY.
 
 * Command 'try':
   - Renamed 'try_methods' and added "simp:", "intro:", "dest:", and
@@ -206,23 +196,19 @@ adjustment.  INCOMPATIBILITY.
     'solve_direct', 'sledgehammer', 'quickcheck', and 'nitpick'.
 
 * Quickcheck:
-
   - Added "eval" option to evaluate terms for the found counterexample
     (currently only supported by the default (exhaustive) tester).
-
   - Added post-processing of terms to obtain readable counterexamples
     (currently only supported by the default (exhaustive) tester).
-
   - New counterexample generator quickcheck[narrowing] enables
     narrowing-based testing.  Requires the Glasgow Haskell compiler
     with its installation location defined in the Isabelle settings
     environment as ISABELLE_GHC.
-
   - Removed quickcheck tester "SML" based on the SML code generator
     (formly in HOL/Library).
 
-* Function package: discontinued option "tailrec".
-INCOMPATIBILITY. Use 'partial_function' instead.
+* Function package: discontinued option "tailrec".  INCOMPATIBILITY,
+use 'partial_function' instead.
 
 * Session HOL-Probability:
   - Caratheodory's extension lemma is now proved for ring_of_sets.
@@ -231,9 +217,9 @@ INCOMPATIBILITY. Use 'partial_function' instead.
   - Use extended reals instead of positive extended
     reals. INCOMPATIBILITY.
 
-* Theory Library/Extended_Reals replaces now the positive extended reals
-  found in probability theory. This file is extended by
-  Multivariate_Analysis/Extended_Real_Limits.
+* Theory Library/Extended_Reals replaces now the positive extended
+reals found in probability theory. This file is extended by
+Multivariate_Analysis/Extended_Real_Limits.
 
 * Old 'recdef' package has been moved to theory Library/Old_Recdef,
 from where it must be imported explicitly.  INCOMPATIBILITY.
@@ -241,12 +227,12 @@ from where it must be imported explicitly.  INCOMPATIBILITY.
 * Well-founded recursion combinator "wfrec" has been moved to theory
 Library/Wfrec. INCOMPATIBILITY.
 
-* Theory HOL/Library/Cset_Monad allows do notation for computable
-  sets (cset) via the generic monad ad-hoc overloading facility.
+* Theory HOL/Library/Cset_Monad allows do notation for computable sets
+(cset) via the generic monad ad-hoc overloading facility.
 
 * Theories of common data structures are split into theories for
-  implementation, an invariant-ensuring type, and connection to
-  an abstract type. INCOMPATIBILITY.
+implementation, an invariant-ensuring type, and connection to an
+abstract type. INCOMPATIBILITY.
 
   - RBT is split into RBT and RBT_Mapping.
   - AssocList is split and renamed into AList and AList_Mapping.
@@ -423,9 +409,9 @@ replaced by more general versions. INCOMPATIBILITY.
   bounded_bilinear.LIM_right_zero ~> bounded_bilinear.tendsto_right_zero
   LIM_inverse_fun ~> tendsto_inverse [OF tendsto_ident_at]
 
-* Theory Complex_Main: The definition of infinite series was generalized.
-  Now it is defined on the type class {topological_space, comm_monoid_add}.
-  Hence it is useable also for extended real numbers.
+* Theory Complex_Main: The definition of infinite series was
+generalized.  Now it is defined on the type class {topological_space,
+comm_monoid_add}.  Hence it is useable also for extended real numbers.
 
 * Theory Complex_Main: The complex exponential function "expi" is now
 a type-constrained abbreviation for "exp :: complex => complex"; thus
@@ -433,12 +419,6 @@ several polymorphic lemmas about "exp" are now applicable to "expi".
 
 
 *** Document preparation ***
-
-* Localized \isabellestyle switch can be used within blocks or groups
-like this:
-
-  \isabellestyle{it}  %preferred default
-  {\isabellestylett @{text "typewriter stuff"}}
 
 * Antiquotation @{rail} layouts railroad syntax diagrams, see also
 isar-ref manual, both for description and actual application of the
@@ -454,9 +434,15 @@ y\<^isub>2\<^isub>3.
 * Predefined LaTeX macros for Isabelle symbols \<bind> and \<then>
 (e.g. see ~~/src/HOL/Library/Monad_Syntax.thy).
 
-* Discontinued special treatment of hard tabulators, which are better
-avoided in the first place (no universally agreed standard expansion).
-Implicit tab-width is now 1.
+* Localized \isabellestyle switch can be used within blocks or groups
+like this:
+
+  \isabellestyle{it}  %preferred default
+  {\isabellestylett @{text "typewriter stuff"}}
+
+* Discontinued special treatment of hard tabulators.  Implicit
+tab-width is now defined as 1.  Potential INCOMPATIBILITY for visual
+layouts.
 
 
 *** ML ***
@@ -519,14 +505,26 @@ proper Proof.context.
 
 *** System ***
 
+* Various optional external tools are referenced more robustly and
+uniformly by explicit Isabelle settings as follows:
+
+  ISABELLE_CSDP   (formerly CSDP_EXE)
+  ISABELLE_GHC    (formerly EXEC_GHC or GHC_PATH)
+  ISABELLE_OCAML  (formerly EXEC_OCAML)
+  ISABELLE_SWIPL  (formerly EXEC_SWIPL)
+  ISABELLE_YAP    (formerly EXEC_YAP)
+
+Note that automated detection from the file-system or search path has
+been discontinued.  INCOMPATIBILITY.
+
 * Scala layer provides JVM method invocation service for static
 methods of type (String)String, see Invoke_Scala.method in ML.  For
 example:
 
   Invoke_Scala.method "java.lang.System.getProperty" "java.home"
 
-Togeter with YXML.string_of_body/parse_body and XML.Encode/Decode this
-allows to pass structured values between ML and Scala.
+Together with YXML.string_of_body/parse_body and XML.Encode/Decode
+this allows to pass structured values between ML and Scala.
 
 * The IsabelleText fonts includes some further glyphs to support the
 Prover IDE.  Potential INCOMPATIBILITY: users who happen to have
