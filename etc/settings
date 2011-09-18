@@ -56,8 +56,6 @@ ML_SOURCES="$ML_HOME/../src"
 
 if [ -n "$JAVA_HOME" ]; then
   ISABELLE_JAVA="$JAVA_HOME/bin/java"
-elif [ -x /usr/libexec/java_home ]; then
-  ISABELLE_JAVA="$(/usr/libexec/java_home -v 1.6)"/bin/java
 else
   ISABELLE_JAVA="java"
 fi
