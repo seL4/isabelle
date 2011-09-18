@@ -367,9 +367,9 @@ struct
   val dest_coeff = dest_coeff 1
   val trans_tac = trans_tac
 
-  val norm_ss1 = HOL_ss addsimps minus_from_mult_simps @ mult_1s
-  val norm_ss2 = HOL_ss addsimps simps @ mult_minus_simps
-  val norm_ss3 = HOL_ss addsimps @{thms mult_ac}
+  val norm_ss1 = HOL_basic_ss addsimps minus_from_mult_simps @ mult_1s
+  val norm_ss2 = HOL_basic_ss addsimps simps @ mult_minus_simps
+  val norm_ss3 = HOL_basic_ss addsimps @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
