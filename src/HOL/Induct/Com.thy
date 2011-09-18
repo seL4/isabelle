@@ -85,12 +85,12 @@ done
 lemma [pred_set_conv]:
   "((\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> R) <= (\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> S)) = (R <= S)"
   unfolding subset_eq
-  by (auto simp add: le_fun_def le_bool_def)
+  by (auto simp add: le_fun_def)
 
 lemma [pred_set_conv]:
   "((\<lambda>x x' y. ((x, x'), y) \<in> R) <= (\<lambda>x x' y. ((x, x'), y) \<in> S)) = (R <= S)"
   unfolding subset_eq
-  by (auto simp add: le_fun_def le_bool_def)
+  by (auto simp add: le_fun_def)
 
 text{*Command execution is functional (deterministic) provided evaluation is*}
 theorem single_valued_exec: "single_valued ev ==> single_valued(exec ev)"
@@ -133,15 +133,14 @@ inductive_cases
 
 
 lemma var_assign_eval [intro!]: "(X x, s(x:=n)) -|-> (n, s(x:=n))"
-by (rule fun_upd_same [THEN subst], fast)
+  by (rule fun_upd_same [THEN subst]) fast
 
 
 text{* Make the induction rule look nicer -- though @{text eta_contract} makes the new
     version look worse than it is...*}
 
-lemma split_lemma:
-     "{((e,s),(n,s')). P e s n s'} = Collect (split (%v. split (split P v)))"
-by auto
+lemma split_lemma: "{((e,s),(n,s')). P e s n s'} = Collect (split (%v. split (split P v)))"
+  by auto
 
 text{*New induction rule.  Note the form of the VALOF induction hypothesis*}
 lemma eval_induct
