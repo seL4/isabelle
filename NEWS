@@ -304,8 +304,9 @@ use 'partial_function' instead.
 reals found in probability theory. This file is extended by
 Multivariate_Analysis/Extended_Real_Limits.
 
-* Old 'recdef' package has been moved to theory Library/Old_Recdef,
-from where it must be imported explicitly.  INCOMPATIBILITY.
+* Theory Library/Old_Recdef: old 'recdef' package has been moved here,
+from where it must be imported explicitly if it is really required.
+INCOMPATIBILITY.
 
 * Theory Library/Wfrec: well-founded recursion combinator "wfrec" has
 been moved here.  INCOMPATIBILITY.
