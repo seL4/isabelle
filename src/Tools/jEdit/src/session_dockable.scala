@@ -130,7 +130,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       component.background = list.background
       component.foreground = list.foreground
       component.node_name = name
-      component.text = name.theory
+      component.text = name.theory + " "
     }
   }
   status.renderer = new Node_Renderer
