@@ -1,9 +1,9 @@
 #contributed components
 contrib/cvc3-2.2
-contrib/e-1.2
+contrib/e-1.4
 contrib/kodkodi-1.2.16
 contrib/spass-3.7
 contrib/scala-2.8.1.final
 contrib/vampire-1.0
 contrib/yices-1.0.28
-contrib/z3-2.19
+contrib/z3-3.1
