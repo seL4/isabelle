@@ -9,11 +9,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.io.File
+import java.io.{File, IOException}
 import javax.swing.text.Segment
 
-import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
+import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
+import org.gjt.sp.jedit.View
 
 
 class JEdit_Thy_Load extends Thy_Load
@@ -28,6 +29,26 @@ class JEdit_Thy_Load extends Thy_Load
         MiscUtilities.resolveSymlinks(
           vfs.constructPath(dir, Isabelle_System.platform_path(path)))
       else vfs.constructPath(dir, Isabelle_System.standard_path(path))
+    }
+  }
+
+  def check_file(view: View, path: String): Boolean =
+  {
+    val vfs = VFSManager.getVFSForPath(path)
+    val session = vfs.createVFSSession(path, view)
+
+    try {
+      session != null && {
+        try {
+          val file = vfs._getFile(session, path, view)
+          file != null && file.isReadable && file.getType == VFSFile.FILE
+        }
+        catch { case _: IOException => false }
+      }
+    }
+    finally {
+      try { vfs._endVFSSession(session, view) }
+      catch { case _: IOException => }
     }
   }
 
