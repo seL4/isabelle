@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE EmptyDataDecls, RankNTypes, ScopedTypeVariables #-}
 
 module Example where {
 
