@@ -7,7 +7,7 @@ New in Isabelle2011-1 (October 2011)
 *** General ***
 
 * Improved Isabelle/jEdit Prover IDE (PIDE), which can be invoked as
-"isabelle jedit" on the command line.
+"isabelle jedit" or "ISABELLE_HOME/Isabelle" on the command line.
 
   - Management of multiple theory files directly from the editor
     buffer store -- bypassing the file-system (no requirement to save
@@ -49,12 +49,6 @@ ISABELLE_FILE_IDENT plugin scripts.
 Goal.parallel_proofs_threshold (default 100).  See also isabelle
 usedir option -Q.
 
-* Discontinued support for Poly/ML 5.2, which was the last version
-without proper multithreading and TimeLimit implementation.
-
-* Discontinued old lib/scripts/polyml-platform, which has been
-obsolete since Isabelle2009-2.
-
 * Name space: former unsynchronized references are now proper
 configuration options, with more conventional names:
 
@@ -73,23 +67,16 @@ may have to be refined after enriching a proof context.
 * Attribute "case_names" has been refined: the assumptions in each case
 can be named now by following the case name with [name1 name2 ...].
 
-* Isabelle/Isar reference manual provides more formal references in
-syntax diagrams.
+* Isabelle/Isar reference manual has been updated and extended:
+  - "Synopsis" provides a catalog of main Isar language concepts.
+  - Formal references in syntax diagrams, via @{rail} antiquotation.
+  - Updated material from classic "ref" manual, notably about
+    "Classical Reasoner".
 
 
 *** HOL ***
 
-* Theory Library/Saturated provides type of numbers with saturated
-arithmetic.
-
-* Theory Library/Product_Lattice defines a pointwise ordering for the
-product type 'a * 'b, and provides instance proofs for various order
-and lattice type classes.
-
-* Theory Library/Countable now provides the "countable_datatype" proof
-method for proving "countable" class instances for datatypes.
-
-* Classes bot and top require underlying partial order rather than
+* Class bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
 * Class complete_lattice: generalized a couple of lemmas from sets;
@@ -145,190 +132,8 @@ separate type class floor_ceiling.
 Both use point-free characterization; interpretation proofs may need
 adjustment.  INCOMPATIBILITY.
 
-* Code generation:
-
-  - Theory Library/Code_Char_ord provides native ordering of
-    characters in the target language.
-
-  - Commands code_module and code_library are legacy, use export_code
-    instead.
-
-  - Method "evaluation" is legacy, use method "eval" instead.
-
-  - Legacy evaluator "SML" is deactivated by default.  May be
-    reactivated by the following theory command:
-
-      setup {* Value.add_evaluator ("SML", Codegen.eval_term) *}
-
-* Declare ext [intro] by default.  Rare INCOMPATIBILITY.
-
-* Method "fastsimp" has been renamed to "fastforce", but "fastsimp" is
-still available as a legacy feature for some time.
-
-* Nitpick:
-  - Added "need" and "total_consts" options.
-  - Reintroduced "show_skolems" option by popular demand.
-  - Renamed attribute: nitpick_def ~> nitpick_unfold.
-    INCOMPATIBILITY.
-
-* Sledgehammer:
-  - Use quasi-sound (and efficient) translations by default.
-  - Added support for the following provers: E-ToFoF, LEO-II,
-    Satallax, SNARK, Waldmeister, and Z3 with TPTP syntax.
-  - Automatically preplay and minimize proofs before showing them if
-    this can be done within reasonable time.
-  - sledgehammer available_provers ~> sledgehammer supported_provers.
-    INCOMPATIBILITY.
-  - Added "preplay_timeout", "slicing", "type_enc", "sound",
-    "max_mono_iters", and "max_new_mono_instances" options.
-  - Removed "explicit_apply" and "full_types" options as well as "Full
-    Types" Proof General menu item. INCOMPATIBILITY.
-
-* Metis:
-  - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
-  - Obsoleted "metisFT" -- use "metis (full_types)" instead.
-    INCOMPATIBILITY.
-
-* Command 'try':
-  - Renamed 'try_methods' and added "simp:", "intro:", "dest:", and
-    "elim:" options. INCOMPATIBILITY.
-  - Introduced 'try' that not only runs 'try_methods' but also
-    'solve_direct', 'sledgehammer', 'quickcheck', and 'nitpick'.
-
-* Quickcheck:
-  - Added "eval" option to evaluate terms for the found counterexample
-    (currently only supported by the default (exhaustive) tester).
-  - Added post-processing of terms to obtain readable counterexamples
-    (currently only supported by the default (exhaustive) tester).
-  - New counterexample generator quickcheck[narrowing] enables
-    narrowing-based testing.  Requires the Glasgow Haskell compiler
-    with its installation location defined in the Isabelle settings
-    environment as ISABELLE_GHC.
-  - Removed quickcheck tester "SML" based on the SML code generator
-    (formly in HOL/Library).
-
-* Function package: discontinued option "tailrec".  INCOMPATIBILITY,
-use 'partial_function' instead.
-
-* Session HOL-Probability:
-  - Caratheodory's extension lemma is now proved for ring_of_sets.
-  - Infinite products of probability measures are now available.
-  - Sigma closure is independent, if the generator is independent
-  - Use extended reals instead of positive extended
-    reals. INCOMPATIBILITY.
-
-* Theory Library/Extended_Reals replaces now the positive extended
-reals found in probability theory. This file is extended by
-Multivariate_Analysis/Extended_Real_Limits.
-
-* Old 'recdef' package has been moved to theory Library/Old_Recdef,
-from where it must be imported explicitly.  INCOMPATIBILITY.
-
-* Well-founded recursion combinator "wfrec" has been moved to theory
-Library/Wfrec. INCOMPATIBILITY.
-
-* Theory HOL/Library/Cset_Monad allows do notation for computable sets
-(cset) via the generic monad ad-hoc overloading facility.
-
-* Theories of common data structures are split into theories for
-implementation, an invariant-ensuring type, and connection to an
-abstract type. INCOMPATIBILITY.
-
-  - RBT is split into RBT and RBT_Mapping.
-  - AssocList is split and renamed into AList and AList_Mapping.
-  - DList is split into DList_Impl, DList, and DList_Cset.
-  - Cset is split into Cset and List_Cset.
-  
-* Theory Library/Nat_Infinity has been renamed to
-Library/Extended_Nat, with name changes of the following types and
-constants:
-
-  type inat   ~> type enat
-  Fin         ~> enat
-  Infty       ~> infinity (overloaded)
-  iSuc        ~> eSuc
-  the_Fin     ~> the_enat
-
-Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
-been renamed accordingly. INCOMPATIBILITY.
-
 * Theory Limits: Type "'a net" has been renamed to "'a filter", in
 accordance with standard mathematical terminology. INCOMPATIBILITY.
-
-* Session Multivariate_Analysis: The euclidean_space type class now
-fixes a constant "Basis :: 'a set" consisting of the standard
-orthonormal basis for the type. Users now have the option of
-quantifying over this set instead of using the "basis" function, e.g.
-"ALL x:Basis. P x" vs "ALL i<DIM('a). P (basis i)".
-
-* Session Multivariate_Analysis: Type "('a, 'b) cart" has been renamed
-to "('a, 'b) vec" (the syntax "'a ^ 'b" remains unaffected). Constants
-"Cart_nth" and "Cart_lambda" have been respectively renamed to
-"vec_nth" and "vec_lambda"; theorems mentioning those names have
-changed to match. Definition theorems for overloaded constants now use
-the standard "foo_vec_def" naming scheme. A few other theorems have
-been renamed as follows (INCOMPATIBILITY):
-
-  Cart_eq          ~> vec_eq_iff
-  dist_nth_le_cart ~> dist_vec_nth_le
-  tendsto_vector   ~> vec_tendstoI
-  Cauchy_vector    ~> vec_CauchyI
-
-* Session Multivariate_Analysis: Several duplicate theorems have been
-removed, and other theorems have been renamed or replaced with more
-general versions. INCOMPATIBILITY.
-
-  finite_choice ~> finite_set_choice
-  eventually_conjI ~> eventually_conj
-  eventually_and ~> eventually_conj_iff
-  eventually_false ~> eventually_False
-  setsum_norm ~> norm_setsum
-  Lim_sequentially ~> LIMSEQ_def
-  Lim_ident_at ~> LIM_ident
-  Lim_const ~> tendsto_const
-  Lim_cmul ~> tendsto_scaleR [OF tendsto_const]
-  Lim_neg ~> tendsto_minus
-  Lim_add ~> tendsto_add
-  Lim_sub ~> tendsto_diff
-  Lim_mul ~> tendsto_scaleR
-  Lim_vmul ~> tendsto_scaleR [OF _ tendsto_const]
-  Lim_null_norm ~> tendsto_norm_zero_iff [symmetric]
-  Lim_linear ~> bounded_linear.tendsto
-  Lim_component ~> tendsto_euclidean_component
-  Lim_component_cart ~> tendsto_vec_nth
-  Lim_inner ~> tendsto_inner [OF tendsto_const]
-  dot_lsum ~> inner_setsum_left
-  dot_rsum ~> inner_setsum_right
-  continuous_cmul ~> continuous_scaleR [OF continuous_const]
-  continuous_neg ~> continuous_minus
-  continuous_sub ~> continuous_diff
-  continuous_vmul ~> continuous_scaleR [OF _ continuous_const]
-  continuous_mul ~> continuous_scaleR
-  continuous_inv ~> continuous_inverse
-  continuous_at_within_inv ~> continuous_at_within_inverse
-  continuous_at_inv ~> continuous_at_inverse
-  continuous_at_norm ~> continuous_norm [OF continuous_at_id]
-  continuous_at_infnorm ~> continuous_infnorm [OF continuous_at_id]
-  continuous_at_component ~> continuous_component [OF continuous_at_id]
-  continuous_on_neg ~> continuous_on_minus
-  continuous_on_sub ~> continuous_on_diff
-  continuous_on_cmul ~> continuous_on_scaleR [OF continuous_on_const]
-  continuous_on_vmul ~> continuous_on_scaleR [OF _ continuous_on_const]
-  continuous_on_mul ~> continuous_on_scaleR
-  continuous_on_mul_real ~> continuous_on_mult
-  continuous_on_inner ~> continuous_on_inner [OF continuous_on_const]
-  continuous_on_norm ~> continuous_on_norm [OF continuous_on_id]
-  continuous_on_inverse ~> continuous_on_inv
-  uniformly_continuous_on_neg ~> uniformly_continuous_on_minus
-  uniformly_continuous_on_sub ~> uniformly_continuous_on_diff
-  subset_interior ~> interior_mono
-  subset_closure ~> closure_mono
-  closure_univ ~> closure_UNIV
-  real_arch_lt ~> reals_Archimedean2
-  real_arch ~> reals_Archimedean3
-  real_abs_norm ~> abs_norm_cancel
-  real_abs_sub_norm ~> norm_triangle_ineq3
-  norm_cauchy_schwarz_abs ~> Cauchy_Schwarz_ineq2
 
 * Theory Complex_Main: The locale interpretations for the
 bounded_linear and bounded_bilinear locales have been removed, in
@@ -417,6 +222,198 @@ comm_monoid_add}.  Hence it is useable also for extended real numbers.
 a type-constrained abbreviation for "exp :: complex => complex"; thus
 several polymorphic lemmas about "exp" are now applicable to "expi".
 
+* Code generation:
+
+  - Theory Library/Code_Char_ord provides native ordering of
+    characters in the target language.
+
+  - Commands code_module and code_library are legacy, use export_code
+    instead.
+
+  - Method "evaluation" is legacy, use method "eval" instead.
+
+  - Legacy evaluator "SML" is deactivated by default.  May be
+    reactivated by the following theory command:
+
+      setup {* Value.add_evaluator ("SML", Codegen.eval_term) *}
+
+* Declare ext [intro] by default.  Rare INCOMPATIBILITY.
+
+* Method "fastsimp" has been renamed to "fastforce", but "fastsimp" is
+still available as a legacy feature for some time.
+
+* Nitpick:
+  - Added "need" and "total_consts" options.
+  - Reintroduced "show_skolems" option by popular demand.
+  - Renamed attribute: nitpick_def ~> nitpick_unfold.
+    INCOMPATIBILITY.
+
+* Sledgehammer:
+  - Use quasi-sound (and efficient) translations by default.
+  - Added support for the following provers: E-ToFoF, LEO-II,
+    Satallax, SNARK, Waldmeister, and Z3 with TPTP syntax.
+  - Automatically preplay and minimize proofs before showing them if
+    this can be done within reasonable time.
+  - sledgehammer available_provers ~> sledgehammer supported_provers.
+    INCOMPATIBILITY.
+  - Added "preplay_timeout", "slicing", "type_enc", "sound",
+    "max_mono_iters", and "max_new_mono_instances" options.
+  - Removed "explicit_apply" and "full_types" options as well as "Full
+    Types" Proof General menu item. INCOMPATIBILITY.
+
+* Metis:
+  - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
+  - Obsoleted "metisFT" -- use "metis (full_types)" instead.
+    INCOMPATIBILITY.
+
+* Command 'try':
+  - Renamed 'try_methods' and added "simp:", "intro:", "dest:", and
+    "elim:" options. INCOMPATIBILITY.
+  - Introduced 'try' that not only runs 'try_methods' but also
+    'solve_direct', 'sledgehammer', 'quickcheck', and 'nitpick'.
+
+* Quickcheck:
+  - Added "eval" option to evaluate terms for the found counterexample
+    (currently only supported by the default (exhaustive) tester).
+  - Added post-processing of terms to obtain readable counterexamples
+    (currently only supported by the default (exhaustive) tester).
+  - New counterexample generator quickcheck[narrowing] enables
+    narrowing-based testing.  Requires the Glasgow Haskell compiler
+    with its installation location defined in the Isabelle settings
+    environment as ISABELLE_GHC.
+  - Removed quickcheck tester "SML" based on the SML code generator
+    (formly in HOL/Library).
+
+* Function package: discontinued option "tailrec".  INCOMPATIBILITY,
+use 'partial_function' instead.
+
+* Theory Library/Extended_Reals replaces now the positive extended
+reals found in probability theory. This file is extended by
+Multivariate_Analysis/Extended_Real_Limits.
+
+* Old 'recdef' package has been moved to theory Library/Old_Recdef,
+from where it must be imported explicitly.  INCOMPATIBILITY.
+
+* Theory Library/Wfrec: well-founded recursion combinator "wfrec" has
+been moved here.  INCOMPATIBILITY.
+
+* Theory Library/Saturated provides type of numbers with saturated
+arithmetic.
+
+* Theory Library/Product_Lattice defines a pointwise ordering for the
+product type 'a * 'b, and provides instance proofs for various order
+and lattice type classes.
+
+* Theory Library/Countable now provides the "countable_datatype" proof
+method for proving "countable" class instances for datatypes.
+
+* Theory Library/Cset_Monad allows do notation for computable sets
+(cset) via the generic monad ad-hoc overloading facility.
+
+* Library: Theories of common data structures are split into theories
+for implementation, an invariant-ensuring type, and connection to an
+abstract type. INCOMPATIBILITY.
+
+  - RBT is split into RBT and RBT_Mapping.
+  - AssocList is split and renamed into AList and AList_Mapping.
+  - DList is split into DList_Impl, DList, and DList_Cset.
+  - Cset is split into Cset and List_Cset.
+
+* Theory Library/Nat_Infinity has been renamed to
+Library/Extended_Nat, with name changes of the following types and
+constants:
+
+  type inat   ~> type enat
+  Fin         ~> enat
+  Infty       ~> infinity (overloaded)
+  iSuc        ~> eSuc
+  the_Fin     ~> the_enat
+
+Every theorem name containing "inat", "Fin", "Infty", or "iSuc" has
+been renamed accordingly. INCOMPATIBILITY.
+
+* Session Multivariate_Analysis: The euclidean_space type class now
+fixes a constant "Basis :: 'a set" consisting of the standard
+orthonormal basis for the type. Users now have the option of
+quantifying over this set instead of using the "basis" function, e.g.
+"ALL x:Basis. P x" vs "ALL i<DIM('a). P (basis i)".
+
+* Session Multivariate_Analysis: Type "('a, 'b) cart" has been renamed
+to "('a, 'b) vec" (the syntax "'a ^ 'b" remains unaffected). Constants
+"Cart_nth" and "Cart_lambda" have been respectively renamed to
+"vec_nth" and "vec_lambda"; theorems mentioning those names have
+changed to match. Definition theorems for overloaded constants now use
+the standard "foo_vec_def" naming scheme. A few other theorems have
+been renamed as follows (INCOMPATIBILITY):
+
+  Cart_eq          ~> vec_eq_iff
+  dist_nth_le_cart ~> dist_vec_nth_le
+  tendsto_vector   ~> vec_tendstoI
+  Cauchy_vector    ~> vec_CauchyI
+
+* Session Multivariate_Analysis: Several duplicate theorems have been
+removed, and other theorems have been renamed or replaced with more
+general versions. INCOMPATIBILITY.
+
+  finite_choice ~> finite_set_choice
+  eventually_conjI ~> eventually_conj
+  eventually_and ~> eventually_conj_iff
+  eventually_false ~> eventually_False
+  setsum_norm ~> norm_setsum
+  Lim_sequentially ~> LIMSEQ_def
+  Lim_ident_at ~> LIM_ident
+  Lim_const ~> tendsto_const
+  Lim_cmul ~> tendsto_scaleR [OF tendsto_const]
+  Lim_neg ~> tendsto_minus
+  Lim_add ~> tendsto_add
+  Lim_sub ~> tendsto_diff
+  Lim_mul ~> tendsto_scaleR
+  Lim_vmul ~> tendsto_scaleR [OF _ tendsto_const]
+  Lim_null_norm ~> tendsto_norm_zero_iff [symmetric]
+  Lim_linear ~> bounded_linear.tendsto
+  Lim_component ~> tendsto_euclidean_component
+  Lim_component_cart ~> tendsto_vec_nth
+  Lim_inner ~> tendsto_inner [OF tendsto_const]
+  dot_lsum ~> inner_setsum_left
+  dot_rsum ~> inner_setsum_right
+  continuous_cmul ~> continuous_scaleR [OF continuous_const]
+  continuous_neg ~> continuous_minus
+  continuous_sub ~> continuous_diff
+  continuous_vmul ~> continuous_scaleR [OF _ continuous_const]
+  continuous_mul ~> continuous_scaleR
+  continuous_inv ~> continuous_inverse
+  continuous_at_within_inv ~> continuous_at_within_inverse
+  continuous_at_inv ~> continuous_at_inverse
+  continuous_at_norm ~> continuous_norm [OF continuous_at_id]
+  continuous_at_infnorm ~> continuous_infnorm [OF continuous_at_id]
+  continuous_at_component ~> continuous_component [OF continuous_at_id]
+  continuous_on_neg ~> continuous_on_minus
+  continuous_on_sub ~> continuous_on_diff
+  continuous_on_cmul ~> continuous_on_scaleR [OF continuous_on_const]
+  continuous_on_vmul ~> continuous_on_scaleR [OF _ continuous_on_const]
+  continuous_on_mul ~> continuous_on_scaleR
+  continuous_on_mul_real ~> continuous_on_mult
+  continuous_on_inner ~> continuous_on_inner [OF continuous_on_const]
+  continuous_on_norm ~> continuous_on_norm [OF continuous_on_id]
+  continuous_on_inverse ~> continuous_on_inv
+  uniformly_continuous_on_neg ~> uniformly_continuous_on_minus
+  uniformly_continuous_on_sub ~> uniformly_continuous_on_diff
+  subset_interior ~> interior_mono
+  subset_closure ~> closure_mono
+  closure_univ ~> closure_UNIV
+  real_arch_lt ~> reals_Archimedean2
+  real_arch ~> reals_Archimedean3
+  real_abs_norm ~> abs_norm_cancel
+  real_abs_sub_norm ~> norm_triangle_ineq3
+  norm_cauchy_schwarz_abs ~> Cauchy_Schwarz_ineq2
+
+* Session HOL-Probability:
+  - Caratheodory's extension lemma is now proved for ring_of_sets.
+  - Infinite products of probability measures are now available.
+  - Sigma closure is independent, if the generator is independent
+  - Use extended reals instead of positive extended
+    reals. INCOMPATIBILITY.
+
 
 *** Document preparation ***
 
@@ -504,6 +501,12 @@ proper Proof.context.
 
 
 *** System ***
+
+* Discontinued support for Poly/ML 5.2, which was the last version
+without proper multithreading and TimeLimit implementation.
+
+* Discontinued old lib/scripts/polyml-platform, which has been
+obsolete since Isabelle2009-2.
 
 * Various optional external tools are referenced more robustly and
 uniformly by explicit Isabelle settings as follows:
