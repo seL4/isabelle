@@ -32,10 +32,14 @@ too old nor too new):
 
   x86-linux         Ubuntu 10.04 LTS
   x86-darwin        Mac OS Leopard (macbroy30)
+                    Mac OS Snow Leopard (macbroy2)
+                    Mac OS Lion (macbroy6)
   x86-cygwin        Cygwin 1.7 (vmbroy9)
 
   x86_64-linux      Ubuntu 10.04 LTS
   x86_64-darwin     Mac OS Leopard (macbroy30)
+                    Mac OS Snow Leopard (macbroy2)
+                    Mac OS Lion (macbroy6)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
