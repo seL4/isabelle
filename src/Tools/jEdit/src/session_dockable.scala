@@ -15,7 +15,7 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D}
+import java.awt.{BorderLayout, Graphics2D, Insets}
 import javax.swing.{JList, DefaultListCellRenderer, UIManager}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
@@ -90,6 +90,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   {
     xAlignment = Alignment.Leading
     border = UIManager.getBorder("List.cellNoFocusBorder")
+    val empty_insets = new Insets(0, 0, 0, 0)
 
     var node_name = Document.Node.Name.empty
     override def paintComponent(gfx: Graphics2D)
@@ -97,7 +98,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
           val size = peer.getSize()
-          val insets = border.getBorderInsets(this.peer)
+          val insets = if (border == null) empty_insets else border.getBorderInsets(this.peer)
           val w = size.width - insets.left - insets.right
           val h = size.height - insets.top - insets.bottom
           var end = size.width - insets.right
