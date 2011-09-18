@@ -10,7 +10,7 @@ Version information
 System requirements
 
    Isabelle requires a regular Unix-style platform (e.g. Linux,
-   Windows with Cygwin, Mac OS) and depends on the following main
+   Windows with Cygwin, Mac OS X) and depends on the following main
    add-on tools:
 
      * The Poly/ML compiler and runtime system (version 5.2.1 or later).
