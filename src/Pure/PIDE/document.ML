@@ -15,7 +15,7 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type node_header = (string * string list * (string * bool) list) Exn.result
+  type node_header = ((string * string) * string list * (string * bool) list) Exn.result
   datatype node_edit =
     Clear |
     Edits of (command_id option * command_id option) list |
@@ -58,7 +58,7 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-type node_header = (string * string list * (string * bool) list) Exn.result;
+type node_header = ((string * string) * string list * (string * bool) list) Exn.result;
 type perspective = (command_id -> bool) * command_id option; (*visible commands, last*)
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
@@ -435,14 +435,11 @@ fun check_theory nodes name =
   is_some (Thy_Info.lookup_theory name) orelse  (* FIXME more robust!? *)
   is_some (Exn.get_res (get_header (get_node nodes name)));
 
-fun init_theory deps name node =
+fun init_theory deps node =
   let
-    val (thy_name, imports, uses) = Exn.release (get_header node);
-    (* FIXME provide files via Scala layer *)
-    val (dir, files) =
-      if ML_System.platform_is_cygwin then (Path.current, [])
-      else (Path.dir (Path.explode name), map (apfst Path.explode) uses);
-
+    (* FIXME provide files via Scala layer, not master_dir *)
+    val ((master_dir, thy_name), imports, uses) = Exn.release (get_header node);
+    val files = map (apfst Path.explode) uses;
     val parents =
       imports |> map (fn import =>
         (case Thy_Info.lookup_theory import of  (* FIXME more robust!? *)
@@ -450,7 +447,7 @@ fun init_theory deps name node =
         | NONE =>
             get_theory (Position.file_only import)
               (snd (Future.join (the (AList.lookup (op =) deps import))))));
-  in Thy_Load.begin_theory dir thy_name imports files parents end;
+  in Thy_Load.begin_theory (Path.explode master_dir) thy_name imports files parents end;
 
 in
 
@@ -471,7 +468,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
           else
             let
               val node0 = node_of old_version name;
-              fun init () = init_theory deps name node;
+              fun init () = init_theory deps node;
               val bad_init =
                 not (check_theory nodes name andalso forall (check_theory nodes o #1) deps);
             in

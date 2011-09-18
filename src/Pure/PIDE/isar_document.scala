@@ -191,17 +191,24 @@ trait Isar_Document extends Isabelle_Process
     val edits_yxml =
     { import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
-      def encode: T[List[Document.Edit_Command]] =
-        list(pair((name => string(name.node)),
-          variant(List(
-            { case Document.Node.Clear() => (Nil, Nil) },
-            { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
-            { case Document.Node.Header(Exn.Res(Thy_Header(a, b, c))) =>
-                (Nil, triple(string, list(string), list(pair(string, bool)))(a, b, c)) },
-            { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
-            { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))))
+      def encode_edit(dir: String)
+          : T[Document.Node.Edit[(Option[Command], Option[Command]), Command.Perspective]] =
+        variant(List(
+          { case Document.Node.Clear() => (Nil, Nil) },
+          { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
+          { case Document.Node.Header(Exn.Res(Thy_Header(a, b, c))) =>
+              (Nil,
+                triple(pair(string, string), list(string), list(pair(string, bool)))(
+                  (dir, a), b, c)) },
+          { case Document.Node.Header(Exn.Exn(e)) => (List(Exn.message(e)), Nil) },
+          { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
+      def encode: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
+      {
+        val (name, edit) = node_edit
+        val dir = Isabelle_System.posix_path(name.dir)
+        pair(string, encode_edit(dir))(name.node, edit)
+      })
       YXML.string_of_body(encode(edits)) }
-
     input("Isar_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
   }
 

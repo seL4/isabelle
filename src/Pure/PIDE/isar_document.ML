@@ -47,7 +47,8 @@ val _ =
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
                     Document.Header
-                      (Exn.Res (triple string (list string) (list (pair string bool)) a)),
+                      (Exn.Res
+                        (triple (pair string string) (list string) (list (pair string bool)) a)),
                   fn ([a], []) => Document.Header (Exn.Exn (ERROR a)),
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
