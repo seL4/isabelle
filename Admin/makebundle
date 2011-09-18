@@ -83,6 +83,8 @@ case "$PLATFORM" in
     ;;
   *-darwin)
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
+      -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
+      -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   *-cygwin)
