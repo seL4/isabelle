@@ -48,13 +48,18 @@ conv cs (Ctr i xs) = (cs !! i) xs
 
 data Answer = Known Bool | Unknown Pos deriving Show;
 
-answer :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b
-answer a known unknown =
+answeri :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b;
+answeri a known unknown =
   do res <- try (evaluate a)
      case res of
        Right b -> known b
        Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e
+
+answer :: Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
+answer a known unknown =
+  Control.Exception.catch (answeri a known unknown) 
+    (\ (PatternMatchFail _) -> known True)
 
 --  Proofs and Refutation
 

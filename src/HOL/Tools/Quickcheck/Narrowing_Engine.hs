@@ -29,13 +29,18 @@ total (Var p (SumOfProd ss)) = [y | x <- new p ss, y <- total x];
 
 -- Answers
 
-answer :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b;
-answer a known unknown =
+answeri :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b;
+answeri a known unknown =
   try (evaluate a) >>= (\res ->
      case res of
        Right b -> known b
        Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e);
+
+answer :: Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
+answer a known unknown =
+  Control.Exception.catch (answeri a known unknown) 
+    (\ (PatternMatchFail _) -> known True);
 
 -- Refute
 
