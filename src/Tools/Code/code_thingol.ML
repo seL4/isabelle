@@ -600,22 +600,19 @@ fun annotate_term (Const (c', T'), Const (c, T)) tvar_names =
   | annotate_term (Var _, t as Var _) tvar_names = (t, tvar_names)
   | annotate_term (Bound   _, t as Bound _) tvar_names = (t, tvar_names)
 
-fun annotate_eqns thy (c, ty) eqns = 
+fun annotate thy (c, ty) args rhs =
   let
     val ctxt = ProofContext.init_global thy |> Config.put Type_Infer_Context.const_sorts false
     val erase = map_types (fn _ => Type_Infer.anyT [])
     val reinfer = singleton (Type_Infer_Context.infer_types ctxt)
-    fun add_annotations (args, (rhs, some_abs)) =
-      let
-        val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
-        val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
-        val (rhs', _) = annotate_term (reinferred_rhs, rhs) []
-     in
-        (args, (rhs', some_abs))
-     end
+    val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
+    val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
   in
-    map (apfst add_annotations) eqns
-  end;
+    fst (annotate_term (reinferred_rhs, rhs) [])
+  end
+
+fun annotate_eqns thy (c, ty) eqns = 
+  map (apfst (fn (args, (rhs, some_abs)) => (args, (annotate thy (c, ty) args rhs, some_abs)))) eqns
 
 (* translation *)
 
@@ -922,10 +919,11 @@ fun ensure_value thy algbr eqngr t =
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
+    val t' = annotate thy (Term.dummy_patternN, ty) [] (Code.subst_signatures thy t) 
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr false) vs
       ##>> translate_typ thy algbr eqngr false ty
-      ##>> translate_term thy algbr eqngr false NONE (Code.subst_signatures thy t, NONE)
+      ##>> translate_term thy algbr eqngr false NONE (t', NONE)
       #>> (fn ((vs, ty), t) => Fun
         (Term.dummy_patternN, (((vs, ty), [(([], t), (NONE, true))]), NONE)));
     fun term_value (dep, (naming, program1)) =
