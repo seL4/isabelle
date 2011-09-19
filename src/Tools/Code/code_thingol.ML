@@ -581,26 +581,27 @@ fun not_wellsorted thy permissive some_thm ty sort e =
 
 (* inference of type annotations for disambiguation with type classes *)
 
+fun mk_tagged_type (true, T) = Type ("", [T])
+  | mk_tagged_type (false, T) = T
+
 fun dest_tagged_type (Type ("", [T])) = (true, T)
   | dest_tagged_type T = (false, T)
 
 val untag_term = map_types (snd o dest_tagged_type)
 
-fun annotate_term (proj_sort, _) eqngr =
+fun tag_term (proj_sort, _) eqngr =
   let
     val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr
-    fun annotate (Const (c', T'), Const (c, T)) =
-        if not (null (Term.add_tvarsT T' [])) andalso has_sort_constraints c then
-          Const (c, Type ("", [T]))
-        else
-          Const (c, T)
-      | annotate (t1 $ u1, t $ u) = annotate (t1, t) $ annotate (u1, u)
-      | annotate (Abs (_, _, t1) , Abs (x, T, t)) = Abs (x, T, annotate (t1, t))
-      | annotate (Free _, t as Free _) = t
-      | annotate (Var _, t as Var _) = t
-      | annotate (Bound   _, t as Bound _) = t
+    fun tag (Const (c', T')) (Const (c, T)) =
+        Const (c,
+          mk_tagged_type (not (null (Term.add_tvarsT T' [])) andalso has_sort_constraints c, T))
+      | tag (t1 $ u1) (t $ u) = tag t1 t $ tag u1 u
+      | tag (Abs (_, _, t1)) (Abs (x, T, t)) = Abs (x, T, tag t1 t)
+      | tag (Free _) (t as Free _) = t
+      | tag (Var _) (t as Var _) = t
+      | tag (Bound _) (t as Bound _) = t
   in
-    annotate
+    tag
   end
 
 fun annotate thy algbr eqngr (c, ty) args rhs =
@@ -611,7 +612,7 @@ fun annotate thy algbr eqngr (c, ty) args rhs =
     val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
     val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
   in
-    annotate_term algbr eqngr (reinferred_rhs, rhs)
+    tag_term algbr eqngr reinferred_rhs rhs
   end
 
 fun annotate_eqns thy algbr eqngr (c, ty) eqns = 
@@ -758,7 +759,7 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
         then translation_error thy permissive some_thm
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-    val (annotate, ty') = (case ty of Type("", [ty']) => (true, ty') | ty' => (false, ty'))
+    val (annotate, ty') = dest_tagged_type ty
     val arg_typs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
     val (function_typs, body_typ) = Term.strip_type ty';
