@@ -356,6 +356,23 @@ use "Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
+definition narrowing_dummy_partial_term_of :: "('a :: partial_term_of) itself => narrowing_term => term"
+where
+  "narrowing_dummy_partial_term_of = partial_term_of"
+
+definition narrowing_dummy_narrowing :: "code_int => ('a :: narrowing) cons"
+where
+  "narrowing_dummy_narrowing = narrowing"
+
+lemma [code]:
+  "ensure_testable f =
+    (let
+      x = narrowing_dummy_narrowing :: code_int => bool cons;
+      y = narrowing_dummy_partial_term_of :: bool itself => narrowing_term => term;
+      z = (conv :: _ => _ => unit)  in f)"
+unfolding Let_def ensure_testable_def ..
+
+  
 subsection {* Narrowing for integers *}
 
 
