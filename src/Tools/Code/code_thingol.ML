@@ -589,27 +589,16 @@ val untag_term = map_types (snd o dest_tagged_type)
 fun annotate_term (proj_sort, _) eqngr =
   let
     val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr
-    fun annotate (Const (c', T'), Const (c, T)) tvar_names =
-      let
-        val tvar_names' = Term.add_tvar_namesT T' tvar_names
-      in
-        if not (eq_set (op =) (tvar_names, tvar_names')) andalso has_sort_constraints c then
-          (Const (c, Type ("", [T])), tvar_names')
+    fun annotate (Const (c', T'), Const (c, T)) =
+        if not (null (Term.add_tvarsT T' [])) andalso has_sort_constraints c then
+          Const (c, Type ("", [T]))
         else
-          (Const (c, T), tvar_names)
-      end
-      | annotate (t1 $ u1, t $ u) tvar_names =
-      let
-        val (u', tvar_names') = annotate (u1, u) tvar_names
-        val (t', tvar_names'') = annotate (t1, t) tvar_names'    
-      in
-        (t' $ u', tvar_names'')
-      end
-      | annotate (Abs (_, _, t1) , Abs (x, T, t)) tvar_names =
-        apfst (fn t => Abs (x, T, t)) (annotate (t1, t) tvar_names)
-      | annotate (Free _, t as Free _) tvar_names = (t, tvar_names)
-      | annotate (Var _, t as Var _) tvar_names = (t, tvar_names)
-      | annotate (Bound   _, t as Bound _) tvar_names = (t, tvar_names)
+          Const (c, T)
+      | annotate (t1 $ u1, t $ u) = annotate (t1, t) $ annotate (u1, u)
+      | annotate (Abs (_, _, t1) , Abs (x, T, t)) = Abs (x, T, annotate (t1, t))
+      | annotate (Free _, t as Free _) = t
+      | annotate (Var _, t as Var _) = t
+      | annotate (Bound   _, t as Bound _) = t
   in
     annotate
   end
@@ -622,7 +611,7 @@ fun annotate thy algbr eqngr (c, ty) args rhs =
     val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
     val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
   in
-    fst (annotate_term algbr eqngr (reinferred_rhs, rhs) [])
+    annotate_term algbr eqngr (reinferred_rhs, rhs)
   end
 
 fun annotate_eqns thy algbr eqngr (c, ty) eqns = 
