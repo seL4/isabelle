@@ -6,7 +6,7 @@
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
-PLATFORMS="at-poly at-poly-test afp at64-poly cygwin-poly-e mac-poly-M2 mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at64-poly-5.1-para at-mac-poly-5.1-para at-sml-dev"
+PLATFORMS="at-poly at-poly-test afp at64-poly cygwin-poly-e mac-poly-M2 mac-poly-M4 mac-poly64-M2 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at64-poly-5.1-para at-mac-poly-5.1-para at-sml-dev"
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
