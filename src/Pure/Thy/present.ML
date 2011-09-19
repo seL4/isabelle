@@ -499,8 +499,8 @@ fun drafts doc_format src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir 
         val base = Path.base path;
         val name =
           (case Path.implode (#1 (Path.split_ext base)) of
-            "" => "DUMMY" ^ serial_string ()
-          | s => s);
+            "" => "DUMMY"
+          | s => s)  ^ serial_string ();
       in
         if File.exists path then
           (((name, base, File.read path), (i, Latex.theory_entry name)), i + 1)
