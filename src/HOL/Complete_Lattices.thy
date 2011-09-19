@@ -1133,14 +1133,6 @@ lemma INT_extend_simps:
 
 text {* Legacy names *}
 
-lemma (in complete_lattice) Inf_singleton [simp]:
-  "\<Sqinter>{a} = a"
-  by simp
-
-lemma (in complete_lattice) Sup_singleton [simp]:
-  "\<Squnion>{a} = a"
-  by simp
-
 lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
