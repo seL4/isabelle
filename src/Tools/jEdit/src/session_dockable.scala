@@ -86,8 +86,9 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   private var nodes_status: Map[Document.Node.Name, Isar_Document.Node_Status] = Map.empty
 
-  private class Node_Renderer_Component extends Label
+  private object Node_Renderer_Component extends Label
   {
+    opaque = false
     xAlignment = Alignment.Leading
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
@@ -118,18 +119,15 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     }
   }
 
-  private class Node_Renderer extends
-    ListView.AbstractRenderer[Document.Node.Name, Node_Renderer_Component](
-      new Node_Renderer_Component)
+  private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
   {
-    def configure(list: ListView[_], isSelected: Boolean, focused: Boolean,
-      name: Document.Node.Name, index: Int)
+    def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean,
+      name: Document.Node.Name, index: Int): Component =
     {
-      component.opaque = false
-      component.background = list.background
-      component.foreground = list.foreground
+      val component = Node_Renderer_Component
       component.node_name = name
       component.text = name.theory
+      component
     }
   }
   status.renderer = new Node_Renderer
