@@ -581,6 +581,11 @@ fun not_wellsorted thy permissive some_thm ty sort e =
 
 (* inference of type annotations for disambiguation with type classes *)
 
+fun dest_tagged_type (Type ("", [T])) = (true, T)
+  | dest_tagged_type T = (false, T)
+
+val untag_term = map_types (snd o dest_tagged_type)
+
 fun annotate_term (proj_sort, _) eqngr =
   let
     val has_sort_constraints = exists (not o null) o map proj_sort o Code_Preproc.sortargs eqngr
@@ -786,7 +791,7 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
     val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
     fun mk_constr c t = let val n = Code.args_number thy c
-      in ((c, arg_types n (fastype_of t) ---> ty), n) end;
+      in ((c, arg_types n (fastype_of (untag_term t)) ---> ty), n) end;
     val constrs = if null case_pats then []
       else map2 mk_constr case_pats (nth_drop t_pos ts);
     fun casify naming constrs ty ts =
