@@ -36,7 +36,7 @@ definition
   where "A_SET_INV G H = SET_INV \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
 definition
-  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("racong\<index> _")
+  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("racong\<index>")
   where "a_r_congruent G = r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 definition
