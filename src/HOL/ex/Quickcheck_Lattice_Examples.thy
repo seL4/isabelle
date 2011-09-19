@@ -18,7 +18,7 @@ notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65)
 
-declare [[quickcheck_narrowing_active = false]]
+declare [[quickcheck_narrowing_active = false, quickcheck_timeout = 3600]]
 
 subsection {* Distributive lattices *}
 
