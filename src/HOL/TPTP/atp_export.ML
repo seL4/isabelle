@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/atp_export.ML
+(*  Title:      HOL/TPTP/atp_export.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2011
 

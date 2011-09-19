@@ -1,4 +1,4 @@
-(*  Title:      Product_Lattice.thy
+(*  Title:      HOL/Library/Product_Lattice.thy
     Author:     Brian Huffman
 *)
 

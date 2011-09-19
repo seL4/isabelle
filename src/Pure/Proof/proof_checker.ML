@@ -1,4 +1,4 @@
-(*  Title:      Pure/Proof/proofchecker.ML
+(*  Title:      Pure/Proof/proof_checker.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Simple proof checker based only on the core inference rules

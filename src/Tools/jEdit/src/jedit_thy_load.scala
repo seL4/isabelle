@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/plugin.scala
+/*  Title:      Tools/jEdit/src/jedit_thy_load.scala
     Author:     Makarius
 
 Primitives for loading theory files, based on jEdit buffer content.
