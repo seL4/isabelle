@@ -74,7 +74,6 @@ if [ -n "$CLEAN" ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$FILE")
   mv "$FILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
   $VIEWER "$PRIVATE_FILE"
-  sleep 5   #try to avoid races
   rm -f "$PRIVATE_FILE"
 else
   exec $VIEWER "$FILE"

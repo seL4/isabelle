@@ -352,6 +352,8 @@ object Symbol
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
 
+    val symbolic = recode_set((for { (sym, _) <- symbols; if raw_symbolic(sym) } yield sym): _*)
+
 
     /* control symbols */
 
@@ -391,9 +393,14 @@ object Symbol
   def is_quasi(sym: Symbol): Boolean = sym == "_" || sym == "'"
   def is_letdig(sym: Symbol): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
   def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
+
   def is_symbolic_char(sym: Symbol): Boolean = symbols.sym_chars.contains(sym)
-  def is_symbolic(sym: Symbol): Boolean =
+  def is_symbolic(sym: Symbol): Boolean = raw_symbolic(sym) || symbols.symbolic.contains(sym)
+
+  private def raw_symbolic(sym: Symbol): Boolean =
     sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
+
+
 
 
   /* control symbols */

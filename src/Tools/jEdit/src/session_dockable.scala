@@ -12,11 +12,11 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
   ScrollPane, TabbedPane, Component, Swing}
-import scala.swing.event.{ButtonClicked, SelectionChanged}
+import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets}
-import javax.swing.{JList, DefaultListCellRenderer, UIManager}
+import javax.swing.{JList, DefaultListCellRenderer, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
@@ -29,7 +29,14 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val readme = new HTML_Panel("SansSerif", 14)
   readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
 
-  val status = new ListView(Nil: List[Document.Node.Name])
+  val status = new ListView(Nil: List[Document.Node.Name]) {
+    listenTo(mouse.clicks)
+    reactions += {
+      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
+        val index = peer.locationToIndex(point)
+        if (index >= 0) jEdit.openFile(view, listData(index).node)
+    }
+  }
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
@@ -86,11 +93,11 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   private var nodes_status: Map[Document.Node.Name, Isar_Document.Node_Status] = Map.empty
 
-  private class Node_Renderer_Component extends Label
+  private object Node_Renderer_Component extends Label
   {
+    opaque = false
     xAlignment = Alignment.Leading
-    border = UIManager.getBorder("List.cellNoFocusBorder")
-    val empty_insets = new Insets(0, 0, 0, 0)
+    border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
     override def paintComponent(gfx: Graphics2D)
@@ -98,7 +105,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
           val size = peer.getSize()
-          val insets = if (border == null) empty_insets else border.getBorderInsets(this.peer)
+          val insets = border.getBorderInsets(this.peer)
           val w = size.width - insets.left - insets.right
           val h = size.height - insets.top - insets.bottom
           var end = size.width - insets.right
@@ -119,18 +126,15 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     }
   }
 
-  private class Node_Renderer extends
-    ListView.AbstractRenderer[Document.Node.Name, Node_Renderer_Component](
-      new Node_Renderer_Component)
+  private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
   {
-    def configure(list: ListView[_], isSelected: Boolean, focused: Boolean,
-      name: Document.Node.Name, index: Int)
+    def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean,
+      name: Document.Node.Name, index: Int): Component =
     {
-      component.opaque = false
-      component.background = list.background
-      component.foreground = list.foreground
+      val component = Node_Renderer_Component
       component.node_name = name
-      component.text = name.theory + " "
+      component.text = name.theory
+      component
     }
   }
   status.renderer = new Node_Renderer
