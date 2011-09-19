@@ -12,7 +12,7 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
   ScrollPane, TabbedPane, Component, Swing}
-import scala.swing.event.{ButtonClicked, SelectionChanged}
+import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets}
@@ -29,7 +29,14 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val readme = new HTML_Panel("SansSerif", 14)
   readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
 
-  val status = new ListView(Nil: List[Document.Node.Name])
+  val status = new ListView(Nil: List[Document.Node.Name]) {
+    listenTo(mouse.clicks)
+    reactions += {
+      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
+        val index = peer.locationToIndex(point)
+        if (index >= 0) jEdit.openFile(view, listData(index).node)
+    }
+  }
   status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
