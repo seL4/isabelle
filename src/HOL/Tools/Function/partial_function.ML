@@ -258,7 +258,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val mk_raw_induct =
       mk_curried_induct args args_ctxt (cert curry) (cert uncurry)
       #> singleton (Variable.export args_ctxt lthy)
-      #> (fn thm => Drule.instantiate' [] [SOME (cert F)] thm OF [mono_thm, f_def])
+      #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [mono_thm, f_def])
       #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
 
     val raw_induct = Option.map mk_raw_induct fixp_induct

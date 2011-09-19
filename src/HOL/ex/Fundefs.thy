@@ -387,4 +387,9 @@ where
 | "f4 _ _ = False"
 
 
+(* polymorphic partial_function *)
+partial_function (option) f5 :: "'a list \<Rightarrow> 'a option"
+where
+  "f5 x = f5 x"
+
 end
