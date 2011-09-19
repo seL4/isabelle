@@ -12,7 +12,9 @@ SUPER_APP="$(cd "$THIS/../../.."; pwd)"
 # sane environment defaults
 
 cd "$HOME"
-PATH="$PATH:/opt/local/bin"
+if [ -x /usr/libexec/path_helper ]; then
+  eval $(/usr/libexec/path_helper -s)
+fi
 
 [ -z "$LANG" ] && export LANG=en_US.UTF-8
 
