@@ -177,6 +177,9 @@ fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
 
     val _ = quick_and_dirty := true;
     val _ = Goal.parallel_proofs := 0;
+    val _ =
+      if Multithreading.max_threads_value () < 2
+      then Multithreading.max_threads := 2 else ();
     val _ = Context.set_thread_data NONE;
     val _ =
       Unsynchronized.change print_mode
