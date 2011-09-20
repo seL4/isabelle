@@ -729,25 +729,25 @@ qed
 lemma Liminf_within_UNIV:
   fixes f :: "'a::metric_space => ereal"
   shows "Liminf (at x) f = Liminf (at x within UNIV) f"
-by (metis within_UNIV)
+  by simp (* TODO: delete *)
 
 
 lemma Liminf_at:
   fixes f :: "'a::metric_space => ereal"
   shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
-using Liminf_within[of x UNIV f] Liminf_within_UNIV[of x f] by auto
+  using Liminf_within[of x UNIV f] by simp
 
 
 lemma Limsup_within_UNIV:
   fixes f :: "'a::metric_space => ereal"
   shows "Limsup (at x) f = Limsup (at x within UNIV) f"
-by (metis within_UNIV)
+  by simp (* TODO: delete *)
 
 
 lemma Limsup_at:
   fixes f :: "'a::metric_space => ereal"
   shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
-using Limsup_within[of x UNIV f] Limsup_within_UNIV[of x f] by auto
+  using Limsup_within[of x UNIV f] by simp
 
 lemma Lim_within_constant:
   fixes f :: "'a::metric_space => 'b::topological_space"
@@ -1150,7 +1150,7 @@ lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
   unfolding suminf_ereal_eq_SUPR[OF assms] SUP_def
-  by (auto intro: complete_lattice_class.Sup_upper image_eqI)
+  by (auto intro: complete_lattice_class.Sup_upper)
 
 lemma suminf_0_le:
   fixes f :: "nat \<Rightarrow> ereal" assumes "\<And>n. 0 \<le> f n"

@@ -298,7 +298,10 @@ lemma eventually_within:
   by (rule eventually_Abs_filter, rule is_filter.intro)
      (auto elim!: eventually_rev_mp)
 
-lemma within_UNIV: "F within UNIV = F"
+lemma within_UNIV [simp]: "F within UNIV = F"
+  unfolding filter_eq_iff eventually_within by simp
+
+lemma within_empty [simp]: "F within {} = bot"
   unfolding filter_eq_iff eventually_within by simp
 
 lemma eventually_nhds:
@@ -583,6 +586,9 @@ lemma tendsto_iff:
 
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
+
+lemma tendsto_bot [simp]: "(f ---> a) bot"
+  unfolding tendsto_def by simp
 
 lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a)"
   unfolding tendsto_def eventually_at_topological by auto

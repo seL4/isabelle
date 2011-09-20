@@ -422,8 +422,7 @@ lemma sequentially_imp_eventually_at:
   assumes "\<forall>f. (\<forall>n. f n \<noteq> a) \<and> f ----> a \<longrightarrow>
     eventually (\<lambda>n. P (f n)) sequentially"
   shows "eventually P (at a)"
-  using assms sequentially_imp_eventually_within [where s=UNIV]
-  unfolding within_UNIV by simp
+  using assms sequentially_imp_eventually_within [where s=UNIV] by simp
 
 lemma LIMSEQ_SEQ_conv1:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"

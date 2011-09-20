@@ -1913,7 +1913,7 @@ lemma has_derivative_within_dest_vec1:fixes f::"real\<Rightarrow>'a::real_normed
 
 lemma has_derivative_at_dest_vec1:fixes f::"real\<Rightarrow>'a::real_normed_vector" shows
   "((f \<circ> dest_vec1) has_derivative (f' \<circ> dest_vec1)) (at (vec1 x)) = (f has_derivative f') (at x)"
-  using has_derivative_within_dest_vec1[where s=UNIV] by(auto simp add:within_UNIV)
+  using has_derivative_within_dest_vec1[where s=UNIV] by simp
 
 subsection {* In particular if we have a mapping into @{typ "real^1"}. *}
 

@@ -62,7 +62,7 @@ lemma has_derivative_within: "(f has_derivative f') (at x within s) \<longleftri
 
 lemma has_derivative_at: "(f has_derivative f') (at x) \<longleftrightarrow>
          bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x)"
-  apply(subst within_UNIV[THEN sym]) unfolding has_derivative_within unfolding within_UNIV by auto
+  using has_derivative_within [of f f' x UNIV] by simp
 
 text {* More explicit epsilon-delta forms. *}
 
@@ -77,7 +77,7 @@ lemma has_derivative_at':
  "(f has_derivative f') (at x) \<longleftrightarrow> bounded_linear f' \<and>
    (\<forall>e>0. \<exists>d>0. \<forall>x'. 0 < norm(x' - x) \<and> norm(x' - x) < d
         \<longrightarrow> norm(f x' - f x - f'(x' - x)) / norm(x' - x) < e)"
-  apply(subst within_UNIV[THEN sym]) unfolding has_derivative_within' by auto
+  using has_derivative_within' [of f f' x UNIV] by simp
 
 lemma has_derivative_at_within: "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f') (at x within s)"
   unfolding has_derivative_within' has_derivative_at' by meson
@@ -218,8 +218,7 @@ lemma has_derivative_transform_within:
 lemma has_derivative_transform_at:
   assumes "0 < d" "\<forall>x'. dist x' x < d \<longrightarrow> f x' = g x'" "(f has_derivative f') (at x)"
   shows "(g has_derivative f') (at x)"
-  apply(subst within_UNIV[THEN sym]) apply(rule has_derivative_transform_within[OF assms(1)])
-  using assms(2-3) unfolding within_UNIV by auto
+  using has_derivative_transform_within [of d x UNIV f g f'] assms by simp
 
 lemma has_derivative_transform_within_open:
   assumes "open s" "x \<in> s" "\<forall>y\<in>s. f y = g y" "(f has_derivative f') (at x)"
@@ -386,7 +385,7 @@ qed
 lemma has_derivative_at_alt:
   "(f has_derivative f') (at x) \<longleftrightarrow> bounded_linear f' \<and>
   (\<forall>e>0. \<exists>d>0. \<forall>y. norm(y - x) < d \<longrightarrow> norm(f y - f x - f'(y - x)) \<le> e * norm(y - x))"
-  using has_derivative_within_alt[where s=UNIV] unfolding within_UNIV by auto
+  using has_derivative_within_alt[where s=UNIV] by simp
 
 subsection {* The chain rule. *}
 
@@ -464,7 +463,7 @@ lemma diff_chain_at:
   "(f has_derivative f') (at x) \<Longrightarrow> (g has_derivative g') (at (f x)) \<Longrightarrow> ((g o f) has_derivative (g' o f')) (at x)"
   using diff_chain_within[of f f' x UNIV g g']
   using has_derivative_within_subset[of g g' "f x" UNIV "range f"]
-  unfolding within_UNIV by auto
+  by simp
 
 subsection {* Composition rules stated just for differentiability. *}
 
@@ -1674,8 +1673,7 @@ lemma has_derivative_bilinear_at:
   assumes "(g has_derivative g') (at x)"
   assumes "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x)"
-  using has_derivative_bilinear_within[of f f' x UNIV g g' h]
-  unfolding within_UNIV using assms by auto
+  using has_derivative_bilinear_within[of f f' x UNIV g g' h] assms by simp
 
 subsection {* Considering derivative @{typ "real \<Rightarrow> 'b\<Colon>real_normed_vector"} as a vector. *}
 
@@ -1806,12 +1804,12 @@ lemma has_vector_derivative_bilinear_at:
   assumes "(g has_vector_derivative g') (at x)"
   assumes "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x)"
-  apply(rule has_vector_derivative_bilinear_within[where s=UNIV, unfolded within_UNIV]) using assms by auto
+  using has_vector_derivative_bilinear_within[where s=UNIV] assms by simp
 
 lemma has_vector_derivative_at_within:
   "(f has_vector_derivative f') (at x) \<Longrightarrow> (f has_vector_derivative f') (at x within s)"
   unfolding has_vector_derivative_def
-  by (rule has_derivative_at_within) auto
+  by (rule has_derivative_at_within)
 
 lemma has_vector_derivative_transform_within:
   assumes "0 < d" and "x \<in> s" and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
