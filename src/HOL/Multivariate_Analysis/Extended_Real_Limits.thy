@@ -750,21 +750,20 @@ lemma Limsup_at:
   using Limsup_within[of x UNIV f] by simp
 
 lemma Lim_within_constant:
-  fixes f :: "'a::metric_space => 'b::topological_space"
   assumes "ALL y:S. f y = C"
   shows "(f ---> C) (at x within S)"
-unfolding tendsto_def eventually_within
-by (metis assms(1) linorder_le_less_linear n_not_Suc_n real_of_nat_le_zero_cancel_iff)
+  unfolding tendsto_def Limits.eventually_within eventually_at_topological
+  using assms by simp (metis open_UNIV UNIV_I)
 
 lemma Liminf_within_constant:
-  fixes f :: "'a::metric_space => ereal"
+  fixes f :: "'a::topological_space \<Rightarrow> ereal"
   assumes "ALL y:S. f y = C"
   assumes "~trivial_limit (at x within S)"
   shows "Liminf (at x within S) f = C"
 by (metis Lim_within_constant assms lim_imp_Liminf)
 
 lemma Limsup_within_constant:
-  fixes f :: "'a::metric_space => ereal"
+  fixes f :: "'a::topological_space \<Rightarrow> ereal"
   assumes "ALL y:S. f y = C"
   assumes "~trivial_limit (at x within S)"
   shows "Limsup (at x within S) f = C"
