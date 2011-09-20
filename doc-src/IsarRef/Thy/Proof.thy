@@ -1259,10 +1259,12 @@ text {*
   \begin{matharray}{rcl}
     @{method_def cases} & : & @{text method} \\
     @{method_def induct} & : & @{text method} \\
+    @{method_def induction} & : & @{text method} \\
     @{method_def coinduct} & : & @{text method} \\
   \end{matharray}
 
-  The @{method cases}, @{method induct}, and @{method coinduct}
+  The @{method cases}, @{method induct}, @{method induction},
+  and @{method coinduct}
   methods provide a uniform interface to common proof techniques over
   datatypes, inductive predicates (or sets), recursive functions etc.
   The corresponding rules may be specified and instantiated in a
@@ -1277,11 +1279,15 @@ text {*
   and parameters separately).  This avoids cumbersome encoding of
   ``strengthened'' inductive statements within the object-logic.
 
+  Method @{method induction} differs from @{method induct} only in
+  the names of the facts in the local context invoked by the @{command "case"}
+  command.
+
   @{rail "
     @@{method cases} ('(' 'no_simp' ')')? \\
       (@{syntax insts} * @'and') rule?
     ;
-    @@{method induct} ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
+    (@@{method induct} | @@{method induction}) ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
     ;
     @@{method coinduct} @{syntax insts} taking rule?
     ;
@@ -1325,8 +1331,9 @@ text {*
   "(no_simp)"} option can be used to disable pre-simplification of
   cases (see the description of @{method induct} below for details).
 
-  \item @{method induct}~@{text "insts R"} is analogous to the
-  @{method cases} method, but refers to induction rules, which are
+  \item @{method induct}~@{text "insts R"} and
+  @{method induction}~@{text "insts R"} are analogous to the
+  @{method cases} method, but refer to induction rules, which are
   determined as follows:
 
   \medskip
@@ -1437,12 +1444,19 @@ text {*
   and definitions effectively participate in the inductive rephrasing
   of the original statement.
 
-  In induction proofs, local assumptions introduced by cases are split
+  In @{method induct} proofs, local assumptions introduced by cases are split
   into two different kinds: @{text hyps} stemming from the rule and
   @{text prems} from the goal statement.  This is reflected in the
   extracted cases accordingly, so invoking ``@{command "case"}~@{text
   c}'' will provide separate facts @{text c.hyps} and @{text c.prems},
   as well as fact @{text c} to hold the all-inclusive list.
+
+  In @{method induction} proofs, local assumptions introduced by cases are
+  split into three different kinds: @{text IH}, the induction hypotheses,
+  @{text hyps}, the remaining hypotheses stemming from the rule, and
+  @{text prems}, the assumptions from the goal statement. The names are
+  @{text c.IH}, @{text c.hyps} and @{text c.prems}, as above.
+
 
   \medskip Facts presented to either method are consumed according to
   the number of ``major premises'' of the rule involved, which is

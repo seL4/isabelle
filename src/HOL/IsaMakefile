@@ -145,6 +145,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \
   $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/induction.ML \
   $(SRC)/Tools/intuitionistic.ML \
   $(SRC)/Tools/misc_legacy.ML \
   $(SRC)/Tools/nbe.ML \
