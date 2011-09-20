@@ -19,7 +19,7 @@ definition append :: "[i,i]=>i"  (infixr "@" 55)
   where "l @ m == lrec(l,m,%x xs g. x$g)"
 
 axiomatization member :: "[i,i]=>i"  (infixr "mem" 55)  (* FIXME dangling eq *)
-  where "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
+  where member_ax: "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
 
 definition filter :: "[i,i]=>i"
   where "filter(f,l) == lrec(l,[],%x xs g. if f`x then x$g else g)"
