@@ -36,7 +36,7 @@ fun iter :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarr
 "iter (Suc n) f x = (if f x \<sqsubseteq> x then x else iter n f (f x))"
 
 lemma iter_pfp: "f(iter n f x) \<sqsubseteq> iter n f x"
-apply (induct n arbitrary: x)
+apply (induction n arbitrary: x)
  apply (simp)
 apply (simp)
 done
@@ -52,7 +52,7 @@ text{* So much for soundness. But how good an approximation of the post-fixed
 point does @{const iter} yield? *}
 
 lemma iter_funpow: "iter n f x \<noteq> Top \<Longrightarrow> \<exists>k. iter n f x = (f^^k) x"
-apply(induct n arbitrary: x)
+apply(induction n arbitrary: x)
  apply simp
 apply (auto)
  apply(metis funpow.simps(1) id_def)
@@ -69,7 +69,7 @@ proof-
     using iter_funpow[OF `iter n f x0 \<noteq> Top`] by blast
   moreover
   { fix n have "(f^^n) x0 \<sqsubseteq> p"
-    proof(induct n)
+    proof(induction n)
       case 0 show ?case by(simp add: `x0 \<sqsubseteq> p`)
     next
       case (Suc n) thus ?case
@@ -155,7 +155,7 @@ fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Right
 "AI (WHILE b DO c) S = pfp (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
-proof(induct c arbitrary: s t S0)
+proof(induction c arbitrary: s t S0)
   case SKIP thus ?case by fastforce
 next
   case Assign thus ?case by (auto simp: aval'_sound)
@@ -167,10 +167,10 @@ next
   case (While b c)
   let ?P = "pfp (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
-    proof(induct "WHILE b DO c" s t rule: big_step_induct)
+    proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp
     next
-      case WhileTrue thus ?case by(metis While.hyps pfp fun_in_rep_le)
+      case WhileTrue thus ?case by(metis While.IH pfp fun_in_rep_le)
     qed
   }
   with fun_in_rep_le[OF `s <: S0` above]

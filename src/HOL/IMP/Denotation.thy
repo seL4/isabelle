@@ -32,7 +32,7 @@ done
 text{* Equivalence of denotational and big-step semantics: *}
 
 lemma com1: "(c,s) \<Rightarrow> t \<Longrightarrow> (s,t) \<in> C(c)"
-apply (induct rule: big_step_induct)
+apply (induction rule: big_step_induct)
 apply auto
 (* while *)
 apply (unfold Gamma_def)
@@ -43,7 +43,7 @@ apply auto
 done
 
 lemma com2: "(s,t) \<in> C(c) \<Longrightarrow> (c,s) \<Rightarrow> t"
-apply (induct c arbitrary: s t)
+apply (induction c arbitrary: s t)
 apply auto 
 apply blast
 (* while *)

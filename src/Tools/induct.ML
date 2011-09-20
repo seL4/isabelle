@@ -74,11 +74,21 @@ sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
+  type case_data = (((string * string list) * string list) list * int) (* FIXME -> rule_cases.ML *)
+  val gen_induct_tac: (theory -> case_data * thm -> case_data * thm) ->
+    Proof.context -> bool -> (binding option * (term * bool)) option list list ->
+    (string * typ) list list -> term option list -> thm list option ->
+    thm list -> int -> cases_tactic
   val induct_tac: Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->
     thm list -> int -> cases_tactic
+  val gen_induct_setup: binding ->
+   (Proof.context -> bool -> (binding option * (term * bool)) option list list ->
+    (string * typ) list list -> term option list -> thm list option ->
+    thm list -> int -> cases_tactic) ->
+   theory -> theory
   val setup: theory -> theory
 end;
 
@@ -721,7 +731,9 @@ fun get_inductT ctxt insts =
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
 
-fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
+type case_data = (((string * string list) * string list) list * int)
+
+fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
   let
     val thy = Proof_Context.theory_of ctxt;
 
@@ -734,6 +746,7 @@ fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
           (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
         |> maps (prep_inst ctxt align_right (atomize_term thy))
         |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r))
+      |> mod_cases thy
       |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
     val ruleq =
@@ -791,7 +804,7 @@ fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
        THEN_ALL_NEW rulify_tac)
   end;
 
-
+val induct_tac = gen_induct_tac (K I);
 
 (** coinduct method **)
 
@@ -910,15 +923,17 @@ val cases_setup =
           (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
     "case analysis on types or predicates/sets";
 
-val induct_setup =
-  Method.setup @{binding induct}
+fun gen_induct_setup binding itac =
+  Method.setup binding
     (Args.mode no_simpN -- (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
       (arbitrary -- taking -- Scan.option induct_rule)) >>
       (fn (no_simp, (insts, ((arbitrary, taking), opt_rule))) => fn ctxt =>
         RAW_METHOD_CASES (fn facts =>
           Seq.DETERM
-            (HEADGOAL (induct_tac ctxt (not no_simp) insts arbitrary taking opt_rule facts)))))
+            (HEADGOAL (itac ctxt (not no_simp) insts arbitrary taking opt_rule facts)))))
     "induction on types or predicates/sets";
+
+val induct_setup = gen_induct_setup @{binding induct} induct_tac;
 
 val coinduct_setup =
   Method.setup @{binding coinduct}

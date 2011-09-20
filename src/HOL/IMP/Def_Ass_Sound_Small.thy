@@ -7,7 +7,7 @@ subsection "Soundness wrt Small Steps"
 
 theorem progress:
   "D (dom s) c A' \<Longrightarrow> c \<noteq> SKIP \<Longrightarrow> EX cs'. (c,s) \<rightarrow> cs'"
-proof (induct c arbitrary: s A')
+proof (induction c arbitrary: s A')
   case Assign thus ?case by auto (metis aval_Some small_step.Assign)
 next
   case (If b c1 c2)
@@ -17,13 +17,13 @@ next
 qed (fastforce intro: small_step.intros)+
 
 lemma D_mono:  "D A c M \<Longrightarrow> A \<subseteq> A' \<Longrightarrow> EX M'. D A' c M' & M <= M'"
-proof (induct c arbitrary: A A' M)
+proof (induction c arbitrary: A A' M)
   case Semi thus ?case by auto (metis D.intros(3))
 next
   case (If b c1 c2)
   then obtain M1 M2 where "vars b \<subseteq> A" "D A c1 M1" "D A c2 M2" "M = M1 \<inter> M2"
     by auto
-  with If.hyps `A \<subseteq> A'` obtain M1' M2'
+  with If.IH `A \<subseteq> A'` obtain M1' M2'
     where "D A' c1 M1'" "D A' c2 M2'" and "M1 \<subseteq> M1'" "M2 \<subseteq> M2'" by metis
   hence "D A' (IF b THEN c1 ELSE c2) (M1' \<inter> M2')" and "M \<subseteq> M1' \<inter> M2'"
     using `vars b \<subseteq> A` `A \<subseteq> A'` `M = M1 \<inter> M2` by(fastforce intro: D.intros)+
@@ -34,7 +34,7 @@ qed (auto intro: D.intros)
 
 theorem D_preservation:
   "(c,s) \<rightarrow> (c',s') \<Longrightarrow> D (dom s) c A \<Longrightarrow> EX A'. D (dom s') c' A' & A <= A'"
-proof (induct arbitrary: A rule: small_step_induct)
+proof (induction arbitrary: A rule: small_step_induct)
   case (While b c s)
   then obtain A' where "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast
   moreover
@@ -49,7 +49,7 @@ qed (auto intro: D.intros)
 theorem D_sound:
   "(c,s) \<rightarrow>* (c',s') \<Longrightarrow> D (dom s) c A' \<Longrightarrow> c' \<noteq> SKIP
    \<Longrightarrow> \<exists>cs''. (c',s') \<rightarrow> cs''"
-apply(induct arbitrary: A' rule:star_induct)
+apply(induction arbitrary: A' rule:star_induct)
 apply (metis progress)
 by (metis D_preservation)
 

@@ -24,7 +24,7 @@ fun iter_up :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Right
   (let fx = f x in if fx \<sqsubseteq> x then x else iter_up f n (x \<nabla> fx))"
 
 lemma iter_up_pfp: "f(iter_up f n x) \<sqsubseteq> iter_up f n x"
-apply (induct n arbitrary: x)
+apply (induction n arbitrary: x)
  apply (simp)
 apply (simp add: Let_def)
 done
@@ -35,7 +35,7 @@ fun iter_down :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rig
   (let y = x \<triangle> f x in if f y \<sqsubseteq> y then iter_down f n y else x)"
 
 lemma iter_down_pfp: "f x \<sqsubseteq> x \<Longrightarrow> f(iter_down f n x) \<sqsubseteq> iter_down f n x"
-apply (induct n arbitrary: x)
+apply (induction n arbitrary: x)
  apply (simp)
 apply (simp add: Let_def)
 done

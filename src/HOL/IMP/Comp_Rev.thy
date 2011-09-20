@@ -196,13 +196,13 @@ lemma bcomp_succs:
   "0 \<le> i \<Longrightarrow>
   succs (bcomp b c i) n \<subseteq> {n .. n + isize (bcomp b c i)}
                            \<union> {n + i + isize (bcomp b c i)}" 
-proof (induct b arbitrary: c i n)
+proof (induction b arbitrary: c i n)
   case (And b1 b2)
   from And.prems
   show ?case 
     by (cases c)
-       (auto dest: And.hyps(1) [THEN subsetD, rotated] 
-                   And.hyps(2) [THEN subsetD, rotated])
+       (auto dest: And.IH(1) [THEN subsetD, rotated] 
+                   And.IH(2) [THEN subsetD, rotated])
 qed auto
 
 lemmas bcomp_succsD [dest!] = bcomp_succs [THEN subsetD, rotated]
@@ -219,7 +219,7 @@ lemma bcomp_exitsD [dest!]:
 
 lemma ccomp_succs:
   "succs (ccomp c) n \<subseteq> {n..n + isize (ccomp c)}"
-proof (induct c arbitrary: n)
+proof (induction c arbitrary: n)
   case SKIP thus ?case by simp
 next
   case Assign thus ?case by simp
@@ -227,16 +227,16 @@ next
   case (Semi c1 c2)
   from Semi.prems
   show ?case 
-    by (fastforce dest: Semi.hyps [THEN subsetD])
+    by (fastforce dest: Semi.IH [THEN subsetD])
 next
   case (If b c1 c2)
   from If.prems
   show ?case
-    by (auto dest!: If.hyps [THEN subsetD] simp: isuccs_def succs_Cons)
+    by (auto dest!: If.IH [THEN subsetD] simp: isuccs_def succs_Cons)
 next
   case (While b c)
   from While.prems
-  show ?case by (auto dest!: While.hyps [THEN subsetD])
+  show ?case by (auto dest!: While.IH [THEN subsetD])
 qed
 
 lemma ccomp_exits:
@@ -264,7 +264,7 @@ lemma exec_n_split:
                    i' \<in> exits c \<and> 
                    P @ c @ P' \<turnstile> (isize P + i', s'') \<rightarrow>^m (j, s') \<and>
                    n = k + m" 
-using assms proof (induct n arbitrary: i j s)
+using assms proof (induction n arbitrary: i j s)
   case 0
   thus ?case by simp
 next
@@ -289,7 +289,7 @@ next
   { assume "j0 \<in> {0 ..< isize c}"
     with j0 j rest c
     have ?case
-      by (fastforce dest!: Suc.hyps intro!: exec_Suc)
+      by (fastforce dest!: Suc.IH intro!: exec_Suc)
   } moreover {
     assume "j0 \<notin> {0 ..< isize c}"
     moreover
@@ -338,7 +338,7 @@ lemma exec_n_drop_left:
   assumes "P @ P' \<turnstile> (i, s, stk) \<rightarrow>^k (n, s', stk')"
           "isize P \<le> i" "exits P' \<subseteq> {0..}"
   shows "P' \<turnstile> (i - isize P, s, stk) \<rightarrow>^k (n - isize P, s', stk')"
-using assms proof (induct k arbitrary: i s stk)
+using assms proof (induction k arbitrary: i s stk)
   case 0 thus ?case by simp
 next
   case (Suc k)
@@ -357,7 +357,7 @@ next
   have "isize P \<le> i'" by (auto simp: exits_def)
   from rest this `exits P' \<subseteq> {0..}`     
   have "P' \<turnstile> (i' - isize P, s'', stk'') \<rightarrow>^k (n - isize P, s', stk')"
-    by (rule Suc.hyps)
+    by (rule Suc.IH)
   finally
   show ?case .
 qed
@@ -411,7 +411,7 @@ lemma acomp_neq_Nil [simp]:
 lemma acomp_exec_n [dest!]:
   "acomp a \<turnstile> (0,s,stk) \<rightarrow>^n (isize (acomp a),s',stk') \<Longrightarrow> 
   s' = s \<and> stk' = aval a s#stk"
-proof (induct a arbitrary: n s' stk stk')
+proof (induction a arbitrary: n s' stk stk')
   case (Plus a1 a2)
   let ?sz = "isize (acomp a1) + (isize (acomp a2) + 1)"
   from Plus.prems
@@ -424,7 +424,7 @@ proof (induct a arbitrary: n s' stk stk')
        "[ADD] \<turnstile> (0,s2,stk2) \<rightarrow>^n3 (1, s', stk')"
     by (auto dest!: exec_n_split_full)
 
-  thus ?case by (fastforce dest: Plus.hyps simp: exec_n_simps)
+  thus ?case by (fastforce dest: Plus.IH simp: exec_n_simps)
 qed (auto simp: exec_n_simps)
 
 lemma bcomp_split:
@@ -442,13 +442,13 @@ lemma bcomp_exec_n [dest]:
           "isize (bcomp b c j) \<le> i" "0 \<le> j"
   shows "i = isize(bcomp b c j) + (if c = bval b s then j else 0) \<and>
          s' = s \<and> stk' = stk"
-using assms proof (induct b arbitrary: c j i n s' stk')
+using assms proof (induction b arbitrary: c j i n s' stk')
   case B thus ?case 
     by (simp split: split_if_asm add: exec_n_simps)
 next
   case (Not b) 
   from Not.prems show ?case
-    by (fastforce dest!: Not.hyps) 
+    by (fastforce dest!: Not.IH) 
 next
   case (And b1 b2)
   
@@ -466,10 +466,10 @@ next
     by (auto dest!: bcomp_split dest: exec_n_drop_left)
   from b1 j
   have "i' = isize ?b1 + (if \<not>bval b1 s then ?m else 0) \<and> s'' = s \<and> stk'' = stk"
-    by (auto dest!: And.hyps)
+    by (auto dest!: And.IH)
   with b2 j
   show ?case 
-    by (fastforce dest!: And.hyps simp: exec_n_end split: split_if_asm)
+    by (fastforce dest!: And.IH simp: exec_n_end split: split_if_asm)
 next
   case Less
   thus ?case by (auto dest!: exec_n_split_full simp: exec_n_simps) (* takes time *) 
@@ -484,7 +484,7 @@ declare assign_simp [simp]
 lemma ccomp_exec_n:
   "ccomp c \<turnstile> (0,s,stk) \<rightarrow>^n (isize(ccomp c),t,stk')
   \<Longrightarrow> (c,s) \<Rightarrow> t \<and> stk'=stk"
-proof (induct c arbitrary: s t stk stk' n)
+proof (induction c arbitrary: s t stk stk' n)
   case SKIP
   thus ?case by auto
 next
@@ -496,7 +496,7 @@ next
   thus ?case by (fastforce dest!: exec_n_split_full)
 next
   case (If b c1 c2)
-  note If.hyps [dest!]
+  note If.IH [dest!]
 
   let ?if = "IF b THEN c1 ELSE c2"
   let ?cs = "ccomp ?if"
@@ -538,7 +538,7 @@ next
 
   from While.prems
   show ?case
-  proof (induct n arbitrary: s rule: nat_less_induct)
+  proof (induction n arbitrary: s rule: nat_less_induct)
     case (1 n)
     
     { assume "\<not> bval b s"
@@ -568,7 +568,7 @@ next
           "?cs \<turnstile> (0,s,stk) \<rightarrow>^m (isize (ccomp ?c0), t, stk')"
           "m < n"
           by (auto simp: exec_n_step [where k=k])
-        with "1.hyps"
+        with "1.IH"
         show ?case by blast
       next
         assume "ccomp c \<noteq> []"
@@ -581,14 +581,14 @@ next
           by (auto dest: exec_n_split [where i=0, simplified])
         from c
         have "(c,s) \<Rightarrow> s''" and stk: "stk'' = stk"
-          by (auto dest!: While.hyps)
+          by (auto dest!: While.IH)
         moreover
         from rest m k stk
         obtain k' where
           "?cs \<turnstile> (0, s'', stk) \<rightarrow>^k' (isize ?cs, t, stk')"
           "k' < n"
           by (auto simp: exec_n_step [where k=m])
-        with "1.hyps"
+        with "1.IH"
         have "(?c0, s'') \<Rightarrow> t \<and> stk' = stk" by blast
         ultimately
         show ?case using b by blast

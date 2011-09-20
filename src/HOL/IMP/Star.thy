@@ -9,7 +9,7 @@ step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
 lemma star_trans:
   "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
-proof(induct rule: star.induct)
+proof(induction rule: star.induct)
   case refl thus ?case .
 next
   case step thus ?case by (metis star.step)

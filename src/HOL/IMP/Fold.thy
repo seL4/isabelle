@@ -81,7 +81,7 @@ qed
 
 lemma defs_restrict:
   "defs c t |` (- lnames c) = t |` (- lnames c)"
-proof (induct c arbitrary: t)
+proof (induction c arbitrary: t)
   case (Semi c1 c2)
   hence "defs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
     by simp
@@ -114,7 +114,7 @@ qed (auto split: aexp.split)
 
 lemma big_step_pres_approx:
   "(c,s) \<Rightarrow> s' \<Longrightarrow> approx t s \<Longrightarrow> approx (defs c t) s'"
-proof (induct arbitrary: t rule: big_step_induct)
+proof (induction arbitrary: t rule: big_step_induct)
   case Skip thus ?case by simp
 next
   case Assign
@@ -122,8 +122,8 @@ next
     by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
 next
   case (Semi c1 s1 s2 c2 s3)
-  have "approx (defs c1 t) s2" by (rule Semi(2) [OF Semi.prems])
-  hence "approx (defs c2 (defs c1 t)) s3" by (rule Semi(4))
+  have "approx (defs c1 t) s2" by (rule Semi.IH(1)[OF Semi.prems])
+  hence "approx (defs c2 (defs c1 t)) s3" by (rule Semi.IH(2))
   thus ?case by simp
 next
   case (IfTrue b s c1 s')
@@ -151,7 +151,7 @@ corollary approx_defs_inv [simp]:
 
 lemma big_step_pres_approx_restrict:
   "(c,s) \<Rightarrow> s' \<Longrightarrow> approx (t |` (-lnames c)) s \<Longrightarrow> approx (t |` (-lnames c)) s'"
-proof (induct arbitrary: t rule: big_step_induct)
+proof (induction arbitrary: t rule: big_step_induct)
   case Assign
   thus ?case by (clarsimp simp: approx_def)
 next
@@ -190,7 +190,7 @@ declare assign_simp [simp]
 
 lemma approx_eq:
   "approx t \<Turnstile> c \<sim> fold c t"
-proof (induct c arbitrary: t)
+proof (induction c arbitrary: t)
   case SKIP show ?case by simp
 next
   case Assign
@@ -292,7 +292,7 @@ primrec bfold where
 
 lemma bdefs_restrict:
   "bdefs c t |` (- lnames c) = t |` (- lnames c)"
-proof (induct c arbitrary: t)
+proof (induction c arbitrary: t)
   case (Semi c1 c2)
   hence "bdefs c1 t |` (- lnames c1) = t |` (- lnames c1)" 
     by simp
@@ -327,7 +327,7 @@ qed (auto split: aexp.split bexp.split bool.split)
 
 lemma big_step_pres_approx_b:
   "(c,s) \<Rightarrow> s' \<Longrightarrow> approx t s \<Longrightarrow> approx (bdefs c t) s'" 
-proof (induct arbitrary: t rule: big_step_induct)
+proof (induction arbitrary: t rule: big_step_induct)
   case Skip thus ?case by simp
 next
   case Assign
@@ -335,8 +335,8 @@ next
     by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
 next
   case (Semi c1 s1 s2 c2 s3)
-  have "approx (bdefs c1 t) s2" by (rule Semi(2) [OF Semi.prems])
-  hence "approx (bdefs c2 (bdefs c1 t)) s3" by (rule Semi(4))
+  have "approx (bdefs c1 t) s2" by (rule Semi.IH(1)[OF Semi.prems])
+  hence "approx (bdefs c2 (bdefs c1 t)) s3" by (rule Semi.IH(2))
   thus ?case by simp
 next
   case (IfTrue b s c1 s')
@@ -371,7 +371,7 @@ corollary approx_bdefs_inv [simp]:
 
 lemma bfold_equiv: 
   "approx t \<Turnstile> c \<sim> bfold c t"
-proof (induct c arbitrary: t)
+proof (induction c arbitrary: t)
   case SKIP show ?case by simp
 next
   case Assign

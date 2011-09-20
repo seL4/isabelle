@@ -30,7 +30,7 @@ inductive_cases [elim!]:
 text{* An important property: anti-monotonicity. *}
 
 lemma anti_mono: "\<lbrakk> l \<turnstile> c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile> c"
-apply(induct arbitrary: l' rule: sec_type.induct)
+apply(induction arbitrary: l' rule: sec_type.induct)
 apply (metis sec_type.intros(1))
 apply (metis le_trans sec_type.intros(2))
 apply (metis sec_type.intros(3))
@@ -39,7 +39,7 @@ apply (metis While le_refl sup_mono sup_nat_def)
 done
 
 lemma confinement: "\<lbrakk> (c,s) \<Rightarrow> t;  l \<turnstile> c \<rbrakk> \<Longrightarrow> s = t (< l)"
-proof(induct rule: big_step_induct)
+proof(induction rule: big_step_induct)
   case Skip thus ?case by simp
 next
   case Assign thus ?case by auto
@@ -49,12 +49,12 @@ next
   case (IfTrue b s c1)
   hence "max (sec_bexp b) l \<turnstile> c1" by auto
   hence "l \<turnstile> c1" by (metis le_maxI2 anti_mono)
-  thus ?case using IfTrue.hyps by metis
+  thus ?case using IfTrue.IH by metis
 next
   case (IfFalse b s c2)
   hence "max (sec_bexp b) l \<turnstile> c2" by auto
   hence "l \<turnstile> c2" by (metis le_maxI2 anti_mono)
-  thus ?case using IfFalse.hyps by metis
+  thus ?case using IfFalse.IH by metis
 next
   case WhileFalse thus ?case by auto
 next
@@ -68,7 +68,7 @@ qed
 theorem noninterference:
   "\<lbrakk> (c,s) \<Rightarrow> s'; (c,t) \<Rightarrow> t';  0 \<turnstile> c;  s = t (\<le> l) \<rbrakk>
    \<Longrightarrow> s' = t' (\<le> l)"
-proof(induct arbitrary: t t' rule: big_step_induct)
+proof(induction arbitrary: t t' rule: big_step_induct)
   case Skip thus ?case by auto
 next
   case (Assign x a s)
@@ -94,7 +94,7 @@ next
     assume "sec_bexp b \<le> l"
     hence "s = t (\<le> sec_bexp b)" using `s = t (\<le> l)` by auto
     hence "bval b t" using `bval b s` by(simp add: bval_eq_if_eq_le)
-    with IfTrue.hyps(3) IfTrue.prems(1,3) `sec_bexp b \<turnstile> c1`  anti_mono
+    with IfTrue.IH IfTrue.prems(1,3) `sec_bexp b \<turnstile> c1`  anti_mono
     show ?thesis by auto
   next
     assume "\<not> sec_bexp b \<le> l"
@@ -115,7 +115,7 @@ next
     assume "sec_bexp b \<le> l"
     hence "s = t (\<le> sec_bexp b)" using `s = t (\<le> l)` by auto
     hence "\<not> bval b t" using `\<not> bval b s` by(simp add: bval_eq_if_eq_le)
-    with IfFalse.hyps(3) IfFalse.prems(1,3) `sec_bexp b \<turnstile> c2` anti_mono
+    with IfFalse.IH IfFalse.prems(1,3) `sec_bexp b \<turnstile> c2` anti_mono
     show ?thesis by auto
   next
     assume "\<not> sec_bexp b \<le> l"
@@ -157,14 +157,14 @@ next
       using `bval b s1` by(simp add: bval_eq_if_eq_le)
     then obtain t2 where "(c,t1) \<Rightarrow> t2" "(?w,t2) \<Rightarrow> t3"
       using `(?w,t1) \<Rightarrow> t3` by auto
-    from WhileTrue.hyps(5)[OF `(?w,t2) \<Rightarrow> t3` `0 \<turnstile> ?w`
-      WhileTrue.hyps(3)[OF `(c,t1) \<Rightarrow> t2` anti_mono[OF `sec_bexp b \<turnstile> c`]
+    from WhileTrue.IH(2)[OF `(?w,t2) \<Rightarrow> t3` `0 \<turnstile> ?w`
+      WhileTrue.IH(1)[OF `(c,t1) \<Rightarrow> t2` anti_mono[OF `sec_bexp b \<turnstile> c`]
         `s1 = t1 (\<le> l)`]]
     show ?thesis by simp
   next
     assume "\<not> sec_bexp b \<le> l"
     have 1: "sec_bexp b \<turnstile> ?w" by(rule sec_type.intros)(simp_all add: `sec_bexp b \<turnstile> c`)
-    from confinement[OF big_step.WhileTrue[OF WhileTrue(1,2,4)] 1] `\<not> sec_bexp b \<le> l`
+    from confinement[OF big_step.WhileTrue[OF WhileTrue.hyps] 1] `\<not> sec_bexp b \<le> l`
     have "s1 = s3 (\<le> l)" by auto
     moreover
     from confinement[OF WhileTrue.prems(1) 1] `\<not> sec_bexp b \<le> l`
@@ -196,7 +196,7 @@ anti_mono':
   "\<lbrakk> l \<turnstile>' c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile>' c"
 
 lemma sec_type_sec_type': "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
-apply(induct rule: sec_type.induct)
+apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
 apply (metis Semi')
@@ -205,7 +205,7 @@ by (metis less_or_eq_imp_le min_max.sup_absorb1 min_max.sup_absorb2 nat_le_linea
 
 
 lemma sec_type'_sec_type: "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
-apply(induct rule: sec_type'.induct)
+apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
 apply (metis Semi)
@@ -230,7 +230,7 @@ While2:
 
 
 lemma sec_type2_sec_type': "\<turnstile> c : l \<Longrightarrow> l \<turnstile>' c"
-apply(induct rule: sec_type2.induct)
+apply(induction rule: sec_type2.induct)
 apply (metis Skip')
 apply (metis Assign' eq_imp_le)
 apply (metis Semi' anti_mono' min_max.inf.commute min_max.inf_le2)
@@ -238,7 +238,7 @@ apply (metis If' anti_mono' min_max.inf_absorb2 min_max.le_iff_inf nat_le_linear
 by (metis While')
 
 lemma sec_type'_sec_type2: "l \<turnstile>' c \<Longrightarrow> \<exists> l' \<ge> l. \<turnstile> c : l'"
-apply(induct rule: sec_type'.induct)
+apply(induction rule: sec_type'.induct)
 apply (metis Skip2 le_refl)
 apply (metis Assign2)
 apply (metis Semi2 min_max.inf_greatest)

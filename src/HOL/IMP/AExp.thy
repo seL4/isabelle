@@ -62,7 +62,7 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
 
 theorem aval_asimp_const[simp]:
   "aval (asimp_const a) s = aval a s"
-apply(induct a)
+apply(induction a)
 apply (auto split: aexp.split)
 done
 
@@ -77,7 +77,7 @@ fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 
 lemma aval_plus[simp]:
   "aval (plus a1 a2) s = aval a1 s + aval a2 s"
-apply(induct a1 a2 rule: plus.induct)
+apply(induction a1 a2 rule: plus.induct)
 apply simp_all (* just for a change from auto *)
 done
 
@@ -94,7 +94,7 @@ value "asimp (Plus (Plus (N 0) (N 0)) (Plus (V ''x'') (N 0)))"
 
 theorem aval_asimp[simp]:
   "aval (asimp a) s = aval a s"
-apply(induct a)
+apply(induction a)
 apply simp_all
 done
 

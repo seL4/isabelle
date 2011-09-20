@@ -76,6 +76,11 @@ can be named now by following the case name with [name1 name2 ...].
 
 *** HOL ***
 
+* New proof method "induction" that gives induction hypotheses the name IH,
+thus distinguishing them from further hypotheses that come from rule
+induction.  The latter are still called "hyps".  Method "induction" is a thin
+wrapper around "induct" and follows the same syntax.
+
 * Class bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 

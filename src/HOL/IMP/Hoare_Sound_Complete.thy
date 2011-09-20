@@ -9,11 +9,11 @@ hoare_valid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("
 "\<Turnstile> {P}c{Q} = (\<forall>s t. (c,s) \<Rightarrow> t  \<longrightarrow>  P s \<longrightarrow>  Q t)"
 
 lemma hoare_sound: "\<turnstile> {P}c{Q}  \<Longrightarrow>  \<Turnstile> {P}c{Q}"
-proof(induct rule: hoare.induct)
+proof(induction rule: hoare.induct)
   case (While P b c)
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t  \<Longrightarrow>  P s \<longrightarrow> P t \<and> \<not> bval b t"
-    proof(induct "WHILE b DO c" s t rule: big_step_induct)
+    proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by blast
     next
       case WhileTrue thus ?case
@@ -59,7 +59,7 @@ by(simp add: wp_While_If)
 subsection "Completeness"
 
 lemma wp_is_pre: "\<turnstile> {wp c Q} c {Q}"
-proof(induct c arbitrary: Q)
+proof(induction c arbitrary: Q)
   case Semi thus ?case by(auto intro: Semi)
 next
   case (If b c1 c2)

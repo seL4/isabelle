@@ -23,7 +23,7 @@ inductive_cases [elim!]:
 
 
 lemma anti_mono: "l \<turnstile> c \<Longrightarrow> l' \<le> l \<Longrightarrow> l' \<turnstile> c"
-apply(induct arbitrary: l' rule: sec_type.induct)
+apply(induction arbitrary: l' rule: sec_type.induct)
 apply (metis sec_type.intros(1))
 apply (metis le_trans sec_type.intros(2))
 apply (metis sec_type.intros(3))
@@ -32,7 +32,7 @@ by (metis While le_0_eq)
 
 
 lemma confinement: "(c,s) \<Rightarrow> t \<Longrightarrow> l \<turnstile> c \<Longrightarrow> s = t (< l)"
-proof(induct rule: big_step_induct)
+proof(induction rule: big_step_induct)
   case Skip thus ?case by simp
 next
   case Assign thus ?case by auto
@@ -42,12 +42,12 @@ next
   case (IfTrue b s c1)
   hence "max (sec_bexp b) l \<turnstile> c1" by auto
   hence "l \<turnstile> c1" by (metis le_maxI2 anti_mono)
-  thus ?case using IfTrue.hyps by metis
+  thus ?case using IfTrue.IH by metis
 next
   case (IfFalse b s c2)
   hence "max (sec_bexp b) l \<turnstile> c2" by auto
   hence "l \<turnstile> c2" by (metis le_maxI2 anti_mono)
-  thus ?case using IfFalse.hyps by metis
+  thus ?case using IfFalse.IH by metis
 next
   case WhileFalse thus ?case by auto
 next
@@ -57,7 +57,7 @@ next
 qed
 
 lemma termi_if_non0: "l \<turnstile> c \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> \<exists> t. (c,s) \<Rightarrow> t"
-apply(induct arbitrary: s rule: sec_type.induct)
+apply(induction arbitrary: s rule: sec_type.induct)
 apply (metis big_step.Skip)
 apply (metis big_step.Assign)
 apply (metis big_step.Semi)
@@ -67,7 +67,7 @@ done
 
 theorem noninterference: "(c,s) \<Rightarrow> s' \<Longrightarrow> 0 \<turnstile> c \<Longrightarrow>  s = t (\<le> l)
   \<Longrightarrow> \<exists> t'. (c,t) \<Rightarrow> t' \<and> s' = t' (\<le> l)"
-proof(induct arbitrary: t rule: big_step_induct)
+proof(induction arbitrary: t rule: big_step_induct)
   case Skip thus ?case by auto
 next
   case (Assign x a s)
@@ -152,9 +152,9 @@ next
   let ?w = "WHILE b DO c"
   from `0 \<turnstile> ?w` have [simp]: "sec_bexp b = 0" by auto
   have "0 \<turnstile> c" using WhileTrue.prems(1) by auto
-  from WhileTrue(3)[OF this WhileTrue.prems(2)]
+  from WhileTrue.IH(1)[OF this WhileTrue.prems(2)]
   obtain t'' where "(c,t) \<Rightarrow> t''" and "s'' = t'' (\<le>l)" by blast
-  from WhileTrue(5)[OF `0 \<turnstile> ?w` this(2)]
+  from WhileTrue.IH(2)[OF `0 \<turnstile> ?w` this(2)]
   obtain t' where "(?w,t'') \<Rightarrow> t'" and "s' = t' (\<le>l)" by blast
   from `bval b s` have "bval b t"
     using bval_eq_if_eq_le[OF `s = t (\<le>l)`] by auto
@@ -185,7 +185,7 @@ anti_mono':
   "\<lbrakk> l \<turnstile>' c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile>' c"
 
 lemma "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
-apply(induct rule: sec_type.induct)
+apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
 apply (metis Semi')
@@ -194,7 +194,7 @@ by (metis While')
 
 
 lemma "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
-apply(induct rule: sec_type'.induct)
+apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
 apply (metis Semi)

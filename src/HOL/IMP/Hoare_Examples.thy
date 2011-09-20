@@ -25,7 +25,7 @@ by (subst simp_from_to) simp
   
 lemma while_sum:
   "(w n, s) \<Rightarrow> t \<Longrightarrow> t ''x'' = s ''x'' + \<Sum> {s ''y'' + 1 .. n}"
-apply(induct "w n" s t rule: big_step_induct)
+apply(induction "w n" s t rule: big_step_induct)
 apply(auto simp add: setsum_head_plus_1)
 done
 

@@ -222,7 +222,7 @@ lemma bcomp_correct[intro]:
   "0 \<le> n \<Longrightarrow>
   bcomp b c n \<turnstile>
  (0,s,stk)  \<rightarrow>*  (isize(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
-proof(induct b arbitrary: c n m)
+proof(induction b arbitrary: c n m)
   case Not
   from Not(1)[where c="~c"] Not(2) show ?case by fastforce
 next
@@ -256,17 +256,17 @@ subsection "Preservation of sematics"
 
 lemma ccomp_bigstep:
   "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk)"
-proof(induct arbitrary: stk rule: big_step_induct)
+proof(induction arbitrary: stk rule: big_step_induct)
   case (Assign x a s)
   show ?case by (fastforce simp:fun_upd_def cong: if_cong)
 next
   case (Semi c1 s1 s2 c2 s3)
   let ?cc1 = "ccomp c1"  let ?cc2 = "ccomp c2"
   have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cc1,s2,stk)"
-    using Semi.hyps(2) by fastforce
+    using Semi.IH(1) by fastforce
   moreover
   have "?cc1 @ ?cc2 \<turnstile> (isize ?cc1,s2,stk) \<rightarrow>* (isize(?cc1 @ ?cc2),s3,stk)"
-    using Semi.hyps(4) by fastforce
+    using Semi.IH(2) by fastforce
   ultimately show ?case by simp (blast intro: exec_trans)
 next
   case (WhileTrue b s1 c s2 s3)
@@ -274,12 +274,12 @@ next
   let ?cb = "bcomp b False (isize ?cc + 1)"
   let ?cw = "ccomp(WHILE b DO c)"
   have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cb + isize ?cc,s2,stk)"
-    using WhileTrue(1,3) by fastforce
+    using WhileTrue.IH(1) WhileTrue.hyps(1) by fastforce
   moreover
   have "?cw \<turnstile> (isize ?cb + isize ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
     by fastforce
   moreover
-  have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (isize ?cw,s3,stk)" by(rule WhileTrue(5))
+  have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (isize ?cw,s3,stk)" by(rule WhileTrue.IH(2))
   ultimately show ?case by(blast intro: exec_trans)
 qed fastforce+
 
