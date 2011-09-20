@@ -101,12 +101,12 @@ lemma empty_Set [code]:
 lemma insert_Set [code]:
   "insert x (Set xs) = Set (List.insert x xs)"
   "insert x (Coset xs) = Coset (removeAll x xs)"
-  by (simp_all add: set_insert)
+  by simp_all
 
 lemma remove_Set [code]:
   "remove x (Set xs) = Set (removeAll x xs)"
   "remove x (Coset xs) = Coset (List.insert x xs)"
-  by (auto simp add: set_insert remove_def)
+  by (auto simp add: remove_def)
 
 lemma image_Set [code]:
   "image f (Set xs) = Set (remdups (map f xs))"
@@ -254,12 +254,12 @@ lemma union_insert [code]:
 lemma Inf_inf [code]:
   "Inf (Set xs) = foldr inf xs (top :: 'a::complete_lattice)"
   "Inf (Coset []) = (bot :: 'a::complete_lattice)"
-  by (simp_all add: Inf_UNIV Inf_set_foldr)
+  by (simp_all add: Inf_set_foldr)
 
 lemma Sup_sup [code]:
   "Sup (Set xs) = foldr sup xs (bot :: 'a::complete_lattice)"
   "Sup (Coset []) = (top :: 'a::complete_lattice)"
-  by (simp_all add: Sup_UNIV Sup_set_foldr)
+  by (simp_all add: Sup_set_foldr)
 
 lemma Inter_inter [code]:
   "Inter (Set xs) = foldr inter xs (Coset [])"
@@ -279,50 +279,40 @@ subsection {* Operations on relations *}
 
 text {* Initially contributed by Tjark Weber. *}
 
-lemma bounded_Collect_code [code_unfold]:
-  "{x\<in>S. P x} = project P S"
-  by (auto simp add: project_def)
-
-lemma Id_on_code [code]:
-  "Id_on (Set xs) = Set [(x,x). x \<leftarrow> xs]"
-  by (auto simp add: Id_on_def)
-
-lemma Domain_fst [code]:
+lemma [code]:
   "Domain r = fst ` r"
-  by (auto simp add: image_def Bex_def)
+  by (fact Domain_fst)
 
-lemma Range_snd [code]:
+lemma [code]:
   "Range r = snd ` r"
-  by (auto simp add: image_def Bex_def)
+  by (fact Range_snd)
 
-lemma irrefl_code [code]:
-  "irrefl r \<longleftrightarrow> (\<forall>(x, y)\<in>r. x \<noteq> y)"
-  by (auto simp add: irrefl_def)
+lemma [code]:
+  "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
+  by (fact trans_join)
 
-lemma trans_def [code]:
-  "trans r \<longleftrightarrow> (\<forall>(x, y1)\<in>r. \<forall>(y2, z)\<in>r. y1 = y2 \<longrightarrow> (x, z)\<in>r)"
-  by (auto simp add: trans_def)
+lemma [code]:
+  "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
+  by (fact irrefl_distinct)
 
-definition "exTimes A B = Sigma A (%_. B)"
+lemma [code]:
+  "acyclic r \<longleftrightarrow> irrefl (r^+)"
+  by (fact acyclic_irrefl)
 
-lemma [code_unfold]:
-  "Sigma A (%_. B) = exTimes A B"
-  by (simp add: exTimes_def)
+lemma [code]:
+  "More_Set.product (Set xs) (Set ys) = Set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (unfold Set_def) (fact product_code)
 
-lemma exTimes_code [code]:
-  "exTimes (Set xs) (Set ys) = Set [(x,y). x \<leftarrow> xs, y \<leftarrow> ys]"
-  by (auto simp add: exTimes_def)
+lemma [code]:
+  "Id_on (Set xs) = Set [(x, x). x \<leftarrow> xs]"
+  by (unfold Set_def) (fact Id_on_set)
 
-lemma rel_comp_code [code]:
-  "(Set xys) O (Set yzs) = Set (remdups [(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
- by (auto simp add: Bex_def)
+lemma [code]:
+  "Set xys O Set yzs = Set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+  by (unfold Set_def) (fact set_rel_comp)
 
-lemma acyclic_code [code]:
-  "acyclic r = irrefl (r^+)"
-  by (simp add: acyclic_def irrefl_def)
-
-lemma wf_code [code]:
+lemma [code]:
   "wf (Set xs) = acyclic (Set xs)"
-  by (simp add: wf_iff_acyclic_if_finite)
+  by (unfold Set_def) (fact wf_set)
 
 end
