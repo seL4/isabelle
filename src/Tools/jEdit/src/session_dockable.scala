@@ -139,15 +139,15 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
   status.renderer = new Node_Renderer
 
-  private def handle_changed(changed_nodes: Set[Document.Node.Name])
+  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
     Swing_Thread.now {
-      // FIXME correlation to changed_nodes!?
       val snapshot = Isabelle.session.snapshot()
+      val nodes = restriction getOrElse snapshot.version.nodes.keySet
 
       var nodes_status1 = nodes_status
       for {
-        name <- changed_nodes
+        name <- nodes
         node <- snapshot.version.nodes.get(name)
         val status = Isar_Document.node_status(snapshot.state, snapshot.version, node)
       } nodes_status1 += (name -> status)
@@ -179,7 +179,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         case phase: Session.Phase =>
           Swing_Thread.now { session_phase.text = " " + phase.toString + " " }
 
-        case changed: Session.Commands_Changed => handle_changed(changed.nodes)
+        case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }
@@ -197,4 +197,6 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     Isabelle.session.phase_changed -= main_actor
     Isabelle.session.commands_changed -= main_actor
   }
+
+  handle_update()
 }
