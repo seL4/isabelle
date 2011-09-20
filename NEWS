@@ -91,8 +91,7 @@ Sup_fun_def, Inf_apply, Sup_apply.
 Redundant lemmas Inf_singleton, Sup_singleton, Inf_binary, Sup_binary,
 INF_eq, SUP_eq, INF_UNIV_range, SUP_UNIV_range, Int_eq_Inter,
 INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union, INF_subset,
-UNION_eq_Union_image, Union_def, UN_singleton, UN_eq have been
-discarded.
+UNION_eq_Union_image, Union_def, UN_eq have been discarded.
 
 More consistent and comprehensive names:
 

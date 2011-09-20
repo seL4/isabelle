@@ -1012,6 +1012,9 @@ lemma vimage_eq_UN: "f -` B = (\<Union>y\<in>B. f -` {y})"
 lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
   by blast
 
+lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
+  by blast
+
 
 subsection {* Distributive laws *}
 
@@ -1130,11 +1133,6 @@ lemma INT_extend_simps:
   "\<And>A B C. (\<Inter>x\<in>A. \<Inter>z\<in>B x. C z) = (\<Inter>z\<in>UNION A B. C z)"
   "\<And>A B f. (\<Inter>a\<in>A. B (f a)) = (\<Inter>x\<in>f`A. B x)"
   by auto
-
-text {* Legacy names *}
-
-lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
-  by blast
 
 text {* Finally *}
 
