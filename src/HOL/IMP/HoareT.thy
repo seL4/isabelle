@@ -88,7 +88,7 @@ proof(unfold hoare_tvalid_def, induct rule: hoaret.induct)
   proof
     fix s
     show "P s \<longrightarrow> (\<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t)"
-    proof(induct "f s" arbitrary: s rule: less_induct)
+    proof(induction "f s" arbitrary: s rule: less_induct)
       case (less n)
       thus ?case by (metis While(2) WhileFalse WhileTrue)
     qed
@@ -137,7 +137,7 @@ Its_Suc: "\<lbrakk> bval b s;  (c,s) \<Rightarrow> s';  Its b c s' n \<rbrakk> \
 text{* The relation is in fact a function: *}
 
 lemma Its_fun: "Its b c s n \<Longrightarrow> Its b c s n' \<Longrightarrow> n=n'"
-proof(induct arbitrary: n' rule:Its.induct)
+proof(induction arbitrary: n' rule:Its.induct)
 (* new release:
   case Its_0 thus ?case by(metis Its.cases)
 next
@@ -160,7 +160,7 @@ qed
 text{* For all terminating loops, @{const Its} yields a result: *}
 
 lemma WHILE_Its: "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> \<exists>n. Its b c s n"
-proof(induct "WHILE b DO c" s t rule: big_step_induct)
+proof(induction "WHILE b DO c" s t rule: big_step_induct)
   case WhileFalse thus ?case by (metis Its_0)
 next
   case WhileTrue thus ?case by (metis Its_Suc)
@@ -179,7 +179,7 @@ lemma its_Suc: "\<lbrakk> bval b s; (c, s) \<Rightarrow> s'; (WHILE b DO c, s') 
 by (metis its_def WHILE_Its Its.intros(2) Its_fun the_equality)
 
 lemma wpt_is_pre: "\<turnstile>\<^sub>t {wp\<^sub>t c Q} c {Q}"
-proof (induct c arbitrary: Q)
+proof (induction c arbitrary: Q)
   case SKIP show ?case by simp (blast intro:hoaret.Skip)
 next
   case Assign show ?case by simp (blast intro:hoaret.Assign)

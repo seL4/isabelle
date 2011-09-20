@@ -141,7 +141,7 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a astate up \<Rightarrow>
    in afilter e1 res1 (afilter e2 res2 S))"
 
 lemma afilter_sound: "s <:: S \<Longrightarrow> aval e s <: a \<Longrightarrow> s <:: afilter e a S"
-proof(induct e arbitrary: a S)
+proof(induction e arbitrary: a S)
   case N thus ?case by simp
 next
   case (V x)
@@ -158,7 +158,7 @@ next
 qed
 
 lemma bfilter_sound: "s <:: S \<Longrightarrow> bv = bval b s \<Longrightarrow> s <:: bfilter b bv S"
-proof(induct b arbitrary: S bv)
+proof(induction b arbitrary: S bv)
   case B thus ?case by simp
 next
   case (Not b) thus ?case by simp
@@ -181,7 +181,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
   bfilter b False (pfp (\<lambda>S. AI c (bfilter b True S)) S)"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
-proof(induct c arbitrary: s t S)
+proof(induction c arbitrary: s t S)
   case SKIP thus ?case by fastforce
 next
   case Assign thus ?case
@@ -196,12 +196,12 @@ next
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <:: ?P \<Longrightarrow>
           t <:: bfilter b False ?P"
-    proof(induct "WHILE b DO c" s t rule: big_step_induct)
+    proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by(metis bfilter_sound)
     next
       case WhileTrue show ?case
         by(rule WhileTrue, rule in_rep_up_trans[OF _ pfp],
-           rule While.hyps[OF WhileTrue(2)],
+           rule While.IH[OF WhileTrue(2)],
            rule bfilter_sound[OF WhileTrue.prems], simp add: WhileTrue(1))
     qed
   }

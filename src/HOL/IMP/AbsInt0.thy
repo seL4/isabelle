@@ -38,7 +38,7 @@ fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 "AI (WHILE b DO c) S = pfp (AI c) S"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <: S0 \<Longrightarrow> t <: AI c S0"
-proof(induct c arbitrary: s t S0)
+proof(induction c arbitrary: s t S0)
   case SKIP thus ?case by fastforce
 next
   case Assign thus ?case
@@ -52,10 +52,10 @@ next
   case (While b c)
   let ?P = "pfp (AI c) S0"
   { fix s t have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <: ?P \<Longrightarrow> t <: ?P"
-    proof(induct "WHILE b DO c" s t rule: big_step_induct)
+    proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by simp
     next
-      case WhileTrue thus ?case using While.hyps pfp astate_in_rep_le by metis
+      case WhileTrue thus ?case using While.IH pfp astate_in_rep_le by metis
     qed
   }
   with astate_in_rep_le[OF `s <: S0` above]

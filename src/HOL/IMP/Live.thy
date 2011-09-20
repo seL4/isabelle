@@ -44,17 +44,17 @@ subsection "Soundness"
 theorem L_sound:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (c,t) \<Rightarrow> t' & s' = t' on X"
-proof (induct arbitrary: X t rule: big_step_induct)
+proof (induction arbitrary: X t rule: big_step_induct)
   case Skip then show ?case by auto
 next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
   case (Semi c1 s1 s2 c2 s3 X t1)
-  from Semi(2,5) obtain t2 where
+  from Semi.IH(1) Semi.prems obtain t2 where
     t12: "(c1, t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X"
     by simp blast
-  from Semi(4)[OF s2t2] obtain t3 where
+  from Semi.IH(2)[OF s2t2] obtain t3 where
     t23: "(c2, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using t12 t23 s3t3 by auto
@@ -83,9 +83,9 @@ next
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   have "s1 = t1 on L c (L ?w X)" using  L_While_subset WhileTrue.prems
     by (blast)
-  from WhileTrue(3)[OF this] obtain t2 where
+  from WhileTrue.IH(1)[OF this] obtain t2 where
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
-  from WhileTrue(5)[OF this(2)] obtain t3 where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
+  from WhileTrue.IH(2)[OF this(2)] obtain t3 where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
   with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
 qed
@@ -108,17 +108,17 @@ preservation property: *}
 theorem bury_sound:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (bury c X,t) \<Rightarrow> t' & s' = t' on X"
-proof (induct arbitrary: X t rule: big_step_induct)
+proof (induction arbitrary: X t rule: big_step_induct)
   case Skip then show ?case by auto
 next
   case Assign then show ?case
     by (auto simp: ball_Un)
 next
   case (Semi c1 s1 s2 c2 s3 X t1)
-  from Semi(2,5) obtain t2 where
+  from Semi.IH(1) Semi.prems obtain t2 where
     t12: "(bury c1 (L c2 X), t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X"
     by simp blast
-  from Semi(4)[OF s2t2] obtain t3 where
+  from Semi.IH(2)[OF s2t2] obtain t3 where
     t23: "(bury c2 X, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using t12 t23 s3t3 by auto
@@ -147,9 +147,9 @@ next
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   have "s1 = t1 on L c (L ?w X)"
     using L_While_subset WhileTrue.prems by blast
-  from WhileTrue(3)[OF this] obtain t2 where
+  from WhileTrue.IH(1)[OF this] obtain t2 where
     "(bury c (L ?w X), t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
-  from WhileTrue(5)[OF this(2)] obtain t3
+  from WhileTrue.IH(2)[OF this(2)] obtain t3
     where "(bury ?w X,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
   with `bval b t1` `(bury c (L ?w X), t1) \<Rightarrow> t2` show ?case by auto
@@ -184,7 +184,7 @@ by (cases c) auto
 theorem bury_sound2:
   "(bury c X,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (c,t) \<Rightarrow> t' & s' = t' on X"
-proof (induct "bury c X" s s' arbitrary: c X t rule: big_step_induct)
+proof (induction "bury c X" s s' arbitrary: c X t rule: big_step_induct)
   case Skip then show ?case by auto
 next
   case Assign then show ?case
@@ -193,9 +193,10 @@ next
   case (Semi bc1 s1 s2 bc2 s3 c X t1)
   then obtain c1 c2 where c: "c = c1;c2"
     and bc2: "bc2 = bury c2 X" and bc1: "bc1 = bury c1 (L c2 X)" by auto
-  from Semi(2)[OF bc1, of t1] Semi.prems c obtain t2 where
+  note IH = Semi.hyps(2,4)
+  from IH(1)[OF bc1, of t1] Semi.prems c obtain t2 where
     t12: "(c1, t1) \<Rightarrow> t2" and s2t2: "s2 = t2 on L c2 X" by auto
-  from Semi(4)[OF bc2 s2t2] obtain t3 where
+  from IH(2)[OF bc2 s2t2] obtain t3 where
     t23: "(c2, t2) \<Rightarrow> t3" and s3t3: "s3 = t3 on X"
     by auto
   show ?case using c t12 t23 s3t3 by auto
@@ -205,7 +206,8 @@ next
     and bc1: "bc1 = bury c1 X" and bc2: "bc2 = bury c2 X" by auto
   have "s = t on vars b" "s = t on L c1 X" using IfTrue.prems c by auto
   from bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue(3)[OF bc1 `s = t on L c1 X`] obtain t' where
+  note IH = IfTrue.hyps(3)
+  from IH[OF bc1 `s = t on L c1 X`] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' =t' on X" by auto
   thus ?case using c `bval b t` by auto
 next
@@ -214,7 +216,8 @@ next
     and bc1: "bc1 = bury c1 X" and bc2: "bc2 = bury c2 X" by auto
   have "s = t on vars b" "s = t on L c2 X" using IfFalse.prems c by auto
   from bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse(3)[OF bc2 `s = t on L c2 X`] obtain t' where
+  note IH = IfFalse.hyps(3)
+  from IH[OF bc2 `s = t on L c2 X`] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' =t' on X" by auto
   thus ?case using c `~bval b t` by auto
 next
@@ -228,11 +231,12 @@ next
   let ?w = "WHILE b DO c'"
   from `bval b s1` WhileTrue.prems c have "bval b t1"
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
+  note IH = WhileTrue.hyps(3,5)
   have "s1 = t1 on L c' (L ?w X)"
     using L_While_subset WhileTrue.prems c by blast
-  with WhileTrue(3)[OF bc', of t1] obtain t2 where
+  with IH(1)[OF bc', of t1] obtain t2 where
     "(c', t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
-  from WhileTrue(5)[OF WhileTrue(6), of t2] c this(2) obtain t3
+  from IH(2)[OF WhileTrue.hyps(6), of t2] c this(2) obtain t3
     where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
   with `bval b t1` `(c', t1) \<Rightarrow> t2` c show ?case by auto

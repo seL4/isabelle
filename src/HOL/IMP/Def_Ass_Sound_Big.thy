@@ -12,7 +12,7 @@ of the inductive predicate is not a variable but the term @{term"Some s"}: *}
 theorem Sound:
   "\<lbrakk> (c,Some s) \<Rightarrow> s';  D A c A';  A \<subseteq> dom s \<rbrakk>
   \<Longrightarrow> \<exists> t. s' = Some t \<and> A' \<subseteq> dom t"
-proof (induct c "Some s" s' arbitrary: s A A' rule:big_step_induct)
+proof (induction c "Some s" s' arbitrary: s A A' rule:big_step_induct)
   case AssignNone thus ?case
     by auto (metis aval_Some option.simps(3) subset_trans)
 next

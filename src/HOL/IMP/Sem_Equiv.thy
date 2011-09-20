@@ -83,10 +83,9 @@ lemma equiv_up_to_while_lemma:
          P s \<Longrightarrow> 
          d = WHILE b DO c \<Longrightarrow> 
          (WHILE b' DO c', s) \<Rightarrow> s'"  
-proof (induct rule: big_step_induct)
+proof (induction rule: big_step_induct)
   case (WhileTrue b s1 c s2 s3)
-  note IH = WhileTrue.hyps(5) [OF WhileTrue.prems(1-3) _ WhileTrue.prems(5)]
-  
+  note IH = WhileTrue.IH(2) [OF WhileTrue.prems(1-3) _ WhileTrue.prems(5)]
   from WhileTrue.prems
   have "P \<Turnstile> b <\<sim>> b'" by simp
   with `bval b s1` `P s1`
