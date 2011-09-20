@@ -72,23 +72,23 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                 else print_app tyvars is_pat some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
     and print_app tyvars is_pat some_thm vars fxy
-        (app as ((c, (((arg_typs, _), (function_typs, _)), _)), ts)) =
+        (app as ((c, (((tys, _), (arg_tys, _)), _)), ts)) =
       let
         val k = length ts;
-        val arg_typs' = if is_pat orelse
-          (is_none (const_syntax c) andalso is_singleton_constr c) then [] else arg_typs;
+        val tys' = if is_pat orelse
+          (is_none (const_syntax c) andalso is_singleton_constr c) then [] else tys;
         val (l, print') = case const_syntax c
          of NONE => (args_num c, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
-                  NOBR ((str o deresolve) c) arg_typs') ts)
+                  NOBR ((str o deresolve) c) tys') ts)
           | SOME (Plain_const_syntax (k, s)) => (k, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
-                  NOBR (str s) arg_typs') ts)
+                  NOBR (str s) tys') ts)
           | SOME (Complex_const_syntax (k, print)) =>
               (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
-                (ts ~~ take k function_typs))
+                (ts ~~ take k arg_tys))
       in if k = l then print' fxy ts
       else if k < l then
         print_term tyvars is_pat some_thm vars fxy (Code_Thingol.eta_expand l app)

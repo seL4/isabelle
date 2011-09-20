@@ -23,7 +23,7 @@ sig
       `%% of string * itype list
     | ITyVar of vname;
   type const = string * (((itype list * dict list list) * (itype list * itype)) * bool)
-    (* f [T1..Tn] {dicts} (_::S1) .. (_..Sm) =^= (f, (([T1..Tn], dicts), [S1..Sm]) *)
+    (* (f [T1..Tn] {dicts} (_::S1) .. (_::Sm)) :: S =^= (f, ((([T1..Tn], dicts), ([S1..Sm], S)), ambiguous)) *)
   datatype iterm =
       IConst of const
     | IVar of vname option
@@ -144,7 +144,7 @@ datatype itype =
   | ITyVar of vname;
 
 type const = string * (((itype list * dict list list) *
-  (itype list (*types of arguments*) * itype (*body type*))) * bool (*requires type annotation*))
+  (itype list (*types of arguments*) * itype (*result type*))) * bool (*requires type annotation*))
 
 datatype iterm =
     IConst of const

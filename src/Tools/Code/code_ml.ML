@@ -117,9 +117,9 @@ fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deres
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (function_typs, _)), _)), ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, (((_, iss), (arg_tys, _)), _)), ts)) =
       if is_cons c then
-        let val k = length function_typs in
+        let val k = length arg_tys in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)

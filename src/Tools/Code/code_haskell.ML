@@ -85,13 +85,16 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app_expr tyvars some_thm vars ((c, ((_, (function_typs, body_typ)), annotate)), ts) =
+    and print_app_expr tyvars some_thm vars ((c, ((_, (arg_tys, result_ty)), annotate)), ts) =
       let
-        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (function_typs, body_typ)
-        fun put_annotation c = brackets [c, str "::", print_typ tyvars NOBR ty]
+        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (arg_tys, result_ty)
+        val printed_const =
+          if annotate then
+            brackets [(str o deresolve) c, str "::", print_typ tyvars NOBR ty]
+          else
+            (str o deresolve) c
       in 
-        ((if annotate then put_annotation else I)
-          ((str o deresolve) c)) :: map (print_term tyvars some_thm vars BR) ts
+        printed_const :: map (print_term tyvars some_thm vars BR) ts
       end
     and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
@@ -234,15 +237,16 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                     ]
                 | SOME k =>
                     let
-                      val (c, ((_, tys), _)) = const; (* FIXME: pass around the need annotation flag here? *)
+                      val (c, ((_, tys), _)) = const;
                       val (vs, rhs) = (apfst o map) fst
                         (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
                       val s = if (is_some o const_syntax) c
                         then NONE else (SOME o Long_Name.base_name o deresolve) c;
                       val vars = reserved
                         |> intro_vars (map_filter I (s :: vs));
-                      val lhs = IConst (classparam, ((([], []), tys), false (* FIXME *))) `$$ map IVar vs;
-                        (*dictionaries are not relevant at this late stage*)
+                      val lhs = IConst (classparam, ((([], []), tys), false)) `$$ map IVar vs;
+                        (*dictionaries are not relevant at this late stage,
+                          and these consts never need type annotations for disambiguation *)
                     in
                       semicolon [
                         print_term tyvars (SOME thm) vars NOBR lhs,
@@ -323,8 +327,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
       in deriv [] tyco end;
     fun print_stmt deresolve = print_haskell_stmt labelled_name
       class_syntax tyco_syntax const_syntax (make_vars reserved)
-      deresolve
-      (if string_classes then deriving_show else K false);
+      deresolve (if string_classes then deriving_show else K false);
 
     (* print modules *)
     val import_includes_ps =
