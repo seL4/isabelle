@@ -122,7 +122,7 @@ fun afilter :: "aexp \<Rightarrow> 'a \<Rightarrow> 'a astate up \<Rightarrow> '
 
 text{* The test for @{const Bot} in the @{const V}-case is important: @{const
 Bot} indicates that a variable has no possible values, i.e.\ that the current
-program point is unreachable. But then the abstract state should collaps to
+program point is unreachable. But then the abstract state should collapse to
 @{const bot}. Put differently, we maintain the invariant that in an abstract
 state all variables are mapped to non-@{const Bot} values. Otherwise the
 (pointwise) join of two abstract states, one of which contains @{const Bot}

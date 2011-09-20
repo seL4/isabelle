@@ -6,7 +6,7 @@ begin
 
 subsection "Widening and Narrowing"
 
-text{* The assumptions about winden and narrow are merely sanity checks. They
+text{* The assumptions about widen and narrow are merely sanity checks. They
 are only needed in case we want to prove termination of the fixedpoint
 iteration, which we do not --- we limit the number of iterations as before. *}
 
