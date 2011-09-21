@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Pattern_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009, 2010
+    Copyright   2009-2011
 
 Examples featuring Nitpick's "destroy_constrs" optimization.
 *)

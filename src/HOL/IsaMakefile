@@ -709,10 +709,11 @@ $(LOG)/HOL-Nitpick_Examples.gz: $(OUT)/HOL Nitpick_Examples/ROOT.ML \
   Nitpick_Examples/Core_Nits.thy Nitpick_Examples/Datatype_Nits.thy \
   Nitpick_Examples/Hotel_Nits.thy Nitpick_Examples/Induct_Nits.thy \
   Nitpick_Examples/Integer_Nits.thy Nitpick_Examples/Manual_Nits.thy \
-  Nitpick_Examples/Mono_Nits.thy Nitpick_Examples/Nitpick_Examples.thy \
-  Nitpick_Examples/Pattern_Nits.thy Nitpick_Examples/Record_Nits.thy \
-  Nitpick_Examples/Refute_Nits.thy Nitpick_Examples/Special_Nits.thy \
-  Nitpick_Examples/Tests_Nits.thy Nitpick_Examples/Typedef_Nits.thy
+  Nitpick_Examples/Mini_Nits.thy Nitpick_Examples/Mono_Nits.thy \
+  Nitpick_Examples/Nitpick_Examples.thy Nitpick_Examples/Pattern_Nits.thy \
+  Nitpick_Examples/Record_Nits.thy Nitpick_Examples/Refute_Nits.thy \
+  Nitpick_Examples/Special_Nits.thy Nitpick_Examples/Tests_Nits.thy \
+  Nitpick_Examples/Typedef_Nits.thy Nitpick_Examples/minipick.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Nitpick_Examples
 
 

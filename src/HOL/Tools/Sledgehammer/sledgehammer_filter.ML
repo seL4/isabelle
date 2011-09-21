@@ -149,13 +149,13 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     |> snd
   end
 
-(* This is a terrible hack. Free variables are sometimes code as "M__" when they
-   are displayed as "M" and we want to avoid clashes with these. But sometimes
-   it's even worse: "Ma__" encodes "M". So we simply reserve all prefixes of all
-   free variables. In the worse case scenario, where the fact won't be resolved
-   correctly, the user can fix it manually, e.g., by naming the fact in
-   question. Ideally we would need nothing of it, but backticks just don't work
-   with schematic variables. *)
+(* This is a terrible hack. Free variables are sometimes coded as "M__" when
+   they are displayed as "M" and we want to avoid clashes with these. But
+   sometimes it's even worse: "Ma__" encodes "M". So we simply reserve all
+   prefixes of all free variables. In the worse case scenario, where the fact
+   won't be resolved correctly, the user can fix it manually, e.g., by naming
+   the fact in question. Ideally we would need nothing of it, but backticks
+   simply don't work with schematic variables. *)
 fun all_prefixes_of s =
   map (fn i => String.extract (s, 0, SOME i)) (1 upto size s - 1)
 fun close_form t =
