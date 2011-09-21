@@ -515,7 +515,7 @@ HOL-IMP: HOL $(OUT)/HOL-IMP
 
 $(OUT)/HOL-IMP: $(OUT)/HOL IMP/AbsInt0_fun.thy IMP/Astate.thy \
   IMP/AbsInt0.thy IMP/AbsInt0_const.thy IMP/AbsInt1.thy IMP/AbsInt1_ivl.thy \
-  IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
+  IMP/AbsInt2.thy IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
   IMP/Big_Step.thy IMP/C_like.thy IMP/Com.thy IMP/Compiler.thy \
   IMP/Comp_Rev.thy IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
   IMP/Def_Ass_Small.thy IMP/Def_Ass_Sound_Big.thy \
