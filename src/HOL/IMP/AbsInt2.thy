@@ -4,20 +4,41 @@ theory AbsInt2
 imports AbsInt1_ivl
 begin
 
+context preord
+begin
+
+definition mono where "mono f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
+
+lemma monoD: "mono f \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y" by(simp add: mono_def)
+
+lemma mono_comp: "mono f \<Longrightarrow> mono g \<Longrightarrow> mono (g o f)"
+by(simp add: mono_def)
+
+declare le_trans[trans]
+
+end
+
+
 subsection "Widening and Narrowing"
 
-text{* The assumptions about widen and narrow are merely sanity checks for
-us. Normaly, they serve two purposes. Together with a further assumption that
-certain chains become stationary, they permit to prove termination of the
-fixed point iteration, which we do not --- we limit the number of iterations
-as before. The second purpose of the narrowing assumptions is to prove that
-the narrowing iteration keeps on producing post-fixed points and that it goes
-down. However, this requires the function being iterated to be
-monotone. Unfortunately, abstract interpretation with widening is not
-monotone. Hence the (recursive) abstract interpretation of a loop body that
-again contains a loop may result in a non-monotone function. Therefore our
-narrowing interation needs to check at every step that a post-fixed point is
-maintained, and we cannot prove that the precision increases. *}
+text{* Jumping to the trivial post-fixed point @{const Top} in case @{text k}
+rounds of iteration did not reach a post-fixed point (as in @{const iter}) is
+a trivial widening step. We generalise this idea and complement it with
+narrowing, a process to regain precision.
+
+Class @{text WN} makes some assumptions about the widening and narrowing
+operators. The assumptions serve two purposes. Together with a further
+assumption that certain chains become stationary, they permit to prove
+termination of the fixed point iteration, which we do not --- we limit the
+number of iterations as before. The second purpose of the narrowing
+assumptions is to prove that the narrowing iteration keeps on producing
+post-fixed points and that it goes down. However, this requires the function
+being iterated to be monotone. Unfortunately, abstract interpretation with
+widening is not monotone. Hence the (recursive) abstract interpretation of a
+loop body that again contains a loop may result in a non-monotone
+function. Therefore our narrowing interation needs to check at every step
+that a post-fixed point is maintained, and we cannot prove that the precision
+increases. *}
 
 class WN = SL_top +
 fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)
@@ -58,6 +79,44 @@ shows "f(iter' m n f x0) \<sqsubseteq> iter' m n f x0"
 and "x0 \<sqsubseteq> iter' m n f x0"
 using iter_up_pfp[of "\<lambda>x. x0 \<squnion> f x"] iter_down_pfp[of "\<lambda>x. x0 \<squnion> f x"]
 by(auto simp add: iter'_def Let_def)
+
+text{* This is how narrowing works on monotone functions: you just iterate. *}
+
+abbreviation iter_down_mono :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+"iter_down_mono f n x == ((\<lambda>x. x \<triangle> f x)^^n) x"
+
+text{* Narrowing always yields a post-fixed point: *}
+
+lemma iter_down_mono_pfp: assumes "mono f" and "f x0 \<sqsubseteq> x0" 
+defines "x n == iter_down_mono f n x0"
+shows "f(x n) \<sqsubseteq> x n"
+proof (induction n)
+  case 0 show ?case by (simp add: x_def assms(2))
+next
+  case (Suc n)
+  have "f (x (Suc n)) = f(x n \<triangle> f(x n))" by(simp add: x_def)
+  also have "\<dots> \<sqsubseteq> f(x n)" by(rule monoD[OF `mono f` narrow2[OF Suc]])
+  also have "\<dots> \<sqsubseteq> x n \<triangle> f(x n)" by(rule narrow1[OF Suc])
+  also have "\<dots> = x(Suc n)" by(simp add: x_def)
+  finally show ?case .
+qed
+
+text{* Narrowing can only increase precision: *}
+
+lemma iter_down_down: assumes "mono f" and "f x0 \<sqsubseteq> x0" 
+defines "x n == iter_down_mono f n x0"
+shows "x n \<sqsubseteq> x0"
+proof (induction n)
+  case 0 show ?case by(simp add: x_def)
+next
+  case (Suc n)
+  have "x(Suc n) = x n \<triangle> f(x n)" by(simp add: x_def)
+  also have "\<dots> \<sqsubseteq> x n" unfolding x_def
+    by(rule narrow2[OF iter_down_mono_pfp[OF assms(1), OF assms(2)]])
+  also have "\<dots> \<sqsubseteq> x0" by(rule Suc)
+  finally show ?case .
+qed
+
 
 end
 
