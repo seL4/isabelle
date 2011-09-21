@@ -29,6 +29,7 @@ function usage()
   echo "    -I           startup Isar interaction mode"
   echo "    -P           startup Proof General interaction mode"
   echo "    -S           secure mode -- disallow critical operations"
+  echo "    -T ADDR      startup process wrapper, with socket address"
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
   echo "    -X           startup PGIP interaction mode"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
@@ -61,6 +62,7 @@ function fail()
 ISAR=false
 PROOFGENERAL=""
 SECURE=""
+WRAPPER_SOCKET=""
 WRAPPER_FIFOS=""
 PGIP=""
 MLTEXT=""
@@ -69,7 +71,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPSW:Xe:fm:qruw" OPT
+while getopts "IPST:W:Xe:fm:qruw" OPT
 do
   case "$OPT" in
     I)
@@ -80,6 +82,9 @@ do
       ;;
     S)
       SECURE=true
+      ;;
+    T)
+      WRAPPER_SOCKET="$OPTARG"
       ;;
     W)
       WRAPPER_FIFOS="$OPTARG"
@@ -213,12 +218,14 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 NICE="nice"
 
-if [ -n "$WRAPPER_FIFOS" ]; then
+if [ -n "$WRAPPER_SOCKET" ]; then
+  MLTEXT="$MLTEXT; Isabelle_Process.init_socket \"$WRAPPER_SOCKET\";"
+elif [ -n "$WRAPPER_FIFOS" ]; then
   splitarray ":" "$WRAPPER_FIFOS"; FIFOS=("${SPLITARRAY[@]}")
   [ "${#FIFOS[@]}" -eq 2 ] || fail "Expected IN:OUT fifo specification"
   [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
   [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
-  MLTEXT="$MLTEXT; Isabelle_Process.init \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
+  MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
 elif [ -n "$PGIP" ]; then
   MLTEXT="$MLTEXT; ProofGeneralPgip.init_pgip $ISAR;"
 elif [ -n "$PROOFGENERAL" ]; then

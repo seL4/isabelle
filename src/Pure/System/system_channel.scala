@@ -1,13 +1,15 @@
 /*  Title:      Pure/System/system_channel.scala
     Author:     Makarius
 
-Portable system channel for inter-process communication.
+Portable system channel for inter-process communication, based on
+named pipes or sockets.
 */
 
 package isabelle
 
 
 import java.io.{InputStream, OutputStream, File, FileInputStream, FileOutputStream, IOException}
+import java.net.{ServerSocket, InetAddress}
 
 
 object System_Channel
@@ -23,6 +25,8 @@ abstract class System_Channel
 }
 
 
+/** named pipes **/
+
 object Fifo_Channel
 {
   private val next_fifo = new Counter
@@ -30,8 +34,6 @@ object Fifo_Channel
 
 class Fifo_Channel extends System_Channel
 {
-  /* operations on named pipes */
-
   private def mk_fifo(): String =
   {
     val i = Fifo_Channel.next_fifo()
@@ -81,8 +83,6 @@ class Fifo_Channel extends System_Channel
   }
 
 
-  /* initialization */
-
   private val fifo1 = mk_fifo()
   private val fifo2 = mk_fifo()
 
@@ -90,11 +90,28 @@ class Fifo_Channel extends System_Channel
 
   def rendezvous(): (OutputStream, InputStream) =
   {
-    /*rendezvous*/
     val output_stream = fifo_output_stream(fifo1)
     val input_stream = fifo_input_stream(fifo2)
     (output_stream, input_stream)
   }
 
   def accepted() { rm_fifo(fifo1); rm_fifo(fifo2) }
+}
+
+
+/** sockets **/
+
+class Socket_Channel extends System_Channel
+{
+  private val server = new ServerSocket(0, 2, InetAddress.getByName("127.0.0.1"))
+
+  def isabelle_args: List[String] = List("-T", "127.0.0.1:" + server.getLocalPort)
+
+  def rendezvous(): (OutputStream, InputStream) =
+  {
+    val socket = server.accept
+    (socket.getOutputStream, socket.getInputStream)
+  }
+
+  def accepted() { server.close }
 }

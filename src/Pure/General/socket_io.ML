@@ -9,7 +9,7 @@ ML Basis Library" by Emden R. Gansner and John H. Reppy.
 signature SOCKET_IO =
 sig
   val make_streams: Socket.active INetSock.stream_sock -> BinIO.instream * BinIO.outstream
-  val open_streams: string * int -> BinIO.instream * BinIO.outstream
+  val open_streams: string -> BinIO.instream * BinIO.outstream
 end;
 
 structure Socket_IO: SOCKET_IO =
@@ -68,15 +68,17 @@ fun make_streams socket =
   in (in_stream, out_stream) end;
 
 
-fun open_streams (hostname, port) =
+fun open_streams socket_name =
   let
-    val host =
-      (case NetHostDB.getByName hostname of
-        NONE => error ("Bad host name: " ^ quote hostname)
-      | SOME host => host);
-    val addr = INetSock.toAddr (NetHostDB.addr host, port);
+    fun err () = error ("Bad socket name: " ^ quote socket_name);
+    val (host, port) =
+      (case space_explode ":" socket_name of
+        [h, p] =>
+         (case NetHostDB.getByName h of SOME host => host | NONE => err (),
+          case Int.fromString p of SOME port => port | NONE => err ())
+      | _ => err ());
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
-    val _ = Socket.connect (socket, addr);
+    val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
   in make_streams socket end;
 
 end;
