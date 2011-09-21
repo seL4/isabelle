@@ -142,7 +142,7 @@ proof qed
 
 end
 
-instantiation astate :: (WN)WN
+instantiation astate :: (WN) WN
 begin
 
 definition "widen_astate F1 F2 =
@@ -165,7 +165,7 @@ qed
 
 end
 
-instantiation up :: (WN)WN
+instantiation up :: (WN) WN
 begin
 
 fun widen_up where
@@ -193,7 +193,7 @@ qed
 end
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter' 3 2)"
+  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 3 2)"
 defines afilter_ivl' is afilter
 and bfilter_ivl' is bfilter
 and AI_ivl' is AI
