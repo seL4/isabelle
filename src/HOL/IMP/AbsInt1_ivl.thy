@@ -251,4 +251,10 @@ definition "test4_ivl =
  DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
 value [code] "list_up(AI_ivl test4_ivl Top)"
 
+text{* Nontermination not detected: *}
+definition "test5_ivl =
+ ''x'' ::= N 0;
+ WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
+value [code] "list_up(AI_ivl test5_ivl Top)"
+
 end
