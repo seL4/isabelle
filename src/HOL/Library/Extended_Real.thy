@@ -765,14 +765,6 @@ qed (simp add: one_ereal_def)
 
 subsubsection {* Power *}
 
-instantiation ereal :: power
-begin
-primrec power_ereal where
-  "power_ereal x 0 = 1" |
-  "power_ereal x (Suc n) = x * x ^ n"
-instance ..
-end
-
 lemma ereal_power[simp]: "(ereal x) ^ n = ereal (x^n)"
   by (induct n) (auto simp: one_ereal_def)
 
