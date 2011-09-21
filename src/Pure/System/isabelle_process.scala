@@ -96,7 +96,7 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
 
   private def put_result(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) rm_fifos()
+    if (kind == Markup.INIT) system_channel.accepted()
     if (kind == Markup.RAW)
       receiver(new Result(XML.Elem(Markup(kind, props), body)))
     else {
@@ -131,18 +131,16 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
 
   /** process manager **/
 
-  private val in_fifo = Isabelle_System.mk_fifo()
-  private val out_fifo = Isabelle_System.mk_fifo()
-  private def rm_fifos() { Isabelle_System.rm_fifo(in_fifo); Isabelle_System.rm_fifo(out_fifo) }
+  private val system_channel = System_Channel()
 
   private val process =
     try {
       val cmdline =
-        List(Isabelle_System.getenv_strict("ISABELLE_PROCESS"), "-W",
-          in_fifo + ":" + out_fifo) ++ args
+        Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
+          (system_channel.isabelle_args ::: args.toList)
       new Isabelle_System.Managed_Process(true, cmdline: _*)
     }
-    catch { case e: IOException => rm_fifos(); throw(e) }
+    catch { case e: IOException => system_channel.accepted(); throw(e) }
 
   val process_result =
     Simple_Thread.future("process_result") { process.join }
@@ -182,9 +180,7 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
       process_result.join
     }
     else {
-      // rendezvous
-      val command_stream = Isabelle_System.fifo_output_stream(in_fifo)
-      val message_stream = Isabelle_System.fifo_input_stream(out_fifo)
+      val (command_stream, message_stream) = system_channel.rendezvous()
 
       standard_input = stdin_actor()
       val stdout = stdout_actor()
@@ -197,7 +193,7 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
       system_result("process_manager terminated")
       put_result(Markup.EXIT, "Return code: " + rc.toString)
     }
-    rm_fifos()
+    system_channel.accepted()
   }
 
 
