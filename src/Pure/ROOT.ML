@@ -57,6 +57,7 @@ use "General/pretty.ML";
 use "General/path.ML";
 use "General/url.ML";
 use "General/file.ML";
+use "General/socket_io.ML";
 use "General/long_name.ML";
 use "General/binding.ML";
 

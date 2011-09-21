@@ -98,6 +98,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/seq.ML					\
   General/sha1.ML					\
   General/sha1_polyml.ML				\
+  General/socket_io.ML					\
   General/source.ML					\
   General/stack.ML					\
   General/symbol.ML					\
