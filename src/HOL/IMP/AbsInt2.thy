@@ -6,9 +6,18 @@ begin
 
 subsection "Widening and Narrowing"
 
-text{* The assumptions about widen and narrow are merely sanity checks. They
-are only needed in case we want to prove termination of the fixedpoint
-iteration, which we do not --- we limit the number of iterations as before. *}
+text{* The assumptions about widen and narrow are merely sanity checks for
+us. Normaly, they serve two purposes. Together with a further assumption that
+certain chains become stationary, they permit to prove termination of the
+fixed point iteration, which we do not --- we limit the number of iterations
+as before. The second purpose of the narrowing assumptions is to prove that
+the narrowing iteration keeps on producing post-fixed points and that it goes
+down. However, this requires the function being iterated to be
+monotone. Unfortunately, abstract interpretation with widening is not
+monotone. Hence the (recursive) abstract interpretation of a loop body that
+again contains a loop may result in a non-monotone function. Therefore our
+narrowing interation needs to check at every step that a post-fixed point is
+maintained, and we cannot prove that the precision increases. *}
 
 class WN = SL_top +
 fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)
