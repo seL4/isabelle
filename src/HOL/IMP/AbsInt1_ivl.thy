@@ -150,7 +150,8 @@ definition "inv_plus_ivl i1 i2 i = ((*if is_empty i then empty else*)
 
 fun inv_less_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> bool \<Rightarrow> ivl * ivl" where
 "inv_less_ivl (I l1 h1) (I l2 h2) res =
-  (if res
+  ((*if is_empty(I l1 h1) \<or> is_empty(I l2 h2) then (empty, empty) else*)
+   if res
    then (I l1 (min_option True h1 (h2 - Some 1)),
          I (max_option False (l1 + Some 1) l2) h2)
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"

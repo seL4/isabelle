@@ -66,8 +66,7 @@ instantiation ivl :: WN
 begin
 
 definition "widen_ivl ivl1 ivl2 =
-  ((*if is_empty ivl1 then ivl2 else
-   if is_empty ivl2 then ivl1 else*)
+  ((*if is_empty ivl1 then ivl2 else if is_empty ivl2 then ivl1 else*)
      case (ivl1,ivl2) of (I l1 h1, I l2 h2) \<Rightarrow>
        I (if le_option False l2 l1 \<and> l2 \<noteq> l1 then None else l2)
          (if le_option True h1 h2 \<and> h1 \<noteq> h2 then None else h2))"
