@@ -145,12 +145,13 @@ lemma rep_minus_ivl:
 by(auto simp add: minus_ivl_def rep_ivl_def split: ivl.splits option.splits)
 
 
-definition "inv_plus_ivl i1 i2 i = ((*if is_empty i then empty else*)
+definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
   i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
 
-fun inv_less_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> bool \<Rightarrow> ivl * ivl" where
-"inv_less_ivl (I l1 h1) (I l2 h2) res =
-  (if res
+fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
+"filter_less_ivl res (I l1 h1) (I l2 h2) =
+  ((*if is_empty(I l1 h1) \<or> is_empty(I l2 h2) then (empty, empty) else*)
+   if res
    then (I l1 (min_option True h1 (h2 - Some 1)),
          I (max_option False (l1 + Some 1) l2) h2)
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
@@ -178,10 +179,10 @@ next
 qed
 
 interpretation
-  Val_abs1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl
+  Val_abs1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 proof
   case goal1 thus ?case
-    by(auto simp add: inv_plus_ivl_def)
+    by(auto simp add: filter_plus_ivl_def)
       (metis rep_minus_ivl add_diff_cancel add_commute)+
 next
   case goal2 thus ?case
@@ -190,7 +191,7 @@ next
 qed
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl inv_plus_ivl inv_less_ivl "(iter' 3)"
+  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 3)"
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and AI_ivl is AI
@@ -249,5 +250,11 @@ definition "test4_ivl =
  WHILE Less (V ''x'') (N 1001)
  DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
 value [code] "list_up(AI_ivl test4_ivl Top)"
+
+text{* Nontermination not detected: *}
+definition "test5_ivl =
+ ''x'' ::= N 0;
+ WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
+value [code] "list_up(AI_ivl test5_ivl Top)"
 
 end

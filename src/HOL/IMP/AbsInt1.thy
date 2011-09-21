@@ -30,11 +30,11 @@ end
 
 locale Val_abs1 = Val_abs rep num' plus' + Rep1 rep
   for rep :: "'a::L_top_bot \<Rightarrow> int set" and num' plus' +
-fixes inv_plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
-and inv_less' :: "'a \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> 'a * 'a"
-assumes inv_plus': "inv_plus' a1 a2 a = (a1',a2') \<Longrightarrow>
+fixes filter_plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
+and filter_less' :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
+assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
   n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1+n2 <: a \<Longrightarrow> n1 <: a1' \<and> n2 <: a2'"
-and inv_less': "inv_less' a1 a2 (n1<n2) = (a1',a2') \<Longrightarrow>
+and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
   n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1 <: a1' \<and> n2 <: a2'"
 
 datatype 'a up = bot | Up 'a
@@ -117,12 +117,12 @@ fun afilter :: "aexp \<Rightarrow> 'a \<Rightarrow> 'a astate up \<Rightarrow> '
   let a' = lookup S x \<sqinter> a in
   if a' \<sqsubseteq> Bot then bot else Up(update S x a'))" |
 "afilter (Plus e1 e2) a S =
- (let (a1,a2) = inv_plus' (aval' e1 S) (aval' e2 S) a
+ (let (a1,a2) = filter_plus' a (aval' e1 S) (aval' e2 S)
   in afilter e1 a1 (afilter e2 a2 S))"
 
 text{* The test for @{const Bot} in the @{const V}-case is important: @{const
 Bot} indicates that a variable has no possible values, i.e.\ that the current
-program point is unreachable. But then the abstract state should collaps to
+program point is unreachable. But then the abstract state should collapse to
 @{const bot}. Put differently, we maintain the invariant that in an abstract
 state all variables are mapped to non-@{const Bot} values. Otherwise the
 (pointwise) join of two abstract states, one of which contains @{const Bot}
@@ -137,11 +137,11 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a astate up \<Rightarrow>
   (if res then bfilter b1 True (bfilter b2 True S)
    else bfilter b1 False S \<squnion> bfilter b2 False S)" |
 "bfilter (Less e1 e2) res S =
-  (let (res1,res2) = inv_less' (aval' e1 S) (aval' e2 S) res
+  (let (res1,res2) = filter_less' res (aval' e1 S) (aval' e2 S)
    in afilter e1 res1 (afilter e2 res2 S))"
 
 lemma afilter_sound: "s <:: S \<Longrightarrow> aval e s <: a \<Longrightarrow> s <:: afilter e a S"
-proof(induct e arbitrary: a S)
+proof(induction e arbitrary: a S)
   case N thus ?case by simp
 next
   case (V x)
@@ -153,12 +153,12 @@ next
        (metis le_rep emptyE in_rep_meet rep_Bot subset_empty)
 next
   case (Plus e1 e2) thus ?case
-    using inv_plus'[OF _ aval'_sound[OF Plus(3)] aval'_sound[OF Plus(3)]]
+    using filter_plus'[OF _ aval'_sound[OF Plus(3)] aval'_sound[OF Plus(3)]]
     by (auto split: prod.split)
 qed
 
 lemma bfilter_sound: "s <:: S \<Longrightarrow> bv = bval b s \<Longrightarrow> s <:: bfilter b bv S"
-proof(induct b arbitrary: S bv)
+proof(induction b arbitrary: S bv)
   case B thus ?case by simp
 next
   case (Not b) thus ?case by simp
@@ -167,7 +167,7 @@ next
 next
   case (Less e1 e2) thus ?case
     by (auto split: prod.split)
-       (metis afilter_sound inv_less' aval'_sound Less)
+       (metis afilter_sound filter_less' aval'_sound Less)
 qed
 
 fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
@@ -181,7 +181,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
   bfilter b False (pfp (\<lambda>S. AI c (bfilter b True S)) S)"
 
 lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> s <:: S \<Longrightarrow> t <:: AI c S"
-proof(induct c arbitrary: s t S)
+proof(induction c arbitrary: s t S)
   case SKIP thus ?case by fastforce
 next
   case Assign thus ?case
@@ -196,12 +196,12 @@ next
   { fix s t
     have "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> s <:: ?P \<Longrightarrow>
           t <:: bfilter b False ?P"
-    proof(induct "WHILE b DO c" s t rule: big_step_induct)
+    proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by(metis bfilter_sound)
     next
       case WhileTrue show ?case
         by(rule WhileTrue, rule in_rep_up_trans[OF _ pfp],
-           rule While.hyps[OF WhileTrue(2)],
+           rule While.IH[OF WhileTrue(2)],
            rule bfilter_sound[OF WhileTrue.prems], simp add: WhileTrue(1))
     qed
   }

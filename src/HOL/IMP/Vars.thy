@@ -59,13 +59,13 @@ abbreviation
 
 lemma aval_eq_if_eq_on_vars[simp]:
   "s\<^isub>1 = s\<^isub>2 on vars a \<Longrightarrow> aval a s\<^isub>1 = aval a s\<^isub>2"
-apply(induct a)
+apply(induction a)
 apply simp_all
 done
 
 lemma bval_eq_if_eq_on_vars:
   "s\<^isub>1 = s\<^isub>2 on vars b \<Longrightarrow> bval b s\<^isub>1 = bval b s\<^isub>2"
-proof(induct b)
+proof(induction b)
   case (Less a1 a2)
   hence "aval a1 s\<^isub>1 = aval a1 s\<^isub>2" and "aval a2 s\<^isub>1 = aval a2 s\<^isub>2" by simp_all
   thus ?case by simp

@@ -29,7 +29,7 @@ value "aexec [LOADI 5, LOAD ''y'', ADD]
 
 lemma aexec_append[simp]:
   "aexec (is1@is2) s stk = aexec is2 s (aexec is1 s stk)"
-apply(induct is1 arbitrary: stk)
+apply(induction is1 arbitrary: stk)
 apply (auto)
 done
 
@@ -44,7 +44,7 @@ fun acomp :: "aexp \<Rightarrow> ainstr list" where
 value "acomp (Plus (Plus (V ''x'') (N 1)) (V ''z''))"
 
 theorem aexec_acomp[simp]: "aexec (acomp a) s stk = aval a s # stk"
-apply(induct a arbitrary: stk)
+apply(induction a arbitrary: stk)
 apply (auto)
 done
 

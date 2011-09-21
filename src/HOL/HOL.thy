@@ -26,6 +26,7 @@ uses
   ("Tools/simpdata.ML")
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
+  ("~~/src/Tools/induction.ML")
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
   ("Tools/cnf_funcs.ML")
@@ -1490,8 +1491,10 @@ structure Induct = Induct
 )
 *}
 
+use "~~/src/Tools/induction.ML"
+
 setup {*
-  Induct.setup #>
+  Induct.setup #> Induction.setup #>
   Context.theory_map (Induct.map_simpset (fn ss => ss
     setmksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
       map (Simplifier.rewrite_rule (map Thm.symmetric

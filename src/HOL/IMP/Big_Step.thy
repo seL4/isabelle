@@ -215,7 +215,7 @@ subsection "Execution is deterministic"
 
 text {* This proof is automatic. *}
 theorem big_step_determ: "\<lbrakk> (c,s) \<Rightarrow> t; (c,s) \<Rightarrow> u \<rbrakk> \<Longrightarrow> u = t"
-apply (induct arbitrary: u rule: big_step.induct)
+apply (induction arbitrary: u rule: big_step.induct)
 apply blast+
 done
 
@@ -225,7 +225,7 @@ text {*
 *}
 theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
-proof (induct arbitrary: t' rule: big_step.induct)
+proof (induction arbitrary: t' rule: big_step.induct)
   -- "the only interesting case, @{text WhileTrue}:"
   fix b c s s1 t t'
   -- "The assumptions of the rule:"

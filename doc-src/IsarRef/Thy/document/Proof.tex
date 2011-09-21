@@ -1700,10 +1700,12 @@ The Isar provides separate commands to accommodate tactic-style
 \begin{matharray}{rcl}
     \indexdef{}{method}{cases}\hypertarget{method.cases}{\hyperlink{method.cases}{\mbox{\isa{cases}}}} & : & \isa{method} \\
     \indexdef{}{method}{induct}\hypertarget{method.induct}{\hyperlink{method.induct}{\mbox{\isa{induct}}}} & : & \isa{method} \\
+    \indexdef{}{method}{induction}\hypertarget{method.induction}{\hyperlink{method.induction}{\mbox{\isa{induction}}}} & : & \isa{method} \\
     \indexdef{}{method}{coinduct}\hypertarget{method.coinduct}{\hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}} & : & \isa{method} \\
   \end{matharray}
 
-  The \hyperlink{method.cases}{\mbox{\isa{cases}}}, \hyperlink{method.induct}{\mbox{\isa{induct}}}, and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}
+  The \hyperlink{method.cases}{\mbox{\isa{cases}}}, \hyperlink{method.induct}{\mbox{\isa{induct}}}, \hyperlink{method.induction}{\mbox{\isa{induction}}},
+  and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}
   methods provide a uniform interface to common proof techniques over
   datatypes, inductive predicates (or sets), recursive functions etc.
   The corresponding rules may be specified and instantiated in a
@@ -1717,6 +1719,10 @@ The Isar provides separate commands to accommodate tactic-style
   (either using explicit meta-level connectives, or including facts
   and parameters separately).  This avoids cumbersome encoding of
   ``strengthened'' inductive statements within the object-logic.
+
+  Method \hyperlink{method.induction}{\mbox{\isa{induction}}} differs from \hyperlink{method.induct}{\mbox{\isa{induct}}} only in
+  the names of the facts in the local context invoked by the \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}
+  command.
 
   \begin{railoutput}
 \rail@begin{6}{}
@@ -1742,7 +1748,11 @@ The Isar provides separate commands to accommodate tactic-style
 \rail@endbar
 \rail@end
 \rail@begin{6}{}
+\rail@bar
 \rail@term{\hyperlink{method.induct}{\mbox{\isa{induct}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.induction}{\mbox{\isa{induction}}}}[]
+\rail@endbar
 \rail@bar
 \rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
@@ -1872,8 +1882,9 @@ The Isar provides separate commands to accommodate tactic-style
   last premise (it is usually the same for all cases).  The \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option can be used to disable pre-simplification of
   cases (see the description of \hyperlink{method.induct}{\mbox{\isa{induct}}} below for details).
 
-  \item \hyperlink{method.induct}{\mbox{\isa{induct}}}~\isa{{\isaliteral{22}{\isachardoublequote}}insts\ R{\isaliteral{22}{\isachardoublequote}}} is analogous to the
-  \hyperlink{method.cases}{\mbox{\isa{cases}}} method, but refers to induction rules, which are
+  \item \hyperlink{method.induct}{\mbox{\isa{induct}}}~\isa{{\isaliteral{22}{\isachardoublequote}}insts\ R{\isaliteral{22}{\isachardoublequote}}} and
+  \hyperlink{method.induction}{\mbox{\isa{induction}}}~\isa{{\isaliteral{22}{\isachardoublequote}}insts\ R{\isaliteral{22}{\isachardoublequote}}} are analogous to the
+  \hyperlink{method.cases}{\mbox{\isa{cases}}} method, but refer to induction rules, which are
   determined as follows:
 
   \medskip
@@ -1979,11 +1990,18 @@ The Isar provides separate commands to accommodate tactic-style
   and definitions effectively participate in the inductive rephrasing
   of the original statement.
 
-  In induction proofs, local assumptions introduced by cases are split
+  In \hyperlink{method.induct}{\mbox{\isa{induct}}} proofs, local assumptions introduced by cases are split
   into two different kinds: \isa{hyps} stemming from the rule and
   \isa{prems} from the goal statement.  This is reflected in the
   extracted cases accordingly, so invoking ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' will provide separate facts \isa{c{\isaliteral{2E}{\isachardot}}hyps} and \isa{c{\isaliteral{2E}{\isachardot}}prems},
   as well as fact \isa{c} to hold the all-inclusive list.
+
+  In \hyperlink{method.induction}{\mbox{\isa{induction}}} proofs, local assumptions introduced by cases are
+  split into three different kinds: \isa{IH}, the induction hypotheses,
+  \isa{hyps}, the remaining hypotheses stemming from the rule, and
+  \isa{prems}, the assumptions from the goal statement. The names are
+  \isa{c{\isaliteral{2E}{\isachardot}}IH}, \isa{c{\isaliteral{2E}{\isachardot}}hyps} and \isa{c{\isaliteral{2E}{\isachardot}}prems}, as above.
+
 
   \medskip Facts presented to either method are consumed according to
   the number of ``major premises'' of the rule involved, which is

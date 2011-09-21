@@ -23,7 +23,7 @@ fun less :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
 "less a1 a2 = Less a1 a2"
 
 lemma [simp]: "bval (less a1 a2) s = (aval a1 s < aval a2 s)"
-apply(induct a1 a2 rule: less.induct)
+apply(induction a1 a2 rule: less.induct)
 apply simp_all
 done
 
@@ -35,7 +35,7 @@ fun "and" :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
 "and b1 b2 = And b1 b2"
 
 lemma bval_and[simp]: "bval (and b1 b2) s = (bval b1 s \<and> bval b2 s)"
-apply(induct b1 b2 rule: and.induct)
+apply(induction b1 b2 rule: and.induct)
 apply simp_all
 done
 
@@ -45,7 +45,7 @@ fun not :: "bexp \<Rightarrow> bexp" where
 "not b = Not b"
 
 lemma bval_not[simp]: "bval (not b) s = (~bval b s)"
-apply(induct b rule: not.induct)
+apply(induction b rule: not.induct)
 apply simp_all
 done
 
@@ -62,7 +62,7 @@ value "bsimp (And (Less (N 0) (N 1)) b)"
 value "bsimp (And (Less (N 1) (N 0)) (B True))"
 
 theorem "bval (bsimp b) s = bval b s"
-apply(induct b)
+apply(induction b)
 apply simp_all
 done
 

@@ -71,7 +71,7 @@ inductive_cases WhileE[elim]: "(WHILE b DO c, s) \<rightarrow> ct"
 text{* A simple property: *}
 lemma deterministic:
   "cs \<rightarrow> cs' \<Longrightarrow> cs \<rightarrow> cs'' \<Longrightarrow> cs'' = cs'"
-apply(induct arbitrary: cs'' rule: small_step.induct)
+apply(induction arbitrary: cs'' rule: small_step.induct)
 apply blast+
 done
 
@@ -79,7 +79,7 @@ done
 subsection "Equivalence with big-step semantics"
 
 lemma star_semi2: "(c1,s) \<rightarrow>* (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow>* (c1';c2,s')"
-proof(induct rule: star_induct)
+proof(induction rule: star_induct)
   case refl thus ?case by simp
 next
   case step
@@ -98,7 +98,7 @@ declared with attribute [trans] above. *}
 
 lemma big_to_small:
   "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
-proof (induct rule: big_step.induct)
+proof (induction rule: big_step.induct)
   fix s show "(SKIP,s) \<rightarrow>* (SKIP,s)" by simp
 next
   fix x a s show "(x ::= a,s) \<rightarrow>* (SKIP, s(x := aval a s))" by auto
@@ -140,7 +140,7 @@ qed
 
 text{* Each case of the induction can be proved automatically: *}
 lemma  "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
-proof (induct rule: big_step.induct)
+proof (induction rule: big_step.induct)
   case Skip show ?case by blast
 next
   case Assign show ?case by blast
@@ -161,13 +161,13 @@ qed
 
 lemma small1_big_continue:
   "cs \<rightarrow> cs' \<Longrightarrow> cs' \<Rightarrow> t \<Longrightarrow> cs \<Rightarrow> t"
-apply (induct arbitrary: t rule: small_step.induct)
+apply (induction arbitrary: t rule: small_step.induct)
 apply auto
 done
 
 lemma small_big_continue:
   "cs \<rightarrow>* cs' \<Longrightarrow> cs' \<Rightarrow> t \<Longrightarrow> cs \<Rightarrow> t"
-apply (induct rule: star.induct)
+apply (induction rule: star.induct)
 apply (auto intro: small1_big_continue)
 done
 
@@ -188,7 +188,7 @@ definition "final cs \<longleftrightarrow> \<not>(EX cs'. cs \<rightarrow> cs')"
 
 lemma finalD: "final (c,s) \<Longrightarrow> c = SKIP"
 apply(simp add: final_def)
-apply(induct c)
+apply(induction c)
 apply blast+
 done
 

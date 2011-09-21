@@ -76,6 +76,11 @@ can be named now by following the case name with [name1 name2 ...].
 
 *** HOL ***
 
+* New proof method "induction" that gives induction hypotheses the name IH,
+thus distinguishing them from further hypotheses that come from rule
+induction.  The latter are still called "hyps".  Method "induction" is a thin
+wrapper around "induct" and follows the same syntax.
+
 * Class bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
@@ -91,8 +96,7 @@ Sup_fun_def, Inf_apply, Sup_apply.
 Redundant lemmas Inf_singleton, Sup_singleton, Inf_binary, Sup_binary,
 INF_eq, SUP_eq, INF_UNIV_range, SUP_UNIV_range, Int_eq_Inter,
 INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union, INF_subset,
-UNION_eq_Union_image, Union_def, UN_singleton, UN_eq have been
-discarded.
+UNION_eq_Union_image, Union_def, UN_eq have been discarded.
 
 More consistent and comprehensive names:
 

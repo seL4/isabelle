@@ -31,7 +31,20 @@ proof -
 qed
 
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "project P A = {a\<in>A. P a}"
+  "project P A = {a \<in> A. P a}"
+
+lemma bounded_Collect_code [code_unfold_post]:
+  "{x \<in> A. P x} = project P A"
+  by (simp add: project_def)
+
+definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
+  "product A B = Sigma A (\<lambda>_. B)"
+
+hide_const (open) product
+
+lemma [code_unfold_post]:
+  "Sigma A (\<lambda>_. B) = More_Set.product A B"
+  by (simp add: product_def)
 
 
 subsection {* Basic set operations *}
@@ -75,7 +88,7 @@ lemma union_set_foldr:
   "set xs \<union> A = foldr Set.insert xs A"
 proof -
   have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
-    by (auto intro: ext)
+    by auto
   then show ?thesis by (simp add: union_set foldr_fold)
 qed
 
@@ -92,7 +105,7 @@ lemma minus_set_foldr:
   "A - set xs = foldr remove xs A"
 proof -
   have "\<And>x y :: 'a. remove y \<circ> remove x = remove x \<circ> remove y"
-    by (auto simp add: remove_def intro: ext)
+    by (auto simp add: remove_def)
   then show ?thesis by (simp add: minus_set foldr_fold)
 qed
 
@@ -120,10 +133,22 @@ lemma inter:
   by (auto simp add: project_def)
 
 
-subsection {* Various lemmas *}
+subsection {* Theorems on relations *}
 
-lemma not_set_compl:
-  "Not \<circ> set xs = - set xs"
-  by (simp add: fun_Compl_def comp_def fun_eq_iff)
+lemma product_code:
+  "More_Set.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: product_def)
+
+lemma Id_on_set:
+  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
+  by (auto simp add: Id_on_def)
+
+lemma set_rel_comp:
+  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+  by (auto simp add: Bex_def)
+
+lemma wf_set:
+  "wf (set xs) = acyclic (set xs)"
+  by (simp add: wf_iff_acyclic_if_finite)
 
 end

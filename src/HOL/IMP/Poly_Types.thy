@@ -45,12 +45,12 @@ fun tsubst :: "(nat \<Rightarrow> ty) \<Rightarrow> ty \<Rightarrow> ty" where
 subsection{* Typing is Preserved by Substitution *}
 
 lemma subst_atyping: "E \<turnstile>p a : t \<Longrightarrow> tsubst S \<circ> E \<turnstile>p a : tsubst S t"
-apply(induct rule: atyping.induct)
+apply(induction rule: atyping.induct)
 apply(auto intro: atyping.intros)
 done
 
 lemma subst_btyping: "E \<turnstile>p (b::bexp) \<Longrightarrow> tsubst S \<circ> E \<turnstile>p b"
-apply(induct rule: btyping.induct)
+apply(induction rule: btyping.induct)
 apply(auto intro: btyping.intros)
 apply(drule subst_atyping[where S=S])
 apply(drule subst_atyping[where S=S])
@@ -58,7 +58,7 @@ apply(simp add: o_def btyping.intros)
 done
 
 lemma subst_ctyping: "E \<turnstile>p (c::com) \<Longrightarrow> tsubst S \<circ> E \<turnstile>p c"
-apply(induct rule: ctyping.induct)
+apply(induction rule: ctyping.induct)
 apply(auto intro: ctyping.intros)
 apply(drule subst_atyping[where S=S])
 apply(simp add: o_def ctyping.intros)

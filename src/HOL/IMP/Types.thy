@@ -119,28 +119,28 @@ where "\<Gamma> \<turnstile> s  \<longleftrightarrow>  (\<forall>x. type (s x) =
 
 lemma apreservation:
   "\<Gamma> \<turnstile> a : \<tau> \<Longrightarrow> taval a s v \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> type v = \<tau>"
-apply(induct arbitrary: v rule: atyping.induct)
+apply(induction arbitrary: v rule: atyping.induct)
 apply (fastforce simp: styping_def)+
 done
 
 lemma aprogress: "\<Gamma> \<turnstile> a : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> \<exists>v. taval a s v"
-proof(induct rule: atyping.induct)
+proof(induction rule: atyping.induct)
   case (Plus_ty \<Gamma> a1 t a2)
   then obtain v1 v2 where v: "taval a1 s v1" "taval a2 s v2" by blast
   show ?case
   proof (cases v1)
     case Iv
-    with Plus_ty(1,3,5) v show ?thesis
+    with Plus_ty v show ?thesis
       by(fastforce intro: taval.intros(4) dest!: apreservation)
   next
     case Rv
-    with Plus_ty(1,3,5) v show ?thesis
+    with Plus_ty v show ?thesis
       by(fastforce intro: taval.intros(5) dest!: apreservation)
   qed
 qed (auto intro: taval.intros)
 
 lemma bprogress: "\<Gamma> \<turnstile> b \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> \<exists>v. tbval b s v"
-proof(induct rule: btyping.induct)
+proof(induction rule: btyping.induct)
   case (Less_ty \<Gamma> a1 t a2)
   then obtain v1 v2 where v: "taval a1 s v1" "taval a2 s v2"
     by (metis aprogress)
@@ -158,7 +158,7 @@ qed (auto intro: tbval.intros)
 
 theorem progress:
   "\<Gamma> \<turnstile> c \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> c \<noteq> SKIP \<Longrightarrow> \<exists>cs'. (c,s) \<rightarrow> cs'"
-proof(induct rule: ctyping.induct)
+proof(induction rule: ctyping.induct)
   case Skip_ty thus ?case by simp
 next
   case Assign_ty 
@@ -182,7 +182,7 @@ qed
 
 theorem styping_preservation:
   "(c,s) \<rightarrow> (c',s') \<Longrightarrow> \<Gamma> \<turnstile> c \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> \<Gamma> \<turnstile> s'"
-proof(induct rule: small_step_induct)
+proof(induction rule: small_step_induct)
   case Assign thus ?case
     by (auto simp: styping_def) (metis Assign(1,3) apreservation)
 qed auto
@@ -197,7 +197,7 @@ where "x \<rightarrow>* y == star small_step x y"
 theorem type_sound:
   "(c,s) \<rightarrow>* (c',s') \<Longrightarrow> \<Gamma> \<turnstile> c \<Longrightarrow> \<Gamma> \<turnstile> s \<Longrightarrow> c' \<noteq> SKIP
    \<Longrightarrow> \<exists>cs''. (c',s') \<rightarrow> cs''"
-apply(induct rule:star_induct)
+apply(induction rule:star_induct)
 apply (metis progress)
 by (metis styping_preservation ctyping_preservation)
 
