@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Hotel_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2010
+    Copyright   2010-2011
 
 Nitpick example based on Tobias Nipkow's hotel key card formalization.
 *)

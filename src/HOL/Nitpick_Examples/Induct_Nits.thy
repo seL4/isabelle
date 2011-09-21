@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Induct_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009, 2010
+    Copyright   2009-2011
 
 Examples featuring Nitpick applied to (co)inductive definitions.
 *)
