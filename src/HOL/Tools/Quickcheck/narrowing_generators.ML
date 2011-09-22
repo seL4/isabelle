@@ -353,6 +353,19 @@ fun finitize_functions (xTs, t) =
     (names ~~ boundTs', t')
   end
 
+fun dest_ffun (Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT])) = (dT, rT)
+
+fun eval_finite_functions (Const (@{const_name "Quickcheck_Narrowing.ffun.Constant"}, T) $ value) =
+    absdummy (fst (dest_ffun (body_type T))) (eval_finite_functions value)
+  | eval_finite_functions (Const (@{const_name "Quickcheck_Narrowing.ffun.Update"}, T) $ a $ b $ f) =
+    let
+      val (T1, T2) = dest_ffun (body_type T)
+    in
+      Quickcheck_Common.mk_fun_upd T1 T2
+        (eval_finite_functions a, eval_finite_functions b) (eval_finite_functions f)
+    end
+  | eval_finite_functions t = t
+
 (** tester **)
 
 val rewrs =
@@ -389,12 +402,15 @@ fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counter
   | mk_case_term ctxt p ((@{const_name All}, (x, T)) :: qs') (Universal_Counterexample (t, c)) =
     if p = 0 then t else mk_case_term ctxt (p - 1) qs' c
 
+val post_process = (perhaps (try Quickcheck_Common.post_process_term)) o eval_finite_functions
+
 fun mk_terms ctxt qs result =
   let
     val
       ps = filter (fn (_, (@{const_name All}, _)) => true | _ => false) (map_index I qs)
     in
       map (fn (p, (_, (x, T))) => (x, mk_case_term ctxt p qs result)) ps
+      |> map (apsnd post_process)
     end
   
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
@@ -436,7 +452,8 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
           thy (apfst o Option.map o map) (ensure_testable (finitize t'))
       in
         Quickcheck.Result
-         {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
+         {counterexample =
+           Option.map (((curry (op ~~)) (Term.add_free_names t [])) o map post_process) counterexample,
           evaluation_terms = Option.map (K []) counterexample,
           timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end

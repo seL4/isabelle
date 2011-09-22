@@ -18,6 +18,7 @@ sig
   val gen_mk_parametric_generator_expr :
    (((Proof.context -> term * term list -> term) * term) * typ)
      -> Proof.context -> (term * term list) list -> term
+  val mk_fun_upd : typ -> typ -> term * term -> term -> term
   val post_process_term : term -> term
 end;
 
