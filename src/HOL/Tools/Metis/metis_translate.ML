@@ -183,7 +183,7 @@ fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
       else
         conj_clauses @ fact_clauses
         |> map (pair 0)
-        |> rpair ctxt
+        |> rpair (ctxt |> Config.put Monomorph.keep_partial_instances false)
         |-> Monomorph.monomorph atp_schematic_consts_of
         |> fst |> chop (length conj_clauses)
         |> pairself (maps (map (zero_var_indexes o snd)))
