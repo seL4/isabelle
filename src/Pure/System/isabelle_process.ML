@@ -9,7 +9,7 @@ Startup phases:
   . stdout \002: ML running
   .. stdin/stdout/stderr freely available (raw ML loop)
   .. protocol thread initialization
-  ... switch to in_fifo/out_fifo channels (rendezvous via open)
+  ... rendezvous on system channel
   ... out_fifo INIT(pid): channels ready
   ... out_fifo STATUS(keywords)
   ... out_fifo READY: main loop ready
@@ -21,8 +21,8 @@ sig
   val add_command: string -> (string list -> unit) -> unit
   val command: string -> string list -> unit
   val crashes: exn list Synchronized.var
-  val init_socket: string -> unit
   val init_fifos: string -> string -> unit
+  val init_socket: string -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -80,13 +80,13 @@ fun standard_message mbox opt_serial ch body =
       ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
-fun message_output mbox out_stream =
+fun message_output mbox channel =
   let
-    fun flush () = ignore (try BinIO.flushOut out_stream);
+    fun flush () = ignore (try System_Channel.flush channel);
     fun loop receive =
       (case receive mbox of
         SOME (msg, do_flush) =>
-         (List.app (fn s => BinIO.output (out_stream, Byte.stringToBytes s)) msg;
+         (List.app (fn s => System_Channel.output channel s) msg;
           if do_flush then flush () else ();
           loop (Mailbox.receive_timeout (seconds 0.02)))
       | NONE => (flush (); loop (SOME o Mailbox.receive)));
@@ -94,13 +94,13 @@ fun message_output mbox out_stream =
 
 in
 
-fun setup_channels out_stream =
+fun setup_channels channel =
   let
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
 
     val mbox = Mailbox.create () : (string list * bool) Mailbox.T;
-    val _ = Simple_Thread.fork false (message_output mbox out_stream);
+    val _ = Simple_Thread.fork false (message_output mbox channel);
   in
     Output.Private_Hooks.status_fn := standard_message mbox NONE "B";
     Output.Private_Hooks.report_fn := standard_message mbox NONE "C";
@@ -127,35 +127,23 @@ fun recover crash =
   (Synchronized.change crashes (cons crash);
     warning "Recovering from Isabelle process crash -- see also Isabelle_Process.crashes");
 
-fun read_line stream =
-  let
-    val content = String.implode o rev;
-    fun read cs =
-      (case BinIO.input1 stream of
-        NONE => (content cs, null cs)
-      | SOME b =>
-          (case Byte.byteToChar b of
-            #"\n" => (content cs, false)
-          | c => read (c :: cs)));
-  in case read [] of ("", true) => NONE | (s, _) => SOME s end;
-
-fun read_chunk stream len =
+fun read_chunk channel len =
   let
     val n =
       (case Int.fromString len of
         SOME n => n
       | NONE => error ("Isabelle process: malformed chunk header " ^ quote len));
-    val chunk = Byte.bytesToString (BinIO.inputN (stream, n));
+    val chunk = System_Channel.inputN channel n;
     val m = size chunk;
   in
     if m = n then chunk
     else error ("Isabelle process: bad chunk (" ^ string_of_int m ^ " vs. " ^ string_of_int n ^ ")")
   end;
 
-fun read_command stream =
-  (case read_line stream of
+fun read_command channel =
+  (case System_Channel.input_line channel of
     NONE => raise Runtime.TERMINATE
-  | SOME line => map (read_chunk stream) (space_explode "," line));
+  | SOME line => map (read_chunk channel) (space_explode "," line));
 
 fun run_command name args =
   Runtime.debugging (command name) args
@@ -164,21 +152,21 @@ fun run_command name args =
 
 in
 
-fun loop stream =
+fun loop channel =
   let val continue =
-    (case read_command stream of
+    (case read_command channel of
       [] => (Output.error_msg "Isabelle process: no input"; true)
     | name :: args => (run_command name args; true))
     handle Runtime.TERMINATE => false
       | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
-  in if continue then loop stream else () end;
+  in if continue then loop channel else () end;
 
 end;
 
 
 (* init *)
 
-fun init make_streams = ignore (Simple_Thread.fork false (fn () =>
+fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
   let
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.physical_stdout Symbol.STX;
@@ -194,18 +182,16 @@ fun init make_streams = ignore (Simple_Thread.fork false (fn () =>
         (fold (update op =)
           [Symbol.xsymbolsN, isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
 
-    val (in_stream, out_stream) = make_streams ();
-    val _ = setup_channels out_stream;
+    val channel = rendezvous ();
+    val _ = setup_channels channel;
 
     val _ = Keyword.status ();
     val _ = Thy_Info.status ();
     val _ = Output.status (Markup.markup Markup.ready "process ready");
-  in loop in_stream end));
+  in loop channel end));
 
-fun rendezvous fifo1 fifo2 = (BinIO.openIn fifo1, BinIO.openOut fifo2);
-fun init_fifos fifo1 fifo2 = init (fn () => rendezvous fifo1 fifo2);
-
-fun init_socket socket_name = init (fn () => Socket_IO.open_streams socket_name);
+fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
+fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
 
 end;
 

@@ -195,6 +195,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   System/isabelle_system.ML				\
   System/isar.ML					\
   System/session.ML					\
+  System/system_channel.ML				\
   Thy/html.ML						\
   Thy/latex.ML						\
   Thy/present.ML					\
