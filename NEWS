@@ -93,13 +93,25 @@ class complete_linorder.
 Changed proposition of lemmas Inf_bool_def, Sup_bool_def, Inf_fun_def,
 Sup_fun_def, Inf_apply, Sup_apply.
 
-Redundant lemmas Inf_singleton, Sup_singleton, Inf_binary, Sup_binary,
-INF_eq, SUP_eq, INF_UNIV_range, SUP_UNIV_range, Int_eq_Inter,
-INTER_eq_Inter_image, Inter_def, INT_eq, Un_eq_Union, INF_subset,
-UNION_eq_Union_image, Union_def, UN_eq have been discarded.
+Removed redundant lemmas (the right hand side gives hints how to replace them
+for (metis ...), or (simp only: ...) proofs):
+
+  Inf_singleton ~> Inf_insert [where A="{}", unfolded Inf_empty inf_top_right]
+  Sup_singleton ~> Sup_insert [where A="{}", unfolded Sup_empty sup_bot_right]
+  Inf_binary ~> Inf_insert, Inf_empty, and inf_top_right
+  Sup_binary ~> Sup_insert, Sup_empty, and sup_bot_right
+  Int_eq_Inter ~> Inf_insert, Inf_empty, and inf_top_right
+  Un_eq_Union ~> Sup_insert, Sup_empty, and sup_bot_right
+  Inter_def ~> INF_def, image_def
+  Union_def ~> SUP_def, image_def
+  INT_eq ~> INF_def, and image_def
+  UN_eq ~> SUP_def, and image_def
+  INF_subset ~> INF_superset_mono [OF _ order_refl]
 
 More consistent and comprehensive names:
 
+  INTER_eq_Inter_image ~> INF_def
+  UNION_eq_Union_image ~> SUP_def
   INFI_def ~> INF_def
   SUPR_def ~> SUP_def
   INF_leI ~> INF_lower
