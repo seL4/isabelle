@@ -8,5 +8,5 @@ no_document use_thys [
 
 share_common_data ();
 
-no_document use_thys ["~~/src/HOL/Number_Theory/UniqueFactorization"];
-use_thys ["Greatest_Common_Divisor", "Warshall", "Higman", "Pigeonhole", "Euclid"];
+no_document use_thys ["~~/src/HOL/Number_Theory/UniqueFactorization", "~~/src/HOL/Library/State_Monad"];
+use_thys ["Greatest_Common_Divisor", "Warshall", "Higman_Extraction", "Pigeonhole", "Euclid"];

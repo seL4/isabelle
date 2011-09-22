@@ -915,7 +915,8 @@ HOL-Proofs-Extraction: HOL-Proofs $(LOG)/HOL-Proofs-Extraction.gz
 $(LOG)/HOL-Proofs-Extraction.gz: $(OUT)/HOL-Proofs		\
   Library/Efficient_Nat.thy Proofs/Extraction/Euclid.thy	\
   Proofs/Extraction/Greatest_Common_Divisor.thy			\
-  Proofs/Extraction/Higman.thy Proofs/Extraction/Pigeonhole.thy	\
+  Proofs/Extraction/Higman.thy Proofs/Extraction/Higman_Extraction.thy	\
+  Proofs/Extraction/Pigeonhole.thy				\
   Proofs/Extraction/QuotRem.thy Proofs/Extraction/ROOT.ML	\
   Proofs/Extraction/Util.thy Proofs/Extraction/Warshall.thy	\
   Proofs/Extraction/document/root.tex				\
