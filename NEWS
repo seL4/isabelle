@@ -444,6 +444,34 @@ general versions. INCOMPATIBILITY.
   - Use extended reals instead of positive extended
     reals. INCOMPATIBILITY.
 
+* Session HOLCF: Discontinued legacy theorem names, INCOMPATIBILITY.
+
+  expand_fun_below ~> fun_below_iff
+  below_fun_ext ~> fun_belowI
+  expand_cfun_eq ~> cfun_eq_iff
+  ext_cfun ~> cfun_eqI
+  expand_cfun_below ~> cfun_below_iff
+  below_cfun_ext ~> cfun_belowI
+  monofun_fun_fun ~> fun_belowD
+  monofun_fun_arg ~> monofunE
+  monofun_lub_fun ~> adm_monofun [THEN admD]
+  cont_lub_fun ~> adm_cont [THEN admD]
+  cont2cont_Rep_CFun ~> cont2cont_APP
+  cont_Rep_CFun_app ~> cont_APP_app
+  cont_Rep_CFun_app_app ~> cont_APP_app_app
+  cont_cfun_fun ~> cont_Rep_cfun1 [THEN contE]
+  cont_cfun_arg ~> cont_Rep_cfun2 [THEN contE]
+  contlub_cfun ~> lub_APP [symmetric]
+  contlub_LAM ~> lub_LAM [symmetric]
+  thelubI ~> lub_eqI
+  UU_I ~> bottomI
+  lift_distinct1 ~> lift.distinct(1)
+  lift_distinct2 ~> lift.distinct(2)
+  Def_not_UU ~> lift.distinct(2)
+  Def_inject ~> lift.inject
+  below_UU_iff ~> below_bottom_iff
+  eq_UU_iff ~> eq_bottom_iff
+
 
 *** Document preparation ***
 

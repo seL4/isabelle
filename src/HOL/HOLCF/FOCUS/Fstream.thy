@@ -81,13 +81,13 @@ by (simp add: fscons_def2)
 lemma fstream_prefix: "a~> s << t ==> ? tt. t = a~> tt &  s << tt"
 apply (cases t)
 apply (cut_tac fscons_not_empty)
-apply (fast dest: eq_UU_iff [THEN iffD2])
+apply (fast dest: bottomI)
 apply (simp add: fscons_def2)
 done
 
 lemma fstream_prefix' [simp]:
         "x << a~> z = (x = <> |  (? y. x = a~> y &  y << z))"
-apply (simp add: fscons_def2 Def_not_UU [THEN stream_prefix'])
+apply (simp add: fscons_def2 lift.distinct(2) [THEN stream_prefix'])
 apply (safe)
 apply (erule_tac [!] contrapos_np)
 prefer 2 apply (fast elim: DefE)
