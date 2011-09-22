@@ -226,11 +226,31 @@ struct
 end;
 
 
+(* BinIO *)
+
+structure BinIO =
+struct
+  open BinIO;
+  fun inputN (a, b) = BinIO.inputN (a, dest_int b);
+  fun canInput (a, b) = Option.map mk_int (BinIO.canInput (a, dest_int b));
+end;
+
+
 (* Time *)
 
 structure Time =
 struct
   open Time;
   fun fmt a b = Time.fmt (dest_int a) b;
+end;
+
+
+(* Sockets *)
+
+structure INetSock =
+struct
+  open INetSock;
+  fun toAddr (a, b) = INetSock.toAddr (a, dest_int b);
+  fun fromAddr adr = let val (a, b) = INetSock.fromAddr adr in (a, mk_int b) end;
 end;
 
