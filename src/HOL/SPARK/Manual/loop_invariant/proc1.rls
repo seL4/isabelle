@@ -1,0 +1,33 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 22-SEP-2011 11:10:50.40*/
+
+                       /*procedure Loop_Invariant.Proc1*/
+
+
+rule_family proc1_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+proc1_rules(1): integer__size >= 0 may_be_deduced.
+proc1_rules(2): integer__first may_be_replaced_by -2147483648.
+proc1_rules(3): integer__last may_be_replaced_by 2147483647.
+proc1_rules(4): integer__base__first may_be_replaced_by -2147483648.
+proc1_rules(5): integer__base__last may_be_replaced_by 2147483647.
+proc1_rules(6): natural__size >= 0 may_be_deduced.
+proc1_rules(7): natural__first may_be_replaced_by 0.
+proc1_rules(8): natural__last may_be_replaced_by 2147483647.
+proc1_rules(9): natural__base__first may_be_replaced_by -2147483648.
+proc1_rules(10): natural__base__last may_be_replaced_by 2147483647.
+proc1_rules(11): word32__size >= 0 may_be_deduced.
+proc1_rules(12): word32__first may_be_replaced_by 0.
+proc1_rules(13): word32__last may_be_replaced_by 4294967295.
+proc1_rules(14): word32__base__first may_be_replaced_by 0.
+proc1_rules(15): word32__base__last may_be_replaced_by 4294967295.
+proc1_rules(16): word32__modulus may_be_replaced_by 4294967296.

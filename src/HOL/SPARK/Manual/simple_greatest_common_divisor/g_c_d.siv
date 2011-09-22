@@ -1,0 +1,99 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 22-SEP-2011, 11:10:48  SIMPLIFIED 22-SEP-2011, 11:10:49
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Simple_Greatest_Common_Divisor.G_C_D
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_g_c_d_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_g_c_d_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 9:
+
+procedure_g_c_d_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 9 to assertion of line 9:
+
+procedure_g_c_d_4.
+H1:    gcd(c, d) = gcd(m, n) .
+H2:    m >= 0 .
+H3:    m <= 2147483647 .
+H4:    n <= 2147483647 .
+H5:    n > 0 .
+H6:    d <= 2147483647 .
+H7:    c >= 0 .
+H8:    c <= 2147483647 .
+H9:    c mod d >= 0 .
+H10:   c mod d <= 2147483647 .
+H11:   0 < d .
+H12:   integer__size >= 0 .
+H13:   natural__size >= 0 .
+       ->
+C1:    gcd(d, c mod d) = gcd(m, n) .
+
+
+For path(s) from assertion of line 9 to run-time check associated with 
+          statement of line 12:
+
+procedure_g_c_d_5.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 9 to run-time check associated with 
+          statement of line 13:
+
+procedure_g_c_d_6.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 9 to run-time check associated with 
+          statement of line 13:
+
+procedure_g_c_d_7.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 9 to run-time check associated with 
+          statement of line 15:
+
+procedure_g_c_d_8.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 9 to finish:
+
+procedure_g_c_d_9.
+H1:    gcd(c, 0) = gcd(m, n) .
+H2:    m >= 0 .
+H3:    m <= 2147483647 .
+H4:    n <= 2147483647 .
+H5:    n > 0 .
+H6:    c >= 0 .
+H7:    c <= 2147483647 .
+H8:    integer__size >= 0 .
+H9:    natural__size >= 0 .
+       ->
+C1:    c = gcd(m, n) .
+
+

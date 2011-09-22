@@ -1,0 +1,83 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[a4paper,hscale=0.65,vscale=0.71,hcentering,vcentering]{geometry}
+
+\usepackage{isabelle,isabellesym}
+
+\usepackage{charter}
+
+\usepackage{tikz}
+\usetikzlibrary{shadows}
+
+\usepackage{listings}
+
+\usepackage{alltt}
+
+\usepackage{railsetup}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{tt}
+
+\renewcommand{\isastyleminor}{\tt}
+
+\lstdefinelanguage{SPARK}[95]{Ada} {
+   morecomment=*[l]{--\#},
+   morekeywords=
+   {
+     inherit, own, initializes, hide, global, main_program,
+     derives, from, pre, post, return, assert, check
+   }
+}
+
+\lstset{ %
+language=SPARK,
+basicstyle=\small\ttfamily,
+keywordstyle=\rmfamily\bfseries,
+columns=flexible,
+showstringspaces=false
+}
+
+\newcommand{\mod}{\mathbin{\hbox{\textbf{mod}}}}
+
+\newcommand{\SPARK}{\textsc{Spark}}
+
+\newcommand{\secref}[1]{\S \ref{#1}}
+\newcommand{\figref}[1]{Fig.\ \ref{#1}}
+
+\renewcommand{\topfraction}{.99}
+\renewcommand{\bottomfraction}{.99}
+\setcounter{topnumber}{9}
+\setcounter{bottomnumber}{9}
+\setcounter{totalnumber}{20}
+
+
+\begin{document}
+
+\title{The HOL-\SPARK{} Program Verification Environment}
+\author{\emph{Stefan Berghofer} \\ \emph{secunet Security Networks AG}}
+\maketitle
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\input{intro}
+\input{Example_Verification}
+\input{VC_Principles}
+\input{Reference}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

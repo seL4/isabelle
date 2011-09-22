@@ -1,0 +1,52 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 22-SEP-2011 11:10:52.42}
+
+                   {procedure Complex_Types_App.Initialize}
+
+
+title procedure initialize;
+
+  function round__(real) : integer;
+  type complex_types__day = (complex_types__mon, 
+     complex_types__tue, complex_types__wed, complex_types__thu, 
+     complex_types__fri, complex_types__sat, complex_types__sun);
+  type complex_types__array_type1 = array [integer,
+     complex_types__day] of integer;
+  type complex_types__record_type = record
+        field1 : complex_types__array_type1;
+        field2 : integer
+     end;
+  type complex_types__array_type2 = array [integer] of 
+     complex_types__record_type;
+  const complex_types__array_index__base__first : integer = pending; 
+  const complex_types__array_index__base__last : integer = pending; 
+  const complex_types__day__base__first : complex_types__day = pending; 
+  const complex_types__day__base__last : complex_types__day = pending; 
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const complex_types__record_type__size : integer = pending; 
+  const complex_types__array_index__first : integer = pending; 
+  const complex_types__array_index__last : integer = pending; 
+  const complex_types__array_index__size : integer = pending; 
+  const complex_types__day__first : complex_types__day = pending; 
+  const complex_types__day__last : complex_types__day = pending; 
+  function complex_types__day__pos(complex_types__day) : integer;
+  const complex_types__day__size : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var a : complex_types__array_type2;
+  var loop__1__i : integer;
+  var loop__2__j : integer;
+  var loop__3__k : complex_types__day;
+  function complex_types__initialized(complex_types__array_type2, integer) : boolean;
+  function complex_types__initialized2(complex_types__array_type1, integer) : boolean;
+  function complex_types__initialized3(complex_types__array_type1, integer, integer) : boolean;
+
+end;

@@ -1,0 +1,94 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 22-SEP-2011 11:10:52.42*/
+
+                   /*procedure Complex_Types_App.Initialize*/
+
+
+rule_family initialize_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+initialize_rules(1): integer__size >= 0 may_be_deduced.
+initialize_rules(2): integer__first may_be_replaced_by -2147483648.
+initialize_rules(3): integer__last may_be_replaced_by 2147483647.
+initialize_rules(4): integer__base__first may_be_replaced_by -2147483648.
+initialize_rules(5): integer__base__last may_be_replaced_by 2147483647.
+initialize_rules(6): complex_types__day__size >= 0 may_be_deduced.
+initialize_rules(7): complex_types__day__first may_be_replaced_by complex_types__mon.
+initialize_rules(8): complex_types__day__last may_be_replaced_by complex_types__sun.
+initialize_rules(9): complex_types__day__base__first may_be_replaced_by complex_types__mon.
+initialize_rules(10): complex_types__day__base__last may_be_replaced_by complex_types__sun.
+initialize_rules(11): complex_types__day__pos(complex_types__day__first) may_be_replaced_by 0.
+initialize_rules(12): complex_types__day__pos(complex_types__mon) may_be_replaced_by 0.
+initialize_rules(13): complex_types__day__val(0) may_be_replaced_by 
+     complex_types__mon.
+initialize_rules(14): complex_types__day__pos(complex_types__tue) may_be_replaced_by 1.
+initialize_rules(15): complex_types__day__val(1) may_be_replaced_by 
+     complex_types__tue.
+initialize_rules(16): complex_types__day__pos(complex_types__wed) may_be_replaced_by 2.
+initialize_rules(17): complex_types__day__val(2) may_be_replaced_by 
+     complex_types__wed.
+initialize_rules(18): complex_types__day__pos(complex_types__thu) may_be_replaced_by 3.
+initialize_rules(19): complex_types__day__val(3) may_be_replaced_by 
+     complex_types__thu.
+initialize_rules(20): complex_types__day__pos(complex_types__fri) may_be_replaced_by 4.
+initialize_rules(21): complex_types__day__val(4) may_be_replaced_by 
+     complex_types__fri.
+initialize_rules(22): complex_types__day__pos(complex_types__sat) may_be_replaced_by 5.
+initialize_rules(23): complex_types__day__val(5) may_be_replaced_by 
+     complex_types__sat.
+initialize_rules(24): complex_types__day__pos(complex_types__sun) may_be_replaced_by 6.
+initialize_rules(25): complex_types__day__val(6) may_be_replaced_by 
+     complex_types__sun.
+initialize_rules(26): complex_types__day__pos(complex_types__day__last) may_be_replaced_by 6.
+initialize_rules(27): complex_types__day__pos(succ(X)) may_be_replaced_by 
+     complex_types__day__pos(X) + 1
+     if [X <=complex_types__sun, X <> complex_types__sun].
+initialize_rules(28): complex_types__day__pos(pred(X)) may_be_replaced_by 
+     complex_types__day__pos(X) - 1
+     if [X >=complex_types__mon, X <> complex_types__mon].
+initialize_rules(29): complex_types__day__pos(X) >= 0 may_be_deduced_from
+     [complex_types__mon <= X, X <= complex_types__sun].
+initialize_rules(30): complex_types__day__pos(X) <= 6 may_be_deduced_from
+     [complex_types__mon <= X, X <= complex_types__sun].
+initialize_rules(31): complex_types__day__val(X) >= 
+     complex_types__mon may_be_deduced_from
+     [0 <= X, X <= 6].
+initialize_rules(32): complex_types__day__val(X) <= 
+     complex_types__sun may_be_deduced_from
+     [0 <= X, X <= 6].
+initialize_rules(33): succ(complex_types__day__val(X)) may_be_replaced_by 
+     complex_types__day__val(X+1)
+     if [0 <= X, X < 6].
+initialize_rules(34): pred(complex_types__day__val(X)) may_be_replaced_by 
+     complex_types__day__val(X-1)
+     if [0 < X, X <= 6].
+initialize_rules(35): complex_types__day__pos(complex_types__day__val(X)) may_be_replaced_by X
+     if [0 <= X, X <= 6].
+initialize_rules(36): complex_types__day__val(complex_types__day__pos(X)) may_be_replaced_by X
+     if [complex_types__mon <= X, X <= complex_types__sun].
+initialize_rules(37): complex_types__day__pos(X) <= 
+     complex_types__day__pos(Y) & X <= Y are_interchangeable 
+     if [complex_types__mon <= X, X <= complex_types__sun, 
+     complex_types__mon <= Y, Y <= complex_types__sun].
+initialize_rules(38): complex_types__day__val(X) <= 
+     complex_types__day__val(Y) & X <= Y are_interchangeable 
+     if [0 <= X, X <= 6, 0 <= Y, Y <= 6].
+initialize_rules(39): complex_types__array_index__size >= 0 may_be_deduced.
+initialize_rules(40): complex_types__array_index__first may_be_replaced_by 0.
+initialize_rules(41): complex_types__array_index__last may_be_replaced_by 9.
+initialize_rules(42): complex_types__array_index__base__first may_be_replaced_by -2147483648.
+initialize_rules(43): complex_types__array_index__base__last may_be_replaced_by 2147483647.
+initialize_rules(44): complex_types__record_type__size >= 0 may_be_deduced.
+initialize_rules(45): A = B may_be_deduced_from
+     [goal(checktype(A,complex_types__record_type)),
+      goal(checktype(B,complex_types__record_type)),
+      fld_field1(A) = fld_field1(B),
+      fld_field2(A) = fld_field2(B)].

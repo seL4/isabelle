@@ -1,0 +1,93 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 22-SEP-2011, 11:10:50  SIMPLIFIED 22-SEP-2011, 11:10:51
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Loop_Invariant.Proc1
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 7:
+
+procedure_proc1_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_proc1_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_proc1_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 8:
+
+procedure_proc1_4.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 8 to assertion of line 8:
+
+procedure_proc1_5.
+H1:    a <= 2147483647 .
+H2:    b >= 0 .
+H3:    b <= 4294967295 .
+H4:    loop__1__i >= 1 .
+H5:    (loop__1__i - 1) * b mod 4294967296 >= 0 .
+H6:    (loop__1__i - 1) * b mod 4294967296 <= 4294967295 .
+H7:    ((loop__1__i - 1) * b mod 4294967296 + b) mod 4294967296 >= 0 .
+H8:    ((loop__1__i - 1) * b mod 4294967296 + b) mod 4294967296 <= 4294967295 .
+H9:    loop__1__i < a .
+H10:   integer__size >= 0 .
+H11:   natural__size >= 0 .
+H12:   word32__size >= 0 .
+       ->
+C1:    loop__1__i * b mod 4294967296 = ((loop__1__i - 1) * b mod 4294967296 + b)
+           mod 4294967296 .
+
+
+For path(s) from assertion of line 8 to run-time check associated with 
+          statement of line 11:
+
+procedure_proc1_6.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to finish:
+
+procedure_proc1_7.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 8 to finish:
+
+procedure_proc1_8.
+H1:    a <= 2147483647 .
+H2:    b >= 0 .
+H3:    b <= 4294967295 .
+H4:    a <= 2147483647 .
+H5:    a >= 1 .
+H6:    (a - 1) * b mod 4294967296 >= 0 .
+H7:    (a - 1) * b mod 4294967296 <= 4294967295 .
+H8:    ((a - 1) * b mod 4294967296 + b) mod 4294967296 >= 0 .
+H9:    ((a - 1) * b mod 4294967296 + b) mod 4294967296 <= 4294967295 .
+H10:   integer__size >= 0 .
+H11:   natural__size >= 0 .
+H12:   word32__size >= 0 .
+       ->
+C1:    a * b mod 4294967296 = ((a - 1) * b mod 4294967296 + b) mod 4294967296 .
+
+

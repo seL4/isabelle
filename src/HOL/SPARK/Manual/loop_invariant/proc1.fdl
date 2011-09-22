@@ -1,0 +1,38 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 22-SEP-2011 11:10:50.40}
+
+                       {procedure Loop_Invariant.Proc1}
+
+
+title procedure proc1;
+
+  function round__(real) : integer;
+  type word32 = integer;
+  const word32__base__first : integer = pending; 
+  const word32__base__last : integer = pending; 
+  const natural__base__first : integer = pending; 
+  const natural__base__last : integer = pending; 
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const word32__first : integer = pending; 
+  const word32__last : integer = pending; 
+  const word32__modulus : integer = pending; 
+  const word32__size : integer = pending; 
+  const natural__first : integer = pending; 
+  const natural__last : integer = pending; 
+  const natural__size : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var a : integer;
+  var b : integer;
+  var c : integer;
+  var loop__1__i : integer;
+
+end;

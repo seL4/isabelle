@@ -1,0 +1,87 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 22-SEP-2011, 11:10:50  SIMPLIFIED 22-SEP-2011, 11:10:51
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Loop_Invariant.Proc2
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 18:
+
+procedure_proc2_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 19:
+
+procedure_proc2_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 19:
+
+procedure_proc2_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 19:
+
+procedure_proc2_4.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 23 to assertion of line 19:
+
+procedure_proc2_5.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 19 to run-time check associated with 
+          statement of line 22:
+
+procedure_proc2_6.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 19 to assertion of line 23:
+
+procedure_proc2_7.
+H1:    a <= 2147483647 .
+H2:    b >= 0 .
+H3:    b <= 4294967295 .
+H4:    loop__1__i <= 2147483647 .
+H5:    loop__1__i >= 1 .
+H6:    loop__1__i <= a .
+H7:    (loop__1__i - 1) * b mod 4294967296 >= 0 .
+H8:    (loop__1__i - 1) * b mod 4294967296 <= 4294967295 .
+H9:    ((loop__1__i - 1) * b mod 4294967296 + b) mod 4294967296 >= 0 .
+H10:   ((loop__1__i - 1) * b mod 4294967296 + b) mod 4294967296 <= 4294967295 .
+H11:   integer__size >= 0 .
+H12:   natural__size >= 0 .
+H13:   word32__size >= 0 .
+       ->
+C1:    loop__1__i * b mod 4294967296 = ((loop__1__i - 1) * b mod 4294967296 + b)
+           mod 4294967296 .
+
+
+For path(s) from start to finish:
+
+procedure_proc2_8.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 23 to finish:
+
+procedure_proc2_9.
+*** true .          /* all conclusions proved */
+
+
