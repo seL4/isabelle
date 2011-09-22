@@ -176,7 +176,7 @@ Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
-with E 1.0 to 1.3, SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
+with E 1.0 to 1.4, SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
 than, say, Vampire 9.0 or 11.5.}%
@@ -265,16 +265,12 @@ Sledgehammer: ``\textit{remote\_waldmeister}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (15 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_e\_sine}'' on goal \\
-$[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms). \\[3\smallskipamount]
-%
 Sledgehammer: ``\textit{remote\_z3}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis list.inject}) (20 ms).
 \postw
 
-Sledgehammer ran E, E-SInE, SPASS, Vampire, Waldmeister, and Z3 in parallel.
+Sledgehammer ran E, SPASS, Vampire, Waldmeister, and Z3 in parallel.
 Depending on which provers are installed and how many processor cores are
 available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
@@ -505,7 +501,7 @@ Incidentally, if you see the warning
 Metis: Falling back on ``\textit{metis} (\textit{full\_types})''.
 \postw
 
-in a successful Metis proof, you can advantageously pass the
+for a successful Metis proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
 \point{Are generated proofs minimal?}
@@ -818,7 +814,7 @@ point).
 with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs E, E-SInE, SPASS, Vampire, Z3 (or whatever
+By default, Sledgehammer runs E, SPASS, Vampire, Z3 (or whatever
 the SMT module's \textit{smt\_solver} configuration option is set to), and (if
 appropriate) Waldmeister in parallel---either locally or remotely, depending on
 the number of processor cores available. For historical reasons, the default
