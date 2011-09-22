@@ -54,7 +54,6 @@ use_thys [
   "Coherent",
   "PresburgerEx",
   "ReflectionEx",
-  "BinEx",
   "Sqrt",
   "Sqrt_Script",
   "Transfer_Ex",
