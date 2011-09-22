@@ -1049,33 +1049,6 @@ declare Real_induct [induct del]
 declare Abs_real_induct [induct del]
 declare Abs_real_cases [cases del]
 
-subsection {* Legacy theorem names *}
-
-text {* TODO: Could we have a way to mark theorem names as deprecated,
-and have Isabelle issue a warning and display the preferred name? *}
-
-lemmas real_diff_def = minus_real_def [of "r" "s", standard]
-lemmas real_divide_def = divide_real_def [of "R" "S", standard]
-lemmas real_less_def = less_le [of "x::real" "y", standard]
-lemmas real_abs_def = abs_real_def [of "r", standard]
-lemmas real_sgn_def = sgn_real_def [of "x", standard]
-lemmas real_mult_commute = mult_commute [of "z::real" "w", standard]
-lemmas real_mult_assoc = mult_assoc [of "z1::real" "z2" "z3", standard]
-lemmas real_mult_1 = mult_1_left [of "z::real", standard]
-lemmas real_add_mult_distrib = left_distrib [of "z1::real" "z2" "w", standard]
-lemmas real_zero_not_eq_one = zero_neq_one [where 'a=real]
-lemmas real_mult_inverse_left = left_inverse [of "x::real", standard]
-lemmas INVERSE_ZERO = inverse_zero [where 'a=real]
-lemmas real_le_refl = order_refl [of "w::real", standard]
-lemmas real_le_antisym = order_antisym [of "z::real" "w", standard]
-lemmas real_le_trans = order_trans [of "i::real" "j" "k", standard]
-lemmas real_le_linear = linear [of "z::real" "w", standard]
-lemmas real_le_eq_diff = le_iff_diff_le_0 [of "x::real" "y", standard]
-lemmas real_add_left_mono = add_left_mono [of "x::real" "y" "z", standard]
-lemmas real_mult_order = mult_pos_pos [of "x::real" "y", standard]
-lemmas real_mult_less_mono2 =
-  mult_strict_left_mono [of "x::real" "y" "z", COMP swap_prems_rl, standard]
-
 subsection{*More Lemmas*}
 
 text {* BH: These lemmas should not be necessary; they should be

@@ -5634,7 +5634,7 @@ proof-
     proof(cases "d = 0")
       case True
       have *: "\<And>x. ((1 - c) * x \<le> 0) = (x \<le> 0)" using `1 - c > 0`
-        by (metis mult_zero_left real_mult_commute real_mult_le_cancel_iff1)
+        by (metis mult_zero_left mult_commute real_mult_le_cancel_iff1)
       from True have "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def
         by (simp add: *)
       thus ?thesis using `e>0` by auto

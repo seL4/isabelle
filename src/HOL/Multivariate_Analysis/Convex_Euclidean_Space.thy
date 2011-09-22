@@ -2225,12 +2225,12 @@ obtain d where "d>0" and d:"ball c d Int affine hull S <= S"
       by(auto simp add:euclidean_eq[where 'a='a] field_simps) 
     also have "... = abs(1/e) * norm (x - e *\<^sub>R (x - c) - y)" by(auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "... < d" using as[unfolded dist_norm] and `e>0`
-      by(auto simp add:pos_divide_less_eq[OF `e>0`] real_mult_commute)
+      by(auto simp add:pos_divide_less_eq[OF `e>0`] mult_commute)
     finally have "y : S" apply(subst *) 
 apply(rule assms(1)[unfolded convex_alt,rule_format])
       apply(rule d[unfolded subset_eq,rule_format]) unfolding mem_ball using assms(3-5) ** by auto
 } hence "ball (x - e *\<^sub>R (x - c)) (e*d) Int affine hull S <= S" by auto
-moreover have "0 < e*d" using `0<e` `0<d` using real_mult_order by auto
+moreover have "0 < e*d" using `0<e` `0<d` by (rule mult_pos_pos)
 moreover have "c : S" using assms rel_interior_subset by auto
 moreover hence "x - e *\<^sub>R (x - c) : S"
    using mem_convex[of S x c e] apply (simp add: algebra_simps) using assms by auto
@@ -2439,7 +2439,7 @@ proof-
    using assms RealVector.bounded_linear.pos_bounded[of f] by auto
   def e1 == "1/K" hence e1_def: "e1>0 & (! x. e1 * norm (f x) <= norm x)" 
    using K_def pos_le_divide_eq[of e1] by auto
-  def e == "e1 * e2" hence "e>0" using e1_def e2_def real_mult_order by auto 
+  def e == "e1 * e2" hence "e>0" using e1_def e2_def mult_pos_pos by auto 
   { fix y assume y_def: "y : cball x e Int affine hull S"
     from this have h1: "f y : affine hull (f ` S)" 
       using affine_hull_linear_image[of f S] assms by auto 
@@ -2469,7 +2469,7 @@ moreover
   from this obtain e1 where e1_def: "e1>0 & (! x : span S. e1 * norm x <= norm (f x))" 
    using assms injective_imp_isometric[of "span S" f] 
          subspace_span[of S] closed_subspace[of "span S"] by auto
-  def e == "e1 * e2" hence "e>0" using e1_def e2_def real_mult_order by auto 
+  def e == "e1 * e2" hence "e>0" using e1_def e2_def mult_pos_pos by auto 
   { fix y assume y_def: "y : cball (f x) e Int affine hull (f ` S)"
     from this have "y : f ` (affine hull S)" using affine_hull_linear_image[of f S] assms by auto 
     from this obtain xy where xy_def: "xy : affine hull S & (f xy = y)" by auto
@@ -4291,7 +4291,7 @@ lemma rel_interior_substd_simplex_nonempty: assumes "d ~={}" "d\<subseteq>{..<DI
     finally show "0 < ?a $$ i" by auto
   next have "setsum (op $$ ?a) ?D = setsum (\<lambda>i. inverse (2 * real (card d))) ?D" 
       by(rule setsum_cong2, rule **) 
-    also have "\<dots> < 1" unfolding setsum_constant real_eq_of_nat real_divide_def[THEN sym]
+    also have "\<dots> < 1" unfolding setsum_constant real_eq_of_nat divide_real_def[THEN sym]
       by (auto simp add:field_simps)
     finally show "setsum (op $$ ?a) ?D < 1" by auto
   next fix i assume "i<DIM('a)" and "i~:d"

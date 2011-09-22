@@ -233,7 +233,7 @@ lemma REAL_EQ_LDIV_EQ:
 
 lemma REAL_SUB_INV:
   "(x :: real) \<noteq> 0 \<and> y \<noteq> 0 \<longrightarrow> inverse x - inverse y = (y - x) / (x * y)"
-  by (simp add: division_ring_inverse_diff real_divide_def)
+  by (simp add: division_ring_inverse_diff divide_real_def)
 
 lemma REAL_DOWN:
   "0 < (d :: real) \<longrightarrow> (\<exists>e>0. e < d)"

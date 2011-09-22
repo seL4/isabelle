@@ -667,7 +667,7 @@ moreover
        using a[rule_format, of "{B<..}"] mono_greaterThan by auto
     { fix y assume "y:(S Int ball x d - {x})"
       hence "y:S & 0 < dist y x & dist y x < d" unfolding ball_def apply (simp add: dist_commute)
-         by (metis dist_eq_0_iff real_less_def zero_le_dist)
+         by (metis dist_eq_0_iff less_le zero_le_dist)
       hence "B <= f y" using d_def by auto
     } hence "B <= INFI (S Int ball x d - {x}) f" apply (subst INF_greatest) by auto
     also have "...<=?l" apply (subst SUP_upper) using d_def by auto
@@ -714,7 +714,7 @@ moreover
        using a[rule_format, of "{..<B}"] by auto
     { fix y assume "y:(S Int ball x d - {x})"
       hence "y:S & 0 < dist y x & dist y x < d" unfolding ball_def apply (simp add: dist_commute)
-         by (metis dist_eq_0_iff real_less_def zero_le_dist)
+         by (metis dist_eq_0_iff less_le zero_le_dist)
       hence "f y <= B" using d_def by auto
     } hence "SUPR (S Int ball x d - {x}) f <= B" apply (subst SUP_least) by auto
     moreover have "?l<=SUPR (S Int ball x d - {x}) f" apply (subst INF_lower) using d_def by auto

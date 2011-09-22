@@ -1247,7 +1247,7 @@ next
     by auto
   with A have "a < b" "f b < f a" by auto
   with C have "\<not> l \<ge> 0" by (auto simp add: not_le algebra_simps)
-    (metis A add_le_cancel_right assms(1) less_eq_real_def mult_right_mono real_add_left_mono real_le_linear real_le_refl)
+    (metis A add_le_cancel_right assms(1) less_eq_real_def mult_right_mono add_left_mono linear order_refl)
   with assms z show False
     by (metis DERIV_unique order_less_imp_le)
 qed

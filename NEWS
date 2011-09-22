@@ -180,6 +180,26 @@ original names for distributivity theorems, potential INCOMPATIBILITY.
 * Theory Complex_Main: Several redundant theorems have been removed or
 replaced by more general versions. INCOMPATIBILITY.
 
+  real_diff_def ~> minus_real_def
+  real_divide_def ~> divide_real_def
+  real_less_def ~> less_le
+  real_abs_def ~> abs_real_def
+  real_sgn_def ~> sgn_real_def
+  real_mult_commute ~> mult_commute
+  real_mult_assoc ~> mult_assoc
+  real_mult_1 ~> mult_1_left
+  real_add_mult_distrib ~> left_distrib
+  real_zero_not_eq_one ~> zero_neq_one
+  real_mult_inverse_left ~> left_inverse
+  INVERSE_ZERO ~> inverse_zero
+  real_le_refl ~> order_refl
+  real_le_antisym ~> order_antisym
+  real_le_trans ~> order_trans
+  real_le_linear ~> linear
+  real_le_eq_diff ~> le_iff_diff_le_0
+  real_add_left_mono ~> add_left_mono
+  real_mult_order ~> mult_pos_pos
+  real_mult_less_mono2 ~> mult_strict_left_mono
   real_of_int_real_of_nat ~> real_of_int_of_nat_eq
   real_0_le_divide_iff ~> zero_le_divide_iff
   realpow_two_disj ~> power2_eq_iff
