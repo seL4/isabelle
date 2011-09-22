@@ -1,0 +1,257 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 22-SEP-2011, 11:10:52  SIMPLIFIED 22-SEP-2011, 11:10:53
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Complex_Types_App.Initialize
+
+
+
+
+For path(s) from start to assertion of line 7:
+
+procedure_initialize_1.
+H1:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H2:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H3:    integer__size >= 0 .
+H4:    complex_types__day__size >= 0 .
+H5:    complex_types__array_index__size >= 0 .
+H6:    complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized(a, 0) .
+
+
+For path(s) from assertion of line 15 to assertion of line 7:
+
+procedure_initialize_2.
+H1:    complex_types__initialized(a, loop__1__i) .
+H2:    complex_types__initialized2(fld_field1(element(a, [loop__1__i])), 9) .
+H3:    complex_types__initialized3(fld_field1(element(a, [loop__1__i])), 9, 
+          complex_types__day__pos(complex_types__sun)) .
+H4:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H5:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H6:    loop__1__i >= 0 .
+H7:    loop__1__i < 9 .
+H8:    integer__size >= 0 .
+H9:    complex_types__day__size >= 0 .
+H10:   complex_types__array_index__size >= 0 .
+H11:   complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized(update(a, [loop__1__i], upf_field1(upf_field2(
+          element(a, [loop__1__i]), 0), update(fld_field1(element(a, [
+          loop__1__i])), [9, complex_types__sun], 0))), loop__1__i + 1) .
+C2:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(upf_field2(element(a, [loop__1__i]), 0), update(fld_field1(
+          element(a, [loop__1__i])), [9, complex_types__sun], 0))), [i___1])), [
+          i___2, i___3]) and element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(upf_field2(element(a, [loop__1__i]), 0), update(fld_field1(
+          element(a, [loop__1__i])), [9, complex_types__sun], 0))), [i___1])), [
+          i___2, i___3]) <= 2147483647))) .
+
+
+For path(s) from assertion of line 7 to assertion of line 10:
+
+procedure_initialize_3.
+H1:    complex_types__initialized(a, loop__1__i) .
+H2:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H3:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H4:    loop__1__i >= 0 .
+H5:    loop__1__i <= 9 .
+H6:    integer__size >= 0 .
+H7:    complex_types__day__size >= 0 .
+H8:    complex_types__array_index__size >= 0 .
+H9:    complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized2(fld_field1(element(a, [loop__1__i])), 0) .
+
+
+For path(s) from assertion of line 15 to assertion of line 10:
+
+procedure_initialize_4.
+H1:    complex_types__initialized(a, loop__1__i) .
+H2:    complex_types__initialized2(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j) .
+H3:    complex_types__initialized3(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j, complex_types__day__pos(complex_types__sun)) .
+H4:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H5:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H6:    loop__2__j >= 0 .
+H7:    loop__1__i >= 0 .
+H8:    loop__1__i <= 9 .
+H9:    loop__2__j < 9 .
+H10:   integer__size >= 0 .
+H11:   complex_types__day__size >= 0 .
+H12:   complex_types__array_index__size >= 0 .
+H13:   complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized(update(a, [loop__1__i], upf_field1(element(a, 
+          [loop__1__i]), update(fld_field1(element(a, [loop__1__i])), [
+          loop__2__j, complex_types__sun], 0))), loop__1__i) .
+C2:    complex_types__initialized2(update(fld_field1(element(a, [loop__1__i])), 
+          [loop__2__j, complex_types__sun], 0), loop__2__j + 1) .
+C3:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(element(a, [loop__1__i]), update(fld_field1(element(a, [
+          loop__1__i])), [loop__2__j, complex_types__sun], 0))), [i___1])), [
+          i___2, i___3]) and element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(element(a, [loop__1__i]), update(fld_field1(element(a, [
+          loop__1__i])), [loop__2__j, complex_types__sun], 0))), [i___1])), [
+          i___2, i___3]) <= 2147483647))) .
+
+
+For path(s) from assertion of line 10 to assertion of line 15:
+
+procedure_initialize_5.
+H1:    complex_types__initialized(a, loop__1__i) .
+H2:    complex_types__initialized2(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j) .
+H3:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H4:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H5:    loop__2__j >= 0 .
+H6:    loop__2__j <= 9 .
+H7:    loop__1__i >= 0 .
+H8:    loop__1__i <= 9 .
+H9:    integer__size >= 0 .
+H10:   complex_types__day__size >= 0 .
+H11:   complex_types__array_index__size >= 0 .
+H12:   complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized3(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j, 0) .
+
+
+For path(s) from assertion of line 15 to assertion of line 15:
+
+procedure_initialize_6.
+H1:    complex_types__initialized(a, loop__1__i) .
+H2:    complex_types__initialized2(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j) .
+H3:    complex_types__initialized3(fld_field1(element(a, [loop__1__i])), 
+          loop__2__j, complex_types__day__pos(loop__3__k)) .
+H4:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H5:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H6:    complex_types__mon <= loop__3__k .
+H7:    loop__2__j >= 0 .
+H8:    loop__2__j <= 9 .
+H9:    loop__1__i >= 0 .
+H10:   loop__1__i <= 9 .
+H11:   loop__3__k < complex_types__sun .
+H12:   integer__size >= 0 .
+H13:   complex_types__day__size >= 0 .
+H14:   complex_types__array_index__size >= 0 .
+H15:   complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized(update(a, [loop__1__i], upf_field1(element(a, 
+          [loop__1__i]), update(fld_field1(element(a, [loop__1__i])), [
+          loop__2__j, loop__3__k], 0))), loop__1__i) .
+C2:    complex_types__initialized2(update(fld_field1(element(a, [loop__1__i])), 
+          [loop__2__j, loop__3__k], 0), loop__2__j) .
+C3:    complex_types__initialized3(update(fld_field1(element(a, [loop__1__i])), 
+          [loop__2__j, loop__3__k], 0), loop__2__j, complex_types__day__pos(
+          succ(loop__3__k))) .
+C4:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(element(a, [loop__1__i]), update(fld_field1(element(a, [
+          loop__1__i])), [loop__2__j, loop__3__k], 0))), [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(update(a, [loop__1__i], 
+          upf_field1(element(a, [loop__1__i]), update(fld_field1(element(a, [
+          loop__1__i])), [loop__2__j, loop__3__k], 0))), [i___1])), [i___2, 
+          i___3]) <= 2147483647))) .
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 22:
+
+procedure_initialize_7.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 25:
+
+procedure_initialize_8.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to finish:
+
+procedure_initialize_9.
+H1:    complex_types__initialized(a, 9) .
+H2:    complex_types__initialized2(fld_field1(element(a, [9])), 9) .
+H3:    complex_types__initialized3(fld_field1(element(a, [9])), 9, 
+          complex_types__day__pos(complex_types__sun)) .
+H4:    for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 -> - 2147483648 <= 
+          fld_field2(element(a, [i___1])) and fld_field2(element(a, [i___1])) 
+          <= 2147483647) .
+H5:    for_all(i___3 : complex_types__day, complex_types__mon <= i___3 and 
+          i___3 <= complex_types__sun -> for_all(i___2 : integer, 0 <= i___2 
+          and i___2 <= 9 -> for_all(i___1 : integer, 0 <= i___1 and i___1 <= 9 
+          -> - 2147483648 <= element(fld_field1(element(a, [i___1])), [i___2, 
+          i___3]) and element(fld_field1(element(a, [i___1])), [i___2, i___3]) 
+          <= 2147483647))) .
+H6:    integer__size >= 0 .
+H7:    complex_types__day__size >= 0 .
+H8:    complex_types__array_index__size >= 0 .
+H9:    complex_types__record_type__size >= 0 .
+       ->
+C1:    complex_types__initialized(update(a, [9], upf_field1(upf_field2(element(
+          a, [9]), 0), update(fld_field1(element(a, [9])), [9, 
+          complex_types__sun], 0))), 10) .
+
+

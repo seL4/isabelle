@@ -1,0 +1,27 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 22-SEP-2011 11:10:48.96*/
+
+               /*procedure Simple_Greatest_Common_Divisor.G_C_D*/
+
+
+rule_family g_c_d_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+g_c_d_rules(1): integer__size >= 0 may_be_deduced.
+g_c_d_rules(2): integer__first may_be_replaced_by -2147483648.
+g_c_d_rules(3): integer__last may_be_replaced_by 2147483647.
+g_c_d_rules(4): integer__base__first may_be_replaced_by -2147483648.
+g_c_d_rules(5): integer__base__last may_be_replaced_by 2147483647.
+g_c_d_rules(6): natural__size >= 0 may_be_deduced.
+g_c_d_rules(7): natural__first may_be_replaced_by 0.
+g_c_d_rules(8): natural__last may_be_replaced_by 2147483647.
+g_c_d_rules(9): natural__base__first may_be_replaced_by -2147483648.
+g_c_d_rules(10): natural__base__last may_be_replaced_by 2147483647.

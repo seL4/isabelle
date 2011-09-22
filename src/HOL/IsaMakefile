@@ -68,6 +68,7 @@ test: \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-SPARK-Examples \
+  HOL-SPARK-Manual \
   HOL-Word-SMT_Examples \
   HOL-Statespace \
       TLA-Buffer \
@@ -1442,6 +1443,48 @@ $(LOG)/HOL-SPARK-Examples.gz: $(OUT)/HOL-SPARK				\
 	@cd SPARK; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SPARK Examples
 
 
+## HOL-SPARK-Manual
+
+HOL-SPARK-Manual: HOL-SPARK $(LOG)/HOL-SPARK-Manual.gz
+
+$(LOG)/HOL-SPARK-Manual.gz: $(OUT)/HOL-SPARK				\
+  SPARK/Manual/ROOT.ML							\
+  SPARK/Manual/Complex_Types.thy					\
+  SPARK/Manual/Example_Verification.thy					\
+  SPARK/Manual/Proc1.thy						\
+  SPARK/Manual/Proc2.thy						\
+  SPARK/Manual/Reference.thy						\
+  SPARK/Manual/Simple_Greatest_Common_Divisor.thy			\
+  SPARK/Manual/VC_Principles.thy					\
+  SPARK/Manual/complex_types_app/initialize.fdl				\
+  SPARK/Manual/complex_types_app/initialize.rls				\
+  SPARK/Manual/complex_types_app/initialize.siv				\
+  SPARK/Manual/loop_invariant/proc1.fdl					\
+  SPARK/Manual/loop_invariant/proc1.rls					\
+  SPARK/Manual/loop_invariant/proc1.siv					\
+  SPARK/Manual/loop_invariant/proc2.fdl					\
+  SPARK/Manual/loop_invariant/proc2.rls					\
+  SPARK/Manual/loop_invariant/proc2.siv					\
+  SPARK/Manual/simple_greatest_common_divisor/g_c_d.fdl			\
+  SPARK/Manual/simple_greatest_common_divisor/g_c_d.rls			\
+  SPARK/Manual/simple_greatest_common_divisor/g_c_d.siv			\
+  SPARK/Manual/document/complex_types.ads				\
+  SPARK/Manual/document/complex_types_app.adb				\
+  SPARK/Manual/document/complex_types_app.ads				\
+  SPARK/Manual/document/loop_invariant.adb				\
+  SPARK/Manual/document/loop_invariant.ads				\
+  SPARK/Manual/document/Simple_Gcd.adb					\
+  SPARK/Manual/document/Simple_Gcd.ads					\
+  SPARK/Manual/document/intro.tex					\
+  SPARK/Manual/document/root.tex					\
+  SPARK/Manual/document/root.bib					\
+  SPARK/Examples/Gcd/Greatest_Common_Divisor.thy			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.fdl			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.rls			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.siv
+	@cd SPARK; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SPARK Manual
+
+
 ## HOL-Mutabelle
 
 HOL-Mutabelle: HOL $(LOG)/HOL-Mutabelle.gz
@@ -1751,6 +1794,7 @@ clean:
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
 		$(LOG)/HOL-Word-SMT_Examples.gz				\
 		$(LOG)/HOL-SPARK.gz $(LOG)/HOL-SPARK-Examples.gz	\
+		$(LOG)/HOL-SPARK-Manual.gz				\
 		$(LOG)/HOL-Statespace.gz				\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\

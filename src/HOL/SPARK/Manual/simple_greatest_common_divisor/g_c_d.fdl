@@ -1,0 +1,32 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 22-SEP-2011 11:10:48.96}
+
+               {procedure Simple_Greatest_Common_Divisor.G_C_D}
+
+
+title procedure g_c_d;
+
+  function round__(real) : integer;
+  const natural__base__first : integer = pending; 
+  const natural__base__last : integer = pending; 
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const natural__first : integer = pending; 
+  const natural__last : integer = pending; 
+  const natural__size : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var m : integer;
+  var n : integer;
+  var c : integer;
+  var d : integer;
+  function gcd(integer, integer) : integer;
+
+end;
