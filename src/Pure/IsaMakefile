@@ -98,6 +98,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/seq.ML					\
   General/sha1.ML					\
   General/sha1_polyml.ML				\
+  General/socket_io.ML					\
   General/source.ML					\
   General/stack.ML					\
   General/symbol.ML					\
@@ -194,6 +195,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   System/isabelle_system.ML				\
   System/isar.ML					\
   System/session.ML					\
+  System/system_channel.ML				\
   Thy/html.ML						\
   Thy/latex.ML						\
   Thy/present.ML					\

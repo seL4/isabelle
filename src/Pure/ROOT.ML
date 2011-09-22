@@ -57,6 +57,7 @@ use "General/pretty.ML";
 use "General/path.ML";
 use "General/url.ML";
 use "General/file.ML";
+use "General/socket_io.ML";
 use "General/long_name.ML";
 use "General/binding.ML";
 
@@ -266,6 +267,7 @@ use "Proof/extraction.ML";
 (* Isabelle/Isar system *)
 
 use "System/session.ML";
+use "System/system_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
 use "PIDE/isar_document.ML";

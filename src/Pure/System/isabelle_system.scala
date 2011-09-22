@@ -10,8 +10,8 @@ package isabelle
 import java.lang.System
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File,
-  BufferedReader, InputStreamReader, BufferedWriter, OutputStreamWriter, IOException}
+import java.io.{InputStream, OutputStream, File, BufferedReader, InputStreamReader,
+  BufferedWriter, OutputStreamWriter, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
 
@@ -108,7 +108,7 @@ object Isabelle_System
   def standard_path(path: Path): String = path.expand.implode
 
   def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
-  def platform_file(path: Path) = new File(platform_path(path))
+  def platform_file(path: Path): File = new File(platform_path(path))
 
   def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
@@ -263,54 +263,6 @@ object Isabelle_System
         Standard_System.process_output(execute(true, (List(file) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
-  }
-
-
-  /* named pipes */
-
-  private val next_fifo = new Counter
-
-  def mk_fifo(): String =
-  {
-    val i = next_fifo()
-    val script =
-      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$" + i + "\"\n" +
-      "echo -n \"$FIFO\"\n" +
-      "mkfifo -m 600 \"$FIFO\"\n"
-    val (out, err, rc) = bash(script)
-    if (rc == 0) out else error(err.trim)
-  }
-
-  def rm_fifo(fifo: String): Boolean =
-    (new File(standard_system.jvm_path(if (Platform.is_windows) fifo + ".lnk" else fifo))).delete
-
-  def fifo_input_stream(fifo: String): InputStream =
-  {
-    if (Platform.is_windows) { // Cygwin fifo as Windows/Java input stream
-      val proc = execute(false, standard_path(Path.explode("~~/lib/scripts/raw_dump")), fifo, "-")
-      proc.getOutputStream.close
-      proc.getErrorStream.close
-      proc.getInputStream
-    }
-    else new FileInputStream(fifo)
-  }
-
-  def fifo_output_stream(fifo: String): OutputStream =
-  {
-    if (Platform.is_windows) { // Cygwin fifo as Windows/Java output stream
-      val proc = execute(false, standard_path(Path.explode("~~/lib/scripts/raw_dump")), "-", fifo)
-      proc.getInputStream.close
-      proc.getErrorStream.close
-      val out = proc.getOutputStream
-      new OutputStream {
-        override def close() { out.close(); proc.waitFor() }
-        override def flush() { out.flush() }
-        override def write(b: Array[Byte]) { out.write(b) }
-        override def write(b: Array[Byte], off: Int, len: Int) { out.write(b, off, len) }
-        override def write(b: Int) { out.write(b) }
-      }
-    }
-    else new FileOutputStream(fifo)
   }
 
 

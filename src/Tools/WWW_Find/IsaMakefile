@@ -28,10 +28,10 @@ Pure-WWW_Find: Pure $(LOGFILE)
 Pure:
 	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
-$(LOGFILE): $(OUT)/Pure echo.ML find_theorems.ML html_unicode.ML \
-  html_templates.ML http_status.ML http_util.ML mime.ML scgi_req.ML \
-  scgi_server.ML socket_util.ML unicode_symbols.ML xhtml.ML yxml_find_theorems.ML \
-  ROOT.ML
+$(LOGFILE): $(OUT)/Pure echo.ML find_theorems.ML html_unicode.ML	\
+  html_templates.ML http_status.ML http_util.ML mime.ML scgi_req.ML	\
+  scgi_server.ML server_socket.ML unicode_symbols.ML xhtml.ML		\
+  yxml_find_theorems.ML ROOT.ML
 	@cd ..; $(ISABELLE_TOOL) usedir Pure WWW_Find
 
 

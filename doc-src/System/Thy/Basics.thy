@@ -332,6 +332,7 @@ Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
     -I           startup Isar interaction mode
     -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
+    -T ADDR      startup process wrapper, with socket address
     -W IN:OUT    startup process wrapper, with input/output fifos
     -X           startup PGIP interaction mode
     -e MLTEXT    pass MLTEXT to the ML session
@@ -409,11 +410,11 @@ text {*
   interaction with the Proof General user interface, and the
   @{verbatim "-X"} option enables XML-based PGIP communication.
 
-  \medskip The @{verbatim "-W"} option makes Isabelle enter a special
-  process wrapper for interaction via the Isabelle/Scala layer, see
-  also @{file "~~/src/Pure/System/isabelle_process.scala"}.  The
-  protocol between the ML and JVM process is private to the
-  implementation.
+  \medskip The @{verbatim "-T"} or @{verbatim "-W"} option makes
+  Isabelle enter a special process wrapper for interaction via the
+  Isabelle/Scala layer, see also @{file
+  "~~/src/Pure/System/isabelle_process.scala"}.  The protocol between
+  the ML and JVM process is private to the implementation.
 
   \medskip The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime

@@ -49,6 +49,7 @@ declare -a SOURCES=(
   System/session_manager.scala
   System/standard_system.scala
   System/swing_thread.scala
+  System/system_channel.scala
   Thy/completion.scala
   Thy/html.scala
   Thy/thy_header.scala
