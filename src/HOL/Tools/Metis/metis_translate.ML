@@ -202,7 +202,8 @@ fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
                clauses ([], [])
     (*
     val _ =
-      tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
+      tracing ("PROPS:\n" ^
+               cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
     val (atp_problem, _, _, _, _, _, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false no_lambdasN

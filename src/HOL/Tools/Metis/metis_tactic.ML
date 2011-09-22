@@ -119,8 +119,6 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val dischargers = map (fst o snd) th_cls_pairs
       val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
-      val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
-      val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Sound type_enc
       val (sym_tab, axioms, old_skolems) =
@@ -129,6 +127,8 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+      val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
+      val _ = app (fn (_, th) => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) axioms
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = axioms |> map fst
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms

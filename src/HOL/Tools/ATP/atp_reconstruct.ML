@@ -430,8 +430,12 @@ fun term_from_atp ctxt textual sym_tab =
           end
         | NONE => (* a free or schematic variable *)
           let
-            val ts = map (do_term [] NONE) us @ extra_ts
-            val T = map slack_fastype_of ts ---> HOLogic.typeT
+            val term_ts = map (do_term [] NONE) us
+            val ts = term_ts @ extra_ts
+            val T =
+              case opt_T of
+                SOME T => map slack_fastype_of term_ts ---> T
+              | NONE => map slack_fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix_and_unascii fixed_var_prefix s of
                 SOME s =>
