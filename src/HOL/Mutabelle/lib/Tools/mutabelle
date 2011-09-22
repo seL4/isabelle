@@ -83,6 +83,8 @@ uses
   \"$MUTABELLE_HOME/mutabelle_extra.ML\"
 begin
 
+declare [[quickcheck_timeout = 30]]
+
 ML {*
 val mtds = [
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"random\"])) \"random\",
