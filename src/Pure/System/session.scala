@@ -137,7 +137,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   /* actor messages */
 
-  private case class Start(timeout: Time, args: List[String])
+  private case class Start(timeout: Time, use_socket: Boolean, args: List[String])
   private case object Cancel_Execution
   private case class Init_Node(name: Document.Node.Name,
     header: Document.Node_Header, perspective: Text.Perspective, text: String)
@@ -405,11 +405,12 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       receiveWithin(commands_changed_delay.flush_timeout) {
         case TIMEOUT => commands_changed_delay.flush()
 
-        case Start(timeout, args) if prover.isEmpty =>
+        case Start(timeout, use_socket, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
             prover =
-              Some(new Isabelle_Process(timeout, receiver.invoke _, args:_*) with Isar_Document)
+              Some(new Isabelle_Process(timeout, use_socket, receiver.invoke _, args)
+                with Isar_Document)
           }
 
         case Stop =>
@@ -468,7 +469,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   /* actions */
 
-  def start(timeout: Time, args: List[String]) { session_actor ! Start(timeout, args) }
+  def start(timeout: Time = Time.seconds(10), use_socket: Boolean = false, args: List[String])
+  { session_actor ! Start(timeout, use_socket, args) }
 
   def stop() { commands_changed_buffer !? Stop; session_actor !? Stop }
 

@@ -14,7 +14,8 @@ import java.net.{ServerSocket, InetAddress}
 
 object System_Channel
 {
-  def apply(): System_Channel = new Fifo_Channel
+  def apply(use_socket: Boolean = false): System_Channel =
+    if (use_socket) new Socket_Channel else new Fifo_Channel
 }
 
 abstract class System_Channel
