@@ -12,7 +12,11 @@ end
 signature SYNTAX_TRANS =
 sig
   include BASIC_SYNTAX_TRANS
+  val bracketsN: string
+  val no_bracketsN: string
   val no_brackets: unit -> bool
+  val type_bracketsN: string
+  val no_type_bracketsN: string
   val no_type_brackets: unit -> bool
   val abs_tr: term list -> term
   val mk_binder_tr: string * string -> string * (term list -> term)
