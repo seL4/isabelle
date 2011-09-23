@@ -347,7 +347,7 @@ proof -
     from some_handler xp'
     have state': 
       "state' = (None, hp, ([xcp], loc, C, sig, handler)#frs)"
-      by (cases "ins!pc", auto simp add: raise_system_xcpt_def split_beta 
+      by (cases "ins!pc") (auto simp add: raise_system_xcpt_def split_beta 
                                split: split_if_asm) (* takes long! *)
 
     let ?f' = "([xcp], loc, C, sig, handler)"
