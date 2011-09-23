@@ -212,7 +212,7 @@ mkdir -p "$ISABELLE_TMP"
 
 ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
-[ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
+[ -n "$MODES" ] && MLTEXT="Unsynchronized.change print_mode (append [$MODES]); $MLTEXT"
 
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT Secure.set_secure ();"
 
