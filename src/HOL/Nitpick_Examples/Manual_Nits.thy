@@ -15,12 +15,12 @@ theory Manual_Nits
 imports Main "~~/src/HOL/Library/Quotient_Product" RealDef
 begin
 
-chapter {* 3. First Steps *}
+chapter {* 2. First Steps *}
 
 nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1,
                 timeout = 240]
 
-subsection {* 3.1. Propositional Logic *}
+subsection {* 2.1. Propositional Logic *}
 
 lemma "P \<longleftrightarrow> Q"
 nitpick [expect = genuine]
@@ -29,13 +29,13 @@ nitpick [expect = genuine] 1
 nitpick [expect = genuine] 2
 oops
 
-subsection {* 3.2. Type Variables *}
+subsection {* 2.2. Type Variables *}
 
 lemma "P x \<Longrightarrow> P (THE y. P y)"
 nitpick [verbose, expect = genuine]
 oops
 
-subsection {* 3.3. Constants *}
+subsection {* 2.3. Constants *}
 
 lemma "P x \<Longrightarrow> P (THE y. P y)"
 nitpick [show_consts, expect = genuine]
@@ -49,7 +49,7 @@ nitpick [card 'a = 1\<emdash>50, expect = none]
 apply (metis the_equality)
 done
 
-subsection {* 3.4. Skolemization *}
+subsection {* 2.4. Skolemization *}
 
 lemma "\<exists>g. \<forall>x. g (f x) = x \<Longrightarrow> \<forall>y. \<exists>x. y = f x"
 nitpick [expect = genuine]
@@ -63,7 +63,7 @@ lemma "refl r \<Longrightarrow> sym r"
 nitpick [expect = genuine]
 oops
 
-subsection {* 3.5. Natural Numbers and Integers *}
+subsection {* 2.5. Natural Numbers and Integers *}
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
 nitpick [expect = genuine]
@@ -82,7 +82,7 @@ nitpick [card nat = 1, expect = genuine]
 nitpick [card nat = 2, expect = none]
 oops
 
-subsection {* 3.6. Inductive Datatypes *}
+subsection {* 2.6. Inductive Datatypes *}
 
 lemma "hd (xs @ [y, y]) = hd xs"
 nitpick [expect = genuine]
@@ -93,7 +93,7 @@ lemma "\<lbrakk>length xs = 1; length ys = 1\<rbrakk> \<Longrightarrow> xs = ys"
 nitpick [show_datatypes, expect = genuine]
 oops
 
-subsection {* 3.7. Typedefs, Records, Rationals, and Reals *}
+subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
 typedef three = "{0\<Colon>nat, 1, 2}"
 by blast
@@ -148,7 +148,7 @@ lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
 nitpick [show_datatypes, expect = genuine]
 oops
 
-subsection {* 3.8. Inductive and Coinductive Predicates *}
+subsection {* 2.8. Inductive and Coinductive Predicates *}
 
 inductive even where
 "even 0" |
@@ -190,7 +190,7 @@ lemma "odd n \<Longrightarrow> odd (n - 2)"
 nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 
-subsection {* 3.9. Coinductive Datatypes *}
+subsection {* 2.9. Coinductive Datatypes *}
 
 (* Lazy lists are defined in Andreas Lochbihler's "Coinductive" AFP entry. Since
    we cannot rely on its presence, we expediently provide our own
@@ -230,7 +230,7 @@ nitpick [bisim_depth = -1, show_datatypes, expect = quasi_genuine]
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-subsection {* 3.10. Boxing *}
+subsection {* 2.10. Boxing *}
 
 datatype tm = Var nat | Lam tm | App tm tm
 
@@ -266,7 +266,7 @@ lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>2 \<sigma> t = t"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-subsection {* 3.11. Scope Monotonicity *}
+subsection {* 2.11. Scope Monotonicity *}
 
 lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)"
 nitpick [verbose, expect = genuine]
@@ -277,7 +277,7 @@ nitpick [mono, expect = none]
 nitpick [expect = genuine]
 oops
 
-subsection {* 3.12. Inductive Properties *}
+subsection {* 2.12. Inductive Properties *}
 
 inductive_set reach where
 "(4\<Colon>nat) \<in> reach" |
@@ -340,11 +340,11 @@ next
   by auto
 qed
 
-section {* 4. Case Studies *}
+section {* 3. Case Studies *}
 
 nitpick_params [max_potential = 0]
 
-subsection {* 4.1. A Context-Free Grammar *}
+subsection {* 3.1. A Context-Free Grammar *}
 
 datatype alphabet = a | b
 
@@ -418,7 +418,7 @@ theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-subsection {* 4.2. AA Trees *}
+subsection {* 3.2. AA Trees *}
 
 datatype 'a aa_tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a aa_tree" "'a aa_tree"
 
