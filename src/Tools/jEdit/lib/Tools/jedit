@@ -36,6 +36,15 @@ declare -a RESOURCES=(
 )
 
 
+## defaults
+
+if [ "$OSTYPE" = cygwin ]; then
+  SOCKET_DEFAULT="true"
+else
+  SOCKET_DEFAULT="false"
+fi
+
+
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -48,7 +57,7 @@ function usage()
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
-  echo "    -S BOOL      enable socket-based communication (default: named pipe)"
+  echo "    -S BOOL      enable socket communication instead of fifos (default: $SOCKET_DEFAULT)"
   echo "    -b           build only"
   echo "    -d           enable debugger"
   echo "    -f           fresh build"
@@ -86,7 +95,7 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
-JEDIT_USE_SOCKET="false"
+JEDIT_USE_SOCKET="$SOCKET_DEFAULT"
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
