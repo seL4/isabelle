@@ -47,31 +47,65 @@ fun fifo_rendezvous fifo1 fifo2 =
   end;
 
 
-(* sockets *)
+(* sockets *)  (* FIXME raw unbuffered IO !?!? *)
 
-fun read_line in_stream =
+local
+
+fun readN socket n =
   let
-    fun result cs = String.implode (rev (#"\n" :: cs));
+    fun read i buf =
+      let
+        val s = Byte.bytesToString (Socket.recvVec (socket, n - i));
+        val m = size s;
+        val i' = i + m;
+        val buf' = Buffer.add s buf;
+      in if m > 0 andalso n > i' then read i' buf' else Buffer.content buf' end;
+  in read 0 Buffer.empty end;
+
+fun read_line socket =
+  let
+    fun result cs = implode (rev ("\n" :: cs));
     fun read cs =
-      (case BinIO.input1 in_stream of
-        NONE => if null cs then NONE else SOME (result cs)
-      | SOME b =>
-          (case Byte.byteToChar b of
-            #"\n" => SOME (result cs)
-          | c => read (c :: cs)));
+      (case readN socket 1 of
+        "" => if null cs then NONE else SOME (result cs)
+      | "\n" => SOME (result cs)
+      | c => read (c :: cs));
   in read [] end;
+
+fun write socket =
+  let
+    fun send buf =
+      if Word8VectorSlice.isEmpty buf then ()
+      else
+        let
+          val n = Int.min (Word8VectorSlice.length buf, 4096);
+          val m = Socket.sendVec (socket, Word8VectorSlice.subslice (buf, 0, SOME n));
+          val buf' = Word8VectorSlice.subslice (buf, m, NONE);
+        in send buf' end;
+  in fn s => send (Word8VectorSlice.full (Byte.stringToBytes s)) end;
+
+in
 
 fun socket_rendezvous name =
   let
-    val (in_stream, out_stream) = Socket_IO.open_streams name;
-    val _ = BinIO.StreamIO.setBufferMode (BinIO.getOutstream out_stream, IO.BLOCK_BUF);
+    fun err () = error ("Bad socket name: " ^ quote name);
+    val (host, port) =
+      (case space_explode ":" name of
+        [h, p] =>
+         (case NetHostDB.getByName h of SOME host => host | NONE => err (),
+          case Int.fromString p of SOME port => port | NONE => err ())
+      | _ => err ());
+    val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
+    val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
   in
     System_Channel
-     {input_line = fn () => read_line in_stream,
-      inputN = fn n => Byte.bytesToString (BinIO.inputN (in_stream, n)),
-      output = fn s => BinIO.output (out_stream, Byte.stringToBytes s),
-      flush = fn () => BinIO.flushOut out_stream}
+     {input_line = fn () => read_line socket,
+      inputN = fn n => readN socket n,
+      output = fn s => write socket s,
+      flush = fn () => ()}
   end;
+
+end;
 
 end;
 

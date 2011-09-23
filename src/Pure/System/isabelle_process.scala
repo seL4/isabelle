@@ -75,14 +75,13 @@ object Isabelle_Process
 }
 
 
-class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit, args: String*)
+class Isabelle_Process(
+    timeout: Time = Time.seconds(10),
+    use_socket: Boolean = false,
+    receiver: Isabelle_Process.Message => Unit = Console.println(_),
+    args: List[String] = Nil)
 {
   import Isabelle_Process._
-
-
-  /* demo constructor */
-
-  def this(args: String*) = this(Time.seconds(10), Console.println(_), args: _*)
 
 
   /* results */
@@ -131,13 +130,13 @@ class Isabelle_Process(timeout: Time, receiver: Isabelle_Process.Message => Unit
 
   /** process manager **/
 
-  private val system_channel = System_Channel()
+  private val system_channel = System_Channel(use_socket)
 
   private val process =
     try {
       val cmdline =
         Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
-          (system_channel.isabelle_args ::: args.toList)
+          (system_channel.isabelle_args ::: args)
       new Isabelle_System.Managed_Process(true, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }

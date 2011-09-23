@@ -179,8 +179,10 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = Context.set_thread_data NONE;
     val _ =
       Unsynchronized.change print_mode
-        (fold (update op =)
-          [Symbol.xsymbolsN, isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+        (fn mode =>
+          (mode @ [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN])
+          |> fold (update op =)
+            [Symbol.xsymbolsN, isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
 
     val channel = rendezvous ();
     val _ = setup_channels channel;
