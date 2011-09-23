@@ -1270,7 +1270,7 @@ section {* Main *}
 lemma correct_state_impl_Some_method:
   "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> 
   \<Longrightarrow> \<exists>meth. method (G,C) sig = Some(C,meth)"
-by (auto simp add: correct_state_def Let_def)
+by (auto simp add: correct_state_def)
 
 
 lemma BV_correct_1 [rule_format]:
