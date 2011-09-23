@@ -12,22 +12,16 @@ imports Main
 uses "minipick.ML"
 begin
 
+nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1]
+
+nitpick_params [total_consts = smart]
+
 ML {*
-exception FAIL
-
-val has_kodkodi = (getenv "KODKODI" <> "")
-
-fun minipick n t =
-  map (fn k => Minipick.kodkod_problem_from_term @{context} (K k) t) (1 upto n)
-  |> Minipick.solve_any_kodkod_problem @{theory}
-fun minipick_expect expect n t =
-  if has_kodkodi then
-    if minipick n t = expect then () else raise FAIL
-  else
-    ()
-val none = minipick_expect "none"
-val genuine = minipick_expect "genuine"
-val unknown = minipick_expect "unknown"
+val check = Minipick.minipick @{context}
+val expect = Minipick.minipick_expect @{context}
+val none = expect "none"
+val genuine = expect "genuine"
+val unknown = expect "unknown"
 *}
 
 ML {* genuine 1 @{prop "x = Not"} *}
@@ -43,7 +37,6 @@ ML {* none 5 @{prop "\<forall>x. x = x"} *}
 ML {* none 5 @{prop "\<exists>x. x = x"} *}
 ML {* none 1 @{prop "\<forall>x. x = y"} *}
 ML {* genuine 2 @{prop "\<forall>x. x = y"} *}
-ML {* none 1 @{prop "\<exists>x. x = y"} *}
 ML {* none 2 @{prop "\<exists>x. x = y"} *}
 ML {* none 2 @{prop "\<forall>x\<Colon>'a \<times> 'a. x = x"} *}
 ML {* none 2 @{prop "\<exists>x\<Colon>'a \<times> 'a. x = y"} *}
@@ -74,6 +67,9 @@ ML {* none 5 @{prop "{a} = {a, a}"} *}
 ML {* genuine 2 @{prop "{a} = {a, b}"} *}
 ML {* genuine 1 @{prop "{a} \<noteq> {a, b}"} *}
 ML {* none 5 @{prop "{}\<^sup>+ = {}"} *}
+ML {* none 5 @{prop "UNIV\<^sup>+ = UNIV"} *}
+ML {* none 5 @{prop "(UNIV\<Colon>'a \<times> 'b \<Rightarrow> bool) - {} = UNIV"} *}
+ML {* none 5 @{prop "{} - (UNIV\<Colon>'a \<times> 'b \<Rightarrow> bool) = {}"} *}
 ML {* none 1 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML {* genuine 2 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML {* none 5 @{prop "a \<noteq> c \<Longrightarrow> {(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
@@ -93,6 +89,8 @@ ML {* none 5 @{prop "fst (a, b) = a"} *}
 ML {* none 1 @{prop "fst (a, b) = b"} *}
 ML {* genuine 2 @{prop "fst (a, b) = b"} *}
 ML {* genuine 2 @{prop "fst (a, b) \<noteq> b"} *}
+ML {* genuine 2 @{prop "f ((x, z), y) = (x, z)"} *}
+ML {* none 2 @{prop "(ALL x. f x = fst x) \<longrightarrow> f ((x, z), y) = (x, z)"} *}
 ML {* none 5 @{prop "snd (a, b) = b"} *}
 ML {* none 1 @{prop "snd (a, b) = a"} *}
 ML {* genuine 2 @{prop "snd (a, b) = a"} *}
@@ -105,5 +103,9 @@ ML {* genuine 1 @{prop "\<exists>f. f p \<noteq> p \<and> (\<forall>a b. f (a, b
 ML {* none 2 @{prop "\<exists>f. \<forall>a b. f (a, b) = (a, b)"} *}
 ML {* none 3 @{prop "f = (\<lambda>a b. (b, a)) \<longrightarrow> f x y = (y, x)"} *}
 ML {* genuine 2 @{prop "f = (\<lambda>a b. (b, a)) \<longrightarrow> f x y = (x, y)"} *}
+ML {* none 5 @{prop "f = (\<lambda>x. f x)"} *}
+ML {* none 5 @{prop "f = (\<lambda>x. f x\<Colon>'a \<Rightarrow> bool)"} *}
+ML {* none 5 @{prop "f = (\<lambda>x y. f x y)"} *}
+ML {* none 5 @{prop "f = (\<lambda>x y. f x y\<Colon>'a \<Rightarrow> bool)"} *}
 
 end
