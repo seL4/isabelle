@@ -85,6 +85,16 @@ struct
 end;
 
 
+(* Word8VectorSlice *)
+
+structure Word8VectorSlice =
+struct
+  open Word8VectorSlice;
+  val length = mk_int o Word8VectorSlice.length;
+  fun subslice (a, b, c) = Word8VectorSlice.subslice (a, dest_int b, Option.map dest_int c);
+end;
+
+
 (* Char *)
 
 structure Char =
@@ -246,6 +256,13 @@ end;
 
 
 (* Sockets *)
+
+structure Socket =
+struct
+  open Socket;
+  fun recvVec (a, b) = Socket.recvVec (a, dest_int b);
+  fun sendVec a = mk_int (Socket.sendVec a);
+end;
 
 structure INetSock =
 struct
