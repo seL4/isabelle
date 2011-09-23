@@ -35,7 +35,7 @@ end;
 
 fun server server_prefix port =
   let
-    val passive_sock = Server_Socket.init (SOME "localhost") port;
+    val passive_sock = Socket_Util.init_server_socket (SOME "localhost") port;
 
     val thread_wait = ConditionVar.conditionVar ();
     val thread_wait_mutex = Mutex.mutex ();
@@ -63,7 +63,7 @@ fun server server_prefix port =
       let
         val (sock, _)= Socket.accept passive_sock;
 
-        val (sin, sout) = Socket_IO.make_streams sock;
+        val (sin, sout) = Socket_Util.make_streams sock;
 
         fun send msg = BinIO.output (sout, Byte.stringToBytes msg);
         fun send_log msg = (tracing msg; send msg);

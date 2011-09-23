@@ -5,7 +5,7 @@ if ML_System.is_polyml then
   use "http_status.ML";
   use "http_util.ML";
   use "xhtml.ML";
-  use "server_socket.ML";
+  use "socket_util.ML";
   use "scgi_req.ML";
   use "scgi_server.ML";
   use "echo.ML";
