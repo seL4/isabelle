@@ -36,7 +36,7 @@ post-fixed points and that it goes down. However, this requires the function
 being iterated to be monotone. Unfortunately, abstract interpretation with
 widening is not monotone. Hence the (recursive) abstract interpretation of a
 loop body that again contains a loop may result in a non-monotone
-function. Therefore our narrowing interation needs to check at every step
+function. Therefore our narrowing iteration needs to check at every step
 that a post-fixed point is maintained, and we cannot prove that the precision
 increases. *}
 
