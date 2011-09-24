@@ -289,7 +289,7 @@ class Standard_System
       val rest =
         posix_path match {
           case Cygdrive(drive, rest) =>
-            result_path ++= (drive + ":" + File.separator)
+            result_path ++= (drive.toUpperCase(Locale.ENGLISH) + ":" + File.separator)
             rest
           case Named_Root(root, rest) =>
             result_path ++= File.separator
