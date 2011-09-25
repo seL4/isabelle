@@ -182,10 +182,10 @@ This was done by adding the line
 \postw
 
 after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
-Kodkodi and is precompiled for the major platforms. Other SAT solvers can also
-be installed, as explained in \S\ref{optimizations}. If you have already
-configured SAT solvers in Isabelle (e.g., for Refute), these will also be
-available to Nitpick.
+Kodkodi and is precompiled for Linux, Mac~OS~X, and Windows (Cygwin). Other SAT
+solvers can also be installed, as explained in \S\ref{optimizations}. If you
+have already configured SAT solvers in Isabelle (e.g., for Refute), these will
+also be available to Nitpick.
 
 \subsection{Propositional Logic}
 \label{propositional-logic}
@@ -2339,8 +2339,8 @@ The supported solvers are listed below:
 
 \item[$\bullet$] \textbf{\textit{Lingeling\_JNI}:}
 Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
-version of Lingeling is bundled with Kodkodi and is precompiled for the major
-platforms. It is also available from the Kodkod web site \cite{kodkod-2009}. 
+version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
+Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}. 
 
 \item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
 the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
@@ -2355,8 +2355,9 @@ Nitpick has been tested with version 2.51.
 
 \item[$\bullet$] \textbf{\textit{CryptoMiniSat\_JNI}:} The JNI (Java Native
 Interface) version of CryptoMiniSat is bundled with Kodkodi and is precompiled
-for the major platforms. It is also available from the Kodkod web site
-\cite{kodkod-2009}.
+for Linux and Mac~OS~X. It is also available from the Kodkod web site
+\cite{kodkod-2009}. \textbf{Warning:} The CryptoMiniSat--Kodkod integration
+appears to be unsound. Use at your own risk and peril.
 
 \item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
 written in \cpp{}. To use MiniSat, set the environment variable
@@ -2368,10 +2369,10 @@ The \cpp{} sources and executables for MiniSat are available at
 and 2.2.
 
 \item[$\bullet$] \textbf{\textit{MiniSat\_JNI}:} The JNI
-version of MiniSat is bundled with Kodkodi and is precompiled for the major
-platforms. It is also available from the Kodkod web site \cite{kodkod-2009}.
-Unlike the standard version of MiniSat, the JNI version can be used
-incrementally.
+version of MiniSat is bundled with Kodkodi and is precompiled for Linux,
+Mac~OS~X, and Windows (Cygwin). It is also available from the Kodkod web site
+\cite{kodkod-2009}. Unlike the standard version of MiniSat, the JNI version can
+be used incrementally.
 
 \item[$\bullet$] \textbf{\textit{zChaff}:} zChaff is an older solver written
 in \cpp{}. To use zChaff, set the environment variable \texttt{ZCHAFF\_HOME} to
