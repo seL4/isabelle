@@ -76,7 +76,7 @@ object Isabelle_Process
 
 
 class Isabelle_Process(
-    timeout: Time = Time.seconds(10),
+    timeout: Time = Time.seconds(25),
     use_socket: Boolean = false,
     receiver: Isabelle_Process.Message => Unit = Console.println(_),
     args: List[String] = Nil)
