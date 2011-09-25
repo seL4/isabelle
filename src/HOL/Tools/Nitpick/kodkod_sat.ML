@@ -40,7 +40,6 @@ val static_list =
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
-   ("zChaff_JNI", Internal (JNI, Batch, ["zChaff"])),
    ("RSat", ExternalV2 (ToStdout, "RSAT_HOME", "rsat", ["-s"],
                         "s SATISFIABLE", "v ", "s UNSATISFIABLE")),
    ("BerkMin", ExternalV2 (ToStdout, "BERKMIN_HOME",
