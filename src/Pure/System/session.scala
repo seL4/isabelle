@@ -469,8 +469,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   /* actions */
 
-  def start(timeout: Time = Time.seconds(25), use_socket: Boolean = false, args: List[String])
+  def start(timeout: Time, use_socket: Boolean, args: List[String])
   { session_actor ! Start(timeout, use_socket, args) }
+
+  def start(args: List[String]) { start (Time.seconds(25), false, args) }
 
   def stop() { commands_changed_buffer !? Stop; session_actor !? Stop }
 
