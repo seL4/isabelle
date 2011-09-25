@@ -2337,42 +2337,43 @@ The supported solvers are listed below:
 
 \begin{enum}
 
-\item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
-written in \cpp{}. To use MiniSat, set the environment variable
-\texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
-executable.%
-\footnote{Important note for Cygwin users: The path must be specified using
-native Windows syntax. Make sure to escape backslashes properly.%
-\label{cygwin-paths}}
-The \cpp{} sources and executables for MiniSat are available at
-\url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
-and 2.0 beta (2007-07-21).
-
-\item[$\bullet$] \textbf{\textit{MiniSat\_JNI}:} The JNI (Java Native Interface)
-version of MiniSat is bundled with Kodkodi and is precompiled for the major
-platforms. It is also available from \texttt{native\-solver.\allowbreak tgz},
-which you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
-version of MiniSat, the JNI version can be used incrementally.
+\item[$\bullet$] \textbf{\textit{Lingeling\_JNI}:}
+Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
+version of Lingeling is bundled with Kodkodi and is precompiled for the major
+platforms. It is also available from the Kodkod web site \cite{kodkod-2009}. 
 
 \item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
 the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
 \texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
 executable.%
-\footref{cygwin-paths}
+\footnote{Important note for Cygwin users: The path must be specified using
+native Windows syntax. Make sure to escape backslashes properly.%
+\label{cygwin-paths}}
 The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
 \url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
 Nitpick has been tested with version 2.51.
 
-\item[$\bullet$] \textbf{\textit{PicoSAT}:} PicoSAT is an efficient solver
-written in C. You can install a standard version of
-PicoSAT and set the environment variable \texttt{PICOSAT\_HOME} to the directory
-that contains the \texttt{picosat} executable.%
-\footref{cygwin-paths}
-The C sources for PicoSAT are
-available at \url{http://fmv.jku.at/picosat/} and are also bundled with Kodkodi.
-Nitpick has been tested with version 913.
+\item[$\bullet$] \textbf{\textit{CryptoMiniSat\_JNI}:} The JNI (Java Native
+Interface) version of CryptoMiniSat is bundled with Kodkodi and is precompiled
+for the major platforms. It is also available from the Kodkod web site
+\cite{kodkod-2009}.
 
-\item[$\bullet$] \textbf{\textit{zChaff}:} zChaff is an efficient solver written
+\item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
+written in \cpp{}. To use MiniSat, set the environment variable
+\texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
+executable.%
+\footref{cygwin-paths}
+The \cpp{} sources and executables for MiniSat are available at
+\url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
+and 2.2.
+
+\item[$\bullet$] \textbf{\textit{MiniSat\_JNI}:} The JNI
+version of MiniSat is bundled with Kodkodi and is precompiled for the major
+platforms. It is also available from the Kodkod web site \cite{kodkod-2009}.
+Unlike the standard version of MiniSat, the JNI version can be used
+incrementally.
+
+\item[$\bullet$] \textbf{\textit{zChaff}:} zChaff is an older solver written
 in \cpp{}. To use zChaff, set the environment variable \texttt{ZCHAFF\_HOME} to
 the directory that contains the \texttt{zchaff} executable.%
 \footref{cygwin-paths}
@@ -2406,14 +2407,6 @@ version of BerkMin, set the environment variable
 \texttt{BERKMINALLOY\_HOME} to the directory that contains the \texttt{berkmin}
 executable.%
 \footref{cygwin-paths}
-
-\item[$\bullet$] \textbf{\textit{Jerusat}:} Jerusat 1.3 is an efficient solver
-written in C. To use Jerusat, set the environment variable
-\texttt{JERUSAT\_HOME} to the directory that contains the \texttt{Jerusat1.3}
-executable.%
-\footref{cygwin-paths}
-The C sources for Jerusat are available at
-\url{http://www.cs.tau.ac.il/~ale1/Jerusat1.3.tgz}.
 
 \item[$\bullet$] \textbf{\textit{SAT4J}:} SAT4J is a reasonably efficient solver
 written in Java that can be used incrementally. It is bundled with Kodkodi and
