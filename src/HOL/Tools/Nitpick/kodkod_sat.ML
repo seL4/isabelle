@@ -23,7 +23,7 @@ datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
   Internal of availability * mode * string list |
-  External of sink * string * string * string list |
+  External of string * string * string list |
   ExternalV2 of sink * string * string * string list * string * string * string
 
 (* for compatibility with "SatSolver" *)
@@ -31,12 +31,12 @@ val berkmin_exec = getenv "BERKMIN_EXE"
 
 (* (string * sat_solver_info) list *)
 val static_list =
-  [("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
+  [("Lingeling_JNI", Internal (JNI, Batch, ["Lingeling"])),
+   ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
+   ("CryptoMiniSat_JNI", Internal (JNI, Batch, ["CryptoMiniSat"])),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
                            "UNSAT")),
    ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
-   ("CryptoMiniSat", External (ToStdout, "CRYPTOMINISAT_HOME", "cryptominisat",
-                               [])),
-   ("PicoSAT", External (ToStdout, "PICOSAT_HOME", "picosat", [])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
@@ -47,8 +47,7 @@ val static_list =
                            if berkmin_exec = "" then "BerkMin561"
                            else berkmin_exec, [], "Satisfiable          !!",
                            "solution =", "UNSATISFIABLE          !!")),
-   ("BerkMin_Alloy", External (ToStdout, "BERKMINALLOY_HOME", "berkmin", [])),
-   ("Jerusat", External (ToStdout, "JERUSAT_HOME", "Jerusat1.3", [])),
+   ("BerkMin_Alloy", External ("BERKMINALLOY_HOME", "berkmin", [])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
    ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"]))]
 
@@ -69,8 +68,9 @@ fun dynamic_entry_for_external name dev home exec args markers =
                          "/"
                    in
                      [if null markers then "External" else "ExternalV2",
-                      dir ^ dir_sep ^ exec, base ^ ".cnf",
-                      if dev = ToFile then out_file else ""] @ markers @
+                      dir ^ dir_sep ^ exec, base ^ ".cnf"] @
+                      (if null markers then []
+                       else [if dev = ToFile then out_file else ""]) @ markers @
                      (if dev = ToFile then [out_file] else []) @ args
                    end)
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
@@ -89,8 +89,8 @@ fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
         else
           NONE
       end
-  | dynamic_entry_for_info false (name, External (dev, home, exec, args)) =
-    dynamic_entry_for_external name dev home exec args []
+  | dynamic_entry_for_info false (name, External (home, exec, args)) =
+    dynamic_entry_for_external name ToStdout home exec args []
   | dynamic_entry_for_info false
         (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
     dynamic_entry_for_external name dev home exec args [m1, m2, m3]
