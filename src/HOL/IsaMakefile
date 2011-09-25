@@ -464,10 +464,11 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Product_plus.thy Library/Product_Lattice.thy			\
   Library/Quickcheck_Types.thy Library/Quotient_List.thy		\
   Library/Quotient_Option.thy Library/Quotient_Product.thy		\
-  Library/Quotient_Sum.thy Library/Quotient_Syntax.thy			\
-  Library/Quotient_Type.thy Library/RBT.thy Library/RBT_Impl.thy	\
-  Library/RBT_Mapping.thy Library/README.html Library/Saturated.thy	\
-  Library/Set_Algebras.thy Library/State_Monad.thy Library/Ramsey.thy	\
+  Library/Quotient_Set.thy Library/Quotient_Sum.thy			\
+  Library/Quotient_Syntax.thy Library/Quotient_Type.thy Library/RBT.thy	\
+  Library/RBT_Impl.thy Library/RBT_Mapping.thy Library/README.html	\
+  Library/Saturated.thy Library/Set_Algebras.thy			\
+  Library/State_Monad.thy Library/Ramsey.thy				\
   Library/Reflection.thy Library/Sublist_Order.thy			\
   Library/Sum_of_Squares.thy Library/Sum_of_Squares/sos_wrapper.ML	\
   Library/Sum_of_Squares/sum_of_squares.ML				\

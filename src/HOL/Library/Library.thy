@@ -49,6 +49,7 @@ imports
   Quotient_List
   Quotient_Option
   Quotient_Product
+  Quotient_Set
   Quotient_Sum
   Quotient_Syntax
   Quotient_Type
