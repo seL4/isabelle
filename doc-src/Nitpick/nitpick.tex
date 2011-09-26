@@ -34,7 +34,7 @@
 \def\Q{{\smash{\lower.2ex\hbox{$\scriptstyle?$}}}}
 
 \hyphenation{Mini-Sat size-change First-Steps grand-parent nit-pick
-counter-example counter-examples data-type data-types co-data-type 
+counter-example counter-examples data-type data-types co-data-type
 co-data-types in-duc-tive co-in-duc-tive}
 
 \urlstyle{tt}
@@ -1072,7 +1072,7 @@ that the counterexample is genuine. \\[2\smallskipamount]
 \slshape Nitpick found no counterexample.
 \postw
 
-In the first \textbf{nitpick} invocation, the after-the-fact check discovered 
+In the first \textbf{nitpick} invocation, the after-the-fact check discovered
 that the two known elements of type $'a~\textit{llist}$ are bisimilar.
 
 A compromise between leaving out the bisimilarity predicate from the Kodkod
@@ -1925,7 +1925,7 @@ satisfying examples (models). This manual assumes throughout that
 \textit{falsify} is enabled.
 
 \opsmart{user\_axioms}{no\_user\_axioms}
-Specifies whether the user-defined axioms (specified using 
+Specifies whether the user-defined axioms (specified using
 \textbf{axiomatization} and \textbf{axioms}) should be considered. If the option
 is set to \textit{smart}, Nitpick performs an ad hoc axiom selection based on
 the constants that occur in the formula to falsify. The option is implicitly set
@@ -2337,11 +2337,6 @@ The supported solvers are listed below:
 
 \begin{enum}
 
-\item[$\bullet$] \textbf{\textit{Lingeling\_JNI}:}
-Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
-version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
-Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}. 
-
 \item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
 the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
 \texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
@@ -2356,8 +2351,12 @@ Nitpick has been tested with version 2.51.
 \item[$\bullet$] \textbf{\textit{CryptoMiniSat\_JNI}:} The JNI (Java Native
 Interface) version of CryptoMiniSat is bundled with Kodkodi and is precompiled
 for Linux and Mac~OS~X. It is also available from the Kodkod web site
-\cite{kodkod-2009}. \textbf{Warning:} The CryptoMiniSat--Kodkod integration
-appears to be unsound. Use at your own risk and peril.
+\cite{kodkod-2009}.
+
+\item[$\bullet$] \textbf{\textit{Lingeling\_JNI}:}
+Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
+version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
+Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}.
 
 \item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
 written in \cpp{}. To use MiniSat, set the environment variable
@@ -2848,7 +2847,7 @@ for which the function is not defined. For example:
 ``$\textit{prec}~(\textit{Suc}~n) = n$'' \\[2\smallskipamount]
 \textbf{lemma} ``$\textit{prec}~0 = \undef$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-\quad{\slshape Nitpick found a counterexample for \textit{card nat}~= 2: 
+\quad{\slshape Nitpick found a counterexample for \textit{card nat}~= 2:
 \nopagebreak
 \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment} \nopagebreak\\[2\smallskipamount]
