@@ -84,7 +84,7 @@ function build_doc ()
 
 function build_jars ()
 {
-  "$ISABELLE_HOME/lib/scripts/java_ext_dirs" >/dev/null
+  "$ISABELLE_TOOL" env "$ISABELLE_HOME/lib/scripts/java_ext_dirs" >/dev/null
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
   "$ISABELLE_TOOL" env ./build-jars "$@" || exit $?
   popd >/dev/null
