@@ -14,7 +14,7 @@ ISABELLE_SETTINGS_PRESENT=true
 export ISABELLE_HOME
 if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
 then
-  echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems later on!"
+  echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems!"
   echo 1>&2 "### ISABELLE_HOME=\"$ISABELLE_HOME\""
 fi
 
