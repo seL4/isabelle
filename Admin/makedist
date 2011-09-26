@@ -178,7 +178,6 @@ if [ -z "$RELEASE" ]; then
     echo
   } >ANNOUNCE
 else
-  rm Isabelle Isabelle.exe
   perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
 fi
 
