@@ -8,7 +8,7 @@ import Control.Exception
 import System.Exit
 import Maybe
 import List (partition, findIndex)
-import Generated_Code
+import qualified Generated_Code
 
 
 type Pos = [Int]
@@ -25,11 +25,11 @@ tailPosEdge :: Edge -> Edge
 tailPosEdge (VN pos ty) = VN (tail pos) ty
 tailPosEdge (CtrB pos ts) = CtrB (tail pos) ts
 
-termOf :: Pos -> Path -> Narrowing_term
-termOf pos (CtrB [] i : es) = Ctr i (termListOf pos es)
-termOf pos [VN [] ty] = Var pos ty
+termOf :: Pos -> Path -> Generated_Code.Narrowing_term
+termOf pos (CtrB [] i : es) = Generated_Code.Ctr i (termListOf pos es)
+termOf pos [VN [] ty] = Generated_Code.Var pos ty
 
-termListOf :: Pos -> Path -> [Narrowing_term]
+termListOf :: Pos -> Path -> [Generated_Code.Narrowing_term]
 termListOf pos es = termListOf' 0 es
   where
     termListOf' i [] = []
@@ -93,11 +93,11 @@ orOp (UnknownValue _) (Eval True) = Eval True
 orOp (UnknownValue b1) (UnknownValue b2) = UnknownValue (b1 && b2)
 
 
-data Edge = VN Pos Narrowing_type | CtrB Pos Int
+data Edge = VN Pos Generated_Code.Narrowing_type | CtrB Pos Int
 type Path = [Edge]
 
 data QuantTree = Node EvaluationResult
-  | VarNode Quantifier EvaluationResult Pos Narrowing_type QuantTree
+  | VarNode Quantifier EvaluationResult Pos Generated_Code.Narrowing_type QuantTree
   | CtrBranch Quantifier EvaluationResult Pos [QuantTree]
 {-
 instance Show QuantTree where
@@ -148,12 +148,12 @@ refineTree :: [Edge] -> Pos -> QuantTree -> QuantTree
 refineTree es p t = updateTree refine (pathPrefix p es) t
   where
     pathPrefix p es = takeWhile (\e -> posOf e /= p) es  
-    refine (VarNode q r p (SumOfProd ps) t) =
+    refine (VarNode q r p (Generated_Code.SumOfProd ps) t) =
       CtrBranch q r p [ foldr (\(i,ty) t -> VarNode q r (p++[i]) ty t) t (zip [0..] ts) | ts <- ps ]
 
 -- refute
 
-refute :: ([Narrowing_term] -> Bool) -> Int -> QuantTree -> IO QuantTree
+refute :: ([Generated_Code.Narrowing_term] -> Bool) -> Int -> QuantTree -> IO QuantTree
 refute exec d t = ref t
   where
     ref t =
@@ -165,7 +165,7 @@ refute exec d t = ref t
             UnknownValue True -> ref t'
             _ -> return t'
 
-depthCheck :: Int -> Property -> IO ()
+depthCheck :: Int -> Generated_Code.Property -> IO ()
 depthCheck d p = refute (checkOf p) d (treeOf 0 p) >>= (\t -> 
   case evalOf t of
    Eval False -> putStrLn ("SOME (" ++ show (counterexampleOf (reifysOf p) (exampleOf 0 t)) ++ ")")  
@@ -175,15 +175,15 @@ depthCheck d p = refute (checkOf p) d (treeOf 0 p) >>= (\t ->
 -- presentation of counterexample
 
 
-instance Show Typerep where {
-  show (Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
+instance Show Generated_Code.Typerep where {
+  show (Generated_Code.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
-instance Show Term where {
-  show (Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
-  show (App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
-  show (Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";
-  show (Free s ty) = "Free (\"" ++ s ++  "\", " ++ show ty ++ ")";
+instance Show Generated_Code.Term where {
+  show (Generated_Code.Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
+  show (Generated_Code.App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
+  show (Generated_Code.Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";
+  show (Generated_Code.Free s ty) = "Free (\"" ++ s ++  "\", " ++ show ty ++ ")";
 };
 {-
 posOf :: Edge -> Pos
@@ -226,10 +226,10 @@ term_of p' (CtrBranch q _ p ts) =
   else
     error ""
 -}
-termlist_of :: Pos -> ([Narrowing_term], QuantTree) -> ([Narrowing_term], QuantTree)
+termlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> ([Generated_Code.Narrowing_term], QuantTree)
 termlist_of p' (terms, Node b) = (terms, Node b) 
 termlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
-    termlist_of p' (terms ++ [Var p ty], t)
+    termlist_of p' (terms ++ [Generated_Code.Var p ty], t)
   else
     (terms, VarNode q r p ty t)
 termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
@@ -237,17 +237,17 @@ termlist_of p' (terms, CtrBranch q r p ts) = if p' == take (length p') p then
       Just i = findIndex (\t -> evalOf t == Eval False) ts
       (subterms, t') = fixp (\j -> termlist_of (p ++ [j])) 0 ([], ts !! i)
     in
-      (terms ++ [Ctr i subterms], t')
+      (terms ++ [Generated_Code.Ctr i subterms], t')
   else
     (terms, CtrBranch q r p ts)
   where
     fixp f j s = if length (fst (f j s)) == length (fst s) then s else fixp f (j + 1) (f j s)
 
 
-alltermlist_of :: Pos -> ([Narrowing_term], QuantTree) -> [([Narrowing_term], QuantTree)]
+alltermlist_of :: Pos -> ([Generated_Code.Narrowing_term], QuantTree) -> [([Generated_Code.Narrowing_term], QuantTree)]
 alltermlist_of p' (terms, Node b) = [(terms, Node b)] 
 alltermlist_of p' (terms, VarNode q r p ty t) = if p' == take (length p') p then
-    alltermlist_of p' (terms ++ [Var p ty], t)
+    alltermlist_of p' (terms ++ [Generated_Code.Var p ty], t)
   else
     [(terms, VarNode q r p ty t)]
 alltermlist_of p' (terms, CtrBranch q r p ts) =
@@ -256,7 +256,7 @@ alltermlist_of p' (terms, CtrBranch q r p ts) =
       its = filter (\(i, t) -> evalOf t == Eval False) (zip [0..] ts)
     in
       concatMap
-        (\(i, t) -> map (\(subterms, t') -> (terms ++ [Ctr i subterms], t'))
+        (\(i, t) -> map (\(subterms, t') -> (terms ++ [Generated_Code.Ctr i subterms], t'))
            (fixp (\j -> alltermlist_of (p ++ [j])) 0 ([], t))) its
   else
     [(terms, CtrBranch q r p ts)]
@@ -265,7 +265,7 @@ alltermlist_of p' (terms, CtrBranch q r p ts) =
       [s'] -> if length (fst s') == length (fst s) then [s'] else concatMap (fixp f (j + 1)) (f j s)
       _ -> concatMap (fixp f (j + 1)) (f j s)
 
-data Example = UnivExample Narrowing_term Example | ExExample [(Narrowing_term, Example)] | EmptyExample
+data Example = UnivExample Generated_Code.Narrowing_term Example | ExExample [(Generated_Code.Narrowing_term, Example)] | EmptyExample
 
 quantifierOf (VarNode q _ _ _ _) = q
 quantifierOf (CtrBranch q _ _ _) = q
@@ -281,8 +281,8 @@ exampleOf p t =
      ExistentialQ ->
        ExExample (map (\([term], rt) -> (term, exampleOf (p + 1) rt)) (alltermlist_of [p] ([], t)))
 
-data Counterexample = Universal_Counterexample (Term, Counterexample)
-  | Existential_Counterexample [(Term, Counterexample)] | Empty_Assignment
+data Counterexample = Universal_Counterexample (Generated_Code.Term, Counterexample)
+  | Existential_Counterexample [(Generated_Code.Term, Counterexample)] | Empty_Assignment
   
 instance Show Counterexample where {
 show Empty_Assignment = "Narrowing_Generators.Empty_Assignment";
@@ -290,25 +290,25 @@ show (Universal_Counterexample x) = "Narrowing_Generators.Universal_Counterexamp
 show (Existential_Counterexample x) = "Narrowing_Generators.Existential_Counterexample" ++ show x;
 };
 
-counterexampleOf :: [Narrowing_term -> Term] -> Example -> Counterexample
+counterexampleOf :: [Generated_Code.Narrowing_term -> Generated_Code.Term] -> Example -> Counterexample
 counterexampleOf [] EmptyExample = Empty_Assignment
 counterexampleOf (reify : reifys) (UnivExample t ex) = Universal_Counterexample (reify t, counterexampleOf reifys ex)
 counterexampleOf (reify : reifys) (ExExample exs) = Existential_Counterexample (map (\(t, ex) -> (reify t, counterexampleOf reifys ex)) exs)
 
-checkOf :: Property -> [Narrowing_term] -> Bool
-checkOf (Property b) = (\[] -> b)
-checkOf (Universal _ f _) = (\(t : ts) -> checkOf (f t) ts)
-checkOf (Existential _ f _) = (\(t : ts) -> checkOf (f t) ts)
+checkOf :: Generated_Code.Property -> [Generated_Code.Narrowing_term] -> Bool
+checkOf (Generated_Code.Property b) = (\[] -> b)
+checkOf (Generated_Code.Universal _ f _) = (\(t : ts) -> checkOf (f t) ts)
+checkOf (Generated_Code.Existential _ f _) = (\(t : ts) -> checkOf (f t) ts)
 
-dummy = Var [] (SumOfProd [[]])
+dummy = Generated_Code.Var [] (Generated_Code.SumOfProd [[]])
 
-treeOf :: Int -> Property -> QuantTree
-treeOf n (Property _) = Node uneval
-treeOf n (Universal ty f _)  = VarNode UniversalQ uneval [n] ty (treeOf (n + 1) (f dummy)) 
-treeOf n (Existential ty f _) = VarNode ExistentialQ uneval [n] ty (treeOf (n + 1) (f dummy))
+treeOf :: Int -> Generated_Code.Property -> QuantTree
+treeOf n (Generated_Code.Property _) = Node uneval
+treeOf n (Generated_Code.Universal ty f _)  = VarNode UniversalQ uneval [n] ty (treeOf (n + 1) (f dummy)) 
+treeOf n (Generated_Code.Existential ty f _) = VarNode ExistentialQ uneval [n] ty (treeOf (n + 1) (f dummy))
 
-reifysOf :: Property -> [Narrowing_term -> Term]
-reifysOf (Property _) = []
-reifysOf (Universal _ f r)  = (r : (reifysOf (f dummy)))
-reifysOf (Existential _ f r) = (r : (reifysOf (f dummy)))
+reifysOf :: Generated_Code.Property -> [Generated_Code.Narrowing_term -> Generated_Code.Term]
+reifysOf (Generated_Code.Property _) = []
+reifysOf (Generated_Code.Universal _ f r)  = (r : (reifysOf (f dummy)))
+reifysOf (Generated_Code.Existential _ f r) = (r : (reifysOf (f dummy)))
 

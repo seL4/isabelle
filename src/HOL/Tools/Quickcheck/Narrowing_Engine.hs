@@ -4,28 +4,28 @@ import Monad;
 import Control.Exception;
 import System.IO;
 import System.Exit;
-import Generated_Code;
+import qualified Generated_Code;
 
 type Pos = [Int];
 
 -- Term refinement
 
-new :: Pos -> [[Narrowing_type]] -> [Narrowing_term];
-new p ps = [ Ctr c (zipWith (\i t -> Var (p++[i]) t) [0..] ts)
+new :: Pos -> [[Generated_Code.Narrowing_type]] -> [Generated_Code.Narrowing_term];
+new p ps = [ Generated_Code.Ctr c (zipWith (\i t -> Generated_Code.Var (p++[i]) t) [0..] ts)
            | (c, ts) <- zip [0..] ps ];
 
-refine :: Narrowing_term -> Pos -> [Narrowing_term];
-refine (Var p (SumOfProd ss)) [] = new p ss;
-refine (Ctr c xs) p = map (Ctr c) (refineList xs p);
+refine :: Generated_Code.Narrowing_term -> Pos -> [Generated_Code.Narrowing_term];
+refine (Generated_Code.Var p (Generated_Code.SumOfProd ss)) [] = new p ss;
+refine (Generated_Code.Ctr c xs) p = map (Generated_Code.Ctr c) (refineList xs p);
 
-refineList :: [Narrowing_term] -> Pos -> [[Narrowing_term]];
+refineList :: [Generated_Code.Narrowing_term] -> Pos -> [[Generated_Code.Narrowing_term]];
 refineList xs (i:is) = let (ls, x:rs) = splitAt i xs in [ls ++ y:rs | y <- refine x is];
 
 -- Find total instantiations of a partial value
 
-total :: Narrowing_term -> [Narrowing_term];
-total (Ctr c xs) = [Ctr c ys | ys <- mapM total xs];
-total (Var p (SumOfProd ss)) = [y | x <- new p ss, y <- total x];
+total :: Generated_Code.Narrowing_term -> [Generated_Code.Narrowing_term];
+total (Generated_Code.Ctr c xs) = [Generated_Code.Ctr c ys | ys <- mapM total xs];
+total (Generated_Code.Var p (Generated_Code.SumOfProd ss)) = [y | x <- new p ss, y <- total x];
 
 -- Answers
 
@@ -47,13 +47,13 @@ answer a known unknown =
 str_of_list [] = "[]";
 str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 
-report :: Result -> [Narrowing_term] -> IO Int;
+report :: Result -> [Generated_Code.Narrowing_term] -> IO Int;
 report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
 eval p k u = answer p (\p -> answer p k u) u;
 
-ref :: Result -> [Narrowing_term] -> IO Int;
+ref :: Result -> [Generated_Code.Narrowing_term] -> IO Int;
 ref r xs = eval (apply_fun r xs) (\res -> if res then return 1 else report r xs) (\p -> sumMapM (ref r) 1 (refineList xs p));
           
 refute :: Result -> IO Int;
@@ -65,42 +65,43 @@ sumMapM f n (a:as) = seq n (do m <- f a ; sumMapM f (n+m) as);
 
 -- Testable
 
-instance Show Typerep where {
-  show (Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
+instance Show Generated_Code.Typerep where {
+  show (Generated_Code.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
-instance Show Term where {
-  show (Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
-  show (App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
-  show (Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";
-  show (Free s ty) = "Free (\"" ++ s ++  "\", " ++ show ty ++ ")";
+instance Show Generated_Code.Term where {
+  show (Generated_Code.Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
+  show (Generated_Code.App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
+  show (Generated_Code.Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";
+  show (Generated_Code.Free s ty) = "Free (\"" ++ s ++  "\", " ++ show ty ++ ")";
 };
 
 data Result =
-  Result { args     :: [Narrowing_term]
-         , showArgs :: [Narrowing_term -> String]
-         , apply_fun    :: [Narrowing_term] -> Bool
+  Result { args     :: [Generated_Code.Narrowing_term]
+         , showArgs :: [Generated_Code.Narrowing_term -> String]
+         , apply_fun    :: [Generated_Code.Narrowing_term] -> Bool
          };
 
 data P = P (Int -> Int -> Result);
 
-run :: Testable a => ([Narrowing_term] -> a) -> Int -> Int -> Result;
+run :: Testable a => ([Generated_Code.Narrowing_term] -> a) -> Int -> Int -> Result;
 run a = let P f = property a in f;
 
 class Testable a where {
-  property :: ([Narrowing_term] -> a) -> P;
+  property :: ([Generated_Code.Narrowing_term] -> a) -> P;
 };
 
 instance Testable Bool where {
   property app = P $ \n d -> Result [] [] (app . reverse);
 };
 
-instance (Partial_term_of a, Narrowing a, Testable b) => Testable (a -> b) where {
+instance (Generated_Code.Partial_term_of a, Generated_Code.Narrowing a, Testable b) => Testable (a -> b) where {
   property f = P $ \n d ->
-    let C t c = narrowing d
-        c' = conv c
+    let Generated_Code.C t c = Generated_Code.narrowing d
+        c' = Generated_Code.conv c
         r = run (\(x:xs) -> f xs (c' x)) (n+1) d
-    in  r { args = Var [n] t : args r, showArgs = (show . partial_term_of (Type :: Itself a)) : showArgs r };
+    in  r { args = Generated_Code.Var [n] t : args r,
+      showArgs = (show . Generated_Code.partial_term_of (Generated_Code.Type :: Generated_Code.Itself a)) : showArgs r };
 };
 
 -- Top-level interface
