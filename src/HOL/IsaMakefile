@@ -1162,7 +1162,7 @@ $(LOG)/HOL-TPTP.gz: \
   TPTP/ATP_Export.thy \
   TPTP/CASC_Setup.thy \
   TPTP/atp_export.ML
-	@cd TPTP; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL TPTP
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL TPTP
 
 
 ## HOL-Multivariate_Analysis
