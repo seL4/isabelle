@@ -111,6 +111,19 @@ lemma "R O S = S O R"
 oops
 *)
 
+subsection {* Simple examples with inductive predicates *}
+
+inductive even where
+  "even 0" |
+  "even n ==> even (Suc (Suc n))"
+
+code_pred even .
+
+lemma "even (n - 2) ==> even n"
+quickcheck[narrowing, expect = counterexample]
+oops
+
+
 subsection {* AVL Trees *}
 
 datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
