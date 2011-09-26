@@ -76,11 +76,6 @@ can be named now by following the case name with [name1 name2 ...].
 
 *** HOL ***
 
-* New proof method "induction" that gives induction hypotheses the name IH,
-thus distinguishing them from further hypotheses that come from rule
-induction.  The latter are still called "hyps".  Method "induction" is a thin
-wrapper around "induct" and follows the same syntax.
-
 * Class bot and top require underlying partial order rather than
 preorder: uniqueness of bot and top is guaranteed.  INCOMPATIBILITY.
 
@@ -93,8 +88,8 @@ class complete_linorder.
 Changed proposition of lemmas Inf_bool_def, Sup_bool_def, Inf_fun_def,
 Sup_fun_def, Inf_apply, Sup_apply.
 
-Removed redundant lemmas (the right hand side gives hints how to replace them
-for (metis ...), or (simp only: ...) proofs):
+Removed redundant lemmas (the right hand side gives hints how to
+replace them for (metis ...), or (simp only: ...) proofs):
 
   Inf_singleton ~> Inf_insert [where A="{}", unfolded Inf_empty inf_top_right]
   Sup_singleton ~> Sup_insert [where A="{}", unfolded Sup_empty sup_bot_right]
@@ -287,6 +282,12 @@ several polymorphic lemmas about "exp" are now applicable to "expi".
       setup {* Value.add_evaluator ("SML", Codegen.eval_term) *}
 
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
+
+* New proof method "induction" that gives induction hypotheses the
+name "IH", thus distinguishing them from further hypotheses that come
+from rule induction.  The latter are still called "hyps".  Method
+"induction" is a thin wrapper around "induct" and follows the same
+syntax.
 
 * Method "fastsimp" has been renamed to "fastforce", but "fastsimp" is
 still available as a legacy feature for some time.
