@@ -27,7 +27,9 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   /* main tabs */
 
   private val readme = new HTML_Panel("SansSerif", 14)
-  readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
+  private val readme_path = Path.explode("$JEDIT_HOME/README.html")
+  private val readme_url = "file://" + readme_path.expand.implode
+  readme.render_document(readme_url, Isabelle_System.try_read(List(readme_path)))
 
   val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
