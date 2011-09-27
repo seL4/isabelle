@@ -7,17 +7,43 @@
 <style type="text/css" media="screen">
 body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
 </style>
-<title>Notes on the Isabelle/jEdit Prover IDE</title>
+<title>Welcome to the Isabelle/jEdit Prover IDE</title>
 </head>
 
 <body>
 
-<h2>The Isabelle/jEdit Prover IDE (based on Isabelle/Scala)</h2>
+<h2>The PIDE framework</h2>
 
-The Isabelle/Scala layer that is already part of Isabelle/Pure
-provides some general infrastructure for advanced prover interaction
-and integration.  The Isabelle/jEdit application serves as an example
-for asynchronous proof checking with support for parallel processing.
+<p>
+  <b>PIDE</b> is an emerging framework for sophisticated Prover IDEs,
+  based on Isabelle/Scala technology that is integrated with Isabelle.
+  It is build around a concept of
+  <em>asynchronous document processing</em>, which is supported
+  natively by the <em>parallel proof engine</em> implemented in Isabelle/ML.
+</p>
+
+<p>
+  <b>Isabelle/jEdit</b> is an example application within the PIDE
+  framework &mdash; it illustrates many of the ideas in a realistic
+  manner, ready to be used right now in Isabelle applications.
+</p>
+
+<p>
+  <em>Research and implementation of concepts around PIDE has been
+  kindly supported in the past 3 years by BMBF (http://www.bmbf.de),
+  Université Paris-Sud (http://www.u-psud.fr), and Digiteo
+  (http://www.digiteo.fr).</em>
+</p>
+
+
+
+<h2>The Isabelle/jEdit Prover IDE</h2>
+
+<p>
+Isabelle/jEdit consists of some plugins for the well-known jEdit text
+editor framework (http://www.jedit.org), according to the following
+principles.
+</p>
 
 <ul>
 
@@ -40,13 +66,16 @@ for asynchronous proof checking with support for parallel processing.
 <li>Dockable panels (e.g. <em>Output</em>) are managed as independent
   windows by jEdit, which also allows multiple instances.</li>
 
+<li>Prover process and source files are managed by the Scala layer on
+the editor side.  The prover experiences a mostly timeless and
+stateless environment of formal document content.</li>
+
 </ul>
 
 
 <h2>Isabelle symbols and fonts</h2>
 
 <ul>
-
   <li>Isabelle supports infinitely many symbols:<br/>
     α, β, γ, …<br/>
     ∀, ∃, ∨, ∧, ⟶, ⟷, …<br/>
@@ -116,6 +145,12 @@ for asynchronous proof checking with support for parallel processing.
   <li><b>NOTE:</b> Generic jEdit abbreviations or plugins perform similar
     source replacement operations; this works for Isabelle as long
     as the Unicode sequences coincide with the symbol mapping.
+  </li>
+
+  <li><b>NOTE:</b>Raw unicode characters within prover source files
+  should be restricted to informal parts, e.g. to write text in
+  non-latin alphabets.  Mathematical symbols should be defined via the
+  official rendering tables.
   </li>
 
 </ul>
@@ -201,6 +236,8 @@ for asynchronous proof checking with support for parallel processing.
 <h2>Licenses and home sites of contributing systems</h2>
 
 <ul>
+
+<li>Isabelle: BSD-style</li>
 
 <li>Scala: BSD-style <br/> http://www.scala-lang.org</li>
 
