@@ -114,10 +114,10 @@ object Isabelle_System
   {
     val path = raw_path.expand
     require(path.is_absolute)
-    val s =
-      if (Platform.is_windows) "/" + platform_path(path).replace('\\', '/')
-      else platform_path(path)
-    "file://" + s.replaceAll(" ", "%20")
+    val s = platform_path(path).replaceAll(" ", "%20")
+    if (!Platform.is_windows) "file://" + s
+    else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
+    else "file:///" + s.replace('\\', '/')
   }
 
   def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
