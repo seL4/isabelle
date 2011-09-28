@@ -2,7 +2,7 @@
 
 header "Denotational Abstract Interpretation"
 
-theory Abs_Int0_fun
+theory Abs_Int_den0_fun
 imports "~~/src/HOL/ex/Interpretation_with_Defs" Big_Step
 begin
 

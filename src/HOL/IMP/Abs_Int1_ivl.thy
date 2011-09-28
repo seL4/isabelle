@@ -8,16 +8,11 @@ subsection "Interval Analysis"
 
 datatype ivl = I "int option" "int option"
 
-text{* We assume an important invariant: arithmetic operations are never
-applied to empty intervals @{term"I (Some i) (Some j)"} with @{term"j <
-i"}. This avoids special cases. Why can we assume this? Because an empty
-interval of values for a variable means that the current program point is
-unreachable. But this should actually translate into the bottom state, not a
-state where some variables have empty intervals. *}
-
-definition "rep_ivl i =
- (case i of I (Some l) (Some h) \<Rightarrow> {l..h} | I (Some l) None \<Rightarrow> {l..}
-  | I None (Some h) \<Rightarrow> {..h} | I None None \<Rightarrow> UNIV)"
+definition "rep_ivl i = (case i of
+  I (Some l) (Some h) \<Rightarrow> {l..h} |
+  I (Some l) None \<Rightarrow> {l..} |
+  I None (Some h) \<Rightarrow> {..h} |
+  I None None \<Rightarrow> UNIV)"
 
 definition "num_ivl n = I (Some n) (Some n)"
 
@@ -45,7 +40,7 @@ by(auto split:option.split)
 lemma [simp]: "is_empty i \<Longrightarrow> rep_ivl i = {}"
 by(auto simp add: rep_ivl_def split: ivl.split option.split)
 
-definition "plus_ivl i1 i2 = ((*if is_empty i1 | is_empty i2 then empty else*)
+definition "plus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
 
 instantiation ivl :: SL_top
@@ -75,7 +70,7 @@ definition "i1 \<squnion> i2 =
   else case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
           I (min_option False l1 l2) (max_option True h1 h2))"
 
-definition "Top = I None None"
+definition "\<top> = I None None"
 
 instance
 proof
@@ -108,7 +103,7 @@ definition "i1 \<sqinter> i2 = (if is_empty i1 \<or> is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
     I (max_option False l1 l2) (min_option True h1 h2))"
 
-definition "Bot = empty"
+definition "\<bottom> = empty"
 
 instance
 proof
@@ -121,7 +116,7 @@ next
   case goal3 thus ?case
     by (cases x, cases y, cases z, auto simp add: le_ivl_def meet_ivl_def empty_def le_option_def max_option_def min_option_def split: option.splits if_splits)
 next
-  case goal4 show ?case by(cases x, simp add: Bot_ivl_def empty_def le_ivl_def)
+  case goal4 show ?case by(cases x, simp add: bot_ivl_def empty_def le_ivl_def)
 qed
 
 end
@@ -137,7 +132,7 @@ instance proof qed
 
 end
 
-definition "minus_ivl i1 i2 = ((*if is_empty i1 | is_empty i2 then empty else*)
+definition "minus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1-h2) (h1-l2))"
 
 lemma rep_minus_ivl:
@@ -150,7 +145,7 @@ definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
 
 fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
 "filter_less_ivl res (I l1 h1) (I l2 h2) =
-  ((*if is_empty(I l1 h1) \<or> is_empty(I l2 h2) then (empty, empty) else*)
+  (if is_empty(I l1 h1) \<or> is_empty(I l2 h2) then (empty, empty) else
    if res
    then (I l1 (min_option True h1 (h2 - Some 1)),
          I (max_option False (l1 + Some 1) l2) h2)
@@ -160,6 +155,8 @@ interpretation Rep rep_ivl
 proof
   case goal1 thus ?case
     by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
+next
+  case goal2 show ?case by(simp add: rep_ivl_def Top_ivl_def)
 qed
 
 interpretation Val_abs rep_ivl num_ivl plus_ivl
@@ -168,6 +165,9 @@ proof
 next
   case goal2 thus ?case
     by(auto simp add: rep_ivl_def plus_ivl_def split: ivl.split option.splits)
+next
+  case goal3 thus ?case
+    by(auto simp: plus_ivl_def le_ivl_def le_option_def empty_def split: if_splits ivl.splits option.splits)
 qed
 
 interpretation Rep1 rep_ivl
@@ -175,8 +175,17 @@ proof
   case goal1 thus ?case
     by(auto simp add: rep_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
 next
-  case goal2 show ?case by(auto simp add: Bot_ivl_def rep_ivl_def empty_def)
+  case goal2 show ?case by(auto simp add: bot_ivl_def rep_ivl_def empty_def)
 qed
+
+lemma mono_minus_ivl:
+  "i1 \<sqsubseteq> i1' \<Longrightarrow> i2 \<sqsubseteq> i2' \<Longrightarrow> minus_ivl i1 i2 \<sqsubseteq> minus_ivl i1' i2'"
+apply(auto simp add: minus_ivl_def empty_def le_ivl_def le_option_def split: ivl.splits)
+  apply(simp split: option.splits)
+ apply(simp split: option.splits)
+apply(simp split: option.splits)
+done
+
 
 interpretation
   Val_abs1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
@@ -188,73 +197,80 @@ next
   case goal2 thus ?case
     by(cases a1, cases a2,
       auto simp: rep_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
+next
+  case goal3 thus ?case
+    by(auto simp: filter_plus_ivl_def le_prod_def mono_meet mono_minus_ivl)
+next
+  case goal4 thus ?case
+    apply(cases a1, cases b1, cases a2, cases b2, auto simp: le_prod_def)
+    by(auto simp add: empty_def le_ivl_def le_option_def min_option_def max_option_def split: option.splits)
 qed
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 3)"
+  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter 20)"
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
+and step_ivl is step
 and AI_ivl is AI
 and aval_ivl is aval'
-proof qed (auto simp: iter'_pfp_above)
+proof qed (auto simp: iter_pfp strip_iter)
 
-
-fun list_up where
-"list_up bot = bot" |
-"list_up (Up x) = Up(list x)"
-
-value [code] "list_up(afilter_ivl (N 5) (I (Some 4) (Some 5)) Top)"
-value [code] "list_up(afilter_ivl (N 5) (I (Some 4) (Some 4)) Top)"
-value [code] "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 4))
- (Up(FunDom(Top(''x'':=I (Some 5) (Some 6))) [''x''])))"
-value [code] "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 5))
- (Up(FunDom(Top(''x'':=I (Some 5) (Some 6))) [''x''])))"
-value [code] "list_up(afilter_ivl (Plus (V ''x'') (V ''x'')) (I (Some 0) (Some 10))
-  (Up(FunDom(Top(''x'':= I (Some 0) (Some 100)))[''x''])))"
-value [code] "list_up(afilter_ivl (Plus (V ''x'') (N 7)) (I (Some 0) (Some 10))
-  (Up(FunDom(Top(''x'':= I (Some 0) (Some 100)))[''x''])))"
-
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
-  (Up(FunDom(Top(''x'':= I (Some 0) (Some 0)))[''x''])))"
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
-  (Up(FunDom(Top(''x'':= I (Some 0) (Some 2)))[''x''])))"
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (Plus (N 10) (V ''y''))) True
-  (Up(FunDom(Top(''x'':= I (Some 15) (Some 20),''y'':= I (Some 5) (Some 7)))[''x'', ''y''])))"
-
-definition "test_ivl1 =
+definition "test1_ivl =
  ''y'' ::= N 7;
  IF Less (V ''x'') (V ''y'')
  THEN ''y'' ::= Plus (V ''y'') (V ''x'')
  ELSE ''x'' ::= Plus (V ''x'') (V ''y'')"
-value [code] "list_up(AI_ivl test_ivl1 Top)"
 
-value "list_up (AI_ivl test3_const Top)"
+translations
+"{i..j}" <= "CONST I (CONST Some i) (CONST Some j)"
+"{..j}" <= "CONST I (CONST None) (CONST Some j)"
+"{i..}" <= "CONST I (CONST Some i) (CONST None)"
+"CONST UNIV" <= "CONST I (CONST None) (CONST None)"
 
-value "list_up (AI_ivl test5_const Top)"
+value [code] "show_acom (AI_ivl test1_ivl)"
 
-value "list_up (AI_ivl test6_const Top)"
+value [code] "show_acom (AI_const test3_const)"
+value [code] "show_acom (AI_ivl test3_const)"
+
+value [code] "show_acom (AI_const test4_const)"
+value [code] "show_acom (AI_ivl test4_const)"
+
+value [code] "show_acom (AI_ivl test6_const)"
 
 definition "test2_ivl =
- ''y'' ::= N 7;
- WHILE Less (V ''x'') (N 100) DO ''y'' ::= Plus (V ''y'') (N 1)"
-value [code] "list_up(AI_ivl test2_ivl Top)"
+ WHILE Less (V ''x'') (N 100)
+ DO ''x'' ::= Plus (V ''x'') (N 1)"
+
+value [code] "show_acom (AI_ivl test2_ivl)"
 
 definition "test3_ivl =
+ ''x'' ::= N 7;
+ WHILE Less (V ''x'') (N 100)
+ DO ''x'' ::= Plus (V ''x'') (N 1)"
+
+value [code] "show_acom (AI_ivl test3_ivl)"
+value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^3) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^4) (\<bottom>\<^sub>c test3_ivl))"
+
+definition "test4_ivl =
  ''x'' ::= N 0; ''y'' ::= N 100; ''z'' ::= Plus (V ''x'') (V ''y'');
  WHILE Less (V ''x'') (N 11)
  DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N -1))"
-value [code] "list_up(AI_ivl test3_ivl Top)"
+value [code] "show_acom(AI_ivl test4_ivl)"
 
-definition "test4_ivl =
+definition "test5_ivl =
  ''x'' ::= N 0; ''y'' ::= N 0;
  WHILE Less (V ''x'') (N 1001)
  DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
-value [code] "list_up(AI_ivl test4_ivl Top)"
+value [code] "show_acom(AI_ivl test5_ivl)"
 
 text{* Nontermination not detected: *}
-definition "test5_ivl =
+definition "test6_ivl =
  ''x'' ::= N 0;
  WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
-value [code] "list_up(AI_ivl test5_ivl Top)"
+value [code] "show_acom(AI_ivl test6_ivl)"
 
 end

@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Abs_Int0
-imports Abs_State
+theory Abs_Int_den0
+imports Abs_State_den
 begin
 
 subsection "Computable Abstract Interpretation"

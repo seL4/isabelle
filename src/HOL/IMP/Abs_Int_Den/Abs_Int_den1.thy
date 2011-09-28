@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Abs_Int1
-imports Abs_Int0_const
+theory Abs_Int_den1
+imports Abs_Int_den0_const
 begin
 
 subsection "Backward Analysis of Expressions"
