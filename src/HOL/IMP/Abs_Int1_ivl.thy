@@ -14,7 +14,16 @@ definition "rep_ivl i = (case i of
   I None (Some h) \<Rightarrow> {..h} |
   I None None \<Rightarrow> UNIV)"
 
-definition "num_ivl n = I (Some n) (Some n)"
+abbreviation I_Some_Some :: "int \<Rightarrow> int \<Rightarrow> ivl"  ("{_\<dots>_}") where
+"{lo\<dots>hi} == I (Some lo) (Some hi)"
+abbreviation I_Some_None :: "int \<Rightarrow> ivl"  ("{_\<dots>}") where
+"{lo\<dots>} == I (Some lo) None"
+abbreviation I_None_Some :: "int \<Rightarrow> ivl"  ("{\<dots>_}") where
+"{\<dots>hi} == I None (Some hi)"
+abbreviation I_None_None :: "ivl"  ("{\<dots>}") where
+"{\<dots>} == I None None"
+
+definition "num_ivl n = {n\<dots>n}"
 
 instantiation option :: (plus)plus
 begin
@@ -27,10 +36,10 @@ instance proof qed
 
 end
 
-definition empty where "empty = I (Some 1) (Some 0)"
+definition empty where "empty = {1\<dots>0}"
 
 fun is_empty where
-"is_empty(I (Some l) (Some h)) = (h<l)" |
+"is_empty {l\<dots>h} = (h<l)" |
 "is_empty _ = False"
 
 lemma [simp]: "is_empty(I l h) =
@@ -70,7 +79,7 @@ definition "i1 \<squnion> i2 =
   else case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
           I (min_option False l1 l2) (max_option True h1 h2))"
 
-definition "\<top> = I None None"
+definition "\<top> = {\<dots>}"
 
 instance
 proof
@@ -220,12 +229,6 @@ definition "test1_ivl =
  IF Less (V ''x'') (V ''y'')
  THEN ''y'' ::= Plus (V ''y'') (V ''x'')
  ELSE ''x'' ::= Plus (V ''x'') (V ''y'')"
-
-translations
-"{i..j}" <= "CONST I (CONST Some i) (CONST Some j)"
-"{..j}" <= "CONST I (CONST None) (CONST Some j)"
-"{i..}" <= "CONST I (CONST Some i) (CONST None)"
-"CONST UNIV" <= "CONST I (CONST None) (CONST None)"
 
 value [code] "show_acom (AI_ivl test1_ivl)"
 

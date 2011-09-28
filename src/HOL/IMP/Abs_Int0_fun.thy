@@ -11,11 +11,11 @@ subsection "Annotated Commands"
 datatype 'a acom =
   SKIP   'a                           ("SKIP {_}") |
   Assign name aexp 'a                 ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
-  Semi   "'a acom" "'a acom"          ("_;// _"  [60, 61] 60) |
+  Semi   "'a acom" "'a acom"          ("_;//_"  [60, 61] 60) |
   If     bexp "'a acom" "'a acom" 'a
-    ("((IF _/ THEN _/ ELSE _)/ {_})"  [0, 0, 61, 0] 61) |
+    ("(IF _/ THEN _/ ELSE _//{_})"  [0, 0, 61, 0] 61) |
   While  'a bexp "'a acom" 'a
-    ("({_}// WHILE _/ DO (_)// {_})"  [0, 0, 61, 0] 61)
+    ("({_}//WHILE _/ DO (_)//{_})"  [0, 0, 61, 0] 61)
 
 fun post :: "'a acom \<Rightarrow>'a" where
 "post (SKIP {P}) = P" |
