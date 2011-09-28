@@ -1,8 +1,8 @@
 (* Author: Tobias Nipkow *)
 
-header "Abstract Interpretation"
+header "Denotational Abstract Interpretation"
 
-theory AbsInt0_fun
+theory Abs_Int0_fun
 imports "~~/src/HOL/ex/Interpretation_with_Defs" Big_Step
 begin
 

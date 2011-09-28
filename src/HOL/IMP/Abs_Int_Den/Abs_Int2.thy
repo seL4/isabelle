@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory AbsInt2
-imports AbsInt1_ivl
+theory Abs_Int2
+imports Abs_Int1_ivl
 begin
 
 context preord

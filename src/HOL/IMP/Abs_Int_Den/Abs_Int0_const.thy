@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory AbsInt0_const
-imports AbsInt0
+theory Abs_Int0_const
+imports Abs_Int0
 begin
 
 subsection "Constant Propagation"

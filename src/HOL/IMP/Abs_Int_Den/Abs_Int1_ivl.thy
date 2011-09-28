@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory AbsInt1_ivl
-imports AbsInt1
+theory Abs_Int1_ivl
+imports Abs_Int1
 begin
 
 subsection "Interval Analysis"
