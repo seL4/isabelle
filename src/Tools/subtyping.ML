@@ -628,7 +628,7 @@ fun gen_coercion ctxt err tye TU =
                 NONE => raise COERCION_GEN_ERROR (err ++> quote (Syntax.string_of_typ ctxt T1) ^
                   " is not a subtype of " ^ quote (Syntax.string_of_typ ctxt T2))
               | SOME (co, _) => co)
-      | ((Type (a, Ts)), (Type (b, Us))) =>
+      | (T1 as Type (a, Ts), T2 as Type (b, Us)) =>
             if a <> b
             then
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
@@ -656,8 +656,11 @@ fun gen_coercion ctxt err tye TU =
                   | ts_of (Type ("fun", [x1, x2]) :: xs) = x1 :: x2 :: (ts_of xs);
               in
                 (case Symtab.lookup (tmaps_of ctxt) a of
-                  NONE => raise COERCION_GEN_ERROR
-                    (err ++> "No map function for " ^ quote a ^ " known")
+                  NONE =>
+                    if Type.could_unify (T1, T2)
+                    then Abs (Name.uu, T1, Bound 0)
+                    else raise COERCION_GEN_ERROR
+                      (err ++> "No map function for " ^ quote a ^ " known")
                 | SOME tmap =>
                     let
                       val used_coes = map_filter sub_co ((snd tmap) ~~ (Ts ~~ Us));
