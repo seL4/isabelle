@@ -252,7 +252,7 @@ value "ccomp
 value "ccomp (WHILE Less (V ''u'') (N 1) DO (''u'' ::= Plus (V ''u'') (N 1)))"
 
 
-subsection "Preservation of sematics"
+subsection "Preservation of semantics"
 
 lemma ccomp_bigstep:
   "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk)"

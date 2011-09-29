@@ -46,7 +46,7 @@ subsubsection{* Proof automation *}
 
 declare small_step.intros[simp,intro]
 
-text{* So called transitivity rules. See below. *}
+text{* So-called transitivity rules. See below. *}
 
 declare step[trans] step1[trans]
 

@@ -10,7 +10,7 @@ definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarr
   ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
 "\<Turnstile>\<^sub>t {P}c{Q}  \<equiv>  \<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
 
-text{* Proveability of Hoare triples in the proof system for total
+text{* Provability of Hoare triples in the proof system for total
 correctness is written @{text"\<turnstile>\<^sub>t {P}c{Q}"} and defined
 inductively. The rules for @{text"\<turnstile>\<^sub>t"} differ from those for
 @{text"\<turnstile>"} only in the one place where nontermination can arise: the
