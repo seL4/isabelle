@@ -907,7 +907,7 @@ subsubsection {* Example: set-theoretic operators *}
 
 text {* There is nothing special about logical connectives (@{text
   "\<and>"}, @{text "\<or>"}, @{text "\<forall>"}, @{text "\<exists>"} etc.).  Operators from
-  set-theory or lattice-theory for analogously.  It is only a matter
+  set-theory or lattice-theory work analogously.  It is only a matter
   of rule declarations in the library; rules can be also specified
   explicitly.
 *}
