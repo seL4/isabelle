@@ -2870,6 +2870,9 @@ next
   qed
 qed
 
+lemma distinct_length_filter: "distinct xs \<Longrightarrow> length (filter P xs) = card ({x. P x} Int set xs)"
+by (induct xs) (auto)
+
 lemma not_distinct_decomp: "~ distinct ws ==> EX xs ys zs y. ws = xs@[y]@ys@[y]@zs"
 apply (induct n == "length ws" arbitrary:ws) apply simp
 apply(case_tac ws) apply simp
