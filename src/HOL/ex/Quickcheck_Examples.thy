@@ -266,6 +266,20 @@ lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
   quickcheck[expect = counterexample]
 oops
 
+
+subsection {* Examples with relations *}
+
+lemma
+  "acyclic R ==> acyclic S ==> acyclic (R Un S)"
+quickcheck[expect = counterexample]
+oops
+
+lemma
+  "(x, z) : rtrancl (R Un S) ==> \<exists> y. (x, y) : rtrancl R & (y, z) : rtrancl S"
+quickcheck[expect = counterexample]
+oops
+
+
 subsection {* Examples with numerical types *}
 
 text {*
