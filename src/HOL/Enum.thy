@@ -766,7 +766,7 @@ by (simp add: distinct_length_filter[OF enum_distinct] enum_UNIV Collect_def)
 
 subsection {* An executable (reflexive) transitive closure on finite relations *}
 
-text {* Definitions could be moved to Transitive_Closure if they are of more general use. *}
+text {* Definitions could be moved to Transitive Closure theory if they are of more general use. *}
 
 definition ntrancl :: "('a * 'a => bool) => nat => ('a * 'a => bool)"
 where
