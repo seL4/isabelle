@@ -775,6 +775,10 @@ by(induct n) auto
 lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
 by (induct n) (simp, simp add: O_assoc [symmetric])
 
+lemma rel_pow_empty:
+  "0 < n ==> ({} :: 'a * 'a => bool) ^^ n = {}"
+by (cases n) auto
+
 lemma rtrancl_imp_UN_rel_pow:
   assumes "p \<in> R^*"
   shows "p \<in> (\<Union>n. R ^^ n)"
