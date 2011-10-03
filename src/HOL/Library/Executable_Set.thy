@@ -124,6 +124,9 @@ lemma Bex_Set [code]:
   "Bex (Set xs) P \<longleftrightarrow> list_ex P xs"
   by (simp add: list_ex_iff)
 
+lemma
+  [code, code del]: "card S = card S" ..
+
 lemma card_Set [code]:
   "card (Set xs) = length (remdups xs)"
 proof -
