@@ -8,6 +8,13 @@ CLASSPATH="$(jvmpath "$CLASSPATH")"
 
 JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
 
+if "$JAVA_EXE" -version >/dev/null 2>/dev/null; then
+  :
+else
+  echo "Bad Java executable: \"$JAVA_EXE\"" >&2
+  exit 2
+fi
+
 if "$JAVA_EXE" -server >/dev/null 2>/dev/null; then
   SERVER="-server"
 else
