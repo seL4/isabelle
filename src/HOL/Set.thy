@@ -483,8 +483,8 @@ lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 lemma contra_subsetD [no_atp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
-lemma subset_refl [simp]: "A \<subseteq> A"
-  by (fact order_refl)
+lemma subset_refl: "A \<subseteq> A"
+  by (fact order_refl) (* already [iff] *)
 
 lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
   by (fact order_trans)
@@ -586,8 +586,8 @@ declare UNIV_I [intro]  -- {* unsafe makes it less likely to cause problems *}
 lemma UNIV_witness [intro?]: "EX x. x : UNIV"
   by simp
 
-lemma subset_UNIV [simp]: "A \<subseteq> UNIV"
-  by (rule subsetI) (rule UNIV_I)
+lemma subset_UNIV: "A \<subseteq> UNIV"
+  by (fact top_greatest) (* already simp *)
 
 text {*
   \medskip Eta-contracting these two rules (to remove @{text P})
@@ -1074,10 +1074,10 @@ lemma Collect_const [simp]: "{s. P} = (if P then UNIV else {})"
   by auto
 
 lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
-  by blast
+  by (fact bot_unique)
 
 lemma not_psubset_empty [iff]: "\<not> (A < {})"
-  by (unfold less_le) blast
+  by (fact not_less_bot) (* FIXME: already simp *)
 
 lemma Collect_empty_eq [simp]: "(Collect P = {}) = (\<forall>x. \<not> P x)"
 by blast
@@ -1204,8 +1204,8 @@ by (subst image_image, simp)
 
 text {* \medskip @{text Int} *}
 
-lemma Int_absorb [simp]: "A \<inter> A = A"
-  by (fact inf_idem)
+lemma Int_absorb: "A \<inter> A = A"
+  by (fact inf_idem) (* already simp *)
 
 lemma Int_left_absorb: "A \<inter> (A \<inter> B) = A \<inter> B"
   by (fact inf_left_idem)
@@ -1228,11 +1228,11 @@ lemma Int_absorb1: "B \<subseteq> A ==> A \<inter> B = B"
 lemma Int_absorb2: "A \<subseteq> B ==> A \<inter> B = A"
   by (fact inf_absorb1)
 
-lemma Int_empty_left [simp]: "{} \<inter> B = {}"
-  by (fact inf_bot_left)
+lemma Int_empty_left: "{} \<inter> B = {}"
+  by (fact inf_bot_left) (* already simp *)
 
-lemma Int_empty_right [simp]: "A \<inter> {} = {}"
-  by (fact inf_bot_right)
+lemma Int_empty_right: "A \<inter> {} = {}"
+  by (fact inf_bot_right) (* already simp *)
 
 lemma disjoint_eq_subset_Compl: "(A \<inter> B = {}) = (A \<subseteq> -B)"
   by blast
@@ -1240,11 +1240,11 @@ lemma disjoint_eq_subset_Compl: "(A \<inter> B = {}) = (A \<subseteq> -B)"
 lemma disjoint_iff_not_equal: "(A \<inter> B = {}) = (\<forall>x\<in>A. \<forall>y\<in>B. x \<noteq> y)"
   by blast
 
-lemma Int_UNIV_left [simp]: "UNIV \<inter> B = B"
-  by (fact inf_top_left)
+lemma Int_UNIV_left: "UNIV \<inter> B = B"
+  by (fact inf_top_left) (* already simp *)
 
-lemma Int_UNIV_right [simp]: "A \<inter> UNIV = A"
-  by (fact inf_top_right)
+lemma Int_UNIV_right: "A \<inter> UNIV = A"
+  by (fact inf_top_right) (* already simp *)
 
 lemma Int_Un_distrib: "A \<inter> (B \<union> C) = (A \<inter> B) \<union> (A \<inter> C)"
   by (fact inf_sup_distrib1)
@@ -1253,7 +1253,7 @@ lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \
   by (fact inf_sup_distrib2)
 
 lemma Int_UNIV [simp,no_atp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
-  by (fact inf_eq_top_iff)
+  by (fact inf_eq_top_iff) (* already simp *)
 
 lemma Int_subset_iff [no_atp, simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
   by (fact le_inf_iff)
@@ -1264,8 +1264,8 @@ lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
 
 text {* \medskip @{text Un}. *}
 
-lemma Un_absorb [simp]: "A \<union> A = A"
-  by (fact sup_idem)
+lemma Un_absorb: "A \<union> A = A"
+  by (fact sup_idem) (* already simp *)
 
 lemma Un_left_absorb: "A \<union> (A \<union> B) = A \<union> B"
   by (fact sup_left_idem)
@@ -1288,17 +1288,17 @@ lemma Un_absorb1: "A \<subseteq> B ==> A \<union> B = B"
 lemma Un_absorb2: "B \<subseteq> A ==> A \<union> B = A"
   by (fact sup_absorb1)
 
-lemma Un_empty_left [simp]: "{} \<union> B = B"
-  by (fact sup_bot_left)
+lemma Un_empty_left: "{} \<union> B = B"
+  by (fact sup_bot_left) (* already simp *)
 
-lemma Un_empty_right [simp]: "A \<union> {} = A"
-  by (fact sup_bot_right)
+lemma Un_empty_right: "A \<union> {} = A"
+  by (fact sup_bot_right) (* already simp *)
 
-lemma Un_UNIV_left [simp]: "UNIV \<union> B = UNIV"
-  by (fact sup_top_left)
+lemma Un_UNIV_left: "UNIV \<union> B = UNIV"
+  by (fact sup_top_left) (* already simp *)
 
-lemma Un_UNIV_right [simp]: "A \<union> UNIV = UNIV"
-  by (fact sup_top_right)
+lemma Un_UNIV_right: "A \<union> UNIV = UNIV"
+  by (fact sup_top_right) (* already simp *)
 
 lemma Un_insert_left [simp]: "(insert a B) \<union> C = insert a (B \<union> C)"
   by blast
@@ -1344,7 +1344,7 @@ lemma subset_Un_eq: "(A \<subseteq> B) = (A \<union> B = B)"
   by (fact le_iff_sup)
 
 lemma Un_empty [iff]: "(A \<union> B = {}) = (A = {} & B = {})"
-  by (fact sup_eq_bot_iff)
+  by (fact sup_eq_bot_iff) (* FIXME: already simp *)
 
 lemma Un_subset_iff [no_atp, simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
   by (fact le_sup_iff)
@@ -1370,14 +1370,14 @@ lemma Compl_partition: "A \<union> -A = UNIV"
 lemma Compl_partition2: "-A \<union> A = UNIV"
   by (fact compl_sup_top)
 
-lemma double_complement [simp]: "- (-A) = (A::'a set)"
-  by (fact double_compl)
+lemma double_complement: "- (-A) = (A::'a set)"
+  by (fact double_compl) (* already simp *)
 
-lemma Compl_Un [simp]: "-(A \<union> B) = (-A) \<inter> (-B)"
-  by (fact compl_sup)
+lemma Compl_Un: "-(A \<union> B) = (-A) \<inter> (-B)"
+  by (fact compl_sup) (* already simp *)
 
-lemma Compl_Int [simp]: "-(A \<inter> B) = (-A) \<union> (-B)"
-  by (fact compl_inf)
+lemma Compl_Int: "-(A \<inter> B) = (-A) \<union> (-B)"
+  by (fact compl_inf) (* already simp *)
 
 lemma subset_Compl_self_eq: "(A \<subseteq> -A) = (A = {})"
   by blast
@@ -1386,17 +1386,17 @@ lemma Un_Int_assoc_eq: "((A \<inter> B) \<union> C = A \<inter> (B \<union> C)) 
   -- {* Halmos, Naive Set Theory, page 16. *}
   by blast
 
-lemma Compl_UNIV_eq [simp]: "-UNIV = {}"
-  by (fact compl_top_eq)
+lemma Compl_UNIV_eq: "-UNIV = {}"
+  by (fact compl_top_eq) (* already simp *)
 
-lemma Compl_empty_eq [simp]: "-{} = UNIV"
-  by (fact compl_bot_eq)
+lemma Compl_empty_eq: "-{} = UNIV"
+  by (fact compl_bot_eq) (* already simp *)
 
 lemma Compl_subset_Compl_iff [iff]: "(-A \<subseteq> -B) = (B \<subseteq> A)"
-  by (fact compl_le_compl_iff)
+  by (fact compl_le_compl_iff) (* FIXME: already simp *)
 
 lemma Compl_eq_Compl_iff [iff]: "(-A = -B) = (A = (B::'a set))"
-  by (fact compl_eq_compl_iff)
+  by (fact compl_eq_compl_iff) (* FIXME: already simp *)
 
 lemma Compl_insert: "- insert x A = (-A) - {x}"
   by blast
