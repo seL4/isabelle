@@ -1,6 +1,6 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# Isabelle user settings sample -- for use in ~/.isabelle/etc/settings
+# Isabelle user settings sample -- for use in $ISABELLE_HOME_USER/etc/settings
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
 ISABELLE_LOGIC=HOL
