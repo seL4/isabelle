@@ -2431,40 +2431,8 @@ hide_const (open) Pls Min Bit0 Bit1 succ pred
 
 subsection {* Legacy theorems *}
 
-lemmas zminus_zminus = minus_minus [of "z::int", standard]
-lemmas zminus_0 = minus_zero [where 'a=int]
-lemmas zminus_zadd_distrib = minus_add_distrib [of "z::int" "w", standard]
-lemmas zadd_commute = add_commute [of "z::int" "w", standard]
-lemmas zadd_assoc = add_assoc [of "z1::int" "z2" "z3", standard]
-lemmas zadd_left_commute = add_left_commute [of "x::int" "y" "z", standard]
-lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
-lemmas zmult_ac = mult_ac
-lemmas zadd_0 = add_0_left [of "z::int", standard]
-lemmas zadd_0_right = add_0_right [of "z::int", standard]
-lemmas zadd_zminus_inverse2 = left_minus [of "z::int", standard]
-lemmas zmult_zminus = mult_minus_left [of "z::int" "w", standard]
-lemmas zmult_commute = mult_commute [of "z::int" "w", standard]
-lemmas zmult_assoc = mult_assoc [of "z1::int" "z2" "z3", standard]
-lemmas zadd_zmult_distrib = left_distrib [of "z1::int" "z2" "w", standard]
-lemmas zadd_zmult_distrib2 = right_distrib [of "w::int" "z1" "z2", standard]
-lemmas zdiff_zmult_distrib = left_diff_distrib [of "z1::int" "z2" "w", standard]
-lemmas zdiff_zmult_distrib2 = right_diff_distrib [of "w::int" "z1" "z2", standard]
-
-lemmas zmult_1 = mult_1_left [of "z::int", standard]
-lemmas zmult_1_right = mult_1_right [of "z::int", standard]
-
-lemmas zle_refl = order_refl [of "w::int", standard]
-lemmas zle_trans = order_trans [where 'a=int and x="i" and y="j" and z="k", standard]
-lemmas zle_antisym = order_antisym [of "z::int" "w", standard]
-lemmas zle_linear = linorder_linear [of "z::int" "w", standard]
-lemmas zless_linear = linorder_less_linear [where 'a = int]
-
-lemmas zadd_left_mono = add_left_mono [of "i::int" "j" "k", standard]
-lemmas zadd_strict_right_mono = add_strict_right_mono [of "i::int" "j" "k", standard]
-lemmas zadd_zless_mono = add_less_le_mono [of "w'::int" "w" "z'" "z", standard]
-
-lemmas int_0_less_1 = zero_less_one [where 'a=int]
-lemmas int_0_neq_1 = zero_neq_one [where 'a=int]
+(* used by Tools/Qelim/cooper.ML *)
+lemmas zadd_ac = add_ac [where 'a=int]
 
 lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
@@ -2482,19 +2450,6 @@ lemmas int_Suc = of_nat_Suc [where 'a=int]
 lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m", standard]
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
-lemmas zless_le = less_int_def
-lemmas int_eq_of_nat = TrueI
-
-lemma zpower_zadd_distrib:
-  "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
-  by (rule power_add)
-
-lemma zero_less_zpower_abs_iff:
-  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
-  by (rule zero_less_power_abs_iff)
-
-lemma zero_le_zpower_abs: "(0::int) \<le> abs x ^ n"
-  by (rule zero_le_power_abs)
 
 lemma zpower_zpower:
   "(x ^ y) ^ z = (x ^ (y * z)::int)"

@@ -4,6 +4,45 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Theory Int: Discontinued many legacy theorems specific to type int.
+  INCOMPATIBILITY, use the corresponding generic theorems instead.
+
+  zminus_zminus ~> minus_minus
+  zminus_0 ~> minus_zero
+  zminus_zadd_distrib ~> minus_add_distrib
+  zadd_commute ~> add_commute
+  zadd_assoc ~> add_assoc
+  zadd_left_commute ~> add_left_commute
+  zmult_ac ~> mult_ac
+  zadd_0 ~> add_0_left
+  zadd_0_right ~> add_0_right
+  zadd_zminus_inverse2 ~> left_minus
+  zmult_zminus ~> mult_minus_left
+  zmult_commute ~> mult_commute
+  zmult_assoc ~> mult_assoc
+  zadd_zmult_distrib ~> left_distrib
+  zadd_zmult_distrib2 ~> right_distrib
+  zdiff_zmult_distrib ~> left_diff_distrib
+  zdiff_zmult_distrib2 ~> right_diff_distrib
+  zmult_1 ~> mult_1_left
+  zmult_1_right ~> mult_1_right
+  zle_refl ~> order_refl
+  zle_trans ~> order_trans
+  zle_antisym ~> order_antisym
+  zle_linear ~> linorder_linear
+  zless_linear ~> linorder_less_linear
+  zadd_left_mono ~> add_left_mono
+  zadd_strict_right_mono ~> add_strict_right_mono
+  zadd_zless_mono ~> add_less_le_mono
+  int_0_less_1 ~> zero_less_one
+  int_0_neq_1 ~> zero_neq_one
+  zless_le ~> less_le
+  zpower_zadd_distrib ~> power_add
+  zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
+  zero_le_zpower_abs ~> zero_le_power_abs
+
 
 
 New in Isabelle2011-1 (October 2011)
