@@ -94,7 +94,7 @@ COMPILER=$(./bin/isabelle getenv -b ML_IDENTIFIER)
 PLATFORM=$(./bin/isabelle getenv -b ML_PLATFORM)
 
 if [ -n "$DO_LIBRARY" ]; then
-  ./build -bait
+  ./build -bait -m all
 else
   ./build -b HOL
 fi
