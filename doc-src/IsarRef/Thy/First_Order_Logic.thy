@@ -47,7 +47,7 @@ where
 text {*
   \noindent Substitution is very powerful, but also hard to control in
   full generality.  We derive some common symmetry~/ transitivity
-  schemes of as particular consequences.
+  schemes of @{term equal} as particular consequences.
 *}
 
 theorem sym [sym]:

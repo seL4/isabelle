@@ -110,6 +110,16 @@ object Isabelle_System
   def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
   def platform_file(path: Path): File = new File(platform_path(path))
 
+  def platform_file_url(raw_path: Path): String =
+  {
+    val path = raw_path.expand
+    require(path.is_absolute)
+    val s = platform_path(path).replaceAll(" ", "%20")
+    if (!Platform.is_windows) "file://" + s
+    else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
+    else "file:///" + s.replace('\\', '/')
+  }
+
   def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
 

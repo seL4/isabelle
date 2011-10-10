@@ -42,11 +42,11 @@ Packaging
 
 - makebin (multiplatform);
 
-- makebin -l on fast machine;
-
 - makebundle (multiplatform);
 
 - hdiutil create -srcfolder DIR DMG (Mac OS);
+
+- makebin -l on fast machine, based on renamed bundle with deleted heaps;
 
 
 Final release stage

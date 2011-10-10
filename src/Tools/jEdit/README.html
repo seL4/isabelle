@@ -7,17 +7,43 @@
 <style type="text/css" media="screen">
 body { font-family: STIXGeneral, IsabelleText; font-size: 14pt; }
 </style>
-<title>Notes on the Isabelle/jEdit Prover IDE</title>
+<title>Welcome to the Isabelle/jEdit Prover IDE</title>
 </head>
 
 <body>
 
-<h2>The Isabelle/jEdit Prover IDE (based on Isabelle/Scala)</h2>
+<center><h2><img alt="PIDE" src="PIDE.png" width="230" align="middle"/></h2></center>
 
-The Isabelle/Scala layer that is already part of Isabelle/Pure
-provides some general infrastructure for advanced prover interaction
-and integration.  The Isabelle/jEdit application serves as an example
-for asynchronous proof checking with support for parallel processing.
+<p>
+  <b>PIDE</b> is a novel framework for sophisticated Prover IDEs,
+  based on Isabelle/Scala technology that is integrated with Isabelle.
+  It is build around a concept of
+  <em>asynchronous document processing</em>, which is supported
+  natively by the <em>parallel proof engine</em> implemented in Isabelle/ML.
+</p>
+
+<p>
+  <b>Isabelle/jEdit</b> is an example application within the PIDE
+  framework &mdash; it illustrates many of the ideas in a realistic
+  manner, ready to be used right now in Isabelle applications.
+</p>
+
+<p>
+  <em>Research and implementation of concepts around PIDE has been
+  kindly supported in the past 3 years by BMBF (http://www.bmbf.de),
+  Université Paris-Sud (http://www.u-psud.fr), and Digiteo
+  (http://www.digiteo.fr).</em>
+</p>
+
+
+
+<h2>The Isabelle/jEdit Prover IDE</h2>
+
+<p>
+Isabelle/jEdit consists of some plugins for the well-known jEdit text
+editor framework (http://www.jedit.org), according to the following
+principles.
+</p>
 
 <ul>
 
@@ -35,10 +61,14 @@ for asynchronous proof checking with support for parallel processing.
 
 <li>Using the mouse together with the modifier key <tt>C</tt>
 (<tt>CONTROL</tt> on Linux or Windows,
-  <tt>COMMAND</tt> on Mac OS) exposes additional information.</li>
+  <tt>COMMAND</tt> on Mac OS X) exposes additional information.</li>
 
 <li>Dockable panels (e.g. <em>Output</em>) are managed as independent
   windows by jEdit, which also allows multiple instances.</li>
+
+<li>Prover process and source files are managed by the Scala layer on
+the editor side.  The prover experiences a mostly timeless and
+stateless environment of formal document content.</li>
 
 </ul>
 
@@ -46,7 +76,6 @@ for asynchronous proof checking with support for parallel processing.
 <h2>Isabelle symbols and fonts</h2>
 
 <ul>
-
   <li>Isabelle supports infinitely many symbols:<br/>
     α, β, γ, …<br/>
     ∀, ∃, ∨, ∧, ⟶, ⟷, …<br/>
@@ -118,10 +147,16 @@ for asynchronous proof checking with support for parallel processing.
     as the Unicode sequences coincide with the symbol mapping.
   </li>
 
+  <li><b>NOTE:</b> Raw unicode characters within prover source files
+  should be restricted to informal parts, e.g. to write text in
+  non-latin alphabets.  Mathematical symbols should be defined via the
+  official rendering tables.
+  </li>
+
 </ul>
 
 
-<h2>Limitations and workrounds (September 2011)</h2>
+<h2>Limitations and workrounds (October 2011)</h2>
 
 <ul>
   <li>No way to start/stop prover or switch to a different logic.<br/>
@@ -158,7 +193,7 @@ for asynchronous proof checking with support for parallel processing.
 </ul>
 
 
-<h2>Known problems with Mac OS</h2>
+<h2>Known problems with Mac OS X</h2>
 
 <ul>
 
@@ -166,22 +201,21 @@ for asynchronous proof checking with support for parallel processing.
   e.g. between the editor and the Console plugin, which is a standard
   swing text box.  Similar for search boxes etc.</li>
 
-<li>ToggleButton selected state is not rendered if window focus is
-  lost, which is probably a genuine feature of the Apple
-  look-and-feel.</li>
-
-<li>Font.createFont mangles the font family of non-regular fonts,
-  e.g. bold.  IsabelleText font files need to be installed/updated
-  manually.</li>
+<li><tt>Font.createFont</tt> mangles the font family of non-regular
+  fonts, e.g. bold.  IsabelleText font files need to be
+  installed/updated manually if bold versions are desired.  Note that
+  this has to be repeated whenever fonts shipped with Isabelle are
+  updated!</li>
 
 <li>Missing glyphs are collected from other fonts (like Emacs,
-  Firefox).  This is actually an advantage over the Oracle/Sun JVM on
-  Windows or Linux, but probably also the deeper reason for the other
-  oddities of Apple font management.</li>
+  Firefox).  This is actually an advantage over the Oracle JVM on
+  Windows or Linux, but also the deeper reason for other oddities of
+  Apple font management.</li>
 
-<li>The native font renderer of -Dapple.awt.graphics.UseQuartz=true
-  (not enabled by default) fails to handle the infinitesimal font size
-  of "hidden" text (e.g.  used in Isabelle sub/superscripts).</li>
+<li>The native font renderer
+  of <tt>-Dapple.awt.graphics.UseQuartz=true</tt> (<em>not</em>
+  enabled by default) fails to handle the infinitesimal font size of
+  "hidden" text (e.g. used in Isabelle sub/superscripts).</li>
 
 </ul>
 
@@ -191,23 +225,10 @@ for asynchronous proof checking with support for parallel processing.
 <ul>
 
 <li>The 2D rendering engine of OpenJDK 1.6.x distorts the appearance
-  of the jEdit text area.  Always use official JRE 1.6.x from
-  Sun/Oracle/Apple.</li>
+  of the jEdit text area.  Always use official JRE 1.6.x from Oracle
+  or Apple.</li>
 
-<li>jEdit on OpenJDK is generally not supported.</li>
-
-</ul>
-
-
-<h2>Known problems with Windows/Cygwin</h2>
-
-<ul>
-
-<li>Occasional session startup problems when loading a logic image
-takes too long (cf. output in "Prover Session / Syslog" panel).</li>
-
-<li>Auxiliary files of a theory (<tt>uses</tt>) cannot be loaded due
-to incompatible path notation inherited from MS-DOS.</li>
+<li>jEdit 4.4.x on OpenJDK is generally not supported.</li>
 
 </ul>
 
@@ -215,6 +236,8 @@ to incompatible path notation inherited from MS-DOS.</li>
 <h2>Licenses and home sites of contributing systems</h2>
 
 <ul>
+
+<li>Isabelle: BSD-style</li>
 
 <li>Scala: BSD-style <br/> http://www.scala-lang.org</li>
 

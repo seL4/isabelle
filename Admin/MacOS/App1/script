@@ -106,8 +106,7 @@ if [ "$ISABELLE_INTERFACE_CHOICE" = emacs ]; then
   ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 else
-  rm -f "$OUTPUT" && touch "$OUTPUT"
-  "$ISABELLE_TOOL" jedit "$@"
+  ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 fi
 

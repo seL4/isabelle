@@ -129,7 +129,7 @@ text {*
   proof structure at all, but goes back right to the theory level.
   Furthermore, @{command "oops"} does not produce any result theorem
   --- there is no intended claim to be able to complete the proof
-  anyhow.
+  in any way.
 
   A typical application of @{command "oops"} is to explain Isar proofs
   \emph{within} the system itself, in conjunction with the document
