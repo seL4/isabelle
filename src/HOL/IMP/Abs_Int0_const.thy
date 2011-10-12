@@ -51,33 +51,25 @@ qed
 
 end
 
-interpretation Rep rep_cval
+
+interpretation Val_abs rep_cval Const plus_cval
 proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
 next
   case goal2 show ?case by(simp add: Top_cval_def)
-qed
-
-interpretation Val_abs rep_cval Const plus_cval
-proof
-  case goal1 show ?case by simp
 next
-  case goal2 thus ?case
-    by(auto simp: plus_cval_cases split: cval.split)
+  case goal3 show ?case by simp
 next
-  case goal3 thus ?case
+  case goal4 thus ?case
     by(auto simp: plus_cval_cases split: cval.split)
 qed
 
-text{* Could set the limit of the number of iterations to an arbitrarily
-large number because all ascending chains in this semilattice are finite. *}
-
-interpretation Abs_Int rep_cval Const plus_cval "(iter 15)"
+interpretation Abs_Int rep_cval Const plus_cval
 defines AI_const is AI
 and aval'_const is aval'
 and step_const is step
-proof qed (auto simp: iter_pfp strip_iter)
+proof qed
 
 text{* Straight line code: *}
 definition "test1_const =
@@ -113,28 +105,20 @@ definition "test7_const =
   WHILE Less (V ''x'') (N 1)
   DO (''x'' ::= V ''y''; ''y'' ::= V ''z''; ''z'' ::= V ''u'')"
 
-text{* For readability: *}
-translations "x" <= "CONST V x"
-translations "x" <= "CONST N x"
-translations "x" <= "CONST Const x"
-translations "x < y" <= "CONST Less x y"
-translations "x" <= "CONST B x"
-translations "x" <= "CONST Up x"
-
 value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
 value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
 value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test1_const))"
 value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (AI_const test1_const)"
+value [code] "show_acom_opt (AI_const test1_const)"
 
-value [code] "show_acom (AI_const test2_const)"
-value [code] "show_acom (AI_const test3_const)"
+value [code] "show_acom_opt (AI_const test2_const)"
+value [code] "show_acom_opt (AI_const test3_const)"
 
 value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test4_const))"
 value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test4_const))"
 value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test4_const))"
 value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (AI_const test4_const)"
+value [code] "show_acom_opt (AI_const test4_const)"
 
 value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test5_const))"
 value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test5_const))"
@@ -142,9 +126,17 @@ value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test5_const
 value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test5_const))"
 value [code] "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test5_const))"
 value [code] "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (AI_const test5_const)"
+value [code] "show_acom_opt (AI_const test5_const)"
 
-value [code] "show_acom (AI_const test6_const)"
-value [code] "show_acom (AI_const test7_const)"
+value [code] "show_acom_opt (AI_const test6_const)"
+value [code] "show_acom_opt (AI_const test7_const)"
+
+text{* Monotonicity: *}
+
+interpretation Abs_Int_mono rep_cval Const plus_cval
+proof
+  case goal1 thus ?case
+    by(auto simp: plus_cval_cases split: cval.split)
+qed
 
 end

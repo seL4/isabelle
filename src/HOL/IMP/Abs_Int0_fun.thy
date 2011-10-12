@@ -4,6 +4,7 @@ header "Abstract Interpretation"
 
 theory Abs_Int0_fun
 imports "~~/src/HOL/ex/Interpretation_with_Defs" Big_Step
+        "~~/src/HOL/Library/While_Combinator"
 begin
 
 subsection "Annotated Commands"
@@ -155,15 +156,6 @@ qed
 
 end
 
-definition Top_acom :: "com \<Rightarrow> ('a::SL_top) acom" ("\<top>\<^sub>c") where
-"\<top>\<^sub>c = anno \<top>"
-
-lemma strip_Top_acom[simp]: "strip (\<top>\<^sub>c c) = c"
-by(simp add: Top_acom_def)
-
-lemma le_Top_acomp[simp]: "strip c' = c \<Longrightarrow> c' \<sqsubseteq> \<top>\<^sub>c c"
-by(induct c' arbitrary: c) (auto simp: Top_acom_def)
-
 
 subsubsection "Lifting"
 
@@ -216,23 +208,69 @@ definition bot_acom :: "com \<Rightarrow> ('a::SL_top)up acom" ("\<bottom>\<^sub
 lemma strip_bot_acom[simp]: "strip(\<bottom>\<^sub>c c) = c"
 by(simp add: bot_acom_def)
 
+lemma bot_acom[rule_format]: "strip c' = c \<longrightarrow> \<bottom>\<^sub>c c \<sqsubseteq> c'"
+apply(induct c arbitrary: c')
+apply (simp_all add: bot_acom_def)
+ apply(induct_tac c')
+  apply simp_all
+ apply(induct_tac c')
+  apply simp_all
+ apply(induct_tac c')
+  apply simp_all
+ apply(induct_tac c')
+  apply simp_all
+ apply(induct_tac c')
+  apply simp_all
+done
 
-subsection "Absract Interpretation"
 
-text{* The representation of abstract by a set of concrete values: *}
+subsubsection "Post-fixed point iteration"
 
-locale Rep =
-fixes rep :: "'a::SL_top \<Rightarrow> 'b set"
-assumes le_rep: "a \<sqsubseteq> b \<Longrightarrow> rep a \<subseteq> rep b"
-and rep_Top: "rep \<top> = UNIV"
-begin
+definition
+  pfp :: "(('a::preord) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
+"pfp f = while_option (\<lambda>x. \<not> f x \<sqsubseteq> x) f"
 
-abbreviation in_rep (infix "<:" 50) where "x <: a == x : rep a"
+lemma pfp_pfp: assumes "pfp f x0 = Some x" shows "f x \<sqsubseteq> x"
+using while_option_stop[OF assms[simplified pfp_def]] by simp
 
-lemma in_rep_Top[simp]: "x <: \<top>"
-by(simp add: rep_Top)
+lemma pfp_least:
+assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" and "pfp f x0 = Some x" shows "x \<sqsubseteq> p"
+proof-
+  { fix x assume "x \<sqsubseteq> p"
+    hence  "f x \<sqsubseteq> f p" by(rule mono)
+    from this `f p \<sqsubseteq> p` have "f x \<sqsubseteq> p" by(rule le_trans)
+  }
+  thus "x \<sqsubseteq> p" using assms(2-) while_option_rule[where P = "%x. x \<sqsubseteq> p"]
+    unfolding pfp_def by blast
+qed
 
-end
+definition
+ lpfp\<^isub>c :: "(('a::SL_top)up acom \<Rightarrow> 'a up acom) \<Rightarrow> com \<Rightarrow> 'a up acom option" where
+"lpfp\<^isub>c f c = pfp f (\<bottom>\<^sub>c c)"
+
+lemma lpfpc_pfp: "lpfp\<^isub>c f c0 = Some c \<Longrightarrow> f c \<sqsubseteq> c"
+by(simp add: pfp_pfp lpfp\<^isub>c_def)
+
+lemma strip_pfp:
+assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
+using assms while_option_rule[where P = "%x. g x = g x0" and c = f]
+unfolding pfp_def by metis
+
+lemma strip_lpfpc: assumes "\<And>c. strip(f c) = strip c" and "lpfp\<^isub>c f c = Some c'"
+shows "strip c' = c"
+using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp\<^isub>c_def]]
+by(metis strip_bot_acom)
+
+lemma lpfpc_least:
+assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+and "strip p = c0" and "f p \<sqsubseteq> p" and lp: "lpfp\<^isub>c f c0 = Some c" shows "c \<sqsubseteq> p"
+using pfp_least[OF _ _ bot_acom[OF `strip p = c0`] lp[simplified lpfp\<^isub>c_def]]
+  mono `f p \<sqsubseteq> p`
+by blast
+
+
+subsection "Abstract Interpretation"
 
 definition rep_fun :: "('a \<Rightarrow> 'b set) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b)set" where
 "rep_fun rep F = {f. \<forall>x. f x \<in> rep(F x)}"
@@ -243,72 +281,28 @@ fun rep_up :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a up \<Rightarrow> 'b se
 
 text{* The interface for abstract values: *}
 
-(* FIXME: separate Rep interface needed? *)
-locale Val_abs = Rep rep for rep :: "'a::SL_top \<Rightarrow> val set" +
+locale Val_abs =
+fixes rep :: "'a::SL_top \<Rightarrow> val set"
+  assumes le_rep: "a \<sqsubseteq> b \<Longrightarrow> rep a \<subseteq> rep b"
+  and rep_Top: "rep \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'a"
 and plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-assumes rep_num': "n <: num' n"
-and rep_plus': "n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1+n2 <: plus' a1 a2"
-and mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
+  assumes rep_num': "n : rep(num' n)"
+  and rep_plus':
+ "n1 : rep a1 \<Longrightarrow> n2 : rep a2 \<Longrightarrow> n1+n2 : rep(plus' a1 a2)"
+begin
 
+abbreviation in_rep (infix "<:" 50)
+ where "x <: a == x : rep a"
 
-subsubsection "Post-fixed point iteration"
+lemma in_rep_Top[simp]: "x <: \<top>"
+by(simp add: rep_Top)
 
-fun iter :: "nat \<Rightarrow> (('a::SL_top) acom \<Rightarrow> 'a acom) \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"iter 0 f c = \<top>\<^sub>c (strip c)" |
-"iter (Suc n) f c = (let fc = f c in if fc \<sqsubseteq> c then c else iter n f fc)"
-(* code lemma?? *)
-
-lemma strip_iter: assumes "\<forall>c. strip(f c) = strip c"
-shows "strip(iter n f c) = strip c"
-apply (induction n arbitrary: c)
- apply (metis iter.simps(1) strip_Top_acom)
-apply (simp add:Let_def)
-by (metis assms)
-
-lemma iter_pfp: assumes "\<forall>c. strip(f c) = strip c"
-shows "f(iter n f c) \<sqsubseteq> iter n f c"
-apply (induction n arbitrary: c)
- apply(simp add: assms)
-apply (simp add:Let_def)
-done
-
-lemma iter_funpow: assumes "\<forall>c. strip(f c) = strip c"
-shows "iter n f x \<noteq> \<top>\<^sub>c (strip x) \<Longrightarrow> \<exists>k. iter n f x = (f^^k) x"
-apply(induction n arbitrary: x)
- apply simp
-apply (auto simp: Let_def assms)
- apply(metis funpow.simps(1) id_def)
-by (metis assms funpow.simps(2) funpow_swap1 o_apply)
-
-text{* For monotone @{text f}, @{term "iter f n x0"} yields the least
-post-fixed point above @{text x0}, unless it yields @{text Top}. *}
-
-lemma iter_least_pfp:
-assumes strip: "\<forall>c. strip(f c) = strip c"
-and mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-and not_top: "iter n f x0 \<noteq> \<top>\<^sub>c (strip x0)"
-and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" shows "iter n f x0 \<sqsubseteq> p"
-proof-
-  obtain k where "iter n f x0 = (f^^k) x0"
-    using iter_funpow[OF strip not_top] by blast
-  moreover
-  { fix n have "(f^^n) x0 \<sqsubseteq> p"
-    proof(induction n)
-      case 0 show ?case by(simp add: `x0 \<sqsubseteq> p`)
-    next
-      case (Suc n) thus ?case
-        by (simp add: `x0 \<sqsubseteq> p`)(metis Suc `f p \<sqsubseteq> p` le_trans mono)
-    qed
-  } ultimately show ?thesis by simp
-qed
+end
 
 type_synonym 'a st = "(name \<Rightarrow> 'a)"
 
-locale Abs_Int_Fun = Val_abs +
-fixes pfp :: "('a st up acom \<Rightarrow> 'a st up acom) \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
-assumes pfp: "f(pfp f c) \<sqsubseteq> pfp f c"
-and strip_pfp: "\<forall>c. strip(f c) = strip c \<Longrightarrow> strip(pfp f c) = strip c"
+locale Abs_Int_Fun = Val_abs
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
@@ -316,24 +310,26 @@ fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom" where
+fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
+ where
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
   x ::= e {case S of Bot \<Rightarrow> Bot | Up S \<Rightarrow> Up(S(x := aval' e S))}" |
 "step S (c1; c2) = step S c1; step (post c1) c2" |
 "step S (IF b THEN c1 ELSE c2 {P}) =
-  (let c1' = step S c1; c2' = step S c2
-   in IF b THEN c1' ELSE c2' {post c1 \<squnion> post c2})" |
+   IF b THEN step S c1 ELSE step S c2 {post c1 \<squnion> post c2}" |
 "step S ({Inv} WHILE b DO c {P}) =
   {S \<squnion> post c} WHILE b DO (step Inv c) {Inv}"
+
+definition AI :: "com \<Rightarrow> 'a st up acom option" where
+"AI = lpfp\<^isub>c (step \<top>)"
+
 
 lemma strip_step[simp]: "strip(step S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
 
-definition AI :: "com \<Rightarrow> 'a st up acom" where
-"AI c = pfp (step \<top>) (\<bottom>\<^sub>c c)"
-
+text{*Lifting @{text "<:"} to other types: *}
 
 abbreviation fun_in_rep :: "state \<Rightarrow> 'a st \<Rightarrow> bool" (infix "<:f" 50) where
 "s <:f S == s \<in> rep_fun rep S"
@@ -358,20 +354,7 @@ lemma in_rep_Top_up: "s <:up Top"
 by(simp add: Top_up_def in_rep_Top_fun)
 
 
-subsubsection "Monotonicity"
-
-lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
-by(induction e)(auto simp: le_fun_def mono_plus')
-
-lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
-by(simp add: le_fun_def)
-
-lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
-apply(induction c arbitrary: S S')
-apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: up.split)
-done
-
-subsubsection "Soundness"
+text{* Soundness: *}
 
 lemma aval'_sound: "s <:f S \<Longrightarrow> aval a s <: aval' a S"
 by (induct a) (auto simp: rep_num' rep_plus' rep_fun_def)
@@ -380,7 +363,8 @@ lemma in_rep_update: "\<lbrakk> s <:f S; i <: a \<rbrakk> \<Longrightarrow> s(x 
 by(simp add: rep_fun_def)
 
 lemma step_sound:
-  "step S c \<sqsubseteq> c \<Longrightarrow> (strip c,s) \<Rightarrow> t \<Longrightarrow> s <:up S \<Longrightarrow> t <:up post c"
+  "\<lbrakk> step S c \<sqsubseteq> c; (strip c,s) \<Rightarrow> t; s <:up S \<rbrakk>
+   \<Longrightarrow> t <:up post c"
 proof(induction c arbitrary: S s t)
   case SKIP thus ?case
     by simp (metis skipE up_fun_in_rep_le)
@@ -412,8 +396,29 @@ next
     by simp (metis `s <:up S` `S \<sqsubseteq> Inv` `Inv \<sqsubseteq> P` up_fun_in_rep_le)
 qed
 
-lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> t <:up post(AI c)"
-by(auto simp: AI_def strip_pfp in_rep_Top_up intro: step_sound pfp)
+lemma AI_sound:
+ "\<lbrakk> AI c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
+by (metis AI_def in_rep_Top_up lpfpc_pfp step_sound strip_lpfpc strip_step)
+
+end
+
+
+subsubsection "Monotonicity"
+
+locale Abs_Int_Fun_mono = Abs_Int_Fun +
+assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
+begin
+
+lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
+by(induction e)(auto simp: le_fun_def mono_plus')
+
+lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
+by(simp add: le_fun_def)
+
+lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
+apply(induction c arbitrary: S S')
+apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: up.split)
+done
 
 end
 

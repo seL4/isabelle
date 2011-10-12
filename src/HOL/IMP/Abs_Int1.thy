@@ -30,10 +30,19 @@ assumes meet_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
 and meet_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
 and meet_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 assumes bot[simp]: "\<bottom> \<sqsubseteq> x"
+begin
 
-locale Rep1 = Rep rep for rep :: "'a::L_top_bot \<Rightarrow> 'b set" +
-assumes inter_rep_subset_rep_meet: "rep a1 \<inter> rep a2 \<subseteq> rep(a1 \<sqinter> a2)"
-  -- "this means the meet is precise"
+lemma mono_meet: "x \<sqsubseteq> x' \<Longrightarrow> y \<sqsubseteq> y' \<Longrightarrow> x \<sqinter> y \<sqsubseteq> x' \<sqinter> y'"
+by (metis meet_greatest meet_le1 meet_le2 le_trans)
+
+end
+
+
+locale Val_abs1_rep =
+  Val_abs rep num' plus'
+  for rep :: "'a::L_top_bot \<Rightarrow> val set" and num' plus' +
+assumes inter_rep_subset_rep_meet:
+  "rep a1 \<inter> rep a2 \<subseteq> rep(a1 \<sqinter> a2)"
 and rep_Bot: "rep \<bottom> = {}"
 begin
 
@@ -43,29 +52,19 @@ by (metis IntI inter_rep_subset_rep_meet set_mp)
 lemma rep_meet[simp]: "rep(a1 \<sqinter> a2) = rep a1 \<inter> rep a2"
 by (metis equalityI inter_rep_subset_rep_meet le_inf_iff le_rep meet_le1 meet_le2)
 
-lemma mono_meet: "x \<sqsubseteq> x' \<Longrightarrow> y \<sqsubseteq> y' \<Longrightarrow> x \<sqinter> y \<sqsubseteq> x' \<sqinter> y'"
-by (metis meet_greatest meet_le1 meet_le2 le_trans)
-
 end
 
 
-locale Val_abs1 = Val_abs rep num' plus' + Rep1 rep
-  for rep :: "'a::L_top_bot \<Rightarrow> int set" and num' plus' +
+locale Val_abs1 = Val_abs1_rep +
 fixes filter_plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
 and filter_less' :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
 assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
   n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1+n2 <: a \<Longrightarrow> n1 <: a1' \<and> n2 <: a2'"
 and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
   n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1 <: a1' \<and> n2 <: a2'"
-and mono_filter_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> r \<sqsubseteq> r' \<Longrightarrow>
-  filter_plus' r a1 a2 \<sqsubseteq> filter_plus' r' b1 b2"
-and mono_filter_less': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow>
-  filter_less' bv a1 a2 \<sqsubseteq> filter_less' bv b1 b2"
 
-locale Abs_Int1 = Val_abs1 +
-fixes pfp :: "('a st up acom \<Rightarrow> 'a st up acom) \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
-assumes pfp: "\<forall>c. strip(f c) = strip c \<Longrightarrow> mono f \<Longrightarrow> f(pfp f c) \<sqsubseteq> pfp f c"
-and strip_pfp: "\<forall>c. strip(f c) = strip c \<Longrightarrow> strip(pfp f c) = strip c"
+
+locale Abs_Int1 = Val_abs1
 begin
 
 lemma in_rep_join_UpI: "s <:up S1 | s <:up S2 \<Longrightarrow> s <:up S1 \<squnion> S2"
@@ -78,7 +77,9 @@ fun aval' :: "aexp \<Rightarrow> 'a st up \<Rightarrow> 'a" where
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
 lemma aval'_sound: "s <:up S \<Longrightarrow> aval a s <: aval' a S"
-by (induct a)(auto simp: rep_num' rep_plus' in_rep_up_iff lookup_def rep_st_def)
+by(induct a)(auto simp: rep_num' rep_plus' in_rep_up_iff lookup_def rep_st_def)
+
+subsubsection "Backward analysis"
 
 fun afilter :: "aexp \<Rightarrow> 'a \<Rightarrow> 'a st up \<Rightarrow> 'a st up" where
 "afilter (N n) a S = (if n <: a then S else Bot)" |
@@ -141,7 +142,8 @@ next
 qed
 
 
-fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom" where
+fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
+ where
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
   x ::= e {case S of Bot \<Rightarrow> Bot
@@ -155,49 +157,11 @@ fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom" w
    WHILE b DO step (bfilter b True Inv) c
    {bfilter b False Inv}"
 
+definition AI :: "com \<Rightarrow> 'a st up acom option" where
+"AI = lpfp\<^isub>c (step \<top>)"
+
 lemma strip_step[simp]: "strip(step S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
-
-
-definition AI :: "com \<Rightarrow> 'a st up acom" where
-"AI c = pfp (step \<top>) (\<bottom>\<^sub>c c)"
-
-
-subsubsection "Monotonicity"
-
-lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
-apply(cases S)
- apply simp
-apply(cases S')
- apply simp
-apply simp
-by(induction e) (auto simp: le_st_def lookup_def mono_plus')
-
-lemma mono_afilter: "r \<sqsubseteq> r' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> afilter e r S \<sqsubseteq> afilter e r' S'"
-apply(induction e arbitrary: r r' S S')
-apply(auto simp: Let_def split: up.splits prod.splits)
-apply (metis le_rep subsetD)
-apply(drule_tac x = "list" in mono_lookup)
-apply (metis mono_meet le_trans)
-apply (metis mono_meet mono_lookup mono_update le_trans)
-apply(metis mono_aval' mono_filter_plus'[simplified le_prod_def] fst_conv snd_conv)
-done
-
-lemma mono_bfilter: "S \<sqsubseteq> S' \<Longrightarrow> bfilter b r S \<sqsubseteq> bfilter b r S'"
-apply(induction b arbitrary: r S S')
-apply(auto simp: le_trans[OF _ join_ge1] le_trans[OF _ join_ge2] split: prod.splits)
-apply(metis mono_aval' mono_afilter mono_filter_less'[simplified le_prod_def] fst_conv snd_conv)
-done
-
-
-lemma post_le_post: "c \<sqsubseteq> c' \<Longrightarrow> post c \<sqsubseteq> post c'"
-by (induction c c' rule: le_acom.induct) simp_all
-
-lemma mono_step: "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step S c \<sqsubseteq> step S' c'"
-apply(induction c c' arbitrary: S S' rule: le_acom.induct)
-apply (auto simp: post_le_post Let_def mono_bfilter mono_update mono_aval' le_join_disj
-  split: up.split)
-done
 
 
 subsubsection "Soundness"
@@ -257,9 +221,59 @@ next
   show ?case using `\<not> bval b t` by simp
 qed
 
-lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> t <:up post(AI c)"
-by(fastforce simp: AI_def strip_pfp mono_def in_rep_Top_up
-  intro: step_sound pfp  mono_step[OF le_refl])
+lemma AI_sound: "\<lbrakk> AI c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
+unfolding AI_def
+by (metis in_rep_Top_up lpfpc_pfp step_sound strip_lpfpc strip_step)
+(*
+by(metis step_sound[of "\<top>" c' s t] strip_lpfp strip_step
+  lpfp_pfp mono_def mono_step[OF le_refl] in_rep_Top_up)
+*)
+end
+
+
+subsubsection "Monotonicity"
+
+locale Abs_Int1_mono = Abs_Int1 +
+assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
+and mono_filter_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> r \<sqsubseteq> r' \<Longrightarrow>
+  filter_plus' r a1 a2 \<sqsubseteq> filter_plus' r' b1 b2"
+and mono_filter_less': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow>
+  filter_less' bv a1 a2 \<sqsubseteq> filter_less' bv b1 b2"
+begin
+
+lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
+apply(cases S)
+ apply simp
+apply(cases S')
+ apply simp
+apply simp
+by(induction e) (auto simp: le_st_def lookup_def mono_plus')
+
+lemma mono_afilter: "r \<sqsubseteq> r' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> afilter e r S \<sqsubseteq> afilter e r' S'"
+apply(induction e arbitrary: r r' S S')
+apply(auto simp: Let_def split: up.splits prod.splits)
+apply (metis le_rep subsetD)
+apply(drule_tac x = "list" in mono_lookup)
+apply (metis mono_meet le_trans)
+apply (metis mono_meet mono_lookup mono_update le_trans)
+apply(metis mono_aval' mono_filter_plus'[simplified le_prod_def] fst_conv snd_conv)
+done
+
+lemma mono_bfilter: "S \<sqsubseteq> S' \<Longrightarrow> bfilter b r S \<sqsubseteq> bfilter b r S'"
+apply(induction b arbitrary: r S S')
+apply(auto simp: le_trans[OF _ join_ge1] le_trans[OF _ join_ge2] split: prod.splits)
+apply(metis mono_aval' mono_afilter mono_filter_less'[simplified le_prod_def] fst_conv snd_conv)
+done
+
+
+lemma post_le_post: "c \<sqsubseteq> c' \<Longrightarrow> post c \<sqsubseteq> post c'"
+by (induction c c' rule: le_acom.induct) simp_all
+
+lemma mono_step: "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step S c \<sqsubseteq> step S' c'"
+apply(induction c c' arbitrary: S S' rule: le_acom.induct)
+apply (auto simp: post_le_post Let_def mono_bfilter mono_update mono_aval' le_join_disj
+  split: up.split)
+done
 
 end
 

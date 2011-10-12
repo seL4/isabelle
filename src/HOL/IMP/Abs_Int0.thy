@@ -9,10 +9,7 @@ subsection "Computable Abstract Interpretation"
 text{* Abstract interpretation over type @{text astate} instead of
 functions. *}
 
-locale Abs_Int = Val_abs +
-fixes pfp :: "('a st up acom \<Rightarrow> 'a st up acom) \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
-assumes pfp: "\<forall>c. strip(f c) = strip c \<Longrightarrow> f(pfp f c) \<sqsubseteq> pfp f c"
-and strip_pfp: "\<forall>c. strip(f c) = strip c \<Longrightarrow> strip(pfp f c) = strip c"
+locale Abs_Int = Val_abs
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
@@ -31,27 +28,15 @@ fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom" w
 "step S ({Inv} WHILE b DO c {P}) =
    {S \<squnion> post c} WHILE b DO step Inv c {Inv}"
 
+definition AI :: "com \<Rightarrow> 'a st up acom option" where
+"AI = lpfp\<^isub>c (step \<top>)"
+
+
 lemma strip_step[simp]: "strip(step S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
-definition AI :: "com \<Rightarrow> 'a st up acom" where
-"AI c = pfp (step Top) (bot_acom c)"
 
-
-subsubsection "Monotonicity"
-
-lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
-by(induction e) (auto simp: le_st_def lookup_def mono_plus')
-
-lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
-by(auto simp add: le_st_def lookup_def update_def)
-
-lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
-apply(induction c arbitrary: S S')
-apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: up.split)
-done
-
-subsubsection "Soundness"
+text{* Soundness: *}
 
 lemma aval'_sound: "s <:f S \<Longrightarrow> aval a s <: aval' a S"
 by (induct a) (auto simp: rep_num' rep_plus' rep_st_def lookup_def)
@@ -92,10 +77,29 @@ next
     by simp (metis `s <:up S` `S \<sqsubseteq> Inv` `Inv \<sqsubseteq> P` up_fun_in_rep_le)
 qed
 
-lemma AI_sound: "(c,s) \<Rightarrow> t \<Longrightarrow> t <:up post(AI c)"
-by(fastforce simp: AI_def strip_pfp in_rep_Top_up intro: step_sound pfp)
+lemma AI_sound: "\<lbrakk> AI c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
+by (metis AI_def in_rep_Top_up lpfpc_pfp step_sound strip_lpfpc strip_step)
 
 end
 
+
+subsubsection "Monotonicity"
+
+locale Abs_Int_mono = Abs_Int +
+assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
+begin
+
+lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
+by(induction e) (auto simp: le_st_def lookup_def mono_plus')
+
+lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
+by(auto simp add: le_st_def lookup_def update_def)
+
+lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
+apply(induction c arbitrary: S S')
+apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: up.split)
+done
+
+end
 
 end

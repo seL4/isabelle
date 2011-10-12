@@ -9,7 +9,8 @@ subsection "Widening and Narrowing"
 
 class WN = SL_top +
 fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)
-assumes widen: "y \<sqsubseteq> x \<nabla> y"
+assumes widen1: "x \<sqsubseteq> x \<nabla> y"
+assumes widen2: "y \<sqsubseteq> x \<nabla> y"
 fixes narrow :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<triangle>" 65)
 assumes narrow1: "y \<sqsubseteq> x \<Longrightarrow> y \<sqsubseteq> x \<triangle> y"
 assumes narrow2: "y \<sqsubseteq> x \<Longrightarrow> x \<triangle> y \<sqsubseteq> x"
@@ -49,12 +50,15 @@ definition "narrow_st F1 F2 =
 instance
 proof
   case goal1 thus ?case
-    by(simp add: widen_st_def le_st_def lookup_def widen)
+    by(simp add: widen_st_def le_st_def lookup_def widen1)
 next
   case goal2 thus ?case
-    by(auto simp: narrow_st_def le_st_def lookup_def narrow1)
+    by(simp add: widen_st_def le_st_def lookup_def widen2)
 next
   case goal3 thus ?case
+    by(auto simp: narrow_st_def le_st_def lookup_def narrow1)
+next
+  case goal4 thus ?case
     by(auto simp: narrow_st_def le_st_def lookup_def narrow2)
 qed
 
@@ -76,12 +80,15 @@ fun narrow_up where
 instance
 proof
   case goal1 show ?case
-    by(induct x y rule: widen_up.induct) (simp_all add: widen)
+    by(induct x y rule: widen_up.induct) (simp_all add: widen1)
 next
-  case goal2 thus ?case
-    by(induct x y rule: narrow_up.induct) (simp_all add: narrow1)
+  case goal2 show ?case
+    by(induct x y rule: widen_up.induct) (simp_all add: widen2)
 next
   case goal3 thus ?case
+    by(induct x y rule: narrow_up.induct) (simp_all add: narrow1)
+next
+  case goal4 thus ?case
     by(induct x y rule: narrow_up.induct) (simp_all add: narrow2)
 qed
 
@@ -102,115 +109,112 @@ where "widen_acom == map2_acom (op \<nabla>)"
 abbreviation narrow_acom :: "('a::WN)acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom" (infix "\<triangle>\<^sub>c" 65)
 where "narrow_acom == map2_acom (op \<triangle>)"
 
+lemma widen1_acom: "strip c = strip c' \<Longrightarrow> c \<sqsubseteq> c \<nabla>\<^sub>c c'"
+by(induct c c' rule: le_acom.induct)(simp_all add: widen1)
+
+lemma widen2_acom: "strip c = strip c' \<Longrightarrow> c' \<sqsubseteq> c \<nabla>\<^sub>c c'"
+by(induct c c' rule: le_acom.induct)(simp_all add: widen2)
+
 lemma narrow1_acom: "y \<sqsubseteq> x \<Longrightarrow> y \<sqsubseteq> x \<triangle>\<^sub>c y"
 by(induct y x rule: le_acom.induct) (simp_all add: narrow1)
 
 lemma narrow2_acom: "y \<sqsubseteq> x \<Longrightarrow> x \<triangle>\<^sub>c y \<sqsubseteq> x"
 by(induct y x rule: le_acom.induct) (simp_all add: narrow2)
 
-fun iter_up :: "(('a::WN)acom \<Rightarrow> 'a acom) \<Rightarrow> nat \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"iter_up f 0 x = \<top>\<^sub>c (strip x)" |
-"iter_up f (Suc n) x =
-  (let fx = f x in if fx \<sqsubseteq> x then x else iter_up f n (x \<nabla>\<^sub>c fx))"
 
-abbreviation
-  iter_down :: "(('a::WN)acom \<Rightarrow> 'a acom) \<Rightarrow> nat \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"iter_down f n x == ((\<lambda>x. x \<triangle>\<^sub>c f x)^^n) x"
+subsubsection "Post-fixed point computation"
 
 definition
-  iter' :: "nat \<Rightarrow> nat \<Rightarrow> (('a::WN)acom \<Rightarrow> 'a acom) \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"iter' m n f x = iter_down f n (iter_up f m x)"
+  prefp :: "(('a::preord) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
+"prefp f = while_option (\<lambda>x. \<not> x \<sqsubseteq> f x) f"
+
+definition
+  pfp_WN :: "(('a::WN)up acom \<Rightarrow> 'a up acom) \<Rightarrow> com \<Rightarrow> 'a up acom option"
+where "pfp_WN f c = (case lpfp\<^isub>c (\<lambda>c. c \<nabla>\<^sub>c f c) c of None \<Rightarrow> None
+                     | Some c' \<Rightarrow> prefp (\<lambda>c. c \<triangle>\<^sub>c f c) c')"
 
 lemma strip_map2_acom:
  "strip c1 = strip c2 \<Longrightarrow> strip(map2_acom f c1 c2) = strip c1"
 by(induct f c1 c2 rule: map2_acom.induct) simp_all
 
-lemma strip_iter_up: assumes "\<forall>c. strip(f c) = strip c"
-shows "strip(iter_up f n c) = strip c"
-apply (induction n arbitrary: c)
- apply (metis iter_up.simps(1) strip_Top_acom snd_conv)
-apply (simp add:Let_def)
-by (metis assms strip_map2_acom)
-
-lemma iter_up_pfp: assumes "\<forall>c. strip(f c) = strip c"
-shows "f(iter_up f n c) \<sqsubseteq> iter_up f n c"
-apply (induction n arbitrary: c)
- apply(simp add: assms)
-apply (simp add:Let_def)
-done
-
-lemma strip_iter_down: assumes "\<forall>c. strip(f c) = strip c"
-shows "strip(iter_down f n c) = strip c"
-apply (induction n arbitrary: c)
- apply(simp)
-apply (simp add: strip_map2_acom assms)
-done
+lemma lpfp_step_up_pfp:
+ "\<lbrakk> \<forall>c. strip(f c) = strip c;  lpfp\<^isub>c (\<lambda>c. c \<nabla>\<^sub>c f c) c = Some c' \<rbrakk> \<Longrightarrow> f c' \<sqsubseteq> c'"
+by (metis (no_types) assms lpfpc_pfp le_trans widen2_acom)
 
 lemma iter_down_pfp: assumes "mono f" and "f x0 \<sqsubseteq> x0" 
-defines "x n == iter_down f n x0"
-shows "f(x n) \<sqsubseteq> x n"
-proof (induction n)
-  case 0 show ?case by (simp add: x_def assms(2))
-next
-  case (Suc n)
-  have "f (x (Suc n)) = f(x n \<triangle>\<^sub>c f(x n))" by(simp add: x_def)
-  also have "\<dots> \<sqsubseteq> f(x n)" by(rule monoD[OF `mono f` narrow2_acom[OF Suc]])
-  also have "\<dots> \<sqsubseteq> x n \<triangle>\<^sub>c f(x n)" by(rule narrow1_acom[OF Suc])
-  also have "\<dots> = x(Suc n)" by(simp add: x_def)
-  finally show ?case .
-qed
-
-lemma iter_down_down: assumes "mono f" and "f x0 \<sqsubseteq> x0" 
-defines "x n == iter_down f n x0"
-shows "x n \<sqsubseteq> x0"
-proof (induction n)
-  case 0 show ?case by(simp add: x_def)
-next
-  case (Suc n)
-  have "x(Suc n) = x n \<triangle>\<^sub>c f(x n)" by(simp add: x_def)
-  also have "\<dots> \<sqsubseteq> x n" unfolding x_def
-    by(rule narrow2_acom[OF iter_down_pfp[OF assms(1), OF assms(2)]])
-  also have "\<dots> \<sqsubseteq> x0" by(rule Suc)
-  finally show ?case .
+and "prefp (\<lambda>c. c \<triangle>\<^sub>c f c) x0 = Some x"
+shows "f x \<sqsubseteq> x \<and> x \<sqsubseteq> x0" (is "?P x")
+proof-
+  { fix x assume "?P x"
+    note 1 = conjunct1[OF this] and 2 = conjunct2[OF this]
+    let ?x' = "x \<triangle>\<^sub>c f x"
+    have "?P ?x'"
+    proof
+      have "f ?x' \<sqsubseteq> f x"  by(rule monoD[OF `mono f` narrow2_acom[OF 1]])
+      also have "\<dots> \<sqsubseteq> ?x'" by(rule narrow1_acom[OF 1])
+      finally show "f ?x' \<sqsubseteq> ?x'" .
+      have "?x' \<sqsubseteq> x" by (rule narrow2_acom[OF 1])
+      also have "x \<sqsubseteq> x0" by(rule 2)
+      finally show "?x' \<sqsubseteq> x0" .
+    qed
+  }
+  with while_option_rule[where P = ?P, OF _ assms(3)[simplified prefp_def]]
+    assms(2) le_refl
+  show ?thesis by blast
 qed
 
 
-lemma iter'_pfp: assumes "\<forall>c. strip (f c) = strip c" and "mono f"
-shows "f (iter' m n f c) \<sqsubseteq> iter' m n f c"
-using iter_up_pfp[of f] iter_down_pfp[of f]
-by(auto simp add: iter'_def Let_def assms)
+lemma pfp_WN_pfp:
+  "\<lbrakk> \<forall>c. strip (f c) = strip c;  mono f;  pfp_WN f c = Some c' \<rbrakk> \<Longrightarrow> f c' \<sqsubseteq> c'"
+unfolding pfp_WN_def
+by (auto dest: iter_down_pfp lpfp_step_up_pfp split: option.splits)
 
-lemma strip_iter': assumes "\<forall>c. strip(f c) = strip c"
-shows "strip(iter' m n f c) = strip c"
-by(simp add: iter'_def strip_iter_down strip_iter_up assms)
+lemma strip_while: fixes f :: "'a acom \<Rightarrow> 'a acom"
+assumes "\<forall>c. strip (f c) = strip c" and "while_option P f c = Some c'"
+shows "strip c' = strip c"
+using while_option_rule[where P = "\<lambda>c'. strip c' = strip c", OF _ assms(2)]
+by (metis assms(1))
 
+lemma strip_pfp_WN:
+  "\<lbrakk> \<forall>c. strip(f c) = strip c; pfp_WN f c = Some c' \<rbrakk> \<Longrightarrow> strip c' = c"
+apply(auto simp add: pfp_WN_def prefp_def split: option.splits)
+by (metis (no_types) strip_lpfpc strip_map2_acom strip_while)
+
+locale Abs_Int2 = Abs_Int1_mono rep for rep :: "'a::{WN,L_top_bot} \<Rightarrow> val set"
+begin
+
+definition AI_WN :: "com \<Rightarrow> 'a st up acom option" where
+"AI_WN = pfp_WN (step \<top>)"
+
+lemma AI_sound: "\<lbrakk> AI_WN c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
+unfolding AI_WN_def
+by(metis step_sound[of "\<top>" c' s t] strip_pfp_WN strip_step
+  pfp_WN_pfp mono_def mono_step[OF le_refl] in_rep_Top_up)
+
+end
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 20 5)"
-defines afilter_ivl' is afilter
-and bfilter_ivl' is bfilter
-and step_ivl' is step
-and AI_ivl' is AI
-and aval_ivl' is aval'
-proof qed (auto simp: iter'_pfp strip_iter')
+  Abs_Int2 num_ivl plus_ivl filter_plus_ivl filter_less_ivl rep_ivl
+defines AI_ivl' is AI_WN
+proof qed
 
-value [code] "show_acom (AI_ivl test3_ivl)"
-value [code] "show_acom (AI_ivl' test3_ivl)"
+value [code] "show_acom_opt (AI_ivl test3_ivl)"
+value [code] "show_acom_opt (AI_ivl' test3_ivl)"
 
-definition "step_up n = ((\<lambda>c. c \<nabla>\<^sub>c step_ivl \<top> c)^^n)"
-definition "step_down n = ((\<lambda>c. c \<triangle>\<^sub>c step_ivl \<top> c)^^n)"
+definition "step_up_ivl n = ((\<lambda>c. c \<nabla>\<^sub>c step_ivl \<top> c)^^n)"
+definition "step_down_ivl n = ((\<lambda>c. c \<triangle>\<^sub>c step_ivl \<top> c)^^n)"
 
-value [code] "show_acom (step_up 1 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up 2 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up 3 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up 4 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up 5 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_down 1 (step_up 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down 2 (step_up 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down 3 (step_up 5 (\<bottom>\<^sub>c test3_ivl)))"
+value [code] "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (step_up_ivl 3 (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (step_up_ivl 4 (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value [code] "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value [code] "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
 
-value [code] "show_acom (AI_ivl' test4_ivl)"
-value [code] "show_acom (AI_ivl' test5_ivl)"
-value [code] "show_acom (AI_ivl' test6_ivl)"
+value [code] "show_acom_opt (AI_ivl' test4_ivl)"
+value [code] "show_acom_opt (AI_ivl' test5_ivl)"
+value [code] "show_acom_opt (AI_ivl' test6_ivl)"
 
 end

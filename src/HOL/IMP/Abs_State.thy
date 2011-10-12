@@ -24,6 +24,7 @@ fun show_st_up where
 "show_st_up (Up S) = Up(show_st S)"
 
 definition "show_acom = map_acom show_st_up"
+definition "show_acom_opt = Option.map show_acom"
 
 definition "lookup F x = (if x : set(dom F) then fun F x else \<top>)"
 
@@ -61,10 +62,10 @@ by(auto simp add: lookup_def le_st_def)
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
 by(auto simp add: le_st_def lookup_def update_def)
 
-context Rep
+context Val_abs
 begin
 
-abbreviation fun_in_rep :: "(name \<Rightarrow> 'b) \<Rightarrow> 'a st \<Rightarrow> bool" (infix "<:f" 50) where
+abbreviation fun_in_rep :: "state \<Rightarrow> 'a st \<Rightarrow> bool" (infix "<:f" 50) where
 "s <:f S == s \<in> rep_st rep S"
 
 notation fun_in_rep (infix "<:\<^sub>f" 50)
@@ -73,7 +74,7 @@ lemma fun_in_rep_le: "s <:f S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarr
 apply(auto simp add: rep_st_def le_st_def dest: le_rep)
 by (metis in_rep_Top le_rep lookup_def subsetD)
 
-abbreviation in_rep_up :: "(name \<Rightarrow> 'b) \<Rightarrow> 'a st up \<Rightarrow> bool"  (infix "<:up" 50)
+abbreviation in_rep_up :: "state \<Rightarrow> 'a st up \<Rightarrow> bool"  (infix "<:up" 50)
 where "s <:up S == s : rep_up (rep_st rep) S"
 
 notation (output) in_rep_up (infix "<:\<^sub>u\<^sub>p" 50)
