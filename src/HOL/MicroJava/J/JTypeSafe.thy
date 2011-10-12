@@ -243,7 +243,7 @@ apply( tactic {* EVERY'[eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases
        THEN_ALL_NEW (full_simp_tac @{simpset}), REPEAT o (etac conjE), hyp_subst_tac] 3*})
 
 -- "for if"
-apply( tactic {* (InductTacs.case_tac @{context} "the_Bool v" THEN_ALL_NEW
+apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" THEN_ALL_NEW
   (asm_full_simp_tac @{simpset})) 7*})
 
 apply (tactic "forward_hyp_tac")

@@ -794,7 +794,7 @@ ML {*
 fun split_idle_tac ctxt =
   SELECT_GOAL
    (TRY (rtac @{thm actionI} 1) THEN
-    InductTacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" 1 THEN
+    Induct_Tacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" 1 THEN
     rewrite_goals_tac @{thms action_rews} THEN
     forward_tac [temp_use @{thm Step1_4_7}] 1 THEN
     asm_full_simp_tac (simpset_of ctxt) 1);

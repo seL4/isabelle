@@ -1574,7 +1574,7 @@ lemma [induct_simp]: "(x = x) = True"
 hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
 
 use "~~/src/Tools/induct_tacs.ML"
-setup InductTacs.setup
+setup Induct_Tacs.setup
 
 
 subsubsection {* Coherent logic *}

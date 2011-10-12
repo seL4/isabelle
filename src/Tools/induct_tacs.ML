@@ -13,7 +13,7 @@ sig
   val setup: theory -> theory
 end
 
-structure InductTacs: INDUCT_TACS =
+structure Induct_Tacs: INDUCT_TACS =
 struct
 
 (* case analysis *)

@@ -132,7 +132,7 @@ fun create_nom_typedecls ak_names thy =
                   (HOLogic.mk_exists ("x",@{typ nat},HOLogic.mk_eq (y,Const (ak_sign,inj_type) $ Bound 0)))
 
               val proof2 = fn {prems, context} =>
-                InductTacs.case_tac context "y" 1 THEN
+                Induct_Tacs.case_tac context "y" 1 THEN
                 asm_simp_tac (HOL_basic_ss addsimps simp1) 1 THEN
                 rtac @{thm exI} 1 THEN
                 rtac @{thm refl} 1
