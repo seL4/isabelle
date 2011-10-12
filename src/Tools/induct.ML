@@ -429,7 +429,7 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 val equal_def' = Thm.symmetric Induct_Args.equal_def;
 
 fun mark_constraints n ctxt = Conv.fconv_rule
-  (Conv.prems_conv (~1) (Conv.params_conv ~1 (K (Conv.prems_conv n
+  (Conv.prems_conv ~1 (Conv.params_conv ~1 (K (Conv.prems_conv n
      (Raw_Simplifier.rewrite false [equal_def']))) ctxt));
 
 val unmark_constraints = Conv.fconv_rule
@@ -507,7 +507,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
         in
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
-            ((Method.insert_tac more_facts THEN' Tactic.rtac rule' THEN_ALL_NEW
+            ((Method.insert_tac more_facts THEN' rtac rule' THEN_ALL_NEW
                 (if simp then TRY o trivial_tac else K all_tac)) i) st
         end)
   end;
@@ -731,7 +731,7 @@ fun get_inductT ctxt insts =
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
 
-type case_data = (((string * string list) * string list) list * int)
+type case_data = (((string * string list) * string list) list * int);
 
 fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
   let
@@ -763,12 +763,9 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
       let
         val rule' = Rule_Cases.internalize_params rule;
         val rule'' = (if simp then simplified_rule ctxt else I) rule';
-        val nonames = map (fn ((cn,_),cls) => ((cn,[]),cls))
-        val cases' =
-          if Thm.eq_thm_prop (rule', rule'') then cases else nonames cases
-      in Rule_Cases.make_nested (Thm.prop_of rule'') (rulified_term rule'')
-           cases'
-      end;
+        val nonames = map (fn ((cn, _), cls) => ((cn, []), cls));
+        val cases' = if Thm.eq_thm_prop (rule', rule'') then cases else nonames cases;
+      in Rule_Cases.make_nested (Thm.prop_of rule'') (rulified_term rule'') cases' end;
   in
     (fn i => fn st =>
       ruleq
@@ -778,15 +775,14 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
           (CONJUNCTS (ALLGOALS
             let
               val adefs = nth_list atomized_defs (j - 1);
-              val frees = fold (Term.add_frees o prop_of) adefs [];
+              val frees = fold (Term.add_frees o Thm.prop_of) adefs [];
               val xs = nth_list arbitrary (j - 1);
               val k = nth concls (j - 1) + more_consumes
             in
               Method.insert_tac (more_facts @ adefs) THEN'
                 (if simp then
                    rotate_tac k (length adefs) THEN'
-                   fix_tac defs_ctxt k
-                     (List.partition (member op = frees) xs |> op @)
+                   fix_tac defs_ctxt k (List.partition (member op = frees) xs |> op @)
                  else
                    fix_tac defs_ctxt k xs)
              end)
@@ -796,7 +792,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
             |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
             |> Seq.maps (fn rule' =>
               CASES (rule_cases ctxt rule' cases)
-                (Tactic.rtac rule' i THEN
+                (rtac rule' i THEN
                   PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES
       ((if simp then simplify_tac ctxt THEN' (TRY o trivial_tac)
@@ -805,6 +801,8 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
   end;
 
 val induct_tac = gen_induct_tac (K I);
+
+
 
 (** coinduct method **)
 
@@ -853,7 +851,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
         |> Seq.maps (fn rule' =>
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
-            (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))
+            (Method.insert_tac more_facts i THEN rtac rule' i) st)))
   end;
 
 end;
