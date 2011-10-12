@@ -98,7 +98,7 @@ struct
 (** variables -- ordered left-to-right, preferring right **)
 
 fun vars_of tm =
-  rev (distinct (op =) (Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []));
+  rev (distinct (op =) (Term.fold_aterms (fn t as Var _ => cons t | _ => I) tm []));
 
 local
 
@@ -484,11 +484,12 @@ fun cases_tac ctxt simp insts opt_rule facts =
 
     fun inst_rule r =
       (if null insts then r
-       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-         |> maps (prep_inst ctxt align_left I)
-         |> Drule.cterm_instantiate) r) |>
-      (if simp then mark_constraints (Rule_Cases.get_constraints r) ctxt else I) |>
-      pair (Rule_Cases.get r);
+       else
+         (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
+           |> maps (prep_inst ctxt align_left I)
+           |> Drule.cterm_instantiate) r)
+      |> simp ? mark_constraints (Rule_Cases.get_constraints r) ctxt
+      |> pair (Rule_Cases.get r);
 
     val ruleq =
       (case opt_rule of
@@ -502,8 +503,9 @@ fun cases_tac ctxt simp insts opt_rule facts =
       ruleq
       |> Seq.maps (Rule_Cases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        let val rule' =
-          (if simp then simplified_rule' ctxt #> unmark_constraints else I) rule
+        let
+          val rule' = rule
+            |> simp ? (simplified_rule' ctxt #> unmark_constraints);
         in
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
@@ -762,7 +764,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
     fun rule_cases ctxt rule cases =
       let
         val rule' = Rule_Cases.internalize_params rule;
-        val rule'' = (if simp then simplified_rule ctxt else I) rule';
+        val rule'' = rule' |> simp ? simplified_rule ctxt;
         val nonames = map (fn ((cn, _), cls) => ((cn, []), cls));
         val cases' = if Thm.eq_thm_prop (rule', rule'') then cases else nonames cases;
       in Rule_Cases.make_nested (Thm.prop_of rule'') (rulified_term rule'') cases' end;
