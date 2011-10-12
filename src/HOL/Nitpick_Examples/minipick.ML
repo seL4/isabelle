@@ -381,7 +381,7 @@ fun declarative_axiom_for_free total card i (_, T) =
 
 fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun card (Type (@{type_name fun}, [T1, T2])) =
         reasonable_power (card T2) (card T1)
       | card (Type (@{type_name prod}, [T1, T2])) = card T1 * card T2
@@ -433,7 +433,7 @@ val default_raw_infinite = member (op =) [@{typ nat}, @{typ int}]
 
 fun minipick ctxt n t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val {total_consts, ...} = Nitpick_Isar.default_params thy []
     val totals =
       total_consts |> Option.map single |> the_default [true, false]

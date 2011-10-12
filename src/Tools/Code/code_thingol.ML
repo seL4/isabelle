@@ -606,7 +606,7 @@ fun tag_term (proj_sort, _) eqngr =
 
 fun annotate thy algbr eqngr (c, ty) args rhs =
   let
-    val ctxt = ProofContext.init_global thy |> Config.put Type_Infer_Context.const_sorts false
+    val ctxt = Proof_Context.init_global thy |> Config.put Type_Infer_Context.const_sorts false
     val erase = map_types (fn _ => Type_Infer.anyT [])
     val reinfer = singleton (Type_Infer_Context.infer_types ctxt)
     val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)

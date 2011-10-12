@@ -57,6 +57,3 @@ val cd = File.cd o Path.explode;
 
 Proofterm.proofs := 0;
 
-(*legacy*)
-structure ProofContext = Proof_Context;
-

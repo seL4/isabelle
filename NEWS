@@ -44,6 +44,12 @@ New in this Isabelle version
   zero_le_zpower_abs ~> zero_le_power_abs
 
 
+*** ML ***
+
+* Structure Proof_Context follows standard naming scheme.  Old
+ProofContext has been discontinued.  INCOMPATIBILITY.
+
+
 
 New in Isabelle2011-1 (October 2011)
 ------------------------------------
