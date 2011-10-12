@@ -114,10 +114,9 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
               Method.insert_tac (more_facts @ adefs) THEN'
                 (if simp then
                    Induct.rotate_tac k (length adefs) THEN'
-                   Induct.fix_tac defs_ctxt k
-                     (List.partition (member op = frees) xs |> op @)
+                   Induct.arbitrary_tac defs_ctxt k (List.partition (member op = frees) xs |> op @)
                  else
-                   Induct.fix_tac defs_ctxt k xs)
+                   Induct.arbitrary_tac defs_ctxt k xs)
             end)
           THEN' Induct.inner_atomize_tac) j))
         THEN' Induct.atomize_tac) i st |> Seq.maps (fn st' =>

@@ -56,7 +56,7 @@ sig
   val predN: string
   val setN: string
   (*proof methods*)
-  val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
+  val arbitrary_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
   val add_defs: (binding option * (term * bool)) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
@@ -637,7 +637,7 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
   | special_rename_params _ _ ths = ths;
 
 
-(* fix_tac *)
+(* arbitrary_tac *)
 
 local
 
@@ -685,8 +685,8 @@ fun miniscope_tac p = CONVERSION o
 
 in
 
-fun fix_tac _ _ [] = K all_tac
-  | fix_tac ctxt n xs = SUBGOAL (fn (goal, i) =>
+fun arbitrary_tac _ _ [] = K all_tac
+  | arbitrary_tac ctxt n xs = SUBGOAL (fn (goal, i) =>
      (EVERY' (map (meta_spec_tac ctxt n) xs) THEN'
       (miniscope_tac (goal_params n goal) ctxt)) i);
 
@@ -784,9 +784,9 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
               Method.insert_tac (more_facts @ adefs) THEN'
                 (if simp then
                    rotate_tac k (length adefs) THEN'
-                   fix_tac defs_ctxt k (List.partition (member op = frees) xs |> op @)
+                   arbitrary_tac defs_ctxt k (List.partition (member op = frees) xs |> op @)
                  else
-                   fix_tac defs_ctxt k xs)
+                   arbitrary_tac defs_ctxt k xs)
              end)
           THEN' inner_atomize_tac) j))
         THEN' atomize_tac) i st |> Seq.maps (fn st' =>
