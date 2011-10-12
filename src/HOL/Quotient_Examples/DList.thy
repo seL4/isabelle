@@ -45,7 +45,7 @@ lemma remdups_eq_map_eq:
   assumes "remdups xa = remdups ya"
     shows "remdups (map f xa) = remdups (map f ya)"
   using assms
-  by (induct xa ya arbitrary: fx fy rule: list_induct2')
+  by (induct xa ya rule: list_induct2')
      (metis (full_types) remdups_nil_noteq_cons(2) remdups_map_remdups)+
 
 lemma remdups_eq_member_eq:

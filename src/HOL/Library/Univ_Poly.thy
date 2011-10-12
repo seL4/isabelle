@@ -118,13 +118,13 @@ next
 qed
 
 lemma (in comm_semiring_0) padd_assoc: "\<forall>b c. (a +++ b) +++ c = a +++ (b +++ c)"
-apply (induct a arbitrary: b c)
+apply (induct a)
 apply (simp, clarify)
 apply (case_tac b, simp_all add: add_ac)
 done
 
 lemma (in semiring_0) poly_cmult_distr: "a %* ( p +++ q) = (a %* p +++ a %* q)"
-apply (induct p arbitrary: q,simp)
+apply (induct p arbitrary: q, simp)
 apply (case_tac q, simp_all add: right_distrib)
 done
 

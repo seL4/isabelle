@@ -222,7 +222,7 @@ lemma bcomp_correct[intro]:
   "0 \<le> n \<Longrightarrow>
   bcomp b c n \<turnstile>
  (0,s,stk)  \<rightarrow>*  (isize(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
-proof(induction b arbitrary: c n m)
+proof(induction b arbitrary: c n)
   case Not
   from Not(1)[where c="~c"] Not(2) show ?case by fastforce
 next

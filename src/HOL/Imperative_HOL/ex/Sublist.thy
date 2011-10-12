@@ -408,7 +408,7 @@ lemma length_sublist': "j \<le> length xs \<Longrightarrow> length (sublist' i j
 by (induct xs arbitrary: i j, auto)
 
 lemma sublist'_front: "\<lbrakk> i < j; i < length xs \<rbrakk> \<Longrightarrow> sublist' i j xs = xs ! i # sublist' (Suc i) j xs"
-apply (induct xs arbitrary: a i j)
+apply (induct xs arbitrary: i j)
 apply simp
 apply (case_tac j)
 apply simp
@@ -418,7 +418,7 @@ apply simp
 done
 
 lemma sublist'_back: "\<lbrakk> i < j; j \<le> length xs \<rbrakk> \<Longrightarrow> sublist' i j xs = sublist' i (j - 1) xs @ [xs ! (j - 1)]"
-apply (induct xs arbitrary: a i j)
+apply (induct xs arbitrary: i j)
 apply simp
 apply simp
 done

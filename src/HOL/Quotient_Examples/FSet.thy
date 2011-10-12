@@ -1009,7 +1009,7 @@ qed
 lemma fset_raw_strong_cases:
   obtains "xs = []"
     | ys x where "\<not> List.member ys x" and "xs \<approx> x # ys"
-proof (induct xs arbitrary: x ys)
+proof (induct xs)
   case Nil
   then show thesis by simp
 next

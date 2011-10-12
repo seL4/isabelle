@@ -693,7 +693,7 @@ lemma funpow_shift1_1:
   by (simp add: funpow_shift1)
 
 lemma poly_cmul[simp]: "Ipoly bs (poly_cmul c p) = Ipoly bs (Mul (C c) p)"
-by (induct p  arbitrary: n0 rule: poly_cmul.induct, auto simp add: field_simps)
+  by (induct p rule: poly_cmul.induct) (auto simp add: field_simps)
 
 lemma behead:
   assumes np: "isnpolyh p n"

@@ -31,12 +31,14 @@ qed
 lemma horner_schema: fixes f :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat" and F :: "nat \<Rightarrow> nat"
   assumes f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
   shows "horner F G n ((F ^^ j') s) (f j') x = (\<Sum> j = 0..< n. -1 ^ j * (1 / (f (j' + j))) * x ^ j)"
-proof (induct n arbitrary: i k j')
+proof (induct n arbitrary: j')
+  case 0
+  then show ?case by auto
+next
   case (Suc n)
-
   show ?case unfolding horner.simps Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc]
     using horner_schema'[of "\<lambda> j. 1 / (f (j' + j))"] by auto
-qed auto
+qed
 
 lemma horner_bounds':
   fixes lb :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float" and ub :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float"
@@ -802,7 +804,7 @@ proof -
   let "?f n" = "fact (2 * n)"
 
   { fix n
-    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
+    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n) auto
     have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 1 * (((\<lambda>i. i + 2) ^^ n) 1 + 1)"
       unfolding F by auto } note f_eq = this
 
@@ -914,7 +916,7 @@ proof -
   let "?f n" = "fact (2 * n + 1)"
 
   { fix n
-    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
+    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n) auto
     have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 2 * (((\<lambda>i. i + 2) ^^ n) 2 + 1)"
       unfolding F by auto } note f_eq = this
 
@@ -2383,7 +2385,7 @@ lemma approx:
   and "Some (l, u) = approx prec arith vs" (is "_ = ?g arith")
   shows "l \<le> interpret_floatarith arith xs \<and> interpret_floatarith arith xs \<le> u" (is "?P l u arith")
   using `Some (l, u) = approx prec arith vs`
-proof (induct arith arbitrary: l u x)
+proof (induct arith arbitrary: l u)
   case (Add a b)
   from lift_bin'[OF Add.prems[unfolded approx.simps]] Add.hyps
   obtain l1 u1 l2 u2 where "l = l1 + l2" and "u = u1 + u2"

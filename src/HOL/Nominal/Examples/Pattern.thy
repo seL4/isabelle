@@ -653,7 +653,7 @@ lemma abs_pat_alpha':
   shows "\<exists>pi::name prm. p = pi \<bullet> q \<and> t = pi \<bullet> u \<and>
     set pi \<subseteq> (supp p \<union> supp q) \<times> (supp p \<union> supp q)"
   using assms
-proof (induct p arbitrary: q t u \<Delta>)
+proof (induct p arbitrary: q t u)
   case (PVar x T)
   note PVar' = this
   show ?case
