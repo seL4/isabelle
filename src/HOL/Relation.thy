@@ -14,7 +14,7 @@ subsection {* Definitions *}
 definition
   converse :: "('a * 'b) set => ('b * 'a) set"
     ("(_^-1)" [1000] 999) where
-  "r^-1 == {(y, x). (x, y) : r}"
+  "r^-1 = {(y, x). (x, y) : r}"
 
 notation (xsymbols)
   converse  ("(_\<inverse>)" [1000] 999)
@@ -22,70 +22,70 @@ notation (xsymbols)
 definition
   rel_comp  :: "[('a * 'b) set, ('b * 'c) set] => ('a * 'c) set"
     (infixr "O" 75) where
-  "r O s == {(x,z). EX y. (x, y) : r & (y, z) : s}"
+  "r O s = {(x,z). EX y. (x, y) : r & (y, z) : s}"
 
 definition
   Image :: "[('a * 'b) set, 'a set] => 'b set"
     (infixl "``" 90) where
-  "r `` s == {y. EX x:s. (x,y):r}"
+  "r `` s = {y. EX x:s. (x,y):r}"
 
 definition
   Id :: "('a * 'a) set" where -- {* the identity relation *}
-  "Id == {p. EX x. p = (x,x)}"
+  "Id = {p. EX x. p = (x,x)}"
 
 definition
   Id_on  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
-  "Id_on A == \<Union>x\<in>A. {(x,x)}"
+  "Id_on A = (\<Union>x\<in>A. {(x,x)})"
 
 definition
   Domain :: "('a * 'b) set => 'a set" where
-  "Domain r == {x. EX y. (x,y):r}"
+  "Domain r = {x. EX y. (x,y):r}"
 
 definition
   Range  :: "('a * 'b) set => 'b set" where
-  "Range r == Domain(r^-1)"
+  "Range r = Domain(r^-1)"
 
 definition
   Field :: "('a * 'a) set => 'a set" where
-  "Field r == Domain r \<union> Range r"
+  "Field r = Domain r \<union> Range r"
 
 definition
   refl_on :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
-  "refl_on A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
+  "refl_on A r \<longleftrightarrow> r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
 
 abbreviation
   refl :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
-  "refl == refl_on UNIV"
+  "refl \<equiv> refl_on UNIV"
 
 definition
   sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
-  "sym r == ALL x y. (x,y): r --> (y,x): r"
+  "sym r \<longleftrightarrow> (ALL x y. (x,y): r --> (y,x): r)"
 
 definition
   antisym :: "('a * 'a) set => bool" where -- {* antisymmetry predicate *}
-  "antisym r == ALL x y. (x,y):r --> (y,x):r --> x=y"
+  "antisym r \<longleftrightarrow> (ALL x y. (x,y):r --> (y,x):r --> x=y)"
 
 definition
   trans :: "('a * 'a) set => bool" where -- {* transitivity predicate *}
-  "trans r == (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
+  "trans r \<longleftrightarrow> (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
 definition
-irrefl :: "('a * 'a) set => bool" where
-"irrefl r \<equiv> \<forall>x. (x,x) \<notin> r"
+  irrefl :: "('a * 'a) set => bool" where
+  "irrefl r \<longleftrightarrow> (\<forall>x. (x,x) \<notin> r)"
 
 definition
-total_on :: "'a set => ('a * 'a) set => bool" where
-"total_on A r \<equiv> \<forall>x\<in>A.\<forall>y\<in>A. x\<noteq>y \<longrightarrow> (x,y)\<in>r \<or> (y,x)\<in>r"
+  total_on :: "'a set => ('a * 'a) set => bool" where
+  "total_on A r \<longleftrightarrow> (\<forall>x\<in>A.\<forall>y\<in>A. x\<noteq>y \<longrightarrow> (x,y)\<in>r \<or> (y,x)\<in>r)"
 
 abbreviation "total \<equiv> total_on UNIV"
 
 definition
   single_valued :: "('a * 'b) set => bool" where
-  "single_valued r == ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z)"
+  "single_valued r \<longleftrightarrow> (ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z))"
 
 definition
   inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set" where
-  "inv_image r f == {(x, y). (f x, f y) : r}"
+  "inv_image r f = {(x, y). (f x, f y) : r}"
 
 
 subsection {* The identity relation *}

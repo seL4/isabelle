@@ -44,11 +44,11 @@ notation
 
 abbreviation
   reflclp :: "('a => 'a => bool) => 'a => 'a => bool"  ("(_^==)" [1000] 1000) where
-  "r^== == sup r op ="
+  "r^== \<equiv> sup r op ="
 
 abbreviation
   reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
-  "r^= == r \<union> Id"
+  "r^= \<equiv> r \<union> Id"
 
 notation (xsymbols)
   rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and

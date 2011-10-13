@@ -15,10 +15,10 @@ begin
 subsection {* Basic Definitions *}
 
 definition wf :: "('a * 'a) set => bool" where
-  "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
+  "wf r \<longleftrightarrow> (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
 
 definition wfP :: "('a => 'a => bool) => bool" where
-  "wfP r == wf {(x, y). r x y}"
+  "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
@@ -382,10 +382,10 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
 subsection {* Acyclic relations *}
 
 definition acyclic :: "('a * 'a) set => bool" where
-  "acyclic r == !x. (x,x) ~: r^+"
+  "acyclic r \<longleftrightarrow> (!x. (x,x) ~: r^+)"
 
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
-  "acyclicP r == acyclic {(x, y). r x y}"
+  "acyclicP r \<equiv> acyclic {(x, y). r x y}"
 
 lemma acyclic_irrefl:
   "acyclic r \<longleftrightarrow> irrefl (r^+)"
@@ -515,11 +515,11 @@ inductive_set
 
 abbreviation
   termip :: "('a => 'a => bool) => 'a => bool" where
-  "termip r == accp (r\<inverse>\<inverse>)"
+  "termip r \<equiv> accp (r\<inverse>\<inverse>)"
 
 abbreviation
   termi :: "('a * 'a) set => 'a set" where
-  "termi r == acc (r\<inverse>)"
+  "termi r \<equiv> acc (r\<inverse>)"
 
 lemmas accpI = accp.accI
 
@@ -672,7 +672,7 @@ done
 text {* Measure functions into @{typ nat} *}
 
 definition measure :: "('a => nat) => ('a * 'a)set"
-where "measure == inv_image less_than"
+where "measure = inv_image less_than"
 
 lemma in_measure[simp]: "((x,y) : measure f) = (f x < f y)"
   by (simp add:measure_def)
@@ -735,7 +735,7 @@ unfolding mlex_prod_def by auto
 text {* proper subset relation on finite sets *}
 
 definition finite_psubset  :: "('a set * 'a set) set"
-where "finite_psubset == {(A,B). A < B & finite B}"
+where "finite_psubset = {(A,B). A < B & finite B}"
 
 lemma wf_finite_psubset[simp]: "wf(finite_psubset)"
 apply (unfold finite_psubset_def)
