@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Pure ***
+
+* Obsolete command 'types' has been discontinued.  Use 'type_synonym'
+instead.  INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Theory Int: Discontinued many legacy theorems specific to type int.

@@ -190,7 +190,6 @@
     "type_synonym"
     "typed_print_translation"
     "typedecl"
-    "types"
     "ultimately"
     "undo"
     "undos_proof"
@@ -400,7 +399,6 @@
     "type_synonym"
     "typed_print_translation"
     "typedecl"
-    "types"
     "use"))
 
 (defconst isar-keywords-theory-script

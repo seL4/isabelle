@@ -264,7 +264,6 @@
     "typed_print_translation"
     "typedecl"
     "typedef"
-    "types"
     "types_code"
     "ultimately"
     "undo"
@@ -539,7 +538,6 @@
     "type_synonym"
     "typed_print_translation"
     "typedecl"
-    "types"
     "types_code"
     "use"))
 

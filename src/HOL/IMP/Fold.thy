@@ -4,7 +4,7 @@ theory Fold imports Sem_Equiv begin
 
 subsection "Simple folding of arithmetic expressions"
 
-types
+type_synonym
   tab = "name \<Rightarrow> val option"
 
 (* maybe better as the composition of substitution and the existing simp_const(0) *)
