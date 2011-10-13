@@ -552,7 +552,7 @@ fun join_tasks [] = ()
 
 fun value_result (res: 'a Exn.result) =
   let
-    val task = Task_Queue.dummy_task ();
+    val task = Task_Queue.dummy_task;
     val group = Task_Queue.group_of_task task;
     val result = Single_Assignment.var "value" : 'a result;
     val _ = assign_result group result res;

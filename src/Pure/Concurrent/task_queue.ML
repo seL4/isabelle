@@ -16,7 +16,7 @@ sig
   val str_of_group: group -> string
   val str_of_groups: group -> string
   type task
-  val dummy_task: unit -> task
+  val dummy_task: task
   val group_of_task: task -> group
   val name_of_task: task -> string
   val pri_of_task: task -> int
@@ -102,22 +102,23 @@ end;
 
 type timing = Time.time * Time.time * string list;  (*run, wait, wait dependencies*)
 
-fun new_timing () =
-  Synchronized.var "timing" ((Time.zeroTime, Time.zeroTime, []): timing);
+val timing_start = (Time.zeroTime, Time.zeroTime, []): timing;
+
+fun new_timing () = Synchronized.var "timing" timing_start;
 
 abstype task = Task of
  {group: group,
   name: string,
   id: int,
   pri: int option,
-  timing: timing Synchronized.var}
+  timing: timing Synchronized.var option}
 with
 
-fun dummy_task () =
-  Task {group = new_group NONE, name = "", id = 0, pri = NONE, timing = new_timing ()};
+val dummy_task =
+  Task {group = new_group NONE, name = "", id = 0, pri = NONE, timing = NONE};
 
 fun new_task group name pri =
-  Task {group = group, name = name, id = new_id (), pri = pri, timing = new_timing ()};
+  Task {group = group, name = name, id = new_id (), pri = pri, timing = SOME (new_timing ())};
 
 fun group_of_task (Task {group, ...}) = group;
 fun name_of_task (Task {name, ...}) = name;
@@ -128,7 +129,8 @@ fun str_of_task (Task {name, id, ...}) =
 
 fun str_of_task_groups task = str_of_task task ^ " in " ^ str_of_groups (group_of_task task);
 
-fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
+fun timing_of_task (Task {timing, ...}) =
+  (case timing of NONE => timing_start | SOME var => Synchronized.value var);
 
 fun update_timing update (Task {timing, ...}) e =
   uninterruptible (fn restore_attributes => fn () =>
@@ -136,7 +138,7 @@ fun update_timing update (Task {timing, ...}) e =
       val start = Time.now ();
       val result = Exn.capture (restore_attributes e) ();
       val t = Time.- (Time.now (), start);
-      val _ = Synchronized.change timing (update t);
+      val _ = (case timing of NONE => () | SOME var => Synchronized.change var (update t));
     in Exn.release result end) ();
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
