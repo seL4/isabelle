@@ -381,53 +381,12 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
 
 subsection {* Acyclic relations *}
 
-definition acyclic :: "('a * 'a) set => bool" where
-  "acyclic r \<longleftrightarrow> (!x. (x,x) ~: r^+)"
-
-abbreviation acyclicP :: "('a => 'a => bool) => bool" where
-  "acyclicP r \<equiv> acyclic {(x, y). r x y}"
-
-lemma acyclic_irrefl:
-  "acyclic r \<longleftrightarrow> irrefl (r^+)"
-  by (simp add: acyclic_def irrefl_def)
-
-lemma acyclicI: "ALL x. (x, x) ~: r^+ ==> acyclic r"
-  by (simp add: acyclic_def)
-
 lemma wf_acyclic: "wf r ==> acyclic r"
 apply (simp add: acyclic_def)
 apply (blast elim: wf_trancl [THEN wf_irrefl])
 done
 
 lemmas wfP_acyclicP = wf_acyclic [to_pred]
-
-lemma acyclic_insert [iff]:
-     "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)"
-apply (simp add: acyclic_def trancl_insert)
-apply (blast intro: rtrancl_trans)
-done
-
-lemma acyclic_converse [iff]: "acyclic(r^-1) = acyclic r"
-by (simp add: acyclic_def trancl_converse)
-
-lemmas acyclicP_converse [iff] = acyclic_converse [to_pred]
-
-lemma acyclic_impl_antisym_rtrancl: "acyclic r ==> antisym(r^*)"
-apply (simp add: acyclic_def antisym_def)
-apply (blast elim: rtranclE intro: rtrancl_into_trancl1 rtrancl_trancl_trancl)
-done
-
-(* Other direction:
-acyclic = no loops
-antisym = only self loops
-Goalw [acyclic_def,antisym_def] "antisym( r^* ) ==> acyclic(r - Id)
-==> antisym( r^* ) = acyclic(r - Id)";
-*)
-
-lemma acyclic_subset: "[| acyclic s; r <= s |] ==> acyclic r"
-apply (simp add: acyclic_def)
-apply (blast intro: trancl_mono)
-done
 
 text{* Wellfoundedness of finite acyclic relations*}
 

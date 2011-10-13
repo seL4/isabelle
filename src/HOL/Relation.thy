@@ -307,6 +307,7 @@ lemma irrefl_distinct:
 lemma irrefl_diff_Id[simp]: "irrefl(r-Id)"
 by(simp add:irrefl_def)
 
+
 subsection {* Totality *}
 
 lemma total_on_empty[simp]: "total_on {} r"
