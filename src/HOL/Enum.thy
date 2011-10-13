@@ -759,11 +759,10 @@ proof -
 qed
 
 
-subsection {* An executable card operator on finite types *}
+subsection {* Transitive closure on relations over finite types *}
 
-lemma [code]:
-  "card R = length (filter R enum)"
-  by (simp add: distinct_length_filter [OF enum_distinct] enum_UNIV Collect_def)
+lemma [code]: "trancl (R :: (('a :: enum) \<times> 'a) set) = ntrancl (length (filter R enum) - 1) R"
+  by (simp add: finite_trancl_ntranl distinct_length_filter [OF enum_distinct] enum_UNIV Collect_def)
 
 
 subsection {* Closing up *}

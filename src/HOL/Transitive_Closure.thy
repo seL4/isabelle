@@ -1034,12 +1034,9 @@ next
     unfolding ntrancl_def by fastforce
 qed
 
-lemma finnite_trancl_ntranl:
+lemma finite_trancl_ntranl:
   "finite R \<Longrightarrow> trancl R = ntrancl (card R - 1) R"
   by (cases "card R") (auto simp add: trancl_finite_eq_rel_pow rel_pow_empty ntrancl_def)
-
-lemma [code]: "trancl (R :: (('a :: finite) \<times> 'a) set) = ntrancl (card R - 1) R"
-  by (simp add: finnite_trancl_ntranl)
 
 
 subsection {* Acyclic relations *}
