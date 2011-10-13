@@ -63,7 +63,7 @@ apply (rule iffI)
 by (auto simp: mem_def)
 
 lemma rtrancl_unfold [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
-by simp
+  by (simp only: rtrancl_trancl_reflcl)
 
 lemma rtranclp_unfold [nitpick_unfold, no_atp]:
 "rtranclp r a b \<equiv> (a = b \<or> tranclp r a b)"

@@ -576,6 +576,9 @@ lemma trancl_reflcl [simp]: "(r^=)^+ = r^*"
    apply (erule rtrancl_reflcl [THEN equalityD2, THEN subsetD], fast)
   done
 
+lemma rtrancl_trancl_reflcl [code]: "r^* = (r^+)^="
+  by simp
+
 lemma trancl_empty [simp]: "{}^+ = {}"
   by (auto elim: trancl_induct)
 
@@ -979,6 +982,65 @@ apply simp_all
 apply (rule single_valuedI)
 apply (fast dest: single_valuedD elim: rel_pow_Suc_E)
 done
+
+
+subsection {* Bounded transitive closure *}
+
+definition ntrancl :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
+where
+  "ntrancl n R = (\<Union>i\<in>{i. 0 < i \<and> i \<le> Suc n}. R ^^ i)"
+
+lemma ntrancl_Zero [simp, code]:
+  "ntrancl 0 R = R"
+proof
+  show "R \<subseteq> ntrancl 0 R"
+    unfolding ntrancl_def by fastforce
+next
+  { 
+    fix i have "0 < i \<and> i \<le> Suc 0 \<longleftrightarrow> i = 1" by auto
+  }
+  from this show "ntrancl 0 R \<le> R"
+    unfolding ntrancl_def by auto
+qed
+
+lemma ntrancl_Suc [simp, code]:
+  "ntrancl (Suc n) R = ntrancl n R O (Id \<union> R)"
+proof
+  {
+    fix a b
+    assume "(a, b) \<in> ntrancl (Suc n) R"
+    from this obtain i where "0 < i" "i \<le> Suc (Suc n)" "(a, b) \<in> R ^^ i"
+      unfolding ntrancl_def by auto
+    have "(a, b) \<in> ntrancl n R O (Id \<union> R)"
+    proof (cases "i = 1")
+      case True
+      from this `(a, b) \<in> R ^^ i` show ?thesis
+        unfolding ntrancl_def by auto
+    next
+      case False
+      from this `0 < i` obtain j where j: "i = Suc j" "0 < j"
+        by (cases i) auto
+      from this `(a, b) \<in> R ^^ i` obtain c where c1: "(a, c) \<in> R ^^ j" and c2:"(c, b) \<in> R"
+        by auto
+      from c1 j `i \<le> Suc (Suc n)` have "(a, c) \<in> ntrancl n R"
+        unfolding ntrancl_def by fastforce
+      from this c2 show ?thesis by fastforce
+    qed
+  }
+  from this show "ntrancl (Suc n) R \<subseteq> ntrancl n R O (Id \<union> R)"
+    by auto
+next
+  show "ntrancl n R O (Id \<union> R) \<subseteq> ntrancl (Suc n) R"
+    unfolding ntrancl_def by fastforce
+qed
+
+lemma finnite_trancl_ntranl:
+  "finite R \<Longrightarrow> trancl R = ntrancl (card R - 1) R"
+  by (cases "card R") (auto simp add: trancl_finite_eq_rel_pow rel_pow_empty ntrancl_def)
+
+lemma [code]: "trancl (R :: (('a :: finite) \<times> 'a) set) = ntrancl (card R - 1) R"
+  by (simp add: finnite_trancl_ntranl)
+
 
 subsection {* Acyclic relations *}
 

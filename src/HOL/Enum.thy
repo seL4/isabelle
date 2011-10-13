@@ -758,69 +758,13 @@ proof -
     unfolding enum_the_def by (auto split: list.split)
 qed
 
+
 subsection {* An executable card operator on finite types *}
 
-lemma
-  [code]: "card R = length (filter R enum)"
-by (simp add: distinct_length_filter[OF enum_distinct] enum_UNIV Collect_def)
-
-subsection {* An executable (reflexive) transitive closure on finite relations *}
-
-text {* Definitions could be moved to Transitive Closure theory if they are of more general use. *}
-
-definition ntrancl :: "('a * 'a => bool) => nat => ('a * 'a => bool)"
-where
- [code del]: "ntrancl R n = (UN i : {i. 0 < i & i <= (Suc n)}. R ^^ i)"
-
 lemma [code]:
-  "ntrancl (R :: 'a * 'a => bool) 0 = R"
-proof
-  show "R <= ntrancl R 0"
-    unfolding ntrancl_def by fastforce
-next
-  { 
-    fix i have "(0 < i & i <= Suc 0) = (i = 1)" by auto
-  }
-  from this show "ntrancl R 0 <= R"
-    unfolding ntrancl_def by auto
-qed
+  "card R = length (filter R enum)"
+  by (simp add: distinct_length_filter [OF enum_distinct] enum_UNIV Collect_def)
 
-lemma [code]:
-  "ntrancl (R :: 'a * 'a => bool) (Suc n) = (ntrancl R n) O (Id Un R)"
-proof
-  {
-    fix a b
-    assume "(a, b) : ntrancl R (Suc n)"
-    from this obtain i where "0 < i" "i <= Suc (Suc n)" "(a, b) : R ^^ i"
-      unfolding ntrancl_def by auto
-    have "(a, b) : ntrancl R n O (Id Un R)"
-    proof (cases "i = 1")
-      case True
-      from this `(a, b) : R ^^ i` show ?thesis
-        unfolding ntrancl_def by auto
-    next
-      case False
-      from this `0 < i` obtain j where j: "i = Suc j" "0 < j"
-        by (cases i) auto
-      from this `(a, b) : R ^^ i` obtain c where c1: "(a, c) : R ^^ j" and c2:"(c, b) : R"
-        by auto
-      from c1 j `i <= Suc (Suc n)` have "(a, c): ntrancl R n"
-        unfolding ntrancl_def by fastforce
-      from this c2 show ?thesis by fastforce
-    qed
-  }
-  from this show "ntrancl R (Suc n) <= ntrancl R n O (Id Un R)" by auto
-next
-  show "ntrancl R n O (Id Un R) <= ntrancl R (Suc n)"
-    unfolding ntrancl_def by fastforce
-qed
-
-lemma [code]: "trancl (R :: ('a :: finite) * 'a => bool) = ntrancl R (card R - 1)"
-by (cases "card R") (auto simp add: trancl_finite_eq_rel_pow rel_pow_empty ntrancl_def)
-
-(* a copy of Nitpick.rtrancl_unfold, should be moved to Transitive_Closure *)
-lemma [code]: "r^* = (r^+)^="
-by simp
 
 subsection {* Closing up *}
 
