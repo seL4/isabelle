@@ -655,7 +655,7 @@ text {*
   
   \item @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} is a \emph{terminal
   proof}\index{proof!terminal}; it abbreviates @{command
-  "proof"}~@{text "m\<^sub>1"}~@{text "qed"}~@{text "m\<^sub>2"}, but with
+  "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"}, but with
   backtracking across both methods.  Debugging an unsuccessful
   @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} command can be done by expanding its
   definition; in many cases @{command "proof"}~@{text "m\<^sub>1"} (or even
