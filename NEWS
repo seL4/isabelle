@@ -12,6 +12,10 @@ instead.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* 'Transitive_Closure.ntrancl': bounded transitive closure on relations.
+
+* 'sublists' moved to More_List.thy; INCOMPATIBILITY.
+
 * Theory Int: Discontinued many legacy theorems specific to type int.
   INCOMPATIBILITY, use the corresponding generic theorems instead.
 
