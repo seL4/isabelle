@@ -17,6 +17,7 @@ declare (in linorder) Max_fin_set_fold [code_unfold del]
 declare (in complete_lattice) Inf_set_fold [code_unfold del]
 declare (in complete_lattice) Sup_set_fold [code_unfold del]
 
+
 text {* Fold combinator with canonical argument order *}
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
@@ -156,6 +157,7 @@ lemma (in linorder) sort_conv_fold:
   "sort xs = fold insort xs []"
   by (rule sort_key_conv_fold) simp
 
+
 text {* @{const Finite_Set.fold} and @{const fold} *}
 
 lemma (in comp_fun_commute) fold_set_remdups:
@@ -268,6 +270,7 @@ lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
   unfolding SUP_def set_map [symmetric] Sup_set_fold fold_map ..
 
+
 text {* @{text nth_map} *}
 
 definition nth_map :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -294,5 +297,16 @@ lemma nth_map_zero [simp]:
 lemma nth_map_Suc [simp]:
   "nth_map (Suc n) f (x # xs) = x # nth_map n f xs"
   by (simp add: nth_map_def)
+
+
+text {* monad operation *}
+
+definition bind :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list" where
+  "bind xs f = concat (map f xs)"
+
+lemma bind_simps [simp]:
+  "bind [] f = []"
+  "bind (x # xs) f = f x @ bind xs f"
+  by (simp_all add: bind_def)
 
 end

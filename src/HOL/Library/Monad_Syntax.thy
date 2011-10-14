@@ -5,7 +5,7 @@
 header {* Monad notation for arbitrary types *}
 
 theory Monad_Syntax
-imports Main "~~/src/Tools/Adhoc_Overloading"
+imports Main "~~/src/Tools/Adhoc_Overloading" "~~/src/HOL/Library/More_List"
 begin
 
 text {*
@@ -73,6 +73,7 @@ setup {*
   Adhoc_Overloading.add_overloaded @{const_name bind}
   #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Predicate.bind}
   #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Option.bind}
+  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name More_List.bind}
 *}
 
 end
