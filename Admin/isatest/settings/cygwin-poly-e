@@ -1,7 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/isatest/polyml-svn"
-  ML_SYSTEM="polyml-5.4.2"
+  POLYML_HOME="/home/isatest/polyml-5.4.1"
+  ML_SYSTEM="polyml-5.4.1"
   ML_PLATFORM="x86-cygwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 200"
