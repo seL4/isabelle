@@ -101,7 +101,7 @@ rm -f $RUNNING/*
 $SSH macbroy21 "$MAKEALL $HOME/settings/at-poly-test"
 # give test some time to copy settings and start
 sleep 15
-$SSH macbroy28 "$MAKEALL $HOME/settings/at-poly"
+$SSH macbroy28 "$MAKEALL $HOME/settings/at-poly; $MAKEALL $HOME/settings/at-poly-e"
 sleep 15
 $SSH macbroy22 "$MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
 sleep 15
