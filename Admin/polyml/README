@@ -1,35 +1,8 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation of Poly/ML 5.4 is based on the official sources from
-http://www.polyml.org with the following patch from the SVN (which is
-also part of the fixes-5.4 source tree):
-
-------------------------------------------------------------------------
-r1214 | dcjm | 2010-09-14 20:03:52 +0200 (Tue, 14 Sep 2010) | 1 line
-
-Fix to arbitrary precision emulation for X86.  A GC during emulating
-an operation could cause the stack to move resulting in the result of
-the operation not being stored into the result register.
-------------------------------------------------------------------------
-diff libpolyml/x86_dep.cpp libpolyml/x86_dep.cpp.orig
-1308,1311c1308
-<                     if (! inConsts) {
-<                         destReg = get_reg(taskData, rrr); // May have moved because of a GC.
-<                         *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()+1);
-<                     }
----
->                     if (! inConsts) *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()+1);
-1344,1347c1341
-<                     if (! inConsts) {
-<                         destReg = get_reg(taskData, rrr); // May have moved because of a GC.
-<                         *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()-1);
-<                     }
----
->                     if (! inConsts) *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()-1);
-
-------------------------------------------------------------------------
-
+This compilation of Poly/ML 5.4.1 is based on the official sources
+from http://www.polyml.org
 
 The included build script is used like this:
 
@@ -42,10 +15,9 @@ The included build script is used like this:
 The multi-platform directory layout for executables and shared
 libraries accommodates the standard ML_HOME settings for Isabelle.
 
-
 Also note that the separate "sha1" library module is required for
 efficient digesting of strings according to SHA-1.
 
 
 	Makarius
-	20-Dec-2010
+	15-Oct-2011

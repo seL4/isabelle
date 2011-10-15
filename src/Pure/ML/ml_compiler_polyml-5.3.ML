@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_compiler_polyml-5.3.ML
     Author:     Makarius
 
-Advanced runtime compilation for Poly/ML 5.3.0.
+Advanced runtime compilation for Poly/ML 5.3.0 or later.
 *)
 
 structure ML_Compiler: ML_COMPILER =
