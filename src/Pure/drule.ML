@@ -729,7 +729,7 @@ fun dest_term th =
 fun cterm_rule f = dest_term o f o mk_term;
 fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
-val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
+val dummy_thm = mk_term (certify Term.dummy_prop);
 
 
 (* sort_constraint *)

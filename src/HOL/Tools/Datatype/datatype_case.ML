@@ -346,7 +346,7 @@ fun gen_dest_case name_of type_of tab d used t =
                   (fold_rev count_cases cases []);
                 val R = type_of t;
                 val dummy =
-                  if d then Const (@{const_name dummy_pattern}, R)
+                  if d then Term.dummy_pattern R
                   else Free (singleton (Name.variant_list used) "x", R);
               in
                 SOME (x,

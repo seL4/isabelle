@@ -172,12 +172,12 @@ fun term_of _ (PThm (_, ((name, _, NONE), _))) =
         Abs (s, T, term_of (T::Ts) (Proofterm.incr_pboundvars 1 0 prf))
       end
   | term_of Ts (AbsP (s, t, prf)) =
-      AbsPt $ the_default (Term.dummy_pattern propT) t $
+      AbsPt $ the_default Term.dummy_prop t $
         Abs (s, proofT, term_of (proofT::Ts) (Proofterm.incr_pboundvars 0 1 prf))
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
   | term_of Ts (prf % opt) =
-      let val t = the_default (Term.dummy_pattern dummyT) opt
+      let val t = the_default Term.dummy opt
       in Const ("Appt",
         [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
           term_of Ts prf $ t

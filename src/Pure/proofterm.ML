@@ -1051,10 +1051,8 @@ fun gen_axm_proof c name prop =
 
 val axm_proof = gen_axm_proof PAxm;
 
-val dummy = Const (Term.dummy_patternN, dummyT);
-
 fun oracle_proof name prop =
-  if ! proofs = 0 then ((name, dummy), Oracle (name, dummy, NONE))
+  if ! proofs = 0 then ((name, Term.dummy), Oracle (name, Term.dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
 fun shrink_proof thy =

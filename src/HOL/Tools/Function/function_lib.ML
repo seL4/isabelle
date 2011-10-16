@@ -75,9 +75,7 @@ fun forall_intr_rename (n, cv) thm =
   let
     val allthm = Thm.forall_intr cv thm
     val (_ $ abs) = prop_of allthm
-  in
-    Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy_pattern dummyT)) allthm
-  end
+  in Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy)) allthm end
 
 
 datatype proof_attempt = Solved of thm | Stuck of thm | Fail

@@ -642,9 +642,9 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
 local
 
 fun goal_prefix k ((c as Const ("all", _)) $ Abs (a, T, B)) = c $ Abs (a, T, goal_prefix k B)
-  | goal_prefix 0 _ = Term.dummy_pattern propT
+  | goal_prefix 0 _ = Term.dummy_prop
   | goal_prefix k ((c as Const ("==>", _)) $ A $ B) = c $ A $ goal_prefix (k - 1) B
-  | goal_prefix _ _ = Term.dummy_pattern propT;
+  | goal_prefix _ _ = Term.dummy_prop;
 
 fun goal_params k (Const ("all", _) $ Abs (_, _, B)) = goal_params k B + 1
   | goal_params 0 _ = 0

@@ -164,6 +164,8 @@ sig
   val dest_abs: string * typ * term -> string * term
   val dummy_patternN: string
   val dummy_pattern: typ -> term
+  val dummy: term
+  val dummy_prop: term
   val is_dummy_pattern: term -> bool
   val free_dummy_patterns: term -> Name.context -> term * Name.context
   val no_dummy_patterns: term -> term
@@ -941,6 +943,8 @@ fun dest_abs (x, T, body) =
 val dummy_patternN = "dummy_pattern";
 
 fun dummy_pattern T = Const (dummy_patternN, T);
+val dummy = dummy_pattern dummyT;
+val dummy_prop = dummy_pattern propT;
 
 fun is_dummy_pattern (Const ("dummy_pattern", _)) = true
   | is_dummy_pattern _ = false;
@@ -979,7 +983,7 @@ val replace_dummy_patterns = replace_dummy [];
 fun is_replaced_dummy_pattern ("_dummy_", _) = true
   | is_replaced_dummy_pattern _ = false;
 
-fun show_dummy_patterns (Var (("_dummy_", _), T)) = Const ("dummy_pattern", T)
+fun show_dummy_patterns (Var (("_dummy_", _), T)) = dummy_pattern T
   | show_dummy_patterns (t $ u) = show_dummy_patterns t $ show_dummy_patterns u
   | show_dummy_patterns (Abs (x, T, t)) = Abs (x, T, show_dummy_patterns t)
   | show_dummy_patterns a = a;
