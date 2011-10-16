@@ -893,7 +893,7 @@ text {* Implementations *}
 
 lemma one_int_code [code]:
   "1 = Pls One"
-  by (simp add: of_num_One)
+  by simp
 
 lemma plus_int_code [code]:
   "k + 0 = (k::int)"
