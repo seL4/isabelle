@@ -188,7 +188,7 @@ def isabelle_makeall(env, case, paths, dep_paths, playground, usedir_options=def
         usedir_options += " -M 6 -q 2 -i false -d false"
         more_settings += '''
 ML_PLATFORM="x86_64-linux"
-ML_HOME="/home/polyml/polyml-svn/x86_64-linux"
+ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
 ML_SYSTEM="polyml-5.4.1"
 ML_OPTIONS="-H 8000 --gcthreads 6"
 
