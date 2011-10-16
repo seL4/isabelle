@@ -1764,7 +1764,7 @@ lemma insert_code [code]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
 lemma vimage_code [code]: "(f -` A) x = A (f x)"
   by (simp add: vimage_def Collect_def mem_def)
 
-hide_const (open) member
+hide_const (open) member not_member
 
 text {* Misc theorem and ML bindings *}
 
