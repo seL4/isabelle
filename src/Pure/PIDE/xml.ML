@@ -146,8 +146,12 @@ fun err msg (xs, _) =
 
 fun ignored _ = [];
 
+fun name_start_char c = Symbol.is_ascii_letter c orelse c = ":" orelse c = "_";
+fun name_char c = name_start_char c orelse Symbol.is_ascii_digit c orelse c = "-" orelse c = ".";
+val parse_name = Scan.one name_start_char ::: Scan.many name_char;
+
 val blanks = Scan.many Symbol.is_blank;
-val special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
+val special = $$ "&" ^^ (parse_name >> implode) ^^ $$ ";" >> decode;
 val regular = Scan.one Symbol.is_regular;
 fun regular_except x = Scan.one (fn c => Symbol.is_regular c andalso c <> x);
 
@@ -159,7 +163,7 @@ val parse_cdata =
   Scan.this_string "]]>";
 
 val parse_att =
-  (Symbol.scan_id --| (blanks -- $$ "=" -- blanks)) --
+  ((parse_name >> implode) --| (blanks -- $$ "=" -- blanks)) --
   (($$ "\"" || $$ "'") :|-- (fn s =>
     (Scan.repeat (special || regular_except s) >> implode) --| $$ s));
 
@@ -185,10 +189,6 @@ val parse_misc =
 
 val parse_optional_text =
   Scan.optional (parse_chars >> (single o Text)) [];
-
-fun name_start_char c = Symbol.is_ascii_letter c orelse c = ":" orelse c = "_";
-fun name_char c = name_start_char c orelse Symbol.is_ascii_digit c orelse c = "-" orelse c = ".";
-val parse_name = Scan.one name_start_char ::: Scan.many name_char;
 
 in
 
