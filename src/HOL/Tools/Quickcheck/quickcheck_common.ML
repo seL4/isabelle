@@ -11,6 +11,13 @@ sig
     -> string -> string list -> string list -> typ list -> Proof.context -> Proof.context 
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
+  val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
+    -> (typ option * (term * term list)) list list
+  val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
+  type compile_generator =
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  val generator_test_goal_terms : compile_generator -> Proof.context -> bool * bool
+    -> (string * typ) list -> (term * term list) list -> Quickcheck.result list
   val ensure_sort_datatype:
     ((sort * sort) * sort) * (Datatype.config -> Datatype.descr -> (string * sort) list
       -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory)
@@ -20,6 +27,7 @@ sig
      -> Proof.context -> (term * term list) list -> term
   val mk_fun_upd : typ -> typ -> term * term -> term -> term
   val post_process_term : term -> term
+  val test_term : compile_generator -> Proof.context -> bool * bool -> term * term list -> Quickcheck.result
 end;
 
 structure Quickcheck_Common : QUICKCHECK_COMMON =
@@ -35,7 +43,222 @@ fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (str
   | strip_imp A = ([], A)
 
 fun mk_undefined T = Const(@{const_name undefined}, T)
+
+(* testing functions: testing with increasing sizes (and cardinalities) *)
+
+type compile_generator =
+  Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+
+fun check_test_term t =
+  let
+    val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
+      error "Term to be tested contains type variables";
+    val _ = null (Term.add_vars t []) orelse
+      error "Term to be tested contains schematic variables";
+  in () end
+
+fun cpu_time description e =
+  let val ({cpu, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds cpu)) end
+
+fun test_term compile ctxt (limit_time, is_interactive) (t, eval_terms) =
+  let
+    val _ = check_test_term t
+    val names = Term.add_free_names t []
+    val current_size = Unsynchronized.ref 0
+    val current_result = Unsynchronized.ref Quickcheck.empty_result 
+    fun excipit () =
+      "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
+    fun with_size test_fun k =
+      if k > Config.get ctxt Quickcheck.size then
+        NONE
+      else
+        let
+          val _ = Quickcheck.message ctxt ("Test data size: " ^ string_of_int k)
+          val _ = current_size := k
+          val ((result, report), timing) =
+            cpu_time ("size " ^ string_of_int k) (fn () => test_fun [1, k - 1])
+          val _ = Quickcheck.add_timing timing current_result
+          val _ = Quickcheck.add_report k report current_result
+        in
+          case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
+        end;
+  in
+    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
+      let
+        val (test_fun, comp_time) = cpu_time "quickcheck compilation"
+          (fn () => compile ctxt [(t, eval_terms)]);
+        val _ = Quickcheck.add_timing comp_time current_result
+        val (response, exec_time) =
+          cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
+        val _ = Quickcheck.add_response names eval_terms response current_result
+        val _ = Quickcheck.add_timing exec_time current_result
+      in !current_result end)
+(*    (fn () => (message (excipit ()); !current_result)) ()*)
+  end;
+
+fun validate_terms ctxt ts =
+  let
+    val _ = map check_test_term ts
+    val size = Config.get ctxt Quickcheck.size
+    val (test_funs, comp_time) = cpu_time "quickcheck batch compilation"
+      (fn () => Quickcheck.mk_batch_validator ctxt ts) 
+    fun with_size tester k =
+      if k > size then true
+      else if tester k then with_size tester (k + 1) else false
+    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
+        Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt Quickcheck.timeout))
+              (fn () => with_size test_fun 1) ()
+             handle TimeLimit.TimeOut => true)) test_funs)
+  in
+    (results, [comp_time, exec_time])
+  end
   
+fun test_terms ctxt ts =
+  let
+    val _ = map check_test_term ts
+    val size = Config.get ctxt Quickcheck.size
+    val namess = map (fn t => Term.add_free_names t []) ts
+    val (test_funs, comp_time) =
+      cpu_time "quickcheck batch compilation" (fn () => Quickcheck.mk_batch_tester ctxt ts) 
+    fun with_size tester k =
+      if k > size then NONE
+      else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
+    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
+        Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt Quickcheck.timeout))
+              (fn () => with_size test_fun 1) ()
+             handle TimeLimit.TimeOut => NONE)) test_funs)
+  in
+    (Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results,
+      [comp_time, exec_time])
+  end
+
+
+fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interactive) ts =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val (ts', eval_terms) = split_list ts
+    val _ = map check_test_term ts'
+    val names = Term.add_free_names (hd ts') []
+    val Ts = map snd (Term.add_frees (hd ts') [])
+    val current_result = Unsynchronized.ref Quickcheck.empty_result
+    fun test_card_size test_fun (card, size) =
+      (* FIXME: why decrement size by one? *)
+      let
+        val (ts, timing) =
+          cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
+            (fn () => fst (test_fun [card, size - 1]))
+        val _ = Quickcheck.add_timing timing current_result
+      in
+        Option.map (pair card) ts
+      end
+    val enumeration_card_size =
+      if forall (fn T => Sign.of_sort thy (T,  ["Enum.enum"])) Ts then
+        (* size does not matter *)
+        map (rpair 0) (1 upto (length ts))
+      else
+        (* size does matter *)
+        map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt Quickcheck.size))
+        |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
+  in
+    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
+      let
+        val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => compile ctxt ts)
+        val _ = Quickcheck.add_timing comp_time current_result     
+        val _ = case get_first (test_card_size test_fun) enumeration_card_size of
+          SOME (card, ts) => Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
+        | NONE => ()
+      in !current_result end)
+      (*(fn () => (message "Quickcheck ran out of time"; !current_result)) ()*)
+  end
+
+fun get_finite_types ctxt =
+  fst (chop (Config.get ctxt Quickcheck.finite_type_size)
+    (map (Type o rpair []) ["Enum.finite_1", "Enum.finite_2", "Enum.finite_3",
+     "Enum.finite_4", "Enum.finite_5"]))
+
+exception WELLSORTED of string
+
+fun monomorphic_term thy insts default_T =
+  let
+    fun subst (T as TFree (v, S)) =
+      let
+        val T' = AList.lookup (op =) insts v
+          |> the_default default_T
+      in if Sign.of_sort thy (T', S) then T'
+        else raise (WELLSORTED ("For instantiation with default_type " ^
+          Syntax.string_of_typ_global thy default_T ^
+          ":\n" ^ Syntax.string_of_typ_global thy T' ^
+          " to be substituted for variable " ^
+          Syntax.string_of_typ_global thy T ^ " does not have sort " ^
+          Syntax.string_of_sort_global thy S))
+      end
+      | subst T = T;
+  in (map_types o map_atyps) subst end;
+
+datatype wellsorted_error = Wellsorted_Error of string | Term of term * term list
+
+fun instantiate_goals lthy insts goals =
+  let
+    fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
+    val thy = Proof_Context.theory_of lthy
+    val default_insts =
+      if Config.get lthy Quickcheck.finite_types then (get_finite_types lthy) else (Quickcheck.default_type lthy)
+    val inst_goals =
+      map (fn (check_goal, eval_terms) =>
+        if not (null (Term.add_tfree_names check_goal [])) then
+          map (fn T =>
+            (pair (SOME T) o Term o apfst (Object_Logic.atomize_term thy))
+              (map_goal_and_eval_terms (monomorphic_term thy insts T) (check_goal, eval_terms))
+              handle WELLSORTED s => (SOME T, Wellsorted_Error s)) default_insts
+        else
+          [(NONE, Term (Object_Logic.atomize_term thy check_goal, eval_terms))]) goals
+    val error_msg =
+      cat_lines
+        (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
+    fun is_wellsorted_term (T, Term t) = SOME (T, t)
+      | is_wellsorted_term (_, Wellsorted_Error s) = NONE
+    val correct_inst_goals =
+      case map (map_filter is_wellsorted_term) inst_goals of
+        [[]] => error error_msg
+      | xs => xs
+    val _ = if Config.get lthy Quickcheck.quiet then () else warning error_msg
+  in
+    correct_inst_goals
+  end
+
+fun collect_results f [] results = results
+  | collect_results f (t :: ts) results =
+    let
+      val result = f t
+    in
+      if Quickcheck.found_counterexample result then
+        (result :: results)
+      else
+        collect_results f ts (result :: results)
+    end  
+
+fun add_equation_eval_terms (t, eval_terms) =
+  case try HOLogic.dest_eq (snd (strip_imp t)) of
+    SOME (lhs, rhs) => (t, eval_terms @ [rhs, lhs])
+  | NONE => (t, eval_terms)
+
+fun generator_test_goal_terms compile ctxt (limit_time, is_interactive) insts goals =
+  let
+    fun test_term' goal =
+      case goal of
+        [(NONE, t)] => test_term compile ctxt (limit_time, is_interactive) t
+      | ts => test_term_with_increasing_cardinality compile ctxt (limit_time, is_interactive) (map snd ts)
+    val goals' = instantiate_goals ctxt insts goals
+      |> map (map (apsnd add_equation_eval_terms))
+  in
+    if Config.get ctxt Quickcheck.finite_types then
+      collect_results test_term' goals' []
+    else
+      collect_results (test_term compile ctxt (limit_time, is_interactive))
+        (maps (map snd) goals') []
+  end;
+
 (* defining functions *)
 
 fun pat_completeness_auto ctxt =

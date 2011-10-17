@@ -144,6 +144,12 @@ code_reserved Quickcheck Random_Generators
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
+subsection {* Tester SML-inductive based on the SML code generator *}
+
+setup {*
+  Context.theory_map (Quickcheck.add_tester ("SML_inductive",
+    (Inductive_Codegen.active, Quickcheck_Common.generator_test_goal_terms Inductive_Codegen.test_term)));
+*}
 
 subsection {* The Random-Predicate Monad *} 
 

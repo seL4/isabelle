@@ -10,8 +10,8 @@ sig
   val poke_test_fn: (int * int * int -> term list option) -> unit
   val test_term: Proof.context -> (term * term list) list -> int list ->
     term list option * Quickcheck.report option
+  val active : bool Config.T
   val setup: theory -> theory
-  val quickcheck_setup: theory -> theory
 end;
 
 structure Inductive_Codegen : INDUCTIVE_CODEGEN =
@@ -862,12 +862,12 @@ fun deepen bound f i =
       NONE => deepen bound f (i + 1)
     | SOME x => SOME x);
 
-val active = Attrib.setup_config_bool @{binding quickcheck_inductive_SML_active} (K false);
+val active = Attrib.setup_config_bool @{binding quickcheck_SML_inductive_active} (K false);
     
-val depth_bound = Attrib.setup_config_int @{binding ind_quickcheck_depth} (K 10);
-val depth_start = Attrib.setup_config_int @{binding ind_quickcheck_depth_start} (K 1);
-val random_values = Attrib.setup_config_int @{binding ind_quickcheck_random} (K 5);
-val size_offset = Attrib.setup_config_int @{binding ind_quickcheck_size_offset} (K 0);
+val depth_bound = Attrib.setup_config_int @{binding quickcheck_ind_depth} (K 10);
+val depth_start = Attrib.setup_config_int @{binding quickcheck_ind_depth_start} (K 1);
+val random_values = Attrib.setup_config_int @{binding quickcheck_ind_random} (K 5);
+val size_offset = Attrib.setup_config_int @{binding quickcheck_ind_size_offset} (K 0);
 
 fun test_term ctxt [(t, [])] =
       let
@@ -925,10 +925,5 @@ fun test_term ctxt [(t, [])] =
   | test_term ctxt [_] = error "Option eval is not supported by tester SML_inductive"
   | test_term ctxt _ =
       error "Compilation of multiple instances is not supported by tester SML_inductive";
-
-val test_goal = Quickcheck.generator_test_goal_terms test_term;
-
-val quickcheck_setup =
-  Context.theory_map (Quickcheck.add_tester ("SML_inductive", (active, test_goal)));
 
 end;

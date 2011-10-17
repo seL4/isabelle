@@ -122,8 +122,11 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (seconds (!Try.auto_time_limit))
       (fn _ =>
           let
-            val SOME [result] = Quickcheck.test_goal_terms (change_options (Proof_Context.init_global thy))
-              (false, false) [] [(t, [])]
+            val ctxt' = change_options (Proof_Context.init_global thy)
+            val [result] = case Quickcheck.active_testers ctxt' of
+              [] => error "No active testers for quickcheck"
+            | [tester] => tester ctxt' (false, false) [] [(t, [])]
+            | _ => error "Multiple active testers for quickcheck"
           in
             case Quickcheck.counterexample_of result of 
               NONE => (NoCex, Quickcheck.timings_of result)
@@ -317,11 +320,12 @@ fun is_executable_term thy t =
     val ctxt = Proof_Context.init_global thy
   in
     can (TimeLimit.timeLimit (seconds 2.0)
-      (Quickcheck.test_goal_terms
+      (Quickcheck.test_terms
         ((Config.put Quickcheck.finite_types true #>
           Config.put Quickcheck.finite_type_size 1 #>
           Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
-        (false, false) [])) (map (rpair [] o Object_Logic.atomize_term thy) (fst (Variable.import_terms true [t] ctxt)))
+        (false, false) [])) (map (rpair [] o Object_Logic.atomize_term thy)
+        (fst (Variable.import_terms true [t] ctxt)))
   end
 
 fun is_executable_thm thy th = is_executable_term thy (prop_of th)
