@@ -53,6 +53,18 @@ instead.  INCOMPATIBILITY.
   zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
   zero_le_zpower_abs ~> zero_le_power_abs
 
+* New case_product attribute to generate a case rule doing multiple case
+  distinctions at the same time: E.g.
+
+    list.exhaust[case_product nat.exhaust]
+
+  produces a rule which can be used to perform case distinction on both
+  a list and a nat.
+
+*** FOL ***
+
+* New case_product attribute (see HOL).
+
 
 *** ML ***
 
