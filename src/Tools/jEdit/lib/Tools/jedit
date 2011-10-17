@@ -36,15 +36,6 @@ declare -a RESOURCES=(
 )
 
 
-## defaults
-
-if [ "$OSTYPE" = cygwin ]; then
-  SOCKET_DEFAULT="true"
-else
-  SOCKET_DEFAULT="false"
-fi
-
-
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -57,7 +48,6 @@ function usage()
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
-  echo "    -S BOOL      enable socket communication instead of fifos (default: $SOCKET_DEFAULT)"
   echo "    -b           build only"
   echo "    -d           enable debugger"
   echo "    -f           fresh build"
@@ -78,11 +68,6 @@ function fail()
   exit 2
 }
 
-function check_bool()
-{
-  [ "$1" = true -o "$1" = false ] || fail "Bad boolean: \"$1\""
-}
-
 function failed()
 {
   fail "Failed!"
@@ -95,22 +80,17 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
-JEDIT_USE_SOCKET="$SOCKET_DEFAULT"
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:S:bdfj:l:m:" OPT
+  while getopts "J:bdfj:l:m:" OPT
   do
     case "$OPT" in
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
-        ;;
-      S)
-        check_bool "$OPTARG"
-        JEDIT_USE_SOCKET="$OPTARG"
         ;;
       b)
         BUILD_ONLY=true
@@ -310,7 +290,7 @@ fi
       ;;
   esac
 
-  export JEDIT_USE_SOCKET JEDIT_LOGIC JEDIT_PRINT_MODE
+  export JEDIT_LOGIC JEDIT_PRINT_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
     -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \
