@@ -266,9 +266,10 @@ val satallax_config : atp_config =
    required_execs = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "-t " ^ string_of_int (to_secs 1 timeout),
-   proof_delims = tstp_proof_delims,
-   known_failures = [(ProofMissing, "SZS status Theorem")],
+        "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
+   proof_delims =
+     [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
+   known_failures = [],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
    best_slices =
