@@ -47,7 +47,7 @@ fun fifo_rendezvous fifo1 fifo2 =
   end;
 
 
-(* sockets *)  (* FIXME raw unbuffered IO !?!? *)
+(* sockets *)  (* FIXME proper buffering via BinIO (after Poly/ML 5.4.1) *)
 
 local
 

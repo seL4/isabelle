@@ -10,9 +10,9 @@ Startup phases:
   .. stdin/stdout/stderr freely available (raw ML loop)
   .. protocol thread initialization
   ... rendezvous on system channel
-  ... out_fifo INIT(pid): channels ready
-  ... out_fifo STATUS(keywords)
-  ... out_fifo READY: main loop ready
+  ... message INIT(pid): channels ready
+  ... message STATUS(keywords)
+  ... message READY: main loop ready
 *)
 
 signature ISABELLE_PROCESS =

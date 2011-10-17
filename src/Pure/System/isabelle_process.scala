@@ -77,7 +77,6 @@ object Isabelle_Process
 
 class Isabelle_Process(
     timeout: Time = Time.seconds(25),
-    use_socket: Boolean = false,
     receiver: Isabelle_Process.Message => Unit = Console.println(_),
     args: List[String] = Nil)
 {
@@ -130,7 +129,7 @@ class Isabelle_Process(
 
   /** process manager **/
 
-  private val system_channel = System_Channel(use_socket)
+  private val system_channel = System_Channel()
 
   private val process =
     try {

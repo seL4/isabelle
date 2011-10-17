@@ -15,7 +15,7 @@ import java.net.{ServerSocket, InetAddress}
 object System_Channel
 {
   def apply(use_socket: Boolean = false): System_Channel =
-    if (use_socket) new Socket_Channel else new Fifo_Channel
+    if (Platform.is_windows) new Socket_Channel else new Fifo_Channel
 }
 
 abstract class System_Channel
@@ -52,35 +52,14 @@ class Fifo_Channel extends System_Channel
 
   private def fifo_input_stream(fifo: String): InputStream =
   {
-    if (Platform.is_windows) { // Cygwin fifo as Windows/Java input stream
-      val proc =
-        Isabelle_System.execute(false,
-          Isabelle_System.standard_path(Path.explode("~~/lib/scripts/raw_dump")), fifo, "-")
-      proc.getOutputStream.close
-      proc.getErrorStream.close
-      proc.getInputStream
-    }
-    else new FileInputStream(fifo)
+    require(!Platform.is_windows)
+    new FileInputStream(fifo)
   }
 
   private def fifo_output_stream(fifo: String): OutputStream =
   {
-    if (Platform.is_windows) { // Cygwin fifo as Windows/Java output stream
-      val proc =
-        Isabelle_System.execute(false,
-          Isabelle_System.standard_path(Path.explode("~~/lib/scripts/raw_dump")), "-", fifo)
-      proc.getInputStream.close
-      proc.getErrorStream.close
-      val out = proc.getOutputStream
-      new OutputStream {
-        override def close() { out.close(); proc.waitFor() }
-        override def flush() { out.flush() }
-        override def write(b: Array[Byte]) { out.write(b) }
-        override def write(b: Array[Byte], off: Int, len: Int) { out.write(b, off, len) }
-        override def write(b: Int) { out.write(b) }
-      }
-    }
-    else new FileOutputStream(fifo)
+    require(!Platform.is_windows)
+    new FileOutputStream(fifo)
   }
 
 
