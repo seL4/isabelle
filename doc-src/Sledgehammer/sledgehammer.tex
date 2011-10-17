@@ -523,12 +523,12 @@ performed implicitly if it can be done in a reasonable amount of time (something
 that can be guessed from the number of facts in the original proof and the time
 it took to find it or replay it).
 
-In addition, some provers (notably CVC3, Satallax, and Yices) do not provide
-proofs or sometimes produce incomplete proofs. The minimizer is then invoked to
-find out which facts are actually needed from the (large) set of facts that was
-initinally given to the prover. Finally, if a prover returns a proof with lots
-of facts, the minimizer is invoked automatically since Metis would be unlikely
-to re-find the proof.
+In addition, some provers (e.g., Yices) do not provide proofs or sometimes
+produce incomplete proofs. The minimizer is then invoked to find out which facts
+are actually needed from the (large) set of facts that was initinally given to
+the prover. Finally, if a prover returns a proof with lots of facts, the
+minimizer is invoked automatically since Metis would be unlikely to re-find the
+proof.
 
 \point{A strange error occurred---what should I do?}
 
@@ -737,7 +737,8 @@ corresponding to \textit{metis} (\textit{no\_types}).
 
 \item[$\bullet$] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP many-typed higher-order syntax (THF0).
+support for the TPTP many-typed higher-order syntax (THF0). Sledgehammer
+requires version 2.2 or above.
 
 \item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
