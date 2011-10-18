@@ -18,7 +18,6 @@ from mira.tools import tool
 from mira import schedule, misc
 from mira.environment import scheduler
 
-
 # build and evaluation tools
 
 default_usedir_options = "$ISABELLE_USEDIR_OPTIONS -d pdf -g true -i true -t true"
@@ -67,6 +66,12 @@ Z3_NON_COMMERCIAL="yes"
     writer.close()
 
 
+def isabelle_getenv(isabelle_home, var):
+
+    _, out = env.run_process('%s/bin/isabelle' % isabelle_home, 'getenv', var)
+    return out.split('=', 1)[1].strip()
+
+
 def extract_isabelle_run_timing(logdata):
 
     def to_secs(h, m, s):
@@ -97,6 +102,18 @@ def extract_isabelle_run_summary(logdata):
         summary = 'ok'
 
     return summary
+
+
+def extract_image_size(isabelle_home):
+    
+    isabelle_output = isabelle_getenv(isabelle_home, 'ISABELLE_OUTPUT')
+    return dict((p, path.getsize(path.join(isabelle_output, p))) for p in os.listdir(isabelle_output) if p != "log")
+
+def extract_report_data(isabelle_home, logdata):
+
+    return {
+        'timing': extract_isabelle_run_timing(logdata),
+        'image_size': extract_image_size(isabelle_home) }
 
 
 @tool
@@ -159,8 +176,9 @@ def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playgro
     (return_code, log) = isabelle_usedir(env, isabelle_home, '-b', base, img)
 
     result = path.join(isabelle_home, 'heaps')
+
     return (return_code == 0, extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
+      extract_report_data(isabelle_home, log), {'log': log}, result)
 
 
 def isabelle_make(subdir, env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
@@ -175,8 +193,9 @@ def isabelle_make(subdir, env, case, paths, dep_paths, playground, usedir_option
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', '-k', target)
 
     result = path.join(isabelle_home, 'heaps') if keep_results else None
+
     return (return_code == 0, extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
+      extract_report_data(isabelle_home, log), {'log': log}, result)
 
 
 def isabelle_makeall(env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
@@ -204,7 +223,7 @@ ISABELLE_GHC="/usr/bin/ghc"
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', *(make_options + (target,)))
 
     return (return_code == 0, extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
+      extract_report_data(isabelle_home, log), {'log': log}, None)
 
 
 def make_pure(env, case, paths, dep_paths, playground, more_settings=''):
