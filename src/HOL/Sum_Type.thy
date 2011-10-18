@@ -209,4 +209,6 @@ qed
 
 hide_const (open) Suml Sumr Projl Projr
 
+hide_const (open) sum
+
 end

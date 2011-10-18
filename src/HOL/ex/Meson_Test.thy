@@ -10,7 +10,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide_const (open) implies union inter subset sum quotient
+hide_const (open) implies union inter subset quotient
 
 text {*
   Test data for the MESON proof procedure
