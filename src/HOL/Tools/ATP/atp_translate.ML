@@ -946,10 +946,8 @@ fun introduce_proxies_in_iterm type_enc =
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
-          | NONE => if s = tptp_choice then
-                      tweak_ho_quant tptp_choice T args
-                    else
-                      IConst (name, T, T_args))
+          | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
+                    else IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1049,8 +1047,12 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
       | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
         do_quant bs AForall pos s T t'
+      | (t0 as Const (@{const_name All}, _)) $ t1 =>
+        do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
         do_quant bs AExists pos s T t'
+      | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+        do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
       | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
       | @{const HOL.implies} $ t1 $ t2 =>
