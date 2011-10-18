@@ -1654,6 +1654,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
+      |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lambdas) =
       if preproc then
@@ -1661,7 +1662,6 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
         |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
         |> preprocess_abstractions_in_terms trans_lambdas
         |>> chop (length conjs)
-        |>> apfst (map (apsnd (apsnd freeze_term)))
       else
         ((conjs, facts), [])
     val conjs = conjs |> make_conjecture ctxt format type_enc
