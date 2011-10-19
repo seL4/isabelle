@@ -39,7 +39,7 @@ sig
 
   datatype 'a step =
     Definition of step_name * 'a * 'a |
-    Inference of step_name * 'a * step_name list
+    Inference of step_name * 'a * string * step_name list
 
   type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
@@ -223,12 +223,12 @@ fun step_name_ord p =
 
 datatype 'a step =
   Definition of step_name * 'a * 'a |
-  Inference of step_name * 'a * step_name list
+  Inference of step_name * 'a * string * step_name list
 
 type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
 fun step_name (Definition (name, _, _)) = name
-  | step_name (Inference (name, _, _)) = name
+  | step_name (Inference (name, _, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -264,7 +264,7 @@ fun skip_formula ss =
 
 datatype source =
   File_Source of string * string option |
-  Inference_Source of string list
+  Inference_Source of string * string list
 
 fun parse_dependencies x =
   (scan_general_id ::: Scan.repeat ($$ "," |-- scan_general_id)) x
@@ -273,10 +273,9 @@ fun parse_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id --
      Scan.option ($$ "," |-- scan_general_id) --| $$ ")"
      >> File_Source
-   || (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
-         --| skip_formula --| $$ ",")
-       ::: (skip_formula |-- $$ "," |-- $$ "[" |-- parse_dependencies --| $$ "]"
-            --| $$ ")")
+   || Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
+        --| skip_formula --| $$ "," --| skip_formula --| $$ "," --| $$ "["
+        -- parse_dependencies --| $$ "]" --| $$ ")"
        >> Inference_Source) x
 
 fun list_app (f, args) =
@@ -348,7 +347,7 @@ and parse_quantified_formula x =
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source
                  --| Scan.option ($$ "," |-- skip_formula))
-                (Inference_Source [])
+                (Inference_Source ("", []))
 
 val waldmeister_conjecture = "conjecture_1"
 
@@ -404,7 +403,7 @@ fun parse_tstp_line problem =
     --| $$ "."
    >> (fn (((num, role), phi), deps) =>
           let
-            val (name, deps) =
+            val (name, rule, deps) =
               (* Waldmeister isn't exactly helping. *)
               case deps of
                 File_Source (_, SOME s) =>
@@ -412,11 +411,11 @@ fun parse_tstp_line problem =
                   if s = waldmeister_conjecture then
                     find_formula_in_problem problem (mk_anot phi)
                   else
-                    SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]),
+                    SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]), "",
                  [])
               | File_Source _ =>
-                ((num, find_formula_in_problem problem phi), [])
-              | Inference_Source deps => ((num, NONE), deps)
+                ((num, find_formula_in_problem problem phi), "", [])
+              | Inference_Source (rule, deps) => ((num, NONE), rule, deps)
           in
             case role of
               "definition" =>
@@ -425,9 +424,9 @@ fun parse_tstp_line problem =
                  Definition (name, phi1, phi2)
                | AAtom (ATerm ("equal", _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference (name, phi, map (rpair NONE) deps)
+                 Inference (name, phi, rule, map (rpair NONE) deps)
                | _ => raise UNRECOGNIZED_ATP_PROOF ())
-            | _ => Inference (name, phi, map (rpair NONE) deps)
+            | _ => Inference (name, phi, rule, map (rpair NONE) deps)
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -468,16 +467,16 @@ fun resolve_spass_num spass_names num =
 
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>. *)
 fun parse_spass_line spass_names =
-  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" -- Symbol.scan_id
     -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
-  >> (fn ((num, deps), u) =>
-         Inference ((num, resolve_spass_num spass_names num), u,
+  >> (fn (((num, rule), deps), u) =>
+         Inference ((num, resolve_spass_num spass_names num), u, rule,
                     map (swap o `(resolve_spass_num spass_names)) deps))
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference ((s, SOME [s]), dummy_phi, []))) x
+   >> (fn s => Inference ((s, SOME [s]), dummy_phi, "", []))) x
 
 fun parse_line problem spass_names =
   parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line
@@ -540,8 +539,8 @@ fun atp_proof_from_tstplike_proof _ _ "" = []
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
     step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen (Inference (name, u, deps) :: steps) =
-    Inference (name, u,
+  | clean_up_dependencies seen (Inference (name, u, rule, deps) :: steps) =
+    Inference (name, u, rule,
                map_filter (fn dep => find_first (is_same_atp_step dep) seen)
                           deps) ::
     clean_up_dependencies (name :: seen) steps
@@ -558,8 +557,8 @@ fun map_term_names_in_formula f (AQuant (q, xs, phi)) =
 fun map_term_names_in_step f (Definition (name, phi1, phi2)) =
     Definition (name, map_term_names_in_formula f phi1,
                 map_term_names_in_formula f phi2)
-  | map_term_names_in_step f (Inference (name, phi, deps)) =
-    Inference (name, map_term_names_in_formula f phi, deps)
+  | map_term_names_in_step f (Inference (name, phi, rule, deps)) =
+    Inference (name, map_term_names_in_formula f phi, rule, deps)
 fun map_term_names_in_atp_proof f = map (map_term_names_in_step f)
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s

@@ -148,13 +148,10 @@ fun ext_name ctxt =
   else
     isa_ext
 
-fun add_fact _ facts_offset fact_names (Inference (name, _, [])) =
+fun add_fact _ facts_offset fact_names (Inference (name, _, _, [])) =
     union (op =) (resolve_fact facts_offset fact_names name)
-  | add_fact ctxt _ _ (Inference (_, _, deps)) =
-    if AList.defined (op =) deps leo2_ext then
-      insert (op =) (ext_name ctxt, General)
-    else
-      I
+  | add_fact ctxt _ _ (Inference (_, _, rule, _)) =
+    if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
   | add_fact _ _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof =
@@ -162,7 +159,7 @@ fun used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof =
   else fold (add_fact ctxt facts_offset fact_names) atp_proof []
 
 fun is_conjecture_used_in_proof conjecture_shape =
-  exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
+  exists (fn Inference (name, _, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
 (* (quasi-)underapproximation of the truth *)
@@ -186,7 +183,7 @@ fun used_facts_in_unsound_atp_proof _ _ _ _ [] = NONE
     end
 
 fun uses_typed_helpers typed_helpers =
-  exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
+  exists (fn Inference (name, _, _, []) => is_typed_helper typed_helpers name
            | _ => false)
 
 
@@ -558,16 +555,16 @@ fun decode_line sym_tab (Definition (name, phi1, phi2)) ctxt =
       (Definition (name, t1, t2),
        fold Variable.declare_term (maps Misc_Legacy.term_frees [t1, t2]) ctxt)
     end
-  | decode_line sym_tab (Inference (name, u, deps)) ctxt =
+  | decode_line sym_tab (Inference (name, u, rule, deps)) ctxt =
     let val t = u |> uncombined_etc_prop_from_atp ctxt true sym_tab in
-      (Inference (name, t, deps),
+      (Inference (name, t, rule, deps),
        fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
     end
 fun decode_lines ctxt sym_tab lines =
   fst (fold_map (decode_line sym_tab) lines ctxt)
 
 fun is_same_inference _ (Definition _) = false
-  | is_same_inference t (Inference (_, t', _)) = t aconv t'
+  | is_same_inference t (Inference (_, t', _, _)) = t aconv t'
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -576,13 +573,14 @@ val is_only_type_information = curry (op aconv) HOLogic.true_const
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
 fun replace_dependencies_in_line _ (line as Definition _) = line
-  | replace_dependencies_in_line p (Inference (name, t, deps)) =
-    Inference (name, t, fold (union (op =) o replace_one_dependency p) deps [])
+  | replace_dependencies_in_line p (Inference (name, t, rule, deps)) =
+    Inference (name, t, rule,
+               fold (union (op =) o replace_one_dependency p) deps [])
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line _ _ (line as Definition _) lines = line :: lines
-  | add_line conjecture_shape fact_names (Inference (name, t, [])) lines =
+  | add_line conjecture_shape fact_names (Inference (name, t, rule, [])) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if is_fact fact_names name then
@@ -592,31 +590,31 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
       else case take_prefix (not o is_same_inference t) lines of
         (_, []) => lines (* no repetition of proof line *)
-      | (pre, Inference (name', _, _) :: post) =>
+      | (pre, Inference (name', _, _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
     else if is_conjecture conjecture_shape name then
-      Inference (name, s_not t, []) :: lines
+      Inference (name, s_not t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ _ (Inference (name, t, deps)) lines =
+  | add_line _ _ (Inference (name, t, rule, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
-      Inference (name, t, deps) :: lines
+      Inference (name, t, rule, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types? *)
-       (_, []) => Inference (name, t, deps) :: lines
-     | (pre, Inference (name', t', _) :: post) =>
-       Inference (name, t', deps) ::
+       (_, []) => Inference (name, t, rule, deps) :: lines
+     | (pre, Inference (name', t', rule, _) :: post) =>
+       Inference (name, t', rule, deps) ::
        pre @ map (replace_dependencies_in_line (name', [name])) post
      | _ => raise Fail "unexpected inference"
 
 (* Recursively delete empty lines (type information) from the proof. *)
-fun add_nontrivial_line (Inference (name, t, [])) lines =
+fun add_nontrivial_line (line as Inference (name, t, _, [])) lines =
     if is_only_type_information t then delete_dependency name lines
-    else Inference (name, t, []) :: lines
+    else line :: lines
   | add_nontrivial_line line lines = line :: lines
 and delete_dependency name lines =
   fold_rev add_nontrivial_line
@@ -630,7 +628,7 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
 fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line isar_shrink_factor conjecture_shape fact_names frees
-                     (Inference (name, t, deps)) (j, lines) =
+                     (Inference (name, t, rule, deps)) (j, lines) =
     (j + 1,
      if is_fact fact_names name orelse
         is_conjecture conjecture_shape name orelse
@@ -642,7 +640,7 @@ fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
          length deps >= 2 andalso j mod isar_shrink_factor = 0 andalso
          (* kill next to last line, which usually results in a trivial step *)
          j <> 1) then
-       Inference (name, t, deps) :: lines  (* keep line *)
+       Inference (name, t, rule, deps) :: lines  (* keep line *)
      else
        map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
@@ -675,10 +673,10 @@ fun add_fact_from_dependency conjecture_shape facts_offset fact_names name =
     apfst (insert (op =) (raw_label_for_name conjecture_shape name))
 
 fun step_for_line _ _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
-  | step_for_line conjecture_shape _ _ _ (Inference (name, t, [])) =
+  | step_for_line conjecture_shape _ _ _ (Inference (name, t, _, [])) =
     Assume (raw_label_for_name conjecture_shape name, t)
   | step_for_line conjecture_shape facts_offset fact_names j
-                  (Inference (name, t, deps)) =
+                  (Inference (name, t, _, deps)) =
     Have (if j = 1 then [Show] else [],
           raw_label_for_name conjecture_shape name,
           fold_rev forall_of (map Var (Term.add_vars t [])) t,
