@@ -9,7 +9,6 @@ theory Product_Type
 imports Typedef Inductive Fun
 uses
   ("Tools/split_rule.ML")
-  ("Tools/inductive_codegen.ML")
   ("Tools/inductive_set.ML")
 begin
 
@@ -1113,9 +1112,6 @@ qed
 
 
 subsection {* Inductively defined sets *}
-
-use "Tools/inductive_codegen.ML"
-setup Inductive_Codegen.setup
 
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup
