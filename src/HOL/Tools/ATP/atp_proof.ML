@@ -467,13 +467,12 @@ fun parse_spass_line spass_names =
                     map (swap o `(resolve_spass_num spass_names)) deps))
 
 (* Syntax: <name> *)
-fun parse_satallax_line problem =
-  scan_general_id --| Scan.option ($$ " ")
-  >> (fn s => Inference ((s, SOME [s]), dummy_phi, []))
+fun parse_satallax_line x =
+  (scan_general_id --| Scan.option ($$ " ")
+   >> (fn s => Inference ((s, SOME [s]), dummy_phi, []))) x
 
 fun parse_line problem spass_names =
-  parse_tstp_line problem || parse_spass_line spass_names
-  || parse_satallax_line problem
+  parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line
 fun parse_proof problem spass_names tstp =
   tstp |> strip_spaces_except_between_idents
        |> raw_explode
