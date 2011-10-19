@@ -247,16 +247,37 @@ val scan_general_id =
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
-(* Generalized first-order terms, which include file names, numbers, etc. *)
-fun parse_annotation x =
-  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id))
-     -- Scan.optional parse_annotation [] >> op @
-   || $$ "(" |-- parse_annotations --| $$ ")"
-   || $$ "[" |-- parse_annotations --| $$ "]") x
-and parse_annotations x =
-  (Scan.optional (parse_annotation
-                  ::: Scan.repeat ($$ "," |-- parse_annotation)) []
-   >> flat) x
+val dummy_phi = AAtom (ATerm ("", []))
+
+fun skip_formula ss =
+  let
+    fun skip _ [] = []
+      | skip 0 (ss as "," :: _) = ss
+      | skip 0 (ss as ")" :: _) = ss
+      | skip 0 (ss as "]" :: _) = ss
+      | skip n ("(" :: ss) = skip (n + 1) ss
+      | skip n ("[" :: ss) = skip (n + 1) ss
+      | skip n ("]" :: ss) = skip (n - 1) ss
+      | skip n (")" :: ss) = skip (n - 1) ss
+      | skip n (_ :: ss) = skip n ss
+  in (dummy_phi, skip 0 ss) end
+
+datatype source =
+  File_Source of string * string option |
+  Inference_Source of string list
+
+fun parse_dependencies x =
+  (scan_general_id ::: Scan.repeat ($$ "," |-- scan_general_id)) x
+
+fun parse_source x =
+  (Scan.this_string "file" |-- $$ "(" |-- scan_general_id --
+     Scan.option ($$ "," |-- scan_general_id) --| $$ ")"
+     >> File_Source
+   || (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
+         --| skip_formula --| $$ ",")
+       ::: (skip_formula |-- $$ "," |-- $$ "[" |-- parse_dependencies --| $$ "]"
+            --| $$ ")")
+       >> Inference_Source) x
 
 fun list_app (f, args) =
   fold (fn arg => fn f => ATerm (tptp_app, [f, arg])) args f
@@ -324,24 +345,10 @@ and parse_quantified_formula x =
           (* We ignore TFF and THF types for now. *)
           AQuant (q, map (rpair NONE o ho_term_head) ts, phi))) x
 
-val dummy_phi = AAtom (ATerm ("", []))
-
-fun skip_formula ss =
-  let
-    fun skip _ [] = []
-      | skip 0 (ss as "," :: _) = ss
-      | skip 0 (ss as ")" :: _) = ss
-      | skip 0 (ss as "]" :: _) = ss
-      | skip n ("(" :: ss) = skip (n + 1) ss
-      | skip n ("[" :: ss) = skip (n + 1) ss
-      | skip n ("]" :: ss) = skip (n - 1) ss
-      | skip n (")" :: ss) = skip (n - 1) ss
-      | skip n (_ :: ss) = skip n ss
-  in (dummy_phi, skip 0 ss) end
-
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_annotation
-                 --| Scan.option ($$ "," |-- parse_annotations)) []
+  Scan.optional ($$ "," |-- parse_source
+                 --| Scan.option ($$ "," |-- skip_formula))
+                (Inference_Source [])
 
 val waldmeister_conjecture = "conjecture_1"
 
@@ -400,15 +407,16 @@ fun parse_tstp_line problem =
             val (name, deps) =
               (* Waldmeister isn't exactly helping. *)
               case deps of
-                ["file", _, s] =>
+                File_Source (_, SOME s) =>
                 ((num,
                   if s = waldmeister_conjecture then
                     find_formula_in_problem problem (mk_anot phi)
                   else
                     SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]),
                  [])
-              | ["file", _] => ((num, find_formula_in_problem problem phi), [])
-              | _ => ((num, NONE), deps)
+              | File_Source _ =>
+                ((num, find_formula_in_problem problem phi), [])
+              | Inference_Source deps => ((num, NONE), deps)
           in
             case role of
               "definition" =>
