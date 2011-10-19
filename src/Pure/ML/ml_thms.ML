@@ -52,7 +52,7 @@ val _ =
 
 val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
-val goal = Scan.unless (by || and_) Args.name;
+val goal = Scan.unless (by || and_) Args.name_source;
 
 val _ =
   Context.>> (Context.map_theory
