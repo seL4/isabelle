@@ -268,15 +268,17 @@ fun contains_dict_var t =
 (* policies *)
 
 local
+  fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
   fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
+  fun thyname_of_const' thy = #theory_name o Name_Space.the_entry (Sign.const_space thy);
   fun thyname_of_instance thy inst = case AxClass.thynames_of_arity thy inst
    of [] => error ("No such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
     | thyname :: _ => thyname;
   fun thyname_of_const thy c = case AxClass.class_of_param thy c
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
-       of SOME (tyco, _) => Codegen.thyname_of_type thy tyco
-        | NONE => Codegen.thyname_of_const thy c);
+       of SOME (tyco, _) => thyname_of_type thy tyco
+        | NONE => thyname_of_const' thy c);
   fun purify_base "==>" = "follows"
     | purify_base "==" = "meta_eq"
     | purify_base s = Name.desymbolize false s;
@@ -293,7 +295,7 @@ fun namify_classrel thy = namify thy (fn (sub_class, super_class) =>
   (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
-  | namify_tyco thy tyco = namify thy Long_Name.base_name Codegen.thyname_of_type tyco;
+  | namify_tyco thy tyco = namify thy Long_Name.base_name thyname_of_type tyco;
 fun namify_instance thy = namify thy (fn (class, tyco) => 
   Long_Name.base_name class ^ "_" ^ Long_Name.base_name tyco) thyname_of_instance;
 fun namify_const thy = namify thy Long_Name.base_name thyname_of_const;
