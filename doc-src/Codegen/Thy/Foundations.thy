@@ -125,12 +125,6 @@ text {*
   code_thms} (see \secref{sec:equations}) provides a convenient
   mechanism to inspect the impact of a preprocessor setup on code
   equations.
-
-  \begin{warn}
-    Attribute @{attribute code_unfold} also applies to the
-    preprocessor of the ancient @{text "SML code generator"}; in case
-    this is not what you intend, use @{attribute code_inline} instead.
-  \end{warn}
 *}
 
 

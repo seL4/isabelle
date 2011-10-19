@@ -76,9 +76,6 @@ sig
   val get_case_cong: theory -> string -> thm option
   val undefineds: theory -> string list
   val print_codesetup: theory -> unit
-
-  (*infrastructure*)
-  val set_code_target_attr: (string -> thm -> theory -> theory) -> theory -> theory
 end;
 
 signature CODE_DATA_ARGS =
@@ -1264,26 +1261,6 @@ fun add_abstype proto_thm thy =
   end;
 
 
-(** infrastructure **)
-
-(* cf. src/HOL/Tools/recfun_codegen.ML *)
-
-structure Code_Target_Attr = Theory_Data
-(
-  type T = (string -> thm -> theory -> theory) option;
-  val empty = NONE;
-  val extend = I;
-  val merge = merge_options;
-);
-
-fun set_code_target_attr f = Code_Target_Attr.map (K (SOME f));
-
-fun code_target_attr prefix thm thy =
-  let
-    val attr = the_default ((K o K) I) (Code_Target_Attr.get thy);
-  in thy |> add_warning_eqn thm |> attr prefix thm end;
-
-
 (* setup *)
 
 val _ = Context.>> (Context.map_theory
@@ -1294,8 +1271,6 @@ val _ = Context.>> (Context.map_theory
       || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
       || Args.$$$ "abstype" |-- Scan.succeed (mk_attribute add_abstype)
       || Args.$$$ "abstract" |-- Scan.succeed (mk_attribute add_abs_eqn)
-      || (Args.$$$ "target" |-- Args.colon |-- Args.name >>
-           (mk_attribute o code_target_attr))
       || Scan.succeed (mk_attribute add_warning_eqn);
   in
     Datatype_Interpretation.init

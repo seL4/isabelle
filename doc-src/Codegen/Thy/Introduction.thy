@@ -236,15 +236,6 @@ text {*
     \begin{center}\textit{Happy proving, happy hacking!}\end{center}
 
   \end{minipage}}}\end{center}
-
-  \begin{warn}
-    There is also a more ancient code generator in Isabelle by Stefan
-    Berghofer \cite{Berghofer-Nipkow:2002}.  Although its
-    functionality is covered by the code generator presented here, it
-    will sometimes show up as an artifact.  In case of ambiguity, we
-    will refer to the framework described here as @{text "generic code
-    generator"}, to the other as @{text "SML code generator"}.
-  \end{warn}
 *}
 
 end
