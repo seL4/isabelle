@@ -515,11 +515,9 @@ val setup =
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     fun add_del_attribute_parser add del =
       Attrib.add_del (mk_attribute add) (mk_attribute del);
-    fun both f g thm = f thm #> g thm;
   in
-    Attrib.setup @{binding code_unfold} (add_del_attribute_parser 
-       (both Codegen.add_unfold add_unfold) (both Codegen.del_unfold del_unfold))
-        "preprocessing equations for code generators"
+    Attrib.setup @{binding code_unfold} (add_del_attribute_parser add_unfold del_unfold)
+        "preprocessing equations for code generator"
     #> Attrib.setup @{binding code_inline} (add_del_attribute_parser add_unfold del_unfold)
         "preprocessing equations for code generator"
     #> Attrib.setup @{binding code_post} (add_del_attribute_parser add_post del_post)
