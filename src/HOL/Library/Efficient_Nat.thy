@@ -164,49 +164,9 @@ fun eqn_suc_base_preproc thy thms =
 
 val eqn_suc_preproc = Code_Preproc.simple_functrans eqn_suc_base_preproc;
 
-fun remove_suc_clause thy thms =
-  let
-    val vname = singleton (Name.variant_list (map fst
-      (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "x";
-    fun find_var (t as Const (@{const_name Suc}, _) $ (v as Var _)) = SOME (t, v)
-      | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
-      | find_var _ = NONE;
-    fun find_thm th =
-      let val th' = Conv.fconv_rule Object_Logic.atomize th
-      in Option.map (pair (th, th')) (find_var (prop_of th')) end
-  in
-    case get_first find_thm thms of
-      NONE => thms
-    | SOME ((th, th'), (Sucv, v)) =>
-        let
-          val cert = cterm_of (Thm.theory_of_thm th);
-          val th'' = Object_Logic.rulify (Thm.implies_elim
-            (Conv.fconv_rule (Thm.beta_conversion true)
-              (Drule.instantiate' []
-                [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
-                   abstract_over (Sucv,
-                     HOLogic.dest_Trueprop (prop_of th')))))),
-                 SOME (cert v)] @{thm Suc_clause}))
-            (Thm.forall_intr (cert v) th'))
-        in
-          remove_suc_clause thy (map (fn th''' =>
-            if (op = o pairself prop_of) (th''', th) then th'' else th''') thms)
-        end
-  end;
-
-fun clause_suc_preproc thy ths =
-  let
-    val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
-  in
-    if forall (can (dest o concl_of)) ths andalso
-      exists (fn th => exists (exists_Const (fn (c, _) => c = @{const_name Suc}))
-        (map_filter (try dest) (concl_of th :: prems_of th))) ths
-    then remove_suc_clause thy ths else ths
-  end;
 in
 
   Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
-  #> Codegen.add_preprocessor clause_suc_preproc
 
 end;
 *}
@@ -225,19 +185,8 @@ code_type nat
   (OCaml "Big'_int.big'_int")
   (Eval "int")
 
-types_code
-  nat ("int")
-attach (term_of) {*
-val term_of_nat = HOLogic.mk_number HOLogic.natT;
-*}
-attach (test) {*
-fun gen_nat i =
-  let val n = random_range 0 i
-  in (n, fn () => term_of_nat n) end;
-*}
-
 text {*
-  For Haskell ans Scala we define our own @{typ nat} type.  The reason
+  For Haskell and Scala we define our own @{typ nat} type.  The reason
   is that we have to distinguish type class instances for @{typ nat}
   and @{typ int}.
 *}
@@ -379,13 +328,6 @@ code_const int
   (SML "_")
   (OCaml "_")
 
-consts_code
-  int ("(_)")
-  nat ("\<module>nat")
-attach {*
-fun nat i = if i < 0 then 0 else i;
-*}
-
 code_const nat
   (SML "IntInf.max/ (0,/ _)")
   (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
@@ -460,15 +402,6 @@ code_const "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
   (Eval infixl 6 "<")
-
-consts_code
-  "0::nat"                     ("0")
-  "1::nat"                     ("1")
-  Suc                          ("(_ +/ 1)")
-  "op + \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ +/ _)")
-  "op * \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ */ _)")
-  "op \<le> \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ <=/ _)")
-  "op < \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ </ _)")
 
 
 text {* Evaluation *}
