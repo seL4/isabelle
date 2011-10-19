@@ -242,7 +242,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/cnf_funcs.ML \
   Tools/dseq.ML \
   Tools/inductive.ML \
-  Tools/inductive_codegen.ML \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
   Tools/lambda_lifting.ML \
