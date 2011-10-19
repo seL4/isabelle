@@ -40,7 +40,6 @@ text {*
   @{thm [display] division_correctness [no_vars]}
 *}
 
-lemma "division 9 2 = (0, 3)" by evaluation
 lemma "division 9 2 = (0, 3)" by eval
 
 end

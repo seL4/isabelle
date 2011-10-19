@@ -87,10 +87,6 @@ instance ..
 
 end
 
-consts_code
-  default ("(error \"default\")")
-
-lemma "greatest_common_divisor 7 12 = (4, 3, 2)" by evaluation
 lemma "greatest_common_divisor 7 12 = (4, 3, 2)" by eval
 
 end
