@@ -1165,20 +1165,22 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun presimp_prop ctxt presimp_consts t =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val t = t |> Envir.beta_eta_contract
-              |> transform_elim_prop
-              |> Object_Logic.atomize_term thy
-    val need_trueprop = (fastype_of t = @{typ bool})
-  in
-    t |> need_trueprop ? HOLogic.mk_Trueprop
-      |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
-      |> extensionalize_term ctxt
-      |> presimplify_term ctxt presimp_consts
-      |> perhaps (try (HOLogic.dest_Trueprop))
-  end
+fun presimp_prop ctxt presimp_consts role t =
+  (let
+     val thy = Proof_Context.theory_of ctxt
+     val t = t |> Envir.beta_eta_contract
+               |> transform_elim_prop
+               |> Object_Logic.atomize_term thy
+     val need_trueprop = (fastype_of t = @{typ bool})
+   in
+     t |> need_trueprop ? HOLogic.mk_Trueprop
+       |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
+       |> extensionalize_term ctxt
+       |> presimplify_term ctxt presimp_consts
+       |> HOLogic.dest_Trueprop
+   end
+   handle TERM _ => if role = Conjecture then @{term False} else @{term True})
+  |> pair role
 
 (* making fact and conjecture formulas *)
 fun make_formula ctxt format type_enc eq_as_iff name loc kind t =
@@ -1199,7 +1201,8 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
   | formula => SOME formula
 
 fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_trueprop t = s_not t
+  | s_not_trueprop t =
+    if fastype_of t = @{typ bool} then s_not t else @{prop False} (* too meta *)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, loc), (kind, t)) =>
@@ -1659,7 +1662,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val ((conjs, facts), lambdas) =
       if preproc then
         conjs @ facts
-        |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
+        |> map (apsnd (uncurry (presimp_prop ctxt presimp_consts)))
         |> preprocess_abstractions_in_terms trans_lambdas
         |>> chop (length conjs)
       else
