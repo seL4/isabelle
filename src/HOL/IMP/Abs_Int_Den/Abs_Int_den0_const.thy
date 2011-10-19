@@ -83,7 +83,7 @@ definition "test3_const =
 
 text{* While: *}
 definition "test4_const =
- ''x'' ::= N 0; WHILE B True DO ''x'' ::= N 0"
+ ''x'' ::= N 0; WHILE Bc True DO ''x'' ::= N 0"
 
 text{* While, test is ignored: *}
 definition "test5_const =

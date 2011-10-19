@@ -443,7 +443,7 @@ lemma bcomp_exec_n [dest]:
   shows "i = isize(bcomp b c j) + (if c = bval b s then j else 0) \<and>
          s' = s \<and> stk' = stk"
 using assms proof (induction b arbitrary: c j i n s' stk')
-  case B thus ?case 
+  case Bc thus ?case 
     by (simp split: split_if_asm add: exec_n_simps)
 next
   case (Not b) 

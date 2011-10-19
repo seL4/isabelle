@@ -18,7 +18,7 @@ where
 
 inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix "\<turnstile>p" 50)
 where
-"\<Gamma> \<turnstile>p B bv" |
+"\<Gamma> \<turnstile>p Bc v" |
 "\<Gamma> \<turnstile>p b \<Longrightarrow> \<Gamma> \<turnstile>p Not b" |
 "\<Gamma> \<turnstile>p b1 \<Longrightarrow> \<Gamma> \<turnstile>p b2 \<Longrightarrow> \<Gamma> \<turnstile>p And b1 b2" |
 "\<Gamma> \<turnstile>p a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p a2 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p Less a1 a2"

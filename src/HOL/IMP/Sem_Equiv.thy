@@ -152,11 +152,11 @@ lemma equiv_up_to_while_False [intro!]:
   "(\<And>s. P s \<Longrightarrow> \<not> bval b s) \<Longrightarrow> P \<Turnstile> WHILE b DO c \<sim> SKIP"
   by (auto simp: equiv_up_to_def)
 
-lemma while_never: "(c, s) \<Rightarrow> u \<Longrightarrow> c \<noteq> WHILE (B True) DO c'"
+lemma while_never: "(c, s) \<Rightarrow> u \<Longrightarrow> c \<noteq> WHILE (Bc True) DO c'"
  by (induct rule: big_step_induct) auto
   
 lemma equiv_up_to_while_True [intro!,simp]:
-  "P \<Turnstile> WHILE B True DO c \<sim> WHILE B True DO SKIP"
+  "P \<Turnstile> WHILE Bc True DO c \<sim> WHILE Bc True DO SKIP"
   unfolding equiv_up_to_def
   by (blast dest: while_never)
 

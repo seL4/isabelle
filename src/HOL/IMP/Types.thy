@@ -27,10 +27,10 @@ inductive_cases [elim!]:
 
 subsection "Boolean Expressions"
 
-datatype bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
+datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 inductive tbval :: "bexp \<Rightarrow> state \<Rightarrow> bool \<Rightarrow> bool" where
-"tbval (B bv) s bv" |
+"tbval (Bc v) s v" |
 "tbval b s bv \<Longrightarrow> tbval (Not b) s (\<not> bv)" |
 "tbval b1 s bv1 \<Longrightarrow> tbval b2 s bv2 \<Longrightarrow> tbval (And b1 b2) s (bv1 & bv2)" |
 "taval a1 s (Iv i1) \<Longrightarrow> taval a2 s (Iv i2) \<Longrightarrow> tbval (Less a1 a2) s (i1 < i2)" |
@@ -85,7 +85,7 @@ but will still inform you of the potential ambiguity. *}
 
 inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix "\<turnstile>" 50)
 where
-B_ty: "\<Gamma> \<turnstile> B bv" |
+B_ty: "\<Gamma> \<turnstile> Bc v" |
 Not_ty: "\<Gamma> \<turnstile> b \<Longrightarrow> \<Gamma> \<turnstile> Not b" |
 And_ty: "\<Gamma> \<turnstile> b1 \<Longrightarrow> \<Gamma> \<turnstile> b2 \<Longrightarrow> \<Gamma> \<turnstile> And b1 b2" |
 Less_ty: "\<Gamma> \<turnstile> a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> a2 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> Less a1 a2"
