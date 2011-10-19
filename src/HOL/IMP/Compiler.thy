@@ -204,7 +204,7 @@ lemma acomp_correct[intro]:
   by (induct a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
-"bcomp (B bv) c n = (if bv=c then [JMP n] else [])" |
+"bcomp (Bc v) c n = (if v=c then [JMP n] else [])" |
 "bcomp (Not b) c n = bcomp b (\<not>c) n" |
 "bcomp (And b1 b2) c n =
  (let cb2 = bcomp b2 c n;

@@ -11,10 +11,10 @@ fun aval :: "aexp \<Rightarrow> state \<Rightarrow> nat" where
 "aval (!a) s = s(aval a s)" |
 "aval (Plus a\<^isub>1 a\<^isub>2) s = aval a\<^isub>1 s + aval a\<^isub>2 s"
 
-datatype bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
+datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 primrec bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
-"bval (B bv) _ = bv" |
+"bval (Bc v) _ = v" |
 "bval (Not b) s = (\<not> bval b s)" |
 "bval (And b\<^isub>1 b\<^isub>2) s = (if bval b\<^isub>1 s then bval b\<^isub>2 s else False)" |
 "bval (Less a\<^isub>1 a\<^isub>2) s = (aval a\<^isub>1 s < aval a\<^isub>2 s)"

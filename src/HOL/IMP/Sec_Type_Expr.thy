@@ -20,7 +20,7 @@ fun sec_aexp :: "aexp \<Rightarrow> level" where
 "sec_aexp (Plus a\<^isub>1 a\<^isub>2) = max (sec_aexp a\<^isub>1) (sec_aexp a\<^isub>2)"
 
 fun sec_bexp :: "bexp \<Rightarrow> level" where
-"sec_bexp (B bv) = 0" |
+"sec_bexp (Bc v) = 0" |
 "sec_bexp (Not b) = sec_bexp b" |
 "sec_bexp (And b\<^isub>1 b\<^isub>2) = max (sec_bexp b\<^isub>1) (sec_bexp b\<^isub>2)" |
 "sec_bexp (Less a\<^isub>1 a\<^isub>2) = max (sec_aexp a\<^isub>1) (sec_aexp a\<^isub>2)"

@@ -41,7 +41,7 @@ instantiation bexp :: vars
 begin
 
 fun vars_bexp :: "bexp \<Rightarrow> name set" where
-"vars_bexp (B bv) = {}" |
+"vars_bexp (Bc v) = {}" |
 "vars_bexp (Not b) = vars_bexp b" |
 "vars_bexp (And b\<^isub>1 b\<^isub>2) = vars_bexp b\<^isub>1 \<union> vars_bexp b\<^isub>2" |
 "vars_bexp (Less a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
