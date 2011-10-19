@@ -5,7 +5,6 @@ Misc legacy stuff -- to be phased out eventually.
 
 signature MISC_LEGACY =
 sig
-  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val add_term_names: term * string list -> string list
   val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
   val add_typ_tfree_names: typ * string list -> string list
