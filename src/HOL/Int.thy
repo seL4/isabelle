@@ -2383,47 +2383,6 @@ code_modulename OCaml
 code_modulename Haskell
   Int Arith
 
-types_code
-  "int" ("int")
-attach (term_of) {*
-val term_of_int = HOLogic.mk_number HOLogic.intT;
-*}
-attach (test) {*
-fun gen_int i =
-  let val j = one_of [~1, 1] * random_range 0 i
-  in (j, fn () => term_of_int j) end;
-*}
-
-setup {*
-let
-
-fun strip_number_of (@{term "Int.number_of :: int => int"} $ t) = t
-  | strip_number_of t = t;
-
-fun numeral_codegen thy mode defs dep module b t gr =
-  let val i = HOLogic.dest_numeral (strip_number_of t)
-  in
-    SOME (Codegen.str (string_of_int i),
-      snd (Codegen.invoke_tycodegen thy mode defs dep module false HOLogic.intT gr))
-  end handle TERM _ => NONE;
-
-in
-
-Codegen.add_codegen "numeral_codegen" numeral_codegen
-
-end
-*}
-
-consts_code
-  "number_of :: int \<Rightarrow> int"    ("(_)")
-  "0 :: int"                   ("0")
-  "1 :: int"                   ("1")
-  "uminus :: int => int"       ("~")
-  "op + :: int => int => int"  ("(_ +/ _)")
-  "op * :: int => int => int"  ("(_ */ _)")
-  "op \<le> :: int => int => bool" ("(_ <=/ _)")
-  "op < :: int => int => bool" ("(_ </ _)")
-
 quickcheck_params [default_type = int]
 
 hide_const (open) Pls Min Bit0 Bit1 succ pred
