@@ -1724,17 +1724,12 @@ text {* For validation purposes, it is often useful to \emph{execute}
   A more efficient way of executing specifications is to translate
   them into a functional programming language such as ML.
 
-  Isabelle provides two generic frameworks to support code generation
+  Isabelle provides a generic framework to support code generation
   from executable specifications.  Isabelle/HOL instantiates these
-  mechanisms in a way that is amenable to end-user applications.
-*}
-
-
-subsection {* The new code generator (F. Haftmann) *}
-
-text {* This framework generates code from functional programs
-  (including overloading using type classes) to SML \cite{SML}, OCaml
-  \cite{OCaml}, Haskell \cite{haskell-revised-report} and Scala
+  mechanisms in a way that is amenable to end-user applications.  Code
+  can be generated for functional programs (including overloading
+  using type classes) targeting SML \cite{SML}, OCaml \cite{OCaml},
+  Haskell \cite{haskell-revised-report} and Scala
   \cite{scala-overview-tech-report}.  Conceptually, code generation is
   split up in three steps: \emph{selection} of code theorems,
   \emph{translation} into an abstract executable view and
