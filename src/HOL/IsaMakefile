@@ -140,7 +140,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/case_product.ML \
-  $(SRC)/Tools/codegen.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \
   $(SRC)/Tools/eqsubst.ML \
