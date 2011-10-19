@@ -28,6 +28,7 @@ instead.  INCOMPATIBILITY.
   zadd_commute ~> add_commute
   zadd_assoc ~> add_assoc
   zadd_left_commute ~> add_left_commute
+  zadd_ac ~> add_ac
   zmult_ac ~> mult_ac
   zadd_0 ~> add_0_left
   zadd_0_right ~> add_0_right

@@ -2390,9 +2390,6 @@ hide_const (open) Pls Min Bit0 Bit1 succ pred
 
 subsection {* Legacy theorems *}
 
-(* used by Tools/Qelim/cooper.ML *)
-lemmas zadd_ac = add_ac [where 'a=int]
-
 lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
 lemmas int_mult = of_nat_mult [where 'a=int]
