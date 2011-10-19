@@ -401,7 +401,7 @@ fun codegen_preproc thy =
       else thm
   in map preproc end;
 
-fun code_ind_att optmod = to_pred_att [] #> Inductive_Codegen.add optmod NONE;
+fun code_ind_att optmod = to_pred_att [];
 
 
 (**** definition of inductive sets ****)
@@ -551,10 +551,6 @@ val setup =
     "convert rule to set notation" #>
   Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
     "convert rule to predicate notation" #>
-  Attrib.setup @{binding code_ind_set}
-    (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att))
-    "introduction rules for executable predicates" #>
-  Codegen.add_preprocessor codegen_preproc #>
   Attrib.setup @{binding mono_set} (Attrib.add_del mono_add_att mono_del_att)
     "declaration of monotonicity rule for set operators" #>
   Simplifier.map_simpset_global (fn ss => ss addsimprocs [collect_mem_simproc]);
