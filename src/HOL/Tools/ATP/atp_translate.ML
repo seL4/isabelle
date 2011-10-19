@@ -946,10 +946,8 @@ fun introduce_proxies_in_iterm type_enc =
              | _ => IConst (name, T, [])
            else
              IConst (proxy_base |>> prefix const_prefix, T, T_args)
-          | NONE => if s = tptp_choice then
-                      tweak_ho_quant tptp_choice T args
-                    else
-                      IConst (name, T, T_args))
+          | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
+                    else IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1049,8 +1047,12 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
       | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
         do_quant bs AForall pos s T t'
+      | (t0 as Const (@{const_name All}, _)) $ t1 =>
+        do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
         do_quant bs AExists pos s T t'
+      | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+        do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
       | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
       | @{const HOL.implies} $ t1 $ t2 =>
@@ -1163,20 +1165,22 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun presimp_prop ctxt presimp_consts t =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val t = t |> Envir.beta_eta_contract
-              |> transform_elim_prop
-              |> Object_Logic.atomize_term thy
-    val need_trueprop = (fastype_of t = @{typ bool})
-  in
-    t |> need_trueprop ? HOLogic.mk_Trueprop
-      |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
-      |> extensionalize_term ctxt
-      |> presimplify_term ctxt presimp_consts
-      |> perhaps (try (HOLogic.dest_Trueprop))
-  end
+fun presimp_prop ctxt presimp_consts role t =
+  (let
+     val thy = Proof_Context.theory_of ctxt
+     val t = t |> Envir.beta_eta_contract
+               |> transform_elim_prop
+               |> Object_Logic.atomize_term thy
+     val need_trueprop = (fastype_of t = @{typ bool})
+   in
+     t |> need_trueprop ? HOLogic.mk_Trueprop
+       |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
+       |> extensionalize_term ctxt
+       |> presimplify_term ctxt presimp_consts
+       |> HOLogic.dest_Trueprop
+   end
+   handle TERM _ => if role = Conjecture then @{term False} else @{term True})
+  |> pair role
 
 (* making fact and conjecture formulas *)
 fun make_formula ctxt format type_enc eq_as_iff name loc kind t =
@@ -1197,7 +1201,8 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
   | formula => SOME formula
 
 fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_trueprop t = s_not t
+  | s_not_trueprop t =
+    if fastype_of t = @{typ bool} then s_not t else @{prop False} (* too meta *)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, loc), (kind, t)) =>
@@ -1652,14 +1657,14 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
+      |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lambdas) =
       if preproc then
         conjs @ facts
-        |> map (apsnd (apsnd (presimp_prop ctxt presimp_consts)))
+        |> map (apsnd (uncurry (presimp_prop ctxt presimp_consts)))
         |> preprocess_abstractions_in_terms trans_lambdas
         |>> chop (length conjs)
-        |>> apfst (map (apsnd (apsnd freeze_term)))
       else
         ((conjs, facts), [])
     val conjs = conjs |> make_conjecture ctxt format type_enc

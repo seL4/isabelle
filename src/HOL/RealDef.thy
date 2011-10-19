@@ -1756,43 +1756,7 @@ instance ..
 end
 
 
-text {* Setup for SML code generator *}
-
-types_code
-  real ("(int */ int)")
-attach (term_of) {*
-fun term_of_real (p, q) =
-  let
-    val rT = HOLogic.realT
-  in
-    if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else @{term "op / \<Colon> real \<Rightarrow> real \<Rightarrow> real"} $
-      HOLogic.mk_number rT p $ HOLogic.mk_number rT q
-  end;
-*}
-attach (test) {*
-fun gen_real i =
-  let
-    val p = random_range 0 i;
-    val q = random_range 1 (i + 1);
-    val g = Integer.gcd p q;
-    val p' = p div g;
-    val q' = q div g;
-    val r = (if one_of [true, false] then p' else ~ p',
-      if p' = 0 then 1 else q')
-  in
-    (r, fn () => term_of_real r)
-  end;
-*}
-
-consts_code
-  Ratreal ("(_)")
-
-consts_code
-  "of_int :: int \<Rightarrow> real" ("\<module>real'_of'_int")
-attach {*
-fun real_of_int i = (i, 1);
-*}
+subsection {* Setup for Nitpick *}
 
 declaration {*
   Nitpick_HOL.register_frac_type @{type_name real}

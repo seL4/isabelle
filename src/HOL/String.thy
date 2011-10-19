@@ -213,31 +213,6 @@ code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
   (Haskell infix 4 "==")
   (Scala infixl 5 "==")
 
-types_code
-  "char" ("string")
-attach (term_of) {*
-val term_of_char = HOLogic.mk_char o ord;
-*}
-attach (test) {*
-fun gen_char i =
-  let val j = random_range (ord "a") (Int.min (ord "a" + i, ord "z"))
-  in (chr j, fn () => HOLogic.mk_char j) end;
-*}
-
-setup {*
-let
-
-fun char_codegen thy mode defs dep thyname b t gr =
-  let
-    val i = HOLogic.dest_char t;
-    val (_, gr') = Codegen.invoke_tycodegen thy mode defs dep thyname false
-      (fastype_of t) gr;
-  in SOME (Codegen.str (ML_Syntax.print_string (chr i)), gr')
-  end handle TERM _ => NONE;
-
-in Codegen.add_codegen "char_codegen" char_codegen end
-*}
-
 hide_type (open) literal
 
 end

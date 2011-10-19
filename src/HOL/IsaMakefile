@@ -140,7 +140,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/case_product.ML \
-  $(SRC)/Tools/codegen.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \
   $(SRC)/Tools/eqsubst.ML \
@@ -158,7 +157,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/value.ML \
   HOL.thy \
   Tools/hologic.ML \
-  Tools/recfun_codegen.ML \
   Tools/simpdata.ML
 
 $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
@@ -243,7 +241,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/cnf_funcs.ML \
   Tools/dseq.ML \
   Tools/inductive.ML \
-  Tools/inductive_codegen.ML \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
   Tools/lambda_lifting.ML \
@@ -1045,7 +1042,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
   ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradox.thy ex/CTL.thy		\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
-  ex/CodegenSML_Test.thy ex/Coercion_Examples.thy ex/Coherent.thy	\
+  ex/Coercion_Examples.thy ex/Coherent.thy				\
   ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy			\
   ex/Eval_Examples.thy ex/Fundefs.thy ex/Gauge_Integration.thy		\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\

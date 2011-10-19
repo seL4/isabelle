@@ -324,6 +324,8 @@ and parse_quantified_formula x =
           (* We ignore TFF and THF types for now. *)
           AQuant (q, map (rpair NONE o ho_term_head) ts, phi))) x
 
+val dummy_phi = AAtom (ATerm ("", []))
+
 fun skip_formula ss =
   let
     fun skip _ [] = []
@@ -335,7 +337,7 @@ fun skip_formula ss =
       | skip n ("]" :: ss) = skip (n - 1) ss
       | skip n (")" :: ss) = skip (n - 1) ss
       | skip n (_ :: ss) = skip n ss
-  in (AAtom (ATerm ("", [])), skip 0 ss) end
+  in (dummy_phi, skip 0 ss) end
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_annotation
@@ -456,17 +458,21 @@ fun resolve_spass_num spass_names num =
                 NONE
   | NONE => NONE
 
-(* Syntax: <num>[0:<inference><annotations>]
-   <atoms> || <atoms> -> <atoms>. *)
-fun parse_spass_line spass_names x =
-  (scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-     -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
-   >> (fn ((num, deps), u) =>
-          Inference ((num, resolve_spass_num spass_names num), u,
-                     map (swap o `(resolve_spass_num spass_names)) deps))) x
+(* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>. *)
+fun parse_spass_line spass_names =
+  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
+  >> (fn ((num, deps), u) =>
+         Inference ((num, resolve_spass_num spass_names num), u,
+                    map (swap o `(resolve_spass_num spass_names)) deps))
+
+(* Syntax: <name> *)
+fun parse_satallax_line x =
+  (scan_general_id --| Scan.option ($$ " ")
+   >> (fn s => Inference ((s, SOME [s]), dummy_phi, []))) x
 
 fun parse_line problem spass_names =
-  parse_tstp_line problem || parse_spass_line spass_names
+  parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line
 fun parse_proof problem spass_names tstp =
   tstp |> strip_spaces_except_between_idents
        |> raw_explode

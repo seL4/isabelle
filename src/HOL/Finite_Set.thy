@@ -1859,7 +1859,7 @@ lemma card_Diff_singleton:
 by (simp add: card_Suc_Diff1 [symmetric])
 
 lemma card_Diff_singleton_if:
-  "finite A ==> card (A-{x}) = (if x : A then card A - 1 else card A)"
+  "finite A ==> card (A - {x}) = (if x : A then card A - 1 else card A)"
 by (simp add: card_Diff_singleton)
 
 lemma card_Diff_insert[simp]:

@@ -32,9 +32,6 @@ primrec harmonic :: "nat \<Rightarrow> rat" where
 lemma "harmonic 200 \<ge> 5"
   by eval
 
-lemma "harmonic 200 \<ge> 5"
-  by evaluation
-
 lemma "harmonic 20 \<ge> 3"
   by normalization
 
@@ -42,25 +39,16 @@ lemma "naive_prime 89"
   by eval
 
 lemma "naive_prime 89"
-  by evaluation
-
-lemma "naive_prime 89"
   by normalization
 
 lemma "\<not> naive_prime 87"
   by eval
 
 lemma "\<not> naive_prime 87"
-  by evaluation
-
-lemma "\<not> naive_prime 87"
   by normalization
 
 lemma "fac 10 > 3000000"
   by eval
-
-lemma "fac 10 > 3000000"
-  by evaluation
 
 lemma "fac 10 > 3000000"
   by normalization

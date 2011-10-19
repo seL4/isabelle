@@ -18,7 +18,7 @@ fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val option" where
 
 
 fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool option" where
-"bval (B bv) s = Some bv" |
+"bval (Bc v) s = Some v" |
 "bval (Not b) s = (case bval b s of None \<Rightarrow> None | Some bv \<Rightarrow> Some(\<not> bv))" |
 "bval (And b\<^isub>1 b\<^isub>2) s = (case (bval b\<^isub>1 s, bval b\<^isub>2 s) of
   (Some bv\<^isub>1, Some bv\<^isub>2) \<Rightarrow> Some(bv\<^isub>1 & bv\<^isub>2) | _ \<Rightarrow> None)" |

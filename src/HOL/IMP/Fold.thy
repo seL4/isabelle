@@ -233,35 +233,35 @@ fun bsimp_const :: "bexp \<Rightarrow> tab \<Rightarrow> bexp" where
 "bsimp_const (Less a1 a2) t = less (simp_const a1 t) (simp_const a2 t)" |
 "bsimp_const (And b1 b2) t = and (bsimp_const b1 t) (bsimp_const b2 t)" |
 "bsimp_const (Not b) t = not(bsimp_const b t)" |
-"bsimp_const (B bv) _ = B bv"
+"bsimp_const (Bc bc) _ = Bc bc"
 
 theorem bvalsimp_const [simp]:
   assumes "approx t s"
   shows "bval (bsimp_const b t) s = bval b s"
   using assms by (induct b) auto
 
-lemma not_B [simp]: "not (B v) = B (\<not>v)"
+lemma not_Bc [simp]: "not (Bc v) = Bc (\<not>v)"
   by (cases v) auto
 
-lemma not_B_eq [simp]: "(not b = B v) = (b = B (\<not>v))"
+lemma not_Bc_eq [simp]: "(not b = Bc v) = (b = Bc (\<not>v))"
   by (cases b) auto
 
-lemma and_B_eq: 
-  "(and a b = B v) = (a = B False \<and> \<not>v \<or> 
-                      b = B False \<and> \<not>v \<or> 
-                      (\<exists>v1 v2. a = B v1 \<and> b = B v2 \<and> v = v1 \<and> v2))"
+lemma and_Bc_eq: 
+  "(and a b = Bc v) =
+   (a = Bc False \<and> \<not>v  \<or>  b = Bc False \<and> \<not>v \<or> 
+    (\<exists>v1 v2. a = Bc v1 \<and> b = Bc v2 \<and> v = v1 \<and> v2))"
   by (rule and.induct) auto
 
-lemma less_B_eq [simp]:
-  "(less a b = B v) = (\<exists>n1 n2. a = N n1 \<and> b = N n2 \<and> v = (n1 < n2))"
+lemma less_Bc_eq [simp]:
+  "(less a b = Bc v) = (\<exists>n1 n2. a = N n1 \<and> b = N n2 \<and> v = (n1 < n2))"
   by (rule less.induct) auto
     
-theorem bvalsimp_const_B:
+theorem bvalsimp_const_Bc:
 assumes "approx t s"
-shows "bsimp_const b t = B v \<Longrightarrow> bval b s = v"
+shows "bsimp_const b t = Bc v \<Longrightarrow> bval b s = v"
   using assms
   by (induct b arbitrary: v)
-     (auto simp: approx_def and_B_eq aval_simp_const_N 
+     (auto simp: approx_def and_Bc_eq aval_simp_const_N 
            split: bexp.splits bool.splits)
 
 
@@ -271,8 +271,8 @@ primrec "bdefs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
   (case simp_const a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
 "bdefs (c1;c2) t = (bdefs c2 o bdefs c1) t" |
 "bdefs (IF b THEN c1 ELSE c2) t = (case bsimp_const b t of
-    B True \<Rightarrow> bdefs c1 t
-  | B False \<Rightarrow> bdefs c2 t
+    Bc True \<Rightarrow> bdefs c1 t
+  | Bc False \<Rightarrow> bdefs c2 t
   | _ \<Rightarrow> merge (bdefs c1 t) (bdefs c2 t))" |
 "bdefs (WHILE b DO c) t = t |` (-lnames c)" 
 
@@ -282,11 +282,11 @@ primrec bfold where
 "bfold (x ::= a) t = (x ::= (simp_const a t))" |
 "bfold (c1;c2) t = (bfold c1 t; bfold c2 (bdefs c1 t))" |
 "bfold (IF b THEN c1 ELSE c2) t = (case bsimp_const b t of
-    B True \<Rightarrow> bfold c1 t
-  | B False \<Rightarrow> bfold c2 t
+    Bc True \<Rightarrow> bfold c1 t
+  | Bc False \<Rightarrow> bfold c2 t
   | _ \<Rightarrow> IF bsimp_const b t THEN bfold c1 t ELSE bfold c2 t)" |
 "bfold (WHILE b DO c) t = (case bsimp_const b t of
-    B False \<Rightarrow> SKIP
+    Bc False \<Rightarrow> SKIP
   | _ \<Rightarrow> WHILE bsimp_const b (t |` (-lnames c)) DO bfold c (t |` (-lnames c)))"
 
 
@@ -342,18 +342,18 @@ next
   case (IfTrue b s c1 s')
   hence "approx (bdefs c1 t) s'" by simp
   thus ?case using `bval b s` `approx t s`
-    by (clarsimp simp: approx_merge bvalsimp_const_B 
+    by (clarsimp simp: approx_merge bvalsimp_const_Bc
                  split: bexp.splits bool.splits)
 next
   case (IfFalse b s c2 s')
   hence "approx (bdefs c2 t) s'" by simp
   thus ?case using `\<not>bval b s` `approx t s`
-    by (clarsimp simp: approx_merge bvalsimp_const_B 
+    by (clarsimp simp: approx_merge bvalsimp_const_Bc
                  split: bexp.splits bool.splits)
 next
   case WhileFalse
   thus ?case 
-    by (clarsimp simp: bvalsimp_const_B approx_def restrict_map_def
+    by (clarsimp simp: bvalsimp_const_Bc approx_def restrict_map_def
                  split: bexp.splits bool.splits)
 next
   case (WhileTrue b s1 c s2 s3)
@@ -385,7 +385,7 @@ next
                    IF Fold.bsimp_const b t THEN bfold c1 t ELSE bfold c2 t"
     by (auto intro: equiv_up_to_if_weak simp: bequiv_up_to_def) 
   thus ?case using If
-    by (fastforce simp: bvalsimp_const_B split: bexp.splits bool.splits 
+    by (fastforce simp: bvalsimp_const_Bc split: bexp.splits bool.splits 
                  intro: equiv_up_to_trans)
   next
   case (While b c)
@@ -400,7 +400,7 @@ next
   thus ?case
     by (auto split: bexp.splits bool.splits 
              intro: equiv_up_to_while_False 
-             simp: bvalsimp_const_B)
+             simp: bvalsimp_const_Bc)
 qed
 
 

@@ -101,7 +101,7 @@ precise. *}
 
 
 fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a st up \<Rightarrow> 'a st up" where
-"bfilter (B bv) res S = (if bv=res then S else Bot)" |
+"bfilter (Bc v) res S = (if v=res then S else Bot)" |
 "bfilter (Not b) res S = bfilter b (\<not> res) S" |
 "bfilter (And b1 b2) res S =
   (if res then bfilter b1 True (bfilter b2 True S)
@@ -130,7 +130,7 @@ qed
 
 lemma bfilter_sound: "s <:up S \<Longrightarrow> bv = bval b s \<Longrightarrow> s <:up bfilter b bv S"
 proof(induction b arbitrary: S bv)
-  case B thus ?case by simp
+  case Bc thus ?case by simp
 next
   case (Not b) thus ?case by simp
 next

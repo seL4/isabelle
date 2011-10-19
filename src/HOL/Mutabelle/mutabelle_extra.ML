@@ -321,7 +321,8 @@ fun is_executable_term thy t =
   in
     can (TimeLimit.timeLimit (seconds 2.0)
       (Quickcheck.test_terms
-        ((Config.put Quickcheck.finite_types true #>
+        ((Context.proof_map (Quickcheck.set_active_testers ["exhaustive"]) #>
+          Config.put Quickcheck.finite_types true #>
           Config.put Quickcheck.finite_type_size 1 #>
           Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
         (false, false) [])) (map (rpair [] o Object_Logic.atomize_term thy)

@@ -14,14 +14,6 @@ lemma "[] = ([] :: int list)" by eval
 lemma "[()] = [()]" by eval
 lemma "fst ([] :: nat list, Suc 0) = []" by eval
 
-text {* SML evaluation oracle *}
-
-lemma "True \<or> False" by evaluation
-lemma "Suc 0 \<noteq> Suc 1" by evaluation
-lemma "[] = ([] :: int list)" by evaluation
-lemma "[()] = [()]" by evaluation
-lemma "fst ([] :: nat list, Suc 0) = []" by evaluation
-
 text {* normalization *}
 
 lemma "True \<or> False" by normalization

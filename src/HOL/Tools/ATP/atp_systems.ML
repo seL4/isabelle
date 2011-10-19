@@ -101,6 +101,24 @@ val known_perl_failures =
    (NoPerl, "env: perl"),
    (NoLibwwwPerl, "Can't locate HTTP")]
 
+fun known_szs_failures wrap =
+  [(Unprovable, wrap "CounterSatisfiable"),
+   (Unprovable, wrap "Satisfiable"),
+   (GaveUp, wrap "GaveUp"),
+   (GaveUp, wrap "Unknown"),
+   (GaveUp, wrap "Incomplete"),
+   (ProofMissing, wrap "Theorem"),
+   (ProofMissing, wrap "Unsatisfiable"),
+   (TimedOut, wrap "Timeout"),
+   (Inappropriate, wrap "Inappropriate"),
+   (OutOfResources, wrap "ResourceOut"),
+   (OutOfResources, wrap "MemoryOut"),
+   (Interrupted, wrap "Forced"),
+   (Interrupted, wrap "User")]
+
+val known_szs_status_failures = known_szs_failures (prefix "SZS status ")
+val known_says_failures = known_szs_failures (prefix " says ")
+
 (* named ATPs *)
 
 val eN = "e"
@@ -208,14 +226,10 @@ val e_config : atp_config =
         " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs 2 timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
-     [(Unprovable, "SZS status: CounterSatisfiable"),
-      (Unprovable, "SZS status CounterSatisfiable"),
-      (ProofMissing, "SZS status Theorem"),
-      (TimedOut, "Failure: Resource limit exceeded (time)"),
+     known_szs_status_failures @
+     [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded"),
-      (OutOfResources, "# Cannot determine problem status"),
-      (OutOfResources, "SZS status: ResourceOut"),
-      (OutOfResources, "SZS status ResourceOut")],
+      (OutOfResources, "# Cannot determine problem status")],
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
@@ -244,7 +258,7 @@ val leo2_config : atp_config =
         "--proofoutput --timeout " ^ string_of_int (to_secs 1 timeout)
         |> sos = sosN ? prefix "--sos ",
    proof_delims = tstp_proof_delims,
-   known_failures = [],
+   known_failures = known_szs_status_failures,
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
@@ -266,9 +280,10 @@ val satallax_config : atp_config =
    required_execs = [],
    arguments =
      fn _ => fn _ => fn _ => fn timeout => fn _ =>
-        "-t " ^ string_of_int (to_secs 1 timeout),
-   proof_delims = tstp_proof_delims,
-   known_failures = [(ProofMissing, "SZS status Theorem")],
+        "-p hocore -t " ^ string_of_int (to_secs 1 timeout),
+   proof_delims =
+     [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
+   known_failures = known_szs_status_failures,
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
    best_slices =
@@ -336,10 +351,9 @@ val vampire_config : atp_config =
       ("% SZS output start Refutation", "% SZS output end Refutation"),
       ("% SZS output start Proof", "% SZS output end Proof")],
    known_failures =
+     known_szs_status_failures @
      [(GaveUp, "UNPROVABLE"),
       (GaveUp, "CANNOT PROVE"),
-      (GaveUp, "SZS status GaveUp"),
-      (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),
@@ -372,13 +386,7 @@ val z3_tptp_config : atp_config =
    arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "MBQI=true -tptp -t:" ^ string_of_int (to_secs 1 timeout),
    proof_delims = [],
-   known_failures =
-     [(GaveUp, "SZS status Satisfiable"),
-      (GaveUp, "SZS status CounterSatisfiable"),
-      (GaveUp, "SZS status GaveUp"),
-      (GaveUp, "SZS status Unknown"),
-      (ProofMissing, "SZS status Unsatisfiable"),
-      (ProofMissing, "SZS status Theorem")],
+   known_failures = known_szs_status_failures,
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices =
@@ -398,7 +406,7 @@ fun dummy_config format type_enc : atp_config =
    required_execs = [],
    arguments = K (K (K (K (K "")))),
    proof_delims = [],
-   known_failures = [(GaveUp, "SZS status Unknown")],
+   known_failures = known_szs_status_failures,
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices = K [(1.0, (false, (200, format, type_enc, "")))]}
@@ -455,15 +463,7 @@ fun remote_config system_name system_versions proof_delims known_failures
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
-   known_failures = known_failures @ known_perl_failures @
-     [(Unprovable, "says Satisfiable"),
-      (Unprovable, "says CounterSatisfiable"),
-      (GaveUp, "says Unknown"),
-      (GaveUp, "says GaveUp"),
-      (ProofMissing, "says Theorem"),
-      (ProofMissing, "says Unsatisfiable"),
-      (TimedOut, "says Timeout"),
-      (Inappropriate, "says Inappropriate")],
+   known_failures = known_failures @ known_perl_failures @ known_says_failures,
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
    best_slices = fn ctxt =>

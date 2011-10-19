@@ -1197,46 +1197,7 @@ instance ..
 end
 
 
-text {* Setup for SML code generator *}
-
-types_code
-  rat ("(int */ int)")
-attach (term_of) {*
-fun term_of_rat (p, q) =
-  let
-    val rT = Type ("Rat.rat", [])
-  in
-    if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else @{term "op / \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"} $
-      HOLogic.mk_number rT p $ HOLogic.mk_number rT q
-  end;
-*}
-attach (test) {*
-fun gen_rat i =
-  let
-    val p = random_range 0 i;
-    val q = random_range 1 (i + 1);
-    val g = Integer.gcd p q;
-    val p' = p div g;
-    val q' = q div g;
-    val r = (if one_of [true, false] then p' else ~ p',
-      if p' = 0 then 1 else q')
-  in
-    (r, fn () => term_of_rat r)
-  end;
-*}
-
-consts_code
-  Fract ("(_,/ _)")
-
-consts_code
-  quotient_of ("{*normalize*}")
-
-consts_code
-  "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
-attach {*
-fun rat_of_int i = (i, 1);
-*}
+subsection {* Setup for Nitpick *}
 
 declaration {*
   Nitpick_HOL.register_frac_type @{type_name rat}

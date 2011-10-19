@@ -9,7 +9,6 @@ theory Product_Type
 imports Typedef Inductive Fun
 uses
   ("Tools/split_rule.ML")
-  ("Tools/inductive_codegen.ML")
   ("Tools/inductive_set.ML")
 begin
 
@@ -311,95 +310,6 @@ code_instance prod :: equal
 
 code_const "HOL.equal \<Colon> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infix 4 "==")
-
-types_code
-  "prod"     ("(_ */ _)")
-attach (term_of) {*
-fun term_of_prod aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
-*}
-attach (test) {*
-fun gen_prod aG aT bG bT i =
-  let
-    val (x, t) = aG i;
-    val (y, u) = bG i
-  in ((x, y), fn () => HOLogic.pair_const aT bT $ t () $ u ()) end;
-*}
-
-consts_code
-  "Pair"    ("(_,/ _)")
-
-setup {*
-let
-
-fun strip_abs_split 0 t = ([], t)
-  | strip_abs_split i (Abs (s, T, t)) =
-      let
-        val s' = Codegen.new_name t s;
-        val v = Free (s', T)
-      in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
-  | strip_abs_split i (u as Const (@{const_name prod_case}, _) $ t) =
-      (case strip_abs_split (i+1) t of
-        (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
-      | _ => ([], u))
-  | strip_abs_split i t =
-      strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
-
-fun let_codegen thy mode defs dep thyname brack t gr =
-  (case strip_comb t of
-    (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
-    let
-      fun dest_let (l as Const (@{const_name Let}, _) $ t $ u) =
-          (case strip_abs_split 1 u of
-             ([p], u') => apfst (cons (p, t)) (dest_let u')
-           | _ => ([], l))
-        | dest_let t = ([], t);
-      fun mk_code (l, r) gr =
-        let
-          val (pl, gr1) = Codegen.invoke_codegen thy mode defs dep thyname false l gr;
-          val (pr, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false r gr1;
-        in ((pl, pr), gr2) end
-    in case dest_let (t1 $ t2 $ t3) of
-        ([], _) => NONE
-      | (ps, u) =>
-          let
-            val (qs, gr1) = fold_map mk_code ps gr;
-            val (pu, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false u gr1;
-            val (pargs, gr3) = fold_map
-              (Codegen.invoke_codegen thy mode defs dep thyname true) ts gr2
-          in
-            SOME (Codegen.mk_app brack
-              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, flat
-                  (separate [Codegen.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
-                    [Pretty.block [Codegen.str "val ", pl, Codegen.str " =",
-                       Pretty.brk 1, pr]]) qs))),
-                Pretty.brk 1, Codegen.str "in ", pu,
-                Pretty.brk 1, Codegen.str "end"])) pargs, gr3)
-          end
-    end
-  | _ => NONE);
-
-fun split_codegen thy mode defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const (@{const_name prod_case}, _), t2 :: ts) =>
-      let
-        val ([p], u) = strip_abs_split 1 (t1 $ t2);
-        val (q, gr1) = Codegen.invoke_codegen thy mode defs dep thyname false p gr;
-        val (pu, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false u gr1;
-        val (pargs, gr3) = fold_map
-          (Codegen.invoke_codegen thy mode defs dep thyname true) ts gr2
-      in
-        SOME (Codegen.mk_app brack
-          (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
-            Pretty.brk 1, pu, Codegen.str ")"]) pargs, gr2)
-      end
-  | _ => NONE);
-
-in
-
-  Codegen.add_codegen "let_codegen" let_codegen
-  #> Codegen.add_codegen "split_codegen" split_codegen
-
-end
-*}
 
 
 subsubsection {* Fundamental operations and properties *}
@@ -1202,9 +1112,6 @@ qed
 
 
 subsection {* Inductively defined sets *}
-
-use "Tools/inductive_codegen.ML"
-setup Inductive_Codegen.setup
 
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup

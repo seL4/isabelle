@@ -268,15 +268,4 @@ lemma "factor_exists 876 = [73, 3, 2, 2]" by eval
 
 lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by eval
 
-consts_code
-  default ("(error \"default\")")
-
-lemma "factor_exists 1007 = [53, 19]" by evaluation
-lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by evaluation
-lemma "factor_exists 345 = [23, 5, 3]" by evaluation
-lemma "factor_exists 999 = [37, 3, 3, 3]" by evaluation
-lemma "factor_exists 876 = [73, 3, 2, 2]" by evaluation
-
-lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by evaluation
-
 end

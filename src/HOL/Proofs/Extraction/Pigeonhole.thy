@@ -252,28 +252,5 @@ ML "timeit (@{code test'} 25)"
 ML "timeit (@{code test} 500)"
 ML "timeit @{code test''}"
 
-text {* the same story with the legacy SML code generator.
-this can be removed once the code generator is removed.
-*}
-
-consts_code
-  "default :: nat" ("{* 0::nat *}")
-  "default :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
-
-code_module PH
-contains
-  test = test
-  test' = test'
-  test'' = test''
-
-ML "timeit (PH.test 10)"
-ML "timeit (PH.test' 10)"
-ML "timeit (PH.test 20)"
-ML "timeit (PH.test' 20)"
-ML "timeit (PH.test 25)"
-ML "timeit (PH.test' 25)"
-ML "timeit (PH.test 500)"
-ML "timeit PH.test''"
-
 end
 

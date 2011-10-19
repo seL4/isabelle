@@ -89,10 +89,11 @@ ML {*
 val mtds = [
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"random\"])) \"random\",
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"exhaustive\"])) \"exhaustive\",
-  MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"exhaustive\"]) #> Config.put Quickcheck.finite_types false) \"exhaustive_nft\",
-  MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false) \"narrowing\",
+  MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"exhaustive\"]) #> Config.put Quickcheck.finite_types false) \"exhaustive_no_finite_types\",
+  MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types true) \"narrowing\",
+  MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false) \"narrowing_no_finite_types\",
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false
-    #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ nat}])))) \"narrowing_nat\"  
+    #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ nat}])))) \"narrowing_nat\"
 (*  MutabelleExtra.nitpick_mtd *)
 ]
 *}
