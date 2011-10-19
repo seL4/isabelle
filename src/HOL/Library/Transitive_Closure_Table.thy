@@ -201,22 +201,6 @@ where
 | "test B A"
 | "test B C"
 
-subsubsection {* Invoking with the (legacy) SML code generator *}
-
-text {* this test can be removed once the SML code generator is deactivated *}
-
-code_module Test
-contains
-test1 = "test\<^sup>*\<^sup>* A C"
-test2 = "test\<^sup>*\<^sup>* C A"
-test3 = "test\<^sup>*\<^sup>* A _"
-test4 = "test\<^sup>*\<^sup>* _ C"
-
-ML "Test.test1"
-ML "Test.test2"
-ML "DSeq.list_of Test.test3"
-ML "DSeq.list_of Test.test4"
-
 subsubsection {* Invoking with the predicate compiler and the generic code generator *}
 
 code_pred test .
