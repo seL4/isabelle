@@ -5261,39 +5261,7 @@ code_reserved SML
 code_reserved OCaml
   list
 
-types_code
-  "list" ("_ list")
-attach (term_of) {*
-fun term_of_list f T = HOLogic.mk_list T o map f;
-*}
-attach (test) {*
-fun gen_list' aG aT i j = frequency
-  [(i, fn () =>
-      let
-        val (x, t) = aG j;
-        val (xs, ts) = gen_list' aG aT (i-1) j
-      in (x :: xs, fn () => HOLogic.cons_const aT $ t () $ ts ()) end),
-   (1, fn () => ([], fn () => HOLogic.nil_const aT))] ()
-and gen_list aG aT i = gen_list' aG aT i i;
-*}
-
-consts_code Cons ("(_ ::/ _)")
-
-setup {*
-let
-  fun list_codegen thy mode defs dep thyname b t gr =
-    let
-      val ts = HOLogic.dest_list t;
-      val (_, gr') = Codegen.invoke_tycodegen thy mode defs dep thyname false
-        (fastype_of t) gr;
-      val (ps, gr'') = fold_map
-        (Codegen.invoke_codegen thy mode defs dep thyname false) ts gr'
-    in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
-in
-  fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"]
-  #> Codegen.add_codegen "list_codegen" list_codegen
-end
-*}
+setup {* fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"] *}
 
 
 subsubsection {* Use convenient predefined operations *}
