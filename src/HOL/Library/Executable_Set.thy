@@ -41,13 +41,6 @@ setup {*
 
 code_datatype Set Coset
 
-consts_code
-  Coset ("\<module>Coset")
-  Set ("\<module>Set")
-attach {*
-  datatype 'a set = Set of 'a list | Coset of 'a list;
-*} -- {* This assumes that there won't be a @{text Coset} without a @{text Set} *}
-
 
 subsection {* Basic operations *}
 
