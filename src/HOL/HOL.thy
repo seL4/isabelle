@@ -28,7 +28,6 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induction.ML")
   ("~~/src/Tools/induct_tacs.ML")
-  ("Tools/recfun_codegen.ML")
   ("Tools/cnf_funcs.ML")
   "~~/src/Tools/subtyping.ML"
   "~~/src/Tools/case_product.ML"
@@ -1715,66 +1714,6 @@ use "Tools/cnf_funcs.ML"
 
 subsection {* Code generator setup *}
 
-subsubsection {* SML code generator setup *}
-
-use "Tools/recfun_codegen.ML"
-
-setup {*
-  Codegen.setup
-  #> RecfunCodegen.setup
-  #> Codegen.map_unfold (K HOL_basic_ss)
-*}
-
-types_code
-  "bool"  ("bool")
-attach (term_of) {*
-fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
-*}
-attach (test) {*
-fun gen_bool i =
-  let val b = one_of [false, true]
-  in (b, fn () => term_of_bool b) end;
-*}
-  "prop"  ("bool")
-attach (term_of) {*
-fun term_of_prop b =
-  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
-*}
-
-consts_code
-  "Trueprop" ("(_)")
-  "True"    ("true")
-  "False"   ("false")
-  "Not"     ("Bool.not")
-  HOL.disj    ("(_ orelse/ _)")
-  HOL.conj    ("(_ andalso/ _)")
-  "If"      ("(if _/ then _/ else _)")
-
-setup {*
-let
-
-fun eq_codegen thy mode defs dep thyname b t gr =
-    (case strip_comb t of
-       (Const (@{const_name HOL.eq}, Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const (@{const_name HOL.eq}, _), [t, u]) =>
-          let
-            val (pt, gr') = Codegen.invoke_codegen thy mode defs dep thyname false t gr;
-            val (pu, gr'') = Codegen.invoke_codegen thy mode defs dep thyname false u gr';
-            val (_, gr''') =
-              Codegen.invoke_tycodegen thy mode defs dep thyname false HOLogic.boolT gr'';
-          in
-            SOME (Codegen.parens
-              (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
-          end
-     | (t as Const (@{const_name HOL.eq}, _), ts) => SOME (Codegen.invoke_codegen
-         thy mode defs dep thyname b (Codegen.eta_expand t ts 2) gr)
-     | _ => NONE);
-
-in
-  Codegen.add_codegen "eq_codegen" eq_codegen
-end
-*}
-
 subsubsection {* Generic code generator preprocessor setup *}
 
 setup {*
@@ -1977,10 +1916,6 @@ fun gen_eval_method conv ctxt = SIMPLE_METHOD'
 
 method_setup eval = {*
   Scan.succeed (gen_eval_method (Code_Runtime.dynamic_holds_conv o Proof_Context.theory_of))
-*} "solve goal by evaluation"
-
-method_setup evaluation = {*
-  Scan.succeed (gen_eval_method Codegen.evaluation_conv)
 *} "solve goal by evaluation"
 
 method_setup normalization = {*

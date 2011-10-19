@@ -158,7 +158,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/value.ML \
   HOL.thy \
   Tools/hologic.ML \
-  Tools/recfun_codegen.ML \
   Tools/simpdata.ML
 
 $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
