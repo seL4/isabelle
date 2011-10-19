@@ -812,28 +812,6 @@ in proc end
 
 subsubsection {* Code generator *}
 
-types_code
-  "fun"  ("(_ ->/ _)")
-attach (term_of) {*
-fun term_of_fun_type _ aT _ bT _ = Free ("<function>", aT --> bT);
-*}
-attach (test) {*
-fun gen_fun_type aF aT bG bT i =
-  let
-    val tab = Unsynchronized.ref [];
-    fun mk_upd (x, (_, y)) t = Const ("Fun.fun_upd",
-      (aT --> bT) --> aT --> bT --> aT --> bT) $ t $ aF x $ y ()
-  in
-    (fn x =>
-       case AList.lookup op = (!tab) x of
-         NONE =>
-           let val p as (y, _) = bG i
-           in (tab := (x, p) :: !tab; y) end
-       | SOME (y, _) => y,
-     fn () => Basics.fold mk_upd (!tab) (Const ("HOL.undefined", aT --> bT)))
-  end;
-*}
-
 code_const "op \<circ>"
   (SML infixl 5 "o")
   (Haskell infixr 9 ".")
