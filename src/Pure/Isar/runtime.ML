@@ -126,8 +126,11 @@ fun toplevel_error output_exn f x = f x
     if Exn.is_interrupt exn then reraise exn
     else
       let
-        val ctxt = Option.map Context.proof_of (Context.thread_data ());
-        val _ = output_exn (exn_context ctxt exn);
+        val opt_ctxt =
+          (case Context.thread_data () of
+            NONE => NONE
+          | SOME context => try Context.proof_of context);
+        val _ = output_exn (exn_context opt_ctxt exn);
       in raise TOPLEVEL_ERROR end;
 
 end;
