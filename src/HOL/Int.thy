@@ -1543,7 +1543,7 @@ subsection {* Setting up simplification procedures *}
 lemmas int_arith_rules =
   neg_le_iff_le numeral_0_eq_0 numeral_1_eq_1
   minus_zero diff_minus left_minus right_minus
-  mult_zero_left mult_zero_right mult_Bit1 mult_1_left mult_1_right
+  mult_zero_left mult_zero_right mult_1_left mult_1_right
   mult_minus_left mult_minus_right
   minus_add_distrib minus_minus mult_assoc
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
