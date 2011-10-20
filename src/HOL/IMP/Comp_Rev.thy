@@ -39,7 +39,7 @@ lemma exec_n_exec:
 
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
-lemma exec_Suc [trans]:
+lemma exec_Suc:
   "\<lbrakk> P \<turnstile> c \<rightarrow> c'; P \<turnstile> c' \<rightarrow>^n c'' \<rbrakk> \<Longrightarrow> P \<turnstile> c \<rightarrow>^(Suc n) c''" 
   by (fastforce simp del: split_paired_Ex)
 
@@ -350,7 +350,7 @@ next
   from step `isize P \<le> i`
   have "P' \<turnstile> (i - isize P, s, stk) \<rightarrow> (i' - isize P, s'', stk'')" 
     by (rule exec1_drop_left)
-  also
+  moreover
   then have "i' - isize P \<in> succs P' 0"
     by (fastforce dest!: succs_iexec1)
   with `exits P' \<subseteq> {0..}`
@@ -358,8 +358,8 @@ next
   from rest this `exits P' \<subseteq> {0..}`     
   have "P' \<turnstile> (i' - isize P, s'', stk'') \<rightarrow>^k (n - isize P, s', stk')"
     by (rule Suc.IH)
-  finally
-  show ?case .
+  ultimately
+  show ?case by auto
 qed
 
 lemmas exec_n_drop_Cons = 

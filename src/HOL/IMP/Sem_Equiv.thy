@@ -43,7 +43,7 @@ lemma equiv_up_to_sym:
   "(P \<Turnstile> c \<sim> c') = (P \<Turnstile> c' \<sim> c)"
   by (auto simp: equiv_up_to_def)
 
-lemma equiv_up_to_trans [trans]:
+lemma equiv_up_to_trans:
   "P \<Turnstile> c \<sim> c' \<Longrightarrow> P \<Turnstile> c' \<sim> c'' \<Longrightarrow> P \<Turnstile> c \<sim> c''"
   by (auto simp: equiv_up_to_def)
 
@@ -56,7 +56,7 @@ lemma bequiv_up_to_sym:
   "(P \<Turnstile> b <\<sim>> b') = (P \<Turnstile> b' <\<sim>> b)"
   by (auto simp: bequiv_up_to_def)
 
-lemma bequiv_up_to_trans [trans]:
+lemma bequiv_up_to_trans:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> b' <\<sim>> b'' \<Longrightarrow> P \<Turnstile> b <\<sim>> b''"
   by (auto simp: bequiv_up_to_def)
 
