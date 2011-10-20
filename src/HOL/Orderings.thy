@@ -883,7 +883,7 @@ lemmas order_trans_rules =
 text {* These support proving chains of decreasing inequalities
     a >= b >= c ... in Isar proofs. *}
 
-lemma xt1:
+lemma xt1 [no_atp]:
   "a = b ==> b > c ==> a > c"
   "a > b ==> b = c ==> a > c"
   "a = b ==> b >= c ==> a >= c"
@@ -902,39 +902,39 @@ lemma xt1:
   "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==> f a >= c"
   by auto
 
-lemma xt2:
+lemma xt2 [no_atp]:
   "(a::'a::order) >= f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
 by (subgoal_tac "f b >= f c", force, force)
 
-lemma xt3: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==> 
+lemma xt3 [no_atp]: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==>
     (!!x y. x >= y ==> f x >= f y) ==> f a >= c"
 by (subgoal_tac "f a >= f b", force, force)
 
-lemma xt4: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
+lemma xt4 [no_atp]: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
   (!!x y. x >= y ==> f x >= f y) ==> a > f c"
 by (subgoal_tac "f b >= f c", force, force)
 
-lemma xt5: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
+lemma xt5 [no_atp]: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
     (!!x y. x > y ==> f x > f y) ==> f a > c"
 by (subgoal_tac "f a > f b", force, force)
 
-lemma xt6: "(a::'a::order) >= f b ==> b > c ==>
+lemma xt6 [no_atp]: "(a::'a::order) >= f b ==> b > c ==>
     (!!x y. x > y ==> f x > f y) ==> a > f c"
 by (subgoal_tac "f b > f c", force, force)
 
-lemma xt7: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
+lemma xt7 [no_atp]: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
     (!!x y. x >= y ==> f x >= f y) ==> f a > c"
 by (subgoal_tac "f a >= f b", force, force)
 
-lemma xt8: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
+lemma xt8 [no_atp]: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
     (!!x y. x > y ==> f x > f y) ==> a > f c"
 by (subgoal_tac "f b > f c", force, force)
 
-lemma xt9: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
+lemma xt9 [no_atp]: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
     (!!x y. x > y ==> f x > f y) ==> f a > c"
 by (subgoal_tac "f a > f b", force, force)
 
-lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9
+lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9 [no_atp]
 
 (* 
   Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
