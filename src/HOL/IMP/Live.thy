@@ -7,7 +7,7 @@ begin
 
 subsection "Liveness Analysis"
 
-fun L :: "com \<Rightarrow> name set \<Rightarrow> name set" where
+fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
 "L (x ::= a) X = X-{x} \<union> vars a" |
 "L (c\<^isub>1; c\<^isub>2) X = (L c\<^isub>1 \<circ> L c\<^isub>2) X" |
@@ -18,14 +18,14 @@ value "show (L (''y'' ::= V ''z''; ''x'' ::= Plus (V ''y'') (V ''z'')) {''x''})"
 
 value "show (L (WHILE Less (V ''x'') (V ''x'') DO ''y'' ::= V ''z'') {''x''})"
 
-fun "kill" :: "com \<Rightarrow> name set" where
+fun "kill" :: "com \<Rightarrow> vname set" where
 "kill SKIP = {}" |
 "kill (x ::= a) = {x}" |
 "kill (c\<^isub>1; c\<^isub>2) = kill c\<^isub>1 \<union> kill c\<^isub>2" |
 "kill (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = kill c\<^isub>1 \<inter> kill c\<^isub>2" |
 "kill (WHILE b DO c) = {}"
 
-fun gen :: "com \<Rightarrow> name set" where
+fun gen :: "com \<Rightarrow> vname set" where
 "gen SKIP = {}" |
 "gen (x ::= a) = vars a" |
 "gen (c\<^isub>1; c\<^isub>2) = gen c\<^isub>1 \<union> (gen c\<^isub>2 - kill c\<^isub>1)" |
@@ -94,7 +94,7 @@ qed
 subsection "Program Optimization"
 
 text{* Burying assignments to dead variables: *}
-fun bury :: "com \<Rightarrow> name set \<Rightarrow> com" where
+fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury SKIP X = SKIP" |
 "bury (x ::= a) X = (if x:X then x::= a else SKIP)" |
 "bury (c\<^isub>1; c\<^isub>2) X = (bury c\<^isub>1 (L c\<^isub>2 X); bury c\<^isub>2 X)" |

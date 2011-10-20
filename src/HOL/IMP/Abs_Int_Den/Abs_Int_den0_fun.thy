@@ -125,7 +125,7 @@ subsection "Abstract Interpretation Abstractly"
 text{* Abstract interpretation over abstract values. Abstract states are
 simply functions. The post-fixed point finder is parameterized over. *}
 
-type_synonym 'a st = "name \<Rightarrow> 'a"
+type_synonym 'a st = "vname \<Rightarrow> 'a"
 
 locale Abs_Int_Fun = Val_abs +
 fixes pfp :: "('a st \<Rightarrow> 'a st) \<Rightarrow> 'a st \<Rightarrow> 'a st"
@@ -133,7 +133,7 @@ assumes pfp: "f(pfp f x) \<sqsubseteq> pfp f x"
 assumes above: "x \<sqsubseteq> pfp f x"
 begin
 
-fun aval' :: "aexp \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> 'a" where
+fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
 "aval' (N n) _ = num' n" |
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
@@ -147,7 +147,7 @@ by (metis le_fun_def le_rep subsetD)
 lemma aval'_sound: "s <: S \<Longrightarrow> aval a s <: aval' a S"
 by (induct a) (auto simp: rep_num' rep_plus')
 
-fun AI :: "com \<Rightarrow> (name \<Rightarrow> 'a) \<Rightarrow> (name \<Rightarrow> 'a)" where
+fun AI :: "com \<Rightarrow> 'a st \<Rightarrow> 'a st" where
 "AI SKIP S = S" |
 "AI (x ::= a) S = S(x := aval' a S)" |
 "AI (c1;c2) S = AI c2 (AI c1 S)" |

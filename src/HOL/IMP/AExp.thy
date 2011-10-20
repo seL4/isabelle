@@ -4,11 +4,11 @@ theory AExp imports Main begin
 
 subsection "Arithmetic Expressions"
 
-type_synonym name = string
+type_synonym vname = string
 type_synonym val = int
-type_synonym state = "name \<Rightarrow> val"
+type_synonym state = "vname \<Rightarrow> val"
 
-datatype aexp = N int | V name | Plus aexp aexp
+datatype aexp = N int | V vname | Plus aexp aexp
 
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (N n) _ = n" |

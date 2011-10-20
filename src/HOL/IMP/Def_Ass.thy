@@ -3,7 +3,7 @@ begin
 
 subsection "Definite Assignment Analysis"
 
-inductive D :: "name set \<Rightarrow> com \<Rightarrow> name set \<Rightarrow> bool" where
+inductive D :: "vname set \<Rightarrow> com \<Rightarrow> vname set \<Rightarrow> bool" where
 Skip: "D A SKIP A" |
 Assign: "vars a \<subseteq> A \<Longrightarrow> D A (x ::= a) (insert x A)" |
 Semi: "\<lbrakk> D A\<^isub>1 c\<^isub>1 A\<^isub>2;  D A\<^isub>2 c\<^isub>2 A\<^isub>3 \<rbrakk> \<Longrightarrow> D A\<^isub>1 (c\<^isub>1; c\<^isub>2) A\<^isub>3" |

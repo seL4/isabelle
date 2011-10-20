@@ -8,7 +8,7 @@ subsection "Hoare Logic for Partial Correctness"
 
 type_synonym assn = "state \<Rightarrow> bool"
 
-abbreviation state_subst :: "state \<Rightarrow> aexp \<Rightarrow> name \<Rightarrow> state"
+abbreviation state_subst :: "state \<Rightarrow> aexp \<Rightarrow> vname \<Rightarrow> state"
   ("_[_'/_]" [1000,0,0] 999)
 where "s[a/x] == s(x := aval a s)"
 

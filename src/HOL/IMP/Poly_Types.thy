@@ -6,7 +6,7 @@ datatype ty = Ity | Rty | TV nat
 
 text{* Everything else remains the same. *}
 
-type_synonym tyenv = "name \<Rightarrow> ty"
+type_synonym tyenv = "vname \<Rightarrow> ty"
 
 inductive atyping :: "tyenv \<Rightarrow> aexp \<Rightarrow> ty \<Rightarrow> bool"
   ("(1_/ \<turnstile>p/ (_ :/ _))" [50,0,50] 50)

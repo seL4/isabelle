@@ -8,7 +8,7 @@ text{* Annotated commands: commands where loops are annotated with
 invariants. *}
 
 datatype acom = Askip
-              | Aassign name aexp
+              | Aassign vname aexp
               | Asemi   acom acom
               | Aif     bexp acom acom
               | Awhile  bexp assn acom
