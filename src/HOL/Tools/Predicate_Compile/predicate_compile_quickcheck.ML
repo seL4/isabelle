@@ -18,10 +18,7 @@ sig
       Proof.context -> Proof.context;
   val put_new_dseq_result : (unit -> int -> term list Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
-
-  val tracing : bool Unsynchronized.ref;
-  val quiet : bool Unsynchronized.ref;
-  val test_goals : (Predicate_Compile_Aux.compilation * bool * bool * int) ->
+  val test_goals : (Predicate_Compile_Aux.compilation * bool * bool) ->
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list
       -> Quickcheck.result list
   val nrandom : int Unsynchronized.ref;
@@ -69,10 +66,6 @@ structure New_Dseq_Result = Proof_Data
   fun init _ () = error "New_Dseq_Random_Result"
 );
 val put_new_dseq_result = New_Dseq_Result.put;
-
-val tracing = Unsynchronized.ref false;
-
-val quiet = Unsynchronized.ref true;
 
 val target = "Quickcheck"
 
@@ -331,16 +324,22 @@ fun compile_term compilation options ctxt t =
     prog
   end
 
-fun try_upto quiet f i =
+fun try_upto_depth ctxt f =
   let
-    fun try' j =
-      if j <= i then
+    val max_depth = Config.get ctxt Quickcheck.depth
+    fun message s = if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message s
+    fun try' i =
+      if i <= max_depth then
         let
-          val _ = if quiet then () else Output.urgent_message ("Executing depth " ^ string_of_int j)
+          val _ = message ("Depth: " ^ string_of_int i)
+          val (result, time) =
+            cpu_time ("Depth " ^ string_of_int i) (fn () =>
+              f i handle Match => (if Config.get ctxt Quickcheck.quiet then ()
+                    else warning "Exception Match raised during quickcheck"; NONE))
+         val _ = if Config.get ctxt Quickcheck.timing then
+           message (fst time ^ ": " ^ string_of_int (snd time) ^ " ms") else ()
         in
-          case f j handle Match => (if quiet then ()
-             else warning "Exception Match raised during quickcheck"; NONE)
-          of NONE => try' (j + 1) | SOME q => SOME q
+          case result of NONE => try' (i + 1) | SOME q => SOME q
         end
       else
         NONE
@@ -350,35 +349,35 @@ fun try_upto quiet f i =
 
 (* quickcheck interface functions *)
 
-fun compile_term' compilation options depth ctxt (t, eval_terms) =
+fun compile_term' compilation options ctxt (t, eval_terms) =
   let
     val size = Config.get ctxt Quickcheck.size
     val c = compile_term compilation options ctxt t
-    val counterexample = try_upto (!quiet) (c size (!nrandom)) depth
+    val counterexample = try_upto_depth ctxt (c size (!nrandom))
   in
     Quickcheck.Result
       {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
        evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
   end
 
-fun quickcheck_compile_term compilation function_flattening fail_safe_function_flattening depth =
+fun quickcheck_compile_term compilation function_flattening fail_safe_function_flattening =
   let
      val options =
        set_fail_safe_function_flattening fail_safe_function_flattening
          (set_function_flattening function_flattening (get_options ()))
   in
-    compile_term' compilation options depth
+    compile_term' compilation options
   end
 
 
 fun test_goals options ctxt (limit_time, is_interactive) insts goals =
   let
-    val (compilation, function_flattening, fail_safe_function_flattening, depth) = options
-    val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
+    val (compilation, function_flattening, fail_safe_function_flattening) = options
+    val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
     val test_term =
-      quickcheck_compile_term compilation function_flattening fail_safe_function_flattening depth
+      quickcheck_compile_term compilation function_flattening fail_safe_function_flattening
   in
-    Quickcheck.collect_results (test_term ctxt)
+    Quickcheck_Common.collect_results (test_term ctxt)
       (maps (map snd) correct_inst_goals) []
   end
   
@@ -388,11 +387,11 @@ val ff_nofs_active = Attrib.setup_config_bool @{binding quickcheck_pc_ff_nofs_ac
 
 val setup = 
   Context.theory_map (Quickcheck.add_tester ("predicate_compile_wo_ff",
-    (wo_ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, false, true, 4))))
+    (wo_ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, false, true))))
   #> Context.theory_map (Quickcheck.add_tester ("predicate_compile_ff_fs",
-    (ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, true, true, 4))))
+    (ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, true, true))))
   #> Context.theory_map (Quickcheck.add_tester ("predicate_compile_ff_nofs",
-    (wo_ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, true, true, 4))))
+    (wo_ff_active, test_goals (Predicate_Compile_Aux.New_Pos_Random_DSeq, true, true))))
 
 
 end;

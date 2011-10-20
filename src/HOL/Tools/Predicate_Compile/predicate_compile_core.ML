@@ -519,14 +519,8 @@ val pos_generator_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = New_Pos_DSequence_CompFuns.depth_limited_compfuns,
   mk_random =
     (fn T => fn additional_arguments =>
-      let
-        val small_lazy =
-         Const (@{const_name "Lazy_Sequence.small_lazy_class.small_lazy"},
-         @{typ "Int.int"} --> Type (@{type_name "Lazy_Sequence.lazy_sequence"}, [T])) 
-      in
-        absdummy @{typ code_numeral} (small_lazy $ HOLogic.mk_number @{typ int} 3)
-      end
-    ),
+      Const (@{const_name "Lazy_Sequence.small_lazy_class.small_lazy"},
+        @{typ "Code_Numeral.code_numeral"} --> Type (@{type_name "Lazy_Sequence.lazy_sequence"}, [T]))),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))

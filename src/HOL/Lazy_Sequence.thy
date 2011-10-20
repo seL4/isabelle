@@ -153,7 +153,7 @@ where
 subsubsection {* Small lazy typeclasses *}
 
 class small_lazy =
-  fixes small_lazy :: "int \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
+  fixes small_lazy :: "code_numeral \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
 
 instantiation unit :: small_lazy
 begin
@@ -178,7 +178,7 @@ by pat_completeness auto
 termination 
   by (relation "measure (%(d, i). nat (d + 1 - i))") auto
 
-definition "small_lazy d = small_lazy' d (- d)"
+definition "small_lazy d = small_lazy' (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
 
 instance ..
 
@@ -197,7 +197,7 @@ end
 instantiation list :: (small_lazy) small_lazy
 begin
 
-fun small_lazy_list :: "int => 'a list Lazy_Sequence.lazy_sequence"
+fun small_lazy_list :: "code_numeral => 'a list Lazy_Sequence.lazy_sequence"
 where
   "small_lazy_list d = Lazy_Sequence.append (Lazy_Sequence.single []) (if d > 0 then Lazy_Sequence.bind (product (small_lazy (d - 1)) (small_lazy (d - 1))) (%(x, xs). Lazy_Sequence.single (x # xs)) else Lazy_Sequence.empty)"
 
