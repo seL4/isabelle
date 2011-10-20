@@ -46,16 +46,6 @@ subsubsection{* Proof automation *}
 
 declare small_step.intros[simp,intro]
 
-text{* So-called transitivity rules. See below. *}
-
-declare step[trans] step1[trans]
-
-lemma step2[trans]:
-  "cs \<rightarrow> cs' \<Longrightarrow> cs' \<rightarrow> cs'' \<Longrightarrow> cs \<rightarrow>* cs''"
-by(metis refl step)
-
-declare star_trans[trans]
-
 text{* Rule inversion: *}
 
 inductive_cases SkipE[elim!]: "(SKIP,s) \<rightarrow> ct"
@@ -92,9 +82,7 @@ lemma semi_comp:
 by(blast intro: star.step star_semi2 star_trans)
 
 text{* The following proof corresponds to one on the board where one would
-show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps. This is what the
-also/finally proof steps do: they compose chains, implicitly using the rules
-declared with attribute [trans] above. *}
+show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps. *}
 
 lemma big_to_small:
   "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
@@ -110,21 +98,23 @@ next
   fix s::state and b c0 c1 t
   assume "bval b s"
   hence "(IF b THEN c0 ELSE c1,s) \<rightarrow> (c0,s)" by simp
-  also assume "(c0,s) \<rightarrow>* (SKIP,t)"
-  finally show "(IF b THEN c0 ELSE c1,s) \<rightarrow>* (SKIP,t)" . --"= by assumption"
+  moreover assume "(c0,s) \<rightarrow>* (SKIP,t)"
+  ultimately 
+  show "(IF b THEN c0 ELSE c1,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 next
   fix s::state and b c0 c1 t
   assume "\<not>bval b s"
   hence "(IF b THEN c0 ELSE c1,s) \<rightarrow> (c1,s)" by simp
-  also assume "(c1,s) \<rightarrow>* (SKIP,t)"
-  finally show "(IF b THEN c0 ELSE c1,s) \<rightarrow>* (SKIP,t)" .
+  moreover assume "(c1,s) \<rightarrow>* (SKIP,t)"
+  ultimately 
+  show "(IF b THEN c0 ELSE c1,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 next
   fix b c and s::state
   assume b: "\<not>bval b s"
   let ?if = "IF b THEN c; WHILE b DO c ELSE SKIP"
   have "(WHILE b DO c,s) \<rightarrow> (?if, s)" by blast
-  also have "(?if,s) \<rightarrow> (SKIP, s)" by (simp add: b)
-  finally show "(WHILE b DO c,s) \<rightarrow>* (SKIP,s)" by auto
+  moreover have "(?if,s) \<rightarrow> (SKIP, s)" by (simp add: b)
+  ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,s)" by (metis refl step)
 next
   fix b c s s' t
   let ?w  = "WHILE b DO c"
@@ -133,9 +123,9 @@ next
   assume c: "(c,s) \<rightarrow>* (SKIP,s')"
   assume b: "bval b s"
   have "(?w,s) \<rightarrow> (?if, s)" by blast
-  also have "(?if, s) \<rightarrow> (c; ?w, s)" by (simp add: b)
-  also have "(c; ?w,s) \<rightarrow>* (SKIP,t)" by(rule semi_comp[OF c w])
-  finally show "(WHILE b DO c,s) \<rightarrow>* (SKIP,t)" by auto
+  moreover have "(?if, s) \<rightarrow> (c; ?w, s)" by (simp add: b)
+  moreover have "(c; ?w,s) \<rightarrow>* (SKIP,t)" by(rule semi_comp[OF c w])
+  ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 qed
 
 text{* Each case of the induction can be proved automatically: *}
