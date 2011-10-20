@@ -5,7 +5,7 @@ subsection "Boolean Expressions"
 datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
-"bval (Bc v) _ = v" |
+"bval (Bc v) s = v" |
 "bval (Not b) s = (\<not> bval b s)" |
 "bval (And b1 b2) s = (if bval b1 s then bval b2 s else False)" |
 "bval (Less a1 a2) s = (aval a1 s < aval a2 s)"
