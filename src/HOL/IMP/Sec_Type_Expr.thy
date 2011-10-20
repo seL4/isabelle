@@ -11,7 +11,7 @@ text{* The security/confidentiality level of each variable is globally fixed
 for simplicity. For the sake of examples --- the general theory does not rely
 on it! --- a variable of length @{text n} has security level @{text n}: *}
 
-definition sec :: "name \<Rightarrow> level" where 
+definition sec :: "vname \<Rightarrow> level" where 
   "sec n = size n"
 
 fun sec_aexp :: "aexp \<Rightarrow> level" where

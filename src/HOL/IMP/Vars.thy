@@ -13,7 +13,7 @@ avars} and @{text bvars}, but we overload the name @{text vars}
 via a \emph{type class}, a device that originated with Haskell: *}
  
 class vars =
-fixes vars :: "'a \<Rightarrow> name set"
+fixes vars :: "'a \<Rightarrow> vname set"
 
 text{* This defines a type class ``vars'' with a single
 function of (coincidentally) the same name. Then we define two separated
@@ -22,7 +22,7 @@ instances of the class, one for @{typ aexp} and one for @{typ bexp}: *}
 instantiation aexp :: vars
 begin
 
-fun vars_aexp :: "aexp \<Rightarrow> name set" where
+fun vars_aexp :: "aexp \<Rightarrow> vname set" where
 "vars_aexp (N n) = {}" |
 "vars_aexp (V x) = {x}" |
 "vars_aexp (Plus a\<^isub>1 a\<^isub>2) = vars_aexp a\<^isub>1 \<union> vars_aexp a\<^isub>2"
@@ -40,7 +40,7 @@ value "show  (vars(Plus (V ''x'') (V ''y'')))"
 instantiation bexp :: vars
 begin
 
-fun vars_bexp :: "bexp \<Rightarrow> name set" where
+fun vars_bexp :: "bexp \<Rightarrow> vname set" where
 "vars_bexp (Bc v) = {}" |
 "vars_bexp (Not b) = vars_bexp b" |
 "vars_bexp (And b\<^isub>1 b\<^isub>2) = vars_bexp b\<^isub>1 \<union> vars_bexp b\<^isub>2" |

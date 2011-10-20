@@ -3,7 +3,7 @@ begin
 
 subsubsection "Dynamic Scoping of Procedures and Variables"
 
-type_synonym penv = "name \<Rightarrow> com"
+type_synonym penv = "pname \<Rightarrow> com"
 
 inductive
   big_step :: "penv \<Rightarrow> com \<times> state \<Rightarrow> state \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow> _" [60,0,60] 55)

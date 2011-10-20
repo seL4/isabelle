@@ -6,10 +6,10 @@ subsection "Arithmetic Expressions"
 
 datatype val = Iv int | Rv real
 
-type_synonym name = string
-type_synonym state = "name \<Rightarrow> val"
+type_synonym vname = string
+type_synonym state = "vname \<Rightarrow> val"
 
-datatype aexp =  Ic int | Rc real | V name | Plus aexp aexp
+datatype aexp =  Ic int | Rc real | V vname | Plus aexp aexp
 
 inductive taval :: "aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool" where
 "taval (Ic i) s (Iv i)" |
@@ -41,7 +41,7 @@ subsection "Syntax of Commands"
 
 datatype
   com = SKIP 
-      | Assign name aexp         ("_ ::= _" [1000, 61] 61)
+      | Assign vname aexp        ("_ ::= _" [1000, 61] 61)
       | Semi   com  com          ("_; _"  [60, 61] 60)
       | If     bexp com com     ("IF _ THEN _ ELSE _"  [0, 0, 61] 61)
       | While  bexp com         ("WHILE _ DO _"  [0, 61] 61)
@@ -68,7 +68,7 @@ subsection "The Type System"
 
 datatype ty = Ity | Rty
 
-type_synonym tyenv = "name \<Rightarrow> ty"
+type_synonym tyenv = "vname \<Rightarrow> ty"
 
 inductive atyping :: "tyenv \<Rightarrow> aexp \<Rightarrow> ty \<Rightarrow> bool"
   ("(1_/ \<turnstile>/ (_ :/ _))" [50,0,50] 50)

@@ -5,7 +5,7 @@ theory Fold imports Sem_Equiv begin
 subsection "Simple folding of arithmetic expressions"
 
 type_synonym
-  tab = "name \<Rightarrow> val option"
+  tab = "vname \<Rightarrow> val option"
 
 (* maybe better as the composition of substitution and the existing simp_const(0) *)
 fun simp_const :: "aexp \<Rightarrow> tab \<Rightarrow> aexp" where
@@ -32,7 +32,7 @@ shows "simp_const a t = N n \<Longrightarrow> aval a s = n"
 definition
   "merge t1 t2 = (\<lambda>m. if t1 m = t2 m then t1 m else None)"
 
-primrec lnames :: "com \<Rightarrow> name set" where
+primrec lnames :: "com \<Rightarrow> vname set" where
 "lnames SKIP = {}" |
 "lnames (x ::= a) = {x}" |
 "lnames (c1; c2) = lnames c1 \<union> lnames c2" |

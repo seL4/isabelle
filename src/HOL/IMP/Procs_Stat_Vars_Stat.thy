@@ -4,9 +4,9 @@ begin
 subsubsection "Static Scoping of Procedures and Variables"
 
 type_synonym addr = nat
-type_synonym venv = "name \<Rightarrow> addr"
+type_synonym venv = "vname \<Rightarrow> addr"
 type_synonym store = "addr \<Rightarrow> val"
-type_synonym penv = "(name \<times> com \<times> venv) list"
+type_synonym penv = "(pname \<times> com \<times> venv) list"
 
 fun venv :: "penv \<times> venv \<times> nat \<Rightarrow> venv" where
 "venv(_,ve,_) = ve"

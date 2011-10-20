@@ -5,8 +5,7 @@ begin
 
 subsection "Initialization-Sensitive Expressions Evaluation"
 
-type_synonym val = "int"
-type_synonym state = "name \<Rightarrow> val option"
+type_synonym state = "vname \<Rightarrow> val option"
 
 
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val option" where
