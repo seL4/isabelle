@@ -16,6 +16,7 @@ sig
   val batch_tester : string Config.T
   val size : int Config.T
   val iterations : int Config.T
+  val depth : int Config.T
   val no_assms : bool Config.T
   val report : bool Config.T
   val timing : bool Config.T
@@ -163,6 +164,8 @@ fun merge_expectation (expect1, expect2) =
 val batch_tester = Attrib.setup_config_string @{binding quickcheck_batch_tester} (K "")
 val size = Attrib.setup_config_int @{binding quickcheck_size} (K 10)
 val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100)
+val depth = Attrib.setup_config_int @{binding quickcheck_depth} (K 10)
+
 val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
 val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
@@ -397,6 +400,7 @@ fun parse_tester name (testers, genctxt) =
 fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("size", [arg]) = apsnd (Config.put_generic size (read_nat arg))
   | parse_test_param ("iterations", [arg]) = apsnd (Config.put_generic iterations (read_nat arg))
+  | parse_test_param ("depth", [arg]) = apsnd (Config.put_generic depth (read_nat arg))  
   | parse_test_param ("default_type", arg) = (fn (testers, gen_ctxt) =>
     (testers, map_test_params
       ((apfst o K) (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt))
