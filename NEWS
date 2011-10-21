@@ -13,6 +13,9 @@ instead.  INCOMPATIBILITY.
  'code_library', 'consts_code', 'types_code' have been discontinued.
   Use commands of the generic code generator instead. INCOMPATIBILITY.
 
+* Redundant attribute 'code_inline' has been discontinued. Use 'code_unfold'
+instead. INCOMPATIBILITY.
+
 *** HOL ***
 
 * 'Transitive_Closure.ntrancl': bounded transitive closure on relations.
