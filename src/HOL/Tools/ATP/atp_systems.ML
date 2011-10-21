@@ -344,7 +344,8 @@ val vampire_config : atp_config =
    required_execs = [],
    arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-     " --proof tptp --output_axiom_names on \
+     " --proof tptp --output_axiom_names on\
+     \ --forced_options propositional_to_bdd=off\
      \ --thanks \"Andrei and Krystof\" --input_file"
      |> sos = sosN ? prefix "--sos on ",
    proof_delims =
