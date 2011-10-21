@@ -518,8 +518,6 @@ val setup =
   in
     Attrib.setup @{binding code_unfold} (add_del_attribute_parser add_unfold del_unfold)
         "preprocessing equations for code generator"
-    #> Attrib.setup @{binding code_inline} (add_del_attribute_parser add_unfold del_unfold)
-        "preprocessing equations for code generator"
     #> Attrib.setup @{binding code_post} (add_del_attribute_parser add_post del_post)
         "postprocessing equations for code generator"
     #> Attrib.setup @{binding code_unfold_post} (Scan.succeed (mk_attribute add_unfold_post))
