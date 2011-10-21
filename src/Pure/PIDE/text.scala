@@ -51,12 +51,19 @@ object Text
     def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
     def compare(that: Range): Int = if (overlaps(that)) 0 else this.start compare that.start
 
+    def apart(that: Range): Boolean =
+      (this.start max that.start) > (this.stop min that.stop)
+
     def restrict(that: Range): Range =
       Range(this.start max that.start, this.stop min that.stop)
 
     def try_restrict(that: Range): Option[Range] =
-      try { Some (restrict(that)) }
-      catch { case ERROR(_) => None }
+      if (this apart that) None
+      else Some(restrict(that))
+
+    def try_join(that: Range): Option[Range] =
+      if (this apart that) None
+      else Some(Range(this.start min that.start, this.stop max that.stop))
   }
 
 
@@ -68,33 +75,33 @@ object Text
 
     def apply(ranges: Seq[Range]): Perspective =
     {
-      val sorted_ranges = ranges.toArray
-      Sorting.quickSort(sorted_ranges)(Range.Ordering)
-
       val result = new mutable.ListBuffer[Text.Range]
       var last: Option[Text.Range] = None
-      for (range <- sorted_ranges)
+      def ship(next: Option[Range]) { result ++= last; last = next }
+
+      for (range <- ranges.sortBy(_.start))
       {
         last match {
-          case Some(last_range)
-          if ((last_range overlaps range) || last_range.stop == range.start) =>
-            last = Some(Text.Range(last_range.start, range.stop))
-          case _ =>
-            result ++= last
-            last = Some(range)
+          case None => ship(Some(range))
+          case Some(last_range) =>
+            last_range.try_join(range) match {
+              case None => ship(Some(range))
+              case joined => last = joined
+            }
         }
       }
-      result ++= last
+      ship(None)
       new Perspective(result.toList)
     }
   }
 
-  sealed case class Perspective(ranges: List[Range]) // visible text partitioning in canonical order
+  class Perspective private(val ranges: List[Range]) // visible text partitioning in canonical order
   {
     def is_empty: Boolean = ranges.isEmpty
     def range: Range =
       if (is_empty) Range(0)
       else Range(ranges.head.start, ranges.last.stop)
+    override def toString = ranges.toString
   }
 
 
