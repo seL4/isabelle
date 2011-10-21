@@ -1729,7 +1729,7 @@ class equal =
   assumes equal_eq: "equal x y \<longleftrightarrow> x = y"
 begin
 
-lemma equal [code_unfold, code_inline del]: "equal = (op =)"
+lemma equal: "equal = (op =)"
   by (rule ext equal_eq)+
 
 lemma equal_refl: "equal x x \<longleftrightarrow> True"

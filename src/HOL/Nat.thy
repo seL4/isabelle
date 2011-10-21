@@ -1301,7 +1301,7 @@ qed
 
 end
 
-declare of_nat_code [code, code_unfold, code_inline del]
+declare of_nat_code [code]
 
 text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}

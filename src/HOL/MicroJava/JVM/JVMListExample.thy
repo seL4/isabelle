@@ -125,11 +125,11 @@ lemma equal_loc'_code [code]:
 definition undefined_cname :: cname 
   where [code del]: "undefined_cname = undefined"
 code_datatype Object Xcpt Cname undefined_cname
-declare undefined_cname_def[symmetric, code_inline]
+declare undefined_cname_def[symmetric, code_unfold]
 
 definition undefined_val :: val
   where [code del]: "undefined_val = undefined"
-declare undefined_val_def[symmetric, code_inline]
+declare undefined_val_def[symmetric, code_unfold]
 code_datatype Unit Null Bool Intg Addr undefined_val
 
 definition

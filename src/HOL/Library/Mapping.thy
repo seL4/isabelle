@@ -90,7 +90,7 @@ definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" where
 
 subsection {* Properties *}
 
-lemma keys_is_none_lookup [code_inline]:
+lemma keys_is_none_lookup [code_unfold]:
   "k \<in> keys m \<longleftrightarrow> \<not> (Option.is_none (lookup m k))"
   by (auto simp add: keys_def is_none_def)
 

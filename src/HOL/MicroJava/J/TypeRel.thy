@@ -97,7 +97,7 @@ code_pred
   [inductify]
   subcls'
 .
-lemma subcls_conv_subcls' [code_inline]:
+lemma subcls_conv_subcls' [code_unfold]:
   "(subcls1 G)^* = (\<lambda>(C, D). subcls' G C D)"
 by(simp add: subcls'_def subcls1_def rtrancl_def)(simp add: Collect_def)
 

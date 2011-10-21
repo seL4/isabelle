@@ -460,7 +460,7 @@ lemma power_dvd_imp_le:
 
 subsection {* Code generator tweak *}
 
-lemma power_power_power [code, code_unfold, code_inline del]:
+lemma power_power_power [code]:
   "power = power.power (1::'a::{power}) (op *)"
   unfolding power_def power.power_def ..
 

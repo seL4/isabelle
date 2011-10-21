@@ -67,7 +67,7 @@ lemma [code_unfold]:
   "{} = empty"
   by simp
 
-lemma [code_unfold, code_inline del]:
+lemma
   "empty = Set []"
   by simp -- {* Otherwise @{text \<eta>}-expansion produces funny things. *}
 

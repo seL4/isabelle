@@ -495,7 +495,7 @@ definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
 lemma [code_post]: "raise' (STR s) = raise s"
 unfolding raise'_def by (simp add: STR_inverse)
 
-lemma raise_raise' [code_inline]:
+lemma raise_raise' [code_unfold]:
   "raise s = raise' (STR s)"
   unfolding raise'_def by (simp add: STR_inverse)
 

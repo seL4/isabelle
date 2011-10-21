@@ -84,7 +84,7 @@ where
 
 definition subtract
 where
-  [code_inline]: "subtract x y = y - x"
+  [code_unfold]: "subtract x y = y - x"
 
 setup {*
 let

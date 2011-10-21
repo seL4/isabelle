@@ -305,13 +305,13 @@ end
 
 text {* Explicit dictionaries for code generation *}
 
-lemma min_ord_min [code, code_unfold, code_inline del]:
+lemma min_ord_min [code]:
   "min = ord.min (op \<le>)"
   by (rule ext)+ (simp add: min_def ord.min_def)
 
 declare ord.min_def [code]
 
-lemma max_ord_max [code, code_unfold, code_inline del]:
+lemma max_ord_max [code]:
   "max = ord.max (op \<le>)"
   by (rule ext)+ (simp add: max_def ord.max_def)
 
