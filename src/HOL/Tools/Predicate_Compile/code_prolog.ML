@@ -1045,9 +1045,9 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
 
 fun test_goals ctxt (limit_time, is_interactive) insts goals =
   let
-    val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
+    val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
   in
-    Quickcheck.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+    Quickcheck_Common.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
   end
   
   
