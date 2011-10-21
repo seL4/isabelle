@@ -4,7 +4,7 @@ theory ASM imports AExp begin
 
 subsection "Arithmetic Stack Machine"
 
-datatype ainstr = LOADI val | LOAD string | ADD
+datatype ainstr = LOADI val | LOAD vname | ADD
 
 type_synonym stack = "val list"
 
