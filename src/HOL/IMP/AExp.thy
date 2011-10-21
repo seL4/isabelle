@@ -60,7 +60,7 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
     (N n1, N n2) \<Rightarrow> N(n1+n2) |
     (a1',a2') \<Rightarrow> Plus a1' a2')"
 
-theorem aval_asimp_const[simp]:
+theorem aval_asimp_const:
   "aval (asimp_const a) s = aval a s"
 apply(induction a)
 apply (auto split: aexp.split)
