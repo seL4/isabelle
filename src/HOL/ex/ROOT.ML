@@ -71,7 +71,8 @@ use_thys [
   "Birthday_Paradox",
   "List_to_Set_Comprehension_Examples",
   "Set_Algebras",
-  "Seq"
+  "Seq",
+  "Simproc_Tests"
 ];
 
 if getenv "ISABELLE_GHC" = "" then ()
