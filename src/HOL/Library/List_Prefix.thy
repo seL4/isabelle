@@ -74,7 +74,7 @@ proof
 next
   assume "xs = ys @ [y] \<or> xs \<le> ys"
   then show "xs \<le> ys @ [y]"
-    by (metis order_eq_iff strict_prefixE strict_prefixI' xt1(7))
+    by (metis order_eq_iff order_trans prefixI)
 qed
 
 lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"

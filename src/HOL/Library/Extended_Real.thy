@@ -1362,8 +1362,7 @@ proof-
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis SUP_least assms atLeastatMost_empty atLeastatMost_empty_iff
-      inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
+  by (metis less_SUP_iff order_less_imp_le order_less_le_trans)
 } ultimately show ?thesis by auto
 qed
 
@@ -1382,8 +1381,7 @@ proof-
 }
 moreover
 { assume "?lhs" hence "?rhs"
-  by (metis INF_greatest assms atLeastatMost_empty atLeastatMost_empty_iff
-      inf_sup_ord(4) linorder_le_cases sup_absorb1 xt1(8))
+  by (metis INF_less_iff order_le_less order_less_le_trans)
 } ultimately show ?thesis by auto
 qed
 
