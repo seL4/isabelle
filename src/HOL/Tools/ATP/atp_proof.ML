@@ -247,36 +247,37 @@ val scan_general_id =
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
-val dummy_phi = AAtom (ATerm ("", []))
-
-fun skip_formula ss =
+val skip_term =
   let
-    fun skip _ [] = []
-      | skip 0 (ss as "," :: _) = ss
-      | skip 0 (ss as ")" :: _) = ss
-      | skip 0 (ss as "]" :: _) = ss
-      | skip n ("(" :: ss) = skip (n + 1) ss
-      | skip n ("[" :: ss) = skip (n + 1) ss
-      | skip n ("]" :: ss) = skip (n - 1) ss
-      | skip n (")" :: ss) = skip (n - 1) ss
-      | skip n (_ :: ss) = skip n ss
-  in (dummy_phi, skip 0 ss) end
+    fun skip _ accum [] = (accum, [])
+      | skip 0 accum (ss as "," :: _) = (accum, ss)
+      | skip 0 accum (ss as ")" :: _) = (accum, ss)
+      | skip 0 accum (ss as "]" :: _) = (accum, ss)
+      | skip n accum ((s as "(") :: ss) = skip (n + 1) (s :: accum) ss
+      | skip n accum ((s as "[") :: ss) = skip (n + 1) (s :: accum) ss
+      | skip n accum ((s as "]") :: ss) = skip (n - 1) (s :: accum) ss
+      | skip n accum ((s as ")") :: ss) = skip (n - 1) (s :: accum) ss
+      | skip n accum (s :: ss) = skip n (s :: accum) ss
+  in skip 0 [] #>> (rev #> implode) end
 
 datatype source =
   File_Source of string * string option |
   Inference_Source of string * string list
 
-fun parse_dependencies x =
-  (scan_general_id ::: Scan.repeat ($$ "," |-- scan_general_id)) x
+val dummy_phi = AAtom (ATerm ("", []))
+val dummy_inference = Inference_Source ("", [])
+
+fun parse_dependencies x = (skip_term ::: Scan.repeat ($$ "," |-- skip_term)) x
 
 fun parse_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id --
      Scan.option ($$ "," |-- scan_general_id) --| $$ ")"
      >> File_Source
    || Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
-        --| skip_formula --| $$ "," --| skip_formula --| $$ "," --| $$ "["
+        --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
         -- parse_dependencies --| $$ "]" --| $$ ")"
-       >> Inference_Source) x
+       >> Inference_Source
+   || skip_term >> K dummy_inference) x
 
 fun list_app (f, args) =
   fold (fn arg => fn f => ATerm (tptp_app, [f, arg])) args f
@@ -345,9 +346,8 @@ and parse_quantified_formula x =
           AQuant (q, map (rpair NONE o ho_term_head) ts, phi))) x
 
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_source
-                 --| Scan.option ($$ "," |-- skip_formula))
-                (Inference_Source ("", []))
+  Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
+                dummy_inference
 
 val waldmeister_conjecture = "conjecture_1"
 
@@ -399,8 +399,8 @@ fun parse_tstp_line problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
     || Scan.this_string tptp_tff || Scan.this_string tptp_thf) -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
-    -- (parse_formula || skip_formula) -- parse_tstp_extra_arguments --| $$ ")"
-    --| $$ "."
+    -- (parse_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
+    --| $$ ")" --| $$ "."
    >> (fn (((num, role), phi), deps) =>
           let
             val (name, rule, deps) =
