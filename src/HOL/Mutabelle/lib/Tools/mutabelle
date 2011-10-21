@@ -133,8 +133,9 @@ function mk_stat() {
 
 mk_stat "quickcheck_random"
 mk_stat "quickcheck_exhaustive"
-mk_stat "quickcheck_exhaustive_nft"
+mk_stat "quickcheck_exhaustive_no_finite_types"
 mk_stat "quickcheck_narrowing"
+mk_stat "quickcheck_narrowing_no_finite_types"
 mk_stat "quickcheck_narrowing_nat"
 mk_stat "nitpick"
 
