@@ -366,7 +366,7 @@ fun method_i thy =
       end;
   in meth end;
 
-fun method thy = method_i thy o Args.map_name (Name_Space.intern (#1 (Methods.get thy)));
+fun method thy = method_i thy o Args.map_name (intern thy);
 
 
 (* method setup *)
