@@ -217,7 +217,7 @@ fun make_primrecs new_type_names descr sorts thy =
     val rec_fns = map (uncurry (Datatype_Aux.mk_Free "f"))
       (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
 
-    val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
+    val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
     val reccomb_names = map (Sign.intern_const thy)
       (if length descr' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)

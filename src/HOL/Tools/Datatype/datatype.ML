@@ -201,8 +201,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (*********************** definition of constructors ***********************)
 
-    val big_rep_name = (space_implode "_" new_type_names) ^ "_Rep_";
-    val rep_names = map (curry op ^ "Rep_") new_type_names;
+    val big_rep_name = space_implode "_" new_type_names ^ "_Rep_";
+    val rep_names = map (prefix "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
       (1 upto (length (flat (tl descr))));
     val all_rep_names = map (Sign.intern_const thy3) rep_names @
