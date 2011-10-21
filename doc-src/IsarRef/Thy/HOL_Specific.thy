@@ -1744,8 +1744,9 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def (HOL) code_inline} & : & @{text attribute} \\
+    @{attribute_def (HOL) code_unfold} & : & @{text attribute} \\
     @{attribute_def (HOL) code_post} & : & @{text attribute} \\
+    @{attribute_def (HOL) code_unfold_post} & : & @{text attribute} \\
     @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -1790,10 +1791,13 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @@{command (HOL) code_datatype} ( const + )
     ;
 
-    @@{attribute (HOL) code_inline} ( 'del' ) ?
+    @@{attribute (HOL) code_unfold} ( 'del' ) ?
     ;
 
     @@{attribute (HOL) code_post} ( 'del' ) ?
+    ;
+
+    @@{attribute (HOL) code_unfold_post}
     ;
 
     @@{command (HOL) code_thms} ( constexpr + ) ?
@@ -1887,14 +1891,18 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \item @{command (HOL) "print_codesetup"} gives an overview on
   selected code equations and code generator datatypes.
 
-  \item @{attribute (HOL) code_inline} declares (or with option
-  ``@{text "del"}'' removes) inlining theorems which are applied as
+  \item @{attribute (HOL) code_unfold} declares (or with option
+  ``@{text "del"}'' removes) theorems which are applied as
   rewrite rules to any code equation during preprocessing.
 
   \item @{attribute (HOL) code_post} declares (or with option ``@{text
   "del"}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
+  \item @{attribute (HOL) code_unfold_post} declares equations which are
+  applied as rewrite rules to any code equation during preprocessing,
+  and symmetrically to any result of an evaluation.
+  
   \item @{command (HOL) "print_codeproc"} prints the setup of the code
   generator preprocessor.
 
