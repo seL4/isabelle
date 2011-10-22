@@ -5,4 +5,4 @@
 The Lambda-Cube a la Barendregt.
 *)
 
-use_thys ["Cube", "Example"];
+use_thys ["Example"];
