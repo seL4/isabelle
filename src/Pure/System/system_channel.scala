@@ -28,12 +28,12 @@ abstract class System_Channel
 
 /** named pipes **/
 
-object Fifo_Channel
+private object Fifo_Channel
 {
   private val next_fifo = Counter()
 }
 
-class Fifo_Channel extends System_Channel
+private class Fifo_Channel extends System_Channel
 {
   private def mk_fifo(): String =
   {
@@ -81,7 +81,7 @@ class Fifo_Channel extends System_Channel
 
 /** sockets **/
 
-class Socket_Channel extends System_Channel
+private class Socket_Channel extends System_Channel
 {
   private val server = new ServerSocket(0, 2, InetAddress.getByName("127.0.0.1"))
 

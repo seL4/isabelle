@@ -53,7 +53,7 @@ object Pretty
           Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
     }
 
-  sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
+  private sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
   {
     def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
     def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
