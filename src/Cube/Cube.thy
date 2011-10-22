@@ -21,42 +21,36 @@ axiomatization
   MT_context :: "context" and
   Context :: "[typing, context] => context" and
   star :: "term"  ("*") and
-  box :: "term"  ("[]") and
+  box :: "term"  ("\<box>") and
   app :: "[term, term] => term"  (infixl "^" 20) and
   Has_type :: "[term, term] => typing"
-
-notation (xsymbols)
-  box  ("\<box>")
 
 nonterminal context' and typing'
 
 syntax
-  "_Trueprop" :: "[context', typing'] => prop"  ("(_/ |- _)")
+  "_Trueprop" :: "[context', typing'] => prop"  ("(_/ \<turnstile> _)")
   "_Trueprop1" :: "typing' => prop"  ("(_)")
   "" :: "id => context'"  ("_")
   "" :: "var => context'"  ("_")
   "_MT_context" :: "context'"  ("")
   "_Context" :: "[typing', context'] => context'"  ("_ _")
   "_Has_type" :: "[term, term] => typing'"  ("(_:/ _)" [0, 0] 5)
-  "_Lam" :: "[idt, term, term] => term"  ("(3Lam _:_./ _)" [0, 0, 0] 10)
-  "_Pi" :: "[idt, term, term] => term"  ("(3Pi _:_./ _)" [0, 0] 10)
-  "_arrow" :: "[term, term] => term"  (infixr "->" 10)
+  "_Lam" :: "[idt, term, term] => term"  ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] => term"  ("(3\<Pi> _:_./ _)" [0, 0] 10)
+  "_arrow" :: "[term, term] => term"  (infixr "\<rightarrow>" 10)
 
 translations
   "_Trueprop(G, t)" == "CONST Trueprop(G, t)"
-  ("prop") "x:X" == ("prop") "|- x:X"
+  ("prop") "x:X" == ("prop") "\<turnstile> x:X"
   "_MT_context" == "CONST MT_context"
   "_Context" == "CONST Context"
   "_Has_type" == "CONST Has_type"
-  "Lam x:A. B" == "CONST Abs(A, %x. B)"
-  "Pi x:A. B" => "CONST Prod(A, %x. B)"
-  "A -> B" => "CONST Prod(A, %_. B)"
+  "\<Lambda> x:A. B" == "CONST Abs(A, %x. B)"
+  "\<Pi> x:A. B" => "CONST Prod(A, %x. B)"
+  "A \<rightarrow> B" => "CONST Prod(A, %_. B)"
 
 syntax (xsymbols)
-  "_Trueprop" :: "[context', typing'] => prop"    ("(_/ \<turnstile> _)")
-  "_Lam" :: "[idt, term, term] => term"    ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
   "_Pi" :: "[idt, term, term] => term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
-  "_arrow" :: "[term, term] => term"    (infixr "\<rightarrow>" 10)
 
 print_translation {*
   [(@{const_syntax Prod},
@@ -64,10 +58,10 @@ print_translation {*
 *}
 
 axiomatization where
-  s_b: "*: []"  and
+  s_b: "*: \<box>"  and
 
-  strip_s: "[| A:*;  a:A ==> G |- x:X |] ==> a:A G |- x:X" and
-  strip_b: "[| A:[]; a:A ==> G |- x:X |] ==> a:A G |- x:X" and
+  strip_s: "[| A:*;  a:A ==> G \<turnstile> x:X |] ==> a:A G \<turnstile> x:X" and
+  strip_b: "[| A:\<box>; a:A ==> G \<turnstile> x:X |] ==> a:A G \<turnstile> x:X" and
 
   app: "[| F:Prod(A, B); C:A |] ==> F^C: B(C)" and
 
@@ -82,7 +76,7 @@ lemmas simple = s_b strip_s strip_b app lam_ss pi_ss
 lemmas rules = simple
 
 lemma imp_elim:
-  assumes "f:A->B" and "a:A" and "f^a:B ==> PROP P"
+  assumes "f:A\<rightarrow>B" and "a:A" and "f^a:B ==> PROP P"
   shows "PROP P" by (rule app assms)+
 
 lemma pi_elim:
@@ -91,25 +85,31 @@ lemma pi_elim:
 
 
 locale L2 =
-  assumes pi_bs: "[| A:[]; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"
-    and lam_bs: "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |]
+  assumes pi_bs: "[| A:\<box>; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"
+    and lam_bs: "[| A:\<box>; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |]
                    ==> Abs(A,f) : Prod(A,B)"
+begin
 
-lemmas (in L2) rules = simple lam_bs pi_bs
+lemmas rules = simple lam_bs pi_bs
+
+end
 
 
 locale Lomega =
   assumes
-    pi_bb: "[| A:[]; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"
-    and lam_bb: "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |]
+    pi_bb: "[| A:\<box>; !!x. x:A ==> B(x):\<box> |] ==> Prod(A,B):\<box>"
+    and lam_bb: "[| A:\<box>; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):\<box> |]
                    ==> Abs(A,f) : Prod(A,B)"
+begin
 
-lemmas (in Lomega) rules = simple lam_bb pi_bb
+lemmas rules = simple lam_bb pi_bb
+
+end
 
 
 locale LP =
-  assumes pi_sb: "[| A:*; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"
-    and lam_sb: "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |]
+  assumes pi_sb: "[| A:*; !!x. x:A ==> B(x):\<box> |] ==> Prod(A,B):\<box>"
+    and lam_sb: "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):\<box> |]
                    ==> Abs(A,f) : Prod(A,B)"
 begin
 
