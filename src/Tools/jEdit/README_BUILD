@@ -4,7 +4,7 @@ Requirements for instantaneous build from sources
 * Official Java JDK from Sun/Oracle/Apple, e.g. 1.6.0_27
   http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-* Scala 2.8.2.final
+* Scala 2.8.2.final (experimental support for 2.9.1.final)
   http://www.scala-lang.org
 
 * Auxiliary jedit_build component
