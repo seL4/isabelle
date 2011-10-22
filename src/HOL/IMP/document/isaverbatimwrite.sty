@@ -1,0 +1,16 @@
+\@ifundefined{verbatim@processline}{\input verbatim.sty}{}
+
+\newwrite \isaverbatim@out
+\def\openisaverbatimout#1{\immediate\openout \isaverbatim@out #1}
+\def\closeisaverbatimout{\immediate\closeout \isaverbatim@out}
+\def\isaverbatimwrite{%
+  \@bsphack
+  \let\do\@makeother\dospecials
+  \catcode`\^^M\active \catcode`\^^I=12
+  \def\verbatim@processline{%
+    \immediate\write\isaverbatim@out
+      {\the\verbatim@line}}%
+  \verbatim@start}
+
+\def\endisaverbatimwrite{%
+  \@esphack}
