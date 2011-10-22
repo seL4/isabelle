@@ -124,7 +124,7 @@ object Text
     def remove(start: Offset, text: String): Edit = new Edit(false, start, text)
   }
 
-  class Edit(val is_insert: Boolean, val start: Offset, val text: String)
+  class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
   {
     override def toString =
       (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
