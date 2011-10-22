@@ -15,7 +15,7 @@ object Path
 {
   /* path elements */
 
-  private sealed abstract class Elem
+  sealed abstract class Elem
   private case class Root(val name: String) extends Elem
   private case class Basic(val name: String) extends Elem
   private case class Variable(val name: String) extends Elem
@@ -60,15 +60,12 @@ object Path
 
   /* path constructors */
 
-  private def apply(xs: List[Elem]): Path =
-    new Path { override val elems = xs }
-
-  val current: Path = Path(Nil)
-  val root: Path = Path(List(Root("")))
-  def named_root(s: String): Path = Path(List(root_elem(s)))
-  def basic(s: String): Path = Path(List(basic_elem(s)))
-  def variable(s: String): Path = Path(List(variable_elem(s)))
-  val parent: Path = Path(List(Parent))
+  val current: Path = new Path(Nil)
+  val root: Path = new Path(List(Root("")))
+  def named_root(s: String): Path = new Path(List(root_elem(s)))
+  def basic(s: String): Path = new Path(List(basic_elem(s)))
+  def variable(s: String): Path = new Path(List(variable_elem(s)))
+  val parent: Path = new Path(List(Parent))
 
 
   /* explode */
@@ -93,7 +90,7 @@ object Path
       else if (r == 1) (List(Root("")), es)
       else if (es.isEmpty) (List(Root("")), Nil)
       else (List(root_elem(es.head)), es.tail)
-    Path(norm_elems(explode_elems(raw_elems) ++ roots))
+    new Path(norm_elems(explode_elems(raw_elems) ++ roots))
   }
 
   def split(str: String): List[Path] =
@@ -101,15 +98,13 @@ object Path
 }
 
 
-class Path
+class Path private(private val elems: List[Path.Elem]) // reversed elements
 {
-  protected val elems: List[Path.Elem] = Nil   // reversed elements
-
   def is_current: Boolean = elems.isEmpty
   def is_absolute: Boolean = !elems.isEmpty && elems.last.isInstanceOf[Path.Root]
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
 
-  def +(other: Path): Path = Path((other.elems :\ elems)(Path.apply_elem))
+  def +(other: Path): Path = new Path((other.elems :\ elems)(Path.apply_elem))
 
 
   /* implode */
@@ -128,12 +123,12 @@ class Path
 
   private def split_path: (Path, String) =
     elems match {
-      case Path.Basic(s) :: xs => (Path(xs), s)
+      case Path.Basic(s) :: xs => (new Path(xs), s)
       case _ => error("Cannot split path into dir/base: " + toString)
     }
 
   def dir: Path = split_path._1
-  def base: Path = Path(List(Path.Basic(split_path._2)))
+  def base: Path = new Path(List(Path.Basic(split_path._2)))
 
   def ext(e: String): Path =
     if (e == "") this
@@ -165,6 +160,6 @@ class Path
         case x => List(x)
       }
 
-    Path(Path.norm_elems(elems.map(eval).flatten))
+    new Path(Path.norm_elems(elems.map(eval).flatten))
   }
 }
