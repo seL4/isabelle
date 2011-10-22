@@ -219,7 +219,7 @@ object Library
     val stop = System.currentTimeMillis()
     System.err.println(
       (if (message == null || message.isEmpty) "" else message + ": ") +
-        new Time(stop - start).message + " elapsed time")
+        Time.ms(stop - start).message + " elapsed time")
     Exn.release(result)
   }
 }

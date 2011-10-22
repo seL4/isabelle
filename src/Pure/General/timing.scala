@@ -12,7 +12,7 @@ object Time
   def ms(m: Long): Time = new Time(m)
 }
 
-class Time(val ms: Long)
+class Time private(val ms: Long)
 {
   def seconds: Double = ms / 1000.0
 
