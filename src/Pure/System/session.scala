@@ -104,7 +104,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   def phase = _phase
   def is_ready: Boolean = phase == Session.Ready
 
-  private val global_state = new Volatile(Document.State.init)
+  private val global_state = Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,

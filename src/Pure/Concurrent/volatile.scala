@@ -7,7 +7,13 @@ Volatile variables.
 package isabelle
 
 
-class Volatile[A](init: A)
+object Volatile
+{
+  def apply[A](init: A): Volatile[A] = new Volatile(init)
+}
+
+
+class Volatile[A] private(init: A)
 {
   @volatile private var state: A = init
   def apply(): A = state
