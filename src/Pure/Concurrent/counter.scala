@@ -12,9 +12,10 @@ package isabelle
 object Counter
 {
   type ID = Long
+  def apply(): Counter = new Counter
 }
 
-class Counter
+class Counter private
 {
   private var count: Counter.ID = 0
 

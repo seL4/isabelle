@@ -23,7 +23,7 @@ object Document
   type Exec_ID = ID
 
   val no_id: ID = 0
-  val new_id = new Counter
+  val new_id = Counter()
 
 
 
