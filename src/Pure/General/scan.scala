@@ -32,19 +32,19 @@ object Scan
 
   object Lexicon
   {
-    protected case class Tree(val branches: Map[Char, (String, Tree)])
+    /* representation */
+
+    sealed case class Tree(val branches: Map[Char, (String, Tree)])
     private val empty_tree = Tree(Map())
 
-    val empty: Lexicon = new Lexicon
+    val empty: Lexicon = new Lexicon(empty_tree)
     def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  class Lexicon extends Addable[String, Lexicon] with RegexParsers
+  class Lexicon private(private val main_tree: Lexicon.Tree)
+    extends Addable[String, Lexicon] with RegexParsers
   {
-    /* representation */
-
     import Lexicon.Tree
-    protected val main_tree: Tree = Lexicon.empty_tree
 
 
     /* auxiliary operations */
@@ -116,7 +116,7 @@ object Scan
           }
           else tree
         val old = this
-        new Lexicon { override val main_tree = extend(old.main_tree, 0) }
+        new Lexicon(extend(old.main_tree, 0))
       }
 
 
