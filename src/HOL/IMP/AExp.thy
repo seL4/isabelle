@@ -52,13 +52,15 @@ subsection "Optimization"
 
 text{* Evaluate constant subsexpressions: *}
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpasimpconstdef}{% *}
 fun asimp_const :: "aexp \<Rightarrow> aexp" where
 "asimp_const (N n) = N n" |
 "asimp_const (V x) = V x" |
-"asimp_const (Plus a1 a2) =
-  (case (asimp_const a1, asimp_const a2) of
-    (N n1, N n2) \<Rightarrow> N(n1+n2) |
-    (a1',a2') \<Rightarrow> Plus a1' a2')"
+"asimp_const (Plus a\<^isub>1 a\<^isub>2) =
+  (case (asimp_const a\<^isub>1, asimp_const a\<^isub>2) of
+    (N n\<^isub>1, N n\<^isub>2) \<Rightarrow> N(n\<^isub>1+n\<^isub>2) |
+    (b\<^isub>1,b\<^isub>2) \<Rightarrow> Plus b\<^isub>1 b\<^isub>2)"
+text_raw{*}\end{isaverbatimwrite}*}
 
 theorem aval_asimp_const:
   "aval (asimp_const a) s = aval a s"
@@ -69,11 +71,13 @@ done
 text{* Now we also eliminate all occurrences 0 in additions. The standard
 method: optimized versions of the constructors: *}
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpplusdef}{% *}
 fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"plus (N i1) (N i2) = N(i1+i2)" |
+"plus (N i\<^isub>1) (N i\<^isub>2) = N(i\<^isub>1+i\<^isub>2)" |
 "plus (N i) a = (if i=0 then a else Plus (N i) a)" |
 "plus a (N i) = (if i=0 then a else Plus a (N i))" |
-"plus a1 a2 = Plus a1 a2"
+"plus a\<^isub>1 a\<^isub>2 = Plus a\<^isub>1 a\<^isub>2"
+text_raw{*}\end{isaverbatimwrite}*}
 
 lemma aval_plus[simp]:
   "aval (plus a1 a2) s = aval a1 s + aval a2 s"
@@ -81,10 +85,12 @@ apply(induction a1 a2 rule: plus.induct)
 apply simp_all (* just for a change from auto *)
 done
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpasimpdef}{% *}
 fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (N n) = N n" |
 "asimp (V x) = V x" |
-"asimp (Plus a1 a2) = plus (asimp a1) (asimp a2)"
+"asimp (Plus a\<^isub>1 a\<^isub>2) = plus (asimp a\<^isub>1) (asimp a\<^isub>2)"
+text_raw{*}\end{isaverbatimwrite}*}
 
 text{* Note that in @{const asimp_const} the optimized constructor was
 inlined. Making it a separate function @{const plus} improves modularity of
