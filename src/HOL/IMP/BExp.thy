@@ -72,10 +72,10 @@ text{* Now the overall optimizer: *}
 
 text_raw{*\begin{isaverbatimwrite}\newcommand{\BExpbsimpdef}{% *}
 fun bsimp :: "bexp \<Rightarrow> bexp" where
-"bsimp (Less a\<^isub>1 a\<^isub>2) = less (asimp a\<^isub>1) (asimp a\<^isub>2)" |
-"bsimp (And b\<^isub>1 b\<^isub>2) = and (bsimp b\<^isub>1) (bsimp b\<^isub>2)" |
+"bsimp (Bc v) = Bc v" |
 "bsimp (Not b) = not(bsimp b)" |
-"bsimp (Bc v) = Bc v"
+"bsimp (And b\<^isub>1 b\<^isub>2) = and (bsimp b\<^isub>1) (bsimp b\<^isub>2)" |
+"bsimp (Less a\<^isub>1 a\<^isub>2) = less (asimp a\<^isub>1) (asimp a\<^isub>2)"
 text_raw{*}\end{isaverbatimwrite}*}
 
 value "bsimp (And (Less (N 0) (N 1)) b)"
