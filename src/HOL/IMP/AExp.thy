@@ -8,12 +8,16 @@ type_synonym vname = string
 type_synonym val = int
 type_synonym state = "vname \<Rightarrow> val"
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpaexpdef}{% *}
 datatype aexp = N int | V vname | Plus aexp aexp
+text_raw{*}\end{isaverbatimwrite}*}
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\AExpavaldef}{% *}
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (N n) s = n" |
 "aval (V x) s = s x" |
 "aval (Plus a1 a2) s = aval a1 s + aval a2 s"
+text_raw{*}\end{isaverbatimwrite}*}
 
 
 value "aval (Plus (V ''x'') (N 5)) (\<lambda>x. if x = ''x'' then 7 else 0)"
@@ -48,7 +52,7 @@ text{* Note that this @{text"<\<dots>>"} syntax works for any function space
 @{text"\<tau>\<^isub>1 \<Rightarrow> \<tau>\<^isub>2"} where @{text "\<tau>\<^isub>2"} has a @{text 0}. *}
 
 
-subsection "Optimization"
+subsection "Constant Folding"
 
 text{* Evaluate constant subsexpressions: *}
 
