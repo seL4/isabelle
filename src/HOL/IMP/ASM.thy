@@ -4,9 +4,13 @@ theory ASM imports AExp begin
 
 subsection "Arithmetic Stack Machine"
 
-datatype ainstr = LOADI val | LOAD vname | ADD
+text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMinstrdef}{% *}
+datatype instr = LOADI val | LOAD vname | ADD
+text_raw{*}\end{isaverbatimwrite}*}
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMstackdef}{% *}
 type_synonym stack = "val list"
+text_raw{*}\end{isaverbatimwrite}*}
 
 abbreviation "hd2 xs == hd(tl xs)"
 abbreviation "tl2 xs == tl(tl xs)"
@@ -15,20 +19,24 @@ text{* \noindent Abbreviations are transparent: they are unfolded after
 parsing and folded back again before printing. Internally, they do not
 exist. *}
 
-fun aexec1 :: "ainstr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
-"aexec1 (LOADI n) _ stk  =  n # stk" |
-"aexec1 (LOAD n) s stk  =  s(n) # stk" |
-"aexec1  ADD _ stk  =  (hd2 stk + hd stk) # tl2 stk"
+text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMexeconedef}{% *}
+fun exec1 :: "instr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec1 (LOADI n) _ stk  =  n # stk" |
+"exec1 (LOAD x) s stk  =  s(x) # stk" |
+"exec1  ADD _ stk  =  (hd2 stk + hd stk) # tl2 stk"
+text_raw{*}\end{isaverbatimwrite}*}
 
-fun aexec :: "ainstr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
-"aexec [] _ stk = stk" |
-"aexec (i#is) s stk = aexec is s (aexec1 i s stk)"
+text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMexecdef}{% *}
+fun exec :: "instr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec [] _ stk = stk" |
+"exec (i#is) s stk = exec is s (exec1 i s stk)"
+text_raw{*}\end{isaverbatimwrite}*}
 
-value "aexec [LOADI 5, LOAD ''y'', ADD]
+value "exec [LOADI 5, LOAD ''y'', ADD]
  <''x'' := 42, ''y'' := 43> [50]"
 
-lemma aexec_append[simp]:
-  "aexec (is1@is2) s stk = aexec is2 s (aexec is1 s stk)"
+lemma exec_append[simp]:
+  "exec (is1@is2) s stk = exec is2 s (exec is1 s stk)"
 apply(induction is1 arbitrary: stk)
 apply (auto)
 done
@@ -36,14 +44,16 @@ done
 
 subsection "Compilation"
 
-fun acomp :: "aexp \<Rightarrow> ainstr list" where
-"acomp (N n) = [LOADI n]" |
-"acomp (V x) = [LOAD x]" |
-"acomp (Plus e1 e2) = acomp e1 @ acomp e2 @ [ADD]"
+text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMcompdef}{% *}
+fun comp :: "aexp \<Rightarrow> instr list" where
+"comp (N n) = [LOADI n]" |
+"comp (V x) = [LOAD x]" |
+"comp (Plus e1 e2) = comp e1 @ comp e2 @ [ADD]"
+text_raw{*}\end{isaverbatimwrite}*}
 
-value "acomp (Plus (Plus (V ''x'') (N 1)) (V ''z''))"
+value "comp (Plus (Plus (V ''x'') (N 1)) (V ''z''))"
 
-theorem aexec_acomp[simp]: "aexec (acomp a) s stk = aval a s # stk"
+theorem exec_comp: "exec (comp a) s stk = aval a s # stk"
 apply(induction a arbitrary: stk)
 apply (auto)
 done
