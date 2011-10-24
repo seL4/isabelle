@@ -134,7 +134,7 @@ text {* These operations define the transition from pre-terms and
   affecting the type-assignment of the given terms.
 
   \medskip The precise meaning of type checking depends on the context
-  --- additional check/unckeck plugins might be defined in user space!
+  --- additional check/uncheck plugins might be defined in user space!
 
   For example, the @{command class} command defines a context where
   @{text "check"} treats certain type instances of overloaded
