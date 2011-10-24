@@ -1232,7 +1232,7 @@ end
 
 subsection {* Order on bool *}
 
-instantiation bool :: "{bot, top}"
+instantiation bool :: "{bot, top, linorder}"
 begin
 
 definition
