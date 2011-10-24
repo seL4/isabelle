@@ -303,20 +303,6 @@ by (simp add: max_def)
 
 end
 
-text {* Explicit dictionaries for code generation *}
-
-lemma min_ord_min [code]:
-  "min = ord.min (op \<le>)"
-  by (rule ext)+ (simp add: min_def ord.min_def)
-
-declare ord.min_def [code]
-
-lemma max_ord_max [code]:
-  "max = ord.max (op \<le>)"
-  by (rule ext)+ (simp add: max_def ord.max_def)
-
-declare ord.max_def [code]
-
 
 subsection {* Reasoning tools setup *}
 
