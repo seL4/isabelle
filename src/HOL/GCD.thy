@@ -1460,8 +1460,7 @@ lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> 
 by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric] zmult_eq_1_iff)
 
 
-subsubsection {* The complete divisibility lattice *}
-
+subsection {* The complete divisibility lattice *}
 
 interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
 proof
@@ -1475,74 +1474,76 @@ qed auto
 
 interpretation gcd_lcm_lattice_nat: lattice gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm ..
 
-text{* Lifting gcd and lcm to finite (Gcd/Lcm) and infinite sets (GCD/LCM).
-GCD is defined via LCM to facilitate the proof that we have a complete lattice.
-Later on we show that GCD and Gcd coincide on finite sets.
+text{* Lifting gcd and lcm to sets (Gcd/Lcm).
+Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
 *}
-context gcd
+
+class Gcd = gcd +
+  fixes Gcd :: "'a set \<Rightarrow> 'a"
+  fixes Lcm :: "'a set \<Rightarrow> 'a"
+
+instantiation nat :: Gcd
 begin
 
-definition Gcd :: "'a set \<Rightarrow> 'a"
-where "Gcd = fold gcd 0"
+definition
+  "Lcm (M::nat set) = (if finite M then fold lcm 1 M else 0)"
 
-definition Lcm :: "'a set \<Rightarrow> 'a"
-where "Lcm = fold lcm 1"
+definition
+  "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
 
-definition LCM :: "'a set \<Rightarrow> 'a" where
-"LCM M = (if finite M then Lcm M else 0)"
-
-definition GCD :: "'a set \<Rightarrow> 'a" where
-"GCD M = LCM(INT m:M. {d. d dvd m})"
-
+instance ..
 end
 
-lemma Gcd_empty[simp]: "Gcd {} = 0"
-by(simp add:Gcd_def)
+lemma dvd_Lcm_nat [simp]:
+  fixes M :: "nat set" assumes "m \<in> M" shows "m dvd Lcm M"
+  using lcm_semilattice_nat.sup_le_fold_sup[OF _ assms, of 1]
+  by (simp add: Lcm_nat_def)
 
-lemma Lcm_empty[simp]: "Lcm {} = 1"
-by(simp add:Lcm_def)
+lemma Lcm_dvd_nat [simp]:
+  fixes M :: "nat set" assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
+proof (cases "n = 0")
+  assume "n \<noteq> 0"
+  hence "finite {d. d dvd n}" by (rule finite_divisors_nat)
+  moreover have "M \<subseteq> {d. d dvd n}" using assms by fast
+  ultimately have "finite M" by (rule rev_finite_subset)
+  thus ?thesis
+    using lcm_semilattice_nat.fold_sup_le_sup [OF _ assms, of 1]
+    by (simp add: Lcm_nat_def)
+qed simp
 
-lemma GCD_empty_nat[simp]: "GCD {} = (0::nat)"
-by(simp add:GCD_def LCM_def)
+interpretation gcd_lcm_complete_lattice_nat:
+  complete_lattice Gcd Lcm gcd "op dvd" "%m n::nat. m dvd n & ~ n dvd m" lcm 1 0
+proof
+  case goal1 show ?case by simp
+next
+  case goal2 show ?case by simp
+next
+  case goal5 thus ?case by (rule dvd_Lcm_nat)
+next
+  case goal6 thus ?case by simp
+next
+  case goal3 thus ?case by (simp add: Gcd_nat_def)
+next
+  case goal4 thus ?case by (simp add: Gcd_nat_def)
+qed
+(* bh: This interpretation generates many lemmas about
+"complete_lattice.SUPR Lcm" and "complete_lattice.INFI Gcd".
+Should we define binder versions of LCM and GCD to correspond
+with these? *)
 
-lemma LCM_eq_Lcm[simp]: "finite M \<Longrightarrow> LCM M = Lcm M"
-by(simp add:LCM_def)
+lemma Lcm_empty_nat: "Lcm {} = (1::nat)"
+  by (fact gcd_lcm_complete_lattice_nat.Sup_empty) (* already simp *)
+
+lemma Gcd_empty_nat: "Gcd {} = (0::nat)"
+  by (fact gcd_lcm_complete_lattice_nat.Inf_empty) (* already simp *)
 
 lemma Lcm_insert_nat [simp]:
-  assumes "finite N"
   shows "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
-proof -
-  interpret comp_fun_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat"
-    by (rule comp_fun_idem_lcm_nat)
-  from assms show ?thesis by(simp add: Lcm_def)
-qed
-
-lemma Lcm_insert_int [simp]:
-  assumes "finite N"
-  shows "Lcm (insert (n::int) N) = lcm n (Lcm N)"
-proof -
-  interpret comp_fun_idem "lcm::int\<Rightarrow>int\<Rightarrow>int"
-    by (rule comp_fun_idem_lcm_int)
-  from assms show ?thesis by(simp add: Lcm_def)
-qed
+  by (fact gcd_lcm_complete_lattice_nat.Sup_insert)
 
 lemma Gcd_insert_nat [simp]:
-  assumes "finite N"
   shows "Gcd (insert (n::nat) N) = gcd n (Gcd N)"
-proof -
-  interpret comp_fun_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat"
-    by (rule comp_fun_idem_gcd_nat)
-  from assms show ?thesis by(simp add: Gcd_def)
-qed
-
-lemma Gcd_insert_int [simp]:
-  assumes "finite N"
-  shows "Gcd (insert (n::int) N) = gcd n (Gcd N)"
-proof -
-  interpret comp_fun_idem "gcd::int\<Rightarrow>int\<Rightarrow>int"
-    by (rule comp_fun_idem_gcd_int)
-  from assms show ?thesis by(simp add: Gcd_def)
-qed
+  by (fact gcd_lcm_complete_lattice_nat.Inf_insert)
 
 lemma Lcm0_iff[simp]: "finite (M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> Lcm M = 0 \<longleftrightarrow> 0 : M"
 by(induct rule:finite_ne_induct) auto
@@ -1551,51 +1552,16 @@ lemma Lcm_eq_0[simp]: "finite (M::nat set) \<Longrightarrow> 0 : M \<Longrightar
 by (metis Lcm0_iff empty_iff)
 
 lemma Gcd_dvd_nat [simp]:
-  assumes "finite M" and "(m::nat) \<in> M"
-  shows "Gcd M dvd m"
-proof -
-  show ?thesis using gcd_semilattice_nat.fold_inf_le_inf[OF assms, of 0] by (simp add: Gcd_def)
-qed
+  fixes M :: "nat set"
+  assumes "m \<in> M" shows "Gcd M dvd m"
+  using assms by (fact gcd_lcm_complete_lattice_nat.Inf_lower)
 
 lemma dvd_Gcd_nat[simp]:
-  assumes "finite M" and "ALL (m::nat) : M. n dvd m"
-  shows "n dvd Gcd M"
-proof -
-  show ?thesis using gcd_semilattice_nat.inf_le_fold_inf[OF assms, of 0] by (simp add: Gcd_def)
-qed
+  fixes M :: "nat set"
+  assumes "\<forall>m\<in>M. n dvd m" shows "n dvd Gcd M"
+  using assms by (simp only: gcd_lcm_complete_lattice_nat.Inf_greatest)
 
-lemma dvd_Lcm_nat [simp]:
-  assumes "finite M" and "(m::nat) \<in> M"
-  shows "m dvd Lcm M"
-proof -
-  show ?thesis using lcm_semilattice_nat.sup_le_fold_sup[OF assms, of 1] by (simp add: Lcm_def)
-qed
-
-lemma Lcm_dvd_nat[simp]:
-  assumes "finite M" and "ALL (m::nat) : M. m dvd n"
-  shows "Lcm M dvd n"
-proof -
-  show ?thesis using lcm_semilattice_nat.fold_sup_le_sup[OF assms, of 1] by (simp add: Lcm_def)
-qed
-
-interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice GCD LCM gcd "op dvd" "%m n::nat. m dvd n & ~ n dvd m" lcm 1 0
-proof
-  case goal1 show ?case by simp
-next
-  case goal2 show ?case by simp
-next
-  case goal5 thus ?case by (auto simp: LCM_def)
-next
-  case goal6 thus ?case
-    by(auto simp: LCM_def)(metis finite_nat_set_iff_bounded_le gcd_proj2_if_dvd_nat gcd_le1_nat)
-next
-  case goal3 thus ?case by (auto simp: GCD_def LCM_def)(metis finite_INT finite_divisors_nat)
-next
-  case goal4 thus ?case by(auto simp: LCM_def GCD_def)
-qed
-
-text{* Alternative characterizations of Gcd and GCD: *}
+text{* Alternative characterizations of Gcd: *}
 
 lemma Gcd_eq_Max: "finite(M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> 0 \<notin> M \<Longrightarrow> Gcd M = Max(\<Inter>m\<in>M. {d. d dvd m})"
 apply(rule antisym)
@@ -1641,71 +1607,13 @@ apply clarsimp
 apply (metis Lcm0_iff dvd_Lcm_nat dvd_imp_le neq0_conv)
 done
 
-text{* Finally GCD is Gcd: *}
-
-lemma GCD_eq_Gcd[simp]: assumes "finite(M::nat set)" shows "GCD M = Gcd M"
-proof-
-  have divisors_remove0_nat: "(\<Inter>m\<in>M. {d::nat. d dvd m}) = (\<Inter>m\<in>M-{0}. {d::nat. d dvd m})" by auto
-  show ?thesis
-  proof cases
-    assume "M={}" thus ?thesis by simp
-  next
-    assume "M\<noteq>{}"
-    show ?thesis
-    proof cases
-      assume "M={0}" thus ?thesis by(simp add:GCD_def LCM_def)
-    next
-      assume "M\<noteq>{0}"
-      with `M\<noteq>{}` assms show ?thesis
-        apply(subst Gcd_remove0_nat[OF assms])
-        apply(simp add:GCD_def)
-        apply(subst divisors_remove0_nat)
-        apply(simp add:LCM_def)
-        apply rule
-         apply rule
-         apply(subst Gcd_eq_Max)
-            apply simp
-           apply blast
-          apply blast
-         apply(rule Lcm_eq_Max_nat)
-            apply simp
-           apply blast
-          apply fastforce
-         apply clarsimp
-        apply(fastforce intro: finite_divisors_nat intro!: finite_INT)
-        done
-    qed
-  qed
-qed
-
 lemma Lcm_set_nat [code_unfold]:
   "Lcm (set ns) = foldl lcm (1::nat) ns"
-proof -
-  interpret comp_fun_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule comp_fun_idem_lcm_nat)
-  show ?thesis by(simp add: Lcm_def fold_set lcm_commute_nat)
-qed
-
-lemma Lcm_set_int [code_unfold]:
-  "Lcm (set is) = foldl lcm (1::int) is"
-proof -
-  interpret comp_fun_idem "lcm::int\<Rightarrow>int\<Rightarrow>int" by (rule comp_fun_idem_lcm_int)
-  show ?thesis by(simp add: Lcm_def fold_set lcm_commute_int)
-qed
+  by (fact gcd_lcm_complete_lattice_nat.Sup_set_fold)
 
 lemma Gcd_set_nat [code_unfold]:
   "Gcd (set ns) = foldl gcd (0::nat) ns"
-proof -
-  interpret comp_fun_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule comp_fun_idem_gcd_nat)
-  show ?thesis by(simp add: Gcd_def fold_set gcd_commute_nat)
-qed
-
-lemma Gcd_set_int [code_unfold]:
-  "Gcd (set ns) = foldl gcd (0::int) ns"
-proof -
-  interpret comp_fun_idem "gcd::int\<Rightarrow>int\<Rightarrow>int" by (rule comp_fun_idem_gcd_int)
-  show ?thesis by(simp add: Gcd_def fold_set gcd_commute_int)
-qed
-
+  by (fact gcd_lcm_complete_lattice_nat.Inf_set_fold)
 
 lemma mult_inj_if_coprime_nat:
   "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
@@ -1724,5 +1632,63 @@ by (induct x y rule: nat_gcd.induct)
 
 lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
 by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
+
+subsubsection {* Setwise gcd and lcm for integers *}
+
+instantiation int :: Gcd
+begin
+
+definition
+  "Lcm M = int (Lcm (nat ` abs ` M))"
+
+definition
+  "Gcd M = int (Gcd (nat ` abs ` M))"
+
+instance ..
+end
+
+lemma Lcm_empty_int [simp]: "Lcm {} = (1::int)"
+  by (simp add: Lcm_int_def)
+
+lemma Gcd_empty_int [simp]: "Gcd {} = (0::int)"
+  by (simp add: Gcd_int_def)
+
+lemma Lcm_insert_int [simp]:
+  shows "Lcm (insert (n::int) N) = lcm n (Lcm N)"
+  by (simp add: Lcm_int_def lcm_int_def)
+
+lemma Gcd_insert_int [simp]:
+  shows "Gcd (insert (n::int) N) = gcd n (Gcd N)"
+  by (simp add: Gcd_int_def gcd_int_def)
+
+lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat (abs x) dvd nat (abs y)"
+  by (simp add: zdvd_int)
+
+lemma dvd_Lcm_int [simp]:
+  fixes M :: "int set" assumes "m \<in> M" shows "m dvd Lcm M"
+  using assms by (simp add: Lcm_int_def dvd_int_iff)
+
+lemma Lcm_dvd_int [simp]:
+  fixes M :: "int set"
+  assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
+  using assms by (simp add: Lcm_int_def dvd_int_iff)
+
+lemma Gcd_dvd_int [simp]:
+  fixes M :: "int set"
+  assumes "m \<in> M" shows "Gcd M dvd m"
+  using assms by (simp add: Gcd_int_def dvd_int_iff)
+
+lemma dvd_Gcd_int[simp]:
+  fixes M :: "int set"
+  assumes "\<forall>m\<in>M. n dvd m" shows "n dvd Gcd M"
+  using assms by (simp add: Gcd_int_def dvd_int_iff)
+
+lemma Lcm_set_int [code_unfold]:
+  "Lcm (set xs) = foldl lcm (1::int) xs"
+  by (induct xs rule: rev_induct, simp_all add: lcm_commute_int)
+
+lemma Gcd_set_int [code_unfold]:
+  "Gcd (set xs) = foldl gcd (0::int) xs"
+  by (induct xs rule: rev_induct, simp_all add: gcd_commute_int)
 
 end
