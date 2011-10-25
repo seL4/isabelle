@@ -1503,8 +1503,8 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
 HOL-Quotient_Examples: HOL $(LOG)/HOL-Quotient_Examples.gz
 
 $(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL				\
-  Quotient_Examples/DList.thy Quotient_Examples/Cset.thy \
-  Quotient_Examples/FSet.thy Quotient_Examples/List_Cset.thy \
+  Quotient_Examples/DList.thy Quotient_Examples/Quotient_Set.thy \
+  Quotient_Examples/FSet.thy Quotient_Examples/List_Quotient_Set.thy \
   Quotient_Examples/Quotient_Int.thy Quotient_Examples/Quotient_Message.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples
 

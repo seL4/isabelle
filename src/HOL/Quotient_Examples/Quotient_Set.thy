@@ -1,10 +1,10 @@
-(*  Title:      HOL/Quotient_Examples/Cset.thy
+(*  Title:      HOL/Quotient_Examples/Quotient_Set.thy
     Author:     Florian Haftmann, Alexander Krauss, TU Muenchen
 *)
 
 header {* A variant of theory Cset from Library, defined as a quotient *}
 
-theory Cset
+theory Quotient_Set
 imports "~~/src/HOL/Library/More_Set" "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
@@ -46,49 +46,49 @@ lemma [quot_respect]:
   "(set_eq ===> (op = ===> set_eq) ===> set_eq) UNION UNION"
 by (auto simp: fun_rel_eq)
 
-quotient_definition "member :: 'a => 'a Cset.set => bool"
+quotient_definition "member :: 'a => 'a Quotient_Set.set => bool"
 is "op \<in>"
-quotient_definition "Set :: ('a => bool) => 'a Cset.set"
+quotient_definition "Set :: ('a => bool) => 'a Quotient_Set.set"
 is Collect
-quotient_definition is_empty where "is_empty :: 'a Cset.set \<Rightarrow> bool"
+quotient_definition is_empty where "is_empty :: 'a Quotient_Set.set \<Rightarrow> bool"
 is More_Set.is_empty
-quotient_definition insert where "insert :: 'a \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition insert where "insert :: 'a \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is Set.insert
-quotient_definition remove where "remove :: 'a \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition remove where "remove :: 'a \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is More_Set.remove
-quotient_definition map where "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a Cset.set \<Rightarrow> 'b Cset.set"
+quotient_definition map where "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'b Quotient_Set.set"
 is image
-quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is More_Set.project
-quotient_definition "forall :: 'a Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+quotient_definition "forall :: 'a Quotient_Set.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 is Ball
-quotient_definition "exists :: 'a Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+quotient_definition "exists :: 'a Quotient_Set.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 is Bex
-quotient_definition card where "card :: 'a Cset.set \<Rightarrow> nat"
+quotient_definition card where "card :: 'a Quotient_Set.set \<Rightarrow> nat"
 is Finite_Set.card
-quotient_definition set where "set :: 'a list => 'a Cset.set"
+quotient_definition set where "set :: 'a list => 'a Quotient_Set.set"
 is List.set
-quotient_definition subset where "subset :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> bool"
+quotient_definition subset where "subset :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> bool"
 is "op \<subseteq> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-quotient_definition psubset where "psubset :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> bool"
+quotient_definition psubset where "psubset :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> bool"
 is "op \<subset> :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-quotient_definition inter where "inter :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition inter where "inter :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is "op \<inter> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-quotient_definition union where "union :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition union where "union :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is "op \<union> :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-quotient_definition empty where "empty :: 'a Cset.set"
+quotient_definition empty where "empty :: 'a Quotient_Set.set"
 is "{} :: 'a set"
-quotient_definition UNIV where "UNIV :: 'a Cset.set"
+quotient_definition UNIV where "UNIV :: 'a Quotient_Set.set"
 is "Set.UNIV :: 'a set"
-quotient_definition uminus where "uminus :: 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition uminus where "uminus :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is "uminus_class.uminus :: 'a set \<Rightarrow> 'a set"
-quotient_definition minus where "minus :: 'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set"
+quotient_definition minus where "minus :: 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set \<Rightarrow> 'a Quotient_Set.set"
 is "(op -) :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-quotient_definition Inf where "Inf :: ('a :: Inf) Cset.set \<Rightarrow> 'a"
+quotient_definition Inf where "Inf :: ('a :: Inf) Quotient_Set.set \<Rightarrow> 'a"
 is "Inf_class.Inf :: ('a :: Inf) set \<Rightarrow> 'a"
-quotient_definition Sup where "Sup :: ('a :: Sup) Cset.set \<Rightarrow> 'a"
+quotient_definition Sup where "Sup :: ('a :: Sup) Quotient_Set.set \<Rightarrow> 'a"
 is "Sup_class.Sup :: ('a :: Sup) set \<Rightarrow> 'a"
-quotient_definition UNION where "UNION :: 'a Cset.set \<Rightarrow> ('a \<Rightarrow> 'b Cset.set) \<Rightarrow> 'b Cset.set"
+quotient_definition UNION where "UNION :: 'a Quotient_Set.set \<Rightarrow> ('a \<Rightarrow> 'b Quotient_Set.set) \<Rightarrow> 'b Quotient_Set.set"
 is "Complete_Lattices.UNION :: 'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
 
 hide_const (open) is_empty insert remove map filter forall exists card
