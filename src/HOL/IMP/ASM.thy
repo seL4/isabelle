@@ -1,8 +1,8 @@
-header "Arithmetic Stack Machine and Compilation"
+header "Stack Machine and Compilation"
 
 theory ASM imports AExp begin
 
-subsection "Arithmetic Stack Machine"
+subsection "Stack Machine"
 
 text_raw{*\begin{isaverbatimwrite}\newcommand{\ASMinstrdef}{% *}
 datatype instr = LOADI val | LOAD vname | ADD
