@@ -25,11 +25,11 @@ fun apply tac st =
 local
 
 val B = @{typ bool}
-fun mk_univ T = Const (@{const_name top}, T --> B)
+fun mk_univ T = Const (@{const_name top}, HOLogic.mk_setT T)
 fun mk_inj_on T U =
-  Const (@{const_name inj_on}, (T --> U) --> (T --> B) --> B)
+  Const (@{const_name inj_on}, (T --> U) --> HOLogic.mk_setT T --> B)
 fun mk_inv_into T U =
-  Const (@{const_name inv_into}, [T --> B, T --> U, U] ---> T)
+  Const (@{const_name inv_into}, [HOLogic.mk_setT T, T --> U, U] ---> T)
 
 fun mk_inv_of ctxt ct =
   let
