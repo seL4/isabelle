@@ -7,6 +7,8 @@ for r where
 refl:  "star r x x" |
 step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
+hide_fact (open) refl step  --"names too generic"
+
 lemma star_trans:
   "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 proof(induction rule: star.induct)
@@ -19,8 +21,8 @@ lemmas star_induct = star.induct[of "r:: 'a*'b \<Rightarrow> 'a*'b \<Rightarrow>
 
 declare star.refl[simp,intro]
 
-lemma step1[simp, intro]: "r x y \<Longrightarrow> star r x y"
-by(metis refl step)
+lemma star_step1[simp, intro]: "r x y \<Longrightarrow> star r x y"
+by(metis star.refl star.step)
 
 code_pred star .
 

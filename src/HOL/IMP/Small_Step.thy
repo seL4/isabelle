@@ -114,7 +114,7 @@ next
   let ?if = "IF b THEN c; WHILE b DO c ELSE SKIP"
   have "(WHILE b DO c,s) \<rightarrow> (?if, s)" by blast
   moreover have "(?if,s) \<rightarrow> (SKIP, s)" by (simp add: b)
-  ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,s)" by (metis refl step)
+  ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,s)" by(metis star.refl star.step)
 next
   fix b c s s' t
   let ?w  = "WHILE b DO c"
@@ -137,16 +137,16 @@ next
 next
   case Semi thus ?case by (blast intro: semi_comp)
 next
-  case IfTrue thus ?case by (blast intro: step)
+  case IfTrue thus ?case by (blast intro: star.step)
 next
-  case IfFalse thus ?case by (blast intro: step)
+  case IfFalse thus ?case by (blast intro: star.step)
 next
   case WhileFalse thus ?case
-    by (metis step step1 small_step.IfFalse small_step.While)
+    by (metis star.step star_step1 small_step.IfFalse small_step.While)
 next
   case WhileTrue
   thus ?case
-    by(metis While semi_comp small_step.IfTrue step[of small_step])
+    by(metis While semi_comp small_step.IfTrue star.step[of small_step])
 qed
 
 lemma small1_big_continue:
