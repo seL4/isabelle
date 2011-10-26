@@ -422,7 +422,7 @@ fun use_file filepath thy =
     val _ = Context.set_thread_data ((SOME o Context.Theory) thy');
     val _ = Secure.use_text notifying_context
       (0, Path.implode filepath) false (File.read filepath);
-    val thy'' = (Context.the_theory o the) (Context.thread_data ());
+    val thy'' = Context.the_theory (Context.the_thread_data ());
     val names = Loaded_Values.get thy'';
   in (names, thy'') end;
 
