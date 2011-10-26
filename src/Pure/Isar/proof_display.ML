@@ -31,9 +31,14 @@ fun pp_context ctxt =
     Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
-fun default_context thy =
-  Context.cases Syntax.init_pretty_global I
-    (the_default (Context.Theory thy) (try ML_Context.the_generic_context ()));
+fun default_context thy0 =
+  (case Context.thread_data () of
+    SOME (Context.Proof ctxt) => ctxt
+  | SOME (Context.Theory thy) =>
+      (case try Syntax.init_pretty_global thy of
+        SOME ctxt => ctxt
+      | NONE => Syntax.init_pretty_global thy0)
+  | NONE => Syntax.init_pretty_global thy0);
 
 fun pp_thm th =
   let
