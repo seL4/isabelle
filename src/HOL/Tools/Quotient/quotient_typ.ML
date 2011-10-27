@@ -2,13 +2,12 @@
     Author:     Cezary Kaliszyk and Christian Urban
 
 Definition of a quotient type.
-
 *)
 
 signature QUOTIENT_TYPE =
 sig
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) * thm
-    -> Proof.context -> Quotient_Info.quotdata_info * local_theory
+    -> Proof.context -> Quotient_Info.quotients * local_theory
 
   val quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) list
     -> Proof.context -> Proof.state
@@ -161,20 +160,20 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     (* name equivalence theorem *)
     val equiv_thm_name = Binding.suffix_name "_equivp" qty_name
 
-    (* storing the quotdata *)
-    val quotdata = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
+    (* storing the quotients *)
+    val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
 
-    fun qinfo phi = Quotient_Info.transform_quotdata phi quotdata
+    fun qinfo phi = Quotient_Info.transform_quotients phi quotients
 
     val lthy4 = lthy3
       |> Local_Theory.declaration true
-        (fn phi => Quotient_Info.quotdata_update_gen qty_full_name (qinfo phi))
+        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi))
       |> note
         (equiv_thm_name, equiv_thm,
           if partial then [] else [intern_attr Quotient_Info.equiv_rules_add])
       |> note (quotient_thm_name, quotient_thm, [intern_attr Quotient_Info.quotient_rules_add])
   in
-    (quotdata, lthy4)
+    (quotients, lthy4)
   end
 
 
@@ -225,7 +224,7 @@ fun map_check ctxt (_, (rty, _, _)) =
     fun map_check_aux rty warns =
       case rty of
         Type (_, []) => warns
-      | Type (s, _) => if is_some (Quotient_Info.maps_lookup thy s) then warns else s :: warns
+      | Type (s, _) => if is_some (Quotient_Info.lookup_quotmaps thy s) then warns else s :: warns
       | _ => warns
 
     val warns = map_check_aux rty []

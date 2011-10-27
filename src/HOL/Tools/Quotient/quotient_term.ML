@@ -63,9 +63,9 @@ fun mk_fun_compose flag (trm1, trm2) =
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun ctxt s =
-  case Quotient_Info.maps_lookup (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotmaps (Proof_Context.theory_of ctxt) s of
     SOME map_data => Const (#mapfun map_data, dummyT)
-  | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
+  | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found."))
 
 (* makes a Free out of a TVar *)
 fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
@@ -96,7 +96,7 @@ fun mk_mapfun ctxt vs rty =
    a quotient definition
 *)
 fun get_rty_qty ctxt s =
-  case Quotient_Info.quotdata_lookup (Proof_Context.theory_of ctxt) s of
+  case Quotient_Info.lookup_quotients (Proof_Context.theory_of ctxt) s of
     SOME qdata => (#rtyp qdata, #qtyp qdata)
   | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.");
 
@@ -271,9 +271,9 @@ fun mk_rel_compose (trm1, trm2) =
   Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
-  case Quotient_Info.maps_lookup (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotmaps (Proof_Context.theory_of ctxt) s of
     SOME map_data => Const (#relmap map_data, dummyT)
-  | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
+  | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")"))
 
 fun mk_relmap ctxt vs rty =
   let
@@ -290,9 +290,9 @@ fun mk_relmap ctxt vs rty =
   end
 
 fun get_equiv_rel ctxt s =
-  case Quotient_Info.quotdata_lookup (Proof_Context.theory_of ctxt) s of
-      SOME qdata => #equiv_rel qdata
-    | NONE => raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
+  (case Quotient_Info.lookup_quotients (Proof_Context.theory_of ctxt) s of
+    SOME qdata => #equiv_rel qdata
+  | NONE => raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")"))
 
 fun equiv_match_err ctxt ty_pat ty =
   let
@@ -427,7 +427,7 @@ fun matches_typ thy rT qT =
           if length rtys <> length qtys then false
           else forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
         else
-          (case Quotient_Info.quotdata_lookup thy qs of
+          (case Quotient_Info.lookup_quotients thy qs of
             SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
           | NONE => false)
     | _ => false)
@@ -553,9 +553,10 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         if same_const rtrm qtrm then rtrm
         else
           let
-            val rtrm' = case Quotient_Info.qconsts_lookup thy qtrm of
-              SOME qconst_info => #rconst qconst_info
-            | NONE => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
+            val rtrm' =
+              (case Quotient_Info.lookup_quotconsts thy qtrm of
+                SOME qconst_info => #rconst qconst_info
+              | NONE => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm)
           in
             if Pattern.matches thy (rtrm', rtrm)
             then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm
@@ -743,7 +744,7 @@ fun mk_ty_subst qtys direction ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
   in
-    Quotient_Info.quotdata_dest ctxt
+    Quotient_Info.dest_quotients ctxt
     |> map (fn x => (#rtyp x, #qtyp x))
     |> filter (fn (_, qty) => member (Sign.typ_instance thy o swap) qtys qty)
     |> map (if direction then swap else I)
@@ -755,12 +756,12 @@ fun mk_trm_subst qtys direction ctxt =
     fun proper (t1, t2) = subst_typ' (fastype_of t1) = fastype_of t2
 
     val const_substs =
-      Quotient_Info.qconsts_dest ctxt
+      Quotient_Info.dest_quotconsts ctxt
       |> map (fn x => (#rconst x, #qconst x))
       |> map (if direction then swap else I)
 
     val rel_substs =
-      Quotient_Info.quotdata_dest ctxt
+      Quotient_Info.dest_quotients ctxt
       |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
       |> map (if direction then swap else I)
   in
@@ -787,4 +788,4 @@ fun derive_rtrm ctxt qtys qtrm =
   subst_trm ctxt (mk_ty_subst qtys true ctxt) (mk_trm_subst qtys true ctxt) qtrm
 
 
-end; (* structure *)
+end;

@@ -7,13 +7,13 @@ Definitions for constants on quotient types.
 signature QUOTIENT_DEF =
 sig
   val quotient_def: (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
-    local_theory -> Quotient_Info.qconsts_info * local_theory
+    local_theory -> Quotient_Info.quotconsts * local_theory
 
   val quotdef_cmd: (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
-    local_theory -> Quotient_Info.qconsts_info * local_theory
+    local_theory -> Quotient_Info.quotconsts * local_theory
 
   val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
-    Quotient_Info.qconsts_info * local_theory
+    Quotient_Info.quotconsts * local_theory
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -29,7 +29,7 @@ struct
     - the new constant as term
     - the rhs of the definition as term
 
-   It stores the qconst_info in the qconsts data slot.
+   It stores the qconst_info in the quotconsts data slot.
 
    Restriction: At the moment the left- and right-hand
    side of the definition must be a constant.
@@ -72,11 +72,11 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = thm}
 
-    fun qcinfo phi = Quotient_Info.transform_qconsts phi qconst_data
+    fun qcinfo phi = Quotient_Info.transform_quotconsts phi qconst_data
     fun trans_name phi = (fst o dest_Const o #qconst) (qcinfo phi)
     val lthy'' =
       Local_Theory.declaration true
-        (fn phi => Quotient_Info.qconsts_update_gen (trans_name phi) (qcinfo phi)) lthy'
+        (fn phi => Quotient_Info.update_quotconsts (trans_name phi) (qcinfo phi)) lthy'
   in
     (qconst_data, lthy'')
   end

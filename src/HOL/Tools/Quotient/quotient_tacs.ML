@@ -52,7 +52,7 @@ fun atomize_thm thm =
 (** solvers for equivp and quotient assumptions **)
 
 fun equiv_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules_get ctxt))
+  REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules ctxt))
 
 fun equiv_solver_tac ss = equiv_tac (Simplifier.the_context ss)
 val equiv_solver = mk_solver "Equivalence goal solver" equiv_solver_tac
@@ -60,7 +60,7 @@ val equiv_solver = mk_solver "Equivalence goal solver" equiv_solver_tac
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [rtac @{thm identity_quotient},
-     resolve_tac (Quotient_Info.quotient_rules_get ctxt)]))
+     resolve_tac (Quotient_Info.quotient_rules ctxt)]))
 
 fun quotient_solver_tac ss = quotient_tac (Simplifier.the_context ss)
 val quotient_solver = mk_solver "Quotient goal solver" quotient_solver_tac
@@ -147,11 +147,11 @@ fun ball_bex_range_simproc ss redex =
 
 fun reflp_get ctxt =
   map_filter (fn th => if prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
-    handle THM _ => NONE) (Quotient_Info.equiv_rules_get ctxt)
+    handle THM _ => NONE) (Quotient_Info.equiv_rules ctxt)
 
 val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
 
-fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (Quotient_Info.equiv_rules_get ctxt)
+fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (Quotient_Info.equiv_rules ctxt)
 
 fun regularize_tac ctxt =
   let
@@ -373,7 +373,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 
      (* respectfulness of constants; in particular of a simple relation *)
   | _ $ (Const _) $ (Const _)  (* fun_rel, list_rel, etc but not equality *)
-      => resolve_tac (Quotient_Info.rsp_rules_get ctxt) THEN_ALL_NEW quotient_tac ctxt
+      => resolve_tac (Quotient_Info.rsp_rules ctxt) THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
       (* observe map_fun *)
@@ -521,9 +521,9 @@ fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
 *)
 fun clean_tac lthy =
   let
-    val defs = map (Thm.symmetric o #def) (Quotient_Info.qconsts_dest lthy)
-    val prs = Quotient_Info.prs_rules_get lthy
-    val ids = Quotient_Info.id_simps_get lthy
+    val defs = map (Thm.symmetric o #def) (Quotient_Info.dest_quotconsts lthy)
+    val prs = Quotient_Info.prs_rules lthy
+    val ids = Quotient_Info.id_simps lthy
     val thms =
       @{thms Quotient_abs_rep Quotient_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
@@ -632,7 +632,7 @@ fun descend_procedure_tac ctxt simps =
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
       let
-        val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
+        val qtys = map #qtyp (Quotient_Info.dest_quotients ctxt)
         val rtrm = Quotient_Term.derive_rtrm ctxt qtys goal
         val rule = procedure_inst ctxt rtrm  goal
       in
@@ -711,7 +711,7 @@ fun lifted ctxt qtys simps rthm =
 val lifted_attrib = Thm.rule_attribute (fn context =>
   let
     val ctxt = Context.proof_of context
-    val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
+    val qtys = map #qtyp (Quotient_Info.dest_quotients ctxt)
   in
     lifted ctxt qtys []
   end)
