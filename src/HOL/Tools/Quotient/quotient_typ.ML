@@ -113,8 +113,8 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val Rep_const = Const (Rep_name, Abs_ty --> Rep_ty)
 
     (* more useful abs and rep definitions *)
-    val abs_const = Const (@{const_name "quot_type.abs"}, dummyT )
-    val rep_const = Const (@{const_name "quot_type.rep"}, dummyT )
+    val abs_const = Const (@{const_name quot_type.abs}, dummyT)
+    val rep_const = Const (@{const_name quot_type.rep}, dummyT)
     val abs_trm = Syntax.check_term lthy1 (abs_const $ rel $ Abs_const)
     val rep_trm = Syntax.check_term lthy1 (rep_const $ Rep_const)
     val abs_name = Binding.prefix_name "abs_" qty_name
