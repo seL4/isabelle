@@ -63,13 +63,9 @@ fun mk_fun_compose flag (trm1, trm2) =
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val mapfun = #mapfun (Quotient_Info.maps_lookup thy s) handle Quotient_Info.NotFound =>
-      raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
-  in
-    Const (mapfun, dummyT)
-  end
+  case Quotient_Info.maps_lookup (Proof_Context.theory_of ctxt) s of
+    SOME map_data => Const (#mapfun map_data, dummyT)
+  | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
 
 (* makes a Free out of a TVar *)
 fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
@@ -275,13 +271,9 @@ fun mk_rel_compose (trm1, trm2) =
   Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val relmap = #relmap (Quotient_Info.maps_lookup thy s) handle Quotient_Info.NotFound =>
-      raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
-  in
-    Const (relmap, dummyT)
-  end
+  case Quotient_Info.maps_lookup (Proof_Context.theory_of ctxt) s of
+    SOME map_data => Const (#relmap map_data, dummyT)
+  | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
 
 fun mk_relmap ctxt vs rty =
   let

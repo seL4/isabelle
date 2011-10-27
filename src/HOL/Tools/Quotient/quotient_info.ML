@@ -12,8 +12,7 @@ sig
 
   type maps_info = {mapfun: string, relmap: string}
   val maps_defined: theory -> string -> bool
-  (* FIXME functions called "lookup" must return option, not raise exception! *)
-  val maps_lookup: theory -> string -> maps_info     (* raises NotFound *)
+  val maps_lookup: theory -> string -> maps_info option
   val maps_update_thy: string -> maps_info -> theory -> theory
   val maps_update: string -> maps_info -> Proof.context -> Proof.context
   val print_mapsinfo: Proof.context -> unit
@@ -28,6 +27,7 @@ sig
 
   type qconsts_info = {qconst: term, rconst: term, def: thm}
   val transform_qconsts: morphism -> qconsts_info -> qconsts_info
+  (* FIXME functions called "lookup" must return option, not raise exception! *)
   val qconsts_lookup: theory -> term -> qconsts_info     (* raises NotFound *)
   val qconsts_update_thy: string -> qconsts_info -> theory -> theory
   val qconsts_update_gen: string -> qconsts_info -> Context.generic -> Context.generic
@@ -67,13 +67,9 @@ structure MapsData = Theory_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-fun maps_defined thy s =
-  Symtab.defined (MapsData.get thy) s
+fun maps_defined thy s = Symtab.defined (MapsData.get thy) s
 
-fun maps_lookup thy s =
-  (case Symtab.lookup (MapsData.get thy) s of
-    SOME map_fun => map_fun
-  | NONE => raise NotFound)
+fun maps_lookup thy s = Symtab.lookup (MapsData.get thy) s
 
 fun maps_update_thy k minfo = MapsData.map (Symtab.update (k, minfo))
 fun maps_update k minfo = Proof_Context.background_theory (maps_update_thy k minfo)  (* FIXME *)
