@@ -22,6 +22,7 @@ sig
   val dest_bal: term -> term * term
   val find_first: term -> term list -> term list
   (*proof tools*)
+  val mk_eq: term * term -> term
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val norm_tac: simpset -> tactic                (*proves the result*)
   val simplify_meta_eq: simpset -> thm -> thm -> thm (*simplifies the result*)
@@ -65,11 +66,12 @@ fun proc ss t =
     and terms2' = Data.find_first u terms2
     and T = Term.fastype_of u
 
+    val t'' = Data.mk_bal (Data.mk_sum T (u::terms1'), Data.mk_sum T (u::terms2'))
     val reshape =
-      Data.prove_conv [Data.norm_tac ss] ctxt prems
-        (t', Data.mk_bal (Data.mk_sum T (u::terms1'), Data.mk_sum T (u::terms2')))
+      Goal.prove ctxt [] [] (Data.mk_eq (t', t'')) (K (Data.norm_tac ss))
+
   in
-    Option.map (export o Data.simplify_meta_eq ss simp_th) reshape
+    SOME (export (Data.simplify_meta_eq ss simp_th reshape))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE

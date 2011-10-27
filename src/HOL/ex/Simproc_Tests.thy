@@ -374,9 +374,8 @@ by (tactic {* test [linordered_ring_less_cancel_factor] *}) fact
 lemma assumes "0 < z \<Longrightarrow> x < y" shows "(0::rat) < z \<Longrightarrow> z*x < y*z"
 by (tactic {* test [linordered_ring_less_cancel_factor] *}) fact
 
-lemma "(0::rat) < z \<Longrightarrow> z*x < z*y"
-apply (tactic {* test [linordered_ring_less_cancel_factor] *})?
-oops -- "FIXME: test fails"
+lemma assumes "0 < z \<Longrightarrow> x < y" shows "(0::rat) < z \<Longrightarrow> z*x < z*y"
+by (tactic {* test [linordered_ring_less_cancel_factor] *}) fact
 
 
 subsection {* @{text linordered_ring_le_cancel_factor} *}
@@ -385,8 +384,7 @@ lemma assumes "0 < z \<Longrightarrow> x \<le> y" shows "(0::rat) < z \<Longrigh
 by (tactic {* test [linordered_ring_le_cancel_factor] *}) fact
 
 lemma assumes "0 < z \<Longrightarrow> x \<le> y" shows "(0::rat) < z \<Longrightarrow> z*x \<le> z*y"
-apply (tactic {* test [linordered_ring_le_cancel_factor] *})?
-oops -- "FIXME: test fails"
+by (tactic {* test [linordered_ring_le_cancel_factor] *}) fact
 
 
 subsection {* @{text field_combine_numerals} *}

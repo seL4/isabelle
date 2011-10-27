@@ -134,7 +134,7 @@ lemma gcd_mult_distrib2: "k * gcd m n = gcd (k * m) (k * n)"
   apply (induct m n rule: gcd_induct)
    apply simp
   apply (case_tac "k = 0")
-   apply (simp_all add: mod_geq gcd_non_0 mod_mult_distrib2)
+   apply (simp_all add: gcd_non_0)
   done
 
 lemma gcd_mult [simp, algebra]: "gcd k (k * n) = k"

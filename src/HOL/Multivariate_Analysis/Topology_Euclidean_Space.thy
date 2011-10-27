@@ -5298,12 +5298,12 @@ proof-
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
       using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] and e and mult_pos_pos[of e d] by auto
     { fix n assume "n\<ge>N"
-      hence "norm (f (x n - x N)) < e * d" using N[THEN spec[where x=n]] unfolding f.diff[THEN sym] by auto
-      moreover have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
+      have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
         using subspace_sub[OF s, of "x n" "x N"] using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
         using normf[THEN bspec[where x="x n - x N"]] by auto
-      ultimately have "norm (x n - x N) < d" using `e>0`
-        using mult_left_less_imp_less[of e "norm (x n - x N)" d] by auto   }
+      also have "norm (f (x n - x N)) < e * d"
+        using `N \<le> n` N unfolding f.diff[THEN sym] by auto
+      finally have "norm (x n - x N) < d" using `e>0` by simp }
     hence "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" by auto }
   thus ?thesis unfolding cauchy and dist_norm by auto
 qed

@@ -366,6 +366,7 @@ struct
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   val simplify_meta_eq  = cancel_simplify_meta_eq
   val prove_conv = Arith_Data.prove_conv
+  fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
 end;
 
 structure EqCancelFactor = ExtractCommonTermFun
