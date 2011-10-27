@@ -10,7 +10,6 @@ signature QUOTIENT_INFO =
 sig
 
   type maps_info = {mapfun: string, relmap: string}
-  val maps_defined: theory -> string -> bool
   val maps_lookup: theory -> string -> maps_info option
   val maps_update_thy: string -> maps_info -> theory -> theory
   val maps_update: string -> maps_info -> Proof.context -> Proof.context
@@ -61,8 +60,6 @@ structure MapsData = Theory_Data
   val extend = I
   fun merge data = Symtab.merge (K true) data
 )
-
-fun maps_defined thy s = Symtab.defined (MapsData.get thy) s
 
 fun maps_lookup thy s = Symtab.lookup (MapsData.get thy) s
 

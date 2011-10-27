@@ -225,7 +225,7 @@ fun map_check ctxt (_, (rty, _, _)) =
     fun map_check_aux rty warns =
       case rty of
         Type (_, []) => warns
-      | Type (s, _) => if Quotient_Info.maps_defined thy s then warns else s::warns
+      | Type (s, _) => if is_some (Quotient_Info.maps_lookup thy s) then warns else s :: warns
       | _ => warns
 
     val warns = map_check_aux rty []
