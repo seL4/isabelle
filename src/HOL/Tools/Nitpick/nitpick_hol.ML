@@ -642,7 +642,7 @@ fun is_codatatype ctxt (Type (s, _)) =
       |> Option.map snd |> these |> null |> not
   | is_codatatype _ _ = false
 fun is_real_quot_type thy (Type (s, _)) =
-    is_some (Quotient_Info.quotdata_lookup_raw thy s)
+    is_some (Quotient_Info.quotdata_lookup thy s)
   | is_real_quot_type _ _ = false
 fun is_quot_type ctxt T =
   let val thy = Proof_Context.theory_of ctxt in
@@ -738,15 +738,14 @@ fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 fun rep_type_for_quot_type thy (T as Type (s, _)) =
-    let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
+    let val {qtyp, rtyp, ...} = the (Quotient_Info.quotdata_lookup thy s) in
       instantiate_type thy qtyp T rtyp
     end
   | rep_type_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
-      val {qtyp, equiv_rel, equiv_thm, ...} =
-        Quotient_Info.quotdata_lookup thy s
+      val {qtyp, equiv_rel, equiv_thm, ...} = the (Quotient_Info.quotdata_lookup thy s)
       val partial =
         case prop_of equiv_thm of
           @{const Trueprop} $ (Const (@{const_name equivp}, _) $ _) => false

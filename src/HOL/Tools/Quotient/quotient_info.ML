@@ -20,8 +20,7 @@ sig
 
   type quotdata_info = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
   val transform_quotdata: morphism -> quotdata_info -> quotdata_info
-  val quotdata_lookup_raw: theory -> string -> quotdata_info option
-  val quotdata_lookup: theory -> string -> quotdata_info     (* raises NotFound *)
+  val quotdata_lookup: theory -> string -> quotdata_info option
   val quotdata_update_thy: string -> quotdata_info -> theory -> theory
   val quotdata_update_gen: string -> quotdata_info -> Context.generic -> Context.generic
   val quotdata_dest: Proof.context -> quotdata_info list
@@ -136,12 +135,7 @@ fun transform_quotdata phi {qtyp, rtyp, equiv_rel, equiv_thm} =
    equiv_rel = Morphism.term phi equiv_rel,
    equiv_thm = Morphism.thm phi equiv_thm}
 
-fun quotdata_lookup_raw thy str = Symtab.lookup (QuotData.get thy) str
-
-fun quotdata_lookup thy str =
-  case Symtab.lookup (QuotData.get thy) str of
-    SOME qinfo => qinfo
-  | NONE => raise NotFound
+fun quotdata_lookup thy str = Symtab.lookup (QuotData.get thy) str
 
 fun quotdata_update_thy str qinfo = QuotData.map (Symtab.update (str, qinfo))
 fun quotdata_update_gen str qinfo = Context.mapping (quotdata_update_thy str qinfo) I

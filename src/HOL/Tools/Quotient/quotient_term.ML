@@ -100,13 +100,9 @@ fun mk_mapfun ctxt vs rty =
    a quotient definition
 *)
 fun get_rty_qty ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val qdata = Quotient_Info.quotdata_lookup thy s handle Quotient_Info.NotFound =>
-      raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-  in
-    (#rtyp qdata, #qtyp qdata)
-  end
+  case Quotient_Info.quotdata_lookup (Proof_Context.theory_of ctxt) s of
+    SOME qdata => (#rtyp qdata, #qtyp qdata)
+  | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.");
 
 (* takes two type-environments and looks
    up in both of them the variable v, which
@@ -302,12 +298,9 @@ fun mk_relmap ctxt vs rty =
   end
 
 fun get_equiv_rel ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    #equiv_rel (Quotient_Info.quotdata_lookup thy s) handle Quotient_Info.NotFound =>
-      raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
-  end
+  case Quotient_Info.quotdata_lookup (Proof_Context.theory_of ctxt) s of
+      SOME qdata => #equiv_rel qdata
+    | NONE => raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
 
 fun equiv_match_err ctxt ty_pat ty =
   let
@@ -442,7 +435,7 @@ fun matches_typ thy rT qT =
           if length rtys <> length qtys then false
           else forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
         else
-          (case Quotient_Info.quotdata_lookup_raw thy qs of
+          (case Quotient_Info.quotdata_lookup thy qs of
             SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
           | NONE => false)
     | _ => false)
