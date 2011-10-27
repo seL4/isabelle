@@ -56,25 +56,17 @@ structure Quotmaps = Generic_Data
 
 val lookup_quotmaps = Symtab.lookup o Quotmaps.get o Context.Proof
 
-fun quotmaps_attribute (ctxt, (tystr, (mapstr, relstr))) =
-  let
-    val thy = Proof_Context.theory_of ctxt  (* FIXME proper local context *)
-    val tyname = Sign.intern_type thy tystr  (* FIXME pass proper internal names via syntax *)
-    val mapname = Sign.intern_const thy mapstr
-    val relname = Sign.intern_const thy relstr
+(* FIXME export proper internal update operation!? *)
 
-    fun sanity_check s = (Const (s, dummyT) |> Syntax.check_term ctxt; ())
-    val _ = List.app sanity_check [mapname, relname]
-    val minfo = {mapfun = mapname, relmap = relname}
-  in
-    Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo)))
-  end
-
-val quotmaps_attr_parser =
-  Args.context -- Scan.lift
-    ((Args.name --| Parse.$$$ "=") --
-      (Parse.$$$ "(" |-- Args.name --| Parse.$$$ "," --
-        Args.name --| Parse.$$$ ")"))
+val quotmaps_attribute_setup =
+  Attrib.setup @{binding map}
+    ((Args.type_name false --| Scan.lift (Parse.$$$ "=")) --  (* FIXME Args.type_name true (requires "set" type) *)
+      (Scan.lift (Parse.$$$ "(") |-- Args.const_proper true --| Scan.lift (Parse.$$$ ",") --
+        Args.const_proper true --| Scan.lift (Parse.$$$ ")")) >>
+      (fn (tyname, (mapname, relname)) =>
+        let val minfo = {mapfun = mapname, relmap = relname}
+        in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
+    "declaration of map information"
 
 fun print_quotmaps ctxt =
   let
@@ -242,8 +234,7 @@ val quotient_rules_add = Quotient_Rules.add
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding map} (quotmaps_attr_parser >> quotmaps_attribute)
-    "declaration of map information" #>
+  quotmaps_attribute_setup #>
   Equiv_Rules.setup #>
   Rsp_Rules.setup #>
   Prs_Rules.setup #>
