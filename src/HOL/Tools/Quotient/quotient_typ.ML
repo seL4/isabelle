@@ -19,31 +19,6 @@ end;
 structure Quotient_Type: QUOTIENT_TYPE =
 struct
 
-(* wrappers for define, note, Attrib.internal and theorem_i *)  (* FIXME !? *)
-
-fun define (name, mx, rhs) lthy =
-  let
-    val ((rhs, (_ , thm)), lthy') =
-      Local_Theory.define ((name, mx), (Attrib.empty_binding, rhs)) lthy
-  in
-    ((rhs, thm), lthy')
-  end
-
-fun note (name, thm, attrs) lthy =
-  Local_Theory.note ((name, attrs), [thm]) lthy |> snd
-
-
-fun intern_attr at = Attrib.internal (K at)
-
-fun theorem after_qed goals ctxt =
-  let
-    val goals' = map (rpair []) goals
-    fun after_qed' thms = after_qed (the_single thms)
-  in
-    Proof.theorem NONE after_qed' [goals'] ctxt
-  end
-
-
 
 (*** definition of quotient types ***)
 
@@ -145,8 +120,10 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val abs_name = Binding.prefix_name "abs_" qty_name
     val rep_name = Binding.prefix_name "rep_" qty_name
 
-    val ((_, abs_def), lthy2) = define (abs_name, NoSyn, abs_trm) lthy1
-    val ((_, rep_def), lthy3) = define (rep_name, NoSyn, rep_trm) lthy2
+    val ((_, (_, abs_def)), lthy2) = lthy1
+      |> Local_Theory.define ((abs_name, NoSyn), (Attrib.empty_binding, abs_trm))
+    val ((_, (_, rep_def)), lthy3) = lthy2
+      |> Local_Theory.define ((rep_name, NoSyn), (Attrib.empty_binding, rep_trm))
 
     (* quot_type theorem *)
     val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, part_equiv, typedef_info) lthy3
@@ -168,10 +145,13 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val lthy4 = lthy3
       |> Local_Theory.declaration true
         (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi))
-      |> note
-        (equiv_thm_name, equiv_thm,
-          if partial then [] else [intern_attr Quotient_Info.equiv_rules_add])
-      |> note (quotient_thm_name, quotient_thm, [intern_attr Quotient_Info.quotient_rules_add])
+      |> (snd oo Local_Theory.note)
+        ((equiv_thm_name,
+          if partial then [] else [Attrib.internal (K Quotient_Info.equiv_rules_add)]),
+          [equiv_thm])
+      |> (snd oo Local_Theory.note)
+        ((quotient_thm_name, [Attrib.internal (K Quotient_Info.quotient_rules_add)]),
+          [quotient_thm])
   in
     (quotients, lthy4)
   end
@@ -267,10 +247,9 @@ fun quotient_type quot_list lthy =
 
     val goals = map (mk_goal o snd) quot_list
 
-    fun after_qed thms lthy =
-      fold_map add_quotient_type (quot_list ~~ thms) lthy |> snd
+    fun after_qed [thms] = fold (snd oo add_quotient_type) (quot_list ~~ thms)
   in
-    theorem after_qed goals lthy
+    Proof.theorem NONE after_qed [map (rpair []) goals] lthy
   end
 
 fun quotient_type_cmd specs lthy =
