@@ -7,23 +7,19 @@ Context data for the quotient package.
 signature QUOTIENT_INFO =
 sig
   type quotmaps = {mapfun: string, relmap: string}
-  val lookup_quotmaps: theory -> string -> quotmaps option
-  val update_quotmaps_global: string -> quotmaps -> theory -> theory
-  val update_quotmaps: string -> quotmaps -> Proof.context -> Proof.context
+  val lookup_quotmaps: Proof.context -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
 
   type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
   val transform_quotients: morphism -> quotients -> quotients
-  val lookup_quotients: theory -> string -> quotients option
-  val update_quotients_global: string -> quotients -> theory -> theory
+  val lookup_quotients: Proof.context -> string -> quotients option
   val update_quotients: string -> quotients -> Context.generic -> Context.generic
   val dest_quotients: Proof.context -> quotients list
   val print_quotients: Proof.context -> unit
 
   type quotconsts = {qconst: term, rconst: term, def: thm}
   val transform_quotconsts: morphism -> quotconsts -> quotconsts
-  val lookup_quotconsts: theory -> term -> quotconsts option
-  val update_quotconsts_global: string -> quotconsts -> theory -> theory
+  val lookup_quotconsts: Proof.context -> term -> quotconsts option
   val update_quotconsts: string -> quotconsts -> Context.generic -> Context.generic
   val dest_quotconsts: Proof.context -> quotconsts list
   val print_quotconsts: Proof.context -> unit
@@ -50,7 +46,7 @@ struct
 (* info about map- and rel-functions for a type *)
 type quotmaps = {mapfun: string, relmap: string}
 
-structure Quotmaps = Theory_Data
+structure Quotmaps = Generic_Data
 (
   type T = quotmaps Symtab.table
   val empty = Symtab.empty
@@ -58,29 +54,23 @@ structure Quotmaps = Theory_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-val lookup_quotmaps = Symtab.lookup o Quotmaps.get
+val lookup_quotmaps = Symtab.lookup o Quotmaps.get o Context.Proof
 
-fun update_quotmaps_global k minfo = Quotmaps.map (Symtab.update (k, minfo))
-fun update_quotmaps k minfo = Proof_Context.background_theory (update_quotmaps_global k minfo)  (* FIXME !? *)
-
-fun maps_attribute_aux s minfo = Thm.declaration_attribute
-  (fn _ => Context.mapping (update_quotmaps_global s minfo) (update_quotmaps s minfo))
-
-(* attribute to be used in declare statements *)
-fun maps_attribute (ctxt, (tystr, (mapstr, relstr))) =
+fun quotmaps_attribute (ctxt, (tystr, (mapstr, relstr))) =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val tyname = Sign.intern_type thy tystr  (* FIXME pass proper internal names *)
+    val thy = Proof_Context.theory_of ctxt  (* FIXME proper local context *)
+    val tyname = Sign.intern_type thy tystr  (* FIXME pass proper internal names via syntax *)
     val mapname = Sign.intern_const thy mapstr
     val relname = Sign.intern_const thy relstr
 
     fun sanity_check s = (Const (s, dummyT) |> Syntax.check_term ctxt; ())
     val _ = List.app sanity_check [mapname, relname]
+    val minfo = {mapfun = mapname, relmap = relname}
   in
-    maps_attribute_aux tyname {mapfun = mapname, relmap = relname}
+    Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo)))
   end
 
-val maps_attr_parser =
+val quotmaps_attr_parser =
   Args.context -- Scan.lift
     ((Args.name --| Parse.$$$ "=") --
       (Parse.$$$ "(" |-- Args.name --| Parse.$$$ "," --
@@ -95,9 +85,7 @@ fun print_quotmaps ctxt =
           "map:", mapfun,
           "relation map:", relmap]))
   in
-    Quotmaps.get (Proof_Context.theory_of ctxt)
-    |> Symtab.dest
-    |> map (prt_map)
+    map prt_map (Symtab.dest (Quotmaps.get (Context.Proof ctxt)))
     |> Pretty.big_list "maps for type constructors:"
     |> Pretty.writeln
   end
@@ -106,7 +94,7 @@ fun print_quotmaps ctxt =
 (* info about quotient types *)
 type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
 
-structure Quotients = Theory_Data
+structure Quotients = Generic_Data
 (
   type T = quotients Symtab.table
   val empty = Symtab.empty
@@ -120,13 +108,12 @@ fun transform_quotients phi {qtyp, rtyp, equiv_rel, equiv_thm} =
    equiv_rel = Morphism.term phi equiv_rel,
    equiv_thm = Morphism.thm phi equiv_thm}
 
-val lookup_quotients = Symtab.lookup o Quotients.get
+val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
 
-fun update_quotients_global str qinfo = Quotients.map (Symtab.update (str, qinfo))
-fun update_quotients str qinfo = Context.mapping (update_quotients_global str qinfo) I  (* FIXME !? *)
+fun update_quotients str qinfo = Quotients.map (Symtab.update (str, qinfo))
 
-fun dest_quotients lthy =  (* FIXME slightly expensive way to retrieve data *)
-  map snd (Symtab.dest (Quotients.get (Proof_Context.theory_of lthy)))  (* FIXME !? *)
+fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
+  map snd (Symtab.dest (Quotients.get (Context.Proof ctxt)))
 
 fun print_quotients ctxt =
   let
@@ -141,9 +128,7 @@ fun print_quotients ctxt =
         Pretty.str "equiv. thm:",
         Syntax.pretty_term ctxt (prop_of equiv_thm)])
   in
-    Quotients.get (Proof_Context.theory_of ctxt)
-    |> Symtab.dest
-    |> map (prt_quot o snd)
+    map (prt_quot o snd) (Symtab.dest (Quotients.get (Context.Proof ctxt)))
     |> Pretty.big_list "quotients:"
     |> Pretty.writeln
   end
@@ -157,7 +142,7 @@ fun eq_quotconsts (x : quotconsts, y : quotconsts) = #qconst x = #qconst y
 (* We need to be able to lookup instances of lifted constants,
    for example given "nat fset" we need to find "'a fset";
    but overloaded constants share the same name *)
-structure Quotconsts = Theory_Data
+structure Quotconsts = Generic_Data
 (
   type T = quotconsts list Symtab.table
   val empty = Symtab.empty
@@ -170,23 +155,21 @@ fun transform_quotconsts phi {qconst, rconst, def} =
    rconst = Morphism.term phi rconst,
    def = Morphism.thm phi def}
 
-fun update_quotconsts_global name qcinfo = Quotconsts.map (Symtab.cons_list (name, qcinfo))
-fun update_quotconsts name qcinfo = Context.mapping (update_quotconsts_global name qcinfo) I  (* FIXME !? *)
+fun update_quotconsts name qcinfo = Quotconsts.map (Symtab.cons_list (name, qcinfo))
 
-fun dest_quotconsts lthy =
-  flat (map snd (Symtab.dest (Quotconsts.get (Proof_Context.theory_of lthy))))  (* FIXME !? *)
+fun dest_quotconsts ctxt =
+  flat (map snd (Symtab.dest (Quotconsts.get (Context.Proof ctxt))))
 
-fun lookup_quotconsts thy t =
+fun lookup_quotconsts ctxt t =
   let
+    val thy = Proof_Context.theory_of ctxt
+
     val (name, qty) = dest_Const t
     fun matches (x: quotconsts) =
-      let
-        val (name', qty') = dest_Const (#qconst x);
-      in
-        name = name' andalso Sign.typ_instance thy (qty, qty')
-      end
+      let val (name', qty') = dest_Const (#qconst x);
+      in name = name' andalso Sign.typ_instance thy (qty, qty') end
   in
-    (case Symtab.lookup (Quotconsts.get thy) name of
+    (case Symtab.lookup (Quotconsts.get (Context.Proof ctxt)) name of
       NONE => NONE
     | SOME l => find_first matches l)
   end
@@ -201,11 +184,7 @@ fun print_quotconsts ctxt =
         Pretty.str "as",
         Syntax.pretty_term ctxt (prop_of def)])
   in
-    Quotconsts.get (Proof_Context.theory_of ctxt)
-    |> Symtab.dest
-    |> map snd
-    |> flat
-    |> map prt_qconst
+    map prt_qconst (maps snd (Symtab.dest (Quotconsts.get (Context.Proof ctxt))))
     |> Pretty.big_list "quotient constants:"
     |> Pretty.writeln
   end
@@ -263,7 +242,7 @@ val quotient_rules_add = Quotient_Rules.add
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding map} (maps_attr_parser >> maps_attribute)
+  Attrib.setup @{binding map} (quotmaps_attr_parser >> quotmaps_attribute)
     "declaration of map information" #>
   Equiv_Rules.setup #>
   Rsp_Rules.setup #>
@@ -285,6 +264,5 @@ val _ =
 val _ =
   Outer_Syntax.improper_command "print_quotconsts" "print quotient constants" Keyword.diag
     (Scan.succeed (Toplevel.keep (print_quotconsts o Toplevel.context_of)))
-
 
 end;

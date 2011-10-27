@@ -63,7 +63,7 @@ fun mk_fun_compose flag (trm1, trm2) =
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun ctxt s =
-  (case Quotient_Info.lookup_quotmaps (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotmaps ctxt s of
     SOME map_data => Const (#mapfun map_data, dummyT)
   | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found."))
 
@@ -96,9 +96,9 @@ fun mk_mapfun ctxt vs rty =
    a quotient definition
 *)
 fun get_rty_qty ctxt s =
-  case Quotient_Info.lookup_quotients (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotients ctxt s of
     SOME qdata => (#rtyp qdata, #qtyp qdata)
-  | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.");
+  | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found."))
 
 (* takes two type-environments and looks
    up in both of them the variable v, which
@@ -271,7 +271,7 @@ fun mk_rel_compose (trm1, trm2) =
   Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
-  (case Quotient_Info.lookup_quotmaps (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotmaps ctxt s of
     SOME map_data => Const (#relmap map_data, dummyT)
   | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")"))
 
@@ -290,7 +290,7 @@ fun mk_relmap ctxt vs rty =
   end
 
 fun get_equiv_rel ctxt s =
-  (case Quotient_Info.lookup_quotients (Proof_Context.theory_of ctxt) s of
+  (case Quotient_Info.lookup_quotients ctxt s of
     SOME qdata => #equiv_rel qdata
   | NONE => raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")"))
 
@@ -418,17 +418,18 @@ fun qnt_typ ty = domain_type (domain_type ty)
 
 (* Checks that two types match, for example:
      rty -> rty   matches   qty -> qty *)
-fun matches_typ thy rT qT =
+fun matches_typ ctxt rT qT =
   if rT = qT then true
   else
     (case (rT, qT) of
       (Type (rs, rtys), Type (qs, qtys)) =>
         if rs = qs then
           if length rtys <> length qtys then false
-          else forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
+          else forall (fn x => x = true) (map2 (matches_typ ctxt) rtys qtys)
         else
-          (case Quotient_Info.lookup_quotients thy qs of
-            SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
+          (case Quotient_Info.lookup_quotients ctxt qs of
+            SOME quotinfo =>
+              Sign.typ_instance (Proof_Context.theory_of ctxt) (rT, #rtyp quotinfo)
           | NONE => false)
     | _ => false)
 
@@ -441,7 +442,7 @@ fun matches_typ thy rT qT =
      special treatment of bound variables
 *)
 fun regularize_trm ctxt (rtrm, qtrm) =
-  case (rtrm, qtrm) of
+  (case (rtrm, qtrm) of
     (Abs (x, ty, t), Abs (_, ty', t')) =>
       let
         val subtrm = Abs(x, ty, regularize_trm ctxt (t, t'))
@@ -449,6 +450,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         if ty = ty' then subtrm
         else mk_babs $ (mk_resp $ equiv_relation ctxt (ty, ty')) $ subtrm
       end
+
   | (Const (@{const_name Babs}, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
       let
         val subtrm = regularize_trm ctxt (t, t')
@@ -547,14 +549,14 @@ fun regularize_trm ctxt (rtrm, qtrm) =
   | (_, Const _) =>
       let
         val thy = Proof_Context.theory_of ctxt
-        fun same_const (Const (s, T)) (Const (s', T')) = (s = s') andalso matches_typ thy T T'
+        fun same_const (Const (s, T)) (Const (s', T')) = s = s' andalso matches_typ ctxt T T'
           | same_const _ _ = false
       in
         if same_const rtrm qtrm then rtrm
         else
           let
             val rtrm' =
-              (case Quotient_Info.lookup_quotconsts thy qtrm of
+              (case Quotient_Info.lookup_quotconsts ctxt qtrm of
                 SOME qconst_info => #rconst qconst_info
               | NONE => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm)
           in
@@ -584,7 +586,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         val qtrm_str = Syntax.string_of_term ctxt qtrm
       in
         raise (LIFT_MATCH ("regularize failed (default: " ^ rtrm_str ^ "," ^ qtrm_str ^ ")"))
-      end
+      end)
 
 fun regularize_trm_chk ctxt (rtrm, qtrm) =
   regularize_trm ctxt (rtrm, qtrm)
@@ -705,9 +707,9 @@ fun subst_typ ctxt ty_subst rty =
 
         fun matches [] = rty'
           | matches ((rty, qty)::tail) =
-              case try (Sign.typ_match thy (rty, rty')) Vartab.empty of
+              (case try (Sign.typ_match thy (rty, rty')) Vartab.empty of
                 NONE => matches tail
-              | SOME inst => Envir.subst_type inst qty
+              | SOME inst => Envir.subst_type inst qty)
       in
         matches ty_subst
       end
@@ -726,9 +728,9 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
 
         fun matches [] = Const (a, subst_typ ctxt ty_subst ty)
           | matches ((rconst, qconst)::tail) =
-              case try (Pattern.match thy (rconst, rtrm)) (Vartab.empty, Vartab.empty) of
+              (case try (Pattern.match thy (rconst, rtrm)) (Vartab.empty, Vartab.empty) of
                 NONE => matches tail
-              | SOME inst => Envir.subst_term inst qconst
+              | SOME inst => Envir.subst_term inst qconst)
       in
         matches trm_subst
       end

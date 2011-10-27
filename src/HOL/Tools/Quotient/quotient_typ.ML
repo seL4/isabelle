@@ -219,13 +219,11 @@ fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
 (* check for existence of map functions *)
 fun map_check ctxt (_, (rty, _, _)) =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     fun map_check_aux rty warns =
-      case rty of
+      (case rty of
         Type (_, []) => warns
-      | Type (s, _) => if is_some (Quotient_Info.lookup_quotmaps thy s) then warns else s :: warns
-      | _ => warns
+      | Type (s, _) => if is_some (Quotient_Info.lookup_quotmaps ctxt s) then warns else s :: warns
+      | _ => warns)
 
     val warns = map_check_aux rty []
   in
@@ -310,4 +308,4 @@ val _ =
     "quotient type definitions (require equivalence proofs)"
        Keyword.thy_goal (quotspec_parser >> quotient_type_cmd)
 
-end; (* structure *)
+end;

@@ -641,17 +641,15 @@ fun is_codatatype ctxt (Type (s, _)) =
     s |> AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
       |> Option.map snd |> these |> null |> not
   | is_codatatype _ _ = false
-fun is_real_quot_type thy (Type (s, _)) =
-    is_some (Quotient_Info.lookup_quotients thy s)
+fun is_real_quot_type ctxt (Type (s, _)) =
+    is_some (Quotient_Info.lookup_quotients ctxt s)
   | is_real_quot_type _ _ = false
 fun is_quot_type ctxt T =
-  let val thy = Proof_Context.theory_of ctxt in
-    is_real_quot_type thy T andalso not (is_codatatype ctxt T)
-  end
+    is_real_quot_type ctxt T andalso not (is_codatatype ctxt T)
 fun is_pure_typedef ctxt (T as Type (s, _)) =
     let val thy = Proof_Context.theory_of ctxt in
       is_typedef ctxt s andalso
-      not (is_real_datatype thy s orelse is_real_quot_type thy T orelse
+      not (is_real_datatype thy s orelse is_real_quot_type ctxt T orelse
            is_codatatype ctxt T orelse is_record_type T orelse
            is_integer_like_type T)
     end
@@ -682,7 +680,7 @@ fun is_univ_typedef ctxt (Type (s, _)) =
 fun is_datatype ctxt stds (T as Type (s, _)) =
     let val thy = Proof_Context.theory_of ctxt in
       (is_typedef ctxt s orelse is_codatatype ctxt T orelse
-       T = @{typ ind} orelse is_real_quot_type thy T) andalso
+       T = @{typ ind} orelse is_real_quot_type ctxt T) andalso
       not (is_basic_datatype thy stds s)
     end
   | is_datatype _ _ _ = false
@@ -737,8 +735,11 @@ fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
        SOME {Abs_name, ...} => (Abs_name, Type (@{type_name fun}, [T2, T1]))
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
-fun rep_type_for_quot_type thy (T as Type (s, _)) =
-    let val {qtyp, rtyp, ...} = the (Quotient_Info.lookup_quotients thy s) in
+fun rep_type_for_quot_type ctxt (T as Type (s, _)) =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val {qtyp, rtyp, ...} = the (Quotient_Info.lookup_quotients ctxt s)
+    in
       instantiate_type thy qtyp T rtyp
     end
   | rep_type_for_quot_type _ T =
@@ -912,8 +913,8 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
                val T' = (Record.get_extT_fields thy T
                         |> apsnd single |> uncurry append |> map snd) ---> T
              in [(s', T')] end
-           else if is_real_quot_type thy T then
-             [(@{const_name Quot}, rep_type_for_quot_type thy T --> T)]
+           else if is_real_quot_type ctxt T then
+             [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
            else case typedef_info ctxt s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
              [(Abs_name,
@@ -1760,7 +1761,7 @@ fun unfold_defs_in_term
                       val rep_T = domain_type (range_type T)
                       val (rep_fun, _) = quot_rep_of depth Ts abs_T rep_T []
                       val (equiv_rel, _) =
-                        equiv_relation_for_quot_type thy abs_T
+                        equiv_relation_for_quot_type ctxt abs_T
                     in
                       (Abs (Name.uu, abs_T, equiv_rel $ (rep_fun $ Bound 0)),
                        ts)
@@ -1912,10 +1913,9 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
   end
 fun optimized_quot_type_axioms ctxt stds abs_z =
   let
-    val thy = Proof_Context.theory_of ctxt
     val abs_T = Type abs_z
-    val rep_T = rep_type_for_quot_type thy abs_T
-    val (equiv_rel, partial) = equiv_relation_for_quot_type thy abs_T
+    val rep_T = rep_type_for_quot_type ctxt abs_T
+    val (equiv_rel, partial) = equiv_relation_for_quot_type ctxt abs_T
     val a_var = Var (("a", 0), abs_T)
     val x_var = Var (("x", 0), rep_T)
     val y_var = Var (("y", 0), rep_T)
