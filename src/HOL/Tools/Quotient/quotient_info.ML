@@ -8,7 +8,6 @@ Data slots for the quotient package.
 
 signature QUOTIENT_INFO =
 sig
-  exception NotFound  (* FIXME complicates signatures unnecessarily *)
 
   type maps_info = {mapfun: string, relmap: string}
   val maps_defined: theory -> string -> bool
@@ -27,8 +26,7 @@ sig
 
   type qconsts_info = {qconst: term, rconst: term, def: thm}
   val transform_qconsts: morphism -> qconsts_info -> qconsts_info
-  (* FIXME functions called "lookup" must return option, not raise exception! *)
-  val qconsts_lookup: theory -> term -> qconsts_info     (* raises NotFound *)
+  val qconsts_lookup: theory -> term -> qconsts_info option
   val qconsts_update_thy: string -> qconsts_info -> theory -> theory
   val qconsts_update_gen: string -> qconsts_info -> Context.generic -> Context.generic
   val qconsts_dest: Proof.context -> qconsts_info list
@@ -48,9 +46,6 @@ end;
 
 structure Quotient_Info: QUOTIENT_INFO =
 struct
-
-exception NotFound  (* FIXME odd OCaml-ism!? *)
-
 
 (** data containers **)
 
@@ -198,11 +193,8 @@ fun qconsts_lookup thy t =
       end
   in
     (case Symtab.lookup (QConstsData.get thy) name of
-      NONE => raise NotFound
-    | SOME l =>
-        (case find_first matches l of
-          SOME x => x
-        | NONE => raise NotFound))
+      NONE => NONE
+    | SOME l => find_first matches l)
   end
 
 fun print_qconstinfo ctxt =

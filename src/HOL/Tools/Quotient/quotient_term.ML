@@ -553,9 +553,9 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         if same_const rtrm qtrm then rtrm
         else
           let
-            val rtrm' = #rconst (Quotient_Info.qconsts_lookup thy qtrm)
-              handle Quotient_Info.NotFound =>
-                term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
+            val rtrm' = case Quotient_Info.qconsts_lookup thy qtrm of
+              SOME qconst_info => #rconst qconst_info
+            | NONE => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
           in
             if Pattern.matches thy (rtrm', rtrm)
             then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm
