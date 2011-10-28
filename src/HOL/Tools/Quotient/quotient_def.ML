@@ -72,11 +72,13 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = thm}
 
-    fun qcinfo phi = Quotient_Info.transform_quotconsts phi qconst_data
-    fun trans_name phi = (fst o dest_Const o #qconst) (qcinfo phi)
-    val lthy'' =
-      Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotconsts (trans_name phi) (qcinfo phi)) lthy'
+    val lthy'' = lthy'
+      |> Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi =>
+          (case Quotient_Info.transform_quotconsts phi qconst_data of
+            qcinfo as {qconst = Const (c, _), ...} =>
+              Quotient_Info.update_quotconsts c qcinfo
+          | _ => I));
   in
     (qconst_data, lthy'')
   end
