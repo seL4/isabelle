@@ -19,12 +19,24 @@ sig
   val prep_simproc: theory -> string * string list * (theory -> simpset -> term -> thm option)
     -> simproc
   val trans_tac: thm option -> tactic
-  val assoc_fold_simproc: simproc
-  val combine_numerals: simproc
-  val cancel_numerals: simproc list
-  val cancel_factors: simproc list
-  val cancel_numeral_factors: simproc list
-  val field_combine_numerals: simproc
+  val assoc_fold: simpset -> cterm -> thm option
+  val combine_numerals: simpset -> cterm -> thm option
+  val eq_cancel_numerals: simpset -> cterm -> thm option
+  val less_cancel_numerals: simpset -> cterm -> thm option
+  val le_cancel_numerals: simpset -> cterm -> thm option
+  val eq_cancel_factor: simpset -> cterm -> thm option
+  val le_cancel_factor: simpset -> cterm -> thm option
+  val less_cancel_factor: simpset -> cterm -> thm option
+  val div_cancel_factor: simpset -> cterm -> thm option
+  val mod_cancel_factor: simpset -> cterm -> thm option
+  val dvd_cancel_factor: simpset -> cterm -> thm option
+  val divide_cancel_factor: simpset -> cterm -> thm option
+  val eq_cancel_numeral_factor: simpset -> cterm -> thm option
+  val less_cancel_numeral_factor: simpset -> cterm -> thm option
+  val le_cancel_numeral_factor: simpset -> cterm -> thm option
+  val div_cancel_numeral_factor: simpset -> cterm -> thm option
+  val divide_cancel_numeral_factor: simpset -> cterm -> thm option
+  val field_combine_numerals: simpset -> cterm -> thm option
   val field_cancel_numeral_factors: simproc list
   val num_ss: simpset
   val field_comp_conv: conv
@@ -251,32 +263,9 @@ structure LeCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm le_add_iff2} RS trans
 );
 
-val cancel_numerals =
-  map (prep_simproc @{theory})
-   [("inteq_cancel_numerals",
-     ["(l::'a::number_ring) + m = n",
-      "(l::'a::number_ring) = m + n",
-      "(l::'a::number_ring) - m = n",
-      "(l::'a::number_ring) = m - n",
-      "(l::'a::number_ring) * m = n",
-      "(l::'a::number_ring) = m * n"],
-     K EqCancelNumerals.proc),
-    ("intless_cancel_numerals",
-     ["(l::'a::{linordered_idom,number_ring}) + m < n",
-      "(l::'a::{linordered_idom,number_ring}) < m + n",
-      "(l::'a::{linordered_idom,number_ring}) - m < n",
-      "(l::'a::{linordered_idom,number_ring}) < m - n",
-      "(l::'a::{linordered_idom,number_ring}) * m < n",
-      "(l::'a::{linordered_idom,number_ring}) < m * n"],
-     K LessCancelNumerals.proc),
-    ("intle_cancel_numerals",
-     ["(l::'a::{linordered_idom,number_ring}) + m <= n",
-      "(l::'a::{linordered_idom,number_ring}) <= m + n",
-      "(l::'a::{linordered_idom,number_ring}) - m <= n",
-      "(l::'a::{linordered_idom,number_ring}) <= m - n",
-      "(l::'a::{linordered_idom,number_ring}) * m <= n",
-      "(l::'a::{linordered_idom,number_ring}) <= m * n"],
-     K LeCancelNumerals.proc)];
+fun eq_cancel_numerals ss ct = EqCancelNumerals.proc ss (term_of ct)
+fun less_cancel_numerals ss ct = LessCancelNumerals.proc ss (term_of ct)
+fun le_cancel_numerals ss ct = LeCancelNumerals.proc ss (term_of ct)
 
 structure CombineNumeralsData =
 struct
@@ -330,18 +319,9 @@ end;
 
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
 
-val combine_numerals =
-  prep_simproc @{theory}
-    ("int_combine_numerals", 
-     ["(i::'a::number_ring) + j", "(i::'a::number_ring) - j"], 
-     K CombineNumerals.proc);
+fun combine_numerals ss ct = CombineNumerals.proc ss (term_of ct)
 
-val field_combine_numerals =
-  prep_simproc @{theory}
-    ("field_combine_numerals", 
-     ["(i::'a::{field_inverse_zero, number_ring}) + j",
-      "(i::'a::{field_inverse_zero, number_ring}) - j"], 
-     K FieldCombineNumerals.proc);
+fun field_combine_numerals ss ct = FieldCombineNumerals.proc ss (term_of ct)
 
 (** Constant folding for multiplication in semirings **)
 
@@ -356,10 +336,7 @@ end;
 
 structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
 
-val assoc_fold_simproc =
-  prep_simproc @{theory}
-   ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
-    K Semiring_Times_Assoc.proc);
+fun assoc_fold ss ct = Semiring_Times_Assoc.proc ss (term_of ct)
 
 structure CancelNumeralFactorCommon =
 struct
@@ -426,29 +403,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-val cancel_numeral_factors =
-  map (prep_simproc @{theory})
-   [("ring_eq_cancel_numeral_factor",
-     ["(l::'a::{idom,number_ring}) * m = n",
-      "(l::'a::{idom,number_ring}) = m * n"],
-     K EqCancelNumeralFactor.proc),
-    ("ring_less_cancel_numeral_factor",
-     ["(l::'a::{linordered_idom,number_ring}) * m < n",
-      "(l::'a::{linordered_idom,number_ring}) < m * n"],
-     K LessCancelNumeralFactor.proc),
-    ("ring_le_cancel_numeral_factor",
-     ["(l::'a::{linordered_idom,number_ring}) * m <= n",
-      "(l::'a::{linordered_idom,number_ring}) <= m * n"],
-     K LeCancelNumeralFactor.proc),
-    ("int_div_cancel_numeral_factors",
-     ["((l::'a::{semiring_div,number_ring}) * m) div n",
-      "(l::'a::{semiring_div,number_ring}) div (m * n)"],
-     K DivCancelNumeralFactor.proc),
-    ("divide_cancel_numeral_factor",
-     ["((l::'a::{field_inverse_zero,number_ring}) * m) / n",
-      "(l::'a::{field_inverse_zero,number_ring}) / (m * n)",
-      "((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)"],
-     K DivideCancelNumeralFactor.proc)];
+fun eq_cancel_numeral_factor ss ct = EqCancelNumeralFactor.proc ss (term_of ct)
+fun less_cancel_numeral_factor ss ct = LessCancelNumeralFactor.proc ss (term_of ct)
+fun le_cancel_numeral_factor ss ct = LeCancelNumeralFactor.proc ss (term_of ct)
+fun div_cancel_numeral_factor ss ct = DivCancelNumeralFactor.proc ss (term_of ct)
+fun divide_cancel_numeral_factor ss ct = DivideCancelNumeralFactor.proc ss (term_of ct)
 
 val field_cancel_numeral_factors =
   map (prep_simproc @{theory})
@@ -572,33 +531,13 @@ structure DivideCancelFactor = ExtractCommonTermFun
   fun simp_conv _ _ = SOME @{thm mult_divide_mult_cancel_left_if}
 );
 
-val cancel_factors =
-  map (prep_simproc @{theory})
-   [("ring_eq_cancel_factor",
-     ["(l::'a::idom) * m = n",
-      "(l::'a::idom) = m * n"],
-     K EqCancelFactor.proc),
-    ("linordered_ring_le_cancel_factor",
-     ["(l::'a::linordered_ring) * m <= n",
-      "(l::'a::linordered_ring) <= m * n"],
-     K LeCancelFactor.proc),
-    ("linordered_ring_less_cancel_factor",
-     ["(l::'a::linordered_ring) * m < n",
-      "(l::'a::linordered_ring) < m * n"],
-     K LessCancelFactor.proc),
-    ("int_div_cancel_factor",
-     ["((l::'a::semiring_div) * m) div n", "(l::'a::semiring_div) div (m * n)"],
-     K DivCancelFactor.proc),
-    ("int_mod_cancel_factor",
-     ["((l::'a::semiring_div) * m) mod n", "(l::'a::semiring_div) mod (m * n)"],
-     K ModCancelFactor.proc),
-    ("dvd_cancel_factor",
-     ["((l::'a::idom) * m) dvd n", "(l::'a::idom) dvd (m * n)"],
-     K DvdCancelFactor.proc),
-    ("divide_cancel_factor",
-     ["((l::'a::field_inverse_zero) * m) / n",
-      "(l::'a::field_inverse_zero) / (m * n)"],
-     K DivideCancelFactor.proc)];
+fun eq_cancel_factor ss ct = EqCancelFactor.proc ss (term_of ct)
+fun le_cancel_factor ss ct = LeCancelFactor.proc ss (term_of ct)
+fun less_cancel_factor ss ct = LessCancelFactor.proc ss (term_of ct)
+fun div_cancel_factor ss ct = DivCancelFactor.proc ss (term_of ct)
+fun mod_cancel_factor ss ct = ModCancelFactor.proc ss (term_of ct)
+fun dvd_cancel_factor ss ct = DvdCancelFactor.proc ss (term_of ct)
+fun divide_cancel_factor ss ct = DivideCancelFactor.proc ss (term_of ct)
 
 local
  val zr = @{cpat "0"}
@@ -753,11 +692,6 @@ end
 
 end;
 
-Addsimprocs Numeral_Simprocs.cancel_numerals;
-Addsimprocs [Numeral_Simprocs.combine_numerals];
-Addsimprocs [Numeral_Simprocs.field_combine_numerals];
-Addsimprocs [Numeral_Simprocs.assoc_fold_simproc];
-
 (*examples:
 print_depth 22;
 set timing;
@@ -794,8 +728,6 @@ test "(i + j + -12 + (k::int)) - 15 = y";
 test "(i + j + 12 + (k::int)) - -15 = y";
 test "(i + j + -12 + (k::int)) - -15 = y";
 *)
-
-Addsimprocs Numeral_Simprocs.cancel_numeral_factors;
 
 (*examples:
 print_depth 22;
@@ -863,9 +795,6 @@ test "-2 * x <= -1 * (y::rat)";
 test "-x < -23 * (y::rat)";
 test "-x <= -23 * (y::rat)";
 *)
-
-Addsimprocs Numeral_Simprocs.cancel_factors;
-
 
 (*examples:
 print_depth 22;

@@ -741,7 +741,7 @@ lemmas sbintr_num = word_sbin.norm_eq_iff
   [symmetric, folded word_number_of_def, standard]
 
 lemmas num_of_bintr = word_ubin.Abs_norm [folded word_number_of_def, standard]
-lemmas num_of_sbintr = word_sbin.Abs_norm [folded word_number_of_def, standard];
+lemmas num_of_sbintr = word_sbin.Abs_norm [folded word_number_of_def, standard]
     
 (* don't add these to simpset, since may want bintrunc n w to be simplified;
   may want these in reverse, but loop as simp rules, so use following *)
@@ -1352,7 +1352,7 @@ lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
 
 lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 
-lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) \<Longrightarrow> (0 :: 'a word) ~= 1";
+lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) \<Longrightarrow> (0 :: 'a word) ~= 1"
   unfolding word_arith_wis
   by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
 
@@ -1661,7 +1661,7 @@ lemma udvd_minus_le':
   apply (erule (2) udvd_decr0)
   done
 
-ML {* Delsimprocs Numeral_Simprocs.cancel_factors *}
+ML {* Delsimprocs [@{simproc linordered_ring_less_cancel_factor}] *}
 
 lemma udvd_incr2_K: 
   "p < a + s \<Longrightarrow> a <= a + s \<Longrightarrow> K udvd s \<Longrightarrow> K udvd p - a \<Longrightarrow> a <= p \<Longrightarrow> 
@@ -1679,7 +1679,7 @@ lemma udvd_incr2_K:
   apply simp
   done
 
-ML {* Addsimprocs Numeral_Simprocs.cancel_factors *}
+ML {* Addsimprocs [@{simproc linordered_ring_less_cancel_factor}] *}
 
 (* links with rbl operations *)
 lemma word_succ_rbl:

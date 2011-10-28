@@ -94,6 +94,106 @@ by (simp add: nat_mult_div_cancel1)
 
 use "Tools/numeral_simprocs.ML"
 
+simproc_setup semiring_assoc_fold
+  ("(a::'a::comm_semiring_1_cancel) * b") =
+  {* fn phi => Numeral_Simprocs.assoc_fold *}
+
+simproc_setup int_combine_numerals
+  ("(i::'a::number_ring) + j" | "(i::'a::number_ring) - j") =
+  {* fn phi => Numeral_Simprocs.combine_numerals *}
+
+simproc_setup field_combine_numerals
+  ("(i::'a::{field_inverse_zero, number_ring}) + j"
+  |"(i::'a::{field_inverse_zero, number_ring}) - j") =
+  {* fn phi => Numeral_Simprocs.field_combine_numerals *}
+
+simproc_setup inteq_cancel_numerals
+  ("(l::'a::number_ring) + m = n"
+  |"(l::'a::number_ring) = m + n"
+  |"(l::'a::number_ring) - m = n"
+  |"(l::'a::number_ring) = m - n"
+  |"(l::'a::number_ring) * m = n"
+  |"(l::'a::number_ring) = m * n") =
+  {* fn phi => Numeral_Simprocs.eq_cancel_numerals *}
+
+simproc_setup intless_cancel_numerals
+  ("(l::'a::{linordered_idom,number_ring}) + m < n"
+  |"(l::'a::{linordered_idom,number_ring}) < m + n"
+  |"(l::'a::{linordered_idom,number_ring}) - m < n"
+  |"(l::'a::{linordered_idom,number_ring}) < m - n"
+  |"(l::'a::{linordered_idom,number_ring}) * m < n"
+  |"(l::'a::{linordered_idom,number_ring}) < m * n") =
+  {* fn phi => Numeral_Simprocs.less_cancel_numerals *}
+
+simproc_setup intle_cancel_numerals
+  ("(l::'a::{linordered_idom,number_ring}) + m \<le> n"
+  |"(l::'a::{linordered_idom,number_ring}) \<le> m + n"
+  |"(l::'a::{linordered_idom,number_ring}) - m \<le> n"
+  |"(l::'a::{linordered_idom,number_ring}) \<le> m - n"
+  |"(l::'a::{linordered_idom,number_ring}) * m \<le> n"
+  |"(l::'a::{linordered_idom,number_ring}) \<le> m * n") =
+  {* fn phi => Numeral_Simprocs.le_cancel_numerals *}
+
+simproc_setup ring_eq_cancel_numeral_factor
+  ("(l::'a::{idom,number_ring}) * m = n"
+  |"(l::'a::{idom,number_ring}) = m * n") =
+  {* fn phi => Numeral_Simprocs.eq_cancel_numeral_factor *}
+
+simproc_setup ring_less_cancel_numeral_factor
+  ("(l::'a::{linordered_idom,number_ring}) * m < n"
+  |"(l::'a::{linordered_idom,number_ring}) < m * n") =
+  {* fn phi => Numeral_Simprocs.less_cancel_numeral_factor *}
+
+simproc_setup ring_le_cancel_numeral_factor
+  ("(l::'a::{linordered_idom,number_ring}) * m <= n"
+  |"(l::'a::{linordered_idom,number_ring}) <= m * n") =
+  {* fn phi => Numeral_Simprocs.le_cancel_numeral_factor *}
+
+simproc_setup int_div_cancel_numeral_factors
+  ("((l::'a::{semiring_div,number_ring}) * m) div n"
+  |"(l::'a::{semiring_div,number_ring}) div (m * n)") =
+  {* fn phi => Numeral_Simprocs.div_cancel_numeral_factor *}
+
+simproc_setup divide_cancel_numeral_factor
+  ("((l::'a::{field_inverse_zero,number_ring}) * m) / n"
+  |"(l::'a::{field_inverse_zero,number_ring}) / (m * n)"
+  |"((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)") =
+  {* fn phi => Numeral_Simprocs.divide_cancel_numeral_factor *}
+
+simproc_setup ring_eq_cancel_factor
+  ("(l::'a::idom) * m = n" | "(l::'a::idom) = m * n") =
+  {* fn phi => Numeral_Simprocs.eq_cancel_factor *}
+
+simproc_setup linordered_ring_le_cancel_factor
+  ("(l::'a::linordered_ring) * m <= n"
+  |"(l::'a::linordered_ring) <= m * n") =
+  {* fn phi => Numeral_Simprocs.le_cancel_factor *}
+
+simproc_setup linordered_ring_less_cancel_factor
+  ("(l::'a::linordered_ring) * m < n"
+  |"(l::'a::linordered_ring) < m * n") =
+  {* fn phi => Numeral_Simprocs.less_cancel_factor *}
+
+simproc_setup int_div_cancel_factor
+  ("((l::'a::semiring_div) * m) div n"
+  |"(l::'a::semiring_div) div (m * n)") =
+  {* fn phi => Numeral_Simprocs.div_cancel_factor *}
+
+simproc_setup int_mod_cancel_factor
+  ("((l::'a::semiring_div) * m) mod n"
+  |"(l::'a::semiring_div) mod (m * n)") =
+  {* fn phi => Numeral_Simprocs.mod_cancel_factor *}
+
+simproc_setup dvd_cancel_factor
+  ("((l::'a::idom) * m) dvd n"
+  |"(l::'a::idom) dvd (m * n)") =
+  {* fn phi => Numeral_Simprocs.dvd_cancel_factor *}
+
+simproc_setup divide_cancel_factor
+  ("((l::'a::field_inverse_zero) * m) / n"
+  |"(l::'a::field_inverse_zero) / (m * n)") =
+  {* fn phi => Numeral_Simprocs.divide_cancel_factor *}
+
 use "Tools/nat_numeral_simprocs.ML"
 
 declaration {* 
@@ -110,9 +210,12 @@ declaration {*
      @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
      @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
      @{thm if_True}, @{thm if_False}])
-  #> Lin_Arith.add_simprocs (Numeral_Simprocs.assoc_fold_simproc
-      :: Numeral_Simprocs.combine_numerals
-      :: Numeral_Simprocs.cancel_numerals)
+  #> Lin_Arith.add_simprocs
+      [@{simproc semiring_assoc_fold},
+       @{simproc int_combine_numerals},
+       @{simproc inteq_cancel_numerals},
+       @{simproc intless_cancel_numerals},
+       @{simproc intle_cancel_numerals}]
   #> Lin_Arith.add_simprocs (Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals))
 *}
 
