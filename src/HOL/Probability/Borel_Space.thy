@@ -6,7 +6,7 @@
 header {*Borel spaces*}
 
 theory Borel_Space
-  imports Sigma_Algebra "~~/src/HOL/Multvariate_Analysis/Multivariate_Analysis"
+  imports Sigma_Algebra "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
 section "Generic Borel spaces"
