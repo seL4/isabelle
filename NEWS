@@ -80,6 +80,10 @@ instead. INCOMPATIBILITY.
 * Structure Proof_Context follows standard naming scheme.  Old
 ProofContext has been discontinued.  INCOMPATIBILITY.
 
+* Refined Local_Theory.declaration {syntax, pervasive}, with subtle
+change of semantics for syntax = false: update is applied to auxiliary
+context as well.
+
 
 
 New in Isabelle2011-1 (October 2011)
