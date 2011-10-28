@@ -771,10 +771,10 @@ fun gen_add_locale prep_decl
 
     val notes' = body_elems |>
       map (defines_to_notes thy') |>
-      map (Element.morph_ctxt a_satisfy) |>
+      map (Element.transform_ctxt a_satisfy) |>
       (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
       fst |>
-      map (Element.morph_ctxt b_satisfy) |>
+      map (Element.transform_ctxt b_satisfy) |>
       map_filter (fn Notes notes => SOME notes | _ => NONE);
 
     val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
@@ -823,7 +823,7 @@ fun note_eqns_register deps witss attrss eqns export export' context =
     |-> (fn eqns => fold (fn ((dep, morph), wits) =>
       fn context =>
         Locale.add_registration (dep, morph $> Element.satisfy_morphism
-            (map (Element.morph_witness export') wits))
+            (map (Element.transform_witness export') wits))
           (Element.eq_morphism (Context.theory_of context) eqns |>
             Option.map (rpair true))
           export context) (deps ~~ witss))
@@ -902,7 +902,7 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
       fn theory =>
         Locale.add_dependency target
           (dep, morph $> Element.satisfy_morphism
-            (map (Element.morph_witness export') wits))
+            (map (Element.transform_witness export') wits))
           (Element.eq_morphism theory eqns' |> Option.map (rpair true))
           export theory) (deps ~~ witss))
   end;

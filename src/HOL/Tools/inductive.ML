@@ -23,7 +23,7 @@ sig
   type inductive_result =
     {preds: term list, elims: thm list, raw_induct: thm,
      induct: thm, inducts: thm list, intrs: thm list, eqs: thm list}
-  val morph_result: morphism -> inductive_result -> inductive_result
+  val transform_result: morphism -> inductive_result -> inductive_result
   type inductive_info = {names: string list, coind: bool} * inductive_result
   val the_inductive: Proof.context -> string -> inductive_info
   val print_inductives: Proof.context -> unit
@@ -120,7 +120,7 @@ type inductive_result =
   {preds: term list, elims: thm list, raw_induct: thm,
    induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
 
-fun morph_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
+fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
   let
     val term = Morphism.term phi;
     val thm = Morphism.thm phi;
@@ -932,7 +932,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
 
     val lthy4 = lthy3
       |> Local_Theory.declaration false (fn phi =>
-        let val result' = morph_result phi result;
+        let val result' = transform_result phi result;
         in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
   in (result, lthy4) end;
 

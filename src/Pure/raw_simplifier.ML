@@ -33,7 +33,7 @@ sig
     safe_solvers: string list}
   type simproc
   val eq_simproc: simproc * simproc -> bool
-  val morph_simproc: morphism -> simproc -> simproc
+  val transform_simproc: morphism -> simproc -> simproc
   val make_simproc: {name: string, lhss: cterm list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} -> simproc
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
@@ -625,7 +625,7 @@ datatype simproc =
 
 fun eq_simproc (Simproc {id = id1, ...}, Simproc {id = id2, ...}) = eq_procid (id1, id2);
 
-fun morph_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
+fun transform_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
   Simproc
    {name = name,
     lhss = map (Morphism.cterm phi) lhss,

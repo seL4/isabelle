@@ -425,7 +425,7 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
             NONE => Morphism.identity
           | SOME export => collect_mixins context (name, morph $> export) $> export);
         val facts' = facts
-          |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin));
+          |> Element.facts_map (Element.transform_ctxt (transfer input $> morph $> mixin));
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
@@ -562,7 +562,7 @@ fun add_thmss loc kind args ctxt =
       (* Registrations *)
       (fn thy => fold_rev (fn (_, morph) =>
             let
-              val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
+              val args'' = snd args' |> Element.facts_map (Element.transform_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
             in Global_Theory.note_thmss kind args'' #> snd end)
         (registrations_of (Context.Theory thy) loc) thy))

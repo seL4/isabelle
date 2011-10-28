@@ -118,7 +118,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
   let
     val global_facts' = Attrib.map_facts (K I) global_facts;
     val local_facts' = Element.facts_map
-      (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
+      (Element.transform_ctxt (Local_Theory.target_morphism lthy)) local_facts;
   in
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)

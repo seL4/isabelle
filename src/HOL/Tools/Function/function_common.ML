@@ -93,10 +93,12 @@ datatype function_result = FunctionResult of
   termination : thm,
   domintros : thm list option}
 
-fun morph_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
+fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
   simps, inducts, termination, defname, is_partial} : info) phi =
     let
-      val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
+      val term = Morphism.term phi
+      val thm = Morphism.thm phi
+      val fact = Morphism.fact phi
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
       { add_simps = add_simps, case_names = case_names,
@@ -132,7 +134,7 @@ fun import_function_data t ctxt =
     val inst_morph = lift_morphism thy o Thm.instantiate
 
     fun match (trm, data) =
-      SOME (morph_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
+      SOME (transform_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
       handle Pattern.MATCH => NONE
   in
     get_first match (Item_Net.retrieve (get_function ctxt) t)

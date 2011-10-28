@@ -12,7 +12,7 @@ sig
   val dest_src: src -> (string * Token.T list) * Position.T
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
-  val morph_values: morphism -> src -> src
+  val transform_values: morphism -> src -> src
   val assignable: src -> src
   val closure: src -> src
   val context: Proof.context context_parser
@@ -96,7 +96,7 @@ fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
 
 (* values *)
 
-fun morph_values phi = map_args (Token.map_value
+fun transform_values phi = map_args (Token.map_value
   (fn Token.Text s => Token.Text s
     | Token.Typ T => Token.Typ (Morphism.typ phi T)
     | Token.Term t => Token.Term (Morphism.term phi t)

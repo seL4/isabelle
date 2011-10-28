@@ -30,7 +30,7 @@ fun note_eqns_register deps witss def_eqns attrss eqns export export' context =
     |-> (fn eqns => fold (fn ((dep, morph), wits) =>
       fn context =>
         Locale.add_registration (dep, morph $> Element.satisfy_morphism
-            (map (Element.morph_witness export') wits))
+            (map (Element.transform_witness export') wits))
           (Element.eq_morphism (Context.theory_of context) (def_eqns @ eqns) |>
             Option.map (rpair true))
           export context) (deps ~~ witss))

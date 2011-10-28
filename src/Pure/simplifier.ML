@@ -195,7 +195,7 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
     lthy |> Local_Theory.declaration false (fn phi => fn context =>
       let
         val b' = Morphism.binding phi b;
-        val simproc' = morph_simproc phi simproc;
+        val simproc' = transform_simproc phi simproc;
       in
         context
         |> Data.map (fn (ss, tab) =>
@@ -298,7 +298,7 @@ val add_del =
   (Args.del -- Args.colon >> K (op delsimprocs) ||
     Scan.option (Args.add -- Args.colon) >> K (op addsimprocs))
   >> (fn f => fn simproc => fn phi => Thm.declaration_attribute
-      (K (map_ss (fn ss => f (ss, [morph_simproc phi simproc])))));
+      (K (map_ss (fn ss => f (ss, [transform_simproc phi simproc])))));
 
 in
 

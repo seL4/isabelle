@@ -28,7 +28,7 @@ sig
     ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
-  val morph_ctxt: morphism -> context_i -> context_i
+  val transform_ctxt: morphism -> context_i -> context_i
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -43,7 +43,7 @@ sig
   val witness_local_proof_eqs: (witness list list -> thm list -> Proof.state -> Proof.state) ->
     string -> term list list -> term list -> Proof.context -> bool -> Proof.state ->
     Proof.state
-  val morph_witness: morphism -> witness -> witness
+  val transform_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val instT_type: typ Symtab.table -> typ -> typ
@@ -110,13 +110,13 @@ fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, typ = I, term = I, pattern = I, fact = I, attrib = attrib};
 
-fun morph_ctxt phi = map_ctxt
+fun transform_ctxt phi = map_ctxt
  {binding = Morphism.binding phi,
   typ = Morphism.typ phi,
   term = Morphism.term phi,
   pattern = Morphism.term phi,
   fact = Morphism.fact phi,
-  attrib = Args.morph_values phi};
+  attrib = Args.transform_values phi};
 
 
 
@@ -269,7 +269,7 @@ fun witness_prop (Witness (t, _)) = t;
 fun witness_hyps (Witness (_, th)) = Thm.hyps_of th;
 fun map_witness f (Witness witn) = Witness (f witn);
 
-fun morph_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Morphism.thm phi th));
+fun transform_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Morphism.thm phi th));
 
 fun prove_witness ctxt t tac =
   Witness (t, Thm.close_derivation (Goal.prove ctxt [] [] (mark_witness t) (fn _ =>
@@ -461,7 +461,7 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
 val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
-val satisfy_facts = facts_map o morph_ctxt o satisfy_morphism;
+val satisfy_facts = facts_map o transform_ctxt o satisfy_morphism;
 
 
 (* rewriting with equalities *)
