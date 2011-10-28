@@ -501,7 +501,8 @@ fun prep_goal_expression prep expression context =
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
     val exp_term = Term_Subst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
-    val export' = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+    val export' =
+      Morphism.morphism {binding = [], typ = [exp_typ], term = [exp_term], fact = [exp_fact]};
   in ((propss, deps, export'), goal_ctxt) end;
 
 in

@@ -397,10 +397,10 @@ fun instT_thm thy env th =
 fun instT_morphism thy env =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
-     {binding = I,
-      typ = instT_type env,
-      term = instT_term env,
-      fact = map (fn th => instT_thm (Theory.deref thy_ref) env th)}
+     {binding = [I],
+      typ = [instT_type env],
+      term = [instT_term env],
+      fact = [map (fn th => instT_thm (Theory.deref thy_ref) env th)]}
   end;
 
 
@@ -446,10 +446,10 @@ fun inst_thm thy (envT, env) th =
 fun inst_morphism thy envs =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
-     {binding = I,
-      typ = instT_type (#1 envs),
-      term = inst_term envs,
-      fact = map (fn th => inst_thm (Theory.deref thy_ref) envs th)}
+     {binding = [],
+      typ = [instT_type (#1 envs)],
+      term = [inst_term envs],
+      fact = [map (fn th => inst_thm (Theory.deref thy_ref) envs th)]}
   end;
 
 
@@ -467,10 +467,10 @@ val satisfy_facts = facts_map o morph_ctxt o satisfy_morphism;
 (* rewriting with equalities *)
 
 fun eq_morphism thy thms = if null thms then NONE else SOME (Morphism.morphism
- {binding = I,
-  typ = I,
-  term = Raw_Simplifier.rewrite_term thy thms [],
-  fact = map (Raw_Simplifier.rewrite_rule thms)});
+ {binding = [],
+  typ = [],
+  term = [Raw_Simplifier.rewrite_term thy thms []],
+  fact = [map (Raw_Simplifier.rewrite_rule thms)]});
 
 
 (* transfer to theory using closure *)
