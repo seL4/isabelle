@@ -18,9 +18,6 @@ text {*
 subsection {* ML bindings *}
 
 ML {*
-  val [field_eq_cancel_numeral_factor, field_cancel_numeral_factor]
-    = Numeral_Simprocs.field_cancel_numeral_factors
-
   fun test ps = CHANGED (asm_simp_tac (HOL_basic_ss addsimprocs ps) 1)
 *}
 
@@ -263,22 +260,22 @@ lemma assumes "2*x = Numeral1*y" shows "-2 * x = -(y::rat)"
 by (tactic {* test [@{simproc ring_eq_cancel_numeral_factor}] *}) fact
 
 
-subsection {* @{text field_cancel_numeral_factor} *}
+subsection {* @{text divide_cancel_numeral_factor} *}
 
 lemma assumes "(3*x) / (4*y) = z" shows "(9*x) / (12 * (y::rat)) = z"
-by (tactic {* test [field_cancel_numeral_factor] *}) fact
+by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
 
 lemma assumes "(-3*x) / (4*y) = z" shows "(-99*x) / (132 * (y::rat)) = z"
-by (tactic {* test [field_cancel_numeral_factor] *}) fact
+by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
 
 lemma assumes "(111*x) / (-44*y) = z" shows "(999*x) / (-396 * (y::rat)) = z"
-by (tactic {* test [field_cancel_numeral_factor] *}) fact
+by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
 
 lemma assumes "(11*x) / (9*y) = z" shows "(-99*x) / (-81 * (y::rat)) = z"
-by (tactic {* test [field_cancel_numeral_factor] *}) fact
+by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
 
 lemma assumes "(2*x) / (Numeral1*y) = z" shows "(-2 * x) / (-1 * (y::rat)) = z"
-by (tactic {* test [field_cancel_numeral_factor] *}) fact
+by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
 
 
 subsection {* @{text ring_eq_cancel_factor} *}
@@ -387,15 +384,5 @@ by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
 lemma "2/3 * (x::rat) + x / 3 = uu"
 apply (tactic {* test [@{simproc field_combine_numerals}] *})?
 oops -- "FIXME: test fails"
-
-
-subsection {* @{text field_eq_cancel_numeral_factor} *}
-
-text {* TODO: tests for @{text field_eq_cancel_numeral_factor} simproc *}
-
-
-subsection {* @{text field_cancel_numeral_factor} *}
-
-text {* TODO: tests for @{text field_cancel_numeral_factor} simproc *}
 
 end
