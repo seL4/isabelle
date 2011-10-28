@@ -165,13 +165,13 @@ simproc_setup ring_eq_cancel_factor
   {* fn phi => Numeral_Simprocs.eq_cancel_factor *}
 
 simproc_setup linordered_ring_le_cancel_factor
-  ("(l::'a::linordered_ring) * m <= n"
-  |"(l::'a::linordered_ring) <= m * n") =
+  ("(l::'a::linordered_idom) * m <= n"
+  |"(l::'a::linordered_idom) <= m * n") =
   {* fn phi => Numeral_Simprocs.le_cancel_factor *}
 
 simproc_setup linordered_ring_less_cancel_factor
-  ("(l::'a::linordered_ring) * m < n"
-  |"(l::'a::linordered_ring) < m * n") =
+  ("(l::'a::linordered_idom) * m < n"
+  |"(l::'a::linordered_idom) < m * n") =
   {* fn phi => Numeral_Simprocs.less_cancel_factor *}
 
 simproc_setup int_div_cancel_factor
