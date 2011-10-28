@@ -397,7 +397,7 @@ fun instT_thm thy env th =
 fun instT_morphism thy env =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
-     {binding = [I],
+     {binding = [],
       typ = [instT_type env],
       term = [instT_term env],
       fact = [map (fn th => instT_thm (Theory.deref thy_ref) env th)]}
