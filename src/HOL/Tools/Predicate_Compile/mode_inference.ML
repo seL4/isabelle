@@ -154,17 +154,6 @@ val terms_vs = distinct (op =) o maps term_vs;
 fun term_vTs tm =
   fold_aterms (fn Free xT => cons xT | _ => I) tm [];
 
-fun subsets i j =
-  if i <= j then
-    let
-      fun merge xs [] = xs
-        | merge [] ys = ys
-        | merge (x::xs) (y::ys) = if length x >= length y then x::merge xs (y::ys)
-            else y::merge (x::xs) ys;
-      val is = subsets (i+1) j
-    in merge (map (fn ks => i::ks) is) is end
-  else [[]];
-
 fun print_failed_mode options thy modes p (pol, m) rs is =
   if show_mode_inference options then
     let
