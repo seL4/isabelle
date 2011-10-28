@@ -184,7 +184,7 @@ fun print_quotconsts ctxt =
 (* equivalence relation theorems *)
 structure Equiv_Rules = Named_Thms
 (
-  val name = "quot_equiv"
+  val name = @{binding quot_equiv}
   val description = "equivalence relation theorems"
 )
 
@@ -194,7 +194,7 @@ val equiv_rules_add = Equiv_Rules.add
 (* respectfulness theorems *)
 structure Rsp_Rules = Named_Thms
 (
-  val name = "quot_respect"
+  val name = @{binding quot_respect}
   val description = "respectfulness theorems"
 )
 
@@ -204,7 +204,7 @@ val rsp_rules_add = Rsp_Rules.add
 (* preservation theorems *)
 structure Prs_Rules = Named_Thms
 (
-  val name = "quot_preserve"
+  val name = @{binding quot_preserve}
   val description = "preservation theorems"
 )
 
@@ -214,7 +214,7 @@ val prs_rules_add = Prs_Rules.add
 (* id simplification theorems *)
 structure Id_Simps = Named_Thms
 (
-  val name = "id_simps"
+  val name = @{binding id_simps}
   val description = "identity simp rules for maps"
 )
 
@@ -223,7 +223,7 @@ val id_simps = Id_Simps.get
 (* quotient theorems *)
 structure Quotient_Rules = Named_Thms
 (
-  val name = "quot_thm"
+  val name = @{binding quot_thm}
   val description = "quotient theorems"
 )
 

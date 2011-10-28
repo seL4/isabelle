@@ -464,7 +464,7 @@ val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I})
 (*To allow expansion of the program's definition when appropriate*)
 structure Program_Defs = Named_Thms
 (
-  val name = "program"
+  val name = @{binding program}
   val description = "program definitions"
 );
 

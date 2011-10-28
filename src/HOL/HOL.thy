@@ -805,7 +805,7 @@ seldom-used facts. Some duplicate other rules.
 ML {*
 structure No_ATPs = Named_Thms
 (
-  val name = "no_atp"
+  val name = @{binding no_atp}
   val description = "theorems that should be filtered out by Sledgehammer"
 )
 *}
@@ -1937,22 +1937,22 @@ subsubsection {* Nitpick setup *}
 ML {*
 structure Nitpick_Unfolds = Named_Thms
 (
-  val name = "nitpick_unfold"
+  val name = @{binding nitpick_unfold}
   val description = "alternative definitions of constants as needed by Nitpick"
 )
 structure Nitpick_Simps = Named_Thms
 (
-  val name = "nitpick_simp"
+  val name = @{binding nitpick_simp}
   val description = "equational specification of constants as needed by Nitpick"
 )
 structure Nitpick_Psimps = Named_Thms
 (
-  val name = "nitpick_psimp"
+  val name = @{binding nitpick_psimp}
   val description = "partial equational specification of constants as needed by Nitpick"
 )
 structure Nitpick_Choice_Specs = Named_Thms
 (
-  val name = "nitpick_choice_spec"
+  val name = @{binding nitpick_choice_spec}
   val description = "choice specification of constants as needed by Nitpick"
 )
 *}
@@ -1973,17 +1973,17 @@ subsection {* Preprocessing for the predicate compiler *}
 ML {*
 structure Predicate_Compile_Alternative_Defs = Named_Thms
 (
-  val name = "code_pred_def"
+  val name = @{binding code_pred_def}
   val description = "alternative definitions of constants for the Predicate Compiler"
 )
 structure Predicate_Compile_Inline_Defs = Named_Thms
 (
-  val name = "code_pred_inline"
+  val name = @{binding code_pred_inline}
   val description = "inlining definitions for the Predicate Compiler"
 )
 structure Predicate_Compile_Simps = Named_Thms
 (
-  val name = "code_pred_simp"
+  val name = @{binding code_pred_simp}
   val description = "simplification rules for the optimisations in the Predicate Compiler"
 )
 *}

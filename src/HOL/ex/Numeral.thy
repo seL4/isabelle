@@ -96,7 +96,7 @@ subsection {* Numeral operations *}
 ML {*
 structure Dig_Simps = Named_Thms
 (
-  val name = "numeral"
+  val name = @{binding numeral}
   val description = "simplification rules for numerals"
 )
 *}

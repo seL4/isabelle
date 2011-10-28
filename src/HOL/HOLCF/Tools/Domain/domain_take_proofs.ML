@@ -125,13 +125,13 @@ structure Rec_Data = Theory_Data
 
 structure DeflMapData = Named_Thms
 (
-  val name = "domain_deflation"
+  val name = @{binding domain_deflation}
   val description = "theorems like deflation a ==> deflation (foo_map$a)"
 )
 
 structure Map_Id_Data = Named_Thms
 (
-  val name = "domain_map_ID"
+  val name = @{binding domain_map_ID}
   val description = "theorems like foo_map$ID = ID"
 )
 

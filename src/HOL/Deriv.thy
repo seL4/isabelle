@@ -308,7 +308,7 @@ text {* @{text "DERIV_intros"} *}
 ML {*
 structure Deriv_Intros = Named_Thms
 (
-  val name = "DERIV_intros"
+  val name = @{binding DERIV_intros}
   val description = "DERIV introduction rules"
 )
 *}

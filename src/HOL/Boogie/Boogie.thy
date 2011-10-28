@@ -86,7 +86,7 @@ section {* Setup *}
 ML {*
 structure Boogie_Axioms = Named_Thms
 (
-  val name = "boogie"
+  val name = @{binding boogie}
   val description =
     "Boogie background axioms loaded along with Boogie verification conditions"
 )

@@ -672,7 +672,7 @@ fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
      * ... ? **)
 structure Z3_Simps = Named_Thms
 (
-  val name = "z3_simp"
+  val name = @{binding z3_simp}
   val description = "simplification rules for Z3 proof reconstruction"
 )
 

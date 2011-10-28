@@ -53,7 +53,7 @@ val lookup_mode = Symtab.lookup o Modes.get o Context.Proof;
 
 structure Mono_Rules = Named_Thms
 (
-  val name = "partial_function_mono";
+  val name = @{binding partial_function_mono};
   val description = "monotonicity rules for partial function definitions";
 );
 

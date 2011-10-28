@@ -15,7 +15,7 @@ sig
   val setup: theory -> theory
 end;
 
-functor Named_Thms(val name: string val description: string): NAMED_THMS =
+functor Named_Thms(val name: binding val description: string): NAMED_THMS =
 struct
 
 structure Data = Generic_Data
@@ -38,7 +38,7 @@ val add = Thm.declaration_attribute add_thm;
 val del = Thm.declaration_attribute del_thm;
 
 val setup =
-  Attrib.setup (Binding.name name) (Attrib.add_del add del) ("declaration of " ^ description) #>
-  Global_Theory.add_thms_dynamic (Binding.name name, content);
+  Attrib.setup name (Attrib.add_del add del) ("declaration of " ^ description) #>
+  Global_Theory.add_thms_dynamic (name, content);
 
 end;

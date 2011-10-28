@@ -18,7 +18,7 @@ struct
 (** User-declared size functions **)
 structure Measure_Heuristic_Rules = Named_Thms
 (
-  val name = "measure_function"
+  val name = @{binding measure_function}
   val description =
     "rules that guide the heuristic generation of measure functions"
 );

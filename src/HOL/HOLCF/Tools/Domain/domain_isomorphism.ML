@@ -46,13 +46,13 @@ fun is_cpo thy T = Sign.of_sort thy (T, @{sort cpo})
 
 structure RepData = Named_Thms
 (
-  val name = "domain_defl_simps"
+  val name = @{binding domain_defl_simps}
   val description = "theorems like DEFL('a t) = t_defl$DEFL('a)"
 )
 
 structure IsodeflData = Named_Thms
 (
-  val name = "domain_isodefl"
+  val name = @{binding domain_isodefl}
   val description = "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 )
 

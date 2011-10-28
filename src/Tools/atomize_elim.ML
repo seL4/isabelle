@@ -23,7 +23,7 @@ struct
 
 structure AtomizeElimData = Named_Thms
 (
-  val name = "atomize_elim";
+  val name = @{binding atomize_elim};
   val description = "atomize_elim rewrite rule";
 );
 

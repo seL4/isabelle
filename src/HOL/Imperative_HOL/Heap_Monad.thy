@@ -40,8 +40,9 @@ lemma Heap_eqI:
   "(\<And>h. execute f h = execute g h) \<Longrightarrow> f = g"
     by (cases f, cases g) (auto simp: fun_eq_iff)
 
-ML {* structure Execute_Simps = Named_Thms(
-  val name = "execute_simps"
+ML {* structure Execute_Simps = Named_Thms
+(
+  val name = @{binding execute_simps}
   val description = "simplification rules for execute"
 ) *}
 
@@ -93,8 +94,9 @@ lemma successE:
     and "execute f h \<noteq> None"
   using assms by (simp add: success_def)
 
-ML {* structure Success_Intros = Named_Thms(
-  val name = "success_intros"
+ML {* structure Success_Intros = Named_Thms
+(
+  val name = @{binding success_intros}
   val description = "introduction rules for success"
 ) *}
 
@@ -166,13 +168,15 @@ lemma effect_deterministic:
   shows "a = b" and "h' = h''"
   using assms unfolding effect_def by auto
 
-ML {* structure Crel_Intros = Named_Thms(
-  val name = "effect_intros"
+ML {* structure Crel_Intros = Named_Thms
+(
+  val name = @{binding effect_intros}
   val description = "introduction rules for effect"
 ) *}
 
-ML {* structure Crel_Elims = Named_Thms(
-  val name = "effect_elims"
+ML {* structure Crel_Elims = Named_Thms
+(
+  val name = @{binding effect_elims}
   val description = "elimination rules for effect"
 ) *}
 

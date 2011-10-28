@@ -540,7 +540,7 @@ definition (in topological_space)
 ML {*
 structure Tendsto_Intros = Named_Thms
 (
-  val name = "tendsto_intros"
+  val name = @{binding tendsto_intros}
   val description = "introduction rules for tendsto"
 )
 *}

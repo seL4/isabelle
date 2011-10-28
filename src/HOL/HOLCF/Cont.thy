@@ -123,7 +123,7 @@ subsection {* Collection of continuity rules *}
 ML {*
 structure Cont2ContData = Named_Thms
 (
-  val name = "cont2cont"
+  val name = @{binding cont2cont}
   val description = "continuity intro rule"
 )
 *}

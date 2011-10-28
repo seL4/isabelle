@@ -12,8 +12,9 @@ begin
 subsection {* Fact collections *}
 
 ML {*
-structure Ac_Simps = Named_Thms(
-  val name = "ac_simps"
+structure Ac_Simps = Named_Thms
+(
+  val name = @{binding ac_simps}
   val description = "associativity and commutativity simplification rules"
 )
 *}
@@ -30,8 +31,9 @@ Of course it also works for fields, but it knows nothing about multiplicative
 inverses or division. This is catered for by @{text field_simps}. *}
 
 ML {*
-structure Algebra_Simps = Named_Thms(
-  val name = "algebra_simps"
+structure Algebra_Simps = Named_Thms
+(
+  val name = @{binding algebra_simps}
   val description = "algebra simplification rules"
 )
 *}
@@ -44,8 +46,9 @@ if they can be proved to be non-zero (for equations) or positive/negative
 more benign @{text algebra_simps}. *}
 
 ML {*
-structure Field_Simps = Named_Thms(
-  val name = "field_simps"
+structure Field_Simps = Named_Thms
+(
+  val name = @{binding field_simps}
   val description = "algebra simplification rules for fields"
 )
 *}

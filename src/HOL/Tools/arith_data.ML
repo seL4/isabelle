@@ -32,8 +32,8 @@ struct
 
 structure Arith_Facts = Named_Thms
 (
-  val name = "arith"
-  val description = "arith facts - only ground formulas"
+  val name = @{binding arith}
+  val description = "arith facts -- only ground formulas"
 );
 
 val get_arith_facts = Arith_Facts.get;

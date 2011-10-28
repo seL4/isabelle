@@ -32,8 +32,9 @@ lemma PFalse:
   by auto
 
 ML {*
-structure Algebra_Simplification = Named_Thms(
-  val name = "algebra"
+structure Algebra_Simplification = Named_Thms
+(
+  val name = @{binding algebra}
   val description = "pre-simplification rules for algebraic methods"
 )
 *}
