@@ -931,7 +931,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        eqs = eqs'};
 
     val lthy4 = lthy3
-      |> Local_Theory.declaration false (fn phi =>
+      |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi =>
         let val result' = transform_result phi result;
         in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
   in (result, lthy4) end;

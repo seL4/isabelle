@@ -247,7 +247,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
           Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct});
       in
         lthy2
-        |> Local_Theory.declaration true (fn phi => put_info full_tname (transform_info phi info))
+        |> Local_Theory.declaration {syntax = false, pervasive = true}
+          (fn phi => put_info full_tname (transform_info phi info))
         |> Local_Theory.background_theory (Typedef_Interpretation.data full_tname)
         |> pair (full_tname, info)
       end;

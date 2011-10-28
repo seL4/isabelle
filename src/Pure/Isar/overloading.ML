@@ -207,7 +207,6 @@ fun gen_overloading prep_const raw_overloading thy =
           (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
             Generic_Target.theory_abbrev prmode ((b, mx), t)),
         declaration = K Generic_Target.theory_declaration,
-        syntax_declaration = K Generic_Target.theory_declaration,
         pretty = pretty,
         exit = Local_Theory.target_of o conclude}
   end;

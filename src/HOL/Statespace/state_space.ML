@@ -340,7 +340,7 @@ fun K_const T = Const ("StateFun.K_statefun",T --> T --> T);
 fun add_declaration name decl thy =
   thy
   |> Named_Target.init I name
-  |> (fn lthy => Local_Theory.declaration false (decl lthy) lthy)
+  |> (fn lthy => Local_Theory.declaration {syntax = false, pervasive = false} (decl lthy) lthy)
   |> Local_Theory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =

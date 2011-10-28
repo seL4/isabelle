@@ -75,7 +75,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     fun qcinfo phi = Quotient_Info.transform_quotconsts phi qconst_data
     fun trans_name phi = (fst o dest_Const o #qconst) (qcinfo phi)
     val lthy'' =
-      Local_Theory.declaration true
+      Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Quotient_Info.update_quotconsts (trans_name phi) (qcinfo phi)) lthy'
   in
     (qconst_data, lthy'')

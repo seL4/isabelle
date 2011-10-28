@@ -56,9 +56,9 @@ fun locale_declaration locale {syntax, pervasive} decl lthy =
     |> Local_Theory.target (add locale locale_decl)
   end;
 
-fun target_declaration (Target {target, ...}) {syntax, pervasive} =
+fun target_declaration (Target {target, ...}) params =
   if target = "" then Generic_Target.theory_declaration
-  else locale_declaration target {syntax = syntax, pervasive = pervasive};
+  else locale_declaration target params;
 
 
 (* consts in locales *)
@@ -193,10 +193,7 @@ fun init before_exit target thy =
        {define = Generic_Target.define (target_foundation ta),
         notes = Generic_Target.notes (target_notes ta),
         abbrev = Generic_Target.abbrev (target_abbrev ta),
-        declaration = fn pervasive => target_declaration ta
-          {syntax = false, pervasive = pervasive},
-        syntax_declaration = fn pervasive => target_declaration ta
-          {syntax = true, pervasive = pervasive},
+        declaration = target_declaration ta,
         pretty = pretty ta,
         exit = Local_Theory.target_of o before_exit}
   end;

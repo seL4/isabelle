@@ -128,7 +128,8 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
         val _ = Proof_Display.print_consts do_print lthy (K false) (map fst fixes)
       in
         (info,
-         lthy |> Local_Theory.declaration false (add_function_data o transform_function_data info))
+         lthy |> Local_Theory.declaration {syntax = false, pervasive = false}
+          (add_function_data o transform_function_data info))
       end
   in
     ((goal_state, afterqed), lthy')
@@ -203,7 +204,8 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
             in
               (info',
                lthy 
-               |> Local_Theory.declaration false (add_function_data o transform_function_data info')
+               |> Local_Theory.declaration {syntax = false, pervasive = false}
+                 (add_function_data o transform_function_data info')
                |> Spec_Rules.add Spec_Rules.Equational (fs, tsimps))
             end)
         end

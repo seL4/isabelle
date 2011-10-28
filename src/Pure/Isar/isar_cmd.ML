@@ -202,9 +202,8 @@ fun declaration {syntax, pervasive} (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
     "val declaration: Morphism.declaration"
-    ("Context.map_proof (Local_Theory." ^
-      (if syntax then "syntax_declaration" else "declaration") ^ " " ^
-      Bool.toString pervasive ^ " declaration)")
+    ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
+      \pervasive = " ^ Bool.toString pervasive ^ "} declaration)")
   |> Context.proof_map;
 
 

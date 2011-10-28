@@ -39,8 +39,7 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val declaration: bool -> declaration -> local_theory -> local_theory
-  val syntax_declaration: bool -> declaration -> local_theory -> local_theory
+  val declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
@@ -71,8 +70,7 @@ type operations =
     local_theory -> (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
-  declaration: bool -> declaration -> local_theory -> local_theory,
-  syntax_declaration: bool -> declaration -> local_theory -> local_theory,
+  declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,
   pretty: local_theory -> Pretty.T list,
   exit: local_theory -> Proof.context};
 
@@ -200,7 +198,6 @@ val abbrev = apsnd checkpoint ooo operation2 #abbrev;
 val define = apsnd checkpoint oo operation1 #define;
 val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val declaration = checkpoint ooo operation2 #declaration;
-val syntax_declaration = checkpoint ooo operation2 #syntax_declaration;
 
 
 
@@ -210,24 +207,29 @@ val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
 fun set_defsort S =
-  syntax_declaration false (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
+  declaration {syntax = true, pervasive = false}
+    (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
 
 
 (* notation *)
 
 fun type_notation add mode raw_args lthy =
-  let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args
-  in syntax_declaration false (Proof_Context.target_type_notation add mode args) lthy end;
+  let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args in
+    declaration {syntax = true, pervasive = false}
+      (Proof_Context.target_type_notation add mode args) lthy
+  end;
 
 fun notation add mode raw_args lthy =
-  let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in syntax_declaration false (Proof_Context.target_notation add mode args) lthy end;
+  let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args in
+    declaration {syntax = true, pervasive = false}
+      (Proof_Context.target_notation add mode args) lthy
+  end;
 
 
 (* name space aliases *)
 
 fun alias global_alias local_alias b name =
-  syntax_declaration false (fn phi =>
+  declaration {syntax = true, pervasive = false} (fn phi =>
     let val b' = Morphism.binding phi b
     in Context.mapping (global_alias b' name) (local_alias b' name) end)
   #> local_alias b name;

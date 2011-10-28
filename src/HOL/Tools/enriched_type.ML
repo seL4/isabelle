@@ -240,7 +240,8 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
         |> Local_Theory.note ((qualify identityN, []),
             [prove_identity lthy id_thm])
         |> snd
-        |> Local_Theory.declaration false (mapper_declaration comp_thm id_thm))
+        |> Local_Theory.declaration {syntax = false, pervasive = false}
+          (mapper_declaration comp_thm id_thm))
   in
     lthy
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [comp_prop, id_prop])

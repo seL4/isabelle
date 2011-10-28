@@ -50,7 +50,7 @@ fun add class (ts, ths) lthy =
   let
     val cts = map (Thm.cterm_of (Proof_Context.theory_of lthy)) ts;
   in
-    lthy |> Local_Theory.declaration true
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi =>
         let
           val (ts', ths') =

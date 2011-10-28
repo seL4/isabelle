@@ -143,7 +143,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     fun qinfo phi = Quotient_Info.transform_quotients phi quotients
 
     val lthy4 = lthy3
-      |> Local_Theory.declaration true
+      |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi))
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
