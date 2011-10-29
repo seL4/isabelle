@@ -24,8 +24,6 @@ sig
     TimedOut |
     Inappropriate |
     OutOfResources |
-    SpassTooOld |
-    VampireTooOld |
     NoPerl |
     NoLibwwwPerl |
     MalformedInput |
@@ -81,8 +79,6 @@ datatype failure =
   TimedOut |
   Inappropriate |
   OutOfResources |
-  SpassTooOld |
-  VampireTooOld |
   NoPerl |
   NoLibwwwPerl |
   MalformedInput |
@@ -134,17 +130,6 @@ fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure Inappropriate =
     "The problem lies outside the prover's scope."
   | string_for_failure OutOfResources = "The prover ran out of resources."
-  | string_for_failure SpassTooOld =
-    "Isabelle requires a more recent version of SPASS with support for the \
-    \TPTP syntax. To install it, download and extract the package \
-    \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
-    \\"spass-3.7\" directory's absolute path to " ^
-    Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
-    " on a line of its own."
-  | string_for_failure VampireTooOld =
-    "Isabelle requires a more recent version of Vampire. To install it, follow \
-    \the instructions from the Sledgehammer manual (\"isabelle doc\
-    \ sledgehammer\")."
   | string_for_failure NoPerl = "Perl" ^ missing_message_tail
   | string_for_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail

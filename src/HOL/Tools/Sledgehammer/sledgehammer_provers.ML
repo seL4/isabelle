@@ -659,11 +659,9 @@ fun run_atp mode name
                   arguments ctxt full_proof extra slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command = "TIMEFORMAT='%3R'; { time " ^ core ^ " ; } 2>&1"
-                val _ =
-                  atp_problem
-                  |> tptp_lines_for_atp_problem format
-                  |> cons ("% " ^ command ^ "\n")
-                  |> File.write_list prob_file
+                val _ = atp_problem |> lines_for_atp_problem format
+                                    |> cons ("% " ^ command ^ "\n")
+                                    |> File.write_list prob_file
                 val conjecture_shape =
                   conjecture_offset + 1
                     upto conjecture_offset + length hyp_ts + 1

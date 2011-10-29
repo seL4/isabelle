@@ -25,12 +25,14 @@ sig
   datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_flavor = THF_Without_Choice | THF_With_Choice
-  datatype tptp_format =
+
+  datatype atp_format =
     CNF |
     CNF_UEQ |
     FOF |
     TFF of tptp_polymorphism * tptp_explicitness |
-    THF of tptp_polymorphism * tptp_explicitness * thf_flavor
+    THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
+    DFG_Sorted
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
@@ -41,6 +43,11 @@ sig
                * (string, string ho_type) ho_term option
   type 'a problem = (string * 'a problem_line list) list
 
+  val isabelle_info_prefix : string
+  val isabelle_info : atp_format -> string -> (string, 'a) ho_term option
+  val introN : string
+  val elimN : string
+  val simpN : string
   val tptp_cnf : string
   val tptp_fof : string
   val tptp_tff : string
@@ -92,9 +99,9 @@ sig
     bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
-  val is_format_thf : tptp_format -> bool
-  val is_format_typed : tptp_format -> bool
-  val tptp_lines_for_atp_problem : tptp_format -> string problem -> string list
+  val is_format_thf : atp_format -> bool
+  val is_format_typed : atp_format -> bool
+  val lines_for_atp_problem : atp_format -> string problem -> string list
   val ensure_cnf_problem :
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
@@ -134,12 +141,13 @@ datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_flavor = THF_Without_Choice | THF_With_Choice
 
-datatype tptp_format =
+datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
   TFF of tptp_polymorphism * tptp_explicitness |
-  THF of tptp_polymorphism * tptp_explicitness * thf_flavor
+  THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
+  DFG_Sorted
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
@@ -147,6 +155,21 @@ datatype 'a problem_line =
   Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
              * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
 type 'a problem = (string * 'a problem_line list) list
+
+val isabelle_info_prefix = "isabelle_"
+
+(* Currently, only SPASS supports Isabelle metainformation. *)
+fun isabelle_info DFG_Sorted s =
+    SOME (ATerm ("[]", [ATerm (isabelle_info_prefix ^ s, [])]))
+  | isabelle_info _ _ = NONE
+
+val introN = "intro"
+val elimN = "elim"
+val simpN = "simp"
+
+fun is_isabelle_info suffix (SOME (ATerm ("[]", [ATerm (s, [])]))) =
+    s = isabelle_info_prefix ^ suffix
+  | is_isabelle_info _ _ = false
 
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"
@@ -185,6 +208,10 @@ fun is_built_in_tptp_symbol s =
   s = tptp_old_equal orelse not (Char.isAlpha (String.sub (s, 0)))
 fun is_tptp_variable s = Char.isUpper (String.sub (s, 0))
 val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
+
+val atype_of_types = AType (`I tptp_type_of_types, [])
+val bool_atype = AType (`I tptp_bool_type, [])
+val individual_atype = AType (`I tptp_individual_type, [])
 
 fun raw_polarities_of_conn ANot = (SOME false, NONE)
   | raw_polarities_of_conn AAnd = (SOME true, SOME true)
@@ -228,15 +255,16 @@ fun is_format_thf (THF _) = true
   | is_format_thf _ = false
 fun is_format_typed (TFF _) = true
   | is_format_typed (THF _) = true
+  | is_format_typed (DFG_Sorted) = true
   | is_format_typed _ = false
 
-fun string_for_kind Axiom = "axiom"
-  | string_for_kind Definition = "definition"
-  | string_for_kind Lemma = "lemma"
-  | string_for_kind Hypothesis = "hypothesis"
-  | string_for_kind Conjecture = "conjecture"
+fun tptp_string_for_kind Axiom = "axiom"
+  | tptp_string_for_kind Definition = "definition"
+  | tptp_string_for_kind Lemma = "lemma"
+  | tptp_string_for_kind Hypothesis = "hypothesis"
+  | tptp_string_for_kind Conjecture = "conjecture"
 
-fun string_for_app format func args =
+fun tptp_string_for_app format func args =
   if is_format_thf format then
     "(" ^ space_implode (" " ^ tptp_app ^ " ") (func :: args) ^ ")"
   else
@@ -255,17 +283,21 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
 
 fun str_for_type format ty =
   let
-    fun str _ (AType (s, [])) = s
+    val dfg = (format = DFG_Sorted)
+    fun str _ (AType (s, [])) =
+        if dfg andalso s = tptp_individual_type then "Top" else s
       | str _ (AType (s, tys)) =
         let val ss = tys |> map (str false) in
           if s = tptp_product_type then
-            ss |> space_implode (" " ^ tptp_product_type ^ " ")
-               |> length ss > 1 ? enclose "(" ")"
+            ss |> space_implode
+                      (if dfg then ", " else " " ^ tptp_product_type ^ " ")
+               |> (not dfg andalso length ss > 1) ? enclose "(" ")"
           else
-            string_for_app format s ss
+            tptp_string_for_app format s ss
         end
       | str rhs (AFun (ty1, ty2)) =
-        str false ty1 ^ " " ^ tptp_fun_type ^ " " ^ str true ty2
+        (str false ty1 |> dfg ? enclose "(" ")") ^ " " ^
+        (if dfg then "" else tptp_fun_type ^ " ") ^ str true ty2
         |> not rhs ? enclose "(" ")"
       | str _ (ATyAbs (ss, ty)) =
         tptp_pi_binder ^ "[" ^
@@ -274,17 +306,16 @@ fun str_for_type format ty =
   in str true ty end
 
 fun string_for_type (format as THF _) ty = str_for_type format ty
-  | string_for_type (format as TFF _) ty = str_for_type format (flatten_type ty)
-  | string_for_type _ _ = raise Fail "unexpected type in untyped format"
+  | string_for_type format ty = str_for_type format (flatten_type ty)
 
-fun string_for_quantifier AForall = tptp_forall
-  | string_for_quantifier AExists = tptp_exists
+fun tptp_string_for_quantifier AForall = tptp_forall
+  | tptp_string_for_quantifier AExists = tptp_exists
 
-fun string_for_connective ANot = tptp_not
-  | string_for_connective AAnd = tptp_and
-  | string_for_connective AOr = tptp_or
-  | string_for_connective AImplies = tptp_implies
-  | string_for_connective AIff = tptp_iff
+fun tptp_string_for_connective ANot = tptp_not
+  | tptp_string_for_connective AAnd = tptp_and
+  | tptp_string_for_connective AOr = tptp_or
+  | tptp_string_for_connective AImplies = tptp_implies
+  | tptp_string_for_connective AIff = tptp_iff
 
 fun string_for_bound_var format (s, ty) =
   s ^
@@ -298,84 +329,193 @@ fun string_for_bound_var format (s, ty) =
 fun is_format_with_choice (THF (_, _, THF_With_Choice)) = true
   | is_format_with_choice _ = false
 
-fun string_for_term _ (ATerm (s, [])) = s
-  | string_for_term format (ATerm (s, ts)) =
+fun tptp_string_for_term _ (ATerm (s, [])) = s
+  | tptp_string_for_term format (ATerm (s, ts)) =
     (if s = tptp_empty_list then
        (* used for lists in the optional "source" field of a derivation *)
-       "[" ^ commas (map (string_for_term format) ts) ^ "]"
+       "[" ^ commas (map (tptp_string_for_term format) ts) ^ "]"
      else if is_tptp_equal s then
-       space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
+       space_implode (" " ^ tptp_equal ^ " ")
+                     (map (tptp_string_for_term format) ts)
        |> is_format_thf format ? enclose "(" ")"
      else case (s = tptp_ho_forall orelse s = tptp_ho_exists,
                 s = tptp_choice andalso is_format_with_choice format, ts) of
        (true, _, [AAbs ((s', ty), tm)]) =>
        (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
           possible, to work around LEO-II 1.2.8 parser limitation. *)
-       string_for_formula format
+       tptp_string_for_formula format
            (AQuant (if s = tptp_ho_forall then AForall else AExists,
                     [(s', SOME ty)], AAtom tm))
      | (_, true, [AAbs ((s', ty), tm)]) =>
        (* There is code in "ATP_Translate" to ensure that "Eps" is always
           applied to an abstraction. *)
        tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
-         string_for_term format tm ^ ""
+       tptp_string_for_term format tm ^ ""
        |> enclose "(" ")"
-     | _ => string_for_app format s (map (string_for_term format) ts))
-  | string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
+     | _ => tptp_string_for_app format s (map (tptp_string_for_term format) ts))
+  | tptp_string_for_term (format as THF _) (AAbs ((s, ty), tm)) =
     "(^[" ^ s ^ " : " ^ string_for_type format ty ^ "]: " ^
-    string_for_term format tm ^ ")"
-  | string_for_term _ _ = raise Fail "unexpected term in first-order format"
-and string_for_formula format (AQuant (q, xs, phi)) =
-    string_for_quantifier q ^
+    tptp_string_for_term format tm ^ ")"
+  | tptp_string_for_term _ _ =
+    raise Fail "unexpected term in first-order format"
+and tptp_string_for_formula format (AQuant (q, xs, phi)) =
+    tptp_string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "]: " ^
-    string_for_formula format phi
+    tptp_string_for_formula format phi
     |> enclose "(" ")"
-  | string_for_formula format
+  | tptp_string_for_formula format
         (AConn (ANot, [AAtom (ATerm ("=" (* tptp_equal *), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
-                  (map (string_for_term format) ts)
+                  (map (tptp_string_for_term format) ts)
     |> is_format_thf format ? enclose "(" ")"
-  | string_for_formula format (AConn (c, [phi])) =
-    string_for_connective c ^ " " ^
-    (string_for_formula format phi |> is_format_thf format ? enclose "(" ")")
+  | tptp_string_for_formula format (AConn (c, [phi])) =
+    tptp_string_for_connective c ^ " " ^
+    (tptp_string_for_formula format phi
+     |> is_format_thf format ? enclose "(" ")")
     |> enclose "(" ")"
-  | string_for_formula format (AConn (c, phis)) =
-    space_implode (" " ^ string_for_connective c ^ " ")
-                  (map (string_for_formula format) phis)
+  | tptp_string_for_formula format (AConn (c, phis)) =
+    space_implode (" " ^ tptp_string_for_connective c ^ " ")
+                  (map (tptp_string_for_formula format) phis)
     |> enclose "(" ")"
-  | string_for_formula format (AAtom tm) = string_for_term format tm
+  | tptp_string_for_formula format (AAtom tm) = tptp_string_for_term format tm
 
 fun the_source (SOME source) = source
   | the_source NONE =
     ATerm ("inference",
            ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
 
-fun string_for_format CNF = tptp_cnf
-  | string_for_format CNF_UEQ = tptp_cnf
-  | string_for_format FOF = tptp_fof
-  | string_for_format (TFF _) = tptp_tff
-  | string_for_format (THF _) = tptp_thf
+fun tptp_string_for_format CNF = tptp_cnf
+  | tptp_string_for_format CNF_UEQ = tptp_cnf
+  | tptp_string_for_format FOF = tptp_fof
+  | tptp_string_for_format (TFF _) = tptp_tff
+  | tptp_string_for_format (THF _) = tptp_thf
+  | tptp_string_for_format DFG_Sorted = raise Fail "non-TPTP format"
 
-fun string_for_problem_line format (Decl (ident, sym, ty)) =
-    string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
-    string_for_type format ty ^ ").\n"
-  | string_for_problem_line format (Formula (ident, kind, phi, source, info)) =
-    string_for_format format ^ "(" ^ ident ^ ", " ^ string_for_kind kind ^
-    ",\n    (" ^ string_for_formula format phi ^ ")" ^
+fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
+    tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
+    " : " ^ string_for_type format ty ^ ").\n"
+  | tptp_string_for_problem_line format
+                                 (Formula (ident, kind, phi, source, info)) =
+    tptp_string_for_format format ^ "(" ^ ident ^ ", " ^
+    tptp_string_for_kind kind ^ ",\n    (" ^
+    tptp_string_for_formula format phi ^ ")" ^
     (case (source, info) of
        (NONE, NONE) => ""
-     | (SOME tm, NONE) => ", " ^ string_for_term format tm
+     | (SOME tm, NONE) => ", " ^ tptp_string_for_term format tm
      | (_, SOME tm) =>
-       ", " ^ string_for_term format (the_source source) ^
-       ", " ^ string_for_term format tm) ^ ").\n"
-fun tptp_lines_for_atp_problem format problem =
-  "% This file was generated by Isabelle (most likely Sledgehammer)\n\
-  \% " ^ timestamp () ^ "\n" ::
+       ", " ^ tptp_string_for_term format (the_source source) ^
+       ", " ^ tptp_string_for_term format tm) ^ ").\n"
+
+fun tptp_lines format =
   maps (fn (_, []) => []
          | (heading, lines) =>
            "\n% " ^ heading ^ " (" ^ string_of_int (length lines) ^ ")\n" ::
-           map (string_for_problem_line format) lines)
-       problem
+           map (tptp_string_for_problem_line format) lines)
+
+fun arity_of_type (AFun (_, ty)) = 1 + arity_of_type ty
+  | arity_of_type _ = 0
+
+fun binder_atypes (AFun (ty1, ty2)) = ty1 :: binder_atypes ty2
+  | binder_atypes _ = []
+
+fun is_function_type (AFun (_, ty)) = is_function_type ty
+  | is_function_type (AType (s, _)) =
+    s <> tptp_type_of_types andalso s <> tptp_bool_type
+  | is_function_type _ = false
+
+fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
+  | is_predicate_type (AType (s, _)) = (s = tptp_bool_type)
+  | is_predicate_type _ = false
+
+fun dfg_string_for_formula info =
+  let
+    fun str_for_term simp (ATerm (s, tms)) =
+        (if is_tptp_equal s then "equal" |> simp ? suffix ":lr"
+         else if s = tptp_true then "true"
+         else if s = tptp_false then "false"
+         else s) ^
+        (if null tms then ""
+         else "(" ^ commas (map (str_for_term false) tms) ^ ")")
+      | str_for_term _ _ = raise Fail "unexpected term in first-order format"
+    fun str_for_quant AForall = "forall"
+      | str_for_quant AExists = "exists"
+    fun str_for_conn _ ANot = "not"
+      | str_for_conn _ AAnd = "and"
+      | str_for_conn _ AOr = "or"
+      | str_for_conn _ AImplies = "implies"
+      | str_for_conn simp AIff = "equiv" |> simp ? suffix ":lr"
+    fun str_for_formula simp (AQuant (q, xs, phi)) =
+        str_for_quant q ^ "(" ^ "[" ^
+        commas (map (string_for_bound_var DFG_Sorted) xs) ^ "], " ^
+        str_for_formula simp phi ^ ")"
+      | str_for_formula simp (AConn (c, phis)) =
+        str_for_conn simp c ^ "(" ^
+        commas (map (str_for_formula false) phis) ^ ")"
+      | str_for_formula simp (AAtom tm) = str_for_term simp tm
+  in str_for_formula (is_isabelle_info simpN info) end
+
+fun dfg_lines problem =
+  let
+    fun ary sym ty =
+      "(" ^ sym ^ ", " ^ string_of_int (arity_of_type ty) ^ ")"
+    fun fun_typ sym ty =
+      "function(" ^ sym ^ ", " ^ string_for_type DFG_Sorted ty ^ ")."
+    fun pred_typ sym ty =
+      "predicate(" ^
+      commas (sym :: map (string_for_type DFG_Sorted) (binder_atypes ty)) ^ ")."
+    fun formula pred (Formula (ident, kind, phi, _, info)) =
+        if pred kind then
+          SOME ("formula(" ^ dfg_string_for_formula info phi ^ ", " ^ ident ^
+                ").")
+        else
+          NONE
+      | formula _ _ = NONE
+    fun filt f = problem |> map (map_filter f o snd) |> flat
+    val func_aries =
+      filt (fn Decl (_, sym, ty) =>
+               if is_function_type ty then SOME (ary sym ty) else NONE
+             | _ => NONE)
+      |> commas |> enclose "functions [" "]."
+    val pred_aries =
+      filt (fn Decl (_, sym, ty) =>
+               if is_predicate_type ty then SOME (ary sym ty) else NONE
+             | _ => NONE)
+      |> commas |> enclose "predicates [" "]."
+    val sorts =
+      filt (fn Decl (_, sym, AType (s, [])) =>
+               if s = tptp_type_of_types then SOME sym else NONE
+             | _ => NONE)
+      |> commas |> enclose "sorts [" "]."
+    val func_sigs =
+      filt (fn Decl (_, sym, ty) =>
+               if is_function_type ty then SOME (fun_typ sym ty) else NONE
+             | _ => NONE)
+    val pred_sigs =
+      filt (fn Decl (_, sym, ty) =>
+               if is_predicate_type ty then SOME (pred_typ sym ty) else NONE
+             | _ => NONE)
+    val axioms = filt (formula (curry (op <>) Conjecture))
+    val conjs = filt (formula (curry (op =) Conjecture))
+    fun list_of _ [] = []
+      | list_of heading ss =
+        "list_of_" ^ heading ^ ".\n" :: map (suffix "\n") ss @
+        ["end_of_list.\n\n"]
+  in
+    "\nbegin_problem(isabelle).\n\n" ::
+    list_of "descriptions"
+            ["name({**}).", "author({**}).", "status(unknown).",
+             "description({**})."] @
+    list_of "symbols" [func_aries, pred_aries, sorts] @
+    list_of "declarations" (func_sigs @ pred_sigs) @
+    list_of "formulae(axioms)" axioms @
+    list_of "formulae(conjectures)" conjs @
+    ["end_problem.\n"]
+  end
+
+fun lines_for_atp_problem format problem =
+  "% This file was generated by Isabelle (most likely Sledgehammer)\n\
+  \% " ^ timestamp () ^ "\n" ::
+  (if format = DFG_Sorted then dfg_lines else tptp_lines format) problem
 
 
 (** CNF (Metis) and CNF UEQ (Waldmeister) **)
@@ -467,11 +607,6 @@ fun filter_cnf_ueq_problem problem =
 (* TFF allows implicit declarations of types, function symbols, and predicate
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
    SNARK) require explicit declarations. The situation is similar for THF. *)
-
-val atype_of_types = AType (`I tptp_type_of_types, [])
-val bool_atype = AType (`I tptp_bool_type, [])
-val individual_atype = AType (`I tptp_individual_type, [])
-
 fun default_type pred_sym =
   let
     fun typ 0 = if pred_sym then bool_atype else individual_atype
@@ -548,7 +683,12 @@ val max_readable_name_size = 20
    unreadable "op_1", "op_2", etc., in the problem files. "eq" is reserved to
    ensure that "HOL.eq" is correctly mapped to equality (not clear whether this
    is still necessary). *)
-val reserved_nice_names = [tptp_old_equal, "op", "eq"]
+val spass_reserved_nice_names =
+  ["forall", "exists", "le", "ls", "ge", "gs", "plus", "minus", "mult", "fract",
+   "equal", "true", "false", "or", "and", "not", "implies", "implied", "equiv",
+   "lr", "def"]
+val reserved_nice_names =
+  [tptp_old_equal, "op", "eq"] @ spass_reserved_nice_names
 
 fun readable_name full_name s =
   if s = full_name then

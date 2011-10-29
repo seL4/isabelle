@@ -11,7 +11,7 @@ sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type connective = ATP_Problem.connective
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
-  type tptp_format = ATP_Problem.tptp_format
+  type atp_format = ATP_Problem.atp_format
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
 
@@ -86,7 +86,7 @@ sig
   val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
   val type_enc_from_string : soundness -> string -> type_enc
-  val adjust_type_enc : tptp_format -> type_enc -> type_enc
+  val adjust_type_enc : atp_format -> type_enc -> type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -94,7 +94,7 @@ sig
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> tptp_format -> formula_kind -> formula_kind -> type_enc
+    Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
     -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
@@ -123,20 +123,10 @@ val hybridN = "hybrid"
 val lambdasN = "lambdas"
 val smartN = "smart"
 
-val generate_info = false (* experimental *)
-
-fun isabelle_info s =
-  if generate_info then SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
-  else NONE
-
-val introN = "intro"
-val elimN = "elim"
-val simpN = "simp"
-
 (* TFF1 is still in development, and it is still unclear whether symbols will be
    allowed to have types like "$tType > $o" (i.e., "![A : $tType] : $o"), with
-   "dummy" type variables. *)
-val avoid_first_order_dummy_type_vars = true
+   ghost type variables. *)
+val avoid_first_order_ghost_type_vars = true
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "BA_"
@@ -313,7 +303,7 @@ fun make_schematic_type_var (x, i) =
   tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
-(* "HOL.eq" and Choice are mapped to the ATP's equivalents *)
+(* "HOL.eq" and choice are mapped to the ATP's equivalents *)
 local
   val choice_const = (fst o dest_Const o HOLogic.choice_const) Term.dummyT
   fun default c = const_prefix ^ lookup_const c
@@ -650,6 +640,8 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
   | adjust_type_enc (THF _) type_enc = type_enc
   | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Simple_Types (_, _, level)) =
     Simple_Types (First_Order, Mangled_Monomorphic, level)
+  | adjust_type_enc DFG_Sorted (Simple_Types (_, _, level)) =
+    Simple_Types (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF _) (Simple_Types (_, poly, level)) =
     Simple_Types (First_Order, poly, level)
   | adjust_type_enc format (Simple_Types (_, poly, level)) =
@@ -755,7 +747,7 @@ fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
       (case type_enc of
          Simple_Types (First_Order, Polymorphic, _) =>
-         if avoid_first_order_dummy_type_vars then [ATerm (TYPE_name, [arg])]
+         if avoid_first_order_ghost_type_vars then [ATerm (TYPE_name, [arg])]
          else []
        | _ => [])))
 fun formulas_for_types type_enc add_sorts_on_typ Ts =
@@ -1545,7 +1537,7 @@ fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
-fun type_tag_idempotence_fact type_enc =
+fun type_tag_idempotence_fact format type_enc =
   let
     fun var s = ATerm (`I s, [])
     fun tag tm = ATerm (type_tag, [var "A", tm])
@@ -1553,7 +1545,7 @@ fun type_tag_idempotence_fact type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] false (tag tagged_var) tagged_var,
-             isabelle_info simpN, NONE)
+             isabelle_info format simpN, NONE)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1833,32 +1825,34 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
    |> close_formula_universally type_enc,
    NONE,
    case locality of
-     Intro => isabelle_info introN
-   | Elim => isabelle_info elimN
-   | Simp => isabelle_info simpN
+     Intro => isabelle_info format introN
+   | Elim => isabelle_info format elimN
+   | Simp => isabelle_info format simpN
    | _ => NONE)
   |> Formula
 
-fun formula_line_for_class_rel_clause type_enc
+fun formula_line_for_class_rel_clause format type_enc
         ({name, subclass, superclass, ...} : class_rel_clause) =
   let val ty_arg = ATerm (tvar_a_name, []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies,
                     [type_class_formula type_enc subclass ty_arg,
                      type_class_formula type_enc superclass ty_arg])
-             |> close_formula_universally type_enc, isabelle_info introN, NONE)
+             |> close_formula_universally type_enc,
+             isabelle_info format introN, NONE)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
   ATerm (t, map (fn arg => ATerm (arg, [])) args)
   |> type_class_formula type_enc class
 
-fun formula_line_for_arity_clause type_enc
+fun formula_line_for_arity_clause format type_enc
         ({name, prem_atoms, concl_atom, ...} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_arity_atom type_enc) prem_atoms)
                     (formula_from_arity_atom type_enc concl_atom)
-           |> close_formula_universally type_enc, isabelle_info introN, NONE)
+           |> close_formula_universally type_enc,
+           isabelle_info format introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -1883,7 +1877,7 @@ fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
 fun decl_line_for_class order s =
   let val name as (s, _) = `make_type_class s in
     Decl (sym_decl_prefix ^ s, name,
-          if order = First_Order andalso avoid_first_order_dummy_type_vars then
+          if order = First_Order andalso avoid_first_order_ghost_type_vars then
             ATyAbs ([tvar_a_name], AFun (a_itself_atype, bool_atype))
           else
             AFun (atype_of_types, bool_atype))
@@ -2059,7 +2053,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     (K (K (K (K (K (K true)))))) (SOME true)
            |> bound_tvars type_enc (atyps_of T)
            |> close_formula_universally type_enc,
-           isabelle_info introN, NONE)
+           isabelle_info format introN, NONE)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2069,7 +2063,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              eq_formula type_enc (atyps_of T) false
                         (tag_with_type ctxt format mono type_enc NONE T x_var)
                         x_var,
-             isabelle_info simpN, NONE)
+             isabelle_info format simpN, NONE)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2143,7 +2137,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> n > 1 ? bound_tvars type_enc (atyps_of T)
              |> close_formula_universally type_enc
              |> maybe_negate,
-             isabelle_info introN, NONE)
+             isabelle_info format introN, NONE)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2179,7 +2173,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         isabelle_info simpN, NONE))
+                         isabelle_info format simpN, NONE))
         end
       else
         I
@@ -2191,7 +2185,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           isabelle_info simpN, NONE))
+                           isabelle_info format simpN, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
           I
@@ -2343,7 +2337,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> map (formula_line_for_fact ctxt format helper_prefix I false true mono
                                     type_enc)
       |> (if needs_type_tag_idempotence ctxt type_enc then
-            cons (type_tag_idempotence_fact type_enc)
+            cons (type_tag_idempotence_fact format type_enc)
           else
             I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
@@ -2355,8 +2349,10 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                                    (not exporter) (not exporter) mono type_enc)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN,
-        map (formula_line_for_class_rel_clause type_enc) class_rel_clauses),
-       (aritiesN, map (formula_line_for_arity_clause type_enc) arity_clauses),
+        map (formula_line_for_class_rel_clause format type_enc)
+            class_rel_clauses),
+       (aritiesN,
+        map (formula_line_for_arity_clause format type_enc) arity_clauses),
        (helpersN, helper_lines),
        (conjsN,
         map (formula_line_for_conjecture ctxt format mono type_enc) conjs),

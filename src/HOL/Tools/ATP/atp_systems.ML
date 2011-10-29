@@ -7,7 +7,7 @@ Setup for supported ATPs.
 
 signature ATP_SYSTEMS =
 sig
-  type tptp_format = ATP_Problem.tptp_format
+  type atp_format = ATP_Problem.atp_format
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
@@ -23,7 +23,7 @@ sig
      prem_kind : formula_kind,
      best_slices :
        Proof.context
-       -> (real * (bool * (int * tptp_format * string * string))) list}
+       -> (real * (bool * (int * atp_format * string * string))) list}
 
   val force_sos : bool Config.T
   val e_smartN : string
@@ -46,6 +46,7 @@ sig
   val satallaxN : string
   val snarkN : string
   val spassN : string
+  val spass_newN : string
   val vampireN : string
   val waldmeisterN : string
   val z3_tptpN : string
@@ -53,7 +54,7 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind
-    -> (Proof.context -> int * tptp_format * string) -> string * atp_config
+    -> (Proof.context -> int * atp_format * string) -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -82,7 +83,7 @@ type atp_config =
    prem_kind : formula_kind,
    best_slices :
      Proof.context
-     -> (real * (bool * (int * tptp_format * string * string))) list}
+     -> (real * (bool * (int * atp_format * string * string))) list}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
    the ATPs are run in parallel. The "real" components give the faction of the
@@ -130,6 +131,7 @@ val phfN = "phf"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
+val spass_newN = "spass_new"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -315,7 +317,6 @@ val spass_config : atp_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (Unprovable, "No formulae and clauses found in input file"),
-      (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
    conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
@@ -328,6 +329,25 @@ val spass_config : atp_config =
          else I)}
 
 val spass = (spassN, spass_config)
+
+(* Experimental *)
+val spass_new_config : atp_config =
+  {exec = ("SPASS_HOME", "SPASS"),
+   required_execs = [],
+   arguments = #arguments spass_config,
+   proof_delims = #proof_delims spass_config,
+   known_failures = #known_failures spass_config,
+   conj_sym_kind = #conj_sym_kind spass_config,
+   prem_kind = #prem_kind spass_config,
+   best_slices = fn ctxt =>
+     (* FUDGE *)
+     [(0.333, (false, (150, DFG_Sorted, "mono_simple", sosN))) (*,
+      (0.333, (false, (300, DFG_Sorted, "poly_tags??", sosN))),
+      (0.334, (true, (50, DFG_Sorted, "mono_simple", no_sosN)))*)]
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
+         else I)}
+
+val spass_new = (spass_newN, spass_new_config)
 
 
 (* Vampire *)
@@ -359,7 +379,6 @@ val vampire_config : atp_config =
       (GaveUp, "CANNOT PROVE"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
-      (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
    conj_sym_kind = Conjecture,
    prem_kind = Conjecture,
@@ -545,9 +564,9 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, pff, phf, satallax, spass, vampire, z3_tptp, remote_e, remote_leo2,
-   remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine, remote_snark,
-   remote_e_tofof, remote_waldmeister]
+  [e, leo2, pff, phf, satallax, spass, spass_new, vampire, z3_tptp, remote_e,
+   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine,
+   remote_snark, remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
 
 end;
