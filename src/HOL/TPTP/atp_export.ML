@@ -8,12 +8,14 @@ Sledgehammer's translation.
 
 signature ATP_EXPORT =
 sig
+  type atp_format = ATP_Problem.atp_format
+
   val theorems_mentioned_in_proof_term :
     string list option -> thm -> string list
   val generate_tptp_graph_file_for_theory :
     Proof.context -> theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
-    Proof.context -> theory -> string -> string -> unit
+    Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
 
 structure ATP_Export : ATP_EXPORT =
@@ -109,13 +111,13 @@ fun add_inferences_to_problem infers =
 fun ident_of_problem_line (Decl (ident, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
 
-fun run_some_atp ctxt problem =
+fun run_some_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob.tptp")
     val {exec, arguments, proof_delims, known_failures, ...} =
-      get_atp thy spassN
-    val _ = problem |> lines_for_atp_problem FOF |> File.write_list prob_file
+      get_atp thy (case format of DFG _ => spassN | _ => eN)
+    val _ = problem |> lines_for_atp_problem format |> File.write_list prob_file
     val command =
       File.shell_path (Path.explode (getenv (fst exec) ^ "/" ^ snd exec)) ^
       " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
@@ -133,12 +135,12 @@ val likely_tautology_prefixes =
   [@{theory HOL}, @{theory Meson}, @{theory ATP}, @{theory Metis}]
   |> map (fact_name_of o Context.theory_name)
 
-fun is_problem_line_tautology ctxt (Formula (ident, _, phi, _, _)) =
+fun is_problem_line_tautology ctxt format (Formula (ident, _, phi, _, _)) =
     exists (fn prefix => String.isPrefix prefix ident)
            likely_tautology_prefixes andalso
-    is_none (run_some_atp ctxt
+    is_none (run_some_atp ctxt format
                  [(factsN, [Formula (ident, Conjecture, phi, NONE, NONE)])])
-  | is_problem_line_tautology _ _ = false
+  | is_problem_line_tautology _ _ _ = false
 
 structure String_Graph = Graph(type key = string val ord = string_ord);
 
@@ -148,21 +150,41 @@ fun order_problem_facts _ [] = []
     if heading = factsN then (heading, order_facts ord lines) :: problem
     else (heading, lines) :: order_problem_facts ord problem
 
-fun generate_tptp_inference_file_for_theory ctxt thy type_enc file_name =
+(* A fairly random selection of types used for monomorphizing. *)
+val ground_types =
+  [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}, @{typ bool},
+   @{typ unit}]
+
+fun ground_type_for_tvar _ [] tvar =
+    raise TYPE ("ground_type_for_sorts", [TVar tvar], [])
+  | ground_type_for_tvar thy (T :: Ts) tvar =
+    if can (Sign.typ_match thy (TVar tvar, T)) Vartab.empty then T
+    else ground_type_for_tvar thy Ts tvar
+
+fun monomorphize_term ctxt t =
+  let val thy = Proof_Context.theory_of ctxt in
+    t |> map_types (map_type_tvar (ground_type_for_tvar thy ground_types))
+    handle TYPE _ => @{prop True}
+  end
+
+fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
-    val format = FOF
     val type_enc = type_enc |> type_enc_from_string Sound
+                            |> adjust_type_enc format
+    val mono = polymorphism_of_type_enc type_enc <> Polymorphic
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = facts_of thy
     val (atp_problem, _, _, _, _, _, _) =
       facts
-      |> map (fn ((_, loc), th) => ((Thm.get_name_hint th, loc), prop_of th))
+      |> map (fn ((_, loc), th) =>
+                 ((Thm.get_name_hint th, loc),
+                   th |> prop_of |> mono ? monomorphize_term ctxt))
       |> prepare_atp_problem ctxt format Axiom Axiom type_enc true combinatorsN
                              false true [] @{prop False}
     val atp_problem =
       atp_problem
-      |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))
+      |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
     val all_names = facts |> map (Thm.get_name_hint o snd)
     val infers =
       facts |> map (fn (_, th) =>
@@ -186,9 +208,10 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_enc file_name =
               (ordered_names ~~ (1 upto length ordered_names))
     val name_ord = int_ord o pairself (the o Symtab.lookup order_tab)
     val atp_problem =
-      atp_problem |> add_inferences_to_problem infers
-                  |> order_problem_facts name_ord
-    val ss = lines_for_atp_problem FOF atp_problem
+      atp_problem
+      |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
+      |> order_problem_facts name_ord
+    val ss = lines_for_atp_problem format atp_problem
     val _ = app (File.append path) ss
   in () end
 
