@@ -127,7 +127,7 @@ begin
 
 abbreviation "le_fun \<equiv> fun_ord leq"
 abbreviation "lub_fun \<equiv> fun_lub lub"
-abbreviation "fixp_fun == ccpo.fixp le_fun lub_fun"
+abbreviation "fixp_fun \<equiv> ccpo.fixp le_fun lub_fun"
 abbreviation "mono_body \<equiv> monotone le_fun leq"
 abbreviation "admissible \<equiv> ccpo.admissible le_fun lub_fun"
 
