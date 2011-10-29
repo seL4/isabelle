@@ -255,7 +255,7 @@ val leo2_config : atp_config =
    required_execs = [],
    arguments =
      fn _ => fn _ => fn sos => fn timeout => fn _ =>
-        "--proofoutput --timeout " ^ string_of_int (to_secs 1 timeout)
+        "--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout)
         |> sos = sosN ? prefix "--sos ",
    proof_delims = tstp_proof_delims,
    known_failures =
