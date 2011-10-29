@@ -193,7 +193,7 @@ fun theory_declaration syntax decl lthy =
     lthy
     |> Local_Theory.background_theory (Context.theory_map global_decl)
     |> Local_Theory.target (Context.proof_map global_decl)
-    |> not syntax ? Context.proof_map (Morphism.form decl)
+    |> Context.proof_map (Morphism.form decl)
   end;
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =

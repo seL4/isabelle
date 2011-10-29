@@ -54,7 +54,6 @@ fun locale_declaration locale {syntax, pervasive} decl lthy =
     lthy
     |> pervasive ? Generic_Target.theory_declaration syntax decl
     |> Local_Theory.target (add locale locale_decl)
-    |> not syntax ? Context.proof_map (Morphism.form decl)
   end;
 
 fun target_declaration (Target {target, ...}) params =

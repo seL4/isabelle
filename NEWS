@@ -81,7 +81,7 @@ instead. INCOMPATIBILITY.
 ProofContext has been discontinued.  INCOMPATIBILITY.
 
 * Refined Local_Theory.declaration {syntax, pervasive}, with subtle
-change of semantics for syntax = false: update is applied to auxiliary
+change of semantics: update is applied to auxiliary local theory
 context as well.
 
 
