@@ -322,9 +322,9 @@ val spass_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, FOF, "mono_tags??", sosN))),
-      (0.333, (false, (300, FOF, "poly_tags??", sosN))),
-      (0.334, (true, (50, FOF, "mono_tags??", no_sosN)))]
+     [(0.333, (false, (150, DFG DFG_Unsorted, "mono_tags??", sosN))),
+      (0.333, (false, (300, DFG DFG_Unsorted, "poly_tags??", sosN))),
+      (0.334, (true, (50, DFG DFG_Unsorted, "mono_tags??", no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 

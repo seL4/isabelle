@@ -2365,7 +2365,6 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | FOF => I
           | TFF (_, TPTP_Implicit) => I
           | THF (_, TPTP_Implicit, _) => I
-          | DFG DFG_Unsorted => I
           | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                         implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names

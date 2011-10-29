@@ -8,15 +8,11 @@
 options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
 
-# Try converting the file from TPTP to DFG, but fail gracefully if it is already
-# in DFG format.
-"$SPASS_HOME/tptp2dfg" $name $name.fof.dfg || cp $name $name.fof.dfg
-"$SPASS_HOME/SPASS" -Flotter $name.fof.dfg \
+"$SPASS_HOME/SPASS" -Flotter $name \
     | sed 's/description({$/description({*/' \
     | sed 's/set_ClauseFormulaRelation()\.//' \
-    > $name.cnf.dfg
-rm -f $name.fof.dfg
-cat $name.cnf.dfg
-"$SPASS_HOME/SPASS" $options $name.cnf.dfg \
+    > $name.cnf
+cat $name.cnf
+"$SPASS_HOME/SPASS" $options $name.cnf \
     | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
-rm -f $name.cnf.dfg
+rm -f $name.cnf

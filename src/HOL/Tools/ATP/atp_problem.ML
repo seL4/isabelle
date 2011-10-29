@@ -459,6 +459,7 @@ fun dfg_string_for_formula flavor info =
 
 fun dfg_lines flavor problem =
   let
+    val sorted = (flavor = DFG_Sorted)
     val format = DFG flavor
     fun ary sym ty =
       "(" ^ sym ^ ", " ^ string_of_int (arity_of_type ty) ^ ")"
@@ -485,19 +486,21 @@ fun dfg_lines flavor problem =
                if is_predicate_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
       |> commas |> enclose "predicates [" "]."
-    val sorts =
+    fun sorts () =
       filt (fn Decl (_, sym, AType (s, [])) =>
                if s = tptp_type_of_types then SOME sym else NONE
              | _ => NONE)
       |> commas |> enclose "sorts [" "]."
-    val func_sigs =
+    val syms = [func_aries, pred_aries] @ (if sorted then [sorts ()] else [])
+    fun func_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (fun_typ sym ty) else NONE
              | _ => NONE)
-    val pred_sigs =
+    fun pred_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_predicate_type ty then SOME (pred_typ sym ty) else NONE
              | _ => NONE)
+    val decls = if sorted then func_sigs () @ pred_sigs () else []
     val axioms = filt (formula (curry (op <>) Conjecture))
     val conjs = filt (formula (curry (op =) Conjecture))
     fun list_of _ [] = []
@@ -509,8 +512,8 @@ fun dfg_lines flavor problem =
     list_of "descriptions"
             ["name({**}).", "author({**}).", "status(unknown).",
              "description({**})."] @
-    list_of "symbols" [func_aries, pred_aries, sorts] @
-    list_of "declarations" (func_sigs @ pred_sigs) @
+    list_of "symbols" syms @
+    list_of "declarations" decls @
     list_of "formulae(axioms)" axioms @
     list_of "formulae(conjectures)" conjs @
     ["end_problem.\n"]
