@@ -8,7 +8,9 @@
 options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
 
-"$SPASS_HOME/tptp2dfg" $name $name.fof.dfg
+# Try converting the file from TPTP to DFG, but fail gracefully if it is already
+# in DFG format.
+"$SPASS_HOME/tptp2dfg" $name $name.fof.dfg || cp $name $name.fof.dfg
 "$SPASS_HOME/SPASS" -Flotter $name.fof.dfg \
     | sed 's/description({$/description({*/' \
     | sed 's/set_ClauseFormulaRelation()\.//' \
