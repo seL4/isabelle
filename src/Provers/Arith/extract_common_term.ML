@@ -23,7 +23,6 @@ sig
   val find_first: term -> term list -> term list
   (*proof tools*)
   val mk_eq: term * term -> term
-  val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val norm_tac: simpset -> tactic                (*proves the result*)
   val simplify_meta_eq: simpset -> thm -> thm -> thm (*simplifies the result*)
   val simp_conv: simpset -> term -> thm option  (*proves simp thm*)
