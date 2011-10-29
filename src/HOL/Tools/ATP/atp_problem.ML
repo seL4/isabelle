@@ -25,6 +25,7 @@ sig
   datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
   datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
   datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+  datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
   datatype atp_format =
     CNF |
@@ -32,7 +33,7 @@ sig
     FOF |
     TFF of tptp_polymorphism * tptp_explicitness |
     THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
-    DFG_Sorted
+    DFG of dfg_flavor
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
@@ -99,7 +100,7 @@ sig
     bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
-  val is_format_thf : atp_format -> bool
+  val is_format_higher_order : atp_format -> bool
   val is_format_typed : atp_format -> bool
   val lines_for_atp_problem : atp_format -> string problem -> string list
   val ensure_cnf_problem :
@@ -140,6 +141,7 @@ datatype 'a ho_type =
 datatype tptp_polymorphism = TPTP_Monomorphic | TPTP_Polymorphic
 datatype tptp_explicitness = TPTP_Implicit | TPTP_Explicit
 datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+datatype dfg_flavor = DFG_Unsorted | DFG_Sorted
 
 datatype atp_format =
   CNF |
@@ -147,7 +149,7 @@ datatype atp_format =
   FOF |
   TFF of tptp_polymorphism * tptp_explicitness |
   THF of tptp_polymorphism * tptp_explicitness * thf_flavor |
-  DFG_Sorted
+  DFG of dfg_flavor
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
@@ -158,8 +160,9 @@ type 'a problem = (string * 'a problem_line list) list
 
 val isabelle_info_prefix = "isabelle_"
 
-(* Currently, only SPASS supports Isabelle metainformation. *)
-fun isabelle_info DFG_Sorted s =
+(* Currently, only newer versions of SPASS, with sorted DFG format support, can
+   process Isabelle metainformation. *)
+fun isabelle_info (DFG DFG_Sorted) s =
     SOME (ATerm ("[]", [ATerm (isabelle_info_prefix ^ s, [])]))
   | isabelle_info _ _ = NONE
 
@@ -251,11 +254,11 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun is_format_thf (THF _) = true
-  | is_format_thf _ = false
+fun is_format_higher_order (THF _) = true
+  | is_format_higher_order _ = false
 fun is_format_typed (TFF _) = true
   | is_format_typed (THF _) = true
-  | is_format_typed (DFG_Sorted) = true
+  | is_format_typed (DFG DFG_Sorted) = true
   | is_format_typed _ = false
 
 fun tptp_string_for_kind Axiom = "axiom"
@@ -265,7 +268,7 @@ fun tptp_string_for_kind Axiom = "axiom"
   | tptp_string_for_kind Conjecture = "conjecture"
 
 fun tptp_string_for_app format func args =
-  if is_format_thf format then
+  if is_format_higher_order format then
     "(" ^ space_implode (" " ^ tptp_app ^ " ") (func :: args) ^ ")"
   else
     func ^ "(" ^ commas args ^ ")"
@@ -283,7 +286,7 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
 
 fun str_for_type format ty =
   let
-    val dfg = (format = DFG_Sorted)
+    val dfg = (format = DFG DFG_Sorted)
     fun str _ (AType (s, [])) =
         if dfg andalso s = tptp_individual_type then "Top" else s
       | str _ (AType (s, tys)) =
@@ -337,7 +340,7 @@ fun tptp_string_for_term _ (ATerm (s, [])) = s
      else if is_tptp_equal s then
        space_implode (" " ^ tptp_equal ^ " ")
                      (map (tptp_string_for_term format) ts)
-       |> is_format_thf format ? enclose "(" ")"
+       |> is_format_higher_order format ? enclose "(" ")"
      else case (s = tptp_ho_forall orelse s = tptp_ho_exists,
                 s = tptp_choice andalso is_format_with_choice format, ts) of
        (true, _, [AAbs ((s', ty), tm)]) =>
@@ -367,11 +370,11 @@ and tptp_string_for_formula format (AQuant (q, xs, phi)) =
         (AConn (ANot, [AAtom (ATerm ("=" (* tptp_equal *), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (tptp_string_for_term format) ts)
-    |> is_format_thf format ? enclose "(" ")"
+    |> is_format_higher_order format ? enclose "(" ")"
   | tptp_string_for_formula format (AConn (c, [phi])) =
     tptp_string_for_connective c ^ " " ^
     (tptp_string_for_formula format phi
-     |> is_format_thf format ? enclose "(" ")")
+     |> is_format_higher_order format ? enclose "(" ")")
     |> enclose "(" ")"
   | tptp_string_for_formula format (AConn (c, phis)) =
     space_implode (" " ^ tptp_string_for_connective c ^ " ")
@@ -389,7 +392,7 @@ fun tptp_string_for_format CNF = tptp_cnf
   | tptp_string_for_format FOF = tptp_fof
   | tptp_string_for_format (TFF _) = tptp_tff
   | tptp_string_for_format (THF _) = tptp_thf
-  | tptp_string_for_format DFG_Sorted = raise Fail "non-TPTP format"
+  | tptp_string_for_format (DFG _) = raise Fail "non-TPTP format"
 
 fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
@@ -427,7 +430,7 @@ fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
   | is_predicate_type (AType (s, _)) = (s = tptp_bool_type)
   | is_predicate_type _ = false
 
-fun dfg_string_for_formula info =
+fun dfg_string_for_formula flavor info =
   let
     fun str_for_term simp (ATerm (s, tms)) =
         (if is_tptp_equal s then "equal" |> simp ? suffix ":lr"
@@ -446,7 +449,7 @@ fun dfg_string_for_formula info =
       | str_for_conn simp AIff = "equiv" |> simp ? suffix ":lr"
     fun str_for_formula simp (AQuant (q, xs, phi)) =
         str_for_quant q ^ "(" ^ "[" ^
-        commas (map (string_for_bound_var DFG_Sorted) xs) ^ "], " ^
+        commas (map (string_for_bound_var (DFG flavor)) xs) ^ "], " ^
         str_for_formula simp phi ^ ")"
       | str_for_formula simp (AConn (c, phis)) =
         str_for_conn simp c ^ "(" ^
@@ -454,19 +457,20 @@ fun dfg_string_for_formula info =
       | str_for_formula simp (AAtom tm) = str_for_term simp tm
   in str_for_formula (is_isabelle_info simpN info) end
 
-fun dfg_lines problem =
+fun dfg_lines flavor problem =
   let
+    val format = DFG flavor
     fun ary sym ty =
       "(" ^ sym ^ ", " ^ string_of_int (arity_of_type ty) ^ ")"
     fun fun_typ sym ty =
-      "function(" ^ sym ^ ", " ^ string_for_type DFG_Sorted ty ^ ")."
+      "function(" ^ sym ^ ", " ^ string_for_type format ty ^ ")."
     fun pred_typ sym ty =
       "predicate(" ^
-      commas (sym :: map (string_for_type DFG_Sorted) (binder_atypes ty)) ^ ")."
+      commas (sym :: map (string_for_type format) (binder_atypes ty)) ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
-          SOME ("formula(" ^ dfg_string_for_formula info phi ^ ", " ^ ident ^
-                ").")
+          SOME ("formula(" ^ dfg_string_for_formula flavor info phi ^ ", " ^
+                ident ^ ").")
         else
           NONE
       | formula _ _ = NONE
@@ -515,7 +519,9 @@ fun dfg_lines problem =
 fun lines_for_atp_problem format problem =
   "% This file was generated by Isabelle (most likely Sledgehammer)\n\
   \% " ^ timestamp () ^ "\n" ::
-  (if format = DFG_Sorted then dfg_lines else tptp_lines format) problem
+  (case format of
+     DFG flavor => dfg_lines flavor
+   | _ => tptp_lines format) problem
 
 
 (** CNF (Metis) and CNF UEQ (Waldmeister) **)

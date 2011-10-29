@@ -640,7 +640,7 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
   | adjust_type_enc (THF _) type_enc = type_enc
   | adjust_type_enc (TFF (TPTP_Monomorphic, _)) (Simple_Types (_, _, level)) =
     Simple_Types (First_Order, Mangled_Monomorphic, level)
-  | adjust_type_enc DFG_Sorted (Simple_Types (_, _, level)) =
+  | adjust_type_enc (DFG DFG_Sorted) (Simple_Types (_, _, level)) =
     Simple_Types (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF _) (Simple_Types (_, poly, level)) =
     Simple_Types (First_Order, poly, level)
@@ -2365,6 +2365,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | FOF => I
           | TFF (_, TPTP_Implicit) => I
           | THF (_, TPTP_Implicit, _) => I
+          | DFG DFG_Unsorted => I
           | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                         implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names

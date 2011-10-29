@@ -160,7 +160,7 @@ fun is_atp_for_format is_format ctxt name =
   end
 
 val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
-val is_ho_atp = is_atp_for_format is_format_thf
+val is_ho_atp = is_atp_for_format is_format_higher_order
 
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
