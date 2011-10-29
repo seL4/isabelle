@@ -615,8 +615,7 @@ fun run_atp mode name
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
-                val soundness =
-                  if sound then Sound else Sound_Modulo_Infiniteness
+                val soundness = if sound then Sound else Sound_Modulo_Infinity
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format
                 val fairly_sound = is_type_enc_fairly_sound type_enc

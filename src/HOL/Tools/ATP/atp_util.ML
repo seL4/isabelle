@@ -208,20 +208,23 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
            | [] =>
              case Typedef.get_info ctxt s of
                ({abs_type, rep_type, ...}, _) :: _ =>
-               (* We cheat here by assuming that typedef types are infinite if
-                  their underlying type is infinite. This is unsound in general
-                  but it's hard to think of a realistic example where this would
-                  not be the case. We are also slack with representation types:
-                  If a representation type has the form "sigma => tau", we
-                  consider it enough to check "sigma" for infiniteness. (Look
-                  for "slack" in this function.) *)
-               (case varify_and_instantiate_type ctxt
-                         (Logic.varifyT_global abs_type) T
-                         (Logic.varifyT_global rep_type)
-                     |> aux true avoid of
-                  0 => 0
-                | 1 => 1
-                | _ => default_card)
+               if not sound then
+                 (* We cheat here by assuming that typedef types are infinite if
+                    their underlying type is infinite. This is unsound in
+                    general but it's hard to think of a realistic example where
+                    this would not be the case. We are also slack with
+                    representation types: If a representation type has the form
+                    "sigma => tau", we consider it enough to check "sigma" for
+                    infiniteness. *)
+                 (case varify_and_instantiate_type ctxt
+                           (Logic.varifyT_global abs_type) T
+                           (Logic.varifyT_global rep_type)
+                       |> aux true avoid of
+                    0 => 0
+                  | 1 => 1
+                  | _ => default_card)
+               else
+                 default_card
              | [] => default_card)
           (* Very slightly unsound: Type variables are assumed not to be
              constrained to cardinality 1. (In practice, the user would most

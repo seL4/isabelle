@@ -19,7 +19,7 @@ sig
     General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-  datatype soundness = Sound_Modulo_Infiniteness | Sound
+  datatype soundness = Sound_Modulo_Infinity | Sound
   datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
   datatype type_level =
     All_Types |
@@ -529,7 +529,7 @@ datatype locality =
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-datatype soundness = Sound_Modulo_Infiniteness | Sound
+datatype soundness = Sound_Modulo_Infinity | Sound
 datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
 datatype type_level =
   All_Types |
