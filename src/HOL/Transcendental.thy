@@ -1589,10 +1589,7 @@ lemma minus_pi_half_less_zero: "-(pi/2) < 0"
 by simp
 
 lemma m2pi_less_pi: "- (2 * pi) < pi"
-proof -
-  have "- (2 * pi) < 0" and "0 < pi" by auto
-  from order_less_trans[OF this] show ?thesis .
-qed
+by simp
 
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 apply (cut_tac x = "pi/2" in sin_cos_squared_add2)
@@ -2351,7 +2348,7 @@ lemma cos_45: "cos (pi / 4) = sqrt 2 / 2"
 proof -
   let ?c = "cos (pi / 4)" and ?s = "sin (pi / 4)"
   have nonneg: "0 \<le> ?c"
-    by (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
+    by (simp add: cos_ge_zero)
   have "0 = cos (pi / 4 + pi / 4)"
     by simp
   also have "cos (pi / 4 + pi / 4) = ?c\<twosuperior> - ?s\<twosuperior>"

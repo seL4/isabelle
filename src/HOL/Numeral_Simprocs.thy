@@ -113,7 +113,9 @@ simproc_setup inteq_cancel_numerals
   |"(l::'a::number_ring) - m = n"
   |"(l::'a::number_ring) = m - n"
   |"(l::'a::number_ring) * m = n"
-  |"(l::'a::number_ring) = m * n") =
+  |"(l::'a::number_ring) = m * n"
+  |"- (l::'a::number_ring) = m"
+  |"(l::'a::number_ring) = - m") =
   {* fn phi => Numeral_Simprocs.eq_cancel_numerals *}
 
 simproc_setup intless_cancel_numerals
@@ -122,7 +124,9 @@ simproc_setup intless_cancel_numerals
   |"(l::'a::{linordered_idom,number_ring}) - m < n"
   |"(l::'a::{linordered_idom,number_ring}) < m - n"
   |"(l::'a::{linordered_idom,number_ring}) * m < n"
-  |"(l::'a::{linordered_idom,number_ring}) < m * n") =
+  |"(l::'a::{linordered_idom,number_ring}) < m * n"
+  |"- (l::'a::{linordered_idom,number_ring}) < m"
+  |"(l::'a::{linordered_idom,number_ring}) < - m") =
   {* fn phi => Numeral_Simprocs.less_cancel_numerals *}
 
 simproc_setup intle_cancel_numerals
@@ -131,7 +135,9 @@ simproc_setup intle_cancel_numerals
   |"(l::'a::{linordered_idom,number_ring}) - m \<le> n"
   |"(l::'a::{linordered_idom,number_ring}) \<le> m - n"
   |"(l::'a::{linordered_idom,number_ring}) * m \<le> n"
-  |"(l::'a::{linordered_idom,number_ring}) \<le> m * n") =
+  |"(l::'a::{linordered_idom,number_ring}) \<le> m * n"
+  |"- (l::'a::{linordered_idom,number_ring}) \<le> m"
+  |"(l::'a::{linordered_idom,number_ring}) \<le> - m") =
   {* fn phi => Numeral_Simprocs.le_cancel_numerals *}
 
 simproc_setup ring_eq_cancel_numeral_factor
