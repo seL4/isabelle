@@ -1604,16 +1604,13 @@ lemma sin_pi [simp]: "sin pi = 0"
 by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp)
 
 lemma sin_cos_eq: "sin x = cos (pi/2 - x)"
-by (simp add: diff_minus cos_add)
-declare sin_cos_eq [symmetric, simp]
+by (simp add: cos_diff)
 
 lemma minus_sin_cos_eq: "-sin x = cos (x + pi/2)"
 by (simp add: cos_add)
-declare minus_sin_cos_eq [symmetric, simp]
 
 lemma cos_sin_eq: "cos x = sin (pi/2 - x)"
-by (simp add: diff_minus sin_add)
-declare cos_sin_eq [symmetric, simp]
+by (simp add: sin_diff)
 
 lemma sin_periodic_pi [simp]: "sin (x + pi) = - sin x"
 by (simp add: sin_add)
@@ -1694,12 +1691,7 @@ apply (subgoal_tac "x = pi/2", auto)
 done
 
 lemma sin_gt_zero_pi: "[| 0 < x; x < pi  |] ==> 0 < sin x"
-apply (subst sin_cos_eq)
-apply (rotate_tac 1)
-apply (drule real_sum_of_halves [THEN ssubst])
-apply (auto intro!: cos_gt_zero_pi simp del: sin_cos_eq [symmetric])
-done
-
+by (simp add: sin_cos_eq cos_gt_zero_pi)
 
 lemma pi_ge_two: "2 \<le> pi"
 proof (rule ccontr)
@@ -1750,13 +1742,13 @@ lemma sin_total:
 apply (rule ccontr)
 apply (subgoal_tac "\<forall>x. (- (pi/2) \<le> x & x \<le> pi/2 & (sin x = y)) = (0 \<le> (x + pi/2) & (x + pi/2) \<le> pi & (cos (x + pi/2) = -y))")
 apply (erule contrapos_np)
-apply (simp del: minus_sin_cos_eq [symmetric])
+apply simp
 apply (cut_tac y="-y" in cos_total, simp) apply simp
 apply (erule ex1E)
 apply (rule_tac a = "x - (pi/2)" in ex1I)
 apply (simp (no_asm) add: add_assoc)
 apply (rotate_tac 3)
-apply (drule_tac x = "xa + pi/2" in spec, safe, simp_all)
+apply (drule_tac x = "xa + pi/2" in spec, safe, simp_all add: cos_add)
 done
 
 lemma reals_Archimedean4:
@@ -1797,7 +1789,7 @@ apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
  apply (force simp add: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib)
 apply (rule cos_zero_lemma)
-apply (simp_all add: add_increasing)
+apply (simp_all add: cos_add)
 done
 
 
@@ -1949,7 +1941,7 @@ apply (drule_tac ?d1.0 = s in pi_half_gt_zero [THEN [2] real_lbound_gt_zero], sa
 apply (rule_tac x = "(pi/2) - e" in exI)
 apply (simp (no_asm_simp))
 apply (drule_tac x = "(pi/2) - e" in spec)
-apply (auto simp add: tan_def)
+apply (auto simp add: tan_def sin_diff cos_diff)
 apply (rule inverse_less_iff_less [THEN iffD1])
 apply (auto simp add: divide_inverse)
 apply (rule mult_pos_pos)
@@ -2380,20 +2372,10 @@ proof -
 qed
 
 lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
-proof -
-  have "sin (pi / 4) = cos (pi / 2 - pi / 4)" by (rule sin_cos_eq)
-  also have "pi / 2 - pi / 4 = pi / 4" by simp
-  also have "cos (pi / 4) = sqrt 2 / 2" by (rule cos_45)
-  finally show ?thesis .
-qed
+by (simp add: sin_cos_eq cos_45)
 
 lemma sin_60: "sin (pi / 3) = sqrt 3 / 2"
-proof -
-  have "sin (pi / 3) = cos (pi / 2 - pi / 3)" by (rule sin_cos_eq)
-  also have "pi / 2 - pi / 3 = pi / 6" by simp
-  also have "cos (pi / 6) = sqrt 3 / 2" by (rule cos_30)
-  finally show ?thesis .
-qed
+by (simp add: sin_cos_eq cos_30)
 
 lemma cos_60: "cos (pi / 3) = 1 / 2"
 apply (rule power2_eq_imp_eq)
@@ -2402,12 +2384,7 @@ apply (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
 done
 
 lemma sin_30: "sin (pi / 6) = 1 / 2"
-proof -
-  have "sin (pi / 6) = cos (pi / 2 - pi / 6)" by (rule sin_cos_eq)
-  also have "pi / 2 - pi / 6 = pi / 3" by simp
-  also have "cos (pi / 3) = 1 / 2" by (rule cos_60)
-  finally show ?thesis .
-qed
+by (simp add: sin_cos_eq cos_60)
 
 lemma tan_30: "tan (pi / 6) = 1 / sqrt 3"
 unfolding tan_def by (simp add: sin_30 cos_30)
