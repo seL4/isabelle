@@ -46,19 +46,21 @@ val peek =
 
 (* generic declarations *)
 
-fun locale_declaration locale {syntax, pervasive} decl lthy =
+fun locale_declaration locale syntax decl lthy =
   let
     val add = if syntax then Locale.add_syntax_declaration else Locale.add_declaration;
     val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
   in
     lthy
-    |> pervasive ? Generic_Target.theory_declaration decl
     |> Local_Theory.target (add locale locale_decl)
   end;
 
-fun target_declaration (Target {target, ...}) params =
-  if target = "" then Generic_Target.theory_declaration
-  else locale_declaration target params;
+fun target_declaration (Target {target, ...}) {syntax, pervasive} decl =
+  if target = "" then Generic_Target.theory_declaration decl
+  else
+    locale_declaration target syntax decl
+    #> pervasive ? Generic_Target.theory_declaration decl
+    #> not pervasive ? Context.proof_map (Morphism.form decl);
 
 
 (* consts in locales *)
@@ -89,7 +91,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
   end;
 
 fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
-  locale_declaration target {syntax = true, pervasive = false} (locale_const ta prmode arg);
+  locale_declaration target true (locale_const ta prmode arg);
 
 
 (* define *)
