@@ -231,8 +231,7 @@ fun notation add mode raw_args lthy =
 fun alias global_alias local_alias b name =
   declaration {syntax = true, pervasive = false} (fn phi =>
     let val b' = Morphism.binding phi b
-    in Context.mapping (global_alias b' name) (local_alias b' name) end)
-  #> local_alias b name;
+    in Context.mapping (global_alias b' name) (local_alias b' name) end);
 
 val class_alias = alias Sign.class_alias Proof_Context.class_alias;
 val type_alias = alias Sign.type_alias Proof_Context.type_alias;

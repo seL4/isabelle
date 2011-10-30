@@ -799,28 +799,28 @@ fun is_theorem_bad_for_atps ho_atp exporter thm =
      is_that_fact thm
    end)
 
-fun meta_equify (@{const Trueprop}
-                 $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2)) =
-    Const (@{const_name "=="}, T --> T --> @{typ prop}) $ t1 $ t2
-  | meta_equify t = t
-
-val normalize_simp_prop =
-  meta_equify
-  #> map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
+val crude_zero_vars =
+  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
   #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
 
 fun clasimpset_rule_table_of ctxt =
   let
-    fun add loc g f = fold (Termtab.update o rpair loc o g o prop_of o f)
-    val {safeIs, safeEs, hazIs, hazEs, ...} = ctxt |> claset_of |> Classical.rep_cs
+    val thy = Proof_Context.theory_of ctxt
+    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
+    fun add loc g f =
+      fold (Termtab.update o rpair loc o g o crude_zero_vars o prop_of o f)
+    val {safeIs, safeEs, hazIs, hazEs, ...} =
+      ctxt |> claset_of |> Classical.rep_cs
     val intros = Item_Net.content safeIs @ Item_Net.content hazIs
-    val elims = map Classical.classical_rule (Item_Net.content safeEs @ Item_Net.content hazEs)
+    val elims =
+      Item_Net.content safeEs @ Item_Net.content hazEs
+      |> map Classical.classical_rule
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
   in
     Termtab.empty |> add Intro I I intros
                   |> add Elim I I elims
                   |> add Simp I snd simps
-                  |> add Simp normalize_simp_prop snd simps
+                  |> add Simp atomize snd simps
   end
 
 fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
@@ -833,17 +833,20 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
     fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
     val is_chained = member Thm.eq_thm_prop chained_ths
     val clasimpset_table = clasimpset_rule_table_of ctxt
-    fun locality_of_theorem global (name: string) th =
-      if String.isSubstring ".induct" name orelse(*FIXME: use structured name*)
+    fun locality_of_theorem global name th =
+      if String.isSubstring ".induct" name orelse (*FIXME: use structured name*)
          String.isSubstring ".inducts" name then
-           Induction
+        Induction
       else if is_chained th then
         Chained
       else if global then
         case Termtab.lookup clasimpset_table (prop_of th) of
           SOME loc => loc
         | NONE => General
-      else if is_assum th then Assum else Local
+      else if is_assum th then
+        Assum
+      else
+        Local
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals

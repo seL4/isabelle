@@ -160,7 +160,7 @@ fun is_atp_for_format is_format ctxt name =
   end
 
 val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
-val is_ho_atp = is_atp_for_format is_format_thf
+val is_ho_atp = is_atp_for_format is_format_higher_order
 
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -615,8 +615,7 @@ fun run_atp mode name
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
-                val soundness =
-                  if sound then Sound else Sound_Modulo_Infiniteness
+                val soundness = if sound then Sound else Sound_Modulo_Infinity
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format
                 val fairly_sound = is_type_enc_fairly_sound type_enc
@@ -660,11 +659,9 @@ fun run_atp mode name
                   arguments ctxt full_proof extra slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command = "TIMEFORMAT='%3R'; { time " ^ core ^ " ; } 2>&1"
-                val _ =
-                  atp_problem
-                  |> tptp_lines_for_atp_problem format
-                  |> cons ("% " ^ command ^ "\n")
-                  |> File.write_list prob_file
+                val _ = atp_problem |> lines_for_atp_problem format
+                                    |> cons ("% " ^ command ^ "\n")
+                                    |> File.write_list prob_file
                 val conjecture_shape =
                   conjecture_offset + 1
                     upto conjecture_offset + length hyp_ts + 1
