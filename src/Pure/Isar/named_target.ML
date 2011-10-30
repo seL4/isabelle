@@ -52,12 +52,12 @@ fun locale_declaration locale {syntax, pervasive} decl lthy =
     val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
   in
     lthy
-    |> pervasive ? Generic_Target.theory_declaration syntax decl
+    |> pervasive ? Generic_Target.theory_declaration decl
     |> Local_Theory.target (add locale locale_decl)
   end;
 
 fun target_declaration (Target {target, ...}) params =
-  if target = "" then Generic_Target.theory_declaration (#syntax params)
+  if target = "" then Generic_Target.theory_declaration
   else locale_declaration target params;
 
 

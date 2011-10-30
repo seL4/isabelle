@@ -20,7 +20,7 @@ sig
     string * bool -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
 
-  val theory_declaration: bool -> declaration -> local_theory -> local_theory
+  val theory_declaration: declaration -> local_theory -> local_theory
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
@@ -185,7 +185,7 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
 
 (** primitive theory operations **)
 
-fun theory_declaration syntax decl lthy =
+fun theory_declaration decl lthy =
   let
     val global_decl = Morphism.form
       (Morphism.transform (Local_Theory.global_morphism lthy) decl);
