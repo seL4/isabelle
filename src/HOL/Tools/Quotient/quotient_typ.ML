@@ -32,14 +32,10 @@ fun typedef_term rel rty lthy =
       [("x", rty), ("c", HOLogic.mk_setT rty)]
       |> Variable.variant_frees lthy [rel]
       |> map Free
-    fun mk_collect T =
-      Const (@{const_name Collect}, (T --> @{typ bool}) --> HOLogic.mk_setT T)
-    val collect_in = mk_collect rty
-    val collect_out = mk_collect (HOLogic.mk_setT rty)
   in
-    collect_out $ (lambda c (HOLogic.exists_const rty $
+    HOLogic.Collect_const (HOLogic.mk_setT rty) $ (lambda c (HOLogic.exists_const rty $
         lambda x (HOLogic.mk_conj (rel $ x $ x,
-        HOLogic.mk_eq (c, collect_in $ (rel $ x))))))
+        HOLogic.mk_eq (c, HOLogic.Collect_const rty $ (rel $ x))))))
   end
 
 
