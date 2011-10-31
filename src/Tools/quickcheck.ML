@@ -219,8 +219,6 @@ val expect = snd o dest_test_params o test_params_of
 
 val map_test_params = Data.map o apsnd o map_test_params'
 
-(*val add_generator = Data.map o apfst o apfst o apfst o AList.update (op =);*)
-
 val add_tester = Data.map o apfst o apfst o AList.update (op =);
 
 val add_batch_generator = Data.map o apfst o apsnd o apfst o AList.update (op =);
