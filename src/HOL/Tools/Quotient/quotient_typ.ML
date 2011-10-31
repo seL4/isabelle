@@ -7,7 +7,7 @@ Definition of a quotient type.
 signature QUOTIENT_TYPE =
 sig
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) * thm
-    -> Proof.context -> Quotient_Info.quotients * local_theory
+    -> local_theory -> Quotient_Info.quotients * local_theory
 
   val quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) list
     -> Proof.context -> Proof.state
