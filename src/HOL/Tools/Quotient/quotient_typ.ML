@@ -79,10 +79,9 @@ fun typedef_quot_type_tac equiv_thm ((_, typedef_info): Typedef.info) =
 (* proves the quot_type theorem for the new type *)
 fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
   let
-    val quot_type_const = Const (@{const_name "quot_type"}, dummyT)
-    val goal =
-      HOLogic.mk_Trueprop (quot_type_const $ rel $ abs $ rep)
-      |> Syntax.check_term lthy
+    val quot_type_const = Const (@{const_name "quot_type"},
+      fastype_of rel --> fastype_of abs --> fastype_of rep --> @{typ bool})
+    val goal = HOLogic.mk_Trueprop (quot_type_const $ rel $ abs $ rep)
   in
     Goal.prove lthy [] [] goal
       (K (typedef_quot_type_tac equiv_thm typedef_info))
@@ -109,10 +108,11 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val Rep_const = Const (Rep_name, Abs_ty --> Rep_ty)
 
     (* more useful abs and rep definitions *)
-    val abs_const = Const (@{const_name quot_type.abs}, dummyT)
-    val rep_const = Const (@{const_name quot_type.rep}, dummyT)
-    val abs_trm = Syntax.check_term lthy1 (abs_const $ rel $ Abs_const)
-    val rep_trm = Syntax.check_term lthy1 (rep_const $ Rep_const)
+    val abs_const = Const (@{const_name quot_type.abs},
+      (rty --> rty --> @{typ bool}) --> (Rep_ty --> Abs_ty) --> rty --> Abs_ty)
+    val rep_const = Const (@{const_name quot_type.rep}, (Abs_ty --> Rep_ty) --> Abs_ty --> rty)
+    val abs_trm = abs_const $ rel $ Abs_const
+    val rep_trm = rep_const $ Rep_const
     val abs_name = Binding.prefix_name "abs_" qty_name
     val rep_name = Binding.prefix_name "rep_" qty_name
 
