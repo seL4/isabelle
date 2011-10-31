@@ -466,7 +466,7 @@ fun strip_iterm_comb u =
       | stripc x = x
   in stripc (u, []) end
 
-fun atyps_of T = fold_atyps (insert (op =)) T []
+fun atomic_types_of T = fold_atyps (insert (op =)) T []
 
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
@@ -491,11 +491,11 @@ fun iterm_from_term thy format bs (P $ Q) =
   | iterm_from_term thy format _ (Const (c, T)) =
     (IConst (`(make_fixed_const (SOME format)) c, T,
              robust_const_typargs thy (c, T)),
-     atyps_of T)
+     atomic_types_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
              if String.isPrefix polymorphic_free_prefix s then [T] else []),
-     atyps_of T)
+     atomic_types_of T)
   | iterm_from_term _ format _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
@@ -503,16 +503,16 @@ fun iterm_from_term thy format bs (P $ Q) =
          val s' = new_skolem_const_name s (length Ts)
        in IConst (`(make_fixed_const (SOME format)) s', T, Ts) end
      else
-       IVar ((make_schematic_var v, s), T), atyps_of T)
+       IVar ((make_schematic_var v, s), T), atomic_types_of T)
   | iterm_from_term _ _ bs (Bound j) =
-    nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atyps_of T))
+    nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atomic_types_of T))
   | iterm_from_term thy format bs (Abs (s, T, t)) =
     let
       fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
       val s = vary s
       val name = `make_bound_var s
       val (tm, atomic_Ts) = iterm_from_term thy format ((s, (name, T)) :: bs) t
-    in (IAbs ((name, T), tm), union (op =) atomic_Ts (atyps_of T)) end
+    in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype locality =
   General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
@@ -700,17 +700,19 @@ datatype type_arg_policy =
   No_Type_Args
 
 fun type_arg_policy type_enc s =
-  let val mangled = (polymorphism_of_type_enc type_enc = Mangled_Monomorphic) in
+  let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then
-      if mangled then Mangled_Type_Args else Explicit_Type_Args false
+      if poly = Mangled_Monomorphic then Mangled_Type_Args
+      else Explicit_Type_Args false
     else case type_enc of
-      Tags (_, All_Types) => No_Type_Args
+      Simple_Types (_, Polymorphic, _) => Explicit_Type_Args false
+    | Tags (_, All_Types) => No_Type_Args
     | _ =>
       let val level = level_of_type_enc type_enc in
         if level = No_Types orelse s = @{const_name HOL.eq} orelse
            (s = app_op_name andalso level = Const_Arg_Types) then
           No_Type_Args
-        else if mangled then
+        else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
         else
           Explicit_Type_Args
@@ -766,39 +768,37 @@ fun mk_aquant _ [] phi = phi
     if q = q' then AQuant (q, xs @ xs', phi') else AQuant (q, xs, phi)
   | mk_aquant q xs phi = AQuant (q, xs, phi)
 
-fun close_universally atom_vars phi =
+fun close_universally add_term_vars phi =
   let
-    fun formula_vars bounds (AQuant (_, xs, phi)) =
-        formula_vars (map fst xs @ bounds) phi
-      | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
-      | formula_vars bounds (AAtom tm) =
-        union (op =) (atom_vars tm []
-                      |> filter_out (member (op =) bounds o fst))
-  in mk_aquant AForall (formula_vars [] phi []) phi end
+    fun add_formula_vars bounds (AQuant (_, xs, phi)) =
+        add_formula_vars (map fst xs @ bounds) phi
+      | add_formula_vars bounds (AConn (_, phis)) =
+        fold (add_formula_vars bounds) phis
+      | add_formula_vars bounds (AAtom tm) = add_term_vars bounds tm
+  in mk_aquant AForall (add_formula_vars [] phi []) phi end
 
-fun iterm_vars (IApp (tm1, tm2)) = fold iterm_vars [tm1, tm2]
-  | iterm_vars (IConst _) = I
-  | iterm_vars (IVar (name, T)) = insert (op =) (name, SOME T)
-  | iterm_vars (IAbs (_, tm)) = iterm_vars tm
-fun close_iformula_universally phi = close_universally iterm_vars phi
-
-fun term_vars type_enc =
+fun add_term_vars type_enc =
   let
     fun vars bounds (ATerm (name as (s, _), tms)) =
-        (if is_tptp_variable s andalso not (member (op =) bounds name) then
-           (case type_enc of
-              Simple_Types (_, Polymorphic, _) =>
-              if String.isPrefix tvar_prefix s then SOME atype_of_types
-              else NONE
-            | _ => NONE)
-           |> pair name |> insert (op =)
+        (if is_tptp_variable s andalso
+            not (String.isPrefix tvar_prefix s) andalso
+            not (member (op =) bounds name) then
+           insert (op =) (name, NONE)
          else
            I)
         #> fold (vars bounds) tms
       | vars bounds (AAbs ((name, _), tm)) = vars (name :: bounds) tm
   in vars end
 fun close_formula_universally type_enc =
-  close_universally (term_vars type_enc [])
+  close_universally (add_term_vars type_enc)
+
+fun add_iterm_vars bounds (IApp (tm1, tm2)) =
+    fold (add_iterm_vars bounds) [tm1, tm2]
+  | add_iterm_vars _ (IConst _) = I
+  | add_iterm_vars bounds (IVar (name, T)) =
+    not (member (op =) bounds name) ? insert (op =) (name, SOME T)
+  | add_iterm_vars bounds (IAbs (_, tm)) = add_iterm_vars bounds tm
+fun close_iformula_universally phi = close_universally add_iterm_vars phi
 
 val fused_infinite_type_name = @{type_name ind} (* any infinite type *)
 val fused_infinite_type = Type (fused_infinite_type_name, [])
@@ -1012,12 +1012,12 @@ fun filter_type_args_in_iterm thy type_enc =
 fun iformula_from_prop ctxt format type_enc eq_as_iff =
   let
     val thy = Proof_Context.theory_of ctxt
-    fun do_term bs t atomic_types =
+    fun do_term bs t atomic_Ts =
       iterm_from_term thy format bs (Envir.eta_contract t)
       |>> (introduce_proxies_in_iterm type_enc
            #> mangle_type_args_in_iterm format type_enc
            #> AAtom)
-      ||> union (op =) atomic_types
+      ||> union (op =) atomic_Ts
     fun do_quant bs q pos s T t' =
       let
         val s = singleton (Name.variant_list (map fst bs)) s
@@ -1030,6 +1030,7 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
       in
         do_formula ((s, (name, T)) :: bs) pos t'
         #>> mk_aquant q [(name, SOME T)]
+        ##> union (op =) (atomic_types_of T)
       end
     and do_conn bs c pos1 t1 pos2 t2 =
       do_formula bs pos1 t1 ##>> do_formula bs pos2 t2 #>> uncurry (mk_aconn c)
@@ -1174,15 +1175,15 @@ fun presimp_prop ctxt presimp_consts role t =
    handle TERM _ => if role = Conjecture then @{term False} else @{term True})
   |> pair role
 
-(* making fact and conjecture formulas *)
 fun make_formula ctxt format type_enc eq_as_iff name loc kind t =
   let
-    val (iformula, atomic_types) =
+    val (iformula, atomic_Ts) =
       iformula_from_prop ctxt format type_enc eq_as_iff
                          (SOME (kind <> Conjecture)) t []
+      |>> close_iformula_universally
   in
     {name = name, locality = loc, kind = kind, iformula = iformula,
-     atomic_types = atomic_types}
+     atomic_types = atomic_Ts}
   end
 
 fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
@@ -1526,14 +1527,19 @@ val helper_table =
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
-fun bound_tvars type_enc =
-  mk_ahorn o formulas_for_types type_enc add_sorts_on_tvar
+fun bound_tvars type_enc Ts =
+  mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts)
+  #> mk_aquant AForall
+        (map_filter (fn TVar (x as (s, _), _) =>
+                        SOME ((make_schematic_type_var x, s),
+                              SOME atype_of_types)
+                      | _ => NONE) Ts)
 
 fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
    else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
-  |> bound_tvars type_enc atomic_Ts
   |> close_formula_universally type_enc
+  |> bound_tvars type_enc atomic_Ts
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
@@ -1817,12 +1823,11 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
                           (j, {name, locality, kind, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
    iformula
-   |> close_iformula_universally
    |> formula_from_iformula ctxt format mono type_enc
                             should_guard_var_in_formula
                             (if pos then SOME true else NONE)
-   |> bound_tvars type_enc atomic_types
-   |> close_formula_universally type_enc,
+   |> close_formula_universally type_enc
+   |> bound_tvars type_enc atomic_types,
    NONE,
    case locality of
      Intro => isabelle_info format introN
@@ -1857,11 +1862,11 @@ fun formula_line_for_arity_clause format type_enc
 fun formula_line_for_conjecture ctxt format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
-           formula_from_iformula ctxt format mono type_enc
-               should_guard_var_in_formula (SOME false)
-               (close_iformula_universally iformula)
-           |> bound_tvars type_enc atomic_types
-           |> close_formula_universally type_enc, NONE, NONE)
+           iformula
+           |> formula_from_iformula ctxt format mono type_enc
+                  should_guard_var_in_formula (SOME false)
+           |> close_formula_universally type_enc
+           |> bound_tvars type_enc atomic_types, NONE, NONE)
 
 fun formula_line_for_free_type j phi =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, NONE)
@@ -2051,8 +2056,8 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> AAtom
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K (K (K true)))))) (SOME true)
-           |> bound_tvars type_enc (atyps_of T)
-           |> close_formula_universally type_enc,
+           |> close_formula_universally type_enc
+           |> bound_tvars type_enc (atomic_types_of T),
            isabelle_info format introN, NONE)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
@@ -2060,7 +2065,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
     Formula (tags_sym_formula_prefix ^
              ascii_of (mangled_type format type_enc T),
              Axiom,
-             eq_formula type_enc (atyps_of T) false
+             eq_formula type_enc (atomic_types_of T) false
                         (tag_with_type ctxt format mono type_enc NONE T x_var)
                         x_var,
              isabelle_info format simpN, NONE)
@@ -2134,8 +2139,8 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K (K (K true)))))) (SOME true)
-             |> n > 1 ? bound_tvars type_enc (atyps_of T)
              |> close_formula_universally type_enc
+             |> n > 1 ? bound_tvars type_enc (atomic_types_of T)
              |> maybe_negate,
              isabelle_info format introN, NONE)
   end
@@ -2156,7 +2161,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
     val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     val cst = mk_aterm format type_enc (s, s') T_args
-    val eq = maybe_negate oo eq_formula type_enc (atyps_of T) pred_sym
+    val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) pred_sym
     val should_encode = should_encode_type ctxt mono level
     val tag_with = tag_with_type ctxt format mono type_enc NONE
     val add_formula_for_res =
