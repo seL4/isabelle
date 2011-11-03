@@ -159,6 +159,25 @@ where
 "ordlr x (Branch2 l p r) y = (ordlr x l (fst p) & ordlr (fst p) r y)" |
 "ordlr x (Branch3 l p m q r) y = (ordlr x l (fst p) & ordlr (fst p) m (fst q) & ordlr (fst q) r y)"
 
+definition opt_less :: "key option \<Rightarrow> key option \<Rightarrow> bool" where
+  "opt_less x y = (case x of None \<Rightarrow> True | Some a \<Rightarrow> (case y of None \<Rightarrow> True | Some b \<Rightarrow> a < b))"
+
+lemma opt_less_simps [simp]:
+  "opt_less None y = True"
+  "opt_less x None = True"
+  "opt_less (Some a) (Some b) = (a < b)"
+unfolding opt_less_def by (auto simp add: ord_def split: option.split)
+
+fun ord' :: "key option \<Rightarrow> 'a tree23 \<Rightarrow> key option \<Rightarrow> bool" where
+"ord' x Empty y = opt_less x y" |
+"ord' x (Branch2 l p r) y = (ord' x l (Some (fst p)) & ord' (Some (fst p)) r y)" |
+"ord' x (Branch3 l p m q r) y = (ord' x l (Some (fst p)) & ord' (Some (fst p)) m (Some (fst q)) & ord' (Some (fst q)) r y)"
+
+lemma ord':
+  "ord' x t y = (case x of None \<Rightarrow> (case y of None \<Rightarrow> ord0 t | Some y' \<Rightarrow> ordr t y')
+    | Some x' \<Rightarrow> (case y of None \<Rightarrow> ordl x' t | Some y' \<Rightarrow> ordlr x' t y'))"
+by (induct t arbitrary: x y, auto simp add: opt_less_def split: option.split)
+
 fun height :: "'a tree23 \<Rightarrow> nat" where
 "height Empty = 0" |
 "height (Branch2 l _ r) = Suc(max (height l) (height r))" |
@@ -169,6 +188,132 @@ fun bal :: "'a tree23 \<Rightarrow> bool" where
 "bal Empty = True" |
 "bal (Branch2 l _ r) = (bal l & bal r & height l = height r)" |
 "bal (Branch3 l _ m _ r) = (bal l & bal m & bal r & height l = height m & height m = height r)"
+
+text {* The @{term "add0"} function either preserves the height of the
+tree, or increases it by one. The constructor returned by the @{term
+"add"} function determines which: A return value of the form @{term
+"Stay t"} indicates that the height will be the same. A value of the
+form @{term "Sprout l p r"} indicates an increase in height. *}
+
+fun gheight :: "'a growth \<Rightarrow> nat" where
+"gheight (Stay t) = height t" |
+"gheight (Sprout l p r) = max (height l) (height r)"
+
+lemma gheight_add: "gheight (add k y t) = height t"
+ apply (induct t)
+   apply simp
+  apply clarsimp
+  apply (case_tac "ord k a")
+    apply simp
+    apply (case_tac "add k y t1", simp, simp)
+   apply simp
+  apply simp
+  apply (case_tac "add k y t2", simp, simp)
+ apply clarsimp
+ apply (case_tac "ord k a")
+   apply simp
+   apply (case_tac "add k y t1", simp, simp)
+  apply simp
+ apply simp
+ apply (case_tac "ord k aa")
+   apply simp
+   apply (case_tac "add k y t2", simp, simp)
+  apply simp
+ apply simp
+ apply (case_tac "add k y t3", simp, simp)
+done
+
+lemma add_eq_Stay_dest: "add k y t = Stay t' \<Longrightarrow> height t = height t'"
+  using gheight_add [of k y t] by simp
+
+lemma add_eq_Sprout_dest: "add k y t = Sprout l p r \<Longrightarrow> height t = max (height l) (height r)"
+  using gheight_add [of k y t] by simp
+
+definition gtree :: "'a growth \<Rightarrow> 'a tree23" where
+  "gtree g = (case g of Stay t \<Rightarrow> t | Sprout l p r \<Rightarrow> Branch2 l p r)"
+
+lemma gtree_simps [simp]:
+  "gtree (Stay t) = t"
+  "gtree (Sprout l p r) = Branch2 l p r"
+unfolding gtree_def by simp_all
+
+lemma add0: "add0 k y t = gtree (add k y t)"
+  unfolding add0_def by (simp split: growth.split)
+
+text {* The @{term "add0"} operation preserves balance. *}
+
+lemma bal_add0: "bal t \<Longrightarrow> bal (add0 k y t)"
+unfolding add0
+ apply (induct t)
+   apply simp
+  apply clarsimp
+  apply (case_tac "ord k a")
+    apply simp
+    apply (case_tac "add k y t1")
+     apply (simp, drule add_eq_Stay_dest, simp)
+    apply (simp, drule add_eq_Sprout_dest, simp)
+   apply simp
+  apply simp
+  apply (case_tac "add k y t2")
+   apply (simp, drule add_eq_Stay_dest, simp)
+  apply (simp, drule add_eq_Sprout_dest, simp)
+ apply clarsimp
+ apply (case_tac "ord k a")
+   apply simp
+   apply (case_tac "add k y t1")
+    apply (simp, drule add_eq_Stay_dest, simp)
+   apply (simp, drule add_eq_Sprout_dest, simp)
+  apply simp
+ apply simp
+ apply (case_tac "ord k aa")
+   apply simp
+   apply (case_tac "add k y t2")
+    apply (simp, drule add_eq_Stay_dest, simp)
+   apply (simp, drule add_eq_Sprout_dest, simp)
+  apply simp
+ apply simp
+ apply (case_tac "add k y t3")
+  apply (simp, drule add_eq_Stay_dest, simp)
+ apply (simp, drule add_eq_Sprout_dest, simp)
+done
+
+text {* The @{term "add0"} operation preserves order. *}
+
+lemma ord_cases:
+  fixes a b :: int obtains
+  "ord a b = LESS" and "a < b" |
+  "ord a b = EQUAL" and "a = b" |
+  "ord a b = GREATER" and "a > b"
+unfolding ord_def by (rule linorder_cases [of a b]) auto
+
+lemma ord'_add0:
+  "\<lbrakk>ord' k1 t k2; opt_less k1 (Some k); opt_less (Some k) k2\<rbrakk> \<Longrightarrow> ord' k1 (add0 k y t) k2"
+unfolding add0
+ apply (induct t arbitrary: k1 k2)
+   apply simp
+  apply clarsimp
+  apply (rule_tac a=k and b=a in ord_cases)
+    apply simp
+    apply (case_tac "add k y t1", simp, simp)
+   apply simp
+  apply simp
+  apply (case_tac "add k y t2", simp, simp)
+ apply clarsimp
+ apply (rule_tac a=k and b=a in ord_cases)
+   apply simp
+   apply (case_tac "add k y t1", simp, simp)
+  apply simp
+ apply simp
+ apply (rule_tac a=k and b=aa in ord_cases)
+   apply simp
+   apply (case_tac "add k y t2", simp, simp)
+  apply simp
+ apply simp
+ apply (case_tac "add k y t3", simp, simp)
+done
+
+lemma ord0_add0: "ord0 t \<Longrightarrow> ord0 (add0 k y t)"
+using ord'_add0 [of None t None k y] by (simp add: ord')
 
 text{* This is a little test harness and should be commented out once the
 above functions have been proved correct. *}
