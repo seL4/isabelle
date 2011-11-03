@@ -124,6 +124,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain asms*)
     val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
+    val ((_, bind_ctxt), _) = Proof_Context.bind_propp_i proppss asms_ctxt;
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
@@ -153,6 +154,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     state
     |> Proof.enter_forward
     |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.map_context bind_ctxt
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume

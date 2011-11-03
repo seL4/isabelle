@@ -793,10 +793,9 @@ fun gen_bind_propp mode parse_prop raw_args ctxt =
     val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
     val binds = flat (flat (map (map (simult_matches ctxt')) args));
     val propss = map (map #1) args;
-
-    (*generalize result: context evaluated now, binds added later*)
-    val gen = Variable.exportT_terms ctxt' ctxt;
-    fun gen_binds c = c |> bind_terms (map #1 binds ~~ map SOME (gen (map #2 binds)));
+    fun gen_binds ctxt0 = ctxt0
+      |> bind_terms (map #1 binds ~~
+          map (SOME o Term.close_schematic_term) (Variable.export_terms ctxt' ctxt0 (map #2 binds)));
   in ((propss, gen_binds), ctxt' |> bind_terms (map (apsnd SOME) binds)) end;
 
 in
