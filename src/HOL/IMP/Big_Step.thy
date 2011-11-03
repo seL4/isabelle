@@ -23,12 +23,14 @@ WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub
              (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
 text_raw{*}\end{isaverbatimwrite}*}
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepEx}{% *}
 schematic_lemma ex: "(''x'' ::= N 5; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
 apply(rule Semi)
 apply(rule Assign)
 apply simp
 apply(rule Assign)
 done
+text_raw{*}\end{isaverbatimwrite}*}
 
 thm ex[simplified]
 
@@ -228,7 +230,7 @@ text {*
   This is the proof as you might present it in a lecture. The remaining
   cases are simple enough to be proved automatically:
 *}
-text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepDet2}{% *}
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepDetLong}{% *}
 theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
