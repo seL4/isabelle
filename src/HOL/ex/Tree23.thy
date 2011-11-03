@@ -315,6 +315,167 @@ done
 lemma ord0_add0: "ord0 t \<Longrightarrow> ord0 (add0 k y t)"
 using ord'_add0 [of None t None k y] by (simp add: ord')
 
+text {* The @{term "del"} function preserves balance. *}
+
+lemma del_extra_simps:
+"l \<noteq> Empty \<or> r \<noteq> Empty \<Longrightarrow>
+ del k (Branch2 l p r) = (case compare k p of
+      LESS => (case del k l of None \<Rightarrow> None |
+        Some(p', (False, l')) => Some(p', (False, Branch2 l' p r))
+      | Some(p', (True, l')) => Some(p', case r of
+          Branch2 rl rp rr => (True, Branch3 l' p rl rp rr)
+        | Branch3 rl rp rm rq rr => (False, Branch2
+            (Branch2 l' p rl) rp (Branch2 rm rq rr))))
+    | or => (case del (if_eq or None k) r of None \<Rightarrow> None |
+        Some(p', (False, r')) => Some(p', (False, Branch2 l (if_eq or p' p) r'))
+      | Some(p', (True, r')) => Some(p', case l of
+          Branch2 ll lp lr => (True, Branch3 ll lp lr (if_eq or p' p) r')
+        | Branch3 ll lp lm lq lr => (False, Branch2
+            (Branch2 ll lp lm) lq (Branch2 lr (if_eq or p' p) r')))))"
+"l \<noteq> Empty \<or> m \<noteq> Empty \<or> r \<noteq> Empty \<Longrightarrow>
+ del k (Branch3 l p m q r) = (case compare k q of
+      LESS => (case compare k p of
+        LESS => (case del k l of None \<Rightarrow> None |
+          Some(p', (False, l')) => Some(p', (False, Branch3 l' p m q r))
+        | Some(p', (True, l')) => Some(p', (False, case (m, r) of
+            (Branch2 ml mp mr, Branch2 _ _ _) => Branch2 (Branch3 l' p ml mp mr) q r
+          | (Branch3 ml mp mm mq mr, _) => Branch3 (Branch2 l' p ml) mp (Branch2 mm mq mr) q r
+          | (Branch2 ml mp mr, Branch3 rl rp rm rq rr) =>
+              Branch3 (Branch2 l' p ml) mp (Branch2 mr q rl) rp (Branch2 rm rq rr))))
+      | or => (case del (if_eq or None k) m of None \<Rightarrow> None |
+          Some(p', (False, m')) => Some(p', (False, Branch3 l (if_eq or p' p) m' q r))
+        | Some(p', (True, m')) => Some(p', (False, case (l, r) of
+            (Branch2 ll lp lr, Branch2 _ _ _) => Branch2 (Branch3 ll lp lr (if_eq or p' p) m') q r
+          | (Branch3 ll lp lm lq lr, _) => Branch3 (Branch2 ll lp lm) lq (Branch2 lr (if_eq or p' p) m') q r
+          | (_, Branch3 rl rp rm rq rr) => Branch3 l (if_eq or p' p) (Branch2 m' q rl) rp (Branch2 rm rq rr)))))
+    | or => (case del (if_eq or None k) r of None \<Rightarrow> None |
+        Some(q', (False, r')) => Some(q', (False, Branch3 l p m (if_eq or q' q) r'))
+      | Some(q', (True, r')) => Some(q', (False, case (l, m) of
+          (Branch2 _ _ _, Branch2 ml mp mr) => Branch2 l p (Branch3 ml mp mr (if_eq or q' q) r')
+        | (_, Branch3 ml mp mm mq mr) => Branch3 l p (Branch2 ml mp mm) mq (Branch2 mr (if_eq or q' q) r')
+        | (Branch3 ll lp lm lq lr, Branch2 ml mp mr) =>
+            Branch3 (Branch2 ll lp lm) lq (Branch2 lr p ml) mp (Branch2 mr (if_eq or q' q) r')))))"
+apply -
+apply (cases l, cases r, simp_all only: del.simps, simp)
+apply (cases l, cases m, cases r, simp_all only: del.simps, simp)
+done
+
+inductive full :: "nat \<Rightarrow> 'a tree23 \<Rightarrow> bool" where
+"full 0 Empty" |
+"\<lbrakk>full n l; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch2 l p r)" |
+"\<lbrakk>full n l; full n m; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch3 l p m q r)"
+
+inductive_cases full_elims:
+  "full n Empty"
+  "full n (Branch2 l p r)"
+  "full n (Branch3 l p m q r)"
+
+inductive_cases full_0_elim: "full 0 t"
+inductive_cases full_Suc_elim: "full (Suc n) t"
+
+lemma full_0_iff [simp]: "full 0 t \<longleftrightarrow> t = Empty"
+  by (auto elim: full_0_elim intro: full.intros)
+
+lemma full_Empty_iff [simp]: "full n Empty \<longleftrightarrow> n = 0"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Branch2_iff [simp]:
+  "full (Suc n) (Branch2 l p r) \<longleftrightarrow> full n l \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Branch3_iff [simp]:
+  "full (Suc n) (Branch3 l p m q r) \<longleftrightarrow> full n l \<and> full n m \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+definition
+  "full_del n k t = (case del k t of None \<Rightarrow> True | Some (p, b, t') \<Rightarrow> full (if b then n else Suc n) t')"
+
+lemmas ord_case = ord.exhaust [where y=y and P="ord_case a b c y", standard]
+lemmas option_ord_case = ord.exhaust [where y=y and P="option_case a b (ord_case d e f y)", standard]
+lemmas option_option_case = option.exhaust [where y=y and P="option_case a b (option_case d e y)", standard]
+lemmas option_prod_case = prod.exhaust [where y=y and P="option_case a b (prod_case c y)", standard]
+lemmas option_bool_case = bool.exhaust [where y=y and P="option_case a b (bool_case c d y)", standard]
+lemmas prod_tree23_case = tree23.exhaust [where y=y and P="prod_case a (tree23_case b c d y)", standard]
+lemmas option_case = option.exhaust [where y=y and P="option_case a b y", standard]
+lemmas full_tree23_case = tree23.exhaust [where y=y and P="full a (tree23_case b c d y)", standard]
+
+lemmas case_intros =
+  option_ord_case option_option_case option_prod_case option_bool_case prod_tree23_case option_case
+  full_tree23_case
+
+lemma full_del: "full (Suc n) t \<Longrightarrow> full_del n k t"
+proof -
+  { fix n :: "nat" and p :: "key \<times> 'a" and l r :: "'a tree23" and k
+    assume "\<And>n. \<lbrakk>compare k p = LESS; full (Suc n) l\<rbrakk> \<Longrightarrow> full_del n k l"
+    and "\<And>n. \<lbrakk>compare k p = EQUAL; full (Suc n) r\<rbrakk> \<Longrightarrow> full_del n (if_eq EQUAL None k) r"
+    and "\<And>n. \<lbrakk>compare k p = GREATER; full (Suc n) r\<rbrakk> \<Longrightarrow> full_del n (if_eq GREATER None k) r"
+    and "full (Suc n) (Branch2 l p r)"
+    hence "full_del n k (Branch2 l p r)"
+     apply clarsimp
+     apply (cases n)
+      apply (cases k)
+       apply (simp add: full_del_def)
+      apply (simp add: full_del_def split: ord.split)
+     apply (simp add: full_del_def)
+     apply (subst del_extra_simps, force)
+     apply (simp | rule case_intros)+
+     done
+  } note A = this
+  { fix n :: "nat" and p q :: "key \<times> 'a" and l m r :: "'a tree23" and k
+    assume "\<And>n. \<lbrakk>compare k q = LESS; compare k p = LESS; full (Suc n) l\<rbrakk> \<Longrightarrow> full_del n k l"
+    and "\<And>n. \<lbrakk>compare k q = LESS; compare k p = EQUAL; full (Suc n) m\<rbrakk> \<Longrightarrow> full_del n (if_eq EQUAL None k) m"
+    and "\<And>n. \<lbrakk>compare k q = LESS; compare k p = GREATER; full (Suc n) m\<rbrakk> \<Longrightarrow> full_del n (if_eq GREATER None k) m"
+    and "\<And>n. \<lbrakk>compare k q = EQUAL; full (Suc n) r\<rbrakk> \<Longrightarrow> full_del n (if_eq EQUAL None k) r"
+    and "\<And>n. \<lbrakk>compare k q = GREATER; full (Suc n) r\<rbrakk> \<Longrightarrow> full_del n (if_eq GREATER None k) r"
+    and "full (Suc n) (Branch3 l p m q r)"
+    hence "full_del n k (Branch3 l p m q r)"
+     apply clarsimp
+     apply (cases n)
+      apply (cases k)
+       apply (simp add: full_del_def)
+      apply (simp add: full_del_def split: ord.split)
+     apply (simp add: full_del_def)
+     apply (subst del_extra_simps, force)
+     apply (simp | rule case_intros)+
+     done
+  } note B = this
+  show "full (Suc n) t \<Longrightarrow> full_del n k t"
+  proof (induct k t arbitrary: n rule: del.induct)
+    { case goal1 thus "full_del n (Some k) Empty"
+        by simp }
+    { case goal2 thus "full_del n None (Branch2 Empty p Empty)"
+        unfolding full_del_def by auto }
+    { case goal3 thus "full_del n None (Branch3 Empty p Empty q Empty)"
+        unfolding full_del_def by auto }
+    { case goal4 thus "full_del n (Some v) (Branch2 Empty p Empty)"
+        unfolding full_del_def by (auto split: ord.split) }
+    { case goal5 thus "full_del n (Some v) (Branch3 Empty p Empty q Empty)"
+        unfolding full_del_def by (auto split: ord.split) }
+    { case goal26 thus ?case by simp }
+  qed (fact A | fact B)+
+qed
+
+lemma full_imp_height: "full n t \<Longrightarrow> height t = n"
+  by (induct set: full, simp_all)
+
+lemma full_imp_bal: "full n t \<Longrightarrow> bal t"
+  by (induct set: full, auto dest: full_imp_height)
+
+lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
+  by (induct t, simp_all)
+
+lemma bal_iff_full: "bal t \<longleftrightarrow> full (height t) t"
+  using bal_imp_full full_imp_bal ..
+
+lemma bal_del0: "bal t \<Longrightarrow> bal (del0 k t)"
+  unfolding del0_def
+  apply (drule bal_imp_full)
+  apply (case_tac "height t", simp, simp)
+  apply (frule full_del [where k="Some k"])
+  apply (simp add: full_del_def)
+  apply (auto split: option.split elim: full_imp_bal)
+  done
+
 text{* This is a little test harness and should be commented out once the
 above functions have been proved correct. *}
 
@@ -327,11 +488,14 @@ fun exec where
 
 text{* Some quick checks: *}
 
-lemma "ord0(exec as Empty)"
-quickcheck
-oops
+lemma bal_exec: "bal t \<Longrightarrow> bal (exec as t)"
+  by (induct as t arbitrary: t rule: exec.induct,
+    simp_all add: bal_add0 bal_del0)
 
 lemma "bal(exec as Empty)"
+  by (simp add: bal_exec)
+
+lemma "ord0(exec as Empty)"
 quickcheck
 oops
 
