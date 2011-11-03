@@ -18,8 +18,8 @@ text {* The possible successor pc's of an instruction at position @{term n} *}
 definition
   "isuccs i n \<equiv> case i of 
      JMP j \<Rightarrow> {n + 1 + j}
-   | JMPFLESS j \<Rightarrow> {n + 1 + j, n + 1}
-   | JMPFGE j \<Rightarrow> {n + 1 + j, n + 1}
+   | JMPLESS j \<Rightarrow> {n + 1 + j, n + 1}
+   | JMPGE j \<Rightarrow> {n + 1 + j, n + 1}
    | _ \<Rightarrow> {n +1}"
 
 text {* The possible successors pc's of an instruction list *}
@@ -88,8 +88,8 @@ lemma succs_simps [simp]:
   "succs [LOAD x] n = {n + 1}"
   "succs [STORE x] n = {n + 1}"
   "succs [JMP i] n = {n + 1 + i}"
-  "succs [JMPFGE i] n = {n + 1 + i, n + 1}"
-  "succs [JMPFLESS i] n = {n + 1 + i, n + 1}"
+  "succs [JMPGE i] n = {n + 1 + i, n + 1}"
+  "succs [JMPLESS i] n = {n + 1 + i, n + 1}"
   by (auto simp: succs_def isuccs_def)
 
 lemma succs_empty [iff]: "succs [] n = {}"
@@ -176,8 +176,8 @@ lemma exits_simps [simp]:
   "exits [LOAD x] = {1}"
   "exits [STORE x] = {1}"
   "i \<noteq> -1 \<Longrightarrow> exits [JMP i] = {1 + i}"
-  "i \<noteq> -1 \<Longrightarrow> exits [JMPFGE i] = {1 + i, 1}"
-  "i \<noteq> -1 \<Longrightarrow> exits [JMPFLESS i] = {1 + i, 1}"
+  "i \<noteq> -1 \<Longrightarrow> exits [JMPGE i] = {1 + i, 1}"
+  "i \<noteq> -1 \<Longrightarrow> exits [JMPLESS i] = {1 + i, 1}"
   by (auto simp: exits_def)
 
 lemma acomp_succs [simp]:

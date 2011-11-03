@@ -37,8 +37,8 @@ datatype instr =
   ADD |
   STORE string |
   JMP int |
-  JMPFLESS int |
-  JMPFGE int
+  JMPLESS int |
+  JMPGE int
 
 type_synonym stack = "val list"
 type_synonym config = "int\<times>state\<times>stack"
@@ -54,8 +54,8 @@ where
 "ADD     \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, (hd2 stk + hd stk) # tl2 stk)" |
 "STORE n \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s(n := hd stk),tl stk)" |
 "JMP n   \<turnstile>i (i,s,stk) \<rightarrow> (i+1+n,s,stk)" |
-"JMPFLESS n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk)" |
-"JMPFGE n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk)"
+"JMPLESS n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk)" |
+"JMPGE n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk)"
 
 code_pred iexec1 .
 
@@ -102,8 +102,8 @@ inductive_cases iexec1_cases [elim!]:
   "ADD     \<turnstile>i c \<rightarrow> c'"
   "STORE n \<turnstile>i c \<rightarrow> c'" 
   "JMP n   \<turnstile>i c \<rightarrow> c'"
-  "JMPFLESS n \<turnstile>i c \<rightarrow> c'"
-  "JMPFGE n \<turnstile>i c \<rightarrow> c'"
+  "JMPLESS n \<turnstile>i c \<rightarrow> c'"
+  "JMPGE n \<turnstile>i c \<rightarrow> c'"
 
 text {* Simplification rules for @{const iexec1}. *}
 lemma iexec1_simps [simp]:
@@ -114,10 +114,10 @@ lemma iexec1_simps [simp]:
   "STORE x \<turnstile>i c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s(x := hd stk), tl stk))"
   "JMP n \<turnstile>i c \<rightarrow> c' = (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1 + n, s, stk))"
-   "JMPFLESS n \<turnstile>i c \<rightarrow> c' = 
+   "JMPLESS n \<turnstile>i c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i, s, stk) \<and> 
              c' = (if hd2 stk < hd stk then i + 1 + n else i + 1, s, tl2 stk))"  
-  "JMPFGE n \<turnstile>i c \<rightarrow> c' = 
+  "JMPGE n \<turnstile>i c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i, s, stk) \<and> 
              c' = (if hd stk \<le> hd2 stk then i + 1 + n else i + 1, s, tl2 stk))"
   by (auto split del: split_if intro!: iexec1.intros)
@@ -212,7 +212,7 @@ fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list
       cb1 = bcomp b1 False m
   in cb1 @ cb2)" |
 "bcomp (Less a1 a2) c n =
- acomp a1 @ acomp a2 @ (if c then [JMPFLESS n] else [JMPFGE n])"
+ acomp a1 @ acomp a2 @ (if c then [JMPLESS n] else [JMPGE n])"
 
 value
   "bcomp (And (Less (V ''x'') (V ''y'')) (Not(Less (V ''u'') (V ''v''))))
