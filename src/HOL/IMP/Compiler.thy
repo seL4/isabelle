@@ -32,10 +32,10 @@ lemma inth_append [simp]:
 subsection "Instructions and Stack Machine"
 
 datatype instr = 
-  LOADI int | 
-  LOAD string | 
+  LOADI int |
+  LOAD vname |
   ADD |
-  STORE string |
+  STORE vname |
   JMP int |
   JMPLESS int |
   JMPGE int
