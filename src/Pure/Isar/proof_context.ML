@@ -93,22 +93,22 @@ sig
   val auto_bind_facts: term list -> Proof.context -> Proof.context
   val match_bind: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
   val match_bind_i: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
-  val read_propp: Proof.context * (string * string list) list list
-    -> Proof.context * (term * term list) list list
-  val cert_propp: Proof.context * (term * term list) list list
-    -> Proof.context * (term * term list) list list
-  val read_propp_schematic: Proof.context * (string * string list) list list
-    -> Proof.context * (term * term list) list list
-  val cert_propp_schematic: Proof.context * (term * term list) list list
-    -> Proof.context * (term * term list) list list
-  val bind_propp: Proof.context * (string * string list) list list
-    -> Proof.context * (term list list * (Proof.context -> Proof.context))
-  val bind_propp_i: Proof.context * (term * term list) list list
-    -> Proof.context * (term list list * (Proof.context -> Proof.context))
-  val bind_propp_schematic: Proof.context * (string * string list) list list
-    -> Proof.context * (term list list * (Proof.context -> Proof.context))
-  val bind_propp_schematic_i: Proof.context * (term * term list) list list
-    -> Proof.context * (term list list * (Proof.context -> Proof.context))
+  val read_propp: (string * string list) list list -> Proof.context ->
+    (term * term list) list list * Proof.context
+  val cert_propp: (term * term list) list list -> Proof.context ->
+    (term * term list) list list * Proof.context
+  val read_propp_schematic: (string * string list) list list -> Proof.context ->
+    (term * term list) list list * Proof.context
+  val cert_propp_schematic: (term * term list) list list -> Proof.context ->
+    (term * term list) list list * Proof.context
+  val bind_propp: (string * string list) list list -> Proof.context ->
+    (term list list * (Proof.context -> Proof.context)) * Proof.context
+  val bind_propp_i: (term * term list) list list -> Proof.context ->
+    (term list list * (Proof.context -> Proof.context)) * Proof.context
+  val bind_propp_schematic: (string * string list) list list -> Proof.context ->
+    (term list list * (Proof.context -> Proof.context)) * Proof.context
+  val bind_propp_schematic_i: (term * term list) list list -> Proof.context ->
+    (term list list * (Proof.context -> Proof.context)) * Proof.context
   val fact_tac: thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_fact: Proof.context -> Facts.ref -> thm list
@@ -124,7 +124,6 @@ sig
     (binding * typ option * mixfix) list * Proof.context
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
-  val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val add_assms: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -778,26 +777,27 @@ end;
 
 local
 
-fun prep_propp mode prep_props (context, args) =
+fun prep_propp mode prep_props args context =
   let
     fun prep (_, raw_pats) (ctxt, prop :: props) =
       let val ctxt' = Variable.declare_term prop ctxt
       in ((prop, prep_props (set_mode mode_pattern ctxt') raw_pats), (ctxt', props)) end;
 
-    val (propp, (context', _)) = (fold_map o fold_map) prep args
-      (context, prep_props (set_mode mode context) (maps (map fst) args));
-  in (context', propp) end;
+    val (propp, (context', _)) =
+      (fold_map o fold_map) prep args
+        (context, prep_props (set_mode mode context) (maps (map fst) args));
+  in (propp, context') end;
 
-fun gen_bind_propp mode parse_prop (ctxt, raw_args) =
+fun gen_bind_propp mode parse_prop raw_args ctxt =
   let
-    val (ctxt', args) = prep_propp mode parse_prop (ctxt, raw_args);
+    val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
     val binds = flat (flat (map (map (simult_matches ctxt')) args));
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)
     val gen = Variable.exportT_terms ctxt' ctxt;
     fun gen_binds c = c |> bind_terms (map #1 binds ~~ map SOME (gen (map #2 binds)));
-  in (ctxt' |> bind_terms (map (apsnd SOME) binds), (propss, gen_binds)) end;
+  in ((propss, gen_binds), ctxt' |> bind_terms (map (apsnd SOME) binds)) end;
 
 in
 
@@ -1038,9 +1038,6 @@ fun add_fixes raw_vars ctxt =
       #> pair xs)
   end;
 
-fun auto_fixes (ctxt, (propss, x)) =
-  ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
-
 
 
 (** assumptions **)
@@ -1050,7 +1047,7 @@ local
 fun gen_assms prepp exp args ctxt =
   let
     val cert = Thm.cterm_of (theory_of ctxt);
-    val (propss, ctxt1) = swap (prepp (ctxt, map snd args));
+    val ((propss, _), ctxt1) = prepp (map snd args) ctxt;
     val _ = Variable.warn_extra_tfrees ctxt ctxt1;
     val (premss, ctxt2) = fold_burrow (Assumption.add_assms exp o map cert) propss ctxt1;
   in
@@ -1061,8 +1058,8 @@ fun gen_assms prepp exp args ctxt =
 
 in
 
-val add_assms = gen_assms (apsnd #1 o bind_propp);
-val add_assms_i = gen_assms (apsnd #1 o bind_propp_i);
+val add_assms = gen_assms bind_propp;
+val add_assms_i = gen_assms bind_propp_i;
 
 end;
 

@@ -123,7 +123,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
+    val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
@@ -308,7 +308,7 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.local_goal print_result (K I) (apsnd (rpair I))
+    |> Proof.local_goal print_result (K I) (pair o rpair I)
       "guess" before_qed after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (K (Goal.init (cert thesis)))) |> Seq.hd
   end;

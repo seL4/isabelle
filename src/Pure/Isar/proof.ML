@@ -84,7 +84,7 @@ sig
   val apply_end: Method.text -> state -> state Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (theory -> 'a -> attribute) ->
-    (context * 'b list -> context * (term list list * (context -> context))) ->
+    ('b list -> context -> (term list list * (context -> context)) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state
@@ -863,7 +863,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> assert_forward_or_chain
       |> enter_forward
       |> open_block
-      |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
+      |> map_context_result (prepp raw_propp);
     val props = flat propss;
 
     val vars = implicit_vars props;
@@ -938,9 +938,13 @@ fun local_qed txt = local_qeds txt #> check_finish;
 
 (* global goals *)
 
-fun global_goal prepp before_qed after_qed propp ctxt =
-  init ctxt
-  |> generic_goal (prepp #> Proof_Context.auto_fixes) "" before_qed (K I, after_qed) propp;
+fun prepp_auto_fixes prepp args =
+  prepp args #>
+  (fn ((propss, a), ctxt) => ((propss, a), (fold o fold) Variable.auto_fixes propss ctxt));
+
+fun global_goal prepp before_qed after_qed propp =
+  init #>
+  generic_goal (prepp_auto_fixes prepp) "" before_qed (K I, after_qed) propp;
 
 val theorem = global_goal Proof_Context.bind_propp_schematic_i;
 val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
