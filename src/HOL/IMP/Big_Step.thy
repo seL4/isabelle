@@ -4,6 +4,7 @@ theory Big_Step imports Com begin
 
 subsection "Big-Step Semantics of Commands"
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepdef}{% *}
 inductive
   big_step :: "com \<times> state \<Rightarrow> state \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
 where
@@ -20,6 +21,7 @@ IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^isub>2,s) \<Rightarrow> t \<rbrakk> \<
 WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s" |
 WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
              (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+text_raw{*}\end{isaverbatimwrite}*}
 
 schematic_lemma ex: "(''x'' ::= N 5; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
 apply(rule Semi)
@@ -126,9 +128,11 @@ text {*
   in @{text s'} iff @{text c'} started in the same @{text s} also terminates
   in the same @{text s'}}. Formally:
 *}
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepEquiv}{% *}
 abbreviation
   equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix "\<sim>" 50) where
   "c \<sim> c' == (\<forall>s t. (c,s) \<Rightarrow> t  =  (c',s) \<Rightarrow> t)"
+text_raw{*}\end{isaverbatimwrite}*}
 
 text {*
 Warning: @{text"\<sim>"} is the symbol written \verb!\ < s i m >! (without spaces).
@@ -196,7 +200,7 @@ qed
 text {* Luckily, such lengthy proofs are seldom necessary.  Isabelle can
 prove many such facts automatically.  *}
 
-lemma 
+lemma while_unfold:
   "(WHILE b DO c) \<sim> (IF b THEN c; WHILE b DO c ELSE SKIP)"
 by blast
 
@@ -214,15 +218,17 @@ by blast
 subsection "Execution is deterministic"
 
 text {* This proof is automatic. *}
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepDeterministic}{% *}
 theorem big_step_determ: "\<lbrakk> (c,s) \<Rightarrow> t; (c,s) \<Rightarrow> u \<rbrakk> \<Longrightarrow> u = t"
-apply (induction arbitrary: u rule: big_step.induct)
-apply blast+
-done
+  by (induction arbitrary: u rule: big_step.induct) blast+
+text_raw{*}\end{isaverbatimwrite}*}
+
 
 text {*
   This is the proof as you might present it in a lecture. The remaining
   cases are simple enough to be proved automatically:
 *}
+text_raw{*\begin{isaverbatimwrite}\newcommand{\BigStepDet2}{% *}
 theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
@@ -242,6 +248,6 @@ proof (induction arbitrary: t' rule: big_step.induct)
   from c IHc have "s1' = s1" by blast
   with w IHw show "t' = t" by blast
 qed blast+ -- "prove the rest automatically"
-
+text_raw{*}\end{isaverbatimwrite}*}
 
 end
