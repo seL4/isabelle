@@ -138,11 +138,11 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
-      Term.list_all_free (parms, Logic.list_implies (asm_props, thesis))
-      |> Library.curry Logic.list_rename_params xs;
+      Logic.list_rename_params xs
+        (Term.list_all_free (parms, Logic.list_implies (asm_props, thesis)));
     val obtain_prop =
-      Logic.list_rename_params ([Auto_Bind.thesisN],
-        Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
+      Logic.list_rename_params [Auto_Bind.thesisN]
+        (Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
 
     fun after_qed _ =
       Proof.local_qed (NONE, false)

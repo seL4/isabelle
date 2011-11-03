@@ -46,7 +46,7 @@ sig
   val name_arity: string * sort list * class -> string
   val mk_arities: arity -> term list
   val dest_arity: term -> string * sort list * class
-  val unconstrainT: sort list -> term -> 
+  val unconstrainT: sort list -> term ->
     ((typ -> typ) * ((typ * class) * term) list * (typ * class) list) * term
   val protectC: term
   val protect: term -> term
@@ -68,8 +68,8 @@ sig
   val strip_params: term -> (string * typ) list
   val has_meta_prems: term -> bool
   val flatten_params: int -> term -> term
-  val list_rename_params: string list * term -> term
-  val assum_pairs: int * term -> (term*term)list
+  val list_rename_params: string list -> term -> term
+  val assum_pairs: int * term -> (term * term) list
   val assum_problems: int * term -> (term -> term) * term list * term
   val varifyT_global: typ -> typ
   val unvarifyT_global: typ -> typ
@@ -453,11 +453,11 @@ fun flatten_params n A =
     end;
 
 (*Makes parameters in a goal have the names supplied by the list cs.*)
-fun list_rename_params (cs, Const("==>", _) $ A $ B) =
-      implies $ A $ list_rename_params (cs, B)
-  | list_rename_params (c::cs, (a as Const("all",_)) $ Abs(_,T,t)) =
-      a $ Abs(c, T, list_rename_params (cs, t))
-  | list_rename_params (cs, B) = B;
+fun list_rename_params cs (Const ("==>", _) $ A $ B) =
+      implies $ A $ list_rename_params cs B
+  | list_rename_params (c :: cs) ((a as Const ("all", _)) $ Abs (_, T, t)) =
+      a $ Abs (c, T, list_rename_params cs t)
+  | list_rename_params cs B = B;
 
 
 
