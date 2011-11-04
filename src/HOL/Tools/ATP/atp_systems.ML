@@ -40,6 +40,8 @@ sig
   val eN : string
   val e_sineN : string
   val e_tofofN : string
+  val iproverN : string
+  val iprover_eqN : string
   val leo2N : string
   val pffN : string
   val phfN : string
@@ -125,6 +127,8 @@ val known_says_failures = known_szs_failures (prefix " says ")
 val eN = "e"
 val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
+val iproverN = "iprover"
+val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"
 val pffN = "pff"
 val phfN = "phf"
@@ -528,6 +532,12 @@ val remote_z3_tptp =
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
              Conjecture (K (500, FOF, "mono_guards??") (* FUDGE *))
+val remote_iprover =
+  remote_atp iproverN "iProver" [] [] [] Axiom Conjecture
+             (K (150, FOF, "mono_guards??") (* FUDGE *))
+val remote_iprover_eq =
+  remote_atp iprover_eqN "iProver-Eq" [] [] [] Axiom Conjecture
+             (K (150, FOF, "mono_guards??") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
@@ -565,8 +575,9 @@ fun refresh_systems_on_tptp () =
 
 val atps =
   [e, leo2, pff, phf, satallax, spass, spass_new, vampire, z3_tptp, remote_e,
-   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_e_sine,
-   remote_snark, remote_e_tofof, remote_waldmeister]
+   remote_e_sine, remote_iprover, remote_iprover_eq, remote_leo2,
+   remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
+   remote_e_tofof, remote_waldmeister]
 val setup = fold add_atp atps
 
 end;
