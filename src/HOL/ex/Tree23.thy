@@ -137,27 +137,7 @@ definition del0 :: "key \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
 "del0 k t = (case del (Some k) t of None \<Rightarrow> t | Some(_,(_,t')) \<Rightarrow> t')"
 
 
-(* yes, this is rather slow *)
-fun ord0 :: "'a tree23 \<Rightarrow> bool"
-and ordl :: "key \<Rightarrow> 'a tree23 \<Rightarrow> bool"
-and ordr :: "'a tree23 \<Rightarrow> key \<Rightarrow> bool"
-and ordlr :: "key \<Rightarrow> 'a tree23 \<Rightarrow> key \<Rightarrow> bool"
-where
-"ord0 Empty = True" |
-"ord0 (Branch2 l p r)  = (ordr l (fst p) & ordl (fst p) r)" |
-"ord0 (Branch3 l p m q r)  = (ordr l (fst p) & ordlr (fst p) m (fst q) & ordl (fst q) r)" |
-
-"ordl _ Empty = True" |
-"ordl x (Branch2 l p r)  = (ordlr x l (fst p) & ordl (fst p) r)" |
-"ordl x (Branch3 l p m q r)  = (ordlr x l (fst p) & ordlr (fst p) m (fst q) & ordl (fst q) r)" |
-
-"ordr Empty _ = True" |
-"ordr (Branch2 l p r) x = (ordr l (fst p) & ordlr (fst p) r x)" |
-"ordr (Branch3 l p m q r) x = (ordr l (fst p) & ordlr (fst p) m (fst q) & ordlr (fst q) r x)" |
-
-"ordlr x Empty y = (x < y)" |
-"ordlr x (Branch2 l p r) y = (ordlr x l (fst p) & ordlr (fst p) r y)" |
-"ordlr x (Branch3 l p m q r) y = (ordlr x l (fst p) & ordlr (fst p) m (fst q) & ordlr (fst q) r y)"
+text {* Specifying correctness *}
 
 definition opt_less :: "key option \<Rightarrow> key option \<Rightarrow> bool" where
   "opt_less x y = (case x of None \<Rightarrow> True | Some a \<Rightarrow> (case y of None \<Rightarrow> True | Some b \<Rightarrow> a < b))"
@@ -168,15 +148,13 @@ lemma opt_less_simps [simp]:
   "opt_less (Some a) (Some b) = (a < b)"
 unfolding opt_less_def by (auto simp add: ord_def split: option.split)
 
-fun ord' :: "key option \<Rightarrow> 'a tree23 \<Rightarrow> key option \<Rightarrow> bool" where
+primrec ord' :: "key option \<Rightarrow> 'a tree23 \<Rightarrow> key option \<Rightarrow> bool" where
 "ord' x Empty y = opt_less x y" |
 "ord' x (Branch2 l p r) y = (ord' x l (Some (fst p)) & ord' (Some (fst p)) r y)" |
 "ord' x (Branch3 l p m q r) y = (ord' x l (Some (fst p)) & ord' (Some (fst p)) m (Some (fst q)) & ord' (Some (fst q)) r y)"
 
-lemma ord':
-  "ord' x t y = (case x of None \<Rightarrow> (case y of None \<Rightarrow> ord0 t | Some y' \<Rightarrow> ordr t y')
-    | Some x' \<Rightarrow> (case y of None \<Rightarrow> ordl x' t | Some y' \<Rightarrow> ordlr x' t y'))"
-by (induct t arbitrary: x y, auto simp add: opt_less_def split: option.split)
+definition ord0 :: "'a tree23 \<Rightarrow> bool" where
+  "ord0 t = ord' None t None"
 
 fun height :: "'a tree23 \<Rightarrow> nat" where
 "height Empty = 0" |
@@ -313,7 +291,7 @@ unfolding add0
 done
 
 lemma ord0_add0: "ord0 t \<Longrightarrow> ord0 (add0 k y t)"
-using ord'_add0 [of None t None k y] by (simp add: ord')
+  by (simp add: ord0_def ord'_add0)
 
 text {* The @{term "del"} function preserves balance. *}
 
