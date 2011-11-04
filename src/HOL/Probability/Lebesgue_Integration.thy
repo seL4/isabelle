@@ -527,7 +527,7 @@ definition simple_integral_def:
   "integral\<^isup>S M f = (\<Sum>x \<in> f ` space M. x * measure M (f -` {x} \<inter> space M))"
 
 syntax
-  "_simple_integral" :: "'a \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> ereal" ("\<integral>\<^isup>S _. _ \<partial>_" [60,61] 110)
+  "_simple_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> ereal" ("\<integral>\<^isup>S _. _ \<partial>_" [60,61] 110)
 
 translations
   "\<integral>\<^isup>S x. f \<partial>M" == "CONST integral\<^isup>S M (%x. f)"
@@ -872,7 +872,7 @@ definition positive_integral_def:
   "integral\<^isup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f}. integral\<^isup>S M g)"
 
 syntax
-  "_positive_integral" :: "'a \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> ereal" ("\<integral>\<^isup>+ _. _ \<partial>_" [60,61] 110)
+  "_positive_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> ereal" ("\<integral>\<^isup>+ _. _ \<partial>_" [60,61] 110)
 
 translations
   "\<integral>\<^isup>+ x. f \<partial>M" == "CONST integral\<^isup>P M (%x. f)"
@@ -1686,7 +1686,7 @@ definition lebesgue_integral_def:
   "integral\<^isup>L M f = real ((\<integral>\<^isup>+ x. ereal (f x) \<partial>M)) - real ((\<integral>\<^isup>+ x. ereal (- f x) \<partial>M))"
 
 syntax
-  "_lebesgue_integral" :: "'a \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> real" ("\<integral> _. _ \<partial>_" [60,61] 110)
+  "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> real" ("\<integral> _. _ \<partial>_" [60,61] 110)
 
 translations
   "\<integral> x. f \<partial>M" == "CONST integral\<^isup>L M (%x. f)"

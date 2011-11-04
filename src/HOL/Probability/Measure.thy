@@ -652,7 +652,7 @@ definition (in measure_space)
   "almost_everywhere P \<longleftrightarrow> (\<exists>N\<in>null_sets. { x \<in> space M. \<not> P x } \<subseteq> N)"
 
 syntax
-  "_almost_everywhere" :: "'a \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" ("AE _ in _. _" [0,0,10] 10)
+  "_almost_everywhere" :: "pttrn \<Rightarrow> ('a, 'b) measure_space_scheme \<Rightarrow> bool \<Rightarrow> bool" ("AE _ in _. _" [0,0,10] 10)
 
 translations
   "AE x in M. P" == "CONST measure_space.almost_everywhere M (%x. P)"
