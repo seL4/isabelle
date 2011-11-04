@@ -8,18 +8,20 @@ signature QUOTIENT_INFO =
 sig
   type quotmaps = {mapfun: string, relmap: string}
   val lookup_quotmaps: Proof.context -> string -> quotmaps option
+  val lookup_quotmaps_global: theory -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
 
   type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
   val transform_quotients: morphism -> quotients -> quotients
   val lookup_quotients: Proof.context -> string -> quotients option
+  val lookup_quotients_global: theory -> string -> quotients option
   val update_quotients: string -> quotients -> Context.generic -> Context.generic
   val dest_quotients: Proof.context -> quotients list
   val print_quotients: Proof.context -> unit
 
   type quotconsts = {qconst: term, rconst: term, def: thm}
   val transform_quotconsts: morphism -> quotconsts -> quotconsts
-  val lookup_quotconsts: Proof.context -> term -> quotconsts option
+  val lookup_quotconsts_global: theory -> term -> quotconsts option
   val update_quotconsts: string -> quotconsts -> Context.generic -> Context.generic
   val dest_quotconsts: Proof.context -> quotconsts list
   val print_quotconsts: Proof.context -> unit
@@ -55,6 +57,7 @@ structure Quotmaps = Generic_Data
 )
 
 val lookup_quotmaps = Symtab.lookup o Quotmaps.get o Context.Proof
+val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 
 (* FIXME export proper internal update operation!? *)
 
@@ -101,6 +104,7 @@ fun transform_quotients phi {qtyp, rtyp, equiv_rel, equiv_thm} =
    equiv_thm = Morphism.thm phi equiv_thm}
 
 val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
+val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
 
 fun update_quotients str qinfo = Quotients.map (Symtab.update (str, qinfo))
 
@@ -152,16 +156,14 @@ fun update_quotconsts name qcinfo = Quotconsts.map (Symtab.cons_list (name, qcin
 fun dest_quotconsts ctxt =
   flat (map snd (Symtab.dest (Quotconsts.get (Context.Proof ctxt))))
 
-fun lookup_quotconsts ctxt t =
+fun lookup_quotconsts_global thy t =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val (name, qty) = dest_Const t
     fun matches (x: quotconsts) =
       let val (name', qty') = dest_Const (#qconst x);
       in name = name' andalso Sign.typ_instance thy (qty, qty') end
   in
-    (case Symtab.lookup (Quotconsts.get (Context.Proof ctxt)) name of
+    (case Symtab.lookup (Quotconsts.get (Context.Theory thy)) name of
       NONE => NONE
     | SOME l => find_first matches l)
   end
