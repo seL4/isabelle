@@ -123,7 +123,8 @@ fun gen_obtain prep_att prep_vars prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
+    val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
+    val ((_, bind_ctxt), _) = Proof_Context.bind_propp_i proppss asms_ctxt;
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
@@ -138,11 +139,11 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
-      Term.list_all_free (parms, Logic.list_implies (asm_props, thesis))
-      |> Library.curry Logic.list_rename_params xs;
+      Logic.list_rename_params xs
+        (Term.list_all_free (parms, Logic.list_implies (asm_props, thesis)));
     val obtain_prop =
-      Logic.list_rename_params ([Auto_Bind.thesisN],
-        Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
+      Logic.list_rename_params [Auto_Bind.thesisN]
+        (Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
 
     fun after_qed _ =
       Proof.local_qed (NONE, false)
@@ -153,6 +154,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     state
     |> Proof.enter_forward
     |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.map_context bind_ctxt
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume
@@ -308,7 +310,7 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.local_goal print_result (K I) (apsnd (rpair I))
+    |> Proof.local_goal print_result (K I) (pair o rpair I)
       "guess" before_qed after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (K (Goal.init (cert thesis)))) |> Seq.hd
   end;

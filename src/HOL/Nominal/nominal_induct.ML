@@ -72,7 +72,7 @@ fun rename_params_rule internal xs rule =
         val ys =
           if p < n then []
           else map (tune o #1) (take (p - n) ps) @ xs;
-      in Logic.list_rename_params (ys, prem) end;
+      in Logic.list_rename_params ys prem end;
     fun rename_prems prop =
       let val (As, C) = Logic.strip_horn prop
       in Logic.list_implies (map rename As, C) end;

@@ -308,7 +308,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val (propp, elems_ctxt) = prep_stmt elems (map snd shows) ctxt;
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
-        val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
+        val goal_ctxt = (fold o fold) (Variable.auto_fixes o fst) propp elems_ctxt;
       in ((prems, stmt, NONE), goal_ctxt) end
   | Element.Obtains obtains =>
       let

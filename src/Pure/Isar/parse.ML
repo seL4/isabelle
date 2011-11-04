@@ -322,7 +322,7 @@ val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
 val simple_fixes = and_list1 params >> flat;
 
 val fixes =
-  and_list1 (binding -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
+  and_list1 (binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o triple1) ||
     params >> map (fn (x, y) => (x, y, NoSyn))) >> flat;
 
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];

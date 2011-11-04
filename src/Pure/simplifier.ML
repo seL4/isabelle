@@ -184,9 +184,7 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
        lhss =
         let
           val lhss' = prep lthy lhss;
-          val ctxt' = lthy
-            |> fold Variable.declare_term lhss'
-            |> fold Variable.auto_fixes lhss';
+          val ctxt' = fold Variable.auto_fixes lhss' lthy;
         in Variable.export_terms ctxt' lthy lhss' end
         |> map (Thm.cterm_of (Proof_Context.theory_of lthy)),
        proc = proc,

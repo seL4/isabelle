@@ -1494,7 +1494,7 @@ fun rename_params_rule (cs, i) state =
       if short < 0 then error "More names than abstractions!"
       else Name.variant_list cs (take short iparams) @ cs;
     val freenames = Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) Bi [];
-    val newBi = Logic.list_rename_params (newnames, Bi);
+    val newBi = Logic.list_rename_params newnames Bi;
   in
     (case duplicates (op =) cs of
       a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); state)

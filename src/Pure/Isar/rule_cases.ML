@@ -403,7 +403,7 @@ fun internalize_params rule =
     fun rename prem =
       let val xs =
         map (Name.internal o Name.clean o fst) (Logic.strip_params prem)
-      in Logic.list_rename_params (xs, prem) end;
+      in Logic.list_rename_params xs prem end;
     fun rename_prems prop =
       let val (As, C) = Logic.strip_horn prop
       in Logic.list_implies (map rename As, C) end;
