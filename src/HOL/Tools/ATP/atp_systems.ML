@@ -575,9 +575,9 @@ fun refresh_systems_on_tptp () =
 
 val atps =
   [e, leo2, pff, phf, satallax, spass, spass_new, vampire, z3_tptp, remote_e,
-   remote_e_sine, remote_iprover, remote_iprover_eq, remote_leo2,
-   remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
-   remote_e_tofof, remote_waldmeister]
+   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
+   remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
+   remote_waldmeister]
 val setup = fold add_atp atps
 
 end;

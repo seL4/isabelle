@@ -141,9 +141,10 @@ relies on third-party automatic theorem provers (ATPs) and SMT solvers.
 \subsection{Installing ATPs}
 
 Currently, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
-addition, E, E-SInE, E-ToFoF, LEO-II, Satallax, SNARK, Waldmeister, and Vampire
-are available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. If you want
-better performance, you should at least install E and SPASS locally.
+addition, E, E-SInE, E-ToFoF, iProver, iProver-Eq, LEO-II, Satallax, SNARK,
+Waldmeister, and Vampire are available remotely via System\-On\-TPTP
+\cite{sutcliffe-2000}. If you want better performance, you should at least
+install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -791,6 +792,20 @@ SInE runs on Geoff Sutcliffe's Miami servers.
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports the TPTP many-typed first-order format (TFF0). The
 remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_iprover}:} iProver is a pure
+instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}. The
+remote version of iProver runs on Geoff Sutcliffe's Miami servers
+\cite{sutcliffe-2000}.
+
+\item[$\bullet$] \textbf{\textit{remote\_iprover\_eq}:} iProver-Eq is an
+instantiation-based prover with native support for equality developed by
+Konstantin Korovin and Christoph Sticksel \cite{korovin-sticksel-2010}. The
+remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
+\cite{sutcliffe-2000}.
+
+The remote version of LEO-II
+runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[$\bullet$] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
 runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
