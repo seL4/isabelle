@@ -136,8 +136,7 @@ where
 definition del0 :: "key \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
 "del0 k t = (case del (Some k) t of None \<Rightarrow> t | Some(_,(_,t')) \<Rightarrow> t')"
 
-
-text {* Specifying correctness *}
+text {* Ordered trees *}
 
 definition opt_less :: "key option \<Rightarrow> key option \<Rightarrow> bool" where
   "opt_less x y = (case x of None \<Rightarrow> True | Some a \<Rightarrow> (case y of None \<Rightarrow> True | Some b \<Rightarrow> a < b))"
@@ -156,6 +155,35 @@ primrec ord' :: "key option \<Rightarrow> 'a tree23 \<Rightarrow> key option \<R
 definition ord0 :: "'a tree23 \<Rightarrow> bool" where
   "ord0 t = ord' None t None"
 
+text {* Balanced trees *}
+
+inductive full :: "nat \<Rightarrow> 'a tree23 \<Rightarrow> bool" where
+"full 0 Empty" |
+"\<lbrakk>full n l; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch2 l p r)" |
+"\<lbrakk>full n l; full n m; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch3 l p m q r)"
+
+inductive_cases full_elims:
+  "full n Empty"
+  "full n (Branch2 l p r)"
+  "full n (Branch3 l p m q r)"
+
+inductive_cases full_0_elim: "full 0 t"
+inductive_cases full_Suc_elim: "full (Suc n) t"
+
+lemma full_0_iff [simp]: "full 0 t \<longleftrightarrow> t = Empty"
+  by (auto elim: full_0_elim intro: full.intros)
+
+lemma full_Empty_iff [simp]: "full n Empty \<longleftrightarrow> n = 0"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Branch2_iff [simp]:
+  "full (Suc n) (Branch2 l p r) \<longleftrightarrow> full n l \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Branch3_iff [simp]:
+  "full (Suc n) (Branch3 l p m q r) \<longleftrightarrow> full n l \<and> full n m \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
 fun height :: "'a tree23 \<Rightarrow> nat" where
 "height Empty = 0" |
 "height (Branch2 l _ r) = Suc(max (height l) (height r))" |
@@ -167,45 +195,70 @@ fun bal :: "'a tree23 \<Rightarrow> bool" where
 "bal (Branch2 l _ r) = (bal l & bal r & height l = height r)" |
 "bal (Branch3 l _ m _ r) = (bal l & bal m & bal r & height l = height m & height m = height r)"
 
+lemma full_imp_height: "full n t \<Longrightarrow> height t = n"
+  by (induct set: full, simp_all)
+
+lemma full_imp_bal: "full n t \<Longrightarrow> bal t"
+  by (induct set: full, auto dest: full_imp_height)
+
+lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
+  by (induct t, simp_all)
+
+lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
+  by (auto elim!: bal_imp_full full_imp_bal)
+
 text {* The @{term "add0"} function either preserves the height of the
 tree, or increases it by one. The constructor returned by the @{term
 "add"} function determines which: A return value of the form @{term
 "Stay t"} indicates that the height will be the same. A value of the
 form @{term "Sprout l p r"} indicates an increase in height. *}
 
-fun gheight :: "'a growth \<Rightarrow> nat" where
-"gheight (Stay t) = height t" |
-"gheight (Sprout l p r) = max (height l) (height r)"
+primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
+"gfull n (Stay t) \<longleftrightarrow> full n t" |
+"gfull n (Sprout l p r) \<longleftrightarrow> full n l \<and> full n r"
 
-lemma gheight_add: "gheight (add k y t) = height t"
- apply (induct t)
+lemma gfull_add: "full n t \<Longrightarrow> gfull n (add k y t)"
+ apply (induct set: full)
    apply simp
   apply clarsimp
   apply (case_tac "ord k a")
     apply simp
-    apply (case_tac "add k y t1", simp, simp)
+    apply (case_tac "add k y l", simp, simp)
    apply simp
   apply simp
-  apply (case_tac "add k y t2", simp, simp)
+  apply (case_tac "add k y r", simp, simp)
  apply clarsimp
  apply (case_tac "ord k a")
    apply simp
-   apply (case_tac "add k y t1", simp, simp)
+   apply (case_tac "add k y l", simp, simp)
   apply simp
  apply simp
  apply (case_tac "ord k aa")
    apply simp
-   apply (case_tac "add k y t2", simp, simp)
+   apply (case_tac "add k y m", simp, simp)
   apply simp
  apply simp
- apply (case_tac "add k y t3", simp, simp)
+ apply (case_tac "add k y r", simp, simp)
 done
 
-lemma add_eq_Stay_dest: "add k y t = Stay t' \<Longrightarrow> height t = height t'"
-  using gheight_add [of k y t] by simp
+text {* The @{term "add0"} operation preserves balance. *}
 
-lemma add_eq_Sprout_dest: "add k y t = Sprout l p r \<Longrightarrow> height t = max (height l) (height r)"
-  using gheight_add [of k y t] by simp
+lemma bal_add0: "bal t \<Longrightarrow> bal (add0 k y t)"
+unfolding bal_iff_full add0_def
+apply (erule exE)
+apply (drule gfull_add [of _ _ k y])
+apply (cases "add k y t")
+apply (auto intro: full.intros)
+done
+
+text {* The @{term "add0"} operation preserves order. *}
+
+lemma ord_cases:
+  fixes a b :: int obtains
+  "ord a b = LESS" and "a < b" |
+  "ord a b = EQUAL" and "a = b" |
+  "ord a b = GREATER" and "a > b"
+unfolding ord_def by (rule linorder_cases [of a b]) auto
 
 definition gtree :: "'a growth \<Rightarrow> 'a tree23" where
   "gtree g = (case g of Stay t \<Rightarrow> t | Sprout l p r \<Rightarrow> Branch2 l p r)"
@@ -217,52 +270,6 @@ unfolding gtree_def by simp_all
 
 lemma add0: "add0 k y t = gtree (add k y t)"
   unfolding add0_def by (simp split: growth.split)
-
-text {* The @{term "add0"} operation preserves balance. *}
-
-lemma bal_add0: "bal t \<Longrightarrow> bal (add0 k y t)"
-unfolding add0
- apply (induct t)
-   apply simp
-  apply clarsimp
-  apply (case_tac "ord k a")
-    apply simp
-    apply (case_tac "add k y t1")
-     apply (simp, drule add_eq_Stay_dest, simp)
-    apply (simp, drule add_eq_Sprout_dest, simp)
-   apply simp
-  apply simp
-  apply (case_tac "add k y t2")
-   apply (simp, drule add_eq_Stay_dest, simp)
-  apply (simp, drule add_eq_Sprout_dest, simp)
- apply clarsimp
- apply (case_tac "ord k a")
-   apply simp
-   apply (case_tac "add k y t1")
-    apply (simp, drule add_eq_Stay_dest, simp)
-   apply (simp, drule add_eq_Sprout_dest, simp)
-  apply simp
- apply simp
- apply (case_tac "ord k aa")
-   apply simp
-   apply (case_tac "add k y t2")
-    apply (simp, drule add_eq_Stay_dest, simp)
-   apply (simp, drule add_eq_Sprout_dest, simp)
-  apply simp
- apply simp
- apply (case_tac "add k y t3")
-  apply (simp, drule add_eq_Stay_dest, simp)
- apply (simp, drule add_eq_Sprout_dest, simp)
-done
-
-text {* The @{term "add0"} operation preserves order. *}
-
-lemma ord_cases:
-  fixes a b :: int obtains
-  "ord a b = LESS" and "a < b" |
-  "ord a b = EQUAL" and "a = b" |
-  "ord a b = GREATER" and "a > b"
-unfolding ord_def by (rule linorder_cases [of a b]) auto
 
 lemma ord'_add0:
   "\<lbrakk>ord' k1 t k2; opt_less k1 (Some k); opt_less (Some k) k2\<rbrakk> \<Longrightarrow> ord' k1 (add0 k y t) k2"
@@ -338,33 +345,6 @@ apply (cases l, cases r, simp_all only: del.simps, simp)
 apply (cases l, cases m, cases r, simp_all only: del.simps, simp)
 done
 
-inductive full :: "nat \<Rightarrow> 'a tree23 \<Rightarrow> bool" where
-"full 0 Empty" |
-"\<lbrakk>full n l; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch2 l p r)" |
-"\<lbrakk>full n l; full n m; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Branch3 l p m q r)"
-
-inductive_cases full_elims:
-  "full n Empty"
-  "full n (Branch2 l p r)"
-  "full n (Branch3 l p m q r)"
-
-inductive_cases full_0_elim: "full 0 t"
-inductive_cases full_Suc_elim: "full (Suc n) t"
-
-lemma full_0_iff [simp]: "full 0 t \<longleftrightarrow> t = Empty"
-  by (auto elim: full_0_elim intro: full.intros)
-
-lemma full_Empty_iff [simp]: "full n Empty \<longleftrightarrow> n = 0"
-  by (auto elim: full_elims intro: full.intros)
-
-lemma full_Suc_Branch2_iff [simp]:
-  "full (Suc n) (Branch2 l p r) \<longleftrightarrow> full n l \<and> full n r"
-  by (auto elim: full_elims intro: full.intros)
-
-lemma full_Suc_Branch3_iff [simp]:
-  "full (Suc n) (Branch3 l p m q r) \<longleftrightarrow> full n l \<and> full n m \<and> full n r"
-  by (auto elim: full_elims intro: full.intros)
-
 definition
   "full_del n k t = (case del k t of None \<Rightarrow> True | Some (p, b, t') \<Rightarrow> full (if b then n else Suc n) t')"
 
@@ -432,18 +412,6 @@ proof -
     { case goal26 thus ?case by simp }
   qed (fact A | fact B)+
 qed
-
-lemma full_imp_height: "full n t \<Longrightarrow> height t = n"
-  by (induct set: full, simp_all)
-
-lemma full_imp_bal: "full n t \<Longrightarrow> bal t"
-  by (induct set: full, auto dest: full_imp_height)
-
-lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
-  by (induct t, simp_all)
-
-lemma bal_iff_full: "bal t \<longleftrightarrow> full (height t) t"
-  using bal_imp_full full_imp_bal ..
 
 lemma bal_del0: "bal t \<Longrightarrow> bal (del0 k t)"
   unfolding del0_def
