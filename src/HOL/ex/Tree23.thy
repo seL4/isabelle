@@ -218,28 +218,7 @@ primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
 "gfull n (Sprout l p r) \<longleftrightarrow> full n l \<and> full n r"
 
 lemma gfull_add: "full n t \<Longrightarrow> gfull n (add k y t)"
- apply (induct set: full)
-   apply simp
-  apply clarsimp
-  apply (case_tac "ord k a")
-    apply simp
-    apply (case_tac "add k y l", simp, simp)
-   apply simp
-  apply simp
-  apply (case_tac "add k y r", simp, simp)
- apply clarsimp
- apply (case_tac "ord k a")
-   apply simp
-   apply (case_tac "add k y l", simp, simp)
-  apply simp
- apply simp
- apply (case_tac "ord k aa")
-   apply simp
-   apply (case_tac "add k y m", simp, simp)
-  apply simp
- apply simp
- apply (case_tac "add k y r", simp, simp)
-done
+by (induct set: full, auto split: ord.split growth.split)
 
 text {* The @{term "add0"} operation preserves balance. *}
 
@@ -373,6 +352,8 @@ proof -
       apply (simp split: ord.split)
      apply simp
      apply (subst del_extra_simps, force)
+     (* This should work, but it is way too slow!
+     apply (force split: ord.split option.split bool.split tree23.split) *)
      apply (simp | rule dfull_case_intros)+
      done
   } note A = this
