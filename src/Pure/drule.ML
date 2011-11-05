@@ -821,39 +821,39 @@ fun comp_no_flatten (th, n) i rule =
 fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
-(*Left-to-right replacements: tpairs = [...,(vi,ti),...].
-  Instantiates distinct Vars by terms, inferring type instantiations. *)
+(*Left-to-right replacements: tpairs = [..., (vi, ti), ...].
+  Instantiates distinct Vars by terms, inferring type instantiations.*)
 local
-  fun add_types ((ct,cu), (thy,tye,maxidx)) =
+  fun add_types (ct, cu) (thy, tye, maxidx) =
     let
-        val thyt = Thm.theory_of_cterm ct;
-        val thyu = Thm.theory_of_cterm cu;
-        val {t, T, maxidx = maxt, ...} = Thm.rep_cterm ct;
-        val {t = u, T = U, maxidx = maxu, ...} = Thm.rep_cterm cu;
-        val maxi = Int.max(maxidx, Int.max(maxt, maxu));
-        val thy' = Theory.merge(thy, Theory.merge(thyt, thyu))
-        val (tye',maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
-          handle Type.TUNIFY => raise TYPE ("Ill-typed instantiation:\nType\n" ^
-            Syntax.string_of_typ_global thy' (Envir.norm_type tye T) ^
-            "\nof variable " ^
-            Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) t) ^
-            "\ncannot be unified with type\n" ^
-            Syntax.string_of_typ_global thy' (Envir.norm_type tye U) ^ "\nof term " ^
-            Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) u),
-            [T, U], [t, u])
-    in  (thy', tye', maxi')  end;
+      val {t, T, maxidx = maxt, ...} = Thm.rep_cterm ct;
+      val {t = u, T = U, maxidx = maxu, ...} = Thm.rep_cterm cu;
+      val maxi = Int.max (maxidx, Int.max (maxt, maxu));
+      val thy' = Theory.merge (thy, Theory.merge (Thm.theory_of_cterm ct, Thm.theory_of_cterm cu));
+      val (tye', maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
+        handle Type.TUNIFY => raise TYPE ("Ill-typed instantiation:\nType\n" ^
+          Syntax.string_of_typ_global thy' (Envir.norm_type tye T) ^
+          "\nof variable " ^
+          Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) t) ^
+          "\ncannot be unified with type\n" ^
+          Syntax.string_of_typ_global thy' (Envir.norm_type tye U) ^ "\nof term " ^
+          Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) u),
+          [T, U], [t, u])
+    in (thy', tye', maxi') end;
 in
+
 fun cterm_instantiate [] th = th
   | cterm_instantiate ctpairs0 th =
-  let val (thy,tye,_) = List.foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
-      fun instT(ct,cu) =
-        let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
-        in (inst ct, inst cu) end
-      fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy (Envir.norm_type tye T))
-  in  instantiate_normalize (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
-  handle TERM _ =>
-           raise THM("cterm_instantiate: incompatible theories",0,[th])
-       | TYPE (msg, _, _) => raise THM(msg, 0, [th])
+      let
+        val (thy, tye, _) = fold_rev add_types ctpairs0 (Thm.theory_of_thm th, Vartab.empty, 0);
+        val certT = ctyp_of thy;
+        fun instT (ct, cu) =
+          let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
+          in (inst ct, inst cu) end;
+        fun ctyp2 (ixn, (S, T)) = (certT (TVar (ixn, S)), certT (Envir.norm_type tye T));
+      in instantiate_normalize (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th end
+      handle TERM _ => raise THM ("cterm_instantiate: incompatible theories", 0, [th])
+        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 end;
 
 
