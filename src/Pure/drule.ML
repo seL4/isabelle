@@ -816,7 +816,7 @@ fun comp_no_flatten (th, n) i rule =
 
 
 
-(*** Instantiate theorem th, reading instantiations in theory thy ****)
+(** variations on Thm.instantiate **)
 
 fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
@@ -843,22 +843,19 @@ local
 in
 
 fun cterm_instantiate [] th = th
-  | cterm_instantiate ctpairs0 th =
+  | cterm_instantiate ctpairs th =
       let
-        val (thy, tye, _) = fold_rev add_types ctpairs0 (Thm.theory_of_thm th, Vartab.empty, 0);
+        val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
         val certT = ctyp_of thy;
-        fun instT (ct, cu) =
-          let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
-          in (inst ct, inst cu) end;
-        fun ctyp2 (ixn, (S, T)) = (certT (TVar (ixn, S)), certT (Envir.norm_type tye T));
-      in instantiate_normalize (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th end
-      handle TERM _ => raise THM ("cterm_instantiate: incompatible theories", 0, [th])
+        val instT =
+          Vartab.fold (fn (xi, (S, T)) =>
+            cons (certT (TVar (xi, S)), certT (Envir.norm_type tye T))) tye [];
+        val inst = map (pairself (Thm.instantiate_cterm (instT, []))) ctpairs;
+      in instantiate_normalize (instT, inst) th end
+      handle TERM (msg, _) => raise THM (msg, 0, [th])
         | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 end;
 
-
-
-(** variations on instantiate **)
 
 (* instantiate by left-to-right occurrence of variables *)
 
