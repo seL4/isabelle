@@ -46,18 +46,9 @@ sig
   val transform_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
-  val instT_type: typ Symtab.table -> typ -> typ
-  val instT_term: typ Symtab.table -> term -> term
-  val instT_thm: theory -> typ Symtab.table -> thm -> thm
   val instT_morphism: theory -> typ Symtab.table -> morphism
-  val inst_term: typ Symtab.table * term Symtab.table -> term -> term
-  val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
-  val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
-  val satisfy_facts: witness list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism option
   val transfer_morphism: theory -> morphism
   val generic_note_thmss: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -461,7 +452,6 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
 val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
-val satisfy_facts = facts_map o transform_ctxt o satisfy_morphism;
 
 
 (* rewriting with equalities *)
