@@ -131,12 +131,14 @@ fun check_unoverload thy (c, ty) =
   let
     val c' = AxClass.unoverload_const thy (c, ty);
     val ty_decl = Sign.the_const_type thy c';
-  in if Sign.typ_equiv thy
-      (Type.strip_sorts ty_decl, Type.strip_sorts (Logic.varifyT_global ty)) then c'
-    else error ("Type\n" ^ string_of_typ thy ty
-      ^ "\nof constant " ^ quote c
-      ^ "\nis too specific compared to declared type\n"
-      ^ string_of_typ thy ty_decl)
+  in
+    if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts (Logic.varifyT_global ty))
+    then c'
+    else
+      error ("Type\n" ^ string_of_typ thy ty ^
+        "\nof constant " ^ quote c ^
+        "\nis too specific compared to declared type\n" ^
+        string_of_typ thy ty_decl)
   end; 
 
 fun check_const thy = check_unoverload thy o check_bare_const thy;
@@ -403,16 +405,18 @@ fun analyze_constructor thy (c, raw_ty) =
   let
     val _ = Thm.cterm_of thy (Const (c, raw_ty));
     val ty = subst_signature thy c raw_ty;
-    val ty_decl = (Logic.unvarifyT_global o const_typ thy) c;
+    val ty_decl = Logic.unvarifyT_global (const_typ thy c);
     fun last_typ c_ty ty =
       let
         val tfrees = Term.add_tfreesT ty [];
         val (tyco, vs) = (apsnd o map) dest_TFree (dest_Type (body_type ty))
           handle TYPE _ => no_constr thy "bad type" c_ty
         val _ = if tyco = "fun" then no_constr thy "bad type" c_ty else ();
-        val _ = if has_duplicates (eq_fst (op =)) vs
+        val _ =
+          if has_duplicates (eq_fst (op =)) vs
           then no_constr thy "duplicate type variables in datatype" c_ty else ();
-        val _ = if length tfrees <> length vs
+        val _ =
+          if length tfrees <> length vs
           then no_constr thy "type variables missing in datatype" c_ty else ();
       in (tyco, vs) end;
     val (tyco, _) = last_typ (c, ty) ty_decl;
@@ -692,7 +696,8 @@ fun check_abstype_cert thy proto_thm =
     val _ = (fst o dest_Var) param
       handle TERM _ => bad "Not an abstype certificate";
     val _ = if param = rhs then () else bad "Not an abstype certificate";
-    val ((tyco, sorts), (abs, (vs, ty'))) = analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
+    val ((tyco, sorts), (abs, (vs, ty'))) =
+      analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
     val (vs', _) = logical_typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
@@ -849,7 +854,7 @@ fun typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
       let
         val vs = fst (typscheme_abs thy abs_thm);
         val (_, concrete_thm) = concretify_abs thy tyco abs_thm;
-      in (vs, add_rhss_of_eqn thy (map_types Logic.unvarifyT_global (Thm.prop_of concrete_thm)) []) end;
+      in (vs, add_rhss_of_eqn thy (Logic.unvarify_types_global (Thm.prop_of concrete_thm)) []) end;
 
 fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
       let
@@ -865,7 +870,7 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
       let
         val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
-        val t' = map_types Logic.varifyT_global t;
+        val t' = Logic.varify_types_global t;
         fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
       in (tyscm, [((abstractions o dest_eqn thy) t', (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
@@ -882,7 +887,7 @@ fun pretty_cert thy (cert as Equations _) =
       (map_filter (Option.map (Display.pretty_thm_global thy o AxClass.overload thy) o fst o snd)
          o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
-      [Syntax.pretty_term_global thy (map_types Logic.varifyT_global t)]
+      [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
       [(Display.pretty_thm_global thy o AxClass.overload thy o Thm.varifyT_global) abs_thm];
 
@@ -1255,8 +1260,8 @@ fun add_abstype proto_thm thy =
   in
     thy
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
-    |> change_fun_spec false rep ((K o Proj)
-        (map_types Logic.varifyT_global (mk_proj tyco vs ty abs rep), tyco))
+    |> change_fun_spec false rep
+      (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
     |> Abstype_Interpretation.data (tyco, serial ())
   end;
 
