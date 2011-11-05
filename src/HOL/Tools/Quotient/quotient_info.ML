@@ -23,6 +23,7 @@ sig
   val transform_quotconsts: morphism -> quotconsts -> quotconsts
   val lookup_quotconsts_global: theory -> term -> quotconsts option
   val update_quotconsts: string -> quotconsts -> Context.generic -> Context.generic
+  val dest_quotconsts_global: theory -> quotconsts list
   val dest_quotconsts: Proof.context -> quotconsts list
   val print_quotconsts: Proof.context -> unit
 
@@ -155,6 +156,11 @@ fun update_quotconsts name qcinfo = Quotconsts.map (Symtab.cons_list (name, qcin
 
 fun dest_quotconsts ctxt =
   flat (map snd (Symtab.dest (Quotconsts.get (Context.Proof ctxt))))
+
+fun dest_quotconsts_global thy =
+  flat (map snd (Symtab.dest (Quotconsts.get (Context.Theory thy))))
+
+
 
 fun lookup_quotconsts_global thy t =
   let

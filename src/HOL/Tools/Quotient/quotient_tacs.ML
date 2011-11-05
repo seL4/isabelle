@@ -521,7 +521,8 @@ fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
 *)
 fun clean_tac lthy =
   let
-    val defs = map (Thm.symmetric o #def) (Quotient_Info.dest_quotconsts lthy)
+    val thy =  Proof_Context.theory_of lthy
+    val defs = map (Thm.symmetric o #def) (Quotient_Info.dest_quotconsts_global thy)
     val prs = Quotient_Info.prs_rules lthy
     val ids = Quotient_Info.id_simps lthy
     val thms =
