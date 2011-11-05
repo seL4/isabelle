@@ -416,7 +416,7 @@ quotient_definition
   is "Cons"
 
 syntax
-  "@Insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
+  "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
 
 translations
   "{|x, xs|}" == "CONST insert_fset x {|xs|}"
