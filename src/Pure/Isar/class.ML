@@ -344,7 +344,7 @@ fun target_abbrev class prmode ((c, mx), rhs) thy =
     val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
-    val rhs'' = map_types Logic.varifyT_global rhs';
+    val rhs'' = Logic.varify_types_global rhs';
   in
     thy
     |> Sign.add_abbrev (#1 prmode) (b, rhs'')

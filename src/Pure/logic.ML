@@ -73,6 +73,8 @@ sig
   val assum_problems: int * term -> (term -> term) * term list * term
   val varifyT_global: typ -> typ
   val unvarifyT_global: typ -> typ
+  val varify_types_global: term -> term
+  val unvarify_types_global: term -> term
   val varify_global: term -> term
   val unvarify_global: term -> term
   val get_goal: term -> int -> term
@@ -524,13 +526,20 @@ fun unvarifyT_global_same ty = ty
 val varifyT_global = Same.commit varifyT_global_same;
 val unvarifyT_global = Same.commit unvarifyT_global_same;
 
+fun varify_types_global tm = tm
+  |> Same.commit (Term_Subst.map_types_same varifyT_global_same)
+  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+
+fun unvarify_types_global tm = tm
+  |> Same.commit (Term_Subst.map_types_same unvarifyT_global_same)
+  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+
 fun varify_global tm = tm
   |> Same.commit (Term_Subst.map_aterms_same
     (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | _ => raise Same.SAME))
-  |> Same.commit (Term_Subst.map_types_same varifyT_global_same)
-  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+  |> varify_types_global;
 
 fun unvarify_global tm = tm
   |> Same.commit (Term_Subst.map_aterms_same
@@ -538,8 +547,7 @@ fun unvarify_global tm = tm
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
       | _ => raise Same.SAME))
-  |> Same.commit (Term_Subst.map_types_same unvarifyT_global_same)
-  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+  |> unvarify_types_global;
 
 
 (* goal states *)

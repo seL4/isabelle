@@ -46,18 +46,9 @@ sig
   val transform_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
-  val instT_type: typ Symtab.table -> typ -> typ
-  val instT_term: typ Symtab.table -> term -> term
-  val instT_thm: theory -> typ Symtab.table -> thm -> thm
   val instT_morphism: theory -> typ Symtab.table -> morphism
-  val inst_term: typ Symtab.table * term Symtab.table -> term -> term
-  val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
-  val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
-  val satisfy_facts: witness list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism option
   val transfer_morphism: theory -> morphism
   val generic_note_thmss: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -350,7 +341,7 @@ fun instantiate_tfrees thy subst th =
       if AList.defined (op =) insts a then insts
       else (case AList.lookup (op =) subst a of NONE => insts | SOME T => (a, (S, T)) :: insts);
     val insts =
-      Term.fold_types (Term.fold_atyps (fn TFree v => add_inst v | _ => I))
+      (Term.fold_types o Term.fold_atyps) (fn TFree v => add_inst v | _ => I)
         (Thm.full_prop_of th) [];
   in
     th
@@ -374,19 +365,26 @@ fun hyps_rule rule th =
 
 (* instantiate types *)
 
-fun instT_type env =
-  if Symtab.is_empty env then I
-  else Term.map_type_tfree (fn (x, S) => the_default (TFree (x, S)) (Symtab.lookup env x));
+fun instT_type_same env =
+  if Symtab.is_empty env then Same.same
+  else
+    Term_Subst.map_atypsT_same
+      (fn TFree (a, _) => (case Symtab.lookup env a of SOME T => T | NONE => raise Same.SAME)
+        | _ => raise Same.SAME);
 
-fun instT_term env =
-  if Symtab.is_empty env then I
-  else Term.map_types (instT_type env);
+fun instT_term_same env =
+  if Symtab.is_empty env then Same.same
+  else Term_Subst.map_types_same (instT_type_same env);
 
-fun instT_subst env th = (Thm.fold_terms o Term.fold_types o Term.fold_atyps)
-  (fn T as TFree (a, _) =>
-    let val T' = the_default T (Symtab.lookup env a)
-    in if T = T' then I else insert (op =) (a, T') end
-  | _ => I) th [];
+val instT_type = Same.commit o instT_type_same;
+val instT_term = Same.commit o instT_term_same;
+
+fun instT_subst env th =
+  (Thm.fold_terms o Term.fold_types o Term.fold_atyps)
+    (fn T as TFree (a, _) =>
+      let val T' = the_default T (Symtab.lookup env a)
+      in if T = T' then I else insert (eq_fst (op =)) (a, T') end
+    | _ => I) th [];
 
 fun instT_thm thy env th =
   if Symtab.is_empty env then th
@@ -409,32 +407,28 @@ fun instT_morphism thy env =
 fun inst_term (envT, env) =
   if Symtab.is_empty env then instT_term envT
   else
-    let
-      val instT = instT_type envT;
-      fun inst (Const (x, T)) = Const (x, instT T)
-        | inst (Free (x, T)) =
-            (case Symtab.lookup env x of
-              NONE => Free (x, instT T)
-            | SOME t => t)
-        | inst (Var (xi, T)) = Var (xi, instT T)
-        | inst (b as Bound _) = b
-        | inst (Abs (x, T, t)) = Abs (x, instT T, inst t)
-        | inst (t $ u) = inst t $ inst u;
-    in Envir.beta_norm o inst end;
+    instT_term envT #>
+    Same.commit (Term_Subst.map_aterms_same
+      (fn Free (x, _) => (case Symtab.lookup env x of SOME t => t | NONE => raise Same.SAME)
+        | _ => raise Same.SAME)) #>
+    Envir.beta_norm;
+
+fun inst_subst (envT, env) th =
+  (Thm.fold_terms o Term.fold_aterms)
+    (fn Free (x, T) =>
+      let
+        val T' = instT_type envT T;
+        val t = Free (x, T');
+        val t' = the_default t (Symtab.lookup env x);
+      in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
+    | _ => I) th [];
 
 fun inst_thm thy (envT, env) th =
   if Symtab.is_empty env then instT_thm thy envT th
   else
     let
       val substT = instT_subst envT th;
-      val subst = (Thm.fold_terms o Term.fold_aterms)
-       (fn Free (x, T) =>
-          let
-            val T' = instT_type envT T;
-            val t = Free (x, T');
-            val t' = the_default t (Symtab.lookup env x);
-          in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
-       | _ => I) th [];
+      val subst = inst_subst (envT, env) th;
     in
       if null substT andalso null subst then th
       else th |> hyps_rule
@@ -443,25 +437,25 @@ fun inst_thm thy (envT, env) th =
         Conv.fconv_rule (Thm.beta_conversion true))
     end;
 
-fun inst_morphism thy envs =
+fun inst_morphism thy (envT, env) =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
      {binding = [],
-      typ = [instT_type (#1 envs)],
-      term = [inst_term envs],
-      fact = [map (fn th => inst_thm (Theory.deref thy_ref) envs th)]}
+      typ = [instT_type envT],
+      term = [inst_term (envT, env)],
+      fact = [map (fn th => inst_thm (Theory.deref thy_ref) (envT, env) th)]}
   end;
 
 
 (* satisfy hypotheses *)
 
-fun satisfy_thm witns thm = thm |> fold (fn hyp =>
+fun satisfy_thm witns thm =
+  thm |> fold (fn hyp =>
     (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
       NONE => I
     | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
 val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
-val satisfy_facts = facts_map o transform_ctxt o satisfy_morphism;
 
 
 (* rewriting with equalities *)
