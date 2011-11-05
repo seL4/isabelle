@@ -383,7 +383,7 @@ fun instT_subst env th =
   (Thm.fold_terms o Term.fold_types o Term.fold_atyps)
     (fn T as TFree (a, _) =>
       let val T' = the_default T (Symtab.lookup env a)
-      in if T = T' then I else insert (op =) (a, T') end
+      in if T = T' then I else insert (eq_fst (op =)) (a, T') end
     | _ => I) th [];
 
 fun instT_thm thy env th =
@@ -413,20 +413,22 @@ fun inst_term (envT, env) =
         | _ => raise Same.SAME)) #>
     Envir.beta_norm;
 
+fun inst_subst (envT, env) th =
+  (Thm.fold_terms o Term.fold_aterms)
+    (fn Free (x, T) =>
+      let
+        val T' = instT_type envT T;
+        val t = Free (x, T');
+        val t' = the_default t (Symtab.lookup env x);
+      in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
+    | _ => I) th [];
+
 fun inst_thm thy (envT, env) th =
   if Symtab.is_empty env then instT_thm thy envT th
   else
     let
       val substT = instT_subst envT th;
-      val subst =
-        (Thm.fold_terms o Term.fold_aterms)
-          (fn Free (x, T) =>
-            let
-              val T' = instT_type envT T;
-              val t = Free (x, T');
-              val t' = the_default t (Symtab.lookup env x);
-            in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
-          | _ => I) th [];
+      val subst = inst_subst (envT, env) th;
     in
       if null substT andalso null subst then th
       else th |> hyps_rule
