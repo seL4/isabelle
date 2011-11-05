@@ -106,14 +106,16 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
-    val assms = map (Raw_Simplifier.rewrite_rule defs o Thm.assume)
-      (Assumption.all_assms_of ctxt);
+    val assms =
+      map (Raw_Simplifier.rewrite_rule defs o Thm.assume)
+        (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
     (*export fixes*)
     val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
     val frees = map Free (Thm.fold_terms Term.add_frees th' []);
-    val (th'' :: vs) = (th' :: map (Drule.mk_term o cert) (map Logic.mk_type tfrees @ frees))
+    val (th'' :: vs) =
+      (th' :: map (Drule.mk_term o cert) (map Logic.mk_type tfrees @ frees))
       |> Variable.export ctxt thy_ctxt
       |> Drule.zero_var_indexes_list;
 
@@ -181,6 +183,7 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
     |> Proof_Context.add_abbrev Print_Mode.internal (b, t) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;
+
 
 
 (** primitive theory operations **)

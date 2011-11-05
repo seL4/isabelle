@@ -65,46 +65,45 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl =
 
 (* consts in locales *)
 
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) phi =
-  let
-    val b' = Morphism.binding phi b;
-    val rhs' = Morphism.term phi rhs;
-    val arg = (b', Term.close_schematic_term rhs');
-    val same_shape = Term.aconv_untyped (rhs, rhs');
-    (* FIXME workaround based on educated guess *)
-    val prefix' = Binding.prefix_of b';
-    val is_canonical_class = is_class andalso
-      (Binding.eq_name (b, b')
-        andalso not (null prefix')
-        andalso List.last prefix' = (Class.class_prefix target, false)
-      orelse same_shape);
-  in
-    not is_canonical_class ?
-      (Context.mapping_result
-        (Sign.add_abbrev Print_Mode.internal arg)
-        (Proof_Context.add_abbrev Print_Mode.internal arg)
-      #-> (fn (lhs' as Const (d, _), _) =>
-          same_shape ?
-            (Context.mapping
-              (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
-             Morphism.form (Proof_Context.target_notation true prmode [(lhs', mx)]))))
-  end;
+fun locale_const (ta as Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) =
+  locale_declaration target true (fn phi =>
+    let
+      val b' = Morphism.binding phi b;
+      val rhs' = Morphism.term phi rhs;
+      val arg = (b', Term.close_schematic_term rhs');
+      val same_shape = Term.aconv_untyped (rhs, rhs');
 
-fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
-  locale_declaration target true (locale_const ta prmode arg);
+      (* FIXME workaround based on educated guess *)
+      val prefix' = Binding.prefix_of b';
+      val is_canonical_class = is_class andalso
+        (Binding.eq_name (b, b')
+          andalso not (null prefix')
+          andalso List.last prefix' = (Class.class_prefix target, false)
+        orelse same_shape);
+    in
+      not is_canonical_class ?
+        (Context.mapping_result
+          (Sign.add_abbrev Print_Mode.internal arg)
+          (Proof_Context.add_abbrev Print_Mode.internal arg)
+        #-> (fn (lhs' as Const (d, _), _) =>
+            same_shape ?
+              (Context.mapping
+                (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
+               Morphism.form (Proof_Context.target_notation true prmode [(lhs', mx)]))))
+    end);
 
 
 (* define *)
 
 fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, mx), lhs)
+  #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def))
 
 fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
+  #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
     #> Class.const target ((b, mx), (type_params, lhs))
     #> pair (lhs, def))
 
@@ -137,7 +136,7 @@ fun target_notes (Target {target, is_locale, ...}) =
 fun locale_abbrev ta prmode ((b, mx), t) xs =
   Local_Theory.background_theory_result
     (Sign.add_abbrev Print_Mode.internal (b, t)) #->
-      (fn (lhs, _) => locale_const_declaration ta prmode
+      (fn (lhs, _) => locale_const ta prmode
         ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
@@ -204,7 +203,8 @@ val theory_init = init I "";
 
 fun reinit lthy =
   (case Data.get lthy of
-    SOME (Target {target, before_exit, ...}) => init before_exit target o Local_Theory.exit_global
+    SOME (Target {target, before_exit, ...}) =>
+      init before_exit target o Local_Theory.exit_global
   | NONE => error "Not in a named target");
 
 fun context_cmd "-" thy = init I "" thy
