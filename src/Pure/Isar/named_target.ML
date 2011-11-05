@@ -158,10 +158,12 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
     val target_name =
       [Pretty.command (if is_class then "class" else "locale"),
         Pretty.str (" " ^ Locale.extern thy target)];
-    val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
-      (#1 (Proof_Context.inferred_fixes ctxt));
-    val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
-      (Assumption.all_assms_of ctxt);
+    val fixes =
+      map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
+        (#1 (Proof_Context.inferred_fixes ctxt));
+    val assumes =
+      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
+        (Assumption.all_assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);

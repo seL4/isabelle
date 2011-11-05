@@ -26,7 +26,7 @@ sig
   val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
-end;
+end
 
 structure Generic_Target: GENERIC_TARGET =
 struct
@@ -77,8 +77,8 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
     val U = map Term.fastype_of params ---> T;
 
     (*foundation*)
-    val ((lhs', global_def), lthy2) = foundation
-      (((b, U), mx'), (b_def, rhs')) (type_params, term_params) lthy;
+    val ((lhs', global_def), lthy2) = lthy
+      |> foundation (((b, U), mx'), (b_def, rhs')) (type_params, term_params);
 
     (*local definition*)
     val ((lhs, local_def), lthy3) = lthy2
