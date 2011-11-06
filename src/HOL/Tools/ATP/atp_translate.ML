@@ -777,20 +777,17 @@ fun close_universally add_term_vars phi =
       | add_formula_vars bounds (AAtom tm) = add_term_vars bounds tm
   in mk_aquant AForall (add_formula_vars [] phi []) phi end
 
-fun add_term_vars type_enc =
-  let
-    fun vars bounds (ATerm (name as (s, _), tms)) =
-        (if is_tptp_variable s andalso
-            not (String.isPrefix tvar_prefix s) andalso
-            not (member (op =) bounds name) then
-           insert (op =) (name, NONE)
-         else
-           I)
-        #> fold (vars bounds) tms
-      | vars bounds (AAbs ((name, _), tm)) = vars (name :: bounds) tm
-  in vars end
-fun close_formula_universally type_enc =
-  close_universally (add_term_vars type_enc)
+fun add_term_vars bounds (ATerm (name as (s, _), tms)) =
+    (if is_tptp_variable s andalso
+        not (String.isPrefix tvar_prefix s) andalso
+        not (member (op =) bounds name) then
+       insert (op =) (name, NONE)
+     else
+       I)
+    #> fold (add_term_vars bounds) tms
+  | add_term_vars bounds (AAbs ((name, _), tm)) =
+    add_term_vars (name :: bounds) tm
+val close_formula_universally = close_universally add_term_vars
 
 fun add_iterm_vars bounds (IApp (tm1, tm2)) =
     fold (add_iterm_vars bounds) [tm1, tm2]
@@ -1541,7 +1538,7 @@ fun bound_tvars type_enc Ts =
 fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
    else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
-  |> close_formula_universally type_enc
+  |> close_formula_universally
   |> bound_tvars type_enc atomic_Ts
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
@@ -1829,7 +1826,7 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
    |> formula_from_iformula ctxt format mono type_enc
                             should_guard_var_in_formula
                             (if pos then SOME true else NONE)
-   |> close_formula_universally type_enc
+   |> close_formula_universally
    |> bound_tvars type_enc atomic_types,
    NONE,
    case locality of
@@ -1846,7 +1843,7 @@ fun formula_line_for_class_rel_clause format type_enc
              AConn (AImplies,
                     [type_class_formula type_enc subclass ty_arg,
                      type_class_formula type_enc superclass ty_arg])
-             |> close_formula_universally type_enc,
+             |> close_formula_universally,
              isabelle_info format introN, NONE)
   end
 
@@ -1869,7 +1866,7 @@ fun formula_line_for_conjecture ctxt format mono type_enc
            iformula
            |> formula_from_iformula ctxt format mono type_enc
                   should_guard_var_in_formula (SOME false)
-           |> close_formula_universally type_enc
+           |> close_formula_universally
            |> bound_tvars type_enc atomic_types, NONE, NONE)
 
 fun formula_line_for_free_type j phi =
@@ -2060,7 +2057,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> AAtom
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K (K (K true)))))) (SOME true)
-           |> close_formula_universally type_enc
+           |> close_formula_universally
            |> bound_tvars type_enc (atomic_types_of T),
            isabelle_info format introN, NONE)
 
@@ -2143,7 +2140,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K (K (K true)))))) (SOME true)
-             |> close_formula_universally type_enc
+             |> close_formula_universally
              |> n > 1 ? bound_tvars type_enc (atomic_types_of T)
              |> maybe_negate,
              isabelle_info format introN, NONE)
