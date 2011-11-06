@@ -147,7 +147,7 @@ val lookup_simproc =
            then NONE
            else SOME thm
         end
-        handle Option => NONE)
+        handle Option.Option => NONE)
          
       | _ => NONE ));
 
@@ -312,7 +312,7 @@ val ex_lookup_eq_simproc =
              in SOME thm' end
              handle TERM _ => NONE)
           | _ => NONE)
-        end handle Option => NONE) 
+        end handle Option.Option => NONE) 
 end;
 
 val val_sfx = "V";

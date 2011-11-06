@@ -213,7 +213,7 @@ fun neq_x_y ctxt x y =
     val y_path = the (DistinctTreeProver.find_tree y tree);
     val thm = DistinctTreeProver.distinctTreeProver dist_thm x_path y_path;
   in SOME thm
-  end handle Option => NONE)
+  end handle Option.Option => NONE)
 
 fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case goal of
