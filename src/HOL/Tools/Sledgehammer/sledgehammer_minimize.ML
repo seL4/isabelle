@@ -87,6 +87,16 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
 
 (* minimalization of facts *)
 
+(* Give the external prover some slack. The ATP gets further slack because the
+   Sledgehammer preprocessing time is included in the estimate below but isn't
+   part of the timeout. *)
+val slack_msecs = 200
+
+fun new_timeout timeout run_time =
+  Int.min (Time.toMilliseconds timeout,
+           Time.toMilliseconds run_time + slack_msecs)
+  |> Time.fromMilliseconds
+
 (* The linear algorithm usually outperforms the binary algorithm when over 60%
    of the facts are actually needed. The binary algorithm is much more
    appropriate for provers that cannot return the list of used facts and hence
@@ -101,15 +111,17 @@ fun linear_minimize test timeout result xs =
     fun min _ [] p = p
       | min timeout (x :: xs) (seen, result) =
         case test timeout (xs @ seen) of
-          result as {outcome = NONE, used_facts, ...} : prover_result =>
-          min timeout (filter_used_facts used_facts xs)
-                      (filter_used_facts used_facts seen, result)
+          result as {outcome = NONE, used_facts, run_time, ...}
+          : prover_result =>
+          min (new_timeout timeout run_time) (filter_used_facts used_facts xs)
+              (filter_used_facts used_facts seen, result)
         | _ => min timeout xs (x :: seen, result)
   in min timeout xs ([], result) end
 
 fun binary_minimize test timeout result xs =
   let
-    fun min depth result sup (xs as _ :: _ :: _) =
+    fun min depth (result as {run_time, ...} : prover_result) sup
+            (xs as _ :: _ :: _) =
         let
           val (l0, r0) = chop (length xs div 2) xs
 (*
@@ -123,9 +135,10 @@ fun binary_minimize test timeout result xs =
                            "r0: " ^ n_facts (map fst r0))
 *)
           val depth = depth + 1
+          val timeout = new_timeout timeout run_time
         in
           case test timeout (sup @ l0) of
-            result as {outcome = NONE, used_facts, ...} : prover_result =>
+            result as {outcome = NONE, used_facts, ...} =>
             min depth result (filter_used_facts used_facts sup)
                       (filter_used_facts used_facts l0)
           | _ =>
@@ -148,22 +161,12 @@ fun binary_minimize test timeout result xs =
       | min _ result sup xs = (sup, (xs, result))
   in
     case snd (min 0 result [] xs) of
-      ([x], result) =>
-      (case test timeout [] of
+      ([x], result as {run_time, ...}) =>
+      (case test (new_timeout timeout run_time) [] of
          result as {outcome = NONE, ...} => ([], result)
        | _ => ([x], result))
     | p => p
   end
-
-(* Give the external prover some slack. The ATP gets further slack because the
-   Sledgehammer preprocessing time is included in the estimate below but isn't
-   part of the timeout. *)
-val slack_msecs = 200
-
-fun new_timeout timeout run_time =
-  Int.min (Time.toMilliseconds timeout,
-           Time.toMilliseconds run_time + slack_msecs)
-  |> Time.fromMilliseconds
 
 fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
                    facts =
@@ -178,7 +181,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
          val facts = filter_used_facts used_facts facts
-         val min = 
+         val min =
            if length facts >= Config.get ctxt binary_min_facts then
              binary_minimize
            else
