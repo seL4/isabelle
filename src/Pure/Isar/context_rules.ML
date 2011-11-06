@@ -80,7 +80,7 @@ fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
       (nth_map i (Tactic.insert_tagged_brl ((w, next), (b, th))) netpairs) wrappers
   end;
 
-fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
+fun del_rule0 th (rs as Rules {next, rules, netpairs, wrappers}) =
   let
     fun eq_th (_, (_, th')) = Thm.eq_thm_prop (th, th');
     fun del b netpair = Tactic.delete_tagged_brl (b, th) netpair handle Net.DELETE => netpair;
@@ -88,6 +88,8 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
     if not (exists eq_th rules) then rs
     else make_rules next (filter_out eq_th rules) (map (del false o del true) netpairs) wrappers
   end;
+
+fun del_rule th = del_rule0 th o del_rule0 (Tactic.make_elim th);
 
 structure Rules = Generic_Data
 (
@@ -179,11 +181,11 @@ val wrap = gen_wrap #2;
 
 (* add and del rules *)
 
-fun rule_del (x, th) =
-  (Rules.map (del_rule th o del_rule (Tactic.make_elim th)) x, th);
+
+val rule_del = Thm.declaration_attribute (fn th => Rules.map (del_rule th));
 
 fun rule_add k view opt_w =
-  (fn (x, th) => (Rules.map (add_rule k opt_w (view th)) x, th)) o rule_del;
+  Thm.declaration_attribute (fn th => Rules.map (add_rule k opt_w (view th) o del_rule th));
 
 val intro_bang  = rule_add intro_bangK I;
 val elim_bang   = rule_add elim_bangK I;

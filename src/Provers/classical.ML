@@ -848,7 +848,11 @@ val safe_dest = attrib o addSD;
 val haz_elim = attrib o addE;
 val haz_intro = attrib o addI;
 val haz_dest = attrib o addD;
-val rule_del = attrib delrule o Context_Rules.rule_del;
+
+val rule_del =
+  Thm.declaration_attribute (fn th => fn context =>
+    context |> map_cs (delrule (SOME context) th) |>
+    Thm.attribute_declaration Context_Rules.rule_del th);
 
 
 

@@ -396,7 +396,8 @@ type modifier = (Proof.context -> Proof.context) * attribute;
 local
 
 fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
-fun app (f, att) (context, ths) = Library.foldl_map att (Context.map_proof f context, ths);
+fun app (f, att) (context, ths) =
+  Library.foldl_map (Thm.apply_attribute att) (Context.map_proof f context, ths);
 
 in
 

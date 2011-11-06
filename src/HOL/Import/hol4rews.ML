@@ -633,6 +633,7 @@ local
 in
 val hol4_setup =
   initial_maps #>
-  Attrib.setup @{binding hol4rew} (Scan.succeed add_hol4_rewrite) "HOL4 rewrite rule"
+  Attrib.setup @{binding hol4rew}
+    (Scan.succeed (Thm.mixed_attribute add_hol4_rewrite)) "HOL4 rewrite rule"
 
 end

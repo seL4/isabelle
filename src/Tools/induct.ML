@@ -290,8 +290,12 @@ val find_coinductP = find_rules (#2 o #3) I;
 
 local
 
-fun mk_att f g name arg =
-  let val (x, thm) = g arg in (Data.map (f (name, thm)) x, thm) end;
+fun mk_att f g name =
+  Thm.mixed_attribute (fn (context, thm) =>
+    let
+      val thm' = g thm;
+      val context' = Data.map (f (name, thm')) context;
+    in (context', thm') end);
 
 fun del_att which =
   Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
@@ -309,8 +313,8 @@ fun add_inductP rule x = map2 (apsnd (Item_Net.update rule)) x;
 fun add_coinductT rule x = map3 (apfst (Item_Net.update rule)) x;
 fun add_coinductP rule x = map3 (apsnd (Item_Net.update rule)) x;
 
-val consumes0 = Rule_Cases.consumes_default 0;
-val consumes1 = Rule_Cases.consumes_default 1;
+val consumes0 = Rule_Cases.default_consumes 0;
+val consumes1 = Rule_Cases.default_consumes 1;
 
 in
 

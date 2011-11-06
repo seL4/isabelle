@@ -536,8 +536,13 @@ fun add_ind_set_def
 val add_inductive_i = Inductive.gen_add_inductive_i add_ind_set_def;
 val add_inductive = Inductive.gen_add_inductive add_ind_set_def;
 
-val mono_add_att = to_pred_att [] #> Inductive.mono_add;
-val mono_del_att = to_pred_att [] #> Inductive.mono_del;
+fun mono_att att =  (* FIXME really mixed_attribute!? *)
+  Thm.mixed_attribute (fn (context, thm) =>
+    let val thm' = to_pred [] context thm
+    in (Thm.attribute_declaration att thm' context, thm') end);
+
+val mono_add_att = mono_att Inductive.mono_add;
+val mono_del_att = mono_att Inductive.mono_del;
 
 
 (** package setup **)

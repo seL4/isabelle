@@ -72,12 +72,14 @@ val trans_add = Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.u
 val trans_del = Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.remove);
 
 val sym_add =
-  Thm.declaration_attribute (Data.map o apfst o apsnd o Thm.add_thm)
-  #> Context_Rules.elim_query NONE;
+  Thm.declaration_attribute (fn th =>
+    (Data.map o apfst o apsnd) (Thm.add_thm th) #>
+    Thm.attribute_declaration (Context_Rules.elim_query NONE) th);
 
 val sym_del =
-  Thm.declaration_attribute (Data.map o apfst o apsnd o Thm.del_thm)
-  #> Context_Rules.rule_del;
+  Thm.declaration_attribute (fn th =>
+    (Data.map o apfst o apsnd) (Thm.del_thm th) #>
+    Thm.attribute_declaration Context_Rules.rule_del th);
 
 
 (* symmetric *)

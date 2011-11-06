@@ -207,7 +207,7 @@ fun gen_rulify full thm =
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;
 
-fun rule_format x = Thm.rule_attribute (fn _ => rulify) x;
-fun rule_format_no_asm x = Thm.rule_attribute (fn _ => rulify_no_asm) x;
+val rule_format = Thm.rule_attribute (K rulify);
+val rule_format_no_asm = Thm.rule_attribute (K rulify_no_asm);
 
 end;

@@ -12,7 +12,7 @@ sig
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
-  type attribute = Context.generic * thm -> Context.generic * thm
+  type attribute = Context.generic * thm -> Context.generic option * thm option
 end;
 
 signature THM =
@@ -67,11 +67,14 @@ sig
   val add_axiom_global: binding * term -> theory -> (string * thm) * theory
   val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> (string * thm) * theory
   val add_def_global: bool -> bool -> binding * term -> theory -> (string * thm) * theory
-  type attribute = Context.generic * thm -> Context.generic * thm
+  type attribute = Context.generic * thm -> Context.generic option * thm option
   type binding = binding * attribute list
   val empty_binding: binding
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
+  val mixed_attribute: (Context.generic * thm -> Context.generic * thm) -> attribute
+  val apply_attribute: attribute -> Context.generic * thm -> Context.generic * thm
+  val attribute_declaration: attribute -> thm -> Context.generic -> Context.generic
   val theory_attributes: attribute list -> theory * thm -> theory * thm
   val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
@@ -391,18 +394,25 @@ fun add_def_global unchecked overloaded arg thy =
 (** attributes **)
 
 (*attributes subsume any kind of rules or context modifiers*)
-type attribute = Context.generic * thm -> Context.generic * thm;
+type attribute = Context.generic * thm -> Context.generic option * thm option;
 
 type binding = binding * attribute list;
 val empty_binding: binding = (Binding.empty, []);
 
-fun rule_attribute f (x, th) = (x, f x th);
-fun declaration_attribute f (x, th) = (f th x, th);
+fun rule_attribute f (x, th) = (NONE, SOME (f x th));
+fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
+fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
+
+fun apply_attribute att (x, th) =
+  let val (x', th') = att (x, th)
+  in (the_default x x', the_default th th') end;
+
+fun attribute_declaration att th x = #1 (apply_attribute att (x, th));
 
 fun apply_attributes mk dest =
   let
     fun app [] = I
-      | app ((f: attribute) :: fs) = fn (x, th) => f (mk x, th) |>> dest |> app fs;
+      | app (att :: atts) = fn (x, th) => apply_attribute att (mk x, th) |>> dest |> app atts;
   in app end;
 
 val theory_attributes = apply_attributes Context.Theory Context.the_theory;
@@ -420,8 +430,8 @@ fun simple_fact x = [(x, [])];
 fun tag_rule tg = Thm.map_tags (insert (op =) tg);
 fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 
-fun tag tg x = rule_attribute (K (tag_rule tg)) x;
-fun untag s x = rule_attribute (K (untag_rule s)) x;
+fun tag tg = rule_attribute (K (tag_rule tg));
+fun untag s = rule_attribute (K (untag_rule s));
 
 
 (* def_name *)
@@ -456,7 +466,7 @@ val corollaryK = "corollary";
 fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
-fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
+fun kind k = rule_attribute (K (k <> "" ? kind_rule k));
 
 
 open Thm;

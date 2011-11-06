@@ -149,8 +149,9 @@ fun eval_thms ctxt srcs = ctxt
   thm structure.*)
 
 fun crude_closure ctxt src =
- (try (fn () => attribute_i (Proof_Context.theory_of ctxt) src
-    (Context.Proof ctxt, Drule.asm_rl)) ();
+ (try (fn () =>
+    Thm.apply_attribute (attribute_i (Proof_Context.theory_of ctxt) src)
+      (Context.Proof ctxt, Drule.asm_rl)) ();
   Args.closure src);
 
 
@@ -198,7 +199,8 @@ fun gen_thm pick = Scan.depend (fn context =>
     Parse.$$$ "[" |-- Args.attribs (intern thy) --| Parse.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_i thy) srcs;
-        val (context', th') = Library.apply atts (context, Drule.dummy_thm);
+        val (context', th') =
+          Library.apply (map Thm.apply_attribute atts) (context, Drule.dummy_thm);
       in (context', pick "" [th']) end)
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
@@ -210,7 +212,8 @@ fun gen_thm pick = Scan.depend (fn context =>
       let
         val ths = Facts.select thmref fact;
         val atts = map (attribute_i thy) srcs;
-        val (context', ths') = Library.foldl_map (Library.apply atts) (context, ths);
+        val (context', ths') =
+          Library.foldl_map (Library.apply (map Thm.apply_attribute atts)) (context, ths);
       in (context', pick name ths') end)
   end);
 
@@ -247,7 +250,9 @@ val OF_att =
 
 (* rename_abs *)
 
-fun rename_abs x = (Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars')) x;
+val rename_abs =
+  Scan.repeat (Args.maybe Args.name)
+  >> (fn args => Thm.rule_attribute (K (Drule.rename_bvars' args)));
 
 
 (* unfold / fold definitions *)
@@ -269,18 +274,12 @@ val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
 (* case names *)
 
-fun hname NONE = Rule_Cases.case_hypsN
-  | hname (SOME n) = n;
-
-fun case_names cs =
-  Rule_Cases.case_names (map fst cs) #>
-  Rule_Cases.cases_hyp_names (map (map hname o snd) cs);
-
-val hnamesP =
-  Scan.optional
-    (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") [];
-
-fun case_namesP x = Scan.lift (Scan.repeat1 (Args.name -- hnamesP)) x;
+val case_names =
+  Scan.repeat1 (Args.name --
+    Scan.optional (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") []) >>
+  (fn cs =>
+    Rule_Cases.cases_hyp_names (map fst cs)
+      (map (map (the_default Rule_Cases.case_hypsN) o snd) cs));
 
 
 (* misc rules *)
@@ -316,8 +315,7 @@ val _ = Context.>> (Context.map_theory
     "number of consumed facts" #>
   setup (Binding.name "constraints") (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>
-  setup (Binding.name "case_names") (case_namesP >> case_names)
-    "named rule cases" #>
+  setup (Binding.name "case_names") (Scan.lift case_names) "named rule cases" #>
   setup (Binding.name "case_conclusion")
     (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
     "named conclusion of rule cases" #>

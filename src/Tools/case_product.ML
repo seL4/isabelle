@@ -1,7 +1,7 @@
 (*  Title:      Tools/case_product.ML
     Author:     Lars Noschinski, TU Muenchen
 
-Combines two case rules into a single one.
+Combine two case rules into a single one.
 
 Assumes that the theorems are of the form
   "[| C1; ...; Cm; A1 ==> P; ...; An ==> P |] ==> P"
@@ -13,12 +13,12 @@ sig
   val combine: Proof.context -> thm -> thm -> thm
   val combine_annotated: Proof.context -> thm -> thm -> thm
   val setup: theory -> theory
-end;
+end
 
 structure Case_Product: CASE_PRODUCT =
 struct
 
-(*Instantiates the conclusion of thm2 to the one of thm1.*)
+(*instantiate the conclusion of thm2 to the one of thm1*)
 fun inst_concl thm1 thm2 =
   let
     val cconcl_of = Drule.strip_imp_concl o Thm.cprop_of
@@ -32,7 +32,7 @@ fun inst_thms thm1 thm2 ctxt =
   in ((i_thm1, i_thm2), ctxt'') end
 
 (*
-Returns list of prems, where loose bounds have been replaced by frees.
+Return list of prems, where loose bounds have been replaced by frees.
 FIXME: Focus
 *)
 fun free_prems t ctxt =
@@ -58,8 +58,7 @@ fun build_concl_prems thm1 thm2 ctxt =
       in
         Logic.list_implies (t1 @ t2, concl)
         |> fold_rev Logic.all (subst1 @ subst2)
-      end
-      ) p_cases2) p_cases1
+      end) p_cases2) p_cases1
 
     val prems = p_cons1 :: p_cons2 :: p_cases_prod
   in
@@ -71,11 +70,10 @@ fun case_product_tac prems struc thm1 thm2 =
     val (p_cons1 :: p_cons2 :: premss) = unflat struc prems
     val thm2' = thm2 OF p_cons2
   in
-    (Tactic.rtac (thm1 OF p_cons1)
+    Tactic.rtac (thm1 OF p_cons1)
      THEN' EVERY' (map (fn p =>
        Tactic.rtac thm2'
        THEN' EVERY' (map (Proof_Context.fact_tac o single) p)) premss)
-    )
   end
 
 fun combine ctxt thm1 thm2 =
@@ -86,22 +84,25 @@ fun combine ctxt thm1 thm2 =
     Goal.prove ctxt' [] (flat prems_rich) concl (fn {prems, ...} =>
       case_product_tac prems prems_rich i_thm1 i_thm2 1)
     |> singleton (Variable.export ctxt' ctxt)
-  end;
+  end
 
-fun annotation thm1 thm2 =
+fun annotation_rule thm1 thm2 =
   let
     val (cases1, cons1) = apfst (map fst) (Rule_Cases.get thm1)
     val (cases2, cons2) = apfst (map fst) (Rule_Cases.get thm2)
-    val names = map_product (fn (x,_) => fn (y,_) => x ^ "_" ^y) cases1 cases2
+    val names = map_product (fn (x, _) => fn (y, _) => x ^ "_" ^ y) cases1 cases2
   in
-    Rule_Cases.case_names names o Rule_Cases.consumes (cons1 + cons2)
+    Rule_Cases.name names o Rule_Cases.put_consumes (SOME (cons1 + cons2))
   end
+
+fun annotation thm1 thm2 = Thm.rule_attribute (K (annotation_rule thm1 thm2))
 
 fun combine_annotated ctxt thm1 thm2 =
   combine ctxt thm1 thm2
-  |> snd o annotation thm1 thm2 o pair (Context.Proof ctxt)
+  |> annotation_rule thm1 thm2
 
-(* Attribute setup *)
+
+(* attribute setup *)
 
 val case_prod_attr =
   let
@@ -112,6 +113,6 @@ val case_prod_attr =
   end
 
 val setup =
- Attrib.setup @{binding "case_product"} case_prod_attr "product with other case rules"
+  Attrib.setup @{binding case_product} case_prod_attr "product with other case rules"
 
-end;
+end

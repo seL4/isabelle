@@ -117,7 +117,7 @@ fun target_foundation (ta as Target {is_locale, is_class, ...}) =
 
 fun locale_notes locale kind global_facts local_facts lthy =
   let
-    val global_facts' = Attrib.map_facts (K I) global_facts;
+    val global_facts' = Attrib.map_facts (K (Thm.mixed_attribute I)) global_facts;
     val local_facts' = Element.facts_map
       (Element.transform_ctxt (Local_Theory.target_morphism lthy)) local_facts;
   in

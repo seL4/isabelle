@@ -33,15 +33,16 @@ sig
   val apply: term list -> T -> T
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
-  val add_consumes: int -> thm -> thm
   val get_consumes: thm -> int
+  val put_consumes: int option -> thm -> thm
+  val add_consumes: int -> thm -> thm
+  val default_consumes: int -> thm -> thm
   val consumes: int -> attribute
-  val consumes_default: int -> attribute
   val get_constraints: thm -> int
   val constraints: int -> attribute
   val name: string list -> thm -> thm
   val case_names: string list -> attribute
-  val cases_hyp_names: string list list -> attribute
+  val cases_hyp_names: string list -> string list list -> attribute
   val case_conclusion: string * string list -> attribute
   val is_inner_rule: thm -> bool
   val inner_rule: attribute
@@ -241,12 +242,12 @@ fun put_consumes NONE th = th
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
+fun default_consumes n th =
+  if is_some (lookup_consumes th) then th else put_consumes (SOME n) th;
+
 val save_consumes = put_consumes o lookup_consumes;
 
 fun consumes n = Thm.rule_attribute (K (put_consumes (SOME n)));
-
-fun consumes_default n x =
-  if is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 
@@ -292,7 +293,8 @@ fun lookup_case_names th =
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
-fun case_names ss = Thm.rule_attribute (K (name ss));
+fun case_names cs = Thm.rule_attribute (K (name cs));
+
 
 
 (** hyp names **)
@@ -312,8 +314,9 @@ fun lookup_cases_hyp_names th =
   |> Option.map explode_hyps;
 
 val save_cases_hyp_names = add_cases_hyp_names o lookup_cases_hyp_names;
-fun cases_hyp_names ss =
-  Thm.rule_attribute (K (add_cases_hyp_names (SOME ss)));
+fun cases_hyp_names cs hs =
+  Thm.rule_attribute (K (name cs #> add_cases_hyp_names (SOME hs)));
+
 
 
 (** case conclusions **)

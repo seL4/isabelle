@@ -66,8 +66,6 @@ local
   Also ~A goes to the Safe Elim rule A ==> ?R
   Failing other cases, A is added as a Safe Intr rule*)
 
-fun app (att: attribute) th context = #1 (att (context, th));
-
 fun add_iff safe unsafe =
   Thm.declaration_attribute (fn th =>
     let
@@ -75,25 +73,30 @@ fun add_iff safe unsafe =
       val (elim, intro) = if n = 0 then safe else unsafe;
       val zero_rotate = zero_var_indexes o rotate_prems n;
     in
-      app intro (zero_rotate (th RS Data.iffD2)) #>
-      app elim (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
-      handle THM _ => (app elim (zero_rotate (th RS Data.notE)) handle THM _ => app intro th)
+      Thm.attribute_declaration intro (zero_rotate (th RS Data.iffD2)) #>
+      Thm.attribute_declaration elim (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
+      handle THM _ =>
+        (Thm.attribute_declaration elim (zero_rotate (th RS Data.notE))
+          handle THM _ => Thm.attribute_declaration intro th)
     end);
 
 fun del_iff del = Thm.declaration_attribute (fn th =>
   let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
-    app del (zero_rotate (th RS Data.iffD2)) #>
-    app del (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
-    handle THM _ => (app del (zero_rotate (th RS Data.notE)) handle THM _ => app del th)
+    Thm.attribute_declaration del (zero_rotate (th RS Data.iffD2)) #>
+    Thm.attribute_declaration del (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
+    handle THM _ =>
+      (Thm.attribute_declaration del (zero_rotate (th RS Data.notE))
+        handle THM _ => Thm.attribute_declaration del th)
   end);
 
 in
 
 val iff_add =
-  add_iff
-    (Classical.safe_elim NONE, Classical.safe_intro NONE)
-    (Classical.haz_elim NONE, Classical.haz_intro NONE)
-  #> Simplifier.simp_add;
+  Thm.declaration_attribute (fn th =>
+    Thm.attribute_declaration (add_iff
+      (Classical.safe_elim NONE, Classical.safe_intro NONE)
+      (Classical.haz_elim NONE, Classical.haz_intro NONE)) th
+    #> Thm.attribute_declaration Simplifier.simp_add th);
 
 val iff_add' =
   add_iff
@@ -101,9 +104,10 @@ val iff_add' =
     (Context_Rules.elim_query NONE, Context_Rules.intro_query NONE);
 
 val iff_del =
-  del_iff Classical.rule_del #>
-  del_iff Context_Rules.rule_del #>
-  Simplifier.simp_del;
+  Thm.declaration_attribute (fn th =>
+    Thm.attribute_declaration (del_iff Classical.rule_del) th #>
+    Thm.attribute_declaration (del_iff Context_Rules.rule_del) th #>
+    Thm.attribute_declaration Simplifier.simp_del th);
 
 end;
 
