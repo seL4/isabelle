@@ -61,10 +61,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
     else
       "") ^
    " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
-   (if blocking then
-      "."
-    else
-      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
+   (if blocking then "."
+    else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
@@ -101,8 +99,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
                   (case preplay of
                      Played (reconstructor, timeout) =>
                      if can_min_fast_enough timeout then
-                       (true, prover_name_for_reconstructor reconstructor
-                              |> the_default name)
+                       (true, prover_name_for_reconstructor reconstructor)
                      else
                        (prover_fast_enough, name)
                    | _ => (prover_fast_enough, name),

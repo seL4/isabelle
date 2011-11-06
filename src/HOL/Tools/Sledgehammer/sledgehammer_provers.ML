@@ -77,8 +77,8 @@ sig
   val smt_slice_min_secs : int Config.T
   val das_tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
-  val prover_name_for_reconstructor : reconstructor -> string option
-  val is_metis_prover : string -> bool
+  val prover_name_for_reconstructor : reconstructor -> string
+  val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
   val is_ho_atp: Proof.context -> string -> bool  
@@ -131,18 +131,19 @@ val das_tool = "Sledgehammer"
 val metisN = Metis_Tactic.metisN
 val metis_full_typesN = metisN ^ "_" ^ Metis_Tactic.full_typesN
 val metis_no_typesN = metisN ^ "_" ^ Metis_Tactic.no_typesN
+val smtN = name_of_reconstructor SMT
 
-val metis_prover_infos =
+val reconstructor_infos =
   [(metisN, Metis),
    (metis_full_typesN, Metis_Full_Types),
-   (metis_no_typesN, Metis_No_Types)]
+   (metis_no_typesN, Metis_No_Types),
+   (smtN, SMT)]
 
-val prover_name_for_reconstructor =
-  AList.find (op =) metis_prover_infos #> try hd
+val prover_name_for_reconstructor = AList.find (op =) reconstructor_infos #> hd
 
-val metis_reconstructors = map snd metis_prover_infos
+val all_reconstructors = map snd reconstructor_infos
 
-val is_metis_prover = AList.defined (op =) metis_prover_infos
+val is_reconstructor = AList.defined (op =) reconstructor_infos
 val is_atp = member (op =) o supported_atps
 
 val select_smt_solver = Context.proof_map o SMT_Config.select_solver
@@ -163,22 +164,22 @@ val is_ho_atp = is_atp_for_format is_format_higher_order
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_metis_prover orf is_atp thy orf is_smt_prover ctxt
+    is_reconstructor orf is_atp thy orf is_smt_prover ctxt
   end
 
 fun is_prover_installed ctxt =
-  is_metis_prover orf is_smt_prover ctxt orf
+  is_reconstructor orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun get_slices slicing slices =
   (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
 
-val metis_default_max_relevant = 20
+val reconstructor_default_max_relevant = 20
 
 fun default_max_relevant_for_prover ctxt slicing name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_metis_prover name then
-      metis_default_max_relevant
+    if is_reconstructor name then
+      reconstructor_default_max_relevant
     else if is_atp thy name then
       fold (Integer.max o #1 o snd o snd o snd)
            (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
@@ -273,7 +274,7 @@ fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
-      map fst metis_prover_infos @
+      map fst reconstructor_infos @
       sort_strings (supported_atps thy) @
       sort_strings (SMT_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
@@ -417,7 +418,7 @@ fun tac_for_reconstructor Metis =
     Metis_Tactic.metis_tac Metis_Tactic.full_type_syss
   | tac_for_reconstructor Metis_No_Types =
     Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc]
-  | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
+  | tac_for_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstructor debug timeout ths =
   (Config.put Metis_Tactic.verbose debug
@@ -426,10 +427,20 @@ fun timed_reconstructor reconstructor debug timeout ths =
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun play_one_line_proof debug verbose timeout ths state i reconstructors =
+fun play_one_line_proof mode debug verbose timeout ths state i preferred
+                        reconstructors =
   let
-    fun play [] [] = Failed_to_Play (hd reconstructors)
-      | play timed_outs [] = Trust_Playable (List.last timed_outs, SOME timeout)
+    val _ =
+      if mode = Minimize andalso Time.> (timeout, Time.zeroTime) then
+        Output.urgent_message "Preplaying proof..."
+      else
+        ()
+    fun get_preferred reconstructors =
+      if member (op =) reconstructors preferred then preferred
+      else List.last reconstructors
+    fun play [] [] = Failed_to_Play (get_preferred reconstructors)
+      | play timed_outs [] =
+        Trust_Playable (get_preferred timed_outs, SOME timeout)
       | play timed_out (reconstructor :: reconstructors) =
         let
           val _ =
@@ -448,8 +459,10 @@ fun play_one_line_proof debug verbose timeout ths state i reconstructors =
         handle TimeLimit.TimeOut =>
                play (reconstructor :: timed_out) reconstructors
   in
-    if timeout = Time.zeroTime then Trust_Playable (hd reconstructors, NONE)
-    else play [] reconstructors
+    if timeout = Time.zeroTime then
+      Trust_Playable (get_preferred reconstructors, NONE)
+    else
+      play [] reconstructors
   end
 
 
@@ -526,7 +539,7 @@ fun choose_minimize_command minimize_command name preplay =
   (case preplay of
      Played (reconstructor, time) =>
      if Time.<= (time, metis_minimize_max_time) then
-       prover_name_for_reconstructor reconstructor |> the_default name
+       prover_name_for_reconstructor reconstructor
      else
        name
    | _ => name)
@@ -771,13 +784,8 @@ fun run_atp mode name
                   facts |> map untranslated_fact |> filter_used_facts used_facts
                         |> map snd
               in
-                (if mode = Minimize andalso
-                    Time.> (preplay_timeout, Time.zeroTime) then
-                   Output.urgent_message "Preplaying proof..."
-                 else
-                   ());
-                play_one_line_proof debug verbose preplay_timeout used_ths state
-                                    subgoal metis_reconstructors
+                play_one_line_proof mode debug verbose preplay_timeout used_ths
+                                    state subgoal Metis all_reconstructors
               end,
            fn preplay =>
               let
@@ -957,16 +965,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
       case outcome of
         NONE =>
         (fn () =>
-            let
-              fun smt_settings () =
-                if name = SMT_Solver.solver_name_of ctxt then ""
-                else "smt_solver = " ^ maybe_quote name
-            in
-              case play_one_line_proof debug verbose preplay_timeout used_ths
-                                       state subgoal metis_reconstructors of
-                p as Played _ => p
-              | _ => Trust_Playable (SMT (smt_settings ()), NONE)
-            end,
+            play_one_line_proof mode debug verbose preplay_timeout used_ths
+                                state subgoal SMT all_reconstructors,
          fn preplay =>
             let
               val one_line_params =
@@ -985,19 +985,20 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
-fun run_metis mode name ({debug, verbose, timeout, ...} : params)
-              minimize_command
-              ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+fun run_reconstructor mode name ({debug, verbose, timeout, ...} : params)
+        minimize_command
+        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val reconstructor =
-      case AList.lookup (op =) metis_prover_infos name of
+      case AList.lookup (op =) reconstructor_infos name of
         SOME r => r
       | NONE => raise Fail ("unknown Metis version: " ^ quote name)
     val (used_facts, used_ths) =
       facts |> map untranslated_fact |> ListPair.unzip
   in
-    case play_one_line_proof debug verbose timeout used_ths state subgoal
-                             [reconstructor] of
+    case play_one_line_proof (if mode = Minimize then Normal else mode) debug
+                             verbose timeout used_ths state subgoal
+                             reconstructor [reconstructor] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,
        preplay = K play,
@@ -1020,7 +1021,7 @@ fun run_metis mode name ({debug, verbose, timeout, ...} : params)
 
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_metis_prover name then run_metis mode name
+    if is_reconstructor name then run_reconstructor mode name
     else if is_atp thy name then run_atp mode name (get_atp thy name)
     else if is_smt_prover ctxt name then run_smt_solver mode name
     else error ("No such prover: " ^ name ^ ".")

@@ -17,7 +17,7 @@ sig
     Metis |
     Metis_Full_Types |
     Metis_No_Types |
-    SMT of string
+    SMT
 
   datatype play =
     Played of reconstructor * Time.time |
@@ -65,7 +65,7 @@ datatype reconstructor =
   Metis |
   Metis_Full_Types |
   Metis_No_Types |
-  SMT of string
+  SMT
 
 datatype play =
   Played of reconstructor * Time.time |
@@ -194,22 +194,17 @@ fun uses_typed_helpers typed_helpers =
 fun name_of_reconstructor Metis = "metis"
   | name_of_reconstructor Metis_Full_Types = "metis (full_types)"
   | name_of_reconstructor Metis_No_Types = "metis (no_types)"
-  | name_of_reconstructor (SMT _) = "smt"
-
-fun reconstructor_settings (SMT settings) = settings
-  | reconstructor_settings _ = ""
+  | name_of_reconstructor SMT = "smt"
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
 fun show_time NONE = ""
   | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
 
-fun set_settings "" = ""
-  | set_settings settings = "using [[" ^ settings ^ "]] "
-fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
-  | apply_on_subgoal settings 1 _ = set_settings settings ^ "apply "
-  | apply_on_subgoal settings i n =
-    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
+fun apply_on_subgoal _ 1 = "by "
+  | apply_on_subgoal 1 _ = "apply "
+  | apply_on_subgoal i n =
+    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 fun command_call name [] =
     name |> not (Lexicon.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
@@ -219,8 +214,7 @@ fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 fun reconstructor_command reconstructor i n (ls, ss) =
-  using_labels ls ^
-  apply_on_subgoal (reconstructor_settings reconstructor) i n ^
+  using_labels ls ^ apply_on_subgoal i n ^
   command_call (name_of_reconstructor reconstructor) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
