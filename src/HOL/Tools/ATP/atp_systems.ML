@@ -43,8 +43,8 @@ sig
   val iproverN : string
   val iprover_eqN : string
   val leo2N : string
-  val pffN : string
-  val phfN : string
+  val dummy_tff1N : string
+  val dummy_thfN : string
   val satallaxN : string
   val snarkN : string
   val spassN : string
@@ -130,12 +130,12 @@ val e_tofofN = "e_tofof"
 val iproverN = "iprover"
 val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"
-val pffN = "pff"
-val phfN = "phf"
+val dummy_tff1N = "dummy_tff1" (* experimental *)
+val dummy_thfN = "dummy_thf" (* experimental *)
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
-val spass_newN = "spass_new"
+val spass_newN = "spass_new" (* experimental *)
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -437,13 +437,13 @@ fun dummy_config format type_enc : atp_config =
    prem_kind = Hypothesis,
    best_slices = K [(1.0, (false, (200, format, type_enc, "")))]}
 
-val pff_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
-val pff_config = dummy_config pff_format "poly_simple"
-val pff = (pffN, pff_config)
+val dummy_tff1_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
+val dummy_tff1_config = dummy_config dummy_tff1_format "poly_simple"
+val dummy_tff1 = (dummy_tff1N, dummy_tff1_config)
 
-val phf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
-val phf_config = dummy_config phf_format "poly_simple_higher"
-val phf = (phfN, phf_config)
+val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
+val dummy_thf_config = dummy_config dummy_thf_format "poly_simple_higher"
+val dummy_thf = (dummy_thfN, dummy_thf_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -574,8 +574,8 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps =
-  [e, leo2, pff, phf, satallax, spass, spass_new, vampire, z3_tptp, remote_e,
-   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
+  [e, leo2, dummy_tff1, dummy_thf, satallax, spass, spass_new, vampire, z3_tptp,
+   remote_e, remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
    remote_leo2, remote_satallax, remote_vampire, remote_z3_tptp, remote_snark,
    remote_waldmeister]
 val setup = fold add_atp atps
