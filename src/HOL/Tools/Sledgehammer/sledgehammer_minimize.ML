@@ -70,7 +70,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts, smt_filter = NONE}
-    val result as {outcome, used_facts, run_time_in_msecs, ...} =
+    val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K "")) problem
   in
     print silent
@@ -80,9 +80,8 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
               | NONE =>
                 "Found proof" ^
                  (if length used_facts = length facts then ""
-                  else " with " ^ n_facts used_facts) ^ " (" ^
-                 string_from_time (Time.fromMilliseconds run_time_in_msecs) ^
-                 ").");
+                  else " with " ^ n_facts used_facts) ^
+                 " (" ^ string_from_time run_time ^ ").");
     result
   end
 

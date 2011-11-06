@@ -75,8 +75,8 @@ val auto_minimize_max_time =
 
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
-             (result as {outcome, used_facts, run_time_in_msecs, preplay,
-                         message, message_tail} : prover_result) =
+             (result as {outcome, used_facts, run_time, preplay, message,
+                         message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
     result
   else
@@ -88,10 +88,11 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
             ((true, name), preplay)
           else
             let
-              fun can_min_fast_enough msecs =
-                0.001 * Real.fromInt ((num_facts + 2) * msecs)
+              fun can_min_fast_enough time =
+                0.001
+                * Real.fromInt ((num_facts + 1) * Time.toMilliseconds time)
                 <= Config.get ctxt auto_minimize_max_time
-              val prover_fast_enough = can_min_fast_enough run_time_in_msecs
+              val prover_fast_enough = can_min_fast_enough run_time
             in
               if isar_proof then
                 ((prover_fast_enough, name), preplay)
@@ -99,7 +100,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
                 let val preplay = preplay () in
                   (case preplay of
                      Played (reconstructor, timeout) =>
-                     if can_min_fast_enough (Time.toMilliseconds timeout) then
+                     if can_min_fast_enough timeout then
                        (true, prover_name_for_reconstructor reconstructor
                               |> the_default name)
                      else
@@ -133,9 +134,8 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
            |> Output.urgent_message
          else
            ();
-         {outcome = NONE, used_facts = used_facts,
-          run_time_in_msecs = run_time_in_msecs, preplay = preplay,
-          message = message, message_tail = message_tail})
+         {outcome = NONE, used_facts = used_facts, run_time = run_time,
+          preplay = preplay, message = message, message_tail = message_tail})
       | NONE => result
     end
 

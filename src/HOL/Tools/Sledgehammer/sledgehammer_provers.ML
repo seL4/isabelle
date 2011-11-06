@@ -52,7 +52,7 @@ sig
   type prover_result =
     {outcome: failure option,
      used_facts: (string * locality) list,
-     run_time_in_msecs: int,
+     run_time: Time.time,
      preplay: unit -> play,
      message: play -> string,
      message_tail: string}
@@ -323,7 +323,7 @@ type prover_problem =
 type prover_result =
   {outcome: failure option,
    used_facts: (string * locality) list,
-   run_time_in_msecs: int,
+   run_time: Time.time,
    preplay: unit -> play,
    message: play -> string,
    message_tail: string}
@@ -797,7 +797,7 @@ fun run_atp mode name
       | SOME failure =>
         ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time_in_msecs = msecs,
+    {outcome = outcome, used_facts = used_facts, run_time = Time.fromMilliseconds msecs, (*###*)
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
@@ -928,8 +928,7 @@ fun smt_filter_loop ctxt name
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
-           used_facts = used_facts,
-           run_time_in_msecs = Time.toMilliseconds time_so_far}
+           used_facts = used_facts, run_time = time_so_far}
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
@@ -942,7 +941,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val num_facts = length facts
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact ctxt num_facts)
-    val {outcome, used_facts, run_time_in_msecs} =
+    val {outcome, used_facts, run_time} =
       smt_filter_loop ctxt name params state subgoal smt_filter facts
     val (used_facts, used_ths) = used_facts |> ListPair.unzip
     val outcome = outcome |> Option.map failure_from_smt_failure
@@ -968,16 +967,14 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                  subgoal, subgoal_count)
             in one_line_proof_text one_line_params end,
          if verbose then
-           "\nSMT solver real CPU time: " ^
-           string_from_time (Time.fromMilliseconds run_time_in_msecs) ^ "."
+           "\nSMT solver real CPU time: " ^ string_from_time run_time ^ "."
          else
            "")
       | SOME failure =>
         (K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts,
-     run_time_in_msecs = run_time_in_msecs, preplay = preplay,
-     message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, run_time = run_time,
+     preplay = preplay, message = message, message_tail = message_tail}
   end
 
 fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
@@ -993,8 +990,7 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
     case play_one_line_proof debug timeout used_ths state subgoal
                              [reconstructor] of
       play as Played (_, time) =>
-      {outcome = NONE, used_facts = used_facts,
-       run_time_in_msecs = Time.toMilliseconds time,
+      {outcome = NONE, used_facts = used_facts, run_time = time,
        preplay = K play,
        message = fn play =>
                     let
@@ -1007,7 +1003,7 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
       let
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
-        {outcome = SOME failure, used_facts = [], run_time_in_msecs = ~1,
+        {outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
          preplay = K play, message = fn _ => string_for_failure failure,
          message_tail = ""}
       end
