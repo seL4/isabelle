@@ -103,9 +103,9 @@ in the Proof General response buffer.
 
 The result of a successful proof search is some source text that usually (but
 not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
-proof relies on the general-purpose Metis prover, which is fully integrated into
-Isabelle/HOL, with explicit inferences going through the kernel. Thus its
-results are correct by construction.
+proof relies on the general-purpose \textit{metis} proof method, which
+integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
+the kernel. Thus its results are correct by construction.
 
 In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
 Sledgehammer also provides an automatic mode that can be enabled via the ``Auto
@@ -209,7 +209,7 @@ to the proxy, either in the environment in which Isabelle is launched or in your
 
 CVC3, Yices, and Z3 can be run locally or (for CVC3 and Z3) remotely on a TU
 M\"unchen server. If you want better performance and get the ability to replay
-proofs that rely on the \emph{smt} proof method, you should at least install Z3
+proofs that rely on the \emph{smt} proof method, you should at least run Z3
 locally.
 
 There are two main ways of installing SMT solvers locally.
@@ -281,10 +281,10 @@ available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
 where the goal's conclusion is a (universally quantified) equation.
 
-For each successful prover, Sledgehammer gives a one-liner proof that uses Metis
-or the \textit{smt} proof method. For Metis, approximate timings are shown in
-parentheses, indicating how fast the call is. You can click the proof to insert
-it into the theory text.
+For each successful prover, Sledgehammer gives a one-liner proof that uses
+the \textit{metis} or \textit{smt} proof method. Approximate timings are shown
+in parentheses, indicating how fast the call is. You can click the proof to
+insert it into the theory text.
 
 In addition, you can ask Sledgehammer for an Isar text proof by passing the
 \textit{isar\_proof} option (\S\ref{output-format}):
@@ -294,15 +294,15 @@ In addition, you can ask Sledgehammer for an Isar text proof by passing the
 \postw
 
 When Isar proof construction is successful, it can yield proofs that are more
-readable and also faster than the Metis one-liners. This feature is experimental
-and is only available for ATPs.
+readable and also faster than the \textit{metis} or \textit{smt} one-liners.
+This feature is experimental and is only available for ATPs.
 
 \section{Hints}
 \label{hints}
 
 This section presents a few hints that should help you get the most out of
-Sledgehammer and Metis. Frequently (and infrequently) asked questions are
-answered in \S\ref{frequently-asked-questions}.
+Sledgehammer. Frequently (and infrequently) asked questions are answered in
+\S\ref{frequently-asked-questions}.
 
 \newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
 
@@ -344,8 +344,8 @@ the provers time out, you can try lowering this value to, say, 100 or 50 and see
 if that helps.
 
 \item[$\bullet$] \textbf{\textit{isar\_proof}} (\S\ref{output-format}) specifies
-that Isar proofs should be generated, instead of one-liner Metis proofs. The
-length of the Isar proofs can be controlled by setting
+that Isar proofs should be generated, instead of one-liner \textit{metis} or
+\textit{smt} proofs. The length of the Isar proofs can be controlled by setting
 \textit{isar\_shrink\_factor} (\S\ref{output-format}).
 
 \item[$\bullet$] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
@@ -378,20 +378,22 @@ solutions:
 
 \begin{enum}
 \item[$\bullet$] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
-obtain a step-by-step Isar proof where each step is justified by Metis. Since
-the steps are fairly small, Metis is more likely to be able to replay them.
+obtain a step-by-step Isar proof where each step is justified by \textit{metis}.
+Since the steps are fairly small, \textit{metis} is more likely to be able to
+replay them.
 
-\item[$\bullet$] Try the \textit{smt} proof method instead of Metis. It is
-usually stronger, but you need to have Z3 available to replay the proofs, trust
-the SMT solver, or use certificates. See the documentation in the \emph{SMT}
-theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
+\item[$\bullet$] Try the \textit{smt} proof method instead of \textit{metis}. It
+is usually stronger, but you need to either have Z3 available to replay the
+proofs, trust the SMT solver, or use certificates. See the documentation in the
+\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
 
 \item[$\bullet$] Try the \textit{blast} or \textit{auto} proof methods, passing
 the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
 \textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
 \end{enum}
 
-In some rare cases, Metis fails fairly quickly, and you get the error message
+In some rare cases, \textit{metis} fails fairly quickly, and you get the error
+message
 
 \prew
 \slshape
@@ -406,8 +408,9 @@ contact the author at \authoremail.
 
 \point{How can I tell whether a generated proof is sound?}
 
-First, if Metis can reconstruct it, the proof is sound (assuming Isabelle's
-inference kernel is sound). If it fails or runs seemingly forever, you can try
+First, if \textit{metis} can reconstruct it, the proof is sound (assuming
+Isabelle's inference kernel is sound). If it fails or runs seemingly forever,
+you can try
 
 \prew
 \textbf{apply}~\textbf{--} \\
@@ -415,9 +418,9 @@ inference kernel is sound). If it fails or runs seemingly forever, you can try
 \postw
 
 where \textit{metis\_facts} is the list of facts appearing in the suggested
-Metis call. The automatic provers should be able to re-find the proof quickly if
-it is sound, and the \textit{sound} option (\S\ref{problem-encoding}) ensures
-that no unsound proofs are found.
+\textit{metis} call. The automatic provers should be able to re-find the proof
+quickly if it is sound, and the \textit{sound} option (\S\ref{problem-encoding})
+ensures that no unsound proofs are found.
 
 \point{Which facts are passed to the automatic provers?}
 
@@ -506,17 +509,17 @@ Incidentally, if you see the warning
 Metis: Falling back on ``\textit{metis} (\textit{full\_types})''.
 \postw
 
-for a successful Metis proof, you can advantageously pass the
+for a successful \textit{metis} proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
 \point{Are generated proofs minimal?}
 
 Automatic provers frequently use many more facts than are necessary.
 Sledgehammer inclues a minimization tool that takes a set of facts returned by a
-given prover and repeatedly calls the same prover or Metis with subsets of those
-axioms in order to find a minimal set. Reducing the number of axioms typically
-improves Metis's speed and success rate, while also removing superfluous clutter
-from the proof scripts.
+given prover and repeatedly calls the same prover, \textit{metis}, or
+\textit{smt} with subsets of those axioms in order to find a minimal set.
+Reducing the number of axioms typically improves Metis's speed and success rate,
+while also removing superfluous clutter from the proof scripts.
 
 In earlier versions of Sledgehammer, generated proofs were systematically
 accompanied by a suggestion to invoke the minimization tool. This step is now
@@ -742,6 +745,9 @@ higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
 support for the TPTP many-typed higher-order syntax (THF0). Sledgehammer
 requires version 2.2 or above.
 
+\item[$\bullet$] \textbf{\textit{smt}:} The \textit{smt} proof method with the
+current settings (typically, Z3 with proof reconstruction).
+
 \item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
@@ -899,8 +905,8 @@ safely remove them after Sledgehammer has run.
 \opdefault{type\_enc}{string}{smart}
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
-(unreconstructible using Metis). The supported type encodings are listed below,
-with an indication of their soundness in parentheses:
+(unreconstructible using \textit{metis}). The supported type encodings are
+listed below, with an indication of their soundness in parentheses:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
@@ -1138,9 +1144,10 @@ For historical reasons, the default value of this option can be overridden using
 the option ``Sledgehammer: Time Limit'' in Proof General's ``Isabelle'' menu.
 
 \opdefault{preplay\_timeout}{float\_or\_none}{\upshape 4}
-Specifies the maximum number of seconds that Metis should be spent trying to
-``preplay'' the found proof. If this option is set to 0, no preplaying takes
-place, and no timing information is displayed next to the suggested Metis calls.
+Specifies the maximum number of seconds that \textit{metis} or \textit{smt}
+should spend trying to ``preplay'' the found proof. If this option is set to 0,
+no preplaying takes place, and no timing information is displayed next to the
+suggested \textit{metis} calls.
 \end{enum}
 
 \let\em=\sl
