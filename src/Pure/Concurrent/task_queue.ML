@@ -104,7 +104,9 @@ type timing = Time.time * Time.time * string list;  (*run, wait, wait dependenci
 
 val timing_start = (Time.zeroTime, Time.zeroTime, []): timing;
 
-fun new_timing () = Synchronized.var "timing" timing_start;
+fun new_timing () =
+  if ! Multithreading.trace < 2 then NONE
+  else SOME (Synchronized.var "timing" timing_start);
 
 abstype task = Task of
  {group: group,
@@ -118,7 +120,7 @@ val dummy_task =
   Task {group = new_group NONE, name = "", id = 0, pri = NONE, timing = NONE};
 
 fun new_task group name pri =
-  Task {group = group, name = name, id = new_id (), pri = pri, timing = SOME (new_timing ())};
+  Task {group = group, name = name, id = new_id (), pri = pri, timing = new_timing ()};
 
 fun group_of_task (Task {group, ...}) = group;
 fun name_of_task (Task {name, ...}) = name;

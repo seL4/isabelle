@@ -51,21 +51,20 @@ we want to write a ML function that generates a logarithmic
 certificate that the content of the nodes is distinct. We use the
 following lemmas to achieve this.  *} 
 
-lemma all_distinct_left:
-"all_distinct (Node l x b r) \<Longrightarrow> all_distinct l"
+lemma all_distinct_left: "all_distinct (Node l x b r) \<Longrightarrow> all_distinct l"
   by simp
 
 lemma all_distinct_right: "all_distinct (Node l x b r) \<Longrightarrow> all_distinct r"
   by simp
 
-lemma distinct_left: "\<lbrakk>all_distinct (Node l x False r); y \<in> set_of l \<rbrakk> \<Longrightarrow> x\<noteq>y"
+lemma distinct_left: "all_distinct (Node l x False r) \<Longrightarrow> y \<in> set_of l \<Longrightarrow> x \<noteq> y"
   by auto
 
-lemma distinct_right: "\<lbrakk>all_distinct (Node l x False r); y \<in> set_of r \<rbrakk> \<Longrightarrow> x\<noteq>y"
+lemma distinct_right: "all_distinct (Node l x False r) \<Longrightarrow> y \<in> set_of r \<Longrightarrow> x \<noteq> y"
   by auto
 
-lemma distinct_left_right: "\<lbrakk>all_distinct (Node l z b r); x \<in> set_of l; y \<in> set_of r\<rbrakk>
-  \<Longrightarrow> x\<noteq>y"
+lemma distinct_left_right:
+    "all_distinct (Node l z b r) \<Longrightarrow> x \<in> set_of l \<Longrightarrow> y \<in> set_of r \<Longrightarrow> x \<noteq> y"
   by auto
 
 lemma in_set_root: "x \<in> set_of (Node l x False r)"
@@ -87,17 +86,17 @@ subsection {* Containment of Trees *}
 
 text {* When deriving a state space from other ones, we create a new
 name tree which contains all the names of the parent state spaces and
-assumme the predicate @{const all_distinct}. We then prove that the new locale
-interprets all parent locales. Hence we have to show that the new
-distinctness assumption on all names implies the distinctness
+assume the predicate @{const all_distinct}. We then prove that the new
+locale interprets all parent locales. Hence we have to show that the
+new distinctness assumption on all names implies the distinctness
 assumptions of the parent locales. This proof is implemented in ML. We
 do this efficiently by defining a kind of containment check of trees
-by 'subtraction'.  We subtract the parent tree from the new tree. If this
-succeeds we know that @{const all_distinct} of the new tree implies
-@{const all_distinct} of the parent tree.  The resulting certificate is
-of the order @{term "n * log(m)"} where @{term "n"} is the size of the
-(smaller) parent tree and @{term "m"} the size of the (bigger) new tree.
-*}
+by ``subtraction''.  We subtract the parent tree from the new tree. If
+this succeeds we know that @{const all_distinct} of the new tree
+implies @{const all_distinct} of the parent tree.  The resulting
+certificate is of the order @{term "n * log(m)"} where @{term "n"} is
+the size of the (smaller) parent tree and @{term "m"} the size of the
+(bigger) new tree.  *}
 
 
 primrec delete :: "'a \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
@@ -109,14 +108,14 @@ where
                                     Some r' \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r')
                                   | None \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r))
                                | None \<Rightarrow>
-                                  (case (delete x r) of 
+                                  (case delete x r of 
                                      Some r' \<Rightarrow> Some (Node l y (d \<or> (x=y)) r')
                                    | None \<Rightarrow> if x=y \<and> \<not>d then Some (Node l y True r)
                                              else None))"
 
 
-lemma delete_Some_set_of: "\<And>t'. delete x t = Some t' \<Longrightarrow> set_of t' \<subseteq> set_of t"
-proof (induct t)
+lemma delete_Some_set_of: "delete x t = Some t' \<Longrightarrow> set_of t' \<subseteq> set_of t"
+proof (induct t arbitrary: t')
   case Tip thus ?case by simp
 next
   case (Node l y d r)
@@ -164,9 +163,9 @@ next
   qed
 qed
 
-lemma delete_Some_all_distinct: 
-"\<And>t'. \<lbrakk>delete x t = Some t'; all_distinct t\<rbrakk> \<Longrightarrow> all_distinct t'"
-proof (induct t)
+lemma delete_Some_all_distinct:
+  "delete x t = Some t' \<Longrightarrow> all_distinct t \<Longrightarrow> all_distinct t'"
+proof (induct t arbitrary: t')
   case Tip thus ?case by simp
 next
   case (Node l y d r)
@@ -238,8 +237,8 @@ next
 qed
 
 lemma delete_Some_x_set_of:
-  "\<And>t'. delete x t = Some t' \<Longrightarrow> x \<in> set_of t \<and> x \<notin> set_of t'"
-proof (induct t)
+  "delete x t = Some t' \<Longrightarrow> x \<in> set_of t \<and> x \<notin> set_of t'"
+proof (induct t arbitrary: t')
   case Tip thus ?case by simp
 next
   case (Node l y d r)
@@ -305,8 +304,8 @@ where
        | None \<Rightarrow> None)"
 
 lemma subtract_Some_set_of_res: 
-  "\<And>t\<^isub>2 t. subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t \<subseteq> set_of t\<^isub>2"
-proof (induct t\<^isub>1)
+  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t \<subseteq> set_of t\<^isub>2"
+proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x b r)
@@ -350,8 +349,8 @@ next
 qed
 
 lemma subtract_Some_set_of: 
-  "\<And>t\<^isub>2 t. subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<subseteq> set_of t\<^isub>2"
-proof (induct t\<^isub>1)
+  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<subseteq> set_of t\<^isub>2"
+proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
@@ -400,8 +399,8 @@ next
 qed
 
 lemma subtract_Some_all_distinct_res: 
-  "\<And>t\<^isub>2 t. \<lbrakk>subtract t\<^isub>1 t\<^isub>2 = Some t; all_distinct t\<^isub>2\<rbrakk> \<Longrightarrow> all_distinct t"
-proof (induct t\<^isub>1)
+  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> all_distinct t\<^isub>2 \<Longrightarrow> all_distinct t"
+proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
@@ -448,8 +447,8 @@ qed
 
 
 lemma subtract_Some_dist_res: 
-  "\<And>t\<^isub>2 t. subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<inter> set_of t = {}"
-proof (induct t\<^isub>1)
+  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<inter> set_of t = {}"
+proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
@@ -502,8 +501,8 @@ next
 qed
         
 lemma subtract_Some_all_distinct:
-  "\<And>t\<^isub>2 t. \<lbrakk>subtract t\<^isub>1 t\<^isub>2 = Some t; all_distinct t\<^isub>2\<rbrakk> \<Longrightarrow> all_distinct t\<^isub>1"
-proof (induct t\<^isub>1)
+  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> all_distinct t\<^isub>2 \<Longrightarrow> all_distinct t\<^isub>1"
+proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)

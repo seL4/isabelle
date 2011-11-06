@@ -58,8 +58,7 @@ lemma lookup_update_other:
 lemma id_id_cancel: "id (id x) = x" 
   by (simp add: id_def)
   
-lemma destr_contstr_comp_id:
-"(\<And>v. destr (constr v) = v) \<Longrightarrow> destr \<circ> constr = id"
+lemma destr_contstr_comp_id: "(\<And>v. destr (constr v) = v) \<Longrightarrow> destr \<circ> constr = id"
   by (rule ext) simp
 
 
@@ -67,16 +66,16 @@ lemma destr_contstr_comp_id:
 lemma block_conj_cong: "(P \<and> Q) = (P \<and> Q)"
   by simp
 
-lemma conj1_False: "(P\<equiv>False) \<Longrightarrow> (P \<and> Q) \<equiv> False"
+lemma conj1_False: "P \<equiv> False \<Longrightarrow> (P \<and> Q) \<equiv> False"
   by simp
 
-lemma conj2_False: "\<lbrakk>Q\<equiv>False\<rbrakk> \<Longrightarrow> (P \<and> Q) \<equiv> False"
+lemma conj2_False: "Q \<equiv> False \<Longrightarrow> (P \<and> Q) \<equiv> False"
   by simp
 
-lemma conj_True: "\<lbrakk>P\<equiv>True; Q\<equiv>True\<rbrakk> \<Longrightarrow> (P \<and> Q) \<equiv> True"
+lemma conj_True: "P \<equiv> True \<Longrightarrow> Q \<equiv> True \<Longrightarrow> (P \<and> Q) \<equiv> True"
   by simp
 
-lemma conj_cong: "\<lbrakk>P\<equiv>P'; Q\<equiv>Q'\<rbrakk> \<Longrightarrow> (P \<and> Q) \<equiv> (P' \<and> Q')"
+lemma conj_cong: "P \<equiv> P' \<Longrightarrow> Q \<equiv> Q' \<Longrightarrow> (P \<and> Q) \<equiv> (P' \<and> Q')"
   by simp
 
 
