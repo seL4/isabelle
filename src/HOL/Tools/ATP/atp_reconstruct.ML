@@ -37,6 +37,7 @@ sig
     Proof.context -> int list list -> int -> (string * locality) list vector
     -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
+  val name_of_reconstructor : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ

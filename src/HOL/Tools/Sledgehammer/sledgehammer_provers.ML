@@ -426,12 +426,21 @@ fun timed_reconstructor reconstructor debug timeout ths =
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun play_one_line_proof debug timeout ths state i reconstructors =
+fun play_one_line_proof debug verbose timeout ths state i reconstructors =
   let
     fun play [] [] = Failed_to_Play (hd reconstructors)
       | play timed_outs [] = Trust_Playable (List.last timed_outs, SOME timeout)
       | play timed_out (reconstructor :: reconstructors) =
-        let val timer = Timer.startRealTimer () in
+        let
+          val _ =
+            if verbose then
+              "Trying \"" ^ name_of_reconstructor reconstructor ^ "\" for " ^
+              string_from_time timeout ^ "..."
+              |> Output.urgent_message
+            else
+              ()
+          val timer = Timer.startRealTimer ()
+        in
           case timed_reconstructor reconstructor debug timeout ths state i of
             SOME (SOME _) => Played (reconstructor, Timer.checkRealTimer timer)
           | _ => play timed_out reconstructors
@@ -767,8 +776,8 @@ fun run_atp mode name
                    Output.urgent_message "Preplaying proof..."
                  else
                    ());
-                play_one_line_proof debug preplay_timeout used_ths state subgoal
-                                    metis_reconstructors
+                play_one_line_proof debug verbose preplay_timeout used_ths state
+                                    subgoal metis_reconstructors
               end,
            fn preplay =>
               let
@@ -953,8 +962,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                 if name = SMT_Solver.solver_name_of ctxt then ""
                 else "smt_solver = " ^ maybe_quote name
             in
-              case play_one_line_proof debug preplay_timeout used_ths state
-                                       subgoal metis_reconstructors of
+              case play_one_line_proof debug verbose preplay_timeout used_ths
+                                       state subgoal metis_reconstructors of
                 p as Played _ => p
               | _ => Trust_Playable (SMT (smt_settings ()), NONE)
             end,
@@ -976,7 +985,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
-fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
+fun run_metis mode name ({debug, verbose, timeout, ...} : params)
+              minimize_command
               ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val reconstructor =
@@ -986,7 +996,7 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
     val (used_facts, used_ths) =
       facts |> map untranslated_fact |> ListPair.unzip
   in
-    case play_one_line_proof debug timeout used_ths state subgoal
+    case play_one_line_proof debug verbose timeout used_ths state subgoal
                              [reconstructor] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,
