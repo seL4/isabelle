@@ -594,8 +594,12 @@ fun run_atp mode name
         val digit = Scan.one Symbol.is_ascii_digit
         val num3 = as_num (digit ::: digit ::: (digit >> single))
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
-        val as_time = Scan.read Symbol.stopper time o raw_explode
-      in (output, as_time t |> the_default 0 (* can't happen *)) end
+        val as_time =
+          raw_explode #> Scan.read Symbol.stopper time #> the_default 0
+      in
+        (output,
+         as_time t |> Time.fromMilliseconds)
+      end
     fun run_on prob_file =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
@@ -687,7 +691,7 @@ fun run_atp mode name
                   conjecture_offset + 1
                     upto conjecture_offset + length hyp_ts + 1
                   |> map single
-                val ((output, msecs), (atp_proof, outcome)) =
+                val ((output, run_time), (atp_proof, outcome)) =
                   TimeLimit.timeLimit generous_slice_timeout
                                       Isabelle_System.bash_output command
                   |>> (if overlord then
@@ -703,8 +707,7 @@ fun run_atp mode name
                           handle UNRECOGNIZED_ATP_PROOF () =>
                                  ([], SOME ProofIncomplete)))
                   handle TimeLimit.TimeOut =>
-                         (("", Time.toMilliseconds slice_timeout),
-                          ([], SOME TimedOut))
+                         (("", slice_timeout), ([], SOME TimedOut))
                 val outcome =
                   case outcome of
                     NONE =>
@@ -727,10 +730,11 @@ fun run_atp mode name
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
                   typed_helpers, sym_tab),
-                 (output, msecs, atp_proof, outcome))
+                 (output, run_time, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
-            fun maybe_run_slice slice (result as (_, (_, msecs0, _, SOME _))) =
+            fun maybe_run_slice slice
+                                (result as (_, (_, run_time0, _, SOME _))) =
                 let
                   val time_left = Time.- (timeout, Timer.checkRealTimer timer)
                 in
@@ -738,14 +742,14 @@ fun run_atp mode name
                     result
                   else
                     run_slice slice time_left
-                    |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
-                           (stuff, (output, msecs0 + msecs, atp_proof,
-                                    outcome)))
+                    |> (fn (stuff, (output, run_time, atp_proof, outcome)) =>
+                           (stuff, (output, Time.+ (run_time0, run_time),
+                                    atp_proof, outcome)))
                 end
               | maybe_run_slice _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty),
-             ("", 0, [], SOME InternalError))
+             ("", Time.zeroTime, [], SOME InternalError))
             |> fold maybe_run_slice actual_slices
           end
         else
@@ -762,7 +766,7 @@ fun run_atp mode name
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((pool, conjecture_shape, facts_offset, fact_names, typed_helpers,
           sym_tab),
-         (output, msecs, atp_proof, outcome)) =
+         (output, run_time, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
       if mode = Normal andalso
@@ -800,8 +804,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
               in proof_text ctxt isar_proof isar_params one_line_params end,
            (if verbose then
-              "\nATP real CPU time: " ^
-              string_from_time (Time.fromMilliseconds msecs) ^ "."
+              "\nATP real CPU time: " ^ string_from_time run_time ^ "."
             else
               "") ^
            (if important_message <> "" then
@@ -813,7 +816,7 @@ fun run_atp mode name
       | SOME failure =>
         ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time = Time.fromMilliseconds msecs, (*###*)
+    {outcome = outcome, used_facts = used_facts, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
