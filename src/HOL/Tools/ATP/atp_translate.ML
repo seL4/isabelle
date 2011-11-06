@@ -1527,12 +1527,15 @@ val helper_table =
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
+fun atype_of_type_vars (Simple_Types (_, Polymorphic, _)) = SOME atype_of_types
+  | atype_of_type_vars _ = NONE
+
 fun bound_tvars type_enc Ts =
   mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts)
   #> mk_aquant AForall
         (map_filter (fn TVar (x as (s, _), _) =>
                         SOME ((make_schematic_type_var x, s),
-                              SOME atype_of_types)
+                              atype_of_type_vars type_enc)
                       | _ => NONE) Ts)
 
 fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
@@ -1852,11 +1855,12 @@ fun formula_from_arity_atom type_enc (class, t, args) =
   |> type_class_formula type_enc class
 
 fun formula_line_for_arity_clause format type_enc
-        ({name, prem_atoms, concl_atom, ...} : arity_clause) =
+        ({name, prem_atoms, concl_atom} : arity_clause) =
   Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_arity_atom type_enc) prem_atoms)
                     (formula_from_arity_atom type_enc concl_atom)
-           |> close_formula_universally type_enc,
+           |> mk_aquant AForall
+                  (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
            isabelle_info format introN, NONE)
 
 fun formula_line_for_conjecture ctxt format mono type_enc
