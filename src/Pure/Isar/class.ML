@@ -499,7 +499,6 @@ fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
 fun pretty lthy =
   let
     val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
-    val thy = Proof_Context.theory_of lthy;
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
       Pretty.block (Pretty.breaks
