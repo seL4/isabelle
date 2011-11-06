@@ -90,31 +90,28 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
 
 (* minimalization of facts *)
 
-(* The sublinear algorithm works well in almost all situations, except when the
-   external prover cannot return the list of used facts and hence returns all
-   facts as used. In that case, the binary algorithm is much more appropriate.
-   We can usually detect the situation by looking at the number of used facts
-   reported by the prover. *)
+(* The linear algorithm usually outperforms the binary algorithm when over 60%
+   of the facts are actually needed. The binary algorithm is much more
+   appropriate for provers that cannot return the list of used facts and hence
+   returns all facts as used. Since we cannot know in advance how many facts are
+   actually needed, we heuristically set the threshold to 10 facts. *)
 val binary_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
-                          (K 20)
+                          (K 10)
 
-fun sublinear_minimize _ [] p = p
-  | sublinear_minimize test (x :: xs) (seen, result) =
+fun linear_minimize _ [] p = p
+  | linear_minimize test (x :: xs) (seen, result) =
     case test (xs @ seen) of
       result as {outcome = NONE, used_facts, ...} : prover_result =>
-      sublinear_minimize test (filter_used_facts used_facts xs)
-                         (filter_used_facts used_facts seen, result)
-    | _ => sublinear_minimize test xs (x :: seen, result)
+      linear_minimize test (filter_used_facts used_facts xs)
+                      (filter_used_facts used_facts seen, result)
+    | _ => linear_minimize test xs (x :: seen, result)
 
-fun binary_minimize test xs =
+fun binary_minimize test result xs =
   let
-    fun pred xs = #outcome (test xs : prover_result) = NONE
-    fun min _ _ [] = raise Empty
-      | min _ _ [s0] = [s0]
-      | min depth sup xs =
+    fun min depth result sup (xs as _ :: _ :: _) =
         let
-          val (l0, r0) = chop ((length xs + 1) div 2) xs
+          val (l0, r0) = chop (length xs div 2) xs
 (*
           val _ = warning (replicate_string depth " " ^ "{ " ^
                            "sup: " ^ n_facts (map fst sup))
@@ -125,25 +122,38 @@ fun binary_minimize test xs =
           val _ = warning (replicate_string depth " " ^ "  " ^
                            "r0: " ^ n_facts (map fst r0))
 *)
+          val depth = depth + 1
         in
-          if pred (sup @ l0) then
-            min (depth + 1) sup l0
-          else if pred (sup @ r0) then
-            min (depth + 1) sup r0
-          else
-            let
-              val l = min (depth + 1) (sup @ r0) l0
-              val r = min (depth + 1) (sup @ l) r0
-            in l @ r end
+          case test (sup @ l0) of
+            result as {outcome = NONE, used_facts, ...} : prover_result =>
+            min depth result (filter_used_facts used_facts sup)
+                      (filter_used_facts used_facts l0)
+          | _ =>
+            case test (sup @ r0) of
+              result as {outcome = NONE, used_facts, ...} =>
+              min depth result (filter_used_facts used_facts sup)
+                        (filter_used_facts used_facts r0)
+            | _ =>
+              let
+                val (sup_r0, (l, result)) = min depth result (sup @ r0) l0
+                val (sup, r0) =
+                  (sup, r0) |> pairself (filter_used_facts (map fst sup_r0))
+                val (sup_l, (r, result)) = min depth result (sup @ l) r0
+                val sup = sup |> filter_used_facts (map fst sup_l)
+              in (sup, (l @ r, result)) end
         end
 (*
         |> tap (fn _ => warning (replicate_string depth " " ^ "}"))
 *)
-    val xs =
-      case min 0 [] xs of
-        [x] => if pred [] then [] else [x]
-      | xs => xs
-  in (xs, test xs) end
+      | min _ result sup xs = (sup, (xs, result))
+  in
+    case snd (min 0 result [] xs) of
+      ([x], result) =>
+      (case test [] of
+         result as {outcome = NONE, ...} => ([], result)
+       | _ => ([x], result))
+    | p => p
+  end
 
 (* Give the external prover some slack. The ATP gets further slack because the
    Sledgehammer preprocessing time is included in the estimate below but isn't
@@ -171,9 +181,9 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
          val facts = filter_used_facts used_facts facts
          val (min_facts, {preplay, message, message_tail, ...}) =
            if length facts >= Config.get ctxt binary_min_facts then
-             binary_minimize (do_test new_timeout) facts
+             binary_minimize (do_test new_timeout) result facts
            else
-             sublinear_minimize (do_test new_timeout) facts ([], result)
+             linear_minimize (do_test new_timeout) facts ([], result)
          val _ = print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
