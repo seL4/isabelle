@@ -51,8 +51,7 @@ we want to write a ML function that generates a logarithmic
 certificate that the content of the nodes is distinct. We use the
 following lemmas to achieve this.  *} 
 
-lemma all_distinct_left:
-"all_distinct (Node l x b r) \<Longrightarrow> all_distinct l"
+lemma all_distinct_left: "all_distinct (Node l x b r) \<Longrightarrow> all_distinct l"
   by simp
 
 lemma all_distinct_right: "all_distinct (Node l x b r) \<Longrightarrow> all_distinct r"
@@ -164,8 +163,8 @@ next
   qed
 qed
 
-lemma delete_Some_all_distinct: 
-"\<And>t'. \<lbrakk>delete x t = Some t'; all_distinct t\<rbrakk> \<Longrightarrow> all_distinct t'"
+lemma delete_Some_all_distinct:
+  "\<And>t'. \<lbrakk>delete x t = Some t'; all_distinct t\<rbrakk> \<Longrightarrow> all_distinct t'"
 proof (induct t)
   case Tip thus ?case by simp
 next
