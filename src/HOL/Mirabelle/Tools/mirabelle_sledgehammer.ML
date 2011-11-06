@@ -405,11 +405,11 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
-      ({outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
+      ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
         preplay = K (ATP_Reconstruct.Failed_to_Play ATP_Reconstruct.Metis),
         message = K "", message_tail = ""}, ~1)
-    val ({outcome, used_facts, run_time_in_msecs, preplay, message,
-          message_tail} : Sledgehammer_Provers.prover_result,
+    val ({outcome, used_facts, run_time, preplay, message, message_tail}
+         : Sledgehammer_Provers.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val _ = if is_appropriate_prop concl_t then ()
@@ -431,7 +431,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
       in prover params (K (K "")) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
-    val time_prover = run_time_in_msecs |> the_default ~1
+    val time_prover = run_time |> Time.toMilliseconds
     val msg = message (preplay ()) ^ message_tail
   in
     case outcome of

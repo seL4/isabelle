@@ -160,24 +160,23 @@ fun binary_minimize test timeout result xs =
    part of the timeout. *)
 val slack_msecs = 200
 
+fun new_timeout timeout run_time =
+  Int.min (Time.toMilliseconds timeout,
+           Time.toMilliseconds run_time + slack_msecs)
+  |> Time.fromMilliseconds
+
 fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
                    facts =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
-    val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimizer: " ^
                                    quote prover_name ^ ".")
     fun test timeout = test_facts params silent prover timeout i n state
-    val timer = Timer.startRealTimer ()
   in
     (case test timeout facts of
-       result as {outcome = NONE, used_facts, ...} =>
+       result as {outcome = NONE, used_facts, run_time, ...} =>
        let
-         val time = Timer.checkRealTimer timer
-         val timeout =
-           Int.min (msecs, Time.toMilliseconds time + slack_msecs)
-           |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
          val min = 
            if length facts >= Config.get ctxt binary_min_facts then
@@ -185,7 +184,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            else
              linear_minimize
          val (min_facts, {preplay, message, message_tail, ...}) =
-           min test timeout result facts
+           min test (new_timeout timeout run_time) result facts
          val _ = print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
@@ -197,7 +196,8 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
         (preplay,
          fn _ => "Timeout: You can increase the time limit using the \
                  \\"timeout\" option (e.g., \"timeout = " ^
-                 string_of_int (10 + msecs div 1000) ^ "\").",
+                 string_of_int (10 + Time.toMilliseconds timeout div 1000) ^
+                 "\").",
          ""))
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message, "")))
