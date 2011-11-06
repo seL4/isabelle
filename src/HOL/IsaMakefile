@@ -1299,11 +1299,12 @@ $(LOG)/HOL-Word-Examples.gz: $(OUT)/HOL-Word Word/Examples/ROOT.ML	\
 
 HOL-Statespace: HOL $(LOG)/HOL-Statespace.gz
 
-$(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
-  Statespace/StateFun.thy Statespace/StateSpaceLocale.thy		\
-  Statespace/StateSpaceSyntax.thy Statespace/StateSpaceEx.thy		\
-  Statespace/distinct_tree_prover.ML Statespace/state_space.ML		\
-  Statespace/state_fun.ML Statespace/document/root.tex
+$(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/ROOT.ML			\
+  Statespace/DistinctTreeProver.thy Statespace/StateFun.thy		\
+  Statespace/StateSpaceLocale.thy Statespace/StateSpaceSyntax.thy	\
+  Statespace/StateSpaceEx.thy Statespace/distinct_tree_prover.ML	\
+  Statespace/state_space.ML Statespace/state_fun.ML			\
+  Statespace/document/root.tex
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Statespace
 
 
