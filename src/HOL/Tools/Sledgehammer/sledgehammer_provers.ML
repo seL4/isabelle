@@ -52,7 +52,7 @@ sig
   type prover_result =
     {outcome: failure option,
      used_facts: (string * locality) list,
-     run_time_in_msecs: int option,
+     run_time_in_msecs: int,
      preplay: unit -> play,
      message: play -> string,
      message_tail: string}
@@ -323,7 +323,7 @@ type prover_problem =
 type prover_result =
   {outcome: failure option,
    used_facts: (string * locality) list,
-   run_time_in_msecs: int option,
+   run_time_in_msecs: int,
    preplay: unit -> play,
    message: play -> string,
    message_tail: string}
@@ -797,7 +797,7 @@ fun run_atp mode name
       | SOME failure =>
         ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time_in_msecs = SOME msecs,
+    {outcome = outcome, used_facts = used_facts, run_time_in_msecs = msecs,
      preplay = preplay, message = message, message_tail = message_tail}
   end
 
@@ -929,7 +929,7 @@ fun smt_filter_loop ctxt name
         else
           {outcome = if is_none outcome then NONE else the outcome0,
            used_facts = used_facts,
-           run_time_in_msecs = SOME (Time.toMilliseconds time_so_far)}
+           run_time_in_msecs = Time.toMilliseconds time_so_far}
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
@@ -969,8 +969,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             in one_line_proof_text one_line_params end,
          if verbose then
            "\nSMT solver real CPU time: " ^
-           string_from_time (Time.fromMilliseconds
-                                 (the run_time_in_msecs)) ^ "."
+           string_from_time (Time.fromMilliseconds run_time_in_msecs) ^ "."
          else
            "")
       | SOME failure =>
@@ -995,7 +994,7 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
                              [reconstructor] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts,
-       run_time_in_msecs = SOME (Time.toMilliseconds time),
+       run_time_in_msecs = Time.toMilliseconds time,
        preplay = K play,
        message = fn play =>
                     let
@@ -1008,7 +1007,7 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
       let
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
-        {outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
+        {outcome = SOME failure, used_facts = [], run_time_in_msecs = ~1,
          preplay = K play, message = fn _ => string_for_failure failure,
          message_tail = ""}
       end

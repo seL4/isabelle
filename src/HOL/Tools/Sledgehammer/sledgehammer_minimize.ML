@@ -80,11 +80,9 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
               | NONE =>
                 "Found proof" ^
                  (if length used_facts = length facts then ""
-                  else " with " ^ n_facts used_facts) ^
-                 (case run_time_in_msecs of
-                    SOME ms =>
-                    " (" ^ string_from_time (Time.fromMilliseconds ms) ^ ")"
-                  | NONE => "") ^ ".");
+                  else " with " ^ n_facts used_facts) ^ " (" ^
+                 string_from_time (Time.fromMilliseconds run_time_in_msecs) ^
+                 ").");
     result
   end
 

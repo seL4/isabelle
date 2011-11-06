@@ -91,9 +91,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
               fun can_min_fast_enough msecs =
                 0.001 * Real.fromInt ((num_facts + 2) * msecs)
                 <= Config.get ctxt auto_minimize_max_time
-              val prover_fast_enough =
-                run_time_in_msecs |> Option.map can_min_fast_enough
-                                  |> the_default false
+              val prover_fast_enough = can_min_fast_enough run_time_in_msecs
             in
               if isar_proof then
                 ((prover_fast_enough, name), preplay)
