@@ -38,8 +38,8 @@ fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
     (if n > 0 then
-       ": " ^ (names |> map fst
-                     |> sort_distinct string_ord |> space_implode " ")
+       ": " ^ (names |> map fst |> sort_distinct string_ord
+                     |> space_implode " ")
      else
        "")
   end
@@ -110,19 +110,21 @@ fun sublinear_minimize _ [] p = p
 fun binary_minimize test xs =
   let
     fun pred xs = #outcome (test xs : prover_result) = NONE
-    fun split [] p = p
-      | split [h] (l, r) = (h :: l, r)
-      | split (h1 :: h2 :: t) (l, r) = split t (h1 :: l, h2 :: r)
     fun min _ _ [] = raise Empty
       | min _ _ [s0] = [s0]
       | min depth sup xs =
         let
+          val (l0, r0) = chop ((length xs + 1) div 2) xs
 (*
-          val _ = warning (replicate_string depth " " ^ "{" ^ ("  " ^
-                           n_facts (map fst sup) ^ " and " ^
-                           n_facts (map fst xs)))
+          val _ = warning (replicate_string depth " " ^ "{ " ^
+                           "sup: " ^ n_facts (map fst sup))
+          val _ = warning (replicate_string depth " " ^ "  " ^
+                           "xs: " ^ n_facts (map fst xs))
+          val _ = warning (replicate_string depth " " ^ "  " ^
+                           "l0: " ^ n_facts (map fst l0))
+          val _ = warning (replicate_string depth " " ^ "  " ^
+                           "r0: " ^ n_facts (map fst r0))
 *)
-          val (l0, r0) = split xs ([], [])
         in
           if pred (sup @ l0) then
             min (depth + 1) sup l0
