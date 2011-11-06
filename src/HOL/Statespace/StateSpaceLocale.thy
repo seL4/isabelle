@@ -19,21 +19,20 @@ locale project_inject =
  fixes project :: "'value \<Rightarrow> 'a"
   and inject :: "'a \<Rightarrow> 'value"
  assumes project_inject_cancel [statefun_simp]: "project (inject x) = x"
+begin
 
-lemma (in project_inject)
- ex_project [statefun_simp]: "\<exists>v. project v = x"
-  apply (rule_tac x= "inject x" in exI)
-  apply (simp add: project_inject_cancel)
-  done
+lemma ex_project [statefun_simp]: "\<exists>v. project v = x"
+proof
+  show "project (inject x) = x"
+    by (rule project_inject_cancel)
+qed
 
-lemma (in project_inject)
- project_inject_comp_id [statefun_simp]: "project \<circ> inject = id"
+lemma project_inject_comp_id [statefun_simp]: "project \<circ> inject = id"
   by (rule ext) (simp add: project_inject_cancel)
 
-lemma (in project_inject)
- project_inject_comp_cancel[statefun_simp]: "f \<circ> project \<circ> inject = f"
+lemma project_inject_comp_cancel[statefun_simp]: "f \<circ> project \<circ> inject = f"
   by (rule ext) (simp add: project_inject_cancel)
 
-
+end
 
 end

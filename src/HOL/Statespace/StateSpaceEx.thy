@@ -12,12 +12,9 @@ syntax
  "_statespace_updates" :: "('a \<Rightarrow> 'b) \<Rightarrow> updbinds \<Rightarrow> ('a \<Rightarrow> 'b)" ("_\<langle>_\<rangle>" [900,0] 900)
 (*>*)
 
-text {* Did you ever dream about records with multiple inheritance.
+text {* Did you ever dream about records with multiple inheritance?
 Then you should definitely have a look at statespaces. They may be
-what you are dreaming of. Or at least almost...
-*}
-
-
+what you are dreaming of. Or at least almost \dots  *}
 
 
 text {* Isabelle allows to add new top-level commands to the
@@ -169,12 +166,12 @@ lemma (in loo) loo1:
 proof -
   thm foo1
   txt {* The Lemma @{thm [source] foo1} from the parent state space 
-         is also available here: \begin{center}@{thm foo1}\end{center}.*}
+         is also available here: \begin{center}@{thm foo1}\end{center} *}
   have "s<a:=i>\<cdot>a = i"
     by (rule foo1)
   thm bar1
   txt {* Note the renaming of the parameters in Lemma @{thm [source] bar1}: 
-         \begin{center}@{thm bar1}\end{center}.*}
+         \begin{center}@{thm bar1}\end{center} *}
   have "s<B:=True>\<cdot>C = s\<cdot>C"
     by (rule bar1)
   show ?thesis
@@ -198,9 +195,9 @@ lemma (in dup)
   by simp
 
 
-text {* Hmm, I hoped this would work now...*}
-
 (*
+text "Hmm, I hoped this would work now..."
+
 locale fooX = foo +
  assumes "s<a:=i>\<cdot>b = k"
 *)

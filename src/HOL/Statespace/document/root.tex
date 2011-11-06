@@ -20,26 +20,34 @@
 
 \section{Introduction}
 
-These theories introduce a new command called \isacommand{statespace}. 
-It's usage is similar to \isacommand{record}s. However, the command does not introduce a new type but an
-abstract specification based on the locale infrastructure. This leads
-to extra flexibility in composing state space components, in particular
-multiple inheritance and renaming of components.
+These theories introduce a new command called \isacommand{statespace}.
+It's usage is similar to \isacommand{record}s. However, the command
+does not introduce a new type but an abstract specification based on
+the locale infrastructure. This leads to extra flexibility in
+composing state space components, in particular multiple inheritance
+and renaming of components.
 
 The state space infrastructure basically manages the following things:
 \begin{itemize}
 \item distinctness of field names
 \item projections~/ injections from~/ to an abstract \emph{value} type
-\item syntax translations for lookup and update, hiding the projections and injections
-\item simplification procedure for lookups~/ updates, similar to records
+\item syntax translations for lookup and update, hiding the
+  projections and injections
+\item simplification procedure for lookups~/ updates, similar to
+  records
 \end{itemize}
 
 
 \paragraph{Overview}
-In Section \ref{sec:DistinctTreeProver} we define distinctness of the nodes in a binary tree and provide the basic prover tools to support efficient distinctness reasoning for field names managed by 
-state spaces. The state is represented as a function from (abstract) names to (abstract) values as
-introduced in Section \ref{sec:StateFun}. The basic setup for state spaces is in Section 
-\ref{sec:StateSpaceLocale}. Some syntax for lookup and updates is added in Section \ref{sec:StateSpaceSyntax}. Finally Section \ref{sec:Examples} explains the usage of state spaces by examples.
+In Section \ref{sec:DistinctTreeProver} we define distinctness of the
+nodes in a binary tree and provide the basic prover tools to support
+efficient distinctness reasoning for field names managed by state
+spaces. The state is represented as a function from (abstract) names
+to (abstract) values as introduced in Section \ref{sec:StateFun}. The
+basic setup for state spaces is in Section
+\ref{sec:StateSpaceLocale}. Some syntax for lookup and updates is
+added in Section \ref{sec:StateSpaceSyntax}. Finally Section
+\ref{sec:Examples} explains the usage of state spaces by examples.
 
 
 % generated text of all theories
