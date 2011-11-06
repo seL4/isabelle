@@ -124,7 +124,7 @@ open Sledgehammer_Filter
 
 datatype mode = Auto_Try | Try | Normal | Minimize
 
-(* Identifier to distinguish Sledgehammer from other tools using
+(* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
@@ -147,8 +147,7 @@ val is_atp = member (op =) o supported_atps
 
 val select_smt_solver = Context.proof_map o SMT_Config.select_solver
 
-fun is_smt_prover ctxt name =
-  member (op =) (SMT_Solver.available_solvers_of ctxt) name
+fun is_smt_prover ctxt = member (op =) (SMT_Solver.available_solvers_of ctxt)
 
 fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -162,9 +161,9 @@ fun is_atp_for_format is_format ctxt name =
 val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
 val is_ho_atp = is_atp_for_format is_format_higher_order
 
-fun is_prover_supported ctxt name =
+fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_metis_prover name orelse is_atp thy name orelse is_smt_prover ctxt name
+    is_metis_prover orf is_atp thy orf is_smt_prover ctxt
   end
 
 fun is_prover_installed ctxt =
