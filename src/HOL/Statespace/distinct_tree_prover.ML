@@ -24,18 +24,7 @@ end;
 structure DistinctTreeProver : DISTINCT_TREE_PROVER =
 struct
 
-val all_distinct_left = @{thm DistinctTreeProver.all_distinct_left};
-val all_distinct_right = @{thm DistinctTreeProver.all_distinct_right};
-
-val distinct_left = @{thm DistinctTreeProver.distinct_left};
-val distinct_right = @{thm DistinctTreeProver.distinct_right};
-val distinct_left_right = @{thm DistinctTreeProver.distinct_left_right};
-val in_set_root = @{thm DistinctTreeProver.in_set_root};
-val in_set_left = @{thm DistinctTreeProver.in_set_left};
-val in_set_right = @{thm DistinctTreeProver.in_set_right};
-
-val swap_neq = @{thm DistinctTreeProver.swap_neq};
-val neq_to_eq_False = @{thm DistinctTreeProver.neq_to_eq_False};
+val neq_to_eq_False = @{thm neq_to_eq_False};
 
 datatype direction = Left | Right;
 
@@ -180,7 +169,7 @@ local
 val (l_in_set_root, x_in_set_root, r_in_set_root) =
   let
     val (Node_l_x_d, r) =
-      cprop_of in_set_root
+      cprop_of @{thm in_set_root}
       |> Thm.dest_comb |> #2
       |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2 |> Thm.dest_comb;
     val (Node_l, x) = Node_l_x_d |> Thm.dest_comb |> #1 |> Thm.dest_comb;
@@ -190,7 +179,7 @@ val (l_in_set_root, x_in_set_root, r_in_set_root) =
 val (x_in_set_left, r_in_set_left) =
   let
     val (Node_l_x_d, r) =
-      cprop_of in_set_left
+      cprop_of @{thm in_set_left}
       |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
       |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2 |> Thm.dest_comb;
     val x = Node_l_x_d |> Thm.dest_comb |> #1 |> Thm.dest_comb |> #2;
@@ -199,7 +188,7 @@ val (x_in_set_left, r_in_set_left) =
 val (x_in_set_right, l_in_set_right) =
   let
     val (Node_l, x) =
-      cprop_of in_set_right
+      cprop_of @{thm in_set_right}
       |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
       |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
       |> Thm.dest_comb |> #1 |> Thm.dest_comb |> #1
@@ -221,7 +210,8 @@ fun distinctTreeProver dist_thm x_path y_path =
     fun dist_subtree [] thm = thm
       | dist_subtree (p :: ps) thm =
          let
-           val rule = (case p of Left => all_distinct_left | Right => all_distinct_right)
+           val rule =
+            (case p of Left => @{thm all_distinct_left} | Right => @{thm all_distinct_right})
          in dist_subtree ps (discharge [thm] rule) end;
 
     val (ps, x_rest, y_rest) = split_common_prefix x_path y_path;
@@ -238,14 +228,14 @@ fun distinctTreeProver dist_thm x_path y_path =
           [] =>
             instantiate
               [(ctyp_of_term x_in_set_root, xT)]
-              [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] in_set_root
+              [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] @{thm in_set_root}
         | Left :: ps' =>
             let
               val in_set_l = in_set ps' l;
               val in_set_left' =
                 instantiate
                   [(ctyp_of_term x_in_set_left, xT)]
-                  [(x_in_set_left, x), (r_in_set_left, r)] in_set_left;
+                  [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
             in discharge [in_set_l] in_set_left' end
         | Right :: ps' =>
             let
@@ -253,7 +243,7 @@ fun distinctTreeProver dist_thm x_path y_path =
               val in_set_right' =
                 instantiate
                   [(ctyp_of_term x_in_set_right, xT)]
-                  [(x_in_set_right, x), (l_in_set_right, l)] in_set_right;
+                  [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
             in discharge [in_set_r] in_set_right' end)
       end;
 
@@ -261,8 +251,8 @@ fun distinctTreeProver dist_thm x_path y_path =
     | in_set' (Left :: ps) = in_set ps l
     | in_set' (Right :: ps) = in_set ps r;
 
-  fun distinct_lr node_in_set Left  = discharge [dist_subtree_thm,node_in_set] distinct_left
-    | distinct_lr node_in_set Right = discharge [dist_subtree_thm,node_in_set] distinct_right
+  fun distinct_lr node_in_set Left = discharge [dist_subtree_thm, node_in_set] @{thm distinct_left}
+    | distinct_lr node_in_set Right = discharge [dist_subtree_thm, node_in_set] @{thm distinct_right}
 
   val (swap, neq) =
     (case x_rest of
@@ -280,35 +270,29 @@ fun distinctTreeProver dist_thm x_path y_path =
               val y_in_set = in_set' y_rest;
             in
               (case xr of
-                Left => (false, discharge [dist_subtree_thm,x_in_set,y_in_set] distinct_left_right)
-              | Right => (true, discharge [dist_subtree_thm,y_in_set,x_in_set] distinct_left_right))
+                Left =>
+                  (false, discharge [dist_subtree_thm, x_in_set, y_in_set] @{thm distinct_left_right})
+              | Right =>
+                  (true, discharge [dist_subtree_thm, y_in_set, x_in_set] @{thm distinct_left_right}))
            end));
-  in if swap then discharge [neq] swap_neq else neq end;
+  in if swap then discharge [neq] @{thm swap_neq} else neq end;
 
 
-val delete_root = @{thm delete_root};
-val delete_left = @{thm delete_left};
-val delete_right = @{thm delete_right};
-
-fun deleteProver dist_thm [] = delete_root OF [dist_thm]
+fun deleteProver dist_thm [] = @{thm delete_root} OF [dist_thm]
   | deleteProver dist_thm (p::ps) =
       let
-        val dist_rule = (case p of Left => all_distinct_left | Right => all_distinct_right);
+        val dist_rule =
+          (case p of Left => @{thm all_distinct_left} | Right => @{thm all_distinct_right});
         val dist_thm' = discharge [dist_thm] dist_rule;
-        val del_rule = (case p of Left => delete_left | Right => delete_right);
+        val del_rule = (case p of Left => @{thm delete_left} | Right => @{thm delete_right});
         val del = deleteProver dist_thm' ps;
       in discharge [dist_thm, del] del_rule end;
-
-val subtract_Tip = @{thm subtract_Tip};
-val subtract_Node = @{thm subtract_Node};
-val delete_Some_all_distinct = @{thm delete_Some_all_distinct};
-val subtract_Some_all_distinct_res = @{thm subtract_Some_all_distinct_res};
 
 local
   val (alpha, v) =
     let
       val ct =
-        subtract_Tip |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
+        @{thm subtract_Tip} |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
         |> Thm.dest_comb |> #2;
       val [alpha] = ct |> Thm.ctyp_of_term |> Thm.dest_ctyp;
     in (alpha, #1 (dest_Var (term_of ct))) end;
@@ -322,7 +306,7 @@ fun subtractProver (Const (@{const_name Tip}, T)) ct dist_thm =
       in
         Thm.instantiate
           ([(alpha, ctyp_of thy alphaI)],
-           [(cterm_of thy (Var (v, treeT alphaI)), ct')]) subtract_Tip
+           [(cterm_of thy (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
       end
   | subtractProver (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
       let
@@ -330,22 +314,20 @@ fun subtractProver (Const (@{const_name Tip}, T)) ct dist_thm =
         val (_, [cl, _, _, cr]) = Drule.strip_comb ct;
         val ps = the (find_tree x (term_of ct'));
         val del_tree = deleteProver dist_thm ps;
-        val dist_thm' = discharge [del_tree, dist_thm] delete_Some_all_distinct;
+        val dist_thm' = discharge [del_tree, dist_thm] @{thm delete_Some_all_distinct};
         val sub_l = subtractProver (term_of cl) cl (dist_thm');
         val sub_r =
           subtractProver (term_of cr) cr
-            (discharge [sub_l, dist_thm'] subtract_Some_all_distinct_res);
-      in discharge [del_tree, sub_l, sub_r] subtract_Node end;
+            (discharge [sub_l, dist_thm'] @{thm subtract_Some_all_distinct_res});
+      in discharge [del_tree, sub_l, sub_r] @{thm subtract_Node} end;
 
 end;
-
-val subtract_Some_all_distinct = @{thm subtract_Some_all_distinct};
 
 fun distinct_implProver dist_thm ct =
   let
     val ctree = ct |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
     val sub = subtractProver (term_of ctree) ctree dist_thm;
-  in subtract_Some_all_distinct OF [sub, dist_thm] end;
+  in @{thm subtract_Some_all_distinct} OF [sub, dist_thm] end;
 
 fun get_fst_success f [] = NONE
   | get_fst_success f (x :: xs) =
@@ -381,7 +363,7 @@ fun distinct_simproc names =
     (fn thy => fn ss => fn (Const (@{const_name HOL.eq}, _) $ x $ y) =>
       (case try Simplifier.the_context ss of
         SOME ctxt =>
-          Option.map (fn neq => neq_to_eq_False OF [neq])
+          Option.map (fn neq => @{thm neq_to_eq_False} OF [neq])
             (get_fst_success (neq_x_y ctxt x y) names)
       | NONE => NONE));
 
