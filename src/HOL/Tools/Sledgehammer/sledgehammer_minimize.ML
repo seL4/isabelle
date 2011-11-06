@@ -97,17 +97,20 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
    actually needed, we heuristically set the threshold to 10 facts. *)
 val binary_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
-                          (K 10)
+                          (K 20)
 
-fun linear_minimize _ [] p = p
-  | linear_minimize test (x :: xs) (seen, result) =
-    case test (xs @ seen) of
-      result as {outcome = NONE, used_facts, ...} : prover_result =>
-      linear_minimize test (filter_used_facts used_facts xs)
+fun linear_minimize test timeout result xs =
+  let
+    fun min _ [] p = p
+      | min timeout (x :: xs) (seen, result) =
+        case test timeout (xs @ seen) of
+          result as {outcome = NONE, used_facts, ...} : prover_result =>
+          min timeout (filter_used_facts used_facts xs)
                       (filter_used_facts used_facts seen, result)
-    | _ => linear_minimize test xs (x :: seen, result)
+        | _ => min timeout xs (x :: seen, result)
+  in min timeout xs ([], result) end
 
-fun binary_minimize test result xs =
+fun binary_minimize test timeout result xs =
   let
     fun min depth result sup (xs as _ :: _ :: _) =
         let
@@ -124,12 +127,12 @@ fun binary_minimize test result xs =
 *)
           val depth = depth + 1
         in
-          case test (sup @ l0) of
+          case test timeout (sup @ l0) of
             result as {outcome = NONE, used_facts, ...} : prover_result =>
             min depth result (filter_used_facts used_facts sup)
                       (filter_used_facts used_facts l0)
           | _ =>
-            case test (sup @ r0) of
+            case test timeout (sup @ r0) of
               result as {outcome = NONE, used_facts, ...} =>
               min depth result (filter_used_facts used_facts sup)
                         (filter_used_facts used_facts r0)
@@ -149,7 +152,7 @@ fun binary_minimize test result xs =
   in
     case snd (min 0 result [] xs) of
       ([x], result) =>
-      (case test [] of
+      (case test timeout [] of
          result as {outcome = NONE, ...} => ([], result)
        | _ => ([x], result))
     | p => p
@@ -168,22 +171,24 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
     val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimizer: " ^
                                    quote prover_name ^ ".")
-    fun do_test timeout = test_facts params silent prover timeout i n state
+    fun test timeout = test_facts params silent prover timeout i n state
     val timer = Timer.startRealTimer ()
   in
-    (case do_test timeout facts of
+    (case test timeout facts of
        result as {outcome = NONE, used_facts, ...} =>
        let
          val time = Timer.checkRealTimer timer
-         val new_timeout =
+         val timeout =
            Int.min (msecs, Time.toMilliseconds time + slack_msecs)
            |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
-         val (min_facts, {preplay, message, message_tail, ...}) =
+         val min = 
            if length facts >= Config.get ctxt binary_min_facts then
-             binary_minimize (do_test new_timeout) result facts
+             binary_minimize
            else
-             linear_minimize (do_test new_timeout) facts ([], result)
+             linear_minimize
+         val (min_facts, {preplay, message, message_tail, ...}) =
+           min test timeout result facts
          val _ = print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
