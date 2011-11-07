@@ -30,9 +30,7 @@ val sledgehammer_mtd : mtd
 *)
 val nitpick_mtd : mtd
 
-(*
 val refute_mtd : mtd
-*)
 
 val freezeT : term -> term
 val thms_of : bool -> theory -> thm list
@@ -175,25 +173,25 @@ fun invoke_sledgehammer thy t =
 
 val sledgehammer_mtd = ("sledgehammer", invoke_sledgehammer)
 *)
-(*
+
 fun invoke_refute thy t =
   let
-    val res = MyRefute.refute_term thy [] t
+    val params = []
+    val res = Refute.refute_term (Proof_Context.init_global thy) params [] t
     val _ = Output.urgent_message ("Refute: " ^ res)
   in
-    case res of
+    (rpair []) (case res of
       "genuine" => GenuineCex
     | "likely_genuine" => GenuineCex
     | "potential" => PotentialCex
     | "none" => NoCex
     | "unknown" => Donno
-    | _ => Error
+    | _ => Error)
   end
-  handle MyRefute.REFUTE (loc, details) =>
+  handle Refute.REFUTE (loc, details) =>
          (error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^
                    "."))
 val refute_mtd = ("refute", invoke_refute)
-*)
 
 (** nitpick **)
 

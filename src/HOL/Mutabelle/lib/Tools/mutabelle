@@ -94,7 +94,10 @@ val mtds = [
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false) \"narrowing_no_finite_types\",
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false
     #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ nat}])))) \"narrowing_nat\"
-(*  MutabelleExtra.nitpick_mtd *)
+(*
+, MutabelleExtra.refute_mtd,
+  MutabelleExtra.nitpick_mtd
+*)
 ]
 *}
 
@@ -124,11 +127,11 @@ end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 # make statistics
 
 function count() {
-  cat "$MUTABELLE_OUTPUT_PATH/log" | grep "$1: $2" | wc -l
+  cat "$MUTABELLE_OUTPUT_PATH/log" | grep "$1: $2" | wc -l | sed "s/     //"
 }
 
 function mk_stat() {
-  printf "%-40s : C: $(count $1 "GenuineCex") N: $(count $1 "NoCex") T: $(count $1 "Timeout") E: $(count $1 "Error")\n" "$1"
+  printf "%-40s C:$(count $1 "GenuineCex")  P:$(count $1 "PotentialCex")  N:$(count $1 "NoCex")  T:$(count $1 "Timeout")  D:$(count $1 "Donno")  E: $(count $1 "Error")\n" "$1"
 }
 
 mk_stat "quickcheck_random"
@@ -137,6 +140,7 @@ mk_stat "quickcheck_exhaustive_no_finite_types"
 mk_stat "quickcheck_narrowing"
 mk_stat "quickcheck_narrowing_no_finite_types"
 mk_stat "quickcheck_narrowing_nat"
+mk_stat "refute"
 mk_stat "nitpick"
 
 ## cleanup
