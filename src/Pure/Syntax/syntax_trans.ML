@@ -231,48 +231,24 @@ fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T)
 
 (* indexed syntax *)
 
-fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
-  | struct_ast_tr asts = Ast.mk_appl (Ast.Constant "_struct") asts;
-
-fun index_ast_tr ast =
-  Ast.mk_appl (Ast.Constant "_index") [Ast.mk_appl (Ast.Constant "_struct") [ast]];
-
-fun indexdefault_ast_tr [] = index_ast_tr (Ast.Constant "_indexdefault")
+fun indexdefault_ast_tr [] =
+      Ast.Appl [Ast.Constant "_index",
+        Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]]
   | indexdefault_ast_tr asts = raise Ast.AST ("indexdefault_ast_tr", asts);
 
-fun indexnum_ast_tr [ast] = index_ast_tr (Ast.mk_appl (Ast.Constant "_indexnum") [ast])
-  | indexnum_ast_tr asts = raise Ast.AST ("indexnum_ast_tr", asts);
-
-fun indexvar_ast_tr [] = Ast.mk_appl (Ast.Constant "_index") [Ast.Variable "some_index"]
+fun indexvar_ast_tr [] = Ast.Appl [Ast.Constant "_index", Ast.Variable "some_index"]
   | indexvar_ast_tr asts = raise Ast.AST ("indexvar_ast_tr", asts);
+
+fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
+  | struct_ast_tr asts = Ast.mk_appl (Ast.Constant "_struct") asts;
 
 fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
+fun the_struct [] = error "Illegal reference to implicit structure"
+  | the_struct (x :: _) = x;
 
-(* implicit structures *)
-
-fun the_struct structs i =
-  if 1 <= i andalso i <= length structs then nth structs (i - 1)
-  else error ("Illegal reference to implicit structure #" ^ string_of_int i);
-
-fun legacy_struct structs i =
-  let
-    val x = the_struct structs i;
-    val _ =
-      legacy_feature
-        ("Old-style numbered structure index " ^ quote ("\\<^sub>" ^ string_of_int i) ^
-          Position.str_of (Position.thread_data ()) ^
-          " -- use " ^ quote ("\\<^bsub>" ^ x ^ "\\<^esub>") ^ " instead" ^
-          (if i = 1 then " (may be omitted)" else ""))
-  in x end;
-
-fun struct_tr structs [Const ("_indexdefault", _)] = Syntax.free (the_struct structs 1)
-  | struct_tr structs [Const ("_index1", _)] = Syntax.free (legacy_struct structs 1)
-  | struct_tr structs [t as (Const ("_indexnum", _) $ Const (s, _))] =
-      (case Lexicon.read_nat s of
-        SOME i => Syntax.free (legacy_struct structs i)
-      | NONE => raise TERM ("struct_tr", [t]))
+fun struct_tr structs [Const ("_indexdefault", _)] = Syntax.free (the_struct structs)
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
@@ -517,17 +493,9 @@ end;
 fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
-
-(* implicit structures *)
-
-fun the_struct' structs s =
-  [(case Lexicon.read_nat s of
-    SOME i => Ast.Variable (the_struct structs i handle ERROR _ => raise Match)
-  | NONE => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
-
-fun struct_ast_tr' structs [Ast.Constant "_indexdefault"] = the_struct' structs "1"
-  | struct_ast_tr' structs [Ast.Appl [Ast.Constant "_indexnum", Ast.Constant s]] =
-      the_struct' structs s
+fun struct_ast_tr' structs [Ast.Constant "_indexdefault"] =
+      Ast.Appl [Ast.Constant "_free",
+        Ast.Variable (the_struct structs handle ERROR _ => raise Match)]
   | struct_ast_tr' _ _ = raise Match;
 
 
@@ -547,7 +515,6 @@ val pure_trfuns =
     ("_idtypdummy", idtypdummy_ast_tr),
     ("_bigimpl", bigimpl_ast_tr),
     ("_indexdefault", indexdefault_ast_tr),
-    ("_indexnum", indexnum_ast_tr),
     ("_indexvar", indexvar_ast_tr),
     ("_struct", struct_ast_tr)],
    [("_abs", abs_tr),

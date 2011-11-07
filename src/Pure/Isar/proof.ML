@@ -593,7 +593,7 @@ local
 fun gen_assume asm prep_att exp args state =
   state
   |> assert_forward
-  |> map_context_result (asm exp (Attrib.map_specs (prep_att (theory_of state)) args))
+  |> map_context_result (asm exp (Attrib.map_specs (map (prep_att (theory_of state))) args))
   |> these_factss [] |> #2;
 
 in
@@ -665,7 +665,9 @@ fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
   state
   |> assert_forward
   |> map_context_result (Proof_Context.note_thmss ""
-    (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state)) args))
+    (Attrib.map_facts_refs
+      (map (prep_atts (theory_of state)))
+      (prep_fact (context_of state)) args))
   |> these_factss (more_facts state)
   ||> opt_chain
   |> opt_result;
@@ -690,12 +692,12 @@ end;
 
 local
 
-fun gen_using f g prep_atts prep_fact args state =
+fun gen_using f g prep_att prep_fact args state =
   state
   |> assert_backward
   |> map_context_result
     (Proof_Context.note_thmss ""
-      (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state))
+      (Attrib.map_facts_refs (map (prep_att (theory_of state))) (prep_fact (context_of state))
         (no_binding args)))
   |> (fn (named_facts, state') =>
     state' |> map_goal I (fn (statement, _, using, goal, before_qed, after_qed) =>
@@ -916,7 +918,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
   let
     val thy = theory_of state;
     val ((names, attss), propp) =
-      Attrib.map_specs (prep_att thy) stmt |> split_list |>> split_list;
+      Attrib.map_specs (map (prep_att thy)) stmt |> split_list |>> split_list;
 
     fun after_qed' results =
       local_results ((names ~~ attss) ~~ results)

@@ -10,22 +10,27 @@ New in this Isabelle version
 instead.  INCOMPATIBILITY.
 
 * Ancient code generator for SML and its commands 'code_module',
- 'code_library', 'consts_code', 'types_code' have been discontinued.
-  Use commands of the generic code generator instead. INCOMPATIBILITY.
+'code_library', 'consts_code', 'types_code' have been discontinued.
+Use commands of the generic code generator instead. INCOMPATIBILITY.
 
-* Redundant attribute 'code_inline' has been discontinued. Use 'code_unfold'
-instead. INCOMPATIBILITY.
+* Redundant attribute 'code_inline' has been discontinued. Use
+'code_unfold' instead. INCOMPATIBILITY.
+
 
 *** HOL ***
 
-* 'Transitive_Closure.ntrancl': bounded transitive closure on relations.
+* Clarified attribute "mono_set": pure declararation without modifying
+the result of the fact expression.
 
-* 'Set.not_member' now qualifed.  INCOMPATIBILITY.
+* "Transitive_Closure.ntrancl": bounded transitive closure on
+relations.
 
-* 'sublists' moved to More_List.thy.  INCOMPATIBILITY.
+* Constant "Set.not_member" now qualifed.  INCOMPATIBILITY.
+
+* "sublists" moved to theory More_List.  INCOMPATIBILITY.
 
 * Theory Int: Discontinued many legacy theorems specific to type int.
-  INCOMPATIBILITY, use the corresponding generic theorems instead.
+INCOMPATIBILITY, use the corresponding generic theorems instead.
 
   zminus_zminus ~> minus_minus
   zminus_0 ~> minus_zero
@@ -62,17 +67,18 @@ instead. INCOMPATIBILITY.
   zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
   zero_le_zpower_abs ~> zero_le_power_abs
 
-* New case_product attribute to generate a case rule doing multiple case
-  distinctions at the same time: E.g.
+* New "case_product" attribute to generate a case rule doing multiple
+case distinctions at the same time.  E.g.
 
-    list.exhaust[case_product nat.exhaust]
+  list.exhaust [case_product nat.exhaust]
 
-  produces a rule which can be used to perform case distinction on both
-  a list and a nat.
+produces a rule which can be used to perform case distinction on both
+a list and a nat.
+
 
 *** FOL ***
 
-* New case_product attribute (see HOL).
+* New "case_product" attribute (see HOL).
 
 
 *** ML ***
