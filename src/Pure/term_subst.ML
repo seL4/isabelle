@@ -160,19 +160,26 @@ end;
 
 (* zero var indexes *)
 
-fun zero_var_inst vars =
-  fold (fn v as ((x, i), X) => fn (inst, used) =>
-    let
-      val (x', used') = Name.variant (if Name.is_bound x then "u" else x) used;
-    in if x = x' andalso i = 0 then (inst, used') else ((v, ((x', 0), X)) :: inst, used') end)
-  vars ([], Name.context) |> #1;
+structure TVars = Table(type key = indexname * sort val ord = Term_Ord.tvar_ord);
+structure Vars = Table(type key = indexname * typ val ord = Term_Ord.var_ord);
+
+fun zero_var_inst mk (v as ((x, i), X)) (inst, used) =
+  let
+    val (x', used') = Name.variant (if Name.is_bound x then "u" else x) used;
+  in if x = x' andalso i = 0 then (inst, used') else ((v, mk ((x', 0), X)) :: inst, used') end;
 
 fun zero_var_indexes_inst ts =
   let
-    val tvars = sort Term_Ord.tvar_ord (fold Term.add_tvars ts []);
-    val instT = map (apsnd TVar) (zero_var_inst tvars);
-    val vars = sort Term_Ord.var_ord (map (apsnd (instantiateT instT)) (fold Term.add_vars ts []));
-    val inst = map (apsnd Var) (zero_var_inst vars);
+    val (instT, _) =
+      TVars.fold (zero_var_inst TVar o #1)
+        ((fold o fold_types o fold_atyps) (fn TVar v =>
+          TVars.insert (K true) (v, ()) | _ => I) ts TVars.empty)
+        ([], Name.context);
+    val (inst, _) =
+      Vars.fold (zero_var_inst Var o #1)
+        ((fold o fold_aterms) (fn Var (xi, T) =>
+          Vars.insert (K true) ((xi, instantiateT instT T), ()) | _ => I) ts Vars.empty)
+        ([], Name.context);
   in (instT, inst) end;
 
 fun zero_var_indexes t = instantiate (zero_var_indexes_inst [t]) t;
