@@ -7,6 +7,7 @@ Proof methods for Z3 proof reconstruction.
 signature Z3_PROOF_METHODS =
 sig
   val prove_injectivity: Proof.context -> cterm -> thm
+  val prove_ite: cterm -> thm
 end
 
 structure Z3_Proof_Methods: Z3_PROOF_METHODS =
@@ -17,6 +18,22 @@ fun apply tac st =
   (case Seq.pull (tac 1 st) of
     NONE => raise THM ("tactic failed", 1, [st])
   | SOME (st', _) => st')
+
+
+
+(* if-then-else *)
+
+val pull_ite = mk_meta_eq
+  @{lemma "f (if P then x else y) = (if P then f x else f y)" by simp}
+
+fun pull_ites_conv ct =
+  (Conv.rewr_conv pull_ite then_conv
+   Conv.binop_conv (Conv.try_conv pull_ites_conv)) ct
+
+val prove_ite =
+  Z3_Proof_Tools.by_tac (
+    CONVERSION (Conv.arg_conv (Conv.arg1_conv pull_ites_conv))
+    THEN' Tactic.rtac @{thm refl})
 
 
 

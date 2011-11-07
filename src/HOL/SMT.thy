@@ -393,7 +393,6 @@ lemma [z3_rule]:
   "(if P then x = y else x = z) = (x = (if P then y else z))"
   "(if P then x = y else y = z) = (y = (if P then x else z))"
   "(if P then x = y else z = y) = (y = (if P then x else z))"
-  "f (if P then x else y) = (if P then f x else f y)"
   by auto
 
 lemma [z3_rule]:

@@ -715,6 +715,7 @@ val abstraction_depth = 3
 fun rewrite simpset ths ct ctxt =
   apfst Thm (declare_hyps ctxt (with_conv ctxt ths (try_apply ctxt [] [
     named ctxt "conj/disj/distinct" prove_conj_disj_eq,
+    named ctxt "pull-ite" Z3_Proof_Methods.prove_ite,
     Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
