@@ -160,8 +160,8 @@ local
   fun burrow_snd_option f (i, thm) = Option.map (pair i) (f thm)
 
   fun lookup_assm assms_net ct =
-    Z3_Proof_Tools.net_instance' burrow_snd_option assms_net ct
-    |> Option.map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
+    Z3_Proof_Tools.net_instances assms_net ct
+    |> map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
 in
 
 fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
@@ -183,7 +183,18 @@ fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
         val (thm', ctxt') = yield_singleton Assumption.add_assumes ct ctxt
       in (Thm.implies_elim thm thm', ctxt') end
 
-    fun add (idx, ct) ((is, thms), (ctxt, ptab)) =
+    fun add1 idx thm1 ((i, th), exact) ((is, thms), (ctxt, ptab)) =
+      let
+        val (thm, ctxt') =
+          if exact then (Thm.implies_elim thm1 th, ctxt)
+          else assume thm1 ctxt
+        val thms' = if exact then thms else th :: thms
+      in 
+        ((insert (op =) i is, thms'),
+          (ctxt', Inttab.update (idx, Thm thm) ptab))
+      end
+
+    fun add (idx, ct) (cx as ((is, thms), (ctxt, ptab))) =
       let
         val thm1 = 
           Thm.trivial ct
@@ -191,19 +202,10 @@ fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
         val thm2 = singleton (Variable.export ctxt outer_ctxt) thm1
       in
         (case lookup_assm assms_net (Thm.cprem_of thm2 1) of
-          NONE =>
+          [] =>
             let val (thm, ctxt') = assume thm1 ctxt
             in ((is, thms), (ctxt', Inttab.update (idx, Thm thm) ptab)) end
-        | SOME ((i, th), exact) =>
-            let
-              val (thm, ctxt') =
-                if exact then (Thm.implies_elim thm1 th, ctxt)
-                else assume thm1 ctxt
-              val thms' = if exact then thms else th :: thms
-            in 
-              ((insert (op =) i is, thms'),
-                (ctxt', Inttab.update (idx, Thm thm) ptab))
-            end)
+        | ithms => fold (add1 idx thm1) ithms cx)
       end
   in fold add asserted (([], []), (ctxt, Inttab.empty)) end
 
@@ -857,14 +859,15 @@ local
   fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl},
     @{thm reflexive}, Z3_Proof_Literals.true_thm]
 
-  fun discharge_tac rules =
-    Tactic.resolve_tac rules ORELSE' SOLVED' discharge_sk_tac
-
+  fun discharge_assms_tac rules =
+    REPEAT (HEADGOAL (
+      Tactic.resolve_tac rules ORELSE' SOLVED' discharge_sk_tac))
+    
   fun discharge_assms rules thm =
     if Thm.nprems_of thm = 0 then Goal.norm_result thm
     else
-      (case Seq.pull (discharge_tac rules 1 thm) of
-        SOME (thm', _) => discharge_assms rules thm'
+      (case Seq.pull (discharge_assms_tac rules thm) of
+        SOME (thm', _) => Goal.norm_result thm'
       | NONE => raise THM ("failed to discharge premise", 1, [thm]))
 
   fun discharge rules outer_ctxt (p, (inner_ctxt, _)) =

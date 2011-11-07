@@ -510,6 +510,19 @@ lemma
   by (smt eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
 
+context complete_lattice
+begin
+
+lemma 
+  assumes "Sup { a | i::bool . True } \<le> Sup { b | i::bool . True }"
+  and     "Sup { b | i::bool . True } \<le> Sup { a | i::bool . True }"
+  shows   "Sup { a | i::bool . True } \<le> Sup { a | i::bool . True }"
+  using assms by (smt order_trans)
+
+end
+
+
+
 section {* Monomorphization examples *}
 
 definition Pred :: "'a \<Rightarrow> bool" where "Pred x = True"

@@ -11,8 +11,7 @@ sig
 
   (*theorem nets*)
   val thm_net_of: ('a -> thm) -> 'a list -> 'a Net.net
-  val net_instance': ((thm -> thm option) -> 'a -> 'a option) -> 'a Net.net ->
-    cterm -> 'a option
+  val net_instances: (int * thm) Net.net -> cterm -> (int * thm) list
   val net_instance: thm Net.net -> cterm -> thm option
 
   (*proof combinators*)
@@ -68,16 +67,17 @@ local
     let
       val lookup = if match then Net.match_term else Net.unify_term
       val xthms = lookup net (Thm.term_of ct)
-      fun first_of f ct = get_first (f (maybe_instantiate ct)) xthms 
-      fun first_of' f ct =
+      fun select ct = map_filter (f (maybe_instantiate ct)) xthms 
+      fun select' ct =
         let val thm = Thm.trivial ct
-        in get_first (f (try (fn rule => rule COMP thm))) xthms end
-    in (case first_of f ct of NONE => first_of' f ct | some_thm => some_thm) end
+        in map_filter (f (try (fn rule => rule COMP thm))) xthms end
+    in (case select ct of [] => select' ct | xthms' => xthms') end
 in
 
-fun net_instance' f = instances_from_net false f
+val net_instances =
+  instances_from_net false (fn f => fn (i, thm) => Option.map (pair i) (f thm))
 
-val net_instance = instances_from_net true I
+val net_instance = try hd oo instances_from_net true I
 
 end
 
