@@ -22,5 +22,5 @@ else
 fi
 
 exec "$JAVA_EXE" -Dfile.encoding=UTF-8 $SERVER \
-  "-Djava.ext.dirs=$("$ISABELLE_HOME/lib/scripts/java_ext_dirs")" "$@"
+  "-Djava.ext.dirs=$("$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs")" "$@"
 

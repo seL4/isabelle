@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# Augment Java extension directories.
+
+## diagnostics
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+[ -n "$ISABELLE_HOME" ] || fail "Missing Isabelle settings environment"
+
+
+## main
+
+JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
+exec "$JAVA_EXE" -classpath "$(jvmpath "$ISABELLE_HOME/src/Tools/JVM/java_ext_dirs.jar")" \
+  isabelle.Java_Ext_Dirs "$(jvmpath "$ISABELLE_HOME/lib/classes/ext")"
+
