@@ -476,4 +476,8 @@ A980::nat A981::nat A982::nat A983::nat A984::nat A985::nat A986::nat
 A987::nat A988::nat A989::nat A990::nat A991::nat A992::nat A993::nat
 A994::nat A995::nat A996::nat A997::nat A998::nat A999::nat A1000::nat
 
+lemma (in benchmark100) test: "s<A1 := a>\<cdot>A100 = s\<cdot>A100" by simp
+lemma (in benchmark500) test: "s<A1 := a>\<cdot>A100 = s\<cdot>A100" by simp
+lemma (in benchmark1000) test: "s<A1 := a>\<cdot>A100 = s\<cdot>A100" by simp
+
 end
