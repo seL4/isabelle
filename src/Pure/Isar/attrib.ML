@@ -16,12 +16,12 @@ sig
   val defined: theory -> string -> bool
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
-  val map_specs: ('a -> 'att) ->
+  val map_specs: ('a list -> 'att list) ->
     (('c * 'a list) * 'b) list -> (('c * 'att list) * 'b) list
-  val map_facts: ('a -> 'att) ->
+  val map_facts: ('a list -> 'att list) ->
     (('c * 'a list) * ('d * 'a list) list) list ->
     (('c * 'att list) * ('d * 'att list) list) list
-  val map_facts_refs: ('a -> 'att) -> ('b -> 'fact) ->
+  val map_facts_refs: ('a list -> 'att list) -> ('b -> 'fact) ->
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
@@ -127,9 +127,9 @@ fun attribute thy = attribute_i thy o intern_src thy;
 
 (* attributed declarations *)
 
-fun map_specs f = map (apfst (apsnd (map f)));
+fun map_specs f = map (apfst (apsnd f));
 
-fun map_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))));
+fun map_facts f = map (apfst (apsnd f) o apsnd (map (apsnd f)));
 fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 
@@ -137,7 +137,7 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 fun eval_thms ctxt srcs = ctxt
   |> Proof_Context.note_thmss ""
-    (map_facts_refs (attribute (Proof_Context.theory_of ctxt)) (Proof_Context.get_fact ctxt)
+    (map_facts_refs (map (attribute (Proof_Context.theory_of ctxt))) (Proof_Context.get_fact ctxt)
       [((Binding.empty, []), srcs)])
   |> fst |> maps snd;
 

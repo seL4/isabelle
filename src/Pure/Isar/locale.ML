@@ -562,8 +562,9 @@ fun add_thmss loc kind args ctxt =
       (* Registrations *)
       (fn thy => fold_rev (fn (_, morph) =>
             let
-              val args'' = snd args' |> Element.facts_map (Element.transform_ctxt morph) |>
-                Attrib.map_facts (Attrib.attribute_i thy)
+              val args'' = snd args'
+                |> Element.facts_map (Element.transform_ctxt morph)
+                |> Attrib.map_facts (map (Attrib.attribute_i thy));
             in Global_Theory.note_thmss kind args'' #> snd end)
         (registrations_of (Context.Theory thy) loc) thy))
   in ctxt'' end;

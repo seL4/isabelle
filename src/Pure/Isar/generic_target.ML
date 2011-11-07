@@ -156,7 +156,7 @@ fun notes target_notes kind facts lthy =
   in
     lthy
     |> target_notes kind global_facts local_facts
-    |> Proof_Context.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
+    |> Proof_Context.note_thmss kind (Attrib.map_facts (map (Attrib.attribute_i thy)) local_facts)
   end;
 
 
@@ -212,7 +212,7 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
 fun theory_notes kind global_facts lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
+    val global_facts' = Attrib.map_facts (map (Attrib.attribute_i thy)) global_facts;
   in
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
