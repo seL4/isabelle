@@ -403,11 +403,11 @@ fun invent_types Ss ctxt =
 fun export_inst inner outer =
   let
     val declared_outer = is_declared outer;
+    fun still_fixed x = is_fixed outer x orelse not (is_fixed inner x);
 
     val gen_fixes =
       Symtab.fold (fn (y, _) => not (is_fixed outer y) ? cons y)
         (#2 (fixes_of inner)) [];
-    val still_fixed = not o member (op =) gen_fixes;
 
     val type_occs_inner = type_occs_of inner;
     fun gen_fixesT ts =
