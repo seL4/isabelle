@@ -115,7 +115,7 @@ end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 
 # execution
 
-"$ISABELLE_PROCESS" -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q "$MUTABELLE_LOGIC" > /dev/null 2>&1
+"$ISABELLE_PROCESS" -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q "$MUTABELLE_LOGIC" > "$MUTABELLE_OUTPUT_PATH/err" 2>&1
 
 
 [ $? -ne 0 ] && echo "isabelle processing of mutabelle failed"
@@ -128,7 +128,7 @@ function count() {
 }
 
 function mk_stat() {
-  echo "$1 : C: $(count $1 "GenuineCex") N: $(count $1 "NoCex") T: $(count $1 "Timeout") E: $(count $1 "Error")"
+  printf "%-40s : C: $(count $1 "GenuineCex") N: $(count $1 "NoCex") T: $(count $1 "Timeout") E: $(count $1 "Error")\n" "$1"
 }
 
 mk_stat "quickcheck_random"
