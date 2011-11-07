@@ -22,6 +22,8 @@ sig
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> Inductive.inductive_result * local_theory
+  val mono_add: attribute
+  val mono_del: attribute
   val codegen_preproc: theory -> thm list -> thm list
   val setup: theory -> theory
 end;
@@ -536,13 +538,12 @@ fun add_ind_set_def
 val add_inductive_i = Inductive.gen_add_inductive_i add_ind_set_def;
 val add_inductive = Inductive.gen_add_inductive add_ind_set_def;
 
-fun mono_att att =  (* FIXME really mixed_attribute!? *)
-  Thm.mixed_attribute (fn (context, thm) =>
-    let val thm' = to_pred [] context thm
-    in (Thm.attribute_declaration att thm' context, thm') end);
+fun mono_att att =
+  Thm.declaration_attribute (fn thm => fn context =>
+    Thm.attribute_declaration att (to_pred [] context thm) context);
 
-val mono_add_att = mono_att Inductive.mono_add;
-val mono_del_att = mono_att Inductive.mono_del;
+val mono_add = mono_att Inductive.mono_add;
+val mono_del = mono_att Inductive.mono_del;
 
 
 (** package setup **)
@@ -556,7 +557,7 @@ val setup =
     "convert rule to set notation" #>
   Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
     "convert rule to predicate notation" #>
-  Attrib.setup @{binding mono_set} (Attrib.add_del mono_add_att mono_del_att)
+  Attrib.setup @{binding mono_set} (Attrib.add_del mono_add mono_del)
     "declaration of monotonicity rule for set operators" #>
   Simplifier.map_simpset_global (fn ss => ss addsimprocs [collect_mem_simproc]);
 

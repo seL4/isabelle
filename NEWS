@@ -19,6 +19,9 @@ Use commands of the generic code generator instead. INCOMPATIBILITY.
 
 *** HOL ***
 
+* Clarified attribute "mono_set": pure declararation without modifying
+the result of the fact expression.
+
 * "Transitive_Closure.ntrancl": bounded transitive closure on
 relations.
 
