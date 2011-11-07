@@ -45,16 +45,17 @@ sig
   val get_default_params : Proof.context -> (string * string) list
   val actual_params      : Proof.context -> (string * string) list -> params
 
-  val find_model : Proof.context -> params -> term list -> term -> bool -> unit
+  val find_model :
+    Proof.context -> params -> term list -> term -> bool -> string
 
   (* tries to find a model for a formula: *)
   val satisfy_term :
-    Proof.context -> (string * string) list -> term list -> term -> unit
+    Proof.context -> (string * string) list -> term list -> term -> string
   (* tries to find a model that refutes a formula: *)
   val refute_term :
-    Proof.context -> (string * string) list -> term list -> term -> unit
+    Proof.context -> (string * string) list -> term list -> term -> string
   val refute_goal :
-    Proof.context -> (string * string) list -> thm -> int -> unit
+    Proof.context -> (string * string) list -> thm -> int -> string
 
   val setup : theory -> theory
 
@@ -1038,11 +1039,11 @@ fun find_model ctxt
     assm_ts t negate =
   let
     val thy = Proof_Context.theory_of ctxt
-    (* string -> unit *)
+    (* string -> string *)
     fun check_expect outcome_code =
-      if expect = "" orelse outcome_code = expect then ()
+      if expect = "" orelse outcome_code = expect then outcome_code
       else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-    (* unit -> unit *)
+    (* unit -> string *)
     fun wrapper () =
       let
         val timer = Timer.startRealTimer ()
@@ -1261,7 +1262,7 @@ fun refute_goal ctxt params th i =
     val t = th |> prop_of
   in
     if Logic.count_prems t = 0 then
-      Output.urgent_message "No subgoal!"
+      (Output.urgent_message "No subgoal!"; "none")
     else
       let
         val assms = map term_of (Assumption.all_assms_of ctxt)
@@ -3164,7 +3165,7 @@ val _ =
           let
             val ctxt = Toplevel.context_of state;
             val {goal = st, ...} = Proof.raw_goal (Toplevel.proof_of state);
-          in refute_goal ctxt parms st i end)));
+          in refute_goal ctxt parms st i; () end)));
 
 
 (* 'refute_params' command *)
