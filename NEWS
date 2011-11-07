@@ -76,6 +76,11 @@ produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
 
+* Nitpick:
+  - Fixed infinite loop caused by the 'peephole_optim' option and affecting
+    'rat' and 'real'.
+
+
 *** FOL ***
 
 * New "case_product" attribute (see HOL).

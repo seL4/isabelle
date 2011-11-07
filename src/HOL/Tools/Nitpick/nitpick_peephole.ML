@@ -358,8 +358,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       (case (r1, r2) of
          (Join (r11, Rel x), _) =>
          if x = not3_rel then s_rel_eq r11 (s_not3 r2) else raise SAME ()
-       | (_, Join (r21, Rel x)) =>
-         if x = not3_rel then s_rel_eq r21 (s_not3 r1) else raise SAME ()
        | (RelIf (f, r11, r12), _) =>
          if inline_rel_expr r2 then
            s_formula_if f (s_rel_eq r11 r2) (s_rel_eq r12 r2)
