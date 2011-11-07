@@ -246,21 +246,19 @@ lemma abelian_subgroupI2:
   shows "abelian_subgroup H G"
 proof -
   interpret comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  by (rule a_comm_group)
+    by (rule a_comm_group)
   interpret subgroup "H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  by (rule a_subgroup)
+    by (rule a_subgroup)
 
   show "abelian_subgroup H G"
-  apply unfold_locales
+    apply unfold_locales
   proof (simp add: r_coset_def l_coset_def, clarsimp)
     fix x
     assume xcarr: "x \<in> carrier G"
-    from a_subgroup
-        have Hcarr: "H \<subseteq> carrier G" by (unfold subgroup_def, simp)
-    from xcarr Hcarr
-        show "(\<Union>h\<in>H. {h \<oplus>\<^bsub>G\<^esub> x}) = (\<Union>h\<in>H. {x \<oplus>\<^bsub>G\<^esub> h})"
-        using m_comm[simplified]
-        by fast
+    from a_subgroup have Hcarr: "H \<subseteq> carrier G"
+      unfolding subgroup_def by simp
+    from xcarr Hcarr show "(\<Union>h\<in>H. {h \<oplus>\<^bsub>G\<^esub> x}) = (\<Union>h\<in>H. {x \<oplus>\<^bsub>G\<^esub> h})"
+      using m_comm [simplified] by fast
   qed
 qed
 
@@ -543,9 +541,10 @@ lemma abelian_group_homI:
 proof -
   interpret G: abelian_group G by fact
   interpret H: abelian_group H by fact
-  show ?thesis apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
-    apply fact
-    apply fact
+  show ?thesis
+    apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
+      apply fact
+     apply fact
     apply (rule a_group_hom)
     done
 qed
