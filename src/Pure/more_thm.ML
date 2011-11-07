@@ -403,7 +403,7 @@ fun rule_attribute f (x, th) = (NONE, SOME (f x th));
 fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
 fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
 
-fun apply_attribute att (x, th) =
+fun apply_attribute (att: attribute) (x, th) =
   let val (x', th') = att (x, th)
   in (the_default x x', the_default th th') end;
 
