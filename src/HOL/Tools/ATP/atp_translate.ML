@@ -787,7 +787,7 @@ fun add_term_vars bounds (ATerm (name as (s, _), tms)) =
     #> fold (add_term_vars bounds) tms
   | add_term_vars bounds (AAbs ((name, _), tm)) =
     add_term_vars (name :: bounds) tm
-val close_formula_universally = close_universally add_term_vars
+fun close_formula_universally phi = close_universally add_term_vars phi
 
 fun add_iterm_vars bounds (IApp (tm1, tm2)) =
     fold (add_iterm_vars bounds) [tm1, tm2]
