@@ -64,7 +64,7 @@ fun strip_cases ctac = ctac #> Seq.map snd;
 
 (*rewrite conclusion with k-th assumtion*)
 fun rewrite_with_asm_tac ctxt k =
-  Subgoal.FOCUS (fn {context=ctxt', prems, ...} =>
+  Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
     Local_Defs.unfold_tac ctxt' [nth prems k]) ctxt;
 
 fun dest_case thy t =
