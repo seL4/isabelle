@@ -1758,7 +1758,8 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"}
+    @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_pred"} & : & @{text "theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
   @{rail "
@@ -1839,7 +1840,17 @@ text {* For validation purposes, it is often useful to \emph{execute}
       ( @'functions' ( @{syntax string} + ) ) ? ( @'file' @{syntax string} ) ?
     ;
 
+    @@{command (HOL) code_pred} \\( '(' @'modes' ':' modedecl ')')? \\ const
+    ;
+
     syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
+    ;
+    
+    modedecl: (modes | ((const ':' modes) \\
+         (@'and' ((const ':' modes @'and') +))?))
+    ;
+    
+    modes: mode @'as' const
   "}
 
   \begin{description}
@@ -1954,6 +1965,12 @@ text {* For validation purposes, it is often useful to \emph{execute}
   entities.  With a ``@{text "file"}'' argument, the corresponding code
   is generated into that specified file without modifying the code
   generator setup.
+
+  \item @{command (HOL) "code_pred"} creates code equations for a predicate
+    given a set of introduction rules. Optional mode annotations determine
+    which arguments are supposed to be input or output. If alternative 
+    introduction rules are declared, one must prove a corresponding elimination
+    rule.
 
   \end{description}
 *}

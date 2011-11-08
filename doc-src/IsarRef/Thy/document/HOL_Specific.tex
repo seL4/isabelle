@@ -2557,7 +2557,8 @@ For validation purposes, it is often useful to \emph{execute}
     \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code-monad}{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}monad}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}include}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}modulename}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{code\_reflect}\hypertarget{command.HOL.code-reflect}{\hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
+    \indexdef{HOL}{command}{code\_reflect}\hypertarget{command.HOL.code-reflect}{\hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{code\_pred}\hypertarget{command.HOL.code-pred}{\hyperlink{command.HOL.code-pred}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
   \begin{railoutput}
@@ -2857,6 +2858,20 @@ For validation purposes, it is often useful to \emph{execute}
 \rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
 \rail@endbar
 \rail@end
+\rail@begin{6}{}
+\rail@term{\hyperlink{command.HOL.code-pred}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}}}}}[]
+\rail@cr{2}
+\rail@bar
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{modes}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\isa{modedecl}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@cr{5}
+\rail@nont{\isa{const}}[]
+\rail@end
 \rail@begin{4}{\isa{syntax}}
 \rail@bar
 \rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
@@ -2871,6 +2886,32 @@ For validation purposes, it is often useful to \emph{execute}
 \rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
 \rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
 \rail@endbar
+\rail@end
+\rail@begin{6}{\isa{modedecl}}
+\rail@bar
+\rail@nont{\isa{modes}}[]
+\rail@nextbar{1}
+\rail@nont{\isa{const}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\isa{modes}}[]
+\rail@cr{3}
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{and}}}[]
+\rail@plus
+\rail@nont{\isa{const}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\isa{modes}}[]
+\rail@term{\isa{\isakeyword{and}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@endbar
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{modes}}
+\rail@nont{\isa{mode}}[]
+\rail@term{\isa{\isakeyword{as}}}[]
+\rail@nont{\isa{const}}[]
 \rail@end
 \end{railoutput}
 
@@ -2984,6 +3025,12 @@ For validation purposes, it is often useful to \emph{execute}
   entities.  With a ``\isa{{\isaliteral{22}{\isachardoublequote}}file{\isaliteral{22}{\isachardoublequote}}}'' argument, the corresponding code
   is generated into that specified file without modifying the code
   generator setup.
+
+  \item \hyperlink{command.HOL.code-pred}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}}}} creates code equations for a predicate
+    given a set of introduction rules. Optional mode annotations determine
+    which arguments are supposed to be input or output. If alternative 
+    introduction rules are declared, one must prove a corresponding elimination
+    rule.
 
   \end{description}%
 \end{isamarkuptext}%
