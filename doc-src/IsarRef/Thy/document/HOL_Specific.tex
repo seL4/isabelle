@@ -2207,6 +2207,7 @@ Identifying incorrect propositions usually involves evaluation of
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{value}\hypertarget{command.HOL.value}{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{values}\hypertarget{command.HOL.values}{\hyperlink{command.HOL.values}{\mbox{\isa{\isacommand{values}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{quickcheck}\hypertarget{command.HOL.quickcheck}{\hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{refute}\hypertarget{command.HOL.refute}{\hyperlink{command.HOL.refute}{\mbox{\isa{\isacommand{refute}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{nitpick}\hypertarget{command.HOL.nitpick}{\hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
@@ -2227,6 +2228,18 @@ Identifying incorrect propositions usually involves evaluation of
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{modes}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.values}{\mbox{\isa{\isacommand{values}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{modes}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@end
@@ -2297,6 +2310,11 @@ Identifying incorrect propositions usually involves evaluation of
     evaluation using the simplifier, \isa{nbe} for
     \emph{normalization by evaluation} and \emph{code} for code
     generation in SML.
+
+  \item \hyperlink{command.HOL.values}{\mbox{\isa{\isacommand{values}}}}~\isa{t} enumerates a set comprehension
+    by evaluation and prints its values up to the given number of solutions;  
+    optionally \isa{modes} can be specified, which are
+    appended to the current print mode; see \secref{sec:print-modes}.
 
   \item \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}} tests the current goal for
     counterexamples using a series of assignments for its

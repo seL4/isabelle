@@ -1513,6 +1513,7 @@ text {*
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "values"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "quickcheck"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "refute"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "nitpick"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
@@ -1523,6 +1524,9 @@ text {*
 
   @{rail "
     @@{command (HOL) value} ( '[' name ']' )? modes? @{syntax term}
+    ;
+
+    @@{command (HOL) values} modes? @{syntax nat}? @{syntax term}
     ;
 
     (@@{command (HOL) quickcheck} | @@{command (HOL) refute} | @@{command (HOL) nitpick})
@@ -1553,6 +1557,11 @@ text {*
     evaluation using the simplifier, @{text nbe} for
     \emph{normalization by evaluation} and \emph{code} for code
     generation in SML.
+
+  \item @{command (HOL) "values"}~@{text t} enumerates a set comprehension
+    by evaluation and prints its values up to the given number of solutions;  
+    optionally @{text modes} can be specified, which are
+    appended to the current print mode; see \secref{sec:print-modes}.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
     counterexamples using a series of assignments for its
