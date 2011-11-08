@@ -449,7 +449,7 @@ text {* \medskip Apart from explicit arguments, common proof methods
 ML {*
   structure My_Simps =
     Named_Thms
-      (val name = "my_simp" val description = "my_simp rule")
+      (val name = @{binding my_simp} val description = "my_simp rule")
 *}
 setup My_Simps.setup
 
@@ -516,10 +516,10 @@ section {* Attributes \label{sec:attributes} *}
 
 text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
   context \<times> thm"}, which means both a (generic) context and a theorem
-  can be modified simultaneously.  In practice this fully general form
-  is very rare, instead attributes are presented either as
-  \emph{declaration attribute:} @{text "thm \<rightarrow> context \<rightarrow> context"} or
-  \emph{rule attribute:} @{text "context \<rightarrow> thm \<rightarrow> thm"}.
+  can be modified simultaneously.  In practice this mixed form is very
+  rare, instead attributes are presented either as \emph{declaration
+  attribute:} @{text "thm \<rightarrow> context \<rightarrow> context"} or \emph{rule
+  attribute:} @{text "context \<rightarrow> thm \<rightarrow> thm"}.
 
   Attributes can have additional arguments via concrete syntax.  There
   is a collection of context-sensitive parsers for various logical
@@ -535,7 +535,7 @@ text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightar
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type attribute: "Context.generic * thm -> Context.generic * thm"} \\
+  @{index_ML_type attribute} \\
   @{index_ML Thm.rule_attribute: "(Context.generic -> thm -> thm) -> attribute"} \\
   @{index_ML Thm.declaration_attribute: "
   (thm -> Context.generic -> Context.generic) -> attribute"} \\

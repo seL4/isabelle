@@ -724,7 +724,11 @@ Here is a similar method that operates on all subgoals,
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
 \ \ structure\ My{\isaliteral{5F}{\isacharunderscore}}Simps\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ \ \ Named{\isaliteral{5F}{\isacharunderscore}}Thms\isanewline
-\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}val\ name\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{22}{\isachardoublequote}}\ val\ description\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}simp\ rule{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}val\ name\ {\isaliteral{3D}{\isacharequal}}\ %
+\isaantiq
+binding\ my{\isaliteral{5F}{\isacharunderscore}}simp{}%
+\endisaantiq
+\ val\ description\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}simp\ rule{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}\isanewline
 {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{setup}\isamarkupfalse%
 \ My{\isaliteral{5F}{\isacharunderscore}}Simps{\isaliteral{2E}{\isachardot}}setup%
@@ -835,10 +839,10 @@ This provides ML access to a list of theorems in canonical
 %
 \begin{isamarkuptext}%
 An \emph{attribute} is a function \isa{context\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ thm}, which means both a (generic) context and a theorem
-  can be modified simultaneously.  In practice this fully general form
-  is very rare, instead attributes are presented either as
-  \emph{declaration attribute:} \isa{thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context} or
-  \emph{rule attribute:} \isa{context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm}.
+  can be modified simultaneously.  In practice this mixed form is very
+  rare, instead attributes are presented either as \emph{declaration
+  attribute:} \isa{thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context} or \emph{rule
+  attribute:} \isa{context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm}.
 
   Attributes can have additional arguments via concrete syntax.  There
   is a collection of context-sensitive parsers for various logical
@@ -862,7 +866,7 @@ An \emph{attribute} is a function \isa{context\ {\isaliteral{5C3C74696D65733E}{\
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML type}{attribute}\verb|type attribute = Context.generic * thm -> Context.generic * thm| \\
+  \indexdef{}{ML type}{attribute}\verb|type attribute| \\
   \indexdef{}{ML}{Thm.rule\_attribute}\verb|Thm.rule_attribute: (Context.generic -> thm -> thm) -> attribute| \\
   \indexdef{}{ML}{Thm.declaration\_attribute}\verb|Thm.declaration_attribute: |\isasep\isanewline%
 \verb|  (thm -> Context.generic -> Context.generic) -> attribute| \\
