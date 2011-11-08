@@ -74,10 +74,11 @@ local
     in (case select ct of [] => select' ct | xthms' => xthms') end
 in
 
-val net_instances =
+fun net_instances net =
   instances_from_net false (fn f => fn (i, thm) => Option.map (pair i) (f thm))
+    net
 
-val net_instance = try hd oo instances_from_net true I
+fun net_instance net = try hd o instances_from_net true I net
 
 end
 
