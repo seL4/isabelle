@@ -37,8 +37,11 @@ fun markup_free ctxt x =
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
-fun markup_bound def id =
-  [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
+fun markup_bound def ps (name, id) =
+  let val entity = Markup.entity "bound variable" name in
+    Markup.bound ::
+      map (fn pos => Markup.properties (Position.entity_properties_of def id pos) entity) ps
+  end;
 
 fun markup_entity ctxt c =
   (case Syntax.lookup_const (Proof_Context.syn_of ctxt) c of
@@ -219,9 +222,9 @@ fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
               | NONE => Type.constraint (decodeT typ --> dummyT) (decode ps qs bs t))
           | decode _ qs bs (Abs (x, T, t)) =
               let
-                val id = serial_string ();
-                val _ = report qs (markup_bound true) id;
-              in Abs (x, T, decode [] [] (id :: bs) t) end
+                val id = serial ();
+                val _ = report qs (markup_bound true qs) (x, id);
+              in Abs (x, T, decode [] [] ((qs, (x, id)) :: bs) t) end
           | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
           | decode ps _ _ (Const (a, T)) =
               (case try Lexicon.unmark_fixed a of
@@ -245,7 +248,7 @@ fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
-                SOME id => (report ps (markup_bound false) id; t)
+                SOME (qs, (x, id)) => (report ps (markup_bound false qs) (x, id); t)
               | NONE => t);
 
         val tm' = Exn.interruptible_capture (fn () => decode [] [] [] tm) ();

@@ -29,6 +29,7 @@ sig
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
+  val entity_properties_of: bool -> serial -> T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
   val markup: T -> Markup.T -> Markup.T
   val is_reported: T -> bool
@@ -139,6 +140,10 @@ fun properties_of (Pos ((i, j, k), props)) =
   value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
 
 val def_properties_of = properties_of #> (map (fn (x, y) => ("def_" ^ x, y)));
+
+fun entity_properties_of def id pos =
+  if def then (Markup.defN, string_of_int id) :: properties_of pos
+  else (Markup.refN, string_of_int id) :: def_properties_of pos;
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props

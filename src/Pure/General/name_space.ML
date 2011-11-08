@@ -83,11 +83,7 @@ type entry =
   id: serial};
 
 fun entry_markup def kind (name, {pos, id, ...}: entry) =
-  let
-    val props =
-      if def then (Markup.defN, string_of_int id) :: Position.properties_of pos
-      else (Markup.refN, string_of_int id) :: Position.def_properties_of pos;
-  in Markup.properties props (Markup.entity kind name) end;
+  Markup.properties (Position.entity_properties_of def id pos) (Markup.entity kind name);
 
 fun print_entry def kind (name, entry) =
   quote (Markup.markup (entry_markup def kind (name, entry)) name);
