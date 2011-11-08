@@ -15,8 +15,8 @@ sig
   val add_def: (binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
-  val export: Proof.context -> Proof.context -> thm -> thm list * thm
-  val export_cterm: Proof.context -> Proof.context -> cterm -> thm list * cterm
+  val export: Proof.context -> Proof.context -> thm -> (thm list * thm list) * thm
+  val export_cterm: Proof.context -> Proof.context -> cterm -> (thm list * thm list) * cterm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
   val contract: Proof.context -> thm list -> cterm -> thm -> thm
@@ -66,7 +66,7 @@ fun mk_def ctxt args =
 (* export defs *)
 
 val head_of_def =
-  #1 o Term.dest_Free o Term.head_of o #1 o Logic.dest_equals o Term.strip_all_body;
+  Term.dest_Free o Term.head_of o #1 o Logic.dest_equals o Term.strip_all_body;
 
 
 (*
@@ -78,7 +78,7 @@ val head_of_def =
 *)
 fun expand defs =
   Drule.implies_intr_list defs
-  #> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
+  #> Drule.generalize ([], map (#1 o head_of_def o Thm.term_of) defs)
   #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
 val expand_term = Envir.expand_term_frees o map (abs_def o Thm.term_of);
@@ -136,16 +136,24 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
 fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
+    val exp_term = Assumption.export_term inner outer;
     val prems = Assumption.all_prems_of inner;
-  in fn th =>
-    let
-      val th' = exp th;
-      val still_fixed = map #1 (Thm.fold_terms Term.add_frees th' []);
-      val defs = prems |> filter_out (fn prem =>
-        (case try (head_of_def o Thm.prop_of) prem of
-          SOME x => member (op =) still_fixed x
-        | NONE => true));
-    in (map Drule.abs_def defs, th') end
+  in
+    fn th =>
+      let
+        val th' = exp th;
+        val defs_asms = prems |> map (fn prem =>
+          (case try (head_of_def o Thm.prop_of) prem of
+            NONE => (prem, false)
+          | SOME x =>
+              let val t = Free x in
+                (case try exp_term t of
+                  NONE => (prem, false)
+                | SOME u =>
+                    if t aconv u then (prem, false)
+                    else (Drule.abs_def prem, true))
+              end));
+      in (pairself (map #1) (List.partition #2 defs_asms), th') end
   end;
 
 (*

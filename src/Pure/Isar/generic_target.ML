@@ -57,7 +57,7 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
 
     (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
-    val (defs, rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
+    val ((defs, _), rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
     val rhs_conv = Raw_Simplifier.rewrite true defs crhs;
 
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
@@ -105,11 +105,8 @@ fun import_export_proof ctxt (name, raw_th) =
 
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
-    val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
-    val assms =
-      map (Raw_Simplifier.rewrite_rule defs o Thm.assume)
-        (Assumption.all_assms_of ctxt);
-    val nprems = Thm.nprems_of th' - Thm.nprems_of th;
+    val ((defs, asms), th') = Local_Defs.export ctxt thy_ctxt th;
+    val asms' = map (Raw_Simplifier.rewrite_rule defs) asms;
 
     (*export fixes*)
     val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
@@ -134,11 +131,10 @@ fun import_export_proof ctxt (name, raw_th) =
     val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)
-    val assm_tac = FIRST' (map (fn assm => Tactic.compose_tac (false, assm, 0)) assms);
     val result'' =
-      (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
-        NONE => raise THM ("Failed to re-import result", 0, [result'])
-      | SOME res => Local_Defs.contract ctxt defs (Thm.cprop_of th) res)
+      (fold (curry op COMP) asms' result'
+        handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
+      |> Local_Defs.contract ctxt defs (Thm.cprop_of th)
       |> Goal.norm_result
       |> Global_Theory.name_thm false false name;
 

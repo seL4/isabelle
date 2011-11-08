@@ -176,7 +176,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
   end
 
 fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
-  import (export : thm -> thm) sum_psimp_eq =
+    import (export : thm -> thm) sum_psimp_eq =
   let
     val (MutualPart {f=SOME f, ...}) = get_part fname parts
 
@@ -190,9 +190,10 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
   in
     Goal.prove ctxt [] []
       (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
-      (fn _ => (Local_Defs.unfold_tac ctxt all_orig_fdefs)
-         THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
-         THEN (simp_tac (simpset_of ctxt)) 1) (* FIXME: global simpset?!! *)
+      (fn _ =>
+        Local_Defs.unfold_tac ctxt all_orig_fdefs
+          THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
+          THEN (simp_tac (simpset_of ctxt)) 1)
     |> restore_cond
     |> export
   end

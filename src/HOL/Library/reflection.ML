@@ -60,10 +60,11 @@ fun mk_congeq ctxt fs th =
    fun mk_def (Abs(x,xT,t),v) = HOLogic.mk_Trueprop ((HOLogic.all_const xT)$ Abs(x,xT,HOLogic.mk_eq(v$(Bound 0), t)))
      | mk_def (t, v) = HOLogic.mk_Trueprop (HOLogic.mk_eq (v, t))
    fun tryext x = (x RS ext2 handle THM _ =>  x)
-   val cong = (Goal.prove ctxt'' [] (map mk_def env)
-                          (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, replace_fterms rhs)))
-                          (fn x => Local_Defs.unfold_tac (#context x) (map tryext (#prems x))
-                                                        THEN rtac th' 1)) RS sym
+   val cong =
+    (Goal.prove ctxt'' [] (map mk_def env)
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, replace_fterms rhs)))
+      (fn {context, prems, ...} =>
+        Local_Defs.unfold_tac context (map tryext prems) THEN rtac th' 1)) RS sym
 
    val (cong' :: vars') =
        Variable.export ctxt'' ctxt (cong :: map (Drule.mk_term o cert) vs)

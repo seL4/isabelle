@@ -54,7 +54,7 @@ fun add_key_of_terms (t, cs) =
         | rands (Const(c,_), cs) = AtomK c :: cs
         | rands (Free(c,_),  cs) = AtomK c :: cs
         | rands (Bound i,  cs)   = AtomK (Name.bound i) :: cs
-  in case (head_of t) of
+  in case head_of t of
       Var _ => VarK :: cs
     | Abs _ => VarK :: cs
     | _     => rands(t,cs)
@@ -103,9 +103,7 @@ fun insert eq (keys,x) net =
         | ins1 (VarK :: keys, Net{comb,var,atoms}) =
             Net{comb=comb, var=ins1(keys,var), atoms=atoms}
         | ins1 (AtomK a :: keys, Net{comb,var,atoms}) =
-            let
-              val net' = the_default empty (Symtab.lookup atoms a);
-              val atoms' = Symtab.update (a, ins1 (keys, net')) atoms;
+            let val atoms' = Symtab.map_default (a, empty) (fn net' => ins1 (keys, net')) atoms;
             in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
 
