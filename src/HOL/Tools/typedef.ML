@@ -183,7 +183,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
       let
         val thy = Proof_Context.theory_of set_lthy;
         val cert = Thm.cterm_of thy;
-        val (defs, A) =
+        val ((defs, _), A) =
           Local_Defs.export_cterm set_lthy (Proof_Context.init_global thy) (cert set')
           ||> Thm.term_of;
 

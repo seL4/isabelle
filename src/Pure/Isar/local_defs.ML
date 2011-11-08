@@ -15,8 +15,8 @@ sig
   val add_def: (binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
-  val export: Proof.context -> Proof.context -> thm -> thm list * thm
-  val export_cterm: Proof.context -> Proof.context -> cterm -> thm list * cterm
+  val export: Proof.context -> Proof.context -> thm -> (thm list * thm list) * thm
+  val export_cterm: Proof.context -> Proof.context -> cterm -> (thm list * thm list) * cterm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
   val contract: Proof.context -> thm list -> cterm -> thm -> thm
@@ -138,19 +138,22 @@ fun export inner outer =    (*beware of closure sizes*)
     val exp = Assumption.export false inner outer;
     val exp_term = Assumption.export_term inner outer;
     val prems = Assumption.all_prems_of inner;
-  in fn th =>
-    let
-      val th' = exp th;
-      val defs = prems |> filter (fn prem =>
-        (case try (head_of_def o Thm.prop_of) prem of
-          SOME x =>
-            let val t = Free x in
-              (case try exp_term t of
-                SOME u => not (t aconv u)
-              | NONE => false)
-            end
-        | NONE => false));
-    in (map Drule.abs_def defs, th') end
+  in
+    fn th =>
+      let
+        val th' = exp th;
+        val defs_asms = prems |> map (fn prem =>
+          (case try (head_of_def o Thm.prop_of) prem of
+            NONE => (prem, false)
+          | SOME x =>
+              let val t = Free x in
+                (case try exp_term t of
+                  NONE => (prem, false)
+                | SOME u =>
+                    if t aconv u then (prem, false)
+                    else (Drule.abs_def prem, true))
+              end));
+      in (pairself (map #1) (List.partition #2 defs_asms), th') end
   end;
 
 (*
