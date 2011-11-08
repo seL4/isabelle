@@ -447,7 +447,7 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ctxt, stds, ...})
     fun is_concrete facto =
       is_word_type T orelse
       (* FIXME: looks wrong other types than just functions might be
-         abstract. *)
+         abstract. "is_complete" is also suspicious. *)
       xs |> maps (binder_types o snd) |> maps binder_types
          |> forall (has_exact_card hol_ctxt facto finitizable_dataTs
                                    card_assigns)
