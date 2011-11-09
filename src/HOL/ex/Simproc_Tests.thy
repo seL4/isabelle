@@ -43,7 +43,7 @@ notepad begin
     have "(2*x - (u*v) + y) - v*3*u = w"
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
   next
-    assume "Numeral0 * (u*v) + (2 * x * u * v + y) = w"
+    assume "2 * x * u * v + y = w"
     have "(2*x*u*v + (u*v)*4 + y) - v*u*4 = w"
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
   next
@@ -55,7 +55,7 @@ notepad begin
     have "u*v - (x*u*v + (u*v)*4 + y) = w"
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
   next
-    assume "Numeral0 * b + (a + - c) = d"
+    assume "a + - c = d"
     have "a + -(b+c) + b = d"
       apply (simp only: minus_add_distrib)
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
@@ -88,7 +88,7 @@ subsection {* @{text inteq_cancel_numerals} *}
 notepad begin
   fix i j k u vv w y z w' y' z' :: "'a::number_ring"
   {
-    assume "u = Numeral0" have "2*u = u"
+    assume "u = 0" have "2*u = u"
       by (tactic {* test [@{simproc inteq_cancel_numerals}] *}) fact
 (* conclusion matches Rings.ring_1_no_zero_divisors_class.mult_cancel_right2 *)
   next
@@ -144,10 +144,10 @@ notepad begin
     assume "11*x = 9*y" have "-99*x = -81 * y"
       by (tactic {* test [@{simproc ring_eq_cancel_numeral_factor}] *}) fact
   next
-    assume "2*x = Numeral1*y" have "-2 * x = -1 * y"
+    assume "2*x = y" have "-2 * x = -1 * y"
       by (tactic {* test [@{simproc ring_eq_cancel_numeral_factor}] *}) fact
   next
-    assume "2*x = Numeral1*y" have "-2 * x = -y"
+    assume "2*x = y" have "-2 * x = -y"
       by (tactic {* test [@{simproc ring_eq_cancel_numeral_factor}] *}) fact
   }
 end
@@ -169,7 +169,7 @@ notepad begin
     assume "(11*x) div (9*y) = z" have "(-99*x) div (-81*y) = z"
       by (tactic {* test [@{simproc int_div_cancel_numeral_factors}] *}) fact
   next
-    assume "(2*x) div (Numeral1*y) = z"
+    assume "(2*x) div y = z"
     have "(-2 * x) div (-1 * y) = z"
       by (tactic {* test [@{simproc int_div_cancel_numeral_factors}] *}) fact
   }
@@ -192,10 +192,10 @@ notepad begin
     assume "9*y < 11*x" have "-99*x < -81 * y"
       by (tactic {* test [@{simproc ring_less_cancel_numeral_factor}] *}) fact
   next
-    assume "Numeral1*y < 2*x" have "-2 * x < -y"
+    assume "y < 2*x" have "-2 * x < -y"
       by (tactic {* test [@{simproc ring_less_cancel_numeral_factor}] *}) fact
   next
-    assume "23*y < Numeral1*x" have "-x < -23 * y"
+    assume "23*y < x" have "-x < -23 * y"
       by (tactic {* test [@{simproc ring_less_cancel_numeral_factor}] *}) fact
   }
 end
@@ -217,16 +217,16 @@ notepad begin
     assume "9*y \<le> 11*x" have "-99*x \<le> -81 * y"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
   next
-    assume "Numeral1*y \<le> 2*x" have "-2 * x \<le> -1 * y"
+    assume "y \<le> 2*x" have "-2 * x \<le> -1 * y"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
   next
-    assume "23*y \<le> Numeral1*x" have "-x \<le> -23 * y"
+    assume "23*y \<le> x" have "-x \<le> -23 * y"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
   next
-    assume "Numeral1*y \<le> Numeral0" have "0 \<le> y * -2"
+    assume "y \<le> 0" have "0 \<le> y * -2"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
   next
-    assume "-1*x \<le> Numeral1*y" have "- (2 * x) \<le> 2*y"
+    assume "- x \<le> y" have "- (2 * x) \<le> 2*y"
       by (tactic {* test [@{simproc ring_le_cancel_numeral_factor}] *}) fact
   }
 end
@@ -248,7 +248,7 @@ notepad begin
     assume "(11*x) / (9*y) = z" have "(-99*x) / (-81 * y) = z"
       by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
   next
-    assume "(2*x) / (Numeral1*y) = z" have "(-2 * x) / (-1 * y) = z"
+    assume "(2*x) / y = z" have "(-2 * x) / (-1 * y) = z"
       by (tactic {* test [@{simproc divide_cancel_numeral_factor}] *}) fact
   }
 end
@@ -363,7 +363,7 @@ end
 subsection {* @{text field_combine_numerals} *}
 
 notepad begin
-  fix x uu :: "'a::{field_inverse_zero,ring_char_0,number_ring}"
+  fix x y z uu :: "'a::{field_inverse_zero,ring_char_0,number_ring}"
   {
     assume "5 / 6 * x = uu" have "x / 2 + x / 3 = uu"
       by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
@@ -372,6 +372,14 @@ notepad begin
       by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
   next
     assume "9 / 9 * x = uu" have "2 * x / 3 + x / 3 = uu"
+      by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
+  next
+    assume "y + z = uu"
+    have "x / 2 + y - 3 * x / 6 + z = uu"
+      by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
+  next
+    assume "1 / 15 * x + y = uu"
+    have "7 * x / 5 + y - 4 * x / 3 = uu"
       by (tactic {* test [@{simproc field_combine_numerals}] *}) fact
   }
 end

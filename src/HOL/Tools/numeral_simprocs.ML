@@ -178,6 +178,17 @@ val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
 val add_0s =  @{thms add_0s};
 val mult_1s = @{thms mult_1s mult_1_left mult_1_right divide_1};
 
+(* For post-simplification of the rhs of simproc-generated rules *)
+val post_simps =
+    [@{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
+     @{thm add_0_left}, @{thm add_0_right},
+     @{thm mult_zero_left}, @{thm mult_zero_right},
+     @{thm mult_1_left}, @{thm mult_1_right},
+     @{thm mult_minus1}, @{thm mult_minus1_right}]
+
+val field_post_simps =
+    post_simps @ [@{thm divide_zero_left}, @{thm divide_1}]
+                      
 (*Simplify inverse Numeral1, a/Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];
 val divide_1s = [@{thm divide_numeral_1}];
@@ -235,7 +246,7 @@ struct
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
   val prove_conv = Arith_Data.prove_conv
 end;
 
@@ -287,7 +298,7 @@ struct
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
 end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
@@ -314,7 +325,7 @@ struct
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps @ [@{thm add_frac_eq}]
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s @ divide_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq field_post_simps
 end;
 
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
@@ -356,8 +367,7 @@ struct
     [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
-    [@{thm Nat.add_0}, @{thm Nat.add_0_right}, @{thm mult_zero_left},
-      @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
+    ([@{thm Nat.add_0}, @{thm Nat.add_0_right}] @ post_simps)
   val prove_conv = Arith_Data.prove_conv
 end
 
