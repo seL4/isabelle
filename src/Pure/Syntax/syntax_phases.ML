@@ -7,8 +7,8 @@ of parse/unparse operations.
 
 signature SYNTAX_PHASES =
 sig
-  val term_sorts: term -> (indexname * sort) list
-  val typ_of_term: (indexname -> sort) -> term -> typ
+  val decode_sort: term -> sort
+  val decode_typ: term -> typ
   val decode_term: Proof.context ->
     Position.report list * term Exn.result -> Position.report list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
@@ -58,11 +58,11 @@ fun markup_entity ctxt c =
 
 (** decode parse trees **)
 
-(* sort_of_term *)
+(* decode_sort *)
 
-fun sort_of_term tm =
+fun decode_sort tm =
   let
-    fun err () = raise TERM ("sort_of_term: bad encoding of classes", [tm]);
+    fun err () = raise TERM ("decode_sort: bad encoding of classes", [tm]);
 
     fun class s = Lexicon.unmark_class s handle Fail _ => err ();
 
@@ -77,52 +77,32 @@ fun sort_of_term tm =
   in sort tm end;
 
 
-(* term_sorts *)
+(* decode_typ *)
 
-fun term_sorts tm =
+fun decode_typ tm =
   let
-    val sort_of = sort_of_term;
+    fun err () = raise TERM ("decode_typ: bad encoding of type", [tm]);
 
-    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) =
-          insert (op =) ((x, ~1), sort_of cs)
-      | add_env (Const ("_ofsort", _) $ (Const ("_tfree", _) $ Free (x, _)) $ cs) =
-          insert (op =) ((x, ~1), sort_of cs)
-      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) =
-          insert (op =) (xi, sort_of cs)
-      | add_env (Const ("_ofsort", _) $ (Const ("_tvar", _) $ Var (xi, _)) $ cs) =
-          insert (op =) (xi, sort_of cs)
-      | add_env (Abs (_, _, t)) = add_env t
-      | add_env (t1 $ t2) = add_env t1 #> add_env t2
-      | add_env _ = I;
-  in add_env tm [] end;
-
-
-(* typ_of_term *)
-
-fun typ_of_term get_sort tm =
-  let
-    fun err () = raise TERM ("typ_of_term: bad encoding of type", [tm]);
-
-    fun typ_of (Free (x, _)) = TFree (x, get_sort (x, ~1))
-      | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_tfree",_) $ (t as Free _)) = typ_of t
-      | typ_of (Const ("_tvar",_) $ (t as Var _)) = typ_of t
-      | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) =
-          TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) =
-          TVar (xi, get_sort xi)
-      | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", sort_of_term t)
-      | typ_of t =
+    fun typ (Free (x, _)) = TFree (x, dummyS)
+      | typ (Var (xi, _)) = TVar (xi, dummyS)
+      | typ (Const ("_tfree",_) $ (t as Free _)) = typ t
+      | typ (Const ("_tvar",_) $ (t as Var _)) = typ t
+      | typ (Const ("_ofsort", _) $ Free (x, _) $ s) = TFree (x, decode_sort s)
+      | typ (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ s) =
+          TFree (x, decode_sort s)
+      | typ (Const ("_ofsort", _) $ Var (xi, _) $ s) = TVar (xi, decode_sort s)
+      | typ (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ s) =
+          TVar (xi, decode_sort s)
+      | typ (Const ("_dummy_ofsort", _) $ s) = TFree ("'_dummy_", decode_sort s)
+      | typ t =
           let
             val (head, args) = Term.strip_comb t;
             val a =
               (case head of
                 Const (c, _) => (Lexicon.unmark_type c handle Fail _ => err ())
               | _ => err ());
-          in Type (a, map typ_of args) end;
-  in typ_of tm end;
+          in Type (a, map typ args) end;
+  in typ tm end;
 
 
 (* parsetree_to_ast *)
@@ -207,19 +187,17 @@ fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
             handle ERROR _ => (false, Consts.intern (Proof_Context.consts_of ctxt) a));
         val get_free = Proof_Context.intern_skolem ctxt;
 
-        val decodeT = typ_of_term (Proof_Context.get_sort ctxt (term_sorts tm));
-
         val reports = Unsynchronized.ref reports0;
         fun report ps = Position.store_reports reports ps;
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
                 SOME p => decode (p :: ps) qs bs t
-              | NONE => Type.constraint (decodeT typ) (decode ps qs bs t))
+              | NONE => Type.constraint (decode_typ typ) (decode ps qs bs t))
           | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
                 SOME q => decode ps (q :: qs) bs t
-              | NONE => Type.constraint (decodeT typ --> dummyT) (decode ps qs bs t))
+              | NONE => Type.constraint (decode_typ typ --> dummyT) (decode ps qs bs t))
           | decode _ qs bs (Abs (x, T, t)) =
               let
                 val id = serial ();
@@ -328,7 +306,7 @@ fun parse_sort ctxt =
     (fn (syms, pos) =>
       parse_raw ctxt "sort" (syms, pos)
       |> report_result ctxt pos
-      |> sort_of_term
+      |> decode_sort
       |> Type.minimize_sort (Proof_Context.tsig_of ctxt)
       handle ERROR msg => parse_failed ctxt pos msg "sort");
 
@@ -337,7 +315,7 @@ fun parse_typ ctxt =
     (fn (syms, pos) =>
       parse_raw ctxt "type" (syms, pos)
       |> report_result ctxt pos
-      |> (fn t => typ_of_term (Proof_Context.get_sort ctxt (term_sorts t)) t)
+      |> decode_typ
       handle ERROR msg => parse_failed ctxt pos msg "type");
 
 fun parse_term is_prop ctxt =
@@ -714,11 +692,31 @@ val _ = Context.>> (Context.map_theory
 
 (** check/uncheck **)
 
+fun prepare_types ctxt tys =
+  let
+    fun constraint (xi: indexname, S) = S <> dummyS ? insert (op =) (xi, S);
+    val env =
+      (fold o fold_atyps)
+        (fn TFree (x, S) => constraint ((x, ~1), S)
+          | TVar v => constraint v
+          | _ => I) tys [];
+    val get_sort = Proof_Context.get_sort ctxt env;
+  in
+    (map o map_atyps)
+      (fn TFree (x, _) => TFree (x, get_sort (x, ~1))
+        | TVar (xi, _) => TVar (xi, get_sort xi)
+        | T => T) tys
+  end;
+
 fun check_typs ctxt =
-  Syntax.apply_typ_check ctxt #> Term_Sharing.typs (Proof_Context.theory_of ctxt);
+  prepare_types ctxt #>
+  Syntax.apply_typ_check ctxt #>
+  Term_Sharing.typs (Proof_Context.theory_of ctxt);
 
 fun check_terms ctxt =
-  Syntax.apply_term_check ctxt #> Term_Sharing.terms (Proof_Context.theory_of ctxt);
+  Term.burrow_types (prepare_types ctxt) #>
+  Syntax.apply_term_check ctxt #>
+  Term_Sharing.terms (Proof_Context.theory_of ctxt);
 
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
 

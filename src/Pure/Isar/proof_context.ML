@@ -72,7 +72,6 @@ sig
   val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
-  val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
   val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
@@ -639,8 +638,7 @@ fun get_sort ctxt raw_text =
             " for type variable " ^ quote (Term.string_of_vname' xi)));
   in get end;
 
-fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
-fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
+fun check_tfree ctxt (x, S) = (x, get_sort ctxt [((x, ~1), S)] (x, ~1));
 
 
 (* certify terms *)
@@ -940,7 +938,7 @@ fun prep_vars prep_typ internal =
 
 in
 
-val read_vars = prep_vars Syntax.parse_typ false;
+val read_vars = prep_vars Syntax.read_typ false;
 val cert_vars = prep_vars (K I) true;
 
 end;

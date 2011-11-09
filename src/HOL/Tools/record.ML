@@ -652,12 +652,6 @@ end;
 
 (** concrete syntax for records **)
 
-(* decode type *)
-
-fun decode_type ctxt t =
-  Syntax_Phases.typ_of_term (Proof_Context.get_sort ctxt (Syntax_Phases.term_sorts t)) t;
-
-
 (* parse translations *)
 
 local
@@ -694,7 +688,7 @@ fun record_field_types_tr more ctxt t =
                     val types = map snd fields';
                     val (args, rest) = split_args (map fst fields') fargs
                       handle Fail msg => err msg;
-                    val argtypes = map (Syntax.check_typ ctxt o decode_type ctxt) args;
+                    val argtypes = map (Syntax.check_typ ctxt o Syntax_Phases.decode_typ) args;
                     val varifyT = varifyT (fold Term.maxidx_typ argtypes 0 + 1);
                     val vartypes = map varifyT types;
 
@@ -799,7 +793,7 @@ fun record_type_tr' ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val T = decode_type ctxt t;
+    val T = Syntax_Phases.decode_typ t;
     val varifyT = varifyT (Term.maxidx_of_typ T + 1);
 
     fun strip_fields T =
@@ -844,7 +838,7 @@ fun record_type_tr' ctxt t =
   the (nested) extension types*)
 fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
-    val T = decode_type ctxt tm;
+    val T = Syntax_Phases.decode_typ tm;
     val varifyT = varifyT (maxidx_of_typ T + 1);
 
     fun mk_type_abbr subst name args =

@@ -361,18 +361,18 @@ fun add_type_abbrev ctxt abbr = map_sign (fn (naming, syn, tsig, consts) =>
 
 fun gen_syntax change_gram parse_typ mode args thy =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val ctxt = Type.set_mode Type.mode_syntax (Proof_Context.init_global thy);
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
-val add_modesyntax = gen_add_syntax Syntax.parse_typ;
+val add_modesyntax = gen_add_syntax Syntax.read_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
 val add_syntax = add_modesyntax Syntax.mode_default;
 val add_syntax_i = add_modesyntax_i Syntax.mode_default;
-val del_modesyntax = gen_syntax (Syntax.update_const_gram false) Syntax.parse_typ;
+val del_modesyntax = gen_syntax (Syntax.update_const_gram false) Syntax.read_typ;
 val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
 
 fun type_notation add mode args =
@@ -396,9 +396,9 @@ fun notation add mode args thy =
 
 local
 
-fun gen_add_consts parse_typ ctxt raw_args thy =
+fun gen_add_consts prep_typ ctxt raw_args thy =
   let
-    val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
+    val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o prep_typ ctxt;
     fun prep (b, raw_T, mx) =
       let
         val c = full_name thy b;
@@ -417,7 +417,8 @@ fun gen_add_consts parse_typ ctxt raw_args thy =
 in
 
 fun add_consts args thy =
-  #2 (gen_add_consts Syntax.parse_typ (Proof_Context.init_global thy) args thy);
+  #2 (gen_add_consts Syntax.read_typ (Proof_Context.init_global thy) args thy);
+
 fun add_consts_i args thy =
   #2 (gen_add_consts (K I) (Proof_Context.init_global thy) args thy);
 
