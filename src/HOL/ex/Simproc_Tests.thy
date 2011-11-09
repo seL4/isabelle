@@ -380,4 +380,176 @@ lemma "2/3 * (x::rat) + x / 3 = uu"
 apply (tactic {* test [@{simproc field_combine_numerals}] *})?
 oops -- "FIXME: test fails"
 
+subsection {* @{text nateq_cancel_numerals} *}
+
+notepad begin
+  fix i j k l oo u uu vv w y z w' y' z' :: "nat"
+  {
+    assume "Suc 0 * u = 0" have "2*u = (u::nat)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * u = Suc 0" have "2*u = Suc (u)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "i + (j + k) = 3 * Suc 0 + (u + y)"
+    have "(i + j + 12 + k) = u + 15 + y"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "7 * Suc 0 + (i + (j + k)) = u + y"
+    have "(i + j + 12 + k) = u + 5 + y"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "11 * Suc 0 + (i + (j + k)) = u + y"
+    have "(i + j + 12 + k) = Suc (u + y)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "i + (j + k) = 2 * Suc 0 + (u + y)"
+    have "(i + j + 5 + k) = Suc (Suc (Suc (Suc (Suc (Suc (Suc (u + y)))))))"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * u + (2 * y + 3 * z) = Suc 0"
+    have "2*y + 3*z + 2*u = Suc (u)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * u + (2 * y + (3 * z + (6 * w + (2 * y + 3 * z)))) = Suc 0"
+    have "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = Suc (u)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * u + (2 * y + (3 * z + (6 * w + (2 * y + 3 * z)))) =
+      2 * y' + (3 * z' + (6 * w' + (2 * y' + (3 * z' + vv))))"
+    have "2*y + 3*z + 6*w + 2*y + 3*z + 2*u =
+      2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + vv"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  next
+    assume "2 * u + (2 * z + (5 * Suc 0 + 2 * y)) = vv"
+    have "6 + 2*y + 3*z + 4*u = Suc (vv + 2*u + z)"
+      by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
+  }
+end
+
+subsection {* @{text natless_cancel_numerals} *}
+
+notepad begin
+  fix length :: "'a \<Rightarrow> nat" and l1 l2 xs :: "'a" and f :: "nat \<Rightarrow> 'a"
+  fix c i j k l oo u uu vv w y z w' y' z' :: "nat"
+  {
+    assume "0 < j" have "(2*length xs < 2*length xs + j)"
+      by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
+  next
+    assume "0 < j" have "(2*length xs < length xs * 2 + j)"
+      by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
+  next
+    assume "i + (j + k) < u + y"
+    have "(i + j + 5 + k) < Suc (Suc (Suc (Suc (Suc (u + y)))))"
+      by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
+  next
+    assume "0 < Suc 0 * (m * n) + u" have "(2*n*m) < (3*(m*n)) + u"
+      by (tactic {* test [@{simproc natless_cancel_numerals}] *}) fact
+  next
+    (* FIXME: negative numerals fail
+    have "(i + j + -23 + (k::nat)) < u + 15 + y"
+      apply (tactic {* test [@{simproc natless_cancel_numerals}] *})?
+      sorry
+    have "(i + j + 3 + (k::nat)) < u + -15 + y"
+      apply (tactic {* test [@{simproc natless_cancel_numerals}] *})?
+      sorry*)
+  }
+end
+
+subsection {* @{text natle_cancel_numerals} *}
+
+notepad begin
+  fix length :: "'a \<Rightarrow> nat" and l2 l3 :: "'a" and f :: "nat \<Rightarrow> 'a"
+  fix c e i j k l oo u uu vv w y z w' y' z' :: "nat"
+  {
+    assume "u + y \<le> 36 * Suc 0 + (i + (j + k))"
+    have "Suc (Suc (Suc (Suc (Suc (u + y))))) \<le> ((i + j) + 41 + k)"
+      by (tactic {* test [@{simproc natle_cancel_numerals}] *}) fact
+  next
+    assume "5 * Suc 0 + (case length (f c) of 0 \<Rightarrow> 0 | Suc k \<Rightarrow> k) = 0"
+    have "(Suc (Suc (Suc (Suc (Suc (Suc (case length (f c) of 0 => 0 | Suc k => k)))))) \<le> Suc 0)"
+      by (tactic {* test [@{simproc natle_cancel_numerals}] *}) fact
+  next
+    assume "6 + length l2 = 0" have "Suc (Suc (Suc (Suc (Suc (Suc (length l1 + length l2)))))) \<le> length l1"
+      by (tactic {* test [@{simproc natle_cancel_numerals}] *}) fact
+  next
+    assume "5 + length l3 = 0"
+    have "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length l3)))))) \<le> length (compT P E A ST mxr e))"
+      by (tactic {* test [@{simproc natle_cancel_numerals}] *}) fact
+  next
+    assume "5 + length (compT P E (A \<union> A' e) ST mxr c) = 0"
+    have "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length (compT P E (A Un A' e) ST mxr c))))))) \<le> length (compT P E A ST mxr e))"
+      by (tactic {* test [@{simproc natle_cancel_numerals}] *}) fact
+  }
+end
+
+subsection {* @{text natdiff_cancel_numerals} *}
+
+notepad begin
+  fix length :: "'a \<Rightarrow> nat" and l2 l3 :: "'a" and f :: "nat \<Rightarrow> 'a"
+  fix c e i j k l oo u uu vv v w x y z zz w' y' z' :: "nat"
+  {
+    assume "i + (j + k) - 3 * Suc 0 = y" have "(i + j + 12 + k) - 15 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "7 * Suc 0 + (i + (j + k)) - 0 = y" have "(i + j + 12 + k) - 5 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "u - Suc 0 * Suc 0 = y" have "Suc u - 2 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * Suc 0 + u - 0 = y" have "Suc (Suc (Suc u)) - 2 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "Suc 0 * Suc 0 + (i + (j + k)) - 0 = y"
+    have "(i + j + 2 + k) - 1 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "i + (j + k) - Suc 0 * Suc 0 = y"
+    have "(i + j + 1 + k) - 2 = y"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "2 * x + y - 2 * (u * v) = w"
+    have "(2*x + (u*v) + y) - v*3*u = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "2 * x * u * v + (5 + y) - 0 = w"
+    have "(2*x*u*v + 5 + (u*v)*4 + y) - v*u*4 = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "3 * (u * v) + (2 * x * u * v + y) - 0 = w"
+    have "(2*x*u*v + (u*v)*4 + y) - v*u = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "3 * u + (2 + (2 * x * u * v + y)) - 0 = w"
+    have "Suc (Suc (2*x*u*v + u*4 + y)) - u = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "Suc (Suc 0 * (u * v)) - 0 = w"
+    have "Suc ((u*v)*4) - v*3*u = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "2 - 0 = w" have "Suc (Suc ((u*v)*3)) - v*3*u = w"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "17 * Suc 0 + (i + (j + k)) - (u + y) = zz"
+    have "(i + j + 32 + k) - (u + 15 + y) = zz"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    assume "u + y - 0 = v" have "Suc (Suc (Suc (Suc (Suc (u + y))))) - 5 = v"
+      by (tactic {* test [@{simproc natdiff_cancel_numerals}] *}) fact
+  next
+    (* FIXME: negative numerals fail
+    have "(i + j + -12 + k) - 15 = y"
+      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
+      sorry
+    have "(i + j + 12 + k) - -15 = y"
+      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
+      sorry
+    have "(i + j + -12 + k) - -15 = y"
+      apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
+      sorry*)
+  }
+end
+
 end

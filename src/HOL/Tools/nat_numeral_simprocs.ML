@@ -6,7 +6,10 @@ Simprocs for nat numerals.
 signature NAT_NUMERAL_SIMPROCS =
 sig
   val combine_numerals: simproc
-  val cancel_numerals: simproc list
+  val eq_cancel_numerals: simpset -> cterm -> thm option
+  val less_cancel_numerals: simpset -> cterm -> thm option
+  val le_cancel_numerals: simpset -> cterm -> thm option
+  val diff_cancel_numerals: simpset -> cterm -> thm option
   val cancel_factors: simproc list
   val cancel_numeral_factors: simproc list
 end;
@@ -195,29 +198,10 @@ structure DiffCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm nat_diff_add_eq2} RS trans
 );
 
-
-val cancel_numerals =
-  map (Numeral_Simprocs.prep_simproc @{theory})
-   [("nateq_cancel_numerals",
-     ["(l::nat) + m = n", "(l::nat) = m + n",
-      "(l::nat) * m = n", "(l::nat) = m * n",
-      "Suc m = n", "m = Suc n"],
-     K EqCancelNumerals.proc),
-    ("natless_cancel_numerals",
-     ["(l::nat) + m < n", "(l::nat) < m + n",
-      "(l::nat) * m < n", "(l::nat) < m * n",
-      "Suc m < n", "m < Suc n"],
-     K LessCancelNumerals.proc),
-    ("natle_cancel_numerals",
-     ["(l::nat) + m <= n", "(l::nat) <= m + n",
-      "(l::nat) * m <= n", "(l::nat) <= m * n",
-      "Suc m <= n", "m <= Suc n"],
-     K LeCancelNumerals.proc),
-    ("natdiff_cancel_numerals",
-     ["((l::nat) + m) - n", "(l::nat) - (m + n)",
-      "(l::nat) * m - n", "(l::nat) - m * n",
-      "Suc m - n", "m - Suc n"],
-     K DiffCancelNumerals.proc)];
+fun eq_cancel_numerals ss ct = EqCancelNumerals.proc ss (term_of ct)
+fun less_cancel_numerals ss ct = LessCancelNumerals.proc ss (term_of ct)
+fun le_cancel_numerals ss ct = LeCancelNumerals.proc ss (term_of ct)
+fun diff_cancel_numerals ss ct = DiffCancelNumerals.proc ss (term_of ct)
 
 
 (*** Applying CombineNumeralsFun ***)
@@ -424,7 +408,6 @@ val cancel_factor =
 end;
 
 
-Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
 Addsimprocs Nat_Numeral_Simprocs.cancel_numeral_factors;
 Addsimprocs Nat_Numeral_Simprocs.cancel_factor;
@@ -435,57 +418,6 @@ print_depth 22;
 set timing;
 set simp_trace;
 fun test s = (Goal s; by (Simp_tac 1));
-
-(*cancel_numerals*)
-test "l +( 2) + (2) + 2 + (l + 2) + (oo  + 2) = (uu::nat)";
-test "(2*length xs < 2*length xs + j)";
-test "(2*length xs < length xs * 2 + j)";
-test "2*u = (u::nat)";
-test "2*u = Suc (u)";
-test "(i + j + 12 + (k::nat)) - 15 = y";
-test "(i + j + 12 + (k::nat)) - 5 = y";
-test "Suc u - 2 = y";
-test "Suc (Suc (Suc u)) - 2 = y";
-test "(i + j + 2 + (k::nat)) - 1 = y";
-test "(i + j + 1 + (k::nat)) - 2 = y";
-
-test "(2*x + (u*v) + y) - v*3*u = (w::nat)";
-test "(2*x*u*v + 5 + (u*v)*4 + y) - v*u*4 = (w::nat)";
-test "(2*x*u*v + (u*v)*4 + y) - v*u = (w::nat)";
-test "Suc (Suc (2*x*u*v + u*4 + y)) - u = w";
-test "Suc ((u*v)*4) - v*3*u = w";
-test "Suc (Suc ((u*v)*3)) - v*3*u = w";
-
-test "(i + j + 12 + (k::nat)) = u + 15 + y";
-test "(i + j + 32 + (k::nat)) - (u + 15 + y) = zz";
-test "(i + j + 12 + (k::nat)) = u + 5 + y";
-(*Suc*)
-test "(i + j + 12 + k) = Suc (u + y)";
-test "Suc (Suc (Suc (Suc (Suc (u + y))))) <= ((i + j) + 41 + k)";
-test "(i + j + 5 + k) < Suc (Suc (Suc (Suc (Suc (u + y)))))";
-test "Suc (Suc (Suc (Suc (Suc (u + y))))) - 5 = v";
-test "(i + j + 5 + k) = Suc (Suc (Suc (Suc (Suc (Suc (Suc (u + y)))))))";
-test "2*y + 3*z + 2*u = Suc (u)";
-test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = Suc (u)";
-test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = 2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + (vv::nat)";
-test "6 + 2*y + 3*z + 4*u = Suc (vv + 2*u + z)";
-test "(2*n*m) < (3*(m*n)) + (u::nat)";
-
-test "(Suc (Suc (Suc (Suc (Suc (Suc (case length (f c) of 0 => 0 | Suc k => k)))))) <= Suc 0)";
- 
-test "Suc (Suc (Suc (Suc (Suc (Suc (length l1 + length l2)))))) <= length l1";
-
-test "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length l3)))))) <= length (compT P E A ST mxr e))";
-
-test "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length (compT P E (A Un \<A> e) ST mxr c))))))) <= length (compT P E A ST mxr e))";
-
-
-(*negative numerals: FAIL*)
-test "(i + j + -23 + (k::nat)) < u + 15 + y";
-test "(i + j + 3 + (k::nat)) < u + -15 + y";
-test "(i + j + -12 + (k::nat)) - 15 = y";
-test "(i + j + 12 + (k::nat)) - -15 = y";
-test "(i + j + -12 + (k::nat)) - -15 = y";
 
 (*combine_numerals*)
 test "k + 3*k = (u::nat)";
