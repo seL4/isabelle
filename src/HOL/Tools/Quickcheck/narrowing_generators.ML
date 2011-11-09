@@ -263,7 +263,7 @@ fun value (contains_existentials, (quiet, size)) ctxt cookie (code, value_name) 
             (NONE, !current_result)
           else
             let
-              val _ = message ("[Quickcheck-Narrowing] Test data size: " ^ string_of_int k)
+              val _ = message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
               val _ = current_size := k
               val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
                 (fn () => Isabelle_System.bash_output (executable ^ " " ^ string_of_int k))
