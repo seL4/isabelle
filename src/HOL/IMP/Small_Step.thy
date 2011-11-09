@@ -4,6 +4,7 @@ theory Small_Step imports Star Big_Step begin
 
 subsection "The transition relation"
 
+text_raw{*\begin{isaverbatimwrite}\newcommand{\SmallStepDef}{% *}
 inductive
   small_step :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>" 55)
 where
@@ -16,6 +17,7 @@ IfTrue:  "bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<
 IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
 
 While:   "(WHILE b DO c,s) \<rightarrow> (IF b THEN c; WHILE b DO c ELSE SKIP,s)"
+text_raw{*}\end{isaverbatimwrite}*}
 
 
 abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
