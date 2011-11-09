@@ -104,7 +104,8 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     (* user space type system: only permits 'a type variable, improves towards 'a *)
     val algebra = Sign.classes_of thy;
     val inter_sort = curry (Sorts.inter_sort algebra);
-    val proto_base_sort = if null sups then Sign.defaultS thy
+    val proto_base_sort =
+      if null sups then Sign.defaultS thy
       else fold inter_sort (map (Class.base_sort thy) sups) [];
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
@@ -116,19 +117,19 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     fun singleton_fixate Ts =
       let
         fun extract f = (fold o fold_atyps) f Ts [];
-        val tfrees = extract
-          (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
-        val inferred_sort = extract
-          (fn TVar (_, sort) => inter_sort sort | _ => I);
-        val fixate_sort = if null tfrees then inferred_sort
-          else case tfrees
-           of [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
+        val tfrees = extract (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
+        val inferred_sort = extract (fn TVar (_, sort) => inter_sort sort | _ => I);
+        val fixate_sort =
+          if null tfrees then inferred_sort
+          else
+            (case tfrees of
+              [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
                 then inter_sort a_sort inferred_sort
                 else error ("Type inference imposes additional sort constraint "
                   ^ Syntax.string_of_sort_global thy inferred_sort
                   ^ " of type parameter " ^ Name.aT ^ " of sort "
                   ^ Syntax.string_of_sort_global thy a_sort)
-            | _ => error "Multiple type variables in class specification";
+            | _ => error "Multiple type variables in class specification");
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
     fun after_infer_fixate Ts =
       let
@@ -158,18 +159,22 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       | filter_element (e as Element.Constrains _) = SOME e
       | filter_element (Element.Assumes []) = NONE
       | filter_element (e as Element.Assumes _) = SOME e
-      | filter_element (Element.Defines _) = error ("\"defines\" element not allowed in class specification.")
-      | filter_element (Element.Notes _) = error ("\"notes\" element not allowed in class specification.");
+      | filter_element (Element.Defines _) =
+          error ("\"defines\" element not allowed in class specification.")
+      | filter_element (Element.Notes _) =
+          error ("\"notes\" element not allowed in class specification.");
     val inferred_elems = map_filter filter_element raw_inferred_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
       | fold_element_types f (Element.Assumes assms) = fold (fold (fn (t, ts) =>
           fold_types f t #> (fold o fold_types) f ts) o snd) assms;
-    val base_sort = if null inferred_elems then proto_base_sort else
-      case (fold o fold_element_types) Term.add_tfreesT inferred_elems []
-       of [] => error "No type variable in class specification"
+    val base_sort =
+      if null inferred_elems then proto_base_sort
+      else
+        (case (fold o fold_element_types) Term.add_tfreesT inferred_elems [] of
+          [] => error "No type variable in class specification"
         | [(_, sort)] => sort
-        | _ => error "Multiple type variables in class specification";
+        | _ => error "Multiple type variables in class specification");
     val supparams = map (fn ((c, T), _) =>
       (c, map_atyps (K (TFree (Name.aT, base_sort))) T)) raw_supparams;
     val supparam_names = map fst supparams;
@@ -315,6 +320,7 @@ val class = gen_class cert_class_spec;
 val class_cmd = gen_class read_class_spec;
 
 end; (*local*)
+
 
 
 (** subclass relations **)
