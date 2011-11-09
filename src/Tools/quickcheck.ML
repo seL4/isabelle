@@ -50,7 +50,7 @@ sig
   val timings_of : result -> (string * int) list
   (* registering testers & generators *) 
   type tester =
-    Proof.context -> (string * typ) list -> (term * term list) list -> result list
+    Proof.context -> bool -> (string * typ) list -> (term * term list) list -> result list
   val add_tester : string * (bool Config.T * tester) -> Context.generic -> Context.generic
   val add_batch_generator :
     string * (Proof.context -> term list -> (int -> term list option) list)
@@ -192,7 +192,7 @@ fun merge_test_params
     (merge (op =) (default_type1, default_type2), merge_expectation (expect1, expect2));
 
 type tester =
-  Proof.context -> (string * typ) list -> (term * term list) list -> result list
+  Proof.context -> bool -> (string * typ) list -> (term * term list) list -> result list
 
 structure Data = Generic_Data
 (
@@ -288,7 +288,7 @@ fun test_terms ctxt (limit_time, is_interactive) insts goals =
     [] => error "No active testers for quickcheck"
   | testers => limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
       (fn () => Par_List.get_some (fn tester =>
-      tester ctxt insts goals |>
+      tester ctxt (length testers > 1) insts goals |>
       (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
       (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ();
       

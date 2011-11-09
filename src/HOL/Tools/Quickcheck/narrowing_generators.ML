@@ -456,7 +456,7 @@ fun test_term ctxt (t, eval_terms) =
       end
   end;
 
-fun test_goals ctxt insts goals =
+fun test_goals ctxt _ insts goals =
   if (not (getenv "ISABELLE_GHC" = "")) then
     let
       val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals

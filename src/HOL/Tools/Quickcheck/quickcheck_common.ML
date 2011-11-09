@@ -16,7 +16,7 @@ sig
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
     Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
-  val generator_test_goal_terms : compile_generator -> Proof.context -> (string * typ) list
+  val generator_test_goal_terms : compile_generator -> Proof.context -> bool -> (string * typ) list
     -> (term * term list) list -> Quickcheck.result list
   val ensure_sort_datatype:
     ((sort * sort) * sort) * (Datatype.config -> Datatype.descr -> (string * sort) list
@@ -27,7 +27,7 @@ sig
      -> Proof.context -> (term * term list) list -> term
   val mk_fun_upd : typ -> typ -> term * term -> term -> term
   val post_process_term : term -> term
-  val test_term : compile_generator -> Proof.context -> term * term list -> Quickcheck.result
+  val test_term : compile_generator -> Proof.context -> bool -> term * term list -> Quickcheck.result
 end;
 
 structure Quickcheck_Common : QUICKCHECK_COMMON =
@@ -61,7 +61,7 @@ fun cpu_time description e =
   let val ({cpu, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds cpu)) end
 
-fun test_term compile ctxt (t, eval_terms) =
+fun test_term compile ctxt catch_code_errors (t, eval_terms) =
   let
     val _ = check_test_term t
     val names = Term.add_free_names t []
@@ -83,8 +83,9 @@ fun test_term compile ctxt (t, eval_terms) =
         in
           case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
+    val act = if catch_code_errors then try else (fn f => SOME o f) 
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-        (fn () => try (compile ctxt) [(t, eval_terms)]);
+        (fn () => act (compile ctxt) [(t, eval_terms)]);
     val _ = Quickcheck.add_timing comp_time current_result
   in
     case test_fun of
@@ -135,7 +136,7 @@ fun test_terms ctxt ts =
   end
 
 
-fun test_term_with_increasing_cardinality compile ctxt ts =
+fun test_term_with_increasing_cardinality compile ctxt catch_code_errors ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val (ts', eval_terms) = split_list ts
@@ -161,7 +162,8 @@ fun test_term_with_increasing_cardinality compile ctxt ts =
         (* size does matter *)
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt Quickcheck.size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
-    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => try (compile ctxt) ts)
+    val act = if catch_code_errors then try else (fn f => SOME o f)
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => act (compile ctxt) ts)
     val _ = Quickcheck.add_timing comp_time current_result
   in
     case test_fun of
@@ -245,19 +247,19 @@ fun add_equation_eval_terms (t, eval_terms) =
     SOME (lhs, rhs) => (t, eval_terms @ [rhs, lhs])
   | NONE => (t, eval_terms)
 
-fun generator_test_goal_terms compile ctxt insts goals =
+fun generator_test_goal_terms compile ctxt catch_code_errors insts goals =
   let
     fun test_term' goal =
       case goal of
-        [(NONE, t)] => test_term compile ctxt t
-      | ts => test_term_with_increasing_cardinality compile ctxt (map snd ts)
+        [(NONE, t)] => test_term compile ctxt catch_code_errors t
+      | ts => test_term_with_increasing_cardinality compile ctxt catch_code_errors (map snd ts)
     val goals' = instantiate_goals ctxt insts goals
       |> map (map (apsnd add_equation_eval_terms))
   in
     if Config.get ctxt Quickcheck.finite_types then
       collect_results test_term' goals' []
     else
-      collect_results (test_term compile ctxt)
+      collect_results (test_term compile ctxt catch_code_errors)
         (maps (map snd) goals') []
   end;
 
