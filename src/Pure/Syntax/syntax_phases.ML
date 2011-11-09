@@ -13,6 +13,27 @@ sig
     Position.report list * term Exn.result -> Position.report list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
+  val print_checks: Proof.context -> unit
+  val context_typ_check: int -> string ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val context_term_check: int -> string ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val context_typ_uncheck: int -> string ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val context_term_uncheck: int -> string ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
+    Context.generic -> Context.generic
+  val term_check: int -> string -> (Proof.context -> term list -> term list) ->
+    Context.generic -> Context.generic
+  val typ_uncheck: int -> string -> (Proof.context -> typ list -> typ list) ->
+    Context.generic -> Context.generic
+  val term_uncheck: int -> string -> (Proof.context -> term list -> term list) ->
+    Context.generic -> Context.generic
 end
 
 structure Syntax_Phases: SYNTAX_PHASES =
@@ -692,6 +713,87 @@ val _ = Context.>> (Context.map_theory
 
 (** check/uncheck **)
 
+(* context-sensitive (un)checking *)
+
+type key = int * bool;
+
+structure Checks = Generic_Data
+(
+  type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
+  type T =
+    ((key * ((string * typ check) * stamp) list) list *
+     (key * ((string * term check) * stamp) list) list);
+  val empty = ([], []);
+  val extend = I;
+  fun merge ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
+    (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
+     AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
+);
+
+fun print_checks ctxt =
+  let
+    fun split_checks checks =
+      List.partition (fn ((_, un), _) => not un) checks
+      |> pairself (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
+          #> sort (int_ord o pairself fst));
+    fun pretty_checks kind checks =
+      checks |> map (fn (i, names) => Pretty.block
+        [Pretty.str (kind ^ " (stage " ^ signed_string_of_int i ^ "):"),
+          Pretty.brk 1, Pretty.strs names]);
+
+    val (typs, terms) = Checks.get (Context.Proof ctxt);
+    val (typ_checks, typ_unchecks) = split_checks typs;
+    val (term_checks, term_unchecks) = split_checks terms;
+  in
+    pretty_checks "typ_checks" typ_checks @
+    pretty_checks "term_checks" term_checks @
+    pretty_checks "typ_unchecks" typ_unchecks @
+    pretty_checks "term_unchecks" term_unchecks
+  end |> Pretty.chunks |> Pretty.writeln;
+
+
+local
+
+fun context_check which (key: key) name f =
+  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
+
+fun simple_check eq f xs ctxt =
+  let val xs' = f ctxt xs
+  in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end;
+
+in
+
+fun context_typ_check stage = context_check apfst (stage, false);
+fun context_term_check stage = context_check apsnd (stage, false);
+fun context_typ_uncheck stage = context_check apfst (stage, true);
+fun context_term_uncheck stage = context_check apsnd (stage, true);
+
+fun typ_check key name f = context_typ_check key name (simple_check (op =) f);
+fun term_check key name f = context_term_check key name (simple_check (op aconv) f);
+fun typ_uncheck key name f = context_typ_uncheck key name (simple_check (op =) f);
+fun term_uncheck key name f = context_term_uncheck key name (simple_check (op aconv) f);
+
+end;
+
+
+local
+
+fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
+fun check_all fs = perhaps_apply (map check_stage fs);
+
+fun check which uncheck ctxt0 xs0 =
+  let
+    val funs = which (Checks.get (Context.Proof ctxt0))
+      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
+      |> Library.sort (int_ord o pairself fst) |> map snd
+      |> not uncheck ? map rev;
+  in #1 (perhaps (check_all funs) (xs0, ctxt0)) end;
+
+val apply_typ_check = check fst false;
+val apply_term_check = check snd false;
+val apply_typ_uncheck = check fst true;
+val apply_term_uncheck = check snd true;
+
 fun prepare_types ctxt tys =
   let
     fun constraint (xi: indexname, S) = S <> dummyS ? insert (op =) (xi, S);
@@ -708,20 +810,34 @@ fun prepare_types ctxt tys =
         | T => T) tys
   end;
 
+in
+
 fun check_typs ctxt =
   prepare_types ctxt #>
-  Syntax.apply_typ_check ctxt #>
+  apply_typ_check ctxt #>
   Term_Sharing.typs (Proof_Context.theory_of ctxt);
 
 fun check_terms ctxt =
   Term.burrow_types (prepare_types ctxt) #>
-  Syntax.apply_term_check ctxt #>
+  apply_term_check ctxt #>
   Term_Sharing.terms (Proof_Context.theory_of ctxt);
 
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
 
-val uncheck_typs = Syntax.apply_typ_uncheck;
-val uncheck_terms = Syntax.apply_term_uncheck;
+val uncheck_typs = apply_typ_uncheck;
+val uncheck_terms = apply_term_uncheck;
+
+end;
+
+
+(* standard phases *)
+
+val _ = Context.>>
+ (typ_check 0 "standard" Proof_Context.standard_typ_check #>
+  term_check 0 "standard"
+    (fn ctxt => Type_Infer_Context.infer_types ctxt #> map (Proof_Context.expand_abbrevs ctxt)) #>
+  term_check 100 "standard_finish" Proof_Context.standard_term_check_finish #>
+  term_uncheck 0 "standard" Proof_Context.standard_term_uncheck);
 
 
 

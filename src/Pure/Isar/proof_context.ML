@@ -83,6 +83,9 @@ sig
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
   val def_type: Proof.context -> indexname -> typ option
+  val standard_typ_check: Proof.context -> typ list -> typ list
+  val standard_term_check_finish: Proof.context -> term list -> term list
+  val standard_term_uncheck: Proof.context -> term list -> term list
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -666,23 +669,12 @@ fun def_type ctxt =
   let val Mode {pattern, ...} = get_mode ctxt
   in Variable.def_type ctxt pattern end;
 
-local
-
 fun standard_typ_check ctxt =
-  map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
-  map (prepare_patternT ctxt);
+  map (cert_typ_mode (Type.get_mode ctxt) ctxt #> prepare_patternT ctxt);
 
-fun standard_term_uncheck ctxt =
-  map (contract_abbrevs ctxt);
+val standard_term_check_finish = prepare_patterns;
 
-in
-
-val _ = Context.>>
- (Syntax.add_typ_check 0 "standard" standard_typ_check #>
-  Syntax.add_term_check 100 "fixate" prepare_patterns #>
-  Syntax.add_term_uncheck 0 "standard" standard_term_uncheck);
-
-end;
+fun standard_term_uncheck ctxt = map (contract_abbrevs ctxt);
 
 
 

@@ -806,7 +806,7 @@ fun coercion_infer_types ctxt raw_ts =
 val coercion_enabled = Attrib.setup_config_bool @{binding coercion_enabled} (K false);
 
 val add_term_check =
-  Syntax.add_term_check ~100 "coercions"
+  Syntax_Phases.term_check ~100 "coercions"
     (fn ctxt => Config.get ctxt coercion_enabled ? coercion_infer_types ctxt);
 
 

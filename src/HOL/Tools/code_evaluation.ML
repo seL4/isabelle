@@ -224,7 +224,7 @@ val setup =
   #> Code.abstype_interpretation ensure_term_of
   #> Code.datatype_interpretation ensure_term_of_code
   #> Code.abstype_interpretation ensure_abs_term_of_code
-  #> Context.theory_map (Syntax.add_term_check 0 "termify" check_termify)
+  #> Context.theory_map (Syntax_Phases.term_check 0 "termify" check_termify)
   #> Value.add_evaluator ("code", dynamic_value_strict o Proof_Context.theory_of);
 
 end;

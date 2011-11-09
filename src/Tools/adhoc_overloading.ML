@@ -132,8 +132,8 @@ fun reject_unresolved ts ctxt =
 (* setup *)
 
 val setup = Context.theory_map
-  (Syntax.context_term_check 0 "adhoc_overloading" check
-   #> Syntax.context_term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
-   #> Syntax.context_term_uncheck 0 "adhoc_overloading" uncheck);
+  (Syntax_Phases.context_term_check 0 "adhoc_overloading" check
+   #> Syntax_Phases.context_term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
+   #> Syntax_Phases.context_term_uncheck 0 "adhoc_overloading" uncheck);
 
 end;

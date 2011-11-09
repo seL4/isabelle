@@ -550,7 +550,7 @@ fun instantiation (tycos, vs, sort) thy =
     |> (Overloading.map_improvable_syntax o apfst)
          (K ((primary_constraints, []), (((improve, K NONE), false), [])))
     |> Overloading.activate_improvable_syntax
-    |> Context.proof_map (Syntax.add_term_check 0 "resorting" resort_check)
+    |> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
     |> Local_Theory.init NONE ""
        {define = Generic_Target.define foundation,

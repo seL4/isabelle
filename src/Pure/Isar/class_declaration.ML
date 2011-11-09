@@ -147,11 +147,11 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
-      #> Context.proof_map (Syntax.add_typ_check 10 "reject_bcd_etc" (K reject_bcd_etc))
-      #> Context.proof_map (Syntax.add_typ_check ~10 "singleton_fixate" (K singleton_fixate));
+      #> Context.proof_map (Syntax_Phases.typ_check 10 "reject_bcd_etc" (K reject_bcd_etc))
+      #> Context.proof_map (Syntax_Phases.typ_check ~10 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems), _) =
       Proof_Context.init_global thy
-      |> Context.proof_map (Syntax.add_typ_check 5 "after_infer_fixate" (K after_infer_fixate))
+      |> Context.proof_map (Syntax_Phases.typ_check 5 "after_infer_fixate" (K after_infer_fixate))
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
       | filter_element (e as Element.Fixes _) = SOME e
