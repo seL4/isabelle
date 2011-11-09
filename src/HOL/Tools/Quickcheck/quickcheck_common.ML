@@ -174,8 +174,8 @@ fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interacti
 
 fun get_finite_types ctxt =
   fst (chop (Config.get ctxt Quickcheck.finite_type_size)
-    (map (Type o rpair []) ["Enum.finite_1", "Enum.finite_2", "Enum.finite_3",
-     "Enum.finite_4", "Enum.finite_5"]))
+    [@{typ "Enum.finite_1"}, @{typ "Enum.finite_2"}, @{typ "Enum.finite_3"},
+     @{typ "Enum.finite_4"}, @{typ "Enum.finite_5"}])
 
 exception WELLSORTED of string
 
