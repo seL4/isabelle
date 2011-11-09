@@ -123,7 +123,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
             val ctxt' = change_options (Proof_Context.init_global thy)
             val [result] = case Quickcheck.active_testers ctxt' of
               [] => error "No active testers for quickcheck"
-            | [tester] => tester ctxt' (false, false) [] [(t, [])]
+            | [tester] => tester ctxt' false [] [(t, [])]
             | _ => error "Multiple active testers for quickcheck"
           in
             case Quickcheck.counterexample_of result of 
