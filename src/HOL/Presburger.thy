@@ -25,8 +25,8 @@ lemma minf:
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<le> t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x > t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<ge> t) = False"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})<z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x<z. F = F"
   by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastforce)+) simp_all
 
@@ -41,8 +41,8 @@ lemma pinf:
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<le> t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x > t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<ge> t) = True"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})>z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'b::{linorder,plus,Rings.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x>z. F = F"
   by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastforce)+) simp_all
 
