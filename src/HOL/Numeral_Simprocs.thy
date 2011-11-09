@@ -103,8 +103,8 @@ simproc_setup int_combine_numerals
   {* fn phi => Numeral_Simprocs.combine_numerals *}
 
 simproc_setup field_combine_numerals
-  ("(i::'a::{field_inverse_zero, number_ring}) + j"
-  |"(i::'a::{field_inverse_zero, number_ring}) - j") =
+  ("(i::'a::{field_inverse_zero,ring_char_0,number_ring}) + j"
+  |"(i::'a::{field_inverse_zero,ring_char_0,number_ring}) - j") =
   {* fn phi => Numeral_Simprocs.field_combine_numerals *}
 
 simproc_setup inteq_cancel_numerals
@@ -141,8 +141,8 @@ simproc_setup intle_cancel_numerals
   {* fn phi => Numeral_Simprocs.le_cancel_numerals *}
 
 simproc_setup ring_eq_cancel_numeral_factor
-  ("(l::'a::{idom,number_ring}) * m = n"
-  |"(l::'a::{idom,number_ring}) = m * n") =
+  ("(l::'a::{idom,ring_char_0,number_ring}) * m = n"
+  |"(l::'a::{idom,ring_char_0,number_ring}) = m * n") =
   {* fn phi => Numeral_Simprocs.eq_cancel_numeral_factor *}
 
 simproc_setup ring_less_cancel_numeral_factor
@@ -156,14 +156,14 @@ simproc_setup ring_le_cancel_numeral_factor
   {* fn phi => Numeral_Simprocs.le_cancel_numeral_factor *}
 
 simproc_setup int_div_cancel_numeral_factors
-  ("((l::'a::{semiring_div,number_ring}) * m) div n"
-  |"(l::'a::{semiring_div,number_ring}) div (m * n)") =
+  ("((l::'a::{semiring_div,ring_char_0,number_ring}) * m) div n"
+  |"(l::'a::{semiring_div,ring_char_0,number_ring}) div (m * n)") =
   {* fn phi => Numeral_Simprocs.div_cancel_numeral_factor *}
 
 simproc_setup divide_cancel_numeral_factor
-  ("((l::'a::{field_inverse_zero,number_ring}) * m) / n"
-  |"(l::'a::{field_inverse_zero,number_ring}) / (m * n)"
-  |"((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)") =
+  ("((l::'a::{field_inverse_zero,ring_char_0,number_ring}) * m) / n"
+  |"(l::'a::{field_inverse_zero,ring_char_0,number_ring}) / (m * n)"
+  |"((number_of v)::'a::{field_inverse_zero,ring_char_0,number_ring}) / (number_of w)") =
   {* fn phi => Numeral_Simprocs.divide_cancel_numeral_factor *}
 
 simproc_setup ring_eq_cancel_factor
