@@ -136,9 +136,10 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
         (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr vs) dTs));
     
     val tycos = map fst dataTs;
-    val _ = if eq_set (op =) (tycos, raw_tycos) then ()
-      else error ("Type constructors " ^ commas (map quote raw_tycos)
-        ^ " do not belong exhaustively to one mutual recursive datatype");
+    val _ =
+      if eq_set (op =) (tycos, raw_tycos) then ()
+      else error ("Type constructors " ^ commas_quote raw_tycos ^
+        " do not belong exhaustively to one mutual recursive datatype");
 
     val (Ts, Us) = (pairself o map) Type protoTs;
 
@@ -406,15 +407,16 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
       in (tyco, (vs, cT)) end;
 
     val raw_cs = AList.group (op =) (map (type_of_constr o constr_of_term o prep_term thy) raw_ts);
-    val _ = case map_filter (fn (tyco, _) =>
-        if Symtab.defined (get_all thy) tyco then SOME tyco else NONE) raw_cs
-     of [] => ()
-      | tycos => error ("Type(s) " ^ commas (map quote tycos)
-          ^ " already represented inductivly");
+    val _ =
+      (case map_filter (fn (tyco, _) =>
+          if Symtab.defined (get_all thy) tyco then SOME tyco else NONE) raw_cs of
+        [] => ()
+      | tycos => error ("Type(s) " ^ commas_quote tycos ^ " already represented inductivly"));
     val raw_vss = maps (map (map snd o fst) o snd) raw_cs;
-    val ms = case distinct (op =) (map length raw_vss)
-     of [n] => 0 upto n - 1
-      | _ => error ("Different types in given constructors");
+    val ms =
+      (case distinct (op =) (map length raw_vss) of
+         [n] => 0 upto n - 1
+      | _ => error "Different types in given constructors");
     fun inter_sort m = map (fn xs => nth xs m) raw_vss
       |> Library.foldr1 (Sorts.inter_sort (Sign.classes_of thy))
     val sorts = map inter_sort ms;
