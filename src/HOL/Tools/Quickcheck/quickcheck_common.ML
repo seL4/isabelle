@@ -83,18 +83,19 @@ fun test_term compile ctxt (limit_time, is_interactive) (t, eval_terms) =
         in
           case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation"
+        (fn () => try (compile ctxt) [(t, eval_terms)]);
+    val _ = Quickcheck.add_timing comp_time current_result
   in
-    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
+    case test_fun of
+      NONE => (Quickcheck.message ctxt "Conjecture is not executable with quickcheck"; !current_result)
+    | SOME test_fun =>
       let
-        val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-          (fn () => compile ctxt [(t, eval_terms)]);
-        val _ = Quickcheck.add_timing comp_time current_result
         val (response, exec_time) =
           cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
         val _ = Quickcheck.add_response names eval_terms response current_result
         val _ = Quickcheck.add_timing exec_time current_result
-      in !current_result end)
-(*    (fn () => (message (excipit ()); !current_result)) ()*)
+      in !current_result end
   end;
 
 fun validate_terms ctxt ts =
@@ -160,16 +161,17 @@ fun test_term_with_increasing_cardinality compile ctxt (limit_time, is_interacti
         (* size does matter *)
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt Quickcheck.size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => try (compile ctxt) ts)
+    val _ = Quickcheck.add_timing comp_time current_result
   in
-    (*limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>*)(
+    case test_fun of
+      NONE => (Quickcheck.message ctxt "Conjecture is not executable with quickcheck"; !current_result)
+    | SOME test_fun =>
       let
-        val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => compile ctxt ts)
-        val _ = Quickcheck.add_timing comp_time current_result     
         val _ = case get_first (test_card_size test_fun) enumeration_card_size of
           SOME (card, ts) => Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
         | NONE => ()
-      in !current_result end)
-      (*(fn () => (message "Quickcheck ran out of time"; !current_result)) ()*)
+      in !current_result end
   end
 
 fun get_finite_types ctxt =
