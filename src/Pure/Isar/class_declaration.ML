@@ -116,38 +116,41 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
         (Class.these_operations thy sups);
-    val reject_bcd_etc = (map o map_atyps) (fn T as TFree (a, _) =>
-          if a = Name.aT then T
-          else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
-      | T => T);
+    val reject_other =
+      (tap o exists o Term.exists_subtype)
+        (fn TFree (a, _) =>
+          a <> Name.aT andalso
+            error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
+        | _ => false);
     fun singleton_fixate Ts =
       let
-        fun extract f = (fold o fold_atyps) f Ts [];
-        val tfrees = extract (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
-        val inferred_sort = extract (fn TVar (_, sort) => inter_sort sort | _ => I);
+        val tfrees = fold Term.add_tfreesT Ts [];
+        val inferred_sort = (fold o Term.fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) Ts [];
         val fixate_sort =
-          if null tfrees then inferred_sort
-          else
-            (case tfrees of
-              [(_, a_sort)] =>
-                if Sorts.sort_le algebra (a_sort, inferred_sort) then
-                  inter_sort a_sort inferred_sort
-                else
-                  error ("Type inference imposes additional sort constraint " ^
-                    Syntax.string_of_sort_global thy inferred_sort ^
-                    " of type parameter " ^ Name.aT ^ " of sort " ^
-                    Syntax.string_of_sort_global thy a_sort)
-            | _ => error "Multiple type variables in class specification");
-      in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
+          (case tfrees of
+            [] => inferred_sort
+          | [(_, S)] =>
+              if Sorts.sort_le algebra (S, inferred_sort) then S
+              else
+                error ("Type inference imposes additional sort constraint " ^
+                  Syntax.string_of_sort_global thy inferred_sort ^
+                  " of type parameter " ^ Name.aT ^ " of sort " ^
+                  Syntax.string_of_sort_global thy S)
+          | _ => error "Multiple type variables in class specification");
+        val fixateT = TFree (Name.aT, fixate_sort);
+      in
+        (map o map_atyps)
+          (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) Ts
+      end;
     fun after_infer_fixate Ts =
       let
-        val S' =
+        val fixate_sort =
           (fold o fold_atyps)
             (fn TVar (xi, S) => if Type_Infer.is_param xi then inter_sort S else I | _ => I) Ts [];
       in
         (map o map_atyps)
           (fn T as TVar (xi, _) =>
-              if Type_Infer.is_param xi then Type_Infer.param 0 (Name.aT, S') else T
+              if Type_Infer.is_param xi then Type_Infer.param 0 (Name.aT, fixate_sort) else T
             | T => T) Ts
       end;
 
@@ -157,7 +160,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
-      #> Context.proof_map (Syntax_Phases.typ_check 10 "reject_bcd_etc" (K reject_bcd_etc))
+      #> Context.proof_map (Syntax_Phases.typ_check 10 "reject_other" (K reject_other))
       #> Context.proof_map (Syntax_Phases.typ_check ~10 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems), _) =
       Proof_Context.init_global thy
