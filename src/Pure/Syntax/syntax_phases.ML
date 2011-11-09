@@ -714,12 +714,16 @@ val _ = Context.>> (Context.map_theory
 
 (** check/uncheck **)
 
-fun check_typs ctxt = Syntax.typ_check ctxt #> Term_Sharing.typs (Proof_Context.theory_of ctxt);
-fun check_terms ctxt = Syntax.term_check ctxt #> Term_Sharing.terms (Proof_Context.theory_of ctxt);
+fun check_typs ctxt =
+  Syntax.apply_typ_check ctxt #> Term_Sharing.typs (Proof_Context.theory_of ctxt);
+
+fun check_terms ctxt =
+  Syntax.apply_term_check ctxt #> Term_Sharing.terms (Proof_Context.theory_of ctxt);
+
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
 
-val uncheck_typs = Syntax.typ_uncheck;
-val uncheck_terms = Syntax.term_uncheck;
+val uncheck_typs = Syntax.apply_typ_uncheck;
+val uncheck_terms = Syntax.apply_term_uncheck;
 
 
 

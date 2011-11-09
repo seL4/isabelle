@@ -51,10 +51,10 @@ sig
     Context.generic -> Context.generic
   val add_term_uncheck: int -> string -> (Proof.context -> term list -> term list) ->
     Context.generic -> Context.generic
-  val typ_check: Proof.context -> typ list -> typ list
-  val term_check: Proof.context -> term list -> term list
-  val typ_uncheck: Proof.context -> typ list -> typ list
-  val term_uncheck: Proof.context -> term list -> term list
+  val apply_typ_check: Proof.context -> typ list -> typ list
+  val apply_term_check: Proof.context -> term list -> term list
+  val apply_typ_uncheck: Proof.context -> typ list -> typ list
+  val apply_term_uncheck: Proof.context -> term list -> term list
   val check_sort: Proof.context -> sort -> sort
   val check_typ: Proof.context -> typ -> typ
   val check_term: Proof.context -> term -> term
@@ -322,10 +322,10 @@ fun check which uncheck ctxt0 xs0 =
 
 in
 
-val typ_check = check fst false;
-val term_check = check snd false;
-val typ_uncheck = check fst true;
-val term_uncheck = check snd true;
+val apply_typ_check = check fst false;
+val apply_term_check = check snd false;
+val apply_typ_uncheck = check fst true;
+val apply_term_uncheck = check snd true;
 
 val check_typs = operation #check_typs;
 val check_terms = operation #check_terms;
