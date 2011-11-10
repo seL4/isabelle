@@ -688,8 +688,8 @@ fun record_field_types_tr more ctxt t =
                     val types = map snd fields';
                     val (args, rest) = split_args (map fst fields') fargs
                       handle Fail msg => err msg;
-                    val argtypes = map (Syntax.check_typ ctxt o Syntax_Phases.decode_typ) args;
-                    val varifyT = varifyT (fold Term.maxidx_typ argtypes 0 + 1);
+                    val argtypes = Syntax.check_typs ctxt (map Syntax_Phases.decode_typ args);
+                    val varifyT = varifyT (fold Term.maxidx_typ argtypes ~1 + 1);
                     val vartypes = map varifyT types;
 
                     val subst = Type.raw_matches (vartypes, argtypes) Vartab.empty
