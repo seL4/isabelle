@@ -14,18 +14,6 @@ sig
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
   val print_checks: Proof.context -> unit
-  val context_typ_check: int -> string ->
-    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
-    Context.generic -> Context.generic
-  val context_term_check: int -> string ->
-    (term list -> Proof.context -> (term list * Proof.context) option) ->
-    Context.generic -> Context.generic
-  val context_typ_uncheck: int -> string ->
-    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
-    Context.generic -> Context.generic
-  val context_term_uncheck: int -> string ->
-    (term list -> Proof.context -> (term list * Proof.context) option) ->
-    Context.generic -> Context.generic
   val typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
     Context.generic -> Context.generic
   val term_check: int -> string -> (Proof.context -> term list -> term list) ->
@@ -33,6 +21,18 @@ sig
   val typ_uncheck: int -> string -> (Proof.context -> typ list -> typ list) ->
     Context.generic -> Context.generic
   val term_uncheck: int -> string -> (Proof.context -> term list -> term list) ->
+    Context.generic -> Context.generic
+  val typ_check': int -> string ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val term_check': int -> string ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val typ_uncheck': int -> string ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val term_uncheck': int -> string ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
     Context.generic -> Context.generic
 end
 
@@ -763,15 +763,15 @@ fun simple_check eq f xs ctxt =
 
 in
 
-fun context_typ_check stage = context_check apfst (stage, false);
-fun context_term_check stage = context_check apsnd (stage, false);
-fun context_typ_uncheck stage = context_check apfst (stage, true);
-fun context_term_uncheck stage = context_check apsnd (stage, true);
+fun typ_check' stage = context_check apfst (stage, false);
+fun term_check' stage = context_check apsnd (stage, false);
+fun typ_uncheck' stage = context_check apfst (stage, true);
+fun term_uncheck' stage = context_check apsnd (stage, true);
 
-fun typ_check key name f = context_typ_check key name (simple_check (op =) f);
-fun term_check key name f = context_term_check key name (simple_check (op aconv) f);
-fun typ_uncheck key name f = context_typ_uncheck key name (simple_check (op =) f);
-fun term_uncheck key name f = context_term_uncheck key name (simple_check (op aconv) f);
+fun typ_check key name f = typ_check' key name (simple_check (op =) f);
+fun term_check key name f = term_check' key name (simple_check (op aconv) f);
+fun typ_uncheck key name f = typ_uncheck' key name (simple_check (op =) f);
+fun term_uncheck key name f = term_uncheck' key name (simple_check (op aconv) f);
 
 end;
 
