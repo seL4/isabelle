@@ -7,6 +7,7 @@ Type-inference preparation and standard type inference.
 signature TYPE_INFER_CONTEXT =
 sig
   val const_sorts: bool Config.T
+  val prepare_positions: Proof.context -> term list -> term list * (Position.T * typ) list
   val prepare: Proof.context -> term list -> int * term list
   val infer_types: Proof.context -> term list -> term list
 end;
@@ -82,9 +83,7 @@ fun prepare_term ctxt tm (vparams, params, idx) =
 
     fun prepare (Const ("_type_constraint_", T) $ t) ps_idx =
           let
-            fun err () =
-              error ("Malformed internal type constraint: " ^ Syntax.string_of_typ ctxt T);
-            val A = (case T of Type ("fun", [A, B]) => if A = B then A else err () | _ => err ());
+            val A = Type.constraint_type ctxt T;
             val (A', ps_idx') = prepare_typ A ps_idx;
             val (t', ps_idx'') = prepare t ps_idx';
           in (Const ("_type_constraint_", A' --> A') $ t', ps_idx'') end
@@ -113,6 +112,55 @@ fun prepare_term ctxt tm (vparams, params, idx) =
 
     val (tm', (params', idx'')) = prepare tm (params, idx');
   in (tm', (vparams', params', idx'')) end;
+
+
+(* prepare_positions *)
+
+fun prepare_positions ctxt tms =
+  let
+    val visible = Context_Position.is_visible ctxt;
+
+    fun prepareT (Type (a, Ts)) ps_idx =
+          let val (Ts', ps_idx') = fold_map prepareT Ts ps_idx
+          in (Type (a, Ts'), ps_idx') end
+      | prepareT T (ps, idx) =
+          (case Term_Position.decode_positionT T of
+            SOME pos =>
+              if visible then
+                let val U = Type_Infer.mk_param idx []
+                in (U, ((pos, U) :: ps, idx + 1)) end
+              else (dummyT, (ps, idx))
+          | NONE => (T, (ps, idx)));
+
+    fun prepare (Const ("_type_constraint_", T)) ps_idx =
+          let
+            val A = Type.constraint_type ctxt T;
+            val (A', ps_idx') = prepareT A ps_idx;
+          in (Const ("_type_constraint_", A' --> A'), ps_idx') end
+      | prepare (Const (c, T)) ps_idx =
+          let val (T', ps_idx') = prepareT T ps_idx
+          in (Const (c, T'), ps_idx') end
+      | prepare (Free (x, T)) ps_idx =
+          let val (T', ps_idx') = prepareT T ps_idx
+          in (Free (x, T'), ps_idx') end
+      | prepare (Var (xi, T)) ps_idx =
+          let val (T', ps_idx') = prepareT T ps_idx
+          in (Var (xi, T'), ps_idx') end
+      | prepare (t as Bound _) ps_idx = (t, ps_idx)
+      | prepare (Abs (x, T, t)) ps_idx =
+          let
+            val (T', ps_idx') = prepareT T ps_idx;
+            val (t', ps_idx'') = prepare t ps_idx';
+          in (Abs (x, T', t'), ps_idx'') end
+      | prepare (t $ u) ps_idx =
+          let
+            val (t', ps_idx') = prepare t ps_idx;
+            val (u', ps_idx'') = prepare u ps_idx';
+          in (t' $ u', ps_idx'') end;
+
+    val idx = Type_Infer.param_maxidx_of tms + 1;
+    val (tms', (ps, _)) = fold_map prepare tms ([], idx);
+  in (tms', ps) end;
 
 
 

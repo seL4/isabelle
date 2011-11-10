@@ -123,6 +123,8 @@ object Markup
   val TERM = "term"
   val PROP = "prop"
 
+  val TYPING = "typing"
+
   val ATTRIBUTE = "attribute"
   val METHOD = "method"
 

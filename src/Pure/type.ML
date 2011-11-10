@@ -10,6 +10,7 @@ sig
   (*constraints*)
   val mark_polymorphic: typ -> typ
   val constraint: typ -> term -> term
+  val constraint_type: Proof.context -> typ -> typ
   val strip_constraints: term -> term
   val appl_error: Proof.context -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
@@ -109,6 +110,10 @@ fun mark_polymorphic T = Type ("_polymorphic_", [T]);
 fun constraint T t =
   if T = dummyT then t
   else Const ("_type_constraint_", T --> T) $ t;
+
+fun constraint_type ctxt T =
+  let fun err () = error ("Malformed internal type constraint: " ^ Syntax.string_of_typ ctxt T);
+  in (case T of Type ("fun", [A, B]) => if A = B then A else err () | _ => err ()) end;
 
 fun strip_constraints (Const ("_type_constraint_", _) $ t) = strip_constraints t
   | strip_constraints (t $ u) = strip_constraints t $ strip_constraints u

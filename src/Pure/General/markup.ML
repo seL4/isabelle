@@ -56,6 +56,7 @@ sig
   val typN: string val typ: T
   val termN: string val term: T
   val propN: string val prop: T
+  val typingN: string val typing: T
   val ML_keywordN: string val ML_keyword: T
   val ML_delimiterN: string val ML_delimiter: T
   val ML_tvarN: string val ML_tvar: T
@@ -249,6 +250,8 @@ val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
 val (propN, prop) = markup_elem "prop";
+
+val (typingN, typing) = markup_elem "typing";
 
 
 (* ML syntax *)

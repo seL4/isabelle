@@ -179,12 +179,15 @@ object Isabelle_Markup
       Markup.ML_SOURCE -> "ML source",
       Markup.DOC_SOURCE -> "document source")
 
+  private def string_of_typing(kind: String, body: XML.Body): String =
+    Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
+      margin = Isabelle.Int_Property("tooltip-margin"))
+
   val tooltip: Markup_Tree.Select[String] =
   {
     case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " " + quote(name)
-    case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
-      Pretty.string_of(List(Pretty.block(XML.Text("ML:") :: Pretty.Break(1) :: body)),
-        margin = Isabelle.Int_Property("tooltip-margin"))
+    case Text.Info(_, XML.Elem(Markup(Markup.TYPING, _), body)) => string_of_typing("::", body)
+    case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) => string_of_typing("ML:", body)
     case Text.Info(_, XML.Elem(Markup(name, _), _))
     if tooltips.isDefinedAt(name) => tooltips(name)
   }

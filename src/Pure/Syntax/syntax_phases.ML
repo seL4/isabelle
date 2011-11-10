@@ -213,11 +213,11 @@ fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
-                SOME p => decode (p :: ps) qs bs t
+                SOME (p, T) => Type.constraint T (decode (p :: ps) qs bs t)
               | NONE => Type.constraint (decode_typ typ) (decode ps qs bs t))
           | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
-                SOME q => decode ps (q :: qs) bs t
+                SOME (q, T) => Type.constraint (T --> dummyT) (decode ps (q :: qs) bs t)
               | NONE => Type.constraint (decode_typ typ --> dummyT) (decode ps qs bs t))
           | decode _ qs bs (Abs (x, T, t)) =
               let
@@ -794,7 +794,7 @@ val apply_term_check = check snd false;
 val apply_typ_uncheck = check fst true;
 val apply_term_uncheck = check snd true;
 
-fun prepare_types ctxt tys =
+fun prepare_sorts ctxt tys =
   let
     fun constraint (xi: indexname, S) = S <> dummyS ? insert (op =) (xi, S);
     val env =
@@ -813,14 +813,26 @@ fun prepare_types ctxt tys =
 in
 
 fun check_typs ctxt =
-  prepare_types ctxt #>
+  prepare_sorts ctxt #>
   apply_typ_check ctxt #>
   Term_Sharing.typs (Proof_Context.theory_of ctxt);
 
-fun check_terms ctxt =
-  Term.burrow_types (prepare_types ctxt) #>
-  apply_term_check ctxt #>
-  Term_Sharing.terms (Proof_Context.theory_of ctxt);
+fun check_terms ctxt raw_ts =
+  let
+    val (ts, ps) = Type_Infer_Context.prepare_positions ctxt raw_ts;
+    val tys = map (Logic.mk_type o snd) ps;
+    val (ts', tys') =
+      Term.burrow_types (prepare_sorts ctxt) ts @ tys
+      |> apply_term_check ctxt
+      |> chop (length ts);
+    val _ =
+      map2 (fn (pos, _) => fn ty =>
+        if Position.is_reported pos then
+          Markup.markup (Position.markup pos Markup.typing)
+            (Syntax.string_of_typ ctxt (Logic.dest_type ty))
+        else "") ps tys'
+      |> implode |> Output.report
+  in Term_Sharing.terms (Proof_Context.theory_of ctxt) ts' end;
 
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
 

@@ -9,7 +9,8 @@ sig
   val pretty: Position.T -> Pretty.T
   val encode: Position.T -> string
   val decode: string -> Position.T option
-  val decode_position: term -> Position.T option
+  val decode_position: term -> (Position.T * typ) option
+  val decode_positionT: typ -> Position.T option
   val is_position: term -> bool
   val strip_positions: term -> term
 end;
@@ -39,8 +40,14 @@ fun decode str =
 
 (* positions within parse trees *)
 
-fun decode_position (Free (x, _)) = decode x
+fun decode_position (Free (x, _)) =
+      (case decode x of
+        SOME pos => SOME (pos, TFree (x, dummyS))
+      | NONE => NONE)
   | decode_position _ = NONE;
+
+fun decode_positionT (TFree (x, _)) = decode x
+  | decode_positionT _ = NONE;
 
 val is_position = is_some o decode_position;
 
