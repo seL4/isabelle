@@ -42,7 +42,7 @@ sig
   
   val active : bool Config.T
   val test_goals :
-    Proof.context -> (bool * bool) -> (string * typ) list -> (term * term list) list ->
+    Proof.context -> bool -> (string * typ) list -> (term * term list) list ->
       Quickcheck.result list
 
   val trace : bool Unsynchronized.ref
@@ -1015,7 +1015,7 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 
 val active = Attrib.setup_config_bool @{binding quickcheck_prolog_active} (K true);
 
-fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
+fun test_term ctxt (t, eval_terms) =
   let
     val t' = fold_rev absfree (Term.add_frees t []) t
     val options = code_options_of (Proof_Context.theory_of ctxt)
@@ -1043,11 +1043,11 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
        evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
   end;
 
-fun test_goals ctxt (limit_time, is_interactive) insts goals =
+fun test_goals ctxt _ insts goals =
   let
     val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
   in
-    Quickcheck_Common.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+    Quickcheck_Common.collect_results (test_term ctxt) (maps (map snd) correct_inst_goals) []
   end
   
   
