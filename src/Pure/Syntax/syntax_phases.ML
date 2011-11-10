@@ -155,8 +155,12 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
-            [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+            let val pos = Lexicon.pos_of_token tok in
+              if Position.is_reported pos then
+                [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+                  Ast.Variable (Term_Position.encode pos)]]
+              else [ast_of pt]
+            end
           else [ast_of pt]
       | asts_of (Parser.Node (a, pts)) =
           let
