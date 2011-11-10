@@ -209,6 +209,29 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term * term list
 
+(* minimalistic preprocessing *)
+
+fun strip_all (Const (@{const_name HOL.All}, _) $ Abs (a, T, t)) = 
+  let
+    val (a', t') = strip_all t
+  in ((a, T) :: a', t') end
+  | strip_all t = ([], t);
+
+fun preprocess ctxt t =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val dest = HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
+    val rewrs = map (swap o dest) @{thms all_simps} @
+      (map dest [@{thm not_ex}, @{thm not_all}, @{thm imp_conjL}])
+    val t' = Pattern.rewrite_term thy rewrs [] (Object_Logic.atomize_term thy t)
+    val (vs, body) = strip_all t'
+    val vs' = Variable.variant_frees ctxt [t'] vs
+  in
+    subst_bounds (map Free (rev vs'), body)
+  end
+
+(* instantiation of type variables with concrete types *)
+ 
 fun instantiate_goals lthy insts goals =
   let
     fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
@@ -219,11 +242,11 @@ fun instantiate_goals lthy insts goals =
       map (fn (check_goal, eval_terms) =>
         if not (null (Term.add_tfree_names check_goal [])) then
           map (fn T =>
-            (pair (SOME T) o Term o apfst (Object_Logic.atomize_term thy))
+            (pair (SOME T) o Term o apfst (preprocess lthy))
               (map_goal_and_eval_terms (monomorphic_term thy insts T) (check_goal, eval_terms))
               handle WELLSORTED s => (SOME T, Wellsorted_Error s)) (default_insts lthy)
         else
-          [(NONE, Term (Object_Logic.atomize_term thy check_goal, eval_terms))]) goals
+          [(NONE, Term (preprocess lthy check_goal, eval_terms))]) goals
     val error_msg =
       cat_lines
         (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
