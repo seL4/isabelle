@@ -809,9 +809,13 @@ fun prepare_sorts ctxt tys =
     val get_sort = Proof_Context.get_sort ctxt env;
   in
     (map o map_atyps)
-      (fn TFree (x, _) => TFree (x, get_sort (x, ~1))
-        | TVar (xi, _) => TVar (xi, get_sort xi)
-        | T => T) tys
+      (fn T =>
+        if Term_Position.is_positionT T then T
+        else
+          (case T of
+            TFree (x, _) => TFree (x, get_sort (x, ~1))
+          | TVar (xi, _) => TVar (xi, get_sort xi)
+          | _ => T)) tys
   end;
 
 in
@@ -823,10 +827,11 @@ fun check_typs ctxt =
 
 fun check_terms ctxt raw_ts =
   let
-    val (ts, ps) = Type_Infer_Context.prepare_positions ctxt raw_ts;
+    val (ts, ps) = raw_ts
+      |> Term.burrow_types (prepare_sorts ctxt)
+      |> Type_Infer_Context.prepare_positions ctxt;
     val tys = map (Logic.mk_type o snd) ps;
-    val (ts', tys') =
-      Term.burrow_types (prepare_sorts ctxt) ts @ tys
+    val (ts', tys') = ts @ tys
       |> apply_term_check ctxt
       |> chop (length ts);
     val _ =

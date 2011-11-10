@@ -12,6 +12,7 @@ sig
   val decode_position: term -> (Position.T * typ) option
   val decode_positionT: typ -> Position.T option
   val is_position: term -> bool
+  val is_positionT: typ -> bool
   val strip_positions: term -> term
 end;
 
@@ -50,6 +51,7 @@ fun decode_positionT (TFree (x, _)) = decode x
   | decode_positionT _ = NONE;
 
 val is_position = is_some o decode_position;
+val is_positionT = is_some o decode_positionT;
 
 fun strip_positions ((t as Const (c, _)) $ u $ v) =
       if (c = "_constrain" orelse c = "_constrainAbs") andalso is_position v
