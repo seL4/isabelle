@@ -107,7 +107,6 @@ sig
   val axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
-  val compress: thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   (*meta rules*)
@@ -645,24 +644,6 @@ fun map_tags f (Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
 
 
 (* technical adjustments *)
-
-fun compress (Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
-  let
-    val thy = Theory.deref thy_ref;
-    val term = #2 (Term_Sharing.init thy);
-    val hyps' = map term hyps;
-    val tpairs' = map (pairself term) tpairs;
-    val prop' = term prop;
-  in
-    Thm (der,
-     {thy_ref = Theory.check_thy thy,
-      tags = tags,
-      maxidx = maxidx,
-      shyps = shyps,
-      hyps = hyps',
-      tpairs = tpairs',
-      prop = prop'})
-  end;
 
 fun norm_proof (Thm (der, args as {thy_ref, ...})) =
   let
