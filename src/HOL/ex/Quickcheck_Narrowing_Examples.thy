@@ -66,6 +66,11 @@ lemma
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
+lemma "a # xs = ys @ [a] ==> EX zs. xs = zs @ [a] & ys = a#zs"
+quickcheck[narrowing, expect = counterexample]
+quickcheck[exhaustive, random, expect = no_counterexample]
+oops
+
 subsection {* Simple list examples *}
 
 lemma "rev xs = xs"

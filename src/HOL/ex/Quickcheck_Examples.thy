@@ -380,4 +380,22 @@ oops
 
 end
 
+subsection {* Examples with HOL quantifiers *}
+
+lemma
+  "\<forall> xs ys. xs = [] --> xs = ys"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "ys = [] --> (\<forall>xs. xs = [] --> xs = y # ys)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "\<forall>xs. (\<exists> ys. ys = []) --> xs = ys"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+
 end
