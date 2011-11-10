@@ -264,11 +264,11 @@ fun check_datatype thy tyco some_consts =
           let
             val missing_constrs = subtract (op =) consts constrs;
             val _ = if null missing_constrs then []
-              else error ("Missing constructor(s) " ^ commas (map quote missing_constrs)
+              else error ("Missing constructor(s) " ^ commas_quote missing_constrs
                 ^ " for datatype " ^ quote tyco);
             val false_constrs = subtract (op =) constrs consts;
             val _ = if null false_constrs then []
-              else error ("Non-constructor(s) " ^ commas (map quote false_constrs)
+              else error ("Non-constructor(s) " ^ commas_quote false_constrs
                 ^ " for datatype " ^ quote tyco)
           in () end
       | NONE => ();

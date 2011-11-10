@@ -6,20 +6,17 @@ Ad-hoc overloading of constants based on their types.
 
 signature ADHOC_OVERLOADING =
 sig
-
   val add_overloaded: string -> theory -> theory
   val add_variant: string -> string -> theory -> theory
 
-  val show_variants: bool Unsynchronized.ref
+  val show_variants: bool Config.T
   val setup: theory -> theory
-
 end
-
 
 structure Adhoc_Overloading: ADHOC_OVERLOADING =
 struct
 
-val show_variants = Unsynchronized.ref false;
+val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
 
 
 (* errors *)
@@ -75,13 +72,14 @@ fun add_overloaded ext_name thy =
 fun add_variant ext_name name thy =
   let
     val _ = is_overloaded thy ext_name orelse not_overloaded_err ext_name;
-    val _ = case get_external thy name of
-              NONE => ()
-            | SOME gen' => duplicate_variant_err name gen';
+    val _ =
+      (case get_external thy name of
+        NONE => ()
+      | SOME gen' => duplicate_variant_err name gen');
     val T = Sign.the_const_type thy name;
   in
     map_tables (Symtab.cons_list (ext_name, (name, T)))
-      (Symtab.update (name, ext_name)) thy    
+      (Symtab.update (name, ext_name)) thy
   end
 
 
@@ -99,15 +97,15 @@ fun unifiable_with ctxt T1 (c, T2) =
   end;
 
 fun insert_internal_same ctxt t (Const (c, T)) =
-  (case map_filter (unifiable_with ctxt T) 
-     (Same.function (get_variants (Proof_Context.theory_of ctxt)) c) of
-      [] => unresolved_err ctxt (c, T) t "no instances"
-    | [c'] => Const (c', dummyT)
-    | _ => raise Same.SAME)
+      (case map_filter (unifiable_with ctxt T)
+         (Same.function (get_variants (Proof_Context.theory_of ctxt)) c) of
+        [] => unresolved_err ctxt (c, T) t "no instances"
+      | [c'] => Const (c', dummyT)
+      | _ => raise Same.SAME)
   | insert_internal_same _ _ _ = raise Same.SAME;
 
 fun insert_external_same ctxt _ (Const (c, T)) =
-    Const (Same.function (get_external (Proof_Context.theory_of ctxt)) c, T)
+      Const (Same.function (get_external (Proof_Context.theory_of ctxt)) c, T)
   | insert_external_same _ _ _ = raise Same.SAME;
 
 fun gen_check_uncheck replace ts ctxt =
@@ -115,27 +113,27 @@ fun gen_check_uncheck replace ts ctxt =
   |> Option.map (rpair ctxt);
 
 val check = gen_check_uncheck insert_internal_same;
-fun uncheck ts ctxt = 
-  if !show_variants then NONE
+
+fun uncheck ts ctxt =
+  if Config.get ctxt show_variants then NONE
   else gen_check_uncheck insert_external_same ts ctxt;
 
 fun reject_unresolved ts ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun check_unresolved t =
-      case filter (is_overloaded thy o fst) (Term.add_consts t []) of
-          [] => ()
-        | ((c, T) :: _) => unresolved_err ctxt (c, T) t "multiple instances";
-
+      (case filter (is_overloaded thy o fst) (Term.add_consts t []) of
+        [] => ()
+      | ((c, T) :: _) => unresolved_err ctxt (c, T) t "multiple instances");
     val _ = map check_unresolved ts;
   in NONE end;
 
 
 (* setup *)
 
-val setup = Context.theory_map 
-  (Syntax.context_term_check 0 "adhoc_overloading" check
-   #> Syntax.context_term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
-   #> Syntax.context_term_uncheck 0 "adhoc_overloading" uncheck);
+val setup = Context.theory_map
+  (Syntax_Phases.context_term_check 0 "adhoc_overloading" check
+   #> Syntax_Phases.context_term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
+   #> Syntax_Phases.context_term_uncheck 0 "adhoc_overloading" uncheck);
 
-end
+end;

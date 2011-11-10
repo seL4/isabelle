@@ -259,9 +259,4 @@ fun infer_types ctxt raw_ts =
     val (_, ts') = Type_Infer.finish ctxt tye ([], ts);
   in ts' end;
 
-val _ =
-  Context.>>
-    (Syntax.add_term_check 0 "standard"
-      (fn ctxt => infer_types ctxt #> map (Proof_Context.expand_abbrevs ctxt)));
-
 end;

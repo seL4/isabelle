@@ -72,7 +72,6 @@ sig
   val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
-  val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
   val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
@@ -84,6 +83,9 @@ sig
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
   val def_type: Proof.context -> indexname -> typ option
+  val standard_typ_check: Proof.context -> typ list -> typ list
+  val standard_term_check_finish: Proof.context -> term list -> term list
+  val standard_term_uncheck: Proof.context -> term list -> term list
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -639,8 +641,7 @@ fun get_sort ctxt raw_text =
             " for type variable " ^ quote (Term.string_of_vname' xi)));
   in get end;
 
-fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
-fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
+fun check_tfree ctxt (x, S) = (x, get_sort ctxt [((x, ~1), S)] (x, ~1));
 
 
 (* certify terms *)
@@ -668,23 +669,12 @@ fun def_type ctxt =
   let val Mode {pattern, ...} = get_mode ctxt
   in Variable.def_type ctxt pattern end;
 
-local
-
 fun standard_typ_check ctxt =
-  map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
-  map (prepare_patternT ctxt);
+  map (cert_typ_mode (Type.get_mode ctxt) ctxt #> prepare_patternT ctxt);
 
-fun standard_term_uncheck ctxt =
-  map (contract_abbrevs ctxt);
+val standard_term_check_finish = prepare_patterns;
 
-in
-
-val _ = Context.>>
- (Syntax.add_typ_check 0 "standard" standard_typ_check #>
-  Syntax.add_term_check 100 "fixate" prepare_patterns #>
-  Syntax.add_term_uncheck 0 "standard" standard_term_uncheck);
-
-end;
+fun standard_term_uncheck ctxt = map (contract_abbrevs ctxt);
 
 
 
@@ -940,7 +930,7 @@ fun prep_vars prep_typ internal =
 
 in
 
-val read_vars = prep_vars Syntax.parse_typ false;
+val read_vars = prep_vars Syntax.read_typ false;
 val cert_vars = prep_vars (K I) true;
 
 end;

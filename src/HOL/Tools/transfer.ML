@@ -77,7 +77,7 @@ fun get_by_hints context hints =
   let
     val insts = map_filter (fn (k, e) => if exists (member (op =) (#hints e)) hints
       then SOME (direction_of k, transfer_rules_of e) else NONE) (Data.get context);
-    val _ = if null insts then error ("Transfer: no such labels: " ^ commas (map quote hints)) else ();
+    val _ = if null insts then error ("Transfer: no such labels: " ^ commas_quote hints) else ();
   in insts end;
 
 fun splits P [] = []

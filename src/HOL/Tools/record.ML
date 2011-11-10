@@ -249,9 +249,7 @@ val truncateN = "truncate";
 
 (*** utilities ***)
 
-fun varifyT midx =
-  let fun varify (a, S) = TVar ((a, midx + 1), S);
-  in map_type_tfree varify end;
+fun varifyT idx = map_type_tfree (fn (a, S) => TVar ((a, idx), S));
 
 
 (* timing *)
@@ -582,8 +580,7 @@ fun get_extT_fields thy T =
     val recname =
       let val (nm :: _ :: rst) = rev (Long_Name.explode name)   (* FIXME !? *)
       in Long_Name.implode (rev (nm :: rst)) end;
-    val midx = maxidx_of_typs (moreT :: Ts);
-    val varifyT = varifyT midx;
+    val varifyT = varifyT (maxidx_of_typs (moreT :: Ts) + 1);
     val {records, extfields, ...} = Data.get thy;
     val (fields, (more, _)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
@@ -655,17 +652,6 @@ end;
 
 (** concrete syntax for records **)
 
-(* decode type *)
-
-fun decode_type thy t =
-  let
-    fun get_sort env xi =
-      the_default (Sign.defaultS thy) (AList.lookup (op =) env (xi: indexname));
-  in
-    Syntax_Phases.typ_of_term (get_sort (Syntax_Phases.term_sorts t)) t
-  end;
-
-
 (* parse translations *)
 
 local
@@ -702,9 +688,8 @@ fun record_field_types_tr more ctxt t =
                     val types = map snd fields';
                     val (args, rest) = split_args (map fst fields') fargs
                       handle Fail msg => err msg;
-                    val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
-                    val midx = fold Term.maxidx_typ argtypes 0;
-                    val varifyT = varifyT midx;
+                    val argtypes = Syntax.check_typs ctxt (map Syntax_Phases.decode_typ args);
+                    val varifyT = varifyT (fold Term.maxidx_typ argtypes ~1 + 1);
                     val vartypes = map varifyT types;
 
                     val subst = Type.raw_matches (vartypes, argtypes) Vartab.empty
@@ -808,8 +793,8 @@ fun record_type_tr' ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val T = decode_type thy t;
-    val varifyT = varifyT (Term.maxidx_of_typ T);
+    val T = Syntax_Phases.decode_typ t;
+    val varifyT = varifyT (Term.maxidx_of_typ T + 1);
 
     fun strip_fields T =
       (case T of
@@ -853,10 +838,8 @@ fun record_type_tr' ctxt t =
   the (nested) extension types*)
 fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val T = decode_type thy tm;
-    val midx = maxidx_of_typ T;
-    val varifyT = varifyT midx;
+    val T = Syntax_Phases.decode_typ tm;
+    val varifyT = varifyT (maxidx_of_typ T + 1);
 
     fun mk_type_abbr subst name args =
       let val abbrT = Type (name, map (varifyT o TFree) args)

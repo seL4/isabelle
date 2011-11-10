@@ -16,6 +16,16 @@ Use commands of the generic code generator instead. INCOMPATIBILITY.
 * Redundant attribute 'code_inline' has been discontinued. Use
 'code_unfold' instead. INCOMPATIBILITY.
 
+* Sort constraints are now propagated in simultaneous statements, just
+like type constraints.  INCOMPATIBILITY in rare situations, where
+distinct sorts used to be assigned accidentally.  For example:
+
+  lemma "P (x::'a::foo)" and "Q (y::'a::bar)"  -- "now illegal"
+
+  lemma "P (x::'a)" and "Q (y::'a::bar)"
+    -- "now uniform 'a::bar instead of default sort for first occurence (!)"
+
+
 
 *** HOL ***
 

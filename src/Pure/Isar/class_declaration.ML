@@ -41,7 +41,8 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val (([raw_props], [(_, raw_inst_morph)], export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            Expression.Named param_map_const))], []);
-    val (props, inst_morph) = if null param_map
+    val (props, inst_morph) =
+      if null param_map
       then (raw_props |> map (Morphism.term typ_morph),
         raw_inst_morph $> typ_morph)
       else (raw_props, raw_inst_morph); (*FIXME proper handling in
@@ -49,13 +50,15 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* witness for canonical interpretation *)
     val prop = try the_single props;
-    val wit = Option.map (fn prop => let
+    val wit = Option.map (fn prop =>
+      let
         val sup_axioms = map_filter (fst o Class.rules thy) sups;
-        val loc_intro_tac = case Locale.intros_of thy class
-          of (_, NONE) => all_tac
-           | (_, SOME intro) => ALLGOALS (Tactic.rtac intro);
+        val loc_intro_tac =
+          (case Locale.intros_of thy class of
+            (_, NONE) => all_tac
+          | (_, SOME intro) => ALLGOALS (Tactic.rtac intro));
         val tac = loc_intro_tac
-          THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom))
+          THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness empty_ctxt prop tac end) prop;
     val axiom = Option.map Element.conclude_witness wit;
 
@@ -69,9 +72,10 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     fun prove_assm_intro thm =
       let
         val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
-        val const_eq_morph = case eq_morph
-         of SOME eq_morph => const_morph $> eq_morph
-          | NONE => const_morph
+        val const_eq_morph =
+          (case eq_morph of
+             SOME eq_morph => const_morph $> eq_morph
+          | NONE => const_morph);
         val thm'' = Morphism.thm const_eq_morph thm';
         val tac = ALLGOALS (Proof_Context.fact_tac [thm'']);
       in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
@@ -80,17 +84,19 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* of_class *)
     val of_class_prop_concl = Logic.mk_of_class (aT, class);
-    val of_class_prop = case prop of NONE => of_class_prop_concl
+    val of_class_prop =
+      (case prop of
+        NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
-          ((map_types o map_atyps) (K aT) prop), of_class_prop_concl);
+          ((map_types o map_atyps) (K aT) prop), of_class_prop_concl));
     val sup_of_classes = map (snd o Class.rules thy) sups;
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (AxClass.get_info thy class);
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
-    val tac = REPEAT (SOMEGOAL
-      (Tactic.match_tac (axclass_intro :: sup_of_classes
-         @ loc_axiom_intros @ base_sort_trivs)
-           ORELSE' Tactic.assume_tac));
+    val tac =
+      REPEAT (SOMEGOAL
+        (Tactic.match_tac (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
+          ORELSE' Tactic.assume_tac));
     val of_class = Skip_Proof.prove_global thy [] [] of_class_prop (K tac);
 
   in (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) end;
@@ -104,40 +110,45 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     (* user space type system: only permits 'a type variable, improves towards 'a *)
     val algebra = Sign.classes_of thy;
     val inter_sort = curry (Sorts.inter_sort algebra);
-    val proto_base_sort = if null sups then Sign.defaultS thy
+    val proto_base_sort =
+      if null sups then Sign.defaultS thy
       else fold inter_sort (map (Class.base_sort thy) sups) [];
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
         (Class.these_operations thy sups);
-    val reject_bcd_etc = (map o map_atyps) (fn T as TFree (v, sort) =>
-          if v = Name.aT then T
-          else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
-      | T => T);
-    fun singleton_fixate Ts =
+    fun singleton_fixate tms =
       let
-        fun extract f = (fold o fold_atyps) f Ts [];
-        val tfrees = extract
-          (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
-        val inferred_sort = extract
-          (fn TVar (_, sort) => inter_sort sort | _ => I);
-        val fixate_sort = if null tfrees then inferred_sort
-          else case tfrees
-           of [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
-                then inter_sort a_sort inferred_sort
-                else error ("Type inference imposes additional sort constraint "
-                  ^ Syntax.string_of_sort_global thy inferred_sort
-                  ^ " of type parameter " ^ Name.aT ^ " of sort "
-                  ^ Syntax.string_of_sort_global thy a_sort)
-            | _ => error "Multiple type variables in class specification";
-      in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
-    fun after_infer_fixate Ts =
-      let
-        val sort' = (fold o fold_atyps) (fn T as TFree _ => I | T as TVar (vi, sort) =>
-          if Type_Infer.is_param vi then inter_sort sort else I) Ts [];
+        val tfrees = fold Term.add_tfrees tms [];
+        val inferred_sort =
+          (fold o fold_types o fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) tms [];
+        val fixate_sort =
+          (case tfrees of
+            [] => inferred_sort
+          | [(a, S)] =>
+              if a <> Name.aT then
+                error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
+              else if Sorts.sort_le algebra (S, inferred_sort) then S
+              else
+                error ("Type inference imposes additional sort constraint " ^
+                  Syntax.string_of_sort_global thy inferred_sort ^
+                  " of type parameter " ^ Name.aT ^ " of sort " ^
+                  Syntax.string_of_sort_global thy S)
+          | _ => error "Multiple type variables in class specification");
+        val fixateT = TFree (Name.aT, fixate_sort);
       in
-        (map o map_atyps)
-          (fn T as TFree _ => T | T as TVar (vi, _) =>
-            if Type_Infer.is_param vi then Type_Infer.param 0 (Name.aT, sort') else T) Ts
+        (map o map_types o map_atyps)
+          (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) tms
+      end;
+    fun after_infer_fixate tms =
+      let
+        val fixate_sort =
+          (fold o fold_types o fold_atyps)
+            (fn TVar (xi, S) => if Type_Infer.is_param xi then inter_sort S else I | _ => I) tms [];
+      in
+        (map o map_types o map_atyps)
+          (fn T as TVar (xi, _) =>
+              if Type_Infer.is_param xi then Type_Infer.param 0 (Name.aT, fixate_sort) else T
+            | T => T) tms
       end;
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
@@ -146,11 +157,10 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
-      #> Context.proof_map (Syntax.add_typ_check 10 "reject_bcd_etc" (K reject_bcd_etc))
-      #> Context.proof_map (Syntax.add_typ_check ~10 "singleton_fixate" (K singleton_fixate));
+      #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems), _) =
       Proof_Context.init_global thy
-      |> Context.proof_map (Syntax.add_typ_check 5 "after_infer_fixate" (K after_infer_fixate))
+      |> Context.proof_map (Syntax_Phases.term_check 0 "after_infer_fixate" (K after_infer_fixate))
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
       | filter_element (e as Element.Fixes _) = SOME e
@@ -158,18 +168,22 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       | filter_element (e as Element.Constrains _) = SOME e
       | filter_element (Element.Assumes []) = NONE
       | filter_element (e as Element.Assumes _) = SOME e
-      | filter_element (Element.Defines _) = error ("\"defines\" element not allowed in class specification.")
-      | filter_element (Element.Notes _) = error ("\"notes\" element not allowed in class specification.");
+      | filter_element (Element.Defines _) =
+          error ("\"defines\" element not allowed in class specification.")
+      | filter_element (Element.Notes _) =
+          error ("\"notes\" element not allowed in class specification.");
     val inferred_elems = map_filter filter_element raw_inferred_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
       | fold_element_types f (Element.Assumes assms) = fold (fold (fn (t, ts) =>
           fold_types f t #> (fold o fold_types) f ts) o snd) assms;
-    val base_sort = if null inferred_elems then proto_base_sort else
-      case (fold o fold_element_types) Term.add_tfreesT inferred_elems []
-       of [] => error "No type variable in class specification"
+    val base_sort =
+      if null inferred_elems then proto_base_sort
+      else
+        (case (fold o fold_element_types) Term.add_tfreesT inferred_elems [] of
+          [] => error "No type variable in class specification"
         | [(_, sort)] => sort
-        | _ => error "Multiple type variables in class specification";
+        | _ => error "Multiple type variables in class specification");
     val supparams = map (fn ((c, T), _) =>
       (c, map_atyps (K (TFree (Name.aT, base_sort))) T)) raw_supparams;
     val supparam_names = map fst supparams;
@@ -188,38 +202,39 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
 
     (* prepare import *)
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val sups = map (prep_class thy) raw_supclasses
-      |> Sign.minimize_sort thy;
-    val _ = case filter_out (Class.is_class thy) sups
-     of [] => ()
-      | no_classes => error ("No (proper) classes: " ^ commas (map quote no_classes));
+    val sups = Sign.minimize_sort thy (map (prep_class thy) raw_supclasses);
+    val _ =
+      (case filter_out (Class.is_class thy) sups of
+        [] => ()
+      | no_classes => error ("No (proper) classes: " ^ commas_quote no_classes));
     val raw_supparams = (map o apsnd) (snd o snd) (Class.these_params thy sups);
     val raw_supparam_names = map fst raw_supparams;
-    val _ = if has_duplicates (op =) raw_supparam_names
-      then error ("Duplicate parameter(s) in superclasses: "
-        ^ (commas o map quote o duplicates (op =)) raw_supparam_names)
+    val _ =
+      if has_duplicates (op =) raw_supparam_names then
+        error ("Duplicate parameter(s) in superclasses: " ^
+          (commas_quote (duplicates (op =) raw_supparam_names)))
       else ();
 
     (* infer types and base sort *)
-    val (base_sort, supparam_names, supexpr, inferred_elems) =
-      prep_class_elems thy sups raw_elems;
+    val (base_sort, supparam_names, supexpr, inferred_elems) = prep_class_elems thy sups raw_elems;
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
     val class_ctxt = Class.begin sups base_sort (Proof_Context.init_global thy);
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
-    fun check_vars e vs = if null vs
-      then error ("No type variable in part of specification element "
-        ^ (Pretty.string_of o Pretty.chunks) (Element.pretty_ctxt class_ctxt e))
+    fun check_vars e vs =
+      if null vs then
+        error ("No type variable in part of specification element " ^
+          Pretty.string_of (Pretty.chunks (Element.pretty_ctxt class_ctxt e)))
       else ();
     fun check_element (e as Element.Fixes fxs) =
-          map (fn (_, SOME T, _) => check_vars e (Term.add_tfreesT T [])) fxs
+          List.app (fn (_, SOME T, _) => check_vars e (Term.add_tfreesT T [])) fxs
       | check_element (e as Element.Assumes assms) =
-          maps (fn (_, ts_pss) => map
-            (fn (t, _) => check_vars e (Term.add_tfrees t [])) ts_pss) assms
-      | check_element e = [()];
-    val _ = map check_element syntax_elems;
+          List.app (fn (_, ts_pss) =>
+            List.app (fn (t, _) => check_vars e (Term.add_tfrees t [])) ts_pss) assms
+      | check_element _ = ();
+    val _ = List.app check_element syntax_elems;
     fun fork_syn (Element.Fixes xs) =
           fold_map (fn (c, ty, syn) => cons (c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
@@ -273,9 +288,10 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     val raw_pred = Locale.intros_of thy class
       |> fst
       |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
-    fun get_axiom thy = case (#axioms o AxClass.get_info thy) class
-     of [] => NONE
-      | [thm] => SOME thm;
+    fun get_axiom thy =
+      (case #axioms (AxClass.get_info thy class) of
+         [] => NONE
+      | [thm] => SOME thm);
   in
     thy
     |> add_consts class base_sort sups supparam_names global_syntax
@@ -317,6 +333,7 @@ val class_cmd = gen_class read_class_spec;
 end; (*local*)
 
 
+
 (** subclass relations **)
 
 local
@@ -325,9 +342,10 @@ fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val proto_sup = prep_class thy raw_sup;
-    val proto_sub = case Named_Target.peek lthy
-     of SOME {target, is_class = true, ...} => target
-      | _ => error "Not in a class target";
+    val proto_sub =
+      (case Named_Target.peek lthy of
+         SOME {target, is_class = true, ...} => target
+      | _ => error "Not in a class target");
     val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup);
 
     val expr = ([(sup, (("", false), Expression.Positional []))], []);

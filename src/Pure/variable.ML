@@ -223,10 +223,10 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
       (fn Free (x, T) => Vartab.update ((x, ~1), T)
         | Var v => Vartab.update v
         | _ => I) t types;
-    val sorts' = fold_types (fold_atyps
+    val sorts' = (fold_types o fold_atyps)
       (fn TFree (x, S) => constrain_tvar ((x, ~1), S)
         | TVar v => constrain_tvar v
-        | _ => I)) t sorts;
+        | _ => I) t sorts;
   in (types', sorts') end)
   #> declare_type_occsT t
   #> declare_type_names t;

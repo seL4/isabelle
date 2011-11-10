@@ -496,7 +496,8 @@ fun is_executable thy insts th =
     val ctxt' = Proof_Context.init_global thy
       |> Config.put Quickcheck.size 1
       |> Config.put Quickcheck.iterations 1
-    val test = Quickcheck_Common.test_term Exhaustive_Generators.compile_generator_expr ctxt' (true, false)
+    val test = Quickcheck_Common.test_term
+      ("exhaustive", Exhaustive_Generators.compile_generator_expr) ctxt' false
   in  
     case try test (preprocess thy insts (prop_of th), []) of
       SOME _ => (Output.urgent_message "executable"; true)

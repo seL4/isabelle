@@ -1174,7 +1174,7 @@ fun add_case thm thy =
     val (case_const, (k, cos)) = case_cert thm;
     val _ = case filter_out (is_constr thy) cos
      of [] => ()
-      | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
+      | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val entry = (1 + Int.max (1, length cos), (k, cos));
     fun register_case cong = (map_cases o apfst)
       (Symtab.update (case_const, (entry, cong)));
