@@ -312,11 +312,11 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
     let
       val [depth] = additional_arguments
       val (_, Ts) = split_modeT mode (binder_types T)
-      val T' = mk_predT compfuns (HOLogic.mk_tupleT Ts)
+      val T' = mk_monadT compfuns (HOLogic.mk_tupleT Ts)
       val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     in
       if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
-        $ mk_bot compfuns (dest_predT compfuns T')
+        $ mk_empty compfuns (dest_monadT compfuns T')
         $ compilation
     end,
   transform_additional_arguments =
@@ -337,7 +337,7 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   mk_random = (fn T => fn additional_arguments =>
   list_comb (Const(@{const_name Quickcheck.iter},
   [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
-    Predicate_Comp_Funs.mk_predT T), additional_arguments)),
+    Predicate_Comp_Funs.mk_monadT T), additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
@@ -363,7 +363,7 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
   mk_random = (fn T => fn additional_arguments =>
   list_comb (Const(@{const_name Quickcheck.iter},
   [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
-    Predicate_Comp_Funs.mk_predT T), tl additional_arguments)),
+    Predicate_Comp_Funs.mk_monadT T), tl additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
@@ -383,11 +383,11 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
       val depth = hd (additional_arguments)
       val (_, Ts) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE))
         mode (binder_types T)
-      val T' = mk_predT compfuns (HOLogic.mk_tupleT Ts)
+      val T' = mk_monadT compfuns (HOLogic.mk_tupleT Ts)
       val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     in
       if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
-        $ mk_bot compfuns (dest_predT compfuns T')
+        $ mk_empty compfuns (dest_monadT compfuns T')
         $ compilation
     end,
   transform_additional_arguments =
@@ -658,7 +658,7 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
     val name' = singleton (Name.variant_list (name :: names)) "y";
     val T = HOLogic.mk_tupleT (map fastype_of out_ts);
     val U = fastype_of success_t;
-    val U' = dest_predT compfuns U;
+    val U' = dest_monadT compfuns U;
     val v = Free (name, T);
     val v' = Free (name', T);
   in
@@ -667,8 +667,8 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
           foldr1 HOLogic.mk_conj eqs'' $ success_t $
-            mk_bot compfuns U'),
-       (v', mk_bot compfuns U')])
+            mk_empty compfuns U'),
+       (v', mk_empty compfuns U')])
   end;
 
 fun string_of_tderiv ctxt (t, deriv) = 
@@ -928,7 +928,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
               compile_clause compilation_modifiers ctxt all_vs param_modes additional_arguments
                 inp (in_ts', out_ts') moded_ps'
             end
-        in SOME (foldr1 (mk_sup compfuns) (map compile_clause' moded_clauses)) end
+        in SOME (foldr1 (mk_plus compfuns) (map compile_clause' moded_clauses)) end
     | compile_switch_tree all_vs ctxt_eqs (Node ((position, switched_clauses), left_clauses)) =
       let
         val (i, is) = argument_position_of mode position
@@ -943,18 +943,18 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
             val args = map2 (curry Free) argnames Ts
             val pattern = list_comb (Const (c, T), args)
             val ctxt_eqs' = (inp_var, pattern) :: ctxt_eqs
-            val compilation = the_default (mk_bot compfuns (HOLogic.mk_tupleT outTs))
+            val compilation = the_default (mk_empty compfuns (HOLogic.mk_tupleT outTs))
               (compile_switch_tree (argnames @ x :: all_vs) ctxt_eqs' switched)
         in
           (pattern, compilation)
         end
         val switch = Datatype.make_case ctxt Datatype_Case.Quiet [] inp_var
           ((map compile_single_case switched_clauses) @
-            [(xt, mk_bot compfuns (HOLogic.mk_tupleT outTs))])
+            [(xt, mk_empty compfuns (HOLogic.mk_tupleT outTs))])
       in
         case compile_switch_tree all_vs ctxt_eqs left_clauses of
           NONE => SOME switch
-        | SOME left_comp => SOME (mk_sup compfuns (switch, left_comp))
+        | SOME left_comp => SOME (mk_plus compfuns (switch, left_comp))
       end
   in
     compile_switch_tree all_vs [] switch_tree
@@ -978,11 +978,11 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
       (all_vs @ param_vs)
     val compfuns = Comp_Mod.compfuns compilation_modifiers
     fun is_param_type (T as Type ("fun",[_ , T'])) =
-      is_some (try (dest_predT compfuns) T) orelse is_param_type T'
-      | is_param_type T = is_some (try (dest_predT compfuns) T)
+      is_some (try (dest_monadT compfuns) T) orelse is_param_type T'
+      | is_param_type T = is_some (try (dest_monadT compfuns) T)
     val (inpTs, outTs) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE)) mode
       (binder_types T)
-    val predT = mk_predT compfuns (HOLogic.mk_tupleT outTs)
+    val predT = mk_monadT compfuns (HOLogic.mk_tupleT outTs)
     val funT = Comp_Mod.funT_of compilation_modifiers mode T
     val (in_ts, _) = fold_map (fold_map_aterms_prodT (curry HOLogic.mk_prod)
       (fn T => fn (param_vs, names) =>
@@ -998,7 +998,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
     val param_modes = param_vs ~~ ho_arg_modes_of mode
     val compilation =
       if detect_switches options then
-        the_default (mk_bot compfuns (HOLogic.mk_tupleT outTs))
+        the_default (mk_empty compfuns (HOLogic.mk_tupleT outTs))
           (compile_switch compilation_modifiers ctxt all_vs param_modes additional_arguments mode
             in_ts' outTs (mk_switch_tree ctxt mode moded_cls))
       else
@@ -1010,9 +1010,9 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
         in
           Comp_Mod.wrap_compilation compilation_modifiers compfuns s T mode additional_arguments
             (if null cl_ts then
-              mk_bot compfuns (HOLogic.mk_tupleT outTs)
+              mk_empty compfuns (HOLogic.mk_tupleT outTs)
             else
-              foldr1 (mk_sup compfuns) cl_ts)
+              foldr1 (mk_plus compfuns) cl_ts)
         end
     val fun_const =
       Const (function_name_of (Comp_Mod.compilation compilation_modifiers)
@@ -1341,7 +1341,7 @@ fun add_code_equations ctxt preds result_thmss =
               (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
             val args = map2 (curry Free) arg_names Ts
             val predfun = Const (function_name_of Pred ctxt predname full_mode,
-              Ts ---> Predicate_Comp_Funs.mk_predT @{typ unit})
+              Ts ---> Predicate_Comp_Funs.mk_monadT @{typ unit})
             val rhs = @{term Predicate.holds} $ (list_comb (predfun, args))
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
@@ -1618,7 +1618,7 @@ val code_pred_intro_attrib = attrib' add_intro NONE;
 
 (* values_timeout configuration *)
 
-val default_values_timeout = if ML_System.is_smlnj then 600.0 else 20.0
+val default_values_timeout = if ML_System.is_smlnj then 1200.0 else 40.0
 
 val values_timeout = Attrib.setup_config_real @{binding values_timeout} (K default_values_timeout)
 
@@ -1833,7 +1833,7 @@ fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
         val (_, outargs) = split_mode (head_mode_of deriv) all_args
         val t_pred = compile_expr comp_modifiers ctxt
           (body, deriv) [] additional_arguments;
-        val T_pred = dest_predT compfuns (fastype_of t_pred)
+        val T_pred = dest_monadT compfuns (fastype_of t_pred)
         val arrange = HOLogic.tupled_lambda (HOLogic.mk_tuple outargs) output
       in
         if null outargs then t_pred else mk_map compfuns T_pred T_compr arrange t_pred
@@ -1876,7 +1876,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
       | New_Pos_Random_DSeq => []
       | Pos_Generator_DSeq => []
     val t = analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes options t_compr;
-    val T = dest_predT compfuns (fastype_of t);
+    val T = dest_monadT compfuns (fastype_of t);
     val t' =
       if stats andalso compilation = New_Pos_Random_DSeq then
         mk_map compfuns T (HOLogic.mk_prodT (HOLogic.termT, @{typ code_numeral}))

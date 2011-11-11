@@ -100,12 +100,12 @@ let
   val minus_nat = Core_Data.functional_compilation @{const_name "minus"} iio
   fun subtract_nat compfuns (_ : typ) =
     let
-      val T = Predicate_Compile_Aux.mk_predT compfuns @{typ nat}
+      val T = Predicate_Compile_Aux.mk_monadT compfuns @{typ nat}
     in
       absdummy @{typ nat} (absdummy @{typ nat}
         (Const (@{const_name "If"}, @{typ bool} --> T --> T --> T) $
           (@{term "op > :: nat => nat => bool"} $ Bound 1 $ Bound 0) $
-          Predicate_Compile_Aux.mk_bot compfuns @{typ nat} $
+          Predicate_Compile_Aux.mk_empty compfuns @{typ nat} $
           Predicate_Compile_Aux.mk_single compfuns
           (@{term "op - :: nat => nat => nat"} $ Bound 0 $ Bound 1)))
     end
@@ -118,7 +118,7 @@ let
   fun enumerate_nats compfuns  (_ : typ) =
     let
       val (single_const, _) = strip_comb (Predicate_Compile_Aux.mk_single compfuns @{term "0 :: nat"})
-      val T = Predicate_Compile_Aux.mk_predT compfuns @{typ nat}
+      val T = Predicate_Compile_Aux.mk_monadT compfuns @{typ nat}
     in
       absdummy @{typ nat} (absdummy @{typ nat}
         (Const (@{const_name If}, @{typ bool} --> T --> T --> T) $

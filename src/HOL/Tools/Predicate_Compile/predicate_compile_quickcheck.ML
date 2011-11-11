@@ -186,23 +186,23 @@ fun get_options () =
   set_no_higher_order_predicate (!no_higher_order_predicate)
     (if !debug then debug_options else options)
 
-val mk_predT = Predicate_Compile_Aux.mk_predT Predicate_Comp_Funs.compfuns
+val mk_predT = Predicate_Compile_Aux.mk_monadT Predicate_Comp_Funs.compfuns
 val mk_return' = Predicate_Compile_Aux.mk_single Predicate_Comp_Funs.compfuns
 val mk_bind' = Predicate_Compile_Aux.mk_bind Predicate_Comp_Funs.compfuns
 
-val mk_randompredT = Predicate_Compile_Aux.mk_predT RandomPredCompFuns.compfuns
+val mk_randompredT = Predicate_Compile_Aux.mk_monadT RandomPredCompFuns.compfuns
 val mk_return = Predicate_Compile_Aux.mk_single RandomPredCompFuns.compfuns
 val mk_bind = Predicate_Compile_Aux.mk_bind RandomPredCompFuns.compfuns
 
 val mk_new_randompredT =
-  Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
+  Predicate_Compile_Aux.mk_monadT New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
 val mk_new_return =
   Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
 val mk_new_bind =
   Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
 
 val mk_new_dseqT =
-  Predicate_Compile_Aux.mk_predT New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
+  Predicate_Compile_Aux.mk_monadT New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
 val mk_gen_return =
   Predicate_Compile_Aux.mk_single New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
 val mk_gen_bind =
@@ -210,7 +210,7 @@ val mk_gen_bind =
   
 
 val mk_cpsT =
-  Predicate_Compile_Aux.mk_predT Pos_Bounded_CPS_Comp_Funs.compfuns
+  Predicate_Compile_Aux.mk_monadT Pos_Bounded_CPS_Comp_Funs.compfuns
 val mk_cps_return =
   Predicate_Compile_Aux.mk_single Pos_Bounded_CPS_Comp_Funs.compfuns
 val mk_cps_bind =
