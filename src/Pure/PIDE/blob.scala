@@ -11,7 +11,7 @@ object Blob
 {
   sealed case class State(val blob: Blob, val markup: Markup_Tree = Markup_Tree.empty)
   {
-    def + (info: Text.Info[Any]): State = copy(markup = markup + info)
+    def + (info: Text.Markup): State = copy(markup = markup + info)
   }
 }
 

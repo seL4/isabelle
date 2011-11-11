@@ -19,7 +19,7 @@ object Markup_Tree
 
   object Branches
   {
-    type Entry = (Text.Info[Any], Markup_Tree)
+    type Entry = (Text.Markup, Markup_Tree)
     type T = SortedMap[Text.Range, Entry]
 
     val empty = SortedMap.empty[Text.Range, Entry](Text.Range.Ordering)
@@ -41,7 +41,7 @@ object Markup_Tree
 
   val empty = new Markup_Tree(Branches.empty)
 
-  type Select[A] = PartialFunction[Text.Info[Any], A]
+  type Select[A] = PartialFunction[Text.Markup, A]
 }
 
 
@@ -55,7 +55,7 @@ sealed case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       case list => list.mkString("Tree(", ",", ")")
     }
 
-  def + (new_info: Text.Info[Any]): Markup_Tree =
+  def + (new_info: Text.Markup): Markup_Tree =
   {
     val new_range = new_info.range
     branches.get(new_range) match {
@@ -126,7 +126,7 @@ sealed case class Markup_Tree(val branches: Markup_Tree.Branches.T)
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)
-    (swing_node: Text.Info[Any] => DefaultMutableTreeNode)
+    (swing_node: Text.Markup => DefaultMutableTreeNode)
   {
     for ((_, (info, subtree)) <- branches) {
       val current = swing_node(info)

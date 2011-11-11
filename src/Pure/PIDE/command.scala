@@ -25,12 +25,12 @@ object Command
     /* content */
 
     def add_status(st: Markup): State = copy(status = st :: status)
-    def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
+    def add_markup(m: Text.Markup): State = copy(markup = markup + m)
     def add_result(serial: Long, result: XML.Tree): State =
       copy(results = results + (serial -> result))
 
-    def root_info: Text.Info[Any] =
-      new Text.Info(command.range,
+    def root_info: Text.Markup =
+      Text.Info(command.range,
         XML.Elem(Markup(Markup.STATUS, Nil), status.reverse.map(XML.Elem(_, Nil))))
     def root_markup: Markup_Tree = markup + root_info
 
@@ -53,7 +53,7 @@ object Command
               if id == command.id && command.range.contains(command.decode(raw_range)) =>
                 val range = command.decode(raw_range)
                 val props = Position.purge(atts)
-                val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
+                val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ =>
                 // FIXME System.err.println("Ignored report message: " + msg)

@@ -115,6 +115,8 @@ object Text
       catch { case ERROR(_) => None }
   }
 
+  type Markup = Info[XML.Tree]
+
 
   /* editing */
 
