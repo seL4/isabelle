@@ -59,7 +59,7 @@ fun markup_free ctxt x =
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
 fun markup_bound def ps (name, id) =
-  let val entity = Markup.entity "bound variable" name in
+  let val entity = Markup.entity Markup.boundN name in
     Markup.bound ::
       map (fn pos => Markup.properties (Position.entity_properties_of def id pos) entity) ps
   end;

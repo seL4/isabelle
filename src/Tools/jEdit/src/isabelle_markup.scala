@@ -127,9 +127,6 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => quoted_color
   }
 
-  private val text_entity_colors: Map[String, Color] =
-    Map(Markup.CLASS -> get_color("red"))
-
   private val text_colors: Map[String, Color] =
     Map(
       Markup.STRING -> get_color("black"),
@@ -157,10 +154,7 @@ object Isabelle_Markup
 
   val text_color: Markup_Tree.Select[Color] =
   {
-    case Text.Info(_, XML.Elem(Markup.Entity(kind, _), _))
-    if text_entity_colors.isDefinedAt(kind) => text_entity_colors(kind)
-    case Text.Info(_, XML.Elem(Markup(m, _), _))
-    if text_colors.isDefinedAt(m) => text_colors(m)
+    case Text.Info(_, XML.Elem(Markup(m, _), _)) if text_colors.isDefinedAt(m) => text_colors(m)
   }
 
   private val tooltips: Map[String, String] =
@@ -170,12 +164,12 @@ object Isabelle_Markup
       Markup.TERM -> "term",
       Markup.PROP -> "proposition",
       Markup.TOKEN_RANGE -> "inner syntax token",
-      Markup.FREE -> "free variable (globally fixed)",
-      Markup.SKOLEM -> "skolem variable (locally fixed)",
-      Markup.BOUND -> "bound variable (internally fixed)",
-      Markup.VAR -> "schematic variable",
-      Markup.TFREE -> "free type variable",
-      Markup.TVAR -> "schematic type variable",
+      Markup.FREE -> "free",
+      Markup.SKOLEM -> "locally fixed",
+      Markup.BOUND -> "bound",
+      Markup.VAR -> "schematic",
+      Markup.TFREE -> "free type",
+      Markup.TVAR -> "schematic type",
       Markup.ML_SOURCE -> "ML source",
       Markup.DOC_SOURCE -> "document source")
 
