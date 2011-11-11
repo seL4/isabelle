@@ -5,7 +5,7 @@
 header {* Testing of arithmetic simprocs *}
 
 theory Simproc_Tests
-imports Rat
+imports Main
 begin
 
 text {*
@@ -324,9 +324,10 @@ notepad begin
   }
 end
 
-lemma shows "a*(b*c)/(y*z) = d*(b::rat)*(x*a)/z"
+lemma
+  fixes a b c d x y z :: "'a::linordered_field_inverse_zero"
+  shows "a*(b*c)/(y*z) = d*(b)*(x*a)/z"
 oops -- "FIXME: need simproc to cover this case"
-
 
 subsection {* @{text linordered_ring_less_cancel_factor} *}
 
@@ -384,16 +385,49 @@ notepad begin
   }
 end
 
-lemma "2/3 * (x::rat) + x / 3 = uu"
+lemma
+  fixes x :: "'a::{linordered_field_inverse_zero,number_ring}"
+  shows "2/3 * x + x / 3 = uu"
 apply (tactic {* test [@{simproc field_combine_numerals}] *})?
 oops -- "FIXME: test fails"
+
+subsection {* @{text nat_combine_numerals} *}
+
+notepad begin
+  fix i j k m n u :: nat
+  {
+    assume "4*k = u" have "k + 3*k = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  next
+    assume "4 * Suc 0 + i = u" have "Suc (i + 3) = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  next
+    assume "4 * Suc 0 + (i + (j + k)) = u" have "Suc (i + j + 3 + k) = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  next
+    assume "2 * j + 4 * k = u" have "k + j + 3*k + j = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  next
+    assume "6 * Suc 0 + (5 * (i * j) + (4 * k + i)) = u"
+    have "Suc (j*i + i + k + 5 + 3*k + i*j*4) = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  next
+    assume "5 * (m * n) = u" have "(2*n*m) + (3*(m*n)) = u"
+      by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
+  }
+end
+
+(*negative numerals: FAIL*)
+lemma "Suc (i + j + -3 + k) = u"
+apply (tactic {* test [@{simproc nat_combine_numerals}] *})?
+oops
 
 subsection {* @{text nateq_cancel_numerals} *}
 
 notepad begin
   fix i j k l oo u uu vv w y z w' y' z' :: "nat"
   {
-    assume "Suc 0 * u = 0" have "2*u = (u::nat)"
+    assume "Suc 0 * u = 0" have "2*u = u"
       by (tactic {* test [@{simproc nateq_cancel_numerals}] *}) fact
   next
     assume "Suc 0 * u = Suc 0" have "2*u = Suc (u)"
@@ -557,6 +591,81 @@ notepad begin
     have "(i + j + -12 + k) - -15 = y"
       apply (tactic {* test [@{simproc natdiff_cancel_numerals}] *})?
       sorry*)
+  }
+end
+
+subsection {* Factor-cancellation simprocs for type @{typ nat} *}
+
+text {* @{text nat_eq_cancel_factor}, @{text nat_less_cancel_factor},
+@{text nat_le_cancel_factor}, @{text nat_divide_cancel_factor}, and
+@{text nat_dvd_cancel_factor}. *}
+
+notepad begin
+  fix a b c d k x y uu :: nat
+  {
+    assume "k = 0 \<or> x = y" have "x*k = k*y"
+      by (tactic {* test [@{simproc nat_eq_cancel_factor}] *}) fact
+  next
+    assume "k = 0 \<or> Suc 0 = y" have "k = k*y"
+      by (tactic {* test [@{simproc nat_eq_cancel_factor}] *}) fact
+  next
+    assume "b = 0 \<or> a * c = Suc 0" have "a*(b*c) = b"
+      by (tactic {* test [@{simproc nat_eq_cancel_factor}] *}) fact
+  next
+    assume "a = 0 \<or> b = 0 \<or> c = d * x" have "a*(b*c) = d*b*(x*a)"
+      by (tactic {* test [@{simproc nat_eq_cancel_factor}] *}) fact
+  next
+    assume "0 < k \<and> x < y" have "x*k < k*y"
+      by (tactic {* test [@{simproc nat_less_cancel_factor}] *}) fact
+  next
+    assume "0 < k \<and> Suc 0 < y" have "k < k*y"
+      by (tactic {* test [@{simproc nat_less_cancel_factor}] *}) fact
+  next
+    assume "0 < b \<and> a * c < Suc 0" have "a*(b*c) < b"
+      by (tactic {* test [@{simproc nat_less_cancel_factor}] *}) fact
+  next
+    assume "0 < a \<and> 0 < b \<and> c < d * x" have "a*(b*c) < d*b*(x*a)"
+      by (tactic {* test [@{simproc nat_less_cancel_factor}] *}) fact
+  next
+    assume "0 < k \<longrightarrow> x \<le> y" have "x*k \<le> k*y"
+      by (tactic {* test [@{simproc nat_le_cancel_factor}] *}) fact
+  next
+    assume "0 < k \<longrightarrow> Suc 0 \<le> y" have "k \<le> k*y"
+      by (tactic {* test [@{simproc nat_le_cancel_factor}] *}) fact
+  next
+    assume "0 < b \<longrightarrow> a * c \<le> Suc 0" have "a*(b*c) \<le> b"
+      by (tactic {* test [@{simproc nat_le_cancel_factor}] *}) fact
+  next
+    assume "0 < a \<longrightarrow> 0 < b \<longrightarrow> c \<le> d * x" have "a*(b*c) \<le> d*b*(x*a)"
+      by (tactic {* test [@{simproc nat_le_cancel_factor}] *}) fact
+  next
+    assume "(if k = 0 then 0 else x div y) = uu" have "(x*k) div (k*y) = uu"
+      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+  next
+    assume "(if k = 0 then 0 else Suc 0 div y) = uu" have "k div (k*y) = uu"
+      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+  next
+    assume "(if b = 0 then 0 else a * c) = uu" have "(a*(b*c)) div (b) = uu"
+      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+  next
+    assume "(if a = 0 then 0 else if b = 0 then 0 else c div (d * x)) = uu"
+    have "(a*(b*c)) div (d*b*(x*a)) = uu"
+      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+  next
+    assume "k = 0 \<or> x dvd y" have "(x*k) dvd (k*y)"
+      by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
+  next
+    assume "k = 0 \<or> Suc 0 dvd y" have "k dvd (k*y)"
+      by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
+  next
+    assume "b = 0 \<or> a * c dvd Suc 0" have "(a*(b*c)) dvd (b)"
+      by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
+  next
+    assume "b = 0 \<or> Suc 0 dvd a * c" have "b dvd (a*(b*c))"
+      by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
+  next
+    assume "a = 0 \<or> b = 0 \<or> c dvd d * x" have "(a*(b*c)) dvd (d*b*(x*a))"
+      by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
   }
 end
 

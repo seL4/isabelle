@@ -202,6 +202,10 @@ simproc_setup divide_cancel_factor
 
 use "Tools/nat_numeral_simprocs.ML"
 
+simproc_setup nat_combine_numerals
+  ("(i::nat) + j" | "Suc (i + j)") =
+  {* fn phi => Nat_Numeral_Simprocs.combine_numerals *}
+
 simproc_setup nateq_cancel_numerals
   ("(l::nat) + m = n" | "(l::nat) = m + n" |
    "(l::nat) * m = n" | "(l::nat) = m * n" |
@@ -226,6 +230,26 @@ simproc_setup natdiff_cancel_numerals
    "Suc m - n" | "m - Suc n") =
   {* fn phi => Nat_Numeral_Simprocs.diff_cancel_numerals *}
 
+simproc_setup nat_eq_cancel_factor
+  ("(l::nat) * m = n" | "(l::nat) = m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.eq_cancel_factor *}
+
+simproc_setup nat_less_cancel_factor
+  ("(l::nat) * m < n" | "(l::nat) < m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.less_cancel_factor *}
+
+simproc_setup nat_le_cancel_factor
+  ("(l::nat) * m <= n" | "(l::nat) <= m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.le_cancel_factor *}
+
+simproc_setup nat_divide_cancel_factor
+  ("((l::nat) * m) div n" | "(l::nat) div (m * n)") =
+  {* fn phi => Nat_Numeral_Simprocs.divide_cancel_factor *}
+
+simproc_setup nat_dvd_cancel_factor
+  ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
+  {* fn phi => Nat_Numeral_Simprocs.dvd_cancel_factor *}
+
 declaration {* 
   K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
   #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
@@ -247,7 +271,7 @@ declaration {*
        @{simproc intless_cancel_numerals},
        @{simproc intle_cancel_numerals}]
   #> Lin_Arith.add_simprocs
-      [Nat_Numeral_Simprocs.combine_numerals,
+      [@{simproc nat_combine_numerals},
        @{simproc nateq_cancel_numerals},
        @{simproc natless_cancel_numerals},
        @{simproc natle_cancel_numerals},
