@@ -22,6 +22,7 @@ sig
   val timing : bool Config.T
   val quiet : bool Config.T
   val timeout : real Config.T
+  val allow_function_inversion : bool Config.T;
   val finite_types : bool Config.T
   val finite_type_size : int Config.T
   val set_active_testers: string list -> Context.generic -> Context.generic
@@ -171,6 +172,8 @@ val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
 val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
 val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
+val allow_function_inversion =
+  Attrib.setup_config_bool @{binding quickcheck_allow_function_inversion} (K false)
 val finite_types = Attrib.setup_config_bool @{binding quickcheck_finite_types} (K true)
 val finite_type_size = Attrib.setup_config_int @{binding quickcheck_finite_type_size} (K 3)
 
@@ -408,6 +411,8 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
+  | parse_test_param ("allow_function_inversion", [arg]) =
+      apsnd (Config.put_generic allow_function_inversion (read_bool arg))
   | parse_test_param ("finite_type_size", [arg]) =
     apsnd (Config.put_generic finite_type_size (read_nat arg))
   | parse_test_param (name, _) = (fn (testers, genctxt) =>
