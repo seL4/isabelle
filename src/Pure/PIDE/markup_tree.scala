@@ -15,14 +15,16 @@ import scala.collection.immutable.SortedMap
 
 object Markup_Tree
 {
-  /* branches sorted by quasi-order -- overlapping ranges appear as equivalent */
+  type Select[A] = PartialFunction[Text.Markup, A]
+
+  val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
   object Branches
   {
     type Entry = (Text.Markup, Markup_Tree)
     type T = SortedMap[Text.Range, Entry]
 
-    val empty = SortedMap.empty[Text.Range, Entry](Text.Range.Ordering)
+    val empty: T = SortedMap.empty(Text.Range.Ordering)
 
     def update(branches: T, entry: Entry): T = branches + (entry._1.range -> entry)
     def single(entry: Entry): T = update(empty, entry)
@@ -38,14 +40,10 @@ object Markup_Tree
       }
     }
   }
-
-  val empty = new Markup_Tree(Branches.empty)
-
-  type Select[A] = PartialFunction[Text.Markup, A]
 }
 
 
-sealed case class Markup_Tree(val branches: Markup_Tree.Branches.T)
+class Markup_Tree private(branches: Markup_Tree.Branches.T)
 {
   import Markup_Tree._
 
