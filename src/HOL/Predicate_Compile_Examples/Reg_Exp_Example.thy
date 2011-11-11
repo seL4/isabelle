@@ -93,8 +93,7 @@ lemma "accepts (repInt n k (And p q)) s --> accepts (And (repInt n k p) (repInt 
 (*nitpick
 quickcheck[tester = random, iterations = 10000]
 quickcheck[tester = predicate_compile_wo_ff]
-quickcheck[tester = predicate_compile_ff_fs]
-oops*)
+quickcheck[tester = predicate_compile_ff_fs]*)
 oops
 
 
@@ -117,7 +116,8 @@ text {* Finding the counterexample still seems out of reach for the
  prolog-style generation. *}
 
 lemma "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-quickcheck[tester = random, iterations = 100000]
+quickcheck[exhaustive]
+quickcheck[tester = random, iterations = 1000]
 (*quickcheck[tester = predicate_compile_wo_ff]*)
 (*quickcheck[tester = predicate_compile_ff_fs, iterations = 1]*)
 (*quickcheck[tester = prolog, iterations = 1, size = 1]*)
@@ -170,13 +170,13 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
 shows "prop_regex (n, (k, (p, (q, s))))"
-quickcheck[tester = predicate_compile_wo_ff]
+quickcheck[tester = smart_exhaustive, depth = 30]
 quickcheck[tester = prolog]
 oops
 
 lemma "prop_regex a_sol"
 quickcheck[tester = random]
-quickcheck[tester = predicate_compile_ff_fs]
+quickcheck[tester = smart_exhaustive]
 oops
 
 value [code] "prop_regex a_sol"
