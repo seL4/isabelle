@@ -24,6 +24,7 @@ fun add_atoms pos (Const (@{const_name Groups.plus}, _) $ x $ y) =
       add_atoms pos x #> add_atoms (not pos) y
   | add_atoms pos (Const (@{const_name Groups.uminus}, _) $ x) =
       add_atoms (not pos) x
+  | add_atoms pos (Const (@{const_name Groups.zero}, _)) = I
   | add_atoms pos x = cons (pos, x);
 
 fun atoms t = add_atoms true t [];

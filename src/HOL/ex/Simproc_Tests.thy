@@ -21,12 +21,33 @@ ML {*
   fun test ps = CHANGED (asm_simp_tac (HOL_basic_ss addsimprocs ps) 1)
 *}
 
+subsection {* Abelian group cancellation simprocs *}
+
+notepad begin
+  fix a b c u :: "'a::ab_group_add"
+  {
+    assume "(a + 0) - (b + 0) = u" have "(a + c) - (b + c) = u"
+      by (tactic {* test [@{simproc abel_cancel_sum}] *}) fact
+  next
+    assume "a + 0 = b + 0" have "a + c = b + c"
+      by (tactic {* test [@{simproc abel_cancel_relation}] *}) fact
+  }
+end
+(* TODO: more tests for Groups.abel_cancel_{sum,relation} *)
 
 subsection {* @{text int_combine_numerals} *}
+
+(* FIXME: int_combine_numerals often unnecessarily regroups addition
+and rewrites subtraction to negation. Ideally it should behave more
+like Groups.abel_cancel_sum, preserving the shape of terms as much as
+possible. *)
 
 notepad begin
   fix a b c d oo uu i j k l u v w x y z :: "'a::number_ring"
   {
+    assume "a + - b = u" have "(a + c) - (b + c) = u"
+      by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
+  next
     assume "10 + (2 * l + oo) = uu"
     have "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = uu"
       by (tactic {* test [@{simproc int_combine_numerals}] *}) fact
