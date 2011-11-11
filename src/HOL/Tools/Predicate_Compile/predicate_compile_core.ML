@@ -1618,7 +1618,7 @@ val code_pred_intro_attrib = attrib' add_intro NONE;
 
 (* values_timeout configuration *)
 
-val default_values_timeout = if ML_System.is_smlnj then 600.0 else 20.0
+val default_values_timeout = if ML_System.is_smlnj then 1200.0 else 40.0
 
 val values_timeout = Attrib.setup_config_real @{binding values_timeout} (K default_values_timeout)
 
