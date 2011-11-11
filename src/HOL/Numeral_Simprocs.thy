@@ -230,6 +230,26 @@ simproc_setup natdiff_cancel_numerals
    "Suc m - n" | "m - Suc n") =
   {* fn phi => Nat_Numeral_Simprocs.diff_cancel_numerals *}
 
+simproc_setup nat_eq_cancel_numeral_factor
+  ("(l::nat) * m = n" | "(l::nat) = m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.eq_cancel_numeral_factor *}
+
+simproc_setup nat_less_cancel_numeral_factor
+  ("(l::nat) * m < n" | "(l::nat) < m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.less_cancel_numeral_factor *}
+
+simproc_setup nat_le_cancel_numeral_factor
+  ("(l::nat) * m <= n" | "(l::nat) <= m * n") =
+  {* fn phi => Nat_Numeral_Simprocs.le_cancel_numeral_factor *}
+
+simproc_setup nat_div_cancel_numeral_factor
+  ("((l::nat) * m) div n" | "(l::nat) div (m * n)") =
+  {* fn phi => Nat_Numeral_Simprocs.div_cancel_numeral_factor *}
+
+simproc_setup nat_dvd_cancel_numeral_factor
+  ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
+  {* fn phi => Nat_Numeral_Simprocs.dvd_cancel_numeral_factor *}
+
 simproc_setup nat_eq_cancel_factor
   ("(l::nat) * m = n" | "(l::nat) = m * n") =
   {* fn phi => Nat_Numeral_Simprocs.eq_cancel_factor *}
@@ -242,9 +262,9 @@ simproc_setup nat_le_cancel_factor
   ("(l::nat) * m <= n" | "(l::nat) <= m * n") =
   {* fn phi => Nat_Numeral_Simprocs.le_cancel_factor *}
 
-simproc_setup nat_divide_cancel_factor
+simproc_setup nat_div_cancel_factor
   ("((l::nat) * m) div n" | "(l::nat) div (m * n)") =
-  {* fn phi => Nat_Numeral_Simprocs.divide_cancel_factor *}
+  {* fn phi => Nat_Numeral_Simprocs.div_cancel_factor *}
 
 simproc_setup nat_dvd_cancel_factor
   ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =

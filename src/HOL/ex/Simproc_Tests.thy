@@ -640,17 +640,17 @@ notepad begin
       by (tactic {* test [@{simproc nat_le_cancel_factor}] *}) fact
   next
     assume "(if k = 0 then 0 else x div y) = uu" have "(x*k) div (k*y) = uu"
-      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+      by (tactic {* test [@{simproc nat_div_cancel_factor}] *}) fact
   next
     assume "(if k = 0 then 0 else Suc 0 div y) = uu" have "k div (k*y) = uu"
-      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+      by (tactic {* test [@{simproc nat_div_cancel_factor}] *}) fact
   next
     assume "(if b = 0 then 0 else a * c) = uu" have "(a*(b*c)) div (b) = uu"
-      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+      by (tactic {* test [@{simproc nat_div_cancel_factor}] *}) fact
   next
     assume "(if a = 0 then 0 else if b = 0 then 0 else c div (d * x)) = uu"
     have "(a*(b*c)) div (d*b*(x*a)) = uu"
-      by (tactic {* test [@{simproc nat_divide_cancel_factor}] *}) fact
+      by (tactic {* test [@{simproc nat_div_cancel_factor}] *}) fact
   next
     assume "k = 0 \<or> x dvd y" have "(x*k) dvd (k*y)"
       by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
@@ -666,6 +666,28 @@ notepad begin
   next
     assume "a = 0 \<or> b = 0 \<or> c dvd d * x" have "(a*(b*c)) dvd (d*b*(x*a))"
       by (tactic {* test [@{simproc nat_dvd_cancel_factor}] *}) fact
+  }
+end
+
+subsection {* Numeral-cancellation simprocs for type @{typ nat} *}
+
+notepad begin
+  fix x y z :: nat
+  {
+    assume "3 * x = 4 * y" have "9*x = 12 * y"
+      by (tactic {* test [@{simproc nat_eq_cancel_numeral_factor}] *}) fact
+  next
+    assume "3 * x < 4 * y" have "9*x < 12 * y"
+      by (tactic {* test [@{simproc nat_less_cancel_numeral_factor}] *}) fact
+  next
+    assume "3 * x \<le> 4 * y" have "9*x \<le> 12 * y"
+      by (tactic {* test [@{simproc nat_le_cancel_numeral_factor}] *}) fact
+  next
+    assume "(3 * x) div (4 * y) = z" have "(9*x) div (12 * y) = z"
+      by (tactic {* test [@{simproc nat_div_cancel_numeral_factor}] *}) fact
+  next
+    assume "(3 * x) dvd (4 * y)" have "(9*x) dvd (12 * y)"
+      by (tactic {* test [@{simproc nat_dvd_cancel_numeral_factor}] *}) fact
   }
 end
 

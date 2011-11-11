@@ -10,12 +10,16 @@ sig
   val less_cancel_numerals: simpset -> cterm -> thm option
   val le_cancel_numerals: simpset -> cterm -> thm option
   val diff_cancel_numerals: simpset -> cterm -> thm option
+  val eq_cancel_numeral_factor: simpset -> cterm -> thm option
+  val less_cancel_numeral_factor: simpset -> cterm -> thm option
+  val le_cancel_numeral_factor: simpset -> cterm -> thm option
+  val div_cancel_numeral_factor: simpset -> cterm -> thm option
+  val dvd_cancel_numeral_factor: simpset -> cterm -> thm option
   val eq_cancel_factor: simpset -> cterm -> thm option
   val less_cancel_factor: simpset -> cterm -> thm option
   val le_cancel_factor: simpset -> cterm -> thm option
-  val divide_cancel_factor: simpset -> cterm -> thm option
+  val div_cancel_factor: simpset -> cterm -> thm option
   val dvd_cancel_factor: simpset -> cterm -> thm option
-  val cancel_numeral_factors: simproc list
 end;
 
 structure Nat_Numeral_Simprocs : NAT_NUMERAL_SIMPROCS =
@@ -300,24 +304,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-val cancel_numeral_factors =
-  map (Numeral_Simprocs.prep_simproc @{theory})
-   [("nateq_cancel_numeral_factors",
-     ["(l::nat) * m = n", "(l::nat) = m * n"],
-     K EqCancelNumeralFactor.proc),
-    ("natless_cancel_numeral_factors",
-     ["(l::nat) * m < n", "(l::nat) < m * n"],
-     K LessCancelNumeralFactor.proc),
-    ("natle_cancel_numeral_factors",
-     ["(l::nat) * m <= n", "(l::nat) <= m * n"],
-     K LeCancelNumeralFactor.proc),
-    ("natdiv_cancel_numeral_factors",
-     ["((l::nat) * m) div n", "(l::nat) div (m * n)"],
-     K DivCancelNumeralFactor.proc),
-    ("natdvd_cancel_numeral_factors",
-     ["((l::nat) * m) dvd n", "(l::nat) dvd (m * n)"],
-     K DvdCancelNumeralFactor.proc)];
-
+fun eq_cancel_numeral_factor ss ct = EqCancelNumeralFactor.proc ss (term_of ct)
+fun less_cancel_numeral_factor ss ct = LessCancelNumeralFactor.proc ss (term_of ct)
+fun le_cancel_numeral_factor ss ct = LeCancelNumeralFactor.proc ss (term_of ct)
+fun div_cancel_numeral_factor ss ct = DivCancelNumeralFactor.proc ss (term_of ct)
+fun dvd_cancel_numeral_factor ss ct = DvdCancelNumeralFactor.proc ss (term_of ct)
 
 
 (*** Applying ExtractCommonTermFun ***)
@@ -392,25 +383,7 @@ structure DvdCancelFactor = ExtractCommonTermFun
 fun eq_cancel_factor ss ct = EqCancelFactor.proc ss (term_of ct)
 fun less_cancel_factor ss ct = LessCancelFactor.proc ss (term_of ct)
 fun le_cancel_factor ss ct = LeCancelFactor.proc ss (term_of ct)
-fun divide_cancel_factor ss ct = DivideCancelFactor.proc ss (term_of ct)
+fun div_cancel_factor ss ct = DivideCancelFactor.proc ss (term_of ct)
 fun dvd_cancel_factor ss ct = DvdCancelFactor.proc ss (term_of ct)
 
 end;
-
-
-Addsimprocs Nat_Numeral_Simprocs.cancel_numeral_factors;
-
-
-(*examples:
-print_depth 22;
-set timing;
-set simp_trace;
-fun test s = (Goal s; by (Simp_tac 1));
-
-(*cancel_numeral_factors*)
-test "9*x = 12 * (y::nat)";
-test "(9*x) div (12 * (y::nat)) = z";
-test "9*x < 12 * (y::nat)";
-test "9*x <= 12 * (y::nat)";
-
-*)
