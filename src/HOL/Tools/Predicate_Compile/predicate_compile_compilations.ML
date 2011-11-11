@@ -4,7 +4,7 @@
 Structures for different compilations of the predicate compiler.
 *)
 
-structure PredicateCompFuns =
+structure Predicate_Comp_Funs =
 struct
 
 fun mk_predT T = Type (@{type_name Predicate.pred}, [T])
@@ -64,11 +64,162 @@ val compfuns = Predicate_Compile_Aux.CompilationFuns
 
 end;
 
+structure CPS_Comp_Funs =
+struct
+
+fun mk_predT T = (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ "Code_Evaluation.term list option"}
+
+fun dest_predT (Type ("fun", [Type ("fun", [T, @{typ "term list option"}]), @{typ "term list option"}])) = T
+  | dest_predT T = raise TYPE ("dest_predT", [T], []);
+
+fun mk_bot T = Const (@{const_name Quickcheck_Exhaustive.cps_empty}, mk_predT T);
+
+fun mk_single t =
+  let val T = fastype_of t
+  in Const(@{const_name Quickcheck_Exhaustive.cps_single}, T --> mk_predT T) $ t end;
+
+fun mk_bind (x, f) =
+  let val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name Quickcheck_Exhaustive.cps_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.cps_plus};
+
+fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.cps_if},
+  HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = error "not implemented yet"
+
+fun mk_not t =
+  let
+    val T = mk_predT HOLogic.unitT
+  in Const (@{const_name Quickcheck_Exhaustive.cps_not}, T --> T) $ t end
+
+fun mk_Enum f = error "not implemented"
+
+fun mk_Eval (f, x) = error "not implemented"
+
+fun dest_Eval t = error "not implemented"
+
+fun mk_map T1 T2 tf tp = error "not implemented"
+
+val compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
+    mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
+
+end;
+
+structure Pos_Bounded_CPS_Comp_Funs =
+struct
+
+fun mk_predT T = (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ "code_numeral => Code_Evaluation.term list option"}
+
+fun dest_predT (Type ("fun", [Type ("fun", [T, @{typ "term list option"}]), @{typ "code_numeral => term list option"}])) = T
+  | dest_predT T = raise TYPE ("dest_predT", [T], []);
+
+fun mk_bot T = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_empty}, mk_predT T);
+
+fun mk_single t =
+  let val T = fastype_of t
+  in Const(@{const_name Quickcheck_Exhaustive.pos_bound_cps_single}, T --> mk_predT T) $ t end;
+
+fun mk_bind (x, f) =
+  let val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.pos_bound_cps_plus};
+
+fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_if},
+  HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = error "not implemented yet"
+
+fun mk_not t =
+  let
+    val nT = @{typ "(unit Quickcheck_Exhaustive.unknown =>
+      Code_Evaluation.term list Quickcheck_Exhaustive.three_valued) => code_numeral =>
+      Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
+    val T = mk_predT HOLogic.unitT
+  in Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_not}, nT --> T) $ t end
+
+fun mk_Enum f = error "not implemented"
+
+fun mk_Eval (f, x) = error "not implemented"
+
+fun dest_Eval t = error "not implemented"
+
+fun mk_map T1 T2 tf tp = error "not implemented"
+
+val compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
+    mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
+
+end;
+
+structure Neg_Bounded_CPS_Comp_Funs =
+struct
+
+fun mk_predT T =
+  (Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T])
+    --> @{typ "Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"})
+    --> @{typ "code_numeral => Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
+
+fun dest_predT (Type ("fun", [Type ("fun", [Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T]),
+    @{typ "term list Quickcheck_Exhaustive.three_valued"}]),
+    @{typ "code_numeral => term list Quickcheck_Exhaustive.three_valued"}])) = T
+  | dest_predT T = raise TYPE ("dest_predT", [T], []);
+
+fun mk_bot T = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_empty}, mk_predT T);
+
+fun mk_single t =
+  let val T = fastype_of t
+  in Const(@{const_name Quickcheck_Exhaustive.neg_bound_cps_single}, T --> mk_predT T) $ t end;
+
+fun mk_bind (x, f) =
+  let val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.neg_bound_cps_plus};
+
+fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_if},
+  HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = error "not implemented"
+
+fun mk_not t =
+  let
+    val T = mk_predT HOLogic.unitT
+    val pT = @{typ "(unit => Code_Evaluation.term list option) => code_numeral => Code_Evaluation.term list option"}
+  in Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_not}, pT --> T) $ t end
+
+fun mk_Enum f = error "not implemented"
+
+fun mk_Eval (f, x) = error "not implemented"
+
+fun dest_Eval t = error "not implemented"
+
+fun mk_map T1 T2 tf tp = error "not implemented"
+
+val compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
+    mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
+
+end;
+
+
 structure RandomPredCompFuns =
 struct
 
 fun mk_randompredT T =
-  @{typ Random.seed} --> HOLogic.mk_prodT (PredicateCompFuns.mk_predT T, @{typ Random.seed})
+  @{typ Random.seed} --> HOLogic.mk_prodT (Predicate_Comp_Funs.mk_predT T, @{typ Random.seed})
 
 fun dest_randompredT (Type ("fun", [@{typ Random.seed}, Type (@{type_name Product_Type.prod},
   [Type (@{type_name "Predicate.pred"}, [T]), @{typ Random.seed}])])) = T
@@ -112,48 +263,6 @@ val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_randompredT, dest_predT = dest_randompredT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
-
-end;
-
-structure DSequence_CompFuns =
-struct
-
-fun mk_dseqT T = Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
-  Type (@{type_name Option.option}, [Type  (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])
-
-fun dest_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
-  Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])) = T
-  | dest_dseqT T = raise TYPE ("dest_dseqT", [T], []);
-
-fun mk_bot T = Const (@{const_name DSequence.empty}, mk_dseqT T);
-
-fun mk_single t =
-  let val T = fastype_of t
-  in Const(@{const_name DSequence.single}, T --> mk_dseqT T) $ t end;
-
-fun mk_bind (x, f) =
-  let val T as Type ("fun", [_, U]) = fastype_of f
-  in
-    Const (@{const_name DSequence.bind}, fastype_of x --> T --> U) $ x $ f
-  end;
-
-val mk_sup = HOLogic.mk_binop @{const_name DSequence.union};
-
-fun mk_if cond = Const (@{const_name DSequence.if_seq},
-  HOLogic.boolT --> mk_dseqT HOLogic.unitT) $ cond;
-
-fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
-
-fun mk_not t = let val T = mk_dseqT HOLogic.unitT
-  in Const (@{const_name DSequence.not_seq}, T --> T) $ t end
-
-fun mk_map T1 T2 tf tp = Const (@{const_name DSequence.map},
-  (T1 --> T2) --> mk_dseqT T1 --> mk_dseqT T2) $ tf $ tp
-
-val compfuns = Predicate_Compile_Aux.CompilationFuns
-    {mk_predT = mk_dseqT, dest_predT = dest_dseqT,
-    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 

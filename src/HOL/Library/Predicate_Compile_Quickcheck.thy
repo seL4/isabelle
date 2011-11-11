@@ -9,12 +9,4 @@ begin
 
 setup {* Predicate_Compile_Quickcheck.setup *}
 
-(*setup {* Context.theory_map (Quickcheck.add_generator ("predicate_compile_wo_ff", Predicate_Compile_Quickcheck.quickcheck_compile_term
-  Predicate_Compile_Aux.New_Pos_Random_DSeq false true 4)) *}
-setup {* Context.theory_map (Quickcheck.add_generator ("predicate_compile_ff_fs",
-  Predicate_Compile_Quickcheck.quickcheck_compile_term Predicate_Compile_Aux.New_Pos_Random_DSeq true true 4)) *}
-setup {* Context.theory_map (Quickcheck.add_generator ("predicate_compile_ff_nofs",
-  Predicate_Compile_Quickcheck.quickcheck_compile_term Predicate_Compile_Aux.New_Pos_Random_DSeq true false 4)) *}
-*)
-
 end

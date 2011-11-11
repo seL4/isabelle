@@ -142,7 +142,7 @@ fun check_format ctxt st =
   let
     val concl' = Logic.strip_assums_concl (hd (prems_of st))
     val concl = HOLogic.dest_Trueprop concl'
-    val expr = fst (strip_comb (fst (PredicateCompFuns.dest_Eval concl)))
+    val expr = fst (strip_comb (fst (Predicate_Comp_Funs.dest_Eval concl)))
     fun valid_expr (Const (@{const_name Predicate.bind}, _)) = true
       | valid_expr (Const (@{const_name Predicate.single}, _)) = true
       | valid_expr _ = false

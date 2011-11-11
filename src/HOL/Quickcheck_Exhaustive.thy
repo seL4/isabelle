@@ -427,7 +427,6 @@ class bounded_forall =
 
 subsection {* Fast exhaustive combinators *}
 
-
 class fast_exhaustive = term_of +
   fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> code_numeral \<Rightarrow> unit"
 
@@ -438,6 +437,89 @@ code_const throw_Counterexample
   (Quickcheck "raise (Exhaustive'_Generators.Counterexample _)")
 code_const catch_Counterexample
   (Quickcheck "(((_); NONE) handle Exhaustive'_Generators.Counterexample ts => SOME ts)")
+
+subsection {* Continuation passing style functions as plus monad *}
+  
+type_synonym 'a cps = "('a => term list option) => term list option"
+
+definition cps_empty :: "'a cps"
+where
+  "cps_empty = (%cont. None)"
+
+definition cps_single :: "'a => 'a cps"
+where
+  "cps_single v = (%cont. cont v)"
+
+definition cps_bind :: "'a cps => ('a => 'b cps) => 'b cps" 
+where
+  "cps_bind m f = (%cont. m (%a. (f a) cont))"
+
+definition cps_plus :: "'a cps => 'a cps => 'a cps"
+where
+  "cps_plus a b = (%c. case a c of None => b c | Some x => Some x)"
+
+definition cps_if :: "bool => unit cps"
+where
+  "cps_if b = (if b then cps_single () else cps_empty)"
+
+definition cps_not :: "unit cps => unit cps"
+where
+  "cps_not n = (%c. case n (%u. Some []) of None => c () | Some _ => None)"
+
+type_synonym 'a pos_bound_cps = "('a => term list option) => code_numeral => term list option"
+
+definition pos_bound_cps_empty :: "'a pos_bound_cps"
+where
+  "pos_bound_cps_empty = (%cont i. None)"
+
+definition pos_bound_cps_single :: "'a => 'a pos_bound_cps"
+where
+  "pos_bound_cps_single v = (%cont i. cont v)"
+
+definition pos_bound_cps_bind :: "'a pos_bound_cps => ('a => 'b pos_bound_cps) => 'b pos_bound_cps" 
+where
+  "pos_bound_cps_bind m f = (%cont i. if i = 0 then None else (m (%a. (f a) cont i) (i - 1)))"
+
+definition pos_bound_cps_plus :: "'a pos_bound_cps => 'a pos_bound_cps => 'a pos_bound_cps"
+where
+  "pos_bound_cps_plus a b = (%c i. case a c i of None => b c i | Some x => Some x)"
+
+definition pos_bound_cps_if :: "bool => unit pos_bound_cps"
+where
+  "pos_bound_cps_if b = (if b then pos_bound_cps_single () else pos_bound_cps_empty)"
+
+datatype 'a unknown = Unknown | Known 'a
+datatype 'a three_valued = Unknown_value | Value 'a | No_value
+
+type_synonym 'a neg_bound_cps = "('a unknown => term list three_valued) => code_numeral => term list three_valued"
+
+definition neg_bound_cps_empty :: "'a neg_bound_cps"
+where
+  "neg_bound_cps_empty = (%cont i. No_value)"
+
+definition neg_bound_cps_single :: "'a => 'a neg_bound_cps"
+where
+  "neg_bound_cps_single v = (%cont i. cont (Known v))"
+
+definition neg_bound_cps_bind :: "'a neg_bound_cps => ('a => 'b neg_bound_cps) => 'b neg_bound_cps" 
+where
+  "neg_bound_cps_bind m f = (%cont i. if i = 0 then cont Unknown else m (%a. case a of Unknown => cont Unknown | Known a' => f a' cont i) (i - 1))"
+
+definition neg_bound_cps_plus :: "'a neg_bound_cps => 'a neg_bound_cps => 'a neg_bound_cps"
+where
+  "neg_bound_cps_plus a b = (%c i. case a c i of No_value => b c i | Value x => Value x | Unknown_value => (case b c i of No_value => Unknown_value | Value x => Value x | Unknown_value => Unknown_value))"
+
+definition neg_bound_cps_if :: "bool => unit neg_bound_cps"
+where
+  "neg_bound_cps_if b = (if b then neg_bound_cps_single () else neg_bound_cps_empty)"
+
+definition neg_bound_cps_not :: "unit pos_bound_cps => unit neg_bound_cps"
+where
+  "neg_bound_cps_not n = (%c i. case n (%u. Some []) i of None => c (Known ()) | Some _ => No_value)"
+
+definition pos_bound_cps_not :: "unit neg_bound_cps => unit pos_bound_cps"
+where
+  "pos_bound_cps_not n = (%c i. case n (%u. Value []) i of No_value => c () | Value _ => None | Unknown_value => None)"
 
 subsection {* Defining combinators for any first-order data type *}
 
@@ -456,6 +538,12 @@ declare [[quickcheck_batch_tester = exhaustive]]
 
 hide_fact orelse_def catch_match_def
 no_notation orelse (infixr "orelse" 55)
-hide_const (open) orelse catch_match mk_map_term check_all_n_lists
+hide_const (open) orelse catch_match mk_map_term check_all_n_lists 
+
+hide_type (open) cps pos_bound_cps neg_bound_cps unknown three_valued
+hide_const (open) cps_empty cps_single cps_bind cps_plus cps_if cps_not
+  pos_bound_cps_empty pos_bound_cps_single pos_bound_cps_bind pos_bound_cps_plus pos_bound_cps_if pos_bound_cps_not
+  neg_bound_cps_empty neg_bound_cps_single neg_bound_cps_bind neg_bound_cps_plus neg_bound_cps_if neg_bound_cps_not
+  Unknown Known Unknown_value Value No_value
 
 end

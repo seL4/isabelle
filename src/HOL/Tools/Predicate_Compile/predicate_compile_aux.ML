@@ -90,8 +90,8 @@ sig
   val funT_of : compilation_funs -> mode -> typ -> typ
   (* Different compilations *)
   datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
-    | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
-    | Pos_Generator_DSeq | Neg_Generator_DSeq
+    | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq 
+    | Pos_Generator_DSeq | Neg_Generator_DSeq | Pos_Generator_CPS | Neg_Generator_CPS
   val negative_compilation_of : compilation -> compilation
   val compilation_for_polarity : bool -> compilation -> compilation
   val is_depth_limited_compilation : compilation -> bool 
@@ -642,14 +642,16 @@ fun equals_conv lhs_cv rhs_cv ct =
 
 datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
   | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq |
-    Pos_Generator_DSeq | Neg_Generator_DSeq
+    Pos_Generator_DSeq | Neg_Generator_DSeq | Pos_Generator_CPS | Neg_Generator_CPS
 
 fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
   | negative_compilation_of Neg_Random_DSeq = Pos_Random_DSeq
   | negative_compilation_of New_Pos_Random_DSeq = New_Neg_Random_DSeq
   | negative_compilation_of New_Neg_Random_DSeq = New_Pos_Random_DSeq
   | negative_compilation_of Pos_Generator_DSeq = Neg_Generator_DSeq
-  | negative_compilation_of Pos_Generator_DSeq = Pos_Generator_DSeq
+  | negative_compilation_of Neg_Generator_DSeq = Pos_Generator_DSeq
+  | negative_compilation_of Pos_Generator_CPS = Neg_Generator_CPS
+  | negative_compilation_of Neg_Generator_CPS = Pos_Generator_CPS  
   | negative_compilation_of c = c
   
 fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
@@ -674,7 +676,9 @@ fun string_of_compilation c =
   | New_Neg_Random_DSeq => "new_neg_random_dseq"
   | Pos_Generator_DSeq => "pos_generator_dseq"
   | Neg_Generator_DSeq => "neg_generator_dseq"
-
+  | Pos_Generator_CPS => "pos_generator_cps"
+  | Neg_Generator_CPS => "neg_generator_cps"
+  
 val compilation_names = [("pred", Pred),
   ("random", Random),
   ("depth_limited", Depth_Limited),
@@ -683,13 +687,14 @@ val compilation_names = [("pred", Pred),
   ("dseq", DSeq),
   ("random_dseq", Pos_Random_DSeq),
   ("new_random_dseq", New_Pos_Random_DSeq),
-  ("generator_dseq", Pos_Generator_DSeq)]
+  ("generator_dseq", Pos_Generator_DSeq),
+  ("generator_cps", Pos_Generator_CPS)]
 
 val non_random_compilations = [Pred, Depth_Limited, DSeq, Annotated]
 
 
 val random_compilations = [Random, Depth_Limited_Random,
-  Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq]
+  Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq, Pos_Generator_CPS]
 
 (* datastructures and setup for generic compilation *)
 
