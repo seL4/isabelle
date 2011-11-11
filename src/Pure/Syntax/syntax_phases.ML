@@ -59,7 +59,7 @@ fun markup_free ctxt x =
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
 fun markup_bound def ps (name, id) =
-  let val entity = Markup.entity "bound variable" name in
+  let val entity = Markup.entity Markup.boundN name in
     Markup.bound ::
       map (fn pos => Markup.properties (Position.entity_properties_of def id pos) entity) ps
   end;
@@ -155,12 +155,8 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
-            let val pos = Lexicon.pos_of_token tok in
-              if Position.is_reported pos then
-                [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-                  Ast.Variable (Term_Position.encode pos)]]
-              else [ast_of pt]
-            end
+            [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
           else [ast_of pt]
       | asts_of (Parser.Node (a, pts)) =
           let
@@ -798,37 +794,17 @@ val apply_term_check = check snd false;
 val apply_typ_uncheck = check fst true;
 val apply_term_uncheck = check snd true;
 
-fun prepare_sorts ctxt tys =
-  let
-    fun constraint (xi: indexname, S) = S <> dummyS ? insert (op =) (xi, S);
-    val env =
-      (fold o fold_atyps)
-        (fn TFree (x, S) => constraint ((x, ~1), S)
-          | TVar v => constraint v
-          | _ => I) tys [];
-    val get_sort = Proof_Context.get_sort ctxt env;
-  in
-    (map o map_atyps)
-      (fn T =>
-        if Term_Position.is_positionT T then T
-        else
-          (case T of
-            TFree (x, _) => TFree (x, get_sort (x, ~1))
-          | TVar (xi, _) => TVar (xi, get_sort xi)
-          | _ => T)) tys
-  end;
-
 in
 
 fun check_typs ctxt =
-  prepare_sorts ctxt #>
+  Proof_Context.prepare_sorts ctxt #>
   apply_typ_check ctxt #>
   Term_Sharing.typs (Proof_Context.theory_of ctxt);
 
 fun check_terms ctxt raw_ts =
   let
     val (ts, ps) = raw_ts
-      |> Term.burrow_types (prepare_sorts ctxt)
+      |> Term.burrow_types (Proof_Context.prepare_sorts ctxt)
       |> Type_Infer_Context.prepare_positions ctxt;
     val tys = map (Logic.mk_type o snd) ps;
     val (ts', tys') = ts @ tys

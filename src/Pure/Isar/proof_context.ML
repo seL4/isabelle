@@ -71,7 +71,7 @@ sig
   val read_const_proper: Proof.context -> bool -> string -> term
   val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
-  val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
+  val prepare_sorts: Proof.context -> typ list -> typ list
   val check_tfree: Proof.context -> string * sort -> string * sort
   val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
@@ -613,35 +613,47 @@ end;
 
 (* sort constraints *)
 
-fun get_sort ctxt raw_text =
+fun prepare_sorts ctxt tys =
   let
     val tsig = tsig_of ctxt;
+    val defaultS = Type.defaultS tsig;
 
-    val text = distinct (op =) (map (apsnd (Type.minimize_sort tsig)) raw_text);
-    val _ =
-      (case duplicates (eq_fst (op =)) text of
-        [] => ()
-      | dups => error ("Inconsistent sort constraints for type variable(s) "
-          ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
+    fun constraint (xi, S) env =
+      if S = dummyS then env
+      else
+        Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
+          handle Vartab.DUP _ =>
+            error ("Inconsistent sort constraints for type variable " ^
+              quote (Term.string_of_vname' xi));
+    val env =
+      (fold o fold_atyps)
+        (fn TFree (x, S) => constraint ((x, ~1), S)
+          | TVar v => constraint v
+          | _ => I) tys Vartab.empty;
 
-    fun lookup xi =
-      (case AList.lookup (op =) text xi of
-        NONE => NONE
-      | SOME S => if S = dummyS then NONE else SOME S);
-
-    fun get xi =
-      (case (lookup xi, Variable.def_sort ctxt xi) of
-        (NONE, NONE) => Type.defaultS tsig
+    fun get_sort xi =
+      (case (Vartab.lookup env xi, Variable.def_sort ctxt xi) of
+        (NONE, NONE) => defaultS
       | (NONE, SOME S) => S
       | (SOME S, NONE) => S
       | (SOME S, SOME S') =>
           if Type.eq_sort tsig (S, S') then S'
-          else error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
-            " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
-            " for type variable " ^ quote (Term.string_of_vname' xi)));
-  in get end;
+          else
+            error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
+              " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
+              " for type variable " ^ quote (Term.string_of_vname' xi)));
+  in
+    (map o map_atyps)
+      (fn T =>
+        if Term_Position.is_positionT T then T
+        else
+          (case T of
+            TFree (x, _) => TFree (x, get_sort (x, ~1))
+          | TVar (xi, _) => TVar (xi, get_sort xi)
+          | _ => T)) tys
+  end;
 
-fun check_tfree ctxt (x, S) = (x, get_sort ctxt [((x, ~1), S)] (x, ~1));
+fun check_tfree ctxt v = dest_TFree (singleton (prepare_sorts ctxt) (TFree v));
 
 
 (* certify terms *)

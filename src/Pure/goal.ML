@@ -125,7 +125,7 @@ fun fork_name name e =
       val _ = forked 1;
       val future =
         (singleton o Future.forks)
-          {name = name, group = NONE, deps = [], pri = ~1, interrupts = false}
+          {name = name, group = NONE, deps = [], pri = 0, interrupts = false}
           (fn () =>
             Exn.release
               (Exn.capture (Future.status o Future.interruptible_task) e before forked ~1));

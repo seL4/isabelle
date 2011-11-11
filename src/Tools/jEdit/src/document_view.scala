@@ -11,6 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.collection.mutable
+import scala.collection.immutable.SortedMap
 import scala.actors.Actor._
 
 import java.lang.System
@@ -274,18 +275,29 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       robust_body(null: String) {
         val snapshot = update_snapshot()
         val offset = text_area.xyToOffset(x, y)
+        val range = Text.Range(offset, offset + 1)
+
         if (control) {
-          snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.tooltip) match
-          {
-            case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
-            case _ => null
-          }
+          val tooltips =
+            (snapshot.select_markup(range)(Isabelle_Markup.tooltip1) match
+              {
+                case Text.Info(_, Some(text)) #:: _ => List(text)
+                case _ => Nil
+              }) :::
+            (snapshot.select_markup(range)(Isabelle_Markup.tooltip2) match
+              {
+                case Text.Info(_, Some(text)) #:: _ => List(text)
+                case _ => Nil
+              })
+          if (tooltips.isEmpty) null
+          else Isabelle.tooltip(tooltips.mkString("\n"))
         }
         else {
-          // FIXME snapshot.cumulate
-          snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.popup) match
+          snapshot.cumulate_markup(Text.Info(range, SortedMap.empty[Long, String]))(
+            Isabelle_Markup.tooltip_message) match
           {
-            case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
+            case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
+              Isabelle.tooltip(msgs.iterator.map(_._2).mkString("\n"))
             case _ => null
           }
         }

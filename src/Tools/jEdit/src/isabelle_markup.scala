@@ -14,6 +14,8 @@ import java.awt.Color
 import org.lobobrowser.util.gui.ColorFactory
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 
+import scala.collection.immutable.SortedMap
+
 
 object Isabelle_Markup
 {
@@ -92,11 +94,12 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
   }
 
-  val popup: Markup_Tree.Select[String] =
+  val tooltip_message: Markup_Tree.Cumulate[SortedMap[Long, String]] =
   {
-    case Text.Info(_, msg @ XML.Elem(Markup(markup, _), _))
+    case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Markup.Serial(serial)), _)))
     if markup == Markup.WRITELN || markup == Markup.WARNING || markup == Markup.ERROR =>
-      Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin"))
+      msgs + (serial ->
+        Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
   }
 
   val gutter_message: Markup_Tree.Select[Icon] =
@@ -127,9 +130,6 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => quoted_color
   }
 
-  private val text_entity_colors: Map[String, Color] =
-    Map(Markup.CLASS -> get_color("red"))
-
   private val text_colors: Map[String, Color] =
     Map(
       Markup.STRING -> get_color("black"),
@@ -157,10 +157,7 @@ object Isabelle_Markup
 
   val text_color: Markup_Tree.Select[Color] =
   {
-    case Text.Info(_, XML.Elem(Markup.Entity(kind, _), _))
-    if text_entity_colors.isDefinedAt(kind) => text_entity_colors(kind)
-    case Text.Info(_, XML.Elem(Markup(m, _), _))
-    if text_colors.isDefinedAt(m) => text_colors(m)
+    case Text.Info(_, XML.Elem(Markup(m, _), _)) if text_colors.isDefinedAt(m) => text_colors(m)
   }
 
   private val tooltips: Map[String, String] =
@@ -170,9 +167,9 @@ object Isabelle_Markup
       Markup.TERM -> "term",
       Markup.PROP -> "proposition",
       Markup.TOKEN_RANGE -> "inner syntax token",
-      Markup.FREE -> "free variable (globally fixed)",
-      Markup.SKOLEM -> "skolem variable (locally fixed)",
-      Markup.BOUND -> "bound variable (internally fixed)",
+      Markup.FREE -> "free variable",
+      Markup.SKOLEM -> "skolem variable",
+      Markup.BOUND -> "bound variable",
       Markup.VAR -> "schematic variable",
       Markup.TFREE -> "free type variable",
       Markup.TVAR -> "schematic type variable",
@@ -183,13 +180,17 @@ object Isabelle_Markup
     Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
       margin = Isabelle.Int_Property("tooltip-margin"))
 
-  val tooltip: Markup_Tree.Select[String] =
+  val tooltip1: Markup_Tree.Select[String] =
   {
     case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " " + quote(name)
-    case Text.Info(_, XML.Elem(Markup(Markup.TYPING, _), body)) => string_of_typing("::", body)
     case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) => string_of_typing("ML:", body)
     case Text.Info(_, XML.Elem(Markup(name, _), _))
     if tooltips.isDefinedAt(name) => tooltips(name)
+  }
+
+  val tooltip2: Markup_Tree.Select[String] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.TYPING, _), body)) => string_of_typing("::", body)
   }
 
   private val subexp_include =
