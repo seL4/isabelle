@@ -25,20 +25,8 @@ object Markup_Tree
     type T = SortedMap[Text.Range, Entry]
 
     val empty: T = SortedMap.empty(Text.Range.Ordering)
-
     def update(branches: T, entry: Entry): T = branches + (entry._1.range -> entry)
     def single(entry: Entry): T = update(empty, entry)
-
-    def overlapping(range: Text.Range, branches: T): T =  // FIXME special cases!?
-    {
-      val start = Text.Range(range.start)
-      val stop = Text.Range(range.stop)
-      val bs = branches.range(start, stop)
-      branches.get(stop) match {
-        case Some(end) if range overlaps end._1.range => update(bs, end)
-        case _ => bs
-      }
-    }
   }
 }
 
@@ -53,6 +41,18 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
       case list => list.mkString("Tree(", ",", ")")
     }
 
+  private def overlapping(range: Text.Range): Branches.T =  // FIXME special cases!?
+  {
+    val start = Text.Range(range.start)
+    val stop = Text.Range(range.stop)
+    val bs = branches.range(start, stop)
+    // FIXME check after Scala 2.8.x
+    branches.get(stop) match {
+      case Some(end) if range overlaps end._1.range => Branches.update(bs, end)
+      case _ => bs
+    }
+  }
+
   def + (new_info: Text.Markup): Markup_Tree =
   {
     val new_range = new_info.range
@@ -66,7 +66,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
         else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
           new Markup_Tree(Branches.single(new_info -> this))
         else {
-          val body = Branches.overlapping(new_range, branches)
+          val body = overlapping(new_range)
           if (body.forall(e => new_range.contains(e._1))) {
             val rest = // branches -- body, modulo workarounds for Redblack in Scala 2.8.0
               if (body.size > 1)
@@ -83,11 +83,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
     }
   }
 
-  private def overlapping(range: Text.Range): Stream[(Text.Range, Branches.Entry)] =
-    Branches.overlapping(range, branches).toStream
-
-  def select[A](root_range: Text.Range)(result: Markup_Tree.Select[A])
-    : Stream[Text.Info[Option[A]]] =
+  def select[A](root_range: Text.Range)(result: Select[A]): Stream[Text.Info[Option[A]]] =
   {
     def stream(
       last: Text.Offset,
@@ -97,7 +93,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
       stack match {
         case (parent, (range, (info, tree)) #:: more) :: rest =>
           val subrange = range.restrict(root_range)
-          val subtree = tree.overlapping(subrange)
+          val subtree = tree.overlapping(subrange).toStream
           val start = subrange.start
 
           if (result.isDefinedAt(info)) {
@@ -120,7 +116,8 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
           else Stream.empty
       }
     }
-    stream(root_range.start, List((Text.Info(root_range, None), overlapping(root_range))))
+    stream(root_range.start,
+      List((Text.Info(root_range, None), overlapping(root_range).toStream)))
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)
