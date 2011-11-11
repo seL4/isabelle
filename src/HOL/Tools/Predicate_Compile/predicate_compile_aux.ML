@@ -66,23 +66,23 @@ sig
   val find_split_thm : theory -> term -> thm option
   (* datastructures and setup for generic compilation *)
   datatype compilation_funs = CompilationFuns of {
-    mk_predT : typ -> typ,
-    dest_predT : typ -> typ,
-    mk_bot : typ -> term,
+    mk_monadT : typ -> typ,
+    dest_monadT : typ -> typ,
+    mk_empty : typ -> term,
     mk_single : term -> term,
     mk_bind : term * term -> term,
-    mk_sup : term * term -> term,
+    mk_plus : term * term -> term,
     mk_if : term -> term,
     mk_iterate_upto : typ -> term * term * term -> term,
     mk_not : term -> term,
     mk_map : typ -> typ -> term -> term -> term
   };
-  val mk_predT : compilation_funs -> typ -> typ
-  val dest_predT : compilation_funs -> typ -> typ
-  val mk_bot : compilation_funs -> typ -> term
+  val mk_monadT : compilation_funs -> typ -> typ
+  val dest_monadT : compilation_funs -> typ -> typ
+  val mk_empty : compilation_funs -> typ -> term
   val mk_single : compilation_funs -> term -> term
   val mk_bind : compilation_funs -> term * term -> term
-  val mk_sup : compilation_funs -> term * term -> term
+  val mk_plus : compilation_funs -> term * term -> term
   val mk_if : compilation_funs -> term -> term
   val mk_iterate_upto : compilation_funs -> typ -> term * term * term -> term
   val mk_not : compilation_funs -> term -> term
@@ -699,24 +699,24 @@ val random_compilations = [Random, Depth_Limited_Random,
 (* datastructures and setup for generic compilation *)
 
 datatype compilation_funs = CompilationFuns of {
-  mk_predT : typ -> typ,
-  dest_predT : typ -> typ,
-  mk_bot : typ -> term,
+  mk_monadT : typ -> typ,
+  dest_monadT : typ -> typ,
+  mk_empty : typ -> term,
   mk_single : term -> term,
   mk_bind : term * term -> term,
-  mk_sup : term * term -> term,
+  mk_plus : term * term -> term,
   mk_if : term -> term,
   mk_iterate_upto : typ -> term * term * term -> term,
   mk_not : term -> term,
   mk_map : typ -> typ -> term -> term -> term
 };
 
-fun mk_predT (CompilationFuns funs) = #mk_predT funs
-fun dest_predT (CompilationFuns funs) = #dest_predT funs
-fun mk_bot (CompilationFuns funs) = #mk_bot funs
+fun mk_monadT (CompilationFuns funs) = #mk_monadT funs
+fun dest_monadT (CompilationFuns funs) = #dest_monadT funs
+fun mk_empty (CompilationFuns funs) = #mk_empty funs
 fun mk_single (CompilationFuns funs) = #mk_single funs
 fun mk_bind (CompilationFuns funs) = #mk_bind funs
-fun mk_sup (CompilationFuns funs) = #mk_sup funs
+fun mk_plus (CompilationFuns funs) = #mk_plus funs
 fun mk_if (CompilationFuns funs) = #mk_if funs
 fun mk_iterate_upto (CompilationFuns funs) = #mk_iterate_upto funs
 fun mk_not (CompilationFuns funs) = #mk_not funs
@@ -729,7 +729,7 @@ fun funT_of compfuns mode T =
     val Ts = binder_types T
     val (inTs, outTs) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE)) mode Ts
   in
-    inTs ---> (mk_predT compfuns (HOLogic.mk_tupleT outTs))
+    inTs ---> (mk_monadT compfuns (HOLogic.mk_tupleT outTs))
   end;
 
 (* Different options for compiler *)
