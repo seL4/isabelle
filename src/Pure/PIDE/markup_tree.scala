@@ -20,6 +20,12 @@ object Markup_Tree
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
+  object Entry
+  {
+    def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
+      Entry(markup.range, List(markup.info), subtree)
+  }
+
   sealed case class Entry(range: Text.Range, rev_markup: List[XML.Elem], subtree: Markup_Tree)
   {
     def + (m: XML.Elem): Entry = copy(rev_markup = m :: rev_markup)
@@ -63,18 +69,16 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
   def + (new_markup: Text.Markup): Markup_Tree =
   {
     val new_range = new_markup.range
-    val new_info = new_markup.info
 
     branches.get(new_range) match {
-      case None =>
-        new Markup_Tree(branches, Entry(new_range, List(new_info), empty))
+      case None => new Markup_Tree(branches, Entry(new_markup, empty))
       case Some(entry) =>
         if (entry.range == new_range)
-          new Markup_Tree(branches, entry + new_info)
+          new Markup_Tree(branches, entry + new_markup.info)
         else if (entry.range.contains(new_range))
           new Markup_Tree(branches, entry.copy(subtree = entry.subtree + new_markup))
         else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
-          new Markup_Tree(Branches.empty, Entry(new_range, List(new_info), this))
+          new Markup_Tree(Branches.empty, Entry(new_markup, this))
         else {
           val body = overlapping(new_range)
           if (body.forall(e => new_range.contains(e._1))) {
@@ -83,7 +87,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
                 (Branches.empty /: branches)((rest, entry) =>
                   if (body.isDefinedAt(entry._1)) rest else rest + entry)
               else branches
-            new Markup_Tree(rest, Entry(new_range, List(new_info), new Markup_Tree(body)))
+            new Markup_Tree(rest, Entry(new_markup, new Markup_Tree(body)))
           }
           else { // FIXME split markup!?
             System.err.println("Ignored overlapping markup information: " + new_markup)
