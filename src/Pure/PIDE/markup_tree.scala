@@ -20,10 +20,10 @@ object Markup_Tree
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
-  sealed case class Entry(range: Text.Range, rev_markup: List[XML.Tree], subtree: Markup_Tree)
+  sealed case class Entry(range: Text.Range, rev_markup: List[XML.Elem], subtree: Markup_Tree)
   {
-    def + (m: XML.Tree): Entry = copy(rev_markup = m :: rev_markup)
-    def markup: List[XML.Tree] = rev_markup.reverse
+    def + (m: XML.Elem): Entry = copy(rev_markup = m :: rev_markup)
+    def markup: List[XML.Elem] = rev_markup.reverse
   }
 
   object Branches
