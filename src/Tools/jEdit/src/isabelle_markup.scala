@@ -94,13 +94,14 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
   }
 
-  val tooltip_message: Markup_Tree.Cumulate[SortedMap[Long, String]] =
-  {
-    case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Markup.Serial(serial)), _)))
-    if markup == Markup.WRITELN || markup == Markup.WARNING || markup == Markup.ERROR =>
-      msgs + (serial ->
-        Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
-  }
+  val tooltip_message =
+    Markup_Tree.Cumulate[SortedMap[Long, String]](SortedMap.empty,
+      {
+        case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Markup.Serial(serial)), _)))
+        if markup == Markup.WRITELN || markup == Markup.WARNING || markup == Markup.ERROR =>
+          msgs + (serial ->
+            Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
+      })
 
   val gutter_message: Markup_Tree.Select[Icon] =
   {

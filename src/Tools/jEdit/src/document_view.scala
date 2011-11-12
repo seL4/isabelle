@@ -293,8 +293,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           else Isabelle.tooltip(tooltips.mkString("\n"))
         }
         else {
-          snapshot.cumulate_markup(Text.Info(range, SortedMap.empty[Long, String]))(
-            Isabelle_Markup.tooltip_message) match
+          snapshot.cumulate_markup(range)(Isabelle_Markup.tooltip_message) match
           {
             case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
               Isabelle.tooltip(msgs.iterator.map(_._2).mkString("\n"))

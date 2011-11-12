@@ -240,8 +240,7 @@ object Document
     def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range
-    def cumulate_markup[A](info: Text.Info[A])(result: Markup_Tree.Cumulate[A])
-      : Stream[Text.Info[A]]
+    def cumulate_markup[A](range: Text.Range)(body: Markup_Tree.Cumulate[A]): Stream[Text.Info[A]]
     def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
       : Stream[Text.Info[Option[A]]]
   }
@@ -473,18 +472,23 @@ object Document
         def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
         def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
 
-        def cumulate_markup[A](root: Text.Info[A])(result: Markup_Tree.Cumulate[A])
+        def cumulate_markup[A](range: Text.Range)(body: Markup_Tree.Cumulate[A])
           : Stream[Text.Info[A]] =
         {
-          val former_range = revert(root.range)
+          val info = body.info
+          val result = body.result
+
+          val former_range = revert(range)
           for {
             (command, command_start) <- node.command_range(former_range).toStream
             Text.Info(r0, a) <- command_state(command).markup.
-              cumulate(Text.Info((former_range - command_start).restrict(command.range), root.info)) {
-                case (a, Text.Info(r0, b))
-                if result.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
-                  result((a, Text.Info(convert(r0 + command_start), b)))
-              }
+              cumulate((former_range - command_start).restrict(command.range))(
+                Markup_Tree.Cumulate[A](info,
+                  {
+                    case (a, Text.Info(r0, b))
+                    if result.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
+                      result((a, Text.Info(convert(r0 + command_start), b)))
+                  }))
           } yield Text.Info(convert(r0 + command_start), a)
         }
 

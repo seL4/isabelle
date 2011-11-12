@@ -15,7 +15,7 @@ import scala.collection.immutable.SortedMap
 
 object Markup_Tree
 {
-  type Cumulate[A] = PartialFunction[(A, Text.Markup), A]
+  sealed case class Cumulate[A](info: A, result: PartialFunction[(A, Text.Markup), A])
   type Select[A] = PartialFunction[Text.Markup, A]
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
@@ -84,15 +84,18 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
     }
   }
 
-  def cumulate[A](root: Text.Info[A])(result: Cumulate[A]): Stream[Text.Info[A]] =
+  def cumulate[A](root_range: Text.Range)(body: Cumulate[A]): Stream[Text.Info[A]] =
   {
+    val root_info = body.info
+    val result = body.result
+
     def stream(
       last: Text.Offset,
       stack: List[(Text.Info[A], Stream[(Text.Range, Branches.Entry)])]): Stream[Text.Info[A]] =
     {
       stack match {
         case (parent, (range, (info, tree)) #:: more) :: rest =>
-          val subrange = range.restrict(root.range)
+          val subrange = range.restrict(root_range)
           val subtree = tree.overlapping(subrange).toStream
           val start = subrange.start
 
@@ -112,12 +115,13 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
           else nexts
 
         case Nil =>
-          val stop = root.range.stop
-          if (last < stop) Stream(root.restrict(Text.Range(last, stop)))
+          val stop = root_range.stop
+          if (last < stop) Stream(Text.Info(Text.Range(last, stop), root_info))
           else Stream.empty
       }
     }
-    stream(root.range.start, List((root, overlapping(root.range).toStream)))
+    stream(root_range.start,
+      List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
   }
 
   def select[A](root_range: Text.Range)(result: Select[A]): Stream[Text.Info[Option[A]]] =
