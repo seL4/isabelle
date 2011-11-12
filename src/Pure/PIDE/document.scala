@@ -488,7 +488,8 @@ object Document
                     case (a, Text.Info(r0, b))
                     if result.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
                       result((a, Text.Info(convert(r0 + command_start), b)))
-                  }))
+                  },
+                  body.elements))
           } yield Text.Info(convert(r0 + command_start), a)
         }
 
@@ -501,7 +502,7 @@ object Document
               def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = result.isDefinedAt(arg._2)
               def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(result(arg._2))
             }
-          cumulate_markup(range)(Markup_Tree.Cumulate[Option[A]](None, result1))
+          cumulate_markup(range)(Markup_Tree.Cumulate[Option[A]](None, result1, body.elements))
         }
       }
     }

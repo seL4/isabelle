@@ -89,11 +89,12 @@ object Isabelle_Markup
 
   val message =
     Markup_Tree.Select[Color](
-    {
-      case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
-      case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
-      case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
-    })
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
+        case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
+        case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
+      },
+      Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)))
 
   val tooltip_message =
     Markup_Tree.Cumulate[SortedMap[Long, String]](SortedMap.empty,
@@ -102,7 +103,8 @@ object Isabelle_Markup
         if markup == Markup.WRITELN || markup == Markup.WARNING || markup == Markup.ERROR =>
           msgs + (serial ->
             Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
-      })
+      },
+      Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)))
 
   val gutter_message =
     Markup_Tree.Select[Icon](
@@ -113,20 +115,23 @@ object Isabelle_Markup
             case _ => warning_icon
           }
         case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_icon
-      })
+      },
+      Some(Set(Markup.WARNING, Markup.ERROR)))
 
   val background1 =
     Markup_Tree.Select[Color](
       {
         case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
         case Text.Info(_, XML.Elem(Markup(Markup.HILITE, _), _)) => hilite_color
-      })
+      },
+      Some(Set(Markup.BAD, Markup.HILITE)))
 
   val background2 =
     Markup_Tree.Select[Color](
       {
         case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
-      })
+      },
+      Some(Set(Markup.TOKEN_RANGE)))
 
   val foreground =
     Markup_Tree.Select[Color](
@@ -134,7 +139,8 @@ object Isabelle_Markup
         case Text.Info(_, XML.Elem(Markup(Markup.STRING, _), _)) => quoted_color
         case Text.Info(_, XML.Elem(Markup(Markup.ALTSTRING, _), _)) => quoted_color
         case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => quoted_color
-      })
+      },
+      Some(Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM)))
 
   private val text_colors: Map[String, Color] =
     Map(
@@ -164,8 +170,10 @@ object Isabelle_Markup
   val text_color =
     Markup_Tree.Select[Color](
       {
-        case Text.Info(_, XML.Elem(Markup(m, _), _)) if text_colors.isDefinedAt(m) => text_colors(m)
-      })
+        case Text.Info(_, XML.Elem(Markup(m, _), _))
+        if text_colors.isDefinedAt(m) => text_colors(m)
+      },
+      Some(Set() ++ text_colors.keys))
 
   private val tooltips: Map[String, String] =
     Map(
@@ -191,16 +199,19 @@ object Isabelle_Markup
     Markup_Tree.Select[String](
       {
         case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " " + quote(name)
-        case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) => string_of_typing("ML:", body)
+        case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
+          string_of_typing("ML:", body)
         case Text.Info(_, XML.Elem(Markup(name, _), _))
         if tooltips.isDefinedAt(name) => tooltips(name)
-      })
+      },
+      Some(Set(Markup.ENTITY, Markup.ML_TYPING) ++ tooltips.keys))
 
   val tooltip2 =
     Markup_Tree.Select[String](
       {
         case Text.Info(_, XML.Elem(Markup(Markup.TYPING, _), body)) => string_of_typing("::", body)
-      })
+      },
+      Some(Set(Markup.TYPING)))
 
   private val subexp_include =
     Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
@@ -212,7 +223,8 @@ object Isabelle_Markup
       {
         case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
           (range, subexp_color)
-      })
+      },
+      Some(subexp_include))
 
 
   /* token markup -- text styles */

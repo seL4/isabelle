@@ -15,20 +15,29 @@ import scala.collection.immutable.SortedMap
 
 object Markup_Tree
 {
-  sealed case class Cumulate[A](info: A, result: PartialFunction[(A, Text.Markup), A])
-  sealed case class Select[A](result: PartialFunction[Text.Markup, A])
+  sealed case class Cumulate[A](
+    info: A, result: PartialFunction[(A, Text.Markup), A], elements: Option[Set[String]])
+  sealed case class Select[A](
+    result: PartialFunction[Text.Markup, A], elements: Option[Set[String]])
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
   object Entry
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
-      Entry(markup.range, List(markup.info), subtree)
+      Entry(markup.range, List(markup.info), Set(markup.info.markup.name), subtree)
   }
 
-  sealed case class Entry(range: Text.Range, rev_markup: List[XML.Elem], subtree: Markup_Tree)
+  sealed case class Entry(
+    range: Text.Range,
+    rev_markup: List[XML.Elem],
+    elements: Set[String],
+    subtree: Markup_Tree)
   {
-    def + (m: XML.Elem): Entry = copy(rev_markup = m :: rev_markup)
+    def + (info: XML.Elem): Entry =
+      if (elements(info.markup.name)) copy(rev_markup = info :: rev_markup)
+      else copy(rev_markup = info :: rev_markup, elements = elements + info.markup.name)
+
     def markup: List[XML.Elem] = rev_markup.reverse
   }
 
@@ -102,17 +111,18 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
     val root_info = body.info
 
     def result(x: A, entry: Entry): Option[A] =
-    {
-      val (y, changed) =
-        (entry.markup :\ (x, false))((info, res) =>
-          {
-            val (y, changed) = res
-            val arg = (x, Text.Info(entry.range, info))
-            if (body.result.isDefinedAt(arg)) (body.result(arg), true)
-            else res
-          })
-      if (changed) Some(y) else None
-    }
+      if (body.elements match { case Some(es) => es.exists(entry.elements) case None => true }) {
+        val (y, changed) =
+          (entry.markup :\ (x, false))((info, res) =>
+            {
+              val (y, changed) = res
+              val arg = (x, Text.Info(entry.range, info))
+              if (body.result.isDefinedAt(arg)) (body.result(arg), true)
+              else res
+            })
+        if (changed) Some(y) else None
+      }
+      else None
 
     def stream(
       last: Text.Offset,
