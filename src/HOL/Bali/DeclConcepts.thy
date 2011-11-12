@@ -1071,25 +1071,16 @@ apply (auto intro: trancl_trans)
 done
 
 lemma member_of_Package: 
- "\<lbrakk>G\<turnstile>m member_of C; accmodi m = Package\<rbrakk> 
-  \<Longrightarrow> pid (declclass m) = pid C" 
-proof -
-  assume   member: "G\<turnstile>m member_of C"
-  then show " accmodi m = Package \<Longrightarrow> ?thesis" (is "PROP ?P m C")
-  proof (induct rule: members.induct)
-    fix C m
-    assume     C: "declclass m = C"
-    then show "pid (declclass m) = pid C"
-      by simp
-  next
-    fix C S m  
-    assume inheritable: "G \<turnstile> m inheritable_in pid C"
-    assume         hyp: "PROP ?P m S" and
-           package_acc: "accmodi m = Package" 
-    with inheritable package_acc hyp
-    show "pid (declclass m) = pid C" 
-      by (auto simp add: inheritable_in_def)
-  qed
+  assumes "G\<turnstile>m member_of C"
+    and "accmodi m = Package"
+  shows "pid (declclass m) = pid C"
+  using assms
+proof induct
+  case Immediate
+  then show ?case by simp
+next
+  case Inherited
+  then show ?case by (auto simp add: inheritable_in_def)
 qed
 
 lemma member_in_declC: "G\<turnstile>m member_in C\<Longrightarrow> G\<turnstile>m member_in (declclass m)"
@@ -1581,19 +1572,14 @@ apply (subst imethds_rec, erule conjunct1, assumption)
 apply (force elim: imethds_norec intro: rtrancl_into_rtrancl2)
 done
 
-lemma imethds_cases [consumes 3, case_names NewMethod InheritedMethod]:
-  assumes im: "im \<in> imethds G I sig" and  
-         ifI: "iface G I = Some i" and
-          ws: "ws_prog G" and
-     hyp_new:  "table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)) sig 
-                = Some im \<Longrightarrow> P" and
-     hyp_inh: "\<And> J. \<lbrakk>J \<in> set (isuperIfs i); im \<in> imethds G J sig\<rbrakk> \<Longrightarrow> P"
-  shows P
-proof -
-  from ifI ws im hyp_new hyp_inh
-  show "P"
-    by (auto simp add: imethds_rec)
-qed
+lemma imethds_cases:
+  assumes im: "im \<in> imethds G I sig"
+    and ifI: "iface G I = Some i"
+    and ws: "ws_prog G"
+  obtains (NewMethod) "table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)) sig = Some im"
+    | (InheritedMethod) J where "J \<in> set (isuperIfs i)" and "im \<in> imethds G J sig"
+using assms by (auto simp add: imethds_rec)
+
 
 subsection "accimethd"
 
@@ -1758,7 +1744,7 @@ subsection "accmethd"
 lemma accmethd_SomeD:
 "accmethd G S C sig = Some m
  \<Longrightarrow> methd G C sig = Some m \<and> G\<turnstile>method sig m of C accessible_from S"
-by (auto simp add: accmethd_def dest: filter_tab_SomeD)
+by (auto simp add: accmethd_def)
 
 lemma accmethd_SomeI:
 "\<lbrakk>methd G C sig = Some m; G\<turnstile>method sig m of C accessible_from S\<rbrakk> 
@@ -1836,13 +1822,13 @@ proof -
       next
         case (Some statM)
         note statM = Some
-        let "?filter C" = 
-              "filter_tab
+        let ?filter = 
+              "\<lambda>C. filter_tab
                 (\<lambda>_ dynM. G,sig \<turnstile> dynM overrides statM \<or> dynM = statM)
                 (methd G C)"
-        let "?class_rec C" =
-              "(class_rec G C empty
-                           (\<lambda>C c subcls_mthds. subcls_mthds ++ (?filter C)))"
+        let ?class_rec =
+              "\<lambda>C. class_rec G C empty
+                           (\<lambda>C c subcls_mthds. subcls_mthds ++ (?filter C))"
         from statM Subcls ws subclseq_dynC_statC
         have dynmethd_dynC_def:
              "?Dynmethd_def dynC sig =
@@ -1924,18 +1910,19 @@ lemma dynmethdSomeD:
   \<Longrightarrow> G\<turnstile>dynC \<preceq>\<^sub>C statC \<and> (\<exists> statM. methd G statC sig = Some statM)"
 by (auto simp add: dynmethd_rec)
  
-lemma dynmethd_Some_cases [consumes 3, case_names Static Overrides]:
-  assumes      dynM: "dynmethd G statC dynC sig = Some dynM" and
-        is_cls_dynC: "is_class G dynC" and
-                 ws: "ws_prog G" and
-         hyp_static: "methd G statC sig = Some dynM \<Longrightarrow> P" and
-       hyp_override: "\<And> statM. \<lbrakk>methd G statC sig = Some statM;dynM\<noteq>statM;
-                       G,sig\<turnstile>dynM overrides statM\<rbrakk> \<Longrightarrow> P"
-  shows P
+lemma dynmethd_Some_cases:
+  assumes dynM: "dynmethd G statC dynC sig = Some dynM"
+    and is_cls_dynC: "is_class G dynC"
+    and ws: "ws_prog G"
+  obtains (Static) "methd G statC sig = Some dynM"
+    | (Overrides) statM
+      where "methd G statC sig = Some statM"
+        and "dynM \<noteq> statM"
+        and "G,sig\<turnstile>dynM overrides statM"
 proof -
   from is_cls_dynC obtain dc where clsDynC: "class G dynC = Some dc" by blast
-  from clsDynC ws dynM hyp_static hyp_override
-  show "P"
+  from clsDynC ws dynM Static Overrides
+  show ?thesis
   proof (induct rule: ws_class_induct)
     case (Object co)
     with ws  have "statC = Object" 
@@ -1972,25 +1959,20 @@ proof -
 qed
 
 
-lemma dynmethd_Some_rec_cases [consumes 3, 
-                               case_names Static Override  Recursion]:
-  assumes          dynM: "dynmethd G statC dynC sig = Some dynM" and
-                clsDynC: "class G dynC = Some c" and
-                     ws: "ws_prog G" and
-             hyp_static: "methd G statC sig = Some dynM \<Longrightarrow> P" and
-           hyp_override: "\<And> statM. \<lbrakk>methd G statC sig = Some statM;
-                                     methd G dynC sig = Some dynM; statM\<noteq>dynM;
-                                     G,sig\<turnstile> dynM overrides statM\<rbrakk> \<Longrightarrow> P" and
-
-          hyp_recursion: "\<lbrakk>dynC\<noteq>Object;
-                           dynmethd G statC (super c) sig = Some dynM\<rbrakk> \<Longrightarrow> P"
-  shows P
+lemma dynmethd_Some_rec_cases:
+  assumes dynM: "dynmethd G statC dynC sig = Some dynM"
+    and clsDynC: "class G dynC = Some c"
+    and ws: "ws_prog G"
+  obtains (Static) "methd G statC sig = Some dynM"
+    | (Override) statM where "methd G statC sig = Some statM"
+        and "methd G dynC sig = Some dynM" and "statM \<noteq> dynM"
+        and "G,sig\<turnstile> dynM overrides statM"
+    | (Recursion) "dynC \<noteq> Object" and "dynmethd G statC (super c) sig = Some dynM"
 proof -
-  from clsDynC have "is_class G dynC" by simp
-  note no_override_in_Object' = no_override_in_Object [OF dynM this ws]
-  from ws clsDynC dynM hyp_static hyp_override hyp_recursion
+  from clsDynC have *: "is_class G dynC" by simp
+  from ws clsDynC dynM Static Override Recursion
   show ?thesis
-    by (auto simp add: dynmethd_rec dest: no_override_in_Object')
+    by (auto simp add: dynmethd_rec dest: no_override_in_Object [OF dynM * ws])
 qed
 
 lemma dynmethd_declC: 
@@ -2095,24 +2077,22 @@ proof -
   qed
 qed
 
-lemma dynmethd_cases [consumes 4, case_names Static Overrides]:
-  assumes     statM: "methd G statC sig = Some statM" and 
-           subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
-       is_cls_statC: "is_class G statC" and
-                 ws: "ws_prog G" and
-         hyp_static: "dynmethd G statC dynC sig = Some statM \<Longrightarrow> P" and
-       hyp_override: "\<And> dynM. \<lbrakk>dynmethd G statC dynC sig = Some dynM;
-                                 dynM\<noteq>statM;
-                           G,sig\<turnstile>dynM overrides statM\<rbrakk> \<Longrightarrow> P"
-  shows P
+lemma dynmethd_cases:
+  assumes statM: "methd G statC sig = Some statM"
+    and subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC"
+    and is_cls_statC: "is_class G statC"
+    and ws: "ws_prog G"
+  obtains (Static) "dynmethd G statC dynC sig = Some statM"
+    | (Overrides) dynM where "dynmethd G statC dynC sig = Some dynM"
+        and "dynM \<noteq> statM" and "G,sig\<turnstile>dynM overrides statM"
 proof -
+  note hyp_static = Static and hyp_override = Overrides
   from subclseq is_cls_statC 
   have is_cls_dynC: "is_class G dynC" by (rule subcls_is_class2)
   then obtain dc where
     clsDynC: "class G dynC = Some dc" by blast
   from statM subclseq is_cls_statC ws 
-  obtain dynM
-    where dynM: "dynmethd G statC dynC sig = Some dynM"
+  obtain dynM where dynM: "dynmethd G statC dynC sig = Some dynM"
     by (blast dest: methd_Some_dynmethd_Some)
   from dynM is_cls_dynC ws 
   show ?thesis
@@ -2151,14 +2131,13 @@ qed
 
 subsection "dynlookup"
 
-lemma dynlookup_cases [consumes 1, case_names NullT IfaceT ClassT ArrayT]:
-"\<lbrakk>dynlookup G statT dynC sig = x;
-           \<lbrakk>statT = NullT       ; empty sig = x                  \<rbrakk> \<Longrightarrow> P;
-  \<And> I.    \<lbrakk>statT = IfaceT I    ; dynimethd G I      dynC sig = x\<rbrakk> \<Longrightarrow> P;
-  \<And> statC.\<lbrakk>statT = ClassT statC; dynmethd  G statC  dynC sig = x\<rbrakk> \<Longrightarrow> P;
-  \<And> ty.   \<lbrakk>statT = ArrayT ty   ; dynmethd  G Object dynC sig = x\<rbrakk> \<Longrightarrow> P
- \<rbrakk> \<Longrightarrow> P"
-by (cases statT) (auto simp add: dynlookup_def)
+lemma dynlookup_cases:
+  assumes "dynlookup G statT dynC sig = x"
+  obtains (NullT) "statT = NullT" and "empty sig = x"
+    | (IfaceT) I where "statT = IfaceT I" and "dynimethd G I dynC sig = x"
+    | (ClassT) statC where "statT = ClassT statC" and "dynmethd G statC dynC sig = x"
+    | (ArrayT) ty where "statT = ArrayT ty" and "dynmethd G Object dynC sig = x"
+using assms by (cases statT) (auto simp add: dynlookup_def)
 
 subsection "fields"
 
