@@ -16,7 +16,7 @@ import scala.collection.immutable.SortedMap
 object Markup_Tree
 {
   sealed case class Cumulate[A](info: A, result: PartialFunction[(A, Text.Markup), A])
-  type Select[A] = PartialFunction[Text.Markup, A]
+  sealed case class Select[A](result: PartialFunction[Text.Markup, A])
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
@@ -122,43 +122,6 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
     }
     stream(root_range.start,
       List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
-  }
-
-  def select[A](root_range: Text.Range)(result: Select[A]): Stream[Text.Info[Option[A]]] =
-  {
-    def stream(
-      last: Text.Offset,
-      stack: List[(Text.Info[Option[A]], Stream[(Text.Range, Branches.Entry)])])
-        : Stream[Text.Info[Option[A]]] =
-    {
-      stack match {
-        case (parent, (range, (info, tree)) #:: more) :: rest =>
-          val subrange = range.restrict(root_range)
-          val subtree = tree.overlapping(subrange).toStream
-          val start = subrange.start
-
-          if (result.isDefinedAt(info)) {
-            val next = Text.Info[Option[A]](subrange, Some(result(info)))
-            val nexts = stream(start, (next, subtree) :: (parent, more) :: rest)
-            if (last < start) parent.restrict(Text.Range(last, start)) #:: nexts
-            else nexts
-          }
-          else stream(last, (parent, subtree #::: more) :: rest)
-
-        case (parent, Stream.Empty) :: rest =>
-          val stop = parent.range.stop
-          val nexts = stream(stop, rest)
-          if (last < stop) parent.restrict(Text.Range(last, stop)) #:: nexts
-          else nexts
-
-        case Nil =>
-          val stop = root_range.stop
-          if (last < stop) Stream(Text.Info(Text.Range(last, stop), None))
-          else Stream.empty
-      }
-    }
-    stream(root_range.start,
-      List((Text.Info(root_range, None), overlapping(root_range).toStream)))
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)

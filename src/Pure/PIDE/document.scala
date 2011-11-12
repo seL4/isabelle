@@ -241,7 +241,7 @@ object Document
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range
     def cumulate_markup[A](range: Text.Range)(body: Markup_Tree.Cumulate[A]): Stream[Text.Info[A]]
-    def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
+    def select_markup[A](range: Text.Range)(body: Markup_Tree.Select[A])
       : Stream[Text.Info[Option[A]]]
   }
 
@@ -492,19 +492,16 @@ object Document
           } yield Text.Info(convert(r0 + command_start), a)
         }
 
-        def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
+        def select_markup[A](range: Text.Range)(body: Markup_Tree.Select[A])
           : Stream[Text.Info[Option[A]]] =
         {
-          val former_range = revert(range)
-          for {
-            (command, command_start) <- node.command_range(former_range).toStream
-            Text.Info(r0, x) <- command_state(command).markup.
-              select((former_range - command_start).restrict(command.range)) {
-                case Text.Info(r0, info)
-                if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
-                  result(Text.Info(convert(r0 + command_start), info))
-              }
-          } yield Text.Info(convert(r0 + command_start), x)
+          val result = body.result
+          val result1 =
+            new PartialFunction[(Option[A], Text.Markup), Option[A]] {
+              def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = result.isDefinedAt(arg._2)
+              def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(result(arg._2))
+            }
+          cumulate_markup(range)(Markup_Tree.Cumulate[Option[A]](None, result1))
         }
       }
     }
