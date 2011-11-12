@@ -357,7 +357,7 @@ lemma le_int_or:
   done
 
 lemmas int_and_le =
-  xtr3 [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or] ;
+  xtr3 [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
 
 lemma bin_nth_ops:
   "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)" 

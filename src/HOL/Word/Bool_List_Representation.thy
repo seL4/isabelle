@@ -276,7 +276,7 @@ lemma bin_nth_of_bl_aux [rule_format]:
   apply auto
   done
 
-lemma bin_nth_of_bl: "bin_nth (bl_to_bin bl) n = (n < length bl & rev bl ! n)";
+lemma bin_nth_of_bl: "bin_nth (bl_to_bin bl) n = (n < length bl & rev bl ! n)"
   unfolding bl_to_bin_def by (simp add : bin_nth_of_bl_aux)
 
 lemma bin_nth_bl [rule_format] : "ALL m w. n < m --> 
@@ -717,7 +717,7 @@ lemma bl_of_nth_inj:
   by (induct n)  auto
 
 lemma bl_of_nth_nth_le [rule_format] : "ALL xs. 
-    length xs >= n --> bl_of_nth n (nth (rev xs)) = drop (length xs - n) xs";
+    length xs >= n --> bl_of_nth n (nth (rev xs)) = drop (length xs - n) xs"
   apply (induct n, clarsimp)
   apply clarsimp
   apply (rule trans [OF _ hd_Cons_tl])
