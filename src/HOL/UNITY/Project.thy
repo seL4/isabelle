@@ -35,7 +35,7 @@ done
 subsection{*Safety*}
 
 (*used below to prove Join_project_ensures*)
-lemma (in Extend) project_unless [rule_format]:
+lemma (in Extend) project_unless:
      "[| G \<in> stable C;  project h C G \<in> A unless B |]  
       ==> G \<in> (C \<inter> extend_set h A) unless (extend_set h B)"
 apply (simp add: unless_def project_constrains)
@@ -460,7 +460,7 @@ apply (elim disjE bexE)
   apply (blast intro!: rev_bexI )+
 done
 
-lemma (in Extend) project_unless2 [rule_format]:
+lemma (in Extend) project_unless2:
      "[| G \<in> stable C;  project h C G \<in> (project_set h C \<inter> A) unless B |]  
       ==> G \<in> (C \<inter> extend_set h A) unless (extend_set h B)"
 by (auto dest: stable_constrains_Int intro: constrains_weaken
@@ -479,7 +479,7 @@ apply blast
 done
 
 (*Used to prove project_leadsETo_D*)
-lemma (in Extend) Join_project_ensures [rule_format]:
+lemma (in Extend) Join_project_ensures:
      "[| extend h F\<squnion>G \<in> stable C;   
          F\<squnion>project h C G \<in> A ensures B |]  
       ==> extend h F\<squnion>G \<in> (C \<inter> extend_set h A) ensures (extend_set h B)"

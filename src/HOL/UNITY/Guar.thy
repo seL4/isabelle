@@ -75,14 +75,14 @@ by (auto intro: ok_sym simp add: OK_iff_ok)
 
 subsection{*Existential Properties*}
 
-lemma ex1 [rule_format]: 
- "[| ex_prop X; finite GG |] ==>  
-     GG \<inter> X \<noteq> {}--> OK GG (%G. G) --> (\<Squnion>G \<in> GG. G) \<in> X"
-apply (unfold ex_prop_def)
-apply (erule finite_induct)
-apply (auto simp add: OK_insert_iff Int_insert_left)
-done
-
+lemma ex1:
+  assumes "ex_prop X" and "finite GG"
+  shows "GG \<inter> X \<noteq> {} \<Longrightarrow> OK GG (%G. G) \<Longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X"
+  apply (atomize (full))
+  using assms(2) apply induct
+   using assms(1) apply (unfold ex_prop_def)
+   apply (auto simp add: OK_insert_iff Int_insert_left)
+  done
 
 lemma ex2: 
      "\<forall>GG. finite GG & GG \<inter> X \<noteq> {} --> OK GG (%G. G) -->(\<Squnion>G \<in> GG. G):X 
@@ -112,13 +112,18 @@ done
 
 subsection{*Universal Properties*}
 
-lemma uv1 [rule_format]: 
-     "[| uv_prop X; finite GG |] 
-      ==> GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G) \<in> X"
-apply (unfold uv_prop_def)
-apply (erule finite_induct)
-apply (auto simp add: Int_insert_left OK_insert_iff)
-done
+lemma uv1:
+  assumes "uv_prop X"
+    and "finite GG"
+    and "GG \<subseteq> X"
+    and "OK GG (%G. G)"
+  shows "(\<Squnion>G \<in> GG. G) \<in> X"
+  using assms(2-)
+  apply induct
+   using assms(1)
+   apply (unfold uv_prop_def)
+   apply (auto simp add: Int_insert_left OK_insert_iff)
+  done
 
 lemma uv2: 
      "\<forall>GG. finite GG & GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G) \<in> X  

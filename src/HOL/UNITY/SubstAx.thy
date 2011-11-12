@@ -106,13 +106,13 @@ done
 
 lemmas empty_LeadsTo = empty_subsetI [THEN subset_imp_LeadsTo, standard, simp]
 
-lemma LeadsTo_weaken_R [rule_format]:
+lemma LeadsTo_weaken_R:
      "[| F \<in> A LeadsTo A';  A' \<subseteq> B' |] ==> F \<in> A LeadsTo B'"
 apply (simp add: LeadsTo_def)
 apply (blast intro: leadsTo_weaken_R)
 done
 
-lemma LeadsTo_weaken_L [rule_format]:
+lemma LeadsTo_weaken_L:
      "[| F \<in> A LeadsTo A';  B \<subseteq> A |]   
       ==> F \<in> B LeadsTo A'"
 apply (simp add: LeadsTo_def)

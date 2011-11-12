@@ -280,7 +280,7 @@ done
 lemma leadsTo_weaken_R: "[| F \<in> A leadsTo A'; A'<=B' |] ==> F \<in> A leadsTo B'"
 by (blast intro: subset_imp_leadsTo leadsTo_Trans)
 
-lemma leadsTo_weaken_L [rule_format]:
+lemma leadsTo_weaken_L:
      "[| F \<in> A leadsTo A'; B \<subseteq> A |] ==> F \<in> B leadsTo A'"
 by (blast intro: leadsTo_Trans subset_imp_leadsTo)
 

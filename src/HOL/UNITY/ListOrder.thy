@@ -106,36 +106,39 @@ done
 (** Transitivity **)
 
 (*A lemma for proving genPrefix_trans_O*)
-lemma append_genPrefix [rule_format]:
-     "ALL zs. (xs @ ys, zs) : genPrefix r --> (xs, zs) : genPrefix r"
-by (induct_tac "xs", auto)
+lemma append_genPrefix:
+     "(xs @ ys, zs) : genPrefix r \<Longrightarrow> (xs, zs) : genPrefix r"
+  by (induct xs arbitrary: zs) auto
 
 (*Lemma proving transitivity and more*)
-lemma genPrefix_trans_O [rule_format]: 
-     "(x, y) : genPrefix r  
-      ==> ALL z. (y,z) : genPrefix s --> (x, z) : genPrefix (r O s)"
-apply (erule genPrefix.induct)
-  prefer 3 apply (blast dest: append_genPrefix)
- prefer 2 apply (blast intro: genPrefix.prepend, blast)
-done
+lemma genPrefix_trans_O:
+  assumes "(x, y) : genPrefix r"
+  shows "\<And>z. (y, z) : genPrefix s \<Longrightarrow> (x, z) : genPrefix (r O s)"
+  apply (atomize (full))
+  using assms
+  apply induct
+    apply blast
+   apply (blast intro: genPrefix.prepend)
+  apply (blast dest: append_genPrefix)
+  done
 
-lemma genPrefix_trans [rule_format]:
-     "[| (x,y) : genPrefix r;  (y,z) : genPrefix r;  trans r |]  
-      ==> (x,z) : genPrefix r"
-apply (rule trans_O_subset [THEN genPrefix_mono, THEN subsetD])
- apply assumption
-apply (blast intro: genPrefix_trans_O)
-done
+lemma genPrefix_trans:
+  "(x, y) : genPrefix r \<Longrightarrow> (y, z) : genPrefix r \<Longrightarrow> trans r
+    \<Longrightarrow> (x, z) : genPrefix r"
+  apply (rule trans_O_subset [THEN genPrefix_mono, THEN subsetD])
+   apply assumption
+  apply (blast intro: genPrefix_trans_O)
+  done
 
-lemma prefix_genPrefix_trans [rule_format]: 
-     "[| x<=y;  (y,z) : genPrefix r |] ==> (x, z) : genPrefix r"
+lemma prefix_genPrefix_trans:
+  "[| x<=y;  (y,z) : genPrefix r |] ==> (x, z) : genPrefix r"
 apply (unfold prefix_def)
 apply (drule genPrefix_trans_O, assumption)
 apply simp
 done
 
-lemma genPrefix_prefix_trans [rule_format]: 
-     "[| (x,y) : genPrefix r;  y<=z |] ==> (x,z) : genPrefix r"
+lemma genPrefix_prefix_trans:
+  "[| (x,y) : genPrefix r;  y<=z |] ==> (x,z) : genPrefix r"
 apply (unfold prefix_def)
 apply (drule genPrefix_trans_O, assumption)
 apply simp
@@ -147,23 +150,30 @@ by (blast intro: transI genPrefix_trans)
 
 (** Antisymmetry **)
 
-lemma genPrefix_antisym [rule_format]:
-     "[| (xs,ys) : genPrefix r;  antisym r |]  
-      ==> (ys,xs) : genPrefix r --> xs = ys"
-apply (erule genPrefix.induct)
-  txt{*Base case*}
-  apply blast
- txt{*prepend case*}
- apply (simp add: antisym_def)
-txt{*append case is the hardest*}
-apply clarify
-apply (subgoal_tac "length zs = 0", force)
-apply (drule genPrefix_length_le)+
-apply (simp del: length_0_conv)
-done
+lemma genPrefix_antisym:
+  assumes 1: "(xs, ys) : genPrefix r"
+    and 2: "antisym r"
+    and 3: "(ys, xs) : genPrefix r"
+  shows "xs = ys"
+  using 1 3
+proof induct
+  case Nil
+  then show ?case by blast
+next
+  case prepend
+  then show ?case using 2 by (simp add: antisym_def)
+next
+  case (append xs ys zs)
+  then show ?case
+    apply -
+    apply (subgoal_tac "length zs = 0", force)
+    apply (drule genPrefix_length_le)+
+    apply (simp del: length_0_conv)
+    done
+qed
 
 lemma antisym_genPrefix: "antisym r ==> antisym (genPrefix r)"
-by (blast intro: antisymI genPrefix_antisym)
+  by (blast intro: antisymI genPrefix_antisym)
 
 
 subsection{*recursion equations*}
@@ -229,23 +239,23 @@ by (blast intro: aolemma [THEN mp])
 
 (** Proving the equivalence with Charpentier's definition **)
 
-lemma genPrefix_imp_nth [rule_format]:
-     "ALL i ys. i < length xs  
-                --> (xs, ys) : genPrefix r --> (xs ! i, ys ! i) : r"
-apply (induct_tac "xs", auto)
-apply (case_tac "i", auto)
-done
+lemma genPrefix_imp_nth:
+    "i < length xs \<Longrightarrow> (xs, ys) : genPrefix r \<Longrightarrow> (xs ! i, ys ! i) : r"
+  apply (induct xs arbitrary: i ys)
+   apply auto
+  apply (case_tac i)
+   apply auto
+  done
 
-lemma nth_imp_genPrefix [rule_format]:
-     "ALL ys. length xs <= length ys   
-      --> (ALL i. i < length xs --> (xs ! i, ys ! i) : r)   
-      --> (xs, ys) : genPrefix r"
-apply (induct_tac "xs")
-apply (simp_all (no_asm_simp) add: less_Suc_eq_0_disj all_conj_distrib)
-apply clarify
-apply (case_tac "ys")
-apply (force+)
-done
+lemma nth_imp_genPrefix:
+  "length xs <= length ys \<Longrightarrow>
+     (\<forall>i. i < length xs --> (xs ! i, ys ! i) : r) \<Longrightarrow>
+     (xs, ys) : genPrefix r"
+  apply (induct xs arbitrary: ys)
+   apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib)
+  apply (case_tac ys)
+   apply (force+)
+  done
 
 lemma genPrefix_iff_nth:
      "((xs,ys) : genPrefix r) =  
@@ -371,10 +381,10 @@ done
 
 (*Although the prefix ordering is not linear, the prefixes of a list
   are linearly ordered.*)
-lemma common_prefix_linear [rule_format]:
-     "!!zs::'a list. xs <= zs --> ys <= zs --> xs <= ys | ys <= xs"
-by (rule_tac xs = zs in rev_induct, auto)
-
+lemma common_prefix_linear:
+  fixes xs ys zs :: "'a list"
+  shows "xs <= zs \<Longrightarrow> ys <= zs \<Longrightarrow> xs <= ys | ys <= xs"
+  by (induct zs rule: rev_induct) auto
 
 subsection{*pfixLe, pfixGe: properties inherited from the translations*}
 

@@ -527,15 +527,14 @@ text{*Thesis, page 109*}
 text{*From Meier's thesis, section 4.5.6*}
 lemma commutativity2_lemma:
   assumes dcommutes: 
-        "\<forall>act \<in> Acts F. 
-         \<forall>s \<in> T. \<forall>t. (s,t) \<in> relcl L --> 
-                      s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
-      and determ: "!!act. act \<in> Acts F ==> single_valued act"
-      and total: "!!act. act \<in> Acts F ==> Domain act = UNIV"
-      and lattice:  "lattice L"
-      and BL: "B \<in> L"
-      and TL: "T \<in> L"
-      and Fstable: "F \<in> stable T"
+      "\<And>act s t. act \<in> Acts F \<Longrightarrow> s \<in> T \<Longrightarrow> (s, t) \<in> relcl L \<Longrightarrow>
+        s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
+    and determ: "!!act. act \<in> Acts F ==> single_valued act"
+    and total: "!!act. act \<in> Acts F ==> Domain act = UNIV"
+    and lattice:  "lattice L"
+    and BL: "B \<in> L"
+    and TL: "T \<in> L"
+    and Fstable: "F \<in> stable T"
   shows  "commutes F T B L"
 apply (simp add: commutes_def del: Int_subset_iff le_inf_iff, clarify)
 proof -
@@ -555,7 +554,7 @@ proof -
     by (force intro!: funof_in 
       simp add: wp_def stable_def constrains_def determ total)
   with 1 2 3 have 5: "s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
-    by (intro dcommutes [rule_format]) assumption+ 
+    by (intro dcommutes) assumption+ 
   with 1 2 3 4 have "t \<in> B | funof act t \<in> cl L (T\<inter>M)"
     by (simp add: relcl_def) (blast intro: BL cl_mono [THEN [2] rev_subsetD])  
   with 1 2 3 4 5 have "t \<in> B | t \<in> wp act (cl L (T\<inter>M))"
