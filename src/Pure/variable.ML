@@ -297,7 +297,6 @@ fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
 val fixed_ord = Name_Space.entry_ord o fixes_space;
 val intern_fixed = Name_Space.intern o fixes_space;
-val markup_fixed = Name_Space.markup o fixes_space;
 
 fun lookup_fixed ctxt x =
   let val x' = intern_fixed ctxt x
@@ -307,6 +306,10 @@ fun revert_fixed ctxt x =
   (case Symtab.lookup (#2 (fixes_of ctxt)) x of
     SOME x' => if intern_fixed ctxt x' = x then x' else x
   | NONE => x);
+
+fun markup_fixed ctxt x =
+  Name_Space.markup (fixes_space ctxt) x
+  |> Markup.name (revert_fixed ctxt x);
 
 fun dest_fixes ctxt =
   let val (space, tab) = fixes_of ctxt
