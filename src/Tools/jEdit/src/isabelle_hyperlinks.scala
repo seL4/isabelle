@@ -57,37 +57,40 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         case Some(model) =>
           val snapshot = model.snapshot()
           val markup =
-            snapshot.select_markup(Text.Range(buffer_offset, buffer_offset + 1)) {
-              // FIXME Isar_Document.Hyperlink extractor
-              case Text.Info(info_range,
-                  XML.Elem(Markup(Markup.ENTITY, props), _))
-                if (props.find(
-                  { case (Markup.KIND, Markup.ML_OPEN) => true
-                    case (Markup.KIND, Markup.ML_STRUCT) => true
-                    case _ => false }).isEmpty) =>
-                val Text.Range(begin, end) = info_range
-                val line = buffer.getLineOfOffset(begin)
-                (Position.File.unapply(props), Position.Line.unapply(props)) match {
-                  case (Some(def_file), Some(def_line)) =>
-                    new External_Hyperlink(begin, end, line, def_file, def_line)
-                  case _ if !snapshot.is_outdated =>
-                    (props, props) match {
-                      case (Position.Id(def_id), Position.Offset(def_offset)) =>
-                        snapshot.state.find_command(snapshot.version, def_id) match {
-                          case Some((def_node, def_cmd)) =>
-                            def_node.command_start(def_cmd) match {
-                              case Some(def_cmd_start) =>
-                                new Internal_Hyperlink(def_cmd.node_name.node, begin, end, line,
-                                  def_cmd_start + def_cmd.decode(def_offset))
+            snapshot.select_markup(Text.Range(buffer_offset, buffer_offset + 1))(
+              Markup_Tree.Select[Hyperlink](
+                {
+                  // FIXME Isar_Document.Hyperlink extractor
+                  case Text.Info(info_range,
+                      XML.Elem(Markup(Markup.ENTITY, props), _))
+                    if (props.find(
+                      { case (Markup.KIND, Markup.ML_OPEN) => true
+                        case (Markup.KIND, Markup.ML_STRUCT) => true
+                        case _ => false }).isEmpty) =>
+                    val Text.Range(begin, end) = info_range
+                    val line = buffer.getLineOfOffset(begin)
+                    (Position.File.unapply(props), Position.Line.unapply(props)) match {
+                      case (Some(def_file), Some(def_line)) =>
+                        new External_Hyperlink(begin, end, line, def_file, def_line)
+                      case _ if !snapshot.is_outdated =>
+                        (props, props) match {
+                          case (Position.Id(def_id), Position.Offset(def_offset)) =>
+                            snapshot.state.find_command(snapshot.version, def_id) match {
+                              case Some((def_node, def_cmd)) =>
+                                def_node.command_start(def_cmd) match {
+                                  case Some(def_cmd_start) =>
+                                    new Internal_Hyperlink(def_cmd.node_name.node, begin, end, line,
+                                      def_cmd_start + def_cmd.decode(def_offset))
+                                  case None => null
+                                }
                               case None => null
                             }
-                          case None => null
+                          case _ => null
                         }
                       case _ => null
                     }
-                  case _ => null
-                }
-            }
+                },
+                Some(Set(Markup.ENTITY))))
           markup match {
             case Text.Info(_, Some(link)) #:: _ => link
             case _ => null
