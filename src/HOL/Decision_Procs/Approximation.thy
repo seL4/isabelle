@@ -1178,15 +1178,6 @@ proof -
   from *[OF this] show thesis by blast
 qed
 
-lemma float_remove_real_numeral[simp]: "(number_of k :: float) = (number_of k :: real)"
-proof -
-  have "(number_of k :: float) = real k"
-    unfolding number_of_float_def real_of_float_def pow2_def by auto
-  also have "\<dots> = (number_of k :: int)"
-    by (simp add: number_of_is_id)
-  finally show ?thesis by auto
-qed
-
 lemma cos_periodic_nat[simp]: fixes n :: nat shows "cos (x + n * (2 * pi)) = cos x"
 proof (induct n arbitrary: x)
   case (Suc n)
