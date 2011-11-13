@@ -85,7 +85,7 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (auto simp add: MultInvPair_def)
   apply (subgoal_tac "~ (StandardRes p j = StandardRes p (a * MultInv p j))")
   apply auto
-  apply (metis MultInvPair_distinct Pls_def StandardRes_def aux number_of_is_id one_is_num_one)
+  apply (metis MultInvPair_distinct StandardRes_def aux)
   done
 
 
@@ -227,7 +227,7 @@ text {* \medskip Prove the first part of Euler's Criterion: *}
 lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
     ~(QuadRes p x) |] ==> 
       [x^(nat (((p) - 1) div 2)) = -1](mod p)"
-  by (metis Wilson_Russ number_of_is_id zcong_sym zcong_trans zfact_prop)
+  by (metis Wilson_Russ zcong_sym zcong_trans zfact_prop)
 
 text {* \medskip Prove another part of Euler Criterion: *}
 
@@ -280,13 +280,13 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   apply (subgoal_tac "p \<in> zOdd")
   apply (auto simp add: QuadRes_def)
    prefer 2 
-   apply (metis number_of_is_id numeral_1_eq_1 zprime_zOdd_eq_grt_2)
+   apply (metis zprime_zOdd_eq_grt_2)
   apply (frule aux__1, auto)
   apply (drule_tac z = "nat ((p - 1) div 2)" in zcong_zpower)
   apply (auto simp add: zpower_zpower) 
   apply (rule zcong_trans)
   apply (auto simp add: zcong_sym [of "x ^ nat ((p - 1) div 2)"])
-  apply (metis Little_Fermat even_div_2_prop2 mult_Bit0 number_of_is_id odd_minus_one_even one_is_num_one mult_1 aux__2)
+  apply (metis Little_Fermat even_div_2_prop2 odd_minus_one_even mult_1 aux__2)
   done
 
 
