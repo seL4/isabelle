@@ -25,7 +25,7 @@ primrec tmsize :: "tm \<Rightarrow> nat" where
 | "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
   (* Semantics of terms tm *)
-primrec Itm :: "'a::{field_char_0, field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a" where
+primrec Itm :: "'a::{field_char_0, field_inverse_zero, number_ring} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a" where
   "Itm vs bs (CP c) = (Ipoly vs c)"
 | "Itm vs bs (Bound n) = bs!n"
 | "Itm vs bs (Neg a) = -(Itm vs bs a)"
@@ -266,9 +266,6 @@ definition tmsub :: "tm \<Rightarrow> tm \<Rightarrow> tm" where
 lemma tmneg[simp]: "Itm vs bs (tmneg t) = Itm vs bs (Neg t)"
 using tmneg_def[of t] 
 apply simp
-apply (subst number_of_Min)
-apply (simp only: of_int_minus)
-apply simp
 done
 
 lemma tmneg_nb0[simp]: "tmbound0 t \<Longrightarrow> tmbound0 (tmneg t)"
@@ -309,7 +306,7 @@ fun simptm:: "tm \<Rightarrow> tm" where
 
 lemma polynate_stupid: 
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
-  shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a::{field_char_0, field_inverse_zero})" 
+  shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a)"
 apply (subst polynate[symmetric])
 apply simp
 done
@@ -433,7 +430,7 @@ lemma fmsize_pos[termination_simp]: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-primrec Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool" where
+primrec Ifm ::"'a::{linordered_field_inverse_zero, number_ring} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool" where
   "Ifm vs bs T = True"
 | "Ifm vs bs F = False"
 | "Ifm vs bs (Lt a) = (Itm vs bs a < 0)"
@@ -1798,28 +1795,12 @@ next
   ultimately show ?case by blast
 qed (auto simp add: tmbound0_I[where vs=vs and bs="bs" and b="y" and b'="x"] bound0_I[where vs=vs and bs="bs" and b="y" and b'="x"])
 
-lemma one_plus_one_pos[simp]: "(1::'a::{linordered_field}) + 1 > 0"
-proof-
-  have op: "(1::'a) > 0" by simp
-  from add_pos_pos[OF op op] show ?thesis . 
-qed
-
-lemma one_plus_one_nonzero[simp]: "(1::'a::{linordered_field}) + 1 \<noteq> 0" 
-  using one_plus_one_pos[where ?'a = 'a] by (simp add: less_le) 
-
-lemma half_sum_eq: "(u + u) / (1+1) = (u::'a::{linordered_field})" 
-proof-
-  have "(u + u) = (1 + 1) * u" by (simp add: field_simps)
-  hence "(u + u) / (1+1) = (1 + 1)*u / (1 + 1)" by simp
-  with nonzero_mult_divide_cancel_left[OF one_plus_one_nonzero, of u] show ?thesis by simp
-qed
-
 lemma inf_uset:
   assumes lp: "islin p"
   and nmi: "\<not> (Ifm vs (x#bs) (minusinf p))" (is "\<not> (Ifm vs (x#bs) (?M p))")
   and npi: "\<not> (Ifm vs (x#bs) (plusinf p))" (is "\<not> (Ifm vs (x#bs) (?P p))")
   and ex: "\<exists> x.  Ifm vs (x#bs) p" (is "\<exists> x. ?I x p")
-  shows "\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). ?I ((- Itm vs (x#bs) t / Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) / (1 + 1)) p" 
+  shows "\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). ?I ((- Itm vs (x#bs) t / Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) / 2) p" 
 proof-
   let ?Nt = "\<lambda> x t. Itm vs (x#bs) t"
   let ?N = "Ipoly vs"
@@ -1829,7 +1810,7 @@ proof-
   have nmi': "\<not> (?I a (?M p))" by simp
   from bound0_I[OF plusinf_nb[OF lp], where bs="bs" and b="x" and b'="a"] npi
   have npi': "\<not> (?I a (?P p))" by simp
-  have "\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). ?I ((- ?Nt a t/?N c + - ?Nt a s /?N d) / (1 + 1)) p"
+  have "\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). ?I ((- ?Nt a t/?N c + - ?Nt a s /?N d) / 2) p"
   proof-
     let ?M = "(\<lambda> (c,t). - ?Nt a t / ?N c) ` ?U"
     have fM: "finite ?M" by auto
@@ -1858,8 +1839,8 @@ proof-
     moreover {fix u assume um: "u\<in> ?M" and pu: "?I u p"
       hence "\<exists> (nu,tu) \<in> ?U. u = - ?Nt a tu / ?N nu" by auto
       then obtain "tu" "nu" where tuU: "(nu,tu) \<in> ?U" and tuu:"u= - ?Nt a tu / ?N nu" by blast
-      from half_sum_eq[of u] pu tuu 
-      have "?I (((- ?Nt a tu / ?N nu) + (- ?Nt a tu / ?N nu)) / (1 + 1)) p" by simp
+      from pu tuu
+      have "?I (((- ?Nt a tu / ?N nu) + (- ?Nt a tu / ?N nu)) / 2) p" by simp
       with tuU have ?thesis by blast}
     moreover{
       assume "\<exists> t1\<in> ?M. \<exists> t2 \<in> ?M. (\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M) \<and> t1 < a \<and> a < t2 \<and> ?I a p"
@@ -1871,18 +1852,18 @@ proof-
       from t2M have "\<exists> (t2n,t2u) \<in> ?U. t2 = - ?Nt a t2u / ?N t2n" by auto
       then obtain "t2u" "t2n" where t2uU: "(t2n,t2u) \<in> ?U" and t2u: "t2 = - ?Nt a t2u / ?N t2n" by blast
       from t1x xt2 have t1t2: "t1 < t2" by simp
-      let ?u = "(t1 + t2) / (1 + 1)"
+      let ?u = "(t1 + t2) / 2"
       from less_half_sum[OF t1t2] gt_half_sum[OF t1t2] have t1lu: "t1 < ?u" and ut2: "?u < t2" by auto
       from lin_dense[OF lp noM t1x xt2 px t1lu ut2] have "?I ?u p" .
       with t1uU t2uU t1u t2u have ?thesis by blast}
     ultimately show ?thesis by blast
   qed
   then obtain "l" "n" "s"  "m" where lnU: "(n,l) \<in> ?U" and smU:"(m,s) \<in> ?U" 
-    and pu: "?I ((- ?Nt a l / ?N n + - ?Nt a s / ?N m) / (1 + 1)) p" by blast
+    and pu: "?I ((- ?Nt a l / ?N n + - ?Nt a s / ?N m) / 2) p" by blast
   from lnU smU uset_l[OF lp] have nbl: "tmbound0 l" and nbs: "tmbound0 s" by auto
   from tmbound0_I[OF nbl, where bs="bs" and b="a" and b'="x"] 
     tmbound0_I[OF nbs, where bs="bs" and b="a" and b'="x"] pu
-  have "?I ((- ?Nt x l / ?N n + - ?Nt x s / ?N m) / (1 + 1)) p" by simp
+  have "?I ((- ?Nt x l / ?N n + - ?Nt x s / ?N m) / 2) p" by simp
   with lnU smU
   show ?thesis by auto
 qed
@@ -1891,7 +1872,7 @@ qed
 
 theorem fr_eq: 
   assumes lp: "islin p"
-  shows "(\<exists> x. Ifm vs (x#bs) p) = ((Ifm vs (x#bs) (minusinf p)) \<or> (Ifm vs (x#bs) (plusinf p)) \<or> (\<exists> (n,t) \<in> set (uset p). \<exists> (m,s) \<in> set (uset p). Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs n + - Itm vs (x#bs) s / Ipoly vs m) /(1 + 1))#bs) p))"
+  shows "(\<exists> x. Ifm vs (x#bs) p) = ((Ifm vs (x#bs) (minusinf p)) \<or> (Ifm vs (x#bs) (plusinf p)) \<or> (\<exists> (n,t) \<in> set (uset p). \<exists> (m,s) \<in> set (uset p). Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs n + - Itm vs (x#bs) s / Ipoly vs m) / 2)#bs) p))"
   (is "(\<exists> x. ?I x p) = (?M \<or> ?P \<or> ?F)" is "?E = ?D")
 proof
   assume px: "\<exists> x. ?I x p"
@@ -1928,7 +1909,7 @@ proof-
 qed
 
 lemma msubsteq: assumes lp: "islin (Eq (CNP 0 a r))"
-  shows "Ifm vs (x#bs) (msubsteq c t d s a r) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /(1 + 1))#bs) (Eq (CNP 0 a r))" (is "?lhs = ?rhs")
+  shows "Ifm vs (x#bs) (msubsteq c t d s a r) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) / 2)#bs) (Eq (CNP 0 a r))" (is "?lhs = ?rhs")
 proof-
   let ?Nt = "\<lambda>(x::'a) t. Itm vs (x#bs) t"
   let ?N = "\<lambda>p. Ipoly vs p"
@@ -1946,53 +1927,47 @@ proof-
     hence ?thesis  by (simp add: r[of 0] msubsteq_def Let_def evaldjf_ex)}
   moreover 
   {assume c: "?c = 0" and d: "?d\<noteq>0"
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = -?s / ((1 + 1)*?d)" by simp
-    have "?rhs = Ifm vs (-?s / ((1 + 1)*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (-?s / ((1 + 1)*?d)) + ?r = 0" by (simp add: r[of "- (Itm vs (x # bs) s / ((1 + 1) * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a * (-?s / ((1 + 1)*?d)) + ?r) = 0" 
-      using d mult_cancel_left[of "(1 + 1)*?d" "(?a * (-?s / ((1 + 1)*?d)) + ?r)" 0] by simp
-    also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * ((1 + 1)*?d / ((1 + 1)*?d)) + (1 + 1)*?d*?r= 0"
-      by (simp add: field_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = -?s / (2*?d)" by simp
+    have "?rhs = Ifm vs (-?s / (2*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r = 0" by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) = 0"
+      using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
+    also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r= 0"
+      by (simp add: field_simps right_distrib[of "2*?d"] del: right_distrib)
     
-    also have "\<dots> \<longleftrightarrow> - (?a * ?s) + (1 + 1)*?d*?r = 0" using d by simp 
+    also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r = 0" using d by simp 
     finally have ?thesis using c d 
-      apply (simp add: r[of "- (Itm vs (x # bs) s / ((1 + 1) * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply simp
-      done}
+      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
+  }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d=0"
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = -?t / ((1 + 1)*?c)" by simp
-    have "?rhs = Ifm vs (-?t / ((1 + 1)*?c) # bs) (Eq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (-?t / ((1 + 1)*?c)) + ?r = 0" by (simp add: r[of "- (?t/ ((1 + 1)* ?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a * (-?t / ((1 + 1)*?c)) + ?r) = 0" 
-      using c mult_cancel_left[of "(1 + 1)*?c" "(?a * (-?t / ((1 + 1)*?c)) + ?r)" 0] by simp
-    also have "\<dots> \<longleftrightarrow> (?a * -?t)* ((1 + 1)*?c) / ((1 + 1)*?c) + (1 + 1)*?c*?r= 0"
-      by (simp add: field_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
-    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + (1 + 1)*?c*?r = 0" using c by simp 
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2*?c)" by simp
+    have "?rhs = Ifm vs (-?t / (2*?c) # bs) (Eq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r = 0" by (simp add: r[of "- (?t/ (2 * ?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) = 0" 
+      using c mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
+    also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r= 0"
+      by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
+    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r = 0" using c by simp 
     finally have ?thesis using c d 
-      apply (simp add: r[of "- (?t/ ((1 + 1)*?c))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply simp
-      done }
+      by (simp add: r[of "- (?t/ (2*?c))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
+  }
   moreover
-  {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *(1 + 1) \<noteq> 0" by simp
+  {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *2 \<noteq> 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r = 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) =0 "
-      using c d mult_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r =0" 
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r = 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) =0 "
+      using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r =0" 
       using nonzero_mult_divide_cancel_left [OF dc] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using c d 
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubsteq_def Let_def evaldjf_ex field_simps)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply (simp add: field_simps)
-      done }
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubsteq_def Let_def evaldjf_ex field_simps)
+  }
   ultimately show ?thesis by blast
 qed
 
@@ -2016,7 +1991,7 @@ proof-
 qed
 
 lemma msubstneq: assumes lp: "islin (Eq (CNP 0 a r))"
-  shows "Ifm vs (x#bs) (msubstneq c t d s a r) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /(1 + 1))#bs) (NEq (CNP 0 a r))" (is "?lhs = ?rhs")
+  shows "Ifm vs (x#bs) (msubstneq c t d s a r) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) (NEq (CNP 0 a r))" (is "?lhs = ?rhs")
 proof-
   let ?Nt = "\<lambda>(x::'a) t. Itm vs (x#bs) t"
   let ?N = "\<lambda>p. Ipoly vs p"
@@ -2034,53 +2009,47 @@ proof-
     hence ?thesis  by (simp add: r[of 0] msubstneq_def Let_def evaldjf_ex)}
   moreover 
   {assume c: "?c = 0" and d: "?d\<noteq>0"
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = -?s / ((1 + 1)*?d)" by simp
-    have "?rhs = Ifm vs (-?s / ((1 + 1)*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (-?s / ((1 + 1)*?d)) + ?r \<noteq> 0" by (simp add: r[of "- (Itm vs (x # bs) s / ((1 + 1) * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a * (-?s / ((1 + 1)*?d)) + ?r) \<noteq> 0" 
-      using d mult_cancel_left[of "(1 + 1)*?d" "(?a * (-?s / ((1 + 1)*?d)) + ?r)" 0] by simp
-    also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * ((1 + 1)*?d / ((1 + 1)*?d)) + (1 + 1)*?d*?r\<noteq> 0"
-      by (simp add: field_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = -?s / (2*?d)" by simp
+    have "?rhs = Ifm vs (-?s / (2*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r \<noteq> 0" by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) \<noteq> 0" 
+      using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
+    also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r\<noteq> 0"
+      by (simp add: field_simps right_distrib[of "2*?d"] del: right_distrib)
     
-    also have "\<dots> \<longleftrightarrow> - (?a * ?s) + (1 + 1)*?d*?r \<noteq> 0" using d by simp 
+    also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r \<noteq> 0" using d by simp 
     finally have ?thesis using c d 
-      apply (simp add: r[of "- (Itm vs (x # bs) s / ((1 + 1) * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply simp
-      done}
+      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
+  }
   moreover
   {assume c: "?c \<noteq> 0" and d: "?d=0"
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = -?t / ((1 + 1)*?c)" by simp
-    have "?rhs = Ifm vs (-?t / ((1 + 1)*?c) # bs) (NEq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (-?t / ((1 + 1)*?c)) + ?r \<noteq> 0" by (simp add: r[of "- (?t/ ((1 + 1)* ?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a * (-?t / ((1 + 1)*?c)) + ?r) \<noteq> 0" 
-      using c mult_cancel_left[of "(1 + 1)*?c" "(?a * (-?t / ((1 + 1)*?c)) + ?r)" 0] by simp
-    also have "\<dots> \<longleftrightarrow> (?a * -?t)* ((1 + 1)*?c) / ((1 + 1)*?c) + (1 + 1)*?c*?r \<noteq> 0"
-      by (simp add: field_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
-    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + (1 + 1)*?c*?r \<noteq> 0" using c by simp 
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2*?c)" by simp
+    have "?rhs = Ifm vs (-?t / (2*?c) # bs) (NEq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r \<noteq> 0" by (simp add: r[of "- (?t/ (2 * ?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) \<noteq> 0" 
+      using c mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
+    also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r \<noteq> 0"
+      by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
+    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r \<noteq> 0" using c by simp 
     finally have ?thesis using c d 
-      apply (simp add: r[of "- (?t/ ((1 + 1)*?c))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply simp
-      done }
+      by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
+  }
   moreover
-  {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *(1 + 1) \<noteq> 0" by simp
+  {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *2 \<noteq> 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r \<noteq> 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) \<noteq> 0 "
-      using c d mult_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r \<noteq> 0" 
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r \<noteq> 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) \<noteq> 0 "
+      using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0" 
       using nonzero_mult_divide_cancel_left[OF dc] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using c d 
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstneq_def Let_def evaldjf_ex field_simps)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply (simp add: field_simps)
-      done }
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstneq_def Let_def evaldjf_ex field_simps)
+  }
   ultimately show ?thesis by blast
 qed
 
@@ -2111,7 +2080,7 @@ qed
 
 lemma msubstlt: assumes nc: "isnpoly c" and nd: "isnpoly d" and lp: "islin (Lt (CNP 0 a r))" 
   shows "Ifm vs (x#bs) (msubstlt c t d s a r) \<longleftrightarrow> 
-  Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /(1 + 1))#bs) (Lt (CNP 0 a r))" (is "?lhs = ?rhs")
+  Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) (Lt (CNP 0 a r))" (is "?lhs = ?rhs")
 proof-
   let ?Nt = "\<lambda>x t. Itm vs (x#bs) t"
   let ?N = "\<lambda>p. Ipoly vs p"
@@ -2129,115 +2098,105 @@ proof-
     hence ?thesis  using nc nd by (simp add: polyneg_norm lt r[of 0] msubstlt_def Let_def evaldjf_ex)}
   moreover
   {assume dc: "?c*?d > 0" 
-    from mult_pos_pos[OF one_plus_one_pos dc] have dc': "(1 + 1)*?c *?d > 0" by simp
+    from dc have dc': "2*?c *?d > 0" by simp
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
-    from dc' have dc'': "\<not> (1 + 1)*?c *?d < 0" by simp
+    from dc' have dc'': "\<not> 2*?c *?d < 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r < 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) < 0"
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r < 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) < 0"
       
-      using dc' dc'' mult_less_cancel_left_disj[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r < 0" 
-      using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
+      using dc' dc'' mult_less_cancel_left_disj[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r < 0" 
+      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd dc'
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
-    apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-    by (simp add: field_simps order_less_not_sym[OF dc])}
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
+  }
   moreover
   {assume dc: "?c*?d < 0" 
 
-    from dc one_plus_one_pos[where ?'a='a] have dc': "(1 + 1)*?c *?d < 0"
+    from dc have dc': "2*?c *?d < 0"
       by (simp add: mult_less_0_iff field_simps) 
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r < 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r < 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
 
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) > 0"
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) > 0"
       
-      using dc' order_less_not_sym[OF dc'] mult_less_cancel_left_disj[of "(1 + 1) * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - (1 + 1)*?c*?d*?r < 0" 
-      using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
+      using dc' order_less_not_sym[OF dc'] mult_less_cancel_left_disj[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2*?c*?d*?r < 0" 
+      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      by (simp add: field_simps order_less_not_sym[OF dc]) }
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
+  }
   moreover
   {assume c: "?c > 0" and d: "?d=0"  
-    from c have c'': "(1 + 1)*?c > 0" by (simp add: zero_less_mult_iff)
-    from c have c': "(1 + 1)*?c \<noteq> 0" by simp
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r < 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) < 0"
-      using c mult_less_cancel_left_disj[of "(1 + 1) * ?c" "?a* (- ?t / ((1 + 1)*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
-    also have "\<dots> \<longleftrightarrow> - ?a*?t+  (1 + 1)*?c *?r < 0" 
+    from c have c'': "2*?c > 0" by (simp add: zero_less_mult_iff)
+    from c have c': "2*?c \<noteq> 0" by simp
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2*?c)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / (2*?c))+ ?r < 0" by (simp add: r[of "- (?t / (2*?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a* (- ?t / (2*?c))+ ?r) < 0"
+      using c mult_less_cancel_left_disj[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
+    also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
       by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: field_simps )  }
+      by(simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
-  {assume c: "?c < 0" and d: "?d=0"  hence c': "(1 + 1)*?c \<noteq> 0" by simp
-    from c have c'': "(1 + 1)*?c < 0" by (simp add: mult_less_0_iff)
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r < 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) > 0"
-      using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_less_cancel_left_disj[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r < 0" 
+  {assume c: "?c < 0" and d: "?d=0"  hence c': "2*?c \<noteq> 0" by simp
+    from c have c'': "2*?c < 0" by (simp add: mult_less_0_iff)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2*?c)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / (2*?c))+ ?r < 0" by (simp add: r[of "- (?t / (2*?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a* (- ?t / (2*?c))+ ?r) > 0"
+      using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_less_cancel_left_disj[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
         by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: field_simps )    }
+      by(simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
   moreover
   {assume c: "?c = 0" and d: "?d>0"  
-    from d have d'': "(1 + 1)*?d > 0" by (simp add: zero_less_mult_iff)
-    from d have d': "(1 + 1)*?d \<noteq> 0" by simp
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r < 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) < 0"
-      using d mult_less_cancel_left_disj[of "(1 + 1) * ?d" "?a* (- ?s / ((1 + 1)*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
-    also have "\<dots> \<longleftrightarrow> - ?a*?s+  (1 + 1)*?d *?r < 0" 
+    from d have d'': "2*?d > 0" by (simp add: zero_less_mult_iff)
+    from d have d': "2*?d \<noteq> 0" by simp
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / (2*?d))+ ?r < 0" by (simp add: r[of "- (?s / (2*?d))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a* (- ?s / (2*?d))+ ?r) < 0"
+      using d mult_less_cancel_left_disj[of "2 * ?d" "?a* (- ?s / (2*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
+    also have "\<dots> \<longleftrightarrow> - ?a*?s+  2*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
       by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: field_simps)  }
+      by(simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
-  {assume c: "?c = 0" and d: "?d<0"  hence d': "(1 + 1)*?d \<noteq> 0" by simp
-    from d have d'': "(1 + 1)*?d < 0" by (simp add: mult_less_0_iff)
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r < 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) > 0"
-      using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_less_cancel_left_disj[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r < 0" 
+  {assume c: "?c = 0" and d: "?d<0"  hence d': "2*?d \<noteq> 0" by simp
+    from d have d'': "2*?d < 0" by (simp add: mult_less_0_iff)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / (2*?d))+ ?r < 0" by (simp add: r[of "- (?s / (2*?d))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a* (- ?s / (2*?d))+ ?r) > 0"
+      using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_less_cancel_left_disj[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a*?s -  2*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
         by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: field_simps )    }
+      by(simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
 ultimately show ?thesis by blast
 qed
 
@@ -2267,7 +2226,7 @@ qed
 
 lemma msubstle: assumes nc: "isnpoly c" and nd: "isnpoly d" and lp: "islin (Le (CNP 0 a r))" 
   shows "Ifm vs (x#bs) (msubstle c t d s a r) \<longleftrightarrow> 
-  Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /(1 + 1))#bs) (Le (CNP 0 a r))" (is "?lhs = ?rhs")
+  Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) (Le (CNP 0 a r))" (is "?lhs = ?rhs")
 proof-
   let ?Nt = "\<lambda>x t. Itm vs (x#bs) t"
   let ?N = "\<lambda>p. Ipoly vs p"
@@ -2285,115 +2244,105 @@ proof-
     hence ?thesis  using nc nd by (simp add: polyneg_norm polymul_norm lt r[of 0] msubstle_def Let_def evaldjf_ex)}
   moreover
   {assume dc: "?c*?d > 0" 
-    from mult_pos_pos[OF one_plus_one_pos dc] have dc': "(1 + 1)*?c *?d > 0" by simp
+    from dc have dc': "2*?c *?d > 0" by simp
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
-    from dc' have dc'': "\<not> (1 + 1)*?c *?d < 0" by simp
+    from dc' have dc'': "\<not> 2*?c *?d < 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r <= 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) <= 0"
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r <= 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) <= 0"
       
-      using dc' dc'' mult_le_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r <= 0" 
-      using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
+      using dc' dc'' mult_le_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r <= 0" 
+      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd dc'
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
-    apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-    by (simp add: field_simps order_less_not_sym[OF dc])}
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
+  }
   moreover
   {assume dc: "?c*?d < 0" 
 
-    from dc one_plus_one_pos[where ?'a='a] have dc': "(1 + 1)*?c *?d < 0"
+    from dc have dc': "2*?c *?d < 0"
       by (simp add: mult_less_0_iff field_simps add_neg_neg add_pos_pos)
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
-    have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
+    have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2*?c*?d)" 
       by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r <= 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
+    have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r <= 0" 
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
 
-    also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) >= 0"
+    also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) >= 0"
       
-      using dc' order_less_not_sym[OF dc'] mult_le_cancel_left[of "(1 + 1) * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - (1 + 1)*?c*?d*?r <= 0" 
-      using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
+      using dc' order_less_not_sym[OF dc'] mult_le_cancel_left[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2*?c*?d*?r <= 0" 
+      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      by (simp add: field_simps order_less_not_sym[OF dc]) }
+      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
+  }
   moreover
   {assume c: "?c > 0" and d: "?d=0"  
-    from c have c'': "(1 + 1)*?c > 0" by (simp add: zero_less_mult_iff)
-    from c have c': "(1 + 1)*?c \<noteq> 0" by simp
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r <= 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) <= 0"
-      using c mult_le_cancel_left[of "(1 + 1) * ?c" "?a* (- ?t / ((1 + 1)*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
-    also have "\<dots> \<longleftrightarrow> - ?a*?t+  (1 + 1)*?c *?r <= 0" 
+    from c have c'': "2*?c > 0" by (simp add: zero_less_mult_iff)
+    from c have c': "2*?c \<noteq> 0" by simp
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2*?c)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / (2*?c))+ ?r <= 0" by (simp add: r[of "- (?t / (2*?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a* (- ?t / (2*?c))+ ?r) <= 0"
+      using c mult_le_cancel_left[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
+    also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
       by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: field_simps )  }
+      by(simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
-  {assume c: "?c < 0" and d: "?d=0"  hence c': "(1 + 1)*?c \<noteq> 0" by simp
-    from c have c'': "(1 + 1)*?c < 0" by (simp add: mult_less_0_iff)
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r <= 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) >= 0"
-      using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_le_cancel_left[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r <= 0" 
+  {assume c: "?c < 0" and d: "?d=0"  hence c': "2*?c \<noteq> 0" by simp
+    from c have c'': "2*?c < 0" by (simp add: mult_less_0_iff)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2*?c)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?t / (2*?c))+ ?r <= 0" by (simp add: r[of "- (?t / (2*?c))"])
+    also have "\<dots> \<longleftrightarrow> 2*?c * (?a* (- ?t / (2*?c))+ ?r) >= 0"
+      using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_le_cancel_left[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
         by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: field_simps )    }
+      by(simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
   moreover
   {assume c: "?c = 0" and d: "?d>0"  
-    from d have d'': "(1 + 1)*?d > 0" by (simp add: zero_less_mult_iff)
-    from d have d': "(1 + 1)*?d \<noteq> 0" by simp
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r <= 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) <= 0"
-      using d mult_le_cancel_left[of "(1 + 1) * ?d" "?a* (- ?s / ((1 + 1)*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
-    also have "\<dots> \<longleftrightarrow> - ?a*?s+  (1 + 1)*?d *?r <= 0" 
+    from d have d'': "2*?d > 0" by (simp add: zero_less_mult_iff)
+    from d have d': "2*?d \<noteq> 0" by simp
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / (2*?d))+ ?r <= 0" by (simp add: r[of "- (?s / (2*?d))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a* (- ?s / (2*?d))+ ?r) <= 0"
+      using d mult_le_cancel_left[of "2 * ?d" "?a* (- ?s / (2*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
+    also have "\<dots> \<longleftrightarrow> - ?a*?s+  2*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
       by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: field_simps )  }
+      by(simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
   moreover
-  {assume c: "?c = 0" and d: "?d<0"  hence d': "(1 + 1)*?d \<noteq> 0" by simp
-    from d have d'': "(1 + 1)*?d < 0" by (simp add: mult_less_0_iff)
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
-    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
-    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r <= 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
-    also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) >= 0"
-      using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_le_cancel_left[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
-    also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r <= 0" 
+  {assume c: "?c = 0" and d: "?d<0"  hence d': "2*?d \<noteq> 0" by simp
+    from d have d'': "2*?d < 0" by (simp add: mult_less_0_iff)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"  by (simp add: field_simps)
+    have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
+    also have "\<dots> \<longleftrightarrow> ?a* (- ?s / (2*?d))+ ?r <= 0" by (simp add: r[of "- (?s / (2*?d))"])
+    also have "\<dots> \<longleftrightarrow> 2*?d * (?a* (- ?s / (2*?d))+ ?r) >= 0"
+      using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_le_cancel_left[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"] by simp
+    also have "\<dots> \<longleftrightarrow> ?a*?s -  2*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
         by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
-      apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: field_simps )    }
+      by(simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
+  }
 ultimately show ?thesis by blast
 qed
 
@@ -2408,9 +2357,9 @@ fun msubst :: "fm \<Rightarrow> (poly \<times> tm) \<times> (poly \<times> tm) \
 | "msubst p ((c,t),(d,s)) = p"
 
 lemma msubst_I: assumes lp: "islin p" and nc: "isnpoly c" and nd: "isnpoly d"
-  shows "Ifm vs (x#bs) (msubst p ((c,t),(d,s))) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /(1 + 1))#bs) p"
+  shows "Ifm vs (x#bs) (msubst p ((c,t),(d,s))) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) p"
   using lp
-by (induct p rule: islin.induct, auto simp add: tmbound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) /(1 + 1)" and b'=x and bs = bs and vs=vs] bound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) /(1 + 1)" and b'=x and bs = bs and vs=vs] msubsteq msubstneq msubstlt[OF nc nd] msubstle[OF nc nd])
+by (induct p rule: islin.induct, auto simp add: tmbound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2" and b'=x and bs = bs and vs=vs] bound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2" and b'=x and bs = bs and vs=vs] msubsteq msubstneq msubstlt[OF nc nd] msubstle[OF nc nd])
 
 lemma msubst_nb: assumes lp: "islin p" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubst p ((c,t),(d,s)))"
@@ -2424,7 +2373,7 @@ lemma fr_eq_msubst:
 proof-
 from uset_l[OF lp] have th: "\<forall>(c, s)\<in>set (uset p). isnpoly c \<and> tmbound0 s" by blast
 {fix c t d s assume ctU: "(c,t) \<in>set (uset p)" and dsU: "(d,s) \<in>set (uset p)" 
-  and pts: "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1+1) # bs) p"
+  and pts: "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
   from th[rule_format, OF ctU] th[rule_format, OF dsU] have norm:"isnpoly c" "isnpoly d" by simp_all
   from msubst_I[OF lp norm, of vs x bs t s] pts
   have "Ifm vs (x # bs) (msubst p ((c, t), d, s))" ..}
@@ -2433,8 +2382,8 @@ moreover
   and pts: "Ifm vs (x # bs) (msubst p ((c, t), d, s))"
   from th[rule_format, OF ctU] th[rule_format, OF dsU] have norm:"isnpoly c" "isnpoly d" by simp_all
   from msubst_I[OF lp norm, of vs x bs t s] pts
-  have "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1+1) # bs) p" ..}
-ultimately have th': "(\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1+1) # bs) p) \<longleftrightarrow> ?F" by blast
+  have "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p" ..}
+ultimately have th': "(\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p) \<longleftrightarrow> ?F" by blast
 from fr_eq[OF lp, of vs bs x, simplified th'] show ?thesis .
 qed 
 
@@ -2510,8 +2459,8 @@ lemma fr_eq2:  assumes lp: "islin p"
   shows "(\<exists> x. Ifm vs (x#bs) p) \<longleftrightarrow> 
    ((Ifm vs (x#bs) (minusinf p)) \<or> (Ifm vs (x#bs) (plusinf p)) \<or> 
     (Ifm vs (0#bs) p) \<or> 
-    (\<exists> (n,t) \<in> set (uset p). Ipoly vs n \<noteq> 0 \<and> Ifm vs ((- Itm vs (x#bs) t /  (Ipoly vs n * (1 + 1)))#bs) p) \<or> 
-    (\<exists> (n,t) \<in> set (uset p). \<exists> (m,s) \<in> set (uset p). Ipoly vs n \<noteq> 0 \<and> Ipoly vs m \<noteq> 0 \<and> Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs n + - Itm vs (x#bs) s / Ipoly vs m) /(1 + 1))#bs) p))"
+    (\<exists> (n,t) \<in> set (uset p). Ipoly vs n \<noteq> 0 \<and> Ifm vs ((- Itm vs (x#bs) t /  (Ipoly vs n * 2))#bs) p) \<or> 
+    (\<exists> (n,t) \<in> set (uset p). \<exists> (m,s) \<in> set (uset p). Ipoly vs n \<noteq> 0 \<and> Ipoly vs m \<noteq> 0 \<and> Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs n + - Itm vs (x#bs) s / Ipoly vs m) /2)#bs) p))"
   (is "(\<exists> x. ?I x p) = (?M \<or> ?P \<or> ?Z \<or> ?U \<or> ?F)" is "?E = ?D")
 proof
   assume px: "\<exists> x. ?I x p"
@@ -2525,7 +2474,7 @@ proof
     let ?d = "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>"
     let ?s = "Itm vs (x # bs) s"
     let ?t = "Itm vs (x # bs) t"
-    have eq2: "\<And>(x::'a). x + x = (1 + 1) * x"
+    have eq2: "\<And>(x::'a). x + x = 2 * x"
       by  (simp add: field_simps)
     {assume "?c = 0 \<and> ?d = 0"
       with ct have ?D by simp}
@@ -2666,20 +2615,12 @@ lemma msubst2_nb: assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero
   shows "bound0 (msubst2 p c t)"
 using lp tnb
 by (simp add: msubst2_def msubstneg_nb msubstpos_nb conj_nb disj_nb lt_nb simpfm_bound0)
-    
-lemma of_int2: "of_int 2 = 1 + 1"
-proof-
-  have "(2::int) = 1 + 1" by simp
-  hence "of_int 2 = of_int (1 + 1)" by simp
-  thus ?thesis unfolding of_int_add by simp
-qed
 
-lemma of_int_minus2: "of_int (-2) = - (1 + 1)"
-proof-
-  have th: "(-2::int) = - 2" by simp
-  show ?thesis unfolding th by (simp only: of_int_minus of_int2)
-qed
+lemma mult_minus2_left: "-2 * (x::'a::number_ring) = - (2 * x)"
+  by simp
 
+lemma mult_minus2_right: "(x::'a::number_ring) * -2 = - (x * 2)"
+  by simp
 
 lemma islin_qf: "islin p \<Longrightarrow> qfree p"
   by (induct p rule: islin.induct, auto simp add: bound0_qf)
@@ -2693,7 +2634,7 @@ proof-
   have n2: "isnpoly (C (-2,1))" by (simp add: isnpoly_def)
   note eq0 = subst0[OF islin_qf[OF lp], of vs x bs "CP 0\<^sub>p", simplified]
   
-  have eq1: "(\<exists>(n, t)\<in>set (uset p). ?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)) \<longleftrightarrow> (\<exists>(n, t)\<in>set (uset p). \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * (1 + 1)) # bs) p)"
+  have eq1: "(\<exists>(n, t)\<in>set (uset p). ?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)) \<longleftrightarrow> (\<exists>(n, t)\<in>set (uset p). \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * 2) # bs) p)"
   proof-
     {fix n t assume H: "(n, t)\<in>set (uset p)" "?I(msubst2 p (n *\<^sub>p C (-2, 1)) t)"
       from H(1) th have "isnpoly n" by blast
@@ -2703,18 +2644,18 @@ proof-
       hence nn2: "\<lparr>n *\<^sub>p(C (-2,1)) \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>n \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" using H(2) nn' nn 
         by (auto simp add: msubst2_def lt zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn2(1), of x bs t]
-      have "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * (1 + 1)) # bs) p"
-        using H(2) nn2 by (simp add: of_int_minus2 del: minus_add_distrib)}
+      have "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * 2) # bs) p"
+        using H(2) nn2 by (simp add: mult_minus2_right)}
     moreover
-    {fix n t assume H: "(n, t)\<in>set (uset p)" "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * (1 + 1)) # bs) p"
+    {fix n t assume H: "(n, t)\<in>set (uset p)" "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * 2) # bs) p"
       from H(1) th have "isnpoly n" by blast
       hence nn: "isnpoly (n *\<^sub>p (C (-2,1)))" "\<lparr>n *\<^sub>p(C (-2,1)) \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
         using H(2) by (simp_all add: polymul_norm n2)
-      from msubst2[OF lp nn, of x bs t] have "?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)" using H(2,3) by (simp add: of_int_minus2 del: minus_add_distrib)}
+      from msubst2[OF lp nn, of x bs t] have "?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)" using H(2,3) by (simp add: mult_minus2_right)}
     ultimately show ?thesis by blast
   qed
   have eq2: "(\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in> set (uset p). Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))) \<longleftrightarrow> (\<exists>(n, t)\<in>set (uset p).
-     \<exists>(m, s)\<in>set (uset p). \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>m\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>m\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1 + 1) # bs) p)" 
+     \<exists>(m, s)\<in>set (uset p). \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>m\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>m\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p)" 
   proof-
     {fix c t d s assume H: "(c,t) \<in> set (uset p)" "(d,s) \<in> set (uset p)" 
      "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))"
@@ -2726,17 +2667,17 @@ proof-
       have nn': "\<lparr>(C (-2, 1) *\<^sub>p c*\<^sub>p d)\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
         using H(3) by (auto simp add: msubst2_def lt[OF stupid(1)]  lt[OF stupid(2)] zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn'(1), of x bs ] H(3) nn'
-      have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1 + 1) # bs) p" 
-        apply (simp add: add_divide_distrib of_int_minus2 del: minus_add_distrib)
+      have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
+        apply (simp add: add_divide_distrib mult_minus2_left)
         by (simp add: mult_commute)}
     moreover
     {fix c t d s assume H: "(c,t) \<in> set (uset p)" "(d,s) \<in> set (uset p)" 
-      "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1 + 1) # bs) p"
+      "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
      from H(1,2) th have "isnpoly c" "isnpoly d" by blast+
       hence nn: "isnpoly (C (-2, 1) *\<^sub>p c*\<^sub>p d)" "\<lparr>(C (-2, 1) *\<^sub>p c*\<^sub>p d)\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
         using H(3,4) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs ] H(3,4,5) 
-      have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))" apply (simp add: add_divide_distrib of_int_minus2 del: minus_add_distrib)by (simp add: mult_commute)}
+      have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))" apply (simp add: add_divide_distrib mult_minus2_left) by (simp add: mult_commute)}
     ultimately show ?thesis by blast
   qed
   from fr_eq2[OF lp, of vs bs x] show ?thesis
