@@ -77,7 +77,7 @@ sig
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val header_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
-  val local_theory_markup: xstring option * (Symbol_Pos.text * Position.T) ->
+  val local_theory_markup: (xstring * Position.T) option * (Symbol_Pos.text * Position.T) ->
     Toplevel.transition -> Toplevel.transition
   val proof_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
 end;

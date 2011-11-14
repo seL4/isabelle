@@ -37,6 +37,7 @@ sig
     (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
+  val check: theory -> xstring * Position.T -> string
   val extern: theory -> string -> xstring
   val defined: theory -> string -> bool
   val params_of: theory -> string -> ((string * typ) * mixfix) list
@@ -162,6 +163,7 @@ structure Locales = Theory_Data
 );
 
 val intern = Name_Space.intern o #1 o Locales.get;
+fun check thy = #1 o Name_Space.check (Proof_Context.init_global thy) (Locales.get thy);
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
 
 val get_locale = Symtab.lookup o #2 o Locales.get;

@@ -58,14 +58,16 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val end_local_theory: transition -> transition
-  val local_theory': xstring option -> (bool -> local_theory -> local_theory) ->
+  val local_theory': (xstring * Position.T) option -> (bool -> local_theory -> local_theory) ->
     transition -> transition
-  val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
-  val present_local_theory: xstring option -> (state -> unit) -> transition -> transition
-  val local_theory_to_proof': xstring option -> (bool -> local_theory -> Proof.state) ->
+  val local_theory: (xstring * Position.T) option -> (local_theory -> local_theory) ->
     transition -> transition
-  val local_theory_to_proof: xstring option -> (local_theory -> Proof.state) ->
+  val present_local_theory: (xstring * Position.T) option -> (state -> unit) ->
     transition -> transition
+  val local_theory_to_proof': (xstring * Position.T) option ->
+    (bool -> local_theory -> Proof.state) -> transition -> transition
+  val local_theory_to_proof: (xstring * Position.T) option ->
+    (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
@@ -105,7 +107,7 @@ exception UNDEF = Runtime.UNDEF;
 val loc_init = Named_Target.context_cmd;
 val loc_exit = Local_Theory.exit_global;
 
-fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
+fun loc_begin loc (Context.Theory thy) = loc_init (the_default ("-", Position.none) loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
   | loc_begin (SOME loc) (Context.Proof lthy) = (loc_init loc o loc_exit) lthy;
 

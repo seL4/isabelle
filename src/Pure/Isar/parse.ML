@@ -99,8 +99,8 @@ sig
   val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
-  val target: xstring parser
-  val opt_target: xstring option parser
+  val target: (xstring * Position.T) parser
+  val opt_target: (xstring * Position.T) option parser
 end;
 
 structure Parse: PARSE =
@@ -362,7 +362,7 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 (* targets *)
 
-val target = ($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")");
+val target = ($$$ "(" -- $$$ "in") |-- !!! (position xname --| $$$ ")");
 val opt_target = Scan.option target;
 
 end;
