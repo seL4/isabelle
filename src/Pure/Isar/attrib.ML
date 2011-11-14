@@ -25,7 +25,6 @@ sig
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
-  val crude_closure: Proof.context -> src -> src
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
@@ -140,19 +139,6 @@ fun eval_thms ctxt srcs = ctxt
     (map_facts_refs (map (attribute (Proof_Context.theory_of ctxt))) (Proof_Context.get_fact ctxt)
       [((Binding.empty, []), srcs)])
   |> fst |> maps snd;
-
-
-(* crude_closure *)
-
-(*Produce closure without knowing facts in advance! The following
-  works reasonably well for attribute parsers that do not peek at the
-  thm structure.*)
-
-fun crude_closure ctxt src =
- (try (fn () =>
-    Thm.apply_attribute (attribute_i (Proof_Context.theory_of ctxt) src)
-      (Context.Proof ctxt, Drule.asm_rl)) ();
-  Args.closure src);
 
 
 (* attribute setup *)
