@@ -9,94 +9,6 @@ imports Complex_Main "~~/src/HOL/Library/Lattice_Algebras"
 uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
 
-definition pow2 :: "int \<Rightarrow> real"
-  where "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
-
-definition float :: "int * int \<Rightarrow> real"
-  where "float x = real (fst x) * pow2 (snd x)"
-
-lemma pow2_0[simp]: "pow2 0 = 1"
-by (simp add: pow2_def)
-
-lemma pow2_1[simp]: "pow2 1 = 2"
-by (simp add: pow2_def)
-
-lemma pow2_neg: "pow2 x = inverse (pow2 (-x))"
-by (simp add: pow2_def)
-
-lemma pow2_add1: "pow2 (1 + a) = 2 * (pow2 a)"
-proof -
-  have h: "! n. nat (2 + int n) - Suc 0 = nat (1 + int n)" by arith
-  have g: "! a b. a - -1 = a + (1::int)" by arith
-  have pos: "! n. pow2 (int n + 1) = 2 * pow2 (int n)"
-    apply (auto, induct_tac n)
-    apply (simp_all add: pow2_def)
-    apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
-    by (auto simp add: h)
-  show ?thesis
-  proof (induct a)
-    case (nonneg n)
-    from pos show ?case by (simp add: algebra_simps)
-  next
-    case (neg n)
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "- int n"])
-      apply (subst pow2_neg[of "-1 - int n"])
-      apply (auto simp add: g pos)
-      done
-  qed
-qed
-
-lemma pow2_add: "pow2 (a+b) = (pow2 a) * (pow2 b)"
-proof (induct b)
-  case (nonneg n)
-  show ?case
-  proof (induct n)
-    case 0
-    show ?case by simp
-  next
-    case (Suc m)
-    show ?case by (auto simp add: algebra_simps pow2_add1 nonneg Suc)
-  qed
-next
-  case (neg n)
-  show ?case
-  proof (induct n)
-    case 0
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "a + -1"])
-      apply (subst pow2_neg[of "-1"])
-      apply (simp)
-      apply (insert pow2_add1[of "-a"])
-      apply (simp add: algebra_simps)
-      apply (subst pow2_neg[of "-a"])
-      apply (simp)
-      done
-    case (Suc m)
-    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith
-    have b: "int m - -2 = 1 + (int m + 1)" by arith
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "a + (-2 - int m)"])
-      apply (subst pow2_neg[of "-2 - int m"])
-      apply (auto simp add: algebra_simps)
-      apply (subst a)
-      apply (subst b)
-      apply (simp only: pow2_add1)
-      apply (subst pow2_neg[of "int m - a + 1"])
-      apply (subst pow2_neg[of "int m + 1"])
-      apply auto
-      apply (insert Suc)
-      apply (auto simp add: algebra_simps)
-      done
-  qed
-qed
-
-lemma "float (a, e) + float (b, e) = float (a + b, e)"
-by (simp add: float_def algebra_simps)
-
 definition int_of_real :: "real \<Rightarrow> int"
   where "int_of_real x = (SOME y. real y = x)"
 
@@ -104,16 +16,7 @@ definition real_is_int :: "real \<Rightarrow> bool"
   where "real_is_int x = (EX (u::int). x = real u)"
 
 lemma real_is_int_def2: "real_is_int x = (x = real (int_of_real x))"
-by (auto simp add: real_is_int_def int_of_real_def)
-
-lemma float_transfer: "real_is_int ((real a)*(pow2 c)) \<Longrightarrow> float (a, b) = float (int_of_real ((real a)*(pow2 c)), b - c)"
-by (simp add: float_def real_is_int_def2 pow2_add[symmetric])
-
-lemma pow2_int: "pow2 (int c) = 2^c"
-by (simp add: pow2_def)
-
-lemma float_transfer_nat: "float (a, b) = float (a * 2^c, b - int c)"
-by (simp add: float_def pow2_int[symmetric] pow2_add[symmetric])
+  by (auto simp add: real_is_int_def int_of_real_def)
 
 lemma real_is_int_real[simp]: "real_is_int (real (x::int))"
 by (auto simp add: real_is_int_def int_of_real_def)
@@ -146,18 +49,9 @@ by (auto simp add: real_is_int_def)
 lemma int_of_real_mult:
   assumes "real_is_int a" "real_is_int b"
   shows "(int_of_real (a*b)) = (int_of_real a) * (int_of_real b)"
-proof -
-  from assms have a: "?! (a'::int). real a' = a" by (rule_tac real_is_int_rep, auto)
-  from assms have b: "?! (b'::int). real b' = b" by (rule_tac real_is_int_rep, auto)
-  from a obtain a'::int where a':"a = real a'" by auto
-  from b obtain b'::int where b':"b = real b'" by auto
-  have r: "real a' * real b' = real (a' * b')" by auto
-  show ?thesis
-    apply (simp add: a' b')
-    apply (subst r)
-    apply (simp only: int_of_real_real)
-    done
-qed
+  using assms
+  by (auto simp add: real_is_int_def real_of_int_mult[symmetric]
+           simp del: real_of_int_mult)
 
 lemma real_is_int_mult[simp]: "real_is_int a \<Longrightarrow> real_is_int b \<Longrightarrow> real_is_int (a*b)"
 apply (subst real_is_int_def2)
@@ -182,47 +76,7 @@ proof -
 qed
 
 lemma real_is_int_number_of[simp]: "real_is_int ((number_of \<Colon> int \<Rightarrow> real) x)"
-proof -
-  have neg1: "real_is_int (-1::real)"
-  proof -
-    have "real_is_int (-1::real) = real_is_int(real (-1::int))" by auto
-    also have "\<dots> = True" by (simp only: real_is_int_real)
-    ultimately show ?thesis by auto
-  qed
-
-  {
-    fix x :: int
-    have "real_is_int ((number_of \<Colon> int \<Rightarrow> real) x)"
-      unfolding number_of_eq
-      apply (induct x)
-      apply (induct_tac n)
-      apply (simp)
-      apply (simp)
-      apply (induct_tac n)
-      apply (simp add: neg1)
-    proof -
-      fix n :: nat
-      assume rn: "(real_is_int (of_int (- (int (Suc n)))))"
-      have s: "-(int (Suc (Suc n))) = -1 + - (int (Suc n))" by simp
-      show "real_is_int (of_int (- (int (Suc (Suc n)))))"
-        apply (simp only: s of_int_add)
-        apply (rule real_is_int_add)
-        apply (simp add: neg1)
-        apply (simp only: rn)
-        done
-    qed
-  }
-  note Abs_Bin = this
-  {
-    fix x :: int
-    have "? u. x = u"
-      apply (rule exI[where x = "x"])
-      apply (simp)
-      done
-  }
-  then obtain u::int where "x = u" by auto
-  with Abs_Bin show ?thesis by auto
-qed
+  by (auto simp: real_is_int_def intro!: exI[of _ "number_of x"])
 
 lemma int_of_real_0[simp]: "int_of_real (0::real) = (0::int)"
 by (simp add: int_of_real_def)
@@ -234,30 +88,9 @@ proof -
 qed
 
 lemma int_of_real_number_of[simp]: "int_of_real (number_of b) = number_of b"
-proof -
-  have "real_is_int (number_of b)" by simp
-  then have uu: "?! u::int. number_of b = real u" by (auto simp add: real_is_int_rep)
-  then obtain u::int where u:"number_of b = real u" by auto
-  have "number_of b = real ((number_of b)::int)"
-    by (simp add: number_of_eq real_of_int_def)
-  have ub: "number_of b = real ((number_of b)::int)"
-    by (simp add: number_of_eq real_of_int_def)
-  from uu u ub have unb: "u = number_of b"
-    by blast
-  have "int_of_real (number_of b) = u" by (simp add: u)
-  with unb show ?thesis by simp
-qed
-
-lemma float_transfer_even: "even a \<Longrightarrow> float (a, b) = float (a div 2, b+1)"
-  apply (subst float_transfer[where a="a" and b="b" and c="-1", simplified])
-  apply (simp_all add: pow2_def even_def real_is_int_def algebra_simps)
-  apply (auto)
-proof -
-  fix q::int
-  have a:"b - (-1\<Colon>int) = (1\<Colon>int) + b" by arith
-  show "(float (q, (b - (-1\<Colon>int)))) = (float (q, ((1\<Colon>int) + b)))"
-    by (simp add: a)
-qed
+  unfolding int_of_real_def
+  by (intro some_equality)
+     (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
 
 lemma int_div_zdiv: "int (a div b) = (int a) div (int b)"
 by (rule zdiv_int)
@@ -267,163 +100,6 @@ by (rule zmod_int)
 
 lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
 by arith
-
-function norm_float :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "norm_float a b = (if a \<noteq> 0 \<and> even a then norm_float (a div 2) (b + 1)
-    else if a = 0 then (0, 0) else (a, b))"
-by auto
-
-termination by (relation "measure (nat o abs o fst)")
-  (auto intro: abs_div_2_less)
-
-lemma norm_float: "float x = float (split norm_float x)"
-proof -
-  {
-    fix a b :: int
-    have norm_float_pair: "float (a, b) = float (norm_float a b)"
-    proof (induct a b rule: norm_float.induct)
-      case (1 u v)
-      show ?case
-      proof cases
-        assume u: "u \<noteq> 0 \<and> even u"
-        with 1 have ind: "float (u div 2, v + 1) = float (norm_float (u div 2) (v + 1))" by auto
-        with u have "float (u,v) = float (u div 2, v+1)" by (simp add: float_transfer_even)
-        then show ?thesis
-          apply (subst norm_float.simps)
-          apply (simp add: ind)
-          done
-      next
-        assume nu: "~(u \<noteq> 0 \<and> even u)"
-        show ?thesis
-          by (simp add: nu float_def)
-      qed
-    qed
-  }
-  note helper = this
-  have "? a b. x = (a,b)" by auto
-  then obtain a b where "x = (a, b)" by blast
-  then show ?thesis by (simp add: helper)
-qed
-
-lemma float_add_l0: "float (0, e) + x = x"
-  by (simp add: float_def)
-
-lemma float_add_r0: "x + float (0, e) = x"
-  by (simp add: float_def)
-
-lemma float_add:
-  "float (a1, e1) + float (a2, e2) =
-  (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1)
-  else float (a1*2^(nat (e1-e2))+a2, e2))"
-  apply (simp add: float_def algebra_simps)
-  apply (auto simp add: pow2_int[symmetric] pow2_add[symmetric])
-  done
-
-lemma float_add_assoc1:
-  "(x + float (y1, e1)) + float (y2, e2) = (float (y1, e1) + float (y2, e2)) + x"
-  by simp
-
-lemma float_add_assoc2:
-  "(float (y1, e1) + x) + float (y2, e2) = (float (y1, e1) + float (y2, e2)) + x"
-  by simp
-
-lemma float_add_assoc3:
-  "float (y1, e1) + (x + float (y2, e2)) = (float (y1, e1) + float (y2, e2)) + x"
-  by simp
-
-lemma float_add_assoc4:
-  "float (y1, e1) + (float (y2, e2) + x) = (float (y1, e1) + float (y2, e2)) + x"
-  by simp
-
-lemma float_mult_l0: "float (0, e) * x = float (0, 0)"
-  by (simp add: float_def)
-
-lemma float_mult_r0: "x * float (0, e) = float (0, 0)"
-  by (simp add: float_def)
-
-definition lbound :: "real \<Rightarrow> real"
-  where "lbound x = min 0 x"
-
-definition ubound :: "real \<Rightarrow> real"
-  where "ubound x = max 0 x"
-
-lemma lbound: "lbound x \<le> x"   
-  by (simp add: lbound_def)
-
-lemma ubound: "x \<le> ubound x"
-  by (simp add: ubound_def)
-
-lemma float_mult:
-  "float (a1, e1) * float (a2, e2) =
-  (float (a1 * a2, e1 + e2))"
-  by (simp add: float_def pow2_add)
-
-lemma float_minus:
-  "- (float (a,b)) = float (-a, b)"
-  by (simp add: float_def)
-
-lemma zero_less_pow2:
-  "0 < pow2 x"
-proof -
-  {
-    fix y
-    have "0 <= y \<Longrightarrow> 0 < pow2 y"
-      by (induct y, induct_tac n, simp_all add: pow2_add)
-  }
-  note helper=this
-  show ?thesis
-    apply (case_tac "0 <= x")
-    apply (simp add: helper)
-    apply (subst pow2_neg)
-    apply (simp add: helper)
-    done
-qed
-
-lemma zero_le_float:
-  "(0 <= float (a,b)) = (0 <= a)"
-  apply (auto simp add: float_def)
-  apply (auto simp add: zero_le_mult_iff zero_less_pow2)
-  apply (insert zero_less_pow2[of b])
-  apply (simp_all)
-  done
-
-lemma float_le_zero:
-  "(float (a,b) <= 0) = (a <= 0)"
-  apply (auto simp add: float_def)
-  apply (auto simp add: mult_le_0_iff)
-  apply (insert zero_less_pow2[of b])
-  apply auto
-  done
-
-lemma float_abs:
-  "abs (float (a,b)) = (if 0 <= a then (float (a,b)) else (float (-a,b)))"
-  apply (auto simp add: abs_if)
-  apply (simp_all add: zero_le_float[symmetric, of a b] float_minus)
-  done
-
-lemma float_zero:
-  "float (0, b) = 0"
-  by (simp add: float_def)
-
-lemma float_pprt:
-  "pprt (float (a, b)) = (if 0 <= a then (float (a,b)) else (float (0, b)))"
-  by (auto simp add: zero_le_float float_le_zero float_zero)
-
-lemma pprt_lbound: "pprt (lbound x) = float (0, 0)"
-  apply (simp add: float_def)
-  apply (rule pprt_eq_0)
-  apply (simp add: lbound_def)
-  done
-
-lemma nprt_ubound: "nprt (ubound x) = float (0, 0)"
-  apply (simp add: float_def)
-  apply (rule nprt_eq_0)
-  apply (simp add: ubound_def)
-  done
-
-lemma float_nprt:
-  "nprt (float (a, b)) = (if 0 <= a then (float (0,b)) else (float (a, b)))"
-  by (auto simp add: zero_le_float float_le_zero float_zero)
 
 lemma norm_0_1: "(0::_::number_ring) = Numeral0 & (1::_::number_ring) = Numeral1"
   by auto
@@ -548,6 +224,79 @@ lemmas natarith = add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat
 lemmas powerarith = nat_number_of zpower_number_of_even
   zpower_number_of_odd[simplified zero_eq_Numeral0_nring one_eq_Numeral1_nring]
   zpower_Pls zpower_Min
+
+definition float :: "(int \<times> int) \<Rightarrow> real" where
+  "float = (\<lambda>(a, b). real a * 2 powr real b)"
+
+lemma float_add_l0: "float (0, e) + x = x"
+  by (simp add: float_def)
+
+lemma float_add_r0: "x + float (0, e) = x"
+  by (simp add: float_def)
+
+lemma float_add:
+  "float (a1, e1) + float (a2, e2) =
+  (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1) else float (a1*2^(nat (e1-e2))+a2, e2))"
+  by (simp add: float_def algebra_simps powr_realpow[symmetric] powr_divide2[symmetric])
+
+lemma float_mult_l0: "float (0, e) * x = float (0, 0)"
+  by (simp add: float_def)
+
+lemma float_mult_r0: "x * float (0, e) = float (0, 0)"
+  by (simp add: float_def)
+
+lemma float_mult:
+  "float (a1, e1) * float (a2, e2) = (float (a1 * a2, e1 + e2))"
+  by (simp add: float_def powr_add)
+
+lemma float_minus:
+  "- (float (a,b)) = float (-a, b)"
+  by (simp add: float_def)
+
+lemma zero_le_float:
+  "(0 <= float (a,b)) = (0 <= a)"
+  using powr_gt_zero[of 2 "real b", arith]
+  by (simp add: float_def zero_le_mult_iff)
+
+lemma float_le_zero:
+  "(float (a,b) <= 0) = (a <= 0)"
+  using powr_gt_zero[of 2 "real b", arith]
+  by (simp add: float_def mult_le_0_iff)
+
+lemma float_abs:
+  "abs (float (a,b)) = (if 0 <= a then (float (a,b)) else (float (-a,b)))"
+  using powr_gt_zero[of 2 "real b", arith]
+  by (simp add: float_def abs_if mult_less_0_iff)
+
+lemma float_zero:
+  "float (0, b) = 0"
+  by (simp add: float_def)
+
+lemma float_pprt:
+  "pprt (float (a, b)) = (if 0 <= a then (float (a,b)) else (float (0, b)))"
+  by (auto simp add: zero_le_float float_le_zero float_zero)
+
+lemma float_nprt:
+  "nprt (float (a, b)) = (if 0 <= a then (float (0,b)) else (float (a, b)))"
+  by (auto simp add: zero_le_float float_le_zero float_zero)
+
+definition lbound :: "real \<Rightarrow> real"
+  where "lbound x = min 0 x"
+
+definition ubound :: "real \<Rightarrow> real"
+  where "ubound x = max 0 x"
+
+lemma lbound: "lbound x \<le> x"   
+  by (simp add: lbound_def)
+
+lemma ubound: "x \<le> ubound x"
+  by (simp add: ubound_def)
+
+lemma pprt_lbound: "pprt (lbound x) = float (0, 0)"
+  by (auto simp: float_def lbound_def)
+
+lemma nprt_ubound: "nprt (ubound x) = float (0, 0)"
+  by (auto simp: float_def ubound_def)
 
 lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 float_mult float_mult_l0 float_mult_r0 
           float_minus float_abs zero_le_float float_pprt float_nprt pprt_lbound nprt_ubound
