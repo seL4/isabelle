@@ -140,9 +140,7 @@ proof-
   ultimately show "False" by blast
 qed
 
-definition "test = exp (sin 3) / 5 * cos 6 + arctan (arccos (arcsin 8))"
-
-export_code test
-  in OCaml file -
+lemma False
+  sorry -- "Use quick_and_dirty to load this theory."
 
 end
