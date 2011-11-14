@@ -111,11 +111,8 @@ fun exn_message exn_position exn =
 (** controlled execution **)
 
 fun debugging f x =
-  if ! debug then
-    Exn.release (exception_trace (fn () =>
-      Exn.Res (f x) handle
-        exn as UNDEF => Exn.Exn exn
-      | exn as EXCURSION_FAIL _ => Exn.Exn exn))
+  if ! debug
+  then exception_trace (fn () => f x)
   else f x;
 
 fun controlled_execution f x =
