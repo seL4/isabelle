@@ -819,7 +819,9 @@ fun user_friendly_const ({thy, evals, def_tables, skolems, special_funs, ...}
            val t = nth evals (the (Int.fromString (unprefix eval_prefix s)))
          in (t, format_term_type thy def_tables formats t) end
        else
-         let val t = Const (original_name s, T) in
+         (* The selector case can occur in conjunction with fractional types.
+            It's not pretty. *)
+         let val t = Const (s |> not (is_sel s) ? original_name, T) in
            (t, format_term_type thy def_tables formats t)
          end)
       |>> map_types uniterize_unarize_unbox_etc_type
