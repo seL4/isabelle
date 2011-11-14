@@ -55,8 +55,6 @@ fun exn_messages exn_position e =
         | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
       end;
 
-    val detailed = ! debug;
-
     fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
       | flatten context (Exn.EXCEPTIONS exns) = maps (flatten context) exns
       | flatten context exn =
@@ -79,22 +77,18 @@ fun exn_messages exn_position e =
             | ERROR msg => msg
             | Fail msg => raised exn "Fail" [msg]
             | THEORY (msg, thys) =>
-                raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))
+                raised exn "THEORY" (msg :: map Context.str_of_thy thys)
             | Ast.AST (msg, asts) =>
-                raised exn "AST" (msg ::
-                  (if detailed then map (Pretty.string_of o Ast.pretty_ast) asts else []))
+                raised exn "AST" (msg :: map (Pretty.string_of o Ast.pretty_ast) asts)
             | TYPE (msg, Ts, ts) =>
                 raised exn "TYPE" (msg ::
-                  (if detailed then
-                    if_context context Syntax.string_of_typ Ts @
-                    if_context context Syntax.string_of_term ts
-                   else []))
+                  (if_context context Syntax.string_of_typ Ts @
+                    if_context context Syntax.string_of_term ts))
             | TERM (msg, ts) =>
-                raised exn "TERM" (msg ::
-                  (if detailed then if_context context Syntax.string_of_term ts else []))
+                raised exn "TERM" (msg :: if_context context Syntax.string_of_term ts)
             | THM (msg, i, thms) =>
-                raised exn ("THM " ^ string_of_int i) (msg ::
-                  (if detailed then if_context context Display.string_of_thm thms else []))
+                raised exn ("THM " ^ string_of_int i)
+                  (msg :: if_context context Display.string_of_thm thms)
             | _ => raised exn (General.exnMessage exn) []);
         in [(i, msg)] end)
       and sorted_msgs context exn =
