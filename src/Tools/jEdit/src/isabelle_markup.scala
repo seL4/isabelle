@@ -215,7 +215,7 @@ object Isabelle_Markup
 
   private val subexp_include =
     Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
-      Markup.ENTITY, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
+      Markup.ENTITY, Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
       Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE, Markup.DOC_SOURCE)
 
   val subexp =
