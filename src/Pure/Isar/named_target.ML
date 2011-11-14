@@ -10,7 +10,7 @@ sig
   val init: (local_theory -> local_theory) -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val reinit: local_theory -> local_theory -> local_theory
-  val context_cmd: xstring -> theory -> local_theory
+  val context_cmd: xstring * Position.T -> theory -> local_theory
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
 end;
 
@@ -209,7 +209,7 @@ fun reinit lthy =
       init before_exit target o Local_Theory.exit_global
   | NONE => error "Not in a named target");
 
-fun context_cmd "-" thy = init I "" thy
-  | context_cmd target thy = init I (Locale.intern thy target) thy;
+fun context_cmd ("-", _) thy = init I "" thy
+  | context_cmd target thy = init I (Locale.check thy target) thy;
 
 end;

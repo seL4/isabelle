@@ -394,7 +394,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command "context" "enter local theory context" Keyword.thy_decl
-    (Parse.name --| Parse.begin >> (fn name =>
+    (Parse.position Parse.name --| Parse.begin >> (fn name =>
       Toplevel.print o Toplevel.begin_local_theory true (Named_Target.context_cmd name)));
 
 

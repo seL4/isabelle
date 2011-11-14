@@ -52,6 +52,8 @@ fun char_ast_tr [Ast.Variable xstr] =
       (case Lexicon.explode_xstr xstr of
         [c] => mk_char c
       | _ => error ("Single character expected: " ^ xstr))
+  | char_ast_tr [Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, ast1, ast2]] =
+      Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, char_ast_tr [ast1], ast2]
   | char_ast_tr asts = raise Ast.AST ("char_ast_tr", asts);
 
 fun char_ast_tr' [c1, c2] =
@@ -72,6 +74,8 @@ fun string_ast_tr [Ast.Variable xstr] =
             [Ast.Constant @{syntax_const "_constrain"},
               Ast.Constant @{const_syntax Nil}, Ast.Constant @{type_syntax string}]
       | cs => mk_string cs)
+  | string_ast_tr [Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, ast1, ast2]] =
+      Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, string_ast_tr [ast1], ast2]
   | string_ast_tr asts = raise Ast.AST ("string_tr", asts);
 
 fun list_ast_tr' [args] =

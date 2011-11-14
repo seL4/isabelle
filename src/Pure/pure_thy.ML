@@ -135,6 +135,7 @@ val _ = Context.>> (Context.map_theory
     ("_constrainAbs", typ "'a",                        NoSyn),
     ("_position",   typ "id => id_position",           Delimfix "_"),
     ("_position",   typ "longid => longid_position",   Delimfix "_"),
+    ("_position",   typ "xstr => xstr_position",   Delimfix "_"),
     ("_type_constraint_", typ "'a",                    NoSyn),
     ("_context_const", typ "id_position => logic",     Delimfix "CONST _"),
     ("_context_const", typ "id_position => aprop",     Delimfix "CONST _"),

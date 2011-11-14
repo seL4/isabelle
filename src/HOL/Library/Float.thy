@@ -72,78 +72,19 @@ lemma pow2_0[simp]: "pow2 0 = 1" by simp
 lemma pow2_1[simp]: "pow2 1 = 2" by simp
 lemma pow2_neg: "pow2 x = inverse (pow2 (-x))" by simp
 
+lemma pow2_powr: "pow2 a = 2 powr a"
+  by (simp add: powr_realpow[symmetric] powr_minus)
+
 declare pow2_def[simp del]
 
-lemma pow2_add1: "pow2 (1 + a) = 2 * (pow2 a)"
-proof -
-  have h: "! n. nat (2 + int n) - Suc 0 = nat (1 + int n)" by arith
-  have g: "! a b. a - -1 = a + (1::int)" by arith
-  have pos: "! n. pow2 (int n + 1) = 2 * pow2 (int n)"
-    apply (auto, induct_tac n)
-    apply (simp_all add: pow2_def)
-    apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
-    by (auto simp add: h)
-  show ?thesis
-  proof (induct a)
-    case (nonneg n)
-    from pos show ?case by (simp add: algebra_simps)
-  next
-    case (neg n)
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "- int n"])
-      apply (subst pow2_neg[of "-1 - int n"])
-      apply (auto simp add: g pos)
-      done
-  qed
-qed
-
 lemma pow2_add: "pow2 (a+b) = (pow2 a) * (pow2 b)"
-proof (induct b)
-  case (nonneg n)
-  show ?case
-  proof (induct n)
-    case 0
-    show ?case by simp
-  next
-    case (Suc m)
-    then show ?case by (auto simp add: algebra_simps pow2_add1)
-  qed
-next
-  case (neg n)
-  show ?case
-  proof (induct n)
-    case 0
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "a + -1"])
-      apply (subst pow2_neg[of "-1"])
-      apply (simp)
-      apply (insert pow2_add1[of "-a"])
-      apply (simp add: algebra_simps)
-      apply (subst pow2_neg[of "-a"])
-      apply (simp)
-      done
-  next
-    case (Suc m)
-    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith
-    have b: "int m - -2 = 1 + (int m + 1)" by arith
-    show ?case
-      apply (auto)
-      apply (subst pow2_neg[of "a + (-2 - int m)"])
-      apply (subst pow2_neg[of "-2 - int m"])
-      apply (auto simp add: algebra_simps)
-      apply (subst a)
-      apply (subst b)
-      apply (simp only: pow2_add1)
-      apply (subst pow2_neg[of "int m - a + 1"])
-      apply (subst pow2_neg[of "int m + 1"])
-      apply auto
-      apply (insert Suc)
-      apply (auto simp add: algebra_simps)
-      done
-  qed
-qed
+  by (simp add: pow2_powr powr_add)
+
+lemma pow2_diff: "pow2 (a - b) = pow2 a / pow2 b"
+  by (simp add: pow2_powr powr_divide2)
+  
+lemma pow2_add1: "pow2 (1 + a) = 2 * (pow2 a)"
+  by (simp add: pow2_add)
 
 lemma float_components[simp]: "Float (mantissa f) (scale f) = f" by (cases f) auto
 
@@ -185,23 +126,7 @@ by (simp add: pow2_def)
 
 lemma zero_less_pow2[simp]:
   "0 < pow2 x"
-proof -
-  {
-    fix y
-    have "0 <= y \<Longrightarrow> 0 < pow2 y"
-      apply (induct y)
-      apply (induct_tac n)
-      apply (simp_all add: pow2_add)
-      done
-  }
-  note helper=this
-  show ?thesis
-    apply (case_tac "0 <= x")
-    apply (simp add: helper)
-    apply (subst pow2_neg)
-    apply (simp add: helper)
-    done
-qed
+  by (simp add: pow2_powr)
 
 lemma normfloat_imp_odd_or_zero: "normfloat f = Float a b \<Longrightarrow> odd a \<or> (a = 0 \<and> b = 0)"
 proof (induct f rule: normfloat.induct)
@@ -245,46 +170,19 @@ lemma float_eq_odd_helper:
   and floateq: "real (Float a b) = real (Float a' b')"
   shows "b \<le> b'"
 proof - 
+  from odd have "a' \<noteq> 0" by auto
+  with floateq have a': "real a' = real a * pow2 (b - b')"
+    by (simp add: pow2_diff field_simps)
+
   {
     assume bcmp: "b > b'"
-    from floateq have eq: "real a * pow2 b = real a' * pow2 b'" by simp
-    {
-      fix x y z :: real
-      assume "y \<noteq> 0"
-      then have "(x * inverse y = z) = (x = z * y)"
-        by auto
-    }
-    note inverse = this
-    have eq': "real a * (pow2 (b - b')) = real a'"
-      apply (subst diff_int_def)
-      apply (subst pow2_add)
-      apply (subst pow2_neg[where x = "-b'"])
-      apply simp
-      apply (subst mult_assoc[symmetric])
-      apply (subst inverse)
-      apply (simp_all add: eq)
-      done
-    have "\<exists> z > 0. pow2 (b-b') = 2^z"
-      apply (rule exI[where x="nat (b - b')"])
-      apply (auto)
-      apply (insert bcmp)
-      apply simp
-      apply (subst pow2_int[symmetric])
-      apply auto
-      done
-    then obtain z where z: "z > 0 \<and> pow2 (b-b') = 2^z" by auto
-    with eq' have "real a * 2^z = real a'"
-      by auto
-    then have "real a * real ((2::int)^z) = real a'"
-      by auto
-    then have "real (a * 2^z) = real a'"
-      apply (subst real_of_int_mult)
-      apply simp
-      done
-    then have a'_rep: "a * 2^z = a'" by arith
-    then have "a' = a*2^z" by simp
-    with z have "even a'" by simp
-    with odd have False by auto
+    then have "\<exists>c::nat. b - b' = int c + 1"
+      by arith
+    then guess c ..
+    with a' have "real a' = real (a * 2^c * 2)"
+      by (simp add: pow2_def nat_add_distrib)
+    with odd have False
+      unfolding real_of_int_inject by simp
   }
   then show ?thesis by arith
 qed

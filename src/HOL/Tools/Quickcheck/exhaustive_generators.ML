@@ -18,6 +18,7 @@ sig
   exception Counterexample of term list
   val smart_quantifier : bool Config.T
   val quickcheck_pretty : bool Config.T
+  val setup_exhaustive_datatype_interpretation : theory -> theory
   val setup: theory -> theory
 end;
 
@@ -491,6 +492,10 @@ fun compile_validator_exprs ctxt ts =
 val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive", compile_generator_expr);
   
 (* setup *)
+
+val setup_exhaustive_datatype_interpretation =
+  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+      (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
