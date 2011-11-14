@@ -69,7 +69,7 @@ lemma char_rec_nibble_pair [code, code_unfold]:
   by (simp add: fun_eq_iff split: char.split)
 
 syntax
-  "_Char" :: "xstr => char"    ("CHR _")
+  "_Char" :: "xstr_position => char"    ("CHR _")
 
 
 subsection {* Strings *}
@@ -77,7 +77,7 @@ subsection {* Strings *}
 type_synonym string = "char list"
 
 syntax
-  "_String" :: "xstr => string"    ("_")
+  "_String" :: "xstr_position => string"    ("_")
 
 use "Tools/string_syntax.ML"
 setup String_Syntax.setup
