@@ -435,6 +435,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
   Library/Code_Char_ord.thy Library/Code_Integer.thy			\
   Library/Code_Natural.thy Library/Code_Prolog.thy			\
+  Library/Code_Real_Approx_By_Float.thy					\
   Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
   Library/Cset.thy Library/Cset_Monad.thy Library/Continuity.thy	\
   Library/Convex.thy Library/Countable.thy Library/Diagonalize.thy	\
