@@ -386,8 +386,9 @@ next
            "finite s" "s \<noteq> {}" "s \<subseteq> V" "setsum u s = 1"
       have "\<exists>x\<in>s. u x \<noteq> 1" proof(rule_tac ccontr)
         assume " \<not> (\<exists>x\<in>s. u x \<noteq> 1)" hence "setsum u s = real_of_nat (card s)" unfolding card_eq_setsum by auto
-        thus False using as(7) and `card s > 2` by (metis Numeral1_eq1_nat less_0_number_of less_int_code(15)
-          less_nat_number_of not_less_iff_gr_or_eq of_nat_1 of_nat_eq_iff pos2 rel_simps(4)) qed
+        thus False using as(7) and `card s > 2` by (metis One_nat_def
+          less_Suc0 Zero_not_Suc of_nat_1 of_nat_eq_iff numeral_2_eq_2)
+      qed
       then obtain x where x:"x\<in>s" "u x \<noteq> 1" by auto
 
       have c:"card (s - {x}) = card s - 1" apply(rule card_Diff_singleton) using `x\<in>s` as(4) by auto
