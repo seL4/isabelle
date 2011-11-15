@@ -738,7 +738,7 @@ qed
 
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|]
-      ==> Z \<in>  synth (analz H) \<union> parts H";
+      ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert [THEN subsetD, dest])
 
 declare analz_mono [intro] synth_mono [intro]
