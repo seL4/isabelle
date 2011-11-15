@@ -143,8 +143,12 @@ val type_const_prefix = "tc_"
 val simple_type_prefix = "s_"
 val class_prefix = "cl_"
 
-val lambda_lifted_prefix = "lambda"
-val lambda_lifted_poly_prefix = lambda_lifted_prefix ^ "_poly"
+(* Freshness almost guaranteed! *)
+val atp_weak_prefix = "ATP:"
+
+val lambda_lifted_prefix = atp_weak_prefix ^ "Lam"
+val lambda_lifted_mono_prefix = lambda_lifted_prefix ^ "m"
+val lambda_lifted_poly_prefix = lambda_lifted_prefix ^ "p"
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
@@ -174,9 +178,6 @@ val type_tag_name = "tt"
 val prefixed_predicator_name = const_prefix ^ predicator_name
 val prefixed_app_op_name = const_prefix ^ app_op_name
 val prefixed_type_tag_name = const_prefix ^ type_tag_name
-
-(* Freshness almost guaranteed! *)
-val atp_weak_prefix = "ATP:"
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -472,18 +473,37 @@ fun strip_iterm_comb u =
 
 fun atomic_types_of T = fold_atyps (insert (op =)) T []
 
+val tvar_a_str = "'a"
+val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
+val itself_name = `make_fixed_type_const @{type_name itself}
+val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
+val tvar_a_atype = AType (tvar_a_name, [])
+val a_itself_atype = AType (itself_name, [tvar_a_atype])
+
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
 fun robust_const_type thy s =
-  if s = app_op_name then Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
-  else s |> Sign.the_const_type thy
+  if s = app_op_name then
+    Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
+  else if String.isPrefix lambda_lifted_poly_prefix s then
+    Logic.varifyT_global @{typ "'a => 'b"}
+  else
+    (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
+    s |> Sign.the_const_type thy
 
 (* This function only makes sense if "T" is as general as possible. *)
 fun robust_const_typargs thy (s, T) =
-  (s, T) |> Sign.const_typargs thy
-  handle TYPE _ => [] |> Term.add_tvarsT T |> rev |> map TVar
+  if s = app_op_name then
+    let val (T1, T2) = T |> domain_type |> dest_funT in [T1, T2] end
+  else if String.isPrefix old_skolem_const_prefix s then
+    [] |> Term.add_tvarsT T |> rev |> map TVar
+  else if String.isPrefix lambda_lifted_poly_prefix s then
+    let val (T1, T2) = T |> dest_funT in [T1, T2] end
+  else
+    (s, T) |> Sign.const_typargs thy
 
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
@@ -497,9 +517,7 @@ fun iterm_from_term thy format bs (P $ Q) =
              robust_const_typargs thy (c, T)),
      atomic_types_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
-    (IConst (`make_fixed_var s, T,
-             if String.isPrefix lambda_lifted_poly_prefix s then [T] else []),
-     atomic_types_of T)
+    (IConst (`make_fixed_var s, T, []), atomic_types_of T)
   | iterm_from_term _ format _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
@@ -654,15 +672,22 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
+fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
+  | constify_lifted (Abs (s, T, t)) = Abs (s, T, constify_lifted t)
+  | constify_lifted (Free (x as (s, _))) =
+    (if String.isPrefix lambda_lifted_prefix s then Const else Free) x
+  | constify_lifted t = t
+
 fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
           (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
                    lambda_lifted_poly_prefix
                  else
-                   lambda_lifted_prefix))
+                   lambda_lifted_mono_prefix))
           Lambda_Lifting.is_quantifier
   #> fst
+  #> pairself (map constify_lifted)
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -740,14 +765,6 @@ fun add_sorts_on_tfree (TFree (s, S)) = generic_add_sorts_on_type ((s, ~1), S)
   | add_sorts_on_tfree _ = I
 fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
   | add_sorts_on_tvar _ = I
-
-val tvar_a_str = "'a"
-val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
-val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
-val itself_name = `make_fixed_type_const @{type_name itself}
-val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
-val tvar_a_atype = AType (tvar_a_name, [])
-val a_itself_atype = AType (itself_name, [tvar_a_atype])
 
 fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
@@ -1121,8 +1138,8 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
     do_cheaply_conceal_lambdas Ts t1
     $ do_cheaply_conceal_lambdas Ts t2
   | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
-    Free (lambda_lifted_poly_prefix ^ serial_string (),
-          T --> fastype_of1 (T :: Ts, t))
+    Const (lambda_lifted_poly_prefix ^ serial_string (),
+           T --> fastype_of1 (T :: Ts, t))
   | do_cheaply_conceal_lambdas _ t = t
 
 fun do_introduce_combinators ctxt Ts t =
@@ -1633,11 +1650,6 @@ fun add_type_constrs_in_term thy =
       | add (t $ u) = add t #> add u
       | add (Const x) =
         x |> robust_const_typargs thy |> fold (fold_type_constrs set_insert)
-      | add (Free (s, T)) =
-        if String.isPrefix lambda_lifted_poly_prefix s then
-          T |> fold_type_constrs set_insert
-        else
-          I
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
@@ -1651,7 +1663,7 @@ val extract_lambda_def =
       | extr bs (Const (@{const_name All}, _) $ Abs (s, T, t)) =
         extr ((s, T) :: bs) t
       | extr bs (Const (@{const_name HOL.eq}, _) $ t $ u) =
-        (t |> head_of |> dest_Free |> fst,
+        (t |> head_of |> dest_Const |> fst,
          fold_rev (fn (s, T) => fn u => Abs (s, T, u)) bs u)
       | extr _ _ = raise Fail "malformed lifted lambda"
   in extr [] end
@@ -2109,14 +2121,7 @@ fun decl_line_for_sym ctxt format mono type_enc s
           val s' = s' |> invert_const
           val T = s' |> robust_const_type thy
         in (T, robust_const_typargs thy (s', T)) end
-      | NONE =>
-        case strip_prefix_and_unascii fixed_var_prefix s of
-          SOME s' =>
-          if String.isPrefix lambda_lifted_poly_prefix s' then
-            (tvar_a, [tvar_a])
-          else
-            raise Fail "unexpected type arguments to free variable"
-        | NONE => raise Fail "unexpected type arguments"
+      | NONE => raise Fail "unexpected type arguments"
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
           T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
