@@ -672,7 +672,7 @@ fun run_atp mode name
                   else
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
-                     fact_names, typed_helpers, sym_tab) =
+                     fact_names, typed_helpers, _, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
                       type_enc false (Config.get ctxt atp_lambda_translation)
                       (not (Config.get ctxt atp_full_names)) true hyp_ts concl_t

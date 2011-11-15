@@ -23,13 +23,16 @@ sig
   val metis_generated_var_prefix : string
   val trace : bool Config.T
   val verbose : bool Config.T
+  val lambda_translation : string Config.T
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
+  val reveal_lambda_lifted : (string * term) list -> term -> term
   val prepare_metis_problem :
-    Proof.context -> type_enc -> thm list -> thm list
-    -> int Symtab.table * (Metis_Thm.thm * isa_thm) list * (string * term) list
+    Proof.context -> type_enc -> string -> thm list -> thm list
+    -> int Symtab.table * (Metis_Thm.thm * isa_thm) list
+       * ((string * term) list * (string * term) list)
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -48,6 +51,9 @@ val metis_generated_var_prefix = "_"
 
 val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
 val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
+val lambda_translation =
+  Attrib.setup_config_string @{binding metis_lambda_translation}
+      (K combinatorsN)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
@@ -103,6 +109,16 @@ fun reveal_old_skolem_terms old_skolems =
                  if String.isPrefix old_skolem_const_prefix s then
                    AList.lookup (op =) old_skolems s |> the
                    |> map_types (map_type_tvar (K dummyT))
+                 else
+                   t
+               | t => t)
+
+fun reveal_lambda_lifted lambdas =
+  map_aterms (fn t as Free (s, _) =>
+                 if String.isPrefix lambda_lifted_prefix s then
+                   case AList.lookup (op =) lambdas s of
+                     SOME t => t |> map_types (map_type_tvar (K dummyT))
+                   | NONE => t
                  else
                    t
                | t => t)
@@ -175,7 +191,7 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
   | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
   let
     val (conj_clauses, fact_clauses) =
       if polymorphism_of_type_enc type_enc = Polymorphic then
@@ -205,17 +221,18 @@ fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false no_lambdasN
-                          false false [] @{prop False} props
-    (*
+    val (lambda_trans, preproc) =
+      if lambda_trans = combinatorsN then (no_lambdasN, false)
+      else (lambda_trans, true)
+    val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lambda_trans
+                          false preproc [] @{prop False} props
     val _ = tracing ("ATP PROBLEM: " ^
-                     cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
-    *)
-    (* "rev" is for compatibility. *)
+                     cat_lines (lines_for_atp_problem CNF atp_problem))
+    (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =
       atp_problem
       |> maps (map_filter (metis_axiom_from_atp type_enc clauses) o snd) |> rev
-  in (sym_tab, axioms, old_skolems) end
+  in (sym_tab, axioms, (lifted, old_skolems)) end
 
 end;

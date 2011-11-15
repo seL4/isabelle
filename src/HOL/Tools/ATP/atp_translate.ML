@@ -45,7 +45,7 @@ sig
   val const_prefix : string
   val type_const_prefix : string
   val class_prefix : string
-  val polymorphic_free_prefix : string
+  val lambda_lifted_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
@@ -87,6 +87,8 @@ sig
   val is_type_enc_fairly_sound : type_enc -> bool
   val type_enc_from_string : soundness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
+  val lift_lambdas :
+    Proof.context -> type_enc -> term list -> term list * term list
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
@@ -98,7 +100,8 @@ sig
     -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
-       * (string * locality) list vector * int list * int Symtab.table
+       * (string * locality) list vector * int list * (string * term) list
+       * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -140,7 +143,8 @@ val type_const_prefix = "tc_"
 val simple_type_prefix = "s_"
 val class_prefix = "cl_"
 
-val polymorphic_free_prefix = "poly_free"
+val lambda_lifted_prefix = "lambda"
+val lambda_lifted_poly_prefix = lambda_lifted_prefix ^ "_poly"
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
@@ -494,7 +498,7 @@ fun iterm_from_term thy format bs (P $ Q) =
      atomic_types_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T,
-             if String.isPrefix polymorphic_free_prefix s then [T] else []),
+             if String.isPrefix lambda_lifted_poly_prefix s then [T] else []),
      atomic_types_of T)
   | iterm_from_term _ format _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
@@ -653,10 +657,10 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
 fun lift_lambdas ctxt type_enc =
   map (close_form o Envir.eta_contract) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
-          (if polymorphism_of_type_enc type_enc = Polymorphic then
-             SOME polymorphic_free_prefix
-           else
-             NONE)
+          (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
+                   lambda_lifted_poly_prefix
+                 else
+                   lambda_lifted_prefix))
           Lambda_Lifting.is_quantifier
   #> fst
 
@@ -1117,7 +1121,7 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
     do_cheaply_conceal_lambdas Ts t1
     $ do_cheaply_conceal_lambdas Ts t2
   | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
-    Free (polymorphic_free_prefix ^ serial_string (),
+    Free (lambda_lifted_poly_prefix ^ serial_string (),
           T --> fastype_of1 (T :: Ts, t))
   | do_cheaply_conceal_lambdas _ t = t
 
@@ -1630,7 +1634,7 @@ fun add_type_constrs_in_term thy =
       | add (Const x) =
         x |> robust_const_typargs thy |> fold (fold_type_constrs set_insert)
       | add (Free (s, T)) =
-        if String.isPrefix polymorphic_free_prefix s then
+        if String.isPrefix lambda_lifted_poly_prefix s then
           T |> fold_type_constrs set_insert
         else
           I
@@ -1640,6 +1644,17 @@ fun add_type_constrs_in_term thy =
 
 fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
+
+val extract_lambda_def =
+  let
+    fun extr [] (@{const Trueprop} $ t) = extr [] t
+      | extr bs (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+        extr ((s, T) :: bs) t
+      | extr bs (Const (@{const_name HOL.eq}, _) $ t $ u) =
+        (t |> head_of |> dest_Free |> fst,
+         fold_rev (fn (s, T) => fn u => Abs (s, T, u)) bs u)
+      | extr _ _ = raise Fail "malformed lifted lambda"
+  in extr [] end
 
 fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                        hyp_ts concl_t facts =
@@ -1657,7 +1672,7 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
-    val ((conjs, facts), lambdas) =
+    val ((conjs, facts), lambda_facts) =
       if preproc then
         conjs @ facts
         |> map (apsnd (uncurry (presimp_prop ctxt presimp_consts)))
@@ -1672,8 +1687,10 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
       |> ListPair.unzip
-    val lambdas =
-      lambdas |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
+    val lifted = lambda_facts |> map (extract_lambda_def o snd o snd)
+    val lambda_facts =
+      lambda_facts
+      |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -1683,8 +1700,8 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
-    (fact_names |> map single, union (op =) subs supers, conjs, facts @ lambdas,
-     class_rel_clauses, arity_clauses)
+    (fact_names |> map single, union (op =) subs supers, conjs,
+     facts @ lambda_facts, class_rel_clauses, arity_clauses, lifted)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -2095,8 +2112,10 @@ fun decl_line_for_sym ctxt format mono type_enc s
       | NONE =>
         case strip_prefix_and_unascii fixed_var_prefix s of
           SOME s' =>
-          if String.isPrefix polymorphic_free_prefix s' then (tvar_a, [tvar_a])
-          else raise Fail "unexpected type arguments to free variable"
+          if String.isPrefix lambda_lifted_poly_prefix s' then
+            (tvar_a, [tvar_a])
+          else
+            raise Fail "unexpected type arguments to free variable"
         | NONE => raise Fail "unexpected type arguments"
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
@@ -2317,7 +2336,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       else
         error ("Unknown lambda translation method: " ^
                quote lambda_trans ^ ".")
-    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
+    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
+         lifted) =
       translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                          hyp_ts concl_t facts
     val sym_tab =
@@ -2390,6 +2410,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
      offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList,
      typed_helpers,
+     lifted,
      Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end
 

@@ -18,7 +18,7 @@ open Meson_Clausify
 
 fun meson_general_tac ctxt ths =
   let val ctxt' = put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt' (maps (snd o cnf_axiom ctxt' false 0) ths) end
+  in Meson.meson_tac ctxt' (maps (snd o cnf_axiom ctxt' false true 0) ths) end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>

@@ -75,9 +75,9 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". Type tag idempotence is also handled this way. *)
-fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth =
+fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_from_metis ctxt type_enc sym_tab old_skolems mth of
+    case hol_clause_from_metis ctxt type_enc sym_tab concealed mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
         val ct = cterm_of thy t
@@ -106,14 +106,15 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
+fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
-                 Meson_Clausify.cnf_axiom ctxt new_skolemizer j th))
+                 Meson_Clausify.cnf_axiom ctxt new_skolemizer
+                                          (lambda_trans = combinatorsN) j th))
              (0 upto length ths0 - 1) ths0
       val ths = maps (snd o snd) th_cls_pairs
       val dischargers = map (fst o snd) th_cls_pairs
@@ -121,10 +122,10 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Sound type_enc
-      val (sym_tab, axioms, old_skolems) =
-        prepare_metis_problem ctxt type_enc cls ths
+      val (sym_tab, axioms, concealed) =
+        prepare_metis_problem ctxt type_enc lambda_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
-          reflexive_or_trivial_from_metis ctxt type_enc sym_tab old_skolems mth
+          reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
@@ -148,7 +149,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
                 val proof = Metis_Proof.proof mth
                 val result =
                   axioms
-                  |> fold (replay_one_inference ctxt' type_enc old_skolems sym_tab) proof
+                  |> fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof
                 val used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
@@ -193,12 +194,12 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
            (verbose_warning ctxt
                 ("Falling back on " ^
                  quote (method_call_for_type_enc fallback_type_syss) ^ "...");
-            FOL_SOLVE fallback_type_syss ctxt cls ths0)
+            FOL_SOLVE fallback_type_syss lambda_trans ctxt cls ths0)
 
-fun neg_clausify ctxt =
+fun neg_clausify ctxt combinators =
   single
   #> Meson.make_clauses_unsorted ctxt
-  #> map Meson_Clausify.introduce_combinators_in_theorem
+  #> combinators ? map Meson_Clausify.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
 fun preskolem_tac ctxt st0 =
@@ -214,16 +215,19 @@ val type_has_top_sort =
 
 fun generic_metis_tac type_syss ctxt ths i st0 =
   let
+    val lambda_trans = Config.get ctxt lambda_translation
     val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
-    fun tac clause = resolve_tac (FOL_SOLVE type_syss ctxt clause ths) 1
+    fun tac clause =
+      resolve_tac (FOL_SOLVE type_syss lambda_trans ctxt clause ths) 1
   in
     if exists_type type_has_top_sort (prop_of st0) then
       verbose_warning ctxt "Proof state contains the universal sort {}"
     else
       ();
-    Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt)) tac ctxt i st0
+    Meson.MESON (preskolem_tac ctxt)
+        (maps (neg_clausify ctxt (lambda_trans = combinatorsN))) tac ctxt i st0
   end
 
 fun metis_tac [] = generic_metis_tac partial_type_syss

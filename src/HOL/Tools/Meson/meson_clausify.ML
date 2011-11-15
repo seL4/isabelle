@@ -15,7 +15,8 @@ sig
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val ss_only : thm list -> simpset
   val cnf_axiom :
-    Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
+    Proof.context -> bool -> bool -> int -> thm
+    -> (thm * term) option * thm list
 end;
 
 structure Meson_Clausify : MESON_CLAUSIFY =
@@ -364,7 +365,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom ctxt0 new_skolemizer ax_no th =
+fun cnf_axiom ctxt0 new_skolemizer combinators ax_no th =
   let
     val thy = Proof_Context.theory_of ctxt0
     val choice_ths = choice_theorems thy
@@ -385,7 +386,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     (opt |> Option.map (I #>> singleton (Variable.export ctxt ctxt0)
                         ##> (term_of #> HOLogic.dest_Trueprop
                              #> singleton (Variable.export_terms ctxt ctxt0))),
-     cnf_ths |> map (introduce_combinators_in_theorem
+     cnf_ths |> map (combinators ? introduce_combinators_in_theorem
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt ctxt0
              |> finish_cnf
