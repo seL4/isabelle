@@ -14,7 +14,7 @@ begin
 declare [[metis_new_skolemizer]]
 
 (*For Christoph Benzmueller*)
-lemma "x<1 & ((op=) = (op=)) ==> ((op=) = (op=)) & (x<(2::nat))";
+lemma "x<1 & ((op=) = (op=)) ==> ((op=) = (op=)) & (x<(2::nat))"
   by (metis One_nat_def less_Suc0 not_less0 not_less_eq numeral_2_eq_2)
 
 (*this is a theorem, but we can't prove it unless ext is applied explicitly
@@ -182,7 +182,7 @@ by (metis Collect_def image_subset_iff mem_def)
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__image_evenB" ]]
 lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A
-       ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)";
+       ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)"
 by (metis Collect_def imageI image_image image_subset_iff mem_def)
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__image_curry" ]]
@@ -208,11 +208,11 @@ apply (subst split_conv)
 apply (rule SigmaI)
 apply (erule imageI) +
 txt{*subgoal 2*}
-apply (clarify );
-apply (simp add: );
+apply (clarify )
+apply (simp add: )
 apply (rule rev_image_eqI)
-apply (blast intro: elim:);
-apply (simp add: );
+apply (blast intro: elim:)
+apply (simp add: )
 done
 
 (*Given the difficulty of the previous problem, these two are probably

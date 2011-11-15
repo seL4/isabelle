@@ -243,7 +243,7 @@ apply (metis parts_idem parts_mono)
 done
 
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
-by (blast dest: parts_mono);
+by (blast dest: parts_mono)
 
 lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
 by (metis Un_insert_left Un_insert_right insert_absorb mem_def parts_Un parts_idem sup1CI)
@@ -665,7 +665,7 @@ apply (metis Un_subset_iff parts_increasing parts_mono synth_increasing)
 done
 
 lemma analz_analz_Un [simp]: "analz (analz G \<union> H) = analz (G \<union> H)"
-apply (rule equalityI);
+apply (rule equalityI)
 apply (metis analz_idem analz_subset_cong order_eq_refl)
 apply (metis analz_increasing analz_subset_cong order_eq_refl)
 done
