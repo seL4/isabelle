@@ -31,12 +31,12 @@ sig
 
   val type_tag_idempotence : bool Config.T
   val type_tag_arguments : bool Config.T
-  val no_lambdasN : string
-  val concealedN : string
-  val liftingN : string
+  val no_lamsN : string
+  val hide_lamsN : string
+  val lam_liftingN : string
   val combinatorsN : string
-  val hybridN : string
-  val lambdasN : string
+  val hybrid_lamsN : string
+  val keep_lamsN : string
   val smartN : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
@@ -121,12 +121,12 @@ val type_tag_idempotence =
 val type_tag_arguments =
   Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K false)
 
-val no_lambdasN = "no_lambdas"
-val concealedN = "concealed"
-val liftingN = "lifting"
+val no_lamsN = "no_lams"
+val hide_lamsN = "hide_lams"
+val lam_liftingN = "lam_lifting"
 val combinatorsN = "combinators"
-val hybridN = "hybrid"
-val lambdasN = "lambdas"
+val hybrid_lamsN = "hybrid_lams"
+val keep_lamsN = "keep_lams"
 val smartN = "smart"
 
 (* TFF1 is still in development, and it is still unclear whether symbols will be
@@ -1682,19 +1682,19 @@ fun translate_formulas ctxt format prem_kind type_enc lambda_trans presimp
   let
     val thy = Proof_Context.theory_of ctxt
     val trans_lambdas =
-      if lambda_trans = no_lambdasN then
+      if lambda_trans = no_lamsN then
         rpair []
-      else if lambda_trans = concealedN then
+      else if lambda_trans = hide_lamsN then
         lift_lambdas ctxt type_enc ##> K []
-      else if lambda_trans = liftingN then
+      else if lambda_trans = lam_liftingN then
         lift_lambdas ctxt type_enc
       else if lambda_trans = combinatorsN then
         map (introduce_combinators ctxt) #> rpair []
-      else if lambda_trans = hybridN then
+      else if lambda_trans = hybrid_lamsN then
         lift_lambdas ctxt type_enc
         ##> maps (fn t => [t, introduce_combinators ctxt
                                   (intentionalize_def t)])
-      else if lambda_trans = lambdasN then
+      else if lambda_trans = keep_lamsN then
         map (Envir.eta_contract) #> rpair []
       else
         error ("Unknown lambda translation method: " ^
@@ -1715,7 +1715,7 @@ fun translate_formulas ctxt format prem_kind type_enc lambda_trans presimp
       (conjs, facts)
       |> presimp
          ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
-      |> (if lambda_trans = no_lambdasN then
+      |> (if lambda_trans = no_lamsN then
             rpair []
           else
             op @
@@ -2345,8 +2345,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         SOME false
     val lambda_trans =
       if lambda_trans = smartN then
-        if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
-      else if lambda_trans = lambdasN andalso
+        if is_type_enc_higher_order type_enc then keep_lamsN else combinatorsN
+      else if lambda_trans = keep_lamsN andalso
               not (is_type_enc_higher_order type_enc) then
         error ("Lambda translation method incompatible with first-order \
                \encoding.")

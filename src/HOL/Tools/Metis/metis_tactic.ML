@@ -153,7 +153,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
         | get_isa_thm mth Isa_Lambda_Lifted =
           lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm _ (Isa_Raw ith) =
-          ith |> lambda_trans = liftingN
+          ith |> lambda_trans = lam_liftingN
                  ? introduce_lambda_wrappers_in_theorem ctxt
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")

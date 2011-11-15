@@ -233,7 +233,7 @@ fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
     val lambda_trans =
-      if lambda_trans = combinatorsN then no_lambdasN else lambda_trans
+      if lambda_trans = combinatorsN then no_lamsN else lambda_trans
     val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lambda_trans
                           false false [] @{prop False} props
