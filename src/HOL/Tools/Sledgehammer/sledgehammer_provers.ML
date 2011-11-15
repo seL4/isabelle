@@ -62,7 +62,7 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
-  val atp_lambda_translation : string Config.T
+  val atp_lambda_trans : string Config.T
   val atp_full_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -339,9 +339,8 @@ val dest_dir =
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
 
-val atp_lambda_translation =
-  Attrib.setup_config_string @{binding sledgehammer_atp_lambda_translation}
-                             (K smartN)
+val atp_lambda_trans =
+  Attrib.setup_config_string @{binding sledgehammer_atp_lambda_trans} (K smartN)
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
@@ -674,7 +673,7 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, _, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc false (Config.get ctxt atp_lambda_translation)
+                      type_enc false (Config.get ctxt atp_lambda_trans)
                       (not (Config.get ctxt atp_full_names)) true hyp_ts concl_t
                       facts
                 fun weights () = atp_problem_weights atp_problem

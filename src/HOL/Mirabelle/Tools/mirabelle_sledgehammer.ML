@@ -11,7 +11,7 @@ val keepK = "keep"
 val type_encK = "type_enc"
 val soundK = "sound"
 val slicingK = "slicing"
-val lambda_translationK = "lambda_translation"
+val lambda_transK = "lambda_trans"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
@@ -355,9 +355,8 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method force_sos hard_timeout timeout dir
-        pos st =
+fun run_sh prover_name prover type_enc sound max_relevant slicing lambda_trans
+        e_weight_method force_sos hard_timeout timeout dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -373,8 +372,8 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
       st |> Proof.map_context
                 (set_file_name dir
                  #> (Option.map (Config.put
-                       Sledgehammer_Provers.atp_lambda_translation)
-                       lambda_translation |> the_default I)
+                       Sledgehammer_Provers.atp_lambda_trans)
+                       lambda_trans |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.e_weight_method)
                        e_weight_method |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.force_sos)
@@ -466,7 +465,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val sound = AList.lookup (op =) args soundK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
-    val lambda_translation = AList.lookup (op =) args lambda_translationK
+    val lambda_trans = AList.lookup (op =) args lambda_transK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
@@ -476,9 +475,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method force_sos hard_timeout timeout dir
-        pos st
+      run_sh prover_name prover type_enc sound max_relevant slicing lambda_trans
+        e_weight_method force_sos hard_timeout timeout dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>

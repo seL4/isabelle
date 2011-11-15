@@ -24,7 +24,7 @@ sig
   val metis_generated_var_prefix : string
   val trace : bool Config.T
   val verbose : bool Config.T
-  val lambda_translation : string Config.T
+  val lambda_trans : string Config.T
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
@@ -52,9 +52,8 @@ val metis_generated_var_prefix = "_"
 
 val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
 val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
-val lambda_translation =
-  Attrib.setup_config_string @{binding metis_lambda_translation}
-      (K combinatorsN)
+val lambda_trans =
+  Attrib.setup_config_string @{binding metis_lambda_trans} (K combinatorsN)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =

@@ -243,7 +243,7 @@ val type_has_top_sort =
 
 fun generic_metis_tac type_syss ctxt ths i st0 =
   let
-    val lambda_trans = Config.get ctxt lambda_translation
+    val lambda_trans = Config.get ctxt lambda_trans
     val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
