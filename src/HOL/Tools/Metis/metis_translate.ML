@@ -227,8 +227,10 @@ fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
     val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lambda_trans
                           false preproc [] @{prop False} props
+    (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_for_atp_problem CNF atp_problem))
+    *)
     (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =
       atp_problem
