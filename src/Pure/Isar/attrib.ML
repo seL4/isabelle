@@ -25,7 +25,6 @@ sig
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
-  val crude_closure: Proof.context -> src -> src
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
@@ -34,8 +33,11 @@ sig
   val thm: thm context_parser
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
-  val print_configs: Proof.context -> unit
+  val partial_evaluation: Proof.context ->
+    (binding * (thm list * Args.src list) list) list ->
+    (binding * (thm list * Args.src list) list) list
   val internal: (morphism -> attribute) -> src
+  val print_configs: Proof.context -> unit
   val config_bool: Binding.binding ->
     (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int: Binding.binding ->
@@ -142,19 +144,6 @@ fun eval_thms ctxt srcs = ctxt
   |> fst |> maps snd;
 
 
-(* crude_closure *)
-
-(*Produce closure without knowing facts in advance! The following
-  works reasonably well for attribute parsers that do not peek at the
-  thm structure.*)
-
-fun crude_closure ctxt src =
- (try (fn () =>
-    Thm.apply_attribute (attribute_i (Proof_Context.theory_of ctxt) src)
-      (Context.Proof ctxt, Drule.asm_rl)) ();
-  Args.closure src);
-
-
 (* attribute setup *)
 
 fun syntax scan = Args.syntax "attribute" scan;
@@ -222,6 +211,48 @@ in
 val thm = gen_thm Facts.the_single;
 val multi_thm = gen_thm (K I);
 val thms = Scan.repeat multi_thm >> flat;
+
+end;
+
+
+
+(** partial evaluation **)
+
+local
+(* FIXME assignable, closure (!?) *)
+
+fun apply_att src (context, th) =
+  attribute_i (Context.theory_of context) src (context, th);
+
+fun eval src (th, (decls, context)) =
+  (case apply_att src (context, th) of
+    (NONE, SOME th') => (th', (decls, context))
+  | (opt_context', opt_th') =>
+      let
+        val context' = the_default context opt_context';
+        val th' = the_default th opt_th';
+        val decls' =
+          (case decls of
+            [] => [(th, [src])]
+          | (th2, srcs2) :: rest =>
+              if op = (pairself Thm.rep_thm (th, th2))  (* FIXME derivation!? *)
+              then ((th2, src :: srcs2) :: rest)
+              else (th, [src]) :: (th2, srcs2) :: rest);
+      in (th', (decls', context')) end);
+
+in
+
+fun partial_evaluation ctxt facts =
+  let
+    val (facts', (decls, _)) =
+      (facts, ([], Context.Proof ctxt)) |-> fold_map (fn ((b, more_atts), fact) => fn res =>
+        let
+          val (thss', res') =
+            (fact, res) |-> fold_map (fn (ths, atts) =>
+              fold_map (curry (fold eval (atts @ more_atts))) ths);
+        in (((b, []), [(flat thss', [])]), res') end);
+    val decl_fact = (empty_binding, rev (map (fn (th, atts) => ([th], rev atts)) decls));
+  in decl_fact :: facts' end;
 
 end;
 

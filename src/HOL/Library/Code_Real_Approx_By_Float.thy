@@ -140,7 +140,4 @@ proof-
   ultimately show "False" by blast
 qed
 
-lemma False
-  sorry -- "Use quick_and_dirty to load this theory."
-
 end

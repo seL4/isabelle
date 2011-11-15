@@ -555,19 +555,19 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 (* Theorems *)
 
-fun add_thmss loc kind args ctxt =
+fun add_thmss loc kind facts ctxt =
   let
-    val (Notes args', ctxt') = Element.activate_i (Notes (kind, args)) ctxt;
+    val (Notes facts', ctxt') = Element.activate_i (Notes (kind, facts)) ctxt;
     val ctxt'' = ctxt' |> Proof_Context.background_theory
-     ((change_locale loc o apfst o apsnd) (cons (args', serial ()))
+     ((change_locale loc o apfst o apsnd) (cons (facts', serial ()))
         #>
       (* Registrations *)
       (fn thy => fold_rev (fn (_, morph) =>
             let
-              val args'' = snd args'
+              val facts'' = snd facts'
                 |> Element.facts_map (Element.transform_ctxt morph)
                 |> Attrib.map_facts (map (Attrib.attribute_i thy));
-            in Global_Theory.note_thmss kind args'' #> snd end)
+            in Global_Theory.note_thmss kind facts'' #> snd end)
         (registrations_of (Context.Theory thy) loc) thy))
   in ctxt'' end;
 
