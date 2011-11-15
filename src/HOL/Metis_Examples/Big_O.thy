@@ -19,7 +19,7 @@ declare [[metis_new_skolemizer]]
 
 subsection {* Definitions *}
 
-definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set"    ("(1O'(_'))") where
+definition bigo :: "('a => 'b::{linordered_idom,number_ring}) => ('a => 'b) set"    ("(1O'(_'))") where
   "O(f::('a => 'b)) ==   {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_pos_const" ]]
@@ -199,7 +199,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (simp add: abs_triangle_ineq)
   apply (simp add: order_less_le)
   apply (rule mult_nonneg_nonneg)
-  apply (rule add_nonneg_nonneg)
   apply auto
   apply (rule_tac x = "%n. if (abs (f n)) <  abs (g n) then x n else 0"
      in exI)
@@ -217,8 +216,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (rule abs_triangle_ineq)
   apply (simp add: order_less_le)
 apply (metis abs_not_less_zero double_less_0_iff less_not_permute linorder_not_less mult_less_0_iff)
-  apply (rule ext)
-  apply (auto simp add: if_splits linorder_not_le)
 done
 
 lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(f)"
@@ -428,7 +425,7 @@ by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)
 
 
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>
-    O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
+    O(f * g) <= (f::'a => ('b::{linordered_field,number_ring})) *o O(g)"
 proof -
   assume a: "ALL x. f x ~= 0"
   show "O(f * g) <= f *o O(g)"
@@ -458,14 +455,14 @@ qed
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_mult6" ]]
 lemma bigo_mult6: "ALL x. f x ~= 0 ==>
-    O(f * g) = (f::'a => ('b::linordered_field)) *o O(g)"
+    O(f * g) = (f::'a => ('b::{linordered_field,number_ring})) *o O(g)"
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_mult7" ]]
   declare bigo_mult6 [simp]
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
-    O(f * g) <= O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
+    O(f * g) <= O(f::'a => ('b::{linordered_field,number_ring})) \<otimes> O(g)"
 (*sledgehammer*)
   apply (subst bigo_mult6)
   apply assumption
@@ -477,7 +474,7 @@ done
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_mult8" ]]
   declare bigo_mult7[intro!]
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
-    O(f * g) = O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
+    O(f * g) = O(f::'a => ('b::{linordered_field,number_ring})) \<otimes> O(g)"
 by (metis bigo_mult bigo_mult7 order_antisym_conv)
 
 lemma bigo_minus [intro]: "f : O(g) ==> - f : O(g)"
@@ -556,7 +553,7 @@ declare [[ sledgehammer_problem_prefix = "BigO__bigo_const2" ]]
 lemma (*bigo_const2 [intro]:*) "O(%x. c) <= O(%x. 1)"
 by (metis bigo_const1 bigo_elt_subset)
 
-lemma bigo_const2 [intro]: "O(%x. c::'b::linordered_idom) <= O(%x. 1)"
+lemma bigo_const2 [intro]: "O(%x. c::'b::{linordered_idom,number_ring}) <= O(%x. 1)"
 (* "thus" had to be replaced by "show" with an explicit reference to "F1" *)
 proof -
   have F1: "\<forall>u. (\<lambda>Q. u) \<in> O(\<lambda>Q. 1)" by (metis bigo_const1)
@@ -564,14 +561,14 @@ proof -
 qed
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_const3" ]]
-lemma bigo_const3: "(c::'a::linordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
+lemma bigo_const3: "(c::'a::{linordered_field,number_ring}) ~= 0 ==> (%x. 1) : O(%x. c)"
 apply (simp add: bigo_def)
 by (metis abs_eq_0 left_inverse order_refl)
 
-lemma bigo_const4: "(c::'a::linordered_field) ~= 0 ==> O(%x. 1) <= O(%x. c)"
+lemma bigo_const4: "(c::'a::{linordered_field,number_ring}) ~= 0 ==> O(%x. 1) <= O(%x. c)"
 by (rule bigo_elt_subset, rule bigo_const3, assumption)
 
-lemma bigo_const [simp]: "(c::'a::linordered_field) ~= 0 ==>
+lemma bigo_const [simp]: "(c::'a::{linordered_field,number_ring}) ~= 0 ==>
     O(%x. c) = O(%x. 1)"
 by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
 
@@ -584,7 +581,7 @@ lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"
 by (rule bigo_elt_subset, rule bigo_const_mult1)
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_const_mult3" ]]
-lemma bigo_const_mult3: "(c::'a::linordered_field) ~= 0 ==> f : O(%x. c * f x)"
+lemma bigo_const_mult3: "(c::'a::{linordered_field,number_ring}) ~= 0 ==> f : O(%x. c * f x)"
   apply (simp add: bigo_def)
 (*sledgehammer [no luck]*)
   apply (rule_tac x = "abs(inverse c)" in exI)
@@ -593,16 +590,16 @@ apply (subst left_inverse)
 apply (auto )
 done
 
-lemma bigo_const_mult4: "(c::'a::linordered_field) ~= 0 ==>
+lemma bigo_const_mult4: "(c::'a::{linordered_field,number_ring}) ~= 0 ==>
     O(f) <= O(%x. c * f x)"
 by (rule bigo_elt_subset, rule bigo_const_mult3, assumption)
 
-lemma bigo_const_mult [simp]: "(c::'a::linordered_field) ~= 0 ==>
+lemma bigo_const_mult [simp]: "(c::'a::{linordered_field,number_ring}) ~= 0 ==>
     O(%x. c * f x) = O(f)"
 by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_const_mult5" ]]
-lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 ==>
+lemma bigo_const_mult5 [simp]: "(c::'a::{linordered_field,number_ring}) ~= 0 ==>
     (%x. c) *o O(f) = O(f)"
   apply (auto del: subsetI)
   apply (rule order_trans)
@@ -787,7 +784,7 @@ lemma bigo_useful_add: "f =o O(h) ==> g =o O(h) ==> f + g =o O(h)"
   apply assumption+
 done
 
-lemma bigo_useful_const_mult: "(c::'a::linordered_field) ~= 0 ==>
+lemma bigo_useful_const_mult: "(c::'a::{linordered_field,number_ring}) ~= 0 ==>
     (%x. c) * f =o O(h) ==> f =o O(h)"
   apply (rule subsetD)
   apply (subgoal_tac "(%x. 1 / c) *o O(h) <= O(h)")
@@ -935,7 +932,7 @@ apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
 apply (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 done
 
-lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::linordered_field) ==>
+lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::{linordered_field,number_ring}) ==>
     g =o h +o O(k) ==> f <o h =o O(k)"
   apply (unfold lesso_def)
   apply (drule set_plus_imp_minus)
