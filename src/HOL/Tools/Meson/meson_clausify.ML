@@ -10,6 +10,7 @@ sig
   val new_skolem_var_prefix : string
   val new_nonskolem_var_prefix : string
   val is_zapped_var_name : string -> bool
+  val is_quasi_lambda_free : term -> bool
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
@@ -174,7 +175,7 @@ fun introduce_combinators_in_theorem th =
            (warning ("Error in the combinator translation of " ^
                      Display.string_of_thm_without_context th ^
                      "\nException message: " ^ msg ^ ".");
-            (* A type variable of sort "{}" will make abstraction fail. *)
+            (* A type variable of sort "{}" will make "abstraction" fail. *)
             TrueI)
 
 (*cterms are used throughout for efficiency*)

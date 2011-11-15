@@ -86,9 +86,33 @@ fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth =
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
       (if can HOLogic.dest_not t1 then t2 else t1)
       |> HOLogic.mk_Trueprop |> cterm_of thy |> Thm.trivial
-    | _ => raise Fail "unexpected tags sym clause"
+    | _ => raise Fail "expected reflexive or trivial clause"
   end
   |> Meson.make_meta_clause
+
+fun lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val tac = rewrite_goals_tac @{thms lambda_def_raw} THEN rtac refl 1
+    val t = hol_clause_from_metis ctxt type_enc sym_tab concealed mth
+    val ct = cterm_of thy (HOLogic.mk_Trueprop t)
+  in Goal.prove_internal [] ct (K tac) |> Meson.make_meta_clause end
+
+fun introduce_lambda_wrappers_in_theorem ctxt th =
+  if Meson_Clausify.is_quasi_lambda_free (prop_of th) then
+    th
+  else
+    let
+      fun conv wrap ctxt ct =
+        if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
+          Thm.reflexive ct
+        else case term_of ct of
+          Abs _ =>
+          Conv.abs_conv (conv false o snd) ctxt ct
+          |> wrap ? (fn th => th RS @{thm Metis.eq_lambdaI})
+        | _ => Conv.comb_conv (conv true ctxt) ct
+      val eqth = conv true ctxt (cprop_of th)
+    in Thm.equal_elim eqth th end
 
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
@@ -126,7 +150,11 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
         prepare_metis_problem ctxt type_enc lambda_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
-        | get_isa_thm _ (Isa_Raw ith) = ith
+        | get_isa_thm mth Isa_Lambda_Lifted =
+          lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth
+        | get_isa_thm _ (Isa_Raw ith) =
+          ith |> lambda_trans = liftingN
+                 ? introduce_lambda_wrappers_in_theorem ctxt
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn (_, th) => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) axioms

@@ -46,6 +46,8 @@ sig
   val type_const_prefix : string
   val class_prefix : string
   val lambda_lifted_prefix : string
+  val lambda_lifted_mono_prefix : string
+  val lambda_lifted_poly_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
@@ -59,6 +61,7 @@ sig
   val class_rel_clause_prefix : string
   val arity_clause_prefix : string
   val tfree_clause_prefix : string
+  val lambda_fact_prefix : string
   val typed_helper_suffix : string
   val untyped_helper_suffix : string
   val type_tag_idempotence_helper_name : string
@@ -72,7 +75,7 @@ sig
   val prefixed_type_tag_name : string
   val ascii_of : string -> string
   val unascii_of : string -> string
-  val strip_prefix_and_unascii : string -> string -> string option
+  val unprefix_and_unascii : string -> string -> string option
   val proxy_table : (string * (string * (thm * (string * string)))) list
   val proxify_const : string -> (string * string) option
   val invert_const : string -> string
@@ -228,7 +231,7 @@ val unascii_of =
 
 (* If string s has the prefix s1, return the result of deleting it,
    un-ASCII'd. *)
-fun strip_prefix_and_unascii s1 s =
+fun unprefix_and_unascii s1 s =
   if String.isPrefix s1 s then
     SOME (unascii_of (String.extract (s, size s1, NONE)))
   else
@@ -488,7 +491,7 @@ fun new_skolem_const_name s num_T_args =
 fun robust_const_type thy s =
   if s = app_op_name then
     Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
-  else if String.isPrefix lambda_lifted_poly_prefix s then
+  else if String.isPrefix lambda_lifted_prefix s then
     Logic.varifyT_global @{typ "'a => 'b"}
   else
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
@@ -500,8 +503,11 @@ fun robust_const_typargs thy (s, T) =
     let val (T1, T2) = T |> domain_type |> dest_funT in [T1, T2] end
   else if String.isPrefix old_skolem_const_prefix s then
     [] |> Term.add_tvarsT T |> rev |> map TVar
-  else if String.isPrefix lambda_lifted_poly_prefix s then
-    let val (T1, T2) = T |> dest_funT in [T1, T2] end
+  else if String.isPrefix lambda_lifted_prefix s then
+    if String.isPrefix lambda_lifted_poly_prefix s then
+      let val (T1, T2) = T |> dest_funT in [T1, T2] end
+    else
+      []
   else
     (s, T) |> Sign.const_typargs thy
 
@@ -678,16 +684,21 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
     (if String.isPrefix lambda_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
+(* Requires bound variables to have distinct names and not to clash with any
+   schematic variables (as should be the case right after lambda-lifting). *)
+fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+    open_form (subst_bound (Var ((s, 0), T), t))
+  | open_form t = t
+
 fun lift_lambdas ctxt type_enc =
-  map (close_form o Envir.eta_contract) #> rpair ctxt
+  map (Envir.eta_contract #> close_form) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
           (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
                    lambda_lifted_poly_prefix
                  else
                    lambda_lifted_mono_prefix))
           Lambda_Lifting.is_quantifier
-  #> fst
-  #> pairself (map constify_lifted)
+  #> fst #> pairself (map (open_form o constify_lifted))
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -968,7 +979,7 @@ fun mangle_type_args_in_iterm format type_enc =
       fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
         | mangle (tm as IConst (_, _, [])) = tm
         | mangle (tm as IConst (name as (s, _), T, T_args)) =
-          (case strip_prefix_and_unascii const_prefix s of
+          (case unprefix_and_unascii const_prefix s of
              NONE => tm
            | SOME s'' =>
              case type_arg_policy type_enc (invert_const s'') of
@@ -1004,7 +1015,7 @@ fun filter_type_args_in_iterm thy type_enc =
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
       | filt _ (tm as IConst (_, _, [])) = tm
       | filt ary (IConst (name as (s, _), T, T_args)) =
-        (case strip_prefix_and_unascii const_prefix s of
+        (case unprefix_and_unascii const_prefix s of
            NONE =>
            (name,
             if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then
@@ -1223,7 +1234,7 @@ fun make_conjecture ctxt format type_enc =
 (** Finite and infinite type inference **)
 
 fun tvar_footprint thy s ary =
-  (case strip_prefix_and_unascii const_prefix s of
+  (case unprefix_and_unascii const_prefix s of
      SOME s =>
      s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
        |> map (fn T => Term.add_tvarsT T [] |> map fst)
@@ -1446,7 +1457,7 @@ fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
     SOME ({min_ary, ...} : sym_info) => min_ary
   | NONE =>
-    case strip_prefix_and_unascii const_prefix s of
+    case unprefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const_name |> invert_const in
         if s = predicator_name then 1
@@ -1581,7 +1592,7 @@ fun should_specialize_helper type_enc t =
   not (null (Term.hidden_polymorphism t))
 
 fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
-  case strip_prefix_and_unascii const_prefix s of
+  case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -1657,21 +1668,37 @@ fun add_type_constrs_in_term thy =
 fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
-val extract_lambda_def =
-  let
-    fun extr [] (@{const Trueprop} $ t) = extr [] t
-      | extr bs (Const (@{const_name All}, _) $ Abs (s, T, t)) =
-        extr ((s, T) :: bs) t
-      | extr bs (Const (@{const_name HOL.eq}, _) $ t $ u) =
-        (t |> head_of |> dest_Const |> fst,
-         fold_rev (fn (s, T) => fn u => Abs (s, T, u)) bs u)
-      | extr _ _ = raise Fail "malformed lifted lambda"
-  in extr [] end
+fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    let val (head, args) = strip_comb t in
+      (head |> dest_Const |> fst,
+       fold_rev (fn t as Var ((s, _), T) =>
+                    (fn u => Abs (s, T, abstract_over (t, u)))
+                  | _ => raise Fail "expected Var") args u)
+    end
+  | extract_lambda_def _ = raise Fail "malformed lifted lambda"
 
-fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
+fun translate_formulas ctxt format prem_kind type_enc lambda_trans presimp
                        hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val trans_lambdas =
+      if lambda_trans = no_lambdasN then
+        rpair []
+      else if lambda_trans = concealedN then
+        lift_lambdas ctxt type_enc ##> K []
+      else if lambda_trans = liftingN then
+        lift_lambdas ctxt type_enc
+      else if lambda_trans = combinatorsN then
+        map (introduce_combinators ctxt) #> rpair []
+      else if lambda_trans = hybridN then
+        lift_lambdas ctxt type_enc
+        ##> maps (fn t => [t, introduce_combinators ctxt
+                                  (intentionalize_def t)])
+      else if lambda_trans = lambdasN then
+        map (Envir.eta_contract) #> rpair []
+      else
+        error ("Unknown lambda translation method: " ^
+               quote lambda_trans ^ ".")
     val presimp_consts = Meson.presimplified_consts ctxt
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
@@ -1685,13 +1712,15 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lambda_facts) =
-      if preproc then
-        conjs @ facts
-        |> map (apsnd (uncurry (presimp_prop ctxt presimp_consts)))
-        |> preprocess_abstractions_in_terms trans_lambdas
-        |>> chop (length conjs)
-      else
-        ((conjs, facts), [])
+      (conjs, facts)
+      |> presimp
+         ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
+      |> (if lambda_trans = no_lambdasN then
+            rpair []
+          else
+            op @
+            #> preprocess_abstractions_in_terms trans_lambdas
+            #>> chop (length conjs))
     val conjs = conjs |> make_conjecture ctxt format type_enc
     val (fact_names, facts) =
       facts
@@ -2115,7 +2144,7 @@ fun decl_line_for_sym ctxt format mono type_enc s
     val (T, T_args) =
       if null T_args then
         (T, [])
-      else case strip_prefix_and_unascii const_prefix s of
+      else case unprefix_and_unascii const_prefix s of
         SOME s' =>
         let
           val s' = s' |> invert_const
@@ -2323,27 +2352,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                \encoding.")
       else
         lambda_trans
-    val trans_lambdas =
-      if lambda_trans = no_lambdasN then
-        rpair []
-      else if lambda_trans = concealedN then
-        lift_lambdas ctxt type_enc ##> K []
-      else if lambda_trans = liftingN then
-        lift_lambdas ctxt type_enc
-      else if lambda_trans = combinatorsN then
-        map (introduce_combinators ctxt) #> rpair []
-      else if lambda_trans = hybridN then
-        lift_lambdas ctxt type_enc
-        ##> maps (fn t => [t, introduce_combinators ctxt
-                                  (intentionalize_def t)])
-      else if lambda_trans = lambdasN then
-        map (Envir.eta_contract) #> rpair []
-      else
-        error ("Unknown lambda translation method: " ^
-               quote lambda_trans ^ ".")
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
          lifted) =
-      translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
+      translate_formulas ctxt format prem_kind type_enc lambda_trans preproc
                          hyp_ts concl_t facts
     val sym_tab =
       sym_table_for_facts ctxt type_enc explicit_apply conjs facts

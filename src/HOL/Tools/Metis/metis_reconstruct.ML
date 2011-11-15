@@ -57,8 +57,7 @@ fun atp_clause_from_metis _ [] = AAtom (ATerm (tptp_false, []))
     lits |> map (atp_literal_from_metis type_enc) |> mk_aconns AOr
 
 fun polish_hol_terms ctxt (lifted, old_skolems) =
-  map (reveal_lambda_lifted lifted
-       #> reveal_old_skolem_terms old_skolems)
+  map (reveal_lambda_lifted lifted #> reveal_old_skolem_terms old_skolems)
   #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
 
 fun hol_clause_from_metis ctxt type_enc sym_tab concealed =
@@ -146,10 +145,10 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
                 NONE)
       fun remove_typeinst (a, t) =
         let val a = Metis_Name.toString a in
-          case strip_prefix_and_unascii schematic_var_prefix a of
+          case unprefix_and_unascii schematic_var_prefix a of
             SOME b => SOME (b, t)
           | NONE =>
-            case strip_prefix_and_unascii tvar_prefix a of
+            case unprefix_and_unascii tvar_prefix a of
               SOME _ => NONE (* type instantiations are forbidden *)
             | NONE => SOME (a, t) (* internal Metis var? *)
         end
@@ -337,7 +336,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
         | path_finder tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           let
             val s = s |> Metis_Name.toString
-                      |> perhaps (try (strip_prefix_and_unascii const_prefix
+                      |> perhaps (try (unprefix_and_unascii const_prefix
                                        #> the #> unmangled_const_name))
           in
             if s = metis_predicator orelse s = predicator_name orelse

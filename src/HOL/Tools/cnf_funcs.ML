@@ -261,8 +261,7 @@ fun make_under_quantifiers ctxt make t =
     val thy = Proof_Context.theory_of ctxt
     fun conv ctxt ct =
       case term_of ct of
-        (t1 as Const _) $ (t2 as Abs _) =>
-        Conv.comb_conv (conv ctxt) ct
+        Const _ $ Abs _ => Conv.comb_conv (conv ctxt) ct
       | Abs _ => Conv.abs_conv (conv o snd) ctxt ct
       | Const _ => Conv.all_conv ct
       | t => make t RS eq_reflection

@@ -13,6 +13,7 @@ sig
 
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
+    Isa_Lambda_Lifted |
     Isa_Raw of thm
 
   val metis_equal : string
@@ -114,10 +115,12 @@ fun reveal_old_skolem_terms old_skolems =
                | t => t)
 
 fun reveal_lambda_lifted lambdas =
-  map_aterms (fn t as Free (s, _) =>
+  map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix lambda_lifted_prefix s then
                    case AList.lookup (op =) lambdas s of
-                     SOME t => t |> map_types (map_type_tvar (K dummyT))
+                     SOME t =>
+                     Const (@{const_name Metis.lambda}, dummyT)
+                     $ map_types (map_type_tvar (K dummyT)) t
                    | NONE => t
                  else
                    t
@@ -130,6 +133,7 @@ fun reveal_lambda_lifted lambdas =
 
 datatype isa_thm =
   Isa_Reflexive_or_Trivial |
+  Isa_Lambda_Lifted |
   Isa_Raw of thm
 
 val proxy_defs = map (fst o snd o snd) proxy_table
@@ -183,9 +187,17 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix fact_prefix) ident of
         SOME s =>
-        let
-          val j = s |> space_explode "_" |> List.last |> Int.fromString |> the
-        in Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some end
+        let val s = s |> space_explode "_" |> tl |> space_implode "_"
+          in
+          case Int.fromString s of
+            SOME j =>
+            Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
+          | NONE =>
+            if String.isPrefix lambda_fact_prefix (unascii_of s) then
+              Isa_Lambda_Lifted |> some
+            else
+              raise Fail ("malformed fact identifier " ^ quote ident)
+        end
       | NONE => TrueI |> Isa_Raw |> some
     end
   | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
@@ -221,12 +233,11 @@ fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val (lambda_trans, preproc) =
-      if lambda_trans = combinatorsN then (no_lambdasN, false)
-      else (lambda_trans, true)
+    val lambda_trans =
+      if lambda_trans = combinatorsN then no_lambdasN else lambda_trans
     val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lambda_trans
-                          false preproc [] @{prop False} props
+                          false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_for_atp_problem CNF atp_problem))

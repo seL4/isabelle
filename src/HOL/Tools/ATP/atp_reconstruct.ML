@@ -283,26 +283,26 @@ exception SAME of unit
    constrained by information from type literals, or by type inference. *)
 fun typ_from_atp ctxt (u as ATerm (a, us)) =
   let val Ts = map (typ_from_atp ctxt) us in
-    case strip_prefix_and_unascii type_const_prefix a of
+    case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise HO_TERM [u]  (* only "tconst"s have type arguments *)
-      else case strip_prefix_and_unascii tfree_prefix a of
+      else case unprefix_and_unascii tfree_prefix a of
         SOME b => make_tfree ctxt b
       | NONE =>
         (* Could be an Isabelle variable or a variable from the ATP, say "X1"
            or "_5018". Sometimes variables from the ATP are indistinguishable
            from Isabelle variables, which forces us to use a type parameter in
            all cases. *)
-        (a |> perhaps (strip_prefix_and_unascii tvar_prefix), HOLogic.typeS)
+        (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)
         |> Type_Infer.param 0
   end
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
 fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
-  case (strip_prefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
+  case (unprefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise HO_TERM [u]
 
@@ -335,6 +335,8 @@ fun repair_variable_name f s =
 fun num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+  else if String.isPrefix lambda_lifted_prefix s then
+    if String.isPrefix lambda_lifted_poly_prefix s then 2 else 0
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
@@ -364,7 +366,7 @@ fun term_from_atp ctxt textual sym_tab =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        else case strip_prefix_and_unascii const_prefix s of
+        else case unprefix_and_unascii const_prefix s of
           SOME s' =>
           let
             val ((s', s''), mangled_us) =
@@ -429,12 +431,10 @@ fun term_from_atp ctxt textual sym_tab =
                 SOME T => map slack_fastype_of term_ts ---> T
               | NONE => map slack_fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix_and_unascii fixed_var_prefix s of
-                SOME s =>
-                (* FIXME: reconstruction of lambda-lifting *)
-                Free (s, T)
+              case unprefix_and_unascii fixed_var_prefix s of
+                SOME s => Free (s, T)
               | NONE =>
-                case strip_prefix_and_unascii schematic_var_prefix s of
+                case unprefix_and_unascii schematic_var_prefix s of
                   SOME s => Var ((s, var_index), T)
                 | NONE =>
                   Var ((s |> textual ? repair_variable_name Char.toLower,
