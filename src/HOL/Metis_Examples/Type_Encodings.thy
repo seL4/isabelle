@@ -107,6 +107,6 @@ lemma "P (null xs) \<Longrightarrow> null xs \<Longrightarrow> xs = []"
 by (metis_exhaust null_def)
 
 lemma "(0::nat) + 0 = 0"
-by (metis_exhaust arithmetic_simps(38))
+by (metis_exhaust add_0_left)
 
 end

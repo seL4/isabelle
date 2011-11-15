@@ -264,7 +264,7 @@ lemma n_leaves_append [simp]:
      "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
 apply (induct t1)
  apply (metis append.simps(1) n_leaves.simps(1) nat_mult_1 plus_nat.simps(1)
-              semiring_norm(111))
+              Suc_eq_plus1)
 by (simp add: left_distrib)
 
 declare [[ sledgehammer_problem_prefix = "BT__bt_map_append" ]]
