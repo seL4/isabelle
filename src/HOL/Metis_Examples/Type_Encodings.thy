@@ -72,7 +72,7 @@ fun metis_exhaust_tac ctxt ths =
       | tac (type_enc :: type_encs) st =
         st (* |> tap (fn _ => tracing (PolyML.makestring type_enc)) *)
            |> ((if null type_encs then all_tac else rtac @{thm fork} 1)
-               THEN Metis_Tactic.metis_tac [type_enc] ctxt ths 1
+               THEN Metis_Tactic.metis_tac [type_enc] "combinators" ctxt ths 1
                THEN COND (has_fewer_prems 2) all_tac no_tac
                THEN tac type_encs)
   in tac end
