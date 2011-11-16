@@ -22,6 +22,7 @@ struct
 open ATP_Util
 open ATP_Systems
 open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers
@@ -310,7 +311,7 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val default_minimize_prover = Metis_Tactic.metisN
+val default_minimize_prover = metisN
 
 fun is_raw_param_relevant_for_minimize (name, _) =
   member (op =) params_for_minimize name

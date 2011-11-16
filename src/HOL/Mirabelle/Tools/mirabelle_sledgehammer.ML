@@ -343,10 +343,16 @@ fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring "metis (full_types)" msg then "metis (full_types)"
-    else if String.isSubstring "metis (no_types)" msg then "metis (no_types)"
-    else if String.isSubstring "metis" msg then "metis"
-    else "smt")
+    if String.isSubstring "metis (" msg then
+      msg |> Substring.full
+          |> Substring.position "metis ("
+          |> snd |> Substring.position ")"
+          |> fst |> Substring.string
+          |> suffix ")"
+    else if String.isSubstring "metis" msg then
+      "metis"
+    else
+      "smt")
 
 local
 
@@ -403,7 +409,8 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-        preplay = K (ATP_Reconstruct.Failed_to_Play ATP_Reconstruct.Metis),
+        preplay =
+          K (ATP_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,
@@ -577,14 +584,22 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           ORELSE' Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
-        else if full orelse !reconstructor = "metis (full_types)" then
-          Metis_Tactic.metis_tac [Metis_Tactic.full_type_enc]
-                                 ATP_Translate.combinatorsN ctxt thms
-        else if !reconstructor = "metis (no_types)" then
-          Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc]
-                                 ATP_Translate.combinatorsN ctxt thms
+        else if full then
+          Metis_Tactic.metis_tac [ATP_Reconstruct.full_typesN]
+            ATP_Reconstruct.metis_default_lam_trans ctxt thms
+        else if String.isPrefix "metis (" (!reconstructor) then
+          let
+            val (type_encs, lam_trans) =
+              !reconstructor
+              |> Outer_Syntax.scan Position.start
+              |> filter Token.is_proper |> tl
+              |> Metis_Tactic.parse_metis_options |> fst
+              |>> the_default [ATP_Reconstruct.partial_typesN]
+              ||> the_default ATP_Reconstruct.metis_default_lam_trans
+          in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt thms
+          Metis_Tactic.metis_tac [] ATP_Reconstruct.metis_default_lam_trans ctxt
+            thms
         else
           K all_tac
       end

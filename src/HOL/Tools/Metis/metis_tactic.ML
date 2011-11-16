@@ -9,22 +9,13 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTIC =
 sig
-  val metisN : string
-  val full_typesN : string
-  val partial_typesN : string
-  val no_typesN : string
-  val really_full_type_enc : string
-  val full_type_enc : string
-  val partial_type_enc : string
-  val no_type_enc : string
-  val full_type_syss : string list
-  val partial_type_syss : string list
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
   val type_has_top_sort : typ -> bool
   val metis_tac :
     string list -> string -> Proof.context -> thm list -> int -> tactic
+  val parse_metis_options : (string list option * string option) parser
   val setup : theory -> theory
 end
 
@@ -32,37 +23,9 @@ structure Metis_Tactic : METIS_TACTIC =
 struct
 
 open ATP_Translate
+open ATP_Reconstruct
 open Metis_Translate
 open Metis_Reconstruct
-
-val metisN = "metis"
-
-val full_typesN = "full_types"
-val partial_typesN = "partial_types"
-val no_typesN = "no_types"
-
-val really_full_type_enc = "mono_tags"
-val full_type_enc = "poly_guards_query"
-val partial_type_enc = "poly_args"
-val no_type_enc = "erased"
-
-val full_type_syss = [full_type_enc, really_full_type_enc]
-val partial_type_syss = partial_type_enc :: full_type_syss
-
-val type_enc_aliases =
-  [(full_typesN, full_type_syss),
-   (partial_typesN, partial_type_syss),
-   (no_typesN, [no_type_enc])]
-
-val lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
-val default_lam_trans = combinatorsN
-
-fun method_call_for type_syss lam_trans =
-  metisN ^ " (" ^
-  (case AList.find (op =) type_enc_aliases type_syss of
-     [alias] => alias
-   | _ => hd type_syss) ^
-  (if lam_trans = default_lam_trans then "" else ", " ^ lam_trans) ^ ")"
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -135,7 +98,7 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE (type_enc :: fallback_type_syss) lam_trans ctxt cls ths0 =
+fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
@@ -211,7 +174,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lam_trans ctxt cls ths0 =
             end
         | Metis_Resolution.Satisfiable _ =>
             (trace_msg ctxt (fn () => "Metis: No first-order proof with the lemmas supplied");
-             if null fallback_type_syss then
+             if null fallback_type_encs then
                ()
              else
                raise METIS ("FOL_SOLVE",
@@ -219,15 +182,15 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lam_trans ctxt cls ths0 =
              [])
   end
   handle METIS (loc, msg) =>
-         case fallback_type_syss of
+         case fallback_type_encs of
            [] => error ("Failed to replay Metis proof in Isabelle." ^
                         (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                          else ""))
-         | _ =>
+         | first_fallback :: _ =>
            (verbose_warning ctxt
                 ("Falling back on " ^
-                 quote (method_call_for fallback_type_syss lam_trans) ^ "...");
-            FOL_SOLVE fallback_type_syss lam_trans ctxt cls ths0)
+                 quote (metis_call first_fallback lam_trans) ^ "...");
+            FOL_SOLVE fallback_type_encs lam_trans ctxt cls ths0)
 
 fun neg_clausify ctxt combinators =
   single
@@ -246,13 +209,14 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun generic_metis_tac type_syss lam_trans ctxt ths i st0 =
+fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
+    val type_encs = type_encs |> maps unalias_type_enc
     fun tac clause =
-      resolve_tac (FOL_SOLVE type_syss lam_trans ctxt clause ths) 1
+      resolve_tac (FOL_SOLVE type_encs lam_trans ctxt clause ths) 1
   in
     if exists_type type_has_top_sort (prop_of st0) then
       verbose_warning ctxt "Proof state contains the universal sort {}"
@@ -262,8 +226,8 @@ fun generic_metis_tac type_syss lam_trans ctxt ths i st0 =
         (maps (neg_clausify ctxt (lam_trans = combinatorsN))) tac ctxt i st0
   end
 
-fun metis_tac [] = generic_metis_tac partial_type_syss
-  | metis_tac type_syss = generic_metis_tac type_syss
+fun metis_tac [] = generic_metis_tac partial_type_encs
+  | metis_tac type_encs = generic_metis_tac type_encs
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
    "by (metis X)" to prevent "Subgoal.FOCUS" from freezing the type variables.
@@ -273,44 +237,45 @@ fun metis_tac [] = generic_metis_tac partial_type_syss
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
-fun method default_type_syss ((override_type_syss, lam_trans), ths) ctxt facts =
+fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
   let
     val _ =
-      if default_type_syss = full_type_syss then
+      if default_type_encs = full_type_encs then
         legacy_feature "Old \"metisFT\" method -- use \"metis (full_types)\" instead"
       else
         ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-    val type_syss = override_type_syss |> the_default default_type_syss
-    val lam_trans = lam_trans |> the_default default_lam_trans
+    val type_encs = override_type_encs |> the_default default_type_encs
+    val lam_trans = lam_trans |> the_default metis_default_lam_trans
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
-              CHANGED_PROP o generic_metis_tac type_syss lam_trans ctxt
+              CHANGED_PROP o generic_metis_tac type_encs lam_trans ctxt
                                                (schem_facts @ ths))
   end
 
-fun consider_arg s =
-  if member (op =) lam_transs s then
-    apsnd (K (SOME s))
-  else
-    apfst (K (SOME (AList.lookup (op =) type_enc_aliases s |> the_default [s])))
+val lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
 
-fun setup_method (binding, type_syss) =
-  (Scan.lift (Scan.optional
-       (Args.parens (Parse.short_ident
-                     -- Scan.option (Parse.$$$ "," |-- Parse.short_ident))
-        >> (fn (s, s') =>
-               (NONE, NONE)
-               |> consider_arg s
-               |> (case s' of SOME s' => consider_arg s' | _ => I)))
-       (NONE, NONE)))
-  -- Attrib.thms >> (METHOD oo method type_syss)
+fun consider_opt s =
+  if member (op =) lam_transs s then apsnd (K (SOME s))
+  else apfst (K (SOME [s]))
+
+val parse_metis_options =
+  Scan.optional
+      (Args.parens (Parse.short_ident
+                    -- Scan.option (Parse.$$$ "," |-- Parse.short_ident))
+       >> (fn (s, s') =>
+              (NONE, NONE) |> consider_opt s
+                           |> (case s' of SOME s' => consider_opt s' | _ => I)))
+      (NONE, NONE)
+
+fun setup_method (binding, type_encs) =
+  Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo method type_encs)
   |> Method.setup binding
 
 val setup =
-  [((@{binding metis}, partial_type_syss),
+  [((@{binding metis}, partial_type_encs),
     "Metis for FOL and HOL problems"),
-   ((@{binding metisFT}, full_type_syss),
+   ((@{binding metisFT}, full_type_encs),
     "Metis for FOL/HOL problems with fully-typed translation")]
   |> fold (uncurry setup_method)
 

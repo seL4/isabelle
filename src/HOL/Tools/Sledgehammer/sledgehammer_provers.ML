@@ -76,6 +76,7 @@ sig
   val smt_slice_time_frac : real Config.T
   val smt_slice_min_secs : int Config.T
   val das_tool : string
+  val plain_metis : reconstructor
   val select_smt_solver : string -> Proof.context -> Proof.context
   val prover_name_for_reconstructor : reconstructor -> string
   val is_reconstructor : string -> bool
@@ -128,15 +129,16 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
-val metisN = Metis_Tactic.metisN
-val metis_full_typesN = metisN ^ "_" ^ Metis_Tactic.full_typesN
-val metis_no_typesN = metisN ^ "_" ^ Metis_Tactic.no_typesN
+val metisN = metisN
+val metis_full_typesN = metisN ^ "_" ^ full_typesN
+val metis_no_typesN = metisN ^ "_" ^ no_typesN
 val smtN = name_of_reconstructor SMT
 
+val plain_metis = Metis (hd partial_type_encs, combinatorsN)
 val reconstructor_infos =
-  [(metisN, Metis),
-   (metis_full_typesN, Metis_Full_Types),
-   (metis_no_typesN, Metis_No_Types),
+  [(metisN, plain_metis),
+   (metis_full_typesN, Metis (hd full_type_encs, combinatorsN)),
+   (metis_no_typesN, Metis (no_type_enc, combinatorsN)),
    (smtN, SMT)]
 
 val prover_name_for_reconstructor = AList.find (op =) reconstructor_infos #> hd
@@ -410,12 +412,8 @@ fun timed_apply timeout tac state i =
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
-fun tac_for_reconstructor Metis =
-    Metis_Tactic.metis_tac [Metis_Tactic.partial_type_enc] combinatorsN
-  | tac_for_reconstructor Metis_Full_Types =
-    Metis_Tactic.metis_tac Metis_Tactic.full_type_syss combinatorsN
-  | tac_for_reconstructor Metis_No_Types =
-    Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc] combinatorsN
+fun tac_for_reconstructor (Metis (type_enc, lam_trans)) =
+    Metis_Tactic.metis_tac [type_enc] lam_trans
   | tac_for_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstructor debug timeout ths =
@@ -787,7 +785,7 @@ fun run_atp mode name
                         |> map snd
               in
                 play_one_line_proof mode debug verbose preplay_timeout used_ths
-                                    state subgoal Metis all_reconstructors
+                                    state subgoal plain_metis all_reconstructors
               end,
            fn preplay =>
               let
@@ -812,7 +810,8 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
+        ([], K (Failed_to_Play plain_metis),
+         fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}
@@ -980,7 +979,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
          else
            "")
       | SOME failure =>
-        (K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
+        (K (Failed_to_Play plain_metis), fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}

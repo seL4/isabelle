@@ -14,9 +14,7 @@ sig
   type locality = ATP_Translate.locality
 
   datatype reconstructor =
-    Metis |
-    Metis_Full_Types |
-    Metis_No_Types |
+    Metis of string * string |
     SMT
 
   datatype play =
@@ -30,6 +28,17 @@ sig
   type isar_params =
     bool * bool * int * string Symtab.table * int list list * int
     * (string * locality) list vector * int Symtab.table * string proof * thm
+
+  val metisN : string
+  val full_typesN : string
+  val partial_typesN : string
+  val no_typesN : string
+  val really_full_type_enc : string
+  val full_type_enc : string
+  val partial_type_enc : string
+  val no_type_enc : string
+  val full_type_encs : string list
+  val partial_type_encs : string list
   val used_facts_in_atp_proof :
     Proof.context -> int -> (string * locality) list vector -> string proof
     -> (string * locality) list
@@ -37,6 +46,9 @@ sig
     Proof.context -> int list list -> int -> (string * locality) list vector
     -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
+  val unalias_type_enc : string -> string list
+  val metis_default_lam_trans : string
+  val metis_call : string -> string -> string
   val name_of_reconstructor : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val make_tvar : string -> typ
@@ -62,9 +74,7 @@ open ATP_Proof
 open ATP_Translate
 
 datatype reconstructor =
-  Metis |
-  Metis_Full_Types |
-  Metis_No_Types |
+  Metis of string * string |
   SMT
 
 datatype play =
@@ -190,10 +200,44 @@ fun uses_typed_helpers typed_helpers =
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 
+val metisN = "metis"
+
+val full_typesN = "full_types"
+val partial_typesN = "partial_types"
+val no_typesN = "no_types"
+
+val really_full_type_enc = "mono_tags"
+val full_type_enc = "poly_guards_query"
+val partial_type_enc = "poly_args"
+val no_type_enc = "erased"
+
+val full_type_encs = [full_type_enc, really_full_type_enc]
+val partial_type_encs = partial_type_enc :: full_type_encs
+
+val type_enc_aliases =
+  [(full_typesN, full_type_encs),
+   (partial_typesN, partial_type_encs),
+   (no_typesN, [no_type_enc])]
+
+fun unalias_type_enc s =
+  AList.lookup (op =) type_enc_aliases s |> the_default [s]
+
+val metis_default_lam_trans = combinatorsN
+
+fun metis_call type_enc lam_trans =
+  let
+    val type_enc =
+      case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases
+                      type_enc of
+        [alias] => alias
+      | _ => type_enc
+    val opts = [] |> type_enc <> Metis_Tactic.partial_typesN ? cons type_enc
+                  |> lam_trans <> metis_default_lam_trans ? cons lam_trans
+  in "metis" ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
+
 (* unfortunate leaking abstraction *)
-fun name_of_reconstructor Metis = "metis"
-  | name_of_reconstructor Metis_Full_Types = "metis (full_types)"
-  | name_of_reconstructor Metis_No_Types = "metis (no_types)"
+fun name_of_reconstructor (Metis (type_enc, lam_trans)) =
+    metis_call type_enc lam_trans
   | name_of_reconstructor SMT = "smt"
 
 fun string_for_label (s, num) = s ^ string_of_int num
@@ -964,7 +1008,9 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor = if full_types then Metis_Full_Types else Metis
+    val reconstructor =
+      Metis (if full_types then Metis_Tactic.full_typesN
+             else Metis_Tactic.partial_typesN, combinatorsN)
     fun do_facts (ls, ss) =
       reconstructor_command reconstructor 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),

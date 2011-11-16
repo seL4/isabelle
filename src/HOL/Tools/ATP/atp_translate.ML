@@ -1692,7 +1692,7 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else
-    error ("Unknown lambda translation method: " ^ quote lam_trans ^ ".")
+    error ("Unknown lambda translation scheme: " ^ quote lam_trans ^ ".")
 
 fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
                        concl_t facts =
@@ -2348,7 +2348,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         if is_type_enc_higher_order type_enc then keep_lamsN else combinatorsN
       else if lam_trans = keep_lamsN andalso
               not (is_type_enc_higher_order type_enc) then
-        error ("Lambda translation method incompatible with first-order \
+        error ("Lambda translation scheme incompatible with first-order \
                \encoding.")
       else
         lam_trans
