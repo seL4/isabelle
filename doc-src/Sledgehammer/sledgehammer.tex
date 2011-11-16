@@ -655,16 +655,26 @@ General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 The \textit{metis} proof method has the syntax
 
 \prew
-\textbf{\textit{metis}}~(\qty{type\_enc})${}^?$~\qty{facts}${}^?$
+\textbf{\textit{metis}}~(\qty{options})${}^?$~\qty{facts}${}^?$
 \postw
 
-where \qty{type\_enc} is a type encoding specification with the same semantics
-as Sledgehammer's \textit{type\_enc} option (\S\ref{problem-encoding}) and
-\qty{facts} is a list of arbitrary facts. In addition to the values listed in
-\S\ref{problem-encoding}, \qty{type\_enc} may also be \textit{full\_types}, in
-which case an appropriate type-sound encoding is chosen, \textit{partial\_types}
-(the default type-unsound encoding), or \textit{no\_types}, a synonym for
-\textit{erased}.
+where \qty{facts} is a list of arbitrary facts and \qty{options} is a
+comma-separated list consisting of at most one $\lambda$ translation scheme
+specification with the same semantics as Sledgehammer's \textit{lam\_trans}
+option (\S\ref{problem-encoding}) and at most one type encoding specification
+with the same semantics as Sledgehammer's \textit{type\_enc} option
+(\S\ref{problem-encoding}).
+%
+The supported $\lambda$ translation schemes are \textit{hide\_lams},
+\textit{lam\_lifting}, and \textit{combinators} (the default).
+%
+All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
+For convenience, the following aliases are provided:
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{full\_types}:} An appropriate type-sound encoding.
+\item[\labelitemi] \textbf{\textit{partial\_types}:} Synonym for \textit{poly\_args}.
+\item[\labelitemi] \textbf{\textit{no\_types}:} Synonym for \textit{erased}.
+\end{enum}
 
 \section{Option Reference}
 \label{option-reference}
