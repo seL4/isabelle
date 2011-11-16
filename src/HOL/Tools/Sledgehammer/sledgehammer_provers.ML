@@ -120,6 +120,7 @@ open ATP_Proof
 open ATP_Systems
 open ATP_Translate
 open ATP_Reconstruct
+open Metis_Tactic
 open Sledgehammer_Util
 open Sledgehammer_Filter
 
@@ -161,7 +162,7 @@ fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME {best_slices, ...} =>
-      exists (fn (_, (_, (_, format, _, _))) => is_format format)
+      exists (fn (_, (_, (_, format, _, _, _))) => is_format format)
              (best_slices ctxt)
     | NONE => false
   end
@@ -419,7 +420,7 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor (Metis (type_enc, lam_trans)) =
-    Metis_Tactic.metis_tac [type_enc] lam_trans
+    metis_tac [type_enc] lam_trans
   | tac_for_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstr debug timeout ths =
@@ -637,7 +638,7 @@ fun run_atp mode name
               end
             fun run_slice (slice, (time_frac, (complete,
                                     (best_max_relevant, format, best_type_enc,
-                                     extra))))
+                                     best_lam_trans, extra))))
                           time_left =
               let
                 val num_facts =
@@ -678,9 +679,7 @@ fun run_atp mode name
                 val lam_trans =
                   case lam_trans of
                     SOME s => s
-                  | NONE =>
-                    if is_type_enc_higher_order type_enc then keep_lamsN
-                    else combinatorsN (* FIXME ### improve *)
+                  | NONE => best_lam_trans
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, _, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
@@ -789,7 +788,10 @@ fun run_atp mode name
         let
           val used_facts =
             used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof
-          val reconstrs = standard_reconstructors lam_trans
+          val reconstrs =
+            standard_reconstructors
+                (if member (op =) metis_lam_transs lam_trans then lam_trans
+                 else combinatorsN)
         in
           (used_facts,
            fn () =>
@@ -1024,8 +1026,7 @@ fun run_reconstructor mode name
        preplay = K play,
        message = fn play =>
                     let
-                      val (_, override_params (* FIXME ###: use these *)) =
-                        extract_reconstructor reconstr
+                      val (_, override_params) = extract_reconstructor reconstr
                       val one_line_params =
                         (play, proof_banner mode name, used_facts,
                          minimize_command override_params name, subgoal,

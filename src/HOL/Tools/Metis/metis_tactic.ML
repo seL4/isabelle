@@ -15,6 +15,7 @@ sig
   val type_has_top_sort : typ -> bool
   val metis_tac :
     string list -> string -> Proof.context -> thm list -> int -> tactic
+  val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
   val setup : theory -> theory
 end
@@ -253,10 +254,10 @@ fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
                                                (schem_facts @ ths))
   end
 
-val lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
+val metis_lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
 
 fun consider_opt s =
-  if member (op =) lam_transs s then apsnd (K (SOME s))
+  if member (op =) metis_lam_transs s then apsnd (K (SOME s))
   else apfst (K (SOME [s]))
 
 val parse_metis_options =
