@@ -30,6 +30,7 @@ sig
     * (string * locality) list vector * int Symtab.table * string proof * thm
 
   val metisN : string
+  val smtN : string
   val full_typesN : string
   val partial_typesN : string
   val no_typesN : string
@@ -198,9 +199,10 @@ fun uses_typed_helpers typed_helpers =
            | _ => false)
 
 
-(** Soft-core proof reconstruction: Metis one-liner **)
+(** Soft-core proof reconstruction: one-liners **)
 
 val metisN = "metis"
+val smtN = "smt"
 
 val full_typesN = "full_types"
 val partial_typesN = "partial_types"
@@ -233,12 +235,12 @@ fun metis_call type_enc lam_trans =
       | _ => type_enc
     val opts = [] |> type_enc <> Metis_Tactic.partial_typesN ? cons type_enc
                   |> lam_trans <> metis_default_lam_trans ? cons lam_trans
-  in "metis" ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
+  in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 (* unfortunate leaking abstraction *)
 fun name_of_reconstructor (Metis (type_enc, lam_trans)) =
     metis_call type_enc lam_trans
-  | name_of_reconstructor SMT = "smt"
+  | name_of_reconstructor SMT = smtN
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
@@ -257,9 +259,9 @@ fun try_command_line banner time command =
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun reconstructor_command reconstructor i n (ls, ss) =
+fun reconstructor_command reconstr i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^
-  command_call (name_of_reconstructor reconstructor) ss
+  command_call (name_of_reconstructor reconstr) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -274,20 +276,19 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
                          subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
-    val (failed, reconstructor, ext_time) =
+    val (failed, reconstr, ext_time) =
       case preplay of
-        Played (reconstructor, time) =>
-        (false, reconstructor, (SOME (false, time)))
-      | Trust_Playable (reconstructor, time) =>
-        (false, reconstructor,
+        Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
+      | Trust_Playable (reconstr, time) =>
+        (false, reconstr,
          case time of
            NONE => NONE
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
-      | Failed_to_Play reconstructor => (true, reconstructor, NONE)
+      | Failed_to_Play reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
-      |> reconstructor_command reconstructor subgoal subgoal_count
+      |> reconstructor_command reconstr subgoal subgoal_count
       |> (if failed then enclose "One-line proof reconstruction failed: " "."
           else try_command_line banner ext_time)
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
@@ -1008,11 +1009,11 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor =
+    val reconstr =
       Metis (if full_types then Metis_Tactic.full_typesN
              else Metis_Tactic.partial_typesN, combinatorsN)
     fun do_facts (ls, ss) =
-      reconstructor_command reconstructor 1 1
+      reconstructor_command reconstr 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =

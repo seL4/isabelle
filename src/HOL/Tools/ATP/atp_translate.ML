@@ -37,7 +37,6 @@ sig
   val combinatorsN : string
   val hybrid_lamsN : string
   val keep_lamsN : string
-  val smartN : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
   val tvar_prefix : string
@@ -127,7 +126,6 @@ val lam_liftingN = "lam_lifting"
 val combinatorsN = "combinators"
 val hybrid_lamsN = "hybrid_lams"
 val keep_lamsN = "keep_lams"
-val smartN = "smart"
 
 (* TFF1 is still in development, and it is still unclear whether symbols will be
    allowed to have types like "$tType > $o" (i.e., "![A : $tType] : $o"), with
@@ -2344,10 +2342,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       else
         SOME false
     val lam_trans =
-      if lam_trans = smartN then
-        if is_type_enc_higher_order type_enc then keep_lamsN else combinatorsN
-      else if lam_trans = keep_lamsN andalso
-              not (is_type_enc_higher_order type_enc) then
+      if lam_trans = keep_lamsN andalso
+         not (is_type_enc_higher_order type_enc) then
         error ("Lambda translation scheme incompatible with first-order \
                \encoding.")
       else

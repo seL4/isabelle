@@ -49,7 +49,7 @@ fun run_atp override_params relevance_override i n ctxt goal =
        facts = map Sledgehammer_Provers.Untranslated_Fact facts,
        smt_filter = NONE}
   in
-    (case prover params (K (K "")) problem of
+    (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)

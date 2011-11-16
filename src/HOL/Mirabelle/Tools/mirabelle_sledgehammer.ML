@@ -432,7 +432,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
            subgoal_count = Sledgehammer_Util.subgoal_count st,
            facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
            smt_filter = NONE}
-      in prover params (K (K "")) problem end)) ()
+      in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds

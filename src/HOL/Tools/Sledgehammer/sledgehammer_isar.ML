@@ -282,7 +282,7 @@ fun extract_params mode default_params override_params =
         "smart" => NONE
       | s => (type_enc_from_string Sound s; SOME s)
     val sound = mode = Auto_Try orelse lookup_bool "sound"
-    val lam_trans = lookup_string "lam_trans"
+    val lam_trans = lookup_option lookup_string "lam_trans"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
@@ -318,10 +318,13 @@ fun is_raw_param_relevant_for_minimize (name, _) =
 fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
-fun minimize_command override_params i prover_name fact_names =
+fun minimize_command override_params i more_override_params prover_name
+                     fact_names =
   let
     val params =
-      override_params
+      (override_params
+       |> filter_out (AList.defined (op =) more_override_params o fst)) @
+      more_override_params
       |> filter is_raw_param_relevant_for_minimize
       |> map string_for_raw_param
       |> (if prover_name = default_minimize_prover then I else cons prover_name)
