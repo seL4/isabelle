@@ -41,6 +41,10 @@ co-data-types in-duc-tive co-in-duc-tive}
 
 \begin{document}
 
+%%% TYPESETTING
+%\renewcommand\labelitemi{$\bullet$}
+\renewcommand\labelitemi{\raise.065ex\hbox{\small\textbullet}}
+
 \selectlanguage{english}
 
 \title{\includegraphics[scale=0.5]{isabelle_nitpick} \\[4ex]
@@ -1885,24 +1889,24 @@ thing, and the most important options have been covered in context in
 The descriptions below refer to the following syntactic quantities:
 
 \begin{enum}
-\item[$\bullet$] \qtybf{string}: A string.
-\item[$\bullet$] \qtybf{string\_list\/}: A space-separated list of strings
+\item[\labelitemi] \qtybf{string}: A string.
+\item[\labelitemi] \qtybf{string\_list\/}: A space-separated list of strings
 (e.g., ``\textit{ichi ni san}'').
-\item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
-\item[$\bullet$] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or \textit{smart}.
-\item[$\bullet$] \qtybf{int\/}: An integer. Negative integers are prefixed with a hyphen.
-\item[$\bullet$] \qtybf{smart\_int\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{int\_range}: An integer (e.g., 3) or a range
+\item[\labelitemi] \qtybf{bool\/}: \textit{true} or \textit{false}.
+\item[\labelitemi] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or \textit{smart}.
+\item[\labelitemi] \qtybf{int\/}: An integer. Negative integers are prefixed with a hyphen.
+\item[\labelitemi] \qtybf{smart\_int\/}: An integer or \textit{smart}.
+\item[\labelitemi] \qtybf{int\_range}: An integer (e.g., 3) or a range
 of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered as \texttt{-} (hyphen) or \texttt{\char`\\\char`\<emdash\char`\>}.
-\item[$\bullet$] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
-\item[$\bullet$] \qtybf{float\_or\_none}: An integer (e.g., 60) or floating-point number
+\item[\labelitemi] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
+\item[\labelitemi] \qtybf{float\_or\_none}: An integer (e.g., 60) or floating-point number
 (e.g., 0.5) expressing a number of seconds, or the keyword \textit{none}
 ($\infty$ seconds).
-\item[$\bullet$] \qtybf{const\/}: The name of a HOL constant.
-\item[$\bullet$] \qtybf{term}: A HOL term (e.g., ``$f~x$'').
-\item[$\bullet$] \qtybf{term\_list\/}: A space-separated list of HOL terms (e.g.,
+\item[\labelitemi] \qtybf{const\/}: The name of a HOL constant.
+\item[\labelitemi] \qtybf{term}: A HOL term (e.g., ``$f~x$'').
+\item[\labelitemi] \qtybf{term\_list\/}: A space-separated list of HOL terms (e.g.,
 ``$f~x$''~``$g~y$'').
-\item[$\bullet$] \qtybf{type}: A HOL type.
+\item[\labelitemi] \qtybf{type}: A HOL type.
 \end{enum}
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
@@ -2032,17 +2036,17 @@ Specifies whether the specified (co)in\-duc\-tively defined predicate is
 well-founded. The option can take the following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{true}:} Tentatively treat the (co)in\-duc\-tive
+\item[\labelitemi] \textbf{\textit{true}:} Tentatively treat the (co)in\-duc\-tive
 predicate as if it were well-founded. Since this is generally not sound when the
 predicate is not well-founded, the counterexamples are tagged as ``quasi
 genuine.''
 
-\item[$\bullet$] \textbf{\textit{false}:} Treat the (co)in\-duc\-tive predicate
+\item[\labelitemi] \textbf{\textit{false}:} Treat the (co)in\-duc\-tive predicate
 as if it were not well-founded. The predicate is then unrolled as prescribed by
 the \textit{star\_linear\_preds}, \textit{iter}~\qty{const}, and \textit{iter}
 options.
 
-\item[$\bullet$] \textbf{\textit{smart}:} Try to prove that the inductive
+\item[\labelitemi] \textbf{\textit{smart}:} Try to prove that the inductive
 predicate is well-founded using Isabelle's \textit{lexicographic\_order} and
 \textit{size\_change} tactics. If this succeeds (or the predicate occurs with an
 appropriate polarity in the formula to falsify), use an efficient fixed-point
@@ -2095,10 +2099,10 @@ Like other drastic optimizations, it can also prevent the discovery of
 counterexamples. The option can take the following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{true}:} Box the specified type whenever
+\item[\labelitemi] \textbf{\textit{true}:} Box the specified type whenever
 practicable.
-\item[$\bullet$] \textbf{\textit{false}:} Never box the type.
-\item[$\bullet$] \textbf{\textit{smart}:} Box the type only in contexts where it
+\item[\labelitemi] \textbf{\textit{false}:} Never box the type.
+\item[\labelitemi] \textbf{\textit{smart}:} Box the type only in contexts where it
 is likely to help. For example, $n$-tuples where $n > 2$ and arguments to
 higher-order functions are good candidates for boxing.
 \end{enum}
@@ -2116,11 +2120,11 @@ Specifies whether Nitpick should attempt to finitize an infinite datatype. The
 option can then take the following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{true}:} Finitize the datatype. Since this is
+\item[\labelitemi] \textbf{\textit{true}:} Finitize the datatype. Since this is
 unsound, counterexamples generated under these conditions are tagged as ``quasi
 genuine.''
-\item[$\bullet$] \textbf{\textit{false}:} Don't attempt to finitize the datatype.
-\item[$\bullet$] \textbf{\textit{smart}:}
+\item[\labelitemi] \textbf{\textit{false}:} Don't attempt to finitize the datatype.
+\item[\labelitemi] \textbf{\textit{smart}:}
 If the datatype's constructors don't appear in the problem, perform a
 monotonicity analysis to detect whether the datatype can be soundly finitized;
 otherwise, don't finitize it.
@@ -2302,14 +2306,14 @@ report to the author at
 Specifies the expected outcome, which must be one of the following:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{genuine}:} Nitpick found a genuine counterexample.
-\item[$\bullet$] \textbf{\textit{quasi\_genuine}:} Nitpick found a ``quasi
+\item[\labelitemi] \textbf{\textit{genuine}:} Nitpick found a genuine counterexample.
+\item[\labelitemi] \textbf{\textit{quasi\_genuine}:} Nitpick found a ``quasi
 genuine'' counterexample (i.e., a counterexample that is genuine unless
 it contradicts a missing axiom or a dangerous option was used inappropriately).
-\item[$\bullet$] \textbf{\textit{potential}:} Nitpick found a potentially
+\item[\labelitemi] \textbf{\textit{potential}:} Nitpick found a potentially
 spurious counterexample.
-\item[$\bullet$] \textbf{\textit{none}:} Nitpick found no counterexample.
-\item[$\bullet$] \textbf{\textit{unknown}:} Nitpick encountered some problem (e.g.,
+\item[\labelitemi] \textbf{\textit{none}:} Nitpick found no counterexample.
+\item[\labelitemi] \textbf{\textit{unknown}:} Nitpick encountered some problem (e.g.,
 Kodkod ran out of memory).
 \end{enum}
 
@@ -2337,7 +2341,7 @@ The supported solvers are listed below:
 
 \begin{enum}
 
-\item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
+\item[\labelitemi] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
 the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
 \texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
 executable.%
@@ -2348,17 +2352,17 @@ The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
 \url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
 Nitpick has been tested with version 2.51.
 
-\item[$\bullet$] \textbf{\textit{CryptoMiniSat\_JNI}:} The JNI (Java Native
+\item[\labelitemi] \textbf{\textit{CryptoMiniSat\_JNI}:} The JNI (Java Native
 Interface) version of CryptoMiniSat is bundled with Kodkodi and is precompiled
 for Linux and Mac~OS~X. It is also available from the Kodkod web site
 \cite{kodkod-2009}.
 
-\item[$\bullet$] \textbf{\textit{Lingeling\_JNI}:}
+\item[\labelitemi] \textbf{\textit{Lingeling\_JNI}:}
 Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
 version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
 Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}.
 
-\item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
+\item[\labelitemi] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
 written in \cpp{}. To use MiniSat, set the environment variable
 \texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
 executable.%
@@ -2367,13 +2371,13 @@ The \cpp{} sources and executables for MiniSat are available at
 \url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
 and 2.2.
 
-\item[$\bullet$] \textbf{\textit{MiniSat\_JNI}:} The JNI
+\item[\labelitemi] \textbf{\textit{MiniSat\_JNI}:} The JNI
 version of MiniSat is bundled with Kodkodi and is precompiled for Linux,
 Mac~OS~X, and Windows (Cygwin). It is also available from the Kodkod web site
 \cite{kodkod-2009}. Unlike the standard version of MiniSat, the JNI version can
 be used incrementally.
 
-\item[$\bullet$] \textbf{\textit{zChaff}:} zChaff is an older solver written
+\item[\labelitemi] \textbf{\textit{zChaff}:} zChaff is an older solver written
 in \cpp{}. To use zChaff, set the environment variable \texttt{ZCHAFF\_HOME} to
 the directory that contains the \texttt{zchaff} executable.%
 \footref{cygwin-paths}
@@ -2381,7 +2385,7 @@ The \cpp{} sources and executables for zChaff are available at
 \url{http://www.princeton.edu/~chaff/zchaff.html}. Nitpick has been tested with
 versions 2004-05-13, 2004-11-15, and 2007-03-12.
 
-\item[$\bullet$] \textbf{\textit{RSat}:} RSat is an efficient solver written in
+\item[\labelitemi] \textbf{\textit{RSat}:} RSat is an efficient solver written in
 \cpp{}. To use RSat, set the environment variable \texttt{RSAT\_HOME} to the
 directory that contains the \texttt{rsat} executable.%
 \footref{cygwin-paths}
@@ -2389,30 +2393,30 @@ The \cpp{} sources for RSat are available at
 \url{http://reasoning.cs.ucla.edu/rsat/}. Nitpick has been tested with version
 2.01.
 
-\item[$\bullet$] \textbf{\textit{BerkMin}:} BerkMin561 is an efficient solver
+\item[\labelitemi] \textbf{\textit{BerkMin}:} BerkMin561 is an efficient solver
 written in C. To use BerkMin, set the environment variable
 \texttt{BERKMIN\_HOME} to the directory that contains the \texttt{BerkMin561}
 executable.\footref{cygwin-paths}
 The BerkMin executables are available at
 \url{http://eigold.tripod.com/BerkMin.html}.
 
-\item[$\bullet$] \textbf{\textit{BerkMin\_Alloy}:} Variant of BerkMin that is
+\item[\labelitemi] \textbf{\textit{BerkMin\_Alloy}:} Variant of BerkMin that is
 included with Alloy 4 and calls itself ``sat56'' in its banner text. To use this
 version of BerkMin, set the environment variable
 \texttt{BERKMINALLOY\_HOME} to the directory that contains the \texttt{berkmin}
 executable.%
 \footref{cygwin-paths}
 
-\item[$\bullet$] \textbf{\textit{SAT4J}:} SAT4J is a reasonably efficient solver
+\item[\labelitemi] \textbf{\textit{SAT4J}:} SAT4J is a reasonably efficient solver
 written in Java that can be used incrementally. It is bundled with Kodkodi and
 requires no further installation or configuration steps. Do not attempt to
 install the official SAT4J packages, because their API is incompatible with
 Kodkod.
 
-\item[$\bullet$] \textbf{\textit{SAT4J\_Light}:} Variant of SAT4J that is
+\item[\labelitemi] \textbf{\textit{SAT4J\_Light}:} Variant of SAT4J that is
 optimized for small problems. It can also be used incrementally.
 
-\item[$\bullet$] \textbf{\textit{smart}:} If \textit{sat\_solver} is set to
+\item[\labelitemi] \textbf{\textit{smart}:} If \textit{sat\_solver} is set to
 \textit{smart}, Nitpick selects the first solver among the above that is
 recognized by Isabelle. If \textit{verbose} (\S\ref{output-format}) is enabled,
 Nitpick displays which SAT solver was chosen.
@@ -2837,7 +2841,7 @@ $\hbox{}\quad\textit{typ} \rightarrow \textit{morphism} \rightarrow \textit{Cont
 Here are the known bugs and limitations in Nitpick at the time of writing:
 
 \begin{enum}
-\item[$\bullet$] Underspecified functions defined using the \textbf{primrec},
+\item[\labelitemi] Underspecified functions defined using the \textbf{primrec},
 \textbf{function}, or \textbf{nominal\_\allowbreak primrec} packages can lead
 Nitpick to generate spurious counterexamples for theorems that refer to values
 for which the function is not defined. For example:
@@ -2858,33 +2862,33 @@ Such theorems are generally considered bad style because they rely on the
 internal representation of functions synthesized by Isabelle, an implementation
 detail.
 
-\item[$\bullet$] Similarly, Nitpick might find spurious counterexamples for
+\item[\labelitemi] Similarly, Nitpick might find spurious counterexamples for
 theorems that rely on the use of the indefinite description operator internally
 by \textbf{specification} and \textbf{quot\_type}.
 
-\item[$\bullet$] Axioms or definitions that restrict the possible values of the
+\item[\labelitemi] Axioms or definitions that restrict the possible values of the
 \textit{undefined} constant or other partially specified built-in Isabelle
 constants (e.g., \textit{Abs\_} and \textit{Rep\_} constants) are in general
 ignored. Again, such nonconservative extensions are generally considered bad
 style.
 
-\item[$\bullet$] Nitpick maintains a global cache of wellfoundedness conditions,
+\item[\labelitemi] Nitpick maintains a global cache of wellfoundedness conditions,
 which can become invalid if you change the definition of an inductive predicate
 that is registered in the cache. To clear the cache,
 run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
 $0.51$).
 
-\item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
+\item[\labelitemi] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.
 
-\item[$\bullet$] The \textit{nitpick\_xxx} attributes and the
+\item[\labelitemi] The \textit{nitpick\_xxx} attributes and the
 \textit{Nitpick\_xxx.register\_yyy} functions can cause havoc if used
 improperly.
 
-\item[$\bullet$] Although this has never been observed, arbitrary theorem
+\item[\labelitemi] Although this has never been observed, arbitrary theorem
 morphisms could possibly confuse Nitpick, resulting in spurious counterexamples.
 
-\item[$\bullet$] All constants, types, free variables, and schematic variables
+\item[\labelitemi] All constants, types, free variables, and schematic variables
 whose names start with \textit{Nitpick}{.} are reserved for internal use.
 \end{enum}
 
