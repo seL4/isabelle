@@ -71,7 +71,8 @@ fun thms_of_name ctxt name =
 fun sledgehammer_with_metis_tac ctxt override_params relevance_override i th =
   case run_atp override_params relevance_override i i ctxt th of
     SOME facts =>
-    Metis_Tactic.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
+    Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt
+        (maps (thms_of_name ctxt) facts) i th
   | NONE => Seq.empty
 
 fun sledgehammer_as_oracle_tac ctxt override_params relevance_override i th =

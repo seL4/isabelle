@@ -23,7 +23,8 @@ sig
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
   val type_has_top_sort : typ -> bool
-  val metis_tac : string list -> Proof.context -> thm list -> int -> tactic
+  val metis_tac :
+    string list -> string -> Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -53,11 +54,15 @@ val type_enc_aliases =
    (partial_typesN, partial_type_syss),
    (no_typesN, [no_type_enc])]
 
-fun method_call_for_type_enc type_syss =
+val lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
+val default_lam_trans = combinatorsN
+
+fun method_call_for type_syss lam_trans =
   metisN ^ " (" ^
   (case AList.find (op =) type_enc_aliases type_syss of
      [alias] => alias
-   | _ => hd type_syss) ^ ")"
+   | _ => hd type_syss) ^
+  (if lam_trans = default_lam_trans then "" else ", " ^ lam_trans) ^ ")"
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -130,7 +135,7 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
+fun FOL_SOLVE (type_enc :: fallback_type_syss) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
@@ -138,7 +143,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
                  Meson_Clausify.cnf_axiom ctxt new_skolemizer
-                                          (lambda_trans = combinatorsN) j th))
+                                          (lam_trans = combinatorsN) j th))
              (0 upto length ths0 - 1) ths0
       val ths = maps (snd o snd) th_cls_pairs
       val dischargers = map (fst o snd) th_cls_pairs
@@ -147,13 +152,13 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Sound type_enc
       val (sym_tab, axioms, concealed) =
-        prepare_metis_problem ctxt type_enc lambda_trans cls ths
+        prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm mth Isa_Lambda_Lifted =
           lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm _ (Isa_Raw ith) =
-          ith |> lambda_trans = lam_liftingN
+          ith |> lam_trans = lam_liftingN
                  ? introduce_lambda_wrappers_in_theorem ctxt
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
@@ -221,8 +226,8 @@ fun FOL_SOLVE (type_enc :: fallback_type_syss) lambda_trans ctxt cls ths0 =
          | _ =>
            (verbose_warning ctxt
                 ("Falling back on " ^
-                 quote (method_call_for_type_enc fallback_type_syss) ^ "...");
-            FOL_SOLVE fallback_type_syss lambda_trans ctxt cls ths0)
+                 quote (method_call_for fallback_type_syss lam_trans) ^ "...");
+            FOL_SOLVE fallback_type_syss lam_trans ctxt cls ths0)
 
 fun neg_clausify ctxt combinators =
   single
@@ -241,21 +246,20 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun generic_metis_tac type_syss ctxt ths i st0 =
+fun generic_metis_tac type_syss lam_trans ctxt ths i st0 =
   let
-    val lambda_trans = Config.get ctxt lambda_trans
     val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
     fun tac clause =
-      resolve_tac (FOL_SOLVE type_syss lambda_trans ctxt clause ths) 1
+      resolve_tac (FOL_SOLVE type_syss lam_trans ctxt clause ths) 1
   in
     if exists_type type_has_top_sort (prop_of st0) then
       verbose_warning ctxt "Proof state contains the universal sort {}"
     else
       ();
     Meson.MESON (preskolem_tac ctxt)
-        (maps (neg_clausify ctxt (lambda_trans = combinatorsN))) tac ctxt i st0
+        (maps (neg_clausify ctxt (lam_trans = combinatorsN))) tac ctxt i st0
   end
 
 fun metis_tac [] = generic_metis_tac partial_type_syss
@@ -269,7 +273,7 @@ fun metis_tac [] = generic_metis_tac partial_type_syss
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
-fun method default_type_syss (override_type_syss, ths) ctxt facts =
+fun method default_type_syss ((override_type_syss, lam_trans), ths) ctxt facts =
   let
     val _ =
       if default_type_syss = full_type_syss then
@@ -278,16 +282,28 @@ fun method default_type_syss (override_type_syss, ths) ctxt facts =
         ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
     val type_syss = override_type_syss |> the_default default_type_syss
+    val lam_trans = lam_trans |> the_default default_lam_trans
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
-              CHANGED_PROP
-              o generic_metis_tac type_syss ctxt (schem_facts @ ths))
+              CHANGED_PROP o generic_metis_tac type_syss lam_trans ctxt
+                                               (schem_facts @ ths))
   end
 
+fun consider_arg s =
+  if member (op =) lam_transs s then
+    apsnd (K (SOME s))
+  else
+    apfst (K (SOME (AList.lookup (op =) type_enc_aliases s |> the_default [s])))
+
 fun setup_method (binding, type_syss) =
-  ((Args.parens (Scan.repeat Parse.short_ident)
-    >> maps (fn s => AList.lookup (op =) type_enc_aliases s |> the_default [s]))
-    |> Scan.option |> Scan.lift)
+  (Scan.lift (Scan.optional
+       (Args.parens (Parse.short_ident
+                     -- Scan.option (Parse.$$$ "," |-- Parse.short_ident))
+        >> (fn (s, s') =>
+               (NONE, NONE)
+               |> consider_arg s
+               |> (case s' of SOME s' => consider_arg s' | _ => I)))
+       (NONE, NONE)))
   -- Attrib.thms >> (METHOD oo method type_syss)
   |> Method.setup binding
 

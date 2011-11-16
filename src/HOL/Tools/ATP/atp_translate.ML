@@ -90,13 +90,13 @@ sig
   val is_type_enc_fairly_sound : type_enc -> bool
   val type_enc_from_string : soundness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
-  val lift_lambdas :
-    Proof.context -> type_enc -> term list -> term list * term list
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
+  val trans_lams_from_string :
+    Proof.context -> type_enc -> string -> term list -> term list * term list
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
@@ -690,7 +690,7 @@ fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
     open_form (subst_bound (Var ((s, 0), T), t))
   | open_form t = t
 
-fun lift_lambdas ctxt type_enc =
+fun lift_lams ctxt type_enc =
   map (Envir.eta_contract #> close_form) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
           (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
@@ -1165,10 +1165,10 @@ fun do_introduce_combinators ctxt Ts t =
   handle THM _ => t |> do_cheaply_conceal_lambdas Ts
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
-fun preprocess_abstractions_in_terms trans_lambdas facts =
+fun preprocess_abstractions_in_terms trans_lams facts =
   let
     val (facts, lambda_ts) =
-      facts |> map (snd o snd) |> trans_lambdas
+      facts |> map (snd o snd) |> trans_lams
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lambda_facts =
       map2 (fn t => fn j =>
@@ -1677,28 +1677,28 @@ fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
     end
   | extract_lambda_def _ = raise Fail "malformed lifted lambda"
 
-fun translate_formulas ctxt format prem_kind type_enc lambda_trans presimp
-                       hyp_ts concl_t facts =
+fun trans_lams_from_string ctxt type_enc lam_trans =
+  if lam_trans = no_lamsN then
+    rpair []
+  else if lam_trans = hide_lamsN then
+    lift_lams ctxt type_enc ##> K []
+  else if lam_trans = lam_liftingN then
+    lift_lams ctxt type_enc
+  else if lam_trans = combinatorsN then
+    map (introduce_combinators ctxt) #> rpair []
+  else if lam_trans = hybrid_lamsN then
+    lift_lams ctxt type_enc
+    ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
+  else if lam_trans = keep_lamsN then
+    map (Envir.eta_contract) #> rpair []
+  else
+    error ("Unknown lambda translation method: " ^ quote lam_trans ^ ".")
+
+fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
+                       concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val trans_lambdas =
-      if lambda_trans = no_lamsN then
-        rpair []
-      else if lambda_trans = hide_lamsN then
-        lift_lambdas ctxt type_enc ##> K []
-      else if lambda_trans = lam_liftingN then
-        lift_lambdas ctxt type_enc
-      else if lambda_trans = combinatorsN then
-        map (introduce_combinators ctxt) #> rpair []
-      else if lambda_trans = hybrid_lamsN then
-        lift_lambdas ctxt type_enc
-        ##> maps (fn t => [t, introduce_combinators ctxt
-                                  (intentionalize_def t)])
-      else if lambda_trans = keep_lamsN then
-        map (Envir.eta_contract) #> rpair []
-      else
-        error ("Unknown lambda translation method: " ^
-               quote lambda_trans ^ ".")
+    val trans_lams = trans_lams_from_string ctxt type_enc lam_trans
     val presimp_consts = Meson.presimplified_consts ctxt
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
@@ -1715,11 +1715,11 @@ fun translate_formulas ctxt format prem_kind type_enc lambda_trans presimp
       (conjs, facts)
       |> presimp
          ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
-      |> (if lambda_trans = no_lamsN then
+      |> (if lam_trans = no_lamsN then
             rpair []
           else
             op @
-            #> preprocess_abstractions_in_terms trans_lambdas
+            #> preprocess_abstractions_in_terms trans_lams
             #>> chop (length conjs))
     val conjs = conjs |> make_conjecture ctxt format type_enc
     val (fact_names, facts) =
@@ -2330,7 +2330,7 @@ val free_typesN = "Type variables"
 val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
-        lambda_trans readable_names preproc hyp_ts concl_t facts =
+                        lam_trans readable_names preproc hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
@@ -2343,19 +2343,19 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         NONE
       else
         SOME false
-    val lambda_trans =
-      if lambda_trans = smartN then
+    val lam_trans =
+      if lam_trans = smartN then
         if is_type_enc_higher_order type_enc then keep_lamsN else combinatorsN
-      else if lambda_trans = keep_lamsN andalso
+      else if lam_trans = keep_lamsN andalso
               not (is_type_enc_higher_order type_enc) then
         error ("Lambda translation method incompatible with first-order \
                \encoding.")
       else
-        lambda_trans
+        lam_trans
     val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
          lifted) =
-      translate_formulas ctxt format prem_kind type_enc lambda_trans preproc
-                         hyp_ts concl_t facts
+      translate_formulas ctxt format prem_kind type_enc lam_trans preproc hyp_ts
+                         concl_t facts
     val sym_tab =
       sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc

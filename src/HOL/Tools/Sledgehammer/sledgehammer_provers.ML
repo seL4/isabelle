@@ -26,6 +26,7 @@ sig
      provers: string list,
      type_enc: string option,
      sound: bool,
+     lam_trans: string,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -62,7 +63,6 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
-  val atp_lambda_trans : string Config.T
   val atp_full_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -297,6 +297,7 @@ type params =
    provers: string list,
    type_enc: string option,
    sound: bool,
+   lam_trans: string,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,
@@ -339,8 +340,6 @@ val dest_dir =
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
 
-val atp_lambda_trans =
-  Attrib.setup_config_string @{binding sledgehammer_atp_lambda_trans} (K smartN)
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
@@ -412,11 +411,11 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor Metis =
-    Metis_Tactic.metis_tac [Metis_Tactic.partial_type_enc]
+    Metis_Tactic.metis_tac [Metis_Tactic.partial_type_enc] combinatorsN
   | tac_for_reconstructor Metis_Full_Types =
-    Metis_Tactic.metis_tac Metis_Tactic.full_type_syss
+    Metis_Tactic.metis_tac Metis_Tactic.full_type_syss combinatorsN
   | tac_for_reconstructor Metis_No_Types =
-    Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc]
+    Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc] combinatorsN
   | tac_for_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstructor debug timeout ths =
@@ -561,7 +560,7 @@ val atp_timeout_slack = seconds 1.0
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_enc, sound, max_relevant,
+        ({debug, verbose, overlord, type_enc, sound, lam_trans, max_relevant,
           max_mono_iters, max_new_mono_instances, isar_proof,
           isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
         minimize_command
@@ -670,12 +669,12 @@ fun run_atp mode name
                     |> Output.urgent_message
                   else
                     ()
+                val readable_names = not (Config.get ctxt atp_full_names)
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, _, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_enc false (Config.get ctxt atp_lambda_trans)
-                      (not (Config.get ctxt atp_full_names)) true hyp_ts concl_t
-                      facts
+                      type_enc false lam_trans readable_names true hyp_ts
+                      concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
                 val core =

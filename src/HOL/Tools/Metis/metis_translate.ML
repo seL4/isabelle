@@ -24,7 +24,6 @@ sig
   val metis_generated_var_prefix : string
   val trace : bool Config.T
   val verbose : bool Config.T
-  val lambda_trans : string Config.T
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
@@ -52,8 +51,6 @@ val metis_generated_var_prefix = "_"
 
 val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
 val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
-val lambda_trans =
-  Attrib.setup_config_string @{binding metis_lambda_trans} (K combinatorsN)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
@@ -202,7 +199,7 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
   | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
     val (conj_clauses, fact_clauses) =
       if polymorphism_of_type_enc type_enc = Polymorphic then
@@ -232,10 +229,9 @@ fun prepare_metis_problem ctxt type_enc lambda_trans conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val lambda_trans =
-      if lambda_trans = combinatorsN then no_lamsN else lambda_trans
+    val lam_trans = if lam_trans = combinatorsN then no_lamsN else lam_trans
     val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lambda_trans
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
                           false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
