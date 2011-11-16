@@ -247,7 +247,7 @@ fun default_consumes n th =
 
 val save_consumes = put_consumes o lookup_consumes;
 
-fun consumes n = Thm.rule_attribute (K (put_consumes (SOME n)));
+fun consumes n = Thm.mixed_attribute (apsnd (put_consumes (SOME n)));
 
 
 
@@ -271,7 +271,7 @@ fun put_constraints NONE th = th
 
 val save_constraints = put_constraints o lookup_constraints;
 
-fun constraints n = Thm.rule_attribute (K (put_constraints (SOME n)));
+fun constraints n = Thm.mixed_attribute (apsnd (put_constraints (SOME n)));
 
 
 
@@ -293,7 +293,7 @@ fun lookup_case_names th =
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
-fun case_names cs = Thm.rule_attribute (K (name cs));
+fun case_names cs = Thm.mixed_attribute (apsnd (name cs));
 
 
 
@@ -315,7 +315,7 @@ fun lookup_cases_hyp_names th =
 
 val save_cases_hyp_names = add_cases_hyp_names o lookup_cases_hyp_names;
 fun cases_hyp_names cs hs =
-  Thm.rule_attribute (K (name cs #> add_cases_hyp_names (SOME hs)));
+  Thm.mixed_attribute (apsnd (name cs #> add_cases_hyp_names (SOME hs)));
 
 
 
@@ -342,7 +342,7 @@ fun save_case_concls th =
       else NONE)
   in fold add_case_concl concls end;
 
-fun case_conclusion concl = Thm.rule_attribute (K (add_case_concl concl));
+fun case_conclusion concl = Thm.mixed_attribute (apsnd (add_case_concl concl));
 
 
 
@@ -359,7 +359,7 @@ fun put_inner_rule inner =
 
 val save_inner_rule = put_inner_rule o is_inner_rule;
 
-val inner_rule = Thm.rule_attribute (K (put_inner_rule true));
+val inner_rule = Thm.mixed_attribute (apsnd (put_inner_rule true));
 
 
 
