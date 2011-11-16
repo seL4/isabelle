@@ -420,9 +420,11 @@ notepad begin
     assume "4*k = u" have "k + 3*k = u"
       by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
   next
+    (* FIXME "Suc (i + 3) \<equiv> i + 4" *)
     assume "4 * Suc 0 + i = u" have "Suc (i + 3) = u"
       by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
   next
+    (* FIXME "Suc (i + j + 3 + k) \<equiv> i + j + 4 + k" *)
     assume "4 * Suc 0 + (i + (j + k)) = u" have "Suc (i + j + 3 + k) = u"
       by (tactic {* test [@{simproc nat_combine_numerals}] *}) fact
   next
@@ -710,6 +712,45 @@ notepad begin
     assume "(3 * x) dvd (4 * y)" have "(9*x) dvd (12 * y)"
       by (tactic {* test [@{simproc nat_dvd_cancel_numeral_factor}] *}) fact
   }
+end
+
+subsection {* Integer numeral div/mod simprocs *}
+
+notepad begin
+  have "(10::int) div 3 = 3"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "(10::int) mod 3 = 1"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "(10::int) div -3 = -4"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "(10::int) mod -3 = -2"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "(-10::int) div 3 = -4"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "(-10::int) mod 3 = 2"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "(-10::int) div -3 = 3"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "(-10::int) mod -3 = -1"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "(8452::int) mod 3 = 1"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "(59485::int) div 434 = 137"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "(1000006::int) mod 10 = 6"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "10000000 div 2 = (5000000::int)"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "10000001 mod 2 = (1::int)"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "10000055 div 32 = (312501::int)"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "10000055 mod 32 = (23::int)"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
+  have "100094 div 144 = (695::int)"
+    by (tactic {* test [@{simproc binary_int_div}] *})
+  have "100094 mod 144 = (14::int)"
+    by (tactic {* test [@{simproc binary_int_mod}] *})
 end
 
 end

@@ -1663,13 +1663,22 @@ by (simp add: mod_int_def divmod_int_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
 
-lemma divmod_int_relI:
-  "\<lbrakk>a == b * q + r; if 0 < b then 0 \<le> r \<and> r < b else b < r \<and> r \<le> 0\<rbrakk>
-    \<Longrightarrow> divmod_int_rel a b (q, r)"
-  unfolding divmod_int_rel_def by simp
+lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
+  by (rule divmod_int_rel_div [of a b q r],
+    simp add: divmod_int_rel_def, simp)
 
-lemmas divmod_int_rel_div_eq = divmod_int_relI [THEN divmod_int_rel_div, THEN eq_reflection]
-lemmas divmod_int_rel_mod_eq = divmod_int_relI [THEN divmod_int_rel_mod, THEN eq_reflection]
+lemma int_div_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a div b = q"
+  by (rule divmod_int_rel_div [of a b q r],
+    simp add: divmod_int_rel_def, simp)
+
+lemma int_mod_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a mod b = r"
+  by (rule divmod_int_rel_mod [of a b q r],
+    simp add: divmod_int_rel_def, simp)
+
+lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a mod b = r"
+  by (rule divmod_int_rel_mod [of a b q r],
+    simp add: divmod_int_rel_def, simp)
+
 lemmas arithmetic_simps =
   arith_simps
   add_special
@@ -1683,12 +1692,16 @@ lemmas arithmetic_simps =
 (* simprocs adapted from HOL/ex/Binary.thy *)
 ML {*
 local
-  val mk_number = HOLogic.mk_number HOLogic.intT;
-  fun mk_cert u k l = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"} $
-    (@{term "times :: int \<Rightarrow> int \<Rightarrow> int"} $ u $ mk_number k) $
-      mk_number l;
-  fun prove ctxt prop = Goal.prove ctxt [] [] prop
-    (K (ALLGOALS (full_simp_tac (HOL_basic_ss addsimps @{thms arithmetic_simps}))));
+  val mk_number = HOLogic.mk_number HOLogic.intT
+  val plus = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"}
+  val times = @{term "times :: int \<Rightarrow> int \<Rightarrow> int"}
+  val zero = @{term "0 :: int"}
+  val less = @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"}
+  val le = @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"}
+  val simps = @{thms arith_simps} @ @{thms rel_simps} @
+    map (fn th => th RS sym) [@{thm numeral_0_eq_0}, @{thm numeral_1_eq_1}]
+  fun prove ctxt goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
+    (K (ALLGOALS (full_simp_tac (HOL_basic_ss addsimps simps))));
   fun binary_proc proc ss ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
@@ -1697,18 +1710,23 @@ local
       | NONE => NONE)
     | _ => NONE);
 in
-  fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
-    if n = 0 then NONE
-    else let val (k, l) = Integer.div_mod m n;
-    in SOME (rule OF [prove ctxt (Logic.mk_equals (t, mk_cert u k l))]) end);
+  fun divmod_proc posrule negrule =
+    binary_proc (fn ctxt => fn ((a, t), (b, u)) =>
+      if b = 0 then NONE else let
+        val (q, r) = pairself mk_number (Integer.div_mod a b)
+        val goal1 = HOLogic.mk_eq (t, plus $ (times $ u $ q) $ r)
+        val (goal2, goal3, rule) = if b > 0
+          then (le $ zero $ r, less $ r $ u, posrule RS eq_reflection)
+          else (le $ r $ zero, less $ u $ r, negrule RS eq_reflection)
+      in SOME (rule OF map (prove ctxt) [goal1, goal2, goal3]) end)
 end
 *}
 
 simproc_setup binary_int_div ("number_of m div number_of n :: int") =
-  {* K (divmod_proc (@{thm divmod_int_rel_div_eq})) *}
+  {* K (divmod_proc @{thm int_div_pos_eq} @{thm int_div_neg_eq}) *}
 
 simproc_setup binary_int_mod ("number_of m mod number_of n :: int") =
-  {* K (divmod_proc (@{thm divmod_int_rel_mod_eq})) *}
+  {* K (divmod_proc @{thm int_mod_pos_eq} @{thm int_mod_neg_eq}) *}
 
 lemmas posDivAlg_eqn_number_of [simp] =
     posDivAlg_eqn [of "number_of v" "number_of w", standard]
