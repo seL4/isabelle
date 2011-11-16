@@ -657,7 +657,7 @@ lemma bin_cat_num:
 lemma bin_split_num:
   "!!b. bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
   apply (induct n, clarsimp)
-  apply (simp add: bin_rest_div zdiv_zmult2_eq)
+  apply (simp add: bin_rest_def zdiv_zmult2_eq)
   apply (case_tac b rule: bin_exhaust)
   apply simp
   apply (simp add: Bit_def mod_mult_mult1 p1mod22k bitval_def

@@ -227,26 +227,8 @@ lemma bin_r_l_extras [simp]:
   "bin_rest -1 = -1"
   by (simp_all add: bin_last_def bin_rest_def)
 
-lemma bin_last_mod: 
-  "bin_last w = (if w mod 2 = 0 then (0::bit) else (1::bit))"
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac b)
-   apply auto
-  done
-
-lemma bin_rest_div: 
-  "bin_rest w = w div 2"
-  apply (case_tac w rule: bin_exhaust)
-  apply (rule trans)
-   apply clarsimp
-   apply (rule refl)
-  apply (drule trans)
-   apply (rule Bit_def)
-  apply (simp add: bitval_def z1pdiv2 split: bit.split)
-  done
-
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
-  unfolding bin_rest_div [symmetric] by auto
+  unfolding bin_rest_def [symmetric] by auto
 
 lemma Bit0_div2 [simp]: "(Int.Bit0 w) div 2 = w"
   using Bit_div2 [where b="(0::bit)"] by simp
@@ -358,7 +340,7 @@ lemma sign_bintr:
 lemma bintrunc_mod2p:
   "!!w. bintrunc n w = (w mod 2 ^ n :: int)"
   apply (induct n, clarsimp)
-  apply (simp add: bin_last_mod bin_rest_div Bit_def zmod_zmult2_eq
+  apply (simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq
               cong: number_of_False_cong)
   done
 
@@ -367,10 +349,10 @@ lemma sbintrunc_mod2p:
   apply (induct n)
    apply clarsimp
    apply (subst mod_add_left_eq)
-   apply (simp add: bin_last_mod)
+   apply (simp add: bin_last_def)
    apply (simp add: number_of_eq)
   apply clarsimp
-  apply (simp add: bin_last_mod bin_rest_div Bit_def 
+  apply (simp add: bin_last_def bin_rest_def Bit_def 
               cong: number_of_False_cong)
   apply (clarsimp simp: mod_mult_mult1 [symmetric] 
          zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
