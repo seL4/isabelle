@@ -121,7 +121,7 @@ val type_tag_idempotence =
 val type_tag_arguments =
   Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K false)
 
-val no_lamsN = "no_lams"
+val no_lamsN = "no_lams" (* used internally; undocumented *)
 val hide_lamsN = "hide_lams"
 val lam_liftingN = "lam_lifting"
 val combinatorsN = "combinators"

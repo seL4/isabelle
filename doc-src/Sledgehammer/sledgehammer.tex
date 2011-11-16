@@ -15,6 +15,8 @@
 \def\qty#1{\ensuremath{\left<\mathit{#1\/}\right>}}
 \def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1\/}}\right>}$}
 
+\newcommand\const[1]{\textsf{#1}}
+
 %\oddsidemargin=4.6mm
 %\evensidemargin=4.6mm
 %\textwidth=150mm
@@ -39,6 +41,10 @@
 \urlstyle{tt}
 
 \begin{document}
+
+%%% TYPESETTING
+%\renewcommand\labelitemi{$\bullet$}
+\renewcommand\labelitemi{\raise.065ex\hbox{\small\textbullet}}
 
 \selectlanguage{english}
 
@@ -149,13 +155,13 @@ install E and SPASS locally.
 There are three main ways to install ATPs on your machine:
 
 \begin{enum}
-\item[$\bullet$] If you installed an official Isabelle package with everything
+\item[\labelitemi] If you installed an official Isabelle package with everything
 inside, it should already include properly setup executables for E and SPASS,
 ready to use.%
 \footnote{Vampire's license prevents us from doing the same for this otherwise
 wonderful tool.}
 
-\item[$\bullet$] Alternatively, you can download the Isabelle-aware E and SPASS
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware E and SPASS
 binary packages from Isabelle's download page. Extract the archives, then add a
 line to your \texttt{\$ISABELLE\_HOME\_USER/etc/components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
@@ -172,7 +178,7 @@ and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create the
 
 in it.
 
-\item[$\bullet$] If you prefer to build E or SPASS yourself, or obtained a
+\item[\labelitemi] If you prefer to build E or SPASS yourself, or obtained a
 Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
@@ -215,7 +221,7 @@ locally.
 There are two main ways of installing SMT solvers locally.
 
 \begin{enum}
-\item[$\bullet$] If you installed an official Isabelle package with everything
+\item[\labelitemi] If you installed an official Isabelle package with everything
 inside, it should already include properly setup executables for CVC3 and Z3,
 ready to use.%
 \footnote{Yices's license prevents us from doing the same for this otherwise
@@ -224,7 +230,7 @@ For Z3, you additionally need to set the environment variable
 \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a noncommercial
 user.
 
-\item[$\bullet$] Otherwise, follow the instructions documented in the \emph{SMT}
+\item[\labelitemi] Otherwise, follow the instructions documented in the \emph{SMT}
 theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}).
 \end{enum}
 
@@ -330,25 +336,25 @@ the options are very specialized, but serious users of the tool should at least
 familiarize themselves with the following options:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
+\item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
 the automatic provers (ATPs and SMT solvers) that should be run whenever
 Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{e spass
 remote\_vampire}''). For convenience, you can omit ``\textit{provers}~=''
 and simply write the prover names as a space-separated list (e.g., ``\textit{e
 spass remote\_vampire}'').
 
-\item[$\bullet$] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
+\item[\labelitemi] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
 default, the value is prover-dependent but varies between about 150 and 1000. If
 the provers time out, you can try lowering this value to, say, 100 or 50 and see
 if that helps.
 
-\item[$\bullet$] \textbf{\textit{isar\_proof}} (\S\ref{output-format}) specifies
+\item[\labelitemi] \textbf{\textit{isar\_proof}} (\S\ref{output-format}) specifies
 that Isar proofs should be generated, instead of one-liner \textit{metis} or
 \textit{smt} proofs. The length of the Isar proofs can be controlled by setting
 \textit{isar\_shrink\_factor} (\S\ref{output-format}).
 
-\item[$\bullet$] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
+\item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
 provers' time limit. It is set to 30 seconds, but since Sledgehammer runs
 asynchronously you should not hesitate to raise this limit to 60 or 120 seconds
 if you are the kind of user who can think clearly while ATPs are active.
@@ -377,17 +383,17 @@ eventually find it, but that's little consolation. There are several possible
 solutions:
 
 \begin{enum}
-\item[$\bullet$] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
+\item[\labelitemi] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
 obtain a step-by-step Isar proof where each step is justified by \textit{metis}.
 Since the steps are fairly small, \textit{metis} is more likely to be able to
 replay them.
 
-\item[$\bullet$] Try the \textit{smt} proof method instead of \textit{metis}. It
+\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}. It
 is usually stronger, but you need to either have Z3 available to replay the
 proofs, trust the SMT solver, or use certificates. See the documentation in the
 \emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
 
-\item[$\bullet$] Try the \textit{blast} or \textit{auto} proof methods, passing
+\item[\labelitemi] Try the \textit{blast} or \textit{auto} proof methods, passing
 the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
 \textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
 \end{enum}
@@ -487,7 +493,7 @@ Metis?}
 The \textit{metis}~(\textit{full\_types}) proof method is the fully-typed
 version of Metis. It is somewhat slower than \textit{metis}, but the proof
 search is fully typed, and it also includes more powerful rules such as the
-axiom ``$x = \mathit{True} \mathrel{\lor} x = \mathit{False}$'' for reasoning in
+axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
 higher-order places (e.g., in set comprehensions). The method kicks in
 automatically as a fallback when \textit{metis} fails, and it is sometimes
 generated by Sledgehammer instead of \textit{metis} if the proof obviously
@@ -580,31 +586,31 @@ no arguments in the theory text.
 In the general syntax, the \qty{subcommand} may be any of the following:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on
+\item[\labelitemi] \textbf{\textit{run} (the default):} Runs Sledgehammer on
 subgoal number \qty{num} (1 by default), with the given options and facts.
 
-\item[$\bullet$] \textbf{\textit{min}:} Attempts to minimize the facts
+\item[\labelitemi] \textbf{\textit{min}:} Attempts to minimize the facts
 specified in the \qty{facts\_override} argument to obtain a simpler proof
 involving fewer facts. The options and goal number are as for \textit{run}.
 
-\item[$\bullet$] \textbf{\textit{messages}:} Redisplays recent messages issued
+\item[\labelitemi] \textbf{\textit{messages}:} Redisplays recent messages issued
 by Sledgehammer. This allows you to examine results that might have been lost
 due to Sledgehammer's asynchronous nature. The \qty{num} argument specifies a
 limit on the number of messages to display (5 by default).
 
-\item[$\bullet$] \textbf{\textit{supported\_provers}:} Prints the list of
+\item[\labelitemi] \textbf{\textit{supported\_provers}:} Prints the list of
 automatic provers supported by Sledgehammer. See \S\ref{installation} and
 \S\ref{mode-of-operation} for more information on how to install automatic
 provers.
 
-\item[$\bullet$] \textbf{\textit{running\_provers}:} Prints information about
+\item[\labelitemi] \textbf{\textit{running\_provers}:} Prints information about
 currently running automatic provers, including elapsed runtime and remaining
 time until timeout.
 
-\item[$\bullet$] \textbf{\textit{kill\_provers}:} Terminates all running
+\item[\labelitemi] \textbf{\textit{kill\_provers}:} Terminates all running
 automatic provers.
 
-\item[$\bullet$] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
+\item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
 \end{enum}
 
@@ -686,16 +692,16 @@ relevance filter (\S\ref{relevance-filter}), output format
 The descriptions below refer to the following syntactic quantities:
 
 \begin{enum}
-\item[$\bullet$] \qtybf{string}: A string.
-\item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
-\item[$\bullet$] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or
+\item[\labelitemi] \qtybf{string}: A string.
+\item[\labelitemi] \qtybf{bool\/}: \textit{true} or \textit{false}.
+\item[\labelitemi] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or
 \textit{smart}.
-\item[$\bullet$] \qtybf{int\/}: An integer.
-%\item[$\bullet$] \qtybf{float\/}: A floating-point number (e.g., 2.5).
-\item[$\bullet$] \qtybf{float\_pair\/}: A pair of floating-point numbers
+\item[\labelitemi] \qtybf{int\/}: An integer.
+%\item[\labelitemi] \qtybf{float\/}: A floating-point number (e.g., 2.5).
+\item[\labelitemi] \qtybf{float\_pair\/}: A pair of floating-point numbers
 (e.g., 0.6 0.95).
-\item[$\bullet$] \qtybf{smart\_int\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{float\_or\_none\/}: A floating-point number (e.g., 60 or
+\item[\labelitemi] \qtybf{smart\_int\/}: An integer or \textit{smart}.
+\item[\labelitemi] \qtybf{float\_or\_none\/}: A floating-point number (e.g., 60 or
 0.5) expressing a number of seconds, or the keyword \textit{none} ($\infty$
 seconds).
 \end{enum}
@@ -714,68 +720,68 @@ Specifies the automatic provers to use as a space-separated list (e.g.,
 provers are supported:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
+\item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name. Sledgehammer has been tested with version
 2.2.
 
-\item[$\bullet$] \textbf{\textit{e}:} E is a first-order resolution prover
+\item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable, or install the prebuilt E package from Isabelle's download page. See
 \S\ref{installation} for details.
 
-\item[$\bullet$] \textbf{\textit{leo2}:} LEO-II is an automatic
+\item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
-with support for the TPTP many-typed higher-order syntax (THF0). Sledgehammer
+with support for the TPTP typed higher-order syntax (THF0). Sledgehammer
 requires version 1.2.9 or above.
 
-\item[$\bullet$] \textbf{\textit{metis}:} Although it is much less powerful than
+\item[\labelitemi] \textbf{\textit{metis}:} Although it is much less powerful than
 the external provers, Metis itself can be used for proof search.
 
-\item[$\bullet$] \textbf{\textit{metis\_full\_types}:} Fully typed version of
+\item[\labelitemi] \textbf{\textit{metis\_full\_types}:} Fully typed version of
 Metis, corresponding to \textit{metis} (\textit{full\_types}).
 
-\item[$\bullet$] \textbf{\textit{metis\_no\_types}:} Untyped version of Metis,
+\item[\labelitemi] \textbf{\textit{metis\_no\_types}:} Untyped version of Metis,
 corresponding to \textit{metis} (\textit{no\_types}).
 
-\item[$\bullet$] \textbf{\textit{satallax}:} Satallax is an automatic
+\item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP many-typed higher-order syntax (THF0). Sledgehammer
+support for the TPTP typed higher-order syntax (THF0). Sledgehammer
 requires version 2.2 or above.
 
-\item[$\bullet$] \textbf{\textit{smt}:} The \textit{smt} proof method with the
+\item[\labelitemi] \textbf{\textit{smt}:} The \textit{smt} proof method with the
 current settings (typically, Z3 with proof reconstruction).
 
-\item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
+\item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable, or install the prebuilt SPASS
 package from Isabelle's download page. Sledgehammer requires version 3.5 or
 above. See \S\ref{installation} for details.
 
-\item[$\bullet$] \textbf{\textit{vampire}:} Vampire is a first-order resolution
+\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
 prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
 Sledgehammer has been tested with versions 0.6, 1.0, and 1.8. Vampire 1.8
-supports the TPTP many-typed first-order format (TFF0).
+supports the TPTP typed first-order format (TFF0).
 
-\item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
+\item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
 \texttt{YICES\_SOLVER} to the complete path of the executable, including the
 file name. Sledgehammer has been tested with version 1.0.
 
-\item[$\bullet$] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
+\item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the file
 name, and set \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
 noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
 
-\item[$\bullet$] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
-an ATP, exploiting Z3's support for the TPTP untyped and many-typed first-order
+\item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
+an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
 formats (FOF and TFF0). It is included for experimental purposes. It requires
 version 3.0 or above.
 \end{enum}
@@ -783,28 +789,28 @@ version 3.0 or above.
 In addition, the following remote provers are supported:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
+\item[\labelitemi] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
 on servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
 
-\item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
+\item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_e\_sine}:} E-SInE is a metaprover
+\item[\labelitemi] \textbf{\textit{remote\_e\_sine}:} E-SInE is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
 SInE runs on Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
+\item[\labelitemi] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
-servers. This ATP supports the TPTP many-typed first-order format (TFF0). The
+servers. This ATP supports the TPTP typed first-order format (TFF0). The
 remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_iprover}:} iProver is a pure
+\item[\labelitemi] \textbf{\textit{remote\_iprover}:} iProver is a pure
 instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}. The
 remote version of iProver runs on Geoff Sutcliffe's Miami servers
 \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_iprover\_eq}:} iProver-Eq is an
+\item[\labelitemi] \textbf{\textit{remote\_iprover\_eq}:} iProver-Eq is an
 instantiation-based prover with native support for equality developed by
 Konstantin Korovin and Christoph Sticksel \cite{korovin-sticksel-2010}. The
 remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
@@ -813,31 +819,31 @@ remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
 The remote version of LEO-II
 runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
+\item[\labelitemi] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
 runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_satallax}:} The remote version of
+\item[\labelitemi] \textbf{\textit{remote\_satallax}:} The remote version of
 Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
+\item[\labelitemi] \textbf{\textit{remote\_snark}:} SNARK is a first-order
 resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
-TPTP many-typed first-order format (TFF0). The remote version of SNARK runs on
+TPTP typed first-order format (TFF0). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
+\item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers. Version 1.8 is used.
 
-\item[$\bullet$] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
+\item[\labelitemi] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
 equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
 used to prove universally quantified equations using unconditional equations,
 corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
 runs on Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_z3}:} The remote version of Z3 runs on
+\item[\labelitemi] \textbf{\textit{remote\_z3}:} The remote version of Z3 runs on
 servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
 
-\item[$\bullet$] \textbf{\textit{remote\_z3\_tptp}:} The remote version of ``Z3
+\item[\labelitemi] \textbf{\textit{remote\_z3\_tptp}:} The remote version of ``Z3
 with TPTP syntax'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
@@ -901,7 +907,44 @@ safely remove them after Sledgehammer has run.
 \subsection{Problem Encoding}
 \label{problem-encoding}
 
+\newcommand\comb[1]{\const{#1}}
+
 \begin{enum}
+\opdefault{lam\_trans}{string}{smart}
+Specifies the $\lambda$ translation scheme to use in ATP problems. The supported
+translation schemes are listed below:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{hide\_lams}:} Hide the $\lambda$-abstractions
+by replacing them by unspecified fresh constants, effectively disabling all
+reasoning under $\lambda$-abstractions.
+
+\item[\labelitemi] \textbf{\textit{lam\_lifting}:} Introduce a new
+supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,
+defined using an equation $\const{c}~x_1~\ldots~x_n = t$ ($\lambda$-lifting).
+
+\item[\labelitemi] \textbf{\textit{combinators}:} Rewrite lambdas to the Curry
+combinators (\comb{I}, \comb{K}, \comb{S}, \comb{B}, \comb{C}). Combinators
+enable the ATPs to synthesize $\lambda$-terms but tend to yield bulkier formulas
+than $\lambda$-lifting: The translation is quadratic in the worst case, and the
+equational definitions of the combinators are very prolific in the context of
+resolution.
+
+\item[\labelitemi] \textbf{\textit{hybrid\_lams}:} Introduce a new
+supercombinator \const{c} for each cluster of $\lambda$-abstractions and characterize it both using a
+lifted equation $\const{c}~x_1~\ldots~x_n = t$ and via Curry combinators.
+
+\item[\labelitemi] \textbf{\textit{keep\_lams}:}
+Keep the $\lambda$-abstractions in the generated problems. This is available
+only with provers that support the THF0 syntax.
+
+\item[\labelitemi] \textbf{\textit{smart}:} The actual translation scheme used
+depends on the ATP and should be the most efficient scheme for that ATP.
+\end{enum}
+
+For SMT solvers, the $\lambda$ translation scheme is always
+\textit{lam\_lifting}, irrespective of the value of this option.
+
 \opdefault{type\_enc}{string}{smart}
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
@@ -909,23 +952,23 @@ are unsound, meaning that they can give rise to spurious proofs
 listed below, with an indication of their soundness in parentheses:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
+\item[\labelitemi] \textbf{\textit{erased} (very unsound):} No type information is
 supplied to the ATP. Types are simply erased.
 
-\item[$\bullet$] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
+\item[\labelitemi] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
 a predicate \textit{has\_\allowbreak type\/}$(\tau, t)$ that guards bound
 variables. Constants are annotated with their types, supplied as additional
 arguments, to resolve overloading.
 
-\item[$\bullet$] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
-tagged with its type using a function $\mathit{type\/}(\tau, t)$.
+\item[\labelitemi] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
+tagged with its type using a function $\const{type\/}(\tau, t)$.
 
-\item[$\bullet$] \textbf{\textit{poly\_args} (unsound):}
+\item[\labelitemi] \textbf{\textit{poly\_args} (unsound):}
 Like for \textit{poly\_guards} constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded. This
 coincides with the default encoding used by the \textit{metis} command.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags} (sound); \\
 \textit{raw\_mono\_args} (unsound):} \\
@@ -935,7 +978,7 @@ variables are instantiated with heuristically chosen ground types.
 Monomorphization can simplify reasoning but also leads to larger fact bases,
 which can slow down the ATPs.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{mono\_guards}, \textit{mono\_tags} (sound);
 \textit{mono\_args} (unsound):} \\
@@ -943,20 +986,20 @@ Similar to
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, and
 \textit{raw\_mono\_args}, respectively but types are mangled in constant names
 instead of being supplied as ground term arguments. The binary predicate
-$\mathit{has\_type\/}(\tau, t)$ becomes a unary predicate
-$\mathit{has\_type\_}\tau(t)$, and the binary function
-$\mathit{type\/}(\tau, t)$ becomes a unary function
-$\mathit{type\_}\tau(t)$.
+$\const{has\_type\/}(\tau, t)$ becomes a unary predicate
+$\const{has\_type\_}\tau(t)$, and the binary function
+$\const{type\/}(\tau, t)$ becomes a unary function
+$\const{type\_}\tau(t)$.
 
-\item[$\bullet$] \textbf{\textit{mono\_simple} (sound):} Exploits simple
+\item[\labelitemi] \textbf{\textit{mono\_simple} (sound):} Exploits simple
 first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
 falls back on \textit{mono\_guards}. The problem is monomorphized.
 
-\item[$\bullet$] \textbf{\textit{mono\_simple\_higher} (sound):} Exploits simple
+\item[\labelitemi] \textbf{\textit{mono\_simple\_higher} (sound):} Exploits simple
 higher-order types if the prover supports the THF0 syntax; otherwise, falls back
 on \textit{mono\_simple} or \textit{mono\_guards}. The problem is monomorphized.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}?, \textit{poly\_tags}?, \textit{raw\_mono\_guards}?, \\
 \textit{raw\_mono\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
@@ -972,7 +1015,7 @@ of individuals.) As argument to the \textit{metis} proof method, the question
 mark is replaced by a \hbox{``\textit{\_query}''} suffix. If the \emph{sound}
 option is enabled, these encodings are fully sound.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}??, \textit{poly\_tags}??, \textit{raw\_mono\_guards}??, \\
 \textit{raw\_mono\_tags}??, \textit{mono\_guards}??, \textit{mono\_tags}?? \\
@@ -981,7 +1024,7 @@ Even lighter versions of the `\hbox{?}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{??}' suffix is replaced by
 \hbox{``\textit{\_query\_query}''}.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}@?, \textit{poly\_tags}@?, \textit{raw\_mono\_guards}@?, \\
 \textit{raw\_mono\_tags}@? (quasi-sound):} \\
@@ -989,7 +1032,7 @@ Alternative versions of the `\hbox{??}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@?}' suffix is replaced by
 \hbox{``\textit{\_at\_query}''}.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}!, \textit{poly\_tags}!, \textit{raw\_mono\_guards}!, \\
 \textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
@@ -1005,7 +1048,7 @@ replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the exclamation mark is replaced by the suffix
 \hbox{``\textit{\_bang}''}.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}!!, \textit{poly\_tags}!!, \textit{raw\_mono\_guards}!!, \\
 \textit{raw\_mono\_tags}!!, \textit{mono\_guards}!!, \textit{mono\_tags}!! \\
@@ -1014,7 +1057,7 @@ Even lighter versions of the `\hbox{!}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{!!}' suffix is replaced by
 \hbox{``\textit{\_bang\_bang}''}.
 
-\item[$\bullet$]
+\item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}@!, \textit{poly\_tags}@!, \textit{raw\_mono\_guards}@!, \\
 \textit{raw\_mono\_tags}@! (mildly unsound):} \\
@@ -1022,7 +1065,7 @@ Alternative versions of the `\hbox{!!}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@!}' suffix is replaced by
 \hbox{``\textit{\_at\_bang}''}.
 
-\item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
+\item[\labelitemi] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
@@ -1116,11 +1159,11 @@ steps in the ATP proof.
 Specifies the expected outcome, which must be one of the following:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{some}:} Sledgehammer found a (potentially
+\item[\labelitemi] \textbf{\textit{some}:} Sledgehammer found a (potentially
 unsound) proof.
-\item[$\bullet$] \textbf{\textit{none}:} Sledgehammer found no proof.
-\item[$\bullet$] \textbf{\textit{timeout}:} Sledgehammer timed out.
-\item[$\bullet$] \textbf{\textit{unknown}:} Sledgehammer encountered some
+\item[\labelitemi] \textbf{\textit{none}:} Sledgehammer found no proof.
+\item[\labelitemi] \textbf{\textit{timeout}:} Sledgehammer timed out.
+\item[\labelitemi] \textbf{\textit{unknown}:} Sledgehammer encountered some
 problem.
 \end{enum}
 
