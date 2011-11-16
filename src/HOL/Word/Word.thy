@@ -1769,16 +1769,8 @@ lemma word_of_nat: "of_nat n = word_of_int (int n)"
 
 lemma word_of_int: "of_int = word_of_int"
   apply (rule ext)
-  apply (unfold of_int_def)
-  apply (rule the_elemI)
-  apply safe
-  apply (simp_all add: word_of_nat word_of_int_homs)
-   defer
-   apply (rule Rep_Integ_ne [THEN nonemptyE])
-   apply (rule bexI)
-    prefer 2
-    apply assumption
-   apply (auto simp add: RI_eq_diff)
+  apply (case_tac x rule: int_diff_cases)
+  apply (simp add: word_of_nat word_of_int_sub_hom)
   done
 
 lemma word_of_int_nat: 

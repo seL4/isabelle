@@ -247,58 +247,6 @@ lemma zdiv_mult_self: "m ~= (0 :: int) ==> (a + m * n) div m = a div m + n"
   apply (simp add: zmde ring_distribs)
   done
 
-(** Rep_Integ **)
-lemma eqne: "equiv A r ==> X : A // r ==> X ~= {}"
-  unfolding equiv_def refl_on_def quotient_def Image_def by auto
-
-lemmas Rep_Integ_ne = Integ.Rep_Integ 
-  [THEN equiv_intrel [THEN eqne, simplified Integ_def [symmetric]], standard]
-
-lemmas riq = Integ.Rep_Integ [simplified Integ_def]
-lemmas intrel_refl = refl [THEN equiv_intrel_iff [THEN iffD1], standard]
-lemmas Rep_Integ_equiv = quotient_eq_iff
-  [OF equiv_intrel riq riq, simplified Integ.Rep_Integ_inject, standard]
-lemmas Rep_Integ_same = 
-  Rep_Integ_equiv [THEN intrel_refl [THEN rev_iffD2], standard]
-
-lemma RI_int: "(a, 0) : Rep_Integ (int a)"
-  unfolding int_def by auto
-
-lemmas RI_intrel [simp] = UNIV_I [THEN quotientI,
-  THEN Integ.Abs_Integ_inverse [simplified Integ_def], standard]
-
-lemma RI_minus: "(a, b) : Rep_Integ x ==> (b, a) : Rep_Integ (- x)"
-  apply (rule_tac z=x in eq_Abs_Integ)
-  apply (clarsimp simp: minus)
-  done
-
-lemma RI_add: 
-  "(a, b) : Rep_Integ x ==> (c, d) : Rep_Integ y ==> 
-   (a + c, b + d) : Rep_Integ (x + y)"
-  apply (rule_tac z=x in eq_Abs_Integ)
-  apply (rule_tac z=y in eq_Abs_Integ) 
-  apply (clarsimp simp: add)
-  done
-
-lemma mem_same: "a : S ==> a = b ==> b : S"
-  by fast
-
-(* two alternative proofs of this *)
-lemma RI_eq_diff': "(a, b) : Rep_Integ (int a - int b)"
-  apply (unfold diff_minus)
-  apply (rule mem_same)
-   apply (rule RI_minus RI_add RI_int)+
-  apply simp
-  done
-
-lemma RI_eq_diff: "((a, b) : Rep_Integ x) = (int a - int b = x)"
-  apply safe
-   apply (rule Rep_Integ_same)
-    prefer 2
-    apply (erule asm_rl)
-   apply (rule RI_eq_diff')+
-  done
-
 lemma mod_power_lem:
   "a > 1 ==> a ^ n mod a ^ m = (if m <= n then 0 else (a :: int) ^ n)"
   apply clarsimp
