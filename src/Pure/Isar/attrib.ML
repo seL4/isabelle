@@ -219,25 +219,30 @@ end;
 (** partial evaluation **)
 
 local
-(* FIXME assignable, closure (!?) *)
+
+val strict_thm_eq = op = o pairself Thm.rep_thm;
 
 fun apply_att src (context, th) =
-  attribute_i (Context.theory_of context) src (context, th);
+  let
+    val src1 = Args.assignable src;
+    val result = attribute_i (Context.theory_of context) src1 (context, th);
+    val src2 = Args.closure src1;
+  in (src2, result) end;
 
 fun eval src (th, (decls, context)) =
   (case apply_att src (context, th) of
-    (NONE, SOME th') => (th', (decls, context))
-  | (opt_context', opt_th') =>
+    (_, (NONE, SOME th')) => (th', (decls, context))
+  | (src', (opt_context', opt_th')) =>
       let
         val context' = the_default context opt_context';
         val th' = the_default th opt_th';
         val decls' =
           (case decls of
-            [] => [(th, [src])]
+            [] => [(th, [src'])]
           | (th2, srcs2) :: rest =>
-              if op = (pairself Thm.rep_thm (th, th2))  (* FIXME derivation!? *)
-              then ((th2, src :: srcs2) :: rest)
-              else (th, [src]) :: (th2, srcs2) :: rest);
+              if strict_thm_eq (th, th2)
+              then ((th2, src' :: srcs2) :: rest)
+              else (th, [src']) :: (th2, srcs2) :: rest);
       in (th', (decls', context')) end);
 
 in
@@ -247,10 +252,11 @@ fun partial_evaluation ctxt facts =
     val (facts', (decls, _)) =
       (facts, ([], Context.Proof ctxt)) |-> fold_map (fn ((b, more_atts), fact) => fn res =>
         let
-          val (thss', res') =
+          val (ths', res') =
             (fact, res) |-> fold_map (fn (ths, atts) =>
-              fold_map (curry (fold eval (atts @ more_atts))) ths);
-        in (((b, []), [(flat thss', [])]), res') end);
+              fold_map (curry (fold eval (atts @ more_atts))) ths)
+            |>> flat;
+        in (((b, []), [(ths', [])]), res') end);
     val decl_fact = (empty_binding, rev (map (fn (th, atts) => ([th], rev atts)) decls));
   in decl_fact :: facts' end;
 
