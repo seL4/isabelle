@@ -233,7 +233,7 @@ fun metis_call type_enc lam_trans =
                       type_enc of
         [alias] => alias
       | _ => type_enc
-    val opts = [] |> type_enc <> Metis_Tactic.partial_typesN ? cons type_enc
+    val opts = [] |> type_enc <> partial_typesN ? cons type_enc
                   |> lam_trans <> metis_default_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
@@ -1010,8 +1010,7 @@ fun string_for_proof ctxt0 full_types i n =
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     val reconstr =
-      Metis (if full_types then Metis_Tactic.full_typesN
-             else Metis_Tactic.partial_typesN, combinatorsN)
+      Metis (if full_types then full_typesN else partial_typesN, combinatorsN)
     fun do_facts (ls, ss) =
       reconstructor_command reconstr 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),

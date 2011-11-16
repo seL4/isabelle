@@ -12,9 +12,9 @@ uses "Tools/lambda_lifting.ML"
      "Tools/ATP/atp_util.ML"
      "Tools/ATP/atp_problem.ML"
      "Tools/ATP/atp_proof.ML"
-     "Tools/ATP/atp_systems.ML"
      ("Tools/ATP/atp_translate.ML")
      ("Tools/ATP/atp_reconstruct.ML")
+     ("Tools/ATP/atp_systems.ML")
 begin
 
 subsection {* Higher-order reasoning helpers *}
@@ -50,6 +50,7 @@ subsection {* Setup *}
 
 use "Tools/ATP/atp_translate.ML"
 use "Tools/ATP/atp_reconstruct.ML"
+use "Tools/ATP/atp_systems.ML"
 
 setup ATP_Systems.setup
 
