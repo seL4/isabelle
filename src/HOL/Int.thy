@@ -1173,32 +1173,6 @@ lemmas iszero_simps [simp] =
 (* iszero_number_of_Pls would never normally be used
    because its lhs simplifies to "iszero 0" *)
 
-subsubsection {* The Less-Than Relation *}
-
-lemma double_less_0_iff:
-  "(a + a < 0) = (a < (0::'a::linordered_idom))"
-proof -
-  have "(a + a < 0) = ((1+1)*a < 0)" by (simp add: left_distrib)
-  also have "... = (a < 0)"
-    by (simp add: mult_less_0_iff zero_less_two 
-                  order_less_not_sym [OF zero_less_two]) 
-  finally show ?thesis .
-qed
-
-lemma odd_less_0:
-  "(1 + z + z < 0) = (z < (0::int))"
-proof (cases z)
-  case (nonneg n)
-  then show ?thesis
-    by (simp add: linorder_not_less add_assoc add_increasing
-      le_imp_0_less [THEN order_less_imp_le])
-next
-  case (neg n)
-  then show ?thesis
-    by (simp del: of_nat_Suc of_nat_add of_nat_1
-      add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
-qed
-
 text {* Less-Than or Equals *}
 
 text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}
@@ -1416,7 +1390,7 @@ proof -
   then obtain z where a: "a = of_int z" ..
   hence "((1::'a) + a + a < 0) = (of_int (1 + z + z) < (of_int 0 :: 'a))"
     by (simp add: a)
-  also have "... = (z < 0)" by (simp only: of_int_less_iff odd_less_0)
+  also have "... = (z < 0)" by (simp only: of_int_less_iff odd_less_0_iff)
   also have "... = (a < 0)" by (simp add: a)
   finally show ?thesis .
 qed

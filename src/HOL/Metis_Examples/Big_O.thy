@@ -215,7 +215,7 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (rule mult_left_mono)
   apply (rule abs_triangle_ineq)
   apply (simp add: order_less_le)
-apply (metis abs_not_less_zero double_less_0_iff less_not_permute linorder_not_less mult_less_0_iff)
+apply (metis abs_not_less_zero even_less_0_iff less_not_permute linorder_not_less mult_less_0_iff)
 done
 
 lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(f)"
