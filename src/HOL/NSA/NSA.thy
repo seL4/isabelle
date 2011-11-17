@@ -646,48 +646,20 @@ by (blast intro: approx_sym approx_trans)
 lemma approx_trans3: "[| x @= r; x @= s|] ==> r @= s"
 by (blast intro: approx_sym approx_trans)
 
-lemma number_of_approx_reorient: "(number_of w @= x) = (x @= number_of w)"
+lemma approx_reorient: "(x @= y) = (y @= x)"
 by (blast intro: approx_sym)
-
-lemma zero_approx_reorient: "(0 @= x) = (x @= 0)"
-by (blast intro: approx_sym)
-
-lemma one_approx_reorient: "(1 @= x) = (x @= 1)"
-by (blast intro: approx_sym)
-
-
-ML {*
-local
-(*** re-orientation, following HOL/Integ/Bin.ML
-     We re-orient x @=y where x is 0, 1 or a numeral, unless y is as well!
- ***)
-
-(*reorientation simprules using ==, for the following simproc*)
-val meta_zero_approx_reorient = @{thm zero_approx_reorient} RS eq_reflection;
-val meta_one_approx_reorient = @{thm one_approx_reorient} RS eq_reflection;
-val meta_number_of_approx_reorient = @{thm number_of_approx_reorient} RS eq_reflection
 
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
-fun reorient_proc sg _ (_ $ t $ u) =
-  case u of
-      Const(@{const_name Groups.zero}, _) => NONE
-    | Const(@{const_name Groups.one}, _) => NONE
-    | Const(@{const_name Int.number_of}, _) $ _ => NONE
-    | _ => SOME (case t of
-                Const(@{const_name Groups.zero}, _) => meta_zero_approx_reorient
-              | Const(@{const_name Groups.one}, _) => meta_one_approx_reorient
-              | Const(@{const_name Int.number_of}, _) $ _ =>
-                                 meta_number_of_approx_reorient);
-
-in
-
-val approx_reorient_simproc = Simplifier.simproc_global @{theory}
-  "reorient_simproc" ["0@=x", "1@=x", "number_of w @= x"] reorient_proc;
-
-end;
-
-Addsimprocs [approx_reorient_simproc];
+simproc_setup approx_reorient_simproc
+  ("0 @= x" | "1 @= y" | "number_of w @= z") =
+{*
+  let val rule = @{thm approx_reorient} RS eq_reflection
+      fun proc phi ss ct = case term_of ct of
+          _ $ t $ u => if can HOLogic.dest_number u then NONE
+            else if can HOLogic.dest_number t then SOME rule else NONE
+        | _ => NONE
+  in proc end
 *}
 
 lemma Infinitesimal_approx_minus: "(x-y \<in> Infinitesimal) = (x @= y)"
