@@ -121,7 +121,7 @@ translations
 
 subsection  "Arithmetic operations"
 
-instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, ord, bit}"
+instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, ord}"
 begin
 
 definition
@@ -157,22 +157,6 @@ definition
 definition
   word_less_def: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> (y \<Colon> 'a word)"
 
-definition
-  word_and_def: 
-  "(a::'a word) AND b = word_of_int (uint a AND uint b)"
-
-definition
-  word_or_def:  
-  "(a::'a word) OR b = word_of_int (uint a OR uint b)"
-
-definition
-  word_xor_def: 
-  "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
-
-definition
-  word_not_def: 
-  "NOT (a::'a word) = word_of_int (NOT (uint a))"
-
 instance ..
 
 end
@@ -202,6 +186,22 @@ subsection "Bit-wise operations"
 
 instantiation word :: (len0) bits
 begin
+
+definition
+  word_and_def: 
+  "(a::'a word) AND b = word_of_int (uint a AND uint b)"
+
+definition
+  word_or_def:  
+  "(a::'a word) OR b = word_of_int (uint a OR uint b)"
+
+definition
+  word_xor_def: 
+  "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
+
+definition
+  word_not_def: 
+  "NOT (a::'a word) = word_of_int (NOT (uint a))"
 
 definition
   word_test_bit_def: "test_bit a = bin_nth (uint a)"
