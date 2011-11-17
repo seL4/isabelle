@@ -174,11 +174,6 @@ qed
 
 end
 
-lemma plus_enat_0 [simp]:
-  "0 + (q\<Colon>enat) = q"
-  "(q\<Colon>enat) + 0 = q"
-  by (simp_all add: plus_enat_def zero_enat_def split: enat.splits)
-
 lemma plus_enat_number [simp]:
   "(number_of k \<Colon> enat) + number_of l = (if k < Int.Pls then number_of l
     else if l < Int.Pls then number_of k else number_of (k + l))"
