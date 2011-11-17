@@ -85,10 +85,16 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
-
 * Nitpick:
-  - Fixed infinite loop caused by the 'peephole_optim' option and affecting
-    'rat' and 'real'.
+  - Fixed infinite loop caused by the 'peephole_optim' option and
+    affecting 'rat' and 'real'.
+
+* Sledgehammer:
+  - Added "lam_trans" option.
+
+* Metis:
+  - Added possibility to specify lambda translations scheme as a
+    parenthesized argument (e.g., "by (metis (lam_lifting) ...)").
 
 
 *** FOL ***

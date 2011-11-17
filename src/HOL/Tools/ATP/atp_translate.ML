@@ -31,13 +31,12 @@ sig
 
   val type_tag_idempotence : bool Config.T
   val type_tag_arguments : bool Config.T
-  val no_lambdasN : string
-  val concealedN : string
-  val liftingN : string
+  val no_lamsN : string
+  val hide_lamsN : string
+  val lam_liftingN : string
   val combinatorsN : string
-  val hybridN : string
-  val lambdasN : string
-  val smartN : string
+  val hybrid_lamsN : string
+  val keep_lamsN : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
   val tvar_prefix : string
@@ -45,7 +44,9 @@ sig
   val const_prefix : string
   val type_const_prefix : string
   val class_prefix : string
-  val polymorphic_free_prefix : string
+  val lambda_lifted_prefix : string
+  val lambda_lifted_mono_prefix : string
+  val lambda_lifted_poly_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
@@ -59,6 +60,7 @@ sig
   val class_rel_clause_prefix : string
   val arity_clause_prefix : string
   val tfree_clause_prefix : string
+  val lambda_fact_prefix : string
   val typed_helper_suffix : string
   val untyped_helper_suffix : string
   val type_tag_idempotence_helper_name : string
@@ -72,7 +74,7 @@ sig
   val prefixed_type_tag_name : string
   val ascii_of : string -> string
   val unascii_of : string -> string
-  val strip_prefix_and_unascii : string -> string -> string option
+  val unprefix_and_unascii : string -> string -> string option
   val proxy_table : (string * (string * (thm * (string * string)))) list
   val proxify_const : string -> (string * string) option
   val invert_const : string -> string
@@ -92,13 +94,16 @@ sig
   val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
+  val trans_lams_from_string :
+    Proof.context -> type_enc -> string -> term list -> term list * term list
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
     -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
-       * (string * locality) list vector * int list * int Symtab.table
+       * (string * locality) list vector * int list * (string * term) list
+       * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -115,13 +120,12 @@ val type_tag_idempotence =
 val type_tag_arguments =
   Attrib.setup_config_bool @{binding atp_type_tag_arguments} (K false)
 
-val no_lambdasN = "no_lambdas"
-val concealedN = "concealed"
-val liftingN = "lifting"
+val no_lamsN = "no_lams" (* used internally; undocumented *)
+val hide_lamsN = "hide_lams"
+val lam_liftingN = "lam_lifting"
 val combinatorsN = "combinators"
-val hybridN = "hybrid"
-val lambdasN = "lambdas"
-val smartN = "smart"
+val hybrid_lamsN = "hybrid_lams"
+val keep_lamsN = "keep_lams"
 
 (* TFF1 is still in development, and it is still unclear whether symbols will be
    allowed to have types like "$tType > $o" (i.e., "![A : $tType] : $o"), with
@@ -140,7 +144,12 @@ val type_const_prefix = "tc_"
 val simple_type_prefix = "s_"
 val class_prefix = "cl_"
 
-val polymorphic_free_prefix = "poly_free"
+(* Freshness almost guaranteed! *)
+val atp_weak_prefix = "ATP:"
+
+val lambda_lifted_prefix = atp_weak_prefix ^ "Lam"
+val lambda_lifted_mono_prefix = lambda_lifted_prefix ^ "m"
+val lambda_lifted_poly_prefix = lambda_lifted_prefix ^ "p"
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
@@ -170,9 +179,6 @@ val type_tag_name = "tt"
 val prefixed_predicator_name = const_prefix ^ predicator_name
 val prefixed_app_op_name = const_prefix ^ app_op_name
 val prefixed_type_tag_name = const_prefix ^ type_tag_name
-
-(* Freshness almost guaranteed! *)
-val atp_weak_prefix = "ATP:"
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -223,7 +229,7 @@ val unascii_of =
 
 (* If string s has the prefix s1, return the result of deleting it,
    un-ASCII'd. *)
-fun strip_prefix_and_unascii s1 s =
+fun unprefix_and_unascii s1 s =
   if String.isPrefix s1 s then
     SOME (unascii_of (String.extract (s, size s1, NONE)))
   else
@@ -468,18 +474,40 @@ fun strip_iterm_comb u =
 
 fun atomic_types_of T = fold_atyps (insert (op =)) T []
 
+val tvar_a_str = "'a"
+val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
+val itself_name = `make_fixed_type_const @{type_name itself}
+val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
+val tvar_a_atype = AType (tvar_a_name, [])
+val a_itself_atype = AType (itself_name, [tvar_a_atype])
+
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
 fun robust_const_type thy s =
-  if s = app_op_name then Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
-  else s |> Sign.the_const_type thy
+  if s = app_op_name then
+    Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
+  else if String.isPrefix lambda_lifted_prefix s then
+    Logic.varifyT_global @{typ "'a => 'b"}
+  else
+    (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
+    s |> Sign.the_const_type thy
 
 (* This function only makes sense if "T" is as general as possible. *)
 fun robust_const_typargs thy (s, T) =
-  (s, T) |> Sign.const_typargs thy
-  handle TYPE _ => [] |> Term.add_tvarsT T |> rev |> map TVar
+  if s = app_op_name then
+    let val (T1, T2) = T |> domain_type |> dest_funT in [T1, T2] end
+  else if String.isPrefix old_skolem_const_prefix s then
+    [] |> Term.add_tvarsT T |> rev |> map TVar
+  else if String.isPrefix lambda_lifted_prefix s then
+    if String.isPrefix lambda_lifted_poly_prefix s then
+      let val (T1, T2) = T |> dest_funT in [T1, T2] end
+    else
+      []
+  else
+    (s, T) |> Sign.const_typargs thy
 
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
@@ -493,9 +521,7 @@ fun iterm_from_term thy format bs (P $ Q) =
              robust_const_typargs thy (c, T)),
      atomic_types_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
-    (IConst (`make_fixed_var s, T,
-             if String.isPrefix polymorphic_free_prefix s then [T] else []),
-     atomic_types_of T)
+    (IConst (`make_fixed_var s, T, []), atomic_types_of T)
   | iterm_from_term _ format _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
@@ -650,15 +676,27 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
     (if is_type_enc_fairly_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
-fun lift_lambdas ctxt type_enc =
-  map (close_form o Envir.eta_contract) #> rpair ctxt
+fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
+  | constify_lifted (Abs (s, T, t)) = Abs (s, T, constify_lifted t)
+  | constify_lifted (Free (x as (s, _))) =
+    (if String.isPrefix lambda_lifted_prefix s then Const else Free) x
+  | constify_lifted t = t
+
+(* Requires bound variables to have distinct names and not to clash with any
+   schematic variables (as should be the case right after lambda-lifting). *)
+fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+    open_form (subst_bound (Var ((s, 0), T), t))
+  | open_form t = t
+
+fun lift_lams ctxt type_enc =
+  map (Envir.eta_contract #> close_form) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
-          (if polymorphism_of_type_enc type_enc = Polymorphic then
-             SOME polymorphic_free_prefix
-           else
-             NONE)
+          (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
+                   lambda_lifted_poly_prefix
+                 else
+                   lambda_lifted_mono_prefix))
           Lambda_Lifting.is_quantifier
-  #> fst
+  #> fst #> pairself (map (open_form o constify_lifted))
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -736,14 +774,6 @@ fun add_sorts_on_tfree (TFree (s, S)) = generic_add_sorts_on_type ((s, ~1), S)
   | add_sorts_on_tfree _ = I
 fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
   | add_sorts_on_tvar _ = I
-
-val tvar_a_str = "'a"
-val tvar_a = TVar ((tvar_a_str, 0), HOLogic.typeS)
-val tvar_a_name = (make_schematic_type_var (tvar_a_str, 0), tvar_a_str)
-val itself_name = `make_fixed_type_const @{type_name itself}
-val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
-val tvar_a_atype = AType (tvar_a_name, [])
-val a_itself_atype = AType (itself_name, [tvar_a_atype])
 
 fun type_class_formula type_enc class arg =
   AAtom (ATerm (class, arg ::
@@ -947,7 +977,7 @@ fun mangle_type_args_in_iterm format type_enc =
       fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
         | mangle (tm as IConst (_, _, [])) = tm
         | mangle (tm as IConst (name as (s, _), T, T_args)) =
-          (case strip_prefix_and_unascii const_prefix s of
+          (case unprefix_and_unascii const_prefix s of
              NONE => tm
            | SOME s'' =>
              case type_arg_policy type_enc (invert_const s'') of
@@ -983,7 +1013,7 @@ fun filter_type_args_in_iterm thy type_enc =
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
       | filt _ (tm as IConst (_, _, [])) = tm
       | filt ary (IConst (name as (s, _), T, T_args)) =
-        (case strip_prefix_and_unascii const_prefix s of
+        (case unprefix_and_unascii const_prefix s of
            NONE =>
            (name,
             if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then
@@ -1117,8 +1147,8 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
     do_cheaply_conceal_lambdas Ts t1
     $ do_cheaply_conceal_lambdas Ts t2
   | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
-    Free (polymorphic_free_prefix ^ serial_string (),
-          T --> fastype_of1 (T :: Ts, t))
+    Const (lambda_lifted_poly_prefix ^ serial_string (),
+           T --> fastype_of1 (T :: Ts, t))
   | do_cheaply_conceal_lambdas _ t = t
 
 fun do_introduce_combinators ctxt Ts t =
@@ -1133,10 +1163,10 @@ fun do_introduce_combinators ctxt Ts t =
   handle THM _ => t |> do_cheaply_conceal_lambdas Ts
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
 
-fun preprocess_abstractions_in_terms trans_lambdas facts =
+fun preprocess_abstractions_in_terms trans_lams facts =
   let
     val (facts, lambda_ts) =
-      facts |> map (snd o snd) |> trans_lambdas
+      facts |> map (snd o snd) |> trans_lams
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lambda_facts =
       map2 (fn t => fn j =>
@@ -1202,7 +1232,7 @@ fun make_conjecture ctxt format type_enc =
 (** Finite and infinite type inference **)
 
 fun tvar_footprint thy s ary =
-  (case strip_prefix_and_unascii const_prefix s of
+  (case unprefix_and_unascii const_prefix s of
      SOME s =>
      s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
        |> map (fn T => Term.add_tvarsT T [] |> map fst)
@@ -1425,7 +1455,7 @@ fun min_ary_of sym_tab s =
   case Symtab.lookup sym_tab s of
     SOME ({min_ary, ...} : sym_info) => min_ary
   | NONE =>
-    case strip_prefix_and_unascii const_prefix s of
+    case unprefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const_name |> invert_const in
         if s = predicator_name then 1
@@ -1560,7 +1590,7 @@ fun should_specialize_helper type_enc t =
   not (null (Term.hidden_polymorphism t))
 
 fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
-  case strip_prefix_and_unascii const_prefix s of
+  case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -1629,11 +1659,6 @@ fun add_type_constrs_in_term thy =
       | add (t $ u) = add t #> add u
       | add (Const x) =
         x |> robust_const_typargs thy |> fold (fold_type_constrs set_insert)
-      | add (Free (s, T)) =
-        if String.isPrefix polymorphic_free_prefix s then
-          T |> fold_type_constrs set_insert
-        else
-          I
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
@@ -1641,10 +1666,37 @@ fun add_type_constrs_in_term thy =
 fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
-fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
-                       hyp_ts concl_t facts =
+fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    let val (head, args) = strip_comb t in
+      (head |> dest_Const |> fst,
+       fold_rev (fn t as Var ((s, _), T) =>
+                    (fn u => Abs (s, T, abstract_over (t, u)))
+                  | _ => raise Fail "expected Var") args u)
+    end
+  | extract_lambda_def _ = raise Fail "malformed lifted lambda"
+
+fun trans_lams_from_string ctxt type_enc lam_trans =
+  if lam_trans = no_lamsN then
+    rpair []
+  else if lam_trans = hide_lamsN then
+    lift_lams ctxt type_enc ##> K []
+  else if lam_trans = lam_liftingN then
+    lift_lams ctxt type_enc
+  else if lam_trans = combinatorsN then
+    map (introduce_combinators ctxt) #> rpair []
+  else if lam_trans = hybrid_lamsN then
+    lift_lams ctxt type_enc
+    ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
+  else if lam_trans = keep_lamsN then
+    map (Envir.eta_contract) #> rpair []
+  else
+    error ("Unknown lambda translation scheme: " ^ quote lam_trans ^ ".")
+
+fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
+                       concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val trans_lams = trans_lams_from_string ctxt type_enc lam_trans
     val presimp_consts = Meson.presimplified_consts ctxt
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
@@ -1657,14 +1709,16 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
-    val ((conjs, facts), lambdas) =
-      if preproc then
-        conjs @ facts
-        |> map (apsnd (uncurry (presimp_prop ctxt presimp_consts)))
-        |> preprocess_abstractions_in_terms trans_lambdas
-        |>> chop (length conjs)
-      else
-        ((conjs, facts), [])
+    val ((conjs, facts), lambda_facts) =
+      (conjs, facts)
+      |> presimp
+         ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
+      |> (if lam_trans = no_lamsN then
+            rpair []
+          else
+            op @
+            #> preprocess_abstractions_in_terms trans_lams
+            #>> chop (length conjs))
     val conjs = conjs |> make_conjecture ctxt format type_enc
     val (fact_names, facts) =
       facts
@@ -1672,8 +1726,10 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
       |> ListPair.unzip
-    val lambdas =
-      lambdas |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
+    val lifted = lambda_facts |> map (extract_lambda_def o snd o snd)
+    val lambda_facts =
+      lambda_facts
+      |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -1683,8 +1739,8 @@ fun translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
-    (fact_names |> map single, union (op =) subs supers, conjs, facts @ lambdas,
-     class_rel_clauses, arity_clauses)
+    (fact_names |> map single, union (op =) subs supers, conjs,
+     facts @ lambda_facts, class_rel_clauses, arity_clauses, lifted)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -2086,18 +2142,13 @@ fun decl_line_for_sym ctxt format mono type_enc s
     val (T, T_args) =
       if null T_args then
         (T, [])
-      else case strip_prefix_and_unascii const_prefix s of
+      else case unprefix_and_unascii const_prefix s of
         SOME s' =>
         let
           val s' = s' |> invert_const
           val T = s' |> robust_const_type thy
         in (T, robust_const_typargs thy (s', T)) end
-      | NONE =>
-        case strip_prefix_and_unascii fixed_var_prefix s of
-          SOME s' =>
-          if String.isPrefix polymorphic_free_prefix s' then (tvar_a, [tvar_a])
-          else raise Fail "unexpected type arguments to free variable"
-        | NONE => raise Fail "unexpected type arguments"
+      | NONE => raise Fail "unexpected type arguments"
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
           T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
@@ -2277,7 +2328,7 @@ val free_typesN = "Type variables"
 val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
-        lambda_trans readable_names preproc hyp_ts concl_t facts =
+                        lam_trans readable_names preproc hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
@@ -2290,36 +2341,17 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         NONE
       else
         SOME false
-    val lambda_trans =
-      if lambda_trans = smartN then
-        if is_type_enc_higher_order type_enc then lambdasN else combinatorsN
-      else if lambda_trans = lambdasN andalso
-              not (is_type_enc_higher_order type_enc) then
-        error ("Lambda translation method incompatible with first-order \
+    val lam_trans =
+      if lam_trans = keep_lamsN andalso
+         not (is_type_enc_higher_order type_enc) then
+        error ("Lambda translation scheme incompatible with first-order \
                \encoding.")
       else
-        lambda_trans
-    val trans_lambdas =
-      if lambda_trans = no_lambdasN then
-        rpair []
-      else if lambda_trans = concealedN then
-        lift_lambdas ctxt type_enc ##> K []
-      else if lambda_trans = liftingN then
-        lift_lambdas ctxt type_enc
-      else if lambda_trans = combinatorsN then
-        map (introduce_combinators ctxt) #> rpair []
-      else if lambda_trans = hybridN then
-        lift_lambdas ctxt type_enc
-        ##> maps (fn t => [t, introduce_combinators ctxt
-                                  (intentionalize_def t)])
-      else if lambda_trans = lambdasN then
-        map (Envir.eta_contract) #> rpair []
-      else
-        error ("Unknown lambda translation method: " ^
-               quote lambda_trans ^ ".")
-    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses) =
-      translate_formulas ctxt format prem_kind type_enc trans_lambdas preproc
-                         hyp_ts concl_t facts
+        lam_trans
+    val (fact_names, classes, conjs, facts, class_rel_clauses, arity_clauses,
+         lifted) =
+      translate_formulas ctxt format prem_kind type_enc lam_trans preproc hyp_ts
+                         concl_t facts
     val sym_tab =
       sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
@@ -2390,6 +2422,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
      offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList,
      typed_helpers,
+     lifted,
      Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end
 

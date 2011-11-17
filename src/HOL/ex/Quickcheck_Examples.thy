@@ -304,10 +304,20 @@ quickcheck[exhaustive, size = 10, expect = counterexample]
 quickcheck[random, size = 10]
 oops
 
+lemma "(x :: rat) >= 0"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
+
 lemma
   "(x :: real) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
 quickcheck[exhaustive, size = 10, expect = counterexample]
 quickcheck[random, size = 10]
+oops
+
+lemma "(x :: real) >= 0"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 subsubsection {* floor and ceiling functions *}

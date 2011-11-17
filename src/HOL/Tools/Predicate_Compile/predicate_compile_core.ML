@@ -982,7 +982,6 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
       | is_param_type T = is_some (try (dest_monadT compfuns) T)
     val (inpTs, outTs) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE)) mode
       (binder_types T)
-    val predT = mk_monadT compfuns (HOLogic.mk_tupleT outTs)
     val funT = Comp_Mod.funT_of compilation_modifiers mode T
     val (in_ts, _) = fold_map (fold_map_aterms_prodT (curry HOLogic.mk_prod)
       (fn T => fn (param_vs, names) =>

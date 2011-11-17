@@ -268,7 +268,8 @@ fun s_iff (@{const True}, t2) = t2
 
 fun close_form t =
   fold (fn ((x, i), T) => fn t' =>
-           HOLogic.all_const T $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
+           HOLogic.all_const T
+           $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
        (Term.add_vars t []) t
 
 fun monomorphic_term subst =

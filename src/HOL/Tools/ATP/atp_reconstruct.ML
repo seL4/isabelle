@@ -14,9 +14,7 @@ sig
   type locality = ATP_Translate.locality
 
   datatype reconstructor =
-    Metis |
-    Metis_Full_Types |
-    Metis_No_Types |
+    Metis of string * string |
     SMT
 
   datatype play =
@@ -30,6 +28,18 @@ sig
   type isar_params =
     bool * bool * int * string Symtab.table * int list list * int
     * (string * locality) list vector * int Symtab.table * string proof * thm
+
+  val metisN : string
+  val smtN : string
+  val full_typesN : string
+  val partial_typesN : string
+  val no_typesN : string
+  val really_full_type_enc : string
+  val full_type_enc : string
+  val partial_type_enc : string
+  val no_type_enc : string
+  val full_type_encs : string list
+  val partial_type_encs : string list
   val used_facts_in_atp_proof :
     Proof.context -> int -> (string * locality) list vector -> string proof
     -> (string * locality) list
@@ -37,6 +47,9 @@ sig
     Proof.context -> int list list -> int -> (string * locality) list vector
     -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
+  val unalias_type_enc : string -> string list
+  val metis_default_lam_trans : string
+  val metis_call : string -> string -> string
   val name_of_reconstructor : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val make_tvar : string -> typ
@@ -62,9 +75,7 @@ open ATP_Proof
 open ATP_Translate
 
 datatype reconstructor =
-  Metis |
-  Metis_Full_Types |
-  Metis_No_Types |
+  Metis of string * string |
   SMT
 
 datatype play =
@@ -188,13 +199,48 @@ fun uses_typed_helpers typed_helpers =
            | _ => false)
 
 
-(** Soft-core proof reconstruction: Metis one-liner **)
+(** Soft-core proof reconstruction: one-liners **)
+
+val metisN = "metis"
+val smtN = "smt"
+
+val full_typesN = "full_types"
+val partial_typesN = "partial_types"
+val no_typesN = "no_types"
+
+val really_full_type_enc = "mono_tags"
+val full_type_enc = "poly_guards_query"
+val partial_type_enc = "poly_args"
+val no_type_enc = "erased"
+
+val full_type_encs = [full_type_enc, really_full_type_enc]
+val partial_type_encs = partial_type_enc :: full_type_encs
+
+val type_enc_aliases =
+  [(full_typesN, full_type_encs),
+   (partial_typesN, partial_type_encs),
+   (no_typesN, [no_type_enc])]
+
+fun unalias_type_enc s =
+  AList.lookup (op =) type_enc_aliases s |> the_default [s]
+
+val metis_default_lam_trans = combinatorsN
+
+fun metis_call type_enc lam_trans =
+  let
+    val type_enc =
+      case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases
+                      type_enc of
+        [alias] => alias
+      | _ => type_enc
+    val opts = [] |> type_enc <> partial_typesN ? cons type_enc
+                  |> lam_trans <> metis_default_lam_trans ? cons lam_trans
+  in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 (* unfortunate leaking abstraction *)
-fun name_of_reconstructor Metis = "metis"
-  | name_of_reconstructor Metis_Full_Types = "metis (full_types)"
-  | name_of_reconstructor Metis_No_Types = "metis (no_types)"
-  | name_of_reconstructor SMT = "smt"
+fun name_of_reconstructor (Metis (type_enc, lam_trans)) =
+    metis_call type_enc lam_trans
+  | name_of_reconstructor SMT = smtN
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
@@ -213,9 +259,9 @@ fun try_command_line banner time command =
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun reconstructor_command reconstructor i n (ls, ss) =
+fun reconstructor_command reconstr i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^
-  command_call (name_of_reconstructor reconstructor) ss
+  command_call (name_of_reconstructor reconstr) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -230,20 +276,19 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
                          subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
-    val (failed, reconstructor, ext_time) =
+    val (failed, reconstr, ext_time) =
       case preplay of
-        Played (reconstructor, time) =>
-        (false, reconstructor, (SOME (false, time)))
-      | Trust_Playable (reconstructor, time) =>
-        (false, reconstructor,
+        Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
+      | Trust_Playable (reconstr, time) =>
+        (false, reconstr,
          case time of
            NONE => NONE
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
-      | Failed_to_Play reconstructor => (true, reconstructor, NONE)
+      | Failed_to_Play reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
-      |> reconstructor_command reconstructor subgoal subgoal_count
+      |> reconstructor_command reconstr subgoal subgoal_count
       |> (if failed then enclose "One-line proof reconstruction failed: " "."
           else try_command_line banner ext_time)
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
@@ -283,26 +328,26 @@ exception SAME of unit
    constrained by information from type literals, or by type inference. *)
 fun typ_from_atp ctxt (u as ATerm (a, us)) =
   let val Ts = map (typ_from_atp ctxt) us in
-    case strip_prefix_and_unascii type_const_prefix a of
+    case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise HO_TERM [u]  (* only "tconst"s have type arguments *)
-      else case strip_prefix_and_unascii tfree_prefix a of
+      else case unprefix_and_unascii tfree_prefix a of
         SOME b => make_tfree ctxt b
       | NONE =>
         (* Could be an Isabelle variable or a variable from the ATP, say "X1"
            or "_5018". Sometimes variables from the ATP are indistinguishable
            from Isabelle variables, which forces us to use a type parameter in
            all cases. *)
-        (a |> perhaps (strip_prefix_and_unascii tvar_prefix), HOLogic.typeS)
+        (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)
         |> Type_Infer.param 0
   end
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
 fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
-  case (strip_prefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
+  case (unprefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise HO_TERM [u]
 
@@ -335,6 +380,8 @@ fun repair_variable_name f s =
 fun num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+  else if String.isPrefix lambda_lifted_prefix s then
+    if String.isPrefix lambda_lifted_poly_prefix s then 2 else 0
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
@@ -364,7 +411,7 @@ fun term_from_atp ctxt textual sym_tab =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        else case strip_prefix_and_unascii const_prefix s of
+        else case unprefix_and_unascii const_prefix s of
           SOME s' =>
           let
             val ((s', s''), mangled_us) =
@@ -429,12 +476,10 @@ fun term_from_atp ctxt textual sym_tab =
                 SOME T => map slack_fastype_of term_ts ---> T
               | NONE => map slack_fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix_and_unascii fixed_var_prefix s of
-                SOME s =>
-                (* FIXME: reconstruction of lambda-lifting *)
-                Free (s, T)
+              case unprefix_and_unascii fixed_var_prefix s of
+                SOME s => Free (s, T)
               | NONE =>
-                case strip_prefix_and_unascii schematic_var_prefix s of
+                case unprefix_and_unascii schematic_var_prefix s of
                   SOME s => Var ((s, var_index), T)
                 | NONE =>
                   Var ((s |> textual ? repair_variable_name Char.toLower,
@@ -964,9 +1009,10 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor = if full_types then Metis_Full_Types else Metis
+    val reconstr =
+      Metis (if full_types then full_typesN else partial_typesN, combinatorsN)
     fun do_facts (ls, ss) =
-      reconstructor_command reconstructor 1 1
+      reconstructor_command reconstr 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =

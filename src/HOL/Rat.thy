@@ -1154,7 +1154,7 @@ instantiation rat :: exhaustive
 begin
 
 definition
-  "exhaustive f d = exhaustive (%k. exhaustive (%l. f (Fract (Code_Numeral.int_of k) (Code_Numeral.int_of l))) d) d"
+  "exhaustive f d = exhaustive (%l. exhaustive (%k. f (Fract k (Code_Numeral.int_of l + 1))) d) d"
 
 instance ..
 
@@ -1164,8 +1164,9 @@ instantiation rat :: full_exhaustive
 begin
 
 definition
-  "full_exhaustive f d = full_exhaustive (%(k, kt). full_exhaustive (%(l, lt).
-     f (valterm_fract (Code_Numeral.int_of k, %_. Code_Evaluation.term_of (Code_Numeral.int_of k)) (Code_Numeral.int_of l, %_. Code_Evaluation.term_of (Code_Numeral.int_of l)))) d) d"
+  "full_exhaustive f d = full_exhaustive (%(l, _). full_exhaustive (%k.
+     f (let j = Code_Numeral.int_of l + 1
+        in valterm_fract k (j, %_. Code_Evaluation.term_of j))) d) d"
 
 instance ..
 
@@ -1181,16 +1182,17 @@ end
 lemma [code]:
   "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Var p tt) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
   "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Ctr 0 [l, k]) ==
-     Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''Rat.Fract'')
-     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [],
-        Typerep.Typerep (STR ''Rat.rat'') []]])) (partial_term_of (TYPE(int)) l)) (partial_term_of (TYPE(int)) k)" 
+     Code_Evaluation.App (Code_Evaluation.Const (STR ''Rat.Frct'')
+     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Product_Type.prod'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Int.int'') []],
+        Typerep.Typerep (STR ''Rat.rat'') []])) (Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''Product_Type.Pair'') (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Product_Type.prod'') [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Int.int'') []]]])) (partial_term_of (TYPE(int)) l)) (partial_term_of (TYPE(int)) k))"
 by (rule partial_term_of_anything)+
 
 instantiation rat :: narrowing
 begin
 
 definition
-  "narrowing = Quickcheck_Narrowing.apply (Quickcheck_Narrowing.apply (Quickcheck_Narrowing.cons Fract) narrowing) narrowing"
+  "narrowing = Quickcheck_Narrowing.apply (Quickcheck_Narrowing.apply
+    (Quickcheck_Narrowing.cons (%nom denom. Fract nom denom)) narrowing) narrowing"
 
 instance ..
 

@@ -11,7 +11,7 @@ val keepK = "keep"
 val type_encK = "type_enc"
 val soundK = "sound"
 val slicingK = "slicing"
-val lambda_translationK = "lambda_translation"
+val lam_transK = "lam_trans"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
@@ -343,10 +343,16 @@ fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring "metis (full_types)" msg then "metis (full_types)"
-    else if String.isSubstring "metis (no_types)" msg then "metis (no_types)"
-    else if String.isSubstring "metis" msg then "metis"
-    else "smt")
+    if String.isSubstring "metis (" msg then
+      msg |> Substring.full
+          |> Substring.position "metis ("
+          |> snd |> Substring.position ")"
+          |> fst |> Substring.string
+          |> suffix ")"
+    else if String.isSubstring "metis" msg then
+      "metis"
+    else
+      "smt")
 
 local
 
@@ -355,9 +361,8 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method force_sos hard_timeout timeout dir
-        pos st =
+fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
+        e_weight_method force_sos hard_timeout timeout dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -372,9 +377,6 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
     val st' =
       st |> Proof.map_context
                 (set_file_name dir
-                 #> (Option.map (Config.put
-                       Sledgehammer_Provers.atp_lambda_translation)
-                       lambda_translation |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.e_weight_method)
                        e_weight_method |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.force_sos)
@@ -384,6 +386,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
           [("verbose", "true"),
            ("type_enc", type_enc),
            ("sound", sound),
+           ("lam_trans", lam_trans |> the_default "smart"),
            ("preplay_timeout", preplay_timeout),
            ("max_relevant", max_relevant),
            ("slicing", slicing),
@@ -406,7 +409,8 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-        preplay = K (ATP_Reconstruct.Failed_to_Play ATP_Reconstruct.Metis),
+        preplay =
+          K (ATP_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,
@@ -428,7 +432,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing
            subgoal_count = Sledgehammer_Util.subgoal_count st,
            facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
            smt_filter = NONE}
-      in prover params (K (K "")) problem end)) ()
+      in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
@@ -466,7 +470,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val sound = AList.lookup (op =) args soundK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
-    val lambda_translation = AList.lookup (op =) args lambda_translationK
+    val lam_trans = AList.lookup (op =) args lam_transK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
@@ -476,9 +480,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc sound max_relevant slicing
-        lambda_translation e_weight_method force_sos hard_timeout timeout dir
-        pos st
+      run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
+        e_weight_method force_sos hard_timeout timeout dir pos st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -578,15 +581,25 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           ORELSE' sledge_tac 0.2 ATP_Systems.eN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.vampireN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.spassN "poly_tags"
-          ORELSE' Metis_Tactic.metis_tac [] ctxt thms
+          ORELSE' Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
-        else if full orelse !reconstructor = "metis (full_types)" then
-          Metis_Tactic.metis_tac [Metis_Tactic.full_type_enc] ctxt thms
-        else if !reconstructor = "metis (no_types)" then
-          Metis_Tactic.metis_tac [Metis_Tactic.no_type_enc] ctxt thms
+        else if full then
+          Metis_Tactic.metis_tac [ATP_Reconstruct.full_typesN]
+            ATP_Reconstruct.metis_default_lam_trans ctxt thms
+        else if String.isPrefix "metis (" (!reconstructor) then
+          let
+            val (type_encs, lam_trans) =
+              !reconstructor
+              |> Outer_Syntax.scan Position.start
+              |> filter Token.is_proper |> tl
+              |> Metis_Tactic.parse_metis_options |> fst
+              |>> the_default [ATP_Reconstruct.partial_typesN]
+              ||> the_default ATP_Reconstruct.metis_default_lam_trans
+          in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ctxt thms
+          Metis_Tactic.metis_tac [] ATP_Reconstruct.metis_default_lam_trans ctxt
+            thms
         else
           K all_tac
       end

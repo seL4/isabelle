@@ -13,6 +13,7 @@ sig
 
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
+    Isa_Lambda_Lifted |
     Isa_Raw of thm
 
   val metis_equal : string
@@ -27,9 +28,11 @@ sig
   val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
+  val reveal_lambda_lifted : (string * term) list -> term -> term
   val prepare_metis_problem :
-    Proof.context -> type_enc -> thm list -> thm list
-    -> int Symtab.table * (Metis_Thm.thm * isa_thm) list * (string * term) list
+    Proof.context -> type_enc -> string -> thm list -> thm list
+    -> int Symtab.table * (Metis_Thm.thm * isa_thm) list
+       * ((string * term) list * (string * term) list)
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -107,6 +110,18 @@ fun reveal_old_skolem_terms old_skolems =
                    t
                | t => t)
 
+fun reveal_lambda_lifted lambdas =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix lambda_lifted_prefix s then
+                   case AList.lookup (op =) lambdas s of
+                     SOME t =>
+                     Const (@{const_name Metis.lambda}, dummyT)
+                     $ map_types (map_type_tvar (K dummyT)) t
+                   | NONE => t
+                 else
+                   t
+               | t => t)
+
 
 (* ------------------------------------------------------------------------- *)
 (* Logic maps manage the interface between HOL and first-order logic.        *)
@@ -114,6 +129,7 @@ fun reveal_old_skolem_terms old_skolems =
 
 datatype isa_thm =
   Isa_Reflexive_or_Trivial |
+  Isa_Lambda_Lifted |
   Isa_Raw of thm
 
 val proxy_defs = map (fst o snd o snd) proxy_table
@@ -167,15 +183,23 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix fact_prefix) ident of
         SOME s =>
-        let
-          val j = s |> space_explode "_" |> List.last |> Int.fromString |> the
-        in Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some end
+        let val s = s |> space_explode "_" |> tl |> space_implode "_"
+          in
+          case Int.fromString s of
+            SOME j =>
+            Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
+          | NONE =>
+            if String.isPrefix lambda_fact_prefix (unascii_of s) then
+              Isa_Lambda_Lifted |> some
+            else
+              raise Fail ("malformed fact identifier " ^ quote ident)
+        end
       | NONE => TrueI |> Isa_Raw |> some
     end
   | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
     val (conj_clauses, fact_clauses) =
       if polymorphism_of_type_enc type_enc = Polymorphic then
@@ -205,17 +229,18 @@ fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false no_lambdasN
+    val lam_trans = if lam_trans = combinatorsN then no_lamsN else lam_trans
+    val (atp_problem, _, _, _, _, _, lifted, sym_tab) =
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
                           false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
-                     cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
+                     cat_lines (lines_for_atp_problem CNF atp_problem))
     *)
-    (* "rev" is for compatibility. *)
+    (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =
       atp_problem
       |> maps (map_filter (metis_axiom_from_atp type_enc clauses) o snd) |> rev
-  in (sym_tab, axioms, old_skolems) end
+  in (sym_tab, axioms, (lifted, old_skolems)) end
 
 end;

@@ -49,7 +49,7 @@ fun run_atp override_params relevance_override i n ctxt goal =
        facts = map Sledgehammer_Provers.Untranslated_Fact facts,
        smt_filter = NONE}
   in
-    (case prover params (K (K "")) problem of
+    (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
@@ -71,7 +71,8 @@ fun thms_of_name ctxt name =
 fun sledgehammer_with_metis_tac ctxt override_params relevance_override i th =
   case run_atp override_params relevance_override i i ctxt th of
     SOME facts =>
-    Metis_Tactic.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
+    Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt
+        (maps (thms_of_name ctxt) facts) i th
   | NONE => Seq.empty
 
 fun sledgehammer_as_oracle_tac ctxt override_params relevance_override i th =

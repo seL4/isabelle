@@ -22,7 +22,8 @@ sig
   val auto_minimize_max_time : real Config.T
   val get_minimizing_prover : Proof.context -> mode -> string -> prover
   val run_sledgehammer :
-    params -> mode -> int -> relevance_override -> (string -> minimize_command)
+    params -> mode -> int -> relevance_override
+    -> ((string * string list) list -> string -> minimize_command)
     -> Proof.state -> bool * (string * Proof.state)
 end;
 
@@ -71,6 +72,31 @@ val auto_minimize_max_time =
   Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time}
                            (K 5.0)
 
+fun adjust_reconstructor_params override_params
+        ({debug, verbose, overlord, blocking, provers, type_enc, sound,
+         lam_trans, relevance_thresholds, max_relevant, max_mono_iters,
+         max_new_mono_instances, isar_proof, isar_shrink_factor, slicing,
+         timeout, preplay_timeout, expect} : params) =
+  let
+    fun lookup_override name default_value =
+      case AList.lookup (op =) override_params name of
+        SOME [s] => SOME s
+      | _ => default_value
+    (* Only those options that reconstructors are interested in are considered
+       here. *)
+    val type_enc = lookup_override "type_enc" type_enc
+    val lam_trans = lookup_override "lam_trans" lam_trans
+  in
+    {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
+     provers = provers, type_enc = type_enc, sound = sound,
+     lam_trans = lam_trans, max_relevant = max_relevant,
+     relevance_thresholds = relevance_thresholds,
+     max_mono_iters = max_mono_iters,
+     max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+  end
+
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
              (result as {outcome, used_facts, run_time, preplay, message,
@@ -80,10 +106,10 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
   else
     let
       val num_facts = length used_facts
-      val ((minimize, minimize_name), preplay) =
+      val ((minimize, (minimize_name, params)), preplay) =
         if mode = Normal then
           if num_facts >= Config.get ctxt auto_minimize_min_facts then
-            ((true, name), preplay)
+            ((true, (name, params)), preplay)
           else
             let
               fun can_min_fast_enough time =
@@ -93,21 +119,24 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
               val prover_fast_enough = can_min_fast_enough run_time
             in
               if isar_proof then
-                ((prover_fast_enough, name), preplay)
+                ((prover_fast_enough, (name, params)), preplay)
               else
                 let val preplay = preplay () in
                   (case preplay of
-                     Played (reconstructor, timeout) =>
+                     Played (reconstr, timeout) =>
                      if can_min_fast_enough timeout then
-                       (true, prover_name_for_reconstructor reconstructor)
+                       (true, extract_reconstructor reconstr
+                              ||> (fn override_params =>
+                                      adjust_reconstructor_params
+                                          override_params params))
                      else
-                       (prover_fast_enough, name)
-                   | _ => (prover_fast_enough, name),
+                       (prover_fast_enough, (name, params))
+                   | _ => (prover_fast_enough, (name, params)),
                    K preplay)
                 end
             end
         else
-          ((false, name), preplay)
+          ((false, (name, params)), preplay)
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts minimize_name params (not verbose) subgoal

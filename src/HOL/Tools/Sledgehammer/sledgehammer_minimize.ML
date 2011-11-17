@@ -47,7 +47,7 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_new_mono_instances, type_enc, isar_proof,
+                 max_new_mono_instances, type_enc, lam_trans, isar_proof,
                  isar_shrink_factor, preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -62,8 +62,8 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_enc = type_enc, sound = true,
-       relevance_thresholds = (1.01, 1.01), max_relevant = SOME (length facts),
-       max_mono_iters = max_mono_iters,
+       lam_trans = lam_trans, relevance_thresholds = (1.01, 1.01),
+       max_relevant = SOME (length facts), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, slicing = false,
        timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
@@ -71,7 +71,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts, smt_filter = NONE}
     val result as {outcome, used_facts, run_time, ...} =
-      prover params (K (K "")) problem
+      prover params (K (K (K ""))) problem
   in
     print silent
           (fn () =>
@@ -205,7 +205,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message, "")))
     handle ERROR msg =>
-           (NONE, (K (Failed_to_Play Metis), fn _ => "Error: " ^ msg, ""))
+           (NONE, (K (Failed_to_Play plain_metis), fn _ => "Error: " ^ msg, ""))
   end
 
 fun run_minimize (params as {provers, ...}) i refs state =

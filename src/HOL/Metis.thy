@@ -15,7 +15,7 @@ uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/try_methods.ML")
 begin
 
-subsection {* Literal selection helpers *}
+subsection {* Literal selection and lambda-lifting helpers *}
 
 definition select :: "'a \<Rightarrow> 'a" where
 [no_atp]: "select = (\<lambda>x. x)"
@@ -31,6 +31,12 @@ unfolding select_def by (rule not_atomize)
 
 lemma select_FalseI: "False \<Longrightarrow> select False" by simp
 
+definition lambda :: "'a \<Rightarrow> 'a" where
+[no_atp]: "lambda = (\<lambda>x. x)"
+
+lemma eq_lambdaI: "x \<equiv> y \<Longrightarrow> x \<equiv> lambda y"
+unfolding lambda_def by assumption
+
 
 subsection {* Metis package *}
 
@@ -40,10 +46,11 @@ use "Tools/Metis/metis_tactic.ML"
 
 setup {* Metis_Tactic.setup *}
 
-hide_const (open) fFalse fTrue fNot fconj fdisj fimplies fequal select
+hide_const (open) fFalse fTrue fNot fconj fdisj fimplies fequal select lambda
 hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def
     fequal_def select_def not_atomize atomize_not_select not_atomize_select
-    select_FalseI
+    select_FalseI lambda_def eq_lambdaI
+
 
 subsection {* Try Methods *}
 

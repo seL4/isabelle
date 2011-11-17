@@ -22,6 +22,7 @@ struct
 open ATP_Util
 open ATP_Systems
 open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers
@@ -87,6 +88,7 @@ val default_default_params =
    ("blocking", "false"),
    ("type_enc", "smart"),
    ("sound", "false"),
+   ("lam_trans", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
@@ -108,9 +110,9 @@ val negated_alias_params =
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_enc", "sound", "max_mono_iters",
-   "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
-   "preplay_timeout"]
+  ["debug", "verbose", "overlord", "type_enc", "sound", "lam_trans",
+   "max_mono_iters", "max_new_mono_instances", "isar_proof",
+   "isar_shrink_factor", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -137,8 +139,10 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
-(* "provers =" and "type_enc =" can be left out. The latter is a secret
-   feature. *)
+val any_type_enc = type_enc_from_string Sound "erased"
+
+(* "provers =", "type_enc =", and "lam_trans" can be omitted. For the last two,
+   this is a secret feature. *)
 fun normalize_raw_param ctxt =
   unalias_raw_param
   #> (fn (name, value) =>
@@ -148,6 +152,9 @@ fun normalize_raw_param ctxt =
            ("provers", [name])
          else if can (type_enc_from_string Sound) name andalso null value then
            ("type_enc", [name])
+         else if can (trans_lams_from_string ctxt any_type_enc) name andalso
+                 null value then
+           ("lam_trans", [name])
          else
            error ("Unknown parameter: " ^ quote name ^ "."))
 
@@ -275,6 +282,7 @@ fun extract_params mode default_params override_params =
         "smart" => NONE
       | s => (type_enc_from_string Sound s; SOME s)
     val sound = mode = Auto_Try orelse lookup_bool "sound"
+    val lam_trans = lookup_option lookup_string "lam_trans"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
@@ -290,10 +298,10 @@ fun extract_params mode default_params override_params =
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, relevance_thresholds = relevance_thresholds,
+     provers = provers, type_enc = type_enc, sound = sound,
+     lam_trans = lam_trans, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, type_enc = type_enc,
-     sound = sound, isar_proof = isar_proof,
+     max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slicing = slicing,
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
@@ -303,17 +311,20 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val default_minimize_prover = Metis_Tactic.metisN
+val default_minimize_prover = metisN
 
 fun is_raw_param_relevant_for_minimize (name, _) =
   member (op =) params_for_minimize name
 fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
-fun minimize_command override_params i prover_name fact_names =
+fun minimize_command override_params i more_override_params prover_name
+                     fact_names =
   let
     val params =
-      override_params
+      (override_params
+       |> filter_out (AList.defined (op =) more_override_params o fst)) @
+      more_override_params
       |> filter is_raw_param_relevant_for_minimize
       |> map string_for_raw_param
       |> (if prover_name = default_minimize_prover then I else cons prover_name)

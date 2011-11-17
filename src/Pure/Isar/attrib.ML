@@ -219,26 +219,43 @@ end;
 (** partial evaluation **)
 
 local
-(* FIXME assignable, closure (!?) *)
+
+val strict_thm_eq = op = o pairself Thm.rep_thm;
 
 fun apply_att src (context, th) =
-  attribute_i (Context.theory_of context) src (context, th);
+  let
+    val src1 = Args.assignable src;
+    val result = attribute_i (Context.theory_of context) src1 (context, th);
+    val src2 = Args.closure src1;
+  in (src2, result) end;
 
-fun eval src (th, (decls, context)) =
-  (case apply_att src (context, th) of
-    (NONE, SOME th') => (th', (decls, context))
-  | (opt_context', opt_th') =>
+fun err msg src =
+  let val ((name, _), pos) = Args.dest_src src
+  in error (msg ^ " " ^ quote name ^ Position.str_of pos) end;
+
+fun eval src ((th, dyn), (decls, context)) =
+  (case (apply_att src (context, th), dyn) of
+    ((_, (NONE, SOME th')), NONE) => ((th', NONE), (decls, context))
+  | ((_, (NONE, SOME _)), SOME _) => err "Mixed dynamic attribute followed by static rule" src
+  | ((src', (SOME context', NONE)), NONE) =>
+      let
+        val decls' =
+          (case decls of
+            [] => [(th, [src'])]
+          | (th2, srcs2) :: rest =>
+              if strict_thm_eq (th, th2)
+              then ((th2, src' :: srcs2) :: rest)
+              else (th, [src']) :: (th2, srcs2) :: rest);
+      in ((th, NONE), (decls', context')) end
+  | ((src', (opt_context', opt_th')), _) =>
       let
         val context' = the_default context opt_context';
         val th' = the_default th opt_th';
-        val decls' =
-          (case decls of
-            [] => [(th, [src])]
-          | (th2, srcs2) :: rest =>
-              if op = (pairself Thm.rep_thm (th, th2))  (* FIXME derivation!? *)
-              then ((th2, src :: srcs2) :: rest)
-              else (th, [src]) :: (th2, srcs2) :: rest);
-      in (th', (decls', context')) end);
+        val dyn' =
+          (case dyn of
+            NONE => SOME (th, [src'])
+          | SOME (dyn_th, srcs) => SOME (dyn_th, src' :: srcs));
+      in ((th', dyn'), (decls, context')) end);
 
 in
 
@@ -247,10 +264,18 @@ fun partial_evaluation ctxt facts =
     val (facts', (decls, _)) =
       (facts, ([], Context.Proof ctxt)) |-> fold_map (fn ((b, more_atts), fact) => fn res =>
         let
-          val (thss', res') =
-            (fact, res) |-> fold_map (fn (ths, atts) =>
-              fold_map (curry (fold eval (atts @ more_atts))) ths);
-        in (((b, []), [(flat thss', [])]), res') end);
+          val (fact', res') =
+            (fact, res) |-> fold_map (fn (ths, atts) => fn res1 =>
+              (ths, res1) |-> fold_map (fn th => fn res2 =>
+                let
+                  val ((th', dyn'), res3) = fold eval (atts @ more_atts) ((th, NONE), res2);
+                  val th_atts' =
+                    (case dyn' of
+                      NONE => ([th'], [])
+                    | SOME (dyn_th', atts') => ([dyn_th'], rev atts'));
+                in (th_atts', res3) end))
+            |>> flat;
+        in (((b, []), fact'), res') end);
     val decl_fact = (empty_binding, rev (map (fn (th, atts) => ([th], rev atts)) decls));
   in decl_fact :: facts' end;
 
