@@ -1874,9 +1874,11 @@ by (simp add: st_unique st_SReal st_approx_self approx_add)
 lemma st_number_of [simp]: "st (number_of w) = number_of w"
 by (rule Reals_number_of [THEN st_SReal_eq])
 
-(*the theorem above for the special cases of zero and one*)
-lemma [simp]: "st 0 = 0" "st 1 = 1"
-by (simp_all add: st_SReal_eq)
+lemma st_0 [simp]: "st 0 = 0"
+by (simp add: st_SReal_eq)
+
+lemma st_1 [simp]: "st 1 = 1"
+by (simp add: st_SReal_eq)
 
 lemma st_minus: "x \<in> HFinite \<Longrightarrow> st (- x) = - st x"
 by (simp add: st_unique st_SReal st_approx_self approx_minus)
@@ -1934,14 +1936,12 @@ apply (auto simp add: add_assoc [symmetric])
 done
 
 lemma st_zero_le: "[| 0 \<le> x;  x \<in> HFinite |] ==> 0 \<le> st x"
-apply (subst numeral_0_eq_0 [symmetric])
-apply (rule st_number_of [THEN subst])
+apply (subst st_0 [symmetric])
 apply (rule st_le, auto)
 done
 
 lemma st_zero_ge: "[| x \<le> 0;  x \<in> HFinite |] ==> st x \<le> 0"
-apply (subst numeral_0_eq_0 [symmetric])
-apply (rule st_number_of [THEN subst])
+apply (subst st_0 [symmetric])
 apply (rule st_le, auto)
 done
 
