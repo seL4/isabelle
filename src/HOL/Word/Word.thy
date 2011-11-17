@@ -650,6 +650,8 @@ interpretation word_bl:
                   "{bl. length bl = len_of TYPE('a::len0)}"
   by (rule td_bl)
 
+lemmas word_bl_Rep' = word_bl.Rep [simplified, iff]
+
 lemma word_size_bl: "size w = size (to_bl w)"
   unfolding word_size by auto
 
@@ -668,7 +670,7 @@ lemma word_rev_gal: "word_reverse w = u \<Longrightarrow> word_reverse u = w"
 
 lemmas word_rev_gal' = sym [THEN word_rev_gal, symmetric, standard]
 
-lemmas length_bl_gt_0 [iff] = xtr1 [OF word_bl.Rep' len_gt_0, standard]
+lemmas length_bl_gt_0 [iff] = xtr1 [OF word_bl_Rep' len_gt_0, standard]
 lemmas bl_not_Nil [iff] = 
   length_bl_gt_0 [THEN length_greater_0_conv [THEN iffD1], standard]
 lemmas length_bl_neq_0 [iff] = length_bl_gt_0 [THEN gr_implies_not0]
@@ -818,7 +820,7 @@ lemma word_rev_tf':
   unfolding of_bl_def uint_bl
   by (clarsimp simp add: bl_bin_bl_rtf word_ubin.eq_norm word_size)
 
-lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl.Rep', standard]
+lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl_Rep', standard]
 
 lemmas word_rep_drop = word_rev_tf [simplified takefill_alt,
   simplified, simplified rev_take, simplified]
@@ -2545,9 +2547,6 @@ interpretation test_bit:
          "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"
   by (rule td_ext_nth)
 
-declare test_bit.Rep' [simp del]
-declare test_bit.Rep' [rule del]
-
 lemmas td_nth = test_bit.td_thm
 
 lemma word_set_set_same: 
@@ -3096,7 +3095,7 @@ lemma shiftr_bl_of' [rule_format]:
 
 lemmas shiftr_bl_of = refl [THEN shiftr_bl_of', unfolded word_size]
 
-lemmas shiftr_bl = word_bl.Rep' [THEN eq_imp_le, THEN shiftr_bl_of,
+lemmas shiftr_bl = word_bl_Rep' [THEN eq_imp_le, THEN shiftr_bl_of,
   simplified word_size, simplified, THEN eq_reflection, standard]
 
 lemma msb_shift': "msb (w::'a::len word) <-> (w >> (size w - 1)) ~= 0"
@@ -4126,7 +4125,7 @@ lemma to_bl_rotl:
 lemmas blrs0 = rotate_eqs [THEN to_bl_rotl [THEN trans]]
 
 lemmas word_rotl_eqs =
-  blrs0 [simplified word_bl.Rep' word_bl.Rep_inject to_bl_rotl [symmetric]]
+  blrs0 [simplified word_bl_Rep' word_bl.Rep_inject to_bl_rotl [symmetric]]
 
 lemma to_bl_rotr: 
   "to_bl (word_rotr n w) = rotater n (to_bl w)"
@@ -4135,7 +4134,7 @@ lemma to_bl_rotr:
 lemmas brrs0 = rotater_eqs [THEN to_bl_rotr [THEN trans]]
 
 lemmas word_rotr_eqs =
-  brrs0 [simplified word_bl.Rep' word_bl.Rep_inject to_bl_rotr [symmetric]]
+  brrs0 [simplified word_bl_Rep' word_bl.Rep_inject to_bl_rotr [symmetric]]
 
 declare word_rotr_eqs (1) [simp]
 declare word_rotl_eqs (1) [simp]
@@ -4228,7 +4227,7 @@ lemmas word_rot_defs' = to_bl_rotl to_bl_rotr
 
 lemmas blwl_syms [symmetric] = bl_word_not bl_word_and bl_word_or bl_word_xor
 
-lemmas lbl_lbl = trans [OF word_bl.Rep' word_bl.Rep' [symmetric]]
+lemmas lbl_lbl = trans [OF word_bl_Rep' word_bl_Rep' [symmetric]]
 
 lemmas ths_map2 [OF lbl_lbl] = rotate_map2 rotater_map2
 
@@ -4255,10 +4254,10 @@ end
 lemmas word_rot_logs = word_rotate.word_rot_logs
 
 lemmas bl_word_rotl_dt = trans [OF to_bl_rotl rotate_drop_take,
-  simplified word_bl.Rep', standard]
+  simplified word_bl_Rep', standard]
 
 lemmas bl_word_rotr_dt = trans [OF to_bl_rotr rotater_drop_take,
-  simplified word_bl.Rep', standard]
+  simplified word_bl_Rep', standard]
 
 lemma bl_word_roti_dt': 
   "n = nat ((- i) mod int (size (w :: 'a :: len word))) \<Longrightarrow> 

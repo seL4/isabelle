@@ -25,9 +25,7 @@ lemma td_nat_int:
 context type_definition
 begin
 
-lemmas Rep' [iff] = Rep [simplified]  (* if A is given as Collect .. *)
-
-declare Rep_inverse [simp] Rep_inject [simp]
+declare Rep [iff] Rep_inverse [simp] Rep_inject [simp]
 
 lemma Abs_eqD: "Abs x = Abs y ==> x \<in> A ==> y \<in> A ==> x = y"
   by (simp add: Abs_inject)
@@ -38,7 +36,7 @@ lemma Abs_inverse':
 
 lemma Rep_comp_inverse: 
   "Rep o f = g ==> Abs o g = f"
-  using Rep_inverse by (auto intro: ext)
+  using Rep_inverse by auto
 
 lemma Rep_eqD [elim!]: "Rep x = Rep y ==> x = y"
   by simp
@@ -48,7 +46,7 @@ lemma Rep_inverse': "Rep a = r ==> Abs r = a"
 
 lemma comp_Abs_inverse: 
   "f o Abs = g ==> g o Rep = f"
-  using Rep_inverse by (auto intro: ext) 
+  using Rep_inverse by auto
 
 lemma set_Rep: 
   "A = range Rep"
@@ -84,7 +82,7 @@ lemmas fns1b = disjI2 [THEN fns1]
 lemma fns4:
   "Rep o fa o Abs = fr ==> 
    Rep o fa = fr o Rep & fa o Abs = Abs o fr"
-  by (auto intro!: ext)
+  by auto
 
 end
 
@@ -133,7 +131,7 @@ lemma td_th:
   by (drule comp_Abs_inverse [symmetric]) simp
 
 lemma eq_norm': "Rep o Abs = norm"
-  by (auto simp: eq_norm intro!: ext)
+  by (auto simp: eq_norm)
 
 lemma norm_Rep [simp]: "norm (Rep x) = Rep x"
   by (auto simp: eq_norm' intro: td_th)
@@ -165,7 +163,7 @@ lemmas norm_norm [simp] = norm_comps
 lemma fns5: 
   "Rep o fa o Abs = fr ==> 
   fr o norm = fr & norm o fr = fr"
-  by (fold eq_norm') (auto intro!: ext)
+  by (fold eq_norm') auto
 
 (* following give conditions for converses to td_fns1
   the condition (norm o fr o norm = fr o norm) says that 
