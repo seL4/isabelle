@@ -1203,15 +1203,8 @@ lemmas word_arith_alts =
   word_sub_wi [unfolded succ_def pred_def, standard]
   word_arith_wis [unfolded succ_def pred_def, standard]
 
-(* FIXME: Lots of duplicate lemmas *)
-lemmas word_sub_alt = word_arith_alts (1)
-lemmas word_add_alt = word_arith_alts (2)
-lemmas word_mult_alt = word_arith_alts (3)
-lemmas word_minus_alt = word_arith_alts (4)
 lemmas word_succ_alt = word_arith_alts (5)
 lemmas word_pred_alt = word_arith_alts (6)
-lemmas word_0_alt = word_arith_alts (7)
-lemmas word_1_alt = word_arith_alts (8)
 
 subsection  "Transferring goals from words to ints"
 
@@ -1268,40 +1261,6 @@ lemma word_sp_01 [simp] :
 lemma word_of_int_Ex:
   "\<exists>y. x = word_of_int y"
   by (rule_tac x="uint x" in exI) simp
-
-(* FIXME: redundant theorems *)
-lemma word_arith_eqs:
-  fixes a :: "'a::len0 word"
-  fixes b :: "'a::len0 word"
-  shows
-  word_add_0: "0 + a = a" and
-  word_add_0_right: "a + 0 = a" and
-  word_mult_1: "1 * a = a" and
-  word_mult_1_right: "a * 1 = a" and
-  word_add_commute: "a + b = b + a" and
-  word_add_assoc: "a + b + c = a + (b + c)" and
-  word_add_left_commute: "a + (b + c) = b + (a + c)" and
-  word_mult_commute: "a * b = b * a" and
-  word_mult_assoc: "a * b * c = a * (b * c)" and
-  word_mult_left_commute: "a * (b * c) = b * (a * c)" and
-  word_left_distrib: "(a + b) * c = a * c + b * c" and
-  word_right_distrib: "a * (b + c) = a * b + a * c" and
-  word_left_minus: "- a + a = 0" and
-  word_diff_0_right: "a - 0 = a" and
-  word_diff_self: "a - a = 0"
-  using word_of_int_Ex [of a] 
-        word_of_int_Ex [of b] 
-        word_of_int_Ex [of c]
-  by (auto simp: word_of_int_hom_syms [symmetric]
-                 add_0_right add_commute add_assoc add_left_commute
-                 mult_commute mult_assoc mult_left_commute
-                 left_distrib right_distrib)
-  
-lemmas word_add_ac = word_add_commute word_add_assoc word_add_left_commute
-lemmas word_mult_ac = word_mult_commute word_mult_assoc word_mult_left_commute
-  
-lemmas word_plus_ac0 = word_add_0 word_add_0_right word_add_ac
-lemmas word_times_ac1 = word_mult_1 word_mult_1_right word_mult_ac
 
 
 subsection "Order on fixed-length words"
@@ -1533,7 +1492,7 @@ lemma no_ulen_sub: "((x :: 'a :: len0 word) >= x - y) = (uint y <= uint x)"
 lemma no_olen_add':
   fixes x :: "'a::len0 word"
   shows "(x \<le> y + x) = (uint y + uint x < 2 ^ len_of TYPE('a))"
-  by (simp add: word_add_ac add_ac no_olen_add)
+  by (simp add: add_ac no_olen_add)
 
 lemmas olen_add_eqv = trans [OF no_olen_add no_olen_add' [symmetric], standard]
 
@@ -4412,7 +4371,7 @@ lemma uint_lt_0 [simp]:
 
 lemma shiftr1_1 [simp]: 
   "shiftr1 (1::'a::len word) = 0"
-  by (simp add: shiftr1_def word_0_alt)
+  by (simp add: shiftr1_def word_0_wi)
 
 lemma shiftr_1[simp]: 
   "(1::'a::len word) >> n = (if n = 0 then 1 else 0)"

@@ -29,6 +29,35 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Session HOL-Word: Discontinued many redundant theorems specific to type
+'a word. INCOMPATIBILITY, use the corresponding generic theorems instead.
+
+  word_sub_alt ~> word_sub_wi
+  word_add_alt ~> word_add_def
+  word_mult_alt ~> word_mult_def
+  word_minus_alt ~> word_minus_def
+  word_0_alt ~> word_0_wi
+  word_1_alt ~> word_1_wi
+  word_add_0 ~> add_0_left
+  word_add_0_right ~> add_0_right
+  word_mult_1 ~> mult_1_left
+  word_mult_1_right ~> mult_1_right
+  word_add_commute ~> add_commute
+  word_add_assoc ~> add_assoc
+  word_add_left_commute ~> add_left_commute
+  word_mult_commute ~> mult_commute
+  word_mult_assoc ~> mult_assoc
+  word_mult_left_commute ~> mult_left_commute
+  word_left_distrib ~> left_distrib
+  word_right_distrib ~> right_distrib
+  word_left_minus ~> left_minus
+  word_diff_0_right ~> diff_0_right
+  word_diff_self ~> diff_self
+  word_add_ac ~> add_ac
+  word_mult_ac ~> mult_ac
+  word_plus_ac0 ~> add_0_left add_0_right add_ac
+  word_times_ac1 ~> mult_1_left mult_1_right mult_ac
+
 * Clarified attribute "mono_set": pure declararation without modifying
 the result of the fact expression.
 
