@@ -199,7 +199,7 @@ definition
 where
   "word_pred a = word_of_int (Int.pred (uint a))"
 
-instantiation word :: (len0) "{number, Divides.div, ord, comm_monoid_mult, comm_ring}"
+instantiation word :: (len0) "{number, Divides.div, comm_monoid_mult, comm_ring}"
 begin
 
 definition
@@ -228,12 +228,6 @@ definition
 
 definition
   word_number_of_def: "number_of w = word_of_int w"
-
-definition
-  word_le_def: "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
-
-definition
-  word_less_def: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> (y \<Colon> 'a word)"
 
 lemmas word_arith_wis = 
   word_add_def word_mult_def word_minus_def 
@@ -315,6 +309,23 @@ instance word :: (len) number_ring
 
 definition udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50) where
   "a udvd b = (EX n>=0. uint b = n * uint a)"
+
+
+subsection "Ordering"
+
+instantiation word :: (len0) linorder
+begin
+
+definition
+  word_le_def: "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
+
+definition
+  word_less_def: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> (y \<Colon> 'a word)"
+
+instance
+  by default (auto simp: word_less_def word_le_def)
+
+end
 
 definition word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50) where
   "a <=s b = (sint a <= sint b)"
@@ -1265,26 +1276,10 @@ lemma word_of_int_Ex:
 
 subsection "Order on fixed-length words"
 
-lemma word_order_trans: "x <= y \<Longrightarrow> y <= z \<Longrightarrow> x <= (z :: 'a :: len0 word)"
-  unfolding word_le_def by auto
-
-lemma word_order_refl: "z <= (z :: 'a :: len0 word)"
-  unfolding word_le_def by auto
-
-lemma word_order_antisym: "x <= y \<Longrightarrow> y <= x \<Longrightarrow> x = (y :: 'a :: len0 word)"
-  unfolding word_le_def by (auto intro!: word_uint.Rep_eqD)
-
-lemma word_order_linear:
-  "y <= x | x <= (y :: 'a :: len0 word)"
-  unfolding word_le_def by auto
-
 lemma word_zero_le [simp] :
   "0 <= (y :: 'a :: len0 word)"
   unfolding word_le_def by auto
   
-instance word :: (len0) linorder
-  by intro_classes (auto simp: word_less_def word_le_def)
-
 lemma word_m1_ge [simp] : "word_pred 0 >= y"
   unfolding word_le_def
   by (simp only : word_pred_0_n1 word_uint.eq_norm m1mod2k) auto

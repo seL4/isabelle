@@ -57,6 +57,10 @@ distinct sorts used to be assigned accidentally.  For example:
   word_mult_ac ~> mult_ac
   word_plus_ac0 ~> add_0_left add_0_right add_ac
   word_times_ac1 ~> mult_1_left mult_1_right mult_ac
+  word_order_trans ~> order_trans
+  word_order_refl ~> order_refl
+  word_order_antisym ~> order_antisym
+  word_order_linear ~> linorder_linear
 
 * Clarified attribute "mono_set": pure declararation without modifying
 the result of the fact expression.
