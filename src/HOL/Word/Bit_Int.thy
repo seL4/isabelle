@@ -87,6 +87,8 @@ instance ..
 
 end
 
+subsubsection {* Basic simplification rules *}
+
 lemma int_not_simps [simp]:
   "NOT Int.Pls = Int.Min"
   "NOT Int.Min = Int.Pls"
@@ -121,20 +123,6 @@ lemma int_xor_Bits2 [simp]:
   "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
   unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
 
-lemma int_xor_x_simps':
-  "w XOR (Int.Pls BIT 0) = w"
-  "w XOR (Int.Min BIT 1) = NOT w"
-  apply (induct w rule: bin_induct)
-       apply simp_all[4]
-   apply (unfold int_xor_Bits)
-   apply clarsimp+
-  done
-
-lemma int_xor_extra_simps [simp]:
-  "w XOR Int.Pls = w"
-  "w XOR Int.Min = NOT w"
-  using int_xor_x_simps' by simp_all
-
 lemma int_or_Pls [simp]: 
   "Int.Pls OR x = x"
   by (unfold int_or_def) (simp add: bin_rec_PM)
@@ -153,20 +141,6 @@ lemma int_or_Bits2 [simp]:
   "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
   unfolding BIT_simps [symmetric] int_or_Bits by simp_all
-
-lemma int_or_x_simps': 
-  "w OR (Int.Pls BIT 0) = w"
-  "w OR (Int.Min BIT 1) = Int.Min"
-  apply (induct w rule: bin_induct)
-       apply simp_all[4]
-   apply (unfold int_or_Bits)
-   apply clarsimp+
-  done
-
-lemma int_or_extra_simps [simp]:
-  "w OR Int.Pls = w"
-  "w OR Int.Min = Int.Min"
-  using int_or_x_simps' by simp_all
 
 lemma int_and_Pls [simp]:
   "Int.Pls AND x = Int.Pls"
@@ -187,19 +161,61 @@ lemma int_and_Bits2 [simp]:
   "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
   unfolding BIT_simps [symmetric] int_and_Bits by simp_all
 
-lemma int_and_x_simps': 
-  "w AND (Int.Pls BIT 0) = Int.Pls"
-  "w AND (Int.Min BIT 1) = w"
-  apply (induct w rule: bin_induct)
-       apply simp_all[4]
-   apply (unfold int_and_Bits)
-   apply clarsimp+
-  done
+subsubsection {* Binary destructors *}
+
+lemma bin_rest_NOT [simp]: "bin_rest (NOT x) = NOT (bin_rest x)"
+  by (cases x rule: bin_exhaust, simp)
+
+lemma bin_last_NOT [simp]: "bin_last (NOT x) = NOT (bin_last x)"
+  by (cases x rule: bin_exhaust, simp)
+
+lemma bin_rest_AND [simp]: "bin_rest (x AND y) = bin_rest x AND bin_rest y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bin_last_AND [simp]: "bin_last (x AND y) = bin_last x AND bin_last y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bin_rest_OR [simp]: "bin_rest (x OR y) = bin_rest x OR bin_rest y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bin_last_OR [simp]: "bin_last (x OR y) = bin_last x OR bin_last y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bin_rest_XOR [simp]: "bin_rest (x XOR y) = bin_rest x XOR bin_rest y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bin_last_XOR [simp]: "bin_last (x XOR y) = bin_last x XOR bin_last y"
+  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
+
+lemma bit_NOT_eq_1_iff [simp]: "NOT (b::bit) = 1 \<longleftrightarrow> b = 0"
+  by (induct b, simp_all)
+
+lemma bit_AND_eq_1_iff [simp]: "(a::bit) AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
+  by (induct a, simp_all)
+
+lemma bin_nth_ops:
+  "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)" 
+  "!!x y. bin_nth (x OR y) n = (bin_nth x n | bin_nth y n)"
+  "!!x y. bin_nth (x XOR y) n = (bin_nth x n ~= bin_nth y n)" 
+  "!!x. bin_nth (NOT x) n = (~ bin_nth x n)"
+  by (induct n) auto
+
+subsubsection {* Derived properties *}
+
+lemma int_xor_extra_simps [simp]:
+  "w XOR Int.Pls = w"
+  "w XOR Int.Min = NOT w"
+  by (auto simp add: bin_eq_iff bin_nth_ops)
+
+lemma int_or_extra_simps [simp]:
+  "w OR Int.Pls = w"
+  "w OR Int.Min = Int.Min"
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_and_extra_simps [simp]:
   "w AND Int.Pls = Int.Pls"
   "w AND Int.Min = w"
-  using int_and_x_simps' by simp_all
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 (* commutativity of the above *)
 lemma bin_ops_comm:
@@ -207,19 +223,16 @@ lemma bin_ops_comm:
   int_and_comm: "!!y::int. x AND y = y AND x" and
   int_or_comm:  "!!y::int. x OR y = y OR x" and
   int_xor_comm: "!!y::int. x XOR y = y XOR x"
-  apply (induct x rule: bin_induct)
-          apply simp_all[6]
-    apply (case_tac y rule: bin_exhaust, simp add: bit_ops_comm)+
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bin_ops_same [simp]:
   "(x::int) AND x = x" 
   "(x::int) OR x = x" 
   "(x::int) XOR x = Int.Pls"
-  by (induct x rule: bin_induct) auto
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
-  by (induct x rule: bin_induct) auto
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemmas bin_log_esimps = 
   int_and_extra_simps  int_or_extra_simps  int_xor_extra_simps
@@ -229,107 +242,63 @@ lemmas bin_log_esimps =
 
 lemma bbw_ao_absorb: 
   "!!y::int. x AND (y OR x) = x & x OR (y AND x) = x"
-  apply (induct x rule: bin_induct)
-    apply auto 
-   apply (case_tac [!] y rule: bin_exhaust)
-   apply auto
-   apply (case_tac [!] bit)
-     apply auto
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bbw_ao_absorbs_other:
   "x AND (x OR y) = x \<and> (y AND x) OR x = (x::int)"
   "(y OR x) AND x = x \<and> x OR (x AND y) = (x::int)"
   "(x OR y) AND x = x \<and> (x AND y) OR x = (x::int)"
-  apply (auto simp: bbw_ao_absorb int_or_comm)  
-      apply (subst int_or_comm)
-    apply (simp add: bbw_ao_absorb)
-   apply (subst int_and_comm)
-   apply (subst int_or_comm)
-   apply (simp add: bbw_ao_absorb)
-  apply (subst int_and_comm)
-  apply (simp add: bbw_ao_absorb)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemmas bbw_ao_absorbs [simp] = bbw_ao_absorb bbw_ao_absorbs_other
 
 lemma int_xor_not:
   "!!y::int. (NOT x) XOR y = NOT (x XOR y) & 
         x XOR (NOT y) = NOT (x XOR y)"
-  apply (induct x rule: bin_induct)
-    apply auto
-   apply (case_tac y rule: bin_exhaust, auto, 
-          case_tac b, auto)+
-  done
-
-lemma bbw_assocs': 
-  "!!y z::int. (x AND y) AND z = x AND (y AND z) & 
-          (x OR y) OR z = x OR (y OR z) & 
-          (x XOR y) XOR z = x XOR (y XOR z)"
-  apply (induct x rule: bin_induct)
-    apply (auto simp: int_xor_not)
-    apply (case_tac [!] y rule: bin_exhaust)
-    apply (case_tac [!] z rule: bin_exhaust)
-    apply (case_tac [!] bit)
-       apply (case_tac [!] b)
-             apply (auto simp del: BIT_simps)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_and_assoc:
   "(x AND y) AND (z::int) = x AND (y AND z)"
-  by (simp add: bbw_assocs')
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_or_assoc:
   "(x OR y) OR (z::int) = x OR (y OR z)"
-  by (simp add: bbw_assocs')
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_xor_assoc:
   "(x XOR y) XOR (z::int) = x XOR (y XOR z)"
-  by (simp add: bbw_assocs')
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemmas bbw_assocs = int_and_assoc int_or_assoc int_xor_assoc
 
+(* BH: Why are these declared as simp rules??? *)
 lemma bbw_lcs [simp]: 
   "(y::int) AND (x AND z) = x AND (y AND z)"
   "(y::int) OR (x OR z) = x OR (y OR z)"
   "(y::int) XOR (x XOR z) = x XOR (y XOR z)" 
-  apply (auto simp: bbw_assocs [symmetric])
-  apply (auto simp: bin_ops_comm)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bbw_not_dist: 
   "!!y::int. NOT (x OR y) = (NOT x) AND (NOT y)" 
   "!!y::int. NOT (x AND y) = (NOT x) OR (NOT y)"
-  apply (induct x rule: bin_induct)
-       apply auto
-   apply (case_tac [!] y rule: bin_exhaust)
-   apply (case_tac [!] bit, auto simp del: BIT_simps)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bbw_oa_dist: 
   "!!y z::int. (x AND y) OR z = 
           (x OR z) AND (y OR z)"
-  apply (induct x rule: bin_induct)
-    apply auto
-  apply (case_tac y rule: bin_exhaust)
-  apply (case_tac z rule: bin_exhaust)
-  apply (case_tac ba, auto simp del: BIT_simps)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bbw_ao_dist: 
   "!!y z::int. (x OR y) AND z = 
           (x AND z) OR (y AND z)"
-   apply (induct x rule: bin_induct)
-    apply auto
-  apply (case_tac y rule: bin_exhaust)
-  apply (case_tac z rule: bin_exhaust)
-  apply (case_tac ba, auto simp del: BIT_simps)
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 (*
 Why were these declared simp???
 declare bin_ops_comm [simp] bbw_assocs [simp] 
 *)
+
+subsubsection {* Interactions with arithmetic *}
 
 lemma plus_and_or [rule_format]:
   "ALL y::int. (x AND y) + (x OR y) = x + y"
@@ -359,20 +328,6 @@ lemma le_int_or:
 lemmas int_and_le =
   xtr3 [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
 
-lemma bin_nth_ops:
-  "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)" 
-  "!!x y. bin_nth (x OR y) n = (bin_nth x n | bin_nth y n)"
-  "!!x y. bin_nth (x XOR y) n = (bin_nth x n ~= bin_nth y n)" 
-  "!!x. bin_nth (NOT x) n = (~ bin_nth x n)"
-  apply (induct n)
-         apply safe
-                         apply (case_tac [!] x rule: bin_exhaust)
-                         apply (simp_all del: BIT_simps)
-                      apply (case_tac [!] y rule: bin_exhaust)
-                      apply (simp_all del: BIT_simps)
-        apply (auto dest: not_B1_is_B0 intro: B1_ass_B0)
-  done
-
 (* interaction between bit-wise and arithmetic *)
 (* good example of bin_induction *)
 lemma bin_add_not: "x + NOT x = Int.Min"
@@ -382,34 +337,21 @@ lemma bin_add_not: "x + NOT x = Int.Min"
   apply (case_tac bit, auto)
   done
 
-(* truncating results of bit-wise operations *)
+subsubsection {* Truncating results of bit-wise operations *}
+
 lemma bin_trunc_ao: 
   "!!x y. (bintrunc n x) AND (bintrunc n y) = bintrunc n (x AND y)" 
   "!!x y. (bintrunc n x) OR (bintrunc n y) = bintrunc n (x OR y)"
-  apply (induct n)
-      apply auto
-      apply (case_tac [!] x rule: bin_exhaust)
-      apply (case_tac [!] y rule: bin_exhaust)
-      apply auto
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
 lemma bin_trunc_xor: 
   "!!x y. bintrunc n (bintrunc n x XOR bintrunc n y) = 
           bintrunc n (x XOR y)"
-  apply (induct n)
-   apply auto
-   apply (case_tac [!] x rule: bin_exhaust)
-   apply (case_tac [!] y rule: bin_exhaust)
-   apply auto
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
 lemma bin_trunc_not: 
   "!!x. bintrunc n (NOT (bintrunc n x)) = bintrunc n (NOT x)"
-  apply (induct n)
-   apply auto
-   apply (case_tac [!] x rule: bin_exhaust)
-   apply auto
-  done
+  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
 (* want theorems of the form of bin_trunc_xor *)
 lemma bintr_bintr_i:

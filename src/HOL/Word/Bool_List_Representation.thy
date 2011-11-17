@@ -481,8 +481,6 @@ lemma bl_and_aux_bin [rule_format] : "ALL v w bs cs.
   apply (case_tac v rule: bin_exhaust)
   apply (case_tac w rule: bin_exhaust)
   apply clarsimp
-  apply (case_tac b)
-  apply (case_tac ba, safe, simp_all)+
   done
     
 lemma bl_not_aux_bin [rule_format] : 
@@ -491,9 +489,6 @@ lemma bl_not_aux_bin [rule_format] :
   apply (induct n)
    apply clarsimp
   apply clarsimp
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac b)
-   apply auto
   done
 
 lemmas bl_not_bin = bl_not_aux_bin
