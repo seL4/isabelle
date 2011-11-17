@@ -113,7 +113,7 @@ thm_maps
   "REAL_NZ_IMP_LT" > "HOL4Real.real.REAL_NZ_IMP_LT"
   "REAL_NOT_LT" > "HOL4Compat.real_lte"
   "REAL_NOT_LE" > "Orderings.linorder_class.not_le"
-  "REAL_NEG_SUB" > "Groups.ab_group_add_class.minus_diff_eq"
+  "REAL_NEG_SUB" > "Groups.group_add_class.minus_diff_eq"
   "REAL_NEG_RMUL" > "Int.int_arith_rules_14"
   "REAL_NEG_NEG" > "Groups.group_add_class.minus_minus"
   "REAL_NEG_MUL2" > "Rings.ring_class.minus_mult_minus"

@@ -3861,7 +3861,7 @@ next
   then obtain y e where "e>0" and e:"ball y e \<subseteq> s" and y:"x = a + y" unfolding image_iff Bex_def mem_interior by auto
   { fix z have *:"a + y - z = y + a - z" by auto
     assume "z\<in>ball x e"
-    hence "z - a \<in> s" using e[unfolded subset_eq, THEN bspec[where x="z - a"]] unfolding mem_ball dist_norm y ab_group_add_class.diff_diff_eq2 * by auto
+    hence "z - a \<in> s" using e[unfolded subset_eq, THEN bspec[where x="z - a"]] unfolding mem_ball dist_norm y group_add_class.diff_diff_eq2 * by auto
     hence "z \<in> op + a ` s" unfolding image_iff by(auto intro!: bexI[where x="z - a"])  }
   hence "ball x e \<subseteq> op + a ` s" unfolding subset_eq by auto
   thus "x \<in> interior (op + a ` s)" unfolding mem_interior using `e>0` by auto

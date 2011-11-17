@@ -284,7 +284,6 @@ proof -
   finally show ?thesis .
 qed
 
-
 lemmas equals_zero_I = minus_unique (* legacy name *)
 
 lemma minus_zero [simp]: "- 0 = 0"
@@ -413,6 +412,28 @@ lemma add_eq_0_iff: "x + y = 0 \<longleftrightarrow> y = - x"
   unfolding eq_neg_iff_add_eq_0 [symmetric]
   by (rule equation_minus_iff)
 
+lemma minus_diff_eq [simp]: "- (a - b) = b - a"
+  by (simp add: diff_minus minus_add)
+
+lemma add_diff_eq[algebra_simps, field_simps]: "a + (b - c) = (a + b) - c"
+  by (simp add: diff_minus add_assoc)
+
+lemma diff_eq_eq[algebra_simps, field_simps]: "a - b = c \<longleftrightarrow> a = c + b"
+  by (auto simp add: diff_minus add_assoc)
+
+lemma eq_diff_eq[algebra_simps, field_simps]: "a = c - b \<longleftrightarrow> a + b = c"
+  by (auto simp add: diff_minus add_assoc)
+
+lemma diff_diff_eq2[algebra_simps, field_simps]: "a - (b - c) = (a + c) - b"
+  by (simp add: diff_minus minus_add add_assoc)
+
+lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
+  by (fact right_minus_eq [symmetric])
+
+lemma diff_eq_diff_eq:
+  "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"
+  by (simp add: eq_iff_diff_eq_0 [of a b] eq_iff_diff_eq_0 [of c d])
+
 end
 
 class ab_group_add = minus + uminus + comm_monoid_add +
@@ -440,40 +461,17 @@ lemma minus_add_distrib [simp]:
   "- (a + b) = - a + - b"
 by (rule minus_unique) (simp add: add_ac)
 
-lemma minus_diff_eq [simp]:
-  "- (a - b) = b - a"
-by (simp add: diff_minus add_commute)
-
-lemma add_diff_eq[algebra_simps, field_simps]: "a + (b - c) = (a + b) - c"
-by (simp add: diff_minus add_ac)
-
 lemma diff_add_eq[algebra_simps, field_simps]: "(a - b) + c = (a + c) - b"
 by (simp add: diff_minus add_ac)
 
-lemma diff_eq_eq[algebra_simps, field_simps]: "a - b = c \<longleftrightarrow> a = c + b"
-by (auto simp add: diff_minus add_assoc)
-
-lemma eq_diff_eq[algebra_simps, field_simps]: "a = c - b \<longleftrightarrow> a + b = c"
-by (auto simp add: diff_minus add_assoc)
-
 lemma diff_diff_eq[algebra_simps, field_simps]: "(a - b) - c = a - (b + c)"
 by (simp add: diff_minus add_ac)
-
-lemma diff_diff_eq2[algebra_simps, field_simps]: "a - (b - c) = (a + c) - b"
-by (simp add: diff_minus add_ac)
-
-lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
-by (simp add: algebra_simps)
 
 (* FIXME: duplicates right_minus_eq from class group_add *)
 (* but only this one is declared as a simp rule. *)
 lemma diff_eq_0_iff_eq [simp, no_atp]: "a - b = 0 \<longleftrightarrow> a = b"
   by (rule right_minus_eq)
 
-lemma diff_eq_diff_eq:
-  "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"
-  by (auto simp add: algebra_simps)
-  
 end
 
 
