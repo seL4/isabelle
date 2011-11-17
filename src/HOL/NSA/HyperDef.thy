@@ -471,8 +471,8 @@ lemma hyperpow_one [simp]:
 by transfer (rule power_one_right)
 
 lemma hyperpow_two:
-  "\<And>r. (r::'a::monoid_mult star) pow ((1::hypnat) + (1::hypnat)) = r * r"
-by transfer simp
+  "\<And>r. (r::'a::monoid_mult star) pow (2::hypnat) = r * r"
+by transfer (rule power2_eq_square)
 
 lemma hyperpow_gt_zero:
   "\<And>r n. (0::'a::{linordered_semidom} star) < r \<Longrightarrow> 0 < r pow n"
@@ -501,16 +501,16 @@ lemma hyperpow_mult:
 by transfer (rule power_mult_distrib)
 
 lemma hyperpow_two_le [simp]:
-  "(0::'a::{monoid_mult,linordered_ring_strict} star) \<le> r pow (1 + 1)"
+  "\<And>r. (0::'a::{monoid_mult,linordered_ring_strict} star) \<le> r pow 2"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
 
 lemma hrabs_hyperpow_two [simp]:
-  "abs(x pow (1 + 1)) =
-   (x::'a::{monoid_mult,linordered_ring_strict} star) pow (1 + 1)"
+  "abs(x pow 2) =
+   (x::'a::{monoid_mult,linordered_ring_strict} star) pow 2"
 by (simp only: abs_of_nonneg hyperpow_two_le)
 
 lemma hyperpow_two_hrabs [simp]:
-  "abs(x::'a::{linordered_idom} star) pow (1 + 1)  = x pow (1 + 1)"
+  "abs(x::'a::{linordered_idom} star) pow 2 = x pow 2"
 by (simp add: hyperpow_hrabs)
 
 text{*The precondition could be weakened to @{term "0\<le>x"}*}
@@ -519,12 +519,12 @@ lemma hypreal_mult_less_mono:
  by (simp add: mult_strict_mono order_less_imp_le)
 
 lemma hyperpow_two_gt_one:
-  "\<And>r::'a::{linordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
-by transfer (simp add: power_gt1 del: power_Suc)
+  "\<And>r::'a::{linordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow 2"
+by transfer simp
 
 lemma hyperpow_two_ge_one:
-  "\<And>r::'a::{linordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
-by transfer (simp add: one_le_power del: power_Suc)
+  "\<And>r::'a::{linordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow 2"
+by transfer (rule one_le_power)
 
 lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"
 apply (rule_tac y = "1 pow n" in order_trans)
@@ -532,8 +532,8 @@ apply (rule_tac [2] hyperpow_le, auto)
 done
 
 lemma hyperpow_minus_one2 [simp]:
-     "!!n. -1 pow ((1 + 1)*n) = (1::hypreal)"
-by transfer (subst power_mult, simp)
+     "\<And>n. -1 pow (2*n) = (1::hypreal)"
+by transfer (rule power_m1_even)
 
 lemma hyperpow_less_le:
      "!!r n N. [|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"

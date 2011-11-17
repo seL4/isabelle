@@ -1008,6 +1008,9 @@ qed
 
 instance star :: (ring_char_0) ring_char_0 ..
 
+instance star :: (number_semiring) number_semiring
+by (intro_classes, simp only: star_number_def star_of_nat_def number_of_int)
+
 instance star :: (number_ring) number_ring
 by (intro_classes, simp only: star_number_def star_of_int_def number_of_eq)
 
