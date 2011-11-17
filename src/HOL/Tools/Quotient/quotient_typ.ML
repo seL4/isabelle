@@ -116,9 +116,9 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val abs_name = Binding.prefix_name "abs_" qty_name
     val rep_name = Binding.prefix_name "rep_" qty_name
 
-    val ((_, (_, abs_def)), lthy2) = lthy1
+    val ((abs_t, (_, abs_def)), lthy2) = lthy1
       |> Local_Theory.define ((abs_name, NoSyn), (Attrib.empty_binding, abs_trm))
-    val ((_, (_, rep_def)), lthy3) = lthy2
+    val ((rep_t, (_, rep_def)), lthy3) = lthy2
       |> Local_Theory.define ((rep_name, NoSyn), (Attrib.empty_binding, rep_trm))
 
     (* quot_type theorem *)
@@ -137,10 +137,12 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
 
     fun qinfo phi = Quotient_Info.transform_quotients phi quotients
+    fun abs_rep phi = Quotient_Info.transform_abs_rep phi {abs = abs_t, rep = rep_t}
 
     val lthy4 = lthy3
       |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi))
+        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi)
+           #> Quotient_Info.update_abs_rep qty_full_name (abs_rep phi))
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
           if partial then [] else [Attrib.internal (K Quotient_Info.equiv_rules_add)]),
