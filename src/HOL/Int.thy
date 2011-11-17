@@ -1277,22 +1277,13 @@ lemma Ints_of_int [simp]: "of_int z \<in> \<int>"
   by (simp add: Ints_def)
 
 lemma Ints_of_nat [simp]: "of_nat n \<in> \<int>"
-apply (simp add: Ints_def)
-apply (rule range_eqI)
-apply (rule of_int_of_nat_eq [symmetric])
-done
+  using Ints_of_int [of "of_nat n"] by simp
 
 lemma Ints_0 [simp]: "0 \<in> \<int>"
-apply (simp add: Ints_def)
-apply (rule range_eqI)
-apply (rule of_int_0 [symmetric])
-done
+  using Ints_of_int [of "0"] by simp
 
 lemma Ints_1 [simp]: "1 \<in> \<int>"
-apply (simp add: Ints_def)
-apply (rule range_eqI)
-apply (rule of_int_1 [symmetric])
-done
+  using Ints_of_int [of "1"] by simp
 
 lemma Ints_add [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a + b \<in> \<int>"
 apply (auto simp add: Ints_def)
