@@ -11,6 +11,13 @@ sig
   val lookup_quotmaps_global: theory -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
 
+  type abs_rep = {abs : term, rep : term}
+  val transform_abs_rep: morphism -> abs_rep -> abs_rep
+  val lookup_abs_rep: Proof.context -> string -> abs_rep option
+  val lookup_abs_rep_global: theory -> string -> abs_rep option
+  val update_abs_rep: string -> abs_rep -> Context.generic -> Context.generic
+  val print_abs_rep: Proof.context -> unit
+  
   type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
   val transform_quotients: morphism -> quotients -> quotients
   val lookup_quotients: Proof.context -> string -> quotients option
@@ -86,6 +93,39 @@ fun print_quotmaps ctxt =
     |> Pretty.writeln
   end
 
+(* info about abs/rep terms *)
+type abs_rep = {abs : term, rep : term}
+
+structure Abs_Rep = Generic_Data
+(
+  type T = abs_rep Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
+
+fun transform_abs_rep phi {abs, rep} = {abs = Morphism.term phi abs, rep = Morphism.term phi rep}
+
+val lookup_abs_rep = Symtab.lookup o Abs_Rep.get o Context.Proof
+val lookup_abs_rep_global = Symtab.lookup o Abs_Rep.get o Context.Theory
+
+fun update_abs_rep str data = Abs_Rep.map (Symtab.update (str, data))
+
+fun print_abs_rep ctxt =
+  let
+    fun prt_abs_rep (s, {abs, rep}) =
+      Pretty.block (separate (Pretty.brk 2)
+       [Pretty.str "type constructor:",
+        Pretty.str s,
+        Pretty.str "abs term:",
+        Syntax.pretty_term ctxt abs,
+        Pretty.str "rep term:",
+        Syntax.pretty_term ctxt rep])
+  in
+    map prt_abs_rep (Symtab.dest (Abs_Rep.get (Context.Proof ctxt)))
+    |> Pretty.big_list "abs/rep terms:"
+    |> Pretty.writeln
+  end
 
 (* info about quotient types *)
 type quotients = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}

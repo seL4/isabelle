@@ -5,7 +5,7 @@ Message datatype, based on an older version by Larry Paulson.
 *)
 
 theory Quotient_Message
-imports Main Quotient_Syntax
+imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
 subsection{*Defining the Free Algebra*}

@@ -123,14 +123,18 @@ fun match ctxt err ty_pat ty =
 (* produces the rep or abs constant for a qty *)
 fun absrep_const flag ctxt qty_str =
   let
-    val qty_name = Long_Name.base_name qty_str
-    val qualifier = Long_Name.qualifier qty_str
+    (* FIXME *)
+    fun mk_dummyT (Const (c, _)) = Const (c, dummyT)
+      | mk_dummyT _ = error "Expecting abs/rep term to be a constant"     
   in
-    case flag of
-      AbsF => Const (Long_Name.qualify qualifier ("abs_" ^ qty_name), dummyT)
-    | RepF => Const (Long_Name.qualify qualifier ("rep_" ^ qty_name), dummyT)
+    case Quotient_Info.lookup_abs_rep ctxt qty_str of
+      SOME abs_rep => 
+        mk_dummyT (case flag of
+          AbsF => #abs abs_rep
+        | RepF => #rep abs_rep)
+      | NONE => error ("No abs/rep terms for " ^ quote qty_str)
   end
-
+  
 (* Lets Nitpick represent elements of quotient types as elements of the raw type *)
 fun absrep_const_chk flag ctxt qty_str =
   Syntax.check_term ctxt (absrep_const flag ctxt qty_str)

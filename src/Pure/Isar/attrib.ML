@@ -262,20 +262,21 @@ in
 fun partial_evaluation ctxt facts =
   let
     val (facts', (decls, _)) =
-      (facts, ([], Context.Proof ctxt)) |-> fold_map (fn ((b, more_atts), fact) => fn res =>
-        let
-          val (fact', res') =
-            (fact, res) |-> fold_map (fn (ths, atts) => fn res1 =>
-              (ths, res1) |-> fold_map (fn th => fn res2 =>
-                let
-                  val ((th', dyn'), res3) = fold eval (atts @ more_atts) ((th, NONE), res2);
-                  val th_atts' =
-                    (case dyn' of
-                      NONE => ([th'], [])
-                    | SOME (dyn_th', atts') => ([dyn_th'], rev atts'));
-                in (th_atts', res3) end))
-            |>> flat;
-        in (((b, []), fact'), res') end);
+      (facts, ([], Context.Proof (Context_Position.set_visible false ctxt))) |->
+        fold_map (fn ((b, more_atts), fact) => fn res =>
+          let
+            val (fact', res') =
+              (fact, res) |-> fold_map (fn (ths, atts) => fn res1 =>
+                (ths, res1) |-> fold_map (fn th => fn res2 =>
+                  let
+                    val ((th', dyn'), res3) = fold eval (atts @ more_atts) ((th, NONE), res2);
+                    val th_atts' =
+                      (case dyn' of
+                        NONE => ([th'], [])
+                      | SOME (dyn_th', atts') => ([dyn_th'], rev atts'));
+                  in (th_atts', res3) end))
+              |>> flat;
+          in (((b, []), fact'), res') end);
     val decl_fact = (empty_binding, rev (map (fn (th, atts) => ([th], rev atts)) decls));
   in decl_fact :: facts' end;
 
