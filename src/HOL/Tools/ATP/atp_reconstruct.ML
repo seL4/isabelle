@@ -45,6 +45,7 @@ sig
     Proof.context -> (string * locality) list vector -> string proof
     -> (string * locality) list
   val is_axiom_used_in_proof : (string list -> bool) -> 'a proof -> bool
+  val is_typed_helper : string list -> bool
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * locality) list vector -> 'a proof
     -> string list option

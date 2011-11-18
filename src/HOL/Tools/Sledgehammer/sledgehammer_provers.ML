@@ -145,11 +145,14 @@ fun extract_reconstructor (Metis (type_enc, lam_trans)) =
 val reconstructor_names = [metisN, smtN]
 val plain_metis = Metis (hd partial_type_encs, combinatorsN)
 
-fun standard_reconstructors lam_trans =
-  [Metis (hd partial_type_encs, lam_trans),
-   Metis (hd full_type_encs, lam_trans),
-   Metis (no_type_enc, lam_trans),
-   SMT]
+fun bunch_of_reconstructors full_types lam_trans =
+  if full_types then
+    [Metis (hd full_type_encs, lam_trans)]
+  else
+    [Metis (hd partial_type_encs, lam_trans),
+     Metis (hd full_type_encs, lam_trans),
+     Metis (no_type_enc, lam_trans),
+     SMT]
 
 val is_reconstructor = member (op =) reconstructor_names
 val is_atp = member (op =) o supported_atps
@@ -780,8 +783,9 @@ fun run_atp mode name
         NONE =>
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
+          val full_types = is_axiom_used_in_proof is_typed_helper atp_proof
           val reconstrs =
-            standard_reconstructors
+            bunch_of_reconstructors full_types
                 (if member (op =) metis_lam_transs lam_trans then lam_trans
                  else combinatorsN)
         in
@@ -973,7 +977,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         (fn () =>
             play_one_line_proof mode debug verbose preplay_timeout used_ths
                                 state subgoal SMT
-                                (standard_reconstructors lam_liftingN),
+                                (bunch_of_reconstructors false lam_liftingN),
          fn preplay =>
             let
               val one_line_params =
