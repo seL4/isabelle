@@ -146,7 +146,7 @@ fun resolve_one_named_fact fact_names s =
     end
   | NONE => NONE
 fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
-val is_fact = not o null oo resolve_fact
+fun is_fact fact_names = not o null o resolve_fact fact_names
 
 fun resolve_one_named_conjecture s =
   case try (unprefix conjecture_prefix) s of
