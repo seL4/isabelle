@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient.thy
+(*  Title:      HOL/Quotient_Examples/Lift_Set.thy
     Author:     Lukas Bulwahn and Ondrey Kuncar
 *)
 
