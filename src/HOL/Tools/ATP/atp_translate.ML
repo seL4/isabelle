@@ -684,10 +684,11 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
     (if String.isPrefix lam_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
-(* Requires bound variables to have distinct names and not to clash with any
-   schematic variables (as should be the case right after lambda-lifting). *)
-fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
-    open_form (subst_bound (Var ((s, 0), T), t))
+(* Requires bound variables not to clash with any schematic variables (as should
+   be the case right after lambda-lifting). *)
+fun open_form (Const (@{const_name All}, _) $ Abs (_, T, t)) =
+    subst_bound (Var ((Name.uu ^ Int.toString (size_of_term t), 0), T), t)
+    |> open_form
   | open_form t = t
 
 fun lift_lams_part_1 ctxt type_enc =

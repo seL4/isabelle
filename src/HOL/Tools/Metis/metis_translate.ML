@@ -116,7 +116,8 @@ fun reveal_lambda_lifted lambdas =
                    case AList.lookup (op =) lambdas s of
                      SOME t =>
                      Const (@{const_name Metis.lambda}, dummyT)
-                     $ map_types (map_type_tvar (K dummyT)) t
+                     $ map_types (map_type_tvar (K dummyT))
+                                 (reveal_lambda_lifted lambdas t)
                    | NONE => t
                  else
                    t
