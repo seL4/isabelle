@@ -797,10 +797,9 @@ fun run_atp mode name
               end,
            fn preplay =>
               let
-                val full_types = uses_typed_helpers atp_proof
                 val isar_params =
-                  (debug, full_types, isar_shrink_factor, pool, fact_names,
-                   sym_tab, atp_proof, goal)
+                  (debug, isar_shrink_factor, pool, fact_names, sym_tab,
+                   atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command minimize_command name preplay,

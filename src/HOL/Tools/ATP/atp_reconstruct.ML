@@ -10,6 +10,7 @@ signature ATP_RECONSTRUCT =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
+  type step_name = ATP_Proof.step_name
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
 
@@ -26,7 +27,7 @@ sig
   type one_line_params =
     play * string * (string * locality) list * minimize_command * int * int
   type isar_params =
-    bool * bool * int * string Symtab.table * (string * locality) list vector
+    bool * int * string Symtab.table * (string * locality) list vector
     * int Symtab.table * string proof * thm
 
   val metisN : string
@@ -43,10 +44,10 @@ sig
   val used_facts_in_atp_proof :
     Proof.context -> (string * locality) list vector -> string proof
     -> (string * locality) list
+  val is_axiom_used_in_proof : (string list -> bool) -> 'a proof -> bool
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * locality) list vector -> 'a proof
     -> string list option
-  val uses_typed_helpers : 'a proof -> bool
   val unalias_type_enc : string -> string list
   val metis_default_lam_trans : string
   val metis_call : string -> string -> string
@@ -87,7 +88,7 @@ type minimize_command = string list -> string
 type one_line_params =
   play * string * (string * locality) list * minimize_command * int * int
 type isar_params =
-  bool * bool * int * string Symtab.table * (string * locality) list vector
+  bool * int * string Symtab.table * (string * locality) list vector
   * int Symtab.table * string proof * thm
 
 fun find_first_in_list_vector vec key =
@@ -103,8 +104,7 @@ fun resolve_one_named_fact fact_names s =
       s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
     end
   | NONE => NONE
-fun resolve_fact fact_names (_, ss) =
-  map_filter (resolve_one_named_fact fact_names) ss
+fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
 val is_fact = not o null oo resolve_fact
 
 fun resolve_one_named_conjecture s =
@@ -112,13 +112,12 @@ fun resolve_one_named_conjecture s =
     SOME s' => Int.fromString s'
   | NONE => NONE
 
-fun resolve_conjecture (_, ss) = map_filter resolve_one_named_conjecture ss
+val resolve_conjecture = map_filter resolve_one_named_conjecture
 val is_conjecture = not o null o resolve_conjecture
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
-fun is_typed_helper (_, ss) = exists is_typed_helper_name ss
-  | is_typed_helper _ = false
+val is_typed_helper = exists is_typed_helper_name
 
 val leo2_ext = "extcnf_equal_neg"
 val isa_ext = Thm.get_name_hint @{thm ext}
@@ -131,8 +130,8 @@ fun ext_name ctxt =
   else
     isa_ext
 
-fun add_fact _ fact_names (Inference (name, _, _, [])) =
-    union (op =) (resolve_fact fact_names name)
+fun add_fact _ fact_names (Inference ((_, ss), _, _, [])) =
+    union (op =) (resolve_fact fact_names ss)
   | add_fact ctxt _ (Inference (_, _, rule, _)) =
     if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
   | add_fact _ _ _ = I
@@ -141,10 +140,8 @@ fun used_facts_in_atp_proof ctxt fact_names atp_proof =
   if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
   else fold (add_fact ctxt fact_names) atp_proof []
 
-(* FIXME ### merge with other similar functions *)
-fun is_conjecture_used_in_proof proof =
-  exists (fn Inference (name, _, _, []) => is_conjecture name | _ => false)
-         proof
+fun is_axiom_used_in_proof pred =
+  exists (fn Inference ((_, ss), _, _, []) => pred ss | _ => false)
 
 (* (quasi-)underapproximation of the truth *)
 fun is_locality_global Local = false
@@ -158,15 +155,11 @@ fun used_facts_in_unsound_atp_proof _ _ [] = NONE
       val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
     in
       if forall (is_locality_global o snd) used_facts andalso
-         not (is_conjecture_used_in_proof atp_proof) then
+         not (is_axiom_used_in_proof is_conjecture atp_proof) then
         SOME (map fst used_facts)
       else
         NONE
     end
-
-fun uses_typed_helpers proof =
-  exists (fn Inference (name, _, _, []) => is_typed_helper name | _ => false)
-         proof
 
 
 (** Soft-core proof reconstruction: one-liners **)
@@ -281,12 +274,12 @@ val raw_prefix = "X"
 val assum_prefix = "A"
 val have_prefix = "F"
 
-fun raw_label_for_name name =
-  case resolve_conjecture name of
+fun raw_label_for_name (num, ss) =
+  case resolve_conjecture ss of
     [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (fst name) of
+  | _ => case Int.fromString num of
            SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ fst name, 0)
+         | NONE => (raw_prefix ^ num, 0)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -590,10 +583,10 @@ fun replace_dependencies_in_line _ (line as Definition _) = line
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line _ (line as Definition _) lines = line :: lines
-  | add_line fact_names (Inference (name, t, rule, [])) lines =
+  | add_line fact_names (Inference (name as (_, ss), t, rule, [])) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if is_fact fact_names name then
+    if is_fact fact_names ss then
       (* Facts are not proof lines. *)
       if is_only_type_information t then
         map (replace_dependencies_in_line (name, [])) lines
@@ -603,7 +596,7 @@ fun add_line _ (line as Definition _) lines = line :: lines
       | (pre, Inference (name', _, _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
-    else if is_conjecture name then
+    else if is_conjecture ss then
       Inference (name, s_not t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
@@ -638,10 +631,10 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
 fun add_desired_line _ _ _ (line as Definition (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line isar_shrink_factor fact_names frees
-                     (Inference (name, t, rule, deps)) (j, lines) =
+                     (Inference (name as (_, ss), t, rule, deps)) (j, lines) =
     (j + 1,
-     if is_fact fact_names name orelse
-        is_conjecture name orelse
+     if is_fact fact_names ss orelse
+        is_conjecture ss orelse
         (* the last line must be kept *)
         j = 0 orelse
         (not (is_only_type_information t) andalso
@@ -676,9 +669,9 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dependency fact_names name =
-  if is_fact fact_names name then
-    apsnd (union (op =) (map fst (resolve_fact fact_names name)))
+fun add_fact_from_dependency fact_names (name as (_, ss)) =
+  if is_fact fact_names ss then
+    apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
   else
     apfst (insert (op =) (raw_label_for_name name))
 
@@ -1011,8 +1004,7 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text ctxt isar_proof_requested
-        (debug, full_types, isar_shrink_factor, pool, fact_names, sym_tab,
-         atp_proof, goal)
+        (debug, isar_shrink_factor, pool, fact_names, sym_tab, atp_proof, goal)
         (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val isar_shrink_factor =
@@ -1020,6 +1012,7 @@ fun isar_proof_text ctxt isar_proof_requested
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val one_line_proof = one_line_proof_text one_line_params
+    val full_types = is_axiom_used_in_proof is_typed_helper atp_proof
     fun isar_proof_for () =
       case atp_proof
            |> isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names
