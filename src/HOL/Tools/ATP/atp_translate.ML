@@ -101,9 +101,8 @@ sig
     Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
     -> bool -> string -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
-    -> string problem * string Symtab.table * int * int
-       * (string * locality) list vector * int list * (string * term) list
-       * int Symtab.table
+    -> string problem * string Symtab.table * (string * locality) list vector
+       * (string * term) list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -2311,11 +2310,6 @@ fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
     poly <> Mangled_Monomorphic
   | needs_type_tag_idempotence _ _ = false
 
-fun offset_of_heading_in_problem _ [] j = j
-  | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
-    if heading = needle then j
-    else offset_of_heading_in_problem needle problem (j + length lines)
-
 val implicit_declsN = "Should-be-implicit typings"
 val explicit_declsN = "Explicit typings"
 val factsN = "Relevant facts"
@@ -2406,22 +2400,12 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                         implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names
-    val helpers_offset = offset_of_heading_in_problem helpersN problem 0
-    val typed_helpers =
-      map_filter (fn (j, {name, ...}) =>
-                     if String.isSuffix typed_helper_suffix name then SOME j
-                     else NONE)
-                 ((helpers_offset + 1 upto helpers_offset + length helpers)
-                  ~~ helpers)
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
-     offset_of_heading_in_problem conjsN problem 0,
-     offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList,
-     typed_helpers,
      lifted,
      Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end

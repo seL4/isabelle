@@ -175,13 +175,14 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = facts_of thy
-    val (atp_problem, _, _, _, _, _, _, _) =
+    val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>
                  ((Thm.get_name_hint th, loc),
                    th |> prop_of |> mono ? monomorphize_term ctxt))
       |> prepare_atp_problem ctxt format Axiom Axiom type_enc true combinatorsN
                              false true [] @{prop False}
+      |> #1
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))

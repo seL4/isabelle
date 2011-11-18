@@ -26,8 +26,8 @@ sig
   type one_line_params =
     play * string * (string * locality) list * minimize_command * int * int
   type isar_params =
-    bool * bool * int * string Symtab.table * int list list * int
-    * (string * locality) list vector * int Symtab.table * string proof * thm
+    bool * bool * int * string Symtab.table * (string * locality) list vector
+    * int Symtab.table * string proof * thm
 
   val metisN : string
   val smtN : string
@@ -41,12 +41,12 @@ sig
   val full_type_encs : string list
   val partial_type_encs : string list
   val used_facts_in_atp_proof :
-    Proof.context -> int -> (string * locality) list vector -> string proof
+    Proof.context -> (string * locality) list vector -> string proof
     -> (string * locality) list
   val used_facts_in_unsound_atp_proof :
-    Proof.context -> int list list -> int -> (string * locality) list vector
-    -> 'a proof -> string list option
-  val uses_typed_helpers : int list -> 'a proof -> bool
+    Proof.context -> (string * locality) list vector -> 'a proof
+    -> string list option
+  val uses_typed_helpers : 'a proof -> bool
   val unalias_type_enc : string -> string list
   val metis_default_lam_trans : string
   val metis_call : string -> string -> string
@@ -87,22 +87,14 @@ type minimize_command = string list -> string
 type one_line_params =
   play * string * (string * locality) list * minimize_command * int * int
 type isar_params =
-  bool * bool * int * string Symtab.table * int list list * int
-  * (string * locality) list vector * int Symtab.table * string proof * thm
-
-val is_typed_helper_name =
-  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+  bool * bool * int * string Symtab.table * (string * locality) list vector
+  * int Symtab.table * string proof * thm
 
 fun find_first_in_list_vector vec key =
   Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
                  | (_, value) => value) NONE vec
 
 val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
-
-val vampire_step_prefix = "f" (* grrr... *)
-
-val extract_step_number =
-  Int.fromString o perhaps (try (unprefix vampire_step_prefix))
 
 fun resolve_one_named_fact fact_names s =
   case try (unprefix fact_prefix) s of
@@ -111,43 +103,22 @@ fun resolve_one_named_fact fact_names s =
       s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
     end
   | NONE => NONE
-fun resolve_fact _ fact_names (_, SOME ss) =
-    map_filter (resolve_one_named_fact fact_names) ss
-  | resolve_fact facts_offset fact_names (num, NONE) =
-    (case extract_step_number num of
-       SOME j =>
-       let val j = j - facts_offset in
-         if j > 0 andalso j <= Vector.length fact_names then
-           Vector.sub (fact_names, j - 1)
-         else
-           []
-       end
-     | NONE => [])
-
-fun is_fact conjecture_shape = not o null o resolve_fact 0 conjecture_shape
+fun resolve_fact fact_names (_, ss) =
+  map_filter (resolve_one_named_fact fact_names) ss
+val is_fact = not o null oo resolve_fact
 
 fun resolve_one_named_conjecture s =
   case try (unprefix conjecture_prefix) s of
     SOME s' => Int.fromString s'
   | NONE => NONE
 
-fun resolve_conjecture _ (_, SOME ss) =
-    map_filter resolve_one_named_conjecture ss
-  | resolve_conjecture conjecture_shape (num, NONE) =
-    case extract_step_number num of
-      SOME i => (case find_index (exists (curry (op =) i)) conjecture_shape of
-                   ~1 => []
-                 | j => [j])
-    | NONE => []
+fun resolve_conjecture (_, ss) = map_filter resolve_one_named_conjecture ss
+val is_conjecture = not o null o resolve_conjecture
 
-fun is_conjecture conjecture_shape =
-  not o null o resolve_conjecture conjecture_shape
-
-fun is_typed_helper _ (_, SOME ss) = exists is_typed_helper_name ss
-  | is_typed_helper typed_helpers (num, NONE) =
-    (case extract_step_number num of
-       SOME i => member (op =) typed_helpers i
-     | NONE => false)
+val is_typed_helper_name =
+  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+fun is_typed_helper (_, ss) = exists is_typed_helper_name ss
+  | is_typed_helper _ = false
 
 val leo2_ext = "extcnf_equal_neg"
 val isa_ext = Thm.get_name_hint @{thm ext}
@@ -160,19 +131,20 @@ fun ext_name ctxt =
   else
     isa_ext
 
-fun add_fact _ facts_offset fact_names (Inference (name, _, _, [])) =
-    union (op =) (resolve_fact facts_offset fact_names name)
-  | add_fact ctxt _ _ (Inference (_, _, rule, _)) =
+fun add_fact _ fact_names (Inference (name, _, _, [])) =
+    union (op =) (resolve_fact fact_names name)
+  | add_fact ctxt _ (Inference (_, _, rule, _)) =
     if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
-  | add_fact _ _ _ _ = I
+  | add_fact _ _ _ = I
 
-fun used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof =
+fun used_facts_in_atp_proof ctxt fact_names atp_proof =
   if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
-  else fold (add_fact ctxt facts_offset fact_names) atp_proof []
+  else fold (add_fact ctxt fact_names) atp_proof []
 
-fun is_conjecture_used_in_proof conjecture_shape =
-  exists (fn Inference (name, _, _, []) => is_conjecture conjecture_shape name
-           | _ => false)
+(* FIXME ### merge with other similar functions *)
+fun is_conjecture_used_in_proof proof =
+  exists (fn Inference (name, _, _, []) => is_conjecture name | _ => false)
+         proof
 
 (* (quasi-)underapproximation of the truth *)
 fun is_locality_global Local = false
@@ -180,23 +152,21 @@ fun is_locality_global Local = false
   | is_locality_global Chained = false
   | is_locality_global _ = true
 
-fun used_facts_in_unsound_atp_proof _ _ _ _ [] = NONE
-  | used_facts_in_unsound_atp_proof ctxt conjecture_shape facts_offset
-                                    fact_names atp_proof =
+fun used_facts_in_unsound_atp_proof _ _ [] = NONE
+  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
     let
-      val used_facts =
-        used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof
+      val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
     in
       if forall (is_locality_global o snd) used_facts andalso
-         not (is_conjecture_used_in_proof conjecture_shape atp_proof) then
+         not (is_conjecture_used_in_proof atp_proof) then
         SOME (map fst used_facts)
       else
         NONE
     end
 
-fun uses_typed_helpers typed_helpers =
-  exists (fn Inference (name, _, _, []) => is_typed_helper typed_helpers name
-           | _ => false)
+fun uses_typed_helpers proof =
+  exists (fn Inference (name, _, _, []) => is_typed_helper name | _ => false)
+         proof
 
 
 (** Soft-core proof reconstruction: one-liners **)
@@ -311,8 +281,8 @@ val raw_prefix = "X"
 val assum_prefix = "A"
 val have_prefix = "F"
 
-fun raw_label_for_name conjecture_shape name =
-  case resolve_conjecture conjecture_shape name of
+fun raw_label_for_name name =
+  case resolve_conjecture name of
     [j] => (conjecture_prefix, j)
   | _ => case Int.fromString (fst name) of
            SOME j => (raw_prefix, j)
@@ -619,8 +589,8 @@ fun replace_dependencies_in_line _ (line as Definition _) = line
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
-fun add_line _ _ (line as Definition _) lines = line :: lines
-  | add_line conjecture_shape fact_names (Inference (name, t, rule, [])) lines =
+fun add_line _ (line as Definition _) lines = line :: lines
+  | add_line fact_names (Inference (name, t, rule, [])) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if is_fact fact_names name then
@@ -633,11 +603,11 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       | (pre, Inference (name', _, _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
-    else if is_conjecture conjecture_shape name then
+    else if is_conjecture name then
       Inference (name, s_not t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ _ (Inference (name, t, rule, deps)) lines =
+  | add_line _ (Inference (name, t, rule, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
       Inference (name, t, rule, deps) :: lines
@@ -665,13 +635,13 @@ and delete_dependency name lines =
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
-fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
+fun add_desired_line _ _ _ (line as Definition (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
-  | add_desired_line isar_shrink_factor conjecture_shape fact_names frees
+  | add_desired_line isar_shrink_factor fact_names frees
                      (Inference (name, t, rule, deps)) (j, lines) =
     (j + 1,
      if is_fact fact_names name orelse
-        is_conjecture conjecture_shape name orelse
+        is_conjecture name orelse
         (* the last line must be kept *)
         j = 0 orelse
         (not (is_only_type_information t) andalso
@@ -706,23 +676,19 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dependency conjecture_shape facts_offset fact_names name =
+fun add_fact_from_dependency fact_names name =
   if is_fact fact_names name then
-    apsnd (union (op =) (map fst (resolve_fact facts_offset fact_names name)))
+    apsnd (union (op =) (map fst (resolve_fact fact_names name)))
   else
-    apfst (insert (op =) (raw_label_for_name conjecture_shape name))
+    apfst (insert (op =) (raw_label_for_name name))
 
-fun step_for_line _ _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
-  | step_for_line conjecture_shape _ _ _ (Inference (name, t, _, [])) =
-    Assume (raw_label_for_name conjecture_shape name, t)
-  | step_for_line conjecture_shape facts_offset fact_names j
-                  (Inference (name, t, _, deps)) =
-    Have (if j = 1 then [Show] else [],
-          raw_label_for_name conjecture_shape name,
+fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
+  | step_for_line _ _ (Inference (name, t, _, [])) =
+    Assume (raw_label_for_name name, t)
+  | step_for_line fact_names j (Inference (name, t, _, deps)) =
+    Have (if j = 1 then [Show] else [], raw_label_for_name name,
           fold_rev forall_of (map Var (Term.add_vars t [])) t,
-          ByMetis (fold (add_fact_from_dependency conjecture_shape facts_offset
-                                                  fact_names)
-                        deps ([], [])))
+          ByMetis (fold (add_fact_from_dependency fact_names) deps ([], [])))
 
 fun repair_name "$true" = "c_True"
   | repair_name "$false" = "c_False"
@@ -735,8 +701,8 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun isar_proof_from_atp_proof pool ctxt isar_shrink_factor conjecture_shape
-        facts_offset fact_names sym_tab params frees atp_proof =
+fun isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names sym_tab
+                              params frees atp_proof =
   let
     val lines =
       atp_proof
@@ -744,16 +710,14 @@ fun isar_proof_from_atp_proof pool ctxt isar_shrink_factor conjecture_shape
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt sym_tab
-      |> rpair [] |-> fold_rev (add_line conjecture_shape fact_names)
+      |> rpair [] |-> fold_rev (add_line fact_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, [])
-      |-> fold_rev (add_desired_line isar_shrink_factor conjecture_shape
-                                     fact_names frees)
+      |-> fold_rev (add_desired_line isar_shrink_factor fact_names frees)
       |> snd
   in
     (if null params then [] else [Fix params]) @
-    map2 (step_for_line conjecture_shape facts_offset fact_names)
-         (length lines downto 1) lines
+    map2 (step_for_line fact_names) (length lines downto 1) lines
   end
 
 (* When redirecting proofs, we keep information about the labels seen so far in
@@ -1047,8 +1011,8 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text ctxt isar_proof_requested
-        (debug, full_types, isar_shrink_factor, pool, conjecture_shape,
-         facts_offset, fact_names, sym_tab, atp_proof, goal)
+        (debug, full_types, isar_shrink_factor, pool, fact_names, sym_tab,
+         atp_proof, goal)
         (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val isar_shrink_factor =
@@ -1058,8 +1022,8 @@ fun isar_proof_text ctxt isar_proof_requested
     val one_line_proof = one_line_proof_text one_line_params
     fun isar_proof_for () =
       case atp_proof
-           |> isar_proof_from_atp_proof pool ctxt isar_shrink_factor
-                  conjecture_shape facts_offset fact_names sym_tab params frees
+           |> isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names
+                                        sym_tab params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof

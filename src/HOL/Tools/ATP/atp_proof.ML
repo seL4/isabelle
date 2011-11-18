@@ -33,7 +33,7 @@ sig
     InternalError |
     UnknownError of string
 
-  type step_name = string * string list option
+  type step_name = string * string list
 
   datatype 'a step =
     Definition of step_name * 'a * 'a |
@@ -187,7 +187,7 @@ fun extract_tstplike_proof_and_outcome verbose complete proof_delims
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | (tstplike_proof, _) => (tstplike_proof, NONE)
 
-type step_name = string * string list option
+type step_name = string * string list
 
 fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
 
@@ -375,7 +375,7 @@ fun matching_formula_line_identifier phi (Formula (ident, _, phi', _, _)) =
 
 fun find_formula_in_problem problem phi =
   problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
-          |> try (single o hd)
+          |> try (single o hd) |> the_default []
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
             <formula> <extra_arguments>\).
@@ -396,11 +396,11 @@ fun parse_tstp_line problem =
                   if s = waldmeister_conjecture then
                     find_formula_in_problem problem (mk_anot phi)
                   else
-                    SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]), "",
+                    [s |> perhaps (try (unprefix tofof_fact_prefix))]), "",
                  [])
               | File_Source _ =>
                 ((num, find_formula_in_problem problem phi), "", [])
-              | Inference_Source (rule, deps) => ((num, NONE), rule, deps)
+              | Inference_Source (rule, deps) => ((num, []), rule, deps)
           in
             case role of
               "definition" =>
@@ -409,9 +409,9 @@ fun parse_tstp_line problem =
                  Definition (name, phi1, phi2)
                | AAtom (ATerm ("equal", _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference (name, phi, rule, map (rpair NONE) deps)
+                 Inference (name, phi, rule, map (rpair []) deps)
                | _ => raise UNRECOGNIZED_ATP_PROOF ())
-            | _ => Inference (name, phi, rule, map (rpair NONE) deps)
+            | _ => Inference (name, phi, rule, map (rpair []) deps)
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -445,10 +445,10 @@ fun parse_horn_clause x =
 fun resolve_spass_num spass_names num =
   case Int.fromString num of
     SOME j => if j > 0 andalso j <= Vector.length spass_names then
-                SOME (Vector.sub (spass_names, j - 1))
+                Vector.sub (spass_names, j - 1)
               else
-                NONE
-  | NONE => NONE
+                []
+  | NONE => []
 
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>. *)
 fun parse_spass_line spass_names =
@@ -461,7 +461,7 @@ fun parse_spass_line spass_names =
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference ((s, SOME [s]), dummy_phi, "", []))) x
+   >> (fn s => Inference ((s, [s]), dummy_phi, "", []))) x
 
 fun parse_line problem spass_names =
   parse_tstp_line problem || parse_spass_line spass_names || parse_satallax_line

@@ -680,8 +680,7 @@ fun run_atp mode name
                   case lam_trans of
                     SOME s => s
                   | NONE => best_lam_trans
-                val (atp_problem, pool, conjecture_offset, facts_offset,
-                     fact_names, typed_helpers, _, sym_tab) =
+                val (atp_problem, pool, fact_names, _, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
                       type_enc false lam_trans readable_names true hyp_ts
                       concl_t facts
@@ -695,10 +694,6 @@ fun run_atp mode name
                 val _ = atp_problem |> lines_for_atp_problem format
                                     |> cons ("% " ^ command ^ "\n")
                                     |> File.write_list prob_file
-                val conjecture_shape =
-                  conjecture_offset + 1
-                    upto conjecture_offset + length hyp_ts + 1
-                  |> map single
                 val ((output, run_time), (atp_proof, outcome)) =
                   TimeLimit.timeLimit generous_slice_timeout
                                       Isabelle_System.bash_output command
@@ -719,8 +714,8 @@ fun run_atp mode name
                 val outcome =
                   case outcome of
                     NONE =>
-                    (case used_facts_in_unsound_atp_proof ctxt
-                              conjecture_shape facts_offset fact_names atp_proof
+                    (case used_facts_in_unsound_atp_proof ctxt fact_names
+                                                          atp_proof
                           |> Option.map (sort string_ord) of
                        SOME facts =>
                        let
@@ -736,8 +731,7 @@ fun run_atp mode name
                      | NONE => NONE)
                   | _ => outcome
               in
-                ((pool, conjecture_shape, facts_offset, fact_names,
-                  typed_helpers, sym_tab, lam_trans),
+                ((pool, fact_names, sym_tab, lam_trans),
                  (output, run_time, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
@@ -756,8 +750,8 @@ fun run_atp mode name
                 end
               | maybe_run_slice _ result = result
           in
-            ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty,
-              no_lamsN), ("", Time.zeroTime, [], SOME InternalError))
+            ((Symtab.empty, Vector.fromList [], Symtab.empty, no_lamsN),
+             ("", Time.zeroTime, [], SOME InternalError))
             |> fold maybe_run_slice actual_slices
           end
         else
@@ -772,8 +766,7 @@ fun run_atp mode name
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
-    val ((pool, conjecture_shape, facts_offset, fact_names, typed_helpers,
-          sym_tab, lam_trans),
+    val ((pool, fact_names, sym_tab, lam_trans),
          (output, run_time, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
@@ -786,8 +779,7 @@ fun run_atp mode name
       case outcome of
         NONE =>
         let
-          val used_facts =
-            used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof
+          val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val reconstrs =
             standard_reconstructors
                 (if member (op =) metis_lam_transs lam_trans then lam_trans
@@ -805,11 +797,10 @@ fun run_atp mode name
               end,
            fn preplay =>
               let
-                val full_types = uses_typed_helpers typed_helpers atp_proof
+                val full_types = uses_typed_helpers atp_proof
                 val isar_params =
-                  (debug, full_types, isar_shrink_factor, pool,
-                   conjecture_shape, facts_offset, fact_names, sym_tab,
-                   atp_proof, goal)
+                  (debug, full_types, isar_shrink_factor, pool, fact_names,
+                   sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command minimize_command name preplay,
