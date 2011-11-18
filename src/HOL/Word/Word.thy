@@ -1252,8 +1252,7 @@ lemmas uint_mod_alt = word_mod_def
   [THEN trans [OF uint_cong int_word_uint], standard]
 
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
-  unfolding word_pred_def number_of_eq
-  by (simp add : pred_def word_no_wi)
+  unfolding word_pred_def uint_eq_0 pred_def by simp
 
 lemma word_pred_0_Min: "word_pred 0 = word_of_int Int.Min"
   by (simp add: word_pred_0_n1 number_of_eq)
@@ -2164,11 +2163,11 @@ lemmas word_no_log_defs [simp] =
 lemmas word_wi_log_defs = word_no_log_defs [unfolded word_no_wi]
 
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
-  by (simp add: word_or_def word_no_wi [symmetric] number_of_is_id
+  by (simp add: word_or_def word_wi_log_defs word_ubin.eq_norm
                 bin_trunc_ao(2) [symmetric])
 
 lemma uint_and: "uint (x AND y) = (uint x) AND (uint y)"
-  by (simp add: word_and_def number_of_is_id word_no_wi [symmetric]
+  by (simp add: word_and_def word_wi_log_defs word_ubin.eq_norm
                 bin_trunc_ao(1) [symmetric]) 
 
 lemma word_ops_nth_size:
@@ -2177,7 +2176,7 @@ lemma word_ops_nth_size:
     (x AND y) !! n = (x !! n & y !! n) & 
     (x XOR y) !! n = (x !! n ~= y !! n) & 
     (NOT x) !! n = (~ x !! n)"
-  unfolding word_size word_no_wi word_test_bit_def word_log_defs
+  unfolding word_size word_test_bit_def word_log_defs
   by (clarsimp simp add : word_ubin.eq_norm nth_bintr bin_nth_ops)
 
 lemma word_ao_nth:
@@ -2336,26 +2335,26 @@ lemmas word_and_le2 =
   xtr3 [OF word_ao_absorbs (8) [symmetric] le_word_or2, standard]
 
 lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric] bin_to_bl_def[symmetric])
+  unfolding to_bl_def word_log_defs bl_not_bin
+  by (simp add: word_ubin.eq_norm)
 
 lemma bl_word_xor: "to_bl (v XOR w) = map2 op ~= (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs bl_xor_bin
-  by (simp add: number_of_is_id word_no_wi [symmetric])
+  by (simp add: word_ubin.eq_norm)
 
 lemma bl_word_or: "to_bl (v OR w) = map2 op | (to_bl v) (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_or_bin number_of_is_id word_no_wi [symmetric])
+  unfolding to_bl_def word_log_defs bl_or_bin
+  by (simp add: word_ubin.eq_norm)
 
 lemma bl_word_and: "to_bl (v AND w) = map2 op & (to_bl v) (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_and_bin number_of_is_id word_no_wi [symmetric])
+  unfolding to_bl_def word_log_defs bl_and_bin
+  by (simp add: word_ubin.eq_norm)
 
 lemma word_lsb_alt: "lsb (w::'a::len0 word) = test_bit w 0"
   by (auto simp: word_test_bit_def word_lsb_def)
 
 lemma word_lsb_1_0: "lsb (1::'a::len word) & ~ lsb (0::'b::len0 word)"
-  unfolding word_lsb_def word_1_no word_0_no by auto
+  unfolding word_lsb_def uint_eq_0 uint_1 by simp
 
 lemma word_lsb_last: "lsb (w::'a::len word) = last (to_bl w)"
   apply (unfold word_lsb_def uint_bl bin_to_bl_def) 
