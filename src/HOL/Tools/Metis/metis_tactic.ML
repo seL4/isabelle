@@ -72,7 +72,6 @@ fun introduce_lambda_wrappers_in_theorem ctxt th =
     th
   else
     let
-      val th = th |> Drule.eta_contraction_rule
       fun conv wrap ctxt ct =
         if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
           Thm.reflexive ct
@@ -105,6 +104,8 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
+      val cls = cls |> map Drule.eta_contraction_rule
+      val ths0 = ths0 |> map Drule.eta_contraction_rule
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
