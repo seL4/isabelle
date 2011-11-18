@@ -693,10 +693,10 @@ fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
 fun lift_lams_part_1 ctxt type_enc =
   map (Envir.eta_contract #> close_form) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
-          (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
-                   lam_lifted_poly_prefix
-                 else
-                   lam_lifted_mono_prefix))
+          (SOME ((if polymorphism_of_type_enc type_enc = Polymorphic then
+                    lam_lifted_poly_prefix
+                  else
+                    lam_lifted_mono_prefix) ^ "_a"))
           Lambda_Lifting.is_quantifier
   #> fst
 val lift_lams_part_2 = pairself (map (open_form o constify_lifted))
