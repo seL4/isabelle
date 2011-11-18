@@ -116,7 +116,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Sound type_enc
-      val (sym_tab, axioms, concealed) =
+      val (sym_tab, axioms0, concealed) =
         prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
@@ -125,19 +125,18 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
         | get_isa_thm _ (Isa_Raw ith) =
           ith |> lam_trans = lam_liftingN
                  ? introduce_lambda_wrappers_in_theorem ctxt
-      val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
-      val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
-      val _ = app (fn (_, th) => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) axioms
-      val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
-      val thms = axioms |> map fst
-      val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
+      val axioms = axioms0 |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+      val _ = trace_msg ctxt (fn () => "ISABELLE CLAUSES")
+      val _ = app (fn (_, ith) => trace_msg ctxt (fn () => Display.string_of_thm ctxt ith)) axioms
+      val _ = trace_msg ctxt (fn () => "METIS CLAUSES")
+      val _ = app (fn (mth, _) => trace_msg ctxt (fn () => Metis_Thm.toString mth)) axioms
       val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
   in
       case filter (fn t => prop_of t aconv @{prop False}) cls of
           false_th :: _ => [false_th RS @{thm FalseE}]
         | [] =>
       case Metis_Resolution.new resolution_params
-                                {axioms = thms, conjecture = []}
+                                {axioms = axioms |> map fst, conjecture = []}
            |> Metis_Resolution.loop of
           Metis_Resolution.Contradiction mth =>
             let val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^
@@ -148,7 +147,9 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
                 val result =
                   axioms
                   |> fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof
-                val used = map_filter (used_axioms axioms) proof
+                val used =
+                  proof |> map_filter (used_axioms axioms0)
+                        |> map_filter (fn Isa_Raw ith => SOME ith | _ => NONE)
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
                 val names = th_cls_pairs |> map fst
