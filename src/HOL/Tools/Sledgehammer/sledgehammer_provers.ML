@@ -428,6 +428,7 @@ fun tac_for_reconstructor (Metis (type_enc, lam_trans)) =
 
 fun timed_reconstructor reconstr debug timeout ths =
   (Config.put Metis_Tactic.verbose debug
+   #> Config.put SMT_Config.verbose debug
    #> (fn ctxt => tac_for_reconstructor reconstr ctxt ths))
   |> timed_apply timeout
 
@@ -869,6 +870,7 @@ fun smt_filter_loop ctxt name
     val max_slices = if slicing then Config.get ctxt smt_max_slices else 1
     val repair_context =
       select_smt_solver name
+      #> Config.put SMT_Config.verbose debug
       #> (if overlord then
             Config.put SMT_Config.debug_files
                        (overlord_file_location_for_prover name
