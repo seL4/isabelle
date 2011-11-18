@@ -41,18 +41,18 @@ sig
   val no_type_enc : string
   val full_type_encs : string list
   val partial_type_encs : string list
+  val metis_default_lam_trans : string
+  val metis_call : string -> string -> string
+  val string_for_reconstructor : reconstructor -> string
   val used_facts_in_atp_proof :
     Proof.context -> (string * locality) list vector -> string proof
     -> (string * locality) list
-  val is_axiom_used_in_proof : (string list -> bool) -> 'a proof -> bool
-  val is_typed_helper : string list -> bool
+  val lam_trans_from_atp_proof : string proof -> string -> string
+  val is_typed_helper_used_in_proof : string proof -> bool
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * locality) list vector -> 'a proof
     -> string list option
   val unalias_type_enc : string -> string list
-  val metis_default_lam_trans : string
-  val metis_call : string -> string -> string
-  val name_of_reconstructor : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ
@@ -92,79 +92,6 @@ type isar_params =
   bool * int * string Symtab.table * (string * locality) list vector
   * int Symtab.table * string proof * thm
 
-fun find_first_in_list_vector vec key =
-  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
-                 | (_, value) => value) NONE vec
-
-val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
-
-fun resolve_one_named_fact fact_names s =
-  case try (unprefix fact_prefix) s of
-    SOME s' =>
-    let val s' = s' |> unprefix_fact_number |> unascii_of in
-      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
-    end
-  | NONE => NONE
-fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
-val is_fact = not o null oo resolve_fact
-
-fun resolve_one_named_conjecture s =
-  case try (unprefix conjecture_prefix) s of
-    SOME s' => Int.fromString s'
-  | NONE => NONE
-
-val resolve_conjecture = map_filter resolve_one_named_conjecture
-val is_conjecture = not o null o resolve_conjecture
-
-val is_typed_helper_name =
-  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
-val is_typed_helper = exists is_typed_helper_name
-
-val leo2_ext = "extcnf_equal_neg"
-val isa_ext = Thm.get_name_hint @{thm ext}
-val isa_short_ext = Long_Name.base_name isa_ext
-
-fun ext_name ctxt =
-  if Thm.eq_thm_prop (@{thm ext},
-         singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
-    isa_short_ext
-  else
-    isa_ext
-
-fun add_fact _ fact_names (Inference ((_, ss), _, _, [])) =
-    union (op =) (resolve_fact fact_names ss)
-  | add_fact ctxt _ (Inference (_, _, rule, _)) =
-    if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
-  | add_fact _ _ _ = I
-
-fun used_facts_in_atp_proof ctxt fact_names atp_proof =
-  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
-  else fold (add_fact ctxt fact_names) atp_proof []
-
-fun is_axiom_used_in_proof pred =
-  exists (fn Inference ((_, ss), _, _, []) => pred ss | _ => false)
-
-(* (quasi-)underapproximation of the truth *)
-fun is_locality_global Local = false
-  | is_locality_global Assum = false
-  | is_locality_global Chained = false
-  | is_locality_global _ = true
-
-fun used_facts_in_unsound_atp_proof _ _ [] = NONE
-  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
-    let
-      val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
-    in
-      if forall (is_locality_global o snd) used_facts andalso
-         not (is_axiom_used_in_proof is_conjecture atp_proof) then
-        SOME (map fst used_facts)
-      else
-        NONE
-    end
-
-
-(** Soft-core proof reconstruction: one-liners **)
-
 val metisN = "metis"
 val smtN = "smt"
 
@@ -201,10 +128,96 @@ fun metis_call type_enc lam_trans =
                   |> lam_trans <> metis_default_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
-(* unfortunate leaking abstraction *)
-fun name_of_reconstructor (Metis (type_enc, lam_trans)) =
+fun string_for_reconstructor (Metis (type_enc, lam_trans)) =
     metis_call type_enc lam_trans
-  | name_of_reconstructor SMT = smtN
+  | string_for_reconstructor SMT = smtN
+
+fun find_first_in_list_vector vec key =
+  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
+                 | (_, value) => value) NONE vec
+
+val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
+
+fun resolve_one_named_fact fact_names s =
+  case try (unprefix fact_prefix) s of
+    SOME s' =>
+    let val s' = s' |> unprefix_fact_number |> unascii_of in
+      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
+    end
+  | NONE => NONE
+fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
+val is_fact = not o null oo resolve_fact
+
+fun resolve_one_named_conjecture s =
+  case try (unprefix conjecture_prefix) s of
+    SOME s' => Int.fromString s'
+  | NONE => NONE
+
+val resolve_conjecture = map_filter resolve_one_named_conjecture
+val is_conjecture = not o null o resolve_conjecture
+
+fun is_axiom_used_in_proof pred =
+  exists (fn Inference ((_, ss), _, _, []) => exists pred ss | _ => false)
+
+val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
+
+val ascii_of_lam_fact_prefix = ascii_of lam_fact_prefix
+
+(* overapproximation (good enough) *)
+fun is_lam_lifted s =
+  String.isPrefix fact_prefix s andalso
+  String.isSubstring ascii_of_lam_fact_prefix s
+
+fun lam_trans_from_atp_proof atp_proof default =
+  if is_axiom_used_in_proof is_combinator_def atp_proof then combinatorsN
+  else if is_axiom_used_in_proof is_lam_lifted atp_proof then lam_liftingN
+  else default
+
+val is_typed_helper_name =
+  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+val is_typed_helper_used_in_proof = is_axiom_used_in_proof is_typed_helper_name
+
+val leo2_ext = "extcnf_equal_neg"
+val isa_ext = Thm.get_name_hint @{thm ext}
+val isa_short_ext = Long_Name.base_name isa_ext
+
+fun ext_name ctxt =
+  if Thm.eq_thm_prop (@{thm ext},
+         singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
+    isa_short_ext
+  else
+    isa_ext
+
+fun add_fact _ fact_names (Inference ((_, ss), _, _, [])) =
+    union (op =) (resolve_fact fact_names ss)
+  | add_fact ctxt _ (Inference (_, _, rule, _)) =
+    if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
+  | add_fact _ _ _ = I
+
+fun used_facts_in_atp_proof ctxt fact_names atp_proof =
+  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
+  else fold (add_fact ctxt fact_names) atp_proof []
+
+(* (quasi-)underapproximation of the truth *)
+fun is_locality_global Local = false
+  | is_locality_global Assum = false
+  | is_locality_global Chained = false
+  | is_locality_global _ = true
+
+fun used_facts_in_unsound_atp_proof _ _ [] = NONE
+  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
+    let
+      val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
+    in
+      if forall (is_locality_global o snd) used_facts andalso
+         not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
+        SOME (map fst used_facts)
+      else
+        NONE
+    end
+
+
+(** Soft-core proof reconstruction: one-liners **)
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
@@ -225,7 +238,7 @@ fun using_labels [] = ""
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 fun reconstructor_command reconstr i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^
-  command_call (name_of_reconstructor reconstr) ss
+  command_call (string_for_reconstructor reconstr) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -344,8 +357,8 @@ fun repair_variable_name f s =
 fun num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
-  else if String.isPrefix lambda_lifted_prefix s then
-    if String.isPrefix lambda_lifted_poly_prefix s then 2 else 0
+  else if String.isPrefix lam_lifted_prefix s then
+    if String.isPrefix lam_lifted_poly_prefix s then 2 else 0
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
@@ -945,7 +958,7 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt0 full_types i n =
+fun string_for_proof ctxt0 type_enc lam_trans i n =
   let
     val ctxt =
       ctxt0 |> Config.put show_free_types false
@@ -967,8 +980,7 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstr =
-      Metis (if full_types then full_typesN else partial_typesN, combinatorsN)
+    val reconstr = Metis (type_enc, lam_trans)
     fun do_facts (ls, ss) =
       reconstructor_command reconstr 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),
@@ -1013,7 +1025,10 @@ fun isar_proof_text ctxt isar_proof_requested
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val one_line_proof = one_line_proof_text one_line_params
-    val full_types = is_axiom_used_in_proof is_typed_helper atp_proof
+    val type_enc =
+      if is_typed_helper_used_in_proof atp_proof then full_typesN
+      else partial_typesN
+    val lam_trans = lam_trans_from_atp_proof atp_proof metis_default_lam_trans
     fun isar_proof_for () =
       case atp_proof
            |> isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names
@@ -1023,7 +1038,7 @@ fun isar_proof_text ctxt isar_proof_requested
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt full_types subgoal subgoal_count of
+           |> string_for_proof ctxt type_enc lam_trans subgoal subgoal_count of
         "" =>
         if isar_proof_requested then
           "\nNo structured proof available (proof too short)."

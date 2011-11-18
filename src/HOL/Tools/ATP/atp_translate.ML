@@ -44,12 +44,13 @@ sig
   val const_prefix : string
   val type_const_prefix : string
   val class_prefix : string
-  val lambda_lifted_prefix : string
-  val lambda_lifted_mono_prefix : string
-  val lambda_lifted_poly_prefix : string
+  val lam_lifted_prefix : string
+  val lam_lifted_mono_prefix : string
+  val lam_lifted_poly_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
+  val combinator_prefix : string
   val type_decl_prefix : string
   val sym_decl_prefix : string
   val guards_sym_formula_prefix : string
@@ -60,7 +61,7 @@ sig
   val class_rel_clause_prefix : string
   val arity_clause_prefix : string
   val tfree_clause_prefix : string
-  val lambda_fact_prefix : string
+  val lam_fact_prefix : string
   val typed_helper_suffix : string
   val untyped_helper_suffix : string
   val type_tag_idempotence_helper_name : string
@@ -146,13 +147,15 @@ val class_prefix = "cl_"
 (* Freshness almost guaranteed! *)
 val atp_weak_prefix = "ATP:"
 
-val lambda_lifted_prefix = atp_weak_prefix ^ "Lam"
-val lambda_lifted_mono_prefix = lambda_lifted_prefix ^ "m"
-val lambda_lifted_poly_prefix = lambda_lifted_prefix ^ "p"
+val lam_lifted_prefix = atp_weak_prefix ^ "Lam"
+val lam_lifted_mono_prefix = lam_lifted_prefix ^ "m"
+val lam_lifted_poly_prefix = lam_lifted_prefix ^ "p"
 
 val skolem_const_prefix = "ATP" ^ Long_Name.separator ^ "Sko"
 val old_skolem_const_prefix = skolem_const_prefix ^ "o"
 val new_skolem_const_prefix = skolem_const_prefix ^ "n"
+
+val combinator_prefix = "COMB"
 
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
@@ -165,7 +168,7 @@ val class_rel_clause_prefix = "clar_"
 val arity_clause_prefix = "arity_"
 val tfree_clause_prefix = "tfree_"
 
-val lambda_fact_prefix = "ATP.lambda_"
+val lam_fact_prefix = "ATP.lambda_"
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
@@ -272,11 +275,11 @@ val const_trans_table =
    (@{const_name Ex}, "Ex"),
    (@{const_name If}, "If"),
    (@{const_name Set.member}, "member"),
-   (@{const_name Meson.COMBI}, "COMBI"),
-   (@{const_name Meson.COMBK}, "COMBK"),
-   (@{const_name Meson.COMBB}, "COMBB"),
-   (@{const_name Meson.COMBC}, "COMBC"),
-   (@{const_name Meson.COMBS}, "COMBS")]
+   (@{const_name Meson.COMBI}, combinator_prefix ^ "I"),
+   (@{const_name Meson.COMBK}, combinator_prefix ^ "K"),
+   (@{const_name Meson.COMBB}, combinator_prefix ^ "B"),
+   (@{const_name Meson.COMBC}, combinator_prefix ^ "C"),
+   (@{const_name Meson.COMBS}, combinator_prefix ^ "S")]
   |> Symtab.make
   |> fold (Symtab.update o swap o snd o snd o snd) proxy_table
 
@@ -488,7 +491,7 @@ fun new_skolem_const_name s num_T_args =
 fun robust_const_type thy s =
   if s = app_op_name then
     Logic.varifyT_global @{typ "('a => 'b) => 'a => 'b"}
-  else if String.isPrefix lambda_lifted_prefix s then
+  else if String.isPrefix lam_lifted_prefix s then
     Logic.varifyT_global @{typ "'a => 'b"}
   else
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
@@ -500,8 +503,8 @@ fun robust_const_typargs thy (s, T) =
     let val (T1, T2) = T |> domain_type |> dest_funT in [T1, T2] end
   else if String.isPrefix old_skolem_const_prefix s then
     [] |> Term.add_tvarsT T |> rev |> map TVar
-  else if String.isPrefix lambda_lifted_prefix s then
-    if String.isPrefix lambda_lifted_poly_prefix s then
+  else if String.isPrefix lam_lifted_prefix s then
+    if String.isPrefix lam_lifted_poly_prefix s then
       let val (T1, T2) = T |> dest_funT in [T1, T2] end
     else
       []
@@ -678,7 +681,7 @@ fun adjust_type_enc (THF (TPTP_Monomorphic, _, _))
 fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
   | constify_lifted (Abs (s, T, t)) = Abs (s, T, constify_lifted t)
   | constify_lifted (Free (x as (s, _))) =
-    (if String.isPrefix lambda_lifted_prefix s then Const else Free) x
+    (if String.isPrefix lam_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
 (* Requires bound variables to have distinct names and not to clash with any
@@ -687,15 +690,17 @@ fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
     open_form (subst_bound (Var ((s, 0), T), t))
   | open_form t = t
 
-fun lift_lams ctxt type_enc =
+fun lift_lams_part_1 ctxt type_enc =
   map (Envir.eta_contract #> close_form) #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
           (SOME (if polymorphism_of_type_enc type_enc = Polymorphic then
-                   lambda_lifted_poly_prefix
+                   lam_lifted_poly_prefix
                  else
-                   lambda_lifted_mono_prefix))
+                   lam_lifted_mono_prefix))
           Lambda_Lifting.is_quantifier
-  #> fst #> pairself (map (open_form o constify_lifted))
+  #> fst
+val lift_lams_part_2 = pairself (map (open_form o constify_lifted))
+val lift_lams = lift_lams_part_2 ooo lift_lams_part_1
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -1146,7 +1151,7 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
     do_cheaply_conceal_lambdas Ts t1
     $ do_cheaply_conceal_lambdas Ts t2
   | do_cheaply_conceal_lambdas Ts (Abs (_, T, t)) =
-    Const (lambda_lifted_poly_prefix ^ serial_string (),
+    Const (lam_lifted_poly_prefix ^ serial_string (),
            T --> fastype_of1 (T :: Ts, t))
   | do_cheaply_conceal_lambdas _ t = t
 
@@ -1167,11 +1172,11 @@ fun preprocess_abstractions_in_terms trans_lams facts =
     val (facts, lambda_ts) =
       facts |> map (snd o snd) |> trans_lams
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
-    val lambda_facts =
+    val lam_facts =
       map2 (fn t => fn j =>
-               ((lambda_fact_prefix ^ Int.toString j, Helper), (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, Helper), (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
-  in (facts, lambda_facts) end
+  in (facts, lam_facts) end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
    same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
@@ -1684,8 +1689,9 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
   else if lam_trans = combinatorsN then
     map (introduce_combinators ctxt) #> rpair []
   else if lam_trans = hybrid_lamsN then
-    lift_lams ctxt type_enc
+    lift_lams_part_1 ctxt type_enc
     ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
+    #> lift_lams_part_2
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else
@@ -1708,7 +1714,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
-    val ((conjs, facts), lambda_facts) =
+    val ((conjs, facts), lam_facts) =
       (conjs, facts)
       |> presimp
          ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
@@ -1725,10 +1731,9 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
       |> ListPair.unzip
-    val lifted = lambda_facts |> map (extract_lambda_def o snd o snd)
-    val lambda_facts =
-      lambda_facts
-      |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
+    val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
+    val lam_facts =
+      lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -1739,7 +1744,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
     val class_rel_clauses = make_class_rel_clauses thy subs supers
   in
     (fact_names |> map single, union (op =) subs supers, conjs,
-     facts @ lambda_facts, class_rel_clauses, arity_clauses, lifted)
+     facts @ lam_facts, class_rel_clauses, arity_clauses, lifted)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name

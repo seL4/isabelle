@@ -145,14 +145,14 @@ fun extract_reconstructor (Metis (type_enc, lam_trans)) =
 val reconstructor_names = [metisN, smtN]
 val plain_metis = Metis (hd partial_type_encs, combinatorsN)
 
-fun bunch_of_reconstructors full_types lam_trans =
-  if full_types then
-    [Metis (hd full_type_encs, lam_trans)]
-  else
-    [Metis (hd partial_type_encs, lam_trans),
-     Metis (hd full_type_encs, lam_trans),
-     Metis (no_type_enc, lam_trans),
-     SMT]
+fun bunch_of_reconstructors needs_full_types lam_trans =
+  [(false, Metis (hd partial_type_encs, lam_trans metis_default_lam_trans)),
+   (true, Metis (hd full_type_encs, lam_trans metis_default_lam_trans)),
+   (false, Metis (no_type_enc, lam_trans hide_lamsN)),
+   (true, SMT)]
+  |> map_filter (fn (full_types, reconstr) =>
+                    if needs_full_types andalso not full_types then NONE
+                    else SOME reconstr)
 
 val is_reconstructor = member (op =) reconstructor_names
 val is_atp = member (op =) o supported_atps
@@ -451,7 +451,7 @@ fun play_one_line_proof mode debug verbose timeout ths state i preferred
         let
           val _ =
             if verbose then
-              "Trying \"" ^ name_of_reconstructor reconstr ^ "\" for " ^
+              "Trying \"" ^ string_for_reconstructor reconstr ^ "\" for " ^
               string_from_time timeout ^ "..."
               |> Output.urgent_message
             else
@@ -734,7 +734,7 @@ fun run_atp mode name
                      | NONE => NONE)
                   | _ => outcome
               in
-                ((pool, fact_names, sym_tab, lam_trans),
+                ((pool, fact_names, sym_tab),
                  (output, run_time, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
@@ -753,7 +753,7 @@ fun run_atp mode name
                 end
               | maybe_run_slice _ result = result
           in
-            ((Symtab.empty, Vector.fromList [], Symtab.empty, no_lamsN),
+            ((Symtab.empty, Vector.fromList [], Symtab.empty),
              ("", Time.zeroTime, [], SOME InternalError))
             |> fold maybe_run_slice actual_slices
           end
@@ -769,8 +769,7 @@ fun run_atp mode name
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
-    val ((pool, fact_names, sym_tab, lam_trans),
-         (output, run_time, atp_proof, outcome)) =
+    val ((pool, fact_names, sym_tab), (output, run_time, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
       if mode = Normal andalso
@@ -783,11 +782,10 @@ fun run_atp mode name
         NONE =>
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
-          val full_types = is_axiom_used_in_proof is_typed_helper atp_proof
+          val needs_full_types = is_typed_helper_used_in_proof atp_proof
           val reconstrs =
-            bunch_of_reconstructors full_types
-                (if member (op =) metis_lam_transs lam_trans then lam_trans
-                 else combinatorsN)
+            bunch_of_reconstructors needs_full_types
+                                    (lam_trans_from_atp_proof atp_proof)
         in
           (used_facts,
            fn () =>
@@ -976,8 +974,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         NONE =>
         (fn () =>
             play_one_line_proof mode debug verbose preplay_timeout used_ths
-                                state subgoal SMT
-                                (bunch_of_reconstructors false lam_liftingN),
+                state subgoal SMT
+                (bunch_of_reconstructors false (K lam_liftingN)),
          fn preplay =>
             let
               val one_line_params =

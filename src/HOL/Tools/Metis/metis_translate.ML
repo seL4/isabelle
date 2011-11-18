@@ -112,7 +112,7 @@ fun reveal_old_skolem_terms old_skolems =
 
 fun reveal_lambda_lifted lambdas =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix lambda_lifted_prefix s then
+                 if String.isPrefix lam_lifted_prefix s then
                    case AList.lookup (op =) lambdas s of
                      SOME t =>
                      Const (@{const_name Metis.lambda}, dummyT)
@@ -189,7 +189,7 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
             SOME j =>
             Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
           | NONE =>
-            if String.isPrefix lambda_fact_prefix (unascii_of s) then
+            if String.isPrefix lam_fact_prefix (unascii_of s) then
               Isa_Lambda_Lifted |> some
             else
               raise Fail ("malformed fact identifier " ^ quote ident)
