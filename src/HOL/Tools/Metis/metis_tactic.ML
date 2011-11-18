@@ -79,7 +79,8 @@ fun introduce_lambda_wrappers_in_theorem ctxt th =
         else case term_of ct of
           Abs _ =>
           Conv.abs_conv (conv false o snd) ctxt ct
-          |> wrap ? (fn th => th RS @{thm Metis.eq_lambdaI})
+          |> wrap
+             ? (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
         | _ => Conv.comb_conv (conv true ctxt) ct
       val eqth = conv true ctxt (cprop_of th)
     in Thm.equal_elim eqth th end

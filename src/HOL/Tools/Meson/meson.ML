@@ -12,6 +12,7 @@ sig
   val unfold_set_consts : bool Config.T
   val max_clauses : int Config.T
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
+  val first_order_resolve : thm -> thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf:
