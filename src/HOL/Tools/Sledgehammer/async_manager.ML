@@ -203,7 +203,7 @@ fun kill_threads tool das_wort_worker = Synchronized.change global_state
       val state' = make_state manager timeout_heap [] (killing @ canceling) messages store;
       val _ =
         if null killing then ()
-        else Output.urgent_message ("Killed active " ^ das_wort_worker ^ "s.")
+        else Output.urgent_message ("Interrupted active " ^ das_wort_worker ^ "s.")
     in state' end);
 
 
