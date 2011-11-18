@@ -27,10 +27,9 @@ locale F_props =
                         co {s. s(proc,Rcvd) = m --> s(proc,Idle) = Suc 0}"
     and sent_idle: "F \<in> {s. s(proc,Idle) = Suc 0 & s(proc,Sent) = n}
                         co {s. s(proc,Sent) = n}"
-  
+begin
 
-lemmas (in F_props) 
-        sent_nondec_A = sent_nondec [of _ Aproc]
+lemmas sent_nondec_A = sent_nondec [of _ Aproc]
     and sent_nondec_B = sent_nondec [of _ Bproc]
     and rcvd_nondec_A = rcvd_nondec [of _ Aproc]
     and rcvd_nondec_B = rcvd_nondec [of _ Bproc]
@@ -40,16 +39,18 @@ lemmas (in F_props)
     and sent_idle_B = sent_idle [of Bproc]
 
     and rs_AB = stable_Int [OF rsA rsB]
-    and sent_nondec_AB = stable_Int [OF sent_nondec_A sent_nondec_B]
+
+lemmas sent_nondec_AB = stable_Int [OF sent_nondec_A sent_nondec_B]
     and rcvd_nondec_AB = stable_Int [OF rcvd_nondec_A rcvd_nondec_B]
     and rcvd_idle_AB = constrains_Int [OF rcvd_idle_A rcvd_idle_B]
     and sent_idle_AB = constrains_Int [OF sent_idle_A sent_idle_B]
-    and nondec_AB = stable_Int [OF sent_nondec_AB rcvd_nondec_AB]
-    and idle_AB = constrains_Int [OF rcvd_idle_AB sent_idle_AB]
-    and nondec_idle = constrains_Int [OF nondec_AB [unfolded stable_def] 
-                                         idle_AB]
 
-lemma (in F_props)
+lemmas nondec_AB = stable_Int [OF sent_nondec_AB rcvd_nondec_AB]
+    and idle_AB = constrains_Int [OF rcvd_idle_AB sent_idle_AB]
+
+lemmas nondec_idle = constrains_Int [OF nondec_AB [unfolded stable_def] idle_AB]
+
+lemma
   shows "F \<in> stable {s. s(Aproc,Idle) = Suc 0 & s(Bproc,Idle) = Suc 0 &  
                         s(Aproc,Sent) = s(Bproc,Rcvd) &  
                         s(Bproc,Sent) = s(Aproc,Rcvd) &  
@@ -65,5 +66,7 @@ apply (subgoal_tac "s' (Bproc, Rcvd) = s (Bproc, Rcvd)")
 apply simp 
 apply (blast intro: order_antisym le_trans eq_imp_le)+
 done
+
+end
 
 end
