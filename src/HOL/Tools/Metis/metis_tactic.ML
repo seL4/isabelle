@@ -67,22 +67,43 @@ fun lam_lifted_from_metis ctxt type_enc sym_tab concealed mth =
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal [] ct (K tac) |> Meson.make_meta_clause end
 
+fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
+  | add_vars_and_frees (Abs (_, _, t)) = add_vars_and_frees t
+  | add_vars_and_frees (t as Var _) = insert (op =) t
+  | add_vars_and_frees (t as Free _) = insert (op =) t
+  | add_vars_and_frees _ = I
+
 fun introduce_lam_wrappers ctxt th =
   if Meson_Clausify.is_quasi_lambda_free (prop_of th) then
     th
   else
     let
-      fun conv wrap ctxt ct =
+      val thy = Proof_Context.theory_of ctxt
+      fun conv first ctxt ct =
         if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
           Thm.reflexive ct
         else case term_of ct of
-          Abs _ =>
-          Conv.abs_conv (conv false o snd) ctxt ct
-          |> wrap
-             ? (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
+          t as Abs (_, _, u) =>
+          if first then
+            case add_vars_and_frees u [] of
+              [] =>
+              Conv.abs_conv (conv false o snd) ctxt ct
+              |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
+            | v :: _ =>
+              Abs (Name.uu, fastype_of v, abstract_over (v, term_of ct)) $ v
+              |> cterm_of thy
+              |> Conv.comb_conv (conv true ctxt)
+          else
+            Conv.abs_conv (conv false o snd) ctxt ct
+        | Const (@{const_name Meson.skolem}, _) $ _ => Thm.reflexive ct
         | _ => Conv.comb_conv (conv true ctxt) ct
-      val eqth = conv true ctxt (cprop_of th)
-    in Thm.equal_elim eqth th end
+      val eq_th = conv true ctxt (cprop_of th)
+      (* We replace the equation's left-hand side with a beta-equivalent term
+         so that "Thm.equal_elim" works below. *)
+      val t0 $ _ $ t2 = prop_of eq_th
+      val eq_ct = t0 $ prop_of th $ t2 |> cterm_of thy
+      val eq_th' = Goal.prove_internal [] eq_ct (K (Tactic.rtac eq_th 1))
+    in Thm.equal_elim eq_th' th end
 
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
@@ -104,19 +125,18 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
-      val preproc =
-        Drule.eta_contraction_rule
-        #> lam_trans = lam_liftingN ? introduce_lam_wrappers ctxt
-      val cls = cls |> map preproc
-      val ths0 = ths0 |> map preproc
+      val do_lams = lam_trans = lam_liftingN ? introduce_lam_wrappers ctxt
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
-                 Meson_Clausify.cnf_axiom ctxt new_skolemizer
-                                          (lam_trans = combinatorsN) j th))
+                 th |> Drule.eta_contraction_rule
+                    |> Meson_Clausify.cnf_axiom ctxt new_skolemizer
+                                                (lam_trans = combinatorsN) j
+                    ||> map do_lams))
              (0 upto length ths0 - 1) ths0
       val ths = maps (snd o snd) th_cls_pairs
       val dischargers = map (fst o snd) th_cls_pairs
+      val cls = cls |> map (Drule.eta_contraction_rule #> do_lams)
       val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)

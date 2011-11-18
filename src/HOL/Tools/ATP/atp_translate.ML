@@ -686,9 +686,11 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
 
 (* Requires bound variables not to clash with any schematic variables (as should
    be the case right after lambda-lifting). *)
-fun open_form (Const (@{const_name All}, _) $ Abs (_, T, t)) =
-    subst_bound (Var ((Name.uu ^ Int.toString (size_of_term t), 0), T), t)
-    |> open_form
+fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+    let
+      val names = Name.make_context (map fst (Term.add_var_names t []))
+      val (s, _) = Name.variant s names
+    in open_form (subst_bound (Var ((s, 0), T), t)) end
   | open_form t = t
 
 fun lift_lams_part_1 ctxt type_enc =

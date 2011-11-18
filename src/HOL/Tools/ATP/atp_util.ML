@@ -267,9 +267,9 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
 fun close_form t =
-  fold (fn ((x, i), T) => fn t' =>
+  fold (fn ((s, i), T) => fn t' =>
            HOLogic.all_const T
-           $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
+           $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
        (Term.add_vars t []) t
 
 fun monomorphic_term subst =
