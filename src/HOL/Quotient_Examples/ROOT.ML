@@ -4,5 +4,6 @@
 Testing the quotient package.
 *)
 
-use_thys ["DList", "FSet", "Quotient_Int", "Quotient_Message", "Quotient_Cset", "List_Quotient_Cset", "Lift_Set"];
+use_thys ["DList", "FSet", "Quotient_Int", "Quotient_Message", "Quotient_Cset",
+  "List_Quotient_Cset", "Lift_Set", "Lift_RBT"];
 
