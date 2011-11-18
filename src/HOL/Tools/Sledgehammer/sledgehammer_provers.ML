@@ -398,8 +398,8 @@ fun proof_banner mode name =
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
   [(false, Metis (hd partial_type_encs, lam_trans true)),
-   (true, Metis (hd full_type_encs, lam_trans false)),
-   (false, Metis (no_type_enc, lam_trans false)),
+   (true, Metis (full_typesN, lam_trans false)),
+   (false, Metis (no_typesN, lam_trans false)),
    (true, SMT)]
   |> map_filter (fn (full_types, reconstr) =>
                     if needs_full_types andalso not full_types then NONE
@@ -412,7 +412,7 @@ fun extract_reconstructor ({type_enc, lam_trans, ...} : params)
         (if is_none type_enc andalso type_enc' = hd partial_type_encs then
            []
          else
-           [("type_enc", [type_enc'])]) @
+           [("type_enc", [hd (unalias_type_enc type_enc')])]) @
         (if is_none lam_trans andalso lam_trans' = metis_default_lam_trans then
            []
          else
