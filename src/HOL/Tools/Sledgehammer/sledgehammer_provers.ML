@@ -80,7 +80,7 @@ sig
   val plain_metis : reconstructor
   val select_smt_solver : string -> Proof.context -> Proof.context
   val extract_reconstructor :
-    reconstructor -> string * (string * string list) list
+    params -> reconstructor -> string * (string * string list) list
   val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
@@ -132,29 +132,10 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
-fun extract_reconstructor (Metis (type_enc, lam_trans)) =
-    let
-      val override_params =
-        (if type_enc = hd partial_type_encs then []
-         else [("type_enc", [type_enc])]) @
-        (if lam_trans = metis_default_lam_trans then []
-         else [("lam_trans", [lam_trans])])
-    in (metisN, override_params) end
-  | extract_reconstructor SMT = (smtN, [])
-
 val reconstructor_names = [metisN, smtN]
 val plain_metis = Metis (hd partial_type_encs, combinatorsN)
-
-fun bunch_of_reconstructors needs_full_types lam_trans =
-  [(false, Metis (hd partial_type_encs, lam_trans true)),
-   (true, Metis (hd full_type_encs, lam_trans false)),
-   (false, Metis (no_type_enc, lam_trans false)),
-   (true, SMT)]
-  |> map_filter (fn (full_types, reconstr) =>
-                    if needs_full_types andalso not full_types then NONE
-                    else SOME reconstr)
-
 val is_reconstructor = member (op =) reconstructor_names
+
 val is_atp = member (op =) o supported_atps
 
 val select_smt_solver = Context.proof_map o SMT_Config.select_solver
@@ -415,6 +396,30 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this"
 
+fun bunch_of_reconstructors needs_full_types lam_trans =
+  [(false, Metis (hd partial_type_encs, lam_trans true)),
+   (true, Metis (hd full_type_encs, lam_trans false)),
+   (false, Metis (no_type_enc, lam_trans false)),
+   (true, SMT)]
+  |> map_filter (fn (full_types, reconstr) =>
+                    if needs_full_types andalso not full_types then NONE
+                    else SOME reconstr)
+
+fun extract_reconstructor ({type_enc, lam_trans, ...} : params)
+                          (Metis (type_enc', lam_trans')) =
+    let
+      val override_params =
+        (if is_none type_enc andalso type_enc' = hd partial_type_encs then
+           []
+         else
+           [("type_enc", [type_enc'])]) @
+        (if is_none lam_trans andalso lam_trans' = metis_default_lam_trans then
+           []
+         else
+           [("lam_trans", [lam_trans'])])
+    in (metisN, override_params) end
+  | extract_reconstructor _ SMT = (smtN, [])
+
 (* based on "Mirabelle.can_apply" and generalized *)
 fun timed_apply timeout tac state i =
   let
@@ -541,13 +546,13 @@ fun choose_type_enc soundness best_type_enc format =
 
 val metis_minimize_max_time = seconds 2.0
 
-fun choose_minimize_command minimize_command name preplay =
+fun choose_minimize_command params minimize_command name preplay =
   let
     val (name, override_params) =
       case preplay of
         Played (reconstr, time) =>
         if Time.<= (time, metis_minimize_max_time) then
-          extract_reconstructor reconstr
+          extract_reconstructor params reconstr
         else
           (name, [])
       | _ => (name, [])
@@ -570,9 +575,10 @@ val atp_timeout_slack = seconds 1.0
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_enc, sound, lam_trans, max_relevant,
-          max_mono_iters, max_new_mono_instances, isar_proof,
-          isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
+        (params as {debug, verbose, overlord, type_enc, sound, lam_trans,
+                    max_relevant, max_mono_iters, max_new_mono_instances,
+                    isar_proof, isar_shrink_factor, slicing, timeout,
+                    preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -807,7 +813,7 @@ fun run_atp mode name
                    atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command minimize_command name preplay,
+                   choose_minimize_command params minimize_command name preplay,
                    subgoal, subgoal_count)
               in proof_text ctxt isar_proof isar_params one_line_params end,
            (if verbose then
@@ -987,7 +993,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             let
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
-                 choose_minimize_command minimize_command name preplay,
+                 choose_minimize_command params minimize_command name preplay,
                  subgoal, subgoal_count)
             in one_line_proof_text one_line_params end,
          if verbose then
@@ -1002,7 +1008,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
   end
 
 fun run_reconstructor mode name
-        ({debug, verbose, timeout, type_enc, lam_trans, ...} : params)
+        (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
         minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -1023,14 +1029,15 @@ fun run_reconstructor mode name
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,
        preplay = K play,
-       message = fn play =>
-                    let
-                      val (_, override_params) = extract_reconstructor reconstr
-                      val one_line_params =
-                        (play, proof_banner mode name, used_facts,
-                         minimize_command override_params name, subgoal,
-                         subgoal_count)
-                    in one_line_proof_text one_line_params end,
+       message =
+         fn play =>
+            let
+              val (_, override_params) = extract_reconstructor params reconstr
+              val one_line_params =
+                (play, proof_banner mode name, used_facts,
+                 minimize_command override_params name, subgoal,
+                 subgoal_count)
+            in one_line_proof_text one_line_params end,
        message_tail = ""}
     | play =>
       let

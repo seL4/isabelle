@@ -125,7 +125,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
                   (case preplay of
                      Played (reconstr, timeout) =>
                      if can_min_fast_enough timeout then
-                       (true, extract_reconstructor reconstr
+                       (true, extract_reconstructor params reconstr
                               ||> (fn override_params =>
                                       adjust_reconstructor_params
                                           override_params params))
