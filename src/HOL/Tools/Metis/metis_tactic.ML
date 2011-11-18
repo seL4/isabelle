@@ -59,7 +59,7 @@ fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth =
   end
   |> Meson.make_meta_clause
 
-fun lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth =
+fun lam_lifted_from_metis ctxt type_enc sym_tab concealed mth =
   let
     val thy = Proof_Context.theory_of ctxt
     val tac = rewrite_goals_tac @{thms lambda_def_raw} THEN rtac refl 1
@@ -67,7 +67,7 @@ fun lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth =
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal [] ct (K tac) |> Meson.make_meta_clause end
 
-fun introduce_lambda_wrappers_in_theorem ctxt th =
+fun introduce_lam_wrappers ctxt th =
   if Meson_Clausify.is_quasi_lambda_free (prop_of th) then
     th
   else
@@ -104,8 +104,11 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
-      val cls = cls |> map Drule.eta_contraction_rule
-      val ths0 = ths0 |> map Drule.eta_contraction_rule
+      val preproc =
+        Drule.eta_contraction_rule
+        #> lam_trans = lam_liftingN ? introduce_lam_wrappers ctxt
+      val cls = cls |> map preproc
+      val ths0 = ths0 |> map preproc
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
@@ -118,16 +121,14 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_from_string Sound type_enc
-      val (sym_tab, axioms0, concealed) =
+      val (sym_tab, axioms, concealed) =
         prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm mth Isa_Lambda_Lifted =
-          lambda_lifted_from_metis ctxt type_enc sym_tab concealed mth
-        | get_isa_thm _ (Isa_Raw ith) =
-          ith |> lam_trans = lam_liftingN
-                 ? introduce_lambda_wrappers_in_theorem ctxt
-      val axioms = axioms0 |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+          lam_lifted_from_metis ctxt type_enc sym_tab concealed mth
+        | get_isa_thm _ (Isa_Raw ith) = ith
+      val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "ISABELLE CLAUSES")
       val _ = app (fn (_, ith) => trace_msg ctxt (fn () => Display.string_of_thm ctxt ith)) axioms
       val _ = trace_msg ctxt (fn () => "METIS CLAUSES")
@@ -149,9 +150,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
                 val result =
                   axioms
                   |> fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof
-                val used =
-                  proof |> map_filter (used_axioms axioms0)
-                        |> map_filter (fn Isa_Raw ith => SOME ith | _ => NONE)
+                val used = proof |> map_filter (used_axioms axioms)
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
                 val names = th_cls_pairs |> map fst

@@ -28,7 +28,7 @@ sig
   val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
-  val reveal_lambda_lifted : (string * term) list -> term -> term
+  val reveal_lam_lifted : (string * term) list -> term -> term
   val prepare_metis_problem :
     Proof.context -> type_enc -> string -> thm list -> thm list
     -> int Symtab.table * (Metis_Thm.thm * isa_thm) list
@@ -110,14 +110,14 @@ fun reveal_old_skolem_terms old_skolems =
                    t
                | t => t)
 
-fun reveal_lambda_lifted lambdas =
+fun reveal_lam_lifted lambdas =
   map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix lam_lifted_prefix s then
                    case AList.lookup (op =) lambdas s of
                      SOME t =>
                      Const (@{const_name Metis.lambda}, dummyT)
                      $ map_types (map_type_tvar (K dummyT))
-                                 (reveal_lambda_lifted lambdas t)
+                                 (reveal_lam_lifted lambdas t)
                    | NONE => t
                  else
                    t
@@ -199,6 +199,14 @@ fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
     end
   | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
 
+fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) =
+    eliminate_lam_wrappers t
+  | eliminate_lam_wrappers (t $ u) =
+    eliminate_lam_wrappers t $ eliminate_lam_wrappers u
+  | eliminate_lam_wrappers (Abs (s, T, t)) =
+    Abs (s, T, eliminate_lam_wrappers t)
+  | eliminate_lam_wrappers t = t
+
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
@@ -223,6 +231,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
                    th |> prop_of |> Logic.strip_imp_concl
                       |> conceal_old_skolem_terms (length clauses) old_skolems
+                      ||> lam_trans = lam_liftingN ? eliminate_lam_wrappers
                       ||> (fn prop => (name, prop) :: props))
                clauses ([], [])
     (*
