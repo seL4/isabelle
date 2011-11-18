@@ -72,6 +72,7 @@ fun introduce_lambda_wrappers_in_theorem ctxt th =
     th
   else
     let
+      val th = th |> Drule.eta_contraction_rule
       fun conv wrap ctxt ct =
         if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
           Thm.reflexive ct
