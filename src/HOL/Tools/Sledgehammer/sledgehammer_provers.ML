@@ -146,9 +146,9 @@ val reconstructor_names = [metisN, smtN]
 val plain_metis = Metis (hd partial_type_encs, combinatorsN)
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
-  [(false, Metis (hd partial_type_encs, lam_trans metis_default_lam_trans)),
-   (true, Metis (hd full_type_encs, lam_trans hide_lamsN)),
-   (false, Metis (no_type_enc, lam_trans hide_lamsN)),
+  [(false, Metis (hd partial_type_encs, lam_trans true)),
+   (true, Metis (hd full_type_encs, lam_trans false)),
+   (false, Metis (no_type_enc, lam_trans false)),
    (true, SMT)]
   |> map_filter (fn (full_types, reconstr) =>
                     if needs_full_types andalso not full_types then NONE
@@ -786,7 +786,9 @@ fun run_atp mode name
           val needs_full_types = is_typed_helper_used_in_proof atp_proof
           val reconstrs =
             bunch_of_reconstructors needs_full_types
-                                    (lam_trans_from_atp_proof atp_proof)
+                (lam_trans_from_atp_proof atp_proof
+                 o (fn plain =>
+                       if plain then metis_default_lam_trans else hide_lamsN))
         in
           (used_facts,
            fn () =>
@@ -977,7 +979,10 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         (fn () =>
             play_one_line_proof mode debug verbose preplay_timeout used_ths
                 state subgoal SMT
-                (bunch_of_reconstructors false (K lam_liftingN)),
+                (bunch_of_reconstructors false
+                     (fn plain =>
+                         if plain then metis_default_lam_trans
+                         else lam_liftingN)),
          fn preplay =>
             let
               val one_line_params =
