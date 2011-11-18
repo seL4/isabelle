@@ -279,9 +279,13 @@ fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
 
 val metis_lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
 
+fun set_opt _ x NONE = SOME x
+  | set_opt get x (SOME x0) =
+    error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x) ^
+           ".")
 fun consider_opt s =
-  if member (op =) metis_lam_transs s then apsnd (K (SOME s))
-  else apfst (K (SOME [s]))
+  if member (op =) metis_lam_transs s then apsnd (set_opt I s)
+  else apfst (set_opt hd [s])
 
 val parse_metis_options =
   Scan.optional
