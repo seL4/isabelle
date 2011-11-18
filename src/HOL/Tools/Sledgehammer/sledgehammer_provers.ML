@@ -147,7 +147,7 @@ val plain_metis = Metis (hd partial_type_encs, combinatorsN)
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
   [(false, Metis (hd partial_type_encs, lam_trans metis_default_lam_trans)),
-   (true, Metis (hd full_type_encs, lam_trans metis_default_lam_trans)),
+   (true, Metis (hd full_type_encs, lam_trans hide_lamsN)),
    (false, Metis (no_type_enc, lam_trans hide_lamsN)),
    (true, SMT)]
   |> map_filter (fn (full_types, reconstr) =>
