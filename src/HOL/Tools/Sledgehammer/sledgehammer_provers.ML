@@ -16,7 +16,7 @@ sig
   type minimize_command = ATP_Reconstruct.minimize_command
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
 
-  datatype mode = Auto_Try | Try | Normal | Minimize
+  datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
   type params =
     {debug: bool,
@@ -126,7 +126,7 @@ open Sledgehammer_Filter
 
 (** The Sledgehammer **)
 
-datatype mode = Auto_Try | Try | Normal | Minimize
+datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
@@ -566,6 +566,7 @@ fun repair_monomorph_context max_iters max_new_instances =
 fun suffix_for_mode Auto_Try = "_auto_try"
   | suffix_for_mode Try = "_try"
   | suffix_for_mode Normal = ""
+  | suffix_for_mode Auto_Minimize = "_auto_min"
   | suffix_for_mode Minimize = "_min"
 
 (* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on

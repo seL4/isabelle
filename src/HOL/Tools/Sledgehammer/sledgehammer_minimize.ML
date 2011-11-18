@@ -172,7 +172,8 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
                    facts =
   let
     val ctxt = Proof.context_of state
-    val prover = get_prover ctxt Minimize prover_name
+    val prover =
+      get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
     val _ = print silent (fn () => "Sledgehammer minimizer: " ^
                                    quote prover_name ^ ".")
     fun test timeout = test_facts params silent prover timeout i n state
