@@ -25,7 +25,6 @@ consts
   pset  :: "'a set => 'a set"
   order :: "'a set => ('a * 'a) set"
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Collect_triv" ]]
 lemma (*Collect_triv:*) "a \<in> {x. P x} ==> P a"
 proof -
   assume "a \<in> {x. P x}"
@@ -36,11 +35,9 @@ qed
 lemma Collect_triv: "a \<in> {x. P x} ==> P a"
 by (metis mem_Collect_eq)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Collect_mp" ]]
 lemma "a \<in> {x. P x --> Q x} ==> a \<in> {x. P x} ==> a \<in> {x. Q x}"
 by (metis Collect_imp_eq ComplD UnE)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_triv" ]]
 lemma "(a, b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
 proof -
   assume A1: "(a, b) \<in> Sigma A B"
@@ -53,7 +50,6 @@ qed
 lemma Sigma_triv: "(a,b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
 by (metis SigmaD1 SigmaD2)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_Collect" ]]
 lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
 (* Metis says this is satisfiable!
 by (metis CollectD SigmaD1 SigmaD2)
@@ -73,7 +69,6 @@ proof -
   thus "a \<in> A \<and> a = f b" by (metis F1)
 qed
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_in_pp" ]]
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
 by (metis Collect_mem_eq SigmaD2)
 
@@ -88,7 +83,6 @@ proof -
   thus "f \<in> pset cl" by metis
 qed
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_Collect_Pi" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==>
     f \<in> pset cl \<rightarrow> pset cl"
@@ -105,7 +99,6 @@ proof -
   thus "f \<in> pset cl \<rightarrow> pset cl" by metis
 qed
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_Collect_Int" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
     f \<in> pset cl \<inter> cl"
@@ -124,83 +117,69 @@ proof -
   thus "f \<in> pset cl \<inter> cl" by (metis Int_commute)
 qed
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_Collect_Pi_mono" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)}) ==>
    (f \<in> pset cl \<rightarrow> pset cl)  &  (monotone f (pset cl) (order cl))"
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_subset_Collect_Int" ]]
 lemma "(cl,f) \<in> CLF ==>
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Int" ]]
 lemma "(cl,f) \<in> CLF ==>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_subset_Collect_Pi" ]]
 lemma
    "(cl,f) \<in> CLF ==>
     CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==>
     f \<in> pset cl \<rightarrow> pset cl"
 by fast
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Pi" ]]
 lemma
   "(cl,f) \<in> CLF ==>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==>
    f \<in> pset cl \<rightarrow> pset cl"
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Pi_mono" ]]
 lemma
   "(cl,f) \<in> CLF ==>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)}) ==>
    (f \<in> pset cl \<rightarrow> pset cl)  &  (monotone f (pset cl) (order cl))"
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__map_eq_zipA" ]]
 lemma "map (%x. (f x, g x)) xs = zip (map f xs) (map g xs)"
 apply (induct xs)
  apply (metis map.simps(1) zip_Nil)
 by (metis (lam_lifting, no_types) map.simps(2) zip_Cons_Cons)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__map_eq_zipB" ]]
 lemma "map (%w. (w -> w, w \<times> w)) xs =
        zip (map (%w. w -> w) xs) (map (%w. w \<times> w) xs)"
 apply (induct xs)
  apply (metis map.simps(1) zip_Nil)
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_evenA" ]]
 lemma "(%x. Suc (f x)) ` {x. even x} <= A ==> \<forall>x. even x --> Suc (f x) \<in> A"
 by (metis Collect_def image_eqI mem_def subsetD)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_evenB" ]]
 lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A
        ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)"
 by (metis Collect_def imageI mem_def set_rev_mp)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_curry" ]]
 lemma "f \<in> (%u v. b \<times> u \<times> v) ` A ==> \<forall>u v. P (b \<times> u \<times> v) ==> P(f y)"
 (* sledgehammer *)
 by auto
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_TimesA" ]]
 lemma image_TimesA: "(%(x,y). (f x, g y)) ` (A \<times> B) = (f`A) \<times> (g`B)"
 by (metis map_pair_def map_pair_surj_on)
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_TimesB" ]]
 lemma image_TimesB:
     "(%(x,y,z). (f x, g y, h z)) ` (A \<times> B \<times> C) = (f`A) \<times> (g`B) \<times> (h`C)"
 (* sledgehammer *)
 by force
 
-declare [[ sledgehammer_problem_prefix = "Abstraction__image_TimesC" ]]
 lemma image_TimesC:
     "(%(x,y). (x \<rightarrow> x, y \<times> y)) ` (A \<times> B) =
      ((%x. x \<rightarrow> x) ` A) \<times> ((%y. y \<times> y) ` B)"
