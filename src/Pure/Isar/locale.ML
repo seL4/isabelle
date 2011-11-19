@@ -343,7 +343,7 @@ structure Registrations = Generic_Data
   val empty = (Idtab.empty, Inttab.empty);
   val extend = I;
   fun merge ((reg1, mix1), (reg2, mix2)) : T =
-    (Idtab.join (fn id => fn (r1 as (_, s1), r2 as (_, s2)) =>
+    (Idtab.join (fn id => fn ((_, s1), (_, s2)) =>
         if s1 = s2 then raise Idtab.SAME else raise Idtab.DUP id) (reg1, reg2),
       merge_mixins (mix1, mix2))
     handle Idtab.DUP id =>
@@ -557,20 +557,20 @@ fun add_dependency loc (name, morph) mixin export thy =
 (* Theorems *)
 
 fun add_thmss loc kind facts ctxt =
-  let
-    val (Notes facts', ctxt') = Element.activate_i (Notes (kind, facts)) ctxt;
-    val ctxt'' = ctxt' |> Proof_Context.background_theory
-     ((change_locale loc o apfst o apsnd) (cons (facts', serial ()))
-        #>
+  ctxt
+  |> Proof_Context.note_thmss kind
+    (Attrib.map_facts (map (Attrib.attribute_i (Proof_Context.theory_of ctxt))) facts)
+  |> snd
+  |> Proof_Context.background_theory
+    ((change_locale loc o apfst o apsnd) (cons ((kind, facts), serial ())) #>
       (* Registrations *)
       (fn thy => fold_rev (fn (_, morph) =>
             let
-              val facts'' = snd facts'
+              val facts' = facts
                 |> Element.facts_map (Element.transform_ctxt morph)
                 |> Attrib.map_facts (map (Attrib.attribute_i thy));
-            in Global_Theory.note_thmss kind facts'' #> snd end)
-        (registrations_of (Context.Theory thy) loc) thy))
-  in ctxt'' end;
+            in snd o Global_Theory.note_thmss kind facts' end)
+        (registrations_of (Context.Theory thy) loc) thy));
 
 
 (* Declarations *)

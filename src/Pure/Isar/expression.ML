@@ -895,7 +895,7 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
       |> fst;  (* FIXME duplication to add_thmss *)
   in
     ctxt
-    |> Locale.add_thmss target Thm.lemmaK facts
+    |> Locale.add_thmss target Thm.lemmaK (Attrib.partial_evaluation ctxt facts)
     |> Proof_Context.background_theory (fold (fn ((dep, morph), wits) =>
       fn thy =>
         Locale.add_dependency target
