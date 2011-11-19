@@ -309,7 +309,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = Attrib.map_specs (map prep_att) (map fst shows ~~ propp);
         val goal_ctxt = (fold o fold) (Variable.auto_fixes o fst) propp elems_ctxt;
-      in ((prems, stmt, NONE), goal_ctxt) end
+      in (([], prems, stmt, NONE), goal_ctxt) end
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index (fn (i, (b, _)) =>
@@ -332,18 +332,19 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
               |> fold Variable.declare_term props
               |> fold_map Proof_Context.inferred_param xs;
             val asm = Term.list_all_free (xs ~~ Ts, Logic.list_implies (props, thesis));
+            val _ = ctxt' |> Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
           in
-            ctxt' |> (snd o Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
-            ctxt' |> Variable.auto_fixes asm
+            ctxt'
+            |> Variable.auto_fixes asm
             |> Proof_Context.add_assms_i Assumption.assume_export
               [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
 
-        val atts = map (Attrib.internal o K)
+        val more_atts = map (Attrib.internal o K)
           [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names];
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
-        val stmt = [((Binding.empty, atts), [(thesis, [])])];
+        val stmt = [((Binding.empty, []), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
           |> (snd o Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
@@ -351,7 +352,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           |-> (fn ths =>
             Proof_Context.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
             #2 #> pair ths);
-      in ((prems, stmt, SOME facts), goal_ctxt) end);
+      in ((more_atts, prems, stmt, SOME facts), goal_ctxt) end);
 
 structure Theorem_Hook = Generic_Data
 (
@@ -368,10 +369,10 @@ fun gen_theorem schematic prep_att prep_stmt
     val thy = Proof_Context.theory_of lthy;
 
     val attrib = prep_att thy;
-    val atts = map attrib raw_atts;
     val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
-    val ((prems, stmt, facts), goal_ctxt) =
+    val ((more_atts, prems, stmt, facts), goal_ctxt) =
       prep_statement attrib prep_stmt elems raw_concl lthy;
+    val atts = more_atts @ map attrib raw_atts;
 
     fun after_qed' results goal_ctxt' =
       let val results' =
