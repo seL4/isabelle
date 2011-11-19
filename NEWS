@@ -137,6 +137,10 @@ a list and a nat.
 
 *** ML ***
 
+* Antiquotation @{attributes [...]} embeds attribute source
+representation into the ML text, which is particularly useful with
+declarations like Local_Theory.note.
+
 * Structure Proof_Context follows standard naming scheme.  Old
 ProofContext has been discontinued.  INCOMPATIBILITY.
 

@@ -194,8 +194,9 @@ fun process_spec axiomatic cos alt_props thy =
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
                              |> apsnd Drule.export_without_context
-                             |> Thm.theory_attributes (map (Attrib.attribute thy)
-                                                           (Attrib.internal (K Nitpick_Choice_Specs.add) :: atts))
+                             |> Thm.theory_attributes
+                                (map (Attrib.attribute thy)
+                                  (@{attributes [nitpick_choice_spec]} @ atts))
                              |> add_final
                              |> Library.swap
                     end

@@ -260,21 +260,18 @@ fun add_enum_type tyname tyname' thy =
          (Const (@{const_name last_el}, T), List.last cs)))
       (fn _ => simp_tac (simpset_of lthy' addsimps
          [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
-
-    val simp_att = [Attrib.internal (K Simplifier.simp_add)]
-
   in
     lthy' |>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_card"), simp_att), [card_UNIV]) ||>>
+      ((Binding.name (tyname ^ "_card"), @{attributes [simp]}), [card_UNIV]) ||>>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_pos"), simp_att), pos_eqs) ||>>
+      ((Binding.name (tyname ^ "_pos"), @{attributes [simp]}), pos_eqs) ||>>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_val"), simp_att), val_eqs) ||>>
+      ((Binding.name (tyname ^ "_val"), @{attributes [simp]}), val_eqs) ||>>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_first_el"), simp_att), [first_el]) ||>>
+      ((Binding.name (tyname ^ "_first_el"), @{attributes [simp]}), [first_el]) ||>>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_last_el"), simp_att), [last_el]) |> snd |>
+      ((Binding.name (tyname ^ "_last_el"), @{attributes [simp]}), [last_el]) |> snd |>
     Local_Theory.exit_global
   end;
 

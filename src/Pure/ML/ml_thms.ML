@@ -1,11 +1,12 @@
 (*  Title:      Pure/ML/ml_thms.ML
     Author:     Makarius
 
-Isar theorem values within ML.
+Attribute source and theorem values within ML.
 *)
 
 signature ML_THMS =
 sig
+  val the_attributes: Proof.context -> int -> Args.src list
   val the_thms: Proof.context -> int -> thm list
   val the_thm: Proof.context -> int -> thm
 end;
@@ -13,25 +14,48 @@ end;
 structure ML_Thms: ML_THMS =
 struct
 
-(* auxiliary facts table *)
+(* auxiliary data *)
 
-structure Aux_Facts = Proof_Data
+structure Data = Proof_Data
 (
-  type T = thm list Inttab.table;
-  fun init _ = Inttab.empty;
+  type T = Args.src list Inttab.table * thm list Inttab.table;
+  fun init _ = (Inttab.empty, Inttab.empty);
 );
 
-val put_thms = Aux_Facts.map o Inttab.update;
+val put_attributes = Data.map o apfst o Inttab.update;
+fun the_attributes ctxt name = the (Inttab.lookup (fst (Data.get ctxt)) name);
 
-fun the_thms ctxt name = the (Inttab.lookup (Aux_Facts.get ctxt) name);
+val put_thms = Data.map o apsnd o Inttab.update;
+
+fun the_thms ctxt name = the (Inttab.lookup (snd (Data.get ctxt)) name);
 fun the_thm ctxt name = the_single (the_thms ctxt name);
+
+
+(* attribute source *)
+
+val _ =
+  Context.>> (Context.map_theory
+    (ML_Context.add_antiq (Binding.name "attributes")
+      (fn _ => Scan.lift Parse_Spec.attribs >> (fn raw_srcs => fn background =>
+        let
+          val thy = Proof_Context.theory_of background;
+
+          val i = serial ();
+          val srcs = map (Attrib.intern_src thy) raw_srcs;
+          val _ = map (Attrib.attribute_i thy) srcs;
+          val (a, background') = background
+            |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
+          val ml =
+            ("val " ^ a ^ " = ML_Thms.the_attributes (ML_Context.the_local_context ()) " ^
+              string_of_int i ^ ";\n", "Isabelle." ^ a);
+        in (K ml, background') end))));
+
+
+(* fact references *)
 
 fun thm_bind kind a i =
   "val " ^ a ^ " = ML_Thms.the_" ^ kind ^
     " (ML_Context.the_local_context ()) " ^ string_of_int i ^ ";\n";
-
-
-(* fact references *)
 
 fun thm_antiq kind scan = ML_Context.add_antiq (Binding.name kind)
   (fn _ => scan >> (fn ths => fn background =>

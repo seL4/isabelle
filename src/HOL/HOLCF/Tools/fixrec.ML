@@ -363,8 +363,7 @@ fun gen_fixrec
     val simps : (Attrib.binding * thm) list list =
       map (make_simps lthy) (unfold_thms ~~ blocks')
     fun mk_bind n : Attrib.binding =
-     (Binding.qualify true n (Binding.name "simps"),
-       [Attrib.internal (K Simplifier.simp_add)])
+     (Binding.qualify true n (Binding.name "simps"), @{attributes [simp]})
     val simps1 : (Attrib.binding * thm list) list =
       map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps)
     val simps2 : (Attrib.binding * thm list) list =

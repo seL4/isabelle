@@ -775,9 +775,9 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       |> Local_Theory.conceal
       |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Binding.empty, [Attrib.internal (K Nitpick_Unfolds.add)]),
-         fold_rev lambda params
-           (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
+         ((Binding.empty, @{attributes [nitpick_unfold]}),
+           fold_rev lambda params
+             (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Local_Theory.restore_naming lthy;
     val fp_def' = Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
       (cterm_of (Proof_Context.theory_of lthy') (list_comb (rec_const, params)));

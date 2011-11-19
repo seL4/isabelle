@@ -45,13 +45,11 @@ struct
 open Function_Lib
 open Function_Common
 
-val simp_attribs = map (Attrib.internal o K)
-  [Simplifier.simp_add,
-   Code.add_default_eqn_attribute,
-   Nitpick_Simps.add]
+val simp_attribs =
+  @{attributes [simp, nitpick_simp]} @ [Attrib.internal (K Code.add_default_eqn_attribute)]
 
-val psimp_attribs = map (Attrib.internal o K)
-  [Nitpick_Psimps.add]
+val psimp_attribs =
+  @{attributes [nitpick_psimp]}
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 

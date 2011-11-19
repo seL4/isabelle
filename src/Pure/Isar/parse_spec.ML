@@ -6,7 +6,6 @@ Parsers for complex specifications.
 
 signature PARSE_SPEC =
 sig
-  val attrib: Attrib.src parser
   val attribs: Attrib.src list parser
   val opt_attribs: Attrib.src list parser
   val thm_name: string -> Attrib.binding parser

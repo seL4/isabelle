@@ -900,6 +900,45 @@ An \emph{attribute} is a function \isa{context\ {\isaliteral{5C3C74696D65733E}{\
 %
 \endisadelimmlref
 %
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{attributes}\hypertarget{ML antiquotation.attributes}{\hyperlink{ML antiquotation.attributes}{\mbox{\isa{attributes}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{1}{}
+\rail@term{\hyperlink{ML antiquotation.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@nont{\isa{attributes}}[]
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}attributes\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{7D}{\isacharbraceright}}} embeds attribute source
+  representation into the ML text, which is particularly useful with
+  declarations like \verb|Local_Theory.note|.  Attribute names are
+  internalized at compile time, but the source is unevaluated.  This
+  means attributes with formal arguments (types, terms, theorems) may
+  be subject to odd effects of dynamic scoping!
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
 \isadelimmlex
 %
 \endisadelimmlex

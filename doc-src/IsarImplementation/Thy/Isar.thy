@@ -562,6 +562,27 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def attributes} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  @{rail "
+  @@{ML_antiquotation attributes} attributes
+  "}
+
+  \begin{description}
+
+  \item @{text "@{attributes [\<dots>]}"} embeds attribute source
+  representation into the ML text, which is particularly useful with
+  declarations like @{ML Local_Theory.note}.  Attribute names are
+  internalized at compile time, but the source is unevaluated.  This
+  means attributes with formal arguments (types, terms, theorems) may
+  be subject to odd effects of dynamic scoping!
+
+  \end{description}
+*}
+
 text %mlex {* See also @{command attribute_setup} in
   \cite{isabelle-isar-ref} which includes some abstract examples. *}
 

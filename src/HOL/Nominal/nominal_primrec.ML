@@ -364,17 +364,16 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     Variable.add_fixes (map fst lsrs) |> snd |>
     Proof.theorem NONE
       (fn thss => fn goal_ctxt =>
-         let
-           val simps = Proof_Context.export goal_ctxt lthy' (flat thss);
-           val (simps', lthy'') =
+        let
+          val simps = Proof_Context.export goal_ctxt lthy' (flat thss);
+          val (simps', lthy'') =
             fold_map Local_Theory.note (names_atts' ~~ map single simps) lthy';
-         in
-           lthy''
-           |> Local_Theory.note ((qualify (Binding.name "simps"),
-                map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]),
-                maps snd simps')
-           |> snd
-         end)
+        in
+          lthy''
+          |> Local_Theory.note
+            ((qualify (Binding.name "simps"), @{attributes [simp, nitpick_simp]}), maps snd simps')
+          |> snd
+        end)
       [goals] |>
     Proof.apply (Method.Basic (fn _ => RAW_METHOD (fn _ =>
       rewrite_goals_tac defs_thms THEN
