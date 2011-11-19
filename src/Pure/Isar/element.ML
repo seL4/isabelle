@@ -119,7 +119,7 @@ fun pretty_items _ _ [] = []
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (b, atts) sep =
-  if Binding.is_empty b andalso null atts then []
+  if Attrib.is_empty_binding (b, atts) then []
   else
     [Pretty.block (Pretty.breaks
       (Binding.pretty b :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];

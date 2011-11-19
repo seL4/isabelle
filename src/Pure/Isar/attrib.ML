@@ -9,6 +9,7 @@ sig
   type src = Args.src
   type binding = binding * src list
   val empty_binding: binding
+  val is_empty_binding: binding -> bool
   val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
@@ -60,7 +61,9 @@ struct
 type src = Args.src;
 
 type binding = binding * src list;
+
 val empty_binding: binding = (Binding.empty, []);
+fun is_empty_binding ((b, srcs): binding) = Binding.is_empty b andalso null srcs;
 
 
 

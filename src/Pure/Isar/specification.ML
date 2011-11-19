@@ -375,23 +375,23 @@ fun gen_theorem schematic prep_att prep_stmt
     val atts = more_atts @ map attrib raw_atts;
 
     fun after_qed' results goal_ctxt' =
-      let val results' =
-        burrow (map Goal.norm_result o Proof_Context.export goal_ctxt' lthy) results
-      in
-        lthy
-        |> Local_Theory.notes_kind kind
-          (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
-        |> (fn (res, lthy') =>
-          if Binding.is_empty name andalso null atts then
+      let
+        val results' = burrow (map Goal.norm_result o Proof_Context.export goal_ctxt' lthy) results;
+        val (res, lthy') =
+          if forall (Attrib.is_empty_binding o fst) stmt then (map (pair "") results', lthy)
+          else
+            Local_Theory.notes_kind kind
+              (map2 (fn (b, _) => fn ths => (b, [(ths, [])])) stmt results') lthy;
+        val lthy'' =
+          if Attrib.is_empty_binding (name, atts) then
             (Proof_Display.print_results int lthy' ((kind, ""), res); lthy')
           else
             let
-              val ([(res_name, _)], lthy'') = lthy'
-                |> Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
+              val ([(res_name, _)], lthy'') =
+                Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])] lthy';
               val _ = Proof_Display.print_results int lthy' ((kind, res_name), res);
-            in lthy'' end)
-        |> after_qed results'
-      end;
+            in lthy'' end;
+      in after_qed results' lthy'' end;
   in
     goal_ctxt
     |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
