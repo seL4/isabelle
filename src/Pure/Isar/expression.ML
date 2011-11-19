@@ -354,8 +354,9 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
         val inst' = prep_inst ctxt parm_names inst;
-        val parm_types' = map (Type_Infer.paramify_vars o
-          Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global) parm_types;
+        val parm_types' = parm_types
+          |> map (Type_Infer.paramify_vars o
+              Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
@@ -836,7 +837,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
       |> prep_expr expression;
     val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val attrss = map ((apsnd o map) (prep_attr theory) o fst) equations;
+    val attrss = map (apsnd (map (prep_attr theory)) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
@@ -856,7 +857,7 @@ fun gen_interpret prep_expr parse_prop prep_attr
     val ((propss, deps, export), expr_ctxt) = prep_expr expression ctxt;
     val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val attrss = map ((apsnd o map) (prep_attr theory) o fst) equations;
+    val attrss = map (apsnd (map (prep_attr theory)) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
@@ -915,7 +916,7 @@ fun gen_sublocale prep_expr intern parse_prop prep_attr
     val ((propss, deps, export), expr_ctxt) = prep_expr expression target_ctxt;
     val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val attrss = map ((apsnd o map) (prep_attr thy) o fst) equations;
+    val attrss = map (apsnd (map (prep_attr thy)) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 

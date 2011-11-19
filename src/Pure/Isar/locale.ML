@@ -462,7 +462,8 @@ fun activate_declarations dep = Context.proof_map (fn context =>
 fun activate_facts export dep context =
   let
     val thy = Context.theory_of context;
-    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context export;
+    val activate =
+      activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context export;
   in
     roundup thy activate (case export of NONE => Morphism.identity | SOME export => export)
       dep (get_idents context, context)
@@ -688,7 +689,7 @@ fun locale_deps thy =
     fun add_locale_deps name =
       let
         val dependencies =
-          (map o apsnd) (instance_of thy name o op $>) (dependencies_of thy name |> map fst);
+          map (apsnd (instance_of thy name o op $>) o fst) (dependencies_of thy name);
       in
         fold (fn (super, ts) => fn (gr, deps) => (gr |> Graph.add_edge (super, name),
           deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
