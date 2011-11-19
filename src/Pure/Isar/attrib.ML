@@ -9,6 +9,7 @@ sig
   type src = Args.src
   type binding = binding * src list
   val empty_binding: binding
+  val is_empty_binding: binding -> bool
   val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
@@ -60,7 +61,9 @@ struct
 type src = Args.src;
 
 type binding = binding * src list;
+
 val empty_binding: binding = (Binding.empty, []);
+fun is_empty_binding ((b, srcs): binding) = Binding.is_empty b andalso null srcs;
 
 
 
@@ -216,11 +219,11 @@ end;
 
 
 
-(** partial evaluation **)
+(** partial evaluation -- observing rule/declaration/mixed attributes **)
 
 local
 
-val strict_thm_eq = op = o pairself Thm.rep_thm;
+val strict_eq_thm = op = o pairself Thm.rep_thm;
 
 fun apply_att src (context, th) =
   let
@@ -243,7 +246,7 @@ fun eval src ((th, dyn), (decls, context)) =
           (case decls of
             [] => [(th, [src'])]
           | (th2, srcs2) :: rest =>
-              if strict_thm_eq (th, th2)
+              if strict_eq_thm (th, th2)
               then ((th2, src' :: srcs2) :: rest)
               else (th, [src']) :: (th2, srcs2) :: rest);
       in ((th, NONE), (decls', context')) end
@@ -260,25 +263,27 @@ fun eval src ((th, dyn), (decls, context)) =
 in
 
 fun partial_evaluation ctxt facts =
-  let
-    val (facts', (decls, _)) =
-      (facts, ([], Context.Proof (Context_Position.set_visible false ctxt))) |->
-        fold_map (fn ((b, more_atts), fact) => fn res =>
-          let
-            val (fact', res') =
-              (fact, res) |-> fold_map (fn (ths, atts) => fn res1 =>
-                (ths, res1) |-> fold_map (fn th => fn res2 =>
-                  let
-                    val ((th', dyn'), res3) = fold eval (atts @ more_atts) ((th, NONE), res2);
-                    val th_atts' =
-                      (case dyn' of
-                        NONE => ([th'], [])
-                      | SOME (dyn_th', atts') => ([dyn_th'], rev atts'));
-                  in (th_atts', res3) end))
-              |>> flat;
-          in (((b, []), fact'), res') end);
-    val decl_fact = (empty_binding, rev (map (fn (th, atts) => ([th], rev atts)) decls));
-  in decl_fact :: facts' end;
+  (facts, Context.Proof (Context_Position.set_visible false ctxt)) |->
+    fold_map (fn ((b, more_atts), fact) => fn context =>
+      let
+        val (fact', (decls, context')) =
+          (fact, ([], context)) |-> fold_map (fn (ths, atts) => fn res1 =>
+            (ths, res1) |-> fold_map (fn th => fn res2 =>
+              let
+                val ((th', dyn'), res3) = fold eval (atts @ more_atts) ((th, NONE), res2);
+                val th_atts' =
+                  (case dyn' of
+                    NONE => (th', [])
+                  | SOME (dyn_th', atts') => (dyn_th', rev atts'));
+              in (th_atts', res3) end))
+          |>> flat;
+        val decls' = rev (map (apsnd rev) decls);
+        val facts' =
+          if eq_list (eq_fst strict_eq_thm) (decls', fact') then
+            [((b, []), map2 (fn (th, atts1) => fn (_, atts2) => (th, atts1 @ atts2)) decls' fact')]
+          else [(empty_binding, decls'), ((b, []), fact')];
+      in (facts', context') end)
+  |> fst |> flat |> map (apsnd (map (apfst single)));
 
 end;
 

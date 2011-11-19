@@ -880,10 +880,6 @@ fun mark_proved name thms = VCs.map (fn
          prefix = prefix}}
   | x => x);
 
-fun write_prv path s =
-  let val path_prv = Path.ext "prv" path;
-  in if try File.read path_prv = SOME s then () else File.write path_prv s end;
-
 fun close thy =
   thy |>
   VCs.map (fn
@@ -892,7 +888,7 @@ fun close thy =
              (if is_some p then apfst else apsnd) (cons vc)) vcs ([], []) of
            (proved, []) =>
              (Thm.join_proofs (maps (the o #2 o snd) proved);
-              write_prv path
+              File.write (Path.ext "prv" path)
                 (implode (map (fn (s, _) => snd (strip_number s) ^
                    " -- proved by " ^ Distribution.version ^ "\n") proved));
               {pfuns = pfuns, type_map = type_map, env = NONE})
