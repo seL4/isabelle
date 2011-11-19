@@ -4,6 +4,15 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Rule attributes in local theory declarations (e.g. locale or class)
+are now statically evaluated: the resulting theorem is stored instead
+of the original expression.  INCOMPATIBILITY in rare situations, where
+the historic accident of dynamic re-evaluation in interpretations
+etc. was exploited.
+
+
 *** Pure ***
 
 * Obsolete command 'types' has been discontinued.  Use 'type_synonym'
@@ -24,7 +33,6 @@ distinct sorts used to be assigned accidentally.  For example:
 
   lemma "P (x::'a)" and "Q (y::'a::bar)"
     -- "now uniform 'a::bar instead of default sort for first occurence (!)"
-
 
 
 *** HOL ***
