@@ -48,7 +48,7 @@ sig
     Proof.context -> (string * locality) list vector -> string proof
     -> (string * locality) list
   val lam_trans_from_atp_proof : string proof -> string -> string
-  val is_typed_helper_used_in_proof : string proof -> bool
+  val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * locality) list vector -> 'a proof
     -> string list option
@@ -175,7 +175,8 @@ fun lam_trans_from_atp_proof atp_proof default =
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
-val is_typed_helper_used_in_proof = is_axiom_used_in_proof is_typed_helper_name
+fun is_typed_helper_used_in_atp_proof atp_proof =
+  is_axiom_used_in_proof is_typed_helper_name atp_proof
 
 val leo2_ext = "extcnf_equal_neg"
 val isa_ext = Thm.get_name_hint @{thm ext}
@@ -1026,7 +1027,7 @@ fun isar_proof_text ctxt isar_proof_requested
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val one_line_proof = one_line_proof_text one_line_params
     val type_enc =
-      if is_typed_helper_used_in_proof atp_proof then full_typesN
+      if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
     val lam_trans = lam_trans_from_atp_proof atp_proof metis_default_lam_trans
     fun isar_proof_for () =

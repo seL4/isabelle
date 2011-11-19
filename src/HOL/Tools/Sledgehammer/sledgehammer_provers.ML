@@ -790,7 +790,7 @@ fun run_atp mode name
         NONE =>
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
-          val needs_full_types = is_typed_helper_used_in_proof atp_proof
+          val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val reconstrs =
             bunch_of_reconstructors needs_full_types
                 (lam_trans_from_atp_proof atp_proof
