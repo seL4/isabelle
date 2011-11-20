@@ -791,7 +791,7 @@ lemma System_Increasing: "i < Nclients
   done
 
 lemmas rename_guarantees_sysOfAlloc_I =
-  bij_sysOfAlloc [THEN rename_rename_guarantees_eq, THEN iffD2, standard]
+  bij_sysOfAlloc [THEN rename_rename_guarantees_eq, THEN iffD2]
 
 
 (*Lifting Alloc_Increasing up to the level of systemState*)
@@ -867,7 +867,7 @@ text{*safety (1), step 1 is @{text System_Follows_rel}*}
 
 text{*safety (1), step 2*}
 (* i < Nclients ==> System : Increasing (sub i o allocRel) *)
-lemmas System_Increasing_allocRel = System_Follows_rel [THEN Follows_Increasing1, standard]
+lemmas System_Increasing_allocRel = System_Follows_rel [THEN Follows_Increasing1]
 
 (*Lifting Alloc_safety up to the level of systemState.
   Simplifying with o_def gets rid of the translations but it unfortunately
@@ -921,7 +921,7 @@ text{*progress (2), step 1 is @{text System_Follows_ask} and
 
 text{*progress (2), step 2; see also @{text System_Increasing_allocRel}*}
 (* i < Nclients ==> System : Increasing (sub i o allocAsk) *)
-lemmas System_Increasing_allocAsk =  System_Follows_ask [THEN Follows_Increasing1, standard]
+lemmas System_Increasing_allocAsk =  System_Follows_ask [THEN Follows_Increasing1]
 
 text{*progress (2), step 3: lifting @{text Client_Bounded} to systemState*}
 lemma rename_Client_Bounded: "i : I
@@ -955,7 +955,7 @@ text{*progress (2), step 5 is @{text System_Increasing_allocGiv}*}
 
 text{*progress (2), step 6*}
 (* i < Nclients ==> System : Increasing (giv o sub i o client) *)
-lemmas System_Increasing_giv =  System_Follows_allocGiv [THEN Follows_Increasing1, standard]
+lemmas System_Increasing_giv =  System_Follows_allocGiv [THEN Follows_Increasing1]
 
 
 lemma rename_Client_Progress: "i: I

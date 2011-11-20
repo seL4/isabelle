@@ -111,7 +111,7 @@ lemmas cut = deduction [THEN thms.MP]
 
 lemmas thms_falseE = weaken_right [THEN thms.DN [THEN thms.MP]]
 
-lemmas thms_notE = thms.MP [THEN thms_falseE, standard]
+lemmas thms_notE = thms.MP [THEN thms_falseE]
 
 
 subsubsection {* Soundness of the rules wrt truth-table semantics *}

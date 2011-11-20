@@ -39,7 +39,7 @@ apply (force intro!: dvd_mult2)
 apply (force intro!: dvd_mult)
 done
 
-lemmas dvd_by_all2 = dvd_by_all [THEN spec, standard]
+lemmas dvd_by_all2 = dvd_by_all [THEN spec]
 
 lemma hypnat_of_nat_le_zero_iff: "(hypnat_of_nat n <= 0) = (n = 0)"
 by (transfer, simp)
@@ -50,7 +50,7 @@ declare hypnat_of_nat_le_zero_iff [simp]
 lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m dvd N)"
 by (transfer, rule dvd_by_all)
 
-lemmas hdvd_by_all2 = hdvd_by_all [THEN spec, standard]
+lemmas hdvd_by_all2 = hdvd_by_all [THEN spec]
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
 lemma hypnat_dvd_all_hypnat_of_nat:

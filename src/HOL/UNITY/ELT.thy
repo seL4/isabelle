@@ -418,7 +418,7 @@ apply (simp (no_asm) add: LeadsETo_def)
 apply (blast intro: subset_imp_leadsETo)
 done
 
-lemmas empty_LeadsETo = empty_subsetI [THEN subset_imp_LeadsETo, standard]
+lemmas empty_LeadsETo = empty_subsetI [THEN subset_imp_LeadsETo]
 
 lemma LeadsETo_weaken_R [rule_format]:
      "[| F : A LeadsTo[CC] A';  A' <= B' |] ==> F : A LeadsTo[CC] B'"

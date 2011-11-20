@@ -45,7 +45,7 @@ where
       \<Longrightarrow> fine \<delta> (a, c) ((a, x, b) # D)"
 
 lemmas fine_induct [induct set: fine] =
-  fine.induct [of "\<delta>" "(a,b)" "D" "split P", unfolded split_conv, standard]
+  fine.induct [of "\<delta>" "(a,b)" "D" "split P", unfolded split_conv] for \<delta> a b D P
 
 lemma fine_single:
   "\<lbrakk>a < b; a \<le> x; x \<le> b; b - a < \<delta> x\<rbrakk> \<Longrightarrow> fine \<delta> (a, b) [(a, x, b)]"

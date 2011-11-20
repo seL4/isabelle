@@ -196,10 +196,8 @@ lemma RRset2norRR_correct:
   apply (rule aux_some, simp_all)
   done
 
-lemmas RRset2norRR_correct1 =
-  RRset2norRR_correct [THEN conjunct1, standard]
-lemmas RRset2norRR_correct2 =
-  RRset2norRR_correct [THEN conjunct2, standard]
+lemmas RRset2norRR_correct1 = RRset2norRR_correct [THEN conjunct1]
+lemmas RRset2norRR_correct2 = RRset2norRR_correct [THEN conjunct2]
 
 lemma RsetR_fin: "A \<in> RsetR m ==> finite A"
   by (induct set: RsetR) auto

@@ -41,9 +41,9 @@ lemma inv_correct:
     apply auto
   done
 
-lemmas inv_ge = inv_correct [THEN conjunct1, standard]
-lemmas inv_less = inv_correct [THEN conjunct2, THEN conjunct1, standard]
-lemmas inv_is_inv = inv_correct [THEN conjunct2, THEN conjunct2, standard]
+lemmas inv_ge = inv_correct [THEN conjunct1]
+lemmas inv_less = inv_correct [THEN conjunct2, THEN conjunct1]
+lemmas inv_is_inv = inv_correct [THEN conjunct2, THEN conjunct2]
 
 lemma inv_not_0:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 0"

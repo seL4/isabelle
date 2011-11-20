@@ -819,7 +819,7 @@ lemma unchanged_safe: "|- (~unchanged (e p, c p, r p, m p, rmhist!p)
   apply force
   done
 (* turn into (unsafe, looping!) introduction rule *)
-lemmas unchanged_safeI = impI [THEN unchanged_safe [action_use], standard]
+lemmas unchanged_safeI = impI [THEN unchanged_safe [action_use]]
 
 lemma S1safe: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"

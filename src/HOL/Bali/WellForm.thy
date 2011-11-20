@@ -739,7 +739,7 @@ lemma wf_imethdsD:
 proof -
   assume asm: "wf_prog G" "is_iface G I" "im \<in> imethds G I sig"
 
-  note iface_rec_induct' = iface_rec.induct[of "(%x y z. P x y)", standard]
+  note iface_rec_induct' = iface_rec.induct[of "(%x y z. P x y)", standard]  (* FIXME !? *)
   have "wf_prog G \<longrightarrow> 
          (\<forall> i im. iface G I = Some i \<longrightarrow> im \<in> imethds G I sig
                   \<longrightarrow> \<not>is_static im \<and> accmodi im = Public)" (is "?P G I")
@@ -1355,7 +1355,7 @@ proof -
   qed
 qed
 
-lemmas class_rec_induct' = class_rec.induct[of "%x y z w. P x y", standard]
+lemmas class_rec_induct' = class_rec.induct [of "%x y z w. P x y"] for P
 
 lemma declclass_widen[rule_format]: 
  "wf_prog G 

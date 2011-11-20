@@ -332,7 +332,7 @@ by (auto simp add: ok_def)
 lemma ok_commute: "(F ok G) = (G ok F)"
 by (auto simp add: ok_def)
 
-lemmas ok_sym = ok_commute [THEN iffD1, standard]
+lemmas ok_sym = ok_commute [THEN iffD1]
 
 lemma ok_iff_OK:
      "OK {(0::int,F),(1,G),(2,H)} snd = (F ok G & (F\<squnion>G) ok H)"

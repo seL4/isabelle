@@ -69,8 +69,8 @@ axioms
     MA7:  "[|v \<in> V;w \<in> V|] ==> F \<in> UNIV LeadsTo nmsg_eq 0 (v,w)"
 
 
-lemmas E_imp_in_V_L = Graph2 [THEN conjunct1, standard]
-lemmas E_imp_in_V_R = Graph2 [THEN conjunct2, standard]
+lemmas E_imp_in_V_L = Graph2 [THEN conjunct1]
+lemmas E_imp_in_V_R = Graph2 [THEN conjunct2]
 
 lemma lemma2:
      "(v,w) \<in> E ==> F \<in> reachable v LeadsTo nmsg_eq 0 (v,w) \<inter> reachable v"

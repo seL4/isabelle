@@ -196,6 +196,6 @@ apply (erule Weaken)
 apply (auto del: image_eqI intro: rev_image_eqI)
 done
 
-lemmas Impl1 = AxSem.Impl [of _ _ _ "{Cm}", simplified, standard]
+lemmas Impl1 = AxSem.Impl [of _ _ _ "{Cm}", simplified] for Cm
 
 end

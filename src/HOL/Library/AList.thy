@@ -467,7 +467,7 @@ lemma merge_Some_iff:
   (map_of n k = Some x \<or> map_of n k = None \<and> map_of m k = Some x)"
   by (simp add: merge_conv' map_add_Some_iff)
 
-lemmas merge_SomeD [dest!] = merge_Some_iff [THEN iffD1, standard]
+lemmas merge_SomeD [dest!] = merge_Some_iff [THEN iffD1]
 
 lemma merge_find_right[simp]: "map_of n k = Some v \<Longrightarrow> map_of (merge m n) k = Some v"
   by (simp add: merge_conv')

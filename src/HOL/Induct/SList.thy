@@ -191,7 +191,7 @@ lemma CONS_not_NIL [iff]: "CONS M N ~= NIL"
 by (simp add: NIL_def CONS_def)
 
 lemmas NIL_not_CONS [iff] = CONS_not_NIL [THEN not_sym]
-lemmas CONS_neq_NIL = CONS_not_NIL [THEN notE, standard]
+lemmas CONS_neq_NIL = CONS_not_NIL [THEN notE]
 lemmas NIL_neq_CONS = sym [THEN CONS_neq_NIL]
 
 lemma Cons_not_Nil [iff]: "x # xs ~= Nil"
@@ -200,8 +200,9 @@ apply (rule CONS_not_NIL [THEN inj_on_Abs_list [THEN inj_on_contraD]])
 apply (simp_all add: list.intros rangeI Rep_List [unfolded List_def])
 done
 
-lemmas Nil_not_Cons [iff] = Cons_not_Nil [THEN not_sym, standard]
-lemmas Cons_neq_Nil = Cons_not_Nil [THEN notE, standard]
+lemmas Nil_not_Cons = Cons_not_Nil [THEN not_sym]
+declare Nil_not_Cons [iff]
+lemmas Cons_neq_Nil = Cons_not_Nil [THEN notE]
 lemmas Nil_neq_Cons = sym [THEN Cons_neq_Nil]
 
 (** Injectiveness of CONS and Cons **)
@@ -220,7 +221,7 @@ apply (subst Abs_List_inject)
 apply (auto simp add: Rep_List_inject)
 done
 
-lemmas Cons_inject2 = Cons_Cons_eq [THEN iffD1, THEN conjE, standard]
+lemmas Cons_inject2 = Cons_Cons_eq [THEN iffD1, THEN conjE]
 
 lemma CONS_D: "CONS M N: list(A) ==> M: A & N: list(A)"
   by (induct L == "CONS M N" set: list) auto
@@ -264,8 +265,7 @@ lemma List_rec_unfold_lemma:
 by (simp add: List_rec_def)
 
 lemmas List_rec_unfold = 
-    def_wfrec [OF List_rec_unfold_lemma wf_pred_sexp [THEN wf_trancl], 
-               standard]
+    def_wfrec [OF List_rec_unfold_lemma wf_pred_sexp [THEN wf_trancl]]
 
 
 (** pred_sexp lemmas **)

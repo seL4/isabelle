@@ -166,7 +166,7 @@ text{*NB These two rules are UNSAFE in the formal sense, as they discard the
 lemma parts_increasing: "H \<subseteq> parts(H)"
 by blast
 
-lemmas parts_insertI = subset_insertI [THEN parts_mono, THEN subsetD, standard]
+lemmas parts_insertI = subset_insertI [THEN parts_mono, THEN subsetD]
 
 lemma parts_empty [simp]: "parts{} = {}"
 apply safe
@@ -358,9 +358,9 @@ apply (rule subsetI)
 apply (erule analz.induct, blast+)
 done
 
-lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
+lemmas analz_into_parts = analz_subset_parts [THEN subsetD]
 
-lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD, standard]
+lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD]
 
 
 lemma parts_analz [simp]: "parts (analz H) = parts H"
@@ -371,7 +371,7 @@ apply auto
 apply (erule analz.induct, auto)
 done
 
-lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD, standard]
+lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD]
 
 subsubsection{*General equational properties *}
 
@@ -790,21 +790,23 @@ declare parts.Body [rule del]
 text{*Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the @{text analz_insert} rules*}
 
-lemmas pushKeys [standard] =
+lemmas pushKeys =
   insert_commute [of "Key K" "Agent C"]
   insert_commute [of "Key K" "Nonce N"]
   insert_commute [of "Key K" "Number N"]
   insert_commute [of "Key K" "Hash X"]
   insert_commute [of "Key K" "MPair X Y"]
   insert_commute [of "Key K" "Crypt X K'"]
+  for K C N X Y K'
 
-lemmas pushCrypts [standard] =
+lemmas pushCrypts =
   insert_commute [of "Crypt X K" "Agent C"]
   insert_commute [of "Crypt X K" "Agent C"]
   insert_commute [of "Crypt X K" "Nonce N"]
   insert_commute [of "Crypt X K" "Number N"]
   insert_commute [of "Crypt X K" "Hash X'"]
   insert_commute [of "Crypt X K" "MPair X' Y"]
+  for X K C N X' Y
 
 text{*Cannot be added with @{text "[simp]"} -- messages should not always be
   re-ordered. *}

@@ -122,7 +122,7 @@ lemma Oops_parts_knows_Spy:
 by blast
 
 lemmas OR2_parts_knows_Spy =
-    OR2_analz_knows_Spy [THEN analz_into_parts, standard]
+    OR2_analz_knows_Spy [THEN analz_into_parts]
 
 ML
 {*

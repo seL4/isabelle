@@ -60,7 +60,7 @@ section "subclass and subinterface relations"
   (* direct subinterface in Decl.thy, cf. 9.1.3 *)
   (* direct subclass     in Decl.thy, cf. 8.1.3 *)
 
-lemmas subcls_direct = subcls1I [THEN r_into_rtrancl, standard]
+lemmas subcls_direct = subcls1I [THEN r_into_rtrancl]
 
 lemma subcls_direct1:
  "\<lbrakk>class G C = Some c; C \<noteq> Object;D=super c\<rbrakk> \<Longrightarrow> G\<turnstile>C\<preceq>\<^sub>C D"
@@ -554,9 +554,9 @@ apply (auto dest: widen_Iface widen_NT2 widen_Class)
 done
 
 lemmas subint_antisym = 
-       subint1_acyclic [THEN acyclic_impl_antisym_rtrancl, standard]
+       subint1_acyclic [THEN acyclic_impl_antisym_rtrancl]
 lemmas subcls_antisym = 
-       subcls1_acyclic [THEN acyclic_impl_antisym_rtrancl, standard]
+       subcls1_acyclic [THEN acyclic_impl_antisym_rtrancl]
 
 lemma widen_antisym: "\<lbrakk>G\<turnstile>S\<preceq>T; G\<turnstile>T\<preceq>S; ws_prog G\<rbrakk> \<Longrightarrow> S=T"
 by (fast elim: widen_antisym_lemma subint_antisym [THEN antisymD] 

@@ -164,7 +164,7 @@ text{*NB These two rules are UNSAFE in the formal sense, as they discard the
 lemma parts_increasing: "H \<subseteq> parts(H)"
 by blast
 
-lemmas parts_insertI = subset_insertI [THEN parts_mono, THEN subsetD, standard]
+lemmas parts_insertI = subset_insertI [THEN parts_mono, THEN subsetD]
 
 lemma parts_empty [simp]: "parts{} = {}"
 apply safe
@@ -353,9 +353,9 @@ apply (rule subsetI)
 apply (erule analz.induct, blast+)
 done
 
-lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
+lemmas analz_into_parts = analz_subset_parts [THEN subsetD]
 
-lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD, standard]
+lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD]
 
 lemma parts_analz [simp]: "parts (analz H) = parts H"
 apply (rule equalityI)
@@ -369,7 +369,7 @@ apply auto
 apply (erule analz.induct, auto)
 done
 
-lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD, standard]
+lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD]
 
 subsubsection{*General equational properties *}
 

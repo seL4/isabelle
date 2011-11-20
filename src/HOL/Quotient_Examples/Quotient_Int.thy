@@ -263,11 +263,12 @@ proof
 qed
 
 lemmas int_distrib =
-  left_distrib [of "z1::int" "z2" "w", standard]
-  right_distrib [of "w::int" "z1" "z2", standard]
-  left_diff_distrib [of "z1::int" "z2" "w", standard]
-  right_diff_distrib [of "w::int" "z1" "z2", standard]
-  minus_add_distrib[of "z1::int" "z2", standard]
+  left_distrib [of z1 z2 w]
+  right_distrib [of w z1 z2]
+  left_diff_distrib [of z1 z2 w]
+  right_diff_distrib [of w z1 z2]
+  minus_add_distrib[of z1 z2]
+  for z1 z2 w :: int
 
 lemma int_induct_raw:
   assumes a: "P (0::nat, 0)"

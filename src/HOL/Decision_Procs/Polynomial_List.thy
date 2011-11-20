@@ -281,7 +281,7 @@ apply (clarsimp simp add: field_simps)
 apply (drule_tac x = m in spec)
 apply (auto simp add:field_simps)
 done
-lemmas poly_roots_index_lemma1 = conjI [THEN poly_roots_index_lemma0, standard]
+lemmas poly_roots_index_lemma1 = conjI [THEN poly_roots_index_lemma0]
 
 lemma poly_roots_index_length0: "poly p (x::'a::idom) \<noteq> poly [] x ==>
       \<exists>i. \<forall>x. (poly p x = 0) --> (\<exists>n. n \<le> length p & x = i n)"
@@ -322,7 +322,7 @@ apply (drule_tac x = xa in spec)
 apply (clarsimp simp add: field_simps)
 done
 
-lemmas poly_roots_index_lemma2 = conjI [THEN poly_roots_index_lemma, standard]
+lemmas poly_roots_index_lemma2 = conjI [THEN poly_roots_index_lemma]
 
 lemma poly_roots_index_length: "poly p (x::'a::idom) \<noteq> poly [] x ==>
       \<exists>i. \<forall>x. (poly p x = 0) --> x \<in> set i"

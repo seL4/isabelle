@@ -42,10 +42,10 @@ by (simp add: LeadsTo_eq_leadsTo Always_eq_includes_reachable Int_absorb2
               Int_assoc [symmetric])
 
 (* [| F \<in> Always C;  F \<in> (C \<inter> A) LeadsTo A' |] ==> F \<in> A LeadsTo A' *)
-lemmas Always_LeadsToI = Always_LeadsTo_pre [THEN iffD1, standard]
+lemmas Always_LeadsToI = Always_LeadsTo_pre [THEN iffD1]
 
 (* [| F \<in> Always INV;  F \<in> A LeadsTo A' |] ==> F \<in> A LeadsTo (INV \<inter> A') *)
-lemmas Always_LeadsToD = Always_LeadsTo_post [THEN iffD2, standard]
+lemmas Always_LeadsToD = Always_LeadsTo_post [THEN iffD2]
 
 
 subsection{*Introduction rules: Basis, Trans, Union*}
@@ -104,7 +104,7 @@ apply (simp add: LeadsTo_def)
 apply (blast intro: subset_imp_leadsTo)
 done
 
-lemmas empty_LeadsTo = empty_subsetI [THEN subset_imp_LeadsTo, standard, simp]
+lemmas empty_LeadsTo = empty_subsetI [THEN subset_imp_LeadsTo, simp]
 
 lemma LeadsTo_weaken_R:
      "[| F \<in> A LeadsTo A';  A' \<subseteq> B' |] ==> F \<in> A LeadsTo B'"

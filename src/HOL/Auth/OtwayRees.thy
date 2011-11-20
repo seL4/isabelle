@@ -121,7 +121,7 @@ by blast
   We can replace them by rewriting with parts_insert2 and proving using
   dest: parts_cut, but the proofs become more difficult.*)
 lemmas OR2_parts_knows_Spy =
-    OR2_analz_knows_Spy [THEN analz_into_parts, standard]
+    OR2_analz_knows_Spy [THEN analz_into_parts]
 
 (*There could be OR4_parts_knows_Spy and Oops_parts_knows_Spy, but for
   some reason proofs work without them!*)

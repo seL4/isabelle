@@ -149,7 +149,7 @@ declare tempD [dest]
 section "Simple temporal logic"
 
 (* []~F == []~Init F *)
-lemmas boxNotInit = boxInit [of "LIFT ~F", unfolded Init_simps, standard]
+lemmas boxNotInit = boxInit [of "LIFT ~F", unfolded Init_simps] for F
 
 lemma dmdInit: "TEMP <>F == TEMP <> Init F"
   apply (unfold dmd_def)
@@ -157,15 +157,15 @@ lemma dmdInit: "TEMP <>F == TEMP <> Init F"
   apply (simp (no_asm) add: Init_simps)
   done
 
-lemmas dmdNotInit = dmdInit [of "LIFT ~F", unfolded Init_simps, standard]
+lemmas dmdNotInit = dmdInit [of "LIFT ~F", unfolded Init_simps] for F
 
 (* boxInit and dmdInit cannot be used as rewrites, because they loop.
    Non-looping instances for state predicates and actions are occasionally useful.
 *)
-lemmas boxInit_stp = boxInit [where 'a = state, standard]
-lemmas boxInit_act = boxInit [where 'a = "state * state", standard]
-lemmas dmdInit_stp = dmdInit [where 'a = state, standard]
-lemmas dmdInit_act = dmdInit [where 'a = "state * state", standard]
+lemmas boxInit_stp = boxInit [where 'a = state]
+lemmas boxInit_act = boxInit [where 'a = "state * state"]
+lemmas dmdInit_stp = dmdInit [where 'a = state]
+lemmas dmdInit_act = dmdInit [where 'a = "state * state"]
 
 (* The symmetric equations can be used to get rid of Init *)
 lemmas boxInitD = boxInit [symmetric]
@@ -208,14 +208,14 @@ lemma STL3: "|- ([][]F) = ([]F)"
    [| (sigma |= []F); (sigma |= [][]F) ==> PROP W |] ==> PROP W
 *)
 lemmas dup_boxE = STL3 [temp_unlift, THEN iffD2, elim_format]
-lemmas dup_boxD = STL3 [temp_unlift, THEN iffD1, standard]
+lemmas dup_boxD = STL3 [temp_unlift, THEN iffD1]
 
 (* dual versions for <> *)
 lemma DmdDmd: "|- (<><>F) = (<>F)"
   by (auto simp add: dmd_def [try_rewrite] STL3 [try_rewrite])
 
 lemmas dup_dmdE = DmdDmd [temp_unlift, THEN iffD2, elim_format]
-lemmas dup_dmdD = DmdDmd [temp_unlift, THEN iffD1, standard]
+lemmas dup_dmdD = DmdDmd [temp_unlift, THEN iffD1]
 
 
 (* ------------------------ STL4 ------------------------------------------- *)
@@ -266,7 +266,7 @@ lemma STL5: "|- ([]F & []G) = ([](F & G))"
   done
 
 (* rewrite rule to split conjunctions under boxes *)
-lemmas split_box_conj = STL5 [temp_unlift, symmetric, standard]
+lemmas split_box_conj = STL5 [temp_unlift, symmetric]
 
 
 (* the corresponding elimination rule allows to combine boxes in the hypotheses
@@ -283,9 +283,9 @@ lemma box_conjE:
 (* Instances of box_conjE for state predicates, actions, and temporals
    in case the general rule is "too polymorphic".
 *)
-lemmas box_conjE_temp = box_conjE [where 'a = behavior, standard]
-lemmas box_conjE_stp = box_conjE [where 'a = state, standard]
-lemmas box_conjE_act = box_conjE [where 'a = "state * state", standard]
+lemmas box_conjE_temp = box_conjE [where 'a = behavior]
+lemmas box_conjE_stp = box_conjE [where 'a = state]
+lemmas box_conjE_act = box_conjE [where 'a = "state * state"]
 
 (* Define a tactic that tries to merge all boxes in an antecedent. The definition is
    a bit kludgy in order to simulate "double elim-resolution".
@@ -318,7 +318,7 @@ method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac
 (* rewrite rule to push universal quantification through box:
       (sigma |= [](! x. F x)) = (! x. (sigma |= []F x))
 *)
-lemmas all_box = allT [temp_unlift, symmetric, standard]
+lemmas all_box = allT [temp_unlift, symmetric]
 
 lemma DmdOr: "|- (<>(F | G)) = (<>F | <>G)"
   apply (auto simp add: dmd_def split_box_conj [try_rewrite])
@@ -328,7 +328,7 @@ lemma DmdOr: "|- (<>(F | G)) = (<>F | <>G)"
 lemma exT: "|- (EX x. <>(F x)) = (<>(EX x. F x))"
   by (auto simp: dmd_def Not_Rex [try_rewrite] all_box [try_rewrite])
 
-lemmas ex_dmd = exT [temp_unlift, symmetric, standard]
+lemmas ex_dmd = exT [temp_unlift, symmetric]
 
 lemma STL4Edup: "!!sigma. [| sigma |= []A; sigma |= []F; |- F & []A --> G |] ==> sigma |= []G"
   apply (erule dup_boxE)
@@ -526,7 +526,7 @@ lemma DmdPrime: "|- (<>P`) --> (<>P)"
   apply (fastforce elim!: TLA2E [temp_use])
   done
 
-lemmas PrimeDmd = InitDmd_gen [temp_use, THEN DmdPrime [temp_use], standard]
+lemmas PrimeDmd = InitDmd_gen [temp_use, THEN DmdPrime [temp_use]]
 
 (* ------------------------ INV1, stable --------------------------------------- *)
 section "stable, invariant"
@@ -541,8 +541,8 @@ lemma ind_rule:
 lemma box_stp_act: "|- ([]$P) = ([]P)"
   by (simp add: boxInit_act Init_simps)
 
-lemmas box_stp_actI = box_stp_act [temp_use, THEN iffD2, standard]
-lemmas box_stp_actD = box_stp_act [temp_use, THEN iffD1, standard]
+lemmas box_stp_actI = box_stp_act [temp_use, THEN iffD2]
+lemmas box_stp_actD = box_stp_act [temp_use, THEN iffD1]
 
 lemmas more_temp_simps3 = box_stp_act [temp_rewrite] more_temp_simps2
 
@@ -710,7 +710,7 @@ lemma leadsto_init: "|- (Init F) & (F ~> G) --> <>G"
   done
 
 (* |- F & (F ~> G) --> <>G *)
-lemmas leadsto_init_temp = leadsto_init [where 'a = behavior, unfolded Init_simps, standard]
+lemmas leadsto_init_temp = leadsto_init [where 'a = behavior, unfolded Init_simps]
 
 lemma streett_leadsto: "|- ([]<>Init F --> []<>G) = (<>(F ~> G))"
   apply (unfold leadsto_def)
@@ -776,8 +776,8 @@ lemma ImplLeadsto_gen: "|- [](Init F --> Init G) --> (F ~> G)"
     elim!: STL4E_gen [temp_use] simp: Init_simps)
   done
 
-lemmas ImplLeadsto = ImplLeadsto_gen [where 'a = behavior and 'b = behavior,
-  unfolded Init_simps, standard]
+lemmas ImplLeadsto =
+  ImplLeadsto_gen [where 'a = behavior and 'b = behavior, unfolded Init_simps]
 
 lemma ImplLeadsto_simple: "!!F G. |- F --> G ==> |- F ~> G"
   by (auto simp: Init_def intro!: ImplLeadsto_gen [temp_use] necT [temp_use])
@@ -1065,7 +1065,7 @@ lemma wf_not_box_decrease: "!!r. wf r ==> |- [][ (v`, $v) : #r ]_v --> <>[][#Fal
 
 (* "wf r  ==>  |- <>[][ (v`, $v) : #r ]_v --> <>[][#False]_v" *)
 lemmas wf_not_dmd_box_decrease =
-  wf_not_box_decrease [THEN DmdImpl, unfolded more_temp_simps, standard]
+  wf_not_box_decrease [THEN DmdImpl, unfolded more_temp_simps]
 
 (* If there are infinitely many steps where v decreases, then there
    have to be infinitely many non-stuttering steps where v doesn't decrease.

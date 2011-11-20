@@ -613,8 +613,8 @@ apply (rule subcls1_irrefl_lemma2)
 apply auto
 done
 
-lemmas subint1_acyclic = subint1_irrefl_lemma2 [THEN acyclicI, standard]
-lemmas subcls1_acyclic = subcls1_irrefl_lemma2 [THEN acyclicI, standard]
+lemmas subint1_acyclic = subint1_irrefl_lemma2 [THEN acyclicI]
+lemmas subcls1_acyclic = subcls1_irrefl_lemma2 [THEN acyclicI]
 
 
 lemma wf_subint1: "ws_prog G \<Longrightarrow> wf ((subint1 G)\<inverse>)"

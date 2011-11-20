@@ -460,7 +460,7 @@ apply (rule subset_refl)
 done
 
 (* requires Body+empty+insert / BodyN, com_det *)
-lemmas hoare_complete = MGF' [THEN MGF_complete, standard]
+lemmas hoare_complete = MGF' [THEN MGF_complete]
 
 
 subsection "unused derived rules"

@@ -683,18 +683,18 @@ lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
 text{*As above, for numerals*}
 
 lemmas star_of_number_less =
-  star_of_less [of "number_of w", standard, simplified star_of_number_of]
+  star_of_less [of "number_of w", simplified star_of_number_of] for w
 lemmas star_of_number_le   =
-  star_of_le   [of "number_of w", standard, simplified star_of_number_of]
+  star_of_le   [of "number_of w", simplified star_of_number_of] for w
 lemmas star_of_number_eq   =
-  star_of_eq   [of "number_of w", standard, simplified star_of_number_of]
+  star_of_eq   [of "number_of w", simplified star_of_number_of] for w
 
 lemmas star_of_less_number =
-  star_of_less [of _ "number_of w", standard, simplified star_of_number_of]
+  star_of_less [of _ "number_of w", simplified star_of_number_of] for w
 lemmas star_of_le_number   =
-  star_of_le   [of _ "number_of w", standard, simplified star_of_number_of]
+  star_of_le   [of _ "number_of w", simplified star_of_number_of] for w
 lemmas star_of_eq_number   =
-  star_of_eq   [of _ "number_of w", standard, simplified star_of_number_of]
+  star_of_eq   [of _ "number_of w", simplified star_of_number_of] for w
 
 lemmas star_of_simps [simp] =
   star_of_add     star_of_diff    star_of_minus

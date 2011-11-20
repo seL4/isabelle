@@ -140,7 +140,7 @@ done
 lemma bij_rename: "bij h ==> bij (rename h)"
 apply (simp (no_asm_simp) add: rename_def bij_extend)
 done
-lemmas surj_rename = bij_rename [THEN bij_is_surj, standard]
+lemmas surj_rename = bij_rename [THEN bij_is_surj]
 
 lemma inj_rename_imp_inj: "inj (rename h) ==> inj h"
 apply (unfold inj_on_def, auto)

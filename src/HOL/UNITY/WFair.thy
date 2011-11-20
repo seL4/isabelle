@@ -235,13 +235,13 @@ done
 lemma subset_imp_ensures: "A \<subseteq> B ==> F \<in> A ensures B"
 by (unfold ensures_def constrains_def transient_def, blast)
 
-lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis, standard]
+lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis]
 
-lemmas leadsTo_refl = subset_refl [THEN subset_imp_leadsTo, standard]
+lemmas leadsTo_refl = subset_refl [THEN subset_imp_leadsTo]
 
-lemmas empty_leadsTo = empty_subsetI [THEN subset_imp_leadsTo, standard, simp]
+lemmas empty_leadsTo = empty_subsetI [THEN subset_imp_leadsTo, simp]
 
-lemmas leadsTo_UNIV = subset_UNIV [THEN subset_imp_leadsTo, standard, simp]
+lemmas leadsTo_UNIV = subset_UNIV [THEN subset_imp_leadsTo, simp]
 
 
 

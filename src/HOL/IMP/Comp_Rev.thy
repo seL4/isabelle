@@ -363,7 +363,7 @@ next
 qed
 
 lemmas exec_n_drop_Cons = 
-  exec_n_drop_left [where P="[instr]", simplified, standard]
+  exec_n_drop_left [where P="[instr]", simplified] for instr
 
 definition
   "closed P \<longleftrightarrow> exits P \<subseteq> {isize P}" 

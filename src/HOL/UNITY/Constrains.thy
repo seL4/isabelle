@@ -86,8 +86,7 @@ subsection{*Co*}
 
 (*F \<in> B co B' ==> F \<in> (reachable F \<inter> B) co (reachable F \<inter> B')*)
 lemmas constrains_reachable_Int =  
-    subset_refl [THEN stable_reachable [unfolded stable_def], 
-                 THEN constrains_Int, standard]
+    subset_refl [THEN stable_reachable [unfolded stable_def], THEN constrains_Int]
 
 (*Resembles the previous definition of Constrains*)
 lemma Constrains_eq_constrains: 
@@ -263,8 +262,7 @@ apply (unfold increasing_def Increasing_def)
 apply (blast intro: stable_imp_Stable)
 done
 
-lemmas Increasing_constant =  
-    increasing_constant [THEN increasing_imp_Increasing, standard, iff]
+lemmas Increasing_constant = increasing_constant [THEN increasing_imp_Increasing, iff]
 
 
 subsection{*The Elimination Theorem*}
@@ -294,8 +292,8 @@ by (simp add: Always_def)
 lemma AlwaysD: "F \<in> Always A ==> Init F \<subseteq> A & F \<in> Stable A"
 by (simp add: Always_def)
 
-lemmas AlwaysE = AlwaysD [THEN conjE, standard]
-lemmas Always_imp_Stable = AlwaysD [THEN conjunct2, standard]
+lemmas AlwaysE = AlwaysD [THEN conjE]
+lemmas Always_imp_Stable = AlwaysD [THEN conjunct2]
 
 
 (*The set of all reachable states is Always*)
@@ -312,8 +310,7 @@ apply (unfold Always_def invariant_def Stable_def stable_def)
 apply (blast intro: constrains_imp_Constrains)
 done
 
-lemmas Always_reachable =
-    invariant_reachable [THEN invariant_imp_Always, standard]
+lemmas Always_reachable = invariant_reachable [THEN invariant_imp_Always]
 
 lemma Always_eq_invariant_reachable:
      "Always A = {F. F \<in> invariant (reachable F \<inter> A)}"
@@ -355,10 +352,10 @@ by (simp add: Always_includes_reachable [THEN Int_absorb2]
               Constrains_eq_constrains Int_assoc [symmetric])
 
 (* [| F \<in> Always INV;  F \<in> (INV \<inter> A) Co A' |] ==> F \<in> A Co A' *)
-lemmas Always_ConstrainsI = Always_Constrains_pre [THEN iffD1, standard]
+lemmas Always_ConstrainsI = Always_Constrains_pre [THEN iffD1]
 
 (* [| F \<in> Always INV;  F \<in> A Co A' |] ==> F \<in> A Co (INV \<inter> A') *)
-lemmas Always_ConstrainsD = Always_Constrains_post [THEN iffD2, standard]
+lemmas Always_ConstrainsD = Always_Constrains_post [THEN iffD2]
 
 (*The analogous proof of Always_LeadsTo_weaken doesn't terminate*)
 lemma Always_Constrains_weaken:
@@ -390,7 +387,7 @@ by (auto simp add: Always_eq_includes_reachable)
 
 (*Delete the nearest invariance assumption (which will be the second one
   used by Always_Int_I) *)
-lemmas Always_thin = thin_rl [of "F \<in> Always A", standard]
+lemmas Always_thin = thin_rl [of "F \<in> Always A"]
 
 
 subsection{*Totalize*}

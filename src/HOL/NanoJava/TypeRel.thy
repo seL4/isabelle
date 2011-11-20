@@ -86,7 +86,7 @@ apply (rule subcls1_irrefl_lemma2)
 apply auto
 done
 
-lemmas subcls1_acyclic = subcls1_irrefl_lemma2 [THEN acyclicI, standard]
+lemmas subcls1_acyclic = subcls1_irrefl_lemma2 [THEN acyclicI]
 
 lemma wf_subcls1: "ws_prog \<Longrightarrow> wf (subcls1\<inverse>)"
 by (auto intro: finite_acyclic_wf_converse finite_subcls1 subcls1_acyclic)

@@ -24,7 +24,7 @@ text {*
   elements of the chain.
 *}
 lemmas [dest?] = chainD
-lemmas chainE2 [elim?] = chainD2 [elim_format, standard]
+lemmas chainE2 [elim?] = chainD2 [elim_format]
 
 lemma some_H'h't:
   assumes M: "M = norm_pres_extensions E p F f"

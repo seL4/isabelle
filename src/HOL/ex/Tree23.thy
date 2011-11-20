@@ -330,12 +330,13 @@ fun dfull where
 "dfull n (Some (p, (False, t'))) \<longleftrightarrow> full (Suc n) t'"
 
 lemmas dfull_case_intros =
-  ord.exhaust [where y=y and P="dfull a (ord_case b c d y)", standard]
-  option.exhaust [where y=y and P="dfull a (option_case b c y)", standard]
-  prod.exhaust [where y=y and P="dfull a (prod_case b y)", standard]
-  bool.exhaust [where y=y and P="dfull a (bool_case b c y)", standard]
-  tree23.exhaust [where y=y and P="dfull a (Some (b, tree23_case c d e y))", standard]
-  tree23.exhaust [where y=y and P="full a (tree23_case b c d y)", standard]
+  ord.exhaust [where y=y and P="dfull a (ord_case b c d y)"]
+  option.exhaust [where y=y and P="dfull a (option_case b c y)"]
+  prod.exhaust [where y=y and P="dfull a (prod_case b y)"]
+  bool.exhaust [where y=y and P="dfull a (bool_case b c y)"]
+  tree23.exhaust [where y=y and P="dfull a (Some (b, tree23_case c d e y))"]
+  tree23.exhaust [where y=y and P="full a (tree23_case b c d y)"]
+  for a b c d e y
 
 lemma dfull_del: "full (Suc n) t \<Longrightarrow> dfull n (del k t)"
 proof -

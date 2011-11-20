@@ -132,10 +132,10 @@ lemma subst_Var_NF: "NF t \<Longrightarrow> NF (t[Var i/j])"
   apply (drule listall_conj2)
   apply (drule_tac i=i and j=j in subst_terms_NF)
   apply assumption
-  apply (rule_tac m=x and n=j in nat_eq_dec [THEN disjE, standard])
+  apply (rule_tac m1=x and n1=j in nat_eq_dec [THEN disjE])
   apply simp
   apply (erule NF.App)
-  apply (rule_tac m=j and n=x in nat_le_dec [THEN disjE, standard])
+  apply (rule_tac m1=j and n1=x in nat_le_dec [THEN disjE])
   apply simp
   apply (iprover intro: NF.App)
   apply simp
@@ -173,7 +173,7 @@ lemma lift_NF: "NF t \<Longrightarrow> NF (lift t i)"
   apply (drule listall_conj2)
   apply (drule_tac i=i in lift_terms_NF)
   apply assumption
-  apply (rule_tac m=x and n=i in nat_le_dec [THEN disjE, standard])
+  apply (rule_tac m1=x and n1=i in nat_le_dec [THEN disjE])
   apply simp
   apply (rule NF.App)
   apply assumption

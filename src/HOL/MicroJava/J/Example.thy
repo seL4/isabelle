@@ -202,7 +202,7 @@ lemma unique_classes: "unique tprg"
 apply (simp (no_asm) add: ObjectC_def BaseC_def ExtC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def)
 done
 
-lemmas subcls_direct = subcls1I [THEN r_into_rtrancl [where r="subcls1 G"], standard]
+lemmas subcls_direct = subcls1I [THEN r_into_rtrancl [where r="subcls1 G"]] for G
 
 lemma Ext_subcls_Base [simp]: "tprg\<turnstile>Ext\<preceq>C Base"
 apply (rule subcls_direct)

@@ -116,7 +116,7 @@ lemma YM4_analz_knows_Spy:
 by blast
 
 lemmas YM4_parts_knows_Spy =
-       YM4_analz_knows_Spy [THEN analz_into_parts, standard]
+       YM4_analz_knows_Spy [THEN analz_into_parts]
 
 
 (** Theorems of the form X \<notin> parts (knows Spy evs) imply that NOBODY

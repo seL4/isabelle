@@ -422,7 +422,7 @@ by (simp add: right_distrib left_distrib)
 lemma power_hypreal_of_real_number_of:
      "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)"
 by simp
-declare power_hypreal_of_real_number_of [of _ "number_of w", standard, simp]
+declare power_hypreal_of_real_number_of [of _ "number_of w", simp] for w
 (*
 lemma hrealpow_HFinite:
   fixes x :: "'a::{real_normed_algebra,power} star"

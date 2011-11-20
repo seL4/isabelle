@@ -128,7 +128,7 @@ by blast
 
 text{*Forwarding lemma: see comments in OtwayRees.thy*}
 lemmas OR2_parts_knows_Spy =
-    OR2_analz_knows_Spy [THEN analz_into_parts, standard]
+    OR2_analz_knows_Spy [THEN analz_into_parts]
 
 
 text{*Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that

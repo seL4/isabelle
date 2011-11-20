@@ -142,7 +142,7 @@ apply (erule exE)
 apply (case_tac t)
  apply simp
 apply simp
-apply (insert rtrancl_r_diff_Id [symmetric, standard, of "subcls1 G"])
+apply (insert rtrancl_r_diff_Id [symmetric, of "subcls1 G"])
 apply simp
 apply (erule rtrancl.cases)
  apply blast

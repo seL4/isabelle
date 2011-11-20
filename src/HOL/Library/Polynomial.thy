@@ -928,11 +928,9 @@ by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_0)
 lemma pdivmod_rel_by_0_iff: "pdivmod_rel x 0 q r \<longleftrightarrow> q = 0 \<and> r = x"
 by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_by_0)
 
-lemmas pdivmod_rel_unique_div =
-  pdivmod_rel_unique [THEN conjunct1, standard]
+lemmas pdivmod_rel_unique_div = pdivmod_rel_unique [THEN conjunct1]
 
-lemmas pdivmod_rel_unique_mod =
-  pdivmod_rel_unique [THEN conjunct2, standard]
+lemmas pdivmod_rel_unique_mod = pdivmod_rel_unique [THEN conjunct2]
 
 instantiation poly :: (field) ring_div
 begin

@@ -82,7 +82,7 @@ be re-loaded. Addsimps [knows_Cons, used_Nil, *)
 (** Simplifying   parts (insert X (knows Spy evs))
       = parts {X} Un parts (knows Spy evs) -- since general case loops*)
 
-lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs", standard]
+lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs"] for A evs
 
 lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
@@ -126,8 +126,8 @@ done
 (*Use with addSEs to derive contradictions from old Says events containing
   items known to be fresh*)
 lemmas knows_Spy_partsEs =
-     Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl, standard] 
-     parts.Body [THEN revcut_rl, standard]
+     Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl] 
+     parts.Body [THEN revcut_rl]
 
 
 subsection{*The Function @{term used}*}
@@ -177,7 +177,7 @@ lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Notes [THEN analz_mono, THEN contra_subsetD]
        knows_Spy_subset_knows_Spy_Gets [THEN analz_mono, THEN contra_subsetD]
 
-lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)", standard]
+lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y evs
 
 ML
 {*

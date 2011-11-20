@@ -118,7 +118,7 @@ subsection{*Function @{term knows}*}
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
   This version won't loop with the simplifier.*)
-lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs", standard]
+lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs"] for A evs
 
 lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
@@ -237,8 +237,8 @@ done
 text{*Elimination rules: derive contradictions from old Says events containing
   items known to be fresh*}
 lemmas knows_Spy_partsEs =
-     Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl, standard] 
-     parts.Body [THEN revcut_rl, standard]
+     Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl]
+     parts.Body [THEN revcut_rl]
 
 
 

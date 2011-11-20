@@ -222,7 +222,7 @@ apply (induct t)
 apply auto
 done
 
-lemmas table_of_map2_SomeI = inj_Pair_const2 [THEN map_of_mapk_SomeI, standard]
+lemmas table_of_map2_SomeI = inj_Pair_const2 [THEN map_of_mapk_SomeI]
 
 lemma table_of_map_SomeI [rule_format (no_asm)]: "table_of t k = Some x \<longrightarrow>
    table_of (map (\<lambda>(k,x). (k, f x)) t) k = Some (f x)"

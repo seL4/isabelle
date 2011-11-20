@@ -649,8 +649,8 @@ lemma in_fset_mdef:
 subsection {* union_fset *}
 
 lemmas [simp] =
-  sup_bot_left[where 'a="'a fset", standard]
-  sup_bot_right[where 'a="'a fset", standard]
+  sup_bot_left[where 'a="'a fset"]
+  sup_bot_right[where 'a="'a fset"]
 
 lemma union_insert_fset [simp]:
   shows "insert_fset x S |\<union>| T = insert_fset x (S |\<union>| T)"

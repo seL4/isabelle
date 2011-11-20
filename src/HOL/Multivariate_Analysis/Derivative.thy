@@ -141,22 +141,22 @@ lemma (in bounded_linear) has_derivative:
   done
 
 lemmas scaleR_right_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_scaleR_right, standard]
+  bounded_linear.has_derivative [OF bounded_linear_scaleR_right]
 
 lemmas scaleR_left_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_scaleR_left, standard]
+  bounded_linear.has_derivative [OF bounded_linear_scaleR_left]
 
 lemmas inner_right_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_inner_right, standard]
+  bounded_linear.has_derivative [OF bounded_linear_inner_right]
 
 lemmas inner_left_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_inner_left, standard]
+  bounded_linear.has_derivative [OF bounded_linear_inner_left]
 
 lemmas mult_right_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_mult_right, standard]
+  bounded_linear.has_derivative [OF bounded_linear_mult_right]
 
 lemmas mult_left_has_derivative =
-  bounded_linear.has_derivative [OF bounded_linear_mult_left, standard]
+  bounded_linear.has_derivative [OF bounded_linear_mult_left]
 
 lemmas euclidean_component_has_derivative =
   bounded_linear.has_derivative [OF bounded_linear_euclidean_component]

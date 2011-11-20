@@ -30,7 +30,7 @@ apply fast
 done
 
 lemmas finite_nyinitcls [simp] =
-   finite_is_class [THEN nyinitcls_subset_class [THEN finite_subset], standard]
+   finite_is_class [THEN nyinitcls_subset_class [THEN finite_subset]]
 
 lemma card_nyinitcls_bound: "card (nyinitcls G s) \<le> card {C. is_class G C}"
 apply (rule nyinitcls_subset_class [THEN finite_is_class [THEN card_mono]])

@@ -1016,7 +1016,7 @@ apply (rule ax_Normal_cases)
 apply  (rule ax_derivs.Skip)
 apply fast
 done
-lemmas ax_SkipI = ax_Skip [THEN conseq1, standard]
+lemmas ax_SkipI = ax_Skip [THEN conseq1]
 
 
 section "derived rules for methd call"

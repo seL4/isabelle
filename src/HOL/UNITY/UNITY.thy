@@ -274,7 +274,7 @@ lemma stable_constrains_Int:
 by (unfold stable_def constrains_def, blast)
 
 (*[| F \<in> stable C; F \<in>  (C \<inter> A) co A |] ==> F \<in> stable (C \<inter> A) *)
-lemmas stable_constrains_stable = stable_constrains_Int[THEN stableI, standard]
+lemmas stable_constrains_stable = stable_constrains_Int[THEN stableI]
 
 
 subsubsection{*invariant*}
