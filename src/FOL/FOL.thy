@@ -408,7 +408,7 @@ lemma induct_conj_eq: "(A &&& B) == Trueprop(induct_conj(A, B))"
   unfolding atomize_conj induct_conj_def .
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
-lemmas induct_rulify [symmetric, standard] = induct_atomize
+lemmas induct_rulify [symmetric] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 

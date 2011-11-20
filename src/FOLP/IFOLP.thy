@@ -435,8 +435,11 @@ schematic_lemma not_sym: "p:~ b=a ==> ?q:~ a=b"
   apply (erule sym)
   done
 
-(*calling "standard" reduces maxidx to 0*)
-lemmas ssubst = sym [THEN subst, standard]
+schematic_lemma ssubst: "p:b=a \<Longrightarrow> q:P(a) \<Longrightarrow> ?p:P(b)"
+  apply (drule sym)
+  apply (erule subst)
+  apply assumption
+  done
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 schematic_lemma ex1_equalsE: "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
