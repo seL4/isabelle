@@ -6,10 +6,12 @@ Definitions for constants on quotient types.
 
 signature QUOTIENT_DEF =
 sig
-  val quotient_def: (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
+  val quotient_def:
+    (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
     local_theory -> Quotient_Info.quotconsts * local_theory
 
-  val quotdef_cmd: (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
+  val quotient_def_cmd:
+    (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
     local_theory -> Quotient_Info.quotconsts * local_theory
 
   val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
@@ -85,10 +87,12 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
 
 fun check_term' cnstr ctxt =
   Syntax.check_term ctxt o (case cnstr of SOME T => Type.constraint T | _ => I)
-fun read_term' cnstr ctxt = check_term' cnstr ctxt o tap (writeln o @{make_string}) o Syntax.parse_term ctxt
+
+fun read_term' cnstr ctxt =
+  check_term' cnstr ctxt o tap (writeln o @{make_string}) o Syntax.parse_term ctxt
 
 val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
-val quotdef_cmd = gen_quotient_def Proof_Context.read_vars read_term'
+val quotient_def_cmd = gen_quotient_def Proof_Context.read_vars read_term'
 
 
 (* a wrapper for automatically lifting a raw constant *)
@@ -109,6 +113,6 @@ val quotdef_parser =
 val _ =
   Outer_Syntax.local_theory "quotient_definition"
     "definition for constants over the quotient type"
-      Keyword.thy_decl (quotdef_parser >> (snd oo quotdef_cmd))
+      Keyword.thy_decl (quotdef_parser >> (snd oo quotient_def_cmd))
 
 end; (* structure *)
