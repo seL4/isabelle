@@ -205,9 +205,9 @@ apply (blast intro: Limit_has_succ)
 done
 
 lemmas Vfrom_UnI1 = 
-    Un_upper1 [THEN subset_refl [THEN Vfrom_mono, THEN subsetD], standard]
+    Un_upper1 [THEN subset_refl [THEN Vfrom_mono, THEN subsetD]]
 lemmas Vfrom_UnI2 = 
-    Un_upper2 [THEN subset_refl [THEN Vfrom_mono, THEN subsetD], standard]
+    Un_upper2 [THEN subset_refl [THEN Vfrom_mono, THEN subsetD]]
 
 text{*Hard work is finding a single j:i such that {a,b}<=Vfrom(A,j)*}
 lemma doubleton_in_VLimit:
@@ -242,7 +242,7 @@ by (blast intro: nat_subset_VLimit [THEN subsetD])
 
 subsubsection{* Closure under Disjoint Union *}
 
-lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom, standard]
+lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom]
 
 lemma one_in_VLimit: "Limit(i) ==> 1 \<in> Vfrom(A,i)"
 by (blast intro: nat_into_VLimit)
@@ -409,8 +409,8 @@ subsection{* The Set @{term "Vset(i)"} *}
 lemma Vset: "Vset(i) = (\<Union>j\<in>i. Pow(Vset(j)))"
 by (subst Vfrom, blast)
 
-lemmas Vset_succ = Transset_0 [THEN Transset_Vfrom_succ, standard]
-lemmas Transset_Vset = Transset_0 [THEN Transset_Vfrom, standard]
+lemmas Vset_succ = Transset_0 [THEN Transset_Vfrom_succ]
+lemmas Transset_Vset = Transset_0 [THEN Transset_Vfrom]
 
 subsubsection{* Characterisation of the elements of @{term "Vset(i)"} *}
 
@@ -579,7 +579,7 @@ apply (unfold univ_def)
 apply (rule A_subset_Vfrom)
 done
 
-lemmas A_into_univ = A_subset_univ [THEN subsetD, standard]
+lemmas A_into_univ = A_subset_univ [THEN subsetD]
 
 subsubsection{* Closure under Unordered and Ordered Pairs *}
 
@@ -620,7 +620,7 @@ apply (rule i_subset_Vfrom)
 done
 
 text{* n:nat ==> n:univ(A) *}
-lemmas nat_into_univ = nat_subset_univ [THEN subsetD, standard]
+lemmas nat_into_univ = nat_subset_univ [THEN subsetD]
 
 subsubsection{* Instances for 1 and 2 *}
 
@@ -638,7 +638,7 @@ apply (unfold bool_def)
 apply (blast intro!: zero_in_univ one_in_univ)
 done
 
-lemmas bool_into_univ = bool_subset_univ [THEN subsetD, standard]
+lemmas bool_into_univ = bool_subset_univ [THEN subsetD]
 
 
 subsubsection{* Closure under Disjoint Union *}
@@ -764,7 +764,7 @@ by (drule Transset_Vfrom_succ [THEN equalityD1, THEN subsetD, THEN PowD],
     assumption, fast)
 
 text{*This weaker version says a, b exist at the same level*}
-lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D, standard]
+lemmas Vfrom_doubleton_D = Transset_Vfrom [THEN Transset_doubleton_D]
 
 (** Using only the weaker theorem would prove <a,b> \<in> Vfrom(X,i)
       implies a, b \<in> Vfrom(X,i), which is useless for induction.

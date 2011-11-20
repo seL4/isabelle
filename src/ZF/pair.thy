@@ -43,17 +43,17 @@ by (rule extension [THEN iff_trans], blast)
 lemma Pair_iff [simp]: "<a,b> = <c,d> <-> a=c & b=d"
 by (simp add: Pair_def doubleton_eq_iff, blast)
 
-lemmas Pair_inject = Pair_iff [THEN iffD1, THEN conjE, standard, elim!]
+lemmas Pair_inject = Pair_iff [THEN iffD1, THEN conjE, elim!]
 
-lemmas Pair_inject1 = Pair_iff [THEN iffD1, THEN conjunct1, standard]
-lemmas Pair_inject2 = Pair_iff [THEN iffD1, THEN conjunct2, standard]
+lemmas Pair_inject1 = Pair_iff [THEN iffD1, THEN conjunct1]
+lemmas Pair_inject2 = Pair_iff [THEN iffD1, THEN conjunct2]
 
 lemma Pair_not_0: "<a,b> ~= 0"
 apply (unfold Pair_def)
 apply (blast elim: equalityE)
 done
 
-lemmas Pair_neq_0 = Pair_not_0 [THEN notE, standard, elim!]
+lemmas Pair_neq_0 = Pair_not_0 [THEN notE, elim!]
 
 declare sym [THEN Pair_neq_0, elim!]
 
@@ -82,8 +82,8 @@ by (simp add: Sigma_def)
 lemma SigmaI [TC,intro!]: "[| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)"
 by simp
 
-lemmas SigmaD1 = Sigma_iff [THEN iffD1, THEN conjunct1, standard]
-lemmas SigmaD2 = Sigma_iff [THEN iffD1, THEN conjunct2, standard]
+lemmas SigmaD1 = Sigma_iff [THEN iffD1, THEN conjunct1]
+lemmas SigmaD2 = Sigma_iff [THEN iffD1, THEN conjunct2]
 
 (*The general elimination rule*)
 lemma SigmaE [elim!]:

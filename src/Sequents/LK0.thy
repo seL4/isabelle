@@ -305,10 +305,10 @@ lemma trans: "|- a=b --> b=c --> a=c"
   by (tactic {* safe_tac (LK_pack add_safes [@{thm subst}]) 1 *})
 
 (* Symmetry of equality in hypotheses *)
-lemmas symL = sym [THEN L_of_imp, standard]
+lemmas symL = sym [THEN L_of_imp]
 
 (* Symmetry of equality in hypotheses *)
-lemmas symR = sym [THEN R_of_imp, standard]
+lemmas symR = sym [THEN R_of_imp]
 
 lemma transR: "[| $H|- $E, $F, a=b;  $H|- $E, $F, b=c |] ==> $H|- $E, a=c, $F"
   by (rule trans [THEN R_of_imp, THEN mp_R])

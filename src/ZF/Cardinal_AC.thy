@@ -17,7 +17,7 @@ apply (erule well_ord_cardinal_eqpoll)
 done
 
 text{*The theorem @{term "||A|| = |A|"} *}
-lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, standard, simp]
+lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, simp]
 
 lemma cardinal_eqE: "|X| = |Y| ==> X eqpoll Y"
 apply (rule AC_well_ord [THEN exE])

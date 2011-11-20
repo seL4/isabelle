@@ -109,12 +109,12 @@ done
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
 lemmas rtrancl_unfold =
-     rtrancl_bnd_mono [THEN rtrancl_def [THEN def_lfp_unfold], standard]
+     rtrancl_bnd_mono [THEN rtrancl_def [THEN def_lfp_unfold]]
 
 (** The relation rtrancl **)
 
 (*  r^* <= field(r) * field(r)  *)
-lemmas rtrancl_type = rtrancl_def [THEN def_lfp_subset, standard]
+lemmas rtrancl_type = rtrancl_def [THEN def_lfp_subset]
 
 lemma relation_rtrancl: "relation(r^*)"
 apply (simp add: relation_def) 
@@ -178,7 +178,7 @@ apply (erule_tac b = z in rtrancl_induct, assumption)
 apply (blast intro: rtrancl_into_rtrancl) 
 done
 
-lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
+lemmas rtrancl_trans = trans_rtrancl [THEN transD]
 
 (*elimination of rtrancl -- by induction on a special formula*)
 lemma rtranclE:
@@ -203,7 +203,7 @@ done
 
 lemmas trans_on_trancl = trans_trancl [THEN trans_imp_trans_on]
 
-lemmas trancl_trans = trans_trancl [THEN transD, standard]
+lemmas trancl_trans = trans_trancl [THEN transD]
 
 (** Conversions between trancl and rtrancl **)
 

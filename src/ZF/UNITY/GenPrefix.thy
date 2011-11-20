@@ -350,7 +350,7 @@ apply (rule trans_gen_prefix)
 apply (auto simp add: trans_def)
 done
 
-lemmas prefix_trans = trans_prefix [THEN transD, standard]
+lemmas prefix_trans = trans_prefix [THEN transD]
 
 lemma trans_on_prefix: "trans[list(A)](prefix(A))"
 apply (unfold prefix_def)
@@ -358,7 +358,7 @@ apply (rule trans_on_gen_prefix)
 apply (auto simp add: trans_def)
 done
 
-lemmas prefix_trans_on = trans_on_prefix [THEN trans_onD, standard]
+lemmas prefix_trans_on = trans_on_prefix [THEN trans_onD]
 
 (* Monotonicity of "set" operator WRT prefix *)
 

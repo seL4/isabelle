@@ -57,7 +57,7 @@ apply (cut_tac infinity, blast, blast)
 done
 
 (* nat = {0} Un {succ(x). x:nat} *)
-lemmas nat_unfold = nat_bnd_mono [THEN nat_def [THEN def_lfp_unfold], standard]
+lemmas nat_unfold = nat_bnd_mono [THEN nat_def [THEN def_lfp_unfold]]
 
 (** Type checking of 0 and successor **)
 
@@ -80,7 +80,7 @@ by (rule nat_1I [THEN nat_succI])
 lemma bool_subset_nat: "bool <= nat"
 by (blast elim!: boolE)
 
-lemmas bool_into_nat = bool_subset_nat [THEN subsetD, standard]
+lemmas bool_into_nat = bool_subset_nat [THEN subsetD]
 
 
 subsection{*Injectivity Properties and Induction*}
@@ -98,10 +98,10 @@ lemma nat_into_Ord [simp]: "n: nat ==> Ord(n)"
 by (erule nat_induct, auto)
 
 (* i: nat ==> 0 le i; same thing as 0<succ(i)  *)
-lemmas nat_0_le = nat_into_Ord [THEN Ord_0_le, standard]
+lemmas nat_0_le = nat_into_Ord [THEN Ord_0_le]
 
 (* i: nat ==> i le i; same thing as i<succ(i)  *)
-lemmas nat_le_refl = nat_into_Ord [THEN le_refl, standard]
+lemmas nat_le_refl = nat_into_Ord [THEN le_refl]
 
 lemma Ord_nat [iff]: "Ord(nat)"
 apply (rule OrdI)

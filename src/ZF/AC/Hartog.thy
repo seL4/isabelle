@@ -65,7 +65,7 @@ apply (rule ex_Ord_not_lepoll [THEN exE])
 apply (rule LeastI, auto) 
 done
 
-lemmas Hartog_lepoll_selfE = not_Hartog_lepoll_self [THEN notE, standard]
+lemmas Hartog_lepoll_selfE = not_Hartog_lepoll_self [THEN notE]
 
 lemma Ord_Hartog: "Ord(Hartog(A))"
 by (unfold Hartog_def, rule Ord_Least)

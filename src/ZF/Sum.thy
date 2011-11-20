@@ -94,8 +94,8 @@ by (simp add: sum_defs)
 
 (*Injection and freeness rules*)
 
-lemmas Inl_inject = Inl_iff [THEN iffD1, standard]
-lemmas Inr_inject = Inr_iff [THEN iffD1, standard]
+lemmas Inl_inject = Inl_iff [THEN iffD1]
+lemmas Inr_inject = Inr_iff [THEN iffD1]
 lemmas Inl_neq_Inr = Inl_Inr_iff [THEN iffD1, THEN FalseE, elim!]
 lemmas Inr_neq_Inl = Inr_Inl_iff [THEN iffD1, THEN FalseE, elim!]
 
@@ -168,7 +168,7 @@ lemma Part_Collect: "Part(Collect(A,P), h) = Collect(Part(A,h), P)"
 by blast
 
 lemmas Part_CollectE =
-     Part_Collect [THEN equalityD1, THEN subsetD, THEN CollectE, standard]
+     Part_Collect [THEN equalityD1, THEN subsetD, THEN CollectE]
 
 lemma Part_Inl: "Part(A+B,Inl) = {Inl(x). x: A}"
 by blast

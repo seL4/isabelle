@@ -45,7 +45,7 @@ apply (rule nat_rec_0 [THEN equalityD2, THEN subset_trans])
 apply (rule nat_0I [THEN UN_upper])
 done
 
-lemmas arg_into_eclose = arg_subset_eclose [THEN subsetD, standard]
+lemmas arg_into_eclose = arg_subset_eclose [THEN subsetD]
 
 lemma Transset_eclose: "Transset(eclose(A))"
 apply (unfold eclose_def Transset_def)
@@ -58,13 +58,13 @@ done
 
 (* x : eclose(A) ==> x <= eclose(A) *)
 lemmas eclose_subset =  
-       Transset_eclose [unfolded Transset_def, THEN bspec, standard]
+       Transset_eclose [unfolded Transset_def, THEN bspec]
 
 (* [| A : eclose(B); c : A |] ==> c : eclose(B) *)
-lemmas ecloseD = eclose_subset [THEN subsetD, standard]
+lemmas ecloseD = eclose_subset [THEN subsetD]
 
 lemmas arg_in_eclose_sing = arg_subset_eclose [THEN singleton_subsetD]
-lemmas arg_into_eclose_sing = arg_in_eclose_sing [THEN ecloseD, standard]
+lemmas arg_into_eclose_sing = arg_in_eclose_sing [THEN ecloseD]
 
 (* This is epsilon-induction for eclose(A); see also eclose_induct_down...
    [| a: eclose(A);  !!x. [| x: eclose(A); ALL y:x. P(y) |] ==> P(x) 
@@ -148,7 +148,7 @@ lemma lt_Memrel: "j < i ==> Memrel(i) -`` {j} = j"
 by (simp add: lt_def Ord_def under_Memrel) 
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
-lemmas under_Memrel_eclose = Transset_eclose [THEN under_Memrel, standard]
+lemmas under_Memrel_eclose = Transset_eclose [THEN under_Memrel]
 
 lemmas wfrec_ssubst = wf_Memrel [THEN wfrec, THEN ssubst]
 

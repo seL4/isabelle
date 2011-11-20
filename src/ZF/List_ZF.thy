@@ -317,7 +317,7 @@ done
 (** theorems about list(Collect(A,P)) -- used in Induct/Term.thy **)
 
 (* c : list(Collect(B,P)) ==> c : list(B) *)
-lemmas list_CollectD = Collect_subset [THEN list_mono, THEN subsetD, standard]
+lemmas list_CollectD = Collect_subset [THEN list_mono, THEN subsetD]
 
 lemma map_list_Collect: "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)"
 apply (induct_tac "l")

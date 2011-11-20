@@ -130,7 +130,7 @@ by (simp, blast)
 lemma cons_not_0 [simp]: "cons(a,B) ~= 0"
 by (blast elim: equalityE)
 
-lemmas cons_neq_0 = cons_not_0 [THEN notE, standard]
+lemmas cons_neq_0 = cons_not_0 [THEN notE]
 
 declare cons_not_0 [THEN not_sym, simp]
 
@@ -143,7 +143,7 @@ by simp
 lemma singletonI [intro!]: "a : {a}"
 by (rule consI1)
 
-lemmas singletonE = singleton_iff [THEN iffD1, elim_format, standard, elim!]
+lemmas singletonE = singleton_iff [THEN iffD1, elim_format, elim!]
 
 
 subsection{*Descriptions*}
@@ -228,11 +228,11 @@ by (case_tac Q, simp_all)
         addsplits[split_if]
 **)
 
-lemmas split_if_eq1 = split_if [of "%x. x = b", standard]
-lemmas split_if_eq2 = split_if [of "%x. a = x", standard]
+lemmas split_if_eq1 = split_if [of "%x. x = b"] for b
+lemmas split_if_eq2 = split_if [of "%x. a = x"] for x
 
-lemmas split_if_mem1 = split_if [of "%x. x : b", standard]
-lemmas split_if_mem2 = split_if [of "%x. a : x", standard]
+lemmas split_if_mem1 = split_if [of "%x. x : b"] for b
+lemmas split_if_mem2 = split_if [of "%x. a : x"] for x
 
 lemmas split_ifs = split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
@@ -303,7 +303,7 @@ by (simp add: succ_iff, blast)
 lemma succ_not_0 [simp]: "succ(n) ~= 0"
 by (blast elim!: equalityE)
 
-lemmas succ_neq_0 = succ_not_0 [THEN notE, standard, elim!]
+lemmas succ_neq_0 = succ_not_0 [THEN notE, elim!]
 
 declare succ_not_0 [THEN not_sym, simp]
 declare sym [THEN succ_neq_0, elim!]
@@ -312,12 +312,12 @@ declare sym [THEN succ_neq_0, elim!]
 lemmas succ_subsetD = succI1 [THEN [2] subsetD]
 
 (* succ(b) ~= b *)
-lemmas succ_neq_self = succI1 [THEN mem_imp_not_eq, THEN not_sym, standard]
+lemmas succ_neq_self = succI1 [THEN mem_imp_not_eq, THEN not_sym]
 
 lemma succ_inject_iff [simp]: "succ(m) = succ(n) <-> m=n"
 by (blast elim: mem_asym elim!: equalityE)
 
-lemmas succ_inject = succ_inject_iff [THEN iffD1, standard, dest!]
+lemmas succ_inject = succ_inject_iff [THEN iffD1, dest!]
 
 
 subsection{*Miniscoping of the Bounded Universal Quantifier*}

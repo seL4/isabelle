@@ -753,9 +753,9 @@ apply (rule LeastI)
 apply (blast intro: Card_jump_cardinal K_lt_jump_cardinal Ord_jump_cardinal)+
 done
 
-lemmas Card_csucc = csucc_basic [THEN conjunct1, standard]
+lemmas Card_csucc = csucc_basic [THEN conjunct1]
 
-lemmas lt_csucc = csucc_basic [THEN conjunct2, standard]
+lemmas lt_csucc = csucc_basic [THEN conjunct2]
 
 lemma Ord_0_lt_csucc: "Ord(K) ==> 0 < csucc(K)"
 by (blast intro: Ord_0_le lt_csucc lt_trans1)
@@ -857,7 +857,7 @@ done
 
 subsubsection{*Theorems by Krzysztof Grabczewski, proofs by lcp*}
 
-lemmas nat_implies_well_ord = nat_into_Ord [THEN well_ord_Memrel, standard]
+lemmas nat_implies_well_ord = nat_into_Ord [THEN well_ord_Memrel]
 
 lemma nat_sum_eqpoll_sum: "[| m:nat; n:nat |] ==> m + n \<approx> m #+ n"
 apply (rule eqpoll_trans)

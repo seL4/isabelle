@@ -217,10 +217,9 @@ apply (rule_tac Q = "%z. P (z, LEAST b. P (z, b))" in LeastI2)
 apply (fast elim!: LeastI)+
 done
 
-lemmas nested_Least_instance = 
+lemmas nested_Least_instance =
        nested_LeastI [of "%g d. domain(uu(f,b,g,d)) \<noteq> 0 & 
-                                domain(uu(f,b,g,d)) \<lesssim> m", 
-                      standard]    (*generalizes the Variables!*)
+                                domain(uu(f,b,g,d)) \<lesssim> m"] for f b m
 
 lemma gg1_lepoll_m: 
      "[| Ord(a);  m \<in> nat;   

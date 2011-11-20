@@ -9,19 +9,22 @@ begin
 **)
 
 lemmas [simp] =
-  zminus_equation [where y = "integ_of(w)", standard]
-  equation_zminus [where x = "integ_of(w)", standard]
+  zminus_equation [where y = "integ_of(w)"]
+  equation_zminus [where x = "integ_of(w)"]
+  for w
 
 lemmas [iff] =
-  zminus_zless [where y = "integ_of(w)", standard]
-  zless_zminus [where x = "integ_of(w)", standard]
+  zminus_zless [where y = "integ_of(w)"]
+  zless_zminus [where x = "integ_of(w)"]
+  for w
 
 lemmas [iff] =
-  zminus_zle [where y = "integ_of(w)", standard]
-  zle_zminus [where x = "integ_of(w)", standard]
+  zminus_zle [where y = "integ_of(w)"]
+  zle_zminus [where x = "integ_of(w)"]
+  for w
 
 lemmas [simp] =
-  Let_def [where s = "integ_of(w)", standard]
+  Let_def [where s = "integ_of(w)"] for w
 
 
 (*** Simprocs for numeric literals ***)
@@ -47,12 +50,13 @@ lemma left_zadd_zmult_distrib: "i$*u $+ (j$*u $+ k) = (i$+j)$*u $+ k"
 (** For cancel_numerals **)
 
 lemmas rel_iff_rel_0_rls =
-  zless_iff_zdiff_zless_0 [where y = "u $+ v", standard]
-  eq_iff_zdiff_eq_0 [where y = "u $+ v", standard]
-  zle_iff_zdiff_zle_0 [where y = "u $+ v", standard]
+  zless_iff_zdiff_zless_0 [where y = "u $+ v"]
+  eq_iff_zdiff_eq_0 [where y = "u $+ v"]
+  zle_iff_zdiff_zle_0 [where y = "u $+ v"]
   zless_iff_zdiff_zless_0 [where y = n]
   eq_iff_zdiff_eq_0 [where y = n]
   zle_iff_zdiff_zle_0 [where y = n]
+  for u v (* FIXME n (!?) *)
 
 lemma eq_add_iff1: "(i$*u $+ m = j$*u $+ n) <-> ((i$-j)$*u $+ m = intify(n))"
   apply (simp add: zdiff_def zadd_zmult_distrib)

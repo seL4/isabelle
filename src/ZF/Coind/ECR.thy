@@ -52,7 +52,7 @@ inductive_cases
 (* Properties of the pointwise extension to environments *)
 
 lemmas HasTyRel_non_zero =
-       HasTyRel.dom_subset [THEN subsetD, THEN SigmaD1, THEN ValNEE, standard]
+       HasTyRel.dom_subset [THEN subsetD, THEN SigmaD1, THEN ValNEE]
 
 lemma hastyenv_owr: 
   "[| ve \<in> ValEnv; te \<in> TyEnv; hastyenv(ve,te); <v,t> \<in> HasTyRel |] 

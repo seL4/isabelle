@@ -94,7 +94,7 @@ apply (erule exI)
 done
 
 (*A eqpoll A*)
-lemmas eqpoll_refl = id_bij [THEN bij_imp_eqpoll, standard, simp]
+lemmas eqpoll_refl = id_bij [THEN bij_imp_eqpoll, simp]
 
 lemma eqpoll_sym: "X \<approx> Y ==> Y \<approx> X"
 apply (unfold eqpoll_def)
@@ -115,9 +115,9 @@ apply (rule exI)
 apply (erule id_subset_inj)
 done
 
-lemmas lepoll_refl = subset_refl [THEN subset_imp_lepoll, standard, simp]
+lemmas lepoll_refl = subset_refl [THEN subset_imp_lepoll, simp]
 
-lemmas le_imp_lepoll = le_imp_subset [THEN subset_imp_lepoll, standard]
+lemmas le_imp_lepoll = le_imp_subset [THEN subset_imp_lepoll]
 
 lemma eqpoll_imp_lepoll: "X \<approx> Y ==> X \<lesssim> Y"
 by (unfold eqpoll_def bij_def lepoll_def, blast)
@@ -147,7 +147,7 @@ apply (blast dest: apply_type)
 done
 
 (*0 \<lesssim> Y*)
-lemmas empty_lepollI = empty_subsetI [THEN subset_imp_lepoll, standard]
+lemmas empty_lepollI = empty_subsetI [THEN subset_imp_lepoll]
 
 lemma lepoll_0_iff: "A \<lesssim> 0 <-> A=0"
 by (blast intro: lepoll_0_is_0 lepoll_refl)
@@ -159,7 +159,7 @@ apply (blast intro: inj_disjoint_Un)
 done
 
 (*A eqpoll 0 ==> A=0*)
-lemmas eqpoll_0_is_0 = eqpoll_imp_lepoll [THEN lepoll_0_is_0, standard]
+lemmas eqpoll_0_is_0 = eqpoll_imp_lepoll [THEN lepoll_0_is_0]
 
 lemma eqpoll_0_iff: "A \<approx> 0 <-> A=0"
 by (blast intro: eqpoll_0_is_0 eqpoll_refl)
@@ -791,12 +791,12 @@ apply (blast elim!: eqpollE
                                        [unfolded Finite_def]])
 done
 
-lemmas subset_Finite = subset_imp_lepoll [THEN lepoll_Finite, standard]
+lemmas subset_Finite = subset_imp_lepoll [THEN lepoll_Finite]
 
 lemma Finite_Int: "Finite(A) | Finite(B) ==> Finite(A Int B)"
 by (blast intro: subset_Finite) 
 
-lemmas Finite_Diff = Diff_subset [THEN subset_Finite, standard]
+lemmas Finite_Diff = Diff_subset [THEN subset_Finite]
 
 lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
 apply (unfold Finite_def)

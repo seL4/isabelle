@@ -221,7 +221,7 @@ done
 
 (** normalize **)
 
-lemmas Collect_Finite = Collect_subset [THEN subset_Finite, standard]
+lemmas Collect_Finite = Collect_subset [THEN subset_Finite]
 
 lemma normalize_idem [simp]: "normalize(normalize(f)) = normalize(f)"
 apply (simp add: normalize_def funrestrict_def mset_of_def)
@@ -1136,7 +1136,7 @@ done
 subsection{*Ordinal Multisets*}
 
 (* A \<subseteq> B ==>  field(Memrel(A)) \<subseteq> field(Memrel(B)) *)
-lemmas field_Memrel_mono = Memrel_mono [THEN field_mono, standard]
+lemmas field_Memrel_mono = Memrel_mono [THEN field_mono]
 
 (*
 [| Aa \<subseteq> Ba; A \<subseteq> B |] ==>
@@ -1187,7 +1187,7 @@ done
   part_ord(field(Memrel(i))-||>nat-{0}, multirel(field(Memrel(i)), Memrel(i)))
 *)
 
-lemmas part_ord_mless = part_ord_Memrel [THEN part_ord_multirel, standard]
+lemmas part_ord_mless = part_ord_Memrel [THEN part_ord_multirel]
 
 (*irreflexivity*)
 
@@ -1199,7 +1199,7 @@ apply (simp add: part_ord_def irrefl_def)
 done
 
 (* N<N ==> R *)
-lemmas mless_irrefl = mless_not_refl [THEN notE, standard, elim!]
+lemmas mless_irrefl = mless_not_refl [THEN notE, elim!]
 
 (*transitivity*)
 lemma mless_trans: "[| K <# M; M <# N |] ==> K <# N"

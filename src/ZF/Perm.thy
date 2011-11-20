@@ -125,7 +125,7 @@ apply (erule IntD2)
 done
 
 text{* f: bij(A,B) ==> f: A->B *}
-lemmas bij_is_fun = bij_is_inj [THEN inj_is_fun, standard]
+lemmas bij_is_fun = bij_is_inj [THEN inj_is_fun]
 
 lemma lam_bijective: 
     "[| !!x. x:A ==> c(x): B;            
@@ -174,7 +174,7 @@ apply (simp add: inj_def id_def)
 apply (blast intro: lam_type) 
 done
 
-lemmas id_inj = subset_refl [THEN id_subset_inj, standard]
+lemmas id_inj = subset_refl [THEN id_subset_inj]
 
 lemma id_surj: "id(A): surj(A,A)"
 apply (unfold id_def surj_def)
@@ -220,7 +220,7 @@ lemma left_inverse_eq:
      "[|f \<in> inj(A,B); f ` x = y; x \<in> A|] ==> converse(f) ` y = x"
 by auto
 
-lemmas left_inverse_bij = bij_is_inj [THEN left_inverse, standard]
+lemmas left_inverse_bij = bij_is_inj [THEN left_inverse]
 
 lemma right_inverse_lemma:
      "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b"

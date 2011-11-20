@@ -45,7 +45,7 @@ lemma FP_Orig_weakest2:
     "[| \<forall>B. F \<in> stable (A Int B); st_set(A) |]  ==> A \<subseteq> FP_Orig(F)"
 by (unfold FP_Orig_def stable_def st_set_def, blast)
 
-lemmas FP_Orig_weakest = allI [THEN FP_Orig_weakest2, standard]
+lemmas FP_Orig_weakest = allI [THEN FP_Orig_weakest2]
 
 lemma stable_FP_Int: "F \<in> program ==> F \<in> stable (FP(F) Int B)"
 apply (subgoal_tac "FP (F) Int B = (\<Union>x\<in>B. FP (F) Int {x}) ")

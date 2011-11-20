@@ -315,8 +315,7 @@ done;
 
 lemmas disj_Un_eqpoll_nat_sum = 
     eqpoll_trans [THEN eqpoll_trans, 
-                  OF disj_Un_eqpoll_sum sum_eqpoll_cong nat_sum_eqpoll_sum,
-                  standard];
+                  OF disj_Un_eqpoll_sum sum_eqpoll_cong nat_sum_eqpoll_sum];
 
 
 lemma Un_in_Collect: "[| x \<in> Pow(A - B - h`i); x\<approx>m;   

@@ -40,8 +40,8 @@ lemma dvdE:
      "[|m dvd n;  !!k. [|m \<in> nat; n \<in> nat; k \<in> nat; n = m#*k|] ==> P|] ==> P"
 by (blast dest!: dvdD)
 
-lemmas dvd_imp_nat1 = dvdD [THEN conjunct1, standard]
-lemmas dvd_imp_nat2 = dvdD [THEN conjunct2, THEN conjunct1, standard]
+lemmas dvd_imp_nat1 = dvdD [THEN conjunct1]
+lemmas dvd_imp_nat2 = dvdD [THEN conjunct2, THEN conjunct1]
 
 
 lemma dvd_0_right [simp]: "m \<in> nat ==> m dvd 0"
@@ -122,8 +122,8 @@ apply (blast intro: dvd_mult)
 done
 
 (* k dvd (m*k) *)
-lemmas dvdI1 [simp] = dvd_refl [THEN dvd_mult, standard]
-lemmas dvdI2 [simp] = dvd_refl [THEN dvd_mult2, standard]
+lemmas dvdI1 [simp] = dvd_refl [THEN dvd_mult]
+lemmas dvdI2 [simp] = dvd_refl [THEN dvd_mult2]
 
 lemma dvd_mod_imp_dvd_raw:
      "[| a \<in> nat; b \<in> nat; k dvd b; k dvd (a mod b) |] ==> k dvd a"

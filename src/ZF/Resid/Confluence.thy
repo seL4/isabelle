@@ -52,13 +52,13 @@ apply (force intro: completeness)+
 done
 
 lemmas confluence_parallel_reduction =
-      parallel_moves [THEN strip_lemma_r, THEN strip_lemma_l, standard]
+      parallel_moves [THEN strip_lemma_r, THEN strip_lemma_l]
 
 lemma lemma1: "[|confluence(Spar_red)|]==> confluence(Sred)"
 by (unfold confluence_def, blast intro: par_red_red red_par_red)
 
 lemmas confluence_beta_reduction =
-       confluence_parallel_reduction [THEN lemma1, standard]
+       confluence_parallel_reduction [THEN lemma1]
 
 
 (**** Conversion ****)

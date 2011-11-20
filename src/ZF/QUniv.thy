@@ -64,7 +64,7 @@ apply (rule arg_subset_eclose [THEN univ_mono, THEN subset_trans])
 apply (rule univ_eclose_subset_quniv)
 done
 
-lemmas univ_into_quniv = univ_subset_quniv [THEN subsetD, standard]
+lemmas univ_into_quniv = univ_subset_quniv [THEN subsetD]
 
 lemma Pow_univ_subset_quniv: "Pow(univ(A)) <= quniv(A)"
 apply (unfold quniv_def)
@@ -72,15 +72,15 @@ apply (rule arg_subset_eclose [THEN univ_mono, THEN Pow_mono])
 done
 
 lemmas univ_subset_into_quniv =
-    PowI [THEN Pow_univ_subset_quniv [THEN subsetD], standard]
+    PowI [THEN Pow_univ_subset_quniv [THEN subsetD]]
 
-lemmas zero_in_quniv = zero_in_univ [THEN univ_into_quniv, standard]
-lemmas one_in_quniv = one_in_univ [THEN univ_into_quniv, standard]
-lemmas two_in_quniv = two_in_univ [THEN univ_into_quniv, standard]
+lemmas zero_in_quniv = zero_in_univ [THEN univ_into_quniv]
+lemmas one_in_quniv = one_in_univ [THEN univ_into_quniv]
+lemmas two_in_quniv = two_in_univ [THEN univ_into_quniv]
 
 lemmas A_subset_quniv =  subset_trans [OF A_subset_univ univ_subset_quniv]
 
-lemmas A_into_quniv = A_subset_quniv [THEN subsetD, standard]
+lemmas A_into_quniv = A_subset_quniv [THEN subsetD]
 
 (*** univ(A) closure for Quine-inspired pairs and injections ***)
 
@@ -97,7 +97,7 @@ apply (erule empty_subsetI [THEN QPair_subset_univ])
 done
 
 lemmas naturals_subset_nat = 
-    Ord_nat [THEN Ord_is_Transset, unfolded Transset_def, THEN bspec, standard]
+    Ord_nat [THEN Ord_is_Transset, unfolded Transset_def, THEN bspec]
 
 lemmas naturals_subset_univ =
     subset_trans [OF naturals_subset_nat nat_subset_univ]
@@ -128,7 +128,7 @@ apply (rule Transset_eclose [THEN Transset_univ])
 apply (erule PowD, blast) 
 done
 
-lemmas quniv_QPair_E = quniv_QPair_D [THEN conjE, standard]
+lemmas quniv_QPair_E = quniv_QPair_D [THEN conjE]
 
 lemma quniv_QPair_iff: "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)"
 by (blast intro: QPair_in_quniv dest: quniv_QPair_D)
@@ -153,11 +153,11 @@ subsection{*The Natural Numbers*}
 lemmas nat_subset_quniv =  subset_trans [OF nat_subset_univ univ_subset_quniv]
 
 (* n:nat ==> n:quniv(A) *)
-lemmas nat_into_quniv = nat_subset_quniv [THEN subsetD, standard]
+lemmas nat_into_quniv = nat_subset_quniv [THEN subsetD]
 
 lemmas bool_subset_quniv = subset_trans [OF bool_subset_univ univ_subset_quniv]
 
-lemmas bool_into_quniv = bool_subset_quniv [THEN subsetD, standard]
+lemmas bool_into_quniv = bool_subset_quniv [THEN subsetD]
 
 
 (*Intersecting <a;b> with Vfrom...*)

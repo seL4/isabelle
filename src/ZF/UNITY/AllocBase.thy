@@ -313,9 +313,9 @@ apply (unfold Increasing_def, auto)
 done
 
 lemmas Increasing_state_ofD1 =  
-      gen_Increains_state_of_eq [THEN equalityD1, THEN subsetD, standard]
+      gen_Increains_state_of_eq [THEN equalityD1, THEN subsetD]
 lemmas Increasing_state_ofD2 =  
-      gen_Increains_state_of_eq [THEN equalityD2, THEN subsetD, standard]
+      gen_Increains_state_of_eq [THEN equalityD2, THEN subsetD]
 
 lemma Follows_state_of_eq: 
      "Follows(A, r, %s. f(state_of(s)), %s. g(state_of(s))) =   
@@ -324,9 +324,9 @@ apply (unfold Follows_def Increasing_def, auto)
 done
 
 lemmas Follows_state_ofD1 =
-      Follows_state_of_eq [THEN equalityD1, THEN subsetD, standard]
+      Follows_state_of_eq [THEN equalityD1, THEN subsetD]
 lemmas Follows_state_ofD2 =
-      Follows_state_of_eq [THEN equalityD2, THEN subsetD, standard]
+      Follows_state_of_eq [THEN equalityD2, THEN subsetD]
 
 lemma nat_list_inj_type: "n\<in>nat ==> nat_list_inj(n)\<in>list(nat)"
 by (induct_tac "n", auto)
@@ -373,7 +373,7 @@ lemma Inter_var_DiffD:
 by (simp add: Inter_Diff_var_iff)
 
 (* [| Finite(A); (\<forall>x\<in>var-A. b\<in>B(x)) |] ==> b\<in>Inter(RepFun(var-A, B)) *)
-lemmas Inter_var_DiffI = Inter_Diff_var_iff [THEN iffD2, standard]
+lemmas Inter_var_DiffI = Inter_Diff_var_iff [THEN iffD2]
 
 declare Inter_var_DiffI [intro!]
 

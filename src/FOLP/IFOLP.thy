@@ -504,7 +504,7 @@ schematic_lemma pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> 
 lemmas pred_congs = pred1_cong pred2_cong pred3_cong
 
 (*special case for the equality predicate!*)
-lemmas eq_cong = pred2_cong [where P = "op =", standard]
+lemmas eq_cong = pred2_cong [where P = "op ="]
 
 
 (*** Simplifications of assumed implications.

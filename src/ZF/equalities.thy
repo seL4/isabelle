@@ -81,7 +81,7 @@ by blast
 
 (*A safe special case of subset elimination, adding no new variables 
   [| cons(a,B) \<subseteq> C; [| a \<in> C; B \<subseteq> C |] ==> R |] ==> R *)
-lemmas cons_subsetE = cons_subset_iff [THEN iffD1, THEN conjE, standard]
+lemmas cons_subsetE = cons_subset_iff [THEN iffD1, THEN conjE]
 
 lemma subset_empty_iff: "A\<subseteq>0 <-> A=0"
 by blast

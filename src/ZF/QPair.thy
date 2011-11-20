@@ -82,7 +82,7 @@ apply (simp add: QPair_def)
 apply (rule sum_equal_iff)
 done
 
-lemmas QPair_inject = QPair_iff [THEN iffD1, THEN conjE, standard, elim!]
+lemmas QPair_inject = QPair_iff [THEN iffD1, THEN conjE, elim!]
 
 lemma QPair_inject1: "<a;b> = <c;d> ==> a=c"
 by blast
@@ -249,8 +249,8 @@ by (simp add: qsum_defs )
 
 (*Injection and freeness rules*)
 
-lemmas QInl_inject = QInl_iff [THEN iffD1, standard]
-lemmas QInr_inject = QInr_iff [THEN iffD1, standard]
+lemmas QInl_inject = QInl_iff [THEN iffD1]
+lemmas QInr_inject = QInr_iff [THEN iffD1]
 lemmas QInl_neq_QInr = QInl_QInr_iff [THEN iffD1, THEN FalseE, elim!]
 lemmas QInr_neq_QInl = QInr_QInl_iff [THEN iffD1, THEN FalseE, elim!]
 

@@ -717,7 +717,7 @@ lemma zless_not_sym: "z $< w ==> ~ (w $< z)"
 by (blast dest: zless_trans)
 
 (* [| z $< w; ~ P ==> w $< z |] ==> P *)
-lemmas zless_asym = zless_not_sym [THEN swap, standard]
+lemmas zless_asym = zless_not_sym [THEN swap]
 
 lemma zless_imp_zle: "z $< w ==> z $<= w"
 by (simp add: zle_def)
@@ -867,16 +867,16 @@ by (simp add: zadd_commute [of z]  zadd_right_cancel_zle)
 
 
 (*"v $<= w ==> v$+z $<= w$+z"*)
-lemmas zadd_zless_mono1 = zadd_right_cancel_zless [THEN iffD2, standard]
+lemmas zadd_zless_mono1 = zadd_right_cancel_zless [THEN iffD2]
 
 (*"v $<= w ==> z$+v $<= z$+w"*)
-lemmas zadd_zless_mono2 = zadd_left_cancel_zless [THEN iffD2, standard]
+lemmas zadd_zless_mono2 = zadd_left_cancel_zless [THEN iffD2]
 
 (*"v $<= w ==> v$+z $<= w$+z"*)
-lemmas zadd_zle_mono1 = zadd_right_cancel_zle [THEN iffD2, standard]
+lemmas zadd_zle_mono1 = zadd_right_cancel_zle [THEN iffD2]
 
 (*"v $<= w ==> z$+v $<= z$+w"*)
-lemmas zadd_zle_mono2 = zadd_left_cancel_zle [THEN iffD2, standard]
+lemmas zadd_zle_mono2 = zadd_left_cancel_zle [THEN iffD2]
 
 lemma zadd_zle_mono: "[| w' $<= w; z' $<= z |] ==> w' $+ z' $<= w $+ z"
 by (erule zadd_zle_mono1 [THEN zle_trans], simp)

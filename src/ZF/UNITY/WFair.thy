@@ -182,7 +182,7 @@ declare leadsTo_Basis [intro]
 
 (* Added by Sidi, from Misra's notes, Progress chapter, exercise number 4 *)
 (* [| F \<in> program; A<=B;  st_set(A); st_set(B) |] ==> A leadsTo B *)
-lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis, standard]
+lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis]
 
 lemma leadsTo_Trans: "[|F \<in> A leadsTo B;  F \<in> B leadsTo C |]==>F \<in> A leadsTo C"
 apply (unfold leadsTo_def)
@@ -565,7 +565,7 @@ apply (blast dest: leadsToD2 intro!: leadsTo_Union)
 done
 
 (* [| F \<in> program;  st_set(B) |] ==> F \<in> wlt(F, B) leadsTo B  *)
-lemmas wlt_leadsTo = conjI [THEN wlt_leadsTo_iff [THEN iffD2], standard]
+lemmas wlt_leadsTo = conjI [THEN wlt_leadsTo_iff [THEN iffD2]]
 
 lemma leadsTo_subset: "F \<in> A leadsTo B ==> A <= wlt(F, B)"
 apply (unfold wlt_def)
@@ -665,7 +665,7 @@ apply (rule_tac A'1 = "B' Un C" in wlt_leadsTo[THEN psp2, THEN leadsTo_weaken])
 apply blast+
 done
 
-lemmas completion = refl [THEN completion_aux, standard]
+lemmas completion = refl [THEN completion_aux]
 
 lemma finite_completion_aux:
      "[| I \<in> Fin(X); F \<in> program; st_set(C) |] ==>  

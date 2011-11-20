@@ -994,9 +994,9 @@ done
 
 (* The following three theorems have cpo asms due to THE (uniqueness). *)
 
-lemmas Rp_cont [TC] = embRp [THEN projpair_p_cont, standard]
-lemmas embRp_eq = embRp [THEN projpair_eq, standard]
-lemmas embRp_rel = embRp [THEN projpair_rel, standard]
+lemmas Rp_cont [TC] = embRp [THEN projpair_p_cont]
+lemmas embRp_eq = embRp [THEN projpair_eq]
+lemmas embRp_rel = embRp [THEN projpair_rel]
 
 
 lemma embRp_eq_thm:

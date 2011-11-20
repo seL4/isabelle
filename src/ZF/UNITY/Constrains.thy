@@ -347,8 +347,8 @@ done
 lemma AlwaysD: "F \<in> Always(A) ==> Init(F)<=A & F \<in> Stable(A)"
 by (simp add: Always_def initially_def)
 
-lemmas AlwaysE = AlwaysD [THEN conjE, standard]
-lemmas Always_imp_Stable = AlwaysD [THEN conjunct2, standard]
+lemmas AlwaysE = AlwaysD [THEN conjE]
+lemmas Always_imp_Stable = AlwaysD [THEN conjunct2]
 
 (*The set of all reachable states is Always*)
 lemma Always_includes_reachable: "F \<in> Always(A) ==> reachable(F) <= A"
@@ -364,7 +364,7 @@ apply (unfold Always_def invariant_def Stable_def stable_def)
 apply (blast intro: constrains_imp_Constrains)
 done
 
-lemmas Always_reachable = invariant_reachable [THEN invariant_imp_Always, standard]
+lemmas Always_reachable = invariant_reachable [THEN invariant_imp_Always]
 
 lemma Always_eq_invariant_reachable: "Always(A) = {F \<in> program. F \<in> invariant(reachable(F) Int A)}"
 apply (simp (no_asm) add: Always_def invariant_def Stable_def Constrains_def2 stable_def initially_def)
@@ -420,7 +420,7 @@ lemma Always_ConstrainsI: "[| F \<in> Always(I);  F \<in> (I Int A) Co A' |] ==>
 by (blast intro: Always_Constrains_pre [THEN iffD1])
 
 (* [| F \<in> Always(I);  F \<in> A Co A' |] ==> F \<in> A Co (I Int A') *)
-lemmas Always_ConstrainsD = Always_Constrains_post [THEN iffD2, standard]
+lemmas Always_ConstrainsD = Always_Constrains_post [THEN iffD2]
 
 (*The analogous proof of Always_LeadsTo_weaken doesn't terminate*)
 lemma Always_Constrains_weaken: 
@@ -451,7 +451,7 @@ by (auto simp add: Always_eq_includes_reachable)
 
 (*Delete the nearest invariance assumption (which will be the second one
   used by Always_Int_I) *)
-lemmas Always_thin = thin_rl [of "F \<in> Always(A)", standard]
+lemmas Always_thin = thin_rl [of "F \<in> Always(A)"]
 
 ML
 {*

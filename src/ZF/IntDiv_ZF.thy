@@ -791,8 +791,8 @@ apply (auto simp add: intify_eq_0_iff_zle quorem_def zmod_def split_def)
 apply (blast dest: zle_zless_trans)+
 done
 
-lemmas pos_mod_sign = pos_mod [THEN conjunct1, standard]
-and    pos_mod_bound = pos_mod [THEN conjunct2, standard]
+lemmas pos_mod_sign = pos_mod [THEN conjunct1]
+  and pos_mod_bound = pos_mod [THEN conjunct2]
 
 lemma neg_mod: "b $< #0 ==> a zmod b $<= #0 & b $< a zmod b"
 apply (cut_tac a = "intify (a)" and b = "intify (b)" in divAlg_correct)
@@ -801,8 +801,8 @@ apply (blast dest: zle_zless_trans)
 apply (blast dest: zless_trans)+
 done
 
-lemmas neg_mod_sign = neg_mod [THEN conjunct1, standard]
-and    neg_mod_bound = neg_mod [THEN conjunct2, standard]
+lemmas neg_mod_sign = neg_mod [THEN conjunct1]
+  and neg_mod_bound = neg_mod [THEN conjunct2]
 
 
 (** proving general properties of zdiv and zmod **)
@@ -1111,16 +1111,16 @@ apply auto
 apply (blast dest!: zle_zless_trans)+
 done
 
-declare zdiv_pos_pos [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zdiv_neg_pos [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zdiv_pos_neg [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zdiv_neg_neg [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zmod_pos_pos [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zmod_neg_pos [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zmod_pos_neg [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare zmod_neg_neg [of "integ_of (v)" "integ_of (w)", standard, simp]
-declare posDivAlg_eqn [of concl: "integ_of (v)" "integ_of (w)", standard, simp]
-declare negDivAlg_eqn [of concl: "integ_of (v)" "integ_of (w)", standard, simp]
+declare zdiv_pos_pos [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zdiv_neg_pos [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zdiv_pos_neg [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zdiv_neg_neg [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zmod_pos_pos [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zmod_neg_pos [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zmod_pos_neg [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare zmod_neg_neg [of "integ_of (v)" "integ_of (w)", simp] for v w
+declare posDivAlg_eqn [of concl: "integ_of (v)" "integ_of (w)", simp] for v w
+declare negDivAlg_eqn [of concl: "integ_of (v)" "integ_of (w)", simp] for v w
 
 
 (** Special-case simplification **)

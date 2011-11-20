@@ -129,14 +129,14 @@ lemma P_iff_F: "|- ~P ==> |- (P <-> False)"
   apply (tactic {* fast_tac LK_pack 1 *})
   done
 
-lemmas iff_reflection_F = P_iff_F [THEN iff_reflection, standard]
+lemmas iff_reflection_F = P_iff_F [THEN iff_reflection]
 
 lemma P_iff_T: "|- P ==> |- (P <-> True)"
   apply (erule thinR [THEN cut])
   apply (tactic {* fast_tac LK_pack 1 *})
   done
 
-lemmas iff_reflection_T = P_iff_T [THEN iff_reflection, standard]
+lemmas iff_reflection_T = P_iff_T [THEN iff_reflection]
 
 
 lemma LK_extra_simps:

@@ -805,8 +805,8 @@ apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Lset) 
 done
 
-lemmas Lset_UnI1 = Un_upper1 [THEN Lset_mono [THEN subsetD], standard]
-lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD], standard]
+lemmas Lset_UnI1 = Un_upper1 [THEN Lset_mono [THEN subsetD]]
+lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD]]
 
 text{*Hard work is finding a single j:i such that {a,b}<=Lset(j)*}
 lemma doubleton_in_LLimit:

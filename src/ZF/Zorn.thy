@@ -77,9 +77,9 @@ done
 lemma increasingD2: "[| f \<in> increasing(A); x<=A |] ==> x <= f`x"
 by (unfold increasing_def, blast)
 
-lemmas TFin_UnionI = PowI [THEN TFin.Pow_UnionI, standard]
+lemmas TFin_UnionI = PowI [THEN TFin.Pow_UnionI]
 
-lemmas TFin_is_subset = TFin.dom_subset [THEN subsetD, THEN PowD, standard]
+lemmas TFin_is_subset = TFin.dom_subset [THEN subsetD, THEN PowD]
 
 
 text{*Structural induction on @{term "TFin(S,next)"} *}

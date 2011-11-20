@@ -53,7 +53,7 @@ lemma one_not_0: "1~=0"
 by (simp add: bool_defs )
 
 (** 1=0 ==> R **)
-lemmas one_neq_0 = one_not_0 [THEN notE, standard]
+lemmas one_neq_0 = one_not_0 [THEN notE]
 
 lemma boolE:
     "[| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P"
@@ -82,17 +82,17 @@ by simp
 lemma def_cond_0: "[| !!b. j(b)==cond(b,c,d) |] ==> j(0) = d"
 by simp
 
-lemmas not_1 = not_def [THEN def_cond_1, standard, simp]
-lemmas not_0 = not_def [THEN def_cond_0, standard, simp]
+lemmas not_1 = not_def [THEN def_cond_1, simp]
+lemmas not_0 = not_def [THEN def_cond_0, simp]
 
-lemmas and_1 = and_def [THEN def_cond_1, standard, simp]
-lemmas and_0 = and_def [THEN def_cond_0, standard, simp]
+lemmas and_1 = and_def [THEN def_cond_1, simp]
+lemmas and_0 = and_def [THEN def_cond_0, simp]
 
-lemmas or_1 = or_def [THEN def_cond_1, standard, simp]
-lemmas or_0 = or_def [THEN def_cond_0, standard, simp]
+lemmas or_1 = or_def [THEN def_cond_1, simp]
+lemmas or_0 = or_def [THEN def_cond_0, simp]
 
-lemmas xor_1 = xor_def [THEN def_cond_1, standard, simp]
-lemmas xor_0 = xor_def [THEN def_cond_0, standard, simp]
+lemmas xor_1 = xor_def [THEN def_cond_1, simp]
+lemmas xor_0 = xor_def [THEN def_cond_0, simp]
 
 lemma not_type [TC]: "a:bool ==> not(a) : bool"
 by (simp add: not_def)

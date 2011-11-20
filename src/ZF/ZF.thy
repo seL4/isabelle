@@ -417,8 +417,8 @@ by (rule extension [THEN iffD2], rule conjI)
 lemma equality_iffI: "(!!x. x\<in>A <-> x\<in>B) ==> A = B"
 by (rule equalityI, blast+)
 
-lemmas equalityD1 = extension [THEN iffD1, THEN conjunct1, standard]
-lemmas equalityD2 = extension [THEN iffD1, THEN conjunct2, standard]
+lemmas equalityD1 = extension [THEN iffD1, THEN conjunct1]
+lemmas equalityD2 = extension [THEN iffD1, THEN conjunct2]
 
 lemma equalityE: "[| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P"
 by (blast dest: equalityD1 equalityD2) 
@@ -568,7 +568,7 @@ apply (cut_tac foundation)
 apply (best dest: equalityD2)
 done
 
-lemmas emptyE [elim!] = not_mem_empty [THEN notE, standard]
+lemmas emptyE [elim!] = not_mem_empty [THEN notE]
 
 
 lemma empty_subsetI [simp]: "0 <= A"

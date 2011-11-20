@@ -164,7 +164,7 @@ lemma wf_not_sym [rule_format]: "wf(r) ==> ALL x. <a,x>:r --> <x,a> ~: r"
 by (erule_tac a=a in wf_induct, blast)
 
 (* [| wf(r);  <a,x> : r;  ~P ==> <x,a> : r |] ==> P *)
-lemmas wf_asym = wf_not_sym [THEN swap, standard]
+lemmas wf_asym = wf_not_sym [THEN swap]
 
 lemma wf_on_not_refl: "[| wf[A](r); a: A |] ==> <a,a> ~: r"
 by (erule_tac a=a in wf_on_induct, assumption, blast)
@@ -212,8 +212,8 @@ done
 
 text{*@{term "r-``{a}"} is the set of everything under @{term a} in @{term r}*}
 
-lemmas underI = vimage_singleton_iff [THEN iffD2, standard]
-lemmas underD = vimage_singleton_iff [THEN iffD1, standard]
+lemmas underI = vimage_singleton_iff [THEN iffD2]
+lemmas underD = vimage_singleton_iff [THEN iffD1]
 
 
 subsection{*The Predicate @{term is_recfun}*}

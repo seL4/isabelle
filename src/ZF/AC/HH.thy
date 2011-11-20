@@ -210,7 +210,7 @@ by (fast del: DiffI DiffE
   simplification is needed!*)
 lemmas bij_Least_HH_x =  
     comp_bij [OF f_sing_lam_bij [OF _ lam_singI] 
-              lam_sing_bij [THEN bij_converse_bij], standard]
+              lam_sing_bij [THEN bij_converse_bij]]
 
 
 subsection{*The proof of AC1 ==> WO2*}

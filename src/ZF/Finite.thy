@@ -48,7 +48,7 @@ apply blast
 done
 
 (* A : Fin(B) ==> A <= B *)
-lemmas FinD = Fin.dom_subset [THEN subsetD, THEN PowD, standard]
+lemmas FinD = Fin.dom_subset [THEN subsetD, THEN PowD]
 
 (** Induction on finite sets **)
 
@@ -147,7 +147,7 @@ done
 lemma FiniteFun_domain_Fin: "h: A -||>B ==> domain(h) : Fin(A)"
 by (erule FiniteFun.induct, simp, simp)
 
-lemmas FiniteFun_apply_type = FiniteFun_is_fun [THEN apply_type, standard]
+lemmas FiniteFun_apply_type = FiniteFun_is_fun [THEN apply_type]
 
 (*Every subset of a finite function is a finite function.*)
 lemma FiniteFun_subset_lemma [rule_format]:

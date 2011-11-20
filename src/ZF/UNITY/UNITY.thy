@@ -167,7 +167,7 @@ by (auto simp add: program_def RawAllowedActs_def)
 lemma Init_type: "Init(F)\<subseteq>state"
 by (simp add: RawInit_type Init_def)
 
-lemmas InitD = Init_type [THEN subsetD, standard]
+lemmas InitD = Init_type [THEN subsetD]
 
 lemma st_set_Init [iff]: "st_set(Init(F))"
 apply (unfold st_set_def)
@@ -562,7 +562,7 @@ lemma stable_constrains_Int:
 by (unfold stable_def constrains_def st_set_def, blast)
 
 (* [| F \<in> stable(C); F  \<in> (C \<inter> A) co A |] ==> F \<in> stable(C \<inter> A) *)
-lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI, standard]
+lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI]
 
 subsection{*The Operator @{term invariant}*}
 
