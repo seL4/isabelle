@@ -586,7 +586,7 @@ lemma lemma_BOLZANO:
                 (\<forall>a b. a \<le> x & x \<le> b & (b-a) < d --> P(a,b));
          a \<le> b |]
       ==> P(a,b)"
-apply (rule Bolzano_nest_unique [where P1=P, THEN exE], assumption+)
+apply (rule Bolzano_nest_unique [where P=P, THEN exE], assumption+)
 apply (rule tendsto_minus_cancel)
 apply (simp (no_asm_simp) add: Bolzano_bisect_diff LIMSEQ_divide_realpow_zero)
 apply (rule ccontr)

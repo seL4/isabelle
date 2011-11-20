@@ -1642,7 +1642,7 @@ Definitions essentially express abbreviations within the logic.  The
 \rail@nextplus{1}
 \rail@endplus
 \rail@end
-\rail@begin{3}{}
+\rail@begin{6}{}
 \rail@bar
 \rail@term{\hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}}[]
 \rail@nextbar{1}
@@ -1652,15 +1652,25 @@ Definitions essentially express abbreviations within the logic.  The
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
+\rail@cr{3}
 \rail@plus
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@nextplus{2}
+\rail@nextplus{5}
 \rail@cterm{\isa{\isakeyword{and}}}[]
 \rail@endplus
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
 \rail@end
 \end{railoutput}
 
@@ -1676,12 +1686,13 @@ Definitions essentially express abbreviations within the logic.  The
   systems.  Everyday work is typically done the hard way, with proper
   definitions and proven theorems.
   
-  \item \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3D}{\isacharequal}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} retrieves and stores
-  existing facts in the theory context, or the specified target
-  context (see also \secref{sec:target}).  Typical applications would
-  also involve attributes, to declare Simplifier rules, for example.
-  
-  \item \hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}} is essentially the same as \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}, but marks the result as a different kind of facts.
+  \item \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3D}{\isacharequal}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}~\indexdef{}{keyword}{for}\hypertarget{keyword.for}{\hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} evaluates given facts (with attributes) in
+  the current context, which may be augmented by local variables.
+  Results are standardized before being stored, i.e.\ schematic
+  variables are renamed to enforce index \isa{{\isaliteral{22}{\isachardoublequote}}{\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}} uniformly.
+
+  \item \hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}} is the same as \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}, but
+  marks the result as a different kind of facts.
 
   \end{description}%
 \end{isamarkuptext}%

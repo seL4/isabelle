@@ -202,7 +202,7 @@ lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
 lemma cnb_minus [simp]: "x \<in> set l ==> cnb (remove l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
-apply (erule_tac l1=l and x1=x in mem_cnb_minus_substI)
+apply (erule_tac l=l and x=x in mem_cnb_minus_substI)
 apply simp
 done
 
@@ -299,7 +299,7 @@ gives n then it must also gives Ks*}
 
 lemma Guard_invKey_keyset: "[| Nonce n:analz (G Un H); Guard n Ks G; finite G;
 keyset H |] ==> EX K. K:Ks & Key K:analz (G Un H)"
-apply (frule_tac P="%G. Nonce n:G" and G2=G in analz_keyset_substD, simp_all)
+apply (frule_tac P="%G. Nonce n:G" and G=G in analz_keyset_substD, simp_all)
 apply (drule_tac G="G Un (H Int keysfor G)" in Guard_invKey_finite)
 by (auto simp: Guard_def intro: analz_sub)
 

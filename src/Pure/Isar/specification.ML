@@ -52,9 +52,11 @@ sig
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    (binding * typ option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
     (Attrib.binding * (Facts.ref * Attrib.src list) list) list ->
+    (binding * string option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
@@ -283,18 +285,30 @@ end;
 
 (* fact statements *)
 
-fun gen_theorems prep_fact prep_att kind raw_facts int lthy =
+local
+
+fun gen_theorems prep_fact prep_att prep_vars
+    kind raw_facts raw_fixes int lthy =
   let
     val attrib = prep_att (Proof_Context.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
-    val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts;
+    val (_, ctxt') = lthy |> prep_vars raw_fixes |-> Proof_Context.add_fixes;
+
+    val facts' = facts
+      |> Attrib.partial_evaluation ctxt'
+      |> Element.facts_map (Element.transform_ctxt (Proof_Context.export_morphism ctxt' lthy));
+    val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
     val _ = Proof_Display.print_results int lthy' ((kind, ""), res);
   in (res, lthy') end;
 
-val theorems = gen_theorems (K I) (K I);
-val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.intern_src;
+in
+
+val theorems = gen_theorems (K I) (K I) Proof_Context.cert_vars;
+val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.intern_src Proof_Context.read_vars;
+
+end;
 
 
 (* complex goal statements *)

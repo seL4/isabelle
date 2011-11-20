@@ -455,7 +455,7 @@ lemmas knows_max'_Cons_substD = knows_max'_Cons [THEN sym, THEN ssubst]
 lemma knows_max_Cons: "knows_max A (ev#evs)
 = knows_max' A [ev] Un knows_max A evs"
 apply (simp add: knows_max_def del: knows_max'_def_Cons)
-apply (rule_tac evs1=evs in knows_max'_Cons_substI)
+apply (rule_tac evs=evs in knows_max'_Cons_substI)
 by blast
 
 lemmas knows_max_Cons_substI = knows_max_Cons [THEN ssubst]
@@ -618,7 +618,5 @@ where
 
 lemma used_sub_parts_used: "X:used (ev # evs) ==> X:parts {msg ev} Un used evs"
 by (induct ev, auto)
-
-
 
 end

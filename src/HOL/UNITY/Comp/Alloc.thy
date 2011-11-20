@@ -1004,7 +1004,7 @@ lemma System_lemma3: "i < Nclients
                    {s. h \<le> (giv o sub i o client) s &
                        h pfixGe (ask o sub i o client) s}"
   apply (rule single_LeadsTo_I)
-  apply (rule_tac k6 = "h" and x2 = " (sub i o allocAsk) s"
+  apply (rule_tac k1 = h and x1 = "(sub i o allocAsk) s"
          in System_lemma2 [THEN LeadsTo_weaken])
   apply auto
   apply (blast intro: trans_Ge [THEN trans_genPrefix, THEN transD] prefix_imp_pfixGe)

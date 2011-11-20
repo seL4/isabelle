@@ -1112,8 +1112,9 @@ text {*
   @{rail "
     @@{command axioms} (@{syntax axmdecl} @{syntax prop} +)
     ;
-    (@@{command lemmas} | @@{command theorems}) @{syntax target}?
+    (@@{command lemmas} | @@{command theorems}) @{syntax target}? \\
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+      (@'for' (@{syntax vars} + @'and'))?
   "}
 
   \begin{description}
@@ -1127,13 +1128,14 @@ text {*
   systems.  Everyday work is typically done the hard way, with proper
   definitions and proven theorems.
   
-  \item @{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"} retrieves and stores
-  existing facts in the theory context, or the specified target
-  context (see also \secref{sec:target}).  Typical applications would
-  also involve attributes, to declare Simplifier rules, for example.
-  
-  \item @{command "theorems"} is essentially the same as @{command
-  "lemmas"}, but marks the result as a different kind of facts.
+  \item @{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}~@{keyword_def
+  "for"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"} evaluates given facts (with attributes) in
+  the current context, which may be augmented by local variables.
+  Results are standardized before being stored, i.e.\ schematic
+  variables are renamed to enforce index @{text "0"} uniformly.
+
+  \item @{command "theorems"} is the same as @{command "lemmas"}, but
+  marks the result as a different kind of facts.
 
   \end{description}
 *}

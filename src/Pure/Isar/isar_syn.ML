@@ -257,7 +257,8 @@ val _ =
 (* theorems *)
 
 fun theorems kind =
-  Parse_Spec.name_facts >> (fn args => #2 oo Specification.theorems_cmd kind args);
+  Parse_Spec.name_facts -- Parse.for_fixes
+    >> (fn (facts, fixes) => #2 oo Specification.theorems_cmd kind facts fixes);
 
 val _ =
   Outer_Syntax.local_theory' "theorems" "define theorems" Keyword.thy_decl (theorems Thm.theoremK);
@@ -267,8 +268,9 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory' "declare" "declare theorems" Keyword.thy_decl
-    (Parse.and_list1 Parse_Spec.xthms1
-      >> (fn args => #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
+    (Parse.and_list1 Parse_Spec.xthms1 -- Parse.for_fixes
+      >> (fn (facts, fixes) =>
+          #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
 
 (* name space entry path *)

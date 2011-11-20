@@ -12,6 +12,12 @@ of the original expression.  INCOMPATIBILITY in rare situations, where
 the historic accident of dynamic re-evaluation in interpretations
 etc. was exploited.
 
+* Commands 'lemmas' and 'theorems' allow local variables using 'for'
+declaration, and results are standardized before being stored.  Thus
+old-style "standard" after instantiation or composition of facts
+becomes obsolete.  Minor INCOMPATIBILITY, due to potential change of
+indices of schematic variables.
+
 
 *** Pure ***
 
