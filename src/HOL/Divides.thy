@@ -1142,13 +1142,8 @@ by (simp add: Suc3_eq_add_3)
 lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
 by (simp add: Suc3_eq_add_3)
 
-lemmas Suc_div_eq_add3_div_number_of =
-    Suc_div_eq_add3_div [of _ "number_of v", standard]
-declare Suc_div_eq_add3_div_number_of [simp]
-
-lemmas Suc_mod_eq_add3_mod_number_of =
-    Suc_mod_eq_add3_mod [of _ "number_of v", standard]
-declare Suc_mod_eq_add3_mod_number_of [simp]
+lemmas Suc_div_eq_add3_div_number_of [simp] = Suc_div_eq_add3_div [of _ "number_of v"] for v
+lemmas Suc_mod_eq_add3_mod_number_of [simp] = Suc_mod_eq_add3_mod [of _ "number_of v"] for v
 
 
 lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
@@ -1156,7 +1151,7 @@ apply (induct "m")
 apply (simp_all add: mod_Suc)
 done
 
-declare Suc_times_mod_eq [of "number_of w", standard, simp]
+declare Suc_times_mod_eq [of "number_of w", simp] for w
 
 lemma [simp]: "n div k \<le> (Suc n) div k"
 by (simp add: div_le_mono) 
@@ -1450,17 +1445,16 @@ apply (cut_tac a = a and b = b in divmod_int_correct)
 apply (auto simp add: divmod_int_rel_def mod_int_def)
 done
 
-lemmas pos_mod_sign  [simp] = pos_mod_conj [THEN conjunct1, standard]
-   and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2, standard]
+lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
+   and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2]
 
 lemma neg_mod_conj : "b < (0::int) ==> a mod b \<le> 0 & b < a mod b"
 apply (cut_tac a = a and b = b in divmod_int_correct)
 apply (auto simp add: divmod_int_rel_def div_int_def mod_int_def)
 done
 
-lemmas neg_mod_sign  [simp] = neg_mod_conj [THEN conjunct1, standard]
-   and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2, standard]
-
+lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
+   and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2]
 
 
 subsubsection{*General Properties of div and mod*}
@@ -1728,11 +1722,8 @@ simproc_setup binary_int_div ("number_of m div number_of n :: int") =
 simproc_setup binary_int_mod ("number_of m mod number_of n :: int") =
   {* K (divmod_proc @{thm int_mod_pos_eq} @{thm int_mod_neg_eq}) *}
 
-lemmas posDivAlg_eqn_number_of [simp] =
-    posDivAlg_eqn [of "number_of v" "number_of w", standard]
-
-lemmas negDivAlg_eqn_number_of [simp] =
-    negDivAlg_eqn [of "number_of v" "number_of w", standard]
+lemmas posDivAlg_eqn_number_of [simp] = posDivAlg_eqn [of "number_of v" "number_of w"] for v w
+lemmas negDivAlg_eqn_number_of [simp] = negDivAlg_eqn [of "number_of v" "number_of w"] for v w
 
 
 text{*Special-case simplification *}
@@ -1749,25 +1740,12 @@ by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
 (** The last remaining special cases for constant arithmetic:
     1 div z and 1 mod z **)
 
-lemmas div_pos_pos_1_number_of [simp] =
-    div_pos_pos [OF zero_less_one, of "number_of w", standard]
-
-lemmas div_pos_neg_1_number_of [simp] =
-    div_pos_neg [OF zero_less_one, of "number_of w", standard]
-
-lemmas mod_pos_pos_1_number_of [simp] =
-    mod_pos_pos [OF zero_less_one, of "number_of w", standard]
-
-lemmas mod_pos_neg_1_number_of [simp] =
-    mod_pos_neg [OF zero_less_one, of "number_of w", standard]
-
-
-lemmas posDivAlg_eqn_1_number_of [simp] =
-    posDivAlg_eqn [of concl: 1 "number_of w", standard]
-
-lemmas negDivAlg_eqn_1_number_of [simp] =
-    negDivAlg_eqn [of concl: 1 "number_of w", standard]
-
+lemmas div_pos_pos_1_number_of [simp] = div_pos_pos [OF zero_less_one, of "number_of w"] for w
+lemmas div_pos_neg_1_number_of [simp] = div_pos_neg [OF zero_less_one, of "number_of w"] for w
+lemmas mod_pos_pos_1_number_of [simp] = mod_pos_pos [OF zero_less_one, of "number_of w"] for w
+lemmas mod_pos_neg_1_number_of [simp] = mod_pos_neg [OF zero_less_one, of "number_of w"] for w
+lemmas posDivAlg_eqn_1_number_of [simp] = posDivAlg_eqn [of concl: 1 "number_of w"] for w
+lemmas negDivAlg_eqn_1_number_of [simp] = negDivAlg_eqn [of concl: 1 "number_of w"] for w
 
 
 subsubsection{*Monotonicity in the First Argument (Dividend)*}
@@ -2069,8 +2047,8 @@ done
 text {* Enable (lin)arith to deal with @{const div} and @{const mod}
   when these are applied to some constant that is of the form
   @{term "number_of k"}: *}
-declare split_zdiv [of _ _ "number_of k", standard, arith_split]
-declare split_zmod [of _ _ "number_of k", standard, arith_split]
+declare split_zdiv [of _ _ "number_of k", arith_split] for k
+declare split_zmod [of _ _ "number_of k", arith_split] for k
 
 
 subsubsection{*Speeding up the Division Algorithm with Shifting*}
@@ -2257,7 +2235,7 @@ done
 subsubsection {* The Divides Relation *}
 
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
-  dvd_eq_mod_eq_0 [of "number_of x::int" "number_of y::int", standard]
+  dvd_eq_mod_eq_0 [of "number_of x" "number_of y"] for x y :: int
 
 lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
   by (rule dvd_mod) (* TODO: remove *)
@@ -2456,10 +2434,8 @@ lemma one_mod_nat_number_of [simp]:
          else nat (1 mod number_of v'))"
 by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
 
-lemmas dvd_eq_mod_eq_0_number_of =
-  dvd_eq_mod_eq_0 [of "number_of x" "number_of y", standard]
-
-declare dvd_eq_mod_eq_0_number_of [simp]
+lemmas dvd_eq_mod_eq_0_number_of [simp] =
+  dvd_eq_mod_eq_0 [of "number_of x" "number_of y"] for x y
 
 
 subsubsection {* Nitpick *}

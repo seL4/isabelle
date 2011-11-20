@@ -625,7 +625,7 @@ text {*
   Setup of internal @{text split_rule}.
 *}
 
-lemmas prod_caseI = prod.cases [THEN iffD2, standard]
+lemmas prod_caseI = prod.cases [THEN iffD2]
 
 lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
   by (fact splitI2)

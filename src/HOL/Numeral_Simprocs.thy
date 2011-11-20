@@ -14,8 +14,8 @@ uses
   ("Tools/nat_numeral_simprocs.ML")
 begin
 
-declare split_div [of _ _ "number_of k", standard, arith_split]
-declare split_mod [of _ _ "number_of k", standard, arith_split]
+declare split_div [of _ _ "number_of k", arith_split] for k
+declare split_mod [of _ _ "number_of k", arith_split] for k
 
 text {* For @{text combine_numerals} *}
 

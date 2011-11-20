@@ -139,7 +139,7 @@ proof (rule transI)
   qed
 qed
 
-lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
+lemmas rtrancl_trans = trans_rtrancl [THEN transD]
 
 lemma rtranclp_trans:
   assumes xy: "r^** x y"
@@ -429,7 +429,7 @@ proof (rule transI)
   qed
 qed
 
-lemmas trancl_trans = trans_trancl [THEN transD, standard]
+lemmas trancl_trans = trans_trancl [THEN transD]
 
 lemma tranclp_trans:
   assumes xy: "r^++ x y"

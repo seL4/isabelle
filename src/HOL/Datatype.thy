@@ -131,7 +131,7 @@ by (blast dest: Push_inject1 Push_inject2)
 lemma Push_neq_K0: "Push (Inr (Suc k)) f = (%z. Inr 0) ==> P"
 by (auto simp add: Push_def fun_eq_iff split: nat.split_asm)
 
-lemmas Abs_Node_inj = Abs_Node_inject [THEN [2] rev_iffD1, standard]
+lemmas Abs_Node_inj = Abs_Node_inject [THEN [2] rev_iffD1]
 
 
 (*** Introduction rules for Node ***)
@@ -155,7 +155,7 @@ by (blast intro: Node_K0_I Rep_Node [THEN Node_Push_I]
          dest!: Abs_Node_inj 
          elim!: apfst_convE sym [THEN Push_neq_K0])  
 
-lemmas Atom_not_Scons [iff] = Scons_not_Atom [THEN not_sym, standard]
+lemmas Atom_not_Scons [iff] = Scons_not_Atom [THEN not_sym]
 
 
 (*** Injectiveness ***)
@@ -166,7 +166,7 @@ lemma inj_Atom: "inj(Atom)"
 apply (simp add: Atom_def)
 apply (blast intro!: inj_onI Node_K0_I dest!: Abs_Node_inj)
 done
-lemmas Atom_inject = inj_Atom [THEN injD, standard]
+lemmas Atom_inject = inj_Atom [THEN injD]
 
 lemma Atom_Atom_eq [iff]: "(Atom(a)=Atom(b)) = (a=b)"
 by (blast dest!: Atom_inject)
@@ -177,7 +177,7 @@ apply (rule inj_onI)
 apply (erule Atom_inject [THEN Inl_inject])
 done
 
-lemmas Leaf_inject [dest!] = inj_Leaf [THEN injD, standard]
+lemmas Leaf_inject [dest!] = inj_Leaf [THEN injD]
 
 lemma inj_Numb: "inj(Numb)"
 apply (simp add: Numb_def o_def)
@@ -185,7 +185,7 @@ apply (rule inj_onI)
 apply (erule Atom_inject [THEN Inr_inject])
 done
 
-lemmas Numb_inject [dest!] = inj_Numb [THEN injD, standard]
+lemmas Numb_inject [dest!] = inj_Numb [THEN injD]
 
 
 (** Injectiveness of Push_Node **)
@@ -235,14 +235,14 @@ by (blast elim!: Scons_inject)
 lemma Scons_not_Leaf [iff]: "Scons M N \<noteq> Leaf(a)"
 unfolding Leaf_def o_def by (rule Scons_not_Atom)
 
-lemmas Leaf_not_Scons  [iff] = Scons_not_Leaf [THEN not_sym, standard]
+lemmas Leaf_not_Scons  [iff] = Scons_not_Leaf [THEN not_sym]
 
 (** Scons vs Numb **)
 
 lemma Scons_not_Numb [iff]: "Scons M N \<noteq> Numb(k)"
 unfolding Numb_def o_def by (rule Scons_not_Atom)
 
-lemmas Numb_not_Scons [iff] = Scons_not_Numb [THEN not_sym, standard]
+lemmas Numb_not_Scons [iff] = Scons_not_Numb [THEN not_sym]
 
 
 (** Leaf vs Numb **)
@@ -250,7 +250,7 @@ lemmas Numb_not_Scons [iff] = Scons_not_Numb [THEN not_sym, standard]
 lemma Leaf_not_Numb [iff]: "Leaf(a) \<noteq> Numb(k)"
 by (simp add: Leaf_def Numb_def)
 
-lemmas Numb_not_Leaf [iff] = Leaf_not_Numb [THEN not_sym, standard]
+lemmas Numb_not_Leaf [iff] = Leaf_not_Numb [THEN not_sym]
 
 
 (*** ndepth -- the depth of a node ***)
@@ -357,7 +357,7 @@ by (auto simp add: usum_def)
 lemma In0_not_In1 [iff]: "In0(M) \<noteq> In1(N)"
 unfolding In0_def In1_def One_nat_def by auto
 
-lemmas In1_not_In0 [iff] = In0_not_In1 [THEN not_sym, standard]
+lemmas In1_not_In0 [iff] = In0_not_In1 [THEN not_sym]
 
 lemma In0_inject: "In0(M) = In0(N) ==>  M=N"
 by (simp add: In0_def)
@@ -503,7 +503,7 @@ by blast
 lemma dprod_Sigma: "(dprod (A <*> B) (C <*> D)) <= (uprod A C) <*> (uprod B D)"
 by blast
 
-lemmas dprod_subset_Sigma = subset_trans [OF dprod_mono dprod_Sigma, standard]
+lemmas dprod_subset_Sigma = subset_trans [OF dprod_mono dprod_Sigma]
 
 (*Dependent version*)
 lemma dprod_subset_Sigma2:
@@ -514,7 +514,7 @@ by auto
 lemma dsum_Sigma: "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)"
 by blast
 
-lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma, standard]
+lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma]
 
 
 text {* hides popular names *}

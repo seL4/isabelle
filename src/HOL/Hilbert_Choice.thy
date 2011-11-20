@@ -554,7 +554,7 @@ lemma LeastM_nat_lemma:
   apply (erule ex_has_least_nat)
   done
 
-lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1, standard]
+lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1]
 
 lemma LeastM_nat_le: "P x ==> m (LeastM m P) <= (m x::nat)"
 by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp], assumption, assumption)
@@ -620,7 +620,7 @@ lemma GreatestM_nat_lemma:
   apply (erule ex_has_greatest_nat, assumption)
   done
 
-lemmas GreatestM_natI = GreatestM_nat_lemma [THEN conjunct1, standard]
+lemmas GreatestM_natI = GreatestM_nat_lemma [THEN conjunct1]
 
 lemma GreatestM_nat_le:
   "P x ==> \<forall>y. P y --> m y < b

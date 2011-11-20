@@ -2564,7 +2564,7 @@ lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
 -- {* simp does not terminate! *}
 by (induct j) auto
 
-lemmas upt_rec_number_of[simp] = upt_rec[of "number_of m" "number_of n", standard]
+lemmas upt_rec_number_of[simp] = upt_rec[of "number_of m" "number_of n"] for m n
 
 lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
 by (subst upt_rec) simp
@@ -2679,9 +2679,9 @@ by (cases n) simp_all
 lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
 by (cases n) simp_all
 
-lemmas take_Cons_number_of = take_Cons'[of "number_of v",standard]
-lemmas drop_Cons_number_of = drop_Cons'[of "number_of v",standard]
-lemmas nth_Cons_number_of = nth_Cons'[of _ _ "number_of v",standard]
+lemmas take_Cons_number_of = take_Cons'[of "number_of v"] for v
+lemmas drop_Cons_number_of = drop_Cons'[of "number_of v"] for v
+lemmas nth_Cons_number_of = nth_Cons'[of _ _ "number_of v"] for v
 
 declare take_Cons_number_of [simp] 
         drop_Cons_number_of [simp] 
@@ -2700,8 +2700,7 @@ by(relation "measure(%(i::int,j). nat(j - i + 1))") auto
 
 declare upto.simps[code, simp del]
 
-lemmas upto_rec_number_of[simp] =
-  upto.simps[of "number_of m" "number_of n", standard]
+lemmas upto_rec_number_of[simp] = upto.simps[of "number_of m" "number_of n"] for m n
 
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)

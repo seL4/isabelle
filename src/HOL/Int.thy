@@ -273,10 +273,11 @@ apply arith
 done
 
 lemmas int_distrib =
-  left_distrib [of "z1::int" "z2" "w", standard]
-  right_distrib [of "w::int" "z1" "z2", standard]
-  left_diff_distrib [of "z1::int" "z2" "w", standard]
-  right_diff_distrib [of "w::int" "z1" "z2", standard]
+  left_distrib [of z1 z2 w]
+  right_distrib [of w z1 z2]
+  left_diff_distrib [of z1 z2 w]
+  right_diff_distrib [of w z1 z2]
+  for z1 z2 w :: int
 
 
 subsection {* Embedding of the Integers into any @{text ring_1}: @{text of_int}*}
@@ -637,12 +638,9 @@ definition succ :: "int \<Rightarrow> int" where
 definition pred :: "int \<Rightarrow> int" where
   "pred k = k - 1"
 
-lemmas
-  max_number_of [simp] = max_def
-    [of "number_of u" "number_of v", standard]
-and
-  min_number_of [simp] = min_def 
-    [of "number_of u" "number_of v", standard]
+lemmas max_number_of [simp] = max_def [of "number_of u" "number_of v"]
+  and min_number_of [simp] = min_def [of "number_of u" "number_of v"]
+  for u v
   -- {* unfolding @{text minx} and @{text max} on numerals *}
 
 lemmas numeral_simps = 
@@ -1178,8 +1176,7 @@ text {* Less-Than or Equals *}
 text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}
 
 lemmas le_number_of_eq_not_less =
-  linorder_not_less [of "number_of w" "number_of v", symmetric, 
-  standard]
+  linorder_not_less [of "number_of w" "number_of v", symmetric] for w v
 
 
 text {* Absolute value (@{term abs}) *}
@@ -1199,12 +1196,12 @@ lemma number_of_reorient:
 
 subsubsection {* Simplification of arithmetic operations on integer constants. *}
 
-lemmas arith_extra_simps [standard, simp] =
+lemmas arith_extra_simps [simp] =
   number_of_add [symmetric]
   number_of_minus [symmetric]
   numeral_m1_eq_minus_1 [symmetric]
   number_of_mult [symmetric]
-  diff_number_of_eq abs_number_of 
+  diff_number_of_eq abs_number_of
 
 text {*
   For making a minimal simpset, one must include these default simprules.
@@ -1465,34 +1462,34 @@ by (rule semiring_one_add_one_is_two)
 
 lemmas add_special =
     one_add_one_is_two
-    binop_eq [of "op +", OF add_number_of_eq numeral_1_eq_1 refl, standard]
-    binop_eq [of "op +", OF add_number_of_eq refl numeral_1_eq_1, standard]
+    binop_eq [of "op +", OF add_number_of_eq numeral_1_eq_1 refl]
+    binop_eq [of "op +", OF add_number_of_eq refl numeral_1_eq_1]
 
 text{*Allow 1 on either or both sides (1-1 already simplifies to 0)*}
 lemmas diff_special =
-    binop_eq [of "op -", OF diff_number_of_eq numeral_1_eq_1 refl, standard]
-    binop_eq [of "op -", OF diff_number_of_eq refl numeral_1_eq_1, standard]
+    binop_eq [of "op -", OF diff_number_of_eq numeral_1_eq_1 refl]
+    binop_eq [of "op -", OF diff_number_of_eq refl numeral_1_eq_1]
 
 text{*Allow 0 or 1 on either side with a binary numeral on the other*}
 lemmas eq_special =
-    binop_eq [of "op =", OF eq_number_of_eq numeral_0_eq_0 refl, standard]
-    binop_eq [of "op =", OF eq_number_of_eq numeral_1_eq_1 refl, standard]
-    binop_eq [of "op =", OF eq_number_of_eq refl numeral_0_eq_0, standard]
-    binop_eq [of "op =", OF eq_number_of_eq refl numeral_1_eq_1, standard]
+    binop_eq [of "op =", OF eq_number_of_eq numeral_0_eq_0 refl]
+    binop_eq [of "op =", OF eq_number_of_eq numeral_1_eq_1 refl]
+    binop_eq [of "op =", OF eq_number_of_eq refl numeral_0_eq_0]
+    binop_eq [of "op =", OF eq_number_of_eq refl numeral_1_eq_1]
 
 text{*Allow 0 or 1 on either side with a binary numeral on the other*}
 lemmas less_special =
-  binop_eq [of "op <", OF less_number_of numeral_0_eq_0 refl, standard]
-  binop_eq [of "op <", OF less_number_of numeral_1_eq_1 refl, standard]
-  binop_eq [of "op <", OF less_number_of refl numeral_0_eq_0, standard]
-  binop_eq [of "op <", OF less_number_of refl numeral_1_eq_1, standard]
+  binop_eq [of "op <", OF less_number_of numeral_0_eq_0 refl]
+  binop_eq [of "op <", OF less_number_of numeral_1_eq_1 refl]
+  binop_eq [of "op <", OF less_number_of refl numeral_0_eq_0]
+  binop_eq [of "op <", OF less_number_of refl numeral_1_eq_1]
 
 text{*Allow 0 or 1 on either side with a binary numeral on the other*}
 lemmas le_special =
-    binop_eq [of "op \<le>", OF le_number_of numeral_0_eq_0 refl, standard]
-    binop_eq [of "op \<le>", OF le_number_of numeral_1_eq_1 refl, standard]
-    binop_eq [of "op \<le>", OF le_number_of refl numeral_0_eq_0, standard]
-    binop_eq [of "op \<le>", OF le_number_of refl numeral_1_eq_1, standard]
+    binop_eq [of "op \<le>", OF le_number_of numeral_0_eq_0 refl]
+    binop_eq [of "op \<le>", OF le_number_of numeral_1_eq_1 refl]
+    binop_eq [of "op \<le>", OF le_number_of refl numeral_0_eq_0]
+    binop_eq [of "op \<le>", OF le_number_of refl numeral_1_eq_1]
 
 lemmas arith_special[simp] = 
        add_special diff_special eq_special less_special le_special
@@ -1609,7 +1606,7 @@ done
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
-lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v", standard]
+lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v"] for v
 
 lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
@@ -1895,60 +1892,33 @@ subsubsection{*Special Simplification for Constants*}
 
 text{*These distributive laws move literals inside sums and differences.*}
 
-lemmas left_distrib_number_of [simp] =
-  left_distrib [of _ _ "number_of v", standard]
-
-lemmas right_distrib_number_of [simp] =
-  right_distrib [of "number_of v", standard]
-
-lemmas left_diff_distrib_number_of [simp] =
-  left_diff_distrib [of _ _ "number_of v", standard]
-
-lemmas right_diff_distrib_number_of [simp] =
-  right_diff_distrib [of "number_of v", standard]
+lemmas left_distrib_number_of [simp] = left_distrib [of _ _ "number_of v"] for v
+lemmas right_distrib_number_of [simp] = right_distrib [of "number_of v"] for v
+lemmas left_diff_distrib_number_of [simp] = left_diff_distrib [of _ _ "number_of v"] for v
+lemmas right_diff_distrib_number_of [simp] = right_diff_distrib [of "number_of v"] for v
 
 text{*These are actually for fields, like real: but where else to put them?*}
 
-lemmas zero_less_divide_iff_number_of [simp, no_atp] =
-  zero_less_divide_iff [of "number_of w", standard]
-
-lemmas divide_less_0_iff_number_of [simp, no_atp] =
-  divide_less_0_iff [of "number_of w", standard]
-
-lemmas zero_le_divide_iff_number_of [simp, no_atp] =
-  zero_le_divide_iff [of "number_of w", standard]
-
-lemmas divide_le_0_iff_number_of [simp, no_atp] =
-  divide_le_0_iff [of "number_of w", standard]
+lemmas zero_less_divide_iff_number_of [simp, no_atp] = zero_less_divide_iff [of "number_of w"] for w
+lemmas divide_less_0_iff_number_of [simp, no_atp] = divide_less_0_iff [of "number_of w"] for w
+lemmas zero_le_divide_iff_number_of [simp, no_atp] = zero_le_divide_iff [of "number_of w"] for w
+lemmas divide_le_0_iff_number_of [simp, no_atp] = divide_le_0_iff [of "number_of w"] for w
 
 
 text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
   strange, but then other simprocs simplify the quotient.*}
 
-lemmas inverse_eq_divide_number_of [simp] =
-  inverse_eq_divide [of "number_of w", standard]
+lemmas inverse_eq_divide_number_of [simp] = inverse_eq_divide [of "number_of w"] for w
 
 text {*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 
-lemmas less_minus_iff_number_of [simp, no_atp] =
-  less_minus_iff [of "number_of v", standard]
-
-lemmas le_minus_iff_number_of [simp, no_atp] =
-  le_minus_iff [of "number_of v", standard]
-
-lemmas equation_minus_iff_number_of [simp, no_atp] =
-  equation_minus_iff [of "number_of v", standard]
-
-lemmas minus_less_iff_number_of [simp, no_atp] =
-  minus_less_iff [of _ "number_of v", standard]
-
-lemmas minus_le_iff_number_of [simp, no_atp] =
-  minus_le_iff [of _ "number_of v", standard]
-
-lemmas minus_equation_iff_number_of [simp, no_atp] =
-  minus_equation_iff [of _ "number_of v", standard]
-
+lemmas less_minus_iff_number_of [simp, no_atp] = less_minus_iff [of "number_of v"] for v
+lemmas le_minus_iff_number_of [simp, no_atp] = le_minus_iff [of "number_of v"] for v
+lemmas equation_minus_iff_number_of [simp, no_atp] = equation_minus_iff [of "number_of v"] for v
+lemmas minus_less_iff_number_of [simp, no_atp] = minus_less_iff [of _ "number_of v"] for v
+lemmas minus_le_iff_number_of [simp, no_atp] = minus_le_iff [of _ "number_of v"] for v
+lemmas minus_equation_iff_number_of [simp, no_atp] = minus_equation_iff [of _ "number_of v"] for v
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
@@ -1985,39 +1955,32 @@ by (subst minus_equation_iff, auto)
 
 text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
-lemmas mult_less_cancel_left_number_of [simp, no_atp] =
-  mult_less_cancel_left [of "number_of v", standard]
-
-lemmas mult_less_cancel_right_number_of [simp, no_atp] =
-  mult_less_cancel_right [of _ "number_of v", standard]
-
-lemmas mult_le_cancel_left_number_of [simp, no_atp] =
-  mult_le_cancel_left [of "number_of v", standard]
-
-lemmas mult_le_cancel_right_number_of [simp, no_atp] =
-  mult_le_cancel_right [of _ "number_of v", standard]
+lemmas mult_less_cancel_left_number_of [simp, no_atp] = mult_less_cancel_left [of "number_of v"] for v
+lemmas mult_less_cancel_right_number_of [simp, no_atp] = mult_less_cancel_right [of _ "number_of v"] for v
+lemmas mult_le_cancel_left_number_of [simp, no_atp] = mult_le_cancel_left [of "number_of v"] for v
+lemmas mult_le_cancel_right_number_of [simp, no_atp] = mult_le_cancel_right [of _ "number_of v"] for v
 
 
 text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
-lemmas le_divide_eq_number_of1 [simp] = le_divide_eq [of _ _ "number_of w", standard]
-lemmas divide_le_eq_number_of1 [simp] = divide_le_eq [of _ "number_of w", standard]
-lemmas less_divide_eq_number_of1 [simp] = less_divide_eq [of _ _ "number_of w", standard]
-lemmas divide_less_eq_number_of1 [simp] = divide_less_eq [of _ "number_of w", standard]
-lemmas eq_divide_eq_number_of1 [simp] = eq_divide_eq [of _ _ "number_of w", standard]
-lemmas divide_eq_eq_number_of1 [simp] = divide_eq_eq [of _ "number_of w", standard]
+lemmas le_divide_eq_number_of1 [simp] = le_divide_eq [of _ _ "number_of w"] for w
+lemmas divide_le_eq_number_of1 [simp] = divide_le_eq [of _ "number_of w"] for w
+lemmas less_divide_eq_number_of1 [simp] = less_divide_eq [of _ _ "number_of w"] for w
+lemmas divide_less_eq_number_of1 [simp] = divide_less_eq [of _ "number_of w"] for w
+lemmas eq_divide_eq_number_of1 [simp] = eq_divide_eq [of _ _ "number_of w"] for w
+lemmas divide_eq_eq_number_of1 [simp] = divide_eq_eq [of _ "number_of w"] for w
 
 
 subsubsection{*Optional Simplification Rules Involving Constants*}
 
 text{*Simplify quotients that are compared with a literal constant.*}
 
-lemmas le_divide_eq_number_of = le_divide_eq [of "number_of w", standard]
-lemmas divide_le_eq_number_of = divide_le_eq [of _ _ "number_of w", standard]
-lemmas less_divide_eq_number_of = less_divide_eq [of "number_of w", standard]
-lemmas divide_less_eq_number_of = divide_less_eq [of _ _ "number_of w", standard]
-lemmas eq_divide_eq_number_of = eq_divide_eq [of "number_of w", standard]
-lemmas divide_eq_eq_number_of = divide_eq_eq [of _ _ "number_of w", standard]
+lemmas le_divide_eq_number_of = le_divide_eq [of "number_of w"] for w
+lemmas divide_le_eq_number_of = divide_le_eq [of _ _ "number_of w"] for w
+lemmas less_divide_eq_number_of = less_divide_eq [of "number_of w"] for w
+lemmas divide_less_eq_number_of = divide_less_eq [of _ _ "number_of w"] for w
+lemmas eq_divide_eq_number_of = eq_divide_eq [of "number_of w"] for w
+lemmas divide_eq_eq_number_of = divide_eq_eq [of _ _ "number_of w"] for w
 
 
 text{*Not good as automatic simprules because they cause case splits.*}
@@ -2040,7 +2003,7 @@ lemma half_gt_zero_iff:
      "(0 < r/2) = (0 < (r::'a::{linordered_field_inverse_zero,number_ring}))"
 by auto
 
-lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
+lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2]
 
 lemma divide_Numeral1:
   "(x::'a::{field, number_ring}) / Numeral1 = x"
@@ -2359,16 +2322,16 @@ lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
 lemmas int_mult = of_nat_mult [where 'a=int]
 lemmas zmult_int = of_nat_mult [where 'a=int, symmetric]
-lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int and m="n", standard]
+lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int and m="n"] for n
 lemmas zless_int = of_nat_less_iff [where 'a=int]
-lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int and m="k", standard]
+lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int and m="k"] for k
 lemmas zero_less_int_conv = of_nat_0_less_iff [where 'a=int]
 lemmas zero_zle_int = of_nat_0_le_iff [where 'a=int]
-lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int and m="n", standard]
+lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int and m="n"] for n
 lemmas int_0 = of_nat_0 [where 'a=int]
 lemmas int_1 = of_nat_1 [where 'a=int]
 lemmas int_Suc = of_nat_Suc [where 'a=int]
-lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m", standard]
+lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m"] for m
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 

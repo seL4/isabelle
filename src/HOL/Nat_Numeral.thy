@@ -510,7 +510,7 @@ subsection{*Powers with Numeric Exponents*}
 
 text{*Squares of literal numerals will be evaluated.*}
 lemmas power2_eq_square_number_of [simp] =
-    power2_eq_square [of "number_of w", standard]
+  power2_eq_square [of "number_of w"] for w
 
 
 text{*Simprules for comparisons where common factors can be cancelled.*}
@@ -529,7 +529,7 @@ by simp
 
 (*Expresses a natural number constant as the Suc of another one.
   NOT suitable for rewriting because n recurs in the condition.*)
-lemmas expand_Suc = Suc_pred' [of "number_of v", standard]
+lemmas expand_Suc = Suc_pred' [of "number_of v"] for v
 
 subsubsection{*Arith *}
 
@@ -684,7 +684,7 @@ by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def nat_power_eq
          split add: split_if cong: imp_cong)
 
 
-lemmas power_nat_number_of_number_of = power_nat_number_of [of _ "number_of w", standard]
+lemmas power_nat_number_of_number_of = power_nat_number_of [of _ "number_of w"] for w
 declare power_nat_number_of_number_of [simp]
 
 
@@ -711,10 +711,10 @@ lemmas zpower_number_of_even = power_number_of_even [where 'a=int]
 lemmas zpower_number_of_odd = power_number_of_odd [where 'a=int]
 
 lemmas power_number_of_even_number_of [simp] =
-    power_number_of_even [of "number_of v", standard]
+    power_number_of_even [of "number_of v"] for v
 
 lemmas power_number_of_odd_number_of [simp] =
-    power_number_of_odd [of "number_of v", standard]
+    power_number_of_odd [of "number_of v"] for v
 
 lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
   by (simp add: nat_number_of_def)

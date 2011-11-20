@@ -45,9 +45,9 @@ lemma even_zero_nat[simp]: "even (0::nat)" by presburger
 
 lemma odd_1_nat [simp]: "odd (1::nat)" by presburger
 
-declare even_def[of "number_of v", standard, simp]
+declare even_def[of "number_of v", simp] for v
 
-declare even_nat_def[of "number_of v", standard, simp]
+declare even_nat_def[of "number_of v", simp] for v
 
 subsection {* Even and odd are mutually exclusive *}
 
@@ -347,27 +347,27 @@ lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
 
 text {* Simplify, when the exponent is a numeral *}
 
-lemmas power_0_left_number_of = power_0_left [of "number_of w", standard]
+lemmas power_0_left_number_of = power_0_left [of "number_of w"] for w
 declare power_0_left_number_of [simp]
 
 lemmas zero_le_power_eq_number_of [simp] =
-    zero_le_power_eq [of _ "number_of w", standard]
+    zero_le_power_eq [of _ "number_of w"] for w
 
 lemmas zero_less_power_eq_number_of [simp] =
-    zero_less_power_eq [of _ "number_of w", standard]
+    zero_less_power_eq [of _ "number_of w"] for w
 
 lemmas power_le_zero_eq_number_of [simp] =
-    power_le_zero_eq [of _ "number_of w", standard]
+    power_le_zero_eq [of _ "number_of w"] for w
 
 lemmas power_less_zero_eq_number_of [simp] =
-    power_less_zero_eq [of _ "number_of w", standard]
+    power_less_zero_eq [of _ "number_of w"] for w
 
 lemmas zero_less_power_nat_eq_number_of [simp] =
-    zero_less_power_nat_eq [of _ "number_of w", standard]
+    zero_less_power_nat_eq [of _ "number_of w"] for w
 
-lemmas power_eq_0_iff_number_of [simp] = power_eq_0_iff [of _ "number_of w", standard]
+lemmas power_eq_0_iff_number_of [simp] = power_eq_0_iff [of _ "number_of w"] for w
 
-lemmas power_even_abs_number_of [simp] = power_even_abs [of "number_of w" _, standard]
+lemmas power_even_abs_number_of [simp] = power_even_abs [of "number_of w" _] for w
 
 
 subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}

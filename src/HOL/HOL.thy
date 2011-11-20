@@ -494,7 +494,7 @@ apply (erule subst)
 apply assumption
 done
 
-lemmas ccontr = FalseE [THEN classical, standard]
+lemmas ccontr = FalseE [THEN classical]
 
 (*notE with premises exchanged; it discharges ~R so that it can be used to
   make elimination rules*)
@@ -1445,8 +1445,8 @@ lemma induct_conj_eq: "(A &&& B) == Trueprop (induct_conj A B)"
 
 lemmas induct_atomize' = induct_forall_eq induct_implies_eq induct_conj_eq
 lemmas induct_atomize = induct_atomize' induct_equal_eq
-lemmas induct_rulify' [symmetric, standard] = induct_atomize'
-lemmas induct_rulify [symmetric, standard] = induct_atomize
+lemmas induct_rulify' [symmetric] = induct_atomize'
+lemmas induct_rulify [symmetric] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
   induct_true_def induct_false_def
