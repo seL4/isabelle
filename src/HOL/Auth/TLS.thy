@@ -904,4 +904,6 @@ by (blast intro!: TrustClientMsg UseCertVerify)
           the assumptions be default.
 *)
 
+(*20/11/11: loads in 5.8s elapses time, 9.3s CPU time on dual-core laptop*)
+
 end
