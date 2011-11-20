@@ -575,13 +575,13 @@ local
 
 fun gen_fix prep_vars args =
   assert_forward
-  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (prep_vars ctxt args) ctxt))
+  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (fst (prep_vars args ctxt)) ctxt))
   #> put_facts NONE;
 
 in
 
-val fix = gen_fix (K I);
-val fix_cmd = gen_fix (fn ctxt => fn args => fst (Proof_Context.read_vars args ctxt));
+val fix = gen_fix Proof_Context.cert_vars;
+val fix_cmd = gen_fix Proof_Context.read_vars;
 
 end;
 
