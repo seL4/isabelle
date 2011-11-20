@@ -85,7 +85,7 @@ lemma z1pdiv2:
   "(2 * b + 1) div 2 = (b::int)" by arith
 
 lemmas zdiv_le_dividend = xtr3 [OF div_by_1 [symmetric] zdiv_mono2,
-  simplified int_one_le_iff_zero_less, simplified, standard]
+  simplified int_one_le_iff_zero_less, simplified]
   
 lemma axxbyy:
   "a + m + m = b + n + n ==> (a = 0 | a = 1) ==> (b = 0 | b = 1) ==>  
@@ -98,12 +98,11 @@ lemma axxdiv2:
   "(1 + x + x) div 2 = (x :: int) & (0 + x + x) div 2 = (x :: int)"  by arith
 
 lemmas iszero_minus = trans [THEN trans,
-  OF iszero_def neg_equal_0_iff_equal iszero_def [symmetric], standard]
+  OF iszero_def neg_equal_0_iff_equal iszero_def [symmetric]]
 
-lemmas zadd_diff_inverse = trans [OF diff_add_cancel [symmetric] add_commute,
-  standard]
+lemmas zadd_diff_inverse = trans [OF diff_add_cancel [symmetric] add_commute]
 
-lemmas add_diff_cancel2 = add_commute [THEN diff_eq_eq [THEN iffD2], standard]
+lemmas add_diff_cancel2 = add_commute [THEN diff_eq_eq [THEN iffD2]]
 
 lemma zmod_uminus: "- ((a :: int) mod b) mod b = -a mod b"
   by (simp add : zmod_zminus1_eq_if)
@@ -149,14 +148,14 @@ lemma nat_minus_mod: "(n - n mod m) mod m = (0 :: nat)"
   by (induct n) (simp_all add : mod_Suc)
 
 lemmas nat_minus_mod_plus_right = trans [OF nat_minus_mod mod_0 [symmetric],
-  THEN mod_plus_right [THEN iffD2], standard, simplified]
+  THEN mod_plus_right [THEN iffD2], simplified]
 
-lemmas push_mods' = mod_add_eq [standard]
-  mod_mult_eq [standard] zmod_zsub_distrib [standard]
-  zmod_uminus [symmetric, standard]
+lemmas push_mods' = mod_add_eq
+  mod_mult_eq zmod_zsub_distrib
+  zmod_uminus [symmetric]
 
-lemmas push_mods = push_mods' [THEN eq_reflection, standard]
-lemmas pull_mods = push_mods [symmetric] rdmods [THEN eq_reflection, standard]
+lemmas push_mods = push_mods' [THEN eq_reflection]
+lemmas pull_mods = push_mods [symmetric] rdmods [THEN eq_reflection]
 lemmas mod_simps = 
   mod_mult_self2_is_0 [THEN eq_reflection]
   mod_mult_self1_is_0 [THEN eq_reflection]
@@ -353,7 +352,7 @@ lemma less_le_mult':
 lemmas less_le_mult = less_le_mult' [simplified left_distrib, simplified]
 
 lemmas less_le_mult_minus = iffD2 [OF le_diff_eq less_le_mult, 
-  simplified left_diff_distrib, standard]
+  simplified left_diff_distrib]
 
 lemma lrlem':
   assumes d: "(i::nat) \<le> j \<or> m < j'"

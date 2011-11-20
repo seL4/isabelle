@@ -114,7 +114,7 @@ lemma fn_comm_power:
   done
 
 lemmas fn_comm_power' =
-  ext [THEN fn_comm_power, THEN fun_cong, unfolded o_def, standard]
+  ext [THEN fn_comm_power, THEN fun_cong, unfolded o_def]
 
 
 locale td_ext = type_definition +

@@ -459,10 +459,10 @@ lemma bin_sc_minus:
   by auto
 
 lemmas bin_sc_Suc_minus = 
-  trans [OF bin_sc_minus [symmetric] bin_sc.Suc, standard]
+  trans [OF bin_sc_minus [symmetric] bin_sc.Suc]
 
 lemmas bin_sc_Suc_pred [simp] = 
-  bin_sc_Suc_minus [of "number_of bin", simplified nobm1, standard]
+  bin_sc_Suc_minus [of "number_of bin", simplified nobm1] for bin
 
 
 subsection {* Splitting and concatenation *}

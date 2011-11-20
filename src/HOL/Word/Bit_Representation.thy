@@ -54,7 +54,7 @@ lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
   apply (cases c) apply (simp_all)
   done
      
-lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE, standard]
+lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE]
 
 lemma BIT_eq_iff [simp]: 
   "(u BIT b = v BIT c) = (u = v \<and> b = c)"
@@ -268,7 +268,7 @@ lemma bin_nth_lem [rule_format]:
 lemma bin_nth_eq_iff: "(bin_nth x = bin_nth y) = (x = y)"
   by (auto elim: bin_nth_lem)
 
-lemmas bin_eqI = ext [THEN bin_nth_eq_iff [THEN iffD1], standard]
+lemmas bin_eqI = ext [THEN bin_nth_eq_iff [THEN iffD1]]
 
 lemma bin_eq_iff: "x = y \<longleftrightarrow> (\<forall>n. bin_nth x n = bin_nth y n)"
   by (auto intro!: bin_nth_lem del: equalityI)
@@ -430,13 +430,13 @@ lemma sbintrunc_sbintrunc_min [simp]:
   done
 
 lemmas bintrunc_Pls = 
-  bintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps, standard]
+  bintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps]
 
 lemmas bintrunc_Min [simp] = 
-  bintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps, standard]
+  bintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps]
 
 lemmas bintrunc_BIT  [simp] = 
-  bintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
+  bintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps] for w b
 
 lemma bintrunc_Bit0 [simp]:
   "bintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (bintrunc n w)"
@@ -450,13 +450,13 @@ lemmas bintrunc_Sucs = bintrunc_Pls bintrunc_Min bintrunc_BIT
   bintrunc_Bit0 bintrunc_Bit1
 
 lemmas sbintrunc_Suc_Pls = 
-  sbintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps, standard]
+  sbintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps]
 
 lemmas sbintrunc_Suc_Min = 
-  sbintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps, standard]
+  sbintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps]
 
 lemmas sbintrunc_Suc_BIT [simp] = 
-  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
+  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps] for w b
 
 lemma sbintrunc_Suc_Bit0 [simp]:
   "sbintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (sbintrunc n w)"
@@ -471,19 +471,19 @@ lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min sbintrunc_Suc_BIT
 
 lemmas sbintrunc_Pls = 
   sbintrunc.Z [where bin="Int.Pls", 
-               simplified bin_last_simps bin_rest_simps bit.simps, standard]
+               simplified bin_last_simps bin_rest_simps bit.simps]
 
 lemmas sbintrunc_Min = 
   sbintrunc.Z [where bin="Int.Min", 
-               simplified bin_last_simps bin_rest_simps bit.simps, standard]
+               simplified bin_last_simps bin_rest_simps bit.simps]
 
 lemmas sbintrunc_0_BIT_B0 [simp] = 
   sbintrunc.Z [where bin="w BIT (0::bit)", 
-               simplified bin_last_simps bin_rest_simps bit.simps, standard]
+               simplified bin_last_simps bin_rest_simps bit.simps] for w
 
 lemmas sbintrunc_0_BIT_B1 [simp] = 
   sbintrunc.Z [where bin="w BIT (1::bit)", 
-               simplified bin_last_simps bin_rest_simps bit.simps, standard]
+               simplified bin_last_simps bin_rest_simps bit.simps] for w
 
 lemma sbintrunc_0_Bit0 [simp]: "sbintrunc 0 (Int.Bit0 w) = Int.Pls"
   using sbintrunc_0_BIT_B0 by simp
@@ -507,9 +507,9 @@ lemma sbintrunc_minus:
   by auto
 
 lemmas bintrunc_minus_simps = 
-  bintrunc_Sucs [THEN [2] bintrunc_minus [symmetric, THEN trans], standard]
+  bintrunc_Sucs [THEN [2] bintrunc_minus [symmetric, THEN trans]]
 lemmas sbintrunc_minus_simps = 
-  sbintrunc_Sucs [THEN [2] sbintrunc_minus [symmetric, THEN trans], standard]
+  sbintrunc_Sucs [THEN [2] sbintrunc_minus [symmetric, THEN trans]]
 
 lemma bintrunc_n_Pls [simp]:
   "bintrunc n Int.Pls = Int.Pls"
@@ -520,12 +520,12 @@ lemma sbintrunc_n_PM [simp]:
   "sbintrunc n Int.Min = Int.Min"
   by (induct n) auto
 
-lemmas thobini1 = arg_cong [where f = "%w. w BIT b", standard]
+lemmas thobini1 = arg_cong [where f = "%w. w BIT b"] for b
 
 lemmas bintrunc_BIT_I = trans [OF bintrunc_BIT thobini1]
 lemmas bintrunc_Min_I = trans [OF bintrunc_Min thobini1]
 
-lemmas bmsts = bintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans], standard]
+lemmas bmsts = bintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans]]
 lemmas bintrunc_Pls_minus_I = bmsts(1)
 lemmas bintrunc_Min_minus_I = bmsts(2)
 lemmas bintrunc_BIT_minus_I = bmsts(3)
@@ -540,23 +540,23 @@ lemma bintrunc_Suc_lem:
   by auto
 
 lemmas bintrunc_Suc_Ialts = 
-  bintrunc_Min_I [THEN bintrunc_Suc_lem, standard]
-  bintrunc_BIT_I [THEN bintrunc_Suc_lem, standard]
+  bintrunc_Min_I [THEN bintrunc_Suc_lem]
+  bintrunc_BIT_I [THEN bintrunc_Suc_lem]
 
 lemmas sbintrunc_BIT_I = trans [OF sbintrunc_Suc_BIT thobini1]
 
 lemmas sbintrunc_Suc_Is = 
-  sbintrunc_Sucs(1-3) [THEN thobini1 [THEN [2] trans], standard]
+  sbintrunc_Sucs(1-3) [THEN thobini1 [THEN [2] trans]]
 
 lemmas sbintrunc_Suc_minus_Is = 
-  sbintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans], standard]
+  sbintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans]]
 
 lemma sbintrunc_Suc_lem:
   "sbintrunc (Suc n) x = y ==> m = Suc n ==> sbintrunc m x = y"
   by auto
 
 lemmas sbintrunc_Suc_Ialts = 
-  sbintrunc_Suc_Is [THEN sbintrunc_Suc_lem, standard]
+  sbintrunc_Suc_Is [THEN sbintrunc_Suc_lem]
 
 lemma sbintrunc_bintrunc_lt:
   "m > n ==> sbintrunc n (bintrunc m w) = sbintrunc n w"
@@ -609,13 +609,13 @@ lemmas sbintrunc_sbintrunc_l' = le_add1 [THEN sbintrunc_sbintrunc_l]
   we get a version for when the word length is given literally *)
 
 lemmas nat_non0_gr = 
-  trans [OF iszero_def [THEN Not_eq_iff [THEN iffD2]] refl, standard]
+  trans [OF iszero_def [THEN Not_eq_iff [THEN iffD2]] refl]
 
 lemmas bintrunc_pred_simps [simp] = 
-  bintrunc_minus_simps [of "number_of bin", simplified nobm1, standard]
+  bintrunc_minus_simps [of "number_of bin", simplified nobm1] for bin
 
 lemmas sbintrunc_pred_simps [simp] = 
-  sbintrunc_minus_simps [of "number_of bin", simplified nobm1, standard]
+  sbintrunc_minus_simps [of "number_of bin", simplified nobm1] for bin
 
 lemma no_bintr_alt:
   "number_of (bintrunc n w) = w mod 2 ^ n"
@@ -679,8 +679,8 @@ lemma sbintrunc_dec:
   "x >= (2 ^ n) ==> x - 2 ^ (Suc n) >= sbintrunc n x"
   unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
 
-lemmas zmod_uminus' = zmod_uminus [where b="c", standard]
-lemmas zpower_zmod' = zpower_zmod [where m="c" and y="k", standard]
+lemmas zmod_uminus' = zmod_uminus [where b=c] for c
+lemmas zpower_zmod' = zpower_zmod [where m=c and y=k] for c k
 
 lemmas brdmod1s' [symmetric] = 
   mod_add_left_eq mod_add_right_eq 
@@ -697,11 +697,11 @@ lemmas brdmods' [symmetric] =
   zmod_zsub_left_eq [where b = "1"]
 
 lemmas bintr_arith1s =
-  brdmod1s' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p, standard]
+  brdmod1s' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p] for n
 lemmas bintr_ariths =
-  brdmods' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p, standard]
+  brdmods' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p] for n
 
-lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p, standard] 
+lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
 
 lemma bintr_ge0: "(0 :: int) <= number_of (bintrunc n w)"
   by (simp add : no_bintr m2pths)
@@ -817,23 +817,22 @@ lemma funpow_minus_simp:
   by (cases n) simp_all
 
 lemmas funpow_pred_simp [simp] =
-  funpow_minus_simp [of "number_of bin", simplified nobm1, standard]
+  funpow_minus_simp [of "number_of bin", simplified nobm1] for bin
 
 lemmas replicate_minus_simp = 
-  trans [OF gen_minus [where f = "%n. replicate n x"] replicate.replicate_Suc,
-         standard]
+  trans [OF gen_minus [where f = "%n. replicate n x"] replicate.replicate_Suc] for x
 
 lemmas replicate_pred_simp [simp] =
-  replicate_minus_simp [of "number_of bin", simplified nobm1, standard]
+  replicate_minus_simp [of "number_of bin", simplified nobm1] for bin
 
-lemmas power_Suc_no [simp] = power_Suc [of "number_of a", standard]
+lemmas power_Suc_no [simp] = power_Suc [of "number_of a"] for a
 
 lemmas power_minus_simp = 
-  trans [OF gen_minus [where f = "power f"] power_Suc, standard]
+  trans [OF gen_minus [where f = "power f"] power_Suc] for f
 
 lemmas power_pred_simp = 
-  power_minus_simp [of "number_of bin", simplified nobm1, standard]
-lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of f", standard]
+  power_minus_simp [of "number_of bin", simplified nobm1] for bin
+lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of f"] for f
 
 lemma list_exhaust_size_gt0:
   assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"
