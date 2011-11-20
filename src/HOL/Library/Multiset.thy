@@ -1527,7 +1527,7 @@ lemma fold_mset_insert_aux:
 apply (rule iffI)
  prefer 2
  apply blast
-apply (rule_tac A=A and f=f in fold_msetG_nonempty [THEN exE, standard])
+apply (rule_tac A1=A and f1=f in fold_msetG_nonempty [THEN exE])
 apply (blast intro: fold_msetG_determ)
 done
 

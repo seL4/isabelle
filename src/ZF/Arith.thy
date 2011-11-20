@@ -88,7 +88,7 @@ apply (induct_tac "k", auto)
 done
 
 (* [| 0 < k; k \<in> nat; !!j. [| j \<in> nat; k = succ(j) |] ==> Q |] ==> Q *)
-lemmas zero_lt_natE = zero_lt_lemma [THEN bexE, standard]
+lemmas zero_lt_natE = zero_lt_lemma [THEN bexE]
 
 
 subsection{*@{text natify}, the Coercion to @{term nat}*}

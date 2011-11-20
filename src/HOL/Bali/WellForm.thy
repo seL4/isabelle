@@ -733,13 +733,14 @@ lemma methd_Object_SomeD:
  \<Longrightarrow> declclass m = Object"
 by (auto dest: class_Object simp add: methd_rec )
 
+lemmas iface_rec_induct' = iface_rec.induct [of "%x y z. P x y"] for P
+
 lemma wf_imethdsD: 
  "\<lbrakk>im \<in> imethds G I sig;wf_prog G; is_iface G I\<rbrakk> 
  \<Longrightarrow> \<not>is_static im \<and> accmodi im = Public"
 proof -
   assume asm: "wf_prog G" "is_iface G I" "im \<in> imethds G I sig"
 
-  note iface_rec_induct' = iface_rec.induct[of "(%x y z. P x y)", standard]  (* FIXME !? *)
   have "wf_prog G \<longrightarrow> 
          (\<forall> i im. iface G I = Some i \<longrightarrow> im \<in> imethds G I sig
                   \<longrightarrow> \<not>is_static im \<and> accmodi im = Public)" (is "?P G I")
