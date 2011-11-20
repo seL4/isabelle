@@ -609,7 +609,8 @@ apply (simp add: convex_le_def)
 done
 
 lemmas convex_plus_below_plus_iff =
-  convex_pd_below_iff [where xs="xs \<union>\<natural> ys" and ys="zs \<union>\<natural> ws", standard]
+  convex_pd_below_iff [where xs="xs \<union>\<natural> ys" and ys="zs \<union>\<natural> ws"]
+  for xs ys zs ws
 
 lemmas convex_pd_below_simps =
   convex_unit_below_plus_iff

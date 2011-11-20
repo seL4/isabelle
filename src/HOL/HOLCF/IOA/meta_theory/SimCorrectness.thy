@@ -249,8 +249,8 @@ lemma simulation_starts:
   apply blast
   done
 
-lemmas sim_starts1 = simulation_starts [unfolded Let_def, THEN conjunct1, standard]
-lemmas sim_starts2 = simulation_starts [unfolded Let_def, THEN conjunct2, standard]
+lemmas sim_starts1 = simulation_starts [unfolded Let_def, THEN conjunct1]
+lemmas sim_starts2 = simulation_starts [unfolded Let_def, THEN conjunct2]
 
 
 lemma trace_inclusion_for_simulations:

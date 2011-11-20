@@ -194,8 +194,8 @@ done
 
 lemmas monofun_Rep_cfun = cont_Rep_cfun [THEN cont2mono]
 
-lemmas monofun_Rep_cfun1 = cont_Rep_cfun1 [THEN cont2mono, standard]
-lemmas monofun_Rep_cfun2 = cont_Rep_cfun2 [THEN cont2mono, standard]
+lemmas monofun_Rep_cfun1 = cont_Rep_cfun1 [THEN cont2mono]
+lemmas monofun_Rep_cfun2 = cont_Rep_cfun2 [THEN cont2mono]
 
 text {* contlub, cont properties of @{term Rep_cfun} in each argument *}
 

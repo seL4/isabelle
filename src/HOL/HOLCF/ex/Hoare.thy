@@ -155,8 +155,6 @@ done
 
 (* -------- results about p for case (EX k. b1$(iterate k$g$x)~=TT) ------- *)
 
-thm hoare_lemma8 [THEN hoare_lemma9 [THEN mp], standard]
-
 lemma hoare_lemma10:
   "EX k. b1$(iterate k$g$x) ~= TT
     ==> Suc k = (LEAST n. b1$(iterate n$g$x) ~= TT) ==> p$(iterate k$g$x) = p$x"

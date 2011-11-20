@@ -402,7 +402,7 @@ apply auto
 done
 
 lemmas exec_prefixclosed =
-  conjI [THEN execfrag_prefixclosed [THEN spec, THEN spec, THEN mp], standard]
+  conjI [THEN execfrag_prefixclosed [THEN spec, THEN spec, THEN mp]]
 
 
 (* second prefix notion for Finite x *)

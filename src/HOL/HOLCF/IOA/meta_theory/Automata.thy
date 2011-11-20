@@ -353,8 +353,8 @@ apply simp
 apply blast
 done
 
-lemmas ext1_ext2_is_not_act2 = ext1_is_not_int2 [THEN int_and_ext_is_act, standard]
-lemmas ext1_ext2_is_not_act1 = ext2_is_not_int1 [THEN int_and_ext_is_act, standard]
+lemmas ext1_ext2_is_not_act2 = ext1_is_not_int2 [THEN int_and_ext_is_act]
+lemmas ext1_ext2_is_not_act1 = ext2_is_not_int1 [THEN int_and_ext_is_act]
 
 lemma intA_is_not_extB: 
  "[| compatible A B; x:int A |] ==> x~:ext B"
