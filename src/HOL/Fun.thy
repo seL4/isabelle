@@ -578,12 +578,11 @@ apply (erule subst)
 apply (rule_tac [2] ext, auto)
 done
 
-(* f x = y ==> f(x:=y) = f *)
-lemmas fun_upd_idem = fun_upd_idem_iff [THEN iffD2, standard]
+lemma fun_upd_idem: "f x = y ==> f(x:=y) = f"
+  by (simp only: fun_upd_idem_iff)
 
-(* f(x := f x) = f *)
-lemmas fun_upd_triv = refl [THEN fun_upd_idem]
-declare fun_upd_triv [iff]
+lemma fun_upd_triv [iff]: "f(x := f x) = f"
+  by (simp only: fun_upd_idem)
 
 lemma fun_upd_apply [simp]: "(f(x:=y))z = (if z=x then y else f z)"
 by (simp add: fun_upd_def)
