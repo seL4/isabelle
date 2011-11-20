@@ -87,7 +87,6 @@ sig
   val simple_fixes: (binding * string option) list parser
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
-  val for_simple_fixes: (binding * string option) list parser
   val ML_source: (Symbol_Pos.text * Position.T) parser
   val doc_source: (Symbol_Pos.text * Position.T) parser
   val term_group: string parser
@@ -326,7 +325,6 @@ val fixes =
     params >> map (fn (x, y) => (x, y, NoSyn))) >> flat;
 
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
-val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 
 (* embedded source text *)
