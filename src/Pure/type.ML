@@ -208,8 +208,12 @@ fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
 fun of_sort (TSig {classes, ...}) = Sorts.of_sort (#2 classes);
 fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
-fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
-fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
+fun cert_class (TSig {classes = (_, algebra), ...}) c =
+  if can (Graph.get_entry (Sorts.classes_of algebra)) c then c
+  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+
+val cert_sort = map o cert_class;
+
 fun minimize_sort (TSig {classes, ...}) = Sorts.minimize_sort (#2 classes);
 
 fun witness_sorts (TSig {classes, log_types, ...}) =

@@ -21,7 +21,7 @@ fun init thy =
   let
     val {classes = (_, algebra), types = (_, types), ...} = Type.rep_tsig (Sign.tsig_of thy);
 
-    val sort = perhaps (try (Sorts.certify_sort algebra));
+    val class = perhaps (try (#1 o Graph.get_entry (Sorts.classes_of algebra)));
     val tycon = perhaps (Option.map #1 o Symtab.lookup_key types);
     val const = perhaps (try (#1 o Consts.the_const (Sign.consts_of thy)));
 
@@ -36,8 +36,8 @@ fun init thy =
             val T' =
               (case T of
                 Type (a, Ts) => Type (tycon a, map typ Ts)
-              | TFree (a, S) => TFree (a, sort S)
-              | TVar (a, S) => TVar (a, sort S));
+              | TFree (a, S) => TFree (a, map class S)
+              | TVar (a, S) => TVar (a, map class S));
             val _ = Unsynchronized.change typs (Typtab.update (T', ()));
           in T' end);
 

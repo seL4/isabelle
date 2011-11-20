@@ -38,8 +38,6 @@ sig
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
   val minimal_sorts: algebra -> sort list -> sort Ord_List.T
-  val certify_class: algebra -> class -> class    (*exception TYPE*)
-  val certify_sort: algebra -> sort -> sort       (*exception TYPE*)
   val add_class: Proof.context -> class * class list -> algebra -> algebra
   val add_classrel: Proof.context -> class * class -> algebra -> algebra
   val add_arities: Proof.context -> string * (class * sort list) list -> algebra -> algebra
@@ -180,15 +178,6 @@ fun minimal_sorts algebra raw_sorts =
     fun le S1 S2 = sort_le algebra (S1, S2);
     val sorts = make (map (minimize_sort algebra) raw_sorts);
   in sorts |> filter_out (fn S => exists (fn S' => le S' S andalso not (le S S')) sorts) end;
-
-
-(* certify *)
-
-fun certify_class algebra c =
-  #1 (Graph.get_entry (classes_of algebra) c)
-    handle Graph.UNDEF _ => raise TYPE ("Undeclared class: " ^ quote c, [], []);
-
-fun certify_sort classes = map (certify_class classes);
 
 
 
