@@ -20,15 +20,15 @@ sig
     Notes of string * (Attrib.binding * ('fact * Attrib.src list) list) list
   type context = (string, string, Facts.ref) ctxt
   type context_i = (typ, term, thm list) ctxt
-  val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
-   (Attrib.binding * ('fact * Attrib.src list) list) list ->
-   (Attrib.binding * ('c * Attrib.src list) list) list
   val map_ctxt: {binding: binding -> binding, typ: 'typ -> 'a, term: 'term -> 'b,
     pattern: 'term -> 'b, fact: 'fact -> 'c, attrib: Attrib.src -> Attrib.src} ->
     ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
   val transform_ctxt: morphism -> context_i -> context_i
+  val transform_facts: morphism ->
+    (Attrib.binding * (thm list * Args.src list) list) list ->
+    (Attrib.binding * (thm list * Args.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -85,8 +85,6 @@ datatype ('typ, 'term, 'fact) ctxt =
 type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
 
-fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');
-
 fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
@@ -108,6 +106,9 @@ fun transform_ctxt phi = map_ctxt
   pattern = Morphism.term phi,
   fact = Morphism.fact phi,
   attrib = Args.transform_values phi};
+
+fun transform_facts phi facts =
+  Notes ("", facts) |> transform_ctxt phi |> (fn Notes (_, facts') => facts');
 
 
 

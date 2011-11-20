@@ -120,7 +120,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
     val global_facts' = Attrib.map_facts (K []) global_facts;
     val local_facts' = local_facts
       |> Attrib.partial_evaluation lthy
-      |> Element.facts_map (Element.transform_ctxt (Local_Theory.target_morphism lthy));
+      |> Element.transform_facts (Local_Theory.target_morphism lthy);
   in
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)

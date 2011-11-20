@@ -298,7 +298,7 @@ fun gen_theorems prep_fact prep_att prep_vars
 
     val facts' = facts
       |> Attrib.partial_evaluation ctxt'
-      |> Element.facts_map (Element.transform_ctxt (Proof_Context.export_morphism ctxt' lthy));
+      |> Element.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
     val _ = Proof_Display.print_results int lthy' ((kind, ""), res);
   in (res, lthy') end;
