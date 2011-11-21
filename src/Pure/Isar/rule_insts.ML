@@ -35,13 +35,17 @@ local
 
 fun is_tvar (x, _) = String.isPrefix "'" x;
 
-fun error_var msg xi = error (msg ^ Term.string_of_vname xi);
+fun error_var msg xi = error (msg ^ quote (Term.string_of_vname xi));
 
-fun the_sort tvars xi = the (AList.lookup (op =) tvars xi)
-  handle Option.Option => error_var "No such type variable in theorem: " xi;
+fun the_sort tvars (xi: indexname) =
+  (case AList.lookup (op =) tvars xi of
+    SOME S => S
+  | NONE => error_var "No such type variable in theorem: " xi);
 
-fun the_type vars xi = the (AList.lookup (op =) vars xi)
-  handle Option.Option => error_var "No such variable in theorem: " xi;
+fun the_type vars (xi: indexname) =
+  (case AList.lookup (op =) vars xi of
+    SOME T => T
+  | NONE => error_var "No such variable in theorem: " xi);
 
 fun unify_vartypes thy vars (xi, u) (unifier, maxidx) =
   let
