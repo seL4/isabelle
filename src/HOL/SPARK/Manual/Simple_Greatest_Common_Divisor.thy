@@ -1,4 +1,4 @@
-(*  Title:      HOL/SPARK/Manual/Greatest_Common_Divisor.thy
+(*  Title:      HOL/SPARK/Manual/Simple_Greatest_Common_Divisor.thy
     Author:     Stefan Berghofer
     Copyright:  secunet Security Networks AG
 *)
