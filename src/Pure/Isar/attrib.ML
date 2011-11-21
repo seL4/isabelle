@@ -281,6 +281,7 @@ fun partial_evaluation ctxt facts =
         val facts' =
           if eq_list (eq_fst strict_eq_thm) (decls', fact') then
             [((b, []), map2 (fn (th, atts1) => fn (_, atts2) => (th, atts1 @ atts2)) decls' fact')]
+          else if forall (null o snd) decls' then [((b, []), fact')]
           else [(empty_binding, decls'), ((b, []), fact')];
       in (facts', context') end)
   |> fst |> flat |> map (apsnd (map (apfst single)));
