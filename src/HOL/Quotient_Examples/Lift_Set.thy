@@ -1,5 +1,5 @@
 (*  Title:      HOL/Quotient_Examples/Lift_Set.thy
-    Author:     Lukas Bulwahn and Ondrey Kuncar
+    Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
 header {* Example of lifting definitions with the quotient infrastructure *}
