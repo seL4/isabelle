@@ -286,6 +286,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 @{const Transitive_Closure.rtrancl} & @{term_type_only Transitive_Closure.rtrancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.trancl} & @{term_type_only Transitive_Closure.trancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.reflcl} & @{term_type_only Transitive_Closure.reflcl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
+@{const Transitive_Closure.acyclic} & @{term_type_only Transitive_Closure.acyclic "('a*'a)set\<Rightarrow>bool"}\\
 @{const compower} & @{term_type_only "op ^^ :: ('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set" "('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set"}\\
 \end{tabular}
 
@@ -418,7 +419,6 @@ Type @{typ int}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Wellfounded.wf} & @{term_type_only Wellfounded.wf "('a*'a)set\<Rightarrow>bool"}\\
-@{const Wellfounded.acyclic} & @{term_type_only Wellfounded.acyclic "('a*'a)set\<Rightarrow>bool"}\\
 @{const Wellfounded.acc} & @{term_type_only Wellfounded.acc "('a*'a)set\<Rightarrow>'a set"}\\
 @{const Wellfounded.measure} & @{term_type_only Wellfounded.measure "('a\<Rightarrow>nat)\<Rightarrow>('a*'a)set"}\\
 @{const Wellfounded.lex_prod} & @{term_type_only Wellfounded.lex_prod "('a*'a)set\<Rightarrow>('b*'b)set\<Rightarrow>(('a*'b)*('a*'b))set"}\\
