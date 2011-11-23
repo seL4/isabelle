@@ -355,7 +355,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
         ((Binding.empty, flat inject), [iff_add]),
         ((Binding.empty, map (fn th => th RS notE) (flat distinct)),
           [Classical.safe_elim NONE]),
-        ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)]),
+        ((Binding.empty, weak_case_congs), [Simplifier.cong_add]),
         ((Binding.empty, flat (distinct @ inject)), [Induct.induct_simp_add])] @
           named_rules @ unnamed_rules)
     |> snd

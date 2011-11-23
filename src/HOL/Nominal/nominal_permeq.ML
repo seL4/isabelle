@@ -145,9 +145,9 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ss i =
     let
        val ss' = Simplifier.global_context (theory_of_thm st) ss
          addsimps (maps (dynamic_thms st) dyn_thms @ eqvt_thms)
-         delcongs weak_congs
-         addcongs strong_congs
          addsimprocs [perm_simproc_fun, perm_simproc_app]
+         |> fold Simplifier.del_cong weak_congs
+         |> fold Simplifier.add_cong strong_congs
     in
       stac ss' i st
     end);

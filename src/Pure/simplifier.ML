@@ -37,6 +37,10 @@ sig
   val prems_of: simpset -> thm list
   val add_simp: thm -> simpset -> simpset
   val del_simp: thm -> simpset -> simpset
+  val add_eqcong: thm -> simpset -> simpset
+  val del_eqcong: thm -> simpset -> simpset
+  val add_cong: thm -> simpset -> simpset
+  val del_cong: thm -> simpset -> simpset
   val add_prems: thm list -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
@@ -54,7 +58,7 @@ sig
   val asm_full_rewrite: simpset -> conv
   val get_ss: Context.generic -> simpset
   val map_ss: (simpset -> simpset) -> Context.generic -> Context.generic
-  val attrib: (simpset * thm list -> simpset) -> attribute
+  val attrib: (thm -> simpset -> simpset) -> attribute
   val simp_add: attribute
   val simp_del: attribute
   val cong_add: attribute
@@ -127,12 +131,12 @@ fun pretty_ss ctxt ss =
 
 (* attributes *)
 
-fun attrib f = Thm.declaration_attribute (fn th => map_ss (fn ss => f (ss, [th])));
+fun attrib f = Thm.declaration_attribute (map_ss o f);
 
-val simp_add = attrib (op addsimps);
-val simp_del = attrib (op delsimps);
-val cong_add = attrib (op addcongs);
-val cong_del = attrib (op delcongs);
+val simp_add = attrib add_simp;
+val simp_del = attrib del_simp;
+val cong_add = attrib add_cong;
+val cong_del = attrib del_cong;
 
 
 (* local simpset *)

@@ -217,8 +217,8 @@ val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);
 fun meta_rewrite_conv ctxt =
   Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
     (Raw_Simplifier.context ctxt empty_ss
-      addeqcongs [Drule.equals_cong]    (*protect meta-level equality*)
-      addsimps (Rules.get (Context.Proof ctxt)));
+      addsimps (Rules.get (Context.Proof ctxt))
+      |> Raw_Simplifier.add_eqcong Drule.equals_cong);    (*protect meta-level equality*)
 
 val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 

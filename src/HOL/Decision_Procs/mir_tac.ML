@@ -108,19 +108,21 @@ fun mir_tac ctxt q =
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', @{thm Suc_eq_plus1}]
       addsimps comp_ths
-      addsplits [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, @{thm "split_min"}, @{thm "split_max"}]
+      |> fold Splitter.add_split
+          [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"},
+            @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
       addsimps [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] @ map (fn r => r RS sym)
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
          @{thm "zmult_int"}]
-      addsplits [@{thm "zdiff_int_split"}]
+      |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 
     val simpset2 = HOL_basic_ss
       addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
                 @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}]
-      addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
+      |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)

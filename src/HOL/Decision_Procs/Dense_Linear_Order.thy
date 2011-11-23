@@ -865,7 +865,7 @@ fun classfield_whatis phi =
  in h end;
 fun class_field_ss phi =
    HOL_basic_ss addsimps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
-   addsplits [@{thm "abs_split"},@{thm "split_max"}, @{thm "split_min"}]
+   |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}]
 
 in
 Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}

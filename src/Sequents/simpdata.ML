@@ -85,6 +85,6 @@ val LK_simps =
 
 val LK_ss =
   LK_basic_ss addsimps LK_simps
-  addeqcongs [@{thm left_cong}]
-  addcongs [@{thm imp_cong}];
+  |> Simplifier.add_eqcong @{thm left_cong}
+  |> Simplifier.add_cong @{thm imp_cong};
 

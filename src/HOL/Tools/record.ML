@@ -515,8 +515,8 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
         updates = fold Symtab.update_new upds updates,
         simpset = Simplifier.addsimps (simpset, simps),
         defset = Simplifier.addsimps (defset, defs),
-        foldcong = foldcong addcongs folds,
-        unfoldcong = unfoldcong addcongs unfolds}
+        foldcong = foldcong |> fold Simplifier.add_cong folds,
+        unfoldcong = unfoldcong |> fold Simplifier.add_cong unfolds}
        equalities extinjects extsplit splits extfields fieldext;
   in Data.put data thy end;
 

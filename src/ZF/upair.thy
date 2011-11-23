@@ -224,8 +224,7 @@ lemma split_if [split]:
      "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
 by (case_tac Q, simp_all)
 
-(** Rewrite rules for boolean case-splitting: faster than 
-        addsplits[split_if]
+(** Rewrite rules for boolean case-splitting: faster than split_if [split]
 **)
 
 lemmas split_if_eq1 = split_if [of "%x. x = b"] for b

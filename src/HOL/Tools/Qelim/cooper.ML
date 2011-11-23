@@ -784,17 +784,17 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
 
 local
 val ss1 = comp_ss
-  addsimps @{thms simp_thms} @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] 
-      @ map (fn r => r RS sym) 
+  addsimps @{thms simp_thms} @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}]
+      @ map (fn r => r RS sym)
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
          @{thm "zmult_int"}]
-    addsplits [@{thm "zdiff_int_split"}]
+  |> Splitter.add_split @{thm "zdiff_int_split"}
 
 val ss2 = HOL_basic_ss
   addsimps [@{thm "nat_0_le"}, @{thm "int_nat_number_of"},
             @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
             @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
-  addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
+  |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
 val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
   @ map (Thm.symmetric o mk_meta_eq) 
     [@{thm "dvd_eq_mod_eq_0"},
@@ -807,9 +807,11 @@ val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
      @{thm "mod_1"}, @{thm "Suc_eq_plus1"}]
   @ @{thms add_ac}
  addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
- val splits_ss = comp_ss addsimps [@{thm "mod_div_equality'"}] addsplits 
-     [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
-      @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]
+val splits_ss =
+  comp_ss addsimps [@{thm "mod_div_equality'"}]
+  |> fold Splitter.add_split
+    [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
+     @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]
 in
 fun nat_to_int_tac ctxt = 
   simp_tac (Simplifier.context ctxt ss1) THEN_ALL_NEW

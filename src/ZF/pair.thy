@@ -12,7 +12,7 @@ begin
 setup {*
   Simplifier.map_simpset_global (fn ss =>
     ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
-    addcongs [@{thm if_weak_cong}])
+    |> Simplifier.add_cong @{thm if_weak_cong})
 *}
 
 ML {* val ZF_ss = @{simpset} *}

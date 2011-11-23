@@ -105,8 +105,10 @@ ML {*
 val ss = @{simpset} addsimps @{thms "transitions"};
 val rename_ss = ss addsimps @{thms unfold_renaming};
 
-val tac     = asm_simp_tac (ss addcongs [@{thm conj_cong}] addsplits [@{thm split_if}])
-val tac_ren = asm_simp_tac (rename_ss addcongs [@{thm conj_cong}] addsplits [@{thm split_if}])
+val tac =
+  asm_simp_tac (ss |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
+val tac_ren =
+  asm_simp_tac (rename_ss |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
 *}
 
 

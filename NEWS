@@ -167,6 +167,15 @@ ProofContext has been discontinued.  INCOMPATIBILITY.
 change of semantics: update is applied to auxiliary local theory
 context as well.
 
+* Modernized some old-style infix operations:
+
+  addeqcongs    ~> Simplifier.add_eqcong
+  deleqcongs    ~> Simplifier.del_eqcong
+  addcongs      ~> Simplifier.add_cong
+  delcongs      ~> Simplifier.del_cong
+  addsplits     ~> Splitter.add_split
+  delsplits     ~> Splitter.del_split
+
 
 
 New in Isabelle2011-1 (October 2011)

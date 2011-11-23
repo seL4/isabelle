@@ -7,8 +7,6 @@ Deals with equalities of the form ?P(f args) = ...
 where "f args" must be a first-order term without duplicate variables.
 *)
 
-infix 4 addsplits delsplits;
-
 signature SPLITTER_DATA =
 sig
   val thy           : theory
@@ -34,8 +32,8 @@ sig
   val split_tac       : thm list -> int -> tactic
   val split_inside_tac: thm list -> int -> tactic
   val split_asm_tac   : thm list -> int -> tactic
-  val addsplits       : simpset * thm list -> simpset
-  val delsplits       : simpset * thm list -> simpset
+  val add_split: thm -> simpset -> simpset
+  val del_split: thm -> simpset -> simpset
   val split_add: attribute
   val split_del: attribute
   val split_modifiers : Method.modifier parser list
@@ -419,7 +417,7 @@ fun gen_split_tac [] = K no_tac
 
 (** declare split rules **)
 
-(* addsplits / delsplits *)
+(* add_split / del_split *)
 
 fun string_of_typ (Type (s, Ts)) =
       (if null Ts then "" else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
@@ -428,29 +426,23 @@ fun string_of_typ (Type (s, Ts)) =
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
-fun ss addsplits splits =
+fun add_split split ss =
   let
-    fun addsplit split ss =
-      let
-        val (name, asm) = split_thm_info split
-        val tac = (if asm then split_asm_tac else split_tac) [split]
-      in Simplifier.addloop (ss, (split_name name asm, tac)) end
-  in fold addsplit splits ss end;
+    val (name, asm) = split_thm_info split
+    val tac = (if asm then split_asm_tac else split_tac) [split]
+  in Simplifier.addloop (ss, (split_name name asm, tac)) end;
 
-fun ss delsplits splits =
-  let
-    fun delsplit split ss =
-      let val (name, asm) = split_thm_info split
-      in Simplifier.delloop (ss, split_name name asm) end
-  in fold delsplit splits ss end;
+fun del_split split ss =
+  let val (name, asm) = split_thm_info split
+  in Simplifier.delloop (ss, split_name name asm) end;
 
 
 (* attributes *)
 
 val splitN = "split";
 
-val split_add = Simplifier.attrib (op addsplits);
-val split_del = Simplifier.attrib (op delsplits);
+val split_add = Simplifier.attrib add_split;
+val split_del = Simplifier.attrib del_split;
 
 
 (* methods *)

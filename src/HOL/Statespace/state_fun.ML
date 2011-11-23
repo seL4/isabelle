@@ -78,7 +78,7 @@ val string_eq_simp_tac = simp_tac (HOL_basic_ss
   addsimps (@{thms list.inject} @ @{thms char.inject}
     @ @{thms list.distinct} @ @{thms char.distinct} @ @{thms simp_thms})
   addsimprocs [lazy_conj_simproc]
-  addcongs [@{thm block_conj_cong}]);
+  |> Simplifier.add_cong @{thm block_conj_cong});
 
 end;
 
@@ -88,8 +88,8 @@ val lookup_ss = (HOL_basic_ss
     @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
       @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
   addsimprocs [lazy_conj_simproc]
-  addcongs @{thms block_conj_cong}
-  addSolver StateSpace.distinctNameSolver);
+  addSolver StateSpace.distinctNameSolver
+  |> fold Simplifier.add_cong @{thms block_conj_cong});
 
 val ex_lookup_ss = HOL_ss addsimps @{thms StateFun.ex_id};
 
@@ -160,7 +160,7 @@ val ss' = (HOL_ss addsimps
   (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
     @ @{thms list.distinct} @ @{thms char.distinct})
   addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
-  addcongs @{thms block_conj_cong});
+  |> fold Simplifier.add_cong @{thms block_conj_cong});
 
 in
 

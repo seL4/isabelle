@@ -5,7 +5,7 @@ Higher-order Simplification.
 *)
 
 infix 4
-  addsimps delsimps addeqcongs deleqcongs addcongs delcongs addsimprocs delsimprocs
+  addsimps delsimps addsimprocs delsimprocs
   setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
   setloop' setloop addloop addloop' delloop setSSolver addSSolver setSolver addSolver;
 
@@ -39,10 +39,6 @@ sig
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
   val addsimps: simpset * thm list -> simpset
   val delsimps: simpset * thm list -> simpset
-  val addeqcongs: simpset * thm list -> simpset
-  val deleqcongs: simpset * thm list -> simpset
-  val addcongs: simpset * thm list -> simpset
-  val delcongs: simpset * thm list -> simpset
   val addsimprocs: simpset * simproc list -> simpset
   val delsimprocs: simpset * simproc list -> simpset
   val mksimps: simpset -> thm -> thm list
@@ -99,6 +95,10 @@ sig
   val prems_of: simpset -> thm list
   val add_simp: thm -> simpset -> simpset
   val del_simp: thm -> simpset -> simpset
+  val add_eqcong: thm -> simpset -> simpset
+  val del_eqcong: thm -> simpset -> simpset
+  val add_cong: thm -> simpset -> simpset
+  val del_cong: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
   val clear_ss: simpset -> simpset
@@ -569,7 +569,11 @@ fun is_full_cong thm =
     is_full_cong_prems prems (xs ~~ ys)
   end;
 
-fun add_cong (ss, thm) = ss |>
+fun mk_cong (ss as Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f ss;
+
+in
+
+fun add_eqcong thm ss = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Thm.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -586,7 +590,7 @@ fun add_cong (ss, thm) = ss |>
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
-fun del_cong (ss, thm) = ss |>
+fun del_eqcong thm ss = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
@@ -600,15 +604,8 @@ fun del_cong (ss, thm) = ss |>
         if is_full_cong thm then NONE else SOME a);
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
-fun mk_cong (ss as Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f ss;
-
-in
-
-val (op addeqcongs) = Library.foldl add_cong;
-val (op deleqcongs) = Library.foldl del_cong;
-
-fun ss addcongs congs = ss addeqcongs map (mk_cong ss) congs;
-fun ss delcongs congs = ss deleqcongs map (mk_cong ss) congs;
+fun add_cong thm ss = add_eqcong (mk_cong ss thm) ss;
+fun del_cong thm ss = del_eqcong (mk_cong ss thm) ss;
 
 end;
 
@@ -1366,7 +1363,7 @@ val hhf_ss = empty_ss addsimps Drule.norm_hhf_eqs;
 in
 
 val norm_hhf = gen_norm_hhf hhf_ss;
-val norm_hhf_protect = gen_norm_hhf (hhf_ss addeqcongs [Drule.protect_cong]);
+val norm_hhf_protect = gen_norm_hhf (hhf_ss |> add_eqcong Drule.protect_cong);
 
 end;
 

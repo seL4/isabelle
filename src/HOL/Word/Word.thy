@@ -1419,8 +1419,8 @@ ML {*
 fun uint_arith_ss_of ss = 
   ss addsimps @{thms uint_arith_simps}
      delsimps @{thms word_uint.Rep_inject}
-     addsplits @{thms split_if_asm} 
-     addcongs @{thms power_False_cong}
+     |> fold Splitter.add_split @{thms split_if_asm}
+     |> fold Simplifier.add_cong @{thms power_False_cong}
 
 fun uint_arith_tacs ctxt = 
   let
@@ -1430,8 +1430,8 @@ fun uint_arith_tacs ctxt =
   in 
     [ clarify_tac ctxt 1,
       full_simp_tac (uint_arith_ss_of (simpset_of ctxt)) 1,
-      ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms uint_splits} 
-                                      addcongs @{thms power_False_cong})),
+      ALLGOALS (full_simp_tac (HOL_ss |> fold Splitter.add_split @{thms uint_splits}
+                                      |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
@@ -1924,8 +1924,8 @@ ML {*
 fun unat_arith_ss_of ss = 
   ss addsimps @{thms unat_arith_simps}
      delsimps @{thms word_unat.Rep_inject}
-     addsplits @{thms split_if_asm}
-     addcongs @{thms power_False_cong}
+     |> fold Splitter.add_split @{thms split_if_asm}
+     |> fold Simplifier.add_cong @{thms power_False_cong}
 
 fun unat_arith_tacs ctxt =   
   let
@@ -1935,8 +1935,8 @@ fun unat_arith_tacs ctxt =
   in 
     [ clarify_tac ctxt 1,
       full_simp_tac (unat_arith_ss_of (simpset_of ctxt)) 1,
-      ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms unat_splits} 
-                                       addcongs @{thms power_False_cong})),
+      ALLGOALS (full_simp_tac (HOL_ss |> fold Splitter.add_split @{thms unat_splits}
+                                      |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN

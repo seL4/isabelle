@@ -431,9 +431,11 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      (*case_ss causes minimal simplification: bodies of case expressions are
        not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
-     val case_ss = Simplifier.global_context theory
-       (HOL_basic_ss addcongs
-         (map (#weak_case_cong o snd) o Symtab.dest o Datatype.get_all) theory addsimps case_rewrites)
+     val case_ss =
+       Simplifier.global_context theory
+         (HOL_basic_ss addsimps case_rewrites
+          |> fold (Simplifier.add_cong o #weak_case_cong o snd)
+              (Symtab.dest (Datatype.get_all theory)))
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
      val extract = Rules.CONTEXT_REWRITE_RULE
                      (f, [R], @{thm cut_apply}, meta_tflCongs@context_congs)

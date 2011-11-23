@@ -687,15 +687,16 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
 
 in
 
-val field_comp_conv = (Simplifier.rewrite
-(HOL_basic_ss addsimps @{thms "semiring_norm"}
-              addsimps ths addsimps @{thms simp_thms}
-              addsimprocs field_cancel_numeral_factors
-               addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
-                            ord_frac_simproc]
-                addcongs [@{thm "if_weak_cong"}]))
-then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
-  [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}))
+val field_comp_conv =
+  Simplifier.rewrite
+    (HOL_basic_ss addsimps @{thms "semiring_norm"}
+      addsimps ths addsimps @{thms simp_thms}
+      addsimprocs field_cancel_numeral_factors
+      addsimprocs [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
+      |> Simplifier.add_cong @{thm "if_weak_cong"})
+  then_conv
+  Simplifier.rewrite (HOL_basic_ss addsimps
+    [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)})
 
 end
 

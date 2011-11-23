@@ -339,7 +339,7 @@ val IFOL_ss =
   FOL_basic_ss
   addsimps (@{thms meta_simps} @ @{thms IFOL_simps} @ @{thms int_ex_simps} @ @{thms int_all_simps})
   addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}]
-  addcongs [@{thm imp_cong}];
+  |> Simplifier.add_cong @{thm imp_cong};
 
 (*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});

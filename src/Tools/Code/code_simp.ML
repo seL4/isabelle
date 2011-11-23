@@ -36,7 +36,8 @@ fun simpset_default thy = Simplifier.global_context thy o the_default (Simpset.g
 (* build simpset and conversion from program *)
 
 fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
-      ss addsimps (map_filter (fst o snd)) eqs addcongs (the_list some_cong)
+      ss addsimps (map_filter (fst o snd)) eqs
+      |> fold Simplifier.add_cong (the_list some_cong)
   | add_stmt (Code_Thingol.Classinst (_, (_, (classparam_instances, _)))) ss =
       ss addsimps (map (fst o snd) classparam_instances)
   | add_stmt _ ss = ss;

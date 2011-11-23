@@ -114,7 +114,7 @@ fun simp_all_tac rules =
   in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 fun simplify_meta_eq rules =
-  let val ss0 = HOL_basic_ss addeqcongs [@{thm eq_cong2}] addsimps rules
+  let val ss0 = HOL_basic_ss addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2}
   in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end
 
 end;

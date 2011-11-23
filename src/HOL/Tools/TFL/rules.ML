@@ -781,8 +781,9 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     end
     val ctm = cprop_of th
     val names = Misc_Legacy.add_term_names (term_of ctm, [])
-    val th1 = Raw_Simplifier.rewrite_cterm (false,true,false)
-      (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
+    val th1 =
+      Raw_Simplifier.rewrite_cterm (false, true, false)
+        (prover names) (ss0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm
     val th2 = Thm.equal_elim th1 th
  in
  (th2, filter_out restricted (!tc_list))
