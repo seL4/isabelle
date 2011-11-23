@@ -280,8 +280,7 @@ subsection {* The Natural Numbers *}
 text {* Successor *}
 
 lemma "Suc 99999 = 100000"
-  by (simp add: Suc_nat_number_of)
-    -- {* not a default rewrite since sometimes we want to have @{text "Suc nnn"} *}
+  by simp
 
 
 text {* \medskip Addition *}
