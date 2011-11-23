@@ -42,7 +42,7 @@ apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
 apply simp
 apply (case_tac "k=0")
-apply (simp_all add: mod_geq gcd_non_0 mod_mult_distrib2)
+apply simp_all
 done
 
 text {*
