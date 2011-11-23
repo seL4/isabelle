@@ -576,10 +576,10 @@ in
 fun add_eqcong thm ss = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
-      val (lhs, _) = Thm.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
+      val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
-      val a = the (cong_name (head_of (term_of lhs))) handle Option.Option =>
+      val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (xs, weak) = congs;
       val _ =
@@ -593,8 +593,8 @@ fun add_eqcong thm ss = ss |>
 fun del_eqcong thm ss = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
-      val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
-        raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+      val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
+        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
