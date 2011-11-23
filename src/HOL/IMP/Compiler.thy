@@ -27,7 +27,7 @@ text {*
 lemma inth_append [simp]:
   "0 \<le> n \<Longrightarrow>
   (xs @ ys) !! n = (if n < isize xs then xs !! n else ys !! (n - isize xs))"
-  by (induct xs arbitrary: n) (auto simp: algebra_simps)
+  by (induction xs arbitrary: n) (auto simp: algebra_simps)
 
 subsection "Instructions and Stack Machine"
 
@@ -52,7 +52,7 @@ where
 "LOADI n \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, n#stk)" |
 "LOAD x  \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, s x # stk)" |
 "ADD     \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, (hd2 stk + hd stk) # tl2 stk)" |
-"STORE n \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s(n := hd stk),tl stk)" |
+"STORE x \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s(x := hd stk),tl stk)" |
 "JMP n   \<turnstile>i (i,s,stk) \<rightarrow> (i+1+n,s,stk)" |
 "JMPLESS n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk)" |
 "JMPGE n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk)"
@@ -94,7 +94,7 @@ values
 subsection{* Verification infrastructure *}
 
 lemma exec_trans: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
-  by (induct rule: exec.induct) fastforce+
+  by (induction rule: exec.induct) fastforce+
 
 inductive_cases iexec1_cases [elim!]:
   "LOADI n \<turnstile>i c \<rightarrow> c'" 
@@ -131,7 +131,7 @@ lemma exec1_appendR: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P@P' \
   by auto
 
 lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
-  by (induct rule: exec.induct) (fastforce intro: exec1_appendR)+
+  by (induction rule: exec.induct) (fastforce intro: exec1_appendR)+
 
 lemma iexec1_shiftI:
   assumes "X \<turnstile>i (i,s,stk) \<rightarrow> (i',s',stk')"
@@ -155,7 +155,7 @@ lemma exec1_appendL:
 lemma exec_appendL:
  "P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')  \<Longrightarrow>
   P' @ P \<turnstile> (isize(P')+i,s,stk) \<rightarrow>* (isize(P')+i',s',stk')"
-  by (induct rule: exec_induct) (blast intro!: exec1_appendL)+
+  by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
 
 text{* Now we specialise the above lemmas to enable automatic proofs of
 @{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
@@ -201,7 +201,7 @@ fun acomp :: "aexp \<Rightarrow> instr list" where
 
 lemma acomp_correct[intro]:
   "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (isize(acomp a),s,aval a s#stk)"
-  by (induct a arbitrary: stk) fastforce+
+  by (induction a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
 "bcomp (Bc v) c n = (if v=c then [JMP n] else [])" |
