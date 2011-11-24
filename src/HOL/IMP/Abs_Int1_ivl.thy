@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int1_ivl
-imports Abs_Int1
+imports Abs_Int1 Abs_Int_Tests
 begin
 
 subsection "Interval Analysis"
@@ -117,10 +117,10 @@ definition "\<bottom> = empty"
 instance
 proof
   case goal1 thus ?case
-    by (simp add:meet_ivl_def empty_def meet_ivl_def le_ivl_def le_option_def max_option_def min_option_def split: ivl.splits option.splits)
+    by (simp add:meet_ivl_def empty_def le_ivl_def le_option_def max_option_def min_option_def split: ivl.splits option.splits)
 next
   case goal2 thus ?case
-    by (simp add:meet_ivl_def empty_def meet_ivl_def le_ivl_def le_option_def max_option_def min_option_def split: ivl.splits option.splits)
+    by (simp add: empty_def meet_ivl_def le_ivl_def le_option_def max_option_def min_option_def split: ivl.splits option.splits)
 next
   case goal3 thus ?case
     by (cases x, cases y, cases z, auto simp add: le_ivl_def meet_ivl_def empty_def le_option_def max_option_def min_option_def split: option.splits if_splits)
@@ -161,6 +161,7 @@ fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> i
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
 
 interpretation Val_abs rep_ivl num_ivl plus_ivl
+defines aval_ivl is aval'
 proof
   case goal1 thus ?case
     by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
@@ -208,72 +209,9 @@ defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and step_ivl is step
 and AI_ivl is AI
-and aval_ivl is aval'
+and aval_ivl' is aval''
 proof qed
 
-definition "test1_ivl =
- ''y'' ::= N 7;
- IF Less (V ''x'') (V ''y'')
- THEN ''y'' ::= Plus (V ''y'') (V ''x'')
- ELSE ''x'' ::= Plus (V ''x'') (V ''y'')"
-
-value [code] "show_acom_opt (AI_ivl test1_ivl)"
-
-value [code] "show_acom_opt (AI_const test3_const)"
-value [code] "show_acom_opt (AI_ivl test3_const)"
-
-value [code] "show_acom_opt (AI_const test4_const)"
-value [code] "show_acom_opt (AI_ivl test4_const)"
-
-value [code] "show_acom_opt (AI_ivl test6_const)"
-
-definition "test2_ivl =
- WHILE Less (V ''x'') (N 100)
- DO ''x'' ::= Plus (V ''x'') (N 1)"
-
-value [code] "show_acom_opt (AI_ivl test2_ivl)"
-value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test2_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test2_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test2_ivl))"
-
-text{* Fixed point reached in 2 steps. Not so if the start value of x is known: *}
-
-definition "test3_ivl =
- ''x'' ::= N 7;
- WHILE Less (V ''x'') (N 100)
- DO ''x'' ::= Plus (V ''x'') (N 1)"
-
-value [code] "show_acom_opt (AI_ivl test3_ivl)"
-value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^3) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^4) (\<bottom>\<^sub>c test3_ivl))"
-
-text{* Takes as many iterations as the actual execution. Would diverge if
-loop did not terminate. Worse still, as the following example shows: even if
-the actual execution terminates, the analysis may not: *}
-
-definition "test4_ivl =
- ''x'' ::= N 0; ''y'' ::= N 100; ''z'' ::= Plus (V ''x'') (V ''y'');
- WHILE Less (V ''x'') (N 11)
- DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N -1))"
-
-text{* The value of y keeps decreasing as the analysis is iterated, no matter
-how long: *}
-
-value [code] "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test4_ivl))"
-
-definition "test5_ivl =
- ''x'' ::= N 0; ''y'' ::= N 0;
- WHILE Less (V ''x'') (N 1000)
- DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
-value [code] "show_acom_opt (AI_ivl test5_ivl)"
-
-text{* Again, the analysis would not terminate: *}
-definition "test6_ivl =
- ''x'' ::= N 0;
- WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
 
 text{* Monotonicity: *}
 
@@ -290,5 +228,42 @@ next
     apply(cases a1, cases b1, cases a2, cases b2, auto simp: le_prod_def)
     by(auto simp add: empty_def le_ivl_def le_option_def min_option_def max_option_def split: option.splits)
 qed
+
+
+subsubsection "Tests"
+
+value [code] "show_acom_opt (AI_ivl test1_ivl)"
+
+text{* Better than @{text AI_const}: *}
+value [code] "show_acom_opt (AI_ivl test3_const)"
+value [code] "show_acom_opt (AI_ivl test4_const)"
+value [code] "show_acom_opt (AI_ivl test6_const)"
+
+value [code] "show_acom_opt (AI_ivl test2_ivl)"
+value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test2_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test2_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test2_ivl))"
+
+text{* Fixed point reached in 2 steps. Not so if the start value of x is known: *}
+
+value [code] "show_acom_opt (AI_ivl test3_ivl)"
+value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^3) (\<bottom>\<^sub>c test3_ivl))"
+value [code] "show_acom (((step_ivl \<top>)^^4) (\<bottom>\<^sub>c test3_ivl))"
+
+text{* Takes as many iterations as the actual execution. Would diverge if
+loop did not terminate. Worse still, as the following example shows: even if
+the actual execution terminates, the analysis may not. The value of y keeps
+decreasing as the analysis is iterated, no matter how long: *}
+
+value [code] "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test4_ivl))"
+
+text{* Relationships between variables are NOT captured: *}
+value [code] "show_acom_opt (AI_ivl test5_ivl)"
+
+text{* Again, the analysis would not terminate: *}
+value [code] "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test6_ivl))"
 
 end

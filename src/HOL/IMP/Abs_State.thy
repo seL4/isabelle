@@ -19,11 +19,7 @@ definition [simp]: "inter_list xs ys = [x\<leftarrow>xs. x \<in> set ys]"
 
 definition "show_st S = [(x,fun S x). x \<leftarrow> sort(dom S)]"
 
-fun show_st_up where
-"show_st_up Bot = Bot" |
-"show_st_up (Up S) = Up(show_st S)"
-
-definition "show_acom = map_acom show_st_up"
+definition "show_acom = map_acom (Option.map show_st)"
 definition "show_acom_opt = Option.map show_acom"
 
 definition "lookup F x = (if x : set(dom F) then fun F x else \<top>)"
@@ -65,31 +61,36 @@ by(auto simp add: le_st_def lookup_def update_def)
 context Val_abs
 begin
 
-abbreviation fun_in_rep :: "state \<Rightarrow> 'a st \<Rightarrow> bool" (infix "<:f" 50) where
-"s <:f S == s \<in> rep_st rep S"
+abbreviation rep_f :: "'a st \<Rightarrow> state set" ("\<gamma>\<^isub>f")
+where "\<gamma>\<^isub>f == rep_st rep"
 
-notation fun_in_rep (infix "<:\<^sub>f" 50)
+abbreviation rep_u :: "'a st option \<Rightarrow> state set" ("\<gamma>\<^isub>u")
+where "\<gamma>\<^isub>u == rep_option \<gamma>\<^isub>f"
 
-lemma fun_in_rep_le: "s <:f S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarrow> s <:f T"
-apply(auto simp add: rep_st_def le_st_def dest: le_rep)
-by (metis in_rep_Top le_rep lookup_def subsetD)
+abbreviation rep_c :: "'a st option acom \<Rightarrow> state set acom" ("\<gamma>\<^isub>c")
+where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>u"
 
-abbreviation in_rep_up :: "state \<Rightarrow> 'a st up \<Rightarrow> bool"  (infix "<:up" 50)
-where "s <:up S == s : rep_up (rep_st rep) S"
+lemma rep_f_Top[simp]: "rep_f Top = UNIV"
+by(auto simp: Top_st_def rep_st_def lookup_def)
 
-notation (output) in_rep_up (infix "<:\<^sub>u\<^sub>p" 50)
+lemma rep_u_Top[simp]: "rep_u Top = UNIV"
+by (simp add: Top_option_def)
 
-lemma up_fun_in_rep_le: "s <:up S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarrow> s <:up T"
-by (cases S) (auto intro:fun_in_rep_le)
+(* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma in_rep_up_iff: "x <:up u \<longleftrightarrow> (\<exists>u'. u = Up u' \<and> x <:f u')"
+lemma mono_rep_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+apply(simp add:rep_st_def subset_iff lookup_def le_st_def split: if_splits)
+by (metis UNIV_I mono_rep rep_Top subsetD)
+
+lemma mono_rep_u:
+  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>u sa \<subseteq> \<gamma>\<^isub>u sa'"
+by(induction sa sa' rule: le_option.induct)(simp_all add: mono_rep_f)
+
+lemma mono_rep_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
+by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_rep_u)
+
+lemma in_rep_up_iff: "x : rep_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x : r u')"
 by (cases u) auto
-
-lemma in_rep_Top_fun: "s <:f \<top>"
-by(simp add: rep_st_def lookup_def Top_st_def)
-
-lemma in_rep_Top_up: "s <:up \<top>"
-by(simp add: Top_up_def in_rep_Top_fun)
 
 end
 

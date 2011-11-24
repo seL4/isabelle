@@ -3,56 +3,10 @@
 header "Abstract Interpretation"
 
 theory Abs_Int0_fun
-imports "~~/src/HOL/ex/Interpretation_with_Defs" Big_Step
+imports "~~/src/HOL/ex/Interpretation_with_Defs"
         "~~/src/HOL/Library/While_Combinator"
+        Collecting
 begin
-
-subsection "Annotated Commands"
-
-datatype 'a acom =
-  SKIP   'a                           ("SKIP {_}") |
-  Assign vname aexp 'a                ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
-  Semi   "('a acom)" "('a acom)"          ("_;//_"  [60, 61] 60) |
-  If     bexp "('a acom)" "('a acom)" 'a
-    ("(IF _/ THEN _/ ELSE _//{_})"  [0, 0, 61, 0] 61) |
-  While  'a bexp "('a acom)" 'a
-    ("({_}//WHILE _/ DO (_)//{_})"  [0, 0, 61, 0] 61)
-
-fun post :: "'a acom \<Rightarrow>'a" where
-"post (SKIP {P}) = P" |
-"post (x ::= e {P}) = P" |
-"post (c1; c2) = post c2" |
-"post (IF b THEN c1 ELSE c2 {P}) = P" |
-"post ({Inv} WHILE b DO c {P}) = P"
-
-fun strip :: "'a acom \<Rightarrow> com" where
-"strip (SKIP {a}) = com.SKIP" |
-"strip (x ::= e {a}) = (x ::= e)" |
-"strip (c1;c2) = (strip c1; strip c2)" |
-"strip (IF b THEN c1 ELSE c2 {a}) = (IF b THEN strip c1 ELSE strip c2)" |
-"strip ({a1} WHILE b DO c {a2}) = (WHILE b DO strip c)"
-
-fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
-"anno a com.SKIP = SKIP {a}" |
-"anno a (x ::= e) = (x ::= e {a})" |
-"anno a (c1;c2) = (anno a c1; anno a c2)" |
-"anno a (IF b THEN c1 ELSE c2) =
-  (IF b THEN anno a c1 ELSE anno a c2 {a})" |
-"anno a (WHILE b DO c) =
-  ({a} WHILE b DO anno a c {a})"
-
-lemma strip_anno[simp]: "strip (anno a c) = c"
-by(induct c) simp_all
-
-fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
-"map_acom f (SKIP {a}) = SKIP {f a}" |
-"map_acom f (x ::= e {a}) = (x ::= e {f a})" |
-"map_acom f (c1;c2) = (map_acom f c1; map_acom f c2)" |
-"map_acom f (IF b THEN c1 ELSE c2 {a}) =
-  (IF b THEN map_acom f c1 ELSE map_acom f c2 {f a})" |
-"map_acom f ({a1} WHILE b DO c {a2}) =
-  ({f a1} WHILE b DO map_acom f c {f a2})"
-
 
 subsection "Orderings"
 
@@ -159,31 +113,29 @@ end
 
 subsubsection "Lifting"
 
-datatype 'a up = Bot | Up 'a
-
-instantiation up :: (SL_top)SL_top
+instantiation option :: (SL_top)SL_top
 begin
 
-fun le_up where
-"Up x \<sqsubseteq> Up y = (x \<sqsubseteq> y)" |
-"Bot \<sqsubseteq> y = True" |
-"Up _ \<sqsubseteq> Bot = False"
+fun le_option where
+"Some x \<sqsubseteq> Some y = (x \<sqsubseteq> y)" |
+"None \<sqsubseteq> y = True" |
+"Some _ \<sqsubseteq> None = False"
 
-lemma [simp]: "(x \<sqsubseteq> Bot) = (x = Bot)"
+lemma [simp]: "(x \<sqsubseteq> None) = (x = None)"
 by (cases x) simp_all
 
-lemma [simp]: "(Up x \<sqsubseteq> u) = (\<exists>y. u = Up y & x \<sqsubseteq> y)"
+lemma [simp]: "(Some x \<sqsubseteq> u) = (\<exists>y. u = Some y & x \<sqsubseteq> y)"
 by (cases u) auto
 
-fun join_up where
-"Up x \<squnion> Up y = Up(x \<squnion> y)" |
-"Bot \<squnion> y = y" |
-"x \<squnion> Bot = x"
+fun join_option where
+"Some x \<squnion> Some y = Some(x \<squnion> y)" |
+"None \<squnion> y = y" |
+"x \<squnion> None = x"
 
-lemma [simp]: "x \<squnion> Bot = x"
+lemma [simp]: "x \<squnion> None = x"
 by (cases x) simp_all
 
-definition "\<top> = Up \<top>"
+definition "\<top> = Some \<top>"
 
 instance proof
   case goal1 show ?case by(cases x, simp_all)
@@ -197,13 +149,13 @@ next
 next
   case goal5 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
 next
-  case goal6 thus ?case by(cases x, simp_all add: Top_up_def)
+  case goal6 thus ?case by(cases x, simp_all add: Top_option_def)
 qed
 
 end
 
-definition bot_acom :: "com \<Rightarrow> ('a::SL_top)up acom" ("\<bottom>\<^sub>c") where
-"\<bottom>\<^sub>c = anno Bot"
+definition bot_acom :: "com \<Rightarrow> ('a::SL_top)option acom" ("\<bottom>\<^sub>c") where
+"\<bottom>\<^sub>c = anno None"
 
 lemma strip_bot_acom[simp]: "strip(\<bottom>\<^sub>c c) = c"
 by(simp add: bot_acom_def)
@@ -246,7 +198,7 @@ proof-
 qed
 
 definition
- lpfp\<^isub>c :: "(('a::SL_top)up acom \<Rightarrow> 'a up acom) \<Rightarrow> com \<Rightarrow> 'a up acom option" where
+ lpfp\<^isub>c :: "(('a::SL_top)option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option" where
 "lpfp\<^isub>c f c = pfp f (\<bottom>\<^sub>c c)"
 
 lemma lpfpc_pfp: "lpfp\<^isub>c f c0 = Some c \<Longrightarrow> f c \<sqsubseteq> c"
@@ -275,30 +227,21 @@ subsection "Abstract Interpretation"
 definition rep_fun :: "('a \<Rightarrow> 'b set) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b)set" where
 "rep_fun rep F = {f. \<forall>x. f x \<in> rep(F x)}"
 
-fun rep_up :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a up \<Rightarrow> 'b set" where
-"rep_up rep Bot = {}" |
-"rep_up rep (Up a) = rep a"
+fun rep_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Rightarrow> 'b set" where
+"rep_option rep None = {}" |
+"rep_option rep (Some a) = rep a"
 
 text{* The interface for abstract values: *}
 
 locale Val_abs =
-fixes rep :: "'a::SL_top \<Rightarrow> val set"
-  assumes le_rep: "a \<sqsubseteq> b \<Longrightarrow> rep a \<subseteq> rep b"
-  and rep_Top: "rep \<top> = UNIV"
+fixes rep :: "'a::SL_top \<Rightarrow> val set" ("\<gamma>")
+  assumes mono_rep: "a \<sqsubseteq> b \<Longrightarrow> \<gamma> a \<subseteq> \<gamma> b"
+  and rep_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'a"
 and plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes rep_num': "n : rep(num' n)"
+  assumes rep_num': "n : \<gamma>(num' n)"
   and rep_plus':
- "n1 : rep a1 \<Longrightarrow> n2 : rep a2 \<Longrightarrow> n1+n2 : rep(plus' a1 a2)"
-begin
-
-abbreviation in_rep (infix "<:" 50)
- where "x <: a == x : rep a"
-
-lemma in_rep_Top[simp]: "x <: \<top>"
-by(simp add: rep_Top)
-
-end
+ "n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma>(plus' a1 a2)"
 
 type_synonym 'a st = "(vname \<Rightarrow> 'a)"
 
@@ -310,18 +253,18 @@ fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-fun step :: "'a st up \<Rightarrow> 'a st up acom \<Rightarrow> 'a st up acom"
+fun step :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom"
  where
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
-  x ::= e {case S of Bot \<Rightarrow> Bot | Up S \<Rightarrow> Up(S(x := aval' e S))}" |
+  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
 "step S (c1; c2) = step S c1; step (post c1) c2" |
 "step S (IF b THEN c1 ELSE c2 {P}) =
    IF b THEN step S c1 ELSE step S c2 {post c1 \<squnion> post c2}" |
 "step S ({Inv} WHILE b DO c {P}) =
   {S \<squnion> post c} WHILE b DO (step Inv c) {Inv}"
 
-definition AI :: "com \<Rightarrow> 'a st up acom option" where
+definition AI :: "com \<Rightarrow> 'a st option acom option" where
 "AI = lpfp\<^isub>c (step \<top>)"
 
 
@@ -329,76 +272,102 @@ lemma strip_step[simp]: "strip(step S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
 
-text{*Lifting @{text "<:"} to other types: *}
+abbreviation rep_f :: "'a st \<Rightarrow> state set" ("\<gamma>\<^isub>f")
+where "\<gamma>\<^isub>f == rep_fun \<gamma>"
 
-abbreviation fun_in_rep :: "state \<Rightarrow> 'a st \<Rightarrow> bool" (infix "<:f" 50) where
-"s <:f S == s \<in> rep_fun rep S"
+abbreviation rep_u :: "'a st option \<Rightarrow> state set" ("\<gamma>\<^isub>u")
+where "\<gamma>\<^isub>u == rep_option \<gamma>\<^isub>f"
 
-notation fun_in_rep (infix "<:\<^sub>f" 50)
+abbreviation rep_c :: "'a st option acom \<Rightarrow> state set acom" ("\<gamma>\<^isub>c")
+where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>u"
 
-lemma fun_in_rep_le: "s <:f S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarrow> s <:f T"
-by(auto simp add: rep_fun_def le_fun_def dest: le_rep)
-
-abbreviation up_in_rep :: "state \<Rightarrow> 'a st up \<Rightarrow> bool"  (infix "<:up" 50) where
-"s <:up S == s : rep_up (rep_fun rep) S"
-
-notation (output) up_in_rep (infix "<:\<^sub>u\<^sub>p" 50)
-
-lemma up_fun_in_rep_le: "s <:up S \<Longrightarrow> S \<sqsubseteq> T \<Longrightarrow> s <:up T"
-by (cases S) (auto intro:fun_in_rep_le)
-
-lemma in_rep_Top_fun: "s <:f Top"
+lemma rep_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"
 by(simp add: Top_fun_def rep_fun_def)
 
-lemma in_rep_Top_up: "s <:up Top"
-by(simp add: Top_up_def in_rep_Top_fun)
+lemma rep_u_Top[simp]: "\<gamma>\<^isub>u Top = UNIV"
+by (simp add: Top_option_def)
 
+(* FIXME (maybe also le \<rightarrow> sqle?) *)
+
+lemma mono_rep_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+by(auto simp: le_fun_def rep_fun_def dest: mono_rep)
+
+lemma mono_rep_u:
+  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>u sa \<subseteq> \<gamma>\<^isub>u sa'"
+by(induction sa sa' rule: le_option.induct)(simp_all add: mono_rep_f)
+
+lemma mono_rep_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
+by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_rep_u)
 
 text{* Soundness: *}
 
-lemma aval'_sound: "s <:f S \<Longrightarrow> aval a s <: aval' a S"
+lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induct a) (auto simp: rep_num' rep_plus' rep_fun_def)
 
-lemma in_rep_update: "\<lbrakk> s <:f S; i <: a \<rbrakk> \<Longrightarrow> s(x := i) <:f S(x := a)"
+lemma in_rep_update:
+  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(S(x := a))"
 by(simp add: rep_fun_def)
 
-lemma step_sound:
-  "\<lbrakk> step S c \<sqsubseteq> c; (strip c,s) \<Rightarrow> t; s <:up S \<rbrakk>
-   \<Longrightarrow> t <:up post c"
-proof(induction c arbitrary: S s t)
+lemma step_preserves_le2:
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
+   \<Longrightarrow> step_cs S cs \<le> \<gamma>\<^isub>c (step sa ca)"
+proof(induction c arbitrary: cs ca S sa)
   case SKIP thus ?case
-    by simp (metis skipE up_fun_in_rep_le)
+    by(auto simp:strip_eq_SKIP)
 next
   case Assign thus ?case
-    apply (auto simp del: fun_upd_apply split: up.splits)
-    by (metis aval'_sound fun_in_rep_le in_rep_update)
+    by (fastforce simp: strip_eq_Assign intro: aval'_sound in_rep_update
+      split: option.splits del:subsetD)
 next
-  case Semi thus ?case by simp blast
+  case Semi thus ?case apply (auto simp: strip_eq_Semi)
+    by (metis le_post post_map_acom)
 next
-  case (If b c1 c2 S0) thus ?case
-    apply(auto simp: Let_def)
-    apply (metis up_fun_in_rep_le)+
-    done
+  case (If b c1 c2)
+  then obtain cs1 cs2 ca1 ca2 P Pa where
+      "cs= IF b THEN cs1 ELSE cs2 {P}" "ca= IF b THEN ca1 ELSE ca2 {Pa}"
+      "P \<subseteq> \<gamma>\<^isub>u Pa" "cs1 \<le> \<gamma>\<^isub>c ca1" "cs2 \<le> \<gamma>\<^isub>c ca2"
+      "strip cs1 = c1" "strip ca1 = c1" "strip cs2 = c2" "strip ca2 = c2"
+    by (fastforce simp: strip_eq_If)
+  moreover have "post cs1 \<subseteq> \<gamma>\<^isub>u(post ca1 \<squnion> post ca2)"
+    by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_rep_u order_trans post_map_acom)
+  moreover have "post cs2 \<subseteq> \<gamma>\<^isub>u(post ca1 \<squnion> post ca2)"
+    by (metis (no_types) `cs2 \<le> \<gamma>\<^isub>c ca2` join_ge2 le_post mono_rep_u order_trans post_map_acom)
+  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>u sa` by (simp add: If.IH subset_iff)
 next
-  case (While Inv b c P)
-  from While.prems have inv: "step Inv c \<sqsubseteq> c"
-    and "post c \<sqsubseteq> Inv" and "S \<sqsubseteq> Inv" and "Inv \<sqsubseteq> P" by(auto simp: Let_def)
-  { fix s t have "(WHILE b DO strip c,s) \<Rightarrow> t \<Longrightarrow> s <:up Inv \<Longrightarrow> t <:up Inv"
-    proof(induction "WHILE b DO strip c" s t rule: big_step_induct)
-      case WhileFalse thus ?case by simp
-    next
-      case (WhileTrue s1 s2 s3)
-      from WhileTrue.hyps(5)[OF up_fun_in_rep_le[OF While.IH[OF inv `(strip c, s1) \<Rightarrow> s2` `s1 <:up Inv`] `post c \<sqsubseteq> Inv`]]
-      show ?case .
-    qed
-  }
-  thus ?case using While.prems(2)
-    by simp (metis `s <:up S` `S \<sqsubseteq> Inv` `Inv \<sqsubseteq> P` up_fun_in_rep_le)
+  case (While b c1)
+  then obtain cs1 ca1 I P Ia Pa where
+    "cs = {I} WHILE b DO cs1 {P}" "ca = {Ia} WHILE b DO ca1 {Pa}"
+    "I \<subseteq> \<gamma>\<^isub>u Ia" "P \<subseteq> \<gamma>\<^isub>u Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
+    "strip cs1 = c1" "strip ca1 = c1"
+    by (fastforce simp: strip_eq_While)
+  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>u (sa \<squnion> post ca1)"
+    using `S \<subseteq> \<gamma>\<^isub>u sa` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
+    by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_rep_u order_trans)
+  ultimately show ?case by (simp add: While.IH subset_iff)
 qed
 
-lemma AI_sound:
- "\<lbrakk> AI c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
-by (metis AI_def in_rep_Top_up lpfpc_pfp step_sound strip_lpfpc strip_step)
+lemma step_preserves_le:
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
+   \<Longrightarrow> step_cs S cs \<le> \<gamma>\<^isub>c(step sa ca)"
+by (metis le_strip step_preserves_le2 strip_acom)
+
+lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
+proof(simp add: CS_def AI_def)
+  assume 1: "lpfp\<^isub>c (step \<top>) c = Some c'"
+  have 2: "step \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
+  have 3: "strip (\<gamma>\<^isub>c (step \<top> c')) = c"
+    by(simp add: strip_lpfpc[OF _ 1])
+  have "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c (step \<top> c')"
+  proof(rule lfp_lowerbound[OF 3])
+    show "step_cs UNIV (\<gamma>\<^isub>c (step \<top> c')) \<le> \<gamma>\<^isub>c (step \<top> c')"
+    proof(rule step_preserves_le[OF _ _ 3])
+      show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
+      show "\<gamma>\<^isub>c (step \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+    qed
+  qed
+  from this 2 show "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c c'"
+    by (blast intro: mono_rep_c order_trans)
+qed
 
 end
 
@@ -417,7 +386,7 @@ by(simp add: le_fun_def)
 
 lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
 apply(induction c arbitrary: S S')
-apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: up.split)
+apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: option.split)
 done
 
 end

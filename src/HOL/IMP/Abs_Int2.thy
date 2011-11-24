@@ -64,32 +64,32 @@ qed
 
 end
 
-instantiation up :: (WN)WN
+instantiation option :: (WN)WN
 begin
 
-fun widen_up where
-"widen_up Bot x = x" |
-"widen_up x Bot = x" |
-"widen_up (Up x) (Up y) = Up(x \<nabla> y)"
+fun widen_option where
+"None \<nabla> x = x" |
+"x \<nabla> None = x" |
+"(Some x) \<nabla> (Some y) = Some(x \<nabla> y)"
 
-fun narrow_up where
-"narrow_up Bot x = Bot" |
-"narrow_up x Bot = Bot" |
-"narrow_up (Up x) (Up y) = Up(x \<triangle> y)"
+fun narrow_option where
+"None \<triangle> x = None" |
+"x \<triangle> None = None" |
+"(Some x) \<triangle> (Some y) = Some(x \<triangle> y)"
 
 instance
 proof
   case goal1 show ?case
-    by(induct x y rule: widen_up.induct) (simp_all add: widen1)
+    by(induct x y rule: widen_option.induct) (simp_all add: widen1)
 next
   case goal2 show ?case
-    by(induct x y rule: widen_up.induct) (simp_all add: widen2)
+    by(induct x y rule: widen_option.induct) (simp_all add: widen2)
 next
   case goal3 thus ?case
-    by(induct x y rule: narrow_up.induct) (simp_all add: narrow1)
+    by(induct x y rule: narrow_option.induct) (simp_all add: narrow1)
 next
   case goal4 thus ?case
-    by(induct x y rule: narrow_up.induct) (simp_all add: narrow2)
+    by(induct x y rule: narrow_option.induct) (simp_all add: narrow2)
 qed
 
 end
@@ -129,7 +129,7 @@ definition
 "prefp f = while_option (\<lambda>x. \<not> x \<sqsubseteq> f x) f"
 
 definition
-  pfp_WN :: "(('a::WN)up acom \<Rightarrow> 'a up acom) \<Rightarrow> com \<Rightarrow> 'a up acom option"
+  pfp_WN :: "(('a::WN)option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option"
 where "pfp_WN f c = (case lpfp\<^isub>c (\<lambda>c. c \<nabla>\<^sub>c f c) c of None \<Rightarrow> None
                      | Some c' \<Rightarrow> prefp (\<lambda>c. c \<triangle>\<^sub>c f c) c')"
 
@@ -183,13 +183,26 @@ by (metis (no_types) strip_lpfpc strip_map2_acom strip_while)
 locale Abs_Int2 = Abs_Int1_mono rep for rep :: "'a::{WN,L_top_bot} \<Rightarrow> val set"
 begin
 
-definition AI_WN :: "com \<Rightarrow> 'a st up acom option" where
+definition AI_WN :: "com \<Rightarrow> 'a st option acom option" where
 "AI_WN = pfp_WN (step \<top>)"
 
-lemma AI_sound: "\<lbrakk> AI_WN c = Some c';  (c,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> t <:up post c'"
-unfolding AI_WN_def
-by(metis step_sound[of "\<top>" c' s t] strip_pfp_WN strip_step
-  pfp_WN_pfp mono_def mono_step[OF le_refl] in_rep_Top_up)
+lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
+proof(simp add: CS_def AI_WN_def)
+  assume 1: "pfp_WN (step \<top>) c = Some c'"
+  from pfp_WN_pfp[OF allI[OF strip_step] mono_step 1]
+  have 2: "step \<top> c' \<sqsubseteq> c'" .
+  have 3: "strip (\<gamma>\<^isub>c (step \<top> c')) = c" by(simp add: strip_pfp_WN[OF _ 1])
+  have "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c (step \<top> c')"
+  proof(rule lfp_lowerbound[OF 3])
+    show "step_cs UNIV (\<gamma>\<^isub>c (step \<top> c')) \<le> \<gamma>\<^isub>c (step \<top> c')"
+    proof(rule step_preserves_le[OF _ _ 3])
+      show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
+      show "\<gamma>\<^isub>c (step \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+    qed
+  qed
+  from this 2 show "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c c'"
+    by (blast intro: mono_rep_c order_trans)
+qed
 
 end
 
@@ -198,11 +211,15 @@ interpretation
 defines AI_ivl' is AI_WN
 proof qed
 
-value [code] "show_acom_opt (AI_ivl test3_ivl)"
-value [code] "show_acom_opt (AI_ivl' test3_ivl)"
+
+subsubsection "Tests"
 
 definition "step_up_ivl n = ((\<lambda>c. c \<nabla>\<^sub>c step_ivl \<top> c)^^n)"
 definition "step_down_ivl n = ((\<lambda>c. c \<triangle>\<^sub>c step_ivl \<top> c)^^n)"
+
+text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
+the loop took to execute. In contrast, @{const AI_ivl} converges in a
+constant number of steps: *}
 
 value [code] "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
 value [code] "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
@@ -212,6 +229,8 @@ value [code] "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
 value [code] "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
 value [code] "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
 value [code] "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+
+text{* Now all the analyses terminate: *}
 
 value [code] "show_acom_opt (AI_ivl' test4_ivl)"
 value [code] "show_acom_opt (AI_ivl' test5_ivl)"

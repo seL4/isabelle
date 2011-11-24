@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int0_const
-imports Abs_Int0
+imports Abs_Int0 Abs_Int_Tests
 begin
 
 subsection "Constant Propagation"
@@ -53,6 +53,7 @@ end
 
 
 interpretation Val_abs rep_cval Const plus_cval
+defines aval'_const is aval'
 proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
@@ -67,43 +68,20 @@ qed
 
 interpretation Abs_Int rep_cval Const plus_cval
 defines AI_const is AI
-and aval'_const is aval'
 and step_const is step
 proof qed
 
-text{* Straight line code: *}
-definition "test1_const =
- ''y'' ::= N 7;
- ''z'' ::= Plus (V ''y'') (N 2);
- ''y'' ::= Plus (V ''x'') (N 0)"
 
-text{* Conditional: *}
-definition "test2_const =
- IF Less (N 41) (V ''x'') THEN ''x'' ::= N 5 ELSE ''x'' ::= N 5"
+text{* Monotonicity: *}
 
-text{* Conditional, test is ignored: *}
-definition "test3_const =
- ''x'' ::= N 42;
- IF Less (N 41) (V ''x'') THEN ''x'' ::= N 5 ELSE ''x'' ::= N 6"
+interpretation Abs_Int_mono rep_cval Const plus_cval
+proof
+  case goal1 thus ?case
+    by(auto simp: plus_cval_cases split: cval.split)
+qed
 
-text{* While: *}
-definition "test4_const =
- ''x'' ::= N 0; WHILE Bc True DO ''x'' ::= N 0"
 
-text{* While, test is ignored: *}
-definition "test5_const =
- ''x'' ::= N 0; WHILE Less (V ''x'') (N 1) DO ''x'' ::= N 1"
-
-text{* Iteration is needed: *}
-definition "test6_const =
-  ''x'' ::= N 0; ''y'' ::= N 0; ''z'' ::= N 2;
-  WHILE Less (V ''x'') (N 1) DO (''x'' ::= V ''y''; ''y'' ::= V ''z'')"
-
-text{* More iteration would be needed: *}
-definition "test7_const =
-  ''x'' ::= N 0; ''y'' ::= N 0; ''z'' ::= N 0; ''u'' ::= N 3;
-  WHILE Less (V ''x'') (N 1)
-  DO (''x'' ::= V ''y''; ''y'' ::= V ''z''; ''z'' ::= V ''u'')"
+subsubsection "Tests"
 
 value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
 value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
@@ -129,14 +107,5 @@ value [code] "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const
 value [code] "show_acom_opt (AI_const test5_const)"
 
 value [code] "show_acom_opt (AI_const test6_const)"
-value [code] "show_acom_opt (AI_const test7_const)"
-
-text{* Monotonicity: *}
-
-interpretation Abs_Int_mono rep_cval Const plus_cval
-proof
-  case goal1 thus ?case
-    by(auto simp: plus_cval_cases split: cval.split)
-qed
 
 end
