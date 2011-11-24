@@ -212,11 +212,11 @@ sig
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val legacy_gensym: string -> string
-  type stamp = unit Unsynchronized.ref
-  val stamp: unit -> stamp
   type serial = int
   val serial: unit -> serial
   val serial_string: unit -> string
+  eqtype stamp
+  val stamp: unit -> stamp
   structure Object: sig type T = exn end
   val cd: string -> unit
   val pwd: unit -> string
@@ -1068,14 +1068,14 @@ in
 end;
 
 
-(* stamps and serial numbers *)
-
-type stamp = unit Unsynchronized.ref;
-val stamp: unit -> stamp = Unsynchronized.ref;
+(* serial numbers and abstract stamps *)
 
 type serial = int;
 val serial = Multithreading.serial;
 val serial_string = string_of_int o serial;
+
+datatype stamp = Stamp of serial;
+fun stamp () = Stamp (serial ());
 
 
 (* generic objects *)
