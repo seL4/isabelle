@@ -167,12 +167,12 @@ val mksimps_pairs =
 
 val HOL_basic_ss =
   Simplifier.global_context @{theory} empty_ss
-    setsubgoaler asm_simp_tac
-    setSSolver safe_solver
-    setSolver unsafe_solver
-    setmksimps (mksimps mksimps_pairs)
-    setmkeqTrue mk_eq_True
-    setmkcong mk_meta_cong;
+  setSSolver safe_solver
+  setSolver unsafe_solver
+  |> Simplifier.set_subgoaler asm_simp_tac
+  |> Simplifier.set_mksimps (mksimps mksimps_pairs)
+  |> Simplifier.set_mkeqTrue mk_eq_True
+  |> Simplifier.set_mkcong mk_meta_cong;
 
 fun hol_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);
 

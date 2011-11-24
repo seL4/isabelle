@@ -173,6 +173,12 @@ context as well.
   deleqcongs    ~> Simplifier.del_eqcong
   addcongs      ~> Simplifier.add_cong
   delcongs      ~> Simplifier.del_cong
+  setmksimps    ~> Simplifier.set_mksimps
+  setmkcong     ~> Simplifier.set_mkcong
+  setmksym      ~> Simplifier.set_mksym
+  setmkeqTrue   ~> Simplifier.set_mkeqTrue
+  settermless   ~> Simplifier.set_termless
+  setsubgoaler  ~> Simplifier.set_subgoaler
   addsplits     ~> Splitter.add_split
   delsplits     ~> Splitter.del_split
 

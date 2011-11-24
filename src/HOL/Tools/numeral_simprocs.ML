@@ -169,7 +169,7 @@ end;
 
 fun numtermless tu = (numterm_ord tu = LESS);
 
-val num_ss = HOL_ss settermless numtermless;
+val num_ss = HOL_ss |> Simplifier.set_termless numtermless;
 
 (*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
 val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];

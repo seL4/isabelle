@@ -378,7 +378,7 @@ ML {*
   val mksimps_pairs = (@{const_name Nominal.fresh}, @{thms fresh_prodD}) :: mksimps_pairs;
 *}
 declaration {* fn _ =>
-  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
+  Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
 *}
 
 section {* Abstract Properties for Permutations and  Atoms *}

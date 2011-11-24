@@ -1495,9 +1495,6 @@ use "~~/src/Tools/induction.ML"
 setup {*
   Induct.setup #> Induction.setup #>
   Context.theory_map (Induct.map_simpset (fn ss => ss
-    setmksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
-      map (Simplifier.rewrite_rule (map Thm.symmetric
-        @{thms induct_rulify_fallback})))
     addsimprocs
       [Simplifier.simproc_global @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
@@ -1517,7 +1514,10 @@ setup {*
                     | is_conj @{const induct_false} = true
                     | is_conj _ = false
                 in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
-              | _ => NONE))]))
+              | _ => NONE))]
+    |> Simplifier.set_mksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
+      map (Simplifier.rewrite_rule (map Thm.symmetric
+        @{thms induct_rulify_fallback})))))
 *}
 
 text {* Pre-simplification of induction and cases rules *}

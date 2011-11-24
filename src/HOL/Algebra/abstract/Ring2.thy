@@ -210,7 +210,9 @@ fun ring_ord (Const (a, _)) =
 
 fun termless_ring (a, b) = (Term_Ord.term_lpo ring_ord (a, b) = LESS);
 
-val ring_ss = HOL_basic_ss settermless termless_ring addsimps
+val ring_ss =
+  (HOL_basic_ss |> Simplifier.set_termless termless_ring)
+  addsimps
   [@{thm a_assoc}, @{thm l_zero}, @{thm l_neg}, @{thm a_comm}, @{thm m_assoc},
    @{thm l_one}, @{thm l_distr}, @{thm m_comm}, @{thm minus_def},
    @{thm r_zero}, @{thm r_neg}, @{thm r_neg2}, @{thm r_neg1}, @{thm minus_add},

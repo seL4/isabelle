@@ -31,8 +31,8 @@ struct
 (* need to set up our own minimal simpset.    *)
 fun mk_minimal_ss ctxt =
   Simplifier.context ctxt empty_ss
-    setsubgoaler asm_simp_tac
-    setmksimps (mksimps [])
+  |> Simplifier.set_subgoaler asm_simp_tac
+  |> Simplifier.set_mksimps (mksimps [])
 
 (* composition of two theorems, used in maps *)
 fun OF1 thm1 thm2 = thm2 RS thm1

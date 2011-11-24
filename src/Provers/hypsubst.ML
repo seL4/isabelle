@@ -131,7 +131,7 @@ in
       let
         val (k, _) = eq_var bnd true Bi
         val hyp_subst_ss = Simplifier.global_context (Thm.theory_of_thm st) empty_ss
-          setmksimps (K (mk_eqs bnd))
+          |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
       end handle THM _ => no_tac | EQ_VAR => no_tac) i st

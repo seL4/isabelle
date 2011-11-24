@@ -116,11 +116,11 @@ fun safe_solver ss =
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
   Simplifier.global_context @{theory} empty_ss
-  setsubgoaler asm_simp_tac
   setSSolver (mk_solver "FOL safe" safe_solver)
   setSolver (mk_solver "FOL unsafe" unsafe_solver)
-  setmksimps (mksimps mksimps_pairs)
-  setmkcong mk_meta_cong;
+  |> Simplifier.set_subgoaler asm_simp_tac
+  |> Simplifier.set_mksimps (mksimps mksimps_pairs)
+  |> Simplifier.set_mkcong mk_meta_cong;
 
 fun unfold_tac ths =
   let val ss0 = Simplifier.clear_ss FOL_basic_ss addsimps ths

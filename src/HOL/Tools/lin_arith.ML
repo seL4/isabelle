@@ -704,8 +704,9 @@ fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) 
 
 local
   val nnf_simpset =
-    empty_ss setmkeqTrue mk_eq_True
-    setmksimps (mksimps mksimps_pairs)
+    (empty_ss
+      |> Simplifier.set_mkeqTrue mk_eq_True
+      |> Simplifier.set_mksimps (mksimps mksimps_pairs))
     addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
       @{thm de_Morgan_conj}, not_all, not_ex, not_not]
   fun prem_nnf_tac ss = full_simp_tac (Simplifier.inherit_context ss nnf_simpset)
@@ -838,8 +839,9 @@ val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
 local
   val nnf_simpset =
-    empty_ss setmkeqTrue mk_eq_True
-    setmksimps (mksimps mksimps_pairs)
+    (empty_ss
+      |> Simplifier.set_mkeqTrue mk_eq_True
+      |> Simplifier.set_mksimps (mksimps mksimps_pairs))
     addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
       @{thm de_Morgan_conj}, @{thm not_all}, @{thm not_ex}, @{thm not_not}];
   fun prem_nnf_tac i st =

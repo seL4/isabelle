@@ -68,11 +68,11 @@ fun safe_solver ss =
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
   Simplifier.global_context @{theory} empty_ss
-    setsubgoaler asm_simp_tac
-    setSSolver (mk_solver "safe" safe_solver)
-    setSolver (mk_solver "unsafe" unsafe_solver)
-    setmksimps (K (map mk_meta_eq o atomize o gen_all))
-    setmkcong mk_meta_cong;
+  setSSolver (mk_solver "safe" safe_solver)
+  setSolver (mk_solver "unsafe" unsafe_solver)
+  |> Simplifier.set_subgoaler asm_simp_tac
+  |> Simplifier.set_mksimps (K (map mk_meta_eq o atomize o gen_all))
+  |> Simplifier.set_mkcong mk_meta_cong;
 
 val LK_simps =
    [triv_forall_equality, (* prunes params *)

@@ -10,9 +10,9 @@ uses "simpdata.ML"
 begin
 
 setup {*
-  Simplifier.map_simpset_global (fn ss =>
-    ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
-    |> Simplifier.add_cong @{thm if_weak_cong})
+  Simplifier.map_simpset_global
+    (Simplifier.set_mksimps (K (map mk_eq o ZF_atomize o gen_all))
+      #> Simplifier.add_cong @{thm if_weak_cong})
 *}
 
 ML {* val ZF_ss = @{simpset} *}

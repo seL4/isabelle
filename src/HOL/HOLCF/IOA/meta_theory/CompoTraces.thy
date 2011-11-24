@@ -67,7 +67,7 @@ finiteR_mksch:
   "Finite (mksch A B$tr$x$y) --> Finite tr"
 
 
-declaration {* fn _ => Simplifier.map_ss (fn ss => ss setmksym (K (K NONE))) *}
+declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE))) *}
 
 
 subsection "mksch rewrite rules"
@@ -967,7 +967,7 @@ apply (simp add: compositionality_tr externals_of_par)
 done
 
 
-declaration {* fn _ => Simplifier.map_ss (fn ss => ss setmksym (K (SOME o symmetric_fun))) *}
+declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (SOME o symmetric_fun))) *}
 
 
 end

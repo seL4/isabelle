@@ -42,6 +42,13 @@ sig
   val add_cong: thm -> simpset -> simpset
   val del_cong: thm -> simpset -> simpset
   val add_prems: thm list -> simpset -> simpset
+  val mksimps: simpset -> thm -> thm list
+  val set_mksimps: (simpset -> thm -> thm list) -> simpset -> simpset
+  val set_mkcong: (simpset -> thm -> thm) -> simpset -> simpset
+  val set_mksym: (simpset -> thm -> thm option) -> simpset -> simpset
+  val set_mkeqTrue: (simpset -> thm -> thm option) -> simpset -> simpset
+  val set_termless: (term * term -> bool) -> simpset -> simpset
+  val set_subgoaler: (simpset -> int -> tactic) -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
@@ -415,10 +422,11 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
 
     fun mksimps thm = mk_eq (Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm);
   in
-    empty_ss setsubgoaler asm_simp_tac
+    empty_ss
     setSSolver safe_solver
     setSolver unsafe_solver
-    setmksimps (K mksimps)
+    |> set_subgoaler asm_simp_tac
+    |> set_mksimps (K mksimps)
   end));
 
 end;

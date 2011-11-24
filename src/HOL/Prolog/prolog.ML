@@ -59,13 +59,14 @@ fun atomizeD ctxt thm = let
 in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
-  Simplifier.global_context @{theory} empty_ss
-  setmksimps (mksimps mksimps_pairs)
+  (Simplifier.global_context @{theory} empty_ss
+    |> Simplifier.set_mksimps (mksimps mksimps_pairs))
   addsimps [
         all_conj_distrib, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)
         imp_conjL RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)
         imp_conjR,        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)
         imp_all];         (* "((!x. D) :- G) = (!x. D :- G)" *)
+
 
 (*val hyp_resolve_tac = Subgoal.FOCUS_PREMS (fn {prems, ...} =>
                                   resolve_tac (maps atomizeD prems) 1);

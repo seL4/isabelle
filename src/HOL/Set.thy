@@ -369,7 +369,7 @@ open Simpdata;
 *}
 
 declaration {* fn _ =>
-  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
+  Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
 *}
 
 lemma ballE [elim]: "ALL x:A. P x ==> (P x ==> Q) ==> (x ~: A ==> Q) ==> Q"

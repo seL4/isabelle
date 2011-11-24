@@ -6,8 +6,8 @@ Higher-order Simplification.
 
 infix 4
   addsimps delsimps addsimprocs delsimprocs
-  setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
-  setloop' setloop addloop addloop' delloop setSSolver addSSolver setSolver addSolver;
+  setloop' setloop addloop addloop' delloop
+  setSSolver addSSolver setSolver addSolver;
 
 signature BASIC_RAW_SIMPLIFIER =
 sig
@@ -41,13 +41,6 @@ sig
   val delsimps: simpset * thm list -> simpset
   val addsimprocs: simpset * simproc list -> simpset
   val delsimprocs: simpset * simproc list -> simpset
-  val mksimps: simpset -> thm -> thm list
-  val setmksimps: simpset * (simpset -> thm -> thm list) -> simpset
-  val setmkcong: simpset * (simpset -> thm -> thm) -> simpset
-  val setmksym: simpset * (simpset -> thm -> thm option) -> simpset
-  val setmkeqTrue: simpset * (simpset -> thm -> thm option) -> simpset
-  val settermless: simpset * (term * term -> bool) -> simpset
-  val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
   val setloop': simpset * (simpset -> int -> tactic) -> simpset
   val setloop: simpset * (int -> tactic) -> simpset
   val addloop': simpset * (string * (simpset -> int -> tactic)) -> simpset
@@ -99,6 +92,13 @@ sig
   val del_eqcong: thm -> simpset -> simpset
   val add_cong: thm -> simpset -> simpset
   val del_cong: thm -> simpset -> simpset
+  val mksimps: simpset -> thm -> thm list
+  val set_mksimps: (simpset -> thm -> thm list) -> simpset -> simpset
+  val set_mkcong: (simpset -> thm -> thm) -> simpset -> simpset
+  val set_mksym: (simpset -> thm -> thm option) -> simpset -> simpset
+  val set_mkeqTrue: (simpset -> thm -> thm option) -> simpset -> simpset
+  val set_termless: (term * term -> bool) -> simpset -> simpset
+  val set_subgoaler: (simpset -> int -> tactic) -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
   val clear_ss: simpset -> simpset
@@ -685,16 +685,16 @@ in
 
 fun mksimps (ss as Simpset (_, {mk_rews = {mk, ...}, ...})) = mk ss;
 
-fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
+fun set_mksimps mk = map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, _, mk_sym, mk_eq_True, reorient) =>
+fun set_mkcong mk_cong = map_mk_rews (fn (mk, _, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk_cong, _, mk_eq_True, reorient) =>
+fun set_mksym mk_sym = map_mk_rews (fn (mk, mk_cong, _, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk_cong, mk_sym, _, reorient) =>
+fun set_mkeqTrue mk_eq_True = map_mk_rews (fn (mk, mk_cong, mk_sym, _, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
 fun set_reorient reorient = map_mk_rews (fn (mk, mk_cong, mk_sym, mk_eq_True, _) =>
@@ -705,14 +705,14 @@ end;
 
 (* termless *)
 
-fun ss settermless termless = ss |>
+fun set_termless termless =
   map_simpset2 (fn (congs, procs, mk_rews, _, subgoal_tac, loop_tacs, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
 
 (* tactics *)
 
-fun ss setsubgoaler subgoal_tac = ss |>
+fun set_subgoaler subgoal_tac =
   map_simpset2 (fn (congs, procs, mk_rews, termless, _, loop_tacs, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
