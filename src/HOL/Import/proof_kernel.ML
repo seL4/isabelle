@@ -1165,8 +1165,7 @@ fun split_name str =
 fun rewrite_hol4_term t thy =
     let
         val hol4rews1 = map (Thm.transfer thy) (HOL4Rewrites.get thy)
-        val hol4ss = Simplifier.global_context thy empty_ss
-          setmksimps (K single) addsimps hol4rews1
+        val hol4ss = Simplifier.global_context thy empty_ss addsimps hol4rews1
     in
         Thm.transfer thy (Simplifier.full_rewrite hol4ss (cterm_of thy t))
     end
