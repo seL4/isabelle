@@ -161,7 +161,6 @@ fun gen_add_fun add lthy =
   in
     lthy
     |> add pat_completeness_auto |> snd
-    |> Local_Theory.restore
     |> prove_termination |> snd
   end
 

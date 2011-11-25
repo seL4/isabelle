@@ -309,7 +309,6 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
         (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs_t)
         Function_Common.default_config pat_completeness_auto
       #> snd
-      #> Local_Theory.restore
       #> (fn lthy => Function.prove_termination NONE (the termination_tac lthy) lthy)
       #> snd
     end
