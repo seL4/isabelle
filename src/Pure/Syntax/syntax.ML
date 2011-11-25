@@ -78,7 +78,7 @@ sig
   val lookup_const: syntax -> string -> string option
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
-  val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
+  val parse: syntax -> string -> Lexicon.token list -> Parser.parsetree list
   val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
   val parse_rules: syntax -> string -> (Ast.ast * Ast.ast) list
   val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option
@@ -401,7 +401,7 @@ fun force_syntax (Syntax ({gram, ...}, _)) = ignore (Lazy.force gram);
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
-fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt (Lazy.force gram);
+fun parse (Syntax ({gram, ...}, _)) = Parser.parse (Lazy.force gram);
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;

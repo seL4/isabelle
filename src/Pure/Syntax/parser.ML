@@ -16,7 +16,7 @@ sig
     Tip of Lexicon.token
   exception PARSETREE of parsetree
   val pretty_parsetree: parsetree -> Pretty.T
-  val parse: Proof.context -> gram -> string -> Lexicon.token list -> parsetree list
+  val parse: gram -> string -> Lexicon.token list -> parsetree list
   val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
   val branching_level: int Config.T
 end;
@@ -649,7 +649,7 @@ fun prods_for prods chains include_none tk nts =
   in get_prods (connected_with chains nts nts) [] end;
 
 
-fun PROCESSS ctxt prods chains Estate i c states =
+fun PROCESSS prods chains Estate i c states =
   let
     fun all_prods_for nt = prods_for prods chains true c [nt];
 
@@ -697,7 +697,7 @@ fun PROCESSS ctxt prods chains Estate i c states =
   in processS Inttab.empty states ([], []) end;
 
 
-fun produce ctxt prods tags chains stateset i indata prev_token =
+fun produce prods tags chains stateset i indata prev_token =
   (case Array.sub (stateset, i) of
     [] =>
       let
@@ -715,15 +715,15 @@ fun produce ctxt prods tags chains stateset i indata prev_token =
         [] => s
       | c :: cs =>
           let
-            val (si, sii) = PROCESSS ctxt prods chains stateset i c s;
+            val (si, sii) = PROCESSS prods chains stateset i c s;
             val _ = Array.update (stateset, i, si);
             val _ = Array.update (stateset, i + 1, sii);
-          in produce ctxt prods tags chains stateset (i + 1) cs c end));
+          in produce prods tags chains stateset (i + 1) cs c end));
 
 
 fun get_trees states = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) states;
 
-fun earley ctxt prods tags chains startsymbol indata =
+fun earley prods tags chains startsymbol indata =
   let
     val start_tag =
       (case Symtab.lookup tags startsymbol of
@@ -734,19 +734,18 @@ fun earley ctxt prods tags chains startsymbol indata =
     val Estate = Array.array (s, []);
     val _ = Array.update (Estate, 0, S0);
   in
-    get_trees
-      (produce ctxt prods tags chains Estate 0 indata Lexicon.eof)
+    get_trees (produce prods tags chains Estate 0 indata Lexicon.eof)
   end;
 
 
-fun parse ctxt (Gram {tags, prods, chains, ...}) start toks =
+fun parse (Gram {tags, prods, chains, ...}) start toks =
   let
     val end_pos =
       (case try List.last toks of
         NONE => Position.none
       | SOME (Lexicon.Token (_, _, (_, end_pos))) => end_pos);
     val r =
-      (case earley ctxt prods tags chains start (toks @ [Lexicon.mk_eof end_pos]) of
+      (case earley prods tags chains start (toks @ [Lexicon.mk_eof end_pos]) of
         [] => raise Fail "Inner syntax: no parse trees"
       | pts => pts);
   in r end;

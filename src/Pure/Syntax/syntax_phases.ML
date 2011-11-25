@@ -281,7 +281,7 @@ fun parse_asts ctxt raw root (syms, pos) =
     val toks = Syntax.tokenize syn raw syms;
     val _ = Context_Position.reports ctxt (map Lexicon.report_of_token toks);
 
-    val pts = Syntax.parse ctxt syn root (filter Lexicon.is_proper toks)
+    val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
         error (msg ^
           implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
