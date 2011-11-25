@@ -145,16 +145,16 @@ lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\
 
 subsubsection {* Binary union *}
 
-lemma sup1I1 [elim?]: "A x \<Longrightarrow> (A \<squnion> B) x"
+lemma sup1I1 [intro?]: "A x \<Longrightarrow> (A \<squnion> B) x"
   by (simp add: sup_fun_def)
 
-lemma sup2I1 [elim?]: "A x y \<Longrightarrow> (A \<squnion> B) x y"
+lemma sup2I1 [intro?]: "A x y \<Longrightarrow> (A \<squnion> B) x y"
   by (simp add: sup_fun_def)
 
-lemma sup1I2 [elim?]: "B x \<Longrightarrow> (A \<squnion> B) x"
+lemma sup1I2 [intro?]: "B x \<Longrightarrow> (A \<squnion> B) x"
   by (simp add: sup_fun_def)
 
-lemma sup2I2 [elim?]: "B x y \<Longrightarrow> (A \<squnion> B) x y"
+lemma sup2I2 [intro?]: "B x y \<Longrightarrow> (A \<squnion> B) x y"
   by (simp add: sup_fun_def)
 
 lemma sup1E [elim!]: "(A \<squnion> B) x \<Longrightarrow> (A x \<Longrightarrow> P) \<Longrightarrow> (B x \<Longrightarrow> P) \<Longrightarrow> P"

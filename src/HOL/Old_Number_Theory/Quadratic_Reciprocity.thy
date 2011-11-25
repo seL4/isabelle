@@ -114,8 +114,8 @@ lemma QRLemma5: "a \<in> zOdd ==>
    (-1::int)^(card E) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
 proof -
   assume "a \<in> zOdd"
-  from QRLemma4 [OF this, symmetric] have
-    "(int(card E): zEven) = (setsum (%x. ((x * a) div p)) A \<in> zEven)" .
+  from QRLemma4 [OF this] have
+    "(int(card E): zEven) = (setsum (%x. ((x * a) div p)) A \<in> zEven)" ..
   moreover have "0 \<le> int(card E)"
     by auto
   moreover have "0 \<le> setsum (%x. ((x * a) div p)) A"
