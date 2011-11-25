@@ -125,7 +125,8 @@ fun absrep_const flag ctxt qty_str =
   let
     (* FIXME *)
     fun mk_dummyT (Const (c, _)) = Const (c, dummyT)
-      | mk_dummyT _ = error "Expecting abs/rep term to be a constant"     
+      | mk_dummyT (Free (c, _)) = Free (c, dummyT)
+      | mk_dummyT _ = error "Expecting abs/rep term to be a constant or a free variable"     
   in
     case Quotient_Info.lookup_abs_rep ctxt qty_str of
       SOME abs_rep => 
