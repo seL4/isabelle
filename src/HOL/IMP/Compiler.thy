@@ -17,9 +17,8 @@ text {*
 *}
 abbreviation "isize xs == int (length xs)" 
 
-primrec
-  inth :: "'a list => int => 'a" (infixl "!!" 100) where
-  inth_Cons: "(x # xs) !! n = (if n = 0 then x else xs !! (n - 1))"
+fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
+"(x # xs) !! n = (if n = 0 then x else xs !! (n - 1))"
 
 text {*
   The only additional lemma we need is indexing over append:
@@ -41,7 +40,7 @@ datatype instr =
   JMPGE int
 
 type_synonym stack = "val list"
-type_synonym config = "int\<times>state\<times>stack"
+type_synonym config = "int \<times> state \<times> stack"
 
 abbreviation "hd2 xs == hd(tl xs)"
 abbreviation "tl2 xs == tl(tl xs)"
