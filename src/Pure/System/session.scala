@@ -455,7 +455,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             case result: Isabelle_Process.Result =>
               handle_result(result)
               if (result.is_syslog) syslog_messages.event(result)
-              if (result.is_stdout) raw_output_messages.event(result)
+              if (result.is_stdout || result.is_stderr) raw_output_messages.event(result)
               raw_messages.event(result)
           }
 

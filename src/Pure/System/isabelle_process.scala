@@ -52,12 +52,13 @@ object Isabelle_Process
     def is_init = kind == Markup.INIT
     def is_exit = kind == Markup.EXIT
     def is_stdout = kind == Markup.STDOUT
+    def is_stderr = kind == Markup.STDERR
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
     def is_raw = kind == Markup.RAW
     def is_ready = Isar_Document.is_ready(message)
-    def is_syslog = is_init || is_exit || is_system || is_ready
+    def is_syslog = is_init || is_exit || is_system || is_ready || is_stderr
 
     override def toString: String =
     {
@@ -136,7 +137,7 @@ class Isabelle_Process(
       val cmdline =
         Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
           (system_channel.isabelle_args ::: args)
-      new Isabelle_System.Managed_Process(true, cmdline: _*)
+      new Isabelle_System.Managed_Process(false, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
 
@@ -181,13 +182,15 @@ class Isabelle_Process(
       val (command_stream, message_stream) = system_channel.rendezvous()
 
       standard_input = stdin_actor()
-      val stdout = stdout_actor()
+      val stdout = raw_output_actor(false)
+      val stderr = raw_output_actor(true)
       command_input = input_actor(command_stream)
       val message = message_actor(message_stream)
 
       val rc = process_result.join
       system_result("process terminated")
-      for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
+      for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
+        thread.join
       system_result("process_manager terminated")
       put_result(Markup.EXIT, "Return code: " + rc.toString)
     }
@@ -238,11 +241,14 @@ class Isabelle_Process(
   }
 
 
-  /* raw stdout */
+  /* raw output */
 
-  private def stdout_actor(): (Thread, Actor) =
+  private def raw_output_actor(err: Boolean): (Thread, Actor) =
   {
-    val name = "standard_output"
+    val (name, reader, markup) =
+      if (err) ("standard_error", process.stderr, Markup.STDERR)
+      else ("standard_output", process.stdout, Markup.STDOUT)
+
     Simple_Thread.actor(name) {
       var result = new StringBuilder(100)
 
@@ -252,17 +258,17 @@ class Isabelle_Process(
           //{{{
           var c = -1
           var done = false
-          while (!done && (result.length == 0 || process.stdout.ready)) {
-            c = process.stdout.read
+          while (!done && (result.length == 0 || reader.ready)) {
+            c = reader.read
             if (c >= 0) result.append(c.asInstanceOf[Char])
             else done = true
           }
           if (result.length > 0) {
-            put_result(Markup.STDOUT, result.toString)
+            put_result(markup, result.toString)
             result.length = 0
           }
           else {
-            process.stdout.close
+            reader.close
             finished = true
           }
           //}}}
