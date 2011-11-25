@@ -101,6 +101,13 @@ object Text
     def range: Range =
       if (is_empty) Range(0)
       else Range(ranges.head.start, ranges.last.stop)
+
+    override def hashCode: Int = ranges.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Perspective => ranges == other.ranges
+        case _ => false
+      }
     override def toString = ranges.toString
   }
 
