@@ -23,7 +23,6 @@ object Session
   //{{{
   case object Global_Settings
   case object Caret_Focus
-  case object Assignment
   case class Commands_Changed(nodes: Set[Document.Node.Name], commands: Set[Command])
 
   sealed abstract class Phase
@@ -53,7 +52,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
-  val assignments = new Event_Bus[Session.Assignment.type]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
   val syslog_messages = new Event_Bus[Isabelle_Process.Result]
@@ -81,6 +79,35 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   }
   //}}}
 
+
+  /** pipelined change parsing **/
+
+  //{{{
+  private case class Text_Edits(
+    syntax: Outer_Syntax,
+    name: Document.Node.Name,
+    previous: Future[Document.Version],
+    text_edits: List[Document.Edit_Text],
+    version_result: Promise[Document.Version])
+
+  private val (_, change_parser) = Simple_Thread.actor("change_parser", daemon = true)
+  {
+    var finished = false
+    while (!finished) {
+      receive {
+        case Stop => finished = true; reply(())
+
+        case Text_Edits(syntax, name, previous, text_edits, version_result) =>
+          val prev = previous.get_finished
+          val (doc_edits, version) = Thy_Syntax.text_edits(syntax, prev, text_edits)
+          version_result.fulfill(version)
+          sender ! Change_Node(name, doc_edits, prev, version)
+
+        case bad => System.err.println("change_parser: ignoring bad message " + bad)
+      }
+    }
+  }
+  //}}}
 
 
   /** main protocol actor **/
@@ -258,15 +285,10 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       prover.get.cancel_execution()
 
       val text_edits = header_edit(name, header) :: edits.map(edit => (name, edit))
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, text_edits) }
-      val change =
-        global_state.change_yield(_.continue_history(previous, text_edits, result.map(_._2)))
+      val version = Future.promise[Document.Version]
+      val change = global_state.change_yield(_.continue_history(previous, text_edits, version))
 
-      result.map {
-        case (doc_edits, _) =>
-          assignments.await { global_state().is_assigned(previous.get_finished) }
-          this_actor ! Change_Node(name, doc_edits, previous.join, change.version.join)
-      }
+      change_parser ! Text_Edits(syntax, name, previous, text_edits, version)
     }
     //}}}
 
@@ -278,7 +300,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     {
       val cmds = global_state.change_yield(_.assign(id, assign))
       for (cmd <- cmds) commands_changed_delay.invoke(cmd)
-      assignments.event(Session.Assignment)
     }
     //}}}
 
@@ -444,9 +465,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
               List(Document.Node.Edits(text_edits), Document.Node.Perspective(perspective)))
           reply(())
 
-        case change: Change_Node if prover.isDefined =>
-          handle_change(change)
-
         case Messages(msgs) =>
           msgs foreach {
             case input: Isabelle_Process.Input =>
@@ -455,11 +473,16 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             case result: Isabelle_Process.Result =>
               handle_result(result)
               if (result.is_syslog) syslog_messages.event(result)
-              if (result.is_stdout) raw_output_messages.event(result)
+              if (result.is_stdout || result.is_stderr) raw_output_messages.event(result)
               raw_messages.event(result)
           }
 
-        case bad => System.err.println("session_actor: ignoring bad message " + bad)
+        case change: Change_Node
+        if prover.isDefined && global_state().is_assigned(change.previous) =>
+          handle_change(change)
+
+        case bad if !bad.isInstanceOf[Change_Node] =>
+          System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
     //}}}
@@ -473,7 +496,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
   def start(args: List[String]) { start (Time.seconds(25), args) }
 
-  def stop() { commands_changed_buffer !? Stop; session_actor !? Stop }
+  def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
 
   def cancel_execution() { session_actor ! Cancel_Execution }
 

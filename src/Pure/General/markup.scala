@@ -257,6 +257,7 @@ object Markup
   val RAW = "raw"
   val SYSTEM = "system"
   val STDOUT = "stdout"
+  val STDERR = "stderr"
   val EXIT = "exit"
 
   val LEGACY = "legacy"

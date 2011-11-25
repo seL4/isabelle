@@ -14,59 +14,37 @@ lemmas [simp] = Let_def
 section "unique"
  
 definition unique :: "('a \<times> 'b) list => bool" where
-  "unique  == distinct \<circ> map fst"
+  "unique == distinct \<circ> map fst"
 
 
-lemma fst_in_set_lemma [rule_format (no_asm)]: 
-      "(x, y) : set xys --> x : fst ` set xys"
-apply (induct_tac "xys")
-apply  auto
-done
+lemma fst_in_set_lemma: "(x, y) : set xys ==> x : fst ` set xys"
+  by (induct xys) auto
 
 lemma unique_Nil [simp]: "unique []"
-apply (unfold unique_def)
-apply (simp (no_asm))
-done
+  by (simp add: unique_def)
 
 lemma unique_Cons [simp]: "unique ((x,y)#l) = (unique l & (!y. (x,y) ~: set l))"
-apply (unfold unique_def)
-apply (auto dest: fst_in_set_lemma)
-done
+  by (auto simp: unique_def dest: fst_in_set_lemma)
 
-lemma unique_append [rule_format (no_asm)]: "unique l' ==> unique l --> 
- (!(x,y):set l. !(x',y'):set l'. x' ~= x) --> unique (l @ l')"
-apply (induct_tac "l")
-apply  (auto dest: fst_in_set_lemma)
-done
+lemma unique_append: "unique l' ==> unique l ==>
+    (!(x,y):set l. !(x',y'):set l'. x' ~= x) ==> unique (l @ l')"
+  by (induct l) (auto dest: fst_in_set_lemma)
 
-lemma unique_map_inj [rule_format (no_asm)]: 
-  "unique l --> inj f --> unique (map (%(k,x). (f k, g k x)) l)"
-apply (induct_tac "l")
-apply  (auto dest: fst_in_set_lemma simp add: inj_eq)
-done
+lemma unique_map_inj: "unique l ==> inj f ==> unique (map (%(k,x). (f k, g k x)) l)"
+  by (induct l) (auto dest: fst_in_set_lemma simp add: inj_eq)
+
 
 section "More about Maps"
 
-lemma map_of_SomeI [rule_format (no_asm)]: 
-  "unique l --> (k, x) : set l --> map_of l k = Some x"
-apply (induct_tac "l")
-apply  auto
-done
+lemma map_of_SomeI: "unique l ==> (k, x) : set l ==> map_of l k = Some x"
+  by (induct l) auto
 
-lemma Ball_set_table': 
-  "(\<forall>(x,y)\<in>set l. P x y) --> (\<forall>x. \<forall>y. map_of l x = Some y --> P x y)"
-apply(induct_tac "l")
-apply(simp_all (no_asm))
-apply safe
-apply auto
-done
-lemmas Ball_set_table = Ball_set_table' [THEN mp];
+lemma Ball_set_table: "(\<forall>(x,y)\<in>set l. P x y) ==> (\<forall>x. \<forall>y. map_of l x = Some y --> P x y)"
+  by (induct l) auto
 
-lemma table_of_remap_SomeD [rule_format (no_asm)]: 
-"map_of (map (\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) --> 
- map_of t (k, k') = Some x"
-apply (induct_tac "t")
-apply  auto
-done
+lemma table_of_remap_SomeD:
+  "map_of (map (\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) ==>
+    map_of t (k, k') = Some x"
+  by (atomize (full), induct t) auto
 
 end
