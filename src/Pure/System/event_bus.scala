@@ -32,29 +32,4 @@ class Event_Bus[Event]
   /* event invocation */
 
   def event(x: Event) { synchronized { receivers.foreach(_ ! x) } }
-
-
-  /* await global condition -- triggered via bus events */
-
-  def await(cond: => Boolean)
-  {
-    case object Wait
-    val a = new Actor {
-      def act {
-        if (cond) react { case Wait => reply(()); exit(Wait) }
-        else {
-          loop {
-            react {
-              case trigger if trigger != Wait =>
-                if (cond) { react { case Wait => reply(()); exit(Wait) } }
-            }
-          }
-        }
-      }
-    }
-    this += a
-    a.start
-    a !? Wait
-    this -= a
-  }
 }
