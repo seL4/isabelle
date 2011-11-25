@@ -147,7 +147,7 @@ fun begin_theory name imports =
     |> Sign.local_path
     |> Sign.map_naming (Name_Space.set_theory_name name)
     |> apply_wrappers wrappers
-    |> tap (Syntax.join_syntax o Sign.syn_of)
+    |> tap (Syntax.force_syntax o Sign.syn_of)
   end;
 
 fun end_theory thy =

@@ -74,7 +74,7 @@ sig
   val string_of_sort_global: theory -> sort -> string
   type syntax
   val eq_syntax: syntax * syntax -> bool
-  val join_syntax: syntax -> unit
+  val force_syntax: syntax -> unit
   val lookup_const: syntax -> string -> string option
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
@@ -92,7 +92,7 @@ sig
   val mode_default: mode
   val mode_input: mode
   val empty_syntax: syntax
-  val merge_syntaxes: syntax -> syntax -> syntax
+  val merge_syntax: syntax * syntax -> syntax
   val token_markers: string list
   val basic_nonterms: string list
   val print_gram: syntax -> unit
@@ -379,16 +379,11 @@ fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 
 (** datatype syntax **)
 
-fun future_gram deps e =
-  singleton
-    (Future.cond_forks {name = "Syntax.gram", group = NONE,
-      deps = map Future.task_of deps, pri = 0, interrupts = true}) e;
-
 datatype syntax =
   Syntax of {
     input: Syntax_Ext.xprod list,
     lexicon: Scan.lexicon,
-    gram: Parser.gram future,
+    gram: Parser.gram lazy,
     consts: string Symtab.table,
     prmodes: string list,
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
@@ -401,12 +396,12 @@ datatype syntax =
 
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
-fun join_syntax (Syntax ({gram, ...}, _)) = ignore (Future.join gram);
+fun force_syntax (Syntax ({gram, ...}, _)) = ignore (Lazy.force gram);
 
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
-fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt (Future.join gram);
+fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt (Lazy.force gram);
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
@@ -427,7 +422,7 @@ val mode_input = (Print_Mode.input, true);
 val empty_syntax = Syntax
   ({input = [],
     lexicon = Scan.empty_lexicon,
-    gram = Future.value Parser.empty_gram,
+    gram = Lazy.value Parser.empty_gram,
     consts = Symtab.empty,
     prmodes = [],
     parse_ast_trtab = Symtab.empty,
@@ -460,7 +455,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
-      gram = Future.value (Parser.extend_gram new_xprods (Future.join gram)),
+      gram = Lazy.value (Parser.extend_gram new_xprods (Lazy.force gram)),
       consts = fold update_const consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
@@ -489,7 +484,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = input',
       lexicon = if changed then Scan.make_lexicon (Syntax_Ext.delims_of input') else lexicon,
-      gram = if changed then Future.value (Parser.extend_gram input' Parser.empty_gram) else gram,
+      gram = if changed then Lazy.value (Parser.make_gram input') else gram,
       consts = consts,
       prmodes = prmodes,
       parse_ast_trtab = remove_trtab (if_inout parse_ast_translation) parse_ast_trtab,
@@ -502,9 +497,9 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   end;
 
 
-(* merge_syntaxes *)
+(* merge_syntax *)
 
-fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
+fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
   let
     val {input = input1, lexicon = lexicon1, gram = gram1, consts = consts1,
       prmodes = prmodes1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
@@ -515,12 +510,22 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
       prmodes = prmodes2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2, print_ruletab = print_ruletab2,
       print_ast_trtab = print_ast_trtab2, prtabs = prtabs2} = tabs2;
+
+    val (input', gram') =
+      (case subtract (op =) input1 input2 of
+        [] => (input1, gram1)
+      | new_xprods2 =>
+          if subset (op =) (input1, input2) then (input2, gram2)
+          else
+            let
+              val input' = new_xprods2 @ input1;
+              val gram' = Lazy.lazy (fn () => Parser.make_gram input');
+            in (input', gram') end);
   in
     Syntax
-    ({input = Library.merge (op =) (input1, input2),
+    ({input = input',
       lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
-      gram = future_gram [gram1, gram2] (fn () =>
-        Parser.merge_gram (Future.join gram1, Future.join gram2)),
+      gram = gram',
       consts = Symtab.merge (K true) (consts1, consts2),
       prmodes = Library.merge (op =) (prmodes1, prmodes2),
       parse_ast_trtab =
@@ -560,7 +565,7 @@ fun pretty_gram (Syntax (tabs, _)) =
     val prmodes' = sort_strings (filter_out (fn s => s = "") prmodes);
   in
     [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
-      Pretty.big_list "prods:" (Parser.pretty_gram (Future.join gram)),
+      Pretty.big_list "prods:" (Parser.pretty_gram (Lazy.force gram)),
       pretty_strs_qs "print modes:" prmodes']
   end;
 
@@ -596,7 +601,7 @@ end;
 (* reconstructing infixes -- educated guessing *)
 
 fun guess_infix (Syntax ({gram, ...}, _)) c =
-  (case Parser.guess_infix_lr (Future.join gram) c of
+  (case Parser.guess_infix_lr (Lazy.force gram) c of
     SOME (s, l, r, j) => SOME
      (if l then Mixfix.Infixl (s, j)
       else if r then Mixfix.Infixr (s, j)

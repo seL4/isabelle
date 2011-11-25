@@ -9,7 +9,7 @@ sig
   type gram
   val empty_gram: gram
   val extend_gram: Syntax_Ext.xprod list -> gram -> gram
-  val merge_gram: gram * gram -> gram
+  val make_gram: Syntax_Ext.xprod list -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
     Node of string * parsetree list |
@@ -526,105 +526,7 @@ fun extend_gram [] gram = gram
           prods = Array.vector prods'}
       end;
 
-
-(*Merge two grammars*)
-fun merge_gram (gram_a, gram_b) =
-  let
-    (*find out which grammar is bigger*)
-    val
-      (Gram {nt_count = nt_count1, prod_count = prod_count1, tags = tags1,
-        chains = chains1, lambdas = lambdas1, prods = prods1},
-      Gram {nt_count = nt_count2, prod_count = prod_count2, tags = tags2,
-        chains = chains2, lambdas = lambdas2, prods = prods2}) =
-      let
-        val Gram {prod_count = count_a, ...} = gram_a;
-        val Gram {prod_count = count_b, ...} = gram_b;
-      in
-        if count_a > count_b
-        then (gram_a, gram_b)
-        else (gram_b, gram_a)
-      end;
-
-    (*get existing tag from grammar1 or create a new one*)
-    fun get_tag nt_count tags nt =
-      (case Symtab.lookup tags nt of
-        SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count + 1, Symtab.update_new (nt, nt_count) tags, nt_count));
-
-    val ((nt_count1', tags1'), tag_table) =
-      let
-        val table = Array.array (nt_count2, ~1);
-
-        fun the_nt tag =
-          the (Symtab.get_first (fn (n, t) => if t = tag then SOME n else NONE) tags2);
-        fun store_tag nt_count tags ~1 = (nt_count, tags)
-          | store_tag nt_count tags tag =
-              let
-                val (nt_count', tags', tag') = get_tag nt_count tags (the_nt tag);
-                val _ = Array.update (table, tag, tag');
-              in store_tag nt_count' tags' (tag - 1) end;
-      in (store_tag nt_count1 tags1 (nt_count2 - 1), table) end;
-
-    (*convert grammar2 tag to grammar1 tag*)
-    fun convert_tag tag = Array.sub (tag_table, tag);
-
-    (*convert chain list to raw productions*)
-    fun mk_chain_prods [] result = result
-      | mk_chain_prods ((to, froms) :: cs) result =
-          let
-            val to_tag = convert_tag to;
-
-            fun make [] result = result
-              | make (from :: froms) result = make froms
-                  ((to_tag, ([Nonterminal (convert_tag from, ~1)], "", ~1)) :: result);
-          in mk_chain_prods cs (make froms [] @ result) end;
-
-    val chain_prods = mk_chain_prods chains2 [];
-
-    (*convert prods2 array to productions*)
-    fun process_nt ~1 result = result
-      | process_nt nt result =
-          let
-            val nt_prods = fold (union (op =) o snd) (snd (Vector.sub (prods2, nt))) [];
-            val lhs_tag = convert_tag nt;
-
-            (*convert tags in rhs*)
-            fun process_rhs [] result = result
-              | process_rhs (Terminal tk :: rhs) result =
-                  process_rhs rhs (result @ [Terminal tk])
-              | process_rhs (Nonterminal (nt, prec) :: rhs) result =
-                  process_rhs rhs (result @ [Nonterminal (convert_tag nt, prec)]);
-
-            (*convert tags in productions*)
-            fun process_prods [] result = result
-              | process_prods ((rhs, id, prec) :: ps) result =
-                  process_prods ps ((lhs_tag, (process_rhs rhs [], id, prec)) :: result);
-          in process_nt (nt - 1) (process_prods nt_prods [] @ result) end;
-
-    val raw_prods = chain_prods @ process_nt (nt_count2 - 1) [];
-
-    val prods1' =
-      let
-        fun get_prod i =
-          if i < nt_count1 then Vector.sub (prods1, i)
-          else (([], []), []);
-      in Array.tabulate (nt_count1', get_prod) end;
-
-    val fromto_chains = inverse_chains chains1 [];
-
-    val (fromto_chains', lambdas', SOME prod_count1') =
-      add_prods prods1' fromto_chains lambdas1 (SOME prod_count1) raw_prods;
-
-    val chains' = inverse_chains fromto_chains' [];
-  in
-    Gram
-     {nt_count = nt_count1',
-      prod_count = prod_count1',
-      tags = tags1',
-      chains = chains',
-      lambdas = lambdas',
-      prods = Array.vector prods1'}
-  end;
+fun make_gram xprods = extend_gram xprods empty_gram;
 
 
 

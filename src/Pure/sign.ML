@@ -149,7 +149,7 @@ structure Data = Theory_Data_PP
       val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
       val naming = Name_Space.default_naming;
-      val syn = Syntax.merge_syntaxes syn1 syn2;
+      val syn = Syntax.merge_syntax (syn1, syn2);
       val tsig = Type.merge_tsig ctxt (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
     in make_sign (naming, syn, tsig, consts) end;
