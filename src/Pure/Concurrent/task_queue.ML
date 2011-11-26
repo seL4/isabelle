@@ -340,7 +340,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
           | SOME (_, entry) =>
               (case ready_job task entry of
                 NONE => ready tasks (task :: rest)
-              | some => (some, List.revAppend (rest, tasks))));
+              | some => (some, fold cons rest tasks)));
 
     fun ready_dep _ [] = NONE
       | ready_dep seen (task :: tasks) =
