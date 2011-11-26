@@ -49,12 +49,22 @@ struct
 
 (** theory data **)
 
+type proofs = thm list * unit lazy;
+
+val empty_proofs: proofs = ([], Lazy.value ());
+
+fun add_proofs more_thms ((thms, _): proofs) =
+  let val thms' = fold cons more_thms thms
+  in (thms', Lazy.lazy (fn () => Thm.join_proofs (rev thms'))) end;
+
+fun force_proofs ((_, prfs): proofs) = Lazy.force prfs;
+
 structure Data = Theory_Data
 (
-  type T = Facts.T * (thm list * thm list);
-  val empty = (Facts.empty, ([], []));
-  fun extend (facts, _) = (facts, ([], []));
-  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], []));
+  type T = Facts.T * (proofs * proofs);
+  val empty = (Facts.empty, (empty_proofs, empty_proofs));
+  fun extend (facts, _) = (facts, snd empty);
+  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), snd empty);
 );
 
 
@@ -68,13 +78,13 @@ val defined_fact = Facts.defined o facts_of;
 fun hide_fact fully name = Data.map (apfst (Facts.hide fully name));
 
 
-(* proofs *)
+(* forked proofs *)
 
-fun register_proofs (thy, thms) = (Data.map (apsnd (pairself (append thms))) thy, thms);
+fun register_proofs (thy, thms) = (Data.map (apsnd (pairself (add_proofs thms))) thy, thms);
 
-val begin_recent_proofs = Data.map (apsnd (fn (_, thms) => ([], thms)));
-val join_recent_proofs = Thm.join_proofs o rev o #1 o #2 o Data.get;
-val join_proofs = Thm.join_proofs o rev o #2 o #2 o Data.get;
+val begin_recent_proofs = Data.map (apsnd (apfst (K empty_proofs)));
+val join_recent_proofs = force_proofs o #1 o #2 o Data.get;
+val join_proofs = force_proofs o #2 o #2 o Data.get;
 
 
 (** retrieve theorems **)
