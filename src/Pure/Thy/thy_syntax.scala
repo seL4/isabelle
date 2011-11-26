@@ -69,7 +69,7 @@ object Thy_Syntax
       /* result structure */
 
       val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command.span(node_name, span)))
+      spans.foreach(span => add(Command(node_name, span)))
       result()
     }
   }
@@ -217,7 +217,7 @@ object Thy_Syntax
               (Some(last), spans1.take(spans1.length - 1))
             else (commands.next(last), spans1)
 
-          val inserted = spans2.map(span => new Command(Document.new_id(), node_name, span))
+          val inserted = spans2.map(span => Command(Document.new_id(), node_name, span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
           recover_spans(node_name, new_commands)

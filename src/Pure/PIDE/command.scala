@@ -9,6 +9,7 @@ package isabelle
 
 import java.lang.System
 
+import scala.collection.mutable
 import scala.collection.immutable.SortedMap
 
 
@@ -77,14 +78,33 @@ object Command
   }
 
 
-  /* dummy commands */
+  /* make commands */
+
+  def apply(id: Document.Command_ID, node_name: Document.Node.Name, toks: List[Token]): Command =
+  {
+    val source: String =
+      toks match {
+        case List(tok) => tok.source
+        case _ => toks.map(_.source).mkString
+      }
+
+    val span = new mutable.ListBuffer[Token]
+    var i = 0
+    for (Token(kind, s) <- toks) {
+      val n = s.length
+      val s1 = source.substring(i, i + n)
+      span += Token(kind, s1)
+      i += n
+    }
+
+    new Command(id, node_name, span.toList, source)
+  }
+
+  def apply(node_name: Document.Node.Name, toks: List[Token]): Command =
+    Command(Document.no_id, node_name, toks)
 
   def unparsed(source: String): Command =
-    new Command(Document.no_id, Document.Node.Name.empty,
-      List(Token(Token.Kind.UNPARSED, source)))
-
-  def span(node_name: Document.Node.Name, toks: List[Token]): Command =
-    new Command(Document.no_id, node_name, toks)
+    Command(Document.no_id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)))
 
 
   /* perspective */
@@ -109,10 +129,11 @@ object Command
 }
 
 
-class Command(
+class Command private(
     val id: Document.Command_ID,
     val node_name: Document.Node.Name,
-    val span: List[Token])
+    val span: List[Token],
+    val source: String)
 {
   /* classification */
 
@@ -129,7 +150,6 @@ class Command(
 
   /* source text */
 
-  val source: String = span.map(_.source).mkString
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
 
