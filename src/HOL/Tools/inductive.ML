@@ -27,9 +27,9 @@ sig
   type inductive_info = {names: string list, coind: bool} * inductive_result
   val the_inductive: Proof.context -> string -> inductive_info
   val print_inductives: Proof.context -> unit
+  val get_monos: Proof.context -> thm list
   val mono_add: attribute
   val mono_del: attribute
-  val get_monos: Proof.context -> thm list
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
   val rulify: thm -> thm
@@ -88,7 +88,6 @@ end;
 structure Inductive: INDUCTIVE =
 struct
 
-
 (** theory context references **)
 
 val inductive_forall_def = @{thm induct_forall_def};
@@ -114,106 +113,6 @@ val simp_thms3 =
 
 
 
-(** context data **)
-
-type inductive_result =
-  {preds: term list, elims: thm list, raw_induct: thm,
-   induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
-
-fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
-  let
-    val term = Morphism.term phi;
-    val thm = Morphism.thm phi;
-    val fact = Morphism.fact phi;
-  in
-   {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct,
-    induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs}
-  end;
-
-type inductive_info =
-  {names: string list, coind: bool} * inductive_result;
-
-structure Data = Generic_Data
-(
-  type T = inductive_info Symtab.table * thm list;
-  val empty = (Symtab.empty, []);
-  val extend = I;
-  fun merge ((tab1, monos1), (tab2, monos2)) : T =
-    (Symtab.merge (K true) (tab1, tab2), Thm.merge_thms (monos1, monos2));
-);
-
-val get_inductives = Data.get o Context.Proof;
-
-fun print_inductives ctxt =
-  let
-    val (tab, monos) = get_inductives ctxt;
-    val space = Consts.space_of (Proof_Context.consts_of ctxt);
-  in
-    [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table ctxt (space, tab))),
-     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
-
-
-(* get and put data *)
-
-fun the_inductive ctxt name =
-  (case Symtab.lookup (#1 (get_inductives ctxt)) name of
-    NONE => error ("Unknown (co)inductive predicate " ^ quote name)
-  | SOME info => info);
-
-fun put_inductives names info =
-  Data.map (apfst (fold (fn name => Symtab.update (name, info)) names));
-
-
-
-(** monotonicity rules **)
-
-val get_monos = #2 o get_inductives;
-val map_monos = Data.map o apsnd;
-
-fun mk_mono ctxt thm =
-  let
-    fun eq2mono thm' = thm' RS (thm' RS eq_to_mono);
-    fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
-      handle THM _ => thm RS @{thm le_boolD}
-  in
-    (case concl_of thm of
-      Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
-    | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => eq2mono thm
-    | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
-      dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
-        (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))
-    | _ => thm)
-  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm ctxt thm);
-
-val mono_add =
-  Thm.declaration_attribute (fn thm => fn context =>
-    map_monos (Thm.add_thm (mk_mono (Context.proof_of context) thm)) context);
-
-val mono_del =
-  Thm.declaration_attribute (fn thm => fn context =>
-    map_monos (Thm.del_thm (mk_mono (Context.proof_of context) thm)) context);
-
-
-
-(** equations **)
-
-structure Equation_Data = Generic_Data   (* FIXME just one data slot per module *)
-(
-  type T = thm Item_Net.T;
-  val empty = Item_Net.init (op aconv o pairself Thm.prop_of)
-    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);  (* FIXME fragile wrt. morphisms *)
-  val extend = I;
-  val merge = Item_Net.merge;
-);
-
-val add_equation = Thm.declaration_attribute (Equation_Data.map o Item_Net.update);
-
-val get_equations = Equation_Data.get o Context.Proof;
-
-
-
 (** misc utilities **)
 
 fun message quiet_mode s = if quiet_mode then () else writeln s;
@@ -222,7 +121,7 @@ fun clean_message quiet_mode s = if ! quick_and_dirty then () else message quiet
 fun coind_prefix true = "co"
   | coind_prefix false = "";
 
-fun log (b:int) m n = if m >= n then 0 else 1 + log b (b * m) n;
+fun log (b: int) m n = if m >= n then 0 else 1 + log b (b * m) n;
 
 fun make_bool_args f g [] i = []
   | make_bool_args f g (x :: xs) i =
@@ -266,6 +165,117 @@ fun mk_names a 0 = []
 fun select_disj 1 1 = []
   | select_disj _ 1 = [rtac disjI1]
   | select_disj n i = rtac disjI2 :: select_disj (n - 1) (i - 1);
+
+
+
+(** context data **)
+
+type inductive_result =
+  {preds: term list, elims: thm list, raw_induct: thm,
+   induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
+
+fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
+  let
+    val term = Morphism.term phi;
+    val thm = Morphism.thm phi;
+    val fact = Morphism.fact phi;
+  in
+   {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct,
+    induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs}
+  end;
+
+type inductive_info = {names: string list, coind: bool} * inductive_result;
+
+val empty_equations =
+  Item_Net.init
+    (op aconv o pairself Thm.prop_of)
+    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);  (* FIXME fragile wrt. morphisms *)
+
+datatype data = Data of
+ {infos: inductive_info Symtab.table,
+  monos: thm list,
+  equations: thm Item_Net.T};
+
+fun make_data (infos, monos, equations) =
+  Data {infos = infos, monos = monos, equations = equations};
+
+structure Data = Generic_Data
+(
+  type T = data;
+  val empty = make_data (Symtab.empty, [], empty_equations);
+  val extend = I;
+  fun merge (Data {infos = infos1, monos = monos1, equations = equations1},
+      Data {infos = infos2, monos = monos2, equations = equations2}) =
+    make_data (Symtab.merge (K true) (infos1, infos2),
+      Thm.merge_thms (monos1, monos2),
+      Item_Net.merge (equations1, equations2));
+);
+
+fun map_data f =
+  Data.map (fn Data {infos, monos, equations} => make_data (f (infos, monos, equations)));
+
+fun rep_data ctxt = Data.get (Context.Proof ctxt) |> (fn Data rep => rep);
+
+fun print_inductives ctxt =
+  let
+    val {infos, monos, ...} = rep_data ctxt;
+    val space = Consts.space_of (Proof_Context.consts_of ctxt);
+  in
+    [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table ctxt (space, infos))),
+     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
+
+
+(* inductive info *)
+
+fun the_inductive ctxt name =
+  (case Symtab.lookup (#infos (rep_data ctxt)) name of
+    NONE => error ("Unknown (co)inductive predicate " ^ quote name)
+  | SOME info => info);
+
+fun put_inductives names info =
+  map_data (fn (infos, monos, equations) =>
+    (fold (fn name => Symtab.update (name, info)) names infos, monos, equations));
+
+
+(* monotonicity rules *)
+
+val get_monos = #monos o rep_data;
+
+fun mk_mono ctxt thm =
+  let
+    fun eq_to_mono thm' = thm' RS (thm' RS @{thm eq_to_mono});
+    fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
+      handle THM _ => thm RS @{thm le_boolD}
+  in
+    (case concl_of thm of
+      Const ("==", _) $ _ $ _ => eq_to_mono (thm RS meta_eq_to_obj_eq)
+    | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => eq_to_mono thm
+    | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
+      dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
+        (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))
+    | _ => thm)
+  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm ctxt thm);
+
+val mono_add =
+  Thm.declaration_attribute (fn thm => fn context =>
+    map_data (fn (infos, monos, equations) =>
+      (infos, Thm.add_thm (mk_mono (Context.proof_of context) thm) monos, equations)) context);
+
+val mono_del =
+  Thm.declaration_attribute (fn thm => fn context =>
+    map_data (fn (infos, monos, equations) =>
+      (infos, Thm.del_thm (mk_mono (Context.proof_of context) thm) monos, equations)) context);
+
+
+(* equations *)
+
+val get_equations = #equations o rep_data;
+
+val equation_add =
+  Thm.declaration_attribute (fn thm =>
+    map_data (fn (infos, monos, equations) => (infos, monos, Item_Net.update thm equations)));
 
 
 
@@ -597,7 +607,7 @@ fun mk_simp_eq ctxt prop =
       map (fn v => (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v))))
         (Term.add_vars (lhs_of eq) []);
   in
-    cterm_instantiate inst eq
+    Drule.cterm_instantiate inst eq
     |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite (simpset_of ctxt))))
     |> singleton (Variable.export ctxt' ctxt)
   end
@@ -875,7 +885,7 @@ fun declare_rules rec_binding coind no_ind cnames
     val (eqs', lthy3) = lthy2 |>
       fold_map (fn (name, eq) => Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"),
-            [Attrib.internal (K add_equation)]), [eq])
+            [Attrib.internal (K equation_add)]), [eq])
           #> apfst (hd o snd))
         (if null eqs then [] else (cnames ~~ eqs))
     val (inducts, lthy4) =
