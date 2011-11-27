@@ -68,7 +68,7 @@ qed
 
 interpretation Abs_Int rep_cval Const plus_cval
 defines AI_const is AI
-and step_const is step
+and step_const is step'
 proof qed
 
 

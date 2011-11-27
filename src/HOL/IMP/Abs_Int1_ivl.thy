@@ -207,7 +207,7 @@ interpretation
   Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
-and step_ivl is step
+and step_ivl is step'
 and AI_ivl is AI
 and aval_ivl' is aval''
 proof qed

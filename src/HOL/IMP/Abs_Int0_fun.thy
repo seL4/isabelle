@@ -253,22 +253,22 @@ fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-fun step :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom"
+fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom"
  where
-"step S (SKIP {P}) = (SKIP {S})" |
-"step S (x ::= e {P}) =
+"step' S (SKIP {P}) = (SKIP {S})" |
+"step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
-"step S (c1; c2) = step S c1; step (post c1) c2" |
-"step S (IF b THEN c1 ELSE c2 {P}) =
-   IF b THEN step S c1 ELSE step S c2 {post c1 \<squnion> post c2}" |
-"step S ({Inv} WHILE b DO c {P}) =
-  {S \<squnion> post c} WHILE b DO (step Inv c) {Inv}"
+"step' S (c1; c2) = step' S c1; step' (post c1) c2" |
+"step' S (IF b THEN c1 ELSE c2 {P}) =
+   IF b THEN step' S c1 ELSE step' S c2 {post c1 \<squnion> post c2}" |
+"step' S ({Inv} WHILE b DO c {P}) =
+  {S \<squnion> post c} WHILE b DO (step' Inv c) {Inv}"
 
 definition AI :: "com \<Rightarrow> 'a st option acom option" where
-"AI = lpfp\<^isub>c (step \<top>)"
+"AI = lpfp\<^isub>c (step' \<top>)"
 
 
-lemma strip_step[simp]: "strip(step S c) = strip c"
+lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
 
@@ -310,7 +310,7 @@ by(simp add: rep_fun_def)
 
 lemma step_preserves_le2:
   "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
-   \<Longrightarrow> step_cs S cs \<le> \<gamma>\<^isub>c (step sa ca)"
+   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' sa ca)"
 proof(induction c arbitrary: cs ca S sa)
   case SKIP thus ?case
     by(auto simp:strip_eq_SKIP)
@@ -348,24 +348,24 @@ qed
 
 lemma step_preserves_le:
   "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
-   \<Longrightarrow> step_cs S cs \<le> \<gamma>\<^isub>c(step sa ca)"
+   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c(step' sa ca)"
 by (metis le_strip step_preserves_le2 strip_acom)
 
 lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp\<^isub>c (step \<top>) c = Some c'"
-  have 2: "step \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
-  have 3: "strip (\<gamma>\<^isub>c (step \<top> c')) = c"
+  assume 1: "lpfp\<^isub>c (step' \<top>) c = Some c'"
+  have 2: "step' \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
+  have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c"
     by(simp add: strip_lpfpc[OF _ 1])
-  have "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c (step \<top> c')"
+  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[OF 3])
-    show "step_cs UNIV (\<gamma>\<^isub>c (step \<top> c')) \<le> \<gamma>\<^isub>c (step \<top> c')"
+    show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _ 3])
       show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
-      show "\<gamma>\<^isub>c (step \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
     qed
   qed
-  from this 2 show "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c c'"
+  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c c'"
     by (blast intro: mono_rep_c order_trans)
 qed
 
@@ -384,7 +384,7 @@ by(induction e)(auto simp: le_fun_def mono_plus')
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
 by(simp add: le_fun_def)
 
-lemma step_mono: "S \<sqsubseteq> S' \<Longrightarrow> step S c \<sqsubseteq> step S' c"
+lemma step'_mono: "S \<sqsubseteq> S' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c"
 apply(induction c arbitrary: S S')
 apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: option.split)
 done

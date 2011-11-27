@@ -19,6 +19,8 @@ use_thys
  "VC",
  "HoareT",
  "Abs_Int2",
+ "Collecting1",
+ "Collecting_list",
  "Abs_Int_Den/Abs_Int_den2",
  "Procs_Dyn_Vars_Dyn",
  "Procs_Stat_Vars_Dyn",
