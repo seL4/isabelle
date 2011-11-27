@@ -138,21 +138,21 @@ by (cases c) auto
 
 subsubsection "Collecting semantics"
 
-fun step_cs :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
-"step_cs S (SKIP {P}) = (SKIP {S})" |
-"step_cs S (x ::= e {P}) =
+fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
+"step S (SKIP {P}) = (SKIP {S})" |
+"step S (x ::= e {P}) =
   (x ::= e {{s'. EX s:S. s' = s(x := aval e s)}})" |
-"step_cs S (c1; c2) = step_cs S c1; step_cs (post c1) c2" |
-"step_cs S (IF b THEN c1 ELSE c2 {P}) =
-   IF b THEN step_cs {s:S. bval b s} c1 ELSE step_cs {s:S. \<not> bval b s} c2
+"step S (c1; c2) = step S c1; step (post c1) c2" |
+"step S (IF b THEN c1 ELSE c2 {P}) =
+   IF b THEN step {s:S. bval b s} c1 ELSE step {s:S. \<not> bval b s} c2
    {post c1 \<union> post c2}" |
-"step_cs S ({Inv} WHILE b DO c {P}) =
-  {S \<union> post c} WHILE b DO (step_cs {s:Inv. bval b s} c) {{s:Inv. \<not> bval b s}}"
+"step S ({Inv} WHILE b DO c {P}) =
+  {S \<union> post c} WHILE b DO (step {s:Inv. bval b s} c) {{s:Inv. \<not> bval b s}}"
 
 definition CS :: "state set \<Rightarrow> com \<Rightarrow> state set acom" where
-"CS S c = lfp c (step_cs S)"
+"CS S c = lfp c (step S)"
 
-lemma mono_step_cs_aux: "x \<le> y \<Longrightarrow> S \<subseteq> T \<Longrightarrow> step_cs S x \<le> step_cs T y"
+lemma mono_step_aux: "x \<le> y \<Longrightarrow> S \<subseteq> T \<Longrightarrow> step S x \<le> step T y"
 proof(induction x y arbitrary: S T rule: less_eq_acom.induct)
   case 2 thus ?case by fastforce
 next
@@ -163,15 +163,15 @@ next
   case 5 thus ?case by(simp add: subset_iff) (metis le_post set_mp)
 qed auto
 
-lemma mono_step_cs: "mono (step_cs S)"
-by(blast intro: monoI mono_step_cs_aux)
+lemma mono_step: "mono (step S)"
+by(blast intro: monoI mono_step_aux)
 
-lemma strip_step_cs: "strip(step_cs S c) = strip c"
+lemma strip_step: "strip(step S c) = strip c"
 by (induction c arbitrary: S) auto
 
-lemmas lfp_cs_unfold = lfp_unfold[OF strip_step_cs mono_step_cs]
+lemmas lfp_cs_unfold = lfp_unfold[OF strip_step mono_step]
 
-lemma CS_unfold: "CS S c = step_cs S (CS S c)"
+lemma CS_unfold: "CS S c = step S (CS S c)"
 by (metis CS_def lfp_cs_unfold)
 
 lemma strip_CS[simp]: "strip(CS S c) = c"

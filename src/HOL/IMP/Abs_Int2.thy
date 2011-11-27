@@ -184,23 +184,23 @@ locale Abs_Int2 = Abs_Int1_mono rep for rep :: "'a::{WN,L_top_bot} \<Rightarrow>
 begin
 
 definition AI_WN :: "com \<Rightarrow> 'a st option acom option" where
-"AI_WN = pfp_WN (step \<top>)"
+"AI_WN = pfp_WN (step' \<top>)"
 
 lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_WN_def)
-  assume 1: "pfp_WN (step \<top>) c = Some c'"
-  from pfp_WN_pfp[OF allI[OF strip_step] mono_step 1]
-  have 2: "step \<top> c' \<sqsubseteq> c'" .
-  have 3: "strip (\<gamma>\<^isub>c (step \<top> c')) = c" by(simp add: strip_pfp_WN[OF _ 1])
-  have "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c (step \<top> c')"
+  assume 1: "pfp_WN (step' \<top>) c = Some c'"
+  from pfp_WN_pfp[OF allI[OF strip_step'] mono_step' 1]
+  have 2: "step' \<top> c' \<sqsubseteq> c'" .
+  have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c" by(simp add: strip_pfp_WN[OF _ 1])
+  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[OF 3])
-    show "step_cs UNIV (\<gamma>\<^isub>c (step \<top> c')) \<le> \<gamma>\<^isub>c (step \<top> c')"
+    show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _ 3])
       show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
-      show "\<gamma>\<^isub>c (step \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
     qed
   qed
-  from this 2 show "lfp c (step_cs UNIV) \<le> \<gamma>\<^isub>c c'"
+  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c c'"
     by (blast intro: mono_rep_c order_trans)
 qed
 
