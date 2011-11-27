@@ -26,7 +26,9 @@ let val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
                                      (Thm.cprop_of th), SOME x] th1) th
 in fold ins u th0 end;
 
-val simp_rule = Conv.fconv_rule (Conv.arg_conv (Simplifier.rewrite (HOL_basic_ss addsimps (@{thms "ball_simps"} @ simp_thms))));
+val simp_rule =
+  Conv.fconv_rule
+    (Conv.arg_conv (Simplifier.rewrite (HOL_basic_ss addsimps @{thms ball_simps simp_thms})));
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep = 
  case term_of ep of 
@@ -138,16 +140,14 @@ fun proc ct =
                  (Thm.capply @{cterm Trueprop} (list_conj (ndx @dx))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
-                   (Simplifier.rewrite 
-                      (HOL_basic_ss addsimps (simp_thms @ ex_simps))))
+                   (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
            |> SOME
           end
     | _ => conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
                  (Thm.capply @{cterm Trueprop} (list_conj (eqs@neqs))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
-                   (Simplifier.rewrite 
-                (HOL_basic_ss addsimps (simp_thms @ ex_simps)))) 
+                   (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
            |> SOME
    end
  | _ => NONE;
@@ -162,9 +162,9 @@ fun raw_dlo_conv dlo_ss
  let 
   val ss = dlo_ss addsimps @{thms "dnf_simps"} addsimprocs [reduce_ex_simproc]
   val dnfex_conv = Simplifier.rewrite ss
-   val pcv = Simplifier.rewrite
-               (dlo_ss addsimps (simp_thms @ ex_simps @ all_simps)
-                @ [@{thm "all_not_ex"}, not_all, ex_disj_distrib])
+  val pcv =
+    Simplifier.rewrite
+      (dlo_ss addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
  in fn p => 
    Qelim.gen_qelim_conv pcv pcv dnfex_conv cons 
                   (Thm.add_cterm_frees p [])  (K Thm.reflexive) (K Thm.reflexive)

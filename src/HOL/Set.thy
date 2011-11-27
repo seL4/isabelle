@@ -1797,7 +1797,6 @@ val bex_triv = @{thm bex_triv}
 val bspec = @{thm bspec}
 val contra_subsetD = @{thm contra_subsetD}
 val distinct_lemma = @{thm distinct_lemma}
-val eq_to_mono = @{thm eq_to_mono}
 val equalityCE = @{thm equalityCE}
 val equalityD1 = @{thm equalityD1}
 val equalityD2 = @{thm equalityD2}

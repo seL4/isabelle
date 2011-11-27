@@ -108,7 +108,7 @@ type take_induct_info =
   }
 
 val beta_ss =
-  HOL_basic_ss addsimps simp_thms addsimprocs [@{simproc beta_cfun_proc}]
+  HOL_basic_ss addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}]
 
 (******************************************************************************)
 (******************************** theory data *********************************)

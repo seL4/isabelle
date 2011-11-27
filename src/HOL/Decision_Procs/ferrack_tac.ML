@@ -23,7 +23,7 @@ val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_les
 val binarith =
   @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
   @{thms add_bin_simps} @ @{thms minus_bin_simps} @  @{thms mult_bin_simps};
-val comp_arith = binarith @ simp_thms
+val comp_arith = binarith @ @{thms simp_thms};
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};

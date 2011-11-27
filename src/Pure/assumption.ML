@@ -67,7 +67,7 @@ structure Data = Proof_Data
 );
 
 fun map_data f = Data.map (fn Data {assms, prems} => make_data (f (assms, prems)));
-fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
+fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
 
 (* all assumptions *)

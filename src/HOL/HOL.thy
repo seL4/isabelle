@@ -2011,15 +2011,8 @@ in
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
 end;
 
-val all_conj_distrib = @{thm all_conj_distrib};
-val all_simps = @{thms all_simps};
-val atomize_not = @{thm atomize_not};
 val case_split = @{thm case_split};
-val cases_simp = @{thm cases_simp};
-val choice_eq = @{thm choice_eq};
 val cong = @{thm cong};
-val conj_comms = @{thms conj_comms};
-val conj_cong = @{thm conj_cong};
 val de_Morgan_conj = @{thm de_Morgan_conj};
 val de_Morgan_disj = @{thm de_Morgan_disj};
 val disj_assoc = @{thm disj_assoc};
@@ -2045,15 +2038,11 @@ val imp_cong = @{thm imp_cong};
 val imp_conjL = @{thm imp_conjL};
 val imp_conjR = @{thm imp_conjR};
 val imp_conv_disj = @{thm imp_conv_disj};
-val simp_implies_def = @{thm simp_implies_def};
-val simp_thms = @{thms simp_thms};
 val split_if = @{thm split_if};
 val the1_equality = @{thm the1_equality};
 val theI = @{thm theI};
 val theI' = @{thm theI'};
-val True_implies_equals = @{thm True_implies_equals};
-val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms @ @{thms "nnf_simps"})
-
+val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms nnf_simps});
 *}
 
 hide_const (open) eq equal

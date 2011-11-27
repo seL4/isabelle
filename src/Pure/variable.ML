@@ -144,7 +144,7 @@ fun map_constraints f =
   map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
     (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, f constraints));
 
-fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
+fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
 val is_body = #is_body o rep_data;
 
