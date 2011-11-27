@@ -194,10 +194,12 @@
 \def\isacharverbatimclose{\isamath{\rangle\!\rangle}}%
 }
 
-\newcommand{\isabellestyleitunderscore}{%
+\newcommand{\isabellestyleliteral}{%
 \isabellestyleit%
 \def\isacharunderscore{\_}%
 \def\isacharunderscorekeyword{\_}%
+\chardef\isacharbackquoteopen=`\`%
+\chardef\isacharbackquoteclose=`\`%
 }
 
 \newcommand{\isabellestylesl}{%
