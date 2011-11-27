@@ -187,9 +187,8 @@ fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs,
 type inductive_info = {names: string list, coind: bool} * inductive_result;
 
 val empty_equations =
-  Item_Net.init
-    (op aconv o pairself Thm.prop_of)
-    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);  (* FIXME fragile wrt. morphisms *)
+  Item_Net.init Thm.eq_thm_prop
+    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);
 
 datatype data = Data of
  {infos: inductive_info Symtab.table,
@@ -273,9 +272,10 @@ val mono_del =
 
 val get_equations = #equations o rep_data;
 
-val equation_add =
+val equation_add_permissive =
   Thm.declaration_attribute (fn thm =>
-    map_data (fn (infos, monos, equations) => (infos, monos, Item_Net.update thm equations)));
+    map_data (fn (infos, monos, equations) =>
+      (infos, monos, perhaps (try (Item_Net.update thm)) equations)));
 
 
 
@@ -885,7 +885,7 @@ fun declare_rules rec_binding coind no_ind cnames
     val (eqs', lthy3) = lthy2 |>
       fold_map (fn (name, eq) => Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"),
-            [Attrib.internal (K equation_add)]), [eq])
+            [Attrib.internal (K equation_add_permissive)]), [eq])
           #> apfst (hd o snd))
         (if null eqs then [] else (cnames ~~ eqs))
     val (inducts, lthy4) =
