@@ -188,8 +188,8 @@ val mode_abbrev    = make_mode (false, false, false, true);
 
 (** Isar proof context information **)
 
-datatype ctxt =
-  Ctxt of
+datatype data =
+  Data of
    {mode: mode,                  (*inner syntax mode*)
     naming: Name_Space.naming,   (*local naming conventions*)
     syntax: Local_Syntax.T,      (*local syntax*)
@@ -198,83 +198,83 @@ datatype ctxt =
     facts: Facts.T,              (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
-fun make_ctxt (mode, naming, syntax, tsig, consts, facts, cases) =
-  Ctxt {mode = mode, naming = naming, syntax = syntax,
+fun make_data (mode, naming, syntax, tsig, consts, facts, cases) =
+  Data {mode = mode, naming = naming, syntax = syntax,
     tsig = tsig, consts = consts, facts = facts, cases = cases};
 
 val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
 structure Data = Proof_Data
 (
-  type T = ctxt;
+  type T = data;
   fun init thy =
-    make_ctxt (mode_default, local_naming, Local_Syntax.init thy,
+    make_data (mode_default, local_naming, Local_Syntax.init thy,
       (Sign.tsig_of thy, Sign.tsig_of thy),
       (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
 
-fun rep_context ctxt = Data.get ctxt |> (fn Ctxt args => args);
+fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
-fun map_context f =
-  Data.map (fn Ctxt {mode, naming, syntax, tsig, consts, facts, cases} =>
-    make_ctxt (f (mode, naming, syntax, tsig, consts, facts, cases)));
+fun map_data f =
+  Data.map (fn Data {mode, naming, syntax, tsig, consts, facts, cases} =>
+    make_data (f (mode, naming, syntax, tsig, consts, facts, cases)));
 
-fun set_mode mode = map_context (fn (_, naming, syntax, tsig, consts, facts, cases) =>
+fun set_mode mode = map_data (fn (_, naming, syntax, tsig, consts, facts, cases) =>
   (mode, naming, syntax, tsig, consts, facts, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsig, consts, facts, cases) =>
     (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, tsig, consts, facts, cases));
 
 fun map_naming f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, f naming, syntax, tsig, consts, facts, cases));
 
 fun map_syntax f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, naming, f syntax, tsig, consts, facts, cases));
 
 fun map_tsig f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, naming, syntax, f tsig, consts, facts, cases));
 
 fun map_consts f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, naming, syntax, tsig, f consts, facts, cases));
 
 fun map_facts f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, naming, syntax, tsig, consts, f facts, cases));
 
 fun map_cases f =
-  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+  map_data (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
     (mode, naming, syntax, tsig, consts, facts, f cases));
 
-val get_mode = #mode o rep_context;
+val get_mode = #mode o rep_data;
 val restore_mode = set_mode o get_mode;
 val abbrev_mode = get_mode #> (fn Mode {abbrev, ...} => abbrev);
 
 fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
-val naming_of = #naming o rep_context;
+val naming_of = #naming o rep_data;
 val restore_naming = map_naming o K o naming_of
 val full_name = Name_Space.full_name o naming_of;
 
-val syntax_of = #syntax o rep_context;
+val syntax_of = #syntax o rep_data;
 val syn_of = Local_Syntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
-val tsig_of = #1 o #tsig o rep_context;
+val tsig_of = #1 o #tsig o rep_data;
 val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
-val consts_of = #1 o #consts o rep_context;
+val consts_of = #1 o #consts o rep_data;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
-val facts_of = #facts o rep_context;
-val cases_of = #cases o rep_context;
+val facts_of = #facts o rep_data;
+val cases_of = #cases o rep_data;
 
 
 (* name spaces *)
@@ -1134,7 +1134,7 @@ val print_syntax = Syntax.print_syntax o syn_of;
 fun pretty_abbrevs show_globals ctxt =
   let
     val ((space, consts), (_, globals)) =
-      pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
+      pairself (#constants o Consts.dest) (#consts (rep_data ctxt));
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
