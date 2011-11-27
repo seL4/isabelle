@@ -653,8 +653,8 @@ The following improper proof methods emulate traditional tactics.
   like \isa{add}.
 
   \medskip The \isa{cong} modifiers add or delete Simplifier
-  congruence rules (see also \cite{isabelle-ref}), the default is to
-  add.
+  congruence rules (see also \secref{sec:simp-cong}), the default is
+  to add.
 
   \medskip The \isa{split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.
@@ -704,7 +704,6 @@ The following improper proof methods emulate traditional tactics.
 \begin{matharray}{rcl}
     \indexdef{}{command}{print\_simpset}\hypertarget{command.print-simpset}{\hyperlink{command.print-simpset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}simpset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{attribute}{simp}\hypertarget{attribute.simp}{\hyperlink{attribute.simp}{\mbox{\isa{simp}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{cong}\hypertarget{attribute.cong}{\hyperlink{attribute.cong}{\mbox{\isa{cong}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{split}\hypertarget{attribute.split}{\hyperlink{attribute.split}{\mbox{\isa{split}}}} & : & \isa{attribute} \\
   \end{matharray}
 
@@ -713,8 +712,6 @@ The following improper proof methods emulate traditional tactics.
 \rail@bar
 \rail@term{\hyperlink{attribute.simp}{\mbox{\isa{simp}}}}[]
 \rail@nextbar{1}
-\rail@term{\hyperlink{attribute.cong}{\mbox{\isa{cong}}}}[]
-\rail@nextbar{2}
 \rail@term{\hyperlink{attribute.split}{\mbox{\isa{split}}}}[]
 \rail@endbar
 \rail@bar
@@ -735,11 +732,84 @@ The following improper proof methods emulate traditional tactics.
 
   \item \hyperlink{attribute.simp}{\mbox{\isa{simp}}} declares simplification rules.
 
-  \item \hyperlink{attribute.cong}{\mbox{\isa{cong}}} declares congruence rules.
-
   \item \hyperlink{attribute.split}{\mbox{\isa{split}}} declares case split rules.
 
   \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Congruence rules\label{sec:simp-cong}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{attribute}{cong}\hypertarget{attribute.cong}{\hyperlink{attribute.cong}{\mbox{\isa{cong}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{3}{}
+\rail@term{\hyperlink{attribute.cong}{\mbox{\isa{cong}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{attribute.cong}{\mbox{\isa{cong}}} declares congruence rules to the Simplifier
+  context.
+
+  \end{description}
+
+  Congruence rules are equalities of the form \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{3F}{\isacharquery}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3F}{\isacharquery}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{3F}{\isacharquery}}y\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3F}{\isacharquery}}y\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  This controls the simplification of the arguments of \isa{f}.  For
+  example, some arguments can be simplified under additional
+  assumptions: \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Given this rule, the simplifier assumes \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} and extracts
+  rewrite rules from it when simplifying \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}.  Such local
+  assumptions are effective for rewriting formulae such as \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ y\ {\isaliteral{2B}{\isacharplus}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequote}}}.
+
+  %FIXME
+  %The local assumptions are also provided as theorems to the solver;
+  %see \secref{sec:simp-solver} below.
+
+  \medskip The following congruence rule for bounded quantifiers also
+  supplies contextual information --- about the bound variable:
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}A\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ x\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}A{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}B{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}Q\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  \medskip This congruence rule for conditional expressions can
+  supply contextual information for simplifying the arms:
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}p\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}a\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}c{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{3F}{\isacharquery}}q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}b\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}d{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}p\ then\ {\isaliteral{3F}{\isacharquery}}a\ else\ {\isaliteral{3F}{\isacharquery}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}q\ then\ {\isaliteral{3F}{\isacharquery}}c\ else\ {\isaliteral{3F}{\isacharquery}}d{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  A congruence rule can also \emph{prevent} simplification of some
+  arguments.  Here is an alternative congruence rule for conditional
+  expressions that conforms to non-strict functional evaluation:
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}p\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}p\ then\ {\isaliteral{3F}{\isacharquery}}a\ else\ {\isaliteral{3F}{\isacharquery}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}q\ then\ {\isaliteral{3F}{\isacharquery}}a\ else\ {\isaliteral{3F}{\isacharquery}}b{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Only the first argument is simplified; the others remain unchanged.
+  This can make simplification much faster, but may require an extra
+  case split over the condition \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}q{\isaliteral{22}{\isachardoublequote}}} to prove the goal.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

@@ -399,8 +399,8 @@ text {*
   like @{text add}.
 
   \medskip The @{text cong} modifiers add or delete Simplifier
-  congruence rules (see also \cite{isabelle-ref}), the default is to
-  add.
+  congruence rules (see also \secref{sec:simp-cong}), the default is
+  to add.
 
   \medskip The @{text split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.
@@ -453,12 +453,11 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def simp} & : & @{text attribute} \\
-    @{attribute_def cong} & : & @{text attribute} \\
     @{attribute_def split} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
-    (@@{attribute simp} | @@{attribute cong} | @@{attribute split}) (() | 'add' | 'del')
+    (@@{attribute simp} | @@{attribute split}) (() | 'add' | 'del')
   "}
 
   \begin{description}
@@ -469,11 +468,65 @@ text {*
 
   \item @{attribute simp} declares simplification rules.
 
-  \item @{attribute cong} declares congruence rules.
-
   \item @{attribute split} declares case split rules.
 
   \end{description}
+*}
+
+
+subsection {* Congruence rules\label{sec:simp-cong} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{attribute_def cong} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    @@{attribute cong} (() | 'add' | 'del')
+  "}
+
+  \begin{description}
+
+  \item @{attribute cong} declares congruence rules to the Simplifier
+  context.
+
+  \end{description}
+
+  Congruence rules are equalities of the form @{text [display]
+  "\<dots> \<Longrightarrow> f ?x\<^sub>1 \<dots> ?x\<^sub>n = f ?y\<^sub>1 \<dots> ?y\<^sub>n"}
+
+  This controls the simplification of the arguments of @{text f}.  For
+  example, some arguments can be simplified under additional
+  assumptions: @{text [display] "?P\<^sub>1 \<longleftrightarrow> ?Q\<^sub>1 \<Longrightarrow> (?Q\<^sub>1 \<Longrightarrow> ?P\<^sub>2 \<longleftrightarrow> ?Q\<^sub>2) \<Longrightarrow>
+  (?P\<^sub>1 \<longrightarrow> ?P\<^sub>2) \<longleftrightarrow> (?Q\<^sub>1 \<longrightarrow> ?Q\<^sub>2)"}
+
+  Given this rule, the simplifier assumes @{text "?Q\<^sub>1"} and extracts
+  rewrite rules from it when simplifying @{text "?P\<^sub>2"}.  Such local
+  assumptions are effective for rewriting formulae such as @{text "x =
+  0 \<longrightarrow> y + x = y"}.
+
+  %FIXME
+  %The local assumptions are also provided as theorems to the solver;
+  %see \secref{sec:simp-solver} below.
+
+  \medskip The following congruence rule for bounded quantifiers also
+  supplies contextual information --- about the bound variable:
+  @{text [display] "(?A = ?B) \<Longrightarrow> (\<And>x. x \<in> ?B \<Longrightarrow> ?P x \<longleftrightarrow> ?Q x) \<Longrightarrow>
+    (\<forall>x \<in> ?A. ?P x) \<longleftrightarrow> (\<forall>x \<in> ?B. ?Q x)"}
+
+  \medskip This congruence rule for conditional expressions can
+  supply contextual information for simplifying the arms:
+  @{text [display] "?p = ?q \<Longrightarrow> (?q \<Longrightarrow> ?a = ?c) \<Longrightarrow> (\<not> ?q \<Longrightarrow> ?b = ?d) \<Longrightarrow>
+    (if ?p then ?a else ?b) = (if ?q then ?c else ?d)"}
+
+  A congruence rule can also \emph{prevent} simplification of some
+  arguments.  Here is an alternative congruence rule for conditional
+  expressions that conforms to non-strict functional evaluation:
+  @{text [display] "?p = ?q \<Longrightarrow> (if ?p then ?a else ?b) = (if ?q then ?a else ?b)"}
+
+  Only the first argument is simplified; the others remain unchanged.
+  This can make simplification much faster, but may require an extra
+  case split over the condition @{text "?q"} to prove the goal.
 *}
 
 
