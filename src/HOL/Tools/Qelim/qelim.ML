@@ -55,8 +55,7 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
 local
 val pcv =
   Simplifier.rewrite
-    (HOL_basic_ss addsimps (@{thms simp_thms} @ @{thms ex_simps} @ @{thms all_simps} @
-        [@{thm all_not_ex}, not_all, @{thm ex_disj_distrib}]));
+    (HOL_basic_ss addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
 
 in fun standard_qelim_conv atcv ncv qcv p =
       gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p

@@ -37,7 +37,7 @@ val nT = HOLogic.natT;
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
              @{thm "diff_minus"}, @{thm "minus_divide_left"}]
-val comp_ths = ths @ comp_arith @ simp_thms 
+val comp_ths = ths @ comp_arith @ @{thms simp_thms};
 
 
 val zdvd_int = @{thm "zdvd_int"};
@@ -89,7 +89,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun mir_tac ctxt q = 
     Object_Logic.atomize_prems_tac
-        THEN' simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms)
+        THEN' simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
         THEN' (REPEAT_DETERM o split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
         THEN' SUBGOAL (fn (g, i) =>
   let

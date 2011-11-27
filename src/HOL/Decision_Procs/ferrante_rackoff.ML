@@ -163,7 +163,7 @@ let
                         qe))
                   [fU, ld_th, nmi_th, npi_th, minf_th, pinf_th]
     val bex_conv =
-      Simplifier.rewrite (HOL_basic_ss addsimps simp_thms@(@{thms "bex_simps" (1-5)}))
+      Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms bex_simps(1-5)})
     val result_th = fconv_rule (arg_conv bex_conv) (Thm.transitive enth qe_th)
    in result_th
    end
@@ -200,8 +200,8 @@ fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset}) tm =
  let
    val ss = simpset
    val ss' =
-     merge_ss (HOL_basic_ss addsimps (simp_thms @ ex_simps @ all_simps)
-              @ [not_all,@{thm "all_not_ex"}, ex_disj_distrib], ss)
+     merge_ss (HOL_basic_ss addsimps @{thms simp_thms ex_simps all_simps
+                not_all all_not_ex ex_disj_distrib}, ss)
      |> Simplifier.inherit_context ss
    val pcv = Simplifier.rewrite ss'     
    val postcv = Simplifier.rewrite ss

@@ -64,13 +64,13 @@ type constr_info =
 
 (************************** miscellaneous functions ***************************)
 
-val simple_ss = HOL_basic_ss addsimps simp_thms
+val simple_ss = HOL_basic_ss addsimps @{thms simp_thms}
 
 val beta_rules =
   @{thms beta_cfun cont_id cont_const cont2cont_APP cont2cont_LAM'} @
   @{thms cont2cont_fst cont2cont_snd cont2cont_Pair}
 
-val beta_ss = HOL_basic_ss addsimps (simp_thms @ beta_rules)
+val beta_ss = HOL_basic_ss addsimps (@{thms simp_thms} @ beta_rules)
 
 fun define_consts
     (specs : (binding * term * mixfix) list)

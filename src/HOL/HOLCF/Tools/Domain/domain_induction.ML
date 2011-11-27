@@ -156,7 +156,7 @@ let
           fun con_thm p (con, args) =
             let
               val subgoal = con_assm false p (con, args)
-              val rules = prems @ con_rews @ simp_thms
+              val rules = prems @ con_rews @ @{thms simp_thms}
               val simplify = asm_simp_tac (HOL_basic_ss addsimps rules)
               fun arg_tac (lazy, _) =
                   rtac (if lazy then allI else case_UU_allI) 1

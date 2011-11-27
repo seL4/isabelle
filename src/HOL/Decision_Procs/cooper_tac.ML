@@ -19,7 +19,7 @@ val cooper_ss = @{simpset};
 
 val nT = HOLogic.natT;
 val binarith = @{thms normalize_bin_simps};
-val comp_arith = binarith @ simp_thms
+val comp_arith = binarith @ @{thms simp_thms};
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};

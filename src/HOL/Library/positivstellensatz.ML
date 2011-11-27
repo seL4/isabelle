@@ -200,7 +200,7 @@ val pth_emul = @{lemma "y = (0::real) ==> x * y = 0"  by simp};
 val pth_square = @{lemma "x * x >= (0::real)"  by simp};
 
 val weak_dnf_simps =
-  List.take (simp_thms, 34) @
+  List.take (@{thms simp_thms}, 34) @
     @{lemma "((P & (Q | R)) = ((P&Q) | (P&R)))" and "((Q | R) & P) = ((Q&P) | (R&P))" and
       "(P & Q) = (Q & P)" and "((P | Q) = (Q | P))" by blast+};
 
@@ -351,7 +351,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) = 
 let
- val pre_ss = HOL_basic_ss addsimps simp_thms@ ex_simps@ all_simps@[@{thm not_all},@{thm not_ex},ex_disj_distrib, all_conj_distrib, @{thm if_bool_eq_disj}]
+ val pre_ss = HOL_basic_ss addsimps
+  @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib all_conj_distrib if_bool_eq_disj}
  val prenex_ss = HOL_basic_ss addsimps prenex_simps
  val skolemize_ss = HOL_basic_ss addsimps [choice_iff]
  val presimp_conv = Simplifier.rewrite (Simplifier.context ctxt pre_ss)

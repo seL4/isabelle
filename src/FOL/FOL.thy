@@ -337,12 +337,12 @@ ML {*
 (*intuitionistic simprules only*)
 val IFOL_ss =
   FOL_basic_ss
-  addsimps (@{thms meta_simps} @ @{thms IFOL_simps} @ @{thms int_ex_simps} @ @{thms int_all_simps})
+  addsimps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps}
   addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}]
   |> Simplifier.add_cong @{thm imp_cong};
 
 (*classical simprules too*)
-val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
+val FOL_ss = IFOL_ss addsimps @{thms cla_simps cla_ex_simps cla_all_simps};
 *}
 
 setup {* Simplifier.map_simpset_global (K FOL_ss) *}

@@ -38,7 +38,7 @@ fun assert_tac (Max_number_of_subgoals i) st =
 
 
 (** special setup for simpset **)
-val HOL_basic_ss' = HOL_basic_ss addsimps (@{thms HOL.simp_thms} @ [@{thm Pair_eq}])
+val HOL_basic_ss' = HOL_basic_ss addsimps @{thms simp_thms Pair_eq}
   setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
   setSolver (mk_solver "True_solver" (fn _ => rtac @{thm TrueI}))
 
@@ -206,7 +206,7 @@ fun prove_sidecond ctxt t =
         preds
   in 
     simp_tac (HOL_basic_ss addsimps
-      (@{thms HOL.simp_thms} @ (@{thm eval_pred} :: defs))) 1 
+      (@{thms HOL.simp_thms eval_pred} @ defs)) 1 
     (* need better control here! *)
   end
 
