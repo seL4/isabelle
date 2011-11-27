@@ -99,16 +99,18 @@ val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 val inductive_rulify_fallback = @{thms induct_rulify_fallback};
 
-val simp_thms' = map mk_meta_eq
-  @{lemma "(~True) = False" "(~False) = True"
-      "(True --> P) = P" "(False --> P) = True"
-      "(P & True) = P" "(True & P) = P"
-    by (fact simp_thms)+};
+val simp_thms1 =
+  map mk_meta_eq
+    @{lemma "(~ True) = False" "(~ False) = True"
+        "(True --> P) = P" "(False --> P) = True"
+        "(P & True) = P" "(True & P) = P"
+      by (fact simp_thms)+};
 
-val simp_thms'' = map mk_meta_eq [@{thm inf_fun_def}, @{thm inf_bool_def}] @ simp_thms';
+val simp_thms2 =
+  map mk_meta_eq [@{thm inf_fun_def}, @{thm inf_bool_def}] @ simp_thms1;
 
-val simp_thms''' = map mk_meta_eq
-  [@{thm le_fun_def}, @{thm le_bool_def}, @{thm sup_fun_def}, @{thm sup_bool_def}];
+val simp_thms3 =
+  map mk_meta_eq [@{thm le_fun_def}, @{thm le_bool_def}, @{thm sup_fun_def}, @{thm sup_bool_def}];
 
 
 
@@ -201,12 +203,14 @@ structure Equation_Data = Generic_Data   (* FIXME just one data slot per module 
 (
   type T = thm Item_Net.T;
   val empty = Item_Net.init (op aconv o pairself Thm.prop_of)
-    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);
+    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);  (* FIXME fragile wrt. morphisms *)
   val extend = I;
   val merge = Item_Net.merge;
 );
 
-val add_equation = Thm.declaration_attribute (Equation_Data.map o Item_Net.update)
+val add_equation = Thm.declaration_attribute (Equation_Data.map o Item_Net.update);
+
+val get_equations = Equation_Data.get o Context.Proof;
 
 
 
@@ -579,7 +583,7 @@ fun mk_simp_eq ctxt prop =
     val ctxt' = Variable.auto_fixes prop ctxt;
     val lhs_of = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of;
     val substs =
-      Item_Net.retrieve (Equation_Data.get (Context.Proof ctxt)) (HOLogic.dest_Trueprop prop)
+      Item_Net.retrieve (get_equations ctxt) (HOLogic.dest_Trueprop prop)
       |> map_filter
         (fn eq => SOME (Pattern.match thy (lhs_of eq, HOLogic.dest_Trueprop prop)
             (Vartab.empty, Vartab.empty), eq)
@@ -696,7 +700,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
         [rewrite_goals_tac [inductive_conj_def],
          DETERM (rtac raw_fp_induct 1),
          REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI}] 1),
-         rewrite_goals_tac simp_thms'',
+         rewrite_goals_tac simp_thms2,
          (*This disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
@@ -705,7 +709,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL
            (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule
-             (inductive_conj_def :: rec_preds_defs @ simp_thms'') prem,
+             (inductive_conj_def :: rec_preds_defs @ simp_thms2) prem,
            conjI, refl] 1)) prems)]);
 
     val lemma = Skip_Proof.prove ctxt'' [] []
@@ -715,7 +719,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
            [REPEAT (resolve_tac [conjI, impI] 1),
             REPEAT (eresolve_tac [@{thm le_funE}, @{thm le_boolE}] 1),
             atac 1,
-            rewrite_goals_tac simp_thms',
+            rewrite_goals_tac simp_thms1,
             atac 1])]);
 
   in singleton (Proof_Context.export ctxt'' ctxt''') (induct RS lemma) end;
@@ -926,7 +930,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
          singleton (Proof_Context.export lthy2 lthy1)
            (rotate_prems ~1 (Object_Logic.rulify
              (fold_rule rec_preds_defs
-               (rewrite_rule simp_thms'''
+               (rewrite_rule simp_thms3
                 (mono RS (fp_def RS @{thm def_coinduct}))))))
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
