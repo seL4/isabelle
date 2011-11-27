@@ -99,9 +99,6 @@ val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 val inductive_rulify_fallback = @{thms induct_rulify_fallback};
 
-val notTrueE = TrueI RSN (2, notE);
-val notFalseI = Seq.hd (atac 1 notI);
-
 val simp_thms' = map mk_meta_eq
   @{lemma "(~True) = False" "(~False) = True"
       "(True --> P) = P" "(False --> P) = True"
@@ -372,7 +369,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
       (mono RS (fp_def RS
         (if coind then @{thm def_gfp_unfold} else @{thm def_lfp_unfold})));
 
-    val rules = [refl, TrueI, notFalseI, exI, conjI];
+    val rules = [refl, TrueI, @{lemma "~ False" by (rule notI)}, exI, conjI];
 
     val intrs = map_index (fn (i, intr) =>
       Skip_Proof.prove ctxt [] [] intr (fn _ => EVERY
@@ -403,7 +400,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
     val intrs = map dest_intr intr_ts ~~ intr_names;
 
     val rules1 = [disjE, exE, FalseE];
-    val rules2 = [conjE, FalseE, notTrueE];
+    val rules2 = [conjE, FalseE, @{lemma "~ True ==> R" by (rule notE [OF _ TrueI])}];
 
     fun prove_elim c =
       let
