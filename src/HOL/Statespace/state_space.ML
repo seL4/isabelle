@@ -564,7 +564,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
           (case distinct (snd_eq) (filter (curry fst_eq (n,T)) raw_parent_comps) of
              []  => []
            | [_] => []
-           | rs  => ["Different types for component " ^ n ^": " ^
+           | rs  => ["Different types for component " ^ quote n ^ ": " ^
                 commas (map (Syntax.string_of_typ ctxt o snd) rs)])
 
     val err_dup_types = maps check_type (duplicates fst_eq raw_parent_comps)
@@ -573,7 +573,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
     val all_comps = parent_comps @ comps';
     val err_comp_in_parent = (case duplicates (op =) (map fst all_comps) of
                [] => []
-             | xs => ["Components already defined in parents: " ^ commas xs]);
+             | xs => ["Components already defined in parents: " ^ commas_quote xs]);
     val errs = err_dup_args @ err_dup_components @ err_extra_frees @
                err_dup_types @ err_comp_in_parent;
   in if null errs
@@ -611,7 +611,7 @@ fun gen_lookup_tr ctxt s n =
       if get_silent (Context.Proof ctxt)
       then Syntax.const @{const_name StateFun.lookup} $
         Syntax.const @{const_syntax undefined} $ Syntax.free n $ s
-      else raise TERM ("StateSpace.gen_lookup_tr: component " ^ n ^ " not defined", []));
+      else raise TERM ("StateSpace.gen_lookup_tr: component " ^ quote n ^ " not defined", []));
 
 fun lookup_tr ctxt [s, x] =
   (case Term_Position.strip_positions x of
