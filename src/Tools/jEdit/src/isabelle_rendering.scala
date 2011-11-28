@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/isabelle_markup.scala
+/*  Title:      Tools/jEdit/src/isabelle_rendering.scala
     Author:     Makarius
 
 Isabelle specific physical rendering and markup selection.
@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import scala.collection.immutable.SortedMap
 
 
-object Isabelle_Markup
+object Isabelle_Rendering
 {
   /* physical rendering */
 
