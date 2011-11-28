@@ -235,7 +235,7 @@ text {* Here are some bigger examples for benchmarking. *}
 
 ML {*
   fun make_benchmark n =
-    writeln (Markup.markup Markup.sendback
+    writeln (Markup.markup Isabelle_Markup.sendback
       ("statespace benchmark" ^ string_of_int n ^ " =\n" ^
         (cat_lines (map (fn i => "A" ^ string_of_int i ^ "::nat") (1 upto n)))));
 *}

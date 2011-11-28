@@ -81,8 +81,8 @@ structure Antiquotations = Theory_Data
     (Args.src -> Toplevel.state -> Proof.context -> string) Name_Space.table *
       (string -> Proof.context -> Proof.context) Name_Space.table;
   val empty : T =
-    (Name_Space.empty_table Markup.doc_antiquotationN,
-      Name_Space.empty_table Markup.doc_antiquotation_optionN);
+    (Name_Space.empty_table Isabelle_Markup.doc_antiquotationN,
+      Name_Space.empty_table Isabelle_Markup.doc_antiquotation_optionN);
   val extend = I;
   fun merge ((commands1, options1), (commands2, options2)) : T =
     (Name_Space.merge_tables (commands1, commands2),

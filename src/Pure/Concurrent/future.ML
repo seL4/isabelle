@@ -643,10 +643,10 @@ fun status e =
     val task_props =
       (case worker_task () of
         NONE => I
-      | SOME task => Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]);
-    val _ = Output.status (Markup.markup_only (task_props Markup.forked));
+      | SOME task => Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]);
+    val _ = Output.status (Markup.markup_only (task_props Isabelle_Markup.forked));
     val x = e ();  (*sic -- report "joined" only for success*)
-    val _ = Output.status (Markup.markup_only (task_props Markup.joined));
+    val _ = Output.status (Markup.markup_only (task_props Isabelle_Markup.joined));
   in x end;
 
 

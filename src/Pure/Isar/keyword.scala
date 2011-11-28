@@ -61,7 +61,8 @@ object Keyword
   object Keyword_Decl {
     def unapply(msg: XML.Tree): Option[String] =
       msg match {
-        case XML.Elem(Markup(Markup.KEYWORD_DECL, List((Markup.NAME, name))), _) => Some(name)
+        case XML.Elem(Markup(Isabelle_Markup.KEYWORD_DECL, List((Markup.NAME, name))), _) =>
+          Some(name)
         case _ => None
       }
   }
@@ -69,8 +70,8 @@ object Keyword
   object Command_Decl {
     def unapply(msg: XML.Tree): Option[(String, String)] =
       msg match {
-        case XML.Elem(Markup(Markup.COMMAND_DECL, List((Markup.NAME, name), (Markup.KIND, kind))), _) =>
-          Some((name, kind))
+        case XML.Elem(Markup(Isabelle_Markup.COMMAND_DECL,
+            List((Markup.NAME, name), (Markup.KIND, kind))), _) => Some((name, kind))
         case _ => None
       }
   }

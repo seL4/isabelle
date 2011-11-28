@@ -40,9 +40,9 @@ fun is_text (Text _) = true
 fun reports_of text =
   maps
     (fn Text x => text x
-      | Antiq (_, (pos, _)) => [(pos, Markup.antiq)]
-      | Open pos => [(pos, Markup.antiq)]
-      | Close pos => [(pos, Markup.antiq)]);
+      | Antiq (_, (pos, _)) => [(pos, Isabelle_Markup.antiq)]
+      | Open pos => [(pos, Isabelle_Markup.antiq)]
+      | Close pos => [(pos, Isabelle_Markup.antiq)]);
 
 
 (* check_nesting *)

@@ -57,7 +57,7 @@ val _ =
         val (assignment, state1) = Document.update old_id new_id edits state;
         val _ = Future.join_tasks running;
         val _ =
-          Output.raw_message Markup.assign_execs
+          Output.raw_message Isabelle_Markup.assign_execs
             ((new_id, assignment) |>
               let open XML.Encode
               in pair int (pair (list (pair int (option int))) (list (pair string (option int)))) end
@@ -73,7 +73,7 @@ val _ =
           YXML.parse_body versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.raw_message Markup.removed_versions versions_yxml;
+        val _ = Output.raw_message Isabelle_Markup.removed_versions versions_yxml;
       in state1 end));
 
 val _ =

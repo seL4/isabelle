@@ -14,7 +14,7 @@ declare -a SOURCES=(
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
   General/exn.scala
-  General/timing.scala
+  General/isabelle_markup.scala
   General/linear_set.scala
   General/markup.scala
   General/path.scala
@@ -24,6 +24,7 @@ declare -a SOURCES=(
   General/scan.scala
   General/sha1.scala
   General/symbol.scala
+  General/timing.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala

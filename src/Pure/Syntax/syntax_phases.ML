@@ -51,16 +51,16 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  [if can Name.dest_skolem x then Isabelle_Markup.skolem else Isabelle_Markup.free] @
   (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
    then [Variable.markup_fixed ctxt x]
    else []);
 
-fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
+fun markup_var xi = [Markup.name (Term.string_of_vname xi) Isabelle_Markup.var];
 
 fun markup_bound def ps (name, id) =
-  let val entity = Markup.entity Markup.boundN name in
-    Markup.bound ::
+  let val entity = Isabelle_Markup.entity Isabelle_Markup.boundN name in
+    Isabelle_Markup.bound ::
       map (fn pos => Markup.properties (Position.entity_properties_of def id pos) entity) ps
   end;
 
@@ -284,7 +284,8 @@ fun parse_asts ctxt raw root (syms, pos) =
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
         error (msg ^
-          implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
+          implode
+            (map (Markup.markup Isabelle_Markup.report o Lexicon.reported_token_range ctxt) toks));
     val len = length pts;
 
     val limit = Config.get ctxt Syntax.ambiguity_limit;
@@ -320,10 +321,11 @@ fun parse_raw ctxt root input =
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
+    Markup.markup Isabelle_Markup.report
+      (Context_Position.reported_text ctxt pos Isabelle_Markup.bad ""));
 
 fun parse_sort ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.sort Markup.sort
+  Syntax.parse_token ctxt Term_XML.Decode.sort Isabelle_Markup.sort
     (fn (syms, pos) =>
       parse_raw ctxt "sort" (syms, pos)
       |> report_result ctxt pos
@@ -332,7 +334,7 @@ fun parse_sort ctxt =
       handle ERROR msg => parse_failed ctxt pos msg "sort");
 
 fun parse_typ ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.typ Markup.typ
+  Syntax.parse_token ctxt Term_XML.Decode.typ Isabelle_Markup.typ
     (fn (syms, pos) =>
       parse_raw ctxt "type" (syms, pos)
       |> report_result ctxt pos
@@ -343,8 +345,8 @@ fun parse_term is_prop ctxt =
   let
     val (markup, kind, root, constrain) =
       if is_prop
-      then (Markup.prop, "proposition", "prop", Type.constraint propT)
-      else (Markup.term, "term", Config.get ctxt Syntax.root, I);
+      then (Isabelle_Markup.prop, "proposition", "prop", Type.constraint propT)
+      else (Isabelle_Markup.term, "term", Config.get ctxt Syntax.root, I);
     val decode = constrain o Term_XML.Decode.term;
   in
     Syntax.parse_token ctxt decode markup
@@ -592,34 +594,34 @@ fun free_or_skolem ctxt x =
   let
     val m =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
-      then Markup.fixed x
-      else Markup.hilite;
+      then Isabelle_Markup.fixed x
+      else Isabelle_Markup.hilite;
   in
     if can Name.dest_skolem x
-    then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
-    else ([m, Markup.free], x)
+    then ([m, Isabelle_Markup.skolem], Variable.revert_fixed ctxt x)
+    else ([m, Isabelle_Markup.free], x)
   end;
 
 fun var_or_skolem s =
   (case Lexicon.read_variable s of
     SOME (x, i) =>
       (case try Name.dest_skolem x of
-        NONE => (Markup.var, s)
-      | SOME x' => (Markup.skolem, Term.string_of_vname (x', i)))
-  | NONE => (Markup.var, s));
+        NONE => (Isabelle_Markup.var, s)
+      | SOME x' => (Isabelle_Markup.skolem, Term.string_of_vname (x', i)))
+  | NONE => (Isabelle_Markup.var, s));
 
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val syn = Proof_Context.syn_of ctxt;
 
-    fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
-      | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
+    fun token_trans "_tfree" x = SOME (Pretty.mark_str (Isabelle_Markup.tfree, x))
+      | token_trans "_tvar" x = SOME (Pretty.mark_str (Isabelle_Markup.tvar, x))
       | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
-      | token_trans "_bound" x = SOME (Pretty.mark_str (Markup.bound, x))
-      | token_trans "_loose" x = SOME (Pretty.mark_str (Markup.malformed, x))
+      | token_trans "_bound" x = SOME (Pretty.mark_str (Isabelle_Markup.bound, x))
+      | token_trans "_loose" x = SOME (Pretty.mark_str (Isabelle_Markup.malformed, x))
       | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem x))
-      | token_trans "_numeral" x = SOME (Pretty.mark_str (Markup.numeral, x))
-      | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))
+      | token_trans "_numeral" x = SOME (Pretty.mark_str (Isabelle_Markup.numeral, x))
+      | token_trans "_inner_string" x = SOME (Pretty.mark_str (Isabelle_Markup.inner_string, x))
       | token_trans _ _ = NONE;
 
     fun markup_extern c =
@@ -641,8 +643,8 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
 
 in
 
-val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast Markup.sort;
-val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Markup.typ;
+val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast Isabelle_Markup.sort;
+val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Isabelle_Markup.typ;
 
 fun unparse_term ctxt =
   let
@@ -652,7 +654,7 @@ fun unparse_term ctxt =
   in
     unparse_t (term_to_ast idents (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
-      Markup.term ctxt
+      Isabelle_Markup.term ctxt
   end;
 
 end;
@@ -813,7 +815,7 @@ fun check_terms ctxt raw_ts =
     val _ =
       map2 (fn (pos, _) => fn ty =>
         if Position.is_reported pos then
-          Markup.markup (Position.markup pos Markup.typing)
+          Markup.markup (Position.markup pos Isabelle_Markup.typing)
             (Syntax.string_of_typ ctxt (Logic.dest_type ty))
         else "") ps tys'
       |> implode |> Output.report

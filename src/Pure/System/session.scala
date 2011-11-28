@@ -363,7 +363,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           catch {
             case _: Document.State.Fail => bad_result(result)
           }
-        case Markup.Assign_Execs if result.is_raw =>
+        case Isabelle_Markup.Assign_Execs if result.is_raw =>
           XML.content(result.body).mkString match {
             case Isar_Document.Assign(id, assign) =>
               try { handle_assign(id, assign) }
@@ -376,20 +376,20 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
             prune_next = System.currentTimeMillis() + prune_delay.ms
           }
-        case Markup.Removed_Versions if result.is_raw =>
+        case Isabelle_Markup.Removed_Versions if result.is_raw =>
           XML.content(result.body).mkString match {
             case Isar_Document.Removed(removed) =>
               try { handle_removed(removed) }
               catch { case _: Document.State.Fail => bad_result(result) }
             case _ => bad_result(result)
           }
-        case Markup.Invoke_Scala(name, id) if result.is_raw =>
+        case Isabelle_Markup.Invoke_Scala(name, id) if result.is_raw =>
           Future.fork {
             val arg = XML.content(result.body).mkString
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }
-        case Markup.Cancel_Scala(id) =>
+        case Isabelle_Markup.Cancel_Scala(id) =>
           System.err.println("cancel_scala " + id)  // FIXME cancel JVM task
         case _ =>
           if (result.is_syslog) {

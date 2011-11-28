@@ -233,7 +233,7 @@ fun command_call name [] =
     name |> not (Lexicon.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 fun try_command_line banner time command =
-  banner ^ ": " ^ Markup.markup Markup.sendback command ^ show_time time ^ "."
+  banner ^ ": " ^ Markup.markup Isabelle_Markup.sendback command ^ show_time time ^ "."
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
@@ -244,7 +244,7 @@ fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
-    | command => "\nTo minimize: " ^ Markup.markup Markup.sendback command ^ "."
+    | command => "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
 
 val split_used_facts =
   List.partition (curry (op =) Chained o snd)
@@ -1048,7 +1048,7 @@ fun isar_proof_text ctxt isar_proof_requested
       | proof =>
         "\n\n" ^ (if isar_proof_requested then "Structured proof"
                   else "Perhaps this will work") ^
-        ":\n" ^ Markup.markup Markup.sendback proof
+        ":\n" ^ Markup.markup Isabelle_Markup.sendback proof
     val isar_proof =
       if debug then
         isar_proof_for ()

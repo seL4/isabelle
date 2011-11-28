@@ -49,7 +49,7 @@ object HTML
     XML.Elem(Markup(SPAN, List((STYLE, "font-family: " + font))), List(XML.Text(txt)))
 
   def hidden(txt: String): XML.Elem =
-    span(Markup.HIDDEN, List(XML.Text(txt)))
+    span(Isabelle_Markup.HIDDEN, List(XML.Text(txt)))
 
   def sub(txt: String): XML.Elem = XML.elem("sub", List(XML.Text(txt)))
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
@@ -61,7 +61,7 @@ object HTML
       tree match {
         case XML.Elem(m @ Markup(name, props), ts) =>
           val span_class =
-            m match { case Markup.Entity(kind, _) => name + "_" + kind case _ => name }
+            m match { case Isabelle_Markup.Entity(kind, _) => name + "_" + kind case _ => name }
           val html_span = span(span_class, ts.flatMap(html_spans))
           if (original_data) List(XML.Elem(Markup.Data, List(tree, html_span)))
           else List(html_span)

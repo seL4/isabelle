@@ -77,7 +77,7 @@ fun standard_message mbox opt_serial ch body =
   if body = "" then ()
   else
     message false mbox ch
-      ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
+      ((case opt_serial of SOME i => cons (Isabelle_Markup.serialN, string_of_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox channel =
@@ -189,7 +189,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
     val _ = Keyword.status ();
     val _ = Thy_Info.status ();
-    val _ = Output.status (Markup.markup Markup.ready "process ready");
+    val _ = Output.status (Markup.markup Isabelle_Markup.ready "process ready");
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

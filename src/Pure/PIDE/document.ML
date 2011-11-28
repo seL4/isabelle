@@ -333,22 +333,22 @@ fun run_command tr st =
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
     val _ = Multithreading.interrupted ();
-    val _ = Toplevel.status tr Markup.forked;
+    val _ = Toplevel.status tr Isabelle_Markup.forked;
     val start = Timing.start ();
     val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
     val _ = timing tr (Timing.result start);
-    val _ = Toplevel.status tr Markup.joined;
+    val _ = Toplevel.status tr Isabelle_Markup.joined;
     val _ = List.app (Toplevel.error_msg tr) errs;
   in
     (case result of
       NONE =>
         let
           val _ = if null errs then Exn.interrupt () else ();
-          val _ = Toplevel.status tr Markup.failed;
+          val _ = Toplevel.status tr Isabelle_Markup.failed;
         in (st, no_print) end
     | SOME st' =>
         let
-          val _ = Toplevel.status tr Markup.finished;
+          val _ = Toplevel.status tr Isabelle_Markup.finished;
           val _ = proof_status tr st';
           val do_print =
             not is_init andalso

@@ -14,7 +14,8 @@ object Thy_Info
   object Loaded_Theory {
     def unapply(msg: XML.Tree): Option[String] =
       msg match {
-        case XML.Elem(Markup(Markup.LOADED_THEORY, List((Markup.NAME, name))), _) => Some(name)
+        case XML.Elem(Markup(Isabelle_Markup.LOADED_THEORY, List((Markup.NAME, name))), _) =>
+          Some(name)
         case _ => None
       }
   }

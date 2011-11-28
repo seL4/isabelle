@@ -311,7 +311,8 @@ end;
 
 (* empty and merge *)
 
-val empty = make_consts (Name_Space.empty_table Markup.constantN, Symtab.empty, Symtab.empty);
+val empty =
+  make_consts (Name_Space.empty_table Isabelle_Markup.constantN, Symtab.empty, Symtab.empty);
 
 fun merge
    (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},

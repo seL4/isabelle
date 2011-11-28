@@ -104,23 +104,23 @@ val flatten = implode o flatten_content;
 local
 
 val token_kind_markup =
- fn Keyword   => Markup.ML_keyword
+ fn Keyword   => Isabelle_Markup.ML_keyword
   | Ident     => Markup.empty
   | LongIdent => Markup.empty
-  | TypeVar   => Markup.ML_tvar
-  | Word      => Markup.ML_numeral
-  | Int       => Markup.ML_numeral
-  | Real      => Markup.ML_numeral
-  | Char      => Markup.ML_char
-  | String    => Markup.ML_string
+  | TypeVar   => Isabelle_Markup.ML_tvar
+  | Word      => Isabelle_Markup.ML_numeral
+  | Int       => Isabelle_Markup.ML_numeral
+  | Real      => Isabelle_Markup.ML_numeral
+  | Char      => Isabelle_Markup.ML_char
+  | String    => Isabelle_Markup.ML_string
   | Space     => Markup.empty
-  | Comment   => Markup.ML_comment
-  | Error _   => Markup.ML_malformed
+  | Comment   => Isabelle_Markup.ML_comment
+  | Error _   => Isabelle_Markup.ML_malformed
   | EOF       => Markup.empty;
 
 fun token_markup kind x =
   if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
-  then Markup.ML_delimiter
+  then Isabelle_Markup.ML_delimiter
   else token_kind_markup kind;
 
 in
@@ -278,7 +278,7 @@ val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
 fun read pos txt =
   let
-    val _ = Position.report pos Markup.ML_source;
+    val _ = Position.report pos Isabelle_Markup.ML_source;
     val syms = Symbol_Pos.explode (txt, pos);
     val termination =
       if null syms then []

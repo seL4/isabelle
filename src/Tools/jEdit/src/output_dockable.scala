@@ -87,7 +87,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
               val snapshot = doc_view.update_snapshot()
               val filtered_results =
                 snapshot.command_state(cmd).results.iterator.map(_._2) filter {
-                  case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing  // FIXME not scalable
+                  case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing  // FIXME not scalable
                   case _ => true
                 }
               html_panel.render(filtered_results.toList)

@@ -43,28 +43,28 @@ fun parse_tokens lexs pos =
 local
 
 val token_kind_markup =
- fn Token.Command       => Markup.command
-  | Token.Keyword       => Markup.keyword
+ fn Token.Command       => Isabelle_Markup.command
+  | Token.Keyword       => Isabelle_Markup.keyword
   | Token.Ident         => Markup.empty
   | Token.LongIdent     => Markup.empty
   | Token.SymIdent      => Markup.empty
-  | Token.Var           => Markup.var
-  | Token.TypeIdent     => Markup.tfree
-  | Token.TypeVar       => Markup.tvar
+  | Token.Var           => Isabelle_Markup.var
+  | Token.TypeIdent     => Isabelle_Markup.tfree
+  | Token.TypeVar       => Isabelle_Markup.tvar
   | Token.Nat           => Markup.empty
   | Token.Float         => Markup.empty
-  | Token.String        => Markup.string
-  | Token.AltString     => Markup.altstring
-  | Token.Verbatim      => Markup.verbatim
+  | Token.String        => Isabelle_Markup.string
+  | Token.AltString     => Isabelle_Markup.altstring
+  | Token.Verbatim      => Isabelle_Markup.verbatim
   | Token.Space         => Markup.empty
-  | Token.Comment       => Markup.comment
+  | Token.Comment       => Isabelle_Markup.comment
   | Token.InternalValue => Markup.empty
-  | Token.Error _       => Markup.malformed
-  | Token.Sync          => Markup.control
-  | Token.EOF           => Markup.control;
+  | Token.Error _       => Isabelle_Markup.malformed
+  | Token.Sync          => Isabelle_Markup.control
+  | Token.EOF           => Isabelle_Markup.control;
 
 fun token_markup tok =
-  if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok then Markup.operator
+  if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok then Isabelle_Markup.operator
   else
     let
       val kind = Token.kind_of tok;
@@ -75,7 +75,7 @@ fun token_markup tok =
     in props (token_kind_markup kind) end;
 
 fun reports_of_symbol (sym, pos) =
-  if Symbol.is_malformed sym then [(pos, Markup.malformed)] else [];
+  if Symbol.is_malformed sym then [(pos, Isabelle_Markup.malformed)] else [];
 
 in
 
@@ -133,9 +133,9 @@ fun parse_spans lexs pos str =
 
 local
 
-fun kind_markup (Command name) = Markup.command_span name
-  | kind_markup Ignored = Markup.ignored_span
-  | kind_markup Malformed = Markup.malformed_span;
+fun kind_markup (Command name) = Isabelle_Markup.command_span name
+  | kind_markup Ignored = Isabelle_Markup.ignored_span
+  | kind_markup Malformed = Isabelle_Markup.malformed_span;
 
 in
 

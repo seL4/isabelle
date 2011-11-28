@@ -58,7 +58,8 @@ struct
 datatype T = Pos of (int * int * int) * Properties.T;
 
 fun norm_props (props: Properties.T) =
-  maps (fn a => the_list (find_first (fn (b, _) => a = b) props)) Markup.position_properties';
+  maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
+    Isabelle_Markup.position_properties';
 
 fun make {line = i, offset = j, end_offset = k, props} = Pos ((i, j, k), norm_props props);
 fun dest (Pos ((i, j, k), props)) = {line = i, offset = j, end_offset = k, props = props};
@@ -73,7 +74,7 @@ fun line_of (Pos ((i, _, _), _)) = if valid i then SOME i else NONE;
 fun offset_of (Pos ((_, j, _), _)) = if valid j then SOME j else NONE;
 fun end_offset_of (Pos ((_, _, k), _)) = if valid k then SOME k else NONE;
 
-fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
+fun file_of (Pos (_, props)) = Properties.get props Isabelle_Markup.fileN;
 
 
 (* advance *)
@@ -105,7 +106,7 @@ val start = Pos ((1, 1, 0), []);
 
 
 fun file_name "" = []
-  | file_name name = [(Markup.fileN, name)];
+  | file_name name = [(Isabelle_Markup.fileN, name)];
 
 fun file_only name = Pos ((0, 0, 0), file_name name);
 fun file name = Pos ((1, 1, 0), file_name name);
@@ -113,11 +114,11 @@ fun file name = Pos ((1, 1, 0), file_name name);
 fun line_file i name = Pos ((i, 1, 0), file_name name);
 fun line i = line_file i "";
 
-fun id id = Pos ((0, 1, 0), [(Markup.idN, id)]);
-fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
+fun id id = Pos ((0, 1, 0), [(Isabelle_Markup.idN, id)]);
+fun id_only id = Pos ((0, 0, 0), [(Isabelle_Markup.idN, id)]);
 
-fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
-fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
+fun get_id (Pos (_, props)) = Properties.get props Isabelle_Markup.idN;
+fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Isabelle_Markup.idN, id) props);
 
 
 (* markup properties *)
@@ -129,24 +130,26 @@ fun of_properties props =
         NONE => 0
       | SOME s => the_default 0 (Int.fromString s));
   in
-    make {line = get Markup.lineN, offset = get Markup.offsetN,
-      end_offset = get Markup.end_offsetN, props = props}
+    make {line = get Isabelle_Markup.lineN, offset = get Isabelle_Markup.offsetN,
+      end_offset = get Isabelle_Markup.end_offsetN, props = props}
   end;
 
 
 fun value k i = if valid i then [(k, string_of_int i)] else [];
 
 fun properties_of (Pos ((i, j, k), props)) =
-  value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
+  value Isabelle_Markup.lineN i @
+  value Isabelle_Markup.offsetN j @
+  value Isabelle_Markup.end_offsetN k @ props;
 
 val def_properties_of = properties_of #> (map (fn (x, y) => ("def_" ^ x, y)));
 
 fun entity_properties_of def id pos =
-  if def then (Markup.defN, string_of_int id) :: properties_of pos
-  else (Markup.refN, string_of_int id) :: def_properties_of pos;
+  if def then (Isabelle_Markup.defN, string_of_int id) :: properties_of pos
+  else (Isabelle_Markup.refN, string_of_int id) :: def_properties_of pos;
 
 fun default_properties default props =
-  if exists (member (op =) Markup.position_properties o #1) props then props
+  if exists (member (op =) Isabelle_Markup.position_properties o #1) props then props
   else properties_of default @ props;
 
 val markup = Markup.properties o properties_of;
@@ -185,7 +188,9 @@ fun str_of pos =
       | _ => "");
   in
     if null props then ""
-    else (if s = "" then "" else " ") ^ Markup.markup (Markup.properties props Markup.position) s
+    else
+      (if s = "" then "" else " ") ^
+        Markup.markup (Markup.properties props Isabelle_Markup.position) s
   end;
 
 

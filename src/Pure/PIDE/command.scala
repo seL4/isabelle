@@ -32,7 +32,7 @@ object Command
 
     def root_info: Text.Markup =
       Text.Info(command.range,
-        XML.Elem(Markup(Markup.STATUS, Nil), status.reverse.map(XML.Elem(_, Nil))))
+        XML.Elem(Markup(Isabelle_Markup.STATUS, Nil), status.reverse.map(XML.Elem(_, Nil))))
     def root_markup: Markup_Tree = markup + root_info
 
 
@@ -40,14 +40,14 @@ object Command
 
     def accumulate(message: XML.Elem): Command.State =
       message match {
-        case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
+        case XML.Elem(Markup(Isabelle_Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
               case XML.Elem(markup, Nil) => state.add_status(markup)
               case _ => System.err.println("Ignored status message: " + msg); state
             })
 
-        case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
+        case XML.Elem(Markup(Isabelle_Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
               case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
@@ -62,7 +62,7 @@ object Command
             })
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
-            case Markup.Serial(i) =>
+            case Isabelle_Markup.Serial(i) =>
               val result = XML.Elem(Markup(name, Position.purge(atts)), body)
               val st0 = add_result(i, result)
               val st1 =

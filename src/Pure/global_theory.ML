@@ -108,7 +108,8 @@ fun get_fact context thy xthmref =
       NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
     | SOME (static, ths) =>
         (Context_Position.report ctxt pos (Name_Space.markup (Facts.space_of facts) name);
-         if static then () else Context_Position.report ctxt pos (Markup.dynamic_fact name);
+         if static then ()
+         else Context_Position.report ctxt pos (Isabelle_Markup.dynamic_fact name);
          Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 

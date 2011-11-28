@@ -52,13 +52,13 @@ object Isar_Document
   def command_status(markup: List[Markup]): Status =
   {
     val forks = (0 /: markup) {
-      case (i, Markup(Markup.FORKED, _)) => i + 1
-      case (i, Markup(Markup.JOINED, _)) => i - 1
+      case (i, Markup(Isabelle_Markup.FORKED, _)) => i + 1
+      case (i, Markup(Isabelle_Markup.JOINED, _)) => i - 1
       case (i, _) => i
     }
     if (forks != 0) Forked(forks)
-    else if (markup.exists(_.name == Markup.FAILED)) Failed
-    else if (markup.exists(_.name == Markup.FINISHED)) Finished
+    else if (markup.exists(_.name == Isabelle_Markup.FAILED)) Failed
+    else if (markup.exists(_.name == Isabelle_Markup.FINISHED)) Finished
     else Unprocessed
   }
 
@@ -88,12 +88,12 @@ object Isar_Document
   /* result messages */
 
   def clean_message(body: XML.Body): XML.Body =
-    body filter { case XML.Elem(Markup(Markup.NO_REPORT, _), _) => false case _ => true } map
+    body filter { case XML.Elem(Markup(Isabelle_Markup.NO_REPORT, _), _) => false case _ => true } map
       { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
 
   def message_reports(msg: XML.Tree): List[XML.Elem] =
     msg match {
-      case elem @ XML.Elem(Markup(Markup.REPORT, _), _) => List(elem)
+      case elem @ XML.Elem(Markup(Isabelle_Markup.REPORT, _), _) => List(elem)
       case XML.Elem(_, body) => body.flatMap(message_reports)
       case XML.Text(_) => Nil
     }
@@ -103,33 +103,33 @@ object Isar_Document
 
   def is_ready(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.STATUS, _),
-        List(XML.Elem(Markup(Markup.READY, _), _))) => true
+      case XML.Elem(Markup(Isabelle_Markup.STATUS, _),
+        List(XML.Elem(Markup(Isabelle_Markup.READY, _), _))) => true
       case _ => false
     }
 
  def is_tracing(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.TRACING, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => true
       case _ => false
     }
 
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.WARNING, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.WARNING, _), _) => true
       case _ => false
     }
 
   def is_error(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.ERROR, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.ERROR, _), _) => true
       case _ => false
     }
 
   def is_state(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.WRITELN, _),
-        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Isabelle_Markup.WRITELN, _),
+        List(XML.Elem(Markup(Isabelle_Markup.STATE, _), _))) => true
       case _ => false
     }
 
@@ -137,7 +137,8 @@ object Isar_Document
   /* reported positions */
 
   private val include_pos =
-    Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+    Set(Isabelle_Markup.BINDING, Isabelle_Markup.ENTITY, Isabelle_Markup.REPORT,
+      Isabelle_Markup.POSITION)
 
   def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {

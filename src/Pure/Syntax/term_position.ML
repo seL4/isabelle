@@ -25,15 +25,15 @@ val position_dummy = "<position>";
 val position_text = XML.Text position_dummy;
 
 fun pretty pos =
-  Pretty.markup (Position.markup pos Markup.position) [Pretty.str position_dummy];
+  Pretty.markup (Position.markup pos Isabelle_Markup.position) [Pretty.str position_dummy];
 
 fun encode pos =
-  YXML.string_of (XML.Elem (Position.markup pos Markup.position, [position_text]));
+  YXML.string_of (XML.Elem (Position.markup pos Isabelle_Markup.position, [position_text]));
 
 fun decode str =
   (case YXML.parse_body str handle Fail msg => error msg of
     [XML.Elem ((name, props), [arg])] =>
-      if name = Markup.positionN andalso arg = position_text
+      if name = Isabelle_Markup.positionN andalso arg = position_text
       then SOME (Position.of_properties props)
       else NONE
   | _ => NONE);

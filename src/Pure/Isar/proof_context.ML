@@ -463,7 +463,7 @@ fun read_type_name ctxt strict text =
     val (c, pos) = token_content text;
   in
     if Lexicon.is_tid c then
-     (Context_Position.report ctxt pos Markup.tfree;
+     (Context_Position.report ctxt pos Isabelle_Markup.tfree;
       TFree (c, default_sort ctxt (c, ~1)))
     else
       let
@@ -495,7 +495,8 @@ fun read_const ctxt strict ty text =
     (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Context_Position.report ctxt pos
-            (Markup.name x (if can Name.dest_skolem x then Markup.skolem else Markup.free));
+            (Markup.name x
+              (if can Name.dest_skolem x then Isabelle_Markup.skolem else Isabelle_Markup.free));
           Free (x, infer_type ctxt (x, ty)))
     | _ => prep_const_proper ctxt strict (c, pos))
   end;

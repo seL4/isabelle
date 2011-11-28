@@ -80,6 +80,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/graph.ML					\
   General/heap.ML					\
   General/integer.ML					\
+  General/isabelle_markup.ML				\
   General/linear_set.ML					\
   General/long_name.ML					\
   General/markup.ML					\
