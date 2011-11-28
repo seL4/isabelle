@@ -27,7 +27,7 @@ struct
 
 (*Maps n to #n for n = 0, 1, 2*)
 val numeral_syms = [@{thm nat_numeral_0_eq_0} RS sym, @{thm nat_numeral_1_eq_1} RS sym, @{thm numeral_2_eq_2} RS sym];
-val numeral_sym_ss = HOL_ss addsimps numeral_syms;
+val numeral_sym_ss = HOL_basic_ss addsimps numeral_syms;
 
 val rename_numerals = simplify numeral_sym_ss o Thm.transfer @{theory};
 
@@ -64,6 +64,7 @@ val bin_simps =
       @{thm diff_nat_number_of}, @{thm le_number_of_eq_not_less},
       @{thm mult_nat_number_of}, @{thm nat_number_of_mult_left}, 
       @{thm less_nat_number_of}, 
+      @{thm if_True}, @{thm if_False}, @{thm not_False_eq_True},
       @{thm Let_number_of}, @{thm nat_number_of}] @
      @{thms arith_simps} @ @{thms rel_simps} @ @{thms neg_simps};
 
@@ -168,7 +169,7 @@ struct
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
 
-  val numeral_simp_ss = HOL_ss addsimps add_0s @ bin_simps;
+  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ bin_simps;
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss));
   val simplify_meta_eq  = simplify_meta_eq
   val prove_conv = Arith_Data.prove_conv
@@ -233,7 +234,7 @@ struct
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
 
-  val numeral_simp_ss = HOL_ss addsimps add_0s @ bin_simps;
+  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ bin_simps;
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = simplify_meta_eq
 end;
@@ -258,7 +259,7 @@ struct
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
 
-  val numeral_simp_ss = HOL_ss addsimps bin_simps
+  val numeral_simp_ss = HOL_basic_ss addsimps bin_simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = simplify_meta_eq
   val prove_conv = Arith_Data.prove_conv
@@ -339,7 +340,7 @@ struct
   val dest_coeff = dest_coeff
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
-  val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
+  val norm_ss = HOL_basic_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   val simplify_meta_eq  = cancel_simplify_meta_eq
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))

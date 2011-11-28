@@ -169,7 +169,7 @@ end;
 
 fun numtermless tu = (numterm_ord tu = LESS);
 
-val num_ss = HOL_ss |> Simplifier.set_termless numtermless;
+val num_ss = HOL_basic_ss |> Simplifier.set_termless numtermless;
 
 (*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
 val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
@@ -244,7 +244,7 @@ struct
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
 
-  val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
+  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
   val prove_conv = Arith_Data.prove_conv
@@ -296,7 +296,7 @@ struct
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
 
-  val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
+  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
 end;
@@ -323,7 +323,7 @@ struct
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
 
-  val numeral_simp_ss = HOL_ss addsimps add_0s @ simps @ [@{thm add_frac_eq}]
+  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ simps @ [@{thm add_frac_eq}, @{thm not_False_eq_True}]
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq field_post_simps
 end;
@@ -340,7 +340,7 @@ fun field_combine_numerals ss ct = FieldCombineNumerals.proc ss (term_of ct)
 
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val assoc_ss = HOL_ss addsimps @{thms mult_ac}
+  val assoc_ss = HOL_basic_ss addsimps @{thms mult_ac}
   val eq_reflection = eq_reflection
   val is_numeral = can HOLogic.dest_number
 end;
@@ -363,8 +363,11 @@ struct
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
 
-  val numeral_simp_ss = HOL_ss addsimps
+  (* simp_thms are necessary because some of the cancellation rules below
+  (e.g. mult_less_cancel_left) introduce various logical connectives *)
+  val numeral_simp_ss = HOL_basic_ss addsimps
     [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
+     @ @{thms simp_thms}
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
     ([@{thm Nat.add_0}, @{thm Nat.add_0_right}] @ post_simps)
@@ -477,7 +480,7 @@ struct
   val dest_coeff = dest_coeff
   val find_first = find_first_t []
   val trans_tac = trans_tac
-  val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
+  val norm_ss = HOL_basic_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   val simplify_meta_eq  = cancel_simplify_meta_eq 
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
