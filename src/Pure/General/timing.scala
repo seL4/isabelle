@@ -1,4 +1,5 @@
 /*  Title:      Pure/General/timing.scala
+    Module:     Library
     Author:     Makarius
 
 Basic support for time measurement.

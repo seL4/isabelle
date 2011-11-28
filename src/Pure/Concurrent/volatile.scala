@@ -1,4 +1,5 @@
 /*  Title:      Pure/Concurrent/volatile.scala
+    Module:     Library
     Author:     Makarius
 
 Volatile variables.

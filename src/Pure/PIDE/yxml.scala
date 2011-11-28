@@ -1,4 +1,5 @@
 /*  Title:      Pure/PIDE/yxml.scala
+    Module:     Library
     Author:     Makarius
 
 Efficient text representation of XML trees.  Suitable for direct

@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/cygwin.scala
+    Module:     Library
     Author:     Makarius
 
 Accessing the Cygwin installation.

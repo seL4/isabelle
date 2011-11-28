@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/event_bus.scala
+    Module:     Library
     Author:     Makarius
 
 Generic event bus with multiple receiving actors.

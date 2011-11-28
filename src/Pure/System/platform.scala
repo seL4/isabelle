@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/platform.scala
+    Module:     Library
     Author:     Makarius
 
 Raw platform identification.

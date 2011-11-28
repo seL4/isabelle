@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/swing_thread.scala
+    Module:     Library
     Author:     Makarius
     Author:     Fabian Immler, TU Munich
 

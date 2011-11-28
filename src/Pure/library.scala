@@ -1,4 +1,5 @@
 /*  Title:      Pure/library.scala
+    Module:     Library
     Author:     Makarius
 
 Basic library.

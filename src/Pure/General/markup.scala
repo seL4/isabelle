@@ -1,4 +1,5 @@
 /*  Title:      Pure/General/markup.scala
+    Module:     Library
     Author:     Makarius
 
 Generic markup elements.

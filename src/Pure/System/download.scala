@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/download.scala
+    Module:     Library
     Author:     Makarius
 
 Download URLs -- with progress monitor.
