@@ -27,7 +27,7 @@ fun mk_meta_prems ctxt =
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong ss rl =
-  Drule.export_without_context (mk_meta_eq (mk_meta_prems (Simplifier.the_context ss) rl))
+  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems (Simplifier.the_context ss) rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 

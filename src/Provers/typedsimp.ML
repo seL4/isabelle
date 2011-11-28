@@ -43,11 +43,11 @@ in
 (*For simplifying both sides of an equation:
       [| a=c; b=c |] ==> b=a
   Can use resolve_tac [split_eqn] to prepare an equation for simplification. *)
-val split_eqn = Drule.export_without_context (sym RSN (2,trans) RS sym);
+val split_eqn = Drule.zero_var_indexes (sym RSN (2,trans) RS sym);
 
 
 (*    [| a=b; b=c |] ==> reduce(a,c)  *)
-val red_trans = Drule.export_without_context (trans RS red_if_equal);
+val red_trans = Drule.zero_var_indexes (trans RS red_if_equal);
 
 (*For REWRITE rule: Make a reduction rule for simplification, e.g.
   [| a: C(0); ... ; a=c: C(0) |] ==> rec(0,a,b) = c: C(0) *)
