@@ -98,7 +98,7 @@ oops
 
 lemma
   "list_all2 P (rev xs) (rev ys) = list_all2 P xs (rev ys)"
-  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample, timeout = 60]
 oops
 
 lemma "map f xs = F f xs"
