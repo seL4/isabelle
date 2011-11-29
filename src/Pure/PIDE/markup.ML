@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/markup.ML
+(*  Title:      Pure/PIDE/markup.ML
     Author:     Makarius
 
 Generic markup elements.

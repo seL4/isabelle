@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/isabelle_markup.scala
+/*  Title:      Pure/PIDE/isabelle_markup.scala
     Author:     Makarius
 
 Isabelle markup elements.

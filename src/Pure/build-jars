@@ -14,9 +14,7 @@ declare -a SOURCES=(
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
   General/exn.scala
-  General/isabelle_markup.scala
   General/linear_set.scala
-  General/markup.scala
   General/path.scala
   General/position.scala
   General/pretty.scala
@@ -32,7 +30,9 @@ declare -a SOURCES=(
   PIDE/blob.scala
   PIDE/command.scala
   PIDE/document.scala
+  PIDE/isabelle_markup.scala
   PIDE/isar_document.scala
+  PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/text.scala
   PIDE/xml.scala

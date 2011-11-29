@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/markup.scala
+/*  Title:      Pure/PIDE/markup.scala
     Module:     Library
     Author:     Makarius
 

@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/isabelle_markup.ML
+(*  Title:      Pure/PIDE/isabelle_markup.ML
     Author:     Makarius
 
 Isabelle markup elements.

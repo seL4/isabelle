@@ -80,10 +80,8 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/graph.ML					\
   General/heap.ML					\
   General/integer.ML					\
-  General/isabelle_markup.ML				\
   General/linear_set.ML					\
   General/long_name.ML					\
-  General/markup.ML					\
   General/name_space.ML					\
   General/ord_list.ML					\
   General/output.ML					\
@@ -156,7 +154,9 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   ML/ml_syntax.ML					\
   ML/ml_thms.ML						\
   PIDE/document.ML					\
+  PIDE/isabelle_markup.ML				\
   PIDE/isar_document.ML					\
+  PIDE/markup.ML					\
   PIDE/xml.ML						\
   PIDE/yxml.ML						\
   Proof/extraction.ML					\
