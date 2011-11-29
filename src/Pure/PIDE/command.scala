@@ -66,11 +66,11 @@ object Command
               val result = XML.Elem(Markup(name, Position.purge(atts)), body)
               val st0 = add_result(i, result)
               val st1 =
-                if (Isar_Document.is_tracing(message)) st0
+                if (Isabelle_Document.is_tracing(message)) st0
                 else
-                  (st0 /: Isar_Document.message_positions(command, message))(
+                  (st0 /: Isabelle_Document.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, result)))
-              val st2 = (st1 /: Isar_Document.message_reports(message))(_ accumulate _)
+              val st2 = (st1 /: Isabelle_Document.message_reports(message))(_ accumulate _)
               st2
             case _ => System.err.println("Ignored message without serial number: " + message); this
           }

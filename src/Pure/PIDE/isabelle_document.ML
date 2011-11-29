@@ -1,23 +1,23 @@
-(*  Title:      Pure/PIDE/isar_document.ML
+(*  Title:      Pure/PIDE/isabelle_document.ML
     Author:     Makarius
 
 Protocol message formats for interactive Isar documents.
 *)
 
-structure Isar_Document: sig end =
+structure Isabelle_Document: sig end =
 struct
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.define_command"
+  Isabelle_Process.add_command "Isabelle_Document.define_command"
     (fn [id, name, text] =>
       Document.change_state (Document.define_command (Document.parse_id id) name text));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.cancel_execution"
+  Isabelle_Process.add_command "Isabelle_Document.cancel_execution"
     (fn [] => ignore (Document.cancel_execution (Document.state ())));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.update_perspective"
+  Isabelle_Process.add_command "Isabelle_Document.update_perspective"
     (fn [old_id_string, new_id_string, name, ids_yxml] => Document.change_state (fn state =>
       let
         val old_id = Document.parse_id old_id_string;
@@ -33,7 +33,7 @@ val _ =
       end));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.update"
+  Isabelle_Process.add_command "Isabelle_Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
         val old_id = Document.parse_id old_id_string;
@@ -66,7 +66,7 @@ val _ =
       in state2 end));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.remove_versions"
+  Isabelle_Process.add_command "Isabelle_Document.remove_versions"
     (fn [versions_yxml] => Document.change_state (fn state =>
       let
         val versions =
@@ -77,7 +77,7 @@ val _ =
       in state1 end));
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.invoke_scala"
+  Isabelle_Process.add_command "Isabelle_Document.invoke_scala"
     (fn [id, tag, res] => Invoke_Scala.fulfill_method id tag res);
 
 end;
