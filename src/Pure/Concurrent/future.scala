@@ -1,5 +1,5 @@
 /*  Title:      Pure/Concurrent/future.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Future values.

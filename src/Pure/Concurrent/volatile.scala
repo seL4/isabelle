@@ -1,5 +1,5 @@
 /*  Title:      Pure/Concurrent/volatile.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Volatile variables.

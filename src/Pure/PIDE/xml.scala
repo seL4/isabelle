@@ -1,5 +1,5 @@
 /*  Title:      Pure/PIDE/xml.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Untyped XML trees and basic data representation.

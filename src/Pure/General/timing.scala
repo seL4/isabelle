@@ -1,5 +1,5 @@
 /*  Title:      Pure/General/timing.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Basic support for time measurement.

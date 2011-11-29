@@ -1,5 +1,5 @@
 /*  Title:      Pure/System/download.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Download URLs -- with progress monitor.

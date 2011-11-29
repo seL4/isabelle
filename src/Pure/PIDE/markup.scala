@@ -1,5 +1,5 @@
 /*  Title:      Pure/PIDE/markup.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Generic markup elements.

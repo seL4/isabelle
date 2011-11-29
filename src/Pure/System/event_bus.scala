@@ -1,5 +1,5 @@
 /*  Title:      Pure/System/event_bus.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Generic event bus with multiple receiving actors.
