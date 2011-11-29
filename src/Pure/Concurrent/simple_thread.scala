@@ -1,5 +1,5 @@
 /*  Title:      Pure/Concurrent/simple_thread.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Simplified thread operations.

@@ -1,5 +1,5 @@
 /*  Title:      Pure/package.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Toplevel isabelle package.

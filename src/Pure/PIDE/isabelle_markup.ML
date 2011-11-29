@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/isabelle_markup.ML
+(*  Title:      Pure/PIDE/isabelle_markup.ML
     Author:     Makarius
 
 Isabelle markup elements.
@@ -82,6 +82,10 @@ sig
   val ignored_spanN: string val ignored_span: Markup.T
   val malformed_spanN: string val malformed_span: Markup.T
   val loaded_theoryN: string val loaded_theory: string -> Markup.T
+  val elapsedN: string
+  val cpuN: string
+  val gcN: string
+  val timingN: string val timing: Timing.timing -> Markup.T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> Markup.T
   val stateN: string val state: Markup.T
@@ -259,6 +263,20 @@ val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 (* theory loader *)
 
 val (loaded_theoryN, loaded_theory) = markup_string "loaded_theory" Markup.nameN;
+
+
+(* timing *)
+
+val timingN = "timing";
+val elapsedN = "elapsed";
+val cpuN = "cpu";
+val gcN = "gc";
+
+fun timing {elapsed, cpu, gc} =
+  (timingN,
+   [(elapsedN, Time.toString elapsed),
+    (cpuN, Time.toString cpu),
+    (gcN, Time.toString gc)]);
 
 
 (* toplevel *)

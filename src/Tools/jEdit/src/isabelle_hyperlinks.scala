@@ -60,7 +60,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
             snapshot.select_markup(Text.Range(buffer_offset, buffer_offset + 1))(
               Markup_Tree.Select[Hyperlink](
                 {
-                  // FIXME Isar_Document.Hyperlink extractor
+                  // FIXME Isabelle_Document.Hyperlink extractor
                   case Text.Info(info_range,
                       XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _))
                     if (props.find(

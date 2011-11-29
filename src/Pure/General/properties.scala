@@ -1,5 +1,5 @@
 /*  Title:      Pure/General/properties.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Property lists.

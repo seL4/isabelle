@@ -450,7 +450,7 @@ next
   with root' show ?thesis by cases auto
 next
   case readdir
-  with root' show ?thesis by cases fastforce+
+  with root' show ?thesis by cases blast+
 qed
 
 text {*
@@ -1028,7 +1028,7 @@ proof -
             also have "\<dots> \<noteq> None"
             proof -
               from ys obtain us u where rev_ys: "ys = us @ [u]"
-                by (cases ys rule: rev_cases) fastforce+
+                by (cases ys rule: rev_cases) simp
               with tr path
               have "lookup root ((path @ [y]) @ (us @ [u])) \<noteq> None \<or>
                   lookup root ((path @ [y]) @ us) \<noteq> None"

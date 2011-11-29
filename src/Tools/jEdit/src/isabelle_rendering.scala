@@ -61,9 +61,9 @@ object Isabelle_Rendering
     val state = snapshot.command_state(command)
     if (snapshot.is_outdated) Some(outdated_color)
     else
-      Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) if i > 0 => Some(running1_color)
-        case Isar_Document.Unprocessed => Some(unprocessed1_color)
+      Isabelle_Document.command_status(state.status) match {
+        case Isabelle_Document.Forked(i) if i > 0 => Some(running1_color)
+        case Isabelle_Document.Unprocessed => Some(unprocessed1_color)
         case _ => None
       }
   }
@@ -73,13 +73,13 @@ object Isabelle_Rendering
     val state = snapshot.command_state(command)
     if (snapshot.is_outdated) None
     else
-      Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) => if (i > 0) Some(running_color) else None
-        case Isar_Document.Unprocessed => Some(unprocessed_color)
-        case Isar_Document.Failed => Some(error_color)
-        case Isar_Document.Finished =>
-          if (state.results.exists(r => Isar_Document.is_error(r._2))) Some(error_color)
-          else if (state.results.exists(r => Isar_Document.is_warning(r._2))) Some(warning_color)
+      Isabelle_Document.command_status(state.status) match {
+        case Isabelle_Document.Forked(i) => if (i > 0) Some(running_color) else None
+        case Isabelle_Document.Unprocessed => Some(unprocessed_color)
+        case Isabelle_Document.Failed => Some(error_color)
+        case Isabelle_Document.Finished =>
+          if (state.results.exists(r => Isabelle_Document.is_error(r._2))) Some(error_color)
+          else if (state.results.exists(r => Isabelle_Document.is_warning(r._2))) Some(warning_color)
           else None
       }
   }

@@ -1,5 +1,5 @@
 /*  Title:      Pure/System/standard_system.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
 
 Standard system operations, with basic Cygwin/Posix compatibility.

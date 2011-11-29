@@ -30,8 +30,8 @@ else use "Concurrent/synchronized_sequential.ML";
 use "General/properties.ML";
 use "General/output.ML";
 use "General/timing.ML";
-use "General/markup.ML";
-use "General/isabelle_markup.ML";
+use "PIDE/markup.ML";
+use "PIDE/isabelle_markup.ML";
 fun legacy_feature s = warning (Markup.markup Isabelle_Markup.legacy ("Legacy feature! " ^ s));
 use "General/scan.ML";
 use "General/source.ML";
@@ -270,7 +270,7 @@ use "System/session.ML";
 use "System/system_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
-use "PIDE/isar_document.ML";
+use "PIDE/isabelle_document.ML";
 use "System/isar.ML";
 
 

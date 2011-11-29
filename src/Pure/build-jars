@@ -14,9 +14,7 @@ declare -a SOURCES=(
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
   General/exn.scala
-  General/isabelle_markup.scala
   General/linear_set.scala
-  General/markup.scala
   General/path.scala
   General/position.scala
   General/pretty.scala
@@ -24,6 +22,7 @@ declare -a SOURCES=(
   General/scan.scala
   General/sha1.scala
   General/symbol.scala
+  General/time.scala
   General/timing.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
@@ -32,7 +31,9 @@ declare -a SOURCES=(
   PIDE/blob.scala
   PIDE/command.scala
   PIDE/document.scala
-  PIDE/isar_document.scala
+  PIDE/isabelle_document.scala
+  PIDE/isabelle_markup.scala
+  PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/text.scala
   PIDE/xml.scala
@@ -121,6 +122,19 @@ shift $(($OPTIND - 1))
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/ext/Pure.jar"
 
+declare -a PIDE_SOURCES=()
+declare -a PURE_SOURCES=()
+
+for DEP in "${SOURCES[@]}"
+do
+  if grep "Module:.*PIDE" "$DEP" >/dev/null
+  then
+    PIDE_SOURCES["${#PIDE_SOURCES[@]}"]="$DEP"
+  else
+    PURE_SOURCES["${#PURE_SOURCES[@]}"]="$DEP"
+  fi
+done
+
 declare -a UPDATED=()
 
 if [ -n "$FRESH" ]; then
@@ -154,8 +168,15 @@ then
   }
 
   rm -rf classes && mkdir classes
-  "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target:jvm-1.5 "${SOURCES[@]}" || \
-    fail "Failed to compile sources"
+
+  SCALAC_OPTIONS="-unchecked -deprecation -d classes -target:jvm-1.5"
+
+  "$SCALA_HOME/bin/scalac" $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
+    fail "Failed to compile PIDE sources"
+
+  "$SCALA_HOME/bin/scalac" $SCALAC_OPTIONS -classpath classes "${PURE_SOURCES[@]}" || \
+    fail "Failed to compile Pure sources"
+
   mkdir -p "$TARGET_DIR/ext" || fail "Failed to create directory $TARGET_DIR/ext"
 
   pushd classes >/dev/null

@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/markup.ML
+(*  Title:      Pure/PIDE/markup.ML
     Author:     Makarius
 
 Generic markup elements.
@@ -15,10 +15,6 @@ sig
   val nameN: string
   val name: string -> T -> T
   val kindN: string
-  val elapsedN: string
-  val cpuN: string
-  val gcN: string
-  val timingN: string val timing: Timing.timing -> T
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -65,20 +61,6 @@ val nameN = "name";
 fun name a = properties [(nameN, a)];
 
 val kindN = "kind";
-
-
-(* timing *)
-
-val timingN = "timing";
-val elapsedN = "elapsed";
-val cpuN = "cpu";
-val gcN = "gc";
-
-fun timing {elapsed, cpu, gc} =
-  (timingN,
-   [(elapsedN, Time.toString elapsed),
-    (cpuN, Time.toString cpu),
-    (gcN, Time.toString gc)]);
 
 
 

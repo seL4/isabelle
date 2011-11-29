@@ -1,4 +1,4 @@
-/*  Title:      Pure/PIDE/isar_document.scala
+/*  Title:      Pure/PIDE/isabelle_document.scala
     Author:     Makarius
 
 Protocol message formats for interactive Isar documents.
@@ -7,7 +7,7 @@ Protocol message formats for interactive Isar documents.
 package isabelle
 
 
-object Isar_Document
+object Isabelle_Document
 {
   /* document editing */
 
@@ -159,12 +159,12 @@ object Isar_Document
 }
 
 
-trait Isar_Document extends Isabelle_Process
+trait Isabelle_Document extends Isabelle_Process
 {
   /* commands */
 
   def define_command(command: Command): Unit =
-    input("Isar_Document.define_command",
+    input("Isabelle_Document.define_command",
       Document.ID(command.id), Symbol.encode(command.name), Symbol.encode(command.source))
 
 
@@ -172,7 +172,7 @@ trait Isar_Document extends Isabelle_Process
 
   def cancel_execution()
   {
-    input("Isar_Document.cancel_execution")
+    input("Isabelle_Document.cancel_execution")
   }
 
   def update_perspective(old_id: Document.Version_ID, new_id: Document.Version_ID,
@@ -182,7 +182,7 @@ trait Isar_Document extends Isabelle_Process
     { import XML.Encode._
       list(long)(perspective.commands.map(_.id)) }
 
-    input("Isar_Document.update_perspective", Document.ID(old_id), Document.ID(new_id),
+    input("Isabelle_Document.update_perspective", Document.ID(old_id), Document.ID(new_id),
       name.node, YXML.string_of_body(ids))
   }
 
@@ -210,7 +210,7 @@ trait Isar_Document extends Isabelle_Process
         pair(string, encode_edit(dir))(name.node, edit)
       })
       YXML.string_of_body(encode(edits)) }
-    input("Isar_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
+    input("Isabelle_Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])
@@ -218,7 +218,7 @@ trait Isar_Document extends Isabelle_Process
     val versions_yxml =
       { import XML.Encode._
         YXML.string_of_body(list(long)(versions.map(_.id))) }
-    input("Isar_Document.remove_versions", versions_yxml)
+    input("Isabelle_Document.remove_versions", versions_yxml)
   }
 
 
@@ -226,6 +226,6 @@ trait Isar_Document extends Isabelle_Process
 
   def invoke_scala(id: String, tag: Invoke_Scala.Tag.Value, res: String)
   {
-    input("Isar_Document.invoke_scala", id, tag.toString, res)
+    input("Isabelle_Document.invoke_scala", id, tag.toString, res)
   }
 }

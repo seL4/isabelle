@@ -1,5 +1,5 @@
 /*  Title:      Pure/System/swing_thread.scala
-    Module:     Library
+    Module:     PIDE
     Author:     Makarius
     Author:     Fabian Immler, TU Munich
 
