@@ -22,6 +22,7 @@ declare -a SOURCES=(
   General/scan.scala
   General/sha1.scala
   General/symbol.scala
+  General/time.scala
   General/timing.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
