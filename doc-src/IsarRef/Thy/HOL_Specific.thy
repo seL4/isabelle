@@ -1260,8 +1260,13 @@ text {*
     @@{command (HOL) quotient_type} (spec + @'and');
 
     spec: @{syntax typespec} @{syntax mixfix}? '=' \\
-     @{syntax type} '/' ('partial' ':')? @{syntax term}; 
+     @{syntax type} '/' ('partial' ':')? @{syntax term} \\
+     (@'morphisms' @{syntax name} @{syntax name})?; 
   "}
+
+ The injection from a quotient type to a raw type is called @{text rep_t},
+  its inverse @{text abs_t} unless explicit @{keyword (HOL)
+  "morphisms"} specification provides alternative names.
 
   @{rail "
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\

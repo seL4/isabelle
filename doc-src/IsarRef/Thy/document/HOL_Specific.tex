@@ -1785,7 +1785,7 @@ The quotient package defines a new quotient type given a raw type
 \rail@cterm{\isa{\isakeyword{and}}}[]
 \rail@endplus
 \rail@end
-\rail@begin{5}{\isa{spec}}
+\rail@begin{8}{\isa{spec}}
 \rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
 \rail@bar
 \rail@nextbar{1}
@@ -1801,9 +1801,19 @@ The quotient package defines a new quotient type given a raw type
 \rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@cr{6}
+\rail@bar
+\rail@nextbar{7}
+\rail@term{\isa{\isakeyword{morphisms}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
 \rail@end
 \end{railoutput}
 
+
+ The injection from a quotient type to a raw type is called \isa{rep{\isaliteral{5F}{\isacharunderscore}}t},
+  its inverse \isa{abs{\isaliteral{5F}{\isacharunderscore}}t} unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
 
   \begin{railoutput}
 \rail@begin{4}{}
