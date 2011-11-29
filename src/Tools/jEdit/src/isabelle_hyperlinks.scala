@@ -62,10 +62,10 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                 {
                   // FIXME Isar_Document.Hyperlink extractor
                   case Text.Info(info_range,
-                      XML.Elem(Markup(Markup.ENTITY, props), _))
+                      XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _))
                     if (props.find(
-                      { case (Markup.KIND, Markup.ML_OPEN) => true
-                        case (Markup.KIND, Markup.ML_STRUCT) => true
+                      { case (Markup.KIND, Isabelle_Markup.ML_OPEN) => true
+                        case (Markup.KIND, Isabelle_Markup.ML_STRUCT) => true
                         case _ => false }).isEmpty) =>
                     val Text.Range(begin, end) = info_range
                     val line = buffer.getLineOfOffset(begin)
@@ -90,7 +90,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                       case _ => null
                     }
                 },
-                Some(Set(Markup.ENTITY))))
+                Some(Set(Isabelle_Markup.ENTITY))))
           markup match {
             case Text.Info(_, Some(link)) #:: _ => link
             case _ => null

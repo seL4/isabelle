@@ -81,7 +81,7 @@ struct
 (** local context data **)
 
 type fixes = string Name_Space.table;
-val empty_fixes: fixes = Name_Space.empty_table Markup.fixedN;
+val empty_fixes: fixes = Name_Space.empty_table Isabelle_Markup.fixedN;
 
 datatype data = Data of
  {is_body: bool,                        (*inner body mode*)

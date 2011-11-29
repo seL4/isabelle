@@ -11,11 +11,11 @@ object Position
 {
   type T = Properties.T
 
-  val Line = new Properties.Int(Markup.LINE)
-  val Offset = new Properties.Int(Markup.OFFSET)
-  val End_Offset = new Properties.Int(Markup.END_OFFSET)
-  val File = new Properties.String(Markup.FILE)
-  val Id = new Properties.Long(Markup.ID)
+  val Line = new Properties.Int(Isabelle_Markup.LINE)
+  val Offset = new Properties.Int(Isabelle_Markup.OFFSET)
+  val End_Offset = new Properties.Int(Isabelle_Markup.END_OFFSET)
+  val File = new Properties.String(Isabelle_Markup.FILE)
+  val Id = new Properties.Long(Isabelle_Markup.ID)
 
   object Range
   {
@@ -38,13 +38,13 @@ object Position
   }
 
   private val purge_pos = Map(
-    Markup.DEF_LINE -> Markup.LINE,
-    Markup.DEF_OFFSET -> Markup.OFFSET,
-    Markup.DEF_END_OFFSET -> Markup.END_OFFSET,
-    Markup.DEF_FILE -> Markup.FILE,
-    Markup.DEF_ID -> Markup.ID)
+    Isabelle_Markup.DEF_LINE -> Isabelle_Markup.LINE,
+    Isabelle_Markup.DEF_OFFSET -> Isabelle_Markup.OFFSET,
+    Isabelle_Markup.DEF_END_OFFSET -> Isabelle_Markup.END_OFFSET,
+    Isabelle_Markup.DEF_FILE -> Isabelle_Markup.FILE,
+    Isabelle_Markup.DEF_ID -> Isabelle_Markup.ID)
 
   def purge(props: T): T =
-    for ((x, y) <- props if !Markup.POSITION_PROPERTIES(x))
+    for ((x, y) <- props if !Isabelle_Markup.POSITION_PROPERTIES(x))
       yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
 }

@@ -23,14 +23,14 @@ object Isabelle_Process
   object Kind
   {
     val message_markup = Map(
-      ('A' : Int) -> Markup.INIT,
-      ('B' : Int) -> Markup.STATUS,
-      ('C' : Int) -> Markup.REPORT,
-      ('D' : Int) -> Markup.WRITELN,
-      ('E' : Int) -> Markup.TRACING,
-      ('F' : Int) -> Markup.WARNING,
-      ('G' : Int) -> Markup.ERROR,
-      ('H' : Int) -> Markup.RAW)
+      ('A' : Int) -> Isabelle_Markup.INIT,
+      ('B' : Int) -> Isabelle_Markup.STATUS,
+      ('C' : Int) -> Isabelle_Markup.REPORT,
+      ('D' : Int) -> Isabelle_Markup.WRITELN,
+      ('E' : Int) -> Isabelle_Markup.TRACING,
+      ('F' : Int) -> Isabelle_Markup.WARNING,
+      ('G' : Int) -> Isabelle_Markup.ERROR,
+      ('H' : Int) -> Isabelle_Markup.RAW)
   }
 
   sealed abstract class Message
@@ -38,9 +38,10 @@ object Isabelle_Process
   class Input(name: String, args: List[String]) extends Message
   {
     override def toString: String =
-      XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
+      XML.Elem(Markup(Isabelle_Markup.PROVER_COMMAND, List((Markup.NAME, name))),
         args.map(s =>
-          List(XML.Text("\n"), XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
+          List(XML.Text("\n"),
+            XML.elem(Isabelle_Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
   }
 
   class Result(val message: XML.Elem) extends Message
@@ -49,14 +50,14 @@ object Isabelle_Process
     def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
 
-    def is_init = kind == Markup.INIT
-    def is_exit = kind == Markup.EXIT
-    def is_stdout = kind == Markup.STDOUT
-    def is_stderr = kind == Markup.STDERR
-    def is_system = kind == Markup.SYSTEM
-    def is_status = kind == Markup.STATUS
-    def is_report = kind == Markup.REPORT
-    def is_raw = kind == Markup.RAW
+    def is_init = kind == Isabelle_Markup.INIT
+    def is_exit = kind == Isabelle_Markup.EXIT
+    def is_stdout = kind == Isabelle_Markup.STDOUT
+    def is_stderr = kind == Isabelle_Markup.STDERR
+    def is_system = kind == Isabelle_Markup.SYSTEM
+    def is_status = kind == Isabelle_Markup.STATUS
+    def is_report = kind == Isabelle_Markup.REPORT
+    def is_raw = kind == Isabelle_Markup.RAW
     def is_ready = Isar_Document.is_ready(message)
     def is_syslog = is_init || is_exit || is_system || is_ready || is_stderr
 
@@ -88,15 +89,15 @@ class Isabelle_Process(
 
   private def system_result(text: String)
   {
-    receiver(new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
+    receiver(new Result(XML.Elem(Markup(Isabelle_Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
   private val xml_cache = new XML.Cache()
 
   private def put_result(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) system_channel.accepted()
-    if (kind == Markup.RAW)
+    if (kind == Isabelle_Markup.INIT) system_channel.accepted()
+    if (kind == Isabelle_Markup.RAW)
       receiver(new Result(XML.Elem(Markup(kind, props), body)))
     else {
       val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
@@ -172,7 +173,7 @@ class Isabelle_Process(
     system_result(startup_output)
 
     if (startup_failed) {
-      put_result(Markup.EXIT, "Return code: 127")
+      put_result(Isabelle_Markup.EXIT, "Return code: 127")
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -192,7 +193,7 @@ class Isabelle_Process(
       for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
         thread.join
       system_result("process_manager terminated")
-      put_result(Markup.EXIT, "Return code: " + rc.toString)
+      put_result(Isabelle_Markup.EXIT, "Return code: " + rc.toString)
     }
     system_channel.accepted()
   }
@@ -246,8 +247,8 @@ class Isabelle_Process(
   private def raw_output_actor(err: Boolean): (Thread, Actor) =
   {
     val (name, reader, markup) =
-      if (err) ("standard_error", process.stderr, Markup.STDERR)
-      else ("standard_output", process.stdout, Markup.STDOUT)
+      if (err) ("standard_error", process.stderr, Isabelle_Markup.STDERR)
+      else ("standard_output", process.stdout, Isabelle_Markup.STDOUT)
 
     Simple_Thread.actor(name) {
       var result = new StringBuilder(100)
@@ -363,7 +364,7 @@ class Isabelle_Process(
             case List(XML.Elem(Markup(name, props), Nil))
                 if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
               val kind = Kind.message_markup(name(0))
-              val body = read_chunk(kind != Markup.RAW)
+              val body = read_chunk(kind != Isabelle_Markup.RAW)
               put_result(kind, props, body)
             case _ =>
               read_chunk(false)

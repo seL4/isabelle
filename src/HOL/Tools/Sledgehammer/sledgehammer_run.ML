@@ -238,7 +238,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
          |> outcome_code = someN
             ? Proof.goal_message (fn () =>
                   [Pretty.str "",
-                   Pretty.mark Markup.hilite (Pretty.str (message ()))]
+                   Pretty.mark Isabelle_Markup.hilite (Pretty.str (message ()))]
                   |> Pretty.chunks))
       end
     else if blocking then

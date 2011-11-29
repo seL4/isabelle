@@ -1,4 +1,5 @@
 /*  Title:      Pure/PIDE/text.scala
+    Module:     Library
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 

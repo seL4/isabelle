@@ -49,8 +49,8 @@ fun html_mode f x = Print_Mode.with_modes [htmlN] f x;
 fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
 
 fun span_class (name, props) =
-  (case Markup.get_entity_kind (name, props) of
-    SOME kind => Markup.entityN ^ "_" ^ name
+  (case Isabelle_Markup.get_entity_kind (name, props) of
+    SOME kind => Isabelle_Markup.entityN ^ "_" ^ name
   | NONE => name);
 
 val _ = Markup.add_mode htmlN (span o span_class);
@@ -59,7 +59,7 @@ val _ = Markup.add_mode htmlN (span o span_class);
 (* symbol output *)
 
 local
-  val hidden = span Markup.hiddenN |-> enclose;
+  val hidden = span Isabelle_Markup.hiddenN |-> enclose;
 
   (* FIXME proper unicode -- produced on Scala side *)
   val html_syms = Symtab.make

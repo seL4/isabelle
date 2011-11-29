@@ -897,6 +897,8 @@ notation (xsymbols)
 notation (HTML output)
   Times  (infixr "\<times>" 80)
 
+hide_const (open) Times
+
 syntax
   "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations

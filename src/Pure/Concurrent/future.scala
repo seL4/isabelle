@@ -1,4 +1,5 @@
 /*  Title:      Pure/Concurrent/future.scala
+    Module:     Library
     Author:     Makarius
 
 Future values.

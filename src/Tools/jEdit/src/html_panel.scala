@@ -164,7 +164,8 @@ class HTML_Panel(initial_font_family: String, initial_font_size: Int) extends Ht
         current_body.flatMap(div =>
           Pretty.formatted(List(div), current_margin, Pretty.font_metric(current_font_metrics))
             .map(t =>
-              XML.Elem(Markup(HTML.PRE, List((HTML.CLASS, Markup.MESSAGE))), HTML.spans(t, true))))
+              XML.Elem(Markup(HTML.PRE, List((HTML.CLASS, Isabelle_Markup.MESSAGE))),
+                HTML.spans(t, true))))
       val doc =
         builder.parse(
           new InputSourceImpl(

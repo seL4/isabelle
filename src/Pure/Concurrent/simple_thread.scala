@@ -1,4 +1,5 @@
 /*  Title:      Pure/Concurrent/simple_thread.scala
+    Module:     Library
     Author:     Makarius
 
 Simplified thread operations.

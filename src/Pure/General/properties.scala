@@ -1,4 +1,5 @@
 /*  Title:      Pure/General/properties.scala
+    Module:     Library
     Author:     Makarius
 
 Property lists.

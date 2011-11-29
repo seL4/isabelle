@@ -193,7 +193,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     val p = new Point(x, y); SwingUtilities.convertPointToScreen(p, text_area.getPainter)
 
     // FIXME snapshot.cumulate
-    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.popup) match {
+    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Rendering.popup) match {
       case Text.Info(_, Some(msg)) #:: _ =>
         val popup = PopupFactory.getSharedInstance().getPopup(text_area, html_panel, p.x, p.y + 60)
         html_panel.render_sync(List(msg))
@@ -212,7 +212,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     : Option[(Text.Range, Color)] =
   {
     val offset = text_area.xyToOffset(x, y)
-    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.subexp) match {
+    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Rendering.subexp) match {
       case Text.Info(_, Some((range, color))) #:: _ => Some((snapshot.convert(range), color))
       case _ => None
     }
@@ -279,12 +279,12 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
         if (control) {
           val tooltips =
-            (snapshot.select_markup(range)(Isabelle_Markup.tooltip1) match
+            (snapshot.select_markup(range)(Isabelle_Rendering.tooltip1) match
               {
                 case Text.Info(_, Some(text)) #:: _ => List(text)
                 case _ => Nil
               }) :::
-            (snapshot.select_markup(range)(Isabelle_Markup.tooltip2) match
+            (snapshot.select_markup(range)(Isabelle_Rendering.tooltip2) match
               {
                 case Text.Info(_, Some(text)) #:: _ => List(text)
                 case _ => Nil
@@ -293,7 +293,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           else Isabelle.tooltip(tooltips.mkString("\n"))
         }
         else {
-          snapshot.cumulate_markup(range)(Isabelle_Markup.tooltip_message) match
+          snapshot.cumulate_markup(range)(Isabelle_Rendering.tooltip_message) match
           {
             case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
               Isabelle.tooltip(msgs.iterator.map(_._2).mkString("\n"))
@@ -326,7 +326,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 // gutter icons
                 val icons =
                   (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
-                    snapshot.select_markup(line_range)(Isabelle_Markup.gutter_message).iterator)
+                    snapshot.select_markup(line_range)(Isabelle_Rendering.gutter_message).iterator)
                   yield icon).toList.sortWith(_ >= _)
                 icons match {
                   case icon :: _ =>
@@ -432,7 +432,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           (line1, line2) <- line_range(command, start)
           val y = line_to_y(line1)
           val height = HEIGHT * (line2 - line1)
-          color <- Isabelle_Markup.overview_color(snapshot, command)
+          color <- Isabelle_Rendering.overview_color(snapshot, command)
         } {
           gfx.setColor(color)
           gfx.fillRect(0, y, getWidth - 1, height)

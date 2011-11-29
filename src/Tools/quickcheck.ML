@@ -502,7 +502,7 @@ fun try_quickcheck auto state =
              state
              |> (if auto then
                    Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-                       Pretty.mark Markup.hilite msg]))
+                       Pretty.mark Isabelle_Markup.hilite msg]))
                  else
                    tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
           else

@@ -65,7 +65,7 @@ fun exn_messages exn_position e =
     fun exn_msgs (context, (i, exn)) =
       (case exn of
         EXCURSION_FAIL (exn, loc) =>
-          map (apsnd (fn msg => msg ^ Markup.markup Markup.no_report ("\n" ^ loc)))
+          map (apsnd (fn msg => msg ^ Markup.markup Isabelle_Markup.no_report ("\n" ^ loc)))
             (sorted_msgs context exn)
       | _ =>
         let

@@ -239,7 +239,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       if mode = Auto_Try then
         Unsynchronized.change state_ref o Proof.goal_message o K
         o Pretty.chunks o cons (Pretty.str "") o single
-        o Pretty.mark Markup.hilite
+        o Pretty.mark Isabelle_Markup.hilite
       else
         (fn s => (Output.urgent_message s; if debug then tracing s else ()))
         o Pretty.string_of
@@ -459,7 +459,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
               pprint_n (fn () => Pretty.blk (0,
                   pstrs "Hint: To check that the induction hypothesis is \
                         \general enough, try this command: " @
-                  [Pretty.mark Markup.sendback (Pretty.blk (0,
+                  [Pretty.mark Isabelle_Markup.sendback (Pretty.blk (0,
                        pstrs ("nitpick [non_std, show_all]")))] @ pstrs "."))
             else
               ()

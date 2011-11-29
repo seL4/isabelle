@@ -103,7 +103,7 @@ type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
 structure Antiq_Parsers = Theory_Data
 (
   type T = (Position.T -> antiq context_parser) Name_Space.table;
-  val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
+  val empty : T = Name_Space.empty_table Isabelle_Markup.ML_antiquotationN;
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
@@ -121,7 +121,7 @@ fun antiquotation src ctxt =
     val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
     val (_, scan) = Name_Space.check ctxt (Antiq_Parsers.get thy) (xname, pos);
-  in Args.context_syntax Markup.ML_antiquotationN (scan pos) src ctxt end;
+  in Args.context_syntax Isabelle_Markup.ML_antiquotationN (scan pos) src ctxt end;
 
 
 (* parsing and evaluation *)

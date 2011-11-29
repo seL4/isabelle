@@ -101,8 +101,8 @@ fun pgml_sym s =
 val pgml_syms = map pgml_sym o Symbol.explode;
 
 val token_markups =
- [Markup.tfreeN, Markup.tvarN, Markup.freeN,
-  Markup.boundN, Markup.varN, Markup.skolemN];
+ [Isabelle_Markup.tfreeN, Isabelle_Markup.tvarN, Isabelle_Markup.freeN,
+  Isabelle_Markup.boundN, Isabelle_Markup.varN, Isabelle_Markup.skolemN];
 
 in
 
@@ -112,10 +112,11 @@ fun pgml_terms (XML.Elem ((name, atts), body)) =
         in [Pgml.Atoms {kind = SOME name, content = content}] end
       else
         let val content = maps pgml_terms body in
-          if name = Markup.blockN then
-            [Pgml.Box {orient = NONE, indent = Properties.get_int atts Markup.indentN, content = content}]
-          else if name = Markup.breakN then
-            [Pgml.Break {mandatory = NONE, indent = Properties.get_int atts Markup.widthN}]
+          if name = Isabelle_Markup.blockN then
+            [Pgml.Box {orient = NONE,
+              indent = Properties.get_int atts Isabelle_Markup.indentN, content = content}]
+          else if name = Isabelle_Markup.breakN then
+            [Pgml.Break {mandatory = NONE, indent = Properties.get_int atts Isabelle_Markup.widthN}]
           else content
         end
   | pgml_terms (XML.Text text) = map (Pgml.Raw o Pgml.atom_to_xml) (pgml_syms text);
@@ -134,7 +135,7 @@ fun message_content default_area s =
     val area =
       (case body of
         [XML.Elem ((name, _), _)] =>
-          if name = Markup.stateN then PgipTypes.Display else default_area
+          if name = Isabelle_Markup.stateN then PgipTypes.Display else default_area
       | _ => default_area);
   in Pgml.pgml_to_xml (pgml area (maps pgml_terms body)) end;
 

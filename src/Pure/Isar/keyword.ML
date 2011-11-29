@@ -156,11 +156,11 @@ fun status_message s =
     (if print_mode_active keyword_statusN then Output.status else writeln) s;
 
 fun keyword_status name =
-  status_message (Markup.markup (Markup.keyword_decl name)
+  status_message (Markup.markup (Isabelle_Markup.keyword_decl name)
     ("Outer syntax keyword: " ^ quote name));
 
 fun command_status (name, kind) =
-  status_message (Markup.markup (Markup.command_decl name (kind_of kind))
+  status_message (Markup.markup (Isabelle_Markup.command_decl name (kind_of kind))
     ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
 
 fun status () =

@@ -1,4 +1,5 @@
 /*  Title:      Pure/package.scala
+    Module:     Library
     Author:     Makarius
 
 Toplevel isabelle package.

@@ -1,4 +1,5 @@
 /*  Title:      Pure/General/exn.scala
+    Module:     Library
     Author:     Makarius
 
 Support for exceptions (arbitrary throwables).

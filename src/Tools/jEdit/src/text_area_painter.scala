@@ -95,7 +95,7 @@ class Text_Area_Painter(doc_view: Document_View)
               if !command.is_ignored
               range <- line_range.try_restrict(snapshot.convert(command.range + command_start))
               r <- Isabelle.gfx_range(text_area, range)
-              color <- Isabelle_Markup.status_color(snapshot, command)
+              color <- Isabelle_Rendering.status_color(snapshot, command)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -104,7 +104,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (1): markup
             for {
               Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.background1).iterator
+                snapshot.select_markup(line_range)(Isabelle_Rendering.background1).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
@@ -114,7 +114,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (2): markup
             for {
               Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.background2).iterator
+                snapshot.select_markup(line_range)(Isabelle_Rendering.background2).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
@@ -124,7 +124,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // squiggly underline
             for {
               Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
+                snapshot.select_markup(line_range)(Isabelle_Rendering.message).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
@@ -215,7 +215,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            r1 <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
+            r1 <- painter_snapshot.select_markup(chunk_range)(Isabelle_Rendering.text_color)
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
@@ -317,7 +317,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // foreground color
             for {
               Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.foreground).iterator
+                snapshot.select_markup(line_range)(Isabelle_Rendering.foreground).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)

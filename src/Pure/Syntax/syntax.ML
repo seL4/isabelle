@@ -185,7 +185,7 @@ fun explode_token tree =
     val pos =
       (case tree of
         XML.Elem ((name, props), _) =>
-          if name = Markup.tokenN then Position.of_properties props
+          if name = Isabelle_Markup.tokenN then Position.of_properties props
           else Position.none
       | XML.Text _ => Position.none);
   in (Symbol_Pos.explode (text, pos), pos) end;
@@ -202,7 +202,7 @@ fun parse_token ctxt decode markup parse str =
   in
     (case YXML.parse_body str handle Fail msg => error msg of
       body as [tree as XML.Elem ((name, _), _)] =>
-        if name = Markup.tokenN then parse_tree tree else decode body
+        if name = Isabelle_Markup.tokenN then parse_tree tree else decode body
     | [tree as XML.Text _] => parse_tree tree
     | body => decode body)
   end;

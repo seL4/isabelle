@@ -130,7 +130,7 @@ fun call_solver ctxt opt_name =
 
 fun output_line cert =
   "To repeat this proof with a certifiate use this command:\n" ^
-    Markup.markup Markup.sendback ("by (sos_cert \"" ^ cert ^ "\")")
+    Markup.markup Isabelle_Markup.sendback ("by (sos_cert \"" ^ cert ^ "\")")
 
 val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cert
 

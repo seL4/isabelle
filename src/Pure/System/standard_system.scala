@@ -1,4 +1,5 @@
 /*  Title:      Pure/System/standard_system.scala
+    Module:     Library
     Author:     Makarius
 
 Standard system operations, with basic Cygwin/Posix compatibility.

@@ -210,7 +210,7 @@ fun print_state prf_only state =
   | SOME (Proof (prf, _)) =>
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
-  |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
+  |> Pretty.markup_chunks Isabelle_Markup.state |> Pretty.writeln;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 

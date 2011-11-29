@@ -522,7 +522,7 @@ fun simple_goal state =
 
 fun status_markup state =
   (case try goal state of
-    SOME {goal, ...} => Markup.proof_state (Thm.nprems_of goal)
+    SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
 
 
@@ -998,7 +998,8 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then
-        writeln (Markup.markup Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
+        writeln
+          (Markup.markup Isabelle_Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
       else ();
     val test_proof =
       try (local_skip_proof true)

@@ -122,7 +122,7 @@ val conceal =
 (* print *)
 
 fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
-  Pretty.markup (Position.markup pos Markup.binding)
+  Pretty.markup (Position.markup pos Isabelle_Markup.binding)
     [Pretty.str (Long_Name.implode (map #1 (prefix @ qualifier) @ [name]))]
   |> Pretty.quote;
 

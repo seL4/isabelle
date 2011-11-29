@@ -1,4 +1,5 @@
 /*  Title:      Pure/library.scala
+    Module:     Library
     Author:     Makarius
 
 Basic library.
@@ -207,20 +208,6 @@ object Library
     listenTo(selection)
     selection.index = 3
     prototypeDisplayValue = Some("00000%")
-  }
-
-
-  /* timing */
-
-  def timeit[A](message: String)(e: => A) =
-  {
-    val start = System.currentTimeMillis()
-    val result = Exn.capture(e)
-    val stop = System.currentTimeMillis()
-    System.err.println(
-      (if (message == null || message.isEmpty) "" else message + ": ") +
-        Time.ms(stop - start).message + " elapsed time")
-    Exn.release(result)
   }
 }
 
