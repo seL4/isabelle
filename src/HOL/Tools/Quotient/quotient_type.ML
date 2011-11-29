@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Quotient/quotient_typ.ML
+(*  Title:      HOL/Tools/Quotient/quotient_type.ML
     Author:     Cezary Kaliszyk and Christian Urban
 
 Definition of a quotient type.

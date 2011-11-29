@@ -8,7 +8,7 @@ theory Quotient
 imports Plain Hilbert_Choice Equiv_Relations
 uses
   ("Tools/Quotient/quotient_info.ML")
-  ("Tools/Quotient/quotient_typ.ML")
+  ("Tools/Quotient/quotient_type.ML")
   ("Tools/Quotient/quotient_def.ML")
   ("Tools/Quotient/quotient_term.ML")
   ("Tools/Quotient/quotient_tacs.ML")
@@ -696,7 +696,7 @@ use "Tools/Quotient/quotient_term.ML"
 
 
 text {* Definitions of the quotient types. *}
-use "Tools/Quotient/quotient_typ.ML"
+use "Tools/Quotient/quotient_type.ML"
 
 
 text {* Definitions for quotient constants. *}

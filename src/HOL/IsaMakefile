@@ -356,7 +356,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Quotient/quotient_info.ML \
   Tools/Quotient/quotient_tacs.ML \
   Tools/Quotient/quotient_term.ML \
-  Tools/Quotient/quotient_typ.ML \
+  Tools/Quotient/quotient_type.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
   Tools/Sledgehammer/async_manager.ML \
