@@ -6,14 +6,14 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
-  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) * thm
-    -> local_theory -> Quotient_Info.quotients * local_theory
+  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
+    ((binding * binding) option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
-  val quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) list
-    -> Proof.context -> Proof.state
+  val quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
+    ((binding * binding) option)) list -> Proof.context -> Proof.state
 
-  val quotient_type_cmd: ((((string list * binding) * mixfix) * string) * (bool * string)) list
-    -> Proof.context -> Proof.state
+  val quotient_type_cmd: (((((string list * binding) * mixfix) * string) * (bool * string)) *
+    (binding * binding) option) list -> Proof.context -> Proof.state
 end;
 
 structure Quotient_Type: QUOTIENT_TYPE =
@@ -88,7 +88,7 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
   end
 
 (* main function for constructing a quotient type *)
-fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lthy =
+fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), equiv_thm) lthy =
   let
     val part_equiv =
       if partial
@@ -113,8 +113,10 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     val rep_const = Const (@{const_name quot_type.rep}, (Abs_ty --> Rep_ty) --> Abs_ty --> rty)
     val abs_trm = abs_const $ rel $ Abs_const
     val rep_trm = rep_const $ Rep_const
-    val abs_name = Binding.prefix_name "abs_" qty_name
-    val rep_name = Binding.prefix_name "rep_" qty_name
+    val (rep_name, abs_name) =
+      (case opt_morphs of
+        NONE => (Binding.prefix_name "rep_" qty_name, Binding.prefix_name "abs_" qty_name)
+      | SOME morphs => morphs)
 
     val ((abs_t, (_, abs_def)), lthy2) = lthy1
       |> Local_Theory.define ((abs_name, NoSyn), (Attrib.empty_binding, abs_trm))
@@ -156,7 +158,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
 
 
 (* sanity checks for the quotient type specifications *)
-fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
+fun sanity_check ((vs, qty_name, _), (rty, rel, _), _) =
   let
     val rty_tfreesT = map fst (Term.add_tfreesT rty [])
     val rel_tfrees = map fst (Term.add_tfrees rel [])
@@ -195,7 +197,7 @@ fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
   end
 
 (* check for existence of map functions *)
-fun map_check thy (_, (rty, _, _)) =
+fun map_check thy (_, (rty, _, _), _) =
   let
     fun map_check_aux rty warns =
       (case rty of
@@ -244,7 +246,7 @@ fun quotient_type quot_list lthy =
         HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
       end
 
-    val goals = map (mk_goal o snd) quot_list
+    val goals = map (mk_goal o #2) quot_list
 
     fun after_qed [thms] = fold (snd oo add_quotient_type) (quot_list ~~ thms)
   in
@@ -253,7 +255,7 @@ fun quotient_type quot_list lthy =
 
 fun quotient_type_cmd specs lthy =
   let
-    fun parse_spec ((((vs, qty_name), mx), rty_str), (partial, rel_str)) lthy =
+    fun parse_spec (((((vs, qty_name), mx), rty_str), (partial, rel_str)), opt_morphs) lthy =
       let
         val rty = Syntax.read_typ lthy rty_str
         val lthy1 = Variable.declare_typ rty lthy
@@ -263,7 +265,7 @@ fun quotient_type_cmd specs lthy =
           |> Syntax.check_term lthy1
         val lthy2 = Variable.declare_term rel lthy1
       in
-        (((vs, qty_name, mx), (rty, rel, partial)), lthy2)
+        (((vs, qty_name, mx), (rty, rel, partial), opt_morphs), lthy2)
       end
 
     val (spec', lthy') = fold_map parse_spec specs lthy
@@ -277,7 +279,8 @@ val quotspec_parser =
   Parse.and_list1
     ((Parse.type_args -- Parse.binding) --
       Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
-        (Parse.$$$ "/" |-- (partial -- Parse.term)))
+        (Parse.$$$ "/" |-- (partial -- Parse.term))  --
+        Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
 
 val _ = Keyword.keyword "/"
 
