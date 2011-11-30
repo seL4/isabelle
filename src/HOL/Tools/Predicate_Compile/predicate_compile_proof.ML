@@ -159,10 +159,12 @@ fun prove_match options ctxt nargs out_ts =
     val eval_if_P =
       @{lemma "P ==> Predicate.eval x z ==> Predicate.eval (if P then x else y) z" by simp} 
     fun get_case_rewrite t =
-      if (is_constructor thy t) then let
-        val case_rewrites = (#case_rewrites (Datatype.the_info thy
-          ((fst o dest_Type o fastype_of) t)))
-        in fold (union Thm.eq_thm) (case_rewrites :: map get_case_rewrite (snd (strip_comb t))) [] end
+      if (is_constructor thy t) then
+        let
+          val {case_rewrites, ...} = Datatype.the_info thy (fst (dest_Type (fastype_of t)))
+        in
+          fold (union Thm.eq_thm) (case_rewrites :: map get_case_rewrite (snd (strip_comb t))) []
+        end
       else []
     val simprules = insert Thm.eq_thm @{thm "unit.cases"} (insert Thm.eq_thm @{thm "prod.cases"}
       (fold (union Thm.eq_thm) (map get_case_rewrite out_ts) []))
@@ -327,13 +329,14 @@ fun prove_match2 options ctxt out_ts =
       | split_term_tac t =
         if (is_constructor thy t) then
           let
-            val info = Datatype.the_info thy ((fst o dest_Type o fastype_of) t)
-            val num_of_constrs = length (#case_rewrites info)
+            val {case_rewrites, split_asm, ...} =
+              Datatype.the_info thy (fst (dest_Type (fastype_of t)))
+            val num_of_constrs = length case_rewrites
             val (_, ts) = strip_comb t
           in
             print_tac options ("Term " ^ (Syntax.string_of_term ctxt t) ^ 
-              "splitting with rules \n" ^ Display.string_of_thm ctxt (#split_asm info))
-            THEN TRY ((Splitter.split_asm_tac [#split_asm info] 1)
+              "splitting with rules \n" ^ Display.string_of_thm ctxt split_asm)
+            THEN TRY (Splitter.split_asm_tac [split_asm] 1
               THEN (print_tac options "after splitting with split_asm rules")
             (* THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)

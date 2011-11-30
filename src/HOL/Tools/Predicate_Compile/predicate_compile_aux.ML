@@ -932,13 +932,10 @@ fun make_case_distribs new_type_names descr sorts thy =
 
 fun case_rewrites thy Tcon =
   let
-    val info = Datatype.the_info thy Tcon
-    val descr = #descr info
-    val sorts = #sorts info
-    val typ_names = the_default [Tcon] (#alt_names info)
+    val {descr, sorts, ...} = Datatype.the_info thy Tcon
   in
     map (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
-      (make_case_distribs typ_names [descr] sorts thy)
+      (make_case_distribs [Tcon] [descr] sorts thy)
   end
 
 fun instantiated_case_rewrites thy Tcon =

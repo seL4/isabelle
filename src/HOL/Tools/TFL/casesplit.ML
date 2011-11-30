@@ -36,9 +36,9 @@ fun case_thm_of_ty thy ty  =
                      Type(ty_str, _) => ty_str
                    | TFree(s,_)  => error ("Free type: " ^ s)
                    | TVar((s,i),_) => error ("Free variable: " ^ s)
-      val dt = Datatype.the_info thy ty_str
+      val {induct, ...} = Datatype.the_info thy ty_str
     in
-      cases_thm_of_induct_thm (#induct dt)
+      cases_thm_of_induct_thm induct
     end;
 
 

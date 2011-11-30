@@ -15,7 +15,6 @@ sig
   type descr = (int * (string * dtyp list * (string * dtyp list) list)) list
   type info =
    {index : int,
-    alt_names : string list option,
     descr : descr,
     sorts : (string * sort) list,
     inject : thm list,
@@ -188,7 +187,6 @@ type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 
 type info =
   {index : int,
-   alt_names : string list option,
    descr : descr,
    sorts : (string * sort) list,
    inject : thm list,

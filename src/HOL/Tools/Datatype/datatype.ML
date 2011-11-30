@@ -10,10 +10,13 @@ after full bootstrap of datatype package.
 signature DATATYPE =
 sig
   include DATATYPE_DATA
-  val add_datatype : config -> string list -> (string list * binding * mixfix *
-    (binding * typ list * mixfix) list) list -> theory -> string list * theory
-  val datatype_cmd : string list -> (string list * binding * mixfix *
-    (binding * string list * mixfix) list) list -> theory -> theory
+  val add_datatype: config ->
+    (string list * binding * mixfix * (binding * typ list * mixfix) list) list ->
+    theory -> string list * theory
+  val add_datatype_cmd:
+    (string list * binding * mixfix * (binding * string list * mixfix) list) list ->
+    theory -> theory
+  val parse_decl: (string list * binding * mixfix * (binding * string list * mixfix) list) parser
 end;
 
 structure Datatype : DATATYPE =
@@ -58,9 +61,10 @@ val datatype_injI =
 (** proof of characteristic theorems **)
 
 fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux.info Symtab.table)
-      new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
+    descr sorts types_syntax constr_syntax case_names_induct thy =
   let
     val descr' = flat descr;
+    val new_type_names = map (Binding.name_of o fst) types_syntax;
     val big_name = space_implode "_" new_type_names;
     val thy1 = Sign.add_path big_name thy;
     val big_rec_name = big_name ^ "_rep_set";
@@ -189,26 +193,26 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (********************************* typedef ********************************)
 
-    val (typedefs, thy3) = thy2 |>
-      Sign.parent_path |>
-      fold_map (fn ((((name, mx), tvs), c), name') =>
-          Typedef.add_typedef_global false (SOME (Binding.name name'))
+    val (typedefs, thy3) = thy2
+      |> Sign.parent_path
+      |> fold_map
+        (fn (((name, mx), tvs), c) =>
+          Typedef.add_typedef_global false NONE
             (name, map (rpair dummyS) tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)))
-                (types_syntax ~~ tyvars ~~
-                  (take (length newTs) rep_set_names) ~~ new_type_names) ||>
-      Sign.add_path big_name;
+        (types_syntax ~~ tyvars ~~ (take (length newTs) rep_set_names))
+      ||> Sign.add_path big_name;
 
     (*********************** definition of constructors ***********************)
 
     val big_rep_name = space_implode "_" new_type_names ^ "_Rep_";
     val rep_names = map (prefix "Rep_") new_type_names;
-    val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
-      (1 upto (length (flat (tl descr))));
-    val all_rep_names = map (Sign.intern_const thy3) rep_names @
+    val rep_names' = map (fn i => big_rep_name ^ string_of_int i) (1 upto length (flat (tl descr)));
+    val all_rep_names =
+      map (Sign.intern_const thy3) rep_names @
       map (Sign.full_bname thy3) rep_names';
 
     (* isomorphism declarations *)
@@ -669,9 +673,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
 
 
-(** definitional introduction of datatypes **)
+(** datatype definition **)
 
-fun gen_add_datatype prep_typ config new_type_names dts thy =
+fun gen_add_datatype prep_typ config dts thy =
   let
     val _ = Theory.requires thy "Datatype" "datatype definitions";
 
@@ -694,11 +698,11 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val dt_names = map fst new_dts;
 
     val _ =
-      (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
+      (case duplicates (op =) (map fst new_dts) of
         [] => ()
       | dups => error ("Duplicate datatypes: " ^ commas dups));
 
-    fun prep_dt_spec (tvs, tname, mx, constrs) tname' (dts', constr_syntax, sorts, i) =
+    fun prep_dt_spec (tvs, tname, mx, constrs) (dts', constr_syntax, sorts, i) =
       let
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
@@ -707,7 +711,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
               (case subtract (op =) tvs (fold (curry Misc_Legacy.add_typ_tfree_names) cargs' []) of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs));
-            val c = Sign.full_name_path tmp_thy tname' cname;
+            val c = Sign.full_name_path tmp_thy (Binding.name_of tname) cname;
           in
             (constrs @ [(c, map (Datatype_Aux.dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
@@ -725,7 +729,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
             error ("Duplicate constructors " ^ commas dups ^ " in datatype " ^ Binding.print tname))
       end;
 
-    val (dts', constr_syntax, sorts', i) = fold2 prep_dt_spec dts new_type_names ([], [], [], 0);
+    val (dts', constr_syntax, sorts', i) = fold prep_dt_spec dts ([], [], [], 0);
     val sorts =
       sorts' @ map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars);
     val dt_info = Datatype_Data.get_all thy;
@@ -736,45 +740,31 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
           if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
           else reraise exn;
 
-    val _ = Datatype_Aux.message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
-
+    val _ =
+      Datatype_Aux.message config
+        ("Constructing datatype(s) " ^ commas_quote (map (Binding.name_of o #2) dts));
   in
     thy
-    |> representation_proofs config dt_info new_type_names descr sorts
-        types_syntax constr_syntax (Datatype_Data.mk_case_names_induct (flat descr))
+    |> representation_proofs config dt_info descr sorts types_syntax constr_syntax
+      (Datatype_Data.mk_case_names_induct (flat descr))
     |-> (fn (inject, distinct, induct) =>
-          Datatype_Data.derive_datatype_props
-            config dt_names (SOME new_type_names) descr sorts
-            induct inject distinct)
+      Datatype_Data.derive_datatype_props config dt_names descr sorts induct inject distinct)
   end;
 
 val add_datatype = gen_add_datatype Datatype_Data.cert_typ;
-val datatype_cmd = snd ooo gen_add_datatype Datatype_Data.read_typ Datatype_Aux.default_config;
+val add_datatype_cmd = snd oo gen_add_datatype Datatype_Data.read_typ Datatype_Aux.default_config;
 
-local
 
-fun prep_datatype_decls args =
-  let
-    val names = map
-      (fn ((((NONE, _), t), _), _) => Binding.name_of t | ((((SOME t, _), _), _), _) => t) args;
-    val specs = map (fn ((((_, vs), t), mx), cons) =>
-      (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in (names, specs) end;
+(* concrete syntax *)
 
-val parse_datatype_decl =
-  (Scan.option (Parse.$$$ "(" |-- Parse.name --| Parse.$$$ ")") --
-    Parse.type_args -- Parse.binding -- Parse.opt_mixfix --
-    (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix)));
-
-val parse_datatype_decls = Parse.and_list1 parse_datatype_decl >> prep_datatype_decls;
-
-in
+val parse_decl =
+  Parse.type_args -- Parse.binding -- Parse.opt_mixfix --
+  (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix))
+  >> (fn (((vs, t), mx), cons) => (vs, t, mx, map Parse.triple1 cons));
 
 val _ =
   Outer_Syntax.command "datatype" "define inductive datatypes" Keyword.thy_decl
-    (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
-
-end;
+    (Parse.and_list1 parse_decl >> (Toplevel.theory o add_datatype_cmd));
 
 
 open Datatype_Data;

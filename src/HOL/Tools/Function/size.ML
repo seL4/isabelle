@@ -58,10 +58,8 @@ val app = curry (list_comb o swap);
 
 fun prove_size_thms (info : info) new_type_names thy =
   let
-    val {descr, alt_names, sorts, rec_names, rec_rewrites, induct, ...} = info;
+    val {descr, sorts, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
-    val alt_names' = (case alt_names of
-      NONE => replicate l NONE | SOME names => map SOME names);
     val descr' = List.take (descr, l);
     val (rec_names1, rec_names2) = chop l rec_names;
     val recTs = get_rec_types descr sorts;
@@ -83,11 +81,10 @@ fun prove_size_thms (info : info) new_type_names thy =
     val extra_size = Option.map fst o lookup_size thy;
 
     val (((size_names, size_fns), def_names), def_names') =
-      recTs1 ~~ alt_names' |>
-      map (fn (T as Type (s, _), optname) =>
+      recTs1 |> map (fn T as Type (s, _) =>
         let
-          val s' = the_default (Long_Name.base_name s) optname ^ "_size";
-          val s'' = Sign.full_bname thy s'
+          val s' = Long_Name.base_name s ^ "_size";
+          val s'' = Sign.full_bname thy s';
         in
           (s'',
            (list_comb (Const (s'', param_size_fTs @ [T] ---> HOLogic.natT),
@@ -221,12 +218,13 @@ fun prove_size_thms (info : info) new_type_names thy =
 
 fun add_size_thms config (new_type_names as name :: _) thy =
   let
-    val info as {descr, alt_names, ...} = Datatype.the_info thy name;
-    val prefix = Long_Name.map_base_name (K (space_implode "_"
-      (the_default (map Long_Name.base_name new_type_names) alt_names))) name;
+    val info as {descr, ...} = Datatype.the_info thy name;
+    val prefix =
+      Long_Name.map_base_name (K (space_implode "_" (map Long_Name.base_name new_type_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs) descr
-  in if no_size then thy
+  in
+    if no_size then thy
     else
       thy
       |> Sign.root_path

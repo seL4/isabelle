@@ -6,9 +6,9 @@ Nominal datatype package for Isabelle/HOL.
 
 signature NOMINAL_DATATYPE =
 sig
-  val add_nominal_datatype : Datatype.config -> string list ->
-    (string list * bstring * mixfix *
-      (bstring * string list * mixfix) list) list -> theory -> theory
+  val add_nominal_datatype : Datatype.config ->
+    (string list * binding * mixfix * (binding * string list * mixfix) list) list ->
+    theory -> theory
   type descr
   type nominal_datatype_info
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
@@ -188,14 +188,16 @@ fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
 fun fresh_star_const T U =
   Const ("Nominal.fresh_star", HOLogic.mk_setT T --> U --> HOLogic.boolT);
 
-fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
+fun gen_add_nominal_datatype prep_typ config dts thy =
   let
+    val new_type_names = map (Binding.name_of o #2) dts;
+
+
     (* this theory is used just for parsing *)
 
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types_global (map (fn (tvs, tname, mx, _) =>
-        (Binding.name tname, length tvs, mx)) dts);
+      Sign.add_types_global (map (fn (tvs, tname, mx, _) => (tname, length tvs, mx)) dts);
 
     val atoms = atoms_of thy;
 
@@ -224,7 +226,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       map (fn (cname, cargs, mx) => (cname, mx)) constrs) dts';
 
     val ps = map (fn (_, n, _, _) =>
-      (Sign.full_bname tmp_thy n, Sign.full_bname tmp_thy (n ^ "_Rep"))) dts;
+      (Sign.full_name tmp_thy n, Sign.full_name tmp_thy (Binding.suffix_name "_Rep" n))) dts;
     val rps = map Library.swap ps;
 
     fun replace_types (Type ("Nominal.ABS", [T, U])) =
@@ -233,17 +235,16 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           Type (the_default s (AList.lookup op = ps s), map replace_types Ts)
       | replace_types T = T;
 
-    val dts'' = map (fn (tvs, tname, mx, constrs) => (tvs, Binding.name (tname ^ "_Rep"), NoSyn,
-      map (fn (cname, cargs, mx) => (Binding.name (cname ^ "_Rep"),
-        map replace_types cargs, NoSyn)) constrs)) dts';
+    val dts'' = map (fn (tvs, tname, mx, constrs) =>
+      (tvs, Binding.suffix_name "_Rep" tname, NoSyn,
+        map (fn (cname, cargs, mx) => (Binding.suffix_name "_Rep" cname,
+          map replace_types cargs, NoSyn)) constrs)) dts';
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
 
-    val (full_new_type_names',thy1) =
-      Datatype.add_datatype config new_type_names' dts'' thy;
+    val (full_new_type_names',thy1) = Datatype.add_datatype config dts'' thy;
 
-    val {descr, induct, ...} =
-      Datatype.the_info thy1 (hd full_new_type_names');
+    val {descr, induct, ...} = Datatype.the_info thy1 (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts (DtRec i);
 
     val big_name = space_implode "_" new_type_names;
@@ -612,9 +613,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val (typedefs, thy6) =
       thy4
-      |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-          Typedef.add_typedef_global false (SOME (Binding.name name'))
-            (Binding.name name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
+      |> fold_map (fn (((name, mx), tvs), (cname, U)) => fn thy =>
+          Typedef.add_typedef_global false NONE
+            (name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const (@{const_name Collect}, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
@@ -624,18 +625,17 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           val permT = mk_permT
             (TFree (singleton (Name.variant_list (map fst tvs)) "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
-          val T = Type (Sign.intern_type thy name, map TFree tvs);
+          val T = Type (Sign.full_name thy name, map TFree tvs);
         in apfst (pair r o hd)
-          (Global_Theory.add_defs_unchecked true [((Binding.name ("prm_" ^ name ^ "_def"), Logic.mk_equals
-            (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
-             Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
-               (Const ("Nominal.perm", permT --> U --> U) $ pi $
-                 (Const (Sign.intern_const thy ("Rep_" ^ name), T --> U) $
-                   Free ("x", T))))), [])] thy)
+          (Global_Theory.add_defs_unchecked true
+            [((Binding.map_name (fn n => "prm_" ^ n ^ "_def") name, Logic.mk_equals
+              (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
+               Const (Sign.intern_const thy ("Abs_" ^ Binding.name_of name), U --> T) $
+                 (Const ("Nominal.perm", permT --> U --> U) $ pi $
+                   (Const (Sign.intern_const thy ("Rep_" ^ Binding.name_of name), T --> U) $
+                     Free ("x", T))))), [])] thy)
         end))
-          (types_syntax ~~ tyvars ~~
-            List.take (rep_set_names'' ~~ recTs', length new_type_names) ~~
-            new_type_names);
+        (types_syntax ~~ tyvars ~~ List.take (rep_set_names'' ~~ recTs', length new_type_names));
 
     val perm_defs = map snd typedefs;
     val Abs_inverse_thms = map (collect_simp o #Abs_inverse o snd o fst) typedefs;
@@ -800,7 +800,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (Const (rep_name, T --> T') $ lhs, rhs));
         val def_name = (Long_Name.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
-          Sign.add_consts_i [(Binding.name cname', constrT, mx)] |>
+          Sign.add_consts_i [(cname', constrT, mx)] |>
           (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
@@ -2002,7 +2002,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     (* define primrec combinators *)
 
-    val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
+    val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
     val reccomb_names = map (Sign.full_bname thy11)
       (if length descr'' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
@@ -2069,23 +2069,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
 val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_typ;
 
-
-(* FIXME: The following stuff should be exported by Datatype *)
-
-val datatype_decl =
-  Scan.option (Parse.$$$ "(" |-- Parse.name --| Parse.$$$ ")") --
-    Parse.type_args -- Parse.name -- Parse.opt_mixfix --
-    (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.name -- Scan.repeat Parse.typ -- Parse.opt_mixfix));
-
-fun mk_datatype args =
-  let
-    val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
-    val specs = map (fn ((((_, vs), t), mx), cons) =>
-      (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in add_nominal_datatype Datatype.default_config names specs end;
-
 val _ =
   Outer_Syntax.command "nominal_datatype" "define inductive datatypes" Keyword.thy_decl
-    (Parse.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
+    (Parse.and_list1 Datatype.parse_decl
+      >> (Toplevel.theory o add_nominal_datatype Datatype.default_config));
 
 end

@@ -305,7 +305,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
                 val tyname = Sign.full_name thy tyb
               in
                 (thy |>
-                 Datatype.add_datatype {strict = true, quiet = true} [s]
+                 Datatype.add_datatype {strict = true, quiet = true}
                    [([], tyb, NoSyn,
                      map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
                  add_enum_type s tyname,

@@ -7,17 +7,16 @@ Datatype package: bookkeeping; interpretation of existing types as datatypes.
 signature DATATYPE_DATA =
 sig
   include DATATYPE_COMMON
-  val derive_datatype_props : config -> string list -> string list option
-    -> descr list -> (string * sort) list -> thm -> thm list list -> thm list list
-    -> theory -> string list * theory
-  val rep_datatype : config -> (string list -> Proof.context -> Proof.context)
-    -> string list option -> term list -> theory -> Proof.state
-  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
+  val derive_datatype_props : config -> string list -> descr list -> (string * sort) list ->
+    thm -> thm list list -> thm list list -> theory -> string list * theory
+  val rep_datatype : config -> (string list -> Proof.context -> Proof.context) ->
+    term list -> theory -> Proof.state
+  val rep_datatype_cmd : string list -> theory -> Proof.state
   val get_info : theory -> string -> info option
   val the_info : theory -> string -> info
-  val the_descr : theory -> string list
-    -> descr * (string * sort) list * string list
-      * string * (string list * string list) * (typ list * typ list)
+  val the_descr : theory -> string list ->
+    descr * (string * sort) list * string list * string *
+    (string list * string list) * (typ list * typ list)
   val the_spec : theory -> string -> (string * sort) list * (string * typ list) list
   val all_distincts : theory -> typ list -> thm list list
   val get_constrs : theory -> string -> (string * typ) list option
@@ -144,7 +143,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val (Ts, Us) = (pairself o map) Type protoTs;
 
-    val names = map Long_Name.base_name (the_default tycos (#alt_names info));
+    val names = map Long_Name.base_name tycos;
     val (auxnames, _) =
       Name.make_context names
       |> fold_map (Name.variant o Datatype_Aux.name_of_typ) Us;
@@ -284,13 +283,12 @@ structure Datatype_Interpretation = Interpretation
 );
 fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 
-fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
+fun make_dt_info descr sorts induct inducts rec_names rec_rewrites
     (index, (((((((((((_, (tname, _, _))), inject), distinct),
       exhaust), nchotomy), case_name), case_rewrites), case_cong), weak_case_cong),
         (split, split_asm))) =
   (tname,
    {index = index,
-    alt_names = alt_names,
     descr = descr,
     sorts = sorts,
     inject = inject,
@@ -308,12 +306,12 @@ fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     split = split,
     split_asm = split_asm});
 
-fun derive_datatype_props config dt_names alt_names descr sorts
+fun derive_datatype_props config dt_names descr sorts
     induct inject distinct thy1 =
   let
     val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
-    val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
+    val new_type_names = map Long_Name.base_name dt_names;
     val _ =
       Datatype_Aux.message config
         ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
@@ -343,7 +341,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
 
     val inducts = Project_Rule.projections (Proof_Context.init_global thy2) induct;
     val dt_infos = map_index
-      (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
+      (make_dt_info flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
@@ -380,11 +378,10 @@ fun derive_datatype_props config dt_names alt_names descr sorts
 
 (** declare existing type as datatype **)
 
-fun prove_rep_datatype config dt_names alt_names descr sorts
-    raw_inject half_distinct raw_induct thy1 =
+fun prove_rep_datatype config dt_names descr sorts raw_inject half_distinct raw_induct thy1 =
   let
     val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
-    val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
+    val new_type_names = map Long_Name.base_name dt_names;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
     val (((inject, distinct), [induct]), thy2) =
       thy1
@@ -395,11 +392,10 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
           [mk_case_names_induct descr])];
   in
     thy2
-    |> derive_datatype_props config dt_names alt_names [descr] sorts
-         induct inject distinct
+    |> derive_datatype_props config dt_names [descr] sorts induct inject distinct
  end;
 
-fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
+fun gen_rep_datatype prep_term config after_qed raw_ts thy =
   let
     val ctxt = Proof_Context.init_global thy;
 
@@ -461,8 +457,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
             (*FIXME somehow dubious*)
       in
         Proof_Context.background_theory_result  (* FIXME !? *)
-          (prove_rep_datatype config dt_names alt_names descr vs
-            raw_inject half_distinct raw_induct)
+          (prove_rep_datatype config dt_names descr vs raw_inject half_distinct raw_induct)
         #-> after_qed
       end;
   in
@@ -489,10 +484,8 @@ val setup =
 
 val _ =
   Outer_Syntax.command "rep_datatype" "represent existing types inductively" Keyword.thy_goal
-    (Scan.option (Parse.$$$ "(" |-- Scan.repeat1 Parse.name --| Parse.$$$ ")") --
-      Scan.repeat1 Parse.term
-      >> (fn (alt_names, ts) =>
-          Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
+    (Scan.repeat1 Parse.term >> (fn ts =>
+      Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd ts)));
 
 
 open Datatype_Aux;

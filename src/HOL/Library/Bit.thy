@@ -25,7 +25,7 @@ instance ..
 
 end
 
-rep_datatype (bit) "0::bit" "1::bit"
+rep_datatype "0::bit" "1::bit"
 proof -
   fix P and x :: bit
   assume "P (0::bit)" and "P (1::bit)"
