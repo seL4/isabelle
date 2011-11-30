@@ -276,13 +276,13 @@ fun collect_results f [] results = results
         collect_results f ts (result :: results)
     end  
 
-fun add_equation_eval_terms (t, eval_terms) =
-  case try HOLogic.dest_eq (snd (strip_imp t)) of
-    SOME (lhs, rhs) => (t, eval_terms @ [rhs, lhs])
-  | NONE => (t, eval_terms)
-
 fun generator_test_goal_terms (name, compile) ctxt catch_code_errors insts goals =
   let
+    fun add_eval_term t ts = if is_Free t then ts else ts @ [t]
+    fun add_equation_eval_terms (t, eval_terms) =
+      case try HOLogic.dest_eq (snd (strip_imp t)) of
+        SOME (lhs, rhs) => (t, add_eval_term lhs (add_eval_term rhs eval_terms))
+      | NONE => (t, eval_terms)
     fun test_term' goal =
       case goal of
         [(NONE, t)] => test_term (name, compile) ctxt catch_code_errors t
