@@ -44,8 +44,10 @@ proof -
 qed
 
 
-typedef preal = "{A. cut A}"
-  by (blast intro: cut_of_rat [OF zero_less_one])
+definition "preal = {A. cut A}"
+
+typedef (open) preal = preal
+  unfolding preal_def by (blast intro: cut_of_rat [OF zero_less_one])
 
 definition
   psup :: "preal set => preal" where
@@ -113,22 +115,26 @@ lemma rat_mem_preal: "0 < q ==> {r::rat. 0 < r & r < q} \<in> preal"
 by (simp add: preal_def cut_of_rat)
 
 lemma preal_nonempty: "A \<in> preal ==> \<exists>x\<in>A. 0 < x"
-by (unfold preal_def cut_def, blast)
+  unfolding preal_def cut_def_raw by blast
 
 lemma preal_Ex_mem: "A \<in> preal \<Longrightarrow> \<exists>x. x \<in> A"
-by (drule preal_nonempty, fast)
+  apply (drule preal_nonempty)
+  apply fast
+  done
 
 lemma preal_imp_psubset_positives: "A \<in> preal ==> A < {r. 0 < r}"
-by (force simp add: preal_def cut_def)
+  by (force simp add: preal_def cut_def)
 
 lemma preal_exists_bound: "A \<in> preal ==> \<exists>x. 0 < x & x \<notin> A"
-by (drule preal_imp_psubset_positives, auto)
+  apply (drule preal_imp_psubset_positives)
+  apply auto
+  done
 
 lemma preal_exists_greater: "[| A \<in> preal; y \<in> A |] ==> \<exists>u \<in> A. y < u"
-by (unfold preal_def cut_def, blast)
+  unfolding preal_def cut_def_raw by blast
 
 lemma preal_downwards_closed: "[| A \<in> preal; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
-by (unfold preal_def cut_def, blast)
+  unfolding preal_def cut_def_raw by blast
 
 text{*Relaxing the final premise*}
 lemma preal_downwards_closed':
@@ -960,7 +966,7 @@ done
 
 lemma mem_diff_set:
      "R < S ==> diff_set (Rep_preal S) (Rep_preal R) \<in> preal"
-apply (unfold preal_def cut_def)
+apply (unfold preal_def cut_def_raw)
 apply (blast intro!: diff_set_not_empty diff_set_not_rat_set
                      diff_set_lemma3 diff_set_lemma4)
 done
@@ -1129,7 +1135,7 @@ by (blast dest: Rep_preal [THEN preal_exists_greater])
 
 lemma preal_sup:
      "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y|] ==> (\<Union>X \<in> P. Rep_preal(X)) \<in> preal"
-apply (unfold preal_def cut_def)
+apply (unfold preal_def cut_def_raw)
 apply (blast intro!: preal_sup_set_not_empty preal_sup_set_not_rat_set
                      preal_sup_set_lemma3 preal_sup_set_lemma4)
 done
@@ -1163,8 +1169,11 @@ definition
   realrel   ::  "((preal * preal) * (preal * preal)) set" where
   "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
-typedef (Real)  real = "UNIV//realrel"
-  by (auto simp add: quotient_def)
+definition "Real = UNIV//realrel"
+
+typedef (open) real = Real
+  morphisms Rep_Real Abs_Real
+  unfolding Real_def by (auto simp add: quotient_def)
 
 definition
   (** these don't use the overloaded "real" function: users don't see them **)

@@ -11,15 +11,17 @@ begin
 
 subsection {* Definition of type @{text poly} *}
 
-typedef (Poly) 'a poly = "{f::nat \<Rightarrow> 'a::zero. \<exists>n. \<forall>i>n. f i = 0}"
+definition "Poly = {f::nat \<Rightarrow> 'a::zero. \<exists>n. \<forall>i>n. f i = 0}"
+
+typedef (open) 'a poly = "Poly :: (nat => 'a::zero) set"
   morphisms coeff Abs_poly
-  by auto
+  unfolding Poly_def by auto
 
 lemma expand_poly_eq: "p = q \<longleftrightarrow> (\<forall>n. coeff p n = coeff q n)"
-by (simp add: coeff_inject [symmetric] fun_eq_iff)
+  by (simp add: coeff_inject [symmetric] fun_eq_iff)
 
 lemma poly_ext: "(\<And>n. coeff p n = coeff q n) \<Longrightarrow> p = q"
-by (simp add: expand_poly_eq)
+  by (simp add: expand_poly_eq)
 
 
 subsection {* Degree of a polynomial *}

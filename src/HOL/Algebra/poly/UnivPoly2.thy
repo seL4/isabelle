@@ -39,9 +39,15 @@ proof (rule classical)
   with nonzero show ?thesis by contradiction
 qed
 
-typedef (UP)
-    ('a) up = "{f :: nat => 'a::zero. EX n. bound n f}"
-  by (rule+)   (* Question: what does trace_rule show??? *)
+
+definition "UP = {f :: nat => 'a::zero. EX n. bound n f}"
+
+typedef (open) 'a up = "UP :: (nat => 'a::zero) set"
+  morphisms Rep_UP Abs_UP
+proof -
+  have "bound 0 (\<lambda>_. 0::'a)" by (rule boundI) (rule refl)
+  then show ?thesis unfolding UP_def by blast
+qed
 
 
 section {* Constants *}

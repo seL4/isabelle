@@ -95,8 +95,9 @@ oops
 
 subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
-typedef three = "{0\<Colon>nat, 1, 2}"
-by blast
+definition "three = {0\<Colon>nat, 1, 2}"
+typedef (open) three = three
+unfolding three_def by blast
 
 definition A :: three where "A \<equiv> Abs_three 0"
 definition B :: three where "B \<equiv> Abs_three 1"
@@ -197,7 +198,10 @@ subsection {* 2.9. Coinductive Datatypes *}
    axiomatization. The examples also work unchanged with Lochbihler's
    "Coinductive_List" theory. *)
 
-typedef 'a llist = "UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set" by auto
+definition "llist = (UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set)"
+
+typedef (open) 'a llist = "llist\<Colon>('a list + (nat \<Rightarrow> 'a)) set"
+unfolding llist_def by auto
 
 definition LNil where
 "LNil = Abs_llist (Inl [])"

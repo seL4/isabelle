@@ -54,7 +54,11 @@ lemma equiv_ratrel_iff [iff]:
   shows "ratrel `` {x} = ratrel `` {y} \<longleftrightarrow> (x, y) \<in> ratrel"
   by (rule eq_equiv_class_iff, rule equiv_ratrel) (auto simp add: assms)
 
-typedef (Rat) rat = "{x. snd x \<noteq> 0} // ratrel"
+definition "Rat = {x. snd x \<noteq> 0} // ratrel"
+
+typedef (open) rat = Rat
+  morphisms Rep_Rat Abs_Rat
+  unfolding Rat_def
 proof
   have "(0::int, 1::int) \<in> {x. snd x \<noteq> 0}" by simp
   then show "ratrel `` {(0, 1)} \<in> {x. snd x \<noteq> 0} // ratrel" by (rule quotientI)

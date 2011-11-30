@@ -151,8 +151,10 @@ text {*
   \emph{equivalence classes} over elements of the base type @{typ 'a}.
 *}
 
-typedef 'a quot = "{{x. a \<sim> x}| a::'a::partial_equiv. True}"
-  by blast
+definition "quot = {{x. a \<sim> x}| a::'a::partial_equiv. True}"
+
+typedef (open) 'a quot = "quot :: 'a::partial_equiv set set"
+  unfolding quot_def by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
   unfolding quot_def by blast

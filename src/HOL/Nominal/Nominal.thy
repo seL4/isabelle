@@ -3395,8 +3395,12 @@ inductive_set ABS_set :: "('x\<Rightarrow>('a noption)) set"
   where
   ABS_in: "(abs_fun a x)\<in>ABS_set"
 
-typedef (ABS) ('x,'a) ABS ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000) =
-  "ABS_set::('x\<Rightarrow>('a noption)) set"
+definition "ABS = ABS_set"
+
+typedef (open) ('x,'a) ABS ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000) =
+    "ABS::('x\<Rightarrow>('a noption)) set"
+  morphisms Rep_ABS Abs_ABS
+  unfolding ABS_def
 proof 
   fix x::"'a" and a::"'x"
   show "(abs_fun a x)\<in> ABS_set" by (rule ABS_in)

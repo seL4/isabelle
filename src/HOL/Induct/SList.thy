@@ -53,9 +53,11 @@ inductive_set
   | CONS_I: "[| a: A;  M: list A |] ==> CONS a M : list A"
 
 
-typedef (List)
-    'a list = "list(range Leaf) :: 'a item set" 
-  by (blast intro: list.NIL_I)
+definition "List = list (range Leaf)"
+
+typedef (open) 'a list = "List :: 'a item set"
+  morphisms Rep_List Abs_List
+  unfolding List_def by (blast intro: list.NIL_I)
 
 abbreviation "Case == Datatype.Case"
 abbreviation "Split == Datatype.Split"
@@ -224,7 +226,7 @@ done
 lemmas Cons_inject2 = Cons_Cons_eq [THEN iffD1, THEN conjE]
 
 lemma CONS_D: "CONS M N: list(A) ==> M: A & N: list(A)"
-  by (induct L == "CONS M N" set: list) auto
+  by (induct L == "CONS M N" rule: list.induct) auto
 
 lemma sexp_CONS_D: "CONS M N: sexp ==> M: sexp & N: sexp"
 apply (simp add: CONS_def In1_def)

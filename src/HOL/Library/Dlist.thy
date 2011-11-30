@@ -11,7 +11,7 @@ subsection {* The type of distinct lists *}
 typedef (open) 'a dlist = "{xs::'a list. distinct xs}"
   morphisms list_of_dlist Abs_dlist
 proof
-  show "[] \<in> ?dlist" by simp
+  show "[] \<in> {xs. distinct xs}" by simp
 qed
 
 lemma dlist_eq_iff:

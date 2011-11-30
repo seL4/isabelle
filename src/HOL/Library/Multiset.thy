@@ -10,10 +10,13 @@ begin
 
 subsection {* The type of multisets *}
 
-typedef 'a multiset = "{f :: 'a => nat. finite {x. f x > 0}}"
+definition "multiset = {f :: 'a => nat. finite {x. f x > 0}}"
+
+typedef (open) 'a multiset = "multiset :: ('a => nat) set"
   morphisms count Abs_multiset
+  unfolding multiset_def
 proof
-  show "(\<lambda>x. 0::nat) \<in> ?multiset" by simp
+  show "(\<lambda>x. 0::nat) \<in> {f. finite {x. f x > 0}}" by simp
 qed
 
 lemmas multiset_typedef = Abs_multiset_inverse count_inverse count

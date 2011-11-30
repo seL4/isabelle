@@ -189,8 +189,10 @@ lemma games_lfp_represent: "x \<in> games_lfp \<Longrightarrow> \<exists> l r. x
   apply (simp add: games_lfp_unfold[symmetric])
   done
 
-typedef game = games_lfp
-  by (blast intro: games_lfp_nonempty)
+definition "game = games_lfp"
+
+typedef (open) game = game
+  unfolding game_def by (blast intro: games_lfp_nonempty)
 
 definition left_options :: "game \<Rightarrow> game zet" where
   "left_options g \<equiv> zimage Abs_game (zexplode (Fst (Rep_game g)))"
@@ -839,8 +841,10 @@ qed
 definition eq_game_rel :: "(game * game) set" where
   "eq_game_rel \<equiv> { (p, q) . eq_game p q }"
 
-typedef Pg = "UNIV//eq_game_rel"
-  by (auto simp add: quotient_def)
+definition "Pg = UNIV//eq_game_rel"
+
+typedef (open) Pg = Pg
+  unfolding Pg_def by (auto simp add: quotient_def)
 
 lemma equiv_eq_game[simp]: "equiv UNIV eq_game_rel"
   by (auto simp add: equiv_def refl_on_def sym_def trans_def eq_game_rel_def

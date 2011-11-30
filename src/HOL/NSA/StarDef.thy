@@ -39,8 +39,10 @@ definition
   starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set" where
   "starrel = {(X,Y). {n. X n = Y n} \<in> \<U>}"
 
-typedef 'a star = "(UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
-by (auto intro: quotientI)
+definition "star = (UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
+
+typedef (open) 'a star = "star :: (nat \<Rightarrow> 'a) set set"
+  unfolding star_def by (auto intro: quotientI)
 
 definition
   star_n :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a star" where

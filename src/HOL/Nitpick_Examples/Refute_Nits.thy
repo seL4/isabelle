@@ -539,8 +539,10 @@ subsubsection {* Subtypes (typedef), typedecl *}
 
 text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
 
-typedef 'a myTdef = "insert (undefined\<Colon>'a) (undefined\<Colon>'a set)"
-by auto
+definition "myTdef = insert (undefined::'a) (undefined::'a set)"
+
+typedef (open) 'a myTdef = "myTdef :: 'a set"
+unfolding myTdef_def by auto
 
 lemma "(x\<Colon>'a myTdef) = y"
 nitpick [expect = genuine]
@@ -548,8 +550,10 @@ oops
 
 typedecl myTdecl
 
-typedef 'a T_bij = "{(f\<Colon>'a\<Rightarrow>'a). \<forall>y. \<exists>!x. f x = y}"
-by auto
+definition "T_bij = {(f::'a\<Rightarrow>'a). \<forall>y. \<exists>!x. f x = y}"
+
+typedef (open) 'a T_bij = "T_bij :: ('a \<Rightarrow> 'a) set"
+unfolding T_bij_def by auto
 
 lemma "P (f\<Colon>(myTdecl myTdef) T_bij)"
 nitpick [expect = genuine]

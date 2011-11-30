@@ -12,9 +12,13 @@ default_sort bifinite
 
 subsection {* A compact basis for powerdomains *}
 
-typedef 'a pd_basis =
-  "{S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
-by (rule_tac x="{arbitrary}" in exI, simp)
+definition "pd_basis = {S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
+
+typedef (open) 'a pd_basis = "pd_basis :: 'a compact_basis set set"
+  unfolding pd_basis_def
+  apply (rule_tac x="{arbitrary}" in exI)
+  apply simp
+  done
 
 lemma finite_Rep_pd_basis [simp]: "finite (Rep_pd_basis u)"
 by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp

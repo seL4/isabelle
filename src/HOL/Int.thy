@@ -18,9 +18,11 @@ subsection {* The equivalence relation underlying the integers *}
 definition intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set" where
   "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
 
-typedef (Integ)
-  int = "UNIV//intrel"
-  by (auto simp add: quotient_def)
+definition "Integ = UNIV//intrel"
+
+typedef (open) int = Integ
+  morphisms Rep_Integ Abs_Integ
+  unfolding Integ_def by (auto simp add: quotient_def)
 
 instantiation int :: "{zero, one, plus, minus, uminus, times, ord, abs, sgn}"
 begin
