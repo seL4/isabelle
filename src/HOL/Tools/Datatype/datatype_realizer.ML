@@ -28,12 +28,13 @@ fun tname_of (Type (s, _)) = s
 fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux.info) is thy =
   let
     val recTs = Datatype_Aux.get_rec_types descr sorts;
-    val pnames = if length descr = 1 then ["P"]
+    val pnames =
+      if length descr = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
     val rec_result_Ts = map (fn ((i, _), P) =>
-      if member (op =) is i then TFree ("'" ^ P, HOLogic.typeS) else HOLogic.unitT)
-        (descr ~~ pnames);
+        if member (op =) is i then TFree ("'" ^ P, HOLogic.typeS) else HOLogic.unitT)
+      (descr ~~ pnames);
 
     fun make_pred i T U r x =
       if member (op =) is i then
@@ -56,10 +57,12 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
                   val rT = nth (rec_result_Ts) i;
                   val vs' = filter_out is_unit vs;
                   val f = Datatype_Aux.mk_Free "f" (map fastype_of vs' ---> rT) j;
-                  val f' = Envir.eta_contract (fold_rev (absfree o dest_Free) vs
-                    (if member (op =) is i then list_comb (f, vs') else HOLogic.unit));
-                in (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
-                  (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
+                  val f' =
+                    Envir.eta_contract (fold_rev (absfree o dest_Free) vs
+                      (if member (op =) is i then list_comb (f, vs') else HOLogic.unit));
+                in
+                  (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
+                    (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
                 end
             | mk_prems vs (((dt, s), T) :: ds) =
                 let
@@ -68,19 +71,20 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
                   val i = length Us;
                   val rT = nth (rec_result_Ts) k;
                   val r = Free ("r" ^ s, Us ---> rT);
-                  val (p, f) = mk_prems (vs @ [r]) ds
-                in (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
-                  (list_all (map (pair "x") Us, HOLogic.mk_Trueprop
-                    (make_pred k rT U (Datatype_Aux.app_bnds r i)
-                      (Datatype_Aux.app_bnds (Free (s, T)) i))), p)), f)
-                end
-
+                  val (p, f) = mk_prems (vs @ [r]) ds;
+                in
+                  (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
+                    (list_all (map (pair "x") Us, HOLogic.mk_Trueprop
+                      (make_pred k rT U (Datatype_Aux.app_bnds r i)
+                        (Datatype_Aux.app_bnds (Free (s, T)) i))), p)), f)
+                end;
         in (apfst (curry list_all_free frees) (mk_prems (map Free frees) recs), j + 1) end)
           constrs) (descr ~~ recTs) 1)));
 
     fun mk_proj j [] t = t
-      | mk_proj j (i :: is) t = if null is then t else
-          if (j: int) = i then HOLogic.mk_fst t
+      | mk_proj j (i :: is) t =
+          if null is then t
+          else if (j: int) = i then HOLogic.mk_fst t
           else mk_proj j is (HOLogic.mk_snd t);
 
     val tnames = Datatype_Prop.make_tnames recTs;
@@ -88,28 +92,32 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
     val ps = map (fn ((((i, _), T), U), s) => Abs ("x", T, make_pred i U T
       (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Bound 0) (Bound 0)))
         (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names);
-    val r = if null is then Extraction.nullt else
-      foldr1 HOLogic.mk_prod (map_filter (fn (((((i, _), T), U), s), tname) =>
-        if member (op =) is i then SOME
-          (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
-        else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
-    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
-      (map (fn ((((i, _), T), U), tname) =>
-        make_pred i U T (mk_proj i is r) (Free (tname, T)))
-          (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
+    val r =
+      if null is then Extraction.nullt
+      else
+        foldr1 HOLogic.mk_prod (map_filter (fn (((((i, _), T), U), s), tname) =>
+          if member (op =) is i then SOME
+            (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
+          else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
+    val concl =
+      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+        (map (fn ((((i, _), T), U), tname) =>
+          make_pred i U T (mk_proj i is r) (Free (tname, T)))
+            (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
     val cert = cterm_of thy;
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
-    val thm = Goal.prove_internal (map cert prems) (cert concl)
-      (fn prems =>
-         EVERY [
-          rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
-          rtac (cterm_instantiate inst induct) 1,
-          ALLGOALS Object_Logic.atomize_prems_tac,
-          rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
-          REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
-            REPEAT (etac allE i) THEN atac i)) 1)])
+    val thm =
+      Goal.prove_internal (map cert prems) (cert concl)
+        (fn prems =>
+           EVERY [
+            rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
+            rtac (cterm_instantiate inst induct) 1,
+            ALLGOALS Object_Logic.atomize_prems_tac,
+            rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
+            REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
+              REPEAT (etac allE i) THEN atac i)) 1)])
       |> Drule.export_without_context;
 
     val ind_name = Thm.derivation_name induct;
@@ -122,29 +130,29 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
-    val ivs1 = map Var (filter_out (fn (_, T) =>
-      @{type_name bool} = tname_of (body_type T)) ivs);
+    val ivs1 = map Var (filter_out (fn (_, T) => @{type_name bool} = tname_of (body_type T)) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf =
       Extraction.abs_corr_shyps thy' induct vs ivs2
         (fold_rev (fn (f, p) => fn prf =>
-          (case head_of (strip_abs_body f) of
-             Free (s, T) =>
-               let val T' = Logic.varifyT_global T
-               in Abst (s, SOME T', Proofterm.prf_abstract_over
-                 (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
-               end
-          | _ => AbsP ("H", SOME p, prf)))
-            (rec_fns ~~ prems_of thm)
-            (Proofterm.proof_combP
-              (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
+            (case head_of (strip_abs_body f) of
+              Free (s, T) =>
+                let val T' = Logic.varifyT_global T in
+                  Abst (s, SOME T', Proofterm.prf_abstract_over
+                    (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
+                end
+            | _ => AbsP ("H", SOME p, prf)))
+          (rec_fns ~~ prems_of thm)
+          (Proofterm.proof_combP
+            (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
 
     val r' =
       if null is then r
-      else Logic.varify_global (fold_rev lambda
-        (map Logic.unvarify_global ivs1 @ filter_out is_unit
-            (map (head_of o strip_abs_body) rec_fns)) r);
+      else
+        Logic.varify_global (fold_rev lambda
+          (map Logic.unvarify_global ivs1 @ filter_out is_unit
+              (map (head_of o strip_abs_body) rec_fns)) r);
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
@@ -162,10 +170,11 @@ fun make_casedists sorts
         val frees = Name.variant_list ["P", "y"] (Datatype_Prop.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
         val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
-      in (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
-        (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
-          HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
-            list_comb (r, free_ts)))))
+      in
+        (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
+          (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
+            HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
+              list_comb (r, free_ts)))))
       end;
 
     val SOME (_, _, constrs) = AList.lookup (op =) descr index;
@@ -176,14 +185,15 @@ fun make_casedists sorts
     val y = Var (("y", 0), Logic.varifyT_global T);
     val y' = Free ("y", T);
 
-    val thm = Goal.prove_internal (map cert prems)
-      (cert (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
-      (fn prems =>
-         EVERY [
-          rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
-          ALLGOALS (EVERY'
-            [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
-             resolve_tac prems, asm_simp_tac HOL_basic_ss])])
+    val thm =
+      Goal.prove_internal (map cert prems)
+        (cert (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
+        (fn prems =>
+           EVERY [
+            rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
+            ALLGOALS (EVERY'
+              [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
+               resolve_tac prems, asm_simp_tac HOL_basic_ss])])
       |> Drule.export_without_context;
 
     val exh_name = Thm.derivation_name exhaust;
@@ -193,22 +203,25 @@ fun make_casedists sorts
       ||> Sign.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
-    val prf = Extraction.abs_corr_shyps thy' exhaust ["P"] [y, P]
-      (fold_rev (fn (p, r) => fn prf =>
-          Proofterm.forall_intr_proof' (Logic.varify_global r)
-            (AbsP ("H", SOME (Logic.varify_global p), prf)))
-        (prems ~~ rs)
-        (Proofterm.proof_combP
-          (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
-    val prf' = Extraction.abs_corr_shyps thy' exhaust []
-      (map Var (Term.add_vars (prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
-    val r' = Logic.varify_global (Abs ("y", T,
-      list_abs (map dest_Free rs, list_comb (r,
-        map Bound ((length rs - 1 downto 0) @ [length rs])))));
-
-  in Extraction.add_realizers_i
-    [(exh_name, (["P"], r', prf)),
-     (exh_name, ([], Extraction.nullt, prf'))] thy'
+    val prf =
+      Extraction.abs_corr_shyps thy' exhaust ["P"] [y, P]
+        (fold_rev (fn (p, r) => fn prf =>
+            Proofterm.forall_intr_proof' (Logic.varify_global r)
+              (AbsP ("H", SOME (Logic.varify_global p), prf)))
+          (prems ~~ rs)
+          (Proofterm.proof_combP
+            (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
+    val prf' =
+      Extraction.abs_corr_shyps thy' exhaust []
+        (map Var (Term.add_vars (prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
+    val r' =
+      Logic.varify_global (Abs ("y", T,
+        list_abs (map dest_Free rs, list_comb (r,
+          map Bound ((length rs - 1 downto 0) @ [length rs])))));
+  in
+    Extraction.add_realizers_i
+      [(exh_name, (["P"], r', prf)),
+       (exh_name, ([], Extraction.nullt, prf'))] thy'
   end;
 
 fun add_dt_realizers config names thy =

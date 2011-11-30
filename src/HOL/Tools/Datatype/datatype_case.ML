@@ -74,18 +74,18 @@ fun fresh_constr ty_match ty_inst colty used c =
   let
     val (_, Ty) = dest_Const c
     val Ts = binder_types Ty;
-    val names = Name.variant_list used
-      (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts));
+    val names =
+      Name.variant_list used (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts));
     val ty = body_type Ty;
-    val ty_theta = ty_match ty colty handle Type.TYPE_MATCH =>
-      raise CASE_ERROR ("type mismatch", ~1)
-    val c' = ty_inst ty_theta c
-    val gvars = map (ty_inst ty_theta o Free) (names ~~ Ts)
+    val ty_theta = ty_match ty colty
+      handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);
+    val c' = ty_inst ty_theta c;
+    val gvars = map (ty_inst ty_theta o Free) (names ~~ Ts);
   in (c', gvars) end;
 
 
 (*Goes through a list of rows and picks out the ones beginning with a
- pattern with constructor = name.*)
+  pattern with constructor = name.*)
 fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
     fold (fn (row as ((prfx, p :: ps), rhs as (_, i))) =>
@@ -94,13 +94,11 @@ fun mk_group (name, T) rows =
           (Const (name', _), args) =>
             if name = name' then
               if length args = k then
-                let val (args', cnstrts') = split_list (map strip_constraints args)
-                in
+                let val (args', cnstrts') = split_list (map strip_constraints args) in
                   ((((prfx, args' @ ps), rhs) :: in_group, not_in_group),
                    (default_names names args', map2 append cnstrts cnstrts'))
                 end
-              else raise CASE_ERROR
-                ("Wrong number of arguments for constructor " ^ name, i)
+              else raise CASE_ERROR ("Wrong number of arguments for constructor " ^ name, i)
             else ((in_group, row :: not_in_group), (names, cnstrts))
         | _ => raise CASE_ERROR ("Not a constructor pattern", i)))
     rows (([], []), (replicate k "", replicate k [])) |>> pairself rev
@@ -114,12 +112,10 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
         (rows as (((prfx, _ :: ps), _) :: _)) =
       let
         fun part [] [] = []
-          | part [] ((_, (_, i)) :: _) =
-              raise CASE_ERROR ("Not a constructor pattern", i)
+          | part [] ((_, (_, i)) :: _) = raise CASE_ERROR ("Not a constructor pattern", i)
           | part (c :: cs) rows =
               let
-                val ((in_group, not_in_group), (names, cnstrts)) =
-                  mk_group (dest_Const c) rows;
+                val ((in_group, not_in_group), (names, cnstrts)) = mk_group (dest_Const c) rows;
                 val used' = fold add_row_used in_group used;
                 val (c', gvars) = fresh_constr ty_match ty_inst colty used' c;
                 val in_group' =
@@ -127,9 +123,10 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                   then
                     let
                       val Ts = map type_of ps;
-                      val xs = Name.variant_list
-                        (fold Term.add_free_names gvars used')
-                        (replicate (length ps) "x")
+                      val xs =
+                        Name.variant_list
+                          (fold Term.add_free_names gvars used')
+                          (replicate (length ps) "x");
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
                         (Const (@{const_syntax undefined}, res_ty), ~1))]
@@ -144,33 +141,28 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
               end
       in part constructors rows end;
 
-fun v_to_prfx (prfx, Free v::pats) = (v::prfx,pats)
+fun v_to_prfx (prfx, Free v :: pats) = (v :: prfx, pats)
   | v_to_prfx _ = raise CASE_ERROR ("mk_case: v_to_prfx", ~1);
 
 
 (* Translation of pattern terms into nested case expressions. *)
- 
+
 fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
   let
     val name = singleton (Name.variant_list used) "a";
-    fun expand constructors used ty ((_, []), _) =
-          raise CASE_ERROR ("mk_case: expand_var_row", ~1)
+    fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand_var_row", ~1)
       | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
           if is_Free p then
             let
               val used' = add_row_used row used;
               fun expnd c =
-                let val capp =
-                  list_comb (fresh_constr ty_match ty_inst ty used' c)
-                in ((prfx, capp :: ps), (subst_free [(p, capp)] rhs, tag))
-                end
+                let val capp = list_comb (fresh_constr ty_match ty_inst ty used' c)
+                in ((prfx, capp :: ps), (subst_free [(p, capp)] rhs, tag)) end
             in map expnd constructors end
           else [row]
     fun mk _ [] = raise CASE_ERROR ("no rows", ~1)
-      | mk [] (((_, []), (tm, tag)) :: _) =  (* Done *)
-          ([tag], tm)
-      | mk path (rows as ((row as ((_, [Free _]), _)) :: _ :: _)) =
-          mk path [row]
+      | mk [] (((_, []), (tm, tag)) :: _) = ([tag], tm) (* Done *)
+      | mk path (rows as ((row as ((_, [Free _]), _)) :: _ :: _)) = mk path [row]
       | mk (u :: us) (rows as ((_, _ :: _), _) :: _) =
           let val col0 = map (fn ((_, p :: _), (_, i)) => (p, i)) rows in
             (case Option.map (apfst head_of) (find_first (not o is_Free o fst) col0) of
@@ -183,28 +175,28 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                 (case ty_info tab (cname, cT) of
                   NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
                 | SOME {case_name, constructors} =>
-                  let
-                    val pty = body_type cT;
-                    val used' = fold Term.add_free_names us used;
-                    val nrows = maps (expand constructors used' pty) rows;
-                    val subproblems = partition ty_match ty_inst type_of used'
-                      constructors pty range_ty nrows;
-                    val (pat_rect, dtrees) = split_list (map (fn {new_formals, group, ...} =>
-                      mk (new_formals @ us) group) subproblems)
-                    val case_functions = map2
-                      (fn {new_formals, names, constraints, ...} =>
-                         fold_rev (fn ((x as Free (_, T), s), cnstrts) => fn t =>
-                           Abs (if s = "" then name else s, T,
-                             abstract_over (x, t)) |>
-                           fold mk_fun_constrain cnstrts)
-                             (new_formals ~~ names ~~ constraints))
-                      subproblems dtrees;
-                    val types = map type_of (case_functions @ [u]);
-                    val case_const = Const (case_name, types ---> range_ty)
-                    val tree = list_comb (case_const, case_functions @ [u])
-                  in (flat pat_rect, tree) end)
-            | SOME (t, i) => raise CASE_ERROR ("Not a datatype constructor: " ^
-                Syntax.string_of_term ctxt t, i))
+                    let
+                      val pty = body_type cT;
+                      val used' = fold Term.add_free_names us used;
+                      val nrows = maps (expand constructors used' pty) rows;
+                      val subproblems =
+                        partition ty_match ty_inst type_of used'
+                          constructors pty range_ty nrows;
+                      val (pat_rect, dtrees) =
+                        split_list (map (fn {new_formals, group, ...} =>
+                          mk (new_formals @ us) group) subproblems);
+                      val case_functions =
+                        map2 (fn {new_formals, names, constraints, ...} =>
+                          fold_rev (fn ((x as Free (_, T), s), cnstrts) => fn t =>
+                            Abs (if s = "" then name else s, T, abstract_over (x, t))
+                            |> fold mk_fun_constrain cnstrts) (new_formals ~~ names ~~ constraints))
+                        subproblems dtrees;
+                      val types = map type_of (case_functions @ [u]);
+                      val case_const = Const (case_name, types ---> range_ty);
+                      val tree = list_comb (case_const, case_functions @ [u]);
+                    in (flat pat_rect, tree) end)
+            | SOME (t, i) =>
+                raise CASE_ERROR ("Not a datatype constructor: " ^ Syntax.string_of_term ctxt t, i))
           end
       | mk _ _ = raise CASE_ERROR ("Malformed row matrix", ~1)
   in mk end;
@@ -213,11 +205,12 @@ fun case_error s = error ("Error in case expression:\n" ^ s);
 
 (*Repeated variable occurrences in a pattern are not allowed.*)
 fun no_repeat_vars ctxt pat = fold_aterms
-  (fn x as Free (s, _) => (fn xs =>
-        if member op aconv xs x then
-          case_error (quote s ^ " occurs repeatedly in the pattern " ^
-            quote (Syntax.string_of_term ctxt pat))
-        else x :: xs)
+  (fn x as Free (s, _) =>
+    (fn xs =>
+      if member op aconv xs x then
+        case_error (quote s ^ " occurs repeatedly in the pattern " ^
+          quote (Syntax.string_of_term ctxt pat))
+      else x :: xs)
     | _ => I) pat [];
 
 fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
@@ -225,34 +218,35 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
     fun string_of_clause (pat, rhs) =
       Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs);
     val _ = map (no_repeat_vars ctxt o fst) clauses;
-    val rows = map_index (fn (i, (pat, rhs)) =>
-      (([], [pat]), (rhs, i))) clauses;
+    val rows = map_index (fn (i, (pat, rhs)) => (([], [pat]), (rhs, i))) clauses;
     val rangeT =
-      (case distinct op = (map (type_of o snd) clauses) of
+      (case distinct (op =) (map (type_of o snd) clauses) of
         [] => case_error "no clauses given"
       | [T] => T
       | _ => case_error "all cases must have the same result type");
     val used' = fold add_row_used rows used;
-    val (tags, case_tm) = mk_case tab ctxt ty_match ty_inst type_of
-        used' rangeT [x] rows
-      handle CASE_ERROR (msg, i) => case_error (msg ^
-        (if i < 0 then ""
-         else "\nIn clause\n" ^ string_of_clause (nth clauses i)));
+    val (tags, case_tm) =
+      mk_case tab ctxt ty_match ty_inst type_of used' rangeT [x] rows
+        handle CASE_ERROR (msg, i) =>
+          case_error
+            (msg ^ (if i < 0 then "" else "\nIn clause\n" ^ string_of_clause (nth clauses i)));
     val _ =
       (case subtract (op =) tags (map (snd o snd) rows) of
         [] => ()
       | is =>
-          (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
+          (case config of Error => case_error | Warning => warning | Quiet => fn _ => ())
             ("The following clauses are redundant (covered by preceding clauses):\n" ^
-             cat_lines (map (string_of_clause o nth clauses) is)));
+              cat_lines (map (string_of_clause o nth clauses) is)));
   in
     case_tm
   end;
 
-fun make_case tab ctxt = gen_make_case
-  (match_type (Proof_Context.theory_of ctxt)) Envir.subst_term_types fastype_of tab ctxt;
-val make_case_untyped = gen_make_case (K (K Vartab.empty))
-  (K (Term.map_types (K dummyT))) (K dummyT);
+fun make_case tab ctxt =
+  gen_make_case (match_type (Proof_Context.theory_of ctxt))
+    Envir.subst_term_types fastype_of tab ctxt;
+
+val make_case_untyped =
+  gen_make_case (K (K Vartab.empty)) (K (Term.map_types (K dummyT))) (K dummyT);
 
 
 (* parse translation *)
@@ -271,21 +265,17 @@ fun case_tr err tab_of ctxt [t, u] =
           | prep_pat (Const (@{const_syntax dummy_pattern}, T)) used =
               let val x = singleton (Name.variant_list used) "x"
               in (Free (x, T), x :: used) end
-          | prep_pat (Const (s, T)) used =
-              (Const (intern_const_syntax s, T), used)
+          | prep_pat (Const (s, T)) used = (Const (intern_const_syntax s, T), used)
           | prep_pat (v as Free (s, T)) used =
               let val s' = Proof_Context.intern_const ctxt s in
-                if Sign.declared_const thy s' then
-                  (Const (s', T), used)
+                if Sign.declared_const thy s' then (Const (s', T), used)
                 else (v, used)
               end
           | prep_pat (t $ u) used =
               let
                 val (t', used') = prep_pat t used;
                 val (u', used'') = prep_pat u used';
-              in
-                (t' $ u', used'')
-              end
+              in (t' $ u', used'') end
           | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
         fun dest_case1 (t as Const (@{syntax_const "_case1"}, _) $ l $ r) =
               let val (l', cnstrts) = strip_constraints l
@@ -294,10 +284,11 @@ fun case_tr err tab_of ctxt [t, u] =
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
         val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
-        val case_tm = make_case_untyped (tab_of thy) ctxt
-          (if err then Error else Warning) []
-          (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
-             (flat cnstrts) t) cases;
+        val case_tm =
+          make_case_untyped (tab_of thy) ctxt
+            (if err then Error else Warning) []
+            (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
+               (flat cnstrts) t) cases;
       in case_tm end
   | case_tr _ _ _ ts = case_error "case_tr";
 
@@ -318,17 +309,17 @@ fun gen_dest_case name_of type_of tab d used t =
             val _ = if length zs < i then raise CASE_ERROR ("", 0) else ();
             val (xs, ys) = chop i zs;
             val u = list_abs (ys, strip_abs_body t);
-            val xs' = map Free (Name.variant_list (Misc_Legacy.add_term_names (u, used))
-              (map fst xs) ~~ map snd xs)
+            val xs' =
+              map Free
+                (Name.variant_list (Misc_Legacy.add_term_names (u, used)) (map #1 xs) ~~ map #2 xs);
           in (xs', subst_bounds (rev xs', u)) end;
         fun is_dependent i t =
           let val k = length (strip_abs_vars t) - i
           in k < 0 orelse exists (fn j => j >= k) (loose_bnos (strip_abs_body t)) end;
         fun count_cases (_, _, true) = I
-          | count_cases (c, (_, body), false) =
-              AList.map_default op aconv (body, []) (cons c);
+          | count_cases (c, (_, body), false) = AList.map_default op aconv (body, []) (cons c);
         val is_undefined = name_of #> equal (SOME @{const_name undefined});
-        fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body)
+        fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body);
       in
         (case ty_info tab cname of
           SOME {constructors, case_name} =>
@@ -337,13 +328,13 @@ fun gen_dest_case name_of type_of tab d used t =
                 val cases = map (fn (Const (s, U), t) =>
                   let
                     val k = length (binder_types U);
-                    val p as (xs, _) = strip_abs k t
+                    val p as (xs, _) = strip_abs k t;
                   in
-                    (Const (s, map type_of xs ---> type_of x),
-                     p, is_dependent k t)
+                    (Const (s, map type_of xs ---> type_of x), p, is_dependent k t)
                   end) (constructors ~~ fs);
-                val cases' = sort (int_ord o swap o pairself (length o snd))
-                  (fold_rev count_cases cases []);
+                val cases' =
+                  sort (int_ord o swap o pairself (length o snd))
+                    (fold_rev count_cases cases []);
                 val R = type_of t;
                 val dummy =
                   if d then Term.dummy_pattern R
@@ -353,17 +344,18 @@ fun gen_dest_case name_of type_of tab d used t =
                   map mk_case
                     (case find_first (is_undefined o fst) cases' of
                       SOME (_, cs) =>
-                      if length cs = length constructors then [hd cases]
-                      else filter_out (fn (_, (_, body), _) => is_undefined body) cases
-                    | NONE => case cases' of
-                      [] => cases
-                    | (default, cs) :: _ =>
-                      if length cs = 1 then cases
-                      else if length cs = length constructors then
-                        [hd cases, (dummy, ([], default), false)]
-                      else
-                        filter_out (fn (c, _, _) => member op aconv cs c) cases @
-                        [(dummy, ([], default), false)]))
+                        if length cs = length constructors then [hd cases]
+                        else filter_out (fn (_, (_, body), _) => is_undefined body) cases
+                    | NONE =>
+                        (case cases' of
+                          [] => cases
+                        | (default, cs) :: _ =>
+                            if length cs = 1 then cases
+                            else if length cs = length constructors then
+                              [hd cases, (dummy, ([], default), false)]
+                            else
+                              filter_out (fn (c, _, _) => member op aconv cs c) cases @
+                                [(dummy, ([], default), false)])))
               end handle CASE_ERROR _ => NONE
             else NONE
         | _ => NONE)
@@ -390,8 +382,7 @@ fun strip_case'' dest (pat, rhs) =
 
 fun gen_strip_case dest t =
   (case dest [] t of
-    SOME (x, clauses) =>
-      SOME (x, maps (strip_case'' dest) clauses)
+    SOME (x, clauses) => SOME (x, maps (strip_case'' dest) clauses)
   | NONE => NONE);
 
 val strip_case = gen_strip_case oo dest_case;
@@ -411,8 +402,7 @@ fun case_tr' tab_of cname ctxt ts =
               | Const (s, _) => Syntax.const (Lexicon.mark_const s)
               | t => t) pat $
           map_aterms
-            (fn x as Free (s, T) =>
-                  if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
+            (fn x as Free (s, T) => if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
               | t => t) rhs
       end;
   in

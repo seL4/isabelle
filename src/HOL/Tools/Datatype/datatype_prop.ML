@@ -39,7 +39,10 @@ fun indexify_names names =
   let
     fun index (x :: xs) tab =
       (case AList.lookup (op =) tab x of
-        NONE => if member (op =) xs x then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
+        NONE =>
+          if member (op =) xs x
+          then (x ^ "1") :: index xs ((x, 2) :: tab)
+          else x :: index xs tab
       | SOME i => (x ^ string_of_int i) :: index xs ((x, i + 1) :: tab))
     | index [] _ = [];
   in index names [] end;
@@ -59,7 +62,8 @@ fun make_injs descr sorts =
   let
     val descr' = flat descr;
     fun make_inj T (cname, cargs) =
-      if null cargs then I else
+      if null cargs then I
+      else
         let
           val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
           val constr_t = Const (cname, Ts ---> T);
@@ -85,25 +89,23 @@ fun make_distincts descr sorts =
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
     val newTs = take (length (hd descr)) recTs;
 
-    fun prep_constr (cname, cargs) = (cname, map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs);
+    fun prep_constr (cname, cargs) =
+      (cname, map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs);
 
     fun make_distincts' _ [] = []
-      | make_distincts' T ((cname, cargs)::constrs) =
+      | make_distincts' T ((cname, cargs) :: constrs) =
           let
             val frees = map Free ((make_tnames cargs) ~~ cargs);
             val t = list_comb (Const (cname, cargs ---> T), frees);
 
             fun make_distincts'' (cname', cargs') =
               let
-                val frees' = map Free ((map ((op ^) o (rpair "'"))
-                  (make_tnames cargs')) ~~ cargs');
-                val t' = list_comb (Const (cname', cargs' ---> T), frees')
+                val frees' = map Free (map (suffix "'") (make_tnames cargs') ~~ cargs');
+                val t' = list_comb (Const (cname', cargs' ---> T), frees');
               in
                 HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t, t'))
-              end
-
+              end;
           in map make_distincts'' constrs @ make_distincts' T constrs end;
-
   in
     map2 (fn ((_, (_, _, constrs))) => fn T =>
       (length constrs, make_distincts' T (map prep_constr constrs))) (hd descr) newTs
@@ -142,18 +144,20 @@ fun make_ind descr sorts =
         val rec_tnames = map fst (filter (Datatype_Aux.is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
-
-      in list_all_free (frees, Logic.list_implies (prems,
-        HOLogic.mk_Trueprop (make_pred k T $ 
-          list_comb (Const (cname, Ts ---> T), map Free frees))))
+      in
+        list_all_free (frees,
+          Logic.list_implies (prems,
+            HOLogic.mk_Trueprop (make_pred k T $
+              list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
-    val prems = maps (fn ((i, (_, _, constrs)), T) =>
-      map (make_ind_prem i T) constrs) (descr' ~~ recTs);
+    val prems =
+      maps (fn ((i, (_, _, constrs)), T) => map (make_ind_prem i T) constrs) (descr' ~~ recTs);
     val tnames = make_tnames recTs;
-    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
-      (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T))
-        (descr' ~~ recTs ~~ tnames)))
+    val concl =
+      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+        (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T))
+          (descr' ~~ recTs ~~ tnames)));
 
   in Logic.list_implies (prems, concl) end;
 
@@ -167,16 +171,17 @@ fun make_casedists descr sorts =
       let
         val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
         val frees = Name.variant_list ["P", "y"] (make_tnames Ts) ~~ Ts;
-        val free_ts = map Free frees
-      in list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
-        (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
-          HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
+        val free_ts = map Free frees;
+      in
+        list_all_free (frees,
+          Logic.mk_implies (HOLogic.mk_Trueprop
+            (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
+              HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
       end;
 
     fun make_casedist ((_, (_, _, constrs))) T =
       let val prems = map (make_casedist_prem T) constrs
-      in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT)))
-      end
+      in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))) end;
 
   in
     map2 make_casedist (hd descr)
@@ -189,8 +194,10 @@ fun make_primrec_Ts descr sorts used =
   let
     val descr' = flat descr;
 
-    val rec_result_Ts = map TFree (Name.variant_list used (replicate (length descr') "'t") ~~
-      replicate (length descr') HOLogic.typeS);
+    val rec_result_Ts =
+      map TFree
+        (Name.variant_list used (replicate (length descr') "'t") ~~
+          replicate (length descr') HOLogic.typeS);
 
     val reccomb_fn_Ts = maps (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -214,19 +221,20 @@ fun make_primrecs new_type_names descr sorts thy =
 
     val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
-    val rec_fns = map (uncurry (Datatype_Aux.mk_Free "f"))
-      (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
+    val rec_fns =
+      map (uncurry (Datatype_Aux.mk_Free "f"))
+        (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
 
     val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
-    val reccomb_names = map (Sign.intern_const thy)
-      (if length descr' = 1 then [big_reccomb_name] else
-        (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
-          (1 upto (length descr'))));
-    val reccombs = map (fn ((name, T), T') => list_comb
-      (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
+    val reccomb_names =
+      map (Sign.intern_const thy)
+        (if length descr' = 1 then [big_reccomb_name]
+         else (map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto (length descr'))));
+    val reccombs =
+      map (fn ((name, T), T') => list_comb (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);
 
-    fun make_primrec T comb_t (cname, cargs) (ts, f::fs) =
+    fun make_primrec T comb_t (cname, cargs) (ts, f :: fs) =
       let
         val recs = filter Datatype_Aux.is_rec_type cargs;
         val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
@@ -242,13 +250,13 @@ fun make_primrecs new_type_names descr sorts thy =
               nth reccombs (Datatype_Aux.body_index dt) $ Datatype_Aux.app_bnds t (length Us))
           end;
 
-        val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees')
+        val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees');
 
-      in (ts @ [HOLogic.mk_Trueprop (HOLogic.mk_eq
-        (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
-         list_comb (f, frees @ reccombs')))], fs)
+      in
+        (ts @ [HOLogic.mk_Trueprop
+          (HOLogic.mk_eq (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
+            list_comb (f, frees @ reccombs')))], fs)
       end;
-
   in
     fold (fn ((dt, T), comb_t) => fold (make_primrec T comb_t) (#3 (snd dt)))
       (descr' ~~ recTs ~~ reccombs) ([], rec_fns)
@@ -270,8 +278,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
         let val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs
         in Ts ---> T' end) constrs) (hd descr);
 
-    val case_names = map (fn s =>
-      Sign.intern_const thy (s ^ "_case")) new_type_names
+    val case_names = map (fn s => Sign.intern_const thy (s ^ "_case")) new_type_names;
   in
     map (fn ((name, Ts), T) => list_comb
       (Const (name, Ts @ [T] ---> T'),
@@ -290,15 +297,16 @@ fun make_cases new_type_names descr sorts thy =
     fun make_case T comb_t ((cname, cargs), f) =
       let
         val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
-        val frees = map Free ((make_tnames Ts) ~~ Ts)
-      in HOLogic.mk_Trueprop (HOLogic.mk_eq
-        (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
-         list_comb (f, frees)))
-      end
-
-  in map (fn (((_, (_, _, constrs)), T), comb_t) =>
-    map (make_case T comb_t) (constrs ~~ (snd (strip_comb comb_t))))
-      ((hd descr) ~~ newTs ~~ (make_case_combs new_type_names descr sorts thy "f"))
+        val frees = map Free ((make_tnames Ts) ~~ Ts);
+      in
+        HOLogic.mk_Trueprop
+          (HOLogic.mk_eq (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
+            list_comb (f, frees)))
+      end;
+  in
+    map (fn (((_, (_, _, constrs)), T), comb_t) =>
+      map (make_case T comb_t) (constrs ~~ (snd (strip_comb comb_t))))
+        ((hd descr) ~~ newTs ~~ (make_case_combs new_type_names descr sorts thy "f"))
   end;
 
 
@@ -316,30 +324,31 @@ fun make_splits new_type_names descr sorts thy =
     fun make_split (((_, (_, _, constrs)), T), comb_t) =
       let
         val (_, fs) = strip_comb comb_t;
-        val used = ["P", "x"] @ (map (fst o dest_Free) fs);
+        val used = ["P", "x"] @ map (fst o dest_Free) fs;
 
         fun process_constr ((cname, cargs), f) (t1s, t2s) =
           let
             val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
             val frees = map Free (Name.variant_list used (make_tnames Ts) ~~ Ts);
-            val eqn = HOLogic.mk_eq (Free ("x", T),
-              list_comb (Const (cname, Ts ---> T), frees));
-            val P' = P $ list_comb (f, frees)
-          in (fold_rev (fn Free (s, T) => fn t => HOLogic.mk_all (s, T, t)) frees
-                (HOLogic.imp $ eqn $ P') :: t1s,
-              fold_rev (fn Free (s, T) => fn t => HOLogic.mk_exists (s, T, t)) frees
-                (HOLogic.conj $ eqn $ (HOLogic.Not $ P')) :: t2s)
+            val eqn = HOLogic.mk_eq (Free ("x", T), list_comb (Const (cname, Ts ---> T), frees));
+            val P' = P $ list_comb (f, frees);
+          in
+           (fold_rev (fn Free (s, T) => fn t => HOLogic.mk_all (s, T, t)) frees
+             (HOLogic.imp $ eqn $ P') :: t1s,
+            fold_rev (fn Free (s, T) => fn t => HOLogic.mk_exists (s, T, t)) frees
+             (HOLogic.conj $ eqn $ (HOLogic.Not $ P')) :: t2s)
           end;
 
         val (t1s, t2s) = fold_rev process_constr (constrs ~~ fs) ([], []);
-        val lhs = P $ (comb_t $ Free ("x", T))
+        val lhs = P $ (comb_t $ Free ("x", T));
       in
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, Datatype_Aux.mk_conj t1s)),
          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, HOLogic.Not $ Datatype_Aux.mk_disj t2s)))
       end
 
-  in map make_split ((hd descr) ~~ newTs ~~
-    (make_case_combs new_type_names descr sorts thy "f"))
+  in
+    map make_split
+      ((hd descr) ~~ newTs ~~ (make_case_combs new_type_names descr sorts thy "f"))
   end;
 
 (************************* additional rules for TFL ***************************)
@@ -349,26 +358,26 @@ fun make_weak_case_congs new_type_names descr sorts thy =
     val case_combs = make_case_combs new_type_names descr sorts thy "f";
 
     fun mk_case_cong comb =
-      let 
+      let
         val Type ("fun", [T, _]) = fastype_of comb;
         val M = Free ("M", T);
         val M' = Free ("M'", T);
       in
         Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (M, M')),
           HOLogic.mk_Trueprop (HOLogic.mk_eq (comb $ M, comb $ M')))
-      end
+      end;
   in
     map mk_case_cong case_combs
   end;
- 
+
 
 (*---------------------------------------------------------------------------
  * Structure of case congruence theorem looks like this:
  *
- *    (M = M') 
- *    ==> (!!x1,...,xk. (M' = C1 x1..xk) ==> (f1 x1..xk = g1 x1..xk)) 
- *    ==> ... 
- *    ==> (!!x1,...,xj. (M' = Cn x1..xj) ==> (fn x1..xj = gn x1..xj)) 
+ *    (M = M')
+ *    ==> (!!x1,...,xk. (M' = C1 x1..xk) ==> (f1 x1..xk = g1 x1..xk))
+ *    ==> ...
+ *    ==> (!!x1,...,xj. (M' = Cn x1..xj) ==> (fn x1..xj = gn x1..xj))
  *    ==>
  *      (ty_case f1..fn M = ty_case g1..gn M')
  *---------------------------------------------------------------------------*)
@@ -398,14 +407,12 @@ fun make_case_congs new_type_names descr sorts thy =
                 (HOLogic.mk_eq (M', list_comb (Const (cname, Ts ---> T), frees))),
                HOLogic.mk_Trueprop
                 (HOLogic.mk_eq (list_comb (f, frees), list_comb (g, frees)))))
-          end
-
+          end;
       in
         Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (M, M')) ::
           map mk_clause (fs ~~ gs ~~ constrs),
             HOLogic.mk_Trueprop (HOLogic.mk_eq (comb $ M, comb' $ M')))
-      end
-
+      end;
   in
     map mk_case_cong (case_combs ~~ case_combs' ~~ hd descr)
   end;
@@ -431,10 +438,11 @@ fun make_nchotomys descr sorts =
         fold_rev (fn (s, T') => fn t => HOLogic.mk_exists (s, T', t)) frees
           (HOLogic.mk_eq (Free ("v", T),
             list_comb (Const (cname, Ts ---> T), map Free frees)))
-      end
-
-  in map (fn ((_, (_, _, constrs)), T) =>
-    HOLogic.mk_Trueprop (HOLogic.mk_all ("v", T, Datatype_Aux.mk_disj (map (mk_eqn T) constrs))))
+      end;
+  in
+    map (fn ((_, (_, _, constrs)), T) =>
+        HOLogic.mk_Trueprop
+          (HOLogic.mk_all ("v", T, Datatype_Aux.mk_disj (map (mk_eqn T) constrs))))
       (hd descr ~~ newTs)
   end;
 

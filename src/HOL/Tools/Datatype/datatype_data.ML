@@ -72,24 +72,24 @@ fun info_of_constr thy (c, T) =
   let
     val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
   in
-    case body_type T of
+    (case body_type T of
       Type (tyco, _) => AList.lookup (op =) tab tyco
-    | _ => NONE
+    | _ => NONE)
   end;
 
 fun info_of_constr_permissive thy (c, T) =
   let
-    val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
-    val hint = case body_type T of Type (tyco, _) => SOME tyco | _ => NONE;
-    val default =
-      if null tab then NONE
-      else SOME (snd (List.last tab))
-        (*conservative wrt. overloaded constructors*);
-  in case hint
-   of NONE => default
-    | SOME tyco => case AList.lookup (op =) tab tyco
-       of NONE => default (*permissive*)
-        | SOME info => SOME info
+    val tab = Symtab.lookup_list (#constrs (DatatypesData.get thy)) c;
+    val hint = (case body_type T of Type (tyco, _) => SOME tyco | _ => NONE);
+    val default = if null tab then NONE else SOME (snd (List.last tab));
+    (*conservative wrt. overloaded constructors*)
+  in
+    (case hint of
+      NONE => default
+    | SOME tyco =>
+        (case AList.lookup (op =) tab tyco of
+          NONE => default (*permissive*)
+        | SOME info => SOME info))
   end;
 
 val info_of_case = Symtab.lookup o #cases o DatatypesData.get;
@@ -112,10 +112,9 @@ fun the_spec thy dtco =
   let
     val { descr, index, sorts = raw_sorts, ... } = the_info thy dtco;
     val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr index;
-    val sorts = map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v))
-      o Datatype_Aux.dest_DtTFree) dtys;
-    val cos = map
-      (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr sorts) tys)) raw_cos;
+    val sorts =
+      map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v)) o Datatype_Aux.dest_DtTFree) dtys;
+    val cos = map (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr sorts) tys)) raw_cos;
   in (sorts, cos) end;
 
 fun the_descr thy (raw_tycos as raw_tyco :: _) =
@@ -124,27 +123,30 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val descr = #descr info;
 
     val SOME (_, dtys, _) = AList.lookup (op =) descr (#index info);
-    val vs = map ((fn v => (v, (the o AList.lookup (op =) (#sorts info)) v))
-      o Datatype_Aux.dest_DtTFree) dtys;
+    val vs =
+      map ((fn v => (v, the (AList.lookup (op =) (#sorts info) v))) o Datatype_Aux.dest_DtTFree)
+        dtys;
 
     fun is_DtTFree (Datatype_Aux.DtTFree _) = true
-      | is_DtTFree _ = false
+      | is_DtTFree _ = false;
     val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
     val protoTs as (dataTs, _) =
       chop k descr
       |> (pairself o map)
         (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr vs) dTs));
-    
+
     val tycos = map fst dataTs;
     val _ =
       if eq_set (op =) (tycos, raw_tycos) then ()
-      else error ("Type constructors " ^ commas_quote raw_tycos ^
-        " do not belong exhaustively to one mutual recursive datatype");
+      else
+        error ("Type constructors " ^ commas_quote raw_tycos ^
+          " do not belong exhaustively to one mutual recursive datatype");
 
     val (Ts, Us) = (pairself o map) Type protoTs;
 
     val names = map Long_Name.base_name (the_default tycos (#alt_names info));
-    val (auxnames, _) = Name.make_context names
+    val (auxnames, _) =
+      Name.make_context names
       |> fold_map (Name.variant o Datatype_Aux.name_of_typ) Us;
     val prefix = space_implode "_" names;
 
@@ -158,16 +160,16 @@ fun all_distincts thy Ts =
   in map_filter (Option.map #distinct o get_info thy) tycos end;
 
 fun get_constrs thy dtco =
-  case try (the_spec thy) dtco
-   of SOME (sorts, cos) =>
-        let
-          fun subst (v, sort) = TVar ((v, 0), sort);
-          fun subst_ty (TFree v) = subst v
-            | subst_ty ty = ty;
-          val dty = Type (dtco, map subst sorts);
-          fun mk_co (co, tys) = (co, map (Term.map_atyps subst_ty) tys ---> dty);
-        in SOME (map mk_co cos) end
-    | NONE => NONE;
+  (case try (the_spec thy) dtco of
+    SOME (sorts, cos) =>
+      let
+        fun subst (v, sort) = TVar ((v, 0), sort);
+        fun subst_ty (TFree v) = subst v
+          | subst_ty ty = ty;
+        val dty = Type (dtco, map subst sorts);
+        fun mk_co (co, tys) = (co, map (Term.map_atyps subst_ty) tys ---> dty);
+      in SOME (map mk_co cos) end
+  | NONE => NONE);
 
 
 
@@ -188,9 +190,9 @@ fun cert_typ sign raw_T sorts =
       handle TYPE (msg, _, _) => error msg;
     val sorts' = Term.add_tfreesT T sorts;
     val _ =
-      case duplicates (op =) (map fst sorts') of
+      (case duplicates (op =) (map fst sorts') of
         [] => ()
-      | dups => error ("Inconsistent sort constraints for " ^ commas dups)
+      | dups => error ("Inconsistent sort constraints for " ^ commas dups));
   in (T, sorts') end;
 
 
@@ -226,17 +228,17 @@ end;
 
 (* translation rules for case *)
 
-fun make_case ctxt = Datatype_Case.make_case
-  (info_of_constr_permissive (Proof_Context.theory_of ctxt)) ctxt;
+fun make_case ctxt =
+  Datatype_Case.make_case (info_of_constr_permissive (Proof_Context.theory_of ctxt)) ctxt;
 
-fun strip_case ctxt = Datatype_Case.strip_case
-  (info_of_case (Proof_Context.theory_of ctxt));
+fun strip_case ctxt =
+  Datatype_Case.strip_case (info_of_case (Proof_Context.theory_of ctxt));
 
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
     map (fn case_name =>
-      let val case_name' = Lexicon.mark_const case_name
-      in (case_name', Datatype_Case.case_tr' info_of_case case_name')
+      let val case_name' = Lexicon.mark_const case_name in
+        (case_name', Datatype_Case.case_tr' info_of_case case_name')
       end) case_names, []) thy;
 
 val trfun_setup =
@@ -276,7 +278,10 @@ val antiq_setup =
 (** abstract theory extensions relative to a datatype characterisation **)
 
 structure Datatype_Interpretation = Interpretation
-  (type T = Datatype_Aux.config * string list val eq: T * T -> bool = eq_snd op =);
+(
+  type T = Datatype_Aux.config * string list;
+  val eq: T * T -> bool = eq_snd (op =);
+);
 fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 
 fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
@@ -313,22 +318,28 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       Datatype_Aux.message config
         ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
-    val (exhaust, thy3) = Datatype_Abs_Proofs.prove_casedist_thms config new_type_names
-      descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
-    val (nchotomys, thy4) = Datatype_Abs_Proofs.prove_nchotomys config new_type_names
-      descr sorts exhaust thy3;
-    val ((rec_names, rec_rewrites), thy5) = Datatype_Abs_Proofs.prove_primrec_thms
-      config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-      inject (distinct, all_distincts thy2 (Datatype_Aux.get_rec_types flat_descr sorts))
-      induct thy4;
-    val ((case_rewrites, case_names), thy6) = Datatype_Abs_Proofs.prove_case_thms
-      config new_type_names descr sorts rec_names rec_rewrites thy5;
-    val (case_congs, thy7) = Datatype_Abs_Proofs.prove_case_congs new_type_names
-      descr sorts nchotomys case_rewrites thy6;
-    val (weak_case_congs, thy8) = Datatype_Abs_Proofs.prove_weak_case_congs new_type_names
-      descr sorts thy7;
-    val (splits, thy9) = Datatype_Abs_Proofs.prove_split_thms
-      config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
+    val (exhaust, thy3) =
+      Datatype_Abs_Proofs.prove_casedist_thms config new_type_names
+        descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
+    val (nchotomys, thy4) =
+      Datatype_Abs_Proofs.prove_nchotomys config new_type_names
+        descr sorts exhaust thy3;
+    val ((rec_names, rec_rewrites), thy5) =
+      Datatype_Abs_Proofs.prove_primrec_thms
+        config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
+        inject (distinct, all_distincts thy2 (Datatype_Aux.get_rec_types flat_descr sorts))
+        induct thy4;
+    val ((case_rewrites, case_names), thy6) =
+      Datatype_Abs_Proofs.prove_case_thms
+        config new_type_names descr sorts rec_names rec_rewrites thy5;
+    val (case_congs, thy7) =
+      Datatype_Abs_Proofs.prove_case_congs new_type_names
+        descr sorts nchotomys case_rewrites thy6;
+    val (weak_case_congs, thy8) =
+      Datatype_Abs_Proofs.prove_weak_case_congs new_type_names descr sorts thy7;
+    val (splits, thy9) =
+      Datatype_Abs_Proofs.prove_split_thms
+        config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
 
     val inducts = Project_Rule.projections (Proof_Context.init_global thy2) induct;
     val dt_infos = map_index
@@ -406,7 +417,8 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
         val _ = if length frees <> length vs then no_constr cT else ();
       in (tyco, (vs, cT)) end;
 
-    val raw_cs = AList.group (op =) (map (type_of_constr o constr_of_term o prep_term thy) raw_ts);
+    val raw_cs =
+      AList.group (op =) (map (type_of_constr o constr_of_term o prep_term thy) raw_ts);
     val _ =
       (case map_filter (fn (tyco, _) =>
           if Symtab.defined (get_all thy) tyco then SOME tyco else NONE) raw_cs of
@@ -417,22 +429,25 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
       (case distinct (op =) (map length raw_vss) of
          [n] => 0 upto n - 1
       | _ => error "Different types in given constructors");
-    fun inter_sort m = map (fn xs => nth xs m) raw_vss
-      |> Library.foldr1 (Sorts.inter_sort (Sign.classes_of thy))
+    fun inter_sort m =
+      map (fn xs => nth xs m) raw_vss
+      |> foldr1 (Sorts.inter_sort (Sign.classes_of thy));
     val sorts = map inter_sort ms;
     val vs = Name.invent_names Name.context Name.aT sorts;
 
-    fun norm_constr (raw_vs, (c, T)) = (c, map_atyps
-      (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);
+    fun norm_constr (raw_vs, (c, T)) =
+      (c, map_atyps
+        (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);
 
     val cs = map (apsnd (map norm_constr)) raw_cs;
     val dtyps_of_typ =
       map (Datatype_Aux.dtyp_of_typ (map (rpair (map fst vs) o fst) cs)) o binder_types;
     val dt_names = map fst cs;
 
-    fun mk_spec (i, (tyco, constr)) = (i, (tyco,
-      map (Datatype_Aux.DtTFree o fst) vs,
-      (map o apsnd) dtyps_of_typ constr))
+    fun mk_spec (i, (tyco, constr)) =
+      (i, (tyco,
+        map (Datatype_Aux.DtTFree o fst) vs,
+        (map o apsnd) dtyps_of_typ constr));
     val descr = map_index mk_spec cs;
     val injs = Datatype_Prop.make_injs [descr] vs;
     val half_distincts = map snd (Datatype_Prop.make_distincts [descr] vs);
@@ -445,7 +460,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
           unflat rules (map Drule.zero_var_indexes_list raw_thms);
             (*FIXME somehow dubious*)
       in
-        Proof_Context.background_theory_result
+        Proof_Context.background_theory_result  (* FIXME !? *)
           (prove_rep_datatype config dt_names alt_names descr vs
             raw_inject half_distinct raw_induct)
         #-> after_qed
@@ -477,7 +492,7 @@ val _ =
     (Scan.option (Parse.$$$ "(" |-- Scan.repeat1 Parse.name --| Parse.$$$ ")") --
       Scan.repeat1 Parse.term
       >> (fn (alt_names, ts) =>
-        Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
+          Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
 
 
 open Datatype_Aux;

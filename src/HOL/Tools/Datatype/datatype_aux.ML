@@ -39,7 +39,7 @@ sig
   include DATATYPE_COMMON
 
   val message : config -> string -> unit
-  
+
   val store_thmss_atts : string -> string list -> attribute list list -> thm list list
     -> theory -> thm list list * theory
   val store_thmss : string -> string list -> thm list list -> theory -> thm list list * theory
@@ -76,7 +76,7 @@ sig
     -> { atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a }
     -> ((string * typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
-  val unfold_datatypes : 
+  val unfold_datatypes :
     theory -> descr -> (string * sort) list -> info Symtab.table ->
       descr -> int -> descr list * int
   val find_shortest_path : descr -> int -> (string * int) option
@@ -147,12 +147,13 @@ fun indtac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
           (case flt (Misc_Legacy.term_frees t2) of
             [Free (s, T)] => SOME (absfree (s, T) t2)
           | _ => NONE)
-      | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
-    val insts = map_filter (fn (t, u) =>
-      case abstr (getP u) of
-        NONE => NONE
-      | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u')) (ts ~~ ts');
-    val indrule' = cterm_instantiate insts indrule
+      | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))));
+    val insts =
+      map_filter (fn (t, u) =>
+        (case abstr (getP u) of
+          NONE => NONE
+        | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u'))) (ts ~~ ts');
+    val indrule' = cterm_instantiate insts indrule;
   in rtac indrule' i end);
 
 
@@ -169,7 +170,7 @@ fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' =
       cterm_instantiate [(cterm_of thy (head_of lhs),
-        cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion
+        cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion;
   in compose_tac (false, exhaustion', nprems_of exhaustion) i end);
 
 
@@ -205,12 +206,10 @@ type info =
    split : thm,
    split_asm: thm};
 
-fun mk_Free s T i = Free (s ^ (string_of_int i), T);
+fun mk_Free s T i = Free (s ^ string_of_int i, T);
 
-fun subst_DtTFree _ substs (T as (DtTFree name)) =
-      AList.lookup (op =) substs name |> the_default T
-  | subst_DtTFree i substs (DtType (name, ts)) =
-      DtType (name, map (subst_DtTFree i substs) ts)
+fun subst_DtTFree _ substs (T as DtTFree name) = the_default T (AList.lookup (op =) substs name)
+  | subst_DtTFree i substs (DtType (name, ts)) = DtType (name, map (subst_DtTFree i substs) ts)
   | subst_DtTFree i _ (DtRec j) = DtRec (i + j);
 
 exception Datatype;
@@ -235,9 +234,10 @@ fun mk_fun_dtyp [] U = U
   | mk_fun_dtyp (T :: Ts) U = DtType ("fun", [T, mk_fun_dtyp Ts U]);
 
 fun name_of_typ (Type (s, Ts)) =
-      let val s' = Long_Name.base_name s
-      in space_implode "_" (filter_out (equal "") (map name_of_typ Ts) @
-        [if Lexicon.is_identifier s' then s' else "x"])
+      let val s' = Long_Name.base_name s in
+        space_implode "_"
+          (filter_out (equal "") (map name_of_typ Ts) @
+            [if Lexicon.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
 
@@ -245,17 +245,17 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
   | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
   | dtyp_of_typ new_dts (Type (tname, Ts)) =
       (case AList.lookup (op =) new_dts tname of
-         NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
-       | SOME vs => if map (try (fst o dest_TFree)) Ts = map SOME vs then
-             DtRec (find_index (curry op = tname o fst) new_dts)
-           else error ("Illegal occurrence of recursive type " ^ tname));
+        NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
+      | SOME vs =>
+          if map (try (fst o dest_TFree)) Ts = map SOME vs then
+            DtRec (find_index (curry op = tname o fst) new_dts)
+          else error ("Illegal occurrence of recursive type " ^ tname));
 
 fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) sorts) a)
   | typ_of_dtyp descr sorts (DtRec i) =
-      let val (s, ds, _) = (the o AList.lookup (op =) descr) i
+      let val (s, ds, _) = the (AList.lookup (op =) descr i)
       in Type (s, map (typ_of_dtyp descr sorts) ds) end
-  | typ_of_dtyp descr sorts (DtType (s, ds)) =
-      Type (s, map (typ_of_dtyp descr sorts) ds);
+  | typ_of_dtyp descr sorts (DtType (s, ds)) = Type (s, map (typ_of_dtyp descr sorts) ds);
 
 (* find all non-recursive types in datatype description *)
 
@@ -271,28 +271,34 @@ fun get_rec_types descr sorts = map (fn (_ , (s, ds, _)) =>
 (* get all branching types *)
 
 fun get_branching_types descr sorts =
-  map (typ_of_dtyp descr sorts) (fold (fn (_, (_, _, constrs)) =>
-    fold (fn (_, cargs) => fold (strip_dtyp #> fst #> fold (insert op =)) cargs)
-      constrs) descr []);
+  map (typ_of_dtyp descr sorts)
+    (fold
+      (fn (_, (_, _, constrs)) =>
+        fold (fn (_, cargs) => fold (strip_dtyp #> fst #> fold (insert op =)) cargs) constrs)
+      descr []);
 
-fun get_arities descr = fold (fn (_, (_, _, constrs)) =>
-  fold (fn (_, cargs) => fold (insert op =) (map (length o fst o strip_dtyp)
-    (filter is_rec_type cargs))) constrs) descr [];
+fun get_arities descr =
+  fold
+    (fn (_, (_, _, constrs)) =>
+      fold (fn (_, cargs) =>
+        fold (insert op =) (map (length o fst o strip_dtyp) (filter is_rec_type cargs))) constrs)
+    descr [];
 
 (* interpret construction of datatype *)
 
-fun interpret_construction descr vs { atyp, dtyp } =
+fun interpret_construction descr vs {atyp, dtyp} =
   let
     val typ_of_dtyp = typ_of_dtyp descr vs;
-    fun interpT dT = case strip_dtyp dT
-     of (dTs, DtRec l) =>
+    fun interpT dT =
+      (case strip_dtyp dT of
+        (dTs, DtRec l) =>
           let
-            val (tyco, dTs', _) = (the o AList.lookup (op =) descr) l;
+            val (tyco, dTs', _) = the (AList.lookup (op =) descr l);
             val Ts = map typ_of_dtyp dTs;
             val Ts' = map typ_of_dtyp dTs';
             val is_proper = forall (can dest_TFree) Ts';
           in dtyp Ts (l, is_proper) (tyco, Ts') end
-      | _ => atyp (typ_of_dtyp dT);
+      | _ => atyp (typ_of_dtyp dT));
     fun interpC (c, dTs) = (c, map interpT dTs);
     fun interpD (_, (tyco, dTs, cs)) = ((tyco, map typ_of_dtyp dTs), map interpC cs);
   in map interpD descr end;
@@ -304,52 +310,58 @@ fun check_nonempty descr =
     val descr' = flat descr;
     fun is_nonempty_dt is i =
       let
-        val (_, _, constrs) = (the o AList.lookup (op =) descr') i;
-        fun arg_nonempty (_, DtRec i) = if member (op =) is i then false
-              else is_nonempty_dt (i::is) i
+        val (_, _, constrs) = the (AList.lookup (op =) descr' i);
+        fun arg_nonempty (_, DtRec i) =
+              if member (op =) is i then false
+              else is_nonempty_dt (i :: is) i
           | arg_nonempty _ = true;
-      in exists ((forall (arg_nonempty o strip_dtyp)) o snd) constrs
-      end
-  in assert_all (fn (i, _) => is_nonempty_dt [i] i) (hd descr)
-    (fn (_, (s, _, _)) => raise Datatype_Empty s)
+      in exists (forall (arg_nonempty o strip_dtyp) o snd) constrs end
+  in
+    assert_all (fn (i, _) => is_nonempty_dt [i] i) (hd descr)
+      (fn (_, (s, _, _)) => raise Datatype_Empty s)
   end;
 
 (* unfold a list of mutually recursive datatype specifications *)
 (* all types of the form DtType (dt_name, [..., DtRec _, ...]) *)
 (* need to be unfolded                                         *)
 
-fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i =
+fun unfold_datatypes thy orig_descr sorts (dt_info : info Symtab.table) descr i =
   let
-    fun typ_error T msg = error ("Non-admissible type expression\n" ^
-      Syntax.string_of_typ_global sign (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
+    fun typ_error T msg =
+      error ("Non-admissible type expression\n" ^
+        Syntax.string_of_typ_global thy (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
 
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup dt_info tname of
-         NONE => typ_error T (tname ^ " is not a datatype - can't use it in\
-           \ nested recursion")
-       | (SOME {index, descr, ...}) =>
-           let val (_, vars, _) = (the o AList.lookup (op =) descr) index;
-               val subst = ((map dest_DtTFree vars) ~~ dts) handle ListPair.UnequalLengths =>
-                 typ_error T ("Type constructor " ^ tname ^ " used with wrong\
-                  \ number of arguments")
-           in (i + index, map (fn (j, (tn, args, cs)) => (i + j,
-             (tn, map (subst_DtTFree i subst) args,
-              map (apsnd (map (subst_DtTFree i subst))) cs))) descr)
-           end);
+        NONE =>
+          typ_error T (tname ^ " is not a datatype - can't use it in nested recursion")
+      | SOME {index, descr, ...} =>
+          let
+            val (_, vars, _) = the (AList.lookup (op =) descr index);
+            val subst = (map dest_DtTFree vars ~~ dts)
+              handle ListPair.UnequalLengths =>
+                typ_error T ("Type constructor " ^ tname ^ " used with wrong number of arguments");
+          in
+            (i + index,
+              map (fn (j, (tn, args, cs)) =>
+                (i + j, (tn, map (subst_DtTFree i subst) args,
+                  map (apsnd (map (subst_DtTFree i subst))) cs))) descr)
+          end);
 
     (* unfold a single constructor argument *)
 
     fun unfold_arg T (i, Ts, descrs) =
       if is_rec_type T then
-        let val (Us, U) = strip_dtyp T
-        in if exists is_rec_type Us then
+        let val (Us, U) = strip_dtyp T in
+          if exists is_rec_type Us then
             typ_error T "Non-strictly positive recursive occurrence of type"
-          else (case U of
-              DtType (tname, dts) =>  
+          else
+            (case U of
+              DtType (tname, dts) =>
                 let
                   val (index, descr) = get_dt_descr T i tname dts;
-                  val (descr', i') = unfold_datatypes sign orig_descr sorts
-                    dt_info descr (i + length descr)
+                  val (descr', i') =
+                    unfold_datatypes thy orig_descr sorts dt_info descr (i + length descr);
                 in (i', Ts @ [mk_fun_dtyp Us (DtRec index)], descrs @ descr') end
             | _ => (i, Ts @ [T], descrs))
         end
@@ -375,17 +387,19 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
 fun find_nonempty descr is i =
   let
-    fun arg_nonempty (_, DtRec i) = if member (op =) is i
+    fun arg_nonempty (_, DtRec i) =
+          if member (op =) is i
           then NONE
-          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
+          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i :: is) i)
       | arg_nonempty _ = SOME 0;
     fun max_inf (SOME i) (SOME j) = SOME (Integer.max i j)
       | max_inf _ _ = NONE;
     fun max xs = fold max_inf xs (SOME 0);
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
-    val xs = sort (int_ord o pairself snd)
-      (map_filter (fn (s, dts) => Option.map (pair s)
-        (max (map (arg_nonempty o strip_dtyp) dts))) constrs)
+    val xs =
+      sort (int_ord o pairself snd)
+        (map_filter (fn (s, dts) => Option.map (pair s)
+          (max (map (arg_nonempty o strip_dtyp) dts))) constrs)
   in if null xs then NONE else SOME (hd xs) end;
 
 fun find_shortest_path descr i = find_nonempty descr [i] i;
