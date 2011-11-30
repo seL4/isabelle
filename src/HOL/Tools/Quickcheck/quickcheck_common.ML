@@ -153,6 +153,10 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
     fun test_card_size test_fun (card, size) =
       (* FIXME: why decrement size by one? *)
       let
+        val _ =
+          Quickcheck.message ctxt ("[Quickcheck-exhaustive] Test " ^
+            (if size = 0 then "" else "data size: " ^ string_of_int (size - 1) ^ " and ") ^
+            "cardinality: " ^ string_of_int card)          
         val (ts, timing) =
           cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
             (fn () => fst (test_fun [card, size - 1]))
