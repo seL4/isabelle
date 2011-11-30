@@ -216,6 +216,20 @@ fun map_check thy (_, (rty, _, _), _) =
 
 (*** interface and syntax setup ***)
 
+(* the ML-interface takes a list of tuples consisting of:
+
+ - the name of the quotient type
+ - its free type variables (first argument)
+ - its mixfix annotation
+ - the type to be quotient
+ - the partial flag (a boolean)
+ - the relation according to which the type is quotient
+ - optional names of morphisms (rep/abs)
+
+ it opens a proof-state in which one has to show that the
+ relations are equivalence relations
+*)
+
 fun quotient_type quot_list lthy =
   let
     (* sanity check *)
