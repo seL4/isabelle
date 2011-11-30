@@ -410,6 +410,7 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("no_assms", [arg]) = apsnd (Config.put_generic no_assms (read_bool arg))
   | parse_test_param ("expect", [arg]) = apsnd (map_test_params ((apsnd o K) (read_expectation arg)))
   | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
+  | parse_test_param ("potential", [arg]) = apsnd (Config.put_generic potential (read_bool arg))
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
