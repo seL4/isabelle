@@ -132,8 +132,10 @@ subsubsection {* Type definition *}
 definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
-typedef ('a, 'b) prod (infixr "*" 20) = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
-  by auto
+definition "prod = {f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
+
+typedef (open) ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+  unfolding prod_def by auto
 
 type_notation (xsymbols)
   "prod"  ("(_ \<times>/ _)" [21, 20] 20)

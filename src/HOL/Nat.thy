@@ -35,7 +35,8 @@ inductive Nat :: "ind \<Rightarrow> bool" where
   Zero_RepI: "Nat Zero_Rep"
 | Suc_RepI: "Nat i \<Longrightarrow> Nat (Suc_Rep i)"
 
-typedef (open Nat) nat = "{n. Nat n}"
+typedef (open) nat = "{n. Nat n}"
+  morphisms Rep_Nat Abs_Nat
   using Nat.Zero_RepI by auto
 
 lemma Nat_Rep_Nat:
