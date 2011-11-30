@@ -426,5 +426,28 @@ quickcheck[exhaustive, potential = false, expect = no_counterexample]
 quickcheck[exhaustive, potential = true, expect = counterexample]
 oops
 
+text {* with the simple testing scheme *}
+
+setup {* Exhaustive_Generators.setup_exhaustive_datatype_interpretation *}
+declare [[quickcheck_full_support = false]]
+
+lemma
+  "xs = [] ==> hd xs \<noteq> x"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
+lemma
+  "xs = [] ==> hd xs = x"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
+lemma "xs = [] ==> hd xs = x ==> x = y"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
+declare [[quickcheck_full_support = true]]
 
 end
