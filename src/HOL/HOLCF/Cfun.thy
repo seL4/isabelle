@@ -13,8 +13,10 @@ default_sort cpo
 
 subsection {* Definition of continuous function type *}
 
-cpodef ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
-by (auto intro: cont_const adm_cont)
+definition "cfun = {f::'a => 'b. cont f}"
+
+cpodef (open) ('a, 'b) cfun (infixr "->" 0) = "cfun :: ('a => 'b) set"
+  unfolding cfun_def by (auto intro: cont_const adm_cont)
 
 type_notation (xsymbols)
   cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)
