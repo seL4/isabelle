@@ -407,5 +407,24 @@ lemma
 quickcheck[exhaustive, expect = counterexample]
 oops
 
+subsection {* Examples with underspecified/partial functions *}
+
+lemma
+  "xs = [] ==> hd xs \<noteq> x"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
+lemma
+  "xs = [] ==> hd xs = x"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
+lemma "xs = [] ==> hd xs = x ==> x = y"
+quickcheck[exhaustive, potential = false, expect = no_counterexample]
+quickcheck[exhaustive, potential = true, expect = counterexample]
+oops
+
 
 end

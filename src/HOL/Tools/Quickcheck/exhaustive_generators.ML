@@ -349,6 +349,8 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
+fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
+
 fun mk_full_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -361,9 +363,11 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
     val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
-    val appendC = @{term "List.append :: term list => term list => term list"}  
+    fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
+          $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
+    val appendC = @{term "List.append :: term list => term list => term list"}
     val return = @{term "Some :: term list => term list option"} $ (appendC $ terms $
-      (HOLogic.mk_list @{typ "term"} (map (fn t => HOLogic.mk_term_of (fastype_of t) t) eval_terms)))
+      (HOLogic.mk_list @{typ "term"} (map mk_safe_term eval_terms)))
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort enum}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)

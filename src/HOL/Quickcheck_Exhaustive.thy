@@ -530,6 +530,15 @@ where
 code_const catch_match 
   (Quickcheck "(_) handle Match => _")
 
+definition catch_match' :: "term => term => term"
+where
+  [code del]: "catch_match' t1 t2 = (SOME t. t = t1 \<or> t = t2)"
+
+code_const catch_match'
+  (Quickcheck "(_) handle Match => _")
+
+consts unknown :: "'a" ("?")
+ 
 use "Tools/Quickcheck/exhaustive_generators.ML"
 
 setup {* Exhaustive_Generators.setup *}
