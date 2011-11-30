@@ -13,9 +13,10 @@ default_sort pcpo
 
 subsection {* Definition of strict product type *}
 
-pcpodef ('a, 'b) sprod (infixr "**" 20) =
-        "{p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
-by simp_all
+definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
+
+pcpodef (open) ('a, 'b) sprod (infixr "**" 20) = "sprod :: ('a \<times> 'b) set"
+  unfolding sprod_def by simp_all
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_sprod below_sprod_def])

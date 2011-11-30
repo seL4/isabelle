@@ -142,9 +142,11 @@ qed
 
 subsection{*The Initial Algebra: A Quotiented Message Type*}
 
+definition "Exp = UNIV//exprel"
 
-typedef (Exp)  exp = "UNIV//exprel"
-    by (auto simp add: quotient_def)
+typedef (open) exp = Exp
+  morphisms Rep_Exp Abs_Exp
+  unfolding Exp_def by (auto simp add: quotient_def)
 
 text{*The abstract message constructors*}
 

@@ -1,6 +1,8 @@
-(* Author: Brian Huffman *)
-(* Author: Peter Gammie *)
-(* Author: Florian Haftmann *)
+(*  Title:      HOL/Library/Saturated.thy
+    Author:     Brian Huffman
+    Author:     Peter Gammie
+    Author:     Florian Haftmann
+*)
 
 header {* Saturated arithmetic *}
 

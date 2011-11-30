@@ -12,10 +12,14 @@ header {*The Basic UNITY Theory*}
 
 theory UNITY imports Main begin
 
-typedef (Program)
-  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set,
-                   allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}" 
-  by blast
+definition
+  "Program =
+    {(init:: 'a set, acts :: ('a * 'a)set set,
+      allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}"
+
+typedef (open) 'a program = "Program :: ('a set * ('a * 'a) set set * ('a * 'a) set set) set"
+  morphisms Rep_Program Abs_Program
+  unfolding Program_def by blast
 
 definition Acts :: "'a program => ('a * 'a)set set" where
     "Acts F == (%(init, acts, allowed). acts) (Rep_Program F)"

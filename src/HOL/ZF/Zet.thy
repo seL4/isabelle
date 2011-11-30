@@ -9,8 +9,10 @@ theory Zet
 imports HOLZF
 begin
 
-typedef 'a zet = "{A :: 'a set | A f z. inj_on f A \<and> f ` A \<subseteq> explode z}"
-  by blast
+definition "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A \<subseteq> explode z}"
+
+typedef (open) 'a zet = "zet :: 'a set set"
+  unfolding zet_def by blast
 
 definition zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zin x A == x \<in> (Rep_zet A)"

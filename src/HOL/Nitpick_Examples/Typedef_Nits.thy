@@ -14,8 +14,9 @@ begin
 nitpick_params [verbose, card = 1\<emdash>4, sat_solver = MiniSat_JNI, max_threads = 1,
                 timeout = 240]
 
-typedef three = "{0\<Colon>nat, 1, 2}"
-by blast
+definition "three = {0\<Colon>nat, 1, 2}"
+typedef (open) three = three
+unfolding three_def by blast
 
 definition A :: three where "A \<equiv> Abs_three 0"
 definition B :: three where "B \<equiv> Abs_three 1"
@@ -25,8 +26,10 @@ lemma "x = (y\<Colon>three)"
 nitpick [expect = genuine]
 oops
 
-typedef 'a one_or_two = "{undefined False\<Colon>'a, undefined True}"
-by auto
+definition "one_or_two = {undefined False\<Colon>'a, undefined True}"
+
+typedef (open) 'a one_or_two = "one_or_two :: 'a set"
+unfolding one_or_two_def by auto
 
 lemma "x = (y\<Colon>unit one_or_two)"
 nitpick [expect = none]
@@ -49,8 +52,9 @@ nitpick [card = 1, expect = potential] (* unfortunate *)
 nitpick [card = 2, expect = none]
 oops
 
-typedef 'a bounded =
-        "{n\<Colon>nat. finite (UNIV\<Colon>'a \<Rightarrow> bool) \<longrightarrow> n < card (UNIV\<Colon>'a \<Rightarrow> bool)}"
+definition "bounded = {n\<Colon>nat. finite (UNIV\<Colon>'a \<Rightarrow> bool) \<longrightarrow> n < card (UNIV\<Colon>'a \<Rightarrow> bool)}"
+typedef (open) 'a bounded = "bounded(TYPE('a))"
+unfolding bounded_def
 apply (rule_tac x = 0 in exI)
 apply (case_tac "card UNIV = 0")
 by auto

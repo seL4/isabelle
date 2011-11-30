@@ -17,7 +17,7 @@ text {* see @{text "Examples/WordExamples.thy"} for examples *}
 
 subsection {* Type definition *}
 
-typedef (open word) 'a word = "{(0::int) ..< 2^len_of TYPE('a::len0)}"
+typedef (open) 'a word = "{(0::int) ..< 2^len_of TYPE('a::len0)}"
   morphisms uint Abs_word by auto
 
 definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word" where

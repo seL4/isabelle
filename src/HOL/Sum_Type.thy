@@ -17,8 +17,10 @@ definition Inl_Rep :: "'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \
 definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool" where
   "Inr_Rep b x y p \<longleftrightarrow> y = b \<and> \<not> p"
 
-typedef ('a, 'b) sum (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
-  by auto
+definition "sum = {f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
+
+typedef (open) ('a, 'b) sum (infixr "+" 10) = "sum :: ('a => 'b => bool => bool) set"
+  unfolding sum_def by auto
 
 lemma Inl_RepI: "Inl_Rep a \<in> sum"
   by (auto simp add: sum_def)

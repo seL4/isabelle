@@ -11,9 +11,8 @@ subsection {* Type definition *}
 
 typedef (open) ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
   morphisms impl_of RBT
-proof -
-  have "RBT_Impl.Empty \<in> ?rbt" by simp
-  then show ?thesis ..
+proof
+  show "RBT_Impl.Empty \<in> {t. is_rbt t}" by simp
 qed
 
 lemma rbt_eq_iff:

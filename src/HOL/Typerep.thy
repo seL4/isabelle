@@ -63,8 +63,9 @@ fun add_typerep tyco thy =
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
-fun ensure_typerep tyco thy = if not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep})
-  andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort type}
+fun ensure_typerep tyco thy =
+  if not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep})
+    andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort type}
   then add_typerep tyco thy else thy;
 
 in

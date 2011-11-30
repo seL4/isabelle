@@ -11,18 +11,19 @@ type_synonym 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"
 definition nonzero_positions :: "(nat \<Rightarrow> nat \<Rightarrow> 'a::zero) \<Rightarrow> (nat \<times> nat) set" where
   "nonzero_positions A = {pos. A (fst pos) (snd pos) ~= 0}"
 
-typedef 'a matrix = "{(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"
-proof -
-  have "(\<lambda>j i. 0) \<in> {(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"
+definition "matrix = {(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"
+
+typedef (open) 'a matrix = "matrix :: (nat \<Rightarrow> nat \<Rightarrow> 'a::zero) set"
+  unfolding matrix_def
+proof
+  show "(\<lambda>j i. 0) \<in> {(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"
     by (simp add: nonzero_positions_def)
-  then show ?thesis by auto
 qed
 
 declare Rep_matrix_inverse[simp]
 
 lemma finite_nonzero_positions : "finite (nonzero_positions (Rep_matrix A))"
-apply (rule Abs_matrix_induct)
-by (simp add: Abs_matrix_inverse matrix_def)
+  by (induct A) (simp add: Abs_matrix_inverse matrix_def)
 
 definition nrows :: "('a::zero) matrix \<Rightarrow> nat" where
   "nrows A == if nonzero_positions(Rep_matrix A) = {} then 0 else Suc(Max ((image fst) (nonzero_positions (Rep_matrix A))))"

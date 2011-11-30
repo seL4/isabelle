@@ -123,8 +123,11 @@ theorem msgrel_imp_eq_freediscrim:
 
 subsection{*The Initial Algebra: A Quotiented Message Type*}
 
-typedef (Msg)  msg = "UNIV//msgrel"
-  by (auto simp add: quotient_def)
+definition "Msg = UNIV//msgrel"
+
+typedef (open) msg = Msg
+  morphisms Rep_Msg Abs_Msg
+  unfolding Msg_def by (auto simp add: quotient_def)
 
 
 text{*The abstract message constructors*}

@@ -21,10 +21,11 @@ enriched_type map_fun: map_fun
 
 subsection {* The datatype universe *}
 
-typedef (Node)
-  ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
-    --{*it is a subtype of @{text "(nat=>'b+nat) * ('a+nat)"}*}
-  by auto
+definition "Node = {p. EX f x k. p = (f :: nat => 'b + nat, x ::'a + nat) & f k = Inr 0}"
+
+typedef (open) ('a, 'b) node = "Node :: ((nat => 'b + nat) * ('a + nat)) set"
+  morphisms Rep_Node Abs_Node
+  unfolding Node_def by auto
 
 text{*Datatypes will be represented by sets of type @{text node}*}
 

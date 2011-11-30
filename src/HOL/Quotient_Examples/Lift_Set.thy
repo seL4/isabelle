@@ -8,21 +8,29 @@ theory Lift_Set
 imports Main
 begin
 
-typedef 'a set = "(UNIV :: ('a => bool) => bool)"
-morphisms member Set by auto
+definition set where "set = (UNIV :: ('a => bool) => bool)"
+
+typedef (open) 'a set = "set :: 'a set set"
+  morphisms member Set
+  unfolding set_def by auto
 
 text {* Here is some ML setup that should eventually be incorporated in the typedef command. *}
 
 local_setup {* fn lthy =>
-let
-  val quotients = {qtyp = @{typ "'a set"}, rtyp = @{typ "'a => bool"}, equiv_rel = @{term "dummy"}, equiv_thm = @{thm refl}}
-  val qty_full_name = @{type_name "set"}
+  let
+    val quotients =
+      {qtyp = @{typ "'a set"}, rtyp = @{typ "'a => bool"},
+        equiv_rel = @{term "dummy"}, equiv_thm = @{thm refl}}
+    val qty_full_name = @{type_name "set"}
 
-  fun qinfo phi = Quotient_Info.transform_quotients phi quotients
-  in lthy
+    fun qinfo phi = Quotient_Info.transform_quotients phi quotients
+  in
+    lthy
     |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (qinfo phi)
-       #> Quotient_Info.update_abs_rep qty_full_name (Quotient_Info.transform_abs_rep phi {abs = @{term "Set"}, rep = @{term "member"}}))
+        (fn phi =>
+          Quotient_Info.update_quotients qty_full_name (qinfo phi) #>
+          Quotient_Info.update_abs_rep qty_full_name
+            (Quotient_Info.transform_abs_rep phi {abs = @{term "Set"}, rep = @{term "member"}}))
   end
 *}
 

@@ -762,7 +762,10 @@ lemma
 
 subsubsection {* Type definitions *}
 
-typedef three = "{1, 2, 3::int}" by auto
+definition "three = {1, 2, 3::int}"
+
+typedef (open) three = three
+  unfolding three_def by auto
 
 definition n1 where "n1 = Abs_three 1"
 definition n2 where "n2 = Abs_three 2"

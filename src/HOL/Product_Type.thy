@@ -46,14 +46,10 @@ code_instance bool :: equal
 subsection {* The @{text unit} type *}
 
 typedef (open) unit = "{True}"
-proof
-  show "True : ?unit" ..
-qed
+  by auto
 
-definition
-  Unity :: unit    ("'(')")
-where
-  "() = Abs_unit True"
+definition Unity :: unit  ("'(')")
+  where "() = Abs_unit True"
 
 lemma unit_eq [no_atp]: "u = ()"
   by (induct u) (simp add: Unity_def)
@@ -136,12 +132,10 @@ subsubsection {* Type definition *}
 definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
-typedef ('a, 'b) prod (infixr "*" 20)
-  = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
-proof
-  fix a b show "Pair_Rep a b \<in> ?prod"
-    by rule+
-qed
+definition "prod = {f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
+
+typedef (open) ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+  unfolding prod_def by auto
 
 type_notation (xsymbols)
   "prod"  ("(_ \<times>/ _)" [21, 20] 20)
