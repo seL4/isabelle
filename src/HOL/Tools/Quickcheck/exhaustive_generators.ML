@@ -287,14 +287,14 @@ val instantiate_full_exhaustive_datatype = instantiate_datatype
 fun mk_test_term lookup mk_closure mk_if none_t return ctxt =
   let
     fun mk_naive_test_term t =
-      fold_rev mk_closure (map lookup (Term.add_free_names t [])) (mk_if (t, none_t, return)) 
+      fold_rev mk_closure (map lookup (Term.add_free_names t [])) (mk_if (t, none_t, return))
     fun mk_smart_test_term' concl bound_vars assms =
       let
         fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
         val (vars, check) =
           case assms of [] => (vars_of concl, (concl, none_t, return))
-            | assm :: assms => (vars_of assm, (assm,
-                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
+            | assm :: assms => (vars_of assm, (HOLogic.mk_not assm, none_t, 
+                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms))
       in
         fold_rev mk_closure (map lookup vars) (mk_if check)
       end
@@ -375,9 +375,10 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
             $ lambda free (lambda term_var t)) $ depth
     val none_t = @{term "None :: term list option"}
     fun mk_safe_if (cond, then_t, else_t) =
-      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
-        (@{term "If :: bool => term list option => term list option => term list option"}
-        $ cond $ then_t $ else_t) $ none_t;
+      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"}
+        $ (@{term "If :: bool => term list option => term list option => term list option"}
+        $ cond $ then_t $ else_t)
+        $ (if Config.get ctxt Quickcheck.potential then else_t else none_t);
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
