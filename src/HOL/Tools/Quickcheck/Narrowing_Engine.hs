@@ -37,10 +37,10 @@ answeri a known unknown =
        Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e);
 
-answer :: Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
-answer a known unknown =
+answer :: Bool -> Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
+answer potential a known unknown =
   Control.Exception.catch (answeri a known unknown) 
-    (\ (PatternMatchFail _) -> known True);
+    (\ (PatternMatchFail _) -> known (not potential));
 
 -- Refute
 
@@ -50,14 +50,15 @@ str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 report :: Result -> [Generated_Code.Narrowing_term] -> IO Int;
 report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
-eval :: Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
-eval p k u = answer p (\p -> answer p k u) u;
+eval :: Bool -> Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
+eval potential p k u = answer potential p (\p -> answer potential p k u) u;
 
-ref :: Result -> [Generated_Code.Narrowing_term] -> IO Int;
-ref r xs = eval (apply_fun r xs) (\res -> if res then return 1 else report r xs) (\p -> sumMapM (ref r) 1 (refineList xs p));
+ref :: Bool -> Result -> [Generated_Code.Narrowing_term] -> IO Int;
+ref potential r xs = eval potential (apply_fun r xs) (\res -> if res then return 1 else report r xs)
+  (\p -> sumMapM (ref potential r) 1 (refineList xs p));
           
-refute :: Result -> IO Int;
-refute r = ref r (args r);
+refute :: Bool -> Result -> IO Int;
+refute potential r = ref potential r (args r);
 
 sumMapM :: (a -> IO Int) -> Int -> [a] -> IO Int;
 sumMapM f n [] = return n;
@@ -106,12 +107,12 @@ instance (Generated_Code.Partial_term_of a, Generated_Code.Narrowing a, Testable
 
 -- Top-level interface
 
-depthCheck :: Testable a => Int -> a -> IO ();
-depthCheck d p =
-  (refute $ run (const p) 0 d) >> putStrLn ("NONE") >> hFlush stdout;
+depthCheck :: Testable a => Bool -> Int -> a -> IO ();
+depthCheck potential d p =
+  (refute potential $ run (const p) 0 d) >> putStrLn ("NONE") >> hFlush stdout;
 
-smallCheck :: Testable a => Int -> a -> IO ();
-smallCheck d p = mapM_ (`depthCheck` p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
+smallCheck :: Testable a => Bool -> Int -> a -> IO ();
+smallCheck potential d p = mapM_ (\d -> depthCheck potential d p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
 
 }
 

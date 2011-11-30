@@ -56,10 +56,10 @@ answeri a known unknown =
        Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e
 
-answer :: Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
-answer a known unknown =
+answer :: Bool -> Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
+answer potential a known unknown =
   Control.Exception.catch (answeri a known unknown) 
-    (\ (PatternMatchFail _) -> known True)
+    (\ (PatternMatchFail _) -> known (not potential))
 
 --  Proofs and Refutation
 
@@ -153,20 +153,20 @@ refineTree es p t = updateTree refine (pathPrefix p es) t
 
 -- refute
 
-refute :: ([Generated_Code.Narrowing_term] -> Bool) -> Int -> QuantTree -> IO QuantTree
-refute exec d t = ref t
+refute :: ([Generated_Code.Narrowing_term] -> Bool) -> Bool -> Int -> QuantTree -> IO QuantTree
+refute exec potential d t = ref t
   where
     ref t =
       let path = find t in
         do
-          t' <- answer (exec (termListOf [] path)) (\b -> return (updateNode path (Eval b) t))
+          t' <- answer potential (exec (termListOf [] path)) (\b -> return (updateNode path (Eval b) t))
             (\p -> return (if length p < d then refineTree path p t else updateNode path unknown t));
           case evalOf t' of
             UnknownValue True -> ref t'
             _ -> return t'
 
-depthCheck :: Int -> Generated_Code.Property -> IO ()
-depthCheck d p = refute (checkOf p) d (treeOf 0 p) >>= (\t -> 
+depthCheck :: Bool -> Int -> Generated_Code.Property -> IO ()
+depthCheck potential d p = refute (checkOf p) potential d (treeOf 0 p) >>= (\t -> 
   case evalOf t of
    Eval False -> putStrLn ("SOME (" ++ show (counterexampleOf (reifysOf p) (exampleOf 0 t)) ++ ")")  
    _ -> putStrLn ("NONE"))

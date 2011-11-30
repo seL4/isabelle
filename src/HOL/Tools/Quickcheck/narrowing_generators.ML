@@ -222,7 +222,7 @@ fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
   
-fun value (contains_existentials, (quiet, size)) ctxt cookie (code, value_name) =
+fun value (contains_existentials, ((potential, quiet), size)) ctxt cookie (code, value_name) =
   let
     val (get, put, put_ml) = cookie
     fun message s = if quiet then () else Output.urgent_message s
@@ -242,7 +242,8 @@ fun value (contains_existentials, (quiet, size)) ctxt cookie (code, value_name) 
           "import System;\n" ^
           "import Narrowing_Engine;\n" ^
           "import Generated_Code;\n\n" ^
-          "main = getArgs >>= \\[size] -> Narrowing_Engine.depthCheck (read size) (Generated_Code.value ())\n\n" ^
+          "main = getArgs >>= \\[potential, size] -> " ^
+          "Narrowing_Engine.depthCheck (read potential) (read size) (Generated_Code.value ())\n\n" ^
           "}\n"
         val code' = prefix "module Generated_Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Generated_Code where {" code)
@@ -257,6 +258,7 @@ fun value (contains_existentials, (quiet, size)) ctxt cookie (code, value_name) 
         val (result, compilation_time) =
           elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd) 
         val _ = Quickcheck.add_timing compilation_time current_result
+        fun haskell_string_of_bool v = if v then "True" else "False"
         val _ = if Isabelle_System.bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size k =
           if k > size then
@@ -266,7 +268,8 @@ fun value (contains_existentials, (quiet, size)) ctxt cookie (code, value_name) 
               val _ = message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
               val _ = current_size := k
               val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
-                (fn () => Isabelle_System.bash_output (executable ^ " " ^ string_of_int k))
+                (fn () => Isabelle_System.bash_output
+                  (executable ^ " " ^ haskell_string_of_bool potential  ^ " " ^ string_of_int k))
               val _ = Quickcheck.add_timing timing current_result
             in
               if response = "NONE\n" then
@@ -415,7 +418,8 @@ fun test_term ctxt (t, eval_terms) =
   let
     fun dest_result (Quickcheck.Result r) = r 
     val opts =
-      (Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.size)
+      ((Config.get ctxt Quickcheck.potential, Config.get ctxt Quickcheck.quiet),
+        Config.get ctxt Quickcheck.size)
     val thy = Proof_Context.theory_of ctxt
     val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
     val pnf_t = make_pnf_term thy t'
