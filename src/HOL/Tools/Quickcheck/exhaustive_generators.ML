@@ -326,6 +326,17 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt 
   in lambda depth (@{term "catch_Counterexample :: unit => term list option"} $ mk_test_term t) end
 
+fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
+
+fun mk_safe_if ctxt (cond, then_t, else_t) =
+  @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"}
+    $ (@{term "If :: bool => term list option => term list option => term list option"}
+      $ cond $ then_t $ else_t)
+    $ (if Config.get ctxt Quickcheck.potential then else_t else @{term "None :: term list option"});  
+
+fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
+      $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
+
 fun mk_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -335,21 +346,14 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
-    val return = @{term "Some :: term list => term list option"} $
-      (HOLogic.mk_list @{typ "term"}
-        (map (fn t => HOLogic.mk_term_of (fastype_of t) t) (frees @ eval_terms)))
+    val return = @{term "Some :: term list => term list option"} $ (HOLogic.mk_list @{typ "term"}
+        (map (fn t => HOLogic.mk_term_of (fastype_of t) t) frees @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
         $ lambda free t $ depth
     val none_t = @{term "None :: term list option"}
-    fun mk_safe_if (cond, then_t, else_t) =
-      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
-        (@{term "If :: bool => term list option => term list option => term list option"}
-        $ cond $ then_t $ else_t) $ none_t;
-    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure (mk_safe_if ctxt) none_t return ctxt
   in lambda depth (mk_test_term t) end
-
-fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
 
 fun mk_full_generator_expr ctxt (t, eval_terms) =
   let
@@ -362,12 +366,8 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val depth = Free (depth_name, @{typ code_numeral})
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
-    val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
-    fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
-          $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
-    val appendC = @{term "List.append :: term list => term list => term list"}
-    val return = @{term "Some :: term list => term list option"} $ (appendC $ terms $
-      (HOLogic.mk_list @{typ "term"} (map mk_safe_term eval_terms)))
+    val return = @{term "Some :: term list => term list option"} $ (HOLogic.mk_list @{typ term}
+      (map (fn v => v $ @{term "()"}) term_vars @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort enum}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
@@ -378,12 +378,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
           $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"})
             $ lambda free (lambda term_var t)) $ depth
     val none_t = @{term "None :: term list option"}
-    fun mk_safe_if (cond, then_t, else_t) =
-      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"}
-        $ (@{term "If :: bool => term list option => term list option => term list option"}
-        $ cond $ then_t $ else_t)
-        $ (if Config.get ctxt Quickcheck.potential then else_t else none_t);
-    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure (mk_safe_if ctxt) none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_parametric_generator_expr mk_generator_expr =
