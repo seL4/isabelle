@@ -34,6 +34,7 @@ sig
      isar_proof: bool,
      isar_shrink_factor: int,
      slice: bool,
+     minimize: bool option,
      timeout: Time.time,
      preplay_timeout: Time.time,
      expect: string}
@@ -297,6 +298,7 @@ type params =
    isar_proof: bool,
    isar_shrink_factor: int,
    slice: bool,
+   minimize: bool option,
    timeout: Time.time,
    preplay_timeout: Time.time,
    expect: string}

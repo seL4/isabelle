@@ -96,6 +96,7 @@ val default_default_params =
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slice", "true"),
+   ("minimize", "smart"),
    ("preplay_timeout", "4")]
 
 val alias_params =
@@ -107,7 +108,8 @@ val negated_alias_params =
    ("non_blocking", "blocking"),
    ("unsound", "sound"),
    ("no_isar_proof", "isar_proof"),
-   ("dont_slice", "slice")]
+   ("dont_slice", "slice"),
+   ("dont_minimize", "minimize")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "sound", "lam_trans",
@@ -290,6 +292,8 @@ fun extract_params mode default_params override_params =
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
+    val minimize =
+      if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
     val timeout =
       (if mode = Auto_Try then NONE else lookup_time "timeout") |> the_timeout
     val preplay_timeout =
@@ -302,8 +306,9 @@ fun extract_params mode default_params override_params =
      lam_trans = lam_trans, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slice = slice, timeout = timeout,
-     preplay_timeout = preplay_timeout, expect = expect}
+     isar_shrink_factor = isar_shrink_factor, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

@@ -147,7 +147,7 @@ a list and a nat.
     affecting 'rat' and 'real'.
 
 * Sledgehammer:
-  - Added "lam_trans" option.
+  - Added "lam_trans" and "minimize" options.
   - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
 
 * Metis:
