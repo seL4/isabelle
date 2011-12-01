@@ -530,7 +530,7 @@ $(OUT)/HOL-IMP: $(OUT)/HOL \
   IMP/Procs_Dyn_Vars_Dyn.thy IMP/Procs_Stat_Vars_Dyn.thy \
   IMP/Procs_Stat_Vars_Stat.thy IMP/Sec_Type_Expr.thy IMP/Sec_Typing.thy \
   IMP/Sec_TypingT.thy IMP/Small_Step.thy IMP/Star.thy IMP/Types.thy \
-  IMP/Util.thy IMP/VC.thy IMP/Vars.thy \
+  IMP/VC.thy IMP/Vars.thy \
   IMP/ROOT.ML IMP/document/root.tex IMP/document/root.bib
 	@cd IMP && $(ISABELLE_TOOL) usedir -g true -b $(OUT)/HOL HOL-IMP
 
