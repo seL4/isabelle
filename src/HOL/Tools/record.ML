@@ -1798,11 +1798,11 @@ fun mk_full_exhaustive_eq tyco vs extN Ts =
     val size = @{term "i::code_numeral"};
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     val T = Type (tyco, map TFree vs);
-    val test_function = Free ("f", termifyT T --> @{typ "term list option"});
+    val test_function = Free ("f", termifyT T --> @{typ "(bool * term list) option"});
     val params = Name.invent_names Name.context "x" Ts;
     fun full_exhaustiveT T =
-      (termifyT T --> @{typ "Code_Evaluation.term list option"}) -->
-        @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"};
+      (termifyT T --> @{typ "(bool * Code_Evaluation.term list) option"}) -->
+        @{typ code_numeral} --> @{typ "(bool * Code_Evaluation.term list) option"};
     fun mk_full_exhaustive T =
       Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
         full_exhaustiveT T);
