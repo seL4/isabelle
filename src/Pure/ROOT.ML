@@ -270,7 +270,7 @@ use "System/session.ML";
 use "System/system_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
-use "PIDE/isabelle_document.ML";
+use "PIDE/protocol.ML";
 use "System/isar.ML";
 
 

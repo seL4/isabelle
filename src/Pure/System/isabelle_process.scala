@@ -58,7 +58,7 @@ object Isabelle_Process
     def is_status = kind == Isabelle_Markup.STATUS
     def is_report = kind == Isabelle_Markup.REPORT
     def is_raw = kind == Isabelle_Markup.RAW
-    def is_ready = Isabelle_Document.is_ready(message)
+    def is_ready = Protocol.is_ready(message)
     def is_syslog = is_init || is_exit || is_system || is_ready || is_stderr
 
     override def toString: String =
@@ -100,7 +100,7 @@ class Isabelle_Process(
     if (kind == Isabelle_Markup.RAW)
       receiver(new Result(XML.Elem(Markup(kind, props), body)))
     else {
-      val msg = XML.Elem(Markup(kind, props), Isabelle_Document.clean_message(body))
+      val msg = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
       receiver(new Result(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
     }
   }
