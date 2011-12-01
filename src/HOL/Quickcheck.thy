@@ -16,7 +16,7 @@ setup {* Code_Target.extend_target ("Quickcheck", (Code_Runtime.target, K I)) *}
 
 subsection {* Catching Match exceptions *}
 
-definition catch_match :: "(bool * term list) option => (bool * term list) option => (bool * term list) option"
+definition catch_match :: "'a => 'a => 'a" (* "(bool * term list) option => (bool * term list) option => (bool * term list) option"*)
 where
   [code del]: "catch_match t1 t2 = (SOME t. t = t1 \<or> t = t2)"
 
