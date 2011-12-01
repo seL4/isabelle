@@ -693,24 +693,24 @@ text {* The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) var} & = & @{syntax_ref var} \\
     @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
     @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
-    @{syntax_def (inner) num} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
+    @{syntax_def (inner) num_token} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def (inner) xnum} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
+    @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
 
     @{syntax_def (inner) xstr} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
   \end{supertabular}
   \end{center}
 
-  The token categories @{syntax (inner) num}, @{syntax (inner)
-  float_token}, @{syntax (inner) xnum}, and @{syntax (inner) xstr} are
-  not used in Pure.  Object-logics may implement numerals and string
-  constants by adding appropriate syntax declarations, together with
-  some translation functions (e.g.\ see Isabelle/HOL).
+  The token categories @{syntax (inner) num_token}, @{syntax (inner)
+  float_token}, @{syntax (inner) xnum_token}, and @{syntax (inner)
+  xstr} are not used in Pure.  Object-logics may implement numerals
+  and string constants by adding appropriate syntax declarations,
+  together with some translation functions (e.g.\ see Isabelle/HOL).
 
-  The derived categories @{syntax_def (inner) num_const} and
-  @{syntax_def (inner) float_const} provide robust access to @{syntax
-  (inner) num}, and @{syntax (inner) float_token}, respectively: the
-  syntax tree holds a syntactic constant instead of a free variable.
+  The derived categories @{syntax_def (inner) num_const}, @{syntax_def
+  (inner) float_const}, and @{syntax_def (inner) num_const} provide
+  robust access to the respective tokens: the syntax tree holds a
+  syntactic constant instead of a free variable.
 *}
 
 

@@ -866,22 +866,21 @@ The inner lexical syntax vaguely resembles the outer one
     \indexdef{inner}{syntax}{var}\hypertarget{syntax.inner.var}{\hyperlink{syntax.inner.var}{\mbox{\isa{var}}}} & = & \indexref{}{syntax}{var}\hyperlink{syntax.var}{\mbox{\isa{var}}} \\
     \indexdef{inner}{syntax}{tid}\hypertarget{syntax.inner.tid}{\hyperlink{syntax.inner.tid}{\mbox{\isa{tid}}}} & = & \indexref{}{syntax}{typefree}\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}} \\
     \indexdef{inner}{syntax}{tvar}\hypertarget{syntax.inner.tvar}{\hyperlink{syntax.inner.tvar}{\mbox{\isa{tvar}}}} & = & \indexref{}{syntax}{typevar}\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}} \\
-    \indexdef{inner}{syntax}{num}\hypertarget{syntax.inner.num}{\hyperlink{syntax.inner.num}{\mbox{\isa{num}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
+    \indexdef{inner}{syntax}{num\_token}\hypertarget{syntax.inner.num-token}{\hyperlink{syntax.inner.num-token}{\mbox{\isa{num{\isaliteral{5F}{\isacharunderscore}}token}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
     \indexdef{inner}{syntax}{float\_token}\hypertarget{syntax.inner.float-token}{\hyperlink{syntax.inner.float-token}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}token}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
-    \indexdef{inner}{syntax}{xnum}\hypertarget{syntax.inner.xnum}{\hyperlink{syntax.inner.xnum}{\mbox{\isa{xnum}}}} & = & \verb|#|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|#-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
+    \indexdef{inner}{syntax}{xnum\_token}\hypertarget{syntax.inner.xnum-token}{\hyperlink{syntax.inner.xnum-token}{\mbox{\isa{xnum{\isaliteral{5F}{\isacharunderscore}}token}}}} & = & \verb|#|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|#-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
 
     \indexdef{inner}{syntax}{xstr}\hypertarget{syntax.inner.xstr}{\hyperlink{syntax.inner.xstr}{\mbox{\isa{xstr}}}} & = & \verb|''| \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} \verb|''| \\
   \end{supertabular}
   \end{center}
 
-  The token categories \hyperlink{syntax.inner.num}{\mbox{\isa{num}}}, \hyperlink{syntax.inner.float-token}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}token}}}, \hyperlink{syntax.inner.xnum}{\mbox{\isa{xnum}}}, and \hyperlink{syntax.inner.xstr}{\mbox{\isa{xstr}}} are
-  not used in Pure.  Object-logics may implement numerals and string
-  constants by adding appropriate syntax declarations, together with
-  some translation functions (e.g.\ see Isabelle/HOL).
+  The token categories \hyperlink{syntax.inner.num-token}{\mbox{\isa{num{\isaliteral{5F}{\isacharunderscore}}token}}}, \hyperlink{syntax.inner.float-token}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}token}}}, \hyperlink{syntax.inner.xnum-token}{\mbox{\isa{xnum{\isaliteral{5F}{\isacharunderscore}}token}}}, and \hyperlink{syntax.inner.xstr}{\mbox{\isa{xstr}}} are not used in Pure.  Object-logics may implement numerals
+  and string constants by adding appropriate syntax declarations,
+  together with some translation functions (e.g.\ see Isabelle/HOL).
 
-  The derived categories \indexdef{inner}{syntax}{num\_const}\hypertarget{syntax.inner.num-const}{\hyperlink{syntax.inner.num-const}{\mbox{\isa{num{\isaliteral{5F}{\isacharunderscore}}const}}}} and
-  \indexdef{inner}{syntax}{float\_const}\hypertarget{syntax.inner.float-const}{\hyperlink{syntax.inner.float-const}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}const}}}} provide robust access to \hyperlink{syntax.inner.num}{\mbox{\isa{num}}}, and \hyperlink{syntax.inner.float-token}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}token}}}, respectively: the
-  syntax tree holds a syntactic constant instead of a free variable.%
+  The derived categories \indexdef{inner}{syntax}{num\_const}\hypertarget{syntax.inner.num-const}{\hyperlink{syntax.inner.num-const}{\mbox{\isa{num{\isaliteral{5F}{\isacharunderscore}}const}}}}, \indexdef{inner}{syntax}{float\_const}\hypertarget{syntax.inner.float-const}{\hyperlink{syntax.inner.float-const}{\mbox{\isa{float{\isaliteral{5F}{\isacharunderscore}}const}}}}, and \indexdef{inner}{syntax}{num\_const}\hypertarget{syntax.inner.num-const}{\hyperlink{syntax.inner.num-const}{\mbox{\isa{num{\isaliteral{5F}{\isacharunderscore}}const}}}} provide
+  robust access to the respective tokens: the syntax tree holds a
+  syntactic constant instead of a free variable.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

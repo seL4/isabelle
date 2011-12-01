@@ -274,7 +274,7 @@ fun dest_numeral phi (u $ t) =
 *}
 
 syntax
-  "_Numerals" :: "xnum \<Rightarrow> 'a"    ("_")
+  "_Numerals" :: "xnum_token \<Rightarrow> 'a"    ("_")
 
 parse_translation {*
 let

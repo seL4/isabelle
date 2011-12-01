@@ -177,9 +177,9 @@ val terminal_kinds =
   ("var", VarSy),
   ("tid", TFreeSy),
   ("tvar", TVarSy),
-  ("num", NumSy),
+  ("num_token", NumSy),
   ("float_token", FloatSy),
-  ("xnum", XNumSy),
+  ("xnum_token", XNumSy),
   ("xstr", StrSy)];
 
 val terminals = map #1 terminal_kinds;

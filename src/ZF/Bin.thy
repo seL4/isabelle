@@ -102,7 +102,7 @@ primrec
                                  NCons(bin_mult(v,w),0))"
 
 syntax
-  "_Int"    :: "xnum => i"        ("_")
+  "_Int"    :: "xnum_token => i"        ("_")
 
 use "Tools/numeral_syntax.ML"
 setup Numeral_Syntax.setup
