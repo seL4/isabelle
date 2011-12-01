@@ -6,7 +6,5 @@ imports
   Independent_Family
   Conditional_Probability
   Information
-  "ex/Dining_Cryptographers"
-  "ex/Koepf_Duermuth_Countermeasure"
 begin
 end
