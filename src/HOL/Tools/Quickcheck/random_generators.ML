@@ -405,9 +405,7 @@ fun compile_generator_expr ctxt ts =
         fun iterate_and_collect (card, size) 0 report = (NONE, report)
           | iterate_and_collect (card, size) j report =
             let
-              val (test_result, single_report) = apsnd Run (single_tester card size) handle Match => 
-                (if Config.get ctxt Quickcheck.quiet then ()
-                 else warning "Exception Match raised during quickcheck"; (NONE, MatchExc))
+              val (test_result, single_report) = apsnd Run (single_tester card size)
               val report = collect_single_report single_report report
             in
               case test_result of NONE => iterate_and_collect (card, size) (j - 1) report
@@ -425,13 +423,7 @@ fun compile_generator_expr ctxt ts =
         fun single_tester c s = compile c s |> Random_Engine.run
         fun iterate (card, size) 0 = NONE
           | iterate (card, size) j =
-            let
-              val result = single_tester card size handle Match => 
-                (if Config.get ctxt Quickcheck.quiet then ()
-                 else warning "Exception Match raised during quickcheck"; NONE)
-            in
-              case result of NONE => iterate (card, size) (j - 1) | SOME q => SOME q
-            end
+            case single_tester card size of NONE => iterate (card, size) (j - 1) | SOME q => SOME q
       in
         fn [card, size] => (rpair NONE (iterate (card, size) iterations))
       end
