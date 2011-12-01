@@ -962,7 +962,7 @@ lemma (in finite_prob_space) setsum_distribution_gen:
      (auto simp add: disjoint_family_on_def sets_eq_Pow inj_on_def
       intro!: arg_cong[where f=prob])
 
-lemma (in finite_prob_space) setsum_distribution:
+lemma (in finite_prob_space) setsum_distribution_cut:
   "(\<Sum>x \<in> X`space M. joint_distribution X Y {(x, y)}) = distribution Y {y}"
   "(\<Sum>y \<in> Y`space M. joint_distribution X Y {(x, y)}) = distribution X {x}"
   "(\<Sum>x \<in> X`space M. joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)}) = joint_distribution Y Z {(y, z)}"

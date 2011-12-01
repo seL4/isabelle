@@ -430,7 +430,7 @@ proof -
       using distribution_order(7,8)[where X=fst and x=k and Y="t\<circ>OB" and y="t obs"]
       by (subst joint_distribution_commute) auto
     also have "\<P>(t\<circ>OB) {t obs} = (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'})"
-      using setsum_distribution(2)[of "t\<circ>OB" fst "t obs", symmetric]
+      using setsum_distribution_cut(2)[of "t\<circ>OB" fst "t obs", symmetric]
       by (auto intro!: setsum_cong distribution_order(8))
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
@@ -439,7 +439,7 @@ proof -
           mult_divide_mult_cancel_left[OF `real (card ?S) \<noteq> 0`]
         cong: setsum_cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
-      using setsum_distribution(2)[of OB fst obs, symmetric]
+      using setsum_distribution_cut(2)[of OB fst obs, symmetric]
       by (auto intro!: setsum_cong distribution_order(8))
     also have "\<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / \<P>(OB) {obs} = \<P>(fst | OB) {(k, obs)}"
       by (subst joint_distribution_commute) (auto intro!: distribution_order(8))
