@@ -96,8 +96,7 @@ val bounded_forallN = "bounded_forall";
 fun fast_exhaustiveT T = (T --> @{typ unit})
   --> @{typ code_numeral} --> @{typ unit}
 
-fun exhaustiveT T = (T --> @{typ "Code_Evaluation.term list option"})
-  --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
+fun exhaustiveT T = (T --> resultT) --> @{typ code_numeral} --> resultT
 
 fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
 
@@ -154,13 +153,13 @@ fun mk_fast_equations functerms =
 
 fun mk_equations functerms =
   let
-    fun test_function T = Free ("f", T --> @{typ "term list option"})
+    fun test_function T = Free ("f", T --> resultT)
     val mk_call = gen_mk_call (fn T =>
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T))
     val mk_aux_call = gen_mk_aux_call functerms
     val mk_consexpr = gen_mk_consexpr test_function functerms
     fun mk_rhs exprs =
-      mk_if (size_ge_zero, foldr1 mk_none_continuation exprs, @{term "None :: term list option"})
+      mk_if (size_ge_zero, foldr1 mk_none_continuation exprs, Const (@{const_name "None"}, resultT))
   in
     mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
@@ -333,6 +332,9 @@ fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unkn
 fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
       $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
 
+fun mk_return t genuine = @{term "Some :: bool * term list => (bool * term list) option"} $
+  (HOLogic.pair_const @{typ bool} @{typ "term list"} $ Quickcheck_Common.reflect_bool genuine $ t)
+
 fun mk_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -342,12 +344,12 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
-    fun return _ = @{term "Some :: term list => term list option"} $ (HOLogic.mk_list @{typ "term"}
+    val return = mk_return (HOLogic.mk_list @{typ "term"}
         (map (fn t => HOLogic.mk_term_of (fastype_of t) t) frees @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
         $ lambda free t $ depth
-    val none_t = @{term "None :: term list option"}
+    val none_t = Const (@{const_name "None"}, resultT)
     val mk_if = Quickcheck_Common.mk_safe_if ctxt
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda depth (mk_test_term t) end
@@ -363,10 +365,8 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val depth = Free (depth_name, @{typ code_numeral})
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
-    fun return genuine = @{term "Some :: bool * term list => (bool * term list) option"} $
-      (HOLogic.pair_const @{typ bool} @{typ "term list"} $ Quickcheck_Common.reflect_bool genuine $
-        (HOLogic.mk_list @{typ term}
-          (map (fn v => v $ @{term "()"}) term_vars @ map mk_safe_term eval_terms)))
+    val return = mk_return (HOLogic.mk_list @{typ term}
+          (map (fn v => v $ @{term "()"}) term_vars @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort enum}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)

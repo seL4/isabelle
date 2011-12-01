@@ -274,7 +274,7 @@ fun mk_safe_if ctxt (cond, then_t, else_t) =
   @{term "Quickcheck.catch_match :: (bool * term list) option => (bool * term list) option => (bool * term list) option"}
     $ (@{term "If :: bool => (bool * term list) option => (bool * term list) option => (bool * term list) option"}
       $ cond $ then_t $ else_t true)
-    $ (if Config.get ctxt Quickcheck.potential then else_t false else @{term "None :: term list option"});  
+    $ (if Config.get ctxt Quickcheck.potential then else_t false else @{term "None :: (bool * term list) option"});
 
 fun collect_results f [] results = results
   | collect_results f (t :: ts) results =

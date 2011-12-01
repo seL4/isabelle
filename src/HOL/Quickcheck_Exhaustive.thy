@@ -16,7 +16,7 @@ where
 subsection {* exhaustive generator type classes *}
 
 class exhaustive = term_of +
-  fixes exhaustive :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+  fixes exhaustive :: "('a \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
   
 class full_exhaustive = term_of +
   fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
@@ -42,7 +42,7 @@ end
 instantiation code_numeral :: exhaustive
 begin
 
-function exhaustive_code_numeral' :: "(code_numeral => term list option) => code_numeral => code_numeral => term list option"
+function exhaustive_code_numeral' :: "(code_numeral => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
   where "exhaustive_code_numeral' f d i =
     (if d < i then None
     else (f i orelse exhaustive_code_numeral' f d (i + 1)))"
@@ -78,7 +78,7 @@ end
 instantiation int :: exhaustive
 begin
 
-function exhaustive' :: "(int => term list option) => int => int => term list option"
+function exhaustive' :: "(int => (bool * term list) option) => int => int => (bool * term list) option"
   where "exhaustive' f d i = (if d < i then None else (f i orelse exhaustive' f d (i + 1)))"
 by pat_completeness auto
 
@@ -136,14 +136,14 @@ end
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
 
-fun exhaustive_fun' :: "(('a => 'b) => term list option) => code_numeral => code_numeral => term list option"
+fun exhaustive_fun' :: "(('a => 'b) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
 where
   "exhaustive_fun' f i d = (exhaustive (%b. f (%_. b)) d)
    orelse (if i > 1 then
      exhaustive_fun' (%g. exhaustive (%a. exhaustive (%b.
        f (g(a := b))) d) d) (i - 1) d else None)"
 
-definition exhaustive_fun :: "(('a => 'b) => term list option) => code_numeral => term list option"
+definition exhaustive_fun :: "(('a => 'b) => (bool * term list) option) => code_numeral => (bool * term list) option"
 where
   "exhaustive_fun f d = exhaustive_fun' f d d" 
 
