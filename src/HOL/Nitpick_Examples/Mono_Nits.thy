@@ -8,7 +8,7 @@ Examples featuring Nitpick's monotonicity check.
 header {* Examples Featuring Nitpick's Monotonicity Check *}
 
 theory Mono_Nits
-imports Main (* "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
+imports Main (* "~/afp/thys/DPT-SAT-Solver/DPT_SAT_Solver" "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
 begin
 
 ML {*
@@ -153,6 +153,7 @@ fun all_unconcealed_theorems_of thy =
 fun is_forbidden_theorem name =
   length (space_explode "." name) <> 2 orelse
   String.isPrefix "type_definition" (List.last (space_explode "." name)) orelse
+  String.isPrefix "arity_" (List.last (space_explode "." name)) orelse
   String.isSuffix "_def" name orelse
   String.isSuffix "_raw" name
 
