@@ -505,6 +505,8 @@ next
   qed
 qed
 
+lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
+  by (auto intro!: inj_onI)
 
 subsubsection {* @{const length} *}
 
@@ -3709,18 +3711,18 @@ next
   thus ?case ..
 qed
 
-lemma finite_lists_length_eq:
-assumes "finite A"
-shows "finite {xs. set xs \<subseteq> A \<and> length xs = n}" (is "finite (?S n)")
-proof(induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n)
-  have "?S (Suc n) = (\<Union>x\<in>A. (\<lambda>xs. x#xs) ` ?S n)"
-    by (auto simp:length_Suc_conv)
-  then show ?case using `finite A`
-    by (auto intro: Suc) (* FIXME metis? *)
-qed
+lemma lists_length_Suc_eq:
+  "{xs. set xs \<subseteq> A \<and> length xs = Suc n} =
+    (\<lambda>(xs, n). n#xs) ` ({xs. set xs \<subseteq> A \<and> length xs = n} \<times> A)"
+  by (auto simp: length_Suc_conv)
+
+lemma
+  assumes "finite A"
+  shows finite_lists_length_eq: "finite {xs. set xs \<subseteq> A \<and> length xs = n}"
+  and card_lists_length_eq: "card {xs. set xs \<subseteq> A \<and> length xs = n} = (card A)^n"
+  using `finite A`
+  by (induct n)
+     (auto simp: card_image inj_split_Cons lists_length_Suc_eq cong: conj_cong)
 
 lemma finite_lists_length_le:
   assumes "finite A" shows "finite {xs. set xs \<subseteq> A \<and> length xs \<le> n}"
@@ -3728,6 +3730,18 @@ lemma finite_lists_length_le:
 proof-
   have "?S = (\<Union>n\<in>{0..n}. {xs. set xs \<subseteq> A \<and> length xs = n})" by auto
   thus ?thesis by (auto intro: finite_lists_length_eq[OF `finite A`])
+qed
+
+lemma card_lists_length_le:
+  assumes "finite A" shows "card {xs. set xs \<subseteq> A \<and> length xs \<le> n} = (\<Sum>i\<le>n. card A^i)"
+proof -
+  have "(\<Sum>i\<le>n. card A^i) = card (\<Union>i\<le>n. {xs. set xs \<subseteq> A \<and> length xs = i})"
+    using `finite A`
+    by (subst card_UN_disjoint)
+       (auto simp add: card_lists_length_eq finite_lists_length_eq)
+  also have "(\<Union>i\<le>n. {xs. set xs \<subseteq> A \<and> length xs = i}) = {xs. set xs \<subseteq> A \<and> length xs \<le> n}"
+    by auto
+  finally show ?thesis by simp
 qed
 
 lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
