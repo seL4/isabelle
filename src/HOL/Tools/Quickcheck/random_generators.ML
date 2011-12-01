@@ -340,9 +340,15 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
       @{term "If :: bool => term list option * (bool list * bool) => term list option * (bool list * bool) => term list option * (bool list * bool)"}
     val concl_check = If $ concl $
       HOLogic.mk_prod (@{term "None :: term list option"}, mk_concl_report true) $
-      HOLogic.mk_prod (@{term "Some :: term list  => term list option"} $ terms, mk_concl_report false)
+      HOLogic.mk_prod (@{term "Some :: term list => term list option"} $ terms, mk_concl_report false)
     val check = fold_rev (fn (i, assm) => fn t => If $ assm $ t $ mk_assms_report i)
       (map_index I assms) concl_check
+    val check' = @{term "Quickcheck.catch_match :: term list option * bool list * bool =>
+      term list option * bool list * bool => term list option * bool list * bool"} $ check $
+      (if Config.get ctxt Quickcheck.potential then
+        HOLogic.mk_prod (@{term "Some :: term list  => term list option"} $ terms, mk_concl_report false)
+      else
+        HOLogic.mk_prod (@{term "None :: term list option"}, mk_concl_report true))
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
@@ -356,7 +362,7 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
       (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
   in
-    Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check))
+    Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check'))
   end
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
