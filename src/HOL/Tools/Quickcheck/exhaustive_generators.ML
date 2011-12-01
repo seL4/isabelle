@@ -86,6 +86,8 @@ exception FUNCTION_TYPE;
 
 exception Counterexample of term list
 
+val resultT =  @{typ "(bool * term list) option"};
+
 val exhaustiveN = "exhaustive";
 val full_exhaustiveN = "full_exhaustive";
 val fast_exhaustiveN = "fast_exhaustive";
@@ -99,11 +101,9 @@ fun exhaustiveT T = (T --> @{typ "Code_Evaluation.term list option"})
 
 fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
 
-fun full_exhaustiveT T = (termifyT T --> @{typ "(bool * Code_Evaluation.term list) option"})
-  --> @{typ code_numeral} --> @{typ "(bool * Code_Evaluation.term list) option"}
+fun full_exhaustiveT T = (termifyT T --> resultT) --> @{typ code_numeral} --> resultT
 
-fun check_allT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
-  --> @{typ "Code_Evaluation.term list option"}
+fun check_allT T = (termifyT T --> resultT) --> resultT
 
 fun mk_equation_terms generics (descr, vs, Ts) =
   let
@@ -181,7 +181,8 @@ fun mk_bounded_forall_equations functerms =
   
 fun mk_full_equations functerms =
   let
-    fun test_function T = Free ("f", termifyT T --> @{typ "(bool * term list) option"})
+    fun test_function T = Free ("f", termifyT T --> resultT)
+    fun split_const T = HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, resultT)
     fun mk_call T =
       let
         val full_exhaustive =
@@ -189,9 +190,7 @@ fun mk_full_equations functerms =
             full_exhaustiveT T)
       in                                   
         (T, fn t => full_exhaustive $
-          (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"},
-            @{typ "(bool * Code_Evaluation.term list) option"})
-          $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
+          (split_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_aux_call fTs (k, _) (tyco, Ts) =
       let
@@ -199,9 +198,7 @@ fun mk_full_equations functerms =
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
         (T, fn t => nth functerms k $
-          (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"},
-            @{typ "(bool * Code_Evaluation.term list) option"})
-            $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
+          (split_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -219,7 +216,7 @@ fun mk_full_equations functerms =
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
       mk_if (size_ge_zero, foldr1 mk_none_continuation exprs,
-        @{term "None :: (bool * term list) option"})
+        Const (@{const_name "None"}, resultT))
   in
     mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
@@ -373,21 +370,21 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort enum}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT) 
             $ lambda free (lambda term_var t))
       else
         Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "(bool * term list) option"})
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t)) $ depth
-    val none_t = @{term "None :: (bool * term list) option"}
+    val none_t = Const (@{const_name "None"}, resultT)
     val mk_if = Quickcheck_Common.mk_safe_if ctxt
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
-    ((mk_generator_expr, absdummy @{typ "code_numeral"} @{term "None :: (bool * term list) option"}),
-      @{typ "code_numeral => (bool * term list) option"})
+    ((mk_generator_expr, absdummy @{typ "code_numeral"} (Const (@{const_name "None"}, resultT))),
+      @{typ "code_numeral"} --> resultT)
 
 fun mk_validator_expr ctxt t =
   let

@@ -19,12 +19,12 @@ class exhaustive = term_of +
   fixes exhaustive :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
   
 class full_exhaustive = term_of +
-  fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+  fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
 
 instantiation code_numeral :: full_exhaustive
 begin
 
-function full_exhaustive_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+function full_exhaustive_code_numeral' :: "(code_numeral * (unit => term) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
   where "full_exhaustive_code_numeral' f d i =
     (if d < i then None
     else (f (i, %_. Code_Evaluation.term_of i)) orelse (full_exhaustive_code_numeral' f d (i + 1)))"
@@ -94,7 +94,7 @@ end
 instantiation int :: full_exhaustive
 begin
 
-function full_exhaustive' :: "(int * (unit => term) => term list option) => int => int => term list option"
+function full_exhaustive' :: "(int * (unit => term) => (bool * term list) option) => int => int => (bool * term list) option"
   where "full_exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive' f d (i + 1)))"
 by pat_completeness auto
 
@@ -154,7 +154,7 @@ end
 instantiation "fun" :: ("{equal, full_exhaustive}", full_exhaustive) full_exhaustive
 begin
 
-fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
 where
   "full_exhaustive_fun' f i d = (full_exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d)
    orelse (if i > 1 then
@@ -168,7 +168,7 @@ where
                   (Code_Evaluation.Const (STR ''Fun.fun_upd'') (fun (fun A B) (fun A (fun B (fun A B)))))
                 (gt ())) (at ())) (bt ())))) d) d) (i - 1) d else None)"
 
-definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
+definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => (bool * term list) option"
 where
   "full_exhaustive_fun f d = full_exhaustive_fun' f d d" 
 
@@ -179,10 +179,10 @@ end
 subsubsection {* A smarter enumeration scheme for functions over finite datatypes *}
 
 class check_all = enum + term_of +
-  fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> term list option) \<Rightarrow> term list option"
+  fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> (bool * term list) option) \<Rightarrow> (bool * term list) option"
   fixes enum_term_of :: "'a itself \<Rightarrow> unit \<Rightarrow> term list"
   
-fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
 where
   "check_all_n_lists f n =
      (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
