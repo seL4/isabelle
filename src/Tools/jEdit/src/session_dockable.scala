@@ -94,7 +94,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* component state -- owned by Swing thread */
 
-  private var nodes_status: Map[Document.Node.Name, Isabelle_Document.Node_Status] = Map.empty
+  private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
 
   private object Node_Renderer_Component extends Label
   {
@@ -152,7 +152,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
       for {
         name <- nodes
         node <- snapshot.version.nodes.get(name)
-        val status = Isabelle_Document.node_status(snapshot.state, snapshot.version, node)
+        val status = Protocol.node_status(snapshot.state, snapshot.version, node)
       } nodes_status1 += (name -> status)
 
       if (nodes_status != nodes_status1) {

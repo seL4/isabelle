@@ -31,10 +31,10 @@ declare -a SOURCES=(
   PIDE/blob.scala
   PIDE/command.scala
   PIDE/document.scala
-  PIDE/isabelle_document.scala
   PIDE/isabelle_markup.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
+  PIDE/protocol.scala
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala

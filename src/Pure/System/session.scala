@@ -211,7 +211,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
       def cancel() { timer.cancel() }
     }
 
-    var prover: Option[Isabelle_Process with Isabelle_Document] = None
+    var prover: Option[Isabelle_Process with Protocol] = None
 
 
     /* delayed command changes */
@@ -365,7 +365,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           }
         case Isabelle_Markup.Assign_Execs if result.is_raw =>
           XML.content(result.body).mkString match {
-            case Isabelle_Document.Assign(id, assign) =>
+            case Protocol.Assign(id, assign) =>
               try { handle_assign(id, assign) }
               catch { case _: Document.State.Fail => bad_result(result) }
             case _ => bad_result(result)
@@ -378,7 +378,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
           }
         case Isabelle_Markup.Removed_Versions if result.is_raw =>
           XML.content(result.body).mkString match {
-            case Isabelle_Document.Removed(removed) =>
+            case Protocol.Removed(removed) =>
               try { handle_removed(removed) }
               catch { case _: Document.State.Fail => bad_result(result) }
             case _ => bad_result(result)
@@ -429,8 +429,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover =
-              Some(new Isabelle_Process(timeout, receiver.invoke _, args) with Isabelle_Document)
+            prover = Some(new Isabelle_Process(timeout, receiver.invoke _, args) with Protocol)
           }
 
         case Stop =>

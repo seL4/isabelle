@@ -61,9 +61,9 @@ object Isabelle_Rendering
     val state = snapshot.command_state(command)
     if (snapshot.is_outdated) Some(outdated_color)
     else
-      Isabelle_Document.command_status(state.status) match {
-        case Isabelle_Document.Forked(i) if i > 0 => Some(running1_color)
-        case Isabelle_Document.Unprocessed => Some(unprocessed1_color)
+      Protocol.command_status(state.status) match {
+        case Protocol.Forked(i) if i > 0 => Some(running1_color)
+        case Protocol.Unprocessed => Some(unprocessed1_color)
         case _ => None
       }
   }
@@ -73,13 +73,13 @@ object Isabelle_Rendering
     val state = snapshot.command_state(command)
     if (snapshot.is_outdated) None
     else
-      Isabelle_Document.command_status(state.status) match {
-        case Isabelle_Document.Forked(i) => if (i > 0) Some(running_color) else None
-        case Isabelle_Document.Unprocessed => Some(unprocessed_color)
-        case Isabelle_Document.Failed => Some(error_color)
-        case Isabelle_Document.Finished =>
-          if (state.results.exists(r => Isabelle_Document.is_error(r._2))) Some(error_color)
-          else if (state.results.exists(r => Isabelle_Document.is_warning(r._2))) Some(warning_color)
+      Protocol.command_status(state.status) match {
+        case Protocol.Forked(i) => if (i > 0) Some(running_color) else None
+        case Protocol.Unprocessed => Some(unprocessed_color)
+        case Protocol.Failed => Some(error_color)
+        case Protocol.Finished =>
+          if (state.results.exists(r => Protocol.is_error(r._2))) Some(error_color)
+          else if (state.results.exists(r => Protocol.is_warning(r._2))) Some(warning_color)
           else None
       }
   }
