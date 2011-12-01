@@ -75,8 +75,8 @@ val auto_minimize_max_time =
 fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, sound,
          lam_trans, relevance_thresholds, max_relevant, max_mono_iters,
-         max_new_mono_instances, isar_proof, isar_shrink_factor, slicing,
-         timeout, preplay_timeout, expect} : params) =
+         max_new_mono_instances, isar_proof, isar_shrink_factor, slice, timeout,
+         preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -93,8 +93,8 @@ fun adjust_reconstructor_params override_params
      relevance_thresholds = relevance_thresholds,
      max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     isar_shrink_factor = isar_shrink_factor, slice = slice, timeout = timeout,
+     preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
@@ -172,7 +172,7 @@ fun get_minimizing_prover ctxt mode name params minimize_command problem =
 fun is_induction_fact (Untranslated_Fact ((_, Induction), _)) = true
   | is_induction_fact _ = false
 
-fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
+fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,
                               timeout, expect, ...})
         mode minimize_command only
         {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
@@ -183,7 +183,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_relevant =
       max_relevant
-      |> the_default (default_max_relevant_for_prover ctxt slicing name)
+      |> the_default (default_max_relevant_for_prover ctxt slice name)
     val num_facts = length facts |> not only ? Integer.min max_relevant
     fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
@@ -277,7 +277,7 @@ fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
 val auto_try_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers,
-                                 relevance_thresholds, max_relevant, slicing,
+                                 relevance_thresholds, max_relevant, slice,
                                  timeout, ...})
         mode i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
@@ -338,7 +338,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
               SOME n => n
             | NONE =>
               0 |> fold (Integer.max
-                         o default_max_relevant_for_prover ctxt slicing)
+                         o default_max_relevant_for_prover ctxt slice)
                         provers
                 |> mode = Auto_Try
                    ? (fn n => n div auto_try_max_relevant_divisor)

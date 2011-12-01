@@ -65,7 +65,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        lam_trans = lam_trans, relevance_thresholds = (1.01, 1.01),
        max_relevant = SOME (length facts), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
-       isar_shrink_factor = isar_shrink_factor, slicing = false,
+       isar_shrink_factor = isar_shrink_factor, slice = false,
        timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,

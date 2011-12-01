@@ -33,7 +33,7 @@ sig
      max_new_mono_instances: int,
      isar_proof: bool,
      isar_shrink_factor: int,
-     slicing: bool,
+     slice: bool,
      timeout: Time.time,
      preplay_timeout: Time.time,
      expect: string}
@@ -163,18 +163,18 @@ fun is_prover_installed ctxt =
   is_reconstructor orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
 
-fun get_slices slicing slices =
-  (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
+fun get_slices slice slices =
+  (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
 
 val reconstructor_default_max_relevant = 20
 
-fun default_max_relevant_for_prover ctxt slicing name =
+fun default_max_relevant_for_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_relevant
     else if is_atp thy name then
       fold (Integer.max o #1 o snd o snd o snd)
-           (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
+           (get_slices slice (#best_slices (get_atp thy name) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end
@@ -296,7 +296,7 @@ type params =
    max_new_mono_instances: int,
    isar_proof: bool,
    isar_shrink_factor: int,
-   slicing: bool,
+   slice: bool,
    timeout: Time.time,
    preplay_timeout: Time.time,
    expect: string}
@@ -578,7 +578,7 @@ fun run_atp mode name
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, sound, lam_trans,
                     max_relevant, max_mono_iters, max_new_mono_instances,
-                    isar_proof, isar_shrink_factor, slicing, timeout,
+                    isar_proof, isar_shrink_factor, slice, timeout,
                     preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
@@ -624,7 +624,7 @@ fun run_atp mode name
           let
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
-            val actual_slices = get_slices slicing (best_slices ctxt)
+            val actual_slices = get_slices slice (best_slices ctxt)
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
@@ -873,10 +873,10 @@ val smt_slice_min_secs =
 
 fun smt_filter_loop ctxt name
                     ({debug, verbose, overlord, max_mono_iters,
-                      max_new_mono_instances, timeout, slicing, ...} : params)
+                      max_new_mono_instances, timeout, slice, ...} : params)
                     state i smt_filter =
   let
-    val max_slices = if slicing then Config.get ctxt smt_max_slices else 1
+    val max_slices = if slice then Config.get ctxt smt_max_slices else 1
     val repair_context =
       select_smt_solver name
       #> Config.put SMT_Config.verbose debug

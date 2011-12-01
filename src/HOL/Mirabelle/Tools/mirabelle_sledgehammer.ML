@@ -10,7 +10,7 @@ val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val type_encK = "type_enc"
 val soundK = "sound"
-val slicingK = "slicing"
+val sliceK = "slice"
 val lam_transK = "lam_trans"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
@@ -361,7 +361,7 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
+fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
         e_weight_method force_sos hard_timeout timeout dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
@@ -381,7 +381,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
                        e_weight_method |> the_default I)
                  #> (Option.map (Config.put ATP_Systems.force_sos)
                        force_sos |> the_default I))
-    val params as {relevance_thresholds, max_relevant, slicing, ...} =
+    val params as {relevance_thresholds, max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_enc", type_enc),
@@ -389,11 +389,11 @@ fun run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
            ("lam_trans", lam_trans |> the_default "smart"),
            ("preplay_timeout", preplay_timeout),
            ("max_relevant", max_relevant),
-           ("slicing", slicing),
+           ("slice", slice),
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
     val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice
         prover_name
     val is_appropriate_prop =
       Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt prover_name
@@ -469,7 +469,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
     val sound = AList.lookup (op =) args soundK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
-    val slicing = AList.lookup (op =) args slicingK |> the_default "true"
+    val slice = AList.lookup (op =) args sliceK |> the_default "true"
     val lam_trans = AList.lookup (op =) args lam_transK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
@@ -480,7 +480,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc sound max_relevant slicing lam_trans
+      run_sh prover_name prover type_enc sound max_relevant slice lam_trans
         e_weight_method force_sos hard_timeout timeout dir pos st
   in
     case result of
@@ -555,7 +555,7 @@ fun override_params prover type_enc timeout =
    ("max_relevant", "0"),
    ("type_enc", type_enc),
    ("sound", "true"),
-   ("slicing", "false"),
+   ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
 fun run_reconstructor trivial full m name reconstructor named_thms id

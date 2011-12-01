@@ -148,6 +148,7 @@ a list and a nat.
 
 * Sledgehammer:
   - Added "lam_trans" option.
+  - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
 
 * Metis:
   - Added possibility to specify lambda translations scheme as a

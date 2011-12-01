@@ -25,13 +25,13 @@ open Sledgehammer_Filter
 fun run_atp override_params relevance_override i n ctxt goal =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
-    val params as {provers, relevance_thresholds, max_relevant, slicing, ...} =
+    val params as {provers, relevance_thresholds, max_relevant, slice, ...} =
       Sledgehammer_Isar.default_params ctxt override_params
     val name = hd provers
     val prover =
       Sledgehammer_Provers.get_prover ctxt Sledgehammer_Provers.Normal name
     val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing name
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slice name
     val is_built_in_const =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt name
     val relevance_fudge =
