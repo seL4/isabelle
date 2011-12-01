@@ -1020,13 +1020,6 @@ lemma (in prob_space) setsum_distribution:
   using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
   using sigma_algebra_Pow[of "UNIV::unit set" "()"] by simp
 
-lemma (in prob_space) setsum_real_distribution:
-  fixes MX :: "('c, 'd) measure_space_scheme"
-  assumes X: "finite_random_variable MX X" shows "(\<Sum>a\<in>space MX. distribution X {a}) = 1"
-  using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV, measure = undefined \<rparr>" "\<lambda>x. ()" "{()}"]
-  using sigma_algebra_Pow[of "UNIV::unit set" "\<lparr> measure = undefined \<rparr>"]
-  by auto
-
 lemma (in information_space) conditional_mutual_information_generic_positive:
   assumes X: "finite_random_variable MX X" and Y: "finite_random_variable MY Y" and Z: "finite_random_variable MZ Z"
   shows "0 \<le> conditional_mutual_information b MX MY MZ X Y Z"
@@ -1101,7 +1094,7 @@ next
                    setsum_joint_distribution_singleton[OF Y Z]
           intro!: setsum_cong)
   also have "log b (\<Sum>z\<in>space MZ. ?dZ {z}) = 0"
-    unfolding setsum_real_distribution[OF Z] by simp
+    unfolding setsum_distribution[OF Z] by simp
   finally show ?thesis by simp
 qed
 
