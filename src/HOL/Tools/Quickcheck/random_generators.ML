@@ -31,6 +31,7 @@ val size' = @{term "j::code_numeral"};
 val seed = @{term "s::Random.seed"};
 
 
+
 (** typ "'a => 'b" **)
 
 type seed = Random_Engine.seed;
@@ -298,7 +299,8 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
     val check = Quickcheck_Common.mk_safe_if ctxt (result, @{term "None :: term list option"},
-      @{term "Some :: term list => term list option"} $ terms)
+      fn genuine => @{term "Some :: bool * term list => (bool * term list) option"} $
+        HOLogic.mk_prod (Quickcheck_Common.reflect_bool genuine, terms))
     val return = @{term "Pair :: term list option => Random.seed => term list option * Random.seed"};
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});

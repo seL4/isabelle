@@ -7,13 +7,14 @@ Common functions for quickcheck's generators.
 signature QUICKCHECK_COMMON =
 sig
   val strip_imp : term -> (term list * term)
+  val reflect_bool : bool -> term
   val define_functions : ((term list -> term list) * (Proof.context -> tactic) option)
     -> string -> string list -> string list -> typ list -> Proof.context -> Proof.context 
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
-  val mk_safe_if : Proof.context -> (term * term * term) -> term
+  val mk_safe_if : Proof.context -> term * term * (bool -> term) -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
     Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
@@ -44,6 +45,8 @@ val define_foundationally = false
 
 fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
   | strip_imp A = ([], A)
+
+fun reflect_bool b = if b then @{term "True"} else @{term "False"}
 
 fun mk_undefined T = Const(@{const_name undefined}, T)
 
@@ -141,7 +144,6 @@ fun test_terms ctxt ts =
     (Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results,
       [comp_time, exec_time])
   end
-
 
 fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
   let
@@ -269,10 +271,10 @@ fun instantiate_goals lthy insts goals =
 (* compilation of testing functions *)
 
 fun mk_safe_if ctxt (cond, then_t, else_t) =
-  @{term "Quickcheck.catch_match :: term list option => term list option => term list option"}
-    $ (@{term "If :: bool => term list option => term list option => term list option"}
-      $ cond $ then_t $ else_t)
-    $ (if Config.get ctxt Quickcheck.potential then else_t else @{term "None :: term list option"});  
+  @{term "Quickcheck.catch_match :: (bool * term list) option => (bool * term list) option => (bool * term list) option"}
+    $ (@{term "If :: bool => (bool * term list) option => (bool * term list) option => (bool * term list) option"}
+      $ cond $ then_t $ else_t true)
+    $ (if Config.get ctxt Quickcheck.potential then else_t false else @{term "None :: term list option"});  
 
 fun collect_results f [] results = results
   | collect_results f (t :: ts) results =
@@ -379,8 +381,8 @@ fun ensure_sort_datatype (((sort_vs, aux_sort), sort), instantiate_datatype) con
 fun gen_mk_parametric_generator_expr ((mk_generator_expr, out_of_bounds), T) ctxt ts =
   let
     val if_t = Const (@{const_name "If"}, @{typ bool} --> T --> T --> T)
-    fun mk_if (index, (t, eval_terms)) else_t =
-      if_t $ (HOLogic.eq_const @{typ code_numeral} $ Bound 0 $ HOLogic.mk_number @{typ code_numeral} index) $
+    fun mk_if (index, (t, eval_terms)) else_t = if_t $
+        (HOLogic.eq_const @{typ code_numeral} $ Bound 0 $ HOLogic.mk_number @{typ code_numeral} index) $
         (mk_generator_expr ctxt (t, eval_terms)) $ else_t
   in
     absdummy @{typ "code_numeral"} (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds)
