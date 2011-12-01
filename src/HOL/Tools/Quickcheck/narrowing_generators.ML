@@ -14,7 +14,7 @@ sig
   datatype counterexample = Universal_Counterexample of (term * counterexample)
     | Existential_Counterexample of (term * counterexample) list
     | Empty_Assignment
-  val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
+  val put_counterexample: (unit -> (bool * term list) option) -> Proof.context -> Proof.context
   val put_existential_counterexample : (unit -> counterexample option) -> Proof.context -> Proof.context
   val setup: theory -> theory
 end;
@@ -302,7 +302,7 @@ fun dynamic_value_strict opts cookie thy postproc t =
   
 structure Counterexample = Proof_Data
 (
-  type T = unit -> term list option
+  type T = unit -> (bool * term list) option
   fun init _ () = error "Counterexample"
 )
 
@@ -450,11 +450,11 @@ fun test_term ctxt (t, eval_terms) =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
         val (counterexample, result) = dynamic_value_strict (false, opts)
           (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-          thy (apfst o Option.map o map) (ensure_testable (finitize t'))
+          thy (apfst o Option.map o apsnd o map) (ensure_testable (finitize t'))
       in
         Quickcheck.Result
          {counterexample =
-           Option.map (((curry (op ~~)) (Term.add_free_names t [])) o map post_process) counterexample,
+           Option.map (((curry (op ~~)) (Term.add_free_names t [])) o map post_process o snd) counterexample,
           evaluation_terms = Option.map (K []) counterexample,
           timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end

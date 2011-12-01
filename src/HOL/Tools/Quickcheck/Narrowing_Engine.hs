@@ -29,32 +29,33 @@ total (Generated_Code.Var p (Generated_Code.SumOfProd ss)) = [y | x <- new p ss,
 
 -- Answers
 
-answeri :: a -> (a -> IO b) -> (Pos -> IO b) -> IO b;
+answeri :: a -> (Bool -> a -> IO b) -> (Pos -> IO b) -> IO b;
 answeri a known unknown =
   try (evaluate a) >>= (\res ->
      case res of
-       Right b -> known b
+       Right b -> known True b
        Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e);
 
-answer :: Bool -> Bool -> (Bool -> IO b) -> (Pos -> IO b) -> IO b;
+answer :: Bool -> Bool -> (Bool -> Bool -> IO b) -> (Pos -> IO b) -> IO b;
 answer potential a known unknown =
   Control.Exception.catch (answeri a known unknown) 
-    (\ (PatternMatchFail _) -> known (not potential));
+    (\ (PatternMatchFail _) -> known False (not potential));
 
 -- Refute
 
 str_of_list [] = "[]";
 str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 
-report :: Result -> [Generated_Code.Narrowing_term] -> IO Int;
-report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
+report :: Bool -> Result -> [Generated_Code.Narrowing_term] -> IO Int;
+report genuine r xs = putStrLn ("SOME (" ++ (if genuine then "true" else "false") ++
+  ", " ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
-eval :: Bool -> Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
-eval potential p k u = answer potential p (\p -> answer potential p k u) u;
+eval :: Bool -> Bool -> (Bool -> Bool -> IO a) -> (Pos -> IO a) -> IO a;
+eval potential p k u = answer potential p (\genuine p -> answer potential p k u) u;
 
 ref :: Bool -> Result -> [Generated_Code.Narrowing_term] -> IO Int;
-ref potential r xs = eval potential (apply_fun r xs) (\res -> if res then return 1 else report r xs)
+ref potential r xs = eval potential (apply_fun r xs) (\genuine res -> if res then return 1 else report genuine r xs)
   (\p -> sumMapM (ref potential r) 1 (refineList xs p));
           
 refute :: Bool -> Result -> IO Int;
@@ -115,4 +116,3 @@ smallCheck :: Testable a => Bool -> Int -> a -> IO ();
 smallCheck potential d p = mapM_ (\d -> depthCheck potential d p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
 
 }
-
