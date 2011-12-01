@@ -413,17 +413,23 @@ lemma
   "xs = [] ==> hd xs \<noteq> x"
 quickcheck[exhaustive, potential = false, expect = no_counterexample]
 quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[random, potential = false, report = false, expect = no_counterexample]
+quickcheck[random, potential = true, report = false, expect = counterexample]
 oops
 
 lemma
   "xs = [] ==> hd xs = x"
 quickcheck[exhaustive, potential = false, expect = no_counterexample]
 quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[random, potential = false, report = false, expect = no_counterexample]
+quickcheck[random, potential = true, report = false, expect = counterexample]
 oops
 
 lemma "xs = [] ==> hd xs = x ==> x = y"
 quickcheck[exhaustive, potential = false, expect = no_counterexample]
 quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[random, potential = false, report = false, expect = no_counterexample]
+quickcheck[random, potential = true, report = false, expect = counterexample]
 oops
 
 text {* with the simple testing scheme *}
