@@ -533,9 +533,9 @@ setup {* Exhaustive_Generators.setup *}
 
 declare [[quickcheck_batch_tester = exhaustive]]
 
-hide_fact orelse_def catch_match_def
+hide_fact orelse_def
 no_notation orelse (infixr "orelse" 55)
-hide_const (open) orelse catch_match catch_match' unknown mk_map_term check_all_n_lists 
+hide_const (open) orelse unknown mk_map_term check_all_n_lists 
 
 hide_type (open) cps pos_bound_cps neg_bound_cps unknown three_valued
 hide_const (open) cps_empty cps_single cps_bind cps_plus cps_if cps_not

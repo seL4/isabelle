@@ -157,6 +157,9 @@ code_reserved Quickcheck Random_Generators
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
+hide_fact catch_match_def
+hide_const (open) catch_match
+
 subsection {* The Random-Predicate Monad *} 
 
 fun iter' ::
