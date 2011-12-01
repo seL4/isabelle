@@ -489,8 +489,7 @@ fun compile_validator_exprs ctxt ts =
       thy (SOME target) (K I) (HOLogic.mk_list @{typ "code_numeral => bool"} ts') []
   end;
 
-val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive",
-  apfst (Option.map snd) ooo compile_generator_expr);
+val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive", compile_generator_expr);
   
 (* setup *)
 

@@ -11,7 +11,7 @@ sig
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val compile_generator_expr:
-    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
   val put_counterexample: (unit -> int -> int -> seed -> (bool * term list) option * seed)
     -> Proof.context -> Proof.context
   val put_counterexample_report: (unit -> int -> int -> seed -> (term list option * (bool list * bool)) * seed)
@@ -417,7 +417,7 @@ fun compile_generator_expr ctxt ts =
               val report = collect_single_report single_report report
             in
               case test_result of NONE => iterate_and_collect (card, size) (j - 1) report
-                | SOME q => (SOME q, report)
+                | SOME q => (SOME (true, q), report)
             end
       in
         fn [card, size] => apsnd SOME (iterate_and_collect (card, size) iterations empty_report)
@@ -429,7 +429,7 @@ fun compile_generator_expr ctxt ts =
           (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
           thy (SOME target)
           (fn proc => fn g => fn c => fn s =>g c s #>> (Option.map o apsnd o map) proc) t' [];
-        fun single_tester c s = compile c s |> Random_Engine.run |> Option.map snd
+        fun single_tester c s = compile c s |> Random_Engine.run
         fun iterate (card, size) 0 = NONE
           | iterate (card, size) j =
             case single_tester card size of NONE => iterate (card, size) (j - 1) | SOME q => SOME q

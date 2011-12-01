@@ -437,7 +437,7 @@ fun test_term ctxt (t, eval_terms) =
           thy (apfst o Option.map o map_counterexample) (mk_property qs prop_t)
       in
         Quickcheck.Result
-         {counterexample = Option.map (mk_terms ctxt qs) counterexample,
+         {counterexample = Option.map (pair true o mk_terms ctxt qs) counterexample,
           evaluation_terms = Option.map (K []) counterexample,
           timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end
@@ -454,7 +454,7 @@ fun test_term ctxt (t, eval_terms) =
       in
         Quickcheck.Result
          {counterexample =
-           Option.map (((curry (op ~~)) (Term.add_free_names t [])) o map post_process o snd) counterexample,
+           Option.map (apsnd (((curry (op ~~)) (Term.add_free_names t [])) o map post_process)) counterexample,
           evaluation_terms = Option.map (K []) counterexample,
           timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end

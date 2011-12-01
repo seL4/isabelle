@@ -17,7 +17,7 @@ sig
   val mk_safe_if : Proof.context -> term * term * (bool -> term) -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
-    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
   val generator_test_goal_terms :
     string * compile_generator -> Proof.context -> bool -> (string * typ) list
     -> (term * term list) list -> Quickcheck.result list
@@ -53,7 +53,7 @@ fun mk_undefined T = Const(@{const_name undefined}, T)
 (* testing functions: testing with increasing sizes (and cardinalities) *)
 
 type compile_generator =
-  Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
 
 fun check_test_term t =
   let
