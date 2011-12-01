@@ -523,13 +523,6 @@ where
 
 subsection {* Defining combinators for any first-order data type *}
 
-definition catch_match' :: "term => term => term"
-where
-  [code del]: "catch_match' t1 t2 = (SOME t. t = t1 \<or> t = t2)"
-
-code_const catch_match'
-  (Quickcheck "(_) handle Match => _")
-
 axiomatization unknown :: 'a
 
 notation (output) unknown  ("?")

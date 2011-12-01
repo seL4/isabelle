@@ -329,7 +329,7 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
 
 fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
 
-fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
+fun mk_safe_term t = @{term "Quickcheck.catch_match :: term => term => term"}
       $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
 
 fun mk_return t genuine = @{term "Some :: bool * term list => (bool * term list) option"} $
