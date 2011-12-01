@@ -18,7 +18,6 @@ current linkup. They often seem to need either higher-order unification
 or explicit reasoning about connectives such as conjunction. The numerous
 set comprehensions are to blame.*)
 
-
 record 'a potype =
   pset  :: "'a set"
   order :: "('a * 'a) set"
@@ -117,7 +116,6 @@ locale Tarski = CLF +
     and v_def: "v == glb {x. ((%x: intY1. f x) x, x): induced intY1 r &
                              x: intY1}
                       (| pset=intY1, order=induced intY1 r|)"
-
 
 subsection {* Partial Order *}
 
@@ -293,7 +291,6 @@ apply (simp add: PO_imp_trans interval_not_empty)
 apply (simp add: reflE)
 done
 
-
 subsection {* sublattice *}
 
 lemma (in PO) sublattice_imp_CL:
@@ -304,7 +301,6 @@ lemma (in CL) sublatticeI:
      "[| S \<subseteq> A; (| pset = S, order = induced S r |) \<in> CompleteLattice |]
       ==> S <<= cl"
 by (simp add: sublattice_def A_def r_def)
-
 
 subsection {* lub *}
 
@@ -371,8 +367,6 @@ lemma (in CL) isLubI:
          (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z):r) --> (L, z) \<in> r)|] ==> isLub S cl L"
 by (simp add: isLub_def A_def r_def)
 
-
-
 subsection {* glb *}
 
 lemma (in CL) glb_in_lattice: "S \<subseteq> A ==> glb S cl \<in> A"
@@ -408,7 +402,6 @@ text {*
 
 declare (in CLF) f_cl [simp]
 
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_unnamed_lemma" ]]
 lemma (in CLF) [simp]:
     "f: pset cl -> pset cl & monotone f (pset cl) (order cl)"
 proof -
@@ -430,7 +423,7 @@ lemma (in CLF) monotone_f: "monotone f A r"
 by (simp add: A_def r_def)
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_CLF_dual" ]]
+
 declare (in CLF) CLF_set_def [simp] CL_dualCL [simp] monotone_dual [simp] dualA_iff [simp]
 
 lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF_set"
@@ -440,7 +433,6 @@ done
 
 declare (in CLF) CLF_set_def[simp del] CL_dualCL[simp del] monotone_dual[simp del]
           dualA_iff[simp del]
-
 
 subsection {* fixed points *}
 
@@ -454,12 +446,12 @@ lemma fixf_subset:
      "[| A \<subseteq> B; x \<in> fix (%y: A. f y) A |] ==> x \<in> fix f B"
 by (simp add: fix_def, auto)
 
-
 subsection {* lemmas for Tarski, lub *}
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_lubH_le_flubH" ]]
-  declare CL.lub_least[intro] CLF.f_in_funcset[intro] funcset_mem[intro] CL.lub_in_lattice[intro] PO.transE[intro] PO.monotoneE[intro] CLF.monotone_f[intro] CL.lub_upper[intro]
+
+declare CL.lub_least[intro] CLF.f_in_funcset[intro] funcset_mem[intro] CL.lub_in_lattice[intro] PO.transE[intro] PO.monotoneE[intro] CLF.monotone_f[intro] CL.lub_upper[intro]
+
 lemma (in CLF) lubH_le_flubH:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> (lub H cl, f (lub H cl)) \<in> r"
 apply (rule lub_least, fast)
@@ -468,7 +460,6 @@ apply (rule lub_in_lattice, fast)
 -- {* @{text "\<forall>x:H. (x, f (lub H r)) \<in> r"} *}
 apply (rule ballI)
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__CLF_lubH_le_flubH_simpler" ]]
 apply (rule transE)
 -- {* instantiates @{text "(x, ?z) \<in> order cl to (x, f x)"}, *}
 -- {* because of the def of @{text H} *}
@@ -480,37 +471,38 @@ apply (rule lub_in_lattice, fast)
 apply (rule lub_upper, fast)
 apply assumption
 done
-  declare CL.lub_least[rule del] CLF.f_in_funcset[rule del]
-          funcset_mem[rule del] CL.lub_in_lattice[rule del]
-          PO.transE[rule del] PO.monotoneE[rule del]
-          CLF.monotone_f[rule del] CL.lub_upper[rule del]
+
+declare CL.lub_least[rule del] CLF.f_in_funcset[rule del]
+        funcset_mem[rule del] CL.lub_in_lattice[rule del]
+        PO.transE[rule del] PO.monotoneE[rule del]
+        CLF.monotone_f[rule del] CL.lub_upper[rule del]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_flubH_le_lubH" ]]
-  declare CLF.f_in_funcset[intro] funcset_mem[intro] CL.lub_in_lattice[intro]
-       PO.monotoneE[intro] CLF.monotone_f[intro] CL.lub_upper[intro]
-       CLF.lubH_le_flubH[simp]
+
+declare CLF.f_in_funcset[intro] funcset_mem[intro] CL.lub_in_lattice[intro]
+     PO.monotoneE[intro] CLF.monotone_f[intro] CL.lub_upper[intro]
+     CLF.lubH_le_flubH[simp]
+
 lemma (in CLF) flubH_le_lubH:
      "[|  H = {x. (x, f x) \<in> r & x \<in> A} |] ==> (f (lub H cl), lub H cl) \<in> r"
 apply (rule lub_upper, fast)
 apply (rule_tac t = "H" in ssubst, assumption)
 apply (rule CollectI)
 apply (rule conjI)
-using [[ sledgehammer_problem_prefix = "Tarski__CLF_flubH_le_lubH_simpler" ]]
 (*??no longer terminates, with combinators
 apply (metis CO_refl_on lubH_le_flubH monotone_def monotone_f reflD1 reflD2)
 *)
 apply (metis CO_refl_on lubH_le_flubH monotoneE [OF monotone_f] refl_onD1 refl_onD2)
 apply (metis CO_refl_on lubH_le_flubH refl_onD2)
 done
-  declare CLF.f_in_funcset[rule del] funcset_mem[rule del]
-          CL.lub_in_lattice[rule del] PO.monotoneE[rule del]
-          CLF.monotone_f[rule del] CL.lub_upper[rule del]
-          CLF.lubH_le_flubH[simp del]
 
+declare CLF.f_in_funcset[rule del] funcset_mem[rule del]
+        CL.lub_in_lattice[rule del] PO.monotoneE[rule del]
+        CLF.monotone_f[rule del] CL.lub_upper[rule del]
+        CLF.lubH_le_flubH[simp del]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_lubH_is_fixp" ]]
+
 (* Single-step version fails. The conjecture clauses refer to local abstraction
 functions (Frees). *)
 lemma (in CLF) lubH_is_fixp:
@@ -549,7 +541,6 @@ lemma (in CLF) (*lubH_is_fixp:*)
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)
 apply (rule conjI)
-using [[ sledgehammer_problem_prefix = "Tarski__CLF_lubH_is_fixp_simpler" ]]
 apply (metis CO_refl_on lubH_le_flubH refl_onD1)
 apply (metis antisymE flubH_le_lubH lubH_le_flubH)
 done
@@ -559,7 +550,6 @@ lemma (in CLF) fix_in_H:
 by (simp add: P_def fix_imp_eq [of _ f A] reflE CO_refl_on
                     fix_subset [of f A, THEN subsetD])
 
-
 lemma (in CLF) fixf_le_lubH:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> \<forall>x \<in> fix f A. (x, lub H cl) \<in> r"
 apply (rule ballI)
@@ -568,7 +558,6 @@ apply (rule fix_in_H)
 apply (simp_all add: P_def)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_lubH_least_fixf" ]]
 lemma (in CLF) lubH_least_fixf:
      "H = {x. (x, f x) \<in> r & x \<in> A}
       ==> \<forall>L. (\<forall>y \<in> fix f A. (y,L) \<in> r) --> (lub H cl, L) \<in> r"
@@ -576,15 +565,15 @@ apply (metis P_def lubH_is_fixp)
 done
 
 subsection {* Tarski fixpoint theorem 1, first part *}
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_T_thm_1_lub" ]]
-  declare CL.lubI[intro] fix_subset[intro] CL.lub_in_lattice[intro]
-          CLF.fixf_le_lubH[simp] CLF.lubH_least_fixf[simp]
+
+declare CL.lubI[intro] fix_subset[intro] CL.lub_in_lattice[intro]
+        CLF.fixf_le_lubH[simp] CLF.lubH_least_fixf[simp]
+
 lemma (in CLF) T_thm_1_lub: "lub P cl = lub {x. (x, f x) \<in> r & x \<in> A} cl"
 (*sledgehammer;*)
 apply (rule sym)
 apply (simp add: P_def)
 apply (rule lubI)
-using [[ sledgehammer_problem_prefix = "Tarski__CLF_T_thm_1_lub_simpler" ]]
 apply (metis P_def fix_subset)
 apply (metis Collect_conj_eq Collect_mem_eq Int_commute Int_lower1 lub_in_lattice vimage_def)
 (*??no longer terminates, with combinators
@@ -594,14 +583,15 @@ apply (metis P_def fix_def lubH_least_fixf)
 apply (simp add: fixf_le_lubH)
 apply (simp add: lubH_least_fixf)
 done
-  declare CL.lubI[rule del] fix_subset[rule del] CL.lub_in_lattice[rule del]
-          CLF.fixf_le_lubH[simp del] CLF.lubH_least_fixf[simp del]
 
+declare CL.lubI[rule del] fix_subset[rule del] CL.lub_in_lattice[rule del]
+        CLF.fixf_le_lubH[simp del] CLF.lubH_least_fixf[simp del]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__CLF_glbH_is_fixp" ]]
-  declare glb_dual_lub[simp] PO.dualA_iff[intro] CLF.lubH_is_fixp[intro]
-          PO.dualPO[intro] CL.CL_dualCL[intro] PO.dualr_iff[simp]
+
+declare glb_dual_lub[simp] PO.dualA_iff[intro] CLF.lubH_is_fixp[intro]
+        PO.dualPO[intro] CL.CL_dualCL[intro] PO.dualr_iff[simp]
+
 lemma (in CLF) glbH_is_fixp: "H = {x. (f x, x) \<in> r & x \<in> A} ==> glb H cl \<in> P"
   -- {* Tarski for glb *}
 (*sledgehammer;*)
@@ -618,18 +608,17 @@ apply (rule CLF_axioms.intro)
 apply (rule CLF_dual)
 apply (simp add: dualr_iff dualA_iff)
 done
-  declare glb_dual_lub[simp del] PO.dualA_iff[rule del] CLF.lubH_is_fixp[rule del]
-          PO.dualPO[rule del] CL.CL_dualCL[rule del] PO.dualr_iff[simp del]
 
+declare glb_dual_lub[simp del] PO.dualA_iff[rule del] CLF.lubH_is_fixp[rule del]
+        PO.dualPO[rule del] CL.CL_dualCL[rule del] PO.dualr_iff[simp del]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__T_thm_1_glb" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) T_thm_1_glb: "glb P cl = glb {x. (f x, x) \<in> r & x \<in> A} cl"
 (*sledgehammer;*)
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__T_thm_1_glb_simpler" ]]  (*ALL THEOREMS*)
 (*sledgehammer;*)
 apply (simp add: CLF.T_thm_1_lub [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro,
   OF dualPO CL_dualCL] dualPO CL_dualCL CLF_dual dualr_iff)
@@ -637,21 +626,21 @@ done
 
 subsection {* interval *}
 
+declare (in CLF) CO_refl_on[simp] refl_on_def [simp]
 
-declare [[ sledgehammer_problem_prefix = "Tarski__rel_imp_elem" ]]
-  declare (in CLF) CO_refl_on[simp] refl_on_def [simp]
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
 by (metis CO_refl_on refl_onD1)
-  declare (in CLF) CO_refl_on[simp del]  refl_on_def [simp del]
 
-declare [[ sledgehammer_problem_prefix = "Tarski__interval_subset" ]]
-  declare (in CLF) rel_imp_elem[intro]
-  declare interval_def [simp]
+declare (in CLF) CO_refl_on[simp del]  refl_on_def [simp del]
+
+declare (in CLF) rel_imp_elem[intro]
+declare interval_def [simp]
+
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
 by (metis CO_refl_on interval_imp_mem refl_onD refl_onD2 rel_imp_elem subset_eq)
-  declare (in CLF) rel_imp_elem[rule del]
-  declare interval_def [simp del]
 
+declare (in CLF) rel_imp_elem[rule del]
+declare interval_def [simp del]
 
 lemma (in CLF) intervalI:
      "[| (a, x) \<in> r; (x, b) \<in> r |] ==> x \<in> interval r a b"
@@ -679,7 +668,7 @@ lemma (in CLF) S_intv_cl:
      "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b |]==> S \<subseteq> A"
 by (simp add: subset_trans [OF _ interval_subset])
 
-declare [[ sledgehammer_problem_prefix = "Tarski__L_in_interval" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) L_in_interval:
      "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b;
          S \<noteq> {}; isLub S cl L; interval r a b \<noteq> {} |] ==> L \<in> interval r a b"
@@ -698,7 +687,7 @@ apply (simp add: isLub_least interval_lemma2)
 done
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__G_in_interval" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) G_in_interval:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {}; S \<subseteq> interval r a b; isGlb S cl G;
          S \<noteq> {} |] ==> G \<in> interval r a b"
@@ -707,7 +696,7 @@ apply (simp add: CLF.L_in_interval [of _ f, OF CLF.intro, OF CL.intro CLF_axioms
                  dualA_iff A_def dualPO CL_dualCL CLF_dual isGlb_dual_isLub)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__intervalPO" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) intervalPO:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
       ==> (| pset = interval r a b, order = induced (interval r a b) r |)
@@ -775,7 +764,7 @@ done
 lemmas (in CLF) intv_CL_glb = intv_CL_lub [THEN Rdual]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__interval_is_sublattice" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) interval_is_sublattice:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
         ==> interval r a b <<= cl"
@@ -783,7 +772,6 @@ lemma (in CLF) interval_is_sublattice:
 apply (rule sublatticeI)
 apply (simp add: interval_subset)
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__interval_is_sublattice_simpler" ]]
 (*sledgehammer *)
 apply (rule CompleteLatticeI)
 apply (simp add: intervalPO)
@@ -794,7 +782,6 @@ done
 lemmas (in CLF) interv_is_compl_latt =
     interval_is_sublattice [THEN sublattice_imp_CL]
 
-
 subsection {* Top and Bottom *}
 lemma (in CLF) Top_dual_Bot: "Top cl = Bot (dual cl)"
 by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
@@ -802,7 +789,7 @@ by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
 lemma (in CLF) Bot_dual_Top: "Bot cl = Top (dual cl)"
 by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
 
-declare [[ sledgehammer_problem_prefix = "Tarski__Bot_in_lattice" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) Bot_in_lattice: "Bot cl \<in> A"
 (*sledgehammer; *)
 apply (simp add: Bot_def least_def)
@@ -812,12 +799,11 @@ apply (simp_all add: glb_in_lattice glb_lower
 done
 
 (*first proved 2007-01-25 after relaxing relevance*)
-declare [[ sledgehammer_problem_prefix = "Tarski__Top_in_lattice" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) Top_in_lattice: "Top cl \<in> A"
 (*sledgehammer;*)
 apply (simp add: Top_dual_Bot A_def)
 (*first proved 2007-01-25 after relaxing relevance*)
-using [[ sledgehammer_problem_prefix = "Tarski__Top_in_lattice_simpler" ]]  (*ALL THEOREMS*)
 (*sledgehammer*)
 apply (rule dualA_iff [THEN subst])
 apply (blast intro!: CLF.Bot_in_lattice [OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro] dualPO CL_dualCL CLF_dual)
@@ -832,7 +818,7 @@ apply (simp_all add: lub_in_lattice lub_upper
 done
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__Bot_prop" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) Bot_prop: "x \<in> A ==> (Bot cl, x) \<in> r"
 (*sledgehammer*)
 apply (simp add: Bot_dual_Top r_def)
@@ -841,16 +827,15 @@ apply (simp add: CLF.Top_prop [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.intr
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__Bot_in_lattice" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) Top_intv_not_empty: "x \<in> A  ==> interval r x (Top cl) \<noteq> {}"
 apply (metis Top_in_lattice Top_prop empty_iff intervalI reflE)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__Bot_intv_not_empty" ]]  (*ALL THEOREMS*)
+
 lemma (in CLF) Bot_intv_not_empty: "x \<in> A ==> interval r (Bot cl) x \<noteq> {}"
 apply (metis Bot_prop ex_in_conv intervalI reflE rel_imp_elem)
 done
-
 
 subsection {* fixed points form a partial order *}
 
@@ -858,23 +843,24 @@ lemma (in CLF) fixf_po: "(| pset = P, order = induced P r|) \<in> PartialOrder"
 by (simp add: P_def fix_subset po_subset_po)
 
 (*first proved 2007-01-25 after relaxing relevance*)
-declare [[ sledgehammer_problem_prefix = "Tarski__Y_subset_A" ]]
-  declare (in Tarski) P_def[simp] Y_ss [simp]
-  declare fix_subset [intro] subset_trans [intro]
+
+declare (in Tarski) P_def[simp] Y_ss [simp]
+declare fix_subset [intro] subset_trans [intro]
+
 lemma (in Tarski) Y_subset_A: "Y \<subseteq> A"
 (*sledgehammer*)
 apply (rule subset_trans [OF _ fix_subset])
 apply (rule Y_ss [simplified P_def])
 done
-  declare (in Tarski) P_def[simp del] Y_ss [simp del]
-  declare fix_subset [rule del] subset_trans [rule del]
 
+declare (in Tarski) P_def[simp del] Y_ss [simp del]
+declare fix_subset [rule del] subset_trans [rule del]
 
 lemma (in Tarski) lubY_in_A: "lub Y cl \<in> A"
   by (rule Y_subset_A [THEN lub_in_lattice])
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__lubY_le_flubY" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) lubY_le_flubY: "(lub Y cl, f (lub Y cl)) \<in> r"
 (*sledgehammer*)
 apply (rule lub_least)
@@ -883,12 +869,10 @@ apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lubY_in_A)
 -- {* @{text "Y \<subseteq> P ==> f x = x"} *}
 apply (rule ballI)
-using [[ sledgehammer_problem_prefix = "Tarski__lubY_le_flubY_simpler" ]]  (*ALL THEOREMS*)
 (*sledgehammer *)
 apply (rule_tac t = "x" in fix_imp_eq [THEN subst])
 apply (erule Y_ss [simplified P_def, THEN subsetD])
 -- {* @{text "reduce (f x, f (lub Y cl)) \<in> r to (x, lub Y cl) \<in> r"} by monotonicity *}
-using [[ sledgehammer_problem_prefix = "Tarski__lubY_le_flubY_simplest" ]]  (*ALL THEOREMS*)
 (*sledgehammer*)
 apply (rule_tac f = "f" in monotoneE)
 apply (rule monotone_f)
@@ -898,7 +882,7 @@ apply (simp add: lub_upper Y_subset_A)
 done
 
 (*first proved 2007-01-25 after relaxing relevance*)
-declare [[ sledgehammer_problem_prefix = "Tarski__intY1_subset" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) intY1_subset: "intY1 \<subseteq> A"
 (*sledgehammer*)
 apply (unfold intY1_def)
@@ -910,7 +894,7 @@ done
 lemmas (in Tarski) intY1_elem = intY1_subset [THEN subsetD]
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__intY1_f_closed" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) intY1_f_closed: "x \<in> intY1 \<Longrightarrow> f x \<in> intY1"
 (*sledgehammer*)
 apply (simp add: intY1_def  interval_def)
@@ -918,7 +902,6 @@ apply (rule conjI)
 apply (rule transE)
 apply (rule lubY_le_flubY)
 -- {* @{text "(f (lub Y cl), f x) \<in> r"} *}
-using [[ sledgehammer_problem_prefix = "Tarski__intY1_f_closed_simpler" ]]  (*ALL THEOREMS*)
 (*sledgehammer [has been proved before now...]*)
 apply (rule_tac f=f in monotoneE)
 apply (rule monotone_f)
@@ -931,13 +914,13 @@ apply (rule f_in_funcset [THEN funcset_mem])
 apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__intY1_func" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
 apply (rule restrict_in_funcset)
 apply (metis intY1_f_closed restrict_in_funcset)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__intY1_mono" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) intY1_mono:
      "monotone (%x: intY1. f x) intY1 (induced intY1 r)"
 (*sledgehammer *)
@@ -946,7 +929,7 @@ apply (blast intro: intY1_elem monotone_f [THEN monotoneE])
 done
 
 (*proof requires relaxing relevance: 2007-01-25*)
-declare [[ sledgehammer_problem_prefix = "Tarski__intY1_is_cl" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) intY1_is_cl:
     "(| pset = intY1, order = induced intY1 r |) \<in> CompleteLattice"
 (*sledgehammer*)
@@ -959,7 +942,7 @@ apply (rule lubY_in_A)
 done
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__v_in_P" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) v_in_P: "v \<in> P"
 (*sledgehammer*)
 apply (unfold P_def)
@@ -969,7 +952,7 @@ apply (simp add: CLF.glbH_is_fixp [OF CLF.intro, OF CL.intro CLF_axioms.intro, O
                  v_def CL_imp_PO intY1_is_cl CLF_set_def intY1_func intY1_mono)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__z_in_interval" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) z_in_interval:
      "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |] ==> z \<in> intY1"
 (*sledgehammer *)
@@ -983,14 +966,14 @@ apply (fast elim!: fix_subset [THEN subsetD])
 apply (simp add: induced_def)
 done
 
-declare [[ sledgehammer_problem_prefix = "Tarski__fz_in_int_rel" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |]
       ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r"
 apply (metis P_def acc_def fix_imp_eq fix_subset indI reflE restrict_apply subset_eq z_in_interval)
 done
 
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__tarski_full_lemma" ]]  (*ALL THEOREMS*)
+
 lemma (in Tarski) tarski_full_lemma:
      "\<exists>L. isLub Y (| pset = P, order = induced P r |) L"
 apply (rule_tac x = "v" in exI)
@@ -1020,12 +1003,10 @@ apply (rule indI)
  prefer 2 apply (simp add: v_in_P)
 apply (unfold v_def)
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__tarski_full_lemma_simpler" ]]
 (*sledgehammer*)
 apply (rule indE)
 apply (rule_tac [2] intY1_subset)
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__tarski_full_lemma_simplest" ]]
 (*sledgehammer*)
 apply (rule CL.glb_lower [OF CL.intro, OF PO.intro CL_axioms.intro, OF _ intY1_is_cl, simplified])
   apply (simp add: CL_imp_PO intY1_is_cl)
@@ -1041,19 +1022,18 @@ lemma CompleteLatticeI_simp:
     ==> (| pset = A, order = r |) \<in> CompleteLattice"
 by (simp add: CompleteLatticeI Rdual)
 
-
 (*never proved, 2007-01-22*)
-declare [[ sledgehammer_problem_prefix = "Tarski__Tarski_full" ]]
-  declare (in CLF) fixf_po[intro] P_def [simp] A_def [simp] r_def [simp]
-               Tarski.tarski_full_lemma [intro] cl_po [intro] cl_co [intro]
-               CompleteLatticeI_simp [intro]
+
+declare (in CLF) fixf_po[intro] P_def [simp] A_def [simp] r_def [simp]
+             Tarski.tarski_full_lemma [intro] cl_po [intro] cl_co [intro]
+             CompleteLatticeI_simp [intro]
+
 theorem (in CLF) Tarski_full:
      "(| pset = P, order = induced P r|) \<in> CompleteLattice"
 (*sledgehammer*)
 apply (rule CompleteLatticeI_simp)
 apply (rule fixf_po, clarify)
 (*never proved, 2007-01-22*)
-using [[ sledgehammer_problem_prefix = "Tarski__Tarski_full_simpler" ]]
 (*sledgehammer*)
 apply (simp add: P_def A_def r_def)
 apply (blast intro!: Tarski.tarski_full_lemma [OF Tarski.intro, OF CLF.intro Tarski_axioms.intro,

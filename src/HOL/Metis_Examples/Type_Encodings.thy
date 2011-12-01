@@ -16,7 +16,6 @@ declare [[metis_new_skolemizer]]
 
 sledgehammer_params [prover = e, blocking, timeout = 10, preplay_timeout = 0]
 
-
 text {* Setup for testing Metis exhaustively *}
 
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
@@ -82,7 +81,6 @@ method_setup metis_exhaust = {*
   Attrib.thms >>
     (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths type_encs))
 *} "exhaustively run the new Metis with all type encodings"
-
 
 text {* Miscellaneous tests *}
 

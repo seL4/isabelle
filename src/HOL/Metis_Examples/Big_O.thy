@@ -392,7 +392,8 @@ lemma bigo_mult6: "\<forall>x. f x ~= 0 \<Longrightarrow>
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
-  declare bigo_mult6 [simp]
+declare bigo_mult6 [simp]
+
 lemma bigo_mult7: "\<forall>x. f x ~= 0 \<Longrightarrow>
     O(f * g) <= O(f\<Colon>'a => ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
 (* sledgehammer *)
@@ -800,29 +801,27 @@ lemma bigo_lesso3: "f =o g +o O(h) \<Longrightarrow>
   apply simp
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
-  apply (metis diff_less_0_iff_less linorder_not_le not_leE uminus_add_conv_diff xt1(12) xt1(6))
+  apply (metis diff_less_0_iff_less linorder_not_le not_leE xt1(12) xt1(6))
  apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
 apply (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 done
 
-lemma bigo_lesso4: "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field,number_ring}) \<Longrightarrow>
-    g =o h +o O(k) \<Longrightarrow> f <o h =o O(k)"
-  apply (unfold lesso_def)
-  apply (drule set_plus_imp_minus)
-  apply (drule bigo_abs5) back
-  apply (simp add: fun_diff_def)
-  apply (drule bigo_useful_add)
-  apply assumption
-  apply (erule bigo_lesseq2) back
-  apply (rule allI)
-  apply (auto simp add: func_plus fun_diff_def algebra_simps
+lemma bigo_lesso4:
+  "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field,number_ring}) \<Longrightarrow>
+   g =o h +o O(k) \<Longrightarrow> f <o h =o O(k)"
+apply (unfold lesso_def)
+apply (drule set_plus_imp_minus)
+apply (drule bigo_abs5) back
+apply (simp add: fun_diff_def)
+apply (drule bigo_useful_add, assumption)
+apply (erule bigo_lesseq2) back
+apply (rule allI)
+by (auto simp add: func_plus fun_diff_def algebra_simps
     split: split_max abs_split)
-done
 
-lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x <= g x + C * abs(h x)"
-  apply (simp only: lesso_def bigo_alt_def)
-  apply clarsimp
-  apply (metis abs_if abs_mult add_commute diff_le_eq less_not_permute)
-done
+lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x <= g x + C * abs (h x)"
+apply (simp only: lesso_def bigo_alt_def)
+apply clarsimp
+by (metis abs_if abs_mult add_commute diff_le_eq less_not_permute)
 
 end
