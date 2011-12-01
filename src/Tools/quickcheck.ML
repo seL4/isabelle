@@ -39,16 +39,16 @@ sig
   (* quickcheck's result *)
   datatype result =
     Result of
-     {counterexample : (string * term) list option,
+     {counterexample : (bool * (string * term) list) option,
       evaluation_terms : (term * term) list option,
       timings : (string * int) list,
       reports : (int * report) list}
   val empty_result : result
   val found_counterexample : result -> bool
   val add_timing : (string * int) -> result Unsynchronized.ref -> unit
-  val add_response : string list -> term list -> term list option -> result Unsynchronized.ref -> unit
+  val add_response : string list -> term list -> (bool * term list) option -> result Unsynchronized.ref -> unit
   val add_report : int -> report option -> result Unsynchronized.ref -> unit
-  val counterexample_of : result -> (string * term) list option
+  val counterexample_of : result -> (bool * (string * term) list) option
   val timings_of : result -> (string * int) list
   (* registering testers & generators *) 
   type tester =
@@ -69,7 +69,7 @@ sig
   val active_testers : Proof.context -> tester list
   val test_terms :
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list option
-  val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
+  val quickcheck: (string * string list) list -> int -> Proof.state -> (bool * (string * term) list) option
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -102,7 +102,7 @@ datatype report = Report of
 (* Quickcheck Result *)
 
 datatype result = Result of
-  { counterexample : (string * term) list option, evaluation_terms : (term * term) list option,
+  { counterexample : (bool * (string * term) list) option, evaluation_terms : (term * term) list option,
     timings : (string * int) list, reports : (int * report) list}
 
 val empty_result =
@@ -113,17 +113,18 @@ fun counterexample_of (Result r) = #counterexample r
 fun found_counterexample (Result r) = is_some (#counterexample r)
 
 fun response_of (Result r) = case (#counterexample r, #evaluation_terms r) of
-    (SOME ts, SOME evals) => SOME (ts, evals)
+    (SOME (_, ts), SOME evals) => SOME (ts, evals)
   | (NONE, NONE) => NONE
 
 fun timings_of (Result r) = #timings r
 
-fun set_response names eval_terms (SOME ts) (Result r) =
+fun set_response names eval_terms (SOME (genuine, ts)) (Result r) =
   let
     val (ts1, ts2) = chop (length names) ts
     val (eval_terms', _) = chop (length ts2) eval_terms
   in
-    Result {counterexample = SOME (names ~~ ts1), evaluation_terms = SOME (eval_terms' ~~ ts2),
+    Result {counterexample = SOME (genuine, (names ~~ ts1)),
+      evaluation_terms = SOME (eval_terms' ~~ ts2),
       timings = #timings r, reports = #reports r}
   end
   | set_response _ _ NONE result = result
