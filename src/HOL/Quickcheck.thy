@@ -5,13 +5,23 @@ header {* A simple counterexample generator performing random testing *}
 theory Quickcheck
 imports Random Code_Evaluation Enum
 uses
-  "Tools/Quickcheck/quickcheck_common.ML"
+  ("Tools/Quickcheck/quickcheck_common.ML")
   ("Tools/Quickcheck/random_generators.ML")
 begin
 
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
+setup {* Code_Target.extend_target ("Quickcheck", (Code_Runtime.target, K I)) *}
+
+subsection {* Catching Match exceptions *}
+
+definition catch_match :: "term list option => term list option => term list option"
+where
+  [code del]: "catch_match t1 t2 = (SOME t. t = t1 \<or> t = t2)"
+
+code_const catch_match 
+  (Quickcheck "(_) handle Match => _")
 
 subsection {* The @{text random} class *}
 
@@ -128,6 +138,9 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
+subsection {* Deriving random generators for datatypes *}
+
+use "Tools/Quickcheck/quickcheck_common.ML" 
 use "Tools/Quickcheck/random_generators.ML"
 setup Random_Generators.setup
 

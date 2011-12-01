@@ -297,8 +297,8 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
-    val check = @{term "If :: bool => term list option => term list option => term list option"}
-      $ result $ @{term "None :: term list option"} $ (@{term "Some :: term list => term list option"} $ terms);
+    val check = Quickcheck_Common.mk_safe_if ctxt (result, @{term "None :: term list option"},
+      @{term "Some :: term list => term list option"} $ terms)
     val return = @{term "Pair :: term list option => Random.seed => term list option * Random.seed"};
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
@@ -446,7 +446,6 @@ val active = Attrib.setup_config_bool @{binding quickcheck_random_active} (K fal
 val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
     (((@{sort typerep}, @{sort term_of}), @{sort random}), instantiate_random_datatype))
-  #> Code_Target.extend_target (target, (Code_Runtime.target, K I))
   #> Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals)));
 
 end;

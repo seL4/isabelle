@@ -328,12 +328,6 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
 
 fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
 
-fun mk_safe_if ctxt (cond, then_t, else_t) =
-  @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"}
-    $ (@{term "If :: bool => term list option => term list option => term list option"}
-      $ cond $ then_t $ else_t)
-    $ (if Config.get ctxt Quickcheck.potential then else_t else @{term "None :: term list option"});  
-
 fun mk_safe_term t = @{term "Quickcheck_Exhaustive.catch_match' :: term => term => term"}
       $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
 
@@ -352,7 +346,8 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
         $ lambda free t $ depth
     val none_t = @{term "None :: term list option"}
-    val mk_test_term = mk_test_term lookup mk_exhaustive_closure (mk_safe_if ctxt) none_t return ctxt
+    val mk_if = Quickcheck_Common.mk_safe_if ctxt
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_full_generator_expr ctxt (t, eval_terms) =
@@ -378,7 +373,8 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
           $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"})
             $ lambda free (lambda term_var t)) $ depth
     val none_t = @{term "None :: term list option"}
-    val mk_test_term = mk_test_term lookup mk_exhaustive_closure (mk_safe_if ctxt) none_t return ctxt
+    val mk_if = Quickcheck_Common.mk_safe_if ctxt
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_parametric_generator_expr mk_generator_expr =

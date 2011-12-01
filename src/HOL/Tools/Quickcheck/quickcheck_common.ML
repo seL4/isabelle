@@ -13,6 +13,7 @@ sig
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
+  val mk_safe_if : Proof.context -> (term * term * term) -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
     Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
@@ -264,6 +265,14 @@ fun instantiate_goals lthy insts goals =
   in
     correct_inst_goals
   end
+
+(* compilation of testing functions *)
+
+fun mk_safe_if ctxt (cond, then_t, else_t) =
+  @{term "Quickcheck.catch_match :: term list option => term list option => term list option"}
+    $ (@{term "If :: bool => term list option => term list option => term list option"}
+      $ cond $ then_t $ else_t)
+    $ (if Config.get ctxt Quickcheck.potential then else_t else @{term "None :: term list option"});  
 
 fun collect_results f [] results = results
   | collect_results f (t :: ts) results =
