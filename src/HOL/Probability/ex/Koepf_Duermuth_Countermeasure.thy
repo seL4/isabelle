@@ -75,13 +75,6 @@ proof -
   qed
 qed
 
-lemma (in prob_space)
-  assumes "finite (X`space M)"
-  shows "bij_betw (ordered_variable_partition X) {0..<card (X`space M)} (X`space M)"
-  and "\<And>i j. \<lbrakk> i < card (X`space M) ; j < card (X`space M) ; i \<le> j \<rbrakk> \<Longrightarrow>
-    distribution X {ordered_variable_partition X i} \<le> distribution X {ordered_variable_partition X j}"
-  oops
-
 definition (in prob_space)
   "order_distribution X i = real (distribution X {ordered_variable_partition X i})"
 

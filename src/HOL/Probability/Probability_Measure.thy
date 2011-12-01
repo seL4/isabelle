@@ -70,6 +70,12 @@ lemma (in prob_space) joint_distribution_remove[simp]:
     "joint_distribution X X {(x, x)} = distribution X {x}"
   unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
 
+lemma (in prob_space) distribution_unit[simp]: "distribution (\<lambda>x. ()) {()} = 1"
+  unfolding distribution_def using prob_space by auto
+
+lemma (in prob_space) joint_distribution_unit[simp]: "distribution (\<lambda>x. (X x, ())) {(a, ())} = distribution X {a}"
+  unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
+
 lemma (in prob_space) not_empty: "space M \<noteq> {}"
   using prob_space empty_measure' by auto
 
@@ -742,6 +748,11 @@ lemma (in prob_space) setsum_joint_distribution_singleton:
   using setsum_joint_distribution[OF X
     finite_random_variableD[OF Y(1)]
     finite_random_variable_imp_sets[OF Y]] by simp
+
+lemma (in prob_space) setsum_distribution:
+  assumes X: "finite_random_variable MX X" shows "(\<Sum>a\<in>space MX. distribution X {a}) = 1"
+  using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
+  using sigma_algebra_Pow[of "UNIV::unit set" "()"] by simp
 
 locale pair_finite_prob_space = M1: finite_prob_space M1 + M2: finite_prob_space M2 for M1 M2
 

@@ -1009,17 +1009,6 @@ proof -
     by (simp add: setsum_cartesian_product' distribution_remove_const)
 qed
 
-lemma (in prob_space) distribution_unit[simp]: "distribution (\<lambda>x. ()) {()} = 1"
-  unfolding distribution_def using prob_space by auto
-
-lemma (in prob_space) joint_distribution_unit[simp]: "distribution (\<lambda>x. (X x, ())) {(a, ())} = distribution X {a}"
-  unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
-
-lemma (in prob_space) setsum_distribution:
-  assumes X: "finite_random_variable MX X" shows "(\<Sum>a\<in>space MX. distribution X {a}) = 1"
-  using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
-  using sigma_algebra_Pow[of "UNIV::unit set" "()"] by simp
-
 lemma (in information_space) conditional_mutual_information_generic_positive:
   assumes X: "finite_random_variable MX X" and Y: "finite_random_variable MY Y" and Z: "finite_random_variable MZ Z"
   shows "0 \<le> conditional_mutual_information b MX MY MZ X Y Z"
