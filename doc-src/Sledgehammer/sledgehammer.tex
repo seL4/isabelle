@@ -531,7 +531,7 @@ In earlier versions of Sledgehammer, generated proofs were systematically
 accompanied by a suggestion to invoke the minimization tool. This step is now
 performed implicitly if it can be done in a reasonable amount of time (something
 that can be guessed from the number of facts in the original proof and the time
-it took to find it or replay it).
+it took to find or preplay it).
 
 In addition, some provers (e.g., Yices) do not provide proofs or sometimes
 produce incomplete proofs. The minimizer is then invoked to find out which facts
@@ -539,6 +539,9 @@ are actually needed from the (large) set of facts that was initinally given to
 the prover. Finally, if a prover returns a proof with lots of facts, the
 minimizer is invoked automatically since Metis would be unlikely to re-find the
 proof.
+%
+Automatic minimization can be forced or disabled using the \textit{minimize}
+option (\S\ref{mode-of-operation}).
 
 \point{A strange error occurred---what should I do?}
 
@@ -646,7 +649,7 @@ You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option in Proof General's ``Isabelle'' menu.
 For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{sound}
+\textit{slice} (\S\ref{mode-of-operation}) is disabled, \textit{sound}
 (\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
 and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
@@ -882,7 +885,7 @@ also be more confusing. Irrespective of the value of this option, Sledgehammer
 is always run synchronously for the new jEdit-based user interface or if
 \textit{debug} (\S\ref{output-format}) is enabled.
 
-\optrue{slicing}{no\_slicing}
+\optrue{slice}{dont\_slice}
 Specifies whether the time allocated to a prover should be sliced into several
 segments, each of which has its own set of possibly prover-dependent options.
 For SPASS and Vampire, the first slice tries the fast but incomplete
@@ -896,6 +899,16 @@ disabled for (short) automatic runs.
 
 \nopagebreak
 {\small See also \textit{verbose} (\S\ref{output-format}).}
+
+\opsmart{minimize}{dont\_minimize}
+Specifies whether the minimization tool should be invoked automatically after
+proof search. By default, automatic minimization takes place only if
+it can be done in a reasonable amount of time (as determined by
+the number of facts in the original proof and the time it took to find or
+preplay it) or the proof involves an unreasonably large number of facts.
+
+\nopagebreak
+{\small See also \textit{preplay\_timeout} (\S\ref{timeouts}).}
 
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in
@@ -1195,6 +1208,9 @@ Specifies the maximum number of seconds that \textit{metis} or \textit{smt}
 should spend trying to ``preplay'' the found proof. If this option is set to 0,
 no preplaying takes place, and no timing information is displayed next to the
 suggested \textit{metis} calls.
+
+\nopagebreak
+{\small See also \textit{minimize} (\S\ref{mode-of-operation}).}
 \end{enum}
 
 \let\em=\sl
