@@ -113,7 +113,7 @@ fun counterexample_of (Result r) = #counterexample r
 fun found_counterexample (Result r) = is_some (#counterexample r)
 
 fun response_of (Result r) = case (#counterexample r, #evaluation_terms r) of
-    (SOME (_, ts), SOME evals) => SOME (ts, evals)
+    (SOME ts, SOME evals) => SOME (ts, evals)
   | (NONE, NONE) => NONE
 
 fun timings_of (Result r) = #timings r
@@ -328,8 +328,9 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
 fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck"
 
 fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no counterexample.")
-  | pretty_counterex ctxt auto (SOME (cex, eval_terms)) =
-      Pretty.chunks ((Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
+  | pretty_counterex ctxt auto (SOME ((genuine, cex), eval_terms)) =
+      Pretty.chunks ((Pretty.str (tool_name auto ^ " found a " ^
+        (if genuine then "counterexample:" else  "potentially spurious counterexample due to underspecified functions:") ^ "\n") ::
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex))
         @ (if null eval_terms then []
