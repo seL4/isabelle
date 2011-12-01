@@ -2,6 +2,12 @@ theory Dining_Cryptographers
 imports "~~/src/HOL/Probability/Information"
 begin
 
+lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrightarrow> (\<exists>!x \<in> A. b = f x)"
+  by (unfold inj_on_def) blast
+
+lemma Ex1_eq: "\<exists>! x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
+  by auto
+
 locale finite_space =
   fixes S :: "'a set"
   assumes finite[simp]: "finite S"
@@ -27,45 +33,6 @@ sublocale finite_space \<subseteq> information_space M 2
 
 lemma (in finite_space) \<mu>'_eq[simp]: "\<mu>' A = (if A \<subseteq> S then card A / card S else 0)"
   unfolding \<mu>'_def by (auto simp: M_def)
-
-lemma set_of_list_extend:
-  "{xs. length xs = Suc n \<and> (\<forall>x\<in>set xs. x \<in> A)} =
-  (\<lambda>(xs, n). n#xs) ` ({xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} \<times> A)"
-  (is "?lists (Suc n) = _")
-proof
-  show "(\<lambda>(xs, n). n#xs) ` (?lists n \<times> A) \<subseteq> ?lists (Suc n)" by auto
-  show "?lists (Suc n) \<subseteq> (\<lambda>(xs, n). n#xs) ` (?lists n \<times> A)"
-  proof
-    fix x assume "x \<in> ?lists (Suc n)"
-    moreover
-    hence "x \<noteq> []" by auto
-    then obtain t h where "x = h # t" by (cases x) auto
-    ultimately show "x \<in> (\<lambda>(xs, n). n#xs) ` (?lists n \<times> A)"
-      by (auto intro!: image_eqI[where x="(t, h)"])
-  qed
-qed
-
-lemma card_finite_list_length:
-  assumes "finite A"
-  shows "(card {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} = (card A)^n) \<and>
-         finite {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)}"
-    (is "card (?lists n) = _ \<and> _")
-proof (induct n)
-  case 0 have "{xs. length xs = 0 \<and> (\<forall>x\<in>set xs. x \<in> A)} = {[]}" by auto
-  thus ?case by simp
-next
-  case (Suc n)
-  moreover note set_of_list_extend[of n A]
-  moreover have "inj_on (\<lambda>(xs, n). n#xs) (?lists n \<times> A)"
-    by (auto intro!: inj_onI)
-  ultimately show ?case using assms by (auto simp: card_image)
-qed
-
-lemma
-  assumes "finite A"
-  shows finite_lists: "finite {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)}"
-  and card_list_length: "card {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} = (card A)^n"
-  using card_finite_list_length[OF assms, of n] by auto
 
 section "Define the state space"
 
@@ -170,12 +137,6 @@ proof -
   show ?thesis
     unfolding payer_def_raw dc_crypto fst_image_times if_not_P[OF *] ..
 qed
-
-lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrightarrow> (\<exists>!x \<in> A. b = f x)"
-  by (unfold inj_on_def) blast
-
-lemma Ex1_eq: "\<exists>! x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
-  by auto
 
 lemma card_payer_and_inversion:
   assumes "xs \<in> inversion ` dc_crypto" and "i < n"
@@ -341,7 +302,7 @@ proof -
 qed
 
 lemma finite_dc_crypto: "finite dc_crypto"
-  using finite_lists[where A="UNIV :: bool set"]
+  using finite_lists_length_eq[where A="UNIV :: bool set"]
   unfolding dc_crypto by simp
 
 lemma card_inversion:
@@ -401,7 +362,7 @@ qed
 lemma card_dc_crypto:
   "card dc_crypto = n * 2^n"
   unfolding dc_crypto
-  using card_list_length[of "UNIV :: bool set"]
+  using card_lists_length_eq[of "UNIV :: bool set"]
   by (simp add: card_cartesian_product card_image)
 
 lemma card_image_inversion:
@@ -512,7 +473,7 @@ proof -
       from z have "payer -` {z} \<inter> dc_crypto = {z} \<times> {xs. length xs = n}"
         by (auto simp: dc_crypto payer_def)
       hence "card (payer -` {z} \<inter> dc_crypto) = 2^n"
-        using card_list_length[where A="UNIV::bool set"]
+        using card_lists_length_eq[where A="UNIV::bool set"]
         by (simp add: card_cartesian_product_singleton)
       hence "?dP {z} = 1 / real n"
         by (simp add: distribution_def card_dc_crypto)

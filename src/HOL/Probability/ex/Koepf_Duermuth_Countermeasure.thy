@@ -6,87 +6,11 @@ theory Koepf_Duermuth_Countermeasure
   imports "~~/src/HOL/Probability/Information" "~~/src/HOL/Library/Permutation"
 begin
 
-lemma
-  fixes p u :: "'a \<Rightarrow> real"
-  assumes "1 < b"
-  assumes sum: "(\<Sum>i\<in>S. p i) = (\<Sum>i\<in>S. u i)"
-  and pos: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> p i" "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> u i"
-  and cont: "\<And>i. i \<in> S \<Longrightarrow> 0 < p i \<Longrightarrow> 0 < u i"
-  shows "(\<Sum>i\<in>S. p i * log b (u i)) \<le> (\<Sum>i\<in>S. p i * log b (p i))"
-proof -
-  have "(\<Sum>i\<in>S. p i * ln (u i) - p i * ln (p i)) \<le> (\<Sum>i\<in>S. u i - p i)"
-  proof (intro setsum_mono)
-    fix i assume [intro, simp]: "i \<in> S"
-    show "p i * ln (u i) - p i * ln (p i) \<le> u i - p i"
-    proof cases
-      assume "p i = 0" with pos[of i] show ?thesis by simp
-    next
-      assume "p i \<noteq> 0"
-      then have "0 < p i" "0 < u i" using pos[of i] cont[of i] by auto
-      then have *: "0 < u i / p i" by (blast intro: divide_pos_pos cont)
-      from `0 < p i` `0 < u i`
-      have "p i * ln (u i) - p i * ln (p i) = p i * ln (u i / p i)"
-        by (simp add: ln_div field_simps)
-      also have "\<dots> \<le> p i * (u i / p i - 1)"
-        using exp_ge_add_one_self[of "ln (u i / p i)"] pos[of i] exp_ln[OF *]
-        by (auto intro!: mult_left_mono)
-      also have "\<dots> = u i - p i"
-        using `p i \<noteq> 0` by (simp add: field_simps)
-      finally show ?thesis by simp
-    qed
-  qed
-  also have "\<dots> = 0" using sum by (simp add: setsum_subtractf)
-  finally show ?thesis using `1 < b` unfolding log_def setsum_subtractf
-    by (auto intro!: divide_right_mono
-             simp: times_divide_eq_right setsum_divide_distrib[symmetric])
-qed
+lemma SIGMA_image_vimage:
+  "snd ` (SIGMA x:f`X. f -` {x} \<inter> X) = X"
+  by (auto simp: image_iff)
 
-definition (in prob_space)
-  "ordered_variable_partition X = (SOME f. bij_betw f {0..<card (X`space M)} (X`space M) \<and>
-    (\<forall>i<card (X`space M). \<forall>j<card (X`space M). i \<le> j \<longrightarrow> distribution X {f i} \<le> distribution X {f j}))"
-
-lemma ex_ordered_bij_betw_nat_finite:
-  fixes order :: "nat \<Rightarrow> 'a\<Colon>linorder"
-  assumes "finite S"
-  shows "\<exists>f. bij_betw f {0..<card S} S \<and> (\<forall>i<card S. \<forall>j<card S. i \<le> j \<longrightarrow> order (f i) \<le> order (f j))"
-proof -
-  from ex_bij_betw_nat_finite [OF `finite S`] guess f .. note f = this
-  let ?xs = "sort_key order (map f [0 ..< card S])"
-
-  have "?xs <~~> map f [0 ..< card S]"
-    unfolding multiset_of_eq_perm[symmetric] by (rule multiset_of_sort)
-  from permutation_Ex_bij [OF this]
-  obtain g where g: "bij_betw g {0..<card S} {0..<card S}" and
-    map: "\<And>i. i<card S \<Longrightarrow> ?xs ! i = map f [0 ..< card S] ! g i"
-    by (auto simp: atLeast0LessThan)
-
-  { fix i assume "i < card S"
-    then have "g i < card S" using g by (auto simp: bij_betw_def)
-    with map [OF `i < card S`] have "f (g i) = ?xs ! i" by simp }
-  note this[simp]
-
-  show ?thesis
-  proof (intro exI allI conjI impI)
-    show "bij_betw (f\<circ>g) {0..<card S} S"
-      using g f by (rule bij_betw_trans)
-    fix i j assume [simp]: "i < card S" "j < card S" "i \<le> j"
-    from sorted_nth_mono[of "map order ?xs" i j]
-    show "order ((f\<circ>g) i) \<le> order ((f\<circ>g) j)" by simp
-  qed
-qed
-
-definition (in prob_space)
-  "order_distribution X i = real (distribution X {ordered_variable_partition X i})"
-
-definition (in prob_space)
-  "guessing_entropy b X = (\<Sum>i<card(X`space M). real i * log b (order_distribution X i))"
-
-abbreviation (in information_space)
-  finite_guessing_entropy ("\<G>'(_')") where
-  "\<G>(X) \<equiv> guessing_entropy b X"
-
-lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
-  by auto
+declare inj_split_Cons[simp]
 
 definition extensionalD :: "'b \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) set" where
   "extensionalD d A = {f. \<forall>x. x \<notin> A \<longrightarrow> f x = d}"
@@ -156,31 +80,72 @@ using `finite A` proof induct
   qed
 qed simp
 
-lemma set_of_list_extend:
-  "{xs. length xs = Suc n \<and> (\<forall>x\<in>set xs. x \<in> A)} =
-    (\<lambda>(xs, n). n#xs) ` ({xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} \<times> A)"
-  by (auto simp: length_Suc_conv)
+lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
+  by auto
 
-lemma
-  assumes "finite A"
-  shows finite_lists:
-    "finite {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)}" (is "finite (?lists n)")
-  and card_list_length:
-    "card {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} = (card A)^n"
-proof -
-  from `finite A`
-  have "(card {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} = (card A)^n) \<and>
-         finite {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)}"
-  proof (induct n)
-    case (Suc n)
-    moreover note set_of_list_extend[of n A]
-    moreover have "inj_on (\<lambda>(xs, n). n#xs) (?lists n \<times> A)"
-      by (auto intro!: inj_onI)
-    ultimately show ?case using assms by (auto simp: card_image)
-  qed (simp cong: conj_cong)
-  then show "finite (?lists n)" "card (?lists n) = card A ^ n"
-    by auto
+lemma setprod_setsum_distrib_lists:
+  fixes P and S :: "'a set" and f :: "'a \<Rightarrow> _::semiring_0" assumes "finite S"
+  shows "(\<Sum>ms\<in>{ms. set ms \<subseteq> S \<and> length ms = n \<and> (\<forall>i<n. P i (ms!i))}. \<Prod>x<n. f (ms ! x)) =
+         (\<Prod>i<n. \<Sum>m\<in>{m\<in>S. P i m}. f m)"
+proof (induct n arbitrary: P)
+  case 0 then show ?case by (simp cong: conj_cong)
+next
+  case (Suc n)
+  have *: "{ms. set ms \<subseteq> S \<and> length ms = Suc n \<and> (\<forall>i<Suc n. P i (ms ! i))} =
+    (\<lambda>(xs, x). x#xs) ` ({ms. set ms \<subseteq> S \<and> length ms = n \<and> (\<forall>i<n. P (Suc i) (ms ! i))} \<times> {m\<in>S. P 0 m})"
+    apply (auto simp: image_iff length_Suc_conv)
+    apply force+
+    apply (case_tac i)
+    by force+
+  show ?case unfolding *
+    using Suc[of "\<lambda>i. P (Suc i)"]
+    by (simp add: setsum_reindex split_conv setsum_cartesian_product'
+      lessThan_Suc_eq_insert_0 setprod_reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
 qed
+
+lemma ex_ordered_bij_betw_nat_finite:
+  fixes order :: "nat \<Rightarrow> 'a\<Colon>linorder"
+  assumes "finite S"
+  shows "\<exists>f. bij_betw f {0..<card S} S \<and> (\<forall>i<card S. \<forall>j<card S. i \<le> j \<longrightarrow> order (f i) \<le> order (f j))"
+proof -
+  from ex_bij_betw_nat_finite [OF `finite S`] guess f .. note f = this
+  let ?xs = "sort_key order (map f [0 ..< card S])"
+
+  have "?xs <~~> map f [0 ..< card S]"
+    unfolding multiset_of_eq_perm[symmetric] by (rule multiset_of_sort)
+  from permutation_Ex_bij [OF this]
+  obtain g where g: "bij_betw g {0..<card S} {0..<card S}" and
+    map: "\<And>i. i<card S \<Longrightarrow> ?xs ! i = map f [0 ..< card S] ! g i"
+    by (auto simp: atLeast0LessThan)
+
+  { fix i assume "i < card S"
+    then have "g i < card S" using g by (auto simp: bij_betw_def)
+    with map [OF `i < card S`] have "f (g i) = ?xs ! i" by simp }
+  note this[simp]
+
+  show ?thesis
+  proof (intro exI allI conjI impI)
+    show "bij_betw (f\<circ>g) {0..<card S} S"
+      using g f by (rule bij_betw_trans)
+    fix i j assume [simp]: "i < card S" "j < card S" "i \<le> j"
+    from sorted_nth_mono[of "map order ?xs" i j]
+    show "order ((f\<circ>g) i) \<le> order ((f\<circ>g) j)" by simp
+  qed
+qed
+
+definition (in prob_space)
+  "ordered_variable_partition X = (SOME f. bij_betw f {0..<card (X`space M)} (X`space M) \<and>
+    (\<forall>i<card (X`space M). \<forall>j<card (X`space M). i \<le> j \<longrightarrow> distribution X {f i} \<le> distribution X {f j}))"
+
+definition (in prob_space)
+  "order_distribution X i = real (distribution X {ordered_variable_partition X i})"
+
+definition (in prob_space)
+  "guessing_entropy b X = (\<Sum>i<card(X`space M). real i * log b (order_distribution X i))"
+
+abbreviation (in information_space)
+  finite_guessing_entropy ("\<G>'(_')") where
+  "\<G>(X) \<equiv> guessing_entropy b X"
 
 locale finite_information =
   fixes \<Omega> :: "'a set"
@@ -215,7 +180,7 @@ locale koepf_duermuth = K: finite_information keys K b + M: finite_information m
 begin
 
 definition msgs :: "('key \<times> 'message list) set" where
-  "msgs = keys \<times> {ms. length ms = n \<and> (\<forall>M\<in>set ms. M \<in> messages)}"
+  "msgs = keys \<times> {ms. set ms \<subseteq> messages \<and> length ms = n}"
 
 definition P :: "('key \<times> 'message list) \<Rightarrow> real" where
   "P = (\<lambda>(k, ms). K k * (\<Prod>i<length ms. M (ms ! i)))"
@@ -225,7 +190,7 @@ end
 sublocale koepf_duermuth \<subseteq> finite_information msgs P b
 proof default
   show "finite msgs" unfolding msgs_def
-    using finite_lists[OF M.finite_space, of n]
+    using finite_lists_length_eq[OF M.finite_space, of n]
     by auto
 
   have [simp]: "\<And>A. inj_on (\<lambda>(xs, n). n # xs) A" by (force intro!: inj_onI)
@@ -234,13 +199,13 @@ proof default
   note setsum_left_distrib[symmetric, simp]
   note setsum_cartesian_product'[simp]
 
-  have "(\<Sum>ms | length ms = n \<and> (\<forall>M\<in>set ms. M \<in> messages). \<Prod>x<length ms. M (ms ! x)) = 1"
+  have "(\<Sum>ms | set ms \<subseteq> messages \<and> length ms = n. \<Prod>x<length ms. M (ms ! x)) = 1"
   proof (induct n)
     case 0 then show ?case by (simp cong: conj_cong)
   next
     case (Suc n)
     then show ?case
-      by (simp add: comp_def set_of_list_extend lessThan_Suc_eq_insert_0
+      by (simp add: lists_length_Suc_eq lessThan_Suc_eq_insert_0
                     setsum_reindex setprod_reindex)
   qed
   then show "setsum P msgs = 1"
@@ -250,32 +215,6 @@ proof default
   then show "0 \<le> P x"
     unfolding P_def by (auto split: prod.split simp: zero_le_mult_iff)
 qed auto
-
-lemma SIGMA_image_vimage:
-  "snd ` (SIGMA x:f`X. f -` {x} \<inter> X) = X"
-  by (auto simp: image_iff)
-
-lemma inj_Cons[simp]: "\<And>X. inj_on (\<lambda>(xs, x). x#xs) X" by (auto intro!: inj_onI)
-
-lemma setprod_setsum_distrib_lists:
-  fixes P and S :: "'a set" and f :: "'a \<Rightarrow> _::semiring_0" assumes "finite S"
-  shows "(\<Sum>ms\<in>{ms. length ms = n \<and> set ms \<subseteq> S \<and> (\<forall>i<n. P i (ms!i))}. \<Prod>x<n. f (ms ! x)) =
-         (\<Prod>i<n. \<Sum>m\<in>{m\<in>S. P i m}. f m)"
-proof (induct n arbitrary: P)
-  case 0 then show ?case by (simp cong: conj_cong)
-next
-  case (Suc n)
-  have *: "{ms. length ms = Suc n \<and> set ms \<subseteq> S \<and> (\<forall>i<Suc n. P i (ms ! i))} =
-    (\<lambda>(xs, x). x#xs) ` ({ms. length ms = n \<and> set ms \<subseteq> S \<and> (\<forall>i<n. P (Suc i) (ms ! i))} \<times> {m\<in>S. P 0 m})"
-    apply (auto simp: image_iff length_Suc_conv)
-    apply force+
-    apply (case_tac i)
-    by force+
-  show ?case unfolding *
-    using Suc[of "\<lambda>i. P (Suc i)"]
-    by (simp add: setsum_reindex split_conv setsum_cartesian_product'
-      lessThan_Suc_eq_insert_0 setprod_reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
-qed
 
 context koepf_duermuth
 begin
@@ -296,7 +235,7 @@ lemma card_T_bound: "card ((t\<circ>OB)`msgs) \<le> (n+1)^card observations"
 proof -
   have "(t\<circ>OB)`msgs \<subseteq> extensionalD 0 observations \<inter> (observations \<rightarrow> {.. n})"
     unfolding observations_def extensionalD_def OB_def msgs_def
-    by (auto simp add: t_def comp_def image_iff)
+    by (auto simp add: t_def comp_def image_iff subset_eq)
   with finite_extensionalD_funcset
   have "card ((t\<circ>OB)`msgs) \<le> card (extensionalD 0 observations \<inter> (observations \<rightarrow> {.. n}))"
     by (rule card_mono) auto
@@ -339,7 +278,7 @@ qed
 lemma \<P>_k: assumes "k \<in> keys" shows "\<P>(fst) {k} = K k"
 proof -
   from assms have *:
-      "fst -` {k} \<inter> msgs = {k}\<times>{ms. length ms = n \<and> (\<forall>M\<in>set ms. M \<in> messages)}"
+      "fst -` {k} \<inter> msgs = {k}\<times>{ms. set ms \<subseteq> messages \<and> length ms = n}"
     unfolding msgs_def by auto
   show "\<P>(fst) {k} = K k"
     apply (simp add: \<mu>'_eq distribution_def)
@@ -352,7 +291,7 @@ qed
 lemma fst_image_msgs[simp]: "fst`msgs = keys"
 proof -
   from M.not_empty obtain m where "m \<in> messages" by auto
-  then have *: "{m. length m = n \<and> (\<forall>x\<in>set m. x\<in>messages)} \<noteq> {}"
+  then have *: "{m. set m \<subseteq> messages \<and> length m = n} \<noteq> {}"
     by (auto intro!: exI[of _ "replicate n m"])
   then show ?thesis
     unfolding msgs_def fst_image_times if_not_P[OF *] by simp
@@ -382,7 +321,7 @@ proof -
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using `K k \<noteq> 0` `k \<in> keys`
         apply (simp add: setsum_cartesian_product' setsum_divide_distrib msgs_def ** cong: conj_cong)
-        apply (subst setprod_setsum_distrib_lists[OF M.finite_space, unfolded subset_eq]) ..
+        apply (subst setprod_setsum_distrib_lists[OF M.finite_space]) ..
       finally have "\<P>(OB, fst) {(obs, k)} / K k =
             (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }
     note * = this
