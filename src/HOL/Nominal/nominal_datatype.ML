@@ -320,7 +320,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                  Const ("Nominal.perm", T) $ pi $ Free (x, T2))
                end)
              (perm_names_types ~~ perm_indnames))))
-          (fn _ => EVERY [indtac induct perm_indnames 1,
+          (fn _ => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
             ALLGOALS (asm_full_simp_tac
               (global_simpset_of thy2 addsimps [perm_fun_def]))])),
         length new_type_names));
@@ -341,7 +341,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                    Free (x, T)))
                (perm_names ~~
                 map body_type perm_types ~~ perm_indnames)))))
-          (fn _ => EVERY [indtac induct perm_indnames 1,
+          (fn _ => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy2))])),
         length new_type_names))
       end)
@@ -376,7 +376,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                     end)
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames)))))
-           (fn _ => EVERY [indtac induct perm_indnames 1,
+           (fn _ => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt2', pt2_ax]))]))),
          length new_type_names)
       end) atoms;
@@ -412,7 +412,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                     end)
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames))))))
-           (fn _ => EVERY [indtac induct perm_indnames 1,
+           (fn _ => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt3', pt3_rev', pt3_ax]))]))),
          length new_type_names)
       end) atoms;
@@ -464,7 +464,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                      perm2 $ (perm3 $ pi1 $ pi2) $ (perm1 $ pi1 $ Free (x, T)))
                   end)
                 (perm_names ~~ Ts ~~ perm_indnames)))))
-          (fn _ => EVERY [indtac induct perm_indnames 1,
+          (fn _ => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
              ALLGOALS (asm_full_simp_tac simps)]))
       in
         fold (fn (s, tvs) => fn thy => AxClass.prove_arity
@@ -599,7 +599,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                    Free ("pi", permT) $ Free (x, T)))
                end) (rep_set_names'' ~~ recTs' ~~ perm_indnames')))))
         (fn _ => EVERY
-           [indtac rep_induct [] 1,
+           [Datatype_Aux.ind_tac rep_induct [] 1,
             ALLGOALS (simp_tac (global_simpset_of thy4 addsimps
               (Thm.symmetric perm_fun_def :: abs_perm))),
             ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac)])),
@@ -1071,7 +1071,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,
-         (indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+         (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
             simp_tac (HOL_basic_ss addsimps [Thm.symmetric r]) 1,
@@ -1099,7 +1099,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
                  Const ("Finite_Set.finite", HOLogic.mk_setT atomT --> HOLogic.boolT) $
                    (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T)))
                    (indnames ~~ recTs)))))
-           (fn _ => indtac dt_induct indnames 1 THEN
+           (fn _ => Datatype_Aux.ind_tac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
                Global_Theory.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
@@ -1312,7 +1312,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
         val th = Goal.prove context [] []
           (augment_sort thy9 fs_cp_sort aux_ind_concl)
           (fn {context = context1, ...} =>
-             EVERY (indtac dt_induct tnames 1 ::
+             EVERY (Datatype_Aux.ind_tac dt_induct tnames 1 ::
                maps (fn ((_, (_, _, constrs)), (_, constrs')) =>
                  map (fn ((cname, cargs), is) =>
                    REPEAT (rtac allI 1) THEN

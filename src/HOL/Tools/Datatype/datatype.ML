@@ -435,7 +435,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           Skip_Proof.prove_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl1))
             (fn _ => EVERY
-              [(Datatype_Aux.indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+              [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
                   Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
@@ -461,7 +461,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           Skip_Proof.prove_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl2))
             (fn _ =>
-              EVERY [(Datatype_Aux.indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+              EVERY [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
@@ -497,7 +497,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       else
         drop (length newTs) (Datatype_Aux.split_conj_thm
           (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
-             [(Datatype_Aux.indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+             [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
               REPEAT (rtac TrueI 1),
               rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
                 Thm.symmetric (mk_meta_eq @{thm fun_eq_iff}) :: range_eqs),
@@ -653,7 +653,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       (fn {prems, ...} =>
         EVERY
           [rtac indrule_lemma' 1,
-           (Datatype_Aux.indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+           (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
            EVERY (map (fn (prem, r) => (EVERY
              [REPEAT (eresolve_tac Abs_inverse_thms 1),
               simp_tac (HOL_basic_ss addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,

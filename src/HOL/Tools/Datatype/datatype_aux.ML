@@ -52,7 +52,7 @@ sig
 
   val app_bnds : term -> int -> term
 
-  val indtac : thm -> string list -> int -> tactic
+  val ind_tac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
 
   exception Datatype
@@ -127,7 +127,7 @@ fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
 (* instantiate induction rule *)
 
-fun indtac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
+fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
   let
     val cert = cterm_of (Thm.theory_of_cterm cgoal);
     val goal = term_of cgoal;
