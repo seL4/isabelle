@@ -36,9 +36,8 @@ FOLP-ex: FOLP $(LOG)/FOLP-ex.gz
 
 $(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/Foundation.thy ex/If.thy	\
   ex/Intro.thy ex/Nat.thy ex/Intuitionistic.thy ex/Classical.thy	\
-  ex/Prolog.ML ex/Prolog.thy ex/Propositional_Int.thy			\
-  ex/Propositional_Cla.thy ex/Quantifiers_Int.thy			\
-  ex/Quantifiers_Cla.thy
+  ex/Propositional_Int.thy ex/Propositional_Cla.thy			\
+  ex/Quantifiers_Int.thy ex/Quantifiers_Cla.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/FOLP ex
 
 
