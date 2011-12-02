@@ -83,8 +83,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       else Balanced_Tree.make (fn (T, U) => Type (@{type_name Sum_Type.sum}, [T, U])) branchTs;
     val arities = remove (op =) 0 (Datatype_Aux.get_arities descr');
     val unneeded_vars =
-      subtract (op =)
-        (List.foldr Misc_Legacy.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
+      subtract (op =) (fold Term.add_tfree_namesT (leafTs' @ branchTs) []) (hd tyvars);
     val leafTs =
       leafTs' @ map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
@@ -386,7 +385,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.legacy_freeze prop;
-        val used = Misc_Legacy.add_term_tfree_names (a, []);
+        val used = Term.add_tfree_names a [];
 
         fun mk_thm i =
           let
@@ -708,7 +707,7 @@ fun gen_add_datatype prep_typ config dts thy =
           let
             val (cargs', sorts'') = fold_map (prep_typ tmp_thy) cargs sorts';
             val _ =
-              (case subtract (op =) tvs (fold (curry Misc_Legacy.add_typ_tfree_names) cargs' []) of
+              (case subtract (op =) tvs (fold Term.add_tfree_namesT cargs' []) of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs));
             val c = Sign.full_name_path tmp_thy (Binding.name_of tname) cname;

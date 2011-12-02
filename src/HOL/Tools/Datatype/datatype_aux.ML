@@ -139,12 +139,12 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
       else pair NONE;
     val flt =
       if null indnames then I
-      else filter (fn Free (s, _) => member (op =) indnames s | _ => false);
+      else filter (member (op =) indnames o fst);
     fun abstr (t1, t2) =
       (case t1 of
         NONE =>
-          (case flt (Misc_Legacy.term_frees t2) of
-            [Free (s, T)] => SOME (absfree (s, T) t2)
+          (case flt (Term.add_frees t2 []) of
+            [(s, T)] => SOME (absfree (s, T) t2)
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))));
     val insts =

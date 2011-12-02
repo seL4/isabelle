@@ -406,7 +406,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
         Syntax.string_of_typ ctxt T);
     fun type_of_constr (cT as (_, T)) =
       let
-        val frees = Misc_Legacy.typ_tfrees T;
+        val frees = Term.add_tfreesT T [];
         val (tyco, vs) = (apsnd o map) dest_TFree (dest_Type (body_type T))
           handle TYPE _ => no_constr cT
         val _ = if has_duplicates (eq_fst (op =)) vs then no_constr cT else ();

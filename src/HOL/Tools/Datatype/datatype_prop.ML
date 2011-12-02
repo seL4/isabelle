@@ -217,7 +217,7 @@ fun make_primrecs new_type_names descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
-    val used = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used = fold Term.add_tfree_namesT recTs [];
 
     val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
@@ -269,7 +269,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
-    val used = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
     val T' = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS);
 
@@ -316,7 +316,7 @@ fun make_splits new_type_names descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
-    val used' = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used' = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
     val T' = TFree (singleton (Name.variant_list used') "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);

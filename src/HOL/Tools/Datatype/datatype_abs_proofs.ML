@@ -95,7 +95,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
 
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
-    val used = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -292,7 +292,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
 
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
-    val used = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
     val T' = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS);
 
