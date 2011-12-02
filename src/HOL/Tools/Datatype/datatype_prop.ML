@@ -69,11 +69,12 @@ fun make_injs descr sorts =
           val constr_t = Const (cname, Ts ---> T);
           val tnames = make_tnames Ts;
           val frees = map Free (tnames ~~ Ts);
-          val frees' = map Free ((map ((op ^) o (rpair "'")) tnames) ~~ Ts);
-        in cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
-           foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
-             (map HOLogic.mk_eq (frees ~~ frees')))))
+          val frees' = map Free (map (suffix "'") tnames ~~ Ts);
+        in
+          cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
+            (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
+             foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+               (map HOLogic.mk_eq (frees ~~ frees')))))
         end;
   in
     map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
@@ -95,7 +96,7 @@ fun make_distincts descr sorts =
     fun make_distincts' _ [] = []
       | make_distincts' T ((cname, cargs) :: constrs) =
           let
-            val frees = map Free ((make_tnames cargs) ~~ cargs);
+            val frees = map Free (make_tnames cargs ~~ cargs);
             val t = list_comb (Const (cname, cargs ---> T), frees);
 
             fun make_distincts'' (cname', cargs') =
@@ -347,8 +348,7 @@ fun make_splits new_type_names descr sorts thy =
       end
 
   in
-    map make_split
-      ((hd descr) ~~ newTs ~~ (make_case_combs new_type_names descr sorts thy "f"))
+    map make_split (hd descr ~~ newTs ~~ make_case_combs new_type_names descr sorts thy "f")
   end;
 
 (************************* additional rules for TFL ***************************)
@@ -400,7 +400,7 @@ fun make_case_congs new_type_names descr sorts thy =
           let
             val Ts = binder_types (fastype_of f);
             val tnames = Name.variant_list used (make_tnames Ts);
-            val frees = map Free (tnames ~~ Ts)
+            val frees = map Free (tnames ~~ Ts);
           in
             list_all_free (tnames ~~ Ts, Logic.mk_implies
               (HOLogic.mk_Trueprop
@@ -433,7 +433,7 @@ fun make_nchotomys descr sorts =
       let
         val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
         val tnames = Name.variant_list ["v"] (make_tnames Ts);
-        val frees = tnames ~~ Ts
+        val frees = tnames ~~ Ts;
       in
         fold_rev (fn (s, T') => fn t => HOLogic.mk_exists (s, T', t)) frees
           (HOLogic.mk_eq (Free ("v", T),

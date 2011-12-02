@@ -336,7 +336,7 @@ fun unfold_datatypes ctxt orig_descr sorts (dt_info : info Symtab.table) descr i
       | SOME {index, descr, ...} =>
           let
             val (_, vars, _) = the (AList.lookup (op =) descr index);
-            val subst = (map dest_DtTFree vars ~~ dts)
+            val subst = map dest_DtTFree vars ~~ dts
               handle ListPair.UnequalLengths =>
                 typ_error T ("Type constructor " ^ tname ^ " used with wrong number of arguments");
           in

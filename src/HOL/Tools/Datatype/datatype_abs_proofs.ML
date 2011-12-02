@@ -103,9 +103,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
     val big_rec_name' = big_name ^ "_rec_set";
     val rec_set_names' =
       if length descr' = 1 then [big_rec_name']
-      else
-        map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
-          (1 upto (length descr'));
+      else map (prefix (big_rec_name' ^ "_") o string_of_int) (1 upto (length descr'));
     val rec_set_names = map (Sign.full_bname thy0) rec_set_names';
 
     val (rec_result_Ts, reccomb_fn_Ts) = Datatype_Prop.make_primrec_Ts descr sorts used;

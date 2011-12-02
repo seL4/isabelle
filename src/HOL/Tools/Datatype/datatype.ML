@@ -69,10 +69,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val thy1 = Sign.add_path big_name thy;
     val big_rec_name = big_name ^ "_rep_set";
     val rep_set_names' =
-      (if length descr' = 1 then [big_rec_name]
-      else
-        (map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
-          (1 upto (length descr'))));
+      if length descr' = 1 then [big_rec_name]
+      else map (prefix (big_rec_name ^ "_") o string_of_int) (1 upto (length descr'));
     val rep_set_names = map (Sign.full_bname thy1) rep_set_names';
 
     val tyvars = map (fn (_, (_, Ts, _)) => map Datatype_Aux.dest_DtTFree Ts) (hd descr);
