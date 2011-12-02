@@ -24,8 +24,6 @@ end;
 structure Primrec : PRIMREC =
 struct
 
-open Datatype_Aux;
-
 exception PrimrecError of string * term option;
 
 fun primrec_error msg = raise PrimrecError (msg, NONE);
@@ -147,12 +145,12 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
             (fnames', fnss', (Const (@{const_name undefined}, dummyT)) :: fns))
       | SOME (ls, cargs', rs, rhs, eq) =>
           let
-            val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
+            val recs = filter (Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
             val rargs = map fst recs;
             val subs = map (rpair dummyT o fst)
               (rev (Term.rename_wrt_term rhs rargs));
             val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
-              (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
+              (Free x, (Datatype_Aux.body_index y, Free z))) recs subs) rhs (fnames', fnss')
                 handle PrimrecError (s, NONE) => primrec_error_eqn s eq
           in
             (fnames'', fnss'', fold_rev absfree (cargs' @ subs @ ls @ rs) rhs' :: fns)
@@ -184,7 +182,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
     NONE =>
       let
         val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
-          replicate (length cargs + length (filter is_rec_type cargs))
+          replicate (length cargs + length (filter Datatype_Aux.is_rec_type cargs))
             dummyT ---> HOLogic.unitT)) constrs;
         val _ = warning ("No function definition for datatype " ^ quote tname)
       in
@@ -208,7 +206,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
 
 (* find datatypes which contain all datatypes in tnames' *)
 
-fun find_dts (dt_info : info Symtab.table) _ [] = []
+fun find_dts (dt_info : Datatype_Aux.info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname :: tnames) =
       (case Symtab.lookup dt_info tname of
         NONE => primrec_error (quote tname ^ " is not a datatype")

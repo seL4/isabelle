@@ -13,8 +13,6 @@ end;
 structure Size: SIZE =
 struct
 
-open Datatype_Aux;
-
 structure SizeData = Theory_Data
 (
   type T = (string * thm list) Symtab.table;
@@ -56,16 +54,16 @@ fun constrs_of thy name =
 
 val app = curry (list_comb o swap);
 
-fun prove_size_thms (info : info) new_type_names thy =
+fun prove_size_thms (info : Datatype.info) new_type_names thy =
   let
     val {descr, sorts, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
     val descr' = List.take (descr, l);
     val (rec_names1, rec_names2) = chop l rec_names;
-    val recTs = get_rec_types descr sorts;
+    val recTs = Datatype_Aux.get_rec_types descr sorts;
     val (recTs1, recTs2) = chop l recTs;
     val (_, (_, paramdts, _)) :: _ = descr;
-    val paramTs = map (typ_of_dtyp descr sorts) paramdts;
+    val paramTs = map (Datatype_Aux.typ_of_dtyp descr sorts) paramdts;
     val ((param_size_fs, param_size_fTs), f_names) = paramTs |>
       map (fn T as TFree (s, _) =>
         let
@@ -96,10 +94,10 @@ fun prove_size_thms (info : info) new_type_names thy =
     (* instantiation for primrec combinator *)
     fun size_of_constr b size_ofp ((_, cargs), (_, cargs')) =
       let
-        val Ts = map (typ_of_dtyp descr sorts) cargs;
-        val k = length (filter is_rec_type cargs);
+        val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
+        val k = length (filter Datatype_Aux.is_rec_type cargs);
         val (ts, _, _) = fold_rev (fn ((dt, dt'), T) => fn (us, i, j) =>
-          if is_rec_type dt then (Bound i :: us, i + 1, j + 1)
+          if Datatype_Aux.is_rec_type dt then (Bound i :: us, i + 1, j + 1)
           else
             (if b andalso is_poly thy dt' then
                case size_of_type (K NONE) extra_size size_ofp T of
@@ -161,8 +159,8 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     fun prove_unfolded_size_eqs size_ofp fs =
       if null recTs2 then []
-      else split_conj_thm (Skip_Proof.prove ctxt xs []
-        (HOLogic.mk_Trueprop (mk_conj (replicate l HOLogic.true_const @
+      else Datatype_Aux.split_conj_thm (Skip_Proof.prove ctxt xs []
+        (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj (replicate l HOLogic.true_const @
            map (mk_unfolded_size_eq (AList.lookup op =
                (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
              (xs ~~ recTs2 ~~ rec_combs2))))
@@ -174,7 +172,7 @@ fun prove_size_thms (info : info) new_type_names thy =
     (* characteristic equations for size functions *)
     fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
       let
-        val Ts = map (typ_of_dtyp descr sorts) cargs;
+        val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
         val tnames = Name.variant_list f_names (Datatype_Prop.make_tnames Ts);
         val ts = map_filter (fn (sT as (s, T), dt) =>
           Option.map (fn sz => sz $ Free sT)
@@ -202,7 +200,7 @@ fun prove_size_thms (info : info) new_type_names thy =
         (descr' ~~ size_fns ~~ recTs1);
 
     val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size simpset2 @
-      prove_size_eqs is_rec_type overloaded_size_fns (K NONE) simpset3;
+      prove_size_eqs Datatype_Aux.is_rec_type overloaded_size_fns (K NONE) simpset3;
 
     val ([size_thms], thy'') =
       Global_Theory.add_thmss
@@ -222,7 +220,8 @@ fun add_size_thms config (new_type_names as name :: _) thy =
     val prefix =
       Long_Name.map_base_name (K (space_implode "_" (map Long_Name.base_name new_type_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
-      is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs) descr
+      Datatype_Aux.is_rec_type dt andalso
+        not (null (fst (Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
   in
     if no_size then thy
     else

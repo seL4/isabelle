@@ -21,8 +21,6 @@ end;
 structure NominalPrimrec : NOMINAL_PRIMREC =
 struct
 
-open Datatype_Aux;
-
 exception RecError of string;
 
 fun primrec_err s = error ("Nominal primrec definition error:\n" ^ s);
@@ -156,12 +154,12 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
               (fnames', fnss', (Const (@{const_name undefined}, dummyT))::fns))
         | SOME (ls, cargs', rs, rhs, eq) =>
             let
-              val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
+              val recs = filter (Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
                 (rev (Term.rename_wrt_term rhs rargs));
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
-                (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
+                (Free x, (Datatype_Aux.body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle RecError s => primrec_eq_err lthy s eq
             in (fnames'', fnss'', fold_rev absfree (cargs' @ subs) rhs' :: fns)
             end)
@@ -192,7 +190,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
-           replicate (length cargs + length (filter is_rec_type cargs))
+           replicate (length cargs + length (filter Datatype_Aux.is_rec_type cargs))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
        in
