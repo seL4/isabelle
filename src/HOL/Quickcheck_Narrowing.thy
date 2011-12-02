@@ -348,7 +348,7 @@ where
   "eval_cfun (Constant c) y = c"
 
 hide_type (open) cfun
-hide_const (open) Constant eval_cfun
+hide_const (open) Constant eval_cfun Abs_cfun Rep_cfun
 
 subsubsection {* Setting up the counterexample generator *}
 
