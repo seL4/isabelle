@@ -1495,7 +1495,7 @@ fun read_typ ctxt raw_T env =
   let
     val ctxt' = fold (Variable.declare_typ o TFree) env ctxt;
     val T = Syntax.read_typ ctxt' raw_T;
-    val env' = Misc_Legacy.add_typ_tfrees (T, env);
+    val env' = Term.add_tfreesT T env;
   in (T, env') end;
 
 fun cert_typ ctxt raw_T env =
@@ -1503,7 +1503,7 @@ fun cert_typ ctxt raw_T env =
     val thy = Proof_Context.theory_of ctxt;
     val T = Type.no_tvars (Sign.certify_typ thy raw_T)
       handle TYPE (msg, _, _) => error msg;
-    val env' = Misc_Legacy.add_typ_tfrees (T, env);
+    val env' = Term.add_tfreesT T env;
   in (T, env') end;
 
 

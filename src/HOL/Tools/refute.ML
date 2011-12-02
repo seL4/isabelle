@@ -403,8 +403,7 @@ val typ_of_dtyp = ATP_Util.typ_of_dtyp
 
 fun close_form t =
   let
-    (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (Misc_Legacy.term_vars t))
+    val vars = sort_wrt (fst o fst) (Term.add_vars t [])
   in
     fold (fn ((x, i), T) => fn t' =>
       Term.all T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
@@ -1212,8 +1211,7 @@ fun refute_term ctxt params assm_ts t =
       error "Term to be refuted contains schematic type variables"
 
     (* existential closure over schematic variables *)
-    (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (Misc_Legacy.term_vars t))
+    val vars = sort_wrt (fst o fst) (Term.add_vars t [])
     (* Term.term *)
     val ex_closure = fold (fn ((x, i), T) => fn t' =>
       HOLogic.exists_const T $

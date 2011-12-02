@@ -1414,7 +1414,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
 
     val _ = warning "defining recursion combinator ...";
 
-    val used = List.foldr Misc_Legacy.add_typ_tfree_names [] recTs;
+    val used = fold Term.add_tfree_namesT recTs [];
 
     val (rec_result_Ts', rec_fn_Ts') = Datatype_Prop.make_primrec_Ts descr' sorts used;
 
