@@ -308,7 +308,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
       curry (List.take o swap) (length fvars) |> map cert;
     val invs' = (case invs of
         NONE => map (fn (i, _) =>
-          Abs ("x", fastype_of (snd (nth defs' i)), HOLogic.true_const)) descr
+          Abs ("x", fastype_of (snd (nth defs' i)), @{term True})) descr
       | SOME invs' => map (prep_term lthy') invs');
     val inst = (map cert fvars ~~ cfs) @
       (map (cert o Var) pvars ~~ map cert invs') @

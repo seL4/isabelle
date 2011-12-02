@@ -182,7 +182,7 @@ fun mk_desc thy tac vs Gam l r m1 m2 =
        (case try @{const_name Orderings.less_eq} of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-          if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const]
+          if prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
           then False thm2 else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
      | _ => raise Match
@@ -260,7 +260,7 @@ fun mk_pair_compr (T, qs, l, r, conds) =
     val pT = HOLogic.mk_prodT (T, T)
     val n = length qs
     val peq = HOLogic.eq_const pT $ Bound n $ (HOLogic.pair_const T T $ l $ r)
-    val conds' = if null conds then [HOLogic.true_const] else conds
+    val conds' = if null conds then [@{term True}] else conds
   in
     HOLogic.Collect_const pT $
     Abs ("uu_", pT,

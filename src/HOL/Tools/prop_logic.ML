@@ -394,8 +394,8 @@ fun prop_formula_of_term t table =
 (*       Boolean variables in the formula, similar to 'prop_formula_of_term' *)
 (*       (but the other way round).                                          *)
 
-fun term_of_prop_formula True = HOLogic.true_const
-  | term_of_prop_formula False = HOLogic.false_const
+fun term_of_prop_formula True = @{term True}
+  | term_of_prop_formula False = @{term False}
   | term_of_prop_formula (BoolVar i) = Free ("v" ^ string_of_int i, HOLogic.boolT)
   | term_of_prop_formula (Not fm) = HOLogic.mk_not (term_of_prop_formula fm)
   | term_of_prop_formula (Or (fm1, fm2)) =

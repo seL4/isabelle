@@ -309,7 +309,7 @@ val ex_lookup_eq_simproc =
               val (eq, eT, nT, swap) = mkeq (dest_sel_eq t) 0;
               val prop =
                 list_all ([("n", nT), ("x", eT)],
-                  Logic.mk_equals (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), HOLogic.true_const));
+                  Logic.mk_equals (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
               val thm = Drule.export_without_context (prove prop);
               val thm' = if swap then swap_ex_eq OF [thm] else thm
             in SOME thm' end handle TERM _ => NONE)

@@ -1392,7 +1392,7 @@ val ex_sel_eq_simproc =
              val prop =
                list_all ([("r", T)],
                  Logic.mk_equals
-                  (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), HOLogic.true_const));
+                  (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
             in SOME (prove prop) end
             handle TERM _ => NONE)
         | _ => NONE)
@@ -1644,10 +1644,10 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val inject_prop =  (* FIXME local x x' *)
       let val vars_more' = map (fn (Free (x, T)) => Free (x ^ "'", T)) vars_more in
         HOLogic.mk_conj (HOLogic.eq_const extT $
-          mk_ext vars_more $ mk_ext vars_more', HOLogic.true_const)
+          mk_ext vars_more $ mk_ext vars_more', @{term True})
         ===
         foldr1 HOLogic.mk_conj
-          (map HOLogic.mk_eq (vars_more ~~ vars_more') @ [HOLogic.true_const])
+          (map HOLogic.mk_eq (vars_more ~~ vars_more') @ [@{term True}])
       end;
 
     val induct_prop =

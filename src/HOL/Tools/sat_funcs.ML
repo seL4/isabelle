@@ -288,7 +288,7 @@ fun rawsat_thm ctxt clauses =
   let
     (* remove premises that equal "True" *)
     val clauses' = filter (fn clause =>
-      (not_equal HOLogic.true_const o HOLogic.dest_Trueprop o Thm.term_of) clause
+      (not_equal @{term True} o HOLogic.dest_Trueprop o Thm.term_of) clause
         handle TERM ("dest_Trueprop", _) => true) clauses
     (* remove non-clausal premises -- of course this shouldn't actually   *)
     (* remove anything as long as 'rawsat_tac' is only called after the   *)
@@ -331,7 +331,7 @@ fun rawsat_thm ctxt clauses =
           if !trace_sat then
             tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
           else ()
-        val False_thm = Skip_Proof.make_thm @{theory} (HOLogic.Trueprop $ HOLogic.false_const)
+        val False_thm = Skip_Proof.make_thm @{theory} (HOLogic.Trueprop $ @{term False})
       in
         (* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
         (* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)

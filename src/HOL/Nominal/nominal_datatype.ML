@@ -1025,7 +1025,7 @@ fun gen_add_nominal_datatype prep_typ config dts thy =
            Goal.prove_global thy8 [] [] (augment_sort thy8 pt_cp_sort
              (HOLogic.mk_Trueprop (HOLogic.mk_eq
                (fresh c,
-                if null dts then HOLogic.true_const
+                if null dts then @{term True}
                 else foldr1 HOLogic.mk_conj (map fresh args2)))))
              (fn _ =>
                simp_tac (HOL_ss addsimps [Un_iff, empty_iff, fresh_def, supp_thm]) 1))

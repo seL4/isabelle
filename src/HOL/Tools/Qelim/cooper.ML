@@ -653,8 +653,8 @@ fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT i
   | term_of_num vs (Proc.Cn (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
-fun term_of_fm ps vs Proc.T = HOLogic.true_const
-  | term_of_fm ps vs Proc.F = HOLogic.false_const
+fun term_of_fm ps vs Proc.T = @{term True}
+  | term_of_fm ps vs Proc.F = @{term False}
   | term_of_fm ps vs (Proc.And (t1, t2)) = HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Or (t1, t2)) = HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Imp (t1, t2)) = HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2

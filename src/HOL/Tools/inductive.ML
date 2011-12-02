@@ -128,7 +128,7 @@ fun make_bool_args f g [] i = []
       (if i mod 2 = 0 then f x else g x) :: make_bool_args f g xs (i div 2);
 
 fun make_bool_args' xs =
-  make_bool_args (K HOLogic.false_const) (K HOLogic.true_const) xs;
+  make_bool_args (K @{term False}) (K @{term True}) xs;
 
 fun arg_types_of k c = drop k (binder_types (fastype_of c));
 
@@ -786,14 +786,14 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       in
         fold_rev (fn (x, T) => fn P => HOLogic.exists_const T $ Abs (x, T, P))
           (Logic.strip_params r)
-          (if null ps then HOLogic.true_const else foldr1 HOLogic.mk_conj ps)
+          (if null ps then @{term True} else foldr1 HOLogic.mk_conj ps)
       end;
 
     (* make a disjunction of all introduction rules *)
 
     val fp_fun =
       fold_rev lambda (p :: bs @ xs)
-        (if null intr_ts then HOLogic.false_const
+        (if null intr_ts then @{term False}
          else foldr1 HOLogic.mk_disj (map transform_rule intr_ts));
 
     (* add definiton of recursive predicates to theory *)

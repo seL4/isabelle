@@ -160,7 +160,7 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
     fun prove_unfolded_size_eqs size_ofp fs =
       if null recTs2 then []
       else Datatype_Aux.split_conj_thm (Skip_Proof.prove ctxt xs []
-        (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj (replicate l HOLogic.true_const @
+        (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj (replicate l @{term True} @
            map (mk_unfolded_size_eq (AList.lookup op =
                (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
              (xs ~~ recTs2 ~~ rec_combs2))))

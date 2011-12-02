@@ -2985,8 +2985,8 @@ fun stlc_printer ctxt model T intr assignment =
     | Type ("prop", []) =>
         (case index_from_interpretation intr of
           ~1 => SOME (HOLogic.mk_Trueprop (Const (@{const_name undefined}, HOLogic.boolT)))
-        | 0  => SOME (HOLogic.mk_Trueprop HOLogic.true_const)
-        | 1  => SOME (HOLogic.mk_Trueprop HOLogic.false_const)
+        | 0  => SOME (HOLogic.mk_Trueprop @{term True})
+        | 1  => SOME (HOLogic.mk_Trueprop @{term False})
         | _  => raise REFUTE ("stlc_interpreter",
           "illegal interpretation for a propositional value"))
     | Type _  =>

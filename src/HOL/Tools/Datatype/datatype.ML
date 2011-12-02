@@ -478,7 +478,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       let val isoT = T --> Univ_elT in
         HOLogic.imp $
           (Const (set_name, UnivT') $ Datatype_Aux.mk_Free "x" Univ_elT i) $
-            (if i < length newTs then HOLogic.true_const
+            (if i < length newTs then @{term True}
              else HOLogic.mk_mem (Datatype_Aux.mk_Free "x" Univ_elT i,
                Const (@{const_name image}, isoT --> HOLogic.mk_setT T --> UnivT) $
                  Const (iso_name, isoT) $ Const (@{const_abbrev UNIV}, HOLogic.mk_setT T)))

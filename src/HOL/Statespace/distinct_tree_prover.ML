@@ -29,6 +29,7 @@ val neq_to_eq_False = @{thm neq_to_eq_False};
 datatype direction = Left | Right;
 
 fun treeT T = Type (@{type_name tree}, [T]);
+
 fun mk_tree' e T n [] = Const (@{const_name Tip}, treeT T)
   | mk_tree' e T n xs =
      let
@@ -38,7 +39,7 @@ fun mk_tree' e T n [] = Const (@{const_name Tip}, treeT T)
        val r = mk_tree' e T (n-(m+1)) xsr;
      in
        Const (@{const_name Node}, treeT T --> T --> HOLogic.boolT--> treeT T --> treeT T) $
-         l $ e x $ HOLogic.false_const $ r
+         l $ e x $ @{term False} $ r
      end
 
 fun mk_tree e T xs = mk_tree' e T (length xs) xs;

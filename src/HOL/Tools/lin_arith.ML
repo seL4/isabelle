@@ -56,7 +56,7 @@ fun neg_prop ((TP as Const(@{const_name Trueprop}, _)) $ (Const (@{const_name No
 
 fun is_False thm =
   let val _ $ t = Thm.prop_of thm
-  in t = HOLogic.false_const end;
+  in t = @{term False} end;
 
 fun is_nat t = (fastype_of1 t = HOLogic.natT);
 
@@ -349,7 +349,7 @@ let
   (* where ti' = HOLogic.dest_Trueprop ti                                    *)
   fun REPEAT_DETERM_etac_rev_mp tms =
     fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop tms)
-      HOLogic.false_const
+      @{term False}
   val split_thms  = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
   val cmap        = Splitter.cmap_of_split_thms split_thms
   val goal_tm     = REPEAT_DETERM_etac_rev_mp terms
@@ -380,7 +380,7 @@ in
         val t1_leq_t2     = Const (@{const_name Orderings.less_eq},
                                     split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val not_t1_leq_t2 = HOLogic.Not $ t1_leq_t2
-        val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1      = (HOLogic.mk_Trueprop t1_leq_t2) :: terms2 @ [not_false]
         val subgoal2      = (HOLogic.mk_Trueprop not_t1_leq_t2) :: terms1 @ [not_false]
       in
@@ -395,7 +395,7 @@ in
         val t1_leq_t2     = Const (@{const_name Orderings.less_eq},
                                     split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val not_t1_leq_t2 = HOLogic.Not $ t1_leq_t2
-        val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1      = (HOLogic.mk_Trueprop t1_leq_t2) :: terms1 @ [not_false]
         val subgoal2      = (HOLogic.mk_Trueprop not_t1_leq_t2) :: terms2 @ [not_false]
       in
@@ -413,7 +413,7 @@ in
                             split_type --> split_type --> HOLogic.boolT) $ zero $ t1
         val t1_lt_zero  = Const (@{const_name Orderings.less},
                             split_type --> split_type --> HOLogic.boolT) $ t1 $ zero
-        val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1    = (HOLogic.mk_Trueprop zero_leq_t1) :: terms1 @ [not_false]
         val subgoal2    = (HOLogic.mk_Trueprop t1_lt_zero) :: terms2 @ [not_false]
       in
@@ -437,7 +437,7 @@ in
         val t1_eq_t2_plus_d = Const (@{const_name HOL.eq}, split_type --> split_type --> HOLogic.boolT) $ t1' $
                                 (Const (@{const_name Groups.plus},
                                   split_type --> split_type --> split_type) $ t2' $ d)
-        val not_false       = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false       = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1        = (HOLogic.mk_Trueprop t1_lt_t2) :: terms1 @ [not_false]
         val subgoal2        = (HOLogic.mk_Trueprop t1_eq_t2_plus_d) :: terms2 @ [not_false]
       in
@@ -458,7 +458,7 @@ in
                             (Const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) $ n)
         val t1_lt_zero  = Const (@{const_name Orderings.less},
                             HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1 $ zero_int
-        val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1    = (HOLogic.mk_Trueprop t1_eq_nat_n) :: terms1 @ [not_false]
         val subgoal2    = (HOLogic.mk_Trueprop t1_lt_zero) :: terms2 @ [not_false]
       in
@@ -488,7 +488,7 @@ in
                                        (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
         val subgoal2                = (map HOLogic.mk_Trueprop
                                         [t2_neq_zero, j_lt_t2, t1_eq_t2_times_i_plus_j])
@@ -520,7 +520,7 @@ in
                                        (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
         val subgoal2                = (map HOLogic.mk_Trueprop
                                         [t2_neq_zero, j_lt_t2, t1_eq_t2_times_i_plus_j])
@@ -566,7 +566,7 @@ in
                                        (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
         val subgoal2                = (map HOLogic.mk_Trueprop [zero_lt_t2, zero_leq_j])
                                         @ hd terms2_3
@@ -620,7 +620,7 @@ in
                                        (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
+        val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ @{term False})
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
         val subgoal2                = (map HOLogic.mk_Trueprop [zero_lt_t2, zero_leq_j])
                                         @ hd terms2_3

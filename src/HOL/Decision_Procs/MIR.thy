@@ -5602,8 +5602,8 @@ fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HO
   | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
   | term_of_num vs (@{code CF} (c, t, s)) = term_of_num vs (@{code Add} (@{code Mul} (c, @{code Floor} t), s));
 
-fun term_of_fm vs @{code T} = HOLogic.true_const 
-  | term_of_fm vs @{code F} = HOLogic.false_const
+fun term_of_fm vs @{code T} = @{term True} 
+  | term_of_fm vs @{code F} = @{term False}
   | term_of_fm vs (@{code Lt} t) =
       @{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
   | term_of_fm vs (@{code Le} t) =

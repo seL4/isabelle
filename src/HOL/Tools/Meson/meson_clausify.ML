@@ -35,8 +35,8 @@ fun is_zapped_var_name s =
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
-val cfalse = cterm_of @{theory HOL} HOLogic.false_const;
-val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const);
+val cfalse = cterm_of @{theory HOL} @{term False};
+val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop @{term False});
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate

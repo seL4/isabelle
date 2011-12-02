@@ -586,7 +586,7 @@ fun is_same_inference _ (Definition _) = false
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
-val is_only_type_information = curry (op aconv) HOLogic.true_const
+val is_only_type_information = curry (op aconv) @{term True}
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]

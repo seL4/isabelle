@@ -1003,8 +1003,8 @@ fun set_vcs ({types, vars, consts, funs} : decls)
 
     val (((defs', vars''), ivars), (ids, thy')) =
       ((Symtab.empty |>
-        Symtab.update ("false", (HOLogic.false_const, booleanN)) |>
-        Symtab.update ("true", (HOLogic.true_const, booleanN)),
+        Symtab.update ("false", (@{term False}, booleanN)) |>
+        Symtab.update ("true", (@{term True}, booleanN)),
         Name.context),
        thy |> Sign.add_path (Long_Name.base_name ident)) |>
       fold (add_type_def prfx) (items types) |>

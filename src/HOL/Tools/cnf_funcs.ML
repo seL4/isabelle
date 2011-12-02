@@ -294,18 +294,18 @@ fun simp_True_False_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
         val thm1 = simp_True_False_thm thy x
         val x'= (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) thm1
       in
-        if x' = HOLogic.false_const then
+        if x' = @{term False} then
           simp_TF_conj_False_l OF [thm1]  (* (x & y) = False *)
         else
           let
             val thm2 = simp_True_False_thm thy y
             val y' = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) thm2
           in
-            if x' = HOLogic.true_const then
+            if x' = @{term True} then
               simp_TF_conj_True_l OF [thm1, thm2]  (* (x & y) = y' *)
-            else if y' = HOLogic.false_const then
+            else if y' = @{term False} then
               simp_TF_conj_False_r OF [thm2]  (* (x & y) = False *)
-            else if y' = HOLogic.true_const then
+            else if y' = @{term True} then
               simp_TF_conj_True_r OF [thm1, thm2]  (* (x & y) = x' *)
             else
               conj_cong OF [thm1, thm2]  (* (x & y) = (x' & y') *)
@@ -316,18 +316,18 @@ fun simp_True_False_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
         val thm1 = simp_True_False_thm thy x
         val x' = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) thm1
       in
-        if x' = HOLogic.true_const then
+        if x' = @{term True} then
           simp_TF_disj_True_l OF [thm1]  (* (x | y) = True *)
         else
           let
             val thm2 = simp_True_False_thm thy y
             val y' = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) thm2
           in
-            if x' = HOLogic.false_const then
+            if x' = @{term False} then
               simp_TF_disj_False_l OF [thm1, thm2]  (* (x | y) = y' *)
-            else if y' = HOLogic.true_const then
+            else if y' = @{term True} then
               simp_TF_disj_True_r OF [thm2]  (* (x | y) = True *)
-            else if y' = HOLogic.false_const then
+            else if y' = @{term False} then
               simp_TF_disj_False_r OF [thm1, thm2]  (* (x | y) = x' *)
             else
               disj_cong OF [thm1, thm2]  (* (x | y) = (x' | y') *)

@@ -15,8 +15,6 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
-  val true_const: term
-  val false_const: term
   val mk_induct_forall: typ -> term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
@@ -161,9 +159,6 @@ fun mk_comp (f, g) =
 
 val boolN = "HOL.bool";
 val boolT = Type (boolN, []);
-
-val true_const =  Const ("HOL.True", boolT);
-val false_const = Const ("HOL.False", boolT);
 
 fun mk_induct_forall T = Const ("HOL.induct_forall", (T --> boolT) --> boolT);
 

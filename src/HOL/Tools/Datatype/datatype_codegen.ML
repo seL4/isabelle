@@ -68,8 +68,8 @@ fun mk_eq_eqns thy tyco =
       Datatype_Data.the_info thy tyco;
     val ty = Type (tyco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name HOL.equal}, ty --> ty --> HOLogic.boolT) $ t1 $ t2;
-    fun true_eq t12 = HOLogic.mk_eq (mk_eq t12, HOLogic.true_const);
-    fun false_eq t12 = HOLogic.mk_eq (mk_eq t12, HOLogic.false_const);
+    fun true_eq t12 = HOLogic.mk_eq (mk_eq t12, @{term True});
+    fun false_eq t12 = HOLogic.mk_eq (mk_eq t12, @{term False});
     val triv_injects =
       map_filter
         (fn (c, []) => SOME (HOLogic.mk_Trueprop (true_eq (Const (c, ty), Const (c, ty))))
