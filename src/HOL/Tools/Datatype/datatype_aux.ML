@@ -76,7 +76,7 @@ sig
     -> ((string * typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
   val unfold_datatypes :
-    theory -> descr -> (string * sort) list -> info Symtab.table ->
+    Proof.context -> descr -> (string * sort) list -> info Symtab.table ->
       descr -> int -> descr list * int
   val find_shortest_path : descr -> int -> (string * int) option
 end;
@@ -323,11 +323,11 @@ fun check_nonempty descr =
 (* all types of the form DtType (dt_name, [..., DtRec _, ...]) *)
 (* need to be unfolded                                         *)
 
-fun unfold_datatypes thy orig_descr sorts (dt_info : info Symtab.table) descr i =
+fun unfold_datatypes ctxt orig_descr sorts (dt_info : info Symtab.table) descr i =
   let
     fun typ_error T msg =
       error ("Non-admissible type expression\n" ^
-        Syntax.string_of_typ_global thy (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
+        Syntax.string_of_typ ctxt (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
 
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup dt_info tname of
@@ -359,7 +359,7 @@ fun unfold_datatypes thy orig_descr sorts (dt_info : info Symtab.table) descr i 
                 let
                   val (index, descr) = get_dt_descr T i tname dts;
                   val (descr', i') =
-                    unfold_datatypes thy orig_descr sorts dt_info descr (i + length descr);
+                    unfold_datatypes ctxt orig_descr sorts dt_info descr (i + length descr);
                 in (i', Ts @ [mk_fun_dtyp Us (DtRec index)], descrs @ descr') end
             | _ => (i, Ts @ [T], descrs))
         end

@@ -682,6 +682,7 @@ fun gen_add_datatype prep_typ config dts thy =
     val tmp_thy = thy
       |> Theory.copy
       |> Sign.add_types_global (map (fn (tvs, tname, mx, _) => (tname, length tvs, mx)) dts);
+    val tmp_ctxt = Proof_Context.init_global tmp_thy;
 
     val (tyvars, _, _, _) ::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
@@ -732,7 +733,7 @@ fun gen_add_datatype prep_typ config dts thy =
     val sorts =
       sorts' @ map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars);
     val dt_info = Datatype_Data.get_all thy;
-    val (descr, _) = Datatype_Aux.unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
+    val (descr, _) = Datatype_Aux.unfold_datatypes tmp_ctxt dts' sorts dt_info dts' i;
     val _ =
       Datatype_Aux.check_nonempty descr
         handle (exn as Datatype_Aux.Datatype_Empty s) =>
