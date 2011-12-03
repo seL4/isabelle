@@ -11,7 +11,7 @@ datatype acom = Askip
               | Aassign vname aexp
               | Asemi   acom acom
               | Aif     bexp acom acom
-              | Awhile  bexp assn acom
+              | Awhile  assn bexp acom
 
 text{* Weakest precondition from annotated commands: *}
 
@@ -22,7 +22,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre (Aif b c\<^isub>1 c\<^isub>2) Q =
   (\<lambda>s. (bval b s \<longrightarrow> pre c\<^isub>1 Q s) \<and>
        (\<not> bval b s \<longrightarrow> pre c\<^isub>2 Q s))" |
-"pre (Awhile b I c) Q = I"
+"pre (Awhile I b c) Q = I"
 
 text{* Verification condition: *}
 
@@ -31,7 +31,7 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "vc (Aassign x a) Q = (\<lambda>s. True)" |
 "vc (Asemi c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
 "vc (Aif b c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
-"vc (Awhile b I c) Q =
+"vc (Awhile I b c) Q =
   (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
        (I s \<and> bval b s \<longrightarrow> pre c I s) \<and>
        vc c I s)"
@@ -43,17 +43,17 @@ fun astrip :: "acom \<Rightarrow> com" where
 "astrip (Aassign x a) = (x::=a)" |
 "astrip (Asemi c\<^isub>1 c\<^isub>2) = (astrip c\<^isub>1; astrip c\<^isub>2)" |
 "astrip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN astrip c\<^isub>1 ELSE astrip c\<^isub>2)" |
-"astrip (Awhile b I c) = (WHILE b DO astrip c)"
+"astrip (Awhile I b c) = (WHILE b DO astrip c)"
 
 
 subsection "Soundness"
 
 lemma vc_sound: "\<forall>s. vc c Q s \<Longrightarrow> \<turnstile> {pre c Q} astrip c {Q}"
 proof(induction c arbitrary: Q)
-  case (Awhile b I c)
+  case (Awhile I b c)
   show ?case
   proof(simp, rule While')
-    from `\<forall>s. vc (Awhile b I c) Q s`
+    from `\<forall>s. vc (Awhile I b c) Q s`
     have vc: "\<forall>s. vc c I s" and IQ: "\<forall>s. I s \<and> \<not> bval b s \<longrightarrow> Q s" and
          pre: "\<forall>s. I s \<and> bval b s \<longrightarrow> pre c I s" by simp_all
     have "\<turnstile> {pre c I} astrip c {I}" by(rule Awhile.IH[OF vc])
@@ -116,7 +116,7 @@ next
   case (While P b c)
   from While.IH obtain ac where ih: "?G (\<lambda>s. P s \<and> bval b s) c P ac" by blast
   show ?case (is "\<exists>ac. ?C ac")
-  proof show "?C(Awhile b P ac)" using ih by simp qed
+  proof show "?C(Awhile P b ac)" using ih by simp qed
 next
   case conseq thus ?case by(fast elim!: pre_mono vc_mono)
 qed
@@ -135,7 +135,7 @@ fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
   (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;
        (vc\<^isub>1,wp\<^isub>1) = vcpre c\<^isub>1 Q
    in (\<lambda>s. vc\<^isub>1 s \<and> vc\<^isub>2 s, \<lambda>s. (bval b s \<longrightarrow> wp\<^isub>1 s) \<and> (\<not>bval b s \<longrightarrow> wp\<^isub>2 s)))" |
-"vcpre (Awhile b I c) Q =
+"vcpre (Awhile I b c) Q =
   (let (vcc,wpc) = vcpre c I
    in (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
            (I s \<and> bval b s \<longrightarrow> wpc s) \<and> vcc s, I))"
