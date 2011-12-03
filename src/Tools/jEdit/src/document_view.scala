@@ -15,11 +15,13 @@ import scala.collection.immutable.SortedMap
 import scala.actors.Actor._
 
 import java.lang.System
+import java.text.BreakIterator
 import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D, Point}
 import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
+import javax.swing.text.Segment
 
 import org.gjt.sp.util.Log
 
@@ -348,19 +350,18 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   /* caret range */
 
   def caret_range(): Text.Range =
-    Isabelle.buffer_lock(model.buffer) {
-      def text(i: Text.Offset): Char = model.buffer.getText(i, 1).charAt(0)
-      val caret = text_area.getCaretPosition
-      try {
-        val c = text(caret)
-        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(caret + 1)))
-          Text.Range(caret, caret + 2)
-        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(caret - 1)))
-          Text.Range(caret - 1, caret + 1)
-        else Text.Range(caret, caret + 1)
-      }
-      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(caret, caret + 1) }
+  {
+    val buffer = model.buffer
+    Isabelle.buffer_lock(buffer) {
+      val max = buffer.getLength
+      val text = new Segment; buffer.getText(0, max, text)
+      val chars = BreakIterator.getCharacterInstance(); chars.setText(text)
+
+      val stop = chars.following(text_area.getCaretPosition)
+      if (stop < 0) Text.Range(max, max)
+      else Text.Range(chars.previous(), stop)
     }
+  }
 
 
   /* caret handling */
