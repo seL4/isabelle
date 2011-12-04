@@ -18,7 +18,7 @@ sig
       Proof.context -> Proof.context;
   val put_new_dseq_result : (unit -> int -> term list Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
-  val put_cps_result : (unit -> int -> term list option) ->
+  val put_cps_result : (unit -> int -> (bool * term list) option) ->
     Proof.context -> Proof.context
   val test_goals : (Predicate_Compile_Aux.compilation * bool) ->
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list
@@ -70,7 +70,7 @@ val put_new_dseq_result = New_Dseq_Result.put;
 
 structure CPS_Result = Proof_Data
 (
-  type T = unit -> int -> term list option
+  type T = unit -> int -> (bool * term list) option
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "CPS_Result"
 );
@@ -278,8 +278,9 @@ fun compile_term compilation options ctxt t =
             mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
             (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
         | Pos_Generator_CPS => prog $
-            mk_split_lambda (map Free vs') (mk_Some @{typ "term list"} $ (HOLogic.mk_list @{typ term}
-            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))     
+            mk_split_lambda (map Free vs') (mk_Some @{typ "bool * term list"} $
+            HOLogic.mk_prod (@{term "True"}, HOLogic.mk_list @{typ term}
+                (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))     
         | Depth_Limited_Random => fold_rev absdummy
             [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
              @{typ "code_numeral * code_numeral"}]
@@ -333,10 +334,10 @@ fun compile_term compilation options ctxt t =
               Code_Runtime.dynamic_value_strict
                 (CPS_Result.get, put_cps_result, "Predicate_Compile_Quickcheck.put_cps_result")
                 thy4 (SOME target)
-                (fn proc => fn g => fn depth => g depth |> Option.map (map proc))
+                (fn proc => fn g => fn depth => g depth |> Option.map (apsnd (map proc)))
                 qc_term []
           in
-            fn size => fn nrandom => compiled_term
+            fn size => fn nrandom => Option.map snd o compiled_term
           end
        | Depth_Limited_Random =>
           let
@@ -385,7 +386,7 @@ fun compile_term' compilation options ctxt (t, eval_terms) =
     val counterexample = try_upto_depth ctxt (c size (!nrandom))
   in
     Quickcheck.Result
-      {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
+      {counterexample = Option.map (pair true o (curry (op ~~)) (Term.add_free_names t [])) counterexample,
        evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
   end
 

@@ -114,9 +114,11 @@ end;
 structure Pos_Bounded_CPS_Comp_Funs =
 struct
 
-fun mk_monadT T = (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ "code_numeral => Code_Evaluation.term list option"}
+val resultT = @{typ "(bool * Code_Evaluation.term list) option"}
+fun mk_monadT T = (T --> resultT) --> @{typ "code_numeral"} --> resultT
 
-fun dest_monadT (Type ("fun", [Type ("fun", [T, @{typ "term list option"}]), @{typ "code_numeral => term list option"}])) = T
+fun dest_monadT (Type ("fun", [Type ("fun", [T, @{typ "(bool * term list) option"}]),
+  @{typ "code_numeral => (bool * term list) option"}])) = T
   | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
 
 fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_empty}, mk_monadT T);
@@ -196,7 +198,8 @@ fun mk_iterate_upto T (f, from, to) = error "not implemented"
 fun mk_not t =
   let
     val T = mk_monadT HOLogic.unitT
-    val pT = @{typ "(unit => Code_Evaluation.term list option) => code_numeral => Code_Evaluation.term list option"}
+    val pT = @{typ "(unit => (bool * Code_Evaluation.term list) option)"}
+      --> @{typ "code_numeral => (bool * Code_Evaluation.term list) option"}
   in Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_not}, pT --> T) $ t end
 
 fun mk_Enum f = error "not implemented"

@@ -550,7 +550,8 @@ val pos_generator_cps_comp_modifiers = Comp_Mod.Comp_Modifiers
   mk_random =
     (fn T => fn additional_arguments =>
        Const (@{const_name "Quickcheck_Exhaustive.exhaustive"},
-       (T --> @{typ "term list option"}) --> @{typ "code_numeral => term list option"})),
+       (T --> @{typ "(bool * term list) option"}) -->
+         @{typ "code_numeral => (bool * term list) option"})),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))

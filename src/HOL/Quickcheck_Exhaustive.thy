@@ -466,7 +466,7 @@ definition cps_not :: "unit cps => unit cps"
 where
   "cps_not n = (%c. case n (%u. Some []) of None => c () | Some _ => None)"
 
-type_synonym 'a pos_bound_cps = "('a => term list option) => code_numeral => term list option"
+type_synonym 'a pos_bound_cps = "('a => (bool * term list) option) => code_numeral => (bool * term list) option"
 
 definition pos_bound_cps_empty :: "'a pos_bound_cps"
 where
@@ -515,7 +515,7 @@ where
 
 definition neg_bound_cps_not :: "unit pos_bound_cps => unit neg_bound_cps"
 where
-  "neg_bound_cps_not n = (%c i. case n (%u. Some []) i of None => c (Known ()) | Some _ => No_value)"
+  "neg_bound_cps_not n = (%c i. case n (%u. Some (True, [])) i of None => c (Known ()) | Some _ => No_value)"
 
 definition pos_bound_cps_not :: "unit neg_bound_cps => unit pos_bound_cps"
 where

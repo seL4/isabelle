@@ -1039,7 +1039,7 @@ fun test_term ctxt (t, eval_terms) =
       | _ => NONE
   in
     Quickcheck.Result
-      {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
+      {counterexample = Option.map (pair true o curry (op ~~) (Term.add_free_names t [])) counterexample,
        evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
   end;
 
