@@ -514,7 +514,7 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy		\
 HOL-IMP: HOL $(OUT)/HOL-IMP
 
 $(OUT)/HOL-IMP: $(OUT)/HOL \
-  IMP/Abs_Int0_fun.thy IMP/Abs_State.thy IMP/Abs_Int0.thy \
+  IMP/ACom.thy IMP/Abs_Int0_fun.thy IMP/Abs_State.thy IMP/Abs_Int0.thy \
   IMP/Abs_Int0_const.thy IMP/Abs_Int1.thy IMP/Abs_Int1_ivl.thy \
   IMP/Abs_Int2.thy IMP/Abs_Int_Den/Abs_Int_den0_fun.thy \
   IMP/Abs_Int_Den/Abs_State_den.thy  IMP/Abs_Int_Den/Abs_Int_den0.thy \
