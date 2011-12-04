@@ -26,11 +26,11 @@ fun post :: "'a acom \<Rightarrow>'a" where
 "post ({Inv} WHILE b DO c {P}) = P"
 
 fun strip :: "'a acom \<Rightarrow> com" where
-"strip (SKIP {a}) = com.SKIP" |
-"strip (x ::= e {a}) = (x ::= e)" |
+"strip (SKIP {P}) = com.SKIP" |
+"strip (x ::= e {P}) = (x ::= e)" |
 "strip (c1;c2) = (strip c1; strip c2)" |
-"strip (IF b THEN c1 ELSE c2 {a}) = (IF b THEN strip c1 ELSE strip c2)" |
-"strip ({a1} WHILE b DO c {a2}) = (WHILE b DO strip c)"
+"strip (IF b THEN c1 ELSE c2 {P}) = (IF b THEN strip c1 ELSE strip c2)" |
+"strip ({Inv} WHILE b DO c {P}) = (WHILE b DO strip c)"
 
 fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
 "anno a com.SKIP = SKIP {a}" |
@@ -42,13 +42,13 @@ fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
   ({a} WHILE b DO anno a c {a})"
 
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
-"map_acom f (SKIP {a}) = SKIP {f a}" |
-"map_acom f (x ::= e {a}) = (x ::= e {f a})" |
+"map_acom f (SKIP {P}) = SKIP {f P}" |
+"map_acom f (x ::= e {P}) = (x ::= e {f P})" |
 "map_acom f (c1;c2) = (map_acom f c1; map_acom f c2)" |
-"map_acom f (IF b THEN c1 ELSE c2 {a}) =
-  (IF b THEN map_acom f c1 ELSE map_acom f c2 {f a})" |
-"map_acom f ({a1} WHILE b DO c {a2}) =
-  ({f a1} WHILE b DO map_acom f c {f a2})"
+"map_acom f (IF b THEN c1 ELSE c2 {P}) =
+  (IF b THEN map_acom f c1 ELSE map_acom f c2 {f P})" |
+"map_acom f ({Inv} WHILE b DO c {P}) =
+  ({f Inv} WHILE b DO map_acom f c {f P})"
 
 
 lemma post_map_acom[simp]: "post(map_acom f c) = f(post c)"
