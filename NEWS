@@ -53,6 +53,9 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY, use
+theory HOL/Library/Nat_Bijection instead.
+
 * Session HOL-Word: Discontinued many redundant theorems specific to type
 'a word. INCOMPATIBILITY, use the corresponding generic theorems instead.
 

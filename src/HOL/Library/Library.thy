@@ -13,7 +13,6 @@ imports
   Convex
   Countable
   Cset_Monad
-  Diagonalize
   Dlist_Cset
   Eval_Witness
   Extended_Nat
