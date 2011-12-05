@@ -411,10 +411,9 @@ subsection {* Examples with underspecified/partial functions *}
 
 lemma
   "xs = [] ==> hd xs \<noteq> x"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
-quickcheck[random, potential = false, report = false, expect = no_counterexample]
-quickcheck[random, potential = true, report = false, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[random, report = false, expect = no_counterexample]
+quickcheck[random, report = true, expect = counterexample]
 oops
 
 lemma
