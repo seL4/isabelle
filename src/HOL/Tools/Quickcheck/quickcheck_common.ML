@@ -14,10 +14,10 @@ sig
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
-  val mk_safe_if : Proof.context -> term * term * (bool -> term) -> term
+  val mk_safe_if : term -> term * term * (bool -> term) -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
-    Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
   val generator_test_goal_terms :
     string * compile_generator -> Proof.context -> bool -> (string * typ) list
     -> (term * term list) list -> Quickcheck.result list
@@ -53,7 +53,7 @@ fun mk_undefined T = Const(@{const_name undefined}, T)
 (* testing functions: testing with increasing sizes (and cardinalities) *)
 
 type compile_generator =
-  Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
+  Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
 
 fun check_test_term t =
   let
@@ -69,34 +69,35 @@ fun cpu_time description e =
 
 fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
   let
+    val genuine_only = not (Config.get ctxt Quickcheck.potential)
     val _ = check_test_term t
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
     val current_result = Unsynchronized.ref Quickcheck.empty_result 
     fun excipit () =
       "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
-    fun with_size test_fun k =
+    val act = if catch_code_errors then try else (fn f => SOME o f) 
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation"
+        (fn () => act (compile ctxt) [(t, eval_terms)]);
+    val _ = Quickcheck.add_timing comp_time current_result
+    fun with_size test_fun genuine_only k =
       if k > Config.get ctxt Quickcheck.size then
         NONE
       else
         let
           val _ = Quickcheck.message ctxt
-            ("[Quickcheck-" ^ name ^ "]Test data size: " ^ string_of_int k)
+            ("[Quickcheck-" ^ name ^ "] Test data size: " ^ string_of_int k)
           val _ = current_size := k
           val ((result, report), timing) =
-            cpu_time ("size " ^ string_of_int k) (fn () => test_fun [1, k - 1])
+            cpu_time ("size " ^ string_of_int k) (fn () => test_fun genuine_only [1, k - 1])
           val _ = Quickcheck.add_timing timing current_result
           val _ = Quickcheck.add_report k report current_result
         in
           case result of
-            NONE => with_size test_fun (k + 1)
+            NONE => with_size test_fun genuine_only (k + 1)
           | SOME (true, ts) => SOME (true, ts)
           | SOME (false, ts) => SOME (false, ts) (* FIXME: output message & restart *) 
         end;
-    val act = if catch_code_errors then try else (fn f => SOME o f) 
-    val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-        (fn () => act (compile ctxt) [(t, eval_terms)]);
-    val _ = Quickcheck.add_timing comp_time current_result
   in
     case test_fun of
       NONE => (Quickcheck.message ctxt ("Conjecture is not executable with Quickcheck-" ^ name);
@@ -104,7 +105,7 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
     | SOME test_fun =>
       let
         val (response, exec_time) =
-          cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
+          cpu_time "quickcheck execution" (fn () => with_size test_fun genuine_only 1)
         val _ = Quickcheck.add_response names eval_terms response current_result
         val _ = Quickcheck.add_timing exec_time current_result
       in !current_result end
@@ -150,13 +151,14 @@ fun test_terms ctxt ts =
 
 fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
   let
+    val genuine_only = not (Config.get ctxt Quickcheck.potential)
     val thy = Proof_Context.theory_of ctxt
     val (ts', eval_terms) = split_list ts
     val _ = map check_test_term ts'
     val names = Term.add_free_names (hd ts') []
     val Ts = map snd (Term.add_frees (hd ts') [])
     val current_result = Unsynchronized.ref Quickcheck.empty_result
-    fun test_card_size test_fun (card, size) =
+    fun test_card_size test_fun genuine_only (card, size) =
       (* FIXME: why decrement size by one? *)
       let
         val _ =
@@ -165,7 +167,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
             "cardinality: " ^ string_of_int card)          
         val (ts, timing) =
           cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-            (fn () => fst (test_fun [card, size - 1]))
+            (fn () => fst (test_fun genuine_only [card, size - 1]))
         val _ = Quickcheck.add_timing timing current_result
       in
         Option.map (pair card) ts
@@ -187,7 +189,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
         !current_result)
     | SOME test_fun =>
       let
-        val _ = case get_first (test_card_size test_fun) enumeration_card_size of
+        val _ = case get_first (test_card_size test_fun genuine_only) enumeration_card_size of
           SOME (card, ts) => Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
         | NONE => ()
       in !current_result end
@@ -276,11 +278,11 @@ fun instantiate_goals lthy insts goals =
 fun mk_safe_if genuine_only (cond, then_t, else_t) =
   let
     val T = @{typ "(bool * term list) option"}
-    val if = Const (@{const_name "If"}, T --> T --> T)
+    val if_t = Const (@{const_name "If"}, @{typ bool} --> T --> T --> T)
   in
     Const (@{const_name "Quickcheck.catch_match"}, T --> T --> T) $ 
-      (if $ cond $ then_t $ else_t true) $
-      (if $ genuine_only $ Const (@{const_name "None", T) $ else_t false);
+      (if_t $ cond $ then_t $ else_t true) $
+      (if_t $ genuine_only $ Const (@{const_name "None"}, T) $ else_t false)
   end
 
 fun collect_results f [] results = results

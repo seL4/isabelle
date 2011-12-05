@@ -7,10 +7,10 @@ Exhaustive generators for various types.
 signature EXHAUSTIVE_GENERATORS =
 sig
   val compile_generator_expr:
-    Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
   val compile_generator_exprs: Proof.context -> term list -> (int -> term list option) list
   val compile_validator_exprs: Proof.context -> term list -> (int -> bool) list
-  val put_counterexample: (unit -> int -> int -> (bool * term list) option)
+  val put_counterexample: (unit -> int -> bool -> int -> (bool * term list) option)
     -> Proof.context -> Proof.context
   val put_counterexample_batch: (unit -> (int -> term list option) list)
     -> Proof.context -> Proof.context
@@ -342,17 +342,19 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
-    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val ([depth_name, genuine_only_name], ctxt'') =
+      Variable.variant_fixes ["depth", "genuine_only"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
+    val genuine_only = Free (genuine_only_name, @{typ bool}) 
     val return = mk_return (HOLogic.mk_list @{typ "term"}
         (map (fn t => HOLogic.mk_term_of (fastype_of t) t) frees @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
         $ lambda free t $ depth
     val none_t = Const (@{const_name "None"}, resultT)
-    val mk_if = Quickcheck_Common.mk_safe_if ctxt
+    val mk_if = Quickcheck_Common.mk_safe_if genuine_only
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
-  in lambda depth (mk_test_term t) end
+  in lambda genuine_only (lambda depth (mk_test_term t)) end
 
 fun mk_full_generator_expr ctxt (t, eval_terms) =
   let
@@ -379,14 +381,15 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
           $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t)) $ depth
     val none_t = Const (@{const_name "None"}, resultT)
-    val mk_if = Quickcheck_Common.mk_safe_if ctxt
+    val mk_if = Quickcheck_Common.mk_safe_if genuine_only
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda genuine_only (lambda depth (mk_test_term t)) end
 
 fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
-    ((mk_generator_expr, absdummy @{typ "code_numeral"} (Const (@{const_name "None"}, resultT))),
-      @{typ "code_numeral"} --> resultT)
+    ((mk_generator_expr,
+      absdummy @{typ bool} (absdummy @{typ "code_numeral"} (Const (@{const_name "None"}, resultT)))),
+      @{typ bool} --> @{typ "code_numeral"} --> resultT)
 
 fun mk_validator_expr ctxt t =
   let
@@ -424,7 +427,7 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> int -> (bool * term list) option
+  type T = unit -> int -> bool -> int -> (bool * term list) option
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -460,9 +463,10 @@ fun compile_generator_expr ctxt ts =
     val compile = Code_Runtime.dynamic_value_strict
       (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g =>
-        fn card => fn size => g card size |> (Option.map o apsnd o map) proc) t' []
+        fn card => fn genuine_only => fn size => g card genuine_only size
+          |> (Option.map o apsnd o map) proc) t' []
   in
-    fn [card, size] => rpair NONE (compile card size |> 
+    fn genuine_only => fn [card, size] => rpair NONE (compile card genuine_only size |> 
       (if Config.get ctxt quickcheck_pretty then
         Option.map (apsnd (map Quickcheck_Common.post_process_term)) else I))
   end;
