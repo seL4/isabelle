@@ -75,11 +75,11 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t" by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse(2) by auto
+  thus ?case using WhileFalse.prems by auto
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
-  from `bval b s1` WhileTrue(6) have "bval b t1"
+  from `bval b s1` WhileTrue.prems have "bval b t1"
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   have "s1 = t1 on L c (L ?w X)" using  L_While_subset WhileTrue.prems
     by (blast)
@@ -139,11 +139,11 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t" by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse(2) by auto
+  thus ?case using WhileFalse.prems by auto
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
-  from `bval b s1` WhileTrue(6) have "bval b t1"
+  from `bval b s1` WhileTrue.prems have "bval b t1"
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   have "s1 = t1 on L c (L ?w X)"
     using L_While_subset WhileTrue.prems by blast
