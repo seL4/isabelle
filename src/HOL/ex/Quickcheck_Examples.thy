@@ -411,25 +411,22 @@ subsection {* Examples with underspecified/partial functions *}
 
 lemma
   "xs = [] ==> hd xs \<noteq> x"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
-quickcheck[random, potential = false, report = false, expect = no_counterexample]
-quickcheck[random, potential = true, report = false, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[random, report = false, expect = no_counterexample]
+quickcheck[random, report = true, expect = no_counterexample]
 oops
 
 lemma
   "xs = [] ==> hd xs = x"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
-quickcheck[random, potential = false, report = false, expect = no_counterexample]
-quickcheck[random, potential = true, report = false, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[random, report = false, expect = no_counterexample]
+quickcheck[random, report = true, expect = no_counterexample]
 oops
 
 lemma "xs = [] ==> hd xs = x ==> x = y"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
-quickcheck[random, potential = false, report = false, expect = no_counterexample]
-quickcheck[random, potential = true, report = false, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[random, report = false, expect = no_counterexample]
+quickcheck[random, report = true, expect = no_counterexample]
 oops
 
 text {* with the simple testing scheme *}
@@ -439,19 +436,16 @@ declare [[quickcheck_full_support = false]]
 
 lemma
   "xs = [] ==> hd xs \<noteq> x"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
 oops
 
 lemma
   "xs = [] ==> hd xs = x"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
 oops
 
 lemma "xs = [] ==> hd xs = x ==> x = y"
-quickcheck[exhaustive, potential = false, expect = no_counterexample]
-quickcheck[exhaustive, potential = true, expect = counterexample]
+quickcheck[exhaustive, expect = no_counterexample]
 oops
 
 declare [[quickcheck_full_support = true]]

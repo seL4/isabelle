@@ -11,10 +11,10 @@ sig
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val compile_generator_expr:
-    Proof.context -> (term * term list) list -> int list -> (bool * term list) option * Quickcheck.report option
-  val put_counterexample: (unit -> int -> int -> seed -> (bool * term list) option * seed)
+    Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
+  val put_counterexample: (unit -> int -> bool -> int -> seed -> (bool * term list) option * seed)
     -> Proof.context -> Proof.context
-  val put_counterexample_report: (unit -> int -> int -> seed -> (term list option * (bool list * bool)) * seed)
+  val put_counterexample_report: (unit -> int -> bool -> int -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
     -> Proof.context -> Proof.context
   val setup: theory -> theory
 end;
@@ -60,7 +60,11 @@ fun random_fun T1 T2 eq term_of random random_split seed =
     fun term_fun' () = #3 (! state) ();
   in ((random_fun', term_fun'), seed''') end;
 
-
+fun mk_if (b, t, e) =
+  let
+    val T = fastype_of t
+  in Const (@{const_name "HOL.If"}, @{typ bool} --> T --> T --> T) $ b $ t $ e end
+  
 (** datatypes **)
 
 (* definitional scheme for random instances on datatypes *)
@@ -272,7 +276,7 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> (bool * term list) option * (int * int)
+  type T = unit -> int -> bool -> int -> int * int -> (bool * term list) option * (int * int)
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -280,7 +284,7 @@ val put_counterexample = Counterexample.put;
 
 structure Counterexample_Report = Proof_Data
 (
-  type T = unit -> int -> int -> seed -> (term list option * (bool list * bool)) * seed
+  type T = unit -> int -> bool -> int -> seed -> ((bool * term list) option * (bool list * bool)) * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample_Report"
 );
@@ -298,7 +302,10 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
-    val check = Quickcheck_Common.mk_safe_if ctxt (result, Const (@{const_name "None"}, resultT),
+    val ([genuine_only_name], ctxt') = Variable.variant_fixes ["genuine_only"] ctxt
+    val genuine_only = Free (genuine_only_name, @{typ bool})
+    val none_t = Const (@{const_name "None"}, resultT)
+    val check = Quickcheck_Common.mk_safe_if genuine_only none_t (result, none_t,
       fn genuine => @{term "Some :: bool * term list => (bool * term list) option"} $
         HOLogic.mk_prod (Quickcheck_Common.reflect_bool genuine, terms))
     val return = HOLogic.pair_const resultT @{typ Random.seed};
@@ -313,11 +320,15 @@ fun mk_generator_expr ctxt (t, eval_terms) =
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
       (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
-  in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
+  in
+    lambda genuine_only
+      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
+  end;
 
 fun mk_reporting_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
+    val resultT = @{typ "(bool * term list) option * (bool list * bool)"}
     val prop = fold_rev absfree (Term.add_frees t []) t
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1
@@ -326,55 +337,52 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
     val prop' = betapplys (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds)
     val (assms, concl) = Quickcheck_Common.strip_imp prop'
-    val return =
-      @{term "Pair :: term list option * (bool list * bool) => Random.seed => (term list option * (bool list * bool)) * Random.seed"};
+    val return = HOLogic.pair_const resultT @{typ "Random.seed"};
     fun mk_assms_report i =
-      HOLogic.mk_prod (@{term "None :: term list option"},
+      HOLogic.mk_prod (@{term "None :: (bool * term list) option"},
         HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT
           (replicate i @{term True} @ replicate (length assms - i) @{term False}),
         @{term False}))
     fun mk_concl_report b =
       HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT (replicate (length assms) @{term True}),
-        if b then @{term True} else @{term False})
-    val If =
-      @{term "If :: bool => term list option * (bool list * bool) => term list option * (bool list * bool) => term list option * (bool list * bool)"}
-    val concl_check = If $ concl $
-      HOLogic.mk_prod (@{term "None :: term list option"}, mk_concl_report true) $
-      HOLogic.mk_prod (@{term "Some :: term list => term list option"} $ terms, mk_concl_report false)
-    val check = fold_rev (fn (i, assm) => fn t => If $ assm $ t $ mk_assms_report i)
+        Quickcheck_Common.reflect_bool b)
+    val ([genuine_only_name], ctxt') = Variable.variant_fixes ["genuine_only"] ctxt
+    val genuine_only = Free (genuine_only_name, @{typ bool})
+    val none_t = HOLogic.mk_prod (@{term "None :: (bool * term list) option"}, mk_concl_report true)
+    val concl_check = Quickcheck_Common.mk_safe_if genuine_only none_t (concl, none_t,
+      fn genuine => HOLogic.mk_prod (@{term "Some :: bool * term list => (bool * term list) option"} $
+        HOLogic.mk_prod (Quickcheck_Common.reflect_bool genuine, terms), mk_concl_report false))
+    val check = fold_rev (fn (i, assm) => fn t => Quickcheck_Common.mk_safe_if genuine_only
+      (mk_assms_report i) (HOLogic.mk_not assm, mk_assms_report i, t))
       (map_index I assms) concl_check
-    val check' = @{term "Quickcheck.catch_match :: term list option * bool list * bool =>
-      term list option * bool list * bool => term list option * bool list * bool"} $ check $
-      (if Config.get ctxt Quickcheck.potential then
-        HOLogic.mk_prod (@{term "Some :: term list  => term list option"} $ terms, mk_concl_report false)
-      else
-        HOLogic.mk_prod (@{term "None :: term list option"}, mk_concl_report true))
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_split T = Sign.mk_const thy
-      (@{const_name prod_case}, [T, @{typ "unit => term"},
-        liftT @{typ "term list option * (bool list * bool)"} @{typ Random.seed}]);
+      (@{const_name prod_case}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
-      mk_scomp (mk_termtyp T) @{typ "term list option * (bool list * bool)"} @{typ Random.seed} t
+      mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
       (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
   in
-    Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check'))
+    lambda genuine_only
+      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
   end
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_generator_expr, 
-    absdummy @{typ code_numeral} @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"}),
-    @{typ "code_numeral => Random.seed => (bool * term list) option * Random.seed"})
+    absdummy @{typ bool} (absdummy @{typ code_numeral}
+      @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"})),
+    @{typ "bool => code_numeral => Random.seed => (bool * term list) option * Random.seed"})
 
 val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_reporting_generator_expr,
-    absdummy @{typ code_numeral}
-      @{term "Pair (None, ([], False)) :: Random.seed => (term list option * (bool list * bool)) * Random.seed"}),
-    @{typ "code_numeral => Random.seed => (term list option * (bool list * bool)) * Random.seed"})
+    absdummy @{typ bool} (absdummy @{typ code_numeral}
+      @{term "Pair (None, ([], False)) :: Random.seed =>
+        ((bool * term list) option * (bool list * bool)) * Random.seed"})),
+    @{typ "bool => code_numeral => Random.seed => ((bool * term list) option * (bool list * bool)) * Random.seed"})
     
     
 (* single quickcheck report *)
@@ -408,19 +416,22 @@ fun compile_generator_expr ctxt ts =
         val t' = mk_parametric_reporting_generator_expr ctxt ts;
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample_Report.get, put_counterexample_report, "Random_Generators.put_counterexample_report")
-          thy (SOME target) (fn proc => fn g => fn c => fn s => g c s #>> (apfst o Option.map o map) proc) t' [];
-        fun single_tester c s = compile c s |> Random_Engine.run
-        fun iterate_and_collect (card, size) 0 report = (NONE, report)
-          | iterate_and_collect (card, size) j report =
+          thy (SOME target)
+          (fn proc => fn g => fn c => fn b => fn s => g c b s
+            #>> (apfst o Option.map o apsnd o map) proc) t' [];
+        fun single_tester c b s = compile c b s |> Random_Engine.run
+        fun iterate_and_collect _ (card, size) 0 report = (NONE, report)
+          | iterate_and_collect genuine_only (card, size) j report =
             let
-              val (test_result, single_report) = apsnd Run (single_tester card size)
+              val (test_result, single_report) = apsnd Run (single_tester card genuine_only size)
               val report = collect_single_report single_report report
             in
-              case test_result of NONE => iterate_and_collect (card, size) (j - 1) report
-                | SOME q => (SOME (true, q), report)
+              case test_result of NONE => iterate_and_collect genuine_only (card, size) (j - 1) report
+                | SOME q => (SOME q, report)
             end
       in
-        fn [card, size] => apsnd SOME (iterate_and_collect (card, size) iterations empty_report)
+        fn genuine_only => fn [card, size] =>
+          apsnd SOME (iterate_and_collect genuine_only (card, size) iterations empty_report)
       end
     else
       let
@@ -428,13 +439,17 @@ fun compile_generator_expr ctxt ts =
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
           thy (SOME target)
-          (fn proc => fn g => fn c => fn s =>g c s #>> (Option.map o apsnd o map) proc) t' [];
-        fun single_tester c s = compile c s |> Random_Engine.run
-        fun iterate (card, size) 0 = NONE
-          | iterate (card, size) j =
-            case single_tester card size of NONE => iterate (card, size) (j - 1) | SOME q => SOME q
+          (fn proc => fn g => fn c => fn b => fn s => g c b s
+            #>> (Option.map o apsnd o map) proc) t' [];
+        fun single_tester c b s = compile c b s |> Random_Engine.run
+        fun iterate _ (card, size) 0 = NONE
+          | iterate genuine_only (card, size) j =
+            case single_tester card genuine_only size of
+              NONE => iterate genuine_only (card, size) (j - 1)
+            | SOME q => SOME q
       in
-        fn [card, size] => (rpair NONE (iterate (card, size) iterations))
+        fn genuine_only => fn [card, size] =>
+          (rpair NONE (iterate genuine_only (card, size) iterations))
       end
   end;
 

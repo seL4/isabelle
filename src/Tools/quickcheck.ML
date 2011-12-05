@@ -20,8 +20,9 @@ sig
   val no_assms : bool Config.T
   val report : bool Config.T
   val timing : bool Config.T
-  val potential : bool Config.T
+  val genuine_only : bool Config.T
   val quiet : bool Config.T
+  val verbose : bool Config.T
   val timeout : real Config.T
   val allow_function_inversion : bool Config.T;
   val finite_types : bool Config.T
@@ -62,7 +63,10 @@ sig
       -> Context.generic -> Context.generic
   (* basic operations *)
   val message : Proof.context -> string -> unit
+  val verbose_message : Proof.context -> string -> unit
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a
+  val pretty_counterex : Proof.context -> bool ->
+    ((bool * (string * term) list) * (term * term) list) option -> Pretty.T
   (* testing terms and proof states *)
   val mk_batch_validator : Proof.context -> term list -> (int -> bool) list option
   val mk_batch_tester : Proof.context -> term list -> (int -> term list option) list option
@@ -172,8 +176,9 @@ val depth = Attrib.setup_config_int @{binding quickcheck_depth} (K 10)
 val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
 val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
-val potential = Attrib.setup_config_bool @{binding quickcheck_potential} (K true)
+val genuine_only = Attrib.setup_config_bool @{binding quickcheck_genuine_only} (K false)
 val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
+val verbose = Attrib.setup_config_bool @{binding quickcheck_verbose} (K false)
 val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
 val allow_function_inversion =
   Attrib.setup_config_bool @{binding quickcheck_allow_function_inversion} (K false)
@@ -288,11 +293,15 @@ fun limit timeout (limit_time, is_interactive) f exc () =
     f ()
 
 fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s
-  
+
+fun verbose_message ctxt s = if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
+  then Output.urgent_message s else ()
+
 fun test_terms ctxt (limit_time, is_interactive) insts goals =
   case active_testers ctxt of
     [] => error "No active testers for quickcheck"
-  | testers => limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
+  | testers =>
+    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
       (fn () => Par_List.get_some (fn tester =>
       tester ctxt (length testers > 1) insts goals |>
       (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
@@ -302,6 +311,7 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
+    val _ = message lthy "Quickchecking..."
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
@@ -412,8 +422,9 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("no_assms", [arg]) = apsnd (Config.put_generic no_assms (read_bool arg))
   | parse_test_param ("expect", [arg]) = apsnd (map_test_params ((apsnd o K) (read_expectation arg)))
   | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
-  | parse_test_param ("potential", [arg]) = apsnd (Config.put_generic potential (read_bool arg))
+  | parse_test_param ("genuine_only", [arg]) = apsnd (Config.put_generic genuine_only (read_bool arg))
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
+  | parse_test_param ("verbose", [arg]) = apsnd (Config.put_generic verbose (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
   | parse_test_param ("allow_function_inversion", [arg]) =

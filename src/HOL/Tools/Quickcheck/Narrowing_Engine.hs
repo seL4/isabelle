@@ -38,9 +38,9 @@ answeri a known unknown =
        Left e -> throw e);
 
 answer :: Bool -> Bool -> (Bool -> Bool -> IO b) -> (Pos -> IO b) -> IO b;
-answer potential a known unknown =
+answer genuine_only a known unknown =
   Control.Exception.catch (answeri a known unknown) 
-    (\ (PatternMatchFail _) -> known False (not potential));
+    (\ (PatternMatchFail _) -> known False genuine_only);
 
 -- Refute
 
@@ -52,14 +52,14 @@ report genuine r xs = putStrLn ("SOME (" ++ (if genuine then "true" else "false"
   ", " ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> Bool -> (Bool -> Bool -> IO a) -> (Pos -> IO a) -> IO a;
-eval potential p k u = answer potential p (\genuine p -> answer potential p k u) u;
+eval genuine_only p k u = answer genuine_only p k u;
 
 ref :: Bool -> Result -> [Generated_Code.Narrowing_term] -> IO Int;
-ref potential r xs = eval potential (apply_fun r xs) (\genuine res -> if res then return 1 else report genuine r xs)
-  (\p -> sumMapM (ref potential r) 1 (refineList xs p));
-          
+ref genuine_only r xs = eval genuine_only (apply_fun r xs) (\genuine res -> if res then return 1 else report genuine r xs)
+  (\p -> sumMapM (ref genuine_only r) 1 (refineList xs p));
+
 refute :: Bool -> Result -> IO Int;
-refute potential r = ref potential r (args r);
+refute genuine_only r = ref genuine_only r (args r);
 
 sumMapM :: (a -> IO Int) -> Int -> [a] -> IO Int;
 sumMapM f n [] = return n;
@@ -109,10 +109,10 @@ instance (Generated_Code.Partial_term_of a, Generated_Code.Narrowing a, Testable
 -- Top-level interface
 
 depthCheck :: Testable a => Bool -> Int -> a -> IO ();
-depthCheck potential d p =
-  (refute potential $ run (const p) 0 d) >> putStrLn ("NONE") >> hFlush stdout;
+depthCheck genuine_only d p =
+  (refute genuine_only $ run (const p) 0 d) >> putStrLn ("NONE") >> hFlush stdout;
 
 smallCheck :: Testable a => Bool -> Int -> a -> IO ();
-smallCheck potential d p = mapM_ (\d -> depthCheck potential d p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
+smallCheck genuine_only d p = mapM_ (\d -> depthCheck genuine_only d p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
 
 }
