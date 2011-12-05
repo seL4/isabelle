@@ -372,8 +372,9 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_generator_expr, 
-    absdummy @{typ code_numeral} @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"}),
-    @{typ "code_numeral => Random.seed => (bool * term list) option * Random.seed"})
+    absdummy @{typ bool} (absdummy @{typ code_numeral}
+      @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"})),
+    @{typ "bool => code_numeral => Random.seed => (bool * term list) option * Random.seed"})
 
 val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_reporting_generator_expr,

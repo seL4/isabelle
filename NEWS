@@ -145,6 +145,21 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
+* Quickcheck:
+  - Quickcheck returns variable assignments as counterexamples, which
+    allows to reveal the underspecification of functions under test.
+    For example, refuting "hd xs = x", it presents the variable
+    assignment xs = [] and x = a1 as a counterexample, assuming that
+    any property is false whenever "hd []" occurs in it.
+    These counterexample are marked as potentially spurious, as
+    Quickcheck also returns "xs = []" as a counterexample to the
+    obvious theorem "hd xs = hd xs".
+    After finding a potentially spurious counterexample, Quickcheck
+    continues searching for genuine ones.
+    By default, Quickcheck shows potentially spurious and genuine
+    counterexamples. The option "genuine_only" sets quickcheck to
+    only show genuine counterexamples.
+ 
 * Nitpick:
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
