@@ -10,7 +10,7 @@ definition "show_state xs s = [(x,s x). x \<leftarrow> xs]"
 section "Annotated Commands"
 
 datatype 'a acom =
-  SKIP   'a                           ("SKIP {_}") |
+  SKIP   'a                           ("SKIP {_}" 61) |
   Assign vname aexp 'a                ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
   Semi   "('a acom)" "('a acom)"          ("_;//_"  [60, 61] 60) |
   If     bexp "('a acom)" "('a acom)" 'a
