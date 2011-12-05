@@ -1594,6 +1594,10 @@ text {*
     \item[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
+    \item[@{text genuine_only}] sets quickcheck only to return genuine
+      counterexample, but not potentially spurious counterexamples due
+      to underspecified functions.
+    
     \item[@{text eval}] takes a term or a list of terms and evaluates
       these terms under the variable assignment found by quickcheck.
 
