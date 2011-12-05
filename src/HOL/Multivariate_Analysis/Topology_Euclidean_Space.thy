@@ -303,20 +303,28 @@ definition
   cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set" where
   "cball x e = {y. dist x y \<le> e}"
 
-lemma mem_ball[simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e" by (simp add: ball_def)
-lemma mem_cball[simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e" by (simp add: cball_def)
+lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
+  by (simp add: ball_def)
 
-lemma mem_ball_0 [simp]:
+lemma mem_cball [simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
+  by (simp add: cball_def)
+
+lemma mem_ball_0:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> ball 0 e \<longleftrightarrow> norm x < e"
   by (simp add: dist_norm)
 
-lemma mem_cball_0 [simp]:
+lemma mem_cball_0:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
   by (simp add: dist_norm)
 
-lemma centre_in_cball[simp]: "x \<in> cball x e \<longleftrightarrow> 0\<le> e"  by simp
+lemma centre_in_ball: "x \<in> ball x e \<longleftrightarrow> 0 < e"
+  by simp
+
+lemma centre_in_cball: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e"
+  by simp
+
 lemma ball_subset_cball[simp,intro]: "ball x e \<subseteq> cball x e" by (simp add: subset_eq)
 lemma subset_ball[intro]: "d <= e ==> ball x d \<subseteq> ball x e" by (simp add: subset_eq)
 lemma subset_cball[intro]: "d <= e ==> cball x d \<subseteq> cball x e" by (simp add: subset_eq)
@@ -344,7 +352,6 @@ lemma open_ball[intro, simp]: "open (ball x e)"
   apply (erule_tac x="xa" in allE)
   by arith
 
-lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_self)
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
   unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
 
