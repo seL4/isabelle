@@ -269,7 +269,7 @@ fun value (contains_existentials, ((genuine_only, quiet), size)) ctxt cookie (co
               val _ = current_size := k
               val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
                 (fn () => Isabelle_System.bash_output
-                  (executable ^ " " ^ haskell_string_of_bool (not genuine_only) ^ " " ^ string_of_int k))
+                  (executable ^ " " ^ haskell_string_of_bool genuine_only ^ " " ^ string_of_int k))
               val _ = Quickcheck.add_timing timing current_result
             in
               if response = "NONE\n" then
