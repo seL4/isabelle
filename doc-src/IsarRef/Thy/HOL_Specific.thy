@@ -1615,8 +1615,11 @@ text {*
     \item[@{text report}] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
-    \item[@{text quiet}] if not set quickcheck informs about the
-    current size for assignment values.
+    \item[@{text quiet}] if set quickcheck does not output anything
+    while testing.
+    
+    \item[@{text verbose}] if set quickcheck informs about the
+    current size and cardinality while testing.
 
     \item[@{text expect}] can be used to check if the user's
     expectation was met (@{text no_expectation}, @{text
