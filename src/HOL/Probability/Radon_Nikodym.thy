@@ -1097,7 +1097,7 @@ next
       next
         case (real r)
         with less_PInf_Ex_of_nat[of "f x"] obtain n :: nat where "f x < n" by (auto simp: real_eq_of_nat)
-        then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"])
+        then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"] simp: real_eq_of_nat)
       next
         case MInf with x show ?thesis
           unfolding A_def by (auto intro!: exI[of _ "Suc 0"])
@@ -1117,7 +1117,7 @@ next
       case (Suc n)
       then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
         (\<integral>\<^isup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
-        by (auto intro!: positive_integral_mono simp: indicator_def A_def)
+        by (auto intro!: positive_integral_mono simp: indicator_def A_def real_eq_of_nat)
       also have "\<dots> = Suc n * \<mu> (Q j)"
         using Q by (auto intro!: positive_integral_cmult_indicator)
       also have "\<dots> < \<infinity>"

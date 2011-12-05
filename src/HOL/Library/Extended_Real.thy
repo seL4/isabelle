@@ -59,7 +59,7 @@ definition "ereal_of_enat n = (case n of enat n \<Rightarrow> ereal (real n) | \
 
 declare [[coercion "ereal :: real \<Rightarrow> ereal"]]
 declare [[coercion "ereal_of_enat :: enat \<Rightarrow> ereal"]]
-declare [[coercion "(\<lambda>n. ereal (of_nat n)) :: nat \<Rightarrow> ereal"]]
+declare [[coercion "(\<lambda>n. ereal (real n)) :: nat \<Rightarrow> ereal"]]
 
 lemma ereal_uminus_uminus[simp]:
   fixes a :: ereal shows "- (- a) = a"
