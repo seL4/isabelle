@@ -63,6 +63,8 @@ sig
   (* basic operations *)
   val message : Proof.context -> string -> unit
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a
+  val pretty_counterex : Proof.context -> bool ->
+    ((bool * (string * term) list) * (term * term) list) option -> Pretty.T
   (* testing terms and proof states *)
   val mk_batch_validator : Proof.context -> term list -> (int -> bool) list option
   val mk_batch_tester : Proof.context -> term list -> (int -> term list option) list option

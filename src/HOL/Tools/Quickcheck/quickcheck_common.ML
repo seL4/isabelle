@@ -96,7 +96,16 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
           case result of
             NONE => with_size test_fun genuine_only (k + 1)
           | SOME (true, ts) => SOME (true, ts)
-          | SOME (false, ts) => SOME (false, ts) (* FIXME: output message & restart *) 
+          | SOME (false, ts) =>
+            let
+              val (ts1, ts2) = chop (length names) ts
+              val (eval_terms', _) = chop (length ts2) eval_terms
+              val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
+            in
+              (Output.urgent_message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+              Output.urgent_message "Quickcheck continues to find a genuine counterexample...";
+              with_size test_fun true k)
+            end
         end;
   in
     case test_fun of
@@ -170,7 +179,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
             (fn () => fst (test_fun genuine_only [card, size - 1]))
         val _ = Quickcheck.add_timing timing current_result
       in
-        Option.map (pair card) ts
+        Option.map (pair (card, size)) ts
       end
     val enumeration_card_size =
       if forall (fn T => Sign.of_sort thy (T,  ["Enum.enum"])) Ts then
@@ -189,10 +198,21 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
         !current_result)
     | SOME test_fun =>
       let
-        val _ = case get_first (test_card_size test_fun genuine_only) enumeration_card_size of
-          SOME (card, ts) => Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
+        fun test genuine_only enum = case get_first (test_card_size test_fun genuine_only) enum of
+          SOME ((card, _), (true, ts)) =>
+            Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME (true, ts)) current_result
+        | SOME ((card, size), (false, ts)) =>
+           let
+              val (ts1, ts2) = chop (length names) ts
+              val (eval_terms', _) = chop (length ts2) (nth eval_terms (card - 1))
+              val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
+            in
+              (Output.urgent_message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+              Output.urgent_message "Quickcheck continues to find a genuine counterexample...";
+              test true (snd (take_prefix (fn x => not (x = (card, size))) enum)))
+            end
         | NONE => ()
-      in !current_result end
+      in (test genuine_only enumeration_card_size; !current_result) end
   end
 
 fun get_finite_types ctxt =
