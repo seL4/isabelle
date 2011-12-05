@@ -88,7 +88,10 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
           val _ = Quickcheck.add_timing timing current_result
           val _ = Quickcheck.add_report k report current_result
         in
-          case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
+          case result of
+            NONE => with_size test_fun (k + 1)
+          | SOME (true, ts) => SOME (true, ts)
+          | SOME (false, ts) => SOME (false, ts) (* FIXME: output message & restart *) 
         end;
     val act = if catch_code_errors then try else (fn f => SOME o f) 
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
@@ -270,11 +273,15 @@ fun instantiate_goals lthy insts goals =
 
 (* compilation of testing functions *)
 
-fun mk_safe_if ctxt (cond, then_t, else_t) =
-  @{term "Quickcheck.catch_match :: (bool * term list) option => (bool * term list) option => (bool * term list) option"}
-    $ (@{term "If :: bool => (bool * term list) option => (bool * term list) option => (bool * term list) option"}
-      $ cond $ then_t $ else_t true)
-    $ (if Config.get ctxt Quickcheck.potential then else_t false else @{term "None :: (bool * term list) option"});
+fun mk_safe_if genuine_only (cond, then_t, else_t) =
+  let
+    val T = @{typ "(bool * term list) option"}
+    val if = Const (@{const_name "If"}, T --> T --> T)
+  in
+    Const (@{const_name "Quickcheck.catch_match"}, T --> T --> T) $ 
+      (if $ cond $ then_t $ else_t true) $
+      (if $ genuine_only $ Const (@{const_name "None", T) $ else_t false);
+  end
 
 fun collect_results f [] results = results
   | collect_results f (t :: ts) results =

@@ -360,9 +360,11 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
-    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val ([depth_name, genuine_only_name], ctxt'') =
+      Variable.variant_fixes ["depth", "genuine_only"] ctxt'
     val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") names) ctxt''
     val depth = Free (depth_name, @{typ code_numeral})
+    val genuine_only = Free (depth_name, @{typ bool})    
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
     val return = mk_return (HOLogic.mk_list @{typ term}
@@ -370,7 +372,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort enum}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT) 
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t))
       else
         Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
@@ -379,7 +381,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val none_t = Const (@{const_name "None"}, resultT)
     val mk_if = Quickcheck_Common.mk_safe_if ctxt
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
-  in lambda depth (mk_test_term t) end
+  in lambda genuine_only (lambda depth (mk_test_term t)) end
 
 fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
