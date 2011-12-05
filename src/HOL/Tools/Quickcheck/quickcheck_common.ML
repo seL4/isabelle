@@ -85,7 +85,7 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
         NONE
       else
         let
-          val _ = Quickcheck.message ctxt
+          val _ = Quickcheck.verbose_message ctxt
             ("[Quickcheck-" ^ name ^ "] Test data size: " ^ string_of_int k)
           val _ = current_size := k
           val ((result, report), timing) =
@@ -102,8 +102,8 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
               val (eval_terms', _) = chop (length ts2) eval_terms
               val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
             in
-              (Output.urgent_message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-              Output.urgent_message "Quickcheck continues to find a genuine counterexample...";
+              (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+              Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
               with_size test_fun true k)
             end
         end;
@@ -171,7 +171,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
       (* FIXME: why decrement size by one? *)
       let
         val _ =
-          Quickcheck.message ctxt ("[Quickcheck-" ^ name ^ "] Test " ^
+          Quickcheck.verbose_message ctxt ("[Quickcheck-" ^ name ^ "] Test " ^
             (if size = 0 then "" else "data size: " ^ string_of_int (size - 1) ^ " and ") ^
             "cardinality: " ^ string_of_int card)          
         val (ts, timing) =
@@ -198,6 +198,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
         !current_result)
     | SOME test_fun =>
       let
+        val _ = Quickcheck.message ctxt ("Testing conjecture with with Quickcheck-" ^ name ^ "...");
         fun test genuine_only enum = case get_first (test_card_size test_fun genuine_only) enum of
           SOME ((card, _), (true, ts)) =>
             Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME (true, ts)) current_result
@@ -207,8 +208,8 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
               val (eval_terms', _) = chop (length ts2) (nth eval_terms (card - 1))
               val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
             in
-              (Output.urgent_message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-              Output.urgent_message "Quickcheck continues to find a genuine counterexample...";
+              (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+              Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
               test true (snd (take_prefix (fn x => not (x = (card, size))) enum)))
             end
         | NONE => ()

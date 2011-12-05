@@ -63,6 +63,7 @@ sig
       -> Context.generic -> Context.generic
   (* basic operations *)
   val message : Proof.context -> string -> unit
+  val verbose_message : Proof.context -> string -> unit
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a
   val pretty_counterex : Proof.context -> bool ->
     ((bool * (string * term) list) * (term * term) list) option -> Pretty.T
@@ -292,11 +293,15 @@ fun limit timeout (limit_time, is_interactive) f exc () =
     f ()
 
 fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s
-  
+
+fun verbose_message ctxt s = if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
+  then Output.urgent_message s else ()
+
 fun test_terms ctxt (limit_time, is_interactive) insts goals =
   case active_testers ctxt of
     [] => error "No active testers for quickcheck"
-  | testers => limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
+  | testers =>
+    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
       (fn () => Par_List.get_some (fn tester =>
       tester ctxt (length testers > 1) insts goals |>
       (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
@@ -306,6 +311,7 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
+    val _ = message lthy "Quickchecking..."
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;

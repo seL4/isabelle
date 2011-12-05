@@ -222,10 +222,11 @@ fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
   
-fun value (contains_existentials, ((genuine_only, quiet), size)) ctxt cookie (code, value_name) =
+fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code, value_name) =
   let
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
     fun message s = if quiet then () else Output.urgent_message s
+    fun verbose_message s = if not quiet andalso verbose then Output.urgent_message s else ()
     val current_size = Unsynchronized.ref 0
     val current_result = Unsynchronized.ref Quickcheck.empty_result 
     fun excipit () =
@@ -265,7 +266,7 @@ fun value (contains_existentials, ((genuine_only, quiet), size)) ctxt cookie (co
             (NONE, !current_result)
           else
             let
-              val _ = message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
+              val _ = verbose_message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
               val _ = current_size := k
               val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
                 (fn () => Isabelle_System.bash_output
@@ -292,8 +293,8 @@ fun value (contains_existentials, ((genuine_only, quiet), size)) ctxt cookie (co
                     let
                       val cex = Option.map (rpair []) (counterexample_of counterexample)
                     in
-                      (Output.urgent_message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-                      Output.urgent_message "Quickcheck continues to find a genuine counterexample...";
+                      (message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+                      message "Quickcheck continues to find a genuine counterexample...";
                       with_size true (k + 1))
                     end
                end
@@ -431,7 +432,8 @@ fun test_term ctxt (t, eval_terms) =
   let
     fun dest_result (Quickcheck.Result r) = r 
     val opts =
-      ((Config.get ctxt Quickcheck.genuine_only, Config.get ctxt Quickcheck.quiet),
+      ((Config.get ctxt Quickcheck.genuine_only,
+       (Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.verbose)),
         Config.get ctxt Quickcheck.size)
     val thy = Proof_Context.theory_of ctxt
     val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
@@ -480,6 +482,7 @@ fun test_term ctxt (t, eval_terms) =
 fun test_goals ctxt _ insts goals =
   if (not (getenv "ISABELLE_GHC" = "")) then
     let
+      val _ = Quickcheck.message ctxt ("Testing conjecture with Quickcheck-narrowing...")
       val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
     in
       Quickcheck_Common.collect_results (test_term ctxt) (maps (map snd) correct_inst_goals) []
