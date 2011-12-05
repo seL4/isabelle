@@ -1808,9 +1808,6 @@ The quotient package defines a new quotient type given a raw type
 \end{railoutput}
 
 
- The injection from a quotient type to a raw type is called \isa{rep{\isaliteral{5F}{\isacharunderscore}}t},
-  its inverse \isa{abs{\isaliteral{5F}{\isacharunderscore}}t} unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
-
   \begin{railoutput}
 \rail@begin{4}{}
 \rail@term{\hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}}}[]
@@ -1844,7 +1841,8 @@ The quotient package defines a new quotient type given a raw type
 
   \begin{description}
   
-  \item \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} defines quotient types.
+  \item \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} defines quotient types. The injection from a quotient type 
+  to a raw type is called \isa{rep{\isaliteral{5F}{\isacharunderscore}}t}, its inverse \isa{abs{\isaliteral{5F}{\isacharunderscore}}t} unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
 
   \item \hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}} defines a constant on the quotient type.
 

@@ -1264,10 +1264,6 @@ text {*
      (@'morphisms' @{syntax name} @{syntax name})?; 
   "}
 
- The injection from a quotient type to a raw type is called @{text rep_t},
-  its inverse @{text abs_t} unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names.
-
   @{rail "
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
     @{syntax term} 'is' @{syntax term};
@@ -1277,7 +1273,9 @@ text {*
 
   \begin{description}
   
-  \item @{command (HOL) "quotient_type"} defines quotient types.
+  \item @{command (HOL) "quotient_type"} defines quotient types. The injection from a quotient type 
+  to a raw type is called @{text rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
+  "morphisms"} specification provides alternative names.
 
   \item @{command (HOL) "quotient_definition"} defines a constant on the quotient type.
 
