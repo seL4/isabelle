@@ -352,7 +352,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
         $ lambda free t $ depth
     val none_t = Const (@{const_name "None"}, resultT)
-    val mk_if = Quickcheck_Common.mk_safe_if genuine_only
+    val mk_if = Quickcheck_Common.mk_safe_if genuine_only none_t
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda genuine_only (lambda depth (mk_test_term t)) end
 
@@ -381,7 +381,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
           $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t)) $ depth
     val none_t = Const (@{const_name "None"}, resultT)
-    val mk_if = Quickcheck_Common.mk_safe_if genuine_only
+    val mk_if = Quickcheck_Common.mk_safe_if genuine_only none_t
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_if none_t return ctxt
   in lambda genuine_only (lambda depth (mk_test_term t)) end
 

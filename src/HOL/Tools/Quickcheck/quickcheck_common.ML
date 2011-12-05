@@ -14,7 +14,7 @@ sig
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
-  val mk_safe_if : term -> term * term * (bool -> term) -> bool -> term
+  val mk_safe_if : term -> term -> term * term * (bool -> term) -> bool -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type compile_generator =
     Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
@@ -295,14 +295,14 @@ fun instantiate_goals lthy insts goals =
 
 (* compilation of testing functions *)
 
-fun mk_safe_if genuine_only (cond, then_t, else_t) genuine =
+fun mk_safe_if genuine_only none (cond, then_t, else_t) genuine =
   let
-    val T = @{typ "(bool * term list) option"}
+    val T = fastype_of then_t
     val if_t = Const (@{const_name "If"}, @{typ bool} --> T --> T --> T)
   in
     Const (@{const_name "Quickcheck.catch_match"}, T --> T --> T) $ 
       (if_t $ cond $ then_t $ else_t genuine) $
-      (if_t $ genuine_only $ Const (@{const_name "None"}, T) $ else_t false)
+      (if_t $ genuine_only $ none $ else_t false)
   end
 
 fun collect_results f [] results = results
