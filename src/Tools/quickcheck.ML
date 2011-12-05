@@ -22,6 +22,7 @@ sig
   val timing : bool Config.T
   val genuine_only : bool Config.T
   val quiet : bool Config.T
+  val verbose : bool Config.T
   val timeout : real Config.T
   val allow_function_inversion : bool Config.T;
   val finite_types : bool Config.T
@@ -176,6 +177,7 @@ val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
 val genuine_only = Attrib.setup_config_bool @{binding quickcheck_genuine_only} (K false)
 val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
+val verbose = Attrib.setup_config_bool @{binding quickcheck_verbose} (K false)
 val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
 val allow_function_inversion =
   Attrib.setup_config_bool @{binding quickcheck_allow_function_inversion} (K false)
@@ -416,6 +418,7 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
   | parse_test_param ("genuine_only", [arg]) = apsnd (Config.put_generic genuine_only (read_bool arg))
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
+  | parse_test_param ("verbose", [arg]) = apsnd (Config.put_generic verbose (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
   | parse_test_param ("allow_function_inversion", [arg]) =
