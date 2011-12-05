@@ -289,7 +289,7 @@ fun mk_test_term lookup mk_closure mk_if none_t return ctxt =
   let
     fun mk_naive_test_term t =
       fold_rev mk_closure (map lookup (Term.add_free_names t []))
-        (mk_if (t, none_t, return))
+        (mk_if (t, none_t, return) true)
     fun mk_smart_test_term' concl bound_vars assms genuine =
       let
         fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
@@ -298,7 +298,7 @@ fun mk_test_term lookup mk_closure mk_if none_t return ctxt =
             | assm :: assms => (vars_of assm, (HOLogic.mk_not assm, none_t, 
                 mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms))
       in
-        fold_rev mk_closure (map lookup vars) (mk_if check)
+        fold_rev mk_closure (map lookup vars) (mk_if check genuine)
       end
     val mk_smart_test_term =
       Quickcheck_Common.strip_imp #> (fn (assms, concl) => mk_smart_test_term' concl [] assms true)
@@ -323,7 +323,7 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
         fast_exhaustiveT T)
         $ lambda free t $ depth
     val none_t = @{term "()"}
-    fun mk_safe_if (cond, then_t, else_t) = mk_if (cond, then_t, else_t true)
+    fun mk_safe_if (cond, then_t, else_t) genuine = mk_if (cond, then_t, else_t genuine)
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt 
   in lambda depth (@{term "catch_Counterexample :: unit => term list option"} $ mk_test_term t) end
 
@@ -404,7 +404,7 @@ fun mk_validator_expr ctxt t =
     fun mk_bounded_forall (Free (s, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
         $ lambda (Free (s, T)) t $ depth
-    fun mk_safe_if (cond, then_t, else_t) = mk_if (cond, then_t, else_t true)
+    fun mk_safe_if (cond, then_t, else_t) genuine = mk_if (cond, then_t, else_t genuine)
     val mk_test_term =
       mk_test_term lookup mk_bounded_forall mk_safe_if @{term True} (K @{term False}) ctxt
   in lambda depth (mk_test_term t) end

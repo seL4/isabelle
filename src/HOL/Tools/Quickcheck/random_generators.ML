@@ -317,7 +317,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
   in
     lambda genuine_only
-      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)))
+      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
   end;
 
 fun mk_reporting_generator_expr ctxt (t, eval_terms) =
