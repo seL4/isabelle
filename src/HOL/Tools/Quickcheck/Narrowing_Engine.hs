@@ -52,12 +52,12 @@ report genuine r xs = putStrLn ("SOME (" ++ (if genuine then "true" else "false"
   ", " ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> Bool -> (Bool -> Bool -> IO a) -> (Pos -> IO a) -> IO a;
-eval potential p k u = answer potential p (\genuine p -> answer potential p k u) u;
+eval potential p k u = answer potential p k u;
 
 ref :: Bool -> Result -> [Generated_Code.Narrowing_term] -> IO Int;
 ref potential r xs = eval potential (apply_fun r xs) (\genuine res -> if res then return 1 else report genuine r xs)
   (\p -> sumMapM (ref potential r) 1 (refineList xs p));
-          
+
 refute :: Bool -> Result -> IO Int;
 refute potential r = ref potential r (args r);
 
