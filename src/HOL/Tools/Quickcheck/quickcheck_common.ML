@@ -69,7 +69,7 @@ fun cpu_time description e =
 
 fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
   let
-    val genuine_only = not (Config.get ctxt Quickcheck.potential)
+    val genuine_only = Config.get ctxt Quickcheck.genuine_only
     val _ = check_test_term t
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
@@ -160,7 +160,7 @@ fun test_terms ctxt ts =
 
 fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
   let
-    val genuine_only = not (Config.get ctxt Quickcheck.potential)
+    val genuine_only = Config.get ctxt Quickcheck.genuine_only
     val thy = Proof_Context.theory_of ctxt
     val (ts', eval_terms) = split_list ts
     val _ = map check_test_term ts'

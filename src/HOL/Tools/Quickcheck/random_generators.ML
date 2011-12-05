@@ -350,7 +350,7 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
       (map_index I assms) concl_check
     val check' = @{term "Quickcheck.catch_match :: term list option * bool list * bool =>
       term list option * bool list * bool => term list option * bool list * bool"} $ check $
-      (if Config.get ctxt Quickcheck.potential then
+      (if not (Config.get ctxt Quickcheck.genuine_only) then
         HOLogic.mk_prod (@{term "Some :: term list  => term list option"} $ terms, mk_concl_report false)
       else
         HOLogic.mk_prod (@{term "None :: term list option"}, mk_concl_report true))

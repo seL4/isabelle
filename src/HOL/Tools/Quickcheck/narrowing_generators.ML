@@ -284,7 +284,7 @@ fun value (contains_existentials, ((genuine_only, quiet), size)) ctxt cookie (co
                   val ctxt' = ctxt
                     |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
                     |> Context.proof_map (exec false ml_code);                 
-                  val counterexample =  get ctxt' ()
+                  val counterexample = get ctxt' ()
                 in
                   if is_genuine counterexample then
                     (counterexample, !current_result)
@@ -431,7 +431,7 @@ fun test_term ctxt (t, eval_terms) =
   let
     fun dest_result (Quickcheck.Result r) = r 
     val opts =
-      ((not (Config.get ctxt Quickcheck.potential), Config.get ctxt Quickcheck.quiet),
+      ((Config.get ctxt Quickcheck.genuine_only, Config.get ctxt Quickcheck.quiet),
         Config.get ctxt Quickcheck.size)
     val thy = Proof_Context.theory_of ctxt
     val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
