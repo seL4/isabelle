@@ -9,6 +9,8 @@ theory Quickcheck_Narrowing_Examples
 imports Main
 begin
 
+declare [[quickcheck_timeout = 3600]]
+
 subsection {* Minimalistic examples *}
 
 lemma
@@ -98,7 +100,7 @@ oops
 
 lemma
   "list_all2 P (rev xs) (rev ys) = list_all2 P xs (rev ys)"
-  quickcheck[tester = narrowing, finite_types = false, expect = counterexample, timeout = 60]
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
 lemma "map f xs = F f xs"
@@ -224,7 +226,7 @@ subsubsection {* Invalid Lemma due to typo in lbal *}
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"
-quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, timeout = 1000, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, expect = counterexample]
 oops
 
 
