@@ -35,8 +35,12 @@ fun gen :: "com \<Rightarrow> vname set" where
 lemma L_gen_kill: "L c X = (X - kill c) \<union> gen c"
 by(induct c arbitrary:X) auto
 
-lemma L_While_subset: "L c (L (WHILE b DO c) X) \<subseteq> L (WHILE b DO c) X"
+lemma L_While_pfp: "L c (L (WHILE b DO c) X) \<subseteq> L (WHILE b DO c) X"
 by(auto simp add:L_gen_kill)
+
+lemma L_While_lpfp:
+  "\<lbrakk> vars b \<union> X \<subseteq> P; L c P \<subseteq> P \<rbrakk> \<Longrightarrow> L (WHILE b DO c) X \<subseteq> P"
+by(simp add: L_gen_kill)
 
 
 subsection "Soundness"
@@ -81,7 +85,7 @@ next
   let ?w = "WHILE b DO c"
   from `bval b s1` WhileTrue.prems have "bval b t1"
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  have "s1 = t1 on L c (L ?w X)" using  L_While_subset WhileTrue.prems
+  have "s1 = t1 on L c (L ?w X)" using  L_While_pfp WhileTrue.prems
     by (blast)
   from WhileTrue.IH(1)[OF this] obtain t2 where
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
@@ -146,7 +150,7 @@ next
   from `bval b s1` WhileTrue.prems have "bval b t1"
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   have "s1 = t1 on L c (L ?w X)"
-    using L_While_subset WhileTrue.prems by blast
+    using L_While_pfp WhileTrue.prems by blast
   from WhileTrue.IH(1)[OF this] obtain t2 where
     "(bury c (L ?w X), t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
   from WhileTrue.IH(2)[OF this(2)] obtain t3
@@ -233,7 +237,7 @@ next
     by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
   note IH = WhileTrue.hyps(3,5)
   have "s1 = t1 on L c' (L ?w X)"
-    using L_While_subset WhileTrue.prems c by blast
+    using L_While_pfp WhileTrue.prems c by blast
   with IH(1)[OF bc', of t1] obtain t2 where
     "(c', t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
   from IH(2)[OF WhileTrue.hyps(6), of t2] c this(2) obtain t3
