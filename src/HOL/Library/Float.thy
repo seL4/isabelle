@@ -957,37 +957,10 @@ where
        f * l)"     
 
 lemma float_divl: "real (float_divl prec x y) \<le> real x / real y"
-proof - 
-  from float_split[of x] obtain mx sx where x: "x = Float mx sx" by auto
-  from float_split[of y] obtain my sy where y: "y = Float my sy" by auto
-  have "real mx / real my \<le> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
-    apply (case_tac "my = 0")
-    apply simp
-    apply (case_tac "my > 0")       
-    apply (subst pos_le_divide_eq)
-    apply simp
-    apply (subst pos_le_divide_eq)
-    apply (simp add: mult_pos_pos)
-    apply simp
-    apply (subst pow2_add[symmetric])
-    apply simp
-    apply (subgoal_tac "my < 0")
-    apply auto
-    apply (simp add: field_simps)
-    apply (subst pow2_add[symmetric])
-    apply (simp add: field_simps)
-    done
-  then have "real (lapprox_rat prec mx my) \<le> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
-    by (rule order_trans[OF lapprox_rat])
-  then have "real (lapprox_rat prec mx my) * pow2 (sx - sy) \<le> real mx * pow2 sx / (real my * pow2 sy)"
-    apply (subst pos_le_divide_eq[symmetric])
-    apply simp_all
-    done
-  then have "pow2 (sx - sy) * real (lapprox_rat prec mx my) \<le> real mx * pow2 sx / (real my * pow2 sy)"
-    by (simp add: algebra_simps)
-  then show ?thesis
-    by (simp add: x y Let_def real_of_float_simp)
-qed
+  using lapprox_rat[of prec "mantissa x" "mantissa y"]
+  by (cases x y rule: float.exhaust[case_product float.exhaust])
+     (simp split: split_if_asm
+           add: real_of_float_simp pow2_diff field_simps le_divide_eq mult_less_0_iff zero_less_mult_iff)
 
 lemma float_divl_lower_bound: assumes "0 \<le> x" and "0 < y" shows "0 \<le> float_divl prec x y"
 proof (cases x, cases y)
@@ -1076,34 +1049,10 @@ where
        f * r)"  
 
 lemma float_divr: "real x / real y \<le> real (float_divr prec x y)"
-proof - 
-  from float_split[of x] obtain mx sx where x: "x = Float mx sx" by auto
-  from float_split[of y] obtain my sy where y: "y = Float my sy" by auto
-  have "real mx / real my \<ge> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
-    apply (case_tac "my = 0")
-    apply simp
-    apply (case_tac "my > 0")
-    apply auto
-    apply (subst pos_divide_le_eq)
-    apply (rule mult_pos_pos)+
-    apply simp_all
-    apply (subst pow2_add[symmetric])
-    apply simp
-    apply (subgoal_tac "my < 0")
-    apply auto
-    apply (simp add: field_simps)
-    apply (subst pow2_add[symmetric])
-    apply (simp add: field_simps)
-    done
-  then have "real (rapprox_rat prec mx my) \<ge> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
-    by (rule order_trans[OF _ rapprox_rat])
-  then have "real (rapprox_rat prec mx my) * pow2 (sx - sy) \<ge> real mx * pow2 sx / (real my * pow2 sy)"
-    apply (subst pos_divide_le_eq[symmetric])
-    apply simp_all
-    done
-  then show ?thesis
-    by (simp add: x y Let_def algebra_simps real_of_float_simp)
-qed
+  using rapprox_rat[of "mantissa x" "mantissa y" prec]
+  by (cases x y rule: float.exhaust[case_product float.exhaust])
+     (simp split: split_if_asm
+           add: real_of_float_simp pow2_diff field_simps divide_le_eq mult_less_0_iff zero_less_mult_iff)
 
 lemma float_divr_pos_less1_lower_bound: assumes "0 < x" and "x < 1" shows "1 \<le> float_divr prec 1 x"
 proof -
