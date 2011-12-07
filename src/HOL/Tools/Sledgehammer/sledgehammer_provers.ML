@@ -441,7 +441,7 @@ fun timed_reconstructor reconstr debug timeout ths =
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun play_one_line_proof mode debug verbose timeout ths state i preferred
+fun play_one_line_proof mode debug verbose timeout pairs state i preferred
                         reconstrs =
   let
     val _ =
@@ -449,6 +449,7 @@ fun play_one_line_proof mode debug verbose timeout ths state i preferred
         Output.urgent_message "Preplaying proof..."
       else
         ()
+    val ths = pairs |> sort_wrt (fst o fst) |> map snd
     fun get_preferred reconstrs =
       if member (op =) reconstrs preferred then preferred
       else List.last reconstrs
@@ -802,12 +803,11 @@ fun run_atp mode name
           (used_facts,
            fn () =>
               let
-                val used_ths =
+                val used_pairs =
                   facts |> map untranslated_fact |> filter_used_facts used_facts
-                        |> map snd
               in
-                play_one_line_proof mode debug verbose preplay_timeout used_ths
-                                    state subgoal (hd reconstrs) reconstrs
+                play_one_line_proof mode debug verbose preplay_timeout
+                    used_pairs state subgoal (hd reconstrs) reconstrs
               end,
            fn preplay =>
               let
@@ -978,15 +978,15 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val num_facts = length facts
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact ctxt num_facts)
-    val {outcome, used_facts, run_time} =
+    val {outcome, used_facts = used_pairs, run_time} =
       smt_filter_loop ctxt name params state subgoal smt_filter facts
-    val (used_facts, used_ths) = used_facts |> ListPair.unzip
+    val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =
       case outcome of
         NONE =>
         (fn () =>
-            play_one_line_proof mode debug verbose preplay_timeout used_ths
+            play_one_line_proof mode debug verbose preplay_timeout used_pairs
                 state subgoal SMT
                 (bunch_of_reconstructors false
                      (fn plain =>
@@ -1023,11 +1023,11 @@ fun run_reconstructor mode name
         SMT
       else
         raise Fail ("unknown reconstructor: " ^ quote name)
-    val (used_facts, used_ths) =
-      facts |> map untranslated_fact |> ListPair.unzip
+    val used_pairs = facts |> map untranslated_fact
+    val used_facts = used_pairs |> map fst
   in
     case play_one_line_proof (if mode = Minimize then Normal else mode) debug
-                             verbose timeout used_ths state subgoal reconstr
+                             verbose timeout used_pairs state subgoal reconstr
                              [reconstr] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,

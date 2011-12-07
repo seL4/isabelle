@@ -188,7 +188,7 @@ fun concatList [] = Nil
   | concatList (h :: t) = append h (fn () => concatList t);
 
 local
-  fun toLst res Nil = rev res
+  fun toLst res Nil = List.rev res
     | toLst res (Cons (x, xs)) = toLst (x :: res) (xs ());
 in
   fun toList s = toLst [] s;

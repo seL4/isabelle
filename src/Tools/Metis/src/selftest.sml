@@ -626,7 +626,7 @@ fun ppPercentClause (r,cl) =
 
       val fm = LiteralSet.disjoin cl
     in
-      Print.blockProgram Print.Consistent ind
+      Print.consistentBlock ind
         [Print.ppString p,
          Print.ppString (nChars #" " (ind - size p)),
          Formula.pp fm]

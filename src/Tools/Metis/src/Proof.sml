@@ -34,43 +34,43 @@ fun inferenceType (Axiom _) = Thm.Axiom
   | inferenceType (Equality _) = Thm.Equality;
 
 local
-  fun ppAssume atm = Print.sequence (Print.addBreak 1) (Atom.pp atm);
+  fun ppAssume atm = Print.sequence Print.break (Atom.pp atm);
 
   fun ppSubst ppThm (sub,thm) =
-      Print.sequence (Print.addBreak 1)
-        (Print.blockProgram Print.Inconsistent 1
+      Print.sequence Print.break
+        (Print.inconsistentBlock 1
            [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Subst.pp ("sub",sub),
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             Print.ppOp2 " =" Print.ppString ppThm ("thm",thm),
             Print.ppString "}"]);
 
   fun ppResolve ppThm (res,pos,neg) =
-      Print.sequence (Print.addBreak 1)
-        (Print.blockProgram Print.Inconsistent 1
+      Print.sequence Print.break
+        (Print.inconsistentBlock 1
            [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Atom.pp ("res",res),
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             Print.ppOp2 " =" Print.ppString ppThm ("pos",pos),
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             Print.ppOp2 " =" Print.ppString ppThm ("neg",neg),
             Print.ppString "}"]);
 
-  fun ppRefl tm = Print.sequence (Print.addBreak 1) (Term.pp tm);
+  fun ppRefl tm = Print.sequence Print.break (Term.pp tm);
 
   fun ppEquality (lit,path,res) =
-      Print.sequence (Print.addBreak 1)
-        (Print.blockProgram Print.Inconsistent 1
+      Print.sequence Print.break
+        (Print.inconsistentBlock 1
            [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Literal.pp ("lit",lit),
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             Print.ppOp2 " =" Print.ppString Term.ppPath ("path",path),
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             Print.ppOp2 " =" Print.ppString Term.pp ("res",res),
             Print.ppString "}"]);
 
@@ -78,21 +78,20 @@ local
       let
         val infString = Thm.inferenceTypeToString (inferenceType inf)
       in
-        Print.block Print.Inconsistent 2
-          (Print.sequence
-             (Print.ppString infString)
-             (case inf of
-                Axiom cl => ppAxiom cl
-              | Assume x => ppAssume x
-              | Subst x => ppSubst ppThm x
-              | Resolve x => ppResolve ppThm x
-              | Refl x => ppRefl x
-              | Equality x => ppEquality x))
+        Print.inconsistentBlock 2
+          [Print.ppString infString,
+           (case inf of
+              Axiom cl => ppAxiom cl
+            | Assume x => ppAssume x
+            | Subst x => ppSubst ppThm x
+            | Resolve x => ppResolve ppThm x
+            | Refl x => ppRefl x
+            | Equality x => ppEquality x)]
       end;
 
   fun ppAxiom cl =
       Print.sequence
-        (Print.addBreak 1)
+        Print.break
         (Print.ppMap
            LiteralSet.toList
            (Print.ppBracket "{" "}" (Print.ppOpList "," Literal.pp)) cl);
@@ -122,17 +121,17 @@ in
               val s = thmString n
             in
               Print.sequence
-                (Print.blockProgram Print.Consistent (1 + size s)
+                (Print.consistentBlock (1 + size s)
                    [Print.ppString (s ^ " "),
                     Thm.pp th,
-                    Print.addBreak 2,
+                    Print.breaks 2,
                     Print.ppBracket "[" "]" (ppInf (K Print.skip) ppThm) inf])
-                Print.addNewline
+                Print.newline
             end
       in
-        Print.blockProgram Print.Consistent 0
+        Print.consistentBlock 0
           [Print.ppString "START OF PROOF",
-           Print.addNewline,
+           Print.newline,
            Print.program (List.map ppStep prf),
            Print.ppString "END OF PROOF"]
       end
@@ -234,7 +233,7 @@ local
                     val path = i :: path
                   in
                     if Term.equal tm s andalso Term.equal tm' t then
-                      SOME (rev path)
+                      SOME (List.rev path)
                     else
                       case (tm,tm') of
                         (Term.Fn f_a, Term.Fn f_a') => sync s t path f_a f_a'
@@ -396,7 +395,7 @@ local
         val () = Print.trace Print.ppInt "Proof.proof: unnecessary clauses" (LiteralSetMap.size ths)
 *)
       in
-        rev acc
+        List.rev acc
       end;
 in
   fun proof th =

@@ -22,11 +22,8 @@ lemma (in finite_space)
   by (simp_all add: M_def)
 
 sublocale finite_space \<subseteq> finite_measure_space M
-proof (rule finite_measure_spaceI)
-  fix A B :: "'a set" assume "A \<inter> B = {}" "A \<subseteq> space M" "B \<subseteq> space M"
-  then show "measure M (A \<union> B) = measure M A + measure M B"
-    by (simp add: M_def card_Un_disjoint finite_subset[OF _ finite] field_simps)
-qed (auto simp: M_def divide_nonneg_nonneg)
+  by (rule finite_measure_spaceI)
+     (simp_all add: M_def real_of_nat_def)
 
 sublocale finite_space \<subseteq> information_space M 2
   by default (simp_all add: M_def one_ereal_def)

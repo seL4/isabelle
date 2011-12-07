@@ -631,13 +631,13 @@ fun ppTerm mapping =
             case length tms of
               0 => ppConst mapping f
             | a =>
-              Print.blockProgram Print.Inconsistent 2
+              Print.inconsistentBlock 2
                 [ppFnName mapping (f,a),
                  Print.ppString "(",
                  Print.ppOpList "," term tms,
                  Print.ppString ")"]
     in
-      Print.block Print.Inconsistent 0 o term
+      fn tm => Print.inconsistentBlock 0 [term tm]
     end;
 
 fun ppRelName mapping ra = Print.ppString (relToTptp mapping ra);
@@ -648,14 +648,14 @@ fun ppAtom mapping (r,tms) =
     case length tms of
       0 => ppProp mapping r
     | a =>
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [ppRelName mapping (r,a),
          Print.ppString "(",
          Print.ppOpList "," (ppTerm mapping) tms,
          Print.ppString ")"];
 
 local
-  val neg = Print.sequence (Print.ppString "~") (Print.addBreak 1);
+  val neg = Print.sequence (Print.ppString "~") Print.break;
 
   fun fof mapping fm =
       case fm of
@@ -683,7 +683,7 @@ local
            let
              val (n,fm) = Formula.stripNeg fm
            in
-             Print.blockProgram Print.Inconsistent 2
+             Print.inconsistentBlock 2
                [Print.duplicate n neg,
                 unitary mapping fm]
            end)
@@ -692,7 +692,7 @@ local
            SOME a_b => Print.ppOp2 " =" (ppTerm mapping) (ppTerm mapping) a_b
          | NONE => ppAtom mapping atm)
       | _ =>
-        Print.blockProgram Print.Inconsistent 1
+        Print.inconsistentBlock 1
           [Print.ppString "(",
            fof mapping fm,
            Print.ppString ")"]
@@ -701,18 +701,18 @@ local
       let
         val mapping = addVarListMapping mapping vs
       in
-        Print.blockProgram Print.Inconsistent 2
+        Print.inconsistentBlock 2
           [Print.ppString q,
            Print.ppString " ",
-           Print.blockProgram Print.Inconsistent (String.size q)
+           Print.inconsistentBlock (String.size q)
              [Print.ppString "[",
               Print.ppOpList "," (ppVar mapping) vs,
               Print.ppString "] :"],
-           Print.addBreak 1,
+           Print.break,
            unitary mapping fm]
       end;
 in
-  fun ppFof mapping fm = Print.block Print.Inconsistent 0 (fof mapping fm);
+  fun ppFof mapping fm = Print.inconsistentBlock 0 [fof mapping fm];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1036,7 +1036,7 @@ local
   val ppProofPath = Term.ppPath;
 
   fun ppProof mapping inf =
-      Print.blockProgram Print.Inconsistent 1
+      Print.inconsistentBlock 1
         [Print.ppString "[",
          (case inf of
             Proof.Axiom _ => Print.skip
@@ -1048,10 +1048,10 @@ local
             Print.program
               [ppProofLiteral mapping lit,
                Print.ppString ",",
-               Print.addBreak 1,
+               Print.break,
                ppProofPath path,
                Print.ppString ",",
-               Print.addBreak 1,
+               Print.break,
                ppProofTerm mapping tm]),
          Print.ppString "]"];
 
@@ -1077,15 +1077,15 @@ in
 
           val name = nameStrip inference
         in
-          Print.blockProgram Print.Inconsistent (size gen + 1)
+          Print.inconsistentBlock (size gen + 1)
             [Print.ppString gen,
              Print.ppString "(",
              Print.ppString name,
              Print.ppString ",",
-             Print.addBreak 1,
+             Print.break,
              Print.ppBracket "[" "]" (ppStrip mapping) inference,
              Print.ppString ",",
-             Print.addBreak 1,
+             Print.break,
              Print.ppList ppParent parents,
              Print.ppString ")"]
         end
@@ -1095,15 +1095,15 @@ in
 
           val name = nameNormalize inference
         in
-          Print.blockProgram Print.Inconsistent (size gen + 1)
+          Print.inconsistentBlock (size gen + 1)
             [Print.ppString gen,
              Print.ppString "(",
              Print.ppString name,
              Print.ppString ",",
-             Print.addBreak 1,
+             Print.break,
              Print.ppBracket "[" "]" (ppNormalize mapping) inference,
              Print.ppString ",",
-             Print.addBreak 1,
+             Print.break,
              Print.ppList ppParent parents,
              Print.ppString ")"]
         end
@@ -1125,27 +1125,27 @@ in
                 List.map (fn parent => (parent,sub)) parents
               end
         in
-          Print.blockProgram Print.Inconsistent (size gen + 1)
+          Print.inconsistentBlock (size gen + 1)
             ([Print.ppString gen,
               Print.ppString "("] @
              (if isTaut then
                 [Print.ppString "tautology",
                  Print.ppString ",",
-                 Print.addBreak 1,
-                 Print.blockProgram Print.Inconsistent 1
+                 Print.break,
+                 Print.inconsistentBlock 1
                    [Print.ppString "[",
                     Print.ppString name,
                     Print.ppString ",",
-                    Print.addBreak 1,
+                    Print.break,
                     ppProof mapping inference,
                     Print.ppString "]"]]
               else
                 [Print.ppString name,
                  Print.ppString ",",
-                 Print.addBreak 1,
+                 Print.break,
                  ppProof mapping inference,
                  Print.ppString ",",
-                 Print.addBreak 1,
+                 Print.break,
                  Print.ppList (ppProofParent mapping) parents]) @
              [Print.ppString ")"])
         end
@@ -1248,23 +1248,23 @@ fun ppFormula mapping fm =
             CnfFormulaBody _ => "cnf"
           | FofFormulaBody _ => "fof"
     in
-      Print.blockProgram Print.Inconsistent (size gen + 1)
+      Print.inconsistentBlock (size gen + 1)
         ([Print.ppString gen,
           Print.ppString "(",
           ppFormulaName name,
           Print.ppString ",",
-          Print.addBreak 1,
+          Print.break,
           ppRole role,
           Print.ppString ",",
-          Print.addBreak 1,
-          Print.blockProgram Print.Consistent 1
+          Print.break,
+          Print.consistentBlock 1
             [Print.ppString "(",
              ppFormulaBody mapping body,
              Print.ppString ")"]] @
          (if isNoFormulaSource source then []
           else
             [Print.ppString ",",
-             Print.addBreak 1,
+             Print.break,
              ppFormulaSource mapping source]) @
          [Print.ppString ")."])
     end;
@@ -1645,7 +1645,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun ppInclude i =
-    Print.blockProgram Print.Inconsistent 2
+    Print.inconsistentBlock 2
       [Print.ppString "include('",
        Print.ppString i,
        Print.ppString "')."];
@@ -1686,7 +1686,7 @@ val partitionDeclarations =
             IncludeDeclaration i => (i :: il, fl)
           | FormulaDeclaration f => (il, f :: fl)
     in
-      fn l => List.foldl part ([],[]) (rev l)
+      fn l => List.foldl part ([],[]) (List.rev l)
     end;
 
 local
@@ -1888,15 +1888,15 @@ local
             List.foldl partitionFormula ([],[],[],[]) fms
 
         val goal =
-            case (rev cnfGoals, rev fofGoals) of
+            case (List.rev cnfGoals, List.rev fofGoals) of
               ([],[]) => NoGoal
             | (cnfGoals,[]) => CnfGoal cnfGoals
             | ([],fofGoals) => FofGoal fofGoals
             | (_ :: _, _ :: _) =>
               raise Error "TPTP problem has both cnf and fof conjecture formulas"
       in
-        {cnfAxioms = rev cnfAxioms,
-         fofAxioms = rev fofAxioms,
+        {cnfAxioms = List.rev cnfAxioms,
+         fofAxioms = List.rev fofAxioms,
          goal = goal}
       end;
 
@@ -1956,7 +1956,7 @@ local
       let
         val {problem,sources} = norm
         val {axioms,conjecture} = problem
-        val problem = {axioms = rev axioms, conjecture = rev conjecture}
+        val problem = {axioms = List.rev axioms, conjecture = List.rev conjecture}
       in
         {subgoal = subgoal,
          problem = problem,
@@ -2051,11 +2051,11 @@ local
 
   fun stripLineComments acc strm =
       case strm of
-        Stream.Nil => (rev acc, Stream.Nil)
+        Stream.Nil => (List.rev acc, Stream.Nil)
       | Stream.Cons (line,rest) =>
         case total destLineComment line of
           SOME s => stripLineComments (s :: acc) (rest ())
-        | NONE => (rev acc, Stream.filter (not o isLineComment) strm);
+        | NONE => (List.rev acc, Stream.filter (not o isLineComment) strm);
 
   fun advanceBlockComment c state =
       case state of
@@ -2270,7 +2270,7 @@ local
         val (names,ths) =
             List.foldl (collectProofDeps sources) (names,[]) proof
 
-        val normalization = Normalize.proveThms (rev ths)
+        val normalization = Normalize.proveThms (List.rev ths)
 
         val (fofs,defs) =
             List.foldl collectNormalizeDeps (fofs,defs) normalization
@@ -2554,7 +2554,7 @@ in
         val formulas =
             List.foldl (addSubgoalProofFormulas avoid fmNames) formulas proofs
       in
-        rev formulas
+        List.rev formulas
       end
 (*MetisDebug
       handle Error err => raise Bug ("Tptp.fromProof: shouldn't fail:\n" ^ err);

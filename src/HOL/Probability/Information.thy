@@ -198,7 +198,7 @@ lemma (in information_space) KL_gt_0:
 proof -
   interpret \<nu>: prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
   have ms: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
-  have fms: "finite_measure (M\<lparr>measure := \<nu>\<rparr>)" by default
+  have fms: "finite_measure (M\<lparr>measure := \<nu>\<rparr>)" by unfold_locales
   note RN = RN_deriv[OF ms ac]
 
   from real_RN_deriv[OF fms ac] guess D . note D = this
@@ -460,7 +460,7 @@ lemma (in finite_prob_space) KL_divergence_positive_finite:
 proof -
   interpret information_space M by default fact
   interpret v: finite_prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
-  have ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)" by default
+  have ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)" by unfold_locales
   from KL_ge_0[OF this ac v.integral_finite_singleton(1)] show ?thesis .
 qed
 
@@ -558,7 +558,7 @@ next
 
   have eq: "\<forall>A\<in>sets XY.P. (ereal \<circ> joint_distribution X Y) A = XY.\<mu> A"
   proof (rule XY.KL_eq_0_imp)
-    show "prob_space ?J" by default
+    show "prob_space ?J" by unfold_locales
     show "XY.absolutely_continuous (ereal\<circ>joint_distribution X Y)"
       using ac by (simp add: P_def)
     show "integrable ?J (entropy_density b XY.P (ereal\<circ>joint_distribution X Y))"
@@ -624,7 +624,7 @@ proof -
     have "prob_space (P.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)"
       using X Y by (auto intro!: distribution_prob_space random_variable_pairI)
     then show "measure_space (P.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)"
-      unfolding prob_space_def by simp
+      unfolding prob_space_def finite_measure_def sigma_finite_measure_def by simp
   qed auto
 qed
 
@@ -654,7 +654,7 @@ proof -
   note rv = assms[THEN finite_random_variableD]
   show "XY.absolutely_continuous (ereal\<circ>joint_distribution X Y)"
   proof (rule XY.absolutely_continuousI)
-    show "finite_measure_space (XY.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
+    show "finite_measure_space (XY.P\<lparr> measure := ereal\<circ>joint_distribution X Y\<rparr>)" by unfold_locales
     fix x assume "x \<in> space XY.P" and "XY.\<mu> {x} = 0"
     then obtain a b where "x = (a, b)"
       and "distribution X {a} = 0 \<or> distribution Y {b} = 0"
@@ -684,8 +684,8 @@ proof -
   interpret P: finite_prob_space "XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>"
     using assms by (auto intro!: joint_distribution_finite_prob_space)
 
-  have P_ms: "finite_measure_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
-  have P_ps: "finite_prob_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by default
+  have P_ms: "finite_measure_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by unfold_locales
+  have P_ps: "finite_prob_space (XY.P\<lparr>measure := ereal\<circ>joint_distribution X Y\<rparr>)" by unfold_locales
 
   show ?sum
     unfolding Let_def mutual_information_def

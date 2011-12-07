@@ -942,7 +942,7 @@ local
 
   fun prove acc proved ths =
       case ths of
-        [] => rev acc
+        [] => List.rev acc
       | th :: ths' =>
         if isProved proved th then prove acc proved ths'
         else
@@ -1374,7 +1374,7 @@ in
       let
         val (cls,_) = List.foldl add ([],initialCnf) ths
       in
-        rev cls
+        List.rev cls
       end;
 end;
 

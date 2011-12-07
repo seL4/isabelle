@@ -1175,13 +1175,21 @@ proof -
   finally show ?thesis by simp
 qed
 
-locale finite_measure = measure_space +
+locale finite_measure = sigma_finite_measure +
   assumes finite_measure_of_space: "\<mu> (space M) \<noteq> \<infinity>"
 
-sublocale finite_measure < sigma_finite_measure
-proof
-  show "\<exists>A. range A \<subseteq> sets M \<and> (\<Union>i. A i) = space M \<and> (\<forall>i. \<mu> (A i) \<noteq> \<infinity>)"
-    using finite_measure_of_space by (auto intro!: exI[of _ "\<lambda>x. space M"])
+lemma finite_measureI[Pure.intro!]:
+  assumes "measure_space M"
+  assumes *: "measure M (space M) \<noteq> \<infinity>"
+  shows "finite_measure M"
+proof -
+  interpret measure_space M by fact
+  show "finite_measure M"
+  proof
+    show "measure M (space M) \<noteq> \<infinity>" by fact
+    show "\<exists>A. range A \<subseteq> sets M \<and> (\<Union>i. A i) = space M \<and> (\<forall>i. \<mu> (A i) \<noteq> \<infinity>)"
+      using * by (auto intro!: exI[of _ "\<lambda>x. space M"])
+  qed
 qed
 
 lemma (in finite_measure) finite_measure[simp, intro]:
@@ -1222,22 +1230,19 @@ lemma (in finite_measure) restricted_finite_measure:
   assumes "S \<in> sets M"
   shows "finite_measure (restricted_space S)"
     (is "finite_measure ?r")
-  unfolding finite_measure_def finite_measure_axioms_def
-proof (intro conjI)
+proof
   show "measure_space ?r" using restricted_measure_space[OF assms] .
-next
   show "measure ?r (space ?r) \<noteq> \<infinity>" using finite_measure[OF `S \<in> sets M`] by auto
 qed
 
 lemma (in measure_space) restricted_to_finite_measure:
   assumes "S \<in> sets M" "\<mu> S \<noteq> \<infinity>"
   shows "finite_measure (restricted_space S)"
-proof -
-  have "measure_space (restricted_space S)"
+proof
+  show "measure_space (restricted_space S)"
     using `S \<in> sets M` by (rule restricted_measure_space)
-  then show ?thesis
-    unfolding finite_measure_def finite_measure_axioms_def
-    using assms by auto
+  show "measure (restricted_space S) (space (restricted_space S)) \<noteq> \<infinity>"
+    by simp fact
 qed
 
 lemma (in finite_measure) finite_measure_Diff:
@@ -1357,65 +1362,42 @@ lemma (in finite_measure) empty_measure'[simp]: "\<mu>' {} = 0"
 
 section "Finite spaces"
 
-locale finite_measure_space = measure_space + finite_sigma_algebra +
-  assumes finite_single_measure[simp]: "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<infinity>"
+locale finite_measure_space = finite_measure + finite_sigma_algebra
+
+lemma finite_measure_spaceI[Pure.intro!]:
+  assumes "finite (space M)"
+  assumes sets_Pow: "sets M = Pow (space M)"
+    and space: "measure M (space M) \<noteq> \<infinity>"
+    and pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> measure M {x}"
+    and add: "\<And>A. A \<subseteq> space M \<Longrightarrow> measure M A = (\<Sum>x\<in>A. measure M {x})"
+  shows "finite_measure_space M"
+proof -
+  interpret finite_sigma_algebra M
+  proof
+    show "finite (space M)" by fact
+  qed (auto simp: sets_Pow)
+  interpret measure_space M
+  proof (rule finite_additivity_sufficient)
+    show "sigma_algebra M" by default
+    show "finite (space M)" by fact
+    show "positive M (measure M)"
+      by (auto simp: add positive_def intro!: setsum_nonneg pos)
+    show "additive M (measure M)"
+      using `finite (space M)`
+      by (auto simp add: additive_def add
+               intro!: setsum_Un_disjoint dest: finite_subset)
+  qed
+  interpret finite_measure M
+  proof
+    show "\<mu> (space M) \<noteq> \<infinity>" by fact
+  qed default
+  show "finite_measure_space M" 
+    by default
+qed
 
 lemma (in finite_measure_space) sum_over_space: "(\<Sum>x\<in>space M. \<mu> {x}) = \<mu> (space M)"
   using measure_setsum[of "space M" "\<lambda>i. {i}"]
   by (simp add: sets_eq_Pow disjoint_family_on_def finite_space)
-
-lemma finite_measure_spaceI:
-  assumes "finite (space M)" "sets M = Pow(space M)" and space: "measure M (space M) \<noteq> \<infinity>"
-    and add: "\<And>A B. A\<subseteq>space M \<Longrightarrow> B\<subseteq>space M \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> measure M (A \<union> B) = measure M A + measure M B"
-    and "measure M {} = 0" "\<And>A. A \<subseteq> space M \<Longrightarrow> 0 \<le> measure M A"
-  shows "finite_measure_space M"
-    unfolding finite_measure_space_def finite_measure_space_axioms_def
-proof (intro allI impI conjI)
-  show "measure_space M"
-  proof (rule finite_additivity_sufficient)
-    have *: "\<lparr>space = space M, sets = Pow (space M), \<dots> = algebra.more M\<rparr> = M"
-      unfolding assms(2)[symmetric] by (auto intro!: algebra.equality)
-    show "sigma_algebra M"
-      using sigma_algebra_Pow[of "space M" "algebra.more M"]
-      unfolding * .
-    show "finite (space M)" by fact
-    show "positive M (measure M)" unfolding positive_def using assms by auto
-    show "additive M (measure M)" unfolding additive_def using assms by simp
-  qed
-  then interpret measure_space M .
-  show "finite_sigma_algebra M"
-  proof
-    show "finite (space M)" by fact
-    show "sets M = Pow (space M)" using assms by auto
-  qed
-  { fix x assume *: "x \<in> space M"
-    with add[of "{x}" "space M - {x}"] space
-    show "\<mu> {x} \<noteq> \<infinity>" by (auto simp: insert_absorb[OF *] Diff_subset) }
-qed
-
-sublocale finite_measure_space \<subseteq> finite_measure
-proof
-  show "\<mu> (space M) \<noteq> \<infinity>"
-    unfolding sum_over_space[symmetric] setsum_Pinfty
-    using finite_space finite_single_measure by auto
-qed
-
-lemma finite_measure_space_iff:
-  "finite_measure_space M \<longleftrightarrow>
-    finite (space M) \<and> sets M = Pow(space M) \<and> measure M (space M) \<noteq> \<infinity> \<and>
-    measure M {} = 0 \<and> (\<forall>A\<subseteq>space M. 0 \<le> measure M A) \<and>
-    (\<forall>A\<subseteq>space M. \<forall>B\<subseteq>space M. A \<inter> B = {} \<longrightarrow> measure M (A \<union> B) = measure M A + measure M B)"
-    (is "_ = ?rhs")
-proof (intro iffI)
-  assume "finite_measure_space M"
-  then interpret finite_measure_space M .
-  show ?rhs
-    using finite_space sets_eq_Pow measure_additive empty_measure finite_measure
-    by auto
-next
-  assume ?rhs then show "finite_measure_space M"
-    by (auto intro!: finite_measure_spaceI)
-qed
 
 lemma (in finite_measure_space) finite_measure_singleton:
   assumes A: "A \<subseteq> space M" shows "\<mu>' A = (\<Sum>x\<in>A. \<mu>' {x})"

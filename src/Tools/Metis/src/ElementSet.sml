@@ -16,6 +16,10 @@ struct
 
 type element = KM.key;
 
+val compareElement = KM.compareKey;
+
+val equalElement = KM.equalKey;
+
 (* ------------------------------------------------------------------------- *)
 (* A type of finite sets.                                                    *)
 (* ------------------------------------------------------------------------- *)

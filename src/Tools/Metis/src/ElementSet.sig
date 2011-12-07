@@ -12,6 +12,10 @@ sig
 
 type element
 
+val compareElement : element * element -> order
+
+val equalElement : element -> element -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* A type of finite sets.                                                    *)
 (* ------------------------------------------------------------------------- *)

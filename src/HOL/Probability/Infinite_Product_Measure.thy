@@ -41,36 +41,11 @@ proof  (intro set_eqI)
   qed
 qed
 
-locale product_prob_space =
-  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme" and I :: "'i set"
-  assumes prob_spaces: "\<And>i. prob_space (M i)"
-  and I_not_empty: "I \<noteq> {}"
-
-locale finite_product_prob_space = product_prob_space M I
-  for M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme" and I :: "'i set" +
-  assumes finite_index'[intro]: "finite I"
-
-sublocale product_prob_space \<subseteq> M: prob_space "M i" for i
-  by (rule prob_spaces)
-
-sublocale product_prob_space \<subseteq> product_sigma_finite
-  by default
-
-sublocale finite_product_prob_space \<subseteq> finite_product_sigma_finite
-  by default (fact finite_index')
-
-sublocale finite_product_prob_space \<subseteq> prob_space "Pi\<^isub>M I M"
-proof
-  show "measure P (space P) = 1"
-    by (simp add: measure_times measure_space_1 setprod_1)
-qed
-
 lemma (in product_prob_space) measure_preserving_restrict:
   assumes "J \<noteq> {}" "J \<subseteq> K" "finite K"
   shows "(\<lambda>f. restrict f J) \<in> measure_preserving (\<Pi>\<^isub>M i\<in>K. M i) (\<Pi>\<^isub>M i\<in>J. M i)" (is "?R \<in> _")
 proof -
-  interpret K: finite_product_prob_space M K
-    by default (insert assms, auto)
+  interpret K: finite_product_prob_space M K by default fact
   have J: "J \<noteq> {}" "finite J" using assms by (auto simp add: finite_subset)
   interpret J: finite_product_prob_space M J
     by default (insert J, auto)
@@ -297,7 +272,7 @@ qed
 definition (in product_prob_space) infprod_algebra :: "('i \<Rightarrow> 'a) measure_space" where
   "infprod_algebra = sigma generator \<lparr> measure :=
     (SOME \<mu>. (\<forall>s\<in>sets generator. \<mu> s = \<mu>G s) \<and>
-       measure_space \<lparr>space = space generator, sets = sets (sigma generator), measure = \<mu>\<rparr>)\<rparr>"
+       prob_space \<lparr>space = space generator, sets = sets (sigma generator), measure = \<mu>\<rparr>)\<rparr>"
 
 syntax
   "_PiP"  :: "[pttrn, 'i set, ('b, 'd) measure_space_scheme] => ('i => 'b, 'd) measure_space_scheme"  ("(3PIP _:_./ _)" 10)
@@ -314,13 +289,13 @@ abbreviation
 translations
   "PIP x:I. M" == "CONST Pi\<^isub>P I (%x. M)"
 
-sublocale product_prob_space \<subseteq> G!: algebra generator
+lemma (in product_prob_space) algebra_generator:
+  assumes "I \<noteq> {}" shows "algebra generator"
 proof
   let ?G = generator
   show "sets ?G \<subseteq> Pow (space ?G)"
     by (auto simp: generator_def emb_def)
-  from I_not_empty
-  obtain i where "i \<in> I" by auto
+  from `I \<noteq> {}` obtain i where "i \<in> I" by auto
   then show "{} \<in> sets ?G"
     by (auto intro!: exI[of _ "{i}"] image_eqI[where x="\<lambda>i. {}"]
       simp: product_algebra_def sigma_def sigma_sets.Empty generator_def emb_def)
@@ -343,42 +318,54 @@ proof
     using XA XB by (auto intro!: generatorI')
 qed
 
-lemma (in product_prob_space) positive_\<mu>G: "positive generator \<mu>G"
-proof (intro positive_def[THEN iffD2] conjI ballI)
-  from generatorE[OF G.empty_sets] guess J X . note this[simp]
-  interpret J: finite_product_sigma_finite M J by default fact
-  have "X = {}"
-    by (rule emb_injective[of J I]) simp_all
-  then show "\<mu>G {} = 0" by simp
-next
-  fix A assume "A \<in> sets generator"
-  from generatorE[OF this] guess J X . note this[simp]
-  interpret J: finite_product_sigma_finite M J by default fact
-  show "0 \<le> \<mu>G A" by simp
+lemma (in product_prob_space) positive_\<mu>G: 
+  assumes "I \<noteq> {}"
+  shows "positive generator \<mu>G"
+proof -
+  interpret G!: algebra generator by (rule algebra_generator) fact
+  show ?thesis
+  proof (intro positive_def[THEN iffD2] conjI ballI)
+    from generatorE[OF G.empty_sets] guess J X . note this[simp]
+    interpret J: finite_product_sigma_finite M J by default fact
+    have "X = {}"
+      by (rule emb_injective[of J I]) simp_all
+    then show "\<mu>G {} = 0" by simp
+  next
+    fix A assume "A \<in> sets generator"
+    from generatorE[OF this] guess J X . note this[simp]
+    interpret J: finite_product_sigma_finite M J by default fact
+    show "0 \<le> \<mu>G A" by simp
+  qed
 qed
 
-lemma (in product_prob_space) additive_\<mu>G: "additive generator \<mu>G"
-proof (intro additive_def[THEN iffD2] ballI impI)
-  fix A assume "A \<in> sets generator" with generatorE guess J X . note J = this
-  fix B assume "B \<in> sets generator" with generatorE guess K Y . note K = this
-  assume "A \<inter> B = {}"
-  have JK: "J \<union> K \<noteq> {}" "J \<union> K \<subseteq> I" "finite (J \<union> K)"
-    using J K by auto
-  interpret JK: finite_product_sigma_finite M "J \<union> K" by default fact
-  have JK_disj: "emb (J \<union> K) J X \<inter> emb (J \<union> K) K Y = {}"
-    apply (rule emb_injective[of "J \<union> K" I])
-    apply (insert `A \<inter> B = {}` JK J K)
-    apply (simp_all add: JK.Int emb_simps)
-    done
-  have AB: "A = emb I (J \<union> K) (emb (J \<union> K) J X)" "B = emb I (J \<union> K) (emb (J \<union> K) K Y)"
-    using J K by simp_all
-  then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
-    by (simp add: emb_simps)
-  also have "\<dots> = measure (Pi\<^isub>M (J \<union> K) M) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
-    using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq JK.Un)
-  also have "\<dots> = \<mu>G A + \<mu>G B"
-    using J K JK_disj by (simp add: JK.measure_additive[symmetric])
-  finally show "\<mu>G (A \<union> B) = \<mu>G A + \<mu>G B" .
+lemma (in product_prob_space) additive_\<mu>G: 
+  assumes "I \<noteq> {}"
+  shows "additive generator \<mu>G"
+proof -
+  interpret G!: algebra generator by (rule algebra_generator) fact
+  show ?thesis
+  proof (intro additive_def[THEN iffD2] ballI impI)
+    fix A assume "A \<in> sets generator" with generatorE guess J X . note J = this
+    fix B assume "B \<in> sets generator" with generatorE guess K Y . note K = this
+    assume "A \<inter> B = {}"
+    have JK: "J \<union> K \<noteq> {}" "J \<union> K \<subseteq> I" "finite (J \<union> K)"
+      using J K by auto
+    interpret JK: finite_product_sigma_finite M "J \<union> K" by default fact
+    have JK_disj: "emb (J \<union> K) J X \<inter> emb (J \<union> K) K Y = {}"
+      apply (rule emb_injective[of "J \<union> K" I])
+      apply (insert `A \<inter> B = {}` JK J K)
+      apply (simp_all add: JK.Int emb_simps)
+      done
+    have AB: "A = emb I (J \<union> K) (emb (J \<union> K) J X)" "B = emb I (J \<union> K) (emb (J \<union> K) K Y)"
+      using J K by simp_all
+    then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
+      by (simp add: emb_simps)
+    also have "\<dots> = measure (Pi\<^isub>M (J \<union> K) M) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
+      using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq JK.Un)
+    also have "\<dots> = \<mu>G A + \<mu>G B"
+      using J K JK_disj by (simp add: JK.measure_additive[symmetric])
+    finally show "\<mu>G (A \<union> B) = \<mu>G A + \<mu>G B" .
+  qed
 qed
 
 lemma (in product_prob_space) finite_index_eq_finite_product:
@@ -386,7 +373,7 @@ lemma (in product_prob_space) finite_index_eq_finite_product:
   shows "sets (sigma generator) = sets (Pi\<^isub>M I M)"
 proof safe
   interpret I: finite_product_sigma_algebra M I by default fact
-  have [simp]: "space generator = space (Pi\<^isub>M I M)"
+  have space_generator[simp]: "space generator = space (Pi\<^isub>M I M)"
     by (simp add: generator_def product_algebra_def)
   { fix A assume "A \<in> sets (sigma generator)"
     then show "A \<in> sets I.P" unfolding sets_sigma
@@ -396,19 +383,32 @@ proof safe
       with `finite I` have "emb I J X \<in> sets I.P" by auto
       with `emb I J X = A` show "A \<in> sets I.P" by simp
     qed auto }
-  { fix A assume "A \<in> sets I.P"
-    moreover with I.sets_into_space have "emb I I A = A" by (intro emb_id) auto
-    ultimately show "A \<in> sets (sigma generator)"
-      using `finite I` I_not_empty unfolding sets_sigma
-      by (intro sigma_sets.Basic generatorI[of I A]) auto }
+  { fix A assume A: "A \<in> sets I.P"
+    show "A \<in> sets (sigma generator)"
+    proof cases
+      assume "I = {}"
+      with I.P_empty[OF this] A
+      have "A = space generator \<or> A = {}" 
+        unfolding space_generator by auto
+      then show ?thesis
+        by (auto simp: sets_sigma simp del: space_generator
+                 intro: sigma_sets.Empty sigma_sets_top)
+    next
+      assume "I \<noteq> {}"
+      note A this
+      moreover with I.sets_into_space have "emb I I A = A" by (intro emb_id) auto
+      ultimately show "A \<in> sets (sigma generator)"
+        using `finite I` unfolding sets_sigma
+        by (intro sigma_sets.Basic generatorI[of I A]) auto
+  qed }
 qed
 
 lemma (in product_prob_space) extend_\<mu>G:
   "\<exists>\<mu>. (\<forall>s\<in>sets generator. \<mu> s = \<mu>G s) \<and>
-       measure_space \<lparr>space = space generator, sets = sets (sigma generator), measure = \<mu>\<rparr>"
+       prob_space \<lparr>space = space generator, sets = sets (sigma generator), measure = \<mu>\<rparr>"
 proof cases
   assume "finite I"
-  interpret I: finite_product_sigma_finite M I by default fact
+  interpret I: finite_product_prob_space M I by default fact
   show ?thesis
   proof (intro exI[of _ "measure (Pi\<^isub>M I M)"] ballI conjI)
     fix A assume "A \<in> sets generator"
@@ -422,13 +422,20 @@ proof cases
     have "\<lparr>space = space generator, sets = sets (sigma generator), measure = measure I.P\<rparr>
       = I.P" (is "?P = _")
       by (auto intro!: measure_space.equality simp: finite_index_eq_finite_product[OF `finite I`])
-    then show "measure_space ?P" by simp default
+    show "prob_space ?P"
+    proof
+      show "measure_space ?P" using `?P = I.P` by simp default
+      show "measure ?P (space ?P) = 1"
+        using I.measure_space_1 by simp
+    qed
   qed
 next
   let ?G = generator
   assume "\<not> finite I"
+  then have I_not_empty: "I \<noteq> {}" by auto
+  interpret G!: algebra generator by (rule algebra_generator) fact
   note \<mu>G_mono =
-    G.additive_increasing[OF positive_\<mu>G additive_\<mu>G, THEN increasingD]
+    G.additive_increasing[OF positive_\<mu>G[OF I_not_empty] additive_\<mu>G[OF I_not_empty], THEN increasingD]
 
   { fix Z J assume J: "J \<noteq> {}" "finite J" "J \<subseteq> I" and Z: "Z \<in> sets ?G"
 
@@ -488,7 +495,9 @@ next
     note this fold le_1 merge_in_G(3) }
   note fold = this
 
-  show ?thesis
+  have "\<exists>\<mu>. (\<forall>s\<in>sets ?G. \<mu> s = \<mu>G s) \<and>
+    measure_space \<lparr>space = space ?G, sets = sets (sigma ?G), measure = \<mu>\<rparr>"
+    (is "\<exists>\<mu>. _ \<and> measure_space (?ms \<mu>)")
   proof (rule G.caratheodory_empty_continuous[OF positive_\<mu>G additive_\<mu>G])
     fix A assume "A \<in> sets ?G"
     with generatorE guess J X . note JX = this
@@ -503,7 +512,7 @@ next
     proof (rule ccontr)
       assume "(INF i. \<mu>G (A i)) \<noteq> 0" (is "?a \<noteq> 0")
       moreover have "0 \<le> ?a"
-        using A positive_\<mu>G by (auto intro!: INF_greatest simp: positive_def)
+        using A positive_\<mu>G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
       have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = measure (Pi\<^isub>M J M) X"
@@ -659,7 +668,7 @@ next
         moreover
         from w have "?a / 2 ^ (k + 1) \<le> ?q k k (w k)" by auto
         then have "?M (J k) (A k) (w k) \<noteq> {}"
-          using positive_\<mu>G[unfolded positive_def] `0 < ?a` `?a \<le> 1`
+          using positive_\<mu>G[OF I_not_empty, unfolded positive_def] `0 < ?a` `?a \<le> 1`
           by (cases ?a) (auto simp: divide_le_0_iff power_le_zero_eq)
         then obtain x where "x \<in> ?M (J k) (A k) (w k)" by auto
         then have "merge (J k) (w k) (I - J k) x \<in> A k" by auto
@@ -713,28 +722,42 @@ next
     qed
     ultimately show "(\<lambda>i. \<mu>G (A i)) ----> 0"
       using LIMSEQ_ereal_INFI[of "\<lambda>i. \<mu>G (A i)"] by simp
+  qed fact+
+  then guess \<mu> .. note \<mu> = this
+  show ?thesis
+  proof (intro exI[of _ \<mu>] conjI)
+    show "\<forall>S\<in>sets ?G. \<mu> S = \<mu>G S" using \<mu> by simp
+    show "prob_space (?ms \<mu>)"
+    proof
+      show "measure_space (?ms \<mu>)" using \<mu> by simp
+      obtain i where "i \<in> I" using I_not_empty by auto
+      interpret i: finite_product_sigma_finite M "{i}" by default auto
+      let ?X = "\<Pi>\<^isub>E i\<in>{i}. space (M i)"
+      have X: "?X \<in> sets (Pi\<^isub>M {i} M)"
+        by auto
+      with `i \<in> I` have "emb I {i} ?X \<in> sets generator"
+        by (intro generatorI') auto
+      with \<mu> have "\<mu> (emb I {i} ?X) = \<mu>G (emb I {i} ?X)" by auto
+      with \<mu>G_eq[OF _ _ _ X] `i \<in> I` 
+      have "\<mu> (emb I {i} ?X) = measure (M i) (space (M i))"
+        by (simp add: i.measure_times)
+      also have "emb I {i} ?X = space (Pi\<^isub>P I M)"
+        using `i \<in> I` by (auto simp: emb_def infprod_algebra_def generator_def)
+      finally show "measure (?ms \<mu>) (space (?ms \<mu>)) = 1"
+        using M.measure_space_1 by (simp add: infprod_algebra_def)
+    qed
   qed
 qed
 
 lemma (in product_prob_space) infprod_spec:
-  shows "(\<forall>s\<in>sets generator. measure (Pi\<^isub>P I M) s = \<mu>G s) \<and> measure_space (Pi\<^isub>P I M)"
-proof -
-  let ?P = "\<lambda>\<mu>. (\<forall>A\<in>sets generator. \<mu> A = \<mu>G A) \<and>
-       measure_space \<lparr>space = space generator, sets = sets (sigma generator), measure = \<mu>\<rparr>"
-  have **: "measure infprod_algebra = (SOME \<mu>. ?P \<mu>)"
-    unfolding infprod_algebra_def by simp
-  have *: "Pi\<^isub>P I M = \<lparr>space = space generator, sets = sets (sigma generator), measure = measure (Pi\<^isub>P I M)\<rparr>"
-    unfolding infprod_algebra_def by auto
-  show ?thesis
-    apply (subst (2) *)
-    apply (unfold **)
-    apply (rule someI_ex[where P="?P"])
-    apply (rule extend_\<mu>G)
-    done
-qed
+  "(\<forall>s\<in>sets generator. measure (Pi\<^isub>P I M) s = \<mu>G s) \<and> prob_space (Pi\<^isub>P I M)"
+  (is "?Q infprod_algebra")
+  unfolding infprod_algebra_def
+  by (rule someI2_ex[OF extend_\<mu>G])
+     (auto simp: sigma_def generator_def)
 
-sublocale product_prob_space \<subseteq> P: measure_space "Pi\<^isub>P I M"
-  using infprod_spec by auto
+sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^isub>P I M"
+  using infprod_spec by simp
 
 lemma (in product_prob_space) measure_infprod_emb:
   assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)"
@@ -743,22 +766,6 @@ proof -
   have "emb I J X \<in> sets generator"
     using assms by (rule generatorI')
   with \<mu>G_eq[OF assms] infprod_spec show ?thesis by auto
-qed
-
-sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^isub>P I M"
-proof
-  obtain i where "i \<in> I" using I_not_empty by auto
-  interpret i: finite_product_sigma_finite M "{i}" by default auto
-  let ?X = "\<Pi>\<^isub>E i\<in>{i}. space (M i)"
-  have "?X \<in> sets (Pi\<^isub>M {i} M)"
-    by auto
-  from measure_infprod_emb[OF _ _ _ this] `i \<in> I`
-  have "\<mu> (emb I {i} ?X) = measure (M i) (space (M i))"
-    by (simp add: i.measure_times)
-  also have "emb I {i} ?X = space (Pi\<^isub>P I M)"
-    using `i \<in> I` by (auto simp: emb_def infprod_algebra_def generator_def)
-  finally show "\<mu> (space (Pi\<^isub>P I M)) = 1"
-    using M.measure_space_1 by simp
 qed
 
 lemma (in product_prob_space) measurable_component:
@@ -821,7 +828,8 @@ proof cases
   assume "J = {}"
   then have "emb I J (Pi\<^isub>E J X) = space infprod_algebra"
     by (auto simp: infprod_algebra_def generator_def sigma_def emb_def)
-  then show ?thesis using `J = {}` prob_space by simp
+  then show ?thesis using `J = {}` P.prob_space
+    by simp
 next
   assume "J \<noteq> {}"
   interpret J: finite_product_prob_space M J by default fact+

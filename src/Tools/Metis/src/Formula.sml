@@ -145,11 +145,11 @@ val stripNeg =
 (* Conjunctions *)
 
 fun listMkConj fms =
-    case rev fms of [] => True | fm :: fms => List.foldl And fm fms;
+    case List.rev fms of [] => True | fm :: fms => List.foldl And fm fms;
 
 local
   fun strip cs (And (p,q)) = strip (p :: cs) q
-    | strip cs fm = rev (fm :: cs);
+    | strip cs fm = List.rev (fm :: cs);
 in
   fun stripConj True = []
     | stripConj fm = strip [] fm;
@@ -168,11 +168,11 @@ val flattenConj =
 (* Disjunctions *)
 
 fun listMkDisj fms =
-    case rev fms of [] => False | fm :: fms => List.foldl Or fm fms;
+    case List.rev fms of [] => False | fm :: fms => List.foldl Or fm fms;
 
 local
   fun strip cs (Or (p,q)) = strip (p :: cs) q
-    | strip cs fm = rev (fm :: cs);
+    | strip cs fm = List.rev (fm :: cs);
 in
   fun stripDisj False = []
     | stripDisj fm = strip [] fm;
@@ -191,11 +191,11 @@ val flattenDisj =
 (* Equivalences *)
 
 fun listMkEquiv fms =
-    case rev fms of [] => True | fm :: fms => List.foldl Iff fm fms;
+    case List.rev fms of [] => True | fm :: fms => List.foldl Iff fm fms;
 
 local
   fun strip cs (Iff (p,q)) = strip (p :: cs) q
-    | strip cs fm = rev (fm :: cs);
+    | strip cs fm = List.rev (fm :: cs);
 in
   fun stripEquiv True = []
     | stripEquiv fm = strip [] fm;
@@ -225,7 +225,7 @@ fun setMkForall (vs,body) = NameSet.foldr Forall body vs;
 
 local
   fun strip vs (Forall (v,b)) = strip (v :: vs) b
-    | strip vs tm = (rev vs, tm);
+    | strip vs tm = (List.rev vs, tm);
 in
   val stripForall = strip [];
 end;
@@ -244,7 +244,7 @@ fun setMkExists (vs,body) = NameSet.foldr Exists body vs;
 
 local
   fun strip vs (Exists (v,b)) = strip (v :: vs) b
-    | strip vs tm = (rev vs, tm);
+    | strip vs tm = (List.rev vs, tm);
 in
   val stripExists = strip [];
 end;
@@ -549,7 +549,7 @@ val parse = Parse.parseQuotation toString fromString;
 
 local
   fun add_asms asms goal =
-      if List.null asms then goal else Imp (listMkConj (rev asms), goal);
+      if List.null asms then goal else Imp (listMkConj (List.rev asms), goal);
 
   fun add_var_asms asms v goal = add_asms asms (Forall (v,goal));
 

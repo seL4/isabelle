@@ -845,8 +845,8 @@ proof -
     moreover
     have "D.prob A = P.prob A"
     proof (rule prob_space_unique_Int_stable)
-      show "prob_space ?D'" by default
-      show "prob_space (Pi\<^isub>M I ?M)" by default
+      show "prob_space ?D'" by unfold_locales
+      show "prob_space (Pi\<^isub>M I ?M)" by unfold_locales
       show "Int_stable P.G" using M'.Int
         by (intro Int_stable_product_algebra_generator) (simp add: Int_stable_def)
       show "space P.G \<in> sets P.G"
@@ -963,13 +963,13 @@ proof -
       unfolding space_pair_measure[simplified pair_measure_def space_sigma]
       using X.top Y.top by (auto intro!: pair_measure_generatorI)
 
-    show "prob_space ?J" by default
+    show "prob_space ?J" by unfold_locales
     show "space ?J = space ?P"
       by (simp add: pair_measure_generator_def space_pair_measure)
     show "sets ?J = sets (sigma ?P)"
       by (simp add: pair_measure_def)
 
-    show "prob_space XY.P" by default
+    show "prob_space XY.P" by unfold_locales
     show "space XY.P = space ?P" "sets XY.P = sets (sigma ?P)"
       by (simp_all add: pair_measure_generator_def pair_measure_def)
 

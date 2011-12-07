@@ -240,7 +240,7 @@ locale product_sigma_algebra =
 locale finite_product_sigma_algebra = product_sigma_algebra M
   for M :: "'i \<Rightarrow> ('a, 'b) measure_space_scheme" +
   fixes I :: "'i set"
-  assumes finite_index: "finite I"
+  assumes finite_index[simp, intro]: "finite I"
 
 definition
   "product_algebra_generator I M = \<lparr> space = (\<Pi>\<^isub>E i \<in> I. space (M i)),
@@ -508,22 +508,15 @@ proof (simp, rule measurable_sigma)
   finally show "(\<lambda>x. \<lambda>i\<in>I. X i x) -` E \<inter> space M \<in> sets M" .
 qed
 
-locale product_sigma_finite =
-  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
-  assumes sigma_finite_measures: "\<And>i. sigma_finite_measure (M i)"
-
-locale finite_product_sigma_finite = product_sigma_finite M
+locale product_sigma_finite = product_sigma_algebra M
   for M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme" +
-  fixes I :: "'i set" assumes finite_index'[intro]: "finite I"
+  assumes sigma_finite_measures: "\<And>i. sigma_finite_measure (M i)"
 
 sublocale product_sigma_finite \<subseteq> M: sigma_finite_measure "M i" for i
   by (rule sigma_finite_measures)
 
-sublocale product_sigma_finite \<subseteq> product_sigma_algebra
-  by default
-
-sublocale finite_product_sigma_finite \<subseteq> finite_product_sigma_algebra
-  by default (fact finite_index')
+locale finite_product_sigma_finite = finite_product_sigma_algebra M I + product_sigma_finite M
+  for M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme" and I :: "'i set"
 
 lemma (in finite_product_sigma_finite) product_algebra_generator_measure:
   assumes "Pi\<^isub>E I F \<in> sets G"
