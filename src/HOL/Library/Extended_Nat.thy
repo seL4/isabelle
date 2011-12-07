@@ -489,6 +489,78 @@ proof (rule finite_subset)
 qed
 
 
+subsection {* Cancellation simprocs *}
+
+lemma enat_add_left_cancel: "a + b = a + c \<longleftrightarrow> a = (\<infinity>::enat) \<or> b = c"
+  unfolding plus_enat_def by (simp split: enat.split)
+
+lemma enat_add_left_cancel_le: "a + b \<le> a + c \<longleftrightarrow> a = (\<infinity>::enat) \<or> b \<le> c"
+  unfolding plus_enat_def by (simp split: enat.split)
+
+lemma enat_add_left_cancel_less: "a + b < a + c \<longleftrightarrow> a \<noteq> (\<infinity>::enat) \<and> b < c"
+  unfolding plus_enat_def by (simp split: enat.split)
+
+ML {*
+structure Cancel_Enat_Common =
+struct
+  (* copied from src/HOL/Tools/nat_numeral_simprocs.ML *)
+  fun find_first_t _    _ []         = raise TERM("find_first_t", [])
+    | find_first_t past u (t::terms) =
+          if u aconv t then (rev past @ terms)
+          else find_first_t (t::past) u terms
+
+  val mk_sum = Arith_Data.long_mk_sum
+  val dest_sum = Arith_Data.dest_sum
+  val find_first = find_first_t []
+  val trans_tac = Numeral_Simprocs.trans_tac
+  val norm_ss = HOL_basic_ss addsimps
+    @{thms add_ac semiring_numeral_0_eq_0 add_0_left add_0_right}
+  fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
+  fun simplify_meta_eq ss cancel_th th =
+    Arith_Data.simplify_meta_eq @{thms semiring_numeral_0_eq_0} ss
+      ([th, cancel_th] MRS trans)
+  fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
+end
+
+structure Eq_Enat_Cancel = ExtractCommonTermFun
+(open Cancel_Enat_Common
+  val mk_bal = HOLogic.mk_eq
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} @{typ enat}
+  fun simp_conv _ _ = SOME @{thm enat_add_left_cancel}
+)
+
+structure Le_Enat_Cancel = ExtractCommonTermFun
+(open Cancel_Enat_Common
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} @{typ enat}
+  fun simp_conv _ _ = SOME @{thm enat_add_left_cancel_le}
+)
+
+structure Less_Enat_Cancel = ExtractCommonTermFun
+(open Cancel_Enat_Common
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} @{typ enat}
+  fun simp_conv _ _ = SOME @{thm enat_add_left_cancel_less}
+)
+*}
+
+simproc_setup enat_eq_cancel
+  ("(l::enat) + m = n" | "(l::enat) = m + n") =
+  {* fn phi => fn ss => fn ct => Eq_Enat_Cancel.proc ss (term_of ct) *}
+
+simproc_setup enat_le_cancel
+  ("(l::enat) + m \<le> n" | "(l::enat) \<le> m + n") =
+  {* fn phi => fn ss => fn ct => Le_Enat_Cancel.proc ss (term_of ct) *}
+
+simproc_setup enat_less_cancel
+  ("(l::enat) + m < n" | "(l::enat) < m + n") =
+  {* fn phi => fn ss => fn ct => Less_Enat_Cancel.proc ss (term_of ct) *}
+
+text {* TODO: add regression tests for these simprocs *}
+
+text {* TODO: add simprocs for combining and cancelling numerals *}
+
+
 subsection {* Well-ordering *}
 
 lemma less_enatE:
