@@ -271,12 +271,12 @@ local
   fun mkList tag m = List.map (mkEntry tag) (NameArityMap.toList m);
 
   fun ppEntry (tag,source_arity,target) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString tag,
-         Print.addBreak 1,
+         Print.break,
          NameArity.pp source_arity,
          Print.ppString " ->",
-         Print.addBreak 1,
+         Print.break,
          Name.pp target];
 in
   fun ppFixedMap fixMap =
@@ -286,9 +286,9 @@ in
         case mkList "function" fnMap @ mkList "relation" relMap of
           [] => Print.skip
         | entry :: entries =>
-          Print.blockProgram Print.Consistent 0
+          Print.consistentBlock 0
             (ppEntry entry ::
-             List.map (Print.sequence Print.addNewline o ppEntry) entries)
+             List.map (Print.sequence Print.newline o ppEntry) entries)
       end;
 end;
 

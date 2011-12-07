@@ -13,7 +13,7 @@ val PROGRAM = "metis";
 
 val VERSION = "2.3";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20110531)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20110926)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Program options.                                                          *)
@@ -373,7 +373,7 @@ local
           let
             val seen = StringSet.empty
 
-            val includes = rev includes
+            val includes = List.rev includes
 
             val formulas = readIncludes mapping seen formulas includes
           in
@@ -454,7 +454,7 @@ local
 
           val () =
               if !TEST then ()
-              else display_proof filename tptp (rev acc)
+              else display_proof filename tptp (List.rev acc)
         in
           true
         end

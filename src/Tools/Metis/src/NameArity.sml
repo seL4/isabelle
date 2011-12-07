@@ -44,7 +44,7 @@ fun equal (n1,i1) (n2,i2) = i1 = i2 andalso Name.equal n1 n2;
 (* ------------------------------------------------------------------------- *)
 
 fun pp (n,i) =
-    Print.blockProgram Print.Inconsistent 0
+    Print.inconsistentBlock 0
       [Name.pp n,
        Print.ppString "/",
        Print.ppInt i];

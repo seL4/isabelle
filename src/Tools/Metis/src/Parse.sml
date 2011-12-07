@@ -65,7 +65,7 @@ fun many parser =
     let
       fun sparser l = parser >> (fn x => x :: l)
     in
-      mmany sparser [] >> rev
+      mmany sparser [] >> List.rev
     end;
 
 fun atLeastOne p = (p ++ many p) >> op::;
@@ -226,7 +226,7 @@ fun parseLayeredInfixes {tokens,assoc} mk tokParser subParser =
              | [(t,y)] => mk (t,x,y)
              | _ => raise NoParse)
           | Print.RightAssoc =>
-            (case rev txs of
+            (case List.rev txs of
                [] => x
              | tx :: txs =>
                let

@@ -6,7 +6,7 @@ for Metis with the latest Metis package.
  1. The files "Makefile" and "script/mlpp" and the directory "src/"
     must reflect the corresponding files in Joe Hurd's official Metis
     package. The package that was used when these notes where written
-    was Metis 2.3 (31 May 2011).
+    was Metis 2.3 (release 20110926).
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. The "fix_metis_license" script can be run to
@@ -19,7 +19,8 @@ for Metis with the latest Metis package.
         Isabelle BSD license.
 
  3. Some modifications might have to be done manually to the source
-    files. The ultimate way to track them down is to use Mercurial.
+    files (but probably not). The ultimate way to track them down is
+    to use Mercurial.
 
  4. Isabelle itself cares only about "metis.ML", which is generated
     from the files in "src/" by the script "make_metis". The script
@@ -46,4 +47,4 @@ for Metis with the latest Metis package.
 Good luck!
 
     Jasmin Blanchette
-    8 June 2011
+    1 December 2011

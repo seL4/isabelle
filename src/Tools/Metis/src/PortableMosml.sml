@@ -77,7 +77,8 @@ and foldr = ()
 and implode = ()
 and map = ()
 and null = ()
-and print = ();
+and print = ()
+and rev = ();
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -121,7 +122,7 @@ fun String_concatWith s =
       fn [] => ""
        | x :: xs =>
          let
-           val xs = List.foldl add [] (rev xs)
+           val xs = List.foldl add [] (List.rev xs)
          in
            String.concat (x :: xs)
          end

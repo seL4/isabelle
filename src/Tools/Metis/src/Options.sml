@@ -6,8 +6,6 @@
 structure Options :> Options =
 struct
 
-infix ##
-
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
@@ -227,19 +225,21 @@ fun processOptions (allopts : allOptions) =
           val (r,f) = findOption x
           val (ys,xs) = getArgs x r xs
           val () = f (x,ys)
+
+          val (xys,xs) = process xs
         in
-          (cons (x,ys) ## I) (process xs)
+          ((x,ys) :: xys, xs)
         end
   in
     fn l =>
-    let
-      val (a,b) = process l
+       let
+         val (a,b) = process l
 
-      val a = List.foldl (fn ((x,xs),ys) => x :: xs @ ys) [] (rev a)
-    in
-      (a,b)
-    end
-    handle OptionExit x => exit allopts x
+         val a = List.foldl (fn ((x,xs),ys) => x :: xs @ ys) [] (List.rev a)
+       in
+         (a,b)
+       end
+       handle OptionExit x => exit allopts x
   end;
 
 end

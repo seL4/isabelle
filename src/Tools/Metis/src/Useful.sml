@@ -213,7 +213,7 @@ fun zipWith f =
         | z l (x :: xs) (y :: ys) = z (f x y :: l) xs ys
         | z _ _ _ = raise Error "zipWith: lists different lengths";
     in
-      fn xs => fn ys => rev (z [] xs ys)
+      fn xs => fn ys => List.rev (z [] xs ys)
     end;
 
 fun zip xs ys = zipWith pair xs ys;
@@ -221,7 +221,7 @@ fun zip xs ys = zipWith pair xs ys;
 local
   fun inc ((x,y),(xs,ys)) = (x :: xs, y :: ys);
 in
-  fun unzip ab = List.foldl inc ([],[]) (rev ab);
+  fun unzip ab = List.foldl inc ([],[]) (List.rev ab);
 end;
 
 fun cartwith f =
@@ -232,15 +232,15 @@ fun cartwith f =
           aux xsCopy (f x y :: res) xt ys
     in
       fn xs => fn ys =>
-         let val xs' = rev xs in aux xs' [] xs' (rev ys) end
+         let val xs' = List.rev xs in aux xs' [] xs' (List.rev ys) end
     end;
 
 fun cart xs ys = cartwith pair xs ys;
 
 fun takeWhile p =
     let
-      fun f acc [] = rev acc
-        | f acc (x :: xs) = if p x then f (x :: acc) xs else rev acc
+      fun f acc [] = List.rev acc
+        | f acc (x :: xs) = if p x then f (x :: acc) xs else List.rev acc
     in
       f []
     end;
@@ -255,8 +255,8 @@ fun dropWhile p =
 
 fun divideWhile p =
     let
-      fun f acc [] = (rev acc, [])
-        | f acc (l as x :: xs) = if p x then f (x :: acc) xs else (rev acc, l)
+      fun f acc [] = (List.rev acc, [])
+        | f acc (l as x :: xs) = if p x then f (x :: acc) xs else (List.rev acc, l)
     in
       f []
     end;
@@ -267,15 +267,15 @@ fun groups f =
           case l of
             [] =>
             let
-              val acc = if List.null row then acc else rev row :: acc
+              val acc = if List.null row then acc else List.rev row :: acc
             in
-              rev acc
+              List.rev acc
             end
           | h :: t =>
             let
               val (eor,x) = f (h,x)
             in
-              if eor then group (rev row :: acc) [h] x t
+              if eor then group (List.rev row :: acc) [h] x t
               else group acc (h :: row) x t
             end
     in
@@ -326,7 +326,7 @@ in
   fun revDivide l = revDiv [] l;
 end;
 
-fun divide l n = let val (a,b) = revDivide l n in (rev a, b) end;
+fun divide l n = let val (a,b) = revDivide l n in (List.rev a, b) end;
 
 fun updateNth (n,x) l =
     let
@@ -355,28 +355,28 @@ fun delete x s = List.filter (not o equal x) s;
 local
   fun inc (v,x) = if mem v x then x else v :: x;
 in
-  fun setify s = rev (List.foldl inc [] s);
+  fun setify s = List.rev (List.foldl inc [] s);
 end;
 
 fun union s t =
     let
       fun inc (v,x) = if mem v t then x else v :: x
     in
-      List.foldl inc t (rev s)
+      List.foldl inc t (List.rev s)
     end;
 
 fun intersect s t =
     let
       fun inc (v,x) = if mem v t then v :: x else x
     in
-      List.foldl inc [] (rev s)
+      List.foldl inc [] (List.rev s)
     end;
 
 fun difference s t =
     let
       fun inc (v,x) = if mem v t then x else v :: x
     in
-      List.foldl inc [] (rev s)
+      List.foldl inc [] (List.rev s)
     end;
 
 fun subset s t = List.all (fn x => mem x t) s;
@@ -420,13 +420,13 @@ fun merge cmp =
 
 fun sort cmp =
     let
-      fun findRuns acc r rs [] = rev (rev (r :: rs) :: acc)
+      fun findRuns acc r rs [] = List.rev (List.rev (r :: rs) :: acc)
         | findRuns acc r rs (x :: xs) =
           case cmp (r,x) of
-            GREATER => findRuns (rev (r :: rs) :: acc) x [] xs
+            GREATER => findRuns (List.rev (r :: rs) :: acc) x [] xs
           | _ => findRuns acc x (r :: rs) xs
 
-      fun mergeAdj acc [] = rev acc
+      fun mergeAdj acc [] = List.rev acc
         | mergeAdj acc (xs as [_]) = List.revAppend (acc,xs)
         | mergeAdj acc (x :: y :: xs) = mergeAdj (merge cmp x y :: acc) xs
 
@@ -567,7 +567,7 @@ local
         [] => []
       | h :: t => if Char.isSpace h then chop t else l;
 in
-  val trim = String.implode o chop o rev o chop o rev o String.explode;
+  val trim = String.implode o chop o List.rev o chop o List.rev o String.explode;
 end;
 
 val join = String.concatWith;
@@ -584,11 +584,11 @@ in
       let
         val pat = String.explode sep
 
-        fun div1 prev recent [] = stringify [] (rev recent :: prev)
+        fun div1 prev recent [] = stringify [] (List.rev recent :: prev)
           | div1 prev recent (l as h :: t) =
             case match pat l of
               NONE => div1 prev (h :: recent) t
-            | SOME rest => div1 (rev recent :: prev) [] rest
+            | SOME rest => div1 (List.rev recent :: prev) [] rest
       in
         fn s => div1 [] [] (String.explode s)
       end;
@@ -797,7 +797,7 @@ fun readDirectory {directory = dir} =
 
       val () = OS.FileSys.closeDir dirStrm
     in
-      rev filenames
+      List.rev filenames
     end;
 
 fun readTextFile {filename} =

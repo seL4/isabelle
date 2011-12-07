@@ -160,7 +160,7 @@ local
       let
         fun f (n,arg) = (n :: path, arg)
 
-        val acc = (rev path, tm) :: acc
+        val acc = (List.rev path, tm) :: acc
       in
         case tm of
           Var _ => subtms rest acc
@@ -189,7 +189,7 @@ fun find pred =
     let
       fun search [] = NONE
         | search ((path,tm) :: rest) =
-          if pred tm then SOME (rev path)
+          if pred tm then SOME (List.rev path)
           else
             case tm of
               Var _ => search rest
@@ -301,7 +301,7 @@ local
              Var _ => subtms rest acc
            | Fn _ =>
              let
-               val acc = (rev path, tm) :: acc
+               val acc = (List.rev path, tm) :: acc
                val rest = (0 :: path, t) :: rest
              in
                subtms rest acc
@@ -312,7 +312,7 @@ local
 
             val (_,args) = func
 
-            val acc = (rev path, tm) :: acc
+            val acc = (List.rev path, tm) :: acc
 
             val rest = List.map f (enumerate args) @ rest
           in
@@ -449,7 +449,7 @@ fun pp inputTerm =
           Print.program
             [(if tok = "," then Print.skip else Print.ppString " "),
              Print.ppString tok,
-             Print.addBreak 1];
+             Print.break];
 
       val iPrinter = Print.ppInfixes iOps destI iToken
 
@@ -515,14 +515,14 @@ fun pp inputTerm =
 
       fun functionArgument bv tm =
           Print.sequence
-            (Print.addBreak 1)
+            Print.break
             (if isBrack tm then customBracket bv tm
              else if isVar tm orelse isConst tm then basic bv tm
              else bracket bv tm)
 
       and basic bv (Var v) = varName bv v
         | basic bv (Fn (f,args)) =
-          Print.blockProgram Print.Inconsistent 2
+          Print.inconsistentBlock 2
             (functionName bv f :: List.map (functionArgument bv) args)
 
       and customBracket bv tm =
@@ -541,21 +541,21 @@ fun pp inputTerm =
                 [Print.ppString q,
                  varName bv v,
                  Print.program
-                   (List.map (Print.sequence (Print.addBreak 1) o varName bv) vs),
+                   (List.map (Print.sequence Print.break o varName bv) vs),
                  Print.ppString ".",
-                 Print.addBreak 1,
+                 Print.break,
                  innerQuant bv tm]
             end
 
       and quantifier bv tm =
           if not (isQuant tm) then customBracket bv tm
-          else Print.block Print.Inconsistent 2 (innerQuant bv tm)
+          else Print.inconsistentBlock 2 [innerQuant bv tm]
 
       and molecule bv (tm,r) =
           let
             val (n,tm) = stripNeg tm
           in
-            Print.blockProgram Print.Inconsistent n
+            Print.inconsistentBlock n
               [Print.duplicate n (Print.ppString neg),
                if isI tm orelse (r andalso isQuant tm) then bracket bv tm
                else quantifier bv tm]

@@ -110,7 +110,7 @@ local
         (List.map Literal.toFormula (LiteralSet.toList (clause th)));
 in
   fun pp th =
-      Print.blockProgram Print.Inconsistent 3
+      Print.inconsistentBlock 3
         [Print.ppString "|- ",
          Formula.pp (toFormula th)];
 end;

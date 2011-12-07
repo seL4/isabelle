@@ -320,9 +320,9 @@ val pp =
 (*MetisDebug
 local
   fun ppField f ppA a =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString (f ^ " ="),
-         Print.addBreak 1,
+         Print.break,
          ppA a];
 
   val ppClauses =
@@ -341,18 +341,18 @@ local
                  Term.pp)));
 in
   fun pp (Active {clauses,rewrite,subterms,...}) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString "Active",
-         Print.addBreak 1,
-         Print.blockProgram Print.Inconsistent 1
+         Print.break,
+         Print.inconsistentBlock 1
            [Print.ppString "{",
             ppClauses clauses,
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             ppRewrite rewrite,
 (*MetisTrace5
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             ppSubterms subterms,
 *)
             Print.skip],
@@ -590,7 +590,7 @@ fun deduce active cl =
       val acc = LiteralSet.foldl (deduceResolution literals cl) acc lits
       val acc = List.foldl (deduceParamodulationWith subterms cl) acc eqns
       val acc = List.foldl (deduceParamodulationInto equations cl) acc subtms
-      val acc = rev acc
+      val acc = List.rev acc
 
 (*MetisTrace5
       val () = Print.trace (Print.ppList Clause.pp) "Active.deduce: acc" acc
@@ -838,7 +838,7 @@ local
           List.foldl factor_add active_subsume_acc cls
         end;
 
-  fun factor' active acc [] = (active, rev acc)
+  fun factor' active acc [] = (active, List.rev acc)
     | factor' active acc cls =
       let
         val cls = sort_utilitywise cls

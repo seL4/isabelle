@@ -85,9 +85,9 @@ local
       Print.ppOp2 (" " ^ toStringOrientOption ort) Term.pp Term.pp x_y;
 
   fun ppField f ppA a =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString (f ^ " ="),
-         Print.addBreak 1,
+         Print.break,
          ppA a];
 
   val ppKnown =
@@ -111,21 +111,21 @@ local
         (Print.ppMap (IntSet.toList) (Print.ppList Print.ppInt));
 in
   fun pp (Rewrite {known,redexes,subterms,waiting,...}) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString "Rewrite",
-         Print.addBreak 1,
-         Print.blockProgram Print.Inconsistent 1
+         Print.break,
+         Print.inconsistentBlock 1
            [Print.ppString "{",
             ppKnown known,
 (*MetisTrace5
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             ppRedexes redexes,
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             ppSubterms subterms,
             Print.ppString ",",
-            Print.addBreak 1,
+            Print.break,
             ppWaiting waiting,
 *)
             Print.skip],
