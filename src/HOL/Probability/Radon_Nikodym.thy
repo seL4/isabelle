@@ -427,35 +427,38 @@ proof -
   have f_le_\<nu>: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. ?F A x \<partial>M) \<le> \<nu> A"
     using `f \<in> G` unfolding G_def by auto
   have fmM: "finite_measure ?M"
-  proof (default, simp_all add: countably_additive_def positive_def, safe del: notI)
-    fix A :: "nat \<Rightarrow> 'a set"  assume A: "range A \<subseteq> sets M" "disjoint_family A"
-    have "(\<Sum>n. (\<integral>\<^isup>+x. ?F (A n) x \<partial>M)) = (\<integral>\<^isup>+x. (\<Sum>n. ?F (A n) x) \<partial>M)"
-      using `range A \<subseteq> sets M` `\<And>x. 0 \<le> f x`
-      by (intro positive_integral_suminf[symmetric]) auto
-    also have "\<dots> = (\<integral>\<^isup>+x. ?F (\<Union>n. A n) x \<partial>M)"
-      using `\<And>x. 0 \<le> f x`
-      by (intro positive_integral_cong) (simp add: suminf_cmult_ereal suminf_indicator[OF `disjoint_family A`])
-    finally have "(\<Sum>n. (\<integral>\<^isup>+x. ?F (A n) x \<partial>M)) = (\<integral>\<^isup>+x. ?F (\<Union>n. A n) x \<partial>M)" .
-    moreover have "(\<Sum>n. \<nu> (A n)) = \<nu> (\<Union>n. A n)"
-      using M'.measure_countably_additive A by (simp add: comp_def)
-    moreover have v_fin: "\<nu> (\<Union>i. A i) \<noteq> \<infinity>" using M'.finite_measure A by (simp add: countable_UN)
-    moreover {
-      have "(\<integral>\<^isup>+x. ?F (\<Union>i. A i) x \<partial>M) \<le> \<nu> (\<Union>i. A i)"
-        using A `f \<in> G` unfolding G_def by (auto simp: countable_UN)
-      also have "\<nu> (\<Union>i. A i) < \<infinity>" using v_fin by simp
-      finally have "(\<integral>\<^isup>+x. ?F (\<Union>i. A i) x \<partial>M) \<noteq> \<infinity>" by simp }
-    moreover have "\<And>i. (\<integral>\<^isup>+x. ?F (A i) x \<partial>M) \<le> \<nu> (A i)"
-      using A by (intro f_le_\<nu>) auto
-    ultimately
-    show "(\<Sum>n. ?t (A n)) = ?t (\<Union>i. A i)"
-      by (subst suminf_ereal_minus) (simp_all add: positive_integral_positive)
+  proof
+    show "measure_space ?M"
+    proof (default, simp_all add: countably_additive_def positive_def, safe del: notI)
+      fix A :: "nat \<Rightarrow> 'a set"  assume A: "range A \<subseteq> sets M" "disjoint_family A"
+      have "(\<Sum>n. (\<integral>\<^isup>+x. ?F (A n) x \<partial>M)) = (\<integral>\<^isup>+x. (\<Sum>n. ?F (A n) x) \<partial>M)"
+        using `range A \<subseteq> sets M` `\<And>x. 0 \<le> f x`
+        by (intro positive_integral_suminf[symmetric]) auto
+      also have "\<dots> = (\<integral>\<^isup>+x. ?F (\<Union>n. A n) x \<partial>M)"
+        using `\<And>x. 0 \<le> f x`
+        by (intro positive_integral_cong) (simp add: suminf_cmult_ereal suminf_indicator[OF `disjoint_family A`])
+      finally have "(\<Sum>n. (\<integral>\<^isup>+x. ?F (A n) x \<partial>M)) = (\<integral>\<^isup>+x. ?F (\<Union>n. A n) x \<partial>M)" .
+      moreover have "(\<Sum>n. \<nu> (A n)) = \<nu> (\<Union>n. A n)"
+        using M'.measure_countably_additive A by (simp add: comp_def)
+      moreover have v_fin: "\<nu> (\<Union>i. A i) \<noteq> \<infinity>" using M'.finite_measure A by (simp add: countable_UN)
+      moreover {
+        have "(\<integral>\<^isup>+x. ?F (\<Union>i. A i) x \<partial>M) \<le> \<nu> (\<Union>i. A i)"
+          using A `f \<in> G` unfolding G_def by (auto simp: countable_UN)
+        also have "\<nu> (\<Union>i. A i) < \<infinity>" using v_fin by simp
+        finally have "(\<integral>\<^isup>+x. ?F (\<Union>i. A i) x \<partial>M) \<noteq> \<infinity>" by simp }
+      moreover have "\<And>i. (\<integral>\<^isup>+x. ?F (A i) x \<partial>M) \<le> \<nu> (A i)"
+        using A by (intro f_le_\<nu>) auto
+      ultimately
+      show "(\<Sum>n. ?t (A n)) = ?t (\<Union>i. A i)"
+        by (subst suminf_ereal_minus) (simp_all add: positive_integral_positive)
+    next
+      fix A assume A: "A \<in> sets M" show "0 \<le> \<nu> A - \<integral>\<^isup>+ x. ?F A x \<partial>M"
+        using f_le_\<nu>[OF A] `f \<in> G` M'.finite_measure[OF A] by (auto simp: G_def ereal_le_minus_iff)
+    qed
   next
-    fix A assume A: "A \<in> sets M" show "0 \<le> \<nu> A - \<integral>\<^isup>+ x. ?F A x \<partial>M"
-      using f_le_\<nu>[OF A] `f \<in> G` M'.finite_measure[OF A] by (auto simp: G_def ereal_le_minus_iff)
-  next
-    show "\<nu> (space M) - (\<integral>\<^isup>+ x. ?F (space M) x \<partial>M) \<noteq> \<infinity>" (is "?a - ?b \<noteq> _")
+    show "measure ?M (space ?M) \<noteq> \<infinity>"
       using positive_integral_positive[of "?F (space M)"]
-      by (cases rule: ereal2_cases[of ?a ?b]) auto
+      by (cases rule: ereal2_cases[of "\<nu> (space M)" "\<integral>\<^isup>+ x. ?F (space M) x \<partial>M"]) auto
   qed
   then interpret M: finite_measure ?M
     where "space ?M = space M" and "sets ?M = sets M" and "measure ?M = ?t"
@@ -498,11 +501,14 @@ proof -
     interpret b: sigma_algebra ?Mb by (intro sigma_algebra_cong) auto
     have Mb: "finite_measure ?Mb"
     proof
-      show "positive ?Mb (measure ?Mb)"
-        using `0 \<le> b` by (auto simp: positive_def)
-      show "countably_additive ?Mb (measure ?Mb)"
-        using `0 \<le> b` measure_countably_additive
-        by (auto simp: countably_additive_def suminf_cmult_ereal subset_eq)
+      show "measure_space ?Mb"
+      proof
+        show "positive ?Mb (measure ?Mb)"
+          using `0 \<le> b` by (auto simp: positive_def)
+        show "countably_additive ?Mb (measure ?Mb)"
+          using `0 \<le> b` measure_countably_additive
+          by (auto simp: countably_additive_def suminf_cmult_ereal subset_eq)
+      qed
       show "measure ?Mb (space ?Mb) \<noteq> \<infinity>"
         using b by auto
     qed
@@ -772,7 +778,6 @@ proof -
       (is "finite_measure ?R") by (rule restricted_finite_measure[OF Q_sets[of i]])
     then interpret R: finite_measure ?R .
     have fmv: "finite_measure (restricted_space (Q i) \<lparr> measure := \<nu>\<rparr>)" (is "finite_measure ?Q")
-      unfolding finite_measure_def finite_measure_axioms_def
     proof
       show "measure_space ?Q"
         using v.restricted_measure_space Q_sets[of i] by auto
@@ -849,8 +854,8 @@ proof -
   let ?MT = "M\<lparr> measure := ?T \<rparr>"
   interpret T: finite_measure ?MT
     where "space ?MT = space M" and "sets ?MT = sets M" and "measure ?MT = ?T"
-    unfolding finite_measure_def finite_measure_axioms_def using borel finite nn
-    by (auto intro!: measure_space_density cong: positive_integral_cong)
+    using borel finite nn
+    by (auto intro!: measure_space_density finite_measureI cong: positive_integral_cong)
   have "T.absolutely_continuous \<nu>"
   proof (unfold T.absolutely_continuous_def, safe)
     fix N assume "N \<in> sets M" "(\<integral>\<^isup>+x. h x * indicator N x \<partial>M) = 0"
@@ -1000,7 +1005,7 @@ proof -
     using h_borel h_nn by (rule measure_space_density) simp
   then interpret h: measure_space ?H .
   interpret h: finite_measure "M\<lparr> measure := \<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x \<partial>M) \<rparr>"
-    by default (simp cong: positive_integral_cong add: fin)
+    by (intro H finite_measureI) (simp cong: positive_integral_cong add: fin)
   let ?fM = "M\<lparr>measure := \<lambda>A. (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)\<rparr>"
   interpret f: measure_space ?fM
     using f by (rule measure_space_density) simp

@@ -9,12 +9,20 @@ theory Probability_Measure
 imports Lebesgue_Measure
 begin
 
-locale prob_space = measure_space +
+locale prob_space = finite_measure +
   assumes measure_space_1: "measure M (space M) = 1"
 
-sublocale prob_space < finite_measure
-proof
-  from measure_space_1 show "\<mu> (space M) \<noteq> \<infinity>" by simp
+lemma prob_spaceI[Pure.intro!]:
+  assumes "measure_space M"
+  assumes *: "measure M (space M) = 1"
+  shows "prob_space M"
+proof -
+  interpret finite_measure M
+  proof
+    show "measure_space M" by fact
+    show "measure M (space M) \<noteq> \<infinity>" using * by simp 
+  qed
+  show "prob_space M" by default fact
 qed
 
 abbreviation (in prob_space) "events \<equiv> sets M"
@@ -31,9 +39,10 @@ abbreviation (in prob_space)
 lemma (in prob_space) prob_space_cong:
   assumes "\<And>A. A \<in> sets M \<Longrightarrow> measure N A = \<mu> A" "space N = space M" "sets N = sets M"
   shows "prob_space N"
-proof -
-  interpret N: measure_space N by (intro measure_space_cong assms)
-  show ?thesis by default (insert assms measure_space_1, simp)
+proof
+  show "measure_space N" by (intro measure_space_cong assms)
+  show "measure N (space N) = 1"
+    using measure_space_1 assms by simp
 qed
 
 lemma (in prob_space) distribution_cong:
@@ -201,18 +210,17 @@ lemma (in prob_space) prob_space_vimage:
   assumes S: "sigma_algebra S"
   assumes T: "T \<in> measure_preserving M S"
   shows "prob_space S"
-proof -
+proof
   interpret S: measure_space S
     using S and T by (rule measure_space_vimage)
-  show ?thesis
-  proof
-    from T[THEN measure_preservingD2]
-    have "T -` space S \<inter> space M = space M"
-      by (auto simp: measurable_def)
-    with T[THEN measure_preservingD, of "space S", symmetric]
-    show  "measure S (space S) = 1"
-      using measure_space_1 by simp
-  qed
+  show "measure_space S" ..
+  
+  from T[THEN measure_preservingD2]
+  have "T -` space S \<inter> space M = space M"
+    by (auto simp: measurable_def)
+  with T[THEN measure_preservingD, of "space S", symmetric]
+  show  "measure S (space S) = 1"
+    using measure_space_1 by simp
 qed
 
 lemma prob_space_unique_Int_stable:
@@ -539,12 +547,14 @@ lemma (in prob_space) joint_distribution_assoc_singleton:
    joint_distribution (\<lambda>x. (X x, Y x)) Z {((x, y), z)}"
   unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
 
-locale pair_prob_space = M1: prob_space M1 + M2: prob_space M2 for M1 M2
-
-sublocale pair_prob_space \<subseteq> pair_sigma_finite M1 M2 by default
+locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_space M2 for M1 M2
 
 sublocale pair_prob_space \<subseteq> P: prob_space P
-by default (simp add: pair_measure_times M1.measure_space_1 M2.measure_space_1 space_pair_measure)
+proof
+  show "measure_space P" ..
+  show "measure P (space P) = 1"
+    by (simp add: pair_measure_times M1.measure_space_1 M2.measure_space_1 space_pair_measure)
+qed
 
 lemma countably_additiveI[case_names countably]:
   assumes "\<And>A. \<lbrakk> range A \<subseteq> sets M ; disjoint_family A ; (\<Union>i. A i) \<in> sets M\<rbrakk> \<Longrightarrow>
@@ -557,20 +567,21 @@ lemma (in prob_space) joint_distribution_prob_space:
   shows "prob_space ((MX \<Otimes>\<^isub>M MY) \<lparr> measure := ereal \<circ> joint_distribution X Y\<rparr>)"
   using random_variable_pairI[OF assms] by (rule distribution_prob_space)
 
+locale product_prob_space = product_sigma_finite M for M :: "'i \<Rightarrow> ('a, 'b) measure_space_scheme" +
+  fixes I :: "'i set"
+  assumes prob_space: "\<And>i. prob_space (M i)"
 
-locale finite_product_prob_space =
-  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
-    and I :: "'i set"
-  assumes prob_space: "\<And>i. prob_space (M i)" and finite_index: "finite I"
-
-sublocale finite_product_prob_space \<subseteq> M: prob_space "M i" for i
+sublocale product_prob_space \<subseteq> M: prob_space "M i" for i
   by (rule prob_space)
 
-sublocale finite_product_prob_space \<subseteq> finite_product_sigma_finite M I
-  by default (rule finite_index)
+locale finite_product_prob_space = finite_product_sigma_finite M I + product_prob_space M I for M I
 
 sublocale finite_product_prob_space \<subseteq> prob_space "\<Pi>\<^isub>M i\<in>I. M i"
-  proof qed (simp add: measure_times M.measure_space_1 setprod_1)
+proof
+  show "measure_space P" ..
+  show "measure P (space P) = 1"
+    by (simp add: measure_times M.measure_space_1 setprod_1)
+qed
 
 lemma (in finite_product_prob_space) prob_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets (M i)"
@@ -667,7 +678,7 @@ proof
   interpret MX: finite_sigma_algebra MX using assms by simp
   interpret MY: finite_sigma_algebra MY using assms by simp
   interpret P: pair_finite_sigma_algebra MX MY by default
-  show "finite_sigma_algebra (MX \<Otimes>\<^isub>M MY)" by default
+  show "finite_sigma_algebra (MX \<Otimes>\<^isub>M MY)" ..
   have sa: "sigma_algebra M" by default
   show "(\<lambda>x. (X x, Y x)) \<in> measurable M (MX \<Otimes>\<^isub>M MY)"
     unfolding P.measurable_pair_iff[OF sa] using assms by (simp add: comp_def)
@@ -754,25 +765,9 @@ lemma (in prob_space) setsum_distribution:
   using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
   using sigma_algebra_Pow[of "UNIV::unit set" "()"] by simp
 
-locale pair_finite_prob_space = M1: finite_prob_space M1 + M2: finite_prob_space M2 for M1 M2
+locale pair_finite_prob_space = pair_prob_space M1 M2 + pair_finite_space M1 M2 + M1: finite_prob_space M1 + M2: finite_prob_space M2 for M1 M2
 
-sublocale pair_finite_prob_space \<subseteq> pair_prob_space M1 M2 by default
-sublocale pair_finite_prob_space \<subseteq> pair_finite_space M1 M2  by default
 sublocale pair_finite_prob_space \<subseteq> finite_prob_space P by default
-
-locale product_finite_prob_space =
-  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
-    and I :: "'i set"
-  assumes finite_space: "\<And>i. finite_prob_space (M i)" and finite_index: "finite I"
-
-sublocale product_finite_prob_space \<subseteq> M!: finite_prob_space "M i" using finite_space .
-sublocale product_finite_prob_space \<subseteq> finite_product_sigma_finite M I by default (rule finite_index)
-sublocale product_finite_prob_space \<subseteq> prob_space "Pi\<^isub>M I M"
-proof
-  show "\<mu> (space P) = 1"
-    using measure_times[OF M.top] M.measure_space_1
-    by (simp add: setprod_1 space_product_algebra)
-qed
 
 lemma funset_eq_UN_fun_upd_I:
   assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
@@ -815,7 +810,12 @@ proof -
     using fin by (intro finite_subset[OF *] finite_extensional_funcset) auto
 qed
 
-lemma (in product_finite_prob_space) singleton_eq_product:
+locale finite_product_finite_prob_space = finite_product_prob_space M I for M I +
+  assumes finite_space: "\<And>i. finite_prob_space (M i)"
+
+sublocale finite_product_finite_prob_space \<subseteq> M!: finite_prob_space "M i" using finite_space .
+
+lemma (in finite_product_finite_prob_space) singleton_eq_product:
   assumes x: "x \<in> space P" shows "{x} = (\<Pi>\<^isub>E i\<in>I. {x i})"
 proof (safe intro!: ext[of _ x])
   fix y i assume *: "y \<in> (\<Pi> i\<in>I. {x i})" "y \<in> extensional I"
@@ -823,7 +823,7 @@ proof (safe intro!: ext[of _ x])
     by (cases "i \<in> I") (auto simp: extensional_def)
 qed (insert x, auto)
 
-sublocale product_finite_prob_space \<subseteq> finite_prob_space "Pi\<^isub>M I M"
+sublocale finite_product_finite_prob_space \<subseteq> finite_prob_space "Pi\<^isub>M I M"
 proof
   show "finite (space P)"
     using finite_index M.finite_space by auto
@@ -844,23 +844,18 @@ proof
     then show "X \<in> sets P" by simp
   qed
   with space_closed show [simp]: "sets P = Pow (space P)" ..
-
-  { fix x assume "x \<in> space P"
-    from this top have "\<mu> {x} \<le> \<mu> (space P)" by (intro measure_mono) auto
-    then show "\<mu> {x} \<noteq> \<infinity>"
-      using measure_space_1 by auto }
 qed
 
-lemma (in product_finite_prob_space) measure_finite_times:
+lemma (in finite_product_finite_prob_space) measure_finite_times:
   "(\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)) \<Longrightarrow> \<mu> (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.\<mu> i (X i))"
   by (rule measure_times) simp
 
-lemma (in product_finite_prob_space) measure_singleton_times:
+lemma (in finite_product_finite_prob_space) measure_singleton_times:
   assumes x: "x \<in> space P" shows "\<mu> {x} = (\<Prod>i\<in>I. M.\<mu> i {x i})"
   unfolding singleton_eq_product[OF x] using x
   by (intro measure_finite_times) auto
 
-lemma (in product_finite_prob_space) prob_finite_times:
+lemma (in finite_product_finite_prob_space) prob_finite_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)"
   shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
 proof -
@@ -873,13 +868,13 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma (in product_finite_prob_space) prob_singleton_times:
+lemma (in finite_product_finite_prob_space) prob_singleton_times:
   assumes x: "x \<in> space P"
   shows "prob {x} = (\<Prod>i\<in>I. M.prob i {x i})"
   unfolding singleton_eq_product[OF x] using x
   by (intro prob_finite_times) auto
 
-lemma (in product_finite_prob_space) prob_finite_product:
+lemma (in finite_product_finite_prob_space) prob_finite_product:
   "A \<subseteq> space P \<Longrightarrow> prob A = (\<Sum>x\<in>A. \<Prod>i\<in>I. M.prob i {x i})"
   by (auto simp add: finite_measure_singleton prob_singleton_times
            simp del: space_product_algebra
@@ -1010,11 +1005,12 @@ lemma (in prob_space) prob_space_subalgebra:
   assumes "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M"
     and "\<And>A. A \<in> sets N \<Longrightarrow> measure N A = \<mu> A"
   shows "prob_space N"
-proof -
+proof
   interpret N: measure_space N
     by (rule measure_space_subalgebra[OF assms])
-  show ?thesis
-  proof qed (insert assms(4)[OF N.top], simp add: assms measure_space_1)
+  show "measure_space N" ..
+  show "measure N (space N) = 1"
+    using assms(4)[OF N.top] by (simp add: assms measure_space_1)
 qed
 
 lemma (in prob_space) prob_space_of_restricted_space:
@@ -1028,44 +1024,76 @@ proof -
     by (rule A.sigma_algebra_cong) auto
   show "prob_space ?P"
   proof
+    show "measure_space ?P"
+    proof
+      show "positive ?P (measure ?P)"
+      proof (simp add: positive_def, safe)
+        show "0 / \<mu> A = 0" using `\<mu> A \<noteq> 0` by (cases "\<mu> A") (auto simp: zero_ereal_def)
+        fix B assume "B \<in> events"
+        with real_measure[of "A \<inter> B"] real_measure[OF `A \<in> events`] `A \<in> sets M`
+        show "0 \<le> \<mu> (A \<inter> B) / \<mu> A" by (auto simp: Int)
+      qed
+      show "countably_additive ?P (measure ?P)"
+      proof (simp add: countably_additive_def, safe)
+        fix B and F :: "nat \<Rightarrow> 'a set"
+        assume F: "range F \<subseteq> op \<inter> A ` events" "disjoint_family F"
+        { fix i
+          from F have "F i \<in> op \<inter> A ` events" by auto
+          with `A \<in> events` have "F i \<in> events" by auto }
+        moreover then have "range F \<subseteq> events" by auto
+        moreover have "\<And>S. \<mu> S / \<mu> A = inverse (\<mu> A) * \<mu> S"
+          by (simp add: mult_commute divide_ereal_def)
+        moreover have "0 \<le> inverse (\<mu> A)"
+          using real_measure[OF `A \<in> events`] by auto
+        ultimately show "(\<Sum>i. \<mu> (F i) / \<mu> A) = \<mu> (\<Union>i. F i) / \<mu> A"
+          using measure_countably_additive[of F] F
+          by (auto simp: suminf_cmult_ereal)
+      qed
+    qed
     show "measure ?P (space ?P) = 1"
       using real_measure[OF `A \<in> events`] `\<mu> A \<noteq> 0` by auto
-    show "positive ?P (measure ?P)"
-    proof (simp add: positive_def, safe)
-      show "0 / \<mu> A = 0" using `\<mu> A \<noteq> 0` by (cases "\<mu> A") (auto simp: zero_ereal_def)
-      fix B assume "B \<in> events"
-      with real_measure[of "A \<inter> B"] real_measure[OF `A \<in> events`] `A \<in> sets M`
-      show "0 \<le> \<mu> (A \<inter> B) / \<mu> A" by (auto simp: Int)
-    qed
-    show "countably_additive ?P (measure ?P)"
-    proof (simp add: countably_additive_def, safe)
-      fix B and F :: "nat \<Rightarrow> 'a set"
-      assume F: "range F \<subseteq> op \<inter> A ` events" "disjoint_family F"
-      { fix i
-        from F have "F i \<in> op \<inter> A ` events" by auto
-        with `A \<in> events` have "F i \<in> events" by auto }
-      moreover then have "range F \<subseteq> events" by auto
-      moreover have "\<And>S. \<mu> S / \<mu> A = inverse (\<mu> A) * \<mu> S"
-        by (simp add: mult_commute divide_ereal_def)
-      moreover have "0 \<le> inverse (\<mu> A)"
-        using real_measure[OF `A \<in> events`] by auto
-      ultimately show "(\<Sum>i. \<mu> (F i) / \<mu> A) = \<mu> (\<Union>i. F i) / \<mu> A"
-        using measure_countably_additive[of F] F
-        by (auto simp: suminf_cmult_ereal)
-    qed
   qed
 qed
 
 lemma finite_prob_spaceI:
   assumes "finite (space M)" "sets M = Pow(space M)"
-    and "measure M (space M) = 1" "measure M {} = 0" "\<And>A. A \<subseteq> space M \<Longrightarrow> 0 \<le> measure M A"
-    and "\<And>A B. A\<subseteq>space M \<Longrightarrow> B\<subseteq>space M \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> measure M (A \<union> B) = measure M A + measure M B"
+    and 1: "measure M (space M) = 1" and "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> measure M {x}"
+    and add: "\<And>A B. A \<subseteq> space M \<Longrightarrow> measure M A = (\<Sum>x\<in>A. measure M {x})"
   shows "finite_prob_space M"
-  unfolding finite_prob_space_eq
-proof
-  show "finite_measure_space M" using assms
-    by (auto intro!: finite_measure_spaceI)
-  show "measure M (space M) = 1" by fact
+proof -
+  interpret finite_measure_space M
+  proof
+    show "measure M (space M) \<noteq> \<infinity>" using 1 by simp
+  qed fact+
+  show ?thesis by default fact
+qed
+
+lemma (in finite_prob_space) distribution_eq_setsum:
+  "distribution X A = (\<Sum>x\<in>A \<inter> X ` space M. distribution X {x})"
+proof -
+  have *: "X -` A \<inter> space M = (\<Union>x\<in>A \<inter> X ` space M. X -` {x} \<inter> space M)"
+    by auto
+  then show "distribution X A = (\<Sum>x\<in>A \<inter> X ` space M. distribution X {x})"
+    using finite_space unfolding distribution_def *
+    by (intro finite_measure_finite_Union)
+       (auto simp: disjoint_family_on_def)
+qed
+
+lemma (in finite_prob_space) distribution_eq_setsum_finite:
+  assumes "finite A"
+  shows "distribution X A = (\<Sum>x\<in>A. distribution X {x})"
+proof -
+  note distribution_eq_setsum[of X A]
+  also have "(\<Sum>x\<in>A \<inter> X ` space M. distribution X {x}) = (\<Sum>x\<in>A. distribution X {x})"
+  proof (intro setsum_mono_zero_cong_left ballI)
+    fix i assume "i\<in>A - A \<inter> X ` space M"
+    then have "X -` {i} \<inter> space M = {}" by auto
+    then show "distribution X {i} = 0"
+      by (simp add: distribution_def)
+  next
+    show "finite A" by fact
+  qed simp_all
+  finally show ?thesis .
 qed
 
 lemma (in finite_prob_space) finite_measure_space:
@@ -1075,11 +1103,9 @@ lemma (in finite_prob_space) finite_measure_space:
 proof (rule finite_measure_spaceI, simp_all)
   show "finite (X ` space M)" using finite_space by simp
 next
-  fix A B :: "'x set" assume "A \<inter> B = {}"
-  then show "distribution X (A \<union> B) = distribution X A + distribution X B"
-    unfolding distribution_def
-    by (subst finite_measure_Union[symmetric])
-       (auto intro!: arg_cong[where f=\<mu>'] simp: sets_eq_Pow)
+  fix A assume "A \<subseteq> X ` space M"
+  then show "distribution X A = (\<Sum>x\<in>A. distribution X {x})"
+    by (subst distribution_eq_setsum) (simp add: Int_absorb2)
 qed
 
 lemma (in finite_prob_space) finite_prob_space_of_images:
@@ -1095,11 +1121,9 @@ proof (rule finite_measure_spaceI, simp_all)
   show "finite (s1 \<times> s2)"
     using assms by auto
 next
-  fix A B :: "('x*'y) set" assume "A \<inter> B = {}"
-  then show "joint_distribution X Y (A \<union> B) = joint_distribution X Y A + joint_distribution X Y B"
-    unfolding distribution_def
-    by (subst finite_measure_Union[symmetric])
-       (auto intro!: arg_cong[where f=\<mu>'] simp: sets_eq_Pow)
+  fix A assume "A \<subseteq> (s1 \<times> s2)"
+  with assms show "joint_distribution X Y A = (\<Sum>x\<in>A. joint_distribution X Y {x})"
+    by (intro distribution_eq_setsum_finite) (auto dest: finite_subset)
 qed
 
 lemma (in finite_prob_space) finite_product_measure_space_of_images:
@@ -1140,7 +1164,10 @@ interpretation pborel: measure_space pborel
   by (simp add: pborel_def)
 
 interpretation pborel: prob_space pborel
-  by default (simp add: one_ereal_def pborel_def)
+proof
+  show "measure pborel (space pborel) = 1"
+    by (simp add: one_ereal_def pborel_def)
+qed default
 
 lemma pborel_prob: "pborel.prob A = (if A \<in> sets borel \<and> A \<subseteq> {0 ..< 1} then real (lborel.\<mu> A) else 0)"
   unfolding pborel.\<mu>'_def by (auto simp: pborel_def)

@@ -315,11 +315,8 @@ qed
 
 subsection {* Binary products of $\sigma$-finite measure spaces *}
 
-locale pair_sigma_finite = M1: sigma_finite_measure M1 + M2: sigma_finite_measure M2
+locale pair_sigma_finite = pair_sigma_algebra M1 M2 + M1: sigma_finite_measure M1 + M2: sigma_finite_measure M2
   for M1 :: "('a, 'c) measure_space_scheme" and M2 :: "('b, 'd) measure_space_scheme"
-
-sublocale pair_sigma_finite \<subseteq> pair_sigma_algebra M1 M2
-  by default
 
 lemma (in pair_sigma_finite) measure_cut_measurable_fst:
   assumes "Q \<in> sets P" shows "(\<lambda>x. measure M2 (Pair x -` Q)) \<in> borel_measurable M1" (is "?s Q \<in> _")
@@ -919,10 +916,7 @@ next
   show "a \<in> A" and "b \<in> B" by auto
 qed
 
-locale pair_finite_sigma_algebra = M1: finite_sigma_algebra M1 + M2: finite_sigma_algebra M2
-  for M1 :: "('a, 'c) measure_space_scheme" and M2 :: "('b, 'd) measure_space_scheme"
-
-sublocale pair_finite_sigma_algebra \<subseteq> pair_sigma_algebra by default
+locale pair_finite_sigma_algebra = pair_sigma_algebra M1 M2 + M1: finite_sigma_algebra M1 + M2: finite_sigma_algebra M2 for M1 M2
 
 lemma (in pair_finite_sigma_algebra) finite_pair_sigma_algebra:
   shows "P = \<lparr> space = space M1 \<times> space M2, sets = Pow (space M1 \<times> space M2), \<dots> = algebra.more P \<rparr>"
@@ -933,20 +927,16 @@ proof -
 qed
 
 sublocale pair_finite_sigma_algebra \<subseteq> finite_sigma_algebra P
-  apply default
-  using M1.finite_space M2.finite_space
-  apply (subst finite_pair_sigma_algebra) apply simp
-  apply (subst (1 2) finite_pair_sigma_algebra) apply simp
-  done
+proof
+  show "finite (space P)"
+    using M1.finite_space M2.finite_space
+    by (subst finite_pair_sigma_algebra) simp
+  show "sets P = Pow (space P)"
+    by (subst (1 2) finite_pair_sigma_algebra) simp
+qed
 
-locale pair_finite_space = M1: finite_measure_space M1 + M2: finite_measure_space M2
-  for M1 M2
-
-sublocale pair_finite_space \<subseteq> pair_finite_sigma_algebra
-  by default
-
-sublocale pair_finite_space \<subseteq> pair_sigma_finite
-  by default
+locale pair_finite_space = pair_sigma_finite M1 M2 + pair_finite_sigma_algebra M1 M2 +
+  M1: finite_measure_space M1 + M2: finite_measure_space M2 for M1 M2
 
 lemma (in pair_finite_space) pair_measure_Pair[simp]:
   assumes "a \<in> space M1" "b \<in> space M2"
@@ -964,6 +954,10 @@ lemma (in pair_finite_space) pair_measure_singleton[simp]:
   using pair_measure_Pair assms by (cases x) auto
 
 sublocale pair_finite_space \<subseteq> finite_measure_space P
-  by default (auto simp: space_pair_measure)
+proof unfold_locales
+  show "measure P (space P) \<noteq> \<infinity>"
+    by (subst (2) finite_pair_sigma_algebra)
+       (simp add: pair_measure_times)
+qed
 
 end
