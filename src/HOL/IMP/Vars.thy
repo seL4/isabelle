@@ -42,9 +42,9 @@ instantiation aexp :: vars
 begin
 
 fun vars_aexp :: "aexp \<Rightarrow> vname set" where
-"vars_aexp (N n) = {}" |
-"vars_aexp (V x) = {x}" |
-"vars_aexp (Plus a\<^isub>1 a\<^isub>2) = vars_aexp a\<^isub>1 \<union> vars_aexp a\<^isub>2"
+"vars (N n) = {}" |
+"vars (V x) = {x}" |
+"vars (Plus a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
 
 instance ..
 
@@ -60,10 +60,10 @@ instantiation bexp :: vars
 begin
 
 fun vars_bexp :: "bexp \<Rightarrow> vname set" where
-"vars_bexp (Bc v) = {}" |
-"vars_bexp (Not b) = vars_bexp b" |
-"vars_bexp (And b\<^isub>1 b\<^isub>2) = vars_bexp b\<^isub>1 \<union> vars_bexp b\<^isub>2" |
-"vars_bexp (Less a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
+"vars (Bc v) = {}" |
+"vars (Not b) = vars b" |
+"vars (And b\<^isub>1 b\<^isub>2) = vars b\<^isub>1 \<union> vars b\<^isub>2" |
+"vars (Less a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
 
 instance ..
 
