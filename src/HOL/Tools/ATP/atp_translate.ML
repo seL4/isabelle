@@ -127,10 +127,9 @@ val combinatorsN = "combinators"
 val hybrid_lamsN = "hybrid_lams"
 val keep_lamsN = "keep_lams"
 
-(* TFF1 is still in development, and it is still unclear whether symbols will be
-   allowed to have types like "$tType > $o" (i.e., "![A : $tType] : $o"), with
-   ghost type variables. *)
-val avoid_first_order_ghost_type_vars = true
+(* It's still unclear whether all TFF1 implementations will support type
+   signatures such as "!>[A : $tType] : $o", with ghost type variables. *)
+val avoid_first_order_ghost_type_vars = false
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "BA_"
@@ -1946,8 +1945,12 @@ fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
 fun decl_line_for_class order s =
   let val name as (s, _) = `make_type_class s in
     Decl (sym_decl_prefix ^ s, name,
-          if order = First_Order andalso avoid_first_order_ghost_type_vars then
-            ATyAbs ([tvar_a_name], AFun (a_itself_atype, bool_atype))
+          if order = First_Order then
+            ATyAbs ([tvar_a_name],
+                    if avoid_first_order_ghost_type_vars then
+                      AFun (a_itself_atype, bool_atype)
+                    else
+                      bool_atype)
           else
             AFun (atype_of_types, bool_atype))
   end
