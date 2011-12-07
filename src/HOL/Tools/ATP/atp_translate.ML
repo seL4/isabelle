@@ -2266,24 +2266,27 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
+fun rationalize_decls ctxt (decls as decl :: (decls' as _ :: _)) =
+    let
+      val T = result_type_of_decl decl
+              |> map_type_tvar (fn (z, _) => TVar (z, HOLogic.typeS))
+    in
+      if forall (type_generalization ctxt T o result_type_of_decl) decls' then
+        [decl]
+      else
+        decls
+    end
+  | rationalize_decls _ decls = decls
+
 fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
                                 (s, decls) =
   case type_enc of
     Simple_Types _ =>
-    decls |> map (decl_line_for_sym ctxt format mono type_enc s)
+    decls |> rationalize_decls ctxt
+          |> map (decl_line_for_sym ctxt format mono type_enc s)
   | Guards (_, level) =>
     let
-      val decls =
-        case decls of
-          decl :: (decls' as _ :: _) =>
-          let val T = result_type_of_decl decl in
-            if forall (type_generalization ctxt T o result_type_of_decl)
-                      decls' then
-              [decl]
-            else
-              decls
-          end
-        | _ => decls
+      val decls = decls |> rationalize_decls ctxt
       val n = length decls
       val decls =
         decls |> filter (should_encode_type ctxt mono level
