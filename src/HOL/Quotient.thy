@@ -747,6 +747,15 @@ method_setup descending_setup =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt []))) *}
   {* set up the three goals for the decending theorems *}
 
+method_setup partiality_descending =
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.partiality_descend_tac ctxt []))) *}
+  {* decend theorems to the raw level *}
+
+method_setup partiality_descending_setup =
+  {* Scan.succeed (fn ctxt => 
+       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.partiality_descend_procedure_tac ctxt []))) *}
+  {* set up the three goals for the decending theorems *}
+
 method_setup regularize =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.regularize_tac ctxt))) *}
   {* prove the regularization goals from the quotient lifting procedure *}

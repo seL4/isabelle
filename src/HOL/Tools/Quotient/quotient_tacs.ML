@@ -14,6 +14,9 @@ sig
 
   val descend_procedure_tac: Proof.context -> thm list -> int -> tactic
   val descend_tac: Proof.context -> thm list -> int -> tactic
+  val partiality_descend_procedure_tac: Proof.context -> thm list -> int -> tactic
+  val partiality_descend_tac: Proof.context -> thm list -> int -> tactic
+
 
   val lift_procedure_tac: Proof.context -> thm list -> thm -> int -> tactic
   val lift_tac: Proof.context -> thm list -> thm list -> int -> tactic
@@ -580,9 +583,18 @@ fun gen_frees_tac ctxt =
 
    the Quot_True premise in 2nd records the lifted theorem
 *)
-val lifting_procedure_thm =
+val procedure_thm =
   @{lemma  "[|A;
               A --> B;
+              Quot_True D ==> B = C;
+              C = D|] ==> D"
+      by (simp add: Quot_True_def)}
+
+(* in case of partial equivalence relations, this form of the 
+   procedure theorem results in solvable proof obligations 
+*)
+val partiality_procedure_thm =
+  @{lemma  "[|B; 
               Quot_True D ==> B = C;
               C = D|] ==> D"
       by (simp add: Quot_True_def)}
@@ -611,7 +623,7 @@ fun procedure_inst ctxt rtrm qtrm =
       [SOME (cterm_of thy rtrm'),
        SOME (cterm_of thy reg_goal),
        NONE,
-       SOME (cterm_of thy inj_goal)] lifting_procedure_thm
+       SOME (cterm_of thy inj_goal)] procedure_thm
   end
 
 
@@ -653,6 +665,56 @@ fun descend_tac ctxt simps =
   in
     Goal.conjunction_tac THEN_ALL_NEW mk_tac_raw
   end
+
+
+(** descending for partial equivalence relations **)
+
+fun partiality_procedure_inst ctxt rtrm qtrm =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val rtrm' = HOLogic.dest_Trueprop rtrm
+    val qtrm' = HOLogic.dest_Trueprop qtrm
+    val reg_goal = Quotient_Term.regularize_trm_chk ctxt (rtrm', qtrm')
+      handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
+    val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
+      handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
+  in
+    Drule.instantiate' []
+      [SOME (cterm_of thy reg_goal),
+       NONE,
+       SOME (cterm_of thy inj_goal)] partiality_procedure_thm
+  end
+
+
+fun partiality_descend_procedure_tac ctxt simps =
+  let
+    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+  in
+    full_simp_tac ss
+    THEN' Object_Logic.full_atomize_tac
+    THEN' gen_frees_tac ctxt
+    THEN' SUBGOAL (fn (goal, i) =>
+      let
+        val qtys = map #qtyp (Quotient_Info.dest_quotients ctxt)
+        val rtrm = Quotient_Term.derive_rtrm ctxt qtys goal
+        val rule = partiality_procedure_inst ctxt rtrm  goal
+      in
+        rtac rule i
+      end)
+  end
+
+fun partiality_descend_tac ctxt simps =
+  let
+    val mk_tac_raw =
+      partiality_descend_procedure_tac ctxt simps
+      THEN' RANGE
+        [Object_Logic.rulify_tac THEN' (K all_tac),
+         all_injection_tac ctxt,
+         clean_tac ctxt]
+  in
+    Goal.conjunction_tac THEN_ALL_NEW mk_tac_raw
+  end
+
 
 
 (** lifting as a tactic **)
