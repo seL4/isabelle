@@ -270,6 +270,7 @@ fun compile_eqs match_name eqs =
     val const =
         case distinct (op =) consts of
           [n] => n
+        | [] => fixrec_err "no defining equations for function"
         | _ => fixrec_err "all equations in block must define the same function"
     val vars =
         case distinct (op = o pairself length) (map fst matchers) of
@@ -337,12 +338,15 @@ fun gen_fixrec
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
           fst (prep_spec raw_fixes raw_spec lthy)
+    val names = map (Binding.name_of o fst o fst) fixes
+    fun check_head name =
+        member (op =) names name orelse
+        fixrec_err ("Illegal equation head. Expected " ^ commas_quote names)
     val chead_of_spec =
       chead_of o fst o dest_eqs o Logic.strip_imp_concl o strip_alls o snd
-    fun name_of (Free (n, _)) = n
+    fun name_of (Free (n, _)) = tap check_head n
       | name_of _ = fixrec_err ("unknown term")
     val all_names = map (name_of o chead_of_spec) spec
-    val names = distinct (op =) all_names
     fun block_of_name n =
       map_filter
         (fn (m,eq) => if m = n then SOME eq else NONE)
