@@ -31,6 +31,13 @@ definition
 translations
   "\<Lambda>(CONST Pair x y). t" == "CONST csplit\<cdot>(\<Lambda> x y. t)"
 
+abbreviation
+  cfst :: "'a \<times> 'b \<rightarrow> 'a" where
+  "cfst \<equiv> Abs_cfun fst"
+
+abbreviation
+  csnd :: "'a \<times> 'b \<rightarrow> 'b" where
+  "csnd \<equiv> Abs_cfun snd"
 
 subsection {* Convert all lemmas to the continuous versions *}
 
