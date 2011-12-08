@@ -8,10 +8,8 @@ theory Letrec
 imports HOLCF
 begin
 
-default_sort pcpo
-
 definition
-  CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where
+  CLetrec :: "('a::pcpo \<rightarrow> 'a \<times> 'b::pcpo) \<rightarrow> 'b" where
   "CLetrec = (\<Lambda> F. snd (F\<cdot>(\<mu> x. fst (F\<cdot>x))))"
 
 nonterminal recbinds and recbindt and recbind
