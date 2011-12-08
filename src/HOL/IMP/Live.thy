@@ -39,7 +39,7 @@ lemma L_While_pfp: "L c (L (WHILE b DO c) X) \<subseteq> L (WHILE b DO c) X"
 by(auto simp add:L_gen_kill)
 
 lemma L_While_lpfp:
-  "\<lbrakk> vars b \<union> X \<subseteq> P; L c P \<subseteq> P \<rbrakk> \<Longrightarrow> L (WHILE b DO c) X \<subseteq> P"
+  "vars b \<union> X \<union> L c P \<subseteq> P \<Longrightarrow> L (WHILE b DO c) X \<subseteq> P"
 by(simp add: L_gen_kill)
 
 
