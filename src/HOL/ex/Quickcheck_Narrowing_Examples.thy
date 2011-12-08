@@ -229,5 +229,42 @@ lemma is_ord_l_bal:
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, expect = counterexample]
 oops
 
+subsection {* Examples with hd and last *}
+
+lemma
+  "hd (xs @ ys) = hd ys"
+quickcheck[narrowing, expect = counterexample]
+oops
+
+lemma
+  "last(xs @ ys) = last xs"
+quickcheck[narrowing, expect = counterexample]
+oops
+
+subsection {* Examples with underspecified/partial functions *}
+
+lemma
+  "xs = [] ==> hd xs \<noteq> x"
+quickcheck[narrowing, expect = no_counterexample]
+oops
+
+lemma
+  "xs = [] ==> hd xs = x"
+quickcheck[narrowing, expect = no_counterexample]
+oops
+
+lemma "xs = [] ==> hd xs = x ==> x = y"
+quickcheck[narrowing, expect = no_counterexample]
+oops
+
+lemma
+  "hd (xs @ ys) = (if xs = [] then hd ys else hd xs)"
+quickcheck[narrowing, expect = no_counterexample]
+oops
+
+lemma
+  "hd (map f xs) = f (hd xs)"
+quickcheck[narrowing, expect = no_counterexample]
+oops
 
 end
