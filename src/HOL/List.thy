@@ -5312,12 +5312,6 @@ code_const takeWhile
 code_const dropWhile
   (Haskell "dropWhile")
 
-code_const hd
-  (Haskell "head")
-
-code_const last
-  (Haskell "last")
-
 code_const list_all
   (Haskell "all")
 
