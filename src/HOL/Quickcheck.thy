@@ -16,9 +16,7 @@ setup {* Code_Target.extend_target ("Quickcheck", (Code_Runtime.target, K I)) *}
 
 subsection {* Catching Match exceptions *}
 
-definition catch_match :: "'a => 'a => 'a" (* "(bool * term list) option => (bool * term list) option => (bool * term list) option"*)
-where
-  [code del]: "catch_match t1 t2 = (SOME t. t = t1 \<or> t = t2)"
+axiomatization catch_match :: "'a => 'a => 'a"
 
 code_const catch_match 
   (Quickcheck "(_) handle Match => _")
@@ -157,9 +155,6 @@ code_reserved Quickcheck Random_Generators
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
-hide_fact catch_match_def
-hide_const (open) catch_match
-
 subsection {* The Random-Predicate Monad *} 
 
 fun iter' ::
@@ -220,9 +215,23 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def
+hide_fact
+  random_bool_def random_bool_def_raw
+  random_itself_def random_itself_def_raw
+  random_char_def random_char_def_raw
+  random_literal_def random_literal_def_raw
+  random_nat_def random_nat_def_raw
+  random_int_def random_int_def_raw
+  random_fun_lift_def random_fun_lift_def_raw
+  random_fun_def random_fun_def_raw
+  collapse_def collapse_def_raw
+  beyond_def beyond_def_raw beyond_zero
+  random_aux_rec
+
+hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
+
+hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def 
 hide_type (open) randompred
-hide_const (open) random collapse beyond random_fun_aux random_fun_lift
-  iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
+hide_const (open) iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
 
 end
