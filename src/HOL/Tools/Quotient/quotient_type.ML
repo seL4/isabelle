@@ -197,13 +197,13 @@ fun sanity_check ((vs, qty_name, _), (rty, rel, _), _) =
   end
 
 (* check for existence of map functions *)
-fun map_check thy (_, (rty, _, _), _) =
+fun map_check ctxt (_, (rty, _, _), _) =
   let
     fun map_check_aux rty warns =
       (case rty of
         Type (_, []) => warns
       | Type (s, _) =>
-          if is_some (Quotient_Info.lookup_quotmaps_global thy s) then warns else s :: warns
+          if Symtab.defined (Enriched_Type.entries ctxt) s then warns else s :: warns
       | _ => warns)
 
     val warns = map_check_aux rty []
@@ -234,7 +234,7 @@ fun quotient_type quot_list lthy =
   let
     (* sanity check *)
     val _ = List.app sanity_check quot_list
-    val _ = List.app (map_check (Proof_Context.theory_of lthy)) quot_list
+    val _ = List.app (map_check lthy) quot_list
 
     fun mk_goal (rty, rel, partial) =
       let
