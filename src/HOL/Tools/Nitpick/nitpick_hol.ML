@@ -720,12 +720,12 @@ fun is_rep_fun ctxt (s, Type (@{type_name fun}, [Type (s', _), _])) =
   | is_rep_fun _ _ = false
 fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
                                          [_, abs_T as Type (s', _)]))) =
-    try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
+    try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.AbsF) s'
     = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_abs_fun _ _ = false
 fun is_quot_rep_fun ctxt (x as (_, Type (@{type_name fun},
                                          [abs_T as Type (s', _), _]))) =
-    try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
+    try (Quotient_Term.absrep_const_chk ctxt Quotient_Term.RepF) s'
     = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_rep_fun _ _ = false
 

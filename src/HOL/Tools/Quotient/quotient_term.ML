@@ -11,11 +11,11 @@ sig
 
   datatype flag = AbsF | RepF
 
-  val absrep_fun: flag -> Proof.context -> typ * typ -> term
-  val absrep_fun_chk: flag -> Proof.context -> typ * typ -> term
+  val absrep_fun: Proof.context -> flag -> typ * typ -> term
+  val absrep_fun_chk: Proof.context -> flag -> typ * typ -> term
 
   (* Allows Nitpick to represent quotient types as single elements from raw type *)
-  val absrep_const_chk: flag -> Proof.context -> string -> term
+  val absrep_const_chk: Proof.context -> flag -> string -> term
 
   val equiv_relation: Proof.context -> typ * typ -> term
   val equiv_relation_chk: Proof.context -> typ * typ -> term
@@ -98,7 +98,7 @@ fun match ctxt err ty_pat ty =
   end
 
 (* produces the rep or abs constant for a qty *)
-fun absrep_const flag ctxt qty_str =
+fun absrep_const ctxt flag qty_str =
   let
     (* FIXME *)
     fun mk_dummyT (Const (c, _)) = Const (c, dummyT)
@@ -114,8 +114,8 @@ fun absrep_const flag ctxt qty_str =
   end
   
 (* Lets Nitpick represent elements of quotient types as elements of the raw type *)
-fun absrep_const_chk flag ctxt qty_str =
-  Syntax.check_term ctxt (absrep_const flag ctxt qty_str)
+fun absrep_const_chk ctxt flag qty_str =
+  Syntax.check_term ctxt (absrep_const ctxt flag qty_str)
 
 fun absrep_match_err ctxt ty_pat ty =
   let
@@ -170,26 +170,26 @@ fun absrep_match_err ctxt ty_pat ty =
      identity maps.
 *)
 
-fun absrep_fun flag ctxt (rty, qty) =
+fun absrep_fun ctxt flag (rty, qty) =
   let
     fun absrep_args tys tys' variances =
       let
         fun absrep_arg (types, (_, variant)) =
           (case variant of
             (false, false) => []
-          | (true, false) => [(absrep_fun flag ctxt types)]
-          | (false, true) => [(absrep_fun (negF flag) ctxt types)]
-          | (true, true) => [(absrep_fun flag ctxt types),(absrep_fun (negF flag) ctxt types)])
+          | (true, false) => [(absrep_fun ctxt flag types)]
+          | (false, true) => [(absrep_fun ctxt (negF flag) types)]
+          | (true, true) => [(absrep_fun ctxt flag types),(absrep_fun ctxt (negF flag) types)])
       in
         maps absrep_arg ((tys ~~ tys') ~~ variances)
       end
     fun test_identities tys rtys' s s' =
       let
-        val args = map (absrep_fun flag ctxt) (tys ~~ rtys')
+        val args = map (absrep_fun ctxt flag) (tys ~~ rtys')
       in
         if forall is_identity args
         then 
-          absrep_const flag ctxt s'
+          absrep_const ctxt flag s'
         else 
           raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
       end
@@ -228,12 +228,12 @@ fun absrep_fun flag ctxt (rty, qty) =
                   val args = absrep_args tys rtys' variances
                 in
                   if forall is_identity args
-                  then absrep_const flag ctxt s'
+                  then absrep_const ctxt flag s'
                   else
                     let
                       val result = list_comb (map_fun, args)
                     in
-                      mk_fun_compose flag (absrep_const flag ctxt s', result)
+                      mk_fun_compose flag (absrep_const ctxt flag s', result)
                     end
                 end
             end
@@ -245,10 +245,9 @@ fun absrep_fun flag ctxt (rty, qty) =
       | _ => raise (LIFT_MATCH "absrep_fun (default)")
   end
 
-fun absrep_fun_chk flag ctxt (rty, qty) =
-  absrep_fun flag ctxt (rty, qty)
+fun absrep_fun_chk ctxt flag (rty, qty) =
+  absrep_fun ctxt flag (rty, qty)
   |> Syntax.check_term ctxt
-
 
 
 
@@ -646,7 +645,7 @@ Injection of Rep/Abs means:
 *)
 
 fun mk_repabs ctxt (T, T') trm =
-  absrep_fun RepF ctxt (T, T') $ (absrep_fun AbsF ctxt (T, T') $ trm)
+  absrep_fun ctxt RepF (T, T') $ (absrep_fun ctxt AbsF (T, T') $ trm)
 
 fun inj_repabs_err ctxt msg rtrm qtrm =
   let
