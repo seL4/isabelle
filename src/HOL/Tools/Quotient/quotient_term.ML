@@ -62,16 +62,16 @@ fun mk_fun_compose flag (trm1, trm2) =
     AbsF => Const (@{const_name comp}, dummyT) $ trm1 $ trm2
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
-fun get_mapfun_data thy s =
-  (case Symtab.lookup (Enriched_Type.entries (Proof_Context.init_global thy)) s of
+fun get_mapfun_data ctxt s =
+  (case Symtab.lookup (Enriched_Type.entries ctxt) s of
     SOME [map_data] => (case try dest_Const (#mapper map_data) of
       SOME (c, _) => (Const (c, dummyT), #variances map_data)
     | NONE => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is not a constant."))
   | SOME _ => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is non-singleton entry.")
   | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")) 
 
-fun defined_mapfun_data thy s =
-  Symtab.defined (Enriched_Type.entries (Proof_Context.init_global thy)) s
+fun defined_mapfun_data ctxt s =
+  Symtab.defined (Enriched_Type.entries ctxt) s
   
 (* makes a Free out of a TVar *)
 fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
@@ -79,10 +79,14 @@ fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
 (* looks up the (varified) rty and qty for
    a quotient definition
 *)
-fun get_rty_qty thy s =
-  (case Quotient_Info.lookup_quotients_global thy s of
-    SOME qdata => (#rtyp qdata, #qtyp qdata)
-  | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found."))
+fun get_rty_qty ctxt s =
+  let
+    val thy = Proof_Context.theory_of ctxt
+  in
+    (case Quotient_Info.lookup_quotients_global thy s of
+      SOME qdata => (#rtyp qdata, #qtyp qdata)
+    | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found."))
+  end
 
 (* matches a type pattern with a type *)
 fun match ctxt err ty_pat ty =
@@ -168,7 +172,6 @@ fun absrep_match_err ctxt ty_pat ty =
 
 fun absrep_fun flag ctxt (rty, qty) =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun absrep_args tys tys' variances =
       let
         fun absrep_arg (types, (_, variant)) =
@@ -199,18 +202,18 @@ fun absrep_fun flag ctxt (rty, qty) =
           if s = s'
           then
             let
-              val (map_fun, variances) = get_mapfun_data thy s
+              val (map_fun, variances) = get_mapfun_data ctxt s
               val args = absrep_args tys tys' variances
             in
               list_comb (map_fun, args)
             end
           else
             let
-              val (Type (_, rtys), qty_pat) = get_rty_qty thy s'
+              val (Type (_, rtys), qty_pat) = get_rty_qty ctxt s'
               val qtyenv = match ctxt absrep_match_err qty_pat qty
               val rtys' = map (Envir.subst_type qtyenv) rtys
             in
-              if not (defined_mapfun_data thy s)
+              if not (defined_mapfun_data ctxt s)
               then
                 (*
                     If we don't know a map function for the raw type,
@@ -221,7 +224,7 @@ fun absrep_fun flag ctxt (rty, qty) =
                 test_identities tys rtys' s s'
               else
                 let
-                  val (map_fun, variances) = get_mapfun_data thy s
+                  val (map_fun, variances) = get_mapfun_data ctxt s
                   val args = absrep_args tys rtys' variances
                 in
                   if forall is_identity args
@@ -320,43 +323,40 @@ fun equiv_match_err ctxt ty_pat ty =
    that will be the argument of Respects
 *)
 fun equiv_relation ctxt (rty, qty) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    if rty = qty
-    then HOLogic.eq_const rty
-    else
-      case (rty, qty) of
-        (Type (s, tys), Type (s', tys')) =>
-          if s = s'
-          then
-            let
-              val args = map (equiv_relation ctxt) (tys ~~ tys')
-            in
-              list_comb (get_relmap ctxt s, args)
-            end
-          else
-            let
-              val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty thy s'
-              val rtyenv = match ctxt equiv_match_err rty_pat rty
-              val qtyenv = match ctxt equiv_match_err qty_pat qty
-              val args_aux = map (double_lookup rtyenv qtyenv) vs
-              val args = map (equiv_relation ctxt) args_aux
-              val eqv_rel = get_equiv_rel ctxt s'
-              val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
-            in
-              if forall is_eq args
-              then eqv_rel'
-              else
-                let
-                  val rel_map = mk_relmap ctxt vs rty_pat
-                  val result = list_comb (rel_map, args)
-                in
-                  mk_rel_compose (result, eqv_rel')
-                end
-            end
-      | _ => HOLogic.eq_const rty
-  end
+  if rty = qty
+  then HOLogic.eq_const rty
+  else
+    case (rty, qty) of
+      (Type (s, tys), Type (s', tys')) =>
+        if s = s'
+        then
+          let
+            val args = map (equiv_relation ctxt) (tys ~~ tys')
+          in
+            list_comb (get_relmap ctxt s, args)
+          end
+        else
+          let
+            val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
+            val rtyenv = match ctxt equiv_match_err rty_pat rty
+            val qtyenv = match ctxt equiv_match_err qty_pat qty
+            val args_aux = map (double_lookup rtyenv qtyenv) vs
+            val args = map (equiv_relation ctxt) args_aux
+            val eqv_rel = get_equiv_rel ctxt s'
+            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
+          in
+            if forall is_eq args
+            then eqv_rel'
+            else
+              let
+                val rel_map = mk_relmap ctxt vs rty_pat
+                val result = list_comb (rel_map, args)
+              in
+                mk_rel_compose (result, eqv_rel')
+              end
+          end
+    | _ => HOLogic.eq_const rty
+
 
 fun equiv_relation_chk ctxt (rty, qty) =
   equiv_relation ctxt (rty, qty)
