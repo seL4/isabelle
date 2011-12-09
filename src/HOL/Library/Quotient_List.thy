@@ -8,7 +8,7 @@ theory Quotient_List
 imports Main Quotient_Syntax
 begin
 
-declare [[map list = (map, list_all2)]]
+declare [[map list = list_all2]]
 
 lemma map_id [id_simps]:
   "map id = id"

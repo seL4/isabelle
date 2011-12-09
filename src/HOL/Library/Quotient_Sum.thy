@@ -16,7 +16,7 @@ where
 | "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
 | "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
 
-declare [[map sum = (sum_map, sum_rel)]]
+declare [[map sum = sum_rel]]
 
 lemma sum_rel_unfold:
   "sum_rel R1 R2 x y = (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
