@@ -12,15 +12,7 @@ declare [[map list = (map, list_all2)]]
 
 lemma map_id [id_simps]:
   "map id = id"
-  by (simp add: id_def fun_eq_iff map.identity)
-
-lemma list_all2_map1:
-  "list_all2 R (map f xs) ys \<longleftrightarrow> list_all2 (\<lambda>x. R (f x)) xs ys"
-  by (induct xs ys rule: list_induct2') simp_all
-
-lemma list_all2_map2:
-  "list_all2 R xs (map f ys) \<longleftrightarrow> list_all2 (\<lambda>x y. R x (f y)) xs ys"
-  by (induct xs ys rule: list_induct2') simp_all
+  by (fact map.id)
 
 lemma list_all2_eq [id_simps]:
   "list_all2 (op =) = (op =)"
@@ -57,10 +49,9 @@ lemma list_transp:
 proof (rule transpI)
   from assms have *: "\<And>xs ys zs. R xs ys \<Longrightarrow> R ys zs \<Longrightarrow> R xs zs" by (rule transpE)
   fix xs ys zs
-  assume A: "list_all2 R xs ys" "list_all2 R ys zs"
-  then have "length xs = length ys" "length ys = length zs" by (blast dest: list_all2_lengthD)+
-  then show "list_all2 R xs zs" using A
-    by (induct xs ys zs rule: list_induct3) (auto intro: *)
+  assume "list_all2 R xs ys" and "list_all2 R ys zs"
+  then show "list_all2 R xs zs"
+    by (induct arbitrary: zs) (auto simp: list_all2_Cons1 intro: *)
 qed
 
 lemma list_equivp [quot_equiv]:
@@ -158,23 +149,16 @@ lemma foldl_prs [quot_preserve]:
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
   by (simp add: fun_eq_iff foldl_prs_aux [OF a b])
 
-lemma list_all2_empty:
-  shows "list_all2 R [] b \<Longrightarrow> length b = 0"
-  by (induct b) (simp_all)
-
 (* induct_tac doesn't accept 'arbitrary', so we manually 'spec' *)
 lemma foldl_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_all2 R2 ===> R1) foldl foldl"
   apply(auto simp add: fun_rel_def)
-  apply (subgoal_tac "R1 xa ya \<longrightarrow> list_all2 R2 xb yb \<longrightarrow> R1 (foldl x xa xb) (foldl y ya yb)")
-  apply simp
+  apply (erule_tac P="R1 xa ya" in rev_mp)
   apply (rule_tac x="xa" in spec)
   apply (rule_tac x="ya" in spec)
-  apply (rule_tac xs="xb" and ys="yb" in list_induct2)
-  apply (rule list_all2_lengthD)
-  apply (simp_all)
+  apply (erule list_all2_induct, simp_all)
   done
 
 lemma foldr_rsp[quot_respect]:
@@ -182,11 +166,7 @@ lemma foldr_rsp[quot_respect]:
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R2) ===> list_all2 R1 ===> R2 ===> R2) foldr foldr"
   apply (auto simp add: fun_rel_def)
-  apply(subgoal_tac "R2 xb yb \<longrightarrow> list_all2 R1 xa ya \<longrightarrow> R2 (foldr x xa xb) (foldr y ya yb)")
-  apply simp
-  apply (rule_tac xs="xa" and ys="ya" in list_induct2)
-  apply (rule list_all2_lengthD)
-  apply (simp_all)
+  apply (erule list_all2_induct, simp_all)
   done
 
 lemma list_all2_rsp:
@@ -194,28 +174,9 @@ lemma list_all2_rsp:
   and l1: "list_all2 R x y"
   and l2: "list_all2 R a b"
   shows "list_all2 S x a = list_all2 T y b"
-  proof -
-    have a: "length y = length x" by (rule list_all2_lengthD[OF l1, symmetric])
-    have c: "length a = length b" by (rule list_all2_lengthD[OF l2])
-    show ?thesis proof (cases "length x = length a")
-      case True
-      have b: "length x = length a" by fact
-      show ?thesis using a b c r l1 l2 proof (induct rule: list_induct4)
-        case Nil
-        show ?case using assms by simp
-      next
-        case (Cons h t)
-        then show ?case by auto
-      qed
-    next
-      case False
-      have d: "length x \<noteq> length a" by fact
-      then have e: "\<not>list_all2 S x a" using list_all2_lengthD by auto
-      have "length y \<noteq> length b" using d a c by simp
-      then have "\<not>list_all2 T y b" using list_all2_lengthD by auto
-      then show ?thesis using e by simp
-    qed
-  qed
+  using l1 l2
+  by (induct arbitrary: a b rule: list_all2_induct,
+    auto simp: list_all2_Cons1 list_all2_Cons2 r)
 
 lemma [quot_respect]:
   "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
@@ -239,10 +200,7 @@ lemma list_all2_find_element:
   assumes a: "x \<in> set a"
   and b: "list_all2 R a b"
   shows "\<exists>y. (y \<in> set b \<and> R x y)"
-proof -
-  have "length a = length b" using b by (rule list_all2_lengthD)
-  then show ?thesis using a b by (induct a b rule: list_induct2) auto
-qed
+  using b a by induct auto
 
 lemma list_all2_refl:
   assumes a: "\<And>x y. R x y = (R x = R y)"
