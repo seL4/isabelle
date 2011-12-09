@@ -412,6 +412,12 @@ lemma [code, code del]:
 code_const "Code_Evaluation.term_of \<Colon> nat \<Rightarrow> term"
   (SML "HOLogic.mk'_number/ HOLogic.natT")
 
+text {* Evaluation with @{text "Quickcheck_Narrowing"} does not work, as
+  @{text "code_module"} is very aggressive leading to bad Haskell code.
+  Therefore, we simply deactivate the narrowing-based quickcheck from here on.
+*}
+
+declare [[quickcheck_narrowing_active = false]] 
 
 text {* Module names *}
 
