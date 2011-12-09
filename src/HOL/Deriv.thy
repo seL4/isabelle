@@ -1223,7 +1223,7 @@ proof (rule ccontr)
     by (metis DERIV_unique less_le)
 qed
 
-lemma DERIV_nonneg_imp_nonincreasing:
+lemma DERIV_nonneg_imp_nondecreasing:
   fixes a::real and b::real and f::"real => real"
   assumes "a \<le> b" and
     "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y \<ge> 0)"
@@ -1275,7 +1275,7 @@ lemma DERIV_nonpos_imp_nonincreasing:
   shows "f a \<ge> f b"
 proof -
   have "(%x. -f x) a \<le> (%x. -f x) b"
-    apply (rule DERIV_nonneg_imp_nonincreasing [of a b "%x. -f x"])
+    apply (rule DERIV_nonneg_imp_nondecreasing [of a b "%x. -f x"])
     using assms
     apply auto
     apply (metis DERIV_minus neg_0_le_iff_le)

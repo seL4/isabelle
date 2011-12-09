@@ -137,6 +137,10 @@ INCOMPATIBILITY, use the corresponding generic theorems instead.
   zero_less_zpower_abs_iff ~> zero_less_power_abs_iff
   zero_le_zpower_abs ~> zero_le_power_abs
 
+* Theory Deriv: Renamed
+
+  DERIV_nonneg_imp_nonincreasing ~> DERIV_nonneg_imp_nondecreasing
+
 * New "case_product" attribute to generate a case rule doing multiple
 case distinctions at the same time.  E.g.
 
