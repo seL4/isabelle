@@ -2202,6 +2202,15 @@ lemma list_all2_Cons2:
 "list_all2 P xs (y # ys) = (\<exists>z zs. xs = z # zs \<and> P z y \<and> list_all2 P zs ys)"
 by (cases xs) auto
 
+lemma list_all2_induct
+  [consumes 1, case_names Nil Cons, induct set: list_all2]:
+  assumes P: "list_all2 P xs ys"
+  assumes Nil: "R [] []"
+  assumes Cons: "\<And>x xs y ys. \<lbrakk>P x y; R xs ys\<rbrakk> \<Longrightarrow> R (x # xs) (y # ys)"
+  shows "R xs ys"
+using P
+by (induct xs arbitrary: ys) (auto simp add: list_all2_Cons1 Nil Cons)
+
 lemma list_all2_rev [iff]:
 "list_all2 P (rev xs) (rev ys) = list_all2 P xs ys"
 by (simp add: list_all2_def zip_rev cong: conj_cong)
