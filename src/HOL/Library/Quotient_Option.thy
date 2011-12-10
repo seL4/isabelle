@@ -16,7 +16,7 @@ where
 | "option_rel R None (Some x) = False"
 | "option_rel R (Some x) (Some y) = R x y"
 
-declare [[map option = (Option.map, option_rel)]]
+declare [[map option = option_rel]]
 
 lemma option_rel_unfold:
   "option_rel R x y = (case (x, y) of (None, None) \<Rightarrow> True

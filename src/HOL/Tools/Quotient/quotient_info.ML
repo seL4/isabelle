@@ -6,7 +6,7 @@ Context data for the quotient package.
 
 signature QUOTIENT_INFO =
 sig
-  type quotmaps = {mapfun: string, relmap: string}
+  type quotmaps = {relmap: string}
   val lookup_quotmaps: Proof.context -> string -> quotmaps option
   val lookup_quotmaps_global: theory -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
@@ -54,7 +54,7 @@ struct
 (* FIXME just one data slot (record) per program unit *)
 
 (* info about map- and rel-functions for a type *)
-type quotmaps = {mapfun: string, relmap: string}
+type quotmaps = {relmap: string}
 
 structure Quotmaps = Generic_Data
 (
@@ -72,20 +72,18 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 val quotmaps_attribute_setup =
   Attrib.setup @{binding map}
     ((Args.type_name false --| Scan.lift (Parse.$$$ "=")) --  (* FIXME Args.type_name true (requires "set" type) *)
-      (Scan.lift (Parse.$$$ "(") |-- Args.const_proper true --| Scan.lift (Parse.$$$ ",") --
-        Args.const_proper true --| Scan.lift (Parse.$$$ ")")) >>
-      (fn (tyname, (mapname, relname)) =>
-        let val minfo = {mapfun = mapname, relmap = relname}
+      Args.const_proper true >>
+      (fn (tyname, relname) =>
+        let val minfo = {relmap = relname}
         in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
     "declaration of map information"
 
 fun print_quotmaps ctxt =
   let
-    fun prt_map (ty_name, {mapfun, relmap}) =
+    fun prt_map (ty_name, {relmap}) =
       Pretty.block (separate (Pretty.brk 2)
         (map Pretty.str
          ["type:", ty_name,
-          "map:", mapfun,
           "relation map:", relmap]))
   in
     map prt_map (Symtab.dest (Quotmaps.get (Context.Proof ctxt)))

@@ -13,7 +13,7 @@ definition
 where
   "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
-declare [[map prod = (map_pair, prod_rel)]]
+declare [[map prod = prod_rel]]
 
 lemma prod_rel_apply [simp]:
   "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
