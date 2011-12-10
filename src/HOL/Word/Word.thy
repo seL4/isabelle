@@ -134,10 +134,6 @@ lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
 lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
   by (simp add: sints_def range_sbintrunc)
 
-(* FIXME: delete *)
-lemmas atLeastLessThan_alt = atLeastLessThan_def [unfolded 
-  atLeast_def lessThan_def Collect_conj_eq [symmetric]]
-  
 lemma mod_in_reps: "m > 0 \<Longrightarrow> y mod m : {0::int ..< m}"
   by auto
 
@@ -592,10 +588,6 @@ lemma size_0_eq: "size (w :: 'a :: len0 word) = 0 \<Longrightarrow> v = w"
   apply simp
   done
 
-(* TODO: remove uint_lem and sint_lem *)
-lemmas uint_lem = word_uint.Rep [unfolded uints_num mem_Collect_eq]
-lemmas sint_lem = word_sint.Rep [unfolded sints_num mem_Collect_eq]
-
 lemma uint_ge_0 [iff]: "0 \<le> uint (x::'a::len0 word)"
   using word_uint.Rep [of x] by (simp add: uints_num)
 
@@ -672,7 +664,6 @@ lemma word_int_split_asm:
   unfolding word_int_case_def
   by (auto simp: word_uint.eq_norm int_mod_eq')
 
-(* FIXME: uint_range' is an exact duplicate of uint_lem *)
 lemmas uint_range' = word_uint.Rep [unfolded uints_num mem_Collect_eq]
 lemmas sint_range' = word_sint.Rep [unfolded One_nat_def sints_num mem_Collect_eq]
 
