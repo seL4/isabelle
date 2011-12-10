@@ -2818,6 +2818,12 @@ lemma bl_shiftl1:
   apply (fast intro!: Suc_leI)
   done
 
+(* Generalized version of bl_shiftl1. Maybe this one should replace it? *)
+lemma bl_shiftl1':
+  "to_bl (shiftl1 w) = tl (to_bl w @ [False])"
+  unfolding shiftl1_bl
+  by (simp add: word_rep_drop drop_Suc del: drop_append)
+
 lemma shiftr1_bl: "shiftr1 w = of_bl (butlast (to_bl w))"
   apply (unfold shiftr1_def uint_bl of_bl_def)
   apply (simp add: butlast_rest_bin word_size)
@@ -2829,20 +2835,25 @@ lemma bl_shiftr1:
   unfolding shiftr1_bl
   by (simp add : word_rep_drop len_gt_0 [THEN Suc_leI])
 
+(* Generalized version of bl_shiftr1. Maybe this one should replace it? *)
+lemma bl_shiftr1':
+  "to_bl (shiftr1 w) = butlast (False # to_bl w)"
+  apply (rule word_bl.Abs_inverse')
+  apply (simp del: butlast.simps)
+  apply (simp add: shiftr1_bl of_bl_def)
+  done
 
-(* relate the two above : TODO - remove the :: len restriction on
-  this theorem and others depending on it *)
 lemma shiftl1_rev: 
-  "shiftl1 (w :: 'a :: len word) = word_reverse (shiftr1 (word_reverse w))"
+  "shiftl1 w = word_reverse (shiftr1 (word_reverse w))"
   apply (unfold word_reverse_def)
   apply (rule word_bl.Rep_inverse' [symmetric])
-  apply (simp add: bl_shiftl1 bl_shiftr1 word_bl.Abs_inverse)
+  apply (simp add: bl_shiftl1' bl_shiftr1' word_bl.Abs_inverse)
   apply (cases "to_bl w")
    apply auto
   done
 
 lemma shiftl_rev: 
-  "shiftl (w :: 'a :: len word) n = word_reverse (shiftr (word_reverse w) n)"
+  "shiftl w n = word_reverse (shiftr (word_reverse w) n)"
   apply (unfold shiftl_def shiftr_def)
   apply (induct "n")
    apply (auto simp add : shiftl1_rev)
@@ -2893,14 +2904,12 @@ lemma drop_sshiftr:
   apply (auto simp: word_size)
   done
 
-lemma take_shiftr [rule_format] :
-  "n <= size (w :: 'a :: len word) --> take n (to_bl (w >> n)) = 
-    replicate n False" 
+lemma take_shiftr:
+  "n \<le> size w \<Longrightarrow> take n (to_bl (w >> n)) = replicate n False"
   apply (unfold shiftr_def)
   apply (induct n)
    prefer 2
-   apply (simp add: bl_shiftr1)
-   apply (rule impI)
+   apply (simp add: bl_shiftr1' length_0_conv [symmetric] word_size)
    apply (rule take_butlast [THEN trans])
   apply (auto simp: word_size)
   done
