@@ -280,14 +280,13 @@ instance
 
 end
 
-lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) \<Longrightarrow> (0 :: 'a word) ~= 1"
-  unfolding word_arith_wis
-  by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
-
-lemmas lenw1_zero_neq_one = len_gt_0 [THEN word_zero_neq_one]
-
 instance word :: (len) comm_ring_1
-  by (intro_classes) (simp add: lenw1_zero_neq_one)
+proof
+  have "0 < len_of TYPE('a)" by (rule len_gt_0)
+  then show "(0::'a word) \<noteq> 1"
+    unfolding word_0_wi word_1_wi
+    by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
+qed
 
 lemma word_of_nat: "of_nat n = word_of_int (int n)"
   by (induct n) (auto simp add : word_of_int_hom_syms)
@@ -298,12 +297,8 @@ lemma word_of_int: "of_int = word_of_int"
   apply (simp add: word_of_nat word_of_int_sub_hom)
   done
 
-lemma word_number_of_eq: 
-  "number_of w = (of_int w :: 'a :: len word)"
-  unfolding word_number_of_def word_of_int by auto
-
 instance word :: (len) number_ring
-  by (intro_classes) (simp add : word_number_of_eq)
+  by (default, simp add: word_number_of_def word_of_int)
 
 definition udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50) where
   "a udvd b = (EX n>=0. uint b = n * uint a)"

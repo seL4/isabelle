@@ -89,6 +89,8 @@ theory HOL/Library/Nat_Bijection instead.
   word_order_refl ~> order_refl
   word_order_antisym ~> order_antisym
   word_order_linear ~> linorder_linear
+  lenw1_zero_neq_one ~> zero_neq_one
+  word_number_of_eq ~> number_of_eq
 
 * Clarified attribute "mono_set": pure declararation without modifying
 the result of the fact expression.
