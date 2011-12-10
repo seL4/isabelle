@@ -2115,22 +2115,14 @@ lemma of_bl_length_less:
 
 subsection "Cardinality, finiteness of set of words"
 
-lemmas card_lessThan' = card_lessThan [unfolded lessThan_def]
+instance word :: (len0) finite
+  by (default, simp add: type_definition.univ [OF type_definition_word])
 
-lemmas card_eq =
-  word_unat.Abs_inj_on [THEN card_image, unfolded word_unat.image, unfolded unats_def]
-
-lemmas card_word = trans [OF card_eq card_lessThan']
-
-lemma finite_word_UNIV: "finite (UNIV :: 'a :: len word set)"
-apply (rule contrapos_np)
- prefer 2
- apply (erule card_infinite)
-apply (simp add: card_word)
-done
+lemma card_word: "CARD('a::len0 word) = 2 ^ len_of TYPE('a)"
+  by (simp add: type_definition.card [OF type_definition_word] nat_power_eq)
 
 lemma card_word_size: 
-  "card (UNIV :: 'a :: len word set) = (2 ^ size (x :: 'a word))"
+  "card (UNIV :: 'a :: len0 word set) = (2 ^ size (x :: 'a word))"
 unfolding word_size by (rule card_word)
 
 
