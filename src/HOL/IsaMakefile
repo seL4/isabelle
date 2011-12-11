@@ -526,7 +526,7 @@ $(OUT)/HOL-IMP: $(OUT)/HOL \
   IMP/Def_Ass_Small.thy IMP/Def_Ass_Sound_Big.thy \
   IMP/Def_Ass_Sound_Small.thy IMP/Denotation.thy IMP/Hoare.thy \
   IMP/HoareT.thy IMP/Hoare_Examples.thy IMP/Hoare_Sound_Complete.thy \
-  IMP/Live.thy IMP/OO.thy IMP/Poly_Types.thy IMP/Procs.thy \
+  IMP/Live.thy IMP/Live_True.thy IMP/OO.thy IMP/Poly_Types.thy IMP/Procs.thy \
   IMP/Procs_Dyn_Vars_Dyn.thy IMP/Procs_Stat_Vars_Dyn.thy \
   IMP/Procs_Stat_Vars_Stat.thy IMP/Sec_Type_Expr.thy IMP/Sec_Typing.thy \
   IMP/Sec_TypingT.thy IMP/Small_Step.thy IMP/Star.thy IMP/Types.thy \

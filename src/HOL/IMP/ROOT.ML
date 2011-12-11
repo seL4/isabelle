@@ -15,6 +15,7 @@ use_thys
  "Def_Ass_Sound_Big",
  "Def_Ass_Sound_Small",
  "Live",
+ "Live_True",
  "Hoare_Examples",
  "VC",
  "HoareT",
