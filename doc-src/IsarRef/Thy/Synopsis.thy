@@ -302,7 +302,7 @@ next
 
   have "a < b" sorry
   also
-  have "b\<le> c" sorry
+  have "b \<le> c" sorry
   also
   have "c = d" sorry
   finally
@@ -318,7 +318,7 @@ text {*
   \item The notion of @{text trans} rule is very general due to the
   flexibility of Isabelle/Pure rule composition.
 
-  \item User applications may declare there own rules, with some care
+  \item User applications may declare their own rules, with some care
   about the operational details of higher-order unification.
 
   \end{itemize}
