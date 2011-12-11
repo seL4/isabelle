@@ -907,7 +907,7 @@ lemmas is_up = is_up_def [unfolded source_size target_size]
 
 lemmas is_up_down = trans [OF is_up is_down [symmetric]]
 
-lemma down_cast_same': "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc = scast"
+lemma down_cast_same [OF refl]: "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc = scast"
   apply (unfold is_down)
   apply safe
   apply (rule ext)
@@ -916,15 +916,17 @@ lemma down_cast_same': "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow
   apply simp
   done
 
-lemma word_rev_tf': 
-  "r = to_bl (of_bl bl) \<Longrightarrow> r = rev (takefill False (length r) (rev bl))"
+lemma word_rev_tf:
+  "to_bl (of_bl bl::'a::len0 word) =
+    rev (takefill False (len_of TYPE('a)) (rev bl))"
   unfolding of_bl_def uint_bl
   by (clarsimp simp add: bl_bin_bl_rtf word_ubin.eq_norm word_size)
 
-lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl_Rep']
-
-lemmas word_rep_drop = word_rev_tf [simplified takefill_alt,
-  simplified, simplified rev_take, simplified]
+lemma word_rep_drop:
+  "to_bl (of_bl bl::'a::len0 word) =
+    replicate (len_of TYPE('a) - length bl) False @
+    drop (length bl - len_of TYPE('a)) bl"
+  by (simp add: word_rev_tf takefill_alt rev_take)
 
 lemma to_bl_ucast: 
   "to_bl (ucast (w::'b::len0 word) ::'a::len0 word) = 
@@ -936,28 +938,28 @@ lemma to_bl_ucast:
   apply simp
   done
 
-lemma ucast_up_app': 
+lemma ucast_up_app [OF refl]:
   "uc = ucast \<Longrightarrow> source_size uc + n = target_size uc \<Longrightarrow> 
     to_bl (uc w) = replicate n False @ (to_bl w)"
   by (auto simp add : source_size target_size to_bl_ucast)
 
-lemma ucast_down_drop': 
+lemma ucast_down_drop [OF refl]:
   "uc = ucast \<Longrightarrow> source_size uc = target_size uc + n \<Longrightarrow> 
     to_bl (uc w) = drop n (to_bl w)"
   by (auto simp add : source_size target_size to_bl_ucast)
 
-lemma scast_down_drop': 
+lemma scast_down_drop [OF refl]:
   "sc = scast \<Longrightarrow> source_size sc = target_size sc + n \<Longrightarrow> 
     to_bl (sc w) = drop n (to_bl w)"
   apply (subgoal_tac "sc = ucast")
    apply safe
    apply simp
-   apply (erule refl [THEN ucast_down_drop'])
-  apply (rule refl [THEN down_cast_same', symmetric])
+   apply (erule ucast_down_drop)
+  apply (rule down_cast_same [symmetric])
   apply (simp add : source_size target_size is_down)
   done
 
-lemma sint_up_scast': 
+lemma sint_up_scast [OF refl]:
   "sc = scast \<Longrightarrow> is_up sc \<Longrightarrow> sint (sc w) = sint w"
   apply (unfold is_up)
   apply safe
@@ -972,7 +974,7 @@ lemma sint_up_scast':
   apply simp
   done
 
-lemma uint_up_ucast':
+lemma uint_up_ucast [OF refl]:
   "uc = ucast \<Longrightarrow> is_up uc \<Longrightarrow> uint (uc w) = uint w"
   apply (unfold is_up)
   apply safe
@@ -981,31 +983,22 @@ lemma uint_up_ucast':
   apply (auto simp add: nth_ucast)
   apply (auto simp add: test_bit_bin)
   done
-    
-lemmas down_cast_same = refl [THEN down_cast_same']
-lemmas ucast_up_app = refl [THEN ucast_up_app']
-lemmas ucast_down_drop = refl [THEN ucast_down_drop']
-lemmas scast_down_drop = refl [THEN scast_down_drop']
-lemmas uint_up_ucast = refl [THEN uint_up_ucast']
-lemmas sint_up_scast = refl [THEN sint_up_scast']
 
-lemma ucast_up_ucast': "uc = ucast \<Longrightarrow> is_up uc \<Longrightarrow> ucast (uc w) = ucast w"
+lemma ucast_up_ucast [OF refl]:
+  "uc = ucast \<Longrightarrow> is_up uc \<Longrightarrow> ucast (uc w) = ucast w"
   apply (simp (no_asm) add: ucast_def)
   apply (clarsimp simp add: uint_up_ucast)
   done
     
-lemma scast_up_scast': "sc = scast \<Longrightarrow> is_up sc \<Longrightarrow> scast (sc w) = scast w"
+lemma scast_up_scast [OF refl]:
+  "sc = scast \<Longrightarrow> is_up sc \<Longrightarrow> scast (sc w) = scast w"
   apply (simp (no_asm) add: scast_def)
   apply (clarsimp simp add: sint_up_scast)
   done
     
-lemma ucast_of_bl_up': 
+lemma ucast_of_bl_up [OF refl]:
   "w = of_bl bl \<Longrightarrow> size bl <= size w \<Longrightarrow> ucast w = of_bl bl"
   by (auto simp add : nth_ucast word_size test_bit_of_bl intro!: word_eqI)
-
-lemmas ucast_up_ucast = refl [THEN ucast_up_ucast']
-lemmas scast_up_scast = refl [THEN scast_up_scast']
-lemmas ucast_of_bl_up = refl [THEN ucast_of_bl_up']
 
 lemmas ucast_up_ucast_id = trans [OF ucast_up_ucast ucast_id]
 lemmas scast_up_scast_id = trans [OF scast_up_scast scast_id]
@@ -1037,21 +1030,18 @@ lemma down_ucast_inj:
 
 lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
   by (rule word_bl.Rep_eqD) (simp add: word_rep_drop)
-  
-lemma ucast_down_no': 
+
+lemma ucast_down_no [OF refl]:
   "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (number_of bin) = number_of bin"
   apply (unfold word_number_of_def is_down)
   apply (clarsimp simp add: ucast_def word_ubin.eq_norm)
   apply (rule word_ubin.norm_eq_iff [THEN iffD1])
   apply (erule bintrunc_bintrunc_ge)
   done
-    
-lemmas ucast_down_no = ucast_down_no' [OF refl]
 
-lemma ucast_down_bl': "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (of_bl bl) = of_bl bl"
+lemma ucast_down_bl [OF refl]:
+  "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (of_bl bl) = of_bl bl"
   unfolding of_bl_no by clarify (erule ucast_down_no)
-    
-lemmas ucast_down_bl = ucast_down_bl' [OF refl]
 
 lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
@@ -1725,7 +1715,7 @@ lemma iszero_word_no [simp] :
 
 subsection "Word and nat"
 
-lemma td_ext_unat':
+lemma td_ext_unat [OF refl]:
   "n = len_of TYPE ('a :: len) \<Longrightarrow> 
     td_ext (unat :: 'a word => nat) of_nat 
     (unats n) (%i. i mod 2 ^ n)"
@@ -1735,7 +1725,6 @@ lemma td_ext_unat':
   apply (simp add: int_word_uint nat_mod_distrib nat_power_eq)
   done
 
-lemmas td_ext_unat = refl [THEN td_ext_unat']
 lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm]
 
 interpretation word_unat:
@@ -2350,23 +2339,17 @@ lemma word_lsb_int: "lsb w = (uint w mod 2 = 1)"
 lemma word_msb_sint: "msb w = (sint w < 0)" 
   unfolding word_msb_def
   by (simp add : sign_Min_lt_0 number_of_is_id)
-  
-lemma word_msb_no': 
-  "w = number_of bin \<Longrightarrow> msb (w::'a::len word) = bin_nth bin (size w - 1)"
-  unfolding word_msb_def word_number_of_def
-  by (clarsimp simp add: word_sbin.eq_norm word_size bin_sign_lem)
 
 lemma word_msb_no [simp]:
   "msb (number_of bin :: 'a::len word) = bin_nth bin (len_of TYPE('a) - 1)"
-  by (rule refl [THEN word_msb_no', unfolded word_size])
+  unfolding word_msb_def word_number_of_def
+  by (clarsimp simp add: word_sbin.eq_norm bin_sign_lem)
 
-lemma word_msb_nth': "msb (w::'a::len word) = bin_nth (uint w) (size w - 1)"
-  apply (unfold word_size)
+lemma word_msb_nth:
+  "msb (w::'a::len word) = bin_nth (uint w) (len_of TYPE('a) - 1)"
   apply (rule trans [OF _ word_msb_no])
   apply (simp add : word_number_of_def)
   done
-
-lemmas word_msb_nth = word_msb_nth' [unfolded word_size]
 
 lemma word_msb_alt: "msb (w::'a::len word) = hd (to_bl w)"
   apply (unfold word_msb_nth uint_bl)
@@ -2421,12 +2404,10 @@ lemma test_bit_set_gen:
 lemma of_bl_rep_False: "of_bl (replicate n False @ bs) = of_bl bs"
   unfolding of_bl_def bl_to_bin_rep_F by auto
   
-lemma msb_nth':
+lemma msb_nth:
   fixes w :: "'a::len word"
-  shows "msb w = w !! (size w - 1)"
-  unfolding word_msb_nth' word_test_bit_def by simp
-
-lemmas msb_nth = msb_nth' [unfolded word_size]
+  shows "msb w = w !! (len_of TYPE('a) - 1)"
+  unfolding word_msb_nth word_test_bit_def by simp
 
 lemmas msb0 = len_gt_0 [THEN diff_Suc_less, THEN word_ops_nth_size [unfolded word_size]]
 lemmas msb1 = msb0 [where i = 0]
@@ -2435,7 +2416,7 @@ lemmas word_ops_msb = msb1 [unfolded msb_nth [symmetric, unfolded One_nat_def]]
 lemmas lsb0 = len_gt_0 [THEN word_ops_nth_size [unfolded word_size]]
 lemmas word_ops_lsb = lsb0 [unfolded word_lsb_alt]
 
-lemma td_ext_nth':
+lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
   "n = size (w::'a::len0 word) \<Longrightarrow> ofn = set_bits \<Longrightarrow> [w, ofn g] = l \<Longrightarrow> 
     td_ext test_bit ofn {f. ALL i. f i --> i < n} (%h i. h i & i < n)"
   apply (unfold word_size td_ext_def')
@@ -2453,8 +2434,6 @@ lemma td_ext_nth':
   apply (rule bl_of_nth_inj)
   apply (clarsimp simp add : test_bit_bl word_size)
   done
-
-lemmas td_ext_nth = td_ext_nth' [OF refl refl refl, unfolded word_size]
 
 interpretation test_bit:
   td_ext "op !! :: 'a::len0 word => nat => bool"
@@ -2476,15 +2455,10 @@ lemma word_set_set_diff:
   shows "set_bit (set_bit w m x) n y = set_bit (set_bit w n y) m x" 
   by (rule word_eqI) (clarsimp simp add: test_bit_set_gen word_size assms)
     
-lemma test_bit_no': 
-  fixes w :: "'a::len0 word"
-  shows "w = number_of bin \<Longrightarrow> test_bit w n = (n < size w & bin_nth bin n)"
-  unfolding word_test_bit_def word_number_of_def word_size
-  by (simp add : nth_bintr [symmetric] word_ubin.eq_norm)
-
 lemma test_bit_no [simp]:
   "(number_of bin :: 'a::len0 word) !! n \<equiv> n < len_of TYPE('a) \<and> bin_nth bin n"
-  by (rule refl [THEN test_bit_no', unfolded word_size, THEN eq_reflection])
+  unfolding word_test_bit_def word_number_of_def word_size
+  by (simp add : nth_bintr [symmetric] word_ubin.eq_norm)
 
 lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
   unfolding test_bit_no word_0_no by auto
@@ -2544,13 +2518,10 @@ lemma word_set_nth_iff:
   apply force
   done
 
-lemma test_bit_2p': 
-  "w = word_of_int (2 ^ n) \<Longrightarrow> 
-    w !! m = (m = n & m < size (w :: 'a :: len word))"
-  unfolding word_test_bit_def word_size
+lemma test_bit_2p:
+  "(word_of_int (2 ^ n)::'a::len word) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a)"
+  unfolding word_test_bit_def
   by (auto simp add: word_ubin.eq_norm nth_bintr nth_2p_bin)
-
-lemmas test_bit_2p = refl [THEN test_bit_2p', unfolded word_size]
 
 lemma nth_w2p:
   "((2\<Colon>'a\<Colon>len word) ^ n) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a\<Colon>len)"
@@ -2992,20 +2963,16 @@ lemmas sshiftr_no [simp] =
 lemmas shiftr_no [simp] = 
   shiftr_no' [where w = "number_of w", OF refl, unfolded word_size] for w
 
-lemma shiftr1_bl_of': 
-  "us = shiftr1 (of_bl bl) \<Longrightarrow> length bl <= size us \<Longrightarrow> 
-    us = of_bl (butlast bl)"
-  by (clarsimp simp: shiftr1_def of_bl_def word_size butlast_rest_bl2bin 
+lemma shiftr1_bl_of:
+  "length bl \<le> len_of TYPE('a) \<Longrightarrow>
+    shiftr1 (of_bl bl::'a::len0 word) = of_bl (butlast bl)"
+  by (clarsimp simp: shiftr1_def of_bl_def butlast_rest_bl2bin 
                      word_ubin.eq_norm trunc_bl2bin)
 
-lemmas shiftr1_bl_of = refl [THEN shiftr1_bl_of', unfolded word_size]
-
-lemma shiftr_bl_of' [rule_format]: 
-  "us = of_bl bl >> n \<Longrightarrow> length bl <= size us --> 
-   us = of_bl (take (length bl - n) bl)"
+lemma shiftr_bl_of:
+  "length bl \<le> len_of TYPE('a) \<Longrightarrow>
+    (of_bl bl::'a::len0 word) >> n = of_bl (take (length bl - n) bl)"
   apply (unfold shiftr_def)
-  apply hypsubst
-  apply (unfold word_size)
   apply (induct n)
    apply clarsimp
   apply clarsimp
@@ -3014,20 +2981,18 @@ lemma shiftr_bl_of' [rule_format]:
   apply (simp add: butlast_take)
   done
 
-lemmas shiftr_bl_of = refl [THEN shiftr_bl_of', unfolded word_size]
+lemma shiftr_bl:
+  "(x::'a::len0 word) >> n \<equiv> of_bl (take (len_of TYPE('a) - n) (to_bl x))"
+  using shiftr_bl_of [where 'a='a, of "to_bl x"] by simp
 
-lemmas shiftr_bl = word_bl_Rep' [THEN eq_imp_le, THEN shiftr_bl_of,
-  simplified word_size, simplified, THEN eq_reflection]
-
-lemma msb_shift': "msb (w::'a::len word) <-> (w >> (size w - 1)) ~= 0"
+lemma msb_shift:
+  "msb (w::'a::len word) \<longleftrightarrow> (w >> (len_of TYPE('a) - 1)) \<noteq> 0"
   apply (unfold shiftr_bl word_msb_alt)
   apply (simp add: word_size Suc_le_eq take_Suc)
   apply (cases "hd (to_bl w)")
    apply (auto simp: word_1_bl
                      of_bl_rep_False [where n=1 and bs="[]", simplified])
   done
-
-lemmas msb_shift = msb_shift' [unfolded word_size]
 
 lemma align_lem_or [rule_format] :
   "ALL x m. length x = n + m --> length y = n + m --> 
@@ -3057,7 +3022,7 @@ lemma align_lem_and [rule_format] :
   apply (induct_tac list, auto)
   done
 
-lemma aligned_bl_add_size':
+lemma aligned_bl_add_size [OF refl]:
   "size x - n = m \<Longrightarrow> n <= size x \<Longrightarrow> drop m (to_bl x) = replicate n False \<Longrightarrow>
     take m (to_bl y) = replicate m False \<Longrightarrow> 
     to_bl (x + y) = take m (to_bl x) @ drop m (to_bl y)"
@@ -3074,11 +3039,10 @@ lemma aligned_bl_add_size':
      apply (simp_all add: word_size)
   done
 
-lemmas aligned_bl_add_size = refl [THEN aligned_bl_add_size']
-
 subsubsection "Mask"
 
-lemma nth_mask': "m = mask n \<Longrightarrow> test_bit m i = (i < n & i < size m)"
+lemma nth_mask [OF refl, simp]:
+  "m = mask n \<Longrightarrow> test_bit m i = (i < n & i < size m)"
   apply (unfold mask_def test_bit_bl)
   apply (simp only: word_1_bl [symmetric] shiftl_of_bl)
   apply (clarsimp simp add: word_size)
@@ -3088,8 +3052,6 @@ lemma nth_mask': "m = mask n \<Longrightarrow> test_bit m i = (i < n & i < size 
   apply (rule test_bit_of_bl [THEN trans, unfolded test_bit_bl word_size])
   apply auto
   done
-
-lemmas nth_mask [simp] = refl [THEN nth_mask']
 
 lemma mask_bl: "mask n = of_bl (replicate n True)"
   by (auto simp add : test_bit_of_bl word_size intro: word_eqI)
@@ -3106,7 +3068,8 @@ lemma and_mask_bintr: "w AND mask n = number_of (bintrunc n (uint w))"
 lemma and_mask_no: "number_of i AND mask n = number_of (bintrunc n i)" 
   by (auto simp add : nth_bintr word_size word_ops_nth_size intro: word_eqI)
 
-lemmas and_mask_wi = and_mask_no [unfolded word_number_of_def] 
+lemma and_mask_wi: "word_of_int i AND mask n = word_of_int (bintrunc n i)"
+  by (fact and_mask_no [unfolded word_number_of_def])
 
 lemma bl_and_mask':
   "to_bl (w AND mask n :: 'a :: len word) = 
@@ -3119,8 +3082,8 @@ lemma bl_and_mask':
   apply (auto simp add: word_size test_bit_bl nth_append nth_rev)
   done
 
-lemmas and_mask_mod_2p = 
-  and_mask_bintr [unfolded word_number_of_alt no_bintr_alt]
+lemma and_mask_mod_2p: "w AND mask n = word_of_int (uint w mod 2 ^ n)"
+  by (fact and_mask_bintr [unfolded word_number_of_alt no_bintr_alt])
 
 lemma and_mask_lt_2p: "uint (w AND mask n) < 2 ^ n"
   apply (simp add : and_mask_bintr no_bintr_alt)
@@ -3130,7 +3093,8 @@ lemma and_mask_lt_2p: "uint (w AND mask n) < 2 ^ n"
   apply auto
   done
 
-lemmas eq_mod_iff = trans [symmetric, OF int_mod_lem eq_sym_conv]
+lemma eq_mod_iff: "0 < (n::int) \<Longrightarrow> b = b mod n \<longleftrightarrow> 0 \<le> b \<and> b < n"
+  by (simp add: int_mod_lem eq_sym_conv)
 
 lemma mask_eq_iff: "(w AND mask n) = w <-> uint w < 2 ^ n"
   apply (simp add: and_mask_bintr word_number_of_def)
@@ -3182,11 +3146,9 @@ lemmas and_mask_less' = iffD2 [OF word_2p_lem and_mask_lt_2p, simplified word_si
 lemma and_mask_less_size: "n < size x \<Longrightarrow> x AND mask n < 2^n"
   unfolding word_size by (erule and_mask_less')
 
-lemma word_mod_2p_is_mask':
+lemma word_mod_2p_is_mask [OF refl]:
   "c = 2 ^ n \<Longrightarrow> c > 0 \<Longrightarrow> x mod c = (x :: 'a :: len word) AND mask n" 
   by (clarsimp simp add: word_mod_def uint_2p and_mask_mod_2p) 
-
-lemmas word_mod_2p_is_mask = refl [THEN word_mod_2p_is_mask'] 
 
 lemma mask_eqs:
   "(a AND mask n) + b AND mask n = a + b AND mask n"
@@ -3224,7 +3186,7 @@ lemma to_bl_revcast:
   apply simp
   done
 
-lemma revcast_rev_ucast': 
+lemma revcast_rev_ucast [OF refl refl refl]: 
   "cs = [rc, uc] \<Longrightarrow> rc = revcast (word_reverse w) \<Longrightarrow> uc = ucast w \<Longrightarrow> 
     rc = word_reverse uc"
   apply (unfold ucast_def revcast_def' Let_def word_reverse_def)
@@ -3232,20 +3194,21 @@ lemma revcast_rev_ucast':
   apply (simp add : word_bl.Abs_inverse word_size)
   done
 
-lemmas revcast_rev_ucast = revcast_rev_ucast' [OF refl refl refl]
+lemma revcast_ucast: "revcast w = word_reverse (ucast (word_reverse w))"
+  using revcast_rev_ucast [of "word_reverse w"] by simp
 
-lemmas revcast_ucast = revcast_rev_ucast
-  [where w = "word_reverse w", simplified word_rev_rev] for w
+lemma ucast_revcast: "ucast w = word_reverse (revcast (word_reverse w))"
+  by (fact revcast_rev_ucast [THEN word_rev_gal'])
 
-lemmas ucast_revcast = revcast_rev_ucast [THEN word_rev_gal']
-lemmas ucast_rev_revcast = revcast_ucast [THEN word_rev_gal']
+lemma ucast_rev_revcast: "ucast (word_reverse w) = word_reverse (revcast w)"
+  by (fact revcast_ucast [THEN word_rev_gal'])
 
 
 -- "linking revcast and cast via shift"
 
 lemmas wsst_TYs = source_size target_size word_size
 
-lemma revcast_down_uu': 
+lemma revcast_down_uu [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> 
     rc (w :: 'a :: len word) = ucast (w >> n)"
   apply (simp add: revcast_def')
@@ -3256,7 +3219,7 @@ lemma revcast_down_uu':
    apply (auto simp: takefill_alt wsst_TYs)
   done
 
-lemma revcast_down_us': 
+lemma revcast_down_us [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> 
     rc (w :: 'a :: len word) = ucast (w >>> n)"
   apply (simp add: revcast_def')
@@ -3267,7 +3230,7 @@ lemma revcast_down_us':
    apply (auto simp: takefill_alt wsst_TYs)
   done
 
-lemma revcast_down_su': 
+lemma revcast_down_su [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> 
     rc (w :: 'a :: len word) = scast (w >> n)"
   apply (simp add: revcast_def')
@@ -3278,7 +3241,7 @@ lemma revcast_down_su':
    apply (auto simp: takefill_alt wsst_TYs)
   done
 
-lemma revcast_down_ss': 
+lemma revcast_down_ss [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> 
     rc (w :: 'a :: len word) = scast (w >>> n)"
   apply (simp add: revcast_def')
@@ -3289,11 +3252,7 @@ lemma revcast_down_ss':
    apply (auto simp: takefill_alt wsst_TYs)
   done
 
-lemmas revcast_down_uu = refl [THEN revcast_down_uu']
-lemmas revcast_down_us = refl [THEN revcast_down_us']
-lemmas revcast_down_su = refl [THEN revcast_down_su']
-lemmas revcast_down_ss = refl [THEN revcast_down_ss']
-
+(* FIXME: should this also be [OF refl] ? *)
 lemma cast_down_rev: 
   "uc = ucast \<Longrightarrow> source_size uc = target_size uc + n \<Longrightarrow> 
     uc w = revcast ((w :: 'a :: len word) << n)"
@@ -3306,7 +3265,7 @@ lemma cast_down_rev:
   apply (auto simp add: wsst_TYs)
   done
 
-lemma revcast_up': 
+lemma revcast_up [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc + n = target_size rc \<Longrightarrow> 
     rc w = (ucast w :: 'a :: len word) << n" 
   apply (simp add: revcast_def')
@@ -3316,8 +3275,6 @@ lemma revcast_up':
   apply (subst ucast_up_app)
   apply (auto simp add: wsst_TYs)
   done
-
-lemmas revcast_up = refl [THEN revcast_up']
 
 lemmas rc1 = revcast_up [THEN 
   revcast_rev_ucast [symmetric, THEN trans, THEN word_rev_gal, symmetric]]
