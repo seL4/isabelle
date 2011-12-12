@@ -100,7 +100,7 @@ next
     assume "\<not> sec_bexp b \<le> l"
     have 1: "sec_bexp b \<turnstile> IF b THEN c1 ELSE c2"
       by(rule sec_type.intros)(simp_all add: `sec_bexp b \<turnstile> c1` `sec_bexp b \<turnstile> c2`)
-    from confinement[OF big_step.IfTrue[OF IfTrue(1,2)] 1] `\<not> sec_bexp b \<le> l`
+    from confinement[OF IfTrue.hyps(2) `sec_bexp b \<turnstile> c1`] `\<not> sec_bexp b \<le> l`
     have "s = s' (\<le> l)" by auto
     moreover
     from confinement[OF IfTrue.prems(1) 1] `\<not> sec_bexp b \<le> l`
