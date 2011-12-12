@@ -903,9 +903,9 @@ fun expand_tuples thy intro =
 fun datatype_names_of_case_name thy case_name =
   map (#1 o #2) (#descr (the (Datatype_Data.info_of_case thy case_name)))
 
-fun make_case_distribs new_type_names descr sorts thy =
+fun make_case_distribs new_type_names descr thy =
   let
-    val case_combs = Datatype_Prop.make_case_combs new_type_names descr sorts thy "f";
+    val case_combs = Datatype_Prop.make_case_combs new_type_names descr thy "f";
     fun make comb =
       let
         val Type ("fun", [T, T']) = fastype_of comb;
@@ -932,10 +932,10 @@ fun make_case_distribs new_type_names descr sorts thy =
 
 fun case_rewrites thy Tcon =
   let
-    val {descr, sorts, ...} = Datatype.the_info thy Tcon
+    val {descr, ...} = Datatype.the_info thy Tcon
   in
     map (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
-      (make_case_distribs [Tcon] [descr] sorts thy)
+      (make_case_distribs [Tcon] [descr] thy)
   end
 
 fun instantiated_case_rewrites thy Tcon =
