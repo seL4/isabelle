@@ -448,7 +448,7 @@ by (rule partial_term_of_anything)
 *)
 
 hide_type code_int narrowing_type narrowing_term cons property
-hide_const int_of of_int nth error toEnum marker empty C conv nonEmpty ensure_testable all exists 
+hide_const int_of of_int nat_of map_cons nth error toEnum marker empty C conv nonEmpty ensure_testable all exists drawn_from around_zero
 hide_const (open) Var Ctr "apply" sum cons
 hide_fact empty_def cons_def conv.simps nonEmpty.simps apply_def sum_def ensure_testable_def all_def exists_def
 

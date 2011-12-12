@@ -1729,7 +1729,7 @@ instantiation real :: exhaustive
 begin
 
 definition
-  "exhaustive f d = exhaustive (%r. f (Ratreal r)) d"
+  "exhaustive_real f d = Quickcheck_Exhaustive.exhaustive (%r. f (Ratreal r)) d"
 
 instance ..
 
@@ -1739,7 +1739,7 @@ instantiation real :: full_exhaustive
 begin
 
 definition
-  "full_exhaustive f d = full_exhaustive (%r. f (valterm_ratreal r)) d"
+  "full_exhaustive_real f d = Quickcheck_Exhaustive.full_exhaustive (%r. f (valterm_ratreal r)) d"
 
 instance ..
 

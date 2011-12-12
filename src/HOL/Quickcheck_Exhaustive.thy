@@ -430,8 +430,8 @@ subsection {* Fast exhaustive combinators *}
 class fast_exhaustive = term_of +
   fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> code_numeral \<Rightarrow> unit"
 
-consts throw_Counterexample :: "term list => unit"
-consts catch_Counterexample :: "unit => term list option"
+axiomatization throw_Counterexample :: "term list => unit"
+axiomatization catch_Counterexample :: "unit => term list option"
 
 code_const throw_Counterexample
   (Quickcheck "raise (Exhaustive'_Generators.Counterexample _)")
@@ -535,7 +535,16 @@ declare [[quickcheck_batch_tester = exhaustive]]
 
 hide_fact orelse_def
 no_notation orelse (infixr "orelse" 55)
-hide_const (open) orelse unknown mk_map_term check_all_n_lists 
+
+hide_fact
+  exhaustive'_def
+  exhaustive_code_numeral'_def
+
+hide_const (open)
+  exhaustive full_exhaustive exhaustive' exhaustive_code_numeral' full_exhaustive_code_numeral'
+  throw_Counterexample catch_Counterexample
+  check_all enum_term_of
+  orelse unknown mk_map_term check_all_n_lists
 
 hide_type (open) cps pos_bound_cps neg_bound_cps unknown three_valued
 hide_const (open) cps_empty cps_single cps_bind cps_plus cps_if cps_not
