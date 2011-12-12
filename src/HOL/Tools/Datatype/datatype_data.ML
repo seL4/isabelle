@@ -7,7 +7,7 @@ Datatype package: bookkeeping; interpretation of existing types as datatypes.
 signature DATATYPE_DATA =
 sig
   include DATATYPE_COMMON
-  val derive_datatype_props : config -> string list -> descr list -> (string * sort) list ->
+  val derive_datatype_props : config -> string list -> descr list ->
     thm -> thm list list -> thm list list -> theory -> string list * theory
   val rep_datatype : config -> (string list -> Proof.context -> Proof.context) ->
     term list -> theory -> Proof.state
@@ -109,22 +109,19 @@ fun register (dt_infos : (string * Datatype_Aux.info) list) =
 
 fun the_spec thy dtco =
   let
-    val {descr, index, sorts = raw_sorts, ...} = the_info thy dtco;
+    val {descr, index, ...} = the_info thy dtco;
     val (_, dtys, raw_cos) = the (AList.lookup (op =) descr index);
-    val sorts =
-      map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v)) o Datatype_Aux.dest_DtTFree) dtys;
-    val cos = map (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr sorts) tys)) raw_cos;
-  in (sorts, cos) end;
+    val args = map Datatype_Aux.dest_DtTFree dtys;
+    val cos = map (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr) tys)) raw_cos;
+  in (args, cos) end;
 
 fun the_descr thy (raw_tycos as raw_tyco :: _) =
   let
     val info = the_info thy raw_tyco;
     val descr = #descr info;
 
-    val SOME (_, dtys, _) = AList.lookup (op =) descr (#index info);
-    val vs =
-      map ((fn v => (v, the (AList.lookup (op =) (#sorts info) v))) o Datatype_Aux.dest_DtTFree)
-        dtys;
+    val (_, dtys, _) = the (AList.lookup (op =) descr (#index info));
+    val vs = map Datatype_Aux.dest_DtTFree dtys;
 
     fun is_DtTFree (Datatype_Aux.DtTFree _) = true
       | is_DtTFree _ = false;
@@ -132,7 +129,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val protoTs as (dataTs, _) =
       chop k descr
       |> (pairself o map)
-        (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr vs) dTs));
+        (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr) dTs));
 
     val tycos = map fst dataTs;
     val _ =
@@ -160,12 +157,12 @@ fun all_distincts thy Ts =
 
 fun get_constrs thy dtco =
   (case try (the_spec thy) dtco of
-    SOME (sorts, cos) =>
+    SOME (args, cos) =>
       let
         fun subst (v, sort) = TVar ((v, 0), sort);
         fun subst_ty (TFree v) = subst v
           | subst_ty ty = ty;
-        val dty = Type (dtco, map subst sorts);
+        val dty = Type (dtco, map subst args);
         fun mk_co (co, tys) = (co, map (Term.map_atyps subst_ty) tys ---> dty);
       in SOME (map mk_co cos) end
   | NONE => NONE);
@@ -283,14 +280,13 @@ structure Datatype_Interpretation = Interpretation
 );
 fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 
-fun make_dt_info descr sorts induct inducts rec_names rec_rewrites
+fun make_dt_info descr induct inducts rec_names rec_rewrites
     (index, (((((((((((_, (tname, _, _))), inject), distinct),
       exhaust), nchotomy), case_name), case_rewrites), case_cong), weak_case_cong),
         (split, split_asm))) =
   (tname,
    {index = index,
     descr = descr,
-    sorts = sorts,
     inject = inject,
     distinct = distinct,
     induct = induct,
@@ -306,8 +302,7 @@ fun make_dt_info descr sorts induct inducts rec_names rec_rewrites
     split = split,
     split_asm = split_asm});
 
-fun derive_datatype_props config dt_names descr sorts
-    induct inject distinct thy1 =
+fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
   let
     val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
@@ -316,32 +311,28 @@ fun derive_datatype_props config dt_names descr sorts
       Datatype_Aux.message config
         ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
-    val (exhaust, thy3) =
-      Datatype_Abs_Proofs.prove_casedist_thms config new_type_names
-        descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
-    val (nchotomys, thy4) =
-      Datatype_Abs_Proofs.prove_nchotomys config new_type_names
-        descr sorts exhaust thy3;
-    val ((rec_names, rec_rewrites), thy5) =
-      Datatype_Abs_Proofs.prove_primrec_thms
-        config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-        inject (distinct, all_distincts thy2 (Datatype_Aux.get_rec_types flat_descr sorts))
-        induct thy4;
-    val ((case_rewrites, case_names), thy6) =
-      Datatype_Abs_Proofs.prove_case_thms
-        config new_type_names descr sorts rec_names rec_rewrites thy5;
-    val (case_congs, thy7) =
-      Datatype_Abs_Proofs.prove_case_congs new_type_names
-        descr sorts nchotomys case_rewrites thy6;
-    val (weak_case_congs, thy8) =
-      Datatype_Abs_Proofs.prove_weak_case_congs new_type_names descr sorts thy7;
-    val (splits, thy9) =
-      Datatype_Abs_Proofs.prove_split_thms
-        config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
+    val (exhaust, thy3) = thy2
+      |> Datatype_Abs_Proofs.prove_casedist_thms config new_type_names
+        descr induct (mk_case_names_exhausts flat_descr dt_names);
+    val (nchotomys, thy4) = thy3
+      |> Datatype_Abs_Proofs.prove_nchotomys config new_type_names descr exhaust;
+    val ((rec_names, rec_rewrites), thy5) = thy4
+      |> Datatype_Abs_Proofs.prove_primrec_thms
+        config new_type_names descr (#inject o the o Symtab.lookup (get_all thy4))
+        inject (distinct, all_distincts thy2 (Datatype_Aux.get_rec_types flat_descr)) induct;
+    val ((case_rewrites, case_names), thy6) = thy5
+      |> Datatype_Abs_Proofs.prove_case_thms config new_type_names descr rec_names rec_rewrites;
+    val (case_congs, thy7) = thy6
+      |> Datatype_Abs_Proofs.prove_case_congs new_type_names descr nchotomys case_rewrites;
+    val (weak_case_congs, thy8) = thy7
+      |> Datatype_Abs_Proofs.prove_weak_case_congs new_type_names descr;
+    val (splits, thy9) = thy8
+      |> Datatype_Abs_Proofs.prove_split_thms
+        config new_type_names descr inject distinct exhaust case_rewrites;
 
     val inducts = Project_Rule.projections (Proof_Context.init_global thy2) induct;
     val dt_infos = map_index
-      (make_dt_info flat_descr sorts induct inducts rec_names rec_rewrites)
+      (make_dt_info flat_descr induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
@@ -378,7 +369,7 @@ fun derive_datatype_props config dt_names descr sorts
 
 (** declare existing type as datatype **)
 
-fun prove_rep_datatype config dt_names descr sorts raw_inject half_distinct raw_induct thy1 =
+fun prove_rep_datatype config dt_names descr raw_inject half_distinct raw_induct thy1 =
   let
     val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val new_type_names = map Long_Name.base_name dt_names;
@@ -392,7 +383,7 @@ fun prove_rep_datatype config dt_names descr sorts raw_inject half_distinct raw_
           [mk_case_names_induct descr])];
   in
     thy2
-    |> derive_datatype_props config dt_names [descr] sorts induct inject distinct
+    |> derive_datatype_props config dt_names [descr] induct inject distinct
  end;
 
 fun gen_rep_datatype prep_term config after_qed raw_ts thy =
@@ -441,13 +432,11 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
     val dt_names = map fst cs;
 
     fun mk_spec (i, (tyco, constr)) =
-      (i, (tyco,
-        map (Datatype_Aux.DtTFree o fst) vs,
-        (map o apsnd) dtyps_of_typ constr));
+      (i, (tyco, map Datatype_Aux.DtTFree vs, (map o apsnd) dtyps_of_typ constr));
     val descr = map_index mk_spec cs;
-    val injs = Datatype_Prop.make_injs [descr] vs;
-    val half_distincts = map snd (Datatype_Prop.make_distincts [descr] vs);
-    val ind = Datatype_Prop.make_ind [descr] vs;
+    val injs = Datatype_Prop.make_injs [descr];
+    val half_distincts = map snd (Datatype_Prop.make_distincts [descr]);
+    val ind = Datatype_Prop.make_ind [descr];
     val rules = (map o map o map) Logic.close_form [[[ind]], injs, half_distincts];
 
     fun after_qed' raw_thms =
@@ -457,7 +446,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
             (*FIXME somehow dubious*)
       in
         Proof_Context.background_theory_result  (* FIXME !? *)
-          (prove_rep_datatype config dt_names descr vs raw_inject half_distinct raw_induct)
+          (prove_rep_datatype config dt_names descr raw_inject half_distinct raw_induct)
         #-> after_qed
       end;
   in

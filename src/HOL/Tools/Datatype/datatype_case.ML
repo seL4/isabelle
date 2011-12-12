@@ -36,10 +36,10 @@ fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
 
 fun ty_info tab sT =
   (case tab sT of
-    SOME ({descr, case_name, index, sorts, ...} : info) =>
+    SOME ({descr, case_name, index, ...} : info) =>
       let
         val (_, (tname, dts, constrs)) = nth descr index;
-        val mk_ty = Datatype_Aux.typ_of_dtyp descr sorts;
+        val mk_ty = Datatype_Aux.typ_of_dtyp descr;
         val T = Type (tname, map mk_ty dts);
       in
         SOME {case_name = case_name,

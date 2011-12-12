@@ -9,14 +9,13 @@ sig
   type config = {strict : bool, quiet : bool}
   val default_config : config
   datatype dtyp =
-      DtTFree of string
+      DtTFree of string * sort
     | DtType of string * dtyp list
     | DtRec of int
   type descr = (int * (string * dtyp list * (string * dtyp list) list)) list
   type info =
    {index : int,
     descr : descr,
-    sorts : (string * sort) list,
     inject : thm list,
     distinct : thm list,
     induct : thm,
@@ -61,23 +60,22 @@ sig
   val dtyp_of_typ : (string * string list) list -> typ -> dtyp
   val mk_Free : string -> typ -> int -> term
   val is_rec_type : dtyp -> bool
-  val typ_of_dtyp : descr -> (string * sort) list -> dtyp -> typ
-  val dest_DtTFree : dtyp -> string
+  val typ_of_dtyp : descr -> dtyp -> typ
+  val dest_DtTFree : dtyp -> string * sort
   val dest_DtRec : dtyp -> int
   val strip_dtyp : dtyp -> dtyp list * dtyp
   val body_index : dtyp -> int
   val mk_fun_dtyp : dtyp list -> dtyp -> dtyp
-  val get_nonrec_types : descr -> (string * sort) list -> typ list
-  val get_branching_types : descr -> (string * sort) list -> typ list
+  val get_nonrec_types : descr -> typ list
+  val get_branching_types : descr -> typ list
   val get_arities : descr -> int list
-  val get_rec_types : descr -> (string * sort) list -> typ list
-  val interpret_construction : descr -> (string * sort) list
-    -> { atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a }
-    -> ((string * typ list) * (string * 'a list) list) list
+  val get_rec_types : descr -> typ list
+  val interpret_construction : descr -> (string * sort) list ->
+    {atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a} ->
+    ((string * typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
-  val unfold_datatypes :
-    Proof.context -> descr -> (string * sort) list -> info Symtab.table ->
-      descr -> int -> descr list * int
+  val unfold_datatypes : Proof.context -> descr -> info Symtab.table ->
+    descr -> int -> descr list * int
   val find_shortest_path : descr -> int -> (string * int) option
 end;
 
@@ -176,7 +174,7 @@ fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
 (********************** Internal description of datatypes *********************)
 
 datatype dtyp =
-    DtTFree of string
+    DtTFree of string * sort
   | DtType of string * dtyp list
   | DtRec of int;
 
@@ -188,7 +186,6 @@ type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 type info =
   {index : int,
    descr : descr,
-   sorts : (string * sort) list,
    inject : thm list,
    distinct : thm list,
    induct : thm,
@@ -206,7 +203,7 @@ type info =
 
 fun mk_Free s T i = Free (s ^ string_of_int i, T);
 
-fun subst_DtTFree _ substs (T as DtTFree name) = the_default T (AList.lookup (op =) substs name)
+fun subst_DtTFree _ substs (T as DtTFree a) = the_default T (AList.lookup (op =) substs a)
   | subst_DtTFree i substs (DtType (name, ts)) = DtType (name, map (subst_DtTFree i substs) ts)
   | subst_DtTFree i _ (DtRec j) = DtRec (i + j);
 
@@ -239,7 +236,7 @@ fun name_of_typ (Type (s, Ts)) =
       end
   | name_of_typ _ = "";
 
-fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
+fun dtyp_of_typ _ (TFree a) = DtTFree a
   | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
   | dtyp_of_typ new_dts (Type (tname, Ts)) =
       (case AList.lookup (op =) new_dts tname of
@@ -247,29 +244,29 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
       | SOME vs =>
           if map (try (fst o dest_TFree)) Ts = map SOME vs then
             DtRec (find_index (curry op = tname o fst) new_dts)
-          else error ("Illegal occurrence of recursive type " ^ tname));
+          else error ("Illegal occurrence of recursive type " ^ quote tname));
 
-fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) sorts) a)
-  | typ_of_dtyp descr sorts (DtRec i) =
+fun typ_of_dtyp descr (DtTFree a) = TFree a
+  | typ_of_dtyp descr (DtRec i) =
       let val (s, ds, _) = the (AList.lookup (op =) descr i)
-      in Type (s, map (typ_of_dtyp descr sorts) ds) end
-  | typ_of_dtyp descr sorts (DtType (s, ds)) = Type (s, map (typ_of_dtyp descr sorts) ds);
+      in Type (s, map (typ_of_dtyp descr) ds) end
+  | typ_of_dtyp descr (DtType (s, ds)) = Type (s, map (typ_of_dtyp descr) ds);
 
 (* find all non-recursive types in datatype description *)
 
-fun get_nonrec_types descr sorts =
-  map (typ_of_dtyp descr sorts) (fold (fn (_, (_, _, constrs)) =>
+fun get_nonrec_types descr =
+  map (typ_of_dtyp descr) (fold (fn (_, (_, _, constrs)) =>
     fold (fn (_, cargs) => union (op =) (filter_out is_rec_type cargs)) constrs) descr []);
 
 (* get all recursive types in datatype description *)
 
-fun get_rec_types descr sorts = map (fn (_ , (s, ds, _)) =>
-  Type (s, map (typ_of_dtyp descr sorts) ds)) descr;
+fun get_rec_types descr = map (fn (_ , (s, ds, _)) =>
+  Type (s, map (typ_of_dtyp descr) ds)) descr;
 
 (* get all branching types *)
 
-fun get_branching_types descr sorts =
-  map (typ_of_dtyp descr sorts)
+fun get_branching_types descr =
+  map (typ_of_dtyp descr)
     (fold
       (fn (_, (_, _, constrs)) =>
         fold (fn (_, cargs) => fold (strip_dtyp #> fst #> fold (insert op =)) cargs) constrs)
@@ -286,19 +283,21 @@ fun get_arities descr =
 
 fun interpret_construction descr vs {atyp, dtyp} =
   let
-    val typ_of_dtyp = typ_of_dtyp descr vs;
+    val typ_of =
+      typ_of_dtyp descr #>
+      map_atyps (fn TFree (a, _) => TFree (a, the (AList.lookup (op =) vs a)) | T => T);
     fun interpT dT =
       (case strip_dtyp dT of
         (dTs, DtRec l) =>
           let
             val (tyco, dTs', _) = the (AList.lookup (op =) descr l);
-            val Ts = map typ_of_dtyp dTs;
-            val Ts' = map typ_of_dtyp dTs';
+            val Ts = map typ_of dTs;
+            val Ts' = map typ_of dTs';
             val is_proper = forall (can dest_TFree) Ts';
           in dtyp Ts (l, is_proper) (tyco, Ts') end
-      | _ => atyp (typ_of_dtyp dT));
+      | _ => atyp (typ_of dT));
     fun interpC (c, dTs) = (c, map interpT dTs);
-    fun interpD (_, (tyco, dTs, cs)) = ((tyco, map typ_of_dtyp dTs), map interpC cs);
+    fun interpD (_, (tyco, dTs, cs)) = ((tyco, map typ_of dTs), map interpC cs);
   in map interpD descr end;
 
 (* nonemptiness check for datatypes *)
@@ -323,22 +322,23 @@ fun check_nonempty descr =
 (* all types of the form DtType (dt_name, [..., DtRec _, ...]) *)
 (* need to be unfolded                                         *)
 
-fun unfold_datatypes ctxt orig_descr sorts (dt_info : info Symtab.table) descr i =
+fun unfold_datatypes ctxt orig_descr (dt_info : info Symtab.table) descr i =
   let
     fun typ_error T msg =
       error ("Non-admissible type expression\n" ^
-        Syntax.string_of_typ ctxt (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
+        Syntax.string_of_typ ctxt (typ_of_dtyp (orig_descr @ descr) T) ^ "\n" ^ msg);
 
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup dt_info tname of
         NONE =>
-          typ_error T (tname ^ " is not a datatype - can't use it in nested recursion")
+          typ_error T (quote tname ^ " is not a datatype - can't use it in nested recursion")
       | SOME {index, descr, ...} =>
           let
             val (_, vars, _) = the (AList.lookup (op =) descr index);
             val subst = map dest_DtTFree vars ~~ dts
               handle ListPair.UnequalLengths =>
-                typ_error T ("Type constructor " ^ tname ^ " used with wrong number of arguments");
+                typ_error T ("Type constructor " ^ quote tname ^
+                  " used with wrong number of arguments");
           in
             (i + index,
               map (fn (j, (tn, args, cs)) =>
@@ -359,7 +359,7 @@ fun unfold_datatypes ctxt orig_descr sorts (dt_info : info Symtab.table) descr i
                 let
                   val (index, descr) = get_dt_descr T i tname dts;
                   val (descr', i') =
-                    unfold_datatypes ctxt orig_descr sorts dt_info descr (i + length descr);
+                    unfold_datatypes ctxt orig_descr dt_info descr (i + length descr);
                 in (i', Ts @ [mk_fun_dtyp Us (DtRec index)], descrs @ descr') end
             | _ => (i, Ts @ [T], descrs))
         end

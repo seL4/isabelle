@@ -56,14 +56,14 @@ val app = curry (list_comb o swap);
 
 fun prove_size_thms (info : Datatype.info) new_type_names thy =
   let
-    val {descr, sorts, rec_names, rec_rewrites, induct, ...} = info;
+    val {descr, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
     val descr' = List.take (descr, l);
     val (rec_names1, rec_names2) = chop l rec_names;
-    val recTs = Datatype_Aux.get_rec_types descr sorts;
+    val recTs = Datatype_Aux.get_rec_types descr;
     val (recTs1, recTs2) = chop l recTs;
     val (_, (_, paramdts, _)) :: _ = descr;
-    val paramTs = map (Datatype_Aux.typ_of_dtyp descr sorts) paramdts;
+    val paramTs = map (Datatype_Aux.typ_of_dtyp descr) paramdts;
     val ((param_size_fs, param_size_fTs), f_names) = paramTs |>
       map (fn T as TFree (s, _) =>
         let
@@ -94,7 +94,7 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
     (* instantiation for primrec combinator *)
     fun size_of_constr b size_ofp ((_, cargs), (_, cargs')) =
       let
-        val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
+        val Ts = map (Datatype_Aux.typ_of_dtyp descr) cargs;
         val k = length (filter Datatype_Aux.is_rec_type cargs);
         val (ts, _, _) = fold_rev (fn ((dt, dt'), T) => fn (us, i, j) =>
           if Datatype_Aux.is_rec_type dt then (Bound i :: us, i + 1, j + 1)
@@ -172,7 +172,7 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
     (* characteristic equations for size functions *)
     fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
       let
-        val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
+        val Ts = map (Datatype_Aux.typ_of_dtyp descr) cargs;
         val tnames = Name.variant_list f_names (Datatype_Prop.make_tnames Ts);
         val ts = map_filter (fn (sT as (s, T), dt) =>
           Option.map (fn sz => sz $ Free sT)
