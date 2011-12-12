@@ -113,7 +113,7 @@ fun test_term (name, compile) ctxt catch_code_errors (t, eval_terms) =
         !current_result)
     | SOME test_fun =>
       let
-        val _ = Quickcheck.message ctxt ("Testing conjecture with with Quickcheck-" ^ name ^ "...");
+        val _ = Quickcheck.message ctxt ("Testing conjecture with Quickcheck-" ^ name ^ "...");
         val (response, exec_time) =
           cpu_time "quickcheck execution" (fn () => with_size test_fun genuine_only 1)
         val _ = Quickcheck.add_response names eval_terms response current_result
