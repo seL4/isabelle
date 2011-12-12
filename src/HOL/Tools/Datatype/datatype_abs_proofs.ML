@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Datatype/datatype_abs_proofs.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Datatype package: proofs and defintions independent of concrete
+Datatype package: proofs and definitions independent of concrete
 representation of datatypes  (i.e. requiring only abstract
 properties: injectivity / distinctness of constructors and induction).
 *)
@@ -103,7 +103,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
     val big_rec_name' = big_name ^ "_rec_set";
     val rec_set_names' =
       if length descr' = 1 then [big_rec_name']
-      else map (prefix (big_rec_name' ^ "_") o string_of_int) (1 upto (length descr'));
+      else map (prefix (big_rec_name' ^ "_") o string_of_int) (1 upto length descr');
     val rec_set_names = map (Sign.full_bname thy0) rec_set_names';
 
     val (rec_result_Ts, reccomb_fn_Ts) = Datatype_Prop.make_primrec_Ts descr sorts used;
@@ -112,7 +112,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
       map (fn (T1, T2) => (reccomb_fn_Ts @ [T1, T2]) ---> HOLogic.boolT) (recTs ~~ rec_result_Ts);
 
     val rec_fns =
-      map (uncurry (Datatype_Aux.mk_Free "f")) (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
+      map (uncurry (Datatype_Aux.mk_Free "f")) (reccomb_fn_Ts ~~ (1 upto length reccomb_fn_Ts));
     val rec_sets' =
       map (fn c => list_comb (Free c, rec_fns)) (rec_set_names' ~~ rec_set_Ts);
     val rec_sets =
@@ -136,7 +136,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
                         Datatype_Aux.app_bnds free1 i $ Datatype_Aux.app_bnds free2 i)) :: prems,
                     free1 :: t1s, free2 :: t2s)
                 end
-            | _ => (j + 1, k, prems, free1::t1s, t2s))
+            | _ => (j + 1, k, prems, free1 :: t1s, t2s))
           end;
 
         val Ts = map (Datatype_Aux.typ_of_dtyp descr' sorts) cargs;
@@ -233,7 +233,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr sorts
     val reccomb_names =
       map (Sign.full_bname thy1)
         (if length descr' = 1 then [big_reccomb_name]
-         else map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto (length descr')));
+         else map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto length descr'));
     val reccombs =
       map (fn ((name, T), T') => list_comb (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);

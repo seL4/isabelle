@@ -177,7 +177,7 @@ fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
 
 datatype dtyp =
     DtTFree of string
-  | DtType of string * (dtyp list)
+  | DtType of string * dtyp list
   | DtRec of int;
 
 (* information about datatypes *)

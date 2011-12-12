@@ -69,7 +69,7 @@ fun the_info thy name =
 
 fun info_of_constr thy (c, T) =
   let
-    val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
+    val tab = Symtab.lookup_list (#constrs (DatatypesData.get thy)) c;
   in
     (case body_type T of
       Type (tyco, _) => AList.lookup (op =) tab tyco
@@ -109,8 +109,8 @@ fun register (dt_infos : (string * Datatype_Aux.info) list) =
 
 fun the_spec thy dtco =
   let
-    val { descr, index, sorts = raw_sorts, ... } = the_info thy dtco;
-    val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr index;
+    val {descr, index, sorts = raw_sorts, ...} = the_info thy dtco;
+    val (_, dtys, raw_cos) = the (AList.lookup (op =) descr index);
     val sorts =
       map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v)) o Datatype_Aux.dest_DtTFree) dtys;
     val cos = map (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr sorts) tys)) raw_cos;

@@ -230,7 +230,7 @@ fun make_primrecs new_type_names descr sorts thy =
     val reccomb_names =
       map (Sign.intern_const thy)
         (if length descr' = 1 then [big_reccomb_name]
-         else (map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto (length descr'))));
+         else (map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto length descr')));
     val reccombs =
       map (fn ((name, T), T') => list_comb (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);

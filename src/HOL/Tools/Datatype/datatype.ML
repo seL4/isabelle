@@ -70,7 +70,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val big_rec_name = big_name ^ "_rep_set";
     val rep_set_names' =
       if length descr' = 1 then [big_rec_name]
-      else map (prefix (big_rec_name ^ "_") o string_of_int) (1 upto (length descr'));
+      else map (prefix (big_rec_name ^ "_") o string_of_int) (1 upto length descr');
     val rep_set_names = map (Sign.full_bname thy1) rep_set_names';
 
     val tyvars = map (fn (_, (_, Ts, _)) => map Datatype_Aux.dest_DtTFree Ts) (hd descr);
@@ -111,8 +111,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               val Type (_, [T1, T2]) = T;
             in
               if i <= n2
-              then Const (@{const_name Inl}, T1 --> T) $ (mk_inj' T1 n2 i)
-              else Const (@{const_name Inr}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+              then Const (@{const_name Inl}, T1 --> T) $ mk_inj' T1 n2 i
+              else Const (@{const_name Inr}, T2 --> T) $ mk_inj' T2 (n - n2) (i - n2)
             end;
       in mk_inj' sumT (length leafTs) (1 + find_index (fn T'' => T'' = T') leafTs) end;
 
@@ -175,7 +175,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val intr_ts = maps (fn ((_, (_, _, constrs)), rep_set_name) =>
       map (make_intr rep_set_name (length constrs))
-        ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names');
+        ((1 upto length constrs) ~~ constrs)) (descr' ~~ rep_set_names');
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
       thy1
@@ -242,8 +242,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val rhs = mk_univ_inj r_args n i;
         val def = Logic.mk_equals (lhs, Const (abs_name, Univ_elT --> T) $ rhs);
         val def_name = Long_Name.base_name cname ^ "_def";
-        val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
+        val eqn =
+          HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
           thy
           |> Sign.add_consts_i [(cname', constrT, mx)]
