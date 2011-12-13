@@ -2284,9 +2284,7 @@ fun rationalize_decls ctxt (decls as decl :: (decls' as _ :: _)) =
 fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
                                 (s, decls) =
   case type_enc of
-    Simple_Types _ =>
-    decls |> rationalize_decls ctxt
-          |> map (decl_line_for_sym ctxt format mono type_enc s)
+    Simple_Types _ => [decl_line_for_sym ctxt format mono type_enc s (hd decls)]
   | Guards (_, level) =>
     let
       val decls = decls |> rationalize_decls ctxt
