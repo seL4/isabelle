@@ -296,7 +296,7 @@ lemmas bin_nth_simps =
 
 subsection {* Truncating binary integers *}
 
-definition
+definition bin_sign :: "int \<Rightarrow> int" where
   bin_sign_def: "bin_sign k = (if k \<ge> 0 then 0 else - 1)"
 
 lemma bin_sign_simps [simp]:
