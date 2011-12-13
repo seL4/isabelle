@@ -306,8 +306,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
               in
                 (thy |>
                  Datatype.add_datatype {strict = true, quiet = true}
-                   [([], tyb, NoSyn,
-                     map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
+                   [((tyb, [], NoSyn), map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
                  add_enum_type s tyname,
                  tyname)
               end
