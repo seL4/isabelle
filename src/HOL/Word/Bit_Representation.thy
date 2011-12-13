@@ -46,6 +46,15 @@ lemma bin_last_BIT: "bin_last (x BIT b) = b"
 lemma BIT_eq_iff [iff]: "u BIT b = v BIT c \<longleftrightarrow> u = v \<and> b = c"
   by (metis bin_rest_BIT bin_last_BIT)
 
+lemma BIT_bin_simps [simp]:
+  "number_of w BIT 0 = number_of (Int.Bit0 w)"
+  "number_of w BIT 1 = number_of (Int.Bit1 w)"
+  unfolding Bit_def number_of_is_id numeral_simps by simp_all
+
+lemma BIT_special_simps [simp]:
+  shows "0 BIT 0 = 0" and "0 BIT 1 = 1" and "1 BIT 0 = 2" and "1 BIT 1 = 3"
+  unfolding Bit_def by simp_all
+
 lemma BIT_B0_eq_Bit0: "w BIT 0 = Int.Bit0 w"
   unfolding Bit_def Bit0_def by simp
 
