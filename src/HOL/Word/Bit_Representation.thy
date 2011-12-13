@@ -376,11 +376,21 @@ subsection "Simplifications for (s)bintrunc"
 lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
   by (induct n) (auto simp add: Int.Pls_def)
 
+lemma sbintrunc_n_0 [simp]: "sbintrunc n 0 = 0"
+  by (induct n) (auto simp add: Int.Pls_def)
+
 lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) 1 = 1"
   "bintrunc (Suc n) -1 = bintrunc n -1 BIT 1"
   "bintrunc (Suc n) (number_of (Int.Bit0 w)) = bintrunc n (number_of w) BIT 0"
   "bintrunc (Suc n) (number_of (Int.Bit1 w)) = bintrunc n (number_of w) BIT 1"
+  by simp_all
+
+lemma sbintrunc_Suc_numeral:
+  "sbintrunc (Suc n) 1 = 1"
+  "sbintrunc (Suc n) -1 = sbintrunc n -1 BIT 1"
+  "sbintrunc (Suc n) (number_of (Int.Bit0 w)) = sbintrunc n (number_of w) BIT 0"
+  "sbintrunc (Suc n) (number_of (Int.Bit1 w)) = sbintrunc n (number_of w) BIT 1"
   by simp_all
 
 lemma bit_bool:
@@ -486,6 +496,7 @@ lemma sbintrunc_Suc_Bit1 [simp]:
 
 lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min sbintrunc_Suc_BIT
   sbintrunc_Suc_Bit0 sbintrunc_Suc_Bit1
+  sbintrunc_Suc_numeral
 
 lemmas sbintrunc_Pls = 
   sbintrunc.Z [where bin="Int.Pls", 
