@@ -54,7 +54,7 @@ lemma bin_rec_Bit1:
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Int.Pls (0::bit) f1 = f1 ==> 
     f3 Int.Min (1::bit) f2 = f2 ==> f (w BIT b) = f3 w b (f w)"
-  by (cases b, simp add: bin_rec_Bit0, simp add: bin_rec_Bit1)
+  by (cases b, simp add: bin_rec_Bit0 BIT_simps, simp add: bin_rec_Bit1 BIT_simps)
 
 lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
   bin_rec_Bit0 bin_rec_Bit1
@@ -95,7 +95,8 @@ lemma int_not_simps [simp]:
   "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
   "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
   "NOT (w BIT b) = (NOT w) BIT (NOT b)"
-  unfolding int_not_def Pls_def [symmetric] Min_def [symmetric] by (simp_all add: bin_rec_simps)
+  unfolding int_not_def Pls_def [symmetric] Min_def [symmetric]
+  by (simp_all add: bin_rec_simps BIT_simps)
 
 lemma int_xor_Pls [simp]: 
   "Int.Pls XOR x = x"
@@ -133,7 +134,8 @@ lemma int_or_Min [simp]:
 
 lemma int_or_Bits [simp]: 
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
-  unfolding int_or_def Pls_def [symmetric] Min_def [symmetric] by (simp add: bin_rec_simps)
+  unfolding int_or_def Pls_def [symmetric] Min_def [symmetric]
+  by (simp add: bin_rec_simps BIT_simps)
 
 lemma int_or_Bits2 [simp]: 
   "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
@@ -152,7 +154,8 @@ lemma int_and_Min [simp]:
 
 lemma int_and_Bits [simp]: 
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
-  unfolding int_and_def Pls_def [symmetric] Min_def [symmetric] by (simp add: bin_rec_simps)
+  unfolding int_and_def Pls_def [symmetric] Min_def [symmetric]
+  by (simp add: bin_rec_simps BIT_simps)
 
 lemma int_and_Bits2 [simp]: 
   "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
@@ -322,7 +325,7 @@ lemma le_int_or:
   apply (case_tac x rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] bit)
-     apply (auto simp: less_eq_int_code)
+     apply (auto simp: less_eq_int_code BIT_simps)
   done
 
 lemmas int_and_le =
@@ -334,7 +337,7 @@ lemma bin_add_not: "x + NOT x = Int.Min"
   apply (induct x rule: bin_induct)
     apply clarsimp
    apply clarsimp
-  apply (case_tac bit, auto)
+  apply (case_tac bit, auto simp: BIT_simps)
   done
 
 subsubsection {* Truncating results of bit-wise operations *}
@@ -447,10 +450,10 @@ lemma bintr_bin_set_ge:
   done
 
 lemma bin_sc_FP [simp]: "bin_sc n 0 Int.Pls = Int.Pls"
-  by (induct n) auto
+  by (induct n) (auto simp: BIT_simps)
 
 lemma bin_sc_TM [simp]: "bin_sc n 1 Int.Min = Int.Min"
-  by (induct n) auto
+  by (induct n) (auto simp: BIT_simps)
   
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
 
@@ -566,7 +569,7 @@ lemma bin_split_cat:
 
 lemma bin_split_Pls [simp]:
   "bin_split n Int.Pls = (Int.Pls, Int.Pls)"
-  by (induct n) (auto simp: Let_def split: ls_splits)
+  by (induct n) (auto simp: Let_def BIT_simps split: ls_splits)
 
 lemma bin_split_Min [simp]:
   "bin_split n Int.Min = (Int.Min, bintrunc n Int.Min)"
@@ -578,7 +581,7 @@ lemma bin_split_trunc:
   apply (induct n, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: ls_splits)
   apply (case_tac m)
-   apply (auto simp: Let_def split: ls_splits)
+   apply (auto simp: Let_def BIT_simps split: ls_splits)
   done
 
 lemma bin_split_trunc1:
@@ -587,7 +590,7 @@ lemma bin_split_trunc1:
   apply (induct n, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: ls_splits)
   apply (case_tac m)
-   apply (auto simp: Let_def split: ls_splits)
+   apply (auto simp: Let_def BIT_simps split: ls_splits)
   done
 
 lemma bin_cat_num:

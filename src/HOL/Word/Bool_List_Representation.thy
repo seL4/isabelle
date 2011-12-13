@@ -184,7 +184,7 @@ lemma bl_to_bin_inj:
   done
 
 lemma bl_to_bin_False: "bl_to_bin (False # bl) = bl_to_bin bl"
-  unfolding bl_to_bin_def by auto
+  unfolding bl_to_bin_def by (auto simp: BIT_simps)
   
 lemma bl_to_bin_Nil: "bl_to_bin [] = Int.Pls"
   unfolding bl_to_bin_def by auto
@@ -323,7 +323,8 @@ lemma bl_to_bin_lt2p_aux [rule_format]:
   apply clarsimp
   apply safe
   apply (erule allE, erule xtr8 [rotated],
-         simp add: numeral_simps algebra_simps cong add : number_of_False_cong)+
+         simp add: numeral_simps algebra_simps BIT_simps
+         cong add: number_of_False_cong)+
   done
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
@@ -341,7 +342,8 @@ lemma bl_to_bin_ge2p_aux [rule_format] :
   apply clarsimp
   apply safe
    apply (erule allE, erule preorder_class.order_trans [rotated],
-          simp add: numeral_simps algebra_simps cong add : number_of_False_cong)+
+          simp add: numeral_simps algebra_simps BIT_simps
+          cong add: number_of_False_cong)+
   done
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
@@ -384,13 +386,13 @@ lemma trunc_bl2bin_aux [rule_format]:
   apply safe
    apply (case_tac "m - size list")
     apply (simp add : diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-   apply simp
+   apply (simp add: BIT_simps)
    apply (rule_tac f = "%nat. bl_to_bin_aux list (Int.Bit1 (bintrunc nat w))" 
                    in arg_cong) 
    apply simp
   apply (case_tac "m - size list")
    apply (simp add: diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-  apply simp
+  apply (simp add: BIT_simps)
   apply (rule_tac f = "%nat. bl_to_bin_aux list (Int.Bit0 (bintrunc nat w))" 
                   in arg_cong) 
   apply simp
@@ -688,10 +690,10 @@ lemma mask_lem: "(bl_to_bin (True # replicate n False)) =
     Int.succ (bl_to_bin (replicate n True))"
   apply (unfold bl_to_bin_def)
   apply (induct n)
-   apply simp
+   apply (simp add: BIT_simps)
   apply (simp only: Suc_eq_plus1 replicate_add
                     append_Cons [symmetric] bl_to_bin_aux_append)
-  apply simp
+  apply (simp add: BIT_simps)
   done
 
 (* function bl_of_nth *)
@@ -754,7 +756,7 @@ lemma rbl_pred:
   apply clarsimp
   apply (case_tac bin rule: bin_exhaust)
   apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt)+
+   apply (clarsimp simp: bin_to_bl_aux_alt BIT_simps)+
   done
 
 lemma rbl_succ: 
@@ -764,7 +766,7 @@ lemma rbl_succ:
   apply clarsimp
   apply (case_tac bin rule: bin_exhaust)
   apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt)+
+   apply (clarsimp simp: bin_to_bl_aux_alt BIT_simps)+
   done
 
 lemma rbl_add: 
@@ -777,7 +779,7 @@ lemma rbl_add:
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: rbl_succ succ_def bin_to_bl_aux_alt Let_def add_ac)
+     apply (auto simp: rbl_succ succ_def bin_to_bl_aux_alt Let_def add_ac BIT_simps)
   done
 
 lemma rbl_add_app2: 
@@ -863,8 +865,8 @@ lemma rbl_mult: "!!bina binb.
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: bin_to_bl_aux_alt Let_def)
-     apply (auto simp: rbbl_Cons rbl_mult_Suc rbl_add)
+     apply (auto simp: bin_to_bl_aux_alt Let_def BIT_simps)
+     apply (auto simp: rbbl_Cons rbl_mult_Suc rbl_add BIT_simps)
   done
 
 lemma rbl_add_split: 

@@ -1255,7 +1255,7 @@ lemma succ_pred_no [simp]:
 
 lemma word_sp_01 [simp] : 
   "word_succ -1 = 0 & word_succ 0 = 1 & word_pred 0 = -1 & word_pred 1 = 0"
-  by (unfold word_0_no word_1_no) auto
+  by (unfold word_0_no word_1_no) (auto simp: BIT_simps)
 
 (* alternative approach to lifting arithmetic equalities *)
 lemma word_of_int_Ex:
@@ -2541,10 +2541,10 @@ lemma uint_2p:
    apply clarsimp
    apply (case_tac "n")
     apply (clarsimp simp add : word_1_wi [symmetric])
-   apply (clarsimp simp add : word_0_wi [symmetric])
+   apply (clarsimp simp add : word_0_wi [symmetric] BIT_simps)
   apply (drule word_gt_0 [THEN iffD1])
   apply (safe intro!: word_eqI bin_nth_lem ext)
-     apply (auto simp add: test_bit_2p nth_2p_bin word_test_bit_def [symmetric])
+     apply (auto simp add: test_bit_2p nth_2p_bin word_test_bit_def [symmetric] BIT_simps)
   done
 
 lemma word_of_int_2p: "(word_of_int (2 ^ n) :: 'a :: len word) = 2 ^ n" 
@@ -2556,7 +2556,7 @@ lemma word_of_int_2p: "(word_of_int (2 ^ n) :: 'a :: len word) = 2 ^ n"
    apply (rule box_equals) 
      apply (rule_tac [2] bintr_ariths (1))+ 
    apply (clarsimp simp add : number_of_is_id)
-  apply simp 
+  apply (simp add: BIT_simps)
   done
 
 lemma bang_is_le: "x !! m \<Longrightarrow> 2 ^ m <= (x :: 'a :: len word)" 
@@ -2599,7 +2599,7 @@ lemma shiftl1_number [simp] :
   done
 
 lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
-  unfolding word_0_no shiftl1_number by auto
+  unfolding word_0_no shiftl1_number by (auto simp: BIT_simps)
 
 lemmas shiftl1_def_u = shiftl1_def [folded word_number_of_def]
 
@@ -2920,13 +2920,13 @@ lemma shiftl_zero_size:
 (* note - the following results use 'a :: len word < number_ring *)
 
 lemma shiftl1_2t: "shiftl1 (w :: 'a :: len word) = 2 * w"
-  apply (simp add: shiftl1_def_u)
+  apply (simp add: shiftl1_def_u BIT_simps)
   apply (simp only:  double_number_of_Bit0 [symmetric])
   apply simp
   done
 
 lemma shiftl1_p: "shiftl1 (w :: 'a :: len word) = w + w"
-  apply (simp add: shiftl1_def_u)
+  apply (simp add: shiftl1_def_u BIT_simps)
   apply (simp only: double_number_of_Bit0 [symmetric])
   apply simp
   done
@@ -4598,5 +4598,8 @@ declare bin_to_bl_def [simp]
 use "~~/src/HOL/Word/Tools/smt_word.ML"
 
 setup {* SMT_Word.setup *}
+
+text {* Legacy simp rules *}
+declare BIT_simps [simp]
 
 end
