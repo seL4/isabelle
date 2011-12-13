@@ -2022,7 +2022,9 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
     |> is_type_enc_fairly_sound type_enc
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> (case type_enc of
-                Simple_Types (First_Order, Polymorphic, _) => add_TYPE_const ()
+                Simple_Types (First_Order, Polymorphic, _) =>
+                if avoid_first_order_ghost_type_vars then add_TYPE_const ()
+                else I
               | Simple_Types _ => I
               | _ => fold add_undefined_const (var_types ())))
   end
