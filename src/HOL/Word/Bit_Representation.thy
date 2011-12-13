@@ -301,12 +301,17 @@ definition bin_sign :: "int \<Rightarrow> int" where
   bin_sign_def: "bin_sign k = (if k \<ge> 0 then 0 else - 1)"
 
 lemma bin_sign_simps [simp]:
+  "bin_sign 0 = 0"
+  "bin_sign -1 = -1"
+  "bin_sign (number_of (Int.Bit0 w)) = bin_sign (number_of w)"
+  "bin_sign (number_of (Int.Bit1 w)) = bin_sign (number_of w)"
   "bin_sign Int.Pls = Int.Pls"
   "bin_sign Int.Min = Int.Min"
   "bin_sign (Int.Bit0 w) = bin_sign w"
   "bin_sign (Int.Bit1 w) = bin_sign w"
   "bin_sign (w BIT b) = bin_sign w"
-  by (unfold bin_sign_def numeral_simps Bit_def bitval_def) (simp_all split: bit.split)
+  unfolding bin_sign_def numeral_simps Bit_def bitval_def number_of_is_id
+  by (simp_all split: bit.split)
 
 lemma bin_sign_rest [simp]: 
   "bin_sign (bin_rest w) = bin_sign w"
