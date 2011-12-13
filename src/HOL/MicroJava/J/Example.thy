@@ -39,17 +39,19 @@ class Example {
 datatype cnam' = Base' | Ext'
 datatype vnam' = vee' | x' | e'
 
-consts
-  cnam' :: "cnam' => cname"
-  vnam' :: "vnam' => vnam"
+text {*
+  @{text cnam'} and @{text vnam'} are intended to be isomorphic 
+  to @{text cnam} and @{text vnam}
+*}
 
--- "@{text cnam'} and @{text vnam'} are intended to be isomorphic 
-    to @{text cnam} and @{text vnam}"
-axioms 
-  inj_cnam':  "(cnam' x = cnam' y) = (x = y)"
-  inj_vnam':  "(vnam' x = vnam' y) = (x = y)"
-
+axiomatization cnam' :: "cnam' => cname"
+where
+  inj_cnam':  "(cnam' x = cnam' y) = (x = y)" and
   surj_cnam': "\<exists>m. n = cnam' m"
+
+axiomatization vnam' :: "vnam' => vnam"
+where
+  inj_vnam':  "(vnam' x = vnam' y) = (x = y)" and
   surj_vnam': "\<exists>m. n = vnam' m"
 
 declare inj_cnam' [simp] inj_vnam' [simp]
@@ -65,11 +67,11 @@ abbreviation x :: vname
 abbreviation e :: vname
   where "e == VName (vnam' e')"
 
-axioms
-  Base_not_Object: "Base \<noteq> Object"
-  Ext_not_Object:  "Ext  \<noteq> Object"
-  Base_not_Xcpt:   "Base \<noteq> Xcpt z"
-  Ext_not_Xcpt:    "Ext  \<noteq> Xcpt z"
+axiomatization where
+  Base_not_Object: "Base \<noteq> Object" and
+  Ext_not_Object:  "Ext  \<noteq> Object" and
+  Base_not_Xcpt:   "Base \<noteq> Xcpt z" and
+  Ext_not_Xcpt:    "Ext  \<noteq> Xcpt z" and
   e_not_This:      "e \<noteq> This"  
 
 declare Base_not_Object [simp] Ext_not_Object [simp]

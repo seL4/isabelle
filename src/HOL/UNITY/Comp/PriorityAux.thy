@@ -45,7 +45,7 @@ definition derive :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" wh
     --{* Our alternative definition *}
   "derive i r q == A i r = {} & (q = reverse i r)"
 
-axioms
+axiomatization where
   finite_vertex_univ:  "finite (UNIV :: vertex set)"
     --{* we assume that the universe of vertices is finite  *}
 

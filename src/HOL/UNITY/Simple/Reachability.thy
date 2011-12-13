@@ -44,27 +44,27 @@ definition final :: "state set" where
   "final == (\<Inter>v\<in>V. reachable v <==> {s. (root, v) \<in> REACHABLE}) \<inter> 
             (INTER E (nmsg_eq 0))"
 
-axioms
+axiomatization
+where
+    Graph1: "root \<in> V" and
 
-    Graph1: "root \<in> V"
+    Graph2: "(v,w) \<in> E ==> (v \<in> V) & (w \<in> V)" and
 
-    Graph2: "(v,w) \<in> E ==> (v \<in> V) & (w \<in> V)"
+    MA1:  "F \<in> Always (reachable root)" and
 
-    MA1:  "F \<in> Always (reachable root)"
+    MA2:  "v \<in> V ==> F \<in> Always (- reachable v \<union> {s. ((root,v) \<in> REACHABLE)})" and
 
-    MA2:  "v \<in> V ==> F \<in> Always (- reachable v \<union> {s. ((root,v) \<in> REACHABLE)})"
-
-    MA3:  "[|v \<in> V;w \<in> V|] ==> F \<in> Always (-(nmsg_gt 0 (v,w)) \<union> (reachable v))"
+    MA3:  "[|v \<in> V;w \<in> V|] ==> F \<in> Always (-(nmsg_gt 0 (v,w)) \<union> (reachable v))" and
 
     MA4:  "(v,w) \<in> E ==> 
-           F \<in> Always (-(reachable v) \<union> (nmsg_gt 0 (v,w)) \<union> (reachable w))"
+           F \<in> Always (-(reachable v) \<union> (nmsg_gt 0 (v,w)) \<union> (reachable w))" and
 
     MA5:  "[|v \<in> V; w \<in> V|] 
-           ==> F \<in> Always (nmsg_gte 0 (v,w) \<inter> nmsg_lte (Suc 0) (v,w))"
+           ==> F \<in> Always (nmsg_gte 0 (v,w) \<inter> nmsg_lte (Suc 0) (v,w))" and
 
-    MA6:  "[|v \<in> V|] ==> F \<in> Stable (reachable v)"
+    MA6:  "[|v \<in> V|] ==> F \<in> Stable (reachable v)" and
 
-    MA6b: "[|v \<in> V;w \<in> W|] ==> F \<in> Stable (reachable v \<inter> nmsg_lte k (v,w))"
+    MA6b: "[|v \<in> V;w \<in> W|] ==> F \<in> Stable (reachable v \<inter> nmsg_lte k (v,w))" and
 
     MA7:  "[|v \<in> V;w \<in> V|] ==> F \<in> UNIV LeadsTo nmsg_eq 0 (v,w)"
 

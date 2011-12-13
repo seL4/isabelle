@@ -379,19 +379,18 @@ done
 
 subsubsection {* Appending garbage nodes to the free list *}
 
-consts Append_to_free :: "nat \<times> edges \<Rightarrow> edges"
-
-axioms
-  Append_to_free0: "length (Append_to_free (i, e)) = length e"
+axiomatization Append_to_free :: "nat \<times> edges \<Rightarrow> edges"
+where
+  Append_to_free0: "length (Append_to_free (i, e)) = length e" and
   Append_to_free1: "Proper_Edges (m, e) 
-                   \<Longrightarrow> Proper_Edges (m, Append_to_free(i, e))"
+                   \<Longrightarrow> Proper_Edges (m, Append_to_free(i, e))" and
   Append_to_free2: "i \<notin> Reach e 
      \<Longrightarrow> n \<in> Reach (Append_to_free(i, e)) = ( n = i \<or> n \<in> Reach e)"
 
 definition AppendInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "AppendInv \<equiv> \<guillemotleft>\<lambda>ind. \<forall>i<length \<acute>M. ind\<le>i \<longrightarrow> i\<in>Reach \<acute>E \<longrightarrow> \<acute>M!i=Black\<guillemotright>"
 
-definition Append :: " gar_coll_state ann_com" where
+definition Append :: "gar_coll_state ann_com" where
    "Append \<equiv>
   .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe}.
   \<acute>ind:=0;;

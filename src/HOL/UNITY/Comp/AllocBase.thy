@@ -7,12 +7,10 @@ header{*Common Declarations for Chandy and Charpentier's Allocator*}
 
 theory AllocBase imports "../UNITY_Main" begin
 
-consts
-  NbT      :: nat       (*Number of tokens in system*)
-  Nclients :: nat       (*Number of clients*)
+consts Nclients :: nat  (*Number of clients*)
 
-axioms
-  NbT_pos:  "0 < NbT"
+axiomatization NbT :: nat  (*Number of tokens in system*)
+  where NbT_pos: "0 < NbT"
 
 (*This function merely sums the elements of a list*)
 primrec tokens :: "nat list => nat" where
