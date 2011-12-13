@@ -28,8 +28,6 @@ sig
   val make_case :  Proof.context -> Datatype_Case.config -> string list -> term ->
     (term * term) list -> term
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
-  val read_typ: theory -> string -> (string * sort) list -> typ * (string * sort) list
-  val cert_typ: theory -> typ -> (string * sort) list -> typ * (string * sort) list
   val mk_case_names_induct: descr -> attribute
   val setup: theory -> theory
 end;
@@ -170,27 +168,6 @@ fun get_constrs thy dtco =
 
 
 (** various auxiliary **)
-
-(* prepare datatype specifications *)
-
-fun read_typ thy str sorts =
-  let
-    val ctxt = Proof_Context.init_global thy
-      |> fold (Variable.declare_typ o TFree) sorts;
-    val T = Syntax.read_typ ctxt str;
-  in (T, Term.add_tfreesT T sorts) end;
-
-fun cert_typ sign raw_T sorts =
-  let
-    val T = Type.no_tvars (Sign.certify_typ sign raw_T)
-      handle TYPE (msg, _, _) => error msg;
-    val sorts' = Term.add_tfreesT T sorts;
-    val _ =
-      (case duplicates (op =) (map fst sorts') of
-        [] => ()
-      | dups => error ("Inconsistent sort constraints for " ^ commas dups));
-  in (T, sorts') end;
-
 
 (* case names *)
 
@@ -427,8 +404,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
         (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);
 
     val cs = map (apsnd (map norm_constr)) raw_cs;
-    val dtyps_of_typ =
-      map (Datatype_Aux.dtyp_of_typ (map (rpair (map fst vs) o fst) cs)) o binder_types;
+    val dtyps_of_typ = map (Datatype_Aux.dtyp_of_typ (map (rpair vs o fst) cs)) o binder_types;
     val dt_names = map fst cs;
 
     fun mk_spec (i, (tyco, constr)) =

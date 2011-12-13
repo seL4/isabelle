@@ -57,7 +57,7 @@ sig
   exception Datatype
   exception Datatype_Empty of string
   val name_of_typ : typ -> string
-  val dtyp_of_typ : (string * string list) list -> typ -> dtyp
+  val dtyp_of_typ : (string * (string * sort) list) list -> typ -> dtyp
   val mk_Free : string -> typ -> int -> term
   val is_rec_type : dtyp -> bool
   val typ_of_dtyp : descr -> dtyp -> typ
@@ -242,7 +242,7 @@ fun dtyp_of_typ _ (TFree a) = DtTFree a
       (case AList.lookup (op =) new_dts tname of
         NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
       | SOME vs =>
-          if map (try (fst o dest_TFree)) Ts = map SOME vs then
+          if map (try dest_TFree) Ts = map SOME vs then
             DtRec (find_index (curry op = tname o fst) new_dts)
           else error ("Illegal occurrence of recursive type " ^ quote tname));
 
