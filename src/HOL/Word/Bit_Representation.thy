@@ -43,7 +43,7 @@ lemma bin_last_BIT: "bin_last (x BIT b) = b"
   unfolding bin_last_def Bit_def
   by (cases b, simp_all add: z1pmod2)
 
-lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
+lemma BIT_eq_iff [iff]: "u BIT b = v BIT c \<longleftrightarrow> u = v \<and> b = c"
   by (metis bin_rest_BIT bin_last_BIT)
 
 lemma BIT_B0_eq_Bit0: "w BIT 0 = Int.Bit0 w"
@@ -57,14 +57,6 @@ lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
 lemma number_of_False_cong: 
   "False \<Longrightarrow> number_of x = number_of y"
   by (rule FalseE)
-
-lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE]
-
-lemma BIT_eq_iff [simp]: 
-  "(u BIT b = v BIT c) = (u = v \<and> b = c)"
-  by (rule iffI) auto
-
-lemmas BIT_eqI [intro!] = conjI [THEN BIT_eq_iff [THEN iffD2]]
 
 lemma less_Bits: 
   "(v BIT b < w BIT c) = (v < w | v <= w & b = (0::bit) & c = (1::bit))"
@@ -249,7 +241,7 @@ lemma bin_nth_lem [rule_format]:
   apply (erule allE)
   apply (erule impE)
    prefer 2
-   apply (erule BIT_eqI)
+   apply (erule conjI)
    apply (drule_tac x=0 in fun_cong, force)
   apply (rule ext)
   apply (drule_tac x="Suc ?x" in fun_cong, force)
