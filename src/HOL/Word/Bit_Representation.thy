@@ -269,6 +269,9 @@ lemmas bin_eqI = ext [THEN bin_nth_eq_iff [THEN iffD1]]
 lemma bin_eq_iff: "x = y \<longleftrightarrow> (\<forall>n. bin_nth x n = bin_nth y n)"
   by (auto intro!: bin_nth_lem del: equalityI)
 
+lemma bin_nth_zero [simp]: "\<not> bin_nth 0 n"
+  by (induct n) auto
+
 lemma bin_nth_Pls [simp]: "~ bin_nth Int.Pls n"
   by (induct n) auto
 
