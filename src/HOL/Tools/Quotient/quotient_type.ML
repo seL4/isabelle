@@ -277,6 +277,7 @@ val partial = Scan.optional (Parse.reserved "partial" -- Parse.$$$ ":" >> K true
 val quotspec_parser =
   Parse.and_list1
     ((Parse.type_args -- Parse.binding) --
+      (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
       Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
         (Parse.$$$ "/" |-- (partial -- Parse.term))  --
         Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
