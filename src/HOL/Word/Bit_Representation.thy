@@ -55,6 +55,22 @@ lemma BIT_special_simps [simp]:
   shows "0 BIT 0 = 0" and "0 BIT 1 = 1" and "1 BIT 0 = 2" and "1 BIT 1 = 3"
   unfolding Bit_def by simp_all
 
+lemma bin_last_numeral_simps [simp]:
+  "bin_last 0 = 0"
+  "bin_last 1 = 1"
+  "bin_last -1 = 1"
+  "bin_last (number_of (Int.Bit0 w)) = 0"
+  "bin_last (number_of (Int.Bit1 w)) = 1"
+  unfolding bin_last_def by simp_all
+
+lemma bin_rest_numeral_simps [simp]:
+  "bin_rest 0 = 0"
+  "bin_rest 1 = 0"
+  "bin_rest -1 = -1"
+  "bin_rest (number_of (Int.Bit0 w)) = number_of w"
+  "bin_rest (number_of (Int.Bit1 w)) = number_of w"
+  unfolding bin_rest_def by simp_all
+
 lemma BIT_B0_eq_Bit0: "w BIT 0 = Int.Bit0 w"
   unfolding Bit_def Bit0_def by simp
 
@@ -206,17 +222,6 @@ lemma bin_last_simps [simp]:
   "bin_last (Int.Bit1 w) = (1::bit)"
   "bin_last (w BIT b) = b"
   using bin_rl_simps bin_rl_def by auto
-
-lemma bin_r_l_extras [simp]:
-  "bin_last 0 = (0::bit)"
-  "bin_last (- 1) = (1::bit)"
-  "bin_last -1 = (1::bit)"
-  "bin_last 1 = (1::bit)"
-  "bin_rest 1 = 0"
-  "bin_rest 0 = 0"
-  "bin_rest (- 1) = - 1"
-  "bin_rest -1 = -1"
-  by (simp_all add: bin_last_def bin_rest_def)
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_def [symmetric] by auto
