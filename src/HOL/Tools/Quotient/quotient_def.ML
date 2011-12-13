@@ -65,7 +65,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
       | _ => raise Match)
 
     val absrep_trm = Quotient_Term.absrep_fun lthy Quotient_Term.AbsF (fastype_of rhs, lhs_ty) $ rhs
-    val prop = Logic.mk_equals (lhs, Syntax.check_term lthy absrep_trm)
+    val prop = Syntax.check_term lthy (Logic.mk_equals (lhs, absrep_trm))
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
