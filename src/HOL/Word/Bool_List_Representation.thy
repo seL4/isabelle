@@ -231,8 +231,10 @@ lemma bin_to_bl_aux_bintr [rule_format] :
     apply auto
   done
 
-lemmas bin_to_bl_bintr = 
-  bin_to_bl_aux_bintr [where bl = "[]", folded bin_to_bl_def]
+lemma bin_to_bl_bintr:
+  "bin_to_bl n (bintrunc m bin) =
+    replicate (n - m) False @ bin_to_bl (min n m) bin"
+  unfolding bin_to_bl_def by (rule bin_to_bl_aux_bintr)
 
 lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Int.Pls"
   by (induct n) auto
@@ -301,7 +303,8 @@ lemma nth_rev [rule_format] :
   apply arith
   done
 
-lemmas nth_rev_alt = nth_rev [where xs = "rev ys", simplified] for ys
+lemma nth_rev_alt: "n < length ys \<Longrightarrow> ys ! n = rev ys ! (length ys - Suc n)"
+  by (simp add: nth_rev)
 
 lemma nth_bin_to_bl_aux [rule_format] : 
   "ALL w n bl. n < m + length bl --> (bin_to_bl_aux m w bl) ! n = 
@@ -362,8 +365,9 @@ lemma butlast_rest_bin:
   apply (auto simp add: bin_to_bl_aux_alt)
   done
 
-lemmas butlast_bin_rest = butlast_rest_bin
-  [where w="bl_to_bin bl" and n="length bl", simplified] for bl
+lemma butlast_bin_rest:
+  "butlast bl = bin_to_bl (length bl - Suc 0) (bin_rest (bl_to_bin bl))"
+  using butlast_rest_bin [where w="bl_to_bin bl" and n="length bl"] by simp
 
 lemma butlast_rest_bl2bin_aux:
   "bl ~= [] \<Longrightarrow>
@@ -402,8 +406,9 @@ lemma trunc_bl2bin:
   "bintrunc m (bl_to_bin bl) = bl_to_bin (drop (length bl - m) bl)"
   unfolding bl_to_bin_def by (simp add : trunc_bl2bin_aux)
   
-lemmas trunc_bl2bin_len [simp] =
-  trunc_bl2bin [of "length bl" bl, simplified] for bl
+lemma trunc_bl2bin_len [simp]:
+  "bintrunc (length bl) (bl_to_bin bl) = bl_to_bin bl"
+  by (simp add: trunc_bl2bin)
 
 lemma bl2bin_drop: 
   "bl_to_bin (drop k bl) = bintrunc (length bl - k) (bl_to_bin bl)"
@@ -493,17 +498,20 @@ lemma bl_not_aux_bin [rule_format] :
   apply clarsimp
   done
 
-lemmas bl_not_bin = bl_not_aux_bin
-  [where cs = "[]", unfolded bin_to_bl_def [symmetric] map.simps]
+lemma bl_not_bin: "map Not (bin_to_bl n w) = bin_to_bl n (NOT w)"
+  unfolding bin_to_bl_def by (simp add: bl_not_aux_bin)
 
-lemmas bl_and_bin = bl_and_aux_bin [where bs="[]" and cs="[]", 
-                                    unfolded map2_Nil, folded bin_to_bl_def]
+lemma bl_and_bin:
+  "map2 (op \<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v AND w)"
+  unfolding bin_to_bl_def by (simp add: bl_and_aux_bin)
 
-lemmas bl_or_bin = bl_or_aux_bin [where bs="[]" and cs="[]", 
-                                  unfolded map2_Nil, folded bin_to_bl_def]
+lemma bl_or_bin:
+  "map2 (op \<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
+  unfolding bin_to_bl_def by (simp add: bl_or_aux_bin)
 
-lemmas bl_xor_bin = bl_xor_aux_bin [where bs="[]" and cs="[]", 
-                                    unfolded map2_Nil, folded bin_to_bl_def]
+lemma bl_xor_bin:
+  "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
+  unfolding bin_to_bl_def by (simp only: bl_xor_aux_bin map2_Nil)
 
 lemma drop_bin2bl_aux [rule_format] : 
   "ALL m bin bs. drop m (bin_to_bl_aux n bin bs) = 
@@ -617,10 +625,11 @@ lemma takefill_bintrunc:
 lemma bl_bin_bl_rtf:
   "bin_to_bl n (bl_to_bin bl) = rev (takefill False n (rev bl))"
   by (simp add : takefill_bintrunc)
-  
-lemmas bl_bin_bl_rep_drop = 
-  bl_bin_bl_rtf [simplified takefill_alt,
-                 simplified, simplified rev_take, simplified]
+
+lemma bl_bin_bl_rep_drop:
+  "bin_to_bl n (bl_to_bin bl) =
+    replicate (n - length bl) False @ drop (length bl - n) bl"
+  by (simp add: bl_bin_bl_rtf takefill_alt rev_take)
 
 lemma tf_rev:
   "n + k = m + length bl ==> takefill x m (rev (takefill y n bl)) = 
@@ -662,12 +671,15 @@ lemma bin_to_bl_aux_cat:
     bin_to_bl_aux nv v (bin_to_bl_aux nw w bs)"
   by (induct nw) auto 
 
-lemmas bl_to_bin_aux_alt = 
-  bl_to_bin_aux_cat [where nv = "0" and v = "Int.Pls", 
-    simplified bl_to_bin_def [symmetric], simplified]
+lemma bl_to_bin_aux_alt:
+  "bl_to_bin_aux bs w = bin_cat w (length bs) (bl_to_bin bs)"
+  using bl_to_bin_aux_cat [where nv = "0" and v = "Int.Pls"]
+  unfolding bl_to_bin_def [symmetric] by simp
 
-lemmas bin_to_bl_cat =
-  bin_to_bl_aux_cat [where bs = "[]", folded bin_to_bl_def]
+lemma bin_to_bl_cat:
+  "bin_to_bl (nv + nw) (bin_cat v nw w) =
+    bin_to_bl_aux nv v (bin_to_bl nw w)"
+  unfolding bin_to_bl_def by (simp add: bin_to_bl_aux_cat)
 
 lemmas bl_to_bin_aux_app_cat = 
   trans [OF bl_to_bin_aux_append bl_to_bin_aux_alt]
@@ -675,11 +687,13 @@ lemmas bl_to_bin_aux_app_cat =
 lemmas bin_to_bl_aux_cat_app =
   trans [OF bin_to_bl_aux_cat bin_to_bl_aux_alt]
 
-lemmas bl_to_bin_app_cat = bl_to_bin_aux_app_cat
-  [where w = "Int.Pls", folded bl_to_bin_def]
+lemma bl_to_bin_app_cat:
+  "bl_to_bin (bsa @ bs) = bin_cat (bl_to_bin bsa) (length bs) (bl_to_bin bs)"
+  by (simp only: bl_to_bin_aux_app_cat bl_to_bin_def)
 
-lemmas bin_to_bl_cat_app = bin_to_bl_aux_cat_app
-  [where bs = "[]", folded bin_to_bl_def]
+lemma bin_to_bl_cat_app:
+  "bin_to_bl (n + nw) (bin_cat w nw wa) = bin_to_bl n w @ bin_to_bl nw wa"
+  by (simp only: bin_to_bl_def bin_to_bl_aux_cat_app)
 
 (* bl_to_bin_app_cat_alt and bl_to_bin_app_cat are easily interderivable *)
 lemma bl_to_bin_app_cat_alt: 
@@ -727,7 +741,8 @@ lemma bl_of_nth_nth_le [rule_format] : "ALL xs.
   apply simp
   done
 
-lemmas bl_of_nth_nth [simp] = order_refl [THEN bl_of_nth_nth_le, simplified]
+lemma bl_of_nth_nth [simp]: "bl_of_nth (length xs) (op ! (rev xs)) = xs"
+  by (simp add: bl_of_nth_nth_le)
 
 lemma size_rbl_pred: "length (rbl_pred bl) = length bl"
   by (induct bl) auto
@@ -929,8 +944,9 @@ lemma if_bool_simps:
 
 lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
 
-lemmas seqr = eq_reflection [where x = "size w"] for w
+lemmas seqr = eq_reflection [where x = "size w"] for w (* FIXME: delete *)
 
+(* TODO: move name bindings to List.thy *)
 lemmas tl_Nil = tl.simps (1)
 lemmas tl_Cons = tl.simps (2)
 
