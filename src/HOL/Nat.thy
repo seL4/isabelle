@@ -1261,6 +1261,30 @@ lemma comp_funpow:
   by (induct n) simp_all
 
 
+subsection {* Kleene iteration *}
+
+lemma Kleene_iter_lpfp: assumes "mono f" and "f p \<le> p" shows "(f^^k) bot \<le> p"
+proof(induction k)
+  case 0 show ?case by simp
+next
+  case Suc
+  from monoD[OF assms(1) Suc] assms(2)
+  show ?case by simp
+qed
+
+lemma lfp_Kleene_iter: assumes "mono f" and "(f^^Suc k) bot = (f^^k) bot"
+shows "lfp f = (f^^k) bot"
+proof(rule antisym)
+  show "lfp f \<le> (f^^k) bot"
+  proof(rule lfp_lowerbound)
+    show "f ((f^^k) bot) \<le> (f^^k) bot" using assms(2) by simp
+  qed
+next
+  show "(f^^k) bot \<le> lfp f"
+    using Kleene_iter_lpfp[OF assms(1)] lfp_unfold[OF assms(1)] by simp
+qed
+
+
 subsection {* Embedding of the Naturals into any @{text semiring_1}: @{term of_nat} *}
 
 context semiring_1
