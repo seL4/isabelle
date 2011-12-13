@@ -144,7 +144,7 @@ lemma int_or_Bits2 [simp]:
 
 lemma int_and_Pls [simp]:
   "Int.Pls AND x = Int.Pls"
-  unfolding int_and_def by (simp add: bin_rec_PM)
+  unfolding int_and_def Pls_def [symmetric] by (simp add: bin_rec_PM)
 
 lemma int_and_Min [simp]:
   "Int.Min AND x = x"
@@ -598,7 +598,7 @@ lemma bin_cat_num:
 
 lemma bin_split_num:
   "!!b. bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
-  apply (induct n, clarsimp)
+  apply (induct n, simp add: Pls_def)
   apply (simp add: bin_rest_def zdiv_zmult2_eq)
   apply (case_tac b rule: bin_exhaust)
   apply simp

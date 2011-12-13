@@ -54,11 +54,6 @@ lemma BIT_B1_eq_Bit1 [simp]: "w BIT 1 = Int.Bit1 w"
 
 lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
 
-lemmas PlsMin_defs [intro!] = 
-  Pls_def Min_def Pls_def [symmetric] Min_def [symmetric]
-
-lemmas PlsMin_simps [simp] = PlsMin_defs [THEN Eq_TrueI]
-
 lemma number_of_False_cong: 
   "False \<Longrightarrow> number_of x = number_of y"
   by (rule FalseE)
@@ -329,7 +324,9 @@ lemma [code]:
   "sbintrunc 0 bin = 
     (case bin_last bin of (1::bit) => - 1 | (0::bit) => 0)"
   "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
-  apply simp_all apply (cases "bin_last bin") apply simp apply (unfold Min_def number_of_is_id) apply simp done
+  apply simp_all
+  apply (simp only: Pls_def Min_def)
+  done
 
 lemma sign_bintr:
   "!!w. bin_sign (bintrunc n w) = Int.Pls"
@@ -337,7 +334,8 @@ lemma sign_bintr:
 
 lemma bintrunc_mod2p:
   "!!w. bintrunc n w = (w mod 2 ^ n :: int)"
-  apply (induct n, clarsimp)
+  apply (induct n)
+  apply (simp add: Pls_def)
   apply (simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq
               cong: number_of_False_cong)
   done
@@ -349,7 +347,7 @@ lemma sbintrunc_mod2p:
    apply (subst mod_add_left_eq)
    apply (simp add: bin_last_def)
    apply (simp add: number_of_eq)
-  apply clarsimp
+  apply (simp add: Pls_def)
   apply (simp add: bin_last_def bin_rest_def Bit_def 
               cong: number_of_False_cong)
   apply (clarsimp simp: mod_mult_mult1 [symmetric] 

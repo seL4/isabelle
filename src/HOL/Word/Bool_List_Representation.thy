@@ -348,7 +348,7 @@ lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
   apply (unfold bl_to_bin_def)
   apply (rule xtr4)
    apply (rule bl_to_bin_ge2p_aux)
-  apply simp
+  apply (simp add: Pls_def)
   done
 
 lemma butlast_rest_bin: 
