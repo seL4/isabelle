@@ -54,12 +54,6 @@ lemma BIT_B1_eq_Bit1 [simp]: "w BIT 1 = Int.Bit1 w"
 
 lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
 
-lemma Min_ne_Pls [iff]:  
-  "Int.Min ~= Int.Pls"
-  unfolding Min_def Pls_def by auto
-
-lemmas Pls_ne_Min [iff] = Min_ne_Pls [symmetric]
-
 lemmas PlsMin_defs [intro!] = 
   Pls_def Min_def Pls_def [symmetric] Min_def [symmetric]
 
