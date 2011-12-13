@@ -113,13 +113,11 @@ val _ =
     (Parse.type_args -- Parse.binding -- Parse.opt_mixfix
       >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
-val type_abbrev =
-  Parse.type_args -- Parse.binding --
-    (Parse.$$$ "=" |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'));
-
 val _ =
   Outer_Syntax.local_theory "type_synonym" "declare type abbreviation" Keyword.thy_decl
-    (type_abbrev >> (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs));
+    (Parse.type_args -- Parse.binding --
+      (Parse.$$$ "=" |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'))
+      >> (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs));
 
 val _ =
   Outer_Syntax.command "nonterminal"
