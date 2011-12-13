@@ -49,8 +49,6 @@ sig
   val updateN: string
   val ext_typeN: string
   val extN: string
-  val read_typ: Proof.context -> string -> (string * sort) list -> typ * (string * sort) list
-  val cert_typ: Proof.context -> typ -> (string * sort) list -> typ * (string * sort) list
   val setup: theory -> theory
 end;
 
@@ -1488,24 +1486,6 @@ val split_wrapper = (split_name, fn _ => fn tac => split_tac ORELSE' tac);
 
 
 (** theory extender interface **)
-
-(* prepare arguments *)
-
-fun read_typ ctxt raw_T env =
-  let
-    val ctxt' = fold (Variable.declare_typ o TFree) env ctxt;
-    val T = Syntax.read_typ ctxt' raw_T;
-    val env' = Term.add_tfreesT T env;
-  in (T, env') end;
-
-fun cert_typ ctxt raw_T env =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val T = Type.no_tvars (Sign.certify_typ thy raw_T)
-      handle TYPE (msg, _, _) => error msg;
-    val env' = Term.add_tfreesT T env;
-  in (T, env') end;
-
 
 (* attributes *)
 
