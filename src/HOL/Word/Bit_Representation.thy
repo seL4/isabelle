@@ -23,6 +23,29 @@ lemma bitval_simps [simp]:
 definition Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
   "k BIT b = bitval b + k + k"
 
+definition bin_last :: "int \<Rightarrow> bit" where
+  "bin_last w = (if w mod 2 = 0 then (0::bit) else (1::bit))"
+
+definition bin_rest :: "int \<Rightarrow> int" where
+  "bin_rest w = w div 2"
+
+lemma bin_rl_simp [simp]:
+  "bin_rest w BIT bin_last w = w"
+  unfolding bin_rest_def bin_last_def Bit_def
+  using mod_div_equality [of w 2]
+  by (cases "w mod 2 = 0", simp_all)
+
+lemma bin_rest_BIT: "bin_rest (x BIT b) = x"
+  unfolding bin_rest_def Bit_def
+  by (cases b, simp_all)
+
+lemma bin_last_BIT: "bin_last (x BIT b) = b"
+  unfolding bin_last_def Bit_def
+  by (cases b, simp_all add: z1pmod2)
+
+lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
+  by (metis bin_rest_BIT bin_last_BIT)
+
 lemma BIT_B0_eq_Bit0 [simp]: "w BIT 0 = Int.Bit0 w"
   unfolding Bit_def Bit0_def by simp
 
@@ -46,14 +69,6 @@ lemma number_of_False_cong:
   "False \<Longrightarrow> number_of x = number_of y"
   by (rule FalseE)
 
-(** ways in which type Bin resembles a datatype **)
-
-lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
-  apply (cases b) apply (simp_all)
-  apply (cases c) apply (simp_all)
-  apply (cases c) apply (simp_all)
-  done
-     
 lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE]
 
 lemma BIT_eq_iff [simp]: 
@@ -127,21 +142,11 @@ lemma bin_exhaust:
 
 subsection {* Destructors for binary integers *}
 
-definition bin_last :: "int \<Rightarrow> bit" where
-  "bin_last w = (if w mod 2 = 0 then (0::bit) else (1::bit))"
-
-definition bin_rest :: "int \<Rightarrow> int" where
-  "bin_rest w = w div 2"
-
 definition bin_rl :: "int \<Rightarrow> int \<times> bit" where 
   "bin_rl w = (bin_rest w, bin_last w)"
 
 lemma bin_rl_char: "bin_rl w = (r, l) \<longleftrightarrow> r BIT l = w"
-  apply (cases l)
-  apply (auto simp add: bin_rl_def bin_last_def bin_rest_def)
-  unfolding Pls_def Min_def Bit0_def Bit1_def number_of_is_id
-  apply arith+
-  done
+  unfolding bin_rl_def by (auto simp: bin_rest_BIT bin_last_BIT)
 
 primrec bin_nth where
   Z: "bin_nth w 0 = (bin_last w = (1::bit))"
@@ -154,10 +159,6 @@ lemma bin_rl_simps [simp]:
   "bin_rl (Int.Bit1 r) = (r, (1::bit))"
   "bin_rl (r BIT b) = (r, b)"
   unfolding bin_rl_char by simp_all
-
-lemma bin_rl_simp [simp]:
-  "bin_rest w BIT bin_last w = w"
-  by (simp add: iffD1 [OF bin_rl_char bin_rl_def])
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
