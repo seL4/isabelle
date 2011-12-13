@@ -99,17 +99,18 @@ where
 
 subsection "Fully polymorphic variants, required for Example only"
 
-axioms
-
+axiomatization where
   Conseq:"[| \<forall>Z. A \<turnstile> {P' Z} c {Q' Z};
              \<forall>s t. (\<forall>Z. P' Z s --> Q' Z t) --> (P s --> Q t) |] ==>
                  A \<turnstile> {P} c {Q }"
 
- eConseq:"[| \<forall>Z. A \<turnstile>\<^sub>e {P' Z} e {Q' Z};
+axiomatization where
+  eConseq:"[| \<forall>Z. A \<turnstile>\<^sub>e {P' Z} e {Q' Z};
              \<forall>s v t. (\<forall>Z. P' Z s --> Q' Z v t) --> (P s --> Q v t) |] ==>
                  A \<turnstile>\<^sub>e {P} e {Q }"
 
- Impl: "\<forall>Z. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
+axiomatization where
+  Impl: "\<forall>Z. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
                           (\<lambda>Cm. (P Z Cm, body Cm, Q Z Cm))`Ms ==>
                     A |\<turnstile> (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
 
