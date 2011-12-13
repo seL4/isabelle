@@ -370,6 +370,16 @@ lemma sbintrunc_mod2p:
 
 subsection "Simplifications for (s)bintrunc"
 
+lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
+  by (induct n) (auto simp add: Int.Pls_def)
+
+lemma bintrunc_Suc_numeral:
+  "bintrunc (Suc n) 1 = 1"
+  "bintrunc (Suc n) -1 = bintrunc n -1 BIT 1"
+  "bintrunc (Suc n) (number_of (Int.Bit0 w)) = bintrunc n (number_of w) BIT 0"
+  "bintrunc (Suc n) (number_of (Int.Bit1 w)) = bintrunc n (number_of w) BIT 1"
+  by simp_all
+
 lemma bit_bool:
   "(b = (b' = (1::bit))) = (b' = (if b then (1::bit) else (0::bit)))"
   by (cases b') auto
@@ -452,6 +462,7 @@ lemma bintrunc_Bit1 [simp]:
 
 lemmas bintrunc_Sucs = bintrunc_Pls bintrunc_Min bintrunc_BIT
   bintrunc_Bit0 bintrunc_Bit1
+  bintrunc_Suc_numeral
 
 lemmas sbintrunc_Suc_Pls = 
   sbintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps]
@@ -535,9 +546,9 @@ lemmas bintrunc_Min_minus_I = bmsts(2)
 lemmas bintrunc_BIT_minus_I = bmsts(3)
 
 lemma bintrunc_0_Min: "bintrunc 0 Int.Min = Int.Pls"
-  by auto
+  by (fact bintrunc.Z) (* FIXME: delete *)
 lemma bintrunc_0_BIT: "bintrunc 0 (w BIT b) = Int.Pls"
-  by auto
+  by (fact bintrunc.Z) (* FIXME: delete *)
 
 lemma bintrunc_Suc_lem:
   "bintrunc (Suc n) x = y ==> m = Suc n ==> bintrunc m x = y"
