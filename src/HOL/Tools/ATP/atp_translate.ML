@@ -1905,7 +1905,8 @@ fun formula_line_for_class_rel_clause format type_enc
              AConn (AImplies,
                     [type_class_formula type_enc subclass ty_arg,
                      type_class_formula type_enc superclass ty_arg])
-             |> close_formula_universally,
+             |> mk_aquant AForall
+                          [(tvar_a_name, atype_of_type_vars type_enc)],
              isabelle_info format introN, NONE)
   end
 
