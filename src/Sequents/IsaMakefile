@@ -8,6 +8,7 @@ default: Sequents
 images: Sequents
 test: Sequents-LK
 all: images test
+full: all
 smlnj: all
 
 

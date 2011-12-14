@@ -8,6 +8,7 @@ default: Pure-Cube
 images:
 test: Pure-Cube
 all: images test
+full: all
 smlnj: all
 
 

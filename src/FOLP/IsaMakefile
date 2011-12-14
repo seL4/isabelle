@@ -8,6 +8,7 @@ default: FOLP
 images: FOLP
 test: FOLP-ex
 all: images test
+full: all
 smlnj: all
 
 

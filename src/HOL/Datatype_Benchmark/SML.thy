@@ -1,4 +1,4 @@
-(*  Title:      Admin/Benchmarks/HOL-datatype/SML.thy
+(*  Title:      HOL/Datatype_Benchmark/SML.thy
 
 Example from Myra: part of the syntax of SML.
 *)

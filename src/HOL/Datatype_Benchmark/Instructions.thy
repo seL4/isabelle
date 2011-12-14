@@ -1,4 +1,4 @@
-(*  Title:      Admin/Benchmarks/HOL-datatype/Instructions.thy
+(*  Title:      HOL/Datatype_Benchmark/Instructions.thy
 
 Example from Konrad: 68000 instruction set.
 *)

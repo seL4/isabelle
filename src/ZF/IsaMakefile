@@ -10,6 +10,7 @@ images: ZF
 #Note: keep targets sorted
 test: ZF-AC ZF-Coind ZF-Constructible ZF-IMP ZF-Induct ZF-Resid ZF-UNITY ZF-ex
 all: images test
+full: all
 smlnj: all
 
 

@@ -81,6 +81,10 @@ test: \
   HOL-ZF
     # ^ this is the sort position
 
+benchmark: \
+  HOL-Datatype_Benchmark \
+  HOL-Record_Benchmark
+
 images-no-smlnj: \
   HOL-Probability
 
@@ -91,7 +95,9 @@ test-no-smlnj: \
   HOL-Nominal-Examples
 
 all: test-no-smlnj test images-no-smlnj images
+full: all benchmark
 smlnj: test images
+
 
 ## global settings
 
@@ -1772,6 +1778,28 @@ $(LOG)/IOA-ex.gz: $(OUT)/IOA \
 	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ex
 
 
+
+## HOL-Datatype_Benchmark
+
+HOL-Datatype_Benchmark: HOL $(LOG)/HOL-Datatype_Benchmark.gz
+
+$(LOG)/HOL-Datatype_Benchmark.gz: $(OUT)/HOL				\
+  Datatype_Benchmark/ROOT.ML Datatype_Benchmark/Brackin.thy		\
+  Datatype_Benchmark/Instructions.thy Datatype_Benchmark/SML.thy	\
+  Datatype_Benchmark/Verilog.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Datatype_Benchmark
+
+
+## HOL-Record_Benchmark
+
+HOL-Record_Benchmark: HOL $(LOG)/HOL-Record_Benchmark.gz
+
+$(LOG)/HOL-Record_Benchmark.gz: $(OUT)/HOL Record_Benchmark/ROOT.ML	\
+   Record_Benchmark/Record_Benchmark.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Record_Benchmark
+
+
+
 ## clean
 
 clean:
@@ -1799,23 +1827,25 @@ clean:
 		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-ex.gz		\
 		$(LOG)/HOL-Proofs-Extraction.gz				\
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
-		$(LOG)/HOL-Word-SMT_Examples.gz				\
-		$(LOG)/HOL-SPARK.gz $(LOG)/HOL-SPARK-Examples.gz	\
-		$(LOG)/HOL-SPARK-Manual.gz				\
-		$(LOG)/HOL-Statespace.gz				\
+		$(LOG)/HOL-Word-SMT_Examples.gz $(LOG)/HOL-SPARK.gz	\
+		$(LOG)/HOL-SPARK-Examples.gz				\
+		$(LOG)/HOL-SPARK-Manual.gz $(LOG)/HOL-Statespace.gz	\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
 		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
 		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
 		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
 		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
-		$(OUT)/HOL-IMP $(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
-		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
+		$(OUT)/HOL-IMP $(OUT)/HOL-Main				\
+		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
+		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain			\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
-		$(OUT)/HOL-SPARK					\
-		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA			\
-		$(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz	\
-		$(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
-		$(LOG)/IOA.gz $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz	\
+		$(OUT)/HOL-SPARK $(OUT)/HOL-Word $(OUT)/HOL4		\
+		$(OUT)/TLA $(OUT)/HOLCF $(LOG)/HOLCF.gz			\
+		$(LOG)/HOLCF-IMP.gz $(LOG)/HOLCF-ex.gz			\
+		$(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA $(LOG)/IOA.gz		\
+		$(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz			\
 		$(LOG)/IOA-Storage.gz $(LOG)/HOLCF-Library.gz		\
-		$(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz
+		$(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz		\
+		$(LOG)/HOL-Datatype_Benchmark.gz			\
+		$(LOG)/HOL-Record_Benchmark.gz

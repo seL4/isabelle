@@ -8,6 +8,7 @@ default: LCF
 images: LCF
 test: LCF-ex
 all: images test
+full: all
 smlnj: all
 
 

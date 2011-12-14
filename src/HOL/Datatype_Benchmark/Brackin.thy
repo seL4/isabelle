@@ -1,4 +1,4 @@
-(*  Title:      Admin/Benchmarks/HOL-datatype/Brackin.thy
+(*  Title:      HOL/Datatype_Benchmark/Brackin.thy
 
 A couple from Steve Brackin's work.
 *)
