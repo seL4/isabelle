@@ -274,7 +274,7 @@ lemma update_restr:
  "map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
   by (simp add: update_conv' restr_conv') (rule fun_upd_restrict)
 
-lemma upate_restr_conv [simp]:
+lemma update_restr_conv [simp]:
  "x \<in> D \<Longrightarrow> 
  map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
   by (simp add: update_conv' restr_conv')
