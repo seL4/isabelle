@@ -267,7 +267,7 @@ fun parse_source x =
 fun list_app (f, args) =
   fold (fn arg => fn f => ATerm (tptp_app, [f, arg])) args f
 
-(* We ignore TFF and THF types for now. *)
+(* We currently ignore TFF and THF types. *)
 fun parse_type_stuff x =
   Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
 and parse_arg x =
@@ -275,28 +275,17 @@ and parse_arg x =
    || scan_general_id --| parse_type_stuff
         -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
       >> ATerm) x
-and parse_app x =
-  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
 and parse_term x =
-  (parse_app -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
-                             -- parse_app)
-   >> (fn (u1, NONE) => u1
-        | (u1, SOME (NONE, u2)) => ATerm ("equal", [u1, u2])
-        | (u1, SOME (SOME _, u2)) =>
-          ATerm (tptp_not, [ATerm ("equal", [u1, u2])]))) x
+  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
 and parse_terms x =
   (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
-(* TODO: Avoid duplication with "parse_term" above. *)
 fun parse_atom x =
   (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
                               -- parse_term)
    >> (fn (u1, NONE) => AAtom u1
-        | (u1, SOME (NONE, u2)) => AAtom (ATerm ("equal", [u1, u2]))
-        | (u1, SOME (SOME _, u2)) =>
-          mk_anot (AAtom (ATerm ("equal", [u1, u2]))))) x
-
-fun ho_term_head (ATerm (s, _)) = s
+        | (u1, SOME (neg, u2)) =>
+          AAtom (ATerm ("equal", [u1, u2])) |> is_some neg ? mk_anot)) x
 
 (* TPTP formulas are fully parenthesized, so we don't need to worry about
    operator precedence. *)
@@ -328,7 +317,7 @@ and parse_quantified_formula x =
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
    >> (fn ((q, ts), phi) =>
           (* We ignore TFF and THF types for now. *)
-          AQuant (q, map (rpair NONE o ho_term_head) ts, phi))) x
+          AQuant (q, map (fn ATerm (s, _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
