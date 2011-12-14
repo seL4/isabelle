@@ -653,6 +653,26 @@ lemma map_comp_None_iff:
     (map_of xs k = None \<or> (\<exists>k'. map_of xs k = Some k' \<and> map_of ys k' = None)) " 
   by (simp add: compose_conv map_comp_None_iff)
 
+subsection {* @{text map_entry} *}
+
+fun map_entry :: "'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "map_entry k f [] = []"
+| "map_entry k f (p # ps) = (if fst p = k then (k, f (snd p)) # ps else p # map_entry k f ps)"
+
+lemma map_of_map_entry:
+  "map_of (map_entry k f xs) = (map_of xs)(k := case map_of xs k of None => None | Some v' => Some (f v'))"
+by (induct xs) auto
+
+lemma dom_map_entry:
+  "fst ` set (map_entry k f xs) = fst ` set xs"
+by (induct xs) auto
+
+lemma distinct_map_entry:
+  assumes "distinct (map fst xs)"
+  shows "distinct (map fst (map_entry k f xs))"
+using assms by (induct xs) (auto simp add: dom_map_entry)
+
 subsection {* @{text map_default} *}
 
 fun map_default :: "'key \<Rightarrow> 'val \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
