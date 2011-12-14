@@ -10,7 +10,6 @@ signature ATP_RECONSTRUCT =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
-  type step_name = ATP_Proof.step_name
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
 
@@ -75,6 +74,12 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Translate
+
+structure String_Redirect =
+  ATP_Redirect(type key = step_name
+               val ord = fast_string_ord o pairself fst
+               val string_of = fst)
+open String_Redirect
 
 datatype reconstructor =
   Metis of string * string |
@@ -285,9 +290,9 @@ fun make_tfree ctxt w =
 val indent_size = 2
 val no_label = ("", ~1)
 
-val raw_prefix = "X"
-val assum_prefix = "A"
-val have_prefix = "F"
+val raw_prefix = "x"
+val assum_prefix = "a"
+val have_prefix = "f"
 
 fun raw_label_for_name (num, ss) =
   case resolve_conjecture ss of
@@ -676,13 +681,13 @@ datatype isar_step =
   Fix of (string * typ) list |
   Let of term * term |
   Assume of label * term |
-  Have of isar_qualifier list * label * term * byline
+  Prove of isar_qualifier list * label * term * byline
 and byline =
-  ByMetis of facts |
-  CaseSplit of isar_step list list * facts
+  By_Metis of facts |
+  Case_Split of isar_step list list * facts
 
-fun smart_case_split [] facts = ByMetis facts
-  | smart_case_split proofs facts = CaseSplit (proofs, facts)
+fun smart_case_split [] facts = By_Metis facts
+  | smart_case_split proofs facts = Case_Split (proofs, facts)
 
 fun add_fact_from_dependency fact_names (name as (_, ss)) =
   if is_fact fact_names ss then
@@ -694,9 +699,9 @@ fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
   | step_for_line _ _ (Inference (name, t, _, [])) =
     Assume (raw_label_for_name name, t)
   | step_for_line fact_names j (Inference (name, t, _, deps)) =
-    Have (if j = 1 then [Show] else [], raw_label_for_name name,
-          fold_rev forall_of (map Var (Term.add_vars t [])) t,
-          ByMetis (fold (add_fact_from_dependency fact_names) deps ([], [])))
+    Prove (if j = 1 then [Show] else [], raw_label_for_name name,
+           fold_rev forall_of (map Var (Term.add_vars t [])) t,
+           By_Metis (fold (add_fact_from_dependency fact_names) deps ([], [])))
 
 fun repair_name "$true" = "c_True"
   | repair_name "$false" = "c_False"
@@ -736,10 +741,10 @@ fun isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names sym_tab
    case split. *)
 type backpatches = (label * facts) list * (label list * label list)
 
-fun used_labels_of_step (Have (_, _, _, by)) =
+fun used_labels_of_step (Prove (_, _, _, by)) =
     (case by of
-       ByMetis (ls, _) => ls
-     | CaseSplit (proofs, (ls, _)) =>
+       By_Metis (ls, _) => ls
+     | Case_Split (proofs, (ls, _)) =>
        fold (union (op =) o used_labels_of) proofs ls)
   | used_labels_of_step _ = []
 and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
@@ -747,7 +752,7 @@ and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
 fun new_labels_of_step (Fix _) = []
   | new_labels_of_step (Let _) = []
   | new_labels_of_step (Assume (l, _)) = [l]
-  | new_labels_of_step (Have (_, l, _, _)) = [l]
+  | new_labels_of_step (Prove (_, l, _, _)) = [l]
 val new_labels_of = maps new_labels_of_step
 
 val join_proofs =
@@ -759,8 +764,8 @@ val join_proofs =
         else if forall (curry (op =) (hd proof1) o hd) (tl proofs) then
           aux (hd proof1 :: proof_tail) (map tl proofs)
         else case hd proof1 of
-          Have ([], l, t, _) => (* FIXME: should we really ignore the "by"? *)
-          if forall (fn Have ([], l', t', _) :: _ => (l, t) = (l', t')
+          Prove ([], l, t, _) => (* FIXME: should we really ignore the "by"? *)
+          if forall (fn Prove ([], l', t', _) :: _ => (l, t) = (l', t')
                       | _ => false) (tl proofs) andalso
              not (exists (member (op =) (maps new_labels_of proofs))
                          (used_labels_of proof_tail)) then
@@ -791,8 +796,8 @@ fun redirect_proof hyp_ts concl_t proof =
        | first_pass ((step as Assume (l as (_, j), _)) :: proof, contra) =
          if l = concl_l then first_pass (proof, contra ||> cons step)
          else first_pass (proof, contra) |>> cons (Assume (l, nth hyp_ts j))
-       | first_pass (Have (qs, l, t, ByMetis (ls, ss)) :: proof, contra) =
-         let val step = Have (qs, l, t, ByMetis (ls, ss)) in
+       | first_pass (Prove (qs, l, t, By_Metis (ls, ss)) :: proof, contra) =
+         let val step = Prove (qs, l, t, By_Metis (ls, ss)) in
            if exists (member (op =) (fst contra)) ls then
              first_pass (proof, contra |>> cons l ||> cons step)
            else
@@ -805,11 +810,11 @@ fun redirect_proof hyp_ts concl_t proof =
     fun backpatch_labels patches ls =
       fold merge_fact_sets (map (backpatch_label patches) ls) ([], [])
     fun second_pass end_qs ([], assums, patches) =
-        ([Have (end_qs, no_label, concl_t,
-                ByMetis (backpatch_labels patches (map snd assums)))], patches)
+        ([Prove (end_qs, no_label, concl_t,
+                 By_Metis (backpatch_labels patches (map snd assums)))], patches)
       | second_pass end_qs (Assume (l, t) :: proof, assums, patches) =
         second_pass end_qs (proof, (t, l) :: assums, patches)
-      | second_pass end_qs (Have (qs, l, t, ByMetis (ls, ss)) :: proof, assums,
+      | second_pass end_qs (Prove (qs, l, t, By_Metis (ls, ss)) :: proof, assums,
                             patches) =
         (if member (op =) (snd (snd patches)) l andalso
             not (member (op =) (fst (snd patches)) l) andalso
@@ -827,8 +832,8 @@ fun redirect_proof hyp_ts concl_t proof =
              |>> cons (if member (op =) (fst (snd patches)) l then
                          Assume (l, s_not t)
                        else
-                         Have (qs, l, s_not t,
-                               ByMetis (backpatch_label patches l)))
+                         Prove (qs, l, s_not t,
+                                By_Metis (backpatch_label patches l)))
          | (contra_ls as _ :: _, co_ls) =>
            let
              val proofs =
@@ -854,12 +859,12 @@ fun redirect_proof hyp_ts concl_t proof =
            in
              (case join_proofs proofs of
                 SOME (l, t, proofs, proof_tail) =>
-                Have (case_split_qualifiers proofs @
-                      (if null proof_tail then end_qs else []), l, t,
-                      smart_case_split proofs facts) :: proof_tail
+                Prove (case_split_qualifiers proofs @
+                       (if null proof_tail then end_qs else []), l, t,
+                       smart_case_split proofs facts) :: proof_tail
               | NONE =>
-                [Have (case_split_qualifiers proofs @ end_qs, no_label,
-                       concl_t, smart_case_split proofs facts)],
+                [Prove (case_split_qualifiers proofs @ end_qs, no_label,
+                        concl_t, smart_case_split proofs facts)],
               patches)
              |>> append assumes
            end
@@ -878,12 +883,13 @@ val kill_duplicate_assumptions_in_proof =
         (case AList.lookup (op aconv) assums t of
            SOME l' => (proof, (l, l') :: subst, assums)
          | NONE => (step :: proof, subst, (t, l) :: assums))
-      | do_step (Have (qs, l, t, by)) (proof, subst, assums) =
-        (Have (qs, l, t,
-               case by of
-                 ByMetis facts => ByMetis (relabel_facts subst facts)
-               | CaseSplit (proofs, facts) =>
-                 CaseSplit (map do_proof proofs, relabel_facts subst facts)) ::
+      | do_step (Prove (qs, l, t, by)) (proof, subst, assums) =
+        (Prove (qs, l, t,
+                case by of
+                  By_Metis facts => By_Metis (relabel_facts subst facts)
+                | Case_Split (proofs, facts) =>
+                  Case_Split (map do_proof proofs,
+                              relabel_facts subst facts)) ::
          proof, subst, assums)
       | do_step step (proof, subst, assums) = (step :: proof, subst, assums)
     and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
@@ -893,16 +899,16 @@ val then_chain_proof =
   let
     fun aux _ [] = []
       | aux _ ((step as Assume (l, _)) :: proof) = step :: aux l proof
-      | aux l' (Have (qs, l, t, by) :: proof) =
+      | aux l' (Prove (qs, l, t, by) :: proof) =
         (case by of
-           ByMetis (ls, ss) =>
-           Have (if member (op =) ls l' then
-                   (Then :: qs, l, t,
-                    ByMetis (filter_out (curry (op =) l') ls, ss))
-                 else
-                   (qs, l, t, ByMetis (ls, ss)))
-         | CaseSplit (proofs, facts) =>
-           Have (qs, l, t, CaseSplit (map (aux no_label) proofs, facts))) ::
+           By_Metis (ls, ss) =>
+           Prove (if member (op =) ls l' then
+                    (Then :: qs, l, t,
+                     By_Metis (filter_out (curry (op =) l') ls, ss))
+                  else
+                    (qs, l, t, By_Metis (ls, ss)))
+         | Case_Split (proofs, facts) =>
+           Prove (qs, l, t, Case_Split (map (aux no_label) proofs, facts))) ::
         aux l proof
       | aux _ (step :: proof) = step :: aux no_label proof
   in aux no_label end
@@ -912,12 +918,12 @@ fun kill_useless_labels_in_proof proof =
     val used_ls = used_labels_of proof
     fun do_label l = if member (op =) used_ls l then l else no_label
     fun do_step (Assume (l, t)) = Assume (do_label l, t)
-      | do_step (Have (qs, l, t, by)) =
-        Have (qs, do_label l, t,
-              case by of
-                CaseSplit (proofs, facts) =>
-                CaseSplit (map (map do_step) proofs, facts)
-              | _ => by)
+      | do_step (Prove (qs, l, t, by)) =
+        Prove (qs, do_label l, t,
+               case by of
+                 Case_Split (proofs, facts) =>
+                 Case_Split (map (map do_step) proofs, facts)
+               | _ => by)
       | do_step step = step
   in map do_step proof end
 
@@ -934,7 +940,8 @@ val relabel_proof =
             Assume (l', t) ::
             aux ((l, l') :: subst) depth (next_assum + 1, next_fact) proof
           end
-      | aux subst depth (next_assum, next_fact) (Have (qs, l, t, by) :: proof) =
+      | aux subst depth (next_assum, next_fact)
+            (Prove (qs, l, t, by) :: proof) =
         let
           val (l', subst, next_fact) =
             if l = no_label then
@@ -947,13 +954,12 @@ val relabel_proof =
             apfst (maps (the_list o AList.lookup (op =) subst))
           val by =
             case by of
-              ByMetis facts => ByMetis (relabel_facts facts)
-            | CaseSplit (proofs, facts) =>
-              CaseSplit (map (aux subst (depth + 1) (1, 1)) proofs,
-                         relabel_facts facts)
+              By_Metis facts => By_Metis (relabel_facts facts)
+            | Case_Split (proofs, facts) =>
+              Case_Split (map (aux subst (depth + 1) (1, 1)) proofs,
+                          relabel_facts facts)
         in
-          Have (qs, l', t, by) ::
-          aux subst depth (next_assum, next_fact) proof
+          Prove (qs, l', t, by) :: aux subst depth (next_assum, next_fact) proof
         end
       | aux subst depth nextp (step :: proof) =
         step :: aux subst depth nextp proof
@@ -992,12 +998,12 @@ fun string_for_proof ctxt0 type_enc lam_trans i n =
         do_indent ind ^ "let " ^ do_term t1 ^ " = " ^ do_term t2 ^ "\n"
       | do_step ind (Assume (l, t)) =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
-      | do_step ind (Have (qs, l, t, ByMetis facts)) =
+      | do_step ind (Prove (qs, l, t, By_Metis facts)) =
         do_indent ind ^ do_have qs ^ " " ^
         do_label l ^ do_term t ^ " " ^ do_facts facts ^ "\n"
-      | do_step ind (Have (qs, l, t, CaseSplit (proofs, facts))) =
-        space_implode (do_indent ind ^ "moreover\n")
-                      (map (do_block ind) proofs) ^
+      | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
+        implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
+                     proofs) ^
         do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^ " " ^
         do_facts facts ^ "\n"
     and do_steps prefix suffix ind steps =
@@ -1010,7 +1016,7 @@ fun string_for_proof ctxt0 type_enc lam_trans i n =
     and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
-    and do_proof [Have (_, _, _, ByMetis _)] = ""
+    and do_proof [Prove (_, _, _, By_Metis _)] = ""
       | do_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
         do_indent 0 ^ "proof -\n" ^ do_steps "" "" 1 proof ^ do_indent 0 ^
@@ -1030,6 +1036,82 @@ fun isar_proof_text ctxt isar_proof_requested
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
     val lam_trans = lam_trans_from_atp_proof atp_proof metis_default_lam_trans
+
+    val atp_proof' = (*###*)
+      atp_proof
+      |> clean_up_atp_proof_dependencies
+      |> nasty_atp_proof pool
+      |> map_term_names_in_atp_proof repair_name
+      |> decode_lines ctxt sym_tab
+      |> rpair [] |-> fold_rev (add_line fact_names)
+      |> rpair [] |-> fold_rev add_nontrivial_line
+      |> rpair (0, [])
+      |-> fold_rev (add_desired_line isar_shrink_factor fact_names frees)
+      |> snd
+(*
+      |> tap (map (tracing o PolyML.makestring))
+*)
+
+    val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
+    val conjs =
+      atp_proof'
+      |> map_filter (fn Inference (name as (_, ss), _, _, []) =>
+                        if member (op =) ss conj_name then SOME name else NONE
+                      | _ => NONE)
+
+
+    fun dep_of_step (Definition _) = NONE
+      | dep_of_step (Inference (name, _, _, from)) = SOME (from, name)
+
+    val ref_graph = atp_proof' |> map_filter dep_of_step |> make_ref_graph
+    val axioms = axioms_of_ref_graph ref_graph conjs
+    val tainted = tainted_atoms_of_ref_graph ref_graph conjs
+
+    val props =
+      Symtab.empty
+      |> fold (fn Definition _ => I (* FIXME *)
+                | Inference ((s, _), t, _, _) =>
+                  Symtab.update_new (s,
+                      t |> member (op = o apsnd fst) tainted s ? s_not))
+              atp_proof'
+
+    val direct_proof =
+      ref_graph |> redirect_graph axioms tainted
+                |> chain_direct_proof
+                |> tap (tracing o string_of_direct_proof) (*###*)
+
+    fun prop_of_clause c =
+      fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
+           @{term False}
+
+    fun label_of_clause c = (space_implode "___" (map fst c), 0)
+
+    fun maybe_show outer c =
+      (outer andalso length c = 1 andalso subset (op =) (c, conjs)) ? cons Show
+
+    fun do_have outer qs (gamma, c) =
+      Prove (maybe_show outer c qs, label_of_clause c, prop_of_clause c,
+             By_Metis (fold (add_fact_from_dependency fact_names o the_single)
+                            gamma ([], [])))
+    fun do_inf outer (Have z) = do_have outer [] z
+      | do_inf outer (Hence z) = do_have outer [Then] z
+      | do_inf outer (Cases cases) =
+        let val c = succedent_of_cases cases in
+          Prove (maybe_show outer c [Ultimately], label_of_clause c,
+                 prop_of_clause c,
+                 Case_Split (map (do_case false) cases, ([], [])))
+        end
+    and do_case outer (c, infs) =
+      Assume (label_of_clause c, prop_of_clause c) :: map (do_inf outer) infs
+
+    val isar_proof =
+      (if null params then [] else [Fix params]) @
+      (map (do_inf true) direct_proof
+       |> kill_useless_labels_in_proof
+       |> relabel_proof)
+      |> string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
+      |> tap tracing (*###*)
+
     fun isar_proof_for () =
       case atp_proof
            |> isar_proof_from_atp_proof pool ctxt isar_shrink_factor fact_names
@@ -1052,13 +1134,12 @@ fun isar_proof_text ctxt isar_proof_requested
     val isar_proof =
       if debug then
         isar_proof_for ()
-      else
-        case try isar_proof_for () of
-          SOME s => s
-        | NONE => if isar_proof_requested then
-                    "\nWarning: The Isar proof construction failed."
-                  else
-                    ""
+      else case try isar_proof_for () of
+        SOME s => s
+      | NONE => if isar_proof_requested then
+                  "\nWarning: The Isar proof construction failed."
+                else
+                  ""
   in one_line_proof ^ isar_proof end
 
 fun proof_text ctxt isar_proof isar_params
