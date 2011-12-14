@@ -12,6 +12,7 @@ uses "Tools/lambda_lifting.ML"
      "Tools/ATP/atp_util.ML"
      "Tools/ATP/atp_problem.ML"
      "Tools/ATP/atp_proof.ML"
+     "Tools/ATP/atp_redirect.ML"
      ("Tools/ATP/atp_translate.ML")
      ("Tools/ATP/atp_reconstruct.ML")
      ("Tools/ATP/atp_systems.ML")
