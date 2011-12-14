@@ -5,7 +5,7 @@
 header {* Implementation of mappings with Association Lists *}
 
 theory AList_Mapping
-imports AList Mapping
+imports AList_Impl Mapping
 begin
 
 definition Mapping :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
