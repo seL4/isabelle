@@ -17,6 +17,7 @@ test: \
   IOA-Storage \
   IOA-ex
 all: images test
+full: all
 
 
 ## global settings

@@ -8,6 +8,7 @@ default: CCL
 images: CCL
 test: CCL-ex
 all: images test
+full: all
 smlnj: all
 
 
