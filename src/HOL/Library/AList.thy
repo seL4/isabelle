@@ -653,4 +653,24 @@ lemma map_comp_None_iff:
     (map_of xs k = None \<or> (\<exists>k'. map_of xs k = Some k' \<and> map_of ys k' = None)) " 
   by (simp add: compose_conv map_comp_None_iff)
 
+subsection {* @{text map_default} *}
+
+fun map_default :: "'key \<Rightarrow> 'val \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "map_default k v f [] = [(k, v)]"
+| "map_default k v f (p # ps) = (if fst p = k then (k, f (snd p)) # ps else p # map_default k v f ps)"
+
+lemma map_of_map_default:
+  "map_of (map_default k v f xs) = (map_of xs)(k := case map_of xs k of None => Some v | Some v' => Some (f v'))"
+by (induct xs) auto
+
+lemma dom_map_default:
+  "fst ` set (map_default k v f xs) = insert k (fst ` set xs)" 
+by (induct xs) auto
+
+lemma distinct_map_default:
+  assumes "distinct (map fst xs)"
+  shows "distinct (map fst (map_default k v f xs))"
+using assms by (induct xs) (auto simp add: dom_map_default)
+
 end
