@@ -35,15 +35,6 @@ val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 fun exh_thm_of (dt_info : Datatype_Aux.info Symtab.table) tname =
   #exhaust (the (Symtab.lookup dt_info tname));
 
-val node_name = @{type_name "Datatype.node"};
-val In0_name = @{const_name "Datatype.In0"};
-val In1_name = @{const_name "Datatype.In1"};
-val Scons_name = @{const_name "Datatype.Scons"};
-val Leaf_name = @{const_name "Datatype.Leaf"};
-val Lim_name = @{const_name "Datatype.Lim"};
-val Suml_name = @{const_name "Sum_Type.Suml"};
-val Sumr_name = @{const_name "Sum_Type.Sumr"};
-
 val In0_inject = @{thm In0_inject};
 val In1_inject = @{thm In1_inject};
 val Scons_inject = @{thm Scons_inject};
@@ -92,15 +83,15 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val sumT =
       if null leafTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type (@{type_name Sum_Type.sum}, [T, U])) leafTs;
-    val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
+    val Univ_elT = HOLogic.mk_setT (Type (@{type_name Datatype.node}, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
     val Collect = Const (@{const_name Collect}, UnivT' --> UnivT);
 
-    val In0 = Const (In0_name, Univ_elT --> Univ_elT);
-    val In1 = Const (In1_name, Univ_elT --> Univ_elT);
-    val Leaf = Const (Leaf_name, sumT --> Univ_elT);
-    val Lim = Const (Lim_name, (branchT --> Univ_elT) --> Univ_elT);
+    val In0 = Const (@{const_name Datatype.In0}, Univ_elT --> Univ_elT);
+    val In1 = Const (@{const_name Datatype.In1}, Univ_elT --> Univ_elT);
+    val Leaf = Const (@{const_name Datatype.Leaf}, sumT --> Univ_elT);
+    val Lim = Const (@{const_name Datatype.Lim}, (branchT --> Univ_elT) --> Univ_elT);
 
     (* make injections needed for embedding types in leaves *)
 
@@ -126,7 +117,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         right = fn t => In1 $ t,
         init =
           if ts = [] then Const (@{const_name undefined}, Univ_elT)
-          else foldr1 (HOLogic.mk_binop Scons_name) ts};
+          else foldr1 (HOLogic.mk_binop @{const_name Datatype.Scons}) ts};
 
     (* function spaces *)
 
@@ -140,8 +131,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               val Type (_, [T1, T2]) = T;
               fun mkT U = (U --> Univ_elT) --> T --> Univ_elT;
             in
-              if i <= n2 then Const (Suml_name, mkT T1) $ mk_inj T1 n2 i
-              else Const (Sumr_name, mkT T2) $ mk_inj T2 (n - n2) (i - n2)
+              if i <= n2 then Const (@{const_name Sum_Type.Suml}, mkT T1) $ mk_inj T1 n2 i
+              else Const (@{const_name Sum_Type.Sumr}, mkT T2) $ mk_inj T2 (n - n2) (i - n2)
             end;
       in mk_inj branchT (length branchTs) (1 + find_index (fn T'' => T'' = T') branchTs) end;
 
@@ -202,12 +193,12 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)))
-        (types_syntax ~~ tyvars ~~ (take (length newTs) rep_set_names))
+        (types_syntax ~~ tyvars ~~ take (length newTs) rep_set_names)
       ||> Sign.add_path big_name;
 
     (*********************** definition of constructors ***********************)
 
-    val big_rep_name = space_implode "_" new_type_names ^ "_Rep_";
+    val big_rep_name = big_name ^ "_Rep_";
     val rep_names = map (prefix "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ string_of_int i) (1 upto length (flat (tl descr)));
     val all_rep_names =
@@ -334,7 +325,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val (i2, i2', ts, Ts) = fold (process_arg ks) cargs (1, 1, [], []);
         val xs = map (uncurry (Datatype_Aux.mk_Free "x")) (argTs ~~ (1 upto (i2 - 1)));
         val ys = map (uncurry (Datatype_Aux.mk_Free "y")) (Ts ~~ (1 upto (i2' - 1)));
-        val f = fold_rev (absfree o dest_Free) (xs @ ys) (mk_univ_inj ts n i);
+        val f = fold_rev lambda (xs @ ys) (mk_univ_inj ts n i);
 
         val (_, _, ts', _) = fold (process_arg []) cargs (1, 1, [], []);
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -350,7 +341,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val (_, (tname, _, _)) = hd ds;
         val {rec_rewrites, rec_names, ...} = the (Symtab.lookup dt_info tname);
 
-        fun process_dt (k, (tname, _, constrs)) (fs, eqns, isos) =
+        fun process_dt (k, (_, _, constrs)) (fs, eqns, isos) =
           let
             val (fs', eqns', _) = fold (make_iso_def k ks (length constrs)) constrs (fs, eqns, 1);
             val iso = (nth recTs k, nth all_rep_names k);
@@ -368,7 +359,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
         (* prove characteristic equations *)
 
-        val rewrites = def_thms @ (map mk_meta_eq rec_rewrites);
+        val rewrites = def_thms @ map mk_meta_eq rec_rewrites;
         val char_thms' =
           map (fn eqn => Skip_Proof.prove_global thy' [] [] eqn
             (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
@@ -465,7 +456,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
-      in (inj_thms'' @ inj_thms, elem_thms @ (Datatype_Aux.split_conj_thm elem_thm)) end;
+      in (inj_thms'' @ inj_thms, elem_thms @ Datatype_Aux.split_conj_thm elem_thm) end;
 
     val (iso_inj_thms_unfolded, iso_elem_thms) =
       fold_rev prove_iso_thms (tl descr) ([], map #3 newT_iso_axms);
@@ -524,7 +515,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     fun prove_constr_rep_thm eqn =
       let
         val inj_thms = map fst newT_iso_inj_thms;
-        val rewrites = @{thm o_def} :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms);
+        val rewrites = @{thm o_def} :: constr_defs @ map (mk_meta_eq o #2) newT_iso_axms;
       in
         Skip_Proof.prove_global thy5 [] [] eqn
         (fn _ => EVERY
@@ -544,7 +535,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val dist_rewrites =
       map (fn (rep_thms, dist_lemma) =>
-        dist_lemma::(rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
+        dist_lemma :: (rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
           (constr_rep_thms ~~ dist_lemmas);
 
     fun prove_distinct_thms dist_rewrites' (k, ts) =
@@ -657,7 +648,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
              [REPEAT (eresolve_tac Abs_inverse_thms 1),
               simp_tac (HOL_basic_ss addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
               DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
-                  (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
+                  (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]);
 
     val ([dt_induct'], thy7) =
       thy6
