@@ -2601,7 +2601,8 @@ lemma shiftl1_number [simp] :
 lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
   unfolding word_0_no shiftl1_number by (auto simp: BIT_simps)
 
-lemmas shiftl1_def_u = shiftl1_def [folded word_number_of_def]
+lemma shiftl1_def_u: "shiftl1 w = number_of (uint w BIT 0)"
+  by (simp only: word_number_of_def shiftl1_def)
 
 lemma shiftl1_def_s: "shiftl1 w = number_of (sint w BIT 0)"
   by (rule trans [OF _ shiftl1_number]) simp
