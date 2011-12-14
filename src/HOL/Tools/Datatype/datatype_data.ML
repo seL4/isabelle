@@ -11,7 +11,8 @@ sig
     thm -> thm list list -> thm list list -> theory -> string list * theory
   val rep_datatype : config -> (string list -> Proof.context -> Proof.context) ->
     term list -> theory -> Proof.state
-  val rep_datatype_cmd : string list -> theory -> Proof.state
+  val rep_datatype_cmd : config -> (string list -> Proof.context -> Proof.context) ->
+    string list -> theory -> Proof.state
   val get_info : theory -> string -> info option
   val the_info : theory -> string -> info
   val the_descr : theory -> string list ->
@@ -432,7 +433,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
-val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global Datatype_Aux.default_config (K I);
+val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global;
 
 
 
@@ -451,7 +452,8 @@ val setup =
 val _ =
   Outer_Syntax.command "rep_datatype" "represent existing types inductively" Keyword.thy_goal
     (Scan.repeat1 Parse.term >> (fn ts =>
-      Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd ts)));
+      Toplevel.print o
+      Toplevel.theory_to_proof (rep_datatype_cmd Datatype_Aux.default_config (K I) ts)));
 
 
 open Datatype_Aux;
