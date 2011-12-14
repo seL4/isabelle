@@ -178,8 +178,8 @@ and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create the
 
 in it.
 
-\item[\labelitemi] If you prefer to build E or SPASS yourself, or obtained a
-Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
+\item[\labelitemi] If you prefer to build E or SPASS yourself, or found a
+Vampire executable somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
@@ -188,7 +188,7 @@ with E 1.0 to 1.4, SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
 than, say, Vampire 9.0 or 11.5.}%
 . Since the ATPs' output formats are neither documented nor stable, other
-versions of the ATPs might or might not work well with Sledgehammer. Ideally,
+versions of the ATPs might not work well with Sledgehammer. Ideally,
 also set \texttt{E\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.4'').
 \end{enum}
@@ -220,19 +220,35 @@ locally.
 
 There are two main ways of installing SMT solvers locally.
 
+\sloppy
+
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package with everything
 inside, it should already include properly setup executables for CVC3 and Z3,
 ready to use.%
 \footnote{Yices's license prevents us from doing the same for this otherwise
 wonderful tool.}
-For Z3, you additionally need to set the environment variable
-\texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a noncommercial
-user.
+For Z3, you must also set the variable
+\texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
+noncommercial user, either in the environment in which Isabelle is
+launched or in your
+\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file.
 
-\item[\labelitemi] Otherwise, follow the instructions documented in the \emph{SMT}
-theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}).
+\item[\labelitemi] If you prefer to build CVC3 yourself, or found a
+Yices or Z3 executable somewhere (e.g.,
+\url{http://yices.csl.sri.com/download.shtml} or
+\url{http://research.microsoft.com/en-us/um/redmond/projects/z3/download.html}),
+set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
+\texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
+the executable, including the file name. Sledgehammer has been tested
+with CVC3 2.2, Yices 1.0.28, and Z3 3.0 to 3.2.
+Since the SMT solvers' output formats are somewhat unstable, other
+versions of the solvers might not work well with Sledgehammer. Ideally,
+also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
+\texttt{Z3\_VERSION} to the solver's version number (e.g., ``3.2'').
 \end{enum}
+
+\fussy
 
 \section{First Steps}
 \label{first-steps}
@@ -779,18 +795,20 @@ supports the TPTP typed first-order format (TFF0).
 \item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
 \texttt{YICES\_SOLVER} to the complete path of the executable, including the
-file name. Sledgehammer has been tested with version 1.0.
+file name. Sledgehammer has been tested with version 1.0.28.
 
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the file
 name, and set \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
-noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
+noncommercial user. Sledgehammer has been tested with versions 3.0 to 3.2.
 
 \item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
 an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
-formats (FOF and TFF0). It is included for experimental purposes. It requires
-version 3.0 or above.
+formats (FOF and TFF0). It is included for experimental purposes. It
+requires version 3.0 or above. To use it, set the environment variable
+\texttt{Z3\_HOME} to the directory that contains the \texttt{z3}
+executable.
 \end{enum}
 
 In addition, the following remote provers are supported:
