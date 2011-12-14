@@ -52,16 +52,13 @@ next
   ultimately show ?thesis unfolding while_option_def by auto 
 qed
 
-lemma while_option_stop:
-assumes "while_option b c s = Some t"
-shows "~ b t"
-proof -
-  from assms have ex: "\<exists>k. ~ b ((c ^^ k) s)"
-  and t: "t = (c ^^ (LEAST k. ~ b ((c ^^ k) s))) s"
-    by (auto simp: while_option_def split: if_splits)
-  from LeastI_ex[OF ex]
-  show "~ b t" unfolding t .
-qed
+lemma while_option_stop2:
+ "while_option b c s = Some t \<Longrightarrow> EX k. t = (c^^k) s \<and> \<not> b t"
+apply(simp add: while_option_def split: if_splits)
+by (metis (lam_lifting) LeastI_ex)
+
+lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> ~ b t"
+by(metis while_option_stop2)
 
 theorem while_option_rule:
 assumes step: "!!s. P s ==> b s ==> P (c s)"
@@ -144,5 +141,32 @@ theorem measure_while_option_Some: fixes f :: "'s \<Rightarrow> nat"
 shows "(!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < f s)
   \<Longrightarrow> P s \<Longrightarrow> EX t. while_option b c s = Some t"
 by(blast intro: wf_while_option_Some[OF wf_if_measure, of P b f])
+
+text{* Kleene iteration starting from the empty set and assuming some finite
+bounding set: *}
+
+lemma while_option_finite_subset_Some: fixes C :: "'a set"
+  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  shows "\<exists>P. while_option (\<lambda>A. f A \<noteq> A) f {} = Some P"
+proof(rule measure_while_option_Some[where
+    f= "%A::'a set. card C - card A" and P= "%A. A \<subseteq> C \<and> A \<subseteq> f A" and s= "{}"])
+  fix A assume A: "A \<subseteq> C \<and> A \<subseteq> f A" "f A \<noteq> A"
+  show "(f A \<subseteq> C \<and> f A \<subseteq> f (f A)) \<and> card C - card (f A) < card C - card A"
+    (is "?L \<and> ?R")
+  proof
+    show ?L by(metis A(1) assms(2) monoD[OF `mono f`])
+    show ?R by (metis A assms(2,3) card_seteq diff_less_mono2 equalityI linorder_le_less_linear rev_finite_subset)
+  qed
+qed simp
+
+lemma lfp_the_while_option:
+  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  shows "lfp f = the(while_option (\<lambda>A. f A \<noteq> A) f {})"
+proof-
+  obtain P where "while_option (\<lambda>A. f A \<noteq> A) f {} = Some P"
+    using while_option_finite_subset_Some[OF assms] by blast
+  with while_option_stop2[OF this] lfp_Kleene_iter[OF assms(1)]
+  show ?thesis by auto
+qed
 
 end

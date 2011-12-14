@@ -326,10 +326,14 @@ lemma EL_TL: "l \<noteq> [] \<Longrightarrow> tl l ! x = l ! (x + 1)"
 
    The definitions of TL and ZIP are different for empty lists.
  *)
-axioms
+axiomatization where
   DEF_HD: "hd = (SOME HD. \<forall>t h. HD (h # t) = h)"
+
+axiomatization where
   DEF_LAST: "last =
     (SOME LAST. \<forall>h t. LAST (h # t) = (if t = [] then h else LAST t))"
+
+axiomatization where
   DEF_EL: "list_el =
     (SOME EL. (\<forall>l. EL 0 l = hd l) \<and> (\<forall>n l. EL (Suc n) l = EL n (tl l)))"
 

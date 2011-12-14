@@ -46,7 +46,7 @@ specification (publicKey)
    done                       
 (*>*)
 
-axioms
+axiomatization where
   (*No private key equals any public key (essential to ensure that private
     keys are private!) *)
   privateKey_neq_publicKey [iff]:

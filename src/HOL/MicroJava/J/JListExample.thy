@@ -111,7 +111,9 @@ lemma equal_vnam_code [code]:
   "HOL.equal l4_nam l3_nam \<longleftrightarrow> False"
   by(simp_all add: distinct_fields distinct_fields[symmetric] distinct_vars distinct_vars[symmetric] equal_vnam_def)
 
-axioms nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
+axiomatization where
+  nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
+
 lemma equal_loc'_code [code]:
   "HOL.equal (nat_to_loc' l) (nat_to_loc' l') \<longleftrightarrow> l = l'"
   by(simp add: equal_loc'_def nat_to_loc'_inject)

@@ -693,7 +693,7 @@ text {*
     @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
 
-    spec: @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
+    spec: @{syntax typespec_sorts} @{syntax mixfix}? '=' (cons + '|')
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
   "}

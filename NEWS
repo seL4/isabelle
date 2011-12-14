@@ -53,6 +53,8 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* 'datatype' specifications allow explicit sort constraints.
+
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY, use
 theory HOL/Library/Nat_Bijection instead.
 

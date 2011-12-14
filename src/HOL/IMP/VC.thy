@@ -7,16 +7,17 @@ subsection "VCG via Weakest Preconditions"
 text{* Annotated commands: commands where loops are annotated with
 invariants. *}
 
-datatype acom = Askip
-              | Aassign vname aexp
-              | Asemi   acom acom
-              | Aif     bexp acom acom
-              | Awhile  assn bexp acom
+datatype acom =
+  ASKIP |
+  Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
+  Asemi   acom acom      ("_;/ _"  [60, 61] 60) |
+  Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
+  Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
 
 text{* Weakest precondition from annotated commands: *}
 
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"pre Askip Q = Q" |
+"pre ASKIP Q = Q" |
 "pre (Aassign x a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
 "pre (Asemi c\<^isub>1 c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
 "pre (Aif b c\<^isub>1 c\<^isub>2) Q =
@@ -27,7 +28,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 text{* Verification condition: *}
 
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"vc Askip Q = (\<lambda>s. True)" |
+"vc ASKIP Q = (\<lambda>s. True)" |
 "vc (Aassign x a) Q = (\<lambda>s. True)" |
 "vc (Asemi c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
 "vc (Aif b c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
@@ -38,17 +39,16 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 
 text{* Strip annotations: *}
 
-fun astrip :: "acom \<Rightarrow> com" where
-"astrip Askip = SKIP" |
-"astrip (Aassign x a) = (x::=a)" |
-"astrip (Asemi c\<^isub>1 c\<^isub>2) = (astrip c\<^isub>1; astrip c\<^isub>2)" |
-"astrip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN astrip c\<^isub>1 ELSE astrip c\<^isub>2)" |
-"astrip (Awhile I b c) = (WHILE b DO astrip c)"
-
+fun strip :: "acom \<Rightarrow> com" where
+"strip ASKIP = SKIP" |
+"strip (Aassign x a) = (x::=a)" |
+"strip (Asemi c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1; strip c\<^isub>2)" |
+"strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
+"strip (Awhile I b c) = (WHILE b DO strip c)"
 
 subsection "Soundness"
 
-lemma vc_sound: "\<forall>s. vc c Q s \<Longrightarrow> \<turnstile> {pre c Q} astrip c {Q}"
+lemma vc_sound: "\<forall>s. vc c Q s \<Longrightarrow> \<turnstile> {pre c Q} strip c {Q}"
 proof(induction c arbitrary: Q)
   case (Awhile I b c)
   show ?case
@@ -56,15 +56,15 @@ proof(induction c arbitrary: Q)
     from `\<forall>s. vc (Awhile I b c) Q s`
     have vc: "\<forall>s. vc c I s" and IQ: "\<forall>s. I s \<and> \<not> bval b s \<longrightarrow> Q s" and
          pre: "\<forall>s. I s \<and> bval b s \<longrightarrow> pre c I s" by simp_all
-    have "\<turnstile> {pre c I} astrip c {I}" by(rule Awhile.IH[OF vc])
-    with pre show "\<turnstile> {\<lambda>s. I s \<and> bval b s} astrip c {I}"
+    have "\<turnstile> {pre c I} strip c {I}" by(rule Awhile.IH[OF vc])
+    with pre show "\<turnstile> {\<lambda>s. I s \<and> bval b s} strip c {I}"
       by(rule strengthen_pre)
     show "\<forall>s. I s \<and> \<not>bval b s \<longrightarrow> Q s" by(rule IQ)
   qed
 qed (auto intro: hoare.conseq)
 
 corollary vc_sound':
-  "(\<forall>s. vc c Q s) \<and> (\<forall>s. P s \<longrightarrow> pre c Q s) \<Longrightarrow> \<turnstile> {P} astrip c {Q}"
+  "(\<forall>s. vc c Q s) \<and> (\<forall>s. P s \<longrightarrow> pre c Q s) \<Longrightarrow> \<turnstile> {P} strip c {Q}"
 by (metis strengthen_pre vc_sound)
 
 
@@ -83,12 +83,12 @@ proof(induction c arbitrary: P P')
 qed simp_all
 
 lemma vc_complete:
- "\<turnstile> {P}c{Q} \<Longrightarrow> \<exists>c'. astrip c' = c \<and> (\<forall>s. vc c' Q s) \<and> (\<forall>s. P s \<longrightarrow> pre c' Q s)"
+ "\<turnstile> {P}c{Q} \<Longrightarrow> \<exists>c'. strip c' = c \<and> (\<forall>s. vc c' Q s) \<and> (\<forall>s. P s \<longrightarrow> pre c' Q s)"
   (is "_ \<Longrightarrow> \<exists>c'. ?G P c Q c'")
 proof (induction rule: hoare.induct)
   case Skip
   show ?case (is "\<exists>ac. ?C ac")
-  proof show "?C Askip" by simp qed
+  proof show "?C ASKIP" by simp qed
 next
   case (Assign P a x)
   show ?case (is "\<exists>ac. ?C ac")
@@ -125,7 +125,7 @@ qed
 subsection "An Optimization"
 
 fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
-"vcpre Askip Q = (\<lambda>s. True, Q)" |
+"vcpre ASKIP Q = (\<lambda>s. True, Q)" |
 "vcpre (Aassign x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[a/x]))" |
 "vcpre (Asemi c\<^isub>1 c\<^isub>2) Q =
   (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;

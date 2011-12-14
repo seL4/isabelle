@@ -1354,6 +1354,10 @@ apply (induct xs arbitrary: n, simp)
 apply (case_tac n, auto)
 done
 
+lemma nth_tl:
+  assumes "n < length (tl x)" shows "tl x ! n = x ! Suc n"
+using assms by (induct x) auto
+
 lemma hd_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd xs = xs!0"
 by(cases xs) simp_all
 
@@ -1545,6 +1549,12 @@ by(simp add:last_append)
 lemma last_appendR[simp]: "ys \<noteq> [] \<Longrightarrow> last(xs @ ys) = last ys"
 by(simp add:last_append)
 
+lemma last_tl: "xs = [] \<or> tl xs \<noteq> [] \<Longrightarrow>last (tl xs) = last xs"
+by (induct xs) simp_all
+
+lemma butlast_tl: "butlast (tl xs) = tl (butlast xs)"
+by (induct xs) simp_all
+
 lemma hd_rev: "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
 by(rule rev_exhaust[of xs]) simp_all
 
@@ -1577,6 +1587,15 @@ apply (induct xs arbitrary: n)
  apply simp
 apply (auto split:nat.split)
 done
+
+lemma nth_butlast:
+  assumes "n < length (butlast xs)" shows "butlast xs ! n = xs ! n"
+proof (cases xs)
+  case (Cons y ys)
+  moreover from assms have "butlast xs ! n = (butlast xs @ [last xs]) ! n"
+    by (simp add: nth_append)
+  ultimately show ?thesis using append_butlast_last_id by simp
+qed simp
 
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
@@ -1898,6 +1917,17 @@ by (induct xs) auto
 lemma dropWhile_append2 [simp]:
 "(!!x. x:set xs ==> P(x)) ==> dropWhile P (xs @ ys) = dropWhile P ys"
 by (induct xs) auto
+
+lemma dropWhile_append3:
+  "\<not> P y \<Longrightarrow>dropWhile P (xs @ y # ys) = dropWhile P xs @ y # ys"
+by (induct xs) auto
+
+lemma dropWhile_last:
+  "x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> last (dropWhile P xs) = last xs"
+by (auto simp add: dropWhile_append3 in_set_conv_decomp)
+
+lemma set_dropWhileD: "x \<in> set (dropWhile P xs) \<Longrightarrow> x \<in> set xs"
+by (induct xs) (auto split: split_if_asm)
 
 lemma set_takeWhileD: "x : set (takeWhile P xs) ==> x : set xs \<and> P x"
 by (induct xs) (auto split: split_if_asm)
@@ -2889,6 +2919,30 @@ apply(case_tac ws) apply simp
 apply (simp split:split_if_asm)
 apply (metis Cons_eq_appendI eq_Nil_appendI split_list)
 done
+
+lemma not_distinct_conv_prefix:
+  defines "dec as xs y ys \<equiv> y \<in> set xs \<and> distinct xs \<and> as = xs @ y # ys"
+  shows "\<not>distinct as \<longleftrightarrow> (\<exists>xs y ys. dec as xs y ys)" (is "?L = ?R")
+proof
+  assume "?L" then show "?R"
+  proof (induct "length as" arbitrary: as rule: less_induct)
+    case less
+    obtain xs ys zs y where decomp: "as = (xs @ y # ys) @ y # zs"
+      using not_distinct_decomp[OF less.prems] by auto
+    show ?case
+    proof (cases "distinct (xs @ y # ys)")
+      case True
+      with decomp have "dec as (xs @ y # ys) y zs" by (simp add: dec_def)
+      then show ?thesis by blast
+    next
+      case False
+      with less decomp obtain xs' y' ys' where "dec (xs @ y # ys) xs' y' ys'"
+        by atomize_elim auto
+      with decomp have "dec as xs' y' (ys' @ y # zs)" by (simp add: dec_def)
+      then show ?thesis by blast
+    qed
+  qed
+qed (auto simp: dec_def)
 
 lemma length_remdups_concat:
   "length (remdups (concat xss)) = card (\<Union>xs\<in>set xss. set xs)"

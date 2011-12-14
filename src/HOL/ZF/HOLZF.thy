@@ -34,13 +34,13 @@ definition SucNat:: "ZF \<Rightarrow> ZF" where
 definition subset :: "ZF \<Rightarrow> ZF \<Rightarrow> bool" where
   "subset A B == ! x. Elem x A \<longrightarrow> Elem x B"
 
-axioms
-  Empty: "Not (Elem x Empty)"
-  Ext: "(x = y) = (! z. Elem z x = Elem z y)"
-  Sum: "Elem z (Sum x) = (? y. Elem z y & Elem y x)"
-  Power: "Elem y (Power x) = (subset y x)"
-  Repl: "Elem b (Repl A f) = (? a. Elem a A & b = f a)"
-  Regularity: "A \<noteq> Empty \<longrightarrow> (? x. Elem x A & (! y. Elem y x \<longrightarrow> Not (Elem y A)))"
+axiomatization where
+  Empty: "Not (Elem x Empty)" and
+  Ext: "(x = y) = (! z. Elem z x = Elem z y)" and
+  Sum: "Elem z (Sum x) = (? y. Elem z y & Elem y x)" and
+  Power: "Elem y (Power x) = (subset y x)" and
+  Repl: "Elem b (Repl A f) = (? a. Elem a A & b = f a)" and
+  Regularity: "A \<noteq> Empty \<longrightarrow> (? x. Elem x A & (! y. Elem y x \<longrightarrow> Not (Elem y A)))" and
   Infinity: "Elem Empty Inf & (! x. Elem x Inf \<longrightarrow> Elem (SucNat x) Inf)"
 
 definition Sep :: "ZF \<Rightarrow> (ZF \<Rightarrow> bool) \<Rightarrow> ZF" where

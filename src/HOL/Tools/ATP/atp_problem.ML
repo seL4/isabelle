@@ -107,8 +107,7 @@ sig
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
-  val declare_undeclared_syms_in_atp_problem :
-    string -> string -> (string * string) problem -> (string * string) problem
+  val declared_syms_in_problem : (string * ''a) problem -> (string * ''a) list
   val nice_atp_problem :
     bool -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -613,58 +612,10 @@ fun filter_cnf_ueq_problem problem =
 
 (** Symbol declarations **)
 
-(* TFF allows implicit declarations of types, function symbols, and predicate
-   symbols (with "$i" as the type of individuals), but some provers (e.g.,
-   SNARK) require explicit declarations. The situation is similar for THF. *)
-fun default_type pred_sym =
-  let
-    fun typ 0 = if pred_sym then bool_atype else individual_atype
-      | typ ary = AFun (individual_atype, typ (ary - 1))
-  in typ end
-
 fun add_declared_syms_in_problem_line (Decl (_, sym, _)) = insert (op =) sym
   | add_declared_syms_in_problem_line _ = I
 fun declared_syms_in_problem problem =
   fold (fold add_declared_syms_in_problem_line o snd) problem []
-
-fun nary_type_constr_type n =
-  funpow n (curry AFun atype_of_types) atype_of_types
-
-fun undeclared_syms_in_problem declared problem =
-  let
-    fun do_sym name ty =
-      if member (op =) declared name then I else AList.default (op =) (name, ty)
-    fun do_type (AType (name as (s, _), tys)) =
-        is_tptp_user_symbol s
-        ? do_sym name (fn _ => nary_type_constr_type (length tys))
-        #> fold do_type tys
-      | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
-      | do_type (ATyAbs (_, ty)) = do_type ty
-    fun do_term pred_sym (ATerm (name as (s, _), tms)) =
-        is_tptp_user_symbol s
-        ? do_sym name (fn _ => default_type pred_sym (length tms))
-        #> fold (do_term false) tms
-      | do_term _ (AAbs ((_, ty), tm)) = do_type ty #> do_term false tm
-    fun do_formula (AQuant (_, xs, phi)) =
-        fold do_type (map_filter snd xs) #> do_formula phi
-      | do_formula (AConn (_, phis)) = fold do_formula phis
-      | do_formula (AAtom tm) = do_term true tm
-    fun do_problem_line (Decl (_, _, ty)) = do_type ty
-      | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
-  in
-    fold (fold do_problem_line o snd) problem []
-    |> filter_out (is_built_in_tptp_symbol o fst o fst)
-  end
-
-fun declare_undeclared_syms_in_atp_problem prefix heading problem =
-  let
-    fun decl_line (x as (s, _), ty) = Decl (prefix ^ s, x, ty ())
-    val declared = problem |> declared_syms_in_problem
-    val decls =
-      problem |> undeclared_syms_in_problem declared
-              |> sort_wrt (fst o fst)
-              |> map decl_line
-  in (heading, decls) :: problem end
 
 (** Nice names **)
 

@@ -69,8 +69,9 @@ fun dt_of_intrs thy vs nparms intrs =
         filter_out (equal Extraction.nullT) (map
           (Logic.unvarifyT_global o Extraction.etype_of thy vs []) (prems_of intr)),
             NoSyn);
-  in (map (fn a => "'" ^ a) vs @ map (fst o fst) iTs, tname, NoSyn,
-    map constr_of_intr intrs)
+  in
+    ((tname, map (rpair dummyS) (map (fn a => "'" ^ a) vs @ map (fst o fst) iTs), NoSyn),
+      map constr_of_intr intrs)
   end;
 
 fun mk_rlz T = Const ("realizes", [T, HOLogic.boolT] ---> HOLogic.boolT);
@@ -233,8 +234,9 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       end) concls rec_names)
   end;
 
-fun add_dummy name dname (x as (_, (vs, s, mfx, cs))) =
-  if Binding.eq_name (name, s) then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
+fun add_dummy name dname (x as (_, ((s, vs, mx), cs))) =
+  if Binding.eq_name (name, s)
+  then (true, ((s, vs, mx), (dname, [HOLogic.unitT], NoSyn) :: cs))
   else x;
 
 fun add_dummies f [] _ thy =

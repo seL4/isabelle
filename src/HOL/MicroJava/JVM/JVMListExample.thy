@@ -13,30 +13,31 @@ text {*
   anonymous, we describe distinctness of names in the example by axioms:
 *}
 axiomatization list_nam test_nam :: cnam
-where distinct_classes: "list_nam \<noteq> test_nam"
+  where distinct_classes: "list_nam \<noteq> test_nam"
 
 axiomatization append_name makelist_name :: mname
-where distinct_methods: "append_name \<noteq> makelist_name"
+  where distinct_methods: "append_name \<noteq> makelist_name"
 
 axiomatization val_nam next_nam :: vnam
-where distinct_fields: "val_nam \<noteq> next_nam"
+  where distinct_fields: "val_nam \<noteq> next_nam"
 
-axioms nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
+axiomatization
+  where nat_to_loc'_inject: "nat_to_loc' l = nat_to_loc' l' \<longleftrightarrow> l = l'"
 
-definition list_name :: cname where
-  "list_name == Cname list_nam"
+definition list_name :: cname
+  where "list_name = Cname list_nam"
   
-definition test_name :: cname where
-  "test_name == Cname test_nam"
+definition test_name :: cname
+  where "test_name = Cname test_nam"
 
-definition val_name :: vname where
-  "val_name == VName val_nam"
+definition val_name :: vname
+  where "val_name = VName val_nam"
 
-definition next_name :: vname where
-  "next_name == VName next_nam"
+definition next_name :: vname
+  where "next_name = VName next_nam"
 
 definition append_ins :: bytecode where
-  "append_ins == 
+  "append_ins =
        [Load 0,
         Getfield next_name list_name,
         Dup,
@@ -53,14 +54,14 @@ definition append_ins :: bytecode where
         Return]"
 
 definition list_class :: "jvm_method class" where
-  "list_class ==
+  "list_class =
     (Object,
      [(val_name, PrimT Integer), (next_name, Class list_name)],
      [((append_name, [Class list_name]), PrimT Void,
         (3, 0, append_ins,[(1,2,8,Xcpt NullPointer)]))])"
 
 definition make_list_ins :: bytecode where
-  "make_list_ins ==
+  "make_list_ins =
        [New list_name,
         Dup,
         Store 0,
@@ -86,12 +87,12 @@ definition make_list_ins :: bytecode where
         Return]"
 
 definition test_class :: "jvm_method class" where
-  "test_class ==
+  "test_class =
     (Object, [],
      [((makelist_name, []), PrimT Void, (3, 2, make_list_ins,[]))])"
 
 definition E :: jvm_prog where
-  "E == SystemClasses @ [(list_name, list_class), (test_name, test_class)]"
+  "E = SystemClasses @ [(list_name, list_class), (test_name, test_class)]"
 
 code_datatype list_nam test_nam
 lemma equal_cnam_code [code]:

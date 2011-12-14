@@ -1905,7 +1905,8 @@ fun formula_line_for_class_rel_clause format type_enc
              AConn (AImplies,
                     [type_class_formula type_enc subclass ty_arg,
                      type_class_formula type_enc superclass ty_arg])
-             |> close_formula_universally,
+             |> mk_aquant AForall
+                          [(tvar_a_name, atype_of_type_vars type_enc)],
              isabelle_info format introN, NONE)
   end
 
@@ -2022,7 +2023,9 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
     |> is_type_enc_fairly_sound type_enc
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> (case type_enc of
-                Simple_Types (First_Order, Polymorphic, _) => add_TYPE_const ()
+                Simple_Types (First_Order, Polymorphic, _) =>
+                if avoid_first_order_ghost_type_vars then add_TYPE_const ()
+                else I
               | Simple_Types _ => I
               | _ => fold add_undefined_const (var_types ())))
   end
@@ -2281,9 +2284,7 @@ fun rationalize_decls ctxt (decls as decl :: (decls' as _ :: _)) =
 fun problem_lines_for_sym_decls ctxt format conj_sym_kind mono type_enc
                                 (s, decls) =
   case type_enc of
-    Simple_Types _ =>
-    decls |> rationalize_decls ctxt
-          |> map (decl_line_for_sym ctxt format mono type_enc s)
+    Simple_Types _ => [decl_line_for_sym ctxt format mono type_enc s (hd decls)]
   | Guards (_, level) =>
     let
       val decls = decls |> rationalize_decls ctxt
@@ -2332,6 +2333,58 @@ val aritiesN = "Arities"
 val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
+
+(* TFF allows implicit declarations of types, function symbols, and predicate
+   symbols (with "$i" as the type of individuals), but some provers (e.g.,
+   SNARK) require explicit declarations. The situation is similar for THF. *)
+
+fun default_type pred_sym s =
+  let
+    val ind =
+      if String.isPrefix type_const_prefix s then atype_of_types
+      else individual_atype
+    fun typ 0 = if pred_sym then bool_atype else ind
+      | typ ary = AFun (ind, typ (ary - 1))
+  in typ end
+
+fun nary_type_constr_type n =
+  funpow n (curry AFun atype_of_types) atype_of_types
+
+fun undeclared_syms_in_problem problem =
+  let
+    val declared = declared_syms_in_problem problem
+    fun do_sym name ty =
+      if member (op =) declared name then I else AList.default (op =) (name, ty)
+    fun do_type (AType (name as (s, _), tys)) =
+        is_tptp_user_symbol s
+        ? do_sym name (fn () => nary_type_constr_type (length tys))
+        #> fold do_type tys
+      | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
+      | do_type (ATyAbs (_, ty)) = do_type ty
+    fun do_term pred_sym (ATerm (name as (s, _), tms)) =
+        is_tptp_user_symbol s
+        ? do_sym name (fn _ => default_type pred_sym s (length tms))
+        #> fold (do_term false) tms
+      | do_term _ (AAbs ((_, ty), tm)) = do_type ty #> do_term false tm
+    fun do_formula (AQuant (_, xs, phi)) =
+        fold do_type (map_filter snd xs) #> do_formula phi
+      | do_formula (AConn (_, phis)) = fold do_formula phis
+      | do_formula (AAtom tm) = do_term true tm
+    fun do_problem_line (Decl (_, _, ty)) = do_type ty
+      | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
+  in
+    fold (fold do_problem_line o snd) problem []
+    |> filter_out (is_built_in_tptp_symbol o fst o fst)
+  end
+
+fun declare_undeclared_syms_in_atp_problem problem =
+  let
+    val decls =
+      problem
+      |> undeclared_syms_in_problem
+      |> sort_wrt (fst o fst)
+      |> map (fn (x as (s, _), ty) => Decl (type_decl_prefix ^ s, x, ty ()))
+  in (implicit_declsN, decls) :: problem end
 
 val explicit_apply_threshold = 50
 
@@ -2411,8 +2464,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | FOF => I
           | TFF (_, TPTP_Implicit) => I
           | THF (_, TPTP_Implicit, _) => I
-          | _ => declare_undeclared_syms_in_atp_problem type_decl_prefix
-                                                        implicit_declsN)
+          | _ => declare_undeclared_syms_in_atp_problem)
     val (problem, pool) = problem |> nice_atp_problem readable_names
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
