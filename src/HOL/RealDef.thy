@@ -1767,7 +1767,7 @@ declaration {*
     (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
     (@{const_name number_real_inst.number_of_real}, @{const_name Nitpick.number_of_frac}),
     (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
-    (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_eq_frac}),
+    (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
     (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
 *}
 
