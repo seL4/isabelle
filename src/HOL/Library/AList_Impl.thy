@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/AList.thy
+(*  Title:      HOL/Library/AList_Impl.thy
     Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser, TU Muenchen
 *)
 
 header {* Implementation of Association Lists *}
 
-theory AList
+theory AList_Impl
 imports Main More_List
 begin
 
