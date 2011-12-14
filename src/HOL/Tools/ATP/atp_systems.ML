@@ -339,8 +339,8 @@ val spass_config : atp_config =
                        sosN))),
       (0.333, (false, (300, DFG DFG_Unsorted, "poly_tags??", lam_liftingN,
                        sosN))),
-      (0.334, (true, (50, DFG DFG_Unsorted, "mono_tags??", lam_liftingN,
-                      no_sosN)))]
+      (0.334, (false, (50, DFG DFG_Unsorted, "mono_tags??", lam_liftingN,
+                       no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
