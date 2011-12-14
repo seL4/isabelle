@@ -83,7 +83,7 @@ fun introduce_lam_wrappers ctxt th =
         if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
           Thm.reflexive ct
         else case term_of ct of
-          t as Abs (_, _, u) =>
+          Abs (_, _, u) =>
           if first then
             case add_vars_and_frees u [] of
               [] =>
