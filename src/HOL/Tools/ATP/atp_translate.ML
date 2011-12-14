@@ -2338,11 +2338,14 @@ val free_typesN = "Type variables"
    symbols (with "$i" as the type of individuals), but some provers (e.g.,
    SNARK) require explicit declarations. The situation is similar for THF. *)
 
-fun default_type pred_sym s =
+fun default_type type_enc pred_sym s =
   let
     val ind =
-      if String.isPrefix type_const_prefix s then atype_of_types
-      else individual_atype
+      case type_enc of
+        Simple_Types _ =>
+        if String.isPrefix type_const_prefix s then atype_of_types
+        else individual_atype
+      | _ => individual_atype
     fun typ 0 = if pred_sym then bool_atype else ind
       | typ ary = AFun (ind, typ (ary - 1))
   in typ end
@@ -2350,7 +2353,7 @@ fun default_type pred_sym s =
 fun nary_type_constr_type n =
   funpow n (curry AFun atype_of_types) atype_of_types
 
-fun undeclared_syms_in_problem problem =
+fun undeclared_syms_in_problem type_enc problem =
   let
     val declared = declared_syms_in_problem problem
     fun do_sym name ty =
@@ -2363,7 +2366,7 @@ fun undeclared_syms_in_problem problem =
       | do_type (ATyAbs (_, ty)) = do_type ty
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
         is_tptp_user_symbol s
-        ? do_sym name (fn _ => default_type pred_sym s (length tms))
+        ? do_sym name (fn _ => default_type type_enc pred_sym s (length tms))
         #> fold (do_term false) tms
       | do_term _ (AAbs ((_, ty), tm)) = do_type ty #> do_term false tm
     fun do_formula (AQuant (_, xs, phi)) =
@@ -2377,11 +2380,11 @@ fun undeclared_syms_in_problem problem =
     |> filter_out (is_built_in_tptp_symbol o fst o fst)
   end
 
-fun declare_undeclared_syms_in_atp_problem problem =
+fun declare_undeclared_syms_in_atp_problem type_enc problem =
   let
     val decls =
       problem
-      |> undeclared_syms_in_problem
+      |> undeclared_syms_in_problem type_enc
       |> sort_wrt (fst o fst)
       |> map (fn (x as (s, _), ty) => Decl (type_decl_prefix ^ s, x, ty ()))
   in (implicit_declsN, decls) :: problem end
@@ -2464,7 +2467,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | FOF => I
           | TFF (_, TPTP_Implicit) => I
           | THF (_, TPTP_Implicit, _) => I
-          | _ => declare_undeclared_syms_in_atp_problem)
+          | _ => declare_undeclared_syms_in_atp_problem type_enc)
     val (problem, pool) = problem |> nice_atp_problem readable_names
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
