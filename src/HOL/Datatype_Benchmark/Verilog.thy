@@ -1,4 +1,4 @@
-(*  Title:      Admin/Benchmarks/HOL-datatype/Verilog.thy
+(*  Title:      HOL/Datatype_Benchmark/Verilog.thy
 
 Example from Daryl: a Verilog grammar.
 *)

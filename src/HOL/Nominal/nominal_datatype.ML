@@ -6,7 +6,8 @@ Nominal datatype package for Isabelle/HOL.
 
 signature NOMINAL_DATATYPE =
 sig
-  val add_nominal_datatype : Datatype.config -> Datatype.spec_cmd list -> theory -> theory
+  val nominal_datatype : Datatype.config -> Datatype.spec list -> theory -> theory
+  val nominal_datatype_cmd : Datatype.config -> Datatype.spec_cmd list -> theory -> theory
   type descr
   type nominal_datatype_info
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
@@ -185,7 +186,7 @@ fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
 fun fresh_star_const T U =
   Const ("Nominal.fresh_star", HOLogic.mk_setT T --> U --> HOLogic.boolT);
 
-fun gen_add_nominal_datatype prep_specs config dts thy =
+fun gen_nominal_datatype prep_specs config dts thy =
   let
     val new_type_names = map (fn ((tname, _, _), _) => Binding.name_of tname) dts;
 
@@ -2065,11 +2066,12 @@ fun gen_add_nominal_datatype prep_specs config dts thy =
     thy13
   end;
 
-val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_specs;
+val nominal_datatype = gen_nominal_datatype Datatype.check_specs;
+val nominal_datatype_cmd = gen_nominal_datatype Datatype.read_specs;
 
 val _ =
-  Outer_Syntax.command "nominal_datatype" "define inductive datatypes" Keyword.thy_decl
-    (Parse.and_list1 Datatype.spec_cmd
-      >> (Toplevel.theory o add_nominal_datatype Datatype.default_config));
+  Outer_Syntax.command "nominal_datatype" "define nominal datatypes" Keyword.thy_decl
+    (Parse.and_list1 Datatype.spec_cmd >>
+      (Toplevel.theory o nominal_datatype_cmd Datatype.default_config));
 
 end

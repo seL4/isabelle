@@ -8,6 +8,7 @@ default: CTT
 images: CTT
 test: CTT-ex
 all: images test
+full: all
 smlnj: all
 
 

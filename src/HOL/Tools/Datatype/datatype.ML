@@ -19,7 +19,7 @@ sig
   val read_specs: spec_cmd list -> theory -> spec list * Proof.context
   val check_specs: spec list -> theory -> spec list * Proof.context
   val add_datatype: config -> spec list -> theory -> string list * theory
-  val add_datatype_cmd: spec_cmd list -> theory -> theory
+  val add_datatype_cmd: config -> spec_cmd list -> theory -> string list * theory
   val spec_cmd: spec_cmd parser
 end;
 
@@ -798,7 +798,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
   end;
 
 val add_datatype = gen_add_datatype check_specs;
-val add_datatype_cmd = snd oo gen_add_datatype read_specs Datatype_Aux.default_config;
+val add_datatype_cmd = gen_add_datatype read_specs;
 
 
 (* outer syntax *)
@@ -810,7 +810,8 @@ val spec_cmd =
 
 val _ =
   Outer_Syntax.command "datatype" "define inductive datatypes" Keyword.thy_decl
-    (Parse.and_list1 spec_cmd >> (Toplevel.theory o add_datatype_cmd));
+    (Parse.and_list1 spec_cmd
+      >> (Toplevel.theory o (snd oo add_datatype_cmd Datatype_Aux.default_config)));
 
 
 open Datatype_Data;

@@ -1,4 +1,4 @@
-(*  Title:      Admin/Benchmarks/HOL-record/Record_Benchmark.thy
+(*  Title:      HOL/Record_Benchmark/Record_Benchmark.thy
     Author:     Norbert Schirmer, DFKI
 *)
 

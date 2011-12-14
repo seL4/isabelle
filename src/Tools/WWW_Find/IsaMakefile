@@ -9,6 +9,7 @@ default: Pure-WWW_Find
 images:
 test: Pure-WWW_Find
 all: images test
+full: all
 smlnj: all
 
 

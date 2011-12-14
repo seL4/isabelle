@@ -22,7 +22,6 @@ sig
   val term_frees: term -> term list
   val mk_defpair: term * term -> string * term
   val get_def: theory -> xstring -> thm
-  val simple_read_term: theory -> typ -> string -> term
   val METAHYPS: (thm list -> tactic) -> int -> tactic
 end;
 
@@ -102,15 +101,6 @@ fun mk_defpair (lhs, rhs) =
 
 
 fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
-
-
-fun simple_read_term thy T s =
-  let
-    val ctxt = Proof_Context.init_global thy
-      |> Proof_Context.allow_dummies
-      |> Proof_Context.set_mode Proof_Context.mode_schematic;
-    val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
-  in parse ctxt s |> Type.constraint T |> Syntax.check_term ctxt end;
 
 
 (**** METAHYPS -- tactical for using hypotheses as meta-level assumptions
