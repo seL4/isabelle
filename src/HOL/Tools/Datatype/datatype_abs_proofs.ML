@@ -16,13 +16,13 @@ sig
       thm -> theory -> (string list * thm list) * theory
   val prove_case_thms : config -> string list -> descr list ->
     string list -> thm list -> theory -> (thm list list * string list) * theory
-  val prove_split_thms : config -> string list -> descr list ->
+  val prove_split_thms : config -> string list -> string list -> descr list ->
     thm list list -> thm list list -> thm list -> thm list list -> theory ->
     (thm * thm) list * theory
   val prove_nchotomys : config -> string list -> descr list ->
     thm list -> theory -> thm list * theory
-  val prove_weak_case_congs : string list -> descr list -> theory -> thm list * theory
-  val prove_case_congs : string list -> descr list ->
+  val prove_weak_case_congs : string list -> string list -> descr list -> theory -> thm list * theory
+  val prove_case_congs : string list -> string list -> descr list ->
     thm list -> thm list list -> theory -> thm list * theory
 end;
 
@@ -262,7 +262,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
              resolve_tac rec_unique_thms 1,
              resolve_tac rec_intrs 1,
              REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))
-       (Datatype_Prop.make_primrecs new_type_names descr thy2);
+       (Datatype_Prop.make_primrecs reccomb_names descr thy2);
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
@@ -338,7 +338,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
           Skip_Proof.prove_global thy2 [] [] t
             (fn _ =>
               EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]))
-        (Datatype_Prop.make_cases new_type_names descr thy2);
+        (Datatype_Prop.make_cases case_names descr thy2);
   in
     thy2
     |> Context.theory_map ((fold o fold) Nitpick_Simps.add_thm case_thms)
@@ -351,7 +351,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
 (******************************* case splitting *******************************)
 
 fun prove_split_thms (config : Datatype_Aux.config)
-    new_type_names descr constr_inject dist_rewrites casedist_thms case_thms thy =
+    new_type_names case_names descr constr_inject dist_rewrites casedist_thms case_thms thy =
   let
     val _ = Datatype_Aux.message config "Proving equations for case splitting ...";
 
@@ -374,10 +374,10 @@ fun prove_split_thms (config : Datatype_Aux.config)
 
     val split_thm_pairs =
       map prove_split_thms
-        (Datatype_Prop.make_splits new_type_names descr thy ~~ constr_inject ~~
+        (Datatype_Prop.make_splits case_names descr thy ~~ constr_inject ~~
           dist_rewrites ~~ casedist_thms ~~ case_thms ~~ newTs);
 
-    val (split_thms, split_asm_thms) = ListPair.unzip split_thm_pairs
+    val (split_thms, split_asm_thms) = split_list split_thm_pairs
 
   in
     thy
@@ -386,14 +386,14 @@ fun prove_split_thms (config : Datatype_Aux.config)
     |-> (fn (thms1, thms2) => pair (thms1 ~~ thms2))
   end;
 
-fun prove_weak_case_congs new_type_names descr thy =
+fun prove_weak_case_congs new_type_names case_names descr thy =
   let
     fun prove_weak_case_cong t =
      Skip_Proof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-       (fn {prems, ...} => EVERY [rtac ((hd prems) RS arg_cong) 1]);
+       (fn {prems, ...} => EVERY [rtac (hd prems RS arg_cong) 1]);
 
     val weak_case_congs =
-      map prove_weak_case_cong (Datatype_Prop.make_weak_case_congs new_type_names descr thy);
+      map prove_weak_case_cong (Datatype_Prop.make_weak_case_congs case_names descr thy);
 
   in thy |> Datatype_Aux.store_thms "weak_case_cong" new_type_names weak_case_congs end;
 
@@ -421,7 +421,7 @@ fun prove_nchotomys (config : Datatype_Aux.config) new_type_names descr casedist
 
   in thy |> Datatype_Aux.store_thms "nchotomy" new_type_names nchotomys end;
 
-fun prove_case_congs new_type_names descr nchotomys case_thms thy =
+fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
   let
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
@@ -444,8 +444,8 @@ fun prove_case_congs new_type_names descr nchotomys case_thms thy =
       end;
 
     val case_congs =
-      map prove_case_cong (Datatype_Prop.make_case_congs
-        new_type_names descr thy ~~ nchotomys ~~ case_thms);
+      map prove_case_cong
+        (Datatype_Prop.make_case_congs case_names descr thy ~~ nchotomys ~~ case_thms);
 
   in thy |> Datatype_Aux.store_thms "case_cong" new_type_names case_congs end;
 

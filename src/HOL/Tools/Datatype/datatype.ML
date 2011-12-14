@@ -199,10 +199,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     (*********************** definition of constructors ***********************)
 
     val big_rep_name = big_name ^ "_Rep_";
-    val rep_names = map (prefix "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ string_of_int i) (1 upto length (flat (tl descr)));
     val all_rep_names =
-      map (Sign.intern_const thy3) rep_names @
+      map (#Rep_name o #1 o #2) typedefs @
       map (Sign.full_bname thy3) rep_names';
 
     (* isomorphism declarations *)
@@ -212,7 +211,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (* constructor definitions *)
 
-    fun make_constr_def tname T n ((cname, cargs), (cname', mx)) (thy, defs, eqns, i) =
+    fun make_constr_def tname (typedef: Typedef.info) T n
+        ((cname, cargs), (cname', mx)) (thy, defs, eqns, i) =
       let
         fun constr_arg dt (j, l_args, r_args) =
           let
@@ -224,19 +224,18 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 (j + 1, free_t :: l_args, mk_lim
                   (Const (nth all_rep_names m, U --> Univ_elT) $
                     Datatype_Aux.app_bnds free_t (length Us)) Us :: r_args)
-            | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
+            | _ => (j + 1, free_t :: l_args, (Leaf $ mk_inj T free_t) :: r_args))
           end;
 
         val (_, l_args, r_args) = fold_rev constr_arg cargs (1, [], []);
         val constrT = map (Datatype_Aux.typ_of_dtyp descr') cargs ---> T;
-        val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
-        val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
+        val ({Abs_name, Rep_name, ...}, _) = typedef;
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = mk_univ_inj r_args n i;
-        val def = Logic.mk_equals (lhs, Const (abs_name, Univ_elT --> T) $ rhs);
+        val def = Logic.mk_equals (lhs, Const (Abs_name, Univ_elT --> T) $ rhs);
         val def_name = Long_Name.base_name cname ^ "_def";
         val eqn =
-          HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
+          HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (Rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
           thy
           |> Sign.add_consts_i [(cname', constrT, mx)]
@@ -246,12 +245,11 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (* constructor definitions for datatype *)
 
-    fun dt_constr_defs ((((_, (_, _, constrs)), tname), T), constr_syntax)
+    fun dt_constr_defs (((((_, (_, _, constrs)), tname), typedef: Typedef.info), T), constr_syntax)
         (thy, defs, eqns, rep_congs, dist_lemmas) =
       let
         val _ $ (_ $ (cong_f $ _) $ _) = concl_of arg_cong;
-        val rep_const =
-          cterm_of thy (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> Univ_elT));
+        val rep_const = cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
         val cong' =
           Drule.export_without_context
             (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
@@ -259,7 +257,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           Drule.export_without_context
             (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) =
-          fold ((make_constr_def tname T) (length constrs))
+          fold (make_constr_def tname typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
       in
         (Sign.parent_path thy', defs', eqns @ [eqns'],
@@ -268,7 +266,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) =
       fold dt_constr_defs
-        (hd descr ~~ new_type_names ~~ newTs ~~ constr_syntax)
+        (hd descr ~~ new_type_names ~~ map #2 typedefs ~~ newTs ~~ constr_syntax)
         (thy3 |> Sign.add_consts_i iso_decls |> Sign.parent_path, [], [], [], []);
 
 
@@ -276,12 +274,11 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val _ = Datatype_Aux.message config "Proving isomorphism properties ...";
 
-    val newT_iso_axms = map (fn (_, (_, td)) =>
-      (collect_simp (#Abs_inverse td), #Rep_inverse td,
-       collect_simp (#Rep td))) typedefs;
+    val newT_iso_axms = typedefs |> map (fn (_, (_, {Abs_inverse, Rep_inverse, Rep, ...})) =>
+      (collect_simp Abs_inverse, Rep_inverse, collect_simp Rep));
 
-    val newT_iso_inj_thms = map (fn (_, (_, td)) =>
-      (collect_simp (#Abs_inject td) RS iffD1, #Rep_inject td RS iffD1)) typedefs;
+    val newT_iso_inj_thms = typedefs |> map (fn (_, (_, {Abs_inject, Rep_inject, ...})) =>
+      (collect_simp Abs_inject RS iffD1, Rep_inject RS iffD1));
 
     (********* isomorphisms between existing types and "unfolded" types *******)
 
@@ -300,8 +297,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       let
         val argTs = map (Datatype_Aux.typ_of_dtyp descr') cargs;
         val T = nth recTs k;
-        val rep_name = nth all_rep_names k;
-        val rep_const = Const (rep_name, T --> Univ_elT);
+        val rep_const = Const (nth all_rep_names k, T --> Univ_elT);
         val constr = Const (cname, argTs ---> T);
 
         fun process_arg ks' dt (i2, i2', ts, Ts) =
@@ -409,14 +405,14 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
             val T = nth recTs i;
             val Rep_t = Const (nth all_rep_names i, T --> Univ_elT);
             val rep_set_name = nth rep_set_names i;
-          in
-            (HOLogic.all_const T $ Abs ("y", T, HOLogic.imp $
+            val concl1 =
+              HOLogic.all_const T $ Abs ("y", T, HOLogic.imp $
                 HOLogic.mk_eq (Rep_t $ Datatype_Aux.mk_Free "x" T i, Rep_t $ Bound 0) $
-                  HOLogic.mk_eq (Datatype_Aux.mk_Free "x" T i, Bound 0)),
-              Const (rep_set_name, UnivT') $ (Rep_t $ Datatype_Aux.mk_Free "x" T i))
-          end;
+                  HOLogic.mk_eq (Datatype_Aux.mk_Free "x" T i, Bound 0));
+            val concl2 = Const (rep_set_name, UnivT') $ (Rep_t $ Datatype_Aux.mk_Free "x" T i);
+          in (concl1, concl2) end;
 
-        val (ind_concl1, ind_concl2) = ListPair.unzip (map mk_ind_concl ds);
+        val (ind_concl1, ind_concl2) = split_list (map mk_ind_concl ds);
 
         val rewrites = map mk_meta_eq iso_char_thms;
         val inj_thms' = map snd newT_iso_inj_thms @ map (fn r => r RS @{thm injD}) inj_thms;
@@ -592,28 +588,26 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       map (fn r => r RS @{thm the_inv_f_f} RS subst) iso_inj_thms_unfolded;
     val Rep_inverse_thms' = map (fn r => r RS @{thm the_inv_f_f}) iso_inj_thms_unfolded;
 
-    fun mk_indrule_lemma ((i, _), T) (prems, concls) =
+    fun mk_indrule_lemma (i, _) T =
       let
-        val Rep_t =
-          Const (nth all_rep_names i, T --> Univ_elT) $ Datatype_Aux.mk_Free "x" T i;
-
+        val Rep_t = Const (nth all_rep_names i, T --> Univ_elT) $ Datatype_Aux.mk_Free "x" T i;
         val Abs_t =
           if i < length newTs then
-            Const (Sign.intern_const thy6 ("Abs_" ^ nth new_type_names i), Univ_elT --> T)
-          else Const (@{const_name the_inv_into},
+            Const (#Abs_name (#1 (#2 (nth typedefs i))), Univ_elT --> T)
+          else
+            Const (@{const_name the_inv_into},
               [HOLogic.mk_setT T, T --> Univ_elT, Univ_elT] ---> T) $
             HOLogic.mk_UNIV T $ Const (nth all_rep_names i, T --> Univ_elT);
-      in
-        (prems @
-          [HOLogic.imp $
+        val prem =
+          HOLogic.imp $
             (Const (nth rep_set_names i, UnivT') $ Rep_t) $
-              (Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t))],
-         concls @
-          [Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ Datatype_Aux.mk_Free "x" T i])
-      end;
+              (Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t));
+        val concl =
+          Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ Datatype_Aux.mk_Free "x" T i;
+      in (prem, concl) end;
 
     val (indrule_lemma_prems, indrule_lemma_concls) =
-      fold mk_indrule_lemma (descr' ~~ recTs) ([], []);
+      split_list (map2 mk_indrule_lemma descr' recTs);
 
     val cert = cterm_of thy6;
 

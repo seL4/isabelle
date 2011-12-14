@@ -204,7 +204,7 @@ fun make_primrec_Ts descr used =
 
   in (rec_result_Ts, reccomb_fn_Ts) end;
 
-fun make_primrecs new_type_names descr thy =
+fun make_primrecs reccomb_names descr thy =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr';
@@ -216,11 +216,6 @@ fun make_primrecs new_type_names descr thy =
       map (uncurry (Datatype_Aux.mk_Free "f"))
         (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
 
-    val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
-    val reccomb_names =
-      map (Sign.intern_const thy)
-        (if length descr' = 1 then [big_reccomb_name]
-         else (map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto length descr')));
     val reccombs =
       map (fn ((name, T), T') => list_comb (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);
@@ -256,7 +251,7 @@ fun make_primrecs new_type_names descr thy =
 
 (****************** make terms of form  t_case f1 ... fn  *********************)
 
-fun make_case_combs new_type_names descr thy fname =
+fun make_case_combs case_names descr thy fname =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr';
@@ -268,8 +263,6 @@ fun make_case_combs new_type_names descr thy fname =
       map (fn (_, cargs) =>
         let val Ts = map (Datatype_Aux.typ_of_dtyp descr') cargs
         in Ts ---> T' end) constrs) (hd descr);
-
-    val case_names = map (fn s => Sign.intern_const thy (s ^ "_case")) new_type_names;
   in
     map (fn ((name, Ts), T) => list_comb
       (Const (name, Ts @ [T] ---> T'),
@@ -279,7 +272,7 @@ fun make_case_combs new_type_names descr thy fname =
 
 (**************** characteristic equations for case combinator ****************)
 
-fun make_cases new_type_names descr thy =
+fun make_cases case_names descr thy =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr';
@@ -296,14 +289,14 @@ fun make_cases new_type_names descr thy =
       end;
   in
     map (fn (((_, (_, _, constrs)), T), comb_t) =>
-      map (make_case T comb_t) (constrs ~~ (snd (strip_comb comb_t))))
-        ((hd descr) ~~ newTs ~~ (make_case_combs new_type_names descr thy "f"))
+      map (make_case T comb_t) (constrs ~~ snd (strip_comb comb_t)))
+        (hd descr ~~ newTs ~~ make_case_combs case_names descr thy "f")
   end;
 
 
 (*************************** the "split" - equations **************************)
 
-fun make_splits new_type_names descr thy =
+fun make_splits case_names descr thy =
   let
     val descr' = flat descr;
     val recTs = Datatype_Aux.get_rec_types descr';
@@ -338,14 +331,14 @@ fun make_splits new_type_names descr thy =
       end
 
   in
-    map make_split (hd descr ~~ newTs ~~ make_case_combs new_type_names descr thy "f")
+    map make_split (hd descr ~~ newTs ~~ make_case_combs case_names descr thy "f")
   end;
 
 (************************* additional rules for TFL ***************************)
 
-fun make_weak_case_congs new_type_names descr thy =
+fun make_weak_case_congs case_names descr thy =
   let
-    val case_combs = make_case_combs new_type_names descr thy "f";
+    val case_combs = make_case_combs case_names descr thy "f";
 
     fun mk_case_cong comb =
       let
@@ -372,10 +365,10 @@ fun make_weak_case_congs new_type_names descr thy =
  *      (ty_case f1..fn M = ty_case g1..gn M')
  *---------------------------------------------------------------------------*)
 
-fun make_case_congs new_type_names descr thy =
+fun make_case_congs case_names descr thy =
   let
-    val case_combs = make_case_combs new_type_names descr thy "f";
-    val case_combs' = make_case_combs new_type_names descr thy "g";
+    val case_combs = make_case_combs case_names descr thy "f";
+    val case_combs' = make_case_combs case_names descr thy "g";
 
     fun mk_case_cong ((comb, comb'), (_, (_, _, constrs))) =
       let

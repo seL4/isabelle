@@ -300,12 +300,13 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
     val ((case_rewrites, case_names), thy6) = thy5
       |> Datatype_Abs_Proofs.prove_case_thms config new_type_names descr rec_names rec_rewrites;
     val (case_congs, thy7) = thy6
-      |> Datatype_Abs_Proofs.prove_case_congs new_type_names descr nchotomys case_rewrites;
+      |> Datatype_Abs_Proofs.prove_case_congs new_type_names case_names descr
+        nchotomys case_rewrites;
     val (weak_case_congs, thy8) = thy7
-      |> Datatype_Abs_Proofs.prove_weak_case_congs new_type_names descr;
+      |> Datatype_Abs_Proofs.prove_weak_case_congs new_type_names case_names descr;
     val (splits, thy9) = thy8
       |> Datatype_Abs_Proofs.prove_split_thms
-        config new_type_names descr inject distinct exhaust case_rewrites;
+        config new_type_names case_names descr inject distinct exhaust case_rewrites;
 
     val inducts = Project_Rule.projections (Proof_Context.init_global thy2) induct;
     val dt_infos = map_index

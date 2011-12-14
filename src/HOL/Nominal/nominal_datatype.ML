@@ -2045,7 +2045,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
              resolve_tac rec_intrs 1,
              REPEAT (solve (prems @ rec_total_thms) prems 1)])
       end) (rec_eq_prems ~~
-        Datatype_Prop.make_primrecs new_type_names descr' thy12);
+        Datatype_Prop.make_primrecs reccomb_names descr' thy12);
 
     val dt_infos = map_index (make_dt_info pdescr induct reccomb_names rec_thms)
       (descr1 ~~ distinct_thms ~~ inject_thms);
