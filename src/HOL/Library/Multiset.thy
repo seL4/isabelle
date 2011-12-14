@@ -1103,7 +1103,7 @@ instantiation multiset :: (equal) equal
 begin
 
 definition
-  "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
+  [code]: "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
 
 instance proof
 qed (simp add: equal_multiset_def eq_iff)
