@@ -53,6 +53,8 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Theory HOL/Library/AList has been renamed to AList_Impl. INCOMPABILITY.
+
 * 'datatype' specifications allow explicit sort constraints.
 
 * Theory HOL/Library/Diagonalize has been removed. INCOMPATIBILITY, use
