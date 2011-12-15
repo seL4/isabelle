@@ -29,19 +29,16 @@ fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
 
 (* Get information about datatypes *)
 
-fun ty_info tab sT =
-  (case tab sT of
-    SOME ({descr, case_name, index, ...} : info) =>
-      let
-        val (_, (tname, dts, constrs)) = nth descr index;
-        val mk_ty = Datatype_Aux.typ_of_dtyp descr;
-        val T = Type (tname, map mk_ty dts);
-      in
-        SOME {case_name = case_name,
-          constructors = map (fn (cname, dts') =>
-            Const (cname, Logic.varifyT_global (map mk_ty dts' ---> T))) constrs}
-      end
-  | NONE => NONE);
+fun ty_info ({descr, case_name, index, ...} : info) =
+  let
+    val (_, (tname, dts, constrs)) = nth descr index;
+    val mk_ty = Datatype_Aux.typ_of_dtyp descr;
+    val T = Type (tname, map mk_ty dts);
+  in
+   {case_name = case_name,
+    constructors = map (fn (cname, dts') =>
+      Const (cname, Logic.varifyT_global (map mk_ty dts' ---> T))) constrs}
+  end;
 
 
 (*Each pattern carries with it a tag i, which denotes the clause it
@@ -144,7 +141,7 @@ fun v_to_prfx (prfx, Free v :: pats) = (v :: prfx, pats)
 
 fun mk_case ctxt ty_match ty_inst type_of used range_ty =
   let
-    val tab = Datatype_Data.info_of_constr_permissive (Proof_Context.theory_of ctxt);
+    val get_info = Datatype_Data.info_of_constr_permissive (Proof_Context.theory_of ctxt);
 
     val name = singleton (Name.variant_list used) "a";
     fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand_var_row", ~1)
@@ -169,7 +166,7 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
                     apfst (subst_free [(v, u)]) |>> v_to_prfx) (col0 ~~ rows);
                 in mk us rows' end
             | SOME (Const (cname, cT), i) =>
-                (case ty_info tab (cname, cT) of
+                (case Option.map ty_info (get_info (cname, cT)) of
                   NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
                 | SOME {case_name, constructors} =>
                     let
@@ -293,7 +290,7 @@ fun case_tr err ctxt [t, u] =
             (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
                (flat cnstrts) t) cases;
       in case_tm end
-  | case_tr _ _ ts = case_error "case_tr";
+  | case_tr _ _ _ = case_error "case_tr";
 
 val trfun_setup =
   Sign.add_advanced_trfuns ([],
@@ -330,10 +327,10 @@ fun gen_dest_case name_of type_of ctxt d used t =
           | count_cases (c, (_, body), false) = AList.map_default op aconv (body, []) (cons c);
         val is_undefined = name_of #> equal (SOME @{const_name undefined});
         fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body);
-        val tab = Datatype_Data.info_of_case (Proof_Context.theory_of ctxt);
+        val get_info = Datatype_Data.info_of_case (Proof_Context.theory_of ctxt);
       in
-        (case ty_info tab cname of
-          SOME {constructors, case_name} =>
+        (case Option.map ty_info (get_info cname) of
+          SOME {constructors, ...} =>
             if length fs = length constructors then
               let
                 val cases = map (fn (Const (s, U), t) =>
@@ -414,8 +411,6 @@ end;
 
 fun case_tr' cname ctxt ts =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     fun mk_clause (pat, rhs) =
       let val xs = Term.add_frees pat [] in
         Syntax.const @{syntax_const "_case1"} $
