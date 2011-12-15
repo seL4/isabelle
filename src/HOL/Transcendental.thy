@@ -1166,6 +1166,10 @@ lemma isCont_ln: "0 < x \<Longrightarrow> isCont ln x"
   apply (rule isCont_inverse_function [where f=exp], simp_all)
   done
 
+lemma tendsto_ln [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
+  by (rule isCont_tendsto_compose [OF isCont_ln])
+
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
   apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
   apply (erule DERIV_cong [OF DERIV_exp exp_ln])

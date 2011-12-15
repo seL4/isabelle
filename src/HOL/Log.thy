@@ -285,6 +285,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma tendsto_powr [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
+  unfolding powr_def by (intro tendsto_intros)
+
 (* FIXME: generalize by replacing d by with g x and g ---> d? *)
 lemma tendsto_zero_powrI:
   assumes "eventually (\<lambda>x. 0 < f x ) F" and "(f ---> 0) F"
