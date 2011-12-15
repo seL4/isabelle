@@ -38,35 +38,6 @@ val empty_iff = @{thm empty_iff};
 
 open NominalAtoms;
 
-(** FIXME: Datatype should export this function **)
-
-local
-
-fun dt_recs (Datatype_Aux.DtTFree _) = []
-  | dt_recs (Datatype_Aux.DtType (_, dts)) = maps dt_recs dts
-  | dt_recs (Datatype_Aux.DtRec i) = [i];
-
-fun dt_cases (descr: Datatype_Aux.descr) (_, args, constrs) =
-  let
-    fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
-    val bnames = map the_bname (distinct op = (maps dt_recs args));
-  in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
-
-
-fun induct_cases descr =
-  Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
-
-fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
-
-in
-
-fun mk_case_names_induct descr = Rule_Cases.case_names (induct_cases descr);
-
-fun mk_case_names_exhausts descr new =
-  map (Rule_Cases.case_names o exhaust_cases descr o #1)
-    (filter (fn ((_, (name, _, _))) => member (op =) new name) descr);
-
-end;
 
 (* theory data *)
 
@@ -1074,7 +1045,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
 
-    val case_names_induct = mk_case_names_induct descr'';
+    val case_names_induct = Datatype_Data.mk_case_names_induct descr'';
 
     (**** prove that new datatypes have finite support ****)
 

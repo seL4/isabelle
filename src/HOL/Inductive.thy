@@ -14,6 +14,7 @@ uses
   "Tools/Datatype/datatype_case.ML"
   ("Tools/Datatype/datatype_abs_proofs.ML")
   ("Tools/Datatype/datatype_data.ML")
+  ("Tools/Datatype/rep_datatype.ML")
   ("Tools/primrec.ML")
   ("Tools/Datatype/datatype_codegen.ML")
 begin
@@ -278,6 +279,8 @@ text {* Package setup. *}
 use "Tools/Datatype/datatype_abs_proofs.ML"
 use "Tools/Datatype/datatype_data.ML"
 setup Datatype_Data.setup
+
+use "Tools/Datatype/rep_datatype.ML"
 
 use "Tools/Datatype/datatype_codegen.ML"
 setup Datatype_Codegen.setup

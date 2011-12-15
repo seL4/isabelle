@@ -779,7 +779,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
     |> representation_proofs config dt_info descr types_syntax constr_syntax
       (Datatype_Data.mk_case_names_induct (flat descr))
     |-> (fn (inject, distinct, induct) =>
-      Datatype_Data.derive_datatype_props config dt_names descr induct inject distinct)
+      Rep_Datatype.derive_datatype_props config dt_names descr induct inject distinct)
   end;
 
 val add_datatype = gen_add_datatype check_specs;

@@ -218,6 +218,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Datatype/datatype_data.ML \
   Tools/Datatype/datatype_prop.ML \
   Tools/Datatype/datatype_realizer.ML \
+  Tools/Datatype/rep_datatype.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/fun.ML \
   Tools/Function/function.ML \
@@ -247,6 +248,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
   Tools/dseq.ML \
+  Tools/enriched_type.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
@@ -263,7 +265,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/split_rule.ML \
   Tools/try_methods.ML \
   Tools/typedef.ML \
-  Tools/enriched_type.ML \
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy
