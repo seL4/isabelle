@@ -15,13 +15,13 @@ instantiation acom :: (order) order
 begin
 
 fun less_eq_acom :: "('a::order)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
-"less_eq_acom (SKIP {S}) (SKIP {S'}) = (S \<le> S')" |
-"less_eq_acom (x ::= e {S}) (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<le> S')" |
-"less_eq_acom (c1;c2) (c1';c2') = (less_eq_acom c1 c1' \<and> less_eq_acom c2 c2')" |
-"less_eq_acom (IF b THEN c1 ELSE c2 {S}) (IF b' THEN c1' ELSE c2' {S'}) =
-  (b=b' \<and> less_eq_acom c1 c1' \<and> less_eq_acom c2 c2' \<and> S \<le> S')" |
-"less_eq_acom ({Inv} WHILE b DO c {P}) ({Inv'} WHILE b' DO c' {P'}) =
-  (b=b' \<and> less_eq_acom c c' \<and> Inv \<le> Inv' \<and> P \<le> P')" |
+"(SKIP {S}) \<le> (SKIP {S'}) = (S \<le> S')" |
+"(x ::= e {S}) \<le> (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<le> S')" |
+"(c1;c2) \<le> (c1';c2') = (c1 \<le> c1' \<and> c2 \<le> c2')" |
+"(IF b THEN c1 ELSE c2 {S}) \<le> (IF b' THEN c1' ELSE c2' {S'}) =
+  (b=b' \<and> c1 \<le> c1' \<and> c2 \<le> c2' \<and> S \<le> S')" |
+"({Inv} WHILE b DO c {P}) \<le> ({Inv'} WHILE b' DO c' {P'}) =
+  (b=b' \<and> c \<le> c' \<and> Inv \<le> Inv' \<and> P \<le> P')" |
 "less_eq_acom _ _ = False"
 
 lemma SKIP_le: "SKIP {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = SKIP {S'} \<and> S \<le> S')"
