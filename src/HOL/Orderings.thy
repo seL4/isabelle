@@ -1057,14 +1057,24 @@ lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
 by (simp add: max_def)
 
 lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
-apply (simp add: min_def)
-apply (blast intro: antisym)
-done
+by (simp add: min_def) (blast intro: antisym)
 
 lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
-apply (simp add: max_def)
-apply (blast intro: antisym)
-done
+by (simp add: max_def) (blast intro: antisym)
+
+lemma min_greatestL: "(\<And>x::'a::order. x \<le> greatest) \<Longrightarrow> min greatest x = x"
+by (simp add: min_def) (blast intro: antisym)
+
+lemma max_greatestL: "(\<And>x::'a::order. x \<le> greatest) \<Longrightarrow> max greatest x = greatest"
+by (simp add: max_def) (blast intro: antisym)
+
+lemma min_greatestR: "(\<And>x. x \<le> greatest) \<Longrightarrow> min x greatest = x"
+by (simp add: min_def)
+
+lemma max_greatestR: "(\<And>x. x \<le> greatest) \<Longrightarrow> max x greatest = greatest"
+by (simp add: max_def)
+
+
 
 
 subsection {* (Unique) top and bottom elements *}
