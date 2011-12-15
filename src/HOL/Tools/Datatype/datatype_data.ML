@@ -24,10 +24,6 @@ sig
   val mk_case_names_exhausts: descr -> string list -> attribute list
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val interpretation_data : config * string list -> theory -> theory
-  val make_case :  Proof.context -> Datatype_Case.config -> string list -> term ->
-    (term * term) list -> term
-  val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
-  val add_case_tr' : string list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -198,27 +194,6 @@ fun mk_case_names_exhausts descr new =
 end;
 
 
-(* translation rules for case *)
-
-fun make_case ctxt =
-  Datatype_Case.make_case (info_of_constr_permissive (Proof_Context.theory_of ctxt)) ctxt;
-
-fun strip_case ctxt =
-  Datatype_Case.strip_case (info_of_case (Proof_Context.theory_of ctxt));
-
-fun add_case_tr' case_names thy =
-  Sign.add_advanced_trfuns ([], [],
-    map (fn case_name =>
-      let val case_name' = Lexicon.mark_const case_name in
-        (case_name', Datatype_Case.case_tr' info_of_case case_name')
-      end) case_names, []) thy;
-
-val trfun_setup =
-  Sign.add_advanced_trfuns ([],
-    [(@{syntax_const "_case_syntax"}, Datatype_Case.case_tr true info_of_constr_permissive)],
-    [], []);
-
-
 
 (** document antiquotation **)
 
@@ -262,7 +237,6 @@ val interpretation_data = Datatype_Interpretation.data;
 (** setup theory **)
 
 val setup =
-  trfun_setup #>
   antiq_setup #>
   Datatype_Interpretation.init;
 

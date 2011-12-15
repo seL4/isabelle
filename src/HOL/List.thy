@@ -391,7 +391,7 @@ let
         Syntax.const @{syntax_const "_case1"} $
           Syntax.const @{const_syntax dummy_pattern} $ NilC;
       val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
-      val ft = Datatype_Case.case_tr false Datatype.info_of_constr_permissive ctxt [x, cs];
+      val ft = Datatype_Case.case_tr false ctxt [x, cs];
     in lambda x ft end;
 
   fun abs_tr ctxt (p as Free (s, T)) e opti =
