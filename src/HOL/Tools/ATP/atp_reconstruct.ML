@@ -75,10 +75,11 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Translate
 
-structure String_Redirect =
-  ATP_Redirect(type key = step_name
-               val ord = fast_string_ord o pairself fst
-               val string_of = fst)
+structure String_Redirect = ATP_Redirect(
+    type key = step_name
+    val ord = fn ((s, _ : string list), (s', _)) => fast_string_ord (s, s')
+    val string_of = fst)
+
 open String_Redirect
 
 datatype reconstructor =
