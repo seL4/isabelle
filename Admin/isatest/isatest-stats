@@ -81,7 +81,9 @@ ISABELLE_SESSIONS="
   TLA
   TLA-Buffer
   TLA-Inc
-  TLA-Memory"
+  TLA-Memory
+  HOL-Datatype_Benchmark
+  HOL-Record_Benchmark"
 
 AFP_SESSIONS="
   ArrowImpossibilityGS
