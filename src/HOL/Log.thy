@@ -285,32 +285,40 @@ proof -
   finally show ?thesis .
 qed
 
-lemma LIMSEQ_neg_powr:
-  assumes s: "0 < s"
-  shows "(%x. (real x) powr - s) ----> 0"
-  apply (unfold LIMSEQ_iff)
-  apply clarsimp
-  apply (rule_tac x = "natfloor(r powr (1 / - s)) + 1" in exI)
-  apply clarify
-proof -
-  fix r fix n
-  assume r: "0 < r" and n: "natfloor (r powr (1 / - s)) + 1 <= n"
-  have "r powr (1 / - s) < real(natfloor(r powr (1 / - s))) + 1"
-    by (rule real_natfloor_add_one_gt)
-  also have "... = real(natfloor(r powr (1 / -s)) + 1)"
-    by simp
-  also have "... <= real n"
-    apply (subst real_of_nat_le_iff)
-    apply (rule n)
-    done
-  finally have "r powr (1 / - s) < real n".
-  then have "real n powr (- s) < (r powr (1 / - s)) powr - s" 
-    apply (intro powr_less_mono2_neg)
-    apply (auto simp add: s)
-    done
-  also have "... = r"
-    by (simp add: powr_powr s r less_imp_neq [THEN not_sym])
-  finally show "real n powr - s < r" .
+(* FIXME: generalize by replacing d by with g x and g ---> d? *)
+lemma tendsto_zero_powrI:
+  assumes "eventually (\<lambda>x. 0 < f x ) F" and "(f ---> 0) F"
+  assumes "0 < d"
+  shows "((\<lambda>x. f x powr d) ---> 0) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  def Z \<equiv> "e powr (1 / d)"
+  with `0 < e` have "0 < Z" by simp
+  with assms have "eventually (\<lambda>x. 0 < f x \<and> dist (f x) 0 < Z) F"
+    by (intro eventually_conj tendstoD)
+  moreover
+  from assms have "\<And>x. 0 < x \<and> dist x 0 < Z \<Longrightarrow> x powr d < Z powr d"
+    by (intro powr_less_mono2) (auto simp: dist_real_def)
+  with assms `0 < e` have "\<And>x. 0 < x \<and> dist x 0 < Z \<Longrightarrow> dist (x powr d) 0 < e"
+    unfolding dist_real_def Z_def by (auto simp: powr_powr)
+  ultimately
+  show "eventually (\<lambda>x. dist (f x powr d) 0 < e) F" by (rule eventually_elim1)
+qed
+
+lemma tendsto_neg_powr:
+  assumes "s < 0" and "real_tendsto_inf f F"
+  shows "((\<lambda>x. f x powr s) ---> 0) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  def Z \<equiv> "e powr (1 / s)"
+  from assms have "eventually (\<lambda>x. Z < f x) F" by (simp add: real_tendsto_inf_def)
+  moreover
+  from assms have "\<And>x. Z < x \<Longrightarrow> x powr s < Z powr s"
+    by (auto simp: Z_def intro!: powr_less_mono2_neg)
+  with assms `0 < e` have "\<And>x. Z < x \<Longrightarrow> dist (x powr s) 0 < e"
+    by (simp add: powr_powr Z_def dist_real_def)
+  ultimately
+  show "eventually (\<lambda>x. dist (f x powr s) 0 < e) F" by (rule eventually_elim1)
 qed
 
 end

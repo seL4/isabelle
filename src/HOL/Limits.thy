@@ -101,6 +101,18 @@ lemma eventually_elim2:
   shows "eventually (\<lambda>i. R i) F"
   using assms by (auto elim!: eventually_rev_mp)
 
+lemma eventually_subst:
+  assumes "eventually (\<lambda>n. P n = Q n) F"
+  shows "eventually P F = eventually Q F" (is "?L = ?R")
+proof -
+  from assms have "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
+      and "eventually (\<lambda>x. Q x \<longrightarrow> P x) F"
+    by (auto elim: eventually_elim1)
+  then show ?thesis by (auto elim: eventually_elim2)
+qed
+
+
+
 subsection {* Finer-than relation *}
 
 text {* @{term "F \<le> F'"} means that filter @{term F} is finer than
@@ -279,6 +291,11 @@ lemma le_sequentially:
   "F \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) F)"
   unfolding le_filter_def eventually_sequentially
   by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
+
+lemma eventually_sequentiallyI:
+  assumes "\<And>x. c \<le> x \<Longrightarrow> P x"
+  shows "eventually P sequentially"
+using assms by (auto simp: eventually_sequentially)
 
 
 subsection {* Standard filters *}
@@ -537,6 +554,9 @@ definition (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
   "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
 
+definition real_tendsto_inf :: "('a \<Rightarrow> real) \<Rightarrow> 'a filter \<Rightarrow> bool" where
+  "real_tendsto_inf f F \<equiv> \<forall>x. eventually (\<lambda>y. x < f y) F"
+
 ML {*
 structure Tendsto_Intros = Named_Thms
 (
@@ -673,6 +693,15 @@ proof (rule tendstoI)
     using le_less_trans by (rule eventually_elim2)
 qed
 
+lemma real_tendsto_inf_real: "real_tendsto_inf real sequentially"
+proof (unfold real_tendsto_inf_def, rule allI)
+  fix x show "eventually (\<lambda>y. x < real y) sequentially"
+    by (rule eventually_sequentiallyI[of "natceiling (x + 1)"])
+        (simp add: natceiling_le_eq)
+qed
+
+
+
 subsubsection {* Distance and norms *}
 
 lemma tendsto_dist [tendsto_intros]:
@@ -767,6 +796,22 @@ proof (cases "finite S")
 next
   assume "\<not> finite S" thus ?thesis
     by (simp add: tendsto_const)
+qed
+
+lemma real_tendsto_sandwich:
+  fixes f g h :: "'a \<Rightarrow> real"
+  assumes ev: "eventually (\<lambda>n. f n \<le> g n) net" "eventually (\<lambda>n. g n \<le> h n) net"
+  assumes lim: "(f ---> c) net" "(h ---> c) net"
+  shows "(g ---> c) net"
+proof -
+  have "((\<lambda>n. g n - f n) ---> 0) net"
+  proof (rule metric_tendsto_imp_tendsto)
+    show "eventually (\<lambda>n. dist (g n - f n) 0 \<le> dist (h n - f n) 0) net"
+      using ev by (rule eventually_elim2) (simp add: dist_real_def)
+    show "((\<lambda>n. h n - f n) ---> 0) net"
+      using tendsto_diff[OF lim(2,1)] by simp
+  qed
+  from tendsto_add[OF this lim(1)] show ?thesis by simp
 qed
 
 subsubsection {* Linear operators and multiplication *}
