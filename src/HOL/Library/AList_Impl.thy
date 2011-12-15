@@ -693,4 +693,6 @@ lemma distinct_map_default:
   shows "distinct (map fst (map_default k v f xs))"
 using assms by (induct xs) (auto simp add: dom_map_default)
 
+hide_const (open) map_entry
+
 end
