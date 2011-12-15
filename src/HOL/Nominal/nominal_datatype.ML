@@ -38,35 +38,6 @@ val empty_iff = @{thm empty_iff};
 
 open NominalAtoms;
 
-(** FIXME: Datatype should export this function **)
-
-local
-
-fun dt_recs (Datatype_Aux.DtTFree _) = []
-  | dt_recs (Datatype_Aux.DtType (_, dts)) = maps dt_recs dts
-  | dt_recs (Datatype_Aux.DtRec i) = [i];
-
-fun dt_cases (descr: Datatype_Aux.descr) (_, args, constrs) =
-  let
-    fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
-    val bnames = map the_bname (distinct op = (maps dt_recs args));
-  in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
-
-
-fun induct_cases descr =
-  Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
-
-fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
-
-in
-
-fun mk_case_names_induct descr = Rule_Cases.case_names (induct_cases descr);
-
-fun mk_case_names_exhausts descr new =
-  map (Rule_Cases.case_names o exhaust_cases descr o #1)
-    (filter (fn ((_, (name, _, _))) => member (op =) new name) descr);
-
-end;
 
 (* theory data *)
 
@@ -858,14 +829,14 @@ fun gen_nominal_datatype prep_specs config dts thy =
       dist_lemma :: rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0])
         constr_rep_thmss dist_lemmas;
 
-    fun prove_distinct_thms _ (_, []) = []
-      | prove_distinct_thms (p as (rep_thms, dist_lemma)) (k, t :: ts) =
+    fun prove_distinct_thms _ [] = []
+      | prove_distinct_thms (p as (rep_thms, dist_lemma)) (t :: ts) =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
           in
             dist_thm :: Drule.export_without_context (dist_thm RS not_sym) ::
-              prove_distinct_thms p (k, ts)
+              prove_distinct_thms p ts
           end;
 
     val distinct_thms = map2 prove_distinct_thms
@@ -1074,7 +1045,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
 
-    val case_names_induct = mk_case_names_induct descr'';
+    val case_names_induct = Datatype_Data.mk_case_names_induct descr'';
 
     (**** prove that new datatypes have finite support ****)
 

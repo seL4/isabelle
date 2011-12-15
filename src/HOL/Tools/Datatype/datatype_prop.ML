@@ -10,7 +10,7 @@ sig
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
   val make_injs : descr list -> term list list
-  val make_distincts : descr list -> (int * term list) list (*no symmetric inequalities*)
+  val make_distincts : descr list -> term list list (*no symmetric inequalities*)
   val make_ind : descr list -> term
   val make_casedists : descr list -> term list
   val make_primrec_Ts : descr list -> string list -> typ list * typ list
@@ -99,7 +99,7 @@ fun make_distincts descr =
           in map make_distincts'' constrs @ make_distincts' T constrs end;
   in
     map2 (fn ((_, (_, _, constrs))) => fn T =>
-      (length constrs, make_distincts' T (map prep_constr constrs))) (hd descr) newTs
+      make_distincts' T (map prep_constr constrs)) (hd descr) newTs
   end;
 
 

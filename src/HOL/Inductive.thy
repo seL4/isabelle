@@ -11,9 +11,10 @@ uses
   "Tools/dseq.ML"
   "Tools/Datatype/datatype_aux.ML"
   "Tools/Datatype/datatype_prop.ML"
-  "Tools/Datatype/datatype_case.ML"
   ("Tools/Datatype/datatype_abs_proofs.ML")
   ("Tools/Datatype/datatype_data.ML")
+  ("Tools/Datatype/datatype_case.ML")
+  ("Tools/Datatype/rep_datatype.ML")
   ("Tools/primrec.ML")
   ("Tools/Datatype/datatype_codegen.ML")
 begin
@@ -276,8 +277,9 @@ subsection {* Inductive datatypes and primitive recursion *}
 text {* Package setup. *}
 
 use "Tools/Datatype/datatype_abs_proofs.ML"
-use "Tools/Datatype/datatype_data.ML"
-setup Datatype_Data.setup
+use "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
+use "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
+use "Tools/Datatype/rep_datatype.ML"
 
 use "Tools/Datatype/datatype_codegen.ML"
 setup Datatype_Codegen.setup
@@ -297,7 +299,7 @@ let
     let
       (* FIXME proper name context!? *)
       val x = Free (singleton (Name.variant_list (Term.add_free_names cs [])) "x", dummyT);
-      val ft = Datatype_Case.case_tr true Datatype_Data.info_of_constr_permissive ctxt [x, cs];
+      val ft = Datatype_Case.case_tr true ctxt [x, cs];
     in lambda x ft end
 in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
 *}

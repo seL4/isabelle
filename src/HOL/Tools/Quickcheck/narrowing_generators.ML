@@ -412,7 +412,7 @@ fun mk_property qs t =
   end
 
 fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counterexample cs) =
-    Datatype.make_case ctxt Datatype_Case.Quiet [] (Free (x, T)) (map (fn (t, c) =>
+    Datatype_Case.make_case ctxt Datatype_Case.Quiet [] (Free (x, T)) (map (fn (t, c) =>
       (t, mk_case_term ctxt (p - 1) qs' c)) cs)
   | mk_case_term ctxt p ((@{const_name All}, (x, T)) :: qs') (Universal_Counterexample (t, c)) =
     if p = 0 then t else mk_case_term ctxt (p - 1) qs' c
