@@ -858,14 +858,14 @@ fun gen_nominal_datatype prep_specs config dts thy =
       dist_lemma :: rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0])
         constr_rep_thmss dist_lemmas;
 
-    fun prove_distinct_thms _ (_, []) = []
-      | prove_distinct_thms (p as (rep_thms, dist_lemma)) (k, t :: ts) =
+    fun prove_distinct_thms _ [] = []
+      | prove_distinct_thms (p as (rep_thms, dist_lemma)) (t :: ts) =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
           in
             dist_thm :: Drule.export_without_context (dist_thm RS not_sym) ::
-              prove_distinct_thms p (k, ts)
+              prove_distinct_thms p ts
           end;
 
     val distinct_thms = map2 prove_distinct_thms

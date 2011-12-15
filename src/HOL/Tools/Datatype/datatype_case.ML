@@ -72,7 +72,7 @@ fun mk_fun_constrain tT t =
 (*Produce an instance of a constructor, plus fresh variables for its arguments.*)
 fun fresh_constr ty_match ty_inst colty used c =
   let
-    val (_, Ty) = dest_Const c
+    val (_, Ty) = dest_Const c;
     val Ts = binder_types Ty;
     val names =
       Name.variant_list used (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts));
@@ -84,7 +84,7 @@ fun fresh_constr ty_match ty_inst colty used c =
   in (c', gvars) end;
 
 
-(*Goes through a list of rows and picks out the ones beginning with a
+(*Go through a list of rows and pick out the ones beginning with a
   pattern with constructor = name.*)
 fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
@@ -203,14 +203,16 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
 
 fun case_error s = error ("Error in case expression:\n" ^ s);
 
+local
+
 (*Repeated variable occurrences in a pattern are not allowed.*)
 fun no_repeat_vars ctxt pat = fold_aterms
   (fn x as Free (s, _) =>
-    (fn xs =>
-      if member op aconv xs x then
-        case_error (quote s ^ " occurs repeatedly in the pattern " ^
-          quote (Syntax.string_of_term ctxt pat))
-      else x :: xs)
+      (fn xs =>
+        if member op aconv xs x then
+          case_error (quote s ^ " occurs repeatedly in the pattern " ^
+            quote (Syntax.string_of_term ctxt pat))
+        else x :: xs)
     | _ => I) pat [];
 
 fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
@@ -241,12 +243,16 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
     case_tm
   end;
 
+in
+
 fun make_case tab ctxt =
   gen_make_case (match_type (Proof_Context.theory_of ctxt))
     Envir.subst_term_types fastype_of tab ctxt;
 
 val make_case_untyped =
   gen_make_case (K (K Vartab.empty)) (K (Term.map_types (K dummyT))) (K dummyT);
+
+end;
 
 
 (* parse translation *)
@@ -296,6 +302,8 @@ fun case_tr err tab_of ctxt [t, u] =
 (* Pretty printing of nested case expressions *)
 
 (* destruct one level of pattern matching *)
+
+local
 
 (* FIXME proper name context!? *)
 fun gen_dest_case name_of type_of tab d used t =
@@ -362,11 +370,17 @@ fun gen_dest_case name_of type_of tab d used t =
       end
   | _ => NONE);
 
+in
+
 val dest_case = gen_dest_case (try (dest_Const #> fst)) fastype_of;
 val dest_case' = gen_dest_case (try (dest_Const #> fst #> Lexicon.unmark_const)) (K dummyT);
 
+end;
+
 
 (* destruct nested patterns *)
+
+local
 
 fun strip_case'' dest (pat, rhs) =
   (case dest (Term.add_free_names pat []) rhs of
@@ -385,8 +399,12 @@ fun gen_strip_case dest t =
     SOME (x, clauses) => SOME (x, maps (strip_case'' dest) clauses)
   | NONE => NONE);
 
+in
+
 val strip_case = gen_strip_case oo dest_case;
 val strip_case' = gen_strip_case oo dest_case';
+
+end;
 
 
 (* print translation *)

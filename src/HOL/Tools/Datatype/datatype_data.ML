@@ -413,7 +413,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
       (i, (tyco, map Datatype_Aux.DtTFree vs, (map o apsnd) dtyps_of_typ constr));
     val descr = map_index mk_spec cs;
     val injs = Datatype_Prop.make_injs [descr];
-    val half_distincts = map snd (Datatype_Prop.make_distincts [descr]);
+    val half_distincts = Datatype_Prop.make_distincts [descr];
     val ind = Datatype_Prop.make_ind [descr];
     val rules = (map o map o map) Logic.close_form [[[ind]], injs, half_distincts];
 

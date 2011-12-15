@@ -211,7 +211,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (* constructor definitions *)
 
-    fun make_constr_def tname (typedef: Typedef.info) T n
+    fun make_constr_def (typedef: Typedef.info) T n
         ((cname, cargs), (cname', mx)) (thy, defs, eqns, i) =
       let
         fun constr_arg dt (j, l_args, r_args) =
@@ -257,7 +257,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           Drule.export_without_context
             (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) =
-          fold (make_constr_def tname typedef T (length constrs))
+          fold (make_constr_def typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
       in
         (Sign.parent_path thy', defs', eqns @ [eqns'],
@@ -534,7 +534,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         dist_lemma :: (rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
           (constr_rep_thms ~~ dist_lemmas);
 
-    fun prove_distinct_thms dist_rewrites' (k, ts) =
+    fun prove_distinct_thms dist_rewrites' =
       let
         fun prove [] = []
           | prove (t :: ts) =
@@ -542,7 +542,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
               in dist_thm :: Drule.export_without_context (dist_thm RS not_sym) :: prove ts end;
-      in prove ts end;
+      in prove end;
 
     val distinct_thms =
       map2 (prove_distinct_thms) dist_rewrites (Datatype_Prop.make_distincts descr);
@@ -734,9 +734,9 @@ fun gen_add_datatype prep_specs config raw_specs thy =
         [] => ()
       | dups => error ("Duplicate datatypes: " ^ commas_quote dups));
 
-    fun prep_dt_spec ((tname, tvs, mx), constrs) (dts', constr_syntax, i) =
+    fun prep_dt_spec ((tname, tvs, _), constrs) (dts', constr_syntax, i) =
       let
-        fun prep_constr (cname, cargs, mx') (constrs, constr_syntax') =
+        fun prep_constr (cname, cargs, mx) (constrs, constr_syntax') =
           let
             val _ =
               (case subtract (op =) tvs (fold Term.add_tfreesT cargs []) of
@@ -745,7 +745,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
             val c = Sign.full_name_path thy (Binding.name_of tname) cname;
           in
             (constrs @ [(c, map (Datatype_Aux.dtyp_of_typ new_dts) cargs)],
-              constr_syntax' @ [(cname, mx')])
+              constr_syntax' @ [(cname, mx)])
           end handle ERROR msg =>
             cat_error msg ("The error above occurred in constructor " ^ Binding.print cname ^
               " of datatype " ^ Binding.print tname);

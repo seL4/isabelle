@@ -79,8 +79,7 @@ fun mk_eq_eqns thy tyco =
     val injects = map prep_inject (nth (Datatype_Prop.make_injs [descr]) index);
     fun prep_distinct (trueprop $ (not $ (_ $ t1 $ t2))) =
       [trueprop $ false_eq (t1, t2), trueprop $ false_eq (t2, t1)];
-    val distincts =
-      maps prep_distinct (snd (nth (Datatype_Prop.make_distincts [descr]) index));
+    val distincts = maps prep_distinct (nth (Datatype_Prop.make_distincts [descr]) index);
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
     val simpset =
       Simplifier.global_context thy
