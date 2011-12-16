@@ -270,10 +270,11 @@ fun prove_primrec_thms (config : config) new_type_names descr
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> Global_Theory.add_thmss [((Binding.name "recs", rec_thms), [Nitpick_Simps.add])]
+    |> Global_Theory.note_thmss ""
+      [((Binding.name "recs", [Nitpick_Simps.add]), [(rec_thms, [])])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
-    |-> (fn thms => pair (reccomb_names, flat thms))
+    |-> (fn thms => pair (reccomb_names, maps #2 thms))
   end;
 
 

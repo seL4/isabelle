@@ -78,25 +78,26 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
     val dt_names = map fst dt_infos;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
     val simps = flat (inject @ distinct @ case_rewrites) @ rec_rewrites;
-    val named_rules = flat (map_index (fn (index, tname) =>
-      [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
-       ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
+    val named_rules = flat (map_index (fn (i, tname) =>
+      [((Binding.empty, [Induct.induct_type tname]), [([nth inducts i], [])]),
+       ((Binding.empty, [Induct.cases_type tname]), [([nth exhaust i], [])])]) dt_names);
     val unnamed_rules = map (fn induct =>
-      ((Binding.empty, [induct]), [Rule_Cases.inner_rule, Induct.induct_type ""]))
+      ((Binding.empty, [Rule_Cases.inner_rule, Induct.induct_type ""]), [([induct], [])]))
         (drop (length dt_names) inducts);
   in
     thy9
-    |> Global_Theory.add_thmss ([((prfx (Binding.name "simps"), simps), []),
-        ((prfx (Binding.name "inducts"), inducts), []),
-        ((prfx (Binding.name "splits"), maps (fn (x, y) => [x, y]) splits), []),
-        ((Binding.empty, flat case_rewrites @ flat distinct @ rec_rewrites),
-          [Simplifier.simp_add]),
-        ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
-        ((Binding.empty, flat inject), [iff_add]),
-        ((Binding.empty, map (fn th => th RS notE) (flat distinct)),
-          [Classical.safe_elim NONE]),
-        ((Binding.empty, weak_case_congs), [Simplifier.cong_add]),
-        ((Binding.empty, flat (distinct @ inject)), [Induct.induct_simp_add])] @
+    |> Global_Theory.note_thmss ""
+      ([((prfx (Binding.name "simps"), []), [(simps, [])]),
+        ((prfx (Binding.name "inducts"), []), [(inducts, [])]),
+        ((prfx (Binding.name "splits"), []), [(maps (fn (x, y) => [x, y]) splits, [])]),
+        ((Binding.empty, [Simplifier.simp_add]),
+          [(flat case_rewrites @ flat distinct @ rec_rewrites, [])]),
+        ((Binding.empty, [Code.add_default_eqn_attribute]), [(rec_rewrites, [])]),
+        ((Binding.empty, [iff_add]), [(flat inject, [])]),
+        ((Binding.empty, [Classical.safe_elim NONE]),
+          [(map (fn th => th RS notE) (flat distinct), [])]),
+        ((Binding.empty, [Simplifier.cong_add]), [(weak_case_congs, [])]),
+        ((Binding.empty, [Induct.induct_simp_add]), [(flat (distinct @ inject), [])])] @
           named_rules @ unnamed_rules)
     |> snd
     |> Datatype_Data.register dt_infos
@@ -116,13 +117,13 @@ fun prove_rep_datatype config dt_names descr raw_inject half_distinct raw_induct
     val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val new_type_names = map Long_Name.base_name dt_names;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
-    val (((inject, distinct), [induct]), thy2) =
+    val (((inject, distinct), [(_, [induct])]), thy2) =
       thy1
       |> Datatype_Aux.store_thmss "inject" new_type_names raw_inject
       ||>> Datatype_Aux.store_thmss "distinct" new_type_names raw_distinct
-      ||>> Global_Theory.add_thms
-        [((prfx (Binding.name "induct"), raw_induct),
-          [Datatype_Data.mk_case_names_induct descr])];
+      ||>> Global_Theory.note_thmss ""
+        [((prfx (Binding.name "induct"), [Datatype_Data.mk_case_names_induct descr]),
+          [([raw_induct], [])])];
   in
     thy2
     |> derive_datatype_props config dt_names [descr] induct inject distinct
