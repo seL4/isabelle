@@ -202,12 +202,12 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
     val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size simpset2 @
       prove_size_eqs Datatype_Aux.is_rec_type overloaded_size_fns (K NONE) simpset3;
 
-    val ([size_thms], thy'') =
-      Global_Theory.add_thmss
-        [((Binding.name "size", size_eqns),
-          [Simplifier.simp_add, Nitpick_Simps.add,
-           Thm.declaration_attribute
-               (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy';
+    val ([(_, size_thms)], thy'') = thy'
+      |> Global_Theory.note_thmss ""
+        [((Binding.name "size",
+            [Simplifier.simp_add, Nitpick_Simps.add,
+             Thm.declaration_attribute (fn thm => Context.mapping (Code.add_default_eqn thm) I)]),
+          [(size_eqns, [])])];
 
   in
     SizeData.map (fold (Symtab.update_new o apsnd (rpair size_thms))

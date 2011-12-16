@@ -297,7 +297,7 @@ object Isabelle_System
         for (file <- files if file.isFile) logics += file.getName
       }
     }
-    logics.toList.sortWith(_ < _)
+    logics.toList.sorted
   }
 
 

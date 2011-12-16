@@ -93,29 +93,29 @@ fun message ({quiet = true, ...} : config) s = writeln s
 
 (* store theorems in theory *)
 
-fun store_thmss_atts label tnames attss thmss =
+fun store_thmss_atts name tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
-    Global_Theory.add_thmss
-      [((Binding.qualify true tname (Binding.name label), thms), atts)]
-    #-> (fn thm::_ => pair thm)) (tnames ~~ attss ~~ thmss)
+    Global_Theory.note_thmss ""
+      [((Binding.qualify true tname (Binding.name name), atts), [(thms, [])])]
+    #-> (fn [(_, res)] => pair res)) (tnames ~~ attss ~~ thmss)
   ##> Theory.checkpoint;
 
-fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length tnames) []);
+fun store_thmss name tnames = store_thmss_atts name tnames (replicate (length tnames) []);
 
-fun store_thms_atts label tnames attss thmss =
-  fold_map (fn ((tname, atts), thms) =>
-    Global_Theory.add_thms
-      [((Binding.qualify true tname (Binding.name label), thms), atts)]
-    #-> (fn thm::_ => pair thm)) (tnames ~~ attss ~~ thmss)
+fun store_thms_atts name tnames attss thms =
+  fold_map (fn ((tname, atts), thm) =>
+    Global_Theory.note_thmss ""
+      [((Binding.qualify true tname (Binding.name name), atts), [([thm], [])])]
+    #-> (fn [(_, [res])] => pair res)) (tnames ~~ attss ~~ thms)
   ##> Theory.checkpoint;
 
-fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);
+fun store_thms name tnames = store_thms_atts name tnames (replicate (length tnames) []);
 
 
 (* split theorem thm_1 & ... & thm_n into n theorems *)
 
 fun split_conj_thm th =
-  ((th RS conjunct1)::(split_conj_thm (th RS conjunct2))) handle THM _ => [th];
+  ((th RS conjunct1) :: split_conj_thm (th RS conjunct2)) handle THM _ => [th];
 
 val mk_conj = foldr1 (HOLogic.mk_binop @{const_name HOL.conj});
 val mk_disj = foldr1 (HOLogic.mk_binop @{const_name HOL.disj});

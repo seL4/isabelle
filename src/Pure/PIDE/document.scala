@@ -183,8 +183,7 @@ object Document
             for (imp <- header.imports; name <- names.get(imp)) yield(name)
           case Exn.Exn(_) => Nil
         }
-      Library.topological_order(next,
-        Library.sort_wrt((name: Node.Name) => name.node, nodes.keys.toList))
+      Library.topological_order(next, nodes.keys.toList.sortBy(_.node))
     }
   }
 

@@ -96,7 +96,7 @@ class Completion
           case Some(word) =>
             words_lex.completions(word).map(words_map(_)) match {
               case Nil => None
-              case cs => Some(word, cs.sortWith(_ < _))
+              case cs => Some(word, cs.sorted)
             }
           case None => None
         }

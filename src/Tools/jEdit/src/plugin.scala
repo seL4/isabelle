@@ -379,7 +379,7 @@ class Plugin extends EBPlugin
         filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
 
       if (!files.isEmpty) {
-        val files_list = new ListView(Library.sort_strings(files))
+        val files_list = new ListView(files.sorted)
         for (i <- 0 until files.length)
           files_list.selection.indices += i
 

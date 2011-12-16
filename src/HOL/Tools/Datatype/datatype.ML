@@ -644,11 +644,11 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                   (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]);
 
-    val ([dt_induct'], thy7) =
+    val ([(_, [dt_induct'])], thy7) =
       thy6
-      |> Global_Theory.add_thms
-        [((Binding.qualify true big_name (Binding.name "induct"), dt_induct),
-          [case_names_induct])]
+      |> Global_Theory.note_thmss ""
+        [((Binding.qualify true big_name (Binding.name "induct"), [case_names_induct]),
+          [([dt_induct], [])])]
       ||> Theory.checkpoint;
 
   in

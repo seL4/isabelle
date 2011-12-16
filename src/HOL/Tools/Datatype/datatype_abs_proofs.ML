@@ -233,7 +233,7 @@ fun prove_primrec_thms (config : config) new_type_names descr
         (if length descr' = 1 then [big_reccomb_name]
          else map (prefix (big_reccomb_name ^ "_") o string_of_int) (1 upto length descr'));
     val reccombs =
-      map (fn ((name, T), T') => list_comb (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
+      map (fn ((name, T), T') => Const (name, reccomb_fn_Ts @ [T] ---> T'))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);
 
     val (reccomb_defs, thy2) =
@@ -245,9 +245,9 @@ fun prove_primrec_thms (config : config) new_type_names descr
           (map
             (fn ((((name, comb), set), T), T') =>
               (Binding.name (Long_Name.base_name name ^ "_def"),
-                Logic.mk_equals (comb, absfree ("x", T)
+                Logic.mk_equals (comb, fold_rev lambda rec_fns (absfree ("x", T)
                  (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
-                   (set $ Free ("x", T) $ Free ("y", T'))))))
+                   (set $ Free ("x", T) $ Free ("y", T')))))))
             (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path
       ||> Theory.checkpoint;
@@ -270,10 +270,11 @@ fun prove_primrec_thms (config : config) new_type_names descr
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> Global_Theory.add_thmss [((Binding.name "recs", rec_thms), [Nitpick_Simps.add])]
+    |> Global_Theory.note_thmss ""
+      [((Binding.name "recs", [Nitpick_Simps.add]), [(rec_thms, [])])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
-    |-> (fn thms => pair (reccomb_names, flat thms))
+    |-> (fn thms => pair (reccomb_names, maps #2 thms))
   end;
 
 
@@ -324,9 +325,10 @@ fun prove_case_thms (config : config) new_type_names descr reccomb_names primrec
             val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
             val def =
               (Binding.name (Long_Name.base_name name ^ "_def"),
-                Logic.mk_equals (list_comb (Const (name, caseT), fns1),
-                  list_comb (reccomb, (flat (take i case_dummy_fns)) @
-                    fns2 @ (flat (drop (i + 1) case_dummy_fns)))));
+                Logic.mk_equals (Const (name, caseT),
+                  fold_rev lambda fns1
+                    (list_comb (reccomb,
+                      flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
             val ([def_thm], thy') =
               thy
               |> Sign.declare_const_global decl |> snd

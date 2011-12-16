@@ -96,7 +96,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
             case Some((word, cs)) =>
               val ds =
                 (if (Isabelle_Encoding.is_active(buffer))
-                  cs.map(Symbol.decode(_)).sortWith(_ < _)
+                  cs.map(Symbol.decode(_)).sorted
                  else cs).filter(_ != word)
               if (ds.isEmpty) null
               else new SideKickCompletion(

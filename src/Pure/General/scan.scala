@@ -79,7 +79,7 @@ object Scan
 
     /* pseudo Set methods */
 
-    def iterator: Iterator[String] = content(main_tree, Nil).sortWith(_ <= _).iterator
+    def iterator: Iterator[String] = content(main_tree, Nil).sorted.iterator
 
     override def toString: String = iterator.mkString("Lexicon(", ", ", ")")
 
