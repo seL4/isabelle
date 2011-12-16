@@ -116,7 +116,7 @@ text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct},
     to control unfolding*}
 
 lemma def_lfp_unfold: "[| h==lfp(f);  mono(f) |] ==> h = f(h)"
-by (auto intro!: lfp_unfold)
+  by (auto intro!: lfp_unfold)
 
 lemma def_lfp_induct: 
     "[| A == lfp(f); mono(f);
@@ -160,12 +160,12 @@ subsection {* Coinduction rules for greatest fixed points *}
 
 text{*weak version*}
 lemma weak_coinduct: "[| a: X;  X \<subseteq> f(X) |] ==> a : gfp(f)"
-by (rule gfp_upperbound [THEN subsetD], auto)
+  by (rule gfp_upperbound [THEN subsetD]) auto
 
 lemma weak_coinduct_image: "!!X. [| a : X; g`X \<subseteq> f (g`X) |] ==> g a : gfp f"
-apply (erule gfp_upperbound [THEN subsetD])
-apply (erule imageI)
-done
+  apply (erule gfp_upperbound [THEN subsetD])
+  apply (erule imageI)
+  done
 
 lemma coinduct_lemma:
      "[| X \<le> f (sup X (gfp f));  mono f |] ==> sup X (gfp f) \<le> f (sup X (gfp f))"
@@ -182,7 +182,7 @@ lemma coinduct_lemma:
 
 text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
-by (blast intro: weak_coinduct [OF _ coinduct_lemma])
+  by (blast intro: weak_coinduct [OF _ coinduct_lemma])
 
 lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   apply (rule order_trans)
@@ -192,7 +192,7 @@ lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   done
 
 lemma gfp_fun_UnI2: "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))"
-by (blast dest: gfp_lemma2 mono_Un)
+  by (blast dest: gfp_lemma2 mono_Un)
 
 
 subsection {* Even Stronger Coinduction Rule, by Martin Coen *}
@@ -227,27 +227,26 @@ text{*Definition forms of @{text gfp_unfold} and @{text coinduct},
     to control unfolding*}
 
 lemma def_gfp_unfold: "[| A==gfp(f);  mono(f) |] ==> A = f(A)"
-by (auto intro!: gfp_unfold)
+  by (auto intro!: gfp_unfold)
 
 lemma def_coinduct:
      "[| A==gfp(f);  mono(f);  X \<le> f(sup X A) |] ==> X \<le> A"
-by (iprover intro!: coinduct)
+  by (iprover intro!: coinduct)
 
 lemma def_coinduct_set:
      "[| A==gfp(f);  mono(f);  a:X;  X \<subseteq> f(X Un A) |] ==> a: A"
-by (auto intro!: coinduct_set)
+  by (auto intro!: coinduct_set)
 
 (*The version used in the induction/coinduction package*)
 lemma def_Collect_coinduct:
     "[| A == gfp(%w. Collect(P(w)));  mono(%w. Collect(P(w)));   
         a: X;  !!z. z: X ==> P (X Un A) z |] ==>  
      a : A"
-apply (erule def_coinduct_set, auto) 
-done
+  by (erule def_coinduct_set) auto
 
 lemma def_coinduct3:
     "[| A==gfp(f); mono(f);  a:X;  X \<subseteq> f(lfp(%x. f(x) Un X Un A)) |] ==> a: A"
-by (auto intro!: coinduct3)
+  by (auto intro!: coinduct3)
 
 text{*Monotonicity of @{term gfp}!*}
 lemma gfp_mono: "(!!Z. f Z \<le> g Z) ==> gfp f \<le> gfp g"
@@ -296,8 +295,7 @@ parse_translation (advanced) {*
 let
   fun fun_tr ctxt [cs] =
     let
-      (* FIXME proper name context!? *)
-      val x = Free (singleton (Name.variant_list (Term.add_free_names cs [])) "x", dummyT);
+      val x = Syntax.free (fst (Name.variant "x" (Term.declare_term_frees cs Name.context)));
       val ft = Datatype_Case.case_tr true ctxt [x, cs];
     in lambda x ft end
 in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
