@@ -64,18 +64,6 @@ object Library
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
-  def sort_wrt[A](key: A => String, args: Seq[A]): List[A] =
-  {
-    val ordering: Ordering[A] =
-      new Ordering[A] { def compare(x: A, y: A): Int = key(x) compare key(y) }
-    val a = (new Array[Any](args.length)).asInstanceOf[Array[A]]
-    for ((x, i) <- args.iterator zipWithIndex) a(i) = x
-    Sorting.quickSort[A](a)(ordering)
-    a.toList
-  }
-
-  def sort_strings(args: Seq[String]): List[String] = sort_wrt((x: String) => x, args)
-
 
   /* iterate over chunks (cf. space_explode) */
 
