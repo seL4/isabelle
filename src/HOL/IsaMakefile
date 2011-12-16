@@ -218,6 +218,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Datatype/datatype_data.ML \
   Tools/Datatype/datatype_prop.ML \
   Tools/Datatype/datatype_realizer.ML \
+  Tools/Datatype/primrec.ML \
   Tools/Datatype/rep_datatype.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/fun.ML \
@@ -256,7 +257,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/lin_arith.ML \
   Tools/monomorph.ML \
   Tools/nat_arith.ML \
-  Tools/primrec.ML \
   Tools/prop_logic.ML \
   Tools/refute.ML \
   Tools/rewrite_hol_proof.ML \

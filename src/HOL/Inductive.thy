@@ -7,16 +7,16 @@ header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 theory Inductive 
 imports Complete_Lattices
 uses
-  ("Tools/inductive.ML")
   "Tools/dseq.ML"
-  "Tools/Datatype/datatype_aux.ML"
-  "Tools/Datatype/datatype_prop.ML"
+  ("Tools/inductive.ML")
+  ("Tools/Datatype/datatype_aux.ML")
+  ("Tools/Datatype/datatype_prop.ML")
   ("Tools/Datatype/datatype_abs_proofs.ML")
   ("Tools/Datatype/datatype_data.ML")
   ("Tools/Datatype/datatype_case.ML")
   ("Tools/Datatype/rep_datatype.ML")
-  ("Tools/primrec.ML")
   ("Tools/Datatype/datatype_codegen.ML")
+  ("Tools/Datatype/primrec.ML")
 begin
 
 subsection {* Least and greatest fixed points *}
@@ -276,15 +276,14 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
+use "Tools/Datatype/datatype_aux.ML"
+use "Tools/Datatype/datatype_prop.ML"
 use "Tools/Datatype/datatype_abs_proofs.ML"
 use "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 use "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
 use "Tools/Datatype/rep_datatype.ML"
-
-use "Tools/Datatype/datatype_codegen.ML"
-setup Datatype_Codegen.setup
-
-use "Tools/primrec.ML"
+use "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
+use "Tools/Datatype/primrec.ML"
 
 text{* Lambda-abstractions with pattern matching: *}
 

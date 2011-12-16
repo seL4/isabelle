@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/primrec.ML
+(*  Title:      HOL/Tools/Datatype/primrec.ML
     Author:     Norbert Voelker, FernUni Hagen
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
@@ -218,7 +218,7 @@ fun find_dts (dt_info : Datatype_Aux.info Symtab.table) _ [] = []
 
 (* distill primitive definition(s) from primrec specification *)
 
-fun distill lthy fixes eqs = 
+fun distill lthy fixes eqs =
   let
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];

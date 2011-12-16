@@ -326,7 +326,7 @@ fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
 (*************************************************************************)
 
 local
-(* code adapted from HOL/Tools/primrec.ML *)
+(* code adapted from HOL/Tools/Datatype/primrec.ML *)
 
 fun gen_fixrec
   prep_spec
