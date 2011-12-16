@@ -206,11 +206,11 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
 
 (* find datatypes which contain all datatypes in tnames' *)
 
-fun find_dts (dt_info : Datatype_Aux.info Symtab.table) _ [] = []
+fun find_dts _ _ [] = []
   | find_dts dt_info tnames' (tname :: tnames) =
       (case Symtab.lookup dt_info tname of
         NONE => primrec_error (quote tname ^ " is not a datatype")
-      | SOME dt =>
+      | SOME (dt : Datatype_Aux.info) =>
           if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
             (tname, dt) :: (find_dts dt_info tnames' tnames)
           else find_dts dt_info tnames' tnames);
@@ -218,12 +218,12 @@ fun find_dts (dt_info : Datatype_Aux.info Symtab.table) _ [] = []
 
 (* distill primitive definition(s) from primrec specification *)
 
-fun distill lthy fixes eqs =
+fun distill ctxt fixes eqs =
   let
-    val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
+    val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed ctxt v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (Datatype_Data.get_all (Proof_Context.theory_of lthy)) tnames tnames;
+    val dts = find_dts (Datatype_Data.get_all (Proof_Context.theory_of ctxt)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =
@@ -232,7 +232,7 @@ fun distill lthy fixes eqs =
       else snd (hd dts);
     val (fnames, fnss) = fold_rev (process_fun descr eqns) main_fns ([], []);
     val (fs, raw_defs) = fold_rev (get_fns fnss) (descr ~~ rec_names) ([], []);
-    val defs = map (make_def lthy fixes fs) raw_defs;
+    val defs = map (make_def ctxt fixes fs) raw_defs;
     val names = map snd fnames;
     val names_eqns = map fst eqns;
     val _ =
@@ -241,17 +241,17 @@ fun distill lthy fixes eqs =
         "\nare not mutually recursive");
     val rec_rewrites' = map mk_meta_eq rec_rewrites;
     val prefix = space_implode "_" (map (Long_Name.base_name o #1) raw_defs);
-    fun prove lthy defs =
+    fun prove ctxt defs =
       let
-        val frees = fold (Variable.add_free_names lthy) eqs [];
+        val frees = fold (Variable.add_free_names ctxt) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
-      in map (fn eq => Goal.prove lthy frees [] eq tac) eqs end;
+      in map (fn eq => Goal.prove ctxt frees [] eq tac) eqs end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^
       (case some_eqn of
-        SOME eqn => "\nin\n" ^ quote (Syntax.string_of_term lthy eqn)
+        SOME eqn => "\nin\n" ^ quote (Syntax.string_of_term ctxt eqn)
       | NONE => ""));
 
 
@@ -259,7 +259,7 @@ fun distill lthy fixes eqs =
 
 fun add_primrec_simple fixes ts lthy =
   let
-    val ((prefix, (fs, defs)), prove) = distill lthy fixes ts;
+    val ((prefix, (_, defs)), prove) = distill lthy fixes ts;
   in
     lthy
     |> fold_map Local_Theory.define defs

@@ -130,7 +130,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                  names = names,
                  constraints = cnstrts,
                  group = in_group'} :: part cs not_in_group
-              end
+              end;
       in part constructors rows end;
 
 fun v_to_prfx (prfx, Free v :: pats) = (v :: prfx, pats)
@@ -143,7 +143,6 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
   let
     val get_info = Datatype_Data.info_of_constr_permissive (Proof_Context.theory_of ctxt);
 
-    val name = singleton (Name.variant_list used) "a";
     fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand_var_row", ~1)
       | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
           if is_Free p then
@@ -153,7 +152,10 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
                 let val capp = list_comb (fresh_constr ty_match ty_inst ty used' c)
                 in ((prfx, capp :: ps), (subst_free [(p, capp)] rhs, tag)) end
             in map expnd constructors end
-          else [row]
+          else [row];
+
+    val name = singleton (Name.variant_list used) "a";
+
     fun mk _ [] = raise CASE_ERROR ("no rows", ~1)
       | mk [] (((_, []), (tm, tag)) :: _) = ([tag], tm) (* Done *)
       | mk path (rows as ((row as ((_, [Free _]), _)) :: _ :: _)) = mk path [row]
@@ -277,19 +279,22 @@ fun case_tr err ctxt [t, u] =
                 val (u', used'') = prep_pat u used';
               in (t' $ u', used'') end
           | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
+
         fun dest_case1 (t as Const (@{syntax_const "_case1"}, _) $ l $ r) =
               let val (l', cnstrts) = strip_constraints l
               in ((fst (prep_pat l' (Term.add_free_names t [])), r), cnstrts) end
           | dest_case1 t = case_error "dest_case1";
+
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
+
         val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
-        val case_tm =
-          make_case_untyped ctxt
-            (if err then Error else Warning) []
-            (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
-               (flat cnstrts) t) cases;
-      in case_tm end
+      in
+        make_case_untyped ctxt
+          (if err then Error else Warning) []
+          (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
+             (flat cnstrts) t) cases
+      end
   | case_tr _ _ _ = case_error "case_tr";
 
 val trfun_setup =
