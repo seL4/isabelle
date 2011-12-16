@@ -193,7 +193,7 @@ proof(simp add: CS_def AI_WN_def)
   have 2: "step' \<top> c' \<sqsubseteq> c'" .
   have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c" by(simp add: strip_pfp_WN[OF _ 1])
   have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top> c')"
-  proof(rule lfp_lowerbound[OF 3])
+  proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _ 3])
       show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp

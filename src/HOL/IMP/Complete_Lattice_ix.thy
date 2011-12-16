@@ -16,34 +16,34 @@ union of complete lattices. Because sets are not types, this requires a
 special treatment. *}
 
 locale Complete_Lattice_ix =
-fixes ix :: "'a::order \<Rightarrow> 'i"
+fixes L :: "'i \<Rightarrow> 'a::order set"
 and Glb :: "'i \<Rightarrow> 'a set \<Rightarrow> 'a"
-assumes Glb_lower: "\<forall>a\<in>A. ix a = i \<Longrightarrow> a \<in> A \<Longrightarrow> (Glb i A) \<le> a"
-and Glb_greatest: "\<forall>a\<in>A. b \<le> a \<Longrightarrow> ix b = i \<Longrightarrow> b \<le> (Glb i A)"
-and ix_Glb: "\<forall>a\<in>A. ix a = i \<Longrightarrow> ix(Glb i A) = i"
+assumes Glb_lower: "A \<subseteq> L i \<Longrightarrow> a \<in> A \<Longrightarrow> (Glb i A) \<le> a"
+and Glb_greatest: "b : L i \<Longrightarrow> \<forall>a\<in>A. b \<le> a \<Longrightarrow> b \<le> (Glb i A)"
+and Glb_in_L: "A \<subseteq> L i \<Longrightarrow> Glb i A : L i"
 begin
 
 definition lfp :: "'i \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-"lfp i f = Glb i {a. ix a = i \<and> f a \<le> a}"
+"lfp i f = Glb i {a : L i. f a \<le> a}"
 
-lemma index_lfp[simp]: "ix(lfp i f) = i"
-by(simp add: lfp_def ix_Glb)
+lemma index_lfp: "lfp i f : L i"
+by(auto simp: lfp_def intro: Glb_in_L)
 
 lemma lfp_lowerbound:
-  "\<lbrakk> ix a = i;  f a \<le> a \<rbrakk> \<Longrightarrow> lfp i f \<le> a"
+  "\<lbrakk> a : L i;  f a \<le> a \<rbrakk> \<Longrightarrow> lfp i f \<le> a"
 by (auto simp add: lfp_def intro: Glb_lower)
 
 lemma lfp_greatest:
-  "\<lbrakk> ix a = i;  \<And>u. \<lbrakk>ix u = i; f u \<le> u\<rbrakk> \<Longrightarrow> a \<le> u \<rbrakk> \<Longrightarrow> a \<le> lfp i f"
+  "\<lbrakk> a : L i;  \<And>u. \<lbrakk> u : L i; f u \<le> u\<rbrakk> \<Longrightarrow> a \<le> u \<rbrakk> \<Longrightarrow> a \<le> lfp i f"
 by (auto simp add: lfp_def intro: Glb_greatest)
 
-lemma lfp_unfold: assumes "\<And>x. ix(f x) = ix x"
+lemma lfp_unfold: assumes "\<And>x i. f x : L i \<longleftrightarrow> x : L i"
 and mono: "mono f" shows "lfp i f = f (lfp i f)"
 proof-
-  note assms(1)[simp]
+  note assms(1)[simp] index_lfp[simp]
   have 1: "f (lfp i f) \<le> lfp i f"
     apply(rule lfp_greatest)
-    apply(simp)
+    apply simp
     by (blast intro: lfp_lowerbound monoD[OF mono] order_trans)
   have "lfp i f \<le> f (lfp i f)"
     by (fastforce intro: 1 monoD[OF mono] lfp_lowerbound)

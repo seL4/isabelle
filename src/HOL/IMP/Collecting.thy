@@ -63,53 +63,74 @@ qed
 
 end
 
+fun sub1 :: "'a acom \<Rightarrow> 'a acom" where
+"sub1(c1;c2) = c1" |
+"sub1(IF b THEN c1 ELSE c2 {S}) = c1" |
+"sub1({I} WHILE b DO c {P}) = c"
+
+fun sub2 :: "'a acom \<Rightarrow> 'a acom" where
+"sub2(c1;c2) = c2" |
+"sub2(IF b THEN c1 ELSE c2 {S}) = c2"
+
+fun invar :: "'a acom \<Rightarrow> 'a" where
+"invar({I} WHILE b DO c {P}) = I"
+
 fun lift :: "('a set set \<Rightarrow> 'a set) \<Rightarrow> com \<Rightarrow> 'a set acom set \<Rightarrow> 'a set acom"
 where
-"lift F com.SKIP M = (SKIP {F {P. SKIP {P} : M}})" |
-"lift F (x ::= a) M = (x ::= a {F {P. x::=a {P} : M}})" |
+"lift F com.SKIP M = (SKIP {F (post ` M)})" |
+"lift F (x ::= a) M = (x ::= a {F (post ` M)})" |
 "lift F (c1;c2) M =
-  (lift F c1 {c1. \<exists>c2. c1;c2 : M}); (lift F c2 {c2. \<exists>c1. c1;c2 : M})" |
+  lift F c1 (sub1 ` M); lift F c2 (sub2 ` M)" |
 "lift F (IF b THEN c1 ELSE c2) M =
-  IF b THEN lift F c1 {c1. \<exists>c2 P. IF b THEN c1 ELSE c2 {P} : M}
-       ELSE lift F c2 {c2. \<exists>c1 P. IF b THEN c1 ELSE c2 {P} : M}
-  {F {P. \<exists>c1 c2. IF b THEN c1 ELSE c2 {P} : M}}" |
+  IF b THEN lift F c1 (sub1 ` M) ELSE lift F c2 (sub2 ` M)
+  {F (post ` M)}" |
 "lift F (WHILE b DO c) M =
- {F {I. \<exists>c P. {I} WHILE b DO c {P} : M}}
- WHILE b DO lift F c {c. \<exists>I P. {I} WHILE b DO c {P} : M}
- {F {P. \<exists>I c. {I} WHILE b DO c {P} : M}}"
+ {F (invar ` M)}
+ WHILE b DO lift F c (sub1 ` M)
+ {F (post ` M)}"
 
-interpretation Complete_Lattice_ix strip "lift Inter"
+interpretation Complete_Lattice_ix "%c. {c'. strip c' = c}" "lift Inter"
 proof
   case goal1
   have "a:A \<Longrightarrow> lift Inter (strip a) A \<le> a"
   proof(induction a arbitrary: A)
-    case Semi from Semi.prems show ?case by(fastforce intro!: Semi.IH)
+    case Semi from Semi.prems show ?case by(force intro!: Semi.IH)
   next
-    case If from If.prems show ?case by(fastforce intro!: If.IH)
+    case If from If.prems show ?case by(force intro!: If.IH)
   next
-    case While from While.prems show ?case by(fastforce intro!: While.IH)
-  qed auto
+    case While from While.prems show ?case by(force intro!: While.IH)
+  qed force+
   with goal1 show ?case by auto
 next
   case goal2
   thus ?case
   proof(induction b arbitrary: i A)
-    case Semi from Semi.prems show ?case by (fastforce intro!: Semi.IH)
+    case SKIP thus ?case by (force simp:SKIP_le)
   next
-    case If from If.prems show ?case by (fastforce intro!: If.IH)
+    case Assign thus ?case by (force simp:Assign_le)
   next
-    case While from While.prems show ?case by(fastforce intro: While.IH)
-  qed fastforce+
+    case Semi from Semi.prems show ?case
+      by (force intro!: Semi.IH simp:Semi_le)
+  next
+    case If from If.prems show ?case by (force simp: If_le intro!: If.IH)
+  next
+    case While from While.prems show ?case
+      by(fastforce simp: While_le intro: While.IH)
+  qed
 next
   case goal3
-  thus ?case
+  have "strip(lift Inter i A) = i"
   proof(induction i arbitrary: A)
-    case Semi from Semi.prems show ?case by (fastforce intro!: Semi.IH)
+    case Semi from Semi.prems show ?case
+      by (fastforce simp: strip_eq_Semi subset_iff intro!: Semi.IH)
   next
-    case If from If.prems show ?case by (fastforce intro!: If.IH)
+    case If from If.prems show ?case
+      by (fastforce intro!: If.IH simp: strip_eq_If)
   next
-    case While from While.prems show ?case by(fastforce intro: While.IH)
+    case While from While.prems show ?case
+      by(fastforce intro: While.IH simp: strip_eq_While)
   qed auto
+  thus ?case by auto
 qed
 
 lemma le_post: "c \<le> d \<Longrightarrow> post c \<le> post d"
@@ -169,12 +190,15 @@ by(blast intro: monoI mono_step_aux)
 lemma strip_step: "strip(step S c) = strip c"
 by (induction c arbitrary: S) auto
 
-lemmas lfp_cs_unfold = lfp_unfold[OF strip_step mono_step]
+lemma lfp_cs_unfold: "lfp c (step S) = step S (lfp c (step S))"
+apply(rule lfp_unfold[OF _  mono_step])
+apply(simp add: strip_step)
+done
 
 lemma CS_unfold: "CS S c = step S (CS S c)"
 by (metis CS_def lfp_cs_unfold)
 
 lemma strip_CS[simp]: "strip(CS S c) = c"
-by(simp add: CS_def)
+by(simp add: CS_def index_lfp[simplified])
 
 end
