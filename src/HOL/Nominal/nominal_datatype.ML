@@ -42,8 +42,8 @@ open NominalAtoms;
 (* theory data *)
 
 type descr =
-  (int * (string * Datatype_Aux.dtyp list *
-      (string * (Datatype_Aux.dtyp list * Datatype_Aux.dtyp) list) list)) list;
+  (int * (string * Datatype.dtyp list *
+      (string * (Datatype.dtyp list * Datatype.dtyp) list) list)) list;
 
 type nominal_datatype_info =
   {index : int,
@@ -200,7 +200,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val (full_new_type_names',thy1) = Datatype.add_datatype config dts'' thy;
 
     val {descr, induct, ...} = Datatype.the_info thy1 (hd full_new_type_names');
-    fun nth_dtyp i = Datatype_Aux.typ_of_dtyp descr (Datatype_Aux.DtRec i);
+    fun nth_dtyp i = Datatype_Aux.typ_of_dtyp descr (Datatype.DtRec i);
 
     val big_name = space_implode "_" new_type_names;
 
@@ -465,13 +465,13 @@ fun gen_nominal_datatype prep_specs config dts thy =
           | (i, _) => SOME (Datatype_Aux.name_of_typ (nth_dtyp i))) descr)) ^ "_set";
     val _ = warning ("big_rep_name: " ^ big_rep_name);
 
-    fun strip_option (dtf as Datatype_Aux.DtType ("fun", [dt, Datatype_Aux.DtRec i])) =
+    fun strip_option (dtf as Datatype.DtType ("fun", [dt, Datatype.DtRec i])) =
           (case AList.lookup op = descr i of
              SOME ("Nominal.noption", _, [(_, [dt']), _]) =>
                apfst (cons dt) (strip_option dt')
            | _ => ([], dtf))
-      | strip_option (Datatype_Aux.DtType ("fun",
-            [dt, Datatype_Aux.DtType ("Nominal.noption", [dt'])])) =
+      | strip_option (Datatype.DtType ("fun",
+            [dt, Datatype.DtType ("Nominal.noption", [dt'])])) =
           apfst (cons dt) (strip_option dt')
       | strip_option dt = ([], dt);
 
@@ -497,7 +497,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
               end
           in (j + 1, j' + length Ts,
             case dt'' of
-                Datatype_Aux.DtRec k => list_all (map (pair "x") Us,
+                Datatype.DtRec k => list_all (map (pair "x") Us,
                   HOLogic.mk_Trueprop (Free (nth rep_set_names k,
                     T --> HOLogic.boolT) $ free')) :: prems
               | _ => prems,
@@ -676,8 +676,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (fn ((i, ("Nominal.noption", _, _)), p) => p
         | ((i, _), (ty_idxs, j)) => (ty_idxs @ [(i, j)], j + 1)) ([], 0) descr;
 
-    fun reindex (Datatype_Aux.DtType (s, dts)) = Datatype_Aux.DtType (s, map reindex dts)
-      | reindex (Datatype_Aux.DtRec i) = Datatype_Aux.DtRec (the (AList.lookup op = ty_idxs i))
+    fun reindex (Datatype.DtType (s, dts)) = Datatype.DtType (s, map reindex dts)
+      | reindex (Datatype.DtRec i) = Datatype.DtRec (the (AList.lookup op = ty_idxs i))
       | reindex dt = dt;
 
     fun strip_suffix i s = implode (List.take (raw_explode s, size s - i));  (* FIXME Symbol.explode (?) *)
@@ -713,7 +713,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       map (fn ((cname, cargs), idxs) => (cname, partition_cargs idxs cargs))
         (constrs ~~ idxss)))) (descr'' ~~ ndescr);
 
-    fun nth_dtyp' i = Datatype_Aux.typ_of_dtyp descr'' (Datatype_Aux.DtRec i);
+    fun nth_dtyp' i = Datatype_Aux.typ_of_dtyp descr'' (Datatype.DtRec i);
 
     val rep_names = map (fn s =>
       Sign.intern_const thy7 ("Rep_" ^ s)) new_type_names;
@@ -740,7 +740,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
              xs @ x :: l_args,
              fold_rev mk_abs_fun xs
                (case dt of
-                  Datatype_Aux.DtRec k => if k < length new_type_names then
+                  Datatype.DtRec k => if k < length new_type_names then
                       Const (nth rep_names k, Datatype_Aux.typ_of_dtyp descr'' dt -->
                         Datatype_Aux.typ_of_dtyp descr dt) $ x
                     else error "nested recursion not (yet) supported"
@@ -1435,7 +1435,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val binders = maps fst frees';
         val atomTs = distinct op = (maps (map snd o fst) frees');
         val recs = map_filter
-          (fn ((_, Datatype_Aux.DtRec i), p) => SOME (i, p) | _ => NONE)
+          (fn ((_, Datatype.DtRec i), p) => SOME (i, p) | _ => NONE)
           (partition_cargs idxs cargs ~~ frees');
         val frees'' = map (fn i => "y" ^ string_of_int i) (1 upto length recs) ~~
           map (fn (i, _) => nth rec_result_Ts i) recs;

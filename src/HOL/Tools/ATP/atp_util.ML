@@ -23,9 +23,7 @@ sig
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
-  val typ_of_dtyp :
-    Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
-    -> typ
+  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val is_type_surely_finite : Proof.context -> typ -> bool
   val is_type_surely_infinite : Proof.context -> bool -> typ list -> typ -> bool
   val s_not : term -> term
@@ -148,11 +146,11 @@ fun varify_and_instantiate_type ctxt T1 T1' T2 =
     instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
   end
 
-fun typ_of_dtyp _ typ_assoc (Datatype_Aux.DtTFree a) =
-    the (AList.lookup (op =) typ_assoc (Datatype_Aux.DtTFree a))
-  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtType (s, Us)) =
+fun typ_of_dtyp _ typ_assoc (Datatype.DtTFree a) =
+    the (AList.lookup (op =) typ_assoc (Datatype.DtTFree a))
+  | typ_of_dtyp descr typ_assoc (Datatype.DtType (s, Us)) =
     Type (s, map (typ_of_dtyp descr typ_assoc) Us)
-  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtRec i) =
+  | typ_of_dtyp descr typ_assoc (Datatype.DtRec i) =
     let val (s, ds, _) = the (AList.lookup (op =) descr i) in
       Type (s, map (typ_of_dtyp descr typ_assoc) ds)
     end

@@ -40,7 +40,7 @@ and size_of_type' f g h T = (case size_of_type f g h T of
       NONE => Abs ("x", T, HOLogic.zero)
     | SOME t => t);
 
-fun is_poly thy (Datatype_Aux.DtType (name, dts)) =
+fun is_poly thy (Datatype.DtType (name, dts)) =
       (case Datatype.get_info thy name of
          NONE => false
        | SOME _ => exists (is_poly thy) dts)

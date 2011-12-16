@@ -61,9 +61,7 @@ sig
   val int_T : typ
   val simple_string_of_typ : typ -> string
   val is_real_constr : theory -> string * typ -> bool
-  val typ_of_dtyp :
-    Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
-    -> typ
+  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ

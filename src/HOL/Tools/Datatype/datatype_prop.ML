@@ -6,7 +6,7 @@ Datatype package: characteristic properties of datatypes.
 
 signature DATATYPE_PROP =
 sig
-  include DATATYPE_COMMON
+  type descr = Datatype_Aux.descr
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
   val make_injs : descr list -> term list list
@@ -25,6 +25,9 @@ end;
 
 structure Datatype_Prop : DATATYPE_PROP =
 struct
+
+type descr = Datatype_Aux.descr;
+
 
 fun indexify_names names =
   let
@@ -428,8 +431,5 @@ fun make_nchotomys descr =
           (HOLogic.mk_all ("v", T, Datatype_Aux.mk_disj (map (mk_eqn T) constrs))))
       (hd descr ~~ newTs)
   end;
-
-
-open Datatype_Aux;
 
 end;

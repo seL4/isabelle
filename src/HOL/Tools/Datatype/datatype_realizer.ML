@@ -25,7 +25,7 @@ fun is_unit t = body_type (fastype_of t) = HOLogic.unitT;
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";
 
-fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux.info) is thy =
+fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is thy =
   let
     val recTs = Datatype_Aux.get_rec_types descr;
     val pnames =
@@ -157,7 +157,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux.info)
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype_Aux.info) thy =
+fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype.info) thy =
   let
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);

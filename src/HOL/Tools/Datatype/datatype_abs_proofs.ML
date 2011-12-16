@@ -8,7 +8,8 @@ properties: injectivity / distinctness of constructors and induction).
 
 signature DATATYPE_ABS_PROOFS =
 sig
-  include DATATYPE_COMMON
+  type config = Datatype_Aux.config
+  type descr = Datatype_Aux.descr
   val prove_casedist_thms : config -> string list -> descr list -> thm ->
     attribute list -> theory -> thm list * theory
   val prove_primrec_thms : config -> string list -> descr list ->
@@ -29,10 +30,13 @@ end;
 structure Datatype_Abs_Proofs: DATATYPE_ABS_PROOFS =
 struct
 
+type config = Datatype_Aux.config;
+type descr = Datatype_Aux.descr;
+
+
 (************************ case distinction theorems ***************************)
 
-fun prove_casedist_thms (config : Datatype_Aux.config)
-    new_type_names descr induct case_names_exhausts thy =
+fun prove_casedist_thms (config : config) new_type_names descr induct case_names_exhausts thy =
   let
     val _ = Datatype_Aux.message config "Proving case distinction theorems ...";
 
@@ -79,7 +83,7 @@ fun prove_casedist_thms (config : Datatype_Aux.config)
 
 (*************************** primrec combinators ******************************)
 
-fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
+fun prove_primrec_thms (config : config) new_type_names descr
     injects_of constr_inject (dist_rewrites, other_dist_rewrites) induct thy =
   let
     val _ = Datatype_Aux.message config "Constructing primrec combinators ...";
@@ -275,8 +279,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
 
 (***************************** case combinators *******************************)
 
-fun prove_case_thms (config : Datatype_Aux.config)
-    new_type_names descr reccomb_names primrec_thms thy =
+fun prove_case_thms (config : config) new_type_names descr reccomb_names primrec_thms thy =
   let
     val _ = Datatype_Aux.message config "Proving characteristic theorems for case combinators ...";
 
@@ -350,7 +353,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
 
 (******************************* case splitting *******************************)
 
-fun prove_split_thms (config : Datatype_Aux.config)
+fun prove_split_thms (config : config)
     new_type_names case_names descr constr_inject dist_rewrites casedist_thms case_thms thy =
   let
     val _ = Datatype_Aux.message config "Proving equations for case splitting ...";
@@ -399,7 +402,7 @@ fun prove_weak_case_congs new_type_names case_names descr thy =
 
 (************************* additional theorems for TFL ************************)
 
-fun prove_nchotomys (config : Datatype_Aux.config) new_type_names descr casedist_thms thy =
+fun prove_nchotomys (config : config) new_type_names descr casedist_thms thy =
   let
     val _ = Datatype_Aux.message config "Proving additional theorems for TFL ...";
 
@@ -448,8 +451,5 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
         (Datatype_Prop.make_case_congs case_names descr thy ~~ nchotomys ~~ case_thms);
 
   in thy |> Datatype_Aux.store_thms "case_cong" new_type_names case_congs end;
-
-
-open Datatype_Aux;
 
 end;
