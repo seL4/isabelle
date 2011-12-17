@@ -35,6 +35,8 @@ RUNNING=$HOME/var/running
 
 DISTPREFIX=$HOME/isadist
 
+HOSTNAME="$(hostname -s)"
+
 # this function avoids NFS inconsistencies with multiple writers by
 # sshing to one central machine and writing locally. There is stil a
 # race condition, but at least it should not corrupt a whole set of entries
