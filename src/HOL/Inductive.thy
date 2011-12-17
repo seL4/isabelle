@@ -11,7 +11,6 @@ uses
   ("Tools/inductive.ML")
   ("Tools/Datatype/datatype_aux.ML")
   ("Tools/Datatype/datatype_prop.ML")
-  ("Tools/Datatype/datatype_abs_proofs.ML")
   ("Tools/Datatype/datatype_data.ML")
   ("Tools/Datatype/datatype_case.ML")
   ("Tools/Datatype/rep_datatype.ML")
@@ -277,7 +276,6 @@ text {* Package setup. *}
 
 use "Tools/Datatype/datatype_aux.ML"
 use "Tools/Datatype/datatype_prop.ML"
-use "Tools/Datatype/datatype_abs_proofs.ML"
 use "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 use "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
 use "Tools/Datatype/rep_datatype.ML"

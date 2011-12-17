@@ -211,7 +211,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/ATP/atp_translate.ML \
   Tools/ATP/atp_util.ML \
   Tools/Datatype/datatype.ML \
-  Tools/Datatype/datatype_abs_proofs.ML \
   Tools/Datatype/datatype_aux.ML \
   Tools/Datatype/datatype_case.ML \
   Tools/Datatype/datatype_codegen.ML \
