@@ -59,7 +59,7 @@ ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly-e"
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
-$MAKEDIST -j "/home/isabelle/contrib_devel/jedit_build-20110622" >> $DISTLOG 2>&1
+$MAKEDIST -j "/home/isabelle/contrib_devel/jedit_build-20111217" >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
