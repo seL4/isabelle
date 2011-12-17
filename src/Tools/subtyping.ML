@@ -32,6 +32,14 @@ datatype data = Data of
 fun make_data (coes, full_graph, coes_graph, tmaps) =
   Data {coes = coes, full_graph = full_graph, coes_graph = coes_graph, tmaps = tmaps};
 
+fun merge_error_coes (a, b) =
+  error ("Cannot merge coercion tables.\nConflicting declarations for coercions from " ^
+    quote a ^ " to " ^ quote b ^ ".");
+
+fun merge_error_tmaps C =
+  error ("Cannot merge coercion map tables.\nConflicting declarations for the constructor " ^
+    quote C ^ ".");
+
 structure Data = Generic_Data
 (
   type T = data;
@@ -42,10 +50,11 @@ structure Data = Generic_Data
       Data {coes = coes2, full_graph = full_graph2, coes_graph = coes_graph2, tmaps = tmaps2}) =
     make_data (Symreltab.merge (eq_pair (op aconv)
         (eq_pair (eq_pair (eq_list (op =)) (eq_list (op =))) (eq_list (op aconv))))
-        (coes1, coes2),
+        (coes1, coes2) handle Symreltab.DUP key => merge_error_coes key,
       Graph.merge (op =) (full_graph1, full_graph2),
       Graph.merge (op =) (coes_graph1, coes_graph2),
-      Symtab.merge (eq_pair (op aconv) (op =)) (tmaps1, tmaps2));
+      Symtab.merge (eq_pair (op aconv) (op =)) (tmaps1, tmaps2)
+        handle Symtab.DUP key => merge_error_tmaps key);
 );
 
 fun map_data f =
