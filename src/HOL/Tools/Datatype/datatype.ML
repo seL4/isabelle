@@ -252,12 +252,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       let
         val _ $ (_ $ (cong_f $ _) $ _) = concl_of arg_cong;
         val rep_const = cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
-        val cong' =
-          Drule.export_without_context
-            (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
-        val dist =
-          Drule.export_without_context
-            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+        val cong' = cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong;
+        val dist = cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma;
         val (thy', defs', eqns', _) =
           fold (make_constr_def typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
@@ -543,7 +539,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               let
                 val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-              in dist_thm :: Drule.export_without_context (dist_thm RS not_sym) :: prove ts end;
+              in dist_thm :: Drule.zero_var_indexes (dist_thm RS not_sym) :: prove ts end;
       in prove end;
 
     val distinct_thms =
