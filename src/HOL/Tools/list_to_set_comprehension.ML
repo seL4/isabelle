@@ -93,7 +93,7 @@ fun simproc ss redex =
       in
         (case try dest_Const case_const of
           SOME (c, T) =>
-            (case Datatype_Data.info_of_case thy c of
+            (case Datatype.info_of_case thy c of
               SOME _ =>
                 (case possible_index_of_singleton_case (fst (split_last args)) of
                   SOME i =>
@@ -178,7 +178,7 @@ fun simproc ss redex =
             val (vs, body) = strip_abs (Pattern.eta_long (map snd bound_vs) cont)
             val x' = incr_boundvars (length vs) x
             val eqs' = map (incr_boundvars (length vs)) eqs
-            val (constr_name, _) = nth (the (Datatype_Data.get_constrs thy (fst (dest_Type T)))) i
+            val (constr_name, _) = nth (the (Datatype.get_constrs thy (fst (dest_Type T)))) i
             val constr_t =
               list_comb
                 (Const (constr_name, map snd vs ---> T), map Bound (((length vs) - 1) downto 0))

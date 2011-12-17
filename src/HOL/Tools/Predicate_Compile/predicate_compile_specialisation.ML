@@ -142,7 +142,7 @@ and find_specialisations black_list specs thy =
       | restrict_pattern' thy ((T as TFree _, t) :: Tts) free_names =
         replace_term_and_restrict thy T t Tts free_names
       | restrict_pattern' thy ((T as Type (Tcon, Ts), t) :: Tts) free_names =
-        case Datatype_Data.get_constrs thy Tcon of
+        case Datatype.get_constrs thy Tcon of
           NONE => replace_term_and_restrict thy T t Tts free_names
         | SOME constrs => (case strip_comb t of
           (Const (s, _), ats) => (case AList.lookup (op =) constrs s of

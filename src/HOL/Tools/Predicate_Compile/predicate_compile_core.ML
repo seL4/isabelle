@@ -847,7 +847,7 @@ fun find_switch_test ctxt (i, is) (ts, prems) =
     case T of
       TFree _ => NONE
     | Type (Tcon, _) =>
-      (case Datatype_Data.get_constrs (Proof_Context.theory_of ctxt) Tcon of
+      (case Datatype.get_constrs (Proof_Context.theory_of ctxt) Tcon of
         NONE => NONE
       | SOME cs =>
         (case strip_comb t of

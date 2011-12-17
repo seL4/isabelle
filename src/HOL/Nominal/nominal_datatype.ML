@@ -1045,7 +1045,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
 
-    val case_names_induct = Datatype_Data.mk_case_names_induct descr'';
+    val case_names_induct = Datatype.mk_case_names_induct descr'';
 
     (**** prove that new datatypes have finite support ****)
 

@@ -623,7 +623,7 @@ fun prepare_split_thm ctxt split_thm =
     |> Local_Defs.unfold ctxt [@{thm atomize_conjL[symmetric]},
       @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
 
-fun find_split_thm thy (Const (name, T)) = Option.map #split (Datatype_Data.info_of_case thy name)
+fun find_split_thm thy (Const (name, T)) = Option.map #split (Datatype.info_of_case thy name)
   | find_split_thm thy _ = NONE
 
 (* lifting term operations to theorems *)
@@ -901,7 +901,7 @@ fun expand_tuples thy intro =
 (*** this should be part of the datatype package ***)
 
 fun datatype_names_of_case_name thy case_name =
-  map (#1 o #2) (#descr (the (Datatype_Data.info_of_case thy case_name)))
+  map (#1 o #2) (#descr (the (Datatype.info_of_case thy case_name)))
 
 fun make_case_distribs case_names descr thy =
   let
