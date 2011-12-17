@@ -1560,9 +1560,6 @@ lemma all_not_in_conv [simp]: "(\<forall>x. x \<notin> A) = (A = {})"
 lemma ex_in_conv: "(\<exists>x. x \<in> A) = (A \<noteq> {})"
   by blast
 
-lemma distinct_lemma: "f x \<noteq> f y ==> x \<noteq> y"
-  by iprover
-
 lemma ball_simps [simp, no_atp]:
   "\<And>A P Q. (\<forall>x\<in>A. P x \<or> Q) \<longleftrightarrow> ((\<forall>x\<in>A. P x) \<or> Q)"
   "\<And>A P Q. (\<forall>x\<in>A. P \<or> Q x) \<longleftrightarrow> (P \<or> (\<forall>x\<in>A. Q x))"
@@ -1796,7 +1793,6 @@ val bexI = @{thm bexI}
 val bex_triv = @{thm bex_triv}
 val bspec = @{thm bspec}
 val contra_subsetD = @{thm contra_subsetD}
-val distinct_lemma = @{thm distinct_lemma}
 val equalityCE = @{thm equalityCE}
 val equalityD1 = @{thm equalityD1}
 val equalityD2 = @{thm equalityD2}

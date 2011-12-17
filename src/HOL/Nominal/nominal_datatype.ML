@@ -83,7 +83,7 @@ fun make_dt_info descr induct reccomb_names rec_thms
 
 (*******************************)
 
-val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
+val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of Datatype.distinct_lemma);
 
 
 (** simplification procedure for sorting permutations **)
@@ -769,7 +769,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
         val dist =
           Drule.export_without_context
-            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] Datatype.distinct_lemma);
         val (thy', defs', eqns') = fold (make_constr_def tname T T')
           (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in

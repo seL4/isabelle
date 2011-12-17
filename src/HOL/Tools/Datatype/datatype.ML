@@ -10,6 +10,7 @@ after full bootstrap of datatype package.
 signature DATATYPE =
 sig
   include DATATYPE_DATA
+  val distinct_lemma: thm
   type spec =
     (binding * (string * sort) list * mixfix) *
     (binding * typ list * mixfix) list
@@ -28,6 +29,7 @@ struct
 
 (** auxiliary **)
 
+val distinct_lemma = @{lemma "f x \<noteq> f y ==> x \<noteq> y" by iprover};
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
