@@ -1,10 +1,10 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/polyml/polyml-5.4.0"
-  ML_SYSTEM="polyml-5.4.0"
+  POLYML_HOME="/home/polyml/polyml-5.4.1"
+  ML_SYSTEM="polyml-5.4.1"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="--mutable 800 --immutable 800"
+  ML_OPTIONS="-H 1000"
 
 
 ISABELLE_HOME_USER=~/isabelle-mac-poly-M4
