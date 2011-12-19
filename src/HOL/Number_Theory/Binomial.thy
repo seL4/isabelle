@@ -349,4 +349,17 @@ next
   qed
 qed
 
+lemma choose_le_pow:
+  assumes "r \<le> n" shows "n choose r \<le> n ^ r"
+proof -
+  have X: "\<And>r. r \<le> n \<Longrightarrow> \<Prod>{n - r..n} = (n - r) * \<Prod>{Suc (n - r)..n}"
+    by (subst setprod_insert[symmetric]) (auto simp: atLeastAtMost_insertL)
+  have "n choose r \<le> fact n div fact (n - r)"
+    using `r \<le> n` by (simp add: choose_altdef_nat div_le_mono2)
+  also have "\<dots> \<le> n ^ r" using `r \<le> n`
+    by (induct r rule: nat.induct)
+     (auto simp add: fact_div_fact Suc_diff_Suc X One_nat_def mult_le_mono)
+ finally show ?thesis .
+qed
+
 end

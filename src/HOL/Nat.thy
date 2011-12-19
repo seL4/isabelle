@@ -1615,6 +1615,9 @@ by arith
 lemma diff_Suc_diff_eq2 [simp]: "k \<le> j ==> Suc (j - k) - m = Suc j - (k + m)"
 by arith
 
+lemma Suc_diff_Suc: "n < m \<Longrightarrow> Suc (m - Suc n) = m - n"
+by simp
+
 text{*Lemmas for ex/Factorization*}
 
 lemma one_less_mult: "[| Suc 0 < n; Suc 0 < m |] ==> Suc 0 < m*n"
