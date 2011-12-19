@@ -285,6 +285,12 @@ lemma fact_add_num_eq_if2_nat:
     (if m = 0 then fact n else (m + n) * fact ((m - 1) + n))"
 by (cases m) auto
 
+lemma fact_le_power: "fact n \<le> n^n"
+proof (induct n)
+  case (Suc n)
+  then have "fact n \<le> Suc n ^ n" by (rule le_trans) (simp add: power_mono)
+  then show ?case by (simp add: add_le_mono)
+qed simp
 
 subsection {* @{term fact} and @{term of_nat} *}
 

@@ -60,6 +60,10 @@ done
 lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
 by (simp add: powr_def exp_add [symmetric] left_distrib)
 
+lemma powr_mult_base:
+  "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
+using assms by (auto simp: powr_add)
+
 lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
 by (simp add: powr_def)
 
@@ -177,6 +181,10 @@ lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0
   apply (case_tac "x = 0", simp, simp)
   apply (rule powr_realpow [THEN sym], simp)
 done
+
+lemma root_powr_inverse:
+  "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
+by (auto simp: root_def powr_realpow[symmetric] powr_powr)
 
 lemma ln_powr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
 by (unfold powr_def, simp)
