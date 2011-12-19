@@ -87,16 +87,16 @@ by (simp add: linorder_not_less [symmetric])
 lemma log_ln: "ln x = log (exp(1)) x"
 by (simp add: log_def)
 
-lemma DERIV_log: "x > 0 ==> DERIV (%y. log b y) x :> 1 / (ln b * x)"
-  apply (subst log_def)
-  apply (subgoal_tac "(%y. ln y / ln b) = (%y. (1 / ln b) * ln y)")
-  apply (erule ssubst)
-  apply (subgoal_tac "1 / (ln b * x) = (1 / ln b) * (1 / x)")
-  apply (erule ssubst)
-  apply (rule DERIV_cmult)
-  apply (erule DERIV_ln_divide)
-  apply auto
-done
+lemma DERIV_log: assumes "x > 0" shows "DERIV (\<lambda>y. log b y) x :> 1 / (ln b * x)"
+proof -
+  def lb \<equiv> "1 / ln b"
+  moreover have "DERIV (\<lambda>y. lb * ln y) x :> lb / x"
+    using `x > 0` by (auto intro!: DERIV_intros)
+  ultimately show ?thesis
+    by (simp add: log_def)
+qed
+
+lemmas DERIV_log[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 
 lemma powr_log_cancel [simp]:
      "[| 0 < a; a \<noteq> 1; 0 < x |] ==> a powr (log a x) = x"
