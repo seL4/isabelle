@@ -1,5 +1,5 @@
 (*  Title:      HOL/ex/Sqrt.thy
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel, Tobias Nipkow, TU Muenchen
 *)
 
 header {*  Square roots of primes are irrational *}
@@ -47,7 +47,7 @@ proof
   with p show False by simp
 qed
 
-corollary "sqrt (real (2::nat)) \<notin> \<rat>"
+corollary sqrt_real_2_not_rat: "sqrt (real (2::nat)) \<notin> \<rat>"
   by (rule sqrt_prime_irrational) (rule two_is_prime_nat)
 
 
@@ -85,6 +85,24 @@ proof
   with gcd have "p dvd 1" by simp
   then have "p \<le> 1" by (simp add: dvd_imp_le)
   with p show False by simp
+qed
+
+
+text{* Another old chestnut, which is a consequence of the irrationality of 2. *}
+
+lemma "\<exists>a b::real. a \<notin> \<rat> \<and> b \<notin> \<rat> \<and> a powr b \<in> \<rat>" (is "EX a b. ?P a b")
+proof cases
+  assume "sqrt 2 powr sqrt 2 \<in> \<rat>"
+  hence "?P (sqrt 2) (sqrt 2)" by(metis sqrt_real_2_not_rat[simplified])
+  thus ?thesis by blast
+next
+  assume 1: "sqrt 2 powr sqrt 2 \<notin> \<rat>"
+  have "(sqrt 2 powr sqrt 2) powr sqrt 2 = 2"
+    using powr_realpow[of _ 2]
+    by (simp add: powr_powr power2_eq_square[symmetric])
+  hence "?P (sqrt 2 powr sqrt 2) (sqrt 2)"
+    by (metis 1 Rats_number_of sqrt_real_2_not_rat[simplified])
+  thus ?thesis by blast
 qed
 
 end
