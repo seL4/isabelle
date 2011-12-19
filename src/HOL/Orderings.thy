@@ -1050,30 +1050,17 @@ lemma max_of_mono:
 
 end
 
-lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
+lemma min_absorb1: "x \<le> y \<Longrightarrow> min x y = x"
 by (simp add: min_def)
 
-lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
+lemma max_absorb2: "x \<le> y ==> max x y = y"
 by (simp add: max_def)
 
-lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
-by (simp add: min_def) (blast intro: antisym)
+lemma min_absorb2: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> min x y = y"
+by (simp add:min_def)
 
-lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
-by (simp add: max_def) (blast intro: antisym)
-
-lemma min_greatestL: "(\<And>x::'a::order. x \<le> greatest) \<Longrightarrow> min greatest x = x"
-by (simp add: min_def) (blast intro: antisym)
-
-lemma max_greatestL: "(\<And>x::'a::order. x \<le> greatest) \<Longrightarrow> max greatest x = greatest"
-by (simp add: max_def) (blast intro: antisym)
-
-lemma min_greatestR: "(\<And>x. x \<le> greatest) \<Longrightarrow> min x greatest = x"
-by (simp add: min_def)
-
-lemma max_greatestR: "(\<And>x. x \<le> greatest) \<Longrightarrow> max x greatest = greatest"
+lemma max_absorb1: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> max x y = x"
 by (simp add: max_def)
-
 
 
 

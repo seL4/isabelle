@@ -721,10 +721,10 @@ lemma mono_Suc: "mono Suc"
 by (rule monoI) simp
 
 lemma min_0L [simp]: "min 0 n = (0::nat)"
-by (rule min_leastL) simp
+by (rule min_absorb1) simp
 
 lemma min_0R [simp]: "min n 0 = (0::nat)"
-by (rule min_leastR) simp
+by (rule min_absorb2) simp
 
 lemma min_Suc_Suc [simp]: "min (Suc m) (Suc n) = Suc (min m n)"
 by (simp add: mono_Suc min_of_mono)
@@ -738,10 +738,10 @@ lemma min_Suc2:
 by (simp split: nat.split)
 
 lemma max_0L [simp]: "max 0 n = (n::nat)"
-by (rule max_leastL) simp
+by (rule max_absorb2) simp
 
 lemma max_0R [simp]: "max n 0 = (n::nat)"
-by (rule max_leastR) simp
+by (rule max_absorb1) simp
 
 lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc(max m n)"
 by (simp add: mono_Suc max_of_mono)
