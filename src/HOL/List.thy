@@ -3807,6 +3807,39 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma card_lists_distinct_length_eq:
+  assumes "k < card A"
+  shows "card {xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A} = \<Prod>{card A - k + 1 .. card A}"
+using assms
+proof (induct k)
+  case 0
+  then have "{xs. length xs = 0 \<and> distinct xs \<and> set xs \<subseteq> A} = {[]}" by auto
+  then show ?case by simp
+next
+  case (Suc k)
+  let "?k_list" = "\<lambda>k xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A"
+  have inj_Cons: "\<And>A. inj_on (\<lambda>(xs, n). n # xs) A"  by (rule inj_onI) auto
+
+  from Suc have "k < card A" by simp
+  moreover have "finite A" using assms by (simp add: card_ge_0_finite)
+  moreover have "finite {xs. ?k_list k xs}"
+    using finite_lists_length_eq[OF `finite A`, of k]
+    by - (rule finite_subset, auto)
+  moreover have "\<And>i j. i \<noteq> j \<longrightarrow> {i} \<times> (A - set i) \<inter> {j} \<times> (A - set j) = {}"
+    by auto
+  moreover have "\<And>i. i \<in>Collect (?k_list k) \<Longrightarrow> card (A - set i) = card A - k"
+    by (simp add: card_Diff_subset distinct_card)
+  moreover have "{xs. ?k_list (Suc k) xs} =
+      (\<lambda>(xs, n). n#xs) ` \<Union>(\<lambda>xs. {xs} \<times> (A - set xs)) ` {xs. ?k_list k xs}"
+    by (auto simp: length_Suc_conv)
+  moreover
+  have "Suc (card A - Suc k) = card A - k" using Suc.prems by simp
+  then have "(card A - k) * \<Prod>{Suc (card A - k)..card A} = \<Prod>{Suc (card A - Suc k)..card A}"
+    by (subst setprod_insert[symmetric]) (simp add: atLeastAtMost_insertL)+
+  ultimately show ?case
+    by (simp add: card_image inj_Cons card_UN_disjoint Suc.hyps algebra_simps)
+qed
+
 lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
 apply(rule notI)
 apply(drule finite_maxlen)

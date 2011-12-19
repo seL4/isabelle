@@ -477,6 +477,9 @@ lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
 lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
 by (auto simp add: atLeastAtMost_def)
 
+lemma atLeastAtMost_insertL: "m \<le> n \<Longrightarrow> insert m {Suc m..n} = {m ..n}"
+by auto
+
 text {* The analogous result is useful on @{typ int}: *}
 (* here, because we don't have an own int section *)
 lemma atLeastAtMostPlus1_int_conv:
