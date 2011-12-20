@@ -89,7 +89,7 @@ fun check_term' cnstr ctxt =
   Syntax.check_term ctxt o (case cnstr of SOME T => Type.constraint T | _ => I)
 
 fun read_term' cnstr ctxt =
-  check_term' cnstr ctxt o tap (writeln o @{make_string}) o Syntax.parse_term ctxt
+  check_term' cnstr ctxt o Syntax.parse_term ctxt
 
 val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
 val quotient_def_cmd = gen_quotient_def Proof_Context.read_vars read_term'
