@@ -20,6 +20,9 @@ sig
   val quickcheck_pretty : bool Config.T
   val setup_exhaustive_datatype_interpretation : theory -> theory
   val setup: theory -> theory
+  
+  val instantiate_full_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+    (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
 end;
 
 structure Exhaustive_Generators : EXHAUSTIVE_GENERATORS =
