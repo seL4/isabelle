@@ -2467,7 +2467,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
           | TFF (_, TPTP_Implicit) => I
           | THF (_, TPTP_Implicit, _) => I
           | _ => declare_undeclared_syms_in_atp_problem type_enc)
-    val (problem, pool) = problem |> nice_atp_problem readable_names
+    val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =
       min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in

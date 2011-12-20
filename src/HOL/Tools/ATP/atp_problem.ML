@@ -109,7 +109,7 @@ sig
     (string * string) problem -> (string * string) problem
   val declared_syms_in_problem : (string * ''a) problem -> (string * ''a) list
   val nice_atp_problem :
-    bool -> ('a * (string * string) problem_line list) list
+    bool -> atp_format -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
        * (string Symtab.table * string Symtab.table) option
 end;
@@ -619,9 +619,6 @@ fun declared_syms_in_problem problem =
 
 (** Nice names **)
 
-fun empty_name_pool readable_names =
-  if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
-
 fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
 fun pool_map f xs =
   pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
@@ -643,39 +640,36 @@ val max_readable_name_size = 20
    unreadable "op_1", "op_2", etc., in the problem files. "eq" is reserved to
    ensure that "HOL.eq" is correctly mapped to equality (not clear whether this
    is still necessary). *)
-val spass_reserved_nice_names =
-  ["and", "def", "equal", "equiv", "exists", "false", "forall", "fract", "ge",
-   "gs", "id", "implied", "implies", "le", "lr", "ls", "minus", "mult", "not",
-   "or", "plus", "true"]
-val reserved_nice_names =
-  [tptp_old_equal, "op", "eq"] @ spass_reserved_nice_names
+val reserved_nice_names = [tptp_old_equal, "op", "eq"]
 
-fun readable_name full_name s =
-  if s = full_name then
-    s
-  else
-    s |> no_qualifiers
-      |> perhaps (try (unprefix "'"))
-      |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
-      |> (fn s =>
-             if size s > max_readable_name_size then
-               String.substring (s, 0, max_readable_name_size div 2 - 4) ^
-               string_of_int (hash_string full_name) ^
-               String.extract (s, size s - max_readable_name_size div 2 + 4,
-                               NONE)
-             else
-               s)
-      |> (fn s => if member (op =) reserved_nice_names s then full_name else s)
+fun readable_name underscore full_name s =
+  (if s = full_name then
+     s
+   else
+     s |> no_qualifiers
+       |> perhaps (try (unprefix "'"))
+       |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
+       |> (fn s =>
+              if size s > max_readable_name_size then
+                String.substring (s, 0, max_readable_name_size div 2 - 4) ^
+                string_of_int (hash_string full_name) ^
+                String.extract (s, size s - max_readable_name_size div 2 + 4,
+                                NONE)
+              else
+                s)
+       |> (fn s =>
+              if member (op =) reserved_nice_names s then full_name else s))
+  |> underscore ? suffix "_"
 
-fun nice_name (full_name, _) NONE = (full_name, NONE)
-  | nice_name (full_name, desired_name) (SOME the_pool) =
+fun nice_name _ (full_name, _) NONE = (full_name, NONE)
+  | nice_name underscore (full_name, desired_name) (SOME the_pool) =
     if is_built_in_tptp_symbol full_name then
       (full_name, SOME the_pool)
     else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
     | NONE =>
       let
-        val nice_prefix = readable_name full_name desired_name
+        val nice_prefix = readable_name underscore full_name desired_name
         fun add j =
           let
             val nice_name =
@@ -692,32 +686,37 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
-fun nice_type (AType (name, tys)) =
-    nice_name name ##>> pool_map nice_type tys #>> AType
-  | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
-  | nice_type (ATyAbs (names, ty)) =
-    pool_map nice_name names ##>> nice_type ty #>> ATyAbs
-fun nice_term (ATerm (name, ts)) =
-    nice_name name ##>> pool_map nice_term ts #>> ATerm
-  | nice_term (AAbs ((name, ty), tm)) =
-    nice_name name ##>> nice_type ty ##>> nice_term tm #>> AAbs
-fun nice_formula (AQuant (q, xs, phi)) =
-    pool_map nice_name (map fst xs)
-    ##>> pool_map (fn NONE => pair NONE
-                    | SOME ty => nice_type ty #>> SOME) (map snd xs)
-    ##>> nice_formula phi
-    #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
-  | nice_formula (AConn (c, phis)) =
-    pool_map nice_formula phis #>> curry AConn c
-  | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-fun nice_problem_line (Decl (ident, sym, ty)) =
-    nice_name sym ##>> nice_type ty #>> (fn (sym, ty) => Decl (ident, sym, ty))
-  | nice_problem_line (Formula (ident, kind, phi, source, info)) =
-    nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
-fun nice_problem problem =
-  pool_map (fn (heading, lines) =>
-               pool_map nice_problem_line lines #>> pair heading) problem
-fun nice_atp_problem readable_names problem =
-  nice_problem problem (empty_name_pool readable_names)
+fun nice_atp_problem readable_names format problem =
+  let
+    val empty_pool =
+      if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
+    val underscore = case format of DFG _ => true | _ => false
+    val nice_name = nice_name underscore
+    fun nice_type (AType (name, tys)) =
+        nice_name name ##>> pool_map nice_type tys #>> AType
+      | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
+      | nice_type (ATyAbs (names, ty)) =
+        pool_map nice_name names ##>> nice_type ty #>> ATyAbs
+    fun nice_term (ATerm (name, ts)) =
+        nice_name name ##>> pool_map nice_term ts #>> ATerm
+      | nice_term (AAbs ((name, ty), tm)) =
+        nice_name name ##>> nice_type ty ##>> nice_term tm #>> AAbs
+    fun nice_formula (AQuant (q, xs, phi)) =
+        pool_map nice_name (map fst xs)
+        ##>> pool_map (fn NONE => pair NONE
+                        | SOME ty => nice_type ty #>> SOME) (map snd xs)
+        ##>> nice_formula phi
+        #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
+      | nice_formula (AConn (c, phis)) =
+        pool_map nice_formula phis #>> curry AConn c
+      | nice_formula (AAtom tm) = nice_term tm #>> AAtom
+    fun nice_problem_line (Decl (ident, sym, ty)) =
+        nice_name sym ##>> nice_type ty #>> (fn (sym, ty) => Decl (ident, sym, ty))
+      | nice_problem_line (Formula (ident, kind, phi, source, info)) =
+        nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
+    fun nice_problem problem =
+      pool_map (fn (heading, lines) =>
+                   pool_map nice_problem_line lines #>> pair heading) problem
+  in nice_problem problem empty_pool end
 
 end;
