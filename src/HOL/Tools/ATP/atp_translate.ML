@@ -739,7 +739,7 @@ fun insert_type ctxt get_T x xs =
 
 (* The Booleans indicate whether all type arguments should be kept. *)
 datatype type_arg_policy =
-  Explicit_Type_Args of bool |
+  Explicit_Type_Args of bool (* infer_from_term_args *) |
   Mangled_Type_Args |
   No_Type_Args
 
@@ -1033,7 +1033,8 @@ fun filter_type_args_in_iterm thy type_enc =
                | filter_T_args true = filter_const_type_args thy s'' ary T_args
            in
              case type_arg_policy type_enc s'' of
-               Explicit_Type_Args drop_args => (name, filter_T_args drop_args)
+               Explicit_Type_Args infer_from_term_args =>
+               (name, filter_T_args infer_from_term_args)
              | No_Type_Args => (name, [])
              | Mangled_Type_Args => raise Fail "unexpected (un)mangled symbol"
            end)
@@ -2416,8 +2417,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
          lifted) =
       translate_formulas ctxt format prem_kind type_enc lam_trans preproc hyp_ts
                          concl_t facts
-    val sym_tab =
-      sym_table_for_facts ctxt type_enc explicit_apply conjs facts
+    val sym_tab = sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val firstorderize = firstorderize_fact thy format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
@@ -2426,8 +2426,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map firstorderize
     val mono_Ts =
-      helpers @ conjs @ facts
-      |> monotonic_types_for_facts ctxt mono type_enc
+      helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts)
