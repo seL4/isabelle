@@ -199,7 +199,7 @@ fun test_term_with_cardinality (name, compile) ctxt catch_code_errors ts =
         !current_result)
     | SOME test_fun =>
       let
-        val _ = Quickcheck.message ctxt ("Testing conjecture with with Quickcheck-" ^ name ^ "...");
+        val _ = Quickcheck.message ctxt ("Testing conjecture with Quickcheck-" ^ name ^ "...");
         fun test genuine_only enum = case get_first (test_card_size test_fun genuine_only) enum of
           SOME ((card, _), (true, ts)) =>
             Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME (true, ts)) current_result
