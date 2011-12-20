@@ -1028,7 +1028,6 @@ proof -
     proof
       show "positive ?P (measure ?P)"
       proof (simp add: positive_def, safe)
-        show "0 / \<mu> A = 0" using `\<mu> A \<noteq> 0` by (cases "\<mu> A") (auto simp: zero_ereal_def)
         fix B assume "B \<in> events"
         with real_measure[of "A \<inter> B"] real_measure[OF `A \<in> events`] `A \<in> sets M`
         show "0 \<le> \<mu> (A \<inter> B) / \<mu> A" by (auto simp: Int)

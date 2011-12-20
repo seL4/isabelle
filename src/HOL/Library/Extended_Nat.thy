@@ -49,6 +49,9 @@ qed (auto simp add: enat_def infinity_enat_def Abs_enat_inject)
 
 declare [[coercion "enat::nat\<Rightarrow>enat"]]
 
+lemmas enat2_cases = enat.exhaust[case_product enat.exhaust]
+lemmas enat3_cases = enat.exhaust[case_product enat.exhaust enat.exhaust]
+
 lemma not_infinity_eq [iff]: "(x \<noteq> \<infinity>) = (EX i. x = enat i)"
   by (cases x) auto
 
@@ -165,9 +168,9 @@ lemma plus_enat_simps [simp, code]:
 instance proof
   fix n m q :: enat
   show "n + m + q = n + (m + q)"
-    by (cases n, auto, cases m, auto, cases q, auto)
+    by (cases n m q rule: enat3_cases) auto
   show "n + m = m + n"
-    by (cases n, auto, cases m, auto)
+    by (cases n m rule: enat2_cases) auto
   show "0 + n = n"
     by (cases n) (simp_all add: zero_enat_def)
 qed
@@ -340,6 +343,14 @@ lemma enat_ord_simps [simp]:
   "(\<infinity>::enat) \<le> q \<longleftrightarrow> q = \<infinity>"
   "(\<infinity>::enat) < q \<longleftrightarrow> False"
   by (simp_all add: less_eq_enat_def less_enat_def split: enat.splits)
+
+lemma number_of_le_enat_iff[simp]:
+  shows "number_of m \<le> enat n \<longleftrightarrow> number_of m \<le> n"
+by (auto simp: number_of_enat_def)
+
+lemma number_of_less_enat_iff[simp]:
+  shows "number_of m < enat n \<longleftrightarrow> number_of m < n"
+by (auto simp: number_of_enat_def)
 
 lemma enat_ord_code [code]:
   "enat m \<le> enat n \<longleftrightarrow> m \<le> n"

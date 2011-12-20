@@ -55,11 +55,7 @@ begin
   instance ..
 end
 
-definition "ereal_of_enat n = (case n of enat n \<Rightarrow> ereal (real n) | \<infinity> \<Rightarrow> \<infinity>)"
-
 declare [[coercion "ereal :: real \<Rightarrow> ereal"]]
-declare [[coercion "ereal_of_enat :: enat \<Rightarrow> ereal"]]
-declare [[coercion "(\<lambda>n. ereal (real n)) :: nat \<Rightarrow> ereal"]]
 
 lemma ereal_uminus_uminus[simp]:
   fixes a :: ereal shows "- (- a) = a"
@@ -1068,6 +1064,28 @@ next
   qed (insert y, simp_all)
 qed simp
 
+lemma ereal_divide_right_mono[simp]:
+  fixes x y z :: ereal
+  assumes "x \<le> y" "0 < z" shows "x / z \<le> y / z"
+using assms by (cases x y z rule: ereal3_cases) (auto intro: divide_right_mono)
+
+lemma ereal_divide_left_mono[simp]:
+  fixes x y z :: ereal
+  assumes "y \<le> x" "0 < z" "0 < x * y"
+  shows "z / x \<le> z / y"
+using assms by (cases x y z rule: ereal3_cases)
+  (auto intro: divide_left_mono simp: field_simps sign_simps split: split_if_asm)
+
+lemma ereal_divide_zero_left[simp]:
+  fixes a :: ereal
+  shows "0 / a = 0"
+  by (cases a) (auto simp: zero_ereal_def)
+
+lemma ereal_times_divide_eq_left[simp]:
+  fixes a b c :: ereal
+  shows "b / c * a = b * a / c"
+  by (cases a b c rule: ereal3_cases) (auto simp: field_simps sign_simps)
+
 subsection "Complete lattice"
 
 instantiation ereal :: lattice
@@ -1682,6 +1700,54 @@ proof -
        (auto simp: ereal_SUPR_uminus intro!: uminus_ereal_add_uminus_uminus)
   finally show ?thesis .
 qed
+
+subsection "Relation to @{typ enat}"
+
+definition "ereal_of_enat n = (case n of enat n \<Rightarrow> ereal (real n) | \<infinity> \<Rightarrow> \<infinity>)"
+
+declare [[coercion "ereal_of_enat :: enat \<Rightarrow> ereal"]]
+declare [[coercion "(\<lambda>n. ereal (real n)) :: nat \<Rightarrow> ereal"]]
+
+lemma ereal_of_enat_simps[simp]:
+  "ereal_of_enat (enat n) = ereal n"
+  "ereal_of_enat \<infinity> = \<infinity>"
+  by (simp_all add: ereal_of_enat_def)
+
+lemma ereal_of_enat_le_iff[simp]:
+  "ereal_of_enat m \<le> ereal_of_enat n \<longleftrightarrow> m \<le> n"
+by (cases m n rule: enat2_cases) auto
+
+lemma number_of_le_ereal_of_enat_iff[simp]:
+  shows "number_of m \<le> ereal_of_enat n \<longleftrightarrow> number_of m \<le> n"
+by (cases n) (auto dest: natceiling_le intro: natceiling_le_eq[THEN iffD1])
+
+lemma ereal_of_enat_ge_zero_cancel_iff[simp]:
+  "0 \<le> ereal_of_enat n \<longleftrightarrow> 0 \<le> n"
+by (cases n) (auto simp: enat_0[symmetric])
+
+lemma ereal_of_enat_gt_zero_cancel_iff[simp]:
+  "0 < ereal_of_enat n \<longleftrightarrow> 0 < n"
+by (cases n) (auto simp: enat_0[symmetric])
+
+lemma ereal_of_enat_zero[simp]:
+  "ereal_of_enat 0 = 0"
+by (auto simp: enat_0[symmetric])
+
+lemma ereal_of_enat_add:
+  "ereal_of_enat (m + n) = ereal_of_enat m + ereal_of_enat n"
+by (cases m n rule: enat2_cases) auto
+
+lemma ereal_of_enat_sub:
+  assumes "n \<le> m" shows "ereal_of_enat (m - n) = ereal_of_enat m - ereal_of_enat n "
+using assms by (cases m n rule: enat2_cases) auto
+
+lemma ereal_of_enat_mult:
+  "ereal_of_enat (m * n) = ereal_of_enat m * ereal_of_enat n"
+by (cases m n rule: enat2_cases) auto
+
+lemmas ereal_of_enat_pushin = ereal_of_enat_add ereal_of_enat_sub ereal_of_enat_mult
+lemmas ereal_of_enat_pushout = ereal_of_enat_pushin[symmetric]
+
 
 subsection "Limits on @{typ ereal}"
 
