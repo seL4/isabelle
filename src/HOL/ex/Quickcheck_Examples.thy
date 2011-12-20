@@ -6,7 +6,7 @@
 header {* Examples for the 'quickcheck' command *}
 
 theory Quickcheck_Examples
-imports Complex_Main
+imports Complex_Main "~~/src/HOL/Library/Dlist"
 begin
 
 text {*
@@ -342,6 +342,17 @@ lemma
 quickcheck[expect = counterexample]
 oops
 
+subsection {* Examples with abstract types *}
+
+lemma
+  "Dlist.length (Dlist.remove x xs) = Dlist.length xs - 1"
+quickcheck[exhaustive]
+oops
+
+lemma
+  "Dlist.length (Dlist.insert x xs) = Dlist.length xs + 1"
+quickcheck[exhaustive]
+oops
 
 subsection {* Examples with Records *}
 
