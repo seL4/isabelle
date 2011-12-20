@@ -644,9 +644,9 @@ val max_readable_name_size = 20
    ensure that "HOL.eq" is correctly mapped to equality (not clear whether this
    is still necessary). *)
 val spass_reserved_nice_names =
-  ["forall", "exists", "le", "ls", "ge", "gs", "plus", "minus", "mult", "fract",
-   "equal", "true", "false", "or", "and", "not", "implies", "implied", "equiv",
-   "lr", "def"]
+  ["and", "def", "equal", "equiv", "exists", "false", "forall", "fract", "ge",
+   "gs", "id", "implied", "implies", "le", "lr", "ls", "minus", "mult", "not",
+   "or", "plus", "true"]
 val reserved_nice_names =
   [tptp_old_equal, "op", "eq"] @ spass_reserved_nice_names
 
