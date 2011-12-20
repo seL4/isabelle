@@ -500,14 +500,12 @@ val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive", comp
 (* setup *)
 
 val setup_exhaustive_datatype_interpretation =
-  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
-      (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
+  Quickcheck_Common.datatype_interpretation (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
 val setup =
-  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
-      (((@{sort typerep}, @{sort term_of}), @{sort full_exhaustive}), instantiate_full_exhaustive_datatype))
+  Quickcheck_Common.datatype_interpretation (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
 (* #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype

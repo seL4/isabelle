@@ -21,10 +21,16 @@ sig
   val generator_test_goal_terms :
     string * compile_generator -> Proof.context -> bool -> (string * typ) list
     -> (term * term list) list -> Quickcheck.result list
-  val ensure_sort_datatype:
-    ((sort * sort) * sort) * (Datatype.config -> Datatype.descr -> (string * sort) list
-      -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory)
+  type instantiation = Datatype.config -> Datatype.descr -> (string * sort) list
+     -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
+  val ensure_sort :
+    (((sort * sort) * sort) *
+      ((theory -> string list -> Datatype_Aux.descr * (string * sort) list * string list
+        * string * (string list * string list) * (typ list * typ list)) * instantiation))
     -> Datatype.config -> string list -> theory -> theory
+  val ensure_common_sort_datatype :
+    (sort * instantiation) -> Datatype.config -> string list -> theory -> theory
+  val datatype_interpretation : (sort * instantiation) -> theory -> theory
   val gen_mk_parametric_generator_expr :
    (((Proof.context -> term * term list -> term) * term) * typ)
      -> Proof.context -> (term * term list) list -> term
@@ -379,6 +385,9 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
 
 (** ensuring sort constraints **)
 
+type instantiation = Datatype.config -> Datatype.descr -> (string * sort) list
+  -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
+
 fun perhaps_constrain thy insts raw_vs =
   let
     fun meet (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
@@ -389,10 +398,10 @@ fun perhaps_constrain thy insts raw_vs =
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
   end handle Sorts.CLASS_ERROR _ => NONE;
 
-fun ensure_sort_datatype (((sort_vs, aux_sort), sort), instantiate_datatype) config raw_tycos thy =
+fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config raw_tycos thy =
   let
     val algebra = Sign.classes_of thy;
-    val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) = Datatype.the_descr thy raw_tycos
+    val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) = the_descr thy raw_tycos
     val vs = (map o apsnd) (curry (Sorts.inter_sort algebra) sort_vs) raw_vs
     fun insts_of sort constr  = (map (rpair sort) o flat o maps snd o maps snd)
       (Datatype_Aux.interpret_construction descr vs constr)
@@ -401,11 +410,16 @@ fun ensure_sort_datatype (((sort_vs, aux_sort), sort), instantiate_datatype) con
     val has_inst = exists (fn tyco => can (Sorts.mg_domain algebra tyco) sort) tycos;
   in if has_inst then thy
     else case perhaps_constrain thy insts vs
-     of SOME constrain => instantiate_datatype config descr
+     of SOME constrain => instantiate config descr
           (map constrain vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;
+
+fun ensure_common_sort_datatype (sort, instantiate) =
+  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Datatype.the_descr, instantiate))
+
+val datatype_interpretation = Datatype.interpretation o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 
