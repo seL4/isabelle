@@ -169,5 +169,8 @@ lemma distinct_keys [iff]:
   "distinct (keys t)"
   by (simp add: keys_def RBT_Impl.keys_def distinct_entries)
 
+subsection {* Quickcheck generators *}
+
+quickcheck_generator rbt constructors: empty, insert
 
 end

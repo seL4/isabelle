@@ -1503,6 +1503,8 @@ subsection {* Configuration of the code generator *}
 
 code_datatype "0::'a::zero poly" pCons
 
+quickcheck_generator poly constructors: "0::'a::zero poly", pCons
+
 declare pCons_0_0 [code_post]
 
 instantiation poly :: ("{zero, equal}") equal

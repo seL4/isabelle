@@ -4,7 +4,9 @@ header {* A simple counterexample generator performing exhaustive testing *}
 
 theory Quickcheck_Exhaustive
 imports Quickcheck
-uses ("Tools/Quickcheck/exhaustive_generators.ML")
+uses
+  ("Tools/Quickcheck/exhaustive_generators.ML")
+  ("Tools/Quickcheck/abstract_generators.ML")
 begin
 
 subsection {* basic operations for exhaustive generators *}
@@ -521,7 +523,7 @@ definition pos_bound_cps_not :: "unit neg_bound_cps => unit pos_bound_cps"
 where
   "pos_bound_cps_not n = (%c i. case n (%u. Value []) i of No_value => c () | Value _ => None | Unknown_value => None)"
 
-subsection {* Defining combinators for any first-order data type *}
+subsection {* Defining generators for any first-order data type *}
 
 axiomatization unknown :: 'a
 
@@ -532,6 +534,10 @@ use "Tools/Quickcheck/exhaustive_generators.ML"
 setup {* Exhaustive_Generators.setup *}
 
 declare [[quickcheck_batch_tester = exhaustive]]
+
+subsection {* Defining generators for abstract types *}
+
+use "Tools/Quickcheck/abstract_generators.ML"
 
 hide_fact orelse_def
 no_notation orelse (infixr "orelse" 55)

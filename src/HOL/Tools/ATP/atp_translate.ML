@@ -1563,8 +1563,8 @@ val helper_table =
 fun atype_of_type_vars (Simple_Types (_, Polymorphic, _)) = SOME atype_of_types
   | atype_of_type_vars _ = NONE
 
-fun bound_tvars type_enc Ts =
-  mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts)
+fun bound_tvars type_enc sorts Ts =
+  (sorts ? mk_ahorn (formulas_for_types type_enc add_sorts_on_tvar Ts))
   #> mk_aquant AForall
         (map_filter (fn TVar (x as (s, _), _) =>
                         SOME ((make_schematic_type_var x, s),
@@ -1575,7 +1575,7 @@ fun eq_formula type_enc atomic_Ts pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
    else AAtom (ATerm (`I tptp_equal, [tm1, tm2])))
   |> close_formula_universally
-  |> bound_tvars type_enc atomic_Ts
+  |> bound_tvars type_enc true atomic_Ts
 
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
@@ -1889,7 +1889,7 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
                             should_guard_var_in_formula
                             (if pos then SOME true else NONE)
    |> close_formula_universally
-   |> bound_tvars type_enc atomic_types,
+   |> bound_tvars type_enc true atomic_types,
    NONE,
    case locality of
      Intro => isabelle_info format introN
@@ -1930,7 +1930,7 @@ fun formula_line_for_conjecture ctxt format mono type_enc
            |> formula_from_iformula ctxt format mono type_enc
                   should_guard_var_in_formula (SOME false)
            |> close_formula_universally
-           |> bound_tvars type_enc atomic_types, NONE, NONE)
+           |> bound_tvars type_enc true atomic_types, NONE, NONE)
 
 fun formula_line_for_free_type j phi =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, NONE)
@@ -2127,7 +2127,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> formula_from_iformula ctxt format mono type_enc
                                     (K (K (K (K (K (K true)))))) (SOME true)
            |> close_formula_universally
-           |> bound_tvars type_enc (atomic_types_of T),
+           |> bound_tvars type_enc true (atomic_types_of T),
            isabelle_info format introN, NONE)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
@@ -2205,7 +2205,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> formula_from_iformula ctxt format mono type_enc
                                       (K (K (K (K (K (K true)))))) (SOME true)
              |> close_formula_universally
-             |> n > 1 ? bound_tvars type_enc (atomic_types_of T)
+             |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
              isabelle_info format introN, NONE)
   end
