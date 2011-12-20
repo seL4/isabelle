@@ -742,7 +742,6 @@ apply (simp add: permutes_def)
 apply metis
 done
 
-term setsum
 lemma setsum_permutations_inverse: "setsum f {p. p permutes S} = setsum (\<lambda>p. f(inv p)) {p. p permutes S}" (is "?lhs = ?rhs")
 proof-
   let ?S = "{p . p permutes S}"
