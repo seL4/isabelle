@@ -1250,7 +1250,7 @@ fun tvar_footprint thy s ary =
   handle TYPE _ => []
 
 (* TODO: Shouldn't both arguments of equality be ghosts, since it is
-   symmetric? *)
+   symmetric (and interpreted)? *)
 fun ghost_type_args thy s ary =
   let
     val footprint = tvar_footprint thy s ary
@@ -1320,20 +1320,21 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) =
 datatype tag_site =
   Top_Level of bool option |
   Eq_Arg of bool option |
-  Arg of string * int |
+  Arg of string * int * int |
   Elsewhere
 
-fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
+fun should_tag_with_type _ _ _ [Top_Level _] _ _ = false
+  | should_tag_with_type ctxt mono (Tags (_, level)) sites u T =
     (case granularity_of_type_level level of
        All_Vars => should_encode_type ctxt mono level T
      | grain =>
-       case (site, is_maybe_universal_var u) of
+       case (hd sites, is_maybe_universal_var u) of
          (Eq_Arg _, true) => should_encode_type ctxt mono level T
-       | (Arg (s, j), true) =>
-         grain = Ghost_Type_Arg_Vars andalso
-         member (op =)
-                (ghost_type_args (Proof_Context.theory_of ctxt) s (j + 1)) j
+       | (Arg (s, j, ary), true) =>
+         let val thy = Proof_Context.theory_of ctxt in
+           grain = Ghost_Type_Arg_Vars andalso
+           member (op =) (ghost_type_args thy s ary) j
+         end
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -1805,16 +1806,16 @@ fun mk_aterm format type_enc name T_args args =
 fun tag_with_type ctxt format mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm format type_enc
-  |> ho_term_from_iterm ctxt format mono type_enc (Top_Level pos)
+  |> ho_term_from_iterm ctxt format mono type_enc pos
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
 and ho_term_from_iterm ctxt format mono type_enc =
   let
-    fun term site u =
+    fun term sites u =
       let
         val (head, args) = strip_iterm_comb u
         val pos =
-          case site of
+          case hd sites of
             Top_Level pos => pos
           | Eq_Arg pos => pos
           | _ => NONE
@@ -1822,31 +1823,33 @@ and ho_term_from_iterm ctxt format mono type_enc =
           case head of
             IConst (name as (s, _), _, T_args) =>
             let
+              val ary = length args
               fun arg_site j =
-                if is_tptp_equal s then Eq_Arg pos else Arg (s, j)
+                if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
             in
-              mk_aterm format type_enc name T_args
-                       (map2 (term o arg_site) (0 upto length args - 1) args)
+              map2 (fn j => term (arg_site j :: sites)) (0 upto ary - 1) args
+              |> mk_aterm format type_enc name T_args
             end
           | IVar (name, _) =>
-            mk_aterm format type_enc name [] (map (term Elsewhere) args)
+            map (term (Elsewhere :: sites)) args
+            |> mk_aterm format type_enc name []
           | IAbs ((name, T), tm) =>
             AAbs ((name, ho_type_from_typ format type_enc true 0 T),
-                  term Elsewhere tm)
+                  term (Elsewhere :: sites) tm)
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in
-        t |> (if should_tag_with_type ctxt mono type_enc site u T then
+        t |> (if should_tag_with_type ctxt mono type_enc sites u T then
                 tag_with_type ctxt format mono type_enc pos T
               else
                 I)
       end
-  in term end
+  in term o single o Top_Level end
 and formula_from_iformula ctxt format mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val do_term = ho_term_from_iterm ctxt format mono type_enc o Top_Level
+    val do_term = ho_term_from_iterm ctxt format mono type_enc
     val do_bound_type =
       case type_enc of
         Simple_Types _ => fused_type ctxt mono level 0
