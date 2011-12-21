@@ -1522,7 +1522,8 @@ text {*
     @{command_def (HOL) "nitpick"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "refute_params"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"}
+    @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "quickcheck_generator"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
   @{rail "
@@ -1538,6 +1539,9 @@ text {*
 
     (@@{command (HOL) quickcheck_params} | @@{command (HOL) refute_params} |
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
+    ;
+    @@{command (HOL) quickcheck_generator} typeconstructor \\
+      'operations:' ( @{syntax term} +)
     ;
 
     modes: '(' (@{syntax name} +) ')'
@@ -1629,6 +1633,11 @@ text {*
 
   \item @{command (HOL) "quickcheck_params"} changes
     @{command (HOL) "quickcheck"} configuration options persistently.
+
+  \item @{command (HOL) "quickcheck_generator"} creates random and
+    exhaustive value generators for a given type and operations.
+    It generates values by using the operations as if they were
+    constructors of that type.
 
   \item @{command (HOL) "refute"} tests the current goal for
     counterexamples using a reduction to SAT. The following configuration
