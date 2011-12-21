@@ -1317,26 +1317,33 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) =
   | is_maybe_universal_var (IVar _) = true
   | is_maybe_universal_var _ = false
 
-datatype tag_site =
+datatype site =
   Top_Level of bool option |
   Eq_Arg of bool option |
   Arg of string * int * int |
   Elsewhere
 
-fun should_tag_with_type _ _ _ [Top_Level _] _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level)) sites u T =
+fun should_tag_with_type _ _ _ _ [Top_Level _] _ _ = false
+  | should_tag_with_type ctxt polym_constrs mono (Tags (_, level)) sites u T =
     (case granularity_of_type_level level of
        All_Vars => should_encode_type ctxt mono level T
      | grain =>
-       case (hd sites, is_maybe_universal_var u) of
-         (Eq_Arg _, true) => should_encode_type ctxt mono level T
-       | (Arg (s, j, ary), true) =>
-         let val thy = Proof_Context.theory_of ctxt in
-           grain = Ghost_Type_Arg_Vars andalso
-           member (op =) (ghost_type_args thy s ary) j
+       case (sites, is_maybe_universal_var u) of
+         (Eq_Arg _ :: _, true) => should_encode_type ctxt mono level T
+       | (Arg (s, j, ary) :: site0 :: _, true) =>
+         grain = Ghost_Type_Arg_Vars andalso
+         let
+           val thy = Proof_Context.theory_of ctxt
+           fun is_ghost_type_arg s j ary =
+             member (op =) (ghost_type_args thy s ary) j
+           fun is_ghost_site (Arg (s, j, ary)) = is_ghost_type_arg s j ary
+             | is_ghost_site _ = true
+         in
+           is_ghost_type_arg s j ary andalso
+           (not (member (op =) polym_constrs s) orelse is_ghost_site site0)
          end
        | _ => false)
-  | should_tag_with_type _ _ _ _ _ _ = false
+  | should_tag_with_type _ _ _ _ _ _ _ = false
 
 fun fused_type ctxt mono level =
   let
@@ -1803,13 +1810,13 @@ fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
 fun mk_aterm format type_enc name T_args args =
   ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
 
-fun tag_with_type ctxt format mono type_enc pos T tm =
+fun tag_with_type ctxt polym_constrs format mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm format type_enc
-  |> ho_term_from_iterm ctxt format mono type_enc pos
+  |> ho_term_from_iterm ctxt polym_constrs format mono type_enc pos
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
-and ho_term_from_iterm ctxt format mono type_enc =
+and ho_term_from_iterm ctxt polym_constrs format mono type_enc =
   let
     fun term sites u =
       let
@@ -1839,17 +1846,18 @@ and ho_term_from_iterm ctxt format mono type_enc =
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in
-        t |> (if should_tag_with_type ctxt mono type_enc sites u T then
-                tag_with_type ctxt format mono type_enc pos T
-              else
-                I)
+        if should_tag_with_type ctxt polym_constrs mono type_enc sites u T then
+          tag_with_type ctxt polym_constrs format mono type_enc pos T t
+        else
+          t
       end
   in term o single o Top_Level end
-and formula_from_iformula ctxt format mono type_enc should_guard_var =
+and formula_from_iformula ctxt polym_constrs format mono type_enc
+                          should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val do_term = ho_term_from_iterm ctxt format mono type_enc
+    val do_term = ho_term_from_iterm ctxt polym_constrs format mono type_enc
     val do_bound_type =
       case type_enc of
         Simple_Types _ => fused_type ctxt mono level 0
@@ -1864,7 +1872,7 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
       else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
         let
           val var = ATerm (name, [])
-          val tagged_var = var |> tag_with_type ctxt format mono type_enc pos T
+          val tagged_var = tag_with_type ctxt [] format mono type_enc pos T var
         in SOME (AAtom (ATerm (`I tptp_equal, [tagged_var, var]))) end
       else
         NONE
@@ -1890,13 +1898,12 @@ and formula_from_iformula ctxt format mono type_enc should_guard_var =
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt format prefix encode freshen pos mono type_enc
-                          (j, {name, locality, kind, iformula, atomic_types}) =
+fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
+        mono type_enc (j, {name, locality, kind, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
    iformula
-   |> formula_from_iformula ctxt format mono type_enc
-                            should_guard_var_in_formula
-                            (if pos then SOME true else NONE)
+   |> formula_from_iformula ctxt polym_constrs format mono type_enc
+          should_guard_var_in_formula (if pos then SOME true else NONE)
    |> close_formula_universally
    |> bound_tvars type_enc true atomic_types,
    NONE,
@@ -1932,11 +1939,11 @@ fun formula_line_for_arity_clause format type_enc
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
            isabelle_info format introN, NONE)
 
-fun formula_line_for_conjecture ctxt format mono type_enc
+fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            iformula
-           |> formula_from_iformula ctxt format mono type_enc
+           |> formula_from_iformula ctxt polym_constrs format mono type_enc
                   should_guard_var_in_formula (SOME false)
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, NONE)
@@ -2133,7 +2140,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            IConst (`make_bound_var "X", T, [])
            |> type_guard_iterm format type_enc T
            |> AAtom
-           |> formula_from_iformula ctxt format mono type_enc
+           |> formula_from_iformula ctxt [] format mono type_enc
                                     (K (K (K (K (K (K true)))))) (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
@@ -2145,8 +2152,8 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              ascii_of (mangled_type format type_enc T),
              Axiom,
              eq_formula type_enc (atomic_types_of T) false
-                        (tag_with_type ctxt format mono type_enc NONE T x_var)
-                        x_var,
+                  (tag_with_type ctxt [] format mono type_enc NONE T x_var)
+                  x_var,
              isabelle_info format simpN, NONE)
   end
 
@@ -2211,7 +2218,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> fold (curry (IApp o swap)) bounds
              |> type_guard_iterm format type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_iformula ctxt format mono type_enc
+             |> formula_from_iformula ctxt [] format mono type_enc
                                       (K (K (K (K (K (K true)))))) (SOME true)
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
@@ -2237,7 +2244,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
     val cst = mk_aterm format type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) pred_sym
     val should_encode = should_encode_type ctxt mono level
-    val tag_with = tag_with_type ctxt format mono type_enc NONE
+    val tag_with = tag_with_type ctxt [] format mono type_enc NONE
     val add_formula_for_res =
       if should_encode res_T then
         let
@@ -2324,7 +2331,7 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
       problem_lines_for_mono_types ctxt format mono type_enc mono_Ts
     val decl_lines =
       fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
-                                                     mono type_enc)
+                             mono type_enc)
                syms []
   in mono_lines @ decl_lines end
 
@@ -2407,14 +2414,14 @@ fun exists_subdtype P =
 fun is_poly_constr (_, Us) =
   exists (exists_subdtype (fn Datatype.DtTFree _ => true | _ => false)) Us
 
-fun all_monomorphic_constrs_of_polymorphic_datatypes thy =
+fun all_constrs_of_polymorphic_datatypes thy =
   Symtab.fold (snd
                #> #descr
                #> maps (snd #> #3)
                #> (fn cs => exists is_poly_constr cs ? append cs))
               (Datatype.get_all thy) []
-  |> filter_out is_poly_constr
-  |> map fst
+  |> List.partition is_poly_constr
+  |> pairself (map fst)
 
 (* Forcing explicit applications is expensive for polymorphic encodings, because
    it takes only one existential variable ranging over "'a => 'b" to ruin
@@ -2446,7 +2453,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                          concl_t facts
     val sym_tab = sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
-    val monom_constrs = all_monomorphic_constrs_of_polymorphic_datatypes thy
+    val (polym_constrs, monom_constrs) =
+      all_constrs_of_polymorphic_datatypes thy
+      |>> map (make_fixed_const (SOME format))
     val firstorderize =
       firstorderize_fact thy monom_constrs format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
@@ -2464,8 +2473,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                                                type_enc mono_Ts
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt format helper_prefix I false true mono
-                                    type_enc)
+      |> map (formula_line_for_fact ctxt polym_constrs format helper_prefix I
+                                    false true mono type_enc)
       |> (if needs_type_tag_idempotence ctxt type_enc then
             cons (type_tag_idempotence_fact format type_enc)
           else
@@ -2475,8 +2484,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (factsN,
-        map (formula_line_for_fact ctxt format fact_prefix ascii_of
-                                   (not exporter) (not exporter) mono type_enc)
+        map (formula_line_for_fact ctxt polym_constrs format fact_prefix
+                 ascii_of (not exporter) (not exporter) mono type_enc)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN,
         map (formula_line_for_class_rel_clause format type_enc)
@@ -2485,7 +2494,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         map (formula_line_for_arity_clause format type_enc) arity_clauses),
        (helpersN, helper_lines),
        (conjsN,
-        map (formula_line_for_conjecture ctxt format mono type_enc) conjs),
+        map (formula_line_for_conjecture ctxt polym_constrs format mono
+                                         type_enc) conjs),
        (free_typesN, formula_lines_for_free_types type_enc (facts @ conjs))]
     val problem =
       problem
