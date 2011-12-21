@@ -347,11 +347,13 @@ subsection {* Examples with abstract types *}
 lemma
   "Dlist.length (Dlist.remove x xs) = Dlist.length xs - 1"
 quickcheck[exhaustive]
+quickcheck[random]
 oops
 
 lemma
   "Dlist.length (Dlist.insert x xs) = Dlist.length xs + 1"
 quickcheck[exhaustive]
+quickcheck[random]
 oops
 
 subsection {* Examples with Records *}
