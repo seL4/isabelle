@@ -1249,23 +1249,26 @@ fun tvar_footprint thy s ary =
    | NONE => [])
   handle TYPE _ => []
 
-(* TODO: Shouldn't both arguments of equality be ghosts, since it is
-   symmetric (and interpreted)? *)
 fun ghost_type_args thy s ary =
-  let
-    val footprint = tvar_footprint thy s ary
-    fun ghosts _ [] = []
-      | ghosts seen ((i, tvars) :: args) =
-        ghosts (union (op =) seen tvars) args
-        |> exists (not o member (op =) seen) tvars ? cons i
-  in
-    if forall null footprint then
-      []
-    else
-      0 upto length footprint - 1 ~~ footprint
-      |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
-      |> ghosts []
-  end
+  if is_tptp_equal s then
+    0 upto ary - 1
+  else
+    let
+      val footprint = tvar_footprint thy s ary
+      val eq = (s = @{const_name HOL.eq})
+      fun ghosts _ [] = []
+        | ghosts seen ((i, tvars) :: args) =
+          ghosts (union (op =) seen tvars) args
+          |> (eq orelse exists (fn tvar => not (member (op =) seen tvar)) tvars)
+             ? cons i
+    in
+      if forall null footprint then
+        []
+      else
+        0 upto length footprint - 1 ~~ footprint
+        |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
+        |> ghosts []
+    end
 
 type monotonicity_info =
   {maybe_finite_Ts : typ list,
@@ -1774,32 +1777,41 @@ fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
-fun is_var_ghost_type_arg_in_term thy name pos tm accum =
+fun is_var_ghost_type_arg_in_term thy polym_constrs name pos tm accum =
   is_var_positively_naked_in_term name pos tm accum orelse
   let
     val var = ATerm (name, [])
     fun is_nasty_in_term (ATerm (_, [])) = false
       | is_nasty_in_term (ATerm ((s, _), tms)) =
-        (member (op =) tms var andalso
-         let val ary = length tms in
-           case ghost_type_args thy s ary of
-             [] => false
-           | ghosts =>
-             exists (fn (j, tm) => tm = var andalso member (op =) ghosts j)
-                    (0 upto length tms - 1 ~~ tms)
-         end) orelse
-        exists is_nasty_in_term tms
+        let
+          val ary = length tms
+          val polym_constr = member (op =) polym_constrs s
+          val ghosts = ghost_type_args thy s ary
+        in
+          exists (fn (j, tm) =>
+                     if polym_constr then
+                       member (op =) ghosts j andalso
+                       (tm = var orelse is_nasty_in_term tm)
+                     else
+                       tm = var andalso member (op =) ghosts j)
+                 (0 upto ary - 1 ~~ tms)
+          orelse (not polym_constr andalso exists is_nasty_in_term tms)
+        end
       | is_nasty_in_term _ = true
   in is_nasty_in_term tm end
 
-fun should_guard_var_in_formula thy level pos phi (SOME true) name =
+fun should_guard_var_in_formula thy polym_constrs level pos phi (SOME true)
+                                name =
     (case granularity_of_type_level level of
        All_Vars => true
      | Positively_Naked_Vars =>
        formula_fold pos (is_var_positively_naked_in_term name) phi false
      | Ghost_Type_Arg_Vars =>
-       formula_fold pos (is_var_ghost_type_arg_in_term thy name) phi false)
-  | should_guard_var_in_formula _ _ _ _ _ _ = true
+       formula_fold pos (is_var_ghost_type_arg_in_term thy polym_constrs name)
+                    phi false)
+  | should_guard_var_in_formula _ _ _ _ _ _ _ = true
+
+fun always_guard_var_in_formula _ _ _ _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
@@ -1865,7 +1877,8 @@ and formula_from_iformula ctxt polym_constrs format mono type_enc
       | _ => K NONE
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_guard_type ctxt mono type_enc
-             (fn () => should_guard_var thy level pos phi universal name) T then
+             (fn () => should_guard_var thy polym_constrs level pos phi
+                                        universal name) T then
         IVar (name, T)
         |> type_guard_iterm format type_enc T
         |> do_term pos |> AAtom |> SOME
@@ -2141,7 +2154,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
            |> type_guard_iterm format type_enc T
            |> AAtom
            |> formula_from_iformula ctxt [] format mono type_enc
-                                    (K (K (K (K (K (K true)))))) (SOME true)
+                                    always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
            isabelle_info format introN, NONE)
@@ -2219,7 +2232,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> type_guard_iterm format type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_iformula ctxt [] format mono type_enc
-                                      (K (K (K (K (K (K true)))))) (SOME true)
+                                      always_guard_var_in_formula (SOME true)
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
