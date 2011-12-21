@@ -170,7 +170,12 @@ a list and a nat.
     By default, Quickcheck shows potentially spurious and genuine
     counterexamples. The option "genuine_only" sets quickcheck to
     only show genuine counterexamples.
- 
+
+  - The command 'quickcheck_generator' creates random and exhaustive
+    value generators for a given type and operations.
+    It generates values by using the operations as if they were
+    constructors of that type. 
+  
 * Nitpick:
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
