@@ -46,10 +46,14 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw constrs_raw thy =
       in
         (descr, vs, [tyco], name, ([name], []), ([Type (tyco, map TFree vs)], []))
       end
+    fun ensure_sort (sort, instantiate) =
+      Quickcheck_Common.ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
+        (the_descr, instantiate))
+      Datatype_Aux.default_config [tyco]
   in
-    Quickcheck_Common.ensure_sort (((@{sort typerep}, @{sort term_of}), @{sort full_exhaustive}),
-        (the_descr, Exhaustive_Generators.instantiate_full_exhaustive_datatype))
-      Datatype_Aux.default_config [tyco] thy
+    thy
+    |> ensure_sort (@{sort full_exhaustive}, Exhaustive_Generators.instantiate_full_exhaustive_datatype)
+    |> ensure_sort (@{sort random}, Random_Generators.instantiate_random_datatype)
   end
 
 val quickcheck_generator = gen_quickcheck_generator (K I) (K I)

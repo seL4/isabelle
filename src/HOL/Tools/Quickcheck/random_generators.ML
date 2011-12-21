@@ -16,6 +16,8 @@ sig
     -> Proof.context -> Proof.context
   val put_counterexample_report: (unit -> int -> bool -> int -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
     -> Proof.context -> Proof.context
+  val instantiate_random_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+    (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
   val setup: theory -> theory
 end;
 
