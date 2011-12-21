@@ -743,7 +743,7 @@ datatype type_arg_policy =
   Mangled_Type_Args |
   No_Type_Args
 
-fun type_arg_policy type_enc s =
+fun type_arg_policy monom_constrs type_enc s =
   let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then
       if poly = Mangled_Monomorphic then Mangled_Type_Args
@@ -758,6 +758,9 @@ fun type_arg_policy type_enc s =
           No_Type_Args
         else if poly = Mangled_Monomorphic then
           Mangled_Type_Args
+        else if member (op =) monom_constrs s andalso
+                granularity_of_type_level level = Positively_Naked_Vars then
+          No_Type_Args
         else
           Explicit_Type_Args
               (level = All_Types orelse
@@ -986,7 +989,7 @@ fun mangle_type_args_in_iterm format type_enc =
           (case unprefix_and_unascii const_prefix s of
              NONE => tm
            | SOME s'' =>
-             case type_arg_policy type_enc (invert_const s'') of
+             case type_arg_policy [] type_enc (invert_const s'') of
                Mangled_Type_Args =>
                IConst (mangled_const_name format type_enc T_args name, T, [])
              | _ => tm)
@@ -1014,7 +1017,7 @@ fun filter_const_type_args _ _ _ [] = []
     end
     handle TYPE _ => T_args
 
-fun filter_type_args_in_iterm thy type_enc =
+fun filter_type_args_in_iterm thy monom_constrs type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
       | filt _ (tm as IConst (_, _, [])) = tm
@@ -1032,7 +1035,7 @@ fun filter_type_args_in_iterm thy type_enc =
              fun filter_T_args false = T_args
                | filter_T_args true = filter_const_type_args thy s'' ary T_args
            in
-             case type_arg_policy type_enc s'' of
+             case type_arg_policy monom_constrs type_enc s'' of
                Explicit_Type_Args infer_from_term_args =>
                (name, filter_T_args infer_from_term_args)
              | No_Type_Args => (name, [])
@@ -1246,6 +1249,8 @@ fun tvar_footprint thy s ary =
    | NONE => [])
   handle TYPE _ => []
 
+(* TODO: Shouldn't both arguments of equality be ghosts, since it is
+   symmetric? *)
 fun ghost_type_args thy s ary =
   let
     val footprint = tvar_footprint thy s ary
@@ -1489,7 +1494,7 @@ val predicator_combconst =
 fun list_app head args = fold (curry (IApp o swap)) args head
 fun predicator tm = IApp (predicator_combconst, tm)
 
-fun firstorderize_fact thy format type_enc sym_tab =
+fun firstorderize_fact thy monom_constrs format type_enc sym_tab =
   let
     fun do_app arg head =
       let
@@ -1516,7 +1521,7 @@ fun firstorderize_fact thy format type_enc sym_tab =
     val do_iterm =
       not (is_type_enc_higher_order type_enc)
       ? (introduce_app_ops #> introduce_predicators)
-      #> filter_type_args_in_iterm thy type_enc
+      #> filter_type_args_in_iterm thy monom_constrs type_enc
   in update_iformula (formula_map do_iterm) end
 
 (** Helper facts **)
@@ -2006,7 +2011,7 @@ fun sym_decl_table_for_facts ctxt format type_enc sym_tab (conjs, facts) =
       let
         val (s, s') =
           `(make_fixed_const NONE) @{const_name undefined}
-          |> (case type_arg_policy type_enc @{const_name undefined} of
+          |> (case type_arg_policy [] type_enc @{const_name undefined} of
                 Mangled_Type_Args => mangled_const_name format type_enc [T]
               | _ => I)
       in
@@ -2390,6 +2395,28 @@ fun declare_undeclared_syms_in_atp_problem type_enc problem =
       |> map (fn (x as (s, _), ty) => Decl (type_decl_prefix ^ s, x, ty ()))
   in (implicit_declsN, decls) :: problem end
 
+fun exists_subdtype P =
+  let
+    fun ex U = P U orelse
+      (case U of Datatype.DtType (_, Us) => exists ex Us | _ => false)
+  in ex end
+
+fun is_poly_constr (_, Us) =
+  exists (exists_subdtype (fn Datatype.DtTFree _ => true | _ => false)) Us
+
+fun all_monomorphic_constrs_of_polymorphic_datatypes thy =
+  Symtab.fold (snd
+               #> #descr
+               #> maps (snd #> #3)
+               #> (fn cs => exists is_poly_constr cs ? append cs))
+              (Datatype.get_all thy) []
+  |> filter_out is_poly_constr
+  |> map fst
+
+(* Forcing explicit applications is expensive for polymorphic encodings, because
+   it takes only one existential variable ranging over "'a => 'b" to ruin
+   everything. Hence we do it only if there are few facts (is normally the case
+   for "metis" and the minimizer. *)
 val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
@@ -2397,9 +2424,6 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
-    (* Forcing explicit applications is expensive for polymorphic encodings,
-       because it takes only one existential variable ranging over "'a => 'b" to
-       ruin everything. Hence we do it only if there are few facts. *)
     val explicit_apply =
       if polymorphism_of_type_enc type_enc <> Polymorphic orelse
          length facts <= explicit_apply_threshold then
@@ -2419,7 +2443,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
                          concl_t facts
     val sym_tab = sym_table_for_facts ctxt type_enc explicit_apply conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
-    val firstorderize = firstorderize_fact thy format type_enc sym_tab
+    val monom_constrs = all_monomorphic_constrs_of_polymorphic_datatypes thy
+    val firstorderize =
+      firstorderize_fact thy monom_constrs format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
     val sym_tab = sym_table_for_facts ctxt type_enc (SOME false) conjs facts
     val helpers =
