@@ -707,6 +707,7 @@ Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharundersco
     \indexdef{HOL}{method}{relation}\hypertarget{method.HOL.relation}{\hyperlink{method.HOL.relation}{\mbox{\isa{relation}}}} & : & \isa{method} \\
     \indexdef{HOL}{method}{lexicographic\_order}\hypertarget{method.HOL.lexicographic-order}{\hyperlink{method.HOL.lexicographic-order}{\mbox{\isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order}}}} & : & \isa{method} \\
     \indexdef{HOL}{method}{size\_change}\hypertarget{method.HOL.size-change}{\hyperlink{method.HOL.size-change}{\mbox{\isa{size{\isaliteral{5F}{\isacharunderscore}}change}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{induction\_schema}\hypertarget{method.HOL.induction-schema}{\hyperlink{method.HOL.induction-schema}{\mbox{\isa{induction{\isaliteral{5F}{\isacharunderscore}}schema}}}} & : & \isa{method} \\
   \end{matharray}
 
   \begin{railoutput}
@@ -728,6 +729,9 @@ Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharundersco
 \rail@nextplus{1}
 \rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
 \rail@endplus
+\rail@end
+\rail@begin{1}{}
+\rail@term{\hyperlink{method.HOL.induction-schema}{\mbox{\isa{induction{\isaliteral{5F}{\isacharunderscore}}schema}}}}[]
 \rail@end
 \rail@begin{4}{\isa{orders}}
 \rail@plus
@@ -778,6 +782,12 @@ Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharundersco
 
   For local descent proofs, the \hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}} modifiers are
   accepted (as for \hyperlink{method.auto}{\mbox{\isa{auto}}}).
+
+  \item \hyperlink{method.HOL.induction-schema}{\mbox{\isa{induction{\isaliteral{5F}{\isacharunderscore}}schema}}} derives user-specified
+   induction rules from well-founded induction and completeness of
+   patterns. This factors out some operations that are done internally
+   by the function package and makes them available separately. See
+   \verb|~~/src/HOL/ex/Induction_Schema.thy| for examples.
 
   \end{description}%
 \end{isamarkuptext}%

@@ -493,6 +493,7 @@ text {*
     @{method_def (HOL) relation} & : & @{text method} \\
     @{method_def (HOL) lexicographic_order} & : & @{text method} \\
     @{method_def (HOL) size_change} & : & @{text method} \\
+    @{method_def (HOL) induction_schema} & : & @{text method} \\
   \end{matharray}
 
   @{rail "
@@ -501,6 +502,8 @@ text {*
     @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
     ;
     @@{method (HOL) size_change} ( orders (@{syntax clasimpmod} * ) )
+    ;
+    @@{method (HOL) induction_schema}
     ;
     orders: ( 'max' | 'min' | 'ms' ) *
   "}
@@ -540,6 +543,12 @@ text {*
 
   For local descent proofs, the @{syntax clasimpmod} modifiers are
   accepted (as for @{method auto}).
+
+  \item @{method (HOL) induction_schema} derives user-specified
+   induction rules from well-founded induction and completeness of
+   patterns. This factors out some operations that are done internally
+   by the function package and makes them available separately. See
+   @{file "~~/src/HOL/ex/Induction_Schema.thy"} for examples.
 
   \end{description}
 *}
