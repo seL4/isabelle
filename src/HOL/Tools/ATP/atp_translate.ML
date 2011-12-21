@@ -608,10 +608,6 @@ fun try_nonmono constr suffixes fallback s =
        | NONE => (constr All_Vars, s))
   | NONE => fallback s
 
-fun is_incompatible_type_level poly level =
-  poly = Mangled_Monomorphic andalso
-  granularity_of_type_level level = Ghost_Type_Arg_Vars
-
 fun type_enc_from_string soundness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
@@ -649,11 +645,16 @@ fun type_enc_from_string soundness s =
                 raise Same.SAME
             | _ => raise Same.SAME)
          | ("guards", (SOME poly, _)) =>
-           if is_incompatible_type_level poly level then raise Same.SAME
-           else Guards (poly, level)
+           if poly = Mangled_Monomorphic andalso
+              granularity_of_type_level level = Ghost_Type_Arg_Vars then
+             raise Same.SAME
+           else
+             Guards (poly, level)
          | ("tags", (SOME poly, _)) =>
-           if is_incompatible_type_level poly level then raise Same.SAME
-           else Tags (poly, level)
+           if granularity_of_type_level level = Ghost_Type_Arg_Vars then
+             raise Same.SAME
+           else
+             Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
            Guards (poly, Const_Arg_Types)
          | ("erased", (NONE, All_Types (* naja *))) =>
@@ -1323,30 +1324,17 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) =
 datatype site =
   Top_Level of bool option |
   Eq_Arg of bool option |
-  Arg of string * int * int |
   Elsewhere
 
-fun should_tag_with_type _ _ _ _ [Top_Level _] _ _ = false
-  | should_tag_with_type ctxt polym_constrs mono (Tags (_, level)) sites u T =
-    (case granularity_of_type_level level of
-       All_Vars => should_encode_type ctxt mono level T
-     | grain =>
-       case (sites, is_maybe_universal_var u) of
-         (Eq_Arg _ :: _, true) => should_encode_type ctxt mono level T
-       | (Arg (s, j, ary) :: site0 :: _, true) =>
-         grain = Ghost_Type_Arg_Vars andalso
-         let
-           val thy = Proof_Context.theory_of ctxt
-           fun is_ghost_type_arg s j ary =
-             member (op =) (ghost_type_args thy s ary) j
-           fun is_ghost_site (Arg (s, j, ary)) = is_ghost_type_arg s j ary
-             | is_ghost_site _ = true
-         in
-           is_ghost_type_arg s j ary andalso
-           (not (member (op =) polym_constrs s) orelse is_ghost_site site0)
-         end
+fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
+  | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
+    if granularity_of_type_level level = All_Vars then
+      should_encode_type ctxt mono level T
+    else
+      (case (site, is_maybe_universal_var u) of
+         (Eq_Arg _, true) => should_encode_type ctxt mono level T
        | _ => false)
-  | should_tag_with_type _ _ _ _ _ _ _ = false
+  | should_tag_with_type _ _ _ _ _ _ = false
 
 fun fused_type ctxt mono level =
   let
@@ -1822,19 +1810,19 @@ fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
 fun mk_aterm format type_enc name T_args args =
   ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
 
-fun tag_with_type ctxt polym_constrs format mono type_enc pos T tm =
+fun tag_with_type ctxt format mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm format type_enc
-  |> ho_term_from_iterm ctxt polym_constrs format mono type_enc pos
+  |> ho_term_from_iterm ctxt format mono type_enc pos
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
-and ho_term_from_iterm ctxt polym_constrs format mono type_enc =
+and ho_term_from_iterm ctxt format mono type_enc =
   let
-    fun term sites u =
+    fun term site u =
       let
         val (head, args) = strip_iterm_comb u
         val pos =
-          case hd sites of
+          case site of
             Top_Level pos => pos
           | Eq_Arg pos => pos
           | _ => NONE
@@ -1842,34 +1830,30 @@ and ho_term_from_iterm ctxt polym_constrs format mono type_enc =
           case head of
             IConst (name as (s, _), _, T_args) =>
             let
-              val ary = length args
-              fun arg_site j =
-                if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
+              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
             in
-              map2 (fn j => term (arg_site j :: sites)) (0 upto ary - 1) args
-              |> mk_aterm format type_enc name T_args
+              map (term arg_site) args |> mk_aterm format type_enc name T_args
             end
           | IVar (name, _) =>
-            map (term (Elsewhere :: sites)) args
-            |> mk_aterm format type_enc name []
+            map (term Elsewhere) args |> mk_aterm format type_enc name []
           | IAbs ((name, T), tm) =>
             AAbs ((name, ho_type_from_typ format type_enc true 0 T),
-                  term (Elsewhere :: sites) tm)
+                  term Elsewhere tm)
           | IApp _ => raise Fail "impossible \"IApp\""
         val T = ityp_of u
       in
-        if should_tag_with_type ctxt polym_constrs mono type_enc sites u T then
-          tag_with_type ctxt polym_constrs format mono type_enc pos T t
+        if should_tag_with_type ctxt mono type_enc site u T then
+          tag_with_type ctxt format mono type_enc pos T t
         else
           t
       end
-  in term o single o Top_Level end
+  in term o Top_Level end
 and formula_from_iformula ctxt polym_constrs format mono type_enc
                           should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val do_term = ho_term_from_iterm ctxt polym_constrs format mono type_enc
+    val do_term = ho_term_from_iterm ctxt format mono type_enc
     val do_bound_type =
       case type_enc of
         Simple_Types _ => fused_type ctxt mono level 0
@@ -1885,7 +1869,7 @@ and formula_from_iformula ctxt polym_constrs format mono type_enc
       else if should_generate_tag_bound_decl ctxt mono type_enc universal T then
         let
           val var = ATerm (name, [])
-          val tagged_var = tag_with_type ctxt [] format mono type_enc pos T var
+          val tagged_var = tag_with_type ctxt format mono type_enc pos T var
         in SOME (AAtom (ATerm (`I tptp_equal, [tagged_var, var]))) end
       else
         NONE
@@ -2165,8 +2149,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              ascii_of (mangled_type format type_enc T),
              Axiom,
              eq_formula type_enc (atomic_types_of T) false
-                  (tag_with_type ctxt [] format mono type_enc NONE T x_var)
-                  x_var,
+                  (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
              isabelle_info format simpN, NONE)
   end
 
@@ -2257,7 +2240,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
     val cst = mk_aterm format type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) pred_sym
     val should_encode = should_encode_type ctxt mono level
-    val tag_with = tag_with_type ctxt [] format mono type_enc NONE
+    val tag_with = tag_with_type ctxt format mono type_enc NONE
     val add_formula_for_res =
       if should_encode res_T then
         let
