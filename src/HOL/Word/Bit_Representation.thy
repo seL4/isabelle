@@ -275,6 +275,9 @@ lemma bin_nth_zero [simp]: "\<not> bin_nth 0 n"
 lemma bin_nth_Pls [simp]: "~ bin_nth Int.Pls n"
   by (induct n) auto
 
+lemma bin_nth_minus1 [simp]: "bin_nth -1 n"
+  by (induct n) auto
+
 lemma bin_nth_Min [simp]: "bin_nth Int.Min n"
   by (induct n) auto
 
