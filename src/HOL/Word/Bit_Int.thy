@@ -535,8 +535,11 @@ lemma bin_cat_assoc_sym:
   apply (case_tac m, auto)
   done
 
+lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
+  by (induct n arbitrary: w) (auto simp: Int.Pls_def)
+
 lemma bin_cat_Pls [simp]: "bin_cat Int.Pls n w = bintrunc n w"
-  by (induct n arbitrary: w) auto
+  unfolding Pls_def by (rule bin_cat_zero)
 
 lemma bintr_cat1: 
   "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b"
@@ -566,9 +569,12 @@ lemma bin_split_cat:
   "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
   by (induct n arbitrary: w) auto
 
+lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
+  by (induct n) (auto simp: Int.Pls_def)
+
 lemma bin_split_Pls [simp]:
   "bin_split n Int.Pls = (Int.Pls, Int.Pls)"
-  by (induct n) (auto simp: Let_def BIT_simps split: ls_splits)
+  unfolding Pls_def by (rule bin_split_zero)
 
 lemma bin_split_Min [simp]:
   "bin_split n Int.Min = (Int.Min, bintrunc n Int.Min)"
