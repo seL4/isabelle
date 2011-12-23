@@ -632,6 +632,12 @@ lemma sint_number_of: "sint (number_of b :: 'a :: len word) = (number_of b +
     2 ^ (len_of TYPE('a) - 1)"
   unfolding word_number_of_alt by (rule int_word_sint)
 
+lemma word_of_int_0: "word_of_int 0 = 0"
+  unfolding word_0_wi ..
+
+lemma word_of_int_1: "word_of_int 1 = 1"
+  unfolding word_1_wi ..
+
 lemma word_of_int_bin [simp] : 
   "(word_of_int (number_of bin) :: 'a :: len0 word) = (number_of bin)"
   unfolding word_number_of_alt by auto
@@ -1096,8 +1102,11 @@ lemmas word_sle_no [simp] = word_sle_def [of "number_of a" "number_of b"] for a 
   (eg) sint (number_of bin) on sint 1, must do
   (simp add: word_1_no del: numeral_1_eq_1) 
   *)
-lemmas word_0_wi_Pls = word_0_wi [folded Pls_def]
-lemmas word_0_no = word_0_wi_Pls [folded word_no_wi]
+lemma word_0_wi_Pls: "0 = word_of_int Int.Pls"
+  by (simp only: Pls_def word_0_wi)
+
+lemma word_0_no: "(0::'a::len0 word) = Numeral0"
+  by (simp add: word_number_of_alt word_0_wi)
 
 lemma int_one_bin: "(1 :: int) = (Int.Pls BIT 1)"
   unfolding Pls_def Bit_def by auto
@@ -1157,43 +1166,30 @@ lemmas unat_eq_zero = unat_0_iff
 lemma unat_gt_0: "(0 < unat x) = (x ~= 0)"
 by (auto simp: unat_0_iff [symmetric])
 
-lemma ucast_0 [simp] : "ucast 0 = 0"
-unfolding ucast_def
-by simp (simp add: word_0_wi)
+lemma ucast_0 [simp]: "ucast 0 = 0"
+  unfolding ucast_def by (simp add: word_of_int_0)
 
-lemma sint_0 [simp] : "sint 0 = 0"
-unfolding sint_uint
-by (simp add: Pls_def [symmetric])
+lemma sint_0 [simp]: "sint 0 = 0"
+  unfolding sint_uint by simp
 
-lemma scast_0 [simp] : "scast 0 = 0"
-apply (unfold scast_def)
-apply simp
-apply (simp add: word_0_wi)
-done
+lemma scast_0 [simp]: "scast 0 = 0"
+  unfolding scast_def by (simp add: word_of_int_0)
 
 lemma sint_n1 [simp] : "sint -1 = -1"
-apply (unfold word_m1_wi_Min)
-apply (simp add: word_sbin.eq_norm)
-apply (unfold Min_def number_of_eq)
-apply simp
-done
+  unfolding word_m1_wi by (simp add: word_sbin.eq_norm)
 
-lemma scast_n1 [simp] : "scast -1 = -1"
-  apply (unfold scast_def sint_n1)
-  apply (unfold word_number_of_alt)
-  apply (rule refl)
-  done
+lemma scast_n1 [simp]: "scast -1 = -1"
+  unfolding scast_def by simp
 
-lemma uint_1 [simp] : "uint (1 :: 'a :: len word) = 1"
+lemma uint_1 [simp]: "uint (1::'a::len word) = 1"
   unfolding word_1_wi
-  by (simp add: word_ubin.eq_norm int_one_bin bintrunc_minus_simps)
+  by (simp add: word_ubin.eq_norm bintrunc_minus_simps)
 
-lemma unat_1 [simp] : "unat (1 :: 'a :: len word) = 1"
-  by (unfold unat_def uint_1) auto
+lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
+  unfolding unat_def by simp
 
-lemma ucast_1 [simp] : "ucast (1 :: 'a :: len word) = 1"
-  unfolding ucast_def word_1_wi
-  by (simp add: word_ubin.eq_norm int_one_bin bintrunc_minus_simps)
+lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
+  unfolding ucast_def by (simp add: word_of_int_1)
 
 (* now, to get the weaker results analogous to word_div/mod_def *)
 
