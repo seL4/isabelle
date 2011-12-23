@@ -247,10 +247,6 @@ lemma wi_homs:
 
 lemmas wi_hom_syms = wi_homs [symmetric]
 
-lemma word_sub_def: "a - b = a + - (b :: 'a :: len0 word)"
-  unfolding word_sub_wi diff_minus
-  by (simp only : word_uint.Rep_inverse wi_hom_syms)
-
 lemma word_of_int_sub_hom:
   "(word_of_int a) - word_of_int b = word_of_int (a - b)"
   by (simp add: word_sub_wi arths)

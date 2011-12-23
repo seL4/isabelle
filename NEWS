@@ -84,6 +84,7 @@ theory HOL/Library/Nat_Bijection instead.
   word_left_minus ~> left_minus
   word_diff_0_right ~> diff_0_right
   word_diff_self ~> diff_self
+  word_sub_def ~> diff_minus
   word_diff_minus ~> diff_minus
   word_add_ac ~> add_ac
   word_mult_ac ~> mult_ac
