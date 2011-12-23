@@ -342,21 +342,17 @@ lemma [code]:
   apply (simp only: Pls_def Min_def)
   done
 
-lemma sign_bintr:
-  "!!w. bin_sign (bintrunc n w) = Int.Pls"
-  by (induct n) auto
+lemma sign_bintr: "bin_sign (bintrunc n w) = Int.Pls"
+  by (induct n arbitrary: w) auto
 
-lemma bintrunc_mod2p:
-  "!!w. bintrunc n w = (w mod 2 ^ n :: int)"
-  apply (induct n)
+lemma bintrunc_mod2p: "bintrunc n w = (w mod 2 ^ n)"
+  apply (induct n arbitrary: w)
   apply (simp add: Pls_def)
-  apply (simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq
-              cong: number_of_False_cong)
+  apply (simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq)
   done
 
-lemma sbintrunc_mod2p:
-  "!!w. sbintrunc n w = ((w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n :: int)"
-  apply (induct n)
+lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
+  apply (induct n arbitrary: w)
    apply clarsimp
    apply (subst mod_add_left_eq)
    apply (simp add: bin_last_def)
@@ -407,23 +403,21 @@ lemma bit_bool:
 
 lemmas bit_bool1 [simp] = refl [THEN bit_bool [THEN iffD1], symmetric]
 
-lemma bin_sign_lem:
-  "!!bin. (bin_sign (sbintrunc n bin) = Int.Min) = bin_nth bin n"
-  apply (induct n)
+lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = Int.Min) = bin_nth bin n"
+  apply (induct n arbitrary: bin)
    apply (case_tac bin rule: bin_exhaust, case_tac b, auto)+
   done
 
-lemma nth_bintr:
-  "!!w m. bin_nth (bintrunc m w) n = (n < m & bin_nth w n)"
-  apply (induct n)
+lemma nth_bintr: "bin_nth (bintrunc m w) n = (n < m & bin_nth w n)"
+  apply (induct n arbitrary: w m)
    apply (case_tac m, auto)[1]
   apply (case_tac m, auto)[1]
   done
 
 lemma nth_sbintr:
-  "!!w m. bin_nth (sbintrunc m w) n = 
+  "bin_nth (sbintrunc m w) n = 
           (if n < m then bin_nth w n else bin_nth w m)"
-  apply (induct n)
+  apply (induct n arbitrary: w m)
    apply (case_tac m, simp_all split: bit.splits)[1]
   apply (case_tac m, simp_all split: bit.splits)[1]
   done
@@ -771,8 +765,8 @@ lemma sign_Min_lt_0:
 lemmas sign_Min_neg = trans [OF sign_Min_lt_0 neg_def [symmetric]] 
 
 lemma bin_rest_trunc:
-  "!!bin. (bin_rest (bintrunc n bin)) = bintrunc (n - 1) (bin_rest bin)"
-  by (induct n) auto
+  "(bin_rest (bintrunc n bin)) = bintrunc (n - 1) (bin_rest bin)"
+  by (induct n arbitrary: bin) auto
 
 lemma bin_rest_power_trunc [rule_format] :
   "(bin_rest ^^ k) (bintrunc n bin) = 
@@ -784,19 +778,19 @@ lemma bin_rest_trunc_i:
   by auto
 
 lemma bin_rest_strunc:
-  "!!bin. bin_rest (sbintrunc (Suc n) bin) = sbintrunc n (bin_rest bin)"
-  by (induct n) auto
+  "bin_rest (sbintrunc (Suc n) bin) = sbintrunc n (bin_rest bin)"
+  by (induct n arbitrary: bin) auto
 
 lemma bintrunc_rest [simp]: 
-  "!!bin. bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (bintrunc n bin)"
-  apply (induct n, simp)
+  "bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (bintrunc n bin)"
+  apply (induct n arbitrary: bin, simp)
   apply (case_tac bin rule: bin_exhaust)
   apply (auto simp: bintrunc_bintrunc_l)
   done
 
 lemma sbintrunc_rest [simp]:
-  "!!bin. sbintrunc n (bin_rest (sbintrunc n bin)) = bin_rest (sbintrunc n bin)"
-  apply (induct n, simp)
+  "sbintrunc n (bin_rest (sbintrunc n bin)) = bin_rest (sbintrunc n bin)"
+  apply (induct n arbitrary: bin, simp)
   apply (case_tac bin rule: bin_exhaust)
   apply (auto simp: bintrunc_bintrunc_l split: bit.splits)
   done
