@@ -1325,9 +1325,6 @@ lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
 
 lemmas unat_mono = word_less_nat_alt [THEN iffD1]
 
-lemma no_no [simp] : "number_of (number_of b) = number_of b"
-  by (simp add: number_of_eq)
-
 lemma unat_minus_one: "x ~= 0 \<Longrightarrow> unat (x - 1) = unat x - 1"
   apply (unfold unat_def)
   apply (simp only: int_word_uint word_arith_alts rdmods)

@@ -91,9 +91,6 @@ lemma le_Bits:
   "(v BIT b <= w BIT c) = (v < w | v <= w & (b ~= (1::bit) | c ~= (0::bit)))" 
   unfolding Bit_def by (auto simp add: bitval_def split: bit.split)
 
-lemma no_no [simp]: "number_of (number_of i) = i"
-  unfolding number_of_eq by simp
-
 lemma Bit_B0:
   "k BIT (0::bit) = k + k"
    by (unfold Bit_def) simp
