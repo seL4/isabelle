@@ -364,7 +364,7 @@ definition part_equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow
 
 lemma part_equivpI:
   "(\<exists>x. R x x) \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> part_equivp R"
-  by (auto simp add: part_equivp_def mem_def) (auto elim: sympE transpE)
+  by (auto simp add: part_equivp_def) (auto elim: sympE transpE)
 
 lemma part_equivpE:
   assumes "part_equivp R"
@@ -413,7 +413,7 @@ definition equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> boo
 
 lemma equivpI:
   "reflp R \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> equivp R"
-  by (auto elim: reflpE sympE transpE simp add: equivp_def mem_def)
+  by (auto elim: reflpE sympE transpE simp add: equivp_def)
 
 lemma equivpE:
   assumes "equivp R"

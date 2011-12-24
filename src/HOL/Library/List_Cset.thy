@@ -125,7 +125,7 @@ definition [code]:
   "HOL.equal A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a Cset.set)"
 
 instance proof
-qed (auto simp add: equal_set_def Cset.set_eq_iff Cset.member_def fun_eq_iff mem_def)
+qed (auto simp add: equal_set_def Cset.set_eq_iff Cset.member_def fun_eq_iff)
 
 end
 
