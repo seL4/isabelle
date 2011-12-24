@@ -452,7 +452,7 @@ proof -
 qed
 
 lemma [code]:
-  "iter f step ss w = while (\<lambda>(ss, w). \<not> is_empty w)
+  "iter f step ss w = while (\<lambda>(ss, w). \<not> More_Set.is_empty w)
     (\<lambda>(ss, w).
         let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
     (ss, w)"
@@ -478,12 +478,8 @@ setup {*
   #> Code.add_signature_cmd ("unstables", "('s \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list) \<Rightarrow> 's list \<Rightarrow> nat set") 
 *}
 
-definition [code del]: "mem2 = op :"
-lemma [code]: "mem2 x A = A x"
-  by(simp add: mem2_def mem_def)
-
-lemmas [folded mem2_def, code] =
-  JType.sup_def[unfolded exec_lub_def]
+lemmas [code] =
+  JType.sup_def [unfolded exec_lub_def]
   wf_class_code
   widen.equation
   match_exception_entry_def

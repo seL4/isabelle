@@ -52,7 +52,8 @@ nitpick [card = 1, expect = potential] (* unfortunate *)
 nitpick [card = 2, expect = none]
 oops
 
-definition "bounded = {n\<Colon>nat. finite (UNIV\<Colon>'a \<Rightarrow> bool) \<longrightarrow> n < card (UNIV\<Colon>'a \<Rightarrow> bool)}"
+definition "bounded = {n\<Colon>nat. finite (UNIV \<Colon> 'a set) \<longrightarrow> n < card (UNIV \<Colon> 'a set)}"
+
 typedef (open) 'a bounded = "bounded(TYPE('a))"
 unfolding bounded_def
 apply (rule_tac x = 0 in exI)

@@ -4,7 +4,9 @@
 
 header {* \isaheader{Relations between Java Types} *}
 
-theory TypeRel imports Decl "~~/src/HOL/Library/Wfrec" begin
+theory TypeRel
+imports Decl "~~/src/HOL/Library/Wfrec"
+begin
 
 -- "direct subclass, cf. 8.1.3"
 
@@ -84,7 +86,9 @@ code_pred
   (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool)
   subcls1p 
   .
-declare subcls1_def[unfolded Collect_def, code_pred_def]
+
+declare subcls1_def [code_pred_def]
+
 code_pred 
   (modes: i \<Rightarrow> i \<times> o \<Rightarrow> bool, i \<Rightarrow> i \<times> i \<Rightarrow> bool)
   [inductify]
@@ -92,14 +96,16 @@ code_pred
   .
 
 definition subcls' where "subcls' G = (subcls1p G)^**"
+
 code_pred
   (modes: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool)
   [inductify]
   subcls'
-.
+  .
+
 lemma subcls_conv_subcls' [code_unfold]:
-  "(subcls1 G)^* = (\<lambda>(C, D). subcls' G C D)"
-by(simp add: subcls'_def subcls1_def rtrancl_def)(simp add: Collect_def)
+  "(subcls1 G)^* = {(C, D). subcls' G C D}"
+by(simp add: subcls'_def subcls1_def rtrancl_def)
 
 lemma class_rec_code [code]:
   "class_rec G C t f = 
@@ -190,7 +196,7 @@ lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
   map_of (map (\<lambda>(s,m). (s,(C,m))) ms)"
 apply (unfold method_def)
 apply (simp split del: split_if)
-apply (erule (1) class_rec_lemma [THEN trans]);
+apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
 
@@ -204,7 +210,7 @@ lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
   map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ (if C = Object then [] else fields (G,D))"
 apply (unfold fields_def)
 apply (simp split del: split_if)
-apply (erule (1) class_rec_lemma [THEN trans]);
+apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
 

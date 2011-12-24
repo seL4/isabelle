@@ -74,19 +74,19 @@ lemma rev_predicate2D:
 subsubsection {* Equality *}
 
 lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
-  by (simp add: set_eq_iff fun_eq_iff mem_def)
+  by (simp add: set_eq_iff fun_eq_iff)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
-  by (simp add: set_eq_iff fun_eq_iff mem_def)
+  by (simp add: set_eq_iff fun_eq_iff)
 
 
 subsubsection {* Order relation *}
 
 lemma pred_subset_eq: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
-  by (simp add: subset_iff le_fun_def mem_def)
+  by (simp add: subset_iff le_fun_def)
 
 lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
-  by (simp add: subset_iff le_fun_def mem_def)
+  by (simp add: subset_iff le_fun_def)
 
 
 subsubsection {* Top and bottom elements *}
@@ -137,10 +137,10 @@ lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
   by (simp add: inf_fun_def)
 
 lemma inf_Int_eq: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
-  by (simp add: inf_fun_def mem_def)
+  by (simp add: inf_fun_def)
 
 lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
-  by (simp add: inf_fun_def mem_def)
+  by (simp add: inf_fun_def)
 
 
 subsubsection {* Binary union *}
@@ -175,10 +175,10 @@ lemma sup2CI [intro!]: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow>
   by (auto simp add: sup_fun_def)
 
 lemma sup_Un_eq: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
-  by (simp add: sup_fun_def mem_def)
+  by (simp add: sup_fun_def)
 
 lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
-  by (simp add: sup_fun_def mem_def)
+  by (simp add: sup_fun_def)
 
 
 subsubsection {* Intersections of families *}
@@ -578,8 +578,8 @@ lemma single_not_bot [simp]:
 lemma not_bot:
   assumes "A \<noteq> \<bottom>"
   obtains x where "eval A x"
-  using assms by (cases A) (auto simp add: bot_pred_def, simp add: mem_def)
-  
+  using assms by (cases A) (auto simp add: bot_pred_def)
+
 
 subsubsection {* Emptiness check and definite choice *}
 
@@ -1016,14 +1016,6 @@ fun yieldn P = anamorph yield P;
 
 end;
 *}
-
-lemma eval_mem [simp]:
-  "x \<in> eval P \<longleftrightarrow> eval P x"
-  by (simp add: mem_def)
-
-lemma eq_mem [simp]:
-  "x \<in> (op =) y \<longleftrightarrow> x = y"
-  by (auto simp add: mem_def)
 
 no_notation
   bot ("\<bottom>") and

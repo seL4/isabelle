@@ -68,13 +68,13 @@ ML {* genuine 2 @{prop "{a} = {a, b}"} *}
 ML {* genuine 1 @{prop "{a} \<noteq> {a, b}"} *}
 ML {* none 5 @{prop "{}\<^sup>+ = {}"} *}
 ML {* none 5 @{prop "UNIV\<^sup>+ = UNIV"} *}
-ML {* none 5 @{prop "(UNIV\<Colon>'a \<times> 'b \<Rightarrow> bool) - {} = UNIV"} *}
-ML {* none 5 @{prop "{} - (UNIV\<Colon>'a \<times> 'b \<Rightarrow> bool) = {}"} *}
+ML {* none 5 @{prop "(UNIV \<Colon> ('a \<times> 'b) set) - {} = UNIV"} *}
+ML {* none 5 @{prop "{} - (UNIV \<Colon> ('a \<times> 'b) set) = {}"} *}
 ML {* none 1 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML {* genuine 2 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML {* none 5 @{prop "a \<noteq> c \<Longrightarrow> {(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
-ML {* none 5 @{prop "A \<union> B = (\<lambda>x. A x \<or> B x)"} *}
-ML {* none 5 @{prop "A \<inter> B = (\<lambda>x. A x \<and> B x)"} *}
+ML {* none 5 @{prop "A \<union> B = {x. x \<in> A \<or> x \<in> B}"} *}
+ML {* none 5 @{prop "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"} *}
 ML {* none 5 @{prop "A - B = (\<lambda>x. A x \<and> \<not> B x)"} *}
 ML {* none 5 @{prop "\<exists>a b. (a, b) = (b, a)"} *}
 ML {* genuine 2 @{prop "(a, b) = (b, a)"} *}

@@ -50,7 +50,7 @@ Alternative definitions.
 *}
 
 lemma Ex1_unfold [nitpick_unfold, no_atp]:
-"Ex1 P \<equiv> \<exists>x. P = {x}"
+"Ex1 P \<equiv> \<exists>x. {x. P x} = {x}"
 apply (rule eq_reflection)
 apply (simp add: Ex1_def set_eq_iff)
 apply (rule iffI)
@@ -60,7 +60,7 @@ apply (rule iffI)
  apply (rule allI)
  apply (rename_tac y)
  apply (erule_tac x = y in allE)
-by (auto simp: mem_def)
+by auto
 
 lemma rtrancl_unfold [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
   by (simp only: rtrancl_trancl_reflcl)
@@ -70,8 +70,8 @@ lemma rtranclp_unfold [nitpick_unfold, no_atp]:
 by (rule eq_reflection) (auto dest: rtranclpD)
 
 lemma tranclp_unfold [nitpick_unfold, no_atp]:
-"tranclp r a b \<equiv> trancl (split r) (a, b)"
-by (simp add: trancl_def Collect_def mem_def)
+"tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
+by (simp add: trancl_def)
 
 definition prod :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
 "prod A B = {(a, b). a \<in> A \<and> b \<in> B}"
@@ -98,8 +98,8 @@ The following lemmas are not strictly necessary but they help the
 *}
 
 lemma The_psimp [nitpick_psimp, no_atp]:
-"P = {x} \<Longrightarrow> The P = x"
-by (subgoal_tac "{x} = (\<lambda>y. y = x)") (auto simp: mem_def)
+  "P = (op =) x \<Longrightarrow> The P = x"
+  by auto
 
 lemma Eps_psimp [nitpick_psimp, no_atp]:
 "\<lbrakk>P x; \<not> P y; Eps P = y\<rbrakk> \<Longrightarrow> Eps P = x"

@@ -179,7 +179,7 @@ oops
 coinductive nats where
 "nats (x\<Colon>nat) \<Longrightarrow> nats x"
 
-lemma "nats = {0, 1, 2, 3, 4}"
+lemma "nats = (\<lambda>n. n \<in> {0, 1, 2, 3, 4})"
 nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 

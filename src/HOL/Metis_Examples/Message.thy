@@ -245,8 +245,9 @@ done
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (blast dest: parts_mono)
 
-lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
-by (metis Un_insert_left Un_insert_right insert_absorb mem_def parts_Un parts_idem sup1CI)
+(*lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
+by (metis UnI2 insert_subset le_supE parts_Un_subset1 parts_increasing parts_trans subsetD)
+by (metis Un_insert_left Un_insert_right insert_absorb parts_Un parts_idem sup1CI)*)
 
 
 subsubsection{*Rewrite rules for pulling out atomic messages *}
@@ -677,8 +678,8 @@ apply (rule equalityI)
 apply (rule subsetI)
 apply (erule analz.induct)
 apply (metis UnCI UnE Un_commute analz.Inj)
-apply (metis MPair_synth UnCI UnE Un_commute analz.Fst analz.Inj mem_def)
-apply (metis MPair_synth UnCI UnE Un_commute analz.Inj analz.Snd mem_def)
+apply (metis MPair_synth UnCI UnE Un_commute analz.Fst analz.Inj)
+apply (metis MPair_synth UnCI UnE Un_commute analz.Inj analz.Snd)
 apply (blast intro: analz.Decrypt)
 apply blast
 done
@@ -695,13 +696,11 @@ qed
 
 subsubsection{*For reasoning about the Fake rule in traces *}
 
-lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
+lemma parts_insert_subset_Un: "X \<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 proof -
   assume "X \<in> G"
-  hence "G X" by (metis mem_def)
-  hence "\<forall>x\<^isub>1. G \<subseteq> x\<^isub>1 \<longrightarrow> x\<^isub>1 X" by (metis predicate1D)
-  hence "\<forall>x\<^isub>1. (G \<union> x\<^isub>1) X" by (metis Un_upper1)
-  hence "\<forall>x\<^isub>1. X \<in> G \<union> x\<^isub>1" by (metis mem_def)
+  hence "\<forall>x\<^isub>1. G \<subseteq> x\<^isub>1 \<longrightarrow> X \<in> x\<^isub>1 " by auto
+  hence "\<forall>x\<^isub>1. X \<in> G \<union> x\<^isub>1" by (metis Un_upper1)
   hence "insert X H \<subseteq> G \<union> H" by (metis Un_upper2 insert_subset)
   hence "parts (insert X H) \<subseteq> parts (G \<union> H)" by (metis parts_mono)
   thus "parts (insert X H) \<subseteq> parts G \<union> parts H" by (metis parts_Un)
@@ -716,10 +715,10 @@ proof -
     by (metis analz_idem analz_synth)
   have F2: "\<forall>x\<^isub>1. parts x\<^isub>1 \<union> synth (analz x\<^isub>1) = parts (synth (analz x\<^isub>1))"
     by (metis parts_analz parts_synth)
-  have F3: "synth (analz H) X" using A1 by (metis mem_def)
+  have F3: "X \<in> synth (analz H)" using A1 by metis
   have "\<forall>x\<^isub>2 x\<^isub>1\<Colon>msg set. x\<^isub>1 \<le> sup x\<^isub>1 x\<^isub>2" by (metis inf_sup_ord(3))
   hence F4: "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> analz (synth x\<^isub>1)" by (metis analz_synth)
-  have F5: "X \<in> synth (analz H)" using F3 by (metis mem_def)
+  have F5: "X \<in> synth (analz H)" using F3 by metis
   have "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> synth (analz x\<^isub>1)
          \<longrightarrow> analz (synth (analz x\<^isub>1)) = synth (analz x\<^isub>1)"
     using F1 by (metis subset_Un_eq)
@@ -741,7 +740,7 @@ lemma Fake_parts_insert_in_Un:
       ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert [THEN subsetD, dest])
 
-declare analz_mono [intro] synth_mono [intro]
+declare synth_mono [intro]
 
 lemma Fake_analz_insert:
      "X \<in> synth (analz G) ==>

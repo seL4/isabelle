@@ -76,20 +76,10 @@ lemma inter_prs[quot_preserve]:
 
 lemma mem_prs[quot_preserve]:
   assumes "Quotient R Abs Rep"
-  shows "(Rep ---> (Abs ---> id) ---> id) (op \<in>) = op \<in>"
-using Quotient_abs_rep[OF assms]
-by(simp add: fun_eq_iff mem_def)
-
-lemma mem_rsp[quot_respect]:
-  "(R ===> (R ===> op =) ===> op =) (op \<in>) (op \<in>)"
-  by (auto simp add: fun_eq_iff mem_def intro!: fun_relI elim: fun_relE)
-
-lemma mem_prs2:
-  assumes "Quotient R Abs Rep"
   shows "(Rep ---> op -` Abs ---> id) op \<in> = op \<in>"
   by (simp add: fun_eq_iff Quotient_abs_rep[OF assms])
 
-lemma mem_rsp2:
+lemma mem_rsp[quot_respect]:
   shows "(R ===> set_rel R ===> op =) op \<in> op \<in>"
   by (intro fun_relI) (simp add: set_rel_def)
 

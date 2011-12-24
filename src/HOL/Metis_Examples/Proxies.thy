@@ -41,7 +41,7 @@ definition "A = {xs\<Colon>'a list. True}"
 
 lemma "xs \<in> A"
 sledgehammer [expect = some]
-by (metis_exhaust A_def Collect_def mem_def)
+by (metis_exhaust A_def mem_Collect_eq)
 
 definition "B (y::int) \<equiv> y \<le> 0"
 definition "C (y::int) \<equiv> y \<le> 1"
@@ -49,7 +49,7 @@ definition "C (y::int) \<equiv> y \<le> 1"
 lemma int_le_0_imp_le_1: "x \<le> (0::int) \<Longrightarrow> x \<le> 1"
 by linarith
 
-lemma "B \<subseteq> C"
+lemma "B \<le> C"
 sledgehammer [type_enc = poly_args, max_relevant = 100, expect = some]
 by (metis_exhaust B_def C_def int_le_0_imp_le_1 predicate1I)
 
@@ -151,7 +151,7 @@ sledgehammer [type_enc = mono_tags??, expect = some] (id_apply)
 sledgehammer [type_enc = mono_tags, expect = some] (id_apply)
 sledgehammer [type_enc = mono_guards??, expect = some] (id_apply)
 sledgehammer [type_enc = mono_guards, expect = some] (id_apply)
-by (metis_exhaust id_apply)
+by metis_exhaust
 
 lemma "id (\<not> (id (\<not> a))) \<Longrightarrow> id a"
 sledgehammer [type_enc = erased, expect = some] (id_apply)

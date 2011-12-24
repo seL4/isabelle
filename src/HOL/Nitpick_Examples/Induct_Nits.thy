@@ -54,23 +54,23 @@ inductive p2 :: "nat \<Rightarrow> bool" where
 coinductive q2 :: "nat \<Rightarrow> bool" where
 "q2 n \<Longrightarrow> q2 n"
 
-lemma "p2 = {}"
+lemma "p2 = bot"
 nitpick [expect = none]
 nitpick [dont_star_linear_preds, expect = none]
 sorry
 
-lemma "q2 = {}"
+lemma "q2 = bot"
 nitpick [expect = genuine]
 nitpick [dont_star_linear_preds, expect = genuine]
 nitpick [wf, expect = quasi_genuine]
 oops
 
-lemma "p2 = UNIV"
+lemma "p2 = top"
 nitpick [expect = genuine]
 nitpick [dont_star_linear_preds, expect = genuine]
 oops
 
-lemma "q2 = UNIV"
+lemma "q2 = top"
 nitpick [expect = none]
 nitpick [dont_star_linear_preds, expect = none]
 nitpick [wf, expect = quasi_genuine]
@@ -123,32 +123,32 @@ nitpick [expect = none]
 nitpick [non_wf, expect = none]
 sorry
 
-lemma "p3 = UNIV - p4"
+lemma "p3 = top - p4"
 nitpick [expect = none]
 nitpick [non_wf, expect = none]
 sorry
 
-lemma "q3 = UNIV - q4"
+lemma "q3 = top - q4"
 nitpick [expect = none]
 nitpick [non_wf, expect = none]
 sorry
 
-lemma "p3 \<inter> q4 \<noteq> {}"
+lemma "inf p3 q4 \<noteq> bot"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
 sorry
 
-lemma "q3 \<inter> p4 \<noteq> {}"
+lemma "inf q3 p4 \<noteq> bot"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
 sorry
 
-lemma "p3 \<union> q4 \<noteq> UNIV"
+lemma "sup p3 q4 \<noteq> top"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
 sorry
 
-lemma "q3 \<union> p4 \<noteq> UNIV"
+lemma "sup q3 p4 \<noteq> top"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
 sorry

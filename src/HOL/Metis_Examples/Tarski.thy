@@ -196,8 +196,7 @@ by (simp add: isLub_def isGlb_def dual_def converse_def)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def dual_def refl_on_converse
-                 trans_converse antisym_converse)
+apply (simp add: PartialOrder_def dual_def)
 done
 
 lemma Rdual:
@@ -519,22 +518,22 @@ proof -
   thus "lub {x. (x, f x) \<in> r \<and> x \<in> A} cl \<in> A" using A1 by metis
 next
   assume A1: "H = {x. (x, f x) \<in> r \<and> x \<in> A}"
-  have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
-  have F2: "\<forall>w u. (\<lambda>R. u R \<and> w R) = u \<inter> w"
-    by (metis Collect_conj_eq Collect_def)
-  have F3: "\<forall>x v. (\<lambda>R. v R \<in> x) = v -` x" by (metis vimage_def Collect_def)
+  have F1: "\<forall>v. {R. R \<in> v} = v" by (metis Collect_mem_eq)
+  have F2: "\<forall>w u. {R. R \<in> u \<and> R \<in> w} = u \<inter> w"
+    by (metis Collect_conj_eq Collect_mem_eq)
+  have F3: "\<forall>x v. {R. v R \<in> x} = v -` x" by (metis vimage_def)
   hence F4: "A \<inter> (\<lambda>R. (R, f R)) -` r = H" using A1 by auto
-  hence F5: "(f (lub H cl), lub H cl) \<in> r"
-    by (metis F1 F3 F2 Int_commute flubH_le_lubH Collect_def)
+  hence F5: "(f (lub H cl), lub H cl) \<in> r" 
+    by (metis A1 flubH_le_lubH)
   have F6: "(lub H cl, f (lub H cl)) \<in> r"
-    by (metis F1 F3 F2 F4 Int_commute lubH_le_flubH Collect_def)
+    by (metis A1 lubH_le_flubH)
   have "(lub H cl, f (lub H cl)) \<in> r \<longrightarrow> f (lub H cl) = lub H cl"
     using F5 by (metis antisymE)
   hence "f (lub H cl) = lub H cl" using F6 by metis
   thus "H = {x. (x, f x) \<in> r \<and> x \<in> A}
         \<Longrightarrow> f (lub {x. (x, f x) \<in> r \<and> x \<in> A} cl) =
            lub {x. (x, f x) \<in> r \<and> x \<in> A} cl"
-    by (metis F4 F2 F3 F1 Collect_def Int_commute)
+    by metis
 qed
 
 lemma (in CLF) (*lubH_is_fixp:*)

@@ -12,7 +12,7 @@ declare less_bool_def_raw[code_pred_inline]
 declare le_bool_def_raw[code_pred_inline]
 
 lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op &)"
-by (rule eq_reflection) (auto simp add: fun_eq_iff min_def le_bool_def)
+by (rule eq_reflection) (auto simp add: fun_eq_iff min_def)
 
 lemma [code_pred_inline]: 
   "((A::bool) ~= (B::bool)) = ((A & ~ B) | (B & ~ A))"
@@ -31,11 +31,7 @@ declare Bex_def[code_pred_inline]
 
 section {* Set operations *}
 
-declare Collect_def[code_pred_inline]
-declare mem_def[code_pred_inline]
-
 declare eq_reflection[OF empty_def, code_pred_inline]
-declare insert_code[code_pred_def]
 
 declare subset_iff[code_pred_inline]
 
@@ -45,15 +41,16 @@ declare eq_reflection[OF UNION_eq, code_pred_inline]
 
 lemma Diff[code_pred_inline]:
   "(A - B) = (%x. A x \<and> \<not> B x)"
-by (auto simp add: mem_def)
+  by (simp add: fun_eq_iff minus_apply)
 
 lemma subset_eq[code_pred_inline]:
   "(P :: 'a => bool) < (Q :: 'a => bool) == ((\<exists>x. Q x \<and> (\<not> P x)) \<and> (\<forall> x. P x --> Q x))"
-by (rule eq_reflection) (fastforce simp add: mem_def)
+  by (rule eq_reflection) (auto simp add: less_fun_def le_fun_def)
 
 lemma set_equality[code_pred_inline]:
-  "(A = B) = ((\<forall>x. A x \<longrightarrow> B x) \<and> (\<forall>x. B x \<longrightarrow> A x))"
-by (fastforce simp add: mem_def)
+  "A = B \<longleftrightarrow> (\<forall>x. A x \<longrightarrow> B x) \<and> (\<forall>x. B x \<longrightarrow> A x)"
+  by (auto simp add: fun_eq_iff)
+
 
 section {* Setup for Numerals *}
 
@@ -197,30 +194,6 @@ by (auto simp add: size_list_def)
 declare size_list_simps[code_pred_def]
 declare size_list_def[symmetric, code_pred_inline]
 
-subsection {* Alternative rules for set *}
-
-lemma set_ConsI1 [code_pred_intro]:
-  "set (x # xs) x"
-unfolding mem_def[symmetric, of _ x]
-by auto
-
-lemma set_ConsI2 [code_pred_intro]:
-  "set xs x ==> set (x' # xs) x" 
-unfolding mem_def[symmetric, of _ x]
-by auto
-
-code_pred [skip_proof] set
-proof -
-  case set
-  from this show thesis
-    apply (case_tac xb)
-    apply auto
-    unfolding mem_def[symmetric, of _ xc]
-    apply auto
-    unfolding mem_def
-    apply fastforce
-    done
-qed
 
 subsection {* Alternative rules for list_all2 *}
 
@@ -258,6 +231,5 @@ by auto
 
 lemma less_nat_k_0 [code_pred_simp]: "less_nat k 0 == False"
 unfolding less_nat[symmetric] by auto
-
 
 end

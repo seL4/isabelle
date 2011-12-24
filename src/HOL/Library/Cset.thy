@@ -24,10 +24,6 @@ lemma Set_set_of [simp]:
 definition member :: "'a Cset.set \<Rightarrow> 'a \<Rightarrow> bool" where
   "member A x \<longleftrightarrow> x \<in> set_of A"
 
-lemma member_set_of:
-  "set_of = member"
-  by (rule ext)+ (simp add: member_def mem_def)
-
 lemma member_Set [simp]:
   "member (Set A) x \<longleftrightarrow> x \<in> A"
   by (simp add: member_def)
@@ -38,7 +34,7 @@ lemma Set_inject [simp]:
 
 lemma set_eq_iff:
   "A = B \<longleftrightarrow> member A = member B"
-  by (auto simp add: fun_eq_iff set_of_inject [symmetric] member_def mem_def)
+  by (auto simp add: fun_eq_iff set_of_inject [symmetric] member_def)
 hide_fact (open) set_eq_iff
 
 lemma set_eqI:
@@ -76,7 +72,7 @@ definition minus_set :: "'a Cset.set \<Rightarrow> 'a Cset.set \<Rightarrow> 'a 
   [simp]: "A - B = Set (set_of A - set_of B)"
 
 instance proof
-qed (auto intro!: Cset.set_eqI simp add: member_def mem_def)
+qed (auto intro!: Cset.set_eqI simp add: member_def)
 
 end
 
@@ -364,19 +360,13 @@ lemma of_pred_code [code]:
      Predicate.Empty \<Rightarrow> Cset.empty
    | Predicate.Insert x P \<Rightarrow> Cset.insert x (of_pred P)
    | Predicate.Join P xq \<Rightarrow> sup (of_pred P) (of_seq xq))"
-  apply (auto split: seq.split simp add: Predicate.Seq_def of_pred_def Cset.set_eq_iff sup_apply eval_member [symmetric] member_def [symmetric] Collect_def mem_def member_set_of)
-  apply (unfold Set.insert_def Collect_def sup_apply member_set_of)
-  apply simp_all
-  done
+  by (auto split: seq.split simp add: Predicate.Seq_def of_pred_def Cset.set_eq_iff sup_apply eval_member [symmetric] member_def [symmetric])
 
 lemma of_seq_code [code]:
   "of_seq Predicate.Empty = Cset.empty"
   "of_seq (Predicate.Insert x P) = Cset.insert x (of_pred P)"
   "of_seq (Predicate.Join P xq) = sup (of_pred P) (of_seq xq)"
-  apply (auto simp add: of_seq_def of_pred_def Cset.set_eq_iff mem_def Collect_def)
-  apply (unfold Set.insert_def Collect_def sup_apply member_set_of)
-  apply simp_all
-  done
+  by (auto simp add: of_seq_def of_pred_def Cset.set_eq_iff)
 
 lemma bind_set:
   "Cset.bind (Cset.set xs) f = fold (sup \<circ> f) xs (Cset.set [])"
@@ -387,9 +377,9 @@ lemma pred_of_cset_set:
   "pred_of_cset (Cset.set xs) = foldr sup (List.map Predicate.single xs) bot"
 proof -
   have "pred_of_cset (Cset.set xs) = Predicate.Pred (\<lambda>x. x \<in> set xs)"
-    by (simp add: Cset.pred_of_cset_def member_set)
+    by (simp add: Cset.pred_of_cset_def)
   moreover have "foldr sup (List.map Predicate.single xs) bot = \<dots>"
-    by (induct xs) (auto simp add: bot_pred_def intro: pred_eqI, simp add: mem_def)
+    by (induct xs) (auto simp add: bot_pred_def intro: pred_eqI)
   ultimately show ?thesis by simp
 qed
 hide_fact (open) pred_of_cset_set

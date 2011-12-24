@@ -29,28 +29,44 @@ where
                          (s1 @ rhs @ s2) = rsl \<and>
                          (rule lhs rhs) \<in> fst g }"
 
+definition derivesp :: "(('nts, 'ts) rule => bool) * 'nts => ('nts, 'ts) symbol list => ('nts, 'ts) symbol list => bool"
+where
+  "derivesp g = (\<lambda> lhs rhs. (lhs, rhs) \<in> derives (Collect (fst g), snd g))"
+ 
+lemma [code_pred_def]:
+  "derivesp g = (\<lambda> lsl rsl. \<exists>s1 s2 lhs rhs. 
+                         (s1 @ [NTS lhs] @ s2 = lsl) \<and>
+                         (s1 @ rhs @ s2) = rsl \<and>
+                         (fst g) (rule lhs rhs))"
+unfolding derivesp_def derives_def by auto
+
 abbreviation "example_grammar == 
 ({ rule ''S'' [NTS ''A'', NTS ''B''],
    rule ''S'' [TS ''a''],
   rule ''A'' [TS ''b'']}, ''S'')"
 
+definition "example_rules == 
+(%x. x = rule ''S'' [NTS ''A'', NTS ''B''] \<or>
+   x = rule ''S'' [TS ''a''] \<or>
+  x = rule ''A'' [TS ''b''])"
 
-code_pred [inductify, skip_proof] derives .
 
-thm derives.equation
+code_pred [inductify, skip_proof] derivesp .
 
-definition "test = { rhs. derives example_grammar ([NTS ''S''], rhs) }"
+thm derivesp.equation
 
-code_pred (modes: o \<Rightarrow> bool) [inductify] test .
-thm test.equation
+definition "testp = (% rhs. derivesp (example_rules, ''S'') [NTS ''S''] rhs)"
 
-values "{rhs. test rhs}"
+code_pred (modes: o \<Rightarrow> bool) [inductify] testp .
+thm testp.equation
 
-declare rtrancl.intros(1)[code_pred_def] converse_rtrancl_into_rtrancl[code_pred_def]
+values "{rhs. testp rhs}"
 
-code_pred [inductify] rtrancl .
+declare rtranclp.intros(1)[code_pred_def] converse_rtranclp_into_rtranclp[code_pred_def]
 
-definition "test2 = { rhs. ([NTS ''S''],rhs) \<in> (derives example_grammar)^*  }"
+code_pred [inductify] rtranclp .
+
+definition "test2 = (\<lambda> rhs. rtranclp (derivesp (example_rules, ''S'')) [NTS ''S''] rhs)"
 
 code_pred [inductify, skip_proof] test2 .
 
