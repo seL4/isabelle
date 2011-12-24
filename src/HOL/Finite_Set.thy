@@ -509,6 +509,9 @@ qed
 instance bool :: finite proof
 qed (simp add: UNIV_bool)
 
+instance set :: (finite) finite
+  by default (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
+
 instance unit :: finite proof
 qed (simp add: UNIV_unit)
 
