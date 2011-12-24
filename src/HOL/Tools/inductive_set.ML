@@ -244,7 +244,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
         NONE => thm' RS sym
       | SOME fs' =>
           let
-            val U = List.last (binder_types T);
+            val U = HOLogic.dest_setT (body_type T);
             val Ts = HOLogic.strip_ptupleT fs' U;
             (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;
@@ -351,7 +351,7 @@ fun to_pred thms ctxt thm =
   end;
 
 val to_pred_att = Thm.rule_attribute o to_pred;
-    
+
 
 (**** convert theorem in predicate notation to set notation ****)
 
@@ -421,7 +421,7 @@ fun add_ind_set_def
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;
     val new_arities = filter_out
-      (fn (x as Free (_, T), _) => member (op =) params x andalso length (binder_types T) > 1
+      (fn (x as Free (_, T), _) => member (op =) params x andalso length (binder_types T) > 0
         | _ => false) (fold (snd #> infer) intros []);
     val params' = map (fn x =>
       (case AList.lookup op = new_arities x of
@@ -447,7 +447,7 @@ fun add_ind_set_def
     val ((cs', cs_info), eqns) = cs |> map (fn c as Free (s, T) =>
       let
         val fs = the_default [] (AList.lookup op = new_arities c);
-        val (Us, U) = split_last (binder_types T);
+        val (Us, U) = strip_type T |> apsnd HOLogic.dest_setT;
         val _ = Us = paramTs orelse error (Pretty.string_of (Pretty.chunks
           [Pretty.str "Argument types",
            Pretty.block (Pretty.commas (map (Syntax.pretty_typ lthy) Us)),

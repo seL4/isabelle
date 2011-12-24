@@ -494,6 +494,7 @@ fun create_nom_typedecls ak_names thy =
       val pt_optn_inst  = @{thm "pt_option_inst"};
       val pt_noptn_inst = @{thm "pt_noption_inst"};
       val pt_fun_inst   = @{thm "pt_fun_inst"};
+      val pt_set_inst   = @{thm "pt_set_inst"};
 
      (* for all atom-kind combinations <ak>/<ak'> show that        *)
      (* every <ak> is an instance of pt_<ak'>; the proof for       *)
@@ -541,6 +542,7 @@ fun create_nom_typedecls ak_names thy =
                      rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
+          val pt_thm_set   = at_thm RS (pt_inst RS pt_set_inst);
           val pt_thm_noptn = pt_inst RS pt_noptn_inst; 
           val pt_thm_optn  = pt_inst RS pt_optn_inst; 
           val pt_thm_list  = pt_inst RS pt_list_inst;
@@ -550,6 +552,7 @@ fun create_nom_typedecls ak_names thy =
        in
         thy
         |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
+        |> AxClass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
         |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
