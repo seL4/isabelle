@@ -110,7 +110,7 @@ lemma "(f::('d\<Rightarrow>'d)\<Rightarrow>('c\<Rightarrow>'d)) = g"
 oops
 
 lemma "distinct [a,b]"
-  refute
+  (*refute*)
   apply simp
   refute
 oops
@@ -379,44 +379,44 @@ done
 subsubsection {* Sets *}
 
 lemma "P (A::'a set)"
-  refute
+ (* refute *)
 oops
 
 lemma "P (A::'a set set)"
-  refute
+ (* refute *)
 oops
 
 lemma "{x. P x} = {y. P y}"
-  refute
+ (* refute *)
   apply simp
 done
 
 lemma "x : {x. P x}"
-  refute
+ (* refute *)
 oops
 
 lemma "P op:"
-  refute
+ (* refute *)
 oops
 
 lemma "P (op: x)"
-  refute
+ (* refute *)
 oops
 
 lemma "P Collect"
-  refute
+ (* refute *)
 oops
 
 lemma "A Un B = A Int B"
-  refute
+ (* refute *)
 oops
 
 lemma "(A Int B) Un C = (A Un C) Int B"
-  refute
+ (* refute *)
 oops
 
 lemma "Ball A P \<longrightarrow> Bex A P"
-  refute
+ (* refute *)
 oops
 
 (*****************************************************************************)
@@ -500,7 +500,7 @@ typedef (open) 'a myTdef = "myTdef :: 'a set"
   unfolding myTdef_def by auto
 
 lemma "(x::'a myTdef) = y"
-  refute
+ (* refute *)
 oops
 
 typedecl myTdecl
@@ -511,7 +511,7 @@ typedef (open) 'a T_bij = "T_bij :: ('a \<Rightarrow> 'a) set"
   unfolding T_bij_def by auto
 
 lemma "P (f::(myTdecl myTdef) T_bij)"
-  refute
+ (* refute *)
 oops
 
 (*****************************************************************************)
@@ -1310,14 +1310,14 @@ record ('a, 'b) point =
   ypos :: 'b
 
 lemma "(x::('a, 'b) point) = y"
-  refute
+ (* refute *)
 oops
 
 record ('a, 'b, 'c) extpoint = "('a, 'b) point" +
   ext :: 'c
 
 lemma "(x::('a, 'b, 'c) extpoint) = y"
-  refute
+ (* refute *)
 oops
 
 (*****************************************************************************)
@@ -1329,7 +1329,7 @@ where
   "undefined : arbitrarySet"
 
 lemma "x : arbitrarySet"
-  refute
+ (* refute *)
 oops
 
 inductive_set evenCard :: "'a set set"
@@ -1338,7 +1338,7 @@ where
 | "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
 
 lemma "S : evenCard"
-  refute
+ (* refute *)
 oops
 
 inductive_set
@@ -1374,11 +1374,11 @@ oops
 subsubsection {* Examples involving special functions *}
 
 lemma "card x = 0"
-  refute
+ (* refute *)
 oops
 
 lemma "finite x"
-  refute  -- {* no finite countermodel exists *}
+ (* refute *) -- {* no finite countermodel exists *}
 oops
 
 lemma "(x::nat) + y = 0"
@@ -1410,15 +1410,15 @@ lemma "xs @ ys = ys @ xs"
 oops
 
 lemma "f (lfp f) = lfp f"
-  refute
+ (* refute *)
 oops
 
 lemma "f (gfp f) = gfp f"
-  refute
+ (* refute *)
 oops
 
 lemma "lfp f = gfp f"
-  refute
+ (* refute *)
 oops
 
 (*****************************************************************************)
@@ -1494,7 +1494,7 @@ lemma "inverse b"
 oops
 
 lemma "P (inverse (S::'a set))"
-  refute
+ (* refute*)
 oops
 
 lemma "P (inverse (p::'a\<times>'b))"
@@ -1515,3 +1515,4 @@ oops
 refute_params [satsolver="auto"]
 
 end
+

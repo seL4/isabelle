@@ -513,11 +513,11 @@ lemma
 context complete_lattice
 begin
 
-lemma 
+(*lemma 
   assumes "Sup { a | i::bool . True } \<le> Sup { b | i::bool . True }"
   and     "Sup { b | i::bool . True } \<le> Sup { a | i::bool . True }"
   shows   "Sup { a | i::bool . True } \<le> Sup { a | i::bool . True }"
-  using assms by (smt order_trans)
+  using assms by (smt order_trans)*)
 
 end
 

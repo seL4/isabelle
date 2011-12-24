@@ -24,7 +24,7 @@ by metis
 sledgehammer_params [isar_proof, isar_shrink_factor = 1]
 
 (*multiple versions of this example*)
-lemma (*equal_union: *)
+(* lemma (*equal_union: *)
    "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
 proof -
   have F1: "\<forall>(x\<^isub>2\<Colon>'b \<Rightarrow> bool) x\<^isub>1\<Colon>'b \<Rightarrow> bool. x\<^isub>1 \<subseteq> x\<^isub>1 \<union> x\<^isub>2" by (metis Un_commute Un_upper2)
@@ -200,5 +200,6 @@ lemma "\<exists>B. (\<forall>x \<in> B. x \<le> (0::int))"
   apply (metis mem_def)
  apply (metis all_not_in_conv)
 by (metis pair_in_Id_conv)
+*)
 
 end

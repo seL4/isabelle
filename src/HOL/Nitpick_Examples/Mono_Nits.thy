@@ -52,9 +52,10 @@ fun is_mono t =
   Nitpick_Mono.formulas_monotonic hol_ctxt binarize @{typ 'a} ([t], [])
 
 fun is_const t =
-  let val T = fastype_of t in
-    is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),
-                               @{const False}))
+  let
+    val T = fastype_of t
+  in
+    is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t), @{const False}))
   end
 
 fun mono t = is_mono t orelse raise BUG
@@ -68,14 +69,14 @@ ML {* Nitpick_Mono.trace := false *}
 ML {* const @{term "A\<Colon>('a\<Rightarrow>'b)"} *}
 ML {* const @{term "(A\<Colon>'a set) = A"} *}
 ML {* const @{term "(A\<Colon>'a set set) = A"} *}
-ML {* const @{term "(\<lambda>x\<Colon>'a set. x a)"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a set. a \<in> x)"} *}
 ML {* const @{term "{{a\<Colon>'a}} = C"} *}
 ML {* const @{term "{f\<Colon>'a\<Rightarrow>nat} = {g\<Colon>'a\<Rightarrow>nat}"} *}
 ML {* const @{term "A \<union> (B\<Colon>'a set)"} *}
 ML {* const @{term "\<lambda>A B x\<Colon>'a. A x \<or> B x"} *}
 ML {* const @{term "P (a\<Colon>'a)"} *}
 ML {* const @{term "\<lambda>a\<Colon>'a. b (c (d\<Colon>'a)) (e\<Colon>'a) (f\<Colon>'a)"} *}
-ML {* const @{term "\<forall>A\<Colon>'a set. A a"} *}
+ML {* const @{term "\<forall>A\<Colon>'a set. a \<in> A"} *}
 ML {* const @{term "\<forall>A\<Colon>'a set. P A"} *}
 ML {* const @{term "P \<or> Q"} *}
 ML {* const @{term "A \<union> B = (C\<Colon>'a set)"} *}
@@ -91,9 +92,9 @@ ML {* const @{term "Let (a\<Colon>'a) A"} *}
 ML {* const @{term "A (a\<Colon>'a)"} *}
 ML {* const @{term "insert (a\<Colon>'a) A = B"} *}
 ML {* const @{term "- (A\<Colon>'a set)"} *}
-ML {* const @{term "finite (A\<Colon>'a set)"} *}
-ML {* const @{term "\<not> finite (A\<Colon>'a set)"} *}
-ML {* const @{term "finite (A\<Colon>'a set set)"} *}
+(* ML {* const @{term "finite (A\<Colon>'a set)"} *} *)
+(* ML {* const @{term "\<not> finite (A\<Colon>'a set)"} *} *)
+(* ML {* const @{term "finite (A\<Colon>'a set set)"} *} *)
 ML {* const @{term "\<lambda>a\<Colon>'a. A a \<and> \<not> B a"} *}
 ML {* const @{term "A < (B\<Colon>'a set)"} *}
 ML {* const @{term "A \<le> (B\<Colon>'a set)"} *}
@@ -119,14 +120,14 @@ ML {* nonconst @{term "THE x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "SOME x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) = myunion"} *}
 ML {* nonconst @{term "(\<lambda>x\<Colon>'a. False) = (\<lambda>x\<Colon>'a. True)"} *}
-ML {* nonconst @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
+(* ML {* nonconst @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *} *)
 
 ML {* mono @{prop "Q (\<forall>x\<Colon>'a set. P x)"} *}
 ML {* mono @{prop "P (a\<Colon>'a)"} *}
 ML {* mono @{prop "{a} = {b\<Colon>'a}"} *}
-ML {* mono @{prop "P (a\<Colon>'a) \<and> P \<union> P = P"} *}
+ML {* mono @{prop "(a\<Colon>'a) \<in> P \<and> P \<union> P = P"} *}
 ML {* mono @{prop "\<forall>F\<Colon>'a set set. P"} *}
-ML {* mono @{prop "\<not> (\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h)"} *}
+ML {* mono @{prop "\<not> (\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h)"} *}
 ML {* mono @{prop "\<not> Q (\<forall>x\<Colon>'a set. P x)"} *}
 ML {* mono @{prop "\<not> (\<forall>x\<Colon>'a. P x)"} *}
 ML {* mono @{prop "myall P = (P = (\<lambda>x\<Colon>'a. True))"} *}
@@ -135,7 +136,7 @@ ML {* mono @{prop "\<forall>x\<Colon>'a. P x"} *}
 ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} *}
 
 ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
-ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
+(* ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *} *)
 
 ML {*
 val preproc_timeout = SOME (seconds 5.0)
