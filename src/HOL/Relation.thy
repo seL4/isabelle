@@ -132,7 +132,7 @@ by (unfold Id_on_def) (iprover elim!: UN_E singletonE)
 lemma Id_on_iff: "((x, y) : Id_on A) = (x = y & x : A)"
 by blast
 
-lemma Id_on_def' [nitpick_unfold, code]:
+lemma Id_on_def' [nitpick_unfold]:
   "Id_on {x. A x} = Collect (\<lambda>(x, y). x = y \<and> A x)"
 by auto
 
