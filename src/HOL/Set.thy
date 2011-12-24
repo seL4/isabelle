@@ -8,13 +8,13 @@ begin
 
 subsection {* Sets as predicates *}
 
-type_synonym 'a set = "'a \<Rightarrow> bool"
+typedecl 'a set
 
-definition Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" where -- "comprehension"
-  "Collect P = P"
-
-definition member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" where -- "membership"
-  mem_def: "member x A = A x"
+axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" -- "comprehension"
+  and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" -- "membership"
+where
+  mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
+  and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
 notation
   member  ("op :") and
@@ -40,7 +40,6 @@ notation (HTML output)
   not_member  ("(_/ \<notin> _)" [50, 51] 50)
 
 
-
 text {* Set comprehensions *}
 
 syntax
@@ -54,12 +53,6 @@ syntax (xsymbols)
   "_Collect" :: "idt => 'a set => bool => 'a set"    ("(1{_ \<in>/ _./ _})")
 translations
   "{x:A. P}" => "{x. x:A & P}"
-
-lemma mem_Collect_eq [iff]: "a \<in> {x. P x} = P a"
-  by (simp add: Collect_def mem_def)
-
-lemma Collect_mem_eq [simp]: "{x. x \<in> A} = A"
-  by (simp add: Collect_def mem_def)
 
 lemma CollectI: "P a \<Longrightarrow> a \<in> {x. P x}"
   by simp
@@ -97,6 +90,43 @@ qed
 lemma set_eq_iff [no_atp]:
   "A = B \<longleftrightarrow> (\<forall>x. x \<in> A \<longleftrightarrow> x \<in> B)"
   by (auto intro:set_eqI)
+
+text {* Lifting of predicate class instances *}
+
+instantiation set :: (type) boolean_algebra
+begin
+
+definition less_eq_set where
+  "less_eq_set A B = less_eq (\<lambda>x. member x A) (\<lambda>x. member x B)"
+
+definition less_set where
+  "less_set A B = less (\<lambda>x. member x A) (\<lambda>x. member x B)"
+
+definition inf_set where
+  "inf_set A B = Collect (inf (\<lambda>x. member x A) (\<lambda>x. member x B))"
+
+definition sup_set where
+  "sup_set A B = Collect (sup (\<lambda>x. member x A) (\<lambda>x. member x B))"
+
+definition bot_set where
+  "bot = Collect bot"
+
+definition top_set where
+  "top = Collect top"
+
+definition uminus_set where
+  "uminus A = Collect (uminus (\<lambda>x. member x A))"
+
+definition minus_set where
+  "minus_set A B = Collect (minus (\<lambda>x. member x A) (\<lambda>x. member x B))"
+
+instance proof
+qed (simp_all add: less_eq_set_def less_set_def inf_set_def sup_set_def
+  bot_set_def top_set_def uminus_set_def minus_set_def
+  less_le_not_le inf_compl_bot sup_compl_top sup_inf_distrib1 diff_eq
+  set_eqI fun_eq_iff)
+
+end
 
 text {* Set enumerations *}
 
@@ -453,7 +483,7 @@ subsection {* Basic operations *}
 subsubsection {* Subsets *}
 
 lemma subsetI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
-  unfolding mem_def by (rule le_funI, rule le_boolI)
+  by (simp add: less_eq_set_def le_fun_def)
 
 text {*
   \medskip Map the type @{text "'a set => anything"} to just @{typ
@@ -462,7 +492,7 @@ text {*
 *}
 
 lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
-  unfolding mem_def by (erule le_funE, erule le_boolE)
+  by (simp add: less_eq_set_def le_fun_def)
   -- {* Rule in Modus Ponens style. *}
 
 lemma rev_subsetD [no_atp,intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
@@ -476,7 +506,7 @@ text {*
 
 lemma subsetCE [no_atp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
   -- {* Classical elimination rule. *}
-  unfolding mem_def by (blast dest: le_funE le_boolE)
+  by (auto simp add: less_eq_set_def le_fun_def)
 
 lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
@@ -543,7 +573,7 @@ subsubsection {* The empty set *}
 
 lemma empty_def:
   "{} = {x. False}"
-  by (simp add: bot_fun_def Collect_def)
+  by (simp add: bot_set_def bot_fun_def)
 
 lemma empty_iff [simp]: "(c : {}) = False"
   by (simp add: empty_def)
@@ -576,7 +606,7 @@ abbreviation UNIV :: "'a set" where
 
 lemma UNIV_def:
   "UNIV = {x. True}"
-  by (simp add: top_fun_def Collect_def)
+  by (simp add: top_set_def top_fun_def)
 
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
@@ -635,10 +665,10 @@ lemma Pow_not_empty: "Pow A \<noteq> {}"
 subsubsection {* Set complement *}
 
 lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
-  by (simp add: mem_def fun_Compl_def)
+  by (simp add: fun_Compl_def uminus_set_def)
 
 lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
-  by (unfold mem_def fun_Compl_def bool_Compl_def) blast
+  by (simp add: fun_Compl_def uminus_set_def) blast
 
 text {*
   \medskip This form, with negated conclusion, works well with the
@@ -646,11 +676,12 @@ text {*
   right side of the notional turnstile ... *}
 
 lemma ComplD [dest!]: "c : -A ==> c~:A"
-  by (simp add: mem_def fun_Compl_def)
+  by simp
 
 lemmas ComplE = ComplD [elim_format]
 
-lemma Compl_eq: "- A = {x. ~ x : A}" by blast
+lemma Compl_eq: "- A = {x. ~ x : A}"
+  by blast
 
 
 subsubsection {* Binary intersection *}
@@ -666,7 +697,7 @@ notation (HTML output)
 
 lemma Int_def:
   "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
-  by (simp add: inf_fun_def Collect_def mem_def)
+  by (simp add: inf_set_def inf_fun_def)
 
 lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
   by (unfold Int_def) blast
@@ -700,7 +731,7 @@ notation (HTML output)
 
 lemma Un_def:
   "A \<union> B = {x. x \<in> A \<or> x \<in> B}"
-  by (simp add: sup_fun_def Collect_def mem_def)
+  by (simp add: sup_set_def sup_fun_def)
 
 lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
   by (unfold Un_def) blast
@@ -723,7 +754,7 @@ lemma UnE [elim!]: "c : A Un B ==> (c:A ==> P) ==> (c:B ==> P) ==> P"
   by (unfold Un_def) blast
 
 lemma insert_def: "insert a B = {x. x = a} \<union> B"
-  by (simp add: Collect_def mem_def insert_compr Un_def)
+  by (simp add: insert_compr Un_def)
 
 lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
   by (fact mono_sup)
@@ -732,7 +763,7 @@ lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<uni
 subsubsection {* Set difference *}
 
 lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
-  by (simp add: mem_def fun_diff_def)
+  by (simp add: minus_set_def fun_diff_def)
 
 lemma DiffI [intro!]: "c : A ==> c ~: B ==> c : A - B"
   by simp
@@ -1751,19 +1782,18 @@ lemma Least_mono:
   apply (auto elim: monoD intro!: order_antisym)
   done
 
-subsection {* Misc *}
 
-text {* Rudimentary code generation *}
+subsubsection {* Monad operation *}
 
-lemma insert_code [code]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
-  by (auto simp add: insert_compr Collect_def mem_def)
+definition bind :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "bind A f = {x. \<exists>B \<in> f`A. x \<in> B}"
 
-lemma vimage_code [code]: "(f -` A) x = A (f x)"
-  by (simp add: vimage_def Collect_def mem_def)
+hide_const (open) bind
+
+
+text {* Misc *}
 
 hide_const (open) member not_member
-
-text {* Misc theorem and ML bindings *}
 
 lemmas equalityI = subset_antisym
 
