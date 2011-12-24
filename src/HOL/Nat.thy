@@ -1200,9 +1200,9 @@ text {*
   functions and relations, in order to share the same syntax.
 *}
 
-consts compow :: "nat \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+consts compow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
 
-abbreviation compower :: "('a \<Rightarrow> 'b) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "^^" 80) where
+abbreviation compower :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr "^^" 80) where
   "f ^^ n \<equiv> compow n f"
 
 notation (latex output)
