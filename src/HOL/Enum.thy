@@ -458,8 +458,57 @@ next
     unfolding enum_ex_option_def enum_ex
     by (auto, case_tac x) auto
 qed (auto simp add: enum_UNIV enum_option_def, rule option.exhaust, auto intro: simp add: distinct_map enum_distinct)
+end
+
+primrec sublists :: "'a list \<Rightarrow> 'a list list" where
+  "sublists [] = [[]]"
+  | "sublists (x#xs) = (let xss = sublists xs in map (Cons x) xss @ xss)"
+
+lemma length_sublists:
+  "length (sublists xs) = Suc (Suc (0\<Colon>nat)) ^ length xs"
+  by (induct xs) (simp_all add: Let_def)
+
+lemma sublists_powset:
+  "set ` set (sublists xs) = Pow (set xs)"
+proof -
+  have aux: "\<And>x A. set ` Cons x ` A = insert x ` set ` A"
+    by (auto simp add: image_def)
+  have "set (map set (sublists xs)) = Pow (set xs)"
+    by (induct xs)
+      (simp_all add: aux Let_def Pow_insert Un_commute comp_def del: map_map)
+  then show ?thesis by simp
+qed
+
+lemma distinct_set_sublists:
+  assumes "distinct xs"
+  shows "distinct (map set (sublists xs))"
+proof (rule card_distinct)
+  have "finite (set xs)" by rule
+  then have "card (Pow (set xs)) = Suc (Suc 0) ^ card (set xs)" by (rule card_Pow)
+  with assms distinct_card [of xs]
+    have "card (Pow (set xs)) = Suc (Suc 0) ^ length xs" by simp
+  then show "card (set (map set (sublists xs))) = length (map set (sublists xs))"
+    by (simp add: sublists_powset length_sublists)
+qed
+
+instantiation set :: (enum) enum
+begin
+
+definition
+  "enum = map set (sublists enum)"
+
+definition
+  "enum_all P \<longleftrightarrow> (\<forall>A\<in>set enum. P (A::'a set))"
+
+definition
+  "enum_ex P \<longleftrightarrow> (\<exists>A\<in>set enum. P (A::'a set))"
+
+instance proof
+qed (simp_all add: enum_set_def enum_all_set_def enum_ex_set_def sublists_powset distinct_set_sublists
+  enum_distinct enum_UNIV)
 
 end
+
 
 subsection {* Small finite types *}
 
@@ -726,12 +775,6 @@ proof -
   from this show ?thesis
     unfolding enum_the_def by (auto split: list.split)
 qed
-
-
-subsection {* Transitive closure on relations over finite types *}
-
-lemma [code]: "trancl (R :: (('a :: enum) \<times> 'a) set) = ntrancl (length (filter R enum) - 1) R"
-  by (simp add: finite_trancl_ntranl distinct_length_filter [OF enum_distinct] enum_UNIV Collect_def)
 
 
 subsection {* Closing up *}
