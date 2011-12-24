@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int1_ivl
-imports Abs_Int1 Abs_Int_Tests
+imports Abs_Int1 Abs_Int_Tests "~~/src/HOL/Library/More_Set"
 begin
 
 subsection "Interval Analysis"
@@ -24,6 +24,20 @@ abbreviation I_None_None :: "ivl"  ("{\<dots>}") where
 "{\<dots>} == I None None"
 
 definition "num_ivl n = {n\<dots>n}"
+
+definition
+  "contained_in i k \<longleftrightarrow> k \<in> rep_ivl i"
+
+lemma in_rep_ivl_contained_in [code_unfold_post]:
+  "k \<in> rep_ivl i \<longleftrightarrow> contained_in i k"
+  by (simp only: contained_in_def)
+
+lemma contained_in_simps [code]:
+  "contained_in (I (Some l) (Some h)) k \<longleftrightarrow> l \<le> k \<and> k \<le> h"
+  "contained_in (I (Some l) None) k \<longleftrightarrow> l \<le> k"
+  "contained_in (I None (Some h)) k \<longleftrightarrow> k \<le> h"
+  "contained_in (I None None) k \<longleftrightarrow> True"
+  by (simp_all add: contained_in_def rep_ivl_def)
 
 instantiation option :: (plus)plus
 begin
