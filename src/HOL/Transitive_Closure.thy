@@ -773,10 +773,10 @@ lemma rel_pow_E2:
   done
 
 lemma rel_pow_add: "R ^^ (m+n) = R^^m O R^^n"
-by(induct n) auto
+  by (induct n) auto
 
 lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
-by (induct n) (simp, simp add: O_assoc [symmetric])
+  by (induct n) (simp, simp add: O_assoc [symmetric])
 
 lemma rel_pow_empty:
   "0 < n \<Longrightarrow> ({} :: ('a \<times> 'a) set) ^^ n = {}"
