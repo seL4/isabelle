@@ -545,7 +545,7 @@ fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
           Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
-          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
+          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Collect Frac"}
                           |> Logic.varify_global,
           set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
   else case Typedef.get_info ctxt s of
