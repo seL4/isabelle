@@ -38,6 +38,7 @@ definition
 overloading
   perm_fun    \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<Rightarrow>'b) \<Rightarrow> ('a\<Rightarrow>'b)"   (unchecked)
   perm_bool   \<equiv> "perm :: 'x prm \<Rightarrow> bool \<Rightarrow> bool"           (unchecked)
+  perm_set    \<equiv> "perm :: 'x prm \<Rightarrow> 'a set \<Rightarrow> 'a set"           (unchecked)
   perm_unit   \<equiv> "perm :: 'x prm \<Rightarrow> unit \<Rightarrow> unit"           (unchecked)
   perm_prod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"    (unchecked)
   perm_list   \<equiv> "perm :: 'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"     (unchecked)
@@ -55,6 +56,9 @@ definition perm_fun :: "'x prm \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow>
 
 definition perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
   "perm_bool pi b = b"
+
+definition perm_set :: "'x prm \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "perm_set pi A = {x. rev pi \<bullet> x \<in> A}"
 
 primrec perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit"  where 
   "perm_unit pi () = ()"
@@ -131,10 +135,6 @@ lemma neg_eqvt:
   by (simp add: perm_bool)
 
 (* permutation on sets *)
-lemma perm_set_def:
-  "pi \<bullet> A = {x. rev pi \<bullet> x \<in> A}"
-  by (simp add: perm_fun_def perm_bool_def Collect_def mem_def)
-
 lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
   by (simp add: perm_set_def fun_eq_iff)
@@ -963,7 +963,7 @@ lemma dj_perm_set_forget:
   and   x ::"'x set"
   assumes dj: "disjoint TYPE('x) TYPE('y)"
   shows "pi\<bullet>x=x" 
-  using dj by (simp_all add: perm_fun_def disjoint_def perm_bool)
+  using dj by (simp_all add: perm_set_def disjoint_def)
 
 lemma dj_perm_perm_forget:
   fixes pi1::"'x prm"
@@ -1022,9 +1022,11 @@ lemma pt_set_inst:
   and     at:  "at TYPE('x)"
   shows "pt TYPE('a set) TYPE('x)"
 proof -
+  have *: "\<And>pi A. pi \<bullet> A = {x. (pi \<bullet> (\<lambda>x. x \<in> A)) x}"
+    by (simp add: perm_fun_def perm_bool_def perm_set_def)
   from pta pt_bool_inst at
     have "pt TYPE('a \<Rightarrow> bool) TYPE('x)" by (rule pt_fun_inst)
-  then show ?thesis by (simp add: pt_def perm_set_def)
+  then show ?thesis by (simp add: pt_def *)
 qed
 
 lemma pt_unit_inst:
@@ -1247,7 +1249,7 @@ lemma perm_set_eq:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and at: "at TYPE('x)" 
   shows "(pi::'x prm)\<bullet>(X::'a set) = {pi\<bullet>x | x. x\<in>X}"
-  apply (auto simp add: perm_fun_def perm_bool mem_def)
+  apply (auto simp add: perm_fun_def perm_bool perm_set_def)
   apply (rule_tac x="rev pi \<bullet> x" in exI)
   apply (simp add: pt_pi_rev [OF pt at])
   apply (simp add: pt_rev_pi [OF pt at])
@@ -2262,7 +2264,7 @@ lemma X_to_Un_supp_eqvt:
   and     at: "at TYPE('x)"
   shows "pi\<bullet>(X_to_Un_supp X) = ((X_to_Un_supp (pi\<bullet>X))::'x set)"
   apply(simp add: X_to_Un_supp_def)
-  apply(simp add: UNION_f_eqvt[OF pt, OF at] perm_fun_def [where 'b="'x set"])
+  apply(simp add: UNION_f_eqvt[OF pt, OF at] perm_fun_def)
   apply(simp add: pt_perm_supp[OF pt, OF at])
   apply(simp add: pt_pi_rev[OF pt, OF at])
   done
@@ -2307,9 +2309,9 @@ lemma Union_included_in_supp:
 proof -
   have "supp ((X_to_Un_supp X)::'x set) \<subseteq> ((supp X)::'x set)"  
     apply(rule pt_empty_supp_fun_subset)
-    apply(force intro: pt_fun_inst pt_bool_inst at_pt_inst pt at)+
+    apply(force intro: pt_set_inst at_pt_inst pt at)+
     apply(rule pt_eqvt_fun2b)
-    apply(force intro: pt_fun_inst pt_bool_inst at_pt_inst pt at)+
+    apply(force intro: pt_set_inst at_pt_inst pt at)+
     apply(rule allI)+
     apply(rule X_to_Un_supp_eqvt[OF pt, OF at])
     done
@@ -2638,7 +2640,7 @@ proof -
     have "set ([]::'a prm) \<subseteq> {} \<times> {}" by simp
     moreover
     have "([]::'a prm)\<bullet>{} = ({}::'a set)" 
-      by (rule pt1[OF pt_fun_inst, OF at_pt_inst[OF at] pt_bool_inst at])
+      by (rule pt1 [OF pt_set_inst, OF at_pt_inst [OF at] at])
     ultimately show ?case by simp
   next
     case (insert x Xs)
@@ -2653,7 +2655,7 @@ proof -
     obtain y::"'a" where fr: "y\<sharp>(c,pi\<bullet>Xs,As)" 
       apply(rule_tac at_exists_fresh[OF at, where x="(c,pi\<bullet>Xs,As)"])
       apply(auto simp add: supp_prod at_supp[OF at] at_fin_set_supp[OF at]
-        pt_supp_finite_pi[OF pt_fun_inst[OF at_pt_inst[OF at] pt_bool_inst at] at])
+        pt_supp_finite_pi[OF pt_set_inst[OF at_pt_inst[OF at] at] at])
       done
     have "({y}\<union>(pi\<bullet>Xs))\<sharp>*c" using a1 fr by (simp add: fresh_star_def)
     moreover
@@ -2669,18 +2671,18 @@ proof -
       have eq: "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
       proof -
         have "(pi\<bullet>x)\<sharp>(pi\<bullet>Xs)" using b d2 
-          by(simp add: pt_fresh_bij[OF pt_fun_inst, OF at_pt_inst[OF at], 
-            OF pt_bool_inst, OF at, OF at]
-            at_fin_set_fresh[OF at])
+          by (simp add: pt_fresh_bij [OF pt_set_inst, OF at_pt_inst [OF at], 
+            OF at, OF at]
+            at_fin_set_fresh [OF at])
         moreover
         have "y\<sharp>(pi\<bullet>Xs)" using fr by simp
         ultimately show "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
-          by (simp add: pt_fresh_fresh[OF pt_fun_inst, 
-            OF at_pt_inst[OF at], OF pt_bool_inst, OF at, OF at])
+          by (simp add: pt_fresh_fresh[OF pt_set_inst, 
+            OF at_pt_inst[OF at], OF at, OF at])
       qed
       have "(((pi\<bullet>x,y)#pi)\<bullet>({x}\<union>Xs)) = ([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>({x}\<union>Xs)))"
-        by (simp add: pt2[symmetric, OF pt_fun_inst, OF at_pt_inst[OF at], 
-          OF pt_bool_inst, OF at])
+        by (simp add: pt2[symmetric, OF pt_set_inst, OF at_pt_inst[OF at], 
+          OF at])
       also have "\<dots> = {y}\<union>([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs))" 
         by (simp only: union_eqvt perm_set_eq[OF at_pt_inst[OF at], OF at] at_calc[OF at])(auto)
       finally show "(((pi\<bullet>x,y)#pi)\<bullet>({x} \<union> Xs)) = {y}\<union>(pi\<bullet>Xs)" using eq by simp
