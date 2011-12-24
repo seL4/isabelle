@@ -292,7 +292,27 @@ where
 | valid_consT[simp]: "\<lbrakk>\<turnstile> \<Gamma> ok; X\<sharp>(ty_dom  \<Gamma>); T closed_in \<Gamma>\<rbrakk>  \<Longrightarrow>  \<turnstile> (TVarB X T#\<Gamma>) ok"
 | valid_cons [simp]: "\<lbrakk>\<turnstile> \<Gamma> ok; x\<sharp>(trm_dom \<Gamma>); T closed_in \<Gamma>\<rbrakk>  \<Longrightarrow>  \<turnstile> (VarB  x T#\<Gamma>) ok"
 
+(* FIXME The two following theorems should be subsumed by:
 equivariance valid_rel
+*)
+
+lemma valid_eqvt[eqvt]:
+  fixes pi::"tyvrs prm"
+  assumes a: "\<turnstile> \<Gamma> ok" shows "\<turnstile> (pi\<bullet>\<Gamma>) ok"
+  using a
+apply(induct \<Gamma>)
+apply auto
+apply (metis closed_in_eqvt doms_eqvt(1) fresh_bij(1) valid_consT)
+by (metis closed_in_eqvt fresh_aux(3) fresh_trm_dom perm_dj(1) valid_cons)
+
+lemma valid_eqvt'[eqvt]:
+  fixes pi::"vrs prm"
+  assumes a: "\<turnstile> \<Gamma> ok" shows "\<turnstile> (pi\<bullet>\<Gamma>) ok"
+  using a
+apply(induct \<Gamma>)
+apply auto
+apply (metis closed_in_eqvt' perm_dj(2) ty_dom_vrs_prm_simp valid_consT)
+by (metis closed_in_eqvt' fresh_bij(2) fresh_trm_dom valid_cons)
 
 declare binding.inject [simp add]
 declare trm.inject     [simp add]
