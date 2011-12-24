@@ -12,29 +12,35 @@ subsection {* Various additional set functions *}
 definition is_empty :: "'a set \<Rightarrow> bool" where
   "is_empty A \<longleftrightarrow> A = {}"
 
+hide_const (open) is_empty
+
 definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "remove x A = A - {x}"
 
+hide_const (open) remove
+
 lemma comp_fun_idem_remove:
-  "comp_fun_idem remove"
+  "comp_fun_idem More_Set.remove"
 proof -
-  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
+  have rem: "More_Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
   show ?thesis by (simp only: comp_fun_idem_remove rem)
 qed
 
 lemma minus_fold_remove:
   assumes "finite A"
-  shows "B - A = Finite_Set.fold remove B A"
+  shows "B - A = Finite_Set.fold More_Set.remove B A"
 proof -
-  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
+  have rem: "More_Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
   show ?thesis by (simp only: rem assms minus_fold_remove)
 qed
 
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "project P A = {a \<in> A. P a}"
 
+hide_const (open) project
+
 lemma bounded_Collect_code [code_unfold_post]:
-  "{x \<in> A. P x} = project P A"
+  "{x \<in> A. P x} = More_Set.project P A"
   by (simp add: project_def)
 
 definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
@@ -50,7 +56,7 @@ lemma [code_unfold_post]:
 subsection {* Basic set operations *}
 
 lemma is_empty_set:
-  "is_empty (set xs) \<longleftrightarrow> List.null xs"
+  "More_Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
   by (simp add: is_empty_def null_def)
 
 lemma empty_set:
@@ -62,7 +68,7 @@ lemma insert_set_compl:
   by auto
 
 lemma remove_set_compl:
-  "remove x (- set xs) = - set (List.insert x xs)"
+  "More_Set.remove x (- set xs) = - set (List.insert x xs)"
   by (auto simp add: remove_def List.insert_def)
 
 lemma image_set:
@@ -70,7 +76,7 @@ lemma image_set:
   by simp
 
 lemma project_set:
-  "project P (set xs) = set (filter P xs)"
+  "More_Set.project P (set xs) = set (filter P xs)"
   by (auto simp add: project_def)
 
 
@@ -93,18 +99,18 @@ proof -
 qed
 
 lemma minus_set:
-  "A - set xs = fold remove xs A"
+  "A - set xs = fold More_Set.remove xs A"
 proof -
-  interpret comp_fun_idem remove
+  interpret comp_fun_idem More_Set.remove
     by (fact comp_fun_idem_remove)
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set)
 qed
 
 lemma minus_set_foldr:
-  "A - set xs = foldr remove xs A"
+  "A - set xs = foldr More_Set.remove xs A"
 proof -
-  have "\<And>x y :: 'a. remove y \<circ> remove x = remove x \<circ> remove y"
+  have "\<And>x y :: 'a. More_Set.remove y \<circ> More_Set.remove x = More_Set.remove x \<circ> More_Set.remove y"
     by (auto simp add: remove_def)
   then show ?thesis by (simp add: minus_set foldr_fold)
 qed
@@ -129,7 +135,7 @@ lemma set_eq:
   by (fact eq_iff)
 
 lemma inter:
-  "A \<inter> B = project (\<lambda>x. x \<in> A) B"
+  "A \<inter> B = More_Set.project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
 
 
@@ -143,6 +149,9 @@ lemma Id_on_set:
   "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
   by (auto simp add: Id_on_def)
 
+lemma trancl_set_ntrancl: "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
+  by (simp add: finite_trancl_ntranl)
+
 lemma set_rel_comp:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
   by (auto simp add: Bex_def)
@@ -151,4 +160,162 @@ lemma wf_set:
   "wf (set xs) = acyclic (set xs)"
   by (simp add: wf_iff_acyclic_if_finite)
 
+
+subsection {* Code generator setup *}
+
+definition coset :: "'a list \<Rightarrow> 'a set" where
+  [simp]: "coset xs = - set xs"
+
+code_datatype set coset
+
+
+subsection {* Basic operations *}
+
+lemma [code]:
+  "x \<in> set xs \<longleftrightarrow> List.member xs x"
+  "x \<in> coset xs \<longleftrightarrow> \<not> List.member xs x"
+  by (simp_all add: member_def)
+
+lemma [code_unfold]:
+  "A = {} \<longleftrightarrow> More_Set.is_empty A"
+  by (simp add: is_empty_def)
+
+declare empty_set [code]
+
+declare is_empty_set [code]
+
+lemma UNIV_coset [code]:
+  "UNIV = coset []"
+  by simp
+
+lemma insert_code [code]:
+  "insert x (set xs) = set (List.insert x xs)"
+  "insert x (coset xs) = coset (removeAll x xs)"
+  by simp_all
+
+lemma remove_code [code]:
+  "More_Set.remove x (set xs) = set (removeAll x xs)"
+  "More_Set.remove x (coset xs) = coset (List.insert x xs)"
+  by (simp_all add: remove_def Compl_insert)
+
+declare image_set [code]
+
+declare project_set [code]
+
+lemma Ball_set [code]:
+  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma Bex_set [code]:
+  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
+
+lemma card_set [code]:
+  "card (set xs) = length (remdups xs)"
+proof -
+  have "card (set (remdups xs)) = length (remdups xs)"
+    by (rule distinct_card) simp
+  then show ?thesis by simp
+qed
+
+
+subsection {* Derived operations *}
+
+instantiation set :: (equal) equal
+begin
+
+definition
+  "HOL.equal A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+
+instance proof
+qed (auto simp add: equal_set_def)
+
 end
+
+declare subset_eq [code]
+
+declare subset [code]
+
+
+subsection {* Functorial operations *}
+
+lemma inter_code [code]:
+  "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  "A \<inter> coset xs = foldr More_Set.remove xs A"
+  by (simp add: inter project_def) (simp add: Diff_eq [symmetric] minus_set_foldr)
+
+lemma subtract_code [code]:
+  "A - set xs = foldr More_Set.remove xs A"
+  "A - coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by (auto simp add: minus_set_foldr)
+
+lemma union_code [code]:
+  "set xs \<union> A = foldr insert xs A"
+  "coset xs \<union> A = coset (List.filter (\<lambda>x. x \<notin> A) xs)"
+  by (auto simp add: union_set_foldr)
+
+definition Inf :: "'a::complete_lattice set \<Rightarrow> 'a" where
+  [simp]: "Inf = Complete_Lattices.Inf"
+
+hide_const (open) Inf
+
+lemma [code_unfold_post]:
+  "Inf = More_Set.Inf"
+  by simp
+
+definition Sup :: "'a::complete_lattice set \<Rightarrow> 'a" where
+  [simp]: "Sup = Complete_Lattices.Sup"
+
+hide_const (open) Sup
+
+lemma [code_unfold_post]:
+  "Sup = More_Set.Sup"
+  by simp
+
+lemma Inf_code [code]:
+  "More_Set.Inf (set xs) = foldr inf xs top"
+  "More_Set.Inf (coset []) = bot"
+  by (simp_all add: Inf_set_foldr)
+
+lemma Sup_sup [code]:
+  "More_Set.Sup (set xs) = foldr sup xs bot"
+  "More_Set.Sup (coset []) = top"
+  by (simp_all add: Sup_set_foldr)
+
+lemma INF_code [code]:
+  "INFI (set xs) f = foldr (inf \<circ> f) xs top"
+  by (simp add: INF_def Inf_set_foldr image_set foldr_map del: set_map)
+
+lemma SUP_sup [code]:
+  "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
+  by (simp add: SUP_def Sup_set_foldr image_set foldr_map del: set_map)
+
+hide_const (open) coset
+
+
+subsection {* Operations on relations *}
+
+text {* Initially contributed by Tjark Weber. *}
+
+declare Domain_fst [code]
+
+declare Range_snd [code]
+
+declare trans_join [code]
+
+declare irrefl_distinct [code]
+
+declare trancl_set_ntrancl [code]
+
+declare acyclic_irrefl [code]
+
+declare product_code [code]
+
+declare Id_on_set [code]
+
+declare set_rel_comp [code]
+
+declare wf_set [code]
+
+end
+
