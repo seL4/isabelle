@@ -608,6 +608,24 @@ qed (auto simp add: inf_apply sup_apply Inf_apply Sup_apply INF_def SUP_def inf_
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
+instantiation "set" :: (type) complete_lattice
+begin
+
+definition
+  "\<Sqinter>A = {x. \<Sqinter>((\<lambda>B. x \<in> B) ` A)}"
+
+definition
+  "\<Squnion>A = {x. \<Squnion>((\<lambda>B. x \<in> B) ` A)}"
+
+instance proof
+qed (auto simp add: less_eq_set_def Inf_set_def Sup_set_def Inf_bool_def Sup_bool_def le_fun_def)
+
+end
+
+instance "set" :: (type) complete_boolean_algebra
+proof
+qed (auto simp add: INF_def SUP_def Inf_set_def Sup_set_def image_def)
+  
 
 subsection {* Inter *}
 
@@ -624,7 +642,7 @@ proof (rule set_eqI)
   have "(\<forall>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<forall>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Inter>A \<longleftrightarrow> x \<in> {x. \<forall>B \<in> A. x \<in> B}"
-    by (simp add: Inf_fun_def) (simp add: mem_def)
+    by (simp add: Inf_set_def image_def)
 qed
 
 lemma Inter_iff [simp,no_atp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in>C. A \<in> X)"
@@ -807,7 +825,7 @@ proof (rule set_eqI)
   have "(\<exists>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<exists>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Union>A \<longleftrightarrow> x \<in> {x. \<exists>B\<in>A. x \<in> B}"
-    by (simp add: Sup_fun_def) (simp add: mem_def)
+    by (simp add: Sup_set_def image_def)
 qed
 
 lemma Union_iff [simp, no_atp]:
@@ -905,6 +923,10 @@ print_translation {*
 lemma UNION_eq [no_atp]:
   "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
   by (auto simp add: SUP_def)
+
+lemma bind_UNION [code]:
+  "Set.bind A f = UNION A f"
+  by (simp add: bind_def UNION_eq)
 
 lemma Union_image_eq [simp]:
   "\<Union>(B ` A) = (\<Union>x\<in>A. B x)"
