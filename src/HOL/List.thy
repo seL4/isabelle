@@ -5086,10 +5086,6 @@ text {*
   @{prop "x \<in> set xs"} instead --- it is much easier to reason about.
 *}
 
-lemma member_set:
-  "member = set"
-  by (simp add: fun_eq_iff member_def mem_def)
-
 lemma member_rec [code]:
   "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
   "member [] y \<longleftrightarrow> False"
