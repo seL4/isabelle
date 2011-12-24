@@ -162,9 +162,9 @@ val boolT = Type (boolN, []);
 
 fun mk_induct_forall T = Const ("HOL.induct_forall", (T --> boolT) --> boolT);
 
-fun mk_setT T = T --> boolT;
+fun mk_setT T = Type ("Set.set", [T]);
 
-fun dest_setT (Type ("fun", [T, Type ("HOL.bool", [])])) = T
+fun dest_setT (Type ("Set.set", [T])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
 fun mk_set T ts =
