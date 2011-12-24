@@ -569,7 +569,7 @@ fun make_nnf1 ctxt th =
   else th
 
 fun unfold_set_const_simps ctxt =
-  if Config.get ctxt unfold_set_consts then @{thms Collect_def_raw mem_def_raw}
+  if Config.get ctxt unfold_set_consts then []
   else []
 
 (*The simplification removes defined quantifiers and occurrences of True and False.
