@@ -12,7 +12,7 @@ begin
 setup {* Reify_Data.setup *}
 
 lemma ext2: "(\<forall>x. f x = g x) \<Longrightarrow> f = g"
-  by (blast intro: ext)
+  by blast
 
 use "reflection.ML"
 

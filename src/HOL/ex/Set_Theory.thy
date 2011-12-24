@@ -179,7 +179,7 @@ lemma "P a \<Longrightarrow> \<exists>A. (\<forall>x \<in> A. P x) \<and> (\<exi
 
 lemma "a < b \<and> b < (c::int) \<Longrightarrow> \<exists>A. a \<notin> A \<and> b \<in> A \<and> c \<notin> A"
   -- {* Example 4. *}
-  by force
+  by auto --{*slow*}
 
 lemma "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
   -- {*Example 5, page 298. *}
@@ -194,9 +194,9 @@ lemma "\<exists>A. a \<notin> A"
   by force
 
 lemma "(\<forall>u v. u < (0::int) \<longrightarrow> u \<noteq> abs v)
-    \<longrightarrow> (\<exists>A::int set. (\<forall>y. abs y \<notin> A) \<and> -2 \<in> A)"
-  -- {* Example 8 now needs a small hint. *}
-  by (simp add: abs_if, force)
+    \<longrightarrow> (\<exists>A::int set. -2 \<in> A & (\<forall>y. abs y \<notin> A))"
+  -- {* Example 8 needs a small hint. *}
+  by force
     -- {* not @{text blast}, which can't simplify @{text "-2 < 0"} *}
 
 text {* Example 9 omitted (requires the reals). *}

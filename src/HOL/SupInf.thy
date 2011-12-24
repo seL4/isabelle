@@ -356,7 +356,7 @@ by auto (metis Inf_insert_nonempty z)
 lemma Inf_greater:
   fixes z :: real
   shows "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
-  by (metis Inf_real_iff mem_def not_leE)
+  by (metis Inf_real_iff not_leE)
 
 lemma Inf_close:
   fixes e :: real

@@ -6,7 +6,7 @@
 header {* Standardization *}
 
 theory Standardization
-imports Nominal
+imports "../Nominal"
 begin
 
 text {*
@@ -426,11 +426,7 @@ declare listrel_mono [mono_set]
 lemma listrelp_eqvt [eqvt]:
   assumes xy: "listrelp f (x::'a::pt_name list) y"
   shows "listrelp ((pi::name prm) \<bullet> f) (pi \<bullet> x) (pi \<bullet> y)" using xy
-  apply induct
-   apply (simp add: listrelp.intros)
-  apply simp
-  apply (metis listrelp.Cons in_eqvt mem_def perm_app pt_set_bij3)
-  done
+  by induct (simp_all add: listrelp.intros perm_app [symmetric])
 
 inductive
   sred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>s" 50)

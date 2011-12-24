@@ -76,8 +76,7 @@ proof -
   from assms have "\<exists>X. X \<in> S" and "\<exists>Y. \<forall>x\<in>S. x \<le> Y"
     unfolding isUb_def setle_def by simp_all
   from complete_real [OF this] show ?thesis
-    unfolding isLub_def leastP_def setle_def setge_def Ball_def
-      Collect_def mem_def isUb_def UNIV_def by simp
+    by (simp add: isLub_def leastP_def isUb_def setle_def setge_def)
 qed
 
 
