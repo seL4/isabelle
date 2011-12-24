@@ -283,8 +283,8 @@ fun add_pconst_to_table also_skolem (s, p) =
    by treating them more or less as if they were built-in but add their
    definition at the end. *)
 val set_consts =
-  [(@{const_name Collect}, @{thms Collect_def}),
-   (@{const_name Set.member}, @{thms mem_def})]
+  [(@{const_name Collect}, []),
+   (@{const_name Set.member}, [])]
 
 val is_set_const = AList.defined (op =) set_consts
 
