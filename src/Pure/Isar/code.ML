@@ -13,10 +13,7 @@ sig
   val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> string
   val string_of_const: theory -> string -> string
-  val cert_signature: theory -> typ -> typ
-  val read_signature: theory -> string -> typ
   val const_typ: theory -> string -> typ
-  val subst_signatures: theory -> term -> term
   val args_number: theory -> string -> int
 
   (*constructor sets*)
@@ -41,10 +38,6 @@ sig
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
-  val add_type: string -> theory -> theory
-  val add_type_cmd: string -> theory -> theory
-  val add_signature: string * typ -> theory -> theory
-  val add_signature_cmd: string * string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
   val datatype_interpretation:
@@ -184,7 +177,6 @@ fun associated_abstype (Abstr (_, tyco)) = SOME tyco
 
 datatype spec = Spec of {
   history_concluded: bool,
-  signatures: int Symtab.table * typ Symtab.table,
   functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
     (*with explicit history*),
   types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
@@ -192,19 +184,16 @@ datatype spec = Spec of {
   cases: ((int * (int * string list)) * thm) Symtab.table * unit Symtab.table
 };
 
-fun make_spec (history_concluded, ((signatures, functions), (types, cases))) =
-  Spec { history_concluded = history_concluded,
-    signatures = signatures, functions = functions, types = types, cases = cases };
-fun map_spec f (Spec { history_concluded = history_concluded, signatures = signatures,
+fun make_spec (history_concluded, (functions, (types, cases))) =
+  Spec { history_concluded = history_concluded, functions = functions, types = types, cases = cases };
+fun map_spec f (Spec { history_concluded = history_concluded,
   functions = functions, types = types, cases = cases }) =
-  make_spec (f (history_concluded, ((signatures, functions), (types, cases))));
-fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), functions = functions1,
+  make_spec (f (history_concluded, (functions, (types, cases))));
+fun merge_spec (Spec { history_concluded = _, functions = functions1,
     types = types1, cases = (cases1, undefs1) },
-  Spec { history_concluded = _, signatures = (tycos2, sigs2), functions = functions2,
+  Spec { history_concluded = _, functions = functions2,
     types = types2, cases = (cases2, undefs2) }) =
   let
-    val signatures = (Symtab.merge (op =) (tycos1, tycos2),
-      Symtab.merge typ_equiv (sigs1, sigs2));
     val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
     val case_consts_of' = (maps case_consts_of o map (snd o snd o hd o snd) o Symtab.dest);
     fun merge_functions ((_, history1), (_, history2)) =
@@ -223,16 +212,14 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
       |> fold (fn c => Symtab.map_entry c (apfst (K (true, empty_fun_spec)))) all_constructors;
     val cases = (Symtab.merge (K true) (cases1, cases2)
       |> fold Symtab.delete invalidated_case_consts, Symtab.merge (K true) (undefs1, undefs2));
-  in make_spec (false, ((signatures, functions), (types, cases))) end;
+  in make_spec (false, (functions, (types, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
-fun the_signatures (Spec { signatures, ... }) = signatures;
 fun the_functions (Spec { functions, ... }) = functions;
 fun the_types (Spec { types, ... }) = types;
 fun the_cases (Spec { cases, ... }) = cases;
 val map_history_concluded = map_spec o apfst;
-val map_signatures = map_spec o apsnd o apfst o apfst;
-val map_functions = map_spec o apsnd o apfst o apsnd;
+val map_functions = map_spec o apsnd o apfst;
 val map_typs = map_spec o apsnd o apsnd o apfst;
 val map_cases = map_spec o apsnd o apsnd o apsnd;
 
@@ -277,7 +264,7 @@ fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory_ref) 
 structure Code_Data = Theory_Data
 (
   type T = spec * (data * theory_ref) option Synchronized.var;
-  val empty = (make_spec (false, (((Symtab.empty, Symtab.empty), Symtab.empty),
+  val empty = (make_spec (false, (Symtab.empty,
     (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
   val extend = I  (* FIXME empty_dataref!?! *)
   fun merge ((spec1, _), (spec2, _)) =
@@ -344,56 +331,14 @@ end; (*local*)
 
 (* constants *)
 
-fun arity_number thy tyco = case Symtab.lookup ((fst o the_signatures o the_exec) thy) tyco
- of SOME n => n
-  | NONE => Sign.arity_number thy tyco;
-
-fun build_tsig thy =
-  let
-    val ctxt = Syntax.init_pretty_global thy;
-    val (tycos, _) = the_signatures (the_exec thy);
-    val decls = #types (Type.rep_tsig (Sign.tsig_of thy))
-      |> snd 
-      |> Symtab.fold (fn (tyco, n) =>
-          Symtab.update (tyco, Type.LogicalType n)) tycos;
-  in
-    Type.empty_tsig
-    |> Symtab.fold (fn (tyco, Type.LogicalType n) => Type.add_type ctxt Name_Space.default_naming
-        (Binding.qualified_name tyco, n) | _ => I) decls
-  end;
-
-fun cert_signature thy =
-  Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
-
-fun read_signature thy =
-  cert_signature thy o Type.strip_sorts o Syntax.parse_typ (Proof_Context.init_global thy);
-
-fun expand_signature thy = Type.cert_typ_mode Type.mode_syntax (Sign.tsig_of thy);
-
-fun lookup_typ thy = Symtab.lookup ((snd o the_signatures o the_exec) thy);
-
-fun const_typ thy c = case lookup_typ thy c
- of SOME ty => ty
-  | NONE => (Type.strip_sorts o Sign.the_const_type thy) c;
+fun const_typ thy = Type.strip_sorts o Sign.the_const_type thy;
 
 fun args_number thy = length o binder_types o const_typ thy;
-
-fun subst_signature thy c ty =
-  let
-    fun mk_subst (Type (_, tys1)) (Type (_, tys2)) =
-          fold2 mk_subst tys1 tys2
-      | mk_subst ty (TVar (v, _)) = Vartab.update (v, ([], ty))
-  in case lookup_typ thy c
-   of SOME ty' => Envir.subst_type (mk_subst ty (expand_signature thy ty') Vartab.empty) ty'
-    | NONE => ty
-  end;
-
-fun subst_signatures thy = map_aterms (fn Const (c, ty) => Const (c, subst_signature thy c ty) | t => t);
 
 fun logical_typscheme thy (c, ty) =
   (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
 
-fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
+fun typscheme thy (c, ty) = logical_typscheme thy (c, ty);
 
 
 (* datatypes *)
@@ -401,10 +346,9 @@ fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
 fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of_const thy c
   ^ " :: " ^ string_of_typ thy ty ^ "\n" ^ enclose "(" ")" s);
 
-fun analyze_constructor thy (c, raw_ty) =
+fun analyze_constructor thy (c, ty) =
   let
-    val _ = Thm.cterm_of thy (Const (c, raw_ty));
-    val ty = subst_signature thy c raw_ty;
+    val _ = Thm.cterm_of thy (Const (c, ty));
     val ty_decl = Logic.unvarifyT_global (const_typ thy c);
     fun last_typ c_ty ty =
       let
@@ -453,7 +397,7 @@ fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) 
 
 fun get_type thy tyco = case get_type_entry thy tyco
  of SOME (vs, spec) => apfst (pair vs) (constructors_of spec)
-  | NONE => arity_number thy tyco
+  | NONE => Sign.arity_number thy tyco
       |> Name.invent Name.context Name.aT
       |> map (rpair [])
       |> rpair []
@@ -537,7 +481,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       | check n (Const (c_ty as (c, ty))) =
           if allow_pats then let
             val c' = AxClass.unoverload_const thy c_ty
-          in if n = (length o binder_types o subst_signature thy c') ty
+          in if n = (length o binder_types) ty
             then if allow_consts orelse is_constr thy c'
               then ()
               else bad (quote c ^ " is not a constructor, on left hand side of equation")
@@ -747,14 +691,14 @@ fun concretify_abs thy tyco abs_thm =
 
 fun add_rhss_of_eqn thy t =
   let
-    val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy) t;
+    val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals) t;
     fun add_const (Const (c, ty)) = insert (op =) (c, Sign.const_typargs thy (c, ty))
       | add_const _ = I
     val add_consts = fold_aterms add_const
   in add_consts rhs o fold add_consts args end;
 
 fun dest_eqn thy =
-  apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy o Logic.unvarify_global;
+  apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify_global;
 
 abstype cert = Equations of thm * bool list
   | Projection of term * string
@@ -1043,34 +987,6 @@ fun print_codesetup thy =
 
 
 (** declaring executable ingredients **)
-
-(* constant signatures *)
-
-fun add_type tyco thy =
-  case Symtab.lookup ((snd o #types o Type.rep_tsig o Sign.tsig_of) thy) tyco
-   of SOME (Type.Abbreviation (vs, _, _)) =>
-          (map_exec_purge o map_signatures o apfst)
-            (Symtab.update (tyco, length vs)) thy
-    | _ => error ("No such type abbreviation: " ^ quote tyco);
-
-fun add_type_cmd s thy = add_type (Sign.intern_type thy s) thy;
-
-fun gen_add_signature prep_const prep_signature (raw_c, raw_ty) thy =
-  let
-    val c = prep_const thy raw_c;
-    val ty = prep_signature thy raw_ty;
-    val ty' = expand_signature thy ty;
-    val ty'' = Sign.the_const_type thy c;
-    val _ = if typ_equiv (ty', ty'') then () else
-      error ("Illegal constant signature: " ^ Syntax.string_of_typ_global thy ty);
-  in
-    thy
-    |> (map_exec_purge o map_signatures o apsnd) (Symtab.update (c, ty))
-  end;
-
-val add_signature = gen_add_signature (K I) cert_signature;
-val add_signature_cmd = gen_add_signature read_const read_signature;
-
 
 (* code equations *)
 

@@ -926,7 +926,7 @@ fun ensure_value thy algbr eqngr t =
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
-    val t' = annotate thy algbr eqngr (Term.dummy_patternN, ty) [] (Code.subst_signatures thy t) 
+    val t' = annotate thy algbr eqngr (Term.dummy_patternN, ty) [] t;
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr false) vs
       ##>> translate_typ thy algbr eqngr false ty
