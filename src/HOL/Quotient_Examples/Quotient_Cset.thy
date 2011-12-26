@@ -5,7 +5,7 @@
 header {* A variant of theory Cset from Library, defined as a quotient *}
 
 theory Quotient_Cset
-imports "~~/src/HOL/Library/More_Set" "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Quotient_Syntax"
+imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
 subsection {* Lifting *}

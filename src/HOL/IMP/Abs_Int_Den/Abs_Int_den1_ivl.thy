@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int_den1_ivl
-imports Abs_Int_den1 "~~/src/HOL/Library/More_Set"
+imports Abs_Int_den1
 begin
 
 subsection "Interval Analysis"

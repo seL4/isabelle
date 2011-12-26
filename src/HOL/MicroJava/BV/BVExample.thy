@@ -9,7 +9,6 @@ imports
   "../JVM/JVMListExample"
   BVSpecTypeSafe
   JVM
-  "~~/src/HOL/Library/More_Set"
 begin
 
 text {*

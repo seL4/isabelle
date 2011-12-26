@@ -5,7 +5,7 @@
 header {* Implementation of Association Lists *}
 
 theory AList_Impl
-imports Main More_List
+imports Main
 begin
 
 text {*
