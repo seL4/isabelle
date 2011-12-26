@@ -103,13 +103,13 @@ abbreviation UNIV :: "'a Cset.set" where "UNIV \<equiv> top"
 hide_const (open) UNIV
 
 definition is_empty :: "'a Cset.set \<Rightarrow> bool" where
-  [simp]: "is_empty A \<longleftrightarrow> More_Set.is_empty (set_of A)"
+  [simp]: "is_empty A \<longleftrightarrow> Set.is_empty (set_of A)"
 
 definition insert :: "'a \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set" where
   [simp]: "insert x A = Set (Set.insert x (set_of A))"
 
 definition remove :: "'a \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set" where
-  [simp]: "remove x A = Set (More_Set.remove x (set_of A))"
+  [simp]: "remove x A = Set (Set.remove x (set_of A))"
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a Cset.set \<Rightarrow> 'b Cset.set" where
   [simp]: "map f A = Set (image f (set_of A))"
@@ -118,7 +118,7 @@ enriched_type map: map
   by (simp_all add: fun_eq_iff image_compose)
 
 definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set" where
-  [simp]: "filter P A = Set (More_Set.project P (set_of A))"
+  [simp]: "filter P A = Set (Set.project P (set_of A))"
 
 definition forall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Cset.set \<Rightarrow> bool" where
   [simp]: "forall P A \<longleftrightarrow> Ball (set_of A) P"
@@ -182,17 +182,17 @@ lemma UNIV_simp [simp]: "member Cset.UNIV = top"
 
 lemma is_empty_simp [simp]:
   "is_empty A \<longleftrightarrow> set_of A = {}"
-  by (simp add: More_Set.is_empty_def)
+  by (simp add: Set.is_empty_def)
 declare is_empty_def [simp del]
 
 lemma remove_simp [simp]:
   "remove x A = Set (set_of A - {x})"
-  by (simp add: More_Set.remove_def)
+  by (simp add: Set.remove_def)
 declare remove_def [simp del]
 
 lemma filter_simp [simp]:
   "filter P A = Set {x \<in> set_of A. P x}"
-  by (simp add: More_Set.project_def)
+  by (simp add: Set.project_def)
 declare filter_def [simp del]
 
 lemma set_of_set [simp]:
@@ -297,18 +297,18 @@ lemma inter_project:
 proof -
   show "inf A (Cset.set xs) = Cset.set (List.filter (member A) xs)"
     by (simp add: inter project_def Cset.set_def member_def)
-  have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of)"
-    by (simp add: fun_eq_iff More_Set.remove_def)
-  have "set_of \<circ> fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of) xs =
-    fold More_Set.remove xs \<circ> set_of"
+  have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of)"
+    by (simp add: fun_eq_iff Set.remove_def)
+  have "set_of \<circ> fold (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of) xs =
+    fold Set.remove xs \<circ> set_of"
     by (rule fold_commute) (simp add: fun_eq_iff)
-  then have "fold More_Set.remove xs (set_of A) = 
-    set_of (fold (\<lambda>x. Set \<circ> More_Set.remove x \<circ> set_of) xs A)"
+  then have "fold Set.remove xs (set_of A) = 
+    set_of (fold (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of) xs A)"
     by (simp add: fun_eq_iff)
   then have "inf A (Cset.coset xs) = fold Cset.remove xs A"
     by (simp add: Diff_eq [symmetric] minus_set *)
   moreover have "\<And>x y :: 'a. Cset.remove y \<circ> Cset.remove x = Cset.remove x \<circ> Cset.remove y"
-    by (auto simp add: More_Set.remove_def *)
+    by (auto simp add: Set.remove_def *)
   ultimately show "inf A (Cset.coset xs) = foldr Cset.remove xs A"
     by (simp add: foldr_fold)
 qed

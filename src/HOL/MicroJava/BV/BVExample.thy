@@ -451,11 +451,11 @@ proof -
 qed
 
 lemma [code]:
-  "iter f step ss w = while (\<lambda>(ss, w). \<not> More_Set.is_empty w)
+  "iter f step ss w = while (\<lambda>(ss, w). \<not> Set.is_empty w)
     (\<lambda>(ss, w).
         let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
     (ss, w)"
-  unfolding iter_def More_Set.is_empty_def some_elem_def ..
+  unfolding iter_def Set.is_empty_def some_elem_def ..
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
@@ -468,14 +468,6 @@ lemma JVM_sup_unfold [code]:
 
 lemmas [code] = JType.sup_def [unfolded exec_lub_def] JVM_le_unfold
 lemmas [code] = lesub_def plussub_def
-
-setup {*
-  Code.add_signature_cmd ("More_Set.is_empty", "'a set \<Rightarrow> bool")
-  #> Code.add_signature_cmd ("propa", "('s \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set") 
-  #> Code.add_signature_cmd 
-     ("iter", "('s \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list) \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set")
-  #> Code.add_signature_cmd ("unstables", "('s \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list) \<Rightarrow> 's list \<Rightarrow> nat set") 
-*}
 
 lemmas [code] =
   JType.sup_def [unfolded exec_lub_def]

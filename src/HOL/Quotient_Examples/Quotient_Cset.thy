@@ -24,11 +24,11 @@ subsection {* Operations *}
 lemma [quot_respect]:
   "(op = ===> set_eq ===> op =) (op \<in>) (op \<in>)"
   "(op = ===> set_eq) Collect Collect"
-  "(set_eq ===> op =) More_Set.is_empty More_Set.is_empty"
+  "(set_eq ===> op =) Set.is_empty Set.is_empty"
   "(op = ===> set_eq ===> set_eq) Set.insert Set.insert"
-  "(op = ===> set_eq ===> set_eq) More_Set.remove More_Set.remove"
+  "(op = ===> set_eq ===> set_eq) Set.remove Set.remove"
   "(op = ===> set_eq ===> set_eq) image image"
-  "(op = ===> set_eq ===> set_eq) More_Set.project More_Set.project"
+  "(op = ===> set_eq ===> set_eq) Set.project Set.project"
   "(set_eq ===> op =) Ball Ball"
   "(set_eq ===> op =) Bex Bex"
   "(set_eq ===> op =) Finite_Set.card Finite_Set.card"
@@ -51,15 +51,15 @@ is "op \<in>"
 quotient_definition "Set :: ('a => bool) => 'a Quotient_Cset.set"
 is Collect
 quotient_definition is_empty where "is_empty :: 'a Quotient_Cset.set \<Rightarrow> bool"
-is More_Set.is_empty
+is Set.is_empty
 quotient_definition insert where "insert :: 'a \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
 is Set.insert
 quotient_definition remove where "remove :: 'a \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is More_Set.remove
+is Set.remove
 quotient_definition map where "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'b Quotient_Cset.set"
 is image
 quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a Quotient_Cset.set \<Rightarrow> 'a Quotient_Cset.set"
-is More_Set.project
+is Set.project
 quotient_definition "forall :: 'a Quotient_Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 is Ball
 quotient_definition "exists :: 'a Quotient_Cset.set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"

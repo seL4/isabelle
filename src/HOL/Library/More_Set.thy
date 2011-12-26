@@ -7,57 +7,31 @@ theory More_Set
 imports Main More_List
 begin
 
-subsection {* Various additional set functions *}
-
-definition is_empty :: "'a set \<Rightarrow> bool" where
-  "is_empty A \<longleftrightarrow> A = {}"
-
-hide_const (open) is_empty
-
-definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "remove x A = A - {x}"
-
-hide_const (open) remove
-
 lemma comp_fun_idem_remove:
-  "comp_fun_idem More_Set.remove"
+  "comp_fun_idem Set.remove"
 proof -
-  have rem: "More_Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
+  have rem: "Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
   show ?thesis by (simp only: comp_fun_idem_remove rem)
 qed
 
 lemma minus_fold_remove:
   assumes "finite A"
-  shows "B - A = Finite_Set.fold More_Set.remove B A"
+  shows "B - A = Finite_Set.fold Set.remove B A"
 proof -
-  have rem: "More_Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
+  have rem: "Set.remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
   show ?thesis by (simp only: rem assms minus_fold_remove)
 qed
 
-definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "project P A = {a \<in> A. P a}"
-
-hide_const (open) project
-
 lemma bounded_Collect_code [code_unfold_post]:
-  "{x \<in> A. P x} = More_Set.project P A"
+  "{x \<in> A. P x} = Set.project P A"
   by (simp add: project_def)
-
-definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
-  "product A B = Sigma A (\<lambda>_. B)"
-
-hide_const (open) product
-
-lemma [code_unfold_post]:
-  "Sigma A (\<lambda>_. B) = More_Set.product A B"
-  by (simp add: product_def)
 
 
 subsection {* Basic set operations *}
 
 lemma is_empty_set:
-  "More_Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
-  by (simp add: is_empty_def null_def)
+  "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
+  by (simp add: Set.is_empty_def null_def)
 
 lemma empty_set:
   "{} = set []"
@@ -68,7 +42,7 @@ lemma insert_set_compl:
   by auto
 
 lemma remove_set_compl:
-  "More_Set.remove x (- set xs) = - set (List.insert x xs)"
+  "Set.remove x (- set xs) = - set (List.insert x xs)"
   by (auto simp add: remove_def List.insert_def)
 
 lemma image_set:
@@ -76,7 +50,7 @@ lemma image_set:
   by simp
 
 lemma project_set:
-  "More_Set.project P (set xs) = set (filter P xs)"
+  "Set.project P (set xs) = set (filter P xs)"
   by (auto simp add: project_def)
 
 
@@ -99,18 +73,18 @@ proof -
 qed
 
 lemma minus_set:
-  "A - set xs = fold More_Set.remove xs A"
+  "A - set xs = fold Set.remove xs A"
 proof -
-  interpret comp_fun_idem More_Set.remove
+  interpret comp_fun_idem Set.remove
     by (fact comp_fun_idem_remove)
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set)
 qed
 
 lemma minus_set_foldr:
-  "A - set xs = foldr More_Set.remove xs A"
+  "A - set xs = foldr Set.remove xs A"
 proof -
-  have "\<And>x y :: 'a. More_Set.remove y \<circ> More_Set.remove x = More_Set.remove x \<circ> More_Set.remove y"
+  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
     by (auto simp add: remove_def)
   then show ?thesis by (simp add: minus_set foldr_fold)
 qed
@@ -135,15 +109,15 @@ lemma set_eq:
   by (fact eq_iff)
 
 lemma inter:
-  "A \<inter> B = More_Set.project (\<lambda>x. x \<in> A) B"
+  "A \<inter> B = Set.project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
 
 
 subsection {* Theorems on relations *}
 
 lemma product_code:
-  "More_Set.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
-  by (auto simp add: product_def)
+  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: Product_Type.product_def)
 
 lemma Id_on_set:
   "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
@@ -177,8 +151,8 @@ lemma [code]:
   by (simp_all add: member_def)
 
 lemma [code_unfold]:
-  "A = {} \<longleftrightarrow> More_Set.is_empty A"
-  by (simp add: is_empty_def)
+  "A = {} \<longleftrightarrow> Set.is_empty A"
+  by (simp add: Set.is_empty_def)
 
 declare empty_set [code]
 
@@ -194,8 +168,8 @@ lemma insert_code [code]:
   by simp_all
 
 lemma remove_code [code]:
-  "More_Set.remove x (set xs) = set (removeAll x xs)"
-  "More_Set.remove x (coset xs) = coset (List.insert x xs)"
+  "Set.remove x (set xs) = set (removeAll x xs)"
+  "Set.remove x (coset xs) = coset (List.insert x xs)"
   by (simp_all add: remove_def Compl_insert)
 
 declare image_set [code]
@@ -221,17 +195,6 @@ qed
 
 subsection {* Derived operations *}
 
-instantiation set :: (equal) equal
-begin
-
-definition
-  "HOL.equal A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-
-instance proof
-qed (auto simp add: equal_set_def)
-
-end
-
 declare subset_eq [code]
 
 declare subset [code]
@@ -241,11 +204,11 @@ subsection {* Functorial operations *}
 
 lemma inter_code [code]:
   "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
-  "A \<inter> coset xs = foldr More_Set.remove xs A"
+  "A \<inter> coset xs = foldr Set.remove xs A"
   by (simp add: inter project_def) (simp add: Diff_eq [symmetric] minus_set_foldr)
 
 lemma subtract_code [code]:
-  "A - set xs = foldr More_Set.remove xs A"
+  "A - set xs = foldr Set.remove xs A"
   "A - coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
   by (auto simp add: minus_set_foldr)
 

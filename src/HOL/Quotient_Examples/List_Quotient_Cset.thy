@@ -75,7 +75,7 @@ lemma remove_set [code]:
   "Quotient_Cset.remove x (coset xs) = coset (List.insert x xs)"
 unfolding coset_def
 apply descending
-apply (simp add: More_Set.remove_def)
+apply (simp add: Set.remove_def)
 apply descending
 by (simp add: remove_set_compl)
 

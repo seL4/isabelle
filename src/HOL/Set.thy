@@ -1791,6 +1791,34 @@ definition bind :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow>
 hide_const (open) bind
 
 
+subsubsection {* Operations for execution *}
+
+definition is_empty :: "'a set \<Rightarrow> bool" where
+  "is_empty A \<longleftrightarrow> A = {}"
+
+hide_const (open) is_empty
+
+definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "remove x A = A - {x}"
+
+hide_const (open) remove
+
+definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "project P A = {a \<in> A. P a}"
+
+hide_const (open) project
+
+instantiation set :: (equal) equal
+begin
+
+definition
+  "HOL.equal A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+
+instance proof
+qed (auto simp add: equal_set_def)
+
+end
+
 text {* Misc *}
 
 hide_const (open) member not_member

@@ -877,11 +877,11 @@ text {*
   Disjoint union of a family of sets -- Sigma.
 *}
 
-definition Sigma :: "['a set, 'a => 'b set] => ('a \<times> 'b) set" where
+definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set" where
   Sigma_def: "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
-  Times :: "['a set, 'b set] => ('a * 'b) set"
+  Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"
     (infixr "<*>" 80) where
   "A <*> B == Sigma A (%_. B)"
 
@@ -892,6 +892,15 @@ notation (HTML output)
   Times  (infixr "\<times>" 80)
 
 hide_const (open) Times
+
+definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
+  "product A B = Sigma A (\<lambda>_. B)"
+
+hide_const (open) product
+
+lemma [code_unfold_post]:
+  "Sigma A (\<lambda>_. B) = Product_Type.product A B"
+  by (simp add: product_def)
 
 syntax
   "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
