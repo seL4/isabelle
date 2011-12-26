@@ -447,7 +447,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Cset.thy Library/Cset_Monad.thy Library/Continuity.thy	\
   Library/Convex.thy Library/Countable.thy				\
   Library/Dlist.thy Library/Dlist_Cset.thy Library/Efficient_Nat.thy	\
-  Library/Eval_Witness.thy Library/Executable_Set.thy			\
+  Library/Eval_Witness.thy						\
   Library/Extended_Real.thy Library/Extended_Nat.thy Library/Float.thy	\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
@@ -963,7 +963,7 @@ $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
 
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
-$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL Library/Executable_Set.thy		\
+$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL					\
   MicroJava/ROOT.ML MicroJava/Comp/AuxLemmas.thy			\
   MicroJava/Comp/CorrComp.thy MicroJava/Comp/CorrCompTp.thy		\
   MicroJava/Comp/DefsComp.thy MicroJava/Comp/Index.thy			\
