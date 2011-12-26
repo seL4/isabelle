@@ -857,6 +857,23 @@ next
   qed
 qed
 
+lemma fold_multiset_equiv:
+  assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+    and equiv: "multiset_of xs = multiset_of ys"
+  shows "fold f xs = fold f ys"
+using f equiv [symmetric] proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  then have *: "set ys = set (x # xs)" by (blast dest: multiset_of_eq_setD)
+  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x" 
+    by (rule Cons.prems(1)) (simp_all add: *)
+  moreover from * have "x \<in> set ys" by simp
+  ultimately have "fold f ys = fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
+  moreover from Cons.prems have "fold f xs = fold f (remove1 x ys)" by (auto intro: Cons.hyps)
+  ultimately show ?case by simp
+qed
+
 context linorder
 begin
 
