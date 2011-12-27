@@ -115,8 +115,6 @@ definition word_reverse :: "'a :: len0 word => 'a word" where
 definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
   "word_int_case f w = f (uint w)"
 
-syntax
-  of_int :: "int => 'a"
 translations
   "case x of CONST of_int y => b" == "CONST word_int_case (%y. b) x"
 
