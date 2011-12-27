@@ -132,14 +132,14 @@ lemma bin_to_bl_aux_alt:
   "bin_to_bl_aux n w bs = bin_to_bl n w @ bs" 
   unfolding bin_to_bl_def by (simp add : bin_to_bl_aux_append)
 
-lemma bin_to_bl_0: "bin_to_bl 0 bs = []"
+lemma bin_to_bl_0 [simp]: "bin_to_bl 0 bs = []"
   unfolding bin_to_bl_def by auto
 
 lemma size_bin_to_bl_aux: 
   "size (bin_to_bl_aux n w bs) = n + length bs"
   by (induct n arbitrary: w bs) auto
 
-lemma size_bin_to_bl: "size (bin_to_bl n w) = n" 
+lemma size_bin_to_bl [simp]: "size (bin_to_bl n w) = n" 
   unfolding bin_to_bl_def by (simp add : size_bin_to_bl_aux)
 
 lemma bin_bl_bin': 
@@ -147,7 +147,7 @@ lemma bin_bl_bin':
     bl_to_bin_aux bs (bintrunc n w)"
   by (induct n arbitrary: w bs) (auto simp add : bl_to_bin_def)
 
-lemma bin_bl_bin: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
+lemma bin_bl_bin [simp]: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
   unfolding bin_to_bl_def bin_bl_bin' by auto
 
 lemma bl_bin_bl':
@@ -159,7 +159,7 @@ lemma bl_bin_bl':
     apply (auto simp add : bin_to_bl_def)
   done
 
-lemma bl_bin_bl: "bin_to_bl (length bs) (bl_to_bin bs) = bs"
+lemma bl_bin_bl [simp]: "bin_to_bl (length bs) (bl_to_bin bs) = bs"
   unfolding bl_to_bin_def
   apply (rule box_equals)
     apply (rule bl_bin_bl')
@@ -168,12 +168,6 @@ lemma bl_bin_bl: "bin_to_bl (length bs) (bl_to_bin bs) = bs"
   apply simp
   done
   
-declare 
-  bin_to_bl_0 [simp] 
-  size_bin_to_bl [simp] 
-  bin_bl_bin [simp] 
-  bl_bin_bl [simp]
-
 lemma bl_to_bin_inj:
   "bl_to_bin bs = bl_to_bin cs ==> length bs = length cs ==> bs = cs"
   apply (rule_tac box_equals)
@@ -183,10 +177,10 @@ lemma bl_to_bin_inj:
   apply simp
   done
 
-lemma bl_to_bin_False: "bl_to_bin (False # bl) = bl_to_bin bl"
+lemma bl_to_bin_False [simp]: "bl_to_bin (False # bl) = bl_to_bin bl"
   unfolding bl_to_bin_def by (auto simp: BIT_simps)
-  
-lemma bl_to_bin_Nil: "bl_to_bin [] = Int.Pls"
+
+lemma bl_to_bin_Nil [simp]: "bl_to_bin [] = Int.Pls"
   unfolding bl_to_bin_def by auto
 
 lemma bin_to_bl_Pls_aux: 
@@ -209,14 +203,9 @@ lemma bl_to_bin_rep_F:
   apply (simp add: bl_to_bin_def)
   done
 
-lemma bin_to_bl_trunc:
+lemma bin_to_bl_trunc [simp]:
   "n <= m ==> bin_to_bl n (bintrunc m w) = bin_to_bl n w"
   by (auto intro: bl_to_bin_inj)
-
-declare 
-  bin_to_bl_trunc [simp] 
-  bl_to_bin_False [simp] 
-  bl_to_bin_Nil [simp]
 
 lemma bin_to_bl_aux_bintr [rule_format] :
   "ALL m bin bl. bin_to_bl_aux n (bintrunc m bin) bl = 
@@ -1035,8 +1024,6 @@ lemma bin_split_pred_simp [simp]:
   (let (w1, w2) = bin_split (number_of (Int.pred bin)) (bin_rest w)
    in (w1, w2 BIT bin_last w))" 
   by (simp only: nobm1 bin_split_minus_simp)
-
-declare bin_split_pred_simp [simp]
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux n m c bs =
