@@ -561,11 +561,6 @@ lemmas bintrunc_Pls_minus_I = bmsts(1)
 lemmas bintrunc_Min_minus_I = bmsts(2)
 lemmas bintrunc_BIT_minus_I = bmsts(3)
 
-lemma bintrunc_0_Min: "bintrunc 0 Int.Min = Int.Pls"
-  by (fact bintrunc.Z) (* FIXME: delete *)
-lemma bintrunc_0_BIT: "bintrunc 0 (w BIT b) = Int.Pls"
-  by (fact bintrunc.Z) (* FIXME: delete *)
-
 lemma bintrunc_Suc_lem:
   "bintrunc (Suc n) x = y ==> m = Suc n ==> bintrunc m x = y"
   by auto
