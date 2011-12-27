@@ -6,7 +6,7 @@ Type of finite sets.
 *)
 
 theory FSet
-imports "~~/src/HOL/Library/Quotient_List"
+imports "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Quotient_List"
 begin
 
 text {* 

@@ -215,38 +215,38 @@ instantiation sat :: (len) complete_lattice
 begin
 
 definition
-  "Inf (A :: 'a sat set) = fold min top A"
+  "Inf (A :: 'a sat set) = Finite_Set.fold min top A"
 
 definition
-  "Sup (A :: 'a sat set) = fold max bot A"
+  "Sup (A :: 'a sat set) = Finite_Set.fold max bot A"
 
 instance proof
   fix x :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume "x \<in> A"
-  ultimately have "fold min top A \<le> min x top" by (rule min_max.fold_inf_le_inf)
+  ultimately have "Finite_Set.fold min top A \<le> min x top" by (rule min_max.fold_inf_le_inf)
   then show "Inf A \<le> x" by (simp add: Inf_sat_def)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume z: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  ultimately have "min z top \<le> fold min top A" by (blast intro: min_max.inf_le_fold_inf)
+  ultimately have "min z top \<le> Finite_Set.fold min top A" by (blast intro: min_max.inf_le_fold_inf)
   then show "z \<le> Inf A" by (simp add: Inf_sat_def min_def)
 next
   fix x :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume "x \<in> A"
-  ultimately have "max x bot \<le> fold max bot A" by (rule min_max.sup_le_fold_sup)
+  ultimately have "max x bot \<le> Finite_Set.fold max bot A" by (rule min_max.sup_le_fold_sup)
   then show "x \<le> Sup A" by (simp add: Sup_sat_def)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume z: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  ultimately have "fold max bot A \<le> max z bot" by (blast intro: min_max.fold_sup_le_sup)
+  ultimately have "Finite_Set.fold max bot A \<le> max z bot" by (blast intro: min_max.fold_sup_le_sup)
   then show "Sup A \<le> z" by (simp add: Sup_sat_def max_def bot_unique)
 qed
 

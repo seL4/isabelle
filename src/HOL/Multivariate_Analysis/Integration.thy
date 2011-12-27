@@ -1814,7 +1814,7 @@ lemma monoidal_lifted[intro]: assumes "monoidal opp" shows "monoidal(lifted opp)
   unfolding monoidal_def forall_option neutral_lifted[OF assms] using monoidal_ac[OF assms] by auto
 
 definition "support opp f s = {x. x\<in>s \<and> f x \<noteq> neutral opp}"
-definition "fold' opp e s \<equiv> (if finite s then fold opp e s else e)"
+definition "fold' opp e s \<equiv> (if finite s then Finite_Set.fold opp e s else e)"
 definition "iterate opp s f \<equiv> fold' (\<lambda>x a. opp (f x) a) (neutral opp) (support opp f s)"
 
 lemma support_subset[intro]:"support opp f s \<subseteq> s" unfolding support_def by auto
