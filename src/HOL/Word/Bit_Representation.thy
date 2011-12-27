@@ -723,9 +723,9 @@ lemmas brdmods' [symmetric] =
   zmod_zsub_left_eq [where b = "1"]
 
 lemmas bintr_arith1s =
-  brdmod1s' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p] for n
+  brdmod1s' [where c="2^n::int", folded bintrunc_mod2p] for n
 lemmas bintr_ariths =
-  brdmods' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p] for n
+  brdmods' [where c="2^n::int", folded bintrunc_mod2p] for n
 
 lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
 

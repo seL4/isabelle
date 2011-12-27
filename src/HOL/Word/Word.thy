@@ -190,12 +190,12 @@ subsection  "Arithmetic operations"
 definition
   word_succ :: "'a :: len0 word => 'a word"
 where
-  "word_succ a = word_of_int (Int.succ (uint a))"
+  "word_succ a = word_of_int (uint a + 1)"
 
 definition
   word_pred :: "'a :: len0 word => 'a word"
 where
-  "word_pred a = word_of_int (Int.pred (uint a))"
+  "word_pred a = word_of_int (uint a - 1)"
 
 instantiation word :: (len0) "{number, Divides.div, comm_monoid_mult, comm_ring}"
 begin
@@ -239,8 +239,8 @@ lemma wi_homs:
   wi_hom_add: "word_of_int a + word_of_int b = word_of_int (a + b)" and
   wi_hom_mult: "word_of_int a * word_of_int b = word_of_int (a * b)" and
   wi_hom_neg: "- word_of_int a = word_of_int (- a)" and
-  wi_hom_succ: "word_succ (word_of_int a) = word_of_int (Int.succ a)" and
-  wi_hom_pred: "word_pred (word_of_int a) = word_of_int (Int.pred a)"
+  wi_hom_succ: "word_succ (word_of_int a) = word_of_int (a + 1)" and
+  wi_hom_pred: "word_pred (word_of_int a) = word_of_int (a - 1)"
   by (auto simp: word_arith_wis arths)
 
 lemmas wi_hom_syms = wi_homs [symmetric]
@@ -255,17 +255,17 @@ lemmas new_word_of_int_homs =
 lemmas new_word_of_int_hom_syms = new_word_of_int_homs [symmetric]
 
 lemmas word_of_int_hom_syms =
-  new_word_of_int_hom_syms [unfolded succ_def pred_def]
+  new_word_of_int_hom_syms (* FIXME: duplicate *)
 
 lemmas word_of_int_homs =
-  new_word_of_int_homs [unfolded succ_def pred_def]
+  new_word_of_int_homs (* FIXME: duplicate *)
 
 (* FIXME: provide only one copy of these theorems! *)
 lemmas word_of_int_add_hom = wi_hom_add
 lemmas word_of_int_mult_hom = wi_hom_mult
 lemmas word_of_int_minus_hom = wi_hom_neg
-lemmas word_of_int_succ_hom = wi_hom_succ [unfolded succ_def]
-lemmas word_of_int_pred_hom = wi_hom_pred [unfolded pred_def]
+lemmas word_of_int_succ_hom = wi_hom_succ
+lemmas word_of_int_pred_hom = wi_hom_pred
 lemmas word_of_int_0_hom = word_0_wi
 lemmas word_of_int_1_hom = word_1_wi
 
@@ -1192,11 +1192,11 @@ lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
 (* now, to get the weaker results analogous to word_div/mod_def *)
 
 lemmas word_arith_alts = 
-  word_sub_wi [unfolded succ_def pred_def]
-  word_arith_wis [unfolded succ_def pred_def]
+  word_sub_wi
+  word_arith_wis (* FIXME: duplicate *)
 
-lemmas word_succ_alt = word_arith_alts (5)
-lemmas word_pred_alt = word_arith_alts (6)
+lemmas word_succ_alt = word_succ_def (* FIXME: duplicate *)
+lemmas word_pred_alt = word_pred_def (* FIXME: duplicate *)
 
 subsection  "Transferring goals from words to ints"
 
@@ -1209,7 +1209,7 @@ lemma word_ths:
   word_mult_succ: "word_succ a * b = b + a * b"
   by (rule word_uint.Abs_cases [of b],
       rule word_uint.Abs_cases [of a],
-      simp add: pred_def succ_def add_commute mult_commute 
+      simp add: add_commute mult_commute 
                 ring_distribs new_word_of_int_homs
            del: word_of_int_0 word_of_int_1)+
 
@@ -1242,7 +1242,8 @@ lemma word_m1_Min: "- 1 = word_of_int Int.Min"
 lemma succ_pred_no [simp]:
   "word_succ (number_of bin) = number_of (Int.succ bin) & 
     word_pred (number_of bin) = number_of (Int.pred bin)"
-  unfolding word_number_of_def by (simp add : new_word_of_int_homs)
+  unfolding word_number_of_def Int.succ_def Int.pred_def
+  by (simp add: new_word_of_int_homs)
 
 lemma word_sp_01 [simp] : 
   "word_succ -1 = 0 & word_succ 0 = 1 & word_pred 0 = -1 & word_pred 1 = 0"
@@ -1638,7 +1639,7 @@ lemma word_succ_rbl:
   apply (unfold word_succ_def)
   apply clarify
   apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_succ)
+  apply (simp add: to_bl_def rbl_succ Int.succ_def)
   done
 
 lemma word_pred_rbl:
@@ -1646,7 +1647,7 @@ lemma word_pred_rbl:
   apply (unfold word_pred_def)
   apply clarify
   apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_pred)
+  apply (simp add: to_bl_def rbl_pred Int.pred_def)
   done
 
 lemma word_add_rbl:
