@@ -326,28 +326,19 @@ lemma bin_sign_rest [simp]:
   by (cases w rule: bin_exhaust) auto
 
 primrec bintrunc :: "nat \<Rightarrow> int \<Rightarrow> int" where
-  Z : "bintrunc 0 bin = Int.Pls"
+  Z : "bintrunc 0 bin = 0"
 | Suc : "bintrunc (Suc n) bin = bintrunc n (bin_rest bin) BIT (bin_last bin)"
 
 primrec sbintrunc :: "nat => int => int" where
-  Z : "sbintrunc 0 bin = 
-    (case bin_last bin of (1::bit) => Int.Min | (0::bit) => Int.Pls)"
+  Z : "sbintrunc 0 bin = (case bin_last bin of (1::bit) \<Rightarrow> -1 | (0::bit) \<Rightarrow> 0)"
 | Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
 
-lemma [code]:
-  "sbintrunc 0 bin = 
-    (case bin_last bin of (1::bit) => - 1 | (0::bit) => 0)"
-  "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
-  apply simp_all
-  apply (simp only: Pls_def Min_def)
-  done
-
-lemma sign_bintr: "bin_sign (bintrunc n w) = Int.Pls"
+lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
   by (induct n arbitrary: w) auto
 
 lemma bintrunc_mod2p: "bintrunc n w = (w mod 2 ^ n)"
   apply (induct n arbitrary: w)
-  apply (simp add: Pls_def)
+  apply simp
   apply (simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq)
   done
 
@@ -356,10 +347,8 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
    apply clarsimp
    apply (subst mod_add_left_eq)
    apply (simp add: bin_last_def)
-   apply (simp add: number_of_eq)
-  apply (simp add: Pls_def)
-  apply (simp add: bin_last_def bin_rest_def Bit_def 
-              cong: number_of_False_cong)
+  apply simp
+  apply (simp add: bin_last_def bin_rest_def Bit_def)
   apply (clarsimp simp: mod_mult_mult1 [symmetric] 
          zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
   apply (rule trans [symmetric, OF _ emep1])
@@ -370,13 +359,13 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
 subsection "Simplifications for (s)bintrunc"
 
 lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
-  by (induct n) (auto simp add: Int.Pls_def)
+  by (induct n) auto
 
 lemma sbintrunc_n_0 [simp]: "sbintrunc n 0 = 0"
-  by (induct n) (auto simp add: Int.Pls_def)
+  by (induct n) auto
 
 lemma sbintrunc_n_minus1 [simp]: "sbintrunc n -1 = -1"
-  by (induct n) (auto, simp add: number_of_is_id)
+  by (induct n) auto
 
 lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) 1 = 1"
@@ -389,7 +378,7 @@ lemma sbintrunc_0_numeral [simp]:
   "sbintrunc 0 1 = -1"
   "sbintrunc 0 (number_of (Int.Bit0 w)) = 0"
   "sbintrunc 0 (number_of (Int.Bit1 w)) = -1"
-  by (simp_all, unfold Pls_def number_of_is_id, simp_all)
+  by simp_all
 
 lemma sbintrunc_Suc_numeral:
   "sbintrunc (Suc n) 1 = 1"
@@ -403,7 +392,7 @@ lemma bit_bool:
 
 lemmas bit_bool1 [simp] = refl [THEN bit_bool [THEN iffD1], symmetric]
 
-lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = Int.Min) = bin_nth bin n"
+lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bin_nth bin n"
   apply (induct n arbitrary: bin)
    apply (case_tac bin rule: bin_exhaust, case_tac b, auto)+
   done
@@ -516,10 +505,10 @@ lemmas sbintrunc_0_BIT_B1 [simp] =
   sbintrunc.Z [where bin="w BIT (1::bit)", 
                simplified bin_last_simps bin_rest_simps bit.simps] for w
 
-lemma sbintrunc_0_Bit0 [simp]: "sbintrunc 0 (Int.Bit0 w) = Int.Pls"
+lemma sbintrunc_0_Bit0 [simp]: "sbintrunc 0 (Int.Bit0 w) = 0"
   using sbintrunc_0_BIT_B0 by simp
 
-lemma sbintrunc_0_Bit1 [simp]: "sbintrunc 0 (Int.Bit1 w) = Int.Min"
+lemma sbintrunc_0_Bit1 [simp]: "sbintrunc 0 (Int.Bit1 w) = -1"
   using sbintrunc_0_BIT_B1 by simp
 
 lemmas sbintrunc_0_simps =
@@ -544,12 +533,12 @@ lemmas sbintrunc_minus_simps =
 
 lemma bintrunc_n_Pls [simp]:
   "bintrunc n Int.Pls = Int.Pls"
-  by (induct n) (auto simp: BIT_simps)
+  unfolding Pls_def by simp
 
 lemma sbintrunc_n_PM [simp]:
   "sbintrunc n Int.Pls = Int.Pls"
   "sbintrunc n Int.Min = Int.Min"
-  by (induct n) (auto simp: BIT_simps)
+  unfolding Pls_def Min_def by simp_all
 
 lemmas thobini1 = arg_cong [where f = "%w. w BIT b"] for b
 
@@ -823,7 +812,7 @@ lemmas rco_sbintr = sbintrunc_rest'
 subsection {* Splitting and concatenation *}
 
 primrec bin_split :: "nat \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  Z: "bin_split 0 w = (w, Int.Pls)"
+  Z: "bin_split 0 w = (w, 0)"
   | Suc: "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w)
         in (w1, w2 BIT bin_last w))"
 

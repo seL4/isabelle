@@ -471,11 +471,7 @@ lemmas bin_sc_Suc_pred [simp] =
 subsection {* Splitting and concatenation *}
 
 definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int" where
-  "bin_rcat n = foldl (%u v. bin_cat u n v) Int.Pls"
-
-lemma [code]:
   "bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0"
-  by (simp add: bin_rcat_def Pls_def)
 
 fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
   "bin_rsplit_aux n m c bs =
@@ -536,7 +532,7 @@ lemma bin_cat_assoc_sym:
   done
 
 lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
-  by (induct n arbitrary: w) (auto simp: Int.Pls_def)
+  by (induct n arbitrary: w) auto
 
 lemma bin_cat_Pls [simp]: "bin_cat Int.Pls n w = bintrunc n w"
   unfolding Pls_def by (rule bin_cat_zero)
@@ -570,7 +566,7 @@ lemma bin_split_cat:
   by (induct n arbitrary: w) auto
 
 lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
-  by (induct n) (auto simp: Int.Pls_def)
+  by (induct n) auto
 
 lemma bin_split_Pls [simp]:
   "bin_split n Int.Pls = (Int.Pls, Int.Pls)"
@@ -586,7 +582,7 @@ lemma bin_split_trunc:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: ls_splits)
   apply (case_tac m)
-   apply (auto simp: Let_def BIT_simps split: ls_splits)
+   apply (auto simp: Let_def split: ls_splits)
   done
 
 lemma bin_split_trunc1:
@@ -595,13 +591,13 @@ lemma bin_split_trunc1:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: ls_splits)
   apply (case_tac m)
-   apply (auto simp: Let_def BIT_simps split: ls_splits)
+   apply (auto simp: Let_def split: ls_splits)
   done
 
 lemma bin_cat_num:
   "bin_cat a n b = a * 2 ^ n + bintrunc n b"
   apply (induct n arbitrary: b, clarsimp)
-  apply (simp add: Bit_def cong: number_of_False_cong)
+  apply (simp add: Bit_def)
   done
 
 lemma bin_split_num:

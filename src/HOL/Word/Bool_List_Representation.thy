@@ -20,11 +20,7 @@ primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
       bl_to_bin_aux bs (w BIT (if b then 1 else 0))"
 
 definition bl_to_bin :: "bool list \<Rightarrow> int" where
-  bl_to_bin_def : "bl_to_bin bs = bl_to_bin_aux bs Int.Pls"
-
-lemma [code]:
-  "bl_to_bin bs = bl_to_bin_aux bs 0"
-  by (simp add: bl_to_bin_def Pls_def)
+  bl_to_bin_def: "bl_to_bin bs = bl_to_bin_aux bs 0"
 
 primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
   Z: "bin_to_bl_aux 0 w bl = bl"
@@ -88,6 +84,11 @@ primrec rbl_mult :: "bool list => bool list => bool list" where
 lemma butlast_power:
   "(butlast ^^ n) bl = take (length bl - n) bl"
   by (induct n) (auto simp: butlast_take)
+
+lemma bin_to_bl_aux_zero_minus_simp [simp]:
+  "0 < n \<Longrightarrow> bin_to_bl_aux n 0 bl = 
+    bin_to_bl_aux (n - 1) 0 (False # bl)"
+  by (cases n) auto
 
 lemma bin_to_bl_aux_Pls_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n Int.Pls bl = 
@@ -178,10 +179,14 @@ lemma bl_to_bin_inj:
   done
 
 lemma bl_to_bin_False [simp]: "bl_to_bin (False # bl) = bl_to_bin bl"
-  unfolding bl_to_bin_def by (auto simp: BIT_simps)
-
-lemma bl_to_bin_Nil [simp]: "bl_to_bin [] = Int.Pls"
   unfolding bl_to_bin_def by auto
+
+lemma bl_to_bin_Nil [simp]: "bl_to_bin [] = 0"
+  unfolding bl_to_bin_def by auto
+
+lemma bin_to_bl_zero_aux: 
+  "bin_to_bl_aux n 0 bl = replicate n False @ bl"
+  by (induct n arbitrary: bl) (auto simp: replicate_app_Cons_same)
 
 lemma bin_to_bl_Pls_aux: 
   "bin_to_bl_aux n Int.Pls bl = replicate n False @ bl"
@@ -199,7 +204,7 @@ lemma bin_to_bl_Min: "bin_to_bl n Int.Min = replicate n True"
 
 lemma bl_to_bin_rep_F: 
   "bl_to_bin (replicate n False @ bl) = bl_to_bin bl"
-  apply (simp add: bin_to_bl_Pls_aux [symmetric] bin_bl_bin')
+  apply (simp add: bin_to_bl_zero_aux [symmetric] bin_bl_bin')
   apply (simp add: bl_to_bin_def)
   done
 
@@ -214,7 +219,7 @@ lemma bin_to_bl_aux_bintr:
    apply clarsimp
   apply clarsimp
   apply (case_tac "m")
-   apply (clarsimp simp: bin_to_bl_Pls_aux) 
+   apply (clarsimp simp: bin_to_bl_zero_aux) 
    apply (erule thin_rl)
    apply (induct_tac n)   
     apply auto
@@ -225,7 +230,7 @@ lemma bin_to_bl_bintr:
     replicate (n - m) False @ bin_to_bl (min n m) bin"
   unfolding bin_to_bl_def by (rule bin_to_bl_aux_bintr)
 
-lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Int.Pls"
+lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = 0"
   by (induct n) auto
 
 lemma len_bin_to_bl_aux: 
@@ -239,12 +244,12 @@ lemma sign_bl_bin':
   "bin_sign (bl_to_bin_aux bs w) = bin_sign w"
   by (induct bs arbitrary: w) auto
   
-lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = Int.Pls"
+lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = 0"
   unfolding bl_to_bin_def by (simp add : sign_bl_bin')
   
 lemma bl_sbin_sign_aux: 
   "hd (bin_to_bl_aux (Suc n) w bs) = 
-    (bin_sign (sbintrunc n w) = Int.Min)"
+    (bin_sign (sbintrunc n w) = -1)"
   apply (induct n arbitrary: w bs)
    apply clarsimp
    apply (cases w rule: bin_exhaust)
@@ -253,7 +258,7 @@ lemma bl_sbin_sign_aux:
   done
     
 lemma bl_sbin_sign: 
-  "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = Int.Min)"
+  "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = -1)"
   unfolding bin_to_bl_def by (rule bl_sbin_sign_aux)
 
 lemma bin_nth_of_bl_aux:
@@ -654,7 +659,7 @@ lemma bin_to_bl_aux_cat:
 
 lemma bl_to_bin_aux_alt:
   "bl_to_bin_aux bs w = bin_cat w (length bs) (bl_to_bin bs)"
-  using bl_to_bin_aux_cat [where nv = "0" and v = "Int.Pls"]
+  using bl_to_bin_aux_cat [where nv = "0" and v = "0"]
   unfolding bl_to_bin_def [symmetric] by simp
 
 lemma bin_to_bl_cat:
@@ -685,7 +690,7 @@ lemma mask_lem: "(bl_to_bin (True # replicate n False)) =
     Int.succ (bl_to_bin (replicate n True))"
   apply (unfold bl_to_bin_def)
   apply (induct n)
-   apply (simp add: BIT_simps)
+   apply (simp add: Int.succ_def)
   apply (simp only: Suc_eq_plus1 replicate_add
                     append_Cons [symmetric] bl_to_bin_aux_append)
   apply (simp add: BIT_simps)
