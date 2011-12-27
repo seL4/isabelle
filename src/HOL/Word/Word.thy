@@ -249,16 +249,10 @@ lemma word_of_int_sub_hom:
   "(word_of_int a) - word_of_int b = word_of_int (a - b)"
   by (simp add: word_sub_wi arths)
 
-lemmas new_word_of_int_homs = 
-  word_of_int_sub_hom wi_homs word_0_wi word_1_wi 
-
-lemmas new_word_of_int_hom_syms = new_word_of_int_homs [symmetric]
-
-lemmas word_of_int_hom_syms =
-  new_word_of_int_hom_syms (* FIXME: duplicate *)
-
 lemmas word_of_int_homs =
-  new_word_of_int_homs (* FIXME: duplicate *)
+  word_of_int_sub_hom wi_homs word_0_wi word_1_wi
+
+lemmas word_of_int_hom_syms = word_of_int_homs [symmetric]
 
 (* FIXME: provide only one copy of these theorems! *)
 lemmas word_of_int_add_hom = wi_hom_add
@@ -1204,7 +1198,7 @@ lemma word_ths:
   by (rule word_uint.Abs_cases [of b],
       rule word_uint.Abs_cases [of a],
       simp add: add_commute mult_commute 
-                ring_distribs new_word_of_int_homs
+                ring_distribs word_of_int_homs
            del: word_of_int_0 word_of_int_1)+
 
 lemma uint_cong: "x = y \<Longrightarrow> uint x = uint y"
@@ -1237,7 +1231,7 @@ lemma succ_pred_no [simp]:
   "word_succ (number_of bin) = number_of (Int.succ bin) & 
     word_pred (number_of bin) = number_of (Int.pred bin)"
   unfolding word_number_of_def Int.succ_def Int.pred_def
-  by (simp add: new_word_of_int_homs)
+  by (simp add: word_of_int_homs)
 
 lemma word_sp_01 [simp] : 
   "word_succ -1 = 0 & word_succ 0 = 1 & word_pred 0 = -1 & word_pred 1 = 0"
@@ -3152,7 +3146,7 @@ lemma mask_eqs:
   "word_succ (a AND mask n) AND mask n = word_succ a AND mask n"
   "word_pred (a AND mask n) AND mask n = word_pred a AND mask n"
   using word_of_int_Ex [where x=a] word_of_int_Ex [where x=b]
-  by (auto simp: and_mask_wi bintr_ariths bintr_arith1s new_word_of_int_homs)
+  by (auto simp: and_mask_wi bintr_ariths bintr_arith1s word_of_int_homs)
 
 lemma mask_power_eq:
   "(x AND mask n) ^ k AND mask n = x ^ k AND mask n"
@@ -3448,7 +3442,7 @@ lemma of_bl_append:
   "(of_bl (xs @ ys) :: 'a :: len word) = of_bl xs * 2^(length ys) + of_bl ys"
   apply (unfold of_bl_def)
   apply (simp add: bl_to_bin_app_cat bin_cat_num)
-  apply (simp add: word_of_int_power_hom [symmetric] new_word_of_int_hom_syms)
+  apply (simp add: word_of_int_power_hom [symmetric] word_of_int_hom_syms)
   done
 
 lemma of_bl_False [simp]:
