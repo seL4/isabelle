@@ -4,7 +4,7 @@
 header {* Relating (finite) sets and lists *}
 
 theory More_Set
-imports Main More_List
+imports More_List
 begin
 
 lemma comp_fun_idem_remove:
@@ -61,7 +61,7 @@ lemma union_set:
 proof -
   interpret comp_fun_idem Set.insert
     by (fact comp_fun_idem_insert)
-  show ?thesis by (simp add: union_fold_insert fold_set)
+  show ?thesis by (simp add: union_fold_insert fold_set_fold)
 qed
 
 lemma union_set_foldr:
@@ -78,7 +78,7 @@ proof -
   interpret comp_fun_idem Set.remove
     by (fact comp_fun_idem_remove)
   show ?thesis
-    by (simp add: minus_fold_remove [of _ A] fold_set)
+    by (simp add: minus_fold_remove [of _ A] fold_set_fold)
 qed
 
 lemma minus_set_foldr:

@@ -286,6 +286,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   List.thy \
   Main.thy \
   Map.thy \
+  More_List.thy \
+  More_Set.thy \
   Nat_Numeral.thy \
   Nat_Transfer.thy \
   New_DSequence.thy \
@@ -458,7 +460,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
   Library/Lattice_Syntax.thy Library/Library.thy Library/List_Cset.thy	\
   Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
-  Library/Monad_Syntax.thy Library/More_List.thy Library/More_Set.thy	\
+  Library/Monad_Syntax.thy						\
   Library/Multiset.thy Library/Nat_Bijection.thy			\
   Library/Numeral_Type.thy Library/Old_Recdef.thy			\
   Library/OptionalSugar.thy Library/Order_Relation.thy			\

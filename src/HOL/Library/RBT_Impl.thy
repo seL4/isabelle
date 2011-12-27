@@ -6,7 +6,7 @@
 header {* Implementation of Red-Black Trees *}
 
 theory RBT_Impl
-imports Main More_List
+imports Main
 begin
 
 text {*

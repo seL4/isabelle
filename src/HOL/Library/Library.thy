@@ -33,7 +33,6 @@ imports
   Kleene_Algebra
   Mapping
   Monad_Syntax
-  More_List
   Multiset
   Numeral_Type
   Old_Recdef

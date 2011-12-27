@@ -6,7 +6,7 @@
 header {* Examples for the 'quickcheck' command *}
 
 theory Quickcheck_Examples
-imports Complex_Main "~~/src/HOL/Library/Dlist" "~~/src/HOL/Library/More_Set"
+imports Complex_Main "~~/src/HOL/Library/Dlist"
 begin
 
 text {*

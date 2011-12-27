@@ -3,20 +3,10 @@
 header {* Operations on lists beyond the standard List theory *}
 
 theory More_List
-imports Main Multiset
+imports List
 begin
 
 hide_const (open) Finite_Set.fold
-
-text {* Repairing code generator setup *}
-
-declare (in lattice) Inf_fin_set_fold [code_unfold del]
-declare (in lattice) Sup_fin_set_fold [code_unfold del]
-declare (in linorder) Min_fin_set_fold [code_unfold del]
-declare (in linorder) Max_fin_set_fold [code_unfold del]
-declare (in complete_lattice) Inf_set_fold [code_unfold del]
-declare (in complete_lattice) Sup_set_fold [code_unfold del]
-
 
 text {* Fold combinator with canonical argument order *}
 
@@ -85,27 +75,10 @@ lemma fold_remove1_split:
   shows "fold f xs = fold f (remove1 x xs) \<circ> f x"
   using assms by (induct xs) (auto simp add: o_assoc [symmetric])
 
-lemma fold_multiset_equiv:
-  assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
-    and equiv: "multiset_of xs = multiset_of ys"
-  shows "fold f xs = fold f ys"
-using f equiv [symmetric] proof (induct xs arbitrary: ys)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  then have *: "set ys = set (x # xs)" by (blast dest: multiset_of_eq_setD)
-  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x" 
-    by (rule Cons.prems(1)) (simp_all add: *)
-  moreover from * have "x \<in> set ys" by simp
-  ultimately have "fold f ys = fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
-  moreover from Cons.prems have "fold f xs = fold f (remove1 x ys)" by (auto intro: Cons.hyps)
-  ultimately show ?case by simp
-qed
-
 lemma fold_rev:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
   shows "fold f (rev xs) = fold f xs"
-  by (rule fold_multiset_equiv, rule assms) (simp_all add: in_multiset_in_set)
+using assms by (induct xs) (simp_all add: fold_commute_apply fun_eq_iff)
 
 lemma foldr_fold:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
@@ -160,15 +133,15 @@ lemma (in linorder) sort_conv_fold:
 
 text {* @{const Finite_Set.fold} and @{const fold} *}
 
-lemma (in comp_fun_commute) fold_set_remdups:
+lemma (in comp_fun_commute) fold_set_fold_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
-lemma (in comp_fun_idem) fold_set:
+lemma (in comp_fun_idem) fold_set_fold:
   "Finite_Set.fold f y (set xs) = fold f xs y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
 
-lemma (in ab_semigroup_idem_mult) fold1_set:
+lemma (in ab_semigroup_idem_mult) fold1_set_fold:
   assumes "xs \<noteq> []"
   shows "Finite_Set.fold1 times (set xs) = fold times (tl xs) (hd xs)"
 proof -
@@ -182,7 +155,7 @@ proof -
     case False
     then have "fold1 times (insert y (set ys)) = Finite_Set.fold times y (set ys)"
       by (simp only: finite_set fold1_eq_fold_idem)
-    with xs show ?thesis by (simp add: fold_set mult_commute)
+    with xs show ?thesis by (simp add: fold_set_fold mult_commute)
   qed
 qed
 
@@ -192,7 +165,7 @@ proof -
   interpret ab_semigroup_idem_mult "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact ab_semigroup_idem_mult_inf)
   show ?thesis
-    by (simp add: Inf_fin_def fold1_set del: set.simps)
+    by (simp add: Inf_fin_def fold1_set_fold del: set.simps)
 qed
 
 lemma (in lattice) Inf_fin_set_foldr [code_unfold]:
@@ -205,7 +178,7 @@ proof -
   interpret ab_semigroup_idem_mult "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact ab_semigroup_idem_mult_sup)
   show ?thesis
-    by (simp add: Sup_fin_def fold1_set del: set.simps)
+    by (simp add: Sup_fin_def fold1_set_fold del: set.simps)
 qed
 
 lemma (in lattice) Sup_fin_set_foldr [code_unfold]:
@@ -218,7 +191,7 @@ proof -
   interpret ab_semigroup_idem_mult "min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact ab_semigroup_idem_mult_min)
   show ?thesis
-    by (simp add: Min_def fold1_set del: set.simps)
+    by (simp add: Min_def fold1_set_fold del: set.simps)
 qed
 
 lemma (in linorder) Min_fin_set_foldr [code_unfold]:
@@ -231,7 +204,7 @@ proof -
   interpret ab_semigroup_idem_mult "max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact ab_semigroup_idem_mult_max)
   show ?thesis
-    by (simp add: Max_def fold1_set del: set.simps)
+    by (simp add: Max_def fold1_set_fold del: set.simps)
 qed
 
 lemma (in linorder) Max_fin_set_foldr [code_unfold]:
@@ -243,7 +216,7 @@ lemma (in complete_lattice) Inf_set_fold:
 proof -
   interpret comp_fun_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact comp_fun_idem_inf)
-  show ?thesis by (simp add: Inf_fold_inf fold_set inf_commute)
+  show ?thesis by (simp add: Inf_fold_inf fold_set_fold inf_commute)
 qed
 
 lemma (in complete_lattice) Inf_set_foldr [code_unfold]:
@@ -255,7 +228,7 @@ lemma (in complete_lattice) Sup_set_fold:
 proof -
   interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact comp_fun_idem_sup)
-  show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
+  show ?thesis by (simp add: Sup_fold_sup fold_set_fold sup_commute)
 qed
 
 lemma (in complete_lattice) Sup_set_foldr [code_unfold]:

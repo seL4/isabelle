@@ -53,6 +53,17 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Finite_Set.fold now qualified.  INCOMPATIBILITY.
+
+* Renamed some facts on canonical fold on lists, in order to avoid problems
+with interpretation involving corresponding facts on foldl with the same base names:
+
+  fold_set_remdups ~> fold_set_fold_remdups
+  fold_set ~> fold_set_fold
+  fold1_set ~> fold1_set_fold
+
+INCOMPATIBILITY.
+
 * 'set' is now a proper type constructor.  Definitions mem_def and Collect_def
 have disappeared.  INCOMPATIBILITY, rephrase sets S used as predicates by
 `%x. x : S` and predicates P used as sets by `{x. P x}`.  For typical proofs,

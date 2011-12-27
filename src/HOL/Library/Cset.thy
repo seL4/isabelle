@@ -4,7 +4,7 @@
 header {* A dedicated set type which is executable on its finite part *}
 
 theory Cset
-imports More_Set More_List
+imports Main
 begin
 
 subsection {* Lifting *}

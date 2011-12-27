@@ -2536,68 +2536,6 @@ proof -
   qed
 qed
 
-lemma (in lattice) Inf_fin_set_fold [code_unfold]:
-  "Inf_fin (set (x # xs)) = foldl inf x xs"
-proof -
-  interpret ab_semigroup_idem_mult "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_inf)
-  show ?thesis
-    by (simp add: Inf_fin_def fold1_set del: set.simps)
-qed
-
-lemma (in lattice) Sup_fin_set_fold [code_unfold]:
-  "Sup_fin (set (x # xs)) = foldl sup x xs"
-proof -
-  interpret ab_semigroup_idem_mult "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_sup)
-  show ?thesis
-    by (simp add: Sup_fin_def fold1_set del: set.simps)
-qed
-
-lemma (in linorder) Min_fin_set_fold [code_unfold]:
-  "Min (set (x # xs)) = foldl min x xs"
-proof -
-  interpret ab_semigroup_idem_mult "min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_min)
-  show ?thesis
-    by (simp add: Min_def fold1_set del: set.simps)
-qed
-
-lemma (in linorder) Max_fin_set_fold [code_unfold]:
-  "Max (set (x # xs)) = foldl max x xs"
-proof -
-  interpret ab_semigroup_idem_mult "max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_max)
-  show ?thesis
-    by (simp add: Max_def fold1_set del: set.simps)
-qed
-
-lemma (in complete_lattice) Inf_set_fold [code_unfold]:
-  "Inf (set xs) = foldl inf top xs"
-proof -
-  interpret comp_fun_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact comp_fun_idem_inf)
-  show ?thesis by (simp add: Inf_fold_inf fold_set inf_commute)
-qed
-
-lemma (in complete_lattice) Sup_set_fold [code_unfold]:
-  "Sup (set xs) = foldl sup bot xs"
-proof -
-  interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact comp_fun_idem_sup)
-  show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
-qed
-
-lemma (in complete_lattice) INFI_set_fold:
-  "INFI (set xs) f = foldl (\<lambda>y x. inf (f x) y) top xs"
-  unfolding INF_def set_map [symmetric] Inf_set_fold foldl_map
-    by (simp add: inf_commute)
-
-lemma (in complete_lattice) SUPR_set_fold:
-  "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
-  unfolding SUP_def set_map [symmetric] Sup_set_fold foldl_map
-    by (simp add: sup_commute)
-
 
 subsubsection {* @{text upt} *}
 

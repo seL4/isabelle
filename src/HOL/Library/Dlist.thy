@@ -3,7 +3,7 @@
 header {* Lists with elements distinct as canonical example for datatype invariants *}
 
 theory Dlist
-imports Main More_List
+imports Main
 begin
 
 subsection {* The type of distinct lists *}
