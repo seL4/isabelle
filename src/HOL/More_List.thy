@@ -8,16 +8,6 @@ begin
 
 hide_const (open) Finite_Set.fold
 
-text {* Repairing code generator setup *}
-
-declare (in lattice) Inf_fin_set_fold [code_unfold del]
-declare (in lattice) Sup_fin_set_fold [code_unfold del]
-declare (in linorder) Min_fin_set_fold [code_unfold del]
-declare (in linorder) Max_fin_set_fold [code_unfold del]
-declare (in complete_lattice) Inf_set_fold [code_unfold del]
-declare (in complete_lattice) Sup_set_fold [code_unfold del]
-
-
 text {* Fold combinator with canonical argument order *}
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
@@ -238,7 +228,7 @@ lemma (in complete_lattice) Sup_set_fold:
 proof -
   interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
     by (fact comp_fun_idem_sup)
-  show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
+  show ?thesis by (simp add: Sup_fold_sup fold_set_fold sup_commute)
 qed
 
 lemma (in complete_lattice) Sup_set_foldr [code_unfold]:
