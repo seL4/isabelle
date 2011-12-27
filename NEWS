@@ -53,6 +53,8 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Finite_Set.fold now qualified.  INCOMPATIBILITY.
+
 * Renamed some facts on canonical fold on lists, in order to avoid problems
 with interpretation involving corresponding facts on foldl with the same base names:
 
