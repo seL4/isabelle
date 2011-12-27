@@ -1486,7 +1486,7 @@ instantiation nat :: Gcd
 begin
 
 definition
-  "Lcm (M::nat set) = (if finite M then fold lcm 1 M else 0)"
+  "Lcm (M::nat set) = (if finite M then Finite_Set.fold lcm 1 M else 0)"
 
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
@@ -1608,11 +1608,11 @@ apply (metis Lcm0_iff dvd_Lcm_nat dvd_imp_le neq0_conv)
 done
 
 lemma Lcm_set_nat [code_unfold]:
-  "Lcm (set ns) = foldl lcm (1::nat) ns"
+  "Lcm (set ns) = fold lcm ns (1::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Sup_set_fold)
 
 lemma Gcd_set_nat [code_unfold]:
-  "Gcd (set ns) = foldl gcd (0::nat) ns"
+  "Gcd (set ns) = fold gcd ns (0::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Inf_set_fold)
 
 lemma mult_inj_if_coprime_nat:
