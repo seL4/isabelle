@@ -70,7 +70,7 @@ have disappeared.  INCOMPATIBILITY, rephrase sets S used as predicates by
 it is often sufficent to prune any tinkering with former theorems mem_def
 and Collect_def.
 
-* Theory HOL/Library/AList has been renamed to AList_Impl. INCOMPABILITY.
+* Theory HOL/Library/AList has been renamed to AList_Impl. INCOMPATIBILITY.
 
 * 'datatype' specifications allow explicit sort constraints.
 
@@ -122,13 +122,13 @@ theory HOL/Library/Nat_Bijection instead.
   word_of_int_0_hom ~> word_0_wi
   word_of_int_1_hom ~> word_1_wi
 
-* Clarified attribute "mono_set": pure declararation without modifying
+* Clarified attribute "mono_set": pure declaration without modifying
 the result of the fact expression.
 
 * "Transitive_Closure.ntrancl": bounded transitive closure on
 relations.
 
-* Constant "Set.not_member" now qualifed.  INCOMPATIBILITY.
+* Constant "Set.not_member" now qualified.  INCOMPATIBILITY.
 
 * "sublists" moved to theory More_List.  INCOMPATIBILITY.
 
