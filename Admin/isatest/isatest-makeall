@@ -71,12 +71,6 @@ case $HOSTNAME in
   
     macbroy2)
         MFLAGS="-k"
-        TARGETS=full
-        NICE=""
-        ;;
-
-    macbroy5)
-        MFLAGS="-k -j 2"
         NICE=""
         ;;
 
@@ -102,7 +96,6 @@ case $HOSTNAME in
 
     macbroy30)
         MFLAGS="-k"
-        TARGETS=full
         NICE=""
         ;;
 
@@ -124,8 +117,13 @@ if [ "$1" = "-l" ]; then
   TARGETS="$2"
   shift 2
   ISABELLE_HOME="$($ISABELLE_TOOL getenv -b ISABELLE_HOME)"
-  DIR="$ISABELLE_HOME/src/$LOGIC"
-  TOOL="$ISABELLE_TOOL make $MFLAGS $TARGETS"
+  if [ "$LOGIC" = "." ]; then
+    DIR="."
+    TOOL="$ISABELLE_TOOL makeall $MFLAGS $TARGETS"
+  else
+    DIR="$ISABELLE_HOME/src/$LOGIC"
+    TOOL="$ISABELLE_TOOL make $MFLAGS $TARGETS"
+  fi
 else
   DIR="."
   TOOL="$ISABELLE_TOOL makeall $MFLAGS $TARGETS"
