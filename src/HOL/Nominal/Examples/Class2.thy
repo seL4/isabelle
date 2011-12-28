@@ -3245,7 +3245,7 @@ proof (nominal_induct B rule: ty.strong_induct)
   { case 1 show ?case 
       apply -
       apply(simp add: lfp_eqvt)
-      apply(simp add: perm_fun_def [where 'a="ntrm set"])
+      apply(simp add: perm_fun_def)
       apply(simp add: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name)
       apply(perm_simp)
     done
@@ -3256,7 +3256,7 @@ proof (nominal_induct B rule: ty.strong_induct)
       apply(simp add: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name)
       apply(simp add: lfp_eqvt)
       apply(simp add: comp_def)
-      apply(simp add: perm_fun_def [where 'a="ntrm set"])
+      apply(simp add: perm_fun_def)
       apply(simp add: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name)
       apply(perm_simp)
       done
@@ -3269,7 +3269,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name NOTRIGHT_eqvt_name NOTLEFT_eqvt_name)
     apply(perm_simp add: ih1 ih2)
@@ -3289,7 +3289,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name ANDRIGHT_eqvt_name 
                      ANDLEFT2_eqvt_name ANDLEFT1_eqvt_name)
@@ -3311,7 +3311,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name ORRIGHT1_eqvt_name 
                      ORRIGHT2_eqvt_name ORLEFT_eqvt_name)
@@ -3333,7 +3333,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_name BINDING_eqvt_name IMPRIGHT_eqvt_name IMPLEFT_eqvt_name)
     apply(perm_simp add: ih1 ih2 ih3 ih4)
@@ -3355,7 +3355,7 @@ proof (nominal_induct B rule: ty.strong_induct)
   { case 1 show ?case 
       apply -
       apply(simp add: lfp_eqvt)
-      apply(simp add: perm_fun_def [where 'a="ntrm set"])
+      apply(simp add: perm_fun_def)
       apply(simp add: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname)
       apply(perm_simp)
     done
@@ -3366,7 +3366,7 @@ proof (nominal_induct B rule: ty.strong_induct)
       apply(simp add: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname)
       apply(simp add: lfp_eqvt)
       apply(simp add: comp_def)
-      apply(simp add: perm_fun_def [where 'a="ntrm set"])
+      apply(simp add: perm_fun_def)
       apply(simp add: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname)
       apply(perm_simp)
       done
@@ -3379,7 +3379,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname 
             NOTRIGHT_eqvt_coname NOTLEFT_eqvt_coname)
@@ -3401,7 +3401,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname ANDRIGHT_eqvt_coname 
                      ANDLEFT2_eqvt_coname ANDLEFT1_eqvt_coname)
@@ -3423,7 +3423,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname ORRIGHT1_eqvt_coname 
                      ORRIGHT2_eqvt_coname ORLEFT_eqvt_coname)
@@ -3445,7 +3445,7 @@ next
     apply -
     apply(simp only: lfp_eqvt)
     apply(simp only: comp_def)
-    apply(simp only: perm_fun_def [where 'a="ntrm set"])
+    apply(simp only: perm_fun_def)
     apply(simp only: NEGc.simps NEGn.simps)
     apply(simp only: union_eqvt AXIOMS_eqvt_coname BINDING_eqvt_coname IMPRIGHT_eqvt_coname 
          IMPLEFT_eqvt_coname)

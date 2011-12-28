@@ -2389,7 +2389,7 @@ lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
   "n = size (w::'a::len0 word) \<Longrightarrow> ofn = set_bits \<Longrightarrow> [w, ofn g] = l \<Longrightarrow> 
     td_ext test_bit ofn {f. ALL i. f i --> i < n} (%h i. h i & i < n)"
   apply (unfold word_size td_ext_def')
-  apply (safe del: subset_antisym)
+  apply safe
      apply (rule_tac [3] ext)
      apply (rule_tac [4] ext)
      apply (unfold word_size of_nth_def test_bit_bl)

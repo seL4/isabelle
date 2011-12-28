@@ -771,42 +771,36 @@ theorem (in group) subgroups_complete_lattice:
 proof (rule partial_order.complete_lattice_criterion1)
   show "partial_order ?L" by (rule subgroups_partial_order)
 next
-  show "\<exists>G. greatest ?L G (carrier ?L)"
-  proof
-    show "greatest ?L (carrier G) (carrier ?L)"
-      by (unfold greatest_def)
-        (simp add: subgroup.subset subgroup_self)
-  qed
+  have "greatest ?L (carrier G) (carrier ?L)"
+    by (unfold greatest_def) (simp add: subgroup.subset subgroup_self)
+  then show "\<exists>G. greatest ?L G (carrier ?L)" ..
 next
   fix A
   assume L: "A \<subseteq> carrier ?L" and non_empty: "A ~= {}"
   then have Int_subgroup: "subgroup (\<Inter>A) G"
     by (fastforce intro: subgroups_Inter)
-  show "\<exists>I. greatest ?L I (Lower ?L A)"
-  proof
-    show "greatest ?L (\<Inter>A) (Lower ?L A)"
-      (is "greatest _ ?Int _")
-    proof (rule greatest_LowerI)
-      fix H
-      assume H: "H \<in> A"
-      with L have subgroupH: "subgroup H G" by auto
-      from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
-        by (rule subgroup_imp_group)
-      from groupH have monoidH: "monoid ?H"
-        by (rule group.is_monoid)
-      from H have Int_subset: "?Int \<subseteq> H" by fastforce
-      then show "le ?L ?Int H" by simp
-    next
-      fix H
-      assume H: "H \<in> Lower ?L A"
-      with L Int_subgroup show "le ?L H ?Int"
-        by (fastforce simp: Lower_def intro: Inter_greatest)
-    next
-      show "A \<subseteq> carrier ?L" by (rule L)
-    next
-      show "?Int \<in> carrier ?L" by simp (rule Int_subgroup)
-    qed
+  have "greatest ?L (\<Inter>A) (Lower ?L A)" (is "greatest _ ?Int _")
+  proof (rule greatest_LowerI)
+    fix H
+    assume H: "H \<in> A"
+    with L have subgroupH: "subgroup H G" by auto
+    from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
+      by (rule subgroup_imp_group)
+    from groupH have monoidH: "monoid ?H"
+      by (rule group.is_monoid)
+    from H have Int_subset: "?Int \<subseteq> H" by fastforce
+    then show "le ?L ?Int H" by simp
+  next
+    fix H
+    assume H: "H \<in> Lower ?L A"
+    with L Int_subgroup show "le ?L H ?Int"
+      by (fastforce simp: Lower_def intro: Inter_greatest)
+  next
+    show "A \<subseteq> carrier ?L" by (rule L)
+  next
+    show "?Int \<in> carrier ?L" by simp (rule Int_subgroup)
   qed
+  then show "\<exists>I. greatest ?L I (Lower ?L A)" ..
 qed
 
 end
