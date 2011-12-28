@@ -61,21 +61,25 @@ packages are installed on BSD.
 32 bit vs. 64 bit platforms
 ---------------------------
 
-64 bit hardware becomes more and more important for many users.
-Add-on tools need to work seamlessly without manual user
-configuration, although it is often sufficient to fall back on 32 bit
-executables.
+Most users already have 64 bit hardware, and many of them are running
+a 64 bit operating system.  Native 64 bit support for ML and Scala/JVM
+is increasingly important for big Isabelle applications, but 32 bit is
+often the default to get started.  Add-on executables need to work
+seamlessly without manual user configuration, either as native 64 bit
+executables or in 32 bit mode on a 64 bit platform.
 
 The ISABELLE_PLATFORM setting variable refers to the 32 bit version of
-the platform, even on 64 bit hardware.  Power-tools need to indicate
-64 bit support explicitly, via the (optional) ISABELLE_PLATFORM64
-setting.  The following bash expression prefers the 64 bit platform,
-if that is available:
+the platform, even on 64 bit hardware.  Tools need to indicate 64 bit
+support explicitly via the (optional) ISABELLE_PLATFORM64 setting, if
+this is really required.  The following bash expression prefers the 64
+bit platform, if that is available:
 
   "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
 
 Note that ML and JVM may have a different idea of the platform,
-depending on the respective binaries that are actually run.
+depending on the respective binaries that are actually run.  The
+"uname" Unix tool usually only tells about its own executable format,
+not the underlying platform.
 
 
 Dependable system tools
