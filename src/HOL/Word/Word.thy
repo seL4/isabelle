@@ -1091,12 +1091,8 @@ lemma word_0_wi_Pls: "0 = word_of_int Int.Pls"
 lemma word_0_no: "(0::'a::len0 word) = Numeral0"
   by (simp add: word_number_of_alt)
 
-lemma int_one_bin: "(1 :: int) = (Int.Pls BIT 1)"
-  unfolding Pls_def Bit_def by auto
-
-lemma word_1_no: 
-  "(1 :: 'a :: len0 word) = number_of (Int.Pls BIT 1)"
-  unfolding word_1_wi word_number_of_def int_one_bin by auto
+lemma word_1_no: "(1::'a::len0 word) = Numeral1"
+  by (simp add: word_number_of_alt)
 
 lemma word_m1_wi: "-1 = word_of_int -1" 
   by (rule word_number_of_alt)
@@ -1232,7 +1228,7 @@ lemma succ_pred_no [simp]:
 
 lemma word_sp_01 [simp] : 
   "word_succ -1 = 0 & word_succ 0 = 1 & word_pred 0 = -1 & word_pred 1 = 0"
-  by (unfold word_0_no word_1_no) (auto simp: BIT_simps)
+  unfolding word_0_no word_1_no by simp
 
 (* alternative approach to lifting arithmetic equalities *)
 lemma word_of_int_Ex:
@@ -4567,7 +4563,7 @@ lemma unatSuc:
 
 
 lemma word_no_1 [simp]: "(Numeral1::'a::len0 word) = 1"
-  by (fact word_1_no [symmetric, unfolded BIT_simps])
+  by (fact word_1_no [symmetric])
 
 lemma word_no_0 [simp]: "(Numeral0::'a::len0 word) = 0"
   by (fact word_0_no [symmetric])
