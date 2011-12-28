@@ -132,9 +132,6 @@ lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
 lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
   by (simp add: sints_def range_sbintrunc)
 
-lemma mod_in_reps: "m > 0 \<Longrightarrow> y mod m : {0::int ..< m}"
-  by auto
-
 lemma 
   uint_0:"0 <= uint x" and 
   uint_lt: "uint (x::'a::len0 word) < 2 ^ len_of TYPE('a)"
@@ -153,18 +150,16 @@ lemma td_ext_uint:
                    word.uint_inverse word.Abs_word_inverse int_mod_lem)
   done
 
-lemma int_word_uint:
-  "uint (word_of_int x::'a::len0 word) = x mod 2 ^ len_of TYPE('a)"
-  by (fact td_ext_uint [THEN td_ext.eq_norm])
-
 interpretation word_uint:
   td_ext "uint::'a::len0 word \<Rightarrow> int" 
          word_of_int 
          "uints (len_of TYPE('a::len0))"
          "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"
   by (rule td_ext_uint)
-  
+
 lemmas td_uint = word_uint.td_thm
+
+lemmas int_word_uint = word_uint.eq_norm
 
 lemmas td_ext_ubin = td_ext_uint 
   [unfolded len_gt_0 no_bintr_alt1 [symmetric]]
@@ -227,8 +222,8 @@ definition
 definition
   word_number_of_def: "number_of w = word_of_int w"
 
-lemmas word_arith_wis = 
-  word_add_def word_mult_def word_minus_def 
+lemmas word_arith_wis =
+  word_add_def word_sub_wi word_mult_def word_minus_def 
   word_succ_def word_pred_def word_0_wi word_1_wi
 
 lemmas arths = 
@@ -237,6 +232,7 @@ lemmas arths =
 lemma wi_homs: 
   shows
   wi_hom_add: "word_of_int a + word_of_int b = word_of_int (a + b)" and
+  wi_hom_sub: "word_of_int a - word_of_int b = word_of_int (a - b)" and
   wi_hom_mult: "word_of_int a * word_of_int b = word_of_int (a * b)" and
   wi_hom_neg: "- word_of_int a = word_of_int (- a)" and
   wi_hom_succ: "word_succ (word_of_int a) = word_of_int (a + 1)" and
@@ -245,23 +241,9 @@ lemma wi_homs:
 
 lemmas wi_hom_syms = wi_homs [symmetric]
 
-lemma word_of_int_sub_hom:
-  "(word_of_int a) - word_of_int b = word_of_int (a - b)"
-  by (simp add: word_sub_wi arths)
-
-lemmas word_of_int_homs =
-  word_of_int_sub_hom wi_homs word_0_wi word_1_wi
+lemmas word_of_int_homs = wi_homs word_0_wi word_1_wi
 
 lemmas word_of_int_hom_syms = word_of_int_homs [symmetric]
-
-(* FIXME: provide only one copy of these theorems! *)
-lemmas word_of_int_add_hom = wi_hom_add
-lemmas word_of_int_mult_hom = wi_hom_mult
-lemmas word_of_int_minus_hom = wi_hom_neg
-lemmas word_of_int_succ_hom = wi_hom_succ
-lemmas word_of_int_pred_hom = wi_hom_pred
-lemmas word_of_int_0_hom = word_0_wi
-lemmas word_of_int_1_hom = word_1_wi
 
 instance
   by default (auto simp: split_word_all word_of_int_homs algebra_simps)
@@ -282,7 +264,7 @@ lemma word_of_nat: "of_nat n = word_of_int (int n)"
 lemma word_of_int: "of_int = word_of_int"
   apply (rule ext)
   apply (case_tac x rule: int_diff_cases)
-  apply (simp add: word_of_nat word_of_int_sub_hom)
+  apply (simp add: word_of_nat wi_hom_sub)
   done
 
 instance word :: (len) number_ring
@@ -1053,7 +1035,6 @@ lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
-lemmas word_log_bin_defs = word_log_defs (* FIXME: duplicate *)
 
 text {* Executable equality *}
 
@@ -1784,11 +1765,11 @@ lemma Abs_fnat_hom_add:
 
 lemma Abs_fnat_hom_mult:
   "of_nat a * of_nat b = (of_nat (a * b) :: 'a :: len word)"
-  by (simp add: word_of_nat word_of_int_mult_hom zmult_int)
+  by (simp add: word_of_nat wi_hom_mult zmult_int)
 
 lemma Abs_fnat_hom_Suc:
   "word_succ (of_nat a) = of_nat (Suc a)"
-  by (simp add: word_of_nat word_of_int_succ_hom add_ac)
+  by (simp add: word_of_nat wi_hom_succ add_ac)
 
 lemma Abs_fnat_hom_0: "(0::'a::len word) = of_nat 0"
   by simp
@@ -2118,6 +2099,7 @@ lemmas wils1 = bin_log_bintrs [THEN word_ubin.norm_eq_iff [THEN iffD1],
   folded word_ubin.eq_norm, THEN eq_reflection]
 
 (* the binary operations only *)
+(* BH: why is this needed? *)
 lemmas word_log_binary_defs = 
   word_and_def word_or_def word_xor_def
 
@@ -2126,7 +2108,7 @@ lemma word_wi_log_defs:
   "word_of_int a AND word_of_int b = word_of_int (a AND b)"
   "word_of_int a OR word_of_int b = word_of_int (a OR b)"
   "word_of_int a XOR word_of_int b = word_of_int (a XOR b)"
-  unfolding word_not_def word_log_binary_defs wils1 by simp_all
+  unfolding word_log_defs wils1 by simp_all
 
 lemma word_no_log_defs [simp]:
   "NOT number_of a = (number_of (NOT a) :: 'a::len0 word)"
@@ -2166,7 +2148,7 @@ lemma word_ao_nth:
   to same for word_and etc *)
 
 lemmas bwsimps = 
-  word_of_int_homs(2) 
+  wi_hom_add
   word_0_wi_Pls
   word_m1_wi_Min
   word_wi_log_defs

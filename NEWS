@@ -113,6 +113,14 @@ theory HOL/Library/Nat_Bijection instead.
   word_order_linear ~> linorder_linear
   lenw1_zero_neq_one ~> zero_neq_one
   word_number_of_eq ~> number_of_eq
+  word_of_int_add_hom ~> wi_hom_add
+  word_of_int_sub_hom ~> wi_hom_sub
+  word_of_int_mult_hom ~> wi_hom_mult
+  word_of_int_minus_hom ~> wi_hom_neg
+  word_of_int_succ_hom ~> wi_hom_succ
+  word_of_int_pred_hom ~> wi_hom_pred
+  word_of_int_0_hom ~> word_0_wi
+  word_of_int_1_hom ~> word_1_wi
 
 * Clarified attribute "mono_set": pure declararation without modifying
 the result of the fact expression.
