@@ -2154,10 +2154,7 @@ lemma word_bw_assocs:
   "(x AND y) AND z = x AND y AND z"
   "(x OR y) OR z = x OR y OR z"
   "(x XOR y) XOR z = x XOR y XOR z"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-        word_of_int_Ex [where x=z]
-  by (auto simp: bwsimps bbw_assocs)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
   
 lemma word_bw_comms:
   fixes x :: "'a::len0 word"
@@ -2165,9 +2162,7 @@ lemma word_bw_comms:
   "x AND y = y AND x"
   "x OR y = y OR x"
   "x XOR y = y XOR x"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-  by (auto simp: bwsimps bin_ops_comm)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
   
 lemma word_bw_lcs:
   fixes x :: "'a::len0 word"
@@ -2175,10 +2170,7 @@ lemma word_bw_lcs:
   "y AND x AND z = x AND y AND z"
   "y OR x OR z = x OR y OR z"
   "y XOR x XOR z = x XOR y XOR z"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-        word_of_int_Ex [where x=z]
-  by (auto simp: bwsimps)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_log_esimps [simp]:
   fixes x :: "'a::len0 word"
@@ -2203,9 +2195,7 @@ lemma word_not_dist:
   shows
   "NOT (x OR y) = NOT x AND NOT y"
   "NOT (x AND y) = NOT x OR NOT y"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-  by (auto simp: bwsimps bbw_not_dist)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_bw_same:
   fixes x :: "'a::len0 word"
@@ -2227,30 +2217,21 @@ lemma word_ao_absorbs [simp]:
   "x OR x AND y = x"
   "(x OR y) AND x = x"
   "x AND y OR x = x"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-  by (auto simp: bwsimps)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_not_not [simp]:
   "NOT NOT (x::'a::len0 word) = x"
-  using word_of_int_Ex [where x=x] 
-  by (auto simp: bwsimps)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_ao_dist:
   fixes x :: "'a::len0 word"
   shows "(x OR y) AND z = x AND z OR y AND z"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-        word_of_int_Ex [where x=z]   
-  by (auto simp: bwsimps bbw_ao_dist)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_oa_dist:
   fixes x :: "'a::len0 word"
   shows "x AND y OR z = (x OR z) AND (y OR z)"
-  using word_of_int_Ex [where x=x] 
-        word_of_int_Ex [where x=y] 
-        word_of_int_Ex [where x=z]   
-  by (auto simp: bwsimps bbw_oa_dist)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_add_not [simp]: 
   fixes x :: "'a::len0 word"
@@ -2445,7 +2426,7 @@ lemma test_bit_no [simp]:
   by (simp add : nth_bintr [symmetric] word_ubin.eq_norm)
 
 lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
-  unfolding test_bit_no word_0_no by auto
+  unfolding word_test_bit_def by simp
 
 lemma nth_sint: 
   fixes w :: "'a::len word"
