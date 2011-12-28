@@ -345,7 +345,7 @@ apply (rule Stable_eq)
 apply (subgoal_tac [2]
      "({s. (s \<in> reachable v) = ((root,v) \<in> REACHABLE) } \<inter> nmsg_eq 0 (v,w)) = 
       ({s. (s \<in> reachable v) = ( (root,v) \<in> REACHABLE) } \<inter> (- UNIV \<union> nmsg_eq 0 (v,w)))")
-prefer 2 apply simp
+prefer 2 apply blast
 prefer 2 apply blast 
 apply (rule Stable_reachable_EQ_R_AND_nmsg_0
             [simplified Eq_lemma2 Collect_const])

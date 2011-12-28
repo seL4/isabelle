@@ -103,7 +103,7 @@ by (rule equalityI [OF lemma1 lemma2])
 lemma Compl_fixedpoint: "- fixedpoint = (\<Union>(u,v)\<in>edges. {s. s u & ~ s v})"
 apply (simp add: FP_fixedpoint [symmetric] Rprg_def mk_total_program_def)
 apply (rule subset_antisym)
-apply (auto simp add: Compl_FP UN_UN_flatten del: subset_antisym)
+apply (auto simp add: Compl_FP UN_UN_flatten)
  apply (rule fun_upd_idem, force)
 apply (force intro!: rev_bexI simp add: fun_upd_idem_iff)
 done

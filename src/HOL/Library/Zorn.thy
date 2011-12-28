@@ -58,19 +58,18 @@ text{*This is theorem @{text increasingD2} of ZF/Zorn.thy*}
 lemma Abrial_axiom1: "x \<subseteq> succ S x"
   apply (auto simp add: succ_def super_def maxchain_def)
   apply (rule contrapos_np, assumption)
-  apply (rule_tac Q="\<lambda>S. xa \<in> S" in someI2, blast+)
+  apply (rule someI2)
+  apply blast+
   done
 
 lemmas TFin_UnionI = TFin.Pow_UnionI [OF PowI]
 
 lemma TFin_induct:
-  assumes H: "n \<in> TFin S"
-  and I: "!!x. x \<in> TFin S ==> P x ==> P (succ S x)"
-    "!!Y. Y \<subseteq> TFin S ==> Ball Y P ==> P(Union Y)"
-  shows "P n" using H
-  apply (induct rule: TFin.induct [where P=P])
-   apply (blast intro: I)+
-  done
+  assumes H: "n \<in> TFin S" and
+    I: "!!x. x \<in> TFin S ==> P x ==> P (succ S x)"
+      "!!Y. Y \<subseteq> TFin S ==> Ball Y P ==> P (Union Y)"
+  shows "P n"
+  using H by induct (blast intro: I)+
 
 lemma succ_trans: "x \<subseteq> y ==> x \<subseteq> succ S y"
   apply (erule subset_trans)
@@ -160,7 +159,8 @@ lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> EX d. d \<in> super S c"
 lemma select_super:
      "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c): super S c"
   apply (erule mem_super_Ex [THEN exE])
-  apply (rule someI2 [where Q="%X. X : super S c"], auto)
+  apply (rule someI2)
+  apply auto
   done
 
 lemma select_not_equals:
@@ -185,8 +185,8 @@ lemma TFin_chain_lemma4: "c \<in> TFin S ==> (c :: 'a set set): chain S"
   apply (unfold chain_def chain_subset_def)
   apply (rule CollectI, safe)
    apply (drule bspec, assumption)
-   apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE],
-     best+)
+   apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE])
+      apply blast+
   done
 
 theorem Hausdorff: "\<exists>c. (c :: 'a set set): maxchain S"

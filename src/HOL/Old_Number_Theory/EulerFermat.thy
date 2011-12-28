@@ -151,7 +151,7 @@ text {* \medskip @{term noXRRset} *}
 lemma RRset_gcd [rule_format]:
     "is_RRset A m ==> a \<in> A --> zgcd a m = 1"
   apply (unfold is_RRset_def)
-  apply (rule RsetR.induct [where P="%A. a \<in> A --> zgcd a m = 1"], auto)
+  apply (rule RsetR.induct, auto)
   done
 
 lemma RsetR_zmult_mono:
@@ -206,7 +206,7 @@ lemma RRset_zcong_eq [rule_format]:
   "1 < m ==>
     is_RRset A m ==> [a = b] (mod m) ==> a \<in> A --> b \<in> A --> a = b"
   apply (unfold is_RRset_def)
-  apply (rule RsetR.induct [where P="%A. a \<in> A --> b \<in> A --> a = b"])
+  apply (rule RsetR.induct)
     apply (auto simp add: zcong_sym)
   done
 

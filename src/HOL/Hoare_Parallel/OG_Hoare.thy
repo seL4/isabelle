@@ -149,8 +149,7 @@ inductive_cases ann_transition_cases:
 
 text {* Strong Soundness for Component Programs:*}
 
-lemma ann_hoare_case_analysis [rule_format]: 
-  defines I: "I \<equiv> \<lambda>C q'.
+lemma ann_hoare_case_analysis [rule_format]: "\<turnstile> C q' \<longrightarrow>
   ((\<forall>r f. C = AnnBasic r f \<longrightarrow> (\<exists>q. r \<subseteq> {s. f s \<in> q} \<and> q \<subseteq> q')) \<and>  
   (\<forall>c0 c1. C = AnnSeq c0 c1 \<longrightarrow> (\<exists>q. q \<subseteq> q' \<and> \<turnstile> c0 pre c1 \<and> \<turnstile> c1 q)) \<and>  
   (\<forall>r b c1 c2. C = AnnCond1 r b c1 c2 \<longrightarrow> (\<exists>q. q \<subseteq> q' \<and>  
@@ -160,9 +159,8 @@ lemma ann_hoare_case_analysis [rule_format]:
   (\<forall>r i b c. C = AnnWhile r b i c \<longrightarrow>  
   (\<exists>q. q \<subseteq> q' \<and> r \<subseteq> i \<and> i \<inter> b \<subseteq> pre c \<and> \<turnstile> c i \<and> i \<inter> -b \<subseteq> q)) \<and>  
   (\<forall>r b c. C = AnnAwait r b c \<longrightarrow> (\<exists>q. q \<subseteq> q' \<and> \<parallel>- (r \<inter> b) c q)))"
-  shows "\<turnstile> C q' \<longrightarrow> I C q'"
 apply(rule ann_hoare_induct)
-apply (simp_all add: I)
+apply simp_all
  apply(rule_tac x=q in exI,simp)+
 apply(rule conjI,clarify,simp,clarify,rule_tac x=qa in exI,fast)+
 apply(clarify,simp,clarify,rule_tac x=qa in exI,fast)

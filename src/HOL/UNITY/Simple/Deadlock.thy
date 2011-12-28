@@ -16,26 +16,20 @@ lemma "[| F \<in> (A \<inter> B) co A;  F \<in> (B \<inter> A) co B |] ==> F \<i
 (*a simplification step*)
 lemma Collect_le_Int_equals:
      "(\<Inter>i \<in> atMost n. A(Suc i) \<inter> A i) = (\<Inter>i \<in> atMost (Suc n). A i)"
-apply (induct_tac "n")
-apply (auto simp add: atMost_Suc)
-done
+  by (induct n) (auto simp add: atMost_Suc)
 
 (*Dual of the required property.  Converse inclusion fails.*)
 lemma UN_Int_Compl_subset:
      "(\<Union>i \<in> lessThan n. A i) \<inter> (- A n) \<subseteq>   
       (\<Union>i \<in> lessThan n. (A i) \<inter> (- A (Suc i)))"
-apply (induct_tac "n", simp)
-apply (simp add: lessThan_Suc, blast)
-done
+  by (induct n) (auto simp: lessThan_Suc)
 
 
 (*Converse inclusion fails.*)
 lemma INT_Un_Compl_subset:
      "(\<Inter>i \<in> lessThan n. -A i \<union> A (Suc i))  \<subseteq>  
       (\<Inter>i \<in> lessThan n. -A i) \<union> A n"
-apply (induct_tac "n", simp)
-apply (simp add: lessThan_Suc, fast)
-done
+  by (induct n) (auto simp: lessThan_Suc)
 
 
 (*Specialized rewriting*)
@@ -47,10 +41,9 @@ by (blast intro: gr0I dest: INT_Un_Compl_subset [THEN subsetD])
 lemma INT_le_equals_Int:
      "(\<Inter>i \<in> atMost n. A i) =  
       A 0 \<inter> (\<Inter>i \<in> lessThan n. -A i \<union> A(Suc i))"
-apply (induct_tac "n", simp)
-apply (simp add: Int_ac Int_Un_distrib Int_Un_distrib2
-                 INT_le_equals_Int_lemma lessThan_Suc atMost_Suc)
-done
+  by (induct n)
+    (simp_all add: Int_ac Int_Un_distrib Int_Un_distrib2
+      INT_le_equals_Int_lemma lessThan_Suc atMost_Suc)
 
 lemma INT_le_Suc_equals_Int:
      "(\<Inter>i \<in> atMost (Suc n). A i) =  

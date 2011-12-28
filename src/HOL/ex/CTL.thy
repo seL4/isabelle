@@ -252,8 +252,8 @@ proof
       proof -
         {
           have "\<AG> (p \<rightarrow> \<AX> p) \<subseteq> p \<rightarrow> \<AX> p" by (rule AG_fp_1)
-          moreover have "p \<inter> p \<rightarrow> \<AX> p \<subseteq> \<AX> p" ..
-          ultimately have "?lhs \<subseteq> \<AX> p" by auto
+          also have "p \<inter> p \<rightarrow> \<AX> p \<subseteq> \<AX> p" ..
+          finally have "?lhs \<subseteq> \<AX> p" by auto
         }  
         moreover
         {
@@ -261,8 +261,7 @@ proof
           also have "\<dots> \<subseteq> \<AX> \<dots>" by (rule AG_fp_2)
           finally have "?lhs \<subseteq> \<AX> \<AG> (p \<rightarrow> \<AX> p)" .
         }  
-        ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)"
-          by (rule Int_greatest)
+        ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)" ..
         also have "\<dots> = \<AX> ?lhs" by (simp only: AX_int)
         finally show ?thesis .
       qed
