@@ -75,8 +75,7 @@ definition
     (\<lambda>w b s y. s (bin_rest y) BIT (b AND bin_last y))"
 
 definition
-  int_or_def: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. - 1) 
-    (\<lambda>w b s y. s (bin_rest y) BIT (b OR bin_last y))"
+  int_or_def: "bitOR = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
 
 definition
   int_xor_def: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
@@ -98,6 +97,29 @@ lemma int_not_simps [simp]:
   "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
   "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
   unfolding int_not_def Pls_def Min_def Bit0_def Bit1_def by simp_all
+
+lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
+  unfolding int_not_def by simp
+
+lemma int_and_Pls [simp]:
+  "Int.Pls AND x = Int.Pls"
+  unfolding int_and_def Pls_def [symmetric] by (simp add: bin_rec_PM)
+
+lemma int_and_Min [simp]:
+  "Int.Min AND x = x"
+  unfolding int_and_def by (simp add: bin_rec_PM)
+
+lemma int_and_Bits [simp]: 
+  "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
+  unfolding int_and_def Pls_def [symmetric] Min_def [symmetric]
+  by (simp add: bin_rec_simps BIT_simps)
+
+lemma int_and_Bits2 [simp]: 
+  "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
+  unfolding BIT_simps [symmetric] int_and_Bits by simp_all
 
 lemma int_xor_Pls [simp]: 
   "Int.Pls XOR x = x"
@@ -125,45 +147,25 @@ lemma int_xor_Bits2 [simp]:
   "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
   unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
 
-lemma int_or_Pls [simp]: 
-  "Int.Pls OR x = x"
-  by (unfold int_or_def) (simp add: bin_rec_PM)
+lemma int_or_Pls [simp]: "Int.Pls OR x = x"
+  unfolding int_or_def by simp
   
-lemma int_or_Min [simp]:
-  "Int.Min OR x = Int.Min"
-  by (unfold int_or_def Pls_def [symmetric] Min_def [symmetric]) (simp add: bin_rec_PM)
+lemma int_or_Min [simp]: "Int.Min OR x = Int.Min"
+  unfolding int_or_def by simp
+
+lemma bit_or_def: "(b::bit) OR c = NOT (NOT b AND NOT c)"
+  by (induct b, simp_all) (* TODO: move *)
 
 lemma int_or_Bits [simp]: 
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
-  unfolding int_or_def Pls_def [symmetric] Min_def [symmetric]
-  by (simp add: bin_rec_simps BIT_simps)
+  unfolding int_or_def bit_or_def by simp
 
 lemma int_or_Bits2 [simp]: 
   "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
   "(Int.Bit0 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
-  unfolding BIT_simps [symmetric] int_or_Bits by simp_all
-
-lemma int_and_Pls [simp]:
-  "Int.Pls AND x = Int.Pls"
-  unfolding int_and_def Pls_def [symmetric] by (simp add: bin_rec_PM)
-
-lemma int_and_Min [simp]:
-  "Int.Min AND x = x"
-  unfolding int_and_def by (simp add: bin_rec_PM)
-
-lemma int_and_Bits [simp]: 
-  "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
-  unfolding int_and_def Pls_def [symmetric] Min_def [symmetric]
-  by (simp add: bin_rec_simps BIT_simps)
-
-lemma int_and_Bits2 [simp]: 
-  "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
-  "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
-  unfolding BIT_simps [symmetric] int_and_Bits by simp_all
+  unfolding int_or_def by simp_all
 
 subsubsection {* Binary destructors *}
 
@@ -233,9 +235,6 @@ lemma bin_ops_same [simp]:
   "(x::int) AND x = x" 
   "(x::int) OR x = x" 
   "(x::int) XOR x = Int.Pls"
-  by (auto simp add: bin_eq_iff bin_nth_ops)
-
-lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemmas bin_log_esimps = 
@@ -631,4 +630,3 @@ lemma ex_eq_or:
   by auto
 
 end
-
