@@ -12,6 +12,7 @@ sig
   val make_case :  Proof.context -> config -> string list -> term -> (term * term) list -> term
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val case_tr: bool -> Proof.context -> term list -> term
+  val show_cases: bool Config.T
   val case_tr': string -> Proof.context -> term list -> term
   val add_case_tr' : string list -> theory -> theory
   val setup: theory -> theory
@@ -414,27 +415,31 @@ end;
 
 (* print translation *)
 
+val show_cases = Attrib.setup_config_bool @{binding show_cases} (K true);
+
 fun case_tr' cname ctxt ts =
-  let
-    fun mk_clause (pat, rhs) =
-      let val xs = Term.add_frees pat [] in
-        Syntax.const @{syntax_const "_case1"} $
-          map_aterms
-            (fn Free p => Syntax_Trans.mark_boundT p
-              | Const (s, _) => Syntax.const (Lexicon.mark_const s)
-              | t => t) pat $
-          map_aterms
-            (fn x as Free (s, T) => if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
-              | t => t) rhs
-      end;
-  in
-    (case strip_case' ctxt true (list_comb (Syntax.const cname, ts)) of
-      SOME (x, clauses) =>
-        Syntax.const @{syntax_const "_case_syntax"} $ x $
-          foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
-            (map mk_clause clauses)
-    | NONE => raise Match)
-  end;
+  if Config.get ctxt show_cases then
+    let
+      fun mk_clause (pat, rhs) =
+        let val xs = Term.add_frees pat [] in
+          Syntax.const @{syntax_const "_case1"} $
+            map_aterms
+              (fn Free p => Syntax_Trans.mark_boundT p
+                | Const (s, _) => Syntax.const (Lexicon.mark_const s)
+                | t => t) pat $
+            map_aterms
+              (fn x as Free (s, T) => if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
+                | t => t) rhs
+        end;
+    in
+      (case strip_case' ctxt true (list_comb (Syntax.const cname, ts)) of
+        SOME (x, clauses) =>
+          Syntax.const @{syntax_const "_case_syntax"} $ x $
+            foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
+              (map mk_clause clauses)
+      | NONE => raise Match)
+    end
+  else raise Match;
 
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
