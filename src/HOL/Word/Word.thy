@@ -666,7 +666,7 @@ lemma word_eq_iff:
   unfolding uint_inject [symmetric] bin_eq_iff word_test_bit_def [symmetric]
   by (metis test_bit_size [unfolded word_size])
 
-lemma word_eqI:
+lemma word_eqI [rule_format]:
   fixes u :: "'a::len0 word"
   shows "(ALL n. n < size u --> u !! n = v !! n) \<Longrightarrow> u = v"
   by (simp add: word_size word_eq_iff)
@@ -2139,6 +2139,19 @@ lemma word_ao_nth:
   apply (simp add : test_bit_bin word_size)
   done
 
+lemma test_bit_wi [simp]:
+  "(word_of_int x::'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a) \<and> bin_nth x n"
+  unfolding word_test_bit_def
+  by (simp add: nth_bintr [symmetric] word_ubin.eq_norm)
+
+lemma test_bit_no [simp]:
+  "(number_of w :: 'a::len0 word) !! n \<longleftrightarrow>
+    n < len_of TYPE('a) \<and> bin_nth (number_of w) n"
+  unfolding word_number_of_alt test_bit_wi ..
+
+lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
+  unfolding word_test_bit_def by simp
+
 (* get from commutativity, associativity etc of int_and etc
   to same for word_and etc *)
 
@@ -2187,8 +2200,7 @@ lemma word_log_esimps [simp]:
   "-1 OR x = -1"
   "0 XOR x = x"
   "-1 XOR x = NOT x"
-  using word_of_int_Ex [where x=x] 
-  by (auto simp: bwsimps)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_not_dist:
   fixes x :: "'a::len0 word"
@@ -2203,8 +2215,7 @@ lemma word_bw_same:
   "x AND x = x"
   "x OR x = x"
   "x XOR x = 0"
-  using word_of_int_Ex [where x=x] 
-  by (auto simp: bwsimps)
+  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
 lemma word_ao_absorbs [simp]:
   fixes x :: "'a::len0 word"
@@ -2301,15 +2312,13 @@ lemma word_msb_sint: "msb w = (sint w < 0)"
   by (simp add : sign_Min_lt_0 number_of_is_id)
 
 lemma word_msb_no [simp]:
-  "msb (number_of bin :: 'a::len word) = bin_nth bin (len_of TYPE('a) - 1)"
-  unfolding word_msb_def word_number_of_def
+  "msb (number_of w::'a::len word) = bin_nth (number_of w) (len_of TYPE('a) - 1)"
+  unfolding word_msb_def word_number_of_alt
   by (clarsimp simp add: word_sbin.eq_norm bin_sign_lem)
 
 lemma word_msb_nth:
   "msb (w::'a::len word) = bin_nth (uint w) (len_of TYPE('a) - 1)"
-  apply (rule trans [OF _ word_msb_no])
-  apply (simp add : word_number_of_def)
-  done
+  unfolding word_msb_def sint_uint by (simp add: bin_sign_lem)
 
 lemma word_msb_alt: "msb (w::'a::len word) = hd (to_bl w)"
   apply (unfold word_msb_nth uint_bl)
@@ -2415,19 +2424,6 @@ lemma word_set_set_diff:
   shows "set_bit (set_bit w m x) n y = set_bit (set_bit w n y) m x" 
   by (rule word_eqI) (clarsimp simp add: test_bit_set_gen word_size assms)
 
-lemma test_bit_wi [simp]:
-  "(word_of_int x::'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a) \<and> bin_nth x n"
-  unfolding word_test_bit_def
-  by (simp add: nth_bintr [symmetric] word_ubin.eq_norm)
-
-lemma test_bit_no [simp]:
-  "(number_of bin :: 'a::len0 word) !! n \<equiv> n < len_of TYPE('a) \<and> bin_nth bin n"
-  unfolding word_test_bit_def word_number_of_def word_size
-  by (simp add : nth_bintr [symmetric] word_ubin.eq_norm)
-
-lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
-  unfolding word_test_bit_def by simp
-
 lemma nth_sint: 
   fixes w :: "'a::len word"
   defines "l \<equiv> len_of TYPE ('a)"
@@ -2436,7 +2432,7 @@ lemma nth_sint:
   by (clarsimp simp add: nth_sbintr word_test_bit_def [symmetric])
 
 lemma word_lsb_no [simp]:
-  "lsb (number_of bin :: 'a :: len word) = (bin_last bin = 1)"
+  "lsb (number_of bin :: 'a :: len word) = (bin_last (number_of bin) = 1)"
   unfolding word_lsb_alt test_bit_no by auto
 
 lemma word_set_no [simp]:
@@ -2901,15 +2897,15 @@ lemma sshiftr1_sbintr [simp] :
 
 lemma shiftr_no': 
   "w = number_of bin \<Longrightarrow> 
-  (w::'a::len0 word) >> n = number_of ((bin_rest ^^ n) (bintrunc (size w) bin))"
+  (w::'a::len0 word) >> n = word_of_int ((bin_rest ^^ n) (bintrunc (size w) (number_of bin)))"
   apply clarsimp
   apply (rule word_eqI)
   apply (auto simp: nth_shiftr nth_rest_power_bin nth_bintr word_size)
   done
 
 lemma sshiftr_no': 
-  "w = number_of bin \<Longrightarrow> w >>> n = number_of ((bin_rest ^^ n) 
-    (sbintrunc (size w - 1) bin))"
+  "w = number_of bin \<Longrightarrow> w >>> n = word_of_int ((bin_rest ^^ n) 
+    (sbintrunc (size w - 1) (number_of bin)))"
   apply clarsimp
   apply (rule word_eqI)
   apply (auto simp: nth_sshiftr nth_rest_power_bin nth_sbintr word_size)
@@ -3015,7 +3011,7 @@ lemma nth_mask [OF refl, simp]:
 lemma mask_bl: "mask n = of_bl (replicate n True)"
   by (auto simp add : test_bit_of_bl word_size intro: word_eqI)
 
-lemma mask_bin: "mask n = number_of (bintrunc n Int.Min)"
+lemma mask_bin: "mask n = word_of_int (bintrunc n -1)"
   by (auto simp add: nth_bintr word_size intro: word_eqI)
 
 lemma and_mask_bintr: "w AND mask n = word_of_int (bintrunc n (uint w))"
@@ -3024,11 +3020,11 @@ lemma and_mask_bintr: "w AND mask n = word_of_int (bintrunc n (uint w))"
   apply (auto simp add: test_bit_bin)
   done
 
-lemma and_mask_no: "number_of i AND mask n = number_of (bintrunc n i)" 
-  by (auto simp add : nth_bintr word_size word_ops_nth_size intro: word_eqI)
-
 lemma and_mask_wi: "word_of_int i AND mask n = word_of_int (bintrunc n i)"
-  by (fact and_mask_no [unfolded word_number_of_def])
+  by (auto simp add: nth_bintr word_size word_ops_nth_size word_eq_iff)
+
+lemma and_mask_no: "number_of i AND mask n = word_of_int (bintrunc n (number_of i))"
+  unfolding word_number_of_alt by (rule and_mask_wi)
 
 lemma bl_and_mask':
   "to_bl (w AND mask n :: 'a :: len word) = 
@@ -3742,7 +3738,7 @@ lemma word_rsplit_rcat_size [OF refl]:
   apply (clarsimp simp add : word_size)
   apply (rule nth_equalityI, assumption)
   apply clarsimp
-  apply (rule word_eqI)
+  apply (rule word_eqI [rule_format])
   apply (rule trans)
    apply (rule test_bit_rsplit_alt)
      apply (clarsimp simp: word_size)+

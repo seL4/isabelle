@@ -578,8 +578,6 @@ lemma nth_2p_bin:
   apply (induct n arbitrary: m)
    apply clarsimp
    apply safe
-     apply (case_tac m) 
-      apply (auto simp: trans [OF numeral_1_eq_1 [symmetric] number_of_eq])
    apply (case_tac m) 
     apply (auto simp: Bit_B0_2t [symmetric])
   done

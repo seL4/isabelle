@@ -269,14 +269,17 @@ lemma bin_eq_iff: "x = y \<longleftrightarrow> (\<forall>n. bin_nth x n = bin_nt
 lemma bin_nth_zero [simp]: "\<not> bin_nth 0 n"
   by (induct n) auto
 
+lemma bin_nth_1 [simp]: "bin_nth 1 n \<longleftrightarrow> n = 0"
+  by (cases n) simp_all
+
 lemma bin_nth_Pls [simp]: "~ bin_nth Int.Pls n"
-  by (induct n) auto
+  by (induct n) auto (* FIXME: delete *)
 
 lemma bin_nth_minus1 [simp]: "bin_nth -1 n"
   by (induct n) auto
 
 lemma bin_nth_Min [simp]: "bin_nth Int.Min n"
-  by (induct n) auto
+  by (induct n) auto (* FIXME: delete *)
 
 lemma bin_nth_0_BIT: "bin_nth (w BIT b) 0 = (b = (1::bit))"
   by auto
@@ -288,18 +291,18 @@ lemma bin_nth_minus [simp]: "0 < n ==> bin_nth (w BIT b) n = bin_nth w (n - 1)"
   by (cases n) auto
 
 lemma bin_nth_minus_Bit0 [simp]:
-  "0 < n ==> bin_nth (Int.Bit0 w) n = bin_nth w (n - 1)"
-  using bin_nth_minus [where b="(0::bit)"] by (simp add: BIT_simps)
+  "0 < n ==> bin_nth (number_of (Int.Bit0 w)) n = bin_nth (number_of w) (n - 1)"
+  using bin_nth_minus [where w="number_of w" and b="(0::bit)"] by simp
 
 lemma bin_nth_minus_Bit1 [simp]:
-  "0 < n ==> bin_nth (Int.Bit1 w) n = bin_nth w (n - 1)"
-  using bin_nth_minus [where b="(1::bit)"] by (simp add: BIT_simps)
+  "0 < n ==> bin_nth (number_of (Int.Bit1 w)) n = bin_nth (number_of w) (n - 1)"
+  using bin_nth_minus [where w="number_of w" and b="(1::bit)"] by simp
 
 lemmas bin_nth_0 = bin_nth.simps(1)
 lemmas bin_nth_Suc = bin_nth.simps(2)
 
 lemmas bin_nth_simps = 
-  bin_nth_0 bin_nth_Suc bin_nth_Pls bin_nth_Min bin_nth_minus
+  bin_nth_0 bin_nth_Suc bin_nth_zero bin_nth_minus1 bin_nth_minus
   bin_nth_minus_Bit0 bin_nth_minus_Bit1
 
 
@@ -416,12 +419,14 @@ lemma bin_nth_Bit:
   by (cases n) auto
 
 lemma bin_nth_Bit0:
-  "bin_nth (Int.Bit0 w) n = (EX m. n = Suc m & bin_nth w m)"
-  using bin_nth_Bit [where b="(0::bit)"] by (simp add: BIT_simps)
+  "bin_nth (number_of (Int.Bit0 w)) n \<longleftrightarrow>
+    (\<exists>m. n = Suc m \<and> bin_nth (number_of w) m)"
+  using bin_nth_Bit [where w="number_of w" and b="(0::bit)"] by simp
 
 lemma bin_nth_Bit1:
-  "bin_nth (Int.Bit1 w) n = (n = 0 | (EX m. n = Suc m & bin_nth w m))"
-  using bin_nth_Bit [where b="(1::bit)"] by (simp add: BIT_simps)
+  "bin_nth (number_of (Int.Bit1 w)) n \<longleftrightarrow>
+    n = 0 \<or> (\<exists>m. n = Suc m \<and> bin_nth (number_of w) m)"
+  using bin_nth_Bit [where w="number_of w" and b="(1::bit)"] by simp
 
 lemma bintrunc_bintrunc_l:
   "n <= m ==> (bintrunc m (bintrunc n w) = bintrunc n w)"
