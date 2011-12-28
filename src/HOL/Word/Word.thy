@@ -1072,9 +1072,7 @@ end
 subsection {* Word Arithmetic *}
 
 lemma word_less_alt: "(a < b) = (uint a < uint b)"
-  unfolding word_less_def word_le_def
-  by (auto simp del: word_uint.Rep_inject 
-           simp: word_uint.Rep_inject [symmetric])
+  unfolding word_less_def word_le_def by (simp add: less_le)
 
 lemma signed_linorder: "class.linorder word_sle word_sless"
 proof
