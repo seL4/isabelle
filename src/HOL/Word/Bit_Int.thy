@@ -68,8 +68,7 @@ instantiation int :: bit
 begin
 
 definition
-  int_not_def: "bitNOT = bin_rec (- 1) 0
-    (\<lambda>w b s. s BIT (NOT b))"
+  int_not_def: "bitNOT = (\<lambda>x::int. - x - 1)"
 
 definition
   int_and_def: "bitAND = bin_rec (\<lambda>x. 0) (\<lambda>y. y) 
@@ -89,14 +88,16 @@ end
 
 subsubsection {* Basic simplification rules *}
 
+lemma int_not_BIT [simp]:
+  "NOT (w BIT b) = (NOT w) BIT (NOT b)"
+  unfolding int_not_def Bit_def by (cases b, simp_all)
+
 lemma int_not_simps [simp]:
   "NOT Int.Pls = Int.Min"
   "NOT Int.Min = Int.Pls"
   "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
   "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
-  "NOT (w BIT b) = (NOT w) BIT (NOT b)"
-  unfolding int_not_def Pls_def [symmetric] Min_def [symmetric]
-  by (simp_all add: bin_rec_simps BIT_simps)
+  unfolding int_not_def Pls_def Min_def Bit0_def Bit1_def by simp_all
 
 lemma int_xor_Pls [simp]: 
   "Int.Pls XOR x = x"
@@ -114,7 +115,7 @@ lemma int_xor_Bits [simp]:
    prefer 2
    apply simp
   apply (rule ext)
-  apply (simp add: int_not_simps [symmetric])
+  apply (simp add: int_not_BIT [symmetric])
   done
 
 lemma int_xor_Bits2 [simp]: 
