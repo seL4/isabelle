@@ -78,8 +78,7 @@ definition
   int_or_def: "bitOR = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
 
 definition
-  int_xor_def: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
-    (\<lambda>w b s y. s (bin_rest y) BIT (b XOR bin_last y))"
+  int_xor_def: "bitXOR = (\<lambda>x y::int. (x AND NOT y) OR (NOT x AND y))"
 
 instance ..
 
@@ -121,35 +120,9 @@ lemma int_and_Bits2 [simp]:
   "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
   unfolding BIT_simps [symmetric] int_and_Bits by simp_all
 
-lemma int_xor_Pls [simp]: 
-  "Int.Pls XOR x = x"
-  unfolding int_xor_def Pls_def [symmetric] Min_def [symmetric] by (simp add: bin_rec_PM)
-
-lemma int_xor_Min [simp]: 
-  "Int.Min XOR x = NOT x"
-  unfolding int_xor_def Pls_def [symmetric] Min_def [symmetric] by (simp add: bin_rec_PM)
-
-lemma int_xor_Bits [simp]: 
-  "(x BIT b) XOR (y BIT c) = (x XOR y) BIT (b XOR c)"
-  apply (unfold int_xor_def Pls_def [symmetric] Min_def [symmetric])
-  apply (rule bin_rec_simps (1) [THEN fun_cong, THEN trans])
-    apply (rule ext, simp)
-   prefer 2
-   apply simp
-  apply (rule ext)
-  apply (simp add: int_not_BIT [symmetric])
-  done
-
-lemma int_xor_Bits2 [simp]: 
-  "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
-  "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
-  "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
-  "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
-  unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
-
 lemma int_or_Pls [simp]: "Int.Pls OR x = x"
   unfolding int_or_def by simp
-  
+
 lemma int_or_Min [simp]: "Int.Min OR x = Int.Min"
   unfolding int_or_def by simp
 
@@ -166,6 +139,23 @@ lemma int_or_Bits2 [simp]:
   "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
   unfolding int_or_def by simp_all
+
+lemma int_xor_Pls [simp]: "Int.Pls XOR x = x"
+  unfolding int_xor_def by simp
+
+lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
+  by (induct b, simp_all) (* TODO: move *)
+
+lemma int_xor_Bits [simp]: 
+  "(x BIT b) XOR (y BIT c) = (x XOR y) BIT (b XOR c)"
+  unfolding int_xor_def bit_xor_def by simp
+
+lemma int_xor_Bits2 [simp]: 
+  "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
+  "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
+  "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
+  "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
+  unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
 
 subsubsection {* Binary destructors *}
 
@@ -207,6 +197,9 @@ lemma bin_nth_ops:
   by (induct n) auto
 
 subsubsection {* Derived properties *}
+
+lemma int_xor_Min [simp]: "Int.Min XOR x = NOT x"
+  by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma int_xor_extra_simps [simp]:
   "w XOR Int.Pls = w"
