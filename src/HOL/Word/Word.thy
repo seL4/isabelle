@@ -808,8 +808,11 @@ lemma to_bl_no_bin [simp]:
 
 lemma to_bl_to_bin [simp] : "bl_to_bin (to_bl w) = uint w"
   unfolding uint_bl by (simp add : word_size)
-  
-lemmas uint_bl_bin [simp] = trans [OF bin_bl_bin word_ubin.norm_Rep]
+
+lemma uint_bl_bin:
+  fixes x :: "'a::len0 word"
+  shows "bl_to_bin (bin_to_bl (len_of TYPE('a)) (uint x)) = uint x"
+  by (rule trans [OF bin_bl_bin word_ubin.norm_Rep])
 
 (* FIXME: the next two lemmas should be unnecessary, because the lhs
 terms should never occur in practice *)
@@ -892,10 +895,21 @@ lemma scast_sbintr [simp]:
    word_of_int (sbintrunc (len_of TYPE('a) - Suc 0) (number_of w))"
   unfolding scast_def by simp
 
-lemmas source_size = source_size_def [unfolded Let_def word_size]
-lemmas target_size = target_size_def [unfolded Let_def word_size]
-lemmas is_down = is_down_def [unfolded source_size target_size]
-lemmas is_up = is_up_def [unfolded source_size target_size]
+lemma source_size: "source_size (c::'a::len0 word \<Rightarrow> _) = len_of TYPE('a)"
+  unfolding source_size_def word_size Let_def ..
+
+lemma target_size: "target_size (c::_ \<Rightarrow> 'b::len0 word) = len_of TYPE('b)"
+  unfolding target_size_def word_size Let_def ..
+
+lemma is_down:
+  fixes c :: "'a::len0 word \<Rightarrow> 'b::len0 word"
+  shows "is_down c \<longleftrightarrow> len_of TYPE('b) \<le> len_of TYPE('a)"
+  unfolding is_down_def source_size target_size ..
+
+lemma is_up:
+  fixes c :: "'a::len0 word \<Rightarrow> 'b::len0 word"
+  shows "is_up c \<longleftrightarrow> len_of TYPE('a) \<le> len_of TYPE('b)"
+  unfolding is_up_def source_size target_size ..
 
 lemmas is_up_down = trans [OF is_up is_down [symmetric]]
 
@@ -1039,7 +1053,7 @@ lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
-lemmas word_log_bin_defs = word_log_defs
+lemmas word_log_bin_defs = word_log_defs (* FIXME: duplicate *)
 
 text {* Executable equality *}
 
@@ -1500,7 +1514,7 @@ lemma le_plus':
 
 lemmas le_plus = le_plus' [rotated]
 
-lemmas le_minus = leD [THEN thin_rl, THEN le_minus']
+lemmas le_minus = leD [THEN thin_rl, THEN le_minus'] (* FIXME *)
 
 lemma word_plus_mono_right: 
   "(y :: 'a :: len0 word) <= z \<Longrightarrow> x <= x + z \<Longrightarrow> x + y <= x + z"
@@ -2109,14 +2123,19 @@ lemmas wils1 = bin_log_bintrs [THEN word_ubin.norm_eq_iff [THEN iffD1],
 lemmas word_log_binary_defs = 
   word_and_def word_or_def word_xor_def
 
-lemmas word_no_log_defs [simp] = 
-  word_not_def  [where a="number_of a", 
-                 unfolded word_no_wi wils1, folded word_no_wi]
-  word_log_binary_defs [where a="number_of a" and b="number_of b",
-                        unfolded word_no_wi wils1, folded word_no_wi]
-  for a b
+lemma word_wi_log_defs:
+  "NOT word_of_int a = word_of_int (NOT a)"
+  "word_of_int a AND word_of_int b = word_of_int (a AND b)"
+  "word_of_int a OR word_of_int b = word_of_int (a OR b)"
+  "word_of_int a XOR word_of_int b = word_of_int (a XOR b)"
+  unfolding word_not_def word_log_binary_defs wils1 by simp_all
 
-lemmas word_wi_log_defs = word_no_log_defs [unfolded word_no_wi]
+lemma word_no_log_defs [simp]:
+  "NOT number_of a = (number_of (NOT a) :: 'a::len0 word)"
+  "number_of a AND number_of b = (number_of (a AND b) :: 'a word)"
+  "number_of a OR number_of b = (number_of (a OR b) :: 'a word)"
+  "number_of a XOR number_of b = (number_of (a XOR b) :: 'a word)"
+  unfolding word_no_wi word_wi_log_defs by simp_all
 
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
   by (simp add: word_or_def word_wi_log_defs word_ubin.eq_norm
