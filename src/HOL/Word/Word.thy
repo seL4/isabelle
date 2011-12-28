@@ -456,6 +456,8 @@ primrec of_bool :: "bool \<Rightarrow> 'a::len word" where
 (* FIXME: only provide one theorem name *)
 lemmas of_nth_def = word_set_bits_def
 
+subsection {* Theorems about typedefs *}
+
 lemma sint_sbintrunc': 
   "sint (word_of_int bin :: 'a word) = 
     (sbintrunc (len_of TYPE ('a :: len) - 1) bin)"
@@ -663,6 +665,8 @@ lemma sint_above_size: "2 ^ (size (w::'a::len word) - 1) \<le> x \<Longrightarro
 lemma sint_below_size:
   "x \<le> - (2 ^ (size (w::'a::len word) - 1)) \<Longrightarrow> x \<le> sint w"
   unfolding word_size by (rule order_trans [OF _ sint_ge])
+
+subsection {* Testing bits *}
 
 lemma test_bit_eq_iff: "(test_bit (u::'a::len0 word) = test_bit v) = (u = v)"
   unfolding word_test_bit_def by (simp add: bin_nth_eq_iff)
@@ -4135,7 +4139,7 @@ lemmas word_rotl_dt_no_bin' [simp] =
 declare word_roti_def [simp]
 
 
-subsection {* Miscellaneous  *}
+subsection {* Maximum machine word *}
 
 lemma word_int_cases:
   "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::len0 word) = word_of_int n; 0 \<le> n; n < 2^len_of TYPE('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
@@ -4453,6 +4457,8 @@ lemma word_induct2 [induct type]:
   apply (rule word_induct, simp)
   apply (case_tac "1+n = 0", auto)
   done
+
+subsection {* Recursion combinator for words *}
 
 definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a" where
   "word_rec forZero forSuc n = nat_rec forZero (forSuc \<circ> of_nat) (unat n)"
