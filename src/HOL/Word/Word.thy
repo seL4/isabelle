@@ -660,17 +660,16 @@ lemma test_bit_size [rule_format] : "(w::'a::len0 word) !! n --> n < size w"
   apply fast
   done
 
-lemma word_eqI [rule_format] : 
+lemma word_eq_iff:
+  fixes x y :: "'a::len0 word"
+  shows "x = y \<longleftrightarrow> (\<forall>n<len_of TYPE('a). x !! n = y !! n)"
+  unfolding uint_inject [symmetric] bin_eq_iff word_test_bit_def [symmetric]
+  by (metis test_bit_size [unfolded word_size])
+
+lemma word_eqI:
   fixes u :: "'a::len0 word"
   shows "(ALL n. n < size u --> u !! n = v !! n) \<Longrightarrow> u = v"
-  apply (rule test_bit_eq_iff [THEN iffD1])
-  apply (rule ext)
-  apply (erule allE)
-  apply (erule impCE)
-   prefer 2
-   apply assumption
-  apply (auto dest!: test_bit_size simp add: word_size)
-  done
+  by (simp add: word_size word_eq_iff)
 
 lemma word_eqD: "(u::'a::len0 word) = v \<Longrightarrow> u !! x = v !! x"
   by simp
