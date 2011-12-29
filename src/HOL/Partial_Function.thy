@@ -90,7 +90,7 @@ proof -
 qed
 
 lemma ccpo: assumes "partial_function_definitions ord lb"
-  shows "class.ccpo ord (mk_less ord) lb"
+  shows "class.ccpo lb ord (mk_less ord)"
 using assms unfolding partial_function_definitions_def mk_less_def
 by unfold_locales blast+
 
@@ -127,14 +127,14 @@ begin
 
 abbreviation "le_fun \<equiv> fun_ord leq"
 abbreviation "lub_fun \<equiv> fun_lub lub"
-abbreviation "fixp_fun \<equiv> ccpo.fixp le_fun lub_fun"
+abbreviation "fixp_fun \<equiv> ccpo.fixp lub_fun le_fun"
 abbreviation "mono_body \<equiv> monotone le_fun leq"
-abbreviation "admissible \<equiv> ccpo.admissible le_fun lub_fun"
+abbreviation "admissible \<equiv> ccpo.admissible lub_fun le_fun"
 
 text {* Interpret manually, to avoid flooding everything with facts about
   orders *}
 
-lemma ccpo: "class.ccpo le_fun (mk_less le_fun) lub_fun"
+lemma ccpo: "class.ccpo lub_fun le_fun (mk_less le_fun)"
 apply (rule ccpo)
 apply (rule partial_function_lift)
 apply (rule partial_function_definitions_axioms)
@@ -175,7 +175,7 @@ lemma fixp_induct_uc:
   assumes mono: "\<And>x. mono_body (\<lambda>f. U (F (C f)) x)"
   assumes eq: "f \<equiv> C (fixp_fun (\<lambda>f. U (F (C f))))"
   assumes inverse: "\<And>f. U (C f) = f"
-  assumes adm: "ccpo.admissible le_fun lub_fun P"
+  assumes adm: "ccpo.admissible lub_fun le_fun P"
   assumes step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
   shows "P (U f)"
 unfolding eq inverse
@@ -307,7 +307,7 @@ lemma fixp_induct_option:
     C :: "('b \<Rightarrow> 'a option) \<Rightarrow> 'c" and
     P :: "'b \<Rightarrow> 'a \<Rightarrow> bool"
   assumes mono: "\<And>x. mono_option (\<lambda>f. U (F (C f)) x)"
-  assumes eq: "f \<equiv> C (ccpo.fixp (fun_ord option_ord) (fun_lub (flat_lub None)) (\<lambda>f. U (F (C f))))"
+  assumes eq: "f \<equiv> C (ccpo.fixp (fun_lub (flat_lub None)) (fun_ord option_ord) (\<lambda>f. U (F (C f))))"
   assumes inverse2: "\<And>f. U (C f) = f"
   assumes step: "\<And>f x y. (\<And>x y. U f x = Some y \<Longrightarrow> P x y) \<Longrightarrow> U (F f) x = Some y \<Longrightarrow> P x y"
   assumes defined: "U f x = Some y"
@@ -326,4 +326,3 @@ declaration {* Partial_Function.init "option" @{term option.fixp_fun}
 hide_const (open) chain
 
 end
-

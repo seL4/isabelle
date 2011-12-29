@@ -57,10 +57,9 @@ text {*
   empty set is a chain, so every ccpo must have a bottom element.
 *}
 
-class ccpo = order +
-  fixes lub :: "'a set \<Rightarrow> 'a"
-  assumes lub_upper: "chain (op \<le>) A \<Longrightarrow> x \<in> A \<Longrightarrow> x \<le> lub A"
-  assumes lub_least: "chain (op \<le>) A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> lub A \<le> z"
+class ccpo = order + Sup +
+  assumes ccpo_Sup_upper: "\<lbrakk>chain (op \<le>) A; x \<in> A\<rbrakk> \<Longrightarrow> x \<le> Sup A"
+  assumes ccpo_Sup_least: "\<lbrakk>chain (op \<le>) A; \<And>x. x \<in> A \<Longrightarrow> x \<le> z\<rbrakk> \<Longrightarrow> Sup A \<le> z"
 begin
 
 subsection {* Transfinite iteration of a function *}
@@ -69,12 +68,12 @@ inductive_set iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set"
 for f :: "'a \<Rightarrow> 'a"
 where
   step: "x \<in> iterates f \<Longrightarrow> f x \<in> iterates f"
-| lub: "chain (op \<le>) M \<Longrightarrow> \<forall>x\<in>M. x \<in> iterates f \<Longrightarrow> lub M \<in> iterates f"
+| Sup: "chain (op \<le>) M \<Longrightarrow> \<forall>x\<in>M. x \<in> iterates f \<Longrightarrow> Sup M \<in> iterates f"
 
 lemma iterates_le_f:
   "x \<in> iterates f \<Longrightarrow> monotone (op \<le>) (op \<le>) f \<Longrightarrow> x \<le> f x"
 by (induct x rule: iterates.induct)
-  (force dest: monotoneD intro!: lub_upper lub_least)+
+  (force dest: monotoneD intro!: ccpo_Sup_upper ccpo_Sup_least)+
 
 lemma chain_iterates:
   assumes f: "monotone (op \<le>) (op \<le>) f"
@@ -89,33 +88,33 @@ proof (rule chainI)
     proof (induct y rule: iterates.induct)
       case (step y) with IH f show ?case by (auto dest: monotoneD)
     next
-      case (lub M)
+      case (Sup M)
       then have chM: "chain (op \<le>) M"
         and IH': "\<And>z. z \<in> M \<Longrightarrow> f x \<le> z \<or> z \<le> f x" by auto
-      show "f x \<le> lub M \<or> lub M \<le> f x"
+      show "f x \<le> Sup M \<or> Sup M \<le> f x"
       proof (cases "\<exists>z\<in>M. f x \<le> z")
-        case True then have "f x \<le> lub M"
+        case True then have "f x \<le> Sup M"
           apply rule
           apply (erule order_trans)
-          by (rule lub_upper[OF chM])
+          by (rule ccpo_Sup_upper[OF chM])
         thus ?thesis ..
       next
         case False with IH'
-        show ?thesis by (auto intro: lub_least[OF chM])
+        show ?thesis by (auto intro: ccpo_Sup_least[OF chM])
       qed
     qed
   next
-    case (lub M y)
+    case (Sup M y)
     show ?case
     proof (cases "\<exists>x\<in>M. y \<le> x")
-      case True then have "y \<le> lub M"
+      case True then have "y \<le> Sup M"
         apply rule
         apply (erule order_trans)
-        by (rule lub_upper[OF lub(1)])
+        by (rule ccpo_Sup_upper[OF Sup(1)])
       thus ?thesis ..
     next
-      case False with lub
-      show ?thesis by (auto intro: lub_least)
+      case False with Sup
+      show ?thesis by (auto intro: ccpo_Sup_least)
     qed
   qed
 qed
@@ -125,12 +124,12 @@ subsection {* Fixpoint combinator *}
 definition
   fixp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
-  "fixp f = lub (iterates f)"
+  "fixp f = Sup (iterates f)"
 
 lemma iterates_fixp:
   assumes f: "monotone (op \<le>) (op \<le>) f" shows "fixp f \<in> iterates f"
 unfolding fixp_def
-by (simp add: iterates.lub chain_iterates f)
+by (simp add: iterates.Sup chain_iterates f)
 
 lemma fixp_unfold:
   assumes f: "monotone (op \<le>) (op \<le>) f"
@@ -138,8 +137,8 @@ lemma fixp_unfold:
 proof (rule antisym)
   show "fixp f \<le> f (fixp f)"
     by (intro iterates_le_f iterates_fixp f)
-  have "f (fixp f) \<le> lub (iterates f)"
-    by (intro lub_upper chain_iterates f iterates.step iterates_fixp)
+  have "f (fixp f) \<le> Sup (iterates f)"
+    by (intro ccpo_Sup_upper chain_iterates f iterates.step iterates_fixp)
   thus "f (fixp f) \<le> fixp f"
     unfolding fixp_def .
 qed
@@ -147,13 +146,13 @@ qed
 lemma fixp_lowerbound:
   assumes f: "monotone (op \<le>) (op \<le>) f" and z: "f z \<le> z" shows "fixp f \<le> z"
 unfolding fixp_def
-proof (rule lub_least[OF chain_iterates[OF f]])
+proof (rule ccpo_Sup_least[OF chain_iterates[OF f]])
   fix x assume "x \<in> iterates f"
   thus "x \<le> z"
   proof (induct x rule: iterates.induct)
     fix x assume "x \<le> z" with f have "f x \<le> f z" by (rule monotoneD)
     also note z finally show "f x \<le> z" .
-  qed (auto intro: lub_least)
+  qed (auto intro: ccpo_Sup_least)
 qed
 
 
@@ -162,10 +161,10 @@ subsection {* Fixpoint induction *}
 definition
   admissible :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
 where
-  "admissible P = (\<forall>A. chain (op \<le>) A \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (lub A))"
+  "admissible P = (\<forall>A. chain (op \<le>) A \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (Sup A))"
 
 lemma admissibleI:
-  assumes "\<And>A. chain (op \<le>) A \<Longrightarrow> \<forall>x\<in>A. P x \<Longrightarrow> P (lub A)"
+  assumes "\<And>A. chain (op \<le>) A \<Longrightarrow> \<forall>x\<in>A. P x \<Longrightarrow> P (Sup A)"
   shows "admissible P"
 using assms unfolding admissible_def by fast
 
@@ -173,7 +172,7 @@ lemma admissibleD:
   assumes "admissible P"
   assumes "chain (op \<le>) A"
   assumes "\<And>x. x \<in> A \<Longrightarrow> P x"
-  shows "P (lub A)"
+  shows "P (Sup A)"
 using assms by (auto simp: admissible_def)
 
 lemma fixp_induct:
@@ -220,20 +219,20 @@ unfolding chain_def by fast
 lemma admissible_disj_lemma:
   assumes A: "chain (op \<le>)A"
   assumes P: "\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y"
-  shows "lub A = lub {x \<in> A. P x}"
+  shows "Sup A = Sup {x \<in> A. P x}"
 proof (rule antisym)
   have *: "chain (op \<le>) {x \<in> A. P x}"
     by (rule chain_compr [OF A])
-  show "lub A \<le> lub {x \<in> A. P x}"
-    apply (rule lub_least [OF A])
+  show "Sup A \<le> Sup {x \<in> A. P x}"
+    apply (rule ccpo_Sup_least [OF A])
     apply (drule P [rule_format], clarify)
     apply (erule order_trans)
-    apply (simp add: lub_upper [OF *])
+    apply (simp add: ccpo_Sup_upper [OF *])
     done
-  show "lub {x \<in> A. P x} \<le> lub A"
-    apply (rule lub_least [OF *])
+  show "Sup {x \<in> A. P x} \<le> Sup A"
+    apply (rule ccpo_Sup_least [OF *])
     apply clarify
-    apply (simp add: lub_upper [OF A])
+    apply (simp add: ccpo_Sup_upper [OF A])
     done
 qed
 
@@ -247,9 +246,9 @@ proof (rule admissibleI)
   assume "\<forall>x\<in>A. P x \<or> Q x"
   hence "(\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y) \<or> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> Q y)"
     using chainD[OF A] by blast
-  hence "lub A = lub {x \<in> A. P x} \<or> lub A = lub {x \<in> A. Q x}"
+  hence "Sup A = Sup {x \<in> A. P x} \<or> Sup A = Sup {x \<in> A. Q x}"
     using admissible_disj_lemma [OF A] by fast
-  thus "P (lub A) \<or> Q (lub A)"
+  thus "P (Sup A) \<or> Q (Sup A)"
     apply (rule disjE, simp_all)
     apply (rule disjI1, rule admissibleD [OF P chain_compr [OF A]], simp)
     apply (rule disjI2, rule admissibleD [OF Q chain_compr [OF A]], simp)
@@ -258,6 +257,20 @@ qed
 
 end
 
-hide_const (open) lub iterates fixp admissible
+instance complete_lattice \<subseteq> ccpo
+  by default (fast intro: Sup_upper Sup_least)+
+
+lemma lfp_eq_fixp:
+  assumes f: "mono f" shows "lfp f = fixp f"
+proof (rule antisym)
+  from f have f': "monotone (op \<le>) (op \<le>) f"
+    unfolding mono_def monotone_def .
+  show "lfp f \<le> fixp f"
+    by (rule lfp_lowerbound, subst fixp_unfold [OF f'], rule order_refl)
+  show "fixp f \<le> lfp f"
+    by (rule fixp_lowerbound [OF f'], subst lfp_unfold [OF f], rule order_refl)
+qed
+
+hide_const (open) iterates fixp admissible
 
 end
