@@ -37,24 +37,24 @@ by (metis meet_greatest meet_le1 meet_le2 le_trans)
 
 end
 
-locale Val_abs1_rep =
-  Val_abs rep num' plus'
-  for rep :: "'a::L_top_bot \<Rightarrow> val set" ("\<gamma>") and num' plus' +
-assumes inter_rep_subset_rep_meet:
-  "rep a1 \<inter> rep a2 \<subseteq> rep(a1 \<sqinter> a2)"
-and rep_Bot[simp]: "rep \<bottom> = {}"
+locale Val_abs1_gamma =
+  Val_abs \<gamma> num' plus'
+  for \<gamma> :: "'a::L_top_bot \<Rightarrow> val set" and num' plus' +
+assumes inter_gamma_subset_gamma_meet:
+  "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
+and gamma_Bot[simp]: "\<gamma> \<bottom> = {}"
 begin
 
-lemma in_rep_meet: "x : \<gamma> a1 \<Longrightarrow> x : \<gamma> a2 \<Longrightarrow> x : \<gamma>(a1 \<sqinter> a2)"
-by (metis IntI inter_rep_subset_rep_meet set_mp)
+lemma in_gamma_meet: "x : \<gamma> a1 \<Longrightarrow> x : \<gamma> a2 \<Longrightarrow> x : \<gamma>(a1 \<sqinter> a2)"
+by (metis IntI inter_gamma_subset_gamma_meet set_mp)
 
-lemma rep_meet[simp]: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
-by (metis equalityI inter_rep_subset_rep_meet le_inf_iff mono_rep meet_le1 meet_le2)
+lemma gamma_meet[simp]: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
+by (metis equalityI inter_gamma_subset_gamma_meet le_inf_iff mono_gamma meet_le1 meet_le2)
 
 end
 
 
-locale Val_abs1 = Val_abs1_rep +
+locale Val_abs1 = Val_abs1_gamma +
 fixes filter_plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
 and filter_less' :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
 assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
@@ -66,14 +66,14 @@ and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
 locale Abs_Int1 = Val_abs1
 begin
 
-lemma in_rep_join_UpI: "s : \<gamma>\<^isub>u S1 | s : \<gamma>\<^isub>u S2 \<Longrightarrow> s : \<gamma>\<^isub>u(S1 \<squnion> S2)"
-by (metis (no_types) join_ge1 join_ge2 mono_rep_u set_rev_mp)
+lemma in_gamma_join_UpI: "s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
+by (metis (no_types) join_ge1 join_ge2 mono_gamma_o set_rev_mp)
 
 fun aval'' :: "aexp \<Rightarrow> 'a st option \<Rightarrow> 'a" where
 "aval'' e None = \<bottom>" |
 "aval'' e (Some sa) = aval' e sa"
 
-lemma aval''_sound: "s : \<gamma>\<^isub>u S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
+lemma aval''_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
 by(cases S)(simp add: aval'_sound)+
 
 subsubsection "Backward analysis"
@@ -107,31 +107,31 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a st option \<Rightarrow>
   (let (res1,res2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
    in afilter e1 res1 (afilter e2 res2 S))"
 
-lemma afilter_sound: "s : \<gamma>\<^isub>u S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>u (afilter e a S)"
+lemma afilter_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (afilter e a S)"
 proof(induction e arbitrary: a S)
   case N thus ?case by simp
 next
   case (V x)
-  obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>f S'" using `s : \<gamma>\<^isub>u S`
-    by(auto simp: in_rep_up_iff)
-  moreover hence "s x : \<gamma> (lookup S' x)" by(simp add: rep_st_def)
+  obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>f S'" using `s : \<gamma>\<^isub>o S`
+    by(auto simp: in_gamma_option_iff)
+  moreover hence "s x : \<gamma> (lookup S' x)" by(simp add: \<gamma>_st_def)
   moreover have "s x : \<gamma> a" using V by simp
   ultimately show ?case using V(1)
-    by(simp add: lookup_update Let_def rep_st_def)
-      (metis mono_rep emptyE in_rep_meet rep_Bot subset_empty)
+    by(simp add: lookup_update Let_def \<gamma>_st_def)
+      (metis mono_gamma emptyE in_gamma_meet gamma_Bot subset_empty)
 next
   case (Plus e1 e2) thus ?case
     using filter_plus'[OF _ aval''_sound[OF Plus(3)] aval''_sound[OF Plus(3)]]
     by (auto split: prod.split)
 qed
 
-lemma bfilter_sound: "s : \<gamma>\<^isub>u S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^isub>u(bfilter b bv S)"
+lemma bfilter_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^isub>o(bfilter b bv S)"
 proof(induction b arbitrary: S bv)
   case Bc thus ?case by simp
 next
   case (Not b) thus ?case by simp
 next
-  case (And b1 b2) thus ?case by(fastforce simp: in_rep_join_UpI)
+  case (And b1 b2) thus ?case by(fastforce simp: in_gamma_join_UpI)
 next
   case (Less e1 e2) thus ?case
     by (auto split: prod.split)
@@ -162,20 +162,20 @@ by(induct c arbitrary: S) (simp_all add: Let_def)
 
 subsubsection "Soundness"
 
-lemma in_rep_update:
+lemma in_gamma_update:
   "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(update S x a)"
-by(simp add: rep_st_def lookup_update)
+by(simp add: \<gamma>_st_def lookup_update)
 
 
 lemma step_preserves_le2:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
    \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' sa ca)"
 proof(induction c arbitrary: cs ca S sa)
   case SKIP thus ?case
     by(auto simp:strip_eq_SKIP)
 next
   case Assign thus ?case
-    by (fastforce simp: strip_eq_Assign intro: aval'_sound in_rep_update
+    by (fastforce simp: strip_eq_Assign intro: aval'_sound in_gamma_update
       split: option.splits del:subsetD)
 next
   case Semi thus ?case apply (auto simp: strip_eq_Semi)
@@ -184,30 +184,30 @@ next
   case (If b c1 c2)
   then obtain cs1 cs2 ca1 ca2 P Pa where
       "cs= IF b THEN cs1 ELSE cs2 {P}" "ca= IF b THEN ca1 ELSE ca2 {Pa}"
-      "P \<subseteq> \<gamma>\<^isub>u Pa" "cs1 \<le> \<gamma>\<^isub>c ca1" "cs2 \<le> \<gamma>\<^isub>c ca2"
+      "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1" "cs2 \<le> \<gamma>\<^isub>c ca2"
       "strip cs1 = c1" "strip ca1 = c1" "strip cs2 = c2" "strip ca2 = c2"
     by (fastforce simp: strip_eq_If)
-  moreover have "post cs1 \<subseteq> \<gamma>\<^isub>u(post ca1 \<squnion> post ca2)"
-    by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_rep_u order_trans post_map_acom)
-  moreover have "post cs2 \<subseteq> \<gamma>\<^isub>u(post ca1 \<squnion> post ca2)"
-    by (metis (no_types) `cs2 \<le> \<gamma>\<^isub>c ca2` join_ge2 le_post mono_rep_u order_trans post_map_acom)
-  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>u sa`
+  moreover have "post cs1 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
+    by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post cs2 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
+    by (metis (no_types) `cs2 \<le> \<gamma>\<^isub>c ca2` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
+  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o sa`
     by (simp add: If.IH subset_iff bfilter_sound)
 next
   case (While b c1)
   then obtain cs1 ca1 I P Ia Pa where
     "cs = {I} WHILE b DO cs1 {P}" "ca = {Ia} WHILE b DO ca1 {Pa}"
-    "I \<subseteq> \<gamma>\<^isub>u Ia" "P \<subseteq> \<gamma>\<^isub>u Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
+    "I \<subseteq> \<gamma>\<^isub>o Ia" "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
     "strip cs1 = c1" "strip ca1 = c1"
     by (fastforce simp: strip_eq_While)
-  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>u (sa \<squnion> post ca1)"
-    using `S \<subseteq> \<gamma>\<^isub>u sa` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
-    by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_rep_u order_trans)
+  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>o (sa \<squnion> post ca1)"
+    using `S \<subseteq> \<gamma>\<^isub>o sa` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
+    by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff bfilter_sound)
 qed
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>u sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
    \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c(step' sa ca)"
 by (metis le_strip step_preserves_le2 strip_acom)
 
@@ -221,12 +221,12 @@ proof(simp add: CS_def AI_def)
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _ 3])
-      show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
-      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+      show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
+      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
     qed
   qed
   from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c c'"
-    by (blast intro: mono_rep_c order_trans)
+    by (blast intro: mono_gamma_c order_trans)
 qed
 
 end
@@ -255,7 +255,7 @@ by (simp add: mono_aval')
 lemma mono_afilter: "r \<sqsubseteq> r' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> afilter e r S \<sqsubseteq> afilter e r' S'"
 apply(induction e arbitrary: r r' S S')
 apply(auto simp: Let_def split: option.splits prod.splits)
-apply (metis mono_rep subsetD)
+apply (metis mono_gamma subsetD)
 apply(drule_tac x = "list" in mono_lookup)
 apply (metis mono_meet le_trans)
 apply (metis mono_meet mono_lookup mono_update)

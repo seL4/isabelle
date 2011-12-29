@@ -30,7 +30,7 @@ definition "update F x y =
 lemma lookup_update: "lookup (update S x y) = (lookup S)(x:=y)"
 by(rule ext)(auto simp: lookup_def update_def)
 
-definition "rep_st rep F = {f. \<forall>x. f x \<in> rep(lookup F x)}"
+definition "\<gamma>_st \<gamma> F = {f. \<forall>x. f x \<in> \<gamma>(lookup F x)}"
 
 instantiation st :: (SL_top) SL_top
 begin
@@ -61,35 +61,36 @@ by(auto simp add: le_st_def lookup_def update_def)
 context Val_abs
 begin
 
-abbreviation rep_f :: "'a st \<Rightarrow> state set" ("\<gamma>\<^isub>f")
-where "\<gamma>\<^isub>f == rep_st rep"
+abbreviation \<gamma>\<^isub>f :: "'a st \<Rightarrow> state set"
+where "\<gamma>\<^isub>f == \<gamma>_st \<gamma>"
 
-abbreviation rep_u :: "'a st option \<Rightarrow> state set" ("\<gamma>\<^isub>u")
-where "\<gamma>\<^isub>u == rep_option \<gamma>\<^isub>f"
+abbreviation \<gamma>\<^isub>o :: "'a st option \<Rightarrow> state set"
+where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
 
-abbreviation rep_c :: "'a st option acom \<Rightarrow> state set acom" ("\<gamma>\<^isub>c")
-where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>u"
+abbreviation \<gamma>\<^isub>c :: "'a st option acom \<Rightarrow> state set acom"
+where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
 
-lemma rep_f_Top[simp]: "rep_f Top = UNIV"
-by(auto simp: Top_st_def rep_st_def lookup_def)
+lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"
+by(auto simp: Top_st_def \<gamma>_st_def lookup_def)
 
-lemma rep_u_Top[simp]: "rep_u Top = UNIV"
+lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
 by (simp add: Top_option_def)
 
 (* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma mono_rep_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
-apply(simp add:rep_st_def subset_iff lookup_def le_st_def split: if_splits)
-by (metis UNIV_I mono_rep rep_Top subsetD)
+lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+apply(simp add:\<gamma>_st_def subset_iff lookup_def le_st_def split: if_splits)
+by (metis UNIV_I mono_gamma gamma_Top subsetD)
 
-lemma mono_rep_u:
-  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>u sa \<subseteq> \<gamma>\<^isub>u sa'"
-by(induction sa sa' rule: le_option.induct)(simp_all add: mono_rep_f)
+lemma mono_gamma_o:
+  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>o sa \<subseteq> \<gamma>\<^isub>o sa'"
+by(induction sa sa' rule: le_option.induct)(simp_all add: mono_gamma_f)
 
-lemma mono_rep_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
-by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_rep_u)
+lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
+by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_gamma_o)
 
-lemma in_rep_up_iff: "x : rep_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x : r u')"
+lemma in_gamma_option_iff:
+  "x : \<gamma>_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x : r u')"
 by (cases u) auto
 
 end

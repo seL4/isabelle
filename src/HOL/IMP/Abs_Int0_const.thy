@@ -8,9 +8,9 @@ subsection "Constant Propagation"
 
 datatype cval = Const val | Any
 
-fun rep_cval where
-"rep_cval (Const n) = {n}" |
-"rep_cval (Any) = UNIV"
+fun \<gamma>_cval where
+"\<gamma>_cval (Const n) = {n}" |
+"\<gamma>_cval (Any) = UNIV"
 
 fun plus_cval where
 "plus_cval (Const m) (Const n) = Const(m+n)" |
@@ -52,7 +52,7 @@ qed
 end
 
 
-interpretation Val_abs rep_cval Const plus_cval
+interpretation Val_abs \<gamma>_cval Const plus_cval
 defines aval'_const is aval'
 proof
   case goal1 thus ?case
@@ -66,7 +66,7 @@ next
     by(auto simp: plus_cval_cases split: cval.split)
 qed
 
-interpretation Abs_Int rep_cval Const plus_cval
+interpretation Abs_Int \<gamma>_cval Const plus_cval
 defines AI_const is AI
 and step_const is step'
 proof qed
@@ -74,7 +74,7 @@ proof qed
 
 text{* Monotonicity: *}
 
-interpretation Abs_Int_mono rep_cval Const plus_cval
+interpretation Abs_Int_mono \<gamma>_cval Const plus_cval
 proof
   case goal1 thus ?case
     by(auto simp: plus_cval_cases split: cval.split)

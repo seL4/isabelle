@@ -8,7 +8,7 @@ subsection "Interval Analysis"
 
 datatype ivl = I "int option" "int option"
 
-definition "rep_ivl i = (case i of
+definition "\<gamma>_ivl i = (case i of
   I (Some l) (Some h) \<Rightarrow> {l..h} |
   I (Some l) None \<Rightarrow> {l..} |
   I None (Some h) \<Rightarrow> {..h} |
@@ -26,14 +26,14 @@ abbreviation I_None_None :: "ivl"  ("{\<dots>}") where
 definition "num_ivl n = {n\<dots>n}"
 
 definition
-  [code_abbrev]: "contained_in i k \<longleftrightarrow> k \<in> rep_ivl i"
+  [code_abbrev]: "contained_in i k \<longleftrightarrow> k \<in> \<gamma>_ivl i"
 
 lemma contained_in_simps [code]:
   "contained_in (I (Some l) (Some h)) k \<longleftrightarrow> l \<le> k \<and> k \<le> h"
   "contained_in (I (Some l) None) k \<longleftrightarrow> l \<le> k"
   "contained_in (I None (Some h)) k \<longleftrightarrow> k \<le> h"
   "contained_in (I None None) k \<longleftrightarrow> True"
-  by (simp_all add: contained_in_def rep_ivl_def)
+  by (simp_all add: contained_in_def \<gamma>_ivl_def)
 
 instantiation option :: (plus)plus
 begin
@@ -56,8 +56,8 @@ lemma [simp]: "is_empty(I l h) =
   (case l of Some l \<Rightarrow> (case h of Some h \<Rightarrow> h<l | None \<Rightarrow> False) | None \<Rightarrow> False)"
 by(auto split:option.split)
 
-lemma [simp]: "is_empty i \<Longrightarrow> rep_ivl i = {}"
-by(auto simp add: rep_ivl_def split: ivl.split option.split)
+lemma [simp]: "is_empty i \<Longrightarrow> \<gamma>_ivl i = {}"
+by(auto simp add: \<gamma>_ivl_def split: ivl.split option.split)
 
 definition "plus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
@@ -154,9 +154,9 @@ end
 definition "minus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1-h2) (h1-l2))"
 
-lemma rep_minus_ivl:
-  "n1 : rep_ivl i1 \<Longrightarrow> n2 : rep_ivl i2 \<Longrightarrow> n1-n2 : rep_ivl(minus_ivl i1 i2)"
-by(auto simp add: minus_ivl_def rep_ivl_def split: ivl.splits option.splits)
+lemma gamma_minus_ivl:
+  "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(minus_ivl i1 i2)"
+by(auto simp add: minus_ivl_def \<gamma>_ivl_def split: ivl.splits option.splits)
 
 
 definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
@@ -170,26 +170,26 @@ fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> i
          I (max_option False (l1 + Some 1) l2) h2)
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
 
-interpretation Val_abs rep_ivl num_ivl plus_ivl
+interpretation Val_abs \<gamma>_ivl num_ivl plus_ivl
 defines aval_ivl is aval'
 proof
   case goal1 thus ?case
-    by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
+    by(auto simp: \<gamma>_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
 next
-  case goal2 show ?case by(simp add: rep_ivl_def Top_ivl_def)
+  case goal2 show ?case by(simp add: \<gamma>_ivl_def Top_ivl_def)
 next
-  case goal3 thus ?case by(simp add: rep_ivl_def num_ivl_def)
+  case goal3 thus ?case by(simp add: \<gamma>_ivl_def num_ivl_def)
 next
   case goal4 thus ?case
-    by(auto simp add: rep_ivl_def plus_ivl_def split: ivl.split option.splits)
+    by(auto simp add: \<gamma>_ivl_def plus_ivl_def split: ivl.split option.splits)
 qed
 
-interpretation Val_abs1_rep rep_ivl num_ivl plus_ivl
+interpretation Val_abs1_gamma \<gamma>_ivl num_ivl plus_ivl
 proof
   case goal1 thus ?case
-    by(auto simp add: rep_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
+    by(auto simp add: \<gamma>_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
 next
-  case goal2 show ?case by(auto simp add: bot_ivl_def rep_ivl_def empty_def)
+  case goal2 show ?case by(auto simp add: bot_ivl_def \<gamma>_ivl_def empty_def)
 qed
 
 lemma mono_minus_ivl:
@@ -202,19 +202,19 @@ done
 
 
 interpretation
-  Val_abs1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
+  Val_abs1 \<gamma>_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 proof
   case goal1 thus ?case
     by(auto simp add: filter_plus_ivl_def)
-      (metis rep_minus_ivl add_diff_cancel add_commute)+
+      (metis gamma_minus_ivl add_diff_cancel add_commute)+
 next
   case goal2 thus ?case
     by(cases a1, cases a2,
-      auto simp: rep_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
+      auto simp: \<gamma>_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
 qed
 
 interpretation
-  Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
+  Abs_Int1 \<gamma>_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and step_ivl is step'
@@ -226,7 +226,7 @@ proof qed
 text{* Monotonicity: *}
 
 interpretation
-  Abs_Int1_mono rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
+  Abs_Int1_mono \<gamma>_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 proof
   case goal1 thus ?case
     by(auto simp: plus_ivl_def le_ivl_def le_option_def empty_def split: if_splits ivl.splits option.splits)
