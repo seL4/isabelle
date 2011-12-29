@@ -5017,10 +5017,10 @@ subsection {* Code generation *}
 subsubsection {* Counterparts for set-related operations *}
 
 definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-  [code_post]: "member xs x \<longleftrightarrow> x \<in> set xs"
+  [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
 text {*
-  Only use @{text member} for generating executable code.  Otherwise use
+  Use @{text member} only for generating executable code.  Otherwise use
   @{prop "x \<in> set xs"} instead --- it is much easier to reason about.
 *}
 
@@ -5029,7 +5029,7 @@ lemma member_rec [code]:
   "member [] y \<longleftrightarrow> False"
   by (auto simp add: member_def)
 
-lemma in_set_member [code_unfold]:
+lemma in_set_member (* FIXME delete candidate *):
   "x \<in> set xs \<longleftrightarrow> member xs x"
   by (simp add: member_def)
 
@@ -5039,18 +5039,18 @@ declare SUP_def [code_unfold]
 declare set_map [symmetric, code_unfold]
 
 definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_all_iff [code_post]: "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
+  list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_ex_iff [code_post]: "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
+  list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
 
-definition list_ex1
-where
-  list_ex1_iff: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
+definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
+  list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
 
 text {*
-  Usually you should prefer @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"}
-  over @{const list_all} and @{const list_ex} in specifications.
+  Usually you should prefer @{text "\<forall>x\<in>set xs"}, @{text "\<exists>x\<in>set xs"}
+  and @{text "\<exists>!x. x\<in>set xs \<and> _"} over @{const list_all}, @{const list_ex}
+  and @{const list_ex1} in specifications.
 *}
 
 lemma list_all_simps [simp, code]:
@@ -5066,13 +5066,13 @@ lemma list_ex_simps [simp, code]:
 lemma list_ex1_simps [simp, code]:
   "list_ex1 P [] = False"
   "list_ex1 P (x # xs) = (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)"
-unfolding list_ex1_iff list_all_iff by auto
+  by (auto simp add: list_ex1_iff list_all_iff)
 
-lemma Ball_set_list_all [code_unfold]:
+lemma Ball_set_list_all: (* FIXME delete candidate *)
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
   by (simp add: list_all_iff)
 
-lemma Bex_set_list_ex [code_unfold]:
+lemma Bex_set_list_ex: (* FIXME delete candidate *)
   "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
   by (simp add: list_ex_iff)
 
@@ -5176,7 +5176,7 @@ lemma setsum_set_upto_conv_listsum_int [code_unfold]:
 subsubsection {* Optimizing by rewriting *}
 
 definition null :: "'a list \<Rightarrow> bool" where
-  [code_post]: "null xs \<longleftrightarrow> xs = []"
+  [code_abbrev]: "null xs \<longleftrightarrow> xs = []"
 
 text {*
   Efficient emptyness check is implemented by @{const null}.
@@ -5187,7 +5187,7 @@ lemma null_rec [code]:
   "null [] \<longleftrightarrow> True"
   by (simp_all add: null_def)
 
-lemma eq_Nil_null [code_unfold]:
+lemma eq_Nil_null: (* FIXME delete candidate *)
   "xs = [] \<longleftrightarrow> null xs"
   by (simp add: null_def)
 
@@ -5196,7 +5196,7 @@ lemma equal_Nil_null [code_unfold]:
   by (simp add: equal eq_Nil_null)
 
 definition maps :: "('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-  [code_post]: "maps f xs = concat (map f xs)"
+  [code_abbrev]: "maps f xs = concat (map f xs)"
 
 definition map_filter :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
   [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
@@ -5216,7 +5216,7 @@ lemma map_filter_simps [code]:
   "map_filter f [] = []"
   by (simp_all add: map_filter_def split: option.split)
 
-lemma concat_map_maps [code_unfold]:
+lemma concat_map_maps: (* FIXME delete candidate *)
   "concat (map f xs) = maps f xs"
   by (simp add: maps_def)
 
