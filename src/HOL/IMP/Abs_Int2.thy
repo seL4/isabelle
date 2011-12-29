@@ -180,7 +180,7 @@ lemma strip_pfp_WN:
 apply(auto simp add: pfp_WN_def prefp_def split: option.splits)
 by (metis (no_types) strip_lpfpc strip_map2_acom strip_while)
 
-locale Abs_Int2 = Abs_Int1_mono rep for rep :: "'a::{WN,L_top_bot} \<Rightarrow> val set"
+locale Abs_Int2 = Abs_Int1_mono \<gamma> for \<gamma> :: "'a::{WN,L_top_bot} \<Rightarrow> val set"
 begin
 
 definition AI_WN :: "com \<Rightarrow> 'a st option acom option" where
@@ -196,18 +196,18 @@ proof(simp add: CS_def AI_WN_def)
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _ 3])
-      show "UNIV \<subseteq> \<gamma>\<^isub>u \<top>" by simp
-      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_rep_c[OF 2])
+      show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
+      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
     qed
   qed
   from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c c'"
-    by (blast intro: mono_rep_c order_trans)
+    by (blast intro: mono_gamma_c order_trans)
 qed
 
 end
 
 interpretation
-  Abs_Int2 num_ivl plus_ivl filter_plus_ivl filter_less_ivl rep_ivl
+  Abs_Int2 num_ivl plus_ivl filter_plus_ivl filter_less_ivl \<gamma>_ivl
 defines AI_ivl' is AI_WN
 proof qed
 
