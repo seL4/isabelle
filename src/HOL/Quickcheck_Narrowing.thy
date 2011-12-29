@@ -134,15 +134,10 @@ end
 lemma zero_code_int_code [code, code_unfold]:
   "(0\<Colon>code_int) = Numeral0"
   by (simp add: number_of_code_int_def Pls_def)
-lemma [code_post]: "Numeral0 = (0\<Colon>code_int)"
-  using zero_code_int_code ..
 
 lemma one_code_int_code [code, code_unfold]:
   "(1\<Colon>code_int) = Numeral1"
   by (simp add: number_of_code_int_def Pls_def Bit1_def)
-lemma [code_post]: "Numeral1 = (1\<Colon>code_int)"
-  using one_code_int_code ..
-
 
 definition div_mod_code_int :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<times> code_int" where
   [code del]: "div_mod_code_int n m = (n div m, n mod m)"
