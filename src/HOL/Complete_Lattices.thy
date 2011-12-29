@@ -928,11 +928,15 @@ lemma bind_UNION [code]:
   "Set.bind A f = UNION A f"
   by (simp add: bind_def UNION_eq)
 
+lemma member_bind [simp]:
+  "x \<in> Set.bind P f \<longleftrightarrow> x \<in> UNION P f "
+  by (simp add: bind_UNION)
+
 lemma Union_image_eq [simp]:
   "\<Union>(B ` A) = (\<Union>x\<in>A. B x)"
   by (rule sym) (fact SUP_def)
 
-lemma UN_iff [simp]: "(b \<in> (\<Union>x\<in>A. B x)) = (\<exists>x\<in>A. b \<in> B x)"
+lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<exists>x\<in>A. b \<in> B x)"
   by (auto simp add: SUP_def image_def)
 
 lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b \<in> (\<Union>x\<in>A. B x)"

@@ -1790,6 +1790,22 @@ definition bind :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow>
 
 hide_const (open) bind
 
+lemma bind_bind:
+  fixes A :: "'a set"
+  shows "Set.bind (Set.bind A B) C = Set.bind A (\<lambda>x. Set.bind (B x) C)"
+  by (auto simp add: bind_def)
+
+lemma empty_bind [simp]:
+  "Set.bind {} B = {}"
+  by (simp add: bind_def)
+
+lemma nonempty_bind_const:
+  "A \<noteq> {} \<Longrightarrow> Set.bind A (\<lambda>_. B) = B"
+  by (auto simp add: bind_def)
+
+lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
+  by (auto simp add: bind_def)
+
 
 subsubsection {* Operations for execution *}
 
