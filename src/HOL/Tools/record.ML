@@ -379,10 +379,10 @@ type data =
   sel_upd:
    {selectors: (int * bool) Symtab.table,
     updates: string Symtab.table,
-    simpset: Simplifier.simpset,
-    defset: Simplifier.simpset,
-    foldcong: Simplifier.simpset,
-    unfoldcong: Simplifier.simpset},
+    simpset: simpset,
+    defset: simpset,
+    foldcong: simpset,
+    unfoldcong: simpset},
   equalities: thm Symtab.table,
   extinjects: thm list,
   extsplit: thm Symtab.table,  (*maps extension name to split rule*)
@@ -494,8 +494,8 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
     val data = make_data records
       {selectors = fold Symtab.update_new sels selectors,
         updates = fold Symtab.update_new upds updates,
-        simpset = Simplifier.addsimps (simpset, simps),
-        defset = Simplifier.addsimps (defset, defs),
+        simpset = simpset addsimps simps,
+        defset = defset addsimps defs,
         foldcong = foldcong |> fold Simplifier.add_cong folds,
         unfoldcong = unfoldcong |> fold Simplifier.add_cong unfolds}
        equalities extinjects extsplit splits extfields fieldext;
@@ -1423,7 +1423,7 @@ fun split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
     val thms' = @{thms o_apply K_record_comp} @ thms;
   in
     EVERY split_frees_tacs THEN
-    Simplifier.full_simp_tac (get_simpset thy addsimps thms' addsimprocs simprocs) i
+    full_simp_tac (get_simpset thy addsimps thms' addsimprocs simprocs) i
   end);
 
 
@@ -1444,7 +1444,7 @@ val split_tac = CSUBGOAL (fn (cgoal, i) =>
       | is_all _ = 0;
   in
     if has_rec goal then
-      Simplifier.full_simp_tac (HOL_basic_ss addsimprocs [split_simproc is_all]) i
+      full_simp_tac (HOL_basic_ss addsimprocs [split_simproc is_all]) i
     else no_tac
   end);
 
@@ -1466,8 +1466,6 @@ fun cases_type_global name = [case_names_fields, Induct.cases_type name];
 
 
 (* tactics *)
-
-fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps simps));
 
 (*Do case analysis / induction according to rule on last parameter of ith subgoal
   (or on s if there are no parameters).
@@ -1793,10 +1791,11 @@ fun add_code ext_tyco vs extT ext simps inject thy =
          Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT));
     fun tac eq_def =
       Class.intro_classes_tac []
-      THEN (Simplifier.rewrite_goals_tac [Simpdata.mk_eq eq_def])
+      THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
       THEN ALLGOALS (rtac @{thm refl});
-    fun mk_eq thy eq_def = Simplifier.rewrite_rule
-      [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
+    fun mk_eq thy eq_def =
+      Simplifier.rewrite_rule
+        [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
     fun mk_eq_refl thy =
       @{thm equal_refl}
       |> Thm.instantiate
@@ -2129,17 +2128,15 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val prove = Skip_Proof.prove_global defs_thy;
 
-    fun prove_simp ss simps =
-      let val tac = simp_all_tac ss simps
-      in fn prop => prove [] [] prop (K tac) end;
-
     val ss = get_simpset defs_thy;
+    val simp_defs_tac =
+      asm_full_simp_tac (ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
 
     val sel_convs = timeit_msg ctxt "record sel_convs proof:" (fn () =>
-      map (prove_simp ss (sel_defs @ accessor_thms)) sel_conv_props);
+      map (fn prop => prove [] [] prop (K (ALLGOALS simp_defs_tac))) sel_conv_props);
 
     val upd_convs = timeit_msg ctxt "record upd_convs proof:" (fn () =>
-      map (prove_simp ss (upd_defs @ updator_thms)) upd_conv_props);
+      map (fn prop => prove [] [] prop (K (ALLGOALS simp_defs_tac))) upd_conv_props);
 
     val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
       let
@@ -2183,7 +2180,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       prove [] [] cases_prop
         (fn _ =>
           try_param_tac rN cases_scheme 1 THEN
-          simp_all_tac HOL_basic_ss [@{thm unit_all_eq1}]));
+          ALLGOALS (asm_full_simp_tac (HOL_basic_ss addsimps [@{thm unit_all_eq1}]))));
 
     val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
       let
@@ -2259,7 +2256,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1 THEN
               res_inst_tac context [((rN, 0), s')] cases_scheme 1 THEN
               Subgoal.FOCUS (fn {prems, ...} => equality_tac prems) context 1)
-             (*simp_all_tac ss (sel_convs) would also work but is less efficient*)
+             (*simp_defs_tac would also work but is less efficient*)
           end));
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
