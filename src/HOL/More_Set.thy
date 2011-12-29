@@ -245,6 +245,29 @@ lemma SUP_sup [code]:
   "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
   by (simp add: SUP_def Sup_set_foldr image_set foldr_map del: set_map)
 
+(* FIXME: better implement conversion by bisection *)
+
+lemma pred_of_set_fold_sup:
+  assumes "finite A"
+  shows "pred_of_set A = Finite_Set.fold sup bot (Predicate.single ` A)" (is "?lhs = ?rhs")
+proof (rule sym)
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  from `finite A` show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
+qed
+
+lemma pred_of_set_set_fold_sup:
+  "pred_of_set (set xs) = fold sup (map Predicate.single xs) bot"
+proof -
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  show ?thesis by (simp add: pred_of_set_fold_sup fold_set_fold [symmetric])
+qed
+
+lemma pred_of_set_set_foldr_sup [code]:
+  "pred_of_set (set xs) = foldr sup (map Predicate.single xs) bot"
+  by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
+
 hide_const (open) coset
 
 
