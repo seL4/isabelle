@@ -6,8 +6,6 @@ theory More_List
 imports List
 begin
 
-hide_const (open) Finite_Set.fold
-
 text {* Fold combinator with canonical argument order *}
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where

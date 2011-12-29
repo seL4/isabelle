@@ -1222,13 +1222,13 @@ lemma ab_semigroup_idem_mult_inf:
   "class.ab_semigroup_idem_mult inf"
 proof qed (rule inf_assoc inf_commute inf_idem)+
 
-lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
+lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> Finite_Set.fold inf b (insert a A) = inf a (Finite_Set.fold inf b A)"
 by(rule comp_fun_idem.fold_insert_idem[OF ab_semigroup_idem_mult.comp_fun_idem[OF ab_semigroup_idem_mult_inf]])
 
-lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> fold inf c A"
+lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> Finite_Set.fold inf c A"
 by (induct pred: finite) (auto intro: le_infI1)
 
-lemma fold_inf_le_inf: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> fold inf b A \<le> inf a b"
+lemma fold_inf_le_inf: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> Finite_Set.fold inf b A \<le> inf a b"
 proof(induct arbitrary: a pred:finite)
   case empty thus ?case by simp
 next
@@ -1292,13 +1292,13 @@ begin
 lemma ab_semigroup_idem_mult_sup: "class.ab_semigroup_idem_mult sup"
 by (rule semilattice_inf.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
 
-lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
+lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> Finite_Set.fold sup b (insert a A) = sup a (Finite_Set.fold sup b A)"
 by(rule semilattice_inf.fold_inf_insert)(rule dual_semilattice)
 
-lemma fold_sup_le_sup: "finite A \<Longrightarrow> ALL a:A. a \<le> b \<Longrightarrow> fold sup c A \<le> sup b c"
+lemma fold_sup_le_sup: "finite A \<Longrightarrow> ALL a:A. a \<le> b \<Longrightarrow> Finite_Set.fold sup c A \<le> sup b c"
 by(rule semilattice_inf.inf_le_fold_inf)(rule dual_semilattice)
 
-lemma sup_le_fold_sup: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a b \<le> fold sup b A"
+lemma sup_le_fold_sup: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a b \<le> Finite_Set.fold sup b A"
 by(rule semilattice_inf.fold_inf_le_inf)(rule dual_semilattice)
 
 end

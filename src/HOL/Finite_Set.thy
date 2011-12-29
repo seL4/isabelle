@@ -2269,4 +2269,6 @@ proof
     by simp
 qed
 
+hide_const (open) Finite_Set.fold
+
 end
