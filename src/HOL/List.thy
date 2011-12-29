@@ -2511,11 +2511,11 @@ lemma concat_conv_foldl: "concat xss = foldl (op @) [] xss"
 text {* @{const Finite_Set.fold} and @{const foldl} *}
 
 lemma (in comp_fun_commute) fold_set_remdups:
-  "fold f y (set xs) = foldl (\<lambda>y x. f x y) y (remdups xs)"
+  "Finite_Set.fold f y (set xs) = foldl (\<lambda>y x. f x y) y (remdups xs)"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
 lemma (in comp_fun_idem) fold_set:
-  "fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
+  "Finite_Set.fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
 
 lemma (in ab_semigroup_idem_mult) fold1_set:
@@ -2530,7 +2530,7 @@ proof -
     case True with xs show ?thesis by simp
   next
     case False
-    then have "fold1 times (insert y (set ys)) = fold times y (set ys)"
+    then have "fold1 times (insert y (set ys)) = Finite_Set.fold times y (set ys)"
       by (simp only: finite_set fold1_eq_fold_idem)
     with xs show ?thesis by (simp add: fold_set mult_commute)
   qed
