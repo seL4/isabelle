@@ -68,6 +68,7 @@ val dom_name = suffix "_dom"
 
 (* Termination rules *)
 
+(* FIXME just one data slot (record) per program unit *)
 structure TerminationRule = Generic_Data
 (
   type T = thm list
@@ -108,6 +109,7 @@ fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
         defname = name defname, is_partial=is_partial }
     end
 
+(* FIXME just one data slot (record) per program unit *)
 structure FunctionData = Generic_Data
 (
   type T = (term * info) Item_Net.T;
@@ -168,6 +170,7 @@ structure Termination_Simps = Named_Thms
 
 (* Default Termination Prover *)
 
+(* FIXME just one data slot (record) per program unit *)
 structure TerminationProver = Generic_Data
 (
   type T = Proof.context -> tactic
@@ -321,6 +324,7 @@ fun empty_preproc check _ ctxt fixes spec =
     (ts, curry op ~~ bnds o Library.unflat tss, sort, cnames)
   end
 
+(* FIXME just one data slot (record) per program unit *)
 structure Preprocessor = Generic_Data
 (
   type T = preproc

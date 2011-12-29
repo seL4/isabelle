@@ -313,7 +313,8 @@ fun dynamic_value_strict opts cookie thy postproc t =
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (** counterexample generator **)
-  
+
+(* FIXME just one data slot (record) per program unit *)
 structure Counterexample = Proof_Data
 (
   type T = unit -> (bool * term list) option
@@ -330,6 +331,7 @@ fun map_counterexample f Empty_Assignment = Empty_Assignment
   | map_counterexample f (Existential_Counterexample cs) =
       Existential_Counterexample (map (fn (t, c) => (f t, map_counterexample f c)) cs)
 
+(* FIXME just one data slot (record) per program unit *)
 structure Existential_Counterexample = Proof_Data
 (
   type T = unit -> counterexample option

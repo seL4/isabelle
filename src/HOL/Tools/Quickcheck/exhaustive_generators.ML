@@ -428,6 +428,8 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
   
 (** generator compiliation **)
 
+(* FIXME just one data slot (record) per program unit *)
+
 structure Counterexample = Proof_Data
 (
   type T = unit -> int -> bool -> int -> (bool * term list) option

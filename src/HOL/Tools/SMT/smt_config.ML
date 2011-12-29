@@ -64,6 +64,7 @@ type solver_info = {
   avail: unit -> bool,
   options: Proof.context -> string list }
 
+(* FIXME just one data slot (record) per program unit *)
 structure Solvers = Generic_Data
 (
   type T = (solver_info * string list) Symtab.table * string option
@@ -182,6 +183,7 @@ fun with_timeout ctxt f x =
 
 (* certificates *)
 
+(* FIXME just one data slot (record) per program unit *)
 structure Certificates = Generic_Data
 (
   type T = Cache_IO.cache option

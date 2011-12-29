@@ -94,6 +94,7 @@ fun lookup_btab ctxt btab (n, T) =
 
 (* built-in types *)
 
+(* FIXME just one data slot (record) per program unit *)
 structure Builtin_Types = Generic_Data
 (
   type T =
@@ -148,6 +149,7 @@ type 'a bfun = Proof.context -> typ -> term list -> 'a
 
 type bfunr = string * int * term list * (term list -> term)
 
+(* FIXME just one data slot (record) per program unit *)
 structure Builtin_Funcs = Generic_Data
 (
   type T = (term list bfun, bfunr option bfun) btab
