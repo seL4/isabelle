@@ -176,16 +176,18 @@ qed (auto simp add: code_numeral left_distrib intro: mult_commute)
 
 end
 
-lemma zero_code_numeral_code [code, code_unfold]:
+lemma zero_code_numeral_code [code]:
   "(0\<Colon>code_numeral) = Numeral0"
   by (simp add: number_of_code_numeral_def Pls_def)
-lemma [code_post]: "Numeral0 = (0\<Colon>code_numeral)"
+
+lemma [code_abbrev]: "Numeral0 = (0\<Colon>code_numeral)"
   using zero_code_numeral_code ..
 
-lemma one_code_numeral_code [code, code_unfold]:
+lemma one_code_numeral_code [code]:
   "(1\<Colon>code_numeral) = Numeral1"
   by (simp add: number_of_code_numeral_def Pls_def Bit1_def)
-lemma [code_post]: "Numeral1 = (1\<Colon>code_numeral)"
+
+lemma [code_abbrev]: "Numeral1 = (1\<Colon>code_numeral)"
   using one_code_numeral_code ..
 
 lemma plus_code_numeral_code [code nbe]:

@@ -22,11 +22,7 @@ definition "rep_ivl i =
 definition "num_ivl n = I (Some n) (Some n)"
 
 definition
-  "contained_in i k \<longleftrightarrow> k \<in> rep_ivl i"
-
-lemma in_rep_ivl_contained_in [code_unfold_post]:
-  "k \<in> rep_ivl i \<longleftrightarrow> contained_in i k"
-  by (simp only: contained_in_def)
+  [code_abbrev]: "contained_in i k \<longleftrightarrow> k \<in> rep_ivl i"
 
 lemma contained_in_simps [code]:
   "contained_in (I (Some l) (Some h)) k \<longleftrightarrow> l \<le> k \<and> k \<le> h"

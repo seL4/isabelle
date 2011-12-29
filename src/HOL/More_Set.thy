@@ -22,7 +22,7 @@ proof -
   show ?thesis by (simp only: rem assms minus_fold_remove)
 qed
 
-lemma bounded_Collect_code [code_unfold_post]:
+lemma bounded_Collect_code: (* FIXME delete candidate *)
   "{x \<in> A. P x} = Set.project P A"
   by (simp add: project_def)
 
@@ -218,22 +218,14 @@ lemma union_code [code]:
   by (auto simp add: union_set_foldr)
 
 definition Inf :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  [simp]: "Inf = Complete_Lattices.Inf"
+  [simp, code_abbrev]: "Inf = Complete_Lattices.Inf"
 
 hide_const (open) Inf
 
-lemma [code_unfold_post]:
-  "Inf = More_Set.Inf"
-  by simp
-
 definition Sup :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  [simp]: "Sup = Complete_Lattices.Sup"
+  [simp, code_abbrev]: "Sup = Complete_Lattices.Sup"
 
 hide_const (open) Sup
-
-lemma [code_unfold_post]:
-  "Sup = More_Set.Sup"
-  by simp
 
 lemma Inf_code [code]:
   "More_Set.Inf (set xs) = foldr inf xs top"

@@ -181,7 +181,7 @@ instantiation nat :: comm_semiring_1_cancel
 begin
 
 definition
-  One_nat_def [simp]: "1 = Suc 0"
+  One_nat_def [simp, code_post]: "1 = Suc 0"
 
 primrec times_nat where
   mult_0:     "0 * n = (0\<Colon>nat)"
@@ -1226,9 +1226,7 @@ end
 text {* for code generation *}
 
 definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  funpow_code_def [code_post]: "funpow = compow"
-
-lemmas [code_unfold] = funpow_code_def [symmetric]
+  funpow_code_def [code_abbrev]: "funpow = compow"
 
 lemma [code]:
   "funpow (Suc n) f = f o funpow n f"

@@ -26,11 +26,11 @@ text {*
 
 code_datatype number_nat_inst.number_of_nat
 
-lemma zero_nat_code [code, code_unfold_post]:
+lemma zero_nat_code [code, code_unfold]:
   "0 = (Numeral0 :: nat)"
   by simp
 
-lemma one_nat_code [code, code_unfold_post]:
+lemma one_nat_code [code, code_unfold]:
   "1 = (Numeral1 :: nat)"
   by simp
 
@@ -286,8 +286,8 @@ text {*
   Natural numerals.
 *}
 
-lemma [code_unfold_post]:
-  "nat (number_of i) = number_nat_inst.number_of_nat i"
+lemma [code_abbrev]:
+  "number_nat_inst.number_of_nat i = nat (number_of i)"
   -- {* this interacts as desired with @{thm nat_number_of_def} *}
   by (simp add: number_nat_inst.number_of_nat)
 
@@ -307,7 +307,7 @@ text {*
 *}
 
 definition int :: "nat \<Rightarrow> int" where
-  [code del]: "int = of_nat"
+  [code del, code_abbrev]: "int = of_nat"
 
 lemma int_code' [code]:
   "int (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
@@ -317,7 +317,7 @@ lemma nat_code' [code]:
   "nat (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
   unfolding nat_number_of_def number_of_is_id neg_def by simp
 
-lemma of_nat_int [code_unfold_post]:
+lemma of_nat_int: (* FIXME delete candidate *)
   "of_nat = int" by (simp add: int_def)
 
 lemma of_nat_aux_int [code_unfold]:

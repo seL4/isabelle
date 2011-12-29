@@ -894,13 +894,9 @@ notation (HTML output)
 hide_const (open) Times
 
 definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
-  "product A B = Sigma A (\<lambda>_. B)"
+  [code_abbrev]: "product A B = Sigma A (\<lambda>_. B)"
 
 hide_const (open) product
-
-lemma [code_unfold_post]:
-  "Sigma A (\<lambda>_. B) = Product_Type.product A B"
-  by (simp add: product_def)
 
 syntax
   "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)

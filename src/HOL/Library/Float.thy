@@ -45,9 +45,11 @@ definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
 
-lemma number_of_float_Float [code_unfold_post]:
+lemma number_of_float_Float:
   "number_of k = Float (number_of k) 0"
   by (simp add: number_of_float_def number_of_is_id)
+
+declare number_of_float_Float [symmetric, code_abbrev]
 
 lemma real_of_float_simp[simp]: "real (Float a b) = real a * pow2 b"
   unfolding real_of_float_def using of_float.simps .

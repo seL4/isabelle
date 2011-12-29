@@ -1491,10 +1491,9 @@ qed
 
 subsection{*Numerals and Arithmetic*}
 
-lemma [code_unfold_post]:
-  "number_of k = real_of_int (number_of k)"
+lemma [code_abbrev]:
+  "real_of_int (number_of k) = number_of k"
   unfolding number_of_is_id number_of_real_def ..
-
 
 text{*Collapse applications of @{term real} to @{term number_of}*}
 lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"

@@ -1783,7 +1783,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def (HOL) code_unfold} & : & @{text attribute} \\
     @{attribute_def (HOL) code_post} & : & @{text attribute} \\
-    @{attribute_def (HOL) code_unfold_post} & : & @{text attribute} \\
+    @{attribute_def (HOL) code_abbrev} & : & @{text attribute} \\
     @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -1835,7 +1835,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @@{attribute (HOL) code_post} ( 'del' ) ?
     ;
 
-    @@{attribute (HOL) code_unfold_post}
+    @@{attribute (HOL) code_abbrev}
     ;
 
     @@{command (HOL) code_thms} ( constexpr + ) ?
@@ -1940,17 +1940,19 @@ text {* For validation purposes, it is often useful to \emph{execute}
   selected code equations and code generator datatypes.
 
   \item @{attribute (HOL) code_unfold} declares (or with option
-  ``@{text "del"}'' removes) theorems which are applied as
-  rewrite rules to any code equation during preprocessing.
+  ``@{text "del"}'' removes) theorems which during preprocessing
+  are applied as rewrite rules to any code equation or evaluation
+  input.
 
   \item @{attribute (HOL) code_post} declares (or with option ``@{text
   "del"}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
-  \item @{attribute (HOL) code_unfold_post} declares equations which are
-  applied as rewrite rules to any code equation during preprocessing,
-  and symmetrically to any result of an evaluation.
-  
+  \item @{attribute (HOL) code_abbrev} declares equations which are
+  applied as rewrite rules to any result of an evaluation and
+  symmetrically during preprocessing to any code equation or evaluation
+  input.
+
   \item @{command (HOL) "print_codeproc"} prints the setup of the code
   generator preprocessor.
 
