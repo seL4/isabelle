@@ -168,19 +168,19 @@ lemma effect_deterministic:
   shows "a = b" and "h' = h''"
   using assms unfolding effect_def by auto
 
-ML {* structure Crel_Intros = Named_Thms
+ML {* structure Effect_Intros = Named_Thms
 (
   val name = @{binding effect_intros}
   val description = "introduction rules for effect"
 ) *}
 
-ML {* structure Crel_Elims = Named_Thms
+ML {* structure Effect_Elims = Named_Thms
 (
   val name = @{binding effect_elims}
   val description = "elimination rules for effect"
 ) *}
 
-setup "Crel_Intros.setup #> Crel_Elims.setup"
+setup "Effect_Intros.setup #> Effect_Elims.setup"
 
 lemma effect_LetI [effect_intros]:
   assumes "x = t" "effect (f x) h h' r"
@@ -447,7 +447,7 @@ lemma Heap_ordE:
   using assms unfolding Heap_ord_def img_ord_def fun_ord_def flat_ord_def
   by atomize_elim blast
 
-lemma bind_mono[partial_function_mono]:
+lemma bind_mono [partial_function_mono]:
   assumes mf: "mono_Heap B" and mg: "\<And>y. mono_Heap (\<lambda>f. C y f)"
   shows "mono_Heap (\<lambda>f. B f \<guillemotright>= (\<lambda>y. C y f))"
 proof (rule monotoneI)
@@ -496,10 +496,10 @@ subsubsection {* Logical intermediate layer *}
 definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
   [code del]: "raise' s = raise (explode s)"
 
-lemma [code_post]: "raise' (STR s) = raise s"
-unfolding raise'_def by (simp add: STR_inverse)
+lemma [code_abbrev]: "raise' (STR s) = raise s"
+  unfolding raise'_def by (simp add: STR_inverse)
 
-lemma raise_raise' [code_unfold]:
+lemma raise_raise': (* FIXME delete candidate *)
   "raise s = raise' (STR s)"
   unfolding raise'_def by (simp add: STR_inverse)
 
