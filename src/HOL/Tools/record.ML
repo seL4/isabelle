@@ -949,7 +949,7 @@ end;
 
 (** record simprocs **)
 
-fun future_forward_prf_standard thy prf prop () =
+fun future_forward_prf_standard thy prf prop =
   let val thm =
     if ! quick_and_dirty then Skip_Proof.make_thm thy prop
     else if Goal.future_enabled () then
@@ -1574,9 +1574,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     (* 1st stage part 1: introduce the tree of new types *)
 
-    fun get_meta_tree () = build_meta_tree_type 1 thy vars more;
-    val (ext_body, typ_thy) =
-      timeit_msg ctxt "record extension nested type def:" get_meta_tree;
+    val (ext_body, typ_thy) = timeit_msg ctxt "record extension nested type def:" (fn () =>
+      build_meta_tree_type 1 thy vars more);
 
 
     (* prepare declarations and definitions *)
@@ -1586,13 +1585,11 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     fun mk_ext args = list_comb (Const (ext_name, ext_type), args);
     val ext_spec = Logic.mk_equals (mk_ext (vars @ [more]), ext_body);
 
-    fun mk_defs () =
+    val ([ext_def], defs_thy) = timeit_msg ctxt "record extension constructor def:" (fn () =>
       typ_thy
       |> Sign.declare_const_global ((ext_binding, ext_type), NoSyn) |> snd
       |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
-      ||> Theory.checkpoint
-    val ([ext_def], defs_thy) =
-      timeit_msg ctxt "record extension constructor def:" mk_defs;
+      ||> Theory.checkpoint);
 
 
     (* prepare propositions *)
@@ -1624,7 +1621,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val prove_standard = prove_future_global true defs_thy;
 
-    fun inject_prf () =
+    val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
       simplify HOL_ss
         (prove_standard [] inject_prop
           (fn _ =>
@@ -1632,9 +1629,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             REPEAT_DETERM
               (rtac @{thm refl_conj_eq} 1 ORELSE
                 Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
-                rtac refl 1)));
+                rtac refl 1))));
 
-    val inject = timeit_msg ctxt "record extension inject proof:" inject_prf;
 
     (*We need a surjection property r = (| f = f r, g = g r ... |)
       to prove other theorems. We haven't given names to the accessors
@@ -1643,7 +1639,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       operate on it as far as it can. We then use Drule.export_without_context
       to convert the free variables into unifiable variables and unify them with
       (roughly) the definition of the accessor.*)
-    fun surject_prf () =
+    val surject = timeit_msg ctxt "record extension surjective proof:" (fn () =>
       let
         val cterm_ext = cterm_of defs_thy ext;
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
@@ -1655,28 +1651,26 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val [surject] = Seq.list_of (tactic2 (Drule.export_without_context halfway));
       in
         surject
-      end;
-    val surject = timeit_msg ctxt "record extension surjective proof:" surject_prf;
+      end);
 
-    fun split_meta_prf () =
+
+    val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
       prove_standard [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac equal_intr_rule, Goal.norm_hhf_tac,
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surject]),
-            REPEAT o etac @{thm meta_allE}, atac]);
-    val split_meta = timeit_msg ctxt "record extension split_meta proof:" split_meta_prf;
+            REPEAT o etac @{thm meta_allE}, atac]));
 
-    fun induct_prf () =
+    val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
         prove_standard [assm] concl
           (fn {prems, ...} =>
             cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1 THEN
             resolve_tac prems 2 THEN
             asm_simp_tac HOL_ss 1)
-      end;
-    val induct = timeit_msg ctxt "record extension induct proof:" induct_prf;
+      end);
 
     val ([induct', inject', surjective', split_meta'], thm_thy) =
       defs_thy
@@ -1985,31 +1979,30 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       running a the introduction tactic, we get one theorem for each upd/acc
       pair, from which we can derive the bodies of our selector and
       updator and their convs.*)
-    fun get_access_update_thms () =
-      let
-        val r_rec0_Vars =
-          let
-            (*pick variable indices of 1 to avoid possible variable
-              collisions with existing variables in updacc_eq_triv*)
-            fun to_Var (Free (c, T)) = Var ((c, 1), T);
-          in mk_rec (map to_Var all_vars_more) 0 end;
-
-        val cterm_rec = cterm_of ext_thy r_rec0;
-        val cterm_vrs = cterm_of ext_thy r_rec0_Vars;
-        val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
-        val init_thm = named_cterm_instantiate insts updacc_eq_triv;
-        val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
-        val tactic =
-          simp_tac (HOL_basic_ss addsimps ext_defs) 1 THEN
-          REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE terminal);
-        val updaccs = Seq.list_of (tactic init_thm);
-      in
-        (updaccs RL [updacc_accessor_eqE],
-         updaccs RL [updacc_updator_eqE],
-         updaccs RL [updacc_cong_from_eq])
-      end;
     val (accessor_thms, updator_thms, upd_acc_cong_assists) =
-      timeit_msg ctxt "record getting tree access/updates:" get_access_update_thms;
+      timeit_msg ctxt "record getting tree access/updates:" (fn () =>
+        let
+          val r_rec0_Vars =
+            let
+              (*pick variable indices of 1 to avoid possible variable
+                collisions with existing variables in updacc_eq_triv*)
+              fun to_Var (Free (c, T)) = Var ((c, 1), T);
+            in mk_rec (map to_Var all_vars_more) 0 end;
+
+          val cterm_rec = cterm_of ext_thy r_rec0;
+          val cterm_vrs = cterm_of ext_thy r_rec0_Vars;
+          val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
+          val init_thm = named_cterm_instantiate insts updacc_eq_triv;
+          val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
+          val tactic =
+            simp_tac (HOL_basic_ss addsimps ext_defs) 1 THEN
+            REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE terminal);
+          val updaccs = Seq.list_of (tactic init_thm);
+        in
+          (updaccs RL [updacc_accessor_eqE],
+           updaccs RL [updacc_updator_eqE],
+           updaccs RL [updacc_cong_from_eq])
+        end);
 
     fun lastN xs = drop parent_fields_len xs;
 
@@ -2054,29 +2047,28 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (* 2st stage: defs_thy *)
 
-    fun mk_defs () =
-      ext_thy
-      |> Sign.add_advanced_trfuns ([], [], advanced_print_translation, [])
-      |> Sign.restore_naming thy
-      |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
-      |> Typedecl.abbrev_global
-        (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0 |> snd
-      |> Sign.qualified_path false binding
-      |> fold (fn ((x, T), mx) => snd o Sign.declare_const_global ((Binding.name x, T), mx))
-        (sel_decls ~~ (field_syntax @ [NoSyn]))
-      |> fold (fn (x, T) => snd o Sign.declare_const_global ((Binding.name x, T), NoSyn))
-        (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> (Global_Theory.add_defs false o
-            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) sel_specs
-      ||>> (Global_Theory.add_defs false o
-            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
-      ||>> (Global_Theory.add_defs false o
-            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
-        [make_spec, fields_spec, extend_spec, truncate_spec]
-      ||> Theory.checkpoint
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
       timeit_msg ctxt "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
-        mk_defs;
+        (fn () =>
+          ext_thy
+          |> Sign.add_advanced_trfuns ([], [], advanced_print_translation, [])
+          |> Sign.restore_naming thy
+          |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
+          |> Typedecl.abbrev_global
+            (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0 |> snd
+          |> Sign.qualified_path false binding
+          |> fold (fn ((x, T), mx) => snd o Sign.declare_const_global ((Binding.name x, T), mx))
+            (sel_decls ~~ (field_syntax @ [NoSyn]))
+          |> fold (fn (x, T) => snd o Sign.declare_const_global ((Binding.name x, T), NoSyn))
+            (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
+          |> (Global_Theory.add_defs false o
+                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) sel_specs
+          ||>> (Global_Theory.add_defs false o
+                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
+          ||>> (Global_Theory.add_defs false o
+                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+            [make_spec, fields_spec, extend_spec, truncate_spec]
+          ||> Theory.checkpoint);
 
     (* prepare propositions *)
     val _ = timing_msg ctxt "record preparing propositions";
@@ -2157,48 +2149,43 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val ss = get_simpset defs_thy;
 
-    fun sel_convs_prf () =
-      map (prove_simp false ss (sel_defs @ accessor_thms)) sel_conv_props;
-    val sel_convs = timeit_msg ctxt "record sel_convs proof:" sel_convs_prf;
-    fun sel_convs_standard_prf () = map Drule.export_without_context sel_convs;
-    val sel_convs_standard =
-      timeit_msg ctxt "record sel_convs_standard proof:" sel_convs_standard_prf;
+    val sel_convs = timeit_msg ctxt "record sel_convs proof:" (fn () =>
+      map (prove_simp false ss (sel_defs @ accessor_thms)) sel_conv_props);
 
-    fun upd_convs_prf () =
-      map (prove_simp false ss (upd_defs @ updator_thms)) upd_conv_props;
-    val upd_convs = timeit_msg ctxt "record upd_convs proof:" upd_convs_prf;
-    fun upd_convs_standard_prf () = map Drule.export_without_context upd_convs;
+    val sel_convs_standard = timeit_msg ctxt "record sel_convs_standard proof:" (fn () =>
+      map Drule.export_without_context sel_convs);
+
+    val upd_convs = timeit_msg ctxt "record upd_convs proof:" (fn () =>
+      map (prove_simp false ss (upd_defs @ updator_thms)) upd_conv_props);
+
     val upd_convs_standard =
-      timeit_msg ctxt "record upd_convs_standard proof:" upd_convs_standard_prf;
+      timeit_msg ctxt "record upd_convs_standard proof:" (fn () =>
+        map Drule.export_without_context upd_convs);
 
-    fun get_upd_acc_congs () =
+    val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
       let
         val symdefs = map Thm.symmetric (sel_defs @ upd_defs);
         val fold_ss = HOL_basic_ss addsimps symdefs;
         val ua_congs = map (Drule.export_without_context o simplify fold_ss) upd_acc_cong_assists;
-      in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end;
-    val (fold_congs, unfold_congs) =
-      timeit_msg ctxt "record upd fold/unfold congs:" get_upd_acc_congs;
+      in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end);
 
     val parent_induct = Option.map #induct_scheme (try List.last parents);
 
-    fun induct_scheme_prf () =
+    val induct_scheme = timeit_msg ctxt "record induct_scheme proof:" (fn () =>
       prove_standard [] induct_scheme_prop
         (fn _ =>
           EVERY
            [case parent_induct of NONE => all_tac | SOME ind => try_param_tac rN ind 1,
             try_param_tac rN ext_induct 1,
-            asm_simp_tac HOL_basic_ss 1]);
-    val induct_scheme = timeit_msg ctxt "record induct_scheme proof:" induct_scheme_prf;
+            asm_simp_tac HOL_basic_ss 1]));
 
-    fun induct_prf () =
+    val induct = timeit_msg ctxt "record induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
         prove_standard [assm] concl (fn {prems, ...} =>
           try_param_tac rN induct_scheme 1
           THEN try_param_tac "more" @{thm unit.induct} 1
           THEN resolve_tac prems 1)
-      end;
-    val induct = timeit_msg ctxt "record induct proof:" induct_prf;
+      end);
 
     fun cases_scheme_prf () =
       let
@@ -2210,17 +2197,16 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             induct_scheme;
         in Object_Logic.rulify (mp OF [ind, refl]) end;
 
-    val cases_scheme_prf = future_forward_prf cases_scheme_prf cases_scheme_prop;
-    val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" cases_scheme_prf;
+    val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
+      future_forward_prf cases_scheme_prf cases_scheme_prop);
 
-    fun cases_prf () =
+    val cases = timeit_msg ctxt "record cases proof:" (fn () =>
       prove_standard [] cases_prop
         (fn _ =>
           try_param_tac rN cases_scheme 1 THEN
-          simp_all_tac HOL_basic_ss [@{thm unit_all_eq1}]);
-    val cases = timeit_msg ctxt "record cases proof:" cases_prf;
+          simp_all_tac HOL_basic_ss [@{thm unit_all_eq1}]));
 
-    fun surjective_prf () =
+    val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
       let
         val leaf_ss =
           get_sel_upd_defs defs_thy addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id});
@@ -2234,21 +2220,19 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               REPEAT
                 (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
                   (rtac surject_assistI 1 THEN simp_tac leaf_ss 1))])
-      end;
-    val surjective = timeit_msg ctxt "record surjective proof:" surjective_prf;
+      end);
 
-    fun split_meta_prf () =
+    val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
       prove false [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac equal_intr_rule, Goal.norm_hhf_tac,
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surjective]),
-            REPEAT o etac @{thm meta_allE}, atac]);
-    val split_meta = timeit_msg ctxt "record split_meta proof:" split_meta_prf;
-    fun split_meta_standardise () = Drule.export_without_context split_meta;
-    val split_meta_standard =
-      timeit_msg ctxt "record split_meta standard:" split_meta_standardise;
+            REPEAT o etac @{thm meta_allE}, atac]));
+
+    val split_meta_standard = timeit_msg ctxt "record split_meta standard:" (fn () =>
+      Drule.export_without_context split_meta);
 
     fun split_object_prf () =
       let
@@ -2273,12 +2257,10 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           |> Thm.implies_intr cr                        (* 2 ==> 1 *)
      in thr COMP (thl COMP iffI) end;
 
+    val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
+      future_forward_prf split_object_prf split_object_prop);
 
-    val split_object_prf = future_forward_prf split_object_prf split_object_prop;
-    val split_object = timeit_msg ctxt "record split_object proof:" split_object_prf;
-
-
-    fun split_ex_prf () =
+    val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
       let
         val ss = HOL_basic_ss addsimps @{thms not_ex [symmetric] Not_eq_iff};
         val P_nm = fst (dest_Free P);
@@ -2287,8 +2269,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         val so'' = simplify ss so';
       in
         prove_standard [] split_ex_prop (fn _ => resolve_tac [so''] 1)
-      end;
-    val split_ex = timeit_msg ctxt "record split_ex proof:" split_ex_prf;
+      end);
 
     fun equality_tac thms =
       let
@@ -2297,7 +2278,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         val eqs' = map (simplify ss') eqs;
       in simp_tac (HOL_basic_ss addsimps (s' :: s :: eqs')) 1 end;
 
-    fun equality_prf () =
+    val equality = timeit_msg ctxt "record equality proof:" (fn () =>
       prove_standard [] equality_prop (fn {context, ...} =>
         fn st =>
           let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
@@ -2305,8 +2286,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               res_inst_tac context [((rN, 0), s')] cases_scheme 1 THEN
               Subgoal.FOCUS (fn {prems, ...} => equality_tac prems) context 1)
              (*simp_all_tac ss (sel_convs) would also work but is less efficient*)
-          end);
-    val equality = timeit_msg ctxt "record equality proof:" equality_prf;
+          end));
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
             fold_congs', unfold_congs',
