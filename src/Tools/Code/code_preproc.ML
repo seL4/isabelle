@@ -88,13 +88,13 @@ val del_unfold = map_pre o Simplifier.del_simp;
 val add_post = map_post o Simplifier.add_simp;
 val del_post = map_post o Simplifier.del_simp;
 
-fun add_unfold_post raw_thm thy =
+fun add_code_abbrev raw_thm thy =
   let
     val thm = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy) raw_thm;
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
-      (pre |> Simplifier.add_simp thm, post |> Simplifier.add_simp thm_sym))
+      (pre |> Simplifier.add_simp thm_sym, post |> Simplifier.add_simp thm))
   end;
 
 fun add_functrans (name, f) = (map_data o apsnd)
@@ -520,8 +520,8 @@ val setup =
         "preprocessing equations for code generator"
     #> Attrib.setup @{binding code_post} (add_del_attribute_parser add_post del_post)
         "postprocessing equations for code generator"
-    #> Attrib.setup @{binding code_unfold_post} (Scan.succeed (mk_attribute add_unfold_post))
-        "pre- and postprocessing equations for code generator"
+    #> Attrib.setup @{binding code_abbrev} (Scan.succeed (mk_attribute add_code_abbrev))
+        "post- and preprocessing equations for code generator"
   end;
 
 val _ =

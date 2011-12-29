@@ -1804,7 +1804,7 @@ definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
 hide_const (open) remove
 
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "project P A = {a \<in> A. P a}"
+  [code_abbrev]: "project P A = {a \<in> A. P a}"
 
 hide_const (open) project
 

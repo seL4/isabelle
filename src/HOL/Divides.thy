@@ -2418,7 +2418,7 @@ lemma div_nat_number_of [simp]:
 
 lemma one_div_nat_number_of [simp]:
      "Suc 0 div number_of v' = nat (1 div number_of v')" 
-by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
+  by (simp del: semiring_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric] semiring_numeral_1_eq_1 [symmetric]) 
 
 lemma mod_nat_number_of [simp]:
      "(number_of v :: nat)  mod  number_of v' =  
@@ -2432,7 +2432,7 @@ lemma one_mod_nat_number_of [simp]:
      "Suc 0 mod number_of v' =  
         (if neg (number_of v' :: int) then Suc 0
          else nat (1 mod number_of v'))"
-by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
+by (simp del: semiring_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric] semiring_numeral_1_eq_1 [symmetric]) 
 
 lemmas dvd_eq_mod_eq_0_number_of [simp] =
   dvd_eq_mod_eq_0 [of "number_of x" "number_of y"] for x y

@@ -507,9 +507,11 @@ lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm]
 
 lemmas td_sint = word_sint.td
 
-lemma word_number_of_alt [code_unfold_post]:
+lemma word_number_of_alt:
   "number_of b = word_of_int (number_of b)"
   by (simp add: number_of_eq word_number_of_def)
+
+declare word_number_of_alt [symmetric, code_abbrev]
 
 lemma word_no_wi: "number_of = word_of_int"
   by (auto simp: word_number_of_def)

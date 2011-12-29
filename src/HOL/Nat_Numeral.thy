@@ -331,20 +331,20 @@ subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}
 declare nat_1 [simp]
 
 lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
-by (simp add: nat_number_of_def)
+  by (simp add: nat_number_of_def)
 
-lemma nat_numeral_0_eq_0 [simp, code_post]: "Numeral0 = (0::nat)"
-  by (rule semiring_numeral_0_eq_0)
+lemma nat_numeral_0_eq_0: "Numeral0 = (0::nat)" (* FIXME delete candidate *)
+  by (fact semiring_numeral_0_eq_0)
 
-lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
-  by (rule semiring_numeral_1_eq_1)
+lemma nat_numeral_1_eq_1: "Numeral1 = (1::nat)" (* FIXME delete candidate *)
+  by (fact semiring_numeral_1_eq_1)
 
 lemma Numeral1_eq1_nat:
   "(1::nat) = Numeral1"
   by simp
 
-lemma numeral_1_eq_Suc_0 [code_post]: "Numeral1 = Suc 0"
-by (simp only: nat_numeral_1_eq_1 One_nat_def)
+lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
+  by (simp only: nat_numeral_1_eq_1 One_nat_def)
 
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
@@ -570,8 +570,7 @@ lemma less_0_number_of [simp]:
   by simp
 
 lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
-
+  by (simp del: semiring_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
 
 
 subsection{*Comparisons involving  @{term Suc} *}
@@ -827,7 +826,7 @@ lemma Suc_diff_number_of:
       Suc m - (number_of v) = m - (number_of (Int.pred v))"
 apply (subst Suc_diff_eq_diff_pred)
 apply simp
-apply (simp del: nat_numeral_1_eq_1)
+apply (simp del: semiring_numeral_1_eq_1)
 apply (auto simp only: diff_nat_number_of less_0_number_of [symmetric]
                         neg_number_of_pred_iff_0)
 done
@@ -850,8 +849,8 @@ lemma nat_case_add_eq_if [simp]:
          if neg pv then nat_case a f n else f (nat pv + n))"
 apply (subst add_eq_if)
 apply (simp split add: nat.split
-            del: nat_numeral_1_eq_1
-            add: nat_numeral_1_eq_1 [symmetric]
+            del: semiring_numeral_1_eq_1
+            add: semiring_numeral_1_eq_1 [symmetric]
                  numeral_1_eq_Suc_0 [symmetric]
                  neg_number_of_pred_iff_0)
 done
@@ -872,8 +871,8 @@ lemma nat_rec_add_eq_if [simp]:
                    else f (nat pv + n) (nat_rec a f (nat pv + n)))"
 apply (subst add_eq_if)
 apply (simp split add: nat.split
-            del: nat_numeral_1_eq_1
-            add: nat_numeral_1_eq_1 [symmetric]
+            del: semiring_numeral_1_eq_1
+            add: semiring_numeral_1_eq_1 [symmetric]
                  numeral_1_eq_Suc_0 [symmetric]
                  neg_number_of_pred_iff_0)
 done
