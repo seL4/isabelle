@@ -2600,7 +2600,7 @@ For validation purposes, it is often useful to \emph{execute}
     \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print-codesetup}{\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}codesetup}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{attribute}{code\_unfold}\hypertarget{attribute.HOL.code-unfold}{\hyperlink{attribute.HOL.code-unfold}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{attribute}{code\_post}\hypertarget{attribute.HOL.code-post}{\hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}post}}}} & : & \isa{attribute} \\
-    \indexdef{HOL}{attribute}{code\_unfold\_post}\hypertarget{attribute.HOL.code-unfold-post}{\hyperlink{attribute.HOL.code-unfold-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5F}{\isacharunderscore}}post}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{code\_abbrev}\hypertarget{attribute.HOL.code-abbrev}{\hyperlink{attribute.HOL.code-abbrev}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}abbrev}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{command}{print\_codeproc}\hypertarget{command.HOL.print-codeproc}{\hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}codeproc}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{code\_thms}\hypertarget{command.HOL.code-thms}{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{code\_deps}\hypertarget{command.HOL.code-deps}{\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}deps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
@@ -2725,7 +2725,7 @@ For validation purposes, it is often useful to \emph{execute}
 \rail@endbar
 \rail@end
 \rail@begin{1}{}
-\rail@term{\hyperlink{attribute.HOL.code-unfold-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5F}{\isacharunderscore}}post}}}}[]
+\rail@term{\hyperlink{attribute.HOL.code-abbrev}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}abbrev}}}}[]
 \rail@end
 \rail@begin{3}{}
 \rail@term{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}}}}}[]
@@ -3020,16 +3020,18 @@ For validation purposes, it is often useful to \emph{execute}
   selected code equations and code generator datatypes.
 
   \item \hyperlink{attribute.HOL.code-unfold}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold}}} declares (or with option
-  ``\isa{{\isaliteral{22}{\isachardoublequote}}del{\isaliteral{22}{\isachardoublequote}}}'' removes) theorems which are applied as
-  rewrite rules to any code equation during preprocessing.
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}del{\isaliteral{22}{\isachardoublequote}}}'' removes) theorems which during preprocessing
+  are applied as rewrite rules to any code equation or evaluation
+  input.
 
   \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}post}}} declares (or with option ``\isa{{\isaliteral{22}{\isachardoublequote}}del{\isaliteral{22}{\isachardoublequote}}}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
-  \item \hyperlink{attribute.HOL.code-unfold-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5F}{\isacharunderscore}}post}}} declares equations which are
-  applied as rewrite rules to any code equation during preprocessing,
-  and symmetrically to any result of an evaluation.
-  
+  \item \hyperlink{attribute.HOL.code-abbrev}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}abbrev}}} declares equations which are
+  applied as rewrite rules to any result of an evaluation and
+  symmetrically during preprocessing to any code equation or evaluation
+  input.
+
   \item \hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}codeproc}}}} prints the setup of the code
   generator preprocessor.
 
