@@ -411,6 +411,10 @@ lemma pred_eqI:
   "(\<And>w. eval P w \<longleftrightarrow> eval Q w) \<Longrightarrow> P = Q"
   by (cases P, cases Q) (auto simp add: fun_eq_iff)
 
+lemma pred_eq_iff:
+  "P = Q \<Longrightarrow> (\<And>w. eval P w \<longleftrightarrow> eval Q w)"
+  by (simp add: pred_eqI)
+
 instantiation pred :: (type) complete_lattice
 begin
 
@@ -816,7 +820,7 @@ next
   by (auto simp add: fun_eq_iff elim: supE intro: supI1 supI2)
 qed
 
-lemma eval_code [code]: "eval (Seq f) = member (f ())"
+lemma eval_code [(* FIXME declare simp *)code]: "eval (Seq f) = member (f ())"
   unfolding Seq_def by (rule sym, rule eval_member)
 
 lemma single_code [code]:
@@ -1016,6 +1020,42 @@ fun yieldn P = anamorph yield P;
 
 end;
 *}
+
+text {* Conversion from and to sets *}
+
+definition pred_of_set :: "'a set \<Rightarrow> 'a pred" where
+  "pred_of_set = Pred \<circ> (\<lambda>A x. x \<in> A)"
+
+lemma eval_pred_of_set [simp]:
+  "eval (pred_of_set A) x \<longleftrightarrow> x \<in>A"
+  by (simp add: pred_of_set_def)
+
+definition set_of_pred :: "'a pred \<Rightarrow> 'a set" where
+  "set_of_pred = Collect \<circ> eval"
+
+lemma member_set_of_pred [simp]:
+  "x \<in> set_of_pred P \<longleftrightarrow> Predicate.eval P x"
+  by (simp add: set_of_pred_def)
+
+definition set_of_seq :: "'a seq \<Rightarrow> 'a set" where
+  "set_of_seq = set_of_pred \<circ> pred_of_seq"
+
+lemma member_set_of_seq [simp]:
+  "x \<in> set_of_seq xq = Predicate.member xq x"
+  by (simp add: set_of_seq_def eval_member)
+
+lemma of_pred_code [code]:
+  "set_of_pred (Predicate.Seq f) = (case f () of
+     Predicate.Empty \<Rightarrow> {}
+   | Predicate.Insert x P \<Rightarrow> insert x (set_of_pred P)
+   | Predicate.Join P xq \<Rightarrow> set_of_pred P \<union> set_of_seq xq)"
+  by (auto split: seq.split simp add: eval_code)
+
+lemma of_seq_code [code]:
+  "set_of_seq Predicate.Empty = {}"
+  "set_of_seq (Predicate.Insert x P) = insert x (set_of_pred P)"
+  "set_of_seq (Predicate.Join P xq) = set_of_pred P \<union> set_of_seq xq"
+  by auto
 
 no_notation
   bot ("\<bottom>") and
