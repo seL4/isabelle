@@ -1009,21 +1009,21 @@ text {*
   Converting numerals 0 and 1 to their abstract versions.
 *}
 
-lemma semiring_numeral_0_eq_0:
+lemma semiring_numeral_0_eq_0 [simp, code_post]:
   "Numeral0 = (0::'a::number_semiring)"
   using number_of_int [where 'a='a and n=0]
   unfolding numeral_simps by simp
 
-lemma semiring_numeral_1_eq_1:
+lemma semiring_numeral_1_eq_1 [simp, code_post]:
   "Numeral1 = (1::'a::number_semiring)"
   using number_of_int [where 'a='a and n=1]
   unfolding numeral_simps by simp
 
-lemma numeral_0_eq_0 [simp, code_post]:
+lemma numeral_0_eq_0: (* FIXME delete candidate *)
   "Numeral0 = (0::'a::number_ring)"
   by (rule semiring_numeral_0_eq_0)
 
-lemma numeral_1_eq_1 [simp, code_post]:
+lemma numeral_1_eq_1: (* FIXME delete candidate *)
   "Numeral1 = (1::'a::number_ring)"
   by (rule semiring_numeral_1_eq_1)
 
@@ -2296,11 +2296,11 @@ lemma [code]: "nat i = nat_aux i 0"
 
 hide_const (open) nat_aux
 
-lemma zero_is_num_zero [code, code_unfold_post]:
+lemma zero_is_num_zero [code, code_unfold]:
   "(0\<Colon>int) = Numeral0" 
   by simp
 
-lemma one_is_num_one [code, code_unfold_post]:
+lemma one_is_num_one [code, code_unfold]:
   "(1\<Colon>int) = Numeral1" 
   by simp
 
