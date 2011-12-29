@@ -147,7 +147,7 @@ apply (rule order_antisym [OF degree_pCons_le])
 apply (rule le_degree, simp)
 done
 
-lemma pCons_0_0 [simp]: "pCons 0 0 = 0"
+lemma pCons_0_0 [simp, code_post]: "pCons 0 0 = 0"
 by (rule poly_ext, simp add: coeff_pCons split: nat.split)
 
 lemma pCons_eq_iff [simp]:
@@ -1504,8 +1504,6 @@ subsection {* Configuration of the code generator *}
 code_datatype "0::'a::zero poly" pCons
 
 quickcheck_generator poly constructors: "0::'a::zero poly", pCons
-
-declare pCons_0_0 [code_post]
 
 instantiation poly :: ("{zero, equal}") equal
 begin
