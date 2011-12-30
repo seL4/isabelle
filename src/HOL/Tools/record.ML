@@ -1645,14 +1645,13 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             asm_simp_tac HOL_ss 1)
       end);
 
-    val ([induct', inject', surjective', split_meta'], thm_thy) =
+    val ([(_, [induct']), (_, [inject']), (_, [surjective']), (_, [split_meta'])], thm_thy) =
       defs_thy
-      |> Global_Theory.add_thms (map (Thm.no_attributes o apfst Binding.name)
-           [("ext_induct", induct),
-            ("ext_inject", inject),
-            ("ext_surjective", surject),
-            ("ext_split", split_meta)]);
-
+      |> Global_Theory.note_thmss ""
+          [((Binding.name "ext_induct", []), [([induct], [])]),
+           ((Binding.name "ext_inject", []), [([inject], [])]),
+           ((Binding.name "ext_surjective", []), [([surject], [])]),
+           ((Binding.name "ext_split", []), [([split_meta], [])])];
   in
     (((ext_name, ext_type), (ext_tyco, alphas_zeta),
       extT, induct', inject', surjective', split_meta', ext_def), thm_thy)
@@ -2181,39 +2180,37 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Skip_Proof.prove_global defs_thy [] [] equality_prop
         (fn _ => asm_full_simp_tac (record_ss addsimps (split_meta :: sel_convs)) 1));
 
-    val ((([sel_convs', upd_convs', sel_defs', upd_defs',
-            fold_congs', unfold_congs',
-          splits' as [split_meta', split_object', split_ex'], derived_defs'],
-          [surjective', equality']),
-          [induct_scheme', induct', cases_scheme', cases']), thms_thy) =
-      defs_thy
-      |> (Global_Theory.add_thmss o map (Thm.no_attributes o apfst Binding.name))
-         [("select_convs", sel_convs),
-          ("update_convs", upd_convs),
-          ("select_defs", sel_defs),
-          ("update_defs", upd_defs),
-          ("fold_congs", fold_congs),
-          ("unfold_congs", unfold_congs),
-          ("splits", [split_meta, split_object, split_ex]),
-          ("defs", derived_defs)]
-      ||>> (Global_Theory.add_thms o map (Thm.no_attributes o apfst Binding.name))
-          [("surjective", surjective),
-           ("equality", equality)]
-      ||>> (Global_Theory.add_thms o (map o apfst o apfst) Binding.name)
-        [(("induct_scheme", induct_scheme), induct_type_global (suffix schemeN name)),
-         (("induct", induct), induct_type_global name),
-         (("cases_scheme", cases_scheme), cases_type_global (suffix schemeN name)),
-         (("cases", cases), cases_type_global name)];
+    val ([(_, sel_convs'), (_, upd_convs'), (_, sel_defs'), (_, upd_defs'),
+          (_, fold_congs'), (_, unfold_congs'),
+          (_, splits' as [split_meta', split_object', split_ex']), (_, derived_defs'),
+          (_, [surjective']), (_, [equality']), (_, [induct_scheme']), (_, [induct']),
+          (_, [cases_scheme']), (_, [cases'])], thms_thy) = defs_thy
+      |> Global_Theory.note_thmss ""
+       [((Binding.name "select_convs", []), [(sel_convs, [])]),
+        ((Binding.name "update_convs", []), [(upd_convs, [])]),
+        ((Binding.name "select_defs", []), [(sel_defs, [])]),
+        ((Binding.name "update_defs", []), [(upd_defs, [])]),
+        ((Binding.name "fold_congs", []), [(fold_congs, [])]),
+        ((Binding.name "unfold_congs", []), [(unfold_congs, [])]),
+        ((Binding.name "splits", []), [([split_meta, split_object, split_ex], [])]),
+        ((Binding.name "defs", []), [(derived_defs, [])]),
+        ((Binding.name "surjective", []), [([surjective], [])]),
+        ((Binding.name "equality", []), [([equality], [])]),
+        ((Binding.name "induct_scheme", induct_type_global (suffix schemeN name)),
+          [([induct_scheme], [])]),
+        ((Binding.name "induct", induct_type_global name), [([induct], [])]),
+        ((Binding.name "cases_scheme", cases_type_global (suffix schemeN name)),
+          [([cases_scheme], [])]),
+        ((Binding.name "cases", cases_type_global name), [([cases], [])])];
 
     val sel_upd_simps = sel_convs' @ upd_convs';
     val sel_upd_defs = sel_defs' @ upd_defs';
     val depth = parent_len + 1;
 
-    val ([simps', iffs'], thms_thy') =
-      thms_thy
-      |> Global_Theory.add_thmss
-          [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
-           ((Binding.name "iffs", [ext_inject]), [iff_add])];
+    val ([(_, simps'), (_, iffs')], thms_thy') = thms_thy
+      |> Global_Theory.note_thmss ""
+          [((Binding.name "simps", [Simplifier.simp_add]), [(sel_upd_simps, [])]),
+           ((Binding.name "iffs", [iff_add]), [([ext_inject], [])])];
 
     val info =
       make_info alphas parent fields extension
