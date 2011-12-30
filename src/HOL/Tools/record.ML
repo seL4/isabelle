@@ -1477,8 +1477,7 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
     val rule' = Thm.lift_rule cgoal rule;
-    val (P, ys) = strip_comb (HOLogic.dest_Trueprop
-      (Logic.strip_assums_concl (prop_of rule')));
+    val (P, ys) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_assums_concl (prop_of rule')));
     (*ca indicates if rule is a case analysis or induction rule*)
     val (x, ca) =
       (case rev (drop (length params) ys) of
@@ -1686,27 +1685,6 @@ fun subst_last _ [] = error "subst_last: list should not be empty"
   of parent extensions, starting with the root of the record hierarchy*)
 fun mk_recordT extT =
   fold_rev (fn (parent, Ts) => fn T => Type (parent, subst_last T Ts)) extT;
-
-
-fun obj_to_meta_all thm =
-  let
-    fun E thm =  (* FIXME proper name *)
-      (case SOME (spec OF [thm]) handle THM _ => NONE of
-        SOME thm' => E thm'
-      | NONE => thm);
-    val th1 = E thm;
-    val th2 = Drule.forall_intr_vars th1;
-  in th2 end;
-
-fun meta_to_obj_all thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val prop = Thm.prop_of thm;
-    val params = Logic.strip_params prop;
-    val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl prop);
-    val ct = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.list_all (params, concl)));
-    val thm' = Seq.hd (REPEAT (rtac allI 1) (Thm.trivial ct));
-  in Thm.implies_elim thm' thm end;
 
 
 (* code generation *)
@@ -2201,31 +2179,12 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             rtac (@{thm prop_subst} OF [surjective]),
             REPEAT o etac @{thm meta_allE}, atac]));
 
-    fun split_object_prf () =
-      let
-        val cPI = cterm_of defs_thy (lambda r0 (Trueprop (P $ r0)));
-        val _ $ Abs (_, _, P $ _) = fst (Logic.dest_equals (concl_of split_meta));
-        val cP = cterm_of defs_thy P;
-        val split_meta' = cterm_instantiate [(cP, cPI)] split_meta;
-        val (l, r) = HOLogic.dest_eq (HOLogic.dest_Trueprop split_object_prop);
-        val cl = cterm_of defs_thy (HOLogic.mk_Trueprop l);
-        val cr = cterm_of defs_thy (HOLogic.mk_Trueprop r);
-        val thl =
-          Thm.assume cl                   (*All r. P r*) (* 1 *)
-          |> obj_to_meta_all              (*!!r. P r*)
-          |> Thm.equal_elim split_meta'   (*!!n m more. P (ext n m more)*)
-          |> meta_to_obj_all              (*All n m more. P (ext n m more)*) (* 2*)
-          |> Thm.implies_intr cl          (* 1 ==> 2 *)
-        val thr =
-          Thm.assume cr                                 (*All n m more. P (ext n m more)*)
-          |> obj_to_meta_all                            (*!!n m more. P (ext n m more)*)
-          |> Thm.equal_elim (Thm.symmetric split_meta') (*!!r. P r*)
-          |> meta_to_obj_all                            (*All r. P r*)
-          |> Thm.implies_intr cr                        (* 2 ==> 1 *)
-     in thr COMP (thl COMP iffI) end;
-
     val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
-      future_forward_prf defs_thy split_object_prf split_object_prop);
+      Skip_Proof.prove_global defs_thy [] [] split_object_prop
+        (fn _ =>
+          rtac @{lemma "Trueprop A == Trueprop B ==> A = B" by (rule iffI) unfold} 1 THEN
+          rewrite_goals_tac @{thms atomize_all [symmetric]} THEN
+          rtac split_meta 1));
 
     val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
       let
