@@ -2187,13 +2187,13 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           rtac split_meta 1));
 
     val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
-      let
-        val ss = HOL_basic_ss addsimps @{thms not_ex [symmetric] Not_eq_iff};
-        val P_nm = fst (dest_Free P);
-        val not_P = cterm_of defs_thy (lambda r0 (HOLogic.mk_not (P $ r0)));
-        val so' = named_cterm_instantiate ([(P_nm, not_P)]) split_object;
-        val so'' = simplify ss so';
-      in Skip_Proof.prove_global defs_thy [] [] split_ex_prop (fn _ => resolve_tac [so''] 1) end);
+      Skip_Proof.prove_global defs_thy [] [] split_ex_prop
+        (fn _ =>
+          simp_tac
+            (HOL_basic_ss addsimps
+              (@{lemma "EX x. P x == ~ (ALL x. ~ P x)" by simp} ::
+                @{thms not_not Not_eq_iff})) 1 THEN
+          rtac split_object 1));
 
     fun equality_tac thms =
       let
