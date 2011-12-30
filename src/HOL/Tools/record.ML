@@ -949,14 +949,6 @@ end;
 
 (** record simprocs **)
 
-fun future_forward_prf thy prf prop =
-  let val thm =
-    if ! quick_and_dirty then Skip_Proof.make_thm thy prop
-    else if Goal.future_enabled () then
-      Goal.future_result (Proof_Context.init_global thy) (Goal.fork prf) prop
-    else prf ()
-  in Drule.export_without_context thm end;
-
 fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
   (case get_updates thy u of
     SOME u_name => u_name = s
@@ -2065,8 +2057,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (*cases*)
     val cases_scheme_prop =
-      (All (map dest_Free all_vars_more) ((r0 === r_rec0) ==> Trueprop C))
-        ==> Trueprop C;
+      (All (map dest_Free all_vars_more) ((r0 === r_rec0) ==> Trueprop C), Trueprop C);
 
     val cases_prop =
       (All (map dest_Free all_vars) ((r_unit0 === r_rec_unit0) ==> Trueprop C))
@@ -2128,31 +2119,10 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             asm_simp_tac HOL_basic_ss 1]));
 
     val induct = timeit_msg ctxt "record induct proof:" (fn () =>
-      let val (assm, concl) = induct_prop in
-        Skip_Proof.prove_global defs_thy [] [assm] concl (fn {prems, ...} =>
-          try_param_tac rN induct_scheme 1
-          THEN try_param_tac "more" @{thm unit.induct} 1
-          THEN resolve_tac prems 1)
-      end);
-
-    fun cases_scheme_prf () =
-      let
-        val _ $ (Pvar $ _) = concl_of induct_scheme;
-        val ind =
-          cterm_instantiate
-            [(cterm_of defs_thy Pvar, cterm_of defs_thy
-              (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
-            induct_scheme;
-        in Object_Logic.rulify (mp OF [ind, refl]) end;
-
-    val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
-      future_forward_prf defs_thy cases_scheme_prf cases_scheme_prop);
-
-    val cases = timeit_msg ctxt "record cases proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] cases_prop
-        (fn _ =>
-          try_param_tac rN cases_scheme 1 THEN
-          ALLGOALS (asm_full_simp_tac (HOL_basic_ss addsimps [@{thm unit_all_eq1}]))));
+      Skip_Proof.prove_global defs_thy [] [#1 induct_prop] (#2 induct_prop) (fn {prems, ...} =>
+        try_param_tac rN induct_scheme 1
+        THEN try_param_tac "more" @{thm unit.induct} 1
+        THEN resolve_tac prems 1));
 
     val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
       let
@@ -2169,6 +2139,18 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                 (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
                   (rtac surject_assistI 1 THEN simp_tac leaf_ss 1))])
       end);
+
+    val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
+      Skip_Proof.prove_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
+        (fn {prems, ...} =>
+          resolve_tac prems 1 THEN
+          rtac surjective 1));
+
+    val cases = timeit_msg ctxt "record cases proof:" (fn () =>
+      Skip_Proof.prove_global defs_thy [] [] cases_prop
+        (fn _ =>
+          try_param_tac rN cases_scheme 1 THEN
+          ALLGOALS (asm_full_simp_tac (HOL_basic_ss addsimps @{thms unit_all_eq1}))));
 
     val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
       Skip_Proof.prove_global defs_thy [] [] split_meta_prop
