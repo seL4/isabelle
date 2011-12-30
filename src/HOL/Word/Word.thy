@@ -2106,6 +2106,18 @@ lemma word_no_log_defs [simp]:
   "number_of a XOR number_of b = (number_of (a XOR b) :: 'a word)"
   unfolding word_no_wi word_wi_log_defs by simp_all
 
+text {* Special cases for when one of the arguments equals 1. *}
+
+lemma word_bitwise_1_simps [simp]:
+  "NOT (1::'a::len0 word) = -2"
+  "(1::'a word) AND number_of b = number_of (Int.Bit1 Int.Pls AND b)"
+  "number_of a AND (1::'a word) = number_of (a AND Int.Bit1 Int.Pls)"
+  "(1::'a word) OR number_of b = number_of (Int.Bit1 Int.Pls OR b)"
+  "number_of a OR (1::'a word) = number_of (a OR Int.Bit1 Int.Pls)"
+  "(1::'a word) XOR number_of b = number_of (Int.Bit1 Int.Pls XOR b)"
+  "number_of a XOR (1::'a word) = number_of (a XOR Int.Bit1 Int.Pls)"
+  unfolding word_1_no word_no_log_defs by simp_all
+
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
   by (simp add: word_or_def word_wi_log_defs word_ubin.eq_norm
                 bin_trunc_ao(2) [symmetric])

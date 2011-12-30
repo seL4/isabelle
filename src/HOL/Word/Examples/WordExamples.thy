@@ -95,13 +95,14 @@ lemma "NOT (0xF0 :: 16 word) = 0xFF0F" by simp
 lemma "0 AND 5 = (0 :: byte)" by simp
 lemma "1 AND 1 = (1 :: byte)" by simp
 lemma "1 AND 0 = (0 :: byte)" by simp
-lemma "1 AND 5 = (1 :: byte)" apply simp? oops
-lemma "1 OR 6 = (7 :: byte)" apply simp? oops
+lemma "1 AND 5 = (1 :: byte)" by simp
+lemma "1 OR 6 = (7 :: byte)" by simp
 lemma "1 OR 1 = (1 :: byte)" by simp
-lemma "1 XOR 7 = (6 :: byte)" apply simp? oops
+lemma "1 XOR 7 = (6 :: byte)" by simp
 lemma "1 XOR 1 = (0 :: byte)" by simp
-lemma "NOT 1 = (254 :: byte)" apply simp? oops
+lemma "NOT 1 = (254 :: byte)" by simp
 lemma "NOT 0 = (255 :: byte)" apply simp oops
+(* FIXME: "NOT 0" rewrites to "max_word" instead of "-1" *)
 
 lemma "(-1 :: 32 word) = 0xFFFFFFFF" by simp
 
