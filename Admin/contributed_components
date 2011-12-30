@@ -1,7 +1,7 @@
 #contributed components
 contrib/cvc3-2.2
 contrib/e-1.4
-contrib/kodkodi-1.2.16
+#contrib/kodkodi-1.2.16
 contrib/spass-3.7
 contrib/scala-2.8.1.final
 contrib/vampire-1.0
