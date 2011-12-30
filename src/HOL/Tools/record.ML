@@ -2091,8 +2091,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (* 3rd stage: thms_thy *)
 
-    val ss = get_simpset defs_thy;
-    val sel_upd_ss = ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
+    val record_ss = get_simpset defs_thy;
+    val sel_upd_ss = record_ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
 
     val (sel_convs, upd_convs) =
       timeit_msg ctxt "record sel_convs/upd_convs proof:" (fn () =>
@@ -2177,22 +2177,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                 @{thms not_not Not_eq_iff})) 1 THEN
           rtac split_object 1));
 
-    fun equality_tac thms =
-      let
-        val s' :: s :: eqs = rev thms;
-        val ss' = ss addsimps (s' :: s :: sel_convs);
-        val eqs' = map (simplify ss') eqs;
-      in simp_tac (HOL_basic_ss addsimps (s' :: s :: eqs')) 1 end;
-
     val equality = timeit_msg ctxt "record equality proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] equality_prop (fn {context, ...} =>
-        fn st =>
-          let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
-            st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1 THEN
-              res_inst_tac context [((rN, 0), s')] cases_scheme 1 THEN
-              Subgoal.FOCUS (fn {prems, ...} => equality_tac prems) context 1)
-             (*asm_full_simp_tac sel_upd_ss would also work but is less efficient*)
-          end));
+      Skip_Proof.prove_global defs_thy [] [] equality_prop
+        (fn _ => asm_full_simp_tac (record_ss addsimps (split_meta :: sel_convs)) 1));
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
             fold_congs', unfold_congs',
