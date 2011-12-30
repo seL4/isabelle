@@ -1331,11 +1331,6 @@ val ex_sel_eq_simproc =
   Simplifier.simproc_global @{theory HOL} "ex_sel_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
       let
-        fun prove prop =
-          Skip_Proof.prove_global thy [] [] prop
-            (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
-                addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1);
-
         fun mkeq (lr, Teq, (sel, Tsel), x) i =
           if is_selector thy sel then
             let
@@ -1362,8 +1357,11 @@ val ex_sel_eq_simproc =
                list_all ([("r", T)],
                  Logic.mk_equals
                   (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
-            in SOME (prove prop) end
-            handle TERM _ => NONE)
+            in
+              SOME (Skip_Proof.prove_global thy [] [] prop
+                (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
+                    addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
+            end handle TERM _ => NONE)
         | _ => NONE)
       end);
 
@@ -1605,11 +1603,9 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
 
-    val prove = Skip_Proof.prove_global defs_thy;
-
     val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
       simplify HOL_ss
-        (prove [] [] inject_prop
+        (Skip_Proof.prove_global defs_thy [] [] inject_prop
           (fn _ =>
             simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
@@ -1641,7 +1637,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
 
     val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
-      prove [] [] split_meta_prop
+      Skip_Proof.prove_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac equal_intr_rule, Goal.norm_hhf_tac,
@@ -1651,7 +1647,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
-        prove [] [assm] concl
+        Skip_Proof.prove_global defs_thy [] [assm] concl
           (fn {prems, ...} =>
             cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1 THEN
             resolve_tac prems 2 THEN
@@ -2126,17 +2122,17 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (* 3rd stage: thms_thy *)
 
-    val prove = Skip_Proof.prove_global defs_thy;
-
     val ss = get_simpset defs_thy;
     val simp_defs_tac =
       asm_full_simp_tac (ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
 
     val sel_convs = timeit_msg ctxt "record sel_convs proof:" (fn () =>
-      map (fn prop => prove [] [] prop (K (ALLGOALS simp_defs_tac))) sel_conv_props);
+      map (fn prop =>
+        Skip_Proof.prove_global defs_thy [] [] prop (K (ALLGOALS simp_defs_tac))) sel_conv_props);
 
     val upd_convs = timeit_msg ctxt "record upd_convs proof:" (fn () =>
-      map (fn prop => prove [] [] prop (K (ALLGOALS simp_defs_tac))) upd_conv_props);
+      map (fn prop =>
+        Skip_Proof.prove_global defs_thy [] [] prop (K (ALLGOALS simp_defs_tac))) upd_conv_props);
 
     val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
       let
@@ -2148,7 +2144,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val parent_induct = Option.map #induct_scheme (try List.last parents);
 
     val induct_scheme = timeit_msg ctxt "record induct_scheme proof:" (fn () =>
-      prove [] [] induct_scheme_prop
+      Skip_Proof.prove_global defs_thy [] [] induct_scheme_prop
         (fn _ =>
           EVERY
            [case parent_induct of NONE => all_tac | SOME ind => try_param_tac rN ind 1,
@@ -2157,7 +2153,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val induct = timeit_msg ctxt "record induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
-        prove [] [assm] concl (fn {prems, ...} =>
+        Skip_Proof.prove_global defs_thy [] [assm] concl (fn {prems, ...} =>
           try_param_tac rN induct_scheme 1
           THEN try_param_tac "more" @{thm unit.induct} 1
           THEN resolve_tac prems 1)
@@ -2177,7 +2173,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       future_forward_prf defs_thy cases_scheme_prf cases_scheme_prop);
 
     val cases = timeit_msg ctxt "record cases proof:" (fn () =>
-      prove [] [] cases_prop
+      Skip_Proof.prove_global defs_thy [] [] cases_prop
         (fn _ =>
           try_param_tac rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac (HOL_basic_ss addsimps [@{thm unit_all_eq1}]))));
@@ -2188,7 +2184,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           get_sel_upd_defs defs_thy addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id});
         val init_ss = HOL_basic_ss addsimps ext_defs;
       in
-        prove [] [] surjective_prop
+        Skip_Proof.prove_global defs_thy [] [] surjective_prop
           (fn _ =>
             EVERY
              [rtac surject_assist_idE 1,
@@ -2199,7 +2195,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       end);
 
     val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
-      prove [] [] split_meta_prop
+      Skip_Proof.prove_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac equal_intr_rule, Goal.norm_hhf_tac,
@@ -2240,7 +2236,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         val not_P = cterm_of defs_thy (lambda r0 (HOLogic.mk_not (P $ r0)));
         val so' = named_cterm_instantiate ([(P_nm, not_P)]) split_object;
         val so'' = simplify ss so';
-      in prove [] [] split_ex_prop (fn _ => resolve_tac [so''] 1) end);
+      in Skip_Proof.prove_global defs_thy [] [] split_ex_prop (fn _ => resolve_tac [so''] 1) end);
 
     fun equality_tac thms =
       let
@@ -2250,7 +2246,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       in simp_tac (HOL_basic_ss addsimps (s' :: s :: eqs')) 1 end;
 
     val equality = timeit_msg ctxt "record equality proof:" (fn () =>
-      prove [] [] equality_prop (fn {context, ...} =>
+      Skip_Proof.prove_global defs_thy [] [] equality_prop (fn {context, ...} =>
         fn st =>
           let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
             st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1 THEN
