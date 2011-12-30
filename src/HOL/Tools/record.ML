@@ -2123,16 +2123,14 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     (* 3rd stage: thms_thy *)
 
     val ss = get_simpset defs_thy;
-    val simp_defs_tac =
-      asm_full_simp_tac (ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
+    val sel_upd_ss = ss addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
 
-    val sel_convs = timeit_msg ctxt "record sel_convs proof:" (fn () =>
-      map (fn prop =>
-        Skip_Proof.prove_global defs_thy [] [] prop (K (ALLGOALS simp_defs_tac))) sel_conv_props);
-
-    val upd_convs = timeit_msg ctxt "record upd_convs proof:" (fn () =>
-      map (fn prop =>
-        Skip_Proof.prove_global defs_thy [] [] prop (K (ALLGOALS simp_defs_tac))) upd_conv_props);
+    val (sel_convs, upd_convs) =
+      timeit_msg ctxt "record sel_convs/upd_convs proof:" (fn () =>
+        Par_List.map (fn prop =>
+          Skip_Proof.prove_global defs_thy [] [] prop
+            (K (ALLGOALS (asm_full_simp_tac sel_upd_ss)))) (sel_conv_props @ upd_conv_props))
+      |> chop (length sel_conv_props);
 
     val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
       let
@@ -2252,7 +2250,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1 THEN
               res_inst_tac context [((rN, 0), s')] cases_scheme 1 THEN
               Subgoal.FOCUS (fn {prems, ...} => equality_tac prems) context 1)
-             (*simp_defs_tac would also work but is less efficient*)
+             (*asm_full_simp_tac sel_upd_ss would also work but is less efficient*)
           end));
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
