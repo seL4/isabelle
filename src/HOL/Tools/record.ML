@@ -1589,7 +1589,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (All (map dest_Free vars_more) (Trueprop (P $ ext)), Trueprop (P $ s));
 
     val split_meta_prop =  (* FIXME local P *)
-      let val P = Free (singleton (Name.variant_list variants) "P", extT --> Term.propT) in
+      let val P = Free (singleton (Name.variant_list variants) "P", extT --> propT) in
         Logic.mk_equals
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
@@ -1625,7 +1625,6 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       in
         surject
       end);
-
 
     val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
       Skip_Proof.prove_global defs_thy [] [] split_meta_prop
@@ -1751,16 +1750,16 @@ fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
 fun add_code ext_tyco vs extT ext simps inject thy =
   let
     val eq =
-      (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+      HOLogic.mk_Trueprop (HOLogic.mk_eq
         (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
-         Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT));
+         Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
     fun tac eq_def =
       Class.intro_classes_tac []
       THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
       THEN ALLGOALS (rtac @{thm refl});
     fun mk_eq thy eq_def =
       Simplifier.rewrite_rule
-        [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
+        [AxClass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
     fun mk_eq_refl thy =
       @{thm equal_refl}
       |> Thm.instantiate
@@ -2007,7 +2006,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           |> Sign.restore_naming thy
           |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
           |> Typedecl.abbrev_global
-            (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0 |> snd
+            (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0
+          |> snd
           |> Sign.qualified_path false binding
           |> fold (fn ((x, T), mx) => snd o Sign.declare_const_global ((Binding.name x, T), mx))
             (sel_decls ~~ (field_syntax @ [NoSyn]))
@@ -2065,7 +2065,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     (*split*)
     val split_meta_prop =
       let
-        val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0-->Term.propT);
+        val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0 --> propT);
       in
         Logic.mk_equals
          (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
