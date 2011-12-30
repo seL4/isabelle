@@ -450,22 +450,18 @@ lemma uint_sint:
   "uint w = bintrunc (len_of TYPE('a)) (sint (w :: 'a :: len word))"
   unfolding sint_uint by (auto simp: bintrunc_sbintrunc_le)
 
-lemma bintr_uint': 
-  "n >= size w \<Longrightarrow> bintrunc n (uint w) = uint w"
-  apply (unfold word_size)
+lemma bintr_uint:
+  fixes w :: "'a::len0 word"
+  shows "len_of TYPE('a) \<le> n \<Longrightarrow> bintrunc n (uint w) = uint w"
   apply (subst word_ubin.norm_Rep [symmetric]) 
   apply (simp only: bintrunc_bintrunc_min word_size)
   apply (simp add: min_max.inf_absorb2)
   done
 
-lemma wi_bintr': 
-  "wb = word_of_int bin \<Longrightarrow> n >= size wb \<Longrightarrow> 
-    word_of_int (bintrunc n bin) = wb"
-  unfolding word_size
+lemma wi_bintr:
+  "len_of TYPE('a::len0) \<le> n \<Longrightarrow>
+    word_of_int (bintrunc n w) = (word_of_int w :: 'a word)"
   by (clarsimp simp add: word_ubin.norm_eq_iff [symmetric] min_max.inf_absorb1)
-
-lemmas bintr_uint = bintr_uint' [unfolded word_size]
-lemmas wi_bintr = wi_bintr' [unfolded word_size]
 
 lemma td_ext_sbin: 
   "td_ext (sint :: 'a word => int) word_of_int (sints (len_of TYPE('a::len))) 
@@ -682,24 +678,20 @@ lemma test_bit_bin': "w !! n = (n < size w & bin_nth (uint w) n)"
 
 lemmas test_bit_bin = test_bit_bin' [unfolded word_size]
 
-lemma bin_nth_uint_imp': "bin_nth (uint w) n --> n < size w"
-  apply (unfold word_size)
-  apply (rule impI)
+lemma bin_nth_uint_imp:
+  "bin_nth (uint (w::'a::len0 word)) n \<Longrightarrow> n < len_of TYPE('a)"
   apply (rule nth_bintr [THEN iffD1, THEN conjunct1])
   apply (subst word_ubin.norm_Rep)
   apply assumption
   done
 
-lemma bin_nth_sint': 
-  "n >= size w --> bin_nth (sint w) n = bin_nth (sint w) (size w - 1)"
-  apply (rule impI)
+lemma bin_nth_sint:
+  fixes w :: "'a::len word"
+  shows "len_of TYPE('a) \<le> n \<Longrightarrow>
+    bin_nth (sint w) n = bin_nth (sint w) (len_of TYPE('a) - 1)"
   apply (subst word_sbin.norm_Rep [symmetric])
-  apply (simp add : nth_sbintr word_size)
-  apply auto
+  apply (auto simp add: nth_sbintr)
   done
-
-lemmas bin_nth_uint_imp = bin_nth_uint_imp' [rule_format, unfolded word_size]
-lemmas bin_nth_sint = bin_nth_sint' [rule_format, unfolded word_size]
 
 (* type definitions theorem for in terms of equivalent bool list *)
 lemma td_bl: 
@@ -2897,28 +2889,20 @@ lemma sshiftr1_sbintr [simp] :
   unfolding sshiftr1_def word_number_of_def
   by (simp add : word_sbin.eq_norm)
 
-lemma shiftr_no': 
-  "w = number_of bin \<Longrightarrow> 
-  (w::'a::len0 word) >> n = word_of_int ((bin_rest ^^ n) (bintrunc (size w) (number_of bin)))"
-  apply clarsimp
+lemma shiftr_no [simp]:
+  "(number_of w::'a::len0 word) >> n = word_of_int
+    ((bin_rest ^^ n) (bintrunc (len_of TYPE('a)) (number_of w)))"
   apply (rule word_eqI)
   apply (auto simp: nth_shiftr nth_rest_power_bin nth_bintr word_size)
   done
 
-lemma sshiftr_no': 
-  "w = number_of bin \<Longrightarrow> w >>> n = word_of_int ((bin_rest ^^ n) 
-    (sbintrunc (size w - 1) (number_of bin)))"
-  apply clarsimp
+lemma sshiftr_no [simp]:
+  "(number_of w::'a::len word) >>> n = word_of_int
+    ((bin_rest ^^ n) (sbintrunc (len_of TYPE('a) - 1) (number_of w)))"
   apply (rule word_eqI)
   apply (auto simp: nth_sshiftr nth_rest_power_bin nth_sbintr word_size)
    apply (subgoal_tac "na + n = len_of TYPE('a) - Suc 0", simp, simp)+
   done
-
-lemmas sshiftr_no [simp] = 
-  sshiftr_no' [where w = "number_of w", OF refl, unfolded word_size] for w
-
-lemmas shiftr_no [simp] = 
-  shiftr_no' [where w = "number_of w", OF refl, unfolded word_size] for w
 
 lemma shiftr1_bl_of:
   "length bl \<le> len_of TYPE('a) \<Longrightarrow>
