@@ -40,7 +40,7 @@ by (metis_exhaust add_swap_def)
 definition "A = {xs\<Colon>'a list. True}"
 
 lemma "xs \<in> A"
-sledgehammer [expect = some]
+sledgehammer(* FIXME [expect = some] *)
 by (metis_exhaust A_def mem_Collect_eq)
 
 definition "B (y::int) \<equiv> y \<le> 0"
