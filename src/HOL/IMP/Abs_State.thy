@@ -61,13 +61,13 @@ by(auto simp add: le_st_def lookup_def update_def)
 context Val_abs
 begin
 
-abbreviation \<gamma>\<^isub>f :: "'a st \<Rightarrow> state set"
+abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
 where "\<gamma>\<^isub>f == \<gamma>_st \<gamma>"
 
-abbreviation \<gamma>\<^isub>o :: "'a st option \<Rightarrow> state set"
+abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
 where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
 
-abbreviation \<gamma>\<^isub>c :: "'a st option acom \<Rightarrow> state set acom"
+abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
 where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
 
 lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"

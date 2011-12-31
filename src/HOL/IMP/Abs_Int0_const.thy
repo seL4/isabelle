@@ -52,7 +52,8 @@ qed
 end
 
 
-interpretation Val_abs \<gamma>_cval Const plus_cval
+interpretation Val_abs
+where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
 defines aval'_const is aval'
 proof
   case goal1 thus ?case
@@ -66,7 +67,8 @@ next
     by(auto simp: plus_cval_cases split: cval.split)
 qed
 
-interpretation Abs_Int \<gamma>_cval Const plus_cval
+interpretation Abs_Int
+where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
 defines AI_const is AI
 and step_const is step'
 proof qed
@@ -74,7 +76,8 @@ proof qed
 
 text{* Monotonicity: *}
 
-interpretation Abs_Int_mono \<gamma>_cval Const plus_cval
+interpretation Abs_Int_mono
+where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
 proof
   case goal1 thus ?case
     by(auto simp: plus_cval_cases split: cval.split)
