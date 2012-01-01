@@ -29,11 +29,11 @@ lemma bounded_Collect_code: (* FIXME delete candidate *)
 
 subsection {* Basic set operations *}
 
-lemma is_empty_set:
+lemma is_empty_set [code]:
   "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
   by (simp add: Set.is_empty_def null_def)
 
-lemma empty_set:
+lemma empty_set [code]:
   "{} = set []"
   by simp
 
@@ -92,47 +92,21 @@ qed
 
 subsection {* Derived set operations *}
 
-lemma member:
+lemma member [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. a = x)"
   by simp
 
-lemma subset_eq:
-  "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
-  by (fact subset_eq)
-
-lemma subset:
+lemma subset [code]:
   "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
   by (fact less_le_not_le)
 
-lemma set_eq:
+lemma set_eq [code]:
   "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by (fact eq_iff)
 
-lemma inter:
+lemma inter [code]:
   "A \<inter> B = Set.project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
-
-
-subsection {* Theorems on relations *}
-
-lemma product_code:
-  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
-  by (auto simp add: Product_Type.product_def)
-
-lemma Id_on_set:
-  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
-  by (auto simp add: Id_on_def)
-
-lemma trancl_set_ntrancl: "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
-  by (simp add: finite_trancl_ntranl)
-
-lemma set_rel_comp:
-  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
-  by (auto simp add: Bex_def)
-
-lemma wf_set:
-  "wf (set xs) = acyclic (set xs)"
-  by (simp add: wf_iff_acyclic_if_finite)
 
 
 subsection {* Code generator setup *}
@@ -150,14 +124,6 @@ lemma [code]:
   "x \<in> coset xs \<longleftrightarrow> \<not> List.member xs x"
   by (simp_all add: member_def)
 
-lemma [code_unfold]:
-  "A = {} \<longleftrightarrow> Set.is_empty A"
-  by (simp add: Set.is_empty_def)
-
-declare empty_set [code]
-
-declare is_empty_set [code]
-
 lemma UNIV_coset [code]:
   "UNIV = coset []"
   by simp
@@ -171,10 +137,6 @@ lemma remove_code [code]:
   "Set.remove x (set xs) = set (removeAll x xs)"
   "Set.remove x (coset xs) = coset (List.insert x xs)"
   by (simp_all add: remove_def Compl_insert)
-
-declare image_set [code]
-
-declare project_set [code]
 
 lemma Ball_set [code]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
@@ -191,13 +153,6 @@ proof -
     by (rule distinct_card) simp
   then show ?thesis by simp
 qed
-
-
-subsection {* Derived operations *}
-
-declare subset_eq [code]
-
-declare subset [code]
 
 
 subsection {* Functorial operations *}
@@ -273,27 +228,24 @@ hide_const (open) coset
 
 subsection {* Operations on relations *}
 
-text {* Initially contributed by Tjark Weber. *}
+lemma product_code [code]:
+  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: Product_Type.product_def)
 
-declare Domain_fst [code]
+lemma Id_on_set [code]:
+  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
+  by (auto simp add: Id_on_def)
 
-declare Range_snd [code]
+lemma trancl_set_ntrancl [code]: "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
+  by (simp add: finite_trancl_ntranl)
 
-declare trans_join [code]
+lemma set_rel_comp [code]:
+  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+  by (auto simp add: Bex_def)
 
-declare irrefl_distinct [code]
-
-declare trancl_set_ntrancl [code]
-
-declare acyclic_irrefl [code]
-
-declare product_code [code]
-
-declare Id_on_set [code]
-
-declare set_rel_comp [code]
-
-declare wf_set [code]
+lemma wf_set [code]:
+  "wf (set xs) = acyclic (set xs)"
+  by (simp add: wf_iff_acyclic_if_finite)
 
 end
 

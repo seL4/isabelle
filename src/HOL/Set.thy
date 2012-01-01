@@ -508,7 +508,7 @@ lemma subsetCE [no_atp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \
   -- {* Classical elimination rule. *}
   by (auto simp add: less_eq_set_def le_fun_def)
 
-lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
+lemma subset_eq [code, no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
 lemma contra_subsetD [no_atp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
@@ -1810,12 +1810,12 @@ lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
 subsubsection {* Operations for execution *}
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
-  "is_empty A \<longleftrightarrow> A = {}"
+  [code_abbrev]: "is_empty A \<longleftrightarrow> A = {}"
 
 hide_const (open) is_empty
 
 definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "remove x A = A - {x}"
+  [code_abbrev]: "remove x A = A - {x}"
 
 hide_const (open) remove
 
@@ -1834,6 +1834,7 @@ instance proof
 qed (auto simp add: equal_set_def)
 
 end
+
 
 text {* Misc *}
 
