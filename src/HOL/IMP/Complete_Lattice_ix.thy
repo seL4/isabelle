@@ -23,29 +23,29 @@ and Glb_greatest: "b : L i \<Longrightarrow> \<forall>a\<in>A. b \<le> a \<Longr
 and Glb_in_L: "A \<subseteq> L i \<Longrightarrow> Glb i A : L i"
 begin
 
-definition lfp :: "'i \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-"lfp i f = Glb i {a : L i. f a \<le> a}"
+definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'i \<Rightarrow> 'a" where
+"lfp f i = Glb i {a : L i. f a \<le> a}"
 
-lemma index_lfp: "lfp i f : L i"
+lemma index_lfp: "lfp f i : L i"
 by(auto simp: lfp_def intro: Glb_in_L)
 
 lemma lfp_lowerbound:
-  "\<lbrakk> a : L i;  f a \<le> a \<rbrakk> \<Longrightarrow> lfp i f \<le> a"
+  "\<lbrakk> a : L i;  f a \<le> a \<rbrakk> \<Longrightarrow> lfp f i \<le> a"
 by (auto simp add: lfp_def intro: Glb_lower)
 
 lemma lfp_greatest:
-  "\<lbrakk> a : L i;  \<And>u. \<lbrakk> u : L i; f u \<le> u\<rbrakk> \<Longrightarrow> a \<le> u \<rbrakk> \<Longrightarrow> a \<le> lfp i f"
+  "\<lbrakk> a : L i;  \<And>u. \<lbrakk> u : L i; f u \<le> u\<rbrakk> \<Longrightarrow> a \<le> u \<rbrakk> \<Longrightarrow> a \<le> lfp f i"
 by (auto simp add: lfp_def intro: Glb_greatest)
 
 lemma lfp_unfold: assumes "\<And>x i. f x : L i \<longleftrightarrow> x : L i"
-and mono: "mono f" shows "lfp i f = f (lfp i f)"
+and mono: "mono f" shows "lfp f i = f (lfp f i)"
 proof-
   note assms(1)[simp] index_lfp[simp]
-  have 1: "f (lfp i f) \<le> lfp i f"
+  have 1: "f (lfp f i) \<le> lfp f i"
     apply(rule lfp_greatest)
     apply simp
     by (blast intro: lfp_lowerbound monoD[OF mono] order_trans)
-  have "lfp i f \<le> f (lfp i f)"
+  have "lfp f i \<le> f (lfp f i)"
     by (fastforce intro: 1 monoD[OF mono] lfp_lowerbound)
   with 1 show ?thesis by(blast intro: order_antisym)
 qed

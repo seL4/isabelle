@@ -171,7 +171,7 @@ fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom
   {S \<union> post c} WHILE b DO (step {s:Inv. bval b s} c) {{s:Inv. \<not> bval b s}}"
 
 definition CS :: "state set \<Rightarrow> com \<Rightarrow> state set acom" where
-"CS S c = lfp c (step S)"
+"CS S c = lfp (step S) c"
 
 lemma mono_step_aux: "x \<le> y \<Longrightarrow> S \<subseteq> T \<Longrightarrow> step S x \<le> step T y"
 proof(induction x y arbitrary: S T rule: less_eq_acom.induct)
@@ -190,7 +190,7 @@ by(blast intro: monoI mono_step_aux)
 lemma strip_step: "strip(step S c) = strip c"
 by (induction c arbitrary: S) auto
 
-lemma lfp_cs_unfold: "lfp c (step S) = step S (lfp c (step S))"
+lemma lfp_cs_unfold: "lfp (step S) c = step S (lfp (step S) c)"
 apply(rule lfp_unfold[OF _  mono_step])
 apply(simp add: strip_step)
 done
