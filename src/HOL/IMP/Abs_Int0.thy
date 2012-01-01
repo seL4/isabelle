@@ -12,7 +12,7 @@ functions. *}
 context Val_abs
 begin
 
-fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
+fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (N n) S = num' n" |
 "aval' (V x) S = lookup S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
@@ -22,10 +22,14 @@ by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def lookup_def)
 
 end
 
-locale Abs_Int = Val_abs
+text{* The for-clause (here and elsewhere) only serves the purpose of fixing
+the name of the type parameter @{typ 'av} which would otherwise be renamed to
+@{typ 'a}. *}
+
+locale Abs_Int = Val_abs \<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
-fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom" where
+fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom" where
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
@@ -36,7 +40,7 @@ fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st o
 "step' S ({Inv} WHILE b DO c {P}) =
    {S \<squnion> post c} WHILE b DO step' Inv c {Inv}"
 
-definition AI :: "com \<Rightarrow> 'a st option acom option" where
+definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI = lpfp\<^isub>c (step' \<top>)"
 
 

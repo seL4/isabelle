@@ -234,26 +234,26 @@ fun \<gamma>_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Righ
 text{* The interface for abstract values: *}
 
 locale Val_abs =
-fixes \<gamma> :: "'a::SL_top \<Rightarrow> val set"
+fixes \<gamma> :: "'av::SL_top \<Rightarrow> val set"
   assumes mono_gamma: "a \<sqsubseteq> b \<Longrightarrow> \<gamma> a \<subseteq> \<gamma> b"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
-fixes num' :: "val \<Rightarrow> 'a"
-and plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+fixes num' :: "val \<Rightarrow> 'av"
+and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
   assumes gamma_num': "n : \<gamma>(num' n)"
   and gamma_plus':
  "n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma>(plus' a1 a2)"
 
-type_synonym 'a st = "(vname \<Rightarrow> 'a)"
+type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
-locale Abs_Int_Fun = Val_abs
+locale Abs_Int_Fun = Val_abs \<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
-fun aval' :: "aexp \<Rightarrow> 'a st \<Rightarrow> 'a" where
+fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (N n) S = num' n" |
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom"
+fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom"
  where
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
@@ -264,7 +264,7 @@ fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st o
 "step' S ({Inv} WHILE b DO c {P}) =
   {S \<squnion> post c} WHILE b DO (step' Inv c) {Inv}"
 
-definition AI :: "com \<Rightarrow> 'a st option acom option" where
+definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI = lpfp\<^isub>c (step' \<top>)"
 
 
@@ -272,13 +272,13 @@ lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
 
-abbreviation \<gamma>\<^isub>f :: "'a st \<Rightarrow> state set"
+abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
 where "\<gamma>\<^isub>f == \<gamma>_fun \<gamma>"
 
-abbreviation \<gamma>\<^isub>o :: "'a st option \<Rightarrow> state set"
+abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
 where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
 
-abbreviation \<gamma>\<^isub>c :: "'a st option acom \<Rightarrow> state set acom"
+abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
 where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
 
 lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"

@@ -180,10 +180,11 @@ lemma strip_pfp_WN:
 apply(auto simp add: pfp_WN_def prefp_def split: option.splits)
 by (metis (no_types) strip_lpfpc strip_map2_acom strip_while)
 
-locale Abs_Int2 = Abs_Int1_mono \<gamma> for \<gamma> :: "'a::{WN,L_top_bot} \<Rightarrow> val set"
+locale Abs_Int2 = Abs_Int1_mono
+where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,L_top_bot} \<Rightarrow> val set"
 begin
 
-definition AI_WN :: "com \<Rightarrow> 'a st option acom option" where
+definition AI_WN :: "com \<Rightarrow> 'av st option acom option" where
 "AI_WN = pfp_WN (step' \<top>)"
 
 lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
@@ -206,8 +207,9 @@ qed
 
 end
 
-interpretation
-  Abs_Int2 num_ivl plus_ivl filter_plus_ivl filter_less_ivl \<gamma>_ivl
+interpretation Abs_Int2
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines AI_ivl' is AI_WN
 proof qed
 

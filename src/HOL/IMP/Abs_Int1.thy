@@ -38,8 +38,7 @@ by (metis meet_greatest meet_le1 meet_le2 le_trans)
 end
 
 locale Val_abs1_gamma =
-  Val_abs \<gamma> num' plus'
-  for \<gamma> :: "'a::L_top_bot \<Rightarrow> val set" and num' plus' +
+  Val_abs where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_meet:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
 and gamma_Bot[simp]: "\<gamma> \<bottom> = {}"
@@ -54,22 +53,25 @@ by (metis equalityI inter_gamma_subset_gamma_meet le_inf_iff mono_gamma meet_le1
 end
 
 
-locale Val_abs1 = Val_abs1_gamma +
-fixes filter_plus' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
-and filter_less' :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a * 'a"
+locale Val_abs1 =
+ Val_abs1_gamma where \<gamma> = \<gamma>
+ for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
+fixes filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
+and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
   n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> a1' \<and> n2 : \<gamma> a2'"
 and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
   n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> a1' \<and> n2 : \<gamma> a2'"
 
 
-locale Abs_Int1 = Val_abs1
+locale Abs_Int1 =
+  Val_abs1 where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set"
 begin
 
 lemma in_gamma_join_UpI: "s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
 by (metis (no_types) join_ge1 join_ge2 mono_gamma_o set_rev_mp)
 
-fun aval'' :: "aexp \<Rightarrow> 'a st option \<Rightarrow> 'a" where
+fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
 "aval'' e (Some sa) = aval' e sa"
 
@@ -78,7 +80,7 @@ by(cases S)(simp add: aval'_sound)+
 
 subsubsection "Backward analysis"
 
-fun afilter :: "aexp \<Rightarrow> 'a \<Rightarrow> 'a st option \<Rightarrow> 'a st option" where
+fun afilter :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
 "afilter (N n) a S = (if n : \<gamma> a then S else None)" |
 "afilter (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = lookup S x \<sqinter> a in
@@ -97,7 +99,7 @@ which contains @{const bot} values, may produce too large a result, thus
 making the analysis less precise. *}
 
 
-fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'a st option \<Rightarrow> 'a st option" where
+fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
 "bfilter (Bc v) res S = (if v=res then S else None)" |
 "bfilter (Not b) res S = bfilter b (\<not> res) S" |
 "bfilter (And b1 b2) res S =
@@ -139,7 +141,7 @@ next
 qed
 
 
-fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st option acom"
+fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom"
  where
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
@@ -153,7 +155,7 @@ fun step' :: "'a st option \<Rightarrow> 'a st option acom \<Rightarrow> 'a st o
    WHILE b DO step' (bfilter b True Inv) c
    {bfilter b False Inv}"
 
-definition AI :: "com \<Rightarrow> 'a st option acom option" where
+definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI = lpfp\<^isub>c (step' \<top>)"
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
