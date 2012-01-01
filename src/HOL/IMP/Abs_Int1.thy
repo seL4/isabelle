@@ -170,9 +170,9 @@ by(simp add: \<gamma>_st_def lookup_update)
 
 
 lemma step_preserves_le2:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
-   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' sa ca)"
-proof(induction c arbitrary: cs ca S sa)
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
+   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' S' ca)"
+proof(induction c arbitrary: cs ca S S')
   case SKIP thus ?case
     by(auto simp:strip_eq_SKIP)
 next
@@ -193,7 +193,7 @@ next
     by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
   moreover have "post cs2 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
     by (metis (no_types) `cs2 \<le> \<gamma>\<^isub>c ca2` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
-  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o sa`
+  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'`
     by (simp add: If.IH subset_iff bfilter_sound)
 next
   case (While b c1)
@@ -202,15 +202,15 @@ next
     "I \<subseteq> \<gamma>\<^isub>o Ia" "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
     "strip cs1 = c1" "strip ca1 = c1"
     by (fastforce simp: strip_eq_While)
-  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>o (sa \<squnion> post ca1)"
-    using `S \<subseteq> \<gamma>\<^isub>o sa` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
+  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post ca1)"
+    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff bfilter_sound)
 qed
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o sa; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
-   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c(step' sa ca)"
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
+   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c(step' S' ca)"
 by (metis le_strip step_preserves_le2 strip_acom)
 
 lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
