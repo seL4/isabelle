@@ -893,11 +893,6 @@ notation (HTML output)
 
 hide_const (open) Times
 
-definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
-  [code_abbrev]: "product A B = Sigma A (\<lambda>_. B)"
-
-hide_const (open) product
-
 syntax
   "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations
@@ -1044,11 +1039,20 @@ lemma swap_product:
 
 lemma image_split_eq_Sigma:
   "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"
-proof (safe intro!: imageI vimageI)
+proof (safe intro!: imageI)
   fix a b assume *: "a \<in> A" "b \<in> A" and eq: "f a = f b"
   show "(f b, g a) \<in> (\<lambda>x. (f x, g x)) ` A"
     using * eq[symmetric] by auto
 qed simp_all
+
+definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
+  [code_abbrev]: "product A B = A \<times> B"
+
+hide_const (open) product
+
+lemma member_product:
+  "x \<in> Product_Type.product A B \<longleftrightarrow> x \<in> A \<times> B"
+  by (simp add: product_def)
 
 text {* The following @{const map_pair} lemmas are due to Joachim Breitner: *}
 

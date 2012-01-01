@@ -833,7 +833,7 @@ proof
     thus ?R using `a\<noteq>b` by auto
   qed
 next
-  assume ?R thus ?L by(auto split: if_splits)
+  assume ?R thus ?L by (auto split: if_splits)
 qed
 
 subsubsection {* Singletons, using insert *}
@@ -1796,7 +1796,7 @@ lemma bind_bind:
   by (auto simp add: bind_def)
 
 lemma empty_bind [simp]:
-  "Set.bind {} B = {}"
+  "Set.bind {} f = {}"
   by (simp add: bind_def)
 
 lemma nonempty_bind_const:
@@ -1819,10 +1819,18 @@ definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
 
 hide_const (open) remove
 
+lemma member_remove [simp]:
+  "x \<in> Set.remove y A \<longleftrightarrow> x \<in> A \<and> x \<noteq> y"
+  by (simp add: remove_def)
+
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   [code_abbrev]: "project P A = {a \<in> A. P a}"
 
 hide_const (open) project
+
+lemma member_project [simp]:
+  "x \<in> Set.project P A \<longleftrightarrow> x \<in> A \<and> P x"
+  by (simp add: project_def)
 
 instantiation set :: (equal) equal
 begin
