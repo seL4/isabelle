@@ -245,10 +245,9 @@ done
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (blast dest: parts_mono)
 
-(*lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
-by (metis UnI2 insert_subset le_supE parts_Un_subset1 parts_increasing parts_trans subsetD)
-by (metis Un_insert_left Un_insert_right insert_absorb parts_Un parts_idem sup1CI)*)
-
+lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
+by (metis (no_types) Un_insert_left Un_insert_right insert_absorb le_supE
+          parts_Un parts_idem parts_increasing parts_trans)
 
 subsubsection{*Rewrite rules for pulling out atomic messages *}
 
@@ -512,11 +511,7 @@ by (drule analz_mono, blast)
 declare analz_trans[intro]
 
 lemma analz_cut: "[| Y\<in> analz (insert X H);  X\<in> analz H |] ==> Y\<in> analz H"
-(*TOO SLOW
-by (metis analz_idem analz_increasing analz_mono insert_absorb insert_mono insert_subset) --{*317s*}
-??*)
-by (erule analz_trans, blast)
-
+by (metis analz_idem analz_increasing analz_mono insert_absorb insert_mono insert_subset)
 
 text{*This rewrite rule helps in the simplification of messages that involve
   the forwarding of unknown components (X).  Without it, removing occurrences
@@ -624,11 +619,7 @@ lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synt
 by (drule synth_mono, blast)
 
 lemma synth_cut: "[| Y\<in> synth (insert X H);  X\<in> synth H |] ==> Y\<in> synth H"
-(*TOO SLOW
 by (metis insert_absorb insert_mono insert_subset synth_idem synth_increasing synth_mono)
-*)
-by (erule synth_trans, blast)
-
 
 lemma Agent_synth [simp]: "Agent A \<in> synth H"
 by blast
