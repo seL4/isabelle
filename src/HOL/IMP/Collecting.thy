@@ -136,27 +136,6 @@ qed
 lemma le_post: "c \<le> d \<Longrightarrow> post c \<le> post d"
 by(induction c d rule: less_eq_acom.induct) auto
 
-lemma le_strip: "c \<le> d \<Longrightarrow> strip c = strip d"
-by(induction c d rule: less_eq_acom.induct) auto
-
-lemma le_SKIP_iff: "c \<le> SKIP {P'} \<longleftrightarrow> (EX P. c = SKIP {P} \<and> P \<le> P')"
-by (cases c) simp_all
-
-lemma le_Assign_iff: "c \<le> x::=e {P'} \<longleftrightarrow> (EX P. c = x::=e {P} \<and> P \<le> P')"
-by (cases c) simp_all
-
-lemma le_Semi_iff: "c \<le> d1;d2 \<longleftrightarrow> (EX c1 c2. c = c1;c2 \<and> c1 \<le> d1 \<and> c2 \<le> d2)"
-by (cases c) simp_all
-
-lemma le_If_iff: "c \<le> IF b THEN d1 ELSE d2 {P'} \<longleftrightarrow>
-  (EX c1 c2 P. c = IF b THEN c1 ELSE c2 {P} \<and> c1 \<le> d1 \<and> c2 \<le> d2 \<and> P \<le> P')"
-by (cases c) simp_all
-
-lemma le_While_iff: "c \<le> {I'} WHILE b DO d {P'} \<longleftrightarrow>
-  (EX I c' P. c = {I} WHILE b DO c' {P} \<and> I \<le> I' \<and> c' \<le> d \<and> P \<le> P')"
-by (cases c) auto
-
-
 subsubsection "Collecting semantics"
 
 fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
