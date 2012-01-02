@@ -1205,7 +1205,6 @@ fun presimp_prop ctxt presimp_consts role t =
      val need_trueprop = (fastype_of t = @{typ bool})
    in
      t |> need_trueprop ? HOLogic.mk_Trueprop
-       |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
        |> extensionalize_term ctxt
        |> presimplify_term ctxt presimp_consts
        |> HOLogic.dest_Trueprop

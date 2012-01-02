@@ -9,7 +9,6 @@ When making clauses, avoids using the rewriter -- instead uses RS recursively.
 signature MESON =
 sig
   val trace : bool Config.T
-  val unfold_set_consts : bool Config.T
   val max_clauses : int Config.T
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val first_order_resolve : thm -> thm -> thm
@@ -19,7 +18,6 @@ sig
     thm list -> thm -> Proof.context
     -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
-  val unfold_set_const_simps : Proof.context -> thm list
   val presimplified_consts : Proof.context -> string list
   val presimplify: Proof.context -> thm -> thm
   val make_nnf: Proof.context -> thm -> thm
@@ -56,9 +54,6 @@ struct
 val trace = Attrib.setup_config_bool @{binding meson_trace} (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
-
-val unfold_set_consts =
-  Attrib.setup_config_bool @{binding meson_unfold_set_consts} (K false)
 
 val max_clauses = Attrib.setup_config_int @{binding meson_max_clauses} (K 60)
 
@@ -568,10 +563,6 @@ fun make_nnf1 ctxt th =
     handle THM ("tryres", _, _) => th
   else th
 
-fun unfold_set_const_simps ctxt =
-  if Config.get ctxt unfold_set_consts then []
-  else []
-
 (*The simplification removes defined quantifiers and occurrences of True and False.
   nnf_ss also includes the one-point simprocs,
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
@@ -591,16 +582,11 @@ fun presimplified_consts ctxt =
   [@{const_name simp_implies}, @{const_name False}, @{const_name True},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}, @{const_name If},
    @{const_name Let}]
-  |> Config.get ctxt unfold_set_consts
-     ? append ([@{const_name Collect}, @{const_name Set.member}])
 
 fun presimplify ctxt =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)
   #> simplify nnf_ss
-  (* TODO: avoid introducing "Set.member" in "Ball_def" "Bex_def" above if and
-     when "metis_unfold_set_consts" becomes the only mode of operation. *)
-  #> Raw_Simplifier.rewrite_rule
-         (@{thm Let_def_raw} :: unfold_set_const_simps ctxt)
+  #> Raw_Simplifier.rewrite_rule @{thms Let_def_raw}
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify ctxt |> make_nnf1 ctxt
@@ -649,18 +635,17 @@ fun extensionalize_conv ctxt ct =
 val extensionalize_theorem = Conv.fconv_rule o extensionalize_conv
 
 (* "RS" can fail if "unify_search_bound" is too small. *)
-fun try_skolemize_etc ctxt =
-  Raw_Simplifier.rewrite_rule (unfold_set_const_simps ctxt)
+fun try_skolemize_etc ctxt th =
   (* Extensionalize "th", because that makes sense and that's what Sledgehammer
      does, but also keep an unextensionalized version of "th" for backward
      compatibility. *)
-  #> (fn th => insert Thm.eq_thm_prop (extensionalize_theorem ctxt th) [th])
-  #> map_filter (fn th => try (skolemize ctxt) th
-                          |> tap (fn NONE =>
-                                     trace_msg ctxt (fn () =>
-                                         "Failed to skolemize " ^
-                                          Display.string_of_thm ctxt th)
-                                   | _ => ()))
+  [th] |> insert Thm.eq_thm_prop (extensionalize_theorem ctxt th)
+       |> map_filter (fn th => th |> try (skolemize ctxt)
+                                  |> tap (fn NONE =>
+                                             trace_msg ctxt (fn () =>
+                                                 "Failed to skolemize " ^
+                                                  Display.string_of_thm ctxt th)
+                                           | _ => ()))
 
 fun add_clauses ctxt th cls =
   let val ctxt0 = Variable.global_thm_context th
