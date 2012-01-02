@@ -113,7 +113,7 @@ end
 
 subsubsection "Lifting"
 
-instantiation option :: (SL_top)SL_top
+instantiation option :: (preord)preord
 begin
 
 fun le_option where
@@ -127,6 +127,18 @@ by (cases x) simp_all
 lemma [simp]: "(Some x \<sqsubseteq> u) = (\<exists>y. u = Some y & x \<sqsubseteq> y)"
 by (cases u) auto
 
+instance proof
+  case goal1 show ?case by(cases x, simp_all)
+next
+  case goal2 thus ?case
+    by(cases z, simp, cases y, simp, cases x, auto intro: le_trans)
+qed
+
+end
+
+instantiation option :: (SL_top)SL_top
+begin
+
 fun join_option where
 "Some x \<squnion> Some y = Some(x \<squnion> y)" |
 "None \<squnion> y = y" |
@@ -138,18 +150,13 @@ by (cases x) simp_all
 definition "\<top> = Some \<top>"
 
 instance proof
-  case goal1 show ?case by(cases x, simp_all)
+  case goal1 thus ?case by(cases x, simp, cases y, simp_all)
 next
-  case goal2 thus ?case
-    by(cases z, simp, cases y, simp, cases x, auto intro: le_trans)
+  case goal2 thus ?case by(cases y, simp, cases x, simp_all)
 next
-  case goal3 thus ?case by(cases x, simp, cases y, simp_all)
+  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
 next
-  case goal4 thus ?case by(cases y, simp, cases x, simp_all)
-next
-  case goal5 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
-next
-  case goal6 thus ?case by(cases x, simp_all add: Top_option_def)
+  case goal4 thus ?case by(cases x, simp_all add: Top_option_def)
 qed
 
 end
