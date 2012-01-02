@@ -910,7 +910,7 @@ Coinductive predicates are handled dually. For example:
 \prew
 \textbf{coinductive} \textit{nats} \textbf{where} \\
 ``$\textit{nats}~(x\Colon\textit{nat}) \,\Longrightarrow\, \textit{nats}~x$'' \\[2\smallskipamount]
-\textbf{lemma} ``$\textit{nats} = \{0, 1, 2, 3, 4\}$'' \\
+\textbf{lemma} ``$\textit{nats} = (\lambda n.\; n \mathbin\in \{0, 1, 2, 3, 4\})$'' \\
 \textbf{nitpick}~[\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample:
 \\[2\smallskipamount]
