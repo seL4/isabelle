@@ -168,27 +168,23 @@ lemma in_gamma_update:
   "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(update S x a)"
 by(simp add: \<gamma>_st_def lookup_update)
 
-
-lemma step_preserves_le2:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca; strip cs = c; strip ca = c \<rbrakk>
-   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' S' ca)"
-proof(induction c arbitrary: cs ca S S')
-  case SKIP thus ?case
-    by(auto simp:strip_eq_SKIP)
+lemma step_preserves_le:
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca \<rbrakk> \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' S' ca)"
+proof(induction cs arbitrary: ca S S')
+  case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
 next
   case Assign thus ?case
-    by (fastforce simp: strip_eq_Assign intro: aval'_sound in_gamma_update
+    by (fastforce simp: Assign_le  map_acom_Assign intro: aval'_sound in_gamma_update
       split: option.splits del:subsetD)
 next
-  case Semi thus ?case apply (auto simp: strip_eq_Semi)
+  case Semi thus ?case apply (auto simp: Semi_le map_acom_Semi)
     by (metis le_post post_map_acom)
 next
-  case (If b c1 c2)
-  then obtain cs1 cs2 ca1 ca2 P Pa where
-      "cs= IF b THEN cs1 ELSE cs2 {P}" "ca= IF b THEN ca1 ELSE ca2 {Pa}"
+  case (If b cs1 cs2 P)
+  then obtain ca1 ca2 Pa where
+      "ca= IF b THEN ca1 ELSE ca2 {Pa}"
       "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1" "cs2 \<le> \<gamma>\<^isub>c ca2"
-      "strip cs1 = c1" "strip ca1 = c1" "strip cs2 = c2" "strip ca2 = c2"
-    by (fastforce simp: strip_eq_If)
+    by (fastforce simp: If_le map_acom_If)
   moreover have "post cs1 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
     by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
   moreover have "post cs2 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
@@ -196,22 +192,16 @@ next
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'`
     by (simp add: If.IH subset_iff bfilter_sound)
 next
-  case (While b c1)
-  then obtain cs1 ca1 I P Ia Pa where
-    "cs = {I} WHILE b DO cs1 {P}" "ca = {Ia} WHILE b DO ca1 {Pa}"
+  case (While I b cs1 P)
+  then obtain ca1 Ia Pa where
+    "ca = {Ia} WHILE b DO ca1 {Pa}"
     "I \<subseteq> \<gamma>\<^isub>o Ia" "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
-    "strip cs1 = c1" "strip ca1 = c1"
-    by (fastforce simp: strip_eq_While)
+    by (fastforce simp: map_acom_While While_le)
   moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post ca1)"
     using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff bfilter_sound)
 qed
-
-lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca; strip cs = c \<rbrakk>
-   \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c(step' S' ca)"
-by (metis le_strip step_preserves_le2 strip_acom)
 
 lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_def)
@@ -222,7 +212,7 @@ proof(simp add: CS_def AI_def)
   have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
-    proof(rule step_preserves_le[OF _ _ 3])
+    proof(rule step_preserves_le[OF _ _])
       show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
       show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
     qed

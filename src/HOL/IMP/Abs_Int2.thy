@@ -196,7 +196,7 @@ proof(simp add: CS_def AI_WN_def)
   have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
-    proof(rule step_preserves_le[OF _ _ 3])
+    proof(rule step_preserves_le[OF _ _])
       show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
       show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
     qed

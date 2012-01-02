@@ -57,15 +57,32 @@ by (induction c) simp_all
 lemma strip_acom[simp]: "strip (map_acom f c) = strip c"
 by (induction c) auto
 
+lemma map_acom_SKIP:
+ "map_acom f c = SKIP {S'} \<longleftrightarrow> (\<exists>S. c = SKIP {S} \<and> S' = f S)"
+by (cases c) auto
+
+lemma map_acom_Assign:
+ "map_acom f c = x ::= e {S'} \<longleftrightarrow> (\<exists>S. c = x::=e {S} \<and> S' = f S)"
+by (cases c) auto
+
+lemma map_acom_Semi:
+ "map_acom f c = c1';c2' \<longleftrightarrow>
+ (\<exists>c1 c2. c = c1;c2 \<and> map_acom f c1 = c1' \<and> map_acom f c2 = c2')"
+by (cases c) auto
+
+lemma map_acom_If:
+ "map_acom f c = IF b THEN c1' ELSE c2' {S'} \<longleftrightarrow>
+ (\<exists>S c1 c2. c = IF b THEN c1 ELSE c2 {S} \<and> map_acom f c1 = c1' \<and> map_acom f c2 = c2' \<and> S' = f S)"
+by (cases c) auto
+
+lemma map_acom_While:
+ "map_acom f w = {I'} WHILE b DO c' {P'} \<longleftrightarrow>
+ (\<exists>I P c. w = {I} WHILE b DO c {P} \<and> map_acom f c = c' \<and> I' = f I \<and> P' = f P)"
+by (cases w) auto
+
 
 lemma strip_anno[simp]: "strip (anno a c) = c"
 by(induct c) simp_all
-
-lemma strip_eq_SKIP: "strip c = com.SKIP \<longleftrightarrow> (EX P. c = SKIP {P})"
-by (cases c) simp_all
-
-lemma strip_eq_Assign: "strip c = x::=e \<longleftrightarrow> (EX P. c = x::=e {P})"
-by (cases c) simp_all
 
 lemma strip_eq_Semi:
   "strip c = c1;c2 \<longleftrightarrow> (EX d1 d2. c = d1;d2 & strip d1 = c1 & strip d2 = c2)"
