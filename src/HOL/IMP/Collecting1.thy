@@ -38,7 +38,7 @@ proof-
   show ?thesis by(simp add: steps_def)
 qed
 
-theorem steps_approx_CS: "s:S \<Longrightarrow> steps s c n \<le> CS S c"
-by (metis CS_unfold steps_approx_fix_step strip_CS)
+theorem steps_approx_CS: "steps s c n \<le> CS c"
+by (metis CS_unfold UNIV_I steps_approx_fix_step strip_CS)
 
 end

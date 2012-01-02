@@ -91,7 +91,7 @@ next
   ultimately show ?case by (simp add: While.IH subset_iff)
 qed
 
-lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
+lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_def)
   assume 1: "lpfp\<^isub>c (step' \<top>) c = Some c'"
   have 2: "step' \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])

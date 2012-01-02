@@ -187,7 +187,7 @@ begin
 definition AI_WN :: "com \<Rightarrow> 'av st option acom option" where
 "AI_WN = pfp_WN (step' \<top>)"
 
-lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS UNIV c \<le> \<gamma>\<^isub>c c'"
+lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_WN_def)
   assume 1: "pfp_WN (step' \<top>) c = Some c'"
   from pfp_WN_pfp[OF allI[OF strip_step'] mono_step' 1]
