@@ -224,6 +224,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
         Type (@{type_name fun}, [T1, T2]) =>
         MFun (fresh_mfun_for_fun_type mdata all_minus T1 T2)
       | Type (@{type_name prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
+      | Type (@{type_name set}, [T']) => do_type (T' --> bool_T)
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
           case AList.lookup (op =) (!datatype_mcache) z of
@@ -474,15 +475,18 @@ val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
 fun prop_for_bool b = if b then Prop_Logic.True else Prop_Logic.False
 fun prop_for_bool_var_equality (v1, v2) =
-  Prop_Logic.SAnd (Prop_Logic.SOr (Prop_Logic.BoolVar v1, Prop_Logic.SNot (Prop_Logic.BoolVar v2)),
-           Prop_Logic.SOr (Prop_Logic.SNot (Prop_Logic.BoolVar v1), Prop_Logic.BoolVar v2))
+  Prop_Logic.SAnd (Prop_Logic.SOr (Prop_Logic.BoolVar v1,
+                                   Prop_Logic.SNot (Prop_Logic.BoolVar v2)),
+                   Prop_Logic.SOr (Prop_Logic.SNot (Prop_Logic.BoolVar v1),
+                                   Prop_Logic.BoolVar v2))
 fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
     Prop_Logic.SAnd (Prop_Logic.BoolVar (fst_var x) |> not b1 ? Prop_Logic.SNot,
-             Prop_Logic.BoolVar (snd_var x) |> not b2 ? Prop_Logic.SNot)
+                     Prop_Logic.BoolVar (snd_var x) |> not b2 ? Prop_Logic.SNot)
   end
 fun prop_for_assign_literal (x, (Plus, a)) = prop_for_assign (x, a)
-  | prop_for_assign_literal (x, (Minus, a)) = Prop_Logic.SNot (prop_for_assign (x, a))
+  | prop_for_assign_literal (x, (Minus, a)) =
+    Prop_Logic.SNot (prop_for_assign (x, a))
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
   | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, (Plus, a))
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
@@ -499,7 +503,8 @@ fun prop_for_comp (aa1, aa2, Eq, []) =
   | prop_for_comp (aa1, aa2, Neq, []) =
     Prop_Logic.SNot (prop_for_comp (aa1, aa2, Eq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
-    Prop_Logic.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
+    Prop_Logic.SOr (prop_for_atom_equality (aa1, aa2),
+                    prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
     Prop_Logic.SOr (prop_for_exists_var_assign_literal xs Gen,
             prop_for_comp (aa1, aa2, cmp, []))
@@ -540,7 +545,8 @@ fun solve tac_timeout max_var (comps, clauses) =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
     val _ = print_problem comps clauses
     val prop =
-      Prop_Logic.all (map prop_for_comp comps @ map prop_for_assign_clause clauses)
+      Prop_Logic.all (map prop_for_comp comps @
+                      map prop_for_assign_clause clauses)
   in
     if Prop_Logic.eval (K false) prop then
       do_assigns (K (SOME false))
@@ -739,6 +745,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         <= length ts
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
+    fun mtype_for_set x T = MFun (mtype_for (elem_type T), V x, bool_M)
     fun do_all T (gamma, cset) =
       let
         val abs_M = mtype_for (domain_type (domain_type T))
@@ -774,6 +781,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         fun custom_mtype_for (T as Type (@{type_name fun}, [T1, T2])) =
             if T = set_T then set_M
             else MFun (custom_mtype_for T1, A Gen, custom_mtype_for T2)
+          | custom_mtype_for (Type (@{type_name set}, [T'])) =
+            custom_mtype_for (T' --> bool_T)
           | custom_mtype_for T = mtype_for T
       in
         (custom_mtype_for T, (gamma, cset |> add_mtype_is_concrete [] set_M))
@@ -840,10 +849,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
             | @{const_name converse} =>
               let
                 val x = Unsynchronized.inc max_fresh
-                fun mtype_for_set T =
-                  MFun (mtype_for (domain_type T), V x, bool_M)
-                val ab_set_M = domain_type T |> mtype_for_set
-                val ba_set_M = range_type T |> mtype_for_set
+                val ab_set_M = domain_type T |> mtype_for_set x
+                val ba_set_M = range_type T |> mtype_for_set x
               in
                 (MFun (ab_set_M, A Gen, ba_set_M),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
@@ -852,29 +859,25 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
             | @{const_name rel_comp} =>
               let
                 val x = Unsynchronized.inc max_fresh
-                fun mtype_for_set T =
-                  MFun (mtype_for (domain_type T), V x, bool_M)
-                val bc_set_M = domain_type T |> mtype_for_set
-                val ab_set_M = domain_type (range_type T) |> mtype_for_set
-                val ac_set_M = nth_range_type 2 T |> mtype_for_set
+                val bc_set_M = domain_type T |> mtype_for_set x
+                val ab_set_M = domain_type (range_type T) |> mtype_for_set x
+                val ac_set_M = nth_range_type 2 T |> mtype_for_set x
               in
                 (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | @{const_name finite} =>
               let
-                val M1 = mtype_for (domain_type (domain_type T))
+                val M1 = mtype_for (elem_type (domain_type T))
                 val a = if exists_alpha_sub_mtype M1 then Fls else Gen
               in (MFun (MFun (M1, A a, bool_M), A Gen, bool_M), accum) end
             | @{const_name prod} =>
               let
                 val x = Unsynchronized.inc max_fresh
-                fun mtype_for_set T =
-                  MFun (mtype_for (domain_type T), V x, bool_M)
-                val a_set_M = mtype_for_set (domain_type T)
+                val a_set_M = domain_type T |> mtype_for_set x
                 val b_set_M =
-                  mtype_for_set (range_type (domain_type (range_type T)))
-                val ab_set_M = mtype_for_set (nth_range_type 2 T)
+                  range_type (domain_type (range_type T)) |> mtype_for_set x
+                val ab_set_M = nth_range_type 2 T |> mtype_for_set x
               in
                 (MFun (a_set_M, A Gen, MFun (b_set_M, A Gen, ab_set_M)),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
@@ -886,7 +889,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                   val a_M = dest_MFun a_set_M |> #1
                 in (MFun (a_set_M, A Gen, a_M), accum) end
               else if s = @{const_name ord_class.less_eq} andalso
-                      is_set_type (domain_type T) then
+                      is_set_like_type (domain_type T) then
                 do_fragile_set_operation T accum
               else if is_sel s then
                 (mtype_for_sel mdata x, accum)

@@ -87,7 +87,7 @@ sig
   val frac_from_term_pair : typ -> term -> term -> term
   val is_TFree : typ -> bool
   val is_fun_type : typ -> bool
-  val is_set_type : typ -> bool
+  val is_set_like_type : typ -> bool
   val is_pair_type : typ -> bool
   val is_lfp_iterator_type : typ -> bool
   val is_gfp_iterator_type : typ -> bool
@@ -101,6 +101,7 @@ sig
   val is_record_type : typ -> bool
   val is_number_type : Proof.context -> typ -> bool
   val is_higher_order_type : typ -> bool
+  val elem_type : typ -> typ
   val const_for_iterator_type : typ -> styp
   val strip_n_binders : int -> typ -> typ list * typ
   val nth_range_type : int -> typ -> typ
@@ -416,7 +417,7 @@ val built_in_typed_nat_consts =
    ((@{const_name ord_class.less}, nat_T --> nat_T --> bool_T), 2),
    ((@{const_name ord_class.less_eq}, nat_T --> nat_T --> bool_T), 2),
    ((@{const_name of_nat}, nat_T --> int_T), 0)]
-val built_in_set_consts =
+val built_in_set_like_consts =
   [(@{const_name ord_class.less_eq}, 2)]
 
 fun unarize_type @{typ "unsigned_bit word"} = nat_T
@@ -477,8 +478,9 @@ fun is_TFree (TFree _) = true
   | is_TFree _ = false
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false
-fun is_set_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
-  | is_set_type _ = false
+fun is_set_like_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
+  | is_set_like_type (Type (@{type_name set}, _)) = true
+  | is_set_like_type _ = false
 fun is_pair_type (Type (@{type_name prod}, _)) = true
   | is_pair_type _ = false
 fun is_lfp_iterator_type (Type (s, _)) = String.isPrefix lfp_iterator_prefix s
@@ -502,6 +504,9 @@ fun is_number_type ctxt = is_integer_like_type orf is_frac_type ctxt
 fun is_higher_order_type (Type (@{type_name fun}, _)) = true
   | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
   | is_higher_order_type _ = false
+
+fun elem_type (Type (@{type_name set}, [T])) = T
+  | elem_type T = raise TYPE ("Nitpick_HOL.elem_type", [T], [])
 
 fun iterator_type_for_const gfp (s, T) =
   Type ((if gfp then gfp_iterator_prefix else lfp_iterator_prefix) ^ s,
@@ -1314,8 +1319,8 @@ fun arity_of_built_in_const thy stds (s, T) =
             if is_iterator_type T then SOME 0 else NONE
           | @{const_name Suc} =>
             if is_iterator_type (domain_type T) then SOME 0 else NONE
-          | _ => if is_fun_type T andalso is_set_type (domain_type T) then
-                   AList.lookup (op =) built_in_set_consts s
+          | _ => if is_fun_type T andalso is_set_like_type (domain_type T) then
+                   AList.lookup (op =) built_in_set_like_consts s
                  else
                    NONE
     end
