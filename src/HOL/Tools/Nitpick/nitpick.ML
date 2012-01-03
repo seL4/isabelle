@@ -235,20 +235,19 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          show_skolems, show_consts, evals, formats, atomss, max_potential,
          max_genuine, check_potential, check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
-    val pprint =
+    fun pprint print =
       if mode = Auto_Try then
         Unsynchronized.change state_ref o Proof.goal_message o K
         o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Isabelle_Markup.hilite
       else
-        (fn s => (Output.urgent_message s; if debug then tracing s else ()))
-        o Pretty.string_of
-    fun pprint_n f = () |> mode = Normal ? pprint o f
-    fun pprint_v f = () |> verbose ? pprint o f
-    fun pprint_d f = () |> debug ? pprint o f
-    val print = pprint o curry Pretty.blk 0 o pstrs
+        print o Pretty.string_of
+    fun pprint_n f = () |> mode = Normal ? pprint Output.urgent_message o f
+    fun pprint_v f = () |> verbose ? pprint Output.urgent_message o f
+    fun pprint_d f = () |> debug ? pprint tracing o f
+    val print = pprint Output.urgent_message o curry Pretty.blk 0 o pstrs
 (*
-    val print_g = pprint o Pretty.str
+    val print_g = pprint tracing o Pretty.str
 *)
     val print_n = pprint_n o K o plazy
     val print_v = pprint_v o K o plazy
@@ -323,7 +322,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
     fun print_wf (x, (gfp, wf)) =
-      pprint (Pretty.blk (0,
+      pprint_n (fn () => Pretty.blk (0,
           pstrs ("The " ^ (if gfp then "co" else "") ^ "inductive predicate \"")
           @ Syntax.pretty_term ctxt (Const x) ::
           pstrs (if wf then
@@ -672,7 +671,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           codatatypes_ok
         fun assms_prop () = Logic.mk_conjunction_list (neg_t :: assm_ts)
       in
-        (pprint (Pretty.chunks
+        (pprint_n (fn () => Pretty.chunks
              [Pretty.blk (0,
                   (pstrs ((if mode = Auto_Try then "Auto " else "") ^
                           "Nitpick found a" ^
@@ -881,7 +880,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           if null scopes then
             print_n (K "The scope specification is inconsistent.")
           else if verbose then
-            pprint (Pretty.chunks
+            pprint_n (fn () => Pretty.chunks
                 [Pretty.blk (0,
                      pstrs ((if n > 1 then
                                "Batch " ^ string_of_int (j + 1) ^ " of " ^

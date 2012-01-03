@@ -786,7 +786,7 @@ fun kodkod_formula_from_nut ofs
                (to_r (Op2 (Less, T, Opt bool_atom_R, u1, u2)))
          | Op2 (Subset, _, _, u1, u2) =>
            let
-             val dom_T = elem_type (type_of u1)
+             val dom_T = pseudo_domain_type (type_of u1)
              val R1 = rep_of u1
              val R2 = rep_of u2
              val (dom_R, ran_R) =

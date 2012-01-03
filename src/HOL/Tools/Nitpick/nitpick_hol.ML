@@ -1815,12 +1815,17 @@ fun unfold_defs_in_term
 
 (** Axiom extraction/generation **)
 
-fun extensional_equal j (Type (@{type_name fun}, [dom_T, ran_T])) t1 t2 =
-    let val var_t = Var (("x", j), dom_T) in
+fun extensional_equal j T t1 t2 =
+  if is_fun_type T orelse is_set_like_type T then
+    let
+      val dom_T = pseudo_domain_type T
+      val ran_T = pseudo_range_type T
+      val var_t = Var (("x", j), dom_T)
+    in
       extensional_equal (j + 1) ran_T (betapply (t1, var_t))
                         (betapply (t2, var_t))
     end
-  | extensional_equal _ T t1 t2 =
+  else
     Const (@{const_name HOL.eq}, T --> T --> bool_T) $ t1 $ t2
 
 fun equationalize_term ctxt tag t =
@@ -1837,7 +1842,7 @@ fun equationalize_term ctxt tag t =
           @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
         | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
           @{const Trueprop} $ extensional_equal j T t1 t2
-        | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation" ^
+        | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation " ^
                          quote (Syntax.string_of_term ctxt t) ^ ".");
                 raise SAME ()))
     |> SOME
