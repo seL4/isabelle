@@ -204,6 +204,15 @@ type arguments =
     wellformed: prop_formula
   };
 
+val default_parameters =
+ [("itself", "1"),
+  ("minsize", "1"),
+  ("maxsize", "8"),
+  ("maxvars", "10000"),
+  ("maxtime", "60"),
+  ("satsolver", "auto"),
+  ("no_assms", "false")]
+ |> Symtab.make
 
 structure Data = Theory_Data
 (
@@ -213,7 +222,8 @@ structure Data = Theory_Data
      printers: (string * (Proof.context -> model -> typ -> interpretation ->
       (int -> bool) -> term option)) list,
      parameters: string Symtab.table};
-  val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
+  val empty =
+    {interpreters = [], printers = [], parameters = default_parameters};
   val extend = I;
   fun merge
     ({interpreters = in1, printers = pr1, parameters = pa1},
@@ -417,7 +427,7 @@ val specialize_type = ATP_Util.specialize_type
 (*                    denotes membership to an axiomatic type class          *)
 (* ------------------------------------------------------------------------- *)
 
-fun is_const_of_class thy (s, T) =
+fun is_const_of_class thy (s, _) =
   let
     val class_const_names = map Logic.const_of_class (Sign.all_classes thy)
   in
@@ -446,7 +456,7 @@ fun is_IDT_constructor thy (s, T) =
 (*                  operator of an inductive datatype in 'thy'               *)
 (* ------------------------------------------------------------------------- *)
 
-fun is_IDT_recursor thy (s, T) =
+fun is_IDT_recursor thy (s, _) =
   let
     val rec_names = Symtab.fold (append o #rec_names o snd)
       (Datatype.get_all thy) []
@@ -625,7 +635,7 @@ fun unfold_defs thy t =
           (* unfold the constant if there is a defining equation *)
           else
             case get_def thy (s, T) of
-              SOME (axname, rhs) =>
+              SOME ((*axname*) _, rhs) =>
               (* Note: if the term to be unfolded (i.e. 'Const (s, T)')  *)
               (* occurs on the right-hand side of the equation, i.e. in  *)
               (* 'rhs', we must not use this equation to unfold, because *)
@@ -721,7 +731,7 @@ fun collect_axioms ctxt t =
       | Type ("itself", [T1]) => collect_type_axioms T1 axs
       | Type (s, Ts) =>
         (case Datatype.get_info thy s of
-          SOME info =>  (* inductive datatype *)
+          SOME _ =>  (* inductive datatype *)
             (* only collect relevant type axioms for the argument types *)
             fold collect_type_axioms Ts axs
         | NONE =>
@@ -972,7 +982,7 @@ fun next_universe xs sizes minsize maxsize =
     (* enumerates all int lists with a fixed length, where 0<=x<='max' for *)
     (* all list elements x (unless 'max'<0)                                *)
     (* int -> int -> int -> int list -> int list option *)
-    fun next max len sum [] =
+    fun next _ _ _ [] =
           NONE
       | next max len sum [x] =
           (* we've reached the last list element, so there's no shift possible *)
@@ -1243,7 +1253,7 @@ fun refute_term ctxt params assm_ts t =
           strip_all_vars t
       | strip_all_vars (Const (@{const_name All}, _) $ Abs (a, T, t)) =
           (a, T) :: strip_all_vars t
-      | strip_all_vars t = [] : (string * typ) list
+      | strip_all_vars _ = [] : (string * typ) list
     val strip_t = strip_all_body ex_closure
     val frees = Term.rename_wrt_term strip_t (strip_all_vars ex_closure)
     val subst_t = Term.subst_bounds (map Free frees, strip_t)
@@ -1470,10 +1480,6 @@ fun interpretation_apply (i1, i2) =
             prop_formula_list_dot_product_interpretation_list (fms,trees))
       | prop_formula_list_dot_product_interpretation_list (_,_) =
           raise REFUTE ("interpretation_apply", "empty list (in dot product)")
-    (* concatenates 'x' with every list in 'xss', returning a new list of *)
-    (* lists                                                              *)
-    (* 'a -> 'a list list -> 'a list list *)
-    fun cons_list x xss = map (cons x) xss
     (* returns a list of lists, each one consisting of one element from each *)
     (* element of 'xss'                                                      *)
     (* 'a list list -> 'a list list *)
@@ -1535,7 +1541,6 @@ fun size_of_dtyp ctxt typ_sizes descr typ_assoc constructors =
 
 fun stlc_interpreter ctxt model args t =
   let
-    val thy = Proof_Context.theory_of ctxt
     val (typs, terms) = model
     val {maxvars, def_eq, next_idx, bounds, wellformed} = args
     (* Term.typ -> (interpretation * model * arguments) option *)
@@ -1616,7 +1621,7 @@ fun stlc_interpreter ctxt model args t =
         | Free (_, T) => interpret_groundterm T
         | Var (_, T) => interpret_groundterm T
         | Bound i => SOME (nth (#bounds args) i, model, args)
-        | Abs (x, T, body) =>
+        | Abs (_, T, body) =>
             let
               (* create all constants of type 'T' *)
               val constants = make_constants ctxt model T
@@ -1679,7 +1684,7 @@ fun Pure_interpreter ctxt model args t =
         SOME ((if #def_eq args then make_def_equality else make_equality)
           (i1, i2), m2, a2)
       end
-  | Const (@{const_name "=="}, _) $ t1 =>
+  | Const (@{const_name "=="}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name "=="}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -1693,7 +1698,7 @@ fun Pure_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name "==>"}, _) $ t1 =>
+  | Const (@{const_name "==>"}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name "==>"}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -1759,7 +1764,7 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (make_equality (i1, i2), m2, a2)
       end
-  | Const (@{const_name HOL.eq}, _) $ t1 =>
+  | Const (@{const_name HOL.eq}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name HOL.eq}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -1773,7 +1778,7 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.conj}, _) $ t1 =>
+  | Const (@{const_name HOL.conj}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name HOL.conj}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -1790,7 +1795,7 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.disj}, _) $ t1 =>
+  | Const (@{const_name HOL.disj}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name HOL.disj}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -1807,7 +1812,7 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.implies}, _) $ t1 =>
+  | Const (@{const_name HOL.implies}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
   | Const (@{const_name HOL.implies}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
@@ -2053,7 +2058,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                         [] =>
                           (* 'Const (s, T)' is not a constructor of this datatype *)
                           NONE
-                      | (_, ctypes)::cs =>
+                      | (_, ctypes)::_ =>
                           let
                             (* int option -- only /recursive/ IDTs have an associated *)
                             (*               depth                                    *)
@@ -2144,7 +2149,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                                       let
                                         fun search (x::xs) (y::ys) =
                                               if x = y then search xs ys else search (x::xs) ys
-                                          | search (x::xs) [] =
+                                          | search (_::_) [] =
                                               raise REFUTE ("IDT_constructor_interpreter",
                                                 "element order not preserved")
                                           | search [] _ = ()
@@ -2471,7 +2476,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                                 | rec_intr (Datatype.DtRec _) (Node _) =
                                     raise REFUTE ("IDT_recursion_interpreter",
                                       "interpretation for IDT is a node")
-                                | rec_intr (Datatype.DtType ("fun", [dt1, dt2])) (Node xs) =
+                                | rec_intr (Datatype.DtType ("fun", [_, dt2])) (Node xs) =
                                     (* recursive argument is something like     *)
                                     (* "\<lambda>x::dt1. rec_? params (elem x)" *)
                                     Node (map (rec_intr dt2) xs)
@@ -2518,7 +2523,7 @@ fun IDT_recursion_interpreter ctxt model args t =
 
 fun set_interpreter ctxt model args t =
   let
-    val (typs, terms) = model
+    val (_, terms) = model
   in
     case AList.lookup (op =) terms t of
       SOME intr =>
@@ -2534,7 +2539,7 @@ fun set_interpreter ctxt model args t =
         (* 'op :' == application *)
         | Const (@{const_name Set.member}, _) $ t1 $ t2 =>
             SOME (interpret ctxt model args (t2 $ t1))
-        | Const (@{const_name Set.member}, _) $ t1 =>
+        | Const (@{const_name Set.member}, _) $ _ =>
             SOME (interpret ctxt model args (eta_expand t 1))
         | Const (@{const_name Set.member}, _) =>
             SOME (interpret ctxt model args (eta_expand t 2))
@@ -2592,7 +2597,7 @@ fun Finite_Set_card_interpreter ctxt model args t =
 fun Finite_Set_finite_interpreter ctxt model args t =
   case t of
     Const (@{const_name Finite_Set.finite},
-      Type ("fun", [Type ("fun", [T, @{typ bool}]),
+      Type ("fun", [Type ("fun", [_, @{typ bool}]),
                     @{typ bool}])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
