@@ -1821,13 +1821,17 @@ fun extensional_equal j T t1 t2 =
       val dom_T = pseudo_domain_type T
       val ran_T = pseudo_range_type T
       val var_t = Var (("x", j), dom_T)
-    in
-      extensional_equal (j + 1) ran_T (betapply (t1, var_t))
-                        (betapply (t2, var_t))
-    end
+      fun apply fun_t arg_t =
+        if is_fun_type T then
+          betapply (fun_t, arg_t)
+        else
+          Const (@{const_name Set.member}, dom_T --> T --> ran_T)
+          $ arg_t $ fun_t
+    in extensional_equal (j + 1) ran_T (apply t1 var_t) (apply t2 var_t) end
   else
     Const (@{const_name HOL.eq}, T --> T --> bool_T) $ t1 $ t2
 
+(* FIXME: needed? *)
 fun equationalize_term ctxt tag t =
   let
     val j = maxidx_of_term t + 1
