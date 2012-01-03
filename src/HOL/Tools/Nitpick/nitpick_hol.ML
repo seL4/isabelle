@@ -1923,7 +1923,7 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
       let
         val rep_T = varify_and_instantiate_type ctxt abs_type abs_T rep_type
         val rep_t = Const (Rep_name, abs_T --> rep_T)
-        val set_t = Const (set_name, Type (@{type_name set}, [rep_T]))
+        val set_t = Const (set_name, HOLogic.mk_setT rep_T)
         val set_t' =
           prop_of_Rep |> HOLogic.dest_Trueprop
                       |> specialize_type thy (dest_Const rep_t)
@@ -2060,7 +2060,7 @@ fun uncached_is_well_founded_inductive_pred
      | triples =>
        let
          val binders_T = HOLogic.mk_tupleT (binder_types T)
-         val rel_T = HOLogic.mk_prodT (binders_T, binders_T) --> bool_T
+         val rel_T = HOLogic.mk_setT (HOLogic.mk_prodT (binders_T, binders_T))
          val j = fold Integer.max (map maxidx_of_term intro_ts) 0 + 1
          val rel = (("R", j), rel_T)
          val prop = Const (@{const_name wf}, rel_T --> bool_T) $ Var rel ::
