@@ -398,7 +398,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           SOME (SOME b) => b
         | _ => is_type_kind_of_monotonic T
     fun is_datatype_deep T =
-      not standard orelse T = nat_T orelse is_word_type T orelse
+      not standard orelse T = @{typ unit} orelse T = nat_T orelse
+      is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
                  |> sort Term_Ord.typ_ord
