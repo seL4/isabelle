@@ -727,6 +727,7 @@ fun collect_axioms ctxt t =
       (* simple types *)
         Type ("prop", []) => axs
       | Type ("fun", [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
+      | Type (@{type_name set}, [T1]) => collect_type_axioms T1 axs
       (* axiomatic type classes *)
       | Type ("itself", [T1]) => collect_type_axioms T1 axs
       | Type (s, Ts) =>
@@ -861,6 +862,7 @@ fun ground_types ctxt t =
       (case T of
         Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
       | Type ("prop", []) => acc
+      | Type (@{type_name set}, [T1]) => collect_types T1 acc
       | Type (s, Ts) =>
           (case Datatype.get_info thy s of
             SOME info =>  (* inductive datatype *)
@@ -2523,7 +2525,7 @@ fun IDT_recursion_interpreter ctxt model args t =
 
 fun set_interpreter ctxt model args t =
   let
-    val (_, terms) = model
+    val (typs, terms) = model
   in
     case AList.lookup (op =) terms t of
       SOME intr =>
@@ -2531,8 +2533,29 @@ fun set_interpreter ctxt model args t =
         SOME (intr, model, args)
     | NONE =>
         (case t of
+          Free (x, Type (@{type_name set}, [T])) =>
+          let
+            val (intr, _, args') =
+              interpret ctxt (typs, []) args (Free (x, T --> HOLogic.boolT))
+          in
+            SOME (intr, (typs, (t, intr)::terms), args')
+          end
+        | Var ((x, i), Type (@{type_name set}, [T])) =>
+          let
+            val (intr, _, args') =
+              interpret ctxt (typs, []) args (Var ((x,i), T --> HOLogic.boolT))
+          in
+            SOME (intr, (typs, (t, intr)::terms), args')
+          end
+        | Const (s, Type (@{type_name set}, [T])) =>
+          let
+            val (intr, _, args') =
+              interpret ctxt (typs, []) args (Const (s, T --> HOLogic.boolT))
+          in
+            SOME (intr, (typs, (t, intr)::terms), args')
+          end
         (* 'Collect' == identity *)
-          Const (@{const_name Collect}, _) $ t1 =>
+        | Const (@{const_name Collect}, _) $ t1 =>
             SOME (interpret ctxt model args t1)
         | Const (@{const_name Collect}, _) =>
             SOME (interpret ctxt model args (eta_expand t 1))
@@ -2553,7 +2576,7 @@ fun set_interpreter ctxt model args t =
 fun Finite_Set_card_interpreter ctxt model args t =
   case t of
     Const (@{const_name Finite_Set.card},
-        Type ("fun", [Type ("fun", [T, @{typ bool}]), @{typ nat}])) =>
+        Type ("fun", [Type (@{type_name set}, [T]), @{typ nat}])) =>
       let
         (* interpretation -> int *)
         fun number_of_elements (Node xs) =
@@ -2583,8 +2606,7 @@ fun Finite_Set_card_interpreter ctxt model args t =
             else
               Leaf (replicate size_of_nat False)
           end
-        val set_constants =
-          make_constants ctxt model (Type ("fun", [T, HOLogic.boolT]))
+        val set_constants = make_constants ctxt model (HOLogic.mk_setT T)
       in
         SOME (Node (map card set_constants), model, args)
       end
@@ -2597,17 +2619,14 @@ fun Finite_Set_card_interpreter ctxt model args t =
 fun Finite_Set_finite_interpreter ctxt model args t =
   case t of
     Const (@{const_name Finite_Set.finite},
-      Type ("fun", [Type ("fun", [_, @{typ bool}]),
-                    @{typ bool}])) $ _ =>
+           Type ("fun", [_, @{typ bool}])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
         SOME (TT, model, args)
   | Const (@{const_name Finite_Set.finite},
-      Type ("fun", [Type ("fun", [T, @{typ bool}]),
-                    @{typ bool}])) =>
+           Type ("fun", [set_T, @{typ bool}])) =>
       let
-        val size_of_set =
-          size_of_type ctxt model (Type ("fun", [T, HOLogic.boolT]))
+        val size_of_set = size_of_type ctxt model set_T
       in
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
@@ -2803,8 +2822,6 @@ fun List_append_interpreter ctxt model args t =
       end
   | _ => NONE;
 
-(* UNSOUND
-
 (* only an optimization: 'lfp' could in principle be interpreted with  *)
 (* interpreters available already (using its definition), but the code *)
 (* below is more efficient                                             *)
@@ -2812,20 +2829,18 @@ fun List_append_interpreter ctxt model args t =
 fun lfp_interpreter ctxt model args t =
   case t of
     Const (@{const_name lfp}, Type ("fun", [Type ("fun",
-      [Type ("fun", [T, @{typ bool}]),
-       Type ("fun", [_, @{typ bool}])]),
-       Type ("fun", [_, @{typ bool}])])) =>
+      [Type (@{type_name set}, [T]),
+       Type (@{type_name set}, [_])]),
+       Type (@{type_name set}, [_])])) =>
       let
         val size_elem = size_of_type ctxt model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)
         (* all sets with elements from type 'T' *)
-        val i_sets =
-          make_constants ctxt model (Type ("fun", [T, HOLogic.boolT]))
+        val i_sets = make_constants ctxt model (HOLogic.mk_setT T)
         (* all functions that map sets to sets *)
         val i_funs = make_constants ctxt model (Type ("fun",
-          [Type ("fun", [T, @{typ bool}]),
-           Type ("fun", [T, @{typ bool}])]))
+          [HOLogic.mk_setT T, HOLogic.mk_setT T]))
         (* "lfp(f) == Inter({u. f(u) <= u})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
@@ -2862,50 +2877,47 @@ fun lfp_interpreter ctxt model args t =
 fun gfp_interpreter ctxt model args t =
   case t of
     Const (@{const_name gfp}, Type ("fun", [Type ("fun",
-      [Type ("fun", [T, @{typ bool}]),
-       Type ("fun", [_, @{typ bool}])]),
-       Type ("fun", [_, @{typ bool}])])) =>
-    let
-      val size_elem = size_of_type ctxt model T
-      (* the universe (i.e. the set that contains every element) *)
-      val i_univ = Node (replicate size_elem TT)
-      (* all sets with elements from type 'T' *)
-      val i_sets =
-        make_constants ctxt model (Type ("fun", [T, HOLogic.boolT]))
-      (* all functions that map sets to sets *)
-      val i_funs = make_constants ctxt model (Type ("fun",
-        [Type ("fun", [T, HOLogic.boolT]),
-         Type ("fun", [T, HOLogic.boolT])]))
-      (* "gfp(f) == Union({u. u <= f(u)})" *)
-      (* interpretation * interpretation -> bool *)
-      fun is_subset (Node subs, Node sups) =
-            forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
-              (subs ~~ sups)
-        | is_subset (_, _) =
-            raise REFUTE ("gfp_interpreter",
-              "is_subset: interpretation for set is not a node")
-      (* interpretation * interpretation -> interpretation *)
-      fun union (Node xs, Node ys) =
-            Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF)
-                 (xs ~~ ys))
-        | union (_, _) =
-            raise REFUTE ("gfp_interpreter",
-              "union: interpretation for set is not a node")
-      (* interpretation -> interpretaion *)
-      fun gfp (Node resultsets) =
-            fold (fn (set, resultset) => fn acc =>
-              if is_subset (set, resultset) then
-                union (acc, set)
-              else
-                acc) (i_sets ~~ resultsets) i_univ
-        | gfp _ =
-            raise REFUTE ("gfp_interpreter",
-              "gfp: interpretation for function is not a node")
-    in
-      SOME (Node (map gfp i_funs), model, args)
-    end
+      [Type (@{type_name set}, [T]),
+       Type (@{type_name set}, [_])]),
+       Type (@{type_name set}, [_])])) =>
+      let
+        val size_elem = size_of_type ctxt model T
+        (* the universe (i.e. the set that contains every element) *)
+        val i_univ = Node (replicate size_elem TT)
+        (* all sets with elements from type 'T' *)
+        val i_sets = make_constants ctxt model (HOLogic.mk_setT T)
+        (* all functions that map sets to sets *)
+        val i_funs = make_constants ctxt model (Type ("fun",
+          [HOLogic.mk_setT T, HOLogic.mk_setT T]))
+        (* "gfp(f) == Union({u. u <= f(u)})" *)
+        (* interpretation * interpretation -> bool *)
+        fun is_subset (Node subs, Node sups) =
+              forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
+                (subs ~~ sups)
+          | is_subset (_, _) =
+              raise REFUTE ("gfp_interpreter",
+                "is_subset: interpretation for set is not a node")
+        (* interpretation * interpretation -> interpretation *)
+        fun union (Node xs, Node ys) =
+              Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF)
+                   (xs ~~ ys))
+          | union (_, _) =
+              raise REFUTE ("gfp_interpreter",
+                "union: interpretation for set is not a node")
+        (* interpretation -> interpretaion *)
+        fun gfp (Node resultsets) =
+              fold (fn (set, resultset) => fn acc =>
+                if is_subset (set, resultset) then
+                  union (acc, set)
+                else
+                  acc) (i_sets ~~ resultsets) i_univ
+          | gfp _ =
+              raise REFUTE ("gfp_interpreter",
+                "gfp: interpretation for function is not a node")
+      in
+        SOME (Node (map gfp i_funs), model, args)
+      end
   | _ => NONE;
-*)
 
 (* only an optimization: 'fst' could in principle be interpreted with  *)
 (* interpreters available already (using its definition), but the code *)
@@ -3011,6 +3023,42 @@ fun stlc_printer ctxt model T intr assignment =
           SOME (Const (string_of_typ T ^
             string_of_int (index_from_interpretation intr), T))
   end;
+
+fun set_printer ctxt model T intr assignment =
+  (case T of
+    Type (@{type_name set}, [T1]) =>
+    let
+      (* create all constants of type 'T1' *)
+      val constants = make_constants ctxt model T1
+      (* interpretation list *)
+      val results = (case intr of
+          Node xs => xs
+        | _       => raise REFUTE ("set_printer",
+          "interpretation for set type is a leaf"))
+      (* Term.term list *)
+      val elements = List.mapPartial (fn (arg, result) =>
+        case result of
+          Leaf [fmTrue, (* fmFalse *) _] =>
+          if Prop_Logic.eval assignment fmTrue then
+            SOME (print ctxt model T1 arg assignment)
+          else (* if Prop_Logic.eval assignment fmFalse then *)
+            NONE
+        | _ =>
+          raise REFUTE ("set_printer",
+            "illegal interpretation for a Boolean value"))
+        (constants ~~ results)
+      (* Term.typ *)
+      val HOLogic_setT1     = HOLogic.mk_setT T1
+      (* Term.term *)
+      val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT1)
+      val HOLogic_insert    =
+        Const (@{const_name insert}, T1 --> HOLogic_setT1 --> HOLogic_setT1)
+    in
+      SOME (Library.foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc)
+        (HOLogic_empty_set, elements))
+    end
+  | _ =>
+    NONE);
 
 fun IDT_printer ctxt model T intr assignment =
   let
@@ -3143,6 +3191,7 @@ val setup =
    add_interpreter "Product_Type.fst" Product_Type_fst_interpreter #>
    add_interpreter "Product_Type.snd" Product_Type_snd_interpreter #>
    add_printer "stlc" stlc_printer #>
+   add_printer "set" set_printer #>
    add_printer "IDT"  IDT_printer;
 
 
