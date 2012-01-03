@@ -1423,8 +1423,9 @@ fun kodkod_formula_from_nut ofs
         | Atom (k, _) =>
           let
             val dom_card = card_of_rep (rep_of arg_u)
-            val ran_R = Atom (exact_root dom_card k,
-                              offset_of_type ofs (range_type (type_of func_u)))
+            val ran_R =
+              Atom (exact_root dom_card k,
+                    offset_of_type ofs (pseudo_range_type (type_of func_u)))
           in
             to_apply_vect dom_card ran_R res_R (to_vect dom_card ran_R func_u)
                           arg_u

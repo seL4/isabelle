@@ -562,11 +562,11 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
             do_apply t0 ts
         | (t0 as Const (x as (@{const_name ord_class.less_eq}, T)),
            ts as [t1, t2]) =>
-          if is_built_in_const thy stds x then
+          if is_set_like_type (domain_type T) then
+            Op2 (Subset, bool_T, Any, sub t1, sub t2)
+          else if is_built_in_const thy stds x then
             (* FIXME: find out if this case is necessary *)
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
-          else if is_set_like_type (domain_type T) then
-            Op2 (Subset, bool_T, Any, sub t1, sub t2)
           else
             do_apply t0 ts
         | (Const (@{const_name nat_gcd}, T), []) => Cst (Gcd, T, Any)
@@ -968,7 +968,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                val u2' = aux table' false Neut u2
                val R =
                  if is_opt_rep (rep_of u2') orelse
-                    (range_type T = bool_T andalso
+                    (pseudo_range_type T = bool_T andalso
                      not (is_Cst False (unrepify_nut_in_nut table false Neut
                                                             u1 u2))) then
                    opt_rep ofs T R

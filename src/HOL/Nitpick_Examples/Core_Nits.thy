@@ -68,7 +68,7 @@ nitpick [card = 1\<emdash>20, expect = none]
 by auto
 
 lemma "(a\<Colon>'a\<Rightarrow>'b, a) \<in> Id\<^sup>*"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1\<emdash>2, expect = none]
 by auto
 
 lemma "(a\<Colon>'a\<times>'a, a) \<in> Id\<^sup>* \<union> {(a, b)}\<^sup>*"
@@ -147,7 +147,7 @@ lemma "(A\<Colon>'a\<times>'a, B\<Colon>'a\<times>'a) \<in> R \<Longrightarrow> 
 nitpick [card = 15, expect = none]
 by auto
 
-lemma "(A, B) \<in> R \<or> (\<exists>C. (A, C) \<in> R \<and> (C, B) \<in> R) \<Longrightarrow> 
+lemma "(A, B) \<in> R \<or> (\<exists>C. (A, C) \<in> R \<and> (C, B) \<in> R) \<Longrightarrow>
        A = B \<or> (A, B) \<in> R \<or> (\<exists>C. (A, C) \<in> R \<and> (C, B) \<in> R)"
 nitpick [card = 1\<emdash>25, expect = none]
 by auto

@@ -234,7 +234,8 @@ fun card_of_domain_from_rep ran_card R =
 fun rep_to_binary_rel_rep ofs T R =
   let
     val k = exact_root 2 (card_of_domain_from_rep 2 R)
-    val j0 = offset_of_type ofs (fst (HOLogic.dest_prodT (domain_type T)))
+    val j0 =
+      offset_of_type ofs (fst (HOLogic.dest_prodT (pseudo_domain_type T)))
   in Func (Struct [Atom (k, j0), Atom (k, j0)], Formula Neut) end
 
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)

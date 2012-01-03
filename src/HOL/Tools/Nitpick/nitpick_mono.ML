@@ -845,7 +845,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
             | @{const_name fst} => do_nth_pair_sel 0 T accum
             | @{const_name snd} => do_nth_pair_sel 1 T accum
             | @{const_name Id} =>
-              (MFun (mtype_for (domain_type T), A Gen, bool_M), accum)
+              (MFun (mtype_for (elem_type T), A Gen, bool_M), accum)
             | @{const_name converse} =>
               let
                 val x = Unsynchronized.inc max_fresh
