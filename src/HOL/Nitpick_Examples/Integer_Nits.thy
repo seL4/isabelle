@@ -5,10 +5,10 @@
 Examples featuring Nitpick applied to natural numbers and integers.
 *)
 
-header {* Examples Featuring Nitpick Applied to Natural Numbers and Integers *} 
+header {* Examples Featuring Nitpick Applied to Natural Numbers and Integers *}
 
 theory Integer_Nits
-imports Nitpick
+imports Main
 begin
 
 nitpick_params [verbose, card = 1\<emdash>5, bits = 1,2,3,4,6,
