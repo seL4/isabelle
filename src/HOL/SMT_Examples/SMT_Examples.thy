@@ -31,7 +31,7 @@ lemma "(p1 \<and> p2) \<or> p3 \<longrightarrow> (p1 \<longrightarrow> (p3 \<and
 
 lemma "P=P=P=P=P=P=P=P=P=P" by smt
 
-lemma 
+lemma
   assumes "a | b | c | d"
       and "e | f | (a & d)"
       and "~(a | (c & ~c)) | b"
@@ -45,11 +45,11 @@ axiomatization symm_f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   symm_f: "symm_f x y = symm_f y x"
 lemma "a = a \<and> symm_f a b = symm_f b a" by (smt symm_f)
 
-(* 
+(*
 Taken from ~~/src/HOL/ex/SAT_Examples.thy.
 Translated from TPTP problem library: PUZ015-2.006.dimacs
 *)
-lemma 
+lemma
   assumes "~x0"
   and "~x30"
   and "~x29"
@@ -240,12 +240,12 @@ lemma
 lemma "\<forall>x::int. P x \<longrightarrow> (\<forall>y::int. P x \<or> P y)"
   by smt
 
-lemma 
+lemma
   assumes "(\<forall>x y. P x y = x)"
   shows "(\<exists>y. P x y) = P x c"
   using assms by smt
 
-lemma 
+lemma
   assumes "(\<forall>x y. P x y = x)"
   and "(\<forall>x. \<exists>y. P x y) = (\<forall>x. P x c)"
   shows "(EX y. P x y) = P x c"
@@ -279,7 +279,7 @@ lemma "x + 3 \<ge> 4 \<or> x < (1::int)" by smt
 
 lemma
   assumes "x \<ge> (3::int)" and "y = x + 4"
-  shows "y - x > 0" 
+  shows "y - x > 0"
   using assms by smt
 
 lemma "let x = (2 :: int) in x + x \<noteq> 5" by smt
@@ -309,7 +309,7 @@ lemma "
   (n' = m & m = (n::int))"
   by smt
 
-text{* 
+text{*
 The following example was taken from HOL/ex/PresburgerEx.thy, where it says:
 
   This following theorem proves that all solutions to the
@@ -318,7 +318,7 @@ The following example was taken from HOL/ex/PresburgerEx.thy, where it says:
   Harrison. It does does not require Presburger arithmetic but merely
   quantifier-free linear arithmetic and holds for the rationals as well.
 
-  Warning: it takes (in 2006) over 4.2 minutes! 
+  Warning: it takes (in 2006) over 4.2 minutes!
 
 There, it is proved by "arith". SMT is able to prove this within a fraction
 of one second. With proof reconstruction, it takes about 13 seconds on a Core2
@@ -343,9 +343,9 @@ lemma
   shows "x + x \<noteq> (let P = (abs x > 1) in if P \<or> \<not>P then 4 else 2) * x"
   using assms by smt
 
-lemma                                                                         
-  assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"                               
-  shows "n mod 2 = 1 & m mod 2 = (1::int)"      
+lemma
+  assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"
+  shows "n mod 2 = 1 & m mod 2 = (1::int)"
   using assms by smt
 
 
@@ -513,11 +513,11 @@ lemma
 context complete_lattice
 begin
 
-(*lemma 
+lemma
   assumes "Sup { a | i::bool . True } \<le> Sup { b | i::bool . True }"
   and     "Sup { b | i::bool . True } \<le> Sup { a | i::bool . True }"
   shows   "Sup { a | i::bool . True } \<le> Sup { a | i::bool . True }"
-  using assms by (smt order_trans)*)
+  using assms by (smt order_trans)
 
 end
 
