@@ -1974,7 +1974,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
 fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
   let
     val xs = datatype_constrs hol_ctxt T
-    val set_T = T --> bool_T
+    val pred_T = T --> bool_T
     val iter_T = @{typ bisim_iterator}
     val bisim_max = @{const bisim_iterator_max}
     val n_var = Var (("n", 0), iter_T)
@@ -2005,9 +2005,9 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
             s_betapply [] (optimized_case_def hol_ctxt [] T bool_T
                                               (map case_func xs), x_var)),
         bisim_const T $ n_var $ x_var $ y_var),
-     HOLogic.eq_const set_T $ (bisim_const T $ bisim_max $ x_var)
-     $ (Const (@{const_name insert}, T --> set_T --> set_T)
-        $ x_var $ Const (@{const_name bot_class.bot}, set_T))]
+     HOLogic.eq_const pred_T $ (bisim_const T $ bisim_max $ x_var)
+     $ (Const (@{const_name insert}, T --> pred_T --> pred_T)
+        $ x_var $ Const (@{const_name bot_class.bot}, pred_T))]
     |> map HOLogic.mk_Trueprop
   end
 
@@ -2188,6 +2188,13 @@ val linear_pred_base_and_step_rhss =
         raise TERM ("Nitpick_HOL.linear_pred_base_and_step_rhss.aux", [t])
   in aux end
 
+fun predicatify T t =
+  let val set_T = HOLogic.mk_setT T in
+    Abs (Name.uu, T,
+         Const (@{const_name Set.member}, T --> set_T --> bool_T)
+         $ Bound 0 $ incr_boundvars 1 t)
+  end
+
 fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
   let
     val j = maxidx_of_term def + 1
@@ -2198,11 +2205,14 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
     val (outer_Ts, rest_T) = strip_n_binders (length outer) T
     val tuple_arg_Ts = strip_type rest_T |> fst
     val tuple_T = HOLogic.mk_tupleT tuple_arg_Ts
-    val set_T = tuple_T --> bool_T
-    val curried_T = tuple_T --> set_T
-    val uncurried_T = Type (@{type_name prod}, [tuple_T, tuple_T]) --> bool_T
+    val prod_T = HOLogic.mk_prodT (tuple_T, tuple_T)
+    val set_T = HOLogic.mk_setT tuple_T
+    val rel_T = HOLogic.mk_setT prod_T
+    val pred_T = tuple_T --> bool_T
+    val curried_T = tuple_T --> pred_T
+    val uncurried_T = prod_T --> bool_T
     val (base_rhs, step_rhs) = linear_pred_base_and_step_rhss fp_app
-    val base_x as (base_s, _) = (base_prefix ^ s, outer_Ts ---> set_T)
+    val base_x as (base_s, _) = (base_prefix ^ s, outer_Ts ---> pred_T)
     val base_eq = HOLogic.mk_eq (list_comb (Const base_x, outer_vars), base_rhs)
                   |> HOLogic.mk_Trueprop
     val _ = add_simps simp_table base_s [base_eq]
@@ -2210,14 +2220,19 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
     val step_eq = HOLogic.mk_eq (list_comb (Const step_x, outer_vars), step_rhs)
                   |> HOLogic.mk_Trueprop
     val _ = add_simps simp_table step_s [step_eq]
+    val image_const = Const (@{const_name Image}, rel_T --> set_T --> set_T)
+    val rtrancl_const = Const (@{const_name rtrancl}, rel_T --> rel_T)
+    val base_set =
+      HOLogic.Collect_const tuple_T $ list_comb (Const base_x, outer_bounds)
+    val step_set =
+      HOLogic.Collect_const prod_T
+      $ (Const (@{const_name prod_case}, curried_T --> uncurried_T)
+                $ list_comb (Const step_x, outer_bounds))
+    val image_set =
+      image_const $ (rtrancl_const $ step_set) $ base_set
+      |> predicatify tuple_T
   in
-    list_abs (outer,
-              Const (@{const_name Image}, uncurried_T --> set_T --> set_T)
-              $ (Const (@{const_name rtrancl}, uncurried_T --> uncurried_T)
-                 $ (Const (@{const_name prod_case}, curried_T --> uncurried_T)
-                    $ list_comb (Const step_x, outer_bounds)))
-              $ list_comb (Const base_x, outer_bounds)
-              |> ap_curry tuple_arg_Ts tuple_T)
+    list_abs (outer, image_set |> ap_curry tuple_arg_Ts tuple_T)
     |> unfold_defs_in_term hol_ctxt
   end
 
