@@ -32,8 +32,10 @@ fun check_type ctxt raw_infinite (Type (@{type_name fun}, Ts)) =
   | check_type _ _ (TFree (_, @{sort "{}"})) = ()
   | check_type _ _ (TFree (_, @{sort HOL.type})) = ()
   | check_type ctxt raw_infinite T =
-    if raw_infinite T then ()
-    else raise NOT_SUPPORTED ("type " ^ quote (Syntax.string_of_typ ctxt T))
+    if raw_infinite T then
+      ()
+    else
+      error ("Not supported: Type " ^ quote (Syntax.string_of_typ ctxt T) ^ ".")
 
 fun atom_schema_of S_Rep card (Type (@{type_name fun}, [T1, T2])) =
     replicate_list (card T1) (atom_schema_of S_Rep card T2)
@@ -160,6 +162,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
        | @{const HOL.disj} $ t1 $ t2 => Or (to_F pos Ts t1, to_F pos Ts t2)
        | @{const HOL.implies} $ t1 $ t2 =>
          Implies (to_F (Option.map not pos) Ts t1, to_F pos Ts t2)
+       | Const (@{const_name Set.member}, _) $ t1 $ t2 => to_F pos Ts (t2 $ t1)
        | t1 $ t2 =>
          (case pos of
             NONE => Subset (to_S_rep Ts t2, to_R_rep Ts t1)
@@ -225,6 +228,11 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
        | @{const HOL.disj} => to_R_rep Ts (eta_expand Ts t 2)
        | @{const HOL.implies} $ _ => to_R_rep Ts (eta_expand Ts t 1)
        | @{const HOL.implies} => to_R_rep Ts (eta_expand Ts t 2)
+       | Const (@{const_name Set.member}, _) $ _ =>
+         to_R_rep Ts (eta_expand Ts t 1)
+       | Const (@{const_name Set.member}, _) => to_R_rep Ts (eta_expand Ts t 2)
+       | Const (@{const_name Collect}, _) $ t' => to_R_rep Ts t'
+       | Const (@{const_name Collect}, _) => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name bot_class.bot},
                 T as Type (@{type_name fun}, [T', @{typ bool}])) =>
          if total then empty_n_ary_rel (arity_of (R_Rep total) card T)
@@ -272,7 +280,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
                       Product (true_core_kt, true_atom))
              end
          else
-           raise NOT_SUPPORTED "transitive closure for function or pair type"
+           error "Not supported: Transitive closure for function or pair type."
        | Const (@{const_name trancl}, _) => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name inf_class.inf},
                 Type (@{type_name fun},
@@ -319,7 +327,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
        | @{const True} => true_atom
        | Free (x as (_, T)) =>
          Rel (arity_of (R_Rep total) card T, find_index (curry (op =) x) frees)
-       | Term.Var _ => raise NOT_SUPPORTED "schematic variables"
+       | Term.Var _ => error "Not supported: Schematic variables."
        | Bound _ => raise SAME ()
        | Abs (_, T, t') =>
          (case (total, fastype_of1 (T :: Ts, t')) of
@@ -353,8 +361,8 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
                       num_seq arity2 res_arity)
                 end
             end)
-       | _ => raise NOT_SUPPORTED ("term " ^
-                                   quote (Syntax.string_of_term ctxt t)))
+       | _ => error ("Not supported: Term " ^
+                     quote (Syntax.string_of_term ctxt t) ^ "."))
       handle SAME () => R_rep_from_S_rep (fastype_of1 (Ts, t)) (to_S_rep Ts t)
   in to_F (if total then NONE else SOME true) [] end
 
@@ -379,6 +387,11 @@ fun declarative_axiom_for_free total card i (_, T) =
   declarative_axiom_for_rel_expr total card [] T
       (Rel (arity_of (R_Rep total) card T, i))
 
+(* Hack to make the old code work as is with sets. *)
+fun unsetify_type (Type (@{type_name set}, [T])) = unsetify_type T --> bool_T
+  | unsetify_type (Type (s, Ts)) = Type (s, map unsetify_type Ts)
+  | unsetify_type T = T
+
 fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -395,7 +408,9 @@ fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
         complete T1 andalso concrete T2
       | concrete (Type (@{type_name prod}, Ts)) = forall concrete Ts
       | concrete _ = true
-    val neg_t = @{const Not} $ Object_Logic.atomize_term thy t
+    val neg_t =
+      @{const Not} $ Object_Logic.atomize_term thy t
+      |> map_types unsetify_type
     val _ = fold_types (K o check_type ctxt raw_infinite) neg_t ()
     val frees = Term.add_frees neg_t []
     val bounds =
