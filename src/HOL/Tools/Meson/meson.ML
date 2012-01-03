@@ -18,8 +18,8 @@ sig
     thm list -> thm -> Proof.context
     -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
-  val presimplified_consts : Proof.context -> string list
-  val presimplify: Proof.context -> thm -> thm
+  val presimplified_consts : string list
+  val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
@@ -578,18 +578,18 @@ val nnf_ss =
     addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
                  @{simproc let_simp}]
 
-fun presimplified_consts ctxt =
+val presimplified_consts =
   [@{const_name simp_implies}, @{const_name False}, @{const_name True},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}, @{const_name If},
    @{const_name Let}]
 
-fun presimplify ctxt =
+val presimplify =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)
   #> simplify nnf_ss
   #> Raw_Simplifier.rewrite_rule @{thms Let_def_raw}
 
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> presimplify ctxt |> make_nnf1 ctxt
+    [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 fun choice_theorems thy =

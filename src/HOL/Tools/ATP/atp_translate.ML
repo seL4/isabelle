@@ -1093,12 +1093,11 @@ fun iformula_from_prop ctxt format type_enc eq_as_iff =
       | _ => do_term bs t
   in do_formula [] end
 
-fun presimplify_term _ [] t = t
-  | presimplify_term ctxt presimp_consts t =
-    t |> exists_Const (member (op =) presimp_consts o fst) t
-         ? (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-            #> Meson.presimplify ctxt
-            #> prop_of)
+fun presimplify_term ctxt t =
+  t |> exists_Const (member (op =) Meson.presimplified_consts o fst) t
+       ? (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+          #> Meson.presimplify
+          #> prop_of)
 
 fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
@@ -1196,7 +1195,7 @@ fun freeze_term t =
       | freeze t = t
   in t |> exists_subterm is_Var t ? freeze end
 
-fun presimp_prop ctxt presimp_consts role t =
+fun presimp_prop ctxt role t =
   (let
      val thy = Proof_Context.theory_of ctxt
      val t = t |> Envir.beta_eta_contract
@@ -1206,7 +1205,7 @@ fun presimp_prop ctxt presimp_consts role t =
    in
      t |> need_trueprop ? HOLogic.mk_Trueprop
        |> extensionalize_term ctxt
-       |> presimplify_term ctxt presimp_consts
+       |> presimplify_term ctxt
        |> HOLogic.dest_Trueprop
    end
    handle TERM _ => if role = Conjecture then @{term False} else @{term True})
@@ -1708,7 +1707,6 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
   let
     val thy = Proof_Context.theory_of ctxt
     val trans_lams = trans_lams_from_string ctxt type_enc lam_trans
-    val presimp_consts = Meson.presimplified_consts ctxt
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
@@ -1722,8 +1720,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
       |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp
-         ? pairself (map (apsnd (uncurry (presimp_prop ctxt presimp_consts))))
+      |> presimp ? pairself (map (apsnd (uncurry (presimp_prop ctxt))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
