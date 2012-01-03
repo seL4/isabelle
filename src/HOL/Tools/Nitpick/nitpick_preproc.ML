@@ -281,6 +281,16 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, ...}) def orig_t =
         Abs (s, T, do_term (T :: new_Ts) (T :: old_Ts) Neut t')
   in do_term [] [] Pos orig_t end
 
+(** Destruction of set membership and comprehensions **)
+
+fun destroy_set_Collect (Const (@{const_name Set.member}, _) $ t1
+                         $ (Const (@{const_name Collect}, _) $ t2)) =
+    destroy_set_Collect (t2 $ t1)
+  | destroy_set_Collect (t1 $ t2) =
+    destroy_set_Collect t1 $ destroy_set_Collect t2
+  | destroy_set_Collect (Abs (s, T, t')) = Abs (s, T, destroy_set_Collect t')
+  | destroy_set_Collect t = t
+
 (** Destruction of constructors **)
 
 val val_var_prefix = nitpick_prefix ^ "v"
@@ -1268,8 +1278,9 @@ fun preprocess_formulas
       #> box ? uncurry_term table
       #> box ? box_fun_and_pair_in_term hol_ctxt def
     fun do_tail def =
-      destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
-                         #> pull_out_existential_constrs hol_ctxt)
+      destroy_set_Collect
+      #> destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
+                            #> pull_out_existential_constrs hol_ctxt)
       #> destroy_pulled_out_constrs hol_ctxt def destroy_constrs
       #> curry_assms
       #> destroy_universal_equalities
