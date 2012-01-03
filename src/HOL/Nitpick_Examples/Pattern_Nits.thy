@@ -11,7 +11,7 @@ theory Pattern_Nits
 imports Main
 begin
 
-nitpick_params [verbose, card = 10, max_potential = 0, sat_solver = MiniSat_JNI,
+nitpick_params [verbose, card = 8, max_potential = 0, sat_solver = MiniSat_JNI,
                 max_threads = 1, timeout = 240]
 
 lemma "x = (case u of () \<Rightarrow> y)"
