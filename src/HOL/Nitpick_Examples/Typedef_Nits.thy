@@ -163,10 +163,6 @@ lemma "Abs_Nat (Rep_Nat a) = a"
 nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
-lemma "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})"
-(*nitpick [card = 1, unary_ints, max_potential = 0, expect = none] (?)*)
-by (rule Zero_int_def_raw)
-
 lemma "Abs_list (Rep_list a) = a"
 nitpick [card = 1\<emdash>2, expect = none]
 by (rule Rep_list_inverse)

@@ -8,7 +8,9 @@ Examples featuring Nitpick's monotonicity check.
 header {* Examples Featuring Nitpick's Monotonicity Check *}
 
 theory Mono_Nits
-imports Main (* "~/afp/thys/DPT-SAT-Solver/DPT_SAT_Solver" "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
+imports Main
+        (* "~/afp/thys/DPT-SAT-Solver/DPT_SAT_Solver" *)
+        (* "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
 begin
 
 ML {*
@@ -52,10 +54,9 @@ fun is_mono t =
   Nitpick_Mono.formulas_monotonic hol_ctxt binarize @{typ 'a} ([t], [])
 
 fun is_const t =
-  let
-    val T = fastype_of t
-  in
-    is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t), @{const False}))
+  let val T = fastype_of t in
+    Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t), @{const False})
+    |> is_mono
   end
 
 fun mono t = is_mono t orelse raise BUG
@@ -92,9 +93,9 @@ ML {* const @{term "Let (a\<Colon>'a) A"} *}
 ML {* const @{term "A (a\<Colon>'a)"} *}
 ML {* const @{term "insert (a\<Colon>'a) A = B"} *}
 ML {* const @{term "- (A\<Colon>'a set)"} *}
-(* ML {* const @{term "finite (A\<Colon>'a set)"} *} *)
-(* ML {* const @{term "\<not> finite (A\<Colon>'a set)"} *} *)
-(* ML {* const @{term "finite (A\<Colon>'a set set)"} *} *)
+ML {* const @{term "finite (A\<Colon>'a set)"} *}
+ML {* const @{term "\<not> finite (A\<Colon>'a set)"} *}
+ML {* const @{term "finite (A\<Colon>'a set set)"} *}
 ML {* const @{term "\<lambda>a\<Colon>'a. A a \<and> \<not> B a"} *}
 ML {* const @{term "A < (B\<Colon>'a set)"} *}
 ML {* const @{term "A \<le> (B\<Colon>'a set)"} *}
@@ -120,11 +121,12 @@ ML {* nonconst @{term "THE x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "SOME x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) = myunion"} *}
 ML {* nonconst @{term "(\<lambda>x\<Colon>'a. False) = (\<lambda>x\<Colon>'a. True)"} *}
-(* ML {* nonconst @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *} *)
+ML {* nonconst @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *}
 
 ML {* mono @{prop "Q (\<forall>x\<Colon>'a set. P x)"} *}
 ML {* mono @{prop "P (a\<Colon>'a)"} *}
 ML {* mono @{prop "{a} = {b\<Colon>'a}"} *}
+ML {* mono @{prop "(\<lambda>x. x = a) = (\<lambda>y. y = (b\<Colon>'a))"} *}
 ML {* mono @{prop "(a\<Colon>'a) \<in> P \<and> P \<union> P = P"} *}
 ML {* mono @{prop "\<forall>F\<Colon>'a set set. P"} *}
 ML {* mono @{prop "\<not> (\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h)"} *}
@@ -136,7 +138,7 @@ ML {* mono @{prop "\<forall>x\<Colon>'a. P x"} *}
 ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} *}
 
 ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
-(* ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *} *)
+ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *}
 
 ML {*
 val preproc_timeout = SOME (seconds 5.0)

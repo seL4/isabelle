@@ -53,7 +53,7 @@ theorem safe: "s \<in> reach \<Longrightarrow> safe s r \<Longrightarrow> g \<in
 nitpick [card room = 1, card guest = 2, card "guest option" = 3,
          card key = 4, card state = 6, show_consts, format = 2,
          expect = genuine]
-(* nitpick [card room = 1, card guest = 2, expect = genuine] *)
+(* nitpick [card room = 1, card guest = 2, expect = genuine] *) (* slow *)
 oops
 
 end
