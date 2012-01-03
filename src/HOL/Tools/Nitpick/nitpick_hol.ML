@@ -1661,6 +1661,8 @@ fun unfold_defs_in_term
           do_term depth Ts
                   (Const (@{const_name prod}, T1 --> range_type T2 --> T3)
                    $ t1 $ incr_boundvars ~1 t2')
+      | Const (@{const_name Set.member}, _) $ t1
+        $ (Const (@{const_name Collect}, _) $ t2) => do_term depth Ts (t2 $ t1)
       | Const (x as (@{const_name distinct},
                Type (@{type_name fun}, [Type (@{type_name list}, [T']), _])))
         $ (t1 as _ $ _) =>
