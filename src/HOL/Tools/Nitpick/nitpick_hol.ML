@@ -1923,14 +1923,14 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
       let
         val rep_T = varify_and_instantiate_type ctxt abs_type abs_T rep_type
         val rep_t = Const (Rep_name, abs_T --> rep_T)
-        val set_t = Const (set_name, rep_T --> bool_T)
+        val set_t = Const (set_name, Type (@{type_name set}, [rep_T]))
         val set_t' =
           prop_of_Rep |> HOLogic.dest_Trueprop
                       |> specialize_type thy (dest_Const rep_t)
                       |> HOLogic.dest_mem |> snd
       in
         [HOLogic.all_const abs_T
-         $ Abs (Name.uu, abs_T, set_t $ (rep_t $ Bound 0))]
+         $ Abs (Name.uu, abs_T, HOLogic.mk_mem (rep_t $ Bound 0, set_t))]
         |> set_t <> set_t' ? cons (HOLogic.mk_eq (set_t, set_t'))
         |> map HOLogic.mk_Trueprop
       end
