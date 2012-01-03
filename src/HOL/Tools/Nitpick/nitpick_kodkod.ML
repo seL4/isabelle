@@ -940,7 +940,7 @@ fun kodkod_formula_from_nut ofs
                            (rel_expr_from_rel_expr kk min_R R2 r2))
           end
       | Cst (Iden, _, Func (Atom (1, j0), Formula Neut)) => KK.Atom j0
-      | Cst (Iden, T as Type (@{type_name fun}, [T1, _]), R as Func (R1, _)) =>
+      | Cst (Iden, T as Type (@{type_name set}, [T1]), R as Func (R1, _)) =>
         to_rep R (Cst (Iden, T, Func (one_rep ofs T1 R1, Formula Neut)))
       | Cst (Num j, T, R) =>
         if is_word_type T then
