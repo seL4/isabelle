@@ -27,7 +27,8 @@
 \def\rparr{\mathclose{\mid\mkern-4mu)}}
 
 \def\unk{{?}}
-\def\undef{(\lambda x.\; \unk)}
+\def\unkef{(\lambda x.\; \unk)}
+\def\undef{(\lambda x.\; \_)}
 %\def\unr{\textit{others}}
 \def\unr{\ldots}
 \def\Abs#1{\hbox{\rm{\flqq}}{\,#1\,}\hbox{\rm{\frqq}}}
@@ -107,7 +108,7 @@ satisfiable, while the locale is being developed. To check this, it suffices to
 write
 
 \prew
-\textbf{lemma}~``$\textit{False}$'' \\
+\textbf{lemma}~``$\textit{False\/}$'' \\
 \textbf{nitpick}~[\textit{show\_all}]
 \postw
 
@@ -241,7 +242,7 @@ If you are left unimpressed by the previous example, don't worry. The next
 one is more mind- and computer-boggling:
 
 \prew
-\textbf{lemma} ``$P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$''
+\textbf{lemma} ``$x \in A\,\Longrightarrow\, (\textrm{THE}~y.\;y \in A) \in A$''
 \postw
 \pagebreak[2] %% TYPESETTING
 
@@ -266,9 +267,9 @@ Trying 10 scopes: \nopagebreak \\
 \hbox{}\qquad \textit{card}~$'a$~= 10. \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
+\hbox{}\qquad\qquad $A = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\[2\smallskipamount]
-Total time: 0.76 s.
+Total time: 963 ms.
 \postw
 
 Nitpick found a counterexample in which $'a$ has cardinality 3. (For
@@ -295,46 +296,30 @@ this time telling it to show the values of the constants that occur in the
 formula:
 
 \prew
-\textbf{lemma}~``$P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$'' \\
+\textbf{lemma} ``$x \in A\,\Longrightarrow\, (\textrm{THE}~y.\;y \in A) \in A$'' \\
 \textbf{nitpick}~[\textit{show\_consts}] \\[2\smallskipamount]
 \slshape
 Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
+\hbox{}\qquad\qquad $A = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\
 \hbox{}\qquad Constant: \nopagebreak \\
-\hbox{}\qquad\qquad $\hbox{\slshape THE}~y.\;P~y = a_1$
+\hbox{}\qquad\qquad $\hbox{\slshape THE}~y.\;y \in A = a_1$
 \postw
 
 As the result of an optimization, Nitpick directly assigned a value to the
-subterm $\textrm{THE}~y.\;P~y$, rather than to the \textit{The} constant. If we
-disable this optimization by using the command
+subterm $\textrm{THE}~y.\;y \in A$, rather than to the \textit{The} constant. We
+can disable this optimization by using the command
 
 \prew
 \textbf{nitpick}~[\textit{dont\_specialize},\, \textit{show\_consts}]
 \postw
 
-we get \textit{The}:
-
-\prew
-\slshape Constant: \nopagebreak \\
-\hbox{}\qquad $\mathit{The} = \undef{}
-    (\!\begin{aligned}[t]%
-    & \{a_1, a_2, a_3\} := a_3,\> \{a_1, a_2\} := a_3,\> \{a_1, a_3\} := a_3, \\[-2pt] %% TYPESETTING
-    & \{a_1\} := a_1,\> \{a_2, a_3\} := a_1,\> \{a_2\} := a_2, \\[-2pt]
-    & \{a_3\} := a_3,\> \{\} := a_3)\end{aligned}$
-\postw
-
-Notice that $\textit{The}~(\lambda y.\;P~y) = \textit{The}~\{a_2, a_3\} = a_1$,
-just like before.\footnote{The Isabelle/HOL notation $f(x :=
-y)$ denotes the function that maps $x$ to $y$ and that otherwise behaves like
-$f$.}
-
 Our misadventures with THE suggest adding `$\exists!x{.}$' (``there exists a
 unique $x$ such that'') at the front of our putative lemma's assumption:
 
 \prew
-\textbf{lemma}~``$\exists {!}x.\; P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$''
+\textbf{lemma} ``$\exists {!}x.\; x \in A\,\Longrightarrow\, (\textrm{THE}~y.\;y \in A) \in A$''
 \postw
 
 The fix appears to work:
@@ -358,12 +343,9 @@ Let's see if Sledgehammer can find a proof:
 
 \prew
 \textbf{sledgehammer} \\[2\smallskipamount]
-{\slshape Sledgehammer: ``$e$'' on goal: \\
-$\exists{!}x.\; P~x\,\Longrightarrow\, P~(\hbox{\slshape THE}~y.\; P~y)$ \\
-Try this: \textrm{apply}~(\textit{metis~theI}) (21 ms).} \\[2\smallskipamount]
-\textbf{by}~(\textit{metis~theI\/}) \nopagebreak \\[2\smallskipamount]
-{\slshape No subgoals!}% \\[2\smallskipamount]
-%\textbf{done}
+{\slshape Sledgehammer: ``$e$'' on goal \\
+Try this: \textrm{by}~(\textit{metis~theI}) (42 ms).} \\[2\smallskipamount]
+\textbf{by}~(\textit{metis~theI\/})
 \postw
 
 This must be our lucky day.
@@ -386,6 +368,8 @@ Nitpick found a counterexample for \textit{card} $'a$~= 2 and \textit{card} $'b$
 \hbox{}\qquad\qquad $y = a_2$
 \postw
 
+(The Isabelle/HOL notation $f(x := y)$ denotes the function that maps $x$ to $y$
+and that otherwise behaves like $f$.)
 Although $f$ is the only free variable occurring in the formula, Nitpick also
 displays values for the bound variables $g$ and $y$. These values are available
 to Nitpick because it performs skolemization as a preprocessing step.
@@ -424,8 +408,7 @@ Nitpick found a counterexample for \textit{card} $'a$~= 2: \\[2\smallskipamount]
 \hbox{}\qquad\qquad $\mathit{sym}.y = a_1$
 \postw
 
-What happened here is that Nitpick expanded the \textit{sym} constant to its
-definition:
+What happened here is that Nitpick expanded \textit{sym} to its definition:
 
 \prew
 $\mathit{sym}~r \,\equiv\,
@@ -492,7 +475,7 @@ spurious. The root of the problem is that the bound variable in $\forall n.\;
 \textit{Suc}~n \mathbin{\not=} n$ ranges over an infinite type. If Nitpick finds
 an $n$ such that $\textit{Suc}~n \mathbin{=} n$, it evaluates the assumption to
 \textit{False}; but otherwise, it does not know anything about values of $n \ge
-\textit{card~nat}$ and must therefore evaluate the assumption to $\unk$, not
+\textit{card~nat}$ and must therefore evaluate the assumption to~$\unk$, not
 \textit{True}. Since the assumption can never be satisfied, the putative lemma
 can never be falsified.
 
@@ -505,7 +488,7 @@ Some conjectures involving elementary number theory make Nitpick look like a
 giant with feet of clay:
 
 \prew
-\textbf{lemma} ``$P~\textit{Suc}$'' \\
+\textbf{lemma} ``$P~\textit{Suc\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape
 Nitpick found no counterexample.
@@ -523,14 +506,14 @@ example is similar:
 \textbf{nitpick} [\textit{card nat} = 1] \\[2\smallskipamount]
 {\slshape Nitpick found a counterexample:} \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{\}$ \\[2\smallskipamount]
+\hbox{}\qquad\qquad $P = \unkef(\unkef(0 := \unkef(0 := 0)) := \mathit{False})$ \\[2\smallskipamount]
 \textbf{nitpick} [\textit{card nat} = 2] \\[2\smallskipamount]
 {\slshape Nitpick found no counterexample.}
 \postw
 
 The problem here is that \textit{op}~+ is total when \textit{nat} is taken to be
-$\{0\}$ but becomes partial as soon as we add $1$, because $1 + 1 \notin \{0,
-1\}$.
+$\{0\}$ but becomes partial as soon as we add $1$, because
+$1 + 1 \notin \{0, 1\}$.
 
 Because numbers are infinite and are approximated using a three-valued logic,
 there is usually no need to systematically enumerate domain sizes. If Nitpick
@@ -554,7 +537,7 @@ Let's see with an example involving \textit{hd} (which returns the first element
 of a list) and $@$ (which concatenates two lists):
 
 \prew
-\textbf{lemma} ``$\textit{hd}~(\textit{xs} \mathbin{@} [y, y]) = \textit{hd}~\textit{xs}$'' \\
+\textbf{lemma} ``$\textit{hd}~(\textit{xs} \mathbin{@} [y, y]) = \textit{hd}~\textit{xs\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -569,8 +552,8 @@ and \textit{show\_\allowbreak datatypes}:
 {\slshape Datatype:} \\
 \hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_1],\, [a_1, a_1],\, \unr\}$ \\
 {\slshape Constants:} \\
-\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_1, a_1])$ \\
-\hbox{}\qquad $\textit{hd} = \undef([] := a_2,\> [a_1] := a_1,\> [a_1, a_1] := a_1)$
+\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \unkef([] := [a_1, a_1])$ \\
+\hbox{}\qquad $\textit{hd} = \unkef([] := a_2,\> [a_1] := a_1,\> [a_1, a_1] := a_1)$
 \postw
 
 Since $\mathit{hd}~[]$ is undefined in the logic, it may be given any value,
@@ -617,13 +600,13 @@ Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
 
 \prew
 \textbf{lemma} ``$\lbrakk \textit{length}~\textit{xs} = 1;\> \textit{length}~\textit{ys} = 1
-\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys}$''
+\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$''
 \\
 \textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{xs} = [a_1]$ \\
-\hbox{}\qquad\qquad $\textit{ys} = [a_2]$ \\
+\hbox{}\qquad\qquad $\textit{xs} = [a_2]$ \\
+\hbox{}\qquad\qquad $\textit{ys} = [a_1]$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
 \hbox{}\qquad\qquad $'a$~\textit{list} = $\{[],\, [a_1],\, [a_2],\, \unr\}$
@@ -647,12 +630,12 @@ For example:
 \textbf{definition}~$A \mathbin{\Colon} \textit{three}$ \textbf{where} ``\kern-.1em$A \,\equiv\, \textit{Abs\_\allowbreak three}~0$'' \\
 \textbf{definition}~$B \mathbin{\Colon} \textit{three}$ \textbf{where} ``$B \,\equiv\, \textit{Abs\_three}~1$'' \\
 \textbf{definition}~$C \mathbin{\Colon} \textit{three}$ \textbf{where} ``$C \,\equiv\, \textit{Abs\_three}~2$'' \\[2\smallskipamount]
-\textbf{lemma} ``$\lbrakk P~A;\> P~B\rbrakk \,\Longrightarrow\, P~x$'' \\
+\textbf{lemma} ``$\lbrakk A \in X;\> B \in X\rbrakk \,\Longrightarrow\, c \in X$'' \\
 \textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{\Abs{0},\, \Abs{1}\}$ \\
-\hbox{}\qquad\qquad $x = \Abs{2}$ \\
+\hbox{}\qquad\qquad $X = \{\Abs{0},\, \Abs{1}\}$ \\
+\hbox{}\qquad\qquad $c = \Abs{2}$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{three} = \{\Abs{0},\, \Abs{1},\, \Abs{2},\, \unr\}$
@@ -669,7 +652,7 @@ natural numbers $(m, n)$ such that $x + n = m$:
 ``$\textit{my\_int\_rel}~(x,\, y)~(u,\, v) = (x + v = u + y)$'' \\[2\smallskipamount]
 %
 \textbf{quotient\_type}~\textit{my\_int} = ``$\textit{nat} \times \textit{nat\/}$''$\;{/}\;$\textit{my\_int\_rel} \\
-\textbf{by}~(\textit{auto simp add\/}:\ \textit{equivp\_def expand\_fun\_eq}) \\[2\smallskipamount]
+\textbf{by}~(\textit{auto simp add\/}:\ \textit{equivp\_def fun\_eq\_iff}) \\[2\smallskipamount]
 %
 \textbf{definition}~\textit{add\_raw}~\textbf{where} \\
 ``$\textit{add\_raw} \,\equiv\, \lambda(x,\, y)~(u,\, v).\; (x + (u\Colon\textit{nat}), y + (v\Colon\textit{nat}))$'' \\[2\smallskipamount]
@@ -681,16 +664,16 @@ natural numbers $(m, n)$ such that $x + n = m$:
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $x = \Abs{(0,\, 0)}$ \\
-\hbox{}\qquad\qquad $y = \Abs{(1,\, 0)}$ \\
+\hbox{}\qquad\qquad $y = \Abs{(0,\, 1)}$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{nat} \times \textit{nat}~[\textsl{boxed\/}] = \{(0,\, 0),\> (1,\, 0),\> \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{my\_int} = \{\Abs{(0,\, 0)},\> \Abs{(1,\, 0)},\> \unr\}$
+\hbox{}\qquad\qquad $\textit{my\_int} = \{\Abs{(0,\, 0)},\> \Abs{(0,\, 1)},\> \unr\}$
 \postw
 
-In the counterexample, $\Abs{(0,\, 0)}$ and $\Abs{(1,\, 0)}$ represent the
-integers $0$ and $1$, respectively. Other representants would have been
-possible---e.g., $\Abs{(5,\, 5)}$ and $\Abs{(12,\, 11)}$. If we are going to
+The values $\Abs{(0,\, 0)}$ and $\Abs{(0,\, 1)}$ represent the
+integers $0$ and $-1$, respectively. Other representants would have been
+possible---e.g., $\Abs{(5,\, 5)}$ and $\Abs{(11,\, 12)}$. If we are going to
 use \textit{my\_int} extensively, it pays off to install a term postprocessor
 that converts the pair notation to the standard mathematical notation:
 
@@ -712,7 +695,7 @@ $\textbf{declaration}~\,\{{*} \\
 {*}\}\end{aligned}$
 \postw
 
-Records are also handled as datatypes with a single constructor:
+Records are handled as datatypes with a single constructor:
 
 \prew
 \textbf{record} \textit{point} = \\
@@ -743,8 +726,8 @@ similar approach:
 \hbox{}\qquad\qquad $y = -1/2$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, 3,\, 4,\, 5,\, 6,\, 7,\, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{int} = \{0,\, 1,\, 2,\, 3,\, 4,\, -3,\, -2,\, -1,\, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{real} = \{1,\, 0,\, 4,\, -3/2,\, 3,\, 2,\, 1/2,\, -1/2,\, \unr\}$
+\hbox{}\qquad\qquad $\textit{int} = \{-3,\, -2,\, -1,\, 0,\, 1,\, 2,\, 3,\, 4,\, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{real} = \{-3/2,\, -1/2,\, 0,\, 1/2,\, 1,\, 2,\, 3,\, 4,\, \unr\}$
 \postw
 
 \subsection{Inductive and Coinductive Predicates}
@@ -802,10 +785,12 @@ Let's try an example:
 Nitpick can compute it efficiently. \\[2\smallskipamount]
 Trying 1 scope: \\
 \hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
+Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported fragment. Only
+potentially spurious counterexamples may be found. \\[2\smallskipamount]
 Nitpick found a potentially spurious counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
-Nitpick could not find a better counterexample. \\[2\smallskipamount]
-Total time: 1.43 s.
+Nitpick could not find a better counterexample. It checked 1 of 1 scope. \\[2\smallskipamount]
+Total time: 1.62 s.
 \postw
 
 No genuine counterexample is possible because Nitpick cannot rule out the
@@ -854,11 +839,12 @@ Trying 6 scopes: \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 9. \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 2: \\[2\smallskipamount]
 \hbox{}\qquad Constant: \nopagebreak \\
-\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\undef(\!\begin{aligned}[t]
-& 2 := \{0, 2, 4, 6, 8, 1^\Q, 3^\Q, 5^\Q, 7^\Q, 9^\Q\}, \\[-2pt]
-& 1 := \{0, 2, 4, 1^\Q, 3^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\}, \\[-2pt]
-& 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$ \\[2\smallskipamount]
-Total time: 2.42 s.
+\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\unkef(\!\begin{aligned}[t]
+& 0 := \unkef(0 := \textit{True},\, 2 := \textit{True}),\, \\[-2pt]
+& 1 := \unkef(0 := \textit{True},\, 2 := \textit{True},\, 4 := \textit{True}),\, \\[-2pt]
+& 2 := \unkef(0 := \textit{True},\, 2 := \textit{True},\, 4 := \textit{True},\, \\[-2pt]
+& \phantom{2 := \unkef(}6 := \textit{True},\, 8 := \textit{True}))\end{aligned}$ \\[2\smallskipamount]
+Total time: 1.87 s.
 \postw
 
 Nitpick's output is very instructive. First, it tells us that the predicate is
@@ -872,11 +858,12 @@ predicate depends on an iteration counter. Iteration 0 provides the basis
 elements, $0$ and $2$. Iteration 1 contributes $4$ ($= 2 + 2$). Iteration 2
 throws $6$ ($= 2 + 4 = 4 + 2$) and $8$ ($= 4 + 4$) into the mix. Further
 iterations would not contribute any new elements.
+The predicate $\textit{even}'$ evaluates to either \textit{True} or $\unk$,
+never \textit{False}.
 
-Some values are marked with superscripted question
-marks~(`\lower.2ex\hbox{$^\Q$}'). These are the elements for which the
-predicate evaluates to $\unk$. Thus, $\textit{even}'$ evaluates to either
-\textit{True} or $\unk$, never \textit{False}.
+%Some values are marked with superscripted question
+%marks~(`\lower.2ex\hbox{$^\Q$}'). These are the elements for which the
+%predicate evaluates to $\unk$.
 
 When unrolling a predicate, Nitpick tries 0, 1, 2, 4, 8, 12, 16, 20, 24, and 28
 iterations. However, these numbers are bounded by the cardinality of the
@@ -894,16 +881,17 @@ In the next formula, $\textit{even}'$ occurs both positively and negatively:
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $n = 1$ \\
 \hbox{}\qquad Constants: \nopagebreak \\
-\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\undef(\!\begin{aligned}[t]
-& 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$  \\
-\hbox{}\qquad\qquad $\textit{even}' \subseteq \{0, 2, 4, 6, 8, \unr\}$
+\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\unkef(\!\begin{aligned}[t]
+& 0 := \unkef(0 := \mathit{True},\, 2 := \mathit{True}))\end{aligned}$  \\
+\hbox{}\qquad\qquad $\textit{even}' \leq \unkef(\!\begin{aligned}[t]
+& 0 := \mathit{True},\, 1 := \mathit{False},\, 2 := \mathit{True},\, \\[-2pt]
+& 4 := \mathit{True},\, 6 := \mathit{True},\, 8 := \mathit{True})\end{aligned}$
 \postw
 
-Notice the special constraint $\textit{even}' \subseteq \{0,\, 2,\, 4,\, 6,\,
-8,\, \unr\}$ in the output, whose right-hand side represents an arbitrary
-fixed point (not necessarily the least one). It is used to falsify
-$\textit{even}'~n$. In contrast, the unrolled predicate is used to satisfy
-$\textit{even}'~(n - 2)$.
+Notice the special constraint $\textit{even}' \leq \ldots$ in the output, whose
+right-hand side represents an arbitrary fixed point (not necessarily the least
+one). It is used to falsify $\textit{even}'~n$. In contrast, the unrolled
+predicate is used to satisfy $\textit{even}'~(n - 2)$.
 
 Coinductive predicates are handled dually. For example:
 
@@ -915,10 +903,8 @@ Coinductive predicates are handled dually. For example:
 \slshape Nitpick found a counterexample:
 \\[2\smallskipamount]
 \hbox{}\qquad Constants: \nopagebreak \\
-\hbox{}\qquad\qquad $\lambda i.\; \textit{nats} = \undef(0 := \{\!\begin{aligned}[t]
-& 0^\Q, 1^\Q, 2^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q, \\[-2pt]
-& \unr\})\end{aligned}$ \\
-\hbox{}\qquad\qquad $nats \supseteq \{9, 5^\Q, 6^\Q, 7^\Q, 8^\Q, \unr\}$
+\hbox{}\qquad\qquad $\lambda i.\; \textit{nats} = \unkef(0 := \unkef,\, 1 := \unkef,\, 2 := \unkef)$ \\
+\hbox{}\qquad\qquad $\textit{nats} \geq \unkef(3 := \textit{True},\, 4 := \textit{False},\, 5 := \textit{True})$
 \postw
 
 As a special case, Nitpick uses Kodkod's transitive closure operator to encode
@@ -931,22 +917,24 @@ assumption of each introduction rule. For example:
 ``$\textit{odd}~1$'' $\,\mid$ \\
 ``$\lbrakk \textit{odd}~m;\>\, \textit{even}~n\rbrakk \,\Longrightarrow\, \textit{odd}~(m + n)$'' \\[2\smallskipamount]
 \textbf{lemma}~``$\textit{odd}~n \,\Longrightarrow\, \textit{odd}~(n - 2)$'' \\
-\textbf{nitpick}~[\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
+\textbf{nitpick}~[\textit{card nat} = 4,\, \textit{show\_consts}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample:
 \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $n = 1$ \\
 \hbox{}\qquad Constants: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{even} = \{0, 2, 4, 6, 8, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{odd}_{\textsl{base}} = \{1, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{odd}_{\textsl{step}} = \!
+\hbox{}\qquad\qquad $\textit{even} = (λx. ?)(0 := True, 1 := False, 2 := True, 3 := False)$ \\
+\hbox{}\qquad\qquad $\textit{odd}_{\textsl{base}} = {}$ \\
+\hbox{}\qquad\qquad\quad $\unkef(0 := \textit{False},\, 1 := \textit{True},\, 2 := \textit{False},\, 3 := \textit{False})$ \\
+\hbox{}\qquad\qquad $\textit{odd}_{\textsl{step}} = \unkef$\\
+\hbox{}\qquad\qquad\quad $(
 \!\begin{aligned}[t]
-  & \{(0, 0), (0, 2), (0, 4), (0, 6), (0, 8), (1, 1), (1, 3), (1, 5), \\[-2pt]
-  & \phantom{\{} (1, 7), (1, 9), (2, 2), (2, 4), (2, 6), (2, 8), (3, 3),
-       (3, 5), \\[-2pt]
-  & \phantom{\{} (3, 7), (3, 9), (4, 4), (4, 6), (4, 8), (5, 5), (5, 7), (5, 9), \\[-2pt]
-  & \phantom{\{} (6, 6), (6, 8), (7, 7), (7, 9), (8, 8), (9, 9), \unr\}\end{aligned}$ \\
-\hbox{}\qquad\qquad $\textit{odd} \subseteq \{1, 3, 5, 7, 9, 8^\Q, \unr\}$
+& 0 := \unkef(0 := \textit{True},\, 1 := \textit{False},\, 2 := \textit{True},\, 3 := \textit{False}), \\[-2pt]
+& 1 := \unkef(0 := \textit{False},\, 1 := \textit{True},\, 2 := \textit{False},\, 3 := \textit{True}), \\[-2pt]
+& 2 := \unkef(0 := \textit{False},\, 1 := \textit{False},\, 2 := \textit{True},\, 3 := \textit{False}), \\[-2pt]
+& 3 := \unkef(0 := \textit{False},\, 1 := \textit{False},\, 2 := \textit{False},\, 3 := \textit{True}))
+\end{aligned}$ \\
+\hbox{}\qquad\qquad $\textit{odd} \leq \unkef(0 := \textit{False},\, 1 := \textit{True},\, 2 := \textit{False},\, 3 := \textit{True})$
 \postw
 
 \noindent
@@ -955,11 +943,10 @@ $\textit{odd}_{\textrm{step}}$ is a transition relation that computes new
 elements from known ones. The set $\textit{odd}$ consists of all the values
 reachable through the reflexive transitive closure of
 $\textit{odd}_{\textrm{step}}$ starting with any element from
-$\textit{odd}_{\textrm{base}}$, namely 1, 3, 5, 7, and 9. Using Kodkod's
+$\textit{odd}_{\textrm{base}}$, namely 1 and 3. Using Kodkod's
 transitive closure to encode linear predicates is normally either more thorough
 or more efficient than unrolling (depending on the value of \textit{iter}), but
-for those cases where it isn't you can disable it by passing the
-\textit{dont\_star\_linear\_preds} option.
+you can disable it by passing the \textit{dont\_star\_linear\_preds} option.
 
 \subsection{Coinductive Datatypes}
 \label{coinductive-datatypes}
@@ -985,7 +972,7 @@ involving cyclic lists such as \textit{ps} and \textit{qs} above as well as
 finite lists:
 
 \prew
-\textbf{lemma} ``$\textit{xs} \not= \textit{LCons}~a~\textit{xs}$'' \\
+\textbf{lemma} ``$\textit{xs} \not= \textit{LCons}~a~\textit{xs\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for {\itshape card}~$'a$ = 1: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -1001,9 +988,9 @@ The next example is more interesting:
 
 \prew
 \textbf{lemma}~``$\lbrakk\textit{xs} = \textit{LCons}~a~\textit{xs};\>\,
-\textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys}$'' \\
+\textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
-\slshape The type ``\kern1pt$'a$'' passed the monotonicity test. Nitpick might be able to skip
+\slshape The type $'a$ passed the monotonicity test. Nitpick might be able to skip
 some scopes. \\[2\smallskipamount]
 Trying 10 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 1,
@@ -1011,8 +998,11 @@ and \textit{bisim\_depth}~= 0. \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
 \hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 10,
 and \textit{bisim\_depth}~= 9. \\[2\smallskipamount]
+Limit reached: arity 11 of Kodkod relation associated with
+``\textit{Set.insert\/}'' too large for universe of cardinality 9. Skipping scope.
+\\[2\smallskipamount]
 Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
-\textit{card}~``\kern1pt$'a~\textit{list\/}$''~= 2, and \textit{bisim\_\allowbreak
+\textit{card}~``\kern1pt$'a~\textit{llist\/}$''~= 2, and \textit{bisim\_\allowbreak
 depth}~= 1:
 \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -1020,7 +1010,7 @@ depth}~= 1:
 \hbox{}\qquad\qquad $\textit{b} = a_2$ \\
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_2~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega)$ \\[2\smallskipamount]
-Total time: 1.02 s.
+Total time: 1.11 s.
 \postw
 
 The lazy list $\textit{xs}$ is simply $[a_1, a_1, a_1, \ldots]$, whereas
@@ -1056,7 +1046,7 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
 
 \prew
 \textbf{lemma} ``$\lbrakk xs = \textit{LCons}~a~\textit{xs};\>\, \textit{ys} = \textit{LCons}~a~\textit{ys}\rbrakk
-\,\Longrightarrow\, \textit{xs} = \textit{ys}$'' \\
+\,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
 \textbf{nitpick} [\textit{bisim\_depth} = $-1$, \textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a quasi genuine counterexample for $\textit{card}~'a$ = 2: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -1153,14 +1143,14 @@ terms unchanged. Alas, even this simple property does not hold:
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
 \slshape
 Trying 10 scopes: \nopagebreak \\
-\hbox{}\qquad \textit{card~nat}~= 1, \textit{card tm}~= 1, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 1; \\
-\hbox{}\qquad \textit{card~nat}~= 2, \textit{card tm}~= 2, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 2; \\
+\hbox{}\qquad \textit{card~nat}~= 1, \textit{card tm}~= 1, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 1; \\
+\hbox{}\qquad \textit{card~nat}~= 2, \textit{card tm}~= 2, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card~nat}~= 10, \textit{card tm}~= 10, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 10. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card~nat}~= 10, \textit{card tm}~= 10, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 10. \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card~nat}~= 6, \textit{card~tm}~= 6,
-and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm}$''~= 6: \\[2\smallskipamount]
+and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm\/}$''~= 6: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $\sigma = \undef(\!\begin{aligned}[t]
+\hbox{}\qquad\qquad $\sigma = \unkef(\!\begin{aligned}[t]
 & 0 := \textit{Var}~0,\>
   1 := \textit{Var}~0,\>
   2 := \textit{Var}~0, \\[-2pt]
@@ -1181,7 +1171,7 @@ replaced with $\textit{lift}~(\sigma~m)~0$.
 An interesting aspect of Nitpick's verbose output is that it assigned inceasing
 cardinalities from 1 to 10 to the type $\textit{nat} \Rightarrow \textit{tm}$.
 For the formula of interest, knowing 6 values of that type was enough to find
-the counterexample. Without boxing, $46\,656$ ($= 6^6$) values must be
+the counterexample. Without boxing, $6^6 = 46\,656$ values must be
 considered, a hopeless undertaking:
 
 \prew
@@ -1189,15 +1179,14 @@ considered, a hopeless undertaking:
 {\slshape Nitpick ran out of time after checking 3 of 10 scopes.}
 \postw
 
-{\looseness=-1
 Boxing can be enabled or disabled globally or on a per-type basis using the
 \textit{box} option. Nitpick usually performs reasonable choices about which
-types should be boxed, but option tweaking sometimes helps. A related optimization,
-``finalization,'' attempts to wrap functions that constant at all but finitely
-many points (e.g., finite sets); see the documentation for the \textit{finalize}
-option in \S\ref{scope-of-search} for details.
+types should be boxed, but option tweaking sometimes helps.
 
-}
+%A related optimization,
+%``finitization,'' attempts to wrap functions that are constant at all but finitely
+%many points (e.g., finite sets); see the documentation for the \textit{finitize}
+%option in \S\ref{scope-of-search} for details.
 
 \subsection{Scope Monotonicity}
 \label{scope-monotonicity}
@@ -1233,7 +1222,7 @@ definitions:
 \prew
 \textbf{nitpick}~[\textit{verbose}] \\[2\smallskipamount]
 \slshape
-The types ``\kern1pt$'a$'' and ``\kern1pt$'b$'' passed the monotonicity test.
+The types $'a$ and $'b$ passed the monotonicity test.
 Nitpick might be able to skip some scopes.
  \\[2\smallskipamount]
 Trying 10 scopes: \\
@@ -1447,11 +1436,11 @@ If we follow the hint, we get a ``nonstandard'' counterexample for the step:
 \hbox{}\qquad Datatype: \nopagebreak \\
 \hbox{}\qquad\qquad $\alpha~\textit{btree} = \{\xi_1 \mathbin{=} \textit{Branch}~\xi_1~\xi_1,\> \xi_2 \mathbin{=} \textit{Branch}~\xi_2~\xi_2,\> \textit{Branch}~\xi_1~\xi_2\}$ \\
 \hbox{}\qquad {\slshape Constants:} \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{labels} = \undef
+\hbox{}\qquad\qquad $\textit{labels} = \unkef
     (\!\begin{aligned}[t]%
     & \xi_1 := \{a_2, a_3\},\> \xi_2 := \{a_1\},\> \\[-2pt]
     & \textit{Branch}~\xi_1~\xi_2 := \{a_1, a_2, a_3\})\end{aligned}$ \\
-\hbox{}\qquad\qquad $\lambda x_1.\> \textit{swap}~x_1~a~b = \undef
+\hbox{}\qquad\qquad $\lambda x_1.\> \textit{swap}~x_1~a~b = \unkef
     (\!\begin{aligned}[t]%
     & \xi_1 := \xi_2,\> \xi_2 := \xi_2, \\[-2pt]
     & \textit{Branch}~\xi_1~\xi_2 := \xi_2)\end{aligned}$ \\[2\smallskipamount]
@@ -1661,9 +1650,9 @@ functions:
 
 \prew
 \textbf{datatype} $'a$~\textit{aa\_tree} = \\
-\hbox{}\quad $\Lambda$ $\mid$ $N$ ``\kern1pt$'a\Colon \textit{linorder}$'' \textit{nat} ``\kern1pt$'a$ \textit{aa\_tree}'' ``\kern1pt$'a$ \textit{aa\_tree}''  \\[2\smallskipamount]
+\hbox{}\quad $\Lambda$ $\mid$ $N$ ``\kern1pt$'a\Colon \textit{linorder\/}$'' \textit{nat} ``\kern1pt$'a$ \textit{aa\_tree}'' ``\kern1pt$'a$ \textit{aa\_tree}''  \\[2\smallskipamount]
 \textbf{primrec} \textit{data} \textbf{where} \\
-``$\textit{data}~\Lambda = \undef$'' $\,\mid$ \\
+``$\textit{data}~\Lambda = \unkef$'' $\,\mid$ \\
 ``$\textit{data}~(N~x~\_~\_~\_) = x$'' \\[2\smallskipamount]
 \textbf{primrec} \textit{dataset} \textbf{where} \\
 ``$\textit{dataset}~\Lambda = \{\}$'' $\,\mid$ \\
@@ -1710,7 +1699,7 @@ The \textit{wf} predicate formalizes this description:
 
 \prew
 \textbf{primrec} \textit{wf} \textbf{where} \\
-``$\textit{wf}~\Lambda = \textit{True}$'' $\,\mid$ \\
+``$\textit{wf}~\Lambda = \textit{True\/}$'' $\,\mid$ \\
 ``$\textit{wf}~(N~\_~k~t~u) =$ \\
 \phantom{``}$(\textrm{if}~t = \Lambda~\textrm{then}$ \\
 \phantom{``$(\quad$}$k = 1 \mathrel{\land} (u = \Lambda \mathrel{\lor} (\textit{level}~u = 1 \mathrel{\land} \textit{left}~u = \Lambda \mathrel{\land} \textit{right}~u = \Lambda))$ \\
@@ -2849,7 +2838,7 @@ for which the function is not defined. For example:
 \prew
 \textbf{primrec} \textit{prec} \textbf{where} \\
 ``$\textit{prec}~(\textit{Suc}~n) = n$'' \\[2\smallskipamount]
-\textbf{lemma} ``$\textit{prec}~0 = \undef$'' \\
+\textbf{lemma} ``$\textit{prec}~0 = \textit{undefined\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \quad{\slshape Nitpick found a counterexample for \textit{card nat}~= 2:
 \nopagebreak

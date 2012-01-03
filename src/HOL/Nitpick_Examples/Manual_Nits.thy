@@ -187,7 +187,7 @@ inductive odd where
 "\<lbrakk>odd m; even n\<rbrakk> \<Longrightarrow> odd (m + n)"
 
 lemma "odd n \<Longrightarrow> odd (n - 2)"
-nitpick [card nat = 10, show_consts, expect = genuine]
+nitpick [card nat = 4, show_consts, expect = genuine]
 oops
 
 subsection {* 2.9. Coinductive Datatypes *}
