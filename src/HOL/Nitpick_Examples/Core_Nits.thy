@@ -821,11 +821,11 @@ lemma "\<not> (Q \<Colon> nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "(Q \<Colon> 'a \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> Q (Eps Q)"
+lemma "(Q\<Colon>'a \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q\<Colon>'a \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = none]
 sorry
 
-lemma "(Q \<Colon> nat \<Rightarrow> bool) \<noteq> top \<Longrightarrow> Q (Eps Q)"
+lemma "(Q\<Colon>nat \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q\<Colon>nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = none]
 sorry
 
@@ -833,7 +833,7 @@ lemma "Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "(Q \<Colon> nat \<Rightarrow> bool) (The Q)"
+lemma "(Q\<Colon>nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = genuine]
 oops
 
@@ -841,7 +841,7 @@ lemma "\<not> Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<not> (Q \<Colon> nat \<Rightarrow> bool) (The Q)"
+lemma "\<not> (Q\<Colon>nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = genuine]
 oops
 
@@ -861,11 +861,11 @@ lemma "Q (x\<Colon>nat) \<Longrightarrow> Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "Q = {x\<Colon>'a} \<Longrightarrow> (The Q) \<in> (Q\<Colon>'a set)"
+lemma "Q = (\<lambda>x\<Colon>'a. x = a) \<Longrightarrow> (Q\<Colon>'a \<Rightarrow> bool) (The Q)"
 nitpick [expect = none]
 sorry
 
-lemma "Q = {x\<Colon>nat} \<Longrightarrow> (The Q) \<in> (Q\<Colon>nat set)"
+lemma "Q = (\<lambda>x\<Colon>nat. x = a) \<Longrightarrow> (Q\<Colon>nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = none]
 sorry
 
