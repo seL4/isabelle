@@ -312,6 +312,39 @@ A297::nat
 A298::nat
 A299::nat
 
+record many_B = many_A +
+B000::nat
+B001::nat
+B002::nat
+B003::nat
+B004::nat
+B005::nat
+B006::nat
+B007::nat
+B008::nat
+B009::nat
+B010::nat
+B011::nat
+B012::nat
+B013::nat
+B014::nat
+B015::nat
+B016::nat
+B017::nat
+B018::nat
+B019::nat
+B020::nat
+B021::nat
+B022::nat
+B023::nat
+B024::nat
+B025::nat
+B026::nat
+B027::nat
+B028::nat
+B029::nat
+B030::nat
+
 lemma "A155 (r\<lparr>A255:=x\<rparr>) = A155 r"
   by simp
 
@@ -366,20 +399,16 @@ lemma fixes r shows "P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
   done
 
 
-lemma True
-proof -
-  {
-    fix P r
-    assume pre: "P (A155 r)"
-    have "\<exists>x. P x"
-      using pre
-      apply -
-      apply (tactic {* Record.split_simp_tac [] (K ~1) 1*})
-      apply auto 
-      done
-  }
-  show ?thesis ..
-qed
+notepad
+begin
+  fix P r
+  assume "P (A155 r)"
+  then have "\<exists>x. P x"
+    apply -
+    apply (tactic {* Record.split_simp_tac [] (K ~1) 1*})
+    apply auto 
+    done
+end
 
 
 lemma "\<exists>r. A155 r = x"
