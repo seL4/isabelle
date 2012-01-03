@@ -745,7 +745,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         <= length ts
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
-    fun mtype_for_set x T = MFun (mtype_for (elem_type T), V x, bool_M)
+    fun mtype_for_set x T = MFun (mtype_for (pseudo_domain_type T), V x, bool_M)
     fun do_all T (gamma, cset) =
       let
         val abs_M = mtype_for (domain_type (domain_type T))

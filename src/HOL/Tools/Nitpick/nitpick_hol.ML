@@ -102,6 +102,8 @@ sig
   val is_number_type : Proof.context -> typ -> bool
   val is_higher_order_type : typ -> bool
   val elem_type : typ -> typ
+  val pseudo_domain_type : typ -> typ
+  val pseudo_range_type : typ -> typ
   val const_for_iterator_type : typ -> styp
   val strip_n_binders : int -> typ -> typ list * typ
   val nth_range_type : int -> typ -> typ
@@ -382,6 +384,8 @@ val built_in_consts =
    (@{const_name Pair}, 2),
    (@{const_name fst}, 1),
    (@{const_name snd}, 1),
+   (@{const_name Set.member}, 2),
+   (@{const_name Collect}, 1),
    (@{const_name Id}, 0),
    (@{const_name converse}, 1),
    (@{const_name trancl}, 1),
@@ -505,8 +509,13 @@ fun is_higher_order_type (Type (@{type_name fun}, _)) = true
   | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
   | is_higher_order_type _ = false
 
-fun elem_type (Type (@{type_name set}, [T])) = T
+fun elem_type (Type (@{type_name set}, [T'])) = T'
   | elem_type T = raise TYPE ("Nitpick_HOL.elem_type", [T], [])
+fun pseudo_domain_type (Type (@{type_name fun}, [T1, _])) = T1
+  | pseudo_domain_type T = elem_type T
+fun pseudo_range_type (Type (@{type_name fun}, [_, T2])) = T2
+  | pseudo_range_type (Type (@{type_name set}, _)) = bool_T
+  | pseudo_range_type T = raise TYPE ("Nitpick_HOL.pseudo_range_type", [T], [])
 
 fun iterator_type_for_const gfp (s, T) =
   Type ((if gfp then gfp_iterator_prefix else lfp_iterator_prefix) ^ s,
@@ -575,8 +584,8 @@ fun is_standard_datatype thy = the oo triple_lookup (type_match thy)
 (* FIXME: Use antiquotation for "code_numeral" below or detect "rep_datatype",
    e.g., by adding a field to "Datatype_Aux.info". *)
 fun is_basic_datatype thy stds s =
-  member (op =) [@{type_name prod}, @{type_name bool}, @{type_name int},
-                 "Code_Numeral.code_numeral"] s orelse
+  member (op =) [@{type_name prod}, @{type_name set}, @{type_name bool},
+                 @{type_name int}, "Code_Numeral.code_numeral"] s orelse
   (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
 fun repair_constr_type ctxt body_T' T =
@@ -959,6 +968,8 @@ fun card_of_type assigns (Type (@{type_name fun}, [T1, T2])) =
     reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
   | card_of_type assigns (Type (@{type_name prod}, [T1, T2])) =
     card_of_type assigns T1 * card_of_type assigns T2
+  | card_of_type assigns (Type (@{type_name set}, [T'])) =
+    reasonable_power 2 (card_of_type assigns T')
   | card_of_type _ (Type (@{type_name itself}, _)) = 1
   | card_of_type _ @{typ prop} = 2
   | card_of_type _ @{typ bool} = 2
@@ -983,6 +994,9 @@ fun bounded_card_of_type max default_card assigns
       val k1 = bounded_card_of_type max default_card assigns T1
       val k2 = bounded_card_of_type max default_card assigns T2
     in if k1 = max orelse k2 = max then max else Int.min (max, k1 * k2) end
+  | bounded_card_of_type max default_card assigns
+                         (Type (@{type_name set}, [T'])) =
+    bounded_card_of_type max default_card assigns (T' --> bool_T)
   | bounded_card_of_type max default_card assigns T =
     Int.min (max, if default_card = ~1 then
                     card_of_type assigns T
@@ -1016,6 +1030,7 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
           | (k1, k2) =>
             if k1 >= max orelse k2 >= max then max
             else Int.min (max, k1 * k2))
+       | Type (@{type_name set}, [T']) => aux avoid (T' --> bool_T)
        | Type (@{type_name itself}, _) => 1
        | @{typ prop} => 2
        | @{typ bool} => 2
@@ -1256,7 +1271,7 @@ fun special_bounds ts =
 
 (* FIXME: detect "rep_datatype"? *)
 fun is_funky_typedef_name ctxt s =
-  member (op =) [@{type_name unit}, @{type_name prod},
+  member (op =) [@{type_name unit}, @{type_name prod}, @{type_name set},
                  @{type_name Sum_Type.sum}, @{type_name int}] s orelse
   is_frac_type ctxt (Type (s, []))
 fun is_funky_typedef ctxt (Type (s, _)) = is_funky_typedef_name ctxt s
@@ -2311,6 +2326,7 @@ fun add_ground_types hol_ctxt binarize =
       case T of
         Type (@{type_name fun}, Ts) => fold aux Ts accum
       | Type (@{type_name prod}, Ts) => fold aux Ts accum
+      | Type (@{type_name set}, Ts) => fold aux Ts accum
       | Type (@{type_name itself}, [T1]) => aux T1 accum
       | Type (_, Ts) =>
         if member (op =) (@{typ prop} :: @{typ bool} :: accum) T then
@@ -2323,7 +2339,6 @@ fun add_ground_types hol_ctxt binarize =
                        | xs => map snd xs)
       | _ => insert (op =) T accum
   in aux end
-
 fun ground_types_in_type hol_ctxt binarize T =
   add_ground_types hol_ctxt binarize T []
 fun ground_types_in_terms hol_ctxt binarize ts =

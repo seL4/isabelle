@@ -228,6 +228,8 @@ fun factor_out_types (T1 as Type (@{type_name prod}, [T11, T12]))
     ((T1, NONE), (T21, SOME T22))
   | factor_out_types T1 T2 = ((T1, NONE), (T2, NONE))
 
+(* Term-encoded data structure for holding key-value pairs as well as an "opt"
+   flag indicating whether the function is approximated. *)
 fun make_plain_fun maybe_opt T1 T2 =
   let
     fun aux T1 T2 [] =
@@ -268,55 +270,55 @@ fun pair_up (Type (@{type_name prod}, [T1', T2']))
   | pair_up _ t1 t2 = HOLogic.mk_prod (t1, t2)
 fun multi_pair_up T1 t1 (ts2, ts3) = map2 (pair o pair_up T1 t1) ts2 ts3
 
-fun typecast_fun (Type (@{type_name fun}, [T1', T2'])) T1 T2 t =
-    let
-      fun do_curry T1 T1a T1b T2 t =
-        let
-          val (maybe_opt, tsp) = dest_plain_fun t
-          val tps =
-            tsp |>> map (break_in_two T1 T1a T1b)
-                |> uncurry (map2 (fn (t1a, t1b) => fn t2 => (t1a, (t1b, t2))))
-                |> AList.coalesce (op =)
-                |> map (apsnd (make_plain_fun maybe_opt T1b T2))
-        in make_plain_fun maybe_opt T1a (T1b --> T2) tps end
-      and do_uncurry T1 T2 t =
-        let
-          val (maybe_opt, tsp) = dest_plain_fun t
-          val tps =
-            tsp |> op ~~
-                |> maps (fn (t1, t2) =>
-                            multi_pair_up T1 t1 (snd (dest_plain_fun t2)))
-        in make_plain_fun maybe_opt T1 T2 tps end
-      and do_arrow T1' T2' _ _ (Const (s, _)) = Const (s, T1' --> T2')
-        | do_arrow T1' T2' T1 T2
-                   (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) =
-          Const (@{const_name fun_upd},
-                 (T1' --> T2') --> T1' --> T2' --> T1' --> T2')
-          $ do_arrow T1' T2' T1 T2 t0 $ do_term T1' T1 t1 $ do_term T2' T2 t2
-        | do_arrow _ _ _ _ t =
-          raise TERM ("Nitpick_Model.typecast_fun.do_arrow", [t])
-      and do_fun T1' T2' T1 T2 t =
-        case factor_out_types T1' T1 of
-          ((_, NONE), (_, NONE)) => t |> do_arrow T1' T2' T1 T2
-        | ((_, NONE), (T1a, SOME T1b)) =>
-          t |> do_curry T1 T1a T1b T2 |> do_arrow T1' T2' T1a (T1b --> T2)
-        | ((T1a', SOME T1b'), (_, NONE)) =>
-          t |> do_arrow T1a' (T1b' --> T2') T1 T2 |> do_uncurry T1' T2'
-        | _ => raise TYPE ("Nitpick_Model.typecast_fun.do_fun", [T1, T1'], [])
-      and do_term (Type (@{type_name fun}, [T1', T2']))
-                  (Type (@{type_name fun}, [T1, T2])) t =
-          do_fun T1' T2' T1 T2 t
-        | do_term (T' as Type (@{type_name prod}, Ts' as [T1', T2']))
-                  (Type (@{type_name prod}, [T1, T2]))
-                  (Const (@{const_name Pair}, _) $ t1 $ t2) =
-          Const (@{const_name Pair}, Ts' ---> T')
-          $ do_term T1' T1 t1 $ do_term T2' T2 t2
-        | do_term T' T t =
-          if T = T' then t
-          else raise TYPE ("Nitpick_Model.typecast_fun.do_term", [T, T'], [])
-    in if T1' = T1 andalso T2' = T2 then t else do_fun T1' T2' T1 T2 t end
-  | typecast_fun T' _ _ _ =
-    raise TYPE ("Nitpick_Model.typecast_fun", [T'], [])
+fun format_fun T' T1 T2 t =
+  let
+    val T1' = pseudo_domain_type T'
+    val T2' = pseudo_range_type T'
+    fun do_curry T1 T1a T1b T2 t =
+      let
+        val (maybe_opt, tsp) = dest_plain_fun t
+        val tps =
+          tsp |>> map (break_in_two T1 T1a T1b)
+              |> uncurry (map2 (fn (t1a, t1b) => fn t2 => (t1a, (t1b, t2))))
+              |> AList.coalesce (op =)
+              |> map (apsnd (make_plain_fun maybe_opt T1b T2))
+      in make_plain_fun maybe_opt T1a (T1b --> T2) tps end
+    and do_uncurry T1 T2 t =
+      let
+        val (maybe_opt, tsp) = dest_plain_fun t
+        val tps =
+          tsp |> op ~~
+              |> maps (fn (t1, t2) =>
+                          multi_pair_up T1 t1 (snd (dest_plain_fun t2)))
+      in make_plain_fun maybe_opt T1 T2 tps end
+    and do_arrow T1' T2' _ _ (Const (s, _)) = Const (s, T1' --> T2')
+      | do_arrow T1' T2' T1 T2
+                 (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) =
+        Const (@{const_name fun_upd},
+               (T1' --> T2') --> T1' --> T2' --> T1' --> T2')
+        $ do_arrow T1' T2' T1 T2 t0 $ do_term T1' T1 t1 $ do_term T2' T2 t2
+      | do_arrow _ _ _ _ t =
+        raise TERM ("Nitpick_Model.format_fun.do_arrow", [t])
+    and do_fun T1' T2' T1 T2 t =
+      case factor_out_types T1' T1 of
+        ((_, NONE), (_, NONE)) => t |> do_arrow T1' T2' T1 T2
+      | ((_, NONE), (T1a, SOME T1b)) =>
+        t |> do_curry T1 T1a T1b T2 |> do_arrow T1' T2' T1a (T1b --> T2)
+      | ((T1a', SOME T1b'), (_, NONE)) =>
+        t |> do_arrow T1a' (T1b' --> T2') T1 T2 |> do_uncurry T1' T2'
+      | _ => raise TYPE ("Nitpick_Model.format_fun.do_fun", [T1, T1'], [])
+    and do_term (Type (@{type_name fun}, [T1', T2']))
+                (Type (@{type_name fun}, [T1, T2])) t =
+        do_fun T1' T2' T1 T2 t
+      | do_term (T' as Type (@{type_name prod}, Ts' as [T1', T2']))
+                (Type (@{type_name prod}, [T1, T2]))
+                (Const (@{const_name Pair}, _) $ t1 $ t2) =
+        Const (@{const_name Pair}, Ts' ---> T')
+        $ do_term T1' T1 t1 $ do_term T2' T2 t2
+      | do_term T' T t =
+        if T = T' then t
+        else raise TYPE ("Nitpick_Model.format_fun.do_term", [T, T'], [])
+  in if T1' = T1 andalso T2' = T2 then t else do_fun T1' T2' T1 T2 t end
 
 fun truth_const_sort_key @{const True} = "0"
   | truth_const_sort_key @{const False} = "2"
@@ -385,14 +387,14 @@ and reconstruct_term maybe_opt unfold pool
       | postprocess_subterms Ts (Abs (s, T, t')) =
         Abs (s, T, postprocess_subterms (T :: Ts) t')
       | postprocess_subterms Ts t = postprocess_term (fastype_of1 (Ts, t)) t
-    fun make_set maybe_opt T1 T2 tps =
+    fun make_set maybe_opt T tps =
       let
-        val empty_const = Const (@{const_abbrev Set.empty}, T1 --> T2)
-        val insert_const = Const (@{const_name insert},
-                                  T1 --> (T1 --> T2) --> T1 --> T2)
+        val empty_const = Const (@{const_abbrev Set.empty}, T --> bool_T)
+        val insert_const =
+          Const (@{const_name insert}, T --> (T --> bool_T) --> T --> bool_T)
         fun aux [] =
-            if maybe_opt andalso not (is_complete_type datatypes false T1) then
-              insert_const $ Const (unrep (), T1) $ empty_const
+            if maybe_opt andalso not (is_complete_type datatypes false T) then
+              insert_const $ Const (unrep (), T) $ empty_const
             else
               empty_const
           | aux ((t1, t2) :: zs) =
@@ -402,11 +404,11 @@ and reconstruct_term maybe_opt unfold pool
                        (insert_const
                         $ (t1 |> t2 <> @{const True}
                                  ? curry (op $)
-                                         (Const (maybe_name, T1 --> T1))))
+                                         (Const (maybe_name, T --> T))))
       in
         if forall (fn (_, t) => t <> @{const True} andalso t <> @{const False})
                   tps then
-          Const (unknown, T1 --> T2)
+          Const (unknown, T --> bool_T)
         else
           aux tps
       end
@@ -431,15 +433,7 @@ and reconstruct_term maybe_opt unfold pool
          Type (@{type_name fun}, [T1, T2]) =>
          if is_plain_fun t then
            case T2 of
-             @{typ bool} =>
-             let
-               val (maybe_opt, ts_pair) =
-                 dest_plain_fun t ||> pairself (map (polish_funs Ts))
-             in
-               make_set maybe_opt T1 T2
-                        (sort_wrt (truth_const_sort_key o snd) (op ~~ ts_pair))
-             end
-           | Type (@{type_name option}, [T2']) =>
+             Type (@{type_name option}, [T2']) =>
              let
                val (maybe_opt, ts_pair) =
                  dest_plain_fun t ||> pairself (map (polish_funs Ts))
@@ -466,13 +460,19 @@ and reconstruct_term maybe_opt unfold pool
                else
                  t
              | t => t
-    fun make_fun maybe_opt T1 T2 T' ts1 ts2 =
-      ts1 ~~ ts2 |> sort (nice_term_ord o pairself fst)
-                 |> make_plain_fun maybe_opt T1 T2
-                 |> unarize_unbox_etc_term
-                 |> typecast_fun (uniterize_unarize_unbox_etc_type T')
-                                 (uniterize_unarize_unbox_etc_type T1)
-                                 (uniterize_unarize_unbox_etc_type T2)
+    fun make_fun_or_set maybe_opt T T1 T2 T' ts1 ts2 =
+      ts1 ~~ ts2
+      |> sort (nice_term_ord o pairself fst)
+      |> (case T of
+            Type (@{type_name set}, _) =>
+            sort_wrt (truth_const_sort_key o snd)
+            #> make_set maybe_opt T'
+          | _ =>
+            make_plain_fun maybe_opt T1 T2
+            #> unarize_unbox_etc_term
+            #> format_fun (uniterize_unarize_unbox_etc_type T')
+                          (uniterize_unarize_unbox_etc_type T1)
+                          (uniterize_unarize_unbox_etc_type T2))
     fun term_for_atom seen (T as Type (@{type_name fun}, [T1, T2])) T' j _ =
         let
           val k1 = card_of_type card_assigns T1
@@ -603,11 +603,16 @@ and reconstruct_term maybe_opt unfold pool
                   t
               end
           end
-    and term_for_vect seen k R T1 T2 T' js =
-      make_fun true T1 T2 T'
-               (map (fn j => term_for_atom seen T1 T1 j k) (index_seq 0 k))
-               (map (term_for_rep true seen T2 T2 R o single)
-                    (batch_list (arity_of_rep R) js))
+    and term_for_vect seen k R T T' js =
+      let
+        val T1 = pseudo_domain_type T
+        val T2 = pseudo_range_type T
+      in
+        make_fun_or_set true T T1 T2 T'
+            (map (fn j => term_for_atom seen T1 T1 j k) (index_seq 0 k))
+            (map (term_for_rep true seen T2 T2 R o single)
+                 (batch_list (arity_of_rep R) js))
+      end
     and term_for_rep _ seen T T' (R as Atom (k, j0)) [[j]] =
         if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0) k
         else raise REP ("Nitpick_Model.reconstruct_term.term_for_rep", [R])
@@ -621,29 +626,30 @@ and reconstruct_term maybe_opt unfold pool
                      map3 (fn T => term_for_rep true seen T T) [T1, T2] [R1, R2]
                           [[js1], [js2]])
         end
-      | term_for_rep _ seen (Type (@{type_name fun}, [T1, T2])) T'
-                     (Vect (k, R')) [js] =
-        term_for_vect seen k R' T1 T2 T' js
-      | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
-                     (Func (R1, Formula Neut)) jss =
+      | term_for_rep _ seen T T' (Vect (k, R')) [js] =
+        term_for_vect seen k R' T T' js
+      | term_for_rep maybe_opt seen T T' (Func (R1, Formula Neut)) jss =
         let
+          val T1 = pseudo_domain_type T
+          val T2 = pseudo_range_type T
           val jss1 = all_combinations_for_rep R1
           val ts1 = map (term_for_rep true seen T1 T1 R1 o single) jss1
           val ts2 =
             map (fn js => term_for_rep true seen T2 T2 (Atom (2, 0))
                                        [[int_from_bool (member (op =) jss js)]])
                 jss1
-        in make_fun maybe_opt T1 T2 T' ts1 ts2 end
-      | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
-                     (Func (R1, R2)) jss =
+        in make_fun_or_set maybe_opt T T1 T2 T' ts1 ts2 end
+      | term_for_rep maybe_opt seen T T' (Func (R1, R2)) jss =
         let
+          val T1 = pseudo_domain_type T
+          val T2 = pseudo_range_type T
           val arity1 = arity_of_rep R1
           val jss1 = all_combinations_for_rep R1
           val ts1 = map (term_for_rep false seen T1 T1 R1 o single) jss1
           val grouped_jss2 = AList.group (op =) (map (chop arity1) jss)
           val ts2 = map (term_for_rep false seen T2 T2 R2 o the_default []
                          o AList.lookup (op =) grouped_jss2) jss1
-        in make_fun maybe_opt T1 T2 T' ts1 ts2 end
+        in make_fun_or_set maybe_opt T T1 T2 T' ts1 ts2 end
       | term_for_rep _ seen T T' (Opt R) jss =
         if null jss then Const (unknown, T)
         else term_for_rep true seen T T' R jss
@@ -1045,11 +1051,13 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                    |> map_types (map_type_tfree
                                      (fn (s, []) => TFree (s, HOLogic.typeS)
                                        | x => TFree x))
-       val _ = if debug then
-                 Output.urgent_message ((if negate then "Genuineness" else "Spuriousness") ^
-                           " goal: " ^ Syntax.string_of_term ctxt prop ^ ".")
-               else
-                 ()
+        val _ =
+          if debug then
+            (if negate then "Genuineness" else "Spuriousness") ^ " goal: " ^
+            Syntax.string_of_term ctxt prop ^ "."
+            |> Output.urgent_message
+          else
+            ()
         val goal = prop |> cterm_of thy |> Goal.init
       in
         (goal |> SINGLE (DETERM_TIMEOUT auto_timeout (auto_tac ctxt))

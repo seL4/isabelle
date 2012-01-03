@@ -114,6 +114,8 @@ fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
   | is_complete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_complete_type dtypes facto) Ts
+  | is_complete_type dtypes facto (Type (@{type_name set}, [T'])) =
+    is_concrete_type dtypes facto T'
   | is_complete_type dtypes facto T =
     not (is_integer_like_type T) andalso not (is_bit_type T) andalso
     fun_from_pair (#complete (the (datatype_spec dtypes T))) facto
@@ -122,6 +124,8 @@ and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_complete_type dtypes facto T1 andalso is_concrete_type dtypes facto T2
   | is_concrete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_concrete_type dtypes facto) Ts
+  | is_concrete_type dtypes facto (Type (@{type_name set}, [T'])) =
+    is_complete_type dtypes facto T'
   | is_concrete_type dtypes facto T =
     fun_from_pair (#concrete (the (datatype_spec dtypes T))) facto
     handle Option.Option => true

@@ -165,9 +165,13 @@ fun one_rep _ _ Any = raise REP ("Nitpick_Rep.one_rep", [Any])
   | one_rep ofs T R = Atom (card_of_rep R, offset_of_type ofs T)
 fun optable_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, optable_rep ofs T2 R2)
+  | optable_rep ofs (Type (@{type_name set}, [T'])) R =
+    optable_rep ofs (T' --> bool_T) R
   | optable_rep ofs T R = one_rep ofs T R
 fun opt_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, opt_rep ofs T2 R2)
+  | opt_rep ofs (Type (@{type_name set}, [T'])) R =
+    opt_rep ofs (T' --> bool_T) R
   | opt_rep ofs T R = Opt (optable_rep ofs T R)
 fun unopt_rep (Func (R1, R2)) = Func (R1, unopt_rep R2)
   | unopt_rep (Opt R) = R
@@ -236,6 +240,8 @@ fun rep_to_binary_rel_rep ofs T R =
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
                           (Type (@{type_name fun}, [T1, T2])) =
     Vect (card_of_type card_assigns T1, (best_one_rep_for_type scope T2))
+  | best_one_rep_for_type scope (Type (@{type_name set}, [T'])) =
+    best_one_rep_for_type scope (T' --> bool_T)
   | best_one_rep_for_type scope (Type (@{type_name prod}, Ts)) =
     Struct (map (best_one_rep_for_type scope) Ts)
   | best_one_rep_for_type {card_assigns, ofs, ...} T =
@@ -243,6 +249,8 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
 
 fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
+  | best_opt_set_rep_for_type scope (Type (@{type_name set}, [T'])) =
+    best_opt_set_rep_for_type scope (T' --> bool_T)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
     opt_rep ofs T (best_one_rep_for_type scope T)
 fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
@@ -250,6 +258,8 @@ fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
            best_non_opt_set_rep_for_type scope T2) of
        (R1, Atom (2, _)) => Func (R1, Formula Neut)
      | z => Func z)
+  | best_non_opt_set_rep_for_type scope (Type (@{type_name set}, [T'])) =
+    best_non_opt_set_rep_for_type scope (T' --> bool_T)
   | best_non_opt_set_rep_for_type scope T = best_one_rep_for_type scope T
 fun best_set_rep_for_type (scope as {datatypes, ...}) T =
   (if is_exact_type datatypes true T then best_non_opt_set_rep_for_type
@@ -279,6 +289,8 @@ fun type_schema_of_rep _ (Formula _) = []
     replicate_list k (type_schema_of_rep T2 R)
   | type_schema_of_rep (Type (@{type_name fun}, [T1, T2])) (Func (R1, R2)) =
     type_schema_of_rep T1 R1 @ type_schema_of_rep T2 R2
+  | type_schema_of_rep (Type (@{type_name set}, [T'])) R =
+    type_schema_of_rep (T' --> bool_T) R
   | type_schema_of_rep T (Opt R) = type_schema_of_rep T R
   | type_schema_of_rep _ R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])
 and type_schema_of_reps Ts Rs = flat (map2 type_schema_of_rep Ts Rs)

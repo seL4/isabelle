@@ -457,7 +457,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
             val (ts', t2) = split_last ts
             val t1 = list_comb (t0, ts')
             val T1 = fastype_of1 (Ts, t1)
-          in Op2 (Apply, range_type T1, Any, sub t1, sub t2) end
+          in Op2 (Apply, pseudo_range_type T1, Any, sub t1, sub t2) end
         fun do_construct (x as (_, T)) ts =
           case num_binder_types T - length ts of
             0 => Construct (map ((fn (s', T') => ConstName (s', T', Any))
@@ -515,6 +515,8 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
           Op1 (First, range_type T, Any, sub t1)
         | (Const (@{const_name snd}, T), [t1]) =>
           Op1 (Second, range_type T, Any, sub t1)
+        | (Const (@{const_name Set.member}, _), [t1, t2]) => do_apply t2 [t1]
+        | (Const (@{const_name Collect}, _), [t1]) => sub t1
         | (Const (@{const_name Id}, T), []) => Cst (Iden, T, Any)
         | (Const (@{const_name converse}, T), [t1]) =>
           Op1 (Converse, range_type T, Any, sub t1)
@@ -558,16 +560,13 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
             Op2 (Less, bool_T, Any, sub t1, sub t2)
           else
             do_apply t0 ts
-        | (Const (@{const_name ord_class.less_eq},
-                  Type (@{type_name fun},
-                        [Type (@{type_name fun}, [_, @{typ bool}]), _])),
-           [t1, t2]) =>
-          Op2 (Subset, bool_T, Any, sub t1, sub t2)
-        (* FIXME: find out if this case is necessary *)
-        | (t0 as Const (x as (@{const_name ord_class.less_eq}, _)),
+        | (t0 as Const (x as (@{const_name ord_class.less_eq}, T)),
            ts as [t1, t2]) =>
           if is_built_in_const thy stds x then
+            (* FIXME: find out if this case is necessary *)
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
+          else if is_set_like_type (domain_type T) then
+            Op2 (Subset, bool_T, Any, sub t1, sub t2)
           else
             do_apply t0 ts
         | (Const (@{const_name nat_gcd}, T), []) => Cst (Gcd, T, Any)
