@@ -197,6 +197,7 @@ subsection {* 2.9. Coinductive Datatypes *}
    axiomatization. The examples also work unchanged with Lochbihler's
    "Coinductive_List" theory. *)
 
+(* BEGIN LAZY LIST SETUP *)
 definition "llist = (UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set)"
 
 typedef (open) 'a llist = "llist\<Colon>('a list + (nat \<Rightarrow> 'a)) set"
@@ -219,6 +220,7 @@ declaration {*
 Nitpick_HOL.register_codatatype @{typ "'a llist"} ""
     (map dest_Const [@{term LNil}, @{term LCons}])
 *}
+(* END LAZY LIST SETUP *)
 
 lemma "xs \<noteq> LCons a xs"
 nitpick [expect = genuine]
