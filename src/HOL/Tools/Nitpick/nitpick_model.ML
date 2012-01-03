@@ -389,9 +389,9 @@ and reconstruct_term maybe_opt unfold pool
       | postprocess_subterms Ts t = postprocess_term (fastype_of1 (Ts, t)) t
     fun make_set maybe_opt T tps =
       let
-        val empty_const = Const (@{const_abbrev Set.empty}, T --> bool_T)
-        val insert_const =
-          Const (@{const_name insert}, T --> (T --> bool_T) --> T --> bool_T)
+        val set_T = HOLogic.mk_setT T
+        val empty_const = Const (@{const_abbrev Set.empty}, set_T)
+        val insert_const = Const (@{const_name insert}, T --> set_T --> set_T)
         fun aux [] =
             if maybe_opt andalso not (is_complete_type datatypes false T) then
               insert_const $ Const (unrep (), T) $ empty_const
@@ -408,7 +408,7 @@ and reconstruct_term maybe_opt unfold pool
       in
         if forall (fn (_, t) => t <> @{const True} andalso t <> @{const False})
                   tps then
-          Const (unknown, T --> bool_T)
+          Const (unknown, set_T)
         else
           aux tps
       end
