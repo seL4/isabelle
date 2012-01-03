@@ -25,5 +25,5 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i false -d false -t true -M 8 -q 2"
 
-#init_component "$HOME/contrib_devel/kodkodi-1.2.16"
+init_component "$HOME/contrib_devel/kodkodi"
 
