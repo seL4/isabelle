@@ -836,11 +836,9 @@ fun user_friendly_const ({thy, evals, def_tables, skolems, special_funs, ...}
 
 fun assign_operator_for_const (s, T) =
   if String.isPrefix ubfp_prefix s then
-    if is_fun_type T then xsym "\<subseteq>" "<=" ()
-    else xsym "\<le>" "<=" ()
+    xsym "\<le>" "<=" ()
   else if String.isPrefix lbfp_prefix s then
-    if is_fun_type T then xsym "\<supseteq>" ">=" ()
-    else xsym "\<ge>" ">=" ()
+    xsym "\<ge>" ">=" ()
   else if original_name s <> s then
     assign_operator_for_const (strip_first_name_sep s |> snd, T)
   else

@@ -17,8 +17,7 @@ begin
 
 chapter {* 2. First Steps *}
 
-nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 240]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 subsection {* 2.1. Propositional Logic *}
 
@@ -31,23 +30,23 @@ oops
 
 subsection {* 2.2. Type Variables *}
 
-lemma "P x \<Longrightarrow> P (THE y. P y)"
+lemma "x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [verbose, expect = genuine]
 oops
 
 subsection {* 2.3. Constants *}
 
-lemma "P x \<Longrightarrow> P (THE y. P y)"
+lemma "x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [show_consts, expect = genuine]
 nitpick [dont_specialize, show_consts, expect = genuine]
 oops
 
-lemma "\<exists>!x. P x \<Longrightarrow> P (THE y. P y)"
+lemma "\<exists>!x. x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [expect = none]
 nitpick [card 'a = 1\<emdash>50, expect = none]
 (* sledgehammer *)
-apply (metis the_equality)
-done
+sledgehammer
+by (metis the_equality)
 
 subsection {* 2.4. Skolemization *}
 
@@ -67,6 +66,7 @@ subsection {* 2.5. Natural Numbers and Integers *}
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
 nitpick [expect = genuine]
+nitpick [binary_ints, bits = 16, expect = genuine]
 oops
 
 lemma "\<forall>n. Suc n \<noteq> n \<Longrightarrow> P"
@@ -95,15 +95,14 @@ oops
 
 subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
-definition "three = {0\<Colon>nat, 1, 2}"
-typedef (open) three = three
-unfolding three_def by blast
+typedef three = "{0\<Colon>nat, 1, 2}"
+by blast
 
 definition A :: three where "A \<equiv> Abs_three 0"
 definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
-lemma "\<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P x"
+lemma "\<lbrakk>A \<in> X; B \<in> X\<rbrakk> \<Longrightarrow> c \<in> X"
 nitpick [show_datatypes, expect = genuine]
 oops
 
