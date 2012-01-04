@@ -16,6 +16,7 @@ struct
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
+open Nitpick_Util
 open Nitpick
 open Nitpick_Isar
 
@@ -60,14 +61,13 @@ val parse_tptp_problem =
                   parse_problem))
   o tptp_explode
 
-val boolT = @{typ bool}
-val iotaT = @{typ iota}
-val quantT = (iotaT --> boolT) --> boolT
+val iota_T = @{typ iota}
+val quant_T = (iota_T --> bool_T) --> bool_T
 
 fun is_variable s = Char.isUpper (String.sub (s, 0))
 
 fun hol_term_from_fo_term res_T (ATerm (x, us)) =
-  let val ts = map (hol_term_from_fo_term iotaT) us in
+  let val ts = map (hol_term_from_fo_term iota_T) us in
     list_comb ((case x of
                   "$true" => @{const_name True}
                 | "$false" => @{const_name False}
@@ -82,8 +82,8 @@ fun hol_prop_from_formula phi =
     AQuant (_, [], phi') => hol_prop_from_formula phi'
   | AQuant (q, (x, _) :: xs, phi') =>
     Const (case q of AForall => @{const_name All} | AExists => @{const_name Ex},
-           quantT)
-    $ lambda (Free (x, iotaT)) (hol_prop_from_formula (AQuant (q, xs, phi')))
+           quant_T)
+    $ lambda (Free (x, iota_T)) (hol_prop_from_formula (AQuant (q, xs, phi')))
   | AConn (ANot, [u']) => HOLogic.mk_not (hol_prop_from_formula u')
   | AConn (c, [u1, u2]) =>
     pairself hol_prop_from_formula (u1, u2)
@@ -94,9 +94,9 @@ fun hol_prop_from_formula phi =
         | AIff => HOLogic.mk_eq
         | ANot => raise Fail "binary \"ANot\"")
   | AConn _ => raise Fail "malformed AConn"
-  | AAtom u => hol_term_from_fo_term boolT u
+  | AAtom u => hol_term_from_fo_term bool_T u
 
-fun mk_all x t = Const (@{const_name All}, quantT) $ lambda x t
+fun mk_all x t = Const (@{const_name All}, quant_T) $ lambda x t
 
 fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 

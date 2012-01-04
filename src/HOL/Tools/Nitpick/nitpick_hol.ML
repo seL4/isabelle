@@ -1982,8 +1982,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
                           $ (suc_const iter_T $ Bound 0) $ n_var)
     val x_var = Var (("x", 0), T)
     val y_var = Var (("y", 0), T)
-    fun bisim_const T =
-      Const (@{const_name bisim}, iter_T --> T --> T --> bool_T)
+    fun bisim_const T = Const (@{const_name bisim}, [iter_T, T, T] ---> bool_T)
     fun nth_sub_bisim x n nth_T =
       (if is_codatatype ctxt nth_T then bisim_const nth_T $ n_var_minus_1
        else HOLogic.eq_const nth_T)
