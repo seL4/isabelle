@@ -350,9 +350,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       fold add_free_and_const_names (nondef_us @ def_us @ need_us) ([], [])
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
-    val sound_finitizes =
-      none_true (filter_out (fn (SOME (Type (@{type_name fun}, _)), _) => true
-                          | _ => false) finitizes)
+    val sound_finitizes = none_true finitizes
     val standard = forall snd stds
 (*
     val _ =
