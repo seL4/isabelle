@@ -58,7 +58,6 @@ object Platform
   /* JVM name */
 
   val jvm_name: String = System.getProperty("java.vm.name")
-  val is_hotspot: Boolean = jvm_name.startsWith("Java HotSpot")
 
 
   /* Swing look-and-feel */
