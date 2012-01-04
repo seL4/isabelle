@@ -473,18 +473,25 @@ and reconstruct_term maybe_opt unfold pool
             #> format_fun (uniterize_unarize_unbox_etc_type T')
                           (uniterize_unarize_unbox_etc_type T1)
                           (uniterize_unarize_unbox_etc_type T2))
-    fun term_for_atom seen (T as Type (@{type_name fun}, [T1, T2])) T' j _ =
+
+
+    fun term_for_fun_or_set seen T T' j =
         let
-          val k1 = card_of_type card_assigns T1
-          val k2 = card_of_type card_assigns T2
+          val k1 = card_of_type card_assigns (pseudo_domain_type T)
+          val k2 = card_of_type card_assigns (pseudo_range_type T)
         in
           term_for_rep true seen T T' (Vect (k1, Atom (k2, 0)))
                        [nth_combination (replicate k1 (k2, 0)) j]
           handle General.Subscript =>
-                 raise ARG ("Nitpick_Model.reconstruct_term.term_for_atom",
+                 raise ARG ("Nitpick_Model.reconstruct_term.\
+                            \term_for_fun_or_set",
                             signed_string_of_int j ^ " for " ^
                             string_for_rep (Vect (k1, Atom (k2, 0))))
         end
+    and term_for_atom seen (T as Type (@{type_name fun}, _)) T' j _ =
+        term_for_fun_or_set seen T T' j
+      | term_for_atom seen (T as Type (@{type_name set}, _)) T' j _ =
+        term_for_fun_or_set seen T T' j
       | term_for_atom seen (Type (@{type_name prod}, [T1, T2])) _ j k =
         let
           val k1 = card_of_type card_assigns T1
@@ -492,7 +499,8 @@ and reconstruct_term maybe_opt unfold pool
         in
           list_comb (HOLogic.pair_const T1 T2,
                      map3 (fn T => term_for_atom seen T T) [T1, T2]
-                          [j div k2, j mod k2] [k1, k2]) (* ### k2 or k1? FIXME *)
+                          (* ### k2 or k1? FIXME *)
+                          [j div k2, j mod k2] [k1, k2])
         end
       | term_for_atom seen @{typ prop} _ j k =
         HOLogic.mk_Trueprop (term_for_atom seen bool_T bool_T j k)
