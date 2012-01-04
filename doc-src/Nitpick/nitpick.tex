@@ -998,9 +998,6 @@ and \textit{bisim\_depth}~= 0. \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
 \hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 10,
 and \textit{bisim\_depth}~= 9. \\[2\smallskipamount]
-Limit reached: arity 11 of Kodkod relation associated with
-``\textit{Set.insert\/}'' too large for universe of cardinality 9. Skipping scope.
-\\[2\smallskipamount]
 Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
 \textit{card}~``\kern1pt$'a~\textit{llist\/}$''~= 2, and \textit{bisim\_\allowbreak
 depth}~= 1:
@@ -1020,11 +1017,15 @@ within the scope of the {THE} binder corresponds to the lasso's cycle, whereas
 the segment leading to the binder is the stem.
 
 A salient property of coinductive datatypes is that two objects are considered
-equal if and only if they lead to the same observations. For example, the lazy
-lists $\textrm{THE}~\omega.\; \omega =
-\textit{LCons}~a~(\textit{LCons}~b~\omega)$ and
-$\textit{LCons}~a~(\textrm{THE}~\omega.\; \omega =
-\textit{LCons}~b~(\textit{LCons}~a~\omega))$ are identical, because both lead
+equal if and only if they lead to the same observations. For example, the two
+lazy lists
+%
+\begin{gather*}
+\textrm{THE}~\omega.\; \omega = \textit{LCons}~a~(\textit{LCons}~b~\omega) \\
+\textit{LCons}~a~(\textrm{THE}~\omega.\; \omega = \textit{LCons}~b~(\textit{LCons}~a~\omega))
+\end{gather*}
+%
+are identical, because both lead
 to the sequence of observations $a$, $b$, $a$, $b$, \hbox{\ldots} (or,
 equivalently, both encode the infinite list $[a, b, a, b, \ldots]$). This
 concept of equality for coinductive datatypes is called bisimulation and is
@@ -1037,9 +1038,7 @@ can be disabled by setting the \textit{bisim\_depth} option to $-1$. The
 bisimilarity check is then performed \textsl{after} the counterexample has been
 found to ensure correctness. If this after-the-fact check fails, the
 counterexample is tagged as ``quasi genuine'' and Nitpick recommends to try
-again with \textit{bisim\_depth} set to a nonnegative integer. Disabling the
-check for the previous example saves approximately 150~milli\-seconds; the speed
-gains can be more significant for larger scopes.
+again with \textit{bisim\_depth} set to a nonnegative integer.
 
 The next formula illustrates the need for bisimilarity (either as a Kodkod
 predicate or as an after-the-fact check) to prevent spurious counterexamples:
@@ -1067,7 +1066,8 @@ that the counterexample is genuine. \\[2\smallskipamount]
 \postw
 
 In the first \textbf{nitpick} invocation, the after-the-fact check discovered
-that the two known elements of type $'a~\textit{llist}$ are bisimilar.
+that the two known elements of type $'a~\textit{llist}$ are bisimilar, prompting
+Nitpick to label the example ``quasi genuine.''
 
 A compromise between leaving out the bisimilarity predicate from the Kodkod
 problem and performing the after-the-fact check is to specify a lower
@@ -1156,20 +1156,21 @@ and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm\/}$''~= 6: \\[2\smallsk
   2 := \textit{Var}~0, \\[-2pt]
 & 3 := \textit{Var}~0,\>
   4 := \textit{Var}~0,\>
-  5 := \textit{Var}~0)\end{aligned}$ \\
+  5 := \textit{Lam}~(\textit{Lam}~(\textit{Var}~0)))\end{aligned}$ \\
 \hbox{}\qquad\qquad $t = \textit{Lam}~(\textit{Lam}~(\textit{Var}~1))$ \\[2\smallskipamount]
-Total time: 3.56 s.
+Total time: 3.08 s.
 \postw
 
 Using \textit{eval}, we find out that $\textit{subst}~\sigma~t =
 \textit{Lam}~(\textit{Lam}~(\textit{Var}~0))$. Using the traditional
-$\lambda$-term notation, $t$~is
-$\lambda x\, y.\> x$ whereas $\textit{subst}~\sigma~t$ is $\lambda x\, y.\> y$.
+$\lambda$-calculus notation, $t$ is
+$\lambda x\, y.\> x$ whereas $\textit{subst}~\sigma~t$ is (wrongly) $\lambda x\, y.\> y$.
 The bug is in \textit{subst\/}: The $\textit{lift}~(\sigma~m)~1$ call should be
 replaced with $\textit{lift}~(\sigma~m)~0$.
 
 An interesting aspect of Nitpick's verbose output is that it assigned inceasing
-cardinalities from 1 to 10 to the type $\textit{nat} \Rightarrow \textit{tm}$.
+cardinalities from 1 to 10 to the type $\textit{nat} \Rightarrow \textit{tm}$
+of the higher-order argument $\sigma$ of \textit{subst}.
 For the formula of interest, knowing 6 values of that type was enough to find
 the counterexample. Without boxing, $6^6 = 46\,656$ values must be
 considered, a hopeless undertaking:
@@ -1291,7 +1292,7 @@ are normally monotonic and treated as such. The same is true for record types,
 \textit{rat}, and \textit{real}. Thus, given the
 cardinality specification 1--10, a formula involving \textit{nat}, \textit{int},
 \textit{int~list}, \textit{rat}, and \textit{rat~list} will lead Nitpick to
-consider only 10~scopes instead of $10\,000$. On the other hand,
+consider only 10~scopes instead of $10^4 = 10\,000$. On the other hand,
 \textbf{typedef}s and quotient types are generally nonmonotonic.
 
 \subsection{Inductive Properties}
@@ -1434,7 +1435,10 @@ If we follow the hint, we get a ``nonstandard'' counterexample for the step:
 \hbox{}\qquad\qquad $t = \xi_1$ \\
 \hbox{}\qquad\qquad $u = \xi_2$ \\
 \hbox{}\qquad Datatype: \nopagebreak \\
-\hbox{}\qquad\qquad $\alpha~\textit{btree} = \{\xi_1 \mathbin{=} \textit{Branch}~\xi_1~\xi_1,\> \xi_2 \mathbin{=} \textit{Branch}~\xi_2~\xi_2,\> \textit{Branch}~\xi_1~\xi_2\}$ \\
+\hbox{}\qquad\qquad $'a~\textit{bin\_tree} =
+\{\!\begin{aligned}[t]
+& \xi_1 \mathbin{=} \textit{Branch}~\xi_1~\xi_1,\> \xi_2 \mathbin{=} \textit{Branch}~\xi_2~\xi_2,\> \\[-2pt]
+& \textit{Branch}~\xi_1~\xi_2,\> \unr\}\end{aligned}$ \\
 \hbox{}\qquad {\slshape Constants:} \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{labels} = \unkef
     (\!\begin{aligned}[t]%
