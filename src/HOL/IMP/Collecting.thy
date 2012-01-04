@@ -75,7 +75,7 @@ fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
 fun invar :: "'a acom \<Rightarrow> 'a" where
 "invar({I} WHILE b DO c {P}) = I"
 
-fun lift :: "('a set \<Rightarrow> 'a) \<Rightarrow> com \<Rightarrow> 'a acom set \<Rightarrow> 'a acom"
+fun lift :: "('a set \<Rightarrow> 'b) \<Rightarrow> com \<Rightarrow> 'a acom set \<Rightarrow> 'b acom"
 where
 "lift F com.SKIP M = (SKIP {F (post ` M)})" |
 "lift F (x ::= a) M = (x ::= a {F (post ` M)})" |
