@@ -87,6 +87,8 @@ sig
   val frac_from_term_pair : typ -> term -> term -> term
   val is_TFree : typ -> bool
   val is_fun_type : typ -> bool
+  val is_set_type : typ -> bool
+  val is_fun_or_set_type : typ -> bool
   val is_set_like_type : typ -> bool
   val is_pair_type : typ -> bool
   val is_lfp_iterator_type : typ -> bool
@@ -482,7 +484,11 @@ fun is_TFree (TFree _) = true
   | is_TFree _ = false
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false
-fun is_set_like_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
+fun is_set_type (Type (@{type_name set}, _)) = true
+  | is_set_type _ = false
+val is_fun_or_set_type = is_fun_type orf is_set_type
+fun is_set_like_type (Type (@{type_name fun}, [_, T'])) =
+    (body_type T' = bool_T)
   | is_set_like_type (Type (@{type_name set}, _)) = true
   | is_set_like_type _ = false
 fun is_pair_type (Type (@{type_name prod}, _)) = true
@@ -506,6 +512,7 @@ fun is_frac_type ctxt (Type (s, [])) =
   | is_frac_type _ _ = false
 fun is_number_type ctxt = is_integer_like_type orf is_frac_type ctxt
 fun is_higher_order_type (Type (@{type_name fun}, _)) = true
+  | is_higher_order_type (Type (@{type_name set}, _)) = true
   | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
   | is_higher_order_type _ = false
 
@@ -1816,7 +1823,7 @@ fun unfold_defs_in_term
 (** Axiom extraction/generation **)
 
 fun extensional_equal j T t1 t2 =
-  if is_fun_type T orelse is_set_like_type T then
+  if is_fun_or_set_type T then
     let
       val dom_T = pseudo_domain_type T
       val ran_T = pseudo_range_type T
@@ -2233,7 +2240,7 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
   end
 
 fun is_good_starred_linear_pred_type (Type (@{type_name fun}, Ts)) =
-    forall (not o (is_fun_type orf is_pair_type)) Ts
+    forall (not o (is_fun_or_set_type orf is_pair_type)) Ts
   | is_good_starred_linear_pred_type _ = false
 
 fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,

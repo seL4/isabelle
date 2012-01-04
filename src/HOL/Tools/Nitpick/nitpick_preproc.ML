@@ -301,7 +301,7 @@ fun fresh_value_var Ts k n j t =
 fun has_heavy_bounds_or_vars Ts t =
   let
     fun aux [] = false
-      | aux [T] = is_fun_type T orelse is_pair_type T
+      | aux [T] = is_fun_or_set_type T orelse is_pair_type T
       | aux _ = true
   in aux (map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t)) end
 
@@ -311,7 +311,7 @@ fun pull_out_constr_comb ({ctxt, stds, ...} : hol_context) Ts relax k level t
     case t of
       Const x =>
       if not relax andalso is_constr ctxt stds x andalso
-         not (is_fun_type (fastype_of1 (Ts, t_comb))) andalso
+         not (is_fun_or_set_type (fastype_of1 (Ts, t_comb))) andalso
          has_heavy_bounds_or_vars Ts t_comb andalso
          not (loose_bvar (t_comb, level)) then
         let
@@ -1009,6 +1009,7 @@ fun axioms_for_term
       case T of
         Type (@{type_name fun}, Ts) => fold (add_axioms_for_type depth) Ts
       | Type (@{type_name prod}, Ts) => fold (add_axioms_for_type depth) Ts
+      | Type (@{type_name set}, Ts) => fold (add_axioms_for_type depth) Ts
       | @{typ prop} => I
       | @{typ bool} => I
       | TFree (_, S) => add_axioms_for_sort depth T S

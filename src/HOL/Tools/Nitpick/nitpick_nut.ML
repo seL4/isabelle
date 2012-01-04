@@ -682,7 +682,8 @@ fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
     val (s', T') = binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize x n
     val R' = if n = ~1 orelse is_word_type (body_type T) orelse
                 (is_fun_type (range_type T') andalso
-                 is_boolean_type (body_type T')) then
+                 is_boolean_type (body_type T')) orelse
+                (is_set_type (body_type T')) then
                best_non_opt_set_rep_for_type scope T'
              else
                best_opt_set_rep_for_type scope T' |> unopt_rep
@@ -718,7 +719,8 @@ fun choose_rep_for_bound_var scope v =
    is representable or "Unrep", because unknown implies "Unrep". *)
 fun is_constructive u =
   is_Cst Unrep u orelse
-  (not (is_fun_type (type_of u)) andalso not (is_opt_rep (rep_of u))) orelse
+  (not (is_fun_or_set_type (type_of u)) andalso
+   not (is_opt_rep (rep_of u))) orelse
   case u of
     Cst (Num _, _, _) => true
   | Cst (cst, T, _) => body_type T = nat_T andalso (cst = Suc orelse cst = Add)
@@ -807,8 +809,9 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
     fun triad_fn f = triad (f Pos) (f Neg)
     fun unrepify_nut_in_nut table def polar needle_u =
       let val needle_T = type_of needle_u in
-        substitute_in_nut needle_u (Cst (if is_fun_type needle_T then Unknown
-                                         else Unrep, needle_T, Any))
+        substitute_in_nut needle_u
+            (Cst (if is_fun_or_set_type needle_T then Unknown
+                  else Unrep, needle_T, Any))
         #> aux table def polar
       end
     and aux table def polar u =
