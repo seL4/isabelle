@@ -181,6 +181,7 @@ definition
 
 translations
   "case l of XCONST up\<cdot>x \<Rightarrow> t" == "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
+  "case l of (XCONST up :: 'a)\<cdot>x \<Rightarrow> t" => "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
   "\<Lambda>(XCONST up\<cdot>x). t" == "CONST fup\<cdot>(\<Lambda> x. t)"
 
 text {* continuous versions of lemmas for @{typ "('a)u"} *}

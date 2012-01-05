@@ -60,6 +60,12 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Concrete syntax for case expressions includes constraints for source
+positions, and thus produces Prover IDE markup for its bindings.
+INCOMPATIBILITY for old-style syntax translations that augment the
+pattern notation; e.g. see src/HOL/HOLCF/One.thy for translations of
+one_case.
+
 * Finite_Set.fold now qualified.  INCOMPATIBILITY.
 
 * Renamed some facts on canonical fold on lists, in order to avoid problems

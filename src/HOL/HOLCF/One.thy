@@ -58,6 +58,7 @@ definition
 
 translations
   "case x of XCONST ONE \<Rightarrow> t" == "CONST one_case\<cdot>t\<cdot>x"
+  "case x of XCONST ONE :: 'a \<Rightarrow> t" => "CONST one_case\<cdot>t\<cdot>x"
   "\<Lambda> (XCONST ONE). t" == "CONST one_case\<cdot>t"
 
 lemma one_case1 [simp]: "(case \<bottom> of ONE \<Rightarrow> t) = \<bottom>"

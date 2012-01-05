@@ -104,34 +104,31 @@ abbreviation (iff)
 notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
-nonterminal letbinds and letbind
-nonterminal case_pat and case_syn and cases_syn
-
 syntax
-  "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
-
-  "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
-  ""            :: "letbind => letbinds"                 ("_")
-  "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
-
-  "_case_syntax"      :: "['a, cases_syn] => 'b"              ("(case _ of/ _)" 10)
-  "_case1"            :: "[case_pat, 'b] => case_syn"         ("(2_ =>/ _)" 10)
-  ""                  :: "case_syn => cases_syn"              ("_")
-  "_case2"            :: "[case_syn, cases_syn] => cases_syn" ("_/ | _")
-  "_strip_positions"  :: "'a => case_pat"                     ("_")
-
-syntax (xsymbols)
-  "_case1" :: "[case_pat, 'b] => case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
-
+  "_The" :: "[pttrn, bool] => 'a"  ("(3THE _./ _)" [0, 10] 10)
 translations
-  "THE x. P"              == "CONST The (%x. P)"
-
+  "THE x. P" == "CONST The (%x. P)"
 print_translation {*
   [(@{const_syntax The}, fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_The"} $ x $ t end)]
 *}  -- {* To avoid eta-contraction of body *}
+
+nonterminal letbinds and letbind
+syntax
+  "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
+  ""            :: "letbind => letbinds"                 ("_")
+  "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
+  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
+
+nonterminal case_syn and cases_syn
+syntax
+  "_case_syntax" :: "['a, cases_syn] => 'b"  ("(case _ of/ _)" 10)
+  "_case1" :: "['a, 'b] => case_syn"  ("(2_ =>/ _)" 10)
+  "" :: "case_syn => cases_syn"  ("_")
+  "_case2" :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
+syntax (xsymbols)
+  "_case1" :: "['a, 'b] => case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
 
 notation (xsymbols)
   All  (binder "\<forall>" 10) and

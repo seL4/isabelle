@@ -3,6 +3,9 @@
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package: nested case expressions on datatypes.
+
+TODO: generic tool with separate data slot, without hard-wiring the
+datatype package.
 *)
 
 signature DATATYPE_CASE =
@@ -57,25 +60,30 @@ fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
       strip_constraints t ||> cons tT
   | strip_constraints t = (t, []);
 
-fun mk_fun_constrain tT t =
-  Syntax.const @{syntax_const "_constrain"} $ t $
-    (Syntax.const @{type_syntax fun} $ tT $ Syntax.const @{type_syntax dummy});
+fun constrain_Abs tT t = Syntax.const @{syntax_const "_constrainAbs"} $ t $ tT;
 
 
 (*Produce an instance of a constructor, plus fresh variables for its arguments.*)
 fun fresh_constr ty_match ty_inst colty used c =
   let
-    val (_, Ty) = dest_Const c;
-    val Ts = binder_types Ty;
+    val (_, T) = dest_Const c;
+    val Ts = binder_types T;
     val names =
       Name.variant_list used (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts));
-    val ty = body_type Ty;
+    val ty = body_type T;
     val ty_theta = ty_match ty colty
       handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);
     val c' = ty_inst ty_theta c;
     val gvars = map (ty_inst ty_theta o Free) (names ~~ Ts);
   in (c', gvars) end;
 
+fun strip_comb_positions tm =
+  let
+    fun result t ts = (Term_Position.strip_positions t, ts);
+    fun strip (t as (Const (@{syntax_const "_constrain"}, _) $ _ $ _)) ts = result t ts
+      | strip (f $ t) ts = strip f (t :: ts)
+      | strip t ts = result t ts;
+  in strip tm [] end;
 
 (*Go through a list of rows and pick out the ones beginning with a
   pattern with constructor = name.*)
@@ -83,7 +91,7 @@ fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
     fold (fn (row as ((prfx, p :: ps), rhs as (_, i))) =>
       fn ((in_group, not_in_group), (names, cnstrts)) =>
-        (case strip_comb p of
+        (case strip_comb_positions p of
           (Const (name', _), args) =>
             if name = name' then
               if length args = k then
@@ -162,7 +170,8 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
       | mk path (rows as ((row as ((_, [Free _]), _)) :: _ :: _)) = mk path [row]
       | mk (u :: us) (rows as ((_, _ :: _), _) :: _) =
           let val col0 = map (fn ((_, p :: _), (_, i)) => (p, i)) rows in
-            (case Option.map (apfst head_of) (find_first (not o is_Free o fst) col0) of
+            (case Option.map (apfst (fst o strip_comb_positions))
+                (find_first (not o is_Free o fst) col0) of
               NONE =>
                 let
                   val rows' = map (fn ((v, _), row) => row ||>
@@ -186,7 +195,7 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
                         map2 (fn {new_formals, names, constraints, ...} =>
                           fold_rev (fn ((x as Free (_, T), s), cnstrts) => fn t =>
                             Abs (if s = "" then name else s, T, abstract_over (x, t))
-                            |> fold mk_fun_constrain cnstrts) (new_formals ~~ names ~~ constraints))
+                            |> fold constrain_Abs cnstrts) (new_formals ~~ names ~~ constraints))
                         subproblems dtrees;
                       val types = map type_of (case_functions @ [u]);
                       val case_const = Const (case_name, types ---> range_ty);
@@ -210,7 +219,7 @@ fun no_repeat_vars ctxt pat = fold_aterms
           case_error (quote s ^ " occurs repeatedly in the pattern " ^
             quote (Syntax.string_of_term ctxt pat))
         else x :: xs)
-    | _ => I) pat [];
+    | _ => I) (Term_Position.strip_positions pat) [];
 
 fun gen_make_case ty_match ty_inst type_of ctxt config used x clauses =
   let
@@ -432,7 +441,8 @@ fun case_tr' cname ctxt ts =
                 | Const (s, _) => Syntax.const (Lexicon.mark_const s)
                 | t => t) pat $
             map_aterms
-              (fn x as Free (s, T) => if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
+              (fn x as Free (s, T) =>
+                  if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
                 | t => t) rhs
         end;
     in
