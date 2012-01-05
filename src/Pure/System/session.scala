@@ -56,7 +56,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   val phase_changed = new Event_Bus[Session.Phase]
   val syslog_messages = new Event_Bus[Isabelle_Process.Result]
   val raw_output_messages = new Event_Bus[Isabelle_Process.Result]
-  val raw_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
+  val protocol_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
 
 
 
@@ -467,13 +467,13 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Messages(msgs) =>
           msgs foreach {
             case input: Isabelle_Process.Input =>
-              raw_messages.event(input)
+              protocol_messages.event(input)
 
             case result: Isabelle_Process.Result =>
               handle_result(result)
               if (result.is_syslog) syslog_messages.event(result)
               if (result.is_stdout || result.is_stderr) raw_output_messages.event(result)
-              raw_messages.event(result)
+              protocol_messages.event(result)
           }
 
         case change: Change_Node
