@@ -142,9 +142,6 @@ object Isabelle_Markup
 
   /* outer syntax */
 
-  val KEYWORD_DECL = "keyword_decl"
-  val COMMAND_DECL = "command_decl"
-
   val KEYWORD = "keyword"
   val OPERATOR = "operator"
   val COMMAND = "command"
@@ -257,6 +254,24 @@ object Isabelle_Markup
     def unapply(props: Properties.T): Option[String] =
       props match {
         case List((FUNCTION, "loaded_theory"), (Markup.NAME, name)) => Some(name)
+        case _ => None
+      }
+  }
+
+  object Keyword_Decl
+  {
+    def unapply(props: Properties.T): Option[String] =
+      props match {
+        case List((FUNCTION, "keyword_decl"), (Markup.NAME, name)) => Some(name)
+        case _ => None
+      }
+  }
+  object Command_Decl
+  {
+    def unapply(props: Properties.T): Option[(String, String)] =
+      props match {
+        case List((FUNCTION, "command_decl"), (Markup.NAME, name), (Markup.KIND, kind)) =>
+          Some((name, kind))
         case _ => None
       }
   }

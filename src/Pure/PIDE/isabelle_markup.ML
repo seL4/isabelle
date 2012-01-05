@@ -66,8 +66,6 @@ sig
   val ML_antiquotationN: string
   val doc_antiquotationN: string
   val doc_antiquotation_optionN: string
-  val keyword_declN: string val keyword_decl: string -> Markup.T
-  val command_declN: string val command_decl: string -> string -> Markup.T
   val keywordN: string val keyword: Markup.T
   val operatorN: string val operator: Markup.T
   val commandN: string val command: Markup.T
@@ -105,6 +103,8 @@ sig
   val functionN: string
   val ready: Properties.T
   val loaded_theory: string -> Properties.T
+  val keyword_decl: string -> Properties.T
+  val command_decl: string -> string -> Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -235,13 +235,6 @@ val doc_antiquotation_optionN = "document antiquotation option";
 
 (* outer syntax *)
 
-val (keyword_declN, keyword_decl) = markup_string "keyword_decl" Markup.nameN;
-
-val command_declN = "command_decl";
-
-fun command_decl name kind : Markup.T =
-  (command_declN, [(Markup.nameN, name), (Markup.kindN, kind)]);
-
 val (keywordN, keyword) = markup_elem "keyword";
 val (operatorN, operator) = markup_elem "operator";
 val (commandN, command) = markup_elem "command";
@@ -316,6 +309,10 @@ val functionN = "function"
 val ready = [(functionN, "ready")];
 
 fun loaded_theory name = [(functionN, "loaded_theory"), (Markup.nameN, name)];
+
+fun keyword_decl name = [(functionN, "keyword_decl"), (Markup.nameN, name)];
+fun command_decl name kind =
+  [(functionN, "command_decl"), (Markup.nameN, name), (Markup.kindN, kind)];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];

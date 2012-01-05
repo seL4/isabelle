@@ -406,6 +406,12 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Isabelle_Markup.Loaded_Theory(name) if result.is_raw =>
           thy_load.register_thy(name)
 
+        case Isabelle_Markup.Command_Decl(name, kind) if result.is_raw =>
+          syntax += (name, kind)
+
+        case Isabelle_Markup.Keyword_Decl(name) if result.is_raw =>
+          syntax += name
+
         case _ =>
           if (result.is_syslog) {
             reverse_syslog ::= result.message
@@ -413,13 +419,6 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             else if (result.is_exit) phase = Session.Inactive
           }
           else if (result.is_stdout) { }
-          else if (result.is_status) {
-            result.body match {
-              case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
-              case List(Keyword.Keyword_Decl(name)) => syntax += name
-              case _ => bad_result(result)
-            }
-          }
           else bad_result(result)
       }
     }
