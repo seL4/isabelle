@@ -160,11 +160,6 @@ object Isabelle_Markup
   val MALFORMED_SPAN = "malformed_span"
 
 
-  /* theory loader */
-
-  val LOADED_THEORY = "loaded_theory"
-
-
   /* timing */
 
   val TIMING = "timing"
@@ -257,25 +252,31 @@ object Isabelle_Markup
 
   val Ready: Properties.T = List((FUNCTION, "ready"))
 
-  val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
-  val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
-
-  val INVOKE_SCALA = "invoke_scala"
-  object Invoke_Scala
+  object Loaded_Theory
   {
-    def unapply(props: Properties.T): Option[(String, String)] =
+    def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, INVOKE_SCALA), (Markup.NAME, name), (ID, id)) => Some((name, id))
+        case List((FUNCTION, "loaded_theory"), (Markup.NAME, name)) => Some(name)
         case _ => None
       }
   }
 
-  val CANCEL_SCALA = "cancel_scala"
+  val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
+  val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
+
+  object Invoke_Scala
+  {
+    def unapply(props: Properties.T): Option[(String, String)] =
+      props match {
+        case List((FUNCTION, "invoke_scala"), (Markup.NAME, name), (ID, id)) => Some((name, id))
+        case _ => None
+      }
+  }
   object Cancel_Scala
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, CANCEL_SCALA), (ID, id)) => Some(id)
+        case List((FUNCTION, "cancel_scala"), (ID, id)) => Some(id)
         case _ => None
       }
   }

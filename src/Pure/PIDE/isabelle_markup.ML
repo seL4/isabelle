@@ -81,7 +81,6 @@ sig
   val command_spanN: string val command_span: string -> Markup.T
   val ignored_spanN: string val ignored_span: Markup.T
   val malformed_spanN: string val malformed_span: Markup.T
-  val loaded_theoryN: string val loaded_theory: string -> Markup.T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -105,6 +104,7 @@ sig
   val badN: string val bad: Markup.T
   val functionN: string
   val ready: Properties.T
+  val loaded_theory: string -> Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -260,11 +260,6 @@ val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
 val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 
-(* theory loader *)
-
-val (loaded_theoryN, loaded_theory) = markup_string "loaded_theory" Markup.nameN;
-
-
 (* timing *)
 
 val timingN = "timing";
@@ -319,6 +314,8 @@ val (badN, bad) = markup_elem "bad";
 val functionN = "function"
 
 val ready = [(functionN, "ready")];
+
+fun loaded_theory name = [(functionN, "loaded_theory"), (Markup.nameN, name)];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];
