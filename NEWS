@@ -66,6 +66,9 @@ INCOMPATIBILITY for old-style syntax translations that augment the
 pattern notation; e.g. see src/HOL/HOLCF/One.thy for translations of
 one_case.
 
+* Discontinued configuration option "syntax_positions": atomic terms
+in parse trees are always annotated by position constraints.
+
 * Finite_Set.fold now qualified.  INCOMPATIBILITY.
 
 * Renamed some facts on canonical fold on lists, in order to avoid problems

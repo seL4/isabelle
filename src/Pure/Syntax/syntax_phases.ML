@@ -128,7 +128,7 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
-fun parsetree_to_ast ctxt constrain_pos trf parsetree =
+fun parsetree_to_ast ctxt raw trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report list);
     fun report pos = Position.store_reports reports [pos];
@@ -154,10 +154,10 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
             val _ = report pos (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
-          if constrain_pos then
+          if raw then [ast_of pt]
+          else
             [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
               Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
-          else [ast_of pt]
       | asts_of (Parser.Node (a, pts)) =
           let
             val _ = pts |> List.app
@@ -300,10 +300,9 @@ fun parse_asts ctxt raw root (syms, pos) =
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))))
       else ();
-
-    val constrain_pos = not raw andalso Config.get ctxt Syntax.positions;
-    val parsetree_to_ast = parsetree_to_ast ctxt constrain_pos ast_tr;
-  in map parsetree_to_ast pts end;
+  in
+    map (parsetree_to_ast ctxt raw ast_tr) pts
+  end;
 
 fun parse_raw ctxt root input =
   let

@@ -10,8 +10,6 @@ sig
   type operations
   val install_operations: operations -> unit
   val root: string Config.T
-  val positions_raw: Config.raw
-  val positions: bool Config.T
   val ambiguity_enabled: bool Config.T
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
@@ -158,9 +156,6 @@ fun operation which ctxt x =
 (* configuration options *)
 
 val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
-
-val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
-val positions = Config.bool positions_raw;
 
 val ambiguity_enabled =
   Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
