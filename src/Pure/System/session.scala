@@ -389,18 +389,17 @@ class Session(thy_load: Thy_Load = new Thy_Load)
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }
-        case Isabelle_Markup.Cancel_Scala(id) =>
-          System.err.println("cancel_scala " + id)  // FIXME cancel JVM task
+        case Isabelle_Markup.Cancel_Scala(id) if result.is_raw =>
+          System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
+        case Isabelle_Markup.Ready if result.is_raw =>
+            // FIXME move to ML side (!?)
+            syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
+            syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
+            phase = Session.Ready
         case _ =>
           if (result.is_syslog) {
             reverse_syslog ::= result.message
-            if (result.is_ready) {
-              // FIXME move to ML side (!?)
-              syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
-              syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
-              phase = Session.Ready
-            }
-            else if (result.is_exit && phase == Session.Startup) phase = Session.Failed
+            if (result.is_exit && phase == Session.Startup) phase = Session.Failed
             else if (result.is_exit) phase = Session.Inactive
           }
           else if (result.is_stdout) { }

@@ -185,7 +185,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
     val _ = Keyword.status ();
     val _ = Thy_Info.status ();
-    val _ = Output.status (Markup.markup Isabelle_Markup.ready "process ready");
+    val _ = Output.raw_message Isabelle_Markup.ready "";
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

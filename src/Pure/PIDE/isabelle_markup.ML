@@ -100,11 +100,11 @@ sig
   val serialN: string
   val legacyN: string val legacy: Markup.T
   val promptN: string val prompt: Markup.T
-  val readyN: string val ready: Markup.T
   val reportN: string val report: Markup.T
   val no_reportN: string val no_report: Markup.T
   val badN: string val bad: Markup.T
   val functionN: string
+  val ready: Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -307,7 +307,6 @@ val serialN = "serial";
 
 val (legacyN, legacy) = markup_elem "legacy";
 val (promptN, prompt) = markup_elem "prompt";
-val (readyN, ready) = markup_elem "ready";
 
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
@@ -318,6 +317,8 @@ val (badN, bad) = markup_elem "bad";
 (* raw message functions *)
 
 val functionN = "function"
+
+val ready = [(functionN, "ready")];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];
