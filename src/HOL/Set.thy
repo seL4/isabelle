@@ -256,7 +256,6 @@ translations
 
 print_translation {*
 let
-  val Type (set_type, _) = @{typ "'a set"};   (* FIXME 'a => bool (!?!) *)
   val All_binder = Mixfix.binder_name @{const_syntax All};
   val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
   val impl = @{const_syntax HOL.implies};
@@ -275,14 +274,12 @@ let
     then Syntax.const c $ Syntax_Trans.mark_bound v' $ n $ P else raise Match;
 
   fun tr' q = (q,
-        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (T, _)),
+        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
             Const (c, _) $
               (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', _)) $ n) $ P] =>
-            if T = set_type then
-              (case AList.lookup (op =) trans (q, c, d) of
-                NONE => raise Match
-              | SOME l => mk v v' l n P)
-            else raise Match
+            (case AList.lookup (op =) trans (q, c, d) of
+              NONE => raise Match
+            | SOME l => mk v v' l n P)
          | _ => raise Match);
 in
   [tr' All_binder, tr' Ex_binder]
