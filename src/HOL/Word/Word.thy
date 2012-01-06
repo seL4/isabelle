@@ -116,7 +116,8 @@ definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
   "word_int_case f w = f (uint w)"
 
 translations
-  "case x of CONST of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of XCONST of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
 
 subsection {* Type-definition locale instantiations *}
 
