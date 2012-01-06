@@ -431,6 +431,10 @@ lemma bex_triv_one_point1 [simp]: "(EX x:A. x = a) = (a:A)"
 lemma bex_triv_one_point2 [simp]: "(EX x:A. a = x) = (a:A)"
   by blast
 
+lemma member_exists [code]:
+  "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. a = x)"
+  by (rule sym) (fact bex_triv_one_point2)
+
 lemma bex_one_point1 [simp]: "(EX x:A. x = a & P x) = (a:A & P a)"
   by blast
 
@@ -521,6 +525,10 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
+
+lemma subset_not_subset_eq [code]:
+  "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
+  by (fact less_le_not_le)
 
 lemma eq_mem_trans: "a=b ==> b \<in> A ==> a \<in> A"
   by simp
@@ -1828,6 +1836,10 @@ hide_const (open) project
 lemma member_project [simp]:
   "x \<in> Set.project P A \<longleftrightarrow> x \<in> A \<and> P x"
   by (simp add: project_def)
+
+lemma inter_project [code]:
+  "A \<inter> B = Set.project (\<lambda>x. x \<in> A) B"
+  by (auto simp add: project_def)
 
 instantiation set :: (equal) equal
 begin

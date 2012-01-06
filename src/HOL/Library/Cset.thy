@@ -276,7 +276,7 @@ proof (rule ext, rule Cset.set_eqI)
   fix xs :: "'a list"
   show "member (Cset.set xs) = member (fold insert xs Cset.empty)"
     by (simp add: fold_commute_apply [symmetric, where ?h = Set and ?g = Set.insert]
-      fun_eq_iff Cset.set_def union_set [symmetric])
+      fun_eq_iff Cset.set_def union_set_fold [symmetric])
 qed
 
 lemma single_code [code]:
@@ -296,7 +296,7 @@ lemma inter_project:
   "inf A (Cset.coset xs) = foldr Cset.remove xs A"
 proof -
   show "inf A (Cset.set xs) = Cset.set (List.filter (member A) xs)"
-    by (simp add: inter project_def Cset.set_def member_def)
+    by (simp add: project_def Cset.set_def member_def) auto
   have *: "\<And>x::'a. Cset.remove = (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of)"
     by (simp add: fun_eq_iff Set.remove_def)
   have "set_of \<circ> fold (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of) xs =
@@ -306,7 +306,7 @@ proof -
     set_of (fold (\<lambda>x. Set \<circ> Set.remove x \<circ> set_of) xs A)"
     by (simp add: fun_eq_iff)
   then have "inf A (Cset.coset xs) = fold Cset.remove xs A"
-    by (simp add: Diff_eq [symmetric] minus_set *)
+    by (simp add: Diff_eq [symmetric] minus_set_fold *)
   moreover have "\<And>x y :: 'a. Cset.remove y \<circ> Cset.remove x = Cset.remove x \<circ> Cset.remove y"
     by (auto simp add: Set.remove_def *)
   ultimately show "inf A (Cset.coset xs) = foldr Cset.remove xs A"
@@ -326,7 +326,7 @@ proof -
     set_of (fold (\<lambda>x. Set \<circ> Set.insert x \<circ> set_of) xs A)"
     by (simp add: fun_eq_iff)
   then have "sup (Cset.set xs) A = fold Cset.insert xs A"
-    by (simp add: union_set *)
+    by (simp add: union_set_fold *)
   moreover have "\<And>x y :: 'a. Cset.insert y \<circ> Cset.insert x = Cset.insert x \<circ> Cset.insert y"
     by (auto simp add: *)
   ultimately show "sup (Cset.set xs) A = foldr Cset.insert xs A"
