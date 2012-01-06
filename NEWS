@@ -101,10 +101,15 @@ with interpretation involving corresponding facts on foldl with the same base na
 INCOMPATIBILITY.
 
 * 'set' is now a proper type constructor.  Definitions mem_def and Collect_def
-have disappeared.  INCOMPATIBILITY, rephrase sets S used as predicates by
-"%x. x : S" and predicates P used as sets by "{x. P x}".  For typical proofs,
-it is often sufficent to prune any tinkering with former theorems mem_def
+have disappeared.  INCOMPATIBILITY.
+For developments keeping predicates and sets
+separate, it is often sufficient to rephrase sets S accidentally used as predicates by
+"%x. x : S" and predicates P accidentally used as sets by "{x. P x}".  Corresponding
+proofs in a first step should be pruned from any tinkering with former theorems mem_def
 and Collect_def.
+For developments which deliberately mixed predicates and sets, a planning step is
+necessary to determine what should become a predicate and what a set.  It can be helpful
+to carry out that step in Isabelle 2011-1 before jumping to the current release.
 
 * Theory HOL/Library/AList has been renamed to AList_Impl. INCOMPATIBILITY.
 
