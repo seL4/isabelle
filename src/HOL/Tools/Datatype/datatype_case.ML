@@ -67,9 +67,7 @@ fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
       strip_constraints t ||> cons tT
   | strip_constraints t = (t, []);
 
-val recover_constraints =
-  fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT);
-
+fun constrain tT t = Syntax.const @{syntax_const "_constrain"} $ t $ tT;
 fun constrain_Abs tT t = Syntax.const @{syntax_const "_constrainAbs"} $ t $ tT;
 
 
@@ -90,7 +88,7 @@ fun fresh_constr ty_match ty_inst colty used c =
 fun strip_comb_positions tm =
   let
     fun result t ts = (Term_Position.strip_positions t, ts);
-    fun strip (t as (Const (@{syntax_const "_constrain"}, _) $ _ $ _)) ts = result t ts
+    fun strip (t as Const (@{syntax_const "_constrain"}, _) $ _ $ _) ts = result t ts
       | strip (f $ t) ts = strip f (t :: ts)
       | strip t ts = result t ts;
   in strip tm [] end;
@@ -109,7 +107,7 @@ fun mk_group (name, T) rows =
                   ((((prfx, args' @ ps), rhs) :: in_group, not_in_group),
                    (default_names names args', map2 append cnstrts cnstrts'))
                 end
-              else raise CASE_ERROR ("Wrong number of arguments for constructor " ^ name, i)
+              else raise CASE_ERROR ("Wrong number of arguments for constructor " ^ quote name, i)
             else ((in_group, row :: not_in_group), (names, cnstrts))
         | _ => raise CASE_ERROR ("Not a constructor pattern", i)))
     rows (([], []), (replicate k "", replicate k [])) |>> pairself rev
@@ -142,7 +140,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
                         (Const (@{const_syntax undefined}, res_ty), ~1))]
                     end
-                  else in_group
+                  else in_group;
               in
                 {constructor = c',
                  new_formals = gvars,
@@ -162,7 +160,7 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
   let
     val get_info = Datatype_Data.info_of_constr_permissive (Proof_Context.theory_of ctxt);
 
-    fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand_var_row", ~1)
+    fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand", ~1)
       | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
           if is_Free p then
             let
@@ -189,7 +187,7 @@ fun mk_case ctxt ty_match ty_inst type_of used range_ty =
                 in mk us rows' end
             | SOME (Const (cname, cT), i) =>
                 (case Option.map ty_info (get_info (cname, cT)) of
-                  NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
+                  NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ quote cname, i)
                 | SOME {case_name, constructors} =>
                     let
                       val pty = body_type cT;
@@ -312,7 +310,7 @@ fun case_tr err ctxt [t, u] =
       in
         make_case_untyped ctxt
           (if err then Error else Warning) []
-          (recover_constraints (filter_out Term_Position.is_position (flat cnstrts)) t)
+          (fold constrain (filter_out Term_Position.is_position (flat cnstrts)) t)
           cases
       end
   | case_tr _ _ _ = case_error "case_tr";
