@@ -349,90 +349,91 @@ expressions. During proofs, they may become unreadable (and
 mangled). In such cases it can be advisable to introduce separate
 definitions for the list comprehensions in question.  *}
 
-nonterminal lc_gen and lc_qual and lc_quals
+nonterminal lc_qual and lc_quals
 
 syntax
-"_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
-"_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
-(*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
-"_lc_end" :: "lc_quals" ("]")
-"_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
-"_lc_abs" :: "'a => 'b list => 'b list"
-"_strip_positions" :: "'a \<Rightarrow> lc_gen"  ("_")
+  "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
+  "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
+  (*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
+  "_lc_end" :: "lc_quals" ("]")
+  "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals"  (", __")
+  "_lc_abs" :: "'a => 'b list => 'b list"
 
 (* These are easier than ML code but cannot express the optimized
    translation of [e. p<-xs]
 translations
-"[e. p<-xs]" => "concat(map (_lc_abs p [e]) xs)"
-"_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
- => "concat (map (_lc_abs p (_listcompr e Q Qs)) xs)"
-"[e. P]" => "if P then [e] else []"
-"_listcompr e (_lc_test P) (_lc_quals Q Qs)"
- => "if P then (_listcompr e Q Qs) else []"
-"_listcompr e (_lc_let b) (_lc_quals Q Qs)"
- => "_Let b (_listcompr e Q Qs)"
+  "[e. p<-xs]" => "concat(map (_lc_abs p [e]) xs)"
+  "_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
+   => "concat (map (_lc_abs p (_listcompr e Q Qs)) xs)"
+  "[e. P]" => "if P then [e] else []"
+  "_listcompr e (_lc_test P) (_lc_quals Q Qs)"
+   => "if P then (_listcompr e Q Qs) else []"
+  "_listcompr e (_lc_let b) (_lc_quals Q Qs)"
+   => "_Let b (_listcompr e Q Qs)"
 *)
 
 syntax (xsymbols)
-"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
 syntax (HTML output)
-"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
 
 parse_translation (advanced) {*
-let
-  val NilC = Syntax.const @{const_syntax Nil};
-  val ConsC = Syntax.const @{const_syntax Cons};
-  val mapC = Syntax.const @{const_syntax map};
-  val concatC = Syntax.const @{const_syntax concat};
-  val IfC = Syntax.const @{const_syntax If};
+  let
+    val NilC = Syntax.const @{const_syntax Nil};
+    val ConsC = Syntax.const @{const_syntax Cons};
+    val mapC = Syntax.const @{const_syntax map};
+    val concatC = Syntax.const @{const_syntax concat};
+    val IfC = Syntax.const @{const_syntax If};
 
-  fun singl x = ConsC $ x $ NilC;
+    fun single x = ConsC $ x $ NilC;
 
-  fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
-    let
-      (* FIXME proper name context!? *)
-      val x = Free (singleton (Name.variant_list (fold Term.add_free_names [p, e] [])) "x", dummyT);
-      val e = if opti then singl e else e;
-      val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
-      val case2 =
-        Syntax.const @{syntax_const "_case1"} $
-          Syntax.const @{const_syntax dummy_pattern} $ NilC;
-      val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
-      val ft = Datatype_Case.case_tr false ctxt [x, cs];
-    in lambda x ft end;
+    fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
+      let
+        (* FIXME proper name context!? *)
+        val x =
+          Free (singleton (Name.variant_list (fold Term.add_free_names [p, e] [])) "x", dummyT);
+        val e = if opti then single e else e;
+        val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
+        val case2 =
+          Syntax.const @{syntax_const "_case1"} $
+            Syntax.const @{const_syntax dummy_pattern} $ NilC;
+        val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
+      in Syntax_Trans.abs_tr [x, Datatype_Case.case_tr false ctxt [x, cs]] end;
 
-  fun abs_tr ctxt (p as Free (s, T)) e opti =
-        let
-          val thy = Proof_Context.theory_of ctxt;
-          val s' = Proof_Context.intern_const ctxt s;
-        in
-          if Sign.declared_const thy s'
-          then (pat_tr ctxt p e opti, false)
-          else (lambda p e, true)
-        end
-    | abs_tr ctxt p e opti = (pat_tr ctxt p e opti, false);
+    fun abs_tr ctxt p e opti =
+      (case Term_Position.strip_positions p of
+        Free (s, T) =>
+          let
+            val thy = Proof_Context.theory_of ctxt;
+            val s' = Proof_Context.intern_const ctxt s;
+          in
+            if Sign.declared_const thy s'
+            then (pat_tr ctxt p e opti, false)
+            else (Syntax_Trans.abs_tr [p, e], true)
+          end
+      | _ => (pat_tr ctxt p e opti, false));
 
-  fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
-        let
-          val res =
-            (case qs of
-              Const (@{syntax_const "_lc_end"}, _) => singl e
-            | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
-        in IfC $ b $ res $ NilC end
-    | lc_tr ctxt
-          [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-            Const(@{syntax_const "_lc_end"}, _)] =
-        (case abs_tr ctxt p e true of
-          (f, true) => mapC $ f $ es
-        | (f, false) => concatC $ (mapC $ f $ es))
-    | lc_tr ctxt
-          [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-            Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
-        let val e' = lc_tr ctxt [e, q, qs];
-        in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
+    fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
+          let
+            val res =
+              (case qs of
+                Const (@{syntax_const "_lc_end"}, _) => single e
+              | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
+          in IfC $ b $ res $ NilC end
+      | lc_tr ctxt
+            [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+              Const(@{syntax_const "_lc_end"}, _)] =
+          (case abs_tr ctxt p e true of
+            (f, true) => mapC $ f $ es
+          | (f, false) => concatC $ (mapC $ f $ es))
+      | lc_tr ctxt
+            [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+              Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
+          let val e' = lc_tr ctxt [e, q, qs];
+          in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
 
-in [(@{syntax_const "_listcompr"}, lc_tr)] end
+  in [(@{syntax_const "_listcompr"}, lc_tr)] end
 *}
 
 ML {*
