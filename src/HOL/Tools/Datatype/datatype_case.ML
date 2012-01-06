@@ -4,8 +4,15 @@
 
 Datatype package: nested case expressions on datatypes.
 
-TODO: generic tool with separate data slot, without hard-wiring the
-datatype package.
+TODO:
+  * Avoid fragile operations on syntax trees (with type constraints
+    getting in the way).  Instead work with auxiliary "destructor"
+    constants in translations and introduce the actual case
+    combinators in a separate term check phase (similar to term
+    abbreviations).
+
+  * Avoid hard-wiring with datatype package.  Instead provide generic
+    generic declarations of case splits based on an internal data slot.
 *)
 
 signature DATATYPE_CASE =
@@ -59,6 +66,9 @@ fun default_names names ts =
 fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
       strip_constraints t ||> cons tT
   | strip_constraints t = (t, []);
+
+val recover_constraints =
+  fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT);
 
 fun constrain_Abs tT t = Syntax.const @{syntax_const "_constrainAbs"} $ t $ tT;
 
@@ -302,8 +312,8 @@ fun case_tr err ctxt [t, u] =
       in
         make_case_untyped ctxt
           (if err then Error else Warning) []
-          (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
-             (flat cnstrts) t) cases
+          (recover_constraints (filter_out Term_Position.is_position (flat cnstrts)) t)
+          cases
       end
   | case_tr _ _ _ = case_error "case_tr";
 
