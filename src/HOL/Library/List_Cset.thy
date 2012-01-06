@@ -72,7 +72,7 @@ lemma map_set [code]:
   
 lemma filter_set [code]:
   "Cset.filter P (Cset.set xs) = Cset.set (List.filter P xs)"
-  by (simp add: Cset.set_def project_set)
+  by (simp add: Cset.set_def)
 
 lemma forall_set [code]:
   "Cset.forall P (Cset.set xs) \<longleftrightarrow> list_all P xs"

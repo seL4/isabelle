@@ -2470,6 +2470,23 @@ proof -
   qed
 qed
 
+lemma union_set_fold:
+  "set xs \<union> A = fold Set.insert xs A"
+proof -
+  interpret comp_fun_idem Set.insert
+    by (fact comp_fun_idem_insert)
+  show ?thesis by (simp add: union_fold_insert fold_set_fold)
+qed
+
+lemma minus_set_fold:
+  "A - set xs = fold Set.remove xs A"
+proof -
+  interpret comp_fun_idem Set.remove
+    by (fact comp_fun_idem_remove)
+  show ?thesis
+    by (simp add: minus_fold_remove [of _ A] fold_set_fold)
+qed
+
 lemma (in lattice) Inf_fin_set_fold:
   "Inf_fin (set (x # xs)) = fold inf xs x"
 proof -
@@ -2587,6 +2604,22 @@ text {* Executing operations in terms of @{const foldr} -- tail-recursive! *}
 lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
   by (simp add: fold_append_concat_rev foldr_def)
+
+lemma union_set_foldr:
+  "set xs \<union> A = foldr Set.insert xs A"
+proof -
+  have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
+    by auto
+  then show ?thesis by (simp add: union_set_fold foldr_fold)
+qed
+
+lemma minus_set_foldr:
+  "A - set xs = foldr Set.remove xs A"
+proof -
+  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
+    by (auto simp add: remove_def)
+  then show ?thesis by (simp add: minus_set_fold foldr_fold)
+qed
 
 lemma (in lattice) Inf_fin_set_foldr [code]:
   "Inf_fin (set (x # xs)) = foldr inf xs x"
@@ -5166,7 +5199,7 @@ subsection {* Code generation *}
 subsubsection {* Counterparts for set-related operations *}
 
 definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-  [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
+  "member xs x \<longleftrightarrow> x \<in> set xs"
 
 text {*
   Use @{text member} only for generating executable code.  Otherwise use
@@ -5182,16 +5215,11 @@ lemma in_set_member (* FIXME delete candidate *):
   "x \<in> set xs \<longleftrightarrow> member xs x"
   by (simp add: member_def)
 
-declare INF_def [code_unfold]
-declare SUP_def [code_unfold]
-
-declare set_map [symmetric, code_unfold]
-
 definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
+  list_all_iff: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
+  list_ex_iff: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
 
 definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
@@ -5496,5 +5524,76 @@ code_const list_all
 
 code_const list_ex
   (Haskell "any")
+
+
+subsubsection {* Implementation of sets by lists *}
+
+text {* Basic operations *}
+
+lemma is_empty_set [code]:
+  "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
+  by (simp add: Set.is_empty_def null_def)
+
+lemma empty_set [code]:
+  "{} = set []"
+  by simp
+
+lemma [code]:
+  "x \<in> set xs \<longleftrightarrow> List.member xs x"
+  "x \<in> List.coset xs \<longleftrightarrow> \<not> List.member xs x"
+  by (simp_all add: member_def)
+
+lemma UNIV_coset [code]:
+  "UNIV = List.coset []"
+  by simp
+
+lemma insert_code [code]:
+  "insert x (set xs) = set (List.insert x xs)"
+  "insert x (List.coset xs) = List.coset (removeAll x xs)"
+  by simp_all
+
+lemma remove_code [code]:
+  "Set.remove x (set xs) = set (removeAll x xs)"
+  "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
+  by (simp_all add: remove_def Compl_insert)
+
+lemma Ball_set [code]:
+  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma Bex_set [code]:
+  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
+
+lemma card_set [code]:
+  "card (set xs) = length (remdups xs)"
+proof -
+  have "card (set (remdups xs)) = length (remdups xs)"
+    by (rule distinct_card) simp
+  then show ?thesis by simp
+qed
+
+
+text {* Operations on relations *}
+
+lemma product_code [code]:
+  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: Product_Type.product_def)
+
+lemma Id_on_set [code]:
+  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
+  by (auto simp add: Id_on_def)
+
+lemma trancl_set_ntrancl [code]:
+  "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
+  by (simp add: finite_trancl_ntranl)
+
+lemma set_rel_comp [code]:
+  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+  by (auto simp add: Bex_def)
+
+lemma wf_set [code]:
+  "wf (set xs) = acyclic (set xs)"
+  by (simp add: wf_iff_acyclic_if_finite)
 
 end
