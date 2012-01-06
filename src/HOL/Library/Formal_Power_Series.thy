@@ -1279,64 +1279,21 @@ qed
 subsubsection{* Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
   finite product of FPS, also the relvant instance of powers of a FPS*}
 
-definition "natpermute n k = {l:: nat list. length l = k \<and> foldl op + 0 l = n}"
+definition "natpermute n k = {l :: nat list. length l = k \<and> listsum l = n}"
 
 lemma natlist_trivial_1: "natpermute n 1 = {[n]}"
   apply (auto simp add: natpermute_def)
   apply (case_tac x, auto)
   done
 
-lemma foldl_add_start0:
-  "foldl op + x xs = x + foldl op + (0::nat) xs"
-  apply (induct xs arbitrary: x)
-  apply simp
-  unfolding foldl.simps
-  apply atomize
-  apply (subgoal_tac "\<forall>x\<Colon>nat. foldl op + x xs = x + foldl op + (0\<Colon>nat) xs")
-  apply (erule_tac x="x + a" in allE)
-  apply (erule_tac x="a" in allE)
-  apply simp
-  apply assumption
-  done
-
-lemma foldl_add_append: "foldl op + (x::nat) (xs@ys) = foldl op + x xs + foldl op + 0 ys"
-  apply (induct ys arbitrary: x xs)
-  apply auto
-  apply (subst (2) foldl_add_start0)
-  apply simp
-  apply (subst (2) foldl_add_start0)
-  by simp
-
-lemma foldl_add_setsum: "foldl op + (x::nat) xs = x + setsum (nth xs) {0..<length xs}"
-proof(induct xs arbitrary: x)
-  case Nil thus ?case by simp
-next
-  case (Cons a as x)
-  have eq: "setsum (op ! (a#as)) {1..<length (a#as)} = setsum (op ! as) {0..<length as}"
-    apply (rule setsum_reindex_cong [where f=Suc])
-    by (simp_all add: inj_on_def)
-  have f: "finite {0}" "finite {1 ..< length (a#as)}" by simp_all
-  have d: "{0} \<inter> {1..<length (a#as)} = {}" by simp
-  have seq: "{0} \<union> {1..<length(a#as)} = {0 ..<length (a#as)}" by auto
-  have "foldl op + x (a#as) = x + foldl op + a as "
-    apply (subst foldl_add_start0)    by simp
-  also have "\<dots> = x + a + setsum (op ! as) {0..<length as}" unfolding Cons.hyps by simp
-  also have "\<dots> = x + setsum (op ! (a#as)) {0..<length (a#as)}"
-    unfolding eq[symmetric]
-    unfolding setsum_Un_disjoint[OF f d, unfolded seq]
-    by simp
-  finally show ?case  .
-qed
-
-
 lemma append_natpermute_less_eq:
-  assumes h: "xs@ys \<in> natpermute n k" shows "foldl op + 0 xs \<le> n" and "foldl op + 0 ys \<le> n"
+  assumes h: "xs@ys \<in> natpermute n k" shows "listsum xs \<le> n" and "listsum ys \<le> n"
 proof-
-  {from h have "foldl op + 0 (xs@ ys) = n" by (simp add: natpermute_def)
-    hence "foldl op + 0 xs + foldl op + 0 ys = n" unfolding foldl_add_append .}
+  {from h have "listsum (xs @ ys) = n" by (simp add: natpermute_def)
+    hence "listsum xs + listsum ys = n" by simp}
   note th = this
-  {from th show "foldl op + 0 xs \<le> n" by simp}
-  {from th show "foldl op + 0 ys \<le> n" by simp}
+  {from th show "listsum xs \<le> n" by simp}
+  {from th show "listsum ys \<le> n" by simp}
 qed
 
 lemma natpermute_split:
@@ -1345,12 +1302,10 @@ lemma natpermute_split:
 proof-
   {fix l assume l: "l \<in> ?R"
     from l obtain m xs ys where h: "m \<in> {0..n}" and xs: "xs \<in> natpermute m h" and ys: "ys \<in> natpermute (n - m) (k - h)"  and leq: "l = xs@ys" by blast
-    from xs have xs': "foldl op + 0 xs = m" by (simp add: natpermute_def)
-    from ys have ys': "foldl op + 0 ys = n - m" by (simp add: natpermute_def)
+    from xs have xs': "listsum xs = m" by (simp add: natpermute_def)
+    from ys have ys': "listsum ys = n - m" by (simp add: natpermute_def)
     have "l \<in> ?L" using leq xs ys h
-      apply simp
-      apply (clarsimp simp add: natpermute_def simp del: foldl_append)
-      apply (simp add: foldl_add_append[unfolded foldl_append])
+      apply (clarsimp simp add: natpermute_def)
       unfolding xs' ys'
       using mn xs ys
       unfolding natpermute_def by simp}
@@ -1358,19 +1313,21 @@ proof-
   {fix l assume l: "l \<in> natpermute n k"
     let ?xs = "take h l"
     let ?ys = "drop h l"
-    let ?m = "foldl op + 0 ?xs"
-    from l have ls: "foldl op + 0 (?xs @ ?ys) = n" by (simp add: natpermute_def)
+    let ?m = "listsum ?xs"
+    from l have ls: "listsum (?xs @ ?ys) = n" by (simp add: natpermute_def)
     have xs: "?xs \<in> natpermute ?m h" using l mn by (simp add: natpermute_def)
-    have ys: "?ys \<in> natpermute (n - ?m) (k - h)" using l mn ls[unfolded foldl_add_append]
-      by (simp add: natpermute_def)
-    from ls have m: "?m \<in> {0..n}"  unfolding foldl_add_append by simp
+    have l_take_drop: "listsum l = listsum (take h l @ drop h l)" by simp
+    then have ys: "?ys \<in> natpermute (n - ?m) (k - h)" using l mn ls
+      by (auto simp add: natpermute_def simp del: append_take_drop_id)
+    from ls have m: "?m \<in> {0..n}" by (simp add: l_take_drop del: append_take_drop_id)
     from xs ys ls have "l \<in> ?R"
       apply auto
       apply (rule bexI[where x = "?m"])
       apply (rule exI[where x = "?xs"])
       apply (rule exI[where x = "?ys"])
-      using ls l unfolding foldl_add_append
-      by (auto simp add: natpermute_def)}
+      using ls l 
+      apply (auto simp add: natpermute_def l_take_drop simp del: append_take_drop_id)
+      by simp}
   ultimately show ?thesis by blast
 qed
 
@@ -1408,7 +1365,7 @@ proof-
     have f: "finite({0..k} - {i})" "finite {i}" by auto
     have d: "({0..k} - {i}) \<inter> {i} = {}" using i by auto
     from H have "n = setsum (nth xs) {0..k}" apply (simp add: natpermute_def)
-      unfolding foldl_add_setsum by (auto simp add: atLeastLessThanSuc_atLeastAtMost)
+      by (auto simp add: atLeastLessThanSuc_atLeastAtMost listsum_setsum_nth)
     also have "\<dots> = n + setsum (nth xs) ({0..k} - {i})"
       unfolding setsum_Un_disjoint[OF f d, unfolded eqs] using i by simp
     finally have zxs: "\<forall> j\<in> {0..k} - {i}. xs!j = 0" by auto
@@ -1430,8 +1387,8 @@ proof-
     have nxs: "n \<in> set ?xs"
       apply (rule set_update_memI) using i by simp
     have xsl: "length ?xs = k+1" by (simp only: length_replicate length_list_update)
-    have "foldl op + 0 ?xs = setsum (nth ?xs) {0..<k+1}"
-      unfolding foldl_add_setsum add_0 length_replicate length_list_update ..
+    have "listsum ?xs = setsum (nth ?xs) {0..<k+1}"
+      unfolding listsum_setsum_nth xsl ..
     also have "\<dots> = setsum (\<lambda>j. if j = i then n else 0) {0..< k+1}"
       apply (rule setsum_cong2) by (simp del: replicate.simps)
     also have "\<dots> = n" using i by (simp add: setsum_delta)
@@ -1579,9 +1536,9 @@ proof
       have fths: "finite {0 ..< i}" "finite {i}" "finite {i+1..<Suc k}" by simp_all
       have d: "{0 ..< i} \<inter> ({i} \<union> {i+1 ..< Suc k}) = {}" "{i} \<inter> {i+1..< Suc k} = {}" by auto
       have eqs: "{0..<Suc k} = {0 ..< i} \<union> ({i} \<union> {i+1 ..< Suc k})" using i by auto
-      from xs have "Suc n = foldl op + 0 xs" by (simp add: natpermute_def)
-      also have "\<dots> = setsum (nth xs) {0..<Suc k}" unfolding foldl_add_setsum using xs
-        by (simp add: natpermute_def)
+      from xs have "Suc n = listsum xs" by (simp add: natpermute_def)
+      also have "\<dots> = setsum (nth xs) {0..<Suc k}" using xs
+        by (simp add: natpermute_def listsum_setsum_nth)
       also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
         unfolding eqs  setsum_Un_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
         unfolding setsum_Un_disjoint[OF fths(2) fths(3) d(2)]
@@ -1824,9 +1781,9 @@ proof-
             have fths: "finite {0 ..< i}" "finite {i}" "finite {i+1..<Suc k}" by simp_all
             have d: "{0 ..< i} \<inter> ({i} \<union> {i+1 ..< Suc k}) = {}" "{i} \<inter> {i+1..< Suc k} = {}" by auto
             have eqs: "{0..<Suc k} = {0 ..< i} \<union> ({i} \<union> {i+1 ..< Suc k})" using i by auto
-            from xs have "n = foldl op + 0 xs" by (simp add: natpermute_def)
-            also have "\<dots> = setsum (nth xs) {0..<Suc k}" unfolding foldl_add_setsum using xs
-              by (simp add: natpermute_def)
+            from xs have "n = listsum xs" by (simp add: natpermute_def)
+            also have "\<dots> = setsum (nth xs) {0..<Suc k}" using xs
+              by (simp add: natpermute_def listsum_setsum_nth)
             also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
               unfolding eqs  setsum_Un_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
               unfolding setsum_Un_disjoint[OF fths(2) fths(3) d(2)]
