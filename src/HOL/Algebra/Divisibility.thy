@@ -1283,9 +1283,10 @@ lemma (in monoid) nunit_factors:
   assumes anunit: "a \<notin> Units G"
     and fs: "factors G as a"
   shows "length as > 0"
-apply (insert fs, elim factorsE)
-apply (metis Units_one_closed assms(1) foldr.simps(1) length_greater_0_conv)
-done
+proof -
+  from anunit Units_one_closed have "a \<noteq> \<one>" by auto
+  with fs show ?thesis by (auto elim: factorsE)
+qed
 
 lemma (in monoid) unit_wfactors [simp]:
   assumes aunit: "a \<in> Units G"
@@ -3307,182 +3308,192 @@ qed
 lemma (in primeness_condition_monoid) wfactors_unique__hlp_induct:
   "\<forall>a as'. a \<in> carrier G \<and> set as \<subseteq> carrier G \<and> set as' \<subseteq> carrier G \<and> 
            wfactors G as a \<and> wfactors G as' a \<longrightarrow> essentially_equal G as as'"
-apply (induct as)
-apply (metis Units_one_closed essentially_equal_def foldr.simps(1) is_monoid_cancel listassoc_refl monoid_cancel.assoc_unit_r perm_refl unit_wfactors_empty wfactorsE)
-apply clarsimp 
-proof -
- fix a as ah as'
-  assume ih[rule_format]: 
-         "\<forall>a as'. a \<in> carrier G \<and> set as' \<subseteq> carrier G \<and> 
-                  wfactors G as a \<and> wfactors G as' a \<longrightarrow> essentially_equal G as as'"
-    and acarr: "a \<in> carrier G" and ahcarr: "ah \<in> carrier G"
-    and ascarr: "set as \<subseteq> carrier G" and as'carr: "set as' \<subseteq> carrier G"
-    and afs: "wfactors G (ah # as) a"
-    and afs': "wfactors G as' a"
-  hence ahdvda: "ah divides a"
+proof (induct as)
+  case Nil show ?case apply auto
+  proof -
+    fix a as'
+    assume a: "a \<in> carrier G"
+    assume "wfactors G [] a"
+    then obtain "\<one> \<sim> a" by (auto elim: wfactorsE)
+    with a have "a \<in> Units G" by (auto intro: assoc_unit_r)
+    moreover assume "wfactors G as' a"
+    moreover assume "set as' \<subseteq> carrier G"
+    ultimately have "as' = []" by (rule unit_wfactors_empty)
+    then show "essentially_equal G [] as'" by simp
+  qed
+next
+  case (Cons ah as) then show ?case apply clarsimp 
+  proof -
+    fix a as'
+    assume ih [rule_format]: 
+      "\<forall>a as'. a \<in> carrier G \<and> set as' \<subseteq> carrier G \<and> wfactors G as a \<and>
+        wfactors G as' a \<longrightarrow> essentially_equal G as as'"
+      and acarr: "a \<in> carrier G" and ahcarr: "ah \<in> carrier G"
+      and ascarr: "set as \<subseteq> carrier G" and as'carr: "set as' \<subseteq> carrier G"
+      and afs: "wfactors G (ah # as) a"
+      and afs': "wfactors G as' a"
+    hence ahdvda: "ah divides a"
       by (intro wfactors_dividesI[of "ah#as" "a"], simp+)
-  hence "\<exists>a'\<in> carrier G. a = ah \<otimes> a'" by (fast elim: dividesE)
-  from this obtain a'
+    hence "\<exists>a'\<in> carrier G. a = ah \<otimes> a'" by (fast elim: dividesE)
+    from this obtain a'
       where a'carr: "a' \<in> carrier G"
       and a: "a = ah \<otimes> a'"
       by auto
-  have a'fs: "wfactors G as a'"
-    apply (rule wfactorsE[OF afs], rule wfactorsI, simp)
-    apply (simp add: a, insert ascarr a'carr)
-    apply (intro assoc_l_cancel[of ah _ a'] multlist_closed ahcarr, assumption+)
-  done
+    have a'fs: "wfactors G as a'"
+      apply (rule wfactorsE[OF afs], rule wfactorsI, simp)
+      apply (simp add: a, insert ascarr a'carr)
+      apply (intro assoc_l_cancel[of ah _ a'] multlist_closed ahcarr, assumption+)
+      done
+    from afs have ahirr: "irreducible G ah" by (elim wfactorsE, simp)
+    with ascarr have ahprime: "prime G ah" by (intro irreducible_prime ahcarr)
 
-  from afs have ahirr: "irreducible G ah" by (elim wfactorsE, simp)
-  with ascarr have ahprime: "prime G ah" by (intro irreducible_prime ahcarr)
+    note carr [simp] = acarr ahcarr ascarr as'carr a'carr
 
-  note carr [simp] = acarr ahcarr ascarr as'carr a'carr
+    note ahdvda
+    also from afs'
+      have "a divides (foldr (op \<otimes>) as' \<one>)"
+      by (elim wfactorsE associatedE, simp)
+    finally have "ah divides (foldr (op \<otimes>) as' \<one>)" by simp
 
-  note ahdvda
-  also from afs'
-       have "a divides (foldr (op \<otimes>) as' \<one>)"
-       by (elim wfactorsE associatedE, simp)
-  finally have "ah divides (foldr (op \<otimes>) as' \<one>)" by simp
-
-  with ahprime
+    with ahprime
       have "\<exists>i<length as'. ah divides as'!i"
       by (intro multlist_prime_pos, simp+)
-  from this obtain i
+    from this obtain i
       where len: "i<length as'" and ahdvd: "ah divides as'!i"
       by auto
-  from afs' carr have irrasi: "irreducible G (as'!i)"
+    from afs' carr have irrasi: "irreducible G (as'!i)"
       by (fast intro: nth_mem[OF len] elim: wfactorsE)
-  from len carr
+    from len carr
       have asicarr[simp]: "as'!i \<in> carrier G" by (unfold set_conv_nth, force)
-  note carr = carr asicarr
+    note carr = carr asicarr
 
-  from ahdvd have "\<exists>x \<in> carrier G. as'!i = ah \<otimes> x" by (fast elim: dividesE)
-  from this obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x" by auto
+    from ahdvd have "\<exists>x \<in> carrier G. as'!i = ah \<otimes> x" by (fast elim: dividesE)
+    from this obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x" by auto
 
-  with carr irrasi[simplified asi]
+    with carr irrasi[simplified asi]
       have asiah: "as'!i \<sim> ah" apply -
-    apply (elim irreducible_prodE[of "ah" "x"], assumption+)
-     apply (rule associatedI2[of x], assumption+)
-    apply (rule irreducibleE[OF ahirr], simp)
-  done
+      apply (elim irreducible_prodE[of "ah" "x"], assumption+)
+       apply (rule associatedI2[of x], assumption+)
+      apply (rule irreducibleE[OF ahirr], simp)
+      done
 
-  note setparts = set_take_subset[of i as'] set_drop_subset[of "Suc i" as']
-  note partscarr [simp] = setparts[THEN subset_trans[OF _ as'carr]]
-  note carr = carr partscarr
+    note setparts = set_take_subset[of i as'] set_drop_subset[of "Suc i" as']
+    note partscarr [simp] = setparts[THEN subset_trans[OF _ as'carr]]
+    note carr = carr partscarr
 
-  have "\<exists>aa_1. aa_1 \<in> carrier G \<and> wfactors G (take i as') aa_1"
-    apply (intro wfactors_prod_exists)
-    using setparts afs' by (fast elim: wfactorsE, simp)
-  from this obtain aa_1
-      where aa1carr: "aa_1 \<in> carrier G"
-      and aa1fs: "wfactors G (take i as') aa_1"
-      by auto
+    have "\<exists>aa_1. aa_1 \<in> carrier G \<and> wfactors G (take i as') aa_1"
+      apply (intro wfactors_prod_exists)
+      using setparts afs' by (fast elim: wfactorsE, simp)
+    from this obtain aa_1
+        where aa1carr: "aa_1 \<in> carrier G"
+        and aa1fs: "wfactors G (take i as') aa_1"
+        by auto
 
-  have "\<exists>aa_2. aa_2 \<in> carrier G \<and> wfactors G (drop (Suc i) as') aa_2"
-    apply (intro wfactors_prod_exists)
-    using setparts afs' by (fast elim: wfactorsE, simp)
-  from this obtain aa_2
-      where aa2carr: "aa_2 \<in> carrier G"
-      and aa2fs: "wfactors G (drop (Suc i) as') aa_2"
-      by auto
+    have "\<exists>aa_2. aa_2 \<in> carrier G \<and> wfactors G (drop (Suc i) as') aa_2"
+      apply (intro wfactors_prod_exists)
+      using setparts afs' by (fast elim: wfactorsE, simp)
+    from this obtain aa_2
+        where aa2carr: "aa_2 \<in> carrier G"
+        and aa2fs: "wfactors G (drop (Suc i) as') aa_2"
+        by auto
 
-  note carr = carr aa1carr[simp] aa2carr[simp]
+    note carr = carr aa1carr[simp] aa2carr[simp]
 
-  from aa1fs aa2fs
+    from aa1fs aa2fs
       have v1: "wfactors G (take i as' @ drop (Suc i) as') (aa_1 \<otimes> aa_2)"
       by (intro wfactors_mult, simp+)
-  hence v1': "wfactors G (as'!i # take i as' @ drop (Suc i) as') (as'!i \<otimes> (aa_1 \<otimes> aa_2))"
+    hence v1': "wfactors G (as'!i # take i as' @ drop (Suc i) as') (as'!i \<otimes> (aa_1 \<otimes> aa_2))"
       apply (intro wfactors_mult_single)
       using setparts afs'
       by (fast intro: nth_mem[OF len] elim: wfactorsE, simp+)
 
-  from aa2carr carr aa1fs aa2fs
+    from aa2carr carr aa1fs aa2fs
       have "wfactors G (as'!i # drop (Suc i) as') (as'!i \<otimes> aa_2)"
-    apply (intro wfactors_mult_single)
-        apply (rule wfactorsE[OF afs'], fast intro: nth_mem[OF len])
-       apply (fast intro: nth_mem[OF len])
-      apply fast
-     apply fast
-    apply assumption
-  done
-  with len carr aa1carr aa2carr aa1fs
+      apply (intro wfactors_mult_single)
+          apply (rule wfactorsE[OF afs'], fast intro: nth_mem[OF len])
+         apply (fast intro: nth_mem[OF len])
+        apply fast
+       apply fast
+      apply assumption
+    done
+    with len carr aa1carr aa2carr aa1fs
       have v2: "wfactors G (take i as' @ as'!i # drop (Suc i) as') (aa_1 \<otimes> (as'!i \<otimes> aa_2))"
-    apply (intro wfactors_mult)
-         apply fast
-        apply (simp, (fast intro: nth_mem[OF len])?)+
-  done
+      apply (intro wfactors_mult)
+           apply fast
+          apply (simp, (fast intro: nth_mem[OF len])?)+
+    done
 
-  from len
+    from len
       have as': "as' = (take i as' @ as'!i # drop (Suc i) as')"
       by (simp add: drop_Suc_conv_tl)
-  with carr
+    with carr
       have eer: "essentially_equal G (take i as' @ as'!i # drop (Suc i) as') as'"
       by simp
 
-  with v2 afs' carr aa1carr aa2carr nth_mem[OF len]
+    with v2 afs' carr aa1carr aa2carr nth_mem[OF len]
       have "aa_1 \<otimes> (as'!i \<otimes> aa_2) \<sim> a"
-    apply (intro ee_wfactorsD[of "take i as' @ as'!i # drop (Suc i) as'"  "as'"])
-          apply fast+
-        apply (simp, fast)
-  done
-  then
-  have t1: "as'!i \<otimes> (aa_1 \<otimes> aa_2) \<sim> a"
-    apply (simp add: m_assoc[symmetric])
-    apply (simp add: m_comm)
-  done
-  from carr asiah
-  have "ah \<otimes> (aa_1 \<otimes> aa_2) \<sim> as'!i \<otimes> (aa_1 \<otimes> aa_2)"
+      apply (intro ee_wfactorsD[of "take i as' @ as'!i # drop (Suc i) as'"  "as'"])
+            apply fast+
+          apply (simp, fast)
+    done
+    then
+    have t1: "as'!i \<otimes> (aa_1 \<otimes> aa_2) \<sim> a"
+      apply (simp add: m_assoc[symmetric])
+      apply (simp add: m_comm)
+    done
+    from carr asiah
+    have "ah \<otimes> (aa_1 \<otimes> aa_2) \<sim> as'!i \<otimes> (aa_1 \<otimes> aa_2)"
       apply (intro mult_cong_l)
       apply (fast intro: associated_sym, simp+)
-  done
-  also note t1
-  finally
+    done
+    also note t1
+    finally
       have "ah \<otimes> (aa_1 \<otimes> aa_2) \<sim> a" by simp
 
-  with carr aa1carr aa2carr a'carr nth_mem[OF len]
+    with carr aa1carr aa2carr a'carr nth_mem[OF len]
       have a': "aa_1 \<otimes> aa_2 \<sim> a'"
       by (simp add: a, fast intro: assoc_l_cancel[of ah _ a'])
 
-  note v1
-  also note a'
-  finally have "wfactors G (take i as' @ drop (Suc i) as') a'" by simp
+    note v1
+    also note a'
+    finally have "wfactors G (take i as' @ drop (Suc i) as') a'" by simp
 
-  from a'fs this carr
+    from a'fs this carr
       have "essentially_equal G as (take i as' @ drop (Suc i) as')"
       by (intro ih[of a']) simp
 
-  hence ee1: "essentially_equal G (ah # as) (ah # take i as' @ drop (Suc i) as')"
-    apply (elim essentially_equalE) apply (fastforce intro: essentially_equalI)
-  done
-
-  from carr
-  have ee2: "essentially_equal G (ah # take i as' @ drop (Suc i) as')
-                                 (as' ! i # take i as' @ drop (Suc i) as')"
-  proof (intro essentially_equalI)
-    show "ah # take i as' @ drop (Suc i) as' <~~> ah # take i as' @ drop (Suc i) as'"
-        by simp
-  next show "ah # take i as' @ drop (Suc i) as' [\<sim>]
-       as' ! i # take i as' @ drop (Suc i) as'"
-    apply (simp add: list_all2_append)
-    apply (simp add: asiah[symmetric] ahcarr asicarr)
+    hence ee1: "essentially_equal G (ah # as) (ah # take i as' @ drop (Suc i) as')"
+      apply (elim essentially_equalE) apply (fastforce intro: essentially_equalI)
     done
+
+    from carr
+    have ee2: "essentially_equal G (ah # take i as' @ drop (Suc i) as')
+      (as' ! i # take i as' @ drop (Suc i) as')"
+    proof (intro essentially_equalI)
+      show "ah # take i as' @ drop (Suc i) as' <~~> ah # take i as' @ drop (Suc i) as'"
+        by simp
+    next
+      show "ah # take i as' @ drop (Suc i) as' [\<sim>] as' ! i # take i as' @ drop (Suc i) as'"
+      apply (simp add: list_all2_append)
+      apply (simp add: asiah[symmetric] ahcarr asicarr)
+      done
+    qed
+
+    note ee1
+    also note ee2
+    also have "essentially_equal G (as' ! i # take i as' @ drop (Suc i) as')
+      (take i as' @ as' ! i # drop (Suc i) as')"
+      apply (intro essentially_equalI)
+      apply (subgoal_tac "as' ! i # take i as' @ drop (Suc i) as' <~~> 
+        take i as' @ as' ! i # drop (Suc i) as'")
+  apply simp
+       apply (rule perm_append_Cons)
+      apply simp
+    done
+    finally
+      have "essentially_equal G (ah # as) (take i as' @ as' ! i # drop (Suc i) as')" by simp
+    then show "essentially_equal G (ah # as) as'" by (subst as', assumption)
   qed
-
-  note ee1
-  also note ee2
-  also have "essentially_equal G (as' ! i # take i as' @ drop (Suc i) as')
-                                 (take i as' @ as' ! i # drop (Suc i) as')"
-    apply (intro essentially_equalI)
-    apply (subgoal_tac "as' ! i # take i as' @ drop (Suc i) as' <~~> 
-                        take i as' @ as' ! i # drop (Suc i) as'")
-apply simp
-     apply (rule perm_append_Cons)
-    apply simp
-  done
-  finally
-      have "essentially_equal G (ah # as) 
-                                (take i as' @ as' ! i # drop (Suc i) as')" by simp
-
-  thus "essentially_equal G (ah # as) as'" by (subst as', assumption)
 qed
 
 lemma (in primeness_condition_monoid) wfactors_unique:
