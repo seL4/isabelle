@@ -5109,6 +5109,19 @@ lemma list_size_pointwise[termination_simp]:
 by (induct xs) force+
 
 
+subsection {* Monad operation *}
+
+definition bind :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list" where
+  "bind xs f = concat (map f xs)"
+
+hide_const (open) bind
+
+lemma bind_simps [simp]:
+  "List.bind [] f = []"
+  "List.bind (x # xs) f = f x @ List.bind xs f"
+  by (simp_all add: bind_def)
+
+
 subsection {* Transfer *}
 
 definition

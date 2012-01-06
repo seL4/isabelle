@@ -4,7 +4,7 @@
 header {* Relating (finite) sets and lists *}
 
 theory More_Set
-imports More_List
+imports List
 begin
 
 lemma comp_fun_idem_remove:
