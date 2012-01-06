@@ -74,7 +74,7 @@ definition length :: "'a dlist \<Rightarrow> nat" where
   "length dxs = List.length (list_of_dlist dxs)"
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
-  "fold f dxs = More_List.fold f (list_of_dlist dxs)"
+  "fold f dxs = List.fold f (list_of_dlist dxs)"
 
 definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
   "foldr f dxs = List.foldr f (list_of_dlist dxs)"

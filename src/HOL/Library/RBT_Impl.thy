@@ -1049,7 +1049,7 @@ theorem lookup_map: "lookup (map f t) x = Option.map (f x) (lookup t x)"
 subsection {* Folding over entries *}
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" where
-  "fold f t = More_List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (prod_case f) (entries t)"
 
 lemma fold_simps [simp, code]:
   "fold f Empty = id"
@@ -1071,12 +1071,12 @@ lemma lookup_bulkload:
 proof -
   obtain ys where "ys = rev xs" by simp
   have "\<And>t. is_rbt t \<Longrightarrow>
-    lookup (More_List.fold (prod_case insert) ys t) = lookup t ++ map_of (rev ys)"
+    lookup (List.fold (prod_case insert) ys t) = lookup t ++ map_of (rev ys)"
       by (induct ys) (simp_all add: bulkload_def lookup_insert prod_case_beta)
   from this Empty_is_rbt have
-    "lookup (More_List.fold (prod_case insert) (rev xs) Empty) = lookup Empty ++ map_of xs"
+    "lookup (List.fold (prod_case insert) (rev xs) Empty) = lookup Empty ++ map_of xs"
      by (simp add: `ys = rev xs`)
-  then show ?thesis by (simp add: bulkload_def lookup_Empty foldr_fold_rev)
+  then show ?thesis by (simp add: bulkload_def lookup_Empty foldr_def)
 qed
 
 hide_const (open) R B Empty insert delete entries keys bulkload lookup map_entry map fold union sorted

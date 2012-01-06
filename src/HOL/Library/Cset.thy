@@ -370,7 +370,7 @@ lemma of_seq_code [code]:
 
 lemma bind_set:
   "Cset.bind (Cset.set xs) f = fold (sup \<circ> f) xs (Cset.set [])"
-  by (simp add: Cset.bind_def SUPR_set_fold)
+  by (simp add: Cset.bind_def SUP_set_fold)
 hide_fact (open) bind_set
 
 lemma pred_of_cset_set:

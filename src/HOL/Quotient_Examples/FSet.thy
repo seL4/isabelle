@@ -247,7 +247,7 @@ lemma member_commute_fold_once:
     and "x \<in> set xs"
   shows "fold_once f xs = fold_once f (removeAll x xs) \<circ> f x"
 proof -
-  from assms have "More_List.fold f (remdups xs) = More_List.fold f (remove1 x (remdups xs)) \<circ> f x"
+  from assms have "fold f (remdups xs) = fold f (remove1 x (remdups xs)) \<circ> f x"
     by (auto intro!: fold_remove1_split elim: rsp_foldE)
   then show ?thesis using `rsp_fold f` by (simp add: fold_once_fold_remdups remdups_removeAll)
 qed

@@ -76,10 +76,10 @@ lemma update_Some_unfold:
 
 lemma image_update [simp]:
   "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
-  by (simp add: update_conv' image_map_upd)
+  by (simp add: update_conv')
 
 definition updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
-  "updates ks vs = More_List.fold (prod_case update) (zip ks vs)"
+  "updates ks vs = fold (prod_case update) (zip ks vs)"
 
 lemma updates_simps [simp]:
   "updates [] vs ps = ps"
@@ -94,10 +94,10 @@ lemma updates_key_simp [simp]:
 
 lemma updates_conv': "map_of (updates ks vs al) = (map_of al)(ks[\<mapsto>]vs)"
 proof -
-  have "map_of \<circ> More_List.fold (prod_case update) (zip ks vs) =
-    More_List.fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
+  have "map_of \<circ> fold (prod_case update) (zip ks vs) =
+    fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
     by (rule fold_commute) (auto simp add: fun_eq_iff update_conv')
-  then show ?thesis by (auto simp add: updates_def fun_eq_iff map_upds_fold_map_upd foldl_fold split_def)
+  then show ?thesis by (auto simp add: updates_def fun_eq_iff map_upds_fold_map_upd foldl_def split_def)
 qed
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
@@ -107,12 +107,12 @@ lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
 proof -
-  have "distinct (More_List.fold
+  have "distinct (fold
        (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k])
        (zip ks vs) (map fst al))"
     by (rule fold_invariant [of "zip ks vs" "\<lambda>_. True"]) (auto intro: assms)
-  moreover have "map fst \<circ> More_List.fold (prod_case update) (zip ks vs) =
-    More_List.fold (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k]) (zip ks vs) \<circ> map fst"
+  moreover have "map fst \<circ> fold (prod_case update) (zip ks vs) =
+    fold (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k]) (zip ks vs) \<circ> map fst"
     by (rule fold_commute) (simp add: update_keys split_def prod_case_beta comp_def)
   ultimately show ?thesis by (simp add: updates_def fun_eq_iff)
 qed
@@ -339,8 +339,8 @@ lemma clearjunk_update:
 lemma clearjunk_updates:
   "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
 proof -
-  have "clearjunk \<circ> More_List.fold (prod_case update) (zip ks vs) =
-    More_List.fold (prod_case update) (zip ks vs) \<circ> clearjunk"
+  have "clearjunk \<circ> fold (prod_case update) (zip ks vs) =
+    fold (prod_case update) (zip ks vs) \<circ> clearjunk"
     by (rule fold_commute) (simp add: clearjunk_update prod_case_beta o_def)
   then show ?thesis by (simp add: updates_def fun_eq_iff)
 qed
@@ -427,7 +427,7 @@ lemma merge_simps [simp]:
 
 lemma merge_updates:
   "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)) qs"
-  by (simp add: merge_def updates_def foldr_fold_rev zip_rev zip_map_fst_snd)
+  by (simp add: merge_def updates_def foldr_def zip_rev zip_map_fst_snd)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -444,11 +444,11 @@ lemma clearjunk_merge:
 lemma merge_conv':
   "map_of (merge xs ys) = map_of xs ++ map_of ys"
 proof -
-  have "map_of \<circ> More_List.fold (prod_case update) (rev ys) =
-    More_List.fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
+  have "map_of \<circ> fold (prod_case update) (rev ys) =
+    fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
     by (rule fold_commute) (simp add: update_conv' prod_case_beta split_def fun_eq_iff)
   then show ?thesis
-    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev fun_eq_iff)
+    by (simp add: merge_def map_add_map_of_foldr foldr_def fun_eq_iff)
 qed
 
 corollary merge_conv:

@@ -495,8 +495,9 @@ Type @{typ int}
 @{const List.drop} & @{typeof List.drop}\\
 @{const List.dropWhile} & @{typeof List.dropWhile}\\
 @{const List.filter} & @{typeof List.filter}\\
-@{const List.foldl} & @{typeof List.foldl}\\
+@{const List.fold} & @{typeof List.fold}\\
 @{const List.foldr} & @{typeof List.foldr}\\
+@{const List.foldl} & @{typeof List.foldl}\\
 @{const List.hd} & @{typeof List.hd}\\
 @{const List.last} & @{typeof List.last}\\
 @{const List.length} & @{typeof List.length}\\

@@ -192,14 +192,6 @@ lemma Sup_sup [code]:
   "More_Set.Sup (coset []) = top"
   by (simp_all add: Sup_set_foldr)
 
-lemma INF_code [code]:
-  "INFI (set xs) f = foldr (inf \<circ> f) xs top"
-  by (simp add: INF_def Inf_set_foldr image_set foldr_map del: set_map)
-
-lemma SUP_sup [code]:
-  "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
-  by (simp add: SUP_def Sup_set_foldr image_set foldr_map del: set_map)
-
 (* FIXME: better implement conversion by bisection *)
 
 lemma pred_of_set_fold_sup:
@@ -222,8 +214,6 @@ qed
 lemma pred_of_set_set_foldr_sup [code]:
   "pred_of_set (set xs) = foldr sup (map Predicate.single xs) bot"
   by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
-
-hide_const (open) coset
 
 
 subsection {* Operations on relations *}
