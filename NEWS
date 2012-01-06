@@ -60,6 +60,26 @@ distinct sorts used to be assigned accidentally.  For example:
 
 *** HOL ***
 
+* Consolidated theorem names concerning fold combinators:
+  INFI_set_fold ~> INF_set_fold
+  SUPR_set_fold ~> SUP_set_fold
+  INF_code ~> INF_set_foldr
+  SUP_code ~> SUP_set_foldr
+  foldr.simps ~> foldr_Nil foldr_Cons (in point-free formulation)
+  foldl.simps ~> foldl_Nil foldl_Cons
+  foldr_fold_rev ~> foldr_def
+  foldl_fold ~> foldl_def
+INCOMPATIBILITY.
+
+* Dropped rarely useful theorems concerning fold combinators: foldl_apply,
+foldl_fun_comm, foldl_rev, fold_weak_invariant, rev_foldl_cons, fold_set_remdups,
+fold_set, fold_set1, concat_conv_foldl, foldl_weak_invariant, foldl_invariant,
+foldr_invariant, foldl_absorb0, foldl_foldr1_lemma, foldl_foldr1, listsum_conv_fold,
+listsum_foldl, sort_foldl_insort.  INCOMPATIBILITY.  Prefer "List.fold" with
+canonical argument order, or boil down "List.foldr" and "List.foldl" to "List.fold"
+by unfolding "foldr_def" and "foldl_def".  For the common phrases "%xs. List.foldr plus xs 0"
+and "List.foldl plus 0", prefer "List.listsum".
+
 * Concrete syntax for case expressions includes constraints for source
 positions, and thus produces Prover IDE markup for its bindings.
 INCOMPATIBILITY for old-style syntax translations that augment the
@@ -82,7 +102,7 @@ INCOMPATIBILITY.
 
 * 'set' is now a proper type constructor.  Definitions mem_def and Collect_def
 have disappeared.  INCOMPATIBILITY, rephrase sets S used as predicates by
-`%x. x : S` and predicates P used as sets by `{x. P x}`.  For typical proofs,
+"%x. x : S" and predicates P used as sets by "{x. P x}".  For typical proofs,
 it is often sufficent to prune any tinkering with former theorems mem_def
 and Collect_def.
 
