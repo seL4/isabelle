@@ -2605,7 +2605,19 @@ lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
   by (simp add: fold_append_concat_rev foldr_def)
 
-lemma union_set_foldr:
+lemma minus_set_foldr [code]:
+  "A - set xs = foldr Set.remove xs A"
+proof -
+  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
+    by (auto simp add: remove_def)
+  then show ?thesis by (simp add: minus_set_fold foldr_fold)
+qed
+
+lemma subtract_coset_filter [code]:
+  "A - List.coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by auto
+
+lemma union_set_foldr [code]:
   "set xs \<union> A = foldr Set.insert xs A"
 proof -
   have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
@@ -2613,13 +2625,17 @@ proof -
   then show ?thesis by (simp add: union_set_fold foldr_fold)
 qed
 
-lemma minus_set_foldr:
-  "A - set xs = foldr Set.remove xs A"
-proof -
-  have "\<And>x y :: 'a. Set.remove y \<circ> Set.remove x = Set.remove x \<circ> Set.remove y"
-    by (auto simp add: remove_def)
-  then show ?thesis by (simp add: minus_set_fold foldr_fold)
-qed
+lemma union_coset_foldr [code]:
+  "List.coset xs \<union> A = List.coset (List.filter (\<lambda>x. x \<notin> A) xs)"
+  by auto
+
+lemma inter_set_filer [code]:
+  "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by auto
+
+lemma inter_coset_foldr [code]:
+  "A \<inter> List.coset xs = foldr Set.remove xs A"
+  by (simp add: Diff_eq [symmetric] minus_set_foldr)
 
 lemma (in lattice) Inf_fin_set_foldr [code]:
   "Inf_fin (set (x # xs)) = foldr inf xs x"
@@ -2645,6 +2661,9 @@ lemma (in complete_lattice) Sup_set_foldr:
   "Sup (set xs) = foldr sup xs bot"
   by (simp add: Sup_set_fold ac_simps foldr_fold fun_eq_iff)
 
+declare Inf_set_foldr [where 'a = "'a set", code] Sup_set_foldr [where 'a = "'a set", code]
+declare Inf_set_foldr [where 'a = "'a Predicate.pred", code] Sup_set_foldr [where 'a = "'a Predicate.pred", code]
+
 lemma (in complete_lattice) INF_set_foldr [code]:
   "INFI (set xs) f = foldr (inf \<circ> f) xs top"
   by (simp only: INF_def Inf_set_foldr foldr_map set_map [symmetric])
@@ -2652,6 +2671,29 @@ lemma (in complete_lattice) INF_set_foldr [code]:
 lemma (in complete_lattice) SUP_set_foldr [code]:
   "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
   by (simp only: SUP_def Sup_set_foldr foldr_map set_map [symmetric])
+
+(* FIXME: better implement conversion by bisection *)
+
+lemma pred_of_set_fold_sup:
+  assumes "finite A"
+  shows "pred_of_set A = Finite_Set.fold sup bot (Predicate.single ` A)" (is "?lhs = ?rhs")
+proof (rule sym)
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  from `finite A` show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
+qed
+
+lemma pred_of_set_set_fold_sup:
+  "pred_of_set (set xs) = fold sup (map Predicate.single xs) bot"
+proof -
+  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
+    by (fact comp_fun_idem_sup)
+  show ?thesis by (simp add: pred_of_set_fold_sup fold_set_fold [symmetric])
+qed
+
+lemma pred_of_set_set_foldr_sup [code]:
+  "pred_of_set (set xs) = foldr sup (map Predicate.single xs) bot"
+  by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
 
 
 subsubsection {* @{text upt} *}
@@ -5538,14 +5580,22 @@ lemma empty_set [code]:
   "{} = set []"
   by simp
 
+lemma UNIV_coset [code]:
+  "UNIV = List.coset []"
+  by simp
+
+lemma compl_set [code]:
+  "- set xs = List.coset xs"
+  by simp
+
+lemma compl_coset [code]:
+  "- List.coset xs = set xs"
+  by simp
+
 lemma [code]:
   "x \<in> set xs \<longleftrightarrow> List.member xs x"
   "x \<in> List.coset xs \<longleftrightarrow> \<not> List.member xs x"
   by (simp_all add: member_def)
-
-lemma UNIV_coset [code]:
-  "UNIV = List.coset []"
-  by simp
 
 lemma insert_code [code]:
   "insert x (set xs) = set (List.insert x xs)"
@@ -5556,6 +5606,14 @@ lemma remove_code [code]:
   "Set.remove x (set xs) = set (removeAll x xs)"
   "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
   by (simp_all add: remove_def Compl_insert)
+
+lemma project_set [code]:
+  "Set.project P (set xs) = set (filter P xs)"
+  by auto
+
+lemma image_set [code]:
+  "image f (set xs) = set (map f xs)"
+  by simp
 
 lemma Ball_set [code]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
@@ -5572,6 +5630,15 @@ proof -
     by (rule distinct_card) simp
   then show ?thesis by simp
 qed
+
+lemma the_elem_set [code]:
+  "the_elem (set [x]) = x"
+  by simp
+
+lemma Pow_set [code]:
+  "Pow (set []) = {{}}"
+  "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
+  by (simp_all add: Pow_insert Let_def)
 
 
 text {* Operations on relations *}
