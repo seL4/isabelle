@@ -124,9 +124,10 @@ by(induction e) (auto simp: le_st_def lookup_def mono_plus')
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
 by(auto simp add: le_st_def lookup_def update_def)
 
-lemma step'_mono: "S \<sqsubseteq> S' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c"
-apply(induction c arbitrary: S S')
-apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: option.split)
+lemma mono_step': "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c'"
+apply(induction c c' arbitrary: S S' rule: le_acom.induct)
+apply (auto simp: Let_def mono_update mono_aval' mono_post le_join_disj
+            split: option.split)
 done
 
 end

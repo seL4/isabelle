@@ -260,18 +260,14 @@ apply(auto simp: le_trans[OF _ join_ge1] le_trans[OF _ join_ge2] split: prod.spl
 apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified le_prod_def] fst_conv snd_conv)
 done
 
-
-lemma post_le_post: "c \<sqsubseteq> c' \<Longrightarrow> post c \<sqsubseteq> post c'"
-by (induction c c' rule: le_acom.induct) simp_all
-
-lemma mono_step'_aux: "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c'"
+lemma mono_step': "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c'"
 apply(induction c c' arbitrary: S S' rule: le_acom.induct)
-apply (auto simp: post_le_post Let_def mono_bfilter mono_update mono_aval' le_join_disj
+apply (auto simp: mono_post mono_bfilter mono_update mono_aval' Let_def le_join_disj
   split: option.split)
 done
 
-lemma mono_step': "mono (step' S)"
-by(simp add: mono_def mono_step'_aux[OF le_refl])
+lemma mono_step'2: "mono (step' S)"
+by(simp add: mono_def mono_step'[OF le_refl])
 
 end
 
