@@ -5216,10 +5216,10 @@ lemma in_set_member (* FIXME delete candidate *):
   by (simp add: member_def)
 
 definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  [code_abbrev]: list_all_iff: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
+  list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  [code_abbrev]: list_ex_iff: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
+  list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
 
 definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
