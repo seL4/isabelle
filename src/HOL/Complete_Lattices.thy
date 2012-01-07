@@ -542,10 +542,10 @@ instantiation bool :: complete_lattice
 begin
 
 definition
-  [simp]: "\<Sqinter>A \<longleftrightarrow> False \<notin> A"
+  [simp, code]: "\<Sqinter>A \<longleftrightarrow> False \<notin> A"
 
 definition
-  [simp]: "\<Squnion>A \<longleftrightarrow> True \<in> A"
+  [simp, code]: "\<Squnion>A \<longleftrightarrow> True \<in> A"
 
 instance proof
 qed (auto intro: bool_induct)
@@ -579,14 +579,14 @@ begin
 definition
   "\<Sqinter>A = (\<lambda>x. \<Sqinter>f\<in>A. f x)"
 
-lemma Inf_apply:
+lemma Inf_apply [code]:
   "(\<Sqinter>A) x = (\<Sqinter>f\<in>A. f x)"
   by (simp add: Inf_fun_def)
 
 definition
   "\<Squnion>A = (\<lambda>x. \<Squnion>f\<in>A. f x)"
 
-lemma Sup_apply:
+lemma Sup_apply [code]:
   "(\<Squnion>A) x = (\<Squnion>f\<in>A. f x)"
   by (simp add: Sup_fun_def)
 
