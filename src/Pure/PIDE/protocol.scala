@@ -101,13 +101,6 @@ object Protocol
 
   /* specific messages */
 
-  def is_ready(msg: XML.Tree): Boolean =
-    msg match {
-      case XML.Elem(Markup(Isabelle_Markup.STATUS, _),
-        List(XML.Elem(Markup(Isabelle_Markup.READY, _), _))) => true
-      case _ => false
-    }
-
  def is_tracing(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => true

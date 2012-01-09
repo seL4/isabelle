@@ -190,7 +190,7 @@ definition AI_WN :: "com \<Rightarrow> 'av st option acom option" where
 lemma AI_WN_sound: "AI_WN c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
 proof(simp add: CS_def AI_WN_def)
   assume 1: "pfp_WN (step' \<top>) c = Some c'"
-  from pfp_WN_pfp[OF allI[OF strip_step'] mono_step' 1]
+  from pfp_WN_pfp[OF allI[OF strip_step'] mono_step'2 1]
   have 2: "step' \<top> c' \<sqsubseteq> c'" .
   have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c" by(simp add: strip_pfp_WN[OF _ 1])
   have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"

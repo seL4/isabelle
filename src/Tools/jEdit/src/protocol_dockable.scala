@@ -39,6 +39,6 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  override def init() { Isabelle.session.raw_messages += main_actor }
-  override def exit() { Isabelle.session.raw_messages -= main_actor }
+  override def init() { Isabelle.session.protocol_messages += main_actor }
+  override def exit() { Isabelle.session.protocol_messages -= main_actor }
 }

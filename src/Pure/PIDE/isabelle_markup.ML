@@ -66,8 +66,6 @@ sig
   val ML_antiquotationN: string
   val doc_antiquotationN: string
   val doc_antiquotation_optionN: string
-  val keyword_declN: string val keyword_decl: string -> Markup.T
-  val command_declN: string val command_decl: string -> string -> Markup.T
   val keywordN: string val keyword: Markup.T
   val operatorN: string val operator: Markup.T
   val commandN: string val command: Markup.T
@@ -81,7 +79,6 @@ sig
   val command_spanN: string val command_span: string -> Markup.T
   val ignored_spanN: string val ignored_span: Markup.T
   val malformed_spanN: string val malformed_span: Markup.T
-  val loaded_theoryN: string val loaded_theory: string -> Markup.T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -100,11 +97,14 @@ sig
   val serialN: string
   val legacyN: string val legacy: Markup.T
   val promptN: string val prompt: Markup.T
-  val readyN: string val ready: Markup.T
   val reportN: string val report: Markup.T
   val no_reportN: string val no_report: Markup.T
   val badN: string val bad: Markup.T
   val functionN: string
+  val ready: Properties.T
+  val loaded_theory: string -> Properties.T
+  val keyword_decl: string -> Properties.T
+  val command_decl: string -> string -> Properties.T
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -235,13 +235,6 @@ val doc_antiquotation_optionN = "document antiquotation option";
 
 (* outer syntax *)
 
-val (keyword_declN, keyword_decl) = markup_string "keyword_decl" Markup.nameN;
-
-val command_declN = "command_decl";
-
-fun command_decl name kind : Markup.T =
-  (command_declN, [(Markup.nameN, name), (Markup.kindN, kind)]);
-
 val (keywordN, keyword) = markup_elem "keyword";
 val (operatorN, operator) = markup_elem "operator";
 val (commandN, command) = markup_elem "command";
@@ -258,11 +251,6 @@ fun token props = (tokenN, props);
 val (command_spanN, command_span) = markup_string "command_span" Markup.nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
 val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
-
-
-(* theory loader *)
-
-val (loaded_theoryN, loaded_theory) = markup_string "loaded_theory" Markup.nameN;
 
 
 (* timing *)
@@ -307,7 +295,6 @@ val serialN = "serial";
 
 val (legacyN, legacy) = markup_elem "legacy";
 val (promptN, prompt) = markup_elem "prompt";
-val (readyN, ready) = markup_elem "ready";
 
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
@@ -318,6 +305,14 @@ val (badN, bad) = markup_elem "bad";
 (* raw message functions *)
 
 val functionN = "function"
+
+val ready = [(functionN, "ready")];
+
+fun loaded_theory name = [(functionN, "loaded_theory"), (Markup.nameN, name)];
+
+fun keyword_decl name = [(functionN, "keyword_decl"), (Markup.nameN, name)];
+fun command_decl name kind =
+  [(functionN, "command_decl"), (Markup.nameN, name), (Markup.kindN, kind)];
 
 val assign_execs = [(functionN, "assign_execs")];
 val removed_versions = [(functionN, "removed_versions")];

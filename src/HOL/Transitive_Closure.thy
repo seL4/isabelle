@@ -1047,7 +1047,7 @@ definition acyclic :: "('a * 'a) set => bool" where
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r \<equiv> acyclic {(x, y). r x y}"
 
-lemma acyclic_irrefl:
+lemma acyclic_irrefl [code]:
   "acyclic r \<longleftrightarrow> irrefl (r^+)"
   by (simp add: acyclic_def irrefl_def)
 

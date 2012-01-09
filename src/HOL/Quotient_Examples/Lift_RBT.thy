@@ -186,7 +186,7 @@ lemma lookup_map [simp]:
   by (simp add: map_def lookup_RBT RBT_Impl.lookup_map lookup_impl_of)
 
 lemma fold_fold:
-  "fold f t = More_List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (prod_case f) (entries t)"
   by (simp add: fold_def fun_eq_iff RBT_Impl.fold_def entries_impl_of)
 
 lemma is_empty_empty [simp]:

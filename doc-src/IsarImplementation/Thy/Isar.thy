@@ -269,8 +269,8 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
 
   Example: @{method "induct"}, which is also a ``raw'' method since it
   operates on the internal representation of simultaneous claims as
-  Pure conjunction (\secref{{sec:logic-aux}}), instead of separate
-  subgoals (\secref{sec::tactical-goals}).
+  Pure conjunction (\secref{sec:logic-aux}), instead of separate
+  subgoals (\secref{sec:tactical-goals}).
 
   \item \emph{Structured method} with strong emphasis on facts outside
   the goal state.

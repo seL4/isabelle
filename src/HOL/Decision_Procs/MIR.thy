@@ -3324,7 +3324,7 @@ function (sequential) rsplit0 :: "num \<Rightarrow> (fm \<times> int \<times> nu
               in map (\<lambda> ((p,n,t),(q,m,s)). (And p q, n+m, Add t s)) [(a,b). a\<leftarrow>acs,b\<leftarrow>bcs])"
 | "rsplit0 (Sub a b) = rsplit0 (Add a (Neg b))"
 | "rsplit0 (Neg a) = map (\<lambda> (p,n,s). (p,-n,Neg s)) (rsplit0 a)"
-| "rsplit0 (Floor a) = foldl (op @) [] (map 
+| "rsplit0 (Floor a) = concat (map 
       (\<lambda> (p,n,s). if n=0 then [(p,0,Floor s)]
           else (map (\<lambda> j. (fp p n s j, 0, Add (Floor s) (C j))) (if n > 0 then [0 .. n] else [n .. 0])))
        (rsplit0 a))"
@@ -3377,7 +3377,7 @@ proof(induct t rule: rsplit0.induct)
       by (auto simp add: split_def)
   qed
   have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))"
-    by (auto simp add: foldl_conv_concat)
+    by auto
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -3534,7 +3534,7 @@ next
       by (auto simp add: split_def)
   qed
 
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat) 
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by auto
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 

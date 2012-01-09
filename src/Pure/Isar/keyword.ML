@@ -151,17 +151,17 @@ fun command_tags name = these (Option.map tags_of (command_keyword name));
 
 val keyword_statusN = "keyword_status";
 
-fun status_message s =
+fun status_message m s =
   Position.setmp_thread_data Position.none
-    (if print_mode_active keyword_statusN then Output.status else writeln) s;
+    (if print_mode_active keyword_statusN then Output.raw_message m else writeln) s;
 
 fun keyword_status name =
-  status_message (Markup.markup (Isabelle_Markup.keyword_decl name)
-    ("Outer syntax keyword: " ^ quote name));
+  status_message (Isabelle_Markup.keyword_decl name)
+    ("Outer syntax keyword: " ^ quote name);
 
 fun command_status (name, kind) =
-  status_message (Markup.markup (Isabelle_Markup.command_decl name (kind_of kind))
-    ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
+  status_message (Isabelle_Markup.command_decl name (kind_of kind))
+    ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")");
 
 fun status () =
   let val (keywords, commands) = CRITICAL (fn () =>

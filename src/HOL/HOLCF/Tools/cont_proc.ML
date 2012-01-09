@@ -121,7 +121,7 @@ val cont_tac =
 local
   fun solve_cont thy _ t =
     let
-      val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI
+      val tr = instantiate' [] [SOME (cterm_of thy t)] @{thm Eq_TrueI}
     in Option.map fst (Seq.pull (cont_tac 1 tr)) end
 in
   fun cont_proc thy =

@@ -54,26 +54,5 @@ object Keyword
     Set(QED, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL)
   val proof2 = Set(PRF_ASM, PRF_ASM_GOAL)
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
-
-
-  /* protocol messages */
-
-  object Keyword_Decl {
-    def unapply(msg: XML.Tree): Option[String] =
-      msg match {
-        case XML.Elem(Markup(Isabelle_Markup.KEYWORD_DECL, List((Markup.NAME, name))), _) =>
-          Some(name)
-        case _ => None
-      }
-  }
-
-  object Command_Decl {
-    def unapply(msg: XML.Tree): Option[(String, String)] =
-      msg match {
-        case XML.Elem(Markup(Isabelle_Markup.COMMAND_DECL,
-            List((Markup.NAME, name), (Markup.KIND, kind))), _) => Some((name, kind))
-        case _ => None
-      }
-  }
 }
 

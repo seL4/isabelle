@@ -452,27 +452,35 @@ fun add_case_combinator
       val cabs = app "_cabs"
       val capp = app @{const_syntax Rep_cfun}
       val capps = Library.foldl capp
-      fun con1 authentic n (con,args) =
+      fun con1 authentic n (con, args) =
           Library.foldl capp (c_ast authentic con, argvars n args)
-      fun case1 authentic (n, c) =
-          app "_case1" (Ast.strip_positions (con1 authentic n c), expvar n)
+      fun con1_constraint authentic n (con, args) =
+          Library.foldl capp
+            (Ast.Appl
+              [Ast.Constant @{syntax_const "_constrain"}, c_ast authentic con,
+                Ast.Variable ("'a" ^ string_of_int n)],
+             argvars n args)
+      fun case1 constraint authentic (n, c) =
+        app @{syntax_const "_case1"}
+          ((if constraint then con1_constraint else con1) authentic n c, expvar n)
       fun arg1 (n, (_, args)) = List.foldr cabs (expvar n) (argvars n args)
       fun when1 n (m, c) = if n = m then arg1 (n, c) else Ast.Constant @{const_syntax bottom}
       val case_constant = Ast.Constant (syntax (case_const dummyT))
-      fun case_trans authentic =
-        (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
+      fun case_trans constraint authentic =
           (app "_case_syntax"
             (Ast.Variable "x",
-             foldr1 (app "_case2") (map_index (case1 authentic) spec)),
+             foldr1 (app @{syntax_const "_case2"}) (map_index (case1 constraint authentic) spec)),
            capp (capps (case_constant, map_index arg1 spec), Ast.Variable "x"))
       fun one_abscon_trans authentic (n, c) =
-        (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
-          (cabs (con1 authentic n c, expvar n),
-           capps (case_constant, map_index (when1 n) spec))
+          (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
+            (cabs (con1 authentic n c, expvar n),
+             capps (case_constant, map_index (when1 n) spec))
       fun abscon_trans authentic =
           map_index (one_abscon_trans authentic) spec
       val trans_rules : Ast.ast Syntax.trrule list =
-          case_trans false :: case_trans true ::
+          Syntax.Parse_Print_Rule (case_trans false true) ::
+          Syntax.Parse_Rule (case_trans false false) ::
+          Syntax.Parse_Rule (case_trans true false) ::
           abscon_trans false @ abscon_trans true
     in
       val thy = Sign.add_trrules trans_rules thy

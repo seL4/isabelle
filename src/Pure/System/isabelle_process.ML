@@ -18,8 +18,7 @@ Startup phases:
 signature ISABELLE_PROCESS =
 sig
   val is_active: unit -> bool
-  val add_command: string -> (string list -> unit) -> unit
-  val command: string -> string list -> unit
+  val protocol_command: string -> (string list -> unit) -> unit
   val crashes: exn list Synchronized.var
   val init_fifos: string -> string -> unit
   val init_socket: string -> unit
@@ -38,7 +37,7 @@ val _ = Output.add_mode isabelle_processN Output.default_output Output.default_e
 val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 
 
-(* commands *)
+(* protocol commands *)
 
 local
 
@@ -47,16 +46,18 @@ val commands =
 
 in
 
-fun add_command name cmd =
+fun protocol_command name cmd =
   Synchronized.change commands (fn cmds =>
    (if not (Symtab.defined cmds name) then ()
     else warning ("Redefining Isabelle process command " ^ quote name);
     Symtab.update (name, cmd) cmds));
 
-fun command name args =
+fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle process command " ^ quote name)
-  | SOME cmd => cmd args);
+  | SOME cmd =>
+      (Runtime.debugging cmd args handle exn =>
+        error ("Isabelle process protocol failure: " ^ name ^ "\n" ^ ML_Compiler.exn_message exn)));
 
 end;
 
@@ -145,11 +146,6 @@ fun read_command channel =
     NONE => raise Runtime.TERMINATE
   | SOME line => map (read_chunk channel) (space_explode "," line));
 
-fun run_command name args =
-  Runtime.debugging (command name) args
-    handle exn =>
-      error ("Isabelle process command failure: " ^ name ^ "\n" ^ ML_Compiler.exn_message exn);
-
 in
 
 fun loop channel =
@@ -189,7 +185,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
     val _ = Keyword.status ();
     val _ = Thy_Info.status ();
-    val _ = Output.status (Markup.markup Isabelle_Markup.ready "process ready");
+    val _ = Output.raw_message Isabelle_Markup.ready "";
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

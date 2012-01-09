@@ -89,7 +89,7 @@ fun thy_graph f x = f (get_thys ()) x;
 fun get_names () = Graph.topological_order (get_thys ());
 
 fun status () =
-  List.app (Output.status o Markup.markup_only o Isabelle_Markup.loaded_theory) (get_names ());
+  List.app (fn name => Output.raw_message (Isabelle_Markup.loaded_theory name) "") (get_names ());
 
 
 (* access thy *)

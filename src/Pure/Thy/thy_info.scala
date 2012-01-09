@@ -7,21 +7,6 @@ Theory and file dependencies.
 package isabelle
 
 
-object Thy_Info
-{
-  /* protocol messages */
-
-  object Loaded_Theory {
-    def unapply(msg: XML.Tree): Option[String] =
-      msg match {
-        case XML.Elem(Markup(Isabelle_Markup.LOADED_THEORY, List((Markup.NAME, name))), _) =>
-          Some(name)
-        case _ => None
-      }
-  }
-}
-
-
 class Thy_Info(thy_load: Thy_Load)
 {
   /* messages */

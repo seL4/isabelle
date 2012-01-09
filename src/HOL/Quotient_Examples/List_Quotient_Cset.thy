@@ -77,7 +77,7 @@ unfolding coset_def
 apply descending
 apply (simp add: Set.remove_def)
 apply descending
-by (simp add: remove_set_compl)
+by (auto simp add: set_eq_iff)
 
 lemma insert_set [code]:
   "Quotient_Cset.insert x (Quotient_Cset.set xs) = Quotient_Cset.set (List.insert x xs)"
@@ -92,7 +92,7 @@ by descending simp
 
 lemma filter_set [code]:
   "Quotient_Cset.filter P (Quotient_Cset.set xs) = Quotient_Cset.set (List.filter P xs)"
-by descending (simp add: project_set)
+by descending (simp add: set_eq_iff)
 
 lemma forall_set [code]:
   "Quotient_Cset.forall (Quotient_Cset.set xs) P \<longleftrightarrow> list_all P xs"

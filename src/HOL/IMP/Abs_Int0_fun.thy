@@ -372,6 +372,9 @@ end
 
 subsubsection "Monotonicity"
 
+lemma mono_post: "c \<sqsubseteq> c' \<Longrightarrow> post c \<sqsubseteq> post c'"
+by(induction c c' rule: le_acom.induct) (auto)
+
 locale Abs_Int_Fun_mono = Abs_Int_Fun +
 assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
 begin
@@ -382,9 +385,10 @@ by(induction e)(auto simp: le_fun_def mono_plus')
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
 by(simp add: le_fun_def)
 
-lemma step'_mono: "S \<sqsubseteq> S' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c"
-apply(induction c arbitrary: S S')
-apply (auto simp: Let_def mono_update mono_aval' le_join_disj split: option.split)
+lemma mono_step': "S \<sqsubseteq> S' \<Longrightarrow> c \<sqsubseteq> c' \<Longrightarrow> step' S c \<sqsubseteq> step' S' c'"
+apply(induction c c' arbitrary: S S' rule: le_acom.induct)
+apply (auto simp: Let_def mono_update mono_aval' mono_post le_join_disj
+            split: option.split)
 done
 
 end

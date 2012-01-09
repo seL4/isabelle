@@ -68,7 +68,7 @@ local
   fun if_fixed_args m = if_fixed (forall (can dest_wordT) o snd) m
 
   fun add_word_fun f (t, n) =
-    let val c as (m, _) = Term.dest_Const t
+    let val (m, _) = Term.dest_Const t
     in SMT_Builtin.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
 
   fun hd2 xs = hd (tl xs)

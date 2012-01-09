@@ -6,29 +6,29 @@ begin
 
 subsection "Constant Propagation"
 
-datatype cval = Const val | Any
+datatype const = Const val | Any
 
-fun \<gamma>_cval where
-"\<gamma>_cval (Const n) = {n}" |
-"\<gamma>_cval (Any) = UNIV"
+fun \<gamma>_const where
+"\<gamma>_const (Const n) = {n}" |
+"\<gamma>_const (Any) = UNIV"
 
-fun plus_cval where
-"plus_cval (Const m) (Const n) = Const(m+n)" |
-"plus_cval _ _ = Any"
+fun plus_const where
+"plus_const (Const m) (Const n) = Const(m+n)" |
+"plus_const _ _ = Any"
 
-lemma plus_cval_cases: "plus_cval a1 a2 =
+lemma plus_const_cases: "plus_const a1 a2 =
   (case (a1,a2) of (Const m, Const n) \<Rightarrow> Const(m+n) | _ \<Rightarrow> Any)"
-by(auto split: prod.split cval.split)
+by(auto split: prod.split const.split)
 
-instantiation cval :: SL_top
+instantiation const :: SL_top
 begin
 
-fun le_cval where
+fun le_const where
 "_ \<sqsubseteq> Any = True" |
 "Const n \<sqsubseteq> Const m = (n=m)" |
 "Any \<sqsubseteq> Const _ = False"
 
-fun join_cval where
+fun join_const where
 "Const m \<squnion> Const n = (if n=m then Const m else Any)" |
 "_ \<squnion> _ = Any"
 
@@ -46,29 +46,29 @@ next
 next
   case goal5 thus ?case by(cases z, cases y, cases x, simp_all)
 next
-  case goal6 thus ?case by(simp add: Top_cval_def)
+  case goal6 thus ?case by(simp add: Top_const_def)
 qed
 
 end
 
 
 interpretation Val_abs
-where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
+where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 defines aval'_const is aval'
 proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
 next
-  case goal2 show ?case by(simp add: Top_cval_def)
+  case goal2 show ?case by(simp add: Top_const_def)
 next
   case goal3 show ?case by simp
 next
   case goal4 thus ?case
-    by(auto simp: plus_cval_cases split: cval.split)
+    by(auto simp: plus_const_cases split: const.split)
 qed
 
 interpretation Abs_Int
-where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
+where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 defines AI_const is AI
 and step_const is step'
 proof qed
@@ -77,11 +77,29 @@ proof qed
 text{* Monotonicity: *}
 
 interpretation Abs_Int_mono
-where \<gamma> = \<gamma>_cval and num' = Const and plus' = plus_cval
+where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case
-    by(auto simp: plus_cval_cases split: cval.split)
+    by(auto simp: plus_const_cases split: const.split)
 qed
+
+text{* Termination: *}
+
+lemma measure_const:
+  "(strict{(x::const,y). x \<sqsubseteq> y})^-1 \<subseteq>
+  measure(%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0)"
+by(auto split: const.splits)
+
+lemma measure_const_eq:
+  "\<forall> x y::const. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> (%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0) x = (%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0) y"
+by(auto split: const.splits)
+
+lemma acc_const_st: "Abs_Int0.acc{(x::const st,y). x \<sqsubseteq> y}"
+by(rule wf_subset[OF wf_measure measure_st[OF measure_const measure_const_eq]])
+
+lemma "EX c'. AI_const c = Some c'"
+by(metis AI_def lpfpc_termination[OF acc_const_st, where f = "step_const \<top>",
+  OF mono_step'[OF le_refl] strip_step'])
 
 
 subsubsection "Tests"

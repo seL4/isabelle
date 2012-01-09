@@ -23,27 +23,20 @@ object Command
     val results: SortedMap[Long, XML.Tree] = SortedMap.empty,
     val markup: Markup_Tree = Markup_Tree.empty)
   {
-    /* content */
+    /* accumulate content */
 
-    def add_status(st: Markup): State = copy(status = st :: status)
-    def add_markup(m: Text.Markup): State = copy(markup = markup + m)
-    def add_result(serial: Long, result: XML.Tree): State =
-      copy(results = results + (serial -> result))
+    private def add_status(st: Markup): State = copy(status = st :: status)
+    private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
 
-    def root_info: Text.Markup =
-      Text.Info(command.range,
-        XML.Elem(Markup(Isabelle_Markup.STATUS, Nil), status.reverse.map(XML.Elem(_, Nil))))
-    def root_markup: Markup_Tree = markup + root_info
-
-
-    /* message dispatch */
-
-    def accumulate(message: XML.Elem): Command.State =
+    def + (message: XML.Elem): Command.State =
       message match {
         case XML.Elem(Markup(Isabelle_Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
-              case XML.Elem(markup, Nil) => state.add_status(markup)
+              case elem @ XML.Elem(markup, Nil) =>
+                val info: Text.Markup = Text.Info(command.range, elem)
+                state.add_status(markup).add_markup(info)
+
               case _ => System.err.println("Ignored status message: " + msg); state
             })
 
@@ -64,13 +57,13 @@ object Command
           atts match {
             case Isabelle_Markup.Serial(i) =>
               val result = XML.Elem(Markup(name, Position.purge(atts)), body)
-              val st0 = add_result(i, result)
+              val st0 = copy(results = results + (i -> result))
               val st1 =
                 if (Protocol.is_tracing(message)) st0
                 else
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, result)))
-              val st2 = (st1 /: Protocol.message_reports(message))(_ accumulate _)
+              val st2 = (st1 /: Protocol.message_reports(message))(_ + _)
               st2
             case _ => System.err.println("Ignored message without serial number: " + message); this
           }

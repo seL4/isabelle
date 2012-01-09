@@ -5,7 +5,7 @@
 header {* An efficient checker for proofs from a SAT solver *}
 
 theory SatChecker
-imports "~~/src/HOL/Library/RBT_Impl" Sorted_List Imperative_HOL
+imports "~~/src/HOL/Library/RBT_Impl" Sorted_List "../Imperative_HOL"
 begin
 
 section{* General settings and functions for our representation of clauses *}
@@ -264,7 +264,7 @@ next
   case (3 l v va r)
   thus ?case
     unfolding resolve2.simps
-    by (fastforce dest!: res_mem simp add: merge_Nil)
+    by (fastforce dest!: res_mem)
 qed
 
 lemma res_thm'_Inv:
@@ -707,9 +707,10 @@ section {* Code generation setup *}
 code_type ProofStep
   (SML "MinisatProofStep.ProofStep")
 
-code_const ProofDone  and  Root              and  Conflict              and  Delete  and  Xstep
-     (SML "MinisatProofStep.ProofDone" and "MinisatProofStep.Root ((_),/ (_))" and "MinisatProofStep.Conflict ((_),/ (_))" and "MinisatProofStep.Delete" and "MinisatProofStep.Xstep ((_),/ (_))")
+code_const ProofDone and Root and Conflict and Delete and Xstep
+  (SML "MinisatProofStep.ProofDone" and "MinisatProofStep.Root ((_),/ (_))" and "MinisatProofStep.Conflict ((_),/ (_))" and "MinisatProofStep.Delete" and "MinisatProofStep.Xstep ((_),/ (_))")
 
 export_code checker tchecker lchecker in SML
 
 end
+

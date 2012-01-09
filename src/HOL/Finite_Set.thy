@@ -718,7 +718,7 @@ proof
 qed auto
 
 lemma comp_fun_idem_remove:
-  "comp_fun_idem (\<lambda>x A. A - {x})"
+  "comp_fun_idem Set.remove"
 proof
 qed auto
 
@@ -742,10 +742,11 @@ qed
 
 lemma minus_fold_remove:
   assumes "finite A"
-  shows "B - A = fold (\<lambda>x A. A - {x}) B A"
+  shows "B - A = fold Set.remove B A"
 proof -
-  interpret comp_fun_idem "\<lambda>x A. A - {x}" by (fact comp_fun_idem_remove)
-  from `finite A` show ?thesis by (induct A arbitrary: B) auto
+  interpret comp_fun_idem Set.remove by (fact comp_fun_idem_remove)
+  from `finite A` have "fold Set.remove B A = B - A" by (induct A arbitrary: B) auto
+  then show ?thesis ..
 qed
 
 context complete_lattice
@@ -779,7 +780,7 @@ lemma Sup_fold_sup:
   shows "Sup A = fold sup bot A"
   using assms sup_Sup_fold_sup [of A bot] by (simp add: sup_absorb2)
 
-lemma inf_INFI_fold_inf:
+lemma inf_INF_fold_inf:
   assumes "finite A"
   shows "inf B (INFI A f) = fold (inf \<circ> f) B A" (is "?inf = ?fold") 
 proof (rule sym)
@@ -790,7 +791,7 @@ proof (rule sym)
       (simp_all add: INF_def inf_left_commute)
 qed
 
-lemma sup_SUPR_fold_sup:
+lemma sup_SUP_fold_sup:
   assumes "finite A"
   shows "sup B (SUPR A f) = fold (sup \<circ> f) B A" (is "?sup = ?fold") 
 proof (rule sym)
@@ -801,15 +802,15 @@ proof (rule sym)
       (simp_all add: SUP_def sup_left_commute)
 qed
 
-lemma INFI_fold_inf:
+lemma INF_fold_inf:
   assumes "finite A"
   shows "INFI A f = fold (inf \<circ> f) top A"
-  using assms inf_INFI_fold_inf [of A top] by simp
+  using assms inf_INF_fold_inf [of A top] by simp
 
-lemma SUPR_fold_sup:
+lemma SUP_fold_sup:
   assumes "finite A"
   shows "SUPR A f = fold (sup \<circ> f) bot A"
-  using assms sup_SUPR_fold_sup [of A bot] by simp
+  using assms sup_SUP_fold_sup [of A bot] by simp
 
 end
 
@@ -2066,10 +2067,10 @@ lemma finite_fun_UNIVD2:
   assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
   shows "finite (UNIV :: 'b set)"
 proof -
-  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
-    by(rule finite_imageI)
-  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
-    by(rule UNIV_eq_I) auto
+  from fin have "\<And>arbitrary. finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
+    by (rule finite_imageI)
+  moreover have "\<And>arbitrary. UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
+    by (rule UNIV_eq_I) auto
   ultimately show "finite (UNIV :: 'b set)" by simp
 qed
 

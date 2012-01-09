@@ -256,7 +256,6 @@ translations
 
 print_translation {*
 let
-  val Type (set_type, _) = @{typ "'a set"};   (* FIXME 'a => bool (!?!) *)
   val All_binder = Mixfix.binder_name @{const_syntax All};
   val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
   val impl = @{const_syntax HOL.implies};
@@ -275,14 +274,12 @@ let
     then Syntax.const c $ Syntax_Trans.mark_bound v' $ n $ P else raise Match;
 
   fun tr' q = (q,
-        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (T, _)),
+        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
             Const (c, _) $
               (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', _)) $ n) $ P] =>
-            if T = set_type then
-              (case AList.lookup (op =) trans (q, c, d) of
-                NONE => raise Match
-              | SOME l => mk v v' l n P)
-            else raise Match
+            (case AList.lookup (op =) trans (q, c, d) of
+              NONE => raise Match
+            | SOME l => mk v v' l n P)
          | _ => raise Match);
 in
   [tr' All_binder, tr' Ex_binder]
@@ -508,7 +505,7 @@ lemma subsetCE [no_atp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \
   -- {* Classical elimination rule. *}
   by (auto simp add: less_eq_set_def le_fun_def)
 
-lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
+lemma subset_eq [code, no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
 lemma contra_subsetD [no_atp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
@@ -524,6 +521,10 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
+
+lemma subset_not_subset_eq [code]:
+  "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
+  by (fact less_le_not_le)
 
 lemma eq_mem_trans: "a=b ==> b \<in> A ==> a \<in> A"
   by simp
@@ -833,7 +834,7 @@ proof
     thus ?R using `a\<noteq>b` by auto
   qed
 next
-  assume ?R thus ?L by(auto split: if_splits)
+  assume ?R thus ?L by (auto split: if_splits)
 qed
 
 subsubsection {* Singletons, using insert *}
@@ -1796,7 +1797,7 @@ lemma bind_bind:
   by (auto simp add: bind_def)
 
 lemma empty_bind [simp]:
-  "Set.bind {} B = {}"
+  "Set.bind {} f = {}"
   by (simp add: bind_def)
 
 lemma nonempty_bind_const:
@@ -1810,19 +1811,27 @@ lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
 subsubsection {* Operations for execution *}
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
-  "is_empty A \<longleftrightarrow> A = {}"
+  [code_abbrev]: "is_empty A \<longleftrightarrow> A = {}"
 
 hide_const (open) is_empty
 
 definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "remove x A = A - {x}"
+  [code_abbrev]: "remove x A = A - {x}"
 
 hide_const (open) remove
+
+lemma member_remove [simp]:
+  "x \<in> Set.remove y A \<longleftrightarrow> x \<in> A \<and> x \<noteq> y"
+  by (simp add: remove_def)
 
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   [code_abbrev]: "project P A = {a \<in> A. P a}"
 
 hide_const (open) project
+
+lemma member_project [simp]:
+  "x \<in> Set.project P A \<longleftrightarrow> x \<in> A \<and> P x"
+  by (simp add: project_def)
 
 instantiation set :: (equal) equal
 begin
@@ -1834,6 +1843,7 @@ instance proof
 qed (auto simp add: equal_set_def)
 
 end
+
 
 text {* Misc *}
 

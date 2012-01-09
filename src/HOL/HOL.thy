@@ -104,34 +104,31 @@ abbreviation (iff)
 notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
-nonterminal letbinds and letbind
-nonterminal case_pat and case_syn and cases_syn
-
 syntax
-  "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
-
-  "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
-  ""            :: "letbind => letbinds"                 ("_")
-  "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
-
-  "_case_syntax"      :: "['a, cases_syn] => 'b"              ("(case _ of/ _)" 10)
-  "_case1"            :: "[case_pat, 'b] => case_syn"         ("(2_ =>/ _)" 10)
-  ""                  :: "case_syn => cases_syn"              ("_")
-  "_case2"            :: "[case_syn, cases_syn] => cases_syn" ("_/ | _")
-  "_strip_positions"  :: "'a => case_pat"                     ("_")
-
-syntax (xsymbols)
-  "_case1" :: "[case_pat, 'b] => case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
-
+  "_The" :: "[pttrn, bool] => 'a"  ("(3THE _./ _)" [0, 10] 10)
 translations
-  "THE x. P"              == "CONST The (%x. P)"
-
+  "THE x. P" == "CONST The (%x. P)"
 print_translation {*
   [(@{const_syntax The}, fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_The"} $ x $ t end)]
 *}  -- {* To avoid eta-contraction of body *}
+
+nonterminal letbinds and letbind
+syntax
+  "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
+  ""            :: "letbind => letbinds"                 ("_")
+  "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
+  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
+
+nonterminal case_syn and cases_syn
+syntax
+  "_case_syntax" :: "['a, cases_syn] => 'b"  ("(case _ of/ _)" 10)
+  "_case1" :: "['a, 'b] => case_syn"  ("(2_ =>/ _)" 10)
+  "" :: "case_syn => cases_syn"  ("_")
+  "_case2" :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
+syntax (xsymbols)
+  "_case1" :: "['a, 'b] => case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
 
 notation (xsymbols)
   All  (binder "\<forall>" 10) and
@@ -2011,37 +2008,6 @@ in
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
 end;
 
-val case_split = @{thm case_split};
-val cong = @{thm cong};
-val de_Morgan_conj = @{thm de_Morgan_conj};
-val de_Morgan_disj = @{thm de_Morgan_disj};
-val disj_assoc = @{thm disj_assoc};
-val disj_comms = @{thms disj_comms};
-val disj_cong = @{thm disj_cong};
-val eq_ac = @{thms eq_ac};
-val eq_cong2 = @{thm eq_cong2}
-val Eq_FalseI = @{thm Eq_FalseI};
-val Eq_TrueI = @{thm Eq_TrueI};
-val Ex1_def = @{thm Ex1_def};
-val ex_disj_distrib = @{thm ex_disj_distrib};
-val ex_simps = @{thms ex_simps};
-val if_cancel = @{thm if_cancel};
-val if_eq_cancel = @{thm if_eq_cancel};
-val if_False = @{thm if_False};
-val iff_conv_conj_imp = @{thm iff_conv_conj_imp};
-val iff = @{thm iff};
-val if_splits = @{thms if_splits};
-val if_True = @{thm if_True};
-val if_weak_cong = @{thm if_weak_cong};
-val imp_all = @{thm imp_all};
-val imp_cong = @{thm imp_cong};
-val imp_conjL = @{thm imp_conjL};
-val imp_conjR = @{thm imp_conjR};
-val imp_conv_disj = @{thm imp_conv_disj};
-val split_if = @{thm split_if};
-val the1_equality = @{thm the1_equality};
-val theI = @{thm theI};
-val theI' = @{thm theI'};
 val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms nnf_simps});
 *}
 

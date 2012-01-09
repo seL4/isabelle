@@ -275,7 +275,7 @@ by (rule symI) clarify
 
 subsection {* Transitivity *}
 
-lemma trans_join:
+lemma trans_join [code]:
   "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
   by (auto simp add: trans_def)
 
@@ -300,7 +300,7 @@ unfolding antisym_def trans_def by blast
 
 subsection {* Irreflexivity *}
 
-lemma irrefl_distinct:
+lemma irrefl_distinct [code]:
   "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
   by (auto simp add: irrefl_def)
 
@@ -395,7 +395,7 @@ lemma DomainE [elim!]:
   "a : Domain r ==> (!!y. (a, y) : r ==> P) ==> P"
 by (iprover dest!: iffD1 [OF Domain_iff])
 
-lemma Domain_fst:
+lemma Domain_fst [code]:
   "Domain r = fst ` r"
   by (auto simp add: image_def Bex_def)
 
@@ -453,7 +453,7 @@ by (unfold Range_def) (iprover intro!: converseI DomainI)
 lemma RangeE [elim!]: "b : Range r ==> (!!x. (x, b) : r ==> P) ==> P"
 by (unfold Range_def) (iprover elim!: DomainE dest!: converseD)
 
-lemma Range_snd:
+lemma Range_snd [code]:
   "Range r = snd ` r"
   by (auto simp add: image_def Bex_def)
 

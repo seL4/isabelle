@@ -58,8 +58,7 @@ object Isabelle_Process
     def is_status = kind == Isabelle_Markup.STATUS
     def is_report = kind == Isabelle_Markup.REPORT
     def is_raw = kind == Isabelle_Markup.RAW
-    def is_ready = Protocol.is_ready(message)
-    def is_syslog = is_init || is_exit || is_system || is_ready || is_stderr
+    def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {

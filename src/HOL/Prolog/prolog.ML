@@ -63,9 +63,9 @@ val atomize_ss =
     |> Simplifier.set_mksimps (mksimps mksimps_pairs))
   addsimps [
         @{thm all_conj_distrib}, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)
-        imp_conjL RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)
-        imp_conjR,        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)
-        imp_all];         (* "((!x. D) :- G) = (!x. D :- G)" *)
+        @{thm imp_conjL} RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)
+        @{thm imp_conjR},        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)
+        @{thm imp_all}];         (* "((!x. D) :- G) = (!x. D :- G)" *)
 
 
 (*val hyp_resolve_tac = Subgoal.FOCUS_PREMS (fn {prems, ...} =>

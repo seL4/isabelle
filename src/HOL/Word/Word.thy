@@ -1,5 +1,5 @@
 (*  Title:      HOL/Word/Word.thy
-    Author: Jeremy Dawson and Gerwin Klein, NICTA
+    Author:     Jeremy Dawson and Gerwin Klein, NICTA
 *)
 
 header {* A type of finite bit strings *}
@@ -116,7 +116,8 @@ definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
   "word_int_case f w = f (uint w)"
 
 translations
-  "case x of CONST of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of XCONST of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
 
 subsection {* Type-definition locale instantiations *}
 
@@ -1049,8 +1050,7 @@ lemma word_less_alt: "(a < b) = (uint a < uint b)"
   unfolding word_less_def word_le_def by (simp add: less_le)
 
 lemma signed_linorder: "class.linorder word_sle word_sless"
-proof
-qed (unfold word_sle_def word_sless_def, auto)
+  by default (unfold word_sle_def word_sless_def, auto)
 
 interpretation signed: linorder "word_sle" "word_sless"
   by (rule signed_linorder)
@@ -2505,7 +2505,7 @@ lemma uint_2p:
     apply clarsimp
    apply clarsimp
   apply (drule word_gt_0 [THEN iffD1])
-  apply (safe intro!: word_eqI bin_nth_lem ext)
+  apply (safe intro!: word_eqI bin_nth_lem)
      apply (auto simp add: test_bit_2p nth_2p_bin word_test_bit_def [symmetric])
   done
 
@@ -4111,26 +4111,21 @@ declare word_roti_def [simp]
 subsection {* Maximum machine word *}
 
 lemma word_int_cases:
-  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::len0 word) = word_of_int n; 0 \<le> n; n < 2^len_of TYPE('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
-   \<Longrightarrow> P"
+  obtains n where "(x ::'a::len0 word) = word_of_int n" and "0 \<le> n" and "n < 2^len_of TYPE('a)"
   by (cases x rule: word_uint.Abs_cases) (simp add: uints_num)
 
 lemma word_nat_cases [cases type: word]:
-  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::len word) = of_nat n; n < 2^len_of TYPE('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
-   \<Longrightarrow> P"
+  obtains n where "(x ::'a::len word) = of_nat n" and "n < 2^len_of TYPE('a)"
   by (cases x rule: word_unat.Abs_cases) (simp add: unats_def)
 
-lemma max_word_eq:
-  "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
+lemma max_word_eq: "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
   by (simp add: max_word_def word_of_int_hom_syms word_of_int_2p)
 
-lemma max_word_max [simp,intro!]:
-  "n \<le> max_word"
+lemma max_word_max [simp,intro!]: "n \<le> max_word"
   by (cases n rule: word_int_cases)
      (simp add: max_word_def word_le_def int_word_uint int_mod_eq')
   
-lemma word_of_int_2p_len: 
-  "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
+lemma word_of_int_2p_len: "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) 
      (simp add: word_of_int_hom_syms)
 
@@ -4546,7 +4541,6 @@ declare bin_to_bl_def [simp]
 
 
 use "~~/src/HOL/Word/Tools/smt_word.ML"
-
 setup {* SMT_Word.setup *}
 
 end
