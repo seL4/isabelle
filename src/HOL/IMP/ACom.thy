@@ -84,6 +84,14 @@ by (cases w) auto
 lemma strip_anno[simp]: "strip (anno a c) = c"
 by(induct c) simp_all
 
+lemma strip_eq_SKIP:
+  "strip c = com.SKIP \<longleftrightarrow> (EX P. c = SKIP {P})"
+by (cases c) simp_all
+
+lemma strip_eq_Assign:
+  "strip c = x::=e \<longleftrightarrow> (EX P. c = x::=e {P})"
+by (cases c) simp_all
+
 lemma strip_eq_Semi:
   "strip c = c1;c2 \<longleftrightarrow> (EX d1 d2. c = d1;d2 & strip d1 = c1 & strip d2 = c2)"
 by (cases c) simp_all
