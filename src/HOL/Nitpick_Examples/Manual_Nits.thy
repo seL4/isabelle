@@ -45,7 +45,6 @@ lemma "\<exists>!x. x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [expect = none]
 nitpick [card 'a = 1\<emdash>50, expect = none]
 (* sledgehammer *)
-sledgehammer
 by (metis the_equality)
 
 subsection {* 2.4. Skolemization *}
