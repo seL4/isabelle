@@ -982,7 +982,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                  else foldr1 (HOLogic.mk_binop @{const_abbrev union}) (map supp args2)))))
             (fn _ =>
               simp_tac (HOL_basic_ss addsimps (supp_def ::
-                 Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
+                 Un_assoc :: @{thm de_Morgan_conj} :: Collect_disj_eq :: finite_Un ::
                  Collect_False_empty :: finite_emptyI :: @{thms simp_thms} @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1)
         in
@@ -1968,7 +1968,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                   end) context 1])) idxss) (ndescr ~~ rec_elims))
          end));
 
-    val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
+    val rec_total_thms = map (fn r => r RS @{thm theI'}) rec_unique_thms;
 
     (* define primrec combinators *)
 
@@ -2011,7 +2011,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (augment_sort thy12 fs_cp_sort concl')
           (fn {prems, ...} => EVERY
             [rewrite_goals_tac reccomb_defs,
-             rtac the1_equality 1,
+             rtac @{thm the1_equality} 1,
              solve rec_unique_thms prems 1,
              resolve_tac rec_intrs 1,
              REPEAT (solve (prems @ rec_total_thms) prems 1)])
