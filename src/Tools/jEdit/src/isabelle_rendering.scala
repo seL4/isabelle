@@ -26,10 +26,10 @@ object Isabelle_Rendering
   def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
   val outdated_color = new Color(238, 227, 227)
-  val running_color = new Color(97, 0, 97)
-  val running1_color = new Color(97, 0, 97, 100)
   val unprocessed_color = new Color(255, 160, 160)
   val unprocessed1_color = new Color(255, 160, 160, 50)
+  val running_color = new Color(97, 0, 97)
+  val running1_color = new Color(97, 0, 97, 100)
 
   val light_color = new Color(240, 240, 240)
   val regular_color = new Color(192, 192, 192)
@@ -54,34 +54,25 @@ object Isabelle_Rendering
   val error_icon = new Icon(3, Isabelle.load_icon("16x16/status/dialog-error.png"))
 
 
-  /* command status */
-
-  def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
-  {
-    val state = snapshot.command_state(command)
-    if (snapshot.is_outdated) Some(outdated_color)
-    else
-      Protocol.command_status(state.status) match {
-        case Protocol.Forked(i) if i > 0 => Some(running1_color)
-        case Protocol.Unprocessed => Some(unprocessed1_color)
-        case _ => None
-      }
-  }
+  /* command overview */
 
   def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
     val state = snapshot.command_state(command)
     if (snapshot.is_outdated) None
-    else
-      Protocol.command_status(state.status) match {
-        case Protocol.Forked(i) => if (i > 0) Some(running_color) else None
-        case Protocol.Unprocessed => Some(unprocessed_color)
-        case Protocol.Failed => Some(error_color)
-        case Protocol.Finished =>
-          if (state.results.exists(r => Protocol.is_error(r._2))) Some(error_color)
-          else if (state.results.exists(r => Protocol.is_warning(r._2))) Some(warning_color)
-          else None
+    else {
+      val status = Protocol.command_status(state.status)
+
+      if (status.is_unprocessed) Some(unprocessed_color)
+      else if (status.is_running) Some(running_color)
+      else if (status.is_finished) {
+        if (state.results.exists(r => Protocol.is_error(r._2))) Some(error_color)
+        else if (state.results.exists(r => Protocol.is_warning(r._2))) Some(warning_color)
+        else None
       }
+      else if (status.is_failed) Some(error_color)
+      else None
+    }
   }
 
 
@@ -121,12 +112,18 @@ object Isabelle_Rendering
       Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)))
 
   val background1 =
-    Markup_Tree.Select[Color](
+    Markup_Tree.Cumulate[(Option[Protocol.Status], Option[Color])](
+      (Some(Protocol.Status()), None),
       {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _)) => bad_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _)) => hilite_color
+        case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+        if (Protocol.command_status_markup(markup.name)) =>
+          (Some(Protocol.command_status(status, markup)), color)
+        case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+          (None, Some(bad_color))
+        case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
+          (None, Some(hilite_color))
       },
-      Some(Set(Isabelle_Markup.BAD, Isabelle_Markup.HILITE)))
+      Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE))
 
   val background2 =
     Markup_Tree.Select[Color](

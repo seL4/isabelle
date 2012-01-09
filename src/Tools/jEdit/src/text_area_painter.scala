@@ -89,29 +89,27 @@ class Text_Area_Painter(doc_view: Document_View)
           if (physical_lines(i) != -1) {
             val line_range = doc_view.proper_line_range(start(i), end(i))
 
-            // background color: status
+            // background color (1)
             for {
-              (command, command_start) <- snapshot.node.command_range(snapshot.revert(line_range))
-              if !command.is_ignored
-              range <- line_range.try_restrict(snapshot.convert(command.range + command_start))
-              r <- Isabelle.gfx_range(text_area, range)
-              color <- Isabelle_Rendering.status_color(snapshot, command)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-            }
-
-            // background color (1): markup
-            for {
-              Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Rendering.background1).iterator
+              Text.Info(range, result) <-
+                snapshot.cumulate_markup(line_range)(Isabelle_Rendering.background1).iterator
+              // FIXME more abstract Isabelle_Rendering.markup etc.
+              val opt_color =
+                result match {
+                  case (Some(status), _) =>
+                    if (status.is_running) Some(Isabelle_Rendering.running1_color)
+                    else if (status.is_unprocessed) Some(Isabelle_Rendering.unprocessed1_color)
+                    else None
+                  case (_, color) => color
+                }
+              color <- opt_color
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
-            // background color (2): markup
+            // background color (2)
             for {
               Text.Info(range, Some(color)) <-
                 snapshot.select_markup(line_range)(Isabelle_Rendering.background2).iterator

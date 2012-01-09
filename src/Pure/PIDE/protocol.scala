@@ -43,24 +43,32 @@ object Protocol
 
   /* toplevel transactions */
 
-  sealed abstract class Status
-  case object Unprocessed extends Status
-  case class Forked(forks: Int) extends Status
-  case object Finished extends Status
-  case object Failed extends Status
-
-  def command_status(markup: List[Markup]): Status =
+  sealed case class Status(
+    private val finished: Boolean = false,
+    private val failed: Boolean = false,
+    forks: Int = 0)
   {
-    val forks = (0 /: markup) {
-      case (i, Markup(Isabelle_Markup.FORKED, _)) => i + 1
-      case (i, Markup(Isabelle_Markup.JOINED, _)) => i - 1
-      case (i, _) => i
-    }
-    if (forks != 0) Forked(forks)
-    else if (markup.exists(_.name == Isabelle_Markup.FAILED)) Failed
-    else if (markup.exists(_.name == Isabelle_Markup.FINISHED)) Finished
-    else Unprocessed
+    def is_unprocessed: Boolean = !finished && !failed && forks == 0
+    def is_running: Boolean = forks != 0
+    def is_finished: Boolean = finished && forks == 0
+    def is_failed: Boolean = failed && forks == 0
   }
+
+  val command_status_markup: Set[String] =
+    Set(Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED,
+      Isabelle_Markup.FORKED, Isabelle_Markup.JOINED)
+
+  def command_status(status: Status, markup: Markup): Status =
+    markup match {
+      case Markup(Isabelle_Markup.FINISHED, _) => status.copy(finished = true)
+      case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
+      case Markup(Isabelle_Markup.FORKED, _) => status.copy(forks = status.forks + 1)
+      case Markup(Isabelle_Markup.JOINED, _) => status.copy(forks = status.forks - 1)
+      case _ => status
+    }
+
+  def command_status(markups: List[Markup]): Status =
+    (Status() /: markups)(command_status(_, _))
 
   sealed case class Node_Status(unprocessed: Int, running: Int, finished: Int, failed: Int)
   {
@@ -75,11 +83,12 @@ object Protocol
     var finished = 0
     var failed = 0
     node.commands.foreach(command =>
-      command_status(state.command_state(version, command).status) match {
-        case Unprocessed => unprocessed += 1
-        case Forked(_) => running += 1
-        case Finished => finished += 1
-        case Failed => failed += 1
+      {
+        val status = command_status(state.command_state(version, command).status)
+        if (status.is_running) running += 1
+        else if (status.is_finished) finished += 1
+        else if (status.is_failed) failed += 1
+        else unprocessed += 1
       })
     Node_Status(unprocessed, running, finished, failed)
   }
