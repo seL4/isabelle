@@ -117,7 +117,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
           (entry.markup :\ (x, false))((info, res) =>
             {
               val (y, changed) = res
-              val arg = (x, Text.Info(entry.range, info))
+              val arg = (y, Text.Info(entry.range, info))
               if (body.result.isDefinedAt(arg)) (body.result(arg), true)
               else res
             })
