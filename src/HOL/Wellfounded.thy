@@ -298,7 +298,7 @@ done
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow> wfP (SUPR UNIV r)"
-  apply (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred SUP_UN_eq2])
+  apply (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred])
   apply (simp_all add: inf_set_def)
   apply auto
   done
@@ -611,9 +611,9 @@ lemmas acc_wfD = accp_wfPD [to_set]
 
 lemmas wf_acc_iff = wfP_accp_iff [to_set]
 
-lemmas acc_subset = accp_subset [to_set pred_subset_eq]
+lemmas acc_subset = accp_subset [to_set]
 
-lemmas acc_subset_induct = accp_subset_induct [to_set pred_subset_eq]
+lemmas acc_subset_induct = accp_subset_induct [to_set]
 
 
 subsection {* Tools for building wellfounded relations *}
