@@ -73,7 +73,7 @@ lemma rev_predicate2D:
 
 subsubsection {* Equality *}
 
-lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
+lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
   by (simp add: set_eq_iff fun_eq_iff)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R = S)"
@@ -82,7 +82,7 @@ lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lam
 
 subsubsection {* Order relation *}
 
-lemma pred_subset_eq: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
+lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) \<le> (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
   by (simp add: subset_iff le_fun_def)
 
 lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\<lambda>x y. (x, y) \<in> S)) \<longleftrightarrow> (R \<subseteq> S)"
@@ -174,7 +174,7 @@ lemma sup1CI [intro!]: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A 
 lemma sup2CI [intro!]: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow> (A \<squnion> B) x y"
   by (auto simp add: sup_fun_def)
 
-lemma sup_Un_eq: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
   by (simp add: sup_fun_def)
 
 lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
@@ -234,10 +234,10 @@ lemma SUP1_E [elim!]: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x 
 lemma SUP2_E [elim!]: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: SUP_apply)
 
-lemma SUP_UN_eq: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
+lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
   by (simp add: SUP_apply fun_eq_iff)
 
-lemma SUP_UN_eq2: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
+lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i. r i))"
   by (simp add: SUP_apply fun_eq_iff)
 
 
@@ -341,7 +341,7 @@ definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> b
 lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
   by (auto simp add: Powp_def fun_eq_iff)
 
-lemmas Powp_mono [mono] = Pow_mono [to_pred pred_subset_eq]
+lemmas Powp_mono [mono] = Pow_mono [to_pred]
 
 
 subsubsection {* Properties of relations *}
