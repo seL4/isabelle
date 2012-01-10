@@ -173,6 +173,7 @@ end
 
 hide_const valterm_empty valterm_update random_aux_alist
 
+hide_fact (open) lookup_def empty_def update_def delete_def map_entry_def filter_def map_default_def
 hide_const (open) impl_of lookup empty update delete map_entry filter map_default 
 
 end
