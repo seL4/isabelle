@@ -58,7 +58,7 @@ definition perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool" where
   "perm_bool pi b = b"
 
 definition perm_set :: "'x prm \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "perm_set pi A = {x. rev pi \<bullet> x \<in> A}"
+  "perm_set pi X = {pi \<bullet> x | x. x \<in> X}"
 
 primrec perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit"  where 
   "perm_unit pi () = ()"
@@ -137,11 +137,15 @@ lemma neg_eqvt:
 (* permutation on sets *)
 lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
-  by (simp add: perm_set_def fun_eq_iff)
+  by (simp add: perm_set_def)
 
 lemma union_eqvt:
   shows "(pi\<bullet>(X\<union>Y)) = (pi\<bullet>X) \<union> (pi\<bullet>Y)"
-  by (simp add: perm_set_def fun_eq_iff Un_def)
+  by (auto simp add: perm_set_def)
+
+lemma insert_eqvt:
+  shows "pi\<bullet>(insert x X) = insert (pi\<bullet>x) (pi\<bullet>X)"
+  by (auto simp add: perm_set_def)
 
 (* permutations on products *)
 lemma fst_eqvt:
@@ -165,6 +169,12 @@ lemma rev_eqvt:
   and   l  :: "'a list"
   shows "pi\<bullet>(rev l) = rev (pi\<bullet>l)"
   by (induct l) (simp_all add: append_eqvt)
+
+lemma set_eqvt:
+  fixes pi :: "'x prm"
+  and   xs :: "'a list"
+  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
+by (induct xs) (auto simp add: empty_eqvt insert_eqvt)
 
 (* permutation on characters and strings *)
 lemma perm_string:
@@ -1018,16 +1028,13 @@ lemma pt_bool_inst:
   by (simp add: pt_def perm_bool_def)
 
 lemma pt_set_inst:
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     at:  "at TYPE('x)"
-  shows "pt TYPE('a set) TYPE('x)"
-proof -
-  have *: "\<And>pi A. pi \<bullet> A = {x. (pi \<bullet> (\<lambda>x. x \<in> A)) x}"
-    by (simp add: perm_fun_def perm_bool_def perm_set_def)
-  from pta pt_bool_inst at
-    have "pt TYPE('a \<Rightarrow> bool) TYPE('x)" by (rule pt_fun_inst)
-  then show ?thesis by (simp add: pt_def *)
-qed
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  shows  "pt TYPE('a set) TYPE('x)"
+apply(simp add: pt_def)
+apply(simp_all add: perm_set_def)
+apply(simp add: pt1[OF pt])
+apply(force simp add: pt2[OF pt] pt3[OF pt])
+done
 
 lemma pt_unit_inst:
   shows "pt TYPE(unit) TYPE('x)"
@@ -1245,43 +1252,13 @@ apply(rule at_ds1[OF at])
 apply(rule pt1[OF pt])
 done
 
-lemma perm_set_eq:
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE('x)" 
-  shows "(pi::'x prm)\<bullet>(X::'a set) = {pi\<bullet>x | x. x\<in>X}"
-  apply (auto simp add: perm_fun_def perm_bool perm_set_def)
-  apply (rule_tac x="rev pi \<bullet> x" in exI)
-  apply (simp add: pt_pi_rev [OF pt at])
-  apply (simp add: pt_rev_pi [OF pt at])
-  done
-
-lemma pt_insert_eqvt:
-  fixes pi::"'x prm"
-  and   x::"'a"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE('x)" 
-  shows "(pi\<bullet>(insert x X)) = insert (pi\<bullet>x) (pi\<bullet>X)"
-  by (auto simp add: perm_set_eq [OF pt at])
-
-lemma pt_set_eqvt:
-  fixes pi :: "'x prm"
-  and   xs :: "'a list"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE('x)" 
-  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
-by (induct xs) (auto simp add: empty_eqvt pt_insert_eqvt [OF pt at])
-
 lemma supp_singleton:
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE('x)" 
-  shows "(supp {x::'a} :: 'x set) = supp x"
-  by (force simp add: supp_def perm_set_eq [OF pt at])
+  shows "supp {x} = supp x"
+  by (force simp add: supp_def perm_set_def)
 
 lemma fresh_singleton:
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE('x)" 
-  shows "(a::'x)\<sharp>{x::'a} = a\<sharp>x"
-  by (simp add: fresh_def supp_singleton [OF pt at])
+  shows "a\<sharp>{x} = a\<sharp>x"
+  by (simp add: fresh_def supp_singleton)
 
 lemma pt_set_bij1:
   fixes pi :: "'x prm"
@@ -1290,7 +1267,7 @@ lemma pt_set_bij1:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "((pi\<bullet>x)\<in>X) = (x\<in>((rev pi)\<bullet>X))"
-  by (force simp add: perm_set_eq [OF pt at] pt_rev_pi[OF pt, OF at] pt_pi_rev[OF pt, OF at])
+  by (force simp add: perm_set_def pt_rev_pi[OF pt, OF at] pt_pi_rev[OF pt, OF at])
 
 lemma pt_set_bij1a:
   fixes pi :: "'x prm"
@@ -1299,7 +1276,7 @@ lemma pt_set_bij1a:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "(x\<in>(pi\<bullet>X)) = (((rev pi)\<bullet>x)\<in>X)"
-  by (force simp add: perm_set_eq [OF pt at] pt_rev_pi[OF pt, OF at] pt_pi_rev[OF pt, OF at])
+  by (force simp add: perm_set_def pt_rev_pi[OF pt, OF at] pt_pi_rev[OF pt, OF at])
 
 lemma pt_set_bij:
   fixes pi :: "'x prm"
@@ -1308,7 +1285,7 @@ lemma pt_set_bij:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "((pi\<bullet>x)\<in>(pi\<bullet>X)) = (x\<in>X)"
-  by (simp add: perm_set_eq [OF pt at] pt_bij[OF pt, OF at])
+  by (simp add: perm_set_def pt_bij[OF pt, OF at])
 
 lemma pt_in_eqvt:
   fixes pi :: "'x prm"
@@ -1355,7 +1332,7 @@ lemma pt_subseteq_eqvt:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "(pi\<bullet>(X\<subseteq>Y)) = ((pi\<bullet>X)\<subseteq>(pi\<bullet>Y))"
-by (auto simp add: perm_set_eq [OF pt at] perm_bool pt_bij[OF pt, OF at])
+by (auto simp add: perm_set_def perm_bool pt_bij[OF pt, OF at])
 
 lemma pt_set_diff_eqvt:
   fixes X::"'a set"
@@ -1364,14 +1341,14 @@ lemma pt_set_diff_eqvt:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "pi\<bullet>(X - Y) = (pi\<bullet>X) - (pi\<bullet>Y)"
-  by (auto simp add: perm_set_eq [OF pt at] pt_bij[OF pt, OF at])
+  by (auto simp add: perm_set_def pt_bij[OF pt, OF at])
 
 lemma pt_Collect_eqvt:
   fixes pi::"'x prm"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "pi\<bullet>{x::'a. P x} = {x. P ((rev pi)\<bullet>x)}"
-apply(auto simp add: perm_set_eq [OF pt at] pt_rev_pi[OF pt, OF at])
+apply(auto simp add: perm_set_def pt_rev_pi[OF pt, OF at])
 apply(rule_tac x="(rev pi)\<bullet>x" in exI)
 apply(simp add: pt_pi_rev[OF pt, OF at])
 done
@@ -1415,7 +1392,7 @@ lemma pt_set_finite_ineq:
   and     at: "at TYPE('y)"
   shows "finite (pi\<bullet>X) = finite X"
 proof -
-  have image: "(pi\<bullet>X) = (perm pi ` X)" by (force simp only: perm_set_eq [OF pt at])
+  have image: "(pi\<bullet>X) = (perm pi ` X)" by (force simp only: perm_set_def)
   show ?thesis
   proof (rule iffI)
     assume "finite (pi\<bullet>X)"
@@ -1445,17 +1422,17 @@ lemma pt_perm_supp_ineq:
   and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
   shows "(pi\<bullet>((supp x)::'y set)) = supp (pi\<bullet>x)" (is "?LHS = ?RHS")
 proof -
-  have "?LHS = {pi\<bullet>a | a. infinite {b. [(a,b)]\<bullet>x \<noteq> x}}" by (simp add: supp_def perm_set_eq [OF ptb at])
+  have "?LHS = {pi\<bullet>a | a. infinite {b. [(a,b)]\<bullet>x \<noteq> x}}" by (simp add: supp_def perm_set_def)
   also have "\<dots> = {pi\<bullet>a | a. infinite {pi\<bullet>b | b. [(a,b)]\<bullet>x \<noteq> x}}" 
   proof (rule Collect_permI, rule allI, rule iffI)
     fix a
     assume "infinite {b::'y. [(a,b)]\<bullet>x  \<noteq> x}"
     hence "infinite (pi\<bullet>{b::'y. [(a,b)]\<bullet>x \<noteq> x})" by (simp add: pt_set_infinite_ineq[OF ptb, OF at])
-    thus "infinite {pi\<bullet>b |b::'y. [(a,b)]\<bullet>x  \<noteq> x}" by (simp add: perm_set_eq [OF ptb at])
+    thus "infinite {pi\<bullet>b |b::'y. [(a,b)]\<bullet>x  \<noteq> x}" by (simp add: perm_set_def)
   next
     fix a
     assume "infinite {pi\<bullet>b |b::'y. [(a,b)]\<bullet>x \<noteq> x}"
-    hence "infinite (pi\<bullet>{b::'y. [(a,b)]\<bullet>x \<noteq> x})" by (simp add: perm_set_eq [OF ptb at])
+    hence "infinite (pi\<bullet>{b::'y. [(a,b)]\<bullet>x \<noteq> x})" by (simp add: perm_set_def)
     thus "infinite {b::'y. [(a,b)]\<bullet>x  \<noteq> x}" 
       by (simp add: pt_set_infinite_ineq[OF ptb, OF at])
   qed
@@ -1981,7 +1958,7 @@ lemma at_fin_set_supports:
   shows "X supports X"
 proof -
   have "\<forall>a b. a\<notin>X \<and> b\<notin>X \<longrightarrow> [(a,b)]\<bullet>X = X"
-    by (auto simp add: perm_set_eq [OF at_pt_inst [OF at] at] at_calc[OF at])
+    by (auto simp add: perm_set_def at_calc[OF at])
   then show ?thesis by (simp add: supports_def)
 qed
 
@@ -2008,7 +1985,7 @@ next
   { fix a::"'x"
     assume asm: "a\<in>X"
     hence "\<forall>b\<in>(UNIV-X). [(a,b)]\<bullet>X\<noteq>X"
-      by (auto simp add: perm_set_eq [OF at_pt_inst [OF at] at] at_calc[OF at])
+      by (auto simp add: perm_set_def at_calc[OF at])
     with inf have "infinite {b\<in>(UNIV-X). [(a,b)]\<bullet>X\<noteq>X}" by (rule infinite_Collection)
     hence "infinite {b. [(a,b)]\<bullet>X\<noteq>X}" by (rule_tac infinite_super, auto)
     hence "a\<in>(supp X)" by (simp add: supp_def)
@@ -2229,7 +2206,7 @@ proof -
   proof (rule equalityI)
     case goal1
     show "pi\<bullet>(\<Union>x\<in>X. f x) \<subseteq> (\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x)"
-      apply(auto simp add: perm_set_eq [OF pt at] perm_set_eq [OF at_pt_inst [OF at] at])
+      apply(auto simp add: perm_set_def)
       apply(rule_tac x="pi\<bullet>xb" in exI)
       apply(rule conjI)
       apply(rule_tac x="xb" in exI)
@@ -2245,7 +2222,7 @@ proof -
   next
     case goal2
     show "(\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x) \<subseteq> pi\<bullet>(\<Union>x\<in>X. f x)"
-      apply(auto simp add: perm_set_eq [OF pt at] perm_set_eq [OF at_pt_inst [OF at] at])
+      apply(auto simp add: perm_set_def)
       apply(rule_tac x="(rev pi)\<bullet>x" in exI)
       apply(rule conjI)
       apply(simp add: pt_pi_rev[OF pt_x, OF at])
@@ -2278,7 +2255,7 @@ lemma Union_supports_set:
   apply(rule allI)+
   apply(rule impI)
   apply(erule conjE)
-  apply(simp add: perm_set_eq [OF pt at])
+  apply(simp add: perm_set_def)
   apply(auto)
   apply(subgoal_tac "[(a,b)]\<bullet>xa = xa")(*A*)
   apply(simp)
@@ -2362,7 +2339,7 @@ proof -
   also have "\<dots> = (supp {x})\<union>(supp X)"
     by (rule supp_fin_union[OF pt, OF at, OF fs], simp_all add: f)
   finally show "(supp (insert x X)) = (supp x)\<union>((supp X)::'x set)" 
-    by (simp add: supp_singleton [OF pt at])
+    by (simp add: supp_singleton)
 qed
 
 lemma fresh_fin_union:
@@ -2513,10 +2490,10 @@ apply(simp add: pt_set_bij1[OF ptb, OF at])
 apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(drule_tac x="pi\<bullet>xa" in bspec)
 apply(simp add: pt_set_bij1[OF ptb, OF at])
-apply(simp add: pt_set_eqvt [OF ptb at] pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
+apply(simp add: set_eqvt pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
 apply(simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
-apply(simp add: pt_set_bij1[OF ptb, OF at] pt_set_eqvt [OF ptb at])
+apply(simp add: pt_set_bij1[OF ptb, OF at] set_eqvt)
 apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 done
 
@@ -2638,10 +2615,7 @@ proof -
     have "({}::'a set) \<inter> As = {}" by simp
     moreover
     have "set ([]::'a prm) \<subseteq> {} \<times> {}" by simp
-    moreover
-    have "([]::'a prm)\<bullet>{} = ({}::'a set)" 
-      by (rule pt1 [OF pt_set_inst, OF at_pt_inst [OF at] at])
-    ultimately show ?case by simp
+    ultimately show ?case by (simp add: empty_eqvt)
   next
     case (insert x Xs)
     then have ih: "\<exists>pi. (pi\<bullet>Xs)\<sharp>*c \<and> (pi\<bullet>Xs) \<inter> As = {} \<and> set pi \<subseteq> Xs \<times> (pi\<bullet>Xs)" by simp
@@ -2655,7 +2629,7 @@ proof -
     obtain y::"'a" where fr: "y\<sharp>(c,pi\<bullet>Xs,As)" 
       apply(rule_tac at_exists_fresh[OF at, where x="(c,pi\<bullet>Xs,As)"])
       apply(auto simp add: supp_prod at_supp[OF at] at_fin_set_supp[OF at]
-        pt_supp_finite_pi[OF pt_set_inst[OF at_pt_inst[OF at] at] at])
+        pt_supp_finite_pi[OF pt_set_inst[OF at_pt_inst[OF at]] at])
       done
     have "({y}\<union>(pi\<bullet>Xs))\<sharp>*c" using a1 fr by (simp add: fresh_star_def)
     moreover
@@ -2671,20 +2645,18 @@ proof -
       have eq: "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
       proof -
         have "(pi\<bullet>x)\<sharp>(pi\<bullet>Xs)" using b d2 
-          by (simp add: pt_fresh_bij [OF pt_set_inst, OF at_pt_inst [OF at], 
-            OF at, OF at]
+          by (simp add: pt_fresh_bij [OF pt_set_inst [OF at_pt_inst [OF at]], OF at]
             at_fin_set_fresh [OF at])
         moreover
         have "y\<sharp>(pi\<bullet>Xs)" using fr by simp
         ultimately show "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
-          by (simp add: pt_fresh_fresh[OF pt_set_inst, 
-            OF at_pt_inst[OF at], OF at, OF at])
+          by (simp add: pt_fresh_fresh[OF pt_set_inst
+            [OF at_pt_inst[OF at]], OF at])
       qed
       have "(((pi\<bullet>x,y)#pi)\<bullet>({x}\<union>Xs)) = ([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>({x}\<union>Xs)))"
-        by (simp add: pt2[symmetric, OF pt_set_inst, OF at_pt_inst[OF at], 
-          OF at])
+        by (simp add: pt2[symmetric, OF pt_set_inst [OF at_pt_inst[OF at]]])
       also have "\<dots> = {y}\<union>([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs))" 
-        by (simp only: union_eqvt perm_set_eq[OF at_pt_inst[OF at], OF at] at_calc[OF at])(auto)
+        by (simp only: union_eqvt perm_set_def at_calc[OF at])(auto)
       finally show "(((pi\<bullet>x,y)#pi)\<bullet>({x} \<union> Xs)) = {y}\<union>(pi\<bullet>Xs)" using eq by simp
     qed
     ultimately 
@@ -2711,6 +2683,17 @@ using c1
 apply(simp add: cp_def)
 apply(auto)
 apply(induct_tac x)
+apply(auto)
+done
+
+lemma cp_set_inst:
+  assumes c1: "cp TYPE ('a) TYPE('x) TYPE('y)"
+  shows "cp TYPE ('a set) TYPE('x) TYPE('y)"
+using c1
+apply(simp add: cp_def)
+apply(auto)
+apply(auto simp add: perm_set_def)
+apply(rule_tac x="pi2\<bullet>xc" in exI)
 apply(auto)
 done
 
@@ -3596,7 +3579,7 @@ lemmas [eqvt] =
   plus_int_eqvt minus_int_eqvt mult_int_eqvt div_int_eqvt
   
   (* sets *)
-  union_eqvt empty_eqvt
+  union_eqvt empty_eqvt insert_eqvt set_eqvt
   
  
 (* the lemmas numeral_nat_eqvt numeral_int_eqvt do not conform with the *)
