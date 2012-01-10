@@ -6,7 +6,7 @@
 header {* Examples for the 'quickcheck' command *}
 
 theory Quickcheck_Examples
-imports Complex_Main "~~/src/HOL/Library/Dlist"
+imports Complex_Main "~~/src/HOL/Library/Dlist" "~~/src/HOL/Library/Multiset"
 begin
 
 text {*
@@ -279,6 +279,25 @@ lemma
 (* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
 oops
 
+subsection {* Examples with Multisets *}
+
+lemma
+  "X + Y = Y + (Z :: 'a multiset)"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "X - Y = Y - (Z :: 'a multiset)"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "N + M - N = (N::'a multiset)"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
 
 subsection {* Examples with numerical types *}
 
