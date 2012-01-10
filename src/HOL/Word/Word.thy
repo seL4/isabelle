@@ -2155,6 +2155,9 @@ lemma test_bit_no [simp]:
     n < len_of TYPE('a) \<and> bin_nth (number_of w) n"
   unfolding word_number_of_alt test_bit_wi ..
 
+lemma test_bit_1 [simp]: "(1::'a::len word) !! n \<longleftrightarrow> n = 0"
+  unfolding word_1_wi test_bit_wi by auto
+  
 lemma nth_0 [simp]: "~ (0::'a::len0 word) !! n"
   unfolding word_test_bit_def by simp
 
