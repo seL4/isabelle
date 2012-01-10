@@ -117,8 +117,10 @@ lemma "(0b11000 :: 10 word) !! n = (n = 4 \<or> n = 3)"
 lemma "set_bit 55 7 True = (183::'a::len0 word)" by simp
 lemma "set_bit 0b0010 7 True = (0b10000010::'a::len0 word)" by simp
 lemma "set_bit 0b0010 1 False = (0::'a::len0 word)" by simp
-lemma "set_bit 1 3 True = (0b1001::'a::len0 word)" apply simp? oops
-lemma "set_bit 1 0 False = (0::'a::len0 word)" apply simp? oops
+lemma "set_bit 1 3 True = (0b1001::'a::len0 word)" by simp
+lemma "set_bit 1 0 False = (0::'a::len0 word)" by simp
+lemma "set_bit 0 3 True = (0b1000::'a::len0 word)" by simp
+lemma "set_bit 0 3 False = (0::'a::len0 word)" by simp
 
 lemma "lsb (0b0101::'a::len word)" by simp
 lemma "\<not> lsb (0b1000::'a::len word)" by simp
@@ -127,8 +129,8 @@ lemma "\<not> lsb (0::'a::len word)" by simp
 
 lemma "\<not> msb (0b0101::4 word)" by simp
 lemma   "msb (0b1000::4 word)" by simp
-lemma "\<not> msb (1::4 word)" apply simp? oops
-lemma "\<not> msb (0::4 word)" apply simp? oops
+lemma "\<not> msb (1::4 word)" by simp
+lemma "\<not> msb (0::4 word)" by simp
 
 lemma "word_cat (27::4 word) (27::8 word) = (2843::'a::len word)" by simp
 lemma "word_cat (0b0011::4 word) (0b1111::6word) = (0b0011001111 :: 10 word)" 

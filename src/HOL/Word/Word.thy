@@ -2320,10 +2320,20 @@ lemma word_msb_sint: "msb w = (sint w < 0)"
   unfolding word_msb_def
   by (simp add : sign_Min_lt_0 number_of_is_id)
 
+lemma msb_word_of_int:
+  "msb (word_of_int x::'a::len word) = bin_nth x (len_of TYPE('a) - 1)"
+  unfolding word_msb_def by (simp add: word_sbin.eq_norm bin_sign_lem)
+
 lemma word_msb_no [simp]:
   "msb (number_of w::'a::len word) = bin_nth (number_of w) (len_of TYPE('a) - 1)"
-  unfolding word_msb_def word_number_of_alt
-  by (clarsimp simp add: word_sbin.eq_norm bin_sign_lem)
+  unfolding word_number_of_alt by (rule msb_word_of_int)
+
+lemma word_msb_0 [simp]: "\<not> msb (0::'a::len word)"
+  unfolding word_msb_def by simp
+
+lemma word_msb_1 [simp]: "msb (1::'a::len word) \<longleftrightarrow> len_of TYPE('a) = 1"
+  unfolding word_1_wi msb_word_of_int eq_iff [where 'a=nat]
+  by (simp add: Suc_le_eq)
 
 lemma word_msb_nth:
   "msb (w::'a::len word) = bin_nth (uint w) (len_of TYPE('a) - 1)"
@@ -2444,13 +2454,25 @@ lemma word_lsb_no [simp]:
   "lsb (number_of bin :: 'a :: len word) = (bin_last (number_of bin) = 1)"
   unfolding word_lsb_alt test_bit_no by auto
 
+lemma set_bit_word_of_int:
+  "set_bit (word_of_int x) n b = word_of_int (bin_sc n (if b then 1 else 0) x)"
+  unfolding word_set_bit_def
+  apply (rule word_eqI)
+  apply (simp add: word_size bin_nth_sc_gen word_ubin.eq_norm nth_bintr)
+  done
+
 lemma word_set_no [simp]:
   "set_bit (number_of bin::'a::len0 word) n b = 
     word_of_int (bin_sc n (if b then 1 else 0) (number_of bin))"
-  unfolding word_set_bit_def
-  apply (rule word_eqI)
-  apply (simp add: word_size bin_nth_sc_gen nth_bintr)
-  done
+  unfolding word_number_of_alt by (rule set_bit_word_of_int)
+
+lemma word_set_bit_0 [simp]:
+  "set_bit 0 n b = word_of_int (bin_sc n (if b then 1 else 0) 0)"
+  unfolding word_0_wi by (rule set_bit_word_of_int)
+
+lemma word_set_bit_1 [simp]:
+  "set_bit 1 n b = word_of_int (bin_sc n (if b then 1 else 0) 1)"
+  unfolding word_1_wi by (rule set_bit_word_of_int)
 
 lemma setBit_no [simp]:
   "setBit (number_of bin) n = word_of_int (bin_sc n 1 (number_of bin))"
