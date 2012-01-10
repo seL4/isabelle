@@ -214,10 +214,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     : Option[(Text.Range, Color)] =
   {
     val offset = text_area.xyToOffset(x, y)
-    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Rendering.subexp) match {
-      case Text.Info(_, Some((range, color))) #:: _ => Some((snapshot.convert(range), color))
-      case _ => None
-    }
+    Isabelle_Rendering.subexp(snapshot, Text.Range(offset, offset + 1))
   }
 
   @volatile private var _highlight_range: Option[(Text.Range, Color)] = None
@@ -278,30 +275,10 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         val snapshot = update_snapshot()
         val offset = text_area.xyToOffset(x, y)
         val range = Text.Range(offset, offset + 1)
-
-        if (control) {
-          val tooltips =
-            (snapshot.select_markup(range)(Isabelle_Rendering.tooltip1) match
-              {
-                case Text.Info(_, Some(text)) #:: _ => List(text)
-                case _ => Nil
-              }) :::
-            (snapshot.select_markup(range)(Isabelle_Rendering.tooltip2) match
-              {
-                case Text.Info(_, Some(text)) #:: _ => List(text)
-                case _ => Nil
-              })
-          if (tooltips.isEmpty) null
-          else Isabelle.tooltip(tooltips.mkString("\n"))
-        }
-        else {
-          snapshot.cumulate_markup(range)(Isabelle_Rendering.tooltip_message) match
-          {
-            case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
-              Isabelle.tooltip(msgs.iterator.map(_._2).mkString("\n"))
-            case _ => null
-          }
-        }
+        val tip =
+          if (control) Isabelle_Rendering.tooltip(snapshot, range)
+          else Isabelle_Rendering.tooltip_message(snapshot, range)
+        tip.map(Isabelle.tooltip(_)) getOrElse null
       }
     }
   }
@@ -326,17 +303,13 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 val line_range = proper_line_range(start(i), end(i))
 
                 // gutter icons
-                val icons =
-                  (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
-                    snapshot.select_markup(line_range)(Isabelle_Rendering.gutter_message).iterator)
-                  yield icon).toList.sortWith(_ >= _)
-                icons match {
-                  case icon :: _ =>
+                Isabelle_Rendering.gutter_message(snapshot, line_range) match {
+                  case Some(icon) =>
                     val icn = icon.icon
                     val x0 = (FOLD_MARKER_SIZE + width - border_width - icn.getIconWidth) max 10
                     val y0 = y + i * line_height + (((line_height - icn.getIconHeight) / 2) max 0)
                     icn.paintIcon(gutter, gfx, x0, y0)
-                  case Nil =>
+                  case None =>
                 }
               }
             }

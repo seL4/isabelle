@@ -16,11 +16,6 @@ import scala.collection.immutable.SortedMap
 
 object Markup_Tree
 {
-  sealed case class Cumulate[A](
-    info: A, result: PartialFunction[(A, Text.Markup), A], elements: Option[Set[String]])
-  sealed case class Select[A](
-    result: PartialFunction[Text.Markup, A], elements: Option[Set[String]])
-
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
   object Entry
@@ -107,18 +102,17 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
     }
   }
 
-  def cumulate[A](root_range: Text.Range)(body: Cumulate[A]): Stream[Text.Info[A]] =
+  def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
+    result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
   {
-    val root_info = body.info
-
-    def result(x: A, entry: Entry): Option[A] =
-      if (body.elements match { case Some(es) => es.exists(entry.elements) case None => true }) {
+    def results(x: A, entry: Entry): Option[A] =
+      if (result_elements match { case Some(es) => es.exists(entry.elements) case None => true }) {
         val (y, changed) =
           (entry.markup :\ (x, false))((info, res) =>
             {
               val (y, changed) = res
               val arg = (y, Text.Info(entry.range, info))
-              if (body.result.isDefinedAt(arg)) (body.result(arg), true)
+              if (result.isDefinedAt(arg)) (result(arg), true)
               else res
             })
         if (changed) Some(y) else None
@@ -135,7 +129,7 @@ class Markup_Tree private(branches: Markup_Tree.Branches.T)
           val subtree = entry.subtree.overlapping(subrange).toStream
           val start = subrange.start
 
-          result(parent.info, entry) match {
+          results(parent.info, entry) match {
             case Some(res) =>
               val next = Text.Info(subrange, res)
               val nexts = stream(start, (next, subtree) :: (parent, more) :: rest)
