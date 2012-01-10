@@ -270,7 +270,7 @@ lemma fresh_vrs_of:
   fixes x::"vrs"
   shows "x\<sharp>vrs_of b = x\<sharp>b"
   by (nominal_induct b rule: binding.strong_induct)
-    (simp_all add: fresh_singleton [OF pt_vrs_inst at_vrs_inst] fresh_set_empty ty_vrs_fresh fresh_atm)
+    (simp_all add: fresh_singleton fresh_set_empty ty_vrs_fresh fresh_atm)
 
 lemma fresh_trm_dom: 
   fixes x::"vrs"
@@ -292,27 +292,7 @@ where
 | valid_consT[simp]: "\<lbrakk>\<turnstile> \<Gamma> ok; X\<sharp>(ty_dom  \<Gamma>); T closed_in \<Gamma>\<rbrakk>  \<Longrightarrow>  \<turnstile> (TVarB X T#\<Gamma>) ok"
 | valid_cons [simp]: "\<lbrakk>\<turnstile> \<Gamma> ok; x\<sharp>(trm_dom \<Gamma>); T closed_in \<Gamma>\<rbrakk>  \<Longrightarrow>  \<turnstile> (VarB  x T#\<Gamma>) ok"
 
-(* FIXME The two following theorems should be subsumed by:
 equivariance valid_rel
-*)
-
-lemma valid_eqvt[eqvt]:
-  fixes pi::"tyvrs prm"
-  assumes a: "\<turnstile> \<Gamma> ok" shows "\<turnstile> (pi\<bullet>\<Gamma>) ok"
-  using a
-apply(induct \<Gamma>)
-apply auto
-apply (metis closed_in_eqvt doms_eqvt(1) fresh_bij(1) valid_consT)
-by (metis closed_in_eqvt fresh_aux(3) fresh_trm_dom perm_dj(1) valid_cons)
-
-lemma valid_eqvt'[eqvt]:
-  fixes pi::"vrs prm"
-  assumes a: "\<turnstile> \<Gamma> ok" shows "\<turnstile> (pi\<bullet>\<Gamma>) ok"
-  using a
-apply(induct \<Gamma>)
-apply auto
-apply (metis closed_in_eqvt' perm_dj(2) ty_dom_vrs_prm_simp valid_consT)
-by (metis closed_in_eqvt' fresh_bij(2) fresh_trm_dom valid_cons)
 
 declare binding.inject [simp add]
 declare trm.inject     [simp add]
@@ -372,7 +352,7 @@ proof (induct)
         by (simp add:  fresh_ty_dom_cons 
                        fresh_fin_union[OF pt_tyvrs_inst  at_tyvrs_inst fs_tyvrs_inst]  
                        finite_vrs finite_doms, 
-            auto simp add: fresh_atm fresh_singleton [OF pt_tyvrs_inst at_tyvrs_inst])
+            auto simp add: fresh_atm fresh_singleton)
     qed (simp)
   }
   ultimately show "T=S" by (auto simp add: binding.inject)
@@ -396,7 +376,7 @@ proof (induct)
       thus "\<not> (\<exists>T.(VarB x' T)\<in>set(y#\<Gamma>'))" 
         by (simp add:  fresh_fin_union[OF pt_vrs_inst  at_vrs_inst fs_vrs_inst]  
                        finite_vrs finite_doms, 
-            auto simp add: fresh_atm fresh_singleton [OF pt_vrs_inst at_vrs_inst])
+            auto simp add: fresh_atm fresh_singleton)
     qed (simp)
   }
   ultimately show "T=S" by (auto simp add: binding.inject)
