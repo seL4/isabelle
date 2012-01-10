@@ -2123,7 +2123,7 @@ done
 lemma NOTRIGHT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(NOTRIGHT (NOT B) X)) = NOTRIGHT (NOT B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2149,7 +2149,7 @@ done
 lemma NOTRIGHT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(NOTRIGHT (NOT B) X)) = NOTRIGHT (NOT B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2182,7 +2182,7 @@ done
 lemma NOTLEFT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(NOTLEFT (NOT B) X)) = NOTLEFT (NOT B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2208,7 +2208,7 @@ done
 lemma NOTLEFT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(NOTLEFT (NOT B) X)) = NOTLEFT (NOT B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2242,7 +2242,7 @@ done
 lemma ANDRIGHT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ANDRIGHT (A AND B) X Y)) = ANDRIGHT (A AND B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>c" in exI)
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>b" in exI)
@@ -2277,7 +2277,7 @@ done
 lemma ANDRIGHT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ANDRIGHT (A AND B) X Y)) = ANDRIGHT (A AND B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>c" in exI)
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>b" in exI)
@@ -2319,7 +2319,7 @@ done
 lemma ANDLEFT1_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ANDLEFT1 (A AND B) X)) = ANDLEFT1 (A AND B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>y" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2345,7 +2345,7 @@ done
 lemma ANDLEFT1_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ANDLEFT1 (A AND B) X)) = ANDLEFT1 (A AND B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>y" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2378,7 +2378,7 @@ done
 lemma ANDLEFT2_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ANDLEFT2 (A AND B) X)) = ANDLEFT2 (A AND B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>y" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2404,7 +2404,7 @@ done
 lemma ANDLEFT2_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ANDLEFT2 (A AND B) X)) = ANDLEFT2 (A AND B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>y" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2438,7 +2438,7 @@ done
 lemma ORLEFT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ORLEFT (A OR B) X Y)) = ORLEFT (A OR B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>y" in exI)
 apply(rule_tac x="pi\<bullet>z" in exI)
@@ -2473,7 +2473,7 @@ done
 lemma ORLEFT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ORLEFT (A OR B) X Y)) = ORLEFT (A OR B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>y" in exI)
 apply(rule_tac x="pi\<bullet>z" in exI)
@@ -2515,7 +2515,7 @@ done
 lemma ORRIGHT1_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ORRIGHT1 (A OR B) X)) = ORRIGHT1 (A OR B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>b" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2541,7 +2541,7 @@ done
 lemma ORRIGHT1_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ORRIGHT1 (A OR B) X)) = ORRIGHT1 (A OR B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>b" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2574,7 +2574,7 @@ done
 lemma ORRIGHT2_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(ORRIGHT2 (A OR B) X)) = ORRIGHT2 (A OR B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>b" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2600,7 +2600,7 @@ done
 lemma ORRIGHT2_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(ORRIGHT2 (A OR B) X)) = ORRIGHT2 (A OR B) (pi\<bullet>X)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>a" in exI) 
 apply(rule_tac x="pi\<bullet>b" in exI) 
 apply(rule_tac x="pi\<bullet>M" in exI)
@@ -2636,7 +2636,7 @@ done
 lemma IMPRIGHT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(IMPRIGHT (A IMP B) X Y Z U)) = IMPRIGHT (A IMP B) (pi\<bullet>X) (pi\<bullet>Y) (pi\<bullet>Z) (pi\<bullet>U)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>b" in exI)
@@ -2696,7 +2696,7 @@ done
 lemma IMPRIGHT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(IMPRIGHT (A IMP B) X Y Z U)) = IMPRIGHT (A IMP B) (pi\<bullet>X) (pi\<bullet>Y) (pi\<bullet>Z) (pi\<bullet>U)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>b" in exI)
@@ -2763,7 +2763,7 @@ done
 lemma IMPLEFT_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(IMPLEFT (A IMP B) X Y)) = IMPLEFT (A IMP B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>y" in exI) 
@@ -2798,7 +2798,7 @@ done
 lemma IMPLEFT_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(IMPLEFT (A IMP B) X Y)) = IMPLEFT (A IMP B) (pi\<bullet>X) (pi\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI) 
 apply(rule_tac x="pi\<bullet>a" in exI)
 apply(rule_tac x="pi\<bullet>y" in exI) 
@@ -2902,7 +2902,7 @@ lemma big_inter_eqvt:
   and   Y::"('b::pt_coname) set set"
   shows "(pi1\<bullet>(\<Inter> X)) = \<Inter> (pi1\<bullet>X)"
   and   "(pi2\<bullet>(\<Inter> Y)) = \<Inter> (pi2\<bullet>Y)"
-apply(auto simp add: perm_set_eq)
+apply(auto simp add: perm_set_def)
 apply(rule_tac x="(rev pi1)\<bullet>x" in exI)
 apply(perm_simp)
 apply(rule ballI)
@@ -3130,7 +3130,7 @@ lemma BINDING_eqvt_name:
   fixes pi::"name prm"
   shows "(pi\<bullet>(BINDINGn B X)) = BINDINGn B (pi\<bullet>X)" 
   and   "(pi\<bullet>(BINDINGc B Y)) = BINDINGc B (pi\<bullet>Y)" 
-apply(auto simp add: BINDINGn_def BINDINGc_def perm_set_eq)
+apply(auto simp add: BINDINGn_def BINDINGc_def perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>M" in exI)
 apply(simp)
@@ -3185,7 +3185,7 @@ lemma BINDING_eqvt_coname:
   fixes pi::"coname prm"
   shows "(pi\<bullet>(BINDINGn B X)) = BINDINGn B (pi\<bullet>X)" 
   and   "(pi\<bullet>(BINDINGc B Y)) = BINDINGc B (pi\<bullet>Y)" 
-apply(auto simp add: BINDINGn_def BINDINGc_def perm_set_eq)
+apply(auto simp add: BINDINGn_def BINDINGc_def perm_set_def)
 apply(rule_tac x="pi\<bullet>xb" in exI)
 apply(rule_tac x="pi\<bullet>M" in exI)
 apply(simp)

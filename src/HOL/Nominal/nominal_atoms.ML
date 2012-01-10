@@ -542,7 +542,7 @@ fun create_nom_typedecls ak_names thy =
                      rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
-          val pt_thm_set   = at_thm RS (pt_inst RS pt_set_inst);
+          val pt_thm_set   = pt_inst RS pt_set_inst;
           val pt_thm_noptn = pt_inst RS pt_noptn_inst; 
           val pt_thm_optn  = pt_inst RS pt_optn_inst; 
           val pt_thm_list  = pt_inst RS pt_list_inst;
@@ -635,6 +635,7 @@ fun create_nom_typedecls ak_names thy =
        val cp_fun_inst     = @{thm "cp_fun_inst"};
        val cp_option_inst  = @{thm "cp_option_inst"};
        val cp_noption_inst = @{thm "cp_noption_inst"};
+       val cp_set_inst     = @{thm "cp_set_inst"};
        val pt_perm_compose = @{thm "pt_perm_compose"};
 
        val dj_pp_forget    = @{thm "dj_perm_perm_forget"};
@@ -696,6 +697,7 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_fun  = at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)));
             val cp_thm_optn = cp_inst RS cp_option_inst;
             val cp_thm_noptn = cp_inst RS cp_noption_inst;
+            val cp_thm_set = cp_inst RS cp_set_inst;
         in
          thy'
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
@@ -704,6 +706,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
          |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> AxClass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
         end) ak_names thy) ak_names thy25;
 
      (* show that discrete nominal types are permutation types, finitely     *)
@@ -817,9 +820,6 @@ fun create_nom_typedecls ak_names thy =
        val pt_perm_supp_ineq   = @{thm "Nominal.pt_perm_supp_ineq"};
        val pt_perm_supp        = @{thm "Nominal.pt_perm_supp"};
        val subseteq_eqvt       = @{thm "Nominal.pt_subseteq_eqvt"};
-       val insert_eqvt         = @{thm "Nominal.pt_insert_eqvt"};
-       val set_eqvt            = @{thm "Nominal.pt_set_eqvt"};
-       val perm_set_eq         = @{thm "Nominal.perm_set_eq"};
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -985,9 +985,6 @@ fun create_nom_typedecls ak_names thy =
             ||>> add_thmss_string
               let val thms1 = inst_pt_at [subseteq_eqvt]
               in [(("subseteq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-            ||>> add_thmss_string [(("insert_eqvt", inst_pt_at [insert_eqvt]), [NominalThmDecls.eqvt_add])]
-            ||>> add_thmss_string [(("set_eqvt", inst_pt_at [set_eqvt]), [NominalThmDecls.eqvt_add])]
-            ||>> add_thmss_string [(("perm_set_eq", inst_pt_at [perm_set_eq]), [])]
             ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_aux]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 

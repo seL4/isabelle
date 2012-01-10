@@ -98,14 +98,14 @@ proof -
     proof (cases "x\<in>S")
       case True
       have "x\<in>S" by fact
-      hence "\<forall>b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_eq calc_atm)
+      hence "\<forall>b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_def calc_atm)
       with asm2 have "infinite {b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
       hence "infinite {b. [(x,b)]\<bullet>S\<noteq>S}" by (rule_tac infinite_super, auto)
       then show "x\<in>(supp S)" by (simp add: supp_def)
     next
       case False
       have "x\<notin>S" by fact
-      hence "\<forall>b\<in>S. [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_eq calc_atm)
+      hence "\<forall>b\<in>S. [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_def calc_atm)
       with asm1 have "infinite {b\<in>S. [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
       hence "infinite {b. [(x,b)]\<bullet>S\<noteq>S}" by (rule_tac infinite_super, auto)
       then show "x\<in>(supp S)" by (simp add: supp_def)
@@ -129,7 +129,7 @@ lemma UNIV_supp:
   shows "supp (UNIV::atom set) = ({}::atom set)"
 proof -
   have "\<forall>(x::atom) (y::atom). [(x,y)]\<bullet>UNIV = (UNIV::atom set)"
-    by (auto simp add: perm_set_eq calc_atm)
+    by (auto simp add: perm_set_def calc_atm)
   then show "supp (UNIV::atom set) = ({}::atom set)" by (simp add: supp_def)
 qed
 
