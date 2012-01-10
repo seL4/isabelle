@@ -243,6 +243,8 @@ case distinctions at the same time.  E.g.
 produces a rule which can be used to perform case distinction on both
 a list and a nat.
 
+* Improved code generation of multisets.
+
 * Quickcheck:
   - Quickcheck returns variable assignments as counterexamples, which
     allows to reveal the underspecification of functions under test.
@@ -262,7 +264,9 @@ a list and a nat.
     value generators for a given type and operations.
     It generates values by using the operations as if they were
     constructors of that type. 
-  
+
+  - Support for multisets.
+
 * Nitpick:
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
