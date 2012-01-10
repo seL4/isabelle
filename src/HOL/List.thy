@@ -4559,7 +4559,7 @@ inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
 by (rule predicate1I, erule listsp.induct, (blast dest: predicate1D)+)
 
-lemmas lists_mono = listsp_mono [to_set pred_subset_eq]
+lemmas lists_mono = listsp_mono [to_set]
 
 lemma listsp_infI:
   assumes l: "listsp A l" shows "listsp B l ==> listsp (inf A B) l" using l
@@ -4575,7 +4575,7 @@ qed
 
 lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_def inf_bool_def]
 
-lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set pred_equals_eq]
+lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set]
 
 lemma Cons_in_lists_iff[simp]: "x#xs : lists A \<longleftrightarrow> x:A \<and> xs : lists A"
 by auto
