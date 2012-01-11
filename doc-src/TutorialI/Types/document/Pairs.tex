@@ -105,10 +105,10 @@ can be effective in small ones.
 If we consider why this lemma presents a problem, 
 we realize that we need to replace variable~\isa{p} by some pair \isa{{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}}.  Then both sides of the
 equation would simplify to \isa{a} by the simplification rules
-\isa{prod{\isaliteral{5F}{\isacharunderscore}}case\ f\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a\ b} and \isa{fst\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a}.  
+\isa{{\isaliteral{28}{\isacharparenleft}}case\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ of\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ xa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ f\ x\ xa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a\ b} and \isa{fst\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a}.  
 To reason about tuple patterns requires some way of
 converting a variable of product type into a pair.
-In case of a subterm of the form \isa{prod{\isaliteral{5F}{\isacharunderscore}}case\ f\ p} this is easy: the split
+In case of a subterm of the form \isa{case\ p\ of\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ xa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ f\ x\ xa} this is easy: the split
 rule \isa{split{\isaliteral{5F}{\isacharunderscore}}split} replaces \isa{p} by a pair:%
 \index{*split (method)}%
 \end{isamarkuptext}%
@@ -194,7 +194,7 @@ can be split as above. The same is true for paired set comprehension:%
 \ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ prod{\isaliteral{5F}{\isacharunderscore}}case\ op\ {\isaliteral{3D}{\isacharequal}}\ p\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}case\ p\ of\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ xa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ x\ {\isaliteral{3D}{\isacharequal}}\ xa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p%
 \end{isabelle}
 Again, simplification produces a term suitable for \isa{split{\isaliteral{5F}{\isacharunderscore}}split}
 as above. If you are worried about the strange form of the premise:
