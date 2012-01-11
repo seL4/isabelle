@@ -1322,7 +1322,7 @@ fun rewrite_goal_tac rews =
 (*Prunes all redundant parameters from the proof state by rewriting.
   DOES NOT rewrite main goal, where quantification over an unused bound
     variable is sometimes done to avoid the need for cut_facts_tac.*)
-val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
+val prune_params_tac = rewrite_goals_tac [Drule.triv_forall_equality];
 
 
 (* for folding definitions, handling critical pairs *)

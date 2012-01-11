@@ -41,26 +41,17 @@ sig
   val COMP: thm * thm -> thm
   val INCR_COMP: thm * thm -> thm
   val COMP_INCR: thm * thm -> thm
-  val cterm_instantiate: (cterm*cterm)list -> thm -> thm
+  val cterm_instantiate: (cterm * cterm) list -> thm -> thm
   val size_of_thm: thm -> int
   val reflexive_thm: thm
   val symmetric_thm: thm
   val transitive_thm: thm
   val symmetric_fun: thm -> thm
   val extensional: thm -> thm
-  val equals_cong: thm
-  val imp_cong: thm
-  val swap_prems_eq: thm
   val asm_rl: thm
   val cut_rl: thm
   val revcut_rl: thm
   val thin_rl: thm
-  val triv_forall_equality: thm
-  val distinct_prems_rl: thm
-  val swap_prems_rl: thm
-  val equal_intr_rule: thm
-  val equal_elim_rule1: thm
-  val equal_elim_rule2: thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
 
@@ -81,6 +72,9 @@ sig
   val store_thm_open: binding -> thm -> thm
   val store_standard_thm_open: binding -> thm -> thm
   val compose_single: thm * int * thm -> thm
+  val equals_cong: thm
+  val imp_cong: thm
+  val swap_prems_eq: thm
   val imp_cong_rule: thm -> thm -> thm
   val arg_cong_rule: cterm -> thm -> thm
   val binop_cong_rule: cterm -> thm -> thm -> thm
@@ -112,6 +106,12 @@ sig
   val rename_bvars': string option list -> thm -> thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
+  val triv_forall_equality: thm
+  val distinct_prems_rl: thm
+  val swap_prems_rl: thm
+  val equal_intr_rule: thm
+  val equal_elim_rule1: thm
+  val equal_elim_rule2: thm
   val remdups_rl: thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq

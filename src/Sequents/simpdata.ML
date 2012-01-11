@@ -75,7 +75,7 @@ val LK_basic_ss =
   |> Simplifier.set_mkcong mk_meta_cong;
 
 val LK_simps =
-   [triv_forall_equality, (* prunes params *)
+   [@{thm triv_forall_equality}, (* prunes params *)
     @{thm refl} RS @{thm P_iff_T}] @
     @{thms conj_simps} @ @{thms disj_simps} @ @{thms not_simps} @
     @{thms imp_simps} @ @{thms iff_simps} @ @{thms quant_simps} @

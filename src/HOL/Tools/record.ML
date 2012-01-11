@@ -1630,7 +1630,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       Skip_Proof.prove_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
-           [rtac equal_intr_rule, Goal.norm_hhf_tac,
+           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surject]),
             REPEAT o etac @{thm meta_allE}, atac]));
@@ -2155,7 +2155,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Skip_Proof.prove_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
-           [rtac equal_intr_rule, Goal.norm_hhf_tac,
+           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surjective]),
             REPEAT o etac @{thm meta_allE}, atac]));
