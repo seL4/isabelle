@@ -267,8 +267,8 @@ e.g.\ at the start of one of the center-environments above.
 
 The advantage of the display option is that you can display a whole
 list of theorems in one go. For example,
-\verb!@!\verb!{thm[display] foldl.simps}!
-generates @{thm[display] foldl.simps}
+\verb!@!\verb!{thm[display] append.simps}!
+generates @{thm[display] append.simps}
 *}
 
 subsection "If-then"
@@ -413,16 +413,16 @@ text {*
   the output
   \begin{center}
   \begin{tabular}{l@ {~~@{text "="}~~}l}
-  @{thm (lhs) foldl_Nil} & @{thm (rhs) foldl_Nil}\\
-  @{thm (lhs) foldl_Cons} & @{thm (rhs) foldl_Cons}
+  @{thm (lhs) append_Nil} & @{thm (rhs) append_Nil}\\
+  @{thm (lhs) append_Cons} & @{thm (rhs) append_Cons}
   \end{tabular}
   \end{center}
   is produced by the following code:
   \begin{quote}
     \verb!\begin{center}!\\
     \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}\\!\\
-    \verb!@!\verb!{thm (lhs) foldl_Cons} & @!\verb!{thm (rhs) foldl_Cons}!\\
+    \verb!@!\verb!{thm (lhs) append_Nil} & @!\verb!{thm (rhs) append_Nil}\\!\\
+    \verb!@!\verb!{thm (lhs) append_Cons} & @!\verb!{thm (rhs) append_Cons}!\\
     \verb!\end{tabular}!\\
     \verb!\end{center}!
   \end{quote}

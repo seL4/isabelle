@@ -337,10 +337,10 @@ e.g.\ at the start of one of the center-environments above.
 
 The advantage of the display option is that you can display a whole
 list of theorems in one go. For example,
-\verb!@!\verb!{thm[display] foldl.simps}!
+\verb!@!\verb!{thm[display] append.simps}!
 generates \begin{isabelle}%
-foldl\ f\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ a\isasep\isanewline%
-foldl\ f\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ foldl\ f\ {\isaliteral{28}{\isacharparenleft}}f\ a\ x{\isaliteral{29}{\isacharparenright}}\ xs%
+{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \isacharat\ ys\ {\isaliteral{3D}{\isacharequal}}\ ys\isasep\isanewline%
+x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs\ \isacharat\ ys\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs\ \isacharat\ ys%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -522,16 +522,16 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   the output
   \begin{center}
   \begin{tabular}{l@ {~~\isa{{\isaliteral{3D}{\isacharequal}}}~~}l}
-  \isa{foldl\ f\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} & \isa{a}\\
-  \isa{foldl\ f\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs{\isaliteral{29}{\isacharparenright}}} & \isa{foldl\ f\ {\isaliteral{28}{\isacharparenleft}}f\ a\ x{\isaliteral{29}{\isacharparenright}}\ xs}
+  \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \isacharat\ ys} & \isa{ys}\\
+  \isa{x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs\ \isacharat\ ys} & \isa{x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs\ \isacharat\ ys}
   \end{tabular}
   \end{center}
   is produced by the following code:
   \begin{quote}
     \verb!\begin{center}!\\
     \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}\\!\\
-    \verb!@!\verb!{thm (lhs) foldl_Cons} & @!\verb!{thm (rhs) foldl_Cons}!\\
+    \verb!@!\verb!{thm (lhs) append_Nil} & @!\verb!{thm (rhs) append_Nil}\\!\\
+    \verb!@!\verb!{thm (lhs) append_Cons} & @!\verb!{thm (rhs) append_Cons}!\\
     \verb!\end{tabular}!\\
     \verb!\end{center}!
   \end{quote}
