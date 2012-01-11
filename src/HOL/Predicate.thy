@@ -136,7 +136,7 @@ lemma inf1D2: "(A \<sqinter> B) x \<Longrightarrow> B x"
 lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
   by (simp add: inf_fun_def)
 
-lemma inf_Int_eq: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
+lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def)
 
 lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
