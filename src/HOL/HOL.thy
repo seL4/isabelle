@@ -1906,19 +1906,20 @@ code_const undefined
 subsubsection {* Evaluation and normalization by evaluation *}
 
 ML {*
-fun gen_eval_method conv ctxt = SIMPLE_METHOD'
-  (CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 (conv ctxt))) ctxt)
-    THEN' rtac TrueI)
+fun eval_tac ctxt =
+  let val conv = Code_Runtime.dynamic_holds_conv (Proof_Context.theory_of ctxt)
+  in CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 conv)) ctxt) THEN' rtac TrueI end
 *}
 
-method_setup eval = {*
-  Scan.succeed (gen_eval_method (Code_Runtime.dynamic_holds_conv o Proof_Context.theory_of))
-*} "solve goal by evaluation"
+method_setup eval = {* Scan.succeed (SIMPLE_METHOD' o eval_tac) *}
+  "solve goal by evaluation"
 
 method_setup normalization = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD'
-    (CHANGED_PROP o (CONVERSION (Nbe.dynamic_conv (Proof_Context.theory_of ctxt))
-      THEN' (fn k => TRY (rtac TrueI k)))))
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD'
+      (CHANGED_PROP o
+        (CONVERSION (Nbe.dynamic_conv (Proof_Context.theory_of ctxt))
+          THEN_ALL_NEW (TRY o rtac TrueI))))
 *} "solve goal by normalization"
 
 
