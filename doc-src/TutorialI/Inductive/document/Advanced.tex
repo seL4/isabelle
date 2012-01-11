@@ -375,7 +375,7 @@ monotone function in the inductive definition always has this effect.  The
 subgoal may look uninviting, but fortunately 
 \isa{lists} distributes over intersection:
 \begin{isabelle}%
-listsp\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ B{\isaliteral{29}{\isacharparenright}}\rulename{lists{\isaliteral{5F}{\isacharunderscore}}Int{\isaliteral{5F}{\isacharunderscore}}eq}%
+lists\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ lists\ A\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ lists\ B\rulename{lists{\isaliteral{5F}{\isacharunderscore}}Int{\isaliteral{5F}{\isacharunderscore}}eq}%
 \end{isabelle}
 Thanks to this default simplification rule, the induction hypothesis 
 is quickly replaced by its two parts:
