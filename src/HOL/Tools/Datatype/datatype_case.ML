@@ -63,7 +63,7 @@ fun default_name name (t, cs) =
   let
     val name' = if name = "" then (case t of Free (name', _) => name' | _ => name) else name;
     val cs' = if is_Free t then cs else filter_out Term_Position.is_position cs;
-  in (name, cs') end;
+  in (name', cs') end;
 
 fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
       strip_constraints t ||> cons tT
