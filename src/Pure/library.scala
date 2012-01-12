@@ -98,6 +98,8 @@ object Library
 
   /* strings */
 
+  def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
+
   def quote(s: String): String = "\"" + s + "\""
   def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")
   def commas_quote(ss: Iterable[String]): String = ss.iterator.mkString("\"", ", ", "\"")
@@ -208,7 +210,7 @@ class Basic_Library
 
   val space_explode = Library.space_explode _
   val split_lines = Library.split_lines _
-
+  val cat_lines = Library.cat_lines _
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _

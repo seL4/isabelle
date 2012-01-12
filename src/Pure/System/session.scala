@@ -120,7 +120,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
   def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var reverse_syslog = List[XML.Elem]()
-  def syslog(): String = reverse_syslog.reverse.map(msg => XML.content(msg).mkString).mkString("\n")
+  def syslog(): String = cat_lines(reverse_syslog.reverse.map(msg => XML.content(msg).mkString))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)

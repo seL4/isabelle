@@ -102,7 +102,7 @@ object Isabelle_Rendering
             Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
       }) match {
         case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
-          Some(msgs.iterator.map(_._2).mkString("\n"))
+          Some(cat_lines(msgs.iterator.map(_._2)))
         case _ => None
       }
 
@@ -256,7 +256,7 @@ object Isabelle_Rendering
       (tip1 match { case Text.Info(_, Some(text)) #:: _ => List(text) case _ => Nil }) :::
       (tip2 match { case Text.Info(_, Some(text)) #:: _ => List(text) case _ => Nil })
 
-    if (tips.isEmpty) None else Some(tips.mkString("\n"))
+    if (tips.isEmpty) None else Some(cat_lines(tips))
   }
 
   private val subexp_include =
