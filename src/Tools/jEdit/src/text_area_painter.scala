@@ -200,23 +200,24 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            r1 <- Isabelle_Rendering.text_color(painter_snapshot, chunk_range)
+            r1 <- Isabelle_Rendering.text_color(painter_snapshot, chunk_range, chunk_color)
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
         val padded_markup =
           if (markup.isEmpty)
-            Iterator(Text.Info(chunk_range, None))
+            Iterator(Text.Info(chunk_range, chunk_color))
           else
-            Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
+            Iterator(
+              Text.Info(Text.Range(chunk_range.start, markup.head.range.start), chunk_color)) ++
             markup.iterator ++
-            Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
+            Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), chunk_color))
 
         var x1 = x + w
         gfx.setFont(chunk_font)
-        for (Text.Info(range, info) <- padded_markup if !range.is_singularity) {
+        for (Text.Info(range, color) <- padded_markup if !range.is_singularity) {
           val str = chunk_str.substring(range.start - chunk_offset, range.stop - chunk_offset)
-          gfx.setColor(info.getOrElse(chunk_color))
+          gfx.setColor(color)
 
           range.try_restrict(caret_range) match {
             case Some(r) if !r.is_singularity =>

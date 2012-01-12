@@ -205,10 +205,11 @@ object Isabelle_Rendering
 
   private val text_color_elements = Set.empty[String] ++ text_colors.keys
 
-  def text_color(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Option[Color]]] =
-    snapshot.select_markup(range, Some(text_color_elements),
+  def text_color(snapshot: Document.Snapshot, range: Text.Range, color: Color)
+      : Stream[Text.Info[Color]] =
+    snapshot.cumulate_markup(range, color, Some(text_color_elements),
       {
-        case Text.Info(_, XML.Elem(Markup(m, _), _))
+        case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
         if text_colors.isDefinedAt(m) => text_colors(m)
       })
 
