@@ -135,6 +135,33 @@ instance ..
 
 end
 
+instantiation set :: (exhaustive) exhaustive
+begin
+
+fun exhaustive_set
+where
+  "exhaustive_set f i = (if i = 0 then None else (f {} orelse exhaustive_set (%A. f A orelse Quickcheck_Exhaustive.exhaustive (%x. if x \<in> A then None else f (insert x A)) (i - 1)) (i - 1)))"
+
+instance ..
+
+end
+
+definition (in term_syntax) "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
+definition (in term_syntax) "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+
+instantiation set :: (full_exhaustive) full_exhaustive
+begin
+
+fun full_exhaustive_set 
+where
+  "full_exhaustive_set f i = (if i = 0 then None else (f valterm_emptyset orelse full_exhaustive_set (%A. f A orelse Quickcheck_Exhaustive.full_exhaustive (%x. if fst x \<in> fst A then None else f (valtermify_insert x A)) (i - 1)) (i - 1)))"
+
+instance ..
+
+end
+
+hide_const valterm_emptyset valtermify_insert
+
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
 
