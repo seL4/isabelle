@@ -486,7 +486,7 @@ fun tweak_line ctxt s =
   if Config.get ctxt display then s else Symbol.strip_blanks s;
 
 fun pretty_text ctxt =
-  Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o Library.split_lines;
+  Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
