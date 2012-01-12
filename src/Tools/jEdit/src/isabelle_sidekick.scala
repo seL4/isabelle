@@ -158,8 +158,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
             val content = command.source(info.range).replace('\n', ' ')
             val info_text =
               info.info match {
-                case elem @ XML.Elem(_, _) =>
-                  Pretty.formatted(List(elem), margin = 40).mkString("\n")
+                case elem @ XML.Elem(_, _) => Pretty.formatted(List(elem), margin = 40).mkString
                 case x => x.toString
               }
 
