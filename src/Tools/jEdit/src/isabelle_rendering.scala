@@ -88,42 +88,34 @@ object Isabelle_Rendering
       })
 
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
-    snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
-      Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-      {
-        case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
-        if markup == Isabelle_Markup.WRITELN ||
-            markup == Isabelle_Markup.WARNING ||
-            markup == Isabelle_Markup.ERROR =>
-          msgs + (serial ->
-            Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
-      }) match {
-        case Text.Info(_, msgs) #:: _ if !msgs.isEmpty =>
-          Some(cat_lines(msgs.iterator.map(_._2)))
-        case _ => None
-      }
-
-  def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
   {
-    val icons =
-     (snapshot.select_markup(range,
-        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+    val msgs =
+      snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
+        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
         {
-          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body)) =>
-            body match {
-              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => legacy_icon
-              case _ => warning_icon
-            }
-          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
-        }).map { case Text.Info(_, icon) => icon }).toList.sortWith(_ >= _)
-    icons match {
-      case icon :: _ => Some(icon)
-      case Nil => None
-    }
+          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
+          if markup == Isabelle_Markup.WRITELN ||
+              markup == Isabelle_Markup.WARNING ||
+              markup == Isabelle_Markup.ERROR =>
+            msgs + (serial ->
+              Pretty.string_of(List(msg), margin = Isabelle.Int_Property("tooltip-margin")))
+        }).toList.flatMap(_.info)
+    if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
 
+  def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body)) =>
+          body match {
+            case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => legacy_icon
+            case _ => warning_icon
+          }
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
+      }).map(_.info).toList.sortWith(_ >= _).headOption
+
   def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-  {
     for {
       Text.Info(r, result) <-
         snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
@@ -147,7 +139,6 @@ object Isabelle_Rendering
           case (_, opt_color) => opt_color
         })
     } yield Text.Info(r, color)
-  }
 
   def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
     snapshot.select_markup(range,
