@@ -92,7 +92,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   }
               })
           markup match {
-            case Text.Info(_, Some(link)) #:: _ => link
+            case Text.Info(_, link) #:: _ => link
             case _ => null
           }
         case None => null

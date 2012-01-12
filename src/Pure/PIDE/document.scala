@@ -242,7 +242,7 @@ object Document
     def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
       result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
     def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-      result: PartialFunction[Text.Markup, A]): Stream[Text.Info[Option[A]]]
+      result: PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
   type Assign =
@@ -489,14 +489,15 @@ object Document
         }
 
         def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-          result: PartialFunction[Text.Markup, A]): Stream[Text.Info[Option[A]]] =
+          result: PartialFunction[Text.Markup, A]): Stream[Text.Info[A]] =
         {
           val result1 =
             new PartialFunction[(Option[A], Text.Markup), Option[A]] {
               def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = result.isDefinedAt(arg._2)
               def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(result(arg._2))
             }
-          cumulate_markup(range, None, elements, result1)
+          for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1))
+            yield Text.Info(r, x)
         }
       }
     }

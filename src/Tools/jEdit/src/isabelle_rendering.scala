@@ -79,16 +79,13 @@ object Isabelle_Rendering
   /* markup selectors */
 
   def message_color(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    for {
-      Text.Info(r, Some(color)) <-
-        snapshot.select_markup(range,
-          Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-          {
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN, _), _)) => regular_color
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), _)) => warning_color
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_color
-          })
-    } yield Text.Info(r, color)
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN, _), _)) => regular_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), _)) => warning_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_color
+      })
 
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
     snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
@@ -109,20 +106,16 @@ object Isabelle_Rendering
   def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
   {
     val icons =
-      (for {
-        Text.Info(_, Some(icon)) <-
-          // FIXME snapshot.cumulate_markup
-          snapshot.select_markup[Icon](range,
-            Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-            {
-              case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body)) =>
-                body match {
-                  case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => legacy_icon
-                  case _ => warning_icon
-                }
-              case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
-            })
-        } yield icon).toList.sortWith(_ >= _)
+     (snapshot.select_markup(range,
+        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        {
+          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body)) =>
+            body match {
+              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => legacy_icon
+              case _ => warning_icon
+            }
+          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
+        }).map { case Text.Info(_, icon) => icon }).toList.sortWith(_ >= _)
     icons match {
       case icon :: _ => Some(icon)
       case Nil => None
@@ -157,26 +150,20 @@ object Isabelle_Rendering
   }
 
   def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    for {
-      Text.Info(r, Some(color)) <-
-        snapshot.select_markup(range,
-          Some(Set(Isabelle_Markup.TOKEN_RANGE)),
-          {
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
-          })
-    } yield Text.Info(r, color)
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.TOKEN_RANGE)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
+      })
 
   def foreground(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    for {
-      Text.Info(r, Some(color)) <-
-        snapshot.select_markup(range,
-          Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
-          {
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
-            case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
-          })
-    } yield Text.Info(r, color)
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
+      })
 
   private val text_colors: Map[String, Color] =
     Map(
@@ -254,8 +241,8 @@ object Isabelle_Rendering
         })
 
     val tips =
-      (tip1 match { case Text.Info(_, Some(text)) #:: _ => List(text) case _ => Nil }) :::
-      (tip2 match { case Text.Info(_, Some(text)) #:: _ => List(text) case _ => Nil })
+      (tip1 match { case Text.Info(_, text) #:: _ => List(text) case _ => Nil }) :::
+      (tip2 match { case Text.Info(_, text) #:: _ => List(text) case _ => Nil })
 
     if (tips.isEmpty) None else Some(cat_lines(tips))
   }
@@ -274,7 +261,7 @@ object Isabelle_Rendering
           case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
             (range, subexp_color)
         }) match {
-      case Text.Info(_, Some((range, color))) #:: _ => Some((snapshot.convert(range), color))
+      case Text.Info(_, (range, color)) #:: _ => Some((snapshot.convert(range), color))
       case _ => None
     }
   }
