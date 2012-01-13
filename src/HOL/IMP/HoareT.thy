@@ -2,9 +2,8 @@ header{* Hoare Logic for Total Correctness *}
 
 theory HoareT imports Hoare_Sound_Complete begin
 
-text{*
-Now that we have termination, we can define
-total validity, @{text"\<Turnstile>\<^sub>t"}, as partial validity and guaranteed termination:*}
+text{* Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
+works if execution is deterministic (which it is in our case). *}
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
   ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
@@ -61,15 +60,14 @@ lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 <= n} ''x'' ::= N 0; ''y'' ::= N 0; w
 apply(rule Semi)
 prefer 2
 apply(rule While'
-  [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 <= n \<and> 0 <= s ''y'' \<and> s ''y'' \<le> n"
-   and f = "\<lambda>s. nat n - nat (s ''y'')"])
+  [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 \<le> s ''y'' \<and> s ''y'' \<le> n"
+   and f = "\<lambda>s. nat (n - s ''y'')"])
 apply(rule Semi)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
 apply (simp add: atLeastAtMostPlus1_int_conv algebra_simps)
 apply clarsimp
-apply arith
 apply fastforce
 apply(rule Semi)
 prefer 2
