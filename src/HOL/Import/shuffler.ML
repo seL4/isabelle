@@ -37,20 +37,6 @@ val message = if_debug writeln
 
 val string_of_thm = Print_Mode.setmp [] Display.string_of_thm_without_context;
 
-fun mk_meta_eq th =
-    (case concl_of th of
-         Const(@{const_name Trueprop},_) $ (Const(@{const_name HOL.eq},_) $ _ $ _) => th RS eq_reflection
-       | Const("==",_) $ _ $ _ => th
-       | _ => raise THM("Not an equality",0,[th]))
-    handle _ => raise THM("Couldn't make meta equality",0,[th])  (* FIXME avoid handle _ *)
-
-fun mk_obj_eq th =
-    (case concl_of th of
-         Const(@{const_name Trueprop},_) $ (Const(@{const_name HOL.eq},_) $ _ $ _) => th
-       | Const("==",_) $ _ $ _ => th RS meta_eq_to_obj_eq
-       | _ => raise THM("Not an equality",0,[th]))
-    handle _ => raise THM("Couldn't make object equality",0,[th])  (* FIXME avoid handle _ *)
-
 structure ShuffleData = Theory_Data
 (
   type T = thm list
@@ -98,33 +84,6 @@ val imp_comm =
                                     |> implies_intr_list [cPQR,cQ,cP]
         val th2 = implies_elim_list (Thm.assume cQPR) [Thm.assume cQ,Thm.assume cP]
                                     |> implies_intr_list [cQPR,cP,cQ]
-    in
-        Thm.equal_intr th1 th2 |> Drule.export_without_context
-    end
-
-val def_norm =
-    let
-        val cert = cterm_of Pure.thy
-        val aT = TFree("'a",[])
-        val bT = TFree("'b",[])
-        val v = Free("v",aT)
-        val P = Free("P",aT-->bT)
-        val Q = Free("Q",aT-->bT)
-        val cvPQ = cert (list_all ([("v",aT)],Logic.mk_equals(P $ Bound 0,Q $ Bound 0)))
-        val cPQ = cert (Logic.mk_equals(P,Q))
-        val cv = cert v
-        val rew = Thm.assume cvPQ
-                         |> Thm.forall_elim cv
-                         |> Thm.abstract_rule "v" cv
-        val (lhs,rhs) = Logic.dest_equals(concl_of rew)
-        val th1 = Thm.transitive (Thm.transitive
-                                  (Thm.eta_conversion (cert lhs) |> Thm.symmetric)
-                                  rew)
-                             (Thm.eta_conversion (cert rhs))
-                             |> Thm.implies_intr cvPQ
-        val th2 = Thm.combination (Thm.assume cPQ) (Thm.reflexive cv)
-                              |> Thm.forall_intr cv
-                              |> Thm.implies_intr cPQ
     in
         Thm.equal_intr th1 th2 |> Drule.export_without_context
     end
@@ -201,7 +160,7 @@ fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
         all_comm RS init
     end
 
-fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
+fun quant_rewrite thy _ (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
     let
         val res = (find_bound 0 body;2) handle RESULT i => i
     in
@@ -270,7 +229,7 @@ fun eta_redex (t $ Bound 0) =
     end
   | eta_redex _ = false
 
-fun eta_contract thy assumes origt =
+fun eta_contract thy _ origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
         val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
@@ -293,7 +252,7 @@ fun eta_contract thy assumes origt =
             end
     in
         case t of
-            Const("all",_) $ (Abs(x,xT,Const("==",eqT) $ P $ Q)) =>
+            Const("all",_) $ (Abs(x,xT,Const("==",_) $ P $ Q)) =>
             (if eta_redex P andalso eta_redex Q
               then
                   let
@@ -314,7 +273,6 @@ fun eta_contract thy assumes origt =
                                      |> Thm.implies_intr cu
                       val rew_th = Thm.equal_intr (th' |> Thm.implies_intr ct) uth'
                       val res = final rew_th
-                      val lhs = (#1 (Logic.dest_equals (prop_of res)))
                   in
                        SOME res
                   end
@@ -322,17 +280,7 @@ fun eta_contract thy assumes origt =
           | _ => NONE
        end
 
-fun beta_fun thy assume t =
-    SOME (Thm.beta_conversion true (cterm_of thy t))
-
-val meta_sym_rew = @{thm refl}
-
-fun equals_fun thy assume t =
-    case t of
-        Const("op ==",_) $ u $ v => if Term_Ord.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
-      | _ => NONE
-
-fun eta_expand thy assumes origt =
+fun eta_expand thy _ origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
         val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
@@ -400,17 +348,6 @@ val R  = mk_free "R" (xT-->yT)
 val S  = mk_free "S" xT
 val S'  = mk_free "S'" xT
 in
-fun beta_simproc thy = Simplifier.simproc_global_i
-                      thy
-                      "Beta-contraction"
-                      [Abs("x",xT,Q) $ S]
-                      beta_fun
-
-fun equals_simproc thy = Simplifier.simproc_global_i
-                      thy
-                      "Ordered rewriting of meta equalities"
-                      [Const("op ==",xT) $ S $ S']
-                      equals_fun
 
 fun quant_simproc thy = Simplifier.simproc_global_i
                            thy
@@ -564,7 +501,6 @@ fun set_prop thy t =
         val rew_th = norm_term thy closed_t
         val rhs = Thm.rhs_of rew_th
 
-        val shuffles = ShuffleData.get thy
         fun process [] = NONE
           | process ((name,th)::thms) =
             let

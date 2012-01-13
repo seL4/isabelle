@@ -906,7 +906,6 @@ fun uniq_compose m th i st =
     end
 
 val reflexivity_thm = @{thm refl}
-val substitution_thm = @{thm subst}
 val mp_thm = @{thm mp}
 val imp_antisym_thm = @{thm light_imp_as}
 val disch_thm = @{thm impI}
@@ -937,7 +936,6 @@ val not_intro_thm = Thm.symmetric not_elim_thm
 val abs_thm = @{thm ext}
 val trans_thm = @{thm trans}
 val symmetry_thm = @{thm sym}
-val transitivity_thm = @{thm trans}
 val eqmp_thm = @{thm iffD1}
 val eqimp_thm = @{thm HOL4Setup.eq_imp}
 val comb_thm = @{thm cong}
@@ -1003,40 +1001,15 @@ fun mk_INST dom rng th =
     th |> forall_intr_list dom
        |> forall_elim_list rng
 
-val collect_vars =
-    let
-        fun F vars (Bound _) = vars
-          | F vars (tm as Free _) =
-            if member (op =) vars tm
-            then vars
-            else (tm::vars)
-          | F vars (Const _) = vars
-          | F vars (tm1 $ tm2) = F (F vars tm1) tm2
-          | F vars (Abs(_,_,body)) = F vars body
-          | F vars (Var _) = raise ERR "collect_vars" "Schematic variable found"
-    in
-        F []
-    end
-
 (* Code for disambiguating variablenames (wrt. types) *)
 
 val disamb_info_empty = {vars=[],rens=[]}
 
 fun rens_of {vars,rens} = rens
 
-fun name_of_var (Free(vname,_)) = vname
-  | name_of_var _ = raise ERR "name_of_var" "Not a variable"
-
 fun disamb_term_from info tm = (info, tm)
 
-fun swap (x,y) = (y,x)
-
 fun has_ren (HOLThm _) = false
-
-fun prinfo {vars,rens} = (writeln "Vars:";
-                          app prin vars;
-                          writeln "Renaming:";
-                          app (fn(x,y)=>(prin x; writeln " -->"; prin y)) rens)
 
 fun disamb_thm_from info (HOLThm (_,thm)) = (info, thm)
 
@@ -1045,11 +1018,10 @@ fun disamb_terms_from info tms = (info, tms)
 fun disamb_thms_from info hthms = (info, map hthm2thm hthms)
 
 fun disamb_term tm   = disamb_term_from disamb_info_empty tm
-fun disamb_terms tms = disamb_terms_from disamb_info_empty tms
 fun disamb_thm thm   = disamb_thm_from disamb_info_empty thm
 fun disamb_thms thms = disamb_thms_from disamb_info_empty thms
 
-fun norm_hthm sg (hth as HOLThm _) = hth
+fun norm_hthm thy (hth as HOLThm _) = hth
 
 (* End of disambiguating code *)
 
@@ -1073,7 +1045,7 @@ fun disambiguate_frees thm =
           end
       val new_name = new_name' "a"
       fun replace_name n' (Free (n, t)) = Free (n', t)
-        | replace_name n' _ = ERR "replace_name"
+        | replace_name _ _ = ERR "replace_name"
       (* map: old or fresh name -> old free,
          invmap: old free which has fresh name assigned to it -> fresh name *)
       fun dis v (mapping as (map,invmap)) =
@@ -1110,8 +1082,6 @@ val debug = Unsynchronized.ref false
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
 
-val conjE_helper = Thm.permute_prems 0 1 conjE
-
 fun get_hol4_thm thyname thmname thy =
     case get_hol4_theorem thyname thmname thy of
         SOME hth => SOME (HOLThm hth)
@@ -1130,25 +1100,6 @@ fun non_trivial_term_consts t = fold_aterms
         orelse c = @{const_name HOL.implies} orelse c = @{const_name HOL.conj} orelse c = @{const_name HOL.eq}
       then I else insert (op =) c
     | _ => I) t [];
-
-fun match_consts t (* th *) =
-    let
-        fun add_consts (Const (c, _), cs) =
-            (case c of
-                 @{const_name HOL.eq} => insert (op =) "==" cs
-               | @{const_name HOL.implies} => insert (op =) "==>" cs
-               | @{const_name All} => cs
-               | "all" => cs
-               | @{const_name HOL.conj} => cs
-               | @{const_name Trueprop} => cs
-               | _ => insert (op =) c cs)
-          | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
-          | add_consts (Abs (_, _, t), cs) = add_consts (t, cs)
-          | add_consts (_, cs) = cs
-        val t_consts = add_consts(t,[])
-    in
-        fn th => eq_set (op =) (t_consts, add_consts (prop_of th, []))
-    end
 
 fun split_name str =
     let
@@ -1755,7 +1706,7 @@ fun GEN_ABS copt vlist hth thy =
                       | inst_type ty1 ty2 (ty as TFree _) = if ty1 = ty
                                                             then ty2
                                                             else ty
-                      | inst_type ty1 ty2 (ty as Type(name,tys)) =
+                      | inst_type ty1 ty2 (Type(name,tys)) =
                         Type(name,map (inst_type ty1 ty2) tys)
                 in
                     fold_rev (fn v => fn th =>
@@ -1819,7 +1770,6 @@ fun DISCH tm hth thy =
         val _ = if_debug pth hth
         val (info,th) = disamb_thm hth
         val (info',tm') = disamb_term_from info tm
-        val prems = prems_of th
         val th1 = beta_eta_thm th
         val th2 = implies_elim_all th1
         val th3 = Thm.implies_intr (cterm_of thy (HOLogic.mk_Trueprop tm')) th2
@@ -2004,7 +1954,6 @@ fun new_type_definition thyname thmname tycname hth thy =
             val tfrees = Misc_Legacy.term_tfrees c
             val tnames = map fst tfrees
             val tsyn = mk_syn thy tycname
-            val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
               Typedef.add_typedef_global false (SOME (Binding.name thmname))
                 (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c NONE (rtac th2 1) thy
@@ -2077,15 +2026,12 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tfrees = Misc_Legacy.term_tfrees c
             val tnames = sort_strings (map fst tfrees)
             val tsyn = mk_syn thy tycname
-            val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
               Typedef.add_typedef_global false NONE
                 (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c
                 (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
             val fulltyname = Sign.intern_type thy' tycname
             val aty = Type (fulltyname, map mk_vartype tnames)
-            val abs_ty = tT --> aty
-            val rep_ty = aty --> tT
             val typedef_hol2hollight' =
                 Drule.instantiate'
                     [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)]

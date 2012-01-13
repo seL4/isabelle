@@ -229,7 +229,7 @@ fun replay_proof int_thms thyname thmname prf thy =
                                             then
                                                 let
                                                     val _ = writeln ("Found no " ^ thmname ^ " theorem, replaying...")
-                                                    val (f_opt,prf) = import_proof thyname' thmname thy'
+                                                    val (_, prf) = import_proof thyname' thmname thy'
                                                     val prf = prf thy'
                                                     val (thy',th) = replay_proof int_thms thyname' thmname prf thy'
                                                     val _ = writeln ("Successfully finished replaying "^thmname^" !")
