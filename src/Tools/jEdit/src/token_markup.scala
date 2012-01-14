@@ -165,13 +165,15 @@ object Token_Markup
   class Marker extends TokenMarker
   {
     override def markTokens(context: TokenMarker.LineContext,
-        handler: TokenHandler, line: Segment): TokenMarker.LineContext =
+        handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
       val line_ctxt =
         context match {
           case c: Line_Context => c.context
           case _ => Some(Scan.Finished)
         }
+      val line = if (raw_line == null) new Segment else raw_line
+
       val context1 =
       {
         val (styled_tokens, context1) =
