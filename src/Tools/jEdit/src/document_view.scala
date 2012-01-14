@@ -210,18 +210,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* subexpression highlighting */
 
-  private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int)
-    : Option[(Text.Range, Color)] =
-  {
-    val offset = text_area.xyToOffset(x, y)
-    Isabelle_Rendering.subexp(snapshot, Text.Range(offset, offset + 1))
-  }
-
-  @volatile private var _highlight_range: Option[(Text.Range, Color)] = None
-  def highlight_range(): Option[(Text.Range, Color)] = _highlight_range
-
-
-  /* CONTROL-mouse management */
+  @volatile private var _highlight_range: Option[Text.Info[Color]] = None
+  def highlight_range(): Option[Text.Info[Color]] = _highlight_range
 
   private var control: Boolean = false
 
@@ -255,9 +245,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
           if (control) init_popup(snapshot, x, y)
 
-          _highlight_range map { case (range, _) => invalidate_range(range) }
-          _highlight_range = if (control) subexp_range(snapshot, x, y) else None
-          _highlight_range map { case (range, _) => invalidate_range(range) }
+          for (Text.Info(range, _) <- _highlight_range) invalidate_range(range)
+          _highlight_range =
+            if (control) {
+              val offset = text_area.xyToOffset(x, y)
+              Isabelle_Rendering.subexp(snapshot, Text.Range(offset, offset + 1))
+            }
+            else None
+          for (Text.Info(range, _) <- _highlight_range) invalidate_range(range)
         }
     }
   }

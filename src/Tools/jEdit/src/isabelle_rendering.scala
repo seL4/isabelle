@@ -245,16 +245,13 @@ object Isabelle_Rendering
       Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE,
       Isabelle_Markup.DOC_SOURCE)
 
-  def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[(Text.Range, Color)] =
+  def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
   {
     snapshot.select_markup(range, Some(subexp_include),
         {
           case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-            (range, subexp_color)
-        }) match {
-      case Text.Info(_, (range, color)) #:: _ => Some((snapshot.convert(range), color))
-      case _ => None
-    }
+            Text.Info(snapshot.convert(range), subexp_color)
+        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
   }
 
 

@@ -34,7 +34,8 @@ class Text_Area_Painter(doc_view: Document_View)
   {
     val p = text_area.offsetToXY(range.start)
     val q = text_area.offsetToXY(range.stop)
-    if (p != null && q != null && p.y == q.y) Some(new Gfx_Range(p.x, p.y, q.x - p.x))
+    if (p != null && q != null && p.x < q.x && p.y == q.y)
+      Some(new Gfx_Range(p.x, p.y, q.x - p.x))
     else None
   }
 
@@ -323,15 +324,13 @@ class Text_Area_Painter(doc_view: Document_View)
             }
 
             // highlighted range -- potentially from other snapshot
-            doc_view.highlight_range match {
-              case Some((range, color)) if line_range.overlaps(range) =>
-                gfx_range(line_range.restrict(range)) match {
-                  case None =>
-                  case Some(r) =>
-                    gfx.setColor(color)
-                    gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-                }
-              case _ =>
+            for {
+              info <- doc_view.highlight_range()
+              Text.Info(range, color) <- info.try_restrict(line_range)
+              r <- gfx_range(range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
           }
         }
