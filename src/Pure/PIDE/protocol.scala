@@ -41,7 +41,7 @@ object Protocol
   }
 
 
-  /* toplevel transactions */
+  /* command status */
 
   sealed case class Status(
     private val finished: Boolean = false,
@@ -69,6 +69,9 @@ object Protocol
 
   def command_status(markups: List[Markup]): Status =
     (Status() /: markups)(command_status(_, _))
+
+
+  /* node status */
 
   sealed case class Node_Status(unprocessed: Int, running: Int, finished: Int, failed: Int)
   {
