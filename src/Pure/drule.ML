@@ -750,19 +750,18 @@ end;
 
 (* HHF normalization *)
 
-(* (PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x)) *)
+(* (PROP ?phi ==> (!!x. PROP ?psi x)) == (!!x. PROP ?phi ==> PROP ?psi x) *)
 val norm_hhf_eq =
   let
     val aT = TFree ("'a", []);
-    val all = Term.all aT;
     val x = Free ("x", aT);
     val phi = Free ("phi", propT);
     val psi = Free ("psi", aT --> propT);
 
     val cx = certify x;
     val cphi = certify phi;
-    val lhs = certify (Logic.mk_implies (phi, all $ Abs ("x", aT, psi $ Bound 0)));
-    val rhs = certify (all $ Abs ("x", aT, Logic.mk_implies (phi, psi $ Bound 0)));
+    val lhs = certify (Logic.mk_implies (phi, Logic.all x (psi $ x)));
+    val rhs = certify (Logic.all x (Logic.mk_implies (phi, psi $ x)));
   in
     Thm.equal_intr
       (Thm.implies_elim (Thm.assume lhs) (Thm.assume cphi)

@@ -101,8 +101,7 @@ val idt = ident -- constraint;
 val bind = idt --| $$ ".";
 
 fun term env T x =
- ($$ "!!" |-- bind :|-- (fn v =>
-   term (v :: env) propT >> (fn B => Term.all (#2 v) $ lambda (Free v) B)) ||
+ ($$ "!!" |-- bind :|-- (fn v => term (v :: env) propT >> (Logic.all (Free v))) ||
   term1 env T) x
 and term1 env T x =
  (enum2 "==>" (term2 env propT) >> foldr1 Logic.mk_implies ||

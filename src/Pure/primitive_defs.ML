@@ -40,7 +40,7 @@ fun dest_def ctxt check_head is_fixed is_fixedT eq =
       | check_arg (Const ("TYPE", Type ("itself", [TFree _]))) = true
       | check_arg _ = false;
     fun close_arg (Bound _) t = t
-      | close_arg x t = Term.all (Term.fastype_of x) $ lambda x t;
+      | close_arg x t = Logic.all x t;
 
     val lhs_bads = filter_out check_arg args;
     val lhs_dups = duplicates (op aconv) args;
