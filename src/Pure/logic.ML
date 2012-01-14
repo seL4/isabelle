@@ -337,8 +337,7 @@ fun dest_term (Const ("Pure.term", _) $ t) = t
 fun occs (t, u) = exists_subterm (fn s => t aconv s) u;
 
 (*Close up a formula over all free variables by quantification*)
-fun close_form A =
-  Term.list_all_free (rev (Term.add_frees A []), A);
+fun close_form A = fold (all o Free) (Term.add_frees A []) A;
 
 
 

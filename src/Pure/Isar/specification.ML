@@ -345,7 +345,8 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             val (Ts, _) = ctxt'
               |> fold Variable.declare_term props
               |> fold_map Proof_Context.inferred_param xs;
-            val asm = Term.list_all_free (xs ~~ Ts, Logic.list_implies (props, thesis));
+            val params = map Free (xs ~~ Ts);
+            val asm = fold_rev Logic.all params (Logic.list_implies (props, thesis));
             val _ = ctxt' |> Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
           in
             ctxt'

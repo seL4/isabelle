@@ -309,7 +309,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
     val prems = map (curry subst_bounds frees) (Logic.strip_assums_hyp rule);
     val rule' = Logic.list_implies (prems, concl);
     val aprems = map (atomize_term (Proof_Context.theory_of ctxt)) prems;
-    val arule = list_all_free (params', Logic.list_implies (aprems, concl));
+    val arule = fold_rev (Logic.all o Free) params' (Logic.list_implies (aprems, concl));
 
     fun check_ind err t =
       (case dest_predicate cs params t of
@@ -670,8 +670,8 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
         val SOME (_, i, ys, _) =
           dest_predicate cs params (HOLogic.dest_Trueprop (Logic.strip_assums_concl r));
       in
-        list_all_free (Logic.strip_params r,
-          Logic.list_implies (map HOLogic.mk_Trueprop (fold_rev mk_prem
+        fold_rev (Logic.all o Free) (Logic.strip_params r)
+          (Logic.list_implies (map HOLogic.mk_Trueprop (fold_rev mk_prem
             (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r)) []),
               HOLogic.mk_Trueprop (list_comb (nth preds i, ys))))
       end;
@@ -1016,11 +1016,12 @@ fun gen_add_inductive_i mk_def
     val ctxt3 = ctxt2 |> fold (snd oo Local_Defs.fixed_abbrev) abbrevs;
     val expand = Assumption.export_term ctxt3 lthy #> Proof_Context.cert_term lthy;
 
-    fun close_rule r = list_all_free (rev (fold_aterms
-      (fn t as Free (v as (s, _)) =>
-          if Variable.is_fixed ctxt1 s orelse
-            member (op =) ps t then I else insert (op =) v
-        | _ => I) r []), r);
+    fun close_rule r =
+      fold (Logic.all o Free) (fold_aterms
+        (fn t as Free (v as (s, _)) =>
+            if Variable.is_fixed ctxt1 s orelse
+              member (op =) ps t then I else insert (op =) v
+          | _ => I) r []) r;
 
     val intros = map (apsnd (Syntax.check_term lthy #> close_rule #> expand)) pre_intros;
     val preds = map (fn ((c, _), mx) => (c, mx)) cnames_syn';

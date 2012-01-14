@@ -42,7 +42,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
       else Free (nth pnames i, U --> HOLogic.boolT) $ x;
 
     fun mk_all i s T t =
-      if member (op =) is i then list_all_free ([(s, T)], t) else t;
+      if member (op =) is i then Logic.all (Free (s, T)) t else t;
 
     val (prems, rec_fns) = split_list (flat (fst (fold_map
       (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
@@ -78,7 +78,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
                       (make_pred k rT U (Datatype_Aux.app_bnds r i)
                         (Datatype_Aux.app_bnds (Free (s, T)) i))), p)), f)
                 end;
-        in (apfst (curry list_all_free frees) (mk_prems (map Free frees) recs), j + 1) end)
+        in (apfst (fold_rev (Logic.all o Free) frees) (mk_prems (map Free frees) recs), j + 1) end)
           constrs) (descr ~~ recTs) 1)));
 
     fun mk_proj j [] t = t
@@ -170,10 +170,11 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Dat
         val free_ts = map Free frees;
         val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
       in
-        (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
-          (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
-            HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
-              list_comb (r, free_ts)))))
+        (r, fold_rev Logic.all free_ts
+          (Logic.mk_implies (HOLogic.mk_Trueprop
+            (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
+              HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
+                list_comb (r, free_ts)))))
       end;
 
     val SOME (_, _, constrs) = AList.lookup (op =) descr index;

@@ -1155,9 +1155,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
           mk_fresh1 [] (maps fst frees') @
           mk_fresh2 [] frees'
 
-      in list_all_free (frees @ [z], Logic.list_implies (prems' @ prems,
-        HOLogic.mk_Trueprop (make_pred fsT k T $ Free z $
-          list_comb (Const (cname, Ts ---> T), map Free frees))))
+      in
+        fold_rev (Logic.all o Free) (frees @ [z])
+          (Logic.list_implies (prems' @ prems,
+            HOLogic.mk_Trueprop (make_pred fsT k T $ Free z $
+              list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
     val ind_prems = maps (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
@@ -1173,8 +1175,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val induct = Logic.list_implies (ind_prems, ind_concl);
 
     val ind_prems' =
-      map (fn (_, f as Free (_, T)) => list_all_free ([("x", fsT')],
-        HOLogic.mk_Trueprop (Const ("Finite_Set.finite",
+      map (fn (_, f as Free (_, T)) => Logic.all (Free ("x", fsT'))
+        (HOLogic.mk_Trueprop (Const ("Finite_Set.finite",
           Term.range_type T -->
             HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
       maps (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
@@ -1462,9 +1464,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
         (rec_intr_ts @ [Logic.list_implies (flat prems2 @ prems3 @ prems1,
            HOLogic.mk_Trueprop (rec_set $
              list_comb (Const (cname, Ts ---> T), map Free frees) $ result))],
-         rec_prems @ [list_all_free (frees @ frees'', Logic.list_implies (prems4, P))],
-         rec_prems' @ map (fn fr => list_all_free (frees @ frees'',
-           Logic.list_implies (nth prems2 l @ prems3 @ prems5 @ prems7 @ prems6 @ [P],
+         rec_prems @ [fold_rev (Logic.all o Free) (frees @ frees'') (Logic.list_implies (prems4, P))],
+         rec_prems' @ map (fn fr => fold_rev (Logic.all o Free) (frees @ frees'')
+           (Logic.list_implies (nth prems2 l @ prems3 @ prems5 @ prems7 @ prems6 @ [P],
              HOLogic.mk_Trueprop fr))) result_freshs,
          rec_eq_prems @ [flat prems2 @ prems3],
          l + 1)

@@ -243,7 +243,6 @@ fun timing_msg ctxt s = if Config.get ctxt timing then warning s else ();
 (* syntax *)
 
 val Trueprop = HOLogic.mk_Trueprop;
-fun All xs t = Term.list_all_free (xs, t);
 
 infix 0 :== ===;
 infixr 0 ==>;
@@ -1585,14 +1584,11 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
           (map HOLogic.mk_eq (vars_more ~~ vars_more') @ [@{term True}])
       end;
 
-    val induct_prop =
-      (All (map dest_Free vars_more) (Trueprop (P $ ext)), Trueprop (P $ s));
+    val induct_prop = (fold_rev Logic.all vars_more (Trueprop (P $ ext)), Trueprop (P $ s));
 
     val split_meta_prop =  (* FIXME local P *)
-      let val P = Free (singleton (Name.variant_list variants) "P", extT --> propT) in
-        Logic.mk_equals
-         (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
-      end;
+      let val P = Free (singleton (Name.variant_list variants) "P", extT --> propT)
+      in Logic.mk_equals (Logic.all s (P $ s), fold_rev Logic.all vars_more (P $ ext)) end;
 
     val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
       simplify HOL_ss
@@ -2044,10 +2040,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (*induct*)
     val induct_scheme_prop =
-      All (map dest_Free all_vars_more) (Trueprop (P $ r_rec0)) ==> Trueprop (P $ r0);
+      fold_rev Logic.all all_vars_more (Trueprop (P $ r_rec0)) ==> Trueprop (P $ r0);
     val induct_prop =
-      (All (map dest_Free all_vars) (Trueprop (P_unit $ r_rec_unit0)),
-        Trueprop (P_unit $ r_unit0));
+      (fold_rev Logic.all all_vars (Trueprop (P_unit $ r_rec_unit0)), Trueprop (P_unit $ r_unit0));
 
     (*surjective*)
     val surjective_prop =
@@ -2056,19 +2051,17 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (*cases*)
     val cases_scheme_prop =
-      (All (map dest_Free all_vars_more) ((r0 === r_rec0) ==> Trueprop C), Trueprop C);
+      (fold_rev Logic.all all_vars_more ((r0 === r_rec0) ==> Trueprop C), Trueprop C);
 
     val cases_prop =
-      (All (map dest_Free all_vars) ((r_unit0 === r_rec_unit0) ==> Trueprop C))
-         ==> Trueprop C;
+      fold_rev Logic.all all_vars ((r_unit0 === r_rec_unit0) ==> Trueprop C) ==> Trueprop C;
 
     (*split*)
     val split_meta_prop =
       let
         val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0 --> propT);
       in
-        Logic.mk_equals
-         (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
+        Logic.mk_equals (Logic.all r0 (P $ r0), fold_rev Logic.all all_vars_more (P $ r_rec0))
       end;
 
     val split_object_prop =
@@ -2085,7 +2078,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         val s' = Free (rN ^ "'", rec_schemeT0);
         fun mk_sel_eq (c, Free (_, T)) = mk_sel r0 (c, T) === mk_sel s' (c, T);
         val seleqs = map mk_sel_eq all_named_vars_more;
-      in All (map dest_Free [r0, s']) (Logic.list_implies (seleqs, r0 === s')) end;
+      in Logic.all r0 (Logic.all s' (Logic.list_implies (seleqs, r0 === s'))) end;
 
 
     (* 3rd stage: thms_thy *)

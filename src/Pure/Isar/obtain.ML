@@ -130,7 +130,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain parms*)
     val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
-    val parms = xs' ~~ Ts;
+    val parms = map Free (xs' ~~ Ts);
     val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
 
     (*obtain statements*)
@@ -140,16 +140,16 @@ fun gen_obtain prep_att prep_vars prep_propp
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
-        (Term.list_all_free (parms, Logic.list_implies (asm_props, thesis)));
+        (fold_rev Logic.all parms (Logic.list_implies (asm_props, thesis)));
     val obtain_prop =
       Logic.list_rename_params [Auto_Bind.thesisN]
-        (Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
+        (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
 
     fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> `Proof.the_fact #-> (fn rule =>
         Proof.fix vars
-        #> Proof.assm (obtain_export fix_ctxt rule (map (cert o Free) parms)) asms);
+        #> Proof.assm (obtain_export fix_ctxt rule (map cert parms)) asms);
   in
     state
     |> Proof.enter_forward

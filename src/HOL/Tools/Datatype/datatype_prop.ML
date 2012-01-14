@@ -139,8 +139,8 @@ fun make_ind descr =
         val frees = tnames ~~ Ts;
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
       in
-        list_all_free (frees,
-          Logic.list_implies (prems,
+        fold_rev (Logic.all o Free) frees
+          (Logic.list_implies (prems,
             HOLogic.mk_Trueprop (make_pred k T $
               list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
@@ -167,8 +167,8 @@ fun make_casedists descr =
         val frees = Name.variant_list ["P", "y"] (make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
       in
-        list_all_free (frees,
-          Logic.mk_implies (HOLogic.mk_Trueprop
+        fold_rev (Logic.all o Free) frees
+          (Logic.mk_implies (HOLogic.mk_Trueprop
             (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
               HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
       end;
@@ -388,11 +388,12 @@ fun make_case_congs case_names descr thy =
             val tnames = Name.variant_list used (make_tnames Ts);
             val frees = map Free (tnames ~~ Ts);
           in
-            list_all_free (tnames ~~ Ts, Logic.mk_implies
-              (HOLogic.mk_Trueprop
-                (HOLogic.mk_eq (M', list_comb (Const (cname, Ts ---> T), frees))),
-               HOLogic.mk_Trueprop
-                (HOLogic.mk_eq (list_comb (f, frees), list_comb (g, frees)))))
+            fold_rev Logic.all frees
+              (Logic.mk_implies
+                (HOLogic.mk_Trueprop
+                  (HOLogic.mk_eq (M', list_comb (Const (cname, Ts ---> T), frees))),
+                 HOLogic.mk_Trueprop
+                  (HOLogic.mk_eq (list_comb (f, frees), list_comb (g, frees)))))
           end;
       in
         Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (M, M')) ::

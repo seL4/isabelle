@@ -332,7 +332,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val cprems = map cert prems;
     val asms = map Thm.assume cprems;
     val premss = map (fn (cargs, eprems, eqn) =>
-      map (fn t => list_all_free (cargs, Logic.list_implies (eprems, t)))
+      map (fn t => fold_rev (Logic.all o Free) cargs (Logic.list_implies (eprems, t)))
         (List.drop (prems_of eqn, length prems))) rec_rewrites';
     val cpremss = map (map cert) premss;
     val asmss = map (map Thm.assume) cpremss;
@@ -355,7 +355,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
       (Conjunction.intr_balanced (map mk_eqn (rec_rewrites' ~~ asmss)));
 
     val goals = map (fn ((cargs, _, _), eqn) =>
-      (list_all_free (cargs, eqn), [])) (rec_rewrites' ~~ eqns');
+      (fold_rev (Logic.all o Free) cargs eqn, [])) (rec_rewrites' ~~ eqns');
 
   in
     lthy' |>

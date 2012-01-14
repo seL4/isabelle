@@ -180,7 +180,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
           if in_concl then (cterm u, cterm (Var ((a, i), T)))
           else (cterm u, cterm (Var ((a, i + maxidx), U)))
       (*Embed B in the original context of params and hyps*)
-      fun embed B = list_all_free (params, Logic.list_implies (hyps, B))
+      fun embed B = fold_rev Logic.all fparams (Logic.list_implies (hyps, B))
       (*Strip the context using elimination rules*)
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
       (*A form of lifting that discharges assumptions.*)

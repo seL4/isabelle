@@ -296,13 +296,13 @@ let
 
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
-       let val quantfrees = map dest_Free (subtract (op =) rec_params (Misc_Legacy.term_frees intr))
+       let val xs = subtract (op =) rec_params (Misc_Legacy.term_frees intr)
            val iprems = List.foldr (add_induct_prem ind_alist) []
                               (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr
            val (SOME pred) = AList.lookup (op aconv) ind_alist X
            val concl = FOLogic.mk_Trueprop (pred $ t)
-       in list_all_free (quantfrees, Logic.list_implies (iprems,concl)) end
+       in fold_rev Logic.all xs (Logic.list_implies (iprems,concl)) end
        handle Bind => error"Recursion term not found in conclusion";
 
      (*Minimizes backtracking by delivering the correct premise to each goal.
