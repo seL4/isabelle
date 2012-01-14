@@ -234,7 +234,6 @@ object Document
     val version: Version
     val node: Node
     val is_outdated: Boolean
-    def command_state(command: Command): Command.State
     def convert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
@@ -465,7 +464,6 @@ object Document
         val version = stable.version.get_finished
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
-        def command_state(command: Command): Command.State = state.command_state(version, command)
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
@@ -478,7 +476,7 @@ object Document
           val former_range = revert(range)
           for {
             (command, command_start) <- node.command_range(former_range).toStream
-            Text.Info(r0, a) <- command_state(command).markup.
+            Text.Info(r0, a) <- state.command_state(version, command).markup.
               cumulate[A]((former_range - command_start).restrict(command.range), info, elements,
                 {
                   case (a, Text.Info(r0, b))

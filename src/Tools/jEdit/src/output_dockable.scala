@@ -86,11 +86,13 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
             case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
               val snapshot = doc_view.update_snapshot()
               val filtered_results =
-                snapshot.command_state(cmd).results.iterator.map(_._2) filter {
-                  case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing  // FIXME not scalable
-                  case _ => true
-                }
-              html_panel.render(filtered_results.toList)
+                snapshot.state.command_state(snapshot.version, cmd).results.iterator
+                  .map(_._2).filter(
+                  { // FIXME not scalable
+                    case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
+                    case _ => true
+                  }).toList
+              html_panel.render(filtered_results)
             case _ =>
           }
         case None =>

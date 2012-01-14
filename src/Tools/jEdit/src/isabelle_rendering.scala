@@ -58,9 +58,9 @@ object Isabelle_Rendering
 
   def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
-    val state = snapshot.command_state(command)
     if (snapshot.is_outdated) None
     else {
+      val state = snapshot.state.command_state(snapshot.version, command)
       val status = Protocol.command_status(state.status)
 
       if (status.is_unprocessed) Some(unprocessed_color)
