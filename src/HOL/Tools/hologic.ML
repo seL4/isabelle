@@ -255,11 +255,11 @@ fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 fun dest_eq (Const ("HOL.eq", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
-fun all_const T = Const ("HOL.All", [T --> boolT] ---> boolT);
+fun all_const T = Const ("HOL.All", (T --> boolT) --> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T) P;
 fun list_all (xs, t) = fold_rev (fn (x, T) => fn P => all_const T $ Abs (x, T, P)) xs t;
 
-fun exists_const T = Const ("HOL.Ex", [T --> boolT] ---> boolT);
+fun exists_const T = Const ("HOL.Ex", (T --> boolT) --> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T) P;
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
@@ -270,14 +270,12 @@ val class_equal = "HOL.equal";
 (* binary operations and relations *)
 
 fun mk_binop c (t, u) =
-  let val T = fastype_of t in
-    Const (c, [T, T] ---> T) $ t $ u
-  end;
+  let val T = fastype_of t
+  in Const (c, T --> T --> T) $ t $ u end;
 
 fun mk_binrel c (t, u) =
-  let val T = fastype_of t in
-    Const (c, [T, T] ---> boolT) $ t $ u
-  end;
+  let val T = fastype_of t
+  in Const (c, T --> T --> boolT) $ t $ u end;
 
 (*destruct the application of a binary operator. The dummyT case is a crude
   way of handling polymorphic operators.*)
@@ -307,7 +305,7 @@ fun mk_prodT (T1, T2) = Type ("Product_Type.prod", [T1, T2]);
 fun dest_prodT (Type ("Product_Type.prod", [T1, T2])) = (T1, T2)
   | dest_prodT T = raise TYPE ("dest_prodT", [T], []);
 
-fun pair_const T1 T2 = Const ("Product_Type.Pair", [T1, T2] ---> mk_prodT (T1, T2));
+fun pair_const T1 T2 = Const ("Product_Type.Pair", T1 --> T2 --> mk_prodT (T1, T2));
 
 fun mk_prod (t1, t2) =
   let val T1 = fastype_of t1 and T2 = fastype_of t2 in
