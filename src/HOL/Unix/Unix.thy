@@ -1034,7 +1034,7 @@ proof -
                   lookup root ((path @ [y]) @ us) \<noteq> None"
                 by cases (auto dest: access_some_lookup)
               then show ?thesis 
-                by (simp, blast dest!: lookup_some_append)
+                by (fastforce dest!: lookup_some_append)
             qed
             finally show ?thesis .
           qed
