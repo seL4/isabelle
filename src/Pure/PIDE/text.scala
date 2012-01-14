@@ -118,9 +118,7 @@ object Text
   sealed case class Info[A](val range: Text.Range, val info: A)
   {
     def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
-    def try_restrict(r: Text.Range): Option[Info[A]] =
-      try { Some(Info(range.restrict(r), info)) }
-      catch { case ERROR(_) => None }
+    def try_restrict(r: Text.Range): Option[Info[A]] = range.try_restrict(r).map(Info(_, info))
   }
 
   type Markup = Info[XML.Elem]

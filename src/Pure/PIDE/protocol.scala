@@ -148,6 +148,7 @@ object Protocol
       tree match {
         case XML.Elem(Markup(name, Position.Id_Range(id, raw_range)), body)
         if include_pos(name) && id == command.id =>
+          // FIXME handle message range outside command range (!??!)
           val range = command.decode(raw_range).restrict(command.range)
           body.foldLeft(if (range.is_singularity) set else set + range)(positions)
         case XML.Elem(Markup(name, _), body) => body.foldLeft(set)(positions)
