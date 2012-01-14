@@ -61,7 +61,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
               Text.Range(buffer_offset, buffer_offset + 1),
               Some(Set(Isabelle_Markup.ENTITY)),
               {
-                // FIXME Protocol.Hyperlink extractor
+                // FIXME Isabelle_Rendering.hyperlink
                 case Text.Info(info_range,
                     XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _))
                   if (props.find(
