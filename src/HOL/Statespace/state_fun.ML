@@ -246,7 +246,7 @@ val update_simproc =
                 let
                   val eq1 =
                     Goal.prove ctxt [] []
-                      (list_all (vars, Logic.mk_equals (trm, trm')))
+                      (Logic.list_all (vars, Logic.mk_equals (trm, trm')))
                       (fn _ => rtac meta_ext 1 THEN simp_tac ss1 1);
                   val eq2 = Simplifier.asm_full_rewrite ss2 (Thm.dest_equals_rhs (cprop_of eq1));
                 in SOME (Thm.transitive eq1 eq2) end
@@ -308,7 +308,7 @@ val ex_lookup_eq_simproc =
             (let
               val (eq, eT, nT, swap) = mkeq (dest_sel_eq t) 0;
               val prop =
-                list_all ([("n", nT), ("x", eT)],
+                Logic.list_all ([("n", nT), ("x", eT)],
                   Logic.mk_equals (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
               val thm = Drule.export_without_context (prove prop);
               val thm' = if swap then swap_ex_eq OF [thm] else thm

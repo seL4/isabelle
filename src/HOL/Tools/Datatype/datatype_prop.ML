@@ -125,7 +125,7 @@ fun make_ind descr =
         fun mk_prem ((dt, s), T) =
           let val (Us, U) = strip_type T
           in
-            list_all (map (pair "x") Us,
+            Logic.list_all (map (pair "x") Us,
               HOLogic.mk_Trueprop
                 (make_pred (Datatype_Aux.body_index dt) U $
                   Datatype_Aux.app_bnds (Free (s, T)) (length Us)))

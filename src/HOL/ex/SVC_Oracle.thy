@@ -101,7 +101,7 @@ fun svc_abstract t =
     fun mt ((c as Const(@{const_name Trueprop}, _)) $ p) = c $ (fm p)
       | mt ((c as Const("==>", _)) $ p $ q)  = c $ (mt p) $ (mt q)
       | mt t = fm t  (*it might be a formula*)
-  in (list_all (params, mt body), !pairs) end;
+  in (Logic.list_all (params, mt body), !pairs) end;
 
 
 (*Present the entire subgoal to the oracle, assumptions and all, but possibly

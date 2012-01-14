@@ -97,7 +97,6 @@ sig
   val lambda: term -> term -> term
   val absfree: string * typ -> term -> term
   val absdummy: typ -> term -> term
-  val list_all: (string * typ) list * term -> term
   val subst_atomic: (term * term) list -> term -> term
   val typ_subst_atomic: (typ * typ) list -> typ -> typ
   val subst_atomic_types: (typ * typ) list -> term -> term
@@ -759,11 +758,6 @@ fun lambda v t = lambda_name ("", v) t;
 
 fun absfree (a, T) body = Abs (a, T, abstract_over (Free (a, T), body));
 fun absdummy T body = Abs (Name.uu_, T, body);
-
-(*Quantification over a list of variables (already bound in body) *)
-fun list_all ([], t) = t
-  | list_all ((a,T)::vars, t) =
-      Const ("all", (T --> propT) --> propT) $ Abs (a, T, list_all (vars, t));
 
 (*Replace the ATOMIC term ti by ui;    inst = [(t1,u1), ..., (tn,un)].
   A simultaneous substitution:  [ (a,b), (b,a) ] swaps a and b.  *)

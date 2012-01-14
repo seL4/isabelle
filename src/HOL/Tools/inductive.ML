@@ -423,7 +423,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
         val frees = map Free (anames ~~ Ts);
 
         fun mk_elim_prem ((_, _, us, _), ts, params') =
-          list_all (params',
+          Logic.list_all (params',
             Logic.list_implies (map (HOLogic.mk_Trueprop o HOLogic.mk_eq)
               (frees ~~ us) @ ts, P));
         val c_intrs = filter (equal c o #1 o #1 o #1) intrs;

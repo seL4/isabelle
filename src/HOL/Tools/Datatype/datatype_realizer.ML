@@ -74,7 +74,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
                   val (p, f) = mk_prems (vs @ [r]) ds;
                 in
                   (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
-                    (list_all (map (pair "x") Us, HOLogic.mk_Trueprop
+                    (Logic.list_all (map (pair "x") Us, HOLogic.mk_Trueprop
                       (make_pred k rT U (Datatype_Aux.app_bnds r i)
                         (Datatype_Aux.app_bnds (Free (s, T)) i))), p)), f)
                 end;

@@ -497,7 +497,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
               end
           in (j + 1, j' + length Ts,
             case dt'' of
-                Datatype.DtRec k => list_all (map (pair "x") Us,
+                Datatype.DtRec k => Logic.list_all (map (pair "x") Us,
                   HOLogic.mk_Trueprop (Free (nth rep_set_names k,
                     T --> HOLogic.boolT) $ free')) :: prems
               | _ => prems,
@@ -1143,7 +1143,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             val (Us, U) = strip_type T;
             val l = length Us;
           in
-            list_all (z :: map (pair "x") Us,
+            Logic.list_all (z :: map (pair "x") Us,
               HOLogic.mk_Trueprop
                 (make_pred fsT (Datatype_Aux.body_index dt) U $ Bound l $
                   Datatype_Aux.app_bnds (Free (s, T)) l))

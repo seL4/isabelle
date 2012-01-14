@@ -152,8 +152,8 @@ fun swap_bound n (Bound i) = if i = n then Bound (n+1)
 
 fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
     let
-        val lhs = list_all ([xv,yv],t)
-        val rhs = list_all ([yv,xv],swap_bound 0 t)
+        val lhs = Logic.list_all ([xv,yv],t)
+        val rhs = Logic.list_all ([yv,xv],swap_bound 0 t)
         val rew = Logic.mk_equals (lhs,rhs)
         val init = Thm.trivial (cterm_of thy rew)
     in

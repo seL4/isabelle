@@ -1121,7 +1121,7 @@ val simproc =
                 SOME (trm, trm', vars) =>
                   SOME
                     (prove_unfold_defs thy [] []
-                      (list_all (vars, Logic.mk_equals (sel $ trm, trm'))))
+                      (Logic.list_all (vars, Logic.mk_equals (sel $ trm, trm'))))
               | NONE => NONE)
             end
           else NONE
@@ -1249,7 +1249,7 @@ val upd_simproc =
         if simp then
           SOME
             (prove_unfold_defs thy noops' [simproc]
-              (list_all (vars, Logic.mk_equals (lhs, rhs))))
+              (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
       end);
 
@@ -1345,7 +1345,7 @@ val ex_sel_eq_simproc =
            (let
              val eq = mkeq (dest_sel_eq t) 0;
              val prop =
-               list_all ([("r", T)],
+               Logic.list_all ([("r", T)],
                  Logic.mk_equals
                   (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
             in

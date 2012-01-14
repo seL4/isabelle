@@ -141,7 +141,7 @@ fun map_thm ctxt f tac monos opt th =
 
 fun abs_params params t =
   let val vs =  map (Var o apfst (rpair 0)) (Term.rename_wrt_term t params)
-  in (list_all (params, t), (rev vs, subst_bounds (vs, t))) end;
+  in (Logic.list_all (params, t), (rev vs, subst_bounds (vs, t))) end;
 
 fun inst_params thy (vs, p) th cts =
   let val env = Pattern.first_order_match thy (p, prop_of th)
@@ -336,7 +336,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val _ $ (f $ (_ $ pi $ l) $ r) = prop_of th2
         val th2' =
           Goal.prove ctxt [] []
-            (list_all (map (pair "pi") pTs, HOLogic.mk_Trueprop
+            (Logic.list_all (map (pair "pi") pTs, HOLogic.mk_Trueprop
                (f $ fold_rev (NominalDatatype.mk_perm (rev pTs))
                   (pis1 @ pi :: pis2) l $ r)))
             (fn _ => cut_facts_tac [th2] 1 THEN

@@ -64,7 +64,7 @@ fun dest_def ctxt check_head is_fixed is_fixedT eq =
     else if exists_subterm (fn t => t aconv head) rhs then
       err "Entity to be defined occurs on rhs"
     else
-      ((lhs, rhs), fold_rev close_arg args (Term.list_all (eq_vars, (Logic.mk_equals (lhs, rhs)))))
+      ((lhs, rhs), fold_rev close_arg args (Logic.list_all (eq_vars, (Logic.mk_equals (lhs, rhs)))))
   end;
 
 (*!!x. c x == t[x] to c == %x. t[x]*)

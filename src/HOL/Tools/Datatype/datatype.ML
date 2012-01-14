@@ -156,7 +156,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 val free_t =
                   Datatype_Aux.app_bnds (Datatype_Aux.mk_Free "x" (Ts ---> Univ_elT) j) (length Ts)
               in
-                (j + 1, list_all (map (pair "x") Ts,
+                (j + 1, Logic.list_all (map (pair "x") Ts,
                   HOLogic.mk_Trueprop
                     (Free (nth rep_set_names' k, UnivT') $ free_t)) :: prems,
                 mk_lim free_t Ts :: ts)

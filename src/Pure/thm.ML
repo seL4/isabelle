@@ -1404,17 +1404,17 @@ fun rotate_rule k i state =
   let
     val Thm (der, {thy_ref, maxidx, shyps, hyps, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
-    val params = Term.strip_all_vars Bi
-    and rest   = Term.strip_all_body Bi;
-    val asms   = Logic.strip_imp_prems rest
-    and concl  = Logic.strip_imp_concl rest;
+    val params = Term.strip_all_vars Bi;
+    val rest = Term.strip_all_body Bi;
+    val asms = Logic.strip_imp_prems rest
+    val concl = Logic.strip_imp_concl rest;
     val n = length asms;
     val m = if k < 0 then n + k else k;
     val Bi' =
       if 0 = m orelse m = n then Bi
       else if 0 < m andalso m < n then
         let val (ps, qs) = chop m asms
-        in list_all (params, Logic.list_implies (qs @ ps, concl)) end
+        in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
   in
     Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi m) der,

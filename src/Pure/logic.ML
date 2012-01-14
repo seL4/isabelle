@@ -11,6 +11,7 @@ sig
   val all: term -> term -> term
   val is_all: term -> bool
   val dest_all: term -> (string * typ) * term
+  val list_all: (string * typ) list * term -> term
   val mk_equals: term * term -> term
   val dest_equals: term -> term * term
   val implies: term
@@ -103,6 +104,9 @@ fun dest_all (Const ("all", _) $ Abs (abs as (_, T, _))) =
       let val (x, b) = Term.dest_abs abs  (*potentially slow*)
       in ((x, T), b) end
   | dest_all t = raise TERM ("dest_all", [t]);
+
+fun list_all ([], t) = t
+  | list_all ((a, T) :: vars, t) = all_const T $ Abs (a, T, list_all (vars, t));
 
 
 (** equality **)
@@ -453,8 +457,7 @@ fun flatten_params n A =
     let val params = strip_params A;
         val vars = ListPair.zip (Name.variant_list [] (map #1 params),
                                  map #2 params)
-    in  list_all (vars, remove_params (length vars) n A)
-    end;
+    in list_all (vars, remove_params (length vars) n A) end;
 
 (*Makes parameters in a goal have the names supplied by the list cs.*)
 fun list_rename_params cs (Const ("==>", _) $ A $ B) =

@@ -171,7 +171,7 @@ fun mk_desc thy tac vs Gam l r m1 m2 =
   let
     fun try rel =
       try_proof (cterm_of thy
-        (Term.list_all (vs,
+        (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
              HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
                $ (m2 $ r) $ (m1 $ l)))))) tac

@@ -240,7 +240,7 @@ fun prove_strong_ind s avoids ctxt =
            HOLogic.mk_Trueprop (lift_pred p ts));
         val vs = map (Var o apfst (rpair 0)) (Term.rename_wrt_term prem params')
       in
-        (list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
+        (Logic.list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
       end) prems);
 
     val ind_vars =
@@ -259,7 +259,7 @@ fun prove_strong_ind s avoids ctxt =
         lift_pred' (Free (fs_ctxt_name, fsT)) p ts)) concls));
 
     val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
-      map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
+      map (fn q => Logic.list_all (params, incr_boundvars ~1 (Logic.list_implies
           (map_filter (fn prem =>
              if null (preds_of ps prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
@@ -439,9 +439,9 @@ fun prove_strong_ind s avoids ctxt =
       map (fn (prem, args, concl, (prems, _)) =>
         let
           fun mk_prem (ps, [], _, prems) =
-                list_all (ps, Logic.list_implies (prems, concl))
+                Logic.list_all (ps, Logic.list_implies (prems, concl))
             | mk_prem (ps, qs, _, prems) =
-                list_all (ps, Logic.mk_implies
+                Logic.list_all (ps, Logic.mk_implies
                   (Logic.list_implies
                     (mk_distinct qs @
                      maps (fn (t, T) => map (fn u => HOLogic.mk_Trueprop
