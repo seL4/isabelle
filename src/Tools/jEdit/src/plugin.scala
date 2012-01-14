@@ -105,19 +105,6 @@ object Isabelle
       Int_Property("relative-font-size", 100)).toFloat / 100
 
 
-  /* text area ranges */
-
-  sealed case class Gfx_Range(val x: Int, val y: Int, val length: Int)
-
-  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
-  {
-    val p = text_area.offsetToXY(range.start)
-    val q = text_area.offsetToXY(range.stop)
-    if (p != null && q != null && p.y == q.y) Some(new Gfx_Range(p.x, p.y, q.x - p.x))
-    else None
-  }
-
-
   /* tooltip markup */
 
   def tooltip(text: String): String =

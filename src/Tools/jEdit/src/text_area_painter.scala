@@ -26,6 +26,19 @@ class Text_Area_Painter(doc_view: Document_View)
   private val text_area = doc_view.text_area
 
 
+  /* text area ranges */
+
+  private class Gfx_Range(val x: Int, val y: Int, val length: Int)
+
+  private def gfx_range(range: Text.Range): Option[Gfx_Range] =
+  {
+    val p = text_area.offsetToXY(range.start)
+    val q = text_area.offsetToXY(range.stop)
+    if (p != null && q != null && p.y == q.y) Some(new Gfx_Range(p.x, p.y, q.x - p.x))
+    else None
+  }
+
+
   /* original painters */
 
   private def pick_extension(name: String): TextAreaExtension =
@@ -92,7 +105,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (1)
             for {
               Text.Info(range, color) <- Isabelle_Rendering.background1(snapshot, line_range)
-              r <- Isabelle.gfx_range(text_area, range)
+              r <- gfx_range(range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -101,7 +114,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (2)
             for {
               Text.Info(range, color) <- Isabelle_Rendering.background2(snapshot, line_range)
-              r <- Isabelle.gfx_range(text_area, range)
+              r <- gfx_range(range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
@@ -110,7 +123,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // squiggly underline
             for {
               Text.Info(range, color) <- Isabelle_Rendering.message_color(snapshot, line_range)
-              r <- Isabelle.gfx_range(text_area, range)
+              r <- gfx_range(range)
             } {
               gfx.setColor(color)
               val x0 = (r.x / 2) * 2
@@ -303,7 +316,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // foreground color
             for {
               Text.Info(range, color) <- Isabelle_Rendering.foreground(snapshot, line_range)
-              r <- Isabelle.gfx_range(text_area, range)
+              r <- gfx_range(range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -312,7 +325,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // highlighted range -- potentially from other snapshot
             doc_view.highlight_range match {
               case Some((range, color)) if line_range.overlaps(range) =>
-                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
+                gfx_range(line_range.restrict(range)) match {
                   case None =>
                   case Some(r) =>
                     gfx.setColor(color)
