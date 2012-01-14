@@ -280,9 +280,8 @@ apply (auto del: map_of_SomeD intro!: map_of_SomeD)
 done
 
 
-definition
-  Un_tables :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
-  where "Un_tables ts\<spacespace>\<spacespace>= (\<lambda>k. \<Union>t\<in>ts. t k)"
+definition Un_tables :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
+  where "Un_tables ts = (\<lambda>k. \<Union>t\<in>ts. t k)"
 
 definition
   overrides_t :: "('a, 'b) tables \<Rightarrow> ('a, 'b) tables \<Rightarrow> ('a, 'b) tables"  (infixl "\<oplus>\<oplus>" 100)

@@ -70,7 +70,7 @@ proof
   fix x y z::acc_modi
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
     by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
-  show "x \<le> x"               \<spacespace>\<spacespace>    -- reflexivity
+  show "x \<le> x"                       -- reflexivity
     by (auto simp add: le_acc_def)
   {
     assume "x \<le> y" "y \<le> z"           -- transitivity 
@@ -766,8 +766,7 @@ qed
 
 section "general recursion operators for the interface and class hiearchies"
 
-function
-  iface_rec  :: "prog \<Rightarrow> qtname \<Rightarrow>   \<spacespace>(qtname \<Rightarrow> iface \<Rightarrow> 'a set \<Rightarrow> 'a) \<Rightarrow> 'a"
+function iface_rec  :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<Rightarrow> iface \<Rightarrow> 'a set \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
 [simp del]: "iface_rec G I f = 
   (case iface G I of 

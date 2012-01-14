@@ -58,9 +58,9 @@ A method head is wellformed if:
 definition
   wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool" where
   "wf_mhead G P = (\<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
-                            \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
+                            ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
                             is_acc_type G P (resTy mh) \<and>
-                            \<spacespace> distinct (pars mh))"
+                            distinct (pars mh))"
 
 
 text {*

@@ -108,7 +108,7 @@ where
 
 definition
   --{* applicable methods, cf. 15.11.2.1 *}
-  appl_methds :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+  appl_methds :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list) set" where
   "appl_methds G S rt = (\<lambda> sig. 
       {(mh,pTs') |mh pTs'. mh \<in> mheads G S rt \<lparr>name=name sig,parTs=pTs'\<rparr> \<and> 
                            G\<turnstile>(parTs sig)[\<preceq>]pTs'})"
@@ -121,7 +121,7 @@ definition
 
 definition
   --{* maximally specific methods, cf. 15.11.2.2 *}
-  max_spec :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+  max_spec :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list) set" where
   "max_spec G S rt sig = {m. m \<in>appl_methds G S rt sig \<and>
                           (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
 

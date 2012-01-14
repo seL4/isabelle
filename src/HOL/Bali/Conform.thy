@@ -380,8 +380,7 @@ definition
   conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"  ("_\<Colon>\<preceq>_" [71,71] 70)  where
    "xs\<Colon>\<preceq>E =
       (let (G, L) = E; s = snd xs; l = locals s in
-        (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
-                    \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>
+        (\<forall>r. \<forall>obj\<in>globs s r: G,s\<turnstile>obj \<Colon>\<preceq>\<surd>r) \<and> G,s\<turnstile>l [\<sim>\<Colon>\<preceq>]L \<and>
         (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)) \<and>
              (fst xs=Some(Jump Ret) \<longrightarrow> l Result \<noteq> None))"
 

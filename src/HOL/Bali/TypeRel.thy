@@ -337,9 +337,9 @@ inductive --{* implementation, cf. 8.1.4 *}
   implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
   for G :: prog
 where
-  direct:         "G\<turnstile>C\<leadsto>1J     \<spacespace>\<spacespace>     \<Longrightarrow> G\<turnstile>C\<leadsto>J"
-| subint:        "\<lbrakk>G\<turnstile>C\<leadsto>1I; G\<turnstile>I\<preceq>I J\<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
-| subcls1:       "\<lbrakk>G\<turnstile>C\<prec>\<^sub>C1D; G\<turnstile>D\<leadsto>J \<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
+  direct: "G\<turnstile>C\<leadsto>1J \<Longrightarrow> G\<turnstile>C\<leadsto>J"
+| subint: "G\<turnstile>C\<leadsto>1I \<Longrightarrow> G\<turnstile>I\<preceq>I J \<Longrightarrow> G\<turnstile>C\<leadsto>J"
+| subcls1: "G\<turnstile>C\<prec>\<^sub>C1D \<Longrightarrow> G\<turnstile>D\<leadsto>J \<Longrightarrow> G\<turnstile>C\<leadsto>J"
 
 lemma implmtD: "G\<turnstile>C\<leadsto>J \<Longrightarrow> (\<exists>I. G\<turnstile>C\<leadsto>1I \<and> G\<turnstile>I\<preceq>I J) \<or> (\<exists>D. G\<turnstile>C\<prec>\<^sub>C1D \<and> G\<turnstile>D\<leadsto>J)" 
 apply (erule implmt.induct)
@@ -602,9 +602,9 @@ where
 | obj_arr: "G\<turnstile>Class Object\<succ>T.[]"
 | int_cls: "G\<turnstile>     Iface I\<succ>Class C"
 | subint:  "imethds G I hidings imethds G J entails 
-           (\<lambda>(md, mh   ) (md',mh').\<spacespace>G\<turnstile>mrt mh\<preceq>mrt mh') \<Longrightarrow>
-           \<not>G\<turnstile>I\<preceq>I J         \<spacespace>\<spacespace>\<spacespace>\<Longrightarrow> G\<turnstile>     Iface I\<succ>Iface J"
-| array:   "G\<turnstile>RefT S\<succ>RefT T   \<spacespace>\<Longrightarrow> G\<turnstile>   RefT S.[]\<succ>RefT T.[]"
+           (\<lambda>(md, mh   ) (md',mh'). G\<turnstile>mrt mh\<preceq>mrt mh') \<Longrightarrow>
+           \<not>G\<turnstile>I\<preceq>I J         \<Longrightarrow> G\<turnstile>     Iface I\<succ>Iface J"
+| array:   "G\<turnstile>RefT S\<succ>RefT T \<Longrightarrow> G\<turnstile>   RefT S.[]\<succ>RefT T.[]"
 
 (*unused*)
 lemma narrow_RefT: "G\<turnstile>RefT R\<succ>T \<Longrightarrow> \<exists>t. T=RefT t"

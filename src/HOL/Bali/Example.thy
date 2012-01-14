@@ -275,8 +275,8 @@ abbreviation
 definition
   test :: "(ty)list \<Rightarrow> stmt" where
   "test pTs = (e:==NewC Ext;; 
-           \<spacespace> Try Expr({Main,ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
-           \<spacespace> Catch((SXcpt NullPointer) z)
+           Try Expr({Main,ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
+           Catch((SXcpt NullPointer) z)
            (lab1\<bullet> While(Acc 
                         (Acc (arr_viewed_from Main Ext).[Lit (Intg 2)])) Skip))"
 
