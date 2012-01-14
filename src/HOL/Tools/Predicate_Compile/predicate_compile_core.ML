@@ -703,12 +703,12 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) param_modes additional_ar
         let
           val bs = map (pair "x") (binder_types (fastype_of t))
           val bounds = map Bound (rev (0 upto (length bs) - 1))
-        in SOME (list_abs (bs, mk_if compfuns (list_comb (t, bounds)))) end)
+        in SOME (fold_rev Term.abs bs (mk_if compfuns (list_comb (t, bounds)))) end)
       | (t, Context m) =>
         let
           val bs = map (pair "x") (binder_types (fastype_of t))
           val bounds = map Bound (rev (0 upto (length bs) - 1))
-        in SOME (list_abs (bs, mk_if compfuns (list_comb (t, bounds)))) end
+        in SOME (fold_rev Term.abs bs (mk_if compfuns (list_comb (t, bounds)))) end
       | (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =>
         (case (expr_of (t1, d1), expr_of (t2, d2)) of
           (NONE, NONE) => NONE

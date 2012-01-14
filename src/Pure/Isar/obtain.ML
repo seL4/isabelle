@@ -286,7 +286,7 @@ fun gen_guess prep_vars raw_vars int state =
         val ts = map Free ps;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
-          |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), []));
+          |> map (fn asm => (Term.betapplys (fold_rev Term.abs ps asm, ts), []));
         val _ = not (null asms) orelse error "Trivial result -- nothing guessed";
       in
         state'

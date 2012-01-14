@@ -23,7 +23,7 @@ fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
     val Ts = map snd ps;
     val tinst' = map (fn (t, u) =>
       (head_of (Logic.incr_indexes (Ts, j) t),
-       list_abs (ps, u))) tinst;
+       fold_rev Term.abs ps u)) tinst;
     val th' = instf
       (map (pairself (ctyp_of thy)) tyinst')
       (map (pairself (cterm_of thy)) tinst')
@@ -155,9 +155,10 @@ fun fresh_fun_tac no_asm i thm =
    let val vars' = Misc_Legacy.term_vars (prop_of st);
        val thy = theory_of_thm st;
    in case subtract (op =) vars vars' of
-     [x] => Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (list_abs (params,Bound 0)))]) st)
+     [x] =>
+      Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
-  end
+   end
   in
   ((fn st =>
   let

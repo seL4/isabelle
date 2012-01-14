@@ -345,7 +345,7 @@ fun gen_dest_case name_of type_of ctxt d used t =
             val (xs, ys) =
               if j < i then (zs @ map (pair "x") (drop j Us), [])
               else chop i zs;
-            val u = list_abs (ys, strip_abs_body t);
+            val u = fold_rev Term.abs ys (strip_abs_body t);
             val xs' = map Free
               ((fold_map Name.variant (map fst xs)
                   (Term.declare_term_names u used) |> fst) ~~

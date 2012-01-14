@@ -56,7 +56,6 @@ sig
   val type_of: term -> typ
   val fastype_of1: typ list * term -> typ
   val fastype_of: term -> typ
-  val list_abs: (string * typ) list * term -> term
   val strip_abs: term -> (string * typ) list * term
   val strip_abs_body: term -> term
   val strip_abs_vars: term -> (string * typ) list
@@ -121,6 +120,7 @@ sig
   val itselfT: typ -> typ
   val a_itselfT: typ
   val argument_type_of: term -> int -> typ
+  val abs: string * typ -> term -> term
   val add_tvar_namesT: typ -> indexname list -> indexname list
   val add_tvar_names: term -> indexname list -> indexname list
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
@@ -353,7 +353,7 @@ fun argument_type_of tm k =
   in arg k [] tm end;
 
 
-val list_abs = uncurry (fold_rev (fn (x, T) => fn t => Abs (x, T, t)));
+fun abs (x, T) t = Abs (x, T, t);
 
 fun strip_abs (Abs (a, T, t)) =
       let val (a', t') = strip_abs t

@@ -101,7 +101,7 @@ fun strong_ind_simproc tab =
             NONE => NONE
           | SOME (bop, (m, p, S, S')) =>
               SOME (close (Goal.prove (Simplifier.the_context ss) [] [])
-                (Logic.mk_equals (t, list_abs (xs, m $ p $ (bop $ S $ S'))))
+                (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
                 (K (EVERY
                   [rtac eq_reflection 1, REPEAT (rtac ext 1), rtac iffI 1,
                    EVERY [etac conjE 1, rtac IntI 1, simp, simp,
@@ -370,9 +370,9 @@ fun to_set thms ctxt thm =
         val x' = map_type (K (HOLogic.mk_setT T)) x
       in
         (cterm_of thy x,
-         cterm_of thy (list_abs (map (pair "x") Ts, HOLogic.mk_mem
-           (HOLogic.mk_ptuple ps T (map Bound (length ps downto 0)), x'))))
-      end) fs
+         cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+          (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (length ps downto 0)), x'))))
+      end) fs;
   in
     thm |>
     Thm.instantiate ([], insts) |>
@@ -434,9 +434,9 @@ fun add_ind_set_def
             (x, (x',
               (HOLogic.Collect_const T $
                  HOLogic.mk_psplits fs T HOLogic.boolT x',
-               list_abs (map (pair "x") Ts, HOLogic.mk_mem
-                 (HOLogic.mk_ptuple fs T (map Bound (length fs downto 0)),
-                  x)))))
+               fold_rev (Term.abs o pair "x") Ts
+                 (HOLogic.mk_mem
+                   (HOLogic.mk_ptuple fs T (map Bound (length fs downto 0)), x)))))
           end
        | NONE => (x, (x, (x, x))))) params;
     val (params1, (params2, params3)) =
@@ -503,8 +503,8 @@ fun add_ind_set_def
           Goal.prove lthy (map (fst o dest_Free) params) []
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (list_comb (p, params3),
-               list_abs (map (pair "x") Ts, HOLogic.mk_mem
-                 (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
+               fold_rev (Term.abs o pair "x") Ts
+                (HOLogic.mk_mem (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, @{thm split_conv}]) 1))

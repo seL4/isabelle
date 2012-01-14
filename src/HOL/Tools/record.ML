@@ -1484,8 +1484,8 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
                 NONE => error "try_param_tac: no such variable"
               | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
           | (_, T) :: _ =>
-              [(P, list_abs (params, if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
-                (x, list_abs (params, Bound 0))])) rule';
+              [(P, fold_rev Term.abs params (if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
+                (x, fold_rev Term.abs params (Bound 0))])) rule';
   in compose_tac (false, rule'', nprems_of rule) i end);
 
 

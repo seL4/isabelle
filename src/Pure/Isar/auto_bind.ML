@@ -26,7 +26,7 @@ val assmsN = "assms";
 fun strip_judgment thy = Object_Logic.drop_judgment thy o Logic.strip_assums_concl;
 
 fun statement_binds thy name prop =
-  [((name, 0), SOME (Term.list_abs (Logic.strip_params prop, strip_judgment thy prop)))];
+  [((name, 0), SOME (fold_rev Term.abs (Logic.strip_params prop) (strip_judgment thy prop)))];
 
 
 (* goal *)
@@ -39,7 +39,7 @@ fun goal thy [prop] = statement_binds thy thesisN prop
 
 fun get_arg thy prop =
   (case strip_judgment thy prop of
-    _ $ t => SOME (Term.list_abs (Logic.strip_params prop, t))
+    _ $ t => SOME (fold_rev Term.abs (Logic.strip_params prop) t)
   | _ => NONE);
 
 fun facts _ [] = []

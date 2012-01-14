@@ -25,7 +25,7 @@ fun cong_tac cong = CSUBGOAL (fn (cgoal, i) =>
             Logic.strip_assums_concl (Thm.prop_of cong');
           val ps = Logic.strip_params (Thm.concl_of cong');
           val insts = [(f', f), (g', g), (x', x), (y', y)]
-            |> map (fn (t, u) => (cert (Term.head_of t), cert (Term.list_abs (ps, u))));
+            |> map (fn (t, u) => (cert (Term.head_of t), cert (fold_rev Term.abs ps u)));
         in
           fn st => compose_tac (false, Drule.cterm_instantiate insts cong', 2) i st
             handle THM _ => no_tac st

@@ -284,8 +284,8 @@ fun elim_vars mk_default prf =
       | hidden_variable (Free f) = not (member (op =) tf f)
       | hidden_variable _ = false;
 
-    fun mk_default' T = list_abs
-      (apfst (map (pair "x")) (apsnd mk_default (strip_type T)));
+    fun mk_default' T =
+      fold_rev (Term.abs o pair "x") (binder_types T) (mk_default (body_type T));
 
     fun elim_varst (t $ u) = elim_varst t $ elim_varst u
       | elim_varst (Abs (s, T, t)) = Abs (s, T, elim_varst t)

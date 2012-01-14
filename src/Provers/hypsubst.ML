@@ -156,18 +156,20 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
         val (v1, v2) = Data.dest_eq (Data.dest_Trueprop
           (Logic.strip_assums_concl (hd (Thm.prems_of rl'))));
         val (Ts, V) = split_last (Term.binder_types T);
-        val u = list_abs (ps @ [("x", U)], case (if b then t else t') of
-            Bound j => subst_bounds (map Bound
-              ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
-          | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
+        val u =
+          fold_rev Term.abs (ps @ [("x", U)])
+            (case (if b then t else t') of
+              Bound j => subst_bounds (map Bound ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
+            | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
         val thy = Thm.theory_of_thm rl';
         val (instT, _) = Thm.match (pairself (cterm_of thy o Logic.mk_type) (V, U));
-      in compose_tac (true, Drule.instantiate_normalize (instT,
-        map (pairself (cterm_of thy))
-          [(Var (ixn, Ts ---> U --> body_type T), u),
-           (Var (fst (dest_Var (head_of v1)), Ts ---> U), list_abs (ps, t)),
-           (Var (fst (dest_Var (head_of v2)), Ts ---> U), list_abs (ps, t'))]) rl',
-        nprems_of rl) i
+      in
+        compose_tac (true, Drule.instantiate_normalize (instT,
+          map (pairself (cterm_of thy))
+            [(Var (ixn, Ts ---> U --> body_type T), u),
+             (Var (fst (dest_Var (head_of v1)), Ts ---> U), fold_rev Term.abs ps t),
+             (Var (fst (dest_Var (head_of v2)), Ts ---> U), fold_rev Term.abs ps t')]) rl',
+          nprems_of rl) i
       end
   | NONE => no_tac);
 

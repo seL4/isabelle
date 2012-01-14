@@ -235,8 +235,8 @@ fun make_primrecs reccomb_names descr thy =
 
         fun mk_reccomb ((dt, T), t) =
           let val (Us, U) = strip_type T in
-            list_abs (map (pair "x") Us,
-              nth reccombs (Datatype_Aux.body_index dt) $ Datatype_Aux.app_bnds t (length Us))
+            fold_rev (Term.abs o pair "x") Us
+              (nth reccombs (Datatype_Aux.body_index dt) $ Datatype_Aux.app_bnds t (length Us))
           end;
 
         val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees');

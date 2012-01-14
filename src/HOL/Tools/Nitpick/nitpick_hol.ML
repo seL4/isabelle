@@ -2119,9 +2119,8 @@ fun is_well_founded_inductive_pred
 fun ap_curry [_] _ t = t
   | ap_curry arg_Ts tuple_T t =
     let val n = length arg_Ts in
-      list_abs (map (pair "c") arg_Ts,
-                incr_boundvars n t
-                $ mk_flat_tuple tuple_T (map Bound (n - 1 downto 0)))
+      fold_rev (Term.abs o pair "c") arg_Ts
+                (incr_boundvars n t $ mk_flat_tuple tuple_T (map Bound (n - 1 downto 0)))
     end
 
 fun num_occs_of_bound_in_term j (t1 $ t2) =
@@ -2182,9 +2181,9 @@ val linear_pred_base_and_step_rhss =
           val step_body = recs |> map (repair_rec j)
                                |> List.foldl s_disj @{const False}
         in
-          (list_abs (tl xs, incr_bv (~1, j, base_body))
+          (fold_rev Term.abs (tl xs) (incr_bv (~1, j, base_body))
            |> ap_n_split (length arg_Ts) tuple_T bool_T,
-           Abs ("y", tuple_T, list_abs (tl xs, step_body)
+           Abs ("y", tuple_T, fold_rev Term.abs (tl xs) step_body
                               |> ap_n_split (length arg_Ts) tuple_T bool_T))
         end
       | aux t =
@@ -2235,7 +2234,7 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
       image_const $ (rtrancl_const $ step_set) $ base_set
       |> predicatify tuple_T
   in
-    list_abs (outer, image_set |> ap_curry tuple_arg_Ts tuple_T)
+    fold_rev Term.abs outer (image_set |> ap_curry tuple_arg_Ts tuple_T)
     |> unfold_defs_in_term hol_ctxt
   end
 

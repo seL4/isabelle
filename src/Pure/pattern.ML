@@ -281,16 +281,18 @@ fun unify thy = unif thy [];
 
 (* put a term into eta long beta normal form *)
 fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
-  | eta_long Ts t = (case strip_comb t of
-      (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-    | (u, ts) =>
-      let
-        val Us = binder_types (fastype_of1 (Ts, t));
-        val i = length Us
-      in list_abs (map (pair "x") Us,
-        list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-          (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
-      end);
+  | eta_long Ts t =
+      (case strip_comb t of
+        (Abs _, _) => eta_long Ts (Envir.beta_norm t)
+      | (u, ts) =>
+          let
+            val Us = binder_types (fastype_of1 (Ts, t));
+            val i = length Us;
+          in
+            fold_rev (Term.abs o pair "x") Us
+              (list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
+                (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
+          end);
 
 
 (*Tests whether 2 terms are alpha/eta-convertible and have same type.

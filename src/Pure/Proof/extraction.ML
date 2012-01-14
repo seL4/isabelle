@@ -283,11 +283,14 @@ fun etype_of thy vs Ts t =
     val {typeof_eqns, ...} = ExtractionData.get thy;
     fun err () = error ("Unable to determine type of extracted program for\n" ^
       Syntax.string_of_term_global thy t)
-  in case strip_abs_body (freeze_thaw (condrew thy (#net typeof_eqns)
-    [typeof_proc [] vs]) (list_abs (map (pair "x") (rev Ts),
-      Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
+  in
+    (case
+      strip_abs_body
+        (freeze_thaw (condrew thy (#net typeof_eqns) [typeof_proc [] vs])
+          (fold (Term.abs o pair "x") Ts
+            (Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
       Const ("Type", _) $ u => (Logic.dest_type u handle TERM _ => err ())
-    | _ => err ()
+    | _ => err ())
   end;
 
 (** realizers for axioms / theorems, together with correctness proofs **)
@@ -513,9 +516,10 @@ fun extract thms thy =
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
 
-    fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
-      (condrew thy' rrews (procs @ [typroc vs, rlz_proc])) (list_abs
-        (map (pair "x") (rev Ts), t)));
+    fun app_rlz_rews Ts vs t =
+      strip_abs (length Ts)
+        (freeze_thaw (condrew thy' rrews (procs @ [typroc vs, rlz_proc]))
+          (fold (Term.abs o pair "x") Ts t));
 
     fun realizes_null vs prop = app_rlz_rews [] vs
       (Const ("realizes", nullT --> propT --> propT) $ nullt $ prop);
@@ -564,7 +568,7 @@ fun extract thms thy =
                 val u' = (case AList.lookup (op =) types (tname_of T) of
                     SOME ((_, SOME f)) => f r eT u T
                   | _ => Const ("realizes", eT --> T --> T) $ r $ u)
-              in app_rlz_rews Ts vs (list_abs (map (pair "x") Us', u')) end
+              in app_rlz_rews Ts vs (fold_rev (Term.abs o pair "x") Us' u') end
           in (defs', corr_prf % SOME u) end
 
       | corr d defs vs ts Ts hs cs (prf1 %% prf2) (prf1' %% prf2') t =

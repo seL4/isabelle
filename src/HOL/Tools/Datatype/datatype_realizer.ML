@@ -216,8 +216,8 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Dat
         (map Var (Term.add_vars (prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
     val r' =
       Logic.varify_global (Abs ("y", T,
-        list_abs (map dest_Free rs, list_comb (r,
-          map Bound ((length rs - 1 downto 0) @ [length rs])))));
+        (fold_rev (Term.abs o dest_Free) rs
+          (list_comb (r, map Bound ((length rs - 1 downto 0) @ [length rs]))))));
   in
     Extraction.add_realizers_i
       [(exh_name, (["P"], r', prf)),

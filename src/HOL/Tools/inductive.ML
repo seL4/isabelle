@@ -652,9 +652,10 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
                 val k = length Ts;
                 val bs = map Bound (k - 1 downto 0);
                 val P = list_comb (nth preds i, map (incr_boundvars k) ys @ bs);
-                val Q = list_abs (mk_names "x" k ~~ Ts,
-                  HOLogic.mk_binop inductive_conj_name
-                    (list_comb (incr_boundvars k s, bs), P));
+                val Q =
+                  fold_rev Term.abs (mk_names "x" k ~~ Ts)
+                    (HOLogic.mk_binop inductive_conj_name
+                      (list_comb (incr_boundvars k s, bs), P));
               in (Q, case Ts of [] => SOME (s, P) | _ => NONE) end
           | NONE =>
               (case s of
@@ -760,9 +761,10 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
             val l = length Us;
             val zs = map Bound (l - 1 downto 0);
           in
-            list_abs (map (pair "z") Us, list_comb (p,
-              make_bool_args' bs i @ make_args argTs
-                ((map (incr_boundvars l) ts ~~ Ts) @ (zs ~~ Us))))
+            fold_rev (Term.abs o pair "z") Us
+              (list_comb (p,
+                make_bool_args' bs i @ make_args argTs
+                  ((map (incr_boundvars l) ts ~~ Ts) @ (zs ~~ Us))))
           end
       | NONE =>
           (case t of

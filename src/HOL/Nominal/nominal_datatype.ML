@@ -231,12 +231,13 @@ fun gen_nominal_datatype prep_specs config dts thy =
             let val T = type_of x
             in if Datatype_Aux.is_rec_type dt then
                 let val Us = binder_types T
-                in list_abs (map (pair "x") Us,
-                  Free (nth perm_names_types' (Datatype_Aux.body_index dt)) $ pi $
-                    list_comb (x, map (fn (i, U) =>
-                      Const ("Nominal.perm", permT --> U --> U) $
-                        (Const ("List.rev", permT --> permT) $ pi) $
-                        Bound i) ((length Us - 1 downto 0) ~~ Us)))
+                in
+                  fold_rev (Term.abs o pair "x") Us
+                    (Free (nth perm_names_types' (Datatype_Aux.body_index dt)) $ pi $
+                      list_comb (x, map (fn (i, U) =>
+                        Const ("Nominal.perm", permT --> U --> U) $
+                          (Const ("List.rev", permT --> permT) $ pi) $
+                          Bound i) ((length Us - 1 downto 0) ~~ Us)))
                 end
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
             end;

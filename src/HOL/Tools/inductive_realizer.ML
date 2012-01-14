@@ -88,8 +88,9 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
           val u = list_comb (t, map Bound (i - 1 downto 0))
         in 
           if member (op =) vs a then
-            list_abs (("r", U) :: xs, mk_rlz U $ Bound i $ u)
-          else list_abs (xs, mk_rlz Extraction.nullT $ Extraction.nullt $ u)
+            fold_rev Term.abs (("r", U) :: xs) (mk_rlz U $ Bound i $ u)
+          else
+            fold_rev Term.abs xs (mk_rlz Extraction.nullT $ Extraction.nullt $ u)
         end
   | gen_rvar _ t = t;
 
@@ -164,24 +165,25 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
                 let
                   val prem' :: prems' = prems;
                   val U = Extraction.etype_of thy vs [] prem';
-                in if U = Extraction.nullT
+                in
+                  if U = Extraction.nullT
                   then fun_of (Free (x, T) :: ts)
                     (Free (r, binder_types T ---> HOLogic.unitT) :: rts)
                     (Free (x, T) :: args) (x :: r :: used) prems'
                   else fun_of (Free (x, T) :: ts) (Free (r, U) :: rts)
                     (Free (r, U) :: Free (x, T) :: args) (x :: r :: used) prems'
                 end
-              else (case strip_type T of
+              else
+                (case strip_type T of
                   (Ts, Type (@{type_name Product_Type.prod}, [T1, T2])) =>
                     let
                       val fx = Free (x, Ts ---> T1);
                       val fr = Free (r, Ts ---> T2);
                       val bs = map Bound (length Ts - 1 downto 0);
-                      val t = list_abs (map (pair "z") Ts,
-                        HOLogic.mk_prod (list_comb (fx, bs), list_comb (fr, bs)))
-                    in fun_of (fx :: ts) (fr :: rts) (t::args)
-                      (x :: r :: used) prems
-                    end
+                      val t =
+                        fold_rev (Term.abs o pair "z") Ts
+                          (HOLogic.mk_prod (list_comb (fx, bs), list_comb (fr, bs)));
+                    in fun_of (fx :: ts) (fr :: rts) (t::args) (x :: r :: used) prems end
                 | (Ts, U) => fun_of (Free (x, T) :: ts)
                     (Free (r, binder_types T ---> HOLogic.unitT) :: rts)
                     (Free (x, T) :: args) (x :: r :: used) prems)
@@ -439,13 +441,16 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val T' = Extraction.etype_of thy (vs @ Ps) [] p;
         val T = if dummy then (HOLogic.unitT --> body_type T') --> T' else T';
         val Ts = map (Extraction.etype_of thy (vs @ Ps) []) (prems_of elim);
-        val r = if null Ps then Extraction.nullt
-          else list_abs (map (pair "x") Ts, list_comb (Const (case_name, T),
-            (if dummy then
-               [Abs ("x", HOLogic.unitT, Const (@{const_name default}, body_type T))]
-             else []) @
-            map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
-            [Bound (length prems)]));
+        val r =
+          if null Ps then Extraction.nullt
+          else
+            fold_rev (Term.abs o pair "x") Ts
+              (list_comb (Const (case_name, T),
+                (if dummy then
+                   [Abs ("x", HOLogic.unitT, Const (@{const_name default}, body_type T))]
+                 else []) @
+                map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
+                [Bound (length prems)]));
         val rlz = Extraction.realizes_of thy (vs @ Ps) r (prop_of elim);
         val rlz' = attach_typeS (strip_all (Logic.unvarify_global rlz));
         val rews = map mk_meta_eq case_thms;

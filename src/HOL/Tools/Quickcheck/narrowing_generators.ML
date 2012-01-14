@@ -462,7 +462,7 @@ fun test_term ctxt (t, eval_terms) =
       let
         val frees = Term.add_frees t []
         val t' = fold_rev absfree frees t
-        fun wrap f t = list_abs (f (strip_abs t))
+        fun wrap f t = uncurry (fold_rev Term.abs) (f (strip_abs t))
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t

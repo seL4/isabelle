@@ -339,7 +339,7 @@ fun make_args _ (_, env, []) = (env, [])   (*frequent case*)
       in (env', map (fn var => Logic.combound (var, 0, length binder)) vars) end;
 
 
-(*Abstraction over a list of types, like list_abs*)
+(*Abstraction over a list of types*)
 fun types_abs ([], u) = u
   | types_abs (T :: Ts, u) = Abs ("", T, types_abs (Ts, u));
 

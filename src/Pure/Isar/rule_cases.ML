@@ -76,7 +76,6 @@ val strip_params = map (apfst (perhaps (try Name.dest_skolem))) o Logic.strip_pa
 
 local
 
-fun abs xs t = Term.list_abs (xs, t);
 fun app us t = Term.betapplys (t, us);
 
 fun dest_binops cs tm =
@@ -115,10 +114,12 @@ fun extract_case thy (case_outline, raw_prop) name hnames concls =
     fun extract prop =
       let
         val (fixes1, fixes2) = extract_fixes case_outline prop;
-        val abs_fixes = abs (fixes1 @ fixes2);
+        val abs_fixes = fold_rev Term.abs (fixes1 @ fixes2);
         fun abs_fixes1 t =
           if not nested then abs_fixes t
-          else abs fixes1 (app (map (Term.dummy_pattern o #2) fixes2) (abs fixes2 t));
+          else
+            fold_rev Term.abs fixes1
+              (app (map (Term.dummy_pattern o #2) fixes2) (fold_rev Term.abs fixes2 t));
         val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) hnames case_outline prop
           |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 

@@ -301,8 +301,8 @@ fun finite_guess_tac_i tactical ss i st =
             val s = fold_rev (fn v => fn s =>
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
               vs HOLogic.unit;
-            val s' = list_abs (ps,
-              Const ("Nominal.supp", fastype_of1 (Ts, s) -->
+            val s' = fold_rev Term.abs ps
+              (Const ("Nominal.supp", fastype_of1 (Ts, s) -->
                 Term.range_type T) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
@@ -345,8 +345,9 @@ fun fresh_guess_tac_i tactical ss i st =
             val s = fold_rev (fn v => fn s =>
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
               vs HOLogic.unit;
-            val s' = list_abs (ps,
-              Const ("Nominal.supp", fastype_of1 (Ts, s) --> (HOLogic.mk_setT T)) $ s);
+            val s' =
+              fold_rev Term.abs ps
+                (Const ("Nominal.supp", fastype_of1 (Ts, s) --> HOLogic.mk_setT T) $ s);
             val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (prems_of supports_fresh_rule'));

@@ -381,8 +381,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               (Logic.mk_implies
                 (HOLogic.mk_Trueprop (HOLogic.list_all
                    (map (pair "x") Ts, S $ Datatype_Aux.app_bnds f i)),
-                 HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
-                   r $ (a $ Datatype_Aux.app_bnds f i)), f))))
+                 HOLogic.mk_Trueprop (HOLogic.mk_eq (fold_rev (Term.abs o pair "x") Ts
+                   (r $ (a $ Datatype_Aux.app_bnds f i)), f))))
               (fn _ => EVERY [REPEAT_DETERM_N i (rtac ext 1),
                  REPEAT (etac allE 1), rtac thm 1, atac 1])
           end

@@ -235,10 +235,10 @@ fun flatten thy lookup_pred t (names, prems) =
                             Const (@{const_name If}, @{typ bool} --> T --> T --> T) $ b $ t $ e
                           val Ts = binder_types (fastype_of t)
                         in
-                          list_abs (map (pair "x") Ts @ [("b", @{typ bool})],
-                            mk_if @{typ bool} (list_comb (t, map Bound (length Ts downto 1)),
-                            HOLogic.mk_eq (@{term True}, Bound 0),
-                            HOLogic.mk_eq (@{term False}, Bound 0)))
+                          fold_rev Term.abs (map (pair "x") Ts @ [("b", @{typ bool})])
+                            (mk_if @{typ bool} (list_comb (t, map Bound (length Ts downto 1)),
+                              HOLogic.mk_eq (@{term True}, Bound 0),
+                              HOLogic.mk_eq (@{term False}, Bound 0)))
                         end
                     val argvs' = map2 lift_arg Ts argvs
                     val resname = singleton (Name.variant_list names') "res"

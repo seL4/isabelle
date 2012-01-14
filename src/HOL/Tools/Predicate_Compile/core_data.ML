@@ -436,7 +436,7 @@ fun functional_compilation fun_name mode compfuns T =
     val bs = map (pair "x") inpTs
     val bounds = map Bound (rev (0 upto (length bs) - 1))
     val f = Const (fun_name, inpTs ---> HOLogic.mk_tupleT outpTs)
-  in list_abs (bs, mk_single compfuns (list_comb (f, bounds))) end
+  in fold_rev Term.abs bs (mk_single compfuns (list_comb (f, bounds))) end
 
 fun register_alternative_function pred_name mode fun_name =
   Alt_Compilations_Data.map (Symtab.insert_list (eq_pair eq_mode (K false))
