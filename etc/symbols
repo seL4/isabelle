@@ -351,7 +351,6 @@
 \<dieresis>             code: 0x0000a8
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
-\<spacespace>           code: 0x002423
 \<some>                 code: 0x0003f5
 \<^sub>                 code: 0x0021e9  abbrev: =_
 \<^sup>                 code: 0x0021e7  abbrev: =^
