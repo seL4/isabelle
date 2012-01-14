@@ -121,7 +121,6 @@ sig
   val aT: sort -> typ
   val itselfT: typ -> typ
   val a_itselfT: typ
-  val all: typ -> term
   val argument_type_of: term -> int -> typ
   val add_tvar_namesT: typ -> indexname list -> indexname list
   val add_tvar_names: term -> indexname list -> indexname list
@@ -579,9 +578,7 @@ fun aT S = TFree (Name.aT, S);
 fun itselfT ty = Type ("itself", [ty]);
 val a_itselfT = itselfT (TFree (Name.aT, []));
 
-val propT : typ = Type("prop",[]);
-
-fun all T = Const("all", (T-->propT)-->propT);
+val propT : typ = Type ("prop",[]);
 
 (* maps  !!x1...xn. t   to   t  *)
 fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
@@ -766,7 +763,7 @@ fun absdummy T body = Abs (Name.uu_, T, body);
 (*Quantification over a list of variables (already bound in body) *)
 fun list_all ([], t) = t
   | list_all ((a,T)::vars, t) =
-        all T $ Abs (a, T, list_all (vars, t));
+      Const ("all", (T --> propT) --> propT) $ Abs (a, T, list_all (vars, t));
 
 (*Replace the ATOMIC term ti by ui;    inst = [(t1,u1), ..., (tn,un)].
   A simultaneous substitution:  [ (a,b), (b,a) ] swaps a and b.  *)

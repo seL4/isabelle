@@ -305,7 +305,7 @@ val head_norm = Envir.head_norm (Envir.empty 0);
 
 fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Abst (s, SOME T, prf)) =
-      Term.all T $ (Abs (s, T, prop_of0 Hs prf))
+      Logic.all_const T $ (Abs (s, T, prop_of0 Hs prf))
   | prop_of0 Hs (AbsP (s, SOME t, prf)) =
       Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
   | prop_of0 Hs (prf % SOME t) = (case head_norm (prop_of0 Hs prf) of

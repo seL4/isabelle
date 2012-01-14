@@ -894,7 +894,7 @@ val close_form =
   let
     fun close_up zs zs' =
       fold (fn (z as ((s, _), T)) => fn t' =>
-               Term.all T $ Abs (s, T, abstract_over (Var z, t')))
+               Logic.all_const T $ Abs (s, T, abstract_over (Var z, t')))
            (take (length zs' - length zs) zs')
     fun aux zs (@{const "==>"} $ t1 $ t2) =
         let val zs' = Term.add_vars t1 zs in

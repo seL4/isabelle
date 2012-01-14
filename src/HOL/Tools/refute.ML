@@ -416,7 +416,7 @@ fun close_form t =
     val vars = sort_wrt (fst o fst) (Term.add_vars t [])
   in
     fold (fn ((x, i), T) => fn t' =>
-      Term.all T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
+      Logic.all_const T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
   end;
 
 val monomorphic_term = ATP_Util.monomorphic_term

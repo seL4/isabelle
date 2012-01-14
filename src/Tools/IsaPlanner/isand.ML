@@ -130,7 +130,7 @@ fun allify_conditions ctermify Ts th =
       val premts = Thm.prems_of th;
     
       fun allify_prem_var (vt as (n,ty),t)  = 
-          (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
+          (Logic.all_const ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
 
       fun allify_prem Ts p = List.foldr allify_prem_var p Ts
 
@@ -171,7 +171,7 @@ forall_elim_vars. *)
 fun assume_allified sgn (tyvs,vs) t = 
     let
       fun allify_var (vt as (n,ty),t)  = 
-          (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
+          (Logic.all_const ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
       fun allify Ts p = List.foldr allify_var p Ts
 
       val ctermify = Thm.cterm_of sgn;
@@ -303,7 +303,7 @@ local
 fun allify_term (v, t) = 
     let val vt = #t (Thm.rep_cterm v)
       val (n,ty) = Term.dest_Free vt
-    in (Term.all ty) $ (Abs(n,ty,Term.abstract_over (vt, t))) end;
+    in (Logic.all_const ty) $ (Abs(n,ty,Term.abstract_over (vt, t))) end;
 
 fun allify_for_sg_term ctermify vs t =
     let val t_alls = List.foldr allify_term t vs;

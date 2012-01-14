@@ -102,7 +102,7 @@ fun close_forms ctxt i xs As =
       | abs_body _ _ a = a;
     fun close (y, U) B =
       let val B' = abs_body 0 y (Term.incr_boundvars 1 B)
-      in if Term.is_dependent B' then Term.all dummyT $ Abs (y, U, B') else B end;
+      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y, U, B') else B end;
     fun close_form A =
       let
         val occ_frees = rev (Variable.add_free_names ctxt A []);

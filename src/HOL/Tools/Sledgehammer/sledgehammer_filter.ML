@@ -163,7 +163,7 @@ fun close_form t =
   |> fold (fn ((s, i), T) => fn (t', taken) =>
               let val s' = singleton (Name.variant_list taken) s in
                 ((if fastype_of t' = HOLogic.boolT then HOLogic.all_const
-                  else Term.all) T
+                  else Logic.all_const) T
                  $ Abs (s', T, abstract_over (Var ((s, i), T), t')),
                  s' :: taken)
               end)

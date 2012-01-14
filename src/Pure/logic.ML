@@ -7,6 +7,7 @@ Abstract syntax operations of the Pure meta-logic.
 
 signature LOGIC =
 sig
+  val all_const: typ -> term
   val all: term -> term -> term
   val is_all: term -> bool
   val dest_all: term -> (string * typ) * term
@@ -91,7 +92,9 @@ struct
 
 (** all **)
 
-fun all v t = Const ("all", (Term.fastype_of v --> propT) --> propT) $ lambda v t;
+fun all_const T = Const ("all", (T --> propT) --> propT);
+
+fun all v t = all_const (Term.fastype_of v) $ lambda v t;
 
 fun is_all (Const ("all", _) $ Abs _) = true
   | is_all _ = false;
@@ -161,7 +164,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 (** conjunction **)
 
-val true_prop = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0));
+val true_prop = all_const propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0));
 val conjunction = Const ("Pure.conjunction", propT --> propT --> propT);
 
 

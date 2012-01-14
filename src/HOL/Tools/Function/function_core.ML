@@ -115,7 +115,7 @@ fun mk_compat_proof_obligations domT ranT fvar f glrs =
           (HOLogic.mk_Trueprop (HOLogic.eq_const domT $ shift lhs $ lhs'),
             HOLogic.mk_Trueprop (HOLogic.eq_const ranT $ shift rhs $ rhs'))
         |> fold_rev (curry Logic.mk_implies) (map shift gs @ gs')
-        |> fold_rev (fn (n,T) => fn b => Term.all T $ Abs(n,T,b)) (qs @ qs')
+        |> fold_rev (fn (n,T) => fn b => Logic.all_const T $ Abs(n,T,b)) (qs @ qs')
         |> curry abstract_over fvar
         |> curry subst_bound f
       end
@@ -389,7 +389,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
     val thy = Proof_Context.theory_of ctxt
 
     (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
-    val ihyp = Term.all domT $ Abs ("z", domT,
+    val ihyp = Logic.all_const domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
         HOLogic.mk_Trueprop (Const (@{const_name Ex1}, (ranT --> boolT) --> boolT) $
           Abs ("y", ranT, G $ Bound 1 $ Bound 0))))
@@ -600,7 +600,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
       |> cterm_of thy
 
     (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-    val ihyp = Term.all domT $ Abs ("z", domT,
+    val ihyp = Logic.all_const domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
         HOLogic.mk_Trueprop (P $ Bound 0)))
       |> cterm_of thy
@@ -780,7 +780,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       |> cterm_of thy (* "wf R'" *)
 
     (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
-    val ihyp = Term.all domT $ Abs ("z", domT,
+    val ihyp = Logic.all_const domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R' $ Bound 0 $ x),
         HOLogic.mk_Trueprop (acc_R $ Bound 0)))
       |> cterm_of thy

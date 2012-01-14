@@ -217,7 +217,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val P_comp = mk_ind_goal thy branches
 
     (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-    val ihyp = Term.all T $ Abs ("z", T,
+    val ihyp = Logic.all_const T $ Abs ("z", T,
       Logic.mk_implies
         (HOLogic.mk_Trueprop (
           Const (@{const_name Set.member}, HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 

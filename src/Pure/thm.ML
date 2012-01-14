@@ -753,7 +753,7 @@ fun forall_intr
         shyps = Sorts.union sorts shyps,
         hyps = hyps,
         tpairs = tpairs,
-        prop = Term.all T $ Abs (a, T, abstract_over (x, prop))});
+        prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))});
     fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
         raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
@@ -1588,7 +1588,7 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
         val T' = Envir.subst_type (Envir.type_env env) T
         (*Must instantiate types of parameters because they are flattened;
           this could be a NEW parameter*)
-      in Term.all T' $ Abs (a, T', norm_term_skip env n t) end
+      in Logic.all_const T' $ Abs (a, T', norm_term_skip env n t) end
   | norm_term_skip env n (Const ("==>", _) $ A $ B) =
       Logic.mk_implies (A, norm_term_skip env (n - 1) B)
   | norm_term_skip _ _ _ = error "norm_term_skip: too few assumptions??";
