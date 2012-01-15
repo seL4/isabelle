@@ -152,29 +152,33 @@ object Isabelle_Rendering
   }
 
   def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    for {
-      Text.Info(r, result) <-
-        snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-          range, (Some(Protocol.Status.init), None),
-          Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
-          {
-            case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
-            if (Protocol.command_status_markup(markup.name)) =>
-              (Some(Protocol.command_status(status, markup)), color)
-            case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-              (None, Some(bad_color))
-            case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
-              (None, Some(hilite_color))
+  {
+    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
+    else
+      for {
+        Text.Info(r, result) <-
+          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
+            range, (Some(Protocol.Status.init), None),
+            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
+            {
+              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+              if (Protocol.command_status_markup(markup.name)) =>
+                (Some(Protocol.command_status(status, markup)), color)
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+                (None, Some(bad_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
+                (None, Some(hilite_color))
+            })
+        color <-
+          (result match {
+            case (Some(status), _) =>
+              if (status.is_running) Some(running1_color)
+              else if (status.is_unprocessed) Some(unprocessed1_color)
+              else None
+            case (_, opt_color) => opt_color
           })
-      color <-
-        (result match {
-          case (Some(status), _) =>
-            if (status.is_running) Some(running1_color)
-            else if (status.is_unprocessed) Some(unprocessed1_color)
-            else None
-          case (_, opt_color) => opt_color
-        })
-    } yield Text.Info(r, color)
+      } yield Text.Info(r, color)
+  }
 
   def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
     snapshot.select_markup(range,
