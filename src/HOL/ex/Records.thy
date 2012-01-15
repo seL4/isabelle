@@ -1,12 +1,12 @@
 (*  Title:      HOL/ex/Records.thy
-    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, 
+    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel,
                 TU Muenchen
 *)
 
 header {* Using extensible records in HOL -- points and coloured points *}
 
 theory Records
-imports Main Record
+imports Main
 begin
 
 subsection {* Points *}
@@ -21,9 +21,9 @@ text {*
 *}
 
 
-thm "point.simps"
-thm "point.iffs"
-thm "point.defs"
+thm point.simps
+thm point.iffs
+thm point.defs
 
 text {*
   The set of theorems @{thm [source] point.simps} is added
@@ -42,26 +42,20 @@ consts foo4 :: "'a => (| xpos :: nat, ypos :: nat, ... :: 'a |)"
 
 subsubsection {* Introducing concrete records and record schemes *}
 
-definition
-  foo1 :: point
-where
-  foo1_def: "foo1 = (| xpos = 1, ypos = 0 |)"
+definition foo1 :: point
+  where "foo1 = (| xpos = 1, ypos = 0 |)"
 
-definition
-  foo3 :: "'a => 'a point_scheme"
-where
-  foo3_def: "foo3 ext = (| xpos = 1, ypos = 0, ... = ext |)"
+definition foo3 :: "'a => 'a point_scheme"
+  where "foo3 ext = (| xpos = 1, ypos = 0, ... = ext |)"
 
 
 subsubsection {* Record selection and record update *}
 
-definition
-  getX :: "'a point_scheme => nat" where
-  "getX r = xpos r"
+definition getX :: "'a point_scheme => nat"
+  where "getX r = xpos r"
 
-definition
-  setX :: "'a point_scheme => nat => 'a point_scheme" where
-  "setX r n = r (| xpos := n |)"
+definition setX :: "'a point_scheme => nat => 'a point_scheme"
+  where "setX r n = r (| xpos := n |)"
 
 
 subsubsection {* Some lemmas about records *}
@@ -96,8 +90,8 @@ lemma "r (| xpos := n |) = r (| xpos := n' |) ==> n = n'"
   -- "elimination of abstract record equality (manual proof)"
 proof -
   assume "r (| xpos := n |) = r (| xpos := n' |)" (is "?lhs = ?rhs")
-  hence "xpos ?lhs = xpos ?rhs" by simp
-  thus ?thesis by simp
+  then have "xpos ?lhs = xpos ?rhs" by simp
+  then show ?thesis by simp
 qed
 
 
@@ -119,7 +113,7 @@ lemma "r(| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
 proof (cases r)
   fix xpos ypos more
   assume "r = (| xpos = xpos, ypos = ypos, ... = more |)"
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma "r (| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
@@ -134,13 +128,13 @@ lemma "r (| xpos := n |) (| xpos := m |) = r (| xpos := m |)"
 proof (cases r)
   fix xpos ypos more
   assume "r = \<lparr>xpos = xpos, ypos = ypos, \<dots> = more\<rparr>"
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma "r (| xpos := n |) (| xpos := m |) = r (| xpos := m |)"
 proof (cases r)
   case fields
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma "r (| xpos := n |) (| xpos := m |) = r (| xpos := m |)"
@@ -151,16 +145,14 @@ text {*
  \medskip Concrete records are type instances of record schemes.
 *}
 
-definition
-  foo5 :: nat where
-  "foo5 = getX (| xpos = 1, ypos = 0 |)"
+definition foo5 :: nat
+  where "foo5 = getX (| xpos = 1, ypos = 0 |)"
 
 
 text {* \medskip Manipulating the ``@{text "..."}'' (more) part. *}
 
-definition
-  incX :: "'a point_scheme => 'a point_scheme" where
-  "incX r = (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
+definition incX :: "'a point_scheme => 'a point_scheme"
+  where "incX r = (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
 
 lemma "incX r = setX r (Suc (getX r))"
   by (simp add: getX_def setX_def incX_def)
@@ -168,9 +160,8 @@ lemma "incX r = setX r (Suc (getX r))"
 
 text {* An alternative definition. *}
 
-definition
-  incX' :: "'a point_scheme => 'a point_scheme" where
-  "incX' r = r (| xpos := xpos r + 1 |)"
+definition incX' :: "'a point_scheme => 'a point_scheme"
+  where "incX' r = r (| xpos := xpos r + 1 |)"
 
 
 subsection {* Coloured points: record extension *}
@@ -184,9 +175,9 @@ record cpoint = point +
 text {*
   The record declaration defines a new type constructure and abbreviations:
   @{text [display]
-"  cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |) = 
+"  cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |) =
      () cpoint_ext_type point_ext_type
-   'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |) = 
+   'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |) =
      'a cpoint_ext_type point_ext_type"}
 *}
 
@@ -200,9 +191,8 @@ text {*
  Functions on @{text point} schemes work for @{text cpoints} as well.
 *}
 
-definition
-  foo10 :: nat where
-  "foo10 = getX (| xpos = 2, ypos = 0, colour = Blue |)"
+definition foo10 :: nat
+  where "foo10 = getX (| xpos = 2, ypos = 0, colour = Blue |)"
 
 
 subsubsection {* Non-coercive structural subtyping *}
@@ -212,9 +202,8 @@ text {*
  Great!
 *}
 
-definition
-  foo11 :: cpoint where
-  "foo11 = setX (| xpos = 2, ypos = 0, colour = Blue |) 0"
+definition foo11 :: cpoint
+  where "foo11 = setX (| xpos = 2, ypos = 0, colour = Blue |) 0"
 
 
 subsection {* Other features *}
@@ -265,8 +254,7 @@ equations for simplification and can also split fixed record variables.
 *}
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic {* simp_tac (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1 *})
   apply simp
   done
 
@@ -276,19 +264,17 @@ lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic {* simp_tac (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1 *})
   apply simp
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.split_simp_tac [] (K ~1) 1 *})
   apply simp
   done
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic {* simp_tac (HOL_basic_ss addsimprocs [Record.split_simproc (K ~1)]) 1 *})
   apply auto
   done
 
@@ -302,35 +288,25 @@ lemma "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
   apply auto
   done
 
-lemma fixes r shows "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac [] (K ~1) 1*})
-  apply auto
-  done
-
-
 lemma True
 proof -
   {
     fix P r
     assume pre: "P (xpos r)"
-    have "\<exists>x. P x"
-      using pre
+    then have "\<exists>x. P x"
       apply -
-      apply (tactic {* Record.split_simp_tac [] (K ~1) 1*})
-      apply auto 
+      apply (tactic {* Record.split_simp_tac [] (K ~1) 1 *})
+      apply auto
       done
   }
   show ?thesis ..
 qed
 
-text {* The effect of simproc @{ML [source]
-"Record.ex_sel_eq_simproc"} is illustrated by the
-following lemma.  
-*}
+text {* The effect of simproc @{ML [source] Record.ex_sel_eq_simproc} is
+  illustrated by the following lemma. *}
 
 lemma "\<exists>r. xpos r = x"
-  apply (tactic {*simp_tac 
-           (HOL_basic_ss addsimprocs [Record.ex_sel_eq_simproc]) 1*})
+  apply (tactic {* simp_tac (HOL_basic_ss addsimprocs [Record.ex_sel_eq_simproc]) 1 *})
   done
 
 
