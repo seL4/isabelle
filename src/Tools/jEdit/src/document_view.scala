@@ -300,10 +300,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 // gutter icons
                 Isabelle_Rendering.gutter_message(snapshot, line_range) match {
                   case Some(icon) =>
-                    val icn = icon.icon
-                    val x0 = (FOLD_MARKER_SIZE + width - border_width - icn.getIconWidth) max 10
-                    val y0 = y + i * line_height + (((line_height - icn.getIconHeight) / 2) max 0)
-                    icn.paintIcon(gutter, gfx, x0, y0)
+                    val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
+                    val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
+                    icon.paintIcon(gutter, gfx, x0, y0)
                   case None =>
                 }
               }
@@ -355,6 +354,12 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     private val WIDTH = 10
     private val HEIGHT = 2
 
+    private def line_to_y(line: Int): Int =
+      (line * getHeight) / (text_area.getBuffer.getLineCount max text_area.getVisibleLines)
+
+    private def y_to_line(y: Int): Int =
+      (y * (text_area.getBuffer.getLineCount max text_area.getVisibleLines)) / getHeight
+
     setPreferredSize(new Dimension(WIDTH, 0))
 
     setRequestFocusEnabled(false)
@@ -386,34 +391,22 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       Isabelle.buffer_lock(buffer) {
         val snapshot = update_snapshot()
 
-        def line_range(command: Command, start: Text.Offset): Option[(Int, Int)] =
-        {
-          try {
-            val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-            val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
-            Some((line1, line2))
-          }
-          catch { case e: ArrayIndexOutOfBoundsException => None }
-        }
         for {
-          (command, start) <- snapshot.node.command_starts
-          if !command.is_ignored
-          (line1, line2) <- line_range(command, start)
-          val y = line_to_y(line1)
-          val height = HEIGHT * (line2 - line1)
-          color <- Isabelle_Rendering.overview_color(snapshot, command)
+          line <- 0 until buffer.getLineCount
+          range <-
+            try {
+              Some(proper_line_range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line)))
+            }
+            catch { case e: ArrayIndexOutOfBoundsException => None }
+          color <- Isabelle_Rendering.overview_color(snapshot, range)
         } {
+          val y = line_to_y(line)
+          val h = (line_to_y(line + 1) - y) max 2
           gfx.setColor(color)
-          gfx.fillRect(0, y, getWidth - 1, height)
+          gfx.fillRect(0, y, getWidth - 1, h)
         }
       }
     }
-
-    private def line_to_y(line: Int): Int =
-      (line * getHeight) / (text_area.getBuffer.getLineCount max text_area.getVisibleLines)
-
-    private def y_to_line(y: Int): Int =
-      (y * (text_area.getBuffer.getLineCount max text_area.getVisibleLines)) / getHeight
   }
 
 
