@@ -379,9 +379,7 @@ type data =
    {selectors: (int * bool) Symtab.table,
     updates: string Symtab.table,
     simpset: simpset,
-    defset: simpset,
-    foldcong: simpset,
-    unfoldcong: simpset},
+    defset: simpset},
   equalities: thm Symtab.table,
   extinjects: thm list,
   extsplit: thm Symtab.table,  (*maps extension name to split rule*)
@@ -401,16 +399,12 @@ structure Data = Theory_Data
   val empty =
     make_data Symtab.empty
       {selectors = Symtab.empty, updates = Symtab.empty,
-          simpset = HOL_basic_ss, defset = HOL_basic_ss,
-          foldcong = HOL_basic_ss, unfoldcong = HOL_basic_ss}
+        simpset = HOL_basic_ss, defset = HOL_basic_ss}
        Symtab.empty [] Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
   val extend = I;
   fun merge
    ({records = recs1,
-     sel_upd =
-      {selectors = sels1, updates = upds1,
-       simpset = ss1, defset = ds1,
-       foldcong = fc1, unfoldcong = uc1},
+     sel_upd = {selectors = sels1, updates = upds1, simpset = ss1, defset = ds1},
      equalities = equalities1,
      extinjects = extinjects1,
      extsplit = extsplit1,
@@ -418,10 +412,7 @@ structure Data = Theory_Data
      extfields = extfields1,
      fieldext = fieldext1},
     {records = recs2,
-     sel_upd =
-      {selectors = sels2, updates = upds2,
-       simpset = ss2, defset = ds2,
-       foldcong = fc2, unfoldcong = uc2},
+     sel_upd = {selectors = sels2, updates = upds2, simpset = ss2, defset = ds2},
      equalities = equalities2,
      extinjects = extinjects2,
      extsplit = extsplit2,
@@ -433,9 +424,7 @@ structure Data = Theory_Data
       {selectors = Symtab.merge (K true) (sels1, sels2),
         updates = Symtab.merge (K true) (upds1, upds2),
         simpset = Simplifier.merge_ss (ss1, ss2),
-        defset = Simplifier.merge_ss (ds1, ds2),
-        foldcong = Simplifier.merge_ss (fc1, fc2),
-        unfoldcong = Simplifier.merge_ss (uc1, uc2)}
+        defset = Simplifier.merge_ss (ds1, ds2)}
       (Symtab.merge Thm.eq_thm_prop (equalities1, equalities2))
       (Thm.merge_thms (extinjects1, extinjects2))
       (Symtab.merge Thm.eq_thm_prop (extsplit1, extsplit2))
@@ -482,22 +471,21 @@ fun get_update_details u thy =
     | NONE => NONE)
   end;
 
-fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
+fun put_sel_upd names more depth simps defs thy =
   let
     val all = names @ [more];
     val sels = map (rpair (depth, false)) names @ [(more, (depth, true))];
     val upds = map (suffix updateN) all ~~ all;
 
-    val {records, sel_upd = {selectors, updates, simpset, defset, foldcong, unfoldcong},
+    val {records, sel_upd = {selectors, updates, simpset, defset},
       equalities, extinjects, extsplit, splits, extfields, fieldext} = Data.get thy;
-    val data = make_data records
-      {selectors = fold Symtab.update_new sels selectors,
-        updates = fold Symtab.update_new upds updates,
-        simpset = simpset addsimps simps,
-        defset = defset addsimps defs,
-        foldcong = foldcong |> fold Simplifier.add_cong folds,
-        unfoldcong = unfoldcong |> fold Simplifier.add_cong unfolds}
-       equalities extinjects extsplit splits extfields fieldext;
+    val data =
+      make_data records
+        {selectors = fold Symtab.update_new sels selectors,
+          updates = fold Symtab.update_new upds updates,
+          simpset = simpset addsimps simps,
+          defset = defset addsimps defs}
+         equalities extinjects extsplit splits extfields fieldext;
   in Data.put data thy end;
 
 
@@ -2214,7 +2202,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val final_thy =
       thms_thy'
       |> put_record name info
-      |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')
+      |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs
       |> add_equalities extension_id equality'
       |> add_extinjects ext_inject
       |> add_extsplit extension_name ext_split
