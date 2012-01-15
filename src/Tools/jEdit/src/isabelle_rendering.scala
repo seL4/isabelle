@@ -10,6 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.Color
+import javax.swing.Icon
 
 import org.lobobrowser.util.gui.ColorFactory
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
@@ -32,7 +33,7 @@ object Isabelle_Rendering
   val running1_color = new Color(97, 0, 97, 100)
 
   val light_color = new Color(240, 240, 240)
-  val regular_color = new Color(192, 192, 192)
+  val writeln_color = new Color(192, 192, 192)
   val warning_color = new Color(255, 140, 0)
   val error_color = new Color(178, 34, 34)
   val error1_color = new Color(178, 34, 34, 50)
@@ -45,47 +46,46 @@ object Isabelle_Rendering
   val keyword1_color = get_color("#006699")
   val keyword2_color = get_color("#009966")
 
-  class Icon(val priority: Int, val icon: javax.swing.Icon)
-  {
-    def >= (that: Icon): Boolean = this.priority >= that.priority
-  }
-  val warning_icon = new Icon(1, Isabelle.load_icon("16x16/status/dialog-information.png"))
-  val legacy_icon = new Icon(2, Isabelle.load_icon("16x16/status/dialog-warning.png"))
-  val error_icon = new Icon(3, Isabelle.load_icon("16x16/status/dialog-error.png"))
+  private val writeln_pri = 1
+  private val warning_pri = 2
+  private val legacy_pri = 3
+  private val error_pri = 4
 
 
   /* command overview */
 
-  def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
+  def overview_color(snapshot: Document.Snapshot, range: Text.Range): Option[Color] =
   {
     if (snapshot.is_outdated) None
     else {
-      val state = snapshot.state.command_state(snapshot.version, command)
-      val status = Protocol.command_status(state.status)
+      val results =
+        snapshot.cumulate_markup[(Protocol.Status, Int)](
+          range, (Protocol.Status.init, 0),
+          Some(Protocol.command_status_markup + Isabelle_Markup.WARNING + Isabelle_Markup.ERROR),
+          {
+            case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
+              if (markup.name == Isabelle_Markup.WARNING) (status, pri max warning_pri)
+              else if (markup.name == Isabelle_Markup.ERROR) (status, pri max error_pri)
+              else (Protocol.command_status(status, markup), pri)
+          })
+      if (results.isEmpty) None
+      else {
+        val (status, pri) =
+          ((Protocol.Status.init, 0) /: results) {
+            case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
 
-      if (status.is_unprocessed) Some(unprocessed_color)
-      else if (status.is_running) Some(running_color)
-      else if (status.is_finished) {
-        if (state.results.exists(r => Protocol.is_error(r._2))) Some(error_color)
-        else if (state.results.exists(r => Protocol.is_warning(r._2))) Some(warning_color)
+        if (pri == warning_pri) Some(warning_color)
+        else if (pri == error_pri) Some(error_color)
+        else if (status.is_unprocessed) Some(unprocessed_color)
+        else if (status.is_running) Some(running_color)
+        else if (status.is_failed) Some(error_color)
         else None
       }
-      else if (status.is_failed) Some(error_color)
-      else None
     }
   }
 
 
   /* markup selectors */
-
-  def message_color(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-      {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN, _), _)) => regular_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), _)) => warning_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_color
-      })
 
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
@@ -103,42 +103,82 @@ object Isabelle_Rendering
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
 
+  private val gutter_icons = Map(
+    warning_pri -> Isabelle.load_icon("16x16/status/dialog-information.png"),
+    legacy_pri -> Isabelle.load_icon("16x16/status/dialog-warning.png"),
+    error_pri -> Isabelle.load_icon("16x16/status/dialog-error.png"))
+
   def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-      {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body)) =>
-          body match {
-            case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => legacy_icon
-            case _ => warning_icon
-          }
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
-      }).map(_.info).toList.sortWith(_ >= _).headOption
+  {
+    val results =
+      snapshot.cumulate_markup[Int](range, 0,
+        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        {
+          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body))) =>
+            body match {
+              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => pri max legacy_pri
+              case _ => pri max warning_pri
+            }
+          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _))) =>
+            pri max error_pri
+        })
+    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+    gutter_icons.get(pri)
+  }
+
+  private val squiggly_colors = Map(
+    writeln_pri -> writeln_color,
+    warning_pri -> warning_color,
+    error_pri -> error_color)
+
+  def squiggly_underline(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+  {
+    val results =
+      snapshot.cumulate_markup[Int](range, 0,
+        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        {
+          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _))) =>
+            name match {
+              case Isabelle_Markup.WRITELN => pri max writeln_pri
+              case Isabelle_Markup.WARNING => pri max warning_pri
+              case Isabelle_Markup.ERROR => pri max error_pri
+              case _ => pri
+            }
+        })
+    for {
+      Text.Info(r, pri) <- results
+      color <- squiggly_colors.get(pri)
+    } yield Text.Info(r, color)
+  }
 
   def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    for {
-      Text.Info(r, result) <-
-        snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-          range, (Some(Protocol.Status()), None),
-          Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
-          {
-            case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
-            if (Protocol.command_status_markup(markup.name)) =>
-              (Some(Protocol.command_status(status, markup)), color)
-            case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-              (None, Some(bad_color))
-            case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
-              (None, Some(hilite_color))
+  {
+    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
+    else
+      for {
+        Text.Info(r, result) <-
+          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
+            range, (Some(Protocol.Status.init), None),
+            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
+            {
+              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+              if (Protocol.command_status_markup(markup.name)) =>
+                (Some(Protocol.command_status(status, markup)), color)
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+                (None, Some(bad_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
+                (None, Some(hilite_color))
+            })
+        color <-
+          (result match {
+            case (Some(status), _) =>
+              if (status.is_running) Some(running1_color)
+              else if (status.is_unprocessed) Some(unprocessed1_color)
+              else None
+            case (_, opt_color) => opt_color
           })
-      color <-
-        (result match {
-          case (Some(status), _) =>
-            if (status.is_running) Some(running1_color)
-            else if (status.is_unprocessed) Some(unprocessed1_color)
-            else None
-          case (_, opt_color) => opt_color
-        })
-    } yield Text.Info(r, color)
+      } yield Text.Info(r, color)
+  }
 
   def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
     snapshot.select_markup(range,

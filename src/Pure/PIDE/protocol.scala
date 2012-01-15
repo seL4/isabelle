@@ -43,6 +43,11 @@ object Protocol
 
   /* command status */
 
+  object Status
+  {
+    val init = Status()
+  }
+
   sealed case class Status(
     private val finished: Boolean = false,
     private val failed: Boolean = false,
@@ -52,6 +57,8 @@ object Protocol
     def is_running: Boolean = forks != 0
     def is_finished: Boolean = finished && forks == 0
     def is_failed: Boolean = failed && forks == 0
+    def + (that: Status): Status =
+      Status(finished || that.finished, failed || that.failed, forks + that.forks)
   }
 
   val command_status_markup: Set[String] =
@@ -68,7 +75,7 @@ object Protocol
     }
 
   def command_status(markups: List[Markup]): Status =
-    (Status() /: markups)(command_status(_, _))
+    (Status.init /: markups)(command_status(_, _))
 
 
   /* node status */

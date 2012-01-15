@@ -71,7 +71,7 @@ theorem exec_pres_type:
   apply (simp add: eff_def xcpt_eff_def norm_eff_def)
   apply (case_tac "bs!p")
 
-  apply (clarsimp simp add: not_Err_eq)
+  apply clarsimp
   apply (drule listE_nth_in, assumption)
   apply fastforce
 

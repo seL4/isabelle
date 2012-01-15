@@ -95,7 +95,7 @@ lemma comp_class_None:
 "(class G C = None) = (class (comp G) C = None)"
 apply (simp add: class_def comp_def compClass_def)
 apply (simp add: map_of_in_set)
-apply (simp add: image_compose [THEN sym] o_def split_beta del: image_compose)
+apply (simp add: image_compose [THEN sym] o_def split_beta)
 done
 
 lemma comp_is_class: "is_class (comp G) C = is_class G C"
@@ -170,7 +170,7 @@ apply (simp add: wf_syscls_def comp_def compClass_def split_beta)
 apply (simp only: image_compose [THEN sym])
 apply (subgoal_tac "(Fun.comp fst (\<lambda>(C, cno::cname, fdls::fdecl list, jmdls).
   (C, cno, fdls, map (compMethod G C) jmdls))) = fst")
-apply (simp del: image_compose)
+apply simp
 apply (simp add: fun_eq_iff split_beta)
 done
 
@@ -275,9 +275,9 @@ lemma map_of_map_fst: "\<lbrakk> inj f;
   = Option.map (\<lambda> e. (snd (g ((inv f) (k, e))))) (map_of (map f xs) k)"
 apply (induct xs)
 apply simp
-apply (simp del: split_paired_All)
+apply simp
 apply (case_tac "k = fst a")
-apply (simp del: split_paired_All)
+apply simp
 apply (subgoal_tac "(inv f (fst a, snd (f a))) = a", simp)
 apply (subgoal_tac "(fst a, snd (f a)) = f a", simp)
 apply (erule conjE)+
@@ -332,7 +332,7 @@ defer
 defer
 
 apply (intro strip)
-apply (simp add: map_add_Some_iff map_of_map del: split_paired_Ex)
+apply (simp add: map_add_Some_iff map_of_map)
 apply (simp add: map_add_def)
 apply (subgoal_tac "inj (\<lambda>(s, m). (s, Ca, m))")
 apply (drule_tac g="(Fun.comp (\<lambda>(s, m). (s, Ca, m)) (compMethod G Ca))" and xs=ms

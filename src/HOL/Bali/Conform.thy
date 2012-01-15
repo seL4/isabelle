@@ -370,8 +370,7 @@ apply (auto simp add: oconf_def)
 apply (drule_tac var_tys_Some_eq [THEN iffD1]) 
 defer
 apply (subst obj_ty_cong)
-apply(auto dest!: fields_table_SomeD obj_ty_CInst1 obj_ty_Arr1
-           split add: sum.split_asm obj_tag.split_asm)
+apply (auto dest!: fields_table_SomeD split add: sum.split_asm obj_tag.split_asm)
 done
 
 section "state conformance"
@@ -430,7 +429,7 @@ by (auto simp: abrupt_if_def)
 
 lemma conforms_error_if [iff]: 
   "((error_if c err x, s)\<Colon>\<preceq>(G, L)) = ((x, s)\<Colon>\<preceq>(G, L))"
-by (auto simp: abrupt_if_def split: split_if)
+by (auto simp: abrupt_if_def)
 
 lemma conforms_NormI: "(x, s)\<Colon>\<preceq>(G, L) \<Longrightarrow> Norm s\<Colon>\<preceq>(G, L)"
 by (auto simp: conforms_def Let_def)

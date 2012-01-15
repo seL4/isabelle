@@ -35,7 +35,7 @@ apply (simp add: wf_java_mdecl_def index_def)
 apply (subgoal_tac "vn \<noteq> This")
 apply simp
 apply (subgoal_tac "\<forall> x \<in> set pns. (\<lambda>z. z \<noteq> vn) x")
-apply (simp add: takeWhile_append2)
+apply simp
 apply (subgoal_tac "length (takeWhile (\<lambda>z. z \<noteq> vn) (map fst lvars)) < length (map fst lvars)")
 apply simp
 apply (rule length_takeWhile)
@@ -86,7 +86,7 @@ lemma index_of_var: "\<lbrakk> xvar \<notin> set pns; xvar \<notin> set (map fst
   \<Longrightarrow> index (pns, zs @ ((xvar, xval) # xys), blk, res) xvar = Suc (length pns + length zs)"
 apply (simp add: index_def)
 apply (subgoal_tac "(\<And>x. ((x \<in> (set pns)) \<Longrightarrow> ((\<lambda>z. (z \<noteq> xvar))x)))")
-apply (simp add: List.takeWhile_append2)
+apply simp
 apply (subgoal_tac "(takeWhile (\<lambda>z. z \<noteq> xvar) (map fst zs @ xvar # map fst xys)) = map fst zs @ (takeWhile (\<lambda>z. z \<noteq> xvar) (xvar # map fst xys))")
 apply simp
 apply (rule List.takeWhile_append2)
@@ -114,7 +114,7 @@ lemma index_of_var2: "
   disjoint_varnames pns (lvars_pre @ (vn, ty) # lvars_post)
   \<Longrightarrow> index (pns, lvars_pre @ (vn, ty) # lvars_post, blk, res) vn =
   Suc (length pns + length lvars_pre)"
-apply (simp add: disjoint_varnames_def index_def unique_def distinct_append)
+apply (simp add: disjoint_varnames_def index_def unique_def)
 apply (subgoal_tac "vn \<noteq> This", simp)
 apply (subgoal_tac
   "takeWhile (\<lambda>z. z \<noteq> vn) (map fst lvars_pre @ vn # map fst lvars_post) =

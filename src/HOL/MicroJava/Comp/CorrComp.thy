@@ -474,14 +474,13 @@ done
 (* to avoid automatic pair splits *)
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
 
 lemma distinct_method: "\<lbrakk> wf_java_prog G; is_class G C; 
   method (G, C) S = Some (D, rT, pns, lvars, blk, res) \<rbrakk> \<Longrightarrow> 
   distinct (gjmb_plns (gmb G C S))"
 apply (frule method_wf_mdecl [THEN conjunct2],  assumption, assumption)
 apply (case_tac S)
-apply (simp add: wf_mdecl_def wf_java_mdecl_def galldefs distinct_append)
+apply (simp add: wf_mdecl_def wf_java_mdecl_def galldefs)
 apply (simp add: unique_def map_of_in_set)
 apply blast
 done
@@ -809,7 +808,7 @@ apply (erule select_at_index)
 (* case LAss *)
 apply (intro allI impI)
 apply (frule wtpd_expr_lass, erule conjE, erule conjE)
-apply (simp add: compExpr_compExprs.simps)
+apply simp
 
 apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply blast
@@ -884,7 +883,7 @@ defer (* method call *)
 apply simp
 
 (* case Nil *)
-apply (simp add: compExpr_compExprs.simps)
+apply simp
 apply (intro strip)
 apply (rule progression_refl)
 
@@ -1261,7 +1260,6 @@ done
 
 (* reinstall pair splits *)
 declare split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 declare wf_prog_ws_prog [simp del]
 

@@ -1037,11 +1037,10 @@ lemma rmlab_same_label1 [simp]: "l=l' \<Longrightarrow> (rmlab l A) l' = UNIV"
 lemma rmlab_other_label [simp]: "l\<noteq>l'\<Longrightarrow> (rmlab l A) l' = A l'"
   by (auto simp add: rmlab_def)
 
-lemma range_inter_ts_subseteq [intro]: "\<forall> k. A k  \<subseteq> B k \<Longrightarrow>  \<Rightarrow>\<Inter>A \<subseteq> \<Rightarrow>\<Inter>B"
+lemma range_inter_ts_subseteq [intro]: "\<forall> k. A k \<subseteq> B k \<Longrightarrow> \<Rightarrow>\<Inter>A \<subseteq> \<Rightarrow>\<Inter>B"
   by (auto simp add: range_inter_ts_def)
 
-lemma range_inter_ts_subseteq': 
-  "\<lbrakk>\<forall> k. A k  \<subseteq> B k; x \<in> \<Rightarrow>\<Inter>A\<rbrakk> \<Longrightarrow> x \<in> \<Rightarrow>\<Inter>B"
+lemma range_inter_ts_subseteq': "\<forall> k. A k \<subseteq> B k \<Longrightarrow> x \<in> \<Rightarrow>\<Inter>A \<Longrightarrow> x \<in> \<Rightarrow>\<Inter>B"
   by (auto simp add: range_inter_ts_def)
 
 lemma da_monotone: 
@@ -1072,7 +1071,7 @@ proof -
       where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
         and A': "nrm A' = nrm C' \<inter> brk C' l" "brk A' = rmlab l (brk C')"
       using Lab.prems
-      by - (erule da_elim_cases,simp)
+      by cases simp
     ultimately
     have "nrm C \<subseteq> nrm C'" and hyp_brk: "(\<forall>l. brk C l \<subseteq> brk C' l)" by auto
     then 
@@ -1095,7 +1094,7 @@ proof -
       where da_c1: "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"  and
             A': "nrm A' = nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
-      by (rule da_elim_cases) auto
+      by cases auto
     note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
     moreover note `B \<subseteq> B'`
     moreover note da_c1
@@ -1116,7 +1115,7 @@ proof -
       where da_c1: "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> B' \<union> assigns_if False e \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
                A': "nrm A' = nrm C1' \<inter> nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
-      by (rule da_elim_cases) auto
+      by cases auto
     note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle> C1`
     moreover note B' = `B \<subseteq> B'`
     moreover note da_c1 
@@ -1138,7 +1137,7 @@ proof -
        da_c': "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
           A': "nrm A' = nrm C' \<inter> (B' \<union> assigns_if False e)"
               "brk A' = brk C'" 
-      by (rule da_elim_cases) auto
+      by cases auto
     note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle> C`
     moreover note B' = `B \<subseteq> B'`
     moreover note da_c'
@@ -1168,7 +1167,7 @@ proof -
     case (Jmp jump B A Env B' A')
     thus ?case by (elim da_elim_cases) (auto split: jump.splits)
   next
-    case Throw thus ?case by -  (erule da_elim_cases, auto)
+    case Throw thus ?case by (elim da_elim_cases) auto
   next
     case (Try Env B c1 C1 vn C c2 C2 A B' A')
     note A = `nrm A = nrm C1 \<inter> nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
@@ -1179,7 +1178,7 @@ proof -
                       \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
             A': "nrm A' = nrm C1' \<inter> nrm C2'"
                 "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'" 
-      by (rule da_elim_cases) auto
+      by cases auto
     note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
     moreover note B' = `B \<subseteq> B'`
     moreover note da_c1'
@@ -1203,7 +1202,7 @@ proof -
              da_c2': "Env\<turnstile> B' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
              A':  "nrm A' = nrm C1' \<union> nrm C2'"
                   "brk A' = (brk C1' \<Rightarrow>\<union>\<^sub>\<forall> nrm C2') \<Rightarrow>\<inter> (brk C2')"
-      by (rule da_elim_cases) auto
+      by cases auto
     note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
     moreover note B' = `B \<subseteq> B'`
     moreover note da_c1'
@@ -1217,19 +1216,19 @@ proof -
      show ?case
        by auto
    next
-     case Init thus ?case by -  (erule da_elim_cases, auto)
+     case Init thus ?case by (elim da_elim_cases) auto
    next
-     case NewC thus ?case by -  (erule da_elim_cases, auto)
+     case NewC thus ?case by (elim da_elim_cases) auto
    next
-     case NewA thus ?case by -  (erule da_elim_cases, auto)
+     case NewA thus ?case by (elim da_elim_cases) auto
    next
-     case Cast thus ?case by -  (erule da_elim_cases, auto)
+     case Cast thus ?case by (elim da_elim_cases) auto
    next
-     case Inst thus ?case by -  (erule da_elim_cases, auto)
+     case Inst thus ?case by (elim da_elim_cases) auto
    next
-     case Lit thus ?case by -  (erule da_elim_cases, auto)
+     case Lit thus ?case by (elim da_elim_cases) auto
    next
-     case UnOp thus ?case by -  (erule da_elim_cases, auto)
+     case UnOp thus ?case by (elim da_elim_cases) auto
    next
      case (CondAnd Env B e1 E1 e2 E2 A B' A')
      note A = `nrm A = B \<union>
@@ -1241,24 +1240,24 @@ proof -
                                  assigns_if True (BinOp CondAnd e1 e2) \<inter>
                                  assigns_if False (BinOp CondAnd e1 e2)"
                       "brk A' = (\<lambda>l. UNIV)" 
-       by (rule da_elim_cases) auto
+       by cases auto
      note B' = `B \<subseteq> B'`
      with A A' show ?case 
        by auto 
    next
-     case CondOr thus ?case by - (erule da_elim_cases, auto)
+     case CondOr thus ?case by (elim da_elim_cases) auto
    next
-     case BinOp thus ?case by -  (erule da_elim_cases, auto)
+     case BinOp thus ?case by (elim da_elim_cases) auto
    next
-     case Super thus ?case by -  (erule da_elim_cases, auto)
+     case Super thus ?case by (elim da_elim_cases) auto
    next
-     case AccLVar thus ?case by -  (erule da_elim_cases, auto)
+     case AccLVar thus ?case by (elim da_elim_cases) auto
    next
-     case Acc thus ?case by -  (erule da_elim_cases, auto)
+     case Acc thus ?case by (elim da_elim_cases) auto
    next
-     case AssLVar thus ?case by - (erule da_elim_cases, auto)
+     case AssLVar thus ?case by (elim da_elim_cases) auto
    next
-     case Ass thus ?case by -  (erule da_elim_cases, auto)
+     case Ass thus ?case by (elim da_elim_cases) auto
    next
      case (CondBool Env c e1 e2 B C E1 E2 A B' A')
      note A = `nrm A = B \<union> 
@@ -1273,7 +1272,7 @@ proof -
                                   assigns_if True (c ? e1 : e2) \<inter> 
                                   assigns_if False (c ? e1 : e2)"
                      "brk A' = (\<lambda>l. UNIV)"
-       by - (erule da_elim_cases,auto simp add: inj_term_simps) 
+       by (elim da_elim_cases) (auto simp add: inj_term_simps) 
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
      note B' = `B \<subseteq> B'`
      with A A' show ?case 
@@ -1289,7 +1288,7 @@ proof -
                  A': "nrm A' = nrm E1' \<inter> nrm E2'"
                      "brk A' = (\<lambda>l. UNIV)"
        using not_bool
-       by  - (erule da_elim_cases, auto simp add: inj_term_simps)
+       by (elim da_elim_cases) (auto simp add: inj_term_simps)
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
      note `PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle> E1`
      moreover note B' = `B \<subseteq> B'`
@@ -1308,19 +1307,19 @@ proof -
     from Call.prems and Call.hyps
     show ?case by cases auto
   next
-    case Methd thus ?case by -  (erule da_elim_cases, auto)
+    case Methd thus ?case by (elim da_elim_cases) auto
   next
-    case Body thus ?case by -  (erule da_elim_cases, auto)
+    case Body thus ?case by (elim da_elim_cases) auto
   next
-    case LVar thus ?case by -  (erule da_elim_cases, auto)
+    case LVar thus ?case by (elim da_elim_cases) auto
   next
-    case FVar thus ?case by -  (erule da_elim_cases, auto)
+    case FVar thus ?case by (elim da_elim_cases) auto
   next
-    case AVar thus ?case by -  (erule da_elim_cases, auto)
+    case AVar thus ?case by (elim da_elim_cases) auto
   next
-    case Nil thus ?case by -  (erule da_elim_cases, auto)
+    case Nil thus ?case by (elim da_elim_cases) auto
   next
-    case Cons thus ?case by -  (erule da_elim_cases, auto)
+    case Cons thus ?case by (elim da_elim_cases) auto
   qed
 qed (rule da', rule `B \<subseteq> B'`)
   

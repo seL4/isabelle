@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/text_area_painter.scala
     Author:     Makarius
 
-Painter setup for main jEdit text area.
+Painter setup for main jEdit text area, depending on common snapshot.
 */
 
 package isabelle.jedit
@@ -16,7 +16,7 @@ import java.util.ArrayList
 
 import org.gjt.sp.jedit.Debug
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
-import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, JEditTextArea}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter}
 
 
 class Text_Area_Painter(doc_view: Document_View)
@@ -26,7 +26,7 @@ class Text_Area_Painter(doc_view: Document_View)
   private val text_area = doc_view.text_area
 
 
-  /* text area ranges */
+  /* graphics range */
 
   private class Gfx_Range(val x: Int, val y: Int, val length: Int)
 
@@ -66,10 +66,8 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      doc_view.robust_body(()) {
-        painter_snapshot = doc_view.update_snapshot()
-        painter_clip = gfx.getClip
-      }
+      painter_snapshot = doc_view.update_snapshot()
+      painter_clip = gfx.getClip
     }
   }
 
@@ -79,11 +77,14 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      doc_view.robust_body(()) {
-        painter_snapshot = null
-        painter_clip = null
-      }
+      painter_snapshot = null
+      painter_clip = null
     }
+  }
+
+  private def robust_snapshot(body: Document.Snapshot => Unit)
+  {
+    doc_view.robust_body(()) { body(painter_snapshot) }
   }
 
 
@@ -95,8 +96,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      doc_view.robust_body(()) {
-        val snapshot = painter_snapshot
+      robust_snapshot { snapshot =>
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -123,7 +123,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // squiggly underline
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.message_color(snapshot, line_range)
+              Text.Info(range, color) <- Isabelle_Rendering.squiggly_underline(snapshot, line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -143,7 +143,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
-  def char_width(): Int =
+  private def char_width(): Int =
   {
     val painter = text_area.getPainter
     val font = painter.getFont
@@ -185,7 +185,7 @@ class Text_Area_Painter(doc_view: Document_View)
     result
   }
 
-  private def paint_chunk_list(
+  private def paint_chunk_list(snapshot: Document.Snapshot,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
@@ -214,7 +214,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            r1 <- Isabelle_Rendering.text_color(painter_snapshot, chunk_range, chunk_color)
+            r1 <- Isabelle_Rendering.text_color(snapshot, chunk_range, chunk_color)
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
@@ -270,7 +270,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      doc_view.robust_body(()) {
+      robust_snapshot { snapshot =>
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
         val fm = text_area.getPainter.getFontMetrics
@@ -284,7 +284,7 @@ class Text_Area_Painter(doc_view: Document_View)
                 case None => x0
                 case Some(chunk) =>
                   gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-                  val w = paint_chunk_list(gfx, start(i), chunk, x0, y0).toInt
+                  val w = paint_chunk_list(snapshot, gfx, start(i), chunk, x0, y0).toInt
                   x0 + w.toInt
               }
             gfx.clipRect(x1, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
@@ -307,9 +307,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      doc_view.robust_body(()) {
-        val snapshot = painter_snapshot
-
+      robust_snapshot { snapshot =>
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = doc_view.proper_line_range(start(i), end(i))
@@ -346,7 +344,7 @@ class Text_Area_Painter(doc_view: Document_View)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      doc_view.robust_body(()) {
+      robust_snapshot { _ =>
         if (before) gfx.clipRect(0, 0, 0, 0)
         else gfx.setClip(painter_clip)
       }
@@ -363,7 +361,7 @@ class Text_Area_Painter(doc_view: Document_View)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      doc_view.robust_body(()) {
+      robust_snapshot { _ =>
         if (text_area.hasFocus) {
           val caret = text_area.getCaretPosition
           if (start <= caret && caret == end - 1) {
