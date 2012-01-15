@@ -16,7 +16,7 @@ import java.util.ArrayList
 
 import org.gjt.sp.jedit.Debug
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
-import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, JEditTextArea}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter}
 
 
 class Text_Area_Painter(doc_view: Document_View)
@@ -123,7 +123,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // squiggly underline
             for {
-              Text.Info(range, color) <- Isabelle_Rendering.message_color(snapshot, line_range)
+              Text.Info(range, color) <- Isabelle_Rendering.squiggly_underline(snapshot, line_range)
               r <- gfx_range(range)
             } {
               gfx.setColor(color)
@@ -143,7 +143,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
-  def char_width(): Int =
+  private def char_width(): Int =
   {
     val painter = text_area.getPainter
     val font = painter.getFont

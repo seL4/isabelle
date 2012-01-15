@@ -78,15 +78,6 @@ object Isabelle_Rendering
 
   /* markup selectors */
 
-  def message_color(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-      {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN, _), _)) => regular_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), _)) => warning_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_color
-      })
-
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
     val msgs =
@@ -114,6 +105,15 @@ object Isabelle_Rendering
           }
         case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_icon
       }).map(_.info).toList.sortWith(_ >= _).headOption
+
+  def squiggly_underline(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN, _), _)) => regular_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), _)) => warning_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _)) => error_color
+      })
 
   def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
     for {
