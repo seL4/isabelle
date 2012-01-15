@@ -294,8 +294,7 @@ proof -
       }
       ultimately show ?thesis using Getfield field "class" stk hconf wf
         apply clarsimp
-        apply (fastforce intro: wf_prog_ws_prog
-          dest!: hconfD widen_cfs_fields oconf_objD)
+        apply (fastforce dest!: hconfD widen_cfs_fields oconf_objD)
         done
     next
       case (Putfield F C)

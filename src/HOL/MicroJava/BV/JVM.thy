@@ -112,11 +112,11 @@ proof -
   from phi' have l: "size phi' = size bs" by simp  
   with instrs w have "phi' ! 0 \<noteq> Err" by (unfold wt_step_def) simp
   with instrs l have phi0: "OK (map ok_val phi' ! 0) = phi' ! 0"
-    by (clarsimp simp add: not_Err_eq)  
+    by auto
 
   from phi' have "check_types G maxs maxr phi'" by(simp add: check_types_def)
   also from w have "phi' = map OK (map ok_val phi')" 
-    by (auto simp add: wt_step_def not_Err_eq intro!: nth_equalityI)
+    by (auto simp add: wt_step_def intro!: nth_equalityI)
   finally 
   have check_types:
     "check_types G maxs maxr (map OK (map ok_val phi'))" .

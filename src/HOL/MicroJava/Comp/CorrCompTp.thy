@@ -955,20 +955,20 @@ apply (rule_tac bc=bc2 and mt=mt2 and bc_post="[]" and mt_post="[Some sttp2]"
 apply simp
 apply (simp (no_asm_simp))+
 apply simp
-apply (simp add: max_ssize_def max_of_list_append) apply (simp (no_asm_simp))
+apply (simp add: max_ssize_def) apply (simp (no_asm_simp))
 
   (* show check_type \<dots> *)
 apply (subgoal_tac "((mt2 @ [Some sttp2]) ! length bc2) = Some sttp2")
 apply (simp only:)
 apply (rule check_type_mono) apply assumption
-apply (simp (no_asm_simp)  add: max_ssize_def max_of_list_append max_ac)
+apply (simp (no_asm_simp) add: max_ssize_def max_ac)
 apply (simp add: nth_append)
 
 apply (erule conjE)+
 apply (case_tac sttp1)
 apply (simp add: check_type_def)
 apply (rule states_lower, assumption)
-apply (simp (no_asm_simp) add: max_ssize_def max_of_list_append)
+apply (simp (no_asm_simp) add: max_ssize_def)
 apply (simp (no_asm_simp) add: max_of_list_def ssize_sto_def)
 apply (simp (no_asm_simp))+
 done
@@ -1742,7 +1742,7 @@ apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3]
   and ?f3.0 = "popST (Suc 0) \<box> pushST [PrimT Boolean]"
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
-  apply (simp add: compTpExpr_LT_ST_rewr popST_def)
+  apply simp
   apply (rule_tac T="(PrimT Boolean)" in bc_mt_corresp_LitPush) apply (simp (no_asm_simp))
   apply (simp (no_asm_simp) add: length_compTpExpr)
   apply (simp (no_asm_simp))
@@ -1775,7 +1775,7 @@ apply (drule_tac
   and ?f3.0 = "comb_nil" 
   in bc_mt_corresp_comb_inside)
   apply (simp (no_asm_simp))+
-  apply (simp add: compTpExpr_LT_ST_rewr popST_def) 
+  apply simp
   apply (rule_tac T="(PrimT Boolean)" in bc_mt_corresp_LitPush) apply (simp (no_asm_simp))
   apply (simp (no_asm_simp) add: length_compTpExpr)
   apply (simp (no_asm_simp) add: start_sttp_resp_def)

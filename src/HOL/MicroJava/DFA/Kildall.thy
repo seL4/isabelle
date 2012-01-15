@@ -320,7 +320,7 @@ proof -
     apply (rule sym, assumption)
     defer apply simp
     apply (subgoal_tac "\<forall>q t. \<not>((q, t) \<in> set qs \<and> t +_f ss ! q \<noteq> ss ! q)")
-    apply (blast intro!: psubsetI elim: equalityE)
+    apply (blast elim: equalityE)
     apply clarsimp
     apply (drule bspec, assumption) 
     apply (drule bspec, assumption)

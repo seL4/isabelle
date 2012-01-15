@@ -155,7 +155,7 @@ lemma (in Semilat) plus_le_conv [simp]:
 lemma (in Semilat) le_iff_plus_unchanged: "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> (x \<sqsubseteq>\<^sub>r y) = (x \<squnion>\<^sub>f y = y)"
 (*<*)
 apply (rule iffI)
- apply (blast intro: antisym_r refl_r lub ub2)
+ apply (blast intro: antisym_r lub ub2)
 apply (erule subst)
 apply simp
 done
@@ -164,7 +164,7 @@ done
 lemma (in Semilat) le_iff_plus_unchanged2: "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> (x \<sqsubseteq>\<^sub>r y) = (y \<squnion>\<^sub>f x = y)"
 (*<*)
 apply (rule iffI)
- apply (blast intro: order_antisym lub order_refl ub1)
+ apply (blast intro: order_antisym lub ub1)
 apply (erule subst)
 apply simp
 done 
