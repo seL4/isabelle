@@ -1,6 +1,12 @@
+(* Author: Tobias Nipkow *)
+
+header "Abstract Interpretation"
+
 theory Complete_Lattice_ix
 imports Main
 begin
+
+subsection "Complete Lattice (indexed)"
 
 text{* A complete lattice is an ordered type where every set of elements has
 a greatest lower (and thus also a leats upper) bound. Sets are the

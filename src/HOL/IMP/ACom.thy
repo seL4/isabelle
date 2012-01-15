@@ -7,7 +7,7 @@ begin
 (* is there a better place? *)
 definition "show_state xs s = [(x,s x). x \<leftarrow> xs]"
 
-section "Annotated Commands"
+subsection "Annotated Commands"
 
 datatype 'a acom =
   SKIP   'a                           ("SKIP {_}" 61) |

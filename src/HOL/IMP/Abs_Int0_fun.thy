@@ -1,7 +1,5 @@
 (* Author: Tobias Nipkow *)
 
-header "Abstract Interpretation"
-
 theory Abs_Int0_fun
 imports "~~/src/HOL/ex/Interpretation_with_Defs"
         "~~/src/HOL/Library/While_Combinator"
