@@ -331,8 +331,8 @@ type info =
   update_convs: thm list,
   select_defs: thm list,
   update_defs: thm list,
-  fold_congs: thm list,
-  unfold_congs: thm list,
+  fold_congs: thm list,  (* FIXME unused!? *)
+  unfold_congs: thm list,  (* FIXME unused!? *)
   splits: thm list,
   defs: thm list,
 
