@@ -137,33 +137,32 @@ object Isabelle_Rendering
       Isabelle_Markup.ML_SOURCE -> "ML source",
       Isabelle_Markup.DOC_SOURCE -> "document source")
 
+  private val tooltip_elements =
+    Set(Isabelle_Markup.ENTITY, Isabelle_Markup.TYPING, Isabelle_Markup.ML_TYPING) ++
+    tooltips.keys
+
   private def string_of_typing(kind: String, body: XML.Body): String =
     Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
       margin = Isabelle.Int_Property("tooltip-margin"))
 
   def tooltip(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
-    val tip1 =
-      snapshot.select_markup(range,
-        Some(Set(Isabelle_Markup.ENTITY, Isabelle_Markup.ML_TYPING) ++ tooltips.keys),
-        {
-          case Text.Info(_, XML.Elem(Isabelle_Markup.Entity(kind, name), _)) =>
-            kind + " " + quote(name)
-          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body)) =>
-            string_of_typing("ML:", body)
-          case Text.Info(_, XML.Elem(Markup(name, _), _))
-          if tooltips.isDefinedAt(name) => tooltips(name)
-        })
-    val tip2 =
-      snapshot.select_markup(range, Some(Set(Isabelle_Markup.TYPING)),
-        {
-          case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TYPING, _), body)) =>
-            string_of_typing("::", body)
-        })
+    def add(prev: Text.Info[List[String]], r: Text.Range, s: String) =
+      if (prev.range == r) Text.Info(r, s :: prev.info) else Text.Info(r, List(s))
 
     val tips =
-      (tip1 match { case Text.Info(_, text) #:: _ => List(text) case _ => Nil }) :::
-      (tip2 match { case Text.Info(_, text) #:: _ => List(text) case _ => Nil })
+      snapshot.cumulate_markup[Text.Info[List[String]]](
+        range, Text.Info(range, Nil), Some(tooltip_elements),
+        {
+          case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
+            add(prev, r, kind + " " + quote(name))
+          case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.TYPING, _), body))) =>
+            add(prev, r, string_of_typing("::", body))
+          case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body))) =>
+            add(prev, r, string_of_typing("ML:", body))
+          case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
+          if tooltips.isDefinedAt(name) => add (prev, r, tooltips(name))
+        }).toList.flatMap(_.info.info)
 
     if (tips.isEmpty) None else Some(cat_lines(tips))
   }
