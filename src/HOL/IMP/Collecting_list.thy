@@ -15,14 +15,20 @@ fun step :: "state list \<Rightarrow> state list acom \<Rightarrow> state list a
 "step S ({Inv} WHILE b DO c {P}) =
   {S @ post c} WHILE b DO (step [s\<leftarrow>Inv. bval b s] c) {[s\<leftarrow>Inv. \<not> bval b s]}"
 
-definition "c = WHILE Less (V ''x'') (N 2) DO ''x'' ::= Plus (V ''x'') (N 1)"
+
+text{* Examples: *}
+
+definition "c = WHILE Less (V ''x'') (N 3)
+                DO ''x'' ::= Plus (V ''x'') (N 2)"
 definition "c0 = anno [] c"
 
 definition "show_acom xs = map_acom (map (show_state xs))"
 
+
 text{* Collecting semantics: *}
 
 value "show_acom [''x''] (((step [<>]) ^^ 6) c0)"
+
 
 text{* Small step semantics: *}
 
