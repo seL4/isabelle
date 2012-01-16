@@ -528,8 +528,9 @@ $(OUT)/HOL-IMP: $(OUT)/HOL \
   IMP/Abs_Int_Den/Abs_Int_den0_const.thy IMP/Abs_Int_Den/Abs_Int_den1.thy \
   IMP/Abs_Int_Den/Abs_Int_den1_ivl.thy IMP/Abs_Int_Den/Abs_Int_den2.thy \
   IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	IMP/Big_Step.thy IMP/C_like.thy \
-  IMP/Collecting.thy IMP/Collecting1.thy IMP/Com.thy IMP/Compiler.thy \
-  IMP/Comp_Rev.thy IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
+  IMP/Collecting.thy IMP/Collecting_list.thy IMP/Collecting1.thy IMP/Com.thy \
+  IMP/Compiler.thy IMP/Comp_Rev.thy \
+  IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
   IMP/Def_Ass_Small.thy IMP/Def_Ass_Sound_Big.thy \
   IMP/Def_Ass_Sound_Small.thy IMP/Denotation.thy IMP/Hoare.thy \
   IMP/HoareT.thy IMP/Hoare_Examples.thy IMP/Hoare_Sound_Complete.thy \
