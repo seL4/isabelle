@@ -93,7 +93,9 @@ fun strip_positions_ast_tr [ast] = Ast.strip_positions ast
 
 (* constify *)
 
-fun constify_ast_tr [Ast.Variable c] = Ast.Constant c
+fun constify_ast_tr [Ast.Appl [c as Ast.Constant "_constrain", ast1, ast2]] =
+      Ast.Appl [c, constify_ast_tr [ast1], ast2]
+  | constify_ast_tr [Ast.Variable c] = Ast.Constant c
   | constify_ast_tr asts = raise Ast.AST ("constify_ast_tr", asts);
 
 

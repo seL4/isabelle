@@ -26,9 +26,9 @@ fun mk_bin num =
 
 in
 
-fun numeral_tr (*"_Numeral"*) [t as Const (num, _)] =
-      Syntax.const @{const_syntax Int.number_of} $ mk_bin num
-  | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
+fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ numeral_tr [t] $ u
+  | numeral_tr [t as Const (num, _)] = Syntax.const @{const_syntax Int.number_of} $ mk_bin num
+  | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
 end;
 

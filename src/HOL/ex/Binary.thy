@@ -193,7 +193,8 @@ let
   val syntax_consts =
     map_aterms (fn Const (c, T) => Const (Lexicon.mark_const c, T) | a => a);
 
-  fun binary_tr [Const (num, _)] =
+  fun binary_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ binary_tr [t] $ u
+    | binary_tr [Const (num, _)] =
         let
           val {leading_zeros = z, value = n, ...} = Lexicon.read_xnum num;
           val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);

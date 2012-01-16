@@ -296,7 +296,7 @@ lemmas bit1_iszero_number_of [simp] = bit1.iszero_number_of
 subsection {* Syntax *}
 
 syntax
-  "_NumeralType" :: "num_const => type"  ("_")
+  "_NumeralType" :: "num_token => type"  ("_")
   "_NumeralType0" :: type ("0")
   "_NumeralType1" :: type ("1")
 
@@ -306,46 +306,45 @@ translations
 
 parse_translation {*
 let
-fun mk_bintype n =
-  let
-    fun mk_bit 0 = Syntax.const @{type_syntax bit0}
-      | mk_bit 1 = Syntax.const @{type_syntax bit1};
-    fun bin_of n =
-      if n = 1 then Syntax.const @{type_syntax num1}
-      else if n = 0 then Syntax.const @{type_syntax num0}
-      else if n = ~1 then raise TERM ("negative type numeral", [])
-      else
-        let val (q, r) = Integer.div_mod n 2;
-        in mk_bit r $ bin_of q end;
-  in bin_of n end;
+  fun mk_bintype n =
+    let
+      fun mk_bit 0 = Syntax.const @{type_syntax bit0}
+        | mk_bit 1 = Syntax.const @{type_syntax bit1};
+      fun bin_of n =
+        if n = 1 then Syntax.const @{type_syntax num1}
+        else if n = 0 then Syntax.const @{type_syntax num0}
+        else if n = ~1 then raise TERM ("negative type numeral", [])
+        else
+          let val (q, r) = Integer.div_mod n 2;
+          in mk_bit r $ bin_of q end;
+    in bin_of n end;
 
-fun numeral_tr (*"_NumeralType"*) [Const (str, _)] =
-      mk_bintype (the (Int.fromString str))
-  | numeral_tr (*"_NumeralType"*) ts = raise TERM ("numeral_tr", ts);
+  fun numeral_tr [Free (str, _)] = mk_bintype (the (Int.fromString str))
+    | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
 in [(@{syntax_const "_NumeralType"}, numeral_tr)] end;
 *}
 
 print_translation {*
 let
-fun int_of [] = 0
-  | int_of (b :: bs) = b + 2 * int_of bs;
+  fun int_of [] = 0
+    | int_of (b :: bs) = b + 2 * int_of bs;
 
-fun bin_of (Const (@{type_syntax num0}, _)) = []
-  | bin_of (Const (@{type_syntax num1}, _)) = [1]
-  | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
-  | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
-  | bin_of t = raise TERM ("bin_of", [t]);
+  fun bin_of (Const (@{type_syntax num0}, _)) = []
+    | bin_of (Const (@{type_syntax num1}, _)) = [1]
+    | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
+    | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
+    | bin_of t = raise TERM ("bin_of", [t]);
 
-fun bit_tr' b [t] =
-      let
-        val rev_digs = b :: bin_of t handle TERM _ => raise Match
-        val i = int_of rev_digs;
-        val num = string_of_int (abs i);
-      in
-        Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
-      end
-  | bit_tr' b _ = raise Match;
+  fun bit_tr' b [t] =
+        let
+          val rev_digs = b :: bin_of t handle TERM _ => raise Match
+          val i = int_of rev_digs;
+          val num = string_of_int (abs i);
+        in
+          Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
+        end
+    | bit_tr' b _ = raise Match;
 in [(@{type_syntax bit0}, bit_tr' 0), (@{type_syntax bit1}, bit_tr' 1)] end;
 *}
 

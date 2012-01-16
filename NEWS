@@ -26,7 +26,8 @@ indices of schematic variables.
 * Renamed inner syntax categories "num" to "num_token" and "xnum" to
 "xnum_token", in accordance to existing "float_token".  Minor
 INCOMPATIBILITY.  Note that in practice "num_const" etc. are mainly
-used instead.
+used instead (which also include position information via
+constraints).
 
 
 *** Pure ***

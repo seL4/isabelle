@@ -35,8 +35,9 @@ fun mk_frac str =
 
 in
 
-fun float_tr (*"_Float"*) [t as Const (str, _)] = mk_frac str
-  | float_tr (*"_Float"*) ts = raise TERM ("float_tr", ts);
+fun float_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ float_tr [t] $ u
+  | float_tr [t as Const (str, _)] = mk_frac str
+  | float_tr ts = raise TERM ("float_tr", ts);
 
 end;
 
