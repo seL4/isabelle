@@ -87,6 +87,23 @@ object Isabelle_Rendering
 
   /* markup selectors */
 
+  private val subexp_include =
+    Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
+      Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
+      Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM, Isabelle_Markup.BOUND,
+      Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE,
+      Isabelle_Markup.DOC_SOURCE)
+
+  def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
+  {
+    snapshot.select_markup(range, Some(subexp_include),
+        {
+          case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
+            Text.Info(snapshot.convert(range), subexp_color)
+        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
+  }
+
+
   def tooltip_message(snapshot: Document.Snapshot, range: Text.Range): Option[String] =
   {
     val msgs =
@@ -103,133 +120,6 @@ object Isabelle_Rendering
     if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
   }
 
-  private val gutter_icons = Map(
-    warning_pri -> Isabelle.load_icon("16x16/status/dialog-information.png"),
-    legacy_pri -> Isabelle.load_icon("16x16/status/dialog-warning.png"),
-    error_pri -> Isabelle.load_icon("16x16/status/dialog-error.png"))
-
-  def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
-  {
-    val results =
-      snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-        {
-          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body))) =>
-            body match {
-              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => pri max legacy_pri
-              case _ => pri max warning_pri
-            }
-          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _))) =>
-            pri max error_pri
-        })
-    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
-    gutter_icons.get(pri)
-  }
-
-  private val squiggly_colors = Map(
-    writeln_pri -> writeln_color,
-    warning_pri -> warning_color,
-    error_pri -> error_color)
-
-  def squiggly_underline(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-  {
-    val results =
-      snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
-        {
-          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _))) =>
-            name match {
-              case Isabelle_Markup.WRITELN => pri max writeln_pri
-              case Isabelle_Markup.WARNING => pri max warning_pri
-              case Isabelle_Markup.ERROR => pri max error_pri
-              case _ => pri
-            }
-        })
-    for {
-      Text.Info(r, pri) <- results
-      color <- squiggly_colors.get(pri)
-    } yield Text.Info(r, color)
-  }
-
-  def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-  {
-    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
-    else
-      for {
-        Text.Info(r, result) <-
-          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None),
-            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
-            {
-              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
-              if (Protocol.command_status_markup(markup.name)) =>
-                (Some(Protocol.command_status(status, markup)), color)
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
-                (None, Some(bad_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
-                (None, Some(hilite_color))
-            })
-        color <-
-          (result match {
-            case (Some(status), _) =>
-              if (status.is_running) Some(running1_color)
-              else if (status.is_unprocessed) Some(unprocessed1_color)
-              else None
-            case (_, opt_color) => opt_color
-          })
-      } yield Text.Info(r, color)
-  }
-
-  def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.TOKEN_RANGE)),
-      {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
-      })
-
-  def foreground(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
-      {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
-      })
-
-  private val text_colors: Map[String, Color] =
-    Map(
-      Isabelle_Markup.STRING -> get_color("black"),
-      Isabelle_Markup.ALTSTRING -> get_color("black"),
-      Isabelle_Markup.VERBATIM -> get_color("black"),
-      Isabelle_Markup.LITERAL -> keyword1_color,
-      Isabelle_Markup.DELIMITER -> get_color("black"),
-      Isabelle_Markup.TFREE -> get_color("#A020F0"),
-      Isabelle_Markup.TVAR -> get_color("#A020F0"),
-      Isabelle_Markup.FREE -> get_color("blue"),
-      Isabelle_Markup.SKOLEM -> get_color("#D2691E"),
-      Isabelle_Markup.BOUND -> get_color("green"),
-      Isabelle_Markup.VAR -> get_color("#00009B"),
-      Isabelle_Markup.INNER_STRING -> get_color("#D2691E"),
-      Isabelle_Markup.INNER_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.DYNAMIC_FACT -> get_color("#7BA428"),
-      Isabelle_Markup.ML_KEYWORD -> keyword1_color,
-      Isabelle_Markup.ML_DELIMITER -> get_color("black"),
-      Isabelle_Markup.ML_NUMERAL -> get_color("red"),
-      Isabelle_Markup.ML_CHAR -> get_color("#D2691E"),
-      Isabelle_Markup.ML_STRING -> get_color("#D2691E"),
-      Isabelle_Markup.ML_COMMENT -> get_color("#8B0000"),
-      Isabelle_Markup.ML_MALFORMED -> get_color("#FF6A6A"),
-      Isabelle_Markup.ANTIQ -> get_color("blue"))
-
-  private val text_color_elements = Set.empty[String] ++ text_colors.keys
-
-  def text_color(snapshot: Document.Snapshot, range: Text.Range, color: Color)
-      : Stream[Text.Info[Color]] =
-    snapshot.cumulate_markup(range, color, Some(text_color_elements),
-      {
-        case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
-        if text_colors.isDefinedAt(m) => text_colors(m)
-      })
 
   private val tooltips: Map[String, String] =
     Map(
@@ -278,21 +168,139 @@ object Isabelle_Rendering
     if (tips.isEmpty) None else Some(cat_lines(tips))
   }
 
-  private val subexp_include =
-    Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
-      Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
-      Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM, Isabelle_Markup.BOUND,
-      Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE,
-      Isabelle_Markup.DOC_SOURCE)
 
-  def subexp(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[Color]] =
+  private val gutter_icons = Map(
+    warning_pri -> Isabelle.load_icon("16x16/status/dialog-information.png"),
+    legacy_pri -> Isabelle.load_icon("16x16/status/dialog-warning.png"),
+    error_pri -> Isabelle.load_icon("16x16/status/dialog-error.png"))
+
+  def gutter_message(snapshot: Document.Snapshot, range: Text.Range): Option[Icon] =
   {
-    snapshot.select_markup(range, Some(subexp_include),
+    val results =
+      snapshot.cumulate_markup[Int](range, 0,
+        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
         {
-          case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-            Text.Info(snapshot.convert(range), subexp_color)
-        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
+          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body))) =>
+            body match {
+              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) => pri max legacy_pri
+              case _ => pri max warning_pri
+            }
+          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _))) =>
+            pri max error_pri
+        })
+    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+    gutter_icons.get(pri)
   }
+
+
+  private val squiggly_colors = Map(
+    writeln_pri -> writeln_color,
+    warning_pri -> warning_color,
+    error_pri -> error_color)
+
+  def squiggly_underline(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+  {
+    val results =
+      snapshot.cumulate_markup[Int](range, 0,
+        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        {
+          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _))) =>
+            name match {
+              case Isabelle_Markup.WRITELN => pri max writeln_pri
+              case Isabelle_Markup.WARNING => pri max warning_pri
+              case Isabelle_Markup.ERROR => pri max error_pri
+              case _ => pri
+            }
+        })
+    for {
+      Text.Info(r, pri) <- results
+      color <- squiggly_colors.get(pri)
+    } yield Text.Info(r, color)
+  }
+
+
+  def background1(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+  {
+    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
+    else
+      for {
+        Text.Info(r, result) <-
+          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
+            range, (Some(Protocol.Status.init), None),
+            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
+            {
+              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+              if (Protocol.command_status_markup(markup.name)) =>
+                (Some(Protocol.command_status(status, markup)), color)
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+                (None, Some(bad_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
+                (None, Some(hilite_color))
+            })
+        color <-
+          (result match {
+            case (Some(status), _) =>
+              if (status.is_running) Some(running1_color)
+              else if (status.is_unprocessed) Some(unprocessed1_color)
+              else None
+            case (_, opt_color) => opt_color
+          })
+      } yield Text.Info(r, color)
+  }
+
+
+  def background2(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.TOKEN_RANGE)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
+      })
+
+
+  def foreground(snapshot: Document.Snapshot, range: Text.Range): Stream[Text.Info[Color]] =
+    snapshot.select_markup(range,
+      Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
+      {
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
+      })
+
+
+  private val text_colors: Map[String, Color] =
+    Map(
+      Isabelle_Markup.STRING -> get_color("black"),
+      Isabelle_Markup.ALTSTRING -> get_color("black"),
+      Isabelle_Markup.VERBATIM -> get_color("black"),
+      Isabelle_Markup.LITERAL -> keyword1_color,
+      Isabelle_Markup.DELIMITER -> get_color("black"),
+      Isabelle_Markup.TFREE -> get_color("#A020F0"),
+      Isabelle_Markup.TVAR -> get_color("#A020F0"),
+      Isabelle_Markup.FREE -> get_color("blue"),
+      Isabelle_Markup.SKOLEM -> get_color("#D2691E"),
+      Isabelle_Markup.BOUND -> get_color("green"),
+      Isabelle_Markup.VAR -> get_color("#00009B"),
+      Isabelle_Markup.INNER_STRING -> get_color("#D2691E"),
+      Isabelle_Markup.INNER_COMMENT -> get_color("#8B0000"),
+      Isabelle_Markup.DYNAMIC_FACT -> get_color("#7BA428"),
+      Isabelle_Markup.ML_KEYWORD -> keyword1_color,
+      Isabelle_Markup.ML_DELIMITER -> get_color("black"),
+      Isabelle_Markup.ML_NUMERAL -> get_color("red"),
+      Isabelle_Markup.ML_CHAR -> get_color("#D2691E"),
+      Isabelle_Markup.ML_STRING -> get_color("#D2691E"),
+      Isabelle_Markup.ML_COMMENT -> get_color("#8B0000"),
+      Isabelle_Markup.ML_MALFORMED -> get_color("#FF6A6A"),
+      Isabelle_Markup.ANTIQ -> get_color("blue"))
+
+  private val text_color_elements = Set.empty[String] ++ text_colors.keys
+
+  def text_color(snapshot: Document.Snapshot, range: Text.Range, color: Color)
+      : Stream[Text.Info[Color]] =
+    snapshot.cumulate_markup(range, color, Some(text_color_elements),
+      {
+        case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
+        if text_colors.isDefinedAt(m) => text_colors(m)
+      })
 
 
   /* token markup -- text styles */
