@@ -27,7 +27,7 @@ struct
 val mem_def1 = @{lemma "y : Collect S ==> S y" by simp}
 val mem_def2 = @{lemma "S y ==> y : Collect S" by simp}
 
-(* constructs the term lambda (c::rty => bool). EX (x::rty). c = rel x *)
+(* constructs the term {c. EX (x::rty). rel x x \<and> c = Collect (rel x)} *)
 fun typedef_term rel rty lthy =
   let
     val [x, c] =
