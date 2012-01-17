@@ -181,8 +181,8 @@ fun install_java_message () =
   "Nitpick requires a Java 1.5 virtual machine called \"java\"."
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
-  \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
-  \directory's full path to " ^
+  \the package from \"http://www21.in.tum.de/~blanchet/#software\" and add the \
+  \\"kodkodi-x.y.z\" directory's full path to " ^
   Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
   " on a line of its own."
 
