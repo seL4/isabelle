@@ -19,6 +19,7 @@ my $problem_file = $ARGV[-1];
 # call solver
 
 my $agent = LWP::UserAgent->new;
+$agent->env_proxy;
 $agent->agent("SMT-Request");
 $agent->timeout(180);
 my $response = $agent->post($ENV{"ISABELLE_SMT_REMOTE_URL"}, [

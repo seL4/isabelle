@@ -92,6 +92,7 @@ if (exists($URLParameters{"ProblemSource"})) {
 # Query Server
 my $Agent = LWP::UserAgent->new;
 $Agent->env_proxy;
+$Agent->agent("Sledgehammer");
 if (exists($Options{'t'})) {
   # give server more time to respond
   $Agent->timeout($Options{'t'} + 15);
