@@ -1,0 +1,31 @@
+#!/bin/bash
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+SUPER="$(cd "$THIS/.."; pwd)"
+
+ISABELLE_REPOS="$(cd "$THIS/../.."; pwd)"
+
+
+## main
+
+FILEMAP="/tmp/filemap$$"
+
+echo "include COPYRIGHT" > "$FILEMAP"
+(
+  cd "$ISABELLE_REPOS"
+  for FILE in $(find src/Pure -name "*.scala")
+  do
+    if grep "Module:.*PIDE" "$FILE" >/dev/null; then
+      if [ "$("${HG:-hg}" status -u -n --color=never "$FILE")" = "" ]; then
+        echo "include $FILE" >> "$FILEMAP"
+        echo "rename $FILE src/$(basename "$FILE")" >> "$FILEMAP"
+      fi
+    fi
+  done
+)
+
+cat "$FILEMAP"
+
+"${HG:-hg}" convert --filemap "$FILEMAP" "$ISABELLE_REPOS" PIDE-repos
+
+rm -f "$FILEMAP"

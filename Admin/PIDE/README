@@ -1,0 +1,10 @@
+Prover IDE support
+==================
+
+This is some basic support for PIDE Scala programming, independently
+of the main Isabelle repository.
+
+
+  Makarius
+  17-Jan-2012
+
