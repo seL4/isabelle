@@ -12,6 +12,8 @@
 %\usepackage[scaled=.85]{beramono}
 \usepackage{../../lib/texinputs/isabelle,../iman,../pdfsetup}
 
+\newcommand\download{\url{http://www21.in.tum.de/~blanchet/\#software}}
+
 \def\qty#1{\ensuremath{\left<\mathit{#1\/}\right>}}
 \def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1\/}}\right>}$}
 
@@ -142,113 +144,99 @@ directed to the author at \authoremail.
 \label{installation}
 
 Sledgehammer is part of Isabelle, so you don't need to install it. However, it
-relies on third-party automatic theorem provers (ATPs) and SMT solvers.
+relies on third-party automatic provers (ATPs and SMT solvers).
 
-\subsection{Installing ATPs}
-
-Currently, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
+Among the ATPs, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
 addition, E, E-SInE, E-ToFoF, iProver, iProver-Eq, LEO-II, Satallax, SNARK,
 Waldmeister, and Vampire are available remotely via System\-On\-TPTP
 \cite{sutcliffe-2000}. If you want better performance, you should at least
 install E and SPASS locally.
 
-There are three main ways to install ATPs on your machine:
+Among the SMT solvers, CVC3, Yices, and Z3 can be run locally, and CVC3 and Z3
+can be run remotely on a TU M\"unchen server. If you want better performance and
+get the ability to replay proofs that rely on the \emph{smt} proof method
+without an Internet connection, you should at least install Z3 locally.
 
+There are three main ways to install automatic provers on your machine:
+
+\begin{sloppy}
 \begin{enum}
-\item[\labelitemi] If you installed an official Isabelle package with everything
-inside, it should already include properly setup executables for E and SPASS,
-ready to use.%
-\footnote{Vampire's license prevents us from doing the same for this otherwise
-wonderful tool.}
-
-\item[\labelitemi] Alternatively, you can download the Isabelle-aware E and SPASS
-binary packages from Isabelle's download page. Extract the archives, then add a
-line to your \texttt{\$ISABELLE\_HOME\_USER/etc/components}%
-\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
-startup. Its value can be retrieved by invoking \texttt{isabelle}
-\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute
-path to E or SPASS. For example, if the \texttt{components} does not exist yet
-and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create the
-\texttt{components} file with the single line
-
-\prew
-\texttt{/usr/local/spass-3.7}
-\postw
-
-in it.
-
-\item[\labelitemi] If you prefer to build E or SPASS yourself, or found a
-Vampire executable somewhere (e.g., \url{http://www.vprover.org/}),
-set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
-\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
-\texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
-with E 1.0 to 1.4, SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
-\footnote{Following the rewrite of Vampire, the counter for version numbers was
-reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
-than, say, Vampire 9.0 or 11.5.}%
-. Since the ATPs' output formats are neither documented nor stable, other
-versions of the ATPs might not work well with Sledgehammer. Ideally,
-also set \texttt{E\_VERSION}, \texttt{SPASS\_VERSION}, or
-\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.4'').
-\end{enum}
-
-To check whether E and SPASS are successfully installed, follow the example in
-\S\ref{first-steps}. If the remote versions of E and SPASS are used (identified
-by the prefix ``\emph{remote\_}''), or if the local versions fail to solve the
-easy goal presented there, this is a sign that something is wrong with your
-installation.
-
-Remote ATP invocation via the SystemOnTPTP web service requires Perl with the
-World Wide Web Library (\texttt{libwww-perl}) installed. If you must use a proxy
-server to access the Internet, set the \texttt{http\_proxy} environment variable
-to the proxy, either in the environment in which Isabelle is launched or in your
-\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few examples:
-
-\prew
-\texttt{http\_proxy=http://proxy.example.org} \\
-\texttt{http\_proxy=http://proxy.example.org:8080} \\
-\texttt{http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
-\postw
-
-\subsection{Installing SMT Solvers}
-
-CVC3, Yices, and Z3 can be run locally or (for CVC3 and Z3) remotely on a TU
-M\"unchen server. If you want better performance and get the ability to replay
-proofs that rely on the \emph{smt} proof method, you should at least run Z3
-locally.
-
-There are two main ways of installing SMT solvers locally.
-
-\sloppy
-
-\begin{enum}
-\item[\labelitemi] If you installed an official Isabelle package with everything
-inside, it should already include properly setup executables for CVC3 and Z3,
-ready to use.%
-\footnote{Yices's license prevents us from doing the same for this otherwise
-wonderful tool.}
-For Z3, you must also set the variable
+\item[\labelitemi] If you installed an official Isabelle package, it should
+already include properly setup executables for CVC3, E, SPASS, and Z3, ready to use.%
+\footnote{Vampire's and Yices's licenses prevent us from doing the same for
+these otherwise remarkable tools.}
+For Z3, you must additionally set the variable
 \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
 noncommercial user, either in the environment in which Isabelle is
 launched or in your
 \texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file.
 
-\item[\labelitemi] If you prefer to build CVC3 yourself, or found a
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3, E,
+SPASS, and Z3 binary packages from \download. Extract the archives, then add a
+line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
+\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
+startup. Its value can be retrieved by executing \texttt{isabelle}
+\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
+file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
+\texttt{components} file does not exist yet and you extracted SPASS to
+\texttt{/usr/local/spass-3.7}, create it with the single line
+
+\prew
+\texttt{/usr/local/spass-3.7}
+\postw
+
+(including an invisible newline character) in it.
+
+\item[\labelitemi] If you prefer to build E, LEO-II, Satallax, or SPASS
+manually, or found a Vampire executable somewhere (e.g.,
+\url{http://www.vprover.org/}), set the environment variable \texttt{E\_HOME},
+\texttt{LEO2\_HOME}, \texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
+\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
+\texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
+Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.2.9, Satallax 2.2,
+SPASS 3.5 and 3.7, and Vampire 0.6, 1.0, and 1.8%
+\footnote{Following the rewrite of Vampire, the counter for version numbers was
+reset to 0; hence the (new) Vampire versions 0.6, 1.0, and 1.8 are more recent
+than 9.0 or 11.5.}%
+. Since the ATPs' output formats are neither documented nor stable, other
+versions of the ATPs might not work well with Sledgehammer. Ideally,
+also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
+\texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
+\texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``1.4'').
+
+Similarly, if you want to build CVC3, or found a
 Yices or Z3 executable somewhere (e.g.,
 \url{http://yices.csl.sri.com/download.shtml} or
 \url{http://research.microsoft.com/en-us/um/redmond/projects/z3/download.html}),
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
-the executable, including the file name. Sledgehammer has been tested
+the executable, \emph{including the file name}. Sledgehammer has been tested
 with CVC3 2.2, Yices 1.0.28, and Z3 3.0 to 3.2.
 Since the SMT solvers' output formats are somewhat unstable, other
 versions of the solvers might not work well with Sledgehammer. Ideally,
 also set \texttt{CVC3\_VERSION}, \texttt{YICES\_VERSION}, or
 \texttt{Z3\_VERSION} to the solver's version number (e.g., ``3.2'').
 \end{enum}
+\end{sloppy}
 
-\fussy
+To check whether E, SPASS, Vampire, and/or Z3 are successfully installed, try
+out the example in \S\ref{first-steps}. If the remote versions of any of these
+provers is used (identified by the prefix ``\emph{remote\_\/}''), or if the
+local versions fail to solve the easy goal presented there, something must be
+wrong with the installation.
+
+Remote prover invocation requires Perl with the World Wide Web Library
+(\texttt{libwww-perl}) installed. If you must use a proxy server to access the
+Internet, set the \texttt{http\_proxy} environment variable to the proxy, either
+in the environment in which Isabelle is launched or in your
+\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few
+examples:
+
+\prew
+\texttt{http\_proxy=http://proxy.example.org} \\
+\texttt{http\_proxy=http://proxy.example.org:8080} \\
+\texttt{http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
+\postw
 
 \section{First Steps}
 \label{first-steps}
@@ -272,29 +260,29 @@ Either way, Sledgehammer produces the following output after a few seconds:
 
 \prew
 \slshape
-Sledgehammer: ``\textit{e}'' on goal \\
+Sledgehammer: ``\textit{e\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis last\_ConsL}) (64 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{vampire}'' on goal \\
+Sledgehammer: ``\textit{z3\/}'' on goal \\
+$[a] = [b] \,\Longrightarrow\, a = b$ \\
+Try this: \textbf{by} (\textit{metis list.inject}) (20 ms). \\[3\smallskipamount]
+%
+Sledgehammer: ``\textit{vampire\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (14 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{spass}'' on goal \\
+Sledgehammer: ``\textit{spass\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis list.inject}) (17 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_waldmeister}'' on goal \\
+Sledgehammer: ``\textit{remote\_waldmeister\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (15 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_e\_sine}'' on goal \\
+Sledgehammer: ``\textit{remote\_e\_sine\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms). \\[3\smallskipamount]
-%
-Sledgehammer: ``\textit{remote\_z3}'' on goal \\
-$[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis list.inject}) (20 ms).
+Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms).
 \postw
 
 Sledgehammer ran E, E-SInE, SPASS, Vampire, Waldmeister, and Z3 in parallel.
@@ -326,7 +314,8 @@ This section presents a few hints that should help you get the most out of
 Sledgehammer. Frequently (and infrequently) asked questions are answered in
 \S\ref{frequently-asked-questions}.
 
-\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
+%\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
+\newcommand\point[1]{\subsection{\emph{#1}}}
 
 \point{Presimplify the goal}
 
@@ -340,7 +329,7 @@ undirected, they often prove theorems that require the reverse orientation of a
 is better for first-order problems. Hence, you may get better results if you
 first simplify the problem to remove higher-order features.
 
-\point{Make sure at least E, SPASS, Vampire, and Z3 are installed}
+\point{Make sure E, SPASS, Vampire, and Z3 are locally installed}
 
 Locally installed provers are faster and more reliable than those running on
 servers. See \S\ref{installation} for details on how to install them.
@@ -355,9 +344,9 @@ familiarize themselves with the following options:
 \item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
 the automatic provers (ATPs and SMT solvers) that should be run whenever
 Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{e spass
-remote\_vampire}''). For convenience, you can omit ``\textit{provers}~=''
+remote\_vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
 and simply write the prover names as a space-separated list (e.g., ``\textit{e
-spass remote\_vampire}'').
+spass remote\_vampire\/}'').
 
 \item[\labelitemi] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
@@ -494,7 +483,7 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 \textbf{sledgehammer}
 \postw
 
-\point{Why are the generated Isar proofs so ugly/detailed/broken?}
+\point{Why are the generated Isar proofs so ugly/broken?}
 
 The current implementation is experimental and explodes exponentially in the
 worst case. Work on a new implementation has begun. There is a large body of
@@ -566,8 +555,8 @@ error to the author at \authoremail. This applies double if you get the message
 
 \prew
 \slshape
-The prover found a type-unsound proof involving ``\textit{foo}'',
-``\textit{bar}'', and ``\textit{baz}'' even though a supposedly type-sound
+The prover found a type-unsound proof involving ``\textit{foo\/}'',
+``\textit{bar\/}'', and ``\textit{baz\/}'' even though a supposedly type-sound
 encoding was used (or, less likely, your axioms are inconsistent). You might
 want to report this to the Isabelle developers.
 \postw
@@ -588,6 +577,8 @@ you are so inclined.
 
 \section{Command Syntax}
 \label{command-syntax}
+
+\subsection{Sledgehammer}
 
 Sledgehammer can be invoked at any point when there is an open goal by entering
 the \textbf{sledgehammer} command in the theory file. Its general syntax is as
@@ -636,7 +627,7 @@ ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
 Sledgehammer's behavior can be influenced by various \qty{options}, which can be
 specified in brackets after the \textbf{sledgehammer} command. The
 \qty{options} are a list of key--value pairs of the form ``[$k_1 = v_1,
-\ldots, k_n = v_n$]''. For Boolean options, ``= \textit{true}'' is optional. For
+\ldots, k_n = v_n$]''. For Boolean options, ``= \textit{true\/}'' is optional. For
 example:
 
 \prew
@@ -670,6 +661,8 @@ For automatic runs, only the first prover set using \textit{provers}
 and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
 General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
+
+\subsection{Metis}
 
 The \textit{metis} proof method has the syntax
 
@@ -737,7 +730,7 @@ seconds).
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
 have a negated counterpart (e.g., \textit{blocking} vs.\
-\textit{non\_blocking}). When setting them, ``= \textit{true}'' may be omitted.
+\textit{non\_blocking}). When setting them, ``= \textit{true\/}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
@@ -745,34 +738,37 @@ have a negated counterpart (e.g., \textit{blocking} vs.\
 \begin{enum}
 \opnodefaultbrk{provers}{string}
 Specifies the automatic provers to use as a space-separated list (e.g.,
-``\textit{e}~\textit{spass}~\textit{remote\_vampire}''). The following local
+``\textit{e}~\textit{spass}~\textit{remote\_vampire\/}''). The following local
 provers are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
-executable, including the file name. Sledgehammer has been tested with version
-2.2.
+executable, including the file name, or install the prebuilt CVC3 package from
+\download. Sledgehammer has been tested with version 2.2. See
+\S\ref{installation} for details.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
-executable, or install the prebuilt E package from Isabelle's download page. See
-\S\ref{installation} for details.
+executable, or install the prebuilt E package from \download. Sledgehammer has
+been tested with versions 1.0 to 1.4. See \S\ref{installation} for details.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
-with support for the TPTP typed higher-order syntax (THF0). Sledgehammer
-requires version 1.2.9 or above.
+with support for the TPTP typed higher-order syntax (THF0). To use LEO-II, set
+the environment variable \texttt{LEO2\_HOME} to the directory that contains the
+\texttt{leo} executable. Sledgehammer requires version 1.2.9 or above.
 
 \item[\labelitemi] \textbf{\textit{metis}:} Although it is much less powerful than
 the external provers, Metis itself can be used for proof search.
 
 \item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP typed higher-order syntax (THF0). Sledgehammer
-requires version 2.2 or above.
+support for the TPTP typed higher-order syntax (THF0). To use Satallax, set the
+environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
+\texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
 
 \item[\labelitemi] \textbf{\textit{smt}:} The \textit{smt} proof method with the
 current settings (usually:\ Z3 with proof reconstruction).
@@ -781,16 +777,16 @@ current settings (usually:\ Z3 with proof reconstruction).
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable, or install the prebuilt SPASS
-package from Isabelle's download page. Sledgehammer requires version 3.5 or
-above. See \S\ref{installation} for details.
+package from \download. Sledgehammer requires version 3.5 or above. See
+\S\ref{installation} for details.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
 prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g., ``1.8'').
-Sledgehammer has been tested with versions 0.6, 1.0, and 1.8. Vampire 1.8
-supports the TPTP typed first-order format (TFF0).
+Sledgehammer has been tested with versions 0.6, 1.0, and 1.8.
+%Vampire 1.8 supports the TPTP typed first-order format (TFF0).
 
 \item[\labelitemi] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
@@ -1047,7 +1043,7 @@ virtually sound variant identified by a question mark (`\hbox{?}')\ that detects
 and erases monotonic types, notably infinite types. (For \textit{mono\_simple},
 the types are not actually erased but rather replaced by a shared uniform type
 of individuals.) As argument to the \textit{metis} proof method, the question
-mark is replaced by a \hbox{``\textit{\_query}''} suffix. If the \emph{sound}
+mark is replaced by a \hbox{``\textit{\_query\/}''} suffix. If the \emph{sound}
 option is enabled, these encodings are fully sound.
 
 \item[\labelitemi]
@@ -1057,14 +1053,14 @@ option is enabled, these encodings are fully sound.
 (quasi-sound):} \\
 Even lighter versions of the `\hbox{?}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{??}' suffix is replaced by
-\hbox{``\textit{\_query\_query}''}.
+\hbox{``\textit{\_query\_query\/}''}.
 
 \item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}@?, \textit{raw\_mono\_guards}@? (quasi-sound):} \\
 Alternative versions of the `\hbox{??}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@?}' suffix is replaced by
-\hbox{``\textit{\_at\_query}''}.
+\hbox{``\textit{\_at\_query\/}''}.
 
 \item[\labelitemi]
 \textbf{%
@@ -1080,7 +1076,7 @@ those that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_simple}
 and \textit{mono\_simple\_higher}, the types are not actually erased but rather
 replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the exclamation mark is replaced by the suffix
-\hbox{``\textit{\_bang}''}.
+\hbox{``\textit{\_bang\/}''}.
 
 \item[\labelitemi]
 \textbf{%
@@ -1089,14 +1085,14 @@ replaced by a shared uniform type of individuals.) As argument to the
 (mildly unsound):} \\
 Even lighter versions of the `\hbox{!}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{!!}' suffix is replaced by
-\hbox{``\textit{\_bang\_bang}''}.
+\hbox{``\textit{\_bang\_bang\/}''}.
 
 \item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}@!, \textit{raw\_mono\_guards}@! (mildly unsound):} \\
 Alternative versions of the `\hbox{!!}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@!}' suffix is replaced by
-\hbox{``\textit{\_at\_bang}''}.
+\hbox{``\textit{\_at\_bang\/}''}.
 
 \item[\labelitemi] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
@@ -1113,7 +1109,7 @@ and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
 Specifies whether Sledgehammer should run in its fully sound mode. In that mode,
 quasi-sound type encodings (which are the default) are made fully sound, at the
 cost of some clutter in the generated problems. This option is ignored if
-\textit{type\_enc} is explicitly set to an unsound encoding.
+\textit{type\_enc} is set to an unsound encoding.
 \end{enum}
 
 \subsection{Relevance Filter}

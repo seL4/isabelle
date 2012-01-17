@@ -121,11 +121,6 @@ You can also invoke Nitpick from the ``Commands'' submenu of the
 C-n. This is equivalent to entering the \textbf{nitpick} command with no
 arguments in the theory text.
 
-Nitpick requires the Kodkodi package for Isabelle as well as a Java 1.6 virtual
-machine called \texttt{java}. To run Nitpick, you must also make sure that the
-theory \textit{Nitpick} is imported---this is rarely a problem in practice
-since it is part of \textit{Main}.
-
 Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
 Nitpick also provides an automatic mode that can be enabled via the ``Auto
 Nitpick'' option from the ``Isabelle'' menu in Proof General. In this mode,
@@ -135,13 +130,16 @@ and other automatic tools can be set using the ``Auto Tools Time Limit'' option.
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
-The examples presented in this manual can be found
+\newcommand\authoremail{\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+
+To run Nitpick, you must also make sure that the theory \textit{Nitpick} is
+imported---this is rarely a problem in practice since it is part of
+\textit{Main}. The examples presented in this manual can be found
 in Isabelle's \texttt{src/HOL/\allowbreak Nitpick\_Examples/Manual\_Nits.thy} theory.
 The known bugs and limitations at the time of writing are listed in
-\S\ref{known-bugs-and-limitations}. Comments and bug reports concerning Nitpick
-or this manual should be directed to
-\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
-in.\allowbreak tum.\allowbreak de}.
+\S\ref{known-bugs-and-limitations}. Comments and bug reports concerning either
+the tool or the manual should be directed to the author at \authoremail.
 
 \vskip2.5\smallskipamount
 
@@ -149,21 +147,39 @@ in.\allowbreak tum.\allowbreak de}.
 suggesting several textual improvements.
 % and Perry James for reporting a typo.
 
-%\section{Installation}
-%\label{installation}
-%
-%MISSING:
-%
-%  * Nitpick is part of Isabelle/HOL
-%  * but it relies on an external tool called Kodkodi (Kodkod wrapper)
-%  * Two options:
-%    * if you use a prebuilt Isabelle package, Kodkodi is automatically there
-%    * if you work from sources, the latest Kodkodi can be obtained from ...
-%      download it, install it in some directory of your choice (e.g.,
-%      $ISABELLE_HOME/contrib/kodkodi), and add the absolute path to Kodkodi
-%      in your .isabelle/etc/components file
-%
-%  * If you're not sure, just try the example in the next section
+\section{Installation}
+\label{installation}
+
+Sledgehammer is part of Isabelle, so you don't need to install it. However, it
+relies on a third-party Kodkod front-end called Kodkodi as well as a Java
+virtual machine called \texttt{java} (version 1.5 or above).
+
+There are two main ways of installing Kodkodi:
+
+\begin{enum}
+\item[\labelitemi] If you installed an official Isabelle package,
+it should already include a properly setup version of Kodkodi.
+
+\item[\labelitemi] If you use a repository or snapshot version of Isabelle, you
+an official Isabelle package, you can download the Isabelle-aware Kodkodi package
+from \url{http://www21.in.tum.de/~blanchet/\#software}. Extract the archive, then add a
+line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
+\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
+startup. Its value can be retrieved by executing \texttt{isabelle}
+\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
+file with the absolute path to Kodkodi. For example, if the
+\texttt{components} file does not exist yet and you extracted Kodkodi to
+\texttt{/usr/local/kodkodi-1.5.1}, create it with the single line
+
+\prew
+\texttt{/usr/local/kodkodi-1.5.1}
+\postw
+
+(including an invisible newline character) in it.
+\end{enum}
+
+To check whether Kodkodi is successfully installed, you can try out the example
+in \S\ref{propositional-logic}.
 
 \section{First Steps}
 \label{first-steps}
@@ -211,9 +227,6 @@ Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad\qquad $P = \textit{True}$ \\
 \hbox{}\qquad\qquad $Q = \textit{False}$
 \postw
-
-%FIXME: If you get the output:...
-%Then do such-and-such.
 
 Nitpick can also be invoked on individual subgoals, as in the example below:
 
@@ -344,7 +357,8 @@ Let's see if Sledgehammer can find a proof:
 \prew
 \textbf{sledgehammer} \\[2\smallskipamount]
 {\slshape Sledgehammer: ``$e$'' on goal \\
-Try this: \textrm{by}~(\textit{metis~theI}) (42 ms).} \\[2\smallskipamount]
+Try this: \textbf{by}~(\textit{metis~theI}) (42 ms).} \\
+\hbox{}\qquad\vdots \\[2\smallskipamount]
 \textbf{by}~(\textit{metis~theI\/})
 \postw
 
@@ -2289,8 +2303,7 @@ this effect and terminates.
 Specifies whether genuine and quasi genuine counterexamples should be given to
 Isabelle's \textit{auto} tactic to assess their validity. If a ``genuine''
 counterexample is shown to be spurious, the user is kindly asked to send a bug
-report to the author at
-\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@in.tum.de}.
+report to the author at \authoremail.
 
 \nopagebreak
 {\small See also \textit{max\_genuine} (\S\ref{output-format}).}
