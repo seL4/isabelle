@@ -130,8 +130,8 @@ with the same base names:
 
 INCOMPATIBILITY.
 
-* Theory HOL/Library/AList has been renamed to
-  AList_Impl. INCOMPATIBILITY.
+* New theory HOL/Library/DAList provides an abstract type for association
+  lists with distinct keys.
 
 * 'datatype' specifications allow explicit sort constraints.
 
