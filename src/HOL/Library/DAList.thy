@@ -1,9 +1,9 @@
-(*  Title:      HOL/Library/AList.thy
+(*  Title:      HOL/Library/DAList.thy
     Author:     Lukas Bulwahn, TU Muenchen *)
 
 header {* Abstract type of association lists with unique keys *}
 
-theory AList
+theory DAList
 imports AList_Impl
 begin
 

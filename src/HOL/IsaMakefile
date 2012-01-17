@@ -436,7 +436,7 @@ HOL-Library: HOL $(OUT)/HOL-Library
 $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
   Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
-  Library/AList_Impl.thy Library/AList.thy Library/AList_Mapping.thy 	\
+  Library/AList_Impl.thy Library/AList_Mapping.thy 	\
   Library/BigO.thy Library/Binomial.thy 				\
   Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
@@ -446,8 +446,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Tools/Predicate_Compile/code_prolog.ML Library/ContNotDenum.thy	\
   Library/Cset.thy Library/Cset_Monad.thy Library/Continuity.thy	\
   Library/Convex.thy Library/Countable.thy				\
-  Library/Dlist.thy Library/Dlist_Cset.thy Library/Efficient_Nat.thy	\
-  Library/Eval_Witness.thy						\
+  Library/DAList.thy Library/Dlist.thy Library/Dlist_Cset.thy \
+  Library/Efficient_Nat.thy Library/Eval_Witness.thy						\
   Library/Extended_Real.thy Library/Extended_Nat.thy Library/Float.thy	\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\

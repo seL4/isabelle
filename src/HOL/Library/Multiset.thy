@@ -5,7 +5,7 @@
 header {* (Finite) multisets *}
 
 theory Multiset
-imports Main AList
+imports Main DAList
 begin
 
 subsection {* The type of multisets *}
@@ -1101,18 +1101,18 @@ text {* Operations on alists *}
 
 definition join
 where
-  "join f xs ys = AList.Alist (join_raw f (AList.impl_of xs) (AList.impl_of ys))" 
+  "join f xs ys = DAList.Alist (join_raw f (DAList.impl_of xs) (DAList.impl_of ys))" 
 
 lemma [code abstract]:
-  "AList.impl_of (join f xs ys) = join_raw f (AList.impl_of xs) (AList.impl_of ys)"
+  "DAList.impl_of (join f xs ys) = join_raw f (DAList.impl_of xs) (DAList.impl_of ys)"
 unfolding join_def by (simp add: Alist_inverse distinct_join_raw)
 
 definition subtract_entries
 where
-  "subtract_entries xs ys = AList.Alist (subtract_entries_raw (AList.impl_of xs) (AList.impl_of ys))"
+  "subtract_entries xs ys = DAList.Alist (subtract_entries_raw (DAList.impl_of xs) (DAList.impl_of ys))"
 
 lemma [code abstract]:
-  "AList.impl_of (subtract_entries xs ys) = subtract_entries_raw (AList.impl_of xs) (AList.impl_of ys)"
+  "DAList.impl_of (subtract_entries xs ys) = subtract_entries_raw (DAList.impl_of xs) (DAList.impl_of ys)"
 unfolding subtract_entries_def by (simp add: Alist_inverse distinct_subtract_entries_raw)
 
 text {* Implementing multisets by means of association lists *}
@@ -1166,12 +1166,12 @@ unfolding count_of_def by (simp add: map_of_subtract_entries_raw split: option.s
 text {* Code equations for multiset operations *}
 
 definition Bag :: "('a, nat) alist \<Rightarrow> 'a multiset" where
-  "Bag xs = Abs_multiset (count_of (AList.impl_of xs))"
+  "Bag xs = Abs_multiset (count_of (DAList.impl_of xs))"
 
 code_datatype Bag
 
 lemma count_Bag [simp, code]:
-  "count (Bag xs) = count_of (AList.impl_of xs)"
+  "count (Bag xs) = count_of (DAList.impl_of xs)"
   by (simp add: Bag_def count_of_multiset Abs_multiset_inverse)
 
 lemma Mempty_Bag [code]:
@@ -1192,11 +1192,11 @@ by (rule multiset_eqI)
   (simp add: count_of_subtract_entries_raw alist.Alist_inverse distinct_subtract_entries_raw subtract_entries_def)
 
 lemma filter_Bag [code]:
-  "Multiset.filter P (Bag xs) = Bag (AList.filter (P \<circ> fst) xs)"
+  "Multiset.filter P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
 by (rule multiset_eqI) (simp add: count_of_filter impl_of_filter)
 
 lemma mset_less_eq_Bag [code]:
-  "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (AList.impl_of xs). count_of (AList.impl_of xs) x \<le> count A x)"
+  "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs then show ?rhs
@@ -1206,8 +1206,8 @@ next
   show ?lhs
   proof (rule mset_less_eqI)
     fix x
-    from `?rhs` have "count_of (AList.impl_of xs) x \<le> count A x"
-      by (cases "x \<in> fst ` set (AList.impl_of xs)") (auto simp add: count_of_empty)
+    from `?rhs` have "count_of (DAList.impl_of xs) x \<le> count A x"
+      by (cases "x \<in> fst ` set (DAList.impl_of xs)") (auto simp add: count_of_empty)
     then show "count (Bag xs) x \<le> count A x"
       by (simp add: mset_le_def count_Bag)
   qed
