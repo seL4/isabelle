@@ -5,7 +5,7 @@
 header {* Implementation of mappings with Association Lists *}
 
 theory AList_Mapping
-imports AList_Impl Mapping
+imports AList Mapping
 begin
 
 definition Mapping :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
@@ -30,11 +30,11 @@ lemma is_empty_Mapping [code]:
   by (cases xs) (simp_all add: is_empty_def null_def)
 
 lemma update_Mapping [code]:
-  "Mapping.update k v (Mapping xs) = Mapping (AList_Impl.update k v xs)"
+  "Mapping.update k v (Mapping xs) = Mapping (AList.update k v xs)"
   by (rule mapping_eqI) (simp add: update_conv')
 
 lemma delete_Mapping [code]:
-  "Mapping.delete k (Mapping xs) = Mapping (AList_Impl.delete k xs)"
+  "Mapping.delete k (Mapping xs) = Mapping (AList.delete k xs)"
   by (rule mapping_eqI) (simp add: delete_conv')
 
 lemma ordered_keys_Mapping [code]:

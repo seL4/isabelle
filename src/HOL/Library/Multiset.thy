@@ -1078,7 +1078,7 @@ proof (induct ys)
 qed auto
 
 definition
-  "subtract_entries_raw xs ys = foldr (%(k, v). AList_Impl.map_entry k (%v'. v' - v)) ys xs"
+  "subtract_entries_raw xs ys = foldr (%(k, v). AList.map_entry k (%v'. v' - v)) ys xs"
 
 lemma map_of_subtract_entries_raw:
   "distinct (map fst ys) ==> map_of (subtract_entries_raw xs ys) x = (case map_of xs x of None => None | Some v => (case map_of ys x of None => Some v | Some v' => Some (v - v')))"

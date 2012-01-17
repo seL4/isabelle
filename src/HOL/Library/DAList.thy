@@ -4,7 +4,7 @@
 header {* Abstract type of association lists with unique keys *}
 
 theory DAList
-imports AList_Impl
+imports AList
 begin
 
 text {* This was based on some existing fragments in the AFP-Collection framework. *}
@@ -36,34 +36,34 @@ definition empty :: "('key, 'value) alist"
 where [code del]: "empty = Alist []"
 
 definition update :: "'key \<Rightarrow> 'value \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "update k v xs = Alist (AList_Impl.update k v (impl_of xs))"
+where [code del]: "update k v xs = Alist (AList.update k v (impl_of xs))"
 
 (* FIXME: we use an unoptimised delete operation. *)
 definition delete :: "'key \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "delete k xs = Alist (AList_Impl.delete k (impl_of xs))"
+where [code del]: "delete k xs = Alist (AList.delete k (impl_of xs))"
 
 definition map_entry :: "'key \<Rightarrow> ('value \<Rightarrow> 'value) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
-where [code del]: "map_entry k f xs = Alist (AList_Impl.map_entry k f (impl_of xs))" 
+where [code del]: "map_entry k f xs = Alist (AList.map_entry k f (impl_of xs))" 
 
 definition filter :: "('key \<times> 'value \<Rightarrow> bool) \<Rightarrow> ('key, 'value) alist \<Rightarrow> ('key, 'value) alist"
 where [code del]: "filter P xs = Alist (List.filter P (impl_of xs))"
 
 definition map_default :: "'key => 'value => ('value => 'value) => ('key, 'value) alist => ('key, 'value) alist"
 where
-  "map_default k v f xs = Alist (AList_Impl.map_default k v f (impl_of xs))"
+  "map_default k v f xs = Alist (AList.map_default k v f (impl_of xs))"
 
 lemma impl_of_empty [code abstract]: "impl_of empty = []"
 by (simp add: empty_def Alist_inverse)
 
-lemma impl_of_update [code abstract]: "impl_of (update k v xs) = AList_Impl.update k v (impl_of xs)"
+lemma impl_of_update [code abstract]: "impl_of (update k v xs) = AList.update k v (impl_of xs)"
 by (simp add: update_def Alist_inverse distinct_update)
 
 lemma impl_of_delete [code abstract]:
-  "impl_of (delete k al) = AList_Impl.delete k (impl_of al)"
+  "impl_of (delete k al) = AList.delete k (impl_of al)"
 unfolding delete_def by (simp add: Alist_inverse distinct_delete)
 
 lemma impl_of_map_entry [code abstract]:
-  "impl_of (map_entry k f xs) = AList_Impl.map_entry k f (impl_of xs)"
+  "impl_of (map_entry k f xs) = AList.map_entry k f (impl_of xs)"
 unfolding map_entry_def by (simp add: Alist_inverse distinct_map_entry)
 
 lemma distinct_map_fst_filter:
@@ -75,7 +75,7 @@ lemma impl_of_filter [code abstract]:
 unfolding filter_def by (simp add: Alist_inverse distinct_map_fst_filter)
 
 lemma impl_of_map_default [code abstract]:
-  "impl_of (map_default k v f xs) = AList_Impl.map_default k v f (impl_of xs)"
+  "impl_of (map_default k v f xs) = AList.map_default k v f (impl_of xs)"
 by (auto simp add: map_default_def Alist_inverse distinct_map_default)
 
 subsection {* Abstract operation properties *}
