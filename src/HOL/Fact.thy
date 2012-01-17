@@ -255,8 +255,6 @@ lemma fact_less_mono_int_aux: "k >= 0 \<Longrightarrow> (0::int) < m \<Longright
     fact m < fact ((m + 1) + k)"
   apply (induct k rule: int_ge_induct)
   apply (simp add: fact_plus_one_int)
-  apply (subst mult_less_cancel_right1)
-  apply (insert fact_gt_zero_int [of m], arith)
   apply (subst (2) fact_reduce_int)
   apply (auto simp add: add_ac)
   apply (erule order_less_le_trans)

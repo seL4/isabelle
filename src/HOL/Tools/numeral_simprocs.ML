@@ -461,8 +461,9 @@ fun sign_conv pos_th neg_th ss t =
       val zero = Const(@{const_name Groups.zero}, T);
       val less = Const(@{const_name Orderings.less}, [T,T] ---> HOLogic.boolT);
       val pos = less $ zero $ t and neg = less $ t $ zero
+      val thy = Proof_Context.theory_of (Simplifier.the_context ss)
       fun prove p =
-        Option.map Eq_True_elim (Lin_Arith.simproc ss p)
+        SOME (Eq_True_elim (Simplifier.asm_rewrite ss (Thm.cterm_of thy p)))
         handle THM _ => NONE
     in case prove pos of
          SOME th => SOME(th RS pos_th)

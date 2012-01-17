@@ -723,8 +723,6 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
         using t(1,2) m(2)[rule_format, OF tw] w0
         apply (simp only: )
         apply auto
-        apply (rule mult_mono, simp_all add: norm_ge_zero)+
-        apply (simp add: zero_le_mult_iff zero_le_power)
         done
       with th30 have th120: "cmod (?w^k * ?w * poly s ?w) < t^k" by simp
       from power_strict_mono[OF t(2), of k] t(1) kas(2) have th121: "t^k \<le> 1"

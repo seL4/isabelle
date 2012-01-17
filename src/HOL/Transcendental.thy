@@ -1478,9 +1478,6 @@ proof -
   thus ?thesis unfolding cos_coeff_def by (simp add: mult_ac)
 qed
 
-lemma fact_lemma: "real (n::nat) * 4 = real (4 * n)"
-by simp
-
 lemma real_mult_inverse_cancel:
      "[|(0::real) < x; 0 < x1; x1 * y < x * u |]
       ==> inverse x * y < inverse x1 * u"
@@ -1516,11 +1513,7 @@ apply (erule sums_summable, safe)
 unfolding One_nat_def
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric]
             del: fact_Suc)
-apply (rule real_mult_inverse_cancel2)
-apply (simp del: fact_Suc)
-apply (simp del: fact_Suc)
-apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc)
-apply (subst fact_lemma)
+apply (simp add: inverse_eq_divide less_divide_eq del: fact_Suc)
 apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
 apply (simp only: real_of_nat_mult)
 apply (rule mult_strict_mono, force)

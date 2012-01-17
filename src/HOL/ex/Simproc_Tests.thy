@@ -366,6 +366,14 @@ notepad begin
   next
     assume "0 < z \<Longrightarrow> x < y" have "0 < z \<Longrightarrow> z*x < z*y"
       by (tactic {* test [@{simproc linordered_ring_less_cancel_factor}] *}) fact
+  next
+    txt "This simproc now uses the simplifier to prove that terms to
+      be canceled are positive/negative."
+    assume z_pos: "0 < z"
+    assume "x < y" have "z*x < z*y"
+      by (tactic {* CHANGED (asm_simp_tac (HOL_basic_ss
+        addsimprocs [@{simproc linordered_ring_less_cancel_factor}]
+        addsimps [@{thm z_pos}]) 1) *}) fact
   }
 end
 

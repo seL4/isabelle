@@ -318,9 +318,7 @@ lemma bl_to_bin_lt2p_aux:
    apply clarsimp
   apply clarsimp
   apply safe
-  apply (drule meta_spec, erule xtr8 [rotated],
-         simp add: numeral_simps algebra_simps BIT_simps
-         cong add: number_of_False_cong)+
+  apply (drule meta_spec, erule xtr8 [rotated], simp add: Bit_def)+
   done
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
