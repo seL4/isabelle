@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int1
-imports Abs_Int0
+imports Abs_Int0 Vars
 begin
 
 instantiation prod :: (preord,preord) preord
@@ -17,6 +17,29 @@ next
 qed
 
 end
+
+instantiation com :: vars
+begin
+
+fun vars_com :: "com \<Rightarrow> vname set" where
+"vars com.SKIP = {}" |
+"vars (x::=e) = {x} \<union> vars e" |
+"vars (c1;c2) = vars c1 \<union> vars c2" |
+"vars (IF b THEN c1 ELSE c2) = vars b \<union> vars c1 \<union> vars c2" |
+"vars (WHILE b DO c) = vars b \<union> vars c"
+
+instance ..
+
+end
+
+lemma finite_avars: "finite(vars(a::aexp))"
+by(induction a) simp_all
+
+lemma finite_bvars: "finite(vars(b::bexp))"
+by(induction b) (simp_all add: finite_avars)
+
+lemma finite_cvars: "finite(vars(c::com))"
+by(induction c) (simp_all add: finite_avars finite_bvars)
 
 
 subsection "Backward Analysis of Expressions"
@@ -220,6 +243,65 @@ proof(simp add: CS_def AI_def)
   from this 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c c'"
     by (blast intro: mono_gamma_c order_trans)
 qed
+
+
+subsubsection "Commands over a set of variables"
+
+text{* Key invariant: the domains of all abstract states are subsets of the
+set of variables of the program. *}
+
+definition "domo S = (case S of None \<Rightarrow> {} | Some S' \<Rightarrow> set(dom S'))"
+
+definition Com :: "vname set \<Rightarrow> 'a st option acom set" where
+"Com X = {c. \<forall>S \<in> set(annos c). domo S \<subseteq> X}"
+
+lemma domo_Top[simp]: "domo \<top> = {}"
+by(simp add: domo_def Top_st_def Top_option_def)
+
+lemma bot_acom_Dom[simp]: "\<bottom>\<^sub>c c \<in> Com X"
+by(simp add: bot_acom_def Com_def domo_def set_annos_anno)
+
+lemma post_in_annos: "post c : set(annos c)"
+by(induction c) simp_all
+
+lemma domo_join: "domo (S \<squnion> T) \<subseteq> domo S \<union> domo T"
+by(auto simp: domo_def join_st_def split: option.split)
+
+lemma domo_afilter: "vars a \<subseteq> X \<Longrightarrow> domo S \<subseteq> X \<Longrightarrow> domo(afilter a i S) \<subseteq> X"
+apply(induction a arbitrary: i S)
+apply(simp add: domo_def)
+apply(simp add: domo_def Let_def update_def lookup_def split: option.splits)
+apply blast
+apply(simp split: prod.split)
+done
+
+lemma domo_bfilter: "vars b \<subseteq> X \<Longrightarrow> domo S \<subseteq> X \<Longrightarrow> domo(bfilter b bv S) \<subseteq> X"
+apply(induction b arbitrary: bv S)
+apply(simp add: domo_def)
+apply(simp)
+apply(simp)
+apply rule
+apply (metis le_sup_iff subset_trans[OF domo_join])
+apply(simp split: prod.split)
+by (metis domo_afilter)
+
+lemma step'_Com:
+  "domo S \<subseteq> X \<Longrightarrow> vars(strip c) \<subseteq> X \<Longrightarrow> c : Com X \<Longrightarrow> step' S c : Com X"
+apply(induction c arbitrary: S)
+apply(simp add: Com_def)
+apply(simp add: Com_def domo_def update_def split: option.splits)
+apply(simp (no_asm_use) add: Com_def ball_Un)
+apply (metis post_in_annos)
+apply(simp (no_asm_use) add: Com_def ball_Un)
+apply rule
+apply (metis Un_assoc domo_join order_trans post_in_annos subset_Un_eq)
+apply (metis domo_bfilter)
+apply(simp (no_asm_use) add: Com_def)
+apply rule
+apply (metis domo_join le_sup_iff post_in_annos subset_trans)
+apply rule
+apply (metis domo_bfilter)
+by (metis domo_bfilter)
 
 end
 
