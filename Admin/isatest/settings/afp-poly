@@ -3,8 +3,8 @@
 CONTRIB=~/afp/contrib
 
   POLYML_HOME=$CONTRIB/polyml
-  ML_SYSTEM="polyml-5.4.0"
-  ML_PLATFORM="x86_64-linux"
+  ML_SYSTEM="polyml-5.4.1"
+  ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 2000 --gcthreads 4"
 
