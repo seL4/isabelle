@@ -8,6 +8,7 @@ CONTRIB=~/afp/contrib
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 2000 --gcthreads 4"
 
+FLYSPECK_SKIP_PROOFS=true
 JINJATHREADS_OPTIONS="-M 1 -q 0 -p 0"
 
 ISABELLE_HOME_USER=~/afp/isabelle-afp-poly
