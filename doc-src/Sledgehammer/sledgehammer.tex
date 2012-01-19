@@ -1006,9 +1006,9 @@ Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
 (unreconstructible using \textit{metis}). The supported type encodings are
 listed below, with an indication of their soundness in parentheses.
-An asterisk (*) indicates that the encodings sometimes lead to reconstruction
-failures in \textit{metis}, unless the \emph{strict} option (described below) is
-enabled.
+An asterisk (*) means that the encoding is slightly incomplete for
+reconstruction with \textit{metis}, unless the \emph{strict} option (described
+below) is enabled.
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{erased} (very unsound):} No type information is
@@ -1132,9 +1132,9 @@ of the value of this option.
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
 and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
 
-\opfalse{strict}{non\_stric}
+\opfalse{strict}{non\_strict}
 Specifies whether Sledgehammer should run in its strict mode. In that mode,
-sound type encodings marked with an asterisk (*) above are made more reliable
+sound type encodings marked with an asterisk (*) above are made complete
 for reconstruction with \textit{metis}, at the cost of some clutter in the
 generated problems. This option has no effect if \textit{type\_enc} is
 deliberately set to an unsound encoding.
