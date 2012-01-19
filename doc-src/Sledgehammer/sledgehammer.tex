@@ -751,22 +751,24 @@ have a negated counterpart (e.g., \textit{blocking} vs.\
 \begin{enum}
 \opnodefaultbrk{provers}{string}
 Specifies the automatic provers to use as a space-separated list (e.g.,
-``\textit{e}~\textit{spass}~\textit{remote\_vampire\/}''). The following local
-provers are supported:
+``\textit{e}~\textit{spass}~\textit{remote\_vampire\/}'').
+Provers can be run locally or remotely; see \S\ref{installation} for
+installation instructions.
+
+The following local provers are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name, or install the prebuilt CVC3 package from
-\download. Sledgehammer has been tested with version 2.2. See
-\S\ref{installation} for details.
+\download. Sledgehammer has been tested with version 2.2.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable, or install the prebuilt E package from \download. Sledgehammer has
-been tested with versions 1.0 to 1.4. See \S\ref{installation} for details.
+been tested with versions 1.0 to 1.4.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
@@ -790,8 +792,7 @@ current settings (usually:\ Z3 with proof reconstruction).
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable, or install the prebuilt SPASS
-package from \download. Sledgehammer requires version 3.5 or above. See
-\S\ref{installation} for details.
+package from \download. Sledgehammer requires version 3.5 or above.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order resolution
 prover developed by Andrei Voronkov and his colleagues
@@ -820,7 +821,7 @@ requires version 3.0 or above. To use it, set the environment variable
 executable.
 \end{enum}
 
-In addition, the following remote provers are supported:
+The following remote provers are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
@@ -1121,8 +1122,9 @@ and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
 \opfalse{sound}{unsound}
 Specifies whether Sledgehammer should run in its fully sound mode. In that mode,
 quasi-sound type encodings (which are the default) are made fully sound, at the
-cost of some clutter in the generated problems. This option is ignored if
-\textit{type\_enc} is set to an unsound encoding.
+cost of some clutter in the generated problems.
+This option is ignored if \textit{type\_enc} is deliberately set to an encoding
+that is not sound or quasi-sound.
 \end{enum}
 
 \subsection{Relevance Filter}
