@@ -258,7 +258,7 @@ definition Com :: "vname set \<Rightarrow> 'a st option acom set" where
 lemma domo_Top[simp]: "domo \<top> = {}"
 by(simp add: domo_def Top_st_def Top_option_def)
 
-lemma bot_acom_Dom[simp]: "\<bottom>\<^sub>c c \<in> Com X"
+lemma bot_acom_Com[simp]: "\<bottom>\<^sub>c c \<in> Com X"
 by(simp add: bot_acom_def Com_def domo_def set_annos_anno)
 
 lemma post_in_annos: "post c : set(annos c)"
