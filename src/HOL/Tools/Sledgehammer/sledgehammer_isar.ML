@@ -97,7 +97,7 @@ val default_default_params =
    ("isar_shrink_factor", "1"),
    ("slice", "true"),
    ("minimize", "smart"),
-   ("preplay_timeout", "4")]
+   ("preplay_timeout", "3")]
 
 val alias_params =
   [("prover", "provers")]
