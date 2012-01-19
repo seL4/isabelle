@@ -87,7 +87,7 @@ val default_default_params =
    ("overlord", "false"),
    ("blocking", "false"),
    ("type_enc", "smart"),
-   ("sound", "false"),
+   ("strict", "false"),
    ("lam_trans", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
@@ -106,13 +106,13 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
-   ("unsound", "sound"),
+   ("non_strict", "strict"),
    ("no_isar_proof", "isar_proof"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_enc", "sound", "lam_trans",
+  ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "max_mono_iters", "max_new_mono_instances", "isar_proof",
    "isar_shrink_factor", "timeout", "preplay_timeout"]
 
@@ -141,7 +141,7 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
-val any_type_enc = type_enc_from_string Sound "erased"
+val any_type_enc = type_enc_from_string Strict "erased"
 
 (* "provers =", "type_enc =", and "lam_trans" can be omitted. For the last two,
    this is a secret feature. *)
@@ -152,7 +152,7 @@ fun normalize_raw_param ctxt =
            (name, value)
          else if is_prover_list ctxt name andalso null value then
            ("provers", [name])
-         else if can (type_enc_from_string Sound) name andalso null value then
+         else if can (type_enc_from_string Strict) name andalso null value then
            ("type_enc", [name])
          else if can (trans_lams_from_string ctxt any_type_enc) name andalso
                  null value then
@@ -282,8 +282,8 @@ fun extract_params mode default_params override_params =
         NONE
       else case lookup_string "type_enc" of
         "smart" => NONE
-      | s => (type_enc_from_string Sound s; SOME s)
-    val sound = mode = Auto_Try orelse lookup_bool "sound"
+      | s => (type_enc_from_string Strict s; SOME s)
+    val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
@@ -302,7 +302,7 @@ fun extract_params mode default_params override_params =
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_enc = type_enc, sound = sound,
+     provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,

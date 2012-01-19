@@ -25,7 +25,7 @@ sig
      blocking: bool,
      provers: string list,
      type_enc: string option,
-     sound: bool,
+     strict: bool,
      lam_trans: string option,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -289,7 +289,7 @@ type params =
    blocking: bool,
    provers: string list,
    type_enc: string option,
-   sound: bool,
+   strict: bool,
    lam_trans: string option,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -580,7 +580,7 @@ val atp_timeout_slack = seconds 1.0
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
-        (params as {debug, verbose, overlord, type_enc, sound, lam_trans,
+        (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     max_relevant, max_mono_iters, max_new_mono_instances,
                     isar_proof, isar_shrink_factor, slice, timeout,
                     preplay_timeout, ...})
@@ -659,7 +659,7 @@ fun run_atp mode name
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
-                val soundness = if sound then Sound else Sound_Modulo_Infinity
+                val soundness = if strict then Strict else Non_Strict
                 val type_enc =
                   type_enc |> choose_type_enc soundness best_type_enc format
                 val fairly_sound = is_type_enc_fairly_sound type_enc

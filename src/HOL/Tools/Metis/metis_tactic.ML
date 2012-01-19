@@ -140,7 +140,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
-      val type_enc = type_enc_from_string Sound type_enc
+      val type_enc = type_enc_from_string Strict type_enc
       val (sym_tab, axioms, concealed) =
         prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =

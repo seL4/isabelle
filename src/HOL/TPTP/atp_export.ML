@@ -169,7 +169,7 @@ fun monomorphize_term ctxt t =
 
 fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
-    val type_enc = type_enc |> type_enc_from_string Sound
+    val type_enc = type_enc |> type_enc_from_string Strict
                             |> adjust_type_enc format
     val mono = polymorphism_of_type_enc type_enc <> Polymorphic
     val path = file_name |> Path.explode

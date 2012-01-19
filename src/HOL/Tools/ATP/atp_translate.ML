@@ -19,11 +19,11 @@ sig
     General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-  datatype soundness = Sound_Modulo_Infinity | Sound
+  datatype strictness = Strict | Non_Strict
   datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
   datatype type_level =
     All_Types |
-    Noninf_Nonmono_Types of soundness * granularity |
+    Noninf_Nonmono_Types of strictness * granularity |
     Fin_Nonmono_Types of granularity |
     Const_Arg_Types |
     No_Types
@@ -88,7 +88,7 @@ sig
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_quasi_sound : type_enc -> bool
   val is_type_enc_fairly_sound : type_enc -> bool
-  val type_enc_from_string : soundness -> string -> type_enc
+  val type_enc_from_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
@@ -546,11 +546,11 @@ datatype locality =
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
-datatype soundness = Sound_Modulo_Infinity | Sound
+datatype strictness = Strict | Non_Strict
 datatype granularity = All_Vars | Positively_Naked_Vars | Ghost_Type_Arg_Vars
 datatype type_level =
   All_Types |
-  Noninf_Nonmono_Types of soundness * granularity |
+  Noninf_Nonmono_Types of strictness * granularity |
   Fin_Nonmono_Types of granularity |
   Const_Arg_Types |
   No_Types
@@ -608,7 +608,7 @@ fun try_nonmono constr suffixes fallback s =
        | NONE => (constr All_Vars, s))
   | NONE => fallback s
 
-fun type_enc_from_string soundness s =
+fun type_enc_from_string strictness s =
   (case try (unprefix "poly_") s of
      SOME s => (SOME Polymorphic, s)
    | NONE =>
@@ -620,7 +620,7 @@ fun type_enc_from_string soundness s =
        | NONE => (NONE, s))
   ||> (pair All_Types
        |> try_nonmono Fin_Nonmono_Types bangs
-       |> try_nonmono (curry Noninf_Nonmono_Types soundness) queries)
+       |> try_nonmono (curry Noninf_Nonmono_Types strictness) queries)
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("simple", (SOME poly, _)) =>
@@ -1281,8 +1281,8 @@ type monotonicity_info =
 val known_infinite_types =
   [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}]
 
-fun is_type_kind_of_surely_infinite ctxt soundness cached_Ts T =
-  soundness <> Sound andalso is_type_surely_infinite ctxt true cached_Ts T
+fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
+  strictness <> Strict andalso is_type_surely_infinite ctxt true cached_Ts T
 
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
@@ -1292,12 +1292,12 @@ fun is_type_kind_of_surely_infinite ctxt soundness cached_Ts T =
 fun should_encode_type _ (_ : monotonicity_info) All_Types _ = true
   | should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts, ...}
-                       (Noninf_Nonmono_Types (soundness, grain)) T =
+                       (Noninf_Nonmono_Types (strictness, grain)) T =
     grain = Ghost_Type_Arg_Vars orelse
     (exists (type_intersect ctxt T) maybe_nonmono_Ts andalso
      not (exists (type_instance ctxt T) surely_infinite_Ts orelse
           (not (member (type_equiv ctxt) maybe_finite_Ts T) andalso
-           is_type_kind_of_surely_infinite ctxt soundness surely_infinite_Ts
+           is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
                                            T)))
   | should_encode_type ctxt {surely_finite_Ts, maybe_infinite_Ts,
                              maybe_nonmono_Ts, ...}
@@ -2046,7 +2046,7 @@ fun default_mono level =
    maybe_infinite_Ts = known_infinite_types,
    surely_infinite_Ts =
      case level of
-       Noninf_Nonmono_Types (Sound, _) => []
+       Noninf_Nonmono_Types (Strict, _) => []
      | _ => known_infinite_types,
    maybe_nonmono_Ts = [@{typ bool}]}
 
@@ -2059,11 +2059,11 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
                   surely_infinite_Ts, maybe_nonmono_Ts}) =
     if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
       case level of
-        Noninf_Nonmono_Types (soundness, _) =>
+        Noninf_Nonmono_Types (strictness, _) =>
         if exists (type_instance ctxt T) surely_infinite_Ts orelse
            member (type_equiv ctxt) maybe_finite_Ts T then
           mono
-        else if is_type_kind_of_surely_infinite ctxt soundness
+        else if is_type_kind_of_surely_infinite ctxt strictness
                                                 surely_infinite_Ts T then
           {maybe_finite_Ts = maybe_finite_Ts,
            surely_finite_Ts = surely_finite_Ts,

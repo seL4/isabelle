@@ -47,8 +47,8 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_new_mono_instances, type_enc, lam_trans, isar_proof,
-                 isar_shrink_factor, preplay_timeout, ...} : params)
+                 max_new_mono_instances, type_enc, strict, lam_trans,
+                 isar_proof, isar_shrink_factor, preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
     val _ =
@@ -61,7 +61,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
-       provers = provers, type_enc = type_enc, sound = true,
+       provers = provers, type_enc = type_enc, strict = strict,
        lam_trans = lam_trans, relevance_thresholds = (1.01, 1.01),
        max_relevant = SOME (length facts), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,

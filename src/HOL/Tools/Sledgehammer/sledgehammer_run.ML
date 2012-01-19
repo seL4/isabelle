@@ -73,7 +73,7 @@ val auto_minimize_max_time =
                            (K 5.0)
 
 fun adjust_reconstructor_params override_params
-        ({debug, verbose, overlord, blocking, provers, type_enc, sound,
+        ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, relevance_thresholds, max_relevant, max_mono_iters,
          max_new_mono_instances, isar_proof, isar_shrink_factor, slice,
          minimize, timeout, preplay_timeout, expect} : params) =
@@ -88,7 +88,7 @@ fun adjust_reconstructor_params override_params
     val lam_trans = lookup_override "lam_trans" lam_trans
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_enc = type_enc, sound = sound,
+     provers = provers, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, max_relevant = max_relevant,
      relevance_thresholds = relevance_thresholds,
      max_mono_iters = max_mono_iters,
