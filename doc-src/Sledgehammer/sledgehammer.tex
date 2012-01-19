@@ -380,63 +380,10 @@ Sledgehammer. It is a good idea to skim over it now even if you don't have any
 questions at this stage. And if you have any further questions not listed here,
 send them to the author at \authoremail.
 
-\point{Why does Metis fail to reconstruct the proof?}
-
-There are many reasons. If Metis runs seemingly forever, that is a sign that the
-proof is too difficult for it. Metis's search is complete, so it should
-eventually find it, but that's little consolation. There are several possible
-solutions:
-
-\begin{enum}
-\item[\labelitemi] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
-obtain a step-by-step Isar proof where each step is justified by \textit{metis}.
-Since the steps are fairly small, \textit{metis} is more likely to be able to
-replay them.
-
-\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}. It
-is usually stronger, but you need to either have Z3 available to replay the
-proofs, trust the SMT solver, or use certificates. See the documentation in the
-\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
-
-\item[\labelitemi] Try the \textit{blast} or \textit{auto} proof methods, passing
-the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
-\textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
-\end{enum}
-
-In some rare cases, \textit{metis} fails fairly quickly, and you get the error
-message
-
-\prew
-\slshape
-Proof reconstruction failed.
-\postw
-
-This message usually indicates that Sledgehammer found a type-incorrect proof.
-This was a frequent issue with older versions of Sledgehammer, which did not
-supply enough typing information to the ATPs by default. If you notice many
-unsound proofs and are not using \textit{type\_enc} (\S\ref{problem-encoding}),
-contact the author at \authoremail.
-
-\point{How can I tell whether a generated proof is sound?}
-
-First, if \textit{metis} can reconstruct it, the proof is sound (assuming
-Isabelle's inference kernel is sound). If it fails or runs seemingly forever,
-you can try
-
-\prew
-\textbf{apply}~\textbf{--} \\
-\textbf{sledgehammer} [\textit{sound}] (\textit{metis\_facts})
-\postw
-
-where \textit{metis\_facts} is the list of facts appearing in the suggested
-\textit{metis} call. The automatic provers should be able to re-find the proof
-quickly if it is sound, and the \textit{sound} option (\S\ref{problem-encoding})
-ensures that no unsound proofs are found.
-
 \point{Which facts are passed to the automatic provers?}
 
 The relevance filter assigns a score to every available fact (lemma, theorem,
-definition, or axiom)\ based upon how many constants that fact shares with the
+definition, or axiom) based upon how many constants that fact shares with the
 conjecture. This process iterates to include facts relevant to those just
 accepted, but with a decay factor to ensure termination. The constants are
 weighted to give unusual ones greater significance. The relevance filter copes
@@ -483,14 +430,78 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 \textbf{sledgehammer}
 \postw
 
+\point{Why does Metis fail to reconstruct the proof?}
+
+There are many reasons. If Metis runs seemingly forever, that is a sign that the
+proof is too difficult for it. Metis's search is complete, so it should
+eventually find it, but that's little consolation. There are several possible
+solutions:
+
+\begin{enum}
+\item[\labelitemi] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
+obtain a step-by-step Isar proof where each step is justified by \textit{metis}.
+Since the steps are fairly small, \textit{metis} is more likely to be able to
+replay them.
+
+\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}. It
+is usually stronger, but you need to either have Z3 available to replay the
+proofs, trust the SMT solver, or use certificates. See the documentation in the
+\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
+
+\item[\labelitemi] Try the \textit{blast} or \textit{auto} proof methods, passing
+the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
+\textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
+\end{enum}
+
+In some rare cases, \textit{metis} fails fairly quickly, and you get the error
+message
+
+\prew
+\slshape
+One-line proof reconstruction failed.
+\postw
+
+This message indicates that Sledgehammer determined that the goal is provable,
+but the proof is, for technical reasons, beyond \textit{metis}'s power. You can
+then try again with the \textit{strict} option (\S\ref{problem-encoding}).
+
+If the goal is actually unprovable are you did not specify an unsound encoding
+using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
+strongly encouraged to report this to the author at \authoremail.
+
 \point{Why are the generated Isar proofs so ugly/broken?}
 
-The current implementation is experimental and explodes exponentially in the
-worst case. Work on a new implementation has begun. There is a large body of
+The current implementation of the Isar proof feature,
+enabled by the \textit{isar\_proof} option (\S\ref{output-format}),
+is highly experimental. Work on a new implementation has begun. There is a large body of
 research into transforming resolution proofs into natural deduction proofs (such
 as Isar proofs), which we hope to leverage. In the meantime, a workaround is to
 set the \textit{isar\_shrink\_factor} option (\S\ref{output-format}) to a larger
 value or to try several provers and keep the nicest-looking proof.
+
+\point{How can I tell whether a suggested proof is sound?}
+
+Earlier versions of Sledgehammer often suggested unsound proofs---either proofs
+of nontheorems or simply proofs that rely on type-unsound inferences. This
+is a thing of the pass, unless you explicitly specify an unsound encoding
+using \textit{type\_enc} (\S\ref{problem-encoding}).
+%
+Officially, the only form of ``unsoundness'' that lurks in the sound
+encodings is related to missing characteristic theorems of datatypes. For
+example,
+
+\prew
+\textbf{lemma}~``$\exists \mathit{xs}.\; \mathit{xs} \neq []$'' \\
+\textbf{sledgehammer} ()
+\postw
+
+suggests an argumentless \textit{metis} call that fails. However, the conjecture
+does actually hold, and the \textit{metis} call can be repaired by adding
+\textit{list.distinct}.
+%
+We hope to address this problem in a future version of Isabelle. In the
+meantime, you can avoid it by passing the \textit{strict} option
+(\S\ref{problem-encoding}).
 
 \point{What are the \textit{full\_types}, \textit{no\_types}, and
 \textit{mono\_tags} arguments to Metis?}
@@ -669,7 +680,7 @@ You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option in Proof General's ``Isabelle'' menu.
 For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slice} (\S\ref{mode-of-operation}) is disabled, \textit{sound}
+\textit{slice} (\S\ref{mode-of-operation}) is disabled, \textit{strict}
 (\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
 and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
@@ -696,7 +707,7 @@ The supported $\lambda$ translation schemes are \textit{hide\_lams},
 All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
 For convenience, the following aliases are provided:
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{full\_types}:} Synonym for An appropriate type-sound encoding.
+\item[\labelitemi] \textbf{\textit{full\_types}:} Synonym for \textit{poly\_guards\_query}.
 \item[\labelitemi] \textbf{\textit{partial\_types}:} Synonym for \textit{poly\_args}.
 \item[\labelitemi] \textbf{\textit{no\_types}:} Synonym for \textit{erased}.
 \end{enum}
@@ -994,19 +1005,22 @@ For SMT solvers, the $\lambda$ translation scheme is always
 Specifies the type encoding to use in ATP problems. Some of the type encodings
 are unsound, meaning that they can give rise to spurious proofs
 (unreconstructible using \textit{metis}). The supported type encodings are
-listed below, with an indication of their soundness in parentheses:
+listed below, with an indication of their soundness in parentheses.
+An asterisk (*) indicates that the encodings sometimes lead to reconstruction
+failures in \textit{metis}, unless the \emph{strict} option (described below) is
+enabled.
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{erased} (very unsound):} No type information is
-supplied to the ATP. Types are simply erased.
+supplied to the ATP, not even to resolve overloading. Types are simply erased.
 
 \item[\labelitemi] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
-a predicate \textit{has\_\allowbreak type\/}$(\tau, t)$ that guards bound
+a predicate \const{g}$(\tau, t)$ that guards bound
 variables. Constants are annotated with their types, supplied as additional
 arguments, to resolve overloading.
 
 \item[\labelitemi] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
-tagged with its type using a function $\const{type\/}(\tau, t)$.
+tagged with its type using a function $\const{t\/}(\tau, t)$.
 
 \item[\labelitemi] \textbf{\textit{poly\_args} (unsound):}
 Like for \textit{poly\_guards} constants are annotated with their types to
@@ -1031,10 +1045,10 @@ Similar to
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, and
 \textit{raw\_mono\_args}, respectively but types are mangled in constant names
 instead of being supplied as ground term arguments. The binary predicate
-$\const{has\_type\/}(\tau, t)$ becomes a unary predicate
-$\const{has\_type\_}\tau(t)$, and the binary function
-$\const{type\/}(\tau, t)$ becomes a unary function
-$\const{type\_}\tau(t)$.
+$\const{g}(\tau, t)$ becomes a unary predicate
+$\const{g\_}\tau(t)$, and the binary function
+$\const{t}(\tau, t)$ becomes a unary function
+$\const{t\_}\tau(t)$.
 
 \item[\labelitemi] \textbf{\textit{mono\_simple} (sound):} Exploits simple
 first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
@@ -1048,7 +1062,7 @@ on \textit{mono\_simple} or \textit{mono\_guards}. The problem is monomorphized.
 \textbf{%
 \textit{poly\_guards}?, \textit{poly\_tags}?, \textit{raw\_mono\_guards}?, \\
 \textit{raw\_mono\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
-\textit{mono\_simple}? (quasi-sound):} \\
+\textit{mono\_simple}? (sound*):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
 \textit{mono\_tags}, and \textit{mono\_simple} are fully
@@ -1057,21 +1071,20 @@ virtually sound variant identified by a question mark (`\hbox{?}')\ that detects
 and erases monotonic types, notably infinite types. (For \textit{mono\_simple},
 the types are not actually erased but rather replaced by a shared uniform type
 of individuals.) As argument to the \textit{metis} proof method, the question
-mark is replaced by a \hbox{``\textit{\_query\/}''} suffix. If the \emph{sound}
-option is enabled, these encodings are fully sound.
+mark is replaced by a \hbox{``\textit{\_query\/}''} suffix.
 
 \item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}??, \textit{poly\_tags}??, \textit{raw\_mono\_guards}??, \\
 \textit{raw\_mono\_tags}??, \textit{mono\_guards}??, \textit{mono\_tags}?? \\
-(quasi-sound):} \\
+(sound*):} \\
 Even lighter versions of the `\hbox{?}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{??}' suffix is replaced by
 \hbox{``\textit{\_query\_query\/}''}.
 
 \item[\labelitemi]
 \textbf{%
-\textit{poly\_guards}@?, \textit{raw\_mono\_guards}@? (quasi-sound):} \\
+\textit{poly\_guards}@?, \textit{raw\_mono\_guards}@? (sound*):} \\
 Alternative versions of the `\hbox{??}' encodings. As argument to the
 \textit{metis} proof method, the `\hbox{@?}' suffix is replaced by
 \hbox{``\textit{\_at\_query\/}''}.
@@ -1119,12 +1132,12 @@ of the value of this option.
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
 and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
 
-\opfalse{sound}{unsound}
-Specifies whether Sledgehammer should run in its fully sound mode. In that mode,
-quasi-sound type encodings (which are the default) are made fully sound, at the
-cost of some clutter in the generated problems.
-This option is ignored if \textit{type\_enc} is deliberately set to an encoding
-that is not sound or quasi-sound.
+\opfalse{strict}{non\_stric}
+Specifies whether Sledgehammer should run in its strict mode. In that mode,
+sound type encodings marked with an asterisk (*) above are made more reliable
+for reconstruction with \textit{metis}, at the cost of some clutter in the
+generated problems. This option has no effect if \textit{type\_enc} is
+deliberately set to an unsound encoding.
 \end{enum}
 
 \subsection{Relevance Filter}
@@ -1203,8 +1216,7 @@ steps in the ATP proof.
 Specifies the expected outcome, which must be one of the following:
 
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{some}:} Sledgehammer found a (potentially
-unsound) proof.
+\item[\labelitemi] \textbf{\textit{some}:} Sledgehammer found a proof.
 \item[\labelitemi] \textbf{\textit{none}:} Sledgehammer found no proof.
 \item[\labelitemi] \textbf{\textit{timeout}:} Sledgehammer timed out.
 \item[\labelitemi] \textbf{\textit{unknown}:} Sledgehammer encountered some
