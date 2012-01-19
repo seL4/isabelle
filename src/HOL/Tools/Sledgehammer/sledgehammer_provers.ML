@@ -399,9 +399,10 @@ fun proof_banner mode name =
   | _ => "Try this"
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
-  [(false, Metis (hd partial_type_encs, lam_trans true)),
-   (true, Metis (full_typesN, lam_trans false)),
+  [(false, Metis (partial_type_enc, lam_trans true)),
+   (true, Metis (full_type_enc, lam_trans false)),
    (false, Metis (no_typesN, lam_trans false)),
+   (true, Metis (really_full_type_enc, lam_trans false)),
    (true, SMT)]
   |> map_filter (fn (full_types, reconstr) =>
                     if needs_full_types andalso not full_types then NONE
