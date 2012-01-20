@@ -238,23 +238,23 @@ definition "step_up_ivl n = ((\<lambda>c. c \<nabla>\<^sub>c step_ivl \<top> c)^
 definition "step_down_ivl n = ((\<lambda>c. c \<triangle>\<^sub>c step_ivl \<top> c)^^n)"
 
 text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
-the loop took to execute. In contrast, @{const AI_ivl} converges in a
+the loop took to execute. In contrast, @{const AI_ivl'} converges in a
 constant number of steps: *}
 
-value [code] "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 3 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 4 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 3 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 4 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
 
 text{* Now all the analyses terminate: *}
 
-value [code] "show_acom_opt (AI_ivl' test4_ivl)"
-value [code] "show_acom_opt (AI_ivl' test5_ivl)"
-value [code] "show_acom_opt (AI_ivl' test6_ivl)"
+value "show_acom_opt (AI_ivl' test4_ivl)"
+value "show_acom_opt (AI_ivl' test5_ivl)"
+value "show_acom_opt (AI_ivl' test6_ivl)"
 
 
 subsubsection "Termination: Intervals"
