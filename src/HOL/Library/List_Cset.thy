@@ -15,9 +15,9 @@ lemma member_code [code]:
   by (simp_all add: fun_eq_iff List.member_def)
 
 definition (in term_syntax)
-  setify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
+  csetify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
     \<Rightarrow> 'a Cset.set \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
-  [code_unfold]: "setify xs = Code_Evaluation.valtermify Cset.set {\<cdot>} xs"
+  [code_unfold]: "csetify xs = Code_Evaluation.valtermify Cset.set {\<cdot>} xs"
 
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
@@ -26,7 +26,7 @@ instantiation Cset.set :: (random) random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (setify xs))"
+  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (csetify xs))"
 
 instance ..
 

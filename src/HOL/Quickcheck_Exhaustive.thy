@@ -146,8 +146,8 @@ instance ..
 
 end
 
-definition (in term_syntax) "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
-definition (in term_syntax) "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+definition (in term_syntax) [code_unfold]: "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
+definition (in term_syntax) [code_unfold]: "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
 
 instantiation set :: (full_exhaustive) full_exhaustive
 begin
@@ -159,8 +159,6 @@ where
 instance ..
 
 end
-
-hide_const valterm_emptyset valtermify_insert
 
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
@@ -252,6 +250,33 @@ instance ..
 
 end
 
+fun (in term_syntax) check_all_subsets :: "(('a :: typerep) set * (unit => term) => (bool * term list) option) => ('a * (unit => term)) list => (bool * term list) option"
+where
+  "check_all_subsets f [] = f valterm_emptyset"
+| "check_all_subsets f (x # xs) = check_all_subsets (%s. case f s of Some ts => Some ts | None => f (valtermify_insert x s)) xs"
+
+
+definition (in term_syntax) [code_unfold]: "term_emptyset = Code_Evaluation.termify ({} :: ('a :: typerep) set)"
+definition (in term_syntax) [code_unfold]: "termify_insert x s = Code_Evaluation.termify (insert :: ('a::typerep) => 'a set => 'a set)  <\<cdot>> x <\<cdot>> s"
+
+definition (in term_syntax) setify :: "('a::typerep) itself => term list => term"
+where
+  "setify T ts = foldr (termify_insert T) ts (term_emptyset T)" 
+
+instantiation set :: (check_all) check_all
+begin
+
+definition
+  "check_all_set f =
+     check_all_subsets f (zip (Enum.enum :: 'a list) (map (%a. %u :: unit. a) (Quickcheck_Exhaustive.enum_term_of (TYPE ('a)) ())))"
+
+definition enum_term_of_set :: "'a set itself => unit => term list"
+where
+  "enum_term_of_set _ _ = map (setify (TYPE('a))) (sublists (Quickcheck_Exhaustive.enum_term_of (TYPE('a)) ()))"
+
+instance ..
+
+end
 
 instantiation unit :: check_all
 begin
@@ -573,11 +598,13 @@ hide_fact
   exhaustive'_def
   exhaustive_code_numeral'_def
 
+hide_const valterm_emptyset valtermify_insert term_emptyset termify_insert setify
+
 hide_const (open)
   exhaustive full_exhaustive exhaustive' exhaustive_code_numeral' full_exhaustive_code_numeral'
   throw_Counterexample catch_Counterexample
   check_all enum_term_of
-  orelse unknown mk_map_term check_all_n_lists
+  orelse unknown mk_map_term check_all_n_lists check_all_subsets
 
 hide_type (open) cps pos_bound_cps neg_bound_cps unknown three_valued
 hide_const (open) cps_empty cps_single cps_bind cps_plus cps_if cps_not
