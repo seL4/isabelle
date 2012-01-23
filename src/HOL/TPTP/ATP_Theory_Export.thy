@@ -1,11 +1,17 @@
-theory ATP_Export
+(*  Title:      HOL/TPTP/ATP_Theory_Export.thy
+    Author:     Jasmin Blanchette, TU Muenchen
+*)
+
+header {* ATP Theory Exporter *}
+
+theory ATP_Theory_Export
 imports Complex_Main
-uses "atp_export.ML"
+uses "atp_theory_export.ML"
 begin
 
 ML {*
 open ATP_Problem;
-open ATP_Export;
+open ATP_Theory_Export;
 *}
 
 ML {*

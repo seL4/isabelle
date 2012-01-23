@@ -1,4 +1,4 @@
-(*  Title:      HOL/TPTP/atp_export.ML
+(*  Title:      HOL/TPTP/atp_theory_export.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2011
 
@@ -6,7 +6,7 @@ Export Isabelle theories as first-order TPTP inferences, exploiting
 Sledgehammer's translation.
 *)
 
-signature ATP_EXPORT =
+signature ATP_THEORY_EXPORT =
 sig
   type atp_format = ATP_Problem.atp_format
 
@@ -18,7 +18,7 @@ sig
     Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
 
-structure ATP_Export : ATP_EXPORT =
+structure ATP_Theory_Export : ATP_THEORY_EXPORT =
 struct
 
 open ATP_Problem

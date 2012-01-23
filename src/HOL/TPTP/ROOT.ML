@@ -7,7 +7,7 @@ TPTP-related extensions.
 *)
 
 use_thys [
-  "ATP_Export"
+  "ATP_Theory_Export"
 ];
 
 Unsynchronized.setmp Proofterm.proofs (!Proofterm.proofs)

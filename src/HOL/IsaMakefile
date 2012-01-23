@@ -1169,9 +1169,9 @@ HOL-TPTP: HOL $(LOG)/HOL-TPTP.gz
 $(LOG)/HOL-TPTP.gz: \
   $(OUT)/HOL \
   TPTP/ROOT.ML \
-  TPTP/ATP_Export.thy \
-  TPTP/CASC_Setup.thy \
-  TPTP/atp_export.ML
+  TPTP/atp_theory_export.ML \
+  TPTP/ATP_Theory_Export.thy \
+  TPTP/CASC_Setup.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL TPTP
 
 
