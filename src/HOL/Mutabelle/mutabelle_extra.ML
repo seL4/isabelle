@@ -51,11 +51,11 @@ val random_seed = Unsynchronized.ref 1.0;
 
 
 (* mutation options *)
-(*val max_mutants = 4
-val num_mutations = 1*)
-(* soundness check: *)
-val max_mutants =  10
+val max_mutants = 4
 val num_mutations = 1
+(* soundness check: *)
+(*val max_mutants =  10
+val num_mutations = 1*)
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
