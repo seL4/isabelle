@@ -388,7 +388,8 @@ val rewrs =
     map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
       (@{thms all_simps} @ @{thms ex_simps})
     @ map (HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
-        [@{thm iff_conv_conj_imp}, @{thm not_ex}, @{thm not_all}]
+        [@{thm iff_conv_conj_imp}, @{thm not_ex}, @{thm not_all},
+         @{thm meta_eq_to_obj_eq [OF Ex1_def]}]
 
 fun make_pnf_term thy t = Pattern.rewrite_term thy rewrs [] t
 
