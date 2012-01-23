@@ -23,9 +23,9 @@ end
 structure Metis_Tactic : METIS_TACTIC =
 struct
 
-open ATP_Translate
-open ATP_Reconstruct
-open Metis_Translate
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
+open Metis_Generate
 open Metis_Reconstruct
 
 val new_skolemizer =

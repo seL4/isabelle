@@ -21,8 +21,8 @@ struct
 
 open ATP_Util
 open ATP_Systems
-open ATP_Translate
-open ATP_Reconstruct
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers

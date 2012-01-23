@@ -22,8 +22,8 @@ structure ATP_Export : ATP_EXPORT =
 struct
 
 open ATP_Problem
-open ATP_Translate
 open ATP_Proof
+open ATP_Problem_Generate
 open ATP_Systems
 
 val fact_name_of = prefix fact_prefix o ascii_of

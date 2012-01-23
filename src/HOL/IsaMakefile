@@ -204,11 +204,11 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Set.thy \
   Sum_Type.thy \
   Tools/ATP/atp_problem.ML \
+  Tools/ATP/atp_problem_generate.ML \
   Tools/ATP/atp_proof.ML \
-  Tools/ATP/atp_reconstruct.ML \
-  Tools/ATP/atp_redirect.ML \
+  Tools/ATP/atp_proof_reconstruct.ML \
+  Tools/ATP/atp_proof_redirect.ML \
   Tools/ATP/atp_systems.ML \
-  Tools/ATP/atp_translate.ML \
   Tools/ATP/atp_util.ML \
   Tools/Datatype/datatype.ML \
   Tools/Datatype/datatype_aux.ML \
@@ -241,9 +241,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Meson/meson.ML \
   Tools/Meson/meson_clausify.ML \
   Tools/Meson/meson_tactic.ML \
+  Tools/Metis/metis_generate.ML \
   Tools/Metis/metis_reconstruct.ML \
   Tools/Metis/metis_tactic.ML \
-  Tools/Metis/metis_translate.ML \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \

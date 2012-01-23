@@ -336,7 +336,7 @@ fun get_prover ctxt args =
     | NONE => get_prover (default_prover_name ()))
   end
 
-type locality = ATP_Translate.locality
+type locality = ATP_Problem_Generate.locality
 
 (* hack *)
 fun reconstructor_from_msg args msg =
@@ -410,7 +410,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
         preplay =
-          K (ATP_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
+          K (ATP_Proof_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,
@@ -581,12 +581,13 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           ORELSE' sledge_tac 0.2 ATP_Systems.eN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.vampireN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.spassN "poly_tags"
-          ORELSE' Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt thms
+          ORELSE' Metis_Tactic.metis_tac [] ATP_Problem_Generate.combinatorsN
+            ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full then
-          Metis_Tactic.metis_tac [ATP_Reconstruct.full_typesN]
-            ATP_Reconstruct.metis_default_lam_trans ctxt thms
+          Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
+            ATP_Proof_Reconstruct.metis_default_lam_trans ctxt thms
         else if String.isPrefix "metis (" (!reconstructor) then
           let
             val (type_encs, lam_trans) =
@@ -594,11 +595,11 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
               |> Outer_Syntax.scan Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
-              |>> the_default [ATP_Reconstruct.partial_typesN]
-              ||> the_default ATP_Reconstruct.metis_default_lam_trans
+              |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
+              ||> the_default ATP_Proof_Reconstruct.metis_default_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ATP_Reconstruct.metis_default_lam_trans ctxt
+          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.metis_default_lam_trans ctxt
             thms
         else
           K all_tac

@@ -9,11 +9,11 @@ Generic prover abstraction for Sledgehammer.
 signature SLEDGEHAMMER_PROVERS =
 sig
   type failure = ATP_Proof.failure
-  type locality = ATP_Translate.locality
-  type type_enc = ATP_Translate.type_enc
-  type reconstructor = ATP_Reconstruct.reconstructor
-  type play = ATP_Reconstruct.play
-  type minimize_command = ATP_Reconstruct.minimize_command
+  type locality = ATP_Problem_Generate.locality
+  type type_enc = ATP_Problem_Generate.type_enc
+  type reconstructor = ATP_Proof_Reconstruct.reconstructor
+  type play = ATP_Proof_Reconstruct.play
+  type minimize_command = ATP_Proof_Reconstruct.minimize_command
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
 
   datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
@@ -119,8 +119,8 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Systems
-open ATP_Translate
-open ATP_Reconstruct
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
 open Sledgehammer_Filter

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/atp_translate.ML
+(*  Title:      HOL/Tools/ATP/atp_problem_generate.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,7 +6,7 @@
 Translation of HOL to FOL for Metis and Sledgehammer.
 *)
 
-signature ATP_TRANSLATE =
+signature ATP_PROBLEM_GENERATE =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type connective = ATP_Problem.connective
@@ -107,7 +107,7 @@ sig
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
-structure ATP_Translate : ATP_TRANSLATE =
+structure ATP_Problem_Generate : ATP_PROBLEM_GENERATE =
 struct
 
 open ATP_Util

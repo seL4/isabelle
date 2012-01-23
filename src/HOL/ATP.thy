@@ -12,9 +12,9 @@ uses "Tools/lambda_lifting.ML"
      "Tools/ATP/atp_util.ML"
      "Tools/ATP/atp_problem.ML"
      "Tools/ATP/atp_proof.ML"
-     "Tools/ATP/atp_redirect.ML"
-     ("Tools/ATP/atp_translate.ML")
-     ("Tools/ATP/atp_reconstruct.ML")
+     "Tools/ATP/atp_proof_redirect.ML"
+     ("Tools/ATP/atp_problem_generate.ML")
+     ("Tools/ATP/atp_proof_reconstruct.ML")
      ("Tools/ATP/atp_systems.ML")
 begin
 
@@ -49,8 +49,8 @@ definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where [no_atp]:
 
 subsection {* Setup *}
 
-use "Tools/ATP/atp_translate.ML"
-use "Tools/ATP/atp_reconstruct.ML"
+use "Tools/ATP/atp_problem_generate.ML"
+use "Tools/ATP/atp_proof_reconstruct.ML"
 use "Tools/ATP/atp_systems.ML"
 
 setup ATP_Systems.setup

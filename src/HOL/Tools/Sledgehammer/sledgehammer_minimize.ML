@@ -7,8 +7,8 @@ Minimization of fact list for Metis using external provers.
 
 signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = ATP_Translate.locality
-  type play = ATP_Reconstruct.play
+  type locality = ATP_Problem_Generate.locality
+  type play = ATP_Proof_Reconstruct.play
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
@@ -26,8 +26,8 @@ struct
 
 open ATP_Util
 open ATP_Proof
-open ATP_Translate
-open ATP_Reconstruct
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers

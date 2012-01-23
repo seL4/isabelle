@@ -7,7 +7,7 @@ Sledgehammer's relevance filter.
 
 signature SLEDGEHAMMER_FILTER =
 sig
-  type locality = ATP_Translate.locality
+  type locality = ATP_Problem_Generate.locality
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -62,7 +62,7 @@ end;
 structure Sledgehammer_Filter : SLEDGEHAMMER_FILTER =
 struct
 
-open ATP_Translate
+open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
 

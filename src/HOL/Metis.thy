@@ -9,7 +9,7 @@ header {* Metis Proof Method *}
 theory Metis
 imports ATP
 uses "~~/src/Tools/Metis/metis.ML"
-     ("Tools/Metis/metis_translate.ML")
+     ("Tools/Metis/metis_generate.ML")
      ("Tools/Metis/metis_reconstruct.ML")
      ("Tools/Metis/metis_tactic.ML")
      ("Tools/try_methods.ML")
@@ -40,7 +40,7 @@ unfolding lambda_def by assumption
 
 subsection {* Metis package *}
 
-use "Tools/Metis/metis_translate.ML"
+use "Tools/Metis/metis_generate.ML"
 use "Tools/Metis/metis_reconstruct.ML"
 use "Tools/Metis/metis_tactic.ML"
 

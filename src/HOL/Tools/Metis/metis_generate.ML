@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Metis/metis_translate.ML
+(*  Title:      HOL/Tools/Metis/metis_generate.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
@@ -7,9 +7,9 @@
 Translation of HOL to FOL for Metis.
 *)
 
-signature METIS_TRANSLATE =
+signature METIS_GENERATE =
 sig
-  type type_enc = ATP_Translate.type_enc
+  type type_enc = ATP_Problem_Generate.type_enc
 
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
@@ -35,11 +35,11 @@ sig
        * ((string * term) list * (string * term) list)
 end
 
-structure Metis_Translate : METIS_TRANSLATE =
+structure Metis_Generate : METIS_GENERATE =
 struct
 
 open ATP_Problem
-open ATP_Translate
+open ATP_Problem_Generate
 
 val metis_equal = "="
 val metis_predicator = "{}"

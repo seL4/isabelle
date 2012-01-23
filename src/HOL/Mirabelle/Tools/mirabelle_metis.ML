@@ -19,7 +19,8 @@ fun run id ({pre, post, timeout, log, ...}: Mirabelle.run_args) =
     val facts = Facts.props (Proof_Context.facts_of (Proof.context_of pre))
 
     fun metis ctxt =
-      Metis_Tactic.metis_tac [] ATP_Translate.lam_liftingN ctxt (thms @ facts)
+      Metis_Tactic.metis_tac [] ATP_Problem_Generate.lam_liftingN ctxt
+                             (thms @ facts)
   in
     (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
     |> prefix (metis_tag id)

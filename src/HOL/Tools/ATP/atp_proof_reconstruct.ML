@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/atp_reconstruct.ML
+(*  Title:      HOL/Tools/ATP/atp_proof_reconstruct.ML
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,12 +6,12 @@
 Proof reconstruction from ATP proofs.
 *)
 
-signature ATP_RECONSTRUCT =
+signature ATP_PROOF_RECONSTRUCT =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
-  type locality = ATP_Translate.locality
+  type locality = ATP_Problem_Generate.locality
 
   datatype reconstructor =
     Metis of string * string |
@@ -67,15 +67,15 @@ sig
     Proof.context -> bool -> isar_params -> one_line_params -> string
 end;
 
-structure ATP_Reconstruct : ATP_RECONSTRUCT =
+structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
 struct
 
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
-open ATP_Translate
+open ATP_Problem_Generate
 
-structure String_Redirect = ATP_Redirect(
+structure String_Redirect = ATP_Proof_Redirect(
     type key = step_name
     val ord = fn ((s, _ : string list), (s', _)) => fast_string_ord (s, s')
     val string_of = fst)

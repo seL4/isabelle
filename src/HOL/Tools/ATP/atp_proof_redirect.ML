@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/atp_redirect.ML
+(*  Title:      HOL/Tools/ATP/atp_proof_redirect.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of a proof by contradiction into a direct proof.
@@ -11,7 +11,7 @@ sig
   val string_of : key -> string
 end;
 
-signature ATP_REDIRECT =
+signature ATP_PROOF_REDIRECT =
 sig
   type atom
 
@@ -45,7 +45,7 @@ sig
   val string_of_direct_proof : direct_proof -> string
 end;
 
-functor ATP_Redirect(Atom : ATP_ATOM): ATP_REDIRECT =
+functor ATP_Proof_Redirect(Atom : ATP_ATOM): ATP_PROOF_REDIRECT =
 struct
 
 type atom = Atom.key

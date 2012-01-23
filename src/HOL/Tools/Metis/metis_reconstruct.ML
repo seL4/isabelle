@@ -9,7 +9,7 @@ Proof reconstruction for Metis.
 
 signature METIS_RECONSTRUCT =
 sig
-  type type_enc = ATP_Translate.type_enc
+  type type_enc = ATP_Problem_Generate.type_enc
 
   exception METIS of string * string
 
@@ -30,9 +30,9 @@ structure Metis_Reconstruct : METIS_RECONSTRUCT =
 struct
 
 open ATP_Problem
-open ATP_Translate
-open ATP_Reconstruct
-open Metis_Translate
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
+open Metis_Generate
 
 exception METIS of string * string
 
@@ -101,7 +101,7 @@ fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
 (* INFERENCE RULE: AXIOM *)
 
 (* This causes variables to have an index of 1 by default. See also
-   "term_from_atp" in "ATP_Reconstruct". *)
+   "term_from_atp" in "ATP_Proof_Reconstruct". *)
 val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 (* INFERENCE RULE: ASSUME *)

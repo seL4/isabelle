@@ -349,7 +349,7 @@ fun tptp_string_for_term _ (ATerm (s, [])) = s
            (AQuant (if s = tptp_ho_forall then AForall else AExists,
                     [(s', SOME ty)], AAtom tm))
      | (_, true, [AAbs ((s', ty), tm)]) =>
-       (* There is code in "ATP_Translate" to ensure that "Eps" is always
+       (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always
           applied to an abstraction. *)
        tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
        tptp_string_for_term format tm ^ ""

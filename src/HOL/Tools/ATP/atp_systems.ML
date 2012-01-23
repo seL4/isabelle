@@ -71,7 +71,7 @@ struct
 
 open ATP_Problem
 open ATP_Proof
-open ATP_Translate
+open ATP_Problem_Generate
 
 (* ATP configuration *)
 
