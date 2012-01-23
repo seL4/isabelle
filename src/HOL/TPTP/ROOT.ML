@@ -11,4 +11,7 @@ use_thys [
 ];
 
 Unsynchronized.setmp Proofterm.proofs (!Proofterm.proofs)
-  use_thy "CASC_Setup";
+  use_thys [
+    "ATP_Problem_Import",
+    "CASC_Setup"
+  ];

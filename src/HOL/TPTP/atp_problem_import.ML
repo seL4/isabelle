@@ -1,16 +1,20 @@
-(*  Title:      HOL/Tools/Nitpick/nitpick_tptp.ML
+(*  Title:      HOL/TPTP/atp_problem_import.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2010, 2011
+    Copyright   2012
 
-Nitpick for TPTP.
+Import TPTP problems as Isabelle terms or goals.
 *)
 
-signature NITPICK_TPTP =
+signature ATP_PROBLEM_IMPORT =
 sig
-  val pick_nits_in_tptp_file : string -> string
+  val isabelle_tptp_file : string -> unit
+  val nitpick_tptp_file : string -> unit
+  val refute_tptp_file : string -> unit
+  val sledgehammer_tptp_file : string -> unit
+  val translate_tptp_file : string -> unit
 end;
 
-structure Nitpick_TPTP : NITPICK_TPTP =
+structure ATP_Problem_Import : ATP_PROBLEM_IMPORT =
 struct
 
 open ATP_Util
@@ -19,6 +23,9 @@ open ATP_Proof
 open Nitpick_Util
 open Nitpick
 open Nitpick_Isar
+
+
+(** General TPTP parsing **)
 
 exception SYNTAX of string
 
@@ -100,7 +107,15 @@ fun mk_all x t = Const (@{const_name All}, quant_T) $ lambda x t
 
 fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 
-fun pick_nits_in_tptp_file file_name =
+
+(** Isabelle (combination of provers) **)
+
+fun isabelle_tptp_file file_name = ()
+
+
+(** Nitpick (alias Nitrox) **)
+
+fun nitpick_tptp_file file_name =
   case parse_tptp_problem (File.read (Path.explode file_name)) of
     (_, s :: ss) => raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
   | (phis, []) =>
@@ -133,8 +148,23 @@ fun pick_nits_in_tptp_file file_name =
       val step = 0
       val subst = []
     in
-      pick_nits_in_term state params Normal i n step subst ts @{prop False}
-      |> fst
+      pick_nits_in_term state params Normal i n step subst ts @{prop False};
+      ()
     end
+
+
+(** Refute **)
+
+fun refute_tptp_file file_name = ()
+
+
+(** Sledgehammer **)
+
+fun sledgehammer_tptp_file file_name = ()
+
+
+(** Translator between TPTP(-like) file formats **)
+
+fun translate_tptp_file file_name = ()
 
 end;

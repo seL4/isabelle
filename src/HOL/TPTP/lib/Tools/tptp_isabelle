@@ -22,7 +22,8 @@ SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 
 for FILE in "$@"
 do
-  echo "theory $SCRATCH imports \"CASC\_Setup\" begin ML {* FIXME \"$FILE\" *} end;" \
+  echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
+ML {* ATP_Problem_Import.isabelle_tptp_file \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
   "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
 done

@@ -334,7 +334,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Nitpick/nitpick_rep.ML \
   Tools/Nitpick/nitpick_scope.ML \
   Tools/Nitpick/nitpick_tests.ML \
-  Tools/Nitpick/nitpick_tptp.ML \
   Tools/Nitpick/nitpick_util.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
@@ -1169,6 +1168,8 @@ HOL-TPTP: HOL $(LOG)/HOL-TPTP.gz
 $(LOG)/HOL-TPTP.gz: \
   $(OUT)/HOL \
   TPTP/ROOT.ML \
+  TPTP/atp_problem_import.ML \
+  TPTP/ATP_Problem_Import.thy \
   TPTP/atp_theory_export.ML \
   TPTP/ATP_Theory_Export.thy \
   TPTP/CASC_Setup.thy
