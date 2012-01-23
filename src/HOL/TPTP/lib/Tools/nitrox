@@ -11,7 +11,7 @@ function usage() {
   echo
   echo "Usage: isabelle $PRG FILES"
   echo
-  echo "  Runs Nitrox on a FOF or CNF TPTP problem."
+  echo "  Runs Nitrox on a CNF or FOF TPTP problem."
   echo
   exit 1
 }
