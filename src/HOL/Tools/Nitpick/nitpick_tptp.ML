@@ -1,16 +1,16 @@
-(*  Title:      HOL/Tools/Nitpick/nitrox.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_tptp.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2010, 2011
 
-Finite model generation for TPTP first-order formulas (FOF and CNF) via Nitpick.
+Nitpick for TPTP.
 *)
 
-signature NITROX =
+signature NITPICK_TPTP =
 sig
-  val pick_nits_in_fof_file : string -> string
+  val pick_nits_in_tptp_file : string -> string
 end;
 
-structure Nitrox : NITROX =
+structure Nitpick_TPTP : NITPICK_TPTP =
 struct
 
 open ATP_Util
@@ -41,8 +41,8 @@ fun parse_include x =
       path |> not (Path.is_absolute path) ? Path.append (Path.explode "$TPTP")
   in ((), (path |> File.read |> tptp_explode) @ rest) end
 
-val parse_fof_or_cnf =
-  (Scan.this_string "fof" || Scan.this_string "cnf") |-- $$ "(" |--
+val parse_cnf_or_fof =
+  (Scan.this_string "cnf" || Scan.this_string "fof") |-- $$ "(" |--
   Scan.many (not_equal ",") |-- $$ "," |--
   (Scan.this_string "axiom" || Scan.this_string "definition"
    || Scan.this_string "theorem" || Scan.this_string "lemma"
@@ -53,7 +53,7 @@ val parse_fof_or_cnf =
 
 val parse_problem =
   Scan.repeat parse_include
-  |-- Scan.repeat (parse_fof_or_cnf --| Scan.repeat parse_include)
+  |-- Scan.repeat (parse_cnf_or_fof --| Scan.repeat parse_include)
 
 val parse_tptp_problem =
   Scan.finite Symbol.stopper
@@ -100,7 +100,7 @@ fun mk_all x t = Const (@{const_name All}, quant_T) $ lambda x t
 
 fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 
-fun pick_nits_in_fof_file file_name =
+fun pick_nits_in_tptp_file file_name =
   case parse_tptp_problem (File.read (Path.explode file_name)) of
     (_, s :: ss) => raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
   | (phis, []) =>

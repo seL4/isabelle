@@ -334,8 +334,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Nitpick/nitpick_rep.ML \
   Tools/Nitpick/nitpick_scope.ML \
   Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_tptp.ML \
   Tools/Nitpick/nitpick_util.ML \
-  Tools/Nitpick/nitrox.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \

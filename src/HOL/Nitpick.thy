@@ -23,11 +23,11 @@ uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/nitpick_model.ML")
      ("Tools/Nitpick/nitpick.ML")
      ("Tools/Nitpick/nitpick_isar.ML")
+     ("Tools/Nitpick/nitpick_tptp.ML")
      ("Tools/Nitpick/nitpick_tests.ML")
-     ("Tools/Nitpick/nitrox.ML")
 begin
 
-typedecl iota (* for Nitrox *)
+typedecl iota (* for TPTP *)
 typedecl bisim_iterator
 
 axiomatization unknown :: 'a
@@ -223,8 +223,8 @@ use "Tools/Nitpick/nitpick_kodkod.ML"
 use "Tools/Nitpick/nitpick_model.ML"
 use "Tools/Nitpick/nitpick.ML"
 use "Tools/Nitpick/nitpick_isar.ML"
+use "Tools/Nitpick/nitpick_tptp.ML"
 use "Tools/Nitpick/nitpick_tests.ML"
-use "Tools/Nitpick/nitrox.ML"
 
 setup {*
   Nitpick_Isar.setup #>

@@ -2,16 +2,16 @@
 #
 # Author: Jasmin Blanchette
 #
-# DESCRIPTION: TPTP FOF version of Nitpick
+# DESCRIPTION: Translation tool for TPTP formats
 
 
 PRG="$(basename "$0")"
 
 function usage() {
   echo
-  echo "Usage: isabelle $PRG FILES"
+  echo "Usage: isabelle $PRG FORMAT FILE"
   echo
-  echo "  Runs Nitrox on a CNF or FOF TPTP problem."
+  echo "  Translates TPTP file to specified TPTP format (\"CNF\", \"FOF\", \"TFF0\", \"TFF1\", or \"THF0\")."
   echo
   exit 1
 }
@@ -22,7 +22,7 @@ SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 
 for FILE in "$@"
 do
-  echo "theory $SCRATCH imports \"Nitpick\" begin ML {* Nitrox.pick_nits_in_fof_file \"$FILE\" *} end;" \
+  echo "theory $SCRATCH imports \"Main\" begin ML {* ATP_Translate.translate_tptp_file \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
   "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
 done
