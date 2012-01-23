@@ -5010,8 +5010,8 @@ by(metis wf_acc_iff in_lists_conv_set lists_accI lists_accD Cons_in_lists_iff)
 subsubsection {* Lifting Relations to Lists: all elements *}
 
 inductive_set
-  listrel :: "('a * 'a)set => ('a list * 'a list)set"
-  for r :: "('a * 'a)set"
+  listrel :: "('a \<times> 'b) set \<Rightarrow> ('a list \<times> 'b list) set"
+  for r :: "('a \<times> 'b) set"
 where
     Nil:  "([],[]) \<in> listrel r"
   | Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
