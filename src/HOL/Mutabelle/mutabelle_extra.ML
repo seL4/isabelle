@@ -258,6 +258,7 @@ val forbidden_mutant_constnames =
  ["HOL.induct_equal",
   "HOL.induct_implies",
   "HOL.induct_conj",
+  "HOL.induct_forall",
  @{const_name undefined},
  @{const_name default},
  @{const_name dummy_pattern},
@@ -276,7 +277,8 @@ val forbidden_mutant_constnames =
  @{const_name ATP.fequal},
  @{const_name transfer_morphism},
  @{const_name enum_prod_inst.enum_all_prod},
- @{const_name enum_prod_inst.enum_ex_prod}
+ @{const_name enum_prod_inst.enum_ex_prod},
+ @{const_name Quickcheck.catch_match}
  (*@{const_name "==>"}, @{const_name "=="}*)]
 
 val forbidden_mutant_consts =
