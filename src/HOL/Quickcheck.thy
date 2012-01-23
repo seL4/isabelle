@@ -129,6 +129,38 @@ lemma beyond_zero:
   "beyond k 0 = 0"
   by (simp add: beyond_def)
 
+
+definition (in term_syntax) [code_unfold]: "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
+definition (in term_syntax) [code_unfold]: "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+
+instantiation set :: (random) random
+begin
+
+primrec random_aux_set
+where
+  "random_aux_set 0 j = collapse (Random.select_weight [(1, Pair valterm_emptyset)])"
+| "random_aux_set (Suc_code_numeral i) j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (Suc_code_numeral i, random j \<circ>\<rightarrow> (%x. random_aux_set i j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
+
+lemma [code]:
+  "random_aux_set i j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
+proof (induct i rule: code_numeral.induct)
+print_cases
+  case zero
+  show ?case by (subst select_weight_drop_zero[symmetric])
+    (simp add: filter.simps random_aux_set.simps[simplified])
+next
+  case (Suc_code_numeral i)
+  show ?case by (simp only: random_aux_set.simps(2)[of "i"] Suc_code_numeral_minus_one)
+qed
+
+definition random_set
+where
+  "random_set i = random_aux_set i i" 
+
+instance ..
+
+end
+
 lemma random_aux_rec:
   fixes random_aux :: "code_numeral \<Rightarrow> 'a"
   assumes "random_aux 0 = rhs 0"
