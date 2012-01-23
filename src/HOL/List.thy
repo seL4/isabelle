@@ -4556,6 +4556,10 @@ where
 inductive_cases listsE [elim!,no_atp]: "x#l : lists A"
 inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
 
+inductive_simps listsp_simps[code]:
+  "listsp A []"
+  "listsp A (x # xs)"
+
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
 by (rule predicate1I, erule listsp.induct, (blast dest: predicate1D)+)
 
@@ -4590,7 +4594,7 @@ lemma in_listsp_conv_set: "(listsp A xs) = (\<forall>x \<in> set xs. A x)"
 -- {* eliminate @{text listsp} in favour of @{text set} *}
 by (induct xs) auto
 
-lemmas in_lists_conv_set = in_listsp_conv_set [to_set]
+lemmas in_lists_conv_set [code_unfold] = in_listsp_conv_set [to_set]
 
 lemma in_listspD [dest!,no_atp]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
 by (rule in_listsp_conv_set [THEN iffD1])
@@ -5021,7 +5025,7 @@ inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
 lemma listrel_eq_len:  "(xs, ys) \<in> listrel r \<Longrightarrow> length xs = length ys"
 by(induct rule: listrel.induct) auto
 
-lemma listrel_iff_zip: "(xs,ys) : listrel r \<longleftrightarrow>
+lemma listrel_iff_zip [code_unfold]: "(xs,ys) : listrel r \<longleftrightarrow>
   length xs = length ys & (\<forall>(x,y) \<in> set(zip xs ys). (x,y) \<in> r)" (is "?L \<longleftrightarrow> ?R")
 proof
   assume ?L thus ?R by induct (auto intro: listrel_eq_len)
@@ -5326,6 +5330,36 @@ lemma list_all_cong [fundef_cong]:
 lemma list_any_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
   by (simp add: list_ex_iff)
+
+text {* Executable checks for relations on sets *}
+
+definition listrel1p :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+"listrel1p r xs ys = ((xs, ys) \<in> listrel1 {(x, y). r x y})"
+
+lemma [code_unfold]:
+  "(xs, ys) \<in> listrel1 r = listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys"
+unfolding listrel1p_def by auto
+
+lemma [code]:
+  "listrel1p r [] xs = False"
+  "listrel1p r xs [] =  False"
+  "listrel1p r (x # xs) (y # ys) \<longleftrightarrow>
+     r x y \<and> xs = ys \<or> x = y \<and> listrel1p r xs ys"
+by (simp add: listrel1p_def)+
+
+definition
+  lexordp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  "lexordp r xs ys = ((xs, ys) \<in> lexord {(x, y). r x y})"
+
+lemma [code_unfold]:
+  "(xs, ys) \<in> lexord r = lexordp (\<lambda>x y. (x, y) \<in> r) xs ys"
+unfolding lexordp_def by auto
+
+lemma [code]:
+  "lexordp r xs [] = False"
+  "lexordp r [] (y#ys) = True"
+  "lexordp r (x # xs) (y # ys) = (r x y | (x = y & lexordp r xs ys))"
+unfolding lexordp_def by auto
 
 text {* Bounded quantification and summation over nats. *}
 
