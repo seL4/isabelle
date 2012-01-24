@@ -275,6 +275,7 @@ val forbidden_mutant_constnames =
  @{const_name "ord_fun_inst.less_fun"},
  @{const_name Meson.skolem},
  @{const_name ATP.fequal},
+ @{const_name ATP.fEx},
  @{const_name transfer_morphism},
  @{const_name enum_prod_inst.enum_all_prod},
  @{const_name enum_prod_inst.enum_ex_prod},
@@ -301,7 +302,8 @@ val forbidden_mutant_consts =
    (@{const_name "GCD.gcd_class.lcm"}, @{typ "prop => prop => prop"}),
    (@{const_name "Orderings.bot_class.bot"}, @{typ "bool => prop"}),
    (@{const_name "Groups.one_class.one"}, @{typ "bool => prop"}),
-   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"})]
+   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"}),
+   (@{const_name "equal_class.equal"},@{typ "bool => bool => bool"})]
 
 fun is_forbidden_mutant t =
   let
