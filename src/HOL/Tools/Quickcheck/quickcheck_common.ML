@@ -262,7 +262,8 @@ fun preprocess ctxt t =
     val thy = Proof_Context.theory_of ctxt
     val dest = HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
     val rewrs = map (swap o dest) @{thms all_simps} @
-      (map dest [@{thm not_ex}, @{thm not_all}, @{thm imp_conjL}, @{thm fun_eq_iff}])
+      (map dest [@{thm not_ex}, @{thm not_all}, @{thm imp_conjL}, @{thm fun_eq_iff},
+        @{thm bot_fun_def}, @{thm less_bool_def}])
     val t' = Pattern.rewrite_term thy rewrs [] (Object_Logic.atomize_term thy t)
     val (vs, body) = strip_all t'
     val vs' = Variable.variant_frees ctxt [t'] vs
