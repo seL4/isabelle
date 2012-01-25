@@ -371,7 +371,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val return = mk_return (HOLogic.mk_list @{typ term}
           (map (fn v => v $ @{term "()"}) term_vars @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
-      if Sign.of_sort thy (T, @{sort enum}) then
+      if Sign.of_sort thy (T, @{sort check_all}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
           $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t))
@@ -495,7 +495,10 @@ fun compile_validator_exprs ctxt ts =
       thy (SOME target) (K I) (HOLogic.mk_list @{typ "code_numeral => bool"} ts') []
   end;
 
-val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive", compile_generator_expr);
+fun size_matters_for thy Ts = not (forall (fn T => Sign.of_sort thy (T,  @{sort check_all})) Ts)
+
+val test_goals =
+  Quickcheck_Common.generator_test_goal_terms ("exhaustive", (size_matters_for, compile_generator_expr));
   
 (* setup *)
 
