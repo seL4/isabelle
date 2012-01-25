@@ -776,10 +776,15 @@ proof -
     unfolding enum_the_def by (auto split: list.split)
 qed
 
+code_abort enum_the
+
+subsection {* Further operations on finite types *}
+
+lemma [code]:
+  "Collect P = set (filter P enum)"
+by (auto simp add: enum_UNIV)
 
 subsection {* Closing up *}
-
-code_abort enum_the
 
 hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
 
