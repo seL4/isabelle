@@ -155,6 +155,7 @@ text {*
     @{antiquotation_def prf} & : & @{text antiquotation} \\
     @{antiquotation_def full_prf} & : & @{text antiquotation} \\
     @{antiquotation_def ML} & : & @{text antiquotation} \\
+    @{antiquotation_def ML_op} & : & @{text antiquotation} \\
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_struct} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
@@ -197,12 +198,15 @@ text {*
       @@{antiquotation typ} options @{syntax type} |
       @@{antiquotation type} options @{syntax name} |
       @@{antiquotation class} options @{syntax name} |
-      @@{antiquotation text} options @{syntax name} |
+      @@{antiquotation text} options @{syntax name}
+    ;
+    @{syntax antiquotation}:
       @@{antiquotation goals} options |
       @@{antiquotation subgoals} options |
       @@{antiquotation prf} options @{syntax thmrefs} |
       @@{antiquotation full_prf} options @{syntax thmrefs} |
       @@{antiquotation ML} options @{syntax name} |
+      @@{antiquotation ML_op} options @{syntax name} |
       @@{antiquotation ML_type} options @{syntax name} |
       @@{antiquotation ML_struct} options @{syntax name} |
       @@{antiquotation \"file\"} options @{syntax name}
@@ -289,9 +293,10 @@ text {*
   information omitted in the compact proof term, which is denoted by
   ``@{text _}'' placeholders there.
   
-  \item @{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
-  "@{ML_struct s}"} check text @{text s} as ML value, type, and
-  structure, respectively.  The source is printed verbatim.
+  \item @{text "@{ML s}"}, @{text "@{ML_op s}"}, @{text "@{ML_type
+  s}"}, and @{text "@{ML_struct s}"} check text @{text s} as ML value,
+  infix operator, type, and structure, respectively.  The source is
+  printed verbatim.
 
   \item @{text "@{file path}"} checks that @{text "path"} refers to a
   file (or directory) and prints it verbatim.

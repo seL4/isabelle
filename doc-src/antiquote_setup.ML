@@ -52,6 +52,9 @@ local
 fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
   | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ " : " ^ txt2 ^ ");";
 
+fun ml_op (txt1, "") = "fn _ => (op " ^ txt1 ^ ");"
+  | ml_op (txt1, txt2) = "fn _ => (op " ^ txt1 ^ " : " ^ txt2 ^ ");";
+
 fun ml_type (txt1, "") = "val _ = NONE : (" ^ txt1 ^ ") option;"
   | ml_type (txt1, txt2) = "val _ = [NONE : (" ^ txt1 ^ ") option, NONE : (" ^ txt2 ^ ") option];";
 
@@ -95,6 +98,7 @@ in
 
 val index_ml_setup =
   index_ml @{binding index_ML} "" ml_val #>
+  index_ml @{binding index_ML_op} "infix" ml_op #>
   index_ml @{binding index_ML_type} "type" ml_type #>
   index_ml @{binding index_ML_exn} "exception" ml_exn #>
   index_ml @{binding index_ML_structure} "structure" ml_structure #>

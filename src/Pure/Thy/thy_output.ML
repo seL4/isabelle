@@ -670,6 +670,7 @@ in
 val _ =
   Context.>> (Context.map_theory
    (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
+    ml_text (Binding.name "ML_op") (ml_enclose "fn _ => (op " ");") #>
     ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
     ml_text (Binding.name "ML_struct")
       (ml_enclose "functor XXX() = struct structure XX = " " end;") #>

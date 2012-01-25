@@ -205,6 +205,7 @@ Isabelle/Isar provides a simple document preparation system
     \indexdef{}{antiquotation}{prf}\hypertarget{antiquotation.prf}{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{full\_prf}\hypertarget{antiquotation.full-prf}{\hyperlink{antiquotation.full-prf}{\mbox{\isa{full{\isaliteral{5F}{\isacharunderscore}}prf}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{ML}\hypertarget{antiquotation.ML}{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{ML\_op}\hypertarget{antiquotation.ML-op}{\hyperlink{antiquotation.ML-op}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}op}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{ML\_type}\hypertarget{antiquotation.ML-type}{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}type}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{ML\_struct}\hypertarget{antiquotation.ML-struct}{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}struct}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{file}\hypertarget{antiquotation.file}{\hyperlink{antiquotation.file}{\mbox{\isa{file}}}} & : & \isa{antiquotation} \\
@@ -236,7 +237,7 @@ Isabelle/Isar provides a simple document preparation system
 \rail@nont{\isa{antiquotation}}[]
 \rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
 \rail@end
-\rail@begin{23}{\indexdef{}{syntax}{antiquotation}\hypertarget{syntax.antiquotation}{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}}
+\rail@begin{15}{\indexdef{}{syntax}{antiquotation}\hypertarget{syntax.antiquotation}{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}}
 \rail@bar
 \rail@term{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}}[]
 \rail@nont{\isa{options}}[]
@@ -305,33 +306,40 @@ Isabelle/Isar provides a simple document preparation system
 \rail@term{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextbar{15}
+\rail@endbar
+\rail@end
+\rail@begin{9}{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}
+\rail@bar
 \rail@term{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}}[]
 \rail@nont{\isa{options}}[]
-\rail@nextbar{16}
+\rail@nextbar{1}
 \rail@term{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}}[]
 \rail@nont{\isa{options}}[]
-\rail@nextbar{17}
+\rail@nextbar{2}
 \rail@term{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@nextbar{18}
+\rail@nextbar{3}
 \rail@term{\hyperlink{antiquotation.full-prf}{\mbox{\isa{full{\isaliteral{5F}{\isacharunderscore}}prf}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@nextbar{19}
+\rail@nextbar{4}
 \rail@term{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextbar{20}
+\rail@nextbar{5}
+\rail@term{\hyperlink{antiquotation.ML-op}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}op}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{6}
 \rail@term{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}type}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextbar{21}
+\rail@nextbar{7}
 \rail@term{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}struct}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextbar{22}
+\rail@nextbar{8}
 \rail@term{\hyperlink{antiquotation.file}{\mbox{\isa{file}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
@@ -445,8 +453,9 @@ Isabelle/Isar provides a simple document preparation system
   information omitted in the compact proof term, which is denoted by
   ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' placeholders there.
   
-  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}type\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}struct\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} check text \isa{s} as ML value, type, and
-  structure, respectively.  The source is printed verbatim.
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}op\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}type\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}struct\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} check text \isa{s} as ML value,
+  infix operator, type, and structure, respectively.  The source is
+  printed verbatim.
 
   \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}file\ path{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} checks that \isa{{\isaliteral{22}{\isachardoublequote}}path{\isaliteral{22}{\isachardoublequote}}} refers to a
   file (or directory) and prints it verbatim.
