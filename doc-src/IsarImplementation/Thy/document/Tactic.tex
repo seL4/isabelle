@@ -197,7 +197,7 @@ A \isa{tactic} is a function \isa{goal\ {\isaliteral{5C3C72696768746172726F773E}
   explicitly, and violating them merely results in ill-behaved tactics
   experienced by the user (e.g.\ tactics that insist in being
   applicable only to singleton goals, or prevent composition via
-  standard tacticals).%
+  standard tacticals such as \verb|REPEAT|).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -642,44 +642,6 @@ These tacticals provide further control over repetition of
 %
 \endisadelimmlref
 %
-\isamarkupsubsection{Identities for tacticals%
-}
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexdef{}{ML}{all\_tac}\verb|all_tac: tactic| \\
-  \indexdef{}{ML}{no\_tac}\verb|no_tac: tactic| \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|all_tac| maps any proof state to the one-element sequence
-  containing that state.  Thus, it succeeds for all states.  It is the
-  identity element of the tactical \verb|op THEN|.
-
-  \item \verb|no_tac| maps any proof state to the empty sequence.  Thus
-  it succeeds for no state.  It is the identity element of
-  \verb|op ORELSE| and \verb|op APPEND|.  Also, it is a zero element
-  for \verb|op THEN|, which means that \isa{tac\ THEN}~\verb|no_tac| is equivalent to \verb|no_tac|.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
 \isadelimmlex
 %
 \endisadelimmlex
@@ -687,9 +649,24 @@ These tacticals provide further control over repetition of
 \isatagmlex
 %
 \begin{isamarkuptext}%
-The following examples illustrate how these primitive
-  tactics can be used to imitate existing combinators like \verb|TRY|
-  or \verb|REPEAT| (ignoring some further implementation tricks):%
+The basic tactics and tacticals considered above follow
+  some algebraic laws:
+
+  \begin{itemize}
+
+  \item \verb|all_tac| is the identity element of the tactical
+  \verb|op THEN|.
+
+  \item \verb|no_tac| is the identity element of \verb|op ORELSE| and
+  \verb|op APPEND|.  Also, it is a zero element for \verb|op THEN|,
+  which means that \isa{tac\ THEN}~\verb|no_tac| is equivalent to
+  \verb|no_tac|.
+
+  \item \verb|TRY| and \verb|REPEAT| can be expressed as (recursive)
+  functions over more basic combinators (ignoring some internal
+  implementation tricks):
+
+  \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -723,10 +700,10 @@ If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  
   possible in each outcome.
 
   \begin{warn}
-  Note \verb|REPEAT|'s explicit abstraction over the proof state.
-  Recursive tacticals must be coded in this awkward fashion to avoid
-  infinite recursion.  With the following definition, \verb|REPEAT|~\isa{tac} would loop due to the eager evaluation
-  strategy of ML:
+  Note the explicit abstraction over the proof state in the ML
+  definition of \verb|REPEAT|.  Recursive tacticals must be coded in
+  this awkward fashion to avoid infinite recursion of eager functional
+  evaluation in Standard ML.  The following attempt would make \verb|REPEAT|~\isa{tac} loop:
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -738,7 +715,8 @@ If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  
 \isatagML
 \isacommand{ML}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ fun\ REPEAT\ tac\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}tac\ THEN\ REPEAT\ tac{\isaliteral{29}{\isacharparenright}}\ ORELSE\ all{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{3B}{\isacharsemicolon}}\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}BAD{\isaliteral{21}{\isacharbang}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}BAD\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{2D}{\isacharminus}}\ does\ not\ terminate{\isaliteral{21}{\isacharbang}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ fun\ REPEAT\ tac\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}tac\ THEN\ REPEAT\ tac{\isaliteral{29}{\isacharparenright}}\ ORELSE\ all{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%

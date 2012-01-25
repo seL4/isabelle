@@ -164,7 +164,7 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   explicitly, and violating them merely results in ill-behaved tactics
   experienced by the user (e.g.\ tactics that insist in being
   applicable only to singleton goals, or prevent composition via
-  standard tacticals).
+  standard tacticals such as @{ML REPEAT}).
 *}
 
 text %mlref {*
@@ -538,33 +538,24 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {* The basic tactics and tacticals considered above follow
+  some algebraic laws:
 
-subsection {* Identities for tacticals *}
+  \begin{itemize}
 
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML all_tac: tactic} \\
-  @{index_ML no_tac: tactic} \\
-  \end{mldecls}
+  \item @{ML all_tac} is the identity element of the tactical
+  @{ML "op THEN"}.
 
-  \begin{description}
+  \item @{ML no_tac} is the identity element of @{ML "op ORELSE"} and
+  @{ML "op APPEND"}.  Also, it is a zero element for @{ML "op THEN"},
+  which means that @{text "tac THEN"}~@{ML no_tac} is equivalent to
+  @{ML no_tac}.
 
-  \item @{ML all_tac} maps any proof state to the one-element sequence
-  containing that state.  Thus, it succeeds for all states.  It is the
-  identity element of the tactical @{ML "op THEN"}.
+  \item @{ML TRY} and @{ML REPEAT} can be expressed as (recursive)
+  functions over more basic combinators (ignoring some internal
+  implementation tricks):
 
-  \item @{ML no_tac} maps any proof state to the empty sequence.  Thus
-  it succeeds for no state.  It is the identity element of
-  @{ML "op ORELSE"} and @{ML "op APPEND"}.  Also, it is a zero element
-  for @{ML "op THEN"}, which means that @{text "tac THEN"}~@{ML
-  no_tac} is equivalent to @{ML no_tac}.
-
-  \end{description}
-*}
-
-text %mlex {* The following examples illustrate how these primitive
-  tactics can be used to imitate existing combinators like @{ML TRY}
-  or @{ML REPEAT} (ignoring some further implementation tricks):
+  \end{itemize}
 *}
 
 ML {*
@@ -578,16 +569,17 @@ text {* If @{text "tac"} can return multiple outcomes then so can @{ML
   possible in each outcome.
 
   \begin{warn}
-  Note @{ML REPEAT}'s explicit abstraction over the proof state.
-  Recursive tacticals must be coded in this awkward fashion to avoid
-  infinite recursion.  With the following definition, @{ML
-  REPEAT}~@{text "tac"} would loop due to the eager evaluation
-  strategy of ML:
+  Note the explicit abstraction over the proof state in the ML
+  definition of @{ML REPEAT}.  Recursive tacticals must be coded in
+  this awkward fashion to avoid infinite recursion of eager functional
+  evaluation in Standard ML.  The following attempt would make @{ML
+  REPEAT}~@{text "tac"} loop:
   \end{warn}
 *}
 
 ML {*
-  fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;  (*BAD!*)
+  (*BAD -- does not terminate!*)
+  fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;
 *}
 
 end
