@@ -633,10 +633,18 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML Logic.all: "term -> term -> term"} \\
+  @{index_ML Logic.mk_implies: "term * term -> term"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type ctyp} \\
   @{index_ML_type cterm} \\
   @{index_ML Thm.ctyp_of: "theory -> typ -> ctyp"} \\
   @{index_ML Thm.cterm_of: "theory -> term -> cterm"} \\
+  @{index_ML Thm.capply: "cterm -> cterm -> cterm"} \\
+  @{index_ML Thm.cabs: "cterm -> cterm -> cterm"} \\
+  @{index_ML Thm.all: "cterm -> cterm -> cterm"} \\
+  @{index_ML Drule.mk_implies: "cterm * cterm -> cterm"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type thm} \\
@@ -663,20 +671,40 @@ text %mlref {*
 
   \begin{description}
 
+  \item @{ML Logic.all}~@{text "a B"} produces a Pure quantification
+  @{text "\<And>a. B"}, where occurrences of the atomic term @{text "a"} in
+  the body proposition @{text "B"} are replaced by bound variables.
+  (See also @{ML lambda} on terms.)
+
+  \item @{ML Logic.mk_implies}~@{text "(A, B)"} produces a Pure
+  implication @{text "A \<Longrightarrow> B"}.
+
   \item Types @{ML_type ctyp} and @{ML_type cterm} represent certified
   types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
-  constructors, constants etc. in the theory.
+  constructors, constants etc.\ in the background theory.  The
+  abstract types @{ML_type ctyp} and @{ML_type cterm} are part of the
+  same inference kernel that is mainly responsible for @{ML_type thm}.
+  Thus syntactic operations on @{ML_type ctyp} and @{ML_type cterm}
+  are located in the @{ML_struct Thm} module, even though theorems are
+  not yet involved at that stage.
 
   \item @{ML Thm.ctyp_of}~@{text "thy \<tau>"} and @{ML
   Thm.cterm_of}~@{text "thy t"} explicitly checks types and terms,
   respectively.  This also involves some basic normalizations, such
   expansion of type and term abbreviations from the theory context.
+  Full re-certification is relatively slow and should be avoided in
+  tight reasoning loops.
 
-  Re-certification is relatively slow and should be avoided in tight
-  reasoning loops.  There are separate operations to decompose
-  certified entities (including actual theorems).
+  \item @{ML Thm.capply}, @{ML Thm.cabs}, @{ML Thm.all}, @{ML
+  Drule.mk_implies} etc.\ compose certified terms (or propositions)
+  incrementally.  This is equivalent to @{ML Thm.cterm_of} after
+  unchecked @{ML "op $"}, @{ML lambda}, @{ML Logic.all}, @{ML
+  Logic.mk_implies} etc., but there can be a big difference in
+  performance when large existing entities are composed by a few extra
+  constructions on top.  There are separate operations to decompose
+  certified terms and theorems to produce certified terms again.
 
   \item Type @{ML_type thm} represents proven propositions.  This is
   an abstract datatype that guarantees that its values have been

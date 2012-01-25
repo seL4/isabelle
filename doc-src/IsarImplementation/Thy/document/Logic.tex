@@ -704,10 +704,18 @@ The theory \isa{Pure} contains constant declarations for the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
+  \indexdef{}{ML}{Logic.all}\verb|Logic.all: term -> term -> term| \\
+  \indexdef{}{ML}{Logic.mk\_implies}\verb|Logic.mk_implies: term * term -> term| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexdef{}{ML type}{ctyp}\verb|type ctyp| \\
   \indexdef{}{ML type}{cterm}\verb|type cterm| \\
   \indexdef{}{ML}{Thm.ctyp\_of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
   \indexdef{}{ML}{Thm.cterm\_of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
+  \indexdef{}{ML}{Thm.capply}\verb|Thm.capply: cterm -> cterm -> cterm| \\
+  \indexdef{}{ML}{Thm.cabs}\verb|Thm.cabs: cterm -> cterm -> cterm| \\
+  \indexdef{}{ML}{Thm.all}\verb|Thm.all: cterm -> cterm -> cterm| \\
+  \indexdef{}{ML}{Drule.mk\_implies}\verb|Drule.mk_implies: cterm * cterm -> cterm| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML type}{thm}\verb|type thm| \\
@@ -734,19 +742,37 @@ The theory \isa{Pure} contains constant declarations for the
 
   \begin{description}
 
+  \item \verb|Logic.all|~\isa{a\ B} produces a Pure quantification
+  \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}a{\isaliteral{2E}{\isachardot}}\ B}, where occurrences of the atomic term \isa{a} in
+  the body proposition \isa{B} are replaced by bound variables.
+  (See also \verb|lambda| on terms.)
+
+  \item \verb|Logic.mk_implies|~\isa{{\isaliteral{28}{\isacharparenleft}}A{\isaliteral{2C}{\isacharcomma}}\ B{\isaliteral{29}{\isacharparenright}}} produces a Pure
+  implication \isa{A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}.
+
   \item Types \verb|ctyp| and \verb|cterm| represent certified
   types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
-  constructors, constants etc. in the theory.
+  constructors, constants etc.\ in the background theory.  The
+  abstract types \verb|ctyp| and \verb|cterm| are part of the
+  same inference kernel that is mainly responsible for \verb|thm|.
+  Thus syntactic operations on \verb|ctyp| and \verb|cterm|
+  are located in the \verb|Thm| module, even though theorems are
+  not yet involved at that stage.
 
   \item \verb|Thm.ctyp_of|~\isa{thy\ {\isaliteral{5C3C7461753E}{\isasymtau}}} and \verb|Thm.cterm_of|~\isa{thy\ t} explicitly checks types and terms,
   respectively.  This also involves some basic normalizations, such
   expansion of type and term abbreviations from the theory context.
+  Full re-certification is relatively slow and should be avoided in
+  tight reasoning loops.
 
-  Re-certification is relatively slow and should be avoided in tight
-  reasoning loops.  There are separate operations to decompose
-  certified entities (including actual theorems).
+  \item \verb|Thm.capply|, \verb|Thm.cabs|, \verb|Thm.all|, \verb|Drule.mk_implies| etc.\ compose certified terms (or propositions)
+  incrementally.  This is equivalent to \verb|Thm.cterm_of| after
+  unchecked \verb|op $|, \verb|lambda|, \verb|Logic.all|, \verb|Logic.mk_implies| etc., but there can be a big difference in
+  performance when large existing entities are composed by a few extra
+  constructions on top.  There are separate operations to decompose
+  certified terms and theorems to produce certified terms again.
 
   \item Type \verb|thm| represents proven propositions.  This is
   an abstract datatype that guarantees that its values have been
