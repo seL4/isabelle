@@ -790,7 +790,7 @@ text {*
   
   \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some
   theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
-  (in parallel).  This corresponds to the @{ML "op MRS"} operation in
+  (in parallel).  This corresponds to the @{ML_op "MRS"} operation in
   ML, but note the reversed order.  Positions may be effectively
   skipped by including ``@{text _}'' (underscore) as argument.
   

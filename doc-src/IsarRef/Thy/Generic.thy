@@ -160,8 +160,8 @@ text {*
   compose rules by resolution.  @{attribute THEN} resolves with the
   first premise of @{text a} (an alternative position may be also
   specified); the @{attribute COMP} version skips the automatic
-  lifting process that is normally intended (cf.\ @{ML "op RS"} and
-  @{ML "op COMP"} in \cite{isabelle-implementation}).
+  lifting process that is normally intended (cf.\ @{ML_op "RS"} and
+  @{ML_op "COMP"} in \cite{isabelle-implementation}).
   
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given

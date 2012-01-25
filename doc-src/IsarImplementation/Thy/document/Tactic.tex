@@ -495,8 +495,8 @@ A \emph{tactical} is a functional combinator for building up
 Sequential composition and alternative choices are the most
   basic ways to combine tactics, similarly to ``\verb|,|'' and
   ``\verb||\verb,|,\verb||'' in Isar method notation.  This corresponds to
-  \isa{THEN} and \isa{ORELSE} in ML, but there are further
-  possibilities for fine-tuning alternation of tactics such as \isa{APPEND}.  Further details become visible in ML due to explicit
+  \verb|THEN| and \verb|ORELSE| in ML, but there are further
+  possibilities for fine-tuning alternation of tactics such as \verb|APPEND|.  Further details become visible in ML due to explicit
   subgoal addressing.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -509,15 +509,15 @@ Sequential composition and alternative choices are the most
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{THEN}\verb|op THEN: tactic * tactic -> tactic| \\
-  \indexdef{}{ML}{ORELSE}\verb|op ORELSE: tactic * tactic -> tactic| \\
-  \indexdef{}{ML}{APPEND}\verb|op APPEND: tactic * tactic -> tactic| \\
+  \indexdef{}{ML infix}{THEN}\verb|infix THEN: tactic * tactic -> tactic| \\
+  \indexdef{}{ML infix}{ORELSE}\verb|infix ORELSE: tactic * tactic -> tactic| \\
+  \indexdef{}{ML infix}{APPEND}\verb|infix APPEND: tactic * tactic -> tactic| \\
   \indexdef{}{ML}{EVERY}\verb|EVERY: tactic list -> tactic| \\
   \indexdef{}{ML}{FIRST}\verb|FIRST: tactic list -> tactic| \\[0.5ex]
 
-  \indexdef{}{ML}{THEN'}\verb|op THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
-  \indexdef{}{ML}{ORELSE'}\verb|op ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
-  \indexdef{}{ML}{APPEND'}\verb|op APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML infix}{THEN'}\verb|infix THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML infix}{ORELSE'}\verb|infix ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML infix}{APPEND'}\verb|infix APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
   \indexdef{}{ML}{EVERY'}\verb|EVERY': ('a -> tactic) list -> 'a -> tactic| \\
   \indexdef{}{ML}{FIRST'}\verb|FIRST': ('a -> tactic) list -> 'a -> tactic| \\
   \indexdef{}{ML}{EVERY1}\verb|EVERY1: (int -> tactic) list -> tactic| \\
@@ -526,40 +526,45 @@ Sequential composition and alternative choices are the most
 
   \begin{description}
 
-  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is the sequential composition of
-  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a proof state, it
-  returns all states reachable in two steps by applying \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}
-  followed by \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  First, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to the
-  proof state, getting a sequence of possible next states; then, it
-  applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} to each of these and concatenates the results
-  to produce again one flat sequence of states.
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is the sequential
+  composition of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a
+  proof state, it returns all states reachable in two steps by
+  applying \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} followed by \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  First, it
+  applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to the proof state, getting a sequence of
+  possible next states; then, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} to each of
+  these and concatenates the results to produce again one flat
+  sequence of states.
 
-  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ ORELSE\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} makes a choice between \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a state, it tries \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and returns the result if non-empty; if \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} fails
-  then it uses \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  This is a deterministic choice: if
-  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} succeeds then \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is excluded from the
-  result.
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|ORELSE|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} makes a choice
+  between \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a state, it
+  tries \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and returns the result if non-empty; if \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} fails then it uses \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  This is a deterministic
+  choice: if \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} succeeds then \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is excluded
+  from the result.
 
-  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ APPEND\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} concatenates the possible results
-  of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Unlike \isa{ORELSE} there
-  is \emph{no commitment} to either tactic, so \isa{APPEND} helps
-  to avoid incompleteness during search, at the cost of potential
-  inefficiencies.
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|APPEND|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} concatenates the
+  possible results of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Unlike
+  \verb|ORELSE| there is \emph{no commitment} to either tactic, so
+  \verb|APPEND| helps to avoid incompleteness during search, at
+  the cost of potential inefficiencies.
 
-  \item \isa{EVERY\ {\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \isa{EVERY\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is the same as \verb|all_tac|: it always succeeds.
+  \item \verb|EVERY|~\isa{{\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.
+  Note that \verb|EVERY []| is the same as \verb|all_tac|: it always
+  succeeds.
 
-  \item \isa{FIRST\ {\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ ORELSE\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ ORELSE\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \isa{FIRST\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is the same as
-  \verb|no_tac|: it always fails.
+  \item \verb|FIRST|~\isa{{\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \verb|FIRST []| is the same as \verb|no_tac|: it
+  always fails.
 
-  \item \isa{THEN{\isaliteral{27}{\isacharprime}}}, \isa{ORELSE{\isaliteral{27}{\isacharprime}}}, and \isa{APPEND{\isaliteral{27}{\isacharprime}}} are
-  lifted versions of \isa{THEN}, \isa{ORELSE}, and \isa{APPEND}, for tactics with explicit subgoal addressing.  This means
-  \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN{\isaliteral{27}{\isacharprime}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}} etc.
+  \item \verb|THEN'|, \verb|ORELSE'|, and \verb|APPEND'|
+  are lifted versions of \verb|THEN|, \verb|ORELSE|, and
+  \verb|APPEND|, for tactics with explicit subgoal addressing.
+  This means \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN'|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the
+  same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}} etc.
 
-  \item \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}} are lifted versions of
-  \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}}, for tactics with explicit
-  subgoal addressing.
+  \item \verb|EVERY'| and \verb|FIRST'| are lifted versions of \verb|EVERY'| and \verb|FIRST'|, for tactics with explicit subgoal
+  addressing.
 
-  \item \isa{EVERY{\isadigit{1}}} and \isa{FIRST{\isadigit{1}}} are convenience versions
-  of \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}}, applied to subgoal 1.
+  \item \verb|EVERY1| and \verb|FIRST1| are convenience versions of
+  \verb|EVERY'| and \verb|FIRST'|, applied to subgoal 1.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -654,13 +659,12 @@ The basic tactics and tacticals considered above follow
 
   \begin{itemize}
 
-  \item \verb|all_tac| is the identity element of the tactical
-  \verb|op THEN|.
+  \item \verb|all_tac| is the identity element of the tactical \verb|THEN|.
 
-  \item \verb|no_tac| is the identity element of \verb|op ORELSE| and
-  \verb|op APPEND|.  Also, it is a zero element for \verb|op THEN|,
-  which means that \isa{tac\ THEN}~\verb|no_tac| is equivalent to
-  \verb|no_tac|.
+  \item \verb|no_tac| is the identity element of \verb|ORELSE| and
+  \verb|APPEND|.  Also, it is a zero element for \verb|THEN|,
+  which means that \isa{tac}~\verb|THEN|~\verb|no_tac| is
+  equivalent to \verb|no_tac|.
 
   \item \verb|TRY| and \verb|REPEAT| can be expressed as (recursive)
   functions over more basic combinators (ignoring some internal
@@ -695,8 +699,8 @@ The basic tactics and tacticals considered above follow
 \endisadelimML
 %
 \begin{isamarkuptext}%
-If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  \verb|REPEAT| uses \verb|op ORELSE| and not
-  \verb|op APPEND|, it applies \isa{tac} as many times as
+If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  \verb|REPEAT| uses \verb|ORELSE| and not
+  \verb|APPEND|, it applies \isa{tac} as many times as
   possible in each outcome.
 
   \begin{warn}

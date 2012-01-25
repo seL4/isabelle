@@ -849,10 +849,10 @@ text {* Regular function application and infix notation works best for
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "op |> ": "'a * ('a -> 'b) -> 'b"} \\
-  @{index_ML "op |-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
-  @{index_ML "op #> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
-  @{index_ML "op #-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  @{index_ML_op "|> ": "'a * ('a -> 'b) -> 'b"} \\
+  @{index_ML_op "|-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{index_ML_op "#> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{index_ML_op "#-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
   \end{mldecls}
 
   %FIXME description!?
@@ -1465,7 +1465,7 @@ text %mlref {*
   @{index_ML_type "'a Unsynchronized.ref"} \\
   @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
   @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
-  @{index_ML "op :=": "'a Unsynchronized.ref * 'a -> unit"} \\
+  @{index_ML_op ":=": "'a Unsynchronized.ref * 'a -> unit"} \\
   \end{mldecls}
 *}
 
@@ -1477,7 +1477,7 @@ text {* Due to ubiquitous parallelism in Isabelle/ML (see also
 
   The unwieldy name of @{ML Unsynchronized.ref} for the constructor
   for references in Isabelle/ML emphasizes the inconveniences caused by
-  mutability.  Existing operations @{ML "!"}  and @{ML "op :="} are
+  mutability.  Existing operations @{ML "!"}  and @{ML_op ":="} are
   unchanged, but should be used with special precautions, say in a
   strictly local situation that is guaranteed to be restricted to
   sequential evaluation --- now and in the future.

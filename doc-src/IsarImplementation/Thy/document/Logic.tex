@@ -394,7 +394,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{term}\verb|type term| \\
-  \indexdef{}{ML}{aconv}\verb|op aconv: term * term -> bool| \\
+  \indexdef{}{ML infix}{aconv}\verb|infix aconv: term * term -> bool| \\
   \indexdef{}{ML}{Term.map\_types}\verb|Term.map_types: (typ -> typ) -> term -> term| \\
   \indexdef{}{ML}{Term.fold\_types}\verb|Term.fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \indexdef{}{ML}{Term.map\_aterms}\verb|Term.map_aterms: (term -> term) -> term -> term| \\
@@ -417,7 +417,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 
   \item Type \verb|term| represents de-Bruijn terms, with comments
   in abstractions, and explicitly named free variables and constants;
-  this is a datatype with constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
+  this is a datatype with constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|$|.
 
   \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}-equivalence of two terms.  This is the basic equality relation
   on type \verb|term|; raw datatype equality should only be used
@@ -769,7 +769,7 @@ The theory \isa{Pure} contains constant declarations for the
 
   \item \verb|Thm.capply|, \verb|Thm.cabs|, \verb|Thm.all|, \verb|Drule.mk_implies| etc.\ compose certified terms (or propositions)
   incrementally.  This is equivalent to \verb|Thm.cterm_of| after
-  unchecked \verb|op $|, \verb|lambda|, \verb|Logic.all|, \verb|Logic.mk_implies| etc., but there can be a big difference in
+  unchecked \verb|$|, \verb|lambda|, \verb|Logic.all|, \verb|Logic.mk_implies| etc., but there can be a big difference in
   performance when large existing entities are composed by a few extra
   constructions on top.  There are separate operations to decompose
   certified terms and theorems to produce certified terms again.
@@ -1226,14 +1226,14 @@ The rule calculus of Isabelle/Pure provides two main inferences:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{RSN}\verb|op RSN: thm * (int * thm) -> thm| \\
-  \indexdef{}{ML}{RS}\verb|op RS: thm * thm -> thm| \\
+  \indexdef{}{ML infix}{RSN}\verb|infix RSN: thm * (int * thm) -> thm| \\
+  \indexdef{}{ML infix}{RS}\verb|infix RS: thm * thm -> thm| \\
 
-  \indexdef{}{ML}{RLN}\verb|op RLN: thm list * (int * thm list) -> thm list| \\
-  \indexdef{}{ML}{RL}\verb|op RL: thm list * thm list -> thm list| \\
+  \indexdef{}{ML infix}{RLN}\verb|infix RLN: thm list * (int * thm list) -> thm list| \\
+  \indexdef{}{ML infix}{RL}\verb|infix RL: thm list * thm list -> thm list| \\
 
-  \indexdef{}{ML}{MRS}\verb|op MRS: thm list * thm -> thm| \\
-  \indexdef{}{ML}{OF}\verb|op OF: thm * thm list -> thm| \\
+  \indexdef{}{ML infix}{MRS}\verb|infix MRS: thm list * thm -> thm| \\
+  \indexdef{}{ML infix}{OF}\verb|infix OF: thm * thm list -> thm| \\
   \end{mldecls}
 
   \begin{description}

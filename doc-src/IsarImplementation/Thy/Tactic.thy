@@ -414,22 +414,23 @@ subsection {* Combining tactics *}
 text {* Sequential composition and alternative choices are the most
   basic ways to combine tactics, similarly to ``@{verbatim ","}'' and
   ``@{verbatim "|"}'' in Isar method notation.  This corresponds to
-  @{text "THEN"} and @{text "ORELSE"} in ML, but there are further
-  possibilities for fine-tuning alternation of tactics such as @{text
+  @{ML_op "THEN"} and @{ML_op "ORELSE"} in ML, but there are further
+  possibilities for fine-tuning alternation of tactics such as @{ML_op
   "APPEND"}.  Further details become visible in ML due to explicit
-  subgoal addressing.  *}
+  subgoal addressing.
+*}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "op THEN": "tactic * tactic -> tactic"} \\
-  @{index_ML "op ORELSE": "tactic * tactic -> tactic"} \\
-  @{index_ML "op APPEND": "tactic * tactic -> tactic"} \\
+  @{index_ML_op "THEN": "tactic * tactic -> tactic"} \\
+  @{index_ML_op "ORELSE": "tactic * tactic -> tactic"} \\
+  @{index_ML_op "APPEND": "tactic * tactic -> tactic"} \\
   @{index_ML "EVERY": "tactic list -> tactic"} \\
   @{index_ML "FIRST": "tactic list -> tactic"} \\[0.5ex]
 
-  @{index_ML "op THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML "op ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML "op APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_op "THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_op "ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_op "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
   @{index_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
   @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
   @{index_ML "EVERY1": "(int -> tactic) list -> tactic"} \\
@@ -438,47 +439,50 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{text "tac\<^sub>1 THEN tac\<^sub>2"} is the sequential composition of
-  @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a proof state, it
-  returns all states reachable in two steps by applying @{text "tac\<^sub>1"}
-  followed by @{text "tac\<^sub>2"}.  First, it applies @{text "tac\<^sub>1"} to the
-  proof state, getting a sequence of possible next states; then, it
-  applies @{text "tac\<^sub>2"} to each of these and concatenates the results
-  to produce again one flat sequence of states.
+  \item @{text "tac\<^sub>1"}~@{ML_op THEN}~@{text "tac\<^sub>2"} is the sequential
+  composition of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a
+  proof state, it returns all states reachable in two steps by
+  applying @{text "tac\<^sub>1"} followed by @{text "tac\<^sub>2"}.  First, it
+  applies @{text "tac\<^sub>1"} to the proof state, getting a sequence of
+  possible next states; then, it applies @{text "tac\<^sub>2"} to each of
+  these and concatenates the results to produce again one flat
+  sequence of states.
 
-  \item @{text "tac\<^sub>1 ORELSE tac\<^sub>2"} makes a choice between @{text
-  "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a state, it tries @{text
-  "tac\<^sub>1"} and returns the result if non-empty; if @{text "tac\<^sub>1"} fails
-  then it uses @{text "tac\<^sub>2"}.  This is a deterministic choice: if
-  @{text "tac\<^sub>1"} succeeds then @{text "tac\<^sub>2"} is excluded from the
-  result.
+  \item @{text "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "tac\<^sub>2"} makes a choice
+  between @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a state, it
+  tries @{text "tac\<^sub>1"} and returns the result if non-empty; if @{text
+  "tac\<^sub>1"} fails then it uses @{text "tac\<^sub>2"}.  This is a deterministic
+  choice: if @{text "tac\<^sub>1"} succeeds then @{text "tac\<^sub>2"} is excluded
+  from the result.
 
-  \item @{text "tac\<^sub>1 APPEND tac\<^sub>2"} concatenates the possible results
-  of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Unlike @{text "ORELSE"} there
-  is \emph{no commitment} to either tactic, so @{text "APPEND"} helps
-  to avoid incompleteness during search, at the cost of potential
-  inefficiencies.
+  \item @{text "tac\<^sub>1"}~@{ML_op APPEND}~@{text "tac\<^sub>2"} concatenates the
+  possible results of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Unlike
+  @{ML_op "ORELSE"} there is \emph{no commitment} to either tactic, so
+  @{ML_op "APPEND"} helps to avoid incompleteness during search, at
+  the cost of potential inefficiencies.
 
-  \item @{text "EVERY [tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text "tac\<^sub>1 THEN
-  \<dots> THEN tac\<^sub>n"}.  Note that @{text "EVERY []"} is the same as @{ML
-  all_tac}: it always succeeds.
+  \item @{ML EVERY}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
+  "tac\<^sub>1"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac\<^sub>n"}.
+  Note that @{ML "EVERY []"} is the same as @{ML all_tac}: it always
+  succeeds.
 
-  \item @{text "FIRST [tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text "tac\<^sub>1
-  ORELSE \<dots> ORELSE tac\<^sub>n"}.  Note that @{text "FIRST []"} is the same as
-  @{ML no_tac}: it always fails.
+  \item @{ML FIRST}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
+  "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op "ORELSE"}~@{text
+  "tac\<^sub>n"}.  Note that @{ML "FIRST []"} is the same as @{ML no_tac}: it
+  always fails.
 
-  \item @{text "THEN'"}, @{text "ORELSE'"}, and @{text "APPEND'"} are
-  lifted versions of @{text "THEN"}, @{text "ORELSE"}, and @{text
-  "APPEND"}, for tactics with explicit subgoal addressing.  This means
-  @{text "(tac\<^sub>1 THEN' tac\<^sub>2) i"} is the same as @{text "(tac\<^sub>1 i THEN
-  tac\<^sub>2 i)"} etc.
+  \item @{ML_op "THEN'"}, @{ML_op "ORELSE'"}, and @{ML_op "APPEND'"}
+  are lifted versions of @{ML_op "THEN"}, @{ML_op "ORELSE"}, and
+  @{ML_op "APPEND"}, for tactics with explicit subgoal addressing.
+  This means @{text "(tac\<^sub>1"}~@{ML_op THEN'}~@{text "tac\<^sub>2) i"} is the
+  same as @{text "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"} etc.
 
-  \item @{text "EVERY'"} and @{text "FIRST'"} are lifted versions of
-  @{text "EVERY'"} and @{text "FIRST'"}, for tactics with explicit
-  subgoal addressing.
+  \item @{ML "EVERY'"} and @{ML "FIRST'"} are lifted versions of @{ML
+  "EVERY'"} and @{ML "FIRST'"}, for tactics with explicit subgoal
+  addressing.
 
-  \item @{text "EVERY1"} and @{text "FIRST1"} are convenience versions
-  of @{text "EVERY'"} and @{text "FIRST'"}, applied to subgoal 1.
+  \item @{ML "EVERY1"} and @{ML "FIRST1"} are convenience versions of
+  @{ML "EVERY'"} and @{ML "FIRST'"}, applied to subgoal 1.
 
   \end{description}
 *}
@@ -543,13 +547,13 @@ text %mlex {* The basic tactics and tacticals considered above follow
 
   \begin{itemize}
 
-  \item @{ML all_tac} is the identity element of the tactical
-  @{ML "op THEN"}.
+  \item @{ML all_tac} is the identity element of the tactical @{ML_op
+  "THEN"}.
 
-  \item @{ML no_tac} is the identity element of @{ML "op ORELSE"} and
-  @{ML "op APPEND"}.  Also, it is a zero element for @{ML "op THEN"},
-  which means that @{text "tac THEN"}~@{ML no_tac} is equivalent to
-  @{ML no_tac}.
+  \item @{ML no_tac} is the identity element of @{ML_op "ORELSE"} and
+  @{ML_op "APPEND"}.  Also, it is a zero element for @{ML_op "THEN"},
+  which means that @{text "tac"}~@{ML_op THEN}~@{ML no_tac} is
+  equivalent to @{ML no_tac}.
 
   \item @{ML TRY} and @{ML REPEAT} can be expressed as (recursive)
   functions over more basic combinators (ignoring some internal
@@ -564,8 +568,8 @@ ML {*
 *}
 
 text {* If @{text "tac"} can return multiple outcomes then so can @{ML
-  REPEAT}~@{text "tac"}.  @{ML REPEAT} uses @{ML "op ORELSE"} and not
-  @{ML "op APPEND"}, it applies @{text "tac"} as many times as
+  REPEAT}~@{text "tac"}.  @{ML REPEAT} uses @{ML_op "ORELSE"} and not
+  @{ML_op "APPEND"}, it applies @{text "tac"} as many times as
   possible in each outcome.
 
   \begin{warn}

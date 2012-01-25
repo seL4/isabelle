@@ -356,7 +356,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type term} \\
-  @{index_ML "op aconv": "term * term -> bool"} \\
+  @{index_ML_op "aconv": "term * term -> bool"} \\
   @{index_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
   @{index_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   @{index_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
@@ -380,7 +380,7 @@ text %mlref {*
   \item Type @{ML_type term} represents de-Bruijn terms, with comments
   in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
-  Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
+  Var}, @{ML Const}, @{ML Abs}, @{ML_op "$"}.
 
   \item @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
@@ -700,7 +700,7 @@ text %mlref {*
   \item @{ML Thm.capply}, @{ML Thm.cabs}, @{ML Thm.all}, @{ML
   Drule.mk_implies} etc.\ compose certified terms (or propositions)
   incrementally.  This is equivalent to @{ML Thm.cterm_of} after
-  unchecked @{ML "op $"}, @{ML lambda}, @{ML Logic.all}, @{ML
+  unchecked @{ML_op "$"}, @{ML lambda}, @{ML Logic.all}, @{ML
   Logic.mk_implies} etc., but there can be a big difference in
   performance when large existing entities are composed by a few extra
   constructions on top.  There are separate operations to decompose
@@ -1084,14 +1084,14 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "op RSN": "thm * (int * thm) -> thm"} \\
-  @{index_ML "op RS": "thm * thm -> thm"} \\
+  @{index_ML_op "RSN": "thm * (int * thm) -> thm"} \\
+  @{index_ML_op "RS": "thm * thm -> thm"} \\
 
-  @{index_ML "op RLN": "thm list * (int * thm list) -> thm list"} \\
-  @{index_ML "op RL": "thm list * thm list -> thm list"} \\
+  @{index_ML_op "RLN": "thm list * (int * thm list) -> thm list"} \\
+  @{index_ML_op "RL": "thm list * thm list -> thm list"} \\
 
-  @{index_ML "op MRS": "thm list * thm -> thm"} \\
-  @{index_ML "op OF": "thm * thm list -> thm"} \\
+  @{index_ML_op "MRS": "thm list * thm -> thm"} \\
+  @{index_ML_op "OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
   \begin{description}
