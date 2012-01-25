@@ -728,10 +728,82 @@ If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  
 \isadelimML
 %
 \endisadelimML
-\isanewline
+%
+\isamarkupsubsection{Scanning for a subgoal by number%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Tactics with explicit subgoal addressing
+  \verb|int -> tactic| can be used together with tacticals that
+  act like ``subgoal quantifiers'': guided by success of the body
+  tactic a certain range of subgoals is covered.  Thus the body tactic
+  is applied to all subgoals, for example.
+
+  Suppose that the goal state has \isa{n\ {\isaliteral{5C3C67653E}{\isasymge}}\ {\isadigit{0}}} subgoals.  Many of
+  these tacticals address subgoal ranges counting downwards from
+  \isa{n} towards \isa{{\isadigit{1}}}.  This has the fortunate effect that
+  newly emerging subgoals are concatenated in the result, without
+  interfering each other.  Nonetheless, there might be situations
+  where a different order is desired, but it has to be achieved by
+  other means.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{ALLGOALS}\verb|ALLGOALS: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{TRYALL}\verb|TRYALL: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{SOMEGOAL}\verb|SOMEGOAL: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{FIRSTGOAL}\verb|FIRSTGOAL: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_SOME}\verb|REPEAT_SOME: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_FIRST}\verb|REPEAT_FIRST: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{trace\_goalno\_tac}\verb|trace_goalno_tac: (int -> tactic) -> int -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|ALLGOALS|~\isa{tac} is equivalent to \isa{tac\ n}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\isa{tac\ {\isadigit{1}}}.  It
+  applies the \isa{tac} to all the subgoals, counting downwards.
+
+  \item \verb|TRYALL|~\isa{tac} is equivalent to \verb|TRY|~\isa{{\isaliteral{28}{\isacharparenleft}}tac\ n{\isaliteral{29}{\isacharparenright}}}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\verb|TRY|~\isa{{\isaliteral{28}{\isacharparenleft}}tac\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}.  It attempts to apply \isa{tac} to all the subgoals.
+
+  \item \verb|SOMEGOAL|~\isa{tac} is equivalent to \isa{tac\ n}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\ {\isadigit{1}}}.  It
+  applies \isa{tac} to one subgoal, counting downwards.
+
+  \item \verb|FIRSTGOAL|~\isa{tac} is equivalent to \isa{tac\ {\isadigit{1}}}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\ n}.  It
+  applies \isa{tac} to one subgoal, counting upwards.
+
+  \item \verb|REPEAT_SOME|~\isa{tac} applies \isa{tac} once or
+  more to a subgoal, counting downwards.
+
+  \item \verb|REPEAT_FIRST|~\isa{tac} applies \isa{tac} once or
+  more to a subgoal, counting upwards.
+
+  \item \verb|trace_goalno_tac|~\isa{tac\ i} applies \isa{tac\ i}
+  to the proof state.  If the resulting sequence is non-empty, then it
+  is returned, with the side-effect of printing the selected subgoal.
+  Otherwise, it fails and prints nothing.  It indicates that ``the
+  tactic worked for subgoal \isa{i}'' and is mainly used with \verb|SOMEGOAL| and \verb|FIRSTGOAL|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %

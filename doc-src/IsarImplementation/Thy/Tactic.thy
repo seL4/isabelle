@@ -586,4 +586,66 @@ ML {*
   fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;
 *}
 
+
+subsection {* Scanning for a subgoal by number *}
+
+text {* Tactics with explicit subgoal addressing
+  @{ML_type "int -> tactic"} can be used together with tacticals that
+  act like ``subgoal quantifiers'': guided by success of the body
+  tactic a certain range of subgoals is covered.  Thus the body tactic
+  is applied to all subgoals, for example.
+
+  Suppose that the goal state has @{text "n \<ge> 0"} subgoals.  Many of
+  these tacticals address subgoal ranges counting downwards from
+  @{text "n"} towards @{text "1"}.  This has the fortunate effect that
+  newly emerging subgoals are concatenated in the result, without
+  interfering each other.  Nonetheless, there might be situations
+  where a different order is desired, but it has to be achieved by
+  other means.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
+  @{index_ML TRYALL: "(int -> tactic) -> tactic"} \\
+  @{index_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
+  @{index_ML FIRSTGOAL: "(int -> tactic) -> tactic"} \\
+  @{index_ML REPEAT_SOME: "(int -> tactic) -> tactic"} \\
+  @{index_ML REPEAT_FIRST: "(int -> tactic) -> tactic"} \\
+  @{index_ML trace_goalno_tac: "(int -> tactic) -> int -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML ALLGOALS}~@{text "tac"} is equivalent to @{text "tac
+  n"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac 1"}.  It
+  applies the @{text tac} to all the subgoals, counting downwards.
+
+  \item @{ML TRYALL}~@{text "tac"} is equivalent to @{ML TRY}~@{text
+  "(tac n)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{ML TRY}~@{text
+  "(tac 1)"}.  It attempts to apply @{text "tac"} to all the subgoals.
+
+  \item @{ML SOMEGOAL}~@{text "tac"} is equivalent to @{text "tac
+  n"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac 1"}.  It
+  applies @{text "tac"} to one subgoal, counting downwards.
+
+  \item @{ML FIRSTGOAL}~@{text "tac"} is equivalent to @{text "tac
+  1"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac n"}.  It
+  applies @{text "tac"} to one subgoal, counting upwards.
+
+  \item @{ML REPEAT_SOME}~@{text "tac"} applies @{text "tac"} once or
+  more to a subgoal, counting downwards.
+
+  \item @{ML REPEAT_FIRST}~@{text "tac"} applies @{text "tac"} once or
+  more to a subgoal, counting upwards.
+
+  \item @{ML trace_goalno_tac}~@{text "tac i"} applies @{text "tac i"}
+  to the proof state.  If the resulting sequence is non-empty, then it
+  is returned, with the side-effect of printing the selected subgoal.
+  Otherwise, it fails and prints nothing.  It indicates that ``the
+  tactic worked for subgoal @{text "i"}'' and is mainly used with @{ML
+  SOMEGOAL} and @{ML FIRSTGOAL}.
+
+  \end{description}
+*}
+
 end
