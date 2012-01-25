@@ -143,7 +143,6 @@ cprems_of     : thm -> cterm list
 nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term) list
 theory_of_thm : thm -> theory
-dest_state : thm * int -> (term*term) list * term list * term * term
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{cprop_of} $thm$] returns the statement of $thm$ as
@@ -168,11 +167,6 @@ returns the number of premises in $thm$, and is equivalent to {\tt
 \item[\ttindexbold{theory_of_thm} $thm$] returns the theory associated
   with $thm$.  Note that this does a lookup in Isabelle's global
   database of loaded theories.
-
-\item[\ttindexbold{dest_state} $(thm,i)$] 
-decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
-list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
-(this will be an implication if there are more than $i$ subgoals).
 
 \end{ttdescription}
 

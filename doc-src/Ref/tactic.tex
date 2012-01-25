@@ -38,22 +38,6 @@ adds the {\it formula} as an assumption to subgoal~$i$, and inserts the same
 \end{ttdescription}
 
 
-\subsection{``Putting off'' a subgoal}
-\begin{ttbox} 
-defer_tac : int -> tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{defer_tac} {\it i}] 
-  moves subgoal~$i$ to the last position in the proof state.  It can be
-  useful when correcting a proof script: if the tactic given for subgoal~$i$
-  fails, calling {\tt defer_tac} instead will let you continue with the rest
-  of the script.
-
-  The tactic fails if subgoal~$i$ does not exist or if the proof state
-  contains type unknowns. 
-\end{ttdescription}
-
-
 \subsection{Definitions and meta-level rewriting} \label{sec:rewrite_goals}
 \index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
 \index{definitions}
@@ -68,13 +52,10 @@ no rewrites are applicable to any subterm.
 
 There are rules for unfolding and folding definitions; Isabelle does not do
 this automatically.  The corresponding tactics rewrite the proof state,
-yielding a single next state.  See also the {\tt goalw} command, which is the
-easiest way of handling definitions.
+yielding a single next state.
 \begin{ttbox} 
 rewrite_goals_tac : thm list -> tactic
-rewrite_tac       : thm list -> tactic
 fold_goals_tac    : thm list -> tactic
-fold_tac          : thm list -> tactic
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{rewrite_goals_tac} {\it defs}]  
@@ -82,16 +63,9 @@ unfolds the {\it defs} throughout the subgoals of the proof state, while
 leaving the main goal unchanged.  Use \ttindex{SELECT_GOAL} to restrict it to a
 particular subgoal.
 
-\item[\ttindexbold{rewrite_tac} {\it defs}]  
-unfolds the {\it defs} throughout the proof state, including the main goal
---- not normally desirable!
-
 \item[\ttindexbold{fold_goals_tac} {\it defs}]  
 folds the {\it defs} throughout the subgoals of the proof state, while
 leaving the main goal unchanged.
-
-\item[\ttindexbold{fold_tac} {\it defs}]  
-folds the {\it defs} throughout the proof state.
 \end{ttdescription}
 
 \begin{warn}

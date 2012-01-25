@@ -344,16 +344,15 @@ tacticals for combining values of type {\tt int->tactic}.
 \index{tacticals!for restriction to a subgoal}
 \begin{ttbox} 
 SELECT_GOAL : tactic -> int -> tactic
-METAHYPS    : (thm list -> tactic) -> int -> tactic
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{SELECT_GOAL} {\it tac} $i$] 
 restricts the effect of {\it tac\/} to subgoal~$i$ of the proof state.  It
-fails if there is no subgoal~$i$, or if {\it tac\/} changes the main goal
-(do not use {\tt rewrite_tac}).  It applies {\it tac\/} to a dummy proof
-state and uses the result to refine the original proof state at
-subgoal~$i$.  If {\it tac\/} returns multiple results then so does 
-\hbox{\tt SELECT_GOAL {\it tac} $i$}.
+fails if there is no subgoal~$i$, or if {\it tac\/} changes the main goal.
+It applies {\it tac\/} to a dummy proof state and uses the result to
+refine the original proof state at subgoal~$i$.  If {\it tac\/}
+returns multiple results then so does \hbox{\tt SELECT_GOAL {\it tac}
+  $i$}.
 
 {\tt SELECT_GOAL} works by creating a state of the form $\phi\Imp\phi$,
 with the one subgoal~$\phi$.  If subgoal~$i$ has the form $\psi\Imp\theta$
@@ -363,39 +362,7 @@ Such a proof state might cause tactics to go astray.  Therefore {\tt
   SELECT_GOAL} inserts a quantifier to create the state
 \[ (\Forall x.\psi\Imp\theta)\Imp(\Forall x.\psi\Imp\theta). \]
 
-\item[\ttindexbold{METAHYPS} {\it tacf} $i$]\index{meta-assumptions}
-takes subgoal~$i$, of the form 
-\[ \Forall x@1 \ldots x@l. \List{\theta@1; \ldots; \theta@k}\Imp\theta, \]
-and creates the list $\theta'@1$, \ldots, $\theta'@k$ of meta-level
-assumptions.  In these theorems, the subgoal's parameters ($x@1$,
-\ldots,~$x@l$) become free variables.  It supplies the assumptions to
-$tacf$ and applies the resulting tactic to the proof state
-$\theta\Imp\theta$.
-
-If the resulting proof state is $\List{\phi@1; \ldots; \phi@n} \Imp \phi$,
-possibly containing $\theta'@1,\ldots,\theta'@k$ as assumptions, then it is
-lifted back into the original context, yielding $n$ subgoals.
-
-Meta-level assumptions may not contain unknowns.  Unknowns in the
-hypotheses $\theta@1,\ldots,\theta@k$ become free variables in $\theta'@1$,
-\ldots, $\theta'@k$, and are restored afterwards; the {\tt METAHYPS} call
-cannot instantiate them.  Unknowns in $\theta$ may be instantiated.  New
-unknowns in $\phi@1$, \ldots, $\phi@n$ are lifted over the parameters.
-
-Here is a typical application.  Calling {\tt hyp_res_tac}~$i$ resolves
-subgoal~$i$ with one of its own assumptions, which may itself have the form
-of an inference rule (these are called {\bf higher-level assumptions}).  
-\begin{ttbox} 
-val hyp_res_tac = METAHYPS (fn prems => resolve_tac prems 1);
-\end{ttbox} 
-The function \ttindex{gethyps} is useful for debugging applications of {\tt
-  METAHYPS}. 
 \end{ttdescription}
-
-\begin{warn}
-{\tt METAHYPS} fails if the context or new subgoals contain type unknowns.
-In principle, the tactical could treat these like ordinary unknowns.
-\end{warn}
 
 
 \subsection{Scanning for a subgoal by number}
