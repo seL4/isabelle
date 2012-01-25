@@ -830,12 +830,13 @@ text %mlantiq {*
 *}
 
 
-subsection {* Auxiliary definitions \label{sec:logic-aux} *}
+subsection {* Auxiliary connectives \label{sec:logic-aux} *}
 
-text {*
-  Theory @{text "Pure"} provides a few auxiliary definitions, see
-  \figref{fig:pure-aux}.  These special constants are normally not
-  exposed to the user, but appear in internal encodings.
+text {* Theory @{text "Pure"} provides a few auxiliary connectives
+  that are defined on top of the primitive ones, see
+  \figref{fig:pure-aux}.  These special constants are useful in
+  certain internal encodings, and are normally not directly exposed to
+  the user.
 
   \begin{figure}[htb]
   \begin{center}
