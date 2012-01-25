@@ -476,17 +476,101 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A \emph{tactical} is a functional combinator for building up complex
-  tactics from simpler ones.  Typical tactical perform sequential
-  composition, disjunction (choice), iteration, or goal addressing.
-  Various search strategies may be expressed via tacticals.
+A \emph{tactical} is a functional combinator for building up
+  complex tactics from simpler ones.  Common tacticals perform
+  sequential composition, disjunctive choice, iteration, or goal
+  addressing.  Various search strategies may be expressed via
+  tacticals.
 
-  \medskip FIXME
-
-  \medskip The chapter on tacticals in \cite{isabelle-ref} is still
-  applicable, despite a few outdated details.%
+  \medskip The chapter on tacticals in old \cite{isabelle-ref} is
+  still applicable for further details.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isamarkupsubsection{Combining tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sequential composition and alternative choices are the most
+  basic ways to combine tactics, similarly to ``\verb|,|'' and
+  ``\verb||\verb,|,\verb||'' in Isar method notation.  This corresponds to
+  \isa{THEN} and \isa{ORELSE} in ML, but there are further
+  possibilities for fine-tuning alternation of tactics such as \isa{APPEND}.  Further details become visible in ML due to explicit
+  subgoal addressing.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{THEN}\verb|op THEN: tactic * tactic -> tactic| \\
+  \indexdef{}{ML}{ORELSE}\verb|op ORELSE: tactic * tactic -> tactic| \\
+  \indexdef{}{ML}{APPEND}\verb|op APPEND: tactic * tactic -> tactic| \\
+  \indexdef{}{ML}{EVERY}\verb|EVERY: tactic list -> tactic| \\
+  \indexdef{}{ML}{FIRST}\verb|FIRST: tactic list -> tactic| \\[0.5ex]
+
+  \indexdef{}{ML}{THEN'}\verb|op THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML}{ORELSE'}\verb|op ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML}{APPEND'}\verb|op APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
+  \indexdef{}{ML}{EVERY'}\verb|EVERY': ('a -> tactic) list -> 'a -> tactic| \\
+  \indexdef{}{ML}{FIRST'}\verb|FIRST': ('a -> tactic) list -> 'a -> tactic| \\
+  \indexdef{}{ML}{EVERY1}\verb|EVERY1: (int -> tactic) list -> tactic| \\
+  \indexdef{}{ML}{FIRST1}\verb|FIRST1: (int -> tactic) list -> tactic| \\[0.5ex]
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is the sequential composition of
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a proof state, it
+  returns all states reachable in two steps by applying \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}
+  followed by \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  First, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to the
+  proof state, getting a sequence of possible next states; then, it
+  applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} to each of these and concatenates the results
+  to produce again one flat sequence of states.
+
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ ORELSE\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} makes a choice between \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a state, it tries \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and returns the result if non-empty; if \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} fails
+  then it uses \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  This is a deterministic choice: if
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} succeeds then \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is excluded from the
+  result.
+
+  \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ APPEND\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} concatenates the possible results
+  of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Unlike \isa{ORELSE} there
+  is \emph{no commitment} to either tactic, so \isa{APPEND} helps
+  to avoid incompleteness during search, at the cost of potential
+  inefficiencies.
+
+  \item \isa{EVERY\ {\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \isa{EVERY\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is the same as \verb|all_tac|: it always succeeds.
+
+  \item \isa{FIRST\ {\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ ORELSE\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ ORELSE\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \isa{FIRST\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} is the same as
+  \verb|no_tac|: it always fails.
+
+  \item \isa{THEN{\isaliteral{27}{\isacharprime}}}, \isa{ORELSE{\isaliteral{27}{\isacharprime}}}, and \isa{APPEND{\isaliteral{27}{\isacharprime}}} are
+  lifted versions of \isa{THEN}, \isa{ORELSE}, and \isa{APPEND}, for tactics with explicit subgoal addressing.  This means
+  \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ THEN{\isaliteral{27}{\isacharprime}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i\ THEN\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}} etc.
+
+  \item \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}} are lifted versions of
+  \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}}, for tactics with explicit
+  subgoal addressing.
+
+  \item \isa{EVERY{\isadigit{1}}} and \isa{FIRST{\isadigit{1}}} are convenience versions
+  of \isa{EVERY{\isaliteral{27}{\isacharprime}}} and \isa{FIRST{\isaliteral{27}{\isacharprime}}}, applied to subgoal 1.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isadelimtheory
 %

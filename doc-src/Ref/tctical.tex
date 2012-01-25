@@ -1,68 +1,7 @@
 
 \chapter{Tacticals}
-\index{tacticals|(}
-Tacticals are operations on tactics.  Their implementation makes use of
-functional programming techniques, especially for sequences.  Most of the
-time, you may forget about this and regard tacticals as high-level control
-structures.
 
 \section{The basic tacticals}
-\subsection{Joining two tactics}
-\index{tacticals!joining two tactics}
-The tacticals {\tt THEN} and {\tt ORELSE}, which provide sequencing and
-alternation, underlie most of the other control structures in Isabelle.
-{\tt APPEND} and {\tt INTLEAVE} provide more sophisticated forms of
-alternation.
-\begin{ttbox} 
-THEN     : tactic * tactic -> tactic                 \hfill{\bf infix 1}
-ORELSE   : tactic * tactic -> tactic                 \hfill{\bf infix}
-APPEND   : tactic * tactic -> tactic                 \hfill{\bf infix}
-INTLEAVE : tactic * tactic -> tactic                 \hfill{\bf infix}
-\end{ttbox}
-\begin{ttdescription}
-\item[$tac@1$ \ttindexbold{THEN} $tac@2$] 
-is the sequential composition of the two tactics.  Applied to a proof
-state, it returns all states reachable in two steps by applying $tac@1$
-followed by~$tac@2$.  First, it applies $tac@1$ to the proof state, getting a
-sequence of next states; then, it applies $tac@2$ to each of these and
-concatenates the results.
-
-\item[$tac@1$ \ttindexbold{ORELSE} $tac@2$] 
-makes a choice between the two tactics.  Applied to a state, it
-tries~$tac@1$ and returns the result if non-empty; if $tac@1$ fails then it
-uses~$tac@2$.  This is a deterministic choice: if $tac@1$ succeeds then
-$tac@2$ is excluded.
-
-\item[$tac@1$ \ttindexbold{APPEND} $tac@2$] 
-concatenates the results of $tac@1$ and~$tac@2$.  By not making a commitment
-to either tactic, {\tt APPEND} helps avoid incompleteness during
-search.\index{search}
-
-\item[$tac@1$ \ttindexbold{INTLEAVE} $tac@2$] 
-interleaves the results of $tac@1$ and~$tac@2$.  Thus, it includes all
-possible next states, even if one of the tactics returns an infinite
-sequence.
-\end{ttdescription}
-
-
-\subsection{Joining a list of tactics}
-\index{tacticals!joining a list of tactics}
-\begin{ttbox} 
-EVERY : tactic list -> tactic
-FIRST : tactic list -> tactic
-\end{ttbox}
-{\tt EVERY} and {\tt FIRST} are block structured versions of {\tt THEN} and
-{\tt ORELSE}\@.
-\begin{ttdescription}
-\item[\ttindexbold{EVERY} {$[tac@1,\ldots,tac@n]$}] 
-abbreviates \hbox{\tt$tac@1$ THEN \ldots{} THEN $tac@n$}.  It is useful for
-writing a series of tactics to be executed in sequence.
-
-\item[\ttindexbold{FIRST} {$[tac@1,\ldots,tac@n]$}] 
-abbreviates \hbox{\tt$tac@1$ ORELSE \ldots{} ORELSE $tac@n$}.  It is useful for
-writing a series of tactics to be attempted one after another.
-\end{ttdescription}
-
 
 \subsection{Repetition tacticals}
 \index{tacticals!repetition}
@@ -128,8 +67,10 @@ tactical \ttindex{THEN}\@.
 
 \item[\ttindexbold{no_tac}] 
 maps any proof state to the empty sequence.  Thus it succeeds for no state.
-It is the identity element of \ttindex{ORELSE}, \ttindex{APPEND}, and 
-\ttindex{INTLEAVE}\@.  Also, it is a zero element for \ttindex{THEN}, which means that
+It is the identity element of \ttindex{ORELSE}, and
+\ttindex{APPEND}\@.  Also, it is a zero element for \ttindex{THEN},
+which means that
+
 \hbox{\tt$tac$ THEN no_tac} is equivalent to {\tt no_tac}.
 \end{ttdescription}
 These primitive tactics are useful when writing tacticals.  For example,
@@ -142,9 +83,8 @@ fun REPEAT tac =
      (fn state => ((tac THEN REPEAT tac) ORELSE all_tac) state);
 \end{ttbox}
 If $tac$ can return multiple outcomes then so can \hbox{\tt REPEAT $tac$}.
-Since {\tt REPEAT} uses \ttindex{ORELSE} and not {\tt APPEND} or {\tt
-INTLEAVE}, it applies $tac$ as many times as possible in each
-outcome.
+Since {\tt REPEAT} uses \ttindex{ORELSE} and not {\tt APPEND}, it
+applies $tac$ as many times as possible in each outcome.
 
 \begin{warn}
 Note {\tt REPEAT}'s explicit abstraction over the proof state.  Recursive
@@ -428,79 +368,6 @@ sequence and prints nothing.
 It indicates that `the tactic worked for subgoal~$i$' and is mainly used
 with {\tt SOMEGOAL} and {\tt FIRSTGOAL}.
 \end{ttdescription}
-
-
-\subsection{Joining tactic functions}
-\index{tacticals!joining tactic functions}
-\begin{ttbox} 
-THEN'     : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix 1}
-ORELSE'   : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix}
-APPEND'   : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix}
-INTLEAVE' : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix}
-EVERY'    : ('a -> tactic) list -> 'a -> tactic
-FIRST'    : ('a -> tactic) list -> 'a -> tactic
-\end{ttbox}
-These help to express tactics that specify subgoal numbers.  The tactic
-\begin{ttbox} 
-SOMEGOAL (fn i => resolve_tac rls i  ORELSE  eresolve_tac erls i)
-\end{ttbox}
-can be simplified to
-\begin{ttbox} 
-SOMEGOAL (resolve_tac rls  ORELSE'  eresolve_tac erls)
-\end{ttbox}
-Note that {\tt TRY'}, {\tt REPEAT'}, {\tt DEPTH_FIRST'}, etc.\ are not
-provided, because function composition accomplishes the same purpose.
-The tactic
-\begin{ttbox} 
-ALLGOALS (fn i => REPEAT (etac exE i  ORELSE  atac i))
-\end{ttbox}
-can be simplified to
-\begin{ttbox} 
-ALLGOALS (REPEAT o (etac exE  ORELSE'  atac))
-\end{ttbox}
-These tacticals are polymorphic; $x$ need not be an integer.
-\begin{center} \tt
-\begin{tabular}{r@{\rm\ \ yields\ \ }l}
-    $(tacf@1$~~THEN'~~$tacf@2)(x)$ \index{*THEN'} &
-    $tacf@1(x)$~~THEN~~$tacf@2(x)$ \\
-
-    $(tacf@1$ ORELSE' $tacf@2)(x)$ \index{*ORELSE'} &
-    $tacf@1(x)$ ORELSE $tacf@2(x)$ \\
-
-    $(tacf@1$ APPEND' $tacf@2)(x)$ \index{*APPEND'} &
-    $tacf@1(x)$ APPEND $tacf@2(x)$ \\
-
-    $(tacf@1$ INTLEAVE' $tacf@2)(x)$ \index{*INTLEAVE'} &
-    $tacf@1(x)$ INTLEAVE $tacf@2(x)$ \\
-
-    EVERY' $[tacf@1,\ldots,tacf@n] \; (x)$ \index{*EVERY'} &
-    EVERY $[tacf@1(x),\ldots,tacf@n(x)]$ \\
-
-    FIRST' $[tacf@1,\ldots,tacf@n] \; (x)$ \index{*FIRST'} &
-    FIRST $[tacf@1(x),\ldots,tacf@n(x)]$
-\end{tabular}
-\end{center}
-
-
-\subsection{Applying a list of tactics to 1}
-\index{tacticals!joining tactic functions}
-\begin{ttbox} 
-EVERY1: (int -> tactic) list -> tactic
-FIRST1: (int -> tactic) list -> tactic
-\end{ttbox}
-A common proof style is to treat the subgoals as a stack, always
-restricting attention to the first subgoal.  Such proofs contain long lists
-of tactics, each applied to~1.  These can be simplified using {\tt EVERY1}
-and {\tt FIRST1}:
-\begin{center} \tt
-\begin{tabular}{r@{\rm\ \ abbreviates\ \ }l}
-    EVERY1 $[tacf@1,\ldots,tacf@n]$ \indexbold{*EVERY1} &
-    EVERY $[tacf@1(1),\ldots,tacf@n(1)]$ \\
-
-    FIRST1 $[tacf@1,\ldots,tacf@n]$ \indexbold{*FIRST1} &
-    FIRST $[tacf@1(1),\ldots,tacf@n(1)]$
-\end{tabular}
-\end{center}
 
 \index{tacticals|)}
 

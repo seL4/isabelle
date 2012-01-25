@@ -399,15 +399,88 @@ text %mlref {*
 
 section {* Tacticals \label{sec:tacticals} *}
 
-text {*
-  A \emph{tactical} is a functional combinator for building up complex
-  tactics from simpler ones.  Typical tactical perform sequential
-  composition, disjunction (choice), iteration, or goal addressing.
-  Various search strategies may be expressed via tacticals.
+text {* A \emph{tactical} is a functional combinator for building up
+  complex tactics from simpler ones.  Common tacticals perform
+  sequential composition, disjunctive choice, iteration, or goal
+  addressing.  Various search strategies may be expressed via
+  tacticals.
 
-  \medskip FIXME
+  \medskip The chapter on tacticals in old \cite{isabelle-ref} is
+  still applicable for further details.  *}
 
-  \medskip The chapter on tacticals in \cite{isabelle-ref} is still
-  applicable, despite a few outdated details.  *}
+
+subsection {* Combining tactics *}
+
+text {* Sequential composition and alternative choices are the most
+  basic ways to combine tactics, similarly to ``@{verbatim ","}'' and
+  ``@{verbatim "|"}'' in Isar method notation.  This corresponds to
+  @{text "THEN"} and @{text "ORELSE"} in ML, but there are further
+  possibilities for fine-tuning alternation of tactics such as @{text
+  "APPEND"}.  Further details become visible in ML due to explicit
+  subgoal addressing.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "op THEN": "tactic * tactic -> tactic"} \\
+  @{index_ML "op ORELSE": "tactic * tactic -> tactic"} \\
+  @{index_ML "op APPEND": "tactic * tactic -> tactic"} \\
+  @{index_ML "EVERY": "tactic list -> tactic"} \\
+  @{index_ML "FIRST": "tactic list -> tactic"} \\[0.5ex]
+
+  @{index_ML "op THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML "op ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML "op APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
+  @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
+  @{index_ML "EVERY1": "(int -> tactic) list -> tactic"} \\
+  @{index_ML "FIRST1": "(int -> tactic) list -> tactic"} \\[0.5ex]
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{text "tac\<^sub>1 THEN tac\<^sub>2"} is the sequential composition of
+  @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a proof state, it
+  returns all states reachable in two steps by applying @{text "tac\<^sub>1"}
+  followed by @{text "tac\<^sub>2"}.  First, it applies @{text "tac\<^sub>1"} to the
+  proof state, getting a sequence of possible next states; then, it
+  applies @{text "tac\<^sub>2"} to each of these and concatenates the results
+  to produce again one flat sequence of states.
+
+  \item @{text "tac\<^sub>1 ORELSE tac\<^sub>2"} makes a choice between @{text
+  "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a state, it tries @{text
+  "tac\<^sub>1"} and returns the result if non-empty; if @{text "tac\<^sub>1"} fails
+  then it uses @{text "tac\<^sub>2"}.  This is a deterministic choice: if
+  @{text "tac\<^sub>1"} succeeds then @{text "tac\<^sub>2"} is excluded from the
+  result.
+
+  \item @{text "tac\<^sub>1 APPEND tac\<^sub>2"} concatenates the possible results
+  of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Unlike @{text "ORELSE"} there
+  is \emph{no commitment} to either tactic, so @{text "APPEND"} helps
+  to avoid incompleteness during search, at the cost of potential
+  inefficiencies.
+
+  \item @{text "EVERY [tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text "tac\<^sub>1 THEN
+  \<dots> THEN tac\<^sub>n"}.  Note that @{text "EVERY []"} is the same as @{ML
+  all_tac}: it always succeeds.
+
+  \item @{text "FIRST [tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text "tac\<^sub>1
+  ORELSE \<dots> ORELSE tac\<^sub>n"}.  Note that @{text "FIRST []"} is the same as
+  @{ML no_tac}: it always fails.
+
+  \item @{text "THEN'"}, @{text "ORELSE'"}, and @{text "APPEND'"} are
+  lifted versions of @{text "THEN"}, @{text "ORELSE"}, and @{text
+  "APPEND"}, for tactics with explicit subgoal addressing.  This means
+  @{text "(tac\<^sub>1 THEN' tac\<^sub>2) i"} is the same as @{text "(tac\<^sub>1 i THEN
+  tac\<^sub>2 i)"} etc.
+
+  \item @{text "EVERY'"} and @{text "FIRST'"} are lifted versions of
+  @{text "EVERY'"} and @{text "FIRST'"}, for tactics with explicit
+  subgoal addressing.
+
+  \item @{text "EVERY1"} and @{text "FIRST1"} are convenience versions
+  of @{text "EVERY'"} and @{text "FIRST'"}, applied to subgoal 1.
+
+  \end{description}
+*}
 
 end
