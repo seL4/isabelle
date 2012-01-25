@@ -1084,23 +1084,50 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML "op RSN": "thm * (int * thm) -> thm"} \\
   @{index_ML "op RS": "thm * thm -> thm"} \\
+
+  @{index_ML "op RLN": "thm list * (int * thm list) -> thm list"} \\
+  @{index_ML "op RL": "thm list * thm list -> thm list"} \\
+
+  @{index_ML "op MRS": "thm list * thm -> thm"} \\
   @{index_ML "op OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} resolves @{text "rule\<^sub>1"} with @{text
-  "rule\<^sub>2"} according to the @{inference resolution} principle
-  explained above.  Note that the corresponding rule attribute in the
-  Isar language is called @{attribute THEN}.
+  \item @{text "rule\<^sub>1 RSN (i, rule\<^sub>2)"} resolves the conclusion of
+  @{text "rule\<^sub>1"} with the @{text i}-th premise of @{text "rule\<^sub>2"},
+  according to the @{inference resolution} principle explained above.
+  Unless there is precisely one resolvent it raises exception @{ML
+  THM}.
 
-  \item @{text "rule OF rules"} resolves a list of rules with the
-  first rule, addressing its premises @{text "1, \<dots>, length rules"}
-  (operating from last to first).  This means the newly emerging
-  premises are all concatenated, without interfering.  Also note that
-  compared to @{text "RS"}, the rule argument order is swapped: @{text
-  "rule\<^sub>1 RS rule\<^sub>2 = rule\<^sub>2 OF [rule\<^sub>1]"}.
+  This corresponds to the rule attribute @{attribute THEN} in Isar
+  source language.
+
+  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RS (1,
+  rule\<^sub>2)"}.
+
+  \item @{text "rules\<^sub>1 RLN (i, rules\<^sub>2)"} joins lists of rules.  For
+  every @{text "rule\<^sub>1"} in @{text "rules\<^sub>1"} and @{text "rule\<^sub>2"} in
+  @{text "rules\<^sub>2"}, it resolves the conclusion of @{text "rule\<^sub>1"} with
+  the @{text "i"}-th premise of @{text "rule\<^sub>2"}, accumulating multiple
+  results in one big list.  Note that such strict enumerations of
+  higher-order unifications can be inefficient compared to the lazy
+  variant seen in elementary tactics like @{ML resolve_tac}.
+
+  \item @{text "rules\<^sub>1 RL rules\<^sub>2"} abbreviates @{text "rules\<^sub>1 RLN (1,
+  rules\<^sub>2)"}.
+
+  \item @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^isub>i"}
+  against premise @{text "i"} of @{text "rule"}, for @{text "i = n, \<dots>,
+  1"}.  By working from right to left, newly emerging premises are
+  concatenated in the result, without interfering.
+
+  \item @{text "rule OF rules"} abbreviates @{text "rules MRS rule"}.
+
+  This corresponds to the rule attribute @{attribute OF} in Isar
+  source language.
 
   \end{description}
 *}

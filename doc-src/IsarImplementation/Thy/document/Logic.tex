@@ -1226,21 +1226,46 @@ The rule calculus of Isabelle/Pure provides two main inferences:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
+  \indexdef{}{ML}{RSN}\verb|op RSN: thm * (int * thm) -> thm| \\
   \indexdef{}{ML}{RS}\verb|op RS: thm * thm -> thm| \\
+
+  \indexdef{}{ML}{RLN}\verb|op RLN: thm list * (int * thm list) -> thm list| \\
+  \indexdef{}{ML}{RL}\verb|op RL: thm list * thm list -> thm list| \\
+
+  \indexdef{}{ML}{MRS}\verb|op MRS: thm list * thm -> thm| \\
   \indexdef{}{ML}{OF}\verb|op OF: thm * thm list -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} resolves \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} with \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} according to the \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle
-  explained above.  Note that the corresponding rule attribute in the
-  Isar language is called \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}.
+  \item \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RSN\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} resolves the conclusion of
+  \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} with the \isa{i}-th premise of \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}},
+  according to the \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle explained above.
+  Unless there is precisely one resolvent it raises exception \verb|THM|.
 
-  \item \isa{rule\ OF\ rules} resolves a list of rules with the
-  first rule, addressing its premises \isa{{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ length\ rules}
-  (operating from last to first).  This means the newly emerging
-  premises are all concatenated, without interfering.  Also note that
-  compared to \isa{RS}, the rule argument order is swapped: \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ OF\ {\isaliteral{5B}{\isacharbrackleft}}rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5D}{\isacharbrackright}}}.
+  This corresponds to the rule attribute \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}} in Isar
+  source language.
+
+  \item \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} abbreviates \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}.
+
+  \item \isa{rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RLN\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} joins lists of rules.  For
+  every \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} in \isa{rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} in
+  \isa{rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}, it resolves the conclusion of \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} with
+  the \isa{i}-th premise of \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}, accumulating multiple
+  results in one big list.  Note that such strict enumerations of
+  higher-order unifications can be inefficient compared to the lazy
+  variant seen in elementary tactics like \verb|resolve_tac|.
+
+  \item \isa{rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RL\ rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} abbreviates \isa{rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RLN\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ rules\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}.
+
+  \item \isa{{\isaliteral{5B}{\isacharbrackleft}}rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}\ MRS\ rule} resolves \isa{rule\isaliteral{5C3C5E697375623E}{}\isactrlisub i}
+  against premise \isa{i} of \isa{rule}, for \isa{i\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{1}}}.  By working from right to left, newly emerging premises are
+  concatenated in the result, without interfering.
+
+  \item \isa{rule\ OF\ rules} abbreviates \isa{rules\ MRS\ rule}.
+
+  This corresponds to the rule attribute \hyperlink{attribute.OF}{\mbox{\isa{OF}}} in Isar
+  source language.
 
   \end{description}%
 \end{isamarkuptext}%

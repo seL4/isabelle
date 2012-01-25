@@ -11,57 +11,6 @@ new proof procedures.
 
 \section{Basic operations on theorems}
 
-\subsection{Forward proof: joining rules by resolution}
-\index{theorems!joining by resolution}
-\index{resolution}\index{forward proof}
-\begin{ttbox} 
-RSN : thm * (int * thm) -> thm                 \hfill\textbf{infix}
-RS  : thm * thm -> thm                         \hfill\textbf{infix}
-MRS : thm list * thm -> thm                    \hfill\textbf{infix}
-OF  : thm * thm list -> thm                    \hfill\textbf{infix}
-RLN : thm list * (int * thm list) -> thm list  \hfill\textbf{infix}
-RL  : thm list * thm list -> thm list          \hfill\textbf{infix}
-MRL : thm list list * thm list -> thm list     \hfill\textbf{infix}
-\end{ttbox}
-Joining rules together is a simple way of deriving new rules.  These
-functions are especially useful with destruction rules.  To store
-the result in the theorem database, use \ttindex{bind_thm}
-(\S\ref{ExtractingAndStoringTheProvedTheorem}). 
-\begin{ttdescription}
-\item[\tt$thm@1$ RSN $(i,thm@2)$] \indexbold{*RSN} 
-  resolves the conclusion of $thm@1$ with the $i$th premise of~$thm@2$.
-  Unless there is precisely one resolvent it raises exception
-  \xdx{THM}; in that case, use {\tt RLN}.
-
-\item[\tt$thm@1$ RS $thm@2$] \indexbold{*RS} 
-abbreviates \hbox{\tt$thm@1$ RSN $(1,thm@2)$}.  Thus, it resolves the
-conclusion of $thm@1$ with the first premise of~$thm@2$.
-
-\item[\tt {$[thm@1,\ldots,thm@n]$} MRS $thm$] \indexbold{*MRS} 
-  uses {\tt RSN} to resolve $thm@i$ against premise~$i$ of $thm$, for
-  $i=n$, \ldots,~1.  This applies $thm@n$, \ldots, $thm@1$ to the first $n$
-  premises of $thm$.  Because the theorems are used from right to left, it
-  does not matter if the $thm@i$ create new premises.  {\tt MRS} is useful
-  for expressing proof trees.
-  
-\item[\tt {$thm$ OF $[thm@1,\ldots,thm@n]$}] \indexbold{*OF} is the same as
-  \texttt{$[thm@1,\ldots,thm@n]$ MRS $thm$}, with slightly more readable
-  argument order, though.
-
-\item[\tt$thms@1$ RLN $(i,thms@2)$] \indexbold{*RLN} 
-  joins lists of theorems.  For every $thm@1$ in $thms@1$ and $thm@2$ in
-  $thms@2$, it resolves the conclusion of $thm@1$ with the $i$th premise
-  of~$thm@2$, accumulating the results. 
-
-\item[\tt$thms@1$ RL $thms@2$] \indexbold{*RL} 
-abbreviates \hbox{\tt$thms@1$ RLN $(1,thms@2)$}. 
-
-\item[\tt {$[thms@1,\ldots,thms@n]$} MRL $thms$] \indexbold{*MRL} 
-is analogous to {\tt MRS}, but combines theorem lists rather than theorems.
-It too is useful for expressing proof trees.
-\end{ttdescription}
-
-
 \subsection{Expanding definitions in theorems}
 \index{meta-rewriting!in theorems}
 \begin{ttbox} 
