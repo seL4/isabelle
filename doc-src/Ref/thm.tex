@@ -193,13 +193,8 @@ prems_of      : thm -> term list
 cprems_of     : thm -> cterm list
 nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term) list
-sign_of_thm   : thm -> Sign.sg
 theory_of_thm : thm -> theory
 dest_state : thm * int -> (term*term) list * term list * term * term
-rep_thm    : thm -> \{sign_ref: Sign.sg_ref, der: bool * deriv, maxidx: int,
-                     shyps: sort list, hyps: term list, prop: term\}
-crep_thm   : thm -> \{sign_ref: Sign.sg_ref, der: bool * deriv, maxidx: int,
-                     shyps: sort list, hyps: cterm list, prop:{\ts}cterm\}
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{cprop_of} $thm$] returns the statement of $thm$ as
@@ -221,9 +216,6 @@ returns the number of premises in $thm$, and is equivalent to {\tt
 \item[\ttindexbold{tpairs_of} $thm$] returns the flex-flex constraints
   of $thm$.
   
-\item[\ttindexbold{sign_of_thm} $thm$] returns the signature
-  associated with $thm$.
-  
 \item[\ttindexbold{theory_of_thm} $thm$] returns the theory associated
   with $thm$.  Note that this does a lookup in Isabelle's global
   database of loaded theories.
@@ -232,16 +224,6 @@ returns the number of premises in $thm$, and is equivalent to {\tt
 decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
 list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 (this will be an implication if there are more than $i$ subgoals).
-
-\item[\ttindexbold{rep_thm} $thm$] decomposes $thm$ as a record
-  containing the statement of~$thm$ ({\tt prop}), its list of
-  meta-assumptions ({\tt hyps}), its derivation ({\tt der}), a bound
-  on the maximum subscript of its unknowns ({\tt maxidx}), and a
-  reference to its signature ({\tt sign_ref}).  The {\tt shyps} field
-  is discussed below.
-  
-\item[\ttindexbold{crep_thm} $thm$] like \texttt{rep_thm}, but returns
-  the hypotheses and statement as certified terms.
 
 \end{ttdescription}
 
@@ -403,21 +385,6 @@ g(b)$.
 Most of these rules have the sole purpose of implementing particular
 tactics.  There are few occasions for applying them directly to a theorem.
 
-\subsection{Proof by assumption}
-\index{meta-assumptions}
-\begin{ttbox} 
-assumption    : int -> thm -> thm Seq.seq
-eq_assumption : int -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{assumption} {\it i} $thm$] 
-attempts to solve premise~$i$ of~$thm$ by assumption.
-
-\item[\ttindexbold{eq_assumption}] 
-is like {\tt assumption} but does not use unification.
-\end{ttdescription}
-
-
 \subsection{Resolution}
 \index{resolution}
 \begin{ttbox} 
@@ -475,20 +442,9 @@ assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
 
 \subsection{Other meta-rules}
 \begin{ttbox} 
-trivial            : cterm -> thm
-lift_rule          : (thm * int) -> thm -> thm
 rename_params_rule : string list * int -> thm -> thm
-flexflex_rule      : thm -> thm Seq.seq
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{trivial} $ct$] 
-makes the theorem \(\phi\Imp\phi\), where $\phi$ is the value of~$ct$.
-This is the initial state for a goal-directed proof of~$\phi$.  The rule
-checks that $ct$ has type~$prop$.
-
-\item[\ttindexbold{lift_rule} ($state$, $i$) $rule$] \index{lifting}
-prepares $rule$ for resolution by lifting it over the parameters and
-assumptions of subgoal~$i$ of~$state$.
 
 \item[\ttindexbold{rename_params_rule} ({\it names}, {\it i}) $thm$] 
 uses the $names$ to rename the parameters of premise~$i$ of $thm$.  The
@@ -497,8 +453,6 @@ rule renames the innermost parameters and may modify the remaining ones to
 ensure that all the parameters are distinct.
 \index{parameters!renaming}
 
-\item[\ttindexbold{flexflex_rule} $thm$]  \index{flex-flex constraints}
-removes all flex-flex pairs from $thm$ using the trivial unifier.
 \end{ttdescription}
 \index{meta-rules|)}
 

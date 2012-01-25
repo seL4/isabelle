@@ -1306,8 +1306,8 @@ fun dest_state (state as Thm (_, {prop,tpairs,...}), i) =
     | _ => raise THM("dest_state", i, [state]))
   handle TERM _ => raise THM("dest_state", i, [state]);
 
-(*Increment variables and parameters of orule as required for
-  resolution with a goal.*)
+(*Prepare orule for resolution by lifting it over the parameters and
+assumptions of goal.*)
 fun lift_rule goal orule =
   let
     val Cterm {t = gprop, T, maxidx = gmax, sorts, ...} = goal;
