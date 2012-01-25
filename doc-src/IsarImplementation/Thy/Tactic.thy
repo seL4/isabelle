@@ -483,4 +483,111 @@ text %mlref {*
   \end{description}
 *}
 
+
+subsection {* Repetition tacticals *}
+
+text {* These tacticals provide further control over repetition of
+  tactics, beyond the stylized forms of ``@{verbatim "?"}''  and
+  ``@{verbatim "+"}'' in Isar method expressions. *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "TRY": "tactic -> tactic"} \\
+  @{index_ML "REPEAT_DETERM": "tactic -> tactic"} \\
+  @{index_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
+  @{index_ML "REPEAT": "tactic -> tactic"} \\
+  @{index_ML "REPEAT1": "tactic -> tactic"} \\
+  @{index_ML "DETERM_UNTIL": "(thm -> bool) -> tactic -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML TRY}~@{text "tac"} applies @{text "tac"} to the proof
+  state and returns the resulting sequence, if non-empty; otherwise it
+  returns the original state.  Thus, it applies @{text "tac"} at most
+  once.
+
+  \item @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
+  proof state and, recursively, to the head of the resulting sequence.
+  It returns the first state to make @{text "tac"} fail.  It is
+  deterministic, discarding alternative outcomes.
+
+  \item @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
+  REPEAT_DETERM}~@{text "tac"} but the number of repetitions is bound
+  by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
+
+  \item @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the proof
+  state and, recursively, to each element of the resulting sequence.
+  The resulting sequence consists of those states that make @{text
+  "tac"} fail.  Thus, it applies @{text "tac"} as many times as
+  possible (including zero times), and allows backtracking over each
+  invocation of @{text "tac"}.  @{ML REPEAT} is more general than @{ML
+  REPEAT_DETERM}, but requires more space.
+
+  \item @{ML REPEAT1}~@{text "tac"} is like @{ML REPEAT}~@{text "tac"}
+  but it always applies @{text "tac"} at least once, failing if this
+  is impossible.
+
+  \item @{ML DETERM_UNTIL}~@{text "P tac"} applies @{text "tac"} to
+  the proof state and, recursively, to the head of the resulting
+  sequence, until the predicate @{text "P"} (applied on the proof
+  state) yields @{ML true}. It fails if @{text "tac"} fails on any of
+  the intermediate states. It is deterministic, discarding alternative
+  outcomes.
+
+  \end{description}
+*}
+
+
+subsection {* Identities for tacticals *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML all_tac: tactic} \\
+  @{index_ML no_tac: tactic} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML all_tac} maps any proof state to the one-element sequence
+  containing that state.  Thus, it succeeds for all states.  It is the
+  identity element of the tactical @{ML "op THEN"}.
+
+  \item @{ML no_tac} maps any proof state to the empty sequence.  Thus
+  it succeeds for no state.  It is the identity element of
+  @{ML "op ORELSE"} and @{ML "op APPEND"}.  Also, it is a zero element
+  for @{ML "op THEN"}, which means that @{text "tac THEN"}~@{ML
+  no_tac} is equivalent to @{ML no_tac}.
+
+  \end{description}
+*}
+
+text %mlex {* The following examples illustrate how these primitive
+  tactics can be used to imitate existing combinators like @{ML TRY}
+  or @{ML REPEAT} (ignoring some further implementation tricks):
+*}
+
+ML {*
+  fun TRY tac = tac ORELSE all_tac;
+  fun REPEAT tac st = ((tac THEN REPEAT tac) ORELSE all_tac) st;
+*}
+
+text {* If @{text "tac"} can return multiple outcomes then so can @{ML
+  REPEAT}~@{text "tac"}.  @{ML REPEAT} uses @{ML "op ORELSE"} and not
+  @{ML "op APPEND"}, it applies @{text "tac"} as many times as
+  possible in each outcome.
+
+  \begin{warn}
+  Note @{ML REPEAT}'s explicit abstraction over the proof state.
+  Recursive tacticals must be coded in this awkward fashion to avoid
+  infinite recursion.  With the following definition, @{ML
+  REPEAT}~@{text "tac"} would loop due to the eager evaluation
+  strategy of ML:
+  \end{warn}
+*}
+
+ML {*
+  fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;  (*BAD!*)
+*}
+
 end

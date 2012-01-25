@@ -572,7 +572,184 @@ Sequential composition and alternative choices are the most
 %
 \endisadelimmlref
 %
+\isamarkupsubsection{Repetition tacticals%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+These tacticals provide further control over repetition of
+  tactics, beyond the stylized forms of ``\verb|?|''  and
+  ``\verb|+|'' in Isar method expressions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{TRY}\verb|TRY: tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_DETERM}\verb|REPEAT_DETERM: tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_DETERM\_N}\verb|REPEAT_DETERM_N: int -> tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT}\verb|REPEAT: tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT1}\verb|REPEAT1: tactic -> tactic| \\
+  \indexdef{}{ML}{DETERM\_UNTIL}\verb|DETERM_UNTIL: (thm -> bool) -> tactic -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|TRY|~\isa{tac} applies \isa{tac} to the proof
+  state and returns the resulting sequence, if non-empty; otherwise it
+  returns the original state.  Thus, it applies \isa{tac} at most
+  once.
+
+  \item \verb|REPEAT_DETERM|~\isa{tac} applies \isa{tac} to the
+  proof state and, recursively, to the head of the resulting sequence.
+  It returns the first state to make \isa{tac} fail.  It is
+  deterministic, discarding alternative outcomes.
+
+  \item \verb|REPEAT_DETERM_N|~\isa{n\ tac} is like \verb|REPEAT_DETERM|~\isa{tac} but the number of repetitions is bound
+  by \isa{n} (where \verb|~1| means \isa{{\isaliteral{5C3C696E66696E6974793E}{\isasyminfinity}}}).
+
+  \item \verb|REPEAT|~\isa{tac} applies \isa{tac} to the proof
+  state and, recursively, to each element of the resulting sequence.
+  The resulting sequence consists of those states that make \isa{tac} fail.  Thus, it applies \isa{tac} as many times as
+  possible (including zero times), and allows backtracking over each
+  invocation of \isa{tac}.  \verb|REPEAT| is more general than \verb|REPEAT_DETERM|, but requires more space.
+
+  \item \verb|REPEAT1|~\isa{tac} is like \verb|REPEAT|~\isa{tac}
+  but it always applies \isa{tac} at least once, failing if this
+  is impossible.
+
+  \item \verb|DETERM_UNTIL|~\isa{P\ tac} applies \isa{tac} to
+  the proof state and, recursively, to the head of the resulting
+  sequence, until the predicate \isa{P} (applied on the proof
+  state) yields \verb|true|. It fails if \isa{tac} fails on any of
+  the intermediate states. It is deterministic, discarding alternative
+  outcomes.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Identities for tacticals%
+}
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{all\_tac}\verb|all_tac: tactic| \\
+  \indexdef{}{ML}{no\_tac}\verb|no_tac: tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|all_tac| maps any proof state to the one-element sequence
+  containing that state.  Thus, it succeeds for all states.  It is the
+  identity element of the tactical \verb|op THEN|.
+
+  \item \verb|no_tac| maps any proof state to the empty sequence.  Thus
+  it succeeds for no state.  It is the identity element of
+  \verb|op ORELSE| and \verb|op APPEND|.  Also, it is a zero element
+  for \verb|op THEN|, which means that \isa{tac\ THEN}~\verb|no_tac| is equivalent to \verb|no_tac|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following examples illustrate how these primitive
+  tactics can be used to imitate existing combinators like \verb|TRY|
+  or \verb|REPEAT| (ignoring some further implementation tricks):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fun\ TRY\ tac\ {\isaliteral{3D}{\isacharequal}}\ tac\ ORELSE\ all{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ fun\ REPEAT\ tac\ st\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}tac\ THEN\ REPEAT\ tac{\isaliteral{29}{\isacharparenright}}\ ORELSE\ all{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{29}{\isacharparenright}}\ st{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  \verb|REPEAT| uses \verb|op ORELSE| and not
+  \verb|op APPEND|, it applies \isa{tac} as many times as
+  possible in each outcome.
+
+  \begin{warn}
+  Note \verb|REPEAT|'s explicit abstraction over the proof state.
+  Recursive tacticals must be coded in this awkward fashion to avoid
+  infinite recursion.  With the following definition, \verb|REPEAT|~\isa{tac} would loop due to the eager evaluation
+  strategy of ML:
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fun\ REPEAT\ tac\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}tac\ THEN\ REPEAT\ tac{\isaliteral{29}{\isacharparenright}}\ ORELSE\ all{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{3B}{\isacharsemicolon}}\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}BAD{\isaliteral{21}{\isacharbang}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+%
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
 %
