@@ -239,7 +239,8 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
         val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
-          "import System;\n" ^
+          "import System.IO;\n" ^
+          "import System.Environment;\n" ^
           "import Narrowing_Engine;\n" ^
           "import Generated_Code;\n\n" ^
           "main = getArgs >>= \\[potential, size] -> " ^
