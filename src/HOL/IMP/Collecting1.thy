@@ -11,7 +11,7 @@ to show that this semantics approximates the collecting semantics. *}
 lemma step_preserves_le:
   "\<lbrakk> step S cs = cs; S' \<subseteq> S; cs' \<le> cs \<rbrakk> \<Longrightarrow>
    step S' cs' \<le> cs"
-by (metis mono_step_aux)
+by (metis mono2_step)
 
 lemma steps_empty_preserves_le: assumes "step S cs = cs"
 shows "cs' \<le> cs \<Longrightarrow> (step {} ^^ n) cs' \<le> cs"

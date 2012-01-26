@@ -18,7 +18,7 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
 lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
-by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def lookup_def)
+by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def lookup_def)
 
 end
 
@@ -58,8 +58,8 @@ text{* The soundness proofs are textually identical to the ones for the step
 function operating on states as functions. *}
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; cs \<le> \<gamma>\<^isub>c ca \<rbrakk> \<Longrightarrow> step S cs \<le> \<gamma>\<^isub>c (step' S' ca)"
-proof(induction cs arbitrary: ca S S')
+  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; c \<le> \<gamma>\<^isub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^isub>c (step' S' c')"
+proof(induction c arbitrary: c' S S')
   case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
 next
   case Assign thus ?case
@@ -69,24 +69,24 @@ next
   case Semi thus ?case apply (auto simp: Semi_le map_acom_Semi)
     by (metis le_post post_map_acom)
 next
-  case (If b cs1 cs2 P)
-  then obtain ca1 ca2 Pa where
-      "ca= IF b THEN ca1 ELSE ca2 {Pa}"
-      "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1" "cs2 \<le> \<gamma>\<^isub>c ca2"
+  case (If b c1 c2 P)
+  then obtain c1' c2' P' where
+      "c' = IF b THEN c1' ELSE c2' {P'}"
+      "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'" "c2 \<le> \<gamma>\<^isub>c c2'"
     by (fastforce simp: If_le map_acom_If)
-  moreover have "post cs1 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
-    by (metis (no_types) `cs1 \<le> \<gamma>\<^isub>c ca1` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
-  moreover have "post cs2 \<subseteq> \<gamma>\<^isub>o(post ca1 \<squnion> post ca2)"
-    by (metis (no_types) `cs2 \<le> \<gamma>\<^isub>c ca2` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post c1 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c1 \<le> \<gamma>\<^isub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post c2 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c2 \<le> \<gamma>\<^isub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
   ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` by (simp add: If.IH subset_iff)
 next
-  case (While I b cs1 P)
-  then obtain ca1 Ia Pa where
-    "ca = {Ia} WHILE b DO ca1 {Pa}"
-    "I \<subseteq> \<gamma>\<^isub>o Ia" "P \<subseteq> \<gamma>\<^isub>o Pa" "cs1 \<le> \<gamma>\<^isub>c ca1"
+  case (While I b c1 P)
+  then obtain c1' I' P' where
+    "c' = {I'} WHILE b DO c1' {P'}"
+    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'"
     by (fastforce simp: map_acom_While While_le)
-  moreover have "S \<union> post cs1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post ca1)"
-    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `cs1 \<le> \<gamma>\<^isub>c ca1`, simplified]
+  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post c1')"
+    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `c1 \<le> \<gamma>\<^isub>c c1'`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff)
 qed
@@ -135,7 +135,7 @@ end
 
 subsubsection "Ascending Chain Condition"
 
-hide_const acc
+hide_const (open) acc
 
 abbreviation "strict r == r \<inter> -(r^-1)"
 abbreviation "acc r == wf((strict r)^-1)"
@@ -392,5 +392,20 @@ apply(rule pfp_termination)
 apply(simp add: bot_acom assms(3))
 done
 
+context Abs_Int_mono
+begin
+
+lemma AI_Some_measure:
+assumes "(strict{(x,y::'a). x \<sqsubseteq> y})^-1 <= measure m"
+and "\<forall>x y::'a. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> m x = m y"
+shows "\<exists>c'. AI c = Some c'"
+unfolding AI_def
+apply(rule lpfpc_termination)
+apply(rule wf_subset[OF wf_measure measure_st[OF assms]])
+apply(erule mono_step'[OF le_refl])
+apply(rule strip_step')
+done
+
+end
 
 end

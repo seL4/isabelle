@@ -12,8 +12,8 @@ text{* A concrete type of state with computable @{text"\<sqsubseteq>"}: *}
 
 datatype 'a st = FunDom "vname \<Rightarrow> 'a" "vname list"
 
-fun "fun" where "fun (FunDom f _) = f"
-fun dom where "dom (FunDom _ A) = A"
+fun "fun" where "fun (FunDom f xs) = f"
+fun dom where "dom (FunDom f xs) = xs"
 
 definition [simp]: "inter_list xs ys = [x\<leftarrow>xs. x \<in> set ys]"
 
