@@ -404,9 +404,7 @@ text {* A \emph{tactical} is a functional combinator for building up
   sequential composition, disjunctive choice, iteration, or goal
   addressing.  Various search strategies may be expressed via
   tacticals.
-
-  \medskip The chapter on tacticals in old \cite{isabelle-ref} is
-  still applicable for further details.  *}
+*}
 
 
 subsection {* Combining tactics *}
@@ -438,13 +436,13 @@ text %mlref {*
   \begin{description}
 
   \item @{text "tac\<^sub>1"}~@{ML_op THEN}~@{text "tac\<^sub>2"} is the sequential
-  composition of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a
-  proof state, it returns all states reachable in two steps by
-  applying @{text "tac\<^sub>1"} followed by @{text "tac\<^sub>2"}.  First, it
-  applies @{text "tac\<^sub>1"} to the proof state, getting a sequence of
-  possible next states; then, it applies @{text "tac\<^sub>2"} to each of
-  these and concatenates the results to produce again one flat
-  sequence of states.
+  composition of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a goal
+  state, it returns all states reachable in two steps by applying
+  @{text "tac\<^sub>1"} followed by @{text "tac\<^sub>2"}.  First, it applies @{text
+  "tac\<^sub>1"} to the goal state, getting a sequence of possible next
+  states; then, it applies @{text "tac\<^sub>2"} to each of these and
+  concatenates the results to produce again one flat sequence of
+  states.
 
   \item @{text "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "tac\<^sub>2"} makes a choice
   between @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a state, it
@@ -497,7 +495,7 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML TRY}~@{text "tac"} applies @{text "tac"} to the proof
+  \item @{ML TRY}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns the resulting sequence, if non-empty; otherwise it
   returns the original state.  Thus, it applies @{text "tac"} at most
   once.
@@ -506,7 +504,7 @@ text %mlref {*
   applied via functional composition: @{ML "TRY"}~@{ML_op o}~@{text
   "tac"}.  There is no need for @{verbatim TRY'}.
 
-  \item @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the proof
+  \item @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the goal
   state and, recursively, to each element of the resulting sequence.
   The resulting sequence consists of those states that make @{text
   "tac"} fail.  Thus, it applies @{text "tac"} as many times as
@@ -519,7 +517,7 @@ text %mlref {*
   is impossible.
 
   \item @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
-  proof state and, recursively, to the head of the resulting sequence.
+  goal state and, recursively, to the head of the resulting sequence.
   It returns the first state to make @{text "tac"} fail.  It is
   deterministic, discarding alternative outcomes.
 
@@ -561,7 +559,7 @@ text {* If @{text "tac"} can return multiple outcomes then so can @{ML
   possible in each outcome.
 
   \begin{warn}
-  Note the explicit abstraction over the proof state in the ML
+  Note the explicit abstraction over the goal state in the ML
   definition of @{ML REPEAT}.  Recursive tacticals must be coded in
   this awkward fashion to avoid infinite recursion of eager functional
   evaluation in Standard ML.  The following attempt would make @{ML
@@ -628,6 +626,179 @@ text %mlref {*
   @{text "tac\<^sub>k (i + k - 1)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op
   THEN}~@{text "tac\<^sub>1 i"}.  It applies the given list of tactics to the
   corresponding range of subgoals, counting downwards.
+
+  \end{description}
+*}
+
+
+subsection {* Control and search tacticals *}
+
+text {* A predicate on theorems @{ML_type "thm -> bool"} can test
+  whether a goal state enjoys some desirable property --- such as
+  having no subgoals.  Tactics that search for satisfactory goal
+  states are easy to express.  The main search procedures,
+  depth-first, breadth-first and best-first, are provided as
+  tacticals.  They generate the search tree by repeatedly applying a
+  given tactic.  *}
+
+
+subsubsection {* Filtering a tactic's results *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML FILTER: "(thm -> bool) -> tactic -> tactic"} \\
+  @{index_ML CHANGED: "tactic -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML FILTER}~@{text "sat tac"} applies @{text "tac"} to the
+  goal state and returns a sequence consisting of those result goal
+  states that are satisfactory in the sense of @{text "sat"}.
+
+  \item @{ML CHANGED}~@{text "tac"} applies @{text "tac"} to the goal
+  state and returns precisely those states that differ from the
+  original state (according to @{ML Thm.eq_thm}).  Thus @{ML
+  CHANGED}~@{text "tac"} always has some effect on the state.
+
+  \end{description}
+*}
+
+
+subsubsection {* Depth-first search *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML DEPTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
+  @{index_ML DEPTH_SOLVE: "tactic -> tactic"} \\
+  @{index_ML DEPTH_SOLVE_1: "tactic -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML DEPTH_FIRST}~@{text "sat tac"} returns the goal state if
+  @{text "sat"} returns true.  Otherwise it applies @{text "tac"},
+  then recursively searches from each element of the resulting
+  sequence.  The code uses a stack for efficiency, in effect applying
+  @{text "tac"}~@{ML_op THEN}~@{ML DEPTH_FIRST}~@{text "sat tac"} to
+  the state.
+
+  \item @{ML DEPTH_SOLVE}@{text "tac"} uses @{ML DEPTH_FIRST} to
+  search for states having no subgoals.
+
+  \item @{ML DEPTH_SOLVE_1}~@{text "tac"} uses @{ML DEPTH_FIRST} to
+  search for states having fewer subgoals than the given state.  Thus,
+  it insists upon solving at least one subgoal.
+
+  \end{description}
+*}
+
+
+subsubsection {* Other search strategies *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML BREADTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
+  @{index_ML BEST_FIRST: "(thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
+  @{index_ML THEN_BEST_FIRST: "tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
+  \end{mldecls}
+
+  These search strategies will find a solution if one exists.
+  However, they do not enumerate all solutions; they terminate after
+  the first satisfactory result from @{text "tac"}.
+
+  \begin{description}
+
+  \item @{ML BREADTH_FIRST}~@{text "sat tac"} uses breadth-first
+  search to find states for which @{text "sat"} is true.  For most
+  applications, it is too slow.
+
+  \item @{ML BEST_FIRST}~@{text "(sat, dist) tac"} does a heuristic
+  search, using @{text "dist"} to estimate the distance from a
+  satisfactory state (in the sense of @{text "sat"}).  It maintains a
+  list of states ordered by distance.  It applies @{text "tac"} to the
+  head of this list; if the result contains any satisfactory states,
+  then it returns them.  Otherwise, @{ML BEST_FIRST} adds the new
+  states to the list, and continues.
+
+  The distance function is typically @{ML size_of_thm}, which computes
+  the size of the state.  The smaller the state, the fewer and simpler
+  subgoals it has.
+
+  \item @{ML THEN_BEST_FIRST}~@{text "tac\<^sub>0 (sat, dist) tac"} is like
+  @{ML BEST_FIRST}, except that the priority queue initially contains
+  the result of applying @{text "tac\<^sub>0"} to the goal state.  This
+  tactical permits separate tactics for starting the search and
+  continuing the search.
+
+  \end{description}
+*}
+
+
+subsubsection {* Auxiliary tacticals for searching *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML COND: "(thm -> bool) -> tactic -> tactic -> tactic"} \\
+  @{index_ML IF_UNSOLVED: "tactic -> tactic"} \\
+  @{index_ML SOLVE: "tactic -> tactic"} \\
+  @{index_ML DETERM: "tactic -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML COND}~@{text "sat tac\<^sub>1 tac\<^sub>2"} applies @{text "tac\<^sub>1"} to
+  the goal state if it satisfies predicate @{text "sat"}, and applies
+  @{text "tac\<^sub>2"}.  It is a conditional tactical in that only one of
+  @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"} is applied to a goal state.
+  However, both @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"} are evaluated
+  because ML uses eager evaluation.
+
+  \item @{ML IF_UNSOLVED}~@{text "tac"} applies @{text "tac"} to the
+  goal state if it has any subgoals, and simply returns the goal state
+  otherwise.  Many common tactics, such as @{ML resolve_tac}, fail if
+  applied to a goal state that has no subgoals.
+
+  \item @{ML SOLVE}~@{text "tac"} applies @{text "tac"} to the goal
+  state and then fails iff there are subgoals left.
+
+  \item @{ML DETERM}~@{text "tac"} applies @{text "tac"} to the goal
+  state and returns the head of the resulting sequence.  @{ML DETERM}
+  limits the search space by making its argument deterministic.
+
+  \end{description}
+*}
+
+
+subsubsection {* Predicates and functions useful for searching *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML has_fewer_prems: "int -> thm -> bool"} \\
+  @{index_ML Thm.eq_thm: "thm * thm -> bool"} \\
+  @{index_ML Thm.eq_thm_prop: "thm * thm -> bool"} \\
+  @{index_ML size_of_thm: "thm -> int"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML has_fewer_prems}~@{text "n thm"} reports whether @{text
+  "thm"} has fewer than @{text "n"} premises.
+
+  \item @{ML Thm.eq_thm}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether @{text
+  "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.  Both theorems must have
+  compatible background theories.  Both theorems must have the same
+  conclusions, the same set of hypotheses, and the same set of sort
+  hypotheses.  Names of bound variables are ignored as usual.
+
+  \item @{ML Thm.eq_thm_prop}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether
+  the propositions of @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.
+  Names of bound variables are ignored.
+
+  \item @{ML size_of_thm}~@{text "thm"} computes the size of @{text
+  "thm"}, namely the number of variables, constants and abstractions
+  in its conclusion.  It may serve as a distance function for
+  @{ML BEST_FIRST}.
 
   \end{description}
 *}

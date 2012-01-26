@@ -480,10 +480,7 @@ A \emph{tactical} is a functional combinator for building up
   complex tactics from simpler ones.  Common tacticals perform
   sequential composition, disjunctive choice, iteration, or goal
   addressing.  Various search strategies may be expressed via
-  tacticals.
-
-  \medskip The chapter on tacticals in old \cite{isabelle-ref} is
-  still applicable for further details.%
+  tacticals.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -525,13 +522,12 @@ Sequential composition and alternative choices are the most
   \begin{description}
 
   \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is the sequential
-  composition of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a
-  proof state, it returns all states reachable in two steps by
-  applying \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} followed by \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  First, it
-  applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to the proof state, getting a sequence of
-  possible next states; then, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} to each of
-  these and concatenates the results to produce again one flat
-  sequence of states.
+  composition of \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a goal
+  state, it returns all states reachable in two steps by applying
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} followed by \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  First, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to the goal state, getting a sequence of possible next
+  states; then, it applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} to each of these and
+  concatenates the results to produce again one flat sequence of
+  states.
 
   \item \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|ORELSE|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} makes a choice
   between \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  Applied to a state, it
@@ -596,7 +592,7 @@ These tacticals provide further control over repetition of
 
   \begin{description}
 
-  \item \verb|TRY|~\isa{tac} applies \isa{tac} to the proof
+  \item \verb|TRY|~\isa{tac} applies \isa{tac} to the goal
   state and returns the resulting sequence, if non-empty; otherwise it
   returns the original state.  Thus, it applies \isa{tac} at most
   once.
@@ -604,7 +600,7 @@ These tacticals provide further control over repetition of
   Note that for tactics with subgoal addressing, the combinator can be
   applied via functional composition: \verb|TRY|~\verb|o|~\isa{tac}.  There is no need for \verb|TRY'|.
 
-  \item \verb|REPEAT|~\isa{tac} applies \isa{tac} to the proof
+  \item \verb|REPEAT|~\isa{tac} applies \isa{tac} to the goal
   state and, recursively, to each element of the resulting sequence.
   The resulting sequence consists of those states that make \isa{tac} fail.  Thus, it applies \isa{tac} as many times as
   possible (including zero times), and allows backtracking over each
@@ -615,7 +611,7 @@ These tacticals provide further control over repetition of
   is impossible.
 
   \item \verb|REPEAT_DETERM|~\isa{tac} applies \isa{tac} to the
-  proof state and, recursively, to the head of the resulting sequence.
+  goal state and, recursively, to the head of the resulting sequence.
   It returns the first state to make \isa{tac} fail.  It is
   deterministic, discarding alternative outcomes.
 
@@ -690,7 +686,7 @@ If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  
   possible in each outcome.
 
   \begin{warn}
-  Note the explicit abstraction over the proof state in the ML
+  Note the explicit abstraction over the goal state in the ML
   definition of \verb|REPEAT|.  Recursive tacticals must be coded in
   this awkward fashion to avoid infinite recursion of eager functional
   evaluation in Standard ML.  The following attempt would make \verb|REPEAT|~\isa{tac} loop:
@@ -786,6 +782,189 @@ Tactics with explicit subgoal addressing
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isamarkupsubsection{Control and search tacticals%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A predicate on theorems \verb|thm -> bool| can test
+  whether a goal state enjoys some desirable property --- such as
+  having no subgoals.  Tactics that search for satisfactory goal
+  states are easy to express.  The main search procedures,
+  depth-first, breadth-first and best-first, are provided as
+  tacticals.  They generate the search tree by repeatedly applying a
+  given tactic.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Filtering a tactic's results%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{FILTER}\verb|FILTER: (thm -> bool) -> tactic -> tactic| \\
+  \indexdef{}{ML}{CHANGED}\verb|CHANGED: tactic -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|FILTER|~\isa{sat\ tac} applies \isa{tac} to the
+  goal state and returns a sequence consisting of those result goal
+  states that are satisfactory in the sense of \isa{sat}.
+
+  \item \verb|CHANGED|~\isa{tac} applies \isa{tac} to the goal
+  state and returns precisely those states that differ from the
+  original state (according to \verb|Thm.eq_thm|).  Thus \verb|CHANGED|~\isa{tac} always has some effect on the state.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Depth-first search%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{DEPTH\_FIRST}\verb|DEPTH_FIRST: (thm -> bool) -> tactic -> tactic| \\
+  \indexdef{}{ML}{DEPTH\_SOLVE}\verb|DEPTH_SOLVE: tactic -> tactic| \\
+  \indexdef{}{ML}{DEPTH\_SOLVE\_1}\verb|DEPTH_SOLVE_1: tactic -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|DEPTH_FIRST|~\isa{sat\ tac} returns the goal state if
+  \isa{sat} returns true.  Otherwise it applies \isa{tac},
+  then recursively searches from each element of the resulting
+  sequence.  The code uses a stack for efficiency, in effect applying
+  \isa{tac}~\verb|THEN|~\verb|DEPTH_FIRST|~\isa{sat\ tac} to
+  the state.
+
+  \item \verb|DEPTH_SOLVE|\isa{tac} uses \verb|DEPTH_FIRST| to
+  search for states having no subgoals.
+
+  \item \verb|DEPTH_SOLVE_1|~\isa{tac} uses \verb|DEPTH_FIRST| to
+  search for states having fewer subgoals than the given state.  Thus,
+  it insists upon solving at least one subgoal.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Other search strategies%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{BREADTH\_FIRST}\verb|BREADTH_FIRST: (thm -> bool) -> tactic -> tactic| \\
+  \indexdef{}{ML}{BEST\_FIRST}\verb|BEST_FIRST: (thm -> bool) * (thm -> int) -> tactic -> tactic| \\
+  \indexdef{}{ML}{THEN\_BEST\_FIRST}\verb|THEN_BEST_FIRST: tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic| \\
+  \end{mldecls}
+
+  These search strategies will find a solution if one exists.
+  However, they do not enumerate all solutions; they terminate after
+  the first satisfactory result from \isa{tac}.
+
+  \begin{description}
+
+  \item \verb|BREADTH_FIRST|~\isa{sat\ tac} uses breadth-first
+  search to find states for which \isa{sat} is true.  For most
+  applications, it is too slow.
+
+  \item \verb|BEST_FIRST|~\isa{{\isaliteral{28}{\isacharparenleft}}sat{\isaliteral{2C}{\isacharcomma}}\ dist{\isaliteral{29}{\isacharparenright}}\ tac} does a heuristic
+  search, using \isa{dist} to estimate the distance from a
+  satisfactory state (in the sense of \isa{sat}).  It maintains a
+  list of states ordered by distance.  It applies \isa{tac} to the
+  head of this list; if the result contains any satisfactory states,
+  then it returns them.  Otherwise, \verb|BEST_FIRST| adds the new
+  states to the list, and continues.
+
+  The distance function is typically \verb|size_of_thm|, which computes
+  the size of the state.  The smaller the state, the fewer and simpler
+  subgoals it has.
+
+  \item \verb|THEN_BEST_FIRST|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{0}}\ {\isaliteral{28}{\isacharparenleft}}sat{\isaliteral{2C}{\isacharcomma}}\ dist{\isaliteral{29}{\isacharparenright}}\ tac} is like
+  \verb|BEST_FIRST|, except that the priority queue initially contains
+  the result of applying \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{0}}} to the goal state.  This
+  tactical permits separate tactics for starting the search and
+  continuing the search.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Auxiliary tacticals for searching%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{COND}\verb|COND: (thm -> bool) -> tactic -> tactic -> tactic| \\
+  \indexdef{}{ML}{IF\_UNSOLVED}\verb|IF_UNSOLVED: tactic -> tactic| \\
+  \indexdef{}{ML}{SOLVE}\verb|SOLVE: tactic -> tactic| \\
+  \indexdef{}{ML}{DETERM}\verb|DETERM: tactic -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|COND|~\isa{sat\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} applies \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} to
+  the goal state if it satisfies predicate \isa{sat}, and applies
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.  It is a conditional tactical in that only one of
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} is applied to a goal state.
+  However, both \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} are evaluated
+  because ML uses eager evaluation.
+
+  \item \verb|IF_UNSOLVED|~\isa{tac} applies \isa{tac} to the
+  goal state if it has any subgoals, and simply returns the goal state
+  otherwise.  Many common tactics, such as \verb|resolve_tac|, fail if
+  applied to a goal state that has no subgoals.
+
+  \item \verb|SOLVE|~\isa{tac} applies \isa{tac} to the goal
+  state and then fails iff there are subgoals left.
+
+  \item \verb|DETERM|~\isa{tac} applies \isa{tac} to the goal
+  state and returns the head of the resulting sequence.  \verb|DETERM|
+  limits the search space by making its argument deterministic.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Predicates and functions useful for searching%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{has\_fewer\_prems}\verb|has_fewer_prems: int -> thm -> bool| \\
+  \indexdef{}{ML}{Thm.eq\_thm}\verb|Thm.eq_thm: thm * thm -> bool| \\
+  \indexdef{}{ML}{Thm.eq\_thm\_prop}\verb|Thm.eq_thm_prop: thm * thm -> bool| \\
+  \indexdef{}{ML}{size\_of\_thm}\verb|size_of_thm: thm -> int| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|has_fewer_prems|~\isa{n\ thm} reports whether \isa{thm} has fewer than \isa{n} premises.
+
+  \item \verb|Thm.eq_thm|~\isa{{\isaliteral{28}{\isacharparenleft}}thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} reports whether \isa{thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} are equal.  Both theorems must have
+  compatible background theories.  Both theorems must have the same
+  conclusions, the same set of hypotheses, and the same set of sort
+  hypotheses.  Names of bound variables are ignored as usual.
+
+  \item \verb|Thm.eq_thm_prop|~\isa{{\isaliteral{28}{\isacharparenleft}}thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} reports whether
+  the propositions of \isa{thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and \isa{thm\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} are equal.
+  Names of bound variables are ignored.
+
+  \item \verb|size_of_thm|~\isa{thm} computes the size of \isa{thm}, namely the number of variables, constants and abstractions
+  in its conclusion.  It may serve as a distance function for
+  \verb|BEST_FIRST|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
