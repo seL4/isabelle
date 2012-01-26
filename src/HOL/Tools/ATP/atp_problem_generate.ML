@@ -16,7 +16,7 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype locality =
-    General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
+    General | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
   datatype strictness = Strict | Non_Strict
@@ -542,7 +542,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype locality =
-  General | Helper | Induction | Intro | Elim | Simp | Local | Assum | Chained
+  General | Induction | Intro | Elim | Simp | Local | Assum | Chained
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -1180,7 +1180,7 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, Helper), (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, General), (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
@@ -1605,11 +1605,10 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
       fun dub needs_fairly_sound j k =
-        (unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
-         (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
-         (if needs_fairly_sound then typed_helper_suffix
-          else untyped_helper_suffix),
-         Helper)
+        unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
+        (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
+        (if needs_fairly_sound then typed_helper_suffix
+         else untyped_helper_suffix)
       fun dub_and_inst needs_fairly_sound (th, j) =
         let val t = prop_of th in
           if should_specialize_helper type_enc t then
@@ -1618,7 +1617,8 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
           else
             [t]
         end
-        |> map (fn (k, t) => (dub needs_fairly_sound j k, t)) o tag_list 1
+        |> tag_list 1
+        |> map (fn (k, t) => ((dub needs_fairly_sound j k, Simp), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
