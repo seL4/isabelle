@@ -283,11 +283,13 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
   | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
 
+val dfg_individual_type = "i" (* shouldn't clash *)
+
 fun str_for_type format ty =
   let
     val dfg = (format = DFG DFG_Sorted)
     fun str _ (AType (s, [])) =
-        if dfg andalso s = tptp_individual_type then "Top" else s
+        if dfg andalso s = tptp_individual_type then dfg_individual_type else s
       | str _ (AType (s, tys)) =
         let val ss = tys |> map (str false) in
           if s = tptp_product_type then
@@ -488,7 +490,7 @@ fun dfg_lines flavor problem =
     fun sorts () =
       filt (fn Decl (_, sym, AType (s, [])) =>
                if s = tptp_type_of_types then SOME sym else NONE
-             | _ => NONE)
+             | _ => NONE) @ [dfg_individual_type]
       |> commas |> enclose "sorts [" "]."
     val syms = [func_aries, pred_aries] @ (if sorted then [sorts ()] else [])
     fun func_sigs () =

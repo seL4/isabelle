@@ -837,7 +837,7 @@ fun add_iterm_vars bounds (IApp (tm1, tm2)) =
   | add_iterm_vars bounds (IAbs (_, tm)) = add_iterm_vars bounds tm
 fun close_iformula_universally phi = close_universally add_iterm_vars phi
 
-val fused_infinite_type_name = @{type_name ind} (* any infinite type *)
+val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
 val fused_infinite_type = Type (fused_infinite_type_name, [])
 
 fun tvar_name (x as (s, _)) = (make_schematic_type_var x, s)
