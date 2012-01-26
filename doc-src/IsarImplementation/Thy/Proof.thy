@@ -387,6 +387,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
   @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
   @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) ->
@@ -412,6 +413,10 @@ text %mlref {*
   \end{mldecls}
 
   \begin{description}
+
+  \item @{ML SELECT_GOAL}~@{text "tac i"} confines a tactic to the
+  specified subgoal @{text "i"}.  This introduces a nested goal state,
+  without decomposing the internal structure of the subgoal yet.
 
   \item @{ML SUBPROOF}~@{text "tac ctxt i"} decomposes the structure
   of the specified sub-goal, producing an extended context and a

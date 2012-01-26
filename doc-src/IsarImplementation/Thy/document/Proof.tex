@@ -588,6 +588,7 @@ Local results are established by monotonic reasoning from facts
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
+  \indexdef{}{ML}{SELECT\_GOAL}\verb|SELECT_GOAL: tactic -> int -> tactic| \\
   \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
 \verb|  Proof.context -> int -> tactic| \\
   \indexdef{}{ML}{Subgoal.FOCUS}\verb|Subgoal.FOCUS: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
@@ -613,6 +614,10 @@ Local results are established by monotonic reasoning from facts
   \end{mldecls}
 
   \begin{description}
+
+  \item \verb|SELECT_GOAL|~\isa{tac\ i} confines a tactic to the
+  specified subgoal \isa{i}.  This introduces a nested goal state,
+  without decomposing the internal structure of the subgoal yet.
 
   \item \verb|SUBPROOF|~\isa{tac\ ctxt\ i} decomposes the structure
   of the specified sub-goal, producing an extended context and a
