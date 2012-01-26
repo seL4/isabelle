@@ -11,7 +11,7 @@ sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
-  type locality = ATP_Problem_Generate.locality
+  type stature = ATP_Problem_Generate.stature
 
   datatype reconstructor =
     Metis of string * string |
@@ -24,9 +24,9 @@ sig
 
   type minimize_command = string list -> string
   type one_line_params =
-    play * string * (string * locality) list * minimize_command * int * int
+    play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
-    bool * int * string Symtab.table * (string * locality) list vector
+    bool * int * string Symtab.table * (string * stature) list vector
     * int Symtab.table * string proof * thm
 
   val metisN : string
@@ -44,12 +44,12 @@ sig
   val metis_call : string -> string -> string
   val string_for_reconstructor : reconstructor -> string
   val used_facts_in_atp_proof :
-    Proof.context -> (string * locality) list vector -> string proof
-    -> (string * locality) list
+    Proof.context -> (string * stature) list vector -> string proof
+    -> (string * stature) list
   val lam_trans_from_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_unsound_atp_proof :
-    Proof.context -> (string * locality) list vector -> 'a proof
+    Proof.context -> (string * stature) list vector -> 'a proof
     -> string list option
   val unalias_type_enc : string -> string list
   val one_line_proof_text : one_line_params -> string
@@ -93,9 +93,9 @@ datatype play =
 
 type minimize_command = string list -> string
 type one_line_params =
-  play * string * (string * locality) list * minimize_command * int * int
+  play * string * (string * stature) list * minimize_command * int * int
 type isar_params =
-  bool * int * string Symtab.table * (string * locality) list vector
+  bool * int * string Symtab.table * (string * stature) list vector
   * int Symtab.table * string proof * thm
 
 val metisN = "metis"
@@ -198,25 +198,20 @@ fun ext_name ctxt =
 fun add_fact _ fact_names (Inference ((_, ss), _, _, [])) =
     union (op =) (resolve_fact fact_names ss)
   | add_fact ctxt _ (Inference (_, _, rule, _)) =
-    if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
+    if rule = leo2_ext then insert (op =) (ext_name ctxt, (Global, General))
+    else I
   | add_fact _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt fact_names atp_proof =
   if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
   else fold (add_fact ctxt fact_names) atp_proof []
 
-(* (quasi-)underapproximation of the truth *)
-fun is_locality_global Local = false
-  | is_locality_global Assum = false
-  | is_locality_global Chained = false
-  | is_locality_global _ = true
-
 fun used_facts_in_unsound_atp_proof _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
     let
       val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
     in
-      if forall (is_locality_global o snd) used_facts andalso
+      if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
          not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
         SOME (map fst used_facts)
       else
@@ -250,10 +245,11 @@ fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
-    | command => "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
+    | command =>
+      "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
 
 val split_used_facts =
-  List.partition (curry (op =) Chained o snd)
+  List.partition (fn (_, (sc, _)) => sc = Chained)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text (preplay, banner, used_facts, minimize_command,

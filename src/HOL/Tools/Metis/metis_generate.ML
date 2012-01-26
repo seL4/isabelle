@@ -222,10 +222,9 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         |> pairself (maps (map (zero_var_indexes o snd)))
     val num_conjs = length conj_clauses
     val clauses =
-      map2 (fn j => pair (Int.toString j, Local))
+      map2 (fn j => pair (Int.toString j, (Local, General)))
            (0 upto num_conjs - 1) conj_clauses @
-      (* "General" below isn't quite correct; the fact could be local. *)
-      map2 (fn j => pair (Int.toString (num_conjs + j), General))
+      map2 (fn j => pair (Int.toString (num_conjs + j), (Local, General)))
            (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>

@@ -15,8 +15,9 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
 
-  datatype locality =
-    General | Induction | Intro | Elim | Simp | Local | Assum | Chained
+  datatype scope = Global | Local | Assum | Chained
+  datatype status = General | Induct | Intro | Elim | Simp
+  type stature = scope * status
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
   datatype strictness = Strict | Non_Strict
@@ -101,8 +102,8 @@ sig
   val prepare_atp_problem :
     Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
     -> bool -> string -> bool -> bool -> term list -> term
-    -> ((string * locality) * term) list
-    -> string problem * string Symtab.table * (string * locality) list vector
+    -> ((string * stature) * term) list
+    -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
@@ -541,8 +542,9 @@ fun iterm_from_term thy format bs (P $ Q) =
       val (tm, atomic_Ts) = iterm_from_term thy format ((s, (name, T)) :: bs) t
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
-datatype locality =
-  General | Induction | Intro | Elim | Simp | Local | Assum | Chained
+datatype scope = Global | Local | Assum | Chained
+datatype status = General | Induct | Intro | Elim | Simp
+type stature = scope * status
 
 datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -720,14 +722,14 @@ fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
 
 type translated_formula =
   {name : string,
-   locality : locality,
+   stature : stature,
    kind : formula_kind,
    iformula : (name, typ, iterm) formula,
    atomic_types : typ list}
 
-fun update_iformula f ({name, locality, kind, iformula, atomic_types}
+fun update_iformula f ({name, stature, kind, iformula, atomic_types}
                        : translated_formula) =
-  {name = name, locality = locality, kind = kind, iformula = f iformula,
+  {name = name, stature = stature, kind = kind, iformula = f iformula,
    atomic_types = atomic_types} : translated_formula
 
 fun fact_lift f ({iformula, ...} : translated_formula) = f iformula
@@ -1180,7 +1182,8 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, General), (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, (Global, General)),
+                (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
@@ -1211,20 +1214,20 @@ fun presimp_prop ctxt role t =
    handle TERM _ => if role = Conjecture then @{term False} else @{term True})
   |> pair role
 
-fun make_formula ctxt format type_enc eq_as_iff name loc kind t =
+fun make_formula ctxt format type_enc eq_as_iff name stature kind t =
   let
     val (iformula, atomic_Ts) =
       iformula_from_prop ctxt format type_enc eq_as_iff
                          (SOME (kind <> Conjecture)) t []
       |>> close_iformula_universally
   in
-    {name = name, locality = loc, kind = kind, iformula = iformula,
+    {name = name, stature = stature, kind = kind, iformula = iformula,
      atomic_types = atomic_Ts}
   end
 
-fun make_fact ctxt format type_enc eq_as_iff ((name, loc), t) =
+fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
   case t |> make_formula ctxt format type_enc (eq_as_iff andalso format <> CNF)
-                         name loc Axiom of
+                         name stature Axiom of
     formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
     if s = tptp_true then NONE else SOME formula
   | formula => SOME formula
@@ -1234,9 +1237,10 @@ fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
     if fastype_of t = @{typ bool} then s_not t else @{prop False} (* too meta *)
 
 fun make_conjecture ctxt format type_enc =
-  map (fn ((name, loc), (kind, t)) =>
+  map (fn ((name, stature), (kind, t)) =>
           t |> kind = Conjecture ? s_not_trueprop
-            |> make_formula ctxt format type_enc (format <> CNF) name loc kind)
+            |> make_formula ctxt format type_enc (format <> CNF) name stature
+                            kind)
 
 (** Finite and infinite type inference **)
 
@@ -1618,7 +1622,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
             [t]
         end
         |> tag_list 1
-        |> map (fn (k, t) => ((dub needs_fairly_sound j k, Simp), t))
+        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Simp)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
@@ -1717,7 +1721,8 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
     val conjs =
       map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map (apsnd freeze_term)
-      |> map2 (pair o rpair Local o string_of_int) (0 upto length hyp_ts)
+      |> map2 (pair o rpair (Local, General) o string_of_int)
+              (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
       |> presimp ? pairself (map (apsnd (uncurry (presimp_prop ctxt))))
@@ -1892,7 +1897,7 @@ and formula_from_iformula ctxt polym_constrs format mono type_enc
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
-        mono type_enc (j, {name, locality, kind, iformula, atomic_types}) =
+        mono type_enc (j, {name, stature, kind, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
    iformula
    |> formula_from_iformula ctxt polym_constrs format mono type_enc
@@ -1900,7 +1905,7 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
    |> close_formula_universally
    |> bound_tvars type_enc true atomic_types,
    NONE,
-   case locality of
+   case snd stature of
      Intro => isabelle_info format introN
    | Elim => isabelle_info format elimN
    | Simp => isabelle_info format simpN

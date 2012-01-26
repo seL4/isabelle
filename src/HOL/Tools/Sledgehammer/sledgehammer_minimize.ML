@@ -7,15 +7,15 @@ Minimization of fact list for Metis using external provers.
 
 signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = ATP_Problem_Generate.locality
+  type stature = ATP_Problem_Generate.stature
   type play = ATP_Proof_Reconstruct.play
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
   val minimize_facts :
     string -> params -> bool -> int -> int -> Proof.state
-    -> ((string * locality) * thm list) list
-    -> ((string * locality) * thm list) list option
+    -> ((string * stature) * thm list) list
+    -> ((string * stature) * thm list) list option
        * ((unit -> play) * (play -> string) * string)
   val run_minimize :
     params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
@@ -192,7 +192,8 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            min test (new_timeout timeout run_time) result facts
          val _ = print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
-            (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
+            (case min_facts |> filter (fn ((_, (sc, _)), _) => sc = Chained)
+                            |> length of
                0 => ""
              | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".")
        in (SOME min_facts, (preplay, message, message_tail)) end

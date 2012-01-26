@@ -9,7 +9,7 @@ Generic prover abstraction for Sledgehammer.
 signature SLEDGEHAMMER_PROVERS =
 sig
   type failure = ATP_Proof.failure
-  type locality = ATP_Problem_Generate.locality
+  type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
   type reconstructor = ATP_Proof_Reconstruct.reconstructor
   type play = ATP_Proof_Reconstruct.play
@@ -40,8 +40,8 @@ sig
      expect: string}
 
   datatype prover_fact =
-    Untranslated_Fact of (string * locality) * thm |
-    SMT_Weighted_Fact of (string * locality) * (int option * thm)
+    Untranslated_Fact of (string * stature) * thm |
+    SMT_Weighted_Fact of (string * stature) * (int option * thm)
 
   type prover_problem =
     {state: Proof.state,
@@ -49,11 +49,11 @@ sig
      subgoal: int,
      subgoal_count: int,
      facts: prover_fact list,
-     smt_filter: (string * locality) SMT_Solver.smt_filter_data option}
+     smt_filter: (string * stature) SMT_Solver.smt_filter_data option}
 
   type prover_result =
     {outcome: failure option,
-     used_facts: (string * locality) list,
+     used_facts: (string * stature) list,
      run_time: Time.time,
      preplay: unit -> play,
      message: play -> string,
@@ -98,12 +98,12 @@ sig
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
   val weight_smt_fact :
-    Proof.context -> int -> ((string * locality) * thm) * int
-    -> (string * locality) * (int option * thm)
-  val untranslated_fact : prover_fact -> (string * locality) * thm
+    Proof.context -> int -> ((string * stature) * thm) * int
+    -> (string * stature) * (int option * thm)
+  val untranslated_fact : prover_fact -> (string * stature) * thm
   val smt_weighted_fact :
     Proof.context -> int -> prover_fact * int
-    -> (string * locality) * (int option * thm)
+    -> (string * stature) * (int option * thm)
   val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -304,8 +304,8 @@ type params =
    expect: string}
 
 datatype prover_fact =
-  Untranslated_Fact of (string * locality) * thm |
-  SMT_Weighted_Fact of (string * locality) * (int option * thm)
+  Untranslated_Fact of (string * stature) * thm |
+  SMT_Weighted_Fact of (string * stature) * (int option * thm)
 
 type prover_problem =
   {state: Proof.state,
@@ -313,11 +313,11 @@ type prover_problem =
    subgoal: int,
    subgoal_count: int,
    facts: prover_fact list,
-   smt_filter: (string * locality) SMT_Solver.smt_filter_data option}
+   smt_filter: (string * stature) SMT_Solver.smt_filter_data option}
 
 type prover_result =
   {outcome: failure option,
-   used_facts: (string * locality) list,
+   used_facts: (string * stature) list,
    run_time: Time.time,
    preplay: unit -> play,
    message: play -> string,

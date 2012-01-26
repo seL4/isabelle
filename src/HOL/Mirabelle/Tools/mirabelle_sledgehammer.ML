@@ -336,7 +336,7 @@ fun get_prover ctxt args =
     | NONE => get_prover (default_prover_name ()))
   end
 
-type locality = ATP_Problem_Generate.locality
+type stature = ATP_Problem_Generate.stature
 
 (* hack *)
 fun reconstructor_from_msg args msg =
@@ -357,7 +357,7 @@ fun reconstructor_from_msg args msg =
 local
 
 datatype sh_result =
-  SH_OK of int * int * (string * locality) list |
+  SH_OK of int * int * (string * stature) list |
   SH_FAIL of int * int |
   SH_ERROR
 
@@ -486,8 +486,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     case result of
       SH_OK (time_isa, time_prover, names) =>
         let
-          fun get_thms (name, loc) =
-            SOME ((name, loc), thms_of_name (Proof.context_of st) name)
+          fun get_thms (name, stature) =
+            SOME ((name, stature), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           if trivial then () else change_data id inc_sh_nontriv_success;
@@ -654,7 +654,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
         let
           val reconstructor = Unsynchronized.ref ""
           val named_thms =
-            Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
+            Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
           val minimize = AList.defined (op =) args minimizeK
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
