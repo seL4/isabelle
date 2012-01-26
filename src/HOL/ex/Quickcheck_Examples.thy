@@ -279,6 +279,14 @@ lemma
 (* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
 oops
 
+subsection {* Examples with the descriptive operator *}
+
+lemma
+  "(THE x. x = a) = b"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
+oops
+
 subsection {* Examples with Multisets *}
 
 lemma
