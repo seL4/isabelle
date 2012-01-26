@@ -777,6 +777,7 @@ proof -
 qed
 
 code_abort enum_the
+code_const enum_the (Eval "(fn p => raise Match)")
 
 subsection {* Further operations on finite types *}
 
