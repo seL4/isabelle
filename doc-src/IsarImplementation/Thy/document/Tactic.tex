@@ -715,7 +715,7 @@ If \isa{tac} can return multiple outcomes then so can \verb|REPEAT|~\isa{tac}.  
 %
 \endisadelimML
 %
-\isamarkupsubsection{Scanning for a subgoal by number%
+\isamarkupsubsection{Applying tactics to subgoal ranges%
 }
 \isamarkuptrue%
 %
@@ -724,7 +724,7 @@ Tactics with explicit subgoal addressing
   \verb|int -> tactic| can be used together with tacticals that
   act like ``subgoal quantifiers'': guided by success of the body
   tactic a certain range of subgoals is covered.  Thus the body tactic
-  is applied to all subgoals, for example.
+  is applied to \emph{all} subgoals, \emph{some} subgoal etc.
 
   Suppose that the goal state has \isa{n\ {\isaliteral{5C3C67653E}{\isasymge}}\ {\isadigit{0}}} subgoals.  Many of
   these tacticals address subgoal ranges counting downwards from
@@ -746,8 +746,10 @@ Tactics with explicit subgoal addressing
   \indexdef{}{ML}{ALLGOALS}\verb|ALLGOALS: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{SOMEGOAL}\verb|SOMEGOAL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{FIRSTGOAL}\verb|FIRSTGOAL: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{HEADGOAL}\verb|HEADGOAL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{REPEAT\_SOME}\verb|REPEAT_SOME: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{REPEAT\_FIRST}\verb|REPEAT_FIRST: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{RANGE}\verb|RANGE: (int -> tactic) list -> int -> tactic| \\
   \end{mldecls}
 
   \begin{description}
@@ -761,11 +763,18 @@ Tactics with explicit subgoal addressing
   \item \verb|FIRSTGOAL|~\isa{tac} is equivalent to \isa{tac\ {\isadigit{1}}}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\ n}.  It
   applies \isa{tac} to one subgoal, counting upwards.
 
+  \item \verb|HEADGOAL|~\isa{tac} is equivalent to \isa{tac\ {\isadigit{1}}}.
+  It applies \isa{tac} unconditionally to the first subgoal.
+
   \item \verb|REPEAT_SOME|~\isa{tac} applies \isa{tac} once or
   more to a subgoal, counting downwards.
 
   \item \verb|REPEAT_FIRST|~\isa{tac} applies \isa{tac} once or
   more to a subgoal, counting upwards.
+
+  \item \verb|RANGE|~\isa{{\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{5D}{\isacharbrackright}}\ i} is equivalent to
+  \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{2B}{\isacharplus}}\ k\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}.  It applies the given list of tactics to the
+  corresponding range of subgoals, counting downwards.
 
   \end{description}%
 \end{isamarkuptext}%

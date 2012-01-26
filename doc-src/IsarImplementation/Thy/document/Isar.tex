@@ -428,7 +428,6 @@ A \isa{method} is a function \isa{context\ {\isaliteral{5C3C72696768746172726F77
   \indexdef{}{ML}{METHOD}\verb|METHOD: (thm list -> tactic) -> Proof.method| \\
   \indexdef{}{ML}{SIMPLE\_METHOD}\verb|SIMPLE_METHOD: tactic -> Proof.method| \\
   \indexdef{}{ML}{SIMPLE\_METHOD'}\verb|SIMPLE_METHOD': (int -> tactic) -> Proof.method| \\
-  \indexdef{}{ML}{HEADGOAL}\verb|HEADGOAL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{Method.insert\_tac}\verb|Method.insert_tac: thm list -> int -> tactic| \\
   \indexdef{}{ML}{Method.setup}\verb|Method.setup: binding -> (Proof.context -> Proof.method) context_parser ->|\isasep\isanewline%
 \verb|  string -> theory -> theory| \\
@@ -452,12 +451,8 @@ A \isa{method} is a function \isa{context\ {\isaliteral{5C3C72696768746172726F77
   applied.
 
   \item \verb|SIMPLE_METHOD'|~\isa{tactic} wraps a tactic that
-  addresses a specific subgoal as simple proof method.  Goal facts are
-  already inserted into the first subgoal before \isa{tactic} is
-  applied to the same.
-
-  \item \verb|HEADGOAL|~\isa{tactic} applies \isa{tactic} to
-  the first subgoal.  This is convenient to reproduce part the \verb|SIMPLE_METHOD'| wrapping within regular \verb|METHOD|, for example.
+  addresses a specific subgoal as simple proof method that operates on
+  subgoal 1.  Goal facts are inserted into the subgoal then the \isa{tactic} is applied.
 
   \item \verb|Method.insert_tac|~\isa{facts\ i} inserts \isa{facts} into subgoal \isa{i}.  This is convenient to reproduce
   part of the \verb|SIMPLE_METHOD| or \verb|SIMPLE_METHOD'| wrapping

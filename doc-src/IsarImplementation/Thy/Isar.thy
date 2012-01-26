@@ -311,7 +311,6 @@ text %mlref {*
   @{index_ML METHOD: "(thm list -> tactic) -> Proof.method"} \\
   @{index_ML SIMPLE_METHOD: "tactic -> Proof.method"} \\
   @{index_ML SIMPLE_METHOD': "(int -> tactic) -> Proof.method"} \\
-  @{index_ML HEADGOAL: "(int -> tactic) -> tactic"} \\
   @{index_ML Method.insert_tac: "thm list -> int -> tactic"} \\
   @{index_ML Method.setup: "binding -> (Proof.context -> Proof.method) context_parser ->
   string -> theory -> theory"} \\
@@ -336,13 +335,9 @@ text %mlref {*
   applied.
 
   \item @{ML SIMPLE_METHOD'}~@{text "tactic"} wraps a tactic that
-  addresses a specific subgoal as simple proof method.  Goal facts are
-  already inserted into the first subgoal before @{text "tactic"} is
-  applied to the same.
-
-  \item @{ML HEADGOAL}~@{text "tactic"} applies @{text "tactic"} to
-  the first subgoal.  This is convenient to reproduce part the @{ML
-  SIMPLE_METHOD'} wrapping within regular @{ML METHOD}, for example.
+  addresses a specific subgoal as simple proof method that operates on
+  subgoal 1.  Goal facts are inserted into the subgoal then the @{text
+  "tactic"} is applied.
 
   \item @{ML Method.insert_tac}~@{text "facts i"} inserts @{text
   "facts"} into subgoal @{text "i"}.  This is convenient to reproduce

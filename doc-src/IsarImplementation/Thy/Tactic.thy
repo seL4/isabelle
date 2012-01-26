@@ -575,13 +575,13 @@ ML {*
 *}
 
 
-subsection {* Scanning for a subgoal by number *}
+subsection {* Applying tactics to subgoal ranges *}
 
 text {* Tactics with explicit subgoal addressing
   @{ML_type "int -> tactic"} can be used together with tacticals that
   act like ``subgoal quantifiers'': guided by success of the body
   tactic a certain range of subgoals is covered.  Thus the body tactic
-  is applied to all subgoals, for example.
+  is applied to \emph{all} subgoals, \emph{some} subgoal etc.
 
   Suppose that the goal state has @{text "n \<ge> 0"} subgoals.  Many of
   these tacticals address subgoal ranges counting downwards from
@@ -595,8 +595,10 @@ text %mlref {*
   @{index_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
   @{index_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
   @{index_ML FIRSTGOAL: "(int -> tactic) -> tactic"} \\
+  @{index_ML HEADGOAL: "(int -> tactic) -> tactic"} \\
   @{index_ML REPEAT_SOME: "(int -> tactic) -> tactic"} \\
   @{index_ML REPEAT_FIRST: "(int -> tactic) -> tactic"} \\
+  @{index_ML RANGE: "(int -> tactic) list -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -613,11 +615,19 @@ text %mlref {*
   1"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac n"}.  It
   applies @{text "tac"} to one subgoal, counting upwards.
 
+  \item @{ML HEADGOAL}~@{text "tac"} is equivalent to @{text "tac 1"}.
+  It applies @{text "tac"} unconditionally to the first subgoal.
+
   \item @{ML REPEAT_SOME}~@{text "tac"} applies @{text "tac"} once or
   more to a subgoal, counting downwards.
 
   \item @{ML REPEAT_FIRST}~@{text "tac"} applies @{text "tac"} once or
   more to a subgoal, counting upwards.
+
+  \item @{ML RANGE}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>k] i"} is equivalent to
+  @{text "tac\<^sub>k (i + k - 1)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op
+  THEN}~@{text "tac\<^sub>1 i"}.  It applies the given list of tactics to the
+  corresponding range of subgoals, counting downwards.
 
   \end{description}
 *}
