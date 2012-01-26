@@ -793,11 +793,16 @@ fun clasimpset_rule_table_of ctxt =
       Item_Net.content safeEs @ Item_Net.content hazEs
       |> map Classical.classical_rule
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
+    val eqs =
+      ctxt |> Spec_Rules.get
+           |> filter (curry (op =) Spec_Rules.Equational o fst)
+           |> maps (snd o snd)
   in
-    Termtab.empty |> add Intro I I intros
-                  |> add Elim I I elims
+    Termtab.empty |> add Eq I I eqs
                   |> add Simp I snd simps
                   |> add Simp atomize snd simps
+                  |> add Elim I I elims
+                  |> add Intro I I intros
   end
 
 fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =

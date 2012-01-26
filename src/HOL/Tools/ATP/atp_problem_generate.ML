@@ -16,7 +16,7 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status = General | Induct | Intro | Elim | Simp
+  datatype status = General | Induct | Intro | Elim | Simp | Eq
   type stature = scope * status
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -543,7 +543,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype scope = Global | Local | Assum | Chained
-datatype status = General | Induct | Intro | Elim | Simp
+datatype status = General | Induct | Intro | Elim | Simp | Eq
 type stature = scope * status
 
 datatype order = First_Order | Higher_Order
@@ -1622,7 +1622,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
             [t]
         end
         |> tag_list 1
-        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Simp)), t))
+        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Eq)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
@@ -1909,6 +1909,7 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
      Intro => isabelle_info format introN
    | Elim => isabelle_info format elimN
    | Simp => isabelle_info format simpN
+   | Eq => isabelle_info format simpN
    | _ => NONE)
   |> Formula
 
