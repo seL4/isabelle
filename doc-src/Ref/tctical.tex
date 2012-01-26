@@ -170,43 +170,6 @@ abstractions in its conclusion.  It may serve as a distance function for
 
 \index{search!tacticals|)}
 
-
-\section{Tacticals for subgoal numbering}
-When conducting a backward proof, we normally consider one goal at a time.
-A tactic can affect the entire proof state, but many tactics --- such as
-{\tt resolve_tac} and {\tt assume_tac} --- work on a single subgoal.
-Subgoals are designated by a positive integer, so Isabelle provides
-tacticals for combining values of type {\tt int->tactic}.
-
-
-\subsection{Restricting a tactic to one subgoal}
-\index{tactics!restricting to a subgoal}
-\index{tacticals!for restriction to a subgoal}
-\begin{ttbox} 
-SELECT_GOAL : tactic -> int -> tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{SELECT_GOAL} {\it tac} $i$] 
-restricts the effect of {\it tac\/} to subgoal~$i$ of the proof state.  It
-fails if there is no subgoal~$i$, or if {\it tac\/} changes the main goal.
-It applies {\it tac\/} to a dummy proof state and uses the result to
-refine the original proof state at subgoal~$i$.  If {\it tac\/}
-returns multiple results then so does \hbox{\tt SELECT_GOAL {\it tac}
-  $i$}.
-
-{\tt SELECT_GOAL} works by creating a state of the form $\phi\Imp\phi$,
-with the one subgoal~$\phi$.  If subgoal~$i$ has the form $\psi\Imp\theta$
-then $(\psi\Imp\theta)\Imp(\psi\Imp\theta)$ is in fact
-$\List{\psi\Imp\theta;\; \psi}\Imp\theta$, a proof state with two subgoals.
-Such a proof state might cause tactics to go astray.  Therefore {\tt
-  SELECT_GOAL} inserts a quantifier to create the state
-\[ (\Forall x.\psi\Imp\theta)\Imp(\Forall x.\psi\Imp\theta). \]
-
-\end{ttdescription}
-
-\index{tacticals|)}
-
-
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "ref"
