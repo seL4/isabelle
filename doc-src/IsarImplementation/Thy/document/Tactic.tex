@@ -553,7 +553,7 @@ Sequential composition and alternative choices are the most
   always fails.
 
   \item \verb|THEN'| is the lifted version of \verb|THEN|, for
-  tactics with explicit subgoal addressing.  Thus \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN'|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}}.
+  tactics with explicit subgoal addressing.  So \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN'|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}}.
 
   The other primed tacticals work analogously.
 
@@ -588,11 +588,10 @@ These tacticals provide further control over repetition of
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML}{TRY}\verb|TRY: tactic -> tactic| \\
-  \indexdef{}{ML}{REPEAT\_DETERM}\verb|REPEAT_DETERM: tactic -> tactic| \\
-  \indexdef{}{ML}{REPEAT\_DETERM\_N}\verb|REPEAT_DETERM_N: int -> tactic -> tactic| \\
   \indexdef{}{ML}{REPEAT}\verb|REPEAT: tactic -> tactic| \\
   \indexdef{}{ML}{REPEAT1}\verb|REPEAT1: tactic -> tactic| \\
-  \indexdef{}{ML}{DETERM\_UNTIL}\verb|DETERM_UNTIL: (thm -> bool) -> tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_DETERM}\verb|REPEAT_DETERM: tactic -> tactic| \\
+  \indexdef{}{ML}{REPEAT\_DETERM\_N}\verb|REPEAT_DETERM_N: int -> tactic -> tactic| \\
   \end{mldecls}
 
   \begin{description}
@@ -602,13 +601,8 @@ These tacticals provide further control over repetition of
   returns the original state.  Thus, it applies \isa{tac} at most
   once.
 
-  \item \verb|REPEAT_DETERM|~\isa{tac} applies \isa{tac} to the
-  proof state and, recursively, to the head of the resulting sequence.
-  It returns the first state to make \isa{tac} fail.  It is
-  deterministic, discarding alternative outcomes.
-
-  \item \verb|REPEAT_DETERM_N|~\isa{n\ tac} is like \verb|REPEAT_DETERM|~\isa{tac} but the number of repetitions is bound
-  by \isa{n} (where \verb|~1| means \isa{{\isaliteral{5C3C696E66696E6974793E}{\isasyminfinity}}}).
+  Note that for tactics with subgoal addressing, the combinator can be
+  applied via functional composition: \verb|TRY|~\verb|o|~\isa{tac}.  There is no need for \verb|TRY'|.
 
   \item \verb|REPEAT|~\isa{tac} applies \isa{tac} to the proof
   state and, recursively, to each element of the resulting sequence.
@@ -620,12 +614,13 @@ These tacticals provide further control over repetition of
   but it always applies \isa{tac} at least once, failing if this
   is impossible.
 
-  \item \verb|DETERM_UNTIL|~\isa{P\ tac} applies \isa{tac} to
-  the proof state and, recursively, to the head of the resulting
-  sequence, until the predicate \isa{P} (applied on the proof
-  state) yields \verb|true|. It fails if \isa{tac} fails on any of
-  the intermediate states. It is deterministic, discarding alternative
-  outcomes.
+  \item \verb|REPEAT_DETERM|~\isa{tac} applies \isa{tac} to the
+  proof state and, recursively, to the head of the resulting sequence.
+  It returns the first state to make \isa{tac} fail.  It is
+  deterministic, discarding alternative outcomes.
+
+  \item \verb|REPEAT_DETERM_N|~\isa{n\ tac} is like \verb|REPEAT_DETERM|~\isa{tac} but the number of repetitions is bound
+  by \isa{n} (where \verb|~1| means \isa{{\isaliteral{5C3C696E66696E6974793E}{\isasyminfinity}}}).
 
   \end{description}%
 \end{isamarkuptext}%
@@ -736,8 +731,7 @@ Tactics with explicit subgoal addressing
   \isa{n} towards \isa{{\isadigit{1}}}.  This has the fortunate effect that
   newly emerging subgoals are concatenated in the result, without
   interfering each other.  Nonetheless, there might be situations
-  where a different order is desired, but it has to be achieved by
-  other means.%
+  where a different order is desired.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -750,20 +744,16 @@ Tactics with explicit subgoal addressing
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML}{ALLGOALS}\verb|ALLGOALS: (int -> tactic) -> tactic| \\
-  \indexdef{}{ML}{TRYALL}\verb|TRYALL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{SOMEGOAL}\verb|SOMEGOAL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{FIRSTGOAL}\verb|FIRSTGOAL: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{REPEAT\_SOME}\verb|REPEAT_SOME: (int -> tactic) -> tactic| \\
   \indexdef{}{ML}{REPEAT\_FIRST}\verb|REPEAT_FIRST: (int -> tactic) -> tactic| \\
-  \indexdef{}{ML}{trace\_goalno\_tac}\verb|trace_goalno_tac: (int -> tactic) -> int -> tactic| \\
   \end{mldecls}
 
   \begin{description}
 
   \item \verb|ALLGOALS|~\isa{tac} is equivalent to \isa{tac\ n}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\isa{tac\ {\isadigit{1}}}.  It
   applies the \isa{tac} to all the subgoals, counting downwards.
-
-  \item \verb|TRYALL|~\isa{tac} is equivalent to \verb|TRY|~\isa{{\isaliteral{28}{\isacharparenleft}}tac\ n{\isaliteral{29}{\isacharparenright}}}~\verb|THEN|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|THEN|~\verb|TRY|~\isa{{\isaliteral{28}{\isacharparenleft}}tac\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}.  It attempts to apply \isa{tac} to all the subgoals.
 
   \item \verb|SOMEGOAL|~\isa{tac} is equivalent to \isa{tac\ n}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\ {\isadigit{1}}}.  It
   applies \isa{tac} to one subgoal, counting downwards.
@@ -776,12 +766,6 @@ Tactics with explicit subgoal addressing
 
   \item \verb|REPEAT_FIRST|~\isa{tac} applies \isa{tac} once or
   more to a subgoal, counting upwards.
-
-  \item \verb|trace_goalno_tac|~\isa{tac\ i} applies \isa{tac\ i}
-  to the proof state.  If the resulting sequence is non-empty, then it
-  is returned, with the side-effect of printing the selected subgoal.
-  Otherwise, it fails and prints nothing.  It indicates that ``the
-  tactic worked for subgoal \isa{i}'' and is mainly used with \verb|SOMEGOAL| and \verb|FIRSTGOAL|.
 
   \end{description}%
 \end{isamarkuptext}%

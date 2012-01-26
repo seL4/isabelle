@@ -470,7 +470,7 @@ text %mlref {*
   always fails.
 
   \item @{ML_op "THEN'"} is the lifted version of @{ML_op "THEN"}, for
-  tactics with explicit subgoal addressing.  Thus @{text
+  tactics with explicit subgoal addressing.  So @{text
   "(tac\<^sub>1"}~@{ML_op THEN'}~@{text "tac\<^sub>2) i"} is the same as @{text
   "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"}.
 
@@ -489,11 +489,10 @@ text {* These tacticals provide further control over repetition of
 text %mlref {*
   \begin{mldecls}
   @{index_ML "TRY": "tactic -> tactic"} \\
-  @{index_ML "REPEAT_DETERM": "tactic -> tactic"} \\
-  @{index_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
   @{index_ML "REPEAT": "tactic -> tactic"} \\
   @{index_ML "REPEAT1": "tactic -> tactic"} \\
-  @{index_ML "DETERM_UNTIL": "(thm -> bool) -> tactic -> tactic"} \\
+  @{index_ML "REPEAT_DETERM": "tactic -> tactic"} \\
+  @{index_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -503,14 +502,9 @@ text %mlref {*
   returns the original state.  Thus, it applies @{text "tac"} at most
   once.
 
-  \item @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
-  proof state and, recursively, to the head of the resulting sequence.
-  It returns the first state to make @{text "tac"} fail.  It is
-  deterministic, discarding alternative outcomes.
-
-  \item @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
-  REPEAT_DETERM}~@{text "tac"} but the number of repetitions is bound
-  by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
+  Note that for tactics with subgoal addressing, the combinator can be
+  applied via functional composition: @{ML "TRY"}~@{ML_op o}~@{text
+  "tac"}.  There is no need for @{verbatim TRY'}.
 
   \item @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the proof
   state and, recursively, to each element of the resulting sequence.
@@ -524,12 +518,14 @@ text %mlref {*
   but it always applies @{text "tac"} at least once, failing if this
   is impossible.
 
-  \item @{ML DETERM_UNTIL}~@{text "P tac"} applies @{text "tac"} to
-  the proof state and, recursively, to the head of the resulting
-  sequence, until the predicate @{text "P"} (applied on the proof
-  state) yields @{ML true}. It fails if @{text "tac"} fails on any of
-  the intermediate states. It is deterministic, discarding alternative
-  outcomes.
+  \item @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
+  proof state and, recursively, to the head of the resulting sequence.
+  It returns the first state to make @{text "tac"} fail.  It is
+  deterministic, discarding alternative outcomes.
+
+  \item @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
+  REPEAT_DETERM}~@{text "tac"} but the number of repetitions is bound
+  by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
 
   \end{description}
 *}
@@ -592,18 +588,15 @@ text {* Tactics with explicit subgoal addressing
   @{text "n"} towards @{text "1"}.  This has the fortunate effect that
   newly emerging subgoals are concatenated in the result, without
   interfering each other.  Nonetheless, there might be situations
-  where a different order is desired, but it has to be achieved by
-  other means.  *}
+  where a different order is desired. *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
-  @{index_ML TRYALL: "(int -> tactic) -> tactic"} \\
   @{index_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
   @{index_ML FIRSTGOAL: "(int -> tactic) -> tactic"} \\
   @{index_ML REPEAT_SOME: "(int -> tactic) -> tactic"} \\
   @{index_ML REPEAT_FIRST: "(int -> tactic) -> tactic"} \\
-  @{index_ML trace_goalno_tac: "(int -> tactic) -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -611,10 +604,6 @@ text %mlref {*
   \item @{ML ALLGOALS}~@{text "tac"} is equivalent to @{text "tac
   n"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac 1"}.  It
   applies the @{text tac} to all the subgoals, counting downwards.
-
-  \item @{ML TRYALL}~@{text "tac"} is equivalent to @{ML TRY}~@{text
-  "(tac n)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{ML TRY}~@{text
-  "(tac 1)"}.  It attempts to apply @{text "tac"} to all the subgoals.
 
   \item @{ML SOMEGOAL}~@{text "tac"} is equivalent to @{text "tac
   n"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac 1"}.  It
@@ -629,13 +618,6 @@ text %mlref {*
 
   \item @{ML REPEAT_FIRST}~@{text "tac"} applies @{text "tac"} once or
   more to a subgoal, counting upwards.
-
-  \item @{ML trace_goalno_tac}~@{text "tac i"} applies @{text "tac i"}
-  to the proof state.  If the resulting sequence is non-empty, then it
-  is returned, with the side-effect of printing the selected subgoal.
-  Otherwise, it fails and prints nothing.  It indicates that ``the
-  tactic worked for subgoal @{text "i"}'' and is mainly used with @{ML
-  SOMEGOAL} and @{ML FIRSTGOAL}.
 
   \end{description}
 *}
