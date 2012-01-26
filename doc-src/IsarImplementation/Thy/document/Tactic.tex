@@ -520,8 +520,6 @@ Sequential composition and alternative choices are the most
   \indexdef{}{ML infix}{APPEND'}\verb|infix APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic| \\
   \indexdef{}{ML}{EVERY'}\verb|EVERY': ('a -> tactic) list -> 'a -> tactic| \\
   \indexdef{}{ML}{FIRST'}\verb|FIRST': ('a -> tactic) list -> 'a -> tactic| \\
-  \indexdef{}{ML}{EVERY1}\verb|EVERY1: (int -> tactic) list -> tactic| \\
-  \indexdef{}{ML}{FIRST1}\verb|FIRST1: (int -> tactic) list -> tactic| \\[0.5ex]
   \end{mldecls}
 
   \begin{description}
@@ -554,17 +552,10 @@ Sequential composition and alternative choices are the most
   \item \verb|FIRST|~\isa{{\isaliteral{5B}{\isacharbrackleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} abbreviates \isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|ORELSE|~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb|ORELSE|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub n}.  Note that \verb|FIRST []| is the same as \verb|no_tac|: it
   always fails.
 
-  \item \verb|THEN'|, \verb|ORELSE'|, and \verb|APPEND'|
-  are lifted versions of \verb|THEN|, \verb|ORELSE|, and
-  \verb|APPEND|, for tactics with explicit subgoal addressing.
-  This means \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN'|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the
-  same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}} etc.
+  \item \verb|THEN'| is the lifted version of \verb|THEN|, for
+  tactics with explicit subgoal addressing.  Thus \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\verb|THEN'|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ i} is the same as \isa{{\isaliteral{28}{\isacharparenleft}}tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ i}~\verb|THEN|~\isa{tac\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ i{\isaliteral{29}{\isacharparenright}}}.
 
-  \item \verb|EVERY'| and \verb|FIRST'| are lifted versions of \verb|EVERY'| and \verb|FIRST'|, for tactics with explicit subgoal
-  addressing.
-
-  \item \verb|EVERY1| and \verb|FIRST1| are convenience versions of
-  \verb|EVERY'| and \verb|FIRST'|, applied to subgoal 1.
+  The other primed tacticals work analogously.
 
   \end{description}%
 \end{isamarkuptext}%

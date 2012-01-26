@@ -433,8 +433,6 @@ text %mlref {*
   @{index_ML_op "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
   @{index_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
   @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
-  @{index_ML "EVERY1": "(int -> tactic) list -> tactic"} \\
-  @{index_ML "FIRST1": "(int -> tactic) list -> tactic"} \\[0.5ex]
   \end{mldecls}
 
   \begin{description}
@@ -471,18 +469,12 @@ text %mlref {*
   "tac\<^sub>n"}.  Note that @{ML "FIRST []"} is the same as @{ML no_tac}: it
   always fails.
 
-  \item @{ML_op "THEN'"}, @{ML_op "ORELSE'"}, and @{ML_op "APPEND'"}
-  are lifted versions of @{ML_op "THEN"}, @{ML_op "ORELSE"}, and
-  @{ML_op "APPEND"}, for tactics with explicit subgoal addressing.
-  This means @{text "(tac\<^sub>1"}~@{ML_op THEN'}~@{text "tac\<^sub>2) i"} is the
-  same as @{text "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"} etc.
+  \item @{ML_op "THEN'"} is the lifted version of @{ML_op "THEN"}, for
+  tactics with explicit subgoal addressing.  Thus @{text
+  "(tac\<^sub>1"}~@{ML_op THEN'}~@{text "tac\<^sub>2) i"} is the same as @{text
+  "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"}.
 
-  \item @{ML "EVERY'"} and @{ML "FIRST'"} are lifted versions of @{ML
-  "EVERY'"} and @{ML "FIRST'"}, for tactics with explicit subgoal
-  addressing.
-
-  \item @{ML "EVERY1"} and @{ML "FIRST1"} are convenience versions of
-  @{ML "EVERY'"} and @{ML "FIRST'"}, applied to subgoal 1.
+  The other primed tacticals work analogously.
 
   \end{description}
 *}
