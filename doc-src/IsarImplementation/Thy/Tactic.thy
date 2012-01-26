@@ -642,6 +642,8 @@ text {* A predicate on theorems @{ML_type "thm -> bool"} can test
   given tactic.  *}
 
 
+text %mlref ""
+
 subsubsection {* Filtering a tactic's results *}
 
 text {*
