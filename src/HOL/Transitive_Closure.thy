@@ -1003,7 +1003,7 @@ next
     unfolding ntrancl_def by auto
 qed
 
-lemma ntrancl_Suc [simp, code]:
+lemma ntrancl_Suc [simp]:
   "ntrancl (Suc n) R = ntrancl n R O (Id \<union> R)"
 proof
   {
@@ -1033,6 +1033,10 @@ next
   show "ntrancl n R O (Id \<union> R) \<subseteq> ntrancl (Suc n) R"
     unfolding ntrancl_def by fastforce
 qed
+
+lemma [code]:
+  "ntrancl (Suc n) r = (let r' = ntrancl n r in r' Un r' O r)"
+unfolding Let_def by auto
 
 lemma finite_trancl_ntranl:
   "finite R \<Longrightarrow> trancl R = ntrancl (card R - 1) R"
