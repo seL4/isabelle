@@ -414,7 +414,7 @@ context Truth
 begin
 
 lemma "False"
-quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 end
@@ -425,6 +425,19 @@ context Truth
 begin
 
 lemma "False"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+end
+
+locale antisym =
+  fixes R
+  assumes "R x y --> R y x --> x = y"
+begin
+
+lemma
+  "R x y --> R y z --> R x z"
+quickcheck[exhaustive, finite_type_size = 2, expect = no_counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
