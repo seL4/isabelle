@@ -270,14 +270,36 @@ oops
 subsection {* Examples with relations *}
 
 lemma
-  "acyclic R ==> acyclic S ==> acyclic (R Un S)"
-(* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
+  "acyclic (R :: ('a * 'a) set) ==> acyclic S ==> acyclic (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
-  "(x, z) : rtrancl (R Un S) ==> \<exists> y. (x, y) : rtrancl R & (y, z) : rtrancl S"
-(* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
+  "acyclic (R :: (nat * nat) set) ==> acyclic S ==> acyclic (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
 oops
+
+(* FIXME: some dramatic performance decrease after changing the code equation of the ntrancl *)
+lemma
+  "(x, z) : rtrancl (R Un S) ==> \<exists> y. (x, y) : rtrancl R & (y, z) : rtrancl S"
+(*quickcheck[exhaustive, expect = counterexample]*)
+oops
+
+lemma
+  "wf (R :: ('a * 'a) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "wf (R :: (nat * nat) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "wf (R :: (int * int) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
 
 subsection {* Examples with the descriptive operator *}
 
