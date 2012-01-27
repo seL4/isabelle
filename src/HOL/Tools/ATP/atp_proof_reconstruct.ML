@@ -248,9 +248,9 @@ fun minimize_line _ [] = ""
     | command =>
       "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
 
-val split_used_facts =
-  List.partition (fn (_, (sc, _)) => sc = Chained)
-  #> pairself (sort_distinct (string_ord o pairself fst))
+fun split_used_facts facts =
+  facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
+        |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
                          subgoal, subgoal_count) =
