@@ -195,9 +195,10 @@ Classic Isabelle provides a huge amount of tacticals for combination
   this usually has a different operational behavior: subgoals are
   solved in a different order.
 
-  \medskip Iterated resolution, such as \verb|REPEAT (FIRSTGOAL|\isasep\isanewline%
-\verb|  (resolve_tac \<dots>))|, is usually better expressed using the \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} methods of Isar (see
-  \secref{sec:classical}).%
+  \medskip Iterated resolution, such as
+  \verb|REPEAT (FIRSTGOAL (resolve_tac ...))|, is usually better
+  expressed using the \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} methods of
+  Isar (see \secref{sec:classical}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

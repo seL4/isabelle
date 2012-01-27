@@ -171,10 +171,10 @@ text {*
   this usually has a different operational behavior: subgoals are
   solved in a different order.
 
-  \medskip Iterated resolution, such as @{ML_text "REPEAT (FIRSTGOAL
-  (resolve_tac \<dots>))"}, is usually better expressed using the @{method
-  intro} and @{method elim} methods of Isar (see
-  \secref{sec:classical}).
+  \medskip Iterated resolution, such as
+  @{ML_text "REPEAT (FIRSTGOAL (resolve_tac ...))"}, is usually better
+  expressed using the @{method intro} and @{method elim} methods of
+  Isar (see \secref{sec:classical}).
 *}
 
 end
