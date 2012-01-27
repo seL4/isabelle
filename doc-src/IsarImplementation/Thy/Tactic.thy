@@ -364,7 +364,8 @@ text %mlref {*
   @{index_ML res_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
   @{index_ML eres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
   @{index_ML dres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
-  @{index_ML forw_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\[1ex]
+  @{index_ML forw_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
+  @{index_ML subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
   @{index_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 
@@ -382,6 +383,10 @@ text %mlref {*
 
   \item @{ML forw_inst_tac} is like @{ML dres_inst_tac} except that
   the selected assumption is not deleted.
+
+  \item @{ML subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
+  @{text "\<phi>"} as local premise to subgoal @{text "i"}, and poses the
+  same as a new subgoal @{text "i + 1"} (in the original context).
 
   \item @{ML rename_tac}~@{text "names i"} renames the innermost
   parameters of subgoal @{text i} according to the provided @{text

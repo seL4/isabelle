@@ -339,9 +339,9 @@ text {*
   from a subgoal; note that @{text \<phi>} may contain schematic variables.
   See also @{ML thin_tac} in \cite{isabelle-implementation}.
 
-  \item @{method subgoal_tac}~@{text \<phi>} adds @{text \<phi>} as an
-  assumption to a subgoal.  See also @{ML subgoal_tac} and @{ML
-  subgoals_tac} in \cite{isabelle-implementation}.
+  \item @{method subgoal_tac}~@{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} adds the propositions
+  @{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} as local premises to a subgoal, and poses the same
+  as new subgoals (in the original context).
 
   \item @{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"} renames parameters of a
   goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the

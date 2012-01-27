@@ -541,8 +541,9 @@ The following improper proof methods emulate traditional tactics.
   from a subgoal; note that \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} may contain schematic variables.
   See also \verb|thin_tac| in \cite{isabelle-implementation}.
 
-  \item \hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} adds \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as an
-  assumption to a subgoal.  See also \verb|subgoal_tac| and \verb|subgoals_tac| in \cite{isabelle-implementation}.
+  \item \hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} adds the propositions
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} as local premises to a subgoal, and poses the same
+  as new subgoals (in the original context).
 
   \item \hyperlink{method.rename-tac}{\mbox{\isa{rename{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} renames parameters of a
   goal according to the list \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}, which refers to the

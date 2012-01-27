@@ -432,7 +432,8 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
   \indexdef{}{ML}{res\_inst\_tac}\verb|res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
   \indexdef{}{ML}{eres\_inst\_tac}\verb|eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
   \indexdef{}{ML}{dres\_inst\_tac}\verb|dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
-  \indexdef{}{ML}{forw\_inst\_tac}\verb|forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\[1ex]
+  \indexdef{}{ML}{forw\_inst\_tac}\verb|forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{subgoal\_tac}\verb|subgoal_tac: Proof.context -> string -> int -> tactic| \\
   \indexdef{}{ML}{rename\_tac}\verb|rename_tac: string list -> int -> tactic| \\
   \end{mldecls}
 
@@ -450,6 +451,10 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
 
   \item \verb|forw_inst_tac| is like \verb|dres_inst_tac| except that
   the selected assumption is not deleted.
+
+  \item \verb|subgoal_tac|~\isa{ctxt\ {\isaliteral{5C3C7068693E}{\isasymphi}}\ i} adds the proposition
+  \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as local premise to subgoal \isa{i}, and poses the
+  same as a new subgoal \isa{i\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}} (in the original context).
 
   \item \verb|rename_tac|~\isa{names\ i} renames the innermost
   parameters of subgoal \isa{i} according to the provided \isa{names} (which need to be distinct indentifiers).
