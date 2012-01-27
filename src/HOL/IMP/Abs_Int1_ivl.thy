@@ -172,7 +172,6 @@ fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> i
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
-defines aval_ivl is aval'
 proof
   case goal1 thus ?case
     by(auto simp: \<gamma>_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
@@ -187,6 +186,7 @@ qed
 
 interpretation Val_abs1_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+defines aval_ivl is aval'
 proof
   case goal1 thus ?case
     by(auto simp add: \<gamma>_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)

@@ -91,7 +91,6 @@ functions on type @{typ parity} have all the necessary properties: *}
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-defines aval_parity is aval'
 proof txt{* of the locale axioms *}
   fix a b :: parity
   assume "a \<sqsubseteq> b" thus "\<gamma>_parity a \<subseteq> \<gamma>_parity b"
@@ -114,7 +113,7 @@ instantiated abstract interpreter which we call AI: *}
 
 interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-defines step_parity is step' and AI_parity is AI
+defines aval_parity is aval' and step_parity is step' and AI_parity is AI
 proof qed
 
 

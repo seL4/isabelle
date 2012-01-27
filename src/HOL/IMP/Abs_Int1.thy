@@ -61,7 +61,7 @@ by (metis meet_greatest meet_le1 meet_le2 le_trans)
 end
 
 locale Val_abs1_gamma =
-  Val_abs where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
+  Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_meet:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
 and gamma_Bot[simp]: "\<gamma> \<bottom> = {}"

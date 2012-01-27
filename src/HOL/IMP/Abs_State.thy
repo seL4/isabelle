@@ -58,7 +58,7 @@ by(auto simp add: lookup_def le_st_def)
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
 by(auto simp add: le_st_def lookup_def update_def)
 
-context Val_abs
+locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
 abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"

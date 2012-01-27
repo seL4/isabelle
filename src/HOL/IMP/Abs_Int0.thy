@@ -9,7 +9,7 @@ subsection "Computable Abstract Interpretation"
 text{* Abstract interpretation over type @{text st} instead of
 functions. *}
 
-context Val_abs
+context Gamma
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
@@ -26,7 +26,7 @@ text{* The for-clause (here and elsewhere) only serves the purpose of fixing
 the name of the type parameter @{typ 'av} which would otherwise be renamed to
 @{typ 'a}. *}
 
-locale Abs_Int = Val_abs \<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
+locale Abs_Int = Gamma where \<gamma>=\<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
 fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom" where
