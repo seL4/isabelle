@@ -103,14 +103,11 @@ text {*
 
 section {* Classical Reasoner tactics *}
 
-text {*
-  The Classical Reasoner provides a rather large number of variations
-  of automated tactics, such as @{ML blast_tac}, @{ML fast_tac}, @{ML
-  clarify_tac} etc.\ (see \cite{isabelle-ref}).  The corresponding
-  Isar methods usually share the same base name, such as @{method
-  blast}, @{method fast}, @{method clarify} etc.\ (see
-  \secref{sec:classical}).
-*}
+text {* The Classical Reasoner provides a rather large number of
+  variations of automated tactics, such as @{ML blast_tac}, @{ML
+  fast_tac}, @{ML clarify_tac} etc.  The corresponding Isar methods
+  usually share the same base name, such as @{method blast}, @{method
+  fast}, @{method clarify} etc.\ (see \secref{sec:classical}).  *}
 
 
 section {* Miscellaneous tactics *}
@@ -159,20 +156,20 @@ text {*
   \end{tabular}
   \medskip
 
-  \medskip @{ML CHANGED} (see \cite{isabelle-ref}) is usually not
-  required in Isar, since most basic proof methods already fail unless
-  there is an actual change in the goal state.  Nevertheless, ``@{text
-  "?"}''  (try) may be used to accept \emph{unchanged} results as
-  well.
+  \medskip @{ML CHANGED} (see \cite{isabelle-implementation}) is
+  usually not required in Isar, since most basic proof methods already
+  fail unless there is an actual change in the goal state.
+  Nevertheless, ``@{text "?"}''  (try) may be used to accept
+  \emph{unchanged} results as well.
 
   \medskip @{ML ALLGOALS}, @{ML SOMEGOAL} etc.\ (see
-  \cite{isabelle-ref}) are not available in Isar, since there is no
-  direct goal addressing.  Nevertheless, some basic methods address
-  all goals internally, notably @{method simp_all} (see
-  \secref{sec:simplifier}).  Also note that @{ML ALLGOALS} can be
+  \cite{isabelle-implementation}) are not available in Isar, since
+  there is no direct goal addressing.  Nevertheless, some basic
+  methods address all goals internally, notably @{method simp_all}
+  (see \secref{sec:simplifier}).  Also note that @{ML ALLGOALS} can be
   often replaced by ``@{text "+"}'' (repeat at least once), although
-  this usually has a different operational behavior, such as solving
-  goals in a different order.
+  this usually has a different operational behavior: subgoals are
+  solved in a different order.
 
   \medskip Iterated resolution, such as @{ML_text "REPEAT (FIRSTGOAL
   (resolve_tac \<dots>))"}, is usually better expressed using the @{method

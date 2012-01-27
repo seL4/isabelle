@@ -125,10 +125,9 @@ The main Simplifier tactics \verb|simp_tac| and variants (cf.\
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The Classical Reasoner provides a rather large number of variations
-  of automated tactics, such as \verb|blast_tac|, \verb|fast_tac|, \verb|clarify_tac| etc.\ (see \cite{isabelle-ref}).  The corresponding
-  Isar methods usually share the same base name, such as \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.clarify}{\mbox{\isa{clarify}}} etc.\ (see
-  \secref{sec:classical}).%
+The Classical Reasoner provides a rather large number of
+  variations of automated tactics, such as \verb|blast_tac|, \verb|fast_tac|, \verb|clarify_tac| etc.  The corresponding Isar methods
+  usually share the same base name, such as \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.clarify}{\mbox{\isa{clarify}}} etc.\ (see \secref{sec:classical}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -181,19 +180,20 @@ Classic Isabelle provides a huge amount of tacticals for combination
   \end{tabular}
   \medskip
 
-  \medskip \verb|CHANGED| (see \cite{isabelle-ref}) is usually not
-  required in Isar, since most basic proof methods already fail unless
-  there is an actual change in the goal state.  Nevertheless, ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}''  (try) may be used to accept \emph{unchanged} results as
-  well.
+  \medskip \verb|CHANGED| (see \cite{isabelle-implementation}) is
+  usually not required in Isar, since most basic proof methods already
+  fail unless there is an actual change in the goal state.
+  Nevertheless, ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}''  (try) may be used to accept
+  \emph{unchanged} results as well.
 
   \medskip \verb|ALLGOALS|, \verb|SOMEGOAL| etc.\ (see
-  \cite{isabelle-ref}) are not available in Isar, since there is no
-  direct goal addressing.  Nevertheless, some basic methods address
-  all goals internally, notably \hyperlink{method.simp-all}{\mbox{\isa{simp{\isaliteral{5F}{\isacharunderscore}}all}}} (see
-  \secref{sec:simplifier}).  Also note that \verb|ALLGOALS| can be
+  \cite{isabelle-implementation}) are not available in Isar, since
+  there is no direct goal addressing.  Nevertheless, some basic
+  methods address all goals internally, notably \hyperlink{method.simp-all}{\mbox{\isa{simp{\isaliteral{5F}{\isacharunderscore}}all}}}
+  (see \secref{sec:simplifier}).  Also note that \verb|ALLGOALS| can be
   often replaced by ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{22}{\isachardoublequote}}}'' (repeat at least once), although
-  this usually has a different operational behavior, such as solving
-  goals in a different order.
+  this usually has a different operational behavior: subgoals are
+  solved in a different order.
 
   \medskip Iterated resolution, such as \verb|REPEAT (FIRSTGOAL|\isasep\isanewline%
 \verb|  (resolve_tac \<dots>))|, is usually better expressed using the \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} methods of Isar (see
