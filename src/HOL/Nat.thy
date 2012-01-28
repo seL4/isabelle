@@ -1616,6 +1616,17 @@ by arith
 lemma Suc_diff_Suc: "n < m \<Longrightarrow> Suc (m - Suc n) = m - n"
 by simp
 
+(*The others are
+      i - j - k = i - (j + k),
+      k \<le> j ==> j - k + i = j + i - k,
+      k \<le> j ==> i + (j - k) = i + j - k *)
+lemmas add_diff_assoc = diff_add_assoc [symmetric]
+lemmas add_diff_assoc2 = diff_add_assoc2[symmetric]
+declare diff_diff_left [simp]  add_diff_assoc [simp] add_diff_assoc2[simp]
+
+text{*At present we prove no analogue of @{text not_less_Least} or @{text
+Least_Suc}, since there appears to be no need.*}
+
 text{*Lemmas for ex/Factorization*}
 
 lemma one_less_mult: "[| Suc 0 < n; Suc 0 < m |] ==> Suc 0 < m*n"
@@ -1668,17 +1679,6 @@ lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
 
 lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
   using inc_induct[of 0 k P] by blast
-
-(*The others are
-      i - j - k = i - (j + k),
-      k \<le> j ==> j - k + i = j + i - k,
-      k \<le> j ==> i + (j - k) = i + j - k *)
-lemmas add_diff_assoc = diff_add_assoc [symmetric]
-lemmas add_diff_assoc2 = diff_add_assoc2[symmetric]
-declare diff_diff_left [simp]  add_diff_assoc [simp] add_diff_assoc2[simp]
-
-text{*At present we prove no analogue of @{text not_less_Least} or @{text
-Least_Suc}, since there appears to be no need.*}
 
 
 subsection {* The divides relation on @{typ nat} *}
