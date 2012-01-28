@@ -615,13 +615,6 @@ lemmas acc_subset = accp_subset [to_set]
 
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
-text {* Very basic code generation setup *}
-
-declare accp.simps[code]
-
-lemma [code_unfold]:
-  "(x : acc r) = accp (%x xa. (x, xa) : r) x"
-by (simp add: accp_acc_eq)
 
 subsection {* Tools for building wellfounded relations *}
 
