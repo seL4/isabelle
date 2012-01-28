@@ -742,6 +742,8 @@ qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
 
 end
 
+hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
+
 subsection {* An executable THE operator on finite types *}
 
 definition
@@ -785,10 +787,158 @@ lemma [code]:
   "Collect P = set (filter P enum)"
 by (auto simp add: enum_UNIV)
 
+
+subsection {* Executable accessible part *}
+(* FIXME: should be moved somewhere else !? *)
+
+subsubsection {* Finite monotone eventually stable sequences *}
+
+lemma finite_mono_remains_stable_implies_strict_prefix:
+  fixes f :: "nat \<Rightarrow> 'a::order"
+  assumes S: "finite (range f)" "mono f" and eq: "\<forall>n. f n = f (Suc n) \<longrightarrow> f (Suc n) = f (Suc (Suc n))"
+  shows "\<exists>N. (\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m < f n) \<and> (\<forall>n\<ge>N. f N = f n)"
+  using assms
+proof -
+  have "\<exists>n. f n = f (Suc n)"
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "\<And>n. f n \<noteq> f (Suc n)" by auto
+    then have "\<And>n. f n < f (Suc n)"
+      using  `mono f` by (auto simp: le_less mono_iff_le_Suc)
+    with lift_Suc_mono_less_iff[of f]
+    have "\<And>n m. n < m \<Longrightarrow> f n < f m" by auto
+    then have "inj f"
+      by (auto simp: inj_on_def) (metis linorder_less_linear order_less_imp_not_eq)
+    with `finite (range f)` have "finite (UNIV::nat set)"
+      by (rule finite_imageD)
+    then show False by simp
+  qed
+  then guess n .. note n = this
+  def N \<equiv> "LEAST n. f n = f (Suc n)"
+  have N: "f N = f (Suc N)"
+    unfolding N_def using n by (rule LeastI)
+  show ?thesis
+  proof (intro exI[of _ N] conjI allI impI)
+    fix n assume "N \<le> n"
+    then have "\<And>m. N \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> f m = f N"
+    proof (induct rule: dec_induct)
+      case (step n) then show ?case
+        using eq[rule_format, of "n - 1"] N
+        by (cases n) (auto simp add: le_Suc_eq)
+    qed simp
+    from this[of n] `N \<le> n` show "f N = f n" by auto
+  next
+    fix n m :: nat assume "m < n" "n \<le> N"
+    then show "f m < f n"
+    proof (induct rule: less_Suc_induct[consumes 1])
+      case (1 i)
+      then have "i < N" by simp
+      then have "f i \<noteq> f (Suc i)"
+        unfolding N_def by (rule not_less_Least)
+      with `mono f` show ?case by (simp add: mono_iff_le_Suc less_le)
+    qed auto
+  qed
+qed
+
+lemma finite_mono_strict_prefix_implies_finite_fixpoint:
+  fixes f :: "nat \<Rightarrow> 'a set"
+  assumes S: "\<And>i. f i \<subseteq> S" "finite S"
+    and inj: "\<exists>N. (\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m \<subset> f n) \<and> (\<forall>n\<ge>N. f N = f n)"
+  shows "f (card S) = (\<Union>n. f n)"
+proof -
+  from inj obtain N where inj: "(\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m \<subset> f n)" and eq: "(\<forall>n\<ge>N. f N = f n)" by auto
+
+  { fix i have "i \<le> N \<Longrightarrow> i \<le> card (f i)"
+    proof (induct i)
+      case 0 then show ?case by simp
+    next
+      case (Suc i)
+      with inj[rule_format, of "Suc i" i]
+      have "(f i) \<subset> (f (Suc i))" by auto
+      moreover have "finite (f (Suc i))" using S by (rule finite_subset)
+      ultimately have "card (f i) < card (f (Suc i))" by (intro psubset_card_mono)
+      with Suc show ?case using inj by auto
+    qed
+  }
+  then have "N \<le> card (f N)" by simp
+  also have "\<dots> \<le> card S" using S by (intro card_mono)
+  finally have "f (card S) = f N" using eq by auto
+  then show ?thesis using eq inj[rule_format, of N]
+    apply auto
+    apply (case_tac "n < N")
+    apply (auto simp: not_less)
+    done
+qed
+
+subsubsection {* Bounded accessible part *}
+
+fun bacc :: "('a * 'a) set => nat => 'a set" 
+where
+  "bacc r 0 = {x. \<forall> y. (y, x) \<notin> r}"
+| "bacc r (Suc n) = (bacc r n Un {x. \<forall> y. (y, x) : r --> y : bacc r n})"
+
+lemma bacc_subseteq_acc:
+  "bacc r n \<subseteq> acc r"
+by (induct n) (auto intro: acc.intros)
+
+lemma bacc_mono:
+  "n <= m ==> bacc r n \<subseteq> bacc r m"
+by (induct rule: dec_induct) auto
+  
+lemma bacc_upper_bound:
+  "bacc (r :: ('a * 'a) set)  (card (UNIV :: ('a :: enum) set)) = (UN n. bacc r n)"
+proof -
+  have "mono (bacc r)" unfolding mono_def by (simp add: bacc_mono)
+  moreover have "\<forall>n. bacc r n = bacc r (Suc n) \<longrightarrow> bacc r (Suc n) = bacc r (Suc (Suc n))" by auto
+  moreover have "finite (range (bacc r))" by auto
+  ultimately show ?thesis
+   by (intro finite_mono_strict_prefix_implies_finite_fixpoint)
+     (auto intro: finite_mono_remains_stable_implies_strict_prefix  simp add: enum_UNIV)
+qed
+
+lemma acc_subseteq_bacc:
+  assumes "finite r"
+  shows "acc r \<subseteq> (UN n. bacc r n)"
+proof
+  fix x
+  assume "x : acc r"
+  from this have "\<exists> n. x : bacc r n"
+  proof (induct x arbitrary: n rule: acc.induct)
+    case (accI x)
+    from accI have "\<forall> y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
+    from choice[OF this] guess n .. note n = this
+    have "\<exists> n. \<forall>y. (y, x) : r --> y : bacc r n"
+    proof (safe intro!: exI[of _ "Max ((%(y,x). n y)`r)"])
+      fix y assume y: "(y, x) : r"
+      with n have "y : bacc r (n y)" by auto
+      moreover have "n y <= Max ((%(y, x). n y) ` r)"
+        using y `finite r` by (auto intro!: Max_ge)
+      note bacc_mono[OF this, of r]
+      ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
+    qed
+    from this guess n ..
+    from this show ?case
+      by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
+  qed
+  thus "x : (UN n. bacc r n)" by auto
+qed
+
+lemma acc_bacc_eq: "acc ((set xs) :: (('a :: enum) * 'a) set) = bacc (set xs) (card (UNIV :: 'a set))"
+by (metis acc_subseteq_bacc bacc_subseteq_acc bacc_upper_bound finite_set order_eq_iff)
+
+definition 
+  [code del]: "card_UNIV = card UNIV"
+
+lemma [code]:
+  "card_UNIV TYPE('a :: enum) = card (set (Enum.enum :: 'a list))"
+unfolding card_UNIV_def enum_UNIV ..
+
+declare acc_bacc_eq[folded card_UNIV_def, code]
+
+lemma [code_unfold]: "accp r = (%x. x : acc {(x, y). r x y})"
+unfolding acc_def by simp
+
 subsection {* Closing up *}
-
-hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
-
 
 hide_type (open) finite_1 finite_2 finite_3 finite_4 finite_5
 hide_const (open) enum enum_all enum_ex n_lists all_n_lists ex_n_lists product ntrancl
