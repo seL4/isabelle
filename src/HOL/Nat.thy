@@ -1680,7 +1680,13 @@ lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
 lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
   using inc_induct[of 0 k P] by blast
 
+text {* Further induction rule similar to @{thm inc_induct} *}
 
+lemma dec_induct[consumes 1, case_names base step]:
+  "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
+  by (induct j arbitrary: i) (auto simp: le_Suc_eq)
+
+ 
 subsection {* The divides relation on @{typ nat} *}
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
