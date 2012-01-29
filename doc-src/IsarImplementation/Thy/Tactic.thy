@@ -402,6 +402,27 @@ text %mlref {*
 *}
 
 
+subsection {* Rearranging goal states *}
+
+text {* In rare situations there is a need to rearrange goal states:
+  either the overall collection of subgoals, or the local structure of
+  a subgoal.  Various administrative tactics allow to operate on the
+  concrete presentation these conceptual sets of formulae. *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML rotate_tac: "int -> int -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML rotate_tac}~@{text "n i"} rotates the premises of subgoal
+  @{text i} by @{text n} positions: from right to left if @{text n} is
+  positive, and from left to right if @{text n} is negative.
+
+  \end{description}
+*}
+
 section {* Tacticals \label{sec:tacticals} *}
 
 text {* A \emph{tactical} is a functional combinator for building up

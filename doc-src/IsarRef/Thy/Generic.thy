@@ -347,11 +347,10 @@ text {*
   goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the
   \emph{suffix} of variables.
 
-  \item @{method rotate_tac}~@{text n} rotates the assumptions of a
-  goal by @{text n} positions: from right to left if @{text n} is
+  \item @{method rotate_tac}~@{text n} rotates the premises of a
+  subgoal by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative; the
-  default value is 1.  See also @{ML rotate_tac} in
-  \cite{isabelle-implementation}.
+  default value is 1.
 
   \item @{method tactic}~@{text "text"} produces a proof method from
   any ML text of type @{ML_type tactic}.  Apart from the usual ML

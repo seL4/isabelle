@@ -549,11 +549,10 @@ The following improper proof methods emulate traditional tactics.
   goal according to the list \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}, which refers to the
   \emph{suffix} of variables.
 
-  \item \hyperlink{method.rotate-tac}{\mbox{\isa{rotate{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{n} rotates the assumptions of a
-  goal by \isa{n} positions: from right to left if \isa{n} is
+  \item \hyperlink{method.rotate-tac}{\mbox{\isa{rotate{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{n} rotates the premises of a
+  subgoal by \isa{n} positions: from right to left if \isa{n} is
   positive, and from left to right if \isa{n} is negative; the
-  default value is 1.  See also \verb|rotate_tac| in
-  \cite{isabelle-implementation}.
+  default value is 1.
 
   \item \hyperlink{method.tactic}{\mbox{\isa{tactic}}}~\isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}} produces a proof method from
   any ML text of type \verb|tactic|.  Apart from the usual ML
