@@ -69,7 +69,7 @@ qed
 interpretation Abs_Int
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 defines AI_const is AI and step_const is step' and aval'_const is aval'
-proof qed
+..
 
 
 subsubsection "Tests"

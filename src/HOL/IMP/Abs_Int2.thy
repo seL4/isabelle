@@ -227,9 +227,10 @@ end
 
 interpretation Abs_Int2
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and test_num' = test_num_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines AI_ivl' is AI_wn
-proof qed
+..
 
 
 subsubsection "Tests"

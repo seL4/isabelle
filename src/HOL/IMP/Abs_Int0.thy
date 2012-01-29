@@ -150,7 +150,7 @@ by (metis converse_inv_image strict_inv_image wf_inv_image)
 text{* ACC for option type: *}
 
 lemma acc_option: assumes "acc {(x,y::'a::preord). x \<sqsubseteq> y}"
-shows "acc {(x,y::'a option). x \<sqsubseteq> y}"
+shows "acc {(x,y::'a::preord option). x \<sqsubseteq> y}"
 proof(auto simp: wf_eq_minimal)
   fix xo :: "'a option" and Qo assume "xo : Qo"
   let ?Q = "{x. Some x \<in> Qo}"
@@ -195,8 +195,8 @@ proof-
 qed
 
 lemma measure_st: assumes "(strict{(x,y::'a::SL_top). x \<sqsubseteq> y})^-1 <= measure m"
-and "\<forall>x y::'a. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> m x = m y"
-shows "(strict{(S,S'::'a st). S \<sqsubseteq> S'})^-1 \<subseteq>
+and "\<forall>x y::'a::SL_top. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> m x = m y"
+shows "(strict{(S,S'::'a::SL_top st). S \<sqsubseteq> S'})^-1 \<subseteq>
   measure(%fd. \<Sum>x| x\<in>set(dom fd) \<and> ~ \<top> \<sqsubseteq> fun fd x. m(fun fd x)+1)"
 proof-
   { fix S S' :: "'a st" assume "S \<sqsubseteq> S'" "~ S' \<sqsubseteq> S"

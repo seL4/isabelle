@@ -114,7 +114,7 @@ instantiated abstract interpreter which we call AI: *}
 interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 defines aval_parity is aval' and step_parity is step' and AI_parity is AI
-proof qed
+..
 
 
 subsubsection "Tests"

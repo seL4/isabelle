@@ -42,7 +42,7 @@ fun plus_option where
 "Some x + Some y = Some(x+y)" |
 "_ + _ = None"
 
-instance proof qed
+instance ..
 
 end
 
@@ -147,7 +147,7 @@ fun minus_option where
 "Some x - Some y = Some(x-y)" |
 "_ - _ = None"
 
-instance proof qed
+instance ..
 
 end
 
@@ -158,6 +158,7 @@ lemma gamma_minus_ivl:
   "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(minus_ivl i1 i2)"
 by(auto simp add: minus_ivl_def \<gamma>_ivl_def split: ivl.splits option.splits)
 
+definition "test_num_ivl n ivl = contained_in ivl n"
 
 definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
   i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
@@ -205,32 +206,38 @@ done
 
 interpretation Val_abs1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and test_num' = test_num_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
   case goal1 thus ?case
+    by(auto simp add: test_num_ivl_def contained_in_def)
+next
+  case goal2 thus ?case
     by(auto simp add: filter_plus_ivl_def)
       (metis gamma_minus_ivl add_diff_cancel add_commute)+
 next
-  case goal2 thus ?case
+  case goal3 thus ?case
     by(cases a1, cases a2,
       auto simp: \<gamma>_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
 qed
 
 interpretation Abs_Int1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and test_num' = test_num_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
 and step_ivl is step'
 and AI_ivl is AI
 and aval_ivl' is aval''
-proof qed
+..
 
 
 text{* Monotonicity: *}
 
 interpretation Abs_Int1_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and test_num' = test_num_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
   case goal1 thus ?case
@@ -247,38 +254,38 @@ qed
 
 subsubsection "Tests"
 
-value [code] "show_acom_opt (AI_ivl test1_ivl)"
+value "show_acom_opt (AI_ivl test1_ivl)"
 
 text{* Better than @{text AI_const}: *}
-value [code] "show_acom_opt (AI_ivl test3_const)"
-value [code] "show_acom_opt (AI_ivl test4_const)"
-value [code] "show_acom_opt (AI_ivl test6_const)"
+value "show_acom_opt (AI_ivl test3_const)"
+value "show_acom_opt (AI_ivl test4_const)"
+value "show_acom_opt (AI_ivl test6_const)"
 
-value [code] "show_acom_opt (AI_ivl test2_ivl)"
-value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test2_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test2_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test2_ivl))"
+value "show_acom_opt (AI_ivl test2_ivl)"
+value "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test2_ivl))"
+value "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test2_ivl))"
+value "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test2_ivl))"
 
 text{* Fixed point reached in 2 steps. Not so if the start value of x is known: *}
 
-value [code] "show_acom_opt (AI_ivl test3_ivl)"
-value [code] "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^3) (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (((step_ivl \<top>)^^4) (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom_opt (AI_ivl test3_ivl)"
+value "show_acom (((step_ivl \<top>)^^0) (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (((step_ivl \<top>)^^1) (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (((step_ivl \<top>)^^2) (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (((step_ivl \<top>)^^3) (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (((step_ivl \<top>)^^4) (\<bottom>\<^sub>c test3_ivl))"
 
 text{* Takes as many iterations as the actual execution. Would diverge if
 loop did not terminate. Worse still, as the following example shows: even if
 the actual execution terminates, the analysis may not. The value of y keeps
 decreasing as the analysis is iterated, no matter how long: *}
 
-value [code] "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test4_ivl))"
+value "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test4_ivl))"
 
 text{* Relationships between variables are NOT captured: *}
-value [code] "show_acom_opt (AI_ivl test5_ivl)"
+value "show_acom_opt (AI_ivl test5_ivl)"
 
 text{* Again, the analysis would not terminate: *}
-value [code] "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test6_ivl))"
+value "show_acom (((step_ivl \<top>)^^50) (\<bottom>\<^sub>c test6_ivl))"
 
 end
