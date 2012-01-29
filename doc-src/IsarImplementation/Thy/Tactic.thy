@@ -412,6 +412,8 @@ text {* In rare situations there is a need to rearrange goal states:
 text %mlref {*
   \begin{mldecls}
   @{index_ML rotate_tac: "int -> int -> tactic"} \\
+  @{index_ML distinct_subgoals_tac: tactic} \\
+  @{index_ML flexflex_tac: tactic} \\
   \end{mldecls}
 
   \begin{description}
@@ -419,6 +421,19 @@ text %mlref {*
   \item @{ML rotate_tac}~@{text "n i"} rotates the premises of subgoal
   @{text i} by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative.
+
+  \item @{ML distinct_subgoals_tac} removes duplicate subgoals from a
+  proof state.  This is potentially inefficient.
+
+  \item @{ML flexflex_tac} removes all flex-flex pairs from the proof
+  state by applying the trivial unifier.  This drastic step loses
+  information.  It is already part of the Isar infrastructure for
+  facts resulting from goals, and rarely needs to be invoked manually.
+
+  Flex-flex constraints arise from difficult cases of higher-order
+  unification.  To prevent this, use @{ML res_inst_tac} to instantiate
+  some variables in a rule.  Normally flex-flex constraints can be
+  ignored; they often disappear as unknowns get instantiated.
 
   \end{description}
 *}

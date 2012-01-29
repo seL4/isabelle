@@ -99,32 +99,6 @@ increases its readability and can make search tactics run faster.
 \end{ttdescription}
 
 
-\subsection{Tidying the proof state}
-\index{duplicate subgoals!removing}
-\index{parameters!removing unused}
-\index{flex-flex constraints}
-\begin{ttbox} 
-distinct_subgoals_tac : tactic
-flexflex_tac          : tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{distinct_subgoals_tac}] removes duplicate subgoals from a
-  proof state.  (These arise especially in ZF, where the subgoals are
-  essentially type constraints.)
-
-\item[\ttindexbold{flexflex_tac}]  
-  removes all flex-flex pairs from the proof state by applying the trivial
-  unifier.  This drastic step loses information, and should only be done as
-  the last step of a proof.
-
-  Flex-flex constraints arise from difficult cases of higher-order
-  unification.  To prevent this, use \ttindex{res_inst_tac} to instantiate
-  some variables in a rule~({\S}\ref{res_inst_tac}).  Normally flex-flex
-  constraints can be ignored; they often disappear as unknowns get
-  instantiated.
-\end{ttdescription}
-
-
 \subsection{Composition: resolution without lifting}
 \index{tactics!for composition}
 \begin{ttbox}
