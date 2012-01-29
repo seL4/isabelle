@@ -66,23 +66,6 @@ leaving the main goal unchanged.
   (see Chapter~\ref{chap:simplification}).
 \end{warn}
 
-\subsection{Theorems useful with tactics}
-\index{theorems!of pure theory}
-\begin{ttbox} 
-asm_rl: thm 
-\end{ttbox}
-\begin{ttdescription}
-\item[\tdx{asm_rl}] 
-is $\psi\Imp\psi$.  Under elim-resolution it does proof by assumption, and
-\hbox{\tt eresolve_tac (asm_rl::{\it thms}) {\it i}} is equivalent to
-\begin{ttbox} 
-assume_tac {\it i}  ORELSE  eresolve_tac {\it thms} {\it i}
-\end{ttbox}
-
-\end{ttdescription}
-
-
-\section{Obscure tactics}
 
 \subsection{Composition: resolution without lifting}
 \index{tactics!for composition}

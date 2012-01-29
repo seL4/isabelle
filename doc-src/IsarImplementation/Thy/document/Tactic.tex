@@ -338,7 +338,10 @@ A \isa{tactic} is a function \isa{goal\ {\isaliteral{5C3C72696768746172726F773E}
   premises.
 
   \item \verb|eresolve_tac|~\isa{thms\ i} performs elim-resolution
-  with the given theorems, which should normally be elimination rules.
+  with the given theorems, which are normally be elimination rules.
+
+  Note that \verb|eresolve_tac [asm_rl]| is equivalent to \verb|assume_tac|, which facilitates mixing of assumption steps with
+  genuine eliminations.
 
   \item \verb|dresolve_tac|~\isa{thms\ i} performs
   destruct-resolution with the given theorems, which should normally

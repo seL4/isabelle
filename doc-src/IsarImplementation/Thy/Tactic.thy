@@ -282,7 +282,11 @@ text %mlref {*
   premises.
 
   \item @{ML eresolve_tac}~@{text "thms i"} performs elim-resolution
-  with the given theorems, which should normally be elimination rules.
+  with the given theorems, which are normally be elimination rules.
+
+  Note that @{ML "eresolve_tac [asm_rl]"} is equivalent to @{ML
+  assume_tac}, which facilitates mixing of assumption steps with
+  genuine eliminations.
 
   \item @{ML dresolve_tac}~@{text "thms i"} performs
   destruct-resolution with the given theorems, which should normally
