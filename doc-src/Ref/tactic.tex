@@ -70,7 +70,6 @@ leaving the main goal unchanged.
 \index{theorems!of pure theory}
 \begin{ttbox} 
 asm_rl: thm 
-cut_rl: thm 
 \end{ttbox}
 \begin{ttdescription}
 \item[\tdx{asm_rl}] 
@@ -80,9 +79,6 @@ is $\psi\Imp\psi$.  Under elim-resolution it does proof by assumption, and
 assume_tac {\it i}  ORELSE  eresolve_tac {\it thms} {\it i}
 \end{ttbox}
 
-\item[\tdx{cut_rl}] 
-is $\List{\psi\Imp\theta,\psi}\Imp\theta$.  It is useful for inserting
-assumptions; it underlies {\tt forward_tac}, {\tt cut_facts_tac}.
 \end{ttdescription}
 
 
@@ -109,19 +105,12 @@ increases its readability and can make search tactics run faster.
 \index{flex-flex constraints}
 \begin{ttbox} 
 distinct_subgoals_tac : tactic
-prune_params_tac      : tactic
 flexflex_tac          : tactic
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{distinct_subgoals_tac}] removes duplicate subgoals from a
   proof state.  (These arise especially in ZF, where the subgoals are
   essentially type constraints.)
-
-\item[\ttindexbold{prune_params_tac}]  
-  removes unused parameters from all subgoals of the proof state.  It works
-  by rewriting with the theorem $(\Forall x. V)\equiv V$.  This tactic can
-  make the proof state more readable.  It is used with
-  \ttindex{rule_by_tactic} to simplify the resulting theorem.
 
 \item[\ttindexbold{flexflex_tac}]  
   removes all flex-flex pairs from the proof state by applying the trivial
