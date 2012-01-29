@@ -72,6 +72,46 @@ defines AI_const is AI and step_const is step' and aval'_const is aval'
 proof qed
 
 
+subsubsection "Tests"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test1_const))"
+value "show_acom_opt (AI_const test1_const)"
+
+value "show_acom_opt (AI_const test2_const)"
+value "show_acom_opt (AI_const test3_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test4_const))"
+value "show_acom_opt (AI_const test4_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const))"
+value "show_acom_opt (AI_const test5_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^6) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^7) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^8) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^9) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^10) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^11) (\<bottom>\<^sub>c test6_const))"
+value "show_acom_opt (AI_const test6_const)"
+
+
 text{* Monotonicity: *}
 
 interpretation Abs_Int_mono
@@ -95,33 +135,5 @@ by(auto simp: m_const_def split: const.splits)
 
 lemma "EX c'. AI_const c = Some c'"
 by(rule AI_Some_measure[OF measure_const measure_const_eq])
-
-
-subsubsection "Tests"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom_opt (AI_const test1_const)"
-
-value [code] "show_acom_opt (AI_const test2_const)"
-value [code] "show_acom_opt (AI_const test3_const)"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom_opt (AI_const test4_const)"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom_opt (AI_const test5_const)"
-
-value [code] "show_acom_opt (AI_const test6_const)"
 
 end
