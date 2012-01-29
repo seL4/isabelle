@@ -537,9 +537,12 @@ The following improper proof methods emulate traditional tactics.
   may be given as well, see also ML tactic \verb|cut_inst_tac| in
   \cite{isabelle-implementation}.
 
-  \item \hyperlink{method.thin-tac}{\mbox{\isa{thin{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} deletes the specified assumption
-  from a subgoal; note that \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} may contain schematic variables.
-  See also \verb|thin_tac| in \cite{isabelle-implementation}.
+  \item \hyperlink{method.thin-tac}{\mbox{\isa{thin{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} deletes the specified premise
+  from a subgoal.  Note that \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} may contain schematic
+  variables, to abbreviate the intended proposition; the first
+  matching subgoal premise will be deleted.  Removing useless premises
+  from a subgoal increases its readability and can make search tactics
+  run faster.
 
   \item \hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isaliteral{5F}{\isacharunderscore}}tac}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} adds the propositions
   \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} as local premises to a subgoal, and poses the same

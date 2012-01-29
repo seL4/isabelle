@@ -366,6 +366,7 @@ text %mlref {*
   @{index_ML dres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
   @{index_ML forw_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
   @{index_ML subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
+  @{index_ML thin_tac: "Proof.context -> string -> int -> tactic"} \\
   @{index_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 
@@ -387,6 +388,13 @@ text %mlref {*
   \item @{ML subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
   @{text "\<phi>"} as local premise to subgoal @{text "i"}, and poses the
   same as a new subgoal @{text "i + 1"} (in the original context).
+
+  \item @{ML thin_tac}~@{text "ctxt \<phi> i"} deletes the specified
+  premise from subgoal @{text i}.  Note that @{text \<phi>} may contain
+  schematic variables, to abbreviate the intended proposition; the
+  first matching subgoal premise will be deleted.  Removing useless
+  premises from a subgoal increases its readability and can make
+  search tactics run faster.
 
   \item @{ML rename_tac}~@{text "names i"} renames the innermost
   parameters of subgoal @{text i} according to the provided @{text

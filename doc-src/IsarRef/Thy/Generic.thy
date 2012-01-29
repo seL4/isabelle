@@ -335,9 +335,12 @@ text {*
   may be given as well, see also ML tactic @{ML cut_inst_tac} in
   \cite{isabelle-implementation}.
 
-  \item @{method thin_tac}~@{text \<phi>} deletes the specified assumption
-  from a subgoal; note that @{text \<phi>} may contain schematic variables.
-  See also @{ML thin_tac} in \cite{isabelle-implementation}.
+  \item @{method thin_tac}~@{text \<phi>} deletes the specified premise
+  from a subgoal.  Note that @{text \<phi>} may contain schematic
+  variables, to abbreviate the intended proposition; the first
+  matching subgoal premise will be deleted.  Removing useless premises
+  from a subgoal increases its readability and can make search tactics
+  run faster.
 
   \item @{method subgoal_tac}~@{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} adds the propositions
   @{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} as local premises to a subgoal, and poses the same

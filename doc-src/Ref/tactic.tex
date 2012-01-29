@@ -84,21 +84,6 @@ assume_tac {\it i}  ORELSE  eresolve_tac {\it thms} {\it i}
 
 \section{Obscure tactics}
 
-\subsection{Manipulating assumptions}
-\begin{ttbox} 
-thin_tac   : string -> int -> tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{thin_tac} {\it formula} $i$]  
-\index{assumptions!deleting}
-deletes the specified assumption from subgoal $i$.  Often the assumption
-can be abbreviated, replacing subformul{\ae} by unknowns; the first matching
-assumption will be deleted.  Removing useless assumptions from a subgoal
-increases its readability and can make search tactics run faster.
-
-\end{ttdescription}
-
-
 \subsection{Composition: resolution without lifting}
 \index{tactics!for composition}
 \begin{ttbox}
