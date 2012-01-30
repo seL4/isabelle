@@ -718,6 +718,18 @@ primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<ti
 
 end
 
+text {* for code generation *}
+
+definition relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
+  relpow_code_def [code_abbrev]: "relpow = compow"
+
+lemma [code]:
+  "relpow (Suc n) R = (relpow n R) O R"
+  "relpow 0 R = Id"
+  by (simp_all add: relpow_code_def)
+
+hide_const (open) relpow
+
 lemma rel_pow_1 [simp]:
   fixes R :: "('a \<times> 'a) set"
   shows "R ^^ 1 = R"
