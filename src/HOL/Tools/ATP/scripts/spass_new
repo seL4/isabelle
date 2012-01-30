@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# Wrapper for SPASS 3.8 that also outputs the clause-to-formula relation
+#
+# Author: Jasmin Blanchette, TU Muenchen
+
+options=${@:1:$(($#-1))}
+name=${@:$(($#)):1}
+
+rm -f $name.prf
+"$SPASS_NEW_HOME/SPASS" -FPDFGProof -FPFCR $options $name \
+    | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
+cat $name.prf
+#rm -f $name.cnf

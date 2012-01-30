@@ -2433,8 +2433,8 @@ fun all_constrs_of_polymorphic_datatypes thy =
 
 (* Forcing explicit applications is expensive for polymorphic encodings, because
    it takes only one existential variable ranging over "'a => 'b" to ruin
-   everything. Hence we do it only if there are few facts (is normally the case
-   for "metis" and the minimizer. *)
+   everything. Hence we do it only if there are few facts (which is normally the
+   case for "metis" and the minimizer). *)
 val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
@@ -2443,11 +2443,11 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
     val explicit_apply =
-      if polymorphism_of_type_enc type_enc <> Polymorphic orelse
-         length facts <= explicit_apply_threshold then
-        NONE
-      else
+      if polymorphism_of_type_enc type_enc = Polymorphic andalso
+         length facts >= explicit_apply_threshold then
         SOME false
+      else
+        NONE
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then

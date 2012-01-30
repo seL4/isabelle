@@ -348,9 +348,12 @@ val spass = (spassN, spass_config)
 
 (* Experimental *)
 val spass_new_config : atp_config =
-  {exec = ("SPASS_HOME", "SPASS"),
+  {exec = ("ISABELLE_ATP", "scripts/spass_new"),
    required_execs = [],
-   arguments = #arguments spass_config,
+   arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
+     (* -Splits=0 -FullRed=0 -VarWeight=3? *)
+     ("-Auto -LR=1 -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
+     |> sos = sosN ? prefix "-SOS=1 ",
    proof_delims = #proof_delims spass_config,
    known_failures = #known_failures spass_config,
    conj_sym_kind = #conj_sym_kind spass_config,
@@ -358,11 +361,11 @@ val spass_new_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.333, (false, (150, DFG DFG_Sorted, "mono_simple", liftingN,
-                       sosN))) (*,
-      (0.333, (false, (300, DFG DFG_Sorted, "poly_tags??", liftingN,
-                       sosN))),
+                       no_sosN))),
+      (0.333, (false, (300, DFG DFG_Sorted, "mono_simple", liftingN,
+                       no_sosN))),
       (0.334, (true, (50, DFG DFG_Sorted, "mono_simple", liftingN,
-                      no_sosN)))*)]
+                      no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
