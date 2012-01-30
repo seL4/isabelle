@@ -125,13 +125,15 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
-      val do_lams = lam_trans = lam_liftingN ? introduce_lam_wrappers ctxt
+      val do_lams =
+        (lam_trans = liftingN orelse lam_trans = lam_liftingN)
+        ? introduce_lam_wrappers ctxt
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
                  th |> Drule.eta_contraction_rule
                     |> Meson_Clausify.cnf_axiom ctxt new_skolemizer
-                                                (lam_trans = combinatorsN) j
+                                                (lam_trans = combsN) j
                     ||> map do_lams))
              (0 upto length ths0 - 1) ths0
       val ths = maps (snd o snd) th_cls_pairs
@@ -247,7 +249,7 @@ fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
     else
       ();
     Meson.MESON (preskolem_tac ctxt)
-        (maps (neg_clausify ctxt (lam_trans = combinatorsN))) tac ctxt i st0
+        (maps (neg_clausify ctxt (lam_trans = combsN))) tac ctxt i st0
   end
 
 fun metis_tac [] = generic_metis_tac partial_type_encs
@@ -277,7 +279,7 @@ fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
                                                (schem_facts @ ths))
   end
 
-val metis_lam_transs = [hide_lamsN, lam_liftingN, combinatorsN]
+val metis_lam_transs = [hide_lamsN, liftingN, combsN]
 
 fun set_opt _ x NONE = SOME x
   | set_opt get x (SOME x0) =

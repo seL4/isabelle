@@ -121,7 +121,7 @@ val type_enc_aliases =
 fun unalias_type_enc s =
   AList.lookup (op =) type_enc_aliases s |> the_default [s]
 
-val metis_default_lam_trans = combinatorsN
+val metis_default_lam_trans = combsN
 
 fun metis_call type_enc lam_trans =
   let
@@ -175,9 +175,12 @@ fun is_lam_lifted s =
   String.isSubstring ascii_of_lam_fact_prefix s
 
 fun lam_trans_from_atp_proof atp_proof default =
-  if is_axiom_used_in_proof is_combinator_def atp_proof then combinatorsN
-  else if is_axiom_used_in_proof is_lam_lifted atp_proof then lam_liftingN
-  else default
+  case (is_axiom_used_in_proof is_combinator_def atp_proof,
+        is_axiom_used_in_proof is_lam_lifted atp_proof) of
+    (false, false) => default
+  | (false, true) => liftingN
+  | (true, false) => combsN
+  | (true, true) => combs_and_liftingN
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix

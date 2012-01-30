@@ -134,7 +134,7 @@ datatype mode = Auto_Try | Try | Normal | Auto_Minimize | Minimize
 val das_tool = "Sledgehammer"
 
 val reconstructor_names = [metisN, smtN]
-val plain_metis = Metis (hd partial_type_encs, combinatorsN)
+val plain_metis = Metis (hd partial_type_encs, combsN)
 val is_reconstructor = member (op =) reconstructor_names
 
 val is_atp = member (op =) o supported_atps
@@ -991,8 +991,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                 state subgoal SMT
                 (bunch_of_reconstructors false
                      (fn plain =>
-                         if plain then metis_default_lam_trans
-                         else lam_liftingN)),
+                         if plain then metis_default_lam_trans else liftingN)),
          fn preplay =>
             let
               val one_line_params =

@@ -55,7 +55,7 @@ qed
 lemma while_option_stop2:
  "while_option b c s = Some t \<Longrightarrow> EX k. t = (c^^k) s \<and> \<not> b t"
 apply(simp add: while_option_def split: if_splits)
-by (metis (lam_lifting) LeastI_ex)
+by (metis (lifting) LeastI_ex)
 
 lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> ~ b t"
 by(metis while_option_stop2)

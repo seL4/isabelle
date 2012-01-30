@@ -34,9 +34,11 @@ sig
   val type_tag_arguments : bool Config.T
   val no_lamsN : string
   val hide_lamsN : string
+  val liftingN : string
+  val combsN : string
+  val combs_and_liftingN : string
+  val combs_or_liftingN : string
   val lam_liftingN : string
-  val combinatorsN : string
-  val hybrid_lamsN : string
   val keep_lamsN : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
@@ -123,10 +125,12 @@ val type_tag_arguments =
 
 val no_lamsN = "no_lams" (* used internally; undocumented *)
 val hide_lamsN = "hide_lams"
-val lam_liftingN = "lam_lifting"
-val combinatorsN = "combinators"
-val hybrid_lamsN = "hybrid_lams"
+val liftingN = "lifting"
+val combsN = "combs"
+val combs_and_liftingN = "combs_and_lifting"
+val combs_or_liftingN = "combs_or_lifting"
 val keep_lamsN = "keep_lams"
+val lam_liftingN = "lam_lifting" (* legacy *)
 
 (* It's still unclear whether all TFF1 implementations will support type
    signatures such as "!>[A : $tType] : $o", with ghost type variables. *)
@@ -1693,11 +1697,15 @@ fun trans_lams_from_string ctxt type_enc lam_trans =
     rpair []
   else if lam_trans = hide_lamsN then
     lift_lams ctxt type_enc ##> K []
-  else if lam_trans = lam_liftingN then
+  else if lam_trans = liftingN orelse lam_trans = lam_liftingN then
     lift_lams ctxt type_enc
-  else if lam_trans = combinatorsN then
+  else if lam_trans = combsN then
     map (introduce_combinators ctxt) #> rpair []
-  else if lam_trans = hybrid_lamsN then
+  else if lam_trans = combs_and_liftingN then
+    lift_lams_part_1 ctxt type_enc
+    ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
+    #> lift_lams_part_2
+  else if lam_trans = combs_or_liftingN then (* ### FIXME: implement *)
     lift_lams_part_1 ctxt type_enc
     ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
     #> lift_lams_part_2

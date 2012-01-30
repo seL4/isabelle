@@ -230,7 +230,8 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
                    th |> prop_of |> Logic.strip_imp_concl
                       |> conceal_old_skolem_terms (length clauses) old_skolems
-                      ||> lam_trans = lam_liftingN ? eliminate_lam_wrappers
+                      ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN)
+                          ? eliminate_lam_wrappers
                       ||> (fn prop => (name, prop) :: props))
                clauses ([], [])
     (*
@@ -238,7 +239,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val lam_trans = if lam_trans = combinatorsN then no_lamsN else lam_trans
+    val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
                           false false [] @{prop False} props
