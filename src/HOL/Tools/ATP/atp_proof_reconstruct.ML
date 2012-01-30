@@ -179,8 +179,8 @@ fun lam_trans_from_atp_proof atp_proof default =
         is_axiom_used_in_proof is_lam_lifted atp_proof) of
     (false, false) => default
   | (false, true) => liftingN
-  | (true, false) => combsN
-  | (true, true) => combs_and_liftingN
+(*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
+  | (true, _) => combsN
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
