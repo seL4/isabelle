@@ -130,6 +130,36 @@ with the same base names:
 
 INCOMPATIBILITY.
 
+* Renamed facts about the power operation on relations, i.e., relpow
+  to match the constant's name:
+  
+  rel_pow_1 ~> lemma relpow_1
+  rel_pow_0_I ~> relpow_0_I
+  rel_pow_Suc_I ~> relpow_Suc_I
+  rel_pow_Suc_I2 ~> relpow_Suc_I2
+  rel_pow_0_E ~> relpow_0_E
+  rel_pow_Suc_E ~> relpow_Suc_E
+  rel_pow_E ~> relpow_E
+  rel_pow_Suc_D2 ~> lemma relpow_Suc_D2
+  rel_pow_Suc_E2 ~> relpow_Suc_E2 
+  rel_pow_Suc_D2' ~> relpow_Suc_D2'
+  rel_pow_E2 ~> relpow_E2
+  rel_pow_add ~> relpow_add
+  rel_pow_commute ~> relpow
+  rel_pow_empty ~> relpow_empty:
+  rtrancl_imp_UN_rel_pow ~> rtrancl_imp_UN_relpow
+  rel_pow_imp_rtrancl ~> relpow_imp_rtrancl
+  rtrancl_is_UN_rel_pow ~> rtrancl_is_UN_relpow
+  rtrancl_imp_rel_pow ~> rtrancl_imp_relpow
+  rel_pow_fun_conv ~> relpow_fun_conv
+  rel_pow_finite_bounded1 ~> relpow_finite_bounded1
+  rel_pow_finite_bounded ~> relpow_finite_bounded
+  rtrancl_finite_eq_rel_pow ~> rtrancl_finite_eq_relpow
+  trancl_finite_eq_rel_pow ~> trancl_finite_eq_relpow
+  single_valued_rel_pow ~> single_valued_relpow
+ 
+INCOMPATIBILITY.
+
 * New theory HOL/Library/DAList provides an abstract type for association
   lists with distinct keys.
 
