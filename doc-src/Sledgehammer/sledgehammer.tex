@@ -537,7 +537,7 @@ Metis: Falling back on ``\textit{metis} (\textit{full\_types})''.
 for a successful \textit{metis} proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
-\point{And what are the \textit{lam\_lifting} and \textit{hide\_lams} arguments
+\point{And what are the \textit{lifting} and \textit{hide\_lams} arguments
 to Metis?}
 
 Orthogonally to the encoding of types, it is important to choose an appropriate
@@ -702,7 +702,7 @@ with the same semantics as Sledgehammer's \textit{type\_enc} option
 (\S\ref{problem-encoding}).
 %
 The supported $\lambda$ translation schemes are \textit{hide\_lams},
-\textit{lam\_lifting}, and \textit{combinators} (the default).
+\textit{lifting}, and \textit{combs} (the default).
 %
 All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
 For convenience, the following aliases are provided:
@@ -975,20 +975,24 @@ translation schemes are listed below:
 by replacing them by unspecified fresh constants, effectively disabling all
 reasoning under $\lambda$-abstractions.
 
-\item[\labelitemi] \textbf{\textit{lam\_lifting}:} Introduce a new
+\item[\labelitemi] \textbf{\textit{lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,
 defined using an equation $\const{c}~x_1~\ldots~x_n = t$ ($\lambda$-lifting).
 
-\item[\labelitemi] \textbf{\textit{combinators}:} Rewrite lambdas to the Curry
+\item[\labelitemi] \textbf{\textit{combs}:} Rewrite lambdas to the Curry
 combinators (\comb{I}, \comb{K}, \comb{S}, \comb{B}, \comb{C}). Combinators
 enable the ATPs to synthesize $\lambda$-terms but tend to yield bulkier formulas
 than $\lambda$-lifting: The translation is quadratic in the worst case, and the
 equational definitions of the combinators are very prolific in the context of
 resolution.
 
-\item[\labelitemi] \textbf{\textit{hybrid\_lams}:} Introduce a new
+\item[\labelitemi] \textbf{\textit{combs\_and\_lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $\lambda$-abstractions and characterize it both using a
 lifted equation $\const{c}~x_1~\ldots~x_n = t$ and via Curry combinators.
+
+\item[\labelitemi] \textbf{\textit{combs\_or\_lifting}:} For each cluster of
+$\lambda$-abstractions, heuristically choose between $\lambda$-lifting and Curry
+combinators.
 
 \item[\labelitemi] \textbf{\textit{keep\_lams}:}
 Keep the $\lambda$-abstractions in the generated problems. This is available
@@ -998,8 +1002,8 @@ only with provers that support the THF0 syntax.
 depends on the ATP and should be the most efficient scheme for that ATP.
 \end{enum}
 
-For SMT solvers, the $\lambda$ translation scheme is always
-\textit{lam\_lifting}, irrespective of the value of this option.
+For SMT solvers, the $\lambda$ translation scheme is always \textit{lifting},
+irrespective of the value of this option.
 
 \opdefault{type\_enc}{string}{smart}
 Specifies the type encoding to use in ATP problems. Some of the type encodings

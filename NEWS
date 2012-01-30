@@ -309,7 +309,7 @@ a list and a nat.
 
 * Metis:
   - Added possibility to specify lambda translations scheme as a
-    parenthesized argument (e.g., "by (metis (lam_lifting) ...)").
+    parenthesized argument (e.g., "by (metis (lifting) ...)").
 
 
 *** FOL ***
