@@ -791,6 +791,10 @@ lemma tranclp_unfold [code, no_atp]:
   "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
 by (simp add: trancl_def)
 
+lemma rtranclp_rtrancl_eq[code, no_atp]:
+  "rtranclp r x y = ((x, y) : rtrancl {(x, y). r x y})"
+unfolding rtrancl_def by auto
+
 lemma max_ext_eq[code]:
   "max_ext R = {(X, Y). finite X & finite Y & Y ~={} & (ALL x. x : X --> (EX xa : Y. (x, xa) : R))}"
 by (auto simp add: max_ext.simps)
