@@ -799,6 +799,14 @@ lemma max_ext_eq[code]:
   "max_ext R = {(X, Y). finite X & finite Y & Y ~={} & (ALL x. x : X --> (EX xa : Y. (x, xa) : R))}"
 by (auto simp add: max_ext.simps)
 
+lemma max_extp_eq[code]:
+  "max_extp r x y = ((x, y) : max_ext {(x, y). r x y})"
+unfolding max_ext_def by auto
+
+lemma mlex_eq[code]:
+  "f <*mlex*> R = {(x, y). f x < f y \<or> (f x <= f y \<and> (x, y) : R)}"
+unfolding mlex_prod_def by auto
+
 subsection {* Executable accessible part *}
 (* FIXME: should be moved somewhere else !? *)
 
