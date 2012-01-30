@@ -690,15 +690,6 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
     (if String.isPrefix lam_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
-(* Requires bound variables not to clash with any schematic variables (as should
-   be the case right after lambda-lifting). *)
-fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
-    let
-      val names = Name.make_context (map fst (Term.add_var_names t []))
-      val (s, _) = Name.variant s names
-    in open_form (subst_bound (Var ((s, 0), T), t)) end
-  | open_form t = t
-
 fun lift_lams_part_1 ctxt type_enc =
   map close_form #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
@@ -708,7 +699,7 @@ fun lift_lams_part_1 ctxt type_enc =
                     lam_lifted_mono_prefix) ^ "_a"))
           Lambda_Lifting.is_quantifier
   #> fst
-val lift_lams_part_2 = pairself (map (open_form o constify_lifted))
+val lift_lams_part_2 = pairself (map constify_lifted)
 val lift_lams = lift_lams_part_2 ooo lift_lams_part_1
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
@@ -1683,6 +1674,15 @@ fun add_type_constrs_in_term thy =
 fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
+(* Requires bound variables not to clash with any schematic variables (as should
+   be the case right after lambda-lifting). *)
+fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
+    let
+      val names = Name.make_context (map fst (Term.add_var_names t []))
+      val (s, _) = Name.variant s names
+    in open_form (subst_bound (Var ((s, 0), T), t)) end
+  | open_form t = t
+
 fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
     let val (head, args) = strip_comb t in
       (head |> dest_Const |> fst,
@@ -1749,7 +1749,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
                         make_fact ctxt format type_enc true (name, t)
                         |> Option.map (pair name))
       |> ListPair.unzip
-    val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
+    val lifted = lam_facts |> map (extract_lambda_def o open_form o snd o snd)
     val lam_facts =
       lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
