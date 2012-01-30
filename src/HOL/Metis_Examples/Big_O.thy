@@ -20,10 +20,10 @@ definition bigo :: "('a => 'b\<Colon>{linordered_idom,number_ring}) => ('a => 'b
   "O(f\<Colon>('a => 'b)) == {h. \<exists>c. \<forall>x. abs (h x) <= c * abs (f x)}"
 
 lemma bigo_pos_const:
-  "(\<exists>(c\<Colon>'a\<Colon>linordered_idom).
-    \<forall>x. (abs (h x)) <= (c * (abs (f x))))
-      = (\<exists>c. 0 < c & (\<forall>x. (abs(h x)) <= (c * (abs (f x)))))"
-by (metis (hide_lams, no_types) abs_ge_zero
+  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+    \<forall>x. abs (h x) \<le> c * abs (f x))
+    \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
+by (metis (no_types) abs_ge_zero
       comm_semiring_1_class.normalizing_semiring_rules(7) mult.comm_neutral
       mult_nonpos_nonneg not_leE order_trans zero_less_one)
 
@@ -32,9 +32,9 @@ by (metis (hide_lams, no_types) abs_ge_zero
 sledgehammer_params [isar_proof, isar_shrink_factor = 1]
 
 lemma
-  "(\<exists>(c\<Colon>'a\<Colon>linordered_idom).
-    \<forall>x. (abs (h x)) <= (c * (abs (f x))))
-      = (\<exists>c. 0 < c & (\<forall>x. (abs(h x)) <= (c * (abs (f x)))))"
+  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+    \<forall>x. abs (h x) \<le> c * abs (f x))
+    \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
@@ -63,9 +63,9 @@ qed
 sledgehammer_params [isar_proof, isar_shrink_factor = 2]
 
 lemma
-  "(\<exists>(c\<Colon>'a\<Colon>linordered_idom).
-    \<forall>x. (abs (h x)) <= (c * (abs (f x))))
-      = (\<exists>c. 0 < c & (\<forall>x. (abs(h x)) <= (c * (abs (f x)))))"
+  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+    \<forall>x. abs (h x) \<le> c * abs (f x))
+    \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
@@ -86,9 +86,9 @@ qed
 sledgehammer_params [isar_proof, isar_shrink_factor = 3]
 
 lemma
-  "(\<exists>(c\<Colon>'a\<Colon>linordered_idom).
-    \<forall>x. (abs (h x)) <= (c * (abs (f x))))
-      = (\<exists>c. 0 < c & (\<forall>x. (abs(h x)) <= (c * (abs (f x)))))"
+  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+    \<forall>x. abs (h x) \<le> c * abs (f x))
+    \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
@@ -106,9 +106,9 @@ qed
 sledgehammer_params [isar_proof, isar_shrink_factor = 4]
 
 lemma
-  "(\<exists>(c\<Colon>'a\<Colon>linordered_idom).
-    \<forall>x. (abs (h x)) <= (c * (abs (f x))))
-      = (\<exists>c. 0 < c & (\<forall>x. (abs(h x)) <= (c * (abs (f x)))))"
+  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+    \<forall>x. abs (h x) \<le> c * abs (f x))
+    \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
@@ -125,25 +125,17 @@ qed
 
 sledgehammer_params [isar_proof, isar_shrink_factor = 1]
 
-lemma bigo_alt_def: "O(f) = {h. \<exists>c. (0 < c & (\<forall>x. abs (h x) <= c * abs (f x)))}"
+lemma bigo_alt_def: "O(f) = {h. \<exists>c. (0 < c \<and> (\<forall>x. abs (h x) <= c * abs (f x)))}"
 by (auto simp add: bigo_def bigo_pos_const)
 
-lemma bigo_elt_subset [intro]: "f : O(g) \<Longrightarrow> O(f) <= O(g)"
+lemma bigo_elt_subset [intro]: "f : O(g) \<Longrightarrow> O(f) \<le> O(g)"
 apply (auto simp add: bigo_alt_def)
 apply (rule_tac x = "ca * c" in exI)
-apply (rule conjI)
- apply (rule mult_pos_pos)
-  apply (assumption)+
-(* sledgehammer *)
-apply (rule allI)
-apply (drule_tac x = "xa" in spec)+
-apply (subgoal_tac "ca * abs (f xa) <= ca * (c * abs (g xa))")
- apply (metis comm_semiring_1_class.normalizing_semiring_rules(19)
-          comm_semiring_1_class.normalizing_semiring_rules(7) order_trans)
-by (metis mult_le_cancel_left_pos)
+by (metis comm_semiring_1_class.normalizing_semiring_rules(7,19)
+          mult_le_cancel_left_pos order_trans mult_pos_pos)
 
 lemma bigo_refl [intro]: "f : O(f)"
-apply (auto simp add: bigo_def)
+unfolding bigo_def mem_Collect_eq
 by (metis mult_1 order_refl)
 
 lemma bigo_zero: "0 : O(g)"
@@ -764,7 +756,7 @@ lemma bigo_lesso1: "\<forall>x. f x <= g x \<Longrightarrow> f <o g =o O(h)"
 apply (unfold lesso_def)
 apply (subgoal_tac "(\<lambda>x. max (f x - g x) 0) = 0")
  apply (metis bigo_zero)
-by (metis (lam_lifting, no_types) func_zero le_fun_def le_iff_diff_le_0
+by (metis (lifting, no_types) func_zero le_fun_def le_iff_diff_le_0
       min_max.sup_absorb2 order_eq_iff)
 
 lemma bigo_lesso2: "f =o g +o O(h) \<Longrightarrow>

@@ -48,7 +48,7 @@ lemma Sigma_triv: "(a, b) \<in> Sigma A B \<Longrightarrow> a \<in> A & b \<in> 
 by (metis SigmaD1 SigmaD2)
 
 lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
-by (metis (full_types, lam_lifting) CollectD SigmaD1 SigmaD2)
+by (metis (full_types, lifting) CollectD SigmaD1 SigmaD2)
 
 lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
 proof -
@@ -110,25 +110,25 @@ lemma
   "(cl, f) \<in> CLF \<Longrightarrow>
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) \<Longrightarrow>
    f \<in> pset cl \<inter> cl"
-by (metis (lam_lifting) CollectD Sigma_triv subsetD)
+by (metis (lifting) CollectD Sigma_triv subsetD)
 
 lemma
   "(cl, f) \<in> CLF \<Longrightarrow>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) \<Longrightarrow>
    f \<in> pset cl \<inter> cl"
-by (metis (lam_lifting) CollectD Sigma_triv)
+by (metis (lifting) CollectD Sigma_triv)
 
 lemma
   "(cl, f) \<in> CLF \<Longrightarrow>
    CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) \<Longrightarrow>
    f \<in> pset cl \<rightarrow> pset cl"
-by (metis (lam_lifting) CollectD Sigma_triv subsetD)
+by (metis (lifting) CollectD Sigma_triv subsetD)
 
 lemma
   "(cl, f) \<in> CLF \<Longrightarrow>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) \<Longrightarrow>
    f \<in> pset cl \<rightarrow> pset cl"
-by (metis (lam_lifting) CollectD Sigma_triv)
+by (metis (lifting) CollectD Sigma_triv)
 
 lemma
   "(cl, f) \<in> CLF \<Longrightarrow>
@@ -157,7 +157,7 @@ lemma
 by (metis mem_Collect_eq imageI set_rev_mp)
 
 lemma "f \<in> (\<lambda>u v. b \<times> u \<times> v) ` A \<Longrightarrow> \<forall>u v. P (b \<times> u \<times> v) \<Longrightarrow> P(f y)"
-by (metis (lam_lifting) imageE)
+by (metis (lifting) imageE)
 
 lemma image_TimesA: "(\<lambda>(x, y). (f x, g y)) ` (A \<times> B) = (f ` A) \<times> (g ` B)"
 by (metis map_pair_def map_pair_surj_on)
