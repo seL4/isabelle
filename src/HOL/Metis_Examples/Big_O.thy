@@ -197,6 +197,7 @@ apply (simp add: bigo_alt_def set_plus_def func_plus)
 apply clarify
 (* sledgehammer *)
 apply (rule_tac x = "max c ca" in exI)
+
 apply (rule conjI)
  apply (metis less_max_iff_disj)
 apply clarify
@@ -210,9 +211,8 @@ apply (subgoal_tac "0 <= f xa + g xa")
   defer 1
   apply (metis abs_triangle_ineq)
  apply (metis add_nonneg_nonneg)
-apply (rule add_mono)
- apply (metis le_maxI2 linorder_linear min_max.sup_absorb1 mult_right_mono xt1(6))
-by (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
+by (metis (no_types) add_mono le_maxI2 linorder_linear min_max.sup_absorb1
+          mult_right_mono xt1(6))
 
 lemma bigo_bounded_alt: "\<forall>x. 0 <= f x \<Longrightarrow> \<forall>x. f x <= c * g x \<Longrightarrow> f : O(g)"
 apply (auto simp add: bigo_def)
@@ -234,15 +234,10 @@ by (metis mult_1)
 lemma bigo_bounded2: "\<forall>x. lb x <= f x \<Longrightarrow> \<forall>x. f x <= lb x + g x \<Longrightarrow> f : lb +o O(g)"
 apply (rule set_minus_imp_plus)
 apply (rule bigo_bounded)
- apply (auto simp add: diff_minus fun_Compl_def func_plus)
- prefer 2
- apply (drule_tac x = x in spec)+
- apply (metis add_right_mono add_commute diff_add_cancel diff_minus_eq_add le_less order_trans)
-proof -
-  fix x :: 'a
-  assume "\<forall>x. lb x \<le> f x"
-  thus "(0\<Colon>'b) \<le> f x + - lb x" by (metis not_leE diff_minus less_iff_diff_less_0 less_le_not_le)
-qed
+ apply (metis add_le_cancel_left diff_add_cancel diff_self minus_apply
+              comm_semiring_1_class.normalizing_semiring_rules(24))
+by (metis add_le_cancel_left diff_add_cancel func_plus le_fun_def
+          comm_semiring_1_class.normalizing_semiring_rules(24))
 
 lemma bigo_abs: "(\<lambda>x. abs(f x)) =o O(f)"
 apply (unfold bigo_def)
@@ -273,10 +268,8 @@ proof -
   also have "... <= O(\<lambda>x. abs (f x - g x))"
     apply (rule bigo_elt_subset)
     apply (rule bigo_bounded)
-    apply force
-    apply (rule allI)
-    apply (rule abs_triangle_ineq3)
-    done
+     apply (metis abs_ge_zero)
+    by (metis abs_triangle_ineq3)
   also have "... <= O(f - g)"
     apply (rule bigo_elt_subset)
     apply (subst fun_diff_def)
@@ -296,9 +289,7 @@ proof -
   also have "... <= O(g) \<oplus> O(h)"
     by (auto del: subsetI)
   also have "... = O(\<lambda>x. abs(g x)) \<oplus> O(\<lambda>x. abs(h x))"
-    apply (subst bigo_abs3 [symmetric])+
-    apply (rule refl)
-    done
+    by (metis bigo_abs3)
   also have "... = O((\<lambda>x. abs(g x)) + (\<lambda>x. abs(h x)))"
     by (rule bigo_plus_eq [symmetric], auto)
   finally have "f : ...".
@@ -310,39 +301,21 @@ proof -
     by (simp add: bigo_abs3 [symmetric])
 qed
 
-lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
-  apply (rule subsetI)
-  apply (subst bigo_def)
-  apply (auto simp del: abs_mult mult_ac
-              simp add: bigo_alt_def set_times_def func_times)
+lemma bigo_mult [intro]: "O(f) \<otimes> O(g) <= O(f * g)"
+apply (rule subsetI)
+apply (subst bigo_def)
+apply (auto simp del: abs_mult mult_ac
+            simp add: bigo_alt_def set_times_def func_times)
 (* sledgehammer *)
-  apply (rule_tac x = "c * ca" in exI)
-  apply(rule allI)
-  apply(erule_tac x = x in allE)+
-  apply(subgoal_tac "c * ca * abs(f x * g x) =
-      (c * abs(f x)) * (ca * abs(g x))")
-prefer 2
-apply (metis mult_assoc mult_left_commute
-  abs_of_pos mult_left_commute
-  abs_mult mult_pos_pos)
-  apply (erule ssubst)
-  apply (subst abs_mult)
-(* not quite as hard as BigO__bigo_mult_simpler_1 (a hard problem!) since
-   abs_mult has just been done *)
-by (metis abs_ge_zero mult_mono')
+apply (rule_tac x = "c * ca" in exI)
+apply (rule allI)
+apply (erule_tac x = x in allE)+
+apply (subgoal_tac "c * ca * abs (f x * g x) = (c * abs(f x)) * (ca * abs (g x))")
+ apply (metis (no_types) abs_ge_zero abs_mult mult_mono')
+by (metis mult_assoc mult_left_commute abs_of_pos mult_left_commute abs_mult)
 
 lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
-  apply (auto simp add: bigo_def elt_set_times_def func_times abs_mult)
-(* sledgehammer *)
-  apply (rule_tac x = c in exI)
-  apply clarify
-  apply (drule_tac x = x in spec)
-(*sledgehammer [no luck]*)
-  apply (subgoal_tac "abs(f x) * abs(b x) <= abs(f x) * (c * abs(g x))")
-  apply (simp add: mult_ac)
-  apply (rule mult_left_mono, assumption)
-  apply (rule abs_ge_zero)
-done
+by (metis bigo_mult bigo_refl set_times_mono3 subset_trans)
 
 lemma bigo_mult3: "f : O(h) \<Longrightarrow> g : O(j) \<Longrightarrow> f * g : O(h * j)"
 by (metis bigo_mult set_rev_mp set_times_intro)
@@ -364,157 +337,101 @@ proof -
       by (rule bigo_mult2)
     also have "(\<lambda>x. 1 / f x) * (f * g) = g"
       apply (simp add: func_times)
-      apply (rule ext)
-      apply (simp add: a h nonzero_divide_eq_eq mult_ac)
-      done
+      by (metis (lifting, no_types) a ext mult_ac(2) nonzero_divide_eq_eq)
     finally have "(\<lambda>x. (1\<Colon>'b) / f x) * h : O(g)".
     then have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) : f *o O(g)"
       by auto
     also have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) = h"
       apply (simp add: func_times)
-      apply (rule ext)
-      apply (simp add: a h nonzero_divide_eq_eq mult_ac)
-      done
+      by (metis (lifting, no_types) a eq_divide_imp ext
+                comm_semiring_1_class.normalizing_semiring_rules(7))
     finally show "h : f *o O(g)".
   qed
 qed
 
-lemma bigo_mult6: "\<forall>x. f x ~= 0 \<Longrightarrow>
-    O(f * g) = (f\<Colon>'a => ('b\<Colon>{linordered_field,number_ring})) *o O(g)"
+lemma bigo_mult6:
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = (f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) *o O(g)"
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
 declare bigo_mult6 [simp]
 
-lemma bigo_mult7: "\<forall>x. f x ~= 0 \<Longrightarrow>
-    O(f * g) <= O(f\<Colon>'a => ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
-(* sledgehammer *)
-  apply (subst bigo_mult6)
-  apply assumption
-  apply (rule set_times_mono3)
-  apply (rule bigo_refl)
-done
+lemma bigo_mult7:
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
+by (metis bigo_refl bigo_mult6 set_times_mono3)
 
 declare bigo_mult6 [simp del]
 declare bigo_mult7 [intro!]
 
-lemma bigo_mult8: "\<forall>x. f x ~= 0 \<Longrightarrow>
-    O(f * g) = O(f\<Colon>'a => ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
+lemma bigo_mult8:
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>{linordered_field,number_ring})) \<otimes> O(g)"
 by (metis bigo_mult bigo_mult7 order_antisym_conv)
 
 lemma bigo_minus [intro]: "f : O(g) \<Longrightarrow> - f : O(g)"
-  by (auto simp add: bigo_def fun_Compl_def)
+by (auto simp add: bigo_def fun_Compl_def)
 
 lemma bigo_minus2: "f : g +o O(h) \<Longrightarrow> -f : -g +o O(h)"
-  apply (rule set_minus_imp_plus)
-  apply (drule set_plus_imp_minus)
-  apply (drule bigo_minus)
-  apply (simp add: diff_minus)
-done
+by (metis (no_types) bigo_elt_subset bigo_minus bigo_mult4 bigo_refl
+          comm_semiring_1_class.normalizing_semiring_rules(11) minus_mult_left
+          set_plus_mono_b)
 
 lemma bigo_minus3: "O(-f) = O(f)"
-  by (auto simp add: bigo_def fun_Compl_def abs_minus_cancel)
+by (metis bigo_elt_subset bigo_minus bigo_refl equalityI minus_minus)
 
-lemma bigo_plus_absorb_lemma1: "f : O(g) \<Longrightarrow> f +o O(g) <= O(g)"
-proof -
-  assume a: "f : O(g)"
-  show "f +o O(g) <= O(g)"
-  proof -
-    have "f : O(f)" by auto
-    then have "f +o O(g) <= O(f) \<oplus> O(g)"
-      by (auto del: subsetI)
-    also have "... <= O(g) \<oplus> O(g)"
-    proof -
-      from a have "O(f) <= O(g)" by (auto del: subsetI)
-      thus ?thesis by (auto del: subsetI)
-    qed
-    also have "... <= O(g)" by (simp add: bigo_plus_idemp)
-    finally show ?thesis .
-  qed
-qed
+lemma bigo_plus_absorb_lemma1: "f : O(g) \<Longrightarrow> f +o O(g) \<le> O(g)"
+by (metis bigo_plus_idemp set_plus_mono3)
 
-lemma bigo_plus_absorb_lemma2: "f : O(g) \<Longrightarrow> O(g) <= f +o O(g)"
-proof -
-  assume a: "f : O(g)"
-  show "O(g) <= f +o O(g)"
-  proof -
-    from a have "-f : O(g)" by auto
-    then have "-f +o O(g) <= O(g)" by (elim bigo_plus_absorb_lemma1)
-    then have "f +o (-f +o O(g)) <= f +o O(g)" by auto
-    also have "f +o (-f +o O(g)) = O(g)"
-      by (simp add: set_plus_rearranges)
-    finally show ?thesis .
-  qed
-qed
+lemma bigo_plus_absorb_lemma2: "f : O(g) \<Longrightarrow> O(g) \<le> f +o O(g)"
+by (metis (no_types) bigo_minus bigo_plus_absorb_lemma1 right_minus
+          set_plus_mono_b set_plus_rearrange2 set_zero_plus subsetI)
 
 lemma bigo_plus_absorb [simp]: "f : O(g) \<Longrightarrow> f +o O(g) = O(g)"
 by (metis bigo_plus_absorb_lemma1 bigo_plus_absorb_lemma2 order_eq_iff)
 
-lemma bigo_plus_absorb2 [intro]: "f : O(g) \<Longrightarrow> A <= O(g) \<Longrightarrow> f +o A <= O(g)"
-  apply (subgoal_tac "f +o A <= f +o O(g)")
-  apply force+
-done
+lemma bigo_plus_absorb2 [intro]: "f : O(g) \<Longrightarrow> A <= O(g) \<Longrightarrow> f +o A \<le> O(g)"
+by (metis bigo_plus_absorb set_plus_mono)
 
 lemma bigo_add_commute_imp: "f : g +o O(h) \<Longrightarrow> g : f +o O(h)"
-  apply (subst set_minus_plus [symmetric])
-  apply (subgoal_tac "g - f = - (f - g)")
-  apply (erule ssubst)
-  apply (rule bigo_minus)
-  apply (subst set_minus_plus)
-  apply assumption
-  apply (simp add: diff_minus add_ac)
-done
+by (metis bigo_minus minus_diff_eq set_plus_imp_minus set_minus_plus)
 
 lemma bigo_add_commute: "(f : g +o O(h)) = (g : f +o O(h))"
-  apply (rule iffI)
-  apply (erule bigo_add_commute_imp)+
-done
+by (metis bigo_add_commute_imp)
 
 lemma bigo_const1: "(\<lambda>x. c) : O(\<lambda>x. 1)"
 by (auto simp add: bigo_def mult_ac)
 
-lemma (*bigo_const2 [intro]:*) "O(\<lambda>x. c) <= O(\<lambda>x. 1)"
+lemma bigo_const2 [intro]: "O(\<lambda>x. c) \<le> O(\<lambda>x. 1)"
 by (metis bigo_const1 bigo_elt_subset)
-
-lemma bigo_const2 [intro]: "O(\<lambda>x. c\<Colon>'b\<Colon>{linordered_idom,number_ring}) <= O(\<lambda>x. 1)"
-proof -
-  have "\<forall>u. (\<lambda>Q. u) \<in> O(\<lambda>Q. 1)" by (metis bigo_const1)
-  thus "O(\<lambda>x. c) \<subseteq> O(\<lambda>x. 1)" by (metis bigo_elt_subset)
-qed
 
 lemma bigo_const3: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> (\<lambda>x. 1) : O(\<lambda>x. c)"
 apply (simp add: bigo_def)
 by (metis abs_eq_0 left_inverse order_refl)
 
 lemma bigo_const4: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> O(\<lambda>x. 1) <= O(\<lambda>x. c)"
-by (rule bigo_elt_subset, rule bigo_const3, assumption)
+by (metis bigo_elt_subset bigo_const3)
 
 lemma bigo_const [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c) = O(\<lambda>x. 1)"
-by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
+by (metis bigo_const2 bigo_const4 equalityI)
 
 lemma bigo_const_mult1: "(\<lambda>x. c * f x) : O(f)"
-  apply (simp add: bigo_def abs_mult)
+apply (simp add: bigo_def abs_mult)
 by (metis le_less)
 
-lemma bigo_const_mult2: "O(\<lambda>x. c * f x) <= O(f)"
+lemma bigo_const_mult2: "O(\<lambda>x. c * f x) \<le> O(f)"
 by (rule bigo_elt_subset, rule bigo_const_mult1)
 
 lemma bigo_const_mult3: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
 apply (simp add: bigo_def)
-(* sledgehammer *)
-apply (rule_tac x = "abs(inverse c)" in exI)
-apply (simp only: abs_mult [symmetric] mult_assoc [symmetric])
-apply (subst left_inverse)
-by auto
+by (metis (no_types) abs_mult mult_assoc mult_1 order_refl left_inverse)
 
-lemma bigo_const_mult4: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
-    O(f) <= O(\<lambda>x. c * f x)"
-by (rule bigo_elt_subset, rule bigo_const_mult3, assumption)
+lemma bigo_const_mult4:
+"(c\<Colon>'a\<Colon>{linordered_field,number_ring}) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
+by (metis bigo_elt_subset bigo_const_mult3)
 
 lemma bigo_const_mult [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c * f x) = O(f)"
-by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
+by (metis equalityI bigo_const_mult2 bigo_const_mult4)
 
 lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>{linordered_field,number_ring}) ~= 0 \<Longrightarrow>
     (\<lambda>x. c) *o O(f) = O(f)"
@@ -563,48 +480,36 @@ lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"
   apply (rule mult_left_mono)
   apply (erule spec)
   apply simp
-  apply(simp add: mult_ac)
+  apply (simp add: mult_ac)
 done
 
 lemma bigo_const_mult7 [intro]: "f =o O(g) \<Longrightarrow> (\<lambda>x. c * f x) =o O(g)"
-proof -
-  assume "f =o O(g)"
-  then have "(\<lambda>x. c) * f =o (\<lambda>x. c) *o O(g)"
-    by auto
-  also have "(\<lambda>x. c) * f = (\<lambda>x. c * f x)"
-    by (simp add: func_times)
-  also have "(\<lambda>x. c) *o O(g) <= O(g)"
-    by (auto del: subsetI)
-  finally show ?thesis .
-qed
+by (metis bigo_const_mult1 bigo_elt_subset order_less_le psubsetD)
 
 lemma bigo_compose1: "f =o O(g) \<Longrightarrow> (\<lambda>x. f(k x)) =o O(\<lambda>x. g(k x))"
 by (unfold bigo_def, auto)
 
-lemma bigo_compose2: "f =o g +o O(h) \<Longrightarrow> (\<lambda>x. f(k x)) =o (\<lambda>x. g(k x)) +o
-    O(\<lambda>x. h(k x))"
-  apply (simp only: set_minus_plus [symmetric] diff_minus fun_Compl_def
-      func_plus)
-  apply (erule bigo_compose1)
-done
+lemma bigo_compose2:
+"f =o g +o O(h) \<Longrightarrow> (\<lambda>x. f(k x)) =o (\<lambda>x. g(k x)) +o O(\<lambda>x. h(k x))"
+apply (simp only: set_minus_plus [symmetric] diff_minus fun_Compl_def func_plus)
+by (erule bigo_compose1)
 
 subsection {* Setsum *}
 
 lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 <= h x y \<Longrightarrow>
     \<exists>c. \<forall>x. \<forall>y \<in> A x. abs (f x y) <= c * (h x y) \<Longrightarrow>
       (\<lambda>x. SUM y : A x. f x y) =o O(\<lambda>x. SUM y : A x. h x y)"
-  apply (auto simp add: bigo_def)
-  apply (rule_tac x = "abs c" in exI)
-  apply (subst abs_of_nonneg) back back
-  apply (rule setsum_nonneg)
-  apply force
-  apply (subst setsum_right_distrib)
-  apply (rule allI)
-  apply (rule order_trans)
-  apply (rule setsum_abs)
-  apply (rule setsum_mono)
-apply (blast intro: order_trans mult_right_mono abs_ge_self)
-done
+apply (auto simp add: bigo_def)
+apply (rule_tac x = "abs c" in exI)
+apply (subst abs_of_nonneg) back back
+ apply (rule setsum_nonneg)
+ apply force
+apply (subst setsum_right_distrib)
+apply (rule allI)
+apply (rule order_trans)
+ apply (rule setsum_abs)
+apply (rule setsum_mono)
+by (metis abs_ge_self abs_mult_pos order_trans)
 
 lemma bigo_setsum1: "\<forall>x y. 0 <= h x y \<Longrightarrow>
     \<exists>c. \<forall>x y. abs (f x y) <= c * (h x y) \<Longrightarrow>
@@ -612,9 +517,10 @@ lemma bigo_setsum1: "\<forall>x y. 0 <= h x y \<Longrightarrow>
 by (metis (no_types) bigo_setsum_main)
 
 lemma bigo_setsum2: "\<forall>y. 0 <= h y \<Longrightarrow>
-    \<exists>c. \<forall>y. abs(f y) <= c * (h y) \<Longrightarrow>
+    \<exists>c. \<forall>y. abs (f y) <= c * (h y) \<Longrightarrow>
       (\<lambda>x. SUM y : A x. f y) =o O(\<lambda>x. SUM y : A x. h y)"
-by (rule bigo_setsum1, auto)
+apply (rule bigo_setsum1)
+by metis+
 
 lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
     (\<lambda>x. SUM y : A x. (l x y) * f(k x y)) =o
@@ -624,13 +530,7 @@ apply (rule bigo_setsum1)
  apply (rule abs_ge_zero)
 apply (unfold bigo_def)
 apply (auto simp add: abs_mult)
-(* sledgehammer *)
-apply (rule_tac x = c in exI)
-apply (rule allI)+
-apply (subst mult_left_commute)
-apply (rule mult_left_mono)
- apply (erule spec)
-by (rule abs_ge_zero)
+by (metis abs_ge_zero mult_left_commute mult_left_mono)
 
 lemma bigo_setsum4: "f =o g +o O(h) \<Longrightarrow>
     (\<lambda>x. SUM y : A x. l x y * f(k x y)) =o
@@ -641,22 +541,19 @@ apply (subst fun_diff_def)
 apply (subst setsum_subtractf [symmetric])
 apply (subst right_diff_distrib [symmetric])
 apply (rule bigo_setsum3)
-apply (subst fun_diff_def [symmetric])
-by (erule set_plus_imp_minus)
+by (metis (lifting, no_types) fun_diff_def set_plus_imp_minus ext)
 
 lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
     \<forall>x. 0 <= h x \<Longrightarrow>
       (\<lambda>x. SUM y : A x. (l x y) * f(k x y)) =o
         O(\<lambda>x. SUM y : A x. (l x y) * h(k x y))"
-  apply (subgoal_tac "(\<lambda>x. SUM y : A x. (l x y) * h(k x y)) =
+apply (subgoal_tac "(\<lambda>x. SUM y : A x. (l x y) * h(k x y)) =
       (\<lambda>x. SUM y : A x. abs((l x y) * h(k x y)))")
-  apply (erule ssubst)
-  apply (erule bigo_setsum3)
-  apply (rule ext)
-  apply (rule setsum_cong2)
-  apply (thin_tac "f \<in> O(h)")
-apply (metis abs_of_nonneg zero_le_mult_iff)
-done
+ apply (erule ssubst)
+ apply (erule bigo_setsum3)
+apply (rule ext)
+apply (rule setsum_cong2)
+by (metis abs_of_nonneg zero_le_mult_iff)
 
 lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
     \<forall>x. 0 <= h x \<Longrightarrow>
