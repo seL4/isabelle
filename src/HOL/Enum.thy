@@ -787,6 +787,9 @@ lemma [code]:
   "Collect P = set (filter P enum)"
 by (auto simp add: enum_UNIV)
 
+lemma tranclp_unfold [code, no_atp]:
+  "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
+by (simp add: trancl_def)
 
 subsection {* Executable accessible part *}
 (* FIXME: should be moved somewhere else !? *)
