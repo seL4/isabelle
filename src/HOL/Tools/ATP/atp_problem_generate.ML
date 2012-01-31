@@ -1600,7 +1600,7 @@ fun type_tag_idempotence_fact format type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] false (tag tagged_var) tagged_var,
-             isabelle_info format simpN, NONE)
+             isabelle_info format eqN, NONE)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1921,7 +1921,7 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
      Intro => isabelle_info format introN
    | Elim => isabelle_info format elimN
    | Simp => isabelle_info format simpN
-   | Eq => isabelle_info format simpN
+   | Eq => isabelle_info format eqN
    | _ => NONE)
   |> Formula
 
@@ -2164,7 +2164,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             isabelle_info format simpN, NONE)
+             isabelle_info format eqN, NONE)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2269,7 +2269,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         isabelle_info format simpN, NONE))
+                         isabelle_info format eqN, NONE))
         end
       else
         I
@@ -2281,7 +2281,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           isabelle_info format simpN, NONE))
+                           isabelle_info format eqN, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
           I

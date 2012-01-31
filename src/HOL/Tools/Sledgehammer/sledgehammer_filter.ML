@@ -798,9 +798,9 @@ fun clasimpset_rule_table_of ctxt =
            |> filter (curry (op =) Spec_Rules.Equational o fst)
            |> maps (snd o snd)
   in
-    Termtab.empty |> add Eq I I eqs
-                  |> add Simp I snd simps
+    Termtab.empty |> add Simp I snd simps
                   |> add Simp atomize snd simps
+                  |> add Eq I I eqs
                   |> add Elim I I elims
                   |> add Intro I I intros
   end

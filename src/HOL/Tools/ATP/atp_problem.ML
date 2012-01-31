@@ -49,6 +49,7 @@ sig
   val introN : string
   val elimN : string
   val simpN : string
+  val eqN : string
   val tptp_cnf : string
   val tptp_fof : string
   val tptp_tff : string
@@ -168,10 +169,11 @@ fun isabelle_info (DFG DFG_Sorted) s =
 val introN = "intro"
 val elimN = "elim"
 val simpN = "simp"
+val eqN = "eq"
 
-fun is_isabelle_info suffix (SOME (ATerm ("[]", [ATerm (s, [])]))) =
-    s = isabelle_info_prefix ^ suffix
-  | is_isabelle_info _ _ = false
+fun extract_isabelle_info (SOME (ATerm ("[]", [ATerm (s, [])]))) =
+    try (unprefix isabelle_info_prefix) s
+  | extract_isabelle_info _ = NONE
 
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"
@@ -433,8 +435,17 @@ fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
 
 fun dfg_string_for_formula flavor info =
   let
-    fun str_for_term simp (ATerm (s, tms)) =
-        (if is_tptp_equal s then "equal" |> simp ? suffix ":lr"
+    fun suffix_tag top_level s =
+      if top_level then
+        case extract_isabelle_info info of
+          SOME s' => if s' = simpN then s ^ ":lr"
+                     else if s' = eqN then s ^ ":lr" (* not yet ":lt" *)
+                     else s
+        | NONE => s
+      else
+        s
+    fun str_for_term top_level (ATerm (s, tms)) =
+        (if is_tptp_equal s then "equal" |> suffix_tag top_level
          else if s = tptp_true then "true"
          else if s = tptp_false then "false"
          else s) ^
@@ -447,16 +458,16 @@ fun dfg_string_for_formula flavor info =
       | str_for_conn _ AAnd = "and"
       | str_for_conn _ AOr = "or"
       | str_for_conn _ AImplies = "implies"
-      | str_for_conn simp AIff = "equiv" |> simp ? suffix ":lr"
-    fun str_for_formula simp (AQuant (q, xs, phi)) =
+      | str_for_conn top_level AIff = "equiv" |> suffix_tag top_level
+    fun str_for_formula top_level (AQuant (q, xs, phi)) =
         str_for_quant q ^ "(" ^ "[" ^
         commas (map (string_for_bound_var (DFG flavor)) xs) ^ "], " ^
-        str_for_formula simp phi ^ ")"
-      | str_for_formula simp (AConn (c, phis)) =
-        str_for_conn simp c ^ "(" ^
+        str_for_formula top_level phi ^ ")"
+      | str_for_formula top_level (AConn (c, phis)) =
+        str_for_conn top_level c ^ "(" ^
         commas (map (str_for_formula false) phis) ^ ")"
-      | str_for_formula simp (AAtom tm) = str_for_term simp tm
-  in str_for_formula (is_isabelle_info simpN info) end
+      | str_for_formula top_level (AAtom tm) = str_for_term top_level tm
+  in str_for_formula true end
 
 fun dfg_lines flavor problem =
   let
