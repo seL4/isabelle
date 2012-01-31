@@ -37,6 +37,7 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
+  val spass_incompleteN : string
   val eN : string
   val e_sineN : string
   val e_tofofN : string
@@ -312,6 +313,8 @@ val satallax = (satallaxN, satallax_config)
 
 (* SPASS *)
 
+val spass_incompleteN = "incomplete"
+
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of explicit application operators. *)
 val spass_config : atp_config =
@@ -350,24 +353,21 @@ val spass = (spassN, spass_config)
 val spass_new_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass_new"),
    required_execs = [],
-   arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
-     (* -Splits=0 -FullRed=0 -VarWeight=3? *)
+   arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
      ("-Auto -LR=1 -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
-     |> sos = sosN ? prefix "-SOS=1 ",
+     |> incomplete = spass_incompleteN ? prefix "-Splits=0 -FullRed=0 ",
    proof_delims = #proof_delims spass_config,
    known_failures = #known_failures spass_config,
    conj_sym_kind = #conj_sym_kind spass_config,
    prem_kind = #prem_kind spass_config,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, DFG DFG_Sorted, "mono_simple", liftingN,
-                       no_sosN))),
+     [(0.333, (false, (150, DFG DFG_Sorted, "poly_tags??", combs_and_liftingN,
+                       ""))),
       (0.333, (false, (300, DFG DFG_Sorted, "mono_simple", liftingN,
-                       no_sosN))),
-      (0.334, (true, (50, DFG DFG_Sorted, "mono_simple", liftingN,
-                      no_sosN)))]
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
-         else I)}
+                       spass_incompleteN))),
+      (0.334, (false, (50, DFG DFG_Sorted, "mono_simple", combs_and_liftingN,
+                       "")))]}
 
 val spass_new = (spass_newN, spass_new_config)
 

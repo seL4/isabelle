@@ -1186,8 +1186,7 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, (Global, General)),
-                (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, (Global, Eq)), (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 

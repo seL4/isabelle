@@ -439,7 +439,7 @@ fun dfg_string_for_formula flavor info =
       if top_level then
         case extract_isabelle_info info of
           SOME s' => if s' = simpN then s ^ ":lr"
-                     else if s' = eqN then s ^ ":lr" (* not yet ":lt" *)
+                     else if s' = eqN then s ^ ":lt"
                      else s
         | NONE => s
       else
