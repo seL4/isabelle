@@ -692,12 +692,15 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
 
 (* Requires bound variables not to clash with any schematic variables (as should
    be the case right after lambda-lifting). *)
-fun open_form (Const (@{const_name All}, _) $ Abs (s, T, t)) =
-    let
-      val names = Name.make_context (map fst (Term.add_var_names t []))
-      val (s, _) = Name.variant s names
-    in open_form (subst_bound (Var ((s, 0), T), t)) end
-  | open_form t = t
+fun open_form unprefix (t as Const (@{const_name All}, _) $ Abs (s, T, t')) =
+    (case try unprefix s of
+       SOME s =>
+       let
+         val names = Name.make_context (map fst (Term.add_var_names t' []))
+         val (s, _) = Name.variant s names
+       in open_form unprefix (subst_bound (Var ((s, 0), T), t')) end
+     | NONE => t)
+  | open_form _ t = t
 
 fun lift_lams_part_1 ctxt type_enc =
   map close_form #> rpair ctxt
@@ -708,7 +711,9 @@ fun lift_lams_part_1 ctxt type_enc =
                     lam_lifted_mono_prefix) ^ "_a"))
           Lambda_Lifting.is_quantifier
   #> fst
-val lift_lams_part_2 = pairself (map (open_form o constify_lifted))
+fun lift_lams_part_2 (facts, lifted) =
+  (map (open_form (unprefix close_form_prefix) o constify_lifted) facts,
+   map (open_form I o constify_lifted) lifted)
 val lift_lams = lift_lams_part_2 ooo lift_lams_part_1
 
 fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
@@ -1235,15 +1240,14 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
     if s = tptp_true then NONE else SOME formula
   | formula => SOME formula
 
-fun not_trueprop (@{const Trueprop} $ t) =
-    @{const Trueprop} $ (@{const Not} $ t)
-  | not_trueprop t =
-    if fastype_of t = @{typ bool} then @{const Not} $ t
+fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not_trueprop t =
+    if fastype_of t = @{typ bool} then s_not t
     else @{prop False} (* "t" is too meta *)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (kind, t)) =>
-          t |> kind = Conjecture ? not_trueprop
+          t |> kind = Conjecture ? s_not_trueprop
             |> make_formula ctxt format type_enc (format <> CNF) name stature
                             kind)
 
@@ -1730,7 +1734,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
-      map (pair prem_kind) hyp_ts @ [(Conjecture, not_trueprop concl_t)]
+      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair (Local, General) o string_of_int)
               (0 upto length hyp_ts)
