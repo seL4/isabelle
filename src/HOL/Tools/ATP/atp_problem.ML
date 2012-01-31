@@ -432,6 +432,8 @@ fun is_function_type (AFun (_, ty)) = is_function_type ty
 fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
   | is_predicate_type (AType (s, _)) = (s = tptp_bool_type)
   | is_predicate_type _ = false
+fun is_nontrivial_predicate_type (AFun (_, ty)) = is_predicate_type ty
+  | is_nontrivial_predicate_type _ = false
 
 fun dfg_string_for_formula flavor info =
   let
@@ -495,7 +497,8 @@ fun dfg_lines flavor problem =
       |> commas |> enclose "functions [" "]."
     val pred_aries =
       filt (fn Decl (_, sym, ty) =>
-               if is_predicate_type ty then SOME (ary sym ty) else NONE
+               if is_nontrivial_predicate_type ty then SOME (ary sym ty)
+               else NONE
              | _ => NONE)
       |> commas |> enclose "predicates [" "]."
     fun sorts () =

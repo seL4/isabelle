@@ -360,7 +360,7 @@ val spass_new_config : atp_config =
    known_failures = #known_failures spass_config,
    conj_sym_kind = #conj_sym_kind spass_config,
    prem_kind = #prem_kind spass_config,
-   best_slices = fn ctxt =>
+   best_slices = fn _ =>
      (* FUDGE *)
      [(0.333, (false, (150, DFG DFG_Sorted, "poly_tags??", combs_and_liftingN,
                        ""))),
