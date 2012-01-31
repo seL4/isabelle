@@ -9,7 +9,7 @@ val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val type_encK = "type_enc"
-val soundK = "sound"
+val strictK = "strict"
 val sliceK = "slice"
 val lam_transK = "lam_trans"
 val e_weight_methodK = "e_weight_method"
@@ -361,7 +361,7 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
+fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
         e_weight_method force_sos hard_timeout timeout dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
@@ -385,7 +385,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_enc", type_enc),
-           ("sound", sound),
+           ("strict", strict),
            ("lam_trans", lam_trans |> the_default "smart"),
            ("preplay_timeout", preplay_timeout),
            ("max_relevant", max_relevant),
@@ -467,7 +467,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val sound = AList.lookup (op =) args soundK |> the_default "false"
+    val strict = AList.lookup (op =) args strictK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slice = AList.lookup (op =) args sliceK |> the_default "true"
     val lam_trans = AList.lookup (op =) args lam_transK
@@ -480,7 +480,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc sound max_relevant slice lam_trans
+      run_sh prover_name prover type_enc strict max_relevant slice lam_trans
         e_weight_method force_sos hard_timeout timeout dir pos st
   in
     case result of
@@ -517,7 +517,7 @@ fun run_minimize args reconstructor named_thms id
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val sound = AList.lookup (op =) args soundK |> the_default "false"
+    val strict = AList.lookup (op =) args strictK |> the_default "false"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
@@ -526,7 +526,7 @@ fun run_minimize args reconstructor named_thms id
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
-       ("sound", sound),
+       ("strict", strict),
        ("timeout", string_of_int timeout),
        ("preplay_timeout", preplay_timeout)]
     val minimize =
@@ -554,7 +554,7 @@ fun override_params prover type_enc timeout =
   [("provers", prover),
    ("max_relevant", "0"),
    ("type_enc", type_enc),
-   ("sound", "true"),
+   ("strict", "true"),
    ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
