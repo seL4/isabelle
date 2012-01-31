@@ -620,7 +620,10 @@ proof-
   show ?thesis using assms(3) by(simp)
 qed
 
-(* step' = step_ivl! mv into locale*)
+
+context Abs_Int2
+begin
+
 lemma iter_widen_step'_Com:
   "iter_widen (step' \<top>) c = Some c' \<Longrightarrow> vars(strip c) \<subseteq> X \<Longrightarrow> c : Com(X)
    \<Longrightarrow> c' : Com(X)"
@@ -632,8 +635,10 @@ prefer 3 apply assumption
 apply (auto simp: step'_Com)
 done
 
-theorem step_ivl_termination:
-  "EX c. AI_ivl' c0 = Some c"
+end
+
+theorem AI_ivl'_termination:
+  "EX c'. AI_ivl' c = Some c'"
 apply(auto simp: AI_wn_def pfp_wn_def iter_winden_step_ivl_termination split: option.split)
 apply(rule iter_narrow_step_ivl_termination)
 apply (metis bot_acom_Com iter_widen_step'_Com[OF _ subset_refl] strip_iter_widen strip_step')
