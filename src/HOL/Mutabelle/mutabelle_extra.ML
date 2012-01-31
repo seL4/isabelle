@@ -121,7 +121,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
       (fn _ =>
           let
             val ctxt' = change_options (Proof_Context.init_global thy)
-            val [result] = case Quickcheck.active_testers ctxt' of
+            val (result :: _) = case Quickcheck.active_testers ctxt' of
               [] => error "No active testers for quickcheck"
             | [tester] => tester ctxt' false [] [(t, [])]
             | _ => error "Multiple active testers for quickcheck"
