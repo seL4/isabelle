@@ -644,7 +644,7 @@ val max_readable_name_size = 20
    is still necessary). *)
 val reserved_nice_names = [tptp_old_equal, "op", "eq"]
 
-fun readable_name underscore full_name s =
+fun readable_name protect full_name s =
   (if s = full_name then
      s
    else
@@ -661,17 +661,17 @@ fun readable_name underscore full_name s =
                 s)
        |> (fn s =>
               if member (op =) reserved_nice_names s then full_name else s))
-  |> underscore ? suffix "_"
+  |> protect
 
 fun nice_name _ (full_name, _) NONE = (full_name, NONE)
-  | nice_name underscore (full_name, desired_name) (SOME the_pool) =
+  | nice_name protect (full_name, desired_name) (SOME the_pool) =
     if is_built_in_tptp_symbol full_name then
       (full_name, SOME the_pool)
     else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
     | NONE =>
       let
-        val nice_prefix = readable_name underscore full_name desired_name
+        val nice_prefix = readable_name protect full_name desired_name
         fun add j =
           let
             val nice_name =
@@ -688,12 +688,21 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
+fun avoid_clash_with_dfg_keywords s =
+  let val n = String.size s in
+    if n < 2 orelse String.isSubstring "_" s then
+      s
+    else
+      String.substring (s, 0, n - 1) ^
+      String.str (Char.toUpper (String.sub (s, n - 1)))
+  end
+
 fun nice_atp_problem readable_names format problem =
   let
     val empty_pool =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
-    val underscore = case format of DFG _ => true | _ => false
-    val nice_name = nice_name underscore
+    val nice_name =
+      nice_name (case format of DFG _ => avoid_clash_with_dfg_keywords | _ => I)
     fun nice_type (AType (name, tys)) =
         nice_name name ##>> pool_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
