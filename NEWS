@@ -73,6 +73,8 @@ sets, a planning step is necessary to determine what should become a
 predicate and what a set.  It can be helpful to carry out that step in
 Isabelle2011-1 before jumping right into the current release.
 
+* New type synonym 'a rel = ('a * 'a) set
+
 * Consolidated various theorem names relating to Finite_Set.fold
 combinator:
 
