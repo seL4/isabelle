@@ -1599,7 +1599,7 @@ fun type_tag_idempotence_fact format type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] false (tag tagged_var) tagged_var,
-             isabelle_info format eqN, NONE)
+             NONE, isabelle_info format eqN)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1933,7 +1933,7 @@ fun formula_line_for_class_rel_clause format type_enc
                      type_class_formula type_enc superclass ty_arg])
              |> mk_aquant AForall
                           [(tvar_a_name, atype_of_type_vars type_enc)],
-             isabelle_info format introN, NONE)
+             NONE, isabelle_info format introN)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
@@ -1947,7 +1947,7 @@ fun formula_line_for_arity_clause format type_enc
                     (formula_from_arity_atom type_enc concl_atom)
            |> mk_aquant AForall
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
-           isabelle_info format introN, NONE)
+           NONE, isabelle_info format introN)
 
 fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -2154,7 +2154,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           isabelle_info format introN, NONE)
+           NONE, isabelle_info format introN)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2163,7 +2163,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             isabelle_info format eqN, NONE)
+             NONE, isabelle_info format eqN)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2232,7 +2232,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             isabelle_info format introN, NONE)
+             NONE, isabelle_info format introN)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2268,7 +2268,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         isabelle_info format eqN, NONE))
+                         NONE, isabelle_info format eqN))
         end
       else
         I
@@ -2280,7 +2280,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           isabelle_info format eqN, NONE))
+                           NONE, isabelle_info format eqN))
           | _ => raise Fail "expected nonempty tail"
         else
           I
