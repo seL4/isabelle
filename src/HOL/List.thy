@@ -5674,6 +5674,11 @@ lemma Pow_set [code]:
   "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
   by (simp_all add: Pow_insert Let_def)
 
+text {* Further operations on sets *}
+
+lemma setsum_code [code]:
+  "setsum f (set xs) = listsum (map f (remdups xs))"
+by (simp add: listsum_distinct_conv_setsum_set)
 
 text {* Operations on relations *}
 
