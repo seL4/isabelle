@@ -1236,13 +1236,15 @@ fun make_fact ctxt format type_enc eq_as_iff ((name, stature), t) =
     if s = tptp_true then NONE else SOME formula
   | formula => SOME formula
 
-fun s_not_trueprop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_trueprop t =
-    if fastype_of t = @{typ bool} then s_not t else @{prop False} (* too meta *)
+fun not_trueprop (@{const Trueprop} $ t) =
+    @{const Trueprop} $ (@{const Not} $ t)
+  | not_trueprop t =
+    if fastype_of t = @{typ bool} then @{const Not} $ t
+    else @{prop False} (* "t" is too meta *)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (kind, t)) =>
-          t |> kind = Conjecture ? s_not_trueprop
+          t |> kind = Conjecture ? not_trueprop
             |> make_formula ctxt format type_enc (format <> CNF) name stature
                             kind)
 
@@ -1729,7 +1731,7 @@ fun translate_formulas ctxt format prem_kind type_enc lam_trans presimp hyp_ts
       |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
-      map (pair prem_kind) hyp_ts @ [(Conjecture, s_not_trueprop concl_t)]
+      map (pair prem_kind) hyp_ts @ [(Conjecture, not_trueprop concl_t)]
       |> map (apsnd freeze_term)
       |> map2 (pair o rpair (Local, General) o string_of_int)
               (0 upto length hyp_ts)
