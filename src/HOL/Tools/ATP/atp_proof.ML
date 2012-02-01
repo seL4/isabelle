@@ -439,10 +439,15 @@ fun resolve_spass_num spass_names num =
                 []
   | NONE => []
 
+val parse_spass_debug =
+  Scan.option ($$ "(" |-- Scan.repeat (scan_general_id --| Scan.option ($$ ","))
+               --| $$ ")")
+
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>. *)
 fun parse_spass_line spass_names =
-  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" -- Symbol.scan_id
-    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
+  parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
+    -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
+    -- parse_horn_clause --| $$ "."
   >> (fn (((num, rule), deps), u) =>
          Inference ((num, resolve_spass_num spass_names num), u, rule,
                     map (swap o `(resolve_spass_num spass_names)) deps))
