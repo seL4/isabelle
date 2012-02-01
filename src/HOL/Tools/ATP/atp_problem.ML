@@ -497,8 +497,7 @@ fun dfg_lines flavor problem =
       |> commas |> enclose "functions [" "]."
     val pred_aries =
       filt (fn Decl (_, sym, ty) =>
-               if is_nontrivial_predicate_type ty then SOME (ary sym ty)
-               else NONE
+               if is_predicate_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
       |> commas |> enclose "predicates [" "]."
     fun sorts () =
@@ -513,7 +512,8 @@ fun dfg_lines flavor problem =
              | _ => NONE)
     fun pred_sigs () =
       filt (fn Decl (_, sym, ty) =>
-               if is_predicate_type ty then SOME (pred_typ sym ty) else NONE
+               if is_nontrivial_predicate_type ty then SOME (pred_typ sym ty)
+               else NONE
              | _ => NONE)
     val decls = if sorted then func_sigs () @ pred_sigs () else []
     val axioms = filt (formula (curry (op <>) Conjecture))
