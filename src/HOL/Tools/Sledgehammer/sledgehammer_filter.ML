@@ -7,6 +7,7 @@ Sledgehammer's relevance filter.
 
 signature SLEDGEHAMMER_FILTER =
 sig
+  type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
   type relevance_fudge =
@@ -42,8 +43,9 @@ sig
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
+  val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val fact_from_ref :
-    Proof.context -> unit Symtab.table -> thm list
+    Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val all_facts :
     Proof.context -> bool -> 'a Symtab.table -> bool -> thm list -> thm list
@@ -109,6 +111,35 @@ val abs_name = sledgehammer_prefix ^ "abs"
 val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
+val crude_zero_vars =
+  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
+  #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
+
+fun clasimpset_rule_table_of ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
+    fun add stature g f =
+      fold (Termtab.update o rpair stature o g o crude_zero_vars o prop_of o f)
+    val {safeIs, safeEs, hazIs, hazEs, ...} =
+      ctxt |> claset_of |> Classical.rep_cs
+    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+    val elims =
+      Item_Net.content safeEs @ Item_Net.content hazEs
+      |> map Classical.classical_rule
+    val simps = ctxt |> simpset_of |> dest_ss |> #simps
+    val eqs =
+      ctxt |> Spec_Rules.get
+           |> filter (curry (op =) Spec_Rules.Equational o fst)
+           |> maps (snd o snd)
+  in
+    Termtab.empty |> add Simp I snd simps
+                  |> add Simp atomize snd simps
+                  |> add Eq I I eqs
+                  |> add Elim I I elims
+                  |> add Intro I I intros
+  end
+
 fun needs_quoting reserved s =
   Symtab.defined reserved s orelse
   exists (not o Lexicon.is_identifier) (Long_Name.explode s)
@@ -123,7 +154,29 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
 
 val backquote =
   raw_explode #> map (fn "`" => "\\`" | s => s) #> implode #> enclose "`" "`"
-fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
+
+fun is_assum assms th = exists (fn ct => prop_of th aconv term_of ct) assms
+fun is_chained chained_ths = member Thm.eq_thm_prop chained_ths
+
+fun scope_of_thm global assms chained_ths th =
+  if is_chained chained_ths th then Chained
+  else if global then Global
+  else if is_assum assms th then Assum
+  else Local
+
+fun status_of_thm css_table name th =
+  (* FIXME: use structured name *)
+  if String.isSubstring ".induct" name orelse
+     String.isSubstring ".inducts" name then
+    Induct
+  else case Termtab.lookup css_table (prop_of th) of
+    SOME status => status
+  | NONE => General
+
+fun stature_of_thm global assms chained_ths css_table name th =
+  (scope_of_thm global assms chained_ths th, status_of_thm css_table name th)
+
+fun fact_from_ref ctxt reserved chained_ths css_table (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -142,10 +195,10 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   in
     (ths, (0, []))
     |-> fold (fn th => fn (j, rest) =>
-                 (j + 1,
-                  ((nth_name j,
-                    (if member Thm.eq_thm_prop chained_ths th then Chained
-                     else Local (* just in case *), General)), th) :: rest))
+                 let val name = nth_name j in
+                   (j + 1, ((name, stature_of_thm false [] chained_ths
+                                             css_table name th), th) :: rest)
+                 end)
     |> snd
   end
 
@@ -776,35 +829,6 @@ fun is_theorem_bad_for_atps ho_atp exporter thm =
      is_that_fact thm
    end)
 
-val crude_zero_vars =
-  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
-  #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
-
-fun clasimpset_rule_table_of ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
-    fun add stature g f =
-      fold (Termtab.update o rpair stature o g o crude_zero_vars o prop_of o f)
-    val {safeIs, safeEs, hazIs, hazEs, ...} =
-      ctxt |> claset_of |> Classical.rep_cs
-    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
-    val elims =
-      Item_Net.content safeEs @ Item_Net.content hazEs
-      |> map Classical.classical_rule
-    val simps = ctxt |> simpset_of |> dest_ss |> #simps
-    val eqs =
-      ctxt |> Spec_Rules.get
-           |> filter (curry (op =) Spec_Rules.Equational o fst)
-           |> maps (snd o snd)
-  in
-    Termtab.empty |> add Simp I snd simps
-                  |> add Simp atomize snd simps
-                  |> add Eq I I eqs
-                  |> add Elim I I elims
-                  |> add Intro I I intros
-  end
-
 fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -812,22 +836,7 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
-    fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
-    val is_chained = member Thm.eq_thm_prop chained_ths
-    val clasimpset_table = clasimpset_rule_table_of ctxt
-    fun scope_of_thm global th =
-      if is_chained th then Chained
-      else if global then Global
-      else if is_assum th then Assum
-      else Local
-    fun status_of_thm name th =
-      (* FIXME: use structured name *)
-      if String.isSubstring ".induct" name orelse
-         String.isSubstring ".inducts" name then
-        Induct
-      else case Termtab.lookup clasimpset_table (prop_of th) of
-        SOME status => status
-      | NONE => General
+    val css_table = clasimpset_rule_table_of ctxt
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
@@ -877,8 +886,8 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
                                    |> (fn SOME name =>
                                           make_name reserved multi j name
                                         | NONE => "")),
-                                (scope_of_thm global th,
-                                 status_of_thm name0 th)), th)
+                                stature_of_thm global assms chained_ths
+                                               css_table name0 th), th)
                            in
                              if multi then (new :: multis, unis)
                              else (multis, new :: unis)
@@ -906,10 +915,11 @@ fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
       Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
       |> Object_Logic.atomize_term thy
     val ind_stmt_xs = external_frees ind_stmt
+    val css_table = clasimpset_rule_table_of ctxt
   in
     (if only then
        maps (map (fn ((name, stature), th) => ((K name, stature), th))
-             o fact_from_ref ctxt reserved chained_ths) add
+             o fact_from_ref ctxt reserved chained_ths css_table) add
      else
        all_facts ctxt ho_atp reserved false add_ths chained_ths)
     |> Config.get ctxt instantiate_inducts

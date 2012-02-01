@@ -216,9 +216,10 @@ fun run_minimize (params as {provers, ...}) i refs state =
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = normalize_chained_theorems (#facts (Proof.goal state))
+    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      refs
-      |> maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths)
+      refs |> maps (map (apsnd single)
+                    o fact_from_ref ctxt reserved chained_ths css_table)
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
