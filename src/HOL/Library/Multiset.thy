@@ -1175,12 +1175,12 @@ lemma count_Bag [simp, code]:
   by (simp add: Bag_def count_of_multiset Abs_multiset_inverse)
 
 lemma Mempty_Bag [code]:
-  "{#} = Bag (Alist [])"
-  by (simp add: multiset_eq_iff alist.Alist_inverse)
+  "{#} = Bag (DAList.empty)"
+  by (simp add: multiset_eq_iff alist.Alist_inverse DAList.empty_def)
   
 lemma single_Bag [code]:
-  "{#x#} = Bag (Alist [(x, 1)])"
-  by (simp add: multiset_eq_iff alist.Alist_inverse)
+  "{#x#} = Bag (DAList.update x 1 DAList.empty)"
+  by (simp add: multiset_eq_iff alist.Alist_inverse impl_of_update impl_of_empty)
 
 lemma union_Bag [code]:
   "Bag xs + Bag ys = Bag (join (\<lambda>x (n1, n2). n1 + n2) xs ys)"
