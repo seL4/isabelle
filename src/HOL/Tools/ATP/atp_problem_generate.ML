@@ -1377,6 +1377,8 @@ fun default_sym_tab_entries type_enc =
              {pred_sym = true, min_ary = 1, max_ary = 1, types = [],
               in_conj = false})
 
+datatype explicit_apply = Incomplete_Apply | Sufficient_Apply | Full_Apply
+
 fun sym_table_for_facts ctxt type_enc explicit_apply conjs facts =
   let
     fun consider_var_ary const_T var_T max_ary =
@@ -1389,7 +1391,7 @@ fun sym_table_for_facts ctxt type_enc explicit_apply conjs facts =
             iter (ary + 1) (range_type T)
       in iter 0 const_T end
     fun add_universal_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
-      if explicit_apply = NONE andalso
+      if explicit_apply = Sufficient_Apply andalso
          (can dest_funT T orelse T = @{typ bool}) then
         let
           val bool_vars' = bool_vars orelse body_type T = @{typ bool}
@@ -1431,11 +1433,11 @@ fun sym_table_for_facts ctxt type_enc explicit_apply conjs facts =
                         val types' = types |> insert_type ctxt I T
                         val in_conj = in_conj orelse conj_fact
                         val min_ary =
-                          if is_some explicit_apply orelse
-                             pointer_eq (types', types) then
-                            min_ary
-                          else
+                          if explicit_apply = Sufficient_Apply andalso
+                             not (pointer_eq (types', types)) then
                             fold (consider_var_ary T) fun_var_Ts min_ary
+                          else
+                            min_ary
                       in
                         Symtab.update (s, {pred_sym = pred_sym,
                                            min_ary = Int.min (ary, min_ary),
@@ -1448,9 +1450,10 @@ fun sym_table_for_facts ctxt type_enc explicit_apply conjs facts =
                         val pred_sym = top_level andalso not bool_vars
                         val min_ary =
                           case explicit_apply of
-                            SOME true => 0
-                          | SOME false => ary
-                          | NONE => fold (consider_var_ary T) fun_var_Ts ary
+                            Incomplete_Apply => ary
+                          | Sufficient_Apply =>
+                            fold (consider_var_ary T) fun_var_Ts ary
+                          | Full_Apply => 0
                       in
                         Symtab.update_new (s,
                             {pred_sym = pred_sym, min_ary = min_ary,
@@ -2436,10 +2439,6 @@ fun all_constrs_of_polymorphic_datatypes thy =
   |> List.partition is_poly_constr
   |> pairself (map fst)
 
-(* Forcing explicit applications is expensive for polymorphic encodings, because
-   it takes only one existential variable ranging over "'a => 'b" to ruin
-   everything. Hence we do it only if there are few facts (which is normally the
-   case for "metis" and the minimizer). *)
 val explicit_apply_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
@@ -2447,12 +2446,16 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
+    (* Forcing explicit applications is expensive for polymorphic encodings,
+       because it takes only one existential variable ranging over "'a => 'b" to
+       ruin everything. Hence we do it only if there are few facts (which is
+       normally the case for "metis" and the minimizer). *)
     val explicit_apply =
       if polymorphism_of_type_enc type_enc = Polymorphic andalso
          length facts >= explicit_apply_threshold then
-        SOME false
+        Incomplete_Apply
       else
-        NONE
+        Sufficient_Apply
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
@@ -2472,7 +2475,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val firstorderize =
       firstorderize_fact thy monom_constrs format type_enc sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
-    val sym_tab = sym_table_for_facts ctxt type_enc (SOME false) conjs facts
+    val sym_tab = sym_table_for_facts ctxt type_enc Incomplete_Apply conjs facts
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
               |> map firstorderize
