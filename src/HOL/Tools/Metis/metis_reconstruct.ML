@@ -337,7 +337,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
           let
             val s = s |> Metis_Name.toString
                       |> perhaps (try (unprefix_and_unascii const_prefix
-                                       #> the #> unmangled_const_name))
+                                       #> the #> unmangled_const_name #> hd))
           in
             if s = metis_predicator orelse s = predicator_name orelse
                s = metis_systematic_type_tag orelse s = metis_ad_hoc_type_tag
