@@ -60,11 +60,20 @@ text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
 
 section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
 
-text {* An \emph{inductive definition} specifies the least predicate
-  or set @{text R} closed under given rules: applying a rule to
-  elements of @{text R} yields a result within @{text R}.  For
-  example, a structural operational semantics is an inductive
-  definition of an evaluation relation.
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def (HOL) mono} & : & @{text attribute} \\
+  \end{matharray}
+
+  An \emph{inductive definition} specifies the least predicate or set
+  @{text R} closed under given rules: applying a rule to elements of
+  @{text R} yields a result within @{text R}.  For example, a
+  structural operational semantics is an inductive definition of an
+  evaluation relation.
 
   Dually, a \emph{coinductive definition} specifies the greatest
   predicate or set @{text R} that is consistent with given rules:
@@ -85,14 +94,6 @@ text {* An \emph{inductive definition} specifies the least predicate
   @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for each premise @{text "\<M> R t"} in an
   introduction rule.  The default rule declarations of Isabelle/HOL
   already take care of most common situations.
-
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{attribute_def (HOL) mono} & : & @{text attribute} \\
-  \end{matharray}
 
   @{rail "
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
@@ -626,14 +627,14 @@ text {*
 subsection {* Old-style recursive function definitions (TFL) *}
 
 text {*
-  The old TFL commands @{command (HOL) "recdef"} and @{command (HOL)
-  "recdef_tc"} for defining recursive are mostly obsolete; @{command
-  (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
-
   \begin{matharray}{rcl}
     @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
     @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
+
+  The old TFL commands @{command (HOL) "recdef"} and @{command (HOL)
+  "recdef_tc"} for defining recursive are mostly obsolete; @{command
+  (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
 
   @{rail "
     @@{command (HOL) recdef} ('(' @'permissive' ')')? \\
@@ -1057,8 +1058,13 @@ text {*
 
 section {* Typedef axiomatization \label{sec:hol-typedef} *}
 
-text {* A Gordon/HOL-style type definition is a certain axiom scheme
-  that identifies a new type with a subset of an existing type.  More
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  A Gordon/HOL-style type definition is a certain axiom scheme that
+  identifies a new type with a subset of an existing type.  More
   precisely, the new type is defined by exhibiting an existing type
   @{text \<tau>}, a set @{text "A :: \<tau> set"}, and a theorem that proves
   @{prop "\<exists>x. x \<in> A"}.  Thus @{text A} is a non-empty subset of @{text
@@ -1078,10 +1084,6 @@ text {* A Gordon/HOL-style type definition is a certain axiom scheme
   type_synonym} from Isabelle/Pure merely introduces syntactic
   abbreviations, without any logical significance.
   
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-  \end{matharray}
-
   @{rail "
     @@{command (HOL) typedef} alt_name? abs_type '=' rep_set
     ;
@@ -1251,12 +1253,6 @@ text {*
 section {* Quotient types *}
 
 text {*
-  The quotient package defines a new quotient type given a raw type
-  and a partial equivalence relation.
-  It also includes automation for transporting definitions and theorems.
-  It can automatically produce definitions and theorems on the quotient type,
-  given the corresponding constants and facts on the raw type.
-
   \begin{matharray}{rcl}
     @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
     @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
@@ -1264,6 +1260,12 @@ text {*
     @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
     @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
   \end{matharray}
+
+  The quotient package defines a new quotient type given a raw type
+  and a partial equivalence relation.  It also includes automation for
+  transporting definitions and theorems.  It can automatically produce
+  definitions and theorems on the quotient type, given the
+  corresponding constants and facts on the raw type.
 
   @{rail "
     @@{command (HOL) quotient_type} (spec + @'and');
@@ -1282,21 +1284,24 @@ text {*
 
   \begin{description}
   
-  \item @{command (HOL) "quotient_type"} defines quotient types. The injection from a quotient type 
-  to a raw type is called @{text rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
+  \item @{command (HOL) "quotient_type"} defines quotient types.  The
+  injection from a quotient type to a raw type is called @{text
+  rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
   "morphisms"} specification provides alternative names.
 
-  \item @{command (HOL) "quotient_definition"} defines a constant on the quotient type.
+  \item @{command (HOL) "quotient_definition"} defines a constant on
+  the quotient type.
 
-  \item @{command (HOL) "print_quotmaps"} prints quotient map functions.
+  \item @{command (HOL) "print_quotmaps"} prints quotient map
+  functions.
 
   \item @{command (HOL) "print_quotients"} prints quotients.
 
   \item @{command (HOL) "print_quotconsts"} prints quotient constants.
 
   \end{description}
-
 *}
+
 
 section {* Coercive subtyping *}
 
@@ -1307,6 +1312,11 @@ text {*
     @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
   \end{matharray}
 
+  Coercive subtyping allows the user to omit explicit type
+  conversions, also called \emph{coercions}.  Type inference will add
+  them as necessary when parsing a term. See
+  \cite{traytel-berghofer-nipkow-2011} for details.
+
   @{rail "
     @@{attribute (HOL) coercion} (@{syntax term})?
     ;
@@ -1316,44 +1326,35 @@ text {*
     ;
   "}
 
-  Coercive subtyping allows the user to omit explicit type conversions,
-  also called \emph{coercions}.  Type inference will add them as
-  necessary when parsing a term. See
-  \cite{traytel-berghofer-nipkow-2011} for details.
-
   \begin{description}
 
   \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
-  coercion function @{text "f :: \<sigma>\<^isub>1 \<Rightarrow>
-  \<sigma>\<^isub>2"} where @{text "\<sigma>\<^isub>1"} and @{text
-  "\<sigma>\<^isub>2"} are nullary type constructors. Coercions are
-  composed by the inference algorithm if needed. Note that the type
-  inference algorithm is complete only if the registered coercions form
-  a lattice.
+  coercion function @{text "f :: \<sigma>\<^isub>1 \<Rightarrow> \<sigma>\<^isub>2"} where @{text "\<sigma>\<^isub>1"} and
+  @{text "\<sigma>\<^isub>2"} are type constructors without arguments.  Coercions are
+  composed by the inference algorithm if needed.  Note that the type
+  inference algorithm is complete only if the registered coercions
+  form a lattice.
 
-
-  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a new
-  map function to lift coercions through type constructors. The function
-  @{text "map"} must conform to the following type pattern
+  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
+  new map function to lift coercions through type constructors. The
+  function @{text "map"} must conform to the following type pattern
 
   \begin{matharray}{lll}
     @{text "map"} & @{text "::"} &
       @{text "f\<^isub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^isub>n \<Rightarrow> (\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n) t \<Rightarrow> (\<beta>\<^isub>1, \<dots>, \<beta>\<^isub>n) t"} \\
   \end{matharray}
 
-  where @{text "t"} is a type constructor and @{text "f\<^isub>i"} is of
-  type @{text "\<alpha>\<^isub>i \<Rightarrow> \<beta>\<^isub>i"} or
-  @{text "\<beta>\<^isub>i \<Rightarrow> \<alpha>\<^isub>i"}.
-  Registering a map function overwrites any existing map function for
-  this particular type constructor.
-
+  where @{text "t"} is a type constructor and @{text "f\<^isub>i"} is of type
+  @{text "\<alpha>\<^isub>i \<Rightarrow> \<beta>\<^isub>i"} or @{text "\<beta>\<^isub>i \<Rightarrow> \<alpha>\<^isub>i"}.  Registering a map function
+  overwrites any existing map function for this particular type
+  constructor.
 
   \item @{attribute (HOL) "coercion_enabled"} enables the coercion
   inference algorithm.
 
   \end{description}
-
 *}
+
 
 section {* Arithmetic proof support *}
 
@@ -1364,18 +1365,22 @@ text {*
     @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
   \end{matharray}
 
-  The @{method (HOL) arith} method decides linear arithmetic problems
-  (on types @{text nat}, @{text int}, @{text real}).  Any current
-  facts are inserted into the goal before running the procedure.
+  \begin{description}
 
-  The @{attribute (HOL) arith} attribute declares facts that are
-  always supplied to the arithmetic provers implicitly.
+  \item @{method (HOL) arith} decides linear arithmetic problems (on
+  types @{text nat}, @{text int}, @{text real}).  Any current facts
+  are inserted into the goal before running the procedure.
 
-  The @{attribute (HOL) arith_split} attribute declares case split
+  \item @{attribute (HOL) arith} declares facts that are supplied to
+  the arithmetic provers implicitly.
+
+  \item @{attribute (HOL) arith_split} attribute declares case split
   rules to be expanded before @{method (HOL) arith} is invoked.
 
-  Note that a simpler (but faster) arithmetic prover is
-  already invoked by the Simplifier.
+  \end{description}
+
+  Note that a simpler (but faster) arithmetic prover is already
+  invoked by the Simplifier.
 *}
 
 
@@ -1390,10 +1395,12 @@ text {*
     @@{method (HOL) iprover} ( @{syntax rulemod} * )
   "}
 
-  The @{method (HOL) iprover} method performs intuitionistic proof
-  search, depending on specifically declared rules from the context,
-  or given as explicit arguments.  Chained facts are inserted into the
-  goal before commencing proof search.
+  \begin{description}
+
+  \item @{method (HOL) iprover} performs intuitionistic proof search,
+  depending on specifically declared rules from the context, or given
+  as explicit arguments.  Chained facts are inserted into the goal
+  before commencing proof search.
 
   Rules need to be classified as @{attribute (Pure) intro},
   @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
@@ -1403,7 +1410,10 @@ text {*
   single-step @{method (Pure) rule} method still observes these).  An
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.
+
+  \end{description}
 *}
+
 
 section {* Model Elimination and Resolution *}
 
@@ -1417,21 +1427,27 @@ text {*
     @@{method (HOL) meson} @{syntax thmrefs}?
     ;
 
-    @@{method (HOL) metis} ( '(' ('partial_types' | 'full_types' | 'no_types'
-                                  | @{syntax name}) ')' )? @{syntax thmrefs}?
+    @@{method (HOL) metis}
+      ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
+      @{syntax thmrefs}?
   "}
 
-  The @{method (HOL) meson} method implements Loveland's model elimination
-  procedure \cite{loveland-78}. See @{file "~~/src/HOL/ex/Meson_Test.thy"} for
-  examples.
+  \begin{description}
 
-  The @{method (HOL) metis} method combines ordered resolution and ordered
-  paramodulation to find first-order (or mildly higher-order) proofs. The first
-  optional argument specifies a type encoding; see the Sledgehammer manual
-  \cite{isabelle-sledgehammer} for details. The @{file
-  "~~/src/HOL/Metis_Examples"} directory contains several small theories
-  developed to a large extent using Metis.
+  \item @{method (HOL) meson} implements Loveland's model elimination
+  procedure \cite{loveland-78}.  See @{file
+  "~~/src/HOL/ex/Meson_Test.thy"} for examples.
+
+  \item @{method (HOL) metis} combines ordered resolution and ordered
+  paramodulation to find first-order (or mildly higher-order) proofs.
+  The first optional argument specifies a type encoding; see the
+  Sledgehammer manual \cite{isabelle-sledgehammer} for details.  The
+  directory @{file "~~/src/HOL/Metis_Examples"} contains several small
+  theories developed to a large extent using @{method (HOL) metis}.
+
+  \end{description}
 *}
+
 
 section {* Coherent Logic *}
 
@@ -1444,11 +1460,14 @@ text {*
     @@{method (HOL) coherent} @{syntax thmrefs}?
   "}
 
-  The @{method (HOL) coherent} method solves problems of
-  \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
-  applications in confluence theory, lattice theory and projective
-  geometry.  See @{file "~~/src/HOL/ex/Coherent.thy"} for some
-  examples.
+  \begin{description}
+
+  \item @{method (HOL) coherent} solves problems of \emph{Coherent
+  Logic} \cite{Bezem-Coquand:2005}, which covers applications in
+  confluence theory, lattice theory and projective geometry.  See
+  @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
+
+  \end{description}
 *}
 
 
