@@ -8,11 +8,11 @@
 options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
 
-"$SPASS_HOME/SPASS" -Flotter $name \
+"$SPASS_HOME/SPASS" -Flotter "$name" \
     | sed 's/description({$/description({*/' \
     | sed 's/set_ClauseFormulaRelation()\.//' \
     > $name.cnf
 cat $name.cnf
-"$SPASS_HOME/SPASS" $options $name.cnf \
+"$SPASS_HOME/SPASS" $options "$name.cnf" \
     | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
-rm -f $name.cnf
+rm -f "$name.cnf"
