@@ -546,10 +546,10 @@ text {*
   accepted (as for @{method auto}).
 
   \item @{method (HOL) induction_schema} derives user-specified
-   induction rules from well-founded induction and completeness of
-   patterns. This factors out some operations that are done internally
-   by the function package and makes them available separately. See
-   @{file "~~/src/HOL/ex/Induction_Schema.thy"} for examples.
+  induction rules from well-founded induction and completeness of
+  patterns. This factors out some operations that are done internally
+  by the function package and makes them available separately. See
+  @{file "~~/src/HOL/ex/Induction_Schema.thy"} for examples.
 
   \end{description}
 *}
@@ -595,12 +595,13 @@ text {*
   defined:
 
   \begin{description}
+
   \item @{text option} defines functions that map into the @{type
   option} type. Here, the value @{term None} is used to model a
   non-terminating computation. Monotonicity requires that if @{term
-  None} is returned by a recursive call, then the overall result
-  must also be @{term None}. This is best achieved through the use of
-  the monadic operator @{const "Option.bind"}.
+  None} is returned by a recursive call, then the overall result must
+  also be @{term None}. This is best achieved through the use of the
+  monadic operator @{const "Option.bind"}.
 
   \item @{text tailrec} defines functions with an arbitrary result
   type and uses the slightly degenerated partial order where @{term
@@ -610,6 +611,7 @@ text {*
   only satisfied when each recursive call is a tail call, whose result
   is directly returned. Thus, this mode of operation allows the
   definition of arbitrary tail-recursive functions.
+
   \end{description}
 
   Experienced users may define new modes by instantiating the locale
@@ -1509,27 +1511,29 @@ text {*
 
   \begin{description}
 
-  \item @{command (HOL) "solve_direct"} checks whether the current subgoals can
-    be solved directly by an existing theorem. Duplicate lemmas can be detected
-    in this way.
+  \item @{command (HOL) "solve_direct"} checks whether the current
+  subgoals can be solved directly by an existing theorem. Duplicate
+  lemmas can be detected in this way.
 
-  \item @{command (HOL) "try_methods"} attempts to prove a subgoal using a combination
-    of standard proof methods (@{text auto}, @{text simp}, @{text blast}, etc.).
-    Additional facts supplied via @{text "simp:"}, @{text "intro:"},
-    @{text "elim:"}, and @{text "dest:"} are passed to the appropriate proof
-    methods.
+  \item @{command (HOL) "try_methods"} attempts to prove a subgoal
+  using a combination of standard proof methods (@{method auto},
+  @{method simp}, @{method blast}, etc.).  Additional facts supplied
+  via @{text "simp:"}, @{text "intro:"}, @{text "elim:"}, and @{text
+  "dest:"} are passed to the appropriate proof methods.
 
   \item @{command (HOL) "try"} attempts to prove or disprove a subgoal
-    using a combination of provers and disprovers (@{text "solve_direct"},
-    @{text "quickcheck"}, @{text "try_methods"}, @{text "sledgehammer"},
-    @{text "nitpick"}).
+  using a combination of provers and disprovers (@{command (HOL)
+  "solve_direct"}, @{command (HOL) "quickcheck"}, @{command (HOL)
+  "try_methods"}, @{command (HOL) "sledgehammer"}, @{command (HOL)
+  "nitpick"}).
 
-  \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal using external
-    automatic provers (resolution provers and SMT solvers). See the Sledgehammer
-    manual \cite{isabelle-sledgehammer} for details.
+  \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal
+  using external automatic provers (resolution provers and SMT
+  solvers). See the Sledgehammer manual \cite{isabelle-sledgehammer}
+  for details.
 
-  \item @{command (HOL) "sledgehammer_params"} changes
-    @{command (HOL) "sledgehammer"} configuration options persistently.
+  \item @{command (HOL) "sledgehammer_params"} changes @{command (HOL)
+  "sledgehammer"} configuration options persistently.
 
   \end{description}
 *}
@@ -1582,54 +1586,54 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "value"}~@{text t} evaluates and prints a
-    term; optionally @{text modes} can be specified, which are
-    appended to the current print mode; see \secref{sec:print-modes}.
-    Internally, the evaluation is performed by registered evaluators,
-    which are invoked sequentially until a result is returned.
-    Alternatively a specific evaluator can be selected using square
-    brackets; typical evaluators use the current set of code equations
-    to normalize and include @{text simp} for fully symbolic
-    evaluation using the simplifier, @{text nbe} for
-    \emph{normalization by evaluation} and \emph{code} for code
-    generation in SML.
+  term; optionally @{text modes} can be specified, which are appended
+  to the current print mode; see \secref{sec:print-modes}.
+  Internally, the evaluation is performed by registered evaluators,
+  which are invoked sequentially until a result is returned.
+  Alternatively a specific evaluator can be selected using square
+  brackets; typical evaluators use the current set of code equations
+  to normalize and include @{text simp} for fully symbolic evaluation
+  using the simplifier, @{text nbe} for \emph{normalization by
+  evaluation} and \emph{code} for code generation in SML.
 
-  \item @{command (HOL) "values"}~@{text t} enumerates a set comprehension
-    by evaluation and prints its values up to the given number of solutions;  
-    optionally @{text modes} can be specified, which are
-    appended to the current print mode; see \secref{sec:print-modes}.
+  \item @{command (HOL) "values"}~@{text t} enumerates a set
+  comprehension by evaluation and prints its values up to the given
+  number of solutions; optionally @{text modes} can be specified,
+  which are appended to the current print mode; see
+  \secref{sec:print-modes}.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
-    counterexamples using a series of assignments for its
-    free variables; by default the first subgoal is tested, an other
-    can be selected explicitly using an optional goal index.
-    Assignments can be chosen exhausting the search space upto a given
-    size, or using a fixed number of random assignments in the search space,
-    or exploring the search space symbolically using narrowing.
-    By default, quickcheck uses exhaustive testing.
-    A number of configuration options are supported for
-    @{command (HOL) "quickcheck"}, notably:
+  counterexamples using a series of assignments for its free
+  variables; by default the first subgoal is tested, an other can be
+  selected explicitly using an optional goal index.  Assignments can
+  be chosen exhausting the search space upto a given size, or using a
+  fixed number of random assignments in the search space, or exploring
+  the search space symbolically using narrowing.  By default,
+  quickcheck uses exhaustive testing.  A number of configuration
+  options are supported for @{command (HOL) "quickcheck"}, notably:
 
     \begin{description}
 
     \item[@{text tester}] specifies which testing approach to apply.
-      There are three testers, @{text exhaustive},
-      @{text random}, and @{text narrowing}.
-      An unknown configuration option is treated as an argument to tester,
-      making @{text "tester ="} optional.
-      When multiple testers are given, these are applied in parallel. 
-      If no tester is specified, quickcheck uses the testers that are
-      set active, i.e., configurations
-      @{text quickcheck_exhaustive_active}, @{text quickcheck_random_active},
-      @{text quickcheck_narrowing_active} are set to true.
+    There are three testers, @{text exhaustive}, @{text random}, and
+    @{text narrowing}.  An unknown configuration option is treated as
+    an argument to tester, making @{text "tester ="} optional.  When
+    multiple testers are given, these are applied in parallel.  If no
+    tester is specified, quickcheck uses the testers that are set
+    active, i.e., configurations @{attribute
+    quickcheck_exhaustive_active}, @{attribute
+    quickcheck_random_active}, @{attribute
+    quickcheck_narrowing_active} are set to true.
+
     \item[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
     \item[@{text genuine_only}] sets quickcheck only to return genuine
-      counterexample, but not potentially spurious counterexamples due
-      to underspecified functions.
+    counterexample, but not potentially spurious counterexamples due
+    to underspecified functions.
     
     \item[@{text eval}] takes a term or a list of terms and evaluates
-      these terms under the variable assignment found by quickcheck.
+    these terms under the variable assignment found by quickcheck.
 
     \item[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
@@ -1648,8 +1652,8 @@ text {*
     \item[@{text quiet}] if set quickcheck does not output anything
     while testing.
     
-    \item[@{text verbose}] if set quickcheck informs about the
-    current size and cardinality while testing.
+    \item[@{text verbose}] if set quickcheck informs about the current
+    size and cardinality while testing.
 
     \item[@{text expect}] can be used to check if the user's
     expectation was met (@{text no_expectation}, @{text
@@ -1657,31 +1661,31 @@ text {*
 
     \end{description}
 
-    These option can be given within square brackets.
+  These option can be given within square brackets.
 
-  \item @{command (HOL) "quickcheck_params"} changes
-    @{command (HOL) "quickcheck"} configuration options persistently.
+  \item @{command (HOL) "quickcheck_params"} changes @{command (HOL)
+  "quickcheck"} configuration options persistently.
 
   \item @{command (HOL) "quickcheck_generator"} creates random and
-    exhaustive value generators for a given type and operations.
-    It generates values by using the operations as if they were
-    constructors of that type.
+  exhaustive value generators for a given type and operations.  It
+  generates values by using the operations as if they were
+  constructors of that type.
 
   \item @{command (HOL) "refute"} tests the current goal for
-    counterexamples using a reduction to SAT. The following configuration
-    options are supported:
+  counterexamples using a reduction to SAT. The following
+  configuration options are supported:
 
     \begin{description}
 
-    \item[@{text minsize}] specifies the minimum size (cardinality) of the
-      models to search for.
+    \item[@{text minsize}] specifies the minimum size (cardinality) of
+    the models to search for.
 
-    \item[@{text maxsize}] specifies the maximum size (cardinality) of the
-      models to search for. Nonpositive values mean $\infty$.
+    \item[@{text maxsize}] specifies the maximum size (cardinality) of
+    the models to search for. Nonpositive values mean @{text "\<infinity>"}.
 
-    \item[@{text maxvars}] specifies the maximum number of Boolean variables
-    to use when transforming the term into a propositional formula.
-    Nonpositive values mean $\infty$.
+    \item[@{text maxvars}] specifies the maximum number of Boolean
+    variables to use when transforming the term into a propositional
+    formula.  Nonpositive values mean @{text "\<infinity>"}.
 
     \item[@{text satsolver}] specifies the SAT solver to use.
 
@@ -1691,22 +1695,22 @@ text {*
     \item[@{text maxtime}] sets the time limit in seconds.
 
     \item[@{text expect}] can be used to check if the user's
-    expectation was met (@{text genuine}, @{text potential},
-    @{text none}, or @{text unknown}).
+    expectation was met (@{text genuine}, @{text potential}, @{text
+    none}, or @{text unknown}).
 
     \end{description}
 
-    These option can be given within square brackets.
+  These option can be given within square brackets.
 
-  \item @{command (HOL) "refute_params"} changes
-    @{command (HOL) "refute"} configuration options persistently.
+  \item @{command (HOL) "refute_params"} changes @{command (HOL)
+  "refute"} configuration options persistently.
 
-  \item @{command (HOL) "nitpick"} tests the current goal for counterexamples
-    using a reduction to first-order relational logic. See the Nitpick manual
-    \cite{isabelle-nitpick} for details.
+  \item @{command (HOL) "nitpick"} tests the current goal for
+  counterexamples using a reduction to first-order relational
+  logic. See the Nitpick manual \cite{isabelle-nitpick} for details.
 
-  \item @{command (HOL) "nitpick_params"} changes
-    @{command (HOL) "nitpick"} configuration options persistently.
+  \item @{command (HOL) "nitpick_params"} changes @{command (HOL)
+  "nitpick"} configuration options persistently.
 
   \end{description}
 *}
