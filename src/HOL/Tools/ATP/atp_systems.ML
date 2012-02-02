@@ -355,7 +355,8 @@ val spass_new_config : atp_config =
    required_execs =
      [("SPASS_NEW_HOME", "SPASS"), ("SPASS_NEW_HOME", "tptp2dfg")],
    arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
-     ("-Auto -LR=1 -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
+     ("-Auto -LR=1 -LT=1 -Isabelle=1 -TimeLimit=" ^
+      string_of_int (to_secs 1 timeout))
      |> incomplete = spass_incompleteN ? prefix "-Splits=0 -FullRed=0 ",
    proof_delims = #proof_delims spass_config,
    known_failures = #known_failures spass_config,

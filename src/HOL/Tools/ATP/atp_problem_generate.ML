@@ -2386,7 +2386,7 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
 fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
-        type_enc sym_tab base_s0 types in_conj =
+        type_enc sym_tab0 sym_tab base_s0 types in_conj =
   let
     fun do_alias ary =
       let
@@ -2397,7 +2397,7 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
         val T_args = robust_const_typargs thy (base_s0, T)
         val (base_name as (base_s, _), T_args) =
           mangle_type_args_in_const format type_enc base_name T_args
-        val base_ary = min_ary_of sym_tab base_s
+        val base_ary = min_ary_of sym_tab0 base_s
         val T_args =
           T_args |> filter_type_args_in_const thy monom_constrs type_enc
                                               base_ary base_s
@@ -2430,7 +2430,8 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
       end
   in do_alias end
 fun app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
-        type_enc sym_tab (s, {min_ary, types, in_conj, ...} : sym_info) =
+                               type_enc sym_tab0 sym_tab
+                               (s, {min_ary, types, in_conj, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     if String.isSubstring app_op_alias_sep mangled_s then
@@ -2438,18 +2439,19 @@ fun app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
         val base_s0 = mangled_s |> unmangled_const_name |> hd |> invert_const
       in
         do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
-            mono type_enc sym_tab base_s0 types in_conj min_ary
+            mono type_enc sym_tab0 sym_tab base_s0 types in_conj min_ary
       end
     else
       ([], [])
   | NONE => ([], [])
 fun app_op_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
-                                     mono type_enc app_op_aliases sym_tab =
+        mono type_enc app_op_aliases sym_tab0 sym_tab =
   ([], [])
   |> app_op_aliases
-     ? Symtab.fold_rev (pair_append
-                        o app_op_alias_lines_for_sym ctxt monom_constrs format
-                              conj_sym_kind mono type_enc sym_tab) sym_tab 
+     ? Symtab.fold_rev
+           (pair_append
+            o app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
+                  mono type_enc sym_tab0 sym_tab) sym_tab
 
 fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
     Config.get ctxt type_tag_idempotence andalso
@@ -2570,13 +2572,13 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
          lifted) =
       translate_formulas ctxt format prem_kind type_enc lam_trans preproc hyp_ts
                          concl_t facts
-    val sym_tab = sym_table_for_facts ctxt type_enc app_op_level conjs facts
+    val sym_tab0 = sym_table_for_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_for_facts ctxt type_enc
     val (polym_constrs, monom_constrs) =
       all_constrs_of_polymorphic_datatypes thy
       |>> map (make_fixed_const (SOME format))
     fun firstorderize in_helper =
-      firstorderize_fact thy monom_constrs format type_enc sym_tab
+      firstorderize_fact thy monom_constrs format type_enc sym_tab0
                          (app_op_aliases andalso not in_helper)
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val sym_tab = sym_table_for_facts ctxt type_enc Incomplete_Apply conjs facts
@@ -2588,7 +2590,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val class_decl_lines = decl_lines_for_classes type_enc classes
     val (app_op_alias_eq_tms, app_op_alias_eq_lines) =
       app_op_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
-                                       mono type_enc app_op_aliases sym_tab
+          mono type_enc app_op_aliases sym_tab0 sym_tab
     val sym_decl_lines =
       (conjs, helpers @ facts, app_op_alias_eq_tms)
       |> sym_decl_table_for_facts ctxt format type_enc sym_tab
