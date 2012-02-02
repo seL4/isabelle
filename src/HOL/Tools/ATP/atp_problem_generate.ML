@@ -1532,8 +1532,8 @@ fun do_app_op format type_enc head arg =
       |> mangle_type_args_in_iterm format type_enc
   in list_app app [head, arg] end
 
-fun firstorderize_fact thy monom_constrs format type_enc app_op_aliases
-                       sym_tab =
+fun firstorderize_fact thy monom_constrs format type_enc sym_tab
+                       app_op_aliases =
   let
     fun do_app arg head = do_app_op format type_enc head arg
     fun list_app_ops head args = fold do_app args head
@@ -2575,14 +2575,14 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val (polym_constrs, monom_constrs) =
       all_constrs_of_polymorphic_datatypes thy
       |>> map (make_fixed_const (SOME format))
-    val firstorderize =
-      firstorderize_fact thy monom_constrs format type_enc app_op_aliases
-                         sym_tab
-    val (conjs, facts) = (conjs, facts) |> pairself (map firstorderize)
+    fun firstorderize in_helper =
+      firstorderize_fact thy monom_constrs format type_enc sym_tab
+                         (app_op_aliases andalso not in_helper)
+    val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val sym_tab = sym_table_for_facts ctxt type_enc Incomplete_Apply conjs facts
     val helpers =
       sym_tab |> helper_facts_for_sym_table ctxt format type_enc
-              |> map firstorderize
+              |> map (firstorderize true)
     val mono_Ts =
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
