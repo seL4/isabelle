@@ -138,10 +138,6 @@ text {*
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
   be easily adapted to print something like ``@{text "\<dots>"}'' instead of
   the keyword ``@{command "oops"}''.
-
-  \medskip The @{command "oops"} command is undo-able, unlike
-  @{command_ref "kill"} (see \secref{sec:history}).  The effect is to
-  get back to the theory just before the opening of the proof.
 *}
 
 
