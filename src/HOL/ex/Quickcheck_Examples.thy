@@ -267,6 +267,14 @@ lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
 oops
 
 
+subsection {* Examples with sets *}
+
+lemma
+  "{} = A Un - A"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+
 subsection {* Examples with relations *}
 
 lemma
