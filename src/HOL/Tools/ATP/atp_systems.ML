@@ -352,7 +352,8 @@ val spass = (spassN, spass_config)
 (* Experimental *)
 val spass_new_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass_new"),
-   required_execs = [],
+   required_execs =
+     [("SPASS_NEW_HOME", "SPASS"), ("SPASS_NEW_HOME", "tptp2dfg")],
    arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
      ("-Auto -LR=1 -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      |> incomplete = spass_incompleteN ? prefix "-Splits=0 -FullRed=0 ",
