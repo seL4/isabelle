@@ -1541,7 +1541,7 @@ fun firstorderize_fact thy monom_constrs format type_enc app_op_aliases
       let val (head, args) = tm |> strip_iterm_comb ||> map introduce_app_ops in
         case head of
           IConst (name as (s, _), T, T_args) =>
-          if app_op_aliases then
+          if app_op_aliases andalso String.isPrefix const_prefix s then
             let
               val ary = length args
               val name = name |> ary > min_ary_of sym_tab s ? aliased_app_op ary
