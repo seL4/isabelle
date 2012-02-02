@@ -363,11 +363,10 @@ val spass_new_config : atp_config =
    prem_kind = #prem_kind spass_config,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.334, (false, (50, DFG DFG_Sorted, "mono_simple", combs_and_liftingN,
-                       spass_incompleteN))),
-      (0.333, (false, (150, DFG DFG_Sorted, "poly_tags??", combs_and_liftingN,
-                       ""))),
-      (0.333, (false, (300, DFG DFG_Sorted, "mono_simple", liftingN, "")))]}
+     [(0.334, (true, (300, DFG DFG_Sorted, "mono_simple", combsN,
+                      "" (* spass_incompleteN *)))),
+      (0.333, (true, (50, DFG DFG_Sorted, "mono_simple", combsN, ""))),
+      (0.333, (true, (150, DFG DFG_Sorted, "mono_simple", liftingN, "")))]}
 
 val spass_new = (spass_newN, spass_new_config)
 
