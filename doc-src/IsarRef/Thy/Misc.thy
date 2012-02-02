@@ -114,35 +114,6 @@ text {*
 *}
 
 
-section {* History commands \label{sec:history} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "undo"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
-    @{command_def "linear_undo"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
-    @{command_def "kill"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
-  \end{matharray}
-
-  The Isabelle/Isar top-level maintains a two-stage history, for
-  theory and proof state transformation.  Basically, any command can
-  be undone using @{command "undo"}, excluding mere diagnostic
-  elements.  Note that a theorem statement with a \emph{finished}
-  proof is treated as a single unit by @{command "undo"}.  In
-  contrast, the variant @{command "linear_undo"} admits to step back
-  into the middle of a proof.  The @{command "kill"} command aborts
-  the current history node altogether, discontinuing a proof or even
-  the whole theory.  This operation is \emph{not} undo-able.
-
-  \begin{warn}
-    History commands should never be used with user interfaces such as
-    Proof~General \cite{proofgeneral,Aspinall:TACAS:2000}, which takes
-    care of stepping forth and back itself.  Interfering by manual
-    @{command "undo"}, @{command "linear_undo"}, or even @{command
-    "kill"} commands would quickly result in utter confusion.
-  \end{warn}
-*}
-
-
 section {* System commands *}
 
 text {*

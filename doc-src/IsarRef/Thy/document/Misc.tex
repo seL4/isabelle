@@ -217,36 +217,6 @@
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{History commands \label{sec:history}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{command}{undo}\hypertarget{command.undo}{\hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}}^{{ * }{ * }} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ any{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{command}{linear\_undo}\hypertarget{command.linear-undo}{\hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isaliteral{5F}{\isacharunderscore}}undo}}}}}^{{ * }{ * }} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ any{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{command}{kill}\hypertarget{command.kill}{\hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}}}^{{ * }{ * }} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ any{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
-
-  The Isabelle/Isar top-level maintains a two-stage history, for
-  theory and proof state transformation.  Basically, any command can
-  be undone using \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}, excluding mere diagnostic
-  elements.  Note that a theorem statement with a \emph{finished}
-  proof is treated as a single unit by \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}.  In
-  contrast, the variant \hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isaliteral{5F}{\isacharunderscore}}undo}}}} admits to step back
-  into the middle of a proof.  The \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}} command aborts
-  the current history node altogether, discontinuing a proof or even
-  the whole theory.  This operation is \emph{not} undo-able.
-
-  \begin{warn}
-    History commands should never be used with user interfaces such as
-    Proof~General \cite{proofgeneral,Aspinall:TACAS:2000}, which takes
-    care of stepping forth and back itself.  Interfering by manual
-    \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}, \hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isaliteral{5F}{\isacharunderscore}}undo}}}}, or even \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}} commands would quickly result in utter confusion.
-  \end{warn}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsection{System commands%
 }
 \isamarkuptrue%
