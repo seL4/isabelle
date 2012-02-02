@@ -224,43 +224,6 @@ can be polymorphic.
 \index{mixfix declarations|)}
 
 
-\section{*Alternative print modes} \label{sec:prmodes}
-\index{print modes|(}
-%
-Isabelle's pretty printer supports alternative output syntaxes.  These
-may be used independently or in cooperation.  The currently active
-print modes (with precedence from left to right) are determined by a
-reference variable.
-\begin{ttbox}\index{*print_mode}
-print_mode: string list ref
-\end{ttbox}
-Initially this may already contain some print mode identifiers,
-depending on how Isabelle has been invoked (e.g.\ by some user
-interface).  So changes should be incremental --- adding or deleting
-modes relative to the current value.
-
-Any \ML{} string is a legal print mode identifier, without any predeclaration
-required.  The following names should be considered reserved, though:
-\texttt{""} (the empty string), \texttt{symbols}, \texttt{xsymbols}, and
-\texttt{latex}.
-
-There is a separate table of mixfix productions for pretty printing
-associated with each print mode.  The currently active ones are
-conceptually just concatenated from left to right, with the standard
-syntax output table always coming last as default.  Thus mixfix
-productions of preceding modes in the list may override those of later
-ones.
-
-\medskip The canonical application of print modes is optional printing
-of mathematical symbols from a special screen font instead of {\sc
-  ascii}.  Another example is to re-use Isabelle's advanced
-$\lambda$-term printing mechanisms to generate completely different
-output, say for interfacing external tools like \rmindex{model
-  checkers} (see also \texttt{HOL/Modelcheck}).
-
-\index{print modes|)}
-
-
 \section{Ambiguity of parsed expressions} \label{sec:ambiguity}
 \index{ambiguity!of parsed expressions}
 

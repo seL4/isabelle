@@ -32,7 +32,7 @@ text {* The inner syntax of Isabelle provides concrete notation for
 
 section {* Printing logical entities *}
 
-subsection {* Diagnostic commands *}
+subsection {* Diagnostic commands \label{sec:print-diag} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -104,11 +104,11 @@ text {*
 
   All of the diagnostic commands above admit a list of @{text modes}
   to be specified, which is appended to the current print mode; see
-  \secref{sec:print-modes}.  Thus the output behavior may be modified
-  according particular print mode features.  For example, @{command
-  "pr"}~@{text "(latex xsymbols)"} would print the current proof state
-  with mathematical symbols and special characters represented in
-  {\LaTeX} source, according to the Isabelle style
+  also \secref{sec:print-modes}.  Thus the output behavior may be
+  modified according particular print mode features.  For example,
+  @{command "pr"}~@{text "(latex xsymbols)"} would print the current
+  proof state with mathematical symbols and special characters
+  represented in {\LaTeX} source, according to the Isabelle style
   \cite{isabelle-sys}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
@@ -229,6 +229,77 @@ text {*
   relevant for user interfaces).
 
   \end{description}
+*}
+
+
+subsection {* Alternative print modes \label{sec:print-modes} *}
+
+text {*
+  \begin{mldecls}
+    @{index_ML print_mode_value: "unit -> string list"} \\
+    @{index_ML Print_Mode.with_modes: "string list -> ('a -> 'b) -> 'a -> 'b"} \\
+  \end{mldecls}
+
+  The \emph{print mode} facility allows to modify various operations
+  for printing.  Commands like @{command typ}, @{command term},
+  @{command thm} (see \secref{sec:print-diag}) take additional print
+  modes as optional argument.  The underlying ML operations are as
+  follows.
+
+  \begin{description}
+
+  \item @{ML "print_mode_value ()"} yields the list of currently
+  active print mode names.  This should be understood as symbolic
+  representation of certain individual features for printing (with
+  precedence from left to right).
+
+  \item @{ML Print_Mode.with_modes}~@{text "modes f x"} evaluates
+  @{text "f x"} in an execution context where the print mode is
+  prepended by the given @{text "modes"}.  This provides a thread-safe
+  way to augment print modes.  It is also monotonic in the set of mode
+  names: it retains the default print mode that certain
+  user-interfaces might have installed for their proper functioning!
+
+  \end{description}
+
+  \begin{warn}
+  The old global reference @{ML print_mode} should never be used
+  directly in applications.  Its main reason for being publicly
+  accessible is to support historic versions of Proof~General.
+  \end{warn}
+
+  \medskip The pretty printer for inner syntax maintains alternative
+  mixfix productions for any print mode name invented by the user, say
+  in commands like @{command notation} or @{command abbreviation}.
+  Mode names can be arbitrary, but the following ones have a specific
+  meaning by convention:
+
+  \begin{itemize}
+
+  \item @{verbatim "\"\""} (the empty string): default mode;
+  implicitly active as last element in the list of modes.
+
+  \item @{verbatim input}: dummy print mode that is never active; may
+  be used to specify notation that is only available for input.
+
+  \item @{verbatim internal} dummy print mode that is never active;
+  used internally in Isabelle/Pure.
+
+  \item @{verbatim xsymbols}: enable proper mathematical symbols
+  instead of ASCII art.\footnote{This traditional mode name stems from
+  the ``X-Symbol'' package for old versions Proof~General with XEmacs,
+  although that package has been superseded by Unicode in recent
+  years.}
+
+  \item @{verbatim HTML}: additional mode that is active in HTML
+  presentation of Isabelle theory sources; allows to provide
+  alternative output notation.
+
+  \item @{verbatim latex}: additional mode that is active in {\LaTeX}
+  document preparation of Isabelle theory sources; allows to provide
+  alternative output notation.
+
+  \end{itemize}
 *}
 
 

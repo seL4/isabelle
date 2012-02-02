@@ -50,7 +50,7 @@ The inner syntax of Isabelle provides concrete notation for
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Diagnostic commands%
+\isamarkupsubsection{Diagnostic commands \label{sec:print-diag}%
 }
 \isamarkuptrue%
 %
@@ -176,10 +176,11 @@ The inner syntax of Isabelle provides concrete notation for
 
   All of the diagnostic commands above admit a list of \isa{modes}
   to be specified, which is appended to the current print mode; see
-  \secref{sec:print-modes}.  Thus the output behavior may be modified
-  according particular print mode features.  For example, \hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}latex\ xsymbols{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} would print the current proof state
-  with mathematical symbols and special characters represented in
-  {\LaTeX} source, according to the Isabelle style
+  also \secref{sec:print-modes}.  Thus the output behavior may be
+  modified according particular print mode features.  For example,
+  \hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}latex\ xsymbols{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} would print the current
+  proof state with mathematical symbols and special characters
+  represented in {\LaTeX} source, according to the Isabelle style
   \cite{isabelle-sys}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
@@ -298,6 +299,79 @@ The inner syntax of Isabelle provides concrete notation for
   relevant for user interfaces).
 
   \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Alternative print modes \label{sec:print-modes}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+    \indexdef{}{ML}{print\_mode\_value}\verb|print_mode_value: unit -> string list| \\
+    \indexdef{}{ML}{Print\_Mode.with\_modes}\verb|Print_Mode.with_modes: string list -> ('a -> 'b) -> 'a -> 'b| \\
+  \end{mldecls}
+
+  The \emph{print mode} facility allows to modify various operations
+  for printing.  Commands like \hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}, \hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}},
+  \hyperlink{command.thm}{\mbox{\isa{\isacommand{thm}}}} (see \secref{sec:print-diag}) take additional print
+  modes as optional argument.  The underlying ML operations are as
+  follows.
+
+  \begin{description}
+
+  \item \verb|print_mode_value ()| yields the list of currently
+  active print mode names.  This should be understood as symbolic
+  representation of certain individual features for printing (with
+  precedence from left to right).
+
+  \item \verb|Print_Mode.with_modes|~\isa{{\isaliteral{22}{\isachardoublequote}}modes\ f\ x{\isaliteral{22}{\isachardoublequote}}} evaluates
+  \isa{{\isaliteral{22}{\isachardoublequote}}f\ x{\isaliteral{22}{\isachardoublequote}}} in an execution context where the print mode is
+  prepended by the given \isa{{\isaliteral{22}{\isachardoublequote}}modes{\isaliteral{22}{\isachardoublequote}}}.  This provides a thread-safe
+  way to augment print modes.  It is also monotonic in the set of mode
+  names: it retains the default print mode that certain
+  user-interfaces might have installed for their proper functioning!
+
+  \end{description}
+
+  \begin{warn}
+  The old global reference \verb|print_mode| should never be used
+  directly in applications.  Its main reason for being publicly
+  accessible is to support historic versions of Proof~General.
+  \end{warn}
+
+  \medskip The pretty printer for inner syntax maintains alternative
+  mixfix productions for any print mode name invented by the user, say
+  in commands like \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}} or \hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}.
+  Mode names can be arbitrary, but the following ones have a specific
+  meaning by convention:
+
+  \begin{itemize}
+
+  \item \verb|""| (the empty string): default mode;
+  implicitly active as last element in the list of modes.
+
+  \item \verb|input|: dummy print mode that is never active; may
+  be used to specify notation that is only available for input.
+
+  \item \verb|internal| dummy print mode that is never active;
+  used internally in Isabelle/Pure.
+
+  \item \verb|xsymbols|: enable proper mathematical symbols
+  instead of ASCII art.\footnote{This traditional mode name stems from
+  the ``X-Symbol'' package for old versions Proof~General with XEmacs,
+  although that package has been superseded by Unicode in recent
+  years.}
+
+  \item \verb|HTML|: additional mode that is active in HTML
+  presentation of Isabelle theory sources; allows to provide
+  alternative output notation.
+
+  \item \verb|latex|: additional mode that is active in {\LaTeX}
+  document preparation of Isabelle theory sources; allows to provide
+  alternative output notation.
+
+  \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
