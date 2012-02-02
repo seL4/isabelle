@@ -16,7 +16,7 @@ sig
   type 'a problem = 'a ATP_Problem.problem
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status = General | Induct | Intro | Elim | Simp | Eq
+  datatype status = General | Induct | Intro | Elim | Simp | Spec_Eq
   type stature = scope * status
 
   datatype polymorphism = Polymorphic | Raw_Monomorphic | Mangled_Monomorphic
@@ -549,7 +549,7 @@ fun iterm_from_term thy format bs (P $ Q) =
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 datatype scope = Global | Local | Assum | Chained
-datatype status = General | Induct | Intro | Elim | Simp | Eq
+datatype status = General | Induct | Intro | Elim | Simp | Spec_Eq
 type stature = scope * status
 
 datatype order = First_Order | Higher_Order
@@ -1207,7 +1207,8 @@ fun preprocess_abstractions_in_terms trans_lams facts =
             |>> map2 (fn (name, (kind, _)) => fn t => (name, (kind, t))) facts
     val lam_facts =
       map2 (fn t => fn j =>
-               ((lam_fact_prefix ^ Int.toString j, (Global, Eq)), (Axiom, t)))
+               ((lam_fact_prefix ^ Int.toString j, (Global, Spec_Eq)),
+                (Axiom, t)))
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
@@ -1631,7 +1632,7 @@ fun type_tag_idempotence_fact format type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] [] false (tag tagged_var) tagged_var,
-             NONE, isabelle_info format eqN)
+             NONE, isabelle_info format spec_eqN)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1659,7 +1660,8 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
             [t]
         end
         |> tag_list 1
-        |> map (fn (k, t) => ((dub needs_fairly_sound j k, (Global, Eq)), t))
+        |> map (fn (k, t) =>
+                   ((dub needs_fairly_sound j k, (Global, Spec_Eq)), t))
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val fairly_sound = is_type_enc_fairly_sound type_enc
     in
@@ -1955,7 +1957,7 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
      Intro => isabelle_info format introN
    | Elim => isabelle_info format elimN
    | Simp => isabelle_info format simpN
-   | Eq => isabelle_info format eqN
+   | Spec_Eq => isabelle_info format spec_eqN
    | _ => NONE)
   |> Formula
 
@@ -2200,7 +2202,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info format eqN)
+             NONE, isabelle_info format spec_eqN)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2305,7 +2307,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         NONE, isabelle_info format eqN))
+                         NONE, isabelle_info format spec_eqN))
         end
       else
         I
@@ -2317,7 +2319,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           NONE, isabelle_info format eqN))
+                           NONE, isabelle_info format spec_eqN))
           | _ => raise Fail "expected nonempty tail"
         else
           I
@@ -2422,7 +2424,7 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
       in
         ([tm1, tm2],
          [Formula (app_op_alias_eq_prefix ^ s2, kind, eq |> maybe_negate, NONE,
-                   isabelle_info format eqN)])
+                   isabelle_info format spec_eqN)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end

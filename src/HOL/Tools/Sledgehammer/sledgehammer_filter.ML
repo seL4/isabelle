@@ -128,14 +128,14 @@ fun clasimpset_rule_table_of ctxt =
       Item_Net.content safeEs @ Item_Net.content hazEs
       |> map Classical.classical_rule
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
-    val eqs =
+    val spec_eqs =
       ctxt |> Spec_Rules.get
            |> filter (curry (op =) Spec_Rules.Equational o fst)
            |> maps (snd o snd)
   in
     Termtab.empty |> add Simp I snd simps
                   |> add Simp atomize snd simps
-                  |> add Eq I I eqs
+                  |> add Spec_Eq I I spec_eqs
                   |> add Elim I I elims
                   |> add Intro I I intros
   end

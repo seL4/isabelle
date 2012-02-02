@@ -49,7 +49,7 @@ sig
   val introN : string
   val elimN : string
   val simpN : string
-  val eqN : string
+  val spec_eqN : string
   val tptp_cnf : string
   val tptp_fof : string
   val tptp_tff : string
@@ -169,7 +169,7 @@ fun isabelle_info (DFG DFG_Sorted) s =
 val introN = "intro"
 val elimN = "elim"
 val simpN = "simp"
-val eqN = "eq"
+val spec_eqN = "spec_eq"
 
 fun extract_isabelle_info (SOME (ATerm ("[]", [ATerm (s, [])]))) =
     try (unprefix isabelle_info_prefix) s
@@ -441,7 +441,7 @@ fun dfg_string_for_formula flavor info =
       if top_level then
         case extract_isabelle_info info of
           SOME s' => if s' = simpN then s ^ ":lr"
-                     else if s' = eqN then s ^ ":lt"
+                     else if s' = spec_eqN then s ^ ":lt"
                      else s
         | NONE => s
       else
