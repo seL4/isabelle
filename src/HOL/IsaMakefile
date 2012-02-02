@@ -1051,10 +1051,10 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
   ex/Coercion_Examples.thy ex/Coherent.thy				\
   ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy			\
-  ex/Eval_Examples.thy ex/Fundefs.thy ex/Gauge_Integration.thy		\
-  ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
-  ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Iff_Oracle.thy ex/Induction_Schema.thy				\
+  ex/Eval_Examples.thy ex/Executable_Relation.thy ex/Fundefs.thy	\
+  ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy	\
+  ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy 		\
+  ex/Higher_Order_Logic.thy ex/Iff_Oracle.thy ex/Induction_Schema.thy	\
   ex/Interpretation_with_Defs.thy ex/Intuitionistic.thy			\
   ex/Lagrange.thy ex/List_to_Set_Comprehension_Examples.thy		\
   ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy ex/Meson_Test.thy	\
