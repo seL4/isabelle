@@ -4,6 +4,32 @@ begin
 
 chapter {* Inner syntax --- the term language \label{ch:inner-syntax} *}
 
+text {* The inner syntax of Isabelle provides concrete notation for
+  the main entities of the logical framework, notably @{text
+  "\<lambda>"}-terms with types and type classes.  Applications may either
+  extend existing syntactic categories by additional notation, or
+  define new sub-languages that are linked to the standard term
+  language via some explicit markers.  For example @{verbatim
+  FOO}~@{text "foo"} could embed the syntax corresponding for some
+  user-defined nonterminal @{text "foo"} --- within the bounds of the
+  given lexical syntax of Isabelle/Pure.
+
+  The most basic way to specify concrete syntax for logical entities
+  works via mixfix annotations (\secref{sec:mixfix}), which may be
+  usually given as part of the original declaration or via explicit
+  notation commands later on (\secref{sec:notation}).  This already
+  covers many needs of concrete syntax without having to understand
+  the full complexity of inner syntax layers.
+
+  Further details of the syntax engine involves the classical
+  distinction of lexical language versus context-free grammar (see
+  \secref{sec:pure-syntax}), and various mechanisms for \emph{syntax
+  translations} --- either as rewrite systems on first-order ASTs
+  (\secref{sec:syn-trans}) or ML functions on ASTs or @{text
+  "\<lambda>"}-terms that represent parse trees (\secref{sec:tr-funs}).
+*}
+
+
 section {* Printing logical entities *}
 
 subsection {* Diagnostic commands *}
@@ -234,7 +260,7 @@ text {*
 *}
 
 
-section {* Mixfix annotations *}
+section {* Mixfix annotations \label{sec:mixfix} *}
 
 text {* Mixfix annotations specify concrete \emph{inner syntax} of
   Isabelle types and terms.  Locally fixed parameters in toplevel
@@ -350,7 +376,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
 *}
 
 
-section {* Explicit notation *}
+section {* Explicit notation \label{sec:notation} *}
 
 text {*
   \begin{matharray}{rcll}
@@ -376,7 +402,7 @@ text {*
   \item @{command "type_notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing type constructor.  The arity of the
   constructor is retrieved from the context.
-  
+
   \item @{command "no_type_notation"} is similar to @{command
   "type_notation"}, but removes the specified syntax annotation from
   the present context.
@@ -384,7 +410,7 @@ text {*
   \item @{command "notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing constant or fixed variable.  The type
   declaration of the given entity is retrieved from the context.
-  
+
   \item @{command "no_notation"} is similar to @{command "notation"},
   but removes the specified syntax annotation from the present
   context.
@@ -401,6 +427,59 @@ text {*
 
 
 section {* The Pure syntax \label{sec:pure-syntax} *}
+
+subsection {* Lexical matters \label{sec:inner-lex} *}
+
+text {* The inner lexical syntax vaguely resembles the outer one
+  (\secref{sec:outer-lex}), but some details are different.  There are
+  two main categories of inner syntax tokens:
+
+  \begin{enumerate}
+
+  \item \emph{delimiters} --- the literal tokens occurring in
+  productions of the given priority grammar (cf.\
+  \secref{sec:priority-grammar});
+
+  \item \emph{named tokens} --- various categories of identifiers etc.
+
+  \end{enumerate}
+
+  Delimiters override named tokens and may thus render certain
+  identifiers inaccessible.  Sometimes the logical context admits
+  alternative ways to refer to the same entity, potentially via
+  qualified names.
+
+  \medskip The categories for named tokens are defined once and for
+  all as follows, reusing some categories of the outer token syntax
+  (\secref{sec:outer-lex}).
+
+  \begin{center}
+  \begin{supertabular}{rcl}
+    @{syntax_def (inner) id} & = & @{syntax_ref ident} \\
+    @{syntax_def (inner) longid} & = & @{syntax_ref longident} \\
+    @{syntax_def (inner) var} & = & @{syntax_ref var} \\
+    @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
+    @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
+    @{syntax_def (inner) num_token} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
+    @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
+    @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
+
+    @{syntax_def (inner) xstr} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
+  \end{supertabular}
+  \end{center}
+
+  The token categories @{syntax (inner) num_token}, @{syntax (inner)
+  float_token}, @{syntax (inner) xnum_token}, and @{syntax (inner)
+  xstr} are not used in Pure.  Object-logics may implement numerals
+  and string constants by adding appropriate syntax declarations,
+  together with some translation functions (e.g.\ see Isabelle/HOL).
+
+  The derived categories @{syntax_def (inner) num_const}, @{syntax_def
+  (inner) float_const}, and @{syntax_def (inner) num_const} provide
+  robust access to the respective tokens: the syntax tree holds a
+  syntactic constant instead of a free variable.
+*}
+
 
 subsection {* Priority grammars \label{sec:priority-grammar} *}
 
@@ -661,60 +740,67 @@ text {*
 *}
 
 
-section {* Lexical matters \label{sec:inner-lex} *}
+subsection {* Inspecting the syntax *}
 
-text {* The inner lexical syntax vaguely resembles the outer one
-  (\secref{sec:outer-lex}), but some details are different.  There are
-  two main categories of inner syntax tokens:
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+  \end{matharray}
 
-  \begin{enumerate}
+  \begin{description}
 
-  \item \emph{delimiters} --- the literal tokens occurring in
-  productions of the given priority grammar (cf.\
-  \secref{sec:priority-grammar});
+  \item @{command "print_syntax"} prints the inner syntax of the
+  current context.  The output can be quite large; the most important
+  sections are explained below.
 
-  \item \emph{named tokens} --- various categories of identifiers etc.
+  \begin{description}
 
-  \end{enumerate}
+  \item @{text "lexicon"} lists the delimiters of the inner token
+  language; see \secref{sec:inner-lex}.
 
-  Delimiters override named tokens and may thus render certain
-  identifiers inaccessible.  Sometimes the logical context admits
-  alternative ways to refer to the same entity, potentially via
-  qualified names.
+  \item @{text "prods"} lists the productions of the underlying
+  priority grammar; see \secref{sec:priority-grammar}.
 
-  \medskip The categories for named tokens are defined once and for
-  all as follows, reusing some categories of the outer token syntax
-  (\secref{sec:outer-lex}).
+  The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
+  "A[p]"}; delimiters are quoted.  Many productions have an extra
+  @{text "\<dots> => name"}.  These names later become the heads of parse
+  trees; they also guide the pretty printer.
 
-  \begin{center}
-  \begin{supertabular}{rcl}
-    @{syntax_def (inner) id} & = & @{syntax_ref ident} \\
-    @{syntax_def (inner) longid} & = & @{syntax_ref longident} \\
-    @{syntax_def (inner) var} & = & @{syntax_ref var} \\
-    @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
-    @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
-    @{syntax_def (inner) num_token} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
-    @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
+  Productions without such parse tree names are called \emph{copy
+  productions}.  Their right-hand side must have exactly one
+  nonterminal symbol (or named token).  The parser does not create a
+  new parse tree node for copy productions, but simply returns the
+  parse tree of the right-hand symbol.
 
-    @{syntax_def (inner) xstr} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
-  \end{supertabular}
-  \end{center}
+  If the right-hand side of a copy production consists of a single
+  nonterminal without any delimiters, then it is called a \emph{chain
+  production}.  Chain productions act as abbreviations: conceptually,
+  they are removed from the grammar by adding new productions.
+  Priority information attached to chain productions is ignored; only
+  the dummy value @{text "-1"} is displayed.
 
-  The token categories @{syntax (inner) num_token}, @{syntax (inner)
-  float_token}, @{syntax (inner) xnum_token}, and @{syntax (inner)
-  xstr} are not used in Pure.  Object-logics may implement numerals
-  and string constants by adding appropriate syntax declarations,
-  together with some translation functions (e.g.\ see Isabelle/HOL).
+  \item @{text "print modes"} lists the alternative print modes
+  provided by this grammar; see \secref{sec:print-modes}.
 
-  The derived categories @{syntax_def (inner) num_const}, @{syntax_def
-  (inner) float_const}, and @{syntax_def (inner) num_const} provide
-  robust access to the respective tokens: the syntax tree holds a
-  syntactic constant instead of a free variable.
+  \item @{text "parse_rules"} and @{text "print_rules"} relate to
+  syntax translations (macros); see \secref{sec:syn-trans}.
+
+  \item @{text "parse_ast_translation"} and @{text
+  "print_ast_translation"} list sets of constants that invoke
+  translation functions for abstract syntax trees, which are only
+  required in very special situations; see \secref{sec:tr-funs}.
+
+  \item @{text "parse_translation"} and @{text "print_translation"}
+  list the sets of constants that invoke regular translation
+  functions; see \secref{sec:tr-funs}.
+
+  \end{description}
+
+  \end{description}
 *}
 
 
-section {* Syntax and translations \label{sec:syn-trans} *}
+section {* Raw syntax and translations \label{sec:syn-trans} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -740,7 +826,7 @@ text {*
   "}
 
   \begin{description}
-  
+
   \item @{command "nonterminal"}~@{text c} declares a type
   constructor @{text c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
@@ -753,17 +839,17 @@ text {*
   print mode that the grammar rules belong; unless the @{keyword_ref
   "output"} indicator is given, all productions are added both to the
   input and output grammar.
-  
+
   \item @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
   declarations (and translations) resulting from @{text decls}, which
   are interpreted in the same manner as for @{command "syntax"} above.
-  
+
   \item @{command "translations"}~@{text rules} specifies syntactic
   translation rules (i.e.\ macros): parse~/ print rules (@{text "\<rightleftharpoons>"}),
   parse rules (@{text "\<rightharpoonup>"}), or print rules (@{text "\<leftharpoondown>"}).
   Translation patterns may be prefixed by the syntactic category to be
   used for parsing; the default is @{text logic}.
-  
+
   \item @{command "no_translations"}~@{text rules} removes syntactic
   translation rules, which are interpreted in the same manner as for
   @{command "translations"} above.
@@ -825,66 +911,6 @@ val typed_print_translation:
 val print_ast_translation:
   (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}
-*}
-
-
-section {* Inspecting the syntax *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item @{command "print_syntax"} prints the inner syntax of the
-  current context.  The output can be quite large; the most important
-  sections are explained below.
-
-  \begin{description}
-
-  \item @{text "lexicon"} lists the delimiters of the inner token
-  language; see \secref{sec:inner-lex}.
-
-  \item @{text "prods"} lists the productions of the underlying
-  priority grammar; see \secref{sec:priority-grammar}.
-
-  The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
-  "A[p]"}; delimiters are quoted.  Many productions have an extra
-  @{text "\<dots> => name"}.  These names later become the heads of parse
-  trees; they also guide the pretty printer.
-
-  Productions without such parse tree names are called \emph{copy
-  productions}.  Their right-hand side must have exactly one
-  nonterminal symbol (or named token).  The parser does not create a
-  new parse tree node for copy productions, but simply returns the
-  parse tree of the right-hand symbol.
-
-  If the right-hand side of a copy production consists of a single
-  nonterminal without any delimiters, then it is called a \emph{chain
-  production}.  Chain productions act as abbreviations: conceptually,
-  they are removed from the grammar by adding new productions.
-  Priority information attached to chain productions is ignored; only
-  the dummy value @{text "-1"} is displayed.
-
-  \item @{text "print modes"} lists the alternative print modes
-  provided by this grammar; see \secref{sec:print-modes}.
-
-  \item @{text "parse_rules"} and @{text "print_rules"} relate to
-  syntax translations (macros); see \secref{sec:syn-trans}.
-
-  \item @{text "parse_ast_translation"} and @{text
-  "print_ast_translation"} list sets of constants that invoke
-  translation functions for abstract syntax trees, which are only
-  required in very special situations; see \secref{sec:tr-funs}.
-
-  \item @{text "parse_translation"} and @{text "print_translation"}
-  list the sets of constants that invoke regular translation
-  functions; see \secref{sec:tr-funs}.
-
-  \end{description}
-  
-  \end{description}
 *}
 
 end
