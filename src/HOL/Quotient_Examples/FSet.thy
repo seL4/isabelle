@@ -546,7 +546,34 @@ proof (intro fun_relI, elim pred_compE)
     by (rule pred_compI) (rule a', rule d')
 qed
 
+lemma map_rsp2 [quot_respect]:
+  "((op \<approx> ===> op \<approx>) ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) map map"
+proof (auto intro!: fun_relI)
+  fix f f' :: "'a list \<Rightarrow> 'b list"
+  fix xa ya x y :: "'a list list"
+  assume fs: "(op \<approx> ===> op \<approx>) f f'" and x: "list_all2 op \<approx> xa x" and xy: "set x = set y" and y: "list_all2 op \<approx> y ya"
+  have a: "(list_all2 op \<approx>) (map f xa) (map f x)"
+    using x
+    by (induct xa x rule: list_induct2')
+       (simp_all, metis fs fun_relE list_eq_def)
+  have b: "set (map f x) = set (map f y)"
+    using xy fs
+    by (induct x y rule: list_induct2')
+       (simp_all, metis image_insert)
+  have c: "(list_all2 op \<approx>) (map f y) (map f' ya)"
+    using y fs
+    by (induct y ya rule: list_induct2')
+       (simp_all, metis apply_rsp' list_eq_def)
+  show "(list_all2 op \<approx> OOO op \<approx>) (map f xa) (map f' ya)"
+    by (metis a b c list_eq_def pred_comp.intros)
+qed
 
+lemma map_prs2 [quot_preserve]:
+  "((abs_fset ---> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> abs_fset \<circ> map abs_fset) map = map_fset"
+  apply (auto simp add: fun_eq_iff)
+  apply (induct_tac xa rule: list.induct[quot_lifted])
+  apply (simp_all add: map.simps[quot_lifted] Quotient_abs_rep[OF Quotient_fset] bot_fset_def map_fset_def insert_fset_def)
+  done
 
 section {* Lifted theorems *}
 
@@ -917,6 +944,9 @@ lemma concat_inter_fset [simp]:
   shows "concat_fset (xs |\<union>| ys) = concat_fset xs |\<union>| concat_fset ys"
   by (lifting concat_append)
 
+lemma map_concat_fset:
+  shows "map_fset f (concat_fset xs) = concat_fset (map_fset (map_fset f) xs)"
+  by (lifting map_concat)
 
 subsection {* filter_fset *}
 
