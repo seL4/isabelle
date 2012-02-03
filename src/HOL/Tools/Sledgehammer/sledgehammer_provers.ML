@@ -399,10 +399,10 @@ fun proof_banner mode name =
   | _ => "Try this"
 
 fun bunch_of_reconstructors needs_full_types lam_trans =
-  [(false, Metis (partial_type_enc, lam_trans true)),
+  [(false, Metis (partial_type_enc, lam_trans false)),
    (true, Metis (full_type_enc, lam_trans false)),
-   (false, Metis (no_typesN, lam_trans false)),
-   (true, Metis (really_full_type_enc, lam_trans false)),
+   (false, Metis (no_typesN, lam_trans true)),
+   (true, Metis (really_full_type_enc, lam_trans true)),
    (true, SMT)]
   |> map_filter (fn (full_types, reconstr) =>
                     if needs_full_types andalso not full_types then NONE
@@ -798,8 +798,8 @@ fun run_atp mode name
           val reconstrs =
             bunch_of_reconstructors needs_full_types
                 (lam_trans_from_atp_proof atp_proof
-                 o (fn plain =>
-                       if plain then metis_default_lam_trans else hide_lamsN))
+                 o (fn desperate => if desperate then hide_lamsN
+                                    else metis_default_lam_trans))
         in
           (used_facts,
            fn () =>
