@@ -102,8 +102,8 @@ fun inference_term [] = NONE
 fun inference infers ident =
   these (AList.lookup (op =) infers ident) |> inference_term
 fun add_inferences_to_problem_line infers
-                                   (Formula (ident, Axiom, phi, NONE, NONE)) =
-    Formula (ident, Lemma, phi, inference infers ident, NONE)
+                                   (Formula (ident, Axiom, phi, NONE, tms)) =
+    Formula (ident, Lemma, phi, inference infers ident, tms)
   | add_inferences_to_problem_line _ line = line
 fun add_inferences_to_problem infers =
   map (apsnd (map (add_inferences_to_problem_line infers)))
@@ -139,7 +139,7 @@ fun is_problem_line_tautology ctxt format (Formula (ident, _, phi, _, _)) =
     exists (fn prefix => String.isPrefix prefix ident)
            likely_tautology_prefixes andalso
     is_none (run_some_atp ctxt format
-                 [(factsN, [Formula (ident, Conjecture, phi, NONE, NONE)])])
+                 [(factsN, [Formula (ident, Conjecture, phi, NONE, [])])])
   | is_problem_line_tautology _ _ _ = false
 
 structure String_Graph = Graph(type key = string val ord = string_ord);

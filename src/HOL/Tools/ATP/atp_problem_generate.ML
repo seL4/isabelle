@@ -1622,6 +1622,12 @@ fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =
   |> close_formula_universally
   |> bound_tvars type_enc true atomic_Ts
 
+val helper_rank = default_rank
+val min_rank = 9 * helper_rank div 10
+val max_rank = 4 * min_rank
+
+fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
+
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
 fun type_tag_idempotence_fact format type_enc =
@@ -1632,7 +1638,7 @@ fun type_tag_idempotence_fact format type_enc =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              eq_formula type_enc [] [] false (tag tagged_var) tagged_var,
-             NONE, isabelle_info format spec_eqN)
+             NONE, isabelle_info format spec_eqN helper_rank)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1945,7 +1951,7 @@ and formula_from_iformula ctxt polym_constrs format mono type_enc
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
-        mono type_enc (j, {name, stature, kind, iformula, atomic_types}) =
+        mono type_enc rank (j, {name, stature, kind, iformula, atomic_types}) =
   (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name, kind,
    iformula
    |> formula_from_iformula ctxt polym_constrs format mono type_enc
@@ -1953,12 +1959,14 @@ fun formula_line_for_fact ctxt polym_constrs format prefix encode freshen pos
    |> close_formula_universally
    |> bound_tvars type_enc true atomic_types,
    NONE,
-   case snd stature of
-     Intro => isabelle_info format introN
-   | Elim => isabelle_info format elimN
-   | Simp => isabelle_info format simpN
-   | Spec_Eq => isabelle_info format spec_eqN
-   | _ => NONE)
+   let val rank = rank j in
+     case snd stature of
+       Intro => isabelle_info format introN rank
+     | Elim => isabelle_info format elimN rank
+     | Simp => isabelle_info format simpN rank
+     | Spec_Eq => isabelle_info format spec_eqN rank
+     | _ => isabelle_info format "" rank
+   end)
   |> Formula
 
 fun formula_line_for_class_rel_clause format type_enc
@@ -1970,7 +1978,7 @@ fun formula_line_for_class_rel_clause format type_enc
                      type_class_formula type_enc superclass ty_arg])
              |> mk_aquant AForall
                           [(tvar_a_name, atype_of_type_vars type_enc)],
-             NONE, isabelle_info format introN)
+             NONE, isabelle_info format introN helper_rank)
   end
 
 fun formula_from_arity_atom type_enc (class, t, args) =
@@ -1984,7 +1992,7 @@ fun formula_line_for_arity_clause format type_enc
                     (formula_from_arity_atom type_enc concl_atom)
            |> mk_aquant AForall
                   (map (rpair (atype_of_type_vars type_enc)) (#3 concl_atom)),
-           NONE, isabelle_info format introN)
+           NONE, isabelle_info format introN helper_rank)
 
 fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
         ({name, kind, iformula, atomic_types, ...} : translated_formula) =
@@ -1993,10 +2001,10 @@ fun formula_line_for_conjecture ctxt polym_constrs format mono type_enc
            |> formula_from_iformula ctxt polym_constrs format mono type_enc
                   should_guard_var_in_formula (SOME false)
            |> close_formula_universally
-           |> bound_tvars type_enc true atomic_types, NONE, NONE)
+           |> bound_tvars type_enc true atomic_types, NONE, [])
 
 fun formula_line_for_free_type j phi =
-  Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, NONE)
+  Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis, phi, NONE, [])
 fun formula_lines_for_free_types type_enc (facts : translated_formula list) =
   let
     val phis =
@@ -2193,7 +2201,7 @@ fun formula_line_for_guards_mono_type ctxt format mono type_enc T =
                                     always_guard_var_in_formula (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
-           NONE, isabelle_info format introN)
+           NONE, isabelle_info format introN helper_rank)
 
 fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
   let val x_var = ATerm (`make_bound_var "X", []) in
@@ -2202,7 +2210,7 @@ fun formula_line_for_tags_mono_type ctxt format mono type_enc T =
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt format mono type_enc NONE T x_var) x_var,
-             NONE, isabelle_info format spec_eqN)
+             NONE, isabelle_info format spec_eqN helper_rank)
   end
 
 fun problem_lines_for_mono_types ctxt format mono type_enc Ts =
@@ -2273,7 +2281,7 @@ fun formula_line_for_guards_sym_decl ctxt format conj_sym_kind mono type_enc n s
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
-             NONE, isabelle_info format introN)
+             NONE, isabelle_info format introN helper_rank)
   end
 
 fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
@@ -2307,7 +2315,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
         in
           cons (Formula (ident_base ^ "_res", kind,
                          eq (tag_with res_T (cst bounds)) (cst tagged_bounds),
-                         NONE, isabelle_info format spec_eqN))
+                         NONE, isabelle_info format spec_eqN helper_rank))
         end
       else
         I
@@ -2319,7 +2327,7 @@ fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind mono type_enc n s
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq (cst (bounds1 @ tag_with arg_T bound :: bounds2))
                               (cst bounds),
-                           NONE, isabelle_info format spec_eqN))
+                           NONE, isabelle_info format spec_eqN helper_rank))
           | _ => raise Fail "expected nonempty tail"
         else
           I
@@ -2424,7 +2432,7 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
       in
         ([tm1, tm2],
          [Formula (app_op_alias_eq_prefix ^ s2, kind, eq |> maybe_negate, NONE,
-                   isabelle_info format spec_eqN)])
+                   isabelle_info format spec_eqN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
@@ -2596,10 +2604,16 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |> sym_decl_table_for_facts ctxt format type_enc sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono
                                                type_enc mono_Ts
+    val num_facts = length facts
+    val fact_lines =
+      map (formula_line_for_fact ctxt polym_constrs format fact_prefix
+               ascii_of (not exporter) (not exporter) mono type_enc
+               (rank_of_fact_num num_facts))
+          (0 upto num_facts - 1 ~~ facts)
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
       |> map (formula_line_for_fact ctxt polym_constrs format helper_prefix I
-                                    false true mono type_enc)
+                                    false true mono type_enc (K default_rank))
       |> (if needs_type_tag_idempotence ctxt type_enc then
             cons (type_tag_idempotence_fact format type_enc)
           else
@@ -2609,10 +2623,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
        (app_op_alias_eqsN, app_op_alias_eq_lines),
-       (factsN,
-        map (formula_line_for_fact ctxt polym_constrs format fact_prefix
-                 ascii_of (not exporter) (not exporter) mono type_enc)
-            (0 upto length facts - 1 ~~ facts)),
+       (factsN, fact_lines),
        (class_relsN,
         map (formula_line_for_class_rel_clause format type_enc)
             class_rel_clauses),

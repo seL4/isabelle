@@ -41,15 +41,9 @@ sig
     Formula of string * formula_kind
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
                * (string, string ho_type) ho_term option
-               * (string, string ho_type) ho_term option
+               * (string, string ho_type) ho_term list
   type 'a problem = (string * 'a problem_line list) list
 
-  val isabelle_info_prefix : string
-  val isabelle_info : atp_format -> string -> (string, 'a) ho_term option
-  val introN : string
-  val elimN : string
-  val simpN : string
-  val spec_eqN : string
   val tptp_cnf : string
   val tptp_fof : string
   val tptp_tff : string
@@ -80,6 +74,15 @@ sig
   val tptp_false : string
   val tptp_true : string
   val tptp_empty_list : string
+  val isabelle_info_prefix : string
+  val isabelle_info : atp_format -> string -> int -> (string, 'a) ho_term list
+  val introN : string
+  val elimN : string
+  val simpN : string
+  val spec_eqN : string
+  val rankN : string
+  val minimum_rank : int
+  val default_rank : int
   val is_tptp_equal : string -> bool
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
@@ -154,26 +157,11 @@ datatype atp_format =
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
-  Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
-             * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
+  Formula of string * formula_kind
+             * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+             * (string, string ho_type) ho_term option
+             * (string, string ho_type) ho_term list
 type 'a problem = (string * 'a problem_line list) list
-
-val isabelle_info_prefix = "isabelle_"
-
-(* Currently, only newer versions of SPASS, with sorted DFG format support, can
-   process Isabelle metainformation. *)
-fun isabelle_info (DFG DFG_Sorted) s =
-    SOME (ATerm ("[]", [ATerm (isabelle_info_prefix ^ s, [])]))
-  | isabelle_info _ _ = NONE
-
-val introN = "intro"
-val elimN = "elim"
-val simpN = "simp"
-val spec_eqN = "spec_eq"
-
-fun extract_isabelle_info (SOME (ATerm ("[]", [ATerm (s, [])]))) =
-    try (unprefix isabelle_info_prefix) s
-  | extract_isabelle_info _ = NONE
 
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"
@@ -206,6 +194,36 @@ val tptp_old_equal = "equal"
 val tptp_false = "$false"
 val tptp_true = "$true"
 val tptp_empty_list = "[]"
+
+val isabelle_info_prefix = "isabelle_"
+
+val introN = "intro"
+val elimN = "elim"
+val simpN = "simp"
+val spec_eqN = "spec_eq"
+val rankN = "rank"
+
+val minimum_rank = 0
+val default_rank = 1000
+
+(* Currently, only newer versions of SPASS, with sorted DFG format support, can
+   process Isabelle metainformation. *)
+fun isabelle_info (DFG DFG_Sorted) status rank =
+    [] |> rank <> default_rank
+          ? cons (ATerm (isabelle_info_prefix ^ rankN,
+                         [ATerm (string_of_int rank, [])]))
+       |> status <> "" ? cons (ATerm (isabelle_info_prefix ^ status, []))
+  | isabelle_info _ _ _ = []
+
+fun extract_isabelle_status (ATerm (s, []) :: _) =
+    try (unprefix isabelle_info_prefix) s
+  | extract_isabelle_status _ = NONE
+
+fun extract_isabelle_rank (tms as _ :: _) =
+    (case List.last tms of
+       ATerm (_, [ATerm (rank, [])]) => the (Int.fromString rank)
+     | _ => default_rank)
+  | extract_isabelle_rank _ = default_rank
 
 fun is_tptp_equal s = (s = tptp_equal orelse s = tptp_old_equal)
 fun is_built_in_tptp_symbol s =
@@ -406,11 +424,12 @@ fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
     tptp_string_for_kind kind ^ ",\n    (" ^
     tptp_string_for_formula format phi ^ ")" ^
     (case (source, info) of
-       (NONE, NONE) => ""
-     | (SOME tm, NONE) => ", " ^ tptp_string_for_term format tm
-     | (_, SOME tm) =>
+       (NONE, []) => ""
+     | (SOME tm, []) => ", " ^ tptp_string_for_term format tm
+     | (_, tms) =>
        ", " ^ tptp_string_for_term format (the_source source) ^
-       ", " ^ tptp_string_for_term format tm) ^ ").\n"
+       ", " ^ tptp_string_for_term format (ATerm (tptp_empty_list, tms))) ^
+    ").\n"
 
 fun tptp_lines format =
   maps (fn (_, []) => []
@@ -439,7 +458,7 @@ fun dfg_string_for_formula flavor info =
   let
     fun suffix_tag top_level s =
       if top_level then
-        case extract_isabelle_info info of
+        case extract_isabelle_status info of
           SOME s' => if s' = simpN then s ^ ":lr"
                      else if s' = spec_eqN then s ^ ":lt"
                      else s
@@ -484,8 +503,11 @@ fun dfg_lines flavor problem =
       commas (sym :: map (string_for_type format) (binder_atypes ty)) ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
-          SOME ("formula(" ^ dfg_string_for_formula flavor info phi ^ ", " ^
-                ident ^ ").")
+          let val rank = extract_isabelle_rank info in
+            "formula(" ^ dfg_string_for_formula flavor info phi ^ ", " ^ ident ^
+            (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
+            ")." |> SOME
+          end
         else
           NONE
       | formula _ _ = NONE
