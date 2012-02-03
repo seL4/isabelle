@@ -23,7 +23,8 @@ sig
      prem_kind : formula_kind,
      best_slices :
        Proof.context
-       -> (real * (bool * (int * atp_format * string * string * string))) list}
+       -> (real * (bool * ((int * atp_format * string * string) * string)))
+            list}
 
   val force_sos : bool Config.T
   val e_smartN : string
@@ -88,10 +89,10 @@ type atp_config =
    prem_kind : formula_kind,
    best_slices :
      Proof.context
-     -> (real * (bool * (int * atp_format * string * string * string))) list}
+     -> (real * (bool * ((int * atp_format * string * string) * string))) list}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
-   the ATPs are run in parallel. The "real" components give the faction of the
+   the ATPs are run in parallel. The "real" component gives the faction of the
    time available given to the slice and should add up to 1.0. The "bool"
    component indicates whether the slice's strategy is complete; the "int", the
    preferred number of facts to pass; the first "string", the preferred type
@@ -150,7 +151,8 @@ structure Data = Theory_Data
   type T = (atp_config * stamp) Symtab.table
   val empty = Symtab.empty
   val extend = I
-  fun merge data : T = Symtab.merge (eq_snd op =) data
+  fun merge data : T =
+    Symtab.merge (eq_snd (op =)) data
     handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
 )
 
@@ -246,14 +248,12 @@ val e_config : atp_config =
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (500, FOF, "mono_tags??", combsN,
-                          e_fun_weightN))),
-          (0.334, (true, (50, FOF, "mono_guards??", combsN,
-                          e_fun_weightN))),
-          (0.333, (true, (1000, FOF, "mono_tags??", combsN,
+         [(0.333, (true, ((500, FOF, "mono_tags??", combsN), e_fun_weightN))),
+          (0.334, (true, ((50, FOF, "mono_guards??", combsN), e_fun_weightN))),
+          (0.333, (true, ((1000, FOF, "mono_tags??", combsN),
                           e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (500, FOF, "mono_tags??", combsN, method)))]
+         [(1.0, (true, ((500, FOF, "mono_tags??", combsN), method)))]
      end}
 
 val e = (eN, e_config)
@@ -278,9 +278,9 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, (150, leo2_thf0, "mono_simple_higher", liftingN,
+     [(0.667, (false, ((150, leo2_thf0, "mono_simple_higher", liftingN),
                        sosN))),
-      (0.333, (true, (50, leo2_thf0, "mono_simple_higher", liftingN,
+      (0.333, (true, ((50, leo2_thf0, "mono_simple_higher", liftingN),
                       no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -305,7 +305,7 @@ val satallax_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, (100, satallax_thf0, "mono_simple_higher", keep_lamsN,
+     K [(1.0, (true, ((100, satallax_thf0, "mono_simple_higher", keep_lamsN),
                       "")))]}
 
 val satallax = (satallaxN, satallax_config)
@@ -338,16 +338,20 @@ val spass_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, DFG DFG_Unsorted, "mono_tags??", liftingN,
+     [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN),
                        sosN))),
-      (0.333, (false, (300, DFG DFG_Unsorted, "poly_tags??", liftingN,
+      (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN),
                        sosN))),
-      (0.334, (false, (50, DFG DFG_Unsorted, "mono_tags??", liftingN,
+      (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN),
                        no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
 val spass = (spassN, spass_config)
+
+val spass_new_macro_slice_1 = (300, DFG DFG_Sorted, "mono_simple", combsN)
+val spass_new_macro_slice_2 = (50, DFG DFG_Sorted, "mono_simple", combsN)
+val spass_new_macro_slice_3 = (150, DFG DFG_Sorted, "mono_simple", liftingN)
 
 (* Experimental *)
 val spass_new_config : atp_config =
@@ -364,10 +368,9 @@ val spass_new_config : atp_config =
    prem_kind = #prem_kind spass_config,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.334, (true, (300, DFG DFG_Sorted, "mono_simple", combsN,
-                      "" (* spass_incompleteN *)))),
-      (0.333, (true, (50, DFG DFG_Sorted, "mono_simple", combsN, ""))),
-      (0.333, (true, (150, DFG DFG_Sorted, "mono_simple", liftingN, "")))]}
+     [(0.300, (true, (spass_new_macro_slice_1, ""))),
+      (0.333, (true, (spass_new_macro_slice_2, ""))),
+      (0.333, (true, (spass_new_macro_slice_3, "")))]}
 
 val spass_new = (spass_newN, spass_new_config)
 
@@ -407,15 +410,17 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_old_vampire_version () then
-        [(0.333, (false, (150, FOF, "poly_guards??", combs_or_liftingN, sosN))),
-         (0.333, (false, (500, FOF, "mono_tags??", combs_or_liftingN, sosN))),
-         (0.334, (true, (50, FOF, "mono_guards??", combs_or_liftingN, no_sosN)))]
+        [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN),
+                           sosN))),
+         (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN), sosN))),
+         (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN),
+                         no_sosN)))]
       else
-        [(0.333, (false, (150, vampire_tff0, "poly_guards??", combs_or_liftingN,
+        [(0.333, (false, ((150, vampire_tff0, "poly_guards??",
+                           combs_or_liftingN), sosN))),
+         (0.333, (false, ((500, vampire_tff0, "mono_simple", combs_or_liftingN),
                           sosN))),
-         (0.333, (false, (500, vampire_tff0, "mono_simple", combs_or_liftingN,
-                          sosN))),
-         (0.334, (true, (50, vampire_tff0, "mono_simple", combs_or_liftingN,
+         (0.334, (true, ((50, vampire_tff0, "mono_simple", combs_or_liftingN),
                          no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -438,10 +443,10 @@ val z3_tptp_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, (false, (250, z3_tff0, "mono_simple", combsN, ""))),
-        (0.25, (false, (125, z3_tff0, "mono_simple", combsN, ""))),
-        (0.125, (false, (62, z3_tff0, "mono_simple", combsN, ""))),
-        (0.125, (false, (31, z3_tff0, "mono_simple", combsN, "")))]}
+     K [(0.5, (false, ((250, z3_tff0, "mono_simple", combsN), ""))),
+        (0.25, (false, ((125, z3_tff0, "mono_simple", combsN), ""))),
+        (0.125, (false, ((62, z3_tff0, "mono_simple", combsN), ""))),
+        (0.125, (false, ((31, z3_tff0, "mono_simple", combsN), "")))]}
 
 val z3_tptp = (z3_tptpN, z3_tptp_config)
 
@@ -457,9 +462,9 @@ fun dummy_config format type_enc : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    best_slices =
-     K [(1.0, (false, (200, format, type_enc,
-                       if is_format_higher_order format then keep_lamsN
-                       else combsN, "")))]}
+     K [(1.0, (false, ((200, format, type_enc,
+                        if is_format_higher_order format then keep_lamsN
+                        else combsN), "")))]}
 
 val dummy_tff1_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
 val dummy_tff1_config = dummy_config dummy_tff1_format "poly_simple"
@@ -518,7 +523,7 @@ fun remote_config system_name system_versions proof_delims known_failures
    prem_kind = prem_kind,
    best_slices = fn ctxt =>
      let val (max_relevant, format, type_enc, lam_trans) = best_slice ctxt in
-       [(1.0, (false, (max_relevant, format, type_enc, lam_trans, "")))]
+       [(1.0, (false, ((max_relevant, format, type_enc, lam_trans), "")))]
      end}
 
 fun remotify_config system_name system_versions best_slice
