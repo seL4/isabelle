@@ -1523,7 +1523,7 @@ val predicator_combconst =
 fun list_app head args = fold (curry (IApp o swap)) args head
 fun predicator tm = IApp (predicator_combconst, tm)
 
-fun do_app_op format type_enc head arg =
+fun mk_app_op format type_enc head arg =
   let
     val head_T = ityp_of head
     val (arg_T, res_T) = dest_funT head_T
@@ -1535,7 +1535,7 @@ fun do_app_op format type_enc head arg =
 fun firstorderize_fact thy monom_constrs format type_enc sym_tab
                        uncurried_aliases =
   let
-    fun do_app arg head = do_app_op format type_enc head arg
+    fun do_app arg head = mk_app_op format type_enc head arg
     fun list_app_ops head args = fold do_app args head
     fun introduce_app_ops tm =
       let val (head, args) = tm |> strip_iterm_comb ||> map introduce_app_ops in
@@ -2411,7 +2411,9 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
           T_args |> filter_type_args_in_const thy monom_constrs type_enc
                                               base_ary base_s
         fun do_const name = IConst (name, T, T_args)
-        val do_term = ho_term_from_iterm ctxt format mono type_enc (SOME true)
+        val do_term =
+          filter_type_args_in_iterm thy monom_constrs type_enc
+          #> ho_term_from_iterm ctxt format mono type_enc (SOME true)
         val name1 as (s1, _) =
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
         val name2 as (s2, _) = base_name |> aliased_uncurried ary
@@ -2422,7 +2424,7 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
         val (first_bounds, last_bound) =
           bounds |> map (fn (name, T) => IConst (name, T, [])) |> split_last
         val tm1 =
-          do_app_op format type_enc (list_app (do_const name1) first_bounds)
+          mk_app_op format type_enc (list_app (do_const name1) first_bounds)
                     last_bound
         val tm2 = list_app (do_const name2) (first_bounds @ [last_bound])
         val do_bound_type = do_bound_type ctxt format mono type_enc
