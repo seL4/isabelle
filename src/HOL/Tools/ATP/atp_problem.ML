@@ -511,35 +511,39 @@ fun dfg_lines flavor problem =
         else
           NONE
       | formula _ _ = NONE
-    fun filt f = problem |> map (map_filter f o snd) |> flat
+    fun filt f = problem |> map (map_filter f o snd) |> filter_out null
     val func_aries =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
-      |> commas |> enclose "functions [" "]."
+      |> flat |> commas |> enclose "functions [" "]."
     val pred_aries =
       filt (fn Decl (_, sym, ty) =>
                if is_predicate_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
-      |> commas |> enclose "predicates [" "]."
+      |> flat |> commas |> enclose "predicates [" "]."
     fun sorts () =
       filt (fn Decl (_, sym, AType (s, [])) =>
                if s = tptp_type_of_types then SOME sym else NONE
-             | _ => NONE) @ [dfg_individual_type]
-      |> commas |> enclose "sorts [" "]."
+             | _ => NONE) @ [[dfg_individual_type]]
+      |> flat |> commas |> enclose "sorts [" "]."
     val syms = [func_aries, pred_aries] @ (if sorted then [sorts ()] else [])
     fun func_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (fun_typ sym ty) else NONE
              | _ => NONE)
+      |> flat
     fun pred_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_nontrivial_predicate_type ty then SOME (pred_typ sym ty)
                else NONE
              | _ => NONE)
+      |> flat
     val decls = if sorted then func_sigs () @ pred_sigs () else []
-    val axioms = filt (formula (curry (op <>) Conjecture))
-    val conjs = filt (formula (curry (op =) Conjecture))
+    val axioms =
+      filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
+    val conjs =
+      filt (formula (curry (op =) Conjecture)) |> separate [""] |> flat
     fun list_of _ [] = []
       | list_of heading ss =
         "list_of_" ^ heading ^ ".\n" :: map (suffix "\n") ss @
