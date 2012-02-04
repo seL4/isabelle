@@ -305,7 +305,7 @@ a list and a nat.
     affecting 'rat' and 'real'.
 
 * Sledgehammer:
-  - Added "lam_trans" and "minimize" options.
+  - Added "lam_trans", "uncurry_aliases", and "minimize" options.
   - Renamed "slicing" ("no_slicing") option to "slice" ("dont_slice").
   - Renamed "sound" option to "strict".
 

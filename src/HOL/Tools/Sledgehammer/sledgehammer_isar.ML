@@ -89,6 +89,7 @@ val default_default_params =
    ("type_enc", "smart"),
    ("strict", "false"),
    ("lam_trans", "smart"),
+   ("uncurried_aliases", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
@@ -107,14 +108,15 @@ val negated_alias_params =
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
    ("non_strict", "strict"),
+   ("no_uncurried_aliases", "uncurried_aliases"),
    ("no_isar_proof", "isar_proof"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
-   "max_mono_iters", "max_new_mono_instances", "isar_proof",
-   "isar_shrink_factor", "timeout", "preplay_timeout"]
+   "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
+   "isar_proof", "isar_shrink_factor", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -286,6 +288,7 @@ fun extract_params mode default_params override_params =
       | s => (type_enc_from_string Strict s; SOME s)
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
+    val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
@@ -304,8 +307,9 @@ fun extract_params mode default_params override_params =
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
-     lam_trans = lam_trans, relevance_thresholds = relevance_thresholds,
-     max_relevant = max_relevant, max_mono_iters = max_mono_iters,
+     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
+     relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
+     max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances,  isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,

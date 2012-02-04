@@ -242,7 +242,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
-                          false false [] @{prop False} props
+                          false false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_for_atp_problem CNF atp_problem))

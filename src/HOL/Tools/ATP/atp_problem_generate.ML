@@ -103,7 +103,7 @@ sig
   val factsN : string
   val prepare_atp_problem :
     Proof.context -> atp_format -> formula_kind -> formula_kind -> type_enc
-    -> bool -> string -> bool -> bool -> term list -> term
+    -> bool -> string -> bool -> bool -> bool -> term list -> term
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
@@ -166,7 +166,7 @@ val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
 val guards_sym_formula_prefix = "gsy_"
 val tags_sym_formula_prefix = "tsy_"
-val app_op_alias_eq_prefix = "aa_"
+val uncurried_alias_eq_prefix = "unc_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
@@ -875,10 +875,10 @@ fun ho_term_for_type_arg format type_enc T =
   if T = dummyT then NONE else SOME (ho_term_from_typ format type_enc T)
 
 (* This shouldn't clash with anything else. *)
-val app_op_alias_sep = "\000"
+val uncurried_alias_sep = "\000"
 val mangled_type_sep = "\001"
 
-val ascii_of_app_op_alias_sep = ascii_of app_op_alias_sep
+val ascii_of_uncurried_alias_sep = ascii_of uncurried_alias_sep
 
 fun generic_mangled_type_name f (ATerm (name, [])) = f name
   | generic_mangled_type_name f (ATerm (name, tys)) =
@@ -919,10 +919,10 @@ fun ho_type_from_typ format type_enc pred_sym ary =
   ho_type_from_ho_term type_enc pred_sym ary
   o ho_term_from_typ format type_enc
 
-fun aliased_app_op ary (s, s') =
-  (s ^ ascii_of_app_op_alias_sep ^ string_of_int ary, s' ^ string_of_int ary)
-fun unaliased_app_op (s, s') =
-  case space_explode app_op_alias_sep s of
+fun aliased_uncurried ary (s, s') =
+  (s ^ ascii_of_uncurried_alias_sep ^ string_of_int ary, s' ^ string_of_int ary)
+fun unaliased_uncurried (s, s') =
+  case space_explode uncurried_alias_sep s of
     [_] => (s, s')
   | [s1, s2] => (s1, unsuffix s2 s')
   | _ => raise Fail "ill-formed explicit application alias"
@@ -955,7 +955,7 @@ fun unmangled_type s =
     |> fst
 
 fun unmangled_const_name s =
-  (s, s) |> unaliased_app_op |> fst |> space_explode mangled_type_sep
+  (s, s) |> unaliased_uncurried |> fst |> space_explode mangled_type_sep
 fun unmangled_const s =
   let val ss = unmangled_const_name s in
     (hd ss, map unmangled_type (tl ss))
@@ -1533,7 +1533,7 @@ fun do_app_op format type_enc head arg =
   in list_app app [head, arg] end
 
 fun firstorderize_fact thy monom_constrs format type_enc sym_tab
-                       app_op_aliases =
+                       uncurried_aliases =
   let
     fun do_app arg head = do_app_op format type_enc head arg
     fun list_app_ops head args = fold do_app args head
@@ -1541,10 +1541,11 @@ fun firstorderize_fact thy monom_constrs format type_enc sym_tab
       let val (head, args) = tm |> strip_iterm_comb ||> map introduce_app_ops in
         case head of
           IConst (name as (s, _), T, T_args) =>
-          if app_op_aliases andalso String.isPrefix const_prefix s then
+          if uncurried_aliases andalso String.isPrefix const_prefix s then
             let
               val ary = length args
-              val name = name |> ary > min_ary_of sym_tab s ? aliased_app_op ary
+              val name = name |> ary > min_ary_of sym_tab s
+                                 ? aliased_uncurried ary
             in list_app (IConst (name, T, T_args)) args end
           else
             args |> chop (min_ary_of sym_tab s)
@@ -2393,8 +2394,8 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono type_enc
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
-fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
-        type_enc sym_tab0 sym_tab base_s0 types in_conj =
+fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
+        mono type_enc sym_tab0 sym_tab base_s0 types in_conj =
   let
     fun do_alias ary =
       let
@@ -2412,8 +2413,8 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
         fun do_const name = IConst (name, T, T_args)
         val do_term = ho_term_from_iterm ctxt format mono type_enc (SOME true)
         val name1 as (s1, _) =
-          base_name |> ary - 1 > base_ary ? aliased_app_op (ary - 1)
-        val name2 as (s2, _) = base_name |> aliased_app_op ary
+          base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
+        val name2 as (s2, _) = base_name |> aliased_uncurried ary
         val (arg_Ts, _) = chop_fun ary T
         val bound_names =
           1 upto ary |> map (`I o make_bound_var o string_of_int)
@@ -2431,35 +2432,35 @@ fun do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
                      (do_term tm1) (do_term tm2)
       in
         ([tm1, tm2],
-         [Formula (app_op_alias_eq_prefix ^ s2, kind, eq |> maybe_negate, NONE,
-                   isabelle_info format spec_eqN helper_rank)])
+         [Formula (uncurried_alias_eq_prefix ^ s2, kind, eq |> maybe_negate,
+                   NONE, isabelle_info format spec_eqN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
-fun app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
-                               type_enc sym_tab0 sym_tab
-                               (s, {min_ary, types, in_conj, ...} : sym_info) =
+fun uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind mono
+        type_enc sym_tab0 sym_tab
+        (s, {min_ary, types, in_conj, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
-    if String.isSubstring app_op_alias_sep mangled_s then
+    if String.isSubstring uncurried_alias_sep mangled_s then
       let
         val base_s0 = mangled_s |> unmangled_const_name |> hd |> invert_const
       in
-        do_app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
+        do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
             mono type_enc sym_tab0 sym_tab base_s0 types in_conj min_ary
       end
     else
       ([], [])
   | NONE => ([], [])
-fun app_op_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
-        mono type_enc app_op_aliases sym_tab0 sym_tab =
+fun uncurried_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
+        mono type_enc uncurried_aliases sym_tab0 sym_tab =
   ([], [])
-  |> app_op_aliases
+  |> uncurried_aliases
      ? Symtab.fold_rev
            (pair_append
-            o app_op_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
-                  mono type_enc sym_tab0 sym_tab) sym_tab
+            o uncurried_alias_lines_for_sym ctxt monom_constrs format
+                  conj_sym_kind mono type_enc sym_tab0 sym_tab) sym_tab
 
 fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
     Config.get ctxt type_tag_idempotence andalso
@@ -2469,7 +2470,7 @@ fun needs_type_tag_idempotence ctxt (Tags (poly, level)) =
 
 val implicit_declsN = "Should-be-implicit typings"
 val explicit_declsN = "Explicit typings"
-val app_op_alias_eqsN = "Application aliases"
+val uncurried_alias_eqsN = "Uncurried aliases"
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
 val aritiesN = "Arities"
@@ -2554,7 +2555,8 @@ fun all_constrs_of_polymorphic_datatypes thy =
 val app_op_threshold = 50
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
-                        lam_trans readable_names preproc hyp_ts concl_t facts =
+                        lam_trans uncurried_aliases readable_names preproc
+                        hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
@@ -2568,7 +2570,6 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
         Incomplete_Apply
       else
         Sufficient_Apply
-    val app_op_aliases = (format = DFG DFG_Sorted)
     val lam_trans =
       if lam_trans = keep_lamsN andalso
          not (is_type_enc_higher_order type_enc) then
@@ -2587,7 +2588,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
       |>> map (make_fixed_const (SOME format))
     fun firstorderize in_helper =
       firstorderize_fact thy monom_constrs format type_enc sym_tab0
-                         (app_op_aliases andalso not in_helper)
+                         (uncurried_aliases andalso not in_helper)
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val sym_tab = sym_table_for_facts ctxt type_enc Incomplete_Apply conjs facts
     val helpers =
@@ -2596,11 +2597,11 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
     val mono_Ts =
       helpers @ conjs @ facts |> monotonic_types_for_facts ctxt mono type_enc
     val class_decl_lines = decl_lines_for_classes type_enc classes
-    val (app_op_alias_eq_tms, app_op_alias_eq_lines) =
-      app_op_alias_lines_for_sym_table ctxt monom_constrs format conj_sym_kind
-          mono type_enc app_op_aliases sym_tab0 sym_tab
+    val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
+      uncurried_alias_lines_for_sym_table ctxt monom_constrs format
+          conj_sym_kind mono type_enc uncurried_aliases sym_tab0 sym_tab
     val sym_decl_lines =
-      (conjs, helpers @ facts, app_op_alias_eq_tms)
+      (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_for_facts ctxt format type_enc sym_tab
       |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind mono
                                                type_enc mono_Ts
@@ -2622,7 +2623,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_enc exporter
        FLOTTER hack. *)
     val problem =
       [(explicit_declsN, class_decl_lines @ sym_decl_lines),
-       (app_op_alias_eqsN, app_op_alias_eq_lines),
+       (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
        (class_relsN,
         map (formula_line_for_class_rel_clause format type_enc)

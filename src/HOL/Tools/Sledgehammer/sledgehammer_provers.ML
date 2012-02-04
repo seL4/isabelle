@@ -27,6 +27,7 @@ sig
      type_enc: string option,
      strict: bool,
      lam_trans: string option,
+     uncurried_aliases: bool option,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -147,7 +148,7 @@ fun is_atp_for_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME {best_slices, ...} =>
-      exists (fn (_, (_, ((_, format, _, _), _))) => is_format format)
+      exists (fn (_, (_, ((_, format, _, _, _), _))) => is_format format)
              (best_slices ctxt)
     | NONE => false
   end
@@ -291,6 +292,7 @@ type params =
    type_enc: string option,
    strict: bool,
    lam_trans: string option,
+   uncurried_aliases: bool option,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,
@@ -581,9 +583,9 @@ fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, best_slices, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
-                    max_relevant, max_mono_iters, max_new_mono_instances,
-                    isar_proof, isar_shrink_factor, slice, timeout,
-                    preplay_timeout, ...})
+                    uncurried_aliases, max_relevant, max_mono_iters,
+                    max_new_mono_instances, isar_proof, isar_shrink_factor,
+                    slice, timeout, preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -654,7 +656,8 @@ fun run_atp mode name
             fun run_slice time_left (cache_key, cache_value)
                     (slice, (time_frac, (complete,
                         (key as (best_max_relevant, format, best_type_enc,
-                                 best_lam_trans), extra)))) =
+                                 best_lam_trans, best_uncurried_aliases),
+                                 extra)))) =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
@@ -687,6 +690,10 @@ fun run_atp mode name
                   case lam_trans of
                     SOME s => s
                   | NONE => best_lam_trans
+                val uncurried_aliases =
+                  case uncurried_aliases of
+                    SOME b => b
+                  | NONE => best_uncurried_aliases
                 val value as (atp_problem, _, fact_names, _, _) =
                   if cache_key = SOME key then
                     cache_value
@@ -700,8 +707,8 @@ fun run_atp mode name
                        ? monomorphize_facts
                     |> map (apsnd prop_of)
                     |> prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                           type_enc false lam_trans readable_names true hyp_ts
-                           concl_t
+                           type_enc false lam_trans uncurried_aliases
+                           readable_names true hyp_ts concl_t
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
                 val command =

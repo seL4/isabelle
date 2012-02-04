@@ -74,9 +74,9 @@ val auto_minimize_max_time =
 
 fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
-         lam_trans, relevance_thresholds, max_relevant, max_mono_iters,
-         max_new_mono_instances, isar_proof, isar_shrink_factor, slice,
-         minimize, timeout, preplay_timeout, expect} : params) =
+         lam_trans, uncurried_aliases, relevance_thresholds, max_relevant,
+         max_mono_iters, max_new_mono_instances, isar_proof, isar_shrink_factor,
+         slice, minimize, timeout, preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -89,8 +89,8 @@ fun adjust_reconstructor_params override_params
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_enc = type_enc, strict = strict,
-     lam_trans = lam_trans, max_relevant = max_relevant,
-     relevance_thresholds = relevance_thresholds,
+     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
+     max_relevant = max_relevant, relevance_thresholds = relevance_thresholds,
      max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,

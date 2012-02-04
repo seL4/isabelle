@@ -722,6 +722,7 @@ For convenience, the following aliases are provided:
 \def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmartx#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\\\hbox{}\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opnodefaultbrk#1#2{\flushitem{$\bigl[$\textit{#1} =$\bigr]$ \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\enskip \defl\textit{#3}\defr} \nopagebreak\\[\parskip]}
@@ -1004,6 +1005,10 @@ depends on the ATP and should be the most efficient scheme for that ATP.
 
 For SMT solvers, the $\lambda$ translation scheme is always \textit{lifting},
 irrespective of the value of this option.
+
+\opsmartx{uncurried\_aliases}{no\_uncurried\_aliases}
+Specifies the $\lambda$ translation scheme to use in ATP problems. The supported
+translation schemes are listed below:
 
 \opdefault{type\_enc}{string}{smart}
 Specifies the type encoding to use in ATP problems. Some of the type encodings
