@@ -684,6 +684,20 @@ val max_readable_name_size = 20
    is still necessary). *)
 val reserved_nice_names = [tptp_old_equal, "op", "eq"]
 
+(* hack to get the same hashing across Mirabelle runs (see "mirabelle.pl") *)
+fun cleanup_mirabelle_name s =
+  let
+    val mirabelle_infix = "_Mirabelle_"
+    val random_suffix_len = 10
+    val (s1, s2) = Substring.position mirabelle_infix (Substring.full s)
+  in
+    if Substring.isEmpty s2 then
+      s
+    else
+      Substring.string s1 ^
+      Substring.string (Substring.triml (size mirabelle_infix + random_suffix_len) s2)
+  end
+
 fun readable_name protect full_name s =
   (if s = full_name then
      s
@@ -694,7 +708,7 @@ fun readable_name protect full_name s =
        |> (fn s =>
               if size s > max_readable_name_size then
                 String.substring (s, 0, max_readable_name_size div 2 - 4) ^
-                string_of_int (hash_string full_name) ^
+                string_of_int (hash_string (cleanup_mirabelle_name full_name)) ^
                 String.extract (s, size s - max_readable_name_size div 2 + 4,
                                 NONE)
               else
