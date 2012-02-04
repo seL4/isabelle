@@ -339,14 +339,15 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   annotations.
 
   @{rail "
-    @{syntax_def mixfix}: '(' (
-      @{syntax string} prios? @{syntax nat}? |
-      (@'infix' | @'infixl' | @'infixr') @{syntax string} @{syntax nat} |
-      @'binder' @{syntax string} prios? @{syntax nat} ) ')'
+    @{syntax_def mixfix}: '(' mfix ')'
     ;
-    @{syntax_def struct_mixfix}: @{syntax mixfix} | '(' @'structure' ')'
+    @{syntax_def struct_mixfix}: '(' ( mfix | @'structure' ) ')'
     ;
 
+    mfix: @{syntax string} prios? @{syntax nat}? |
+      (@'infix' | @'infixl' | @'infixr') @{syntax string} @{syntax nat} |
+      @'binder' @{syntax string} prios? @{syntax nat}
+    ;
     prios: '[' (@{syntax nat} + ',') ']'
   "}
 
@@ -496,10 +497,6 @@ text {*
   works within an Isar proof body.
 
   \end{description}
-
-  Note that the more primitive commands @{command "syntax"} and
-  @{command "no_syntax"} (\secref{sec:syn-trans}) provide raw access
-  to the syntax tables of a global theory.
 *}
 
 

@@ -416,8 +416,21 @@ Mixfix annotations specify concrete \emph{inner syntax} of
   annotations.
 
   \begin{railoutput}
-\rail@begin{7}{\indexdef{}{syntax}{mixfix}\hypertarget{syntax.mixfix}{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}}
+\rail@begin{1}{\indexdef{}{syntax}{mixfix}\hypertarget{syntax.mixfix}{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{mfix}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{struct\_mixfix}\hypertarget{syntax.struct-mixfix}{\hyperlink{syntax.struct-mixfix}{\mbox{\isa{struct{\isaliteral{5F}{\isacharunderscore}}mixfix}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nont{\isa{mfix}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{structure}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{7}{\isa{mfix}}
 \rail@bar
 \rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
 \rail@bar
@@ -446,16 +459,6 @@ Mixfix annotations specify concrete \emph{inner syntax} of
 \rail@nont{\isa{prios}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
-\rail@endbar
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@end
-\rail@begin{2}{\indexdef{}{syntax}{struct\_mixfix}\hypertarget{syntax.struct-mixfix}{\hyperlink{syntax.struct-mixfix}{\mbox{\isa{struct{\isaliteral{5F}{\isacharunderscore}}mixfix}}}}}
-\rail@bar
-\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@term{\isa{\isakeyword{structure}}}[]
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@endbar
 \rail@end
 \rail@begin{2}{\isa{prios}}
@@ -666,11 +669,7 @@ Mixfix annotations specify concrete \emph{inner syntax} of
   \item \hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}} is similar to \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}, but
   works within an Isar proof body.
 
-  \end{description}
-
-  Note that the more primitive commands \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} and
-  \hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}syntax}}}} (\secref{sec:syn-trans}) provide raw access
-  to the syntax tables of a global theory.%
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
