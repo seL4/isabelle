@@ -8,8 +8,7 @@ options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
 
 rm -f "$name.prf"
-"$SPASS_NEW_HOME/SPASS" -FPDFGProof -FPFCR $options "$name" \
-    | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
+"$SPASS_NEW_HOME/SPASS" -FPDFGProof -FPFCR $options "$name"
 if [ -f "$name.prf" ]
 then
   cat "$name.prf"
