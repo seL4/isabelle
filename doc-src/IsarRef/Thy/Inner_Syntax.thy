@@ -457,6 +457,13 @@ text {*
     @{command_def "write"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
   \end{matharray}
 
+  Commands that introduce new logical entities (terms or types)
+  usually allow to provide mixfix annotations on the spot, which is
+  convenient for default notation.  Nonetheless, the syntax may be
+  modified later on by declarations for explicit notation.  This
+  allows to add or delete mixfix annotations for of existing logical
+  entities within the current context.
+
   @{rail "
     (@@{command type_notation} | @@{command no_type_notation}) @{syntax target}?
       @{syntax mode}? \\ (@{syntax nameref} @{syntax mixfix} + @'and')

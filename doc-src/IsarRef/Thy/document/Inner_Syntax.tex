@@ -578,6 +578,13 @@ Mixfix annotations specify concrete \emph{inner syntax} of
     \indexdef{}{command}{write}\hypertarget{command.write}{\hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
+  Commands that introduce new logical entities (terms or types)
+  usually allow to provide mixfix annotations on the spot, which is
+  convenient for default notation.  Nonetheless, the syntax may be
+  modified later on by declarations for explicit notation.  This
+  allows to add or delete mixfix annotations for of existing logical
+  entities within the current context.
+
   \begin{railoutput}
 \rail@begin{5}{}
 \rail@bar
