@@ -335,8 +335,15 @@ section {* Mixfix annotations \label{sec:mixfix} *}
 
 text {* Mixfix annotations specify concrete \emph{inner syntax} of
   Isabelle types and terms.  Locally fixed parameters in toplevel
-  theorem statements, locale specifications etc.\ also admit mixfix
-  annotations.
+  theorem statements, locale and class specifications also admit
+  mixfix annotations in a fairly uniform manner.  A mixfix annotation
+  describes describes the concrete syntax, the translation to abstract
+  syntax, and the pretty printing.  Special case annotations provide a
+  simple means of specifying infix operators and binders.
+
+  Isabelle mixfix syntax is inspired by {\OBJ} \cite{OBJ}.  It allows
+  to specify any context-free priority grammar, which is more general
+  than the fixity declarations of ML and Prolog.
 
   @{rail "
     @{syntax_def mixfix}: '(' mfix ')'
@@ -344,29 +351,34 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
     @{syntax_def struct_mixfix}: '(' ( mfix | @'structure' ) ')'
     ;
 
-    mfix: @{syntax string} prios? @{syntax nat}? |
-      (@'infix' | @'infixl' | @'infixr') @{syntax string} @{syntax nat} |
-      @'binder' @{syntax string} prios? @{syntax nat}
+    mfix: @{syntax template} prios? @{syntax nat}? |
+      (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
+      @'binder' @{syntax template} prios? @{syntax nat}
+    ;
+    template: string
     ;
     prios: '[' (@{syntax nat} + ',') ']'
   "}
 
-  Here the @{syntax string} specifications refer to the actual mixfix
-  template, which may include literal text, spacing, blocks, and
-  arguments (denoted by ``@{text _}''); the special symbol
-  ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'') represents an index
-  argument that specifies an implicit structure reference (see also
-  \secref{sec:locale}).  Infix and binder declarations provide common
-  abbreviations for particular mixfix declarations.  So in practice,
-  mixfix templates mostly degenerate to literal text for concrete
-  syntax, such as ``@{verbatim "++"}'' for an infix symbol.
+  The string given as @{text template} may include literal text,
+  spacing, blocks, and arguments (denoted by ``@{text _}''); the
+  special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
+  represents an index argument that specifies an implicit structure
+  reference (see also \secref{sec:locale}).  Infix and binder
+  declarations provide common abbreviations for particular mixfix
+  declarations.  So in practice, mixfix templates mostly degenerate to
+  literal text for concrete syntax, such as ``@{verbatim "++"}'' for
+  an infix symbol.
+*}
 
-  \medskip In full generality, mixfix declarations work as follows.
-  Suppose a constant @{text "c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} is
-  annotated by @{text "(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)"}, where @{text
-  "mixfix"} is a string @{text "d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n"} consisting of
-  delimiters that surround argument positions as indicated by
-  underscores.
+
+subsection {* The general mixfix form *}
+
+text {* In full generality, mixfix declarations work as follows.
+  Suppose a constant @{text "c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} is annotated by
+  @{text "(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)"}, where @{text "mixfix"} is a string
+  @{text "d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n"} consisting of delimiters that surround
+  argument positions as indicated by underscores.
 
   Altogether this determines a production for a context-free priority
   grammar, where for each argument @{text "i"} the syntactic category
@@ -437,14 +449,82 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
 
   \end{description}
 
-  For example, the template @{verbatim "(_ +/ _)"} specifies an infix
-  operator.  There are two argument positions; the delimiter
-  @{verbatim "+"} is preceded by a space and followed by a space or
-  line break; the entire phrase is a pretty printing block.
-
   The general idea of pretty printing with blocks and breaks is also
   described in \cite{paulson-ml2}; it goes back to \cite{Oppen:1980}.
 *}
+
+
+subsection {* Infixes *}
+
+text {* Infix operators are specified by convenient short forms that
+  abbreviate general mixfix annotations as follows:
+
+  \begin{center}
+  \begin{tabular}{lll}
+
+  @{verbatim "("}@{keyword "infix"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  & @{text "\<mapsto>"} &
+  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
+  @{verbatim "("}@{keyword "infixl"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  & @{text "\<mapsto>"} &
+  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
+  @{verbatim "("}@{keyword "infixr"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  & @{text "\<mapsto>"} &
+  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
+
+  \end{tabular}
+  \end{center}
+
+  The mixfix template @{verbatim "\"(_ "}@{text sy}@{verbatim "/
+  _)\""} specifies two argument positions; the delimiter is preceded
+  by a space and followed by a space or line break; the entire phrase
+  is a pretty printing block.
+
+  The alternative notation @{verbatim "op"}~@{text sy} is introduced
+  in addition.  Thus any infix operator may be written in prefix form
+  (as in ML), independently of the number of arguments in the term.
+*}
+
+
+subsection {* Binders *}
+
+text {* A \emph{binder} is a variable-binding construct such as a
+  quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
+  (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
+  to \cite{church40}.  Isabelle declarations of certain higher-order
+  operators may be annotated with @{keyword "binder"} annotations as
+  follows:
+
+  \begin{center}
+  @{text "c :: "}@{verbatim "\""}@{text "(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3"}@{verbatim "\"  ("}@{keyword "binder"}@{verbatim " \""}@{text "sy"}@{verbatim "\" ["}@{text "p"}@{verbatim "] "}@{text "q"}@{verbatim ")"}
+  \end{center}
+
+  This introduces concrete binder syntax @{text "sy x. b"}, where
+  @{text x} is a bound variable of type @{text "\<tau>\<^sub>1"}, the body @{text
+  b} has type @{text "\<tau>\<^sub>2"} and the whole term has type @{text "\<tau>\<^sub>3"}.
+  The optional integer @{text p} specifies the syntactic priority of
+  the body; the default is @{text "q"}, which is also the priority of
+  the whole construct.
+
+  Internally, the binder syntax is expanded to something like this:
+  \begin{center}
+  @{text "c_binder :: "}@{verbatim "\""}@{text "idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"}@{verbatim "\"  (\"(3"}@{text sy}@{verbatim "_./ _)\" [0, "}@{text "p"}@{verbatim "] "}@{text "q"}@{verbatim ")"}
+  \end{center}
+
+  Here @{syntax (inner) idts} is the nonterminal symbol for a list of
+  identifiers with optional type constraints (see also
+  \secref{sec:pure-grammar}).  The mixfix template @{verbatim
+  "\"(3"}@{text sy}@{verbatim "_./ _)\""} defines argument positions
+  for the bound identifiers and the body, separated by a dot with
+  optional line break; the entire phrase is a pretty printing block of
+  indentation level 3.  Note that there is no extra space after @{text
+  "sy"}, so it needs to be included user specification if the binder
+  syntax ends with a token that may be continued by an identifier
+  token at the start of @{syntax (inner) idts}.
+
+  Furthermore, a syntax translation to transforms @{text "c_binder x\<^sub>1
+  \<dots> x\<^sub>n b"} into iterated application @{text "c (\<lambda>x\<^sub>1. \<dots> c (\<lambda>x\<^sub>n. b)\<dots>)"}.
+  This works in both directions, for parsing and printing.  *}
 
 
 section {* Explicit notation \label{sec:notation} *}
@@ -630,7 +710,7 @@ text {* A context-free grammar consists of a set of \emph{terminal
 *}
 
 
-subsection {* The Pure grammar *}
+subsection {* The Pure grammar \label{sec:pure-grammar} *}
 
 text {* The priority grammar of the @{text "Pure"} theory is defined
   approximately like this:
