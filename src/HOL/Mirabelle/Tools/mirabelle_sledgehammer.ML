@@ -12,6 +12,7 @@ val type_encK = "type_enc"
 val strictK = "strict"
 val sliceK = "slice"
 val lam_transK = "lam_trans"
+val uncurried_aliasesK = "uncurried_aliases"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
@@ -362,7 +363,8 @@ datatype sh_result =
   SH_ERROR
 
 fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        e_weight_method force_sos hard_timeout timeout dir pos st =
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
+        st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -387,6 +389,7 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
            ("type_enc", type_enc),
            ("strict", strict),
            ("lam_trans", lam_trans |> the_default "smart"),
+           ("uncurried_aliases", uncurried_aliases |> the_default "smart"),
            ("preplay_timeout", preplay_timeout),
            ("max_relevant", max_relevant),
            ("slice", slice),
@@ -471,6 +474,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slice = AList.lookup (op =) args sliceK |> the_default "true"
     val lam_trans = AList.lookup (op =) args lam_transK
+    val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
@@ -481,7 +485,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_enc strict max_relevant slice lam_trans
-        e_weight_method force_sos hard_timeout timeout dir pos st
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
+        st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
