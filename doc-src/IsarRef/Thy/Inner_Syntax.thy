@@ -339,11 +339,10 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   annotations.
 
   @{rail "
-    @{syntax_def \"infix\"}: '(' (@'infix' | @'infixl' | @'infixr')
-      @{syntax string} @{syntax nat} ')'
-    ;
-    @{syntax_def mixfix}: @{syntax \"infix\"} | '(' @{syntax string} prios? @{syntax nat}? ')' |
-    '(' @'binder' @{syntax string} prios? @{syntax nat} ')'
+    @{syntax_def mixfix}: '(' (
+      @{syntax string} prios? @{syntax nat}? |
+      (@'infix' | @'infixl' | @'infixr') @{syntax string} @{syntax nat} |
+      @'binder' @{syntax string} prios? @{syntax nat} ) ')'
     ;
     @{syntax_def struct_mixfix}: @{syntax mixfix} | '(' @'structure' ')'
     ;
