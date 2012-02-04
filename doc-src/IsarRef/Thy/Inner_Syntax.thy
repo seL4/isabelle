@@ -628,11 +628,8 @@ text {* A context-free grammar consists of a set of \emph{terminal
 
 subsection {* The Pure grammar *}
 
-text {*
-  The priority grammar of the @{text "Pure"} theory is defined as follows:
-
-  %FIXME syntax for "index" (?)
-  %FIXME "op" versions of ==> etc. (?)
+text {* The priority grammar of the @{text "Pure"} theory is defined
+  approximately like this:
 
   \begin{center}
   \begin{supertabular}{rclr}
@@ -658,20 +655,27 @@ text {*
   @{syntax_def (inner) aprop} & = & @{verbatim "("} @{text aprop} @{verbatim ")"} \\
     & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
     & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
+    & @{text "|"} & @{verbatim XCONST} @{text "id  |  "}@{verbatim XCONST} @{text "longid"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\\\
 
   @{syntax_def (inner) logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
     & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
     & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
+    & @{text "|"} & @{verbatim XCONST} @{text "id  |  "}@{verbatim XCONST} @{text "longid"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\
+    & @{text "|"} & @{text "\<struct> index\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} \\
     & @{text "|"} & @{verbatim "%"} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
     & @{text "|"} & @{text \<lambda>} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+    & @{text "|"} & @{verbatim op} @{verbatim "=="}@{text "  |  "}@{verbatim op} @{text "\<equiv>"}@{text "  |  "}@{verbatim op} @{verbatim "&&&"} \\
+    & @{text "|"} & @{verbatim op} @{verbatim "==>"}@{text "  |  "}@{verbatim op} @{text "\<Longrightarrow>"} \\
     & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
 
   @{syntax_def (inner) idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "_"} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
+
+  @{syntax_def (inner) index} & = & @{verbatim "\<^bsub>"} @{text "logic\<^sup>(\<^sup>0\<^sup>)"} @{verbatim "\<^esub>"}@{text "  |  |  \<index>"} \\\\
 
   @{syntax_def (inner) idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
 
@@ -682,16 +686,17 @@ text {*
   @{syntax_def (inner) type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
     & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text "tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text "sort  |  "}@{verbatim "_"} @{verbatim "::"} @{text "sort"} \\
-    & @{text "|"} & @{text "id  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) id  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text id} \\
-    & @{text "|"} & @{text "longid  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) longid"} \\
-    & @{text "|"} & @{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text longid} \\
+    & @{text "|"} & @{text "type_name  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) type_name"} \\
+    & @{text "|"} & @{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text type_name} \\
     & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\\\
+    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
+  @{syntax_def (inner) type_name} & = & @{text "id  |  longid"} \\\\
 
-  @{syntax_def (inner) sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"} \\
-    & @{text "|"} & @{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
+  @{syntax_def (inner) sort} & = & @{syntax class_name}~@{text "  |  "}@{verbatim "{}"} \\
+    & @{text "|"} & @{verbatim "{"} @{syntax class_name} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{syntax class_name} @{verbatim "}"} \\
+  @{syntax_def (inner) class_name} & = & @{text "id  |  longid"} \\
   \end{supertabular}
   \end{center}
 
@@ -729,6 +734,12 @@ text {*
   When specifying notation for logical entities, all logical types
   (excluding @{typ prop}) are \emph{collapsed} to this single category
   of @{syntax (inner) logic}.
+
+  \item @{syntax_ref (inner) index} denotes an optional index term for
+  indexed syntax.  If omitted, it refers to the first @{keyword
+  "structure"} variable in the context.  The special dummy ``@{text
+  "\<index>"}'' serves as pattern variable in mixfix annotations that
+  introduce indexed notation.
 
   \item @{syntax_ref (inner) idt} denotes identifiers, possibly
   constrained by types.
@@ -805,6 +816,15 @@ text {*
   refers to a special schematic variable, which is bound in the
   context.  This special term abbreviation works nicely with
   calculational reasoning (\secref{sec:calculation}).
+
+  \item @{verbatim CONST} ensures that the given identifier is treated
+  as constant term, and passed through the parse tree in fully
+  internalized form.  This is particularly relevant for translation
+  rules (\secref{sec:syn-trans}), notably on the RHS.
+
+  \item @{verbatim XCONST} is similar to @{verbatim CONST}, but
+  retains the constant name as given.  This is only relevant to
+  translation rules (\secref{sec:syn-trans}), notably on the LHS.
 
   \end{itemize}
 *}
