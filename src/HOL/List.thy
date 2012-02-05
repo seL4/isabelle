@@ -5688,6 +5688,16 @@ lemma setsum_code [code]:
   "setsum f (set xs) = listsum (map f (remdups xs))"
 by (simp add: listsum_distinct_conv_setsum_set)
 
+definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set" where
+  "map_project f A = {b. \<exists> a \<in> A. f a = Some b}"
+
+lemma [code]:
+  "map_project f (set xs) = set (List.map_filter f xs)"
+unfolding map_project_def map_filter_def
+by auto (metis (lifting, mono_tags) CollectI image_eqI o_apply the.simps)
+
+hide_const (open) map_project
+
 text {* Operations on relations *}
 
 lemma product_code [code]:
@@ -5697,6 +5707,10 @@ lemma product_code [code]:
 lemma Id_on_set [code]:
   "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
   by (auto simp add: Id_on_def)
+
+lemma [code]:
+  "R `` S = List.map_project (%(x, y). if x : S then Some y else None) R"
+unfolding map_project_def by (auto split: prod.split split_if_asm)
 
 lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
