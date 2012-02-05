@@ -390,7 +390,6 @@ fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
            ("strict", strict),
            ("lam_trans", lam_trans |> the_default "smart"),
            ("uncurried_aliases", uncurried_aliases |> the_default "smart"),
-           ("preplay_timeout", preplay_timeout),
            ("max_relevant", max_relevant),
            ("slice", slice),
            ("timeout", string_of_int timeout),
