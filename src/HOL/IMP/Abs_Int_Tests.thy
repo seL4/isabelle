@@ -52,9 +52,9 @@ definition "test3_ivl =
  DO ''x'' ::= Plus (V ''x'') (N 1)"
 
 definition "test4_ivl =
- ''x'' ::= N 0; ''y'' ::= N 100; ''z'' ::= Plus (V ''x'') (V ''y'');
+ ''x'' ::= N 0; ''y'' ::= N 0;
  WHILE Less (V ''x'') (N 11)
- DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N -1))"
+ DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N 1))"
 
 definition "test5_ivl =
  ''x'' ::= N 0; ''y'' ::= N 0;
