@@ -427,28 +427,6 @@ next
   using * by blast
 qed
 
-(* FIXME: bij_betw_Disj_Un is special case of bij_betw_combine -- should be removed *)
-lemma bij_betw_Disj_Un:
-  assumes DISJ: "A \<inter> B = {}" and DISJ': "A' \<inter> B' = {}" and
-          B1: "bij_betw f A A'" and B2: "bij_betw f B B'"
-  shows "bij_betw f (A \<union> B) (A' \<union> B')"
-proof-
-  have 1: "inj_on f A \<and> inj_on f B"
-  using B1 B2 by (auto simp add: bij_betw_def)
-  have 2: "f`A = A' \<and> f`B = B'"
-  using B1 B2 by (auto simp add: bij_betw_def)
-  hence "f`(A - B) \<inter> f`(B - A) = {}"
-  using DISJ DISJ' by blast
-  hence "inj_on f (A \<union> B)"
-  using 1 by (auto simp add: inj_on_Un)
-  (*  *)
-  moreover
-  have "f`(A \<union> B) = A' \<union> B'"
-  using 2 by auto
-  ultimately show ?thesis
-  unfolding bij_betw_def by auto
-qed
-
 lemma bij_betw_subset:
   assumes BIJ: "bij_betw f A A'" and
           SUB: "B \<le> A" and IM: "f ` B = B'"
