@@ -425,7 +425,8 @@ instantiation Enum.finite_2 :: check_all
 begin
 
 definition
-  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
 
 definition enum_term_of_finite_2 :: "Enum.finite_2 itself => unit => term list"
 where
@@ -439,11 +440,30 @@ instantiation Enum.finite_3 :: check_all
 begin
 
 definition
-  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3)))"
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2)
+    orelse f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3))"
 
 definition enum_term_of_finite_3 :: "Enum.finite_3 itself => unit => term list"
 where
   "enum_term_of_finite_3 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_3 list))"
+
+instance ..
+
+end
+
+instantiation Enum.finite_4 :: check_all
+begin
+
+definition
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>2)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>3)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>4))"
+
+definition enum_term_of_finite_4 :: "Enum.finite_4 itself => unit => term list"
+where
+  "enum_term_of_finite_4 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_4 list))"
 
 instance ..
 
