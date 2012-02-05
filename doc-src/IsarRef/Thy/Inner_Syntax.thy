@@ -382,10 +382,12 @@ text {* In full generality, mixfix declarations work as follows.
 
   Altogether this determines a production for a context-free priority
   grammar, where for each argument @{text "i"} the syntactic category
-  is determined by @{text "\<tau>\<^sub>i"} (with priority @{text "p\<^sub>i"}), and
-  the result category is determined from @{text "\<tau>"} (with
-  priority @{text "p"}).  Priority specifications are optional, with
-  default 0 for arguments and 1000 for the result.
+  is determined by @{text "\<tau>\<^sub>i"} (with priority @{text "p\<^sub>i"}), and the
+  result category is determined from @{text "\<tau>"} (with priority @{text
+  "p"}).  Priority specifications are optional, with default 0 for
+  arguments and 1000 for the result.\footnote{Omitting priorities is
+  prone to syntactic ambiguities unless the delimiter tokens determine
+  fully bracketed notation, as in @{text "if _ then _ else _ fi"}.}
 
   Since @{text "\<tau>"} may be again a function type, the constant
   type scheme may have more argument positions than the mixfix
@@ -462,23 +464,23 @@ text {* Infix operators are specified by convenient short forms that
   \begin{center}
   \begin{tabular}{lll}
 
-  @{verbatim "("}@{keyword "infix"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim "("}@{keyword_def "infix"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
   @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword "infixl"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim "("}@{keyword_def "infixl"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
   @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword "infixr"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim "("}@{keyword_def "infixr"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
   @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
 
   \end{tabular}
   \end{center}
 
-  The mixfix template @{verbatim "\"(_ "}@{text sy}@{verbatim "/
-  _)\""} specifies two argument positions; the delimiter is preceded
-  by a space and followed by a space or line break; the entire phrase
-  is a pretty printing block.
+  The mixfix template @{verbatim "\"(_ "}@{text sy}@{verbatim "/ _)\""}
+  specifies two argument positions; the delimiter is preceded by a
+  space and followed by a space or line break; the entire phrase is a
+  pretty printing block.
 
   The alternative notation @{verbatim "op"}~@{text sy} is introduced
   in addition.  Thus any infix operator may be written in prefix form
@@ -492,8 +494,8 @@ text {* A \emph{binder} is a variable-binding construct such as a
   quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
   (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
   to \cite{church40}.  Isabelle declarations of certain higher-order
-  operators may be annotated with @{keyword "binder"} annotations as
-  follows:
+  operators may be annotated with @{keyword_def "binder"} annotations
+  as follows:
 
   \begin{center}
   @{text "c :: "}@{verbatim "\""}@{text "(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3"}@{verbatim "\"  ("}@{keyword "binder"}@{verbatim " \""}@{text "sy"}@{verbatim "\" ["}@{text "p"}@{verbatim "] "}@{text "q"}@{verbatim ")"}
@@ -1024,6 +1026,15 @@ text {*
     @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
+  Unlike mixfix notation for existing formal entities
+  (\secref{sec:notation}), raw syntax declarations provide full access
+  to the priority grammar of the inner syntax.  This includes
+  additional syntactic categories (via @{command nonterminal}) and
+  free-form grammar productions (via @{command syntax}).  Additional
+  syntax translations (or macros, via @{command translations}) are
+  required to turn resulting parse trees into proper representations
+  of formal entities again.
+
   @{rail "
     @@{command nonterminal} (@{syntax name} + @'and')
     ;
@@ -1044,14 +1055,53 @@ text {*
   constructor @{text c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
 
-  \item @{command "syntax"}~@{text "(mode) decls"} is similar to
-  @{command "consts"}~@{text decls}, except that the actual logical
-  signature extension is omitted.  Thus the context free grammar of
-  Isabelle's inner syntax may be augmented in arbitrary ways,
-  independently of the logic.  The @{text mode} argument refers to the
-  print mode that the grammar rules belong; unless the @{keyword_ref
-  "output"} indicator is given, all productions are added both to the
-  input and output grammar.
+  \item @{command "syntax"}~@{text "(mode) c :: \<sigma> (mx)"} augments the
+  priority grammar and the pretty printer table for the given print
+  mode (default @{verbatim "\"\""}). An optional keyword @{keyword_ref
+  "output"} means that only the pretty printer table is affected.
+
+  Following \secref{sec:mixfix}, the mixfix annotation @{text "mx =
+  template ps q"} together with type @{text "\<sigma> = \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} and
+  specify a grammar production.  The @{text template} contains
+  delimiter tokens that surround @{text "n"} argument positions
+  (@{verbatim "_"}).  The latter correspond to nonterminal symbols
+  @{text "A\<^sub>i"} derived from the argument types @{text "\<tau>\<^sub>i"} as
+  follows:
+  \begin{itemize}
+
+  \item @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
+
+  \item @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
+  constructor @{text "\<kappa> \<noteq> prop"}
+
+  \item @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
+
+  \item @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
+  (syntactic type constructor)
+
+  \end{itemize}
+
+  Each @{text "A\<^sub>i"} is decorated by priority @{text "p\<^sub>i"} from the
+  given list @{text "ps"}; misssing priorities default to 0.
+
+  The resulting nonterminal of the production is determined similarly
+  from type @{text "\<tau>"}, with priority @{text "q"} and default 1000.
+
+  \medskip Parsing via this production produces parse trees @{text
+  "t\<^sub>1, \<dots>, t\<^sub>n"} for the argument slots.  The resulting parse tree is
+  composed as @{text "c t\<^sub>1 \<dots> t\<^sub>n"}, by using the syntax constant @{text
+  "c"} of the syntax declaration.
+
+  Such syntactic constants are invented on the spot, without formal
+  check wrt.\ existing declarations.  It is conventional to use plain
+  identifiers prefixed by a single underscore (e.g.\ @{text
+  "_foobar"}).  Names should be chosen with care, to avoid clashes
+  with unrelated syntax declarations.
+
+  \medskip The special case of copy production is specified by @{text
+  "c = "}@{verbatim "\"\""} (empty string).  It means that the
+  resulting parse tree @{text "t"} is copied directly, without any
+  further decoration.
 
   \item @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
   declarations (and translations) resulting from @{text decls}, which
