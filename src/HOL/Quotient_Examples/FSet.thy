@@ -934,15 +934,15 @@ subsection {* concat_fset *}
 
 lemma concat_empty_fset [simp]:
   shows "concat_fset {||} = {||}"
-  by (lifting concat.simps(1))
+  by descending simp
 
 lemma concat_insert_fset [simp]:
   shows "concat_fset (insert_fset x S) = x |\<union>| concat_fset S"
-  by (lifting concat.simps(2))
+  by descending simp
 
 lemma concat_inter_fset [simp]:
   shows "concat_fset (xs |\<union>| ys) = concat_fset xs |\<union>| concat_fset ys"
-  by (lifting concat_append)
+  by descending simp
 
 lemma map_concat_fset:
   shows "map_fset f (concat_fset xs) = concat_fset (map_fset (map_fset f) xs)"
