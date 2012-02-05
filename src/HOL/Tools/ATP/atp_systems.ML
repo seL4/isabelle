@@ -360,7 +360,7 @@ val spass_new_config : atp_config =
    required_execs = [],
    arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
      (* TODO: add: -FPDFGProof -FPFCR *)
-     ("-Auto -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
+     ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      (* TODO: not used yet *)
      |> incomplete = spass_incompleteN ? prefix "-Splits=0 -FullRed=0 ",
    proof_delims = #proof_delims spass_config,
