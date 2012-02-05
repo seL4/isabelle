@@ -356,9 +356,8 @@ val spass_new_slice_3 = (150, DFG DFG_Sorted, "mono_simple", liftingN, true)
 
 (* Experimental *)
 val spass_new_config : atp_config =
-  {exec = ("ISABELLE_ATP", "scripts/spass_new"),
-   required_execs =
-     [("SPASS_NEW_HOME", "SPASS"), ("SPASS_NEW_HOME", "tptp2dfg")],
+  {exec = ("SPASS_NEW_HOME", "SPASS"),
+   required_execs = [],
    arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
      (* TODO: add: -FPDFGProof -FPFCR *)
      ("-Auto -Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
