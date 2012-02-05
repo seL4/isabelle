@@ -427,6 +427,7 @@ next
   using * by blast
 qed
 
+(* FIXME: bij_betw_Disj_Un is special case of bij_betw_combine -- should be removed *)
 lemma bij_betw_Disj_Un:
   assumes DISJ: "A \<inter> B = {}" and DISJ': "A' \<inter> B' = {}" and
           B1: "bij_betw f A A'" and B2: "bij_betw f B B'"
