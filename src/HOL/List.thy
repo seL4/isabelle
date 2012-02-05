@@ -5677,9 +5677,12 @@ lemma Pow_set [code]:
 text {* Further operations on sets *}
 
 (* Minimal refinement of equality on sets *)
-lemma [code]:
-  "HOL.equal (set []) (List.coset []) = False"
-by (metis UNIV_coset UNIV_not_empty empty_set equal_eq)
+declare subset_eq[code del]
+lemma subset_code [code]:
+  "set xs <= B \<longleftrightarrow> (ALL x : set xs. x : B)"
+  "List.coset xs <= List.coset ys \<longleftrightarrow> set ys <= set xs"
+  "List.coset [] <= set [] \<longleftrightarrow> False"
+by auto
 
 lemma setsum_code [code]:
   "setsum f (set xs) = listsum (map f (remdups xs))"
