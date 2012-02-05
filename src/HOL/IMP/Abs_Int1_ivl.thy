@@ -25,15 +25,11 @@ abbreviation I_None_None :: "ivl"  ("{\<dots>}") where
 
 definition "num_ivl n = {n\<dots>n}"
 
-definition
-  [code_abbrev]: "contained_in i k \<longleftrightarrow> k \<in> \<gamma>_ivl i"
-
-lemma contained_in_simps [code]:
-  "contained_in (I (Some l) (Some h)) k \<longleftrightarrow> l \<le> k \<and> k \<le> h"
-  "contained_in (I (Some l) None) k \<longleftrightarrow> l \<le> k"
-  "contained_in (I None (Some h)) k \<longleftrightarrow> k \<le> h"
-  "contained_in (I None None) k \<longleftrightarrow> True"
-  by (simp_all add: contained_in_def \<gamma>_ivl_def)
+fun in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" where
+"in_ivl k (I (Some l) (Some h)) \<longleftrightarrow> l \<le> k \<and> k \<le> h" |
+"in_ivl k (I (Some l) None) \<longleftrightarrow> l \<le> k" |
+"in_ivl k (I None (Some h)) \<longleftrightarrow> k \<le> h" |
+"in_ivl k (I None None) \<longleftrightarrow> True"
 
 instantiation option :: (plus)plus
 begin
@@ -158,8 +154,6 @@ lemma gamma_minus_ivl:
   "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(minus_ivl i1 i2)"
 by(auto simp add: minus_ivl_def \<gamma>_ivl_def split: ivl.splits option.splits)
 
-definition "test_num_ivl n ivl = contained_in ivl n"
-
 definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
   i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
 
@@ -206,11 +200,11 @@ done
 
 interpretation Val_abs1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
-and test_num' = test_num_ivl
+and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
   case goal1 thus ?case
-    by(auto simp add: test_num_ivl_def contained_in_def)
+    by (simp add: \<gamma>_ivl_def split: ivl.split option.split)
 next
   case goal2 thus ?case
     by(auto simp add: filter_plus_ivl_def)
@@ -223,7 +217,7 @@ qed
 
 interpretation Abs_Int1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
-and test_num' = test_num_ivl
+and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter
@@ -237,7 +231,7 @@ text{* Monotonicity: *}
 
 interpretation Abs_Int1_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
-and test_num' = test_num_ivl
+and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
   case goal1 thus ?case
