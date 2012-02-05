@@ -8,7 +8,7 @@ options=${@:1:$(($#-1))}
 name=${@:$(($#)):1}
 
 rm -f "$name.prf"
-"$SPASS_NEW_HOME/SPASS" -FPDFGProof -FPFCR $options "$name"
+"$SPASS_NEW_HOME/SPASS" $options "$name"
 if [ -f "$name.prf" ]
 then
   cat "$name.prf"

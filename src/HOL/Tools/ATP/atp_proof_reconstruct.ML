@@ -211,9 +211,7 @@ fun used_facts_in_atp_proof ctxt fact_names atp_proof =
 
 fun used_facts_in_unsound_atp_proof _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
-    let
-      val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
-    in
+    let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
       if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
          not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
         SOME (map fst used_facts)
