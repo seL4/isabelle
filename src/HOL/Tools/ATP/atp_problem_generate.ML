@@ -2407,9 +2407,6 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
         val (base_name as (base_s, _), T_args) =
           mangle_type_args_in_const format type_enc base_name T_args
         val base_ary = min_ary_of sym_tab0 base_s
-        val T_args =
-          T_args |> filter_type_args_in_const thy monom_constrs type_enc
-                                              base_ary base_s
         fun do_const name = IConst (name, T, T_args)
         val do_term =
           filter_type_args_in_iterm thy monom_constrs type_enc
