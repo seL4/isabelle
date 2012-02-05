@@ -974,6 +974,45 @@ text {*
 *}
 
 
+subsection {* Ambiguity of parsed expressions *}
+
+text {*
+  \begin{tabular}{rcll}
+    @{attribute_def syntax_ambiguity_level} & : & @{text attribute} & default @{text 1} \\
+  \end{tabular}
+
+  \begin{mldecls}
+    @{index_ML Syntax.ambiguity_limit: "int Config.T"} \\  %FIXME attribute
+  \end{mldecls}
+
+  Depending on the grammar and the given input, parsing may be
+  ambiguous.  Isabelle lets the Earley parser enumerate all possible
+  parse trees, and then tries to make the best out of the situation.
+  Terms that cannot be type-checked are filtered out, which often
+  leads to a unique result in the end.  Unlike regular type
+  reconstruction, which is applied to the whole collection of input
+  terms simultaneously, the filtering stage only treats each given
+  term in isolation.  Filtering is also not attempted for individual
+  types or raw ASTs (as required for @{command translations}).
+
+  Certain warning or error messages are printed, depending on the
+  situation and the given configuration options.  Parsing ultimately
+  fails, if multiple results remain after the filtering phase.
+
+  \begin{description}
+
+  \item @{attribute syntax_ambiguity_level} determines the number of
+  parser results that are tolerated without printing a detailed
+  message.
+
+  \item @{ML Syntax.ambiguity_limit} determines the number of
+  resulting parse trees that are shown as part of the printed message
+  in case of an ambiguity.
+
+  \end{description}
+*}
+
+
 section {* Raw syntax and translations \label{sec:syn-trans} *}
 
 text {*

@@ -83,54 +83,6 @@ Syntax.print_gram (syn_of ExpSyntax.thy);
 {\out exp = "-" exp[3]  => "-" (3)}
 \end{ttbox}
 
-
-\section{Ambiguity of parsed expressions} \label{sec:ambiguity}
-\index{ambiguity!of parsed expressions}
-
-To keep the grammar small and allow common productions to be shared
-all logical types (except {\tt prop}) are internally represented
-by one nonterminal, namely {\tt logic}.  This and omitted or too freely
-chosen priorities may lead to ways of parsing an expression that were
-not intended by the theory's maker.  In most cases Isabelle is able to
-select one of multiple parse trees that an expression has lead
-to by checking which of them can be typed correctly.  But this may not
-work in every case and always slows down parsing.
-The warning and error messages that can be produced during this process are
-as follows:
-
-If an ambiguity can be resolved by type inference the following
-warning is shown to remind the user that parsing is (unnecessarily)
-slowed down.  In cases where it's not easily possible to eliminate the
-ambiguity the frequency of the warning can be controlled by changing
-the value of {\tt Syntax.ambiguity_level} which has type {\tt int
-ref}.  Its default value is 1 and by increasing it one can control how
-many parse trees are necessary to generate the warning.
-
-\begin{ttbox}
-{\out Ambiguous input "\dots"}
-{\out produces the following parse trees:}
-{\out \dots}
-{\out Fortunately, only one parse tree is type correct.}
-{\out You may still want to disambiguate your grammar or your input.}
-\end{ttbox}
-
-The following message is normally caused by using the same
-syntax in two different productions:
-
-\begin{ttbox}
-{\out Ambiguous input "..."}
-{\out produces the following parse trees:}
-{\out \dots}
-{\out More than one term is type correct:}
-{\out \dots}
-\end{ttbox}
-
-Ambiguities occuring in syntax translation rules cannot be resolved by
-type inference because it is not necessary for these rules to be type
-correct.  Therefore Isabelle always generates an error message and the
-ambiguity should be eliminated by changing the grammar or the rule.
-
-
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "ref"
