@@ -1059,25 +1059,26 @@ $\const{g\_}\tau(t)$, and the binary function
 $\const{t}(\tau, t)$ becomes a unary function
 $\const{t\_}\tau(t)$.
 
-\item[\labelitemi] \textbf{\textit{mono\_simple} (sound):} Exploits simple
+\item[\labelitemi] \textbf{\textit{mono\_native} (sound):} Exploits native
 first-order types if the prover supports the TFF0 or THF0 syntax; otherwise,
 falls back on \textit{mono\_guards}. The problem is monomorphized.
 
-\item[\labelitemi] \textbf{\textit{mono\_simple\_higher} (sound):} Exploits simple
-higher-order types if the prover supports the THF0 syntax; otherwise, falls back
-on \textit{mono\_simple} or \textit{mono\_guards}. The problem is monomorphized.
+\item[\labelitemi] \textbf{\textit{mono\_native\_higher} (sound):} Exploits
+native higher-order types if the prover supports the THF0 syntax; otherwise,
+falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
+monomorphized.
 
 \item[\labelitemi]
 \textbf{%
 \textit{poly\_guards}?, \textit{poly\_tags}?, \textit{raw\_mono\_guards}?, \\
 \textit{raw\_mono\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
-\textit{mono\_simple}? (sound*):} \\
+\textit{mono\_native}? (sound*):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, and \textit{mono\_simple} are fully
+\textit{mono\_tags}, and \textit{mono\_native} are fully
 typed and sound. For each of these, Sledgehammer also provides a lighter,
 virtually sound variant identified by a question mark (`\hbox{?}')\ that detects
-and erases monotonic types, notably infinite types. (For \textit{mono\_simple},
+and erases monotonic types, notably infinite types. (For \textit{mono\_native},
 the types are not actually erased but rather replaced by a shared uniform type
 of individuals.) As argument to the \textit{metis} proof method, the question
 mark is replaced by a \hbox{``\textit{\_query\/}''} suffix.
@@ -1102,14 +1103,14 @@ Alternative versions of the `\hbox{??}' encodings. As argument to the
 \textbf{%
 \textit{poly\_guards}!, \textit{poly\_tags}!, \textit{raw\_mono\_guards}!, \\
 \textit{raw\_mono\_tags}!, \textit{mono\_guards}!, \textit{mono\_tags}!, \\
-\textit{mono\_simple}!, \textit{mono\_simple\_higher}! (mildly unsound):} \\
+\textit{mono\_native}!, \textit{mono\_native\_higher}! (mildly unsound):} \\
 The type encodings \textit{poly\_guards}, \textit{poly\_tags},
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
-\textit{mono\_tags}, \textit{mono\_simple}, and \textit{mono\_simple\_higher}
+\textit{mono\_tags}, \textit{mono\_native}, and \textit{mono\_native\_higher}
 also admit a mildly unsound (but very efficient) variant identified by an
 exclamation mark (`\hbox{!}') that detects and erases erases all types except
-those that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_simple}
-and \textit{mono\_simple\_higher}, the types are not actually erased but rather
+those that are clearly finite (e.g., \textit{bool}). (For \textit{mono\_native}
+and \textit{mono\_native\_higher}, the types are not actually erased but rather
 replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the exclamation mark is replaced by the suffix
 \hbox{``\textit{\_bang\/}''}.
@@ -1134,7 +1135,7 @@ Alternative versions of the `\hbox{!!}' encodings. As argument to the
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
-For SMT solvers, the type encoding is always \textit{mono\_simple}, irrespective
+For SMT solvers, the type encoding is always \textit{mono\_native}, irrespective
 of the value of this option.
 
 \nopagebreak

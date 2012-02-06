@@ -72,7 +72,7 @@ sig
   val app_op_name : string
   val type_guard_name : string
   val type_tag_name : string
-  val simple_type_prefix : string
+  val native_type_prefix : string
   val prefixed_predicator_name : string
   val prefixed_app_op_name : string
   val prefixed_type_tag_name : string
@@ -145,7 +145,7 @@ val tvar_prefix = "T_"
 val tfree_prefix = "t_"
 val const_prefix = "c_"
 val type_const_prefix = "tc_"
-val simple_type_prefix = "s_"
+val native_type_prefix = "n_"
 val class_prefix = "cl_"
 
 (* Freshness almost guaranteed! *)
@@ -631,7 +631,7 @@ fun type_enc_from_string strictness s =
        |> try_nonmono (curry Noninf_Nonmono_Types strictness) queries)
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
-           ("simple", (SOME poly, _)) =>
+           ("native", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
               Simple_Types (First_Order, Polymorphic, All_Types)
@@ -641,7 +641,7 @@ fun type_enc_from_string strictness s =
               else
                 raise Same.SAME
             | _ => raise Same.SAME)
-         | ("simple_higher", (SOME poly, _)) =>
+         | ("native_higher", (SOME poly, _)) =>
            (case (poly, level) of
               (Polymorphic, All_Types) =>
               Simple_Types (Higher_Order, Polymorphic, All_Types)
@@ -889,17 +889,17 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
 fun mangled_type format type_enc =
   generic_mangled_type_name fst o ho_term_from_typ format type_enc
 
-fun make_simple_type s =
+fun make_native_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
      s = tptp_individual_type then
     s
   else
-    simple_type_prefix ^ ascii_of s
+    native_type_prefix ^ ascii_of s
 
 fun ho_type_from_ho_term type_enc pred_sym ary =
   let
     fun to_mangled_atype ty =
-      AType ((make_simple_type (generic_mangled_type_name fst ty),
+      AType ((make_native_type (generic_mangled_type_name fst ty),
               generic_mangled_type_name snd ty), [])
     fun to_poly_atype (ATerm (name, tys)) = AType (name, map to_poly_atype tys)
       | to_poly_atype _ = raise Fail "unexpected type abstraction"

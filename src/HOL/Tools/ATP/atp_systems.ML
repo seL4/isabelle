@@ -279,9 +279,9 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, ((150, leo2_thf0, "mono_simple_higher", liftingN, false),
+     [(0.667, (false, ((150, leo2_thf0, "mono_native_higher", liftingN, false),
                        sosN))),
-      (0.333, (true, ((50, leo2_thf0, "mono_simple_higher", liftingN, false),
+      (0.333, (true, ((50, leo2_thf0, "mono_native_higher", liftingN, false),
                       no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -306,7 +306,7 @@ val satallax_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((100, satallax_thf0, "mono_simple_higher", keep_lamsN,
+     K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN,
                        false), "")))]}
 
 val satallax = (satallaxN, satallax_config)
@@ -350,9 +350,9 @@ val spass_config : atp_config =
 
 val spass = (spassN, spass_config)
 
-val spass_new_slice_1 = (300, DFG DFG_Sorted, "mono_simple", combsN, true)
-val spass_new_slice_2 = (50, DFG DFG_Sorted, "mono_simple", combsN, true)
-val spass_new_slice_3 = (150, DFG DFG_Sorted, "mono_simple", liftingN, true)
+val spass_new_slice_1 = (300, DFG DFG_Sorted, "mono_native", combsN, true)
+val spass_new_slice_2 = (50, DFG DFG_Sorted, "mono_native", combsN, true)
+val spass_new_slice_3 = (150, DFG DFG_Sorted, "mono_native", liftingN, true)
 
 (* Experimental *)
 val spass_new_config : atp_config =
@@ -420,9 +420,9 @@ val vampire_config : atp_config =
       else
         [(0.333, (false, ((150, vampire_tff0, "poly_guards??",
                            combs_or_liftingN, false), sosN))),
-         (0.333, (false, ((500, vampire_tff0, "mono_simple", combs_or_liftingN,
+         (0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN,
                            false), sosN))),
-         (0.334, (true, ((50, vampire_tff0, "mono_simple", combs_or_liftingN,
+         (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN,
                           false), no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -445,10 +445,10 @@ val z3_tptp_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, (false, ((250, z3_tff0, "mono_simple", combsN, false), ""))),
-        (0.25, (false, ((125, z3_tff0, "mono_simple", combsN, false), ""))),
-        (0.125, (false, ((62, z3_tff0, "mono_simple", combsN, false), ""))),
-        (0.125, (false, ((31, z3_tff0, "mono_simple", combsN, false), "")))]}
+     K [(0.5, (false, ((250, z3_tff0, "mono_native", combsN, false), ""))),
+        (0.25, (false, ((125, z3_tff0, "mono_native", combsN, false), ""))),
+        (0.125, (false, ((62, z3_tff0, "mono_native", combsN, false), ""))),
+        (0.125, (false, ((31, z3_tff0, "mono_native", combsN, false), "")))]}
 
 val z3_tptp = (z3_tptpN, z3_tptp_config)
 
@@ -469,11 +469,11 @@ fun dummy_config format type_enc : atp_config =
                         else combsN, false), "")))]}
 
 val dummy_tff1_format = TFF (TPTP_Polymorphic, TPTP_Explicit)
-val dummy_tff1_config = dummy_config dummy_tff1_format "poly_simple"
+val dummy_tff1_config = dummy_config dummy_tff1_format "poly_native"
 val dummy_tff1 = (dummy_tff1N, dummy_tff1_config)
 
 val dummy_thf_format = THF (TPTP_Polymorphic, TPTP_Explicit, THF_With_Choice)
-val dummy_thf_config = dummy_config dummy_thf_format "poly_simple_higher"
+val dummy_thf_config = dummy_config dummy_thf_format "poly_native_higher"
 val dummy_thf = (dummy_thfN, dummy_thf_config)
 
 
@@ -547,17 +547,17 @@ val remote_e =
       (K (750, FOF, "mono_tags??", combsN, false) (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-      (K (100, leo2_thf0, "mono_simple_higher", liftingN, false) (* FUDGE *))
+      (K (100, leo2_thf0, "mono_native_higher", liftingN, false) (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.1", "2.0", "2"]
-      (K (100, satallax_thf0, "mono_simple_higher", keep_lamsN, false)
+      (K (100, satallax_thf0, "mono_native_higher", keep_lamsN, false)
          (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["1.8"]
       (K (250, FOF, "mono_guards??", combs_or_liftingN, false) (* FUDGE *))
 val remote_z3_tptp =
   remotify_atp z3_tptp "Z3" ["3.0"]
-      (K (250, z3_tff0, "mono_simple", combsN, false) (* FUDGE *))
+      (K (250, z3_tff0, "mono_native", combsN, false) (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
       Conjecture (K (500, FOF, "mono_guards??", combsN, false) (* FUDGE *))
@@ -570,11 +570,11 @@ val remote_iprover_eq =
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
       [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-      (K (100, explicit_tff0, "mono_simple", liftingN, false) (* FUDGE *))
+      (K (100, explicit_tff0, "mono_native", liftingN, false) (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Axiom
       Hypothesis
-      (K (150, explicit_tff0, "mono_simple", liftingN, false) (* FUDGE *))
+      (K (150, explicit_tff0, "mono_native", liftingN, false) (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
       [("#START OF PROOF", "Proved Goals:")]

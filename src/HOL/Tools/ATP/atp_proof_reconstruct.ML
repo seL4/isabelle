@@ -381,7 +381,7 @@ fun term_from_atp ctxt textual sym_tab =
     fun do_term extra_ts opt_T u =
       case u of
         ATerm (s, us) =>
-        if String.isPrefix simple_type_prefix s then
+        if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in

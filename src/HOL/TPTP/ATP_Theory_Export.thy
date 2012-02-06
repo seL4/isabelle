@@ -22,9 +22,9 @@ val ctxt = @{context}
 
 ML {*
 if do_it then
-  "/tmp/axs_mono_simple.dfg"
+  "/tmp/axs_mono_native.dfg"
   |> generate_tptp_inference_file_for_theory ctxt thy (DFG DFG_Sorted)
-         "mono_simple"
+         "mono_native"
 else
   ()
 *}
