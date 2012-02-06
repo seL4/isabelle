@@ -2408,9 +2408,10 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
           mangle_type_args_in_const format type_enc base_name T_args
         val base_ary = min_ary_of sym_tab0 base_s
         fun do_const name = IConst (name, T, T_args)
-        val do_term =
+        val filter_ty_args =
           filter_type_args_in_iterm thy monom_constrs type_enc
-          #> ho_term_from_iterm ctxt format mono type_enc (SOME true)
+        val ho_term_of =
+          ho_term_from_iterm ctxt format mono type_enc (SOME true)
         val name1 as (s1, _) =
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
         val name2 as (s2, _) = base_name |> aliased_uncurried ary
@@ -2423,12 +2424,15 @@ fun do_uncurried_alias_lines_for_sym ctxt monom_constrs format conj_sym_kind
         val tm1 =
           mk_app_op format type_enc (list_app (do_const name1) first_bounds)
                     last_bound
-        val tm2 = list_app (do_const name2) (first_bounds @ [last_bound])
+          |> filter_ty_args
+        val tm2 =
+          list_app (do_const name2) (first_bounds @ [last_bound])
+          |> filter_ty_args
         val do_bound_type = do_bound_type ctxt format mono type_enc
         val eq =
           eq_formula type_enc (atomic_types_of T)
                      (map (apsnd do_bound_type) bounds) false
-                     (do_term tm1) (do_term tm2)
+                     (ho_term_of tm1) (ho_term_of tm2)
       in
         ([tm1, tm2],
          [Formula (uncurried_alias_eq_prefix ^ s2, kind, eq |> maybe_negate,
