@@ -115,6 +115,9 @@ val crude_zero_vars =
   map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
   #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
 
+(* unfolding these can yield really huge terms *)
+val risky_spec_eqs = @{thms Bit0_def Bit1_def}
+
 fun clasimpset_rule_table_of ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -132,6 +135,7 @@ fun clasimpset_rule_table_of ctxt =
       ctxt |> Spec_Rules.get
            |> filter (curry (op =) Spec_Rules.Equational o fst)
            |> maps (snd o snd)
+           |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
   in
     Termtab.empty |> add Simp I snd simps
                   |> add Simp atomize snd simps
