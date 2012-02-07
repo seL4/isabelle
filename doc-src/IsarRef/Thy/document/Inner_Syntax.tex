@@ -1346,7 +1346,26 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
   translation rules, which are interpreted in the same manner as for
   \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}} above.
 
-  \end{description}%
+  \end{description}
+
+  Raw syntax and translations provides a slightly more low-level
+  access to the grammar and the form of resulting parse trees.  It is
+  often possible to avoid this untyped macro mechanism, and use
+  type-safe \hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}} or \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}} instead.
+  Some important situations where \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} and \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}} are really need are as follows:
+
+  \begin{itemize}
+
+  \item Iterated replacement via recursive \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}.
+  For example, consider list enumeration \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{2C}{\isacharcomma}}\ c{\isaliteral{2C}{\isacharcomma}}\ d{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} as
+  defined in theory \hyperlink{theory.List}{\mbox{\isa{List}}} in Isabelle/HOL.
+
+  \item Change of binding status of variables: anything beyond the
+  built-in \hyperlink{keyword.binder}{\mbox{\isa{\isakeyword{binder}}}} mixfix annotation requires explicit
+  syntax translations.  For example, consider list filter
+  comprehension \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}x\ {\isaliteral{5C3C6C6566746172726F773E}{\isasymleftarrow}}\ xs\ {\isaliteral{2E}{\isachardot}}\ P{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} as defined in theory \hyperlink{theory.List}{\mbox{\isa{List}}} in Isabelle/HOL.
+
+  \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

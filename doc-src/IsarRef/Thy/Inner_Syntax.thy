@@ -1118,6 +1118,27 @@ text {*
   @{command "translations"} above.
 
   \end{description}
+
+  Raw syntax and translations provides a slightly more low-level
+  access to the grammar and the form of resulting parse trees.  It is
+  often possible to avoid this untyped macro mechanism, and use
+  type-safe @{command abbreviation} or @{command notation} instead.
+  Some important situations where @{command syntax} and @{command
+  translations} are really need are as follows:
+
+  \begin{itemize}
+
+  \item Iterated replacement via recursive @{command translations}.
+  For example, consider list enumeration @{term "[a, b, c, d]"} as
+  defined in theory @{theory List} in Isabelle/HOL.
+
+  \item Change of binding status of variables: anything beyond the
+  built-in @{keyword "binder"} mixfix annotation requires explicit
+  syntax translations.  For example, consider list filter
+  comprehension @{term "[x \<leftarrow> xs . P]"} as defined in theory @{theory
+  List} in Isabelle/HOL.
+
+  \end{itemize}
 *}
 
 
