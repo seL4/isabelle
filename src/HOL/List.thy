@@ -934,7 +934,7 @@ by (cases xs) auto
 lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
-lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
+lemma rev_is_rev_conv [iff, no_atp]: "(rev xs = rev ys) = (xs = ys)"
 apply (induct xs arbitrary: ys, force)
 apply (case_tac ys, simp, force)
 done
