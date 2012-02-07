@@ -1179,9 +1179,6 @@ val print_ast_translation   : (string * (ast list -> ast)) list
   translations functions may refer to specific theory declarations or
   auxiliary proof data.
 
-  See also \cite{isabelle-ref} for more information on the general
-  concept of syntax transformations in Isabelle.
-
 %FIXME proper antiquotations
 \begin{ttbox}
 val parse_ast_translation:
@@ -1195,6 +1192,10 @@ val typed_print_translation:
 val print_ast_translation:
   (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}
+
+  \medskip See also the chapter on ``Syntax Transformations'' in old
+  \cite{isabelle-ref} for further details on translations on parse
+  trees.
 *}
 
 end
