@@ -206,9 +206,9 @@ abbreviation
   length :: "'a list \<Rightarrow> nat" where
   "length \<equiv> size"
 
-definition
-  rotate1 :: "'a list \<Rightarrow> 'a list" where
-  "rotate1 xs = (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
+primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
+  "rotate1 [] = []" |
+  "rotate1 (x # xs) = xs @ [x]"
 
 definition
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -265,8 +265,8 @@ text{*
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
 @{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" by simp}\\
 @{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:sublist_def)}\\
-@{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by (simp add:rotate1_def)}\\
-@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate1_def rotate_def eval_nat_numeral)}\\
+@{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by simp}\\
+@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate_def eval_nat_numeral)}\\
 @{lemma "replicate 4 a = [a,a,a,a]" by (simp add:eval_nat_numeral)}\\
 @{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}\\
 @{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def foldr_def)}
@@ -2880,7 +2880,7 @@ lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & dist
 by (metis distinct_remdups finite_list set_remdups)
 
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
-by (induct x, auto) 
+by (induct x, auto)
 
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
 by (induct x, auto)
@@ -2967,7 +2967,7 @@ apply (rule iffI, clarsimp)
 apply (case_tac j, simp)
 apply (simp add: set_conv_nth)
  apply (case_tac j)
-apply (clarsimp simp add: set_conv_nth, simp) 
+apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
 (*TOO SLOW
 apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_Cons' nth_Cons_Suc)
@@ -2999,7 +2999,7 @@ next
     case False with Cons show ?thesis by simp
   next
     case True with Cons.prems
-    have "card (set xs) = Suc (length xs)" 
+    have "card (set xs) = Suc (length xs)"
       by (simp add: card_insert_if split: split_if_asm)
     moreover have "card (set xs) \<le> length xs" by (rule card_length)
     ultimately have False by simp
@@ -3590,9 +3590,6 @@ qed
 
 subsubsection{*@{text rotate1} and @{text rotate}*}
 
-lemma rotate_simps[simp]: "rotate1 [] = [] \<and> rotate1 (x#xs) = xs @ [x]"
-by(simp add:rotate1_def)
-
 lemma rotate0[simp]: "rotate 0 = id"
 by(simp add:rotate_def)
 
@@ -3619,7 +3616,7 @@ apply (simp add:rotate_def)
 done
 
 lemma rotate1_hd_tl: "xs \<noteq> [] \<Longrightarrow> rotate1 xs = tl xs @ [hd xs]"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) simp_all
 
 lemma rotate_drop_take:
   "rotate n xs = drop (n mod length xs) xs @ take (n mod length xs) xs"
@@ -3642,13 +3639,13 @@ lemma rotate_id[simp]: "n mod length xs = 0 \<Longrightarrow> rotate n xs = xs"
 by(simp add:rotate_drop_take)
 
 lemma length_rotate1[simp]: "length(rotate1 xs) = length xs"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) simp_all
 
 lemma length_rotate[simp]: "length(rotate n xs) = length xs"
 by (induct n arbitrary: xs) (simp_all add:rotate_def)
 
 lemma distinct1_rotate[simp]: "distinct(rotate1 xs) = distinct xs"
-by(simp add:rotate1_def split:list.split) blast
+by (cases xs) auto
 
 lemma distinct_rotate[simp]: "distinct(rotate n xs) = distinct xs"
 by (induct n) (simp_all add:rotate_def)
@@ -3657,13 +3654,13 @@ lemma rotate_map: "rotate n (map f xs) = map f (rotate n xs)"
 by(simp add:rotate_drop_take take_map drop_map)
 
 lemma set_rotate1[simp]: "set(rotate1 xs) = set xs"
-by (cases xs) (auto simp add:rotate1_def)
+by (cases xs) auto
 
 lemma set_rotate[simp]: "set(rotate n xs) = set xs"
 by (induct n) (simp_all add:rotate_def)
 
 lemma rotate1_is_Nil_conv[simp]: "(rotate1 xs = []) = (xs = [])"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) auto
 
 lemma rotate_is_Nil_conv[simp]: "(rotate n xs = []) = (xs = [])"
 by (induct n) (simp_all add:rotate_def)

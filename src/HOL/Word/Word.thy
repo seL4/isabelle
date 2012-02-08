@@ -3942,7 +3942,7 @@ lemma rotate1_map2:
     rotate1 (map2 f xs ys) = map2 f (rotate1 xs) (rotate1 ys)" 
   apply (unfold map2_def)
   apply (cases xs)
-   apply (cases ys, auto simp add : rotate1_def)+
+   apply (cases ys, auto)+
   done
 
 lemmas lth = box_equals [OF asm_rl length_rotate [symmetric] 
