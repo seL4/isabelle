@@ -125,7 +125,7 @@ lemma quotient_compose_list_g:
 proof (intro conjI allI)
   fix a r s
   show "abs_fset (map Abs (map Rep (rep_fset a))) = a"
-    by (simp add: abs_o_rep[OF q] Quotient_abs_rep[OF Quotient_fset] map_id)
+    by (simp add: abs_o_rep[OF q] Quotient_abs_rep[OF Quotient_fset] map.id)
   have b: "list_all2 R (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule list_all2_refl'[OF e])
   have c: "(op \<approx> OO list_all2 R) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
@@ -376,7 +376,7 @@ proof
   fix x y z :: "'a fset"
   show "x |\<subset>| y \<longleftrightarrow> x |\<subseteq>| y \<and> \<not> y |\<subseteq>| x"
     by (unfold less_fset_def, descending) auto
-  show "x |\<subseteq>| x"  by (descending) (simp)
+  show "x |\<subseteq>| x" by (descending) (simp)
   show "{||} |\<subseteq>| x" by (descending) (simp)
   show "x |\<subseteq>| x |\<union>| y" by (descending) (simp)
   show "y |\<subseteq>| x |\<union>| y" by (descending) (simp)
@@ -484,20 +484,23 @@ lemma Cons_rsp2 [quot_respect]:
   apply auto
   done
 
-lemma map_prs [quot_preserve]: 
-  shows "(abs_fset \<circ> map f) [] = abs_fset []"
+lemma Nil_prs2 [quot_preserve]:
+  assumes "Quotient R Abs Rep"
+  shows "(Abs \<circ> map f) [] = Abs []"
   by simp
 
-lemma insert_fset_rsp [quot_preserve]:
-  "(rep_fset ---> (map rep_fset \<circ> rep_fset) ---> (abs_fset \<circ> map abs_fset)) Cons = insert_fset"
-  by (simp add: fun_eq_iff Quotient_abs_rep[OF Quotient_fset]
-      abs_o_rep[OF Quotient_fset] map_id insert_fset_def)
+lemma Cons_prs2 [quot_preserve]:
+  assumes q: "Quotient R1 Abs1 Rep1"
+  and     r: "Quotient R2 Abs2 Rep2"
+  shows "(Rep1 ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) (op #) = (id ---> Rep2 ---> Abs2) (op #)"
+  by (auto simp add: fun_eq_iff comp_def Quotient_abs_rep [OF q])
 
-lemma union_fset_rsp [quot_preserve]:
-  "((map rep_fset \<circ> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> (abs_fset \<circ> map abs_fset)) 
-  append = union_fset"
-  by (simp add: fun_eq_iff Quotient_abs_rep[OF Quotient_fset]
-      abs_o_rep[OF Quotient_fset] map_id sup_fset_def)
+lemma append_prs2 [quot_preserve]:
+  assumes q: "Quotient R1 Abs1 Rep1"
+  and     r: "Quotient R2 Abs2 Rep2"
+  shows "((map Rep1 \<circ> Rep2) ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) op @ =
+    (Rep2 ---> Rep2 ---> Abs2) op @"
+  by (simp add: fun_eq_iff abs_o_rep[OF q] map.id)
 
 lemma list_all2_app_l:
   assumes a: "reflp R"
@@ -527,24 +530,16 @@ lemma append_rsp2_pre:
   shows "list_all2 op \<approx> (x @ z) (x' @ z')"
   using assms by (rule list_all2_appendI)
 
+lemma compositional_rsp3:
+  assumes "(R1 ===> R2 ===> R3) C C" and "(R4 ===> R5 ===> R6) C C"
+  shows "(R1 OOO R4 ===> R2 OOO R5 ===> R3 OOO R6) C C"
+  by (auto intro!: fun_relI)
+     (metis (full_types) assms fun_relE pred_comp.intros)
+
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
-proof (intro fun_relI, elim pred_compE)
-  fix x y z w x' z' y' w' :: "'a list list"
-  assume a:"list_all2 op \<approx> x x'"
-  and b:    "x' \<approx> y'"
-  and c:    "list_all2 op \<approx> y' y"
-  assume aa: "list_all2 op \<approx> z z'"
-  and bb:   "z' \<approx> w'"
-  and cc:   "list_all2 op \<approx> w' w"
-  have a': "list_all2 op \<approx> (x @ z) (x' @ z')" using a aa append_rsp2_pre by auto
-  have b': "x' @ z' \<approx> y' @ w'" using b bb by simp
-  have c': "list_all2 op \<approx> (y' @ w') (y @ w)" using c cc append_rsp2_pre by auto
-  have d': "(op \<approx> OO list_all2 op \<approx>) (x' @ z') (y @ w)"
-    by (rule pred_compI) (rule b', rule c')
-  show "(list_all2 op \<approx> OOO op \<approx>) (x @ z) (y @ w)"
-    by (rule pred_compI) (rule a', rule d')
-qed
+  by (intro compositional_rsp3 append_rsp)
+     (auto intro!: fun_relI simp add: append_rsp2_pre)
 
 lemma map_rsp2 [quot_respect]:
   "((op \<approx> ===> op \<approx>) ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) map map"
@@ -569,11 +564,9 @@ proof (auto intro!: fun_relI)
 qed
 
 lemma map_prs2 [quot_preserve]:
-  "((abs_fset ---> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> abs_fset \<circ> map abs_fset) map = map_fset"
-  apply (auto simp add: fun_eq_iff)
-  apply (induct_tac xa rule: list.induct[quot_lifted])
-  apply (simp_all add: map.simps[quot_lifted] Quotient_abs_rep[OF Quotient_fset] bot_fset_def map_fset_def insert_fset_def)
-  done
+  shows "((abs_fset ---> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> abs_fset \<circ> map abs_fset) map = (id ---> rep_fset ---> abs_fset) map"
+  by (auto simp add: fun_eq_iff)
+     (simp only: map_map[symmetric] map_prs_aux[OF Quotient_fset Quotient_fset])
 
 section {* Lifted theorems *}
 
@@ -940,7 +933,7 @@ lemma concat_insert_fset [simp]:
   shows "concat_fset (insert_fset x S) = x |\<union>| concat_fset S"
   by descending simp
 
-lemma concat_inter_fset [simp]:
+lemma concat_union_fset [simp]:
   shows "concat_fset (xs |\<union>| ys) = concat_fset xs |\<union>| concat_fset ys"
   by descending simp
 
