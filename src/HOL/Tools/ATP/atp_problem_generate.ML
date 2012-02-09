@@ -2706,14 +2706,27 @@ fun atp_problem_relevance_weights problem =
 val use_topo_for_kbo = false (* experimental *)
 val default_kbo_weight = 1
 
+fun have_head_rolling (ATerm (s, args)) =
+    (* ugly hack: may make innocent victims *)
+    if String.isPrefix app_op_name s andalso length args = 2 then
+      have_head_rolling (hd args) ||> append (tl args)
+    else
+      (s, args)
+  | have_head_rolling _ = ("", [])
+
 fun atp_problem_kbo_weights problem =
   let
     fun add_term_deps head (ATerm (s, args)) =
         is_tptp_user_symbol s ? perhaps (try (Graph.add_edge_acyclic (s, head)))
         #> fold (add_term_deps head) args
       | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
-    fun add_eq_deps (ATerm (s, [ATerm (head, args as _ :: _), rhs])) =
-        is_tptp_equal s ? fold (add_term_deps head) (rhs :: args)
+    fun add_eq_deps (ATerm (s, [lhs as _, rhs])) =
+        if is_tptp_equal s then
+          let val (head, rest) = have_head_rolling lhs in
+            fold (add_term_deps head) (rhs :: rest)
+          end
+        else
+          I
       | add_eq_deps _ = I
     fun add_line_deps _ (Decl (_, s, ty)) =
         is_function_type ty ? Graph.default_node (s, ())

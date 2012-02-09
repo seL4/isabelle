@@ -754,7 +754,8 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
 
 fun avoid_clash_with_dfg_keywords s =
   let val n = String.size s in
-    if n < 2 orelse String.isSubstring "_" s then
+    if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
+       String.isSubstring "_" s then
       s
     else
       String.substring (s, 0, n - 1) ^
