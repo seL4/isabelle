@@ -320,7 +320,7 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
   | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
 
-val dfg_individual_type = "ii" (* cannot clash *)
+val dfg_individual_type = "iii" (* cannot clash *)
 
 fun str_for_type format ty =
   let
