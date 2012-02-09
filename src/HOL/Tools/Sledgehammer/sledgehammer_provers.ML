@@ -709,17 +709,19 @@ fun run_atp mode name
                     |> prepare_atp_problem ctxt format conj_sym_kind prem_kind
                            type_enc false lam_trans uncurried_aliases
                            readable_names true hyp_ts concl_t
-                fun weights () = atp_problem_weights atp_problem
+                fun rel_weights () = atp_problem_relevance_weights atp_problem
+                fun kbo_weights () = atp_problem_kbo_weights atp_problem
                 val full_proof = debug orelse isar_proof
                 val command =
                   File.shell_path command ^ " " ^
-                  arguments ctxt full_proof extra slice_timeout weights ^ " " ^
-                  File.shell_path prob_file
+                  arguments ctxt full_proof extra slice_timeout rel_weights ^
+                  " " ^ File.shell_path prob_file
                   |> enclose "TIMEFORMAT='%3R'; { time " " ; } 2>&1"
                 val _ =
-                  atp_problem |> lines_for_atp_problem format
-                              |> cons ("% " ^ command ^ "\n")
-                              |> File.write_list prob_file
+                  atp_problem
+                  |> lines_for_atp_problem format kbo_weights
+                  |> cons ("% " ^ command ^ "\n")
+                  |> File.write_list prob_file
                 val ((output, run_time), (atp_proof, outcome)) =
                   TimeLimit.timeLimit generous_slice_timeout
                                       Isabelle_System.bash_output command

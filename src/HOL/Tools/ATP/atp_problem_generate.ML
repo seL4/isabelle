@@ -107,7 +107,8 @@ sig
     -> ((string * stature) * term) list
     -> string problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
-  val atp_problem_weights : string problem -> (string * real) list
+  val atp_problem_relevance_weights : string problem -> (string * real) list
+  val atp_problem_kbo_weights : string problem -> (string * int) list
 end;
 
 structure ATP_Problem_Generate : ATP_PROBLEM_GENERATE =
@@ -2665,42 +2666,80 @@ val fact_min_weight = 0.2
 val fact_max_weight = 1.0
 val type_info_default_weight = 0.8
 
-fun add_term_weights weight (ATerm (s, tms)) =
-    is_tptp_user_symbol s ? Symtab.default (s, weight)
-    #> fold (add_term_weights weight) tms
-  | add_term_weights weight (AAbs (_, tm)) = add_term_weights weight tm
-fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
-    formula_fold NONE (K (add_term_weights weight)) phi
-  | add_problem_line_weights _ _ = I
-
-fun add_conjectures_weights [] = I
-  | add_conjectures_weights conjs =
-    let val (hyps, conj) = split_last conjs in
-      add_problem_line_weights conj_weight conj
-      #> fold (add_problem_line_weights hyp_weight) hyps
-    end
-
-fun add_facts_weights facts =
-  let
-    val num_facts = length facts
-    fun weight_of j =
-      fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
-                        / Real.fromInt num_facts
-  in
-    map weight_of (0 upto num_facts - 1) ~~ facts
-    |> fold (uncurry add_problem_line_weights)
-  end
-
 (* Weights are from 0.0 (most important) to 1.0 (least important). *)
-fun atp_problem_weights problem =
-  let val get = these o AList.lookup (op =) problem in
+fun atp_problem_relevance_weights problem =
+  let
+    fun add_term_weights weight (ATerm (s, tms)) =
+        is_tptp_user_symbol s ? Symtab.default (s, weight)
+        #> fold (add_term_weights weight) tms
+      | add_term_weights weight (AAbs (_, tm)) = add_term_weights weight tm
+    fun add_line_weights weight (Formula (_, _, phi, _, _)) =
+        formula_fold NONE (K (add_term_weights weight)) phi
+      | add_line_weights _ _ = I
+    fun add_conjectures_weights [] = I
+      | add_conjectures_weights conjs =
+        let val (hyps, conj) = split_last conjs in
+          add_line_weights conj_weight conj
+          #> fold (add_line_weights hyp_weight) hyps
+        end
+    fun add_facts_weights facts =
+      let
+        val num_facts = length facts
+        fun weight_of j =
+          fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
+                            / Real.fromInt num_facts
+      in
+        map weight_of (0 upto num_facts - 1) ~~ facts
+        |> fold (uncurry add_line_weights)
+      end
+    val get = these o AList.lookup (op =) problem
+  in
     Symtab.empty
     |> add_conjectures_weights (get free_typesN @ get conjsN)
     |> add_facts_weights (get factsN)
-    |> fold (fold (add_problem_line_weights type_info_default_weight) o get)
+    |> fold (fold (add_line_weights type_info_default_weight) o get)
             [explicit_declsN, class_relsN, aritiesN]
     |> Symtab.dest
     |> sort (prod_ord Real.compare string_ord o pairself swap)
   end
+
+val use_topo_for_kbo = false (* experimental *)
+val default_kbo_weight = 1
+
+fun atp_problem_kbo_weights problem =
+  let
+    fun add_term_deps head (ATerm (s, args)) =
+        is_tptp_user_symbol s ? perhaps (try (Graph.add_edge_acyclic (s, head)))
+        #> fold (add_term_deps head) args
+      | add_term_deps head (AAbs (_, tm)) = add_term_deps head tm
+    fun add_eq_deps (ATerm (s, [ATerm (head, args as _ :: _), rhs])) =
+        is_tptp_equal s ? fold (add_term_deps head) (rhs :: args)
+      | add_eq_deps _ = I
+    fun add_line_deps _ (Decl (_, s, ty)) =
+        is_function_type ty ? Graph.default_node (s, ())
+      | add_line_deps status (Formula (_, _, phi, _, info)) =
+        if extract_isabelle_status info = SOME status then
+          formula_fold NONE (K add_eq_deps) phi
+        else
+          I
+    val graph =
+      Graph.empty |> fold (fold (add_line_deps spec_eqN) o snd) problem
+                  |> fold (fold (add_line_deps simpN) o snd) problem
+    fun next_weight w = w + w
+    fun add_weights _ [] = I
+      | add_weights weight syms =
+        fold (AList.update (op =) o rpair weight) syms
+        #> add_weights (next_weight weight)
+               (fold (union (op =) o Graph.immediate_succs graph) syms [])
+  in
+    if use_topo_for_kbo then
+      let val topo = graph |> Graph.topological_order in
+        topo ~~ (1 upto length topo)
+      end
+    else
+      [] |> add_weights 1 (Graph.minimals graph)
+         |> sort (int_ord o pairself snd)
+  end
+  |> filter_out (fn (_, weight) => weight = default_kbo_weight)
 
 end;

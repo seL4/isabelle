@@ -117,7 +117,8 @@ fun run_some_atp ctxt format problem =
     val prob_file = File.tmp_path (Path.explode "prob.tptp")
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy (case format of DFG _ => spassN | _ => eN)
-    val _ = problem |> lines_for_atp_problem format |> File.write_list prob_file
+    val _ = problem |> lines_for_atp_problem format (K [])
+                    |> File.write_list prob_file
     val command =
       File.shell_path (Path.explode (getenv (fst exec) ^ "/" ^ snd exec)) ^
       " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
@@ -212,7 +213,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       atp_problem
       |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
       |> order_problem_facts name_ord
-    val ss = lines_for_atp_problem format atp_problem
+    val ss = lines_for_atp_problem format (K []) atp_problem
     val _ = app (File.append path) ss
   in () end
 
