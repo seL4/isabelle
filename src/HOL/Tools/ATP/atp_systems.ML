@@ -37,7 +37,6 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
-  val spass_incompleteN : string
   val eN : string
   val e_sineN : string
   val e_tofofN : string
@@ -314,8 +313,6 @@ val satallax = (satallaxN, satallax_config)
 
 (* SPASS *)
 
-val spass_incompleteN = "incomplete"
-
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of explicit application operators. *)
 val spass_config : atp_config =
@@ -350,28 +347,30 @@ val spass_config : atp_config =
 
 val spass = (spassN, spass_config)
 
-val spass_new_slice_1 = (300, DFG DFG_Sorted, "mono_native", combsN, true)
-val spass_new_slice_2 = (50, DFG DFG_Sorted, "mono_native", combsN, true)
-val spass_new_slice_3 = (150, DFG DFG_Sorted, "mono_native", liftingN, true)
-
 (* Experimental *)
 val spass_new_config : atp_config =
   {exec = ("SPASS_NEW_HOME", "SPASS"),
    required_execs = [],
-   arguments = fn _ => fn _ => fn incomplete => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
      (* TODO: add: -FPDFGProof -FPFCR *)
      ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
-     (* TODO: not used yet *)
-     |> incomplete = spass_incompleteN ? prefix "-Splits=0 -FullRed=0 ",
+     |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = #proof_delims spass_config,
    known_failures = #known_failures spass_config,
    conj_sym_kind = #conj_sym_kind spass_config,
    prem_kind = #prem_kind spass_config,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.300, (true, (spass_new_slice_1, ""))),
-      (0.333, (true, (spass_new_slice_2, ""))),
-      (0.333, (true, (spass_new_slice_3, "")))]}
+     [(0.25, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true),
+                     "-Heuristic=1"))),
+      (0.20, (true, ((500, DFG DFG_Sorted, "mono_native", liftingN, true),
+                     "-Heuristic=2 -SOS"))),
+      (0.20, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true),
+                     "-Heuristic=2"))),
+      (0.20, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN,
+                      true), "-Heuristic=2"))),
+      (0.15, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN,
+                      true), "-Heuristic=2")))]}
 
 val spass_new = (spass_newN, spass_new_config)
 
