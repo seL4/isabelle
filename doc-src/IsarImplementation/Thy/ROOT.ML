@@ -1,4 +1,5 @@
 use_thys [
+  "Eq",
   "Integration",
   "Isar",
   "Local_Theory",
