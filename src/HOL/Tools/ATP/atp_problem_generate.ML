@@ -2703,9 +2703,6 @@ fun atp_problem_relevance_weights problem =
     |> sort (prod_ord Real.compare string_ord o pairself swap)
   end
 
-val use_topo_for_kbo = false (* experimental *)
-val default_kbo_weight = 1
-
 fun have_head_rolling (ATerm (s, args)) =
     (* ugly hack: may make innocent victims *)
     if String.isPrefix app_op_name s andalso length args = 2 then
@@ -2745,14 +2742,7 @@ fun atp_problem_kbo_weights problem =
         #> add_weights (next_weight weight)
                (fold (union (op =) o Graph.immediate_succs graph) syms [])
   in
-    if use_topo_for_kbo then
-      let val topo = graph |> Graph.topological_order in
-        topo ~~ (1 upto length topo)
-      end
-    else
-      [] |> add_weights 1 (Graph.minimals graph)
-         |> sort (int_ord o pairself snd)
+    [] |> add_weights 1 (Graph.minimals graph) |> sort (int_ord o pairself snd)
   end
-  |> filter_out (fn (_, weight) => weight = default_kbo_weight)
 
 end;
