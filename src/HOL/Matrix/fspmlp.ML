@@ -27,11 +27,11 @@ type matrix = FloatSparseMatrixBuilder.matrix
 
 type linprog = term * (term * term) * term * (term * term) * (term * term)
 
-fun y (c1, c2, c3, c4, _) = c1
-fun A (c1, c2, c3, c4, _) = c2
-fun b (c1, c2, c3, c4, _) = c3
-fun c (c1, c2, c3, c4, _) = c4
-fun r12 (c1, c2, c3, c4, c6) = c6
+fun y (c1, _, _, _, _) = c1
+fun A (_, c2, _, _, _) = c2
+fun b (_, _, c3, _, _) = c3
+fun c (_, _, _, c4, _) = c4
+fun r12 (_, _, _, _, c6) = c6
 
 structure CplexFloatSparseMatrixConverter =
 MAKE_CPLEX_MATRIX_CONVERTER(structure cplex = Cplex and matrix_builder = FloatSparseMatrixBuilder);
@@ -112,8 +112,6 @@ fun split_graph g =
           | (u, LOWER) => (Inttab.update (u, bound) r1, r2))
   in VarGraph.fold split g (Inttab.empty, Inttab.empty) end
 
-fun it2list t = Inttab.fold cons t [];
-
 (* If safe is true, termination is guaranteed, but the sure bounds may be not optimal (relative to the algorithm).
    If safe is false, termination is not guaranteed, but on termination the sure bounds are optimal (relative to the algorithm) *)
 fun propagate_sure_bounds safe names g =
@@ -135,7 +133,7 @@ fun propagate_sure_bounds safe names g =
 
                 val mult_btype = case btype of UPPER => mult_upper | LOWER => mult_lower
 
-                fun calc_sure_bound (row_index, (row_bound, sources)) sure_bound =
+                fun calc_sure_bound (_, (row_bound, sources)) sure_bound =
                     let
                         fun add_src_bound (coeff, src_key) sum =
                             case sum of
@@ -191,13 +189,6 @@ fun cons_spmat x xs = @{term "Cons :: nat * real spvec => real spmat => real spm
 
 fun calcr safe_propagation xlen names prec A b =
     let
-        val empty = Inttab.empty
-
-        fun instab t i x = Inttab.update (i, x) t
-
-        fun isnegstr x = String.isPrefix "-" x
-        fun negstr x = if isnegstr x then String.extract (x, 1, NONE) else "-"^x
-
         fun test_1 (lower, upper) =
             if lower = upper then
                 (if Float.eq (lower, (~1, 0)) then ~1
@@ -305,7 +296,7 @@ fun load filename prec safe_propagation =
         val _ = if maximize then () else raise Load "sorry, cannot handle minimization problems"
         val (dualprog, indexof) = FloatSparseMatrixBuilder.dual_cplexProg c A b
         val results = Cplex.solve dualprog
-        val (optimal,v) = CplexFloatSparseMatrixConverter.convert_results results indexof
+        val (_, v) = CplexFloatSparseMatrixConverter.convert_results results indexof
         (*val A = FloatSparseMatrixBuilder.cut_matrix v NONE A*)
         fun id x = x
         val v = FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 v
