@@ -98,50 +98,47 @@ fun subst_const (c, t) (Const c') = if c = c' then t else Const c'
 
 (* Remove all rules that are just parameterless rewrites. This is necessary because SML does not allow functions with no parameters. *)
 fun inline_rules rules =
-    let
-        fun term_contains_const c (App (a, b)) = term_contains_const c a orelse term_contains_const c b
-          | term_contains_const c (Abs m) = term_contains_const c m
-          | term_contains_const c (Var _) = false
-          | term_contains_const c (Const c') = (c = c')
-        fun find_rewrite [] = NONE
-          | find_rewrite ((prems, PConst (c, []), r) :: _) = 
-            if check_freevars 0 r then 
-                if term_contains_const c r then 
-                    raise Compile "parameterless rewrite is caught in cycle"
-                else if not (null prems) then
-                    raise Compile "parameterless rewrite may not be guarded"
-                else
-                    SOME (c, r) 
-            else raise Compile "unbound variable on right hand side or guards of rule"
-          | find_rewrite (_ :: rules) = find_rewrite rules
-        fun remove_rewrite _ [] = []
-          | remove_rewrite (cr as (c,r)) ((rule as (prems', PConst (c', args), r'))::rules) = 
-            (if c = c' then 
-                 if null args andalso r = r' andalso null (prems') then 
-                     remove_rewrite cr rules 
-                 else raise Compile "incompatible parameterless rewrites found"
-             else
-                 rule :: (remove_rewrite cr rules))
-          | remove_rewrite cr (r::rs) = r::(remove_rewrite cr rs)
-        fun pattern_contains_const c (PConst (c', args)) = (c = c' orelse exists (pattern_contains_const c) args)
-          | pattern_contains_const c (PVar) = false
-        fun inline_rewrite (ct as (c, _)) (prems, p, r) = 
-            if pattern_contains_const c p then 
-                raise Compile "parameterless rewrite cannot be used in pattern"
-            else (map (fn (Guard (a,b)) => Guard (subst_const ct a, subst_const ct b)) prems, p, subst_const ct r)
-        fun inline inlined rules =
-            (case find_rewrite rules of 
-                 NONE => (Inttab.make inlined, rules)
-               | SOME ct => 
-                 let
-                     val rules = map (inline_rewrite ct) (remove_rewrite ct rules)
-                     val inlined =  ct :: (map (fn (c', r) => (c', subst_const ct r)) inlined)
-                 in
-                     inline inlined rules
-                 end)           
-    in
-        inline [] rules         
-    end
+  let
+    fun term_contains_const c (App (a, b)) = term_contains_const c a orelse term_contains_const c b
+      | term_contains_const c (Abs m) = term_contains_const c m
+      | term_contains_const c (Var _) = false
+      | term_contains_const c (Const c') = (c = c')
+    fun find_rewrite [] = NONE
+      | find_rewrite ((prems, PConst (c, []), r) :: _) = 
+          if check_freevars 0 r then 
+            if term_contains_const c r then 
+              raise Compile "parameterless rewrite is caught in cycle"
+            else if not (null prems) then
+              raise Compile "parameterless rewrite may not be guarded"
+            else
+              SOME (c, r) 
+          else raise Compile "unbound variable on right hand side or guards of rule"
+      | find_rewrite (_ :: rules) = find_rewrite rules
+    fun remove_rewrite _ [] = []
+      | remove_rewrite (cr as (c, r)) ((rule as (prems', PConst (c', args), r')) :: rules) = 
+          if c = c' then 
+            if null args andalso r = r' andalso null prems' then remove_rewrite cr rules 
+            else raise Compile "incompatible parameterless rewrites found"
+          else
+            rule :: remove_rewrite cr rules
+      | remove_rewrite cr (r :: rs) = r :: remove_rewrite cr rs
+    fun pattern_contains_const c (PConst (c', args)) = c = c' orelse exists (pattern_contains_const c) args
+      | pattern_contains_const c (PVar) = false
+    fun inline_rewrite (ct as (c, _)) (prems, p, r) = 
+        if pattern_contains_const c p then 
+          raise Compile "parameterless rewrite cannot be used in pattern"
+        else (map (fn (Guard (a, b)) => Guard (subst_const ct a, subst_const ct b)) prems, p, subst_const ct r)
+    fun inline inlined rules =
+      case find_rewrite rules of 
+          NONE => (Inttab.make inlined, rules)
+        | SOME ct => 
+            let
+              val rules = map (inline_rewrite ct) (remove_rewrite ct rules)
+              val inlined = ct :: (map o apsnd) (subst_const ct) inlined
+            in inline inlined rules end
+  in
+    inline [] rules
+  end
 
 
 (*
