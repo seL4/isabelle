@@ -2,7 +2,7 @@
     Author:     Steven Obua
 *)
 
-signature FLOAT_SPARSE_MATIRX_BUILDER =
+signature FLOAT_SPARSE_MATRIX_BUILDER =
 sig
   include MATRIX_BUILDER
 
@@ -44,7 +44,7 @@ sig
   val dual_cplexProg : vector -> matrix -> vector -> cplex.cplexProg * (string -> int)
 end;
 
-structure FloatSparseMatrixBuilder : FLOAT_SPARSE_MATIRX_BUILDER =
+structure FloatSparseMatrixBuilder : FLOAT_SPARSE_MATRIX_BUILDER =
 struct
 
 type float = Float.float
