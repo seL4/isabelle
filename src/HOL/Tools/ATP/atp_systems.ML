@@ -246,12 +246,9 @@ val e_config : atp_config =
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, ((500, FOF, "mono_tags??", combsN, false),
-                          e_fun_weightN))),
-          (0.334, (true, ((50, FOF, "mono_guards??", combsN, false),
-                          e_fun_weightN))),
-          (0.333, (true, ((1000, FOF, "mono_tags??", combsN, false),
-                          e_sym_offset_weightN)))]
+         [(0.333, (true, ((500, FOF, "mono_tags??", combsN, false), e_fun_weightN))),
+          (0.334, (true, ((50, FOF, "mono_guards??", combsN, false), e_fun_weightN))),
+          (0.333, (true, ((1000, FOF, "mono_tags??", combsN, false), e_sym_offset_weightN)))]
        else
          [(1.0, (true, ((500, FOF, "mono_tags??", combsN, false), method)))]
      end}
@@ -278,10 +275,8 @@ val leo2_config : atp_config =
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.667, (false, ((150, leo2_thf0, "mono_native_higher", liftingN, false),
-                       sosN))),
-      (0.333, (true, ((50, leo2_thf0, "mono_native_higher", liftingN, false),
-                      no_sosN)))]
+     [(0.667, (false, ((150, leo2_thf0, "mono_native_higher", liftingN, false), sosN))),
+      (0.333, (true, ((50, leo2_thf0, "mono_native_higher", liftingN, false), no_sosN)))]
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -305,8 +300,7 @@ val satallax_config : atp_config =
    prem_kind = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN,
-                       false), "")))]}
+     K [(1.0, (true, ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "")))]}
 
 val satallax = (satallaxN, satallax_config)
 
@@ -336,23 +330,23 @@ val spass_config : atp_config =
    prem_kind = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN, false),
-                       sosN))),
-      (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN, false),
-                       sosN))),
-      (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false),
-                       no_sosN)))]
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
-         else I)}
+     [(0.333, (false, ((150, DFG DFG_Unsorted, "mono_tags??", liftingN, false), sosN))),
+      (0.333, (false, ((300, DFG DFG_Unsorted, "poly_tags??", liftingN, false), sosN))),
+      (0.334, (false, ((50, DFG DFG_Unsorted, "mono_tags??", liftingN, false), no_sosN)))]
+     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single else I)}
 
 val spass = (spassN, spass_config)
+
+val spass_new_H2 = "-Heuristic=2"
+val spass_new_H2_SOS = "-Heuristic=2 -SOS"
+val spass_new_Red2 = "-RFRew=2 -RBRew=2 -RTaut=2"
+val spass_new_Sorts0 = "-Sorts=0"
 
 (* Experimental *)
 val spass_new_config : atp_config =
   {exec = ("SPASS_NEW_HOME", "SPASS"),
    required_execs = [],
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn _ =>
-     (* TODO: add: -FPDFGProof -FPFCR *)
      ("-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout))
      |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = #proof_delims spass_config,
@@ -361,16 +355,23 @@ val spass_new_config : atp_config =
    prem_kind = #prem_kind spass_config,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.25, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true),
-                     "-Heuristic=1"))),
-      (0.20, (true, ((500, DFG DFG_Sorted, "mono_native", liftingN, true),
-                     "-Heuristic=2 -SOS"))),
-      (0.20, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true),
-                     "-Heuristic=2"))),
-      (0.20, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN,
-                      true), "-Heuristic=2"))),
-      (0.15, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN,
-                      true), "-Heuristic=2")))]}
+(*
+     [(0.25, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H1))),
+      (0.20, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2_SOS))),
+      (0.20, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2))),
+      (0.20, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
+      (0.15, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2)))]
+*)
+     [(0.1, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2))),
+      (0.1, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_Sorts0))),
+      (0.1, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
+      (0.1, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2_SOS))),
+      (0.1, (true, ((600, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_Red2))),
+      (0.1, (true, ((150, DFG DFG_Sorted, "poly_guards??", combsN, false), spass_new_H2))),
+      (0.1, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2_SOS))),
+      (0.1, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
+      (0.1, (true, ((50, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_Sorts0))),
+      (0.1, (true, ((100, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_Red2)))]}
 
 val spass_new = (spass_newN, spass_new_config)
 
@@ -410,19 +411,13 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_old_vampire_version () then
-        [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN, false),
-                          sosN))),
-         (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN, false),
-                          sosN))),
-         (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN, false),
-                         no_sosN)))]
+        [(0.333, (false, ((150, FOF, "poly_guards??", combs_or_liftingN, false), sosN))),
+         (0.333, (false, ((500, FOF, "mono_tags??", combs_or_liftingN, false), sosN))),
+         (0.334, (true, ((50, FOF, "mono_guards??", combs_or_liftingN, false), no_sosN)))]
       else
-        [(0.333, (false, ((150, vampire_tff0, "poly_guards??",
-                           combs_or_liftingN, false), sosN))),
-         (0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN,
-                           false), sosN))),
-         (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN,
-                          false), no_sosN)))])
+        [(0.333, (false, ((150, vampire_tff0, "poly_guards??", combs_or_liftingN, false), sosN))),
+         (0.333, (false, ((500, vampire_tff0, "mono_native", combs_or_liftingN, false), sosN))),
+         (0.334, (true, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN)))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
