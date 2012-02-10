@@ -51,7 +51,7 @@ fun matrix_simplify th =
     removeTrue th
   end
 
-fun prove_bound lptfile prec = matrix_simplify (lp_dual_estimate_prt lptfile prec);
+val prove_bound = matrix_simplify oo lp_dual_estimate_prt;
 
 val realFromStr = the o Real.fromString;
 fun float2real (x, y) = realFromStr x * Math.pow (2.0, realFromStr y);
