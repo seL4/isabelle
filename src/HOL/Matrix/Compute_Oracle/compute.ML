@@ -297,24 +297,14 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                 (encoding, p::cache_patterns)
             end
         
-        val (encoding, cache_patterns) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
-
-        fun arity (Type ("fun", [_, b])) = 1 + arity b
-          | arity _ = 0
-
-        fun make_arity (Const (s, _), i) tab = 
-            (Inttab.update (i, arity (Sign.the_const_type thy s)) tab handle TYPE _ => tab)
-          | make_arity _ tab = tab
-
-        val const_arity_tab = Encode.fold make_arity encoding Inttab.empty
-        fun const_arity x = Inttab.lookup const_arity_tab x 
+        val (encoding, _) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
 
         val prog = 
             case machine of 
-                BARRAS => ProgBarras (AM_Interpreter.compile cache_patterns const_arity rules)
-              | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile cache_patterns const_arity rules)
-              | HASKELL => ProgHaskell (AM_GHC.compile cache_patterns const_arity rules)
-              | SML => ProgSML (AM_SML.compile cache_patterns const_arity rules)
+                BARRAS => ProgBarras (AM_Interpreter.compile rules)
+              | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile rules)
+              | HASKELL => ProgHaskell (AM_GHC.compile rules)
+              | SML => ProgSML (AM_SML.compile rules)
 
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
 

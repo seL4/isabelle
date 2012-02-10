@@ -13,7 +13,7 @@ exception Compile of string;
 
 (* The de-Bruijn index 0 occurring on the right hand side refers to the LAST pattern variable, when traversing the pattern from left to right,
    1 to the second last, and so on. *)
-val compile : pattern list -> (int -> int option) -> (guard list * pattern * term) list -> program
+val compile : (guard list * pattern * term) list -> program
 
 val discard : program -> unit
 

@@ -216,7 +216,7 @@ fun writeTextFile name s = File.write (Path.explode name) s
     
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 
-fun compile _ _ eqs = 
+fun compile eqs = 
     let
         val _ = if exists (fn (a,_,_) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
         val eqs = map (fn (_,b,c) => (b,c)) eqs

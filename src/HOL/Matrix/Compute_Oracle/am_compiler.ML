@@ -190,7 +190,7 @@ fun load_rules sname name prog =
           | SOME r => (compiled_rewriter := NONE; r)
     end 
 
-fun compile _ _ eqs = 
+fun compile eqs = 
     let
         val _ = if exists (fn (a,_,_) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
         val eqs = map (fn (_,b,c) => (b,c)) eqs

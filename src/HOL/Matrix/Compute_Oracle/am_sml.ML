@@ -490,7 +490,7 @@ fun writeTextFile name s = File.write (Path.explode name) s
 
 fun use_source src = use_text ML_Env.local_context (1, "") false src
     
-fun compile _ _ eqs = 
+fun compile eqs = 
     let
         val guid = get_guid ()
         val code = Real.toString (random ())

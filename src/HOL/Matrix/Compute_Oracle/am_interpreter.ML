@@ -100,7 +100,7 @@ fun check_freevars free (Var x) = x < free
   | check_freevars free (Abs m) = check_freevars (free+1) m
   | check_freevars free (Computed t) = check_freevars free t
 
-fun compile _ _ eqs =
+fun compile eqs =
     let
         fun check p r = if check_freevars p r then () else raise Compile ("unbound variables in rule") 
         fun check_guard p (Guard (a,b)) = (check p a; check p b) 
