@@ -10,7 +10,7 @@ signature AM_SML =
 sig
   include ABSTRACT_MACHINE
   val save_result : (string * term) -> unit
-  val set_compiled_rewriter : (term -> term) -> unit                                   
+  val set_compiled_rewriter : (term -> term) -> unit
   val list_nth : 'a list * int -> 'a
   val dump_output : (string option) Unsynchronized.ref 
 end
@@ -21,7 +21,7 @@ open AbstractMachine;
 
 val dump_output = Unsynchronized.ref (NONE: string option)
 
-type program = string * string * (int Inttab.table) * (int Inttab.table) * (term Inttab.table) * (term -> term)
+type program = term Inttab.table * (term -> term)
 
 val saved_result = Unsynchronized.ref (NONE:(string*term)option)
 
@@ -238,7 +238,7 @@ in
 end
 
 fun section n = if n = 0 then [] else (section (n-1))@[n-1]
-                                                
+
 fun print_rule gnum arity_of toplevel_arity_of (guards, p, t) = 
     let 
         fun str x = string_of_int x                  
@@ -473,7 +473,7 @@ fun sml_prog name code rules =
                 "",
                 "end"]
     in
-        (arity, toplevel_arity, inlinetab, !buffer)
+        (inlinetab, !buffer)
     end
 
 val guid_counter = Unsynchronized.ref 0
@@ -490,22 +490,22 @@ fun writeTextFile name s = File.write (Path.explode name) s
 
 fun use_source src = use_text ML_Env.local_context (1, "") false src
     
-fun compile eqs = 
+fun compile rules = 
     let
         val guid = get_guid ()
         val code = Real.toString (random ())
-        val module = "AMSML_"^guid
-        val (arity, toplevel_arity, inlinetab, source) = sml_prog module code eqs
+        val name = "AMSML_"^guid
+        val (inlinetab, source) = sml_prog name code rules
         val _ = case !dump_output of NONE => () | SOME p => writeTextFile p source
         val _ = compiled_rewriter := NONE
         val _ = use_source source
     in
         case !compiled_rewriter of 
             NONE => raise Compile "broken link to compiled function"
-          | SOME f => (module, code, arity, toplevel_arity, inlinetab, f)
+          | SOME compiled_fun => (inlinetab, compiled_fun)
     end
 
-fun run (_, _, _, _, inlinetab, compiled_fun) t = 
+fun run (inlinetab, compiled_fun) t = 
     let 
         val _ = if check_freevars 0 t then () else raise Run ("can only compute closed terms")
         fun inline (Const c) = (case Inttab.lookup inlinetab c of NONE => Const c | SOME t => t)
