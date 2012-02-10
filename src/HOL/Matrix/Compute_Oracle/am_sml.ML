@@ -517,6 +517,4 @@ fun run (_, _, _, _, inlinetab, compiled_fun) t =
         compiled_fun (beta (inline t))
     end 
 
-fun discard _ = ()
-
 end

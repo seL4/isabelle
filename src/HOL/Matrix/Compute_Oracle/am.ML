@@ -15,8 +15,6 @@ exception Compile of string;
    1 to the second last, and so on. *)
 val compile : (guard list * pattern * term) list -> program
 
-val discard : program -> unit
-
 exception Run of string;
 val run : program -> term -> term
 
@@ -65,8 +63,6 @@ fun forall_consts pred (Const c) = pred c
 fun closed t = check_freevars 0 t
 
 fun compile _ = raise Compile "abstract machine stub"
-
-fun discard _ = raise Compile "abstract machine stub"
 
 exception Run of string;
 

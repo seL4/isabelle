@@ -20,7 +20,6 @@ signature COMPUTE = sig
     val shyps_of : computer -> sort list
     (* ! *) val update : computer -> thm list -> unit
     (* ! *) val update_with_cache : computer -> term list -> thm list -> unit
-    (* ! *) val discard : computer -> unit
     
     (* ! *) val set_naming : computer -> naming -> unit
     val naming_of : computer -> naming
@@ -323,19 +322,6 @@ fun update_with_cache computer cache_patterns raw_thms =
 
 fun update computer raw_thms = update_with_cache computer [] raw_thms
 
-fun discard computer =
-    let
-        val _ = 
-            case prog_of computer of
-                ProgBarras p => AM_Interpreter.discard p
-              | ProgBarrasC p => AM_Compiler.discard p
-              | ProgHaskell p => AM_GHC.discard p
-              | ProgSML p => AM_SML.discard p
-        val _ = (ref_of computer) := NONE
-    in
-        ()
-    end 
-                                              
 fun runprog (ProgBarras p) = AM_Interpreter.run p
   | runprog (ProgBarrasC p) = AM_Compiler.run p
   | runprog (ProgHaskell p) = AM_GHC.run p

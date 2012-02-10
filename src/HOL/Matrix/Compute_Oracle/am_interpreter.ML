@@ -208,6 +208,4 @@ fun run prog t =
            | _ => raise (Run "internal error in run: weak failed")
      end handle InterruptedExecution state => term_of_clos (resolve state))
 
-fun discard _ = ()
-
 end

@@ -202,9 +202,7 @@ fun compile eqs =
         load_rules "AM_Compiler" "AM_compiled_code" eqs
     end 
 
-fun run prog t = (prog t)
-
-fun discard _ = ()
+fun run prog t = prog t
 
 end
 

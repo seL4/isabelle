@@ -320,7 +320,5 @@ fun run (guid, module_file, arity) t =
         t'
     end
 
-fun discard _ = ()
-
 end
 
