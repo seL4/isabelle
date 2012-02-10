@@ -16,8 +16,8 @@ struct
 val compute_thms = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_list_case" "ComputeHOL.compute_let"
   "ComputeHOL.compute_if" "ComputeFloat.arith" "SparseMatrix.sparse_row_matrix_arith_simps"
   "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
-  "SparseMatrix.sorted_sp_simps" "ComputeNumeral.number_norm"
-  "ComputeNumeral.natnorm"};
+  "SparseMatrix.sorted_sp_simps"
+  "ComputeNumeral.natnorm"}; (*"ComputeNumeral.number_norm"*)
 
 val spm_mult_le_dual_prts_no_let_real = @{thm "spm_mult_le_dual_prts_no_let" [where ?'a = real]}
 
