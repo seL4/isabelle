@@ -259,8 +259,6 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                 val _ = (case pattern of
                              AbstractMachine.PVar =>
                              raise (Make "patterns may not start with a variable")
-                         (*  | AbstractMachine.PConst (_, []) => 
-                             (print th; raise (Make "no parameter rewrite found"))*)
                            | _ => ())
 
                 (* finally, provide a function for renaming the
@@ -396,7 +394,6 @@ fun rewrite computer ct =
         val _ = Theory.assert_super (theory_of computer) thy
         val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
-        (*val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()*)
         val t = runprog (prog_of computer) t
         val t = infer_types naming encoding ty t
         val eq = Logic.mk_equals (t', t)
