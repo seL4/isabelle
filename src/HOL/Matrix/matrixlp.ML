@@ -51,20 +51,6 @@ fun lp_dual_estimate_prt lptfile prec =
 
 end
 
-fun prep ths = ComputeHOL.prep_thms ths
-
-fun inst_tvar ty thm =
-    let
-        val certT = Thm.ctyp_of (Thm.theory_of_thm thm);
-        val ord = prod_ord (prod_ord string_ord int_ord) (list_ord string_ord)
-        val v = TVar (hd (sort ord (Misc_Legacy.term_tvars (prop_of thm))))
-    in
-        Drule.export_without_context (Thm.instantiate ([(certT v, certT ty)], []) thm)
-    end
-
-fun inst_tvars [] thms = thms
-  | inst_tvars (ty::tys) thms = inst_tvars tys (map (inst_tvar ty) thms)
-
 local
     val ths = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_list_case" "ComputeHOL.compute_let"
       "ComputeHOL.compute_if" "ComputeFloat.arith" "SparseMatrix.sparse_row_matrix_arith_simps"

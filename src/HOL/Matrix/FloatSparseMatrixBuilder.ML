@@ -186,7 +186,7 @@ fun cplexProg c A b =
                                            cplex.cplexVar y, cplex.cplexLeq,
                                            cplex.cplexInf)
 
-        val yvars = Inttab.fold (fn (i, y) => fn l => (mk_free y)::l) (!ytable) []
+        val yvars = Inttab.fold (fn (_, y) => fn l => (mk_free y)::l) (!ytable) []
 
         val prog = cplex.cplexProg ("original", cplex.cplexMaximize (vec2sum c), list, yvars)
     in
@@ -276,8 +276,8 @@ fun indices_of_vector v = Inttab.keys v
 fun indices_of_matrix m = Inttab.keys m
 fun delete_vector indices v = fold Inttab.delete indices v
 fun delete_matrix indices m = fold Inttab.delete indices m
-fun cut_matrix' indices m = fold (fn i => fn m => (case Inttab.lookup m i of NONE => m | SOME v => Inttab.update (i, v) m))  indices Inttab.empty
-fun cut_vector' indices v = fold (fn i => fn v => (case Inttab.lookup v i of NONE => v | SOME x => Inttab.update (i, x) v))  indices Inttab.empty
+fun cut_matrix' indices _ = fold (fn i => fn m => (case Inttab.lookup m i of NONE => m | SOME v => Inttab.update (i, v) m)) indices Inttab.empty
+fun cut_vector' indices _ = fold (fn i => fn v => (case Inttab.lookup v i of NONE => v | SOME x => Inttab.update (i, x) v)) indices Inttab.empty
 
 
 

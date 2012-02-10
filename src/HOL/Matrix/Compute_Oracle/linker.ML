@@ -190,12 +190,10 @@ fun add_instances thy (Instances (cfilter, ctab,minsets,substs)) cs =
 
 fun substs_of (Instances (_,_,_,substs)) = Substtab.keys substs
 
-fun eq_to_meta th = (@{thm HOL.eq_reflection} OF [th] handle THM _ => th)
-
 
 local
 
-fun collect (Var x) tab = tab
+fun collect (Var _) tab = tab
   | collect (Bound _) tab = tab
   | collect (a $ b) tab = collect b (collect a tab)
   | collect (Abs (_, _, body)) tab = collect body tab

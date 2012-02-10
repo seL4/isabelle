@@ -26,7 +26,6 @@ type program = string * string * (int Inttab.table) * (int Inttab.table) * (term
 val saved_result = Unsynchronized.ref (NONE:(string*term)option)
 
 fun save_result r = (saved_result := SOME r)
-fun clear_result () = (saved_result := NONE)
 
 val list_nth = List.nth
 
@@ -102,7 +101,7 @@ fun inline_rules rules =
     let
         fun term_contains_const c (App (a, b)) = term_contains_const c a orelse term_contains_const c b
           | term_contains_const c (Abs m) = term_contains_const c m
-          | term_contains_const c (Var i) = false
+          | term_contains_const c (Var _) = false
           | term_contains_const c (Const c') = (c = c')
         fun find_rewrite [] = NONE
           | find_rewrite ((prems, PConst (c, []), r) :: _) = 
@@ -115,7 +114,7 @@ fun inline_rules rules =
                     SOME (c, r) 
             else raise Compile "unbound variable on right hand side or guards of rule"
           | find_rewrite (_ :: rules) = find_rewrite rules
-        fun remove_rewrite (c,r) [] = []
+        fun remove_rewrite _ [] = []
           | remove_rewrite (cr as (c,r)) ((rule as (prems', PConst (c', args), r'))::rules) = 
             (if c = c' then 
                  if null args andalso r = r' andalso null (prems') then 
@@ -152,11 +151,10 @@ fun inline_rules rules =
 fun adjust_rules rules = 
     let
         val arity = fold (fn (prems, p, t) => fn arity => fold collect_guard_arity prems (collect_term_arity t (collect_pattern_arity p arity))) rules Inttab.empty
-        val toplevel_arity = fold (fn (_, p, t) => fn arity => collect_pattern_toplevel_arity p arity) rules Inttab.empty
+        val toplevel_arity = fold (fn (_, p, _) => fn arity => collect_pattern_toplevel_arity p arity) rules Inttab.empty
         fun arity_of c = the (Inttab.lookup arity c)
-        fun toplevel_arity_of c = the (Inttab.lookup toplevel_arity c)
         fun test_pattern PVar = ()
-          | test_pattern (C as PConst (c, args)) = if (length args <> arity_of c) then raise Compile ("Constant inside pattern must have maximal arity") else (map test_pattern args; ())
+          | test_pattern (PConst (c, args)) = if (length args <> arity_of c) then raise Compile ("Constant inside pattern must have maximal arity") else (map test_pattern args; ())
         fun adjust_rule (_, PVar, _) = raise Compile ("pattern may not be a variable")
           | adjust_rule (_, PConst (_, []), _) = raise Compile ("cannot deal with rewrites that take no parameters")
           | adjust_rule (rule as (prems, p as PConst (c, args),t)) = 
@@ -492,7 +490,7 @@ fun writeTextFile name s = File.write (Path.explode name) s
 
 fun use_source src = use_text ML_Env.local_context (1, "") false src
     
-fun compile cache_patterns const_arity eqs = 
+fun compile _ _ eqs = 
     let
         val guid = get_guid ()
         val code = Real.toString (random ())
@@ -507,29 +505,7 @@ fun compile cache_patterns const_arity eqs =
           | SOME f => (module, code, arity, toplevel_arity, inlinetab, f)
     end
 
-
-fun run' (module, code, arity, toplevel_arity, inlinetab, compiled_fun) t = 
-    let 
-        val _ = if check_freevars 0 t then () else raise Run ("can only compute closed terms")
-        fun inline (Const c) = (case Inttab.lookup inlinetab c of NONE => Const c | SOME t => t)
-          | inline (Var i) = Var i
-          | inline (App (a, b)) = App (inline a, inline b)
-          | inline (Abs m) = Abs (inline m)
-        val t = beta (inline t)
-        fun arity_of c = Inttab.lookup arity c                   
-        fun toplevel_arity_of c = Inttab.lookup toplevel_arity c
-        val term = print_term NONE arity_of toplevel_arity_of 0 0 t 
-        val source = "local open "^module^" in val _ = export ("^term^") end"
-        val _ = writeTextFile "Gencode_call.ML" source
-        val _ = clear_result ()
-        val _ = use_source source
-    in
-        case !saved_result of 
-            NONE => raise Run "broken link to compiled code"
-          | SOME (code', t) => (clear_result (); if code' = code then t else raise Run "link to compiled code was hijacked")
-    end         
-
-fun run (module, code, arity, toplevel_arity, inlinetab, compiled_fun) t = 
+fun run (_, _, _, _, inlinetab, compiled_fun) t = 
     let 
         val _ = if check_freevars 0 t then () else raise Run ("can only compute closed terms")
         fun inline (Const c) = (case Inttab.lookup inlinetab c of NONE => Const c | SOME t => t)
@@ -541,6 +517,6 @@ fun run (module, code, arity, toplevel_arity, inlinetab, compiled_fun) t =
         compiled_fun (beta (inline t))
     end 
 
-fun discard p = ()
-                                  
+fun discard _ = ()
+
 end

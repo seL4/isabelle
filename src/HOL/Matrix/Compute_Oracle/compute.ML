@@ -84,7 +84,7 @@ exception Make of string;
 exception Compute of string;
 
 local
-    fun make_constant t ty encoding = 
+    fun make_constant t encoding = 
         let 
             val (code, encoding) = Encode.insert t encoding 
         in 
@@ -94,10 +94,10 @@ in
 
 fun remove_types encoding t =
     case t of 
-        Var (_, ty) => make_constant t ty encoding
-      | Free (_, ty) => make_constant t ty encoding
-      | Const (_, ty) => make_constant t ty encoding
-      | Abs (_, ty, t') => 
+        Var _ => make_constant t encoding
+      | Free _ => make_constant t encoding
+      | Const _ => make_constant t encoding
+      | Abs (_, _, t') => 
         let val (encoding, t'') = remove_types encoding t' in
             (encoding, AbstractMachine.Abs t'')
         end
@@ -133,7 +133,7 @@ fun infer_types naming encoding =
                     case aty of
                         Type ("fun", [dom, range]) => (dom, range)
                       | _ => raise Fail "infer_types: function type expected"
-                val (b, bty) = infer_types level bounds (SOME adom) b
+                val (b, _) = infer_types level bounds (SOME adom) b
             in
                 (a $ b, arange)
             end
@@ -143,7 +143,7 @@ fun infer_types naming encoding =
             in
                 (Abs (naming level, dom, m), ty)
             end
-          | infer_types _ _ NONE (AbstractMachine.Abs m) =
+          | infer_types _ _ NONE (AbstractMachine.Abs _) =
               raise Fail "infer_types: cannot infer type of abstraction"
 
         fun infer ty term =
@@ -183,10 +183,10 @@ fun shyptab_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = 
 fun stamp_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,_,stamp,_)))) = stamp
 fun prog_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,prog,_,_)))) = prog
 fun encoding_of (Computer (Unsynchronized.ref (SOME (_,encoding,_,_,_,_,_)))) = encoding
-fun set_encoding (Computer (r as Unsynchronized.ref (SOME (p1,encoding,p2,p3,p4,p5,p6)))) encoding' = 
+fun set_encoding (Computer (r as Unsynchronized.ref (SOME (p1,_,p2,p3,p4,p5,p6)))) encoding' = 
     (r := SOME (p1,encoding',p2,p3,p4,p5,p6))
 fun naming_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,_,_,n)))) = n
-fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,naming)))) naming'= 
+fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,_)))) naming'= 
     (r := SOME (p1,p2,p3,p4,p5,p6,naming'))
 
 fun ref_of (Computer r) = r
@@ -206,9 +206,9 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
         fun transfer (x:thm) = Thm.transfer thy x
         val ths = map (thm2cthm o Thm.strip_shyps o transfer) raw_ths
 
-        fun make_pattern encoding n vars (var as AbstractMachine.Abs _) =
+        fun make_pattern encoding n vars (AbstractMachine.Abs _) =
             raise (Make "no lambda abstractions allowed in pattern")
-          | make_pattern encoding n vars (var as AbstractMachine.Var _) =
+          | make_pattern encoding n vars (AbstractMachine.Var _) =
             raise (Make "no bound variables allowed in pattern")
           | make_pattern encoding n vars (AbstractMachine.Const code) =
             (case the (Encode.lookup_term code encoding) of
@@ -299,7 +299,7 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
         
         val (encoding, cache_patterns) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
 
-        fun arity (Type ("fun", [a,b])) = 1 + arity b
+        fun arity (Type ("fun", [_, b])) = 1 + arity b
           | arity _ = 0
 
         fun make_arity (Const (s, _), i) tab = 
@@ -456,7 +456,7 @@ let
             (encoding, Symtab.update (s, (x, ty)) tab)
         end
     val (encoding, vartab) = Symtab.fold encodevar vartab (encoding, Symtab.empty)                                                     
-    val varsubst = Inttab.make (map (fn (s, (x, _)) => (x, NONE)) (Symtab.dest vartab))
+    val varsubst = Inttab.make (map (fn (_, (x, _)) => (x, NONE)) (Symtab.dest vartab))
 
     (* make the premises and the conclusion *)
     fun mk_prem encoding t = 
@@ -510,7 +510,6 @@ let
 
     fun rewrite computer t =
     let  
-        val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t
         val t = runprog (prog_of computer) t
         val _ = set_encoding computer encoding

@@ -44,7 +44,7 @@ fun adjust_rules rules =
         fun arity_of c = the (Inttab.lookup arity c)
         fun adjust_pattern PVar = PVar
           | adjust_pattern (C as PConst (c, args)) = if (length args <> arity_of c) then raise Compile ("Constant inside pattern must have maximal arity") else C
-        fun adjust_rule (PVar, t) = raise Compile ("pattern may not be a variable")
+        fun adjust_rule (PVar, _) = raise Compile ("pattern may not be a variable")
           | adjust_rule (rule as (p as PConst (c, args),t)) = 
             let
                 val _ = if not (check_freevars (count_patternvars p) t) then raise Compile ("unbound variables on right hand side") else () 
@@ -211,16 +211,15 @@ fun get_guid () =
     end
 
 fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.basic s)));
-fun wrap s = "\""^s^"\""
 
 fun writeTextFile name s = File.write (Path.explode name) s
     
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 
-fun compile cache_patterns const_arity eqs = 
+fun compile _ _ eqs = 
     let
-        val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
-        val eqs = map (fn (a,b,c) => (b,c)) eqs
+        val _ = if exists (fn (a,_,_) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
+        val eqs = map (fn (_,b,c) => (b,c)) eqs
         val guid = get_guid ()
         val module = "AMGHC_Prog_"^guid
         val (arity, source) = haskell_prog module eqs
@@ -266,7 +265,7 @@ fun parse_result arity_of result =
                  in
                      (app_args args (Const c), rest)
                  end                 
-               | (NONE, rest) => raise Run "parse C")
+               | (NONE, _) => raise Run "parse C")
           | parse (#"c"::rest) = 
             (case parse_int rest of
                  (SOME c, rest) => (Const c, rest)
@@ -278,7 +277,7 @@ fun parse_result arity_of result =
             in
                 (App (a,b), rest)
             end
-          | parse (#"L"::rest) = raise Run "there may be no abstraction in the result"
+          | parse (#"L"::_) = raise Run "there may be no abstraction in the result"
           | parse _ = raise Run "invalid result"
         and parse_list n rest = 
             if n = 0 then 
@@ -321,8 +320,7 @@ fun run (guid, module_file, arity) t =
         t'
     end
 
-        
 fun discard _ = ()
-                          
+
 end
 

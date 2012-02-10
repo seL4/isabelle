@@ -32,7 +32,7 @@ fun term_of_clos (CVar x) = Var x
   | term_of_clos (CConst c) = Const c
   | term_of_clos (CApp (u, v)) = App (term_of_clos u, term_of_clos v)
   | term_of_clos (CAbs u) = Abs (term_of_clos u)
-  | term_of_clos (Closure (e, u)) = raise (Run "internal error: closure in normalized term found")
+  | term_of_clos (Closure _) = raise (Run "internal error: closure in normalized term found")
   | term_of_clos CDummy = raise (Run "internal error: dummy in normalized term found")
 
 fun resolve_closure closures (CVar x) = (case nth closures x of CDummy => CVar x | r => r)
@@ -61,7 +61,7 @@ fun resolve (stack, closure) =
 fun strip_closure args (CApp (a,b)) = strip_closure (b::args) a
   | strip_closure args x = (x, args)
 
-fun len_head_of_closure n (CApp (a,b)) = len_head_of_closure (n+1) a
+fun len_head_of_closure n (CApp (a, _)) = len_head_of_closure (n+1) a
   | len_head_of_closure n x = (n, x)
 
 
@@ -95,12 +95,12 @@ fun pattern_key (PConst (c, ps)) = (c, length ps)
 (*Returns true iff at most 0 .. (free-1) occur unbound. therefore
   check_freevars 0 t iff t is closed*)
 fun check_freevars free (Var x) = x < free
-  | check_freevars free (Const c) = true
+  | check_freevars free (Const _) = true
   | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
   | check_freevars free (Abs m) = check_freevars (free+1) m
   | check_freevars free (Computed t) = check_freevars free t
 
-fun compile cache_patterns const_arity eqs =
+fun compile _ _ eqs =
     let
         fun check p r = if check_freevars p r then () else raise Compile ("unbound variables in rule") 
         fun check_guard p (Guard (a,b)) = (check p a; check p b) 
@@ -161,13 +161,13 @@ and match_closure (p as (Program prog)) clos =
 and weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false, prog, SAppL (Closure (e, b), stack), Closure (e, a))
   | weak_reduce (false, prog, SAppL (b, stack), Closure (e, CAbs m)) = Continue (false, prog, stack, Closure (b::e, m))
   | weak_reduce (false, prog, stack, Closure (e, CVar n)) = Continue (false, prog, stack, case nth e n of CDummy => CVar n | r => r)
-  | weak_reduce (false, prog, stack, Closure (e, c as CConst _)) = Continue (false, prog, stack, c)
+  | weak_reduce (false, prog, stack, Closure (_, c as CConst _)) = Continue (false, prog, stack, c)
   | weak_reduce (false, prog, stack, clos) =
     (case match_closure prog clos of
          NONE => Continue (true, prog, stack, clos)
        | SOME r => Continue (false, prog, stack, r))
   | weak_reduce (true, prog, SAppR (a, stack), b) = Continue (false, prog, stack, CApp (a,b))
-  | weak_reduce (true, prog, s as (SAppL (b, stack)), a) = Continue (false, prog, SAppR (a, stack), b)
+  | weak_reduce (true, prog, SAppL (b, stack), a) = Continue (false, prog, SAppR (a, stack), b)
   | weak_reduce (true, prog, stack, c) = Stop (stack, c)
 
 and strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
@@ -178,7 +178,7 @@ and strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
              SEmpty => Continue (false, prog, SAbs stack, wnf)
            | _ => raise (Run "internal error in strong: weak failed")
      end handle InterruptedExecution state => raise InterruptedExecution (stack, resolve state))
-  | strong_reduce (false, prog, stack, clos as (CApp (u, v))) = Continue (false, prog, SAppL (v, stack), u)
+  | strong_reduce (false, prog, stack, CApp (u, v)) = Continue (false, prog, SAppL (v, stack), u)
   | strong_reduce (false, prog, stack, clos) = Continue (true, prog, stack, clos)
   | strong_reduce (true, prog, SAbs stack, m) = Continue (false, prog, stack, CAbs m)
   | strong_reduce (true, prog, SAppL (b, stack), a) = Continue (false, prog, SAppR (a, stack), b)
@@ -208,6 +208,6 @@ fun run prog t =
            | _ => raise (Run "internal error in run: weak failed")
      end handle InterruptedExecution state => term_of_clos (resolve state))
 
-fun discard p = ()
+fun discard _ = ()
 
 end

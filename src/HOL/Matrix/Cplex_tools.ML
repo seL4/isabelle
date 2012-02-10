@@ -108,7 +108,7 @@ fun is_Inf cplexInf = true
 fun is_Var (cplexVar _) = true
   | is_Var _ = false
 
-fun is_Neg (cplexNeg x ) = true
+fun is_Neg (cplexNeg _) = true
   | is_Neg _ = false
 
 fun is_normed_Prod (cplexProd (t1, t2)) =
@@ -119,7 +119,7 @@ fun is_normed_Sum (cplexSum ts) =
     (ts <> []) andalso forall (modulo_signed is_normed_Prod) ts
   | is_normed_Sum x = modulo_signed is_normed_Prod x
 
-fun is_normed_Constr (cplexConstr (c, (t1, t2))) =
+fun is_normed_Constr (cplexConstr (_, (t1, t2))) =
     (is_normed_Sum t1) andalso (modulo_signed is_Num t2)
 
 fun is_Num_or_Inf x = is_Inf x orelse is_Num x
@@ -139,7 +139,7 @@ fun is_normed_Bounds (cplexBounds (t1, c1, t2, c2, t3)) =
 fun term_of_goal (cplexMinimize x) = x
   | term_of_goal (cplexMaximize x) = x
 
-fun is_normed_cplexProg (cplexProg (name, goal, constraints, bounds)) =
+fun is_normed_cplexProg (cplexProg (_, goal, constraints, bounds)) =
     is_normed_Sum (term_of_goal goal) andalso
     forall (fn (_,x) => is_normed_Constr x) constraints andalso
     forall is_normed_Bounds bounds
@@ -244,7 +244,7 @@ fun tokenize s =
                      (is_delimiter, TOKEN_DELIMITER),
              (is_cmp, TOKEN_CMP),
              (is_symbol, TOKEN_SYMBOL)]
-    fun match_helper [] s = (fn x => false, TOKEN_ERROR)
+    fun match_helper [] s = (fn _ => false, TOKEN_ERROR)
       | match_helper (f::fs) s =
         if ((fst f) s) then f else match_helper fs s
     fun match s = match_helper flist s
@@ -516,9 +516,6 @@ fun load_cplexFile name =
             (pushToken (the c); ())
         end
 
-    fun is_var (cplexVar _) = true
-      | is_var _ = false
-
     fun make_bounds c t1 t2 =
         cplexBound (t1, c, t2)
 
@@ -572,7 +569,7 @@ fun load_cplexFile name =
 
     fun readBounds () =
         let
-        fun makestring b = "?"
+        fun makestring _ = "?"
         fun readbody () =
             let
             val b = readBound ()
@@ -606,7 +603,7 @@ fun load_cplexFile name =
     cplexProg (name, result_Goal, result_ST, result_Bounds)
     end
 
-fun save_cplexFile filename (cplexProg (name, goal, constraints, bounds)) =
+fun save_cplexFile filename (cplexProg (_, goal, constraints, bounds)) =
     let
     val f = TextIO.openOut filename
 
@@ -744,14 +741,14 @@ fun collect_vars (cplexVar v) = singleton v
    IF for the input program P holds: is_normed_cplexProg P *)
 fun elim_nonfree_bounds (cplexProg (name, goal, constraints, bounds)) =
     let
-    fun collect_constr_vars (_, cplexConstr (c, (t1,_))) =
+    fun collect_constr_vars (_, cplexConstr (_, (t1,_))) =
         (collect_vars t1)
 
     val cvars = merge (collect_vars (term_of_goal goal))
               (mergemap collect_constr_vars constraints)
 
     fun collect_lower_bounded_vars
-        (cplexBounds (t1, c1, cplexVar v, c2, t3)) =
+        (cplexBounds (_, _, cplexVar v, _, _)) =
         singleton v
       |  collect_lower_bounded_vars
          (cplexBound (_, cplexLe, cplexVar v)) =
@@ -783,7 +780,7 @@ fun elim_nonfree_bounds (cplexProg (name, goal, constraints, bounds)) =
              cplexInf)
 
     val pos_constrs = rev (Symtab.fold
-                  (fn (k, v) => cons (make_pos_constr k))
+                  (fn (k, _) => cons (make_pos_constr k))
                   positive_vars [])
         val bound_constrs = map (pair NONE)
                 (maps bound2constr bounds)
@@ -1170,11 +1167,7 @@ fun solve_cplex prog =
     val resultname = tmp_file (name^".txt")
     val scriptname = tmp_file (name^".script")
     val _ = save_cplexFile lpname prog
-    val cplex_path = getenv "CPLEX_PATH"
-    val cplex = if cplex_path = "" then "cplex" else cplex_path
     val _ = write_script scriptname lpname resultname
-    val command = (wrap cplex)^" < "^(wrap scriptname)^" > /dev/null"
-    val answer = "return code " ^ string_of_int (Isabelle_System.bash command)
     in
     let
         val result = load_cplexResult resultname
@@ -1197,27 +1190,3 @@ fun solve prog =
     | SOLVER_GLPK => solve_glpk prog
 
 end;
-
-(*
-val demofile = "/home/obua/flyspeck/kepler/LP/cplexPent2.lp45"
-val demoout = "/home/obua/flyspeck/kepler/LP/test.out"
-val demoresult = "/home/obua/flyspeck/kepler/LP/try/test2.sol"
-
-fun loadcplex () = Cplex.relax_strict_ineqs
-           (Cplex.load_cplexFile demofile)
-
-fun writecplex lp = Cplex.save_cplexFile demoout lp
-
-fun test () =
-    let
-    val lp = loadcplex ()
-    val lp2 = Cplex.elim_nonfree_bounds lp
-    in
-    writecplex lp2
-    end
-
-fun loadresult () = Cplex.load_cplexResult demoresult;
-*)
-
-(*val prog = Cplex.load_cplexFile "/home/obua/tmp/pent/graph_0.lpt";
-val _ = Cplex.solve prog;*)

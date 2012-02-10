@@ -52,8 +52,7 @@ fun print_rule (p, t) =
             if exists_string Symbol.is_ascii_blank pattern then "(" ^ pattern ^")"
             else pattern
         
-        fun print_term d (Var x) = (*if x < d then "Var "^(str x) else "x"^(str (n-(x-d)-1))*)
-              "Var " ^ str x
+        fun print_term d (Var x) = "Var " ^ str x
           | print_term d (Const c) = "c" ^ str c
           | print_term d (App (a,b)) = "App (" ^ print_term d a ^ ", " ^ print_term d b ^ ")"
           | print_term d (Abs c) = "Abs (" ^ print_term (d + 1) c ^ ")"
@@ -191,10 +190,10 @@ fun load_rules sname name prog =
           | SOME r => (compiled_rewriter := NONE; r)
     end 
 
-fun compile cache_patterns const_arity eqs = 
+fun compile _ _ eqs = 
     let
-        val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
-        val eqs = map (fn (a,b,c) => (b,c)) eqs
+        val _ = if exists (fn (a,_,_) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
+        val eqs = map (fn (_,b,c) => (b,c)) eqs
         fun check (p, r) = if check_freevars (count_patternvars p) r then () else raise Compile ("unbound variables in rule") 
         val _ = map (fn (p, r) => 
                   (check (p, r); 
@@ -205,7 +204,7 @@ fun compile cache_patterns const_arity eqs =
 
 fun run prog t = (prog t)
 
-fun discard p = ()
-                                  
+fun discard _ = ()
+
 end
 

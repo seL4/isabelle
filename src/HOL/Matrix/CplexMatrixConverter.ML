@@ -52,7 +52,7 @@ fun neg_term (cplexNeg t) = t
   | neg_term (cplexSum ts) = cplexSum (map neg_term ts)
   | neg_term t = cplexNeg t 
 
-fun convert_prog (cplexProg (s, goal, constrs, bounds)) = 
+fun convert_prog (cplexProg (_, goal, constrs, bounds)) = 
     let        
         fun build_naming index i2s s2i [] = (index, i2s, s2i)
           | build_naming index i2s s2i (cplexBounds (cplexNeg cplexInf, cplexLeq, cplexVar v, cplexLeq, cplexInf)::bounds)
