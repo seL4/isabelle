@@ -1272,6 +1272,7 @@ text {*
     @{method_def (HOL) "regularize"} & : & @{text method} \\
     @{method_def (HOL) "injection"} & : & @{text method} \\
     @{method_def (HOL) "cleaning"} & : & @{text method} \\
+    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
     @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
     @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
     @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
@@ -1365,6 +1366,17 @@ text {*
     and preservation theorem respectively.  These are stored in the
     local theory store and used by the @{method (HOL) "injection"}
     and @{method (HOL) "cleaning"} methods respectively.
+
+  \item @{attribute (HOL) quot_thm} declares that a certain theorem
+    is a quotient extension theorem. Quotient extension theorems
+    allow for quotienting inside container types. Given a polymorphic
+    type that serves as a container, a map function defined for this
+    container  using @{command (HOL) "enriched_type"} and a relation
+    map defined for for the container type, the quotient extension
+    theorem should be @{term "Quotient R Abs Rep \<Longrightarrow> Quotient
+    (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
+    are stored in a database and are used all the steps of lifting
+    theorems.
 
   \end{description}
 

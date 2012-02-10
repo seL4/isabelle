@@ -1789,6 +1789,7 @@ The quotient package defines a new quotient type given a raw type
     \indexdef{HOL}{method}{regularize}\hypertarget{method.HOL.regularize}{\hyperlink{method.HOL.regularize}{\mbox{\isa{regularize}}}} & : & \isa{method} \\
     \indexdef{HOL}{method}{injection}\hypertarget{method.HOL.injection}{\hyperlink{method.HOL.injection}{\mbox{\isa{injection}}}} & : & \isa{method} \\
     \indexdef{HOL}{method}{cleaning}\hypertarget{method.HOL.cleaning}{\hyperlink{method.HOL.cleaning}{\mbox{\isa{cleaning}}}} & : & \isa{method} \\
+    \indexdef{HOL}{attribute}{quot\_thm}\hypertarget{attribute.HOL.quot-thm}{\hyperlink{attribute.HOL.quot-thm}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}thm}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{attribute}{quot\_lifted}\hypertarget{attribute.HOL.quot-lifted}{\hyperlink{attribute.HOL.quot-lifted}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}lifted}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{attribute}{quot\_respect}\hypertarget{attribute.HOL.quot-respect}{\hyperlink{attribute.HOL.quot-respect}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}respect}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{attribute}{quot\_preserve}\hypertarget{attribute.HOL.quot-preserve}{\hyperlink{attribute.HOL.quot-preserve}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}preserve}}}} & : & \isa{attribute} \\
@@ -1940,6 +1941,16 @@ The quotient package defines a new quotient type given a raw type
     and preservation theorem respectively.  These are stored in the
     local theory store and used by the \hyperlink{method.HOL.injection}{\mbox{\isa{injection}}}
     and \hyperlink{method.HOL.cleaning}{\mbox{\isa{cleaning}}} methods respectively.
+
+  \item \hyperlink{attribute.HOL.quot-thm}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}thm}}} declares that a certain theorem
+    is a quotient extension theorem. Quotient extension theorems
+    allow for quotienting inside container types. Given a polymorphic
+    type that serves as a container, a map function defined for this
+    container  using \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}} and a relation
+    map defined for for the container type, the quotient extension
+    theorem should be \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Quotient\ {\isaliteral{28}{\isacharparenleft}}rel{\isaliteral{5F}{\isacharunderscore}}map\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Abs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Rep{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}. Quotient extension theorems
+    are stored in a database and are used all the steps of lifting
+    theorems.
 
   \end{description}%
 \end{isamarkuptext}%
