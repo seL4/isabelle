@@ -1263,6 +1263,18 @@ text {*
     @{command_def (HOL) "print_quotmaps"} & : & @{text "context \<rightarrow>"}\\
     @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
     @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
+    @{method_def (HOL) "lifting"} & : & @{text method} \\
+    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
+    @{method_def (HOL) "descending"} & : & @{text method} \\
+    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "regularize"} & : & @{text method} \\
+    @{method_def (HOL) "injection"} & : & @{text method} \\
+    @{method_def (HOL) "cleaning"} & : & @{text method} \\
+    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
@@ -1276,15 +1288,27 @@ text {*
   @{rail "
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
     @{syntax term} 'is' @{syntax term};
- 
+
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
   "}
 
+  @{rail "
+    @@{method (HOL) lifting} @{syntax thmrefs}?
+    ;
+
+    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
+    ;
+  "}
+
   \begin{description}
-  
+
   \item @{command (HOL) "quotient_type"} defines quotient types. The injection from a quotient type 
   to a raw type is called @{text rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names.
+  "morphisms"} specification provides alternative names. @{command (HOL) "quotient_type"} requires
+  the user to prove that the relation is an equivalence relation (predicate @{text equivp}), unless
+  the user specifies explicitely @{text partial} in which case the obligation is @{text part_equivp}.
+  A quotient defined with @{text partial} is weaker in the sense that less things can be proved
+  automatically.
 
   \item @{command (HOL) "quotient_definition"} defines a constant on the quotient type.
 
@@ -1293,6 +1317,54 @@ text {*
   \item @{command (HOL) "print_quotients"} prints quotients.
 
   \item @{command (HOL) "print_quotconsts"} prints quotient constants.
+
+  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
+    methods match the current goal with the given raw theorem to be
+    lifted producing three new subgoals: regularization, injection and
+    cleaning subgoals. @{method (HOL) "lifting"} tries to apply the
+    heuristics for automatically solving these three subgoals and
+    leaves only the subgoals unsolved by the heuristics to the user as
+    opposed to @{method (HOL) "lifting_setup"} which leaves the three
+    subgoals unsolved.
+
+  \item @{method (HOL) "descending"} and @{method (HOL)
+    "descending_setup"} try to guess a raw statement that would lift
+    to the current subgoal. Such statement is assumed as a new subgoal
+    and @{method (HOL) "descending"} continues in the same way as
+    @{method (HOL) "lifting"} does. @{method (HOL) "descending"} tries
+    to solve the arising regularization, injection and cleaning
+    subgoals with the analoguous method @{method (HOL)
+    "descending_setup"} which leaves the four unsolved subgoals.
+
+  \item @{method (HOL) "partiality_descending"} finds the regularized
+    theorem that would lift to the current subgoal, lifts it and
+    leaves as a subgoal. This method can be used with partial
+    equivalence quotients where the non regularized statements would
+    not be true. @{method (HOL) "partiality_descending_setup"} leaves
+    the injection and cleaning subgoals unchanged.
+
+  \item @{method (HOL) "regularize"} applies the regularization
+    heuristics to the current subgoal.
+
+  \item @{method (HOL) "injection"} applies the injection heuristics
+    to the current goal using the stored quotient respectfulness
+    theorems.
+
+  \item @{method (HOL) "cleaning"} applies the injection cleaning
+    heuristics to the current subgoal using the stored quotient
+    preservation theorems.
+
+  \item @{attribute (HOL) quot_lifted} attribute tries to
+    automatically transport the theorem to the quotient type.
+    The attribute uses all the defined quotients types and quotient
+    constants often producing undesired results or theorems that
+    cannot be lifted.
+
+  \item @{attribute (HOL) quot_respect} and @{attribute (HOL)
+    quot_preserve} attributes declare a theorem as a respectfulness
+    and preservation theorem respectively.  These are stored in the
+    local theory store and used by the @{method (HOL) "injection"}
+    and @{method (HOL) "cleaning"} methods respectively.
 
   \end{description}
 
