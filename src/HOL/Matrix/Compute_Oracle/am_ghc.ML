@@ -213,7 +213,7 @@ fun get_guid () =
 fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.basic s)));
 
 fun writeTextFile name s = File.write (Path.explode name) s
-    
+
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 
 fun compile eqs = 
@@ -236,7 +236,7 @@ fun compile eqs =
     end
 
 fun readResultFile name = File.read (Path.explode name) 
-                                                                                                    
+
 fun parse_result arity_of result =
     let
         val result = String.explode result
