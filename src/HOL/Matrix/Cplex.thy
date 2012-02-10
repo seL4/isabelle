@@ -64,3 +64,4 @@ lemma spm_mult_le_dual_prts_no_let:
 use "matrixlp.ML"
 
 end
+
