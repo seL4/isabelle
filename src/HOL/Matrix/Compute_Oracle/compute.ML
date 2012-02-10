@@ -49,10 +49,9 @@ sig
     val empty : encoding
     val insert : term -> encoding -> int * encoding
     val lookup_code : term -> encoding -> int option
-    val lookup_term : int -> encoding -> term option                                    
+    val lookup_term : int -> encoding -> term option
     val remove_code : int -> encoding -> encoding
     val remove_term : term -> encoding -> encoding
-    val fold : ((term * int) -> 'a -> 'a) -> encoding -> 'a -> 'a                                                      
 end 
 = 
 struct
@@ -75,8 +74,6 @@ fun remove_code c (e as (count, term2int, int2term)) =
 
 fun remove_term t (e as (count, term2int, int2term)) = 
     (case lookup_code t e of NONE => e | SOME c => (count, Termtab.delete t term2int, Inttab.delete c int2term))
-
-fun fold f (_, term2int, _) = Termtab.fold f term2int
 
 end
 
