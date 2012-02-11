@@ -18,6 +18,7 @@ function usage() {
   echo "    -O DIR       output directory for test data (default $MUTABELLE_OUTPUT_PATH)"
   echo "    -N NUMBER    number of lemmas to choose randomly, if not given all lemmas are chosen"
   echo "    -M NUMBER    number of mutants for each lemma (default $MUTABELLE_NUMBER_OF_MUTANTS)"
+  echo "    -X NUMBER    number of mutations in a mutant  (default $MUTABELLE_NUMBER_OF_MUTATIONS)"
   echo
   echo "  THEORY is the name of the theory of which all theorems should be"
   echo "  mutated and tested."
@@ -32,7 +33,7 @@ function usage() {
 
 MUTABELLE_IMPORTS=""
 
-while getopts "L:T:O:N:M:" OPT
+while getopts "L:T:O:N:M:X:" OPT
 do
   case "$OPT" in
     L)
@@ -49,6 +50,9 @@ do
       ;;
     M)
       MUTABELLE_NUMBER_OF_MUTANTS="$OPTARG"
+      ;;
+    X)
+      MUTABELLE_NUMBER_OF_MUTATIONS="$OPTARG"
       ;;
     \?)
       usage
@@ -117,7 +121,7 @@ fun mutation_testing_of thy =
   (MutabelleExtra.random_seed := 1.0;
   MutabelleExtra.thms_of false thy $MUTABELLE_FILTER 
   |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
-         @{theory} $MUTABELLE_NUMBER_OF_MUTANTS mtds thms (\"$MUTABELLE_OUTPUT_PATH/log\")))
+         @{theory} ($MUTABELLE_NUMBER_OF_MUTATIONS, $MUTABELLE_NUMBER_OF_MUTANTS) mtds thms (\"$MUTABELLE_OUTPUT_PATH/log\")))
 *}
 
 ML {*

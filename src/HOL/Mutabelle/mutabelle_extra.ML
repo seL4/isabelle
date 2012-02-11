@@ -38,7 +38,7 @@ val thms_of : bool -> theory -> thm list
 val string_for_report : report -> string
 val write_report : string -> report -> unit
 val mutate_theorems_and_write_report :
-  theory -> int -> mtd list -> thm list -> string -> unit
+  theory -> int * int -> mtd list -> thm list -> string -> unit
 
 val random_seed : real Unsynchronized.ref
 end;
@@ -48,16 +48,6 @@ struct
 
 (* Own seed; can't rely on the Isabelle one to stay the same *)
 val random_seed = Unsynchronized.ref 1.0;
-
-
-(* mutation options *)
-val num_mutations = 1
-(* soundness check: *)
-(*val max_mutants =  10
-val num_mutations = 1*)
-
-(* quickcheck options *)
-(*val quickcheck_generator = "SML"*)
 
 (* Another Random engine *)
 
@@ -395,7 +385,7 @@ fun create_detailed_entry thy thm exec mutants mtds =
   end
 
 (* (theory -> thm -> bool -> term list -> mtd list -> 'a) -> theory -> mtd list -> thm -> 'a *)
-fun mutate_theorem create_entry thy max_mutants mtds thm =
+fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
   let
     val exec = is_executable_thm thy thm
     val _ = tracing (if exec then "EXEC" else "NOEXEC")
@@ -498,7 +488,7 @@ fun write_report file_name =
   File.write (Path.explode file_name) o string_for_report
 
 (* theory -> mtd list -> thm list -> string -> unit *)
-fun mutate_theorems_and_write_report thy max_mutants mtds thms file_name =
+fun mutate_theorems_and_write_report thy (num_mutations, max_mutants) mtds thms file_name =
   let
     val _ = Output.urgent_message "Starting Mutabelle..."
     val ctxt = Proof_Context.init_global thy
@@ -521,7 +511,7 @@ fun mutate_theorems_and_write_report thy max_mutants mtds thms file_name =
       "size: " ^ string_of_int (Config.get ctxt Quickcheck.size) ^
       "; iterations: " ^ string_of_int (Config.get ctxt Quickcheck.iterations) ^ "\n" ^
     "Isabelle environment = ISABELLE_GHC: " ^ getenv "ISABELLE_GHC" ^ "\n");
-    map (File.append path o gen_string_for_entry o mutate_theorem gen_create_entry thy max_mutants mtds) thms;
+    map (File.append path o gen_string_for_entry o mutate_theorem gen_create_entry thy (num_mutations, max_mutants) mtds) thms;
     ()
   end
 
