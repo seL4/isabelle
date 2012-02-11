@@ -117,7 +117,7 @@ type report = entry list
 (** quickcheck **)
 
 fun invoke_quickcheck change_options quickcheck_generator thy t =
-  TimeLimit.timeLimit (seconds (!Try.auto_time_limit))
+  TimeLimit.timeLimit (seconds 30.0)
       (fn _ =>
           let
             val ctxt' = change_options (Proof_Context.init_global thy)
@@ -324,7 +324,7 @@ fun is_executable_term thy t =
   let
     val ctxt = Proof_Context.init_global thy
   in
-    can (TimeLimit.timeLimit (seconds 2.0)
+    can (TimeLimit.timeLimit (seconds 30.0)
       (Quickcheck.test_terms
         ((Context.proof_map (Quickcheck.set_active_testers ["exhaustive"]) #>
           Config.put Quickcheck.finite_types true #>

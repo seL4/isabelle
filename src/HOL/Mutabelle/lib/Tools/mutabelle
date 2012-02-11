@@ -101,10 +101,10 @@ val mtds = [
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false) \"narrowing_no_finite_types\",
   MutabelleExtra.quickcheck_mtd (Context.proof_map (Quickcheck.set_active_testers [\"narrowing\"]) #> Config.put Quickcheck.finite_types false
     #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ nat}])))) \"narrowing_nat\"
-(*
-, MutabelleExtra.refute_mtd,
-  MutabelleExtra.nitpick_mtd
-*)
+
+(*, MutabelleExtra.refute_mtd, *)
+  , MutabelleExtra.nitpick_mtd
+
 ]
 *}
 
