@@ -338,9 +338,12 @@ val spass_config : atp_config =
 val spass = (spassN, spass_config)
 
 val spass_new_H2 = "-Heuristic=2"
-val spass_new_H2_SOS = "-Heuristic=2 -SOS"
+val spass_new_H2SOS = "-Heuristic=2 -SOS"
 val spass_new_Red2 = "-RFRew=2 -RBRew=2 -RTaut=2"
 val spass_new_Sorts0 = "-Sorts=0"
+val spass_new_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
+val spass_new_H2NuVS0Red2 =
+  "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
 
 (* Experimental *)
 val spass_new_config : atp_config =
@@ -355,23 +358,14 @@ val spass_new_config : atp_config =
    prem_kind = #prem_kind spass_config,
    best_slices = fn _ =>
      (* FUDGE *)
-(*
-     [(0.25, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H1))),
-      (0.20, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2_SOS))),
-      (0.20, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2))),
-      (0.20, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
-      (0.15, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2)))]
-*)
-     [(0.1, (true, ((50, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2))),
-      (0.1, (true, ((150, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_Sorts0))),
-      (0.1, (true, ((250, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
-      (0.1, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2_SOS))),
-      (0.1, (true, ((600, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_Red2))),
-      (0.1, (true, ((150, DFG DFG_Sorted, "poly_guards??", combsN, false), spass_new_H2))),
-      (0.1, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2_SOS))),
-      (0.1, (true, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2))),
-      (0.1, (true, ((50, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_Sorts0))),
-      (0.1, (true, ((100, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_Red2)))]}
+     [(0.1667, (false, ((150, DFG DFG_Sorted, "mono_native", combsN, true), ""))),
+      (0.1667, (false, ((500, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2SOS))),
+      (0.1666, (false, ((50, DFG DFG_Sorted,  "mono_native", liftingN, true), spass_new_H2))),
+      (0.1000, (false, ((250, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2NuVS0))),
+      (0.1000, (false, ((100, DFG DFG_Sorted, "mono_native", combs_and_liftingN, true), spass_new_H2NuVS0))),
+      (0.1000, (false, ((300, DFG DFG_Sorted, "mono_native", combsN, true), spass_new_H2SOS))),
+      (0.1000, (false, ((150, DFG DFG_Sorted, "poly_guards??", liftingN, false), spass_new_H2NuVS0Red2))),
+      (0.1000, (false, ((400, DFG DFG_Sorted, "mono_native", liftingN, true), spass_new_H2)))]}
 
 val spass_new = (spass_newN, spass_new_config)
 
