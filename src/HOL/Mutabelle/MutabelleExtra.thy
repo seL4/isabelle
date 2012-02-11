@@ -42,7 +42,7 @@ fun mutation_testing_of (name, thy) =
   MutabelleExtra.thms_of false thy
   |> MutabelleExtra.take_random 200
   |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
-         @{theory} mtds thms (log_directory ^ "/" ^ name)))
+         @{theory} 50 mtds thms (log_directory ^ "/" ^ name)))
 *}
   
 
