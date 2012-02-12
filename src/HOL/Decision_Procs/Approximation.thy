@@ -62,7 +62,7 @@ next
           - (x * horner F G n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) x)"
       unfolding real_of_float_mult neg_le_iff_le by (rule mult_left_mono)
   qed
-  moreover have "?horner (Suc n) j' \<le> ?ub (Suc n) j'" unfolding ub_Suc ub_Suc horner.simps real_of_float_sub diff_minus
+  moreover have "?horner (Suc n) j' \<le> ?ub (Suc n) j'" unfolding ub_Suc horner.simps real_of_float_sub diff_minus
   proof (rule add_mono)
     show "1 / (f j') \<le> (rapprox_rat prec 1 (f j'))" using rapprox_rat[of 1 "f j'" prec] by auto
     from Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc, THEN conjunct1] `0 \<le> real x`
@@ -107,10 +107,10 @@ lemma horner_bounds_nonpos: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<R
     "(\<Sum>j=0..<n. (1 / (f (j' + j))) * real x ^ j) \<le> (ub n ((F ^^ j') s) (f j') x)" (is "?ub")
 proof -
   { fix x y z :: float have "x - y * z = x + - y * z"
-      by (cases x, cases y, cases z, simp add: plus_float.simps minus_float_def uminus_float.simps times_float.simps algebra_simps)
+      by (cases x, cases y, cases z, simp add: plus_float.simps minus_float_def times_float.simps algebra_simps)
   } note diff_mult_minus = this
 
-  { fix x :: float have "- (- x) = x" by (cases x, auto simp add: uminus_float.simps) } note minus_minus = this
+  { fix x :: float have "- (- x) = x" by (cases x) auto } note minus_minus = this
 
   have move_minus: "(-x) = -1 * real x" by auto (* coercion "inside" is necessary *)
 
@@ -245,7 +245,7 @@ lemma sqrt_ub_pos_pos_1:
 proof -
   from assms have "0 < (b - sqrt x) ^ 2 " by simp
   also have "\<dots> = b ^ 2 - 2 * b * sqrt x + (sqrt x) ^ 2" by algebra
-  also have "\<dots> = b ^ 2 - 2 * b * sqrt x + x" using assms by (simp add: real_sqrt_pow2)
+  also have "\<dots> = b ^ 2 - 2 * b * sqrt x + x" using assms by simp
   finally have "0 < b ^ 2 - 2 * b * sqrt x + x" by assumption
   hence "0 < b / 2 - sqrt x + x / (2 * b)" using assms
     by (simp add: field_simps power2_eq_square)
@@ -747,7 +747,7 @@ proof -
       moreover
       have "pi / 2 \<le> ub_pi prec * Float 1 -1" unfolding real_of_float_mult Float_num times_divide_eq_right mult_1_right using pi_boundaries by auto
       ultimately
-      show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF `\<not> x \<le> Float 1 1`] if_not_P[OF False]
+      show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`]if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF False]
         by auto
     qed
   qed
@@ -1432,7 +1432,7 @@ proof -
       obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         using Maclaurin_exp_le by blast
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-        by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: get_even zero_le_even_power exp_gt_zero)
+        by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: zero_le_even_power)
       ultimately show ?thesis
         using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     qed
@@ -1446,13 +1446,13 @@ proof -
       thus ?thesis unfolding True power_0_left by auto
     next
       case False hence "real x < 0" using `real x \<le> 0` by auto
-      show ?thesis by (rule less_imp_le, auto simp add: power_less_zero_eq get_odd `real x < 0`)
+      show ?thesis by (rule less_imp_le, auto simp add: power_less_zero_eq `real x < 0`)
     qed
 
     obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_odd n. (real x) ^ m / real (fact m)) + exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n)"
       using Maclaurin_exp_le by blast
     moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
-      by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero exp_gt_zero)
+      by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero)
     ultimately have "exp x \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
       using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     also have "\<dots> \<le> ub_exp_horner prec (get_odd n) 1 1 x"
@@ -1591,7 +1591,7 @@ proof -
         from order_trans[OF exp_m1_ge_quarter this[unfolded exp_le_cancel_iff[where x="- 1", symmetric]]]
         have "Float 1 -2 \<le> exp (x / (- floor_fl x))" unfolding Float_num .
         hence "real (Float 1 -2) ^ ?num \<le> exp (x / (- floor_fl x)) ^ ?num"
-          by (auto intro!: power_mono simp add: Float_num)
+          by (auto intro!: power_mono)
         also have "\<dots> = exp x" unfolding num_eq exp_real_of_nat_mult[symmetric] using `real (floor_fl x) \<noteq> 0` by auto
         finally show ?thesis
           unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def if_P[OF True] float_power .
@@ -3045,7 +3045,7 @@ using assms proof (induct s arbitrary: l u)
   then obtain ly uy
     where *: "approx_tse prec 0 t ((l + u) * Float 1 -1) 1 f [Some (l, u)] = Some (ly, uy)"
     and **: "cmp ly uy" by (auto elim!: option_caseE)
-  with 0 show ?case by (auto intro!: exI)
+  with 0 show ?case by auto
 next
   case (Suc s)
   let ?m = "(l + u) * Float 1 -1"
@@ -3350,7 +3350,7 @@ ML {*
   val form_equations = @{thms interpret_form_equations};
 
   fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
-      fun lookup_splitting (Free (name, typ))
+      fun lookup_splitting (Free (name, _))
         = case AList.lookup (op =) splitting name
           of SOME s => HOLogic.mk_number @{typ nat} s
            | NONE => @{term "0 :: nat"}
@@ -3395,7 +3395,7 @@ ML {*
     end
 
   (* copied from Tools/induct.ML should probably in args.ML *)
-  val free = Args.context -- Args.term >> (fn (_, Free (n, t)) => n | (ctxt, t) =>
+  val free = Args.context -- Args.term >> (fn (_, Free (n, _)) => n | (ctxt, t) =>
     error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
 
 *}
@@ -3497,11 +3497,11 @@ ML {*
                                           (@{term "power 10 :: nat \<Rightarrow> real"} $
                                            HOLogic.mk_number @{typ nat} (~e)) end)
       in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ mk_float10 true l $ mk_float10 false u end)
-    | mk_result prec NONE = @{term "UNIV :: real set"}
+    | mk_result _ NONE = @{term "UNIV :: real set"}
 
   fun realify t = let
       val t = Logic.varify_global t
-      val m = map (fn (name, sort) => (name, @{typ real})) (Term.add_tvars t [])
+      val m = map (fn (name, _) => (name, @{typ real})) (Term.add_tvars t [])
       val t = Term.subst_TVars m t
     in t end
 
