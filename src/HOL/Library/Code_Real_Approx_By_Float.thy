@@ -133,11 +133,11 @@ hide_const (open) real_of_int
 
 declare number_of_real_code [code_unfold del]
 
-lemma "False"
-proof-
-  have "cos(pi/2) = 0" by(rule cos_pi_half)
-  moreover have "cos(pi/2) \<noteq> 0" by eval
-  ultimately show "False" by blast
-qed
+notepad
+begin
+  have "cos (pi/2) = 0" by (rule cos_pi_half)
+  moreover have "cos (pi/2) \<noteq> 0" by eval
+  ultimately have "False" by blast
+end
 
 end
