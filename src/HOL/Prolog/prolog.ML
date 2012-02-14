@@ -71,7 +71,8 @@ val atomize_ss =
 (*val hyp_resolve_tac = Subgoal.FOCUS_PREMS (fn {prems, ...} =>
                                   resolve_tac (maps atomizeD prems) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
-fun hyp_resolve_tac i st = let
+val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
+  let
         fun ap (Const(@{const_name All},_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
         |   ap (Const(@{const_name HOL.implies},_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
         |   ap t                          =                         (0,false,t);
@@ -83,7 +84,6 @@ fun hyp_resolve_tac i st = let
         val (prems, Const(@{const_name Trueprop}, _)$concl) = rep_goal
                                                 (#3(dest_state (st,i)));
 *)
-        val subgoal = #3(Thm.dest_state (st,i));
         val prems = Logic.strip_assums_hyp subgoal;
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal);
         fun drot_tac k i = DETERM (rotate_tac k i);
@@ -104,7 +104,7 @@ fun hyp_resolve_tac i st = let
                 else no_tac);
         val ptacs = mapn (fn n => fn t =>
                           pres_tac (ap (HOLogic.dest_Trueprop t)) n i) 0 prems;
-        in Library.foldl (op APPEND) (no_tac, ptacs) st end;
+  in Library.foldl (op APPEND) (no_tac, ptacs) end);
 
 fun ptac ctxt prog = let
   val proga = maps (atomizeD ctxt) prog         (* atomize the prog *)

@@ -670,8 +670,8 @@ fun cs addSafter (name, tac2) = cs addSWrapper (name, fn _ => fn tac1 => tac1 OR
 fun cs addbefore (name, tac1) = cs addWrapper (name, fn _ => fn tac2 => tac1 APPEND' tac2);
 fun cs addafter (name, tac2) = cs addWrapper (name, fn _ => fn tac1 => tac1 APPEND' tac2);
 
-fun cs addD2 (name, thm) = cs addafter (name, datac thm 1);
-fun cs addE2 (name, thm) = cs addafter (name, eatac thm 1);
+fun cs addD2 (name, thm) = cs addafter (name, dtac thm THEN' assume_tac);
+fun cs addE2 (name, thm) = cs addafter (name, etac thm THEN' assume_tac);
 fun cs addSD2 (name, thm) = cs addSafter (name, dmatch_tac [thm] THEN' eq_assume_tac);
 fun cs addSE2 (name, thm) = cs addSafter (name, ematch_tac [thm] THEN' eq_assume_tac);
 

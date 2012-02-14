@@ -4,16 +4,8 @@
 Isar proof methods.
 *)
 
-signature BASIC_METHOD =
-sig
-  val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
-  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
-  val rule_trace: bool Config.T
-end;
-
 signature METHOD =
 sig
-  include BASIC_METHOD
   type method
   val apply: (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
   val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
@@ -42,6 +34,7 @@ sig
   val all_assm_tac: Proof.context -> tactic
   val assumption: Proof.context -> method
   val close: bool -> Proof.context -> method
+  val rule_trace: bool Config.T
   val trace: Proof.context -> thm list -> unit
   val rule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
@@ -88,18 +81,6 @@ end;
 
 structure Method: METHOD =
 struct
-
-(** generic tools **)
-
-(* goal addressing *)
-
-fun FINDGOAL tac st =
-  let fun find i n = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1) n)
-  in find 1 (Thm.nprems_of st) st end;
-
-fun HEADGOAL tac = tac 1;
-
-
 
 (** proof methods **)
 
@@ -482,9 +463,6 @@ val unfold = unfold_meth;
 val fold = fold_meth;
 
 end;
-
-structure Basic_Method: BASIC_METHOD = Method;
-open Basic_Method;
 
 val RAW_METHOD_CASES = Method.RAW_METHOD_CASES;
 val RAW_METHOD = Method.RAW_METHOD;

@@ -140,7 +140,7 @@ done
 lemma evalc_evaln: "<c,s> -c-> t ==> ? n. <c,s> -n-> t"
 apply (erule evalc.induct)
 apply (tactic {* ALLGOALS (REPEAT o etac exE) *})
-apply (tactic {* TRYALL (EVERY' [datac @{thm evaln_max2} 1, REPEAT o eresolve_tac [exE, conjE]]) *})
+apply (tactic {* TRYALL (EVERY' [dtac @{thm evaln_max2}, assume_tac, REPEAT o eresolve_tac [exE, conjE]]) *})
 apply (tactic {* ALLGOALS (rtac exI THEN' resolve_tac @{thms evaln.intros} THEN_ALL_NEW atac) *})
 done
 

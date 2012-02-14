@@ -136,7 +136,6 @@ sig
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
-  val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
   val assumption: int -> thm -> thm Seq.seq

@@ -55,7 +55,6 @@ sig
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_goals_tac: thm list -> tactic
   val rewrite_goal_tac: thm list -> int -> tactic
-  val rewtac: thm -> tactic
   val prune_params_tac: tactic
   val fold_rule: thm list -> thm -> thm
   val fold_goals_tac: thm list -> tactic
@@ -124,9 +123,7 @@ sig
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
   val rewrite_thm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
-  val rewrite_goal_rule: bool * bool * bool ->
-    (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
-  val asm_rewrite_goal_tac: bool * bool * bool ->
+  val generic_rewrite_goal_tac: bool * bool * bool ->
     (simpset -> tactic) -> simpset -> int -> tactic
   val rewrite: bool -> thm list -> conv
   val simplify: bool -> thm list -> thm -> thm
@@ -1294,28 +1291,21 @@ fun rewrite_goals_rule thms th =
   Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
     (global_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
-(*Rewrite the subgoal of a proof state (represented by a theorem)*)
-fun rewrite_goal_rule mode prover ss i thm =
-  if 0 < i andalso i <= Thm.nprems_of thm
-  then Conv.gconv_rule (rewrite_cterm mode prover ss) i thm
-  else raise THM ("rewrite_goal_rule", i, [thm]);
-
 
 (** meta-rewriting tactics **)
 
 (*Rewrite all subgoals*)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
-fun rewtac def = rewrite_goals_tac [def];
 
 (*Rewrite one subgoal*)
-fun asm_rewrite_goal_tac mode prover_tac ss i thm =
+fun generic_rewrite_goal_tac mode prover_tac ss i thm =
   if 0 < i andalso i <= Thm.nprems_of thm then
     Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ss) i thm)
   else Seq.empty;
 
 fun rewrite_goal_tac rews =
   let val ss = empty_ss addsimps rews in
-    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
+    fn i => fn st => generic_rewrite_goal_tac (true, false, false) (K no_tac)
       (global_context (Thm.theory_of_thm st) ss) i st
   end;
 

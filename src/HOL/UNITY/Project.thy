@@ -544,7 +544,7 @@ lemma (in Extend) project_ensures_D:
      "[| F\<squnion>project h UNIV G \<in> A ensures B;   
          G \<in> stable (extend_set h A - extend_set h B) |]  
       ==> extend h F\<squnion>G \<in> (extend_set h A) ensures (extend_set h B)"
-apply (rule project_ensures_D_lemma [of _ UNIV, THEN revcut_rl], auto)
+apply (rule project_ensures_D_lemma [of _ UNIV, elim_format], auto)
 done
 
 lemma (in Extend) project_Ensures_D: 
@@ -553,7 +553,7 @@ lemma (in Extend) project_Ensures_D:
                      extend_set h B) |]  
       ==> extend h F\<squnion>G \<in> (extend_set h A) Ensures (extend_set h B)"
 apply (unfold Ensures_def)
-apply (rule project_ensures_D_lemma [THEN revcut_rl])
+apply (rule project_ensures_D_lemma [elim_format])
 apply (auto simp add: project_set_reachable_extend_eq [symmetric])
 done
 

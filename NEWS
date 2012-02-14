@@ -135,14 +135,14 @@ INCOMPATIBILITY.
 * Renamed facts about the power operation on relations, i.e., relpow
   to match the constant's name:
   
-  rel_pow_1 ~> lemma relpow_1
+  rel_pow_1 ~> relpow_1
   rel_pow_0_I ~> relpow_0_I
   rel_pow_Suc_I ~> relpow_Suc_I
   rel_pow_Suc_I2 ~> relpow_Suc_I2
   rel_pow_0_E ~> relpow_0_E
   rel_pow_Suc_E ~> relpow_Suc_E
   rel_pow_E ~> relpow_E
-  rel_pow_Suc_D2 ~> lemma relpow_Suc_D2
+  rel_pow_Suc_D2 ~> relpow_Suc_D2
   rel_pow_Suc_E2 ~> relpow_Suc_E2 
   rel_pow_Suc_D2' ~> relpow_Suc_D2'
   rel_pow_E2 ~> relpow_E2

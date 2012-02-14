@@ -4,7 +4,7 @@
 Derived rules and other operations on theorems.
 *)
 
-infix 0 RS RSN RL RLN MRS MRL OF COMP INCR_COMP COMP_INCR;
+infix 0 RS RSN RL RLN MRS OF COMP INCR_COMP COMP_INCR;
 
 signature BASIC_DRULE =
 sig
@@ -35,7 +35,6 @@ sig
   val RLN: thm list * (int * thm list) -> thm list
   val RL: thm list * thm list -> thm list
   val MRS: thm list * thm -> thm
-  val MRL: thm list list * thm list -> thm list
   val OF: thm * thm list -> thm
   val compose: thm * int * thm -> thm list
   val COMP: thm * thm -> thm
@@ -389,12 +388,6 @@ fun rls MRS bottom_rl =
   let fun rs_aux i [] = bottom_rl
         | rs_aux i (rl::rls) = rl RSN (i, rs_aux (i+1) rls)
   in  rs_aux 1 rls  end;
-
-(*As above, but for rule lists*)
-fun rlss MRL bottom_rls =
-  let fun rs_aux i [] = bottom_rls
-        | rs_aux i (rls::rlss) = rls RLN (i, rs_aux (i+1) rlss)
-  in  rs_aux 1 rlss  end;
 
 (*A version of MRS with more appropriate argument order*)
 fun bottom_rl OF rls = rls MRS bottom_rl;

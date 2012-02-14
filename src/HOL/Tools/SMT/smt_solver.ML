@@ -39,8 +39,8 @@ sig
     {outcome: SMT_Failure.failure option, used_facts: ('a * thm) list}
 
   (*tactic*)
-  val smt_tac: Proof.context -> thm list -> int -> Tactical.tactic
-  val smt_tac': Proof.context -> thm list -> int -> Tactical.tactic
+  val smt_tac: Proof.context -> thm list -> int -> tactic
+  val smt_tac': Proof.context -> thm list -> int -> tactic
 
   (*setup*)
   val setup: theory -> theory
@@ -357,7 +357,7 @@ local
   fun tag_prems thms = map (pair ~1 o pair NONE) thms
 
   fun resolve (SOME thm) = Tactic.rtac thm 1
-    | resolve NONE = Tactical.no_tac
+    | resolve NONE = no_tac
 
   fun tac prove ctxt rules =
     CONVERSION (SMT_Normalize.atomize_conv ctxt)

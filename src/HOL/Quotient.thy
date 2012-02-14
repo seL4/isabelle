@@ -738,41 +738,41 @@ subsection {* Methods / Interface *}
 
 method_setup lifting =
   {* Attrib.thms >> (fn thms => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt [] thms))) *}
+       SIMPLE_METHOD' (Quotient_Tacs.lift_tac ctxt [] thms)) *}
   {* lift theorems to quotient types *}
 
 method_setup lifting_setup =
   {* Attrib.thm >> (fn thm => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt [] thm))) *}
+       SIMPLE_METHOD' (Quotient_Tacs.lift_procedure_tac ctxt [] thm)) *}
   {* set up the three goals for the quotient lifting procedure *}
 
 method_setup descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt []))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_tac ctxt [])) *}
   {* decend theorems to the raw level *}
 
 method_setup descending_setup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt []))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_procedure_tac ctxt [])) *}
   {* set up the three goals for the decending theorems *}
 
 method_setup partiality_descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.partiality_descend_tac ctxt []))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_tac ctxt [])) *}
   {* decend theorems to the raw level *}
 
 method_setup partiality_descending_setup =
   {* Scan.succeed (fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.partiality_descend_procedure_tac ctxt []))) *}
+       SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_procedure_tac ctxt [])) *}
   {* set up the three goals for the decending theorems *}
 
 method_setup regularize =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.regularize_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.regularize_tac ctxt)) *}
   {* prove the regularization goals from the quotient lifting procedure *}
 
 method_setup injection =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.all_injection_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.all_injection_tac ctxt)) *}
   {* prove the rep/abs injection goals from the quotient lifting procedure *}
 
 method_setup cleaning =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.clean_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.clean_tac ctxt)) *}
   {* prove the cleaning goals from the quotient lifting procedure *}
 
 attribute_setup quot_lifted =

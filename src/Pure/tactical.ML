@@ -5,7 +5,7 @@ Tacticals.
 *)
 
 infix 1 THEN THEN' THEN_ALL_NEW;
-infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
+infix 0 ORELSE APPEND ORELSE' APPEND';
 infix 0 THEN_ELSE;
 
 signature TACTICAL =
@@ -14,12 +14,10 @@ sig
   val THEN: tactic * tactic -> tactic
   val ORELSE: tactic * tactic -> tactic
   val APPEND: tactic * tactic -> tactic
-  val INTLEAVE: tactic * tactic -> tactic
   val THEN_ELSE: tactic * (tactic*tactic) -> tactic
   val THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val INTLEAVE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val all_tac: tactic
   val no_tac: tactic
   val DETERM: tactic -> tactic
@@ -50,6 +48,7 @@ sig
   val ALLGOALS: (int -> tactic) -> tactic
   val SOMEGOAL: (int -> tactic) -> tactic
   val FIRSTGOAL: (int -> tactic) -> tactic
+  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val REPEAT_SOME: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val REPEAT_FIRST: (int -> tactic) -> tactic
@@ -100,11 +99,6 @@ fun (tac1 ORELSE tac2) st =
 fun (tac1 APPEND tac2) st =
   Seq.append (tac1 st) (Seq.make(fn()=> Seq.pull (tac2 st)));
 
-(*Like APPEND, but interleaves results of tac1 and tac2.*)
-fun (tac1 INTLEAVE tac2) st =
-    Seq.interleave(tac1 st,
-                        Seq.make(fn()=> Seq.pull (tac2 st)));
-
 (*Conditional tactic.
         tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
         tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
@@ -120,7 +114,6 @@ fun (tac THEN_ELSE (tac1, tac2)) st =
 fun (tac1 THEN' tac2) x = tac1 x THEN tac2 x;
 fun (tac1 ORELSE' tac2) x = tac1 x ORELSE tac2 x;
 fun (tac1 APPEND' tac2) x = tac1 x APPEND tac2 x;
-fun (tac1 INTLEAVE' tac2) x = tac1 x INTLEAVE tac2 x;
 
 (*passes all proofs through unchanged;  identity of THEN*)
 fun all_tac st = Seq.single st;
@@ -321,6 +314,9 @@ fun SOMEGOAL tac st =
 fun FIRSTGOAL tac st =
   let fun find (i,n) = if i>n then no_tac else  tac(i) ORELSE find (i+1,n)
   in  find(1, nprems_of st)st  end;
+
+(*First subgoal only.*)
+fun HEADGOAL tac = tac 1;
 
 (*Repeatedly solve some using tac. *)
 fun REPEAT_SOME tac = REPEAT1 (SOMEGOAL (REPEAT1 o tac));

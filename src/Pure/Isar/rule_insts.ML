@@ -15,7 +15,6 @@ sig
   val dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
-  val subgoals_tac: Proof.context -> string list -> int -> tactic
   val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
@@ -211,11 +210,11 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     val tinsts = filter_out has_type_var insts;
 
     (* Tactic *)
-    fun tac i st =
+    fun tac i st = CSUBGOAL (fn (cgoal, _) =>
       let
-        val (_, _, Bi, _) = Thm.dest_state (st, i);
-        val params = Logic.strip_params Bi;  (*params of subgoal i as string typ pairs*)
-        val params = rev (Term.rename_wrt_term Bi params)
+        val goal = term_of cgoal;
+        val params = Logic.strip_params goal;  (*params of subgoal i as string typ pairs*)
+        val params = rev (Term.rename_wrt_term goal params)
           (*as they are printed: bound variables with*)
           (*the same name are renamed during printing*)
 
@@ -267,14 +266,10 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate_normalize
               (map lifttvar envT', map liftpair cenv)
-              (Thm.lift_rule (Thm.cprem_of st i) thm)
+              (Thm.lift_rule cgoal thm)
       in
-        if i > nprems_of st then no_tac st
-        else st |>
-          compose_tac (bires_flag, rule, nprems_of thm) i
-      end
-           handle TERM (msg,_)   => (warning msg; no_tac st)
-                | THM  (msg,_,_) => (warning msg; no_tac st);
+        compose_tac (bires_flag, rule, nprems_of thm) i
+      end) i st;
   in tac end;
 
 val res_inst_tac = bires_inst_tac false;
@@ -314,7 +309,6 @@ fun thin_tac ctxt s = eres_inst_tac ctxt [(("V", 0), s)] Drule.thin_rl;
 
 (*Introduce the given proposition as lemma and subgoal*)
 fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
-fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
 
 
 
@@ -355,7 +349,8 @@ val _ = Context.>> (Context.map_theory
   Method.setup (Binding.name "cut_tac") cut_inst_meth "cut rule (dynamic instantiation)" #>
   Method.setup (Binding.name "subgoal_tac")
     (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_source) >>
-      (fn (quant, props) => fn ctxt => SIMPLE_METHOD'' quant (subgoals_tac ctxt props)))
+      (fn (quant, props) => fn ctxt =>
+        SIMPLE_METHOD'' quant (EVERY' (map (subgoal_tac ctxt) props))))
     "insert subgoal (dynamic instantiation)" #>
   Method.setup (Binding.name "thin_tac")
     (Args.goal_spec -- Scan.lift Args.name_source >>
