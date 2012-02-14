@@ -27,7 +27,7 @@ inductive
     emptyI:  "0 : Fin(A)"
     consI:   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"
   type_intros  empty_subsetI cons_subsetI PowI
-  type_elims   PowD [THEN revcut_rl]
+  type_elims   PowD [elim_format]
 
 inductive
   domains   "FiniteFun(A,B)" <= "Fin(A*B)"

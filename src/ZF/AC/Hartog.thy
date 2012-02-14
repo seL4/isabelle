@@ -13,7 +13,7 @@ definition
    "Hartog(X) == LEAST i. ~ i \<lesssim> X"
 
 lemma Ords_in_set: "\<forall>a. Ord(a) --> a \<in> X ==> P"
-apply (rule_tac X1 = "{y \<in> X. Ord (y) }" in ON_class [THEN revcut_rl])
+apply (rule_tac X = "{y \<in> X. Ord (y) }" in ON_class [elim_format])
 apply fast
 done
 

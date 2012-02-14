@@ -869,7 +869,7 @@ apply (induct_tac n)
 apply (simp add: eqpoll_0_iff, clarify)
 apply (subgoal_tac "EX u. u:A")
 apply (erule exE)
-apply (rule Diff_sing_eqpoll [THEN revcut_rl])
+apply (rule Diff_sing_eqpoll [elim_format])
 prefer 2 apply assumption
 apply assumption
 apply (rule_tac b = A in cons_Diff [THEN subst], assumption)

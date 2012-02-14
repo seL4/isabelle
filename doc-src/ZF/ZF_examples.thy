@@ -80,7 +80,7 @@ inductive
     emptyI:  "0 \<in> Fin(A)"
     consI:   "[| a \<in> A;  b \<in> Fin(A) |] ==> cons(a,b) \<in> Fin(A)"
   type_intros  empty_subsetI cons_subsetI PowI
-  type_elims   PowD [THEN revcut_rl]
+  type_elims   PowD [elim_format]
 
 
 consts  acc :: "i => i"
