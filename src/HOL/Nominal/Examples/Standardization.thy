@@ -424,6 +424,7 @@ original proof idea due to Ralph Loader.
 declare listrel_mono [mono_set]
 
 lemma listrelp_eqvt [eqvt]:
+  fixes f :: "'a::pt_name \<Rightarrow> 'b::pt_name \<Rightarrow> bool"
   assumes xy: "listrelp f (x::'a::pt_name list) y"
   shows "listrelp ((pi::name prm) \<bullet> f) (pi \<bullet> x) (pi \<bullet> y)" using xy
   by induct (simp_all add: listrelp.intros perm_app [symmetric])

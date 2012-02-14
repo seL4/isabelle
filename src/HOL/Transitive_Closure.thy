@@ -718,85 +718,97 @@ primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<ti
 
 end
 
-lemma rel_pow_1 [simp]:
+text {* for code generation *}
+
+definition relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
+  relpow_code_def [code_abbrev]: "relpow = compow"
+
+lemma [code]:
+  "relpow (Suc n) R = (relpow n R) O R"
+  "relpow 0 R = Id"
+  by (simp_all add: relpow_code_def)
+
+hide_const (open) relpow
+
+lemma relpow_1 [simp]:
   fixes R :: "('a \<times> 'a) set"
   shows "R ^^ 1 = R"
   by simp
 
-lemma rel_pow_0_I: 
+lemma relpow_0_I: 
   "(x, x) \<in> R ^^ 0"
   by simp
 
-lemma rel_pow_Suc_I:
+lemma relpow_Suc_I:
   "(x, y) \<in>  R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by auto
 
-lemma rel_pow_Suc_I2:
+lemma relpow_Suc_I2:
   "(x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by (induct n arbitrary: z) (simp, fastforce)
 
-lemma rel_pow_0_E:
+lemma relpow_0_E:
   "(x, y) \<in> R ^^ 0 \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
   by simp
 
-lemma rel_pow_Suc_E:
+lemma relpow_Suc_E:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P) \<Longrightarrow> P"
   by auto
 
-lemma rel_pow_E:
+lemma relpow_E:
   "(x, z) \<in>  R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
    \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in>  R ^^ m \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P)
    \<Longrightarrow> P"
   by (cases n) auto
 
-lemma rel_pow_Suc_D2:
+lemma relpow_Suc_D2:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<exists>y. (x, y) \<in> R \<and> (y, z) \<in> R ^^ n)"
   apply (induct n arbitrary: x z)
-   apply (blast intro: rel_pow_0_I elim: rel_pow_0_E rel_pow_Suc_E)
-  apply (blast intro: rel_pow_Suc_I elim: rel_pow_0_E rel_pow_Suc_E)
+   apply (blast intro: relpow_0_I elim: relpow_0_E relpow_Suc_E)
+  apply (blast intro: relpow_Suc_I elim: relpow_0_E relpow_Suc_E)
   done
 
-lemma rel_pow_Suc_E2:
+lemma relpow_Suc_E2:
   "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> P) \<Longrightarrow> P"
-  by (blast dest: rel_pow_Suc_D2)
+  by (blast dest: relpow_Suc_D2)
 
-lemma rel_pow_Suc_D2':
+lemma relpow_Suc_D2':
   "\<forall>x y z. (x, y) \<in> R ^^ n \<and> (y, z) \<in> R \<longrightarrow> (\<exists>w. (x, w) \<in> R \<and> (w, z) \<in> R ^^ n)"
   by (induct n) (simp_all, blast)
 
-lemma rel_pow_E2:
+lemma relpow_E2:
   "(x, z) \<in> R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
      \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ m \<Longrightarrow> P)
    \<Longrightarrow> P"
   apply (cases n, simp)
-  apply (cut_tac n=nat and R=R in rel_pow_Suc_D2', simp, blast)
+  apply (cut_tac n=nat and R=R in relpow_Suc_D2', simp, blast)
   done
 
-lemma rel_pow_add: "R ^^ (m+n) = R^^m O R^^n"
+lemma relpow_add: "R ^^ (m+n) = R^^m O R^^n"
   by (induct n) auto
 
-lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
+lemma relpow_commute: "R O R ^^ n = R ^^ n O R"
   by (induct n) (simp, simp add: O_assoc [symmetric])
 
-lemma rel_pow_empty:
+lemma relpow_empty:
   "0 < n \<Longrightarrow> ({} :: ('a \<times> 'a) set) ^^ n = {}"
   by (cases n) auto
 
-lemma rtrancl_imp_UN_rel_pow:
+lemma rtrancl_imp_UN_relpow:
   assumes "p \<in> R^*"
   shows "p \<in> (\<Union>n. R ^^ n)"
 proof (cases p)
   case (Pair x y)
   with assms have "(x, y) \<in> R^*" by simp
   then have "(x, y) \<in> (\<Union>n. R ^^ n)" proof induct
-    case base show ?case by (blast intro: rel_pow_0_I)
+    case base show ?case by (blast intro: relpow_0_I)
   next
-    case step then show ?case by (blast intro: rel_pow_Suc_I)
+    case step then show ?case by (blast intro: relpow_Suc_I)
   qed
   with Pair show ?thesis by simp
 qed
 
-lemma rel_pow_imp_rtrancl:
+lemma relpow_imp_rtrancl:
   assumes "p \<in> R ^^ n"
   shows "p \<in> R^*"
 proof (cases p)
@@ -806,18 +818,18 @@ proof (cases p)
     case 0 then show ?case by simp
   next
     case Suc then show ?case
-      by (blast elim: rel_pow_Suc_E intro: rtrancl_into_rtrancl)
+      by (blast elim: relpow_Suc_E intro: rtrancl_into_rtrancl)
   qed
   with Pair show ?thesis by simp
 qed
 
-lemma rtrancl_is_UN_rel_pow:
+lemma rtrancl_is_UN_relpow:
   "R^* = (\<Union>n. R ^^ n)"
-  by (blast intro: rtrancl_imp_UN_rel_pow rel_pow_imp_rtrancl)
+  by (blast intro: rtrancl_imp_UN_relpow relpow_imp_rtrancl)
 
 lemma rtrancl_power:
   "p \<in> R^* \<longleftrightarrow> (\<exists>n. p \<in> R ^^ n)"
-  by (simp add: rtrancl_is_UN_rel_pow)
+  by (simp add: rtrancl_is_UN_relpow)
 
 lemma trancl_power:
   "p \<in> R^+ \<longleftrightarrow> (\<exists>n > 0. p \<in> R ^^ n)"
@@ -825,23 +837,23 @@ lemma trancl_power:
   apply simp
   apply (rule iffI)
    apply (drule tranclD2)
-   apply (clarsimp simp: rtrancl_is_UN_rel_pow)
+   apply (clarsimp simp: rtrancl_is_UN_relpow)
    apply (rule_tac x="Suc n" in exI)
    apply (clarsimp simp: rel_comp_def)
    apply fastforce
   apply clarsimp
   apply (case_tac n, simp)
   apply clarsimp
-  apply (drule rel_pow_imp_rtrancl)
+  apply (drule relpow_imp_rtrancl)
   apply (drule rtrancl_into_trancl1) apply auto
   done
 
-lemma rtrancl_imp_rel_pow:
+lemma rtrancl_imp_relpow:
   "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R ^^ n"
-  by (auto dest: rtrancl_imp_UN_rel_pow)
+  by (auto dest: rtrancl_imp_UN_relpow)
 
 text{* By Sternagel/Thiemann: *}
-lemma rel_pow_fun_conv:
+lemma relpow_fun_conv:
   "((a,b) \<in> R ^^ n) = (\<exists>f. f 0 = a \<and> f n = b \<and> (\<forall>i<n. (f i, f(Suc i)) \<in> R))"
 proof (induct n arbitrary: b)
   case 0 show ?case by auto
@@ -865,7 +877,7 @@ next
   qed
 qed
 
-lemma rel_pow_finite_bounded1:
+lemma relpow_finite_bounded1:
 assumes "finite(R :: ('a*'a)set)" and "k>0"
 shows "R^^k \<subseteq> (UN n:{n. 0<n & n <= card R}. R^^n)" (is "_ \<subseteq> ?r")
 proof-
@@ -886,7 +898,7 @@ proof-
         hence ?case using `(a,b): R^^(Suc n)` Suc_leI[OF `n < card R`] by blast
       } moreover
       { assume "n = card R"
-        from `(a,b) \<in> R ^^ (Suc n)`[unfolded rel_pow_fun_conv]
+        from `(a,b) \<in> R ^^ (Suc n)`[unfolded relpow_fun_conv]
         obtain f where "f 0 = a" and "f(Suc n) = b"
           and steps: "\<And>i. i <= n \<Longrightarrow> (f i, f (Suc i)) \<in> R" by auto
         let ?p = "%i. (f i, f(Suc i))"
@@ -906,7 +918,7 @@ proof-
           and pij: "?p i = ?p j" by blast
         let ?g = "\<lambda> l. if l \<le> i then f l else f (l + (j - i))"
         let ?n = "Suc(n - (j - i))"
-        have abl: "(a,b) \<in> R ^^ ?n" unfolding rel_pow_fun_conv
+        have abl: "(a,b) \<in> R ^^ ?n" unfolding relpow_fun_conv
         proof (rule exI[of _ ?g], intro conjI impI allI)
           show "?g ?n = b" using `f(Suc n) = b` j ij by auto
         next
@@ -940,21 +952,21 @@ proof-
   thus ?thesis using gr0_implies_Suc[OF `k>0`] by auto
 qed
 
-lemma rel_pow_finite_bounded:
+lemma relpow_finite_bounded:
 assumes "finite(R :: ('a*'a)set)"
 shows "R^^k \<subseteq> (UN n:{n. n <= card R}. R^^n)"
 apply(cases k)
  apply force
-using rel_pow_finite_bounded1[OF assms, of k] by auto
+using relpow_finite_bounded1[OF assms, of k] by auto
 
-lemma rtrancl_finite_eq_rel_pow:
+lemma rtrancl_finite_eq_relpow:
   "finite R \<Longrightarrow> R^* = (UN n : {n. n <= card R}. R^^n)"
-by(fastforce simp: rtrancl_power dest: rel_pow_finite_bounded)
+by(fastforce simp: rtrancl_power dest: relpow_finite_bounded)
 
-lemma trancl_finite_eq_rel_pow:
+lemma trancl_finite_eq_relpow:
   "finite R \<Longrightarrow> R^+ = (UN n : {n. 0 < n & n <= card R}. R^^n)"
 apply(auto simp add: trancl_power)
-apply(auto dest: rel_pow_finite_bounded1)
+apply(auto dest: relpow_finite_bounded1)
 done
 
 lemma finite_rel_comp[simp,intro]:
@@ -974,13 +986,13 @@ apply(case_tac n)
  apply(simp_all add: assms)
 done
 
-lemma single_valued_rel_pow:
+lemma single_valued_relpow:
   fixes R :: "('a * 'a) set"
   shows "single_valued R \<Longrightarrow> single_valued (R ^^ n)"
 apply (induct n arbitrary: R)
 apply simp_all
 apply (rule single_valuedI)
-apply (fast dest: single_valuedD elim: rel_pow_Suc_E)
+apply (fast dest: single_valuedD elim: relpow_Suc_E)
 done
 
 
@@ -1003,7 +1015,7 @@ next
     unfolding ntrancl_def by auto
 qed
 
-lemma ntrancl_Suc [simp, code]:
+lemma ntrancl_Suc [simp]:
   "ntrancl (Suc n) R = ntrancl n R O (Id \<union> R)"
 proof
   {
@@ -1034,9 +1046,13 @@ next
     unfolding ntrancl_def by fastforce
 qed
 
+lemma [code]:
+  "ntrancl (Suc n) r = (let r' = ntrancl n r in r' Un r' O r)"
+unfolding Let_def by auto
+
 lemma finite_trancl_ntranl:
   "finite R \<Longrightarrow> trancl R = ntrancl (card R - 1) R"
-  by (cases "card R") (auto simp add: trancl_finite_eq_rel_pow rel_pow_empty ntrancl_def)
+  by (cases "card R") (auto simp add: trancl_finite_eq_relpow relpow_empty ntrancl_def)
 
 
 subsection {* Acyclic relations *}

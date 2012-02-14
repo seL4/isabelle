@@ -61,7 +61,7 @@ by (metis meet_greatest meet_le1 meet_le2 le_trans)
 end
 
 locale Val_abs1_gamma =
-  Val_abs where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
+  Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_meet:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
 and gamma_Bot[simp]: "\<gamma> \<bottom> = {}"
@@ -77,14 +77,16 @@ end
 
 
 locale Val_abs1 =
- Val_abs1_gamma where \<gamma> = \<gamma>
- for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
-fixes filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
+  Val_abs1_gamma where \<gamma> = \<gamma>
+   for \<gamma> :: "'av::L_top_bot \<Rightarrow> val set" +
+fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
+and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
-assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> a1' \<and> n2 : \<gamma> a2'"
-and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> a1' \<and> n2 : \<gamma> a2'"
+assumes test_num': "test_num' n a = (n : \<gamma> a)"
+and filter_plus': "filter_plus' a a1 a2 = (b1,b2) \<Longrightarrow>
+  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
+and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
+  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
 
 
 locale Abs_Int1 =
@@ -104,7 +106,7 @@ by(cases S)(simp add: aval'_sound)+
 subsubsection "Backward analysis"
 
 fun afilter :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
-"afilter (N n) a S = (if n : \<gamma> a then S else None)" |
+"afilter (N n) a S = (if test_num' n a then S else None)" |
 "afilter (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = lookup S x \<sqinter> a in
   if a' \<sqsubseteq> \<bottom> then None else Some(update S x a'))" |
@@ -134,7 +136,7 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
 
 lemma afilter_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (afilter e a S)"
 proof(induction e arbitrary: a S)
-  case N thus ?case by simp
+  case N thus ?case by simp (metis test_num')
 next
   case (V x)
   obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>f S'" using `s : \<gamma>\<^isub>o S`
@@ -328,7 +330,7 @@ by (simp add: mono_aval')
 
 lemma mono_afilter: "r \<sqsubseteq> r' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> afilter e r S \<sqsubseteq> afilter e r' S'"
 apply(induction e arbitrary: r r' S S')
-apply(auto simp: Let_def split: option.splits prod.splits)
+apply(auto simp: test_num' Let_def split: option.splits prod.splits)
 apply (metis mono_gamma subsetD)
 apply(drule_tac x = "list" in mono_lookup)
 apply (metis mono_meet le_trans)

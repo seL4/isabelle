@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Author: Jasmin Blanchette
+#
+# DESCRIPTION: Nitpick for TPTP
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG FILES"
+  echo
+  echo "  Runs Nitpick on TPTP problems."
+  echo
+  exit 1
+}
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
+
+for FILE in "$@"
+do
+  echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
+ML {* ATP_Problem_Import.nitpick_tptp_file \"$FILE\" *} end;" \
+    > /tmp/$SCRATCH.thy
+  "$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"
+done

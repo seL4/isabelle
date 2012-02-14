@@ -41,14 +41,9 @@ sig
     Formula of string * formula_kind
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
                * (string, string ho_type) ho_term option
-               * (string, string ho_type) ho_term option
+               * (string, string ho_type) ho_term list
   type 'a problem = (string * 'a problem_line list) list
 
-  val isabelle_info_prefix : string
-  val isabelle_info : atp_format -> string -> (string, 'a) ho_term option
-  val introN : string
-  val elimN : string
-  val simpN : string
   val tptp_cnf : string
   val tptp_fof : string
   val tptp_tff : string
@@ -79,6 +74,18 @@ sig
   val tptp_false : string
   val tptp_true : string
   val tptp_empty_list : string
+  val isabelle_info_prefix : string
+  val isabelle_info : atp_format -> string -> int -> (string, 'a) ho_term list
+  val extract_isabelle_status : (string, 'a) ho_term list -> string option
+  val extract_isabelle_rank : (string, 'a) ho_term list -> int
+  val introN : string
+  val elimN : string
+  val simpN : string
+  val spec_eqN : string
+  val rankN : string
+  val minimum_rank : int
+  val default_rank : int
+  val default_kbo_weight : int
   val is_tptp_equal : string -> bool
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
@@ -100,9 +107,12 @@ sig
     bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
+  val is_function_type : string ho_type -> bool
+  val is_predicate_type : string ho_type -> bool
   val is_format_higher_order : atp_format -> bool
   val is_format_typed : atp_format -> bool
-  val lines_for_atp_problem : atp_format -> string problem -> string list
+  val lines_for_atp_problem :
+    atp_format -> (unit -> (string * int) list) -> string problem -> string list
   val ensure_cnf_problem :
     (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
@@ -153,25 +163,11 @@ datatype atp_format =
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
-  Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
-             * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
+  Formula of string * formula_kind
+             * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+             * (string, string ho_type) ho_term option
+             * (string, string ho_type) ho_term list
 type 'a problem = (string * 'a problem_line list) list
-
-val isabelle_info_prefix = "isabelle_"
-
-(* Currently, only newer versions of SPASS, with sorted DFG format support, can
-   process Isabelle metainformation. *)
-fun isabelle_info (DFG DFG_Sorted) s =
-    SOME (ATerm ("[]", [ATerm (isabelle_info_prefix ^ s, [])]))
-  | isabelle_info _ _ = NONE
-
-val introN = "intro"
-val elimN = "elim"
-val simpN = "simp"
-
-fun is_isabelle_info suffix (SOME (ATerm ("[]", [ATerm (s, [])]))) =
-    s = isabelle_info_prefix ^ suffix
-  | is_isabelle_info _ _ = false
 
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"
@@ -204,6 +200,37 @@ val tptp_old_equal = "equal"
 val tptp_false = "$false"
 val tptp_true = "$true"
 val tptp_empty_list = "[]"
+
+val isabelle_info_prefix = "isabelle_"
+
+val introN = "intro"
+val elimN = "elim"
+val simpN = "simp"
+val spec_eqN = "spec_eq"
+val rankN = "rank"
+
+val minimum_rank = 0
+val default_rank = 1000
+val default_kbo_weight = 1
+
+(* Currently, only newer versions of SPASS, with sorted DFG format support, can
+   process Isabelle metainformation. *)
+fun isabelle_info (DFG DFG_Sorted) status rank =
+    [] |> rank <> default_rank
+          ? cons (ATerm (isabelle_info_prefix ^ rankN,
+                         [ATerm (string_of_int rank, [])]))
+       |> status <> "" ? cons (ATerm (isabelle_info_prefix ^ status, []))
+  | isabelle_info _ _ _ = []
+
+fun extract_isabelle_status (ATerm (s, []) :: _) =
+    try (unprefix isabelle_info_prefix) s
+  | extract_isabelle_status _ = NONE
+
+fun extract_isabelle_rank (tms as _ :: _) =
+    (case List.last tms of
+       ATerm (_, [ATerm (rank, [])]) => the (Int.fromString rank)
+     | _ => default_rank)
+  | extract_isabelle_rank _ = default_rank
 
 fun is_tptp_equal s = (s = tptp_equal orelse s = tptp_old_equal)
 fun is_built_in_tptp_symbol s =
@@ -253,6 +280,16 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
+fun is_function_type (AFun (_, ty)) = is_function_type ty
+  | is_function_type (AType (s, _)) =
+    s <> tptp_type_of_types andalso s <> tptp_bool_type
+  | is_function_type _ = false
+fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
+  | is_predicate_type (AType (s, _)) = (s = tptp_bool_type)
+  | is_predicate_type _ = false
+fun is_nontrivial_predicate_type (AFun (_, ty)) = is_predicate_type ty
+  | is_nontrivial_predicate_type _ = false
+
 fun is_format_higher_order (THF _) = true
   | is_format_higher_order _ = false
 fun is_format_typed (TFF _) = true
@@ -283,11 +320,13 @@ fun flatten_type (ATyAbs (tys, ty)) = ATyAbs (tys, flatten_type ty)
   | flatten_type _ =
     raise Fail "unexpected higher-order type in first-order format"
 
+val dfg_individual_type = "iii" (* cannot clash *)
+
 fun str_for_type format ty =
   let
     val dfg = (format = DFG DFG_Sorted)
     fun str _ (AType (s, [])) =
-        if dfg andalso s = tptp_individual_type then "Top" else s
+        if dfg andalso s = tptp_individual_type then dfg_individual_type else s
       | str _ (AType (s, tys)) =
         let val ss = tys |> map (str false) in
           if s = tptp_product_type then
@@ -349,7 +388,7 @@ fun tptp_string_for_term _ (ATerm (s, [])) = s
            (AQuant (if s = tptp_ho_forall then AForall else AExists,
                     [(s', SOME ty)], AAtom tm))
      | (_, true, [AAbs ((s', ty), tm)]) =>
-       (* There is code in "ATP_Translate" to ensure that "Eps" is always
+       (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always
           applied to an abstraction. *)
        tptp_choice ^ "[" ^ s' ^ " : " ^ string_for_type format ty ^ "]: " ^
        tptp_string_for_term format tm ^ ""
@@ -402,11 +441,12 @@ fun tptp_string_for_problem_line format (Decl (ident, sym, ty)) =
     tptp_string_for_kind kind ^ ",\n    (" ^
     tptp_string_for_formula format phi ^ ")" ^
     (case (source, info) of
-       (NONE, NONE) => ""
-     | (SOME tm, NONE) => ", " ^ tptp_string_for_term format tm
-     | (_, SOME tm) =>
+       (NONE, []) => ""
+     | (SOME tm, []) => ", " ^ tptp_string_for_term format tm
+     | (_, tms) =>
        ", " ^ tptp_string_for_term format (the_source source) ^
-       ", " ^ tptp_string_for_term format tm) ^ ").\n"
+       ", " ^ tptp_string_for_term format (ATerm (tptp_empty_list, tms))) ^
+    ").\n"
 
 fun tptp_lines format =
   maps (fn (_, []) => []
@@ -420,19 +460,19 @@ fun arity_of_type (AFun (_, ty)) = 1 + arity_of_type ty
 fun binder_atypes (AFun (ty1, ty2)) = ty1 :: binder_atypes ty2
   | binder_atypes _ = []
 
-fun is_function_type (AFun (_, ty)) = is_function_type ty
-  | is_function_type (AType (s, _)) =
-    s <> tptp_type_of_types andalso s <> tptp_bool_type
-  | is_function_type _ = false
-
-fun is_predicate_type (AFun (_, ty)) = is_predicate_type ty
-  | is_predicate_type (AType (s, _)) = (s = tptp_bool_type)
-  | is_predicate_type _ = false
-
 fun dfg_string_for_formula flavor info =
   let
-    fun str_for_term simp (ATerm (s, tms)) =
-        (if is_tptp_equal s then "equal" |> simp ? suffix ":lr"
+    fun suffix_tag top_level s =
+      if top_level then
+        case extract_isabelle_status info of
+          SOME s' => if s' = simpN then s ^ ":lr"
+                     else if s' = spec_eqN then s ^ ":lt"
+                     else s
+        | NONE => s
+      else
+        s
+    fun str_for_term top_level (ATerm (s, tms)) =
+        (if is_tptp_equal s then "equal" |> suffix_tag top_level
          else if s = tptp_true then "true"
          else if s = tptp_false then "false"
          else s) ^
@@ -445,23 +485,23 @@ fun dfg_string_for_formula flavor info =
       | str_for_conn _ AAnd = "and"
       | str_for_conn _ AOr = "or"
       | str_for_conn _ AImplies = "implies"
-      | str_for_conn simp AIff = "equiv" |> simp ? suffix ":lr"
-    fun str_for_formula simp (AQuant (q, xs, phi)) =
+      | str_for_conn top_level AIff = "equiv" |> suffix_tag top_level
+    fun str_for_formula top_level (AQuant (q, xs, phi)) =
         str_for_quant q ^ "(" ^ "[" ^
         commas (map (string_for_bound_var (DFG flavor)) xs) ^ "], " ^
-        str_for_formula simp phi ^ ")"
-      | str_for_formula simp (AConn (c, phis)) =
-        str_for_conn simp c ^ "(" ^
+        str_for_formula top_level phi ^ ")"
+      | str_for_formula top_level (AConn (c, phis)) =
+        str_for_conn top_level c ^ "(" ^
         commas (map (str_for_formula false) phis) ^ ")"
-      | str_for_formula simp (AAtom tm) = str_for_term simp tm
-  in str_for_formula (is_isabelle_info simpN info) end
+      | str_for_formula top_level (AAtom tm) = str_for_term top_level tm
+  in str_for_formula true end
 
-fun dfg_lines flavor problem =
+fun dfg_lines flavor kbo_weights problem =
   let
     val sorted = (flavor = DFG_Sorted)
     val format = DFG flavor
-    fun ary sym ty =
-      "(" ^ sym ^ ", " ^ string_of_int (arity_of_type ty) ^ ")"
+    fun spair (sym, k) = "(" ^ sym ^ ", " ^ string_of_int k ^ ")"
+    fun ary sym = curry spair sym o arity_of_type
     fun fun_typ sym ty =
       "function(" ^ sym ^ ", " ^ string_for_type format ty ^ ")."
     fun pred_typ sym ty =
@@ -469,39 +509,51 @@ fun dfg_lines flavor problem =
       commas (sym :: map (string_for_type format) (binder_atypes ty)) ^ ")."
     fun formula pred (Formula (ident, kind, phi, _, info)) =
         if pred kind then
-          SOME ("formula(" ^ dfg_string_for_formula flavor info phi ^ ", " ^
-                ident ^ ").")
+          let val rank = extract_isabelle_rank info in
+            "formula(" ^ dfg_string_for_formula flavor info phi ^ ", " ^ ident ^
+            (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
+            ")." |> SOME
+          end
         else
           NONE
       | formula _ _ = NONE
-    fun filt f = problem |> map (map_filter f o snd) |> flat
+    fun filt f = problem |> map (map_filter f o snd) |> filter_out null
     val func_aries =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
-      |> commas |> enclose "functions [" "]."
+      |> flat |> commas |> enclose "functions [" "]."
     val pred_aries =
       filt (fn Decl (_, sym, ty) =>
                if is_predicate_type ty then SOME (ary sym ty) else NONE
              | _ => NONE)
-      |> commas |> enclose "predicates [" "]."
+      |> flat |> commas |> enclose "predicates [" "]."
     fun sorts () =
       filt (fn Decl (_, sym, AType (s, [])) =>
                if s = tptp_type_of_types then SOME sym else NONE
-             | _ => NONE)
-      |> commas |> enclose "sorts [" "]."
-    val syms = [func_aries, pred_aries] @ (if sorted then [sorts ()] else [])
+             | _ => NONE) @ [[dfg_individual_type]]
+      |> flat |> commas |> enclose "sorts [" "]."
+    fun do_kbo_weights () =
+      kbo_weights () |> map spair |> commas |> enclose "weights [" "]."
+    val syms =
+      [func_aries] @ (if sorted then [do_kbo_weights ()] else []) @
+      [pred_aries] @ (if sorted then [sorts ()] else [])
     fun func_sigs () =
       filt (fn Decl (_, sym, ty) =>
                if is_function_type ty then SOME (fun_typ sym ty) else NONE
              | _ => NONE)
+      |> flat
     fun pred_sigs () =
       filt (fn Decl (_, sym, ty) =>
-               if is_predicate_type ty then SOME (pred_typ sym ty) else NONE
+               if is_nontrivial_predicate_type ty then SOME (pred_typ sym ty)
+               else NONE
              | _ => NONE)
+      |> flat
     val decls = if sorted then func_sigs () @ pred_sigs () else []
-    val axioms = filt (formula (curry (op <>) Conjecture))
-    val conjs = filt (formula (curry (op =) Conjecture))
+    val axioms =
+      filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
+    val conjs =
+      filt (formula (curry (op =) Conjecture)) |> separate [""] |> flat
     fun list_of _ [] = []
       | list_of heading ss =
         "list_of_" ^ heading ^ ".\n" :: map (suffix "\n") ss @
@@ -518,11 +570,11 @@ fun dfg_lines flavor problem =
     ["end_problem.\n"]
   end
 
-fun lines_for_atp_problem format problem =
+fun lines_for_atp_problem format kbo_weights problem =
   "% This file was generated by Isabelle (most likely Sledgehammer)\n\
   \% " ^ timestamp () ^ "\n" ::
   (case format of
-     DFG flavor => dfg_lines flavor
+     DFG flavor => dfg_lines flavor kbo_weights
    | _ => tptp_lines format) problem
 
 
@@ -642,7 +694,21 @@ val max_readable_name_size = 20
    is still necessary). *)
 val reserved_nice_names = [tptp_old_equal, "op", "eq"]
 
-fun readable_name underscore full_name s =
+(* hack to get the same hashing across Mirabelle runs (see "mirabelle.pl") *)
+fun cleanup_mirabelle_name s =
+  let
+    val mirabelle_infix = "_Mirabelle_"
+    val random_suffix_len = 10
+    val (s1, s2) = Substring.position mirabelle_infix (Substring.full s)
+  in
+    if Substring.isEmpty s2 then
+      s
+    else
+      Substring.string s1 ^
+      Substring.string (Substring.triml (size mirabelle_infix + random_suffix_len) s2)
+  end
+
+fun readable_name protect full_name s =
   (if s = full_name then
      s
    else
@@ -652,24 +718,24 @@ fun readable_name underscore full_name s =
        |> (fn s =>
               if size s > max_readable_name_size then
                 String.substring (s, 0, max_readable_name_size div 2 - 4) ^
-                string_of_int (hash_string full_name) ^
+                string_of_int (hash_string (cleanup_mirabelle_name full_name)) ^
                 String.extract (s, size s - max_readable_name_size div 2 + 4,
                                 NONE)
               else
                 s)
        |> (fn s =>
               if member (op =) reserved_nice_names s then full_name else s))
-  |> underscore ? suffix "_"
+  |> protect
 
 fun nice_name _ (full_name, _) NONE = (full_name, NONE)
-  | nice_name underscore (full_name, desired_name) (SOME the_pool) =
+  | nice_name protect (full_name, desired_name) (SOME the_pool) =
     if is_built_in_tptp_symbol full_name then
       (full_name, SOME the_pool)
     else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
     | NONE =>
       let
-        val nice_prefix = readable_name underscore full_name desired_name
+        val nice_prefix = readable_name protect full_name desired_name
         fun add j =
           let
             val nice_name =
@@ -686,12 +752,22 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
+fun avoid_clash_with_dfg_keywords s =
+  let val n = String.size s in
+    if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
+       String.isSubstring "_" s then
+      s
+    else
+      String.substring (s, 0, n - 1) ^
+      String.str (Char.toUpper (String.sub (s, n - 1)))
+  end
+
 fun nice_atp_problem readable_names format problem =
   let
     val empty_pool =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
-    val underscore = case format of DFG _ => true | _ => false
-    val nice_name = nice_name underscore
+    val nice_name =
+      nice_name (case format of DFG _ => avoid_clash_with_dfg_keywords | _ => I)
     fun nice_type (AType (name, tys)) =
         nice_name name ##>> pool_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun

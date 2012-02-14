@@ -635,7 +635,7 @@ text {* Measure functions into @{typ nat} *}
 definition measure :: "('a => nat) => ('a * 'a)set"
 where "measure = inv_image less_than"
 
-lemma in_measure[simp]: "((x,y) : measure f) = (f x < f y)"
+lemma in_measure[simp, code_unfold]: "((x,y) : measure f) = (f x < f y)"
   by (simp add:measure_def)
 
 lemma wf_measure [iff]: "wf (measure f)"

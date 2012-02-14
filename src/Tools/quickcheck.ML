@@ -324,10 +324,20 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
      of NONE => Assumption.all_assms_of lthy
       | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
+    fun assms_of locale = case fst (Locale.intros_of thy locale) of NONE => []
+      | SOME th =>
+          let
+            val t = the_single (Assumption.all_assms_of (Locale.init locale thy))
+            val (tyenv, tenv) =
+              Pattern.match thy (concl_of th, term_of t) (Vartab.empty, Vartab.empty)
+          in
+            map (Envir.subst_term (tyenv, tenv)) (prems_of th)
+          end
     val goals = case some_locale
      of NONE => [(proto_goal, eval_terms)]
       | SOME locale =>
-        map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
+          (Logic.list_implies (assms_of locale, proto_goal), eval_terms) ::
+          map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
           (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
     test_terms lthy (time_limit, is_interactive) insts goals

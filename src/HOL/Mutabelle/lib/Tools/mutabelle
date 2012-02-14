@@ -16,6 +16,7 @@ function usage() {
   echo "    -L LOGIC     parent logic to use (default $MUTABELLE_LOGIC)"
   echo "    -T THEORY    parent theory to use (default $MUTABELLE_IMPORT_THEORY)"
   echo "    -O DIR       output directory for test data (default $MUTABELLE_OUTPUT_PATH)"
+  echo "    -N NUMBER    number of lemmas to choose randomly, if not given all lemmas are chosen"
   echo
   echo "  THEORY is the name of the theory of which all theorems should be"
   echo "  mutated and tested."
@@ -30,7 +31,7 @@ function usage() {
 
 MUTABELLE_IMPORTS=""
 
-while getopts "L:T:O:" OPT
+while getopts "L:T:O:N:" OPT
 do
   case "$OPT" in
     L)
@@ -41,6 +42,9 @@ do
       ;;
     O)      
       MUTABELLE_OUTPUT_PATH="$OPTARG"
+      ;;
+    N)
+      NUMBER_OF_LEMMAS="$OPTARG"
       ;;
     \?)
       usage
@@ -66,6 +70,9 @@ fi
 
 export MUTABELLE_OUTPUT_PATH
 
+if [ "$NUMBER_OF_LEMMAS" != "" ]; then
+  MUTABELLE_FILTER="|> MutabelleExtra.take_random $NUMBER_OF_LEMMAS"
+fi
 
 ## main
 
@@ -104,7 +111,7 @@ val mtds = [
 ML {*
 fun mutation_testing_of thy =
   (MutabelleExtra.random_seed := 1.0;
-  MutabelleExtra.thms_of false thy
+  MutabelleExtra.thms_of false thy $MUTABELLE_FILTER 
   |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
          @{theory} mtds thms (\"$MUTABELLE_OUTPUT_PATH/log\")))
 *}

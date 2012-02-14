@@ -1,6 +1,6 @@
 module Narrowing_Engine where {
 
-import Monad;
+import Control.Monad;
 import Control.Exception;
 import System.IO;
 import System.Exit;

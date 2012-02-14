@@ -204,11 +204,11 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Set.thy \
   Sum_Type.thy \
   Tools/ATP/atp_problem.ML \
+  Tools/ATP/atp_problem_generate.ML \
   Tools/ATP/atp_proof.ML \
-  Tools/ATP/atp_reconstruct.ML \
-  Tools/ATP/atp_redirect.ML \
+  Tools/ATP/atp_proof_reconstruct.ML \
+  Tools/ATP/atp_proof_redirect.ML \
   Tools/ATP/atp_systems.ML \
-  Tools/ATP/atp_translate.ML \
   Tools/ATP/atp_util.ML \
   Tools/Datatype/datatype.ML \
   Tools/Datatype/datatype_aux.ML \
@@ -241,9 +241,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Meson/meson.ML \
   Tools/Meson/meson_clausify.ML \
   Tools/Meson/meson_tactic.ML \
+  Tools/Metis/metis_generate.ML \
   Tools/Metis/metis_reconstruct.ML \
   Tools/Metis/metis_tactic.ML \
-  Tools/Metis/metis_translate.ML \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
@@ -335,7 +335,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Nitpick/nitpick_scope.ML \
   Tools/Nitpick/nitpick_tests.ML \
   Tools/Nitpick/nitpick_util.ML \
-  Tools/Nitpick/nitrox.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
@@ -1052,10 +1051,10 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Case_Product.thy ex/Chinese.thy ex/Classical.thy			\
   ex/Coercion_Examples.thy ex/Coherent.thy				\
   ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy			\
-  ex/Eval_Examples.thy ex/Fundefs.thy ex/Gauge_Integration.thy		\
-  ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
-  ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Iff_Oracle.thy ex/Induction_Schema.thy				\
+  ex/Eval_Examples.thy ex/Executable_Relation.thy ex/Fundefs.thy	\
+  ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy	\
+  ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy 		\
+  ex/Higher_Order_Logic.thy ex/Iff_Oracle.thy ex/Induction_Schema.thy	\
   ex/Interpretation_with_Defs.thy ex/Intuitionistic.thy			\
   ex/Lagrange.thy ex/List_to_Set_Comprehension_Examples.thy		\
   ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy ex/Meson_Test.thy	\
@@ -1169,9 +1168,11 @@ HOL-TPTP: HOL $(LOG)/HOL-TPTP.gz
 $(LOG)/HOL-TPTP.gz: \
   $(OUT)/HOL \
   TPTP/ROOT.ML \
-  TPTP/ATP_Export.thy \
-  TPTP/CASC_Setup.thy \
-  TPTP/atp_export.ML
+  TPTP/atp_problem_import.ML \
+  TPTP/ATP_Problem_Import.thy \
+  TPTP/atp_theory_export.ML \
+  TPTP/ATP_Theory_Export.thy \
+  TPTP/CASC_Setup.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL TPTP
 
 

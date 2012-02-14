@@ -56,7 +56,7 @@ abbreviation "w n ==
   WHILE Less (V ''y'') (N n)
   DO ( ''y'' ::= Plus (V ''y'') (N 1); ''x'' ::= Plus (V ''x'') (V ''y'') )"
 
-lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 <= n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum> {1 .. n}}"
+lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 \<le> n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum>{1..n}}"
 apply(rule Semi)
 prefer 2
 apply(rule While'

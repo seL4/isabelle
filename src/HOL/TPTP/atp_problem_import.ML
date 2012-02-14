@@ -1,24 +1,28 @@
-(*  Title:      HOL/Tools/Nitpick/nitrox.ML
+(*  Title:      HOL/TPTP/atp_problem_import.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2010, 2011
+    Copyright   2012
 
-Finite model generation for TPTP first-order formulas (FOF and CNF) via Nitpick.
+Import TPTP problems as Isabelle terms or goals.
 *)
 
-signature NITROX =
+signature ATP_PROBLEM_IMPORT =
 sig
-  val pick_nits_in_fof_file : string -> string
+  val isabelle_tptp_file : string -> unit
+  val nitpick_tptp_file : string -> unit
+  val refute_tptp_file : string -> unit
+  val sledgehammer_tptp_file : string -> unit
+  val translate_tptp_file : string -> string -> string -> unit
 end;
 
-structure Nitrox : NITROX =
+structure ATP_Problem_Import : ATP_PROBLEM_IMPORT =
 struct
 
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
-open Nitpick_Util
-open Nitpick
-open Nitpick_Isar
+
+
+(** General TPTP parsing **)
 
 exception SYNTAX of string
 
@@ -41,8 +45,8 @@ fun parse_include x =
       path |> not (Path.is_absolute path) ? Path.append (Path.explode "$TPTP")
   in ((), (path |> File.read |> tptp_explode) @ rest) end
 
-val parse_fof_or_cnf =
-  (Scan.this_string "fof" || Scan.this_string "cnf") |-- $$ "(" |--
+val parse_cnf_or_fof =
+  (Scan.this_string "cnf" || Scan.this_string "fof") |-- $$ "(" |--
   Scan.many (not_equal ",") |-- $$ "," |--
   (Scan.this_string "axiom" || Scan.this_string "definition"
    || Scan.this_string "theorem" || Scan.this_string "lemma"
@@ -53,7 +57,7 @@ val parse_fof_or_cnf =
 
 val parse_problem =
   Scan.repeat parse_include
-  |-- Scan.repeat (parse_fof_or_cnf --| Scan.repeat parse_include)
+  |-- Scan.repeat (parse_cnf_or_fof --| Scan.repeat parse_include)
 
 val parse_tptp_problem =
   Scan.finite Symbol.stopper
@@ -62,7 +66,7 @@ val parse_tptp_problem =
   o tptp_explode
 
 val iota_T = @{typ iota}
-val quant_T = (iota_T --> bool_T) --> bool_T
+val quant_T = @{typ "(iota => bool) => bool"}
 
 fun is_variable s = Char.isUpper (String.sub (s, 0))
 
@@ -94,47 +98,86 @@ fun hol_prop_from_formula phi =
         | AIff => HOLogic.mk_eq
         | ANot => raise Fail "binary \"ANot\"")
   | AConn _ => raise Fail "malformed AConn"
-  | AAtom u => hol_term_from_fo_term bool_T u
+  | AAtom u => hol_term_from_fo_term @{typ bool} u
 
 fun mk_all x t = Const (@{const_name All}, quant_T) $ lambda x t
 
 fun close_hol_prop t = fold (mk_all o Free) (Term.add_frees t []) t
 
-fun pick_nits_in_fof_file file_name =
+fun read_tptp_file file_name =
   case parse_tptp_problem (File.read (Path.explode file_name)) of
     (_, s :: ss) => raise SYNTAX ("cannot parse " ^ quote (implode (s :: ss)))
   | (phis, []) =>
-    let
-      val ts = map (HOLogic.mk_Trueprop o close_hol_prop
-                    o hol_prop_from_formula) phis
-(*
-      val _ = warning (PolyML.makestring phis)
-      val _ = app (warning o Syntax.string_of_term @{context}) ts
-*)
-      val state = Proof.init @{context}
-      val params =
-        [("card iota", "1\<emdash>100"),
-         ("card", "1\<emdash>8"),
-         ("box", "false"),
-         ("sat_solver", "smart"),
-         ("max_threads", "1"),
-         ("batch_size", "10"),
-         (* ("debug", "true"), *)
-         ("verbose", "true"),
-         (* ("overlord", "true"), *)
-         ("show_consts", "true"),
-         ("format", "1000"),
-         ("max_potential", "0"),
-         ("timeout", "none"),
-         ("expect", genuineN)]
-        |> default_params @{theory}
-      val i = 1
-      val n = 1
-      val step = 0
-      val subst = []
-    in
-      pick_nits_in_term state params Normal i n step subst ts @{prop False}
-      |> fst
-    end
+    map (HOLogic.mk_Trueprop o close_hol_prop o hol_prop_from_formula) phis
+
+fun print_szs_from_outcome s =
+  "% SZS status " ^
+  (if s = Nitpick.genuineN then
+     "CounterSatisfiable"
+   else
+     "Unknown")
+  |> writeln
+
+(** Isabelle (combination of provers) **)
+
+fun isabelle_tptp_file file_name = ()
+
+
+(** Nitpick (alias Nitrox) **)
+
+fun nitpick_tptp_file file_name =
+  let
+    val ts = read_tptp_file file_name
+    val state = Proof.init @{context}
+    val params =
+      [("card iota", "1\<emdash>100"),
+       ("card", "1\<emdash>8"),
+       ("box", "false"),
+       ("sat_solver", "smart"),
+       ("max_threads", "1"),
+       ("batch_size", "10"),
+       (* ("debug", "true"), *)
+       ("verbose", "true"),
+       (* ("overlord", "true"), *)
+       ("show_consts", "true"),
+       ("format", "1000"),
+       ("max_potential", "0"),
+       ("timeout", "none"),
+       ("expect", Nitpick.genuineN)]
+      |> Nitpick_Isar.default_params @{theory}
+    val i = 1
+    val n = 1
+    val step = 0
+    val subst = []
+  in
+    Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst ts
+        @{prop False}
+    |> fst |> print_szs_from_outcome
+  end
+
+
+(** Refute **)
+
+fun refute_tptp_file file_name =
+  let
+    val ts = read_tptp_file file_name
+    val params =
+      [("maxtime", "10000"),
+       ("assms", "true"),
+       ("expect", Nitpick.genuineN)]
+  in
+    Refute.refute_term @{context} params ts @{prop False}
+    |> print_szs_from_outcome
+  end
+
+
+(** Sledgehammer **)
+
+fun sledgehammer_tptp_file file_name = ()
+
+
+(** Translator between TPTP(-like) file formats **)
+
+fun translate_tptp_file format in_file_name out_file_name = ()
 
 end;

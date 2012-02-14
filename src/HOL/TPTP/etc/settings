@@ -1,3 +1,5 @@
 # -*- shell-script -*- :mode=shellscript:
 
+TPTP_HOME="$COMPONENT"
+
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"

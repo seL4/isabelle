@@ -12,8 +12,8 @@ text{* A concrete type of state with computable @{text"\<sqsubseteq>"}: *}
 
 datatype 'a st = FunDom "vname \<Rightarrow> 'a" "vname list"
 
-fun "fun" where "fun (FunDom f _) = f"
-fun dom where "dom (FunDom _ A) = A"
+fun "fun" where "fun (FunDom f xs) = f"
+fun dom where "dom (FunDom f xs) = xs"
 
 definition [simp]: "inter_list xs ys = [x\<leftarrow>xs. x \<in> set ys]"
 
@@ -58,7 +58,7 @@ by(auto simp add: lookup_def le_st_def)
 lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> update S x a \<sqsubseteq> update S' x a'"
 by(auto simp add: le_st_def lookup_def update_def)
 
-context Val_abs
+locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
 abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"

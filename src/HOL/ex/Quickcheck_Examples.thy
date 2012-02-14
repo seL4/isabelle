@@ -267,16 +267,59 @@ lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
 oops
 
 
-subsection {* Examples with relations *}
+subsection {* Examples with sets *}
 
 lemma
-  "acyclic R ==> acyclic S ==> acyclic (R Un S)"
-(* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
+  "{} = A Un - A"
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
+  "[| bij_betw f A B; bij_betw f C D |] ==> bij_betw f (A Un C) (B Un D)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+
+subsection {* Examples with relations *}
+
+lemma
+  "acyclic (R :: ('a * 'a) set) ==> acyclic S ==> acyclic (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "acyclic (R :: (nat * nat) set) ==> acyclic S ==> acyclic (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+(* FIXME: some dramatic performance decrease after changing the code equation of the ntrancl *)
+lemma
   "(x, z) : rtrancl (R Un S) ==> \<exists> y. (x, y) : rtrancl R & (y, z) : rtrancl S"
-(* FIXME: missing instance for narrowing -- quickcheck[expect = counterexample] *)
+(*quickcheck[exhaustive, expect = counterexample]*)
+oops
+
+lemma
+  "wf (R :: ('a * 'a) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "wf (R :: (nat * nat) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+lemma
+  "wf (R :: (int * int) set) ==> wf S ==> wf (R Un S)"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+
+subsection {* Examples with the descriptive operator *}
+
+lemma
+  "(THE x. x = a) = b"
+quickcheck[random, expect = counterexample]
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 subsection {* Examples with Multisets *}
@@ -406,7 +449,7 @@ context Truth
 begin
 
 lemma "False"
-quickcheck[exhaustive, expect = no_counterexample]
+quickcheck[exhaustive, expect = counterexample]
 oops
 
 end
@@ -417,6 +460,19 @@ context Truth
 begin
 
 lemma "False"
+quickcheck[exhaustive, expect = counterexample]
+oops
+
+end
+
+locale antisym =
+  fixes R
+  assumes "R x y --> R y x --> x = y"
+begin
+
+lemma
+  "R x y --> R y z --> R x z"
+quickcheck[exhaustive, finite_type_size = 2, expect = no_counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 

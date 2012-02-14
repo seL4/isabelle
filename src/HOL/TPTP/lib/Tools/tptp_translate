@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#
+# Author: Jasmin Blanchette
+#
+# DESCRIPTION: Translation tool for TPTP formats
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG FORMAT IN_FILE OUT_FILE"
+  echo
+  echo "  Translates TPTP input file to specified TPTP format (\"CNF\", \"FOF\", \"TFF0\", \"TFF1\", or \"THF0\")."
+  echo
+  exit 1
+}
+
+[ "$#" -ne 3 -o "$1" = "-?" ] && usage
+
+SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
+
+args=("$@")
+
+echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
+ML {* ATP_Problem_Import.translate_tptp_file \"${args[0]}\" \"${args[1]}\" \"${args[2]}\" *} end;" \
+  > /tmp/$SCRATCH.thy
+"$ISABELLE_PROCESS" -e "use_thy \"/tmp/$SCRATCH\"; exit 1;"

@@ -9,9 +9,10 @@ val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val type_encK = "type_enc"
-val soundK = "sound"
+val strictK = "strict"
 val sliceK = "slice"
 val lam_transK = "lam_trans"
+val uncurried_aliasesK = "uncurried_aliases"
 val e_weight_methodK = "e_weight_method"
 val force_sosK = "force_sos"
 val max_relevantK = "max_relevant"
@@ -336,7 +337,7 @@ fun get_prover ctxt args =
     | NONE => get_prover (default_prover_name ()))
   end
 
-type locality = ATP_Translate.locality
+type stature = ATP_Problem_Generate.stature
 
 (* hack *)
 fun reconstructor_from_msg args msg =
@@ -357,12 +358,13 @@ fun reconstructor_from_msg args msg =
 local
 
 datatype sh_result =
-  SH_OK of int * int * (string * locality) list |
+  SH_OK of int * int * (string * stature) list |
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
-        e_weight_method force_sos hard_timeout timeout dir pos st =
+fun run_sh prover_name prover type_enc strict max_relevant slice lam_trans
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
+        st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -385,9 +387,9 @@ fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_enc", type_enc),
-           ("sound", sound),
+           ("strict", strict),
            ("lam_trans", lam_trans |> the_default "smart"),
-           ("preplay_timeout", preplay_timeout),
+           ("uncurried_aliases", uncurried_aliases |> the_default "smart"),
            ("max_relevant", max_relevant),
            ("slice", slice),
            ("timeout", string_of_int timeout),
@@ -410,7 +412,7 @@ fun run_sh prover_name prover type_enc sound max_relevant slice lam_trans
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
         preplay =
-          K (ATP_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
+          K (ATP_Proof_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,
@@ -467,10 +469,11 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val sound = AList.lookup (op =) args soundK |> the_default "false"
+    val strict = AList.lookup (op =) args strictK |> the_default "false"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slice = AList.lookup (op =) args sliceK |> the_default "true"
     val lam_trans = AList.lookup (op =) args lam_transK
+    val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
@@ -480,14 +483,15 @@ fun run_sledgehammer trivial args reconstructor named_thms id
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc sound max_relevant slice lam_trans
-        e_weight_method force_sos hard_timeout timeout dir pos st
+      run_sh prover_name prover type_enc strict max_relevant slice lam_trans
+        uncurried_aliases e_weight_method force_sos hard_timeout timeout dir pos
+        st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
         let
-          fun get_thms (name, loc) =
-            SOME ((name, loc), thms_of_name (Proof.context_of st) name)
+          fun get_thms (name, stature) =
+            SOME ((name, stature), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           if trivial then () else change_data id inc_sh_nontriv_success;
@@ -517,7 +521,7 @@ fun run_minimize args reconstructor named_thms id
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
     val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
-    val sound = AList.lookup (op =) args soundK |> the_default "false"
+    val strict = AList.lookup (op =) args strictK |> the_default "false"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
@@ -526,7 +530,7 @@ fun run_minimize args reconstructor named_thms id
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
-       ("sound", sound),
+       ("strict", strict),
        ("timeout", string_of_int timeout),
        ("preplay_timeout", preplay_timeout)]
     val minimize =
@@ -554,7 +558,7 @@ fun override_params prover type_enc timeout =
   [("provers", prover),
    ("max_relevant", "0"),
    ("type_enc", type_enc),
-   ("sound", "true"),
+   ("strict", "true"),
    ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
@@ -577,16 +581,17 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
             relevance_override
       in
         if !reconstructor = "sledgehammer_tac" then
-          sledge_tac 0.2 ATP_Systems.z3_tptpN "mono_simple"
+          sledge_tac 0.2 ATP_Systems.z3_tptpN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Systems.eN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.vampireN "mono_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.spassN "poly_tags"
-          ORELSE' Metis_Tactic.metis_tac [] ATP_Translate.combinatorsN ctxt thms
+          ORELSE' Metis_Tactic.metis_tac [] ATP_Problem_Generate.combsN
+            ctxt thms
         else if !reconstructor = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full then
-          Metis_Tactic.metis_tac [ATP_Reconstruct.full_typesN]
-            ATP_Reconstruct.metis_default_lam_trans ctxt thms
+          Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
+            ATP_Proof_Reconstruct.metis_default_lam_trans ctxt thms
         else if String.isPrefix "metis (" (!reconstructor) then
           let
             val (type_encs, lam_trans) =
@@ -594,11 +599,11 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
               |> Outer_Syntax.scan Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
-              |>> the_default [ATP_Reconstruct.partial_typesN]
-              ||> the_default ATP_Reconstruct.metis_default_lam_trans
+              |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
+              ||> the_default ATP_Proof_Reconstruct.metis_default_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ATP_Reconstruct.metis_default_lam_trans ctxt
+          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.metis_default_lam_trans ctxt
             thms
         else
           K all_tac
@@ -653,7 +658,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
         let
           val reconstructor = Unsynchronized.ref ""
           val named_thms =
-            Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
+            Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
           val minimize = AList.defined (op =) args minimizeK
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =

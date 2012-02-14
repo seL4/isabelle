@@ -82,7 +82,7 @@ fun simproc ss redex =
         fun check (i, case_t) s =
           (case strip_abs_body case_t of
             (Const (@{const_name List.Nil}, _)) => s
-          | t => (case s of NONE => SOME i | SOME s => NONE))
+          | _ => (case s of NONE => SOME i | SOME _ => NONE))
       in
         fold_index check cases NONE
       end
@@ -132,7 +132,7 @@ fun simproc ss redex =
           in
             (* do case distinction *)
             Splitter.split_tac [#split info] 1
-            THEN EVERY (map_index (fn (i', case_rewrite) =>
+            THEN EVERY (map_index (fn (i', _) =>
               (if i' < length (#case_rewrites info) - 1 then rtac @{thm conjI} 1 else all_tac)
               THEN REPEAT_DETERM (rtac @{thm allI} 1)
               THEN rtac @{thm impI} 1
@@ -207,7 +207,7 @@ fun simproc ss redex =
                 val eqs' = map reverse_bounds eqs
                 val pat_eq' = reverse_bounds pat_eq
                 val inner_t =
-                  fold (fn (v, T) => fn t => HOLogic.exists_const T $ absdummy T t)
+                  fold (fn (_, T) => fn t => HOLogic.exists_const T $ absdummy T t)
                     (rev bound_vs) (fold (curry HOLogic.mk_conj) eqs' pat_eq')
                 val lhs = term_of redex
                 val rhs = HOLogic.mk_Collect ("x", rT, inner_t)

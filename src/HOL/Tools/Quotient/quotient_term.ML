@@ -728,7 +728,7 @@ fun subst_typ ctxt ty_subst rty =
           | matches ((rty, qty)::tail) =
               (case try (Sign.typ_match thy (rty, rty')) Vartab.empty of
                 NONE => matches tail
-              | SOME inst => Envir.subst_type inst qty)
+              | SOME inst => subst_typ ctxt ty_subst (Envir.subst_type inst qty))
       in
         matches ty_subst
       end
@@ -749,7 +749,7 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
           | matches ((rconst, qconst)::tail) =
               (case try (Pattern.match thy (rconst, rtrm)) (Vartab.empty, Vartab.empty) of
                 NONE => matches tail
-              | SOME inst => Envir.subst_term inst qconst)
+              | SOME inst => subst_trm ctxt ty_subst trm_subst (Envir.subst_term inst qconst))
       in
         matches trm_subst
       end

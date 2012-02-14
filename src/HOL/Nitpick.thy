@@ -24,10 +24,8 @@ uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/nitpick.ML")
      ("Tools/Nitpick/nitpick_isar.ML")
      ("Tools/Nitpick/nitpick_tests.ML")
-     ("Tools/Nitpick/nitrox.ML")
 begin
 
-typedecl iota (* for Nitrox *)
 typedecl bisim_iterator
 
 axiomatization unknown :: 'a
@@ -224,7 +222,6 @@ use "Tools/Nitpick/nitpick_model.ML"
 use "Tools/Nitpick/nitpick.ML"
 use "Tools/Nitpick/nitpick_isar.ML"
 use "Tools/Nitpick/nitpick_tests.ML"
-use "Tools/Nitpick/nitrox.ML"
 
 setup {*
   Nitpick_Isar.setup #>
@@ -240,8 +237,7 @@ hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
     fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac
     one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
     number_of_frac inverse_frac less_frac less_eq_frac of_frac
-hide_type (open) iota bisim_iterator fun_box pair_box unsigned_bit signed_bit
-    word
+hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
     prod_def refl'_def wf'_def card'_def setsum'_def
     fold_graph'_def The_psimp Eps_psimp unit_case_unfold nat_case_unfold

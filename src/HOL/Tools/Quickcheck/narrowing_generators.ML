@@ -10,7 +10,6 @@ sig
   val finite_functions : bool Config.T
   val overlord : bool Config.T
   val active : bool Config.T
-  val test_term: Proof.context -> term * term list -> Quickcheck.result
   datatype counterexample = Universal_Counterexample of (term * counterexample)
     | Existential_Counterexample of (term * counterexample) list
     | Empty_Assignment
@@ -240,7 +239,8 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
         val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
-          "import System;\n" ^
+          "import System.IO;\n" ^
+          "import System.Environment;\n" ^
           "import Narrowing_Engine;\n" ^
           "import Generated_Code;\n\n" ^
           "main = getArgs >>= \\[potential, size] -> " ^
@@ -389,7 +389,8 @@ val rewrs =
     map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
       (@{thms all_simps} @ @{thms ex_simps})
     @ map (HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
-        [@{thm iff_conv_conj_imp}, @{thm not_ex}, @{thm not_all}]
+        [@{thm iff_conv_conj_imp}, @{thm not_ex}, @{thm not_all},
+         @{thm meta_eq_to_obj_eq [OF Ex1_def]}]
 
 fun make_pnf_term thy t = Pattern.rewrite_term thy rewrs [] t
 
@@ -430,7 +431,7 @@ fun mk_terms ctxt qs result =
       |> map (apsnd post_process)
     end
   
-fun test_term ctxt (t, eval_terms) =
+fun test_term ctxt catch_code_errors (t, eval_terms) =
   let
     fun dest_result (Quickcheck.Result r) = r 
     val opts =
@@ -448,15 +449,20 @@ fun test_term ctxt (t, eval_terms) =
           apfst (map2 pair qs1) (f (qs2, t)) end
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         val (qs, prop_t) = finitize (strip_quantifiers pnf_t)
-        val (counterexample, result) = dynamic_value_strict (true, opts)
+        val act = if catch_code_errors then try else (fn f => SOME o f)
+        val execute = dynamic_value_strict (true, opts)
           ((K true, fn _ => error ""), (Existential_Counterexample.get, Existential_Counterexample.put,
             "Narrowing_Generators.put_existential_counterexample"))
-          thy (apfst o Option.map o map_counterexample) (mk_property qs prop_t)
-      in
-        Quickcheck.Result
-         {counterexample = Option.map (pair true o mk_terms ctxt qs) counterexample,
-          evaluation_terms = Option.map (K []) counterexample,
-          timings = #timings (dest_result result), reports = #reports (dest_result result)}
+          thy (apfst o Option.map o map_counterexample)
+      in  
+        case act execute (mk_property qs prop_t) of 
+          SOME (counterexample, result) => Quickcheck.Result
+            {counterexample = Option.map (pair true o mk_terms ctxt qs) counterexample,
+            evaluation_terms = Option.map (K []) counterexample,
+            timings = #timings (dest_result result), reports = #reports (dest_result result)}
+        | NONE =>
+          (Quickcheck.message ctxt ("Conjecture is not executable with Quickcheck-narrowing");
+           Quickcheck.empty_result)
       end
     else
       let
@@ -469,25 +475,33 @@ fun test_term ctxt (t, eval_terms) =
         fun is_genuine (SOME (true, _)) = true 
           | is_genuine _ = false
         val counterexample_of = Option.map (apsnd (curry (op ~~) (map fst frees) o map post_process))
-        val (counterexample, result) = dynamic_value_strict (false, opts)
+        val act = if catch_code_errors then try else (fn f => SOME o f)
+        val execute = dynamic_value_strict (false, opts)
           ((is_genuine, counterexample_of),
             (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample"))
-          thy (apfst o Option.map o apsnd o map) (ensure_testable (finitize t'))
+          thy (apfst o Option.map o apsnd o map)
       in
-        Quickcheck.Result
-         {counterexample = counterexample_of counterexample,
-          evaluation_terms = Option.map (K []) counterexample,
-          timings = #timings (dest_result result), reports = #reports (dest_result result)}
+        case act execute (ensure_testable (finitize t')) of 
+          SOME (counterexample, result) =>
+            Quickcheck.Result
+             {counterexample = counterexample_of counterexample,
+              evaluation_terms = Option.map (K []) counterexample,
+              timings = #timings (dest_result result),
+              reports = #reports (dest_result result)}
+        | NONE =>
+          (Quickcheck.message ctxt ("Conjecture is not executable with Quickcheck-narrowing");
+           Quickcheck.empty_result)
       end
   end;
 
-fun test_goals ctxt _ insts goals =
+fun test_goals ctxt catch_code_errors insts goals =
   if (not (getenv "ISABELLE_GHC" = "")) then
     let
       val _ = Quickcheck.message ctxt ("Testing conjecture with Quickcheck-narrowing...")
       val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
     in
-      Quickcheck_Common.collect_results (test_term ctxt) (maps (map snd) correct_inst_goals) []
+      Quickcheck_Common.collect_results (test_term ctxt catch_code_errors)
+        (maps (map snd) correct_inst_goals) []
     end
   else
     (if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message

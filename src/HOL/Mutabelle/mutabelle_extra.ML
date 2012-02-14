@@ -51,11 +51,11 @@ val random_seed = Unsynchronized.ref 1.0;
 
 
 (* mutation options *)
-(*val max_mutants = 4
-val num_mutations = 1*)
-(* soundness check: *)
-val max_mutants =  10
+val max_mutants = 4
 val num_mutations = 1
+(* soundness check: *)
+(*val max_mutants =  10
+val num_mutations = 1*)
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
@@ -121,7 +121,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
       (fn _ =>
           let
             val ctxt' = change_options (Proof_Context.init_global thy)
-            val [result] = case Quickcheck.active_testers ctxt' of
+            val (result :: _) = case Quickcheck.active_testers ctxt' of
               [] => error "No active testers for quickcheck"
             | [tester] => tester ctxt' false [] [(t, [])]
             | _ => error "Multiple active testers for quickcheck"
@@ -241,7 +241,8 @@ val forbidden_thms =
   "nibble"]
 
 val forbidden_consts =
- [@{const_name nibble_pair_of_char}, @{const_name "TYPE"}]
+ [@{const_name nibble_pair_of_char}, @{const_name "TYPE"},
+  @{const_name Datatype.dsum}, @{const_name Datatype.usum}]
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (prop_of th) [] in
@@ -258,6 +259,7 @@ val forbidden_mutant_constnames =
  ["HOL.induct_equal",
   "HOL.induct_implies",
   "HOL.induct_conj",
+  "HOL.induct_forall",
  @{const_name undefined},
  @{const_name default},
  @{const_name dummy_pattern},
@@ -274,9 +276,13 @@ val forbidden_mutant_constnames =
  @{const_name "ord_fun_inst.less_fun"},
  @{const_name Meson.skolem},
  @{const_name ATP.fequal},
+ @{const_name ATP.fEx},
  @{const_name transfer_morphism},
  @{const_name enum_prod_inst.enum_all_prod},
- @{const_name enum_prod_inst.enum_ex_prod}
+ @{const_name enum_prod_inst.enum_ex_prod},
+ @{const_name Quickcheck.catch_match},
+ @{const_name Quickcheck_Exhaustive.unknown},
+ @{const_name Int.Bit0}, @{const_name Int.Bit1}
  (*@{const_name "==>"}, @{const_name "=="}*)]
 
 val forbidden_mutant_consts =
@@ -298,7 +304,8 @@ val forbidden_mutant_consts =
    (@{const_name "GCD.gcd_class.lcm"}, @{typ "prop => prop => prop"}),
    (@{const_name "Orderings.bot_class.bot"}, @{typ "bool => prop"}),
    (@{const_name "Groups.one_class.one"}, @{typ "bool => prop"}),
-   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"})]
+   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"}),
+   (@{const_name "equal_class.equal"},@{typ "bool => bool => bool"})]
 
 fun is_forbidden_mutant t =
   let

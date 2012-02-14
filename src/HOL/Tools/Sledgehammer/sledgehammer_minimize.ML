@@ -7,15 +7,15 @@ Minimization of fact list for Metis using external provers.
 
 signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = ATP_Translate.locality
-  type play = ATP_Reconstruct.play
+  type stature = ATP_Problem_Generate.stature
+  type play = ATP_Proof_Reconstruct.play
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
   val minimize_facts :
     string -> params -> bool -> int -> int -> Proof.state
-    -> ((string * locality) * thm list) list
-    -> ((string * locality) * thm list) list option
+    -> ((string * stature) * thm list) list
+    -> ((string * stature) * thm list) list option
        * ((unit -> play) * (play -> string) * string)
   val run_minimize :
     params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
@@ -26,8 +26,8 @@ struct
 
 open ATP_Util
 open ATP_Proof
-open ATP_Translate
-open ATP_Reconstruct
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers
@@ -47,8 +47,9 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_new_mono_instances, type_enc, lam_trans, isar_proof,
-                 isar_shrink_factor, preplay_timeout, ...} : params)
+                 max_new_mono_instances, type_enc, strict, lam_trans,
+                 uncurried_aliases, isar_proof, isar_shrink_factor,
+                 preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
     val _ =
@@ -61,9 +62,10 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
-       provers = provers, type_enc = type_enc, sound = true,
-       lam_trans = lam_trans, relevance_thresholds = (1.01, 1.01),
-       max_relevant = SOME (length facts), max_mono_iters = max_mono_iters,
+       provers = provers, type_enc = type_enc, strict = strict,
+       lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
+       relevance_thresholds = (1.01, 1.01), max_relevant = SOME (length facts),
+       max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, slice = false,
        minimize = SOME false, timeout = timeout,
@@ -192,7 +194,8 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            min test (new_timeout timeout run_time) result facts
          val _ = print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
-            (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
+            (case min_facts |> filter (fn ((_, (sc, _)), _) => sc = Chained)
+                            |> length of
                0 => ""
              | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".")
        in (SOME min_facts, (preplay, message, message_tail)) end
@@ -215,9 +218,10 @@ fun run_minimize (params as {provers, ...}) i refs state =
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = normalize_chained_theorems (#facts (Proof.goal state))
+    val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      refs
-      |> maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths)
+      refs |> maps (map (apsnd single)
+                    o fact_from_ref ctxt reserved chained_ths css_table)
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"

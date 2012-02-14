@@ -7,7 +7,8 @@ Sledgehammer's relevance filter.
 
 signature SLEDGEHAMMER_FILTER =
 sig
-  type locality = ATP_Translate.locality
+  type status = ATP_Problem_Generate.status
+  type stature = ATP_Problem_Generate.stature
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -42,27 +43,28 @@ sig
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
+  val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val fact_from_ref :
-    Proof.context -> unit Symtab.table -> thm list
-    -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
+    Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
+    -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val all_facts :
     Proof.context -> bool -> 'a Symtab.table -> bool -> thm list -> thm list
-    -> (((unit -> string) * locality) * thm) list
+    -> (((unit -> string) * stature) * thm) list
   val nearly_all_facts :
     Proof.context -> bool -> relevance_override -> thm list -> term list -> term
-    -> (((unit -> string) * locality) * thm) list
+    -> (((unit -> string) * stature) * thm) list
   val relevant_facts :
     Proof.context -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
     -> relevance_override -> thm list -> term list -> term
-    -> (((unit -> string) * locality) * thm) list
-    -> ((string * locality) * thm) list
+    -> (((unit -> string) * stature) * thm) list
+    -> ((string * stature) * thm) list
 end;
 
 structure Sledgehammer_Filter : SLEDGEHAMMER_FILTER =
 struct
 
-open ATP_Translate
+open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
 
@@ -109,6 +111,39 @@ val abs_name = sledgehammer_prefix ^ "abs"
 val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
+val crude_zero_vars =
+  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
+  #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
+
+(* unfolding these can yield really huge terms *)
+val risky_spec_eqs = @{thms Bit0_def Bit1_def}
+
+fun clasimpset_rule_table_of ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
+    fun add stature g f =
+      fold (Termtab.update o rpair stature o g o crude_zero_vars o prop_of o f)
+    val {safeIs, safeEs, hazIs, hazEs, ...} =
+      ctxt |> claset_of |> Classical.rep_cs
+    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+    val elims =
+      Item_Net.content safeEs @ Item_Net.content hazEs
+      |> map Classical.classical_rule
+    val simps = ctxt |> simpset_of |> dest_ss |> #simps
+    val spec_eqs =
+      ctxt |> Spec_Rules.get
+           |> filter (curry (op =) Spec_Rules.Equational o fst)
+           |> maps (snd o snd)
+           |> filter_out (member Thm.eq_thm_prop risky_spec_eqs)
+  in
+    Termtab.empty |> add Simp I snd simps
+                  |> add Simp atomize snd simps
+                  |> add Spec_Eq I I spec_eqs
+                  |> add Elim I I elims
+                  |> add Intro I I intros
+  end
+
 fun needs_quoting reserved s =
   Symtab.defined reserved s orelse
   exists (not o Lexicon.is_identifier) (Long_Name.explode s)
@@ -123,7 +158,29 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
 
 val backquote =
   raw_explode #> map (fn "`" => "\\`" | s => s) #> implode #> enclose "`" "`"
-fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
+
+fun is_assum assms th = exists (fn ct => prop_of th aconv term_of ct) assms
+fun is_chained chained_ths = member Thm.eq_thm_prop chained_ths
+
+fun scope_of_thm global assms chained_ths th =
+  if is_chained chained_ths th then Chained
+  else if global then Global
+  else if is_assum assms th then Assum
+  else Local
+
+fun status_of_thm css_table name th =
+  (* FIXME: use structured name *)
+  if String.isSubstring ".induct" name orelse
+     String.isSubstring ".inducts" name then
+    Induct
+  else case Termtab.lookup css_table (prop_of th) of
+    SOME status => status
+  | NONE => General
+
+fun stature_of_thm global assms chained_ths css_table name th =
+  (scope_of_thm global assms chained_ths th, status_of_thm css_table name th)
+
+fun fact_from_ref ctxt reserved chained_ths css_table (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -142,10 +199,10 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   in
     (ths, (0, []))
     |-> fold (fn th => fn (j, rest) =>
-                 (j + 1,
-                  ((nth_name j,
-                    if member Thm.eq_thm_prop chained_ths th then Chained
-                    else General), th) :: rest))
+                 let val name = nth_name j in
+                   (j + 1, ((name, stature_of_thm false [] chained_ths
+                                             css_table name th), th) :: rest)
+                 end)
     |> snd
   end
 
@@ -190,7 +247,7 @@ fun struct_induct_rule_on th =
       NONE
   | _ => NONE
 
-fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), th) ind_x =
+fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
   let
     fun varify_noninducts (t as Free (s, T)) =
         if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
@@ -200,8 +257,8 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), th) ind_x =
                  |> lambda (Free ind_x)
                  |> string_for_term ctxt
   in
-    ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]", loc),
-     th |> read_instantiate ctxt [((p_name, 0), p_inst)])
+    ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
+      stature), th |> read_instantiate ctxt [((p_name, 0), p_inst)])
   end
 
 fun type_match thy (T1, T2) =
@@ -467,19 +524,21 @@ fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
                         chained_const_irrel_weight (irrel_weight_for fudge) swap
                         const_tab chained_const_tab
 
-fun locality_bonus ({intro_bonus, ...} : relevance_fudge) Intro = intro_bonus
-  | locality_bonus {elim_bonus, ...} Elim = elim_bonus
-  | locality_bonus {simp_bonus, ...} Simp = simp_bonus
-  | locality_bonus {local_bonus, ...} Local = local_bonus
-  | locality_bonus {assum_bonus, ...} Assum = assum_bonus
-  | locality_bonus {chained_bonus, ...} Chained = chained_bonus
-  | locality_bonus _ _ = 0.0
+fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
+    intro_bonus
+  | stature_bonus {elim_bonus, ...} (_, Elim) = elim_bonus
+  | stature_bonus {simp_bonus, ...} (_, Simp) = simp_bonus
+  | stature_bonus {local_bonus, ...} (Local, _) = local_bonus
+  | stature_bonus {assum_bonus, ...} (Assum, _) = assum_bonus
+  | stature_bonus {chained_bonus, ...} (Chained, _) = chained_bonus
+  | stature_bonus _ _ = 0.0
 
 fun is_odd_const_name s =
   s = abs_name orelse String.isPrefix skolem_prefix s orelse
   String.isSuffix theory_const_suffix s
 
-fun fact_weight fudge loc const_tab relevant_consts chained_consts fact_consts =
+fun fact_weight fudge stature const_tab relevant_consts chained_consts
+                fact_consts =
   case fact_consts |> List.partition (pconst_hyper_mem I relevant_consts)
                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
@@ -492,7 +551,7 @@ fun fact_weight fudge loc const_tab relevant_consts chained_consts fact_consts =
         val rel_weight =
           0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
         val irrel_weight =
-          ~ (locality_bonus fudge loc)
+          ~ (stature_bonus fudge stature)
           |> fold (curry (op +)
                    o irrel_pconst_weight fudge const_tab chained_consts) irrel
         val res = rel_weight / (rel_weight + irrel_weight)
@@ -512,7 +571,7 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
 val const_names_in_fact = map fst ooo pconsts_in_fact
 
 type annotated_thm =
-  (((unit -> string) * locality) * thm) * (string * ptype) list
+  (((unit -> string) * stature) * thm) * (string * ptype) list
 
 fun take_most_relevant ctxt max_relevant remaining_max
         ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
@@ -537,13 +596,12 @@ fun take_most_relevant ctxt max_relevant remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_locality thy is_built_in_const facts loc tab =
+fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
     |> fold (add_pconsts_in_term thy is_built_in_const false (SOME false))
-            (map_filter (fn ((_, loc'), th) =>
-                            if loc' = loc then SOME (prop_of th) else NONE)
-                        facts)
+            (map_filter (fn ((_, (sc', _)), th) =>
+                            if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
@@ -584,7 +642,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
       Symtab.empty |> fold (add_pconsts true) hyp_ts
                    |> add_pconsts false concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
-      |> fold (if_empty_replace_with_locality thy is_built_in_const facts)
+      |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
@@ -637,13 +695,13 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                       hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
-                     (((ax as (((_, loc), _), fact_consts)), cached_weight)
+                     (((ax as (((_, stature), _), fact_consts)), cached_weight)
                       :: hopeful) =
             let
               val weight =
                 case cached_weight of
                   SOME w => w
-                | NONE => fact_weight fudge loc const_tab rel_const_tab
+                | NONE => fact_weight fudge stature const_tab rel_const_tab
                                       chained_const_tab fact_consts
             in
               if weight >= threshold then
@@ -775,30 +833,6 @@ fun is_theorem_bad_for_atps ho_atp exporter thm =
      is_that_fact thm
    end)
 
-val crude_zero_vars =
-  map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
-  #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
-
-fun clasimpset_rule_table_of ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
-    fun add loc g f =
-      fold (Termtab.update o rpair loc o g o crude_zero_vars o prop_of o f)
-    val {safeIs, safeEs, hazIs, hazEs, ...} =
-      ctxt |> claset_of |> Classical.rep_cs
-    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
-    val elims =
-      Item_Net.content safeEs @ Item_Net.content hazEs
-      |> map Classical.classical_rule
-    val simps = ctxt |> simpset_of |> dest_ss |> #simps
-  in
-    Termtab.empty |> add Intro I I intros
-                  |> add Elim I I elims
-                  |> add Simp I snd simps
-                  |> add Simp atomize snd simps
-  end
-
 fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -806,23 +840,7 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
-    fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
-    val is_chained = member Thm.eq_thm_prop chained_ths
-    val clasimpset_table = clasimpset_rule_table_of ctxt
-    fun locality_of_theorem global name th =
-      if String.isSubstring ".induct" name orelse (*FIXME: use structured name*)
-         String.isSubstring ".inducts" name then
-        Induction
-      else if is_chained th then
-        Chained
-      else if global then
-        case Termtab.lookup clasimpset_table (prop_of th) of
-          SOME loc => loc
-        | NONE => General
-      else if is_assum th then
-        Assum
-      else
-        Local
+    val css_table = clasimpset_rule_table_of ctxt
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
@@ -872,7 +890,8 @@ fun all_facts ctxt ho_atp reserved exporter add_ths chained_ths =
                                    |> (fn SOME name =>
                                           make_name reserved multi j name
                                         | NONE => "")),
-                                locality_of_theorem global name0 th), th)
+                                stature_of_thm global assms chained_ths
+                                               css_table name0 th), th)
                            in
                              if multi then (new :: multis, unis)
                              else (multis, new :: unis)
@@ -900,10 +919,11 @@ fun nearly_all_facts ctxt ho_atp ({add, only, ...} : relevance_override)
       Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
       |> Object_Logic.atomize_term thy
     val ind_stmt_xs = external_frees ind_stmt
+    val css_table = clasimpset_rule_table_of ctxt
   in
     (if only then
-       maps (map (fn ((name, loc), th) => ((K name, loc), th))
-             o fact_from_ref ctxt reserved chained_ths) add
+       maps (map (fn ((name, stature), th) => ((K name, stature), th))
+             o fact_from_ref ctxt reserved chained_ths css_table) add
      else
        all_facts ctxt ho_atp reserved false add_ths chained_ths)
     |> Config.get ctxt instantiate_inducts

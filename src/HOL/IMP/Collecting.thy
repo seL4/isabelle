@@ -152,8 +152,8 @@ fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom
 definition CS :: "com \<Rightarrow> state set acom" where
 "CS c = lfp (step UNIV) c"
 
-lemma mono_step_aux: "x \<le> y \<Longrightarrow> S \<subseteq> T \<Longrightarrow> step S x \<le> step T y"
-proof(induction x y arbitrary: S T rule: less_eq_acom.induct)
+lemma mono2_step: "c1 \<le> c2 \<Longrightarrow> S1 \<subseteq> S2 \<Longrightarrow> step S1 c1 \<le> step S2 c2"
+proof(induction c1 c2 arbitrary: S1 S2 rule: less_eq_acom.induct)
   case 2 thus ?case by fastforce
 next
   case 3 thus ?case by(simp add: le_post)
@@ -164,7 +164,7 @@ next
 qed auto
 
 lemma mono_step: "mono (step S)"
-by(blast intro: monoI mono_step_aux)
+by(blast intro: monoI mono2_step)
 
 lemma strip_step: "strip(step S c) = strip c"
 by (induction c arbitrary: S) auto

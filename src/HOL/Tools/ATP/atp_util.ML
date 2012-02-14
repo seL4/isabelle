@@ -31,6 +31,7 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
+  val close_form_prefix : string
   val close_form : term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
@@ -264,10 +265,13 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
+val close_form_prefix = "ATP.close_form."
+
 fun close_form t =
   fold (fn ((s, i), T) => fn t' =>
            HOLogic.all_const T
-           $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
+           $ Abs (close_form_prefix ^ s, T,
+                  abstract_over (Var ((s, i), T), t')))
        (Term.add_vars t []) t
 
 fun monomorphic_term subst =

@@ -129,7 +129,7 @@ fun isabellep_tac ctxt max_secs =
                           Sledgehammer_Filter.no_relevance_override))
    ORELSE
    SOLVE_TIMEOUT (max_secs div 10) "metis"
-       (ALLGOALS (Metis_Tactic.metis_tac [] ATP_Translate.lam_liftingN ctxt []))
+       (ALLGOALS (Metis_Tactic.metis_tac [] ATP_Problem_Generate.liftingN ctxt []))
    ORELSE
    SOLVE_TIMEOUT (max_secs div 10) "fast" (ALLGOALS (fast_tac ctxt))
    ORELSE

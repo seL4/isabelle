@@ -206,9 +206,9 @@ abbreviation
   length :: "'a list \<Rightarrow> nat" where
   "length \<equiv> size"
 
-definition
-  rotate1 :: "'a list \<Rightarrow> 'a list" where
-  "rotate1 xs = (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
+primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
+  "rotate1 [] = []" |
+  "rotate1 (x # xs) = xs @ [x]"
 
 definition
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -265,8 +265,8 @@ text{*
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
 @{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" by simp}\\
 @{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:sublist_def)}\\
-@{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by (simp add:rotate1_def)}\\
-@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate1_def rotate_def eval_nat_numeral)}\\
+@{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by simp}\\
+@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate_def eval_nat_numeral)}\\
 @{lemma "replicate 4 a = [a,a,a,a]" by (simp add:eval_nat_numeral)}\\
 @{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}\\
 @{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def foldr_def)}
@@ -934,7 +934,7 @@ by (cases xs) auto
 lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
-lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
+lemma rev_is_rev_conv [iff, no_atp]: "(rev xs = rev ys) = (xs = ys)"
 apply (induct xs arbitrary: ys, force)
 apply (case_tac ys, simp, force)
 done
@@ -2880,7 +2880,7 @@ lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & dist
 by (metis distinct_remdups finite_list set_remdups)
 
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
-by (induct x, auto) 
+by (induct x, auto)
 
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
 by (induct x, auto)
@@ -2967,7 +2967,7 @@ apply (rule iffI, clarsimp)
 apply (case_tac j, simp)
 apply (simp add: set_conv_nth)
  apply (case_tac j)
-apply (clarsimp simp add: set_conv_nth, simp) 
+apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
 (*TOO SLOW
 apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_Cons' nth_Cons_Suc)
@@ -2999,7 +2999,7 @@ next
     case False with Cons show ?thesis by simp
   next
     case True with Cons.prems
-    have "card (set xs) = Suc (length xs)" 
+    have "card (set xs) = Suc (length xs)"
       by (simp add: card_insert_if split: split_if_asm)
     moreover have "card (set xs) \<le> length xs" by (rule card_length)
     ultimately have False by simp
@@ -3590,9 +3590,6 @@ qed
 
 subsubsection{*@{text rotate1} and @{text rotate}*}
 
-lemma rotate_simps[simp]: "rotate1 [] = [] \<and> rotate1 (x#xs) = xs @ [x]"
-by(simp add:rotate1_def)
-
 lemma rotate0[simp]: "rotate 0 = id"
 by(simp add:rotate_def)
 
@@ -3619,7 +3616,7 @@ apply (simp add:rotate_def)
 done
 
 lemma rotate1_hd_tl: "xs \<noteq> [] \<Longrightarrow> rotate1 xs = tl xs @ [hd xs]"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) simp_all
 
 lemma rotate_drop_take:
   "rotate n xs = drop (n mod length xs) xs @ take (n mod length xs) xs"
@@ -3642,13 +3639,13 @@ lemma rotate_id[simp]: "n mod length xs = 0 \<Longrightarrow> rotate n xs = xs"
 by(simp add:rotate_drop_take)
 
 lemma length_rotate1[simp]: "length(rotate1 xs) = length xs"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) simp_all
 
 lemma length_rotate[simp]: "length(rotate n xs) = length xs"
 by (induct n arbitrary: xs) (simp_all add:rotate_def)
 
 lemma distinct1_rotate[simp]: "distinct(rotate1 xs) = distinct xs"
-by(simp add:rotate1_def split:list.split) blast
+by (cases xs) auto
 
 lemma distinct_rotate[simp]: "distinct(rotate n xs) = distinct xs"
 by (induct n) (simp_all add:rotate_def)
@@ -3657,13 +3654,13 @@ lemma rotate_map: "rotate n (map f xs) = map f (rotate n xs)"
 by(simp add:rotate_drop_take take_map drop_map)
 
 lemma set_rotate1[simp]: "set(rotate1 xs) = set xs"
-by (cases xs) (auto simp add:rotate1_def)
+by (cases xs) auto
 
 lemma set_rotate[simp]: "set(rotate n xs) = set xs"
 by (induct n) (simp_all add:rotate_def)
 
 lemma rotate1_is_Nil_conv[simp]: "(rotate1 xs = []) = (xs = [])"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) auto
 
 lemma rotate_is_Nil_conv[simp]: "(rotate n xs = []) = (xs = [])"
 by (induct n) (simp_all add:rotate_def)
@@ -4556,6 +4553,10 @@ where
 inductive_cases listsE [elim!,no_atp]: "x#l : lists A"
 inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
 
+inductive_simps listsp_simps[code]:
+  "listsp A []"
+  "listsp A (x # xs)"
+
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
 by (rule predicate1I, erule listsp.induct, (blast dest: predicate1D)+)
 
@@ -4590,7 +4591,7 @@ lemma in_listsp_conv_set: "(listsp A xs) = (\<forall>x \<in> set xs. A x)"
 -- {* eliminate @{text listsp} in favour of @{text set} *}
 by (induct xs) auto
 
-lemmas in_lists_conv_set = in_listsp_conv_set [to_set]
+lemmas in_lists_conv_set [code_unfold] = in_listsp_conv_set [to_set]
 
 lemma in_listspD [dest!,no_atp]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
 by (rule in_listsp_conv_set [THEN iffD1])
@@ -5006,8 +5007,8 @@ by(metis wf_acc_iff in_lists_conv_set lists_accI lists_accD Cons_in_lists_iff)
 subsubsection {* Lifting Relations to Lists: all elements *}
 
 inductive_set
-  listrel :: "('a * 'a)set => ('a list * 'a list)set"
-  for r :: "('a * 'a)set"
+  listrel :: "('a \<times> 'b) set \<Rightarrow> ('a list \<times> 'b list) set"
+  for r :: "('a \<times> 'b) set"
 where
     Nil:  "([],[]) \<in> listrel r"
   | Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
@@ -5021,7 +5022,7 @@ inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
 lemma listrel_eq_len:  "(xs, ys) \<in> listrel r \<Longrightarrow> length xs = length ys"
 by(induct rule: listrel.induct) auto
 
-lemma listrel_iff_zip: "(xs,ys) : listrel r \<longleftrightarrow>
+lemma listrel_iff_zip [code_unfold]: "(xs,ys) : listrel r \<longleftrightarrow>
   length xs = length ys & (\<forall>(x,y) \<in> set(zip xs ys). (x,y) \<in> r)" (is "?L \<longleftrightarrow> ?R")
 proof
   assume ?L thus ?R by induct (auto intro: listrel_eq_len)
@@ -5326,6 +5327,36 @@ lemma list_all_cong [fundef_cong]:
 lemma list_any_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
   by (simp add: list_ex_iff)
+
+text {* Executable checks for relations on sets *}
+
+definition listrel1p :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+"listrel1p r xs ys = ((xs, ys) \<in> listrel1 {(x, y). r x y})"
+
+lemma [code_unfold]:
+  "(xs, ys) \<in> listrel1 r = listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys"
+unfolding listrel1p_def by auto
+
+lemma [code]:
+  "listrel1p r [] xs = False"
+  "listrel1p r xs [] =  False"
+  "listrel1p r (x # xs) (y # ys) \<longleftrightarrow>
+     r x y \<and> xs = ys \<or> x = y \<and> listrel1p r xs ys"
+by (simp add: listrel1p_def)+
+
+definition
+  lexordp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  "lexordp r xs ys = ((xs, ys) \<in> lexord {(x, y). r x y})"
+
+lemma [code_unfold]:
+  "(xs, ys) \<in> lexord r = lexordp (\<lambda>x y. (x, y) \<in> r) xs ys"
+unfolding lexordp_def by auto
+
+lemma [code]:
+  "lexordp r xs [] = False"
+  "lexordp r [] (y#ys) = True"
+  "lexordp r (x # xs) (y # ys) = (r x y | (x = y & lexordp r xs ys))"
+unfolding lexordp_def by auto
 
 text {* Bounded quantification and summation over nats. *}
 
@@ -5640,6 +5671,29 @@ lemma Pow_set [code]:
   "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
   by (simp_all add: Pow_insert Let_def)
 
+text {* Further operations on sets *}
+
+(* Minimal refinement of equality on sets *)
+declare subset_eq[code del]
+lemma subset_code [code]:
+  "set xs <= B \<longleftrightarrow> (ALL x : set xs. x : B)"
+  "List.coset xs <= List.coset ys \<longleftrightarrow> set ys <= set xs"
+  "List.coset [] <= set [] \<longleftrightarrow> False"
+by auto
+
+lemma setsum_code [code]:
+  "setsum f (set xs) = listsum (map f (remdups xs))"
+by (simp add: listsum_distinct_conv_setsum_set)
+
+definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set" where
+  "map_project f A = {b. \<exists> a \<in> A. f a = Some b}"
+
+lemma [code]:
+  "map_project f (set xs) = set (List.map_filter f xs)"
+unfolding map_project_def map_filter_def
+by auto (metis (lifting, mono_tags) CollectI image_eqI o_apply the.simps)
+
+hide_const (open) map_project
 
 text {* Operations on relations *}
 
@@ -5650,6 +5704,10 @@ lemma product_code [code]:
 lemma Id_on_set [code]:
   "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
   by (auto simp add: Id_on_def)
+
+lemma [code]:
+  "R `` S = List.map_project (%(x, y). if x : S then Some y else None) R"
+unfolding map_project_def by (auto split: prod.split split_if_asm)
 
 lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"

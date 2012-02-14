@@ -1,11 +1,17 @@
-theory ATP_Export
+(*  Title:      HOL/TPTP/ATP_Theory_Export.thy
+    Author:     Jasmin Blanchette, TU Muenchen
+*)
+
+header {* ATP Theory Exporter *}
+
+theory ATP_Theory_Export
 imports Complex_Main
-uses "atp_export.ML"
+uses "atp_theory_export.ML"
 begin
 
 ML {*
 open ATP_Problem;
-open ATP_Export;
+open ATP_Theory_Export;
 *}
 
 ML {*
@@ -16,9 +22,9 @@ val ctxt = @{context}
 
 ML {*
 if do_it then
-  "/tmp/axs_mono_simple.dfg"
+  "/tmp/axs_mono_native.dfg"
   |> generate_tptp_inference_file_for_theory ctxt thy (DFG DFG_Sorted)
-         "mono_simple"
+         "mono_native"
 else
   ()
 *}

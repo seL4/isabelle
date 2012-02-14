@@ -120,7 +120,7 @@ lemma Parallel_empty_lemma [rule_format (no_asm)]:
 apply(induct n)
  apply(simp (no_asm))
 apply clarify
-apply(drule rel_pow_Suc_D2)
+apply(drule relpow_Suc_D2)
 apply(force elim:transition_cases)
 done
 
@@ -129,7 +129,7 @@ lemma Parallel_AllNone_lemma [rule_format (no_asm)]:
 apply(induct "n")
  apply(simp (no_asm))
 apply clarify
-apply(drule rel_pow_Suc_D2)
+apply(drule relpow_Suc_D2)
 apply clarify
 apply(erule transition_cases,simp_all)
 apply(force dest:nth_mem simp add:All_None_def)
@@ -138,7 +138,7 @@ done
 lemma Parallel_AllNone: "All_None Ts \<Longrightarrow> (SEM (Parallel Ts) X) = X"
 apply (unfold SEM_def sem_def)
 apply auto
-apply(drule rtrancl_imp_UN_rel_pow)
+apply(drule rtrancl_imp_UN_relpow)
 apply clarify
 apply(drule Parallel_AllNone_lemma)
 apply auto
@@ -171,18 +171,18 @@ lemma L3_5ii_lemma2 [rule_format (no_asm)]:
   (All_None Rs) \<and> (c2, y) -Pm\<rightarrow> (Parallel Ts, t) \<and>  m \<le> n)"
 apply(induct "n")
  apply(force)
-apply(safe dest!: rel_pow_Suc_D2)
+apply(safe dest!: relpow_Suc_D2)
 apply(erule transition_cases,simp_all)
  apply (fast intro!: le_SucI)
-apply (fast intro!: le_SucI elim!: rel_pow_imp_rtrancl converse_rtrancl_into_rtrancl)
+apply (fast intro!: le_SucI elim!: relpow_imp_rtrancl converse_rtrancl_into_rtrancl)
 done
 
 lemma L3_5ii_lemma3: 
  "\<lbrakk>(Seq c1 c2,s) -P*\<rightarrow> (Parallel Ts,t); All_None Ts\<rbrakk> \<Longrightarrow> 
     (\<exists>y Rs. (c1,s) -P*\<rightarrow> (Parallel Rs,y) \<and> All_None Rs 
    \<and> (c2,y) -P*\<rightarrow> (Parallel Ts,t))"
-apply(drule rtrancl_imp_UN_rel_pow)
-apply(fast dest: L3_5ii_lemma2 rel_pow_imp_rtrancl)
+apply(drule rtrancl_imp_UN_relpow)
+apply(fast dest: L3_5ii_lemma2 relpow_imp_rtrancl)
 done
 
 lemma L3_5ii: "SEM (Seq c1 c2) X = SEM c2 (SEM c1 X)"
@@ -212,16 +212,16 @@ lemma  L3_5v_lemma1[rule_format]:
 apply (unfold UNIV_def)
 apply(rule nat_less_induct)
 apply safe
-apply(erule rel_pow_E2)
+apply(erule relpow_E2)
  apply simp_all
 apply(erule transition_cases)
  apply simp_all
-apply(erule rel_pow_E2)
+apply(erule relpow_E2)
  apply(simp add: Id_def)
 apply(erule transition_cases,simp_all)
 apply clarify
 apply(erule transition_cases,simp_all)
-apply(erule rel_pow_E2,simp)
+apply(erule relpow_E2,simp)
 apply clarify
 apply(erule transition_cases)
  apply simp+
@@ -231,7 +231,7 @@ apply simp_all
 done
 
 lemma L3_5v_lemma2: "\<lbrakk>(\<Omega>, s) -P*\<rightarrow> (Parallel Ts, t); All_None Ts \<rbrakk> \<Longrightarrow> False"
-apply(fast dest: rtrancl_imp_UN_rel_pow L3_5v_lemma1)
+apply(fast dest: rtrancl_imp_UN_relpow L3_5v_lemma1)
 done
 
 lemma L3_5v_lemma3: "SEM (\<Omega>) S = {}"
@@ -244,7 +244,7 @@ lemma L3_5v_lemma4 [rule_format]:
   (\<exists>k. (fwhile b c k, s) -P*\<rightarrow> (Parallel Ts, t))"
 apply(rule nat_less_induct)
 apply safe
-apply(erule rel_pow_E2)
+apply(erule relpow_E2)
  apply safe
 apply(erule transition_cases,simp_all)
  apply (rule_tac x = "1" in exI)
@@ -275,9 +275,9 @@ apply(erule transition_cases,simp_all)
  apply(rule converse_rtrancl_into_rtrancl)
   apply(fast)
  apply(fast elim!: L3_5ii_lemma1 dest: L3_5ii_lemma3)
-apply(drule rtrancl_imp_UN_rel_pow)
+apply(drule rtrancl_imp_UN_relpow)
 apply clarify
-apply(erule rel_pow_E2)
+apply(erule relpow_E2)
  apply simp_all
 apply(erule transition_cases,simp_all)
 apply(fast dest: Parallel_empty_lemma)
@@ -287,7 +287,7 @@ lemma L3_5v: "SEM (While b i c) = (\<lambda>x. (\<Union>k. SEM (fwhile b c k) x)
 apply(rule ext)
 apply (simp add: SEM_def sem_def)
 apply safe
- apply(drule rtrancl_imp_UN_rel_pow,simp)
+ apply(drule rtrancl_imp_UN_relpow,simp)
  apply clarify
  apply(fast dest:L3_5v_lemma4)
 apply(fast intro: L3_5v_lemma5)

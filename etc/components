@@ -13,10 +13,10 @@ src/Sequents
 src/Tools/Code
 src/Tools/jEdit
 src/Tools/WWW_Find
-src/HOL/Tools/ATP
 src/HOL/Mirabelle
-src/HOL/Library/Sum_of_Squares
-src/HOL/Tools/SMT
-src/HOL/Tools/Predicate_Compile
-src/HOL/Tools/Nitpick
 src/HOL/Mutabelle
+src/HOL/Library/Sum_of_Squares
+src/HOL/Tools/ATP
+src/HOL/Tools/Predicate_Compile
+src/HOL/Tools/SMT
+src/HOL/TPTP

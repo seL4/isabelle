@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/atp_reconstruct.ML
+(*  Title:      HOL/Tools/ATP/atp_proof_reconstruct.ML
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,12 +6,12 @@
 Proof reconstruction from ATP proofs.
 *)
 
-signature ATP_RECONSTRUCT =
+signature ATP_PROOF_RECONSTRUCT =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
-  type locality = ATP_Translate.locality
+  type stature = ATP_Problem_Generate.stature
 
   datatype reconstructor =
     Metis of string * string |
@@ -24,9 +24,9 @@ sig
 
   type minimize_command = string list -> string
   type one_line_params =
-    play * string * (string * locality) list * minimize_command * int * int
+    play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
-    bool * int * string Symtab.table * (string * locality) list vector
+    bool * int * string Symtab.table * (string * stature) list vector
     * int Symtab.table * string proof * thm
 
   val metisN : string
@@ -44,12 +44,12 @@ sig
   val metis_call : string -> string -> string
   val string_for_reconstructor : reconstructor -> string
   val used_facts_in_atp_proof :
-    Proof.context -> (string * locality) list vector -> string proof
-    -> (string * locality) list
+    Proof.context -> (string * stature) list vector -> string proof
+    -> (string * stature) list
   val lam_trans_from_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_unsound_atp_proof :
-    Proof.context -> (string * locality) list vector -> 'a proof
+    Proof.context -> (string * stature) list vector -> 'a proof
     -> string list option
   val unalias_type_enc : string -> string list
   val one_line_proof_text : one_line_params -> string
@@ -67,15 +67,15 @@ sig
     Proof.context -> bool -> isar_params -> one_line_params -> string
 end;
 
-structure ATP_Reconstruct : ATP_RECONSTRUCT =
+structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
 struct
 
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
-open ATP_Translate
+open ATP_Problem_Generate
 
-structure String_Redirect = ATP_Redirect(
+structure String_Redirect = ATP_Proof_Redirect(
     type key = step_name
     val ord = fn ((s, _ : string list), (s', _)) => fast_string_ord (s, s')
     val string_of = fst)
@@ -93,9 +93,9 @@ datatype play =
 
 type minimize_command = string list -> string
 type one_line_params =
-  play * string * (string * locality) list * minimize_command * int * int
+  play * string * (string * stature) list * minimize_command * int * int
 type isar_params =
-  bool * int * string Symtab.table * (string * locality) list vector
+  bool * int * string Symtab.table * (string * stature) list vector
   * int Symtab.table * string proof * thm
 
 val metisN = "metis"
@@ -121,7 +121,7 @@ val type_enc_aliases =
 fun unalias_type_enc s =
   AList.lookup (op =) type_enc_aliases s |> the_default [s]
 
-val metis_default_lam_trans = combinatorsN
+val metis_default_lam_trans = combsN
 
 fun metis_call type_enc lam_trans =
   let
@@ -175,9 +175,12 @@ fun is_lam_lifted s =
   String.isSubstring ascii_of_lam_fact_prefix s
 
 fun lam_trans_from_atp_proof atp_proof default =
-  if is_axiom_used_in_proof is_combinator_def atp_proof then combinatorsN
-  else if is_axiom_used_in_proof is_lam_lifted atp_proof then lam_liftingN
-  else default
+  case (is_axiom_used_in_proof is_combinator_def atp_proof,
+        is_axiom_used_in_proof is_lam_lifted atp_proof) of
+    (false, false) => default
+  | (false, true) => liftingN
+(*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
+  | (true, _) => combsN
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
@@ -198,25 +201,18 @@ fun ext_name ctxt =
 fun add_fact _ fact_names (Inference ((_, ss), _, _, [])) =
     union (op =) (resolve_fact fact_names ss)
   | add_fact ctxt _ (Inference (_, _, rule, _)) =
-    if rule = leo2_ext then insert (op =) (ext_name ctxt, General) else I
+    if rule = leo2_ext then insert (op =) (ext_name ctxt, (Global, General))
+    else I
   | add_fact _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt fact_names atp_proof =
   if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
   else fold (add_fact ctxt fact_names) atp_proof []
 
-(* (quasi-)underapproximation of the truth *)
-fun is_locality_global Local = false
-  | is_locality_global Assum = false
-  | is_locality_global Chained = false
-  | is_locality_global _ = true
-
 fun used_facts_in_unsound_atp_proof _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
-    let
-      val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
-    in
-      if forall (is_locality_global o snd) used_facts andalso
+    let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
+      if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
          not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
         SOME (map fst used_facts)
       else
@@ -250,11 +246,12 @@ fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
-    | command => "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
+    | command =>
+      "\nTo minimize: " ^ Markup.markup Isabelle_Markup.sendback command ^ "."
 
-val split_used_facts =
-  List.partition (curry (op =) Chained o snd)
-  #> pairself (sort_distinct (string_ord o pairself fst))
+fun split_used_facts facts =
+  facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
+        |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
                          subgoal, subgoal_count) =
@@ -384,7 +381,7 @@ fun term_from_atp ctxt textual sym_tab =
     fun do_term extra_ts opt_T u =
       case u of
         ATerm (s, us) =>
-        if String.isPrefix simple_type_prefix s then
+        if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in

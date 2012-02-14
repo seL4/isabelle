@@ -11,6 +11,8 @@ begin
 
 subsection {* Definitions *}
 
+type_synonym 'a rel = "('a * 'a) set"
+
 definition
   converse :: "('a * 'b) set => ('b * 'a) set"
     ("(_^-1)" [1000] 999) where

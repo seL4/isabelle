@@ -146,7 +146,7 @@ qed
 lemma while_option_stop2:
  "while_option b c s = Some t \<Longrightarrow> EX k. t = (c^^k) s \<and> \<not> b t"
 apply(simp add: while_option_def split: if_splits)
-by (metis (lam_lifting) LeastI_ex)
+by (metis (lifting) LeastI_ex)
 (* move to While_Combinator *)
 lemma while_option_finite_subset_Some: fixes C :: "'a set"
   assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Metis/metis_translate.ML
+(*  Title:      HOL/Tools/Metis/metis_generate.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
@@ -7,9 +7,9 @@
 Translation of HOL to FOL for Metis.
 *)
 
-signature METIS_TRANSLATE =
+signature METIS_GENERATE =
 sig
-  type type_enc = ATP_Translate.type_enc
+  type type_enc = ATP_Problem_Generate.type_enc
 
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
@@ -35,11 +35,11 @@ sig
        * ((string * term) list * (string * term) list)
 end
 
-structure Metis_Translate : METIS_TRANSLATE =
+structure Metis_Generate : METIS_GENERATE =
 struct
 
 open ATP_Problem
-open ATP_Translate
+open ATP_Problem_Generate
 
 val metis_equal = "="
 val metis_predicator = "{}"
@@ -222,16 +222,16 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         |> pairself (maps (map (zero_var_indexes o snd)))
     val num_conjs = length conj_clauses
     val clauses =
-      map2 (fn j => pair (Int.toString j, Local))
+      map2 (fn j => pair (Int.toString j, (Local, General)))
            (0 upto num_conjs - 1) conj_clauses @
-      (* "General" below isn't quite correct; the fact could be local. *)
-      map2 (fn j => pair (Int.toString (num_conjs + j), General))
+      map2 (fn j => pair (Int.toString (num_conjs + j), (Local, General)))
            (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
                    th |> prop_of |> Logic.strip_imp_concl
                       |> conceal_old_skolem_terms (length clauses) old_skolems
-                      ||> lam_trans = lam_liftingN ? eliminate_lam_wrappers
+                      ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN)
+                          ? eliminate_lam_wrappers
                       ||> (fn prop => (name, prop) :: props))
                clauses ([], [])
     (*
@@ -239,10 +239,10 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
-    val lam_trans = if lam_trans = combinatorsN then no_lamsN else lam_trans
+    val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, _, lifted, sym_tab) =
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc false lam_trans
-                          false false [] @{prop False} props
+                          false false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_for_atp_problem CNF atp_problem))

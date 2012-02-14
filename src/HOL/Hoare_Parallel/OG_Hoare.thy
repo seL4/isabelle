@@ -102,7 +102,7 @@ lemma Basic_ntran [rule_format]:
  "(Basic f, s) -Pn\<rightarrow> (Parallel Ts, t) \<longrightarrow> All_None Ts \<longrightarrow> t = f s"
 apply(induct "n")
  apply(simp (no_asm))
-apply(fast dest: rel_pow_Suc_D2 Parallel_empty_lemma elim: transition_cases)
+apply(fast dest: relpow_Suc_D2 Parallel_empty_lemma elim: transition_cases)
 done
 
 lemma SEM_fwhile: "SEM S (p \<inter> b) \<subseteq> p \<Longrightarrow> SEM (fwhile b S k) p \<subseteq> (p \<inter> -b)"
@@ -112,7 +112,7 @@ apply(simp (no_asm) add: L3_5iv L3_5ii Parallel_empty)
 apply(rule conjI)
  apply (blast dest: L3_5i) 
 apply(simp add: SEM_def sem_def id_def)
-apply (blast dest: Basic_ntran rtrancl_imp_UN_rel_pow) 
+apply (blast dest: Basic_ntran rtrancl_imp_UN_relpow) 
 done
 
 lemma atom_hoare_sound [rule_format]: 
@@ -122,7 +122,7 @@ apply(rule oghoare_induct)
 apply simp_all
 --{*Basic*}
     apply(simp add: SEM_def sem_def)
-    apply(fast dest: rtrancl_imp_UN_rel_pow Basic_ntran)
+    apply(fast dest: rtrancl_imp_UN_relpow Basic_ntran)
 --{* Seq *}
    apply(rule impI)
    apply(rule subset_trans)
@@ -448,7 +448,7 @@ apply(rule TrueI)+
       apply(force dest: nth_mem simp add: All_None_def)
 --{* Basic *}
     apply(simp add: SEM_def sem_def)
-    apply(force dest: rtrancl_imp_UN_rel_pow Basic_ntran)
+    apply(force dest: rtrancl_imp_UN_relpow Basic_ntran)
 --{* Seq *}
    apply(rule subset_trans)
     prefer 2 apply assumption

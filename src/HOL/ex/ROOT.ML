@@ -72,7 +72,8 @@ use_thys [
   "List_to_Set_Comprehension_Examples",
   "Set_Algebras",
   "Seq",
-  "Simproc_Tests"
+  "Simproc_Tests",
+  "Executable_Relation"
 ];
 
 if getenv "ISABELLE_GHC" = "" then ()

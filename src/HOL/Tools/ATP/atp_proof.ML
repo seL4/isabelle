@@ -115,7 +115,7 @@ fun string_for_failure Unprovable = "The problem is unprovable."
     "The prover claims the conjecture is a theorem but did not provide a proof."
   | string_for_failure ProofIncomplete =
     "The prover claims the conjecture is a theorem but provided an incomplete \
-    \proof."
+    \(or unparsable) proof."
   | string_for_failure (UnsoundProof (false, ss)) =
     "The prover found a type-unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Specify a sound type \
@@ -431,21 +431,30 @@ fun parse_horn_clause x =
      -- Scan.repeat parse_decorated_atom
    >> (mk_horn o apfst (op @))) x
 
-fun resolve_spass_num spass_names num =
-  case Int.fromString num of
-    SOME j => if j > 0 andalso j <= Vector.length spass_names then
-                Vector.sub (spass_names, j - 1)
-              else
-                []
-  | NONE => []
+fun resolve_spass_num (SOME names) _ _ = names
+  | resolve_spass_num NONE spass_names num =
+    case Int.fromString num of
+      SOME j => if j > 0 andalso j <= Vector.length spass_names then
+                  Vector.sub (spass_names, j - 1)
+                else
+                  []
+    | NONE => []
 
-(* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>. *)
+val parse_spass_debug =
+  Scan.option ($$ "(" |-- Scan.repeat (scan_general_id --| Scan.option ($$ ","))
+               --| $$ ")")
+
+(* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>.
+           derived from formulae <ident>* *)
 fun parse_spass_line spass_names =
-  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" -- Symbol.scan_id
-    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
-  >> (fn (((num, rule), deps), u) =>
-         Inference ((num, resolve_spass_num spass_names num), u, rule,
-                    map (swap o `(resolve_spass_num spass_names)) deps))
+  parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
+    -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
+    -- parse_horn_clause --| $$ "."
+    -- Scan.option (Scan.this_string "derived from formulae "
+                    |-- Scan.repeat scan_general_id)
+  >> (fn ((((num, rule), deps), u), names) =>
+         Inference ((num, resolve_spass_num names spass_names num), u, rule,
+                    map (swap o `(resolve_spass_num NONE spass_names)) deps))
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =

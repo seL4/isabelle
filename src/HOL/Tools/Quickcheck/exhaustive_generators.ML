@@ -68,7 +68,7 @@ val size_ge_zero = @{term "(i :: code_numeral) > 0"}
 
 fun mk_none_continuation (x, y) =
   let
-    val (T as Type(@{type_name "option"}, [T'])) = fastype_of x
+    val (T as Type(@{type_name "option"}, _)) = fastype_of x
   in
     Const (@{const_name "Quickcheck_Exhaustive.orelse"}, T --> T --> T) $ x $ y
   end
@@ -131,12 +131,11 @@ fun gen_mk_aux_call functerms fTs (k, _) (tyco, Ts) =
    (T, fn t => nth functerms k $ absdummy T t $ size_pred)
   end
 
-fun gen_mk_consexpr test_function functerms simpleT (c, xs) =
+fun gen_mk_consexpr test_function simpleT (c, xs) =
   let
     val (Ts, fns) = split_list xs
     val constr = Const (c, Ts ---> simpleT)
     val bounds = map Bound (((length xs) - 1) downto 0)
-    val term_bounds = map (fn x => Bound (2 * x)) (((length xs) - 1) downto 0)
     val start_term = test_function simpleT $ list_comb (constr, bounds)
   in fold_rev (fn f => fn t => f t) fns start_term end
       
@@ -147,7 +146,7 @@ fun mk_fast_equations functerms =
       Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"},
         fast_exhaustiveT T))
     val mk_aux_call = gen_mk_aux_call functerms
-    val mk_consexpr = gen_mk_consexpr test_function functerms
+    val mk_consexpr = gen_mk_consexpr test_function
     fun mk_rhs exprs = @{term "If :: bool => unit => unit => unit"}
         $ size_ge_zero $ (foldr1 mk_unit_let exprs) $ @{term "()"}
   in
@@ -160,7 +159,7 @@ fun mk_equations functerms =
     val mk_call = gen_mk_call (fn T =>
       Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T))
     val mk_aux_call = gen_mk_aux_call functerms
-    val mk_consexpr = gen_mk_consexpr test_function functerms
+    val mk_consexpr = gen_mk_consexpr test_function
     fun mk_rhs exprs =
       mk_if (size_ge_zero, foldr1 mk_none_continuation exprs, Const (@{const_name "None"}, resultT))
   in
@@ -174,7 +173,7 @@ fun mk_bounded_forall_equations functerms =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"},
         bounded_forallT T))
     val mk_aux_call = gen_mk_aux_call functerms
-    val mk_consexpr = gen_mk_consexpr test_function functerms
+    val mk_consexpr = gen_mk_consexpr test_function
     fun mk_rhs exprs =
       mk_if (size_ge_zero, foldr1 HOLogic.mk_conj exprs, @{term "True"})
   in
@@ -207,7 +206,6 @@ fun mk_full_equations functerms =
         val (Ts, fns) = split_list xs
         val constr = Const (c, Ts ---> simpleT)
         val bounds = map (fn x => Bound (2 * x + 1)) (((length xs) - 1) downto 0)
-        val term_bounds = map (fn x => Bound (2 * x)) (((length xs) - 1) downto 0)
         val Eval_App = Const ("Code_Evaluation.App", HOLogic.termT --> HOLogic.termT --> HOLogic.termT)
         val Eval_Const = Const ("Code_Evaluation.Const", HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
         val term = fold (fn u => fn t => Eval_App $ t $ (u $ @{term "()"}))
@@ -311,12 +309,11 @@ fun mk_test_term lookup mk_closure mk_if none_t return ctxt =
 
 fun mk_fast_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
-    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val ([depth_name], _) = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
     fun return _ = @{term "throw_Counterexample :: term list => unit"} $
       (HOLogic.mk_list @{typ "term"}
@@ -340,12 +337,11 @@ fun mk_return t genuine = @{term "Some :: bool * term list => (bool * term list)
 
 fun mk_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
-    val ([depth_name, genuine_only_name], ctxt'') =
+    val ([depth_name, genuine_only_name], _) =
       Variable.variant_fixes ["depth", "genuine_only"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
     val genuine_only = Free (genuine_only_name, @{typ bool}) 
@@ -367,15 +363,15 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val frees = map Free (Term.add_frees t [])
     val ([depth_name, genuine_only_name], ctxt'') =
       Variable.variant_fixes ["depth", "genuine_only"] ctxt'
-    val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") names) ctxt''
+    val (term_names, _) = Variable.variant_fixes (map (prefix "t_") names) ctxt''
     val depth = Free (depth_name, @{typ code_numeral})
-    val genuine_only = Free (depth_name, @{typ bool})    
+    val genuine_only = Free (genuine_only_name, @{typ bool})    
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
     val return = mk_return (HOLogic.mk_list @{typ term}
           (map (fn v => v $ @{term "()"}) term_vars @ map mk_safe_term eval_terms))
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
-      if Sign.of_sort thy (T, @{sort enum}) then
+      if Sign.of_sort thy (T, @{sort check_all}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
           $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t))
@@ -397,12 +393,11 @@ fun mk_parametric_generator_expr mk_generator_expr =
 fun mk_validator_expr ctxt t =
   let
     fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
-    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
-    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val ([depth_name], _) = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
     fun mk_bounded_forall (Free (s, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
@@ -500,7 +495,10 @@ fun compile_validator_exprs ctxt ts =
       thy (SOME target) (K I) (HOLogic.mk_list @{typ "code_numeral => bool"} ts') []
   end;
 
-val test_goals = Quickcheck_Common.generator_test_goal_terms ("exhaustive", compile_generator_expr);
+fun size_matters_for thy Ts = not (forall (fn T => Sign.of_sort thy (T,  @{sort check_all})) Ts)
+
+val test_goals =
+  Quickcheck_Common.generator_test_goal_terms ("exhaustive", (size_matters_for, compile_generator_expr));
   
 (* setup *)
 

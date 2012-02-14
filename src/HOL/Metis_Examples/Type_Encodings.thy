@@ -67,16 +67,17 @@ fun metis_exhaust_tac ctxt ths =
       | tac (type_enc :: type_encs) st =
         st (* |> tap (fn _ => tracing (PolyML.makestring type_enc)) *)
            |> ((if null type_encs then all_tac else rtac @{thm fork} 1)
-               THEN Metis_Tactic.metis_tac [type_enc] "combinators" ctxt ths 1
+               THEN Metis_Tactic.metis_tac [type_enc]
+                    ATP_Problem_Generate.combsN ctxt ths 1
                THEN COND (has_fewer_prems 2) all_tac no_tac
                THEN tac type_encs)
-  in tac end
+  in tac type_encs end
 *}
 
 method_setup metis_exhaust = {*
   Attrib.thms >>
-    (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths type_encs))
-*} "exhaustively run the new Metis with all type encodings"
+    (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths))
+*} "exhaustively run Metis with all type encodings"
 
 text {* Miscellaneous tests *}
 

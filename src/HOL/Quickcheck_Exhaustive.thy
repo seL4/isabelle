@@ -119,17 +119,13 @@ instance ..
 
 end
 
+definition (in term_syntax) [code_unfold]: "valtermify_pair x y = Code_Evaluation.valtermify (Pair :: 'a :: typerep => 'b :: typerep => 'a * 'b) {\<cdot>} x {\<cdot>} y"
+
 instantiation prod :: (full_exhaustive, full_exhaustive) full_exhaustive
 begin
 
 definition
-  "full_exhaustive f d = full_exhaustive (%(x, t1). full_exhaustive (%(y, t2). f ((x, y),
-    %u. let T1 = (Typerep.typerep (TYPE('a)));
-            T2 = (Typerep.typerep (TYPE('b)))
-    in Code_Evaluation.App (Code_Evaluation.App (
-      Code_Evaluation.Const (STR ''Product_Type.Pair'') 
-      (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]]))
-      (t1 ())) (t2 ()))) d) d"
+  "full_exhaustive f d = full_exhaustive (%x. full_exhaustive (%y. f (valtermify_pair x y)) d) d"
 
 instance ..
 
@@ -140,14 +136,11 @@ begin
 
 fun exhaustive_set
 where
-  "exhaustive_set f i = (if i = 0 then None else (f {} orelse exhaustive_set (%A. f A orelse Quickcheck_Exhaustive.exhaustive (%x. if x \<in> A then None else f (insert x A)) (i - 1)) (i - 1)))"
+  "exhaustive_set f i = (if i = 0 then None else (f {} orelse exhaustive_set (%A. f A orelse exhaustive (%x. if x \<in> A then None else f (insert x A)) (i - 1)) (i - 1)))"
 
 instance ..
 
 end
-
-definition (in term_syntax) "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
-definition (in term_syntax) "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
 
 instantiation set :: (full_exhaustive) full_exhaustive
 begin
@@ -159,8 +152,6 @@ where
 instance ..
 
 end
-
-hide_const valterm_emptyset valtermify_insert
 
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
@@ -180,22 +171,19 @@ instance ..
 
 end
 
+definition [code_unfold]: "valtermify_absdummy = (%(v, t). (%_::'a. v, %u::unit. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a::typerep)) (t ())))"
+
+definition (in term_syntax) [code_unfold]: "valtermify_fun_upd g a b = Code_Evaluation.valtermify (fun_upd :: ('a :: typerep => 'b :: typerep) => 'a => 'b => 'a => 'b) {\<cdot>} g {\<cdot>} a {\<cdot>} b"
+
 instantiation "fun" :: ("{equal, full_exhaustive}", full_exhaustive) full_exhaustive
 begin
 
 fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
 where
-  "full_exhaustive_fun' f i d = (full_exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d)
+  "full_exhaustive_fun' f i d = (full_exhaustive (%v. f (valtermify_absdummy v)) d)
    orelse (if i > 1 then
-     full_exhaustive_fun' (%(g, gt). full_exhaustive (%(a, at). full_exhaustive (%(b, bt).
-       f (g(a := b),
-         (%_. let A = (Typerep.typerep (TYPE('a)));
-                  B = (Typerep.typerep (TYPE('b)));
-                  fun = (%T U. Typerep.Typerep (STR ''fun'') [T, U])
-              in
-                Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.App
-                  (Code_Evaluation.Const (STR ''Fun.fun_upd'') (fun (fun A B) (fun A (fun B (fun A B)))))
-                (gt ())) (at ())) (bt ())))) d) d) (i - 1) d else None)"
+     full_exhaustive_fun' (%g. full_exhaustive (%a. full_exhaustive (%b.
+       f (valtermify_fun_upd g a b)) d) d) (i - 1) d else None)"
 
 definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => (bool * term list) option"
 where
@@ -215,6 +203,8 @@ fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term lis
 where
   "check_all_n_lists f n =
      (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
+
+definition (in term_syntax) [code_unfold]: "termify_fun_upd g a b = (Code_Evaluation.termify (fun_upd :: ('a :: typerep => 'b :: typerep) => 'a => 'b => 'a => 'b) <\<cdot>> g <\<cdot>> a <\<cdot>> b)"
 
 definition mk_map_term :: " (unit \<Rightarrow> typerep) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> unit \<Rightarrow> term"
 where
@@ -252,6 +242,33 @@ instance ..
 
 end
 
+fun (in term_syntax) check_all_subsets :: "(('a :: typerep) set * (unit => term) => (bool * term list) option) => ('a * (unit => term)) list => (bool * term list) option"
+where
+  "check_all_subsets f [] = f valterm_emptyset"
+| "check_all_subsets f (x # xs) = check_all_subsets (%s. case f s of Some ts => Some ts | None => f (valtermify_insert x s)) xs"
+
+
+definition (in term_syntax) [code_unfold]: "term_emptyset = Code_Evaluation.termify ({} :: ('a :: typerep) set)"
+definition (in term_syntax) [code_unfold]: "termify_insert x s = Code_Evaluation.termify (insert :: ('a::typerep) => 'a set => 'a set)  <\<cdot>> x <\<cdot>> s"
+
+definition (in term_syntax) setify :: "('a::typerep) itself => term list => term"
+where
+  "setify T ts = foldr (termify_insert T) ts (term_emptyset T)" 
+
+instantiation set :: (check_all) check_all
+begin
+
+definition
+  "check_all_set f =
+     check_all_subsets f (zip (Enum.enum :: 'a list) (map (%a. %u :: unit. a) (Quickcheck_Exhaustive.enum_term_of (TYPE ('a)) ())))"
+
+definition enum_term_of_set :: "'a set itself => unit => term list"
+where
+  "enum_term_of_set _ _ = map (setify (TYPE('a))) (sublists (Quickcheck_Exhaustive.enum_term_of (TYPE('a)) ()))"
+
+instance ..
+
+end
 
 instantiation unit :: check_all
 begin
@@ -282,48 +299,31 @@ instance ..
 
 end
 
+definition (in term_syntax) [code_unfold]: "termify_pair x y = Code_Evaluation.termify (Pair :: 'a :: typerep => 'b :: typerep => 'a * 'b) <\<cdot>> x <\<cdot>> y"
 
 instantiation prod :: (check_all, check_all) check_all
 begin
 
 definition
-  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f ((x, y),
-    %u. let T1 = (Typerep.typerep (TYPE('a)));
-            T2 = (Typerep.typerep (TYPE('b)))
-    in Code_Evaluation.App (Code_Evaluation.App (
-      Code_Evaluation.Const (STR ''Product_Type.Pair'') 
-      (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]]))
-      (t1 ())) (t2 ()))))"
+  "check_all f = check_all (%x. check_all (%y. f (valtermify_pair x y)))"
 
 definition enum_term_of_prod :: "('a * 'b) itself => unit => term list"
 where
-  "enum_term_of_prod = (%_ _. map (%(x, y).
-       let T1 = (Typerep.typerep (TYPE('a)));
-           T2 = (Typerep.typerep (TYPE('b)))
-       in Code_Evaluation.App (Code_Evaluation.App (
-         Code_Evaluation.Const (STR ''Product_Type.Pair'') 
-           (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]])) x) y)
-     (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))  "
+  "enum_term_of_prod = (%_ _. map (%(x, y). termify_pair TYPE('a) TYPE('b) x y)
+     (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))"
 
 instance ..
 
 end
 
+definition (in term_syntax) [code_unfold]: "valtermify_Inl x = Code_Evaluation.valtermify (Inl :: 'a :: typerep => 'a + 'b :: typerep) {\<cdot>} x"
+definition (in term_syntax) [code_unfold]: "valtermify_Inr x = Code_Evaluation.valtermify (Inr :: 'b :: typerep => 'a ::typerep + 'b) {\<cdot>} x"
 
 instantiation sum :: (check_all, check_all) check_all
 begin
 
 definition
-  "check_all f = (case check_all (%(a, t). f (Inl a, %_. 
-     let T1 = (Typerep.typerep (TYPE('a)));
-         T2 = (Typerep.typerep (TYPE('b)))
-       in Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inl'') 
-           (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])) (t ()))) of Some x' => Some x'
-             | None => check_all (%(b, t). f (Inr b, %_. let
-                 T1 = (Typerep.typerep (TYPE('a)));
-                 T2 = (Typerep.typerep (TYPE('b)))
-               in Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inr'') 
-                 (Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])) (t ()))))"
+  "check_all f = check_all (%a. f (valtermify_Inl a)) orelse check_all (%b. f (valtermify_Inr b))"
 
 definition enum_term_of_sum :: "('a + 'b) itself => unit => term list"
 where
@@ -425,7 +425,8 @@ instantiation Enum.finite_2 :: check_all
 begin
 
 definition
-  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
 
 definition enum_term_of_finite_2 :: "Enum.finite_2 itself => unit => term list"
 where
@@ -439,11 +440,30 @@ instantiation Enum.finite_3 :: check_all
 begin
 
 definition
-  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3)))"
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2)
+    orelse f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3))"
 
 definition enum_term_of_finite_3 :: "Enum.finite_3 itself => unit => term list"
 where
   "enum_term_of_finite_3 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_3 list))"
+
+instance ..
+
+end
+
+instantiation Enum.finite_4 :: check_all
+begin
+
+definition
+  "check_all f = (f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>1)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>2)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>3)
+    orelse f (Code_Evaluation.valtermify Enum.finite_4.a\<^isub>4))"
+
+definition enum_term_of_finite_4 :: "Enum.finite_4 itself => unit => term list"
+where
+  "enum_term_of_finite_4 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_4 list))"
 
 instance ..
 
@@ -573,11 +593,15 @@ hide_fact
   exhaustive'_def
   exhaustive_code_numeral'_def
 
+hide_const valtermify_absdummy valtermify_fun_upd valterm_emptyset valtermify_insert valtermify_pair
+  valtermify_Inl valtermify_Inr
+  termify_fun_upd term_emptyset termify_insert termify_pair setify
+
 hide_const (open)
   exhaustive full_exhaustive exhaustive' exhaustive_code_numeral' full_exhaustive_code_numeral'
   throw_Counterexample catch_Counterexample
   check_all enum_term_of
-  orelse unknown mk_map_term check_all_n_lists
+  orelse unknown mk_map_term check_all_n_lists check_all_subsets
 
 hide_type (open) cps pos_bound_cps neg_bound_cps unknown three_valued
 hide_const (open) cps_empty cps_single cps_bind cps_plus cps_if cps_not

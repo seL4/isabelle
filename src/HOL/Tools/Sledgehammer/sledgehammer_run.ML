@@ -8,7 +8,7 @@ Sledgehammer's heart.
 
 signature SLEDGEHAMMER_RUN =
 sig
-  type minimize_command = ATP_Reconstruct.minimize_command
+  type minimize_command = ATP_Proof_Reconstruct.minimize_command
   type relevance_override = Sledgehammer_Filter.relevance_override
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
@@ -31,8 +31,8 @@ structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
 struct
 
 open ATP_Util
-open ATP_Translate
-open ATP_Reconstruct
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Provers
@@ -73,10 +73,10 @@ val auto_minimize_max_time =
                            (K 5.0)
 
 fun adjust_reconstructor_params override_params
-        ({debug, verbose, overlord, blocking, provers, type_enc, sound,
-         lam_trans, relevance_thresholds, max_relevant, max_mono_iters,
-         max_new_mono_instances, isar_proof, isar_shrink_factor, slice,
-         minimize, timeout, preplay_timeout, expect} : params) =
+        ({debug, verbose, overlord, blocking, provers, type_enc, strict,
+         lam_trans, uncurried_aliases, relevance_thresholds, max_relevant,
+         max_mono_iters, max_new_mono_instances, isar_proof, isar_shrink_factor,
+         slice, minimize, timeout, preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -88,9 +88,9 @@ fun adjust_reconstructor_params override_params
     val lam_trans = lookup_override "lam_trans" lam_trans
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_enc = type_enc, sound = sound,
-     lam_trans = lam_trans, max_relevant = max_relevant,
-     relevance_thresholds = relevance_thresholds,
+     provers = provers, type_enc = type_enc, strict = strict,
+     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
+     max_relevant = max_relevant, relevance_thresholds = relevance_thresholds,
      max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slice = slice,
@@ -172,7 +172,7 @@ fun get_minimizing_prover ctxt mode name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
   |> minimize ctxt mode name params problem
 
-fun is_induction_fact (Untranslated_Fact ((_, Induction), _)) = true
+fun is_induction_fact (Untranslated_Fact ((_, (_, Induct)), _)) = true
   | is_induction_fact _ = false
 
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slice,

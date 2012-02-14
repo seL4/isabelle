@@ -114,7 +114,7 @@ lemma select_weight_cons_zero:
   "select_weight ((0, x) # xs) = select_weight xs"
   by (simp add: select_weight_def)
 
-lemma select_weigth_drop_zero:
+lemma select_weight_drop_zero:
   "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
   have "listsum (map fst [(k, _)\<leftarrow>xs . 0 < k]) = listsum (map fst xs)"
@@ -122,7 +122,7 @@ proof -
   then show ?thesis by (simp only: select_weight_def pick_drop_zero)
 qed
 
-lemma select_weigth_select:
+lemma select_weight_select:
   assumes "xs \<noteq> []"
   shows "select_weight (map (Pair 1) xs) = select xs"
 proof -

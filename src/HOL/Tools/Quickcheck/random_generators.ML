@@ -455,7 +455,11 @@ fun compile_generator_expr ctxt ts =
       end
   end;
 
-val test_goals = Quickcheck_Common.generator_test_goal_terms ("random", compile_generator_expr);
+fun size_matters_for _ Ts = not (forall
+  (fn Type (tyco, []) => is_some (try (unprefix "Enum.finite") tyco) | _ => false) Ts)
+
+val test_goals =
+  Quickcheck_Common.generator_test_goal_terms ("random", (size_matters_for, compile_generator_expr));
   
 (** setup **)
 

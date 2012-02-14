@@ -227,9 +227,10 @@ end
 
 interpretation Abs_Int2
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines AI_ivl' is AI_wn
-proof qed
+..
 
 
 subsubsection "Tests"
@@ -238,23 +239,23 @@ definition "step_up_ivl n = ((\<lambda>c. c \<nabla>\<^sub>c step_ivl \<top> c)^
 definition "step_down_ivl n = ((\<lambda>c. c \<triangle>\<^sub>c step_ivl \<top> c)^^n)"
 
 text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
-the loop took to execute. In contrast, @{const AI_ivl} converges in a
+the loop took to execute. In contrast, @{const AI_ivl'} converges in a
 constant number of steps: *}
 
-value [code] "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 3 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 4 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
-value [code] "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
-value [code] "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_up_ivl 1 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 2 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 3 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 4 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl))"
+value "show_acom (step_down_ivl 1 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_down_ivl 2 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
+value "show_acom (step_down_ivl 3 (step_up_ivl 5 (\<bottom>\<^sub>c test3_ivl)))"
 
 text{* Now all the analyses terminate: *}
 
-value [code] "show_acom_opt (AI_ivl' test4_ivl)"
-value [code] "show_acom_opt (AI_ivl' test5_ivl)"
-value [code] "show_acom_opt (AI_ivl' test6_ivl)"
+value "show_acom_opt (AI_ivl' test4_ivl)"
+value "show_acom_opt (AI_ivl' test5_ivl)"
+value "show_acom_opt (AI_ivl' test6_ivl)"
 
 
 subsubsection "Termination: Intervals"
@@ -619,7 +620,10 @@ proof-
   show ?thesis using assms(3) by(simp)
 qed
 
-(* step' = step_ivl! mv into locale*)
+
+context Abs_Int2
+begin
+
 lemma iter_widen_step'_Com:
   "iter_widen (step' \<top>) c = Some c' \<Longrightarrow> vars(strip c) \<subseteq> X \<Longrightarrow> c : Com(X)
    \<Longrightarrow> c' : Com(X)"
@@ -631,8 +635,10 @@ prefer 3 apply assumption
 apply (auto simp: step'_Com)
 done
 
-theorem step_ivl_termination:
-  "EX c. AI_ivl' c0 = Some c"
+end
+
+theorem AI_ivl'_termination:
+  "EX c'. AI_ivl' c = Some c'"
 apply(auto simp: AI_wn_def pfp_wn_def iter_winden_step_ivl_termination split: option.split)
 apply(rule iter_narrow_step_ivl_termination)
 apply (metis bot_acom_Com iter_widen_step'_Com[OF _ subset_refl] strip_iter_widen strip_step')

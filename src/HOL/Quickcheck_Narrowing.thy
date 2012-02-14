@@ -367,6 +367,16 @@ lemma [code]:
       z = (conv :: _ => _ => unit)  in f)"
 unfolding Let_def ensure_testable_def ..
 
+subsection {* Narrowing for sets *}
+
+instantiation set :: (narrowing) narrowing
+begin
+
+definition "narrowing_set = Quickcheck_Narrowing.apply (Quickcheck_Narrowing.cons set) narrowing"
+
+instance ..
+
+end
   
 subsection {* Narrowing for integers *}
 

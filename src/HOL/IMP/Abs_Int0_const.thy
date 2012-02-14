@@ -54,7 +54,6 @@ end
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
-defines aval'_const is aval'
 proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
@@ -69,9 +68,48 @@ qed
 
 interpretation Abs_Int
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
-defines AI_const is AI
-and step_const is step'
-proof qed
+defines AI_const is AI and step_const is step' and aval'_const is aval'
+..
+
+
+subsubsection "Tests"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test1_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test1_const))"
+value "show_acom_opt (AI_const test1_const)"
+
+value "show_acom_opt (AI_const test2_const)"
+value "show_acom_opt (AI_const test3_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test4_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test4_const))"
+value "show_acom_opt (AI_const test4_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test5_const))"
+value "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const))"
+value "show_acom_opt (AI_const test5_const)"
+
+value "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^6) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^7) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^8) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^9) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^10) (\<bottom>\<^sub>c test6_const))"
+value "show_acom (((step_const \<top>)^^11) (\<bottom>\<^sub>c test6_const))"
+value "show_acom_opt (AI_const test6_const)"
 
 
 text{* Monotonicity: *}
@@ -85,48 +123,17 @@ qed
 
 text{* Termination: *}
 
+definition "m_const x = (case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0)"
+
 lemma measure_const:
-  "(strict{(x::const,y). x \<sqsubseteq> y})^-1 \<subseteq>
-  measure(%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0)"
-by(auto split: const.splits)
+  "(strict{(x::const,y). x \<sqsubseteq> y})^-1 \<subseteq> measure m_const"
+by(auto simp: m_const_def split: const.splits)
 
 lemma measure_const_eq:
-  "\<forall> x y::const. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> (%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0) x = (%x. case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0) y"
-by(auto split: const.splits)
-
-lemma acc_const_st: "Abs_Int0.acc{(x::const st,y). x \<sqsubseteq> y}"
-by(rule wf_subset[OF wf_measure measure_st[OF measure_const measure_const_eq]])
+  "\<forall> x y::const. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> m_const x = m_const y"
+by(auto simp: m_const_def split: const.splits)
 
 lemma "EX c'. AI_const c = Some c'"
-by(metis AI_def lpfpc_termination[OF acc_const_st, where f = "step_const \<top>",
-  OF mono_step'[OF le_refl] strip_step'])
-
-
-subsubsection "Tests"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test1_const))"
-value [code] "show_acom_opt (AI_const test1_const)"
-
-value [code] "show_acom_opt (AI_const test2_const)"
-value [code] "show_acom_opt (AI_const test3_const)"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test4_const))"
-value [code] "show_acom_opt (AI_const test4_const)"
-
-value [code] "show_acom (((step_const \<top>)^^0) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^1) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^2) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^3) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^4) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom (((step_const \<top>)^^5) (\<bottom>\<^sub>c test5_const))"
-value [code] "show_acom_opt (AI_const test5_const)"
-
-value [code] "show_acom_opt (AI_const test6_const)"
+by(rule AI_Some_measure[OF measure_const measure_const_eq])
 
 end

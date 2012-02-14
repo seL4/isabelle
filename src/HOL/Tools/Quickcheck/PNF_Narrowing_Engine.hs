@@ -3,11 +3,12 @@ A narrowing-based Evaluator for Formulas in Prefix Normal Form based on the comp
 -}
 module Narrowing_Engine where
 
-import Monad
+import Control.Monad
 import Control.Exception
+import System.IO
 import System.Exit
-import Maybe
-import List (partition, findIndex)
+import Data.Maybe
+import Data.List (partition, findIndex)
 import qualified Generated_Code
 
 
@@ -35,7 +36,7 @@ termListOf pos es = termListOf' 0 es
     termListOf' i [] = []
     termListOf' i (e : es) =
       let 
-        (ts, rs) = List.partition (\e -> head (posOf e) == i) (e : es)
+        (ts, rs) = Data.List.partition (\e -> head (posOf e) == i) (e : es)
         t = termOf (pos ++ [i]) (map tailPosEdge ts)
       in
         (t : termListOf' (i + 1) rs) 

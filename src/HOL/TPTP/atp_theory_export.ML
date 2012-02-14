@@ -1,4 +1,4 @@
-(*  Title:      HOL/TPTP/atp_export.ML
+(*  Title:      HOL/TPTP/atp_theory_export.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2011
 
@@ -6,7 +6,7 @@ Export Isabelle theories as first-order TPTP inferences, exploiting
 Sledgehammer's translation.
 *)
 
-signature ATP_EXPORT =
+signature ATP_THEORY_EXPORT =
 sig
   type atp_format = ATP_Problem.atp_format
 
@@ -18,12 +18,12 @@ sig
     Proof.context -> theory -> atp_format -> string -> string -> unit
 end;
 
-structure ATP_Export : ATP_EXPORT =
+structure ATP_Theory_Export : ATP_THEORY_EXPORT =
 struct
 
 open ATP_Problem
-open ATP_Translate
 open ATP_Proof
+open ATP_Problem_Generate
 open ATP_Systems
 
 val fact_name_of = prefix fact_prefix o ascii_of
@@ -102,8 +102,8 @@ fun inference_term [] = NONE
 fun inference infers ident =
   these (AList.lookup (op =) infers ident) |> inference_term
 fun add_inferences_to_problem_line infers
-                                   (Formula (ident, Axiom, phi, NONE, NONE)) =
-    Formula (ident, Lemma, phi, inference infers ident, NONE)
+                                   (Formula (ident, Axiom, phi, NONE, tms)) =
+    Formula (ident, Lemma, phi, inference infers ident, tms)
   | add_inferences_to_problem_line _ line = line
 fun add_inferences_to_problem infers =
   map (apsnd (map (add_inferences_to_problem_line infers)))
@@ -117,7 +117,8 @@ fun run_some_atp ctxt format problem =
     val prob_file = File.tmp_path (Path.explode "prob.tptp")
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy (case format of DFG _ => spassN | _ => eN)
-    val _ = problem |> lines_for_atp_problem format |> File.write_list prob_file
+    val _ = problem |> lines_for_atp_problem format (K [])
+                    |> File.write_list prob_file
     val command =
       File.shell_path (Path.explode (getenv (fst exec) ^ "/" ^ snd exec)) ^
       " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
@@ -139,7 +140,7 @@ fun is_problem_line_tautology ctxt format (Formula (ident, _, phi, _, _)) =
     exists (fn prefix => String.isPrefix prefix ident)
            likely_tautology_prefixes andalso
     is_none (run_some_atp ctxt format
-                 [(factsN, [Formula (ident, Conjecture, phi, NONE, NONE)])])
+                 [(factsN, [Formula (ident, Conjecture, phi, NONE, [])])])
   | is_problem_line_tautology _ _ _ = false
 
 structure String_Graph = Graph(type key = string val ord = string_ord);
@@ -169,7 +170,7 @@ fun monomorphize_term ctxt t =
 
 fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
-    val type_enc = type_enc |> type_enc_from_string Sound
+    val type_enc = type_enc |> type_enc_from_string Strict
                             |> adjust_type_enc format
     val mono = polymorphism_of_type_enc type_enc <> Polymorphic
     val path = file_name |> Path.explode
@@ -180,7 +181,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       |> map (fn ((_, loc), th) =>
                  ((Thm.get_name_hint th, loc),
                    th |> prop_of |> mono ? monomorphize_term ctxt))
-      |> prepare_atp_problem ctxt format Axiom Axiom type_enc true combinatorsN
+      |> prepare_atp_problem ctxt format Axiom Axiom type_enc true combsN false
                              false true [] @{prop False}
       |> #1
     val atp_problem =
@@ -212,7 +213,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy format type_enc file_name =
       atp_problem
       |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
       |> order_problem_facts name_ord
-    val ss = lines_for_atp_problem format atp_problem
+    val ss = lines_for_atp_problem format (K []) atp_problem
     val _ = app (File.append path) ss
   in () end
 
