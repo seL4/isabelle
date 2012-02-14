@@ -451,7 +451,7 @@ fun parse_spass_line spass_names =
     -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
     -- parse_horn_clause --| $$ "."
     -- Scan.option (Scan.this_string "derived from formulae "
-                    |-- Scan.repeat scan_general_id)
+                    |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
   >> (fn ((((num, rule), deps), u), names) =>
          Inference ((num, resolve_spass_num names spass_names num), u, rule,
                     map (swap o `(resolve_spass_num NONE spass_names)) deps))

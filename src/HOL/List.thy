@@ -3372,7 +3372,7 @@ by (induct xs) auto
 lemma removeAll_id[simp]: "x \<notin> set xs \<Longrightarrow> removeAll x xs = xs"
 by (induct xs) auto
 
-(* Needs count:: 'a \<Rightarrow> a' list \<Rightarrow> nat
+(* Needs count:: 'a \<Rightarrow> 'a list \<Rightarrow> nat
 lemma length_removeAll:
   "length(removeAll x xs) = length xs - count x xs"
 *)

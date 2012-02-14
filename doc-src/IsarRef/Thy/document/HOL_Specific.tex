@@ -1776,6 +1776,19 @@ This avoids re-doing basic definitions and proofs from the
     \indexdef{HOL}{command}{print\_quotmaps}\hypertarget{command.HOL.print-quotmaps}{\hyperlink{command.HOL.print-quotmaps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotmaps}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
     \indexdef{HOL}{command}{print\_quotients}\hypertarget{command.HOL.print-quotients}{\hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
     \indexdef{HOL}{command}{print\_quotconsts}\hypertarget{command.HOL.print-quotconsts}{\hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}\\
+    \indexdef{HOL}{method}{lifting}\hypertarget{method.HOL.lifting}{\hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{lifting\_setup}\hypertarget{method.HOL.lifting-setup}{\hyperlink{method.HOL.lifting-setup}{\mbox{\isa{lifting{\isaliteral{5F}{\isacharunderscore}}setup}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{descending}\hypertarget{method.HOL.descending}{\hyperlink{method.HOL.descending}{\mbox{\isa{descending}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{descending\_setup}\hypertarget{method.HOL.descending-setup}{\hyperlink{method.HOL.descending-setup}{\mbox{\isa{descending{\isaliteral{5F}{\isacharunderscore}}setup}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{partiality\_descending}\hypertarget{method.HOL.partiality-descending}{\hyperlink{method.HOL.partiality-descending}{\mbox{\isa{partiality{\isaliteral{5F}{\isacharunderscore}}descending}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{partiality\_descending\_setup}\hypertarget{method.HOL.partiality-descending-setup}{\hyperlink{method.HOL.partiality-descending-setup}{\mbox{\isa{partiality{\isaliteral{5F}{\isacharunderscore}}descending{\isaliteral{5F}{\isacharunderscore}}setup}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{regularize}\hypertarget{method.HOL.regularize}{\hyperlink{method.HOL.regularize}{\mbox{\isa{regularize}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{injection}\hypertarget{method.HOL.injection}{\hyperlink{method.HOL.injection}{\mbox{\isa{injection}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{cleaning}\hypertarget{method.HOL.cleaning}{\hyperlink{method.HOL.cleaning}{\mbox{\isa{cleaning}}}} & : & \isa{method} \\
+    \indexdef{HOL}{attribute}{quot\_thm}\hypertarget{attribute.HOL.quot-thm}{\hyperlink{attribute.HOL.quot-thm}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}thm}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{quot\_lifted}\hypertarget{attribute.HOL.quot-lifted}{\hyperlink{attribute.HOL.quot-lifted}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}lifted}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{quot\_respect}\hypertarget{attribute.HOL.quot-respect}{\hyperlink{attribute.HOL.quot-respect}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}respect}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{quot\_preserve}\hypertarget{attribute.HOL.quot-preserve}{\hyperlink{attribute.HOL.quot-preserve}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}preserve}}}} & : & \isa{attribute} \\
   \end{matharray}
 
   The quotient package defines a new quotient type given a raw type
@@ -1851,10 +1864,32 @@ This avoids re-doing basic definitions and proofs from the
 \end{railoutput}
 
 
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.HOL.lifting-setup}{\mbox{\isa{lifting{\isaliteral{5F}{\isacharunderscore}}setup}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
   \begin{description}
-  
-  \item \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} defines quotient types.  The
-  injection from a quotient type to a raw type is called \isa{rep{\isaliteral{5F}{\isacharunderscore}}t}, its inverse \isa{abs{\isaliteral{5F}{\isacharunderscore}}t} unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
+
+  \item \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} defines quotient types. The
+  injection from a quotient type to a raw type is called \isa{rep{\isaliteral{5F}{\isacharunderscore}}t}, its inverse \isa{abs{\isaliteral{5F}{\isacharunderscore}}t} unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names. \hyperlink{command.HOL.quotient-type}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}type}}}} requires the user to prove that the relation
+  is an equivalence relation (predicate \isa{equivp}), unless the
+  user specifies explicitely \isa{partial} in which case the
+  obligation is \isa{part{\isaliteral{5F}{\isacharunderscore}}equivp}.  A quotient defined with \isa{partial} is weaker in the sense that less things can be proved
+  automatically.
 
   \item \hyperlink{command.HOL.quotient-definition}{\mbox{\isa{\isacommand{quotient{\isaliteral{5F}{\isacharunderscore}}definition}}}} defines a constant on
   the quotient type.
@@ -1865,6 +1900,61 @@ This avoids re-doing basic definitions and proofs from the
   \item \hyperlink{command.HOL.print-quotients}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotients}}}} prints quotients.
 
   \item \hyperlink{command.HOL.print-quotconsts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}quotconsts}}}} prints quotient constants.
+
+  \item \hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}} and \hyperlink{method.HOL.lifting-setup}{\mbox{\isa{lifting{\isaliteral{5F}{\isacharunderscore}}setup}}}
+    methods match the current goal with the given raw theorem to be
+    lifted producing three new subgoals: regularization, injection and
+    cleaning subgoals. \hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}} tries to apply the
+    heuristics for automatically solving these three subgoals and
+    leaves only the subgoals unsolved by the heuristics to the user as
+    opposed to \hyperlink{method.HOL.lifting-setup}{\mbox{\isa{lifting{\isaliteral{5F}{\isacharunderscore}}setup}}} which leaves the three
+    subgoals unsolved.
+
+  \item \hyperlink{method.HOL.descending}{\mbox{\isa{descending}}} and \hyperlink{method.HOL.descending-setup}{\mbox{\isa{descending{\isaliteral{5F}{\isacharunderscore}}setup}}} try to guess a raw statement that would lift
+    to the current subgoal. Such statement is assumed as a new subgoal
+    and \hyperlink{method.HOL.descending}{\mbox{\isa{descending}}} continues in the same way as
+    \hyperlink{method.HOL.lifting}{\mbox{\isa{lifting}}} does. \hyperlink{method.HOL.descending}{\mbox{\isa{descending}}} tries
+    to solve the arising regularization, injection and cleaning
+    subgoals with the analoguous method \hyperlink{method.HOL.descending-setup}{\mbox{\isa{descending{\isaliteral{5F}{\isacharunderscore}}setup}}} which leaves the four unsolved subgoals.
+
+  \item \hyperlink{method.HOL.partiality-descending}{\mbox{\isa{partiality{\isaliteral{5F}{\isacharunderscore}}descending}}} finds the regularized
+    theorem that would lift to the current subgoal, lifts it and
+    leaves as a subgoal. This method can be used with partial
+    equivalence quotients where the non regularized statements would
+    not be true. \hyperlink{method.HOL.partiality-descending-setup}{\mbox{\isa{partiality{\isaliteral{5F}{\isacharunderscore}}descending{\isaliteral{5F}{\isacharunderscore}}setup}}} leaves
+    the injection and cleaning subgoals unchanged.
+
+  \item \hyperlink{method.HOL.regularize}{\mbox{\isa{regularize}}} applies the regularization
+    heuristics to the current subgoal.
+
+  \item \hyperlink{method.HOL.injection}{\mbox{\isa{injection}}} applies the injection heuristics
+    to the current goal using the stored quotient respectfulness
+    theorems.
+
+  \item \hyperlink{method.HOL.cleaning}{\mbox{\isa{cleaning}}} applies the injection cleaning
+    heuristics to the current subgoal using the stored quotient
+    preservation theorems.
+
+  \item \hyperlink{attribute.HOL.quot-lifted}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}lifted}}} attribute tries to
+    automatically transport the theorem to the quotient type.
+    The attribute uses all the defined quotients types and quotient
+    constants often producing undesired results or theorems that
+    cannot be lifted.
+
+  \item \hyperlink{attribute.HOL.quot-respect}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}respect}}} and \hyperlink{attribute.HOL.quot-preserve}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}preserve}}} attributes declare a theorem as a respectfulness
+    and preservation theorem respectively.  These are stored in the
+    local theory store and used by the \hyperlink{method.HOL.injection}{\mbox{\isa{injection}}}
+    and \hyperlink{method.HOL.cleaning}{\mbox{\isa{cleaning}}} methods respectively.
+
+  \item \hyperlink{attribute.HOL.quot-thm}{\mbox{\isa{quot{\isaliteral{5F}{\isacharunderscore}}thm}}} declares that a certain theorem
+    is a quotient extension theorem. Quotient extension theorems
+    allow for quotienting inside container types. Given a polymorphic
+    type that serves as a container, a map function defined for this
+    container  using \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}} and a relation
+    map defined for for the container type, the quotient extension
+    theorem should be \isa{{\isaliteral{22}{\isachardoublequote}}Quotient\ R\ Abs\ Rep\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Quotient\ {\isaliteral{28}{\isacharparenleft}}rel{\isaliteral{5F}{\isacharunderscore}}map\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Abs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ Rep{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}. Quotient extension theorems
+    are stored in a database and are used all the steps of lifting
+    theorems.
 
   \end{description}%
 \end{isamarkuptext}%
