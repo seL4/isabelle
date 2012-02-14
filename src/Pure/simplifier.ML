@@ -239,7 +239,7 @@ fun generic_simp_tac safe mode ss =
       (rev (if safe then solvers else unsafe_solvers)));
 
     fun simp_loop_tac i =
-      Raw_Simplifier.asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
+      Raw_Simplifier.generic_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
       (solve_tac i ORELSE TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i));
   in simp_loop_tac end;
 

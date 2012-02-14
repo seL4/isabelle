@@ -123,7 +123,7 @@ sig
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
   val rewrite_thm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
-  val asm_rewrite_goal_tac: bool * bool * bool ->
+  val generic_rewrite_goal_tac: bool * bool * bool ->
     (simpset -> tactic) -> simpset -> int -> tactic
   val rewrite: bool -> thm list -> conv
   val simplify: bool -> thm list -> thm -> thm
@@ -1298,14 +1298,14 @@ fun rewrite_goals_rule thms th =
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 
 (*Rewrite one subgoal*)
-fun asm_rewrite_goal_tac mode prover_tac ss i thm =
+fun generic_rewrite_goal_tac mode prover_tac ss i thm =
   if 0 < i andalso i <= Thm.nprems_of thm then
     Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ss) i thm)
   else Seq.empty;
 
 fun rewrite_goal_tac rews =
   let val ss = empty_ss addsimps rews in
-    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
+    fn i => fn st => generic_rewrite_goal_tac (true, false, false) (K no_tac)
       (global_context (Thm.theory_of_thm st) ss) i st
   end;
 
