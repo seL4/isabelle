@@ -344,6 +344,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
 
 fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
+  (* FIXME proper use of facts!? *)
   (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL (SUBGOAL (fn (t, i) =>
   let
     val (ctxt', _, cases, concl) = dest_hhf ctxt t
