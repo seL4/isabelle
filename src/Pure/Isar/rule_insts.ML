@@ -269,9 +269,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               (Thm.lift_rule cgoal thm)
       in
         compose_tac (bires_flag, rule, nprems_of thm) i
-      end) i st
-           handle TERM (msg,_)   => (warning msg; no_tac st)
-                | THM  (msg,_,_) => (warning msg; no_tac st);
+      end) i st;
   in tac end;
 
 val res_inst_tac = bires_inst_tac false;
