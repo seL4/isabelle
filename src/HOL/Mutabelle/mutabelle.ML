@@ -43,14 +43,6 @@ fun consts_of thy =
  end;
 
 
-(*possibility to print a given term for debugging purposes*)
-
-fun prt x = Pretty.writeln (Syntax.pretty_term_global @{theory Main} x);
-
-val debug = (Unsynchronized.ref false);
-fun debug_msg mutterm = if (!debug) then (prt mutterm) else ();
-
-
 (*thrown in case the specified path doesn't exist in the specified term*)
 
 exception WrongPath of string;
