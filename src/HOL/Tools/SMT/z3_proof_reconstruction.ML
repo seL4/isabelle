@@ -724,14 +724,14 @@ fun rewrite simpset ths ct ctxt =
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+        (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+        (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
@@ -740,7 +740,7 @@ fun rewrite simpset ths ct ctxt =
     Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
       (fn ctxt' =>
         Z3_Proof_Tools.by_tac (
-          (Tactic.rtac @{thm iff_allI} ORELSE' K Tactical.all_tac)
+          (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
           THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac simpset)
           THEN_ALL_NEW (
             NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')
