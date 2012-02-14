@@ -270,7 +270,8 @@ val leo2_config : atp_config =
    proof_delims = tstp_proof_delims,
    known_failures =
      known_szs_status_failures @
-     [(TimedOut, "CPU time limit exceeded, terminating")],
+     [(TimedOut, "CPU time limit exceeded, terminating"),
+      (GaveUp, "No.of.Axioms")],
    conj_sym_kind = Axiom,
    prem_kind = Hypothesis,
    best_slices = fn ctxt =>
