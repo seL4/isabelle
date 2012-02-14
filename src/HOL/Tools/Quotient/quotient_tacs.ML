@@ -364,7 +364,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   | (_ $
       (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
-        => rtac @{thm babs_rsp} THEN' RANGE [quotient_tac ctxt]
+        => rtac @{thm babs_rsp} THEN' quotient_tac ctxt
 
   | Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
      (rtac @{thm refl} ORELSE'
