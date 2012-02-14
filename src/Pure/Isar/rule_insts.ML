@@ -210,11 +210,11 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     val tinsts = filter_out has_type_var insts;
 
     (* Tactic *)
-    fun tac i st =
+    fun tac i st = CSUBGOAL (fn (cgoal, _) =>
       let
-        val (_, _, Bi, _) = Thm.dest_state (st, i);
-        val params = Logic.strip_params Bi;  (*params of subgoal i as string typ pairs*)
-        val params = rev (Term.rename_wrt_term Bi params)
+        val goal = term_of cgoal;
+        val params = Logic.strip_params goal;  (*params of subgoal i as string typ pairs*)
+        val params = rev (Term.rename_wrt_term goal params)
           (*as they are printed: bound variables with*)
           (*the same name are renamed during printing*)
 
@@ -266,12 +266,10 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate_normalize
               (map lifttvar envT', map liftpair cenv)
-              (Thm.lift_rule (Thm.cprem_of st i) thm)
+              (Thm.lift_rule cgoal thm)
       in
-        if i > nprems_of st then no_tac st
-        else st |>
-          compose_tac (bires_flag, rule, nprems_of thm) i
-      end
+        compose_tac (bires_flag, rule, nprems_of thm) i
+      end) i st
            handle TERM (msg,_)   => (warning msg; no_tac st)
                 | THM  (msg,_,_) => (warning msg; no_tac st);
   in tac end;
