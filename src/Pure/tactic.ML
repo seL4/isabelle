@@ -59,7 +59,6 @@ end;
 signature TACTIC =
 sig
   include BASIC_TACTIC
-  val innermost_params: int -> thm -> (string * typ) list
   val insert_tagged_brl: 'a * (bool * thm) ->
     ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
@@ -176,11 +175,6 @@ fun distinct_subgoals_tac state =
     val goals = Thm.prems_of state;
     val dups = distinct (eq_fst (op aconv)) (goals ~~ (1 upto length goals));
   in EVERY (rev (map (distinct_subgoal_tac o snd) dups)) state end;
-
-(*Determine print names of goal parameters (reversed)*)
-fun innermost_params i st =
-  let val (_, _, Bi, _) = Thm.dest_state (st, i)
-  in Term.rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 
 (*** Applications of cut_rl ***)
