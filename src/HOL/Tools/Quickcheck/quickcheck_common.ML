@@ -77,6 +77,7 @@ fun cpu_time description e =
 fun test_term (name, (_, compile)) ctxt catch_code_errors (t, eval_terms) =
   let
     val genuine_only = Config.get ctxt Quickcheck.genuine_only
+    val abort_potential = Config.get ctxt Quickcheck.abort_potential
     val _ = check_test_term t
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
@@ -104,15 +105,17 @@ fun test_term (name, (_, compile)) ctxt catch_code_errors (t, eval_terms) =
             NONE => with_size test_fun genuine_only (k + 1)
           | SOME (true, ts) => SOME (true, ts)
           | SOME (false, ts) =>
-            let
-              val (ts1, ts2) = chop (length names) ts
-              val (eval_terms', _) = chop (length ts2) eval_terms
-              val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
-            in
-              (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-              Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
-              with_size test_fun true k)
-            end
+            if abort_potential then SOME (false, ts)
+            else
+              let
+                val (ts1, ts2) = chop (length names) ts
+                val (eval_terms', _) = chop (length ts2) eval_terms
+                val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
+              in
+                (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+                Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
+                with_size test_fun true k)
+              end
         end;
   in
     case test_fun of
@@ -169,6 +172,7 @@ fun test_terms ctxt ts =
 fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_code_errors ts =
   let
     val genuine_only = Config.get ctxt Quickcheck.genuine_only
+    val abort_potential = Config.get ctxt Quickcheck.abort_potential
     val thy = Proof_Context.theory_of ctxt
     val (ts', eval_terms) = split_list ts
     val _ = map check_test_term ts'
@@ -209,14 +213,17 @@ fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_co
           SOME ((card, _), (true, ts)) =>
             Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME (true, ts)) current_result
         | SOME ((card, size), (false, ts)) =>
-           let
-              val (ts1, ts2) = chop (length names) ts
-              val (eval_terms', _) = chop (length ts2) (nth eval_terms (card - 1))
-              val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
-            in
-              (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-              Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
-              test true (snd (take_prefix (fn x => not (x = (card, size))) enum)))
+            if abort_potential then
+              Quickcheck.add_response names (nth eval_terms (card - 1)) (SOME (false, ts)) current_result
+            else
+              let
+                val (ts1, ts2) = chop (length names) ts
+                val (eval_terms', _) = chop (length ts2) (nth eval_terms (card - 1))
+                val cex = SOME ((false, names ~~ ts1), eval_terms' ~~ ts2)
+              in
+                (Quickcheck.message ctxt (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+                Quickcheck.message ctxt "Quickcheck continues to find a genuine counterexample...";
+                test true (snd (take_prefix (fn x => not (x = (card, size))) enum)))              
             end
         | NONE => ()
       in (test genuine_only enumeration_card_size; !current_result) end
