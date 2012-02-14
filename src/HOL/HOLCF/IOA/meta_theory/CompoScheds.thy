@@ -284,7 +284,7 @@ apply (simp add: asig_of_par actions_asig_comp)
 done
 
 
-(* generalizing the proof above to a tactic *)
+(* generalizing the proof above to a proof method *)
 
 ML {*
 
@@ -296,7 +296,7 @@ in
 
 fun mkex_induct_tac ctxt sch exA exB =
   let val ss = simpset_of ctxt in
-    EVERY1[Seq_induct_tac ctxt sch defs,
+    EVERY'[Seq_induct_tac ctxt sch defs,
            asm_full_simp_tac ss,
            SELECT_GOAL (safe_tac (Proof_Context.init_global @{theory Fun})),
            Seq_case_simp_tac ctxt exA,
@@ -313,6 +313,11 @@ fun mkex_induct_tac ctxt sch exA exB =
 end
 *}
 
+method_setup mkex_induct = {*
+  Scan.lift (Args.name -- Args.name -- Args.name)
+    >> (fn ((sch, exA), exB) => fn ctxt => SIMPLE_METHOD' (mkex_induct_tac ctxt sch exA exB))
+*}
+
 
 (*---------------------------------------------------------------------------
                Projection of mkex(sch,exA,exB) onto A stutters on A
@@ -324,10 +329,7 @@ lemma stutterA_mkex: "! exA exB s t.
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of A) (s,ProjA2$(snd (mkex A B sch (s,exA) (t,exB))))"
-
-apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
-done
-
+  by (mkex_induct sch exA exB)
 
 lemma stutter_mkex_on_A: "[|
   Forall (%x. x:act (A||B)) sch ;
@@ -354,8 +356,7 @@ lemma stutterB_mkex: "! exA exB s t.
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of B) (t,ProjB2$(snd (mkex A B sch (s,exA) (t,exB))))"
-apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
-done
+  by (mkex_induct sch exA exB)
 
 
 lemma stutter_mkex_on_B: "[|
@@ -385,8 +386,7 @@ lemma filter_mkex_is_exA_tmp: "! exA exB s t.
   Filter (%a. a:act B)$sch << filter_act$exB
   --> Filter_ex2 (asig_of A)$(ProjA2$(snd (mkex A B sch (s,exA) (t,exB)))) =
       Zip$(Filter (%a. a:act A)$sch)$(Map snd$exA)"
-apply (tactic {* mkex_induct_tac @{context} "sch" "exB" "exA" *})
-done
+  by (mkex_induct sch exB exA)
 
 (*---------------------------------------------------------------------------
                       zip$(proj1$y)$(proj2$y) = y   (using the lift operations)
@@ -448,8 +448,7 @@ lemma filter_mkex_is_exB_tmp: "! exA exB s t.
       Zip$(Filter (%a. a:act B)$sch)$(Map snd$exB)"
 
 (* notice necessary change of arguments exA and exB *)
-apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
-done
+  by (mkex_induct sch exA exB)
 
 
 (*---------------------------------------------------------------------------
@@ -485,8 +484,7 @@ lemma mkex_actions_in_AorB: "!s t exA exB.
   Filter (%a. a:act B)$sch << filter_act$exB
    --> Forall (%x. fst x : act (A ||B))
          (snd (mkex A B sch (s,exA) (t,exB)))"
-apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
-done
+  by (mkex_induct sch exA exB)
 
 
 (* ------------------------------------------------------------------ *)
