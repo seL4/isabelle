@@ -48,6 +48,7 @@ sig
   val ALLGOALS: (int -> tactic) -> tactic
   val SOMEGOAL: (int -> tactic) -> tactic
   val FIRSTGOAL: (int -> tactic) -> tactic
+  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val REPEAT_SOME: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val REPEAT_FIRST: (int -> tactic) -> tactic
@@ -313,6 +314,9 @@ fun SOMEGOAL tac st =
 fun FIRSTGOAL tac st =
   let fun find (i,n) = if i>n then no_tac else  tac(i) ORELSE find (i+1,n)
   in  find(1, nprems_of st)st  end;
+
+(*First subgoal only.*)
+fun HEADGOAL tac = tac 1;
 
 (*Repeatedly solve some using tac. *)
 fun REPEAT_SOME tac = REPEAT1 (SOMEGOAL (REPEAT1 o tac));

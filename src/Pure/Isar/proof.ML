@@ -36,7 +36,6 @@ sig
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
-  val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
@@ -444,6 +443,8 @@ end;
 
 (* refine via sub-proof *)
 
+local
+
 fun finish_tac 0 = K all_tac
   | finish_tac n =
       Goal.norm_hhf_tac THEN'
@@ -457,6 +458,12 @@ fun goal_tac rule =
   Tactic.rtac rule THEN'
   finish_tac (Thm.nprems_of rule);
 
+fun FINDGOAL tac st =
+  let fun find i n = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1) n)
+  in find 1 (Thm.nprems_of st) st end;
+
+in
+
 fun refine_goals print_rule inner raw_rules state =
   let
     val (outer, (_, goal)) = get_goal state;
@@ -466,6 +473,8 @@ fun refine_goals print_rule inner raw_rules state =
     |> Proof_Context.goal_export inner outer
     |> (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
   end;
+
+end;
 
 
 (* conclude_goal *)
