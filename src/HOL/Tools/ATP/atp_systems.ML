@@ -493,10 +493,15 @@ fun get_system name versions =
 fun the_system name versions =
   case get_system name versions of
     (SOME sys, _) => sys
-  | (NONE, []) => error ("SystemOnTPTP is currently not available.")
+  | (NONE, []) => error ("SystemOnTPTP is not available.")
   | (NONE, syss) =>
-    error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n" ^
-           "(Available systems: " ^ commas_quote syss ^ ".)")
+    case syss |> filter_out (String.isPrefix "%")
+              |> filter_out (curry (op =) "") of
+      [] => error ("SystemOnTPTP is not available.")
+    | [msg] => error ("SystemOnTPTP is not available: " ^ msg ^ ".")
+    | syss =>
+      error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n" ^
+             "(Available systems: " ^ commas_quote syss ^ ".)")
 
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
