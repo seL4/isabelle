@@ -270,11 +270,5 @@ schematic_lemma "P x .. P y => P ?X"
   apply (prolog prog_Test)
   back
   done
-(*
-back
--> problem with DEPTH_SOLVE:
-Exception- THM ("dest_state", 1, ["P x & P y --> P y"]) raised
-Exception raised at run-time
-*)
 
 end
