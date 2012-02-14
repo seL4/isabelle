@@ -55,7 +55,6 @@ sig
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_goals_tac: thm list -> tactic
   val rewrite_goal_tac: thm list -> int -> tactic
-  val rewtac: thm -> tactic
   val prune_params_tac: tactic
   val fold_rule: thm list -> thm -> thm
   val fold_goals_tac: thm list -> tactic
@@ -1305,7 +1304,6 @@ fun rewrite_goal_rule mode prover ss i thm =
 
 (*Rewrite all subgoals*)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
-fun rewtac def = rewrite_goals_tac [def];
 
 (*Rewrite one subgoal*)
 fun asm_rewrite_goal_tac mode prover_tac ss i thm =

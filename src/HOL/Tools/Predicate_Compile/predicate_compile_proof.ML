@@ -308,7 +308,7 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
     val nargs = length (binder_types T)
     val pred_case_rule = the_elim_of ctxt pred
   in
-    REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"}))
+    REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all}))
     THEN print_tac options "before applying elim rule"
     THEN etac (predfun_elim_of ctxt pred mode) 1
     THEN etac pred_case_rule 1
@@ -385,7 +385,7 @@ fun prove_expr2 options ctxt (t, deriv) =
           val ho_args = ho_args_of mode args
         in
           etac @{thm bindE} 1
-          THEN (REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"})))
+          THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all})))
           THEN print_tac options "prove_expr2-before"
           THEN etac (predfun_elim_of ctxt name mode) 1
           THEN print_tac options "prove_expr2"
@@ -496,7 +496,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
       THEN (prove_clause2 options ctxt pred mode clause i)
   in
     (DETERM (TRY (rtac @{thm unit.induct} 1)))
-     THEN (REPEAT_DETERM (CHANGED (rewtac @{thm split_paired_all})))
+     THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all})))
      THEN (rtac (predfun_intro_of ctxt pred mode) 1)
      THEN (REPEAT_DETERM (rtac @{thm refl} 2))
      THEN (if null moded_clauses then
