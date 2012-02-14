@@ -21,6 +21,7 @@ sig
   val report : bool Config.T
   val timing : bool Config.T
   val genuine_only : bool Config.T
+  val abort_potential : bool Config.T  
   val quiet : bool Config.T
   val verbose : bool Config.T
   val timeout : real Config.T
@@ -177,6 +178,7 @@ val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
 val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
 val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
 val genuine_only = Attrib.setup_config_bool @{binding quickcheck_genuine_only} (K false)
+val abort_potential = Attrib.setup_config_bool @{binding quickcheck_abort_potential} (K false)
 val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
 val verbose = Attrib.setup_config_bool @{binding quickcheck_verbose} (K false)
 val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
@@ -433,6 +435,7 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("expect", [arg]) = apsnd (map_test_params ((apsnd o K) (read_expectation arg)))
   | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
   | parse_test_param ("genuine_only", [arg]) = apsnd (Config.put_generic genuine_only (read_bool arg))
+  | parse_test_param ("abort_potential", [arg]) = apsnd (Config.put_generic abort_potential (read_bool arg))
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
   | parse_test_param ("verbose", [arg]) = apsnd (Config.put_generic verbose (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
