@@ -379,7 +379,7 @@ text {*
 *}
 
 declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs addbefore ("bspec", datac @{thm bspec} 1))
+  Classical.map_cs (fn cs => cs addbefore ("bspec", dtac @{thm bspec} THEN' assume_tac))
 *}
 
 ML {*

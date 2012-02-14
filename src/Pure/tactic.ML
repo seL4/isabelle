@@ -22,9 +22,6 @@ sig
   val dtac: thm -> int -> tactic
   val etac: thm -> int -> tactic
   val ftac: thm -> int -> tactic
-  val datac: thm -> int -> int -> tactic
-  val eatac: thm -> int -> int -> tactic
-  val fatac: thm -> int -> int -> tactic
   val ares_tac: thm list -> int -> tactic
   val solve_tac: thm list -> int -> tactic
   val bimatch_tac: (bool * thm) list -> int -> tactic
@@ -140,9 +137,6 @@ fun rtac rl =  resolve_tac [rl];
 fun dtac rl = dresolve_tac [rl];
 fun etac rl = eresolve_tac [rl];
 fun ftac rl =  forward_tac [rl];
-fun datac thm j = EVERY' (dtac thm::replicate j atac);
-fun eatac thm j = EVERY' (etac thm::replicate j atac);
-fun fatac thm j = EVERY' (ftac thm::replicate j atac);
 
 (*Use an assumption or some rules ... A popular combination!*)
 fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
