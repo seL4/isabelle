@@ -120,10 +120,9 @@ structure FunctionData = Generic_Data
 
 val get_function = FunctionData.get o Context.Proof;
 
-
 fun lift_morphism thy f =
   let
-    val term = Drule.term_rule thy f
+    fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of thy t))
   in
     Morphism.thm_morphism f $> Morphism.term_morphism term
     $> Morphism.typ_morphism (Logic.type_map term)

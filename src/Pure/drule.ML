@@ -95,7 +95,6 @@ sig
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
-  val term_rule: theory -> (thm -> thm) -> term -> term
   val dummy_thm: thm
   val sort_constraintI: thm
   val sort_constraint_eq: thm
@@ -720,7 +719,6 @@ fun dest_term th =
   end;
 
 fun cterm_rule f = dest_term o f o mk_term;
-fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
 val dummy_thm = mk_term (certify Term.dummy_prop);
 
