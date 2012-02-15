@@ -134,7 +134,7 @@ local
         | _ => SMT_Utils.certify ctxt (Var ((Name.uu, maxidx_of ct + 1), T)))
       fun dec (i, v) = if i = 0 then NONE else SOME (i-1, v)
       val vars' = map_filter dec vars
-    in (Thm.capply (SMT_Utils.instT' cv q) (Thm.cabs cv ct), vars') end
+    in (Thm.apply (SMT_Utils.instT' cv q) (Thm.lambda cv ct), vars') end
 
   fun quant name =
     SMT_Utils.mk_const_pat @{theory} name (SMT_Utils.destT1 o SMT_Utils.destT1)

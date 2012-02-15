@@ -155,7 +155,7 @@ fun introduce_combinators_in_cterm ct =
       val (v, _) = dest_Free (term_of cv)
       val u_th = introduce_combinators_in_cterm cta
       val cu = Thm.rhs_of u_th
-      val comb_eq = abstract (Thm.cabs cv cu)
+      val comb_eq = abstract (Thm.lambda cv cu)
     in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
   | _ $ _ =>
     let val (ct1, ct2) = Thm.dest_comb ct in
@@ -205,10 +205,10 @@ fun old_skolem_theorem_from_def thy rhs0 =
       | _ => raise TERM ("old_skolem_theorem_from_def: expected \"Eps\"",
                          [hilbert])
     val cex = cterm_of thy (HOLogic.exists_const T)
-    val ex_tm = Thm.capply cTrueprop (Thm.capply cex cabs)
+    val ex_tm = Thm.apply cTrueprop (Thm.apply cex cabs)
     val conc =
       Drule.list_comb (rhs, frees)
-      |> Drule.beta_conv cabs |> Thm.capply cTrueprop
+      |> Drule.beta_conv cabs |> Thm.apply cTrueprop
     fun tacf [prem] =
       rewrite_goals_tac skolem_def_raw
       THEN rtac ((prem |> rewrite_rule skolem_def_raw)

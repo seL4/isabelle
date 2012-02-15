@@ -772,7 +772,7 @@ fun C f x y = f y x;
   (* FIXME : This is very bad!!!*)
 fun subst_conv eqs t =
  let
-  val t' = fold (Thm.cabs o Thm.lhs_of) eqs t
+  val t' = fold (Thm.lambda o Thm.lhs_of) eqs t
  in Conv.fconv_rule (Thm.beta_conversion true) (fold (C Thm.combination) eqs (Thm.reflexive t'))
  end
 
@@ -819,7 +819,7 @@ fun real_nonlinear_subst_prover prover ctxt =
   fun make_substitution th =
    let
     val (c,v) = substitutable_monomial [] (Thm.dest_arg1(concl th))
-    val th1 = Drule.arg_cong_rule (Thm.capply @{cterm "op * :: real => _"} (RealArith.cterm_of_rat (Rat.inv c))) (mk_meta_eq th)
+    val th1 = Drule.arg_cong_rule (Thm.apply @{cterm "op * :: real => _"} (RealArith.cterm_of_rat (Rat.inv c))) (mk_meta_eq th)
     val th2 = fconv_rule (binop_conv real_poly_mul_conv) th1
    in fconv_rule (arg_conv real_poly_conv) (isolate_variable v th2)
    end

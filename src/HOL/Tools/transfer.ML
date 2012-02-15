@@ -109,7 +109,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
     val ([a, D], ctxt2) = ctxt1
       |> Variable.import true (map Drule.mk_term [raw_a, raw_D])
       |>> map Drule.dest_term o snd;
-    val transform = Thm.capply @{cterm "Trueprop"} o Thm.capply D;
+    val transform = Thm.apply @{cterm "Trueprop"} o Thm.apply D;
     val T = Thm.typ_of (Thm.ctyp_of_term a);
     val (aT, bT) = (Term.range_type T, Term.domain_type T);
     
@@ -124,7 +124,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
     val c_vars = map (certify o Var) vars;
     val (vs', ctxt4) = Variable.variant_fixes (map (fst o fst) vars) ctxt3;
     val c_vars' = map (certify o (fn v => Free (v, bT))) vs';
-    val c_exprs' = map (Thm.capply a) c_vars';
+    val c_exprs' = map (Thm.apply a) c_vars';
 
     (* transfer *)
     val (hyps, ctxt5) = ctxt4

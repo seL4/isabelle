@@ -1271,7 +1271,7 @@ in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
           val cx = cterm_of thy x;
           val {T = xT, ...} = rep_cterm cx;
           val cf = cterm_of thy f;
-          val fx_g = Simplifier.rewrite ss (Thm.capply cf cx);
+          val fx_g = Simplifier.rewrite ss (Thm.apply cf cx);
           val (_ $ _ $ g) = prop_of fx_g;
           val g' = abstract_over (x,g);
         in (if (g aconv g')

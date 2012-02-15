@@ -124,8 +124,8 @@ fun remove_suc thy thms =
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
         in 
-          map (apfst (fn ct => Thm.capply ct ct2)) (find_vars ct1) @
-          map (apfst (Thm.capply ct1)) (find_vars ct2)
+          map (apfst (fn ct => Thm.apply ct ct2)) (find_vars ct1) @
+          map (apfst (Thm.apply ct1)) (find_vars ct2)
         end
       | _ => []);
     val eqs = maps
@@ -136,8 +136,8 @@ fun remove_suc thy thms =
           Thm.implies_elim
            (Conv.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
-               [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
-                 SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
+               [SOME (ctyp_of_term ct)] [SOME (Thm.lambda cv ct),
+                 SOME (Thm.lambda cv' (rhs_of th)), NONE, SOME cv']
                @{thm Suc_if_eq})) (Thm.forall_intr cv' th)
       in
         case map_filter (fn th'' =>

@@ -116,7 +116,7 @@ fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)
     val (cf, cvs) = Drule.strip_comb lhs
-    val eq = SMT_Utils.mk_cequals cf (fold_rev Thm.cabs cvs rhs)
+    val eq = SMT_Utils.mk_cequals cf (fold_rev Thm.lambda cvs rhs)
     fun apply cv th =
       Thm.combination th (Thm.reflexive cv)
       |> Conv.fconv_rule (Conv.arg_conv (Thm.beta_conversion false))
@@ -159,14 +159,14 @@ fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
           val cv = SMT_Utils.certify ctxt'
             (Free (n, map SMT_Utils.typ_of cvs' ---> SMT_Utils.typ_of ct))
           val cu = Drule.list_comb (cv, cvs')
-          val e = (t, (cv, fold_rev Thm.cabs cvs' ct))
+          val e = (t, (cv, fold_rev Thm.lambda cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')
         in (cu, (ctxt', Termtab.update e tab, idx + 1, beta_norm')) end)
   end
 
 fun abs_comb f g dcvs ct =
   let val (cf, cu) = Thm.dest_comb ct
-  in f dcvs cf ##>> g dcvs cu #>> uncurry Thm.capply end
+  in f dcvs cf ##>> g dcvs cu #>> uncurry Thm.apply end
 
 fun abs_arg f = abs_comb (K pair) f
 
@@ -184,7 +184,7 @@ fun abs_list f g dcvs ct =
 
 fun abs_abs f (depth, cvs) ct =
   let val (cv, cu) = Thm.dest_abs NONE ct
-  in f (depth, cv :: cvs) cu #>> Thm.cabs cv end
+  in f (depth, cv :: cvs) cu #>> Thm.lambda cv end
 
 val is_atomic =
   (fn Free _ => true | Var _ => true | Bound _ => true | _ => false)

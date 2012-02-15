@@ -220,7 +220,7 @@ fun thm_of thy (Assume (t, v)) = imp_intr (cprop_of thy t) (thm_of thy v)
 
 fun join (Assume (_, pv), pthm) (Assume (t, v), thm) =
       let
-        val mk_prop = Thm.capply @{cterm Trueprop}
+        val mk_prop = Thm.apply @{cterm Trueprop}
         val ct = Thm.cprop_of thm |> Thm.dest_arg |> Thm.dest_arg1 |> mk_prop
         val th = Thm.assume ct
         val (v', thm') = join (pv, imp_elim th pthm) (v, imp_elim th thm)

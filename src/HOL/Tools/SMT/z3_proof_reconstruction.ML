@@ -618,7 +618,7 @@ local
     SMT_Utils.mk_const_pat @{theory} @{const_name all}
       (SMT_Utils.destT1 o SMT_Utils.destT1)
   fun mk_forall cv ct =
-    Thm.capply (SMT_Utils.instT' cv forall) (Thm.cabs cv ct)
+    Thm.apply (SMT_Utils.instT' cv forall) (Thm.lambda cv ct)
 
   fun get_vars f mk pred ctxt t =
     Term.fold_aterms f t []

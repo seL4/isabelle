@@ -56,10 +56,10 @@ fun dest_comb t = Thm.dest_comb t
 fun dest_abs a t = Thm.dest_abs a t
   handle CTERM (msg, _) => raise ERR "dest_abs" msg;
 
-fun capply t u = Thm.capply t u
+fun capply t u = Thm.apply t u
   handle CTERM (msg, _) => raise ERR "capply" msg;
 
-fun cabs a t = Thm.cabs a t
+fun cabs a t = Thm.lambda a t
   handle CTERM (msg, _) => raise ERR "cabs" msg;
 
 

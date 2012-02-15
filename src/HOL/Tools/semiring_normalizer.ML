@@ -199,8 +199,8 @@ fun field_funs key =
     fun mk_const phi cT x =
       let val (a, b) = Rat.quotient_of_rat x
       in if b = 1 then Numeral.mk_cnumber cT a
-        else Thm.capply
-             (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
+        else Thm.apply
+             (Thm.apply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
                          (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end
@@ -725,7 +725,7 @@ val polynomial_mul_conv =
 (* Power of polynomial (optimized for the monomial and trivial cases).       *)
 
 fun num_conv n =
-  nat_add_conv (Thm.capply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_numeral n - 1)))
+  nat_add_conv (Thm.apply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_numeral n - 1)))
   |> Thm.symmetric;
 
 

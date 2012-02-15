@@ -143,7 +143,7 @@ fun ctyp_fun f cT = Thm.ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
 fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
 val implies = certify Logic.implies;
-fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
+fun mk_implies (A, B) = Thm.apply (Thm.apply implies A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
 fun list_implies([], B) = B
@@ -151,7 +151,7 @@ fun list_implies([], B) = B
 
 (*cterm version of list_comb: maps  (f, [t1,...,tn])  to  f(t1,...,tn) *)
 fun list_comb (f, []) = f
-  | list_comb (f, t::ts) = list_comb (Thm.capply f t, ts);
+  | list_comb (f, t::ts) = list_comb (Thm.apply f t, ts);
 
 (*cterm version of strip_comb: maps  f(t1,...,tn)  to  (f, [t1,...,tn]) *)
 fun strip_comb ct =
@@ -173,7 +173,7 @@ fun strip_type cT = (case Thm.typ_of cT of
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
 fun beta_conv x y =
-  Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.capply x y)));
+  Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.apply x y)));
 
 
 
@@ -673,7 +673,7 @@ in
 
 (* protect *)
 
-val protect = Thm.capply (certify Logic.protectC);
+val protect = Thm.apply (certify Logic.protectC);
 
 val protectI =
   store_standard_thm (Binding.conceal (Binding.name "protectI"))

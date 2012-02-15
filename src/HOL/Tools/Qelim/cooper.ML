@@ -144,7 +144,7 @@ fun get_pmi_term t =
   let val (x,eq) =
      (Thm.dest_abs NONE o Thm.dest_arg o snd o Thm.dest_abs NONE o Thm.dest_arg)
         (Thm.dest_arg t)
-in (Thm.cabs x o Thm.dest_arg o Thm.dest_arg) eq end;
+in (Thm.lambda x o Thm.dest_arg o Thm.dest_arg) eq end;
 
 val get_pmi = get_pmi_term o cprop_of;
 
@@ -179,15 +179,15 @@ fun numeral1 f n = HOLogic.mk_number iT (f (dest_number n));
 fun numeral2 f m n = HOLogic.mk_number iT (f (dest_number m) (dest_number n));
 
 val [minus1,plus1] =
-    map (fn c => fn t => Thm.capply (Thm.capply c t) cone) [cminus,cadd];
+    map (fn c => fn t => Thm.apply (Thm.apply c t) cone) [cminus,cadd];
 
 fun decomp_pinf x dvd inS [aseteq, asetneq, asetlt, asetle,
                            asetgt, asetge,asetdvd,asetndvd,asetP,
                            infDdvd, infDndvd, asetconj,
                            asetdisj, infDconj, infDdisj] cp =
  case (whatis x cp) of
-  And (p,q) => ([p,q], myfwd (piconj, asetconj, infDconj) (Thm.cabs x p) (Thm.cabs x q))
-| Or (p,q) => ([p,q], myfwd (pidisj, asetdisj, infDdisj) (Thm.cabs x p) (Thm.cabs x q))
+  And (p,q) => ([p,q], myfwd (piconj, asetconj, infDconj) (Thm.lambda x p) (Thm.lambda x q))
+| Or (p,q) => ([p,q], myfwd (pidisj, asetdisj, infDdisj) (Thm.lambda x p) (Thm.lambda x q))
 | Eq t => ([], K (inst' [t] pieq, FWD (inst' [t] aseteq) [inS (plus1 t)], infDFalse))
 | NEq t => ([], K (inst' [t] pineq, FWD (inst' [t] asetneq) [inS t], infDTrue))
 | Lt t => ([], K (inst' [t] pilt, FWD (inst' [t] asetlt) [inS t], infDFalse))
@@ -206,8 +206,8 @@ fun decomp_minf x dvd inS [bseteq,bsetneq,bsetlt, bsetle, bsetgt,
                            infDdvd, infDndvd, bsetconj,
                            bsetdisj, infDconj, infDdisj] cp =
  case (whatis x cp) of
-  And (p,q) => ([p,q], myfwd (miconj, bsetconj, infDconj) (Thm.cabs x p) (Thm.cabs x q))
-| Or (p,q) => ([p,q], myfwd (midisj, bsetdisj, infDdisj) (Thm.cabs x p) (Thm.cabs x q))
+  And (p,q) => ([p,q], myfwd (miconj, bsetconj, infDconj) (Thm.lambda x p) (Thm.lambda x q))
+| Or (p,q) => ([p,q], myfwd (midisj, bsetdisj, infDdisj) (Thm.lambda x p) (Thm.lambda x q))
 | Eq t => ([], K (inst' [t] mieq, FWD (inst' [t] bseteq) [inS (minus1 t)], infDFalse))
 | NEq t => ([], K (inst' [t] mineq, FWD (inst' [t] bsetneq) [inS t], infDTrue))
 | Lt t => ([], K (inst' [t] milt, (inst' [t] bsetlt), infDTrue))
@@ -368,8 +368,8 @@ fun unify ctxt q =
    let
     val th =
      Simplifier.rewrite lin_ss
-      (Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"}
-           (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
+      (Thm.apply @{cterm Trueprop} (Thm.apply @{cterm "Not"}
+           (Thm.apply (Thm.apply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
            @{cterm "0::int"})))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
   val notz =
@@ -411,9 +411,9 @@ fun unify ctxt q =
   | _ => Thm.reflexive t
   val uth = unit_conv p
   val clt =  Numeral.mk_cnumber @{ctyp "int"} l
-  val ltx = Thm.capply (Thm.capply cmulC clt) cx
+  val ltx = Thm.apply (Thm.apply cmulC clt) cx
   val th = Drule.arg_cong_rule e (Thm.abstract_rule (fst (dest_Free x )) cx uth)
-  val th' = inst' [Thm.cabs ltx (Thm.rhs_of uth), clt] unity_coeff_ex
+  val th' = inst' [Thm.lambda ltx (Thm.rhs_of uth), clt] unity_coeff_ex
   val thf = Thm.transitive th
       (Thm.transitive (Thm.symmetric (Thm.beta_conversion true (cprop_of th' |> Thm.dest_arg1))) th')
   val (lth,rth) = Thm.dest_comb (cprop_of thf) |>> Thm.dest_arg |>> Thm.beta_conversion true
@@ -423,7 +423,7 @@ fun unify ctxt q =
 
 val emptyIS = @{cterm "{}::int set"};
 val insert_tm = @{cterm "insert :: int => _"};
-fun mkISet cts = fold_rev (Thm.capply insert_tm #> Thm.capply) cts emptyIS;
+fun mkISet cts = fold_rev (Thm.apply insert_tm #> Thm.apply) cts emptyIS;
 val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
 val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
                                       |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg)
@@ -459,8 +459,8 @@ let
    let
     val th =
      Simplifier.rewrite lin_ss
-      (Thm.capply @{cterm Trueprop}
-           (Thm.capply (Thm.capply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
+      (Thm.apply @{cterm Trueprop}
+           (Thm.apply (Thm.apply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
@@ -471,8 +471,8 @@ let
    end
  val dp =
    let val th = Simplifier.rewrite lin_ss
-      (Thm.capply @{cterm Trueprop}
-           (Thm.capply (Thm.capply @{cterm "op < :: int => _"} @{cterm "0::int"}) cd))
+      (Thm.apply @{cterm Trueprop}
+           (Thm.apply (Thm.apply @{cterm "op < :: int => _"} @{cterm "0::int"}) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
    local
@@ -714,9 +714,9 @@ fun thin_prems_tac ctxt P = simp_tac all_maxscope_ss THEN'
      val (ps, c) = split_last (strip_objimp p)
      val qs = filter P ps
      val q = if P c then c else @{cterm "False"}
-     val ng = fold_rev (fn (a,v) => fn t => Thm.capply a (Thm.cabs v t)) qvs 
-         (fold_rev (fn p => fn q => Thm.capply (Thm.capply @{cterm HOL.implies} p) q) qs q)
-     val g = Thm.capply (Thm.capply @{cterm "op ==>"} (Thm.capply @{cterm "Trueprop"} ng)) p'
+     val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs 
+         (fold_rev (fn p => fn q => Thm.apply (Thm.apply @{cterm HOL.implies} p) q) qs q)
+     val g = Thm.apply (Thm.apply @{cterm "op ==>"} (Thm.apply @{cterm "Trueprop"} ng)) p'
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)
     in 
@@ -777,7 +777,7 @@ end;
 fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
-   fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
+   fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));

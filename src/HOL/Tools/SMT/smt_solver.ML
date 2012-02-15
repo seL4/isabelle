@@ -283,7 +283,7 @@ fun smt_filter_preprocess st xwthms i =
 
     val {facts, goal, ...} = Proof.goal st
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
-    fun negate ct = Thm.dest_comb ct ||> Thm.capply cnot |-> Thm.capply
+    fun negate ct = Thm.dest_comb ct ||> Thm.apply cnot |-> Thm.apply
     val cprop =
       (case try negate (Thm.rhs_of (SMT_Normalize.atomize_conv ctxt' concl)) of
         SOME ct => ct

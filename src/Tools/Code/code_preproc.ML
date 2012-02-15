@@ -117,7 +117,7 @@ fun no_variables_conv conv ct =
       |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
   in
     ct
-    |> fold_rev Thm.cabs all_vars
+    |> fold_rev Thm.lambda all_vars
     |> conv
     |> fold apply_beta all_vars
   end;

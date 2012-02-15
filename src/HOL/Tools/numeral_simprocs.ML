@@ -566,8 +566,8 @@ local
       val z = Thm.instantiate_cterm ([(zT,T)],[]) zr
       val eq = Thm.instantiate_cterm ([(eqT,T)],[]) geq
       val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
-           (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
-                  (Thm.capply (Thm.capply eq t) z)))
+           (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
+                  (Thm.apply (Thm.apply eq t) z)))
     in Thm.equal_elim (Thm.symmetric th) TrueI
     end
 

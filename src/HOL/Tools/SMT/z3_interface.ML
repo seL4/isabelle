@@ -138,7 +138,7 @@ fun mk_builtin_num _ i @{typ int} = SOME (Numeral.mk_cnumber @{ctyp int} i)
 
 val mk_true = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
 val mk_false = Thm.cterm_of @{theory} @{const False}
-val mk_not = Thm.capply (Thm.cterm_of @{theory} @{const Not})
+val mk_not = Thm.apply (Thm.cterm_of @{theory} @{const Not})
 val mk_implies = Thm.mk_binop (Thm.cterm_of @{theory} @{const HOL.implies})
 val mk_iff = Thm.mk_binop (Thm.cterm_of @{theory} @{const HOL.eq (bool)})
 val conj = Thm.cterm_of @{theory} @{const HOL.conj}
@@ -154,7 +154,7 @@ val if_term =
   SMT_Utils.mk_const_pat @{theory} @{const_name If}
     (SMT_Utils.destT1 o SMT_Utils.destT2)
 fun mk_if cc ct cu =
-  Thm.mk_binop (Thm.capply (SMT_Utils.instT' ct if_term) cc) ct cu
+  Thm.mk_binop (Thm.apply (SMT_Utils.instT' ct if_term) cc) ct cu
 
 val nil_term =
   SMT_Utils.mk_const_pat @{theory} @{const_name Nil} SMT_Utils.destT1
@@ -168,22 +168,22 @@ val distinct = SMT_Utils.mk_const_pat @{theory} @{const_name distinct}
   (SMT_Utils.destT1 o SMT_Utils.destT1)
 fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =
-      Thm.capply (SMT_Utils.instT' ct distinct)
+      Thm.apply (SMT_Utils.instT' ct distinct)
         (mk_list (Thm.ctyp_of_term ct) cts)
 
 val access =
   SMT_Utils.mk_const_pat @{theory} @{const_name fun_app} SMT_Utils.destT1
-fun mk_access array = Thm.capply (SMT_Utils.instT' array access) array
+fun mk_access array = Thm.apply (SMT_Utils.instT' array access) array
 
 val update = SMT_Utils.mk_const_pat @{theory} @{const_name fun_upd}
   (Thm.dest_ctyp o SMT_Utils.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
   in
-    Thm.capply (Thm.mk_binop (SMT_Utils.instTs cTs update) array index) value
+    Thm.apply (Thm.mk_binop (SMT_Utils.instTs cTs update) array index) value
   end
 
-val mk_uminus = Thm.capply (Thm.cterm_of @{theory} @{const uminus (int)})
+val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
 val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (int)})
 val mk_sub = Thm.mk_binop (Thm.cterm_of @{theory} @{const minus (int)})
 val mk_mul = Thm.mk_binop (Thm.cterm_of @{theory} @{const times (int)})
@@ -207,7 +207,7 @@ fun mk_builtin_fun ctxt sym cts =
   | (Sym ("ite", _), [ct1, ct2, ct3]) => SOME (mk_if ct1 ct2 ct3) (* FIXME: remove *)
   | (Sym ("=", _), [ct, cu]) => SOME (mk_eq ct cu)
   | (Sym ("distinct", _), _) => SOME (mk_distinct cts)
-  | (Sym ("select", _), [ca, ck]) => SOME (Thm.capply (mk_access ca) ck)
+  | (Sym ("select", _), [ca, ck]) => SOME (Thm.apply (mk_access ca) ck)
   | (Sym ("store", _), [ca, ck, cv]) => SOME (mk_update ca ck cv)
   | _ =>
     (case (sym, try (#T o Thm.rep_cterm o hd) cts, cts) of

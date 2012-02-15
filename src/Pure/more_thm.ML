@@ -120,11 +120,11 @@ fun all_name (x, t) A =
   let
     val cert = Thm.cterm_of (Thm.theory_of_cterm t);
     val T = #T (Thm.rep_cterm t);
-  in Thm.capply (cert (Const ("all", (T --> propT) --> propT))) (Thm.cabs_name (x, t) A) end;
+  in Thm.apply (cert (Const ("all", (T --> propT) --> propT))) (Thm.lambda_name (x, t) A) end;
 
 fun all t A = all_name ("", t) A;
 
-fun mk_binop c a b = Thm.capply (Thm.capply c a) b;
+fun mk_binop c a b = Thm.apply (Thm.apply c a) b;
 fun dest_binop ct = (Thm.dest_arg1 ct, Thm.dest_arg ct);
 
 fun dest_implies ct =

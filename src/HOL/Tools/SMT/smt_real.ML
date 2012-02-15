@@ -67,7 +67,7 @@ local
     if T = @{typ real} then SOME (Numeral.mk_cnumber @{ctyp real} i)
     else NONE
 
-  val mk_uminus = Thm.capply (Thm.cterm_of @{theory} @{const uminus (real)})
+  val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (real)})
   val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (real)})
   val mk_sub = Thm.mk_binop (Thm.cterm_of @{theory} @{const minus (real)})
   val mk_mul = Thm.mk_binop (Thm.cterm_of @{theory} @{const times (real)})

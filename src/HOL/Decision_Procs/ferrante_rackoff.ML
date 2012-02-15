@@ -125,12 +125,12 @@ let
        Const(@{const_name HOL.conj},_)$_$_ =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q], myfwd (minf_conj,pinf_conj, nmi_conj, npi_conj,ld_conj)
-                         (Thm.cabs x p) (Thm.cabs x q))
+                         (Thm.lambda x p) (Thm.lambda x q))
         end
      | Const(@{const_name HOL.disj},_)$_$_ =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q],myfwd (minf_disj, pinf_disj, nmi_disj, npi_disj,ld_disj)
-                         (Thm.cabs x p) (Thm.cabs x q))
+                         (Thm.lambda x p) (Thm.lambda x q))
         end
      | _ =>
         (let val c = wi x fm

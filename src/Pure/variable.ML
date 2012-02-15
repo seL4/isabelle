@@ -539,7 +539,7 @@ fun focus t ctxt =
   in (((xs ~~ ps), t'), ctxt') end;
 
 fun forall_elim_prop t prop =
-  Thm.beta_conversion false (Thm.capply (Thm.dest_arg prop) t)
+  Thm.beta_conversion false (Thm.apply (Thm.dest_arg prop) t)
   |> Thm.cprop_of |> Thm.dest_arg;
 
 fun focus_cterm goal ctxt =

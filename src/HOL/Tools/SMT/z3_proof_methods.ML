@@ -109,7 +109,7 @@ fun mk_inv_def ctxt rhs =
       SMT_Utils.dest_all_cbinders (SMT_Utils.dest_cprop rhs) ctxt
     val (cl, cv) = Thm.dest_binop ct
     val (cg, (cargs, cf)) = Drule.strip_comb cl ||> split_last
-    val cu = fold_rev Thm.cabs cargs (mk_inv_of ctxt' (Thm.cabs cv cf))
+    val cu = fold_rev Thm.lambda cargs (mk_inv_of ctxt' (Thm.lambda cv cf))
   in Thm.assume (SMT_Utils.mk_cequals cg cu) end
 
 fun prove_inj_eq ctxt ct =

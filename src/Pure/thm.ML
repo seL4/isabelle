@@ -75,9 +75,9 @@ sig
   val dest_fun2: cterm -> cterm
   val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
-  val capply: cterm -> cterm -> cterm
-  val cabs_name: string * cterm -> cterm -> cterm
-  val cabs: cterm -> cterm -> cterm
+  val apply: cterm -> cterm -> cterm
+  val lambda_name: string * cterm -> cterm -> cterm
+  val lambda: cterm -> cterm -> cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val incr_indexes_cterm: int -> cterm -> cterm
   val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
@@ -259,7 +259,7 @@ fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, max
 
 (* constructors *)
 
-fun capply
+fun apply
   (cf as Cterm {t = f, T = Type ("fun", [dty, rty]), maxidx = maxidx1, sorts = sorts1, ...})
   (cx as Cterm {t = x, T, maxidx = maxidx2, sorts = sorts2, ...}) =
     if T = dty then
@@ -268,10 +268,10 @@ fun capply
         T = rty,
         maxidx = Int.max (maxidx1, maxidx2),
         sorts = Sorts.union sorts1 sorts2}
-      else raise CTERM ("capply: types don't agree", [cf, cx])
-  | capply cf cx = raise CTERM ("capply: first arg is not a function", [cf, cx]);
+      else raise CTERM ("apply: types don't agree", [cf, cx])
+  | apply cf cx = raise CTERM ("apply: first arg is not a function", [cf, cx]);
 
-fun cabs_name
+fun lambda_name
   (x, ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
   (ct2 as Cterm {t = t2, T = T2, maxidx = maxidx2, sorts = sorts2, ...}) =
     let val t = Term.lambda_name (x, t1) t2 in
@@ -281,7 +281,7 @@ fun cabs_name
         sorts = Sorts.union sorts1 sorts2}
     end;
 
-fun cabs t u = cabs_name ("", t) u;
+fun lambda t u = lambda_name ("", t) u;
 
 
 (* indexes *)
@@ -1548,7 +1548,7 @@ fun rename_bvs [] _ _ _ _ = K I
               if member (op =) ys y
               then del_clashing true (x :: xs) (x :: ys) ps qs
               else del_clashing clash xs (y :: ys) ps (p :: qs);
-        val al'' = del_clashing false unchanged unchanged al' [];        
+        val al'' = del_clashing false unchanged unchanged al' [];
         fun rename (t as Var ((x, i), T)) =
               (case AList.lookup (op =) al'' x of
                  SOME y => Var ((y, i), T)

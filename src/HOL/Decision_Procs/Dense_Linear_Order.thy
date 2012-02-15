@@ -660,8 +660,8 @@ fun dest_frac ct = case term_of ct of
 fun mk_frac phi cT x =
  let val (a, b) = Rat.quotient_of_rat x
  in if b = 1 then Numeral.mk_cnumber cT a
-    else Thm.capply
-         (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
+    else Thm.apply
+         (Thm.apply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
                      (Numeral.mk_cnumber cT a))
          (Numeral.mk_cnumber cT b)
  end
@@ -690,9 +690,9 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-               (Thm.capply @{cterm "Trueprop"}
-                  (if neg then Thm.capply (Thm.capply clt c) cz
-                    else Thm.capply (Thm.capply clt cz) c))
+               (Thm.apply @{cterm "Trueprop"}
+                  (if neg then Thm.apply (Thm.apply clt c) cz
+                    else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_lt} else @{thm pos_prod_sum_lt})) cth
@@ -713,9 +713,9 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-               (Thm.capply @{cterm "Trueprop"}
-                  (if neg then Thm.capply (Thm.capply clt c) cz
-                    else Thm.capply (Thm.capply clt cz) c))
+               (Thm.apply @{cterm "Trueprop"}
+                  (if neg then Thm.apply (Thm.apply clt c) cz
+                    else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_lt} else @{thm pos_prod_lt})) cth
@@ -734,9 +734,9 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-               (Thm.capply @{cterm "Trueprop"}
-                  (if neg then Thm.capply (Thm.capply clt c) cz
-                    else Thm.capply (Thm.capply clt cz) c))
+               (Thm.apply @{cterm "Trueprop"}
+                  (if neg then Thm.apply (Thm.apply clt c) cz
+                    else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (instantiate' [SOME T] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_le} else @{thm pos_prod_sum_le})) cth
@@ -758,9 +758,9 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-               (Thm.capply @{cterm "Trueprop"}
-                  (if neg then Thm.capply (Thm.capply clt c) cz
-                    else Thm.capply (Thm.capply clt cz) c))
+               (Thm.apply @{cterm "Trueprop"}
+                  (if neg then Thm.apply (Thm.apply clt c) cz
+                    else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_le} else @{thm pos_prod_le})) cth
@@ -777,8 +777,8 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-            (Thm.capply @{cterm "Trueprop"}
-             (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
+            (Thm.apply @{cterm "Trueprop"}
+             (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim
                  (instantiate' [SOME T] (map SOME [c,x,t]) @{thm nz_prod_sum_eq}) cth
@@ -799,8 +799,8 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite (simpset_of ctxt)
-            (Thm.capply @{cterm "Trueprop"}
-             (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
+            (Thm.apply @{cterm "Trueprop"}
+             (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val rth = Thm.implies_elim
                  (instantiate' [SOME T] (map SOME [c,x]) @{thm nz_prod_eq}) cth

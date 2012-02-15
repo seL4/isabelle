@@ -149,7 +149,7 @@ fun cterm_of_rat x =
 let val (a, b) = Rat.quotient_of_rat x
 in
  if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
-  else Thm.capply (Thm.capply @{cterm "op / :: real => _"}
+  else Thm.apply (Thm.apply @{cterm "op / :: real => _"}
                    (Numeral.mk_cnumber @{ctyp "real"} a))
         (Numeral.mk_cnumber @{ctyp "real"} b)
 end;
@@ -335,8 +335,8 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-  fun mk_norm t = Thm.capply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
-  fun mk_equals l r = Thm.capply (Thm.capply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
+  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
+  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
   val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (cterm_of (Proof_Context.theory_of ctxt') (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))

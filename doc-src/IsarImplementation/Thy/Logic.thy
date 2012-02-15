@@ -641,8 +641,8 @@ text %mlref {*
   @{index_ML_type cterm} \\
   @{index_ML Thm.ctyp_of: "theory -> typ -> ctyp"} \\
   @{index_ML Thm.cterm_of: "theory -> term -> cterm"} \\
-  @{index_ML Thm.capply: "cterm -> cterm -> cterm"} \\
-  @{index_ML Thm.cabs: "cterm -> cterm -> cterm"} \\
+  @{index_ML Thm.apply: "cterm -> cterm -> cterm"} \\
+  @{index_ML Thm.lambda: "cterm -> cterm -> cterm"} \\
   @{index_ML Thm.all: "cterm -> cterm -> cterm"} \\
   @{index_ML Drule.mk_implies: "cterm * cterm -> cterm"} \\
   \end{mldecls}
@@ -697,7 +697,7 @@ text %mlref {*
   Full re-certification is relatively slow and should be avoided in
   tight reasoning loops.
 
-  \item @{ML Thm.capply}, @{ML Thm.cabs}, @{ML Thm.all}, @{ML
+  \item @{ML Thm.apply}, @{ML Thm.lambda}, @{ML Thm.all}, @{ML
   Drule.mk_implies} etc.\ compose certified terms (or propositions)
   incrementally.  This is equivalent to @{ML Thm.cterm_of} after
   unchecked @{ML_op "$"}, @{ML lambda}, @{ML Logic.all}, @{ML

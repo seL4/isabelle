@@ -712,8 +712,8 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML type}{cterm}\verb|type cterm| \\
   \indexdef{}{ML}{Thm.ctyp\_of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
   \indexdef{}{ML}{Thm.cterm\_of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
-  \indexdef{}{ML}{Thm.capply}\verb|Thm.capply: cterm -> cterm -> cterm| \\
-  \indexdef{}{ML}{Thm.cabs}\verb|Thm.cabs: cterm -> cterm -> cterm| \\
+  \indexdef{}{ML}{Thm.apply}\verb|Thm.apply: cterm -> cterm -> cterm| \\
+  \indexdef{}{ML}{Thm.lambda}\verb|Thm.lambda: cterm -> cterm -> cterm| \\
   \indexdef{}{ML}{Thm.all}\verb|Thm.all: cterm -> cterm -> cterm| \\
   \indexdef{}{ML}{Drule.mk\_implies}\verb|Drule.mk_implies: cterm * cterm -> cterm| \\
   \end{mldecls}
@@ -767,7 +767,7 @@ The theory \isa{Pure} contains constant declarations for the
   Full re-certification is relatively slow and should be avoided in
   tight reasoning loops.
 
-  \item \verb|Thm.capply|, \verb|Thm.cabs|, \verb|Thm.all|, \verb|Drule.mk_implies| etc.\ compose certified terms (or propositions)
+  \item \verb|Thm.apply|, \verb|Thm.lambda|, \verb|Thm.all|, \verb|Drule.mk_implies| etc.\ compose certified terms (or propositions)
   incrementally.  This is equivalent to \verb|Thm.cterm_of| after
   unchecked \verb|$|, \verb|lambda|, \verb|Logic.all|, \verb|Logic.mk_implies| etc., but there can be a big difference in
   performance when large existing entities are composed by a few extra

@@ -196,7 +196,7 @@ local
 
   val pat =
     SMT_Utils.mk_const_pat @{theory} @{const_name SMT.pat} SMT_Utils.destT1
-  fun mk_pat ct = Thm.capply (SMT_Utils.instT' ct pat) ct
+  fun mk_pat ct = Thm.apply (SMT_Utils.instT' ct pat) ct
 
   fun mk_clist T = pairself (Thm.cterm_of @{theory})
     (HOLogic.cons_const T, HOLogic.nil_const T)

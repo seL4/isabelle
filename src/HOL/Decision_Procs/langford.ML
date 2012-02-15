@@ -82,7 +82,7 @@ fun conjuncts ct =
 
 fun fold1 f = foldr1 (uncurry f);
 
-val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm HOL.conj} c) c') ;
+val list_conj = fold1 (fn c => fn c' => Thm.apply (Thm.apply @{cterm HOL.conj} c) c') ;
 
 fun mk_conj_tab th = 
  let fun h acc th = 
@@ -128,7 +128,7 @@ fun proc ct =
    let 
     val e = Thm.dest_fun ct
     val (x,p) = Thm.dest_abs (SOME xn) (Thm.dest_arg ct)
-    val Pp = Thm.capply @{cterm "Trueprop"} p 
+    val Pp = Thm.apply @{cterm "Trueprop"} p 
     val (eqs,neqs) = List.partition (is_eqx x) (all_conjuncts p)
    in case eqs of
       [] => 
@@ -137,14 +137,14 @@ fun proc ct =
          in case ndx of [] => NONE
                       | _ =>
             conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
-                 (Thm.capply @{cterm Trueprop} (list_conj (ndx @dx))))
+                 (Thm.apply @{cterm Trueprop} (list_conj (ndx @dx))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
                    (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
            |> SOME
           end
     | _ => conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
-                 (Thm.capply @{cterm Trueprop} (list_conj (eqs@neqs))))
+                 (Thm.apply @{cterm Trueprop} (list_conj (eqs@neqs))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
                    (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
@@ -209,7 +209,7 @@ fun dlo_conv ctxt tm =
 fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
-   fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
+   fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));

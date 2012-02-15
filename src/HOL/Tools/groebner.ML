@@ -395,7 +395,7 @@ fun refute_disj rfn tm =
   | _ => rfn tm ;
 
 val notnotD = @{thm notnotD};
-fun mk_binop ct x y = Thm.capply (Thm.capply ct x) y
+fun mk_binop ct x y = Thm.apply (Thm.apply ct x) y
 
 fun is_neg t =
     case term_of t of
@@ -451,10 +451,10 @@ val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 val cTrp = @{cterm "Trueprop"};
 val cConj = @{cterm HOL.conj};
 val (cNot,false_tm) = (@{cterm "Not"}, @{cterm "False"});
-val assume_Trueprop = Thm.capply cTrp #> Thm.assume;
+val assume_Trueprop = Thm.apply cTrp #> Thm.assume;
 val list_mk_conj = list_mk_binop cConj;
 val conjs = list_dest_binop cConj;
-val mk_neg = Thm.capply cNot;
+val mk_neg = Thm.apply cNot;
 
 fun striplist dest =
  let
@@ -462,7 +462,7 @@ fun striplist dest =
     SOME (a,b) => h (h acc b) a
   | NONE => x::acc
  in h [] end;
-fun list_mk_binop b = foldr1 (fn (s,t) => Thm.capply (Thm.capply b s) t);
+fun list_mk_binop b = foldr1 (fn (s,t) => Thm.apply (Thm.apply b s) t);
 
 val eq_commute = mk_meta_eq @{thm eq_commute};
 
@@ -479,7 +479,7 @@ fun conjuncts ct =
 
 fun fold1 f = foldr1 (uncurry f);
 
-val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm HOL.conj} c) c') ;
+val list_conj = fold1 (fn c => fn c' => Thm.apply (Thm.apply @{cterm HOL.conj} c) c') ;
 
 fun mk_conj_tab th =
  let fun h acc th =
@@ -500,8 +500,8 @@ fun prove_conj tab cjs =
 fun conj_ac_rule eq =
  let
   val (l,r) = Thm.dest_equals eq
-  val ctabl = mk_conj_tab (Thm.assume (Thm.capply @{cterm Trueprop} l))
-  val ctabr = mk_conj_tab (Thm.assume (Thm.capply @{cterm Trueprop} r))
+  val ctabl = mk_conj_tab (Thm.assume (Thm.apply @{cterm Trueprop} l))
+  val ctabr = mk_conj_tab (Thm.assume (Thm.apply @{cterm Trueprop} r))
   fun tabl c = the (Termtab.lookup ctabl (term_of c))
   fun tabr c = the (Termtab.lookup ctabr (term_of c))
   val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
@@ -514,7 +514,7 @@ fun conj_ac_rule eq =
    (* Conversion for the equivalence of existential statements where
       EX quantifiers are rearranged differently *)
  fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
- fun mk_ex v t = Thm.capply (ext (ctyp_of_term v)) (Thm.cabs v t)
+ fun mk_ex v t = Thm.apply (ext (ctyp_of_term v)) (Thm.lambda v t)
 
 fun choose v th th' = case concl_of th of
   @{term Trueprop} $ (Const(@{const_name Ex},_)$_) =>
@@ -524,19 +524,19 @@ fun choose v th th' = case concl_of th of
     val th0 = Conv.fconv_rule (Thm.beta_conversion true)
         (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
     val pv = (Thm.rhs_of o Thm.beta_conversion true)
-          (Thm.capply @{cterm Trueprop} (Thm.capply p v))
+          (Thm.apply @{cterm Trueprop} (Thm.apply p v))
     val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
    in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
 | _ => error ""  (* FIXME ? *)
 
 fun simple_choose v th =
-   choose v (Thm.assume ((Thm.capply @{cterm Trueprop} o mk_ex v)
+   choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex v)
     ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
 
 
  fun mkexi v th =
   let
-   val p = Thm.cabs v (Thm.dest_arg (Thm.cprop_of th))
+   val p = Thm.lambda v (Thm.dest_arg (Thm.cprop_of th))
   in Thm.implies_elim
     (Conv.fconv_rule (Thm.beta_conversion true)
       (instantiate' [SOME (ctyp_of_term v)] [SOME p, SOME v] @{thm exI}))
@@ -547,7 +547,7 @@ fun simple_choose v th =
   val (p0,q0) = Thm.dest_binop t
   val (vs',P) = strip_exists p0
   val (vs,_) = strip_exists q0
-   val th = Thm.assume (Thm.capply @{cterm Trueprop} P)
+   val th = Thm.assume (Thm.apply @{cterm Trueprop} P)
    val th1 = implies_intr_hyps (fold simple_choose vs' (fold mkexi vs th))
    val th2 = implies_intr_hyps (fold simple_choose vs (fold mkexi vs' th))
    val p = (Thm.dest_arg o Thm.dest_arg1 o cprop_of) th1
@@ -561,8 +561,8 @@ fun simple_choose v th =
   Free(s,_) => s
  | Var ((s,_),_) => s
  | _ => "x"
- fun mk_eq s t = Thm.capply (Thm.capply @{cterm "op == :: bool => _"} s) t
- fun mkeq s t = Thm.capply @{cterm Trueprop} (Thm.capply (Thm.capply @{cterm "op = :: bool => _"} s) t)
+ fun mk_eq s t = Thm.apply (Thm.apply @{cterm "op == :: bool => _"} s) t
+ fun mkeq s t = Thm.apply @{cterm Trueprop} (Thm.apply (Thm.apply @{cterm "op = :: bool => _"} s) t)
  fun mk_exists v th = Drule.arg_cong_rule (ext (ctyp_of_term v))
    (Thm.abstract_rule (getname v) v th)
  val simp_ex_conv =
@@ -573,7 +573,7 @@ fun free_in v t = member op aconvc (frees t) v;
 
 val vsubst = let
  fun vsubst (t,v) tm =
-   (Thm.rhs_of o Thm.beta_conversion false) (Thm.capply (Thm.cabs v tm) t)
+   (Thm.rhs_of o Thm.beta_conversion false) (Thm.apply (Thm.lambda v tm) t)
 in fold vsubst end;
 
 
@@ -607,7 +607,7 @@ let
        else raise CTERM ("ring_dest_neg", [t])
     end
 
- val ring_mk_neg = fn tm => Thm.capply (ring_neg_tm) (tm);
+ val ring_mk_neg = fn tm => Thm.apply (ring_neg_tm) (tm);
  fun field_dest_inv t =
     let val (l,r) = Thm.dest_comb t in
         if Term.could_unify(term_of l, term_of field_inv_tm) then r
@@ -727,7 +727,7 @@ fun refute tm =
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
       val conc = th2 |> concl |> Thm.dest_arg
       val (l,r) = conc |> dest_eq
-    in Thm.implies_intr (Thm.capply cTrp tm)
+    in Thm.implies_intr (Thm.apply cTrp tm)
                     (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
                            (Thm.reflexive l |> mk_object_eq))
     end
@@ -758,7 +758,7 @@ fun refute tm =
     fun thm_fn pols =
         if null pols then Thm.reflexive(mk_const rat_0) else
         end_itlist mk_add
-            (map (fn (i,p) => Drule.arg_cong_rule (Thm.capply ring_mul_tm p)
+            (map (fn (i,p) => Drule.arg_cong_rule (Thm.apply ring_mul_tm p)
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
@@ -767,7 +767,7 @@ fun refute tm =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
     val (l,r) = dest_eq(Thm.dest_arg(concl th4))
-   in Thm.implies_intr (Thm.capply cTrp tm)
+   in Thm.implies_intr (Thm.apply cTrp tm)
                         (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
                    (Thm.reflexive l |> mk_object_eq))
    end
@@ -776,9 +776,9 @@ fun refute tm =
 fun ring tm =
  let
   fun mk_forall x p =
-    Thm.capply
+    Thm.apply
       (Drule.cterm_rule (instantiate' [SOME (ctyp_of_term x)] [])
-        @{cpat "All:: (?'a => bool) => _"}) (Thm.cabs x p)
+        @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
   val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
   val th1 = initial_conv(mk_neg P')
@@ -892,7 +892,7 @@ local
                    (striplist ring_dest_add tm)
   val cofactors = map (fn v => find_multipliers v vmons) vars
   val cnc = if null cmons then zero_tm
-             else Thm.capply ring_neg_tm
+             else Thm.apply ring_neg_tm
                     (list_mk_binop ring_add_tm cmons)
   in (cofactors,cnc)
   end;

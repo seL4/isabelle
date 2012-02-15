@@ -332,6 +332,9 @@ a list and a nat.
 
 *** ML ***
 
+* Renamed Thm.capply to Thm.apply, and Thm.cabs to Thm.lambda in
+conformance with similar operations in structure Term and Logic.
+
 * Antiquotation @{attributes [...]} embeds attribute source
 representation into the ML text, which is particularly useful with
 declarations like Local_Theory.note.

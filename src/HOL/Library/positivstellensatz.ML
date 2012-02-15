@@ -285,7 +285,7 @@ fun cterm_of_rat x =
 let val (a, b) = Rat.quotient_of_rat x
 in 
  if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
-  else Thm.capply (Thm.capply @{cterm "op / :: real => _"} 
+  else Thm.apply (Thm.apply @{cterm "op / :: real => _"} 
                    (Numeral.mk_cnumber @{ctyp "real"} a))
         (Numeral.mk_cnumber @{ctyp "real"} b)
 end;
@@ -319,7 +319,7 @@ fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
 
 (* Map back polynomials to HOL.                         *)
 
-fun cterm_of_varpow x k = if k = 1 then x else Thm.capply (Thm.capply @{cterm "op ^ :: real => _"} x) 
+fun cterm_of_varpow x k = if k = 1 then x else Thm.apply (Thm.apply @{cterm "op ^ :: real => _"} x) 
   (Numeral.mk_cnumber @{ctyp nat} k)
 
 fun cterm_of_monomial m = 
@@ -328,12 +328,12 @@ fun cterm_of_monomial m =
   let 
    val m' = FuncUtil.dest_monomial m
    val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' [] 
-  in foldr1 (fn (s, t) => Thm.capply (Thm.capply @{cterm "op * :: real => _"} s) t) vps
+  in foldr1 (fn (s, t) => Thm.apply (Thm.apply @{cterm "op * :: real => _"} s) t) vps
   end
 
 fun cterm_of_cmonomial (m,c) = if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
     else if c = Rat.one then cterm_of_monomial m
-    else Thm.capply (Thm.capply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
+    else Thm.apply (Thm.apply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p = 
  if FuncUtil.Monomialfunc.is_empty p then @{cterm "0::real"} 
@@ -341,7 +341,7 @@ fun cterm_of_poly p =
   let 
    val cms = map cterm_of_cmonomial
      (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
-  in foldr1 (fn (t1, t2) => Thm.capply(Thm.capply @{cterm "op + :: real => _"} t1) t2) cms
+  in foldr1 (fn (t1, t2) => Thm.apply(Thm.apply @{cterm "op + :: real => _"} t1) t2) cms
   end;
 
     (* A general real arithmetic prover *)
@@ -397,14 +397,14 @@ let
         Axiom_eq n => nth eqs n
       | Axiom_le n => nth les n
       | Axiom_lt n => nth lts n
-      | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.capply @{cterm Trueprop} 
-                          (Thm.capply (Thm.capply @{cterm "op =::real => _"} (mk_numeric x)) 
+      | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.apply @{cterm Trueprop} 
+                          (Thm.apply (Thm.apply @{cterm "op =::real => _"} (mk_numeric x)) 
                                @{cterm "0::real"})))
-      | Rational_le x => eqT_elim(numeric_ge_conv(Thm.capply @{cterm Trueprop} 
-                          (Thm.capply (Thm.capply @{cterm "op <=::real => _"} 
+      | Rational_le x => eqT_elim(numeric_ge_conv(Thm.apply @{cterm Trueprop} 
+                          (Thm.apply (Thm.apply @{cterm "op <=::real => _"} 
                                      @{cterm "0::real"}) (mk_numeric x))))
-      | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.capply @{cterm Trueprop} 
-                      (Thm.capply (Thm.capply @{cterm "op <::real => _"} @{cterm "0::real"})
+      | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.apply @{cterm Trueprop} 
+                      (Thm.apply (Thm.apply @{cterm "op <::real => _"} @{cterm "0::real"})
                         (mk_numeric x))))
       | Square pt => square_rule (cterm_of_poly pt)
       | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
@@ -432,8 +432,8 @@ let
        val _ = if c aconvc (concl th2) then () else error "disj_cases : conclusions not alpha convertible"
    in Thm.implies_elim (Thm.implies_elim
           (Thm.implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
-          (Thm.implies_intr (Thm.capply @{cterm Trueprop} p) th1))
-        (Thm.implies_intr (Thm.capply @{cterm Trueprop} q) th2)
+          (Thm.implies_intr (Thm.apply @{cterm Trueprop} p) th1))
+        (Thm.implies_intr (Thm.apply @{cterm Trueprop} q) th2)
    end
  fun overall cert_choice dun ths = case ths of
   [] =>
@@ -452,8 +452,8 @@ let
       overall cert_choice dun (th1::th2::oths) end
     else if is_disj ct then
       let 
-       val (th1, cert1) = overall (Left::cert_choice) dun (Thm.assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
-       val (th2, cert2) = overall (Right::cert_choice) dun (Thm.assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
+       val (th1, cert1) = overall (Left::cert_choice) dun (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
+       val (th2, cert2) = overall (Right::cert_choice) dun (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
       in (disj_cases th th1 th2, Branch (cert1, cert2)) end
    else overall cert_choice (th::dun) oths
   end
@@ -469,8 +469,8 @@ let
     val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
     val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
     val th' = Drule.binop_cong_rule @{cterm HOL.disj} 
-     (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
-     (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
+     (Drule.arg_cong_rule (Thm.apply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
+     (Drule.arg_cong_rule (Thm.apply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
     in Thm.transitive th th' 
   end
  fun equal_implies_1_rule PQ = 
@@ -496,7 +496,7 @@ let
   val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
  fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
- fun mk_ex v t = Thm.capply (ext (ctyp_of_term v)) (Thm.cabs v t)
+ fun mk_ex v t = Thm.apply (ext (ctyp_of_term v)) (Thm.lambda v t)
 
  fun choose v th th' = case concl_of th of 
    @{term Trueprop} $ (Const(@{const_name Ex},_)$_) => 
@@ -506,13 +506,13 @@ let
      val th0 = fconv_rule (Thm.beta_conversion true)
          (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
      val pv = (Thm.rhs_of o Thm.beta_conversion true) 
-           (Thm.capply @{cterm Trueprop} (Thm.capply p v))
+           (Thm.apply @{cterm Trueprop} (Thm.apply p v))
      val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
     in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
  | _ => raise THM ("choose",0,[th, th'])
 
   fun simple_choose v th = 
-     choose v (Thm.assume ((Thm.capply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+     choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
 
  val strip_forall =
   let fun h (acc, t) =
@@ -534,7 +534,7 @@ let
   fun absremover ct = (literals_conv [@{term HOL.conj}, @{term HOL.disj}] [] 
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv 
         try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
-  val nct = Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"} ct)
+  val nct = Thm.apply @{cterm Trueprop} (Thm.apply @{cterm "Not"} ct)
   val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
   val tm0 = Thm.dest_arg (Thm.rhs_of th0)
   val (th, certificates) = if tm0 aconvc @{cterm False} then (equal_implies_1_rule th0, Trivial) else
@@ -543,7 +543,7 @@ let
     val (avs,ibod) = strip_forall bod
     val th1 = Drule.arg_cong_rule @{cterm Trueprop} (fold mk_forall avs (absremover ibod))
     val (th2, certs) = overall [] [] [specl avs (Thm.assume (Thm.rhs_of th1))]
-    val th3 = fold simple_choose evs (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.capply @{cterm Trueprop} bod))) th2)
+    val th3 = fold simple_choose evs (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply @{cterm Trueprop} bod))) th2)
    in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
    end
   in (Thm.implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
@@ -699,7 +699,7 @@ local
    fun eliminate_construct p c tm =
     let 
      val t = find_cterm p tm
-     val th0 = (Thm.symmetric o Thm.beta_conversion false) (Thm.capply (Thm.cabs t tm) t)
+     val th0 = (Thm.symmetric o Thm.beta_conversion false) (Thm.apply (Thm.lambda t tm) t)
      val (p,ax) = (Thm.dest_comb o Thm.rhs_of) th0
     in fconv_rule(arg_conv(binop_conv (arg_conv (Thm.beta_conversion false))))
                (Thm.transitive th0 (c p ax))

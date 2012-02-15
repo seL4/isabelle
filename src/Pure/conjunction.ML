@@ -35,7 +35,7 @@ val read_prop = certify o Simple_Syntax.read_prop;
 val true_prop = certify Logic.true_prop;
 val conjunction = certify Logic.conjunction;
 
-fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
+fun mk_conjunction (A, B) = Thm.apply (Thm.apply conjunction A) B;
 
 fun mk_conjunction_balanced [] = true_prop
   | mk_conjunction_balanced ts = Balanced_Tree.make mk_conjunction ts;

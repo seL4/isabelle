@@ -24,7 +24,7 @@ fun mk_cnumeral 0 = @{cterm "Int.Pls"}
   | mk_cnumeral ~1 = @{cterm "Int.Min"}
   | mk_cnumeral i =
       let val (q, r) = Integer.div_mod i 2 in
-        Thm.capply (mk_cbit r) (mk_cnumeral q)
+        Thm.apply (mk_cbit r) (mk_cnumeral q)
       end;
 
 
@@ -47,7 +47,7 @@ in
 
 fun mk_cnumber T 0 = instT T zeroT zero
   | mk_cnumber T 1 = instT T oneT one
-  | mk_cnumber T i = Thm.capply (instT T numberT number_of) (mk_cnumeral i);
+  | mk_cnumber T i = Thm.apply (instT T numberT number_of) (mk_cnumeral i);
 
 end;
 
