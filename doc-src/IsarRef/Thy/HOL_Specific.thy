@@ -864,7 +864,9 @@ text {*
 
   @{rail "
     @@{command (HOL) record} @{syntax typespec_sorts} '=' \\
-      (@{syntax type} '+')? (@{syntax constdecl} +)
+      (@{syntax type} '+')? (constdecl +)
+    ;
+    constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
   "}
 
   \begin{description}

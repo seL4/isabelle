@@ -1038,12 +1038,14 @@ text {*
   @{rail "
     @@{command nonterminal} (@{syntax name} + @'and')
     ;
-    (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (@{syntax constdecl} +)
+    (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (constdecl +)
     ;
     (@@{command translations} | @@{command no_translations})
       (transpat ('==' | '=>' | '<=' | '\<rightleftharpoons>' | '\<rightharpoonup>' | '\<leftharpoondown>') transpat +)
     ;
 
+    constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
+    ;
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
     transpat: ('(' @{syntax nameref} ')')? @{syntax string}

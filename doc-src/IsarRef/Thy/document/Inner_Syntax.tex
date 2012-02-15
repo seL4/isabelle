@@ -1231,7 +1231,7 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 \rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
 \rail@endbar
 \rail@plus
-\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
+\rail@nont{\isa{constdecl}}[]
 \rail@nextplus{1}
 \rail@endplus
 \rail@end
@@ -1259,6 +1259,15 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 \rail@nont{\isa{transpat}}[]
 \rail@nextplus{6}
 \rail@endplus
+\rail@end
+\rail@begin{2}{\isa{constdecl}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
 \rail@end
 \rail@begin{3}{\isa{mode}}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]

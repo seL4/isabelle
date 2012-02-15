@@ -1226,7 +1226,7 @@ text {*
   declarations internally.
 
   @{rail "
-    @@{command judgment} @{syntax constdecl}
+    @@{command judgment} @{syntax name} '::' @{syntax type} @{syntax mixfix}?
     ;
     @@{attribute atomize} ('(' 'full' ')')?
     ;
