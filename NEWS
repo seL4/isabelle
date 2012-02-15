@@ -23,11 +23,15 @@ old-style "standard" after instantiation or composition of facts
 becomes obsolete.  Minor INCOMPATIBILITY, due to potential change of
 indices of schematic variables.
 
-* Renamed inner syntax categories "num" to "num_token" and "xnum" to
-"xnum_token", in accordance to existing "float_token".  Minor
-INCOMPATIBILITY.  Note that in practice "num_const" etc. are mainly
-used instead (which also include position information via
-constraints).
+* Renamed some inner syntax categories:
+
+    num ~> num_token
+    xnum ~> xnum_token
+    xstr ~> str_token
+
+Minor INCOMPATIBILITY.  Note that in practice "num_const" or
+"num_position" etc. are mainly used instead (which also include
+position information via constraints).
 
 
 *** Pure ***

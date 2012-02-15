@@ -45,13 +45,13 @@ fun dest_char (Ast.Appl [Ast.Constant @{const_syntax Char}, c1, c2]) = dest_chr 
 
 fun syntax_string cs =
   Ast.Appl [Ast.Constant @{syntax_const "_inner_string"},
-    Ast.Variable (Lexicon.implode_xstr cs)];
+    Ast.Variable (Lexicon.implode_str cs)];
 
 
-fun char_ast_tr [Ast.Variable xstr] =
-      (case Lexicon.explode_xstr xstr of
+fun char_ast_tr [Ast.Variable str] =
+      (case Lexicon.explode_str str of
         [c] => mk_char c
-      | _ => error ("Single character expected: " ^ xstr))
+      | _ => error ("Single character expected: " ^ str))
   | char_ast_tr [Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, ast1, ast2]] =
       Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, char_ast_tr [ast1], ast2]
   | char_ast_tr asts = raise Ast.AST ("char_ast_tr", asts);
@@ -67,8 +67,8 @@ fun mk_string [] = Ast.Constant @{const_syntax Nil}
   | mk_string (c :: cs) =
       Ast.Appl [Ast.Constant @{const_syntax Cons}, mk_char c, mk_string cs];
 
-fun string_ast_tr [Ast.Variable xstr] =
-      (case Lexicon.explode_xstr xstr of
+fun string_ast_tr [Ast.Variable str] =
+      (case Lexicon.explode_str str of
         [] =>
           Ast.Appl
             [Ast.Constant @{syntax_const "_constrain"},

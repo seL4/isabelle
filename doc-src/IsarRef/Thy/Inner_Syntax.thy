@@ -620,13 +620,13 @@ text {* The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
     @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
 
-    @{syntax_def (inner) xstr} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
+    @{syntax_def (inner) str_token} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
   \end{supertabular}
   \end{center}
 
   The token categories @{syntax (inner) num_token}, @{syntax (inner)
   float_token}, @{syntax (inner) xnum_token}, and @{syntax (inner)
-  xstr} are not used in Pure.  Object-logics may implement numerals
+  str_token} are not used in Pure.  Object-logics may implement numerals
   and string constants by adding appropriate syntax declarations,
   together with some translation functions (e.g.\ see Isabelle/HOL).
 

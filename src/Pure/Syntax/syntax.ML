@@ -544,7 +544,7 @@ val basic_nonterms =
     "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
     "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
     "float_position", "xnum_position", "index", "struct", "id_position",
-    "longid_position", "xstr_position", "type_name", "class_name"]);
+    "longid_position", "str_position", "type_name", "class_name"]);
 
 
 

@@ -49,8 +49,8 @@ sig
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
-  val implode_xstr: string list -> string
-  val explode_xstr: string -> string list
+  val implode_str: string list -> string
+  val explode_str: string -> string list
   val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
   val read_indexname: string -> indexname
   val read_var: string -> term
@@ -180,7 +180,7 @@ val terminal_kinds =
   ("num_token", NumSy),
   ("float_token", FloatSy),
   ("xnum_token", XNumSy),
-  ("xstr", StrSy)];
+  ("str_token", StrSy)];
 
 val terminals = map #1 terminal_kinds;
 val is_terminal = member (op =) terminals;
@@ -236,7 +236,7 @@ fun predef_term s =
   | NONE => NONE);
 
 
-(* xstr tokens *)
+(* str tokens *)
 
 val scan_chr =
   $$$ "\\" |-- $$$ "'" ||
@@ -254,9 +254,9 @@ val scan_str_body =
     ((Scan.repeat scan_chr >> flat) --| $$$ "'" --| $$$ "'");
 
 
-fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
+fun implode_str cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
-fun explode_xstr str =
+fun explode_str str =
   (case Scan.read Symbol_Pos.stopper scan_str_body (Symbol_Pos.explode (str, Position.none)) of
     SOME cs => map Symbol_Pos.symbol cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
