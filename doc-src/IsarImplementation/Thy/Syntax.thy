@@ -10,7 +10,7 @@ text {* Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
   additional means for reading and printing of terms and types.  This
   important add-on outside the logical core is called \emph{inner
   syntax} in Isabelle jargon, as opposed to the \emph{outer syntax} of
-  the theory and proof language (cf.\ \chref{FIXME}).
+  the theory and proof language (cf.\ \cite{isabelle-isar-ref}).
 
   For example, according to \cite{church40} quantifiers are
   represented as higher-order constants @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow>
