@@ -39,6 +39,10 @@ position information via constraints).
 
 *** Pure ***
 
+* Discontinued old "prems" fact, which used to refer to the accidental
+collection of foundational premises in the context (marked as legacy
+since Isabelle2011).
+
 * Obsolete command 'types' has been discontinued.  Use 'type_synonym'
 instead.  INCOMPATIBILITY.
 
