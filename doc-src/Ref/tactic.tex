@@ -8,7 +8,6 @@
 \index{tactics!for inserting facts}\index{assumptions!inserting}
 \begin{ttbox} 
 cut_facts_tac : thm list -> int -> tactic
-cut_inst_tac  : (string*string)list -> thm -> int -> tactic
 \end{ttbox}
 These tactics add assumptions to a subgoal.
 \begin{ttdescription}
@@ -20,11 +19,6 @@ These tactics add assumptions to a subgoal.
   or~$\Forall$.  Sometimes the theorems are premises of a rule being
   derived, returned by~{\tt goal}; instead of calling this tactic, you
   could state the goal with an outermost meta-quantifier.
-
-\item[\ttindexbold{cut_inst_tac} {\it insts} {\it thm} {\it i}]
-  instantiates the {\it thm} with the instantiations {\it insts}, as
-  described in {\S}\ref{res_inst_tac}.  It adds the resulting theorem as a
-  new assumption to subgoal~$i$. 
 
 \end{ttdescription}
 
