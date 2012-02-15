@@ -8,10 +8,7 @@ theory Sqrt
 imports Complex_Main "~~/src/HOL/Number_Theory/Primes"
 begin
 
-text {*
-  The square root of any prime number (including @{text 2}) is
-  irrational.
-*}
+text {* The square root of any prime number (including 2) is irrational. *}
 
 theorem sqrt_prime_irrational:
   assumes "prime (p::nat)"
@@ -88,21 +85,22 @@ proof
 qed
 
 
-text{* Another old chestnut, which is a consequence of the irrationality of 2. *}
+text {* Another old chestnut, which is a consequence of the irrationality of 2. *}
 
 lemma "\<exists>a b::real. a \<notin> \<rat> \<and> b \<notin> \<rat> \<and> a powr b \<in> \<rat>" (is "EX a b. ?P a b")
 proof cases
   assume "sqrt 2 powr sqrt 2 \<in> \<rat>"
-  hence "?P (sqrt 2) (sqrt 2)" by(metis sqrt_real_2_not_rat[simplified])
-  thus ?thesis by blast
+  then have "?P (sqrt 2) (sqrt 2)"
+    by (metis sqrt_real_2_not_rat [simplified])
+  then show ?thesis by blast
 next
   assume 1: "sqrt 2 powr sqrt 2 \<notin> \<rat>"
   have "(sqrt 2 powr sqrt 2) powr sqrt 2 = 2"
-    using powr_realpow[of _ 2]
-    by (simp add: powr_powr power2_eq_square[symmetric])
-  hence "?P (sqrt 2 powr sqrt 2) (sqrt 2)"
-    by (metis 1 Rats_number_of sqrt_real_2_not_rat[simplified])
-  thus ?thesis by blast
+    using powr_realpow [of _ 2]
+    by (simp add: powr_powr power2_eq_square [symmetric])
+  then have "?P (sqrt 2 powr sqrt 2) (sqrt 2)"
+    by (metis 1 Rats_number_of sqrt_real_2_not_rat [simplified])
+  then show ?thesis by blast
 qed
 
 end
