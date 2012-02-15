@@ -86,12 +86,22 @@ Rewriting normalizes a given term (theorem or goal) by
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
+  \indexdef{}{ML}{rewrite\_rule}\verb|rewrite_rule: thm list -> thm -> thm| \\
+  \indexdef{}{ML}{rewrite\_goals\_rule}\verb|rewrite_goals_rule: thm list -> thm -> thm| \\
   \indexdef{}{ML}{rewrite\_goal\_tac}\verb|rewrite_goal_tac: thm list -> int -> tactic| \\
   \indexdef{}{ML}{rewrite\_goals\_tac}\verb|rewrite_goals_tac: thm list -> tactic| \\
   \indexdef{}{ML}{fold\_goals\_tac}\verb|fold_goals_tac: thm list -> tactic| \\
   \end{mldecls}
 
   \begin{description}
+
+  \item \verb|rewrite_rule|~\isa{rules\ thm} rewrites the whole
+  theorem by the given rules.
+
+  \item \verb|rewrite_goals_rule|~\isa{rules\ thm} rewrites the
+  outer premises of the given theorem.  Interpreting the same as a
+  goal state (\secref{sec:tactical-goals}) it means to rewrite all
+  subgoals (in the same manner as \verb|rewrite_goals_tac|).
 
   \item \verb|rewrite_goal_tac|~\isa{rules\ i} rewrites subgoal
   \isa{i} by the given rewrite rules.

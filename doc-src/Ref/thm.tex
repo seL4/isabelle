@@ -9,25 +9,6 @@ operations are intended for advanced applications, such as programming
 new proof procedures.
 
 
-\section{Basic operations on theorems}
-
-\subsection{Expanding definitions in theorems}
-\index{meta-rewriting!in theorems}
-\begin{ttbox} 
-rewrite_rule       : thm list -> thm -> thm
-rewrite_goals_rule : thm list -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{rewrite_rule} {\it defs} {\it thm}]  
-unfolds the {\it defs} throughout the theorem~{\it thm}.
-
-\item[\ttindexbold{rewrite_goals_rule} {\it defs} {\it thm}]  
-unfolds the {\it defs} in the premises of~{\it thm}, but it leaves the
-conclusion unchanged.  This rule is the basis for \ttindex{rewrite_goals_tac},
-but it serves little purpose in forward proof.
-\end{ttdescription}
-
-
 \subsection{Instantiating unknowns in a theorem} \label{sec:instantiate}
 \index{instantiation}
 \begin{alltt}\footnotesize
