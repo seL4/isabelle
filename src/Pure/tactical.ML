@@ -36,7 +36,6 @@ sig
   val suppress_tracing: bool Unsynchronized.ref
   val tracify: bool Unsynchronized.ref -> tactic -> tactic
   val traced_tac: (thm -> (thm * thm Seq.seq) option) -> tactic
-  val DETERM_UNTIL: (thm -> bool) -> tactic -> tactic
   val REPEAT_DETERM_N: int -> tactic -> tactic
   val REPEAT_DETERM: tactic -> tactic
   val REPEAT: tactic -> tactic
@@ -234,16 +233,6 @@ fun traced_tac seqf st =
      Seq.make (fn()=> seqf st
                          handle TRACE_EXIT st' => SOME(st', Seq.empty)));
 
-
-(*Deterministic DO..UNTIL: only retains the first outcome; tail recursive.
-  Forces repitition until predicate on state is fulfilled.*)
-fun DETERM_UNTIL p tac =
-let val tac = tracify trace_REPEAT tac
-    fun drep st = if p st then SOME (st, Seq.empty)
-                          else (case Seq.pull(tac st) of
-                                  NONE        => NONE
-                                | SOME(st',_) => drep st')
-in  traced_tac drep  end;
 
 (*Deterministic REPEAT: only retains the first outcome;
   uses less space than REPEAT; tail recursive.
