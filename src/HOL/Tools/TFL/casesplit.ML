@@ -6,17 +6,12 @@ Extra case splitting for TFL.
 
 signature CASE_SPLIT =
 sig
-
   (* try to recursively split conjectured thm to given list of thms *)
   val splitto : thm list -> thm -> thm
-
 end;
 
 structure CaseSplit: CASE_SPLIT =
 struct
-
-val rulify_goals = Raw_Simplifier.rewrite_goals_rule @{thms induct_rulify};
-val atomize_goals = Raw_Simplifier.rewrite_goals_rule @{thms induct_atomize};
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm =
@@ -56,9 +51,6 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val abs_ct = ctermify abst;
       val free_ct = ctermify x;
 
-      val casethm_vars = rev (Misc_Legacy.term_vars (Thm.concl_of case_thm));
-
-      val casethm_tvars = Misc_Legacy.term_tvars (Thm.concl_of case_thm);
       val (Pv, Dv, type_insts) =
           case (Thm.concl_of case_thm) of
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>
@@ -102,7 +94,7 @@ fun find_term_split (Free v, _ $ _) = SOME v
     if i = j then NONE else (* keep searching *)
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Bound)"
-  | find_term_split (a, b) =
+  | find_term_split _ =
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Other)";
 
@@ -160,7 +152,7 @@ fun splitto splitths genth =
            probably fine -- there is probably only one anyway. *)
         (case get_first (Seq.pull o solve_by_splitth th) splitths of
           NONE => split th
-        | SOME (solved_th, more) => solved_th);
+        | SOME (solved_th, _) => solved_th);
     in
       recsplitf genth
     end;
