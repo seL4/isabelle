@@ -11,6 +11,9 @@ New in this Isabelle version
   - markup for bound variables
   - markup for types of term variables (e.g. displayed as tooltips)
 
+* Updated and extended reference manuals ("isar-ref" and
+"implementation"); reduced remaining material in old "ref" manual.
+
 * Rule attributes in local theory declarations (e.g. locale or class)
 are now statically evaluated: the resulting theorem is stored instead
 of the original expression.  INCOMPATIBILITY in rare situations, where
