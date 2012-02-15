@@ -258,7 +258,7 @@ fun add_constructors
 
     (* prove strictness rules for constructors *)
     local
-      fun con_strict (con, args) = 
+      fun con_strict (con, args) =
         let
           val rules = abs_strict :: @{thms con_strict_rules}
           val (vs, nonlazy) = get_vars args
@@ -497,7 +497,7 @@ fun add_case_combinator
         val rules = @{thms sscase1 ssplit1 strictify1 one_case1}
         val tacs = [resolve_tac rules 1]
       in prove thy defs goal (K tacs) end
-        
+
     (* prove rewrites for case combinator *)
     local
       fun one_case (con, args) f =
@@ -737,8 +737,7 @@ fun add_discriminators
             [rtac @{thm iffI} 1,
              asm_simp_tac (HOL_basic_ss addsimps dis_stricts) 2,
              rtac exhaust 1, atac 1,
-             DETERM_UNTIL_SOLVED (CHANGED
-               (asm_full_simp_tac (simple_ss addsimps simps) 1))]
+             ALLGOALS (asm_full_simp_tac (simple_ss addsimps simps))]
           val goal = mk_trp (mk_eq (mk_undef (dis ` x), mk_undef x))
         in prove thy [] goal (K tacs) end
     in
