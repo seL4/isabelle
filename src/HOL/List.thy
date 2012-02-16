@@ -1801,7 +1801,7 @@ by (simp add: butlast_conv_take min_max.inf_absorb1)
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
 by (simp add: butlast_conv_take drop_take add_ac)
 
-lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
+lemma hd_drop_conv_nth: "n < length xs \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
 
 lemma set_take_subset_set_take:
@@ -2040,7 +2040,7 @@ apply auto
 done
 
 lemma takeWhile_not_last:
- "\<lbrakk> xs \<noteq> []; distinct xs\<rbrakk> \<Longrightarrow> takeWhile (\<lambda>y. y \<noteq> last xs) xs = butlast xs"
+ "distinct xs \<Longrightarrow> takeWhile (\<lambda>y. y \<noteq> last xs) xs = butlast xs"
 apply(induct xs)
  apply simp
 apply(case_tac xs)
@@ -2110,7 +2110,7 @@ zip (take (length ys) xs) ys @ zip (drop (length ys) xs) zs"
 by (induct xs ys rule:list_induct2') auto
 
 lemma zip_append [simp]:
- "[| length xs = length us; length ys = length vs |] ==>
+ "[| length xs = length us |] ==>
 zip (xs@ys) (us@vs) = zip xs us @ zip ys vs"
 by (simp add: zip_append1)
 
@@ -3056,12 +3056,13 @@ lemma remdups_remdups:
   by (induct xs) simp_all
 
 lemma distinct_butlast:
-  assumes "xs \<noteq> []" and "distinct xs"
+  assumes "distinct xs"
   shows "distinct (butlast xs)"
-proof -
-  from `xs \<noteq> []` obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
-  with `distinct xs` show ?thesis by simp
-qed
+proof (cases "xs = []")
+  case False
+    from `xs \<noteq> []` obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
+    with `distinct xs` show ?thesis by simp
+qed (auto)
 
 lemma remdups_map_remdups:
   "remdups (map f (remdups xs)) = remdups (map f xs)"
@@ -3440,7 +3441,7 @@ by(induct n) auto
 lemma hd_replicate [simp]: "n \<noteq> 0 ==> hd (replicate n x) = x"
 by (induct n) auto
 
-lemma tl_replicate [simp]: "n \<noteq> 0 ==> tl (replicate n x) = replicate (n - 1) x"
+lemma tl_replicate [simp]: "tl (replicate n x) = replicate (n - 1) x"
 by (induct n) auto
 
 lemma last_replicate [simp]: "n \<noteq> 0 ==> last (replicate n x) = x"
