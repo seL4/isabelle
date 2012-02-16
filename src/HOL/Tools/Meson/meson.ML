@@ -756,8 +756,8 @@ fun meson_tac ctxt ths =
 (*Rules to convert the head literal into a negated assumption. If the head
   literal is already negated, then using notEfalse instead of notEfalse'
   prevents a double negation.*)
-val notEfalse = read_instantiate @{context} [(("R", 0), "False")] notE;
-val notEfalse' = rotate_prems 1 notEfalse;
+val notEfalse = @{lemma "~ P ==> P ==> False" by (rule notE)};
+val notEfalse' = @{lemma "P ==> ~ P ==> False" by (rule notE)};
 
 fun negated_asm_of_head th =
     th RS notEfalse handle THM _ => th RS notEfalse';
