@@ -12,8 +12,10 @@ text {* This was based on some existing fragments in the AFP-Collection framewor
 subsection {* Type @{text "('key, 'value) alist" } *}
 
 typedef (open) ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. distinct (map fst xs)}"
-morphisms impl_of Alist
-by(rule exI[where x="[]"]) simp
+  morphisms impl_of Alist
+proof
+  show "[] \<in> {xs. distinct (map fst xs)}" by simp
+qed
 
 lemma alist_ext: "impl_of xs = impl_of ys \<Longrightarrow> xs = ys"
 by(simp add: impl_of_inject)

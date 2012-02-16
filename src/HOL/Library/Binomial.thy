@@ -68,8 +68,7 @@ text{*This is the well-known version, but it's harder to use because of the
   need to reason about division.*}
 lemma binomial_Suc_Suc_eq_times:
     "k \<le> n ==> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
-  by (simp add: Suc_times_binomial_eq div_mult_self_is_m zero_less_Suc
-    del: mult_Suc mult_Suc_right)
+  by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
 
 text{*Another version, with -1 instead of Suc.*}
 lemma times_binomial_minus1_eq:
@@ -255,7 +254,7 @@ lemma pochhammer_of_nat_eq_0_lemma: assumes kn: "k > n"
 proof-
   from kn obtain h where h: "k = Suc h" by (cases k, auto)
   {assume n0: "n=0" then have ?thesis using kn 
-      by (cases k, simp_all add: pochhammer_rec del: pochhammer_Suc)}
+      by (cases k) (simp_all add: pochhammer_rec)}
   moreover
   {assume n0: "n \<noteq> 0"
     then have ?thesis apply (simp add: h pochhammer_Suc_setprod)
@@ -311,7 +310,7 @@ proof-
       using setprod_constant[where A="{0 .. h}" and y="- 1 :: 'a"]
       by auto
     have ?thesis
-      unfolding h h pochhammer_Suc_setprod eq setprod_timesf[symmetric]
+      unfolding h pochhammer_Suc_setprod eq setprod_timesf[symmetric]
       apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
       apply (auto simp add: inj_on_def image_def h )
       apply (rule_tac x="h - x" in bexI)

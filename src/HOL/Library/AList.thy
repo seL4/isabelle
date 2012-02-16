@@ -135,7 +135,7 @@ lemma update_updates_conv_if: "
 lemma updates_twist [simp]:
  "k \<notin> set ks \<Longrightarrow> 
   map_of (updates ks vs (update k v al)) = map_of (update k v (updates ks vs al))"
-  by (simp add: updates_conv' update_conv' map_upds_twist)
+  by (simp add: updates_conv' update_conv')
 
 lemma updates_apply_notin[simp]:
  "k \<notin> set ks ==> map_of (updates ks vs al) k = map_of al k"
