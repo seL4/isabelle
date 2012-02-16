@@ -5,7 +5,7 @@
 header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity
-imports Transitive_Closure Main
+imports Main
 begin
 
 subsection {* Continuity for complete lattices *}
