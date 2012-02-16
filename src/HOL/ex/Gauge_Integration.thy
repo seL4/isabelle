@@ -417,8 +417,7 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
     def D1 \<equiv> "take N D @ [(d, t, b)]"
     def D2 \<equiv> "(if b = e then [] else [(b, t, e)]) @ drop (Suc N) D"
 
-    have "D \<noteq> []" using `N < length D` by auto
-    from hd_drop_conv_nth[OF this `N < length D`]
+    from hd_drop_conv_nth[OF `N < length D`]
     have "fst (hd ?D2) = d" using `D ! N = (d, t, e)` by auto
     with fine_append_split[OF _ _ append_take_drop_id[symmetric]]
     have fine1: "fine \<delta> (a,d) ?D1" and fine2: "fine \<delta> (d,c) ?D2"
