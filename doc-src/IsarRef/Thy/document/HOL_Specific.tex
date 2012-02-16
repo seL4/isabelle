@@ -2480,6 +2480,12 @@ Identifying incorrect propositions usually involves evaluation of
     \item[\isa{genuine{\isaliteral{5F}{\isacharunderscore}}only}] sets quickcheck only to return genuine
     counterexample, but not potentially spurious counterexamples due
     to underspecified functions.
+
+    \item[\isa{abort{\isaliteral{5F}{\isacharunderscore}}potential}] sets quickcheck to abort once it
+    found a potentially spurious counterexample and to not continue
+    to search for a further genuine counterexample.
+    For this option to be effective, the \isa{genuine{\isaliteral{5F}{\isacharunderscore}}only} option
+    must be set to false.
     
     \item[\isa{eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.

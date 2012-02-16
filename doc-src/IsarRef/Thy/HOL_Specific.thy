@@ -1719,6 +1719,12 @@ text {*
     \item[@{text genuine_only}] sets quickcheck only to return genuine
     counterexample, but not potentially spurious counterexamples due
     to underspecified functions.
+
+    \item[@{text abort_potential}] sets quickcheck to abort once it
+    found a potentially spurious counterexample and to not continue
+    to search for a further genuine counterexample.
+    For this option to be effective, the @{text genuine_only} option
+    must be set to false.
     
     \item[@{text eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
