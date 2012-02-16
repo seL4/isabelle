@@ -62,7 +62,7 @@ fun mkdir path =
 
 fun copy_dir src dst =
   if File.eq (src, dst) then ()
-  else (system_command ("cp -r -f " ^ File.shell_path src ^ "/. " ^ File.shell_path dst); ());
+  else (system_command ("cp -p -R -f " ^ File.shell_path src ^ "/. " ^ File.shell_path dst); ());
 
 
 (* unique tmp files *)
