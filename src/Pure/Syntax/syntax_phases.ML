@@ -259,8 +259,6 @@ fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
 
 (* results *)
 
-fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
-
 fun proper_results results = map_filter (fn (y, Exn.Res x) => SOME (y, x) | _ => NONE) results;
 fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ => NONE) results;
 
@@ -268,7 +266,7 @@ fun report_result ctxt pos results =
   (case (proper_results results, failed_results results) of
     ([], (reports, exn) :: _) => (Context_Position.reports ctxt reports; reraise exn)
   | ([(reports, x)], _) => (Context_Position.reports ctxt reports; x)
-  | _ => error (ambiguity_msg pos));
+  | _ => error ("Parse error: ambiguous syntax" ^ Position.str_of pos));
 
 
 (* parse raw asts *)
@@ -288,23 +286,27 @@ fun parse_asts ctxt raw root (syms, pos) =
             (map (Markup.markup Isabelle_Markup.report o Lexicon.reported_token_range ctxt) toks));
     val len = length pts;
 
-    val limit = Config.get ctxt Syntax.ambiguity_limit;
-    val warnings = Config.get ctxt Syntax.ambiguity_warnings;
+    val ambiguity = Config.get ctxt Syntax.ambiguity;
     val _ =
-      if len <= Config.get ctxt Syntax.ambiguity_level then ()
-      else if not (Config.get ctxt Syntax.ambiguity_enabled) then error (ambiguity_msg pos)
-      else if warnings then
-        (Context_Position.if_visible ctxt warning (cat_lines
-          (("Ambiguous input" ^ Position.str_of (Position.reset_range pos) ^
-            "\nproduces " ^ string_of_int len ^ " parse trees" ^
-            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))))
-      else ();
+      member (op =) ["ignore", "warning", "error"] ambiguity orelse
+        error ("Bad value for syntax_ambiguity: " ^ quote ambiguity);
+
+    val limit = Config.get ctxt Syntax.ambiguity_limit;
+
+    val _ =
+      if len <= 1 orelse ambiguity = "ignore" then ()
+      else
+        (if ambiguity = "error" then error else Context_Position.if_visible ctxt warning)
+          (cat_lines
+            (("Ambiguous input" ^ Position.str_of (Position.reset_range pos) ^
+              "\nproduces " ^ string_of_int len ^ " parse trees" ^
+              (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+              map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts)));
   in
     map (parsetree_to_ast ctxt raw ast_tr) pts
   end;
 
-fun parse_raw ctxt root input =
+fun parse_tree ctxt root input =
   let
     val syn = Proof_Context.syn_of ctxt;
     val tr = Syntax.parse_translation syn;
@@ -326,7 +328,7 @@ fun parse_failed ctxt pos msg kind =
 fun parse_sort ctxt =
   Syntax.parse_token ctxt Term_XML.Decode.sort Isabelle_Markup.sort
     (fn (syms, pos) =>
-      parse_raw ctxt "sort" (syms, pos)
+      parse_tree ctxt "sort" (syms, pos)
       |> report_result ctxt pos
       |> decode_sort
       |> Type.minimize_sort (Proof_Context.tsig_of ctxt)
@@ -335,7 +337,7 @@ fun parse_sort ctxt =
 fun parse_typ ctxt =
   Syntax.parse_token ctxt Term_XML.Decode.typ Isabelle_Markup.typ
     (fn (syms, pos) =>
-      parse_raw ctxt "type" (syms, pos)
+      parse_tree ctxt "type" (syms, pos)
       |> report_result ctxt pos
       |> decode_typ
       handle ERROR msg => parse_failed ctxt pos msg "type");
@@ -351,17 +353,16 @@ fun parse_term is_prop ctxt =
     Syntax.parse_token ctxt decode markup
       (fn (syms, pos) =>
         let
-          val results = parse_raw ctxt root (syms, pos) |> map (decode_term ctxt);
-          val ambiguity = length (proper_results results);
+          val results = parse_tree ctxt root (syms, pos) |> map (decode_term ctxt);
+          val parsed_len = length (proper_results results);
 
-          val level = Config.get ctxt Syntax.ambiguity_level;
+          val ambiguity = Config.get ctxt Syntax.ambiguity;
           val limit = Config.get ctxt Syntax.ambiguity_limit;
-          val warnings = Config.get ctxt Syntax.ambiguity_warnings;
 
           val ambig_msg =
-            if ambiguity > 1 andalso ambiguity <= level then
+            if parsed_len > 1 andalso ambiguity = "ignore" then
               ["Got more than one parse tree.\n\
-              \Retry with smaller syntax_ambiguity_level for more information."]
+              \Retry with syntax_ambiguity = \"warning\" for more information."]
             else [];
 
           (*brute-force disambiguation via type-inference*)
@@ -369,7 +370,7 @@ fun parse_term is_prop ctxt =
             handle exn as ERROR _ => Exn.Exn exn;
 
           val results' =
-            if ambiguity > 1 then
+            if parsed_len > 1 then
               (Par_List.map_name "Syntax_Phases.parse_term" o apsnd o Exn.maps_result)
                 check results
             else results;
@@ -377,15 +378,15 @@ fun parse_term is_prop ctxt =
 
           val errs = map snd (failed_results results');
           val checked = map snd (proper_results results');
-          val len = length checked;
+          val checked_len = length checked;
 
           val show_term = Syntax.string_of_term (Config.put Printer.show_brackets true ctxt);
         in
-          if len = 0 then
+          if checked_len = 0 then
             report_result ctxt pos
               [(reports', Exn.Exn (Exn.EXCEPTIONS (map ERROR ambig_msg @ errs)))]
-          else if len = 1 then
-            (if ambiguity > level andalso warnings then
+          else if checked_len = 1 then
+            (if parsed_len > 1 andalso ambiguity <> "ignore" then
               Context_Position.if_visible ctxt warning
                 ("Fortunately, only one parse tree is type correct" ^
                 Position.str_of (Position.reset_range pos) ^
@@ -394,8 +395,9 @@ fun parse_term is_prop ctxt =
           else
             report_result ctxt pos
               [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg @
-                (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
-                  (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+                (("Ambiguous input, " ^ string_of_int checked_len ^ " terms are type correct" ^
+                  (if checked_len <= limit then ""
+                   else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
                   map show_term (take limit checked))))))]
         end handle ERROR msg => parse_failed ctxt pos msg kind)
   end;

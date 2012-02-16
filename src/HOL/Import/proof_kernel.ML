@@ -198,7 +198,7 @@ fun no_vars context tm =
 fun smart_string_of_cterm ctxt0 ct =
     let
         val ctxt = ctxt0
-          |> Config.put Syntax.ambiguity_enabled true
+          |> Config.put Syntax.ambiguity "warning"  (* FIXME actually "error" (!?) *)
           |> Config.put show_brackets false
           |> Config.put show_all_types false
           |> Config.put show_types false

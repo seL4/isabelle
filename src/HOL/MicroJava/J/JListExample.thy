@@ -8,7 +8,7 @@ theory JListExample
 imports Eval
 begin
 
-declare [[syntax_ambiguity_level = 100000]]
+declare [[syntax_ambiguity = ignore]]
 
 consts
   list_nam :: cnam

@@ -1154,12 +1154,9 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 %
 \begin{isamarkuptext}%
 \begin{tabular}{rcll}
-    \indexdef{}{attribute}{syntax\_ambiguity\_level}\hypertarget{attribute.syntax-ambiguity-level}{\hyperlink{attribute.syntax-ambiguity-level}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}level}}}} & : & \isa{attribute} & default \isa{{\isadigit{1}}} \\
+    \indexdef{}{attribute}{syntax\_ambiguity}\hypertarget{attribute.syntax-ambiguity}{\hyperlink{attribute.syntax-ambiguity}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity}}}} & : & \isa{attribute} & default \isa{warning} \\
+    \indexdef{}{attribute}{syntax\_ambiguity\_limit}\hypertarget{attribute.syntax-ambiguity-limit}{\hyperlink{attribute.syntax-ambiguity-limit}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}limit}}}} & : & \isa{attribute} & default \isa{{\isadigit{1}}{\isadigit{0}}} \\
   \end{tabular}
-
-  \begin{mldecls}
-    \indexdef{}{ML}{Syntax.ambiguity\_limit}\verb|Syntax.ambiguity_limit: int Config.T| \\  %FIXME attribute
-  \end{mldecls}
 
   Depending on the grammar and the given input, parsing may be
   ambiguous.  Isabelle lets the Earley parser enumerate all possible
@@ -1177,11 +1174,10 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 
   \begin{description}
 
-  \item \hyperlink{attribute.syntax-ambiguity-level}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}level}}} determines the number of
-  parser results that are tolerated without printing a detailed
-  message.
+  \item \hyperlink{attribute.syntax-ambiguity}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity}}} determines reaction on multiple
+  results of parsing; this string option can be set to \isa{{\isaliteral{22}{\isachardoublequote}}ignore{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}warning{\isaliteral{22}{\isachardoublequote}}}, or \isa{{\isaliteral{22}{\isachardoublequote}}error{\isaliteral{22}{\isachardoublequote}}}.
 
-  \item \verb|Syntax.ambiguity_limit| determines the number of
+  \item \hyperlink{attribute.syntax-ambiguity-limit}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}limit}}} determines the number of
   resulting parse trees that are shown as part of the printed message
   in case of an ambiguity.
 

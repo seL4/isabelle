@@ -980,12 +980,9 @@ subsection {* Ambiguity of parsed expressions *}
 
 text {*
   \begin{tabular}{rcll}
-    @{attribute_def syntax_ambiguity_level} & : & @{text attribute} & default @{text 1} \\
+    @{attribute_def syntax_ambiguity} & : & @{text attribute} & default @{text warning} \\
+    @{attribute_def syntax_ambiguity_limit} & : & @{text attribute} & default @{text 10} \\
   \end{tabular}
-
-  \begin{mldecls}
-    @{index_ML Syntax.ambiguity_limit: "int Config.T"} \\  %FIXME attribute
-  \end{mldecls}
 
   Depending on the grammar and the given input, parsing may be
   ambiguous.  Isabelle lets the Earley parser enumerate all possible
@@ -1003,11 +1000,11 @@ text {*
 
   \begin{description}
 
-  \item @{attribute syntax_ambiguity_level} determines the number of
-  parser results that are tolerated without printing a detailed
-  message.
+  \item @{attribute syntax_ambiguity} determines reaction on multiple
+  results of parsing; this string option can be set to @{text
+  "ignore"}, @{text "warning"}, or @{text "error"}.
 
-  \item @{ML Syntax.ambiguity_limit} determines the number of
+  \item @{attribute syntax_ambiguity_limit} determines the number of
   resulting parse trees that are shown as part of the printed message
   in case of an ambiguity.
 
