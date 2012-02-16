@@ -6,77 +6,68 @@ theory Glbs
 imports Lubs
 begin
 
-definition
-  greatestP      :: "['a =>bool,'a::ord] => bool" where
-  "greatestP P x = (P x & Collect P *<=  x)"
+definition greatestP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a::ord \<Rightarrow> bool"
+  where "greatestP P x = (P x \<and> Collect P *<=  x)"
 
-definition
-  isLb        :: "['a set, 'a set, 'a::ord] => bool" where
-  "isLb R S x = (x <=* S & x: R)"
+definition isLb :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
+  where "isLb R S x = (x <=* S \<and> x: R)"
 
-definition
-  isGlb       :: "['a set, 'a set, 'a::ord] => bool" where
-  "isGlb R S x = greatestP (isLb R S) x"
+definition isGlb :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
+  where "isGlb R S x = greatestP (isLb R S) x"
 
-definition
-  lbs         :: "['a set, 'a::ord set] => 'a set" where
-  "lbs R S = Collect (isLb R S)"
+definition lbs :: "'a set \<Rightarrow> 'a::ord set \<Rightarrow> 'a set"
+  where "lbs R S = Collect (isLb R S)"
 
-subsection{*Rules about the Operators @{term greatestP}, @{term isLb}
-    and @{term isGlb}*}
 
-lemma leastPD1: "greatestP P x ==> P x"
-by (simp add: greatestP_def)
+subsection {* Rules about the Operators @{term greatestP}, @{term isLb}
+  and @{term isGlb} *}
 
-lemma greatestPD2: "greatestP P x ==> Collect P *<= x"
-by (simp add: greatestP_def)
+lemma leastPD1: "greatestP P x \<Longrightarrow> P x"
+  by (simp add: greatestP_def)
 
-lemma greatestPD3: "[| greatestP P x; y: Collect P |] ==> x >= y"
-by (blast dest!: greatestPD2 setleD)
+lemma greatestPD2: "greatestP P x \<Longrightarrow> Collect P *<= x"
+  by (simp add: greatestP_def)
 
-lemma isGlbD1: "isGlb R S x ==> x <=* S"
-by (simp add: isGlb_def isLb_def greatestP_def)
+lemma greatestPD3: "greatestP P x \<Longrightarrow> y: Collect P \<Longrightarrow> x \<ge> y"
+  by (blast dest!: greatestPD2 setleD)
 
-lemma isGlbD1a: "isGlb R S x ==> x: R"
-by (simp add: isGlb_def isLb_def greatestP_def)
+lemma isGlbD1: "isGlb R S x \<Longrightarrow> x <=* S"
+  by (simp add: isGlb_def isLb_def greatestP_def)
 
-lemma isGlb_isLb: "isGlb R S x ==> isLb R S x"
-apply (simp add: isLb_def)
-apply (blast dest: isGlbD1 isGlbD1a)
-done
+lemma isGlbD1a: "isGlb R S x \<Longrightarrow> x: R"
+  by (simp add: isGlb_def isLb_def greatestP_def)
 
-lemma isGlbD2: "[| isGlb R S x; y : S |] ==> y >= x"
-by (blast dest!: isGlbD1 setgeD)
+lemma isGlb_isLb: "isGlb R S x \<Longrightarrow> isLb R S x"
+  unfolding isLb_def by (blast dest: isGlbD1 isGlbD1a)
 
-lemma isGlbD3: "isGlb R S x ==> greatestP(isLb R S) x"
-by (simp add: isGlb_def)
+lemma isGlbD2: "isGlb R S x \<Longrightarrow> y : S \<Longrightarrow> y \<ge> x"
+  by (blast dest!: isGlbD1 setgeD)
 
-lemma isGlbI1: "greatestP(isLb R S) x ==> isGlb R S x"
-by (simp add: isGlb_def)
+lemma isGlbD3: "isGlb R S x \<Longrightarrow> greatestP (isLb R S) x"
+  by (simp add: isGlb_def)
 
-lemma isGlbI2: "[| isLb R S x; Collect (isLb R S) *<= x |] ==> isGlb R S x"
-by (simp add: isGlb_def greatestP_def)
+lemma isGlbI1: "greatestP (isLb R S) x \<Longrightarrow> isGlb R S x"
+  by (simp add: isGlb_def)
 
-lemma isLbD: "[| isLb R S x; y : S |] ==> y >= x"
-by (simp add: isLb_def setge_def)
+lemma isGlbI2: "isLb R S x \<Longrightarrow> Collect (isLb R S) *<= x \<Longrightarrow> isGlb R S x"
+  by (simp add: isGlb_def greatestP_def)
 
-lemma isLbD2: "isLb R S x ==> x <=* S "
-by (simp add: isLb_def)
+lemma isLbD: "isLb R S x \<Longrightarrow> y : S \<Longrightarrow> y \<ge> x"
+  by (simp add: isLb_def setge_def)
 
-lemma isLbD2a: "isLb R S x ==> x: R"
-by (simp add: isLb_def)
+lemma isLbD2: "isLb R S x \<Longrightarrow> x <=* S "
+  by (simp add: isLb_def)
 
-lemma isLbI: "[| x <=* S ; x: R |] ==> isLb R S x"
-by (simp add: isLb_def)
+lemma isLbD2a: "isLb R S x \<Longrightarrow> x: R"
+  by (simp add: isLb_def)
 
-lemma isGlb_le_isLb: "[| isGlb R S x; isLb R S y |] ==> x >= y"
-apply (simp add: isGlb_def)
-apply (blast intro!: greatestPD3)
-done
+lemma isLbI: "x <=* S \<Longrightarrow> x: R \<Longrightarrow> isLb R S x"
+  by (simp add: isLb_def)
 
-lemma isGlb_ubs: "isGlb R S x ==> lbs R S *<= x"
-apply (simp add: lbs_def isGlb_def)
-apply (erule greatestPD2)
-done
+lemma isGlb_le_isLb: "isGlb R S x \<Longrightarrow> isLb R S y \<Longrightarrow> x \<ge> y"
+  unfolding isGlb_def by (blast intro!: greatestPD3)
+
+lemma isGlb_ubs: "isGlb R S x \<Longrightarrow> lbs R S *<= x"
+  unfolding lbs_def isGlb_def by (rule greatestPD2)
 
 end
