@@ -871,7 +871,7 @@ lemma singleton_conv [simp]: "{x. x = a} = {a}"
 lemma singleton_conv2 [simp]: "{x. a = x} = {a}"
   by blast
 
-lemma diff_single_insert: "A - {x} \<subseteq> B ==> x \<in> A ==> A \<subseteq> insert x B"
+lemma diff_single_insert: "A - {x} \<subseteq> B ==> A \<subseteq> insert x B"
   by blast
 
 lemma doubleton_eq_iff: "({a,b} = {c,d}) = (a=c & b=d | a=d & b=c)"
