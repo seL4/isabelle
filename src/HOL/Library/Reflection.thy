@@ -11,9 +11,6 @@ begin
 
 setup {* Reify_Data.setup *}
 
-lemma ext2: "(\<forall>x. f x = g x) \<Longrightarrow> f = g"
-  by blast
-
 use "reflection.ML"
 
 method_setup reify = {*

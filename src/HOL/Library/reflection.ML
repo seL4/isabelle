@@ -16,10 +16,6 @@ end;
 structure Reflection : REFLECTION =
 struct
 
-val ext2 = @{thm ext2};
-val nth_Cons_0 = @{thm nth_Cons_0};
-val nth_Cons_Suc = @{thm nth_Cons_Suc};
-
   (* Make a congruence rule out of a defining equation for the interpretation *)
   (* th is one defining equation of f, i.e.
      th is "f (Cp ?t1 ... ?tn) = P(f ?t1, .., f ?tn)" *)
@@ -59,7 +55,7 @@ fun mk_congeq ctxt fs th =
 
    fun mk_def (Abs(x,xT,t),v) = HOLogic.mk_Trueprop ((HOLogic.all_const xT)$ Abs(x,xT,HOLogic.mk_eq(v$(Bound 0), t)))
      | mk_def (t, v) = HOLogic.mk_Trueprop (HOLogic.mk_eq (v, t))
-   fun tryext x = (x RS ext2 handle THM _ =>  x)
+   fun tryext x = (x RS @{lemma "(\<forall>x. f x = g x) \<Longrightarrow> f = g" by blast} handle THM _ =>  x)
    val cong =
     (Goal.prove ctxt'' [] (map mk_def env)
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, replace_fterms rhs)))
@@ -295,7 +291,8 @@ fun genreflect ctxt conv corr_thms raw_eqs t =
     val th = trytrans corr_thms
     val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) th
     val rth = conv ft
-  in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
+  in
+    simplify (HOL_basic_ss addsimps raw_eqs addsimps @{thms nth_Cons_0 nth_Cons_Suc})
              (simplify (HOL_basic_ss addsimps [rth]) th)
   end
 
