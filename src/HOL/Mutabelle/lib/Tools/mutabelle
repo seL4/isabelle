@@ -92,7 +92,7 @@ echo "Starting Mutabelle..."
 mkdir -p "$MUTABELLE_OUTPUT_PATH"
 
 echo "theory Mutabelle_Test
-imports \"~~/src/HOL/Library/Quickcheck_Narrowing\" $MUTABELLE_IMPORTS
+imports $MUTABELLE_IMPORTS
 uses     
   \"$MUTABELLE_HOME/mutabelle.ML\"
   \"$MUTABELLE_HOME/mutabelle_extra.ML\"
@@ -150,12 +150,13 @@ function mk_stat() {
 }
 
 mk_stat "quickcheck_random"
+mk_stat "quickcheck_random_int"
 mk_stat "quickcheck_exhaustive"
-mk_stat "quickcheck_exhaustive_no_finite_types"
+mk_stat "quickcheck_exhaustive_int"
 mk_stat "quickcheck_narrowing"
-mk_stat "quickcheck_narrowing_no_finite_types"
+mk_stat "quickcheck_narrowing_int"
 mk_stat "quickcheck_narrowing_nat"
-mk_stat "refute"
+##mk_stat "refute"
 mk_stat "nitpick"
 
 ## cleanup
