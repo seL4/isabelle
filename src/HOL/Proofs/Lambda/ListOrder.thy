@@ -7,7 +7,7 @@ header {* Lifting an order to lists of elements *}
 
 theory ListOrder imports Main begin
 
-declare [[syntax_ambiguity = ignore]]
+declare [[syntax_ambiguity_warning = false]]
 
 
 text {*

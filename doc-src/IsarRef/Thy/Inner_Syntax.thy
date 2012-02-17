@@ -980,7 +980,7 @@ subsection {* Ambiguity of parsed expressions *}
 
 text {*
   \begin{tabular}{rcll}
-    @{attribute_def syntax_ambiguity} & : & @{text attribute} & default @{text warning} \\
+    @{attribute_def syntax_ambiguity_warning} & : & @{text attribute} & default @{text true} \\
     @{attribute_def syntax_ambiguity_limit} & : & @{text attribute} & default @{text 10} \\
   \end{tabular}
 
@@ -1000,9 +1000,8 @@ text {*
 
   \begin{description}
 
-  \item @{attribute syntax_ambiguity} determines reaction on multiple
-  results of parsing; this string option can be set to @{text
-  "ignore"}, @{text "warning"}, or @{text "error"}.
+  \item @{attribute syntax_ambiguity_warning} controls output of
+  explicit warning messages about syntax ambiguity.
 
   \item @{attribute syntax_ambiguity_limit} determines the number of
   resulting parse trees that are shown as part of the printed message

@@ -7,7 +7,7 @@ header {* Abstract commutation and confluence notions *}
 
 theory Commutation imports Main begin
 
-declare [[syntax_ambiguity = ignore]]
+declare [[syntax_ambiguity_warning = false]]
 
 
 subsection {* Basic definitions *}

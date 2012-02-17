@@ -503,7 +503,7 @@ val _ = Context.>> (Context.map_theory
   register_config Printer.show_types_raw #>
   register_config Printer.show_structs_raw #>
   register_config Printer.show_question_marks_raw #>
-  register_config Syntax.ambiguity_raw #>
+  register_config Syntax.ambiguity_warning_raw #>
   register_config Syntax.ambiguity_limit_raw #>
   register_config Syntax_Trans.eta_contract_raw #>
   register_config Name_Space.names_long_raw #>

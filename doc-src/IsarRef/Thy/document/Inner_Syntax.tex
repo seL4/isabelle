@@ -1154,7 +1154,7 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 %
 \begin{isamarkuptext}%
 \begin{tabular}{rcll}
-    \indexdef{}{attribute}{syntax\_ambiguity}\hypertarget{attribute.syntax-ambiguity}{\hyperlink{attribute.syntax-ambiguity}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity}}}} & : & \isa{attribute} & default \isa{warning} \\
+    \indexdef{}{attribute}{syntax\_ambiguity\_warning}\hypertarget{attribute.syntax-ambiguity-warning}{\hyperlink{attribute.syntax-ambiguity-warning}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}warning}}}} & : & \isa{attribute} & default \isa{true} \\
     \indexdef{}{attribute}{syntax\_ambiguity\_limit}\hypertarget{attribute.syntax-ambiguity-limit}{\hyperlink{attribute.syntax-ambiguity-limit}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}limit}}}} & : & \isa{attribute} & default \isa{{\isadigit{1}}{\isadigit{0}}} \\
   \end{tabular}
 
@@ -1174,8 +1174,8 @@ The priority grammar of the \isa{{\isaliteral{22}{\isachardoublequote}}Pure{\isa
 
   \begin{description}
 
-  \item \hyperlink{attribute.syntax-ambiguity}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity}}} determines reaction on multiple
-  results of parsing; this string option can be set to \isa{{\isaliteral{22}{\isachardoublequote}}ignore{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}warning{\isaliteral{22}{\isachardoublequote}}}, or \isa{{\isaliteral{22}{\isachardoublequote}}error{\isaliteral{22}{\isachardoublequote}}}.
+  \item \hyperlink{attribute.syntax-ambiguity-warning}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}warning}}} controls output of
+  explicit warning messages about syntax ambiguity.
 
   \item \hyperlink{attribute.syntax-ambiguity-limit}{\mbox{\isa{syntax{\isaliteral{5F}{\isacharunderscore}}ambiguity{\isaliteral{5F}{\isacharunderscore}}limit}}} determines the number of
   resulting parse trees that are shown as part of the printed message

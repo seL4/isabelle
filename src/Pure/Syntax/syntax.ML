@@ -10,8 +10,8 @@ sig
   type operations
   val install_operations: operations -> unit
   val root: string Config.T
-  val ambiguity_raw: Config.raw
-  val ambiguity: string Config.T
+  val ambiguity_warning_raw: Config.raw
+  val ambiguity_warning: bool Config.T
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
   val read_token: string -> Symbol_Pos.T list * Position.T
@@ -155,8 +155,8 @@ fun operation which ctxt x =
 
 val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
 
-val ambiguity_raw = Config.declare "syntax_ambiguity" (fn _ => Config.String "warning");
-val ambiguity = Config.string ambiguity_raw;
+val ambiguity_warning_raw = Config.declare "syntax_ambiguity_warning" (fn _ => Config.Bool true);
+val ambiguity_warning = Config.bool ambiguity_warning_raw;
 
 val ambiguity_limit_raw = Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10);
 val ambiguity_limit = Config.int ambiguity_limit_raw;

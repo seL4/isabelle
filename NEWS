@@ -37,8 +37,8 @@ Minor INCOMPATIBILITY.  Note that in practice "num_const" or
 position information via constraints).
 
 * Simplified configuration options for syntax ambiguity: see
-"syntax_ambiguity" and "syntax_ambiguity_limit" in isar-ref manual.
-Minor INCOMPATIBILITY.
+"syntax_ambiguity_warning" and "syntax_ambiguity_limit" in isar-ref
+manual.  Minor INCOMPATIBILITY.
 
 
 *** Pure ***
