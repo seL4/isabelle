@@ -11,6 +11,9 @@ inductive %invisible append where
 
 lemma %invisible append: "append xs ys zs = (xs @ ys = zs)"
   by (induct xs arbitrary: ys zs) (auto elim: append.cases intro: append.intros)
+
+lemmas lexordp_def = 
+  lexordp_def [unfolded lexord_def mem_Collect_eq split]
 (*>*)
 
 section {* Inductive Predicates \label{sec:inductive} *}
@@ -152,7 +155,7 @@ text {*
 *}
 
 text %quote {*
-  @{thm [display] lexord_def [of r]}
+  @{thm [display] lexordp_def [of r]}
 *}
 
 text {*
@@ -161,34 +164,36 @@ text {*
 *}
 
 lemma %quote [code_pred_intro]:
-  "append xs (a # v) ys \<Longrightarrow> lexord r (xs, ys)"
-(*<*)unfolding lexord_def Collect_def by (auto simp add: append)(*>*)
+  "append xs (a # v) ys \<Longrightarrow> lexordp r xs ys"
+(*<*)unfolding lexordp_def by (auto simp add: append)(*>*)
 
 lemma %quote [code_pred_intro]:
-  "append u (a # v) xs \<Longrightarrow> append u (b # w) ys \<Longrightarrow> r (a, b)
-  \<Longrightarrow> lexord r (xs, ys)"
-(*<*)unfolding lexord_def Collect_def append mem_def apply simp
+  "append u (a # v) xs \<Longrightarrow> append u (b # w) ys \<Longrightarrow> r a b
+  \<Longrightarrow> lexordp r xs ys"
+(*<*)unfolding lexordp_def append apply simp
 apply (rule disjI2) by auto(*>*)
 
-code_pred %quote lexord
+code_pred %quote lexordp
 (*<*)proof -
   fix r xs ys
-  assume lexord: "lexord r (xs, ys)"
-  assume 1: "\<And> r' xs' ys' a v. r = r' \<Longrightarrow> (xs, ys) = (xs', ys') \<Longrightarrow> append xs' (a # v) ys' \<Longrightarrow> thesis"
-  assume 2: "\<And> r' xs' ys' u a v b w. r = r' \<Longrightarrow> (xs, ys) = (xs', ys') \<Longrightarrow> append u (a # v) xs' \<Longrightarrow> append u (b # w) ys' \<Longrightarrow> r' (a, b) \<Longrightarrow> thesis"
+  assume lexord: "lexordp r xs ys"
+  assume 1: "\<And>r' xs' ys' a v. r = r' \<Longrightarrow> xs = xs' \<Longrightarrow> ys = ys'
+    \<Longrightarrow> append xs' (a # v) ys' \<Longrightarrow> thesis"
+  assume 2: "\<And>r' xs' ys' u a v b w. r = r' \<Longrightarrow> xs = xs' \<Longrightarrow> ys = ys'
+    \<Longrightarrow> append u (a # v) xs' \<Longrightarrow> append u (b # w) ys' \<Longrightarrow> r' a b \<Longrightarrow> thesis"
   {
     assume "\<exists>a v. ys = xs @ a # v"
     from this 1 have thesis
-        by (fastsimp simp add: append)
+        by (fastforce simp add: append)
   } moreover
   {
-    assume "\<exists>u a b v w. (a, b) \<in> r \<and> xs = u @ a # v \<and> ys = u @ b # w"
-    from this 2 have thesis by (fastsimp simp add: append mem_def)
+    assume "\<exists>u a b v w. r a b \<and> xs = u @ a # v \<and> ys = u @ b # w"
+    from this 2 have thesis by (fastforce simp add: append)
   } moreover
   note lexord
   ultimately show thesis
-    unfolding lexord_def
-    by (fastsimp simp add: Collect_def)
+    unfolding lexordp_def
+    by fastforce
 qed(*>*)
 
 
@@ -267,3 +272,4 @@ text {*
 *}
 
 end
+
