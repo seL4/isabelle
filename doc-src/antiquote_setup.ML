@@ -151,9 +151,6 @@ fun thy_check intern defined ctxt =
 fun check_tool name =
   File.exists (Path.append (Path.explode "~~/lib/Tools") (Path.basic name));
 
-fun is_ancestor thy name =
-  exists (fn thy => Context.theory_name thy = name) (thy :: Context.ancestors_of thy);
-
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup kind index =
@@ -210,7 +207,6 @@ val entity_setup =
   entity_antiqs no_check "" "inference" #>
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatt" "tool" #>
-  entity_antiqs (is_ancestor o Proof_Context.theory_of) "" "theory" #>
   entity_antiqs (thy_check ML_Context.intern_antiq ML_Context.defined_antiq)
     "" Isabelle_Markup.ML_antiquotationN;
 
