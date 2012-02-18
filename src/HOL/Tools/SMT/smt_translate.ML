@@ -228,6 +228,8 @@ fun eta_expand ctxt is_fol funcs =
               (case SMT_Builtin.dest_builtin ctxt c ts of
                 SOME (_, k, us, mk) =>
                   if k = length us then mk (map expand us)
+                  else if k < length us then
+                    chop k (map expand us) |>> mk |> Term.list_comb
                   else expf k (length ts) T (mk (map expand us))
               | NONE => exp_func u T (map expand ts))
           | (u as Free (_, T), ts) => exp_func u T (map expand ts)
@@ -299,7 +301,11 @@ fun intro_explicit_application ctxt funcs ts =
           q $ traverse Ts u1 $ traverse Ts u2
       | (u as Const (c as (_, T)), ts) =>
           (case SMT_Builtin.dest_builtin ctxt c ts of
-            SOME (_, _, us, mk) => mk (map (traverse Ts) us)
+            SOME (_, k, us, mk) =>
+              let
+                val (ts1, ts2) = chop k (map (traverse Ts) us)
+                val U = Term.strip_type T |>> snd o chop k |> (op --->)
+              in apply 0 (mk ts1) U ts2 end
           | NONE => app_func u T (map (traverse Ts) ts))
       | (u as Free (_, T), ts) => app_func u T (map (traverse Ts) ts)
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
