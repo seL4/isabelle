@@ -332,10 +332,9 @@ Sometimes the introduction rules of an predicate are not executable
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-lexord\ r\ {\isaliteral{3D}{\isacharequal}}\isanewline
-{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\isanewline
-\isaindent{\ }{\isaliteral{5C3C6578697374733E}{\isasymexists}}a\ v{\isaliteral{2E}{\isachardot}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ v\ {\isaliteral{5C3C6F723E}{\isasymor}}\isanewline
-\isaindent{\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}a\ v{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}u\ a\ b\ v\ w{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r\ {\isaliteral{5C3C616E643E}{\isasymand}}\ x\ {\isaliteral{3D}{\isacharequal}}\ u\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ v\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{3D}{\isacharequal}}\ u\ {\isaliteral{40}{\isacharat}}\ b\ {\isaliteral{23}{\isacharhash}}\ w{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}%
+lexordp\ r\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3F}{\isacharquery}}ys\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\isanewline
+{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a\ v{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}ys\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ v\ {\isaliteral{5C3C6F723E}{\isasymor}}\isanewline
+\isaindent{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a\ v{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}u\ a\ b\ v\ w{\isaliteral{2E}{\isachardot}}\ r\ a\ b\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3D}{\isacharequal}}\ u\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ v\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{3F}{\isacharquery}}ys\ {\isaliteral{3D}{\isacharequal}}\ u\ {\isaliteral{40}{\isacharat}}\ b\ {\isaliteral{23}{\isacharhash}}\ w{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -360,13 +359,13 @@ lexord\ r\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
 \ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5F}{\isacharunderscore}}pred{\isaliteral{5F}{\isacharunderscore}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
-\ \ {\isaliteral{22}{\isachardoublequoteopen}}append\ xs\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ v{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lexord\ r\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}append\ xs\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ v{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lexordp\ r\ xs\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5F}{\isacharunderscore}}pred{\isaliteral{5F}{\isacharunderscore}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
-\ \ {\isaliteral{22}{\isachardoublequoteopen}}append\ u\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ v{\isaliteral{29}{\isacharparenright}}\ xs\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ append\ u\ {\isaliteral{28}{\isacharparenleft}}b\ {\isaliteral{23}{\isacharhash}}\ w{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ r\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\isanewline
-\ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lexord\ r\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}append\ u\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ v{\isaliteral{29}{\isacharparenright}}\ xs\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ append\ u\ {\isaliteral{28}{\isacharparenleft}}b\ {\isaliteral{23}{\isacharhash}}\ w{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ r\ a\ b\isanewline
+\ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lexordp\ r\ xs\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isacommand{code{\isaliteral{5F}{\isacharunderscore}}pred}\isamarkupfalse%
-\ lexord%
+\ lexordp%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -491,6 +490,7 @@ Further examples for compiling inductive predicates can be found in
 \isadelimtheory
 %
 \endisadelimtheory
+\isanewline
 \isanewline
 \end{isabellebody}%
 %%% Local Variables:
