@@ -125,36 +125,38 @@ text {*
 
   \begin{description}
 
-    \item[@{theory "Code_Integer"}] represents @{text HOL} integers by
+    \item[@{text "Code_Integer"}] represents @{text HOL} integers by
        big integer literals in target languages.
 
-    \item[@{theory "Code_Char"}] represents @{text HOL} characters by
+    \item[@{text "Code_Char"}] represents @{text HOL} characters by
        character literals in target languages.
 
-    \item[@{theory "Code_Char_chr"}] like @{text "Code_Char"}, but
-       also offers treatment of character codes; includes @{theory
+    \item[@{text "Code_Char_chr"}] like @{text "Code_Char"}, but
+       also offers treatment of character codes; includes @{text
        "Code_Char"}.
 
-    \item[@{theory "Efficient_Nat"}] \label{eff_nat} implements
+    \item[@{text "Efficient_Nat"}] \label{eff_nat} implements
        natural numbers by integers, which in general will result in
        higher efficiency; pattern matching with @{term "0\<Colon>nat"} /
-       @{const "Suc"} is eliminated; includes @{theory "Code_Integer"}
-       and @{theory "Code_Numeral"}.
+       @{const "Suc"} is eliminated; includes @{text "Code_Integer"}
+       and @{text "Code_Numeral"}.
 
     \item[@{theory "Code_Numeral"}] provides an additional datatype
        @{typ index} which is mapped to target-language built-in
        integers.  Useful for code setups which involve e.g.~indexing
-       of target-language arrays.
+       of target-language arrays.  Part of @{text "HOL-Main"}.
 
     \item[@{theory "String"}] provides an additional datatype @{typ
        String.literal} which is isomorphic to strings; @{typ
        String.literal}s are mapped to target-language strings.  Useful
        for code setups which involve e.g.~printing (error) messages.
+       Part of @{text "HOL-Main"}.
 
   \end{description}
 
   \begin{warn}
-    When importing any of these theories, they should form the last
+    When importing any of those theories which are not part of
+    @{text "HOL-Main"}, they should form the last
     items in an import list.  Since these theories adapt the code
     generator setup in a non-conservative fashion, strange effects may
     occur otherwise.
@@ -342,3 +344,4 @@ text {*
 *}
 
 end
+

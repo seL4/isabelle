@@ -1,7 +1,9 @@
 theory Setup
 imports
   Complex_Main
-  More_List RBT Dlist List_Cset Mapping
+  "~~/src/HOL/Library/Dlist"
+  "~~/src/HOL/Library/RBT"
+  "~~/src/HOL/Library/Mapping"
 uses
   "../../antiquote_setup.ML"
   "../../more_antiquote.ML"
@@ -27,3 +29,4 @@ setup {* Code_Target.set_default_code_width 74 *}
 declare [[names_unique = false]]
 
 end
+

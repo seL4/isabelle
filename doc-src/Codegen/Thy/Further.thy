@@ -18,7 +18,7 @@ text {*
     \item @{text Scala} sacrifices Hindely-Milner type inference for a
       much more rich type system with subtyping etc.  For this reason
       type arguments sometimes have to be given explicitly in square
-      brackets (mimicing System F syntax).
+      brackets (mimicking System F syntax).
 
     \item In contrast to @{text Haskell} where most specialities of
       the type system are implemented using \emph{type classes},
@@ -348,3 +348,4 @@ text {*
 *}
 
 end
+

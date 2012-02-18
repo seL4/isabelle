@@ -117,7 +117,7 @@ text {*
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
   its type change.  The @{term "0\<Colon>nat"} / @{const Suc} pattern
-  elimination implemented in theory @{theory Efficient_Nat} (see
+  elimination implemented in theory @{text Efficient_Nat} (see
   \secref{eff_nat}) uses this interface.
 
   \noindent The current setup of the preprocessor may be inspected

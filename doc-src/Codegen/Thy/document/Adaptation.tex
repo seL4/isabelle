@@ -158,33 +158,35 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 
   \begin{description}
 
-    \item[\hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}}}] represents \isa{HOL} integers by
+    \item[\isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}] represents \isa{HOL} integers by
        big integer literals in target languages.
 
-    \item[\hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}}}] represents \isa{HOL} characters by
+    \item[\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}] represents \isa{HOL} characters by
        character literals in target languages.
 
-    \item[\hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char{\isaliteral{5F}{\isacharunderscore}}chr}}}] like \isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}, but
-       also offers treatment of character codes; includes \hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}}}.
+    \item[\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char{\isaliteral{5F}{\isacharunderscore}}chr}] like \isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}, but
+       also offers treatment of character codes; includes \isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}.
 
-    \item[\hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isaliteral{5F}{\isacharunderscore}}Nat}}}] \label{eff_nat} implements
+    \item[\isa{Efficient{\isaliteral{5F}{\isacharunderscore}}Nat}] \label{eff_nat} implements
        natural numbers by integers, which in general will result in
        higher efficiency; pattern matching with \isa{{\isadigit{0}}} /
-       \isa{Suc} is eliminated; includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}}}
-       and \hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}}}.
+       \isa{Suc} is eliminated; includes \isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}
+       and \isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}.
 
     \item[\hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}}}] provides an additional datatype
        \isa{index} which is mapped to target-language built-in
        integers.  Useful for code setups which involve e.g.~indexing
-       of target-language arrays.
+       of target-language arrays.  Part of \isa{HOL{\isaliteral{2D}{\isacharminus}}Main}.
 
     \item[\hyperlink{theory.String}{\mbox{\isa{String}}}] provides an additional datatype \isa{String{\isaliteral{2E}{\isachardot}}literal} which is isomorphic to strings; \isa{String{\isaliteral{2E}{\isachardot}}literal}s are mapped to target-language strings.  Useful
        for code setups which involve e.g.~printing (error) messages.
+       Part of \isa{HOL{\isaliteral{2D}{\isacharminus}}Main}.
 
   \end{description}
 
   \begin{warn}
-    When importing any of these theories, they should form the last
+    When importing any of those theories which are not part of
+    \isa{HOL{\isaliteral{2D}{\isacharminus}}Main}, they should form the last
     items in an import list.  Since these theories adapt the code
     generator setup in a non-conservative fashion, strange effects may
     occur otherwise.
@@ -640,6 +642,7 @@ In rare cases it is necessary to \emph{enrich} the context of a
 \isadelimtheory
 %
 \endisadelimtheory
+\isanewline
 \isanewline
 \end{isabellebody}%
 %%% Local Variables:
