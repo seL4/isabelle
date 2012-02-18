@@ -265,12 +265,10 @@ text %quotetypewriter {*
 
 text {*
   Typical data structures implemented by representations involving
-  invariants are available in the library, e.g.~theories @{theory
-  Cset} and @{theory Mapping} specify sets (type @{typ "'a Cset.set"}) and
-  key-value-mappings (type @{typ "('a, 'b) mapping"}) respectively;
-  these can be implemented by distinct lists as presented here as
-  example (theory @{theory Dlist}) and red-black-trees respectively
-  (theory @{theory RBT}).
+  invariants are available in the library, theory @{theory Mapping}
+  specifies key-value-mappings (type @{typ "('a, 'b) mapping"});
+  these can be implemented by red-black-trees (theory @{theory RBT}).
 *}
 
 end
+
