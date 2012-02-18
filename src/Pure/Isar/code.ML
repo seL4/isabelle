@@ -49,6 +49,7 @@ sig
       -> theory -> theory) -> theory -> theory
   val add_eqn: thm -> theory -> theory
   val add_nbe_eqn: thm -> theory -> theory
+  val add_abs_eqn: thm -> theory -> theory
   val add_default_eqn: thm -> theory -> theory
   val add_default_eqn_attribute: attribute
   val add_default_eqn_attrib: Attrib.src
@@ -113,8 +114,6 @@ fun string_of_const thy c =
 
 
 (* constants *)
-
-fun typ_equiv tys = Type.raw_instance tys andalso Type.raw_instance (swap tys);
 
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
@@ -517,7 +516,8 @@ fun assert_abs_eqn thy some_tyco thm =
            | THM _ => bad "Not a proper equation";
     val (rep, lhs) = dest_comb full_lhs
       handle TERM _ => bad "Not an abstract equation";
-    val (rep_const, ty) = dest_Const rep;
+    val (rep_const, ty) = dest_Const rep
+      handle TERM _ => bad "Not an abstract equation";
     val (tyco, Ts) = (dest_Type o domain_type) ty
       handle TERM _ => bad "Not an abstract equation"
            | TYPE _ => bad "Not an abstract equation";
@@ -697,8 +697,7 @@ fun add_rhss_of_eqn thy t =
     val add_consts = fold_aterms add_const
   in add_consts rhs o fold add_consts args end;
 
-fun dest_eqn thy =
-  apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify_global;
+val dest_eqn = apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify_global;
 
 abstype cert = Equations of thm * bool list
   | Projection of term * string
@@ -809,21 +808,21 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
           |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
         fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, NONE));
-      in (tyscm, map (abstractions o dest_eqn thy o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
+      in (tyscm, map (abstractions o dest_eqn o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
         val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
         val t' = Logic.varify_types_global t;
         fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
-      in (tyscm, [((abstractions o dest_eqn thy) t', (NONE, true))]) end
+      in (tyscm, [((abstractions o dest_eqn) t', (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
         val tyscm = typscheme_abs thy abs_thm;
         val (abs, concrete_thm) = concretify_abs thy tyco abs_thm;
         fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, (SOME abs)));
       in
-        (tyscm, [((abstractions o dest_eqn thy o Thm.prop_of) concrete_thm,
+        (tyscm, [((abstractions o dest_eqn o Thm.prop_of) concrete_thm,
           (SOME (Thm.varifyT_global abs_thm), true))])
       end;
 
