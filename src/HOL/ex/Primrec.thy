@@ -158,7 +158,7 @@ text {* PROPERTY A 12.  Article uses existential quantifier but the ALF proof
 
 lemma ack_add_bound2: "i < ack k j ==> i + j < ack (4 + k) j"
 apply (rule less_trans [of _ "ack k j + ack 0 j"])
- apply (blast intro: add_less_mono less_ack2) 
+ apply (blast intro: add_less_mono) 
 apply (rule ack_add_bound [THEN less_le_trans])
 apply simp
 done
