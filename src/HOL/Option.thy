@@ -81,6 +81,9 @@ lemma option_map_o_sum_case [simp]:
     "map f o sum_case g h = sum_case (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
+lemma map_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map f x = map g y"
+by (cases x) auto
+
 enriched_type map: Option.map proof -
   fix f g
   show "Option.map f \<circ> Option.map g = Option.map (f \<circ> g)"
@@ -111,7 +114,11 @@ by (cases x) auto
 lemma bind_rzero[simp]: "bind x (\<lambda>x. None) = None"
 by (cases x) auto
 
+lemma bind_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> bind x f = bind y g"
+by (cases x) auto
+
 hide_const (open) set map bind
+hide_fact (open) map_cong bind_cong
 
 subsubsection {* Code generator setup *}
 
