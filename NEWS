@@ -126,6 +126,9 @@ Prefer "List.fold" with canonical argument order, or boil down
 and "foldl_def".  For the common phrases "%xs. List.foldr plus xs 0"
 and "List.foldl plus 0", prefer "List.listsum".
 
+* Congruence rules Option.map_cong and Option.bind_cong for recursion
+through option types.
+
 * Concrete syntax for case expressions includes constraints for source
 positions, and thus produces Prover IDE markup for its bindings.
 INCOMPATIBILITY for old-style syntax translations that augment the
