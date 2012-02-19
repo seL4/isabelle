@@ -701,6 +701,63 @@ end
 instance "fun" :: (type, boolean_algebra) boolean_algebra proof
 qed (rule ext, simp_all add: inf_apply sup_apply bot_apply top_apply uminus_apply minus_apply inf_compl_bot sup_compl_top diff_eq)+
 
+
+subsection {* Unary and binary predicates as lattice *}
+
+lemma inf1I [intro!]: "A x \<Longrightarrow> B x \<Longrightarrow> (A \<sqinter> B) x"
+  by (simp add: inf_fun_def)
+
+lemma inf2I [intro!]: "A x y \<Longrightarrow> B x y \<Longrightarrow> (A \<sqinter> B) x y"
+  by (simp add: inf_fun_def)
+
+lemma inf1E [elim!]: "(A \<sqinter> B) x \<Longrightarrow> (A x \<Longrightarrow> B x \<Longrightarrow> P) \<Longrightarrow> P"
+  by (simp add: inf_fun_def)
+
+lemma inf2E [elim!]: "(A \<sqinter> B) x y \<Longrightarrow> (A x y \<Longrightarrow> B x y \<Longrightarrow> P) \<Longrightarrow> P"
+  by (simp add: inf_fun_def)
+
+lemma inf1D1: "(A \<sqinter> B) x \<Longrightarrow> A x"
+  by (simp add: inf_fun_def)
+
+lemma inf2D1: "(A \<sqinter> B) x y \<Longrightarrow> A x y"
+  by (simp add: inf_fun_def)
+
+lemma inf1D2: "(A \<sqinter> B) x \<Longrightarrow> B x"
+  by (simp add: inf_fun_def)
+
+lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
+  by (simp add: inf_fun_def)
+
+lemma sup1I1 [intro?]: "A x \<Longrightarrow> (A \<squnion> B) x"
+  by (simp add: sup_fun_def)
+
+lemma sup2I1 [intro?]: "A x y \<Longrightarrow> (A \<squnion> B) x y"
+  by (simp add: sup_fun_def)
+
+lemma sup1I2 [intro?]: "B x \<Longrightarrow> (A \<squnion> B) x"
+  by (simp add: sup_fun_def)
+
+lemma sup2I2 [intro?]: "B x y \<Longrightarrow> (A \<squnion> B) x y"
+  by (simp add: sup_fun_def)
+
+lemma sup1E [elim!]: "(A \<squnion> B) x \<Longrightarrow> (A x \<Longrightarrow> P) \<Longrightarrow> (B x \<Longrightarrow> P) \<Longrightarrow> P"
+  by (simp add: sup_fun_def) iprover
+
+lemma sup2E [elim!]: "(A \<squnion> B) x y \<Longrightarrow> (A x y \<Longrightarrow> P) \<Longrightarrow> (B x y \<Longrightarrow> P) \<Longrightarrow> P"
+  by (simp add: sup_fun_def) iprover
+
+text {*
+  \medskip Classical introduction rule: no commitment to @{text A} vs
+  @{text B}.
+*}
+
+lemma sup1CI [intro!]: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A \<squnion> B) x"
+  by (auto simp add: sup_fun_def)
+
+lemma sup2CI [intro!]: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow> (A \<squnion> B) x y"
+  by (auto simp add: sup_fun_def)
+
+
 no_notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
@@ -710,3 +767,4 @@ no_notation
   bot ("\<bottom>")
 
 end
+

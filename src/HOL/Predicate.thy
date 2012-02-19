@@ -25,52 +25,6 @@ syntax (xsymbols)
 
 subsection {* Predicates as (complete) lattices *}
 
-text {*
-  Handy introduction and elimination rules for @{text "\<le>"}
-  on unary and binary predicates
-*}
-
-lemma predicate1I:
-  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
-  shows "P \<le> Q"
-  apply (rule le_funI)
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate1D [Pure.dest?, dest?]:
-  "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
-  apply (erule le_funE)
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma rev_predicate1D:
-  "P x \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x"
-  by (rule predicate1D)
-
-lemma predicate2I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
-  shows "P \<le> Q"
-  apply (rule le_funI)+
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate2D [Pure.dest, dest]:
-  "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
-  apply (erule le_funE)+
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma rev_predicate2D:
-  "P x y \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x y"
-  by (rule predicate2D)
-
-
 subsubsection {* Equality *}
 
 lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) \<longleftrightarrow> (R = S)"
@@ -91,50 +45,14 @@ lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) \<le> (\
 
 subsubsection {* Top and bottom elements *}
 
-lemma bot1E [no_atp, elim!]: "\<bottom> x \<Longrightarrow> P"
-  by (simp add: bot_fun_def)
-
-lemma bot2E [elim!]: "\<bottom> x y \<Longrightarrow> P"
-  by (simp add: bot_fun_def)
-
 lemma bot_empty_eq: "\<bottom> = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
 
 lemma bot_empty_eq2: "\<bottom> = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
-lemma top1I [intro!]: "\<top> x"
-  by (simp add: top_fun_def)
-
-lemma top2I [intro!]: "\<top> x y"
-  by (simp add: top_fun_def)
-
 
 subsubsection {* Binary intersection *}
-
-lemma inf1I [intro!]: "A x \<Longrightarrow> B x \<Longrightarrow> (A \<sqinter> B) x"
-  by (simp add: inf_fun_def)
-
-lemma inf2I [intro!]: "A x y \<Longrightarrow> B x y \<Longrightarrow> (A \<sqinter> B) x y"
-  by (simp add: inf_fun_def)
-
-lemma inf1E [elim!]: "(A \<sqinter> B) x \<Longrightarrow> (A x \<Longrightarrow> B x \<Longrightarrow> P) \<Longrightarrow> P"
-  by (simp add: inf_fun_def)
-
-lemma inf2E [elim!]: "(A \<sqinter> B) x y \<Longrightarrow> (A x y \<Longrightarrow> B x y \<Longrightarrow> P) \<Longrightarrow> P"
-  by (simp add: inf_fun_def)
-
-lemma inf1D1: "(A \<sqinter> B) x \<Longrightarrow> A x"
-  by (simp add: inf_fun_def)
-
-lemma inf2D1: "(A \<sqinter> B) x y \<Longrightarrow> A x y"
-  by (simp add: inf_fun_def)
-
-lemma inf1D2: "(A \<sqinter> B) x \<Longrightarrow> B x"
-  by (simp add: inf_fun_def)
-
-lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
-  by (simp add: inf_fun_def)
 
 lemma inf_Int_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<sqinter> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf_fun_def)
@@ -145,35 +63,6 @@ lemma inf_Int_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<sqinter> (\
 
 subsubsection {* Binary union *}
 
-lemma sup1I1 [intro?]: "A x \<Longrightarrow> (A \<squnion> B) x"
-  by (simp add: sup_fun_def)
-
-lemma sup2I1 [intro?]: "A x y \<Longrightarrow> (A \<squnion> B) x y"
-  by (simp add: sup_fun_def)
-
-lemma sup1I2 [intro?]: "B x \<Longrightarrow> (A \<squnion> B) x"
-  by (simp add: sup_fun_def)
-
-lemma sup2I2 [intro?]: "B x y \<Longrightarrow> (A \<squnion> B) x y"
-  by (simp add: sup_fun_def)
-
-lemma sup1E [elim!]: "(A \<squnion> B) x \<Longrightarrow> (A x \<Longrightarrow> P) \<Longrightarrow> (B x \<Longrightarrow> P) \<Longrightarrow> P"
-  by (simp add: sup_fun_def) iprover
-
-lemma sup2E [elim!]: "(A \<squnion> B) x y \<Longrightarrow> (A x y \<Longrightarrow> P) \<Longrightarrow> (B x y \<Longrightarrow> P) \<Longrightarrow> P"
-  by (simp add: sup_fun_def) iprover
-
-text {*
-  \medskip Classical introduction rule: no commitment to @{text A} vs
-  @{text B}.
-*}
-
-lemma sup1CI [intro!]: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A \<squnion> B) x"
-  by (auto simp add: sup_fun_def)
-
-lemma sup2CI [intro!]: "(\<not> B x y \<Longrightarrow> A x y) \<Longrightarrow> (A \<squnion> B) x y"
-  by (auto simp add: sup_fun_def)
-
 lemma sup_Un_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) \<squnion> (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
   by (simp add: sup_fun_def)
 
@@ -183,56 +72,14 @@ lemma sup_Un_eq2 [pred_set_conv]: "(\<lambda>x y. (x, y) \<in> R) \<squnion> (\<
 
 subsubsection {* Intersections of families *}
 
-lemma INF1_iff: "(\<Sqinter>x\<in>A. B x) b = (\<forall>x\<in>A. B x b)"
-  by (simp add: INF_apply)
-
-lemma INF2_iff: "(\<Sqinter>x\<in>A. B x) b c = (\<forall>x\<in>A. B x b c)"
-  by (simp add: INF_apply)
-
-lemma INF1_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
-  by (auto simp add: INF_apply)
-
-lemma INF2_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
-  by (auto simp add: INF_apply)
-
-lemma INF1_D [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
-  by (auto simp add: INF_apply)
-
-lemma INF2_D [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
-  by (auto simp add: INF_apply)
-
-lemma INF1_E [elim]: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INF_apply)
-
-lemma INF2_E [elim]: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: INF_apply)
-
-lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Sqinter>i. r i))"
+lemma INF_INT_eq: "(\<Sqinter>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
-lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Sqinter>i. r i))"
+lemma INF_INT_eq2: "(\<Sqinter>i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Inter>i. r i))"
   by (simp add: INF_apply fun_eq_iff)
 
 
 subsubsection {* Unions of families *}
-
-lemma SUP1_iff: "(\<Squnion>x\<in>A. B x) b = (\<exists>x\<in>A. B x b)"
-  by (simp add: SUP_apply)
-
-lemma SUP2_iff: "(\<Squnion>x\<in>A. B x) b c = (\<exists>x\<in>A. B x b c)"
-  by (simp add: SUP_apply)
-
-lemma SUP1_I [intro]: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
-  by (auto simp add: SUP_apply)
-
-lemma SUP2_I [intro]: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
-  by (auto simp add: SUP_apply)
-
-lemma SUP1_E [elim!]: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUP_apply)
-
-lemma SUP2_E [elim!]: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUP_apply)
 
 lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (\<Union>i. r i))"
   by (simp add: SUP_apply fun_eq_iff)
