@@ -384,43 +384,45 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       super.paintComponent(gfx)
       Swing_Thread.assert()
 
-      val buffer = model.buffer
-      Isabelle.buffer_lock(buffer) {
-        val snapshot = update_snapshot()
+      robust_body(()) {
+        val buffer = model.buffer
+        Isabelle.buffer_lock(buffer) {
+          val snapshot = update_snapshot()
 
-        gfx.setColor(getBackground)
-        gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
+          gfx.setColor(getBackground)
+          gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
 
-        val line_count = model.buffer.getLineCount
-        val char_count = model.buffer.getLength
+          val line_count = buffer.getLineCount
+          val char_count = buffer.getLength
 
-        val L = lines()
-        val H = getHeight()
+          val L = lines()
+          val H = getHeight()
 
-        @tailrec def paint_loop(l: Int, h: Int, p: Int, q: Int): Unit =
-        {
-          if (l < line_count && h < H) {
-            val p1 = p + H
-            val q1 = q + L
-            val (l1, h1) =
-              if (p1 >= q1) (l + 1, h + (p1 - q) / L)
-              else (l + (q1 - p) / H, h + 1)
+          @tailrec def paint_loop(l: Int, h: Int, p: Int, q: Int): Unit =
+          {
+            if (l < line_count && h < H) {
+              val p1 = p + H
+              val q1 = q + HEIGHT * L
+              val (l1, h1) =
+                if (p1 >= q1) (l + 1, h + (p1 - q) / L)
+                else (l + (q1 - p) / H, h + HEIGHT)
 
-            val start = model.buffer.getLineStartOffset(l)
-            val end =
-              if (l1 < line_count) model.buffer.getLineStartOffset(l1)
-              else char_count
+              val start = buffer.getLineStartOffset(l)
+              val end =
+                if (l1 < line_count) buffer.getLineStartOffset(l1)
+                else char_count
 
-            Isabelle_Rendering.overview_color(snapshot, Text.Range(start, end)) match {
-              case None =>
-              case Some(color) =>
-                gfx.setColor(color)
-                gfx.fillRect(0, h, getWidth, h1 - h)
+              Isabelle_Rendering.overview_color(snapshot, Text.Range(start, end)) match {
+                case None =>
+                case Some(color) =>
+                  gfx.setColor(color)
+                  gfx.fillRect(0, h, getWidth, h1 - h)
+              }
+              paint_loop(l1, h1, p + (l1 - l) * H, q + (h1 - h) * L)
             }
-            paint_loop(l1, h1, p + (l1 - l) * H, q + (h1 - h) * L)
           }
+          paint_loop(0, 0, 0, 0)
         }
-        paint_loop(0, 0, 0, 0)
       }
     }
   }
