@@ -19,11 +19,7 @@ definition games_gfp :: "ZF set" where
   "games_gfp \<equiv> gfp fixgames"
 
 lemma mono_fixgames: "mono (fixgames)"
-  apply (auto simp add: mono_def fixgames_def)
-  apply (rule_tac x=l in exI)
-  apply (rule_tac x=r in exI)
-  apply auto
-  done
+  by (auto simp add: mono_def fixgames_def)
 
 lemma games_lfp_unfold: "games_lfp = fixgames games_lfp"
   by (auto simp add: def_lfp_unfold games_lfp_def mono_fixgames)
@@ -974,3 +970,4 @@ proof
 qed
 
 end
+
