@@ -153,7 +153,7 @@ by (rule Zero_nat_def_raw)
 
 lemma "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
 nitpick [expect = none]
-by (rule Suc_def)
+by (rule Nat.Suc_def)
 
 lemma "Suc n = Abs_Nat (Suc_Rep (Suc_Rep (Rep_Nat n)))"
 nitpick [expect = genuine]

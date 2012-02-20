@@ -139,7 +139,7 @@ begin
 primrec random_aux_set
 where
   "random_aux_set 0 j = collapse (Random.select_weight [(1, Pair valterm_emptyset)])"
-| "random_aux_set (Suc_code_numeral i) j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (Suc_code_numeral i, random j \<circ>\<rightarrow> (%x. random_aux_set i j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
+| "random_aux_set (Code_Numeral.Suc i) j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (Code_Numeral.Suc i, random j \<circ>\<rightarrow> (%x. random_aux_set i j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
 
 lemma [code]:
   "random_aux_set i j = collapse (Random.select_weight [(1, Pair valterm_emptyset), (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
@@ -149,7 +149,7 @@ print_cases
   show ?case by (subst select_weight_drop_zero[symmetric])
     (simp add: filter.simps random_aux_set.simps[simplified])
 next
-  case (Suc_code_numeral i)
+  case (Suc i)
   show ?case by (simp only: random_aux_set.simps(2)[of "i"] Suc_code_numeral_minus_one)
 qed
 
@@ -164,7 +164,7 @@ end
 lemma random_aux_rec:
   fixes random_aux :: "code_numeral \<Rightarrow> 'a"
   assumes "random_aux 0 = rhs 0"
-    and "\<And>k. random_aux (Suc_code_numeral k) = rhs (Suc_code_numeral k)"
+    and "\<And>k. random_aux (Code_Numeral.Suc k) = rhs (Code_Numeral.Suc k)"
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 

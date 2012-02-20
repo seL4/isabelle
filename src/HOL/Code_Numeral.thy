@@ -71,17 +71,17 @@ instance ..
 
 end
 
-definition [simp]:
-  "Suc_code_numeral k = of_nat (Suc (nat_of k))"
+definition Suc where [simp]:
+  "Suc k = of_nat (Nat.Suc (nat_of k))"
 
-rep_datatype "0 \<Colon> code_numeral" Suc_code_numeral
+rep_datatype "0 \<Colon> code_numeral" Suc
 proof -
   fix P :: "code_numeral \<Rightarrow> bool"
   fix k :: code_numeral
   assume "P 0" then have init: "P (of_nat 0)" by simp
-  assume "\<And>k. P k \<Longrightarrow> P (Suc_code_numeral k)"
-    then have "\<And>n. P (of_nat n) \<Longrightarrow> P (Suc_code_numeral (of_nat n))" .
-    then have step: "\<And>n. P (of_nat n) \<Longrightarrow> P (of_nat (Suc n))" by simp
+  assume "\<And>k. P k \<Longrightarrow> P (Suc k)"
+    then have "\<And>n. P (of_nat n) \<Longrightarrow> P (Suc (of_nat n))" .
+    then have step: "\<And>n. P (of_nat n) \<Longrightarrow> P (of_nat (Nat.Suc n))" by simp
   from init step have "P (of_nat (nat_of k))"
     by (induct ("nat_of k")) simp_all
   then show "P k" by simp
@@ -91,7 +91,7 @@ declare code_numeral_case [case_names nat, cases type: code_numeral]
 declare code_numeral.induct [case_names nat, induct type: code_numeral]
 
 lemma code_numeral_decr [termination_simp]:
-  "k \<noteq> of_nat 0 \<Longrightarrow> nat_of k - Suc 0 < nat_of k"
+  "k \<noteq> of_nat 0 \<Longrightarrow> nat_of k - Nat.Suc 0 < nat_of k"
   by (cases k) simp
 
 lemma [simp, code]:
@@ -99,7 +99,7 @@ lemma [simp, code]:
 proof (rule ext)
   fix k
   have "code_numeral_size k = nat_size (nat_of k)"
-    by (induct k rule: code_numeral.induct) (simp_all del: zero_code_numeral_def Suc_code_numeral_def, simp_all)
+    by (induct k rule: code_numeral.induct) (simp_all del: zero_code_numeral_def Suc_def, simp_all)
   also have "nat_size (nat_of k) = nat_of k" by (induct ("nat_of k")) simp_all
   finally show "code_numeral_size k = nat_of k" .
 qed
@@ -109,7 +109,7 @@ lemma [simp, code]:
 proof (rule ext)
   fix k
   show "size k = nat_of k"
-  by (induct k) (simp_all del: zero_code_numeral_def Suc_code_numeral_def, simp_all)
+  by (induct k) (simp_all del: zero_code_numeral_def Suc_def, simp_all)
 qed
 
 lemmas [code del] = code_numeral.recs code_numeral.cases
@@ -194,15 +194,15 @@ lemma plus_code_numeral_code [code nbe]:
   "of_nat n + of_nat m = of_nat (n + m)"
   by simp
 
-definition subtract_code_numeral :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
-  [simp, code del]: "subtract_code_numeral = op -"
+definition subtract :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
+  [simp]: "subtract = minus"
 
-lemma subtract_code_numeral_code [code nbe]:
-  "subtract_code_numeral (of_nat n) (of_nat m) = of_nat (n - m)"
+lemma subtract_code [code nbe]:
+  "subtract (of_nat n) (of_nat m) = of_nat (n - m)"
   by simp
 
 lemma minus_code_numeral_code [code]:
-  "n - m = subtract_code_numeral n m"
+  "minus = subtract"
   by simp
 
 lemma times_code_numeral_code [code nbe]:
@@ -222,7 +222,7 @@ lemma code_numeral_zero_minus_one:
   by simp
 
 lemma Suc_code_numeral_minus_one:
-  "Suc_code_numeral n - 1 = n"
+  "Suc n - 1 = n"
   by simp
 
 lemma of_nat_code [code]:
@@ -242,27 +242,27 @@ definition nat_of_aux :: "code_numeral \<Rightarrow> nat \<Rightarrow> nat" wher
   "nat_of_aux i n = nat_of i + n"
 
 lemma nat_of_aux_code [code]:
-  "nat_of_aux i n = (if i = 0 then n else nat_of_aux (i - 1) (Suc n))"
+  "nat_of_aux i n = (if i = 0 then n else nat_of_aux (i - 1) (Nat.Suc n))"
   by (auto simp add: nat_of_aux_def code_numeral_not_eq_zero)
 
 lemma nat_of_code [code]:
   "nat_of i = nat_of_aux i 0"
   by (simp add: nat_of_aux_def)
 
-definition div_mod_code_numeral :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
-  [code del]: "div_mod_code_numeral n m = (n div m, n mod m)"
+definition div_mod :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
+  [code del]: "div_mod n m = (n div m, n mod m)"
 
 lemma [code]:
-  "div_mod_code_numeral n m = (if m = 0 then (0, n) else (n div m, n mod m))"
-  unfolding div_mod_code_numeral_def by auto
+  "div_mod n m = (if m = 0 then (0, n) else (n div m, n mod m))"
+  unfolding div_mod_def by auto
 
 lemma [code]:
-  "n div m = fst (div_mod_code_numeral n m)"
-  unfolding div_mod_code_numeral_def by simp
+  "n div m = fst (div_mod n m)"
+  unfolding div_mod_def by simp
 
 lemma [code]:
-  "n mod m = snd (div_mod_code_numeral n m)"
-  unfolding div_mod_code_numeral_def by simp
+  "n mod m = snd (div_mod n m)"
+  unfolding div_mod_def by simp
 
 definition int_of :: "code_numeral \<Rightarrow> int" where
   "int_of = Nat.of_nat o nat_of"
@@ -280,18 +280,20 @@ proof -
   then show ?thesis by (auto simp add: int_of_def mult_ac)
 qed
 
-hide_const (open) of_nat nat_of int_of
 
-subsubsection {* Lazy Evaluation of an indexed function *}
+text {* Lazy Evaluation of an indexed function *}
 
-function iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a Predicate.pred"
+function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a Predicate.pred"
 where
-  "iterate_upto f n m = Predicate.Seq (%u. if n > m then Predicate.Empty else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
+  "iterate_upto f n m =
+    Predicate.Seq (%u. if n > m then Predicate.Empty
+     else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
 by pat_completeness auto
 
 termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
 
-hide_const (open) iterate_upto
+hide_const (open) of_nat nat_of Suc  subtract int_of iterate_upto
+
 
 subsection {* Code generator setup *}
 
@@ -316,28 +318,28 @@ setup {*
 code_reserved SML Int int
 code_reserved Eval Integer
 
-code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "plus \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.+/ ((_),/ (_))")
   (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
   (Scala infixl 7 "+")
   (Eval infixl 8 "+")
 
-code_const "subtract_code_numeral \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "Code_Numeral.subtract \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
   (Haskell "max/ (_/ -/ _)/ (0 :: Integer)")
   (Scala "!(_/ -/ _).max(0)")
   (Eval "Integer.max/ (_/ -/ _)/ 0")
 
-code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+code_const "times \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.*/ ((_),/ (_))")
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
   (Scala infixl 8 "*")
   (Eval infixl 8 "*")
 
-code_const div_mod_code_numeral
+code_const Code_Numeral.div_mod
   (SML "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (Int.div (n, m), Int.mod (n, m)))")
   (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
   (Haskell "divMod")
@@ -351,18 +353,27 @@ code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightar
   (Scala infixl 5 "==")
   (Eval "!((_ : int) = _)")
 
-code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "less_eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.<=/ ((_),/ (_))")
   (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
   (Scala infixl 4 "<=")
   (Eval infixl 6 "<=")
 
-code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "less \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
   (Eval infixl 6 "<")
+
+code_modulename SML
+  Code_Numeral Arith
+
+code_modulename OCaml
+  Code_Numeral Arith
+
+code_modulename Haskell
+  Code_Numeral Arith
 
 end

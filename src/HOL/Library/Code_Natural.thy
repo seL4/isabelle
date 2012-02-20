@@ -3,7 +3,7 @@
 *)
 
 theory Code_Natural
-imports Main
+imports "../Main"
 begin
 
 section {* Alternative representation of @{typ code_numeral} for @{text Haskell} and @{text Scala} *}
@@ -125,7 +125,7 @@ code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 
   (Haskell infixl 7 "*")
   (Scala infixl 8 "*")
 
-code_const div_mod_code_numeral
+code_const Code_Numeral.div_mod
   (Haskell "divMod")
   (Scala infixl 8 "/%")
 

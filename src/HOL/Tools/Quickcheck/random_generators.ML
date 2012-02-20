@@ -100,7 +100,7 @@ fun random_aux_primrec eq lthy =
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
     val eqs0 = [subst_v @{term "0::code_numeral"} eq,
-      subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
+      subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, (_, eqs2)), lthy') = Primrec.add_primrec_simple
       [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
