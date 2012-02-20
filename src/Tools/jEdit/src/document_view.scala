@@ -10,6 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
 import scala.actors.Actor._
@@ -354,11 +355,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     private val WIDTH = 10
     private val HEIGHT = 2
 
-    private def line_to_y(line: Int): Int =
-      (line * getHeight) / (text_area.getBuffer.getLineCount max text_area.getVisibleLines)
-
-    private def y_to_line(y: Int): Int =
-      (y * (text_area.getBuffer.getLineCount max text_area.getVisibleLines)) / getHeight
+    private def lines(): Int = model.buffer.getLineCount max text_area.getVisibleLines
 
     setPreferredSize(new Dimension(WIDTH, 0))
 
@@ -366,7 +363,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
     addMouseListener(new MouseAdapter {
       override def mousePressed(event: MouseEvent) {
-        val line = y_to_line(event.getY)
+        val line = (event.getY * lines()) / getHeight
         if (line >= 0 && line < text_area.getLineCount)
           text_area.setCaretPosition(text_area.getLineStartOffset(line))
       }
@@ -391,20 +388,39 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       Isabelle.buffer_lock(buffer) {
         val snapshot = update_snapshot()
 
-        for {
-          line <- 0 until buffer.getLineCount
-          range <-
-            try {
-              Some(proper_line_range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line)))
+        gfx.setColor(getBackground)
+        gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
+
+        val line_count = model.buffer.getLineCount
+        val char_count = model.buffer.getLength
+
+        val L = lines()
+        val H = getHeight()
+
+        @tailrec def paint_loop(l: Int, h: Int, p: Int, q: Int): Unit =
+        {
+          if (l < line_count && h < H) {
+            val p1 = p + H
+            val q1 = q + L
+            val (l1, h1) =
+              if (p1 >= q1) (l + 1, h + (p1 - q) / L)
+              else (l + (q1 - p) / H, h + 1)
+
+            val start = model.buffer.getLineStartOffset(l)
+            val end =
+              if (l1 < line_count) model.buffer.getLineStartOffset(l1)
+              else char_count
+
+            Isabelle_Rendering.overview_color(snapshot, Text.Range(start, end)) match {
+              case None =>
+              case Some(color) =>
+                gfx.setColor(color)
+                gfx.fillRect(0, h, getWidth, h1 - h)
             }
-            catch { case e: ArrayIndexOutOfBoundsException => None }
-          color <- Isabelle_Rendering.overview_color(snapshot, range)
-        } {
-          val y = line_to_y(line)
-          val h = (line_to_y(line + 1) - y) max 2
-          gfx.setColor(color)
-          gfx.fillRect(0, y, getWidth - 1, h)
+            paint_loop(l1, h1, p + (l1 - l) * H, q + (h1 - h) * L)
+          }
         }
+        paint_loop(0, 0, 0, 0)
       }
     }
   }
