@@ -64,7 +64,7 @@ apply simp
 apply (simp add: bij_extend_act_eq_project_act)
 apply (rule surjI)
 apply (rule Extend.extend_act_inverse)
-apply (blast intro: bij_imp_bij_inv good_map_bij)
+apply (blast intro: bij_imp_bij_inv)
 done
 
 lemma bij_project_act: "bij h ==> bij (project_act (%(x,u::'c). h x))"

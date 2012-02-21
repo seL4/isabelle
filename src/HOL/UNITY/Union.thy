@@ -202,7 +202,7 @@ by (auto simp add: constrains_def Join_def)
 
 lemma Join_unless [simp]:
      "(F\<squnion>G \<in> A unless B) = (F \<in> A unless B & G \<in> A unless B)"
-by (simp add: Join_constrains unless_def)
+by (simp add: unless_def)
 
 (*Analogous weak versions FAIL; see Misra [1994] 5.4.1, Substitution Axiom.
   reachable (F\<squnion>G) could be much bigger than reachable F, reachable G
@@ -238,12 +238,12 @@ by (simp add: stable_def)
 lemma Join_increasing [simp]:
      "(F\<squnion>G \<in> increasing f) =  
       (F \<in> increasing f & G \<in> increasing f)"
-by (simp add: increasing_def Join_stable, blast)
+by (auto simp add: increasing_def)
 
 lemma invariant_JoinI:
      "[| F \<in> invariant A; G \<in> invariant A |]   
       ==> F\<squnion>G \<in> invariant A"
-by (simp add: invariant_def, blast)
+by (auto simp add: invariant_def)
 
 lemma FP_JN: "FP (\<Squnion>i \<in> I. F i) = (\<Inter>i \<in> I. FP (F i))"
 by (simp add: FP_def JN_stable INTER_eq)
@@ -262,10 +262,10 @@ lemma Join_transient [simp]:
 by (auto simp add: bex_Un transient_def Join_def)
 
 lemma Join_transient_I1: "F \<in> transient A ==> F\<squnion>G \<in> transient A"
-by (simp add: Join_transient)
+by simp
 
 lemma Join_transient_I2: "G \<in> transient A ==> F\<squnion>G \<in> transient A"
-by (simp add: Join_transient)
+by simp
 
 (*If I={} it degenerates to (SKIP \<in> A ensures B) = False, i.e. to ~(A \<subseteq> B) *)
 lemma JN_ensures:
@@ -278,7 +278,7 @@ lemma Join_ensures:
      "F\<squnion>G \<in> A ensures B =      
       (F \<in> (A-B) co (A \<union> B) & G \<in> (A-B) co (A \<union> B) &  
        (F \<in> transient (A-B) | G \<in> transient (A-B)))"
-by (auto simp add: ensures_def Join_transient)
+by (auto simp add: ensures_def)
 
 lemma stable_Join_constrains: 
     "[| F \<in> stable A;  G \<in> A co A' |]  

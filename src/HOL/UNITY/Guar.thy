@@ -17,7 +17,7 @@ imports Comp
 begin
 
 instance program :: (type) order
-proof qed (auto simp add: program_less_le dest: component_antisym intro: component_refl component_trans)
+  by default (auto simp add: program_less_le dest: component_antisym intro: component_trans)
 
 text{*Existential and Universal properties.  I formalize the two-program
       case, proving equivalence with Chandy and Sanders's n-ary definitions*}

@@ -58,9 +58,6 @@ definition increasing :: "['a => 'b::{order}] => 'a program set" where
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 
-text{*Perhaps HOL shouldn't add this in the first place!*}
-declare image_Collect [simp del]
-
 subsubsection{*The abstract type of programs*}
 
 lemmas program_typedef =
@@ -73,7 +70,7 @@ apply (auto simp add: program_typedef)
 done
 
 lemma insert_Id_Acts [iff]: "insert Id (Acts F) = Acts F"
-by (simp add: insert_absorb Id_in_Acts)
+by (simp add: insert_absorb)
 
 lemma Acts_nonempty [simp]: "Acts F \<noteq> {}"
 by auto
@@ -84,7 +81,7 @@ apply (auto simp add: program_typedef)
 done
 
 lemma insert_Id_AllowedActs [iff]: "insert Id (AllowedActs F) = AllowedActs F"
-by (simp add: insert_absorb Id_in_AllowedActs)
+by (simp add: insert_absorb)
 
 subsubsection{*Inspectors for type "program"*}
 

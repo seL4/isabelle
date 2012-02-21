@@ -216,7 +216,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
 
     /* delayed command changes */
 
-    object commands_changed_delay
+    object delay_commands_changed
     {
       private var changed_nodes: Set[Document.Node.Name] = Set.empty
       private var changed_commands: Set[Command] = Set.empty
@@ -299,7 +299,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     //{{{
     {
       val cmds = global_state.change_yield(_.assign(id, assign))
-      for (cmd <- cmds) commands_changed_delay.invoke(cmd)
+      for (cmd <- cmds) delay_commands_changed.invoke(cmd)
     }
     //}}}
 
@@ -359,7 +359,7 @@ class Session(thy_load: Thy_Load = new Thy_Load)
         case Position.Id(state_id) if !result.is_raw =>
           try {
             val st = global_state.change_yield(_.accumulate(state_id, result.message))
-            commands_changed_delay.invoke(st.command)
+            delay_commands_changed.invoke(st.command)
           }
           catch {
             case _: Document.State.Fail => bad_result(result)
@@ -430,8 +430,8 @@ class Session(thy_load: Thy_Load = new Thy_Load)
     //{{{
     var finished = false
     while (!finished) {
-      receiveWithin(commands_changed_delay.flush_timeout) {
-        case TIMEOUT => commands_changed_delay.flush()
+      receiveWithin(delay_commands_changed.flush_timeout) {
+        case TIMEOUT => delay_commands_changed.flush()
 
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {

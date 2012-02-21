@@ -208,7 +208,7 @@ lemma genPrefix_append_both:
      "[| refl r;  (xs,ys) : genPrefix r;  length xs = length ys |]  
       ==>  (xs@zs, ys @ zs) : genPrefix r"
 apply (drule genPrefix_take_append, assumption)
-apply (simp add: take_all)
+apply simp
 done
 
 
@@ -301,14 +301,10 @@ done
 (** recursion equations **)
 
 lemma Nil_prefix [iff]: "[] <= xs"
-apply (unfold prefix_def)
-apply (simp add: Nil_genPrefix)
-done
+by (simp add: prefix_def)
 
 lemma prefix_Nil [simp]: "(xs <= []) = (xs = [])"
-apply (unfold prefix_def)
-apply (simp add: genPrefix_Nil)
-done
+by (simp add: prefix_def)
 
 lemma Cons_prefix_Cons [simp]: "(x#xs <= y#ys) = (x=y & xs<=ys)"
 by (simp add: prefix_def)

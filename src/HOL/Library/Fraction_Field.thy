@@ -2,8 +2,8 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header{* A formalization of the fraction field of any integral domain 
-         A generalization of Rat.thy from int to any integral domain *}
+header{* A formalization of the fraction field of any integral domain;
+         generalization of theory Rat from int to any integral domain *}
 
 theory Fraction_Field
 imports Main
@@ -14,7 +14,7 @@ subsection {* General fractions construction *}
 subsubsection {* Construction of the type of fractions *}
 
 definition fractrel :: "(('a::idom * 'a ) * ('a * 'a)) set" where
-  "fractrel == {(x, y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
+  "fractrel = {(x, y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
 
 lemma fractrel_iff [simp]:
   "(x, y) \<in> fractrel \<longleftrightarrow> snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x"
@@ -70,8 +70,7 @@ declare Abs_fract_inject [simp] Abs_fract_inverse [simp]
 
 subsubsection {* Representation and basic operations *}
 
-definition
-  Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract" where
+definition Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract" where
   "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
 
 code_datatype Fract
@@ -95,14 +94,11 @@ lemma eq_fract:
 instantiation fract :: (idom) "{comm_ring_1, power}"
 begin
 
-definition
-  Zero_fract_def [code_unfold]: "0 = Fract 0 1"
+definition Zero_fract_def [code_unfold]: "0 = Fract 0 1"
 
-definition
-  One_fract_def [code_unfold]: "1 = Fract 1 1"
+definition One_fract_def [code_unfold]: "1 = Fract 1 1"
 
-definition
-  add_fract_def:
+definition add_fract_def:
   "q + r = Abs_fract (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
     fractrel `` {(fst x * snd y + fst y * snd x, snd x * snd y)})"
 
@@ -117,8 +113,7 @@ proof -
   with assms show ?thesis by (simp add: Fract_def add_fract_def UN_fractrel2)
 qed
 
-definition
-  minus_fract_def:
+definition minus_fract_def:
   "- q = Abs_fract (\<Union>x \<in> Rep_fract q. fractrel `` {(- fst x, snd x)})"
 
 lemma minus_fract [simp, code]: "- Fract a b = Fract (- a) (b::'a::idom)"
@@ -131,16 +126,14 @@ qed
 lemma minus_fract_cancel [simp]: "Fract (- a) (- b) = Fract a b"
   by (cases "b = 0") (simp_all add: eq_fract)
 
-definition
-  diff_fract_def: "q - r = q + - (r::'a fract)"
+definition diff_fract_def: "q - r = q + - (r::'a fract)"
 
 lemma diff_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
   shows "Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
   using assms by (simp add: diff_fract_def diff_minus)
 
-definition
-  mult_fract_def:
+definition mult_fract_def:
   "q * r = Abs_fract (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
     fractrel``{(fst x * fst y, snd x * snd y)})"
 
@@ -238,8 +231,7 @@ end
 instantiation fract :: (idom) field_inverse_zero
 begin
 
-definition
-  inverse_fract_def:
+definition inverse_fract_def:
   "inverse q = Abs_fract (\<Union>x \<in> Rep_fract q.
      fractrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)})"
 
@@ -252,8 +244,7 @@ proof -
   then show ?thesis by (simp add: Fract_def inverse_fract_def UN_fractrel)
 qed
 
-definition
-  divide_fract_def: "q / r = q * inverse (r:: 'a fract)"
+definition divide_fract_def: "q / r = q * inverse (r:: 'a fract)"
 
 lemma divide_fract [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_fract_def)
@@ -261,14 +252,15 @@ lemma divide_fract [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
 instance proof
   fix q :: "'a fract"
   assume "q \<noteq> 0"
-  then show "inverse q * q = 1" apply (cases q rule: Fract_cases_nonzero)
-    by (simp_all add: mult_fract  inverse_fract fract_expand eq_fract mult_commute)
+  then show "inverse q * q = 1"
+    by (cases q rule: Fract_cases_nonzero)
+      (simp_all add: fract_expand eq_fract mult_commute)
 next
   fix q r :: "'a fract"
   show "q / r = q * inverse r" by (simp add: divide_fract_def)
 next
-  show "inverse 0 = (0:: 'a fract)" by (simp add: fract_expand)
-    (simp add: fract_collapse)
+  show "inverse 0 = (0:: 'a fract)"
+    by (simp add: fract_expand) (simp add: fract_collapse)
 qed
 
 end
@@ -292,7 +284,7 @@ proof (clarsimp simp add: congruent2_def)
     have "?le a b c d = ?le (a * x) (b * x) c d"
     proof -
       from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
-      hence "?le a b c d =
+      then have "?le a b c d =
           ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
         by (simp add: mult_le_cancel_right)
       also have "... = ?le (a * x) (b * x) c d"
@@ -304,7 +296,7 @@ proof (clarsimp simp add: congruent2_def)
   let ?D = "b * d" and ?D' = "b' * d'"
   from neq have D: "?D \<noteq> 0" by simp
   from neq have "?D' \<noteq> 0" by simp
-  hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
+  then have "?le a b c d = ?le (a * ?D') (b * ?D') c d"
     by (rule le_factor)
   also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
     by (simp add: mult_ac)
@@ -320,13 +312,11 @@ qed
 instantiation fract :: (linordered_idom) linorder
 begin
 
-definition
-  le_fract_def:
+definition le_fract_def:
    "q \<le> r \<longleftrightarrow> the_elem (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
       {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
 
-definition
-  less_fract_def: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
+definition less_fract_def: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
 
 lemma le_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -409,28 +399,25 @@ end
 instantiation fract :: (linordered_idom) "{distrib_lattice, abs_if, sgn_if}"
 begin
 
-definition
-  abs_fract_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
+definition abs_fract_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
 
-definition
-  sgn_fract_def:
-    "sgn (q::'a fract) = (if q=0 then 0 else if 0<q then 1 else - 1)"
+definition sgn_fract_def:
+  "sgn (q::'a fract) = (if q=0 then 0 else if 0<q then 1 else - 1)"
 
 theorem abs_fract [simp]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (auto simp add: abs_fract_def Zero_fract_def le_less
       eq_fract zero_less_mult_iff mult_less_0_iff split: abs_split)
 
-definition
-  inf_fract_def:
-    "(inf \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
+definition inf_fract_def:
+  "(inf \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
 
-definition
-  sup_fract_def:
-    "(sup \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
+definition sup_fract_def:
+  "(sup \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
 
-instance by intro_classes
-  (auto simp add: abs_fract_def sgn_fract_def
-    min_max.sup_inf_distrib1 inf_fract_def sup_fract_def)
+instance
+  by intro_classes
+    (auto simp add: abs_fract_def sgn_fract_def
+      min_max.sup_inf_distrib1 inf_fract_def sup_fract_def)
 
 end
 
@@ -485,8 +472,8 @@ proof (cases q)
   proof -
     fix a::'a and b::'a
     assume b: "b < 0"
-    hence "0 < -b" by simp
-    hence "P (Fract (-a) (-b))" by (rule step)
+    then have "0 < -b" by simp
+    then have "P (Fract (-a) (-b))" by (rule step)
     thus "P (Fract a b)" by (simp add: order_less_imp_not_eq [OF b])
   qed
   case (Fract a b)

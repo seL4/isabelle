@@ -370,9 +370,7 @@ done
 
 lemma (in Extend) Allowed_extend:
      "Allowed (extend h F) = project h UNIV -` Allowed F"
-apply (simp (no_asm) add: AllowedActs_extend Allowed_def)
-apply blast
-done
+by (auto simp add: Allowed_def)
 
 lemma (in Extend) extend_SKIP [simp]: "extend h SKIP = SKIP"
 apply (unfold SKIP_def)
@@ -634,7 +632,7 @@ lemma (in Extend) extend_leadsTo_slice [rule_format]:
      "extend h F \<in> AU leadsTo BU  
       ==> \<forall>y. F \<in> (slice AU y) leadsTo (project_set h BU)"
 apply (erule leadsTo_induct)
-  apply (blast intro: extend_ensures_slice leadsTo_Basis)
+  apply (blast intro: extend_ensures_slice)
  apply (blast intro: leadsTo_slice_project_set leadsTo_Trans)
 apply (simp add: leadsTo_UN slice_Union)
 done
@@ -682,7 +680,7 @@ lemma (in Extend) project_extend_Join:
      "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
 apply (rule program_equalityI)
   apply (simp add: project_set_extend_set_Int)
- apply (simp add: image_eq_UN UN_Un, auto)
+ apply (auto simp add: image_eq_UN)
 done
 
 lemma (in Extend) extend_Join_eq_extend_D:
