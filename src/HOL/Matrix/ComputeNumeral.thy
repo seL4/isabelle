@@ -156,7 +156,7 @@ lemma divmod: "divmod_int a b = (if 0\<le>a then
                   else apsnd uminus (posDivAlg (-a) (-b)))"
   by (auto simp only: divmod_int_def)
 
-lemmas compute_div_mod = div_int_def mod_int_def divmod adjust posDivAlg.simps negDivAlg.simps
+lemmas compute_div_mod = div_int_def mod_int_def divmod adjust apsnd_def map_pair_def posDivAlg.simps negDivAlg.simps
 
 
 
