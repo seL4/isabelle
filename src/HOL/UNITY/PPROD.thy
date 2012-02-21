@@ -29,7 +29,7 @@ lemma PLam_empty [simp]: "PLam {} F = SKIP"
 by (simp add: PLam_def)
 
 lemma PLam_SKIP [simp]: "(plam i : I. SKIP) = SKIP"
-by (simp add: PLam_def lift_SKIP JN_constant)
+by (simp add: PLam_def JN_constant)
 
 lemma PLam_insert: "PLam (insert i I) F = (lift i (F i)) Join (PLam I F)"
 by (unfold PLam_def, auto)

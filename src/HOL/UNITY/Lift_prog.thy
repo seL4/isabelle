@@ -120,7 +120,7 @@ lemma insert_map_upd:
        else if i<j then insert_map j t (f(i:=s))  
        else insert_map j t (f(i - Suc 0 := s)))"
 apply (rule ext) 
-apply (simp split add: nat_diff_split) 
+apply (simp split add: nat_diff_split)
  txt{*This simplification is VERY slow*}
 done
 
@@ -254,7 +254,7 @@ by (simp add: bij_lift_map [THEN rename_guarantees_eq_rename_inv] lift_def)
 lemma lift_preserves_snd_I: "F \<in> preserves snd ==> lift i F \<in> preserves snd"
 apply (drule_tac w1=snd in subset_preserves_o [THEN subsetD])
 apply (simp add: lift_def rename_preserves)
-apply (simp add: lift_map_def o_def split_def del: split_comp_eq)
+apply (simp add: lift_map_def o_def split_def)
 done
 
 lemma delete_map_eqE':
@@ -327,9 +327,9 @@ lemma lift_preserves_sub:
       ==> lift i F \<in> preserves (v o sub j o fst) =  
           (if i=j then F \<in> preserves (v o fst) else True)"
 apply (drule subset_preserves_o [THEN subsetD])
-apply (simp add: lift_preserves_eq o_def drop_map_lift_map_eq)
+apply (simp add: lift_preserves_eq o_def)
 apply (auto cong del: if_weak_cong 
-       simp add: lift_map_def eq_commute split_def o_def simp del:split_comp_eq)
+       simp add: lift_map_def eq_commute split_def o_def)
 done
 
 
@@ -409,10 +409,10 @@ lemma OK_lift_I:
 by (simp add: safety_prop_AllowedActs_iff_Allowed UNION_OK_lift_I)
 
 lemma Allowed_lift [simp]: "Allowed (lift i F) = lift i ` (Allowed F)"
-by (simp add: lift_def Allowed_rename)
+by (simp add: lift_def)
 
 lemma lift_image_preserves:
      "lift i ` preserves v = preserves (v o drop_map i)"
-by (simp add: rename_image_preserves lift_def inv_lift_map_eq)
+by (simp add: rename_image_preserves lift_def)
 
 end

@@ -537,8 +537,6 @@ ML {* bind_thms ("ask_inv_client_map_drop_map'", make_o_equivs @{thm ask_inv_cli
 declare ask_inv_client_map_drop_map [simp]
 
 
-declare finite_lessThan [iff]
-
 text{*Client : <unfolded specification> *}
 lemmas client_spec_simps =
   client_spec_def client_increasing_def client_bounded_def

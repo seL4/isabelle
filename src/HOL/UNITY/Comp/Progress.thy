@@ -13,10 +13,10 @@ subsection {*The Composition of Two Single-Assignment Programs*}
 text{*Thesis Section 4.4.2*}
 
 definition FF :: "int program" where
-    "FF == mk_total_program (UNIV, {range (\<lambda>x. (x, x+1))}, UNIV)"
+    "FF = mk_total_program (UNIV, {range (\<lambda>x. (x, x+1))}, UNIV)"
 
 definition GG :: "int program" where
-    "GG == mk_total_program (UNIV, {range (\<lambda>x. (x, 2*x))}, UNIV)"
+    "GG = mk_total_program (UNIV, {range (\<lambda>x. (x, 2*x))}, UNIV)"
 
 subsubsection {*Calculating @{term "wens_set FF (atLeast k)"}*}
 

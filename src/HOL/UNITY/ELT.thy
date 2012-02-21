@@ -166,7 +166,7 @@ apply safe
 apply (erule leadsETo_induct)
 prefer 3 apply (blast intro: leadsETo_Union)
 prefer 2 apply (blast intro: leadsETo_Trans)
-apply (blast intro: leadsETo_Basis)
+apply blast
 done
 
 lemma leadsETo_Trans_Un:
@@ -237,7 +237,7 @@ done
 lemma leadsETo_givenBy:
      "[| F : A leadsTo[CC] A';  CC <= givenBy v |]  
       ==> F : A leadsTo[givenBy v] A'"
-by (blast intro: empty_mem_givenBy leadsETo_weaken)
+by (blast intro: leadsETo_weaken)
 
 
 (*Set difference*)
@@ -340,7 +340,7 @@ prefer 2
  apply (blast intro: e_psp_stable2 [THEN leadsETo_weaken_L] leadsETo_Trans)
 apply (rule leadsETo_Basis)
 apply (auto simp add: Diff_eq_empty_iff [THEN iffD2] 
-                      Int_Diff ensures_def givenBy_eq_Collect Join_transient)
+                      Int_Diff ensures_def givenBy_eq_Collect)
 prefer 3 apply (blast intro: transient_strengthen)
 apply (drule_tac [2] P1 = P in preserves_subset_stable [THEN subsetD])
 apply (drule_tac P1 = P in preserves_subset_stable [THEN subsetD])
@@ -454,7 +454,7 @@ done
 lemma lel_lemma:
      "F : A leadsTo B ==> F : (reachable F Int A) leadsTo[Pow(reachable F)] B"
 apply (erule leadsTo_induct)
-  apply (blast intro: reachable_ensures leadsETo_Basis)
+  apply (blast intro: reachable_ensures)
  apply (blast dest: e_psp_stable2 intro: leadsETo_Trans leadsETo_weaken_L)
 apply (subst Int_Union)
 apply (blast intro: leadsETo_UN)
@@ -491,7 +491,7 @@ lemma (in Extend) leadsETo_imp_extend_leadsETo:
       ==> extend h F : (extend_set h A) leadsTo[extend_set h ` CC]  
                        (extend_set h B)"
 apply (erule leadsETo_induct)
-  apply (force intro: leadsETo_Basis subset_imp_ensures 
+  apply (force intro: subset_imp_ensures 
                simp add: extend_ensures extend_set_Diff_distrib [symmetric])
  apply (blast intro: leadsETo_Trans)
 apply (simp add: leadsETo_UN extend_set_Union)
