@@ -286,7 +286,7 @@ structure Subtype_Predicates = Generic_Data
   type T = (term * string) list
   val empty = []
   val extend = I
-  val merge = AList.merge (op =) (K true)
+  fun merge data : T = AList.merge (op =) (K true) data
 )
 
 val register_predicate = Subtype_Predicates.map o AList.update (op =)
