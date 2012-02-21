@@ -786,13 +786,15 @@ lemma card_eq_setsum:
   by (simp only: card_def setsum_def)
 
 lemma card_UN_disjoint:
-  assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
-    and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
-  shows "card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
-proof -
-  have "(\<Sum>i\<in>I. card (A i)) = (\<Sum>i\<in>I. \<Sum>x\<in>A i. 1)" by simp
-  with assms show ?thesis by (simp add: card_eq_setsum setsum_UN_disjoint del: setsum_constant)
-qed
+  "finite I ==> (ALL i:I. finite (A i)) ==>
+   (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {})
+   ==> card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
+apply (simp add: card_eq_setsum del: setsum_constant)
+apply (subgoal_tac
+         "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
+apply (simp add: setsum_UN_disjoint del: setsum_constant)
+apply simp
+done
 
 lemma card_Union_disjoint:
   "finite C ==> (ALL A:C. finite A) ==>

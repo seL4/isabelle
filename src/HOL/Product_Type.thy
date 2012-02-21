@@ -22,7 +22,7 @@ declare case_split [cases type: bool]
 lemma
   shows [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
     and [code]: "HOL.equal True P \<longleftrightarrow> P" 
-    and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P"
+    and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P" 
     and [code]: "HOL.equal P True \<longleftrightarrow> P"
     and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
   by (simp_all add: equal)
