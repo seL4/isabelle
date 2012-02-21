@@ -132,7 +132,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* resize */
 
   addComponentListener(new ComponentAdapter {
-    val delay = Swing_Thread.delay_last(Isabelle.session.update_delay) { handle_resize() }
+    val delay = Swing_Thread.delay_first(Isabelle.session.update_delay) { handle_resize() }
     override def componentResized(e: ComponentEvent) { delay() }
   })
 

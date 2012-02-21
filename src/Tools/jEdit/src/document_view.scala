@@ -379,6 +379,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       super.removeNotify
     }
 
+    val delay_repaint =
+      Swing_Thread.delay_first(Isabelle.session.update_delay) { repaint() }
+
     override def paintComponent(gfx: Graphics)
     {
       super.paintComponent(gfx)
@@ -442,7 +445,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             if (updated ||
                 (changed.nodes.contains(model.name) &&
                  changed.commands.exists(snapshot.node.commands.contains)))
-              overview.repaint()
+              overview.delay_repaint()
 
             if (updated) invalidate_range(visible)
             else {
