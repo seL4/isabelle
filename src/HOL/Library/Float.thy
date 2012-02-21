@@ -9,8 +9,7 @@ theory Float
 imports Complex_Main Lattice_Algebras
 begin
 
-definition
-  pow2 :: "int \<Rightarrow> real" where
+definition pow2 :: "int \<Rightarrow> real" where
   [simp]: "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
 
 datatype float = Float int int
@@ -30,17 +29,20 @@ primrec mantissa :: "float \<Rightarrow> int" where
 primrec scale :: "float \<Rightarrow> int" where
   "scale (Float a b) = b"
 
-instantiation float :: zero begin
+instantiation float :: zero
+begin
 definition zero_float where "0 = Float 0 0"
 instance ..
 end
 
-instantiation float :: one begin
+instantiation float :: one
+begin
 definition one_float where "1 = Float 1 0"
 instance ..
 end
 
-instantiation float :: number begin
+instantiation float :: number
+begin
 definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
@@ -124,13 +126,13 @@ lemma pow2_neq_zero[simp]: "pow2 x \<noteq> 0"
   by (auto simp add: pow2_def)
 
 lemma pow2_int: "pow2 (int c) = 2^c"
-by (simp add: pow2_def)
+  by (simp add: pow2_def)
 
-lemma zero_less_pow2[simp]:
-  "0 < pow2 x"
+lemma zero_less_pow2[simp]: "0 < pow2 x"
   by (simp add: pow2_powr)
 
-lemma normfloat_imp_odd_or_zero: "normfloat f = Float a b \<Longrightarrow> odd a \<or> (a = 0 \<and> b = 0)"
+lemma normfloat_imp_odd_or_zero:
+  "normfloat f = Float a b \<Longrightarrow> odd a \<or> (a = 0 \<and> b = 0)"
 proof (induct f rule: normfloat.induct)
   case (1 u v)
   from 1 have ab: "normfloat (Float u v) = Float a b" by auto
@@ -169,7 +171,7 @@ qed
 
 lemma float_eq_odd_helper: 
   assumes odd: "odd a'"
-  and floateq: "real (Float a b) = real (Float a' b')"
+    and floateq: "real (Float a b) = real (Float a' b')"
   shows "b \<le> b'"
 proof - 
   from odd have "a' \<noteq> 0" by auto
@@ -191,8 +193,8 @@ qed
 
 lemma float_eq_odd: 
   assumes odd1: "odd a"
-  and odd2: "odd a'"
-  and floateq: "real (Float a b) = real (Float a' b')"
+    and odd2: "odd a'"
+    and floateq: "real (Float a b) = real (Float a' b')"
   shows "a = a' \<and> b = b'"
 proof -
   from 
@@ -216,7 +218,7 @@ proof -
   have ab': "odd a' \<or> (a' = 0 \<and> b' = 0)" by (rule normfloat_imp_odd_or_zero[OF normg])
   {
     assume odd: "odd a"
-    then have "a \<noteq> 0" by (simp add: even_def, arith)
+    then have "a \<noteq> 0" by (simp add: even_def) arith
     with float_eq have "a' \<noteq> 0" by auto
     with ab' have "odd a'" by simp
     from odd this float_eq have "a = a' \<and> b = b'" by (rule float_eq_odd)
@@ -236,7 +238,8 @@ proof -
     done
 qed
 
-instantiation float :: plus begin
+instantiation float :: plus
+begin
 fun plus_float where
 [simp del]: "(Float a_m a_e) + (Float b_m b_e) = 
      (if a_e \<le> b_e then Float (a_m + b_m * 2^(nat(b_e - a_e))) a_e 
@@ -244,17 +247,20 @@ fun plus_float where
 instance ..
 end
 
-instantiation float :: uminus begin
+instantiation float :: uminus
+begin
 primrec uminus_float where [simp del]: "uminus_float (Float m e) = Float (-m) e"
 instance ..
 end
 
-instantiation float :: minus begin
-definition minus_float where [simp del]: "(z::float) - w = z + (- w)"
+instantiation float :: minus
+begin
+definition minus_float where "(z::float) - w = z + (- w)"
 instance ..
 end
 
-instantiation float :: times begin
+instantiation float :: times
+begin
 fun times_float where [simp del]: "(Float a_m a_e) * (Float b_m b_e) = Float (a_m * b_m) (a_e + b_e)"
 instance ..
 end
@@ -265,7 +271,8 @@ primrec float_pprt :: "float \<Rightarrow> float" where
 primrec float_nprt :: "float \<Rightarrow> float" where
   "float_nprt (Float a e) = (if 0 <= a then 0 else (Float a e))" 
 
-instantiation float :: ord begin
+instantiation float :: ord
+begin
 definition le_float_def: "z \<le> (w :: float) \<equiv> real z \<le> real w"
 definition less_float_def: "z < (w :: float) \<equiv> real z < real w"
 instance ..
@@ -276,7 +283,7 @@ lemma real_of_float_add[simp]: "real (a + b) = real a + real (b :: float)"
       auto simp add: pow2_int[symmetric] pow2_add[symmetric])
 
 lemma real_of_float_minus[simp]: "real (- a) = - real (a :: float)"
-  by (cases a) (simp add: uminus_float.simps)
+  by (cases a) simp
 
 lemma real_of_float_sub[simp]: "real (a - b) = real a - real (b :: float)"
   by (cases a, cases b) (simp add: minus_float_def)
@@ -285,7 +292,7 @@ lemma real_of_float_mult[simp]: "real (a*b) = real a * real (b :: float)"
   by (cases a, cases b) (simp add: times_float.simps pow2_add)
 
 lemma real_of_float_0[simp]: "real (0 :: float) = 0"
-  by (auto simp add: zero_float_def float_zero)
+  by (auto simp add: zero_float_def)
 
 lemma real_of_float_1[simp]: "real (1 :: float) = 1"
   by (auto simp add: one_float_def)
@@ -1161,16 +1168,20 @@ proof (cases x)
 qed
 
 definition lb_mult :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" where
-"lb_mult prec x y = (case normfloat (x * y) of Float m e \<Rightarrow> let
-    l = bitlen m - int prec
-  in if l > 0 then Float (m div (2^nat l)) (e + l)
-              else Float m e)"
+  "lb_mult prec x y =
+    (case normfloat (x * y) of Float m e \<Rightarrow>
+      let
+        l = bitlen m - int prec
+      in if l > 0 then Float (m div (2^nat l)) (e + l)
+                  else Float m e)"
 
 definition ub_mult :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" where
-"ub_mult prec x y = (case normfloat (x * y) of Float m e \<Rightarrow> let
-    l = bitlen m - int prec
-  in if l > 0 then Float (m div (2^nat l) + 1) (e + l)
-              else Float m e)"
+  "ub_mult prec x y =
+    (case normfloat (x * y) of Float m e \<Rightarrow>
+      let
+        l = bitlen m - int prec
+      in if l > 0 then Float (m div (2^nat l) + 1) (e + l)
+                  else Float m e)"
 
 lemma lb_mult: "real (lb_mult prec x y) \<le> real (x * y)"
 proof (cases "normfloat (x * y)")
@@ -1225,7 +1236,8 @@ qed
 primrec float_abs :: "float \<Rightarrow> float" where
   "float_abs (Float m e) = Float \<bar>m\<bar> e"
 
-instantiation float :: abs begin
+instantiation float :: abs
+begin
 definition abs_float_def: "\<bar>x\<bar> = float_abs x"
 instance ..
 end
@@ -1290,10 +1302,10 @@ qed
 declare ceiling_fl.simps[simp del]
 
 definition lb_mod :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" where
-"lb_mod prec x ub lb = x - ceiling_fl (float_divr prec x lb) * ub"
+  "lb_mod prec x ub lb = x - ceiling_fl (float_divr prec x lb) * ub"
 
 definition ub_mod :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" where
-"ub_mod prec x ub lb = x - floor_fl (float_divl prec x ub) * lb"
+  "ub_mod prec x ub lb = x - floor_fl (float_divl prec x ub) * lb"
 
 lemma lb_mod: fixes k :: int assumes "0 \<le> real x" and "real k * y \<le> real x" (is "?k * y \<le> ?x")
   assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
@@ -1307,7 +1319,9 @@ proof -
   finally show ?thesis unfolding lb_mod_def real_of_float_sub real_of_float_mult by auto
 qed
 
-lemma ub_mod: fixes k :: int and x :: float assumes "0 \<le> real x" and "real x \<le> real k * y" (is "?x \<le> ?k * y")
+lemma ub_mod:
+  fixes k :: int and x :: float
+  assumes "0 \<le> real x" and "real x \<le> real k * y" (is "?x \<le> ?k * y")
   assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
   shows "?x - ?k * y \<le> real (ub_mod prec x ub lb)"
 proof -
