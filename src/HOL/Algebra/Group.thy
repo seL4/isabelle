@@ -41,7 +41,7 @@ overloading int_pow == "pow :: [_, 'a, int] => 'a"
 begin
   definition "int_pow G a z =
    (let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
-    in if neg z then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
+    in if z < 0 then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
 end
 
 locale monoid =
@@ -391,7 +391,7 @@ done
 text {* Power *}
 
 lemma (in group) int_pow_def2:
-  "a (^) (z::int) = (if neg z then inv (a (^) (nat (-z))) else a (^) (nat z))"
+  "a (^) (z::int) = (if z < 0 then inv (a (^) (nat (-z))) else a (^) (nat z))"
   by (simp add: int_pow_def nat_pow_def Let_def)
 
 lemma (in group) int_pow_0 [simp]:

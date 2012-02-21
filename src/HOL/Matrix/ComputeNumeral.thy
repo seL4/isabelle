@@ -147,19 +147,16 @@ lemmas zpowerarith = zpower_number_of_even
 lemma adjust: "adjust b (q, r) = (if 0 \<le> r - b then (2 * q + 1, r - b) else (2 * q, r))"
   by (auto simp only: adjust_def)
 
-lemma negateSnd: "negateSnd (q, r) = (q, -r)" 
-  by (simp add: negateSnd_def)
-
 lemma divmod: "divmod_int a b = (if 0\<le>a then
                   if 0\<le>b then posDivAlg a b
                   else if a=0 then (0, 0)
-                       else negateSnd (negDivAlg (-a) (-b))
+                       else apsnd uminus (negDivAlg (-a) (-b))
                else 
                   if 0<b then negDivAlg a b
-                  else negateSnd (posDivAlg (-a) (-b)))"
+                  else apsnd uminus (posDivAlg (-a) (-b)))"
   by (auto simp only: divmod_int_def)
 
-lemmas compute_div_mod = div_int_def mod_int_def divmod adjust negateSnd posDivAlg.simps negDivAlg.simps
+lemmas compute_div_mod = div_int_def mod_int_def divmod adjust apsnd_def map_pair_def posDivAlg.simps negDivAlg.simps
 
 
 

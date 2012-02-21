@@ -17,7 +17,7 @@ no_document use_thys [
 use_thys [
   "Iff_Oracle",
   "Coercion_Examples",
-  "Numeral",
+  "Numeral_Representation",
   "Higher_Order_Logic",
   "Abstract_NAT",
   "Guess",

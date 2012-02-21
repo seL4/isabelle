@@ -523,9 +523,6 @@ text {*
   means of @{const divmod_nat_rel}:
 *}
 
-instantiation nat :: semiring_div
-begin
-
 definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
   "divmod_nat m n = (THE qr. divmod_nat_rel m n qr)"
 
@@ -543,28 +540,39 @@ lemma divmod_nat_eq:
   shows "divmod_nat m n = qr"
   using assms by (auto intro: divmod_nat_rel_unique divmod_nat_rel_divmod_nat)
 
+instantiation nat :: semiring_div
+begin
+
 definition div_nat where
   "m div n = fst (divmod_nat m n)"
+
+lemma fst_divmod_nat [simp]:
+  "fst (divmod_nat m n) = m div n"
+  by (simp add: div_nat_def)
 
 definition mod_nat where
   "m mod n = snd (divmod_nat m n)"
 
+lemma snd_divmod_nat [simp]:
+  "snd (divmod_nat m n) = m mod n"
+  by (simp add: mod_nat_def)
+
 lemma divmod_nat_div_mod:
   "divmod_nat m n = (m div n, m mod n)"
-  unfolding div_nat_def mod_nat_def by simp
+  by (simp add: prod_eq_iff)
 
 lemma div_eq:
   assumes "divmod_nat_rel m n (q, r)" 
   shows "m div n = q"
-  using assms by (auto dest: divmod_nat_eq simp add: divmod_nat_div_mod)
+  using assms by (auto dest!: divmod_nat_eq simp add: prod_eq_iff)
 
 lemma mod_eq:
   assumes "divmod_nat_rel m n (q, r)" 
   shows "m mod n = r"
-  using assms by (auto dest: divmod_nat_eq simp add: divmod_nat_div_mod)
+  using assms by (auto dest!: divmod_nat_eq simp add: prod_eq_iff)
 
 lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
-  by (simp add: div_nat_def mod_nat_def divmod_nat_rel_divmod_nat)
+  using divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
 
 lemma divmod_nat_zero:
   "divmod_nat m 0 = (0, m)"
@@ -613,25 +621,25 @@ lemma div_less [simp]:
   fixes m n :: nat
   assumes "m < n"
   shows "m div n = 0"
-  using assms divmod_nat_base divmod_nat_div_mod by simp
+  using assms divmod_nat_base by (simp add: prod_eq_iff)
 
 lemma le_div_geq:
   fixes m n :: nat
   assumes "0 < n" and "n \<le> m"
   shows "m div n = Suc ((m - n) div n)"
-  using assms divmod_nat_step divmod_nat_div_mod by simp
+  using assms divmod_nat_step by (simp add: prod_eq_iff)
 
 lemma mod_less [simp]:
   fixes m n :: nat
   assumes "m < n"
   shows "m mod n = m"
-  using assms divmod_nat_base divmod_nat_div_mod by simp
+  using assms divmod_nat_base by (simp add: prod_eq_iff)
 
 lemma le_mod_geq:
   fixes m n :: nat
   assumes "n \<le> m"
   shows "m mod n = (m - n) mod n"
-  using assms divmod_nat_step divmod_nat_div_mod by (cases "n = 0") simp_all
+  using assms divmod_nat_step by (cases "n = 0") (simp_all add: prod_eq_iff)
 
 instance proof -
   have [simp]: "\<And>n::nat. n div 0 = 0"
@@ -673,8 +681,7 @@ end
 
 lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
   let (q, r) = divmod_nat (m - n) n in (Suc q, r))"
-by (simp add: divmod_nat_zero divmod_nat_base divmod_nat_step)
-    (simp add: divmod_nat_div_mod)
+  by (simp add: prod_eq_iff prod_case_beta not_less le_div_geq le_mod_geq)
 
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 
@@ -760,27 +767,23 @@ lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
 subsubsection {* Quotient and Remainder *}
 
 lemma divmod_nat_rel_mult1_eq:
-  "divmod_nat_rel b c (q, r) \<Longrightarrow> c > 0
+  "divmod_nat_rel b c (q, r)
    \<Longrightarrow> divmod_nat_rel (a * b) c (a * q + a * r div c, a * r mod c)"
 by (auto simp add: split_ifs divmod_nat_rel_def algebra_simps)
 
 lemma div_mult1_eq:
   "(a * b) div c = a * (b div c) + a * (b mod c) div (c::nat)"
-apply (cases "c = 0", simp)
-apply (blast intro: divmod_nat_rel [THEN divmod_nat_rel_mult1_eq, THEN div_eq])
-done
+by (blast intro: divmod_nat_rel [THEN divmod_nat_rel_mult1_eq, THEN div_eq])
 
 lemma divmod_nat_rel_add1_eq:
-  "divmod_nat_rel a c (aq, ar) \<Longrightarrow> divmod_nat_rel b c (bq, br) \<Longrightarrow>  c > 0
+  "divmod_nat_rel a c (aq, ar) \<Longrightarrow> divmod_nat_rel b c (bq, br)
    \<Longrightarrow> divmod_nat_rel (a + b) c (aq + bq + (ar + br) div c, (ar + br) mod c)"
 by (auto simp add: split_ifs divmod_nat_rel_def algebra_simps)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma div_add1_eq:
   "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
-apply (cases "c = 0", simp)
-apply (blast intro: divmod_nat_rel_add1_eq [THEN div_eq] divmod_nat_rel)
-done
+by (blast intro: divmod_nat_rel_add1_eq [THEN div_eq] divmod_nat_rel)
 
 lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (cut_tac m = q and n = c in mod_less_divisor)
@@ -790,28 +793,21 @@ lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   done
 
 lemma divmod_nat_rel_mult2_eq:
-  "divmod_nat_rel a b (q, r) \<Longrightarrow> 0 < b \<Longrightarrow> 0 < c
+  "divmod_nat_rel a b (q, r)
    \<Longrightarrow> divmod_nat_rel a (b * c) (q div c, b *(q mod c) + r)"
 by (auto simp add: mult_ac divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
 
 lemma div_mult2_eq: "a div (b*c) = (a div b) div (c::nat)"
-  apply (cases "b = 0", simp)
-  apply (cases "c = 0", simp)
-  apply (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_eq])
-  done
+by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_eq])
 
 lemma mod_mult2_eq: "a mod (b*c) = b*(a div b mod c) + a mod (b::nat)"
-  apply (cases "b = 0", simp)
-  apply (cases "c = 0", simp)
-  apply (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_eq])
-  done
+by (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_eq])
 
 
-subsubsection{*Further Facts about Quotient and Remainder*}
+subsubsection {* Further Facts about Quotient and Remainder *}
 
 lemma div_1 [simp]: "m div Suc 0 = m"
 by (induct m) (simp_all add: div_geq)
-
 
 (* Monotonicity of div in first argument *)
 lemma div_le_mono [rule_format (no_asm)]:
@@ -1018,7 +1014,7 @@ proof -
 qed
 
 
-subsubsection {*An ``induction'' law for modulus arithmetic.*}
+subsubsection {* An ``induction'' law for modulus arithmetic. *}
 
 lemma mod_induct_0:
   assumes step: "\<forall>i<p. P i \<longrightarrow> P ((Suc i) mod p)"
@@ -1211,8 +1207,6 @@ termination by (relation "measure (\<lambda>(a, b). nat (- a - b))")
   (auto simp add: mult_2)
 
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
-definition negateSnd :: "int \<times> int \<Rightarrow> int \<times> int" where
-  [code_unfold]: "negateSnd = apsnd uminus"
 
 definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
     --{*The full division algorithm considers all possible signs for a, b
@@ -1220,19 +1214,27 @@ definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" 
        @{term negDivAlg} requires @{term "a<0"}.*}
   "divmod_int a b = (if 0 \<le> a then if 0 \<le> b then posDivAlg a b
                   else if a = 0 then (0, 0)
-                       else negateSnd (negDivAlg (-a) (-b))
+                       else apsnd uminus (negDivAlg (-a) (-b))
                else 
                   if 0 < b then negDivAlg a b
-                  else negateSnd (posDivAlg (-a) (-b)))"
+                  else apsnd uminus (posDivAlg (-a) (-b)))"
 
 instantiation int :: Divides.div
 begin
 
-definition
+definition div_int where
   "a div b = fst (divmod_int a b)"
 
-definition
- "a mod b = snd (divmod_int a b)"
+lemma fst_divmod_int [simp]:
+  "fst (divmod_int a b) = a div b"
+  by (simp add: div_int_def)
+
+definition mod_int where
+  "a mod b = snd (divmod_int a b)"
+
+lemma snd_divmod_int [simp]:
+  "snd (divmod_int a b) = a mod b"
+  by (simp add: mod_int_def)
 
 instance ..
 
@@ -1240,7 +1242,7 @@ end
 
 lemma divmod_int_mod_div:
   "divmod_int p q = (p div q, p mod q)"
-  by (auto simp add: div_int_def mod_int_def)
+  by (simp add: prod_eq_iff)
 
 text{*
 Here is the division algorithm in ML:
@@ -1271,8 +1273,7 @@ Here is the division algorithm in ML:
 *}
 
 
-
-subsubsection{*Uniqueness and Monotonicity of Quotients and Remainders*}
+subsubsection {* Uniqueness and Monotonicity of Quotients and Remainders *}
 
 lemma unique_quotient_lemma:
      "[| b*q' + r'  \<le> b*q + r;  0 \<le> r';  r' < b;  r < b |]  
@@ -1294,7 +1295,7 @@ by (rule_tac b = "-b" and r = "-r'" and r' = "-r" in unique_quotient_lemma,
     auto)
 
 lemma unique_quotient:
-     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r');  b \<noteq> 0 |]  
+     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r') |]  
       ==> q = q'"
 apply (simp add: divmod_int_rel_def linorder_neq_iff split: split_if_asm)
 apply (blast intro: order_antisym
@@ -1304,7 +1305,7 @@ done
 
 
 lemma unique_remainder:
-     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r');  b \<noteq> 0 |]  
+     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r') |]  
       ==> r = r'"
 apply (subgoal_tac "q = q'")
  apply (simp add: divmod_int_rel_def)
@@ -1312,7 +1313,7 @@ apply (blast intro: unique_quotient)
 done
 
 
-subsubsection{*Correctness of @{term posDivAlg}, the Algorithm for Non-Negative Dividends*}
+subsubsection {* Correctness of @{term posDivAlg}, the Algorithm for Non-Negative Dividends *}
 
 text{*And positive divisors*}
 
@@ -1347,7 +1348,7 @@ theorem posDivAlg_correct:
   done
 
 
-subsubsection{*Correctness of @{term negDivAlg}, the Algorithm for Negative Dividends*}
+subsubsection {* Correctness of @{term negDivAlg}, the Algorithm for Negative Dividends *}
 
 text{*And positive divisors*}
 
@@ -1377,7 +1378,7 @@ lemma negDivAlg_correct:
   done
 
 
-subsubsection{*Existence Shown by Proving the Division Algorithm to be Correct*}
+subsubsection {* Existence Shown by Proving the Division Algorithm to be Correct *}
 
 (*the case a=0*)
 lemma divmod_int_rel_0: "b \<noteq> 0 ==> divmod_int_rel 0 b (0, 0)"
@@ -1389,10 +1390,7 @@ by (subst posDivAlg.simps, auto)
 lemma negDivAlg_minus1 [simp]: "negDivAlg -1 b = (-1, b - 1)"
 by (subst negDivAlg.simps, auto)
 
-lemma negateSnd_eq [simp]: "negateSnd(q,r) = (q,-r)"
-by (simp add: negateSnd_def)
-
-lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (negateSnd qr)"
+lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (apsnd uminus qr)"
 by (auto simp add: split_ifs divmod_int_rel_def)
 
 lemma divmod_int_correct: "b \<noteq> 0 ==> divmod_int_rel a b (divmod_int a b)"
@@ -1411,7 +1409,7 @@ text{*Basic laws about division and remainder*}
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
 apply (case_tac "b = 0", simp)
 apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def div_int_def mod_int_def)
+apply (auto simp add: divmod_int_rel_def prod_eq_iff)
 done
 
 lemma zdiv_zmod_equality: "(b * (a div b) + (a mod b)) + k = (a::int)+k"
@@ -1442,7 +1440,7 @@ simproc_setup cancel_div_mod_int ("(k::int) + l") = {* K Cancel_Div_Mod_Int.proc
 
 lemma pos_mod_conj : "(0::int) < b ==> 0 \<le> a mod b & a mod b < b"
 apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def mod_int_def)
+apply (auto simp add: divmod_int_rel_def prod_eq_iff)
 done
 
 lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
@@ -1450,24 +1448,28 @@ lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
 
 lemma neg_mod_conj : "b < (0::int) ==> a mod b \<le> 0 & b < a mod b"
 apply (cut_tac a = a and b = b in divmod_int_correct)
-apply (auto simp add: divmod_int_rel_def div_int_def mod_int_def)
+apply (auto simp add: divmod_int_rel_def prod_eq_iff)
 done
 
 lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
    and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2]
 
 
-subsubsection{*General Properties of div and mod*}
+subsubsection {* General Properties of div and mod *}
 
 lemma divmod_int_rel_div_mod: "b \<noteq> 0 ==> divmod_int_rel a b (a div b, a mod b)"
 apply (cut_tac a = a and b = b in zmod_zdiv_equality)
 apply (force simp add: divmod_int_rel_def linorder_neq_iff)
 done
 
-lemma divmod_int_rel_div: "[| divmod_int_rel a b (q, r);  b \<noteq> 0 |] ==> a div b = q"
+lemma divmod_int_rel_div: "[| divmod_int_rel a b (q, r) |] ==> a div b = q"
+apply (cases "b = 0")
+apply (simp add: divmod_int_rel_def)
 by (simp add: divmod_int_rel_div_mod [THEN unique_quotient])
 
-lemma divmod_int_rel_mod: "[| divmod_int_rel a b (q, r);  b \<noteq> 0 |] ==> a mod b = r"
+lemma divmod_int_rel_mod: "[| divmod_int_rel a b (q, r) |] ==> a mod b = r"
+apply (cases "b = 0")
+apply (simp add: divmod_int_rel_def)
 by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
 
 lemma div_pos_pos_trivial: "[| (0::int) \<le> a;  a < b |] ==> a div b = 0"
@@ -1521,7 +1523,7 @@ apply (subst divmod_int_rel_div_mod [THEN divmod_int_rel_neg, simplified, THEN d
 done
 
 
-subsubsection{*Laws for div and mod with Unary Minus*}
+subsubsection {* Laws for div and mod with Unary Minus *}
 
 lemma zminus1_lemma:
      "divmod_int_rel a b (q, r)
@@ -1569,7 +1571,7 @@ lemma zmod_zminus2_not_zero:
   unfolding zmod_zminus2_eq_if by auto 
 
 
-subsubsection{*Division of a Number by Itself*}
+subsubsection {* Division of a Number by Itself *}
 
 lemma self_quotient_aux1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 \<le> q"
 apply (subgoal_tac "0 < a*q")
@@ -1582,7 +1584,7 @@ apply (subgoal_tac "0 \<le> a* (1-q) ")
 apply (simp add: right_diff_distrib)
 done
 
-lemma self_quotient: "[| divmod_int_rel a a (q, r);  a \<noteq> (0::int) |] ==> q = 1"
+lemma self_quotient: "[| divmod_int_rel a a (q, r) |] ==> q = 1"
 apply (simp add: split_ifs divmod_int_rel_def linorder_neq_iff)
 apply (rule order_antisym, safe, simp_all)
 apply (rule_tac [3] a = "-a" and r = "-r" in self_quotient_aux1)
@@ -1590,8 +1592,8 @@ apply (rule_tac a = "-a" and r = "-r" in self_quotient_aux2)
 apply (force intro: self_quotient_aux1 self_quotient_aux2 simp add: add_commute)+
 done
 
-lemma self_remainder: "[| divmod_int_rel a a (q, r);  a \<noteq> (0::int) |] ==> r = 0"
-apply (frule self_quotient, assumption)
+lemma self_remainder: "[| divmod_int_rel a a (q, r) |] ==> r = 0"
+apply (frule self_quotient)
 apply (simp add: divmod_int_rel_def)
 done
 
@@ -1605,7 +1607,7 @@ apply (simp add: divmod_int_rel_div_mod [THEN self_remainder])
 done
 
 
-subsubsection{*Computation of Division and Remainder*}
+subsubsection {* Computation of Division and Remainder *}
 
 lemma zdiv_zero [simp]: "(0::int) div b = 0"
 by (simp add: div_int_def divmod_int_def)
@@ -1638,40 +1640,39 @@ by (simp add: mod_int_def divmod_int_def)
 text{*a positive, b negative *}
 
 lemma div_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a div b = fst (negateSnd (negDivAlg (-a) (-b)))"
+     "[| 0 < a;  b < 0 |] ==> a div b = fst (apsnd uminus (negDivAlg (-a) (-b)))"
 by (simp add: div_int_def divmod_int_def)
 
 lemma mod_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a mod b = snd (negateSnd (negDivAlg (-a) (-b)))"
+     "[| 0 < a;  b < 0 |] ==> a mod b = snd (apsnd uminus (negDivAlg (-a) (-b)))"
 by (simp add: mod_int_def divmod_int_def)
 
 text{*a negative, b negative *}
 
 lemma div_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (negateSnd (posDivAlg (-a) (-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (apsnd uminus (posDivAlg (-a) (-b)))"
 by (simp add: div_int_def divmod_int_def)
 
 lemma mod_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (negateSnd (posDivAlg (-a) (-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (apsnd uminus (posDivAlg (-a) (-b)))"
 by (simp add: mod_int_def divmod_int_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
 
 lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
-  by (rule divmod_int_rel_div [of a b q r],
-    simp add: divmod_int_rel_def, simp)
+  by (rule divmod_int_rel_div [of a b q r]) (simp add: divmod_int_rel_def)
 
 lemma int_div_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a div b = q"
   by (rule divmod_int_rel_div [of a b q r],
-    simp add: divmod_int_rel_def, simp)
+    simp add: divmod_int_rel_def)
 
 lemma int_mod_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a mod b = r"
   by (rule divmod_int_rel_mod [of a b q r],
-    simp add: divmod_int_rel_def, simp)
+    simp add: divmod_int_rel_def)
 
 lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a mod b = r"
   by (rule divmod_int_rel_mod [of a b q r],
-    simp add: divmod_int_rel_def, simp)
+    simp add: divmod_int_rel_def)
 
 lemmas arithmetic_simps =
   arith_simps
@@ -1748,7 +1749,7 @@ lemmas posDivAlg_eqn_1_number_of [simp] = posDivAlg_eqn [of concl: 1 "number_of 
 lemmas negDivAlg_eqn_1_number_of [simp] = negDivAlg_eqn [of concl: 1 "number_of w"] for w
 
 
-subsubsection{*Monotonicity in the First Argument (Dividend)*}
+subsubsection {* Monotonicity in the First Argument (Dividend) *}
 
 lemma zdiv_mono1: "[| a \<le> a';  0 < (b::int) |] ==> a div b \<le> a' div b"
 apply (cut_tac a = a and b = b in zmod_zdiv_equality)
@@ -1767,7 +1768,7 @@ apply (erule subst, simp_all)
 done
 
 
-subsubsection{*Monotonicity in the Second Argument (Divisor)*}
+subsubsection {* Monotonicity in the Second Argument (Divisor) *}
 
 lemma q_pos_lemma:
      "[| 0 \<le> b'*q' + r'; r' < b';  0 < b' |] ==> 0 \<le> (q'::int)"
@@ -1829,12 +1830,12 @@ apply (erule subst, simp_all)
 done
 
 
-subsubsection{*More Algebraic Laws for div and mod*}
+subsubsection {* More Algebraic Laws for div and mod *}
 
 text{*proving (a*b) div c = a * (b div c) + a * (b mod c) *}
 
 lemma zmult1_lemma:
-     "[| divmod_int_rel b c (q, r);  c \<noteq> 0 |]  
+     "[| divmod_int_rel b c (q, r) |]  
       ==> divmod_int_rel (a * b) c (a*q + a*r div c, a*r mod c)"
 by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff right_distrib mult_ac)
 
@@ -1856,7 +1857,7 @@ done
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
 lemma zadd1_lemma:
-     "[| divmod_int_rel a c (aq, ar);  divmod_int_rel b c (bq, br);  c \<noteq> 0 |]  
+     "[| divmod_int_rel a c (aq, ar);  divmod_int_rel b c (bq, br) |]  
       ==> divmod_int_rel (a+b) c (aq + bq + (ar+br) div c, (ar+br) mod c)"
 by (force simp add: split_ifs divmod_int_rel_def linorder_neq_iff right_distrib)
 
@@ -1890,8 +1891,7 @@ next
       done
     moreover with `c \<noteq> 0` divmod_int_rel_div_mod have "divmod_int_rel b c (b div c, b mod c)" by auto
     ultimately have "divmod_int_rel (a * b) (a * c) (b div c, a * (b mod c))" .
-    moreover from  `a \<noteq> 0` `c \<noteq> 0` have "a * c \<noteq> 0" by simp
-    ultimately show ?thesis by (rule divmod_int_rel_div)
+    from this show ?thesis by (rule divmod_int_rel_div)
   qed
 qed auto
 
@@ -1905,7 +1905,7 @@ next
   case False with assms posDivAlg_correct
     have "divmod_int_rel k l (fst (posDivAlg k l), snd (posDivAlg k l))"
     by simp
-  from divmod_int_rel_div [OF this `l \<noteq> 0`] divmod_int_rel_mod [OF this `l \<noteq> 0`]
+  from divmod_int_rel_div [OF this] divmod_int_rel_mod [OF this]
   show ?thesis by simp
 qed
 
@@ -1918,7 +1918,7 @@ proof -
   from assms negDivAlg_correct
     have "divmod_int_rel k l (fst (negDivAlg k l), snd (negDivAlg k l))"
     by simp
-  from divmod_int_rel_div [OF this `l \<noteq> 0`] divmod_int_rel_mod [OF this `l \<noteq> 0`]
+  from divmod_int_rel_div [OF this] divmod_int_rel_mod [OF this]
   show ?thesis by simp
 qed
 
@@ -1929,7 +1929,7 @@ by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 
-subsubsection{*Proving  @{term "a div (b*c) = (a div b) div c"} *}
+subsubsection {* Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
 (*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but
   7 div 2 div ~3 = 3 div ~3 = ~1.  The subcase (a div b) mod c = 0 seems
@@ -1972,7 +1972,7 @@ apply (rule order_less_le_trans)
 apply simp
 done
 
-lemma zmult2_lemma: "[| divmod_int_rel a b (q, r);  b \<noteq> 0;  0 < c |]  
+lemma zmult2_lemma: "[| divmod_int_rel a b (q, r); 0 < c |]  
       ==> divmod_int_rel a (b * c) (q div c, b*(q mod c) + r)"
 by (auto simp add: mult_ac divmod_int_rel_def linorder_neq_iff
                    zero_less_mult_iff right_distrib [symmetric] 
@@ -1990,7 +1990,7 @@ apply (force simp add: divmod_int_rel_div_mod [THEN zmult2_lemma, THEN divmod_in
 done
 
 
-subsubsection {*Splitting Rules for div and mod*}
+subsubsection {* Splitting Rules for div and mod *}
 
 text{*The proofs of the two lemmas below are essentially identical*}
 
@@ -2051,7 +2051,7 @@ declare split_zdiv [of _ _ "number_of k", arith_split] for k
 declare split_zmod [of _ _ "number_of k", arith_split] for k
 
 
-subsubsection{*Speeding up the Division Algorithm with Shifting*}
+subsubsection {* Speeding up the Division Algorithm with Shifting *}
 
 text{*computing div by shifting *}
 
@@ -2105,7 +2105,7 @@ apply (simp add: pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac mult_2 [symmetric])
 done
 
 
-subsubsection{*Computing mod by Shifting (proofs resemble those for div)*}
+subsubsection {* Computing mod by Shifting (proofs resemble those for div) *}
 
 lemma pos_zmod_mult_2:
   fixes a b :: int
@@ -2169,7 +2169,7 @@ next
 qed
 
 
-subsubsection{*Quotients of Signs*}
+subsubsection {* Quotients of Signs *}
 
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)
@@ -2224,7 +2224,6 @@ apply rule
  using div_nonneg_neg_le0[of a b]apply arith
 using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b]apply simp
 done
-
 
 lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 ==> m mod k \<le> m"
 apply (rule split_zmod[THEN iffD2])
@@ -2384,7 +2383,7 @@ lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y  mod n" and xy:"y \<le>
 proof-
   from xy have th: "int x - int y = int (x - y)" by simp 
   from xyn have "int x mod int n = int y mod int n" 
-    by (simp add: zmod_int[symmetric])
+    by (simp add: zmod_int [symmetric])
   hence "int n dvd int x - int y" by (simp only: zmod_eq_dvd_iff[symmetric]) 
   hence "n dvd x - y" by (simp add: th zdvd_int)
   then show ?thesis using xy unfolding dvd_def apply clarsimp apply (rule_tac x="k" in exI) by arith
