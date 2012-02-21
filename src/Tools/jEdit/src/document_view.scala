@@ -100,11 +100,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     Text.Range(start, stop)
   }
 
-  def visible_range(): Text.Range =
+  def visible_range(): Option[Text.Range] =
   {
-    val start = text_area.getScreenLineStartOffset(0)
-    val raw_end = text_area.getScreenLineEndOffset(text_area.getVisibleLines - 1 max 0)
-    proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
+    val n = text_area.getVisibleLines
+    if (n > 0) {
+      val start = text_area.getScreenLineStartOffset(0)
+      val raw_end = text_area.getScreenLineEndOffset(n - 1)
+      Some(proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength))
+    }
+    else None
   }
 
   def invalidate_range(range: Text.Range)
@@ -365,27 +369,30 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
             val (updated, snapshot) = flush_snapshot()
-            val visible = visible_range()
 
             if (updated ||
                 (changed.nodes.contains(model.name) &&
                  changed.commands.exists(snapshot.node.commands.contains)))
               overview.delay_repaint()
 
-            if (updated) invalidate_range(visible)
-            else {
-              val visible_cmds =
-                snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
-              if (visible_cmds.exists(changed.commands)) {
-                for {
-                  line <- 0 until text_area.getVisibleLines
-                  val start = text_area.getScreenLineStartOffset(line) if start >= 0
-                  val end = text_area.getScreenLineEndOffset(line) if end >= 0
-                  val range = proper_line_range(start, end)
-                  val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
-                  if line_cmds.exists(changed.commands)
-                } text_area.invalidateScreenLineRange(line, line)
-              }
+            visible_range() match {
+              case None =>
+              case Some(visible) =>
+                if (updated) invalidate_range(visible)
+                else {
+                  val visible_cmds =
+                    snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
+                  if (visible_cmds.exists(changed.commands)) {
+                    for {
+                      line <- 0 until text_area.getVisibleLines
+                      val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                      val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                      val range = proper_line_range(start, end)
+                      val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                      if line_cmds.exists(changed.commands)
+                    } text_area.invalidateScreenLineRange(line, line)
+                  }
+                }
             }
           }
 
