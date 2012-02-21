@@ -74,6 +74,8 @@ object Text
   {
     val empty: Perspective = Perspective(Nil)
 
+    def full: Perspective = Perspective(List(Range(0, Integer.MAX_VALUE / 2)))
+
     def apply(ranges: Seq[Range]): Perspective =
     {
       val result = new mutable.ListBuffer[Text.Range]
