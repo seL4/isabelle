@@ -1207,8 +1207,6 @@ termination by (relation "measure (\<lambda>(a, b). nat (- a - b))")
   (auto simp add: mult_2)
 
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
-definition negateSnd :: "int \<times> int \<Rightarrow> int \<times> int" where
-  [code_unfold]: "negateSnd = apsnd uminus"
 
 definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
     --{*The full division algorithm considers all possible signs for a, b
@@ -1216,10 +1214,10 @@ definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" 
        @{term negDivAlg} requires @{term "a<0"}.*}
   "divmod_int a b = (if 0 \<le> a then if 0 \<le> b then posDivAlg a b
                   else if a = 0 then (0, 0)
-                       else negateSnd (negDivAlg (-a) (-b))
+                       else apsnd uminus (negDivAlg (-a) (-b))
                else 
                   if 0 < b then negDivAlg a b
-                  else negateSnd (posDivAlg (-a) (-b)))"
+                  else apsnd uminus (posDivAlg (-a) (-b)))"
 
 instantiation int :: Divides.div
 begin
@@ -1232,7 +1230,7 @@ lemma fst_divmod_int [simp]:
   by (simp add: div_int_def)
 
 definition mod_int where
- "a mod b = snd (divmod_int a b)"
+  "a mod b = snd (divmod_int a b)"
 
 lemma snd_divmod_int [simp]:
   "snd (divmod_int a b) = a mod b"
@@ -1392,10 +1390,7 @@ by (subst posDivAlg.simps, auto)
 lemma negDivAlg_minus1 [simp]: "negDivAlg -1 b = (-1, b - 1)"
 by (subst negDivAlg.simps, auto)
 
-lemma negateSnd_eq [simp]: "negateSnd(q,r) = (q,-r)"
-by (simp add: negateSnd_def)
-
-lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (negateSnd qr)"
+lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (apsnd uminus qr)"
 by (auto simp add: split_ifs divmod_int_rel_def)
 
 lemma divmod_int_correct: "b \<noteq> 0 ==> divmod_int_rel a b (divmod_int a b)"
@@ -1645,21 +1640,21 @@ by (simp add: mod_int_def divmod_int_def)
 text{*a positive, b negative *}
 
 lemma div_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a div b = fst (negateSnd (negDivAlg (-a) (-b)))"
+     "[| 0 < a;  b < 0 |] ==> a div b = fst (apsnd uminus (negDivAlg (-a) (-b)))"
 by (simp add: div_int_def divmod_int_def)
 
 lemma mod_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a mod b = snd (negateSnd (negDivAlg (-a) (-b)))"
+     "[| 0 < a;  b < 0 |] ==> a mod b = snd (apsnd uminus (negDivAlg (-a) (-b)))"
 by (simp add: mod_int_def divmod_int_def)
 
 text{*a negative, b negative *}
 
 lemma div_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (negateSnd (posDivAlg (-a) (-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (apsnd uminus (posDivAlg (-a) (-b)))"
 by (simp add: div_int_def divmod_int_def)
 
 lemma mod_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (negateSnd (posDivAlg (-a) (-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (apsnd uminus (posDivAlg (-a) (-b)))"
 by (simp add: mod_int_def divmod_int_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
