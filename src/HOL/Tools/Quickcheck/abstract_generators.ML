@@ -6,7 +6,7 @@ Quickcheck generators for abstract types.
 
 signature ABSTRACT_GENERATORS =
 sig
-  val quickcheck_generator : string -> term list -> theory -> theory
+  val quickcheck_generator : string -> term option -> term list -> theory -> theory
 end;
 
 structure Abstract_Generators : ABSTRACT_GENERATORS =
@@ -28,7 +28,7 @@ fun check_constrs ctxt tyco constrs =
     map check_type constrs
   end
   
-fun gen_quickcheck_generator prep_tyco prep_term tyco_raw constrs_raw thy =
+fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_raw thy =
   let
     val ctxt = Proof_Context.init_global thy
     val tyco = prep_tyco ctxt tyco_raw
@@ -40,7 +40,7 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw constrs_raw thy =
         (s, map (Datatype_Aux.dtyp_of_typ [(tyco, vs)]) (binder_types T))
       | mk_dconstrs t = error (Syntax.string_of_term ctxt t ^
           " is not a valid constructor for quickcheck_generator, which expects a constant.")
-    fun the_descr thy _ =
+    fun the_descr _ _ =
       let
         val descr = [(0, (tyco, map Datatype_Aux.DtTFree vs, map mk_dconstrs constrs))]
       in
@@ -62,7 +62,10 @@ val quickcheck_generator_cmd = gen_quickcheck_generator
   (fn ctxt => fst o dest_Type o Proof_Context.read_type_name_proper ctxt false) Syntax.read_term
   
 val _ = Outer_Syntax.command "quickcheck_generator" "define quickcheck generators for abstract types"
-    Keyword.thy_decl (Parse.type_const -- (Args.$$$ "constructors" |-- Parse.$$$ ":" |-- Parse.list1 Parse.term)
-      >> (fn (tyco, constrs) => Toplevel.theory (quickcheck_generator_cmd tyco constrs)))
+    Keyword.thy_decl ((Parse.type_const --
+      Scan.option (Args.$$$ "predicate" |-- Parse.$$$ ":" |-- Parse.term)) --
+      (Args.$$$ "constructors" |-- Parse.$$$ ":" |-- Parse.list1 Parse.term)
+      >> (fn ((tyco, opt_pred), constrs) =>
+        Toplevel.theory (quickcheck_generator_cmd tyco opt_pred constrs)))
 
 end;
