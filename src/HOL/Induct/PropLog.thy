@@ -25,36 +25,40 @@ datatype 'a pl =
   var 'a ("#_" [1000]) |
   imp "'a pl" "'a pl" (infixr "->" 90)
 
+
 subsection {* The proof system *}
 
-inductive
-  thms :: "['a pl set, 'a pl] => bool"  (infixl "|-" 50)
+inductive thms :: "['a pl set, 'a pl] => bool"  (infixl "|-" 50)
   for H :: "'a pl set"
-  where
-    H [intro]:  "p\<in>H ==> H |- p"
-  | K:          "H |- p->q->p"
-  | S:          "H |- (p->q->r) -> (p->q) -> p->r"
-  | DN:         "H |- ((p->false) -> false) -> p"
-  | MP:         "[| H |- p->q; H |- p |] ==> H |- q"
+where
+  H: "p\<in>H ==> H |- p"
+| K: "H |- p->q->p"
+| S: "H |- (p->q->r) -> (p->q) -> p->r"
+| DN: "H |- ((p->false) -> false) -> p"
+| MP: "[| H |- p->q; H |- p |] ==> H |- q"
+
 
 subsection {* The semantics *}
 
 subsubsection {* Semantics of propositional logic. *}
 
-primrec eval  :: "['a set, 'a pl] => bool"      ("_[[_]]" [100,0] 100) where
-            "tt[[false]] = False"
-|            "tt[[#v]]    = (v \<in> tt)"
-| eval_imp: "tt[[p->q]]  = (tt[[p]] --> tt[[q]])"
+primrec eval :: "['a set, 'a pl] => bool"  ("_[[_]]" [100,0] 100)
+where
+  "tt[[false]] = False"
+| "tt[[#v]] = (v \<in> tt)"
+| eval_imp: "tt[[p->q]] = (tt[[p]] --> tt[[q]])"
 
 text {*
   A finite set of hypotheses from @{text t} and the @{text Var}s in
   @{text p}.
 *}
 
-primrec hyps  :: "['a pl, 'a set] => 'a pl set" where
+primrec hyps :: "['a pl, 'a set] => 'a pl set"
+where
   "hyps false  tt = {}"
 | "hyps (#v)   tt = {if v \<in> tt then #v else #v->false}"
 | "hyps (p->q) tt = hyps p tt Un hyps q tt"
+
 
 subsubsection {* Logical consequence *}
 
@@ -63,9 +67,8 @@ text {*
   is @{text p}.
 *}
 
-definition
-  sat :: "['a pl set, 'a pl] => bool"   (infixl "|=" 50) where
-    "H |= p  =  (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
+definition sat :: "['a pl set, 'a pl] => bool"  (infixl "|=" 50)
+  where "H |= p = (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
 
 
 subsection {* Proof theory of propositional logic *}
@@ -87,10 +90,14 @@ lemma weaken_left: "[| G \<subseteq> H;  G|-p |] ==> H|-p"
   -- {* Order of premises is convenient with @{text THEN} *}
   by (erule thms_mono [THEN predicate1D])
 
-lemmas weaken_left_insert = subset_insertI [THEN weaken_left]
+lemma weaken_left_insert: "G |- p \<Longrightarrow> insert a G |- p"
+by (rule weaken_left) (rule subset_insertI)
 
-lemmas weaken_left_Un1  = Un_upper1 [THEN weaken_left]
-lemmas weaken_left_Un2  = Un_upper2 [THEN weaken_left]
+lemma weaken_left_Un1: "G |- p \<Longrightarrow> G \<union> B |- p"
+by (rule weaken_left) (rule Un_upper1)
+
+lemma weaken_left_Un2: "G |- p \<Longrightarrow> A \<union> G |- p"
+by (rule weaken_left) (rule Un_upper2)
 
 lemma weaken_right: "H |- q ==> H |- p->q"
 by (fast intro: thms.K thms.MP)
@@ -107,20 +114,21 @@ done
 
 subsubsection {* The cut rule *}
 
-lemmas cut = deduction [THEN thms.MP]
+lemma cut: "insert p H |- q \<Longrightarrow> H |- p \<Longrightarrow> H |- q"
+by (rule thms.MP) (rule deduction)
 
-lemmas thms_falseE = weaken_right [THEN thms.DN [THEN thms.MP]]
+lemma thms_falseE: "H |- false \<Longrightarrow> H |- q"
+by (rule thms.MP, rule thms.DN) (rule weaken_right)
 
-lemmas thms_notE = thms.MP [THEN thms_falseE]
+lemma thms_notE: "H |- p -> false \<Longrightarrow> H |- p \<Longrightarrow> H |- q"
+by (rule thms_falseE) (rule thms.MP)
 
 
 subsubsection {* Soundness of the rules wrt truth-table semantics *}
 
 theorem soundness: "H |- p ==> H |= p"
-apply (unfold sat_def)
-apply (induct set: thms)
-apply auto
-done
+by (induct set: thms) (auto simp: sat_def)
+
 
 subsection {* Completeness *}
 
@@ -167,7 +175,7 @@ text {*
 
 lemma thms_excluded_middle: "H |- (p->q) -> ((p->false)->q) -> q"
 apply (rule deduction [THEN deduction])
-apply (rule thms.DN [THEN thms.MP], best)
+apply (rule thms.DN [THEN thms.MP], best intro: H)
 done
 
 lemma thms_excluded_middle_rule:
@@ -213,7 +221,9 @@ by (induct p) auto
 lemma hyps_subset: "hyps p t <= (UN v. {#v, #v->false})"
 by (induct p) auto
 
-lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
+lemma Diff_weaken_left: "A \<subseteq> C \<Longrightarrow> A - B |- p \<Longrightarrow> C - B |- p"
+  by (rule Diff_mono [OF _ subset_refl, THEN weaken_left])
+
 
 subsubsection {* Completeness theorem *}
 
@@ -246,7 +256,7 @@ done
 
 text{*A semantic analogue of the Deduction Theorem*}
 lemma sat_imp: "insert p H |= q ==> H |= p->q"
-by (unfold sat_def, auto)
+by (auto simp: sat_def)
 
 theorem completeness: "finite H ==> H |= p ==> H |- p"
 apply (induct arbitrary: p rule: finite_induct)
