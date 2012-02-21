@@ -45,11 +45,12 @@ translations
   (type) "('a, 'b) table" <= (type) "'a \<rightharpoonup> 'b"
 
 (* ### To map *)
-lemma map_add_find_left[simp]:
-"n k = None \<Longrightarrow> (m ++ n) k = m k"
-by (simp add: map_add_def)
+lemma map_add_find_left[simp]: "n k = None \<Longrightarrow> (m ++ n) k = m k"
+  by (simp add: map_add_def)
+
 
 section {* Conditional Override *}
+
 definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table" where
 
 --{* when merging tables old and new, only override an entry of table old when  
@@ -65,27 +66,27 @@ definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarro
                                          else Some old_val))))"
 
 lemma cond_override_empty1[simp]: "cond_override c empty t = t"
-by (simp add: cond_override_def fun_eq_iff)
+  by (simp add: cond_override_def fun_eq_iff)
 
 lemma cond_override_empty2[simp]: "cond_override c t empty = t"
-by (simp add: cond_override_def fun_eq_iff)
+  by (simp add: cond_override_def fun_eq_iff)
 
 lemma cond_override_None[simp]:
- "old k = None \<Longrightarrow> (cond_override c old new) k = new k"
-by (simp add: cond_override_def)
+  "old k = None \<Longrightarrow> (cond_override c old new) k = new k"
+  by (simp add: cond_override_def)
 
 lemma cond_override_override:
- "\<lbrakk>old k = Some ov;new k = Some nv; C nv ov\<rbrakk> 
-  \<Longrightarrow> (cond_override C old new) k = Some nv"
-by (auto simp add: cond_override_def)
+  "\<lbrakk>old k = Some ov;new k = Some nv; C nv ov\<rbrakk> 
+    \<Longrightarrow> (cond_override C old new) k = Some nv"
+  by (auto simp add: cond_override_def)
 
 lemma cond_override_noOverride:
- "\<lbrakk>old k = Some ov;new k = Some nv; \<not> (C nv ov)\<rbrakk> 
-  \<Longrightarrow> (cond_override C old new) k = Some ov"
-by (auto simp add: cond_override_def)
+  "\<lbrakk>old k = Some ov;new k = Some nv; \<not> (C nv ov)\<rbrakk> 
+    \<Longrightarrow> (cond_override C old new) k = Some ov"
+  by (auto simp add: cond_override_def)
 
 lemma dom_cond_override: "dom (cond_override C s t) \<subseteq> dom s \<union> dom t"
-by (auto simp add: cond_override_def dom_def)
+  by (auto simp add: cond_override_def dom_def)
 
 lemma finite_dom_cond_override:
  "\<lbrakk> finite (dom s); finite (dom t) \<rbrakk> \<Longrightarrow> finite (dom (cond_override C s t))"
@@ -93,13 +94,14 @@ apply (rule_tac B="dom s \<union> dom t" in finite_subset)
 apply (rule dom_cond_override)
 by (rule finite_UnI)
 
+
 section {* Filter on Tables *}
 
-definition
-  filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table" where
-  "filter_tab c t = (\<lambda>k. (case t k of 
-                           None   \<Rightarrow> None
-                         | Some x \<Rightarrow> if c k x then Some x else None))"
+definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table"
+  where
+    "filter_tab c t = (\<lambda>k. (case t k of 
+                             None   \<Rightarrow> None
+                           | Some x \<Rightarrow> if c k x then Some x else None))"
 
 lemma filter_tab_empty[simp]: "filter_tab c empty = empty"
 by (simp add: filter_tab_def empty_def)
@@ -165,8 +167,7 @@ lemma filter_tab_weaken:
 "\<lbrakk>\<forall> a \<in> t k: \<exists> b \<in> s k: P a b; 
   \<And> k x y. \<lbrakk>t k = Some x;s k = Some y\<rbrakk> \<Longrightarrow> cond k x \<longrightarrow> cond k y
  \<rbrakk> \<Longrightarrow> \<forall> a \<in> filter_tab cond t k: \<exists> b \<in> filter_tab cond s k: P a b"
-apply (force simp add: filter_tab_def)
-done
+by (force simp add: filter_tab_def)
 
 lemma cond_override_filter: 
   "\<lbrakk>\<And> k old new. \<lbrakk>s k = Some new; t k = Some old\<rbrakk> 
@@ -178,7 +179,7 @@ lemma cond_override_filter:
 by (auto simp add: fun_eq_iff cond_override_def filter_tab_def )
 
 
-section {* Misc. *}
+section {* Misc *}
 
 lemma Ball_set_table: "(\<forall> (x,y)\<in> set l. P x y) \<Longrightarrow> \<forall> x. \<forall> y\<in> map_of l x: P x y"
 apply (erule rev_mp)
@@ -210,62 +211,46 @@ done
 
 lemma table_of_mapconst_SomeI:
   "\<lbrakk>table_of t k = Some y'; snd y=y'; fst y=c\<rbrakk> \<Longrightarrow>
-   table_of (map (\<lambda>(k,x). (k,c,x)) t) k = Some y"
-apply (induct t)
-apply auto
-done
+    table_of (map (\<lambda>(k,x). (k,c,x)) t) k = Some y"
+  by (induct t) auto
 
 lemma table_of_mapconst_NoneI:
   "\<lbrakk>table_of t k = None\<rbrakk> \<Longrightarrow>
-   table_of (map (\<lambda>(k,x). (k,c,x)) t) k = None"
-apply (induct t)
-apply auto
-done
+    table_of (map (\<lambda>(k,x). (k,c,x)) t) k = None"
+  by (induct t) auto
 
 lemmas table_of_map2_SomeI = inj_Pair_const2 [THEN map_of_mapk_SomeI]
 
-lemma table_of_map_SomeI [rule_format (no_asm)]: "table_of t k = Some x \<longrightarrow>
+lemma table_of_map_SomeI: "table_of t k = Some x \<Longrightarrow>
    table_of (map (\<lambda>(k,x). (k, f x)) t) k = Some (f x)"
-apply (induct_tac "t")
-apply auto
-done
+  by (induct t) auto
 
-lemma table_of_remap_SomeD [rule_format (no_asm)]: 
-  "table_of (map (\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) \<longrightarrow>
-  table_of t (k, k') = Some x"
-apply (induct_tac "t")
-apply  auto
-done
+lemma table_of_remap_SomeD:
+  "table_of (map (\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) \<Longrightarrow>
+    table_of t (k, k') = Some x"
+  by (induct t) auto
 
-lemma table_of_mapf_Some [rule_format (no_asm)]: "\<forall>x y. f x = f y \<longrightarrow> x = y \<Longrightarrow> 
-  table_of (map (\<lambda>(k,x). (k,f x)) t) k = Some (f x) \<longrightarrow> table_of t k = Some x"
-apply (induct_tac "t")
-apply  auto
-done
+lemma table_of_mapf_Some:
+  "\<forall>x y. f x = f y \<longrightarrow> x = y \<Longrightarrow>
+    table_of (map (\<lambda>(k,x). (k,f x)) t) k = Some (f x) \<Longrightarrow> table_of t k = Some x"
+  by (induct t) auto
 
-lemma table_of_mapf_SomeD [rule_format (no_asm), dest!]: 
-"table_of (map (\<lambda>(k,x). (k, f x)) t) k = Some z \<longrightarrow> (\<exists>y\<in>table_of t k: z=f y)"
-apply (induct_tac "t")
-apply  auto
-done
+lemma table_of_mapf_SomeD [dest!]:
+  "table_of (map (\<lambda>(k,x). (k, f x)) t) k = Some z \<Longrightarrow> (\<exists>y\<in>table_of t k: z=f y)"
+  by (induct t) auto
 
-lemma table_of_mapf_NoneD [rule_format (no_asm), dest!]: 
-"table_of (map (\<lambda>(k,x). (k, f x)) t) k = None \<longrightarrow> (table_of t k = None)"
-apply (induct_tac "t")
-apply auto
-done
+lemma table_of_mapf_NoneD [dest!]:
+  "table_of (map (\<lambda>(k,x). (k, f x)) t) k = None \<Longrightarrow> (table_of t k = None)"
+  by (induct t) auto
 
-lemma table_of_mapkey_SomeD [rule_format (no_asm), dest!]: 
-  "table_of (map (\<lambda>(k,x). ((k,C),x)) t) (k,D) = Some x \<longrightarrow> C = D \<and> table_of t k = Some x"
-apply (induct_tac "t")
-apply  auto
-done
-lemma table_of_mapkey_SomeD2 [rule_format (no_asm), dest!]: 
-  "table_of (map (\<lambda>(k,x). ((k,C),x)) t) ek = Some x 
-   \<longrightarrow> C = snd ek \<and> table_of t (fst ek) = Some x"
-apply (induct_tac "t")
-apply  auto
-done
+lemma table_of_mapkey_SomeD [dest!]:
+  "table_of (map (\<lambda>(k,x). ((k,C),x)) t) (k,D) = Some x \<Longrightarrow> C = D \<and> table_of t k = Some x"
+  by (induct t) auto
+
+lemma table_of_mapkey_SomeD2 [dest!]:
+  "table_of (map (\<lambda>(k,x). ((k,C),x)) t) ek = Some x \<Longrightarrow>
+    C = snd ek \<and> table_of t (fst ek) = Some x"
+  by (induct t) auto
 
 lemma table_append_Some_iff: "table_of (xs@ys) k = Some z = 
  (table_of xs k = Some z \<or> (table_of xs k = None \<and> table_of ys k = Some z))"
@@ -275,16 +260,14 @@ done
 
 lemma table_of_filter_unique_SomeD [rule_format (no_asm)]:
   "table_of (filter P xs) k = Some z \<Longrightarrow> unique xs \<longrightarrow> table_of xs k = Some z"
-apply (induct xs)
-apply (auto del: map_of_SomeD intro!: map_of_SomeD)
-done
+  by (induct xs) (auto del: map_of_SomeD intro!: map_of_SomeD)
 
 
 definition Un_tables :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
   where "Un_tables ts = (\<lambda>k. \<Union>t\<in>ts. t k)"
 
-definition
-  overrides_t :: "('a, 'b) tables \<Rightarrow> ('a, 'b) tables \<Rightarrow> ('a, 'b) tables"  (infixl "\<oplus>\<oplus>" 100)
+definition overrides_t :: "('a, 'b) tables \<Rightarrow> ('a, 'b) tables \<Rightarrow> ('a, 'b) tables"
+    (infixl "\<oplus>\<oplus>" 100)
   where "s \<oplus>\<oplus> t = (\<lambda>k. if t k = {} then s k else t k)"
 
 definition
@@ -305,59 +288,52 @@ definition
                           ("_ hiding _ under _ entails _"  20)
   where "(t hiding  s under C entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: C x y \<longrightarrow> R x y)"
 
+
 section "Untables"
 
-lemma Un_tablesI [intro]:  "\<And>x. \<lbrakk>t \<in> ts; x \<in> t k\<rbrakk> \<Longrightarrow> x \<in> Un_tables ts k"
-apply (simp add: Un_tables_def)
-apply auto
-done
+lemma Un_tablesI [intro]:  "t \<in> ts \<Longrightarrow> x \<in> t k \<Longrightarrow> x \<in> Un_tables ts k"
+  by (auto simp add: Un_tables_def)
 
-lemma Un_tablesD [dest!]: "\<And>x. x \<in> Un_tables ts k \<Longrightarrow> \<exists>t. t \<in> ts \<and> x \<in> t k"
-apply (simp add: Un_tables_def)
-apply auto
-done
+lemma Un_tablesD [dest!]: "x \<in> Un_tables ts k \<Longrightarrow> \<exists>t. t \<in> ts \<and> x \<in> t k"
+  by (auto simp add: Un_tables_def)
 
 lemma Un_tables_empty [simp]: "Un_tables {} = (\<lambda>k. {})"
-apply (unfold Un_tables_def)
-apply (simp (no_asm))
-done
+  by (simp add: Un_tables_def)
 
 
 section "overrides"
 
 lemma empty_overrides_t [simp]: "(\<lambda>k. {}) \<oplus>\<oplus> m = m"
-apply (unfold overrides_t_def)
-apply (simp (no_asm))
-done
+  by (simp add: overrides_t_def)
+
 lemma overrides_empty_t [simp]: "m \<oplus>\<oplus> (\<lambda>k. {}) = m"
-apply (unfold overrides_t_def)
-apply (simp (no_asm))
-done
+  by (simp add: overrides_t_def)
 
 lemma overrides_t_Some_iff: 
- "(x \<in> (s \<oplus>\<oplus> t) k) = (x \<in> t k \<or> t k = {} \<and> x \<in> s k)"
-by (simp add: overrides_t_def)
+  "(x \<in> (s \<oplus>\<oplus> t) k) = (x \<in> t k \<or> t k = {} \<and> x \<in> s k)"
+  by (simp add: overrides_t_def)
 
 lemmas overrides_t_SomeD = overrides_t_Some_iff [THEN iffD1, dest!]
 
 lemma overrides_t_right_empty [simp]: "n k = {} \<Longrightarrow> (m \<oplus>\<oplus> n) k = m k"  
-by (simp add: overrides_t_def)
+  by (simp add: overrides_t_def)
 
 lemma overrides_t_find_right [simp]: "n k \<noteq> {} \<Longrightarrow> (m \<oplus>\<oplus> n) k = n k"  
-by (simp add: overrides_t_def)
+  by (simp add: overrides_t_def)
+
 
 section "hiding entails"
 
 lemma hiding_entailsD: 
-  "\<lbrakk>t hiding s entails R; t k = Some x; s k = Some y\<rbrakk> \<Longrightarrow> R x y"
-by (simp add: hiding_entails_def)
+  "t hiding s entails R \<Longrightarrow> t k = Some x \<Longrightarrow> s k = Some y \<Longrightarrow> R x y"
+  by (simp add: hiding_entails_def)
 
-lemma empty_hiding_entails: "empty hiding s entails R"
-by (simp add: hiding_entails_def)
+lemma empty_hiding_entails [simp]: "empty hiding s entails R"
+  by (simp add: hiding_entails_def)
 
-lemma hiding_empty_entails: "t hiding empty entails R"
-by (simp add: hiding_entails_def)
-declare empty_hiding_entails [simp] hiding_empty_entails [simp]
+lemma hiding_empty_entails [simp]: "t hiding empty entails R"
+  by (simp add: hiding_entails_def)
+
 
 section "cond hiding entails"
 
@@ -374,16 +350,14 @@ by (simp add: cond_hiding_entails_def)
 lemma hidings_entailsD: "\<lbrakk>t hidings s entails R; x \<in> t k; y \<in> s k\<rbrakk> \<Longrightarrow> R x y"
 by (simp add: hidings_entails_def)
 
-lemma hidings_empty_entails: "t hidings (\<lambda>k. {}) entails R"
+lemma hidings_empty_entails [intro!]: "t hidings (\<lambda>k. {}) entails R"
 apply (unfold hidings_entails_def)
 apply (simp (no_asm))
 done
 
-lemma empty_hidings_entails: 
+lemma empty_hidings_entails [intro!]:
   "(\<lambda>k. {}) hidings s entails R"apply (unfold hidings_entails_def)
 by (simp (no_asm))
-declare empty_hidings_entails [intro!] hidings_empty_entails [intro!]
-
 
 
 (*###TO Map?*)
@@ -429,7 +403,7 @@ apply fast+
 done
 declare fun_upd_apply [simp]
 
-lemma atleast_free_SucD [rule_format (no_asm)]: "atleast_free h (Suc n) ==> atleast_free (h(a|->b)) n"
+lemma atleast_free_SucD: "atleast_free h (Suc n) ==> atleast_free (h(a|->b)) n"
 apply auto
 apply (case_tac "aa = a")
 apply auto
@@ -438,4 +412,5 @@ apply auto
 done
 
 declare atleast_free_Suc [simp del]
+
 end
