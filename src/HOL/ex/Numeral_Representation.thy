@@ -1,10 +1,10 @@
-(*  Title:      HOL/ex/Numeral.thy
+(*  Title:      HOL/ex/Numeral_Representation.thy
     Author:     Florian Haftmann
 *)
 
 header {* An experimental alternative numeral representation. *}
 
-theory Numeral
+theory Numeral_Representation
 imports Main
 begin
 
