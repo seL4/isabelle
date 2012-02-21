@@ -152,15 +152,15 @@ class Isabelle_Process(
 
   private val process_manager = Simple_Thread.fork("process_manager")
   {
-    val (startup_failed, startup_output) =
+    val (startup_failed, startup_errors) =
     {
       val expired = System.currentTimeMillis() + timeout.ms
       val result = new StringBuilder(100)
 
       var finished: Option[Boolean] = None
       while (finished.isEmpty && System.currentTimeMillis() <= expired) {
-        while (finished.isEmpty && process.stdout.ready) {
-          val c = process.stdout.read
+        while (finished.isEmpty && process.stderr.ready) {
+          val c = process.stderr.read
           if (c == 2) finished = Some(true)
           else result += c.toChar
         }
@@ -169,7 +169,7 @@ class Isabelle_Process(
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
-    system_result(startup_output)
+    if (startup_errors != "") system_result(startup_errors)
 
     if (startup_failed) {
       put_result(Isabelle_Markup.EXIT, "Return code: 127")

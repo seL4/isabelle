@@ -6,13 +6,13 @@ robustness and performance.
 
 Startup phases:
   . raw Posix process startup with uncontrolled output on stdout/stderr
-  . stdout \002: ML running
+  . stderr \002: ML running
   .. stdin/stdout/stderr freely available (raw ML loop)
   .. protocol thread initialization
   ... rendezvous on system channel
   ... message INIT(pid): channels ready
-  ... message STATUS(keywords)
-  ... message READY: main loop ready
+  ... message RAW(keywords)
+  ... message RAW(ready): main loop ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -165,7 +165,7 @@ end;
 fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
   let
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
-    val _ = Output.physical_stdout Symbol.STX;
+    val _ = Output.physical_stderr Symbol.STX;
 
     val _ = quick_and_dirty := true;
     val _ = Goal.parallel_proofs := 0;

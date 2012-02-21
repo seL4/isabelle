@@ -149,7 +149,7 @@ Figure \ref{fig:adaptation} illustrates what \qt{adaptation} is
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{Main}}} theory already provides a code
+The \isa{HOL} \isa{Main} theory already provides a code
   generator setup which should be suitable for most applications.
   Common extensions and modifications are available by certain
   theories of the \isa{HOL} library; beside being useful in
@@ -173,12 +173,12 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
        \isa{Suc} is eliminated; includes \isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}
        and \isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}.
 
-    \item[\hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}}}] provides an additional datatype
+    \item[\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}] provides an additional datatype
        \isa{index} which is mapped to target-language built-in
        integers.  Useful for code setups which involve e.g.~indexing
        of target-language arrays.  Part of \isa{HOL{\isaliteral{2D}{\isacharminus}}Main}.
 
-    \item[\hyperlink{theory.String}{\mbox{\isa{String}}}] provides an additional datatype \isa{String{\isaliteral{2E}{\isachardot}}literal} which is isomorphic to strings; \isa{String{\isaliteral{2E}{\isachardot}}literal}s are mapped to target-language strings.  Useful
+    \item[\isa{String}] provides an additional datatype \isa{String{\isaliteral{2E}{\isachardot}}literal} which is isomorphic to strings; \isa{String{\isaliteral{2E}{\isachardot}}literal}s are mapped to target-language strings.  Useful
        for code setups which involve e.g.~printing (error) messages.
        Part of \isa{HOL{\isaliteral{2D}{\isacharminus}}Main}.
 
