@@ -46,8 +46,7 @@ where
     (if s : b then Sem c1 s s' else Sem c2 s s')"
 | "Sem (While b x c) s s' = (EX n. iter n b (Sem c) s s')"
 
-definition
-  Valid :: "'a bexp => 'a com => 'a bexp => bool"
+definition Valid :: "'a bexp => 'a com => 'a bexp => bool"
     ("(3|- _/ (2_)/ _)" [100, 55, 100] 50)
   where "|- P c Q \<longleftrightarrow> (\<forall>s s'. Sem c s s' --> s : P --> s' : Q)"
 
@@ -113,9 +112,10 @@ text {* The rule for conditional commands is directly reflected by the
   which cases apply. *}
 
 theorem cond:
-  "|- (P Int b) c1 Q ==> |- (P Int -b) c2 Q ==> |- P (Cond b c1 c2) Q"
+  assumes case_b: "|- (P Int b) c1 Q"
+    and case_nb: "|- (P Int -b) c2 Q"
+  shows "|- P (Cond b c1 c2) Q"
 proof
-  assume case_b: "|- (P Int b) c1 Q" and case_nb: "|- (P Int -b) c2 Q"
   fix s s' assume s: "s : P"
   assume sem: "Sem (Cond b c1 c2) s s'"
   show "s' : Q"

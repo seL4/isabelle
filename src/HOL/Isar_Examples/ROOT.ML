@@ -1,6 +1,6 @@
 (* Miscellaneous Isabelle/Isar examples for Higher-Order Logic. *)
 
-no_document use_thys ["../Number_Theory/Primes"];
+no_document use_thys ["~~/src/HOL/Library/Lattice_Syntax", "../Number_Theory/Primes"];
 
 use_thys [
   "Basic_Logic",

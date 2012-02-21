@@ -59,9 +59,7 @@ datatype ('adr, 'val) instr =
 text {* Execution of a list of stack machine instructions is easily
   defined as follows. *}
 
-primrec
-  exec :: "(('adr, 'val) instr) list
-    => 'val list => ('adr => 'val) => 'val list"
+primrec exec :: "(('adr, 'val) instr) list => 'val list => ('adr => 'val) => 'val list"
 where
   "exec [] stack env = stack"
 | "exec (instr # instrs) stack env =
@@ -71,8 +69,7 @@ where
     | Apply f => exec instrs (f (hd stack) (hd (tl stack))
                    # (tl (tl stack))) env)"
 
-definition
-  execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val"
+definition execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val"
   where "execute instrs env = hd (exec instrs [] env)"
 
 
@@ -81,8 +78,7 @@ subsection {* Compiler *}
 text {* We are ready to define the compilation function of expressions
   to lists of stack machine instructions. *}
 
-primrec
-  compile :: "('adr, 'val) expr => (('adr, 'val) instr) list"
+primrec compile :: "('adr, 'val) expr => (('adr, 'val) instr) list"
 where
   "compile (Variable x) = [Load x]"
 | "compile (Constant c) = [Const c]"

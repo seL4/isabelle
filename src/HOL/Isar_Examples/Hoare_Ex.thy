@@ -62,9 +62,9 @@ lemma "|- .{True}. \<acute>M := a; \<acute>N := b .{\<acute>M = a & \<acute>N = 
   by hoare simp
 
 lemma
-"|- .{\<acute>M = a & \<acute>N = b}.
-    \<acute>I := \<acute>M; \<acute>M := \<acute>N; \<acute>N := \<acute>I
-    .{\<acute>M = b & \<acute>N = a}."
+  "|- .{\<acute>M = a & \<acute>N = b}.
+      \<acute>I := \<acute>M; \<acute>M := \<acute>N; \<acute>N := \<acute>I
+      .{\<acute>M = b & \<acute>N = a}."
   by hoare simp
 
 text {* It is important to note that statements like the following one
@@ -272,18 +272,19 @@ record tvars = tstate +
 lemma lem: "(0::nat) < n \<Longrightarrow> n + n \<le> Suc (n * n)"
   by (induct n) simp_all
 
-lemma "|- .{i = \<acute>I & \<acute>time = 0}.
- timeit(
- WHILE \<acute>I \<noteq> 0
- INV .{2*\<acute>time + \<acute>I*\<acute>I + 5*\<acute>I = i*i + 5*i}.
- DO
-   \<acute>J := \<acute>I;
-   WHILE \<acute>J \<noteq> 0
-   INV .{0 < \<acute>I & 2*\<acute>time + \<acute>I*\<acute>I + 3*\<acute>I + 2*\<acute>J - 2 = i*i + 5*i}.
-   DO \<acute>J := \<acute>J - 1 OD;
-   \<acute>I := \<acute>I - 1
- OD
- ) .{2*\<acute>time = i*i + 5*i}."
+lemma
+  "|- .{i = \<acute>I & \<acute>time = 0}.
+    timeit (
+    WHILE \<acute>I \<noteq> 0
+    INV .{2 *\<acute> time + \<acute>I * \<acute>I + 5 * \<acute>I = i * i + 5 * i}.
+    DO
+      \<acute>J := \<acute>I;
+      WHILE \<acute>J \<noteq> 0
+      INV .{0 < \<acute>I & 2 * \<acute>time + \<acute>I * \<acute>I + 3 * \<acute>I + 2 * \<acute>J - 2 = i * i + 5 * i}.
+      DO \<acute>J := \<acute>J - 1 OD;
+        \<acute>I := \<acute>I - 1
+    OD
+    ) .{2*\<acute>time = i*i + 5*i}."
   apply simp
   apply hoare
       apply simp

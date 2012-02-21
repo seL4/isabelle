@@ -242,10 +242,10 @@ qed
 subsection {* Main theorem *}
 
 definition mutilated_board :: "nat => nat => (nat * nat) set"
-where
-  "mutilated_board m n =
-    below (2 * (m + 1)) <*> below (2 * (n + 1))
-      - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
+  where
+    "mutilated_board m n =
+      below (2 * (m + 1)) <*> below (2 * (n + 1))
+        - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
 
 theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino"
 proof (unfold mutilated_board_def)
@@ -253,7 +253,7 @@ proof (unfold mutilated_board_def)
   let ?t = "below (2 * (m + 1)) <*> below (2 * (n + 1))"
   let ?t' = "?t - {(0, 0)}"
   let ?t'' = "?t' - {(2 * m + 1, 2 * n + 1)}"
-  
+
   show "?t'' ~: ?T"
   proof
     have t: "?t : ?T" by (rule dominoes_tile_matrix)
