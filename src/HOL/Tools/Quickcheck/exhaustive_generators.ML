@@ -23,6 +23,9 @@ sig
   
   val instantiate_full_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
+  val instantiate_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+    (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
+
 end;
 
 structure Exhaustive_Generators : EXHAUSTIVE_GENERATORS =

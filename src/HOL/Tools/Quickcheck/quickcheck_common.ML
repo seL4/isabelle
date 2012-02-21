@@ -14,6 +14,7 @@ sig
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
+  val register_predicate : term * string -> Context.generic -> Context.generic
   val mk_safe_if : term -> term -> term * term * (bool -> term) -> bool -> term
   val collect_results : ('a -> Quickcheck.result) -> 'a list -> Quickcheck.result list -> Quickcheck.result list
   type result = (bool * term list) option * Quickcheck.report option
@@ -96,9 +97,11 @@ fun test_term (name, (_, compile)) ctxt catch_code_errors (t, eval_terms) =
           val _ = Quickcheck.verbose_message ctxt
             ("[Quickcheck-" ^ name ^ "] Test data size: " ^ string_of_int k)
           val _ = current_size := k
-          val ((result, report), timing) =
+          val ((result, report), time) =
             cpu_time ("size " ^ string_of_int k) (fn () => test_fun genuine_only [1, k - 1])
-          val _ = Quickcheck.add_timing timing current_result
+          val _ = if Config.get ctxt Quickcheck.timing then
+            Quickcheck.verbose_message ctxt (fst time ^ ": " ^ string_of_int (snd time) ^ " ms") else ()
+          val _ = Quickcheck.add_timing time current_result
           val _ = Quickcheck.add_report k report current_result
         in
           case result of
@@ -277,6 +280,37 @@ fun preprocess ctxt t =
     subst_bounds (map Free (rev vs'), body)
   end
 
+  
+structure Subtype_Predicates = Generic_Data
+(
+  type T = (term * string) list
+  val empty = []
+  val extend = I
+  val merge = AList.merge (op =) (K true)
+)
+
+val register_predicate = Subtype_Predicates.map o AList.update (op =)
+
+fun subtype_preprocess ctxt (T, (t, ts)) =
+  let
+    val preds = Subtype_Predicates.get (Context.Proof ctxt)
+    fun matches (p $ x) = AList.defined Term.could_unify preds p  
+    fun get_match (p $ x) = Option.map (rpair x) (AList.lookup Term.could_unify preds p)
+    fun subst_of (tyco, v as Free (x, repT)) =
+      let
+        val [(info, _)] = Typedef.get_info ctxt tyco
+        val repT' = Logic.varifyT_global (#rep_type info)
+        val substT = Sign.typ_match (Proof_Context.theory_of ctxt) (repT', repT) Vartab.empty 
+        val absT = Envir.subst_type substT (Logic.varifyT_global (#abs_type info))
+      in (v, Const (#Rep_name info, absT --> repT) $ Free (x, absT)) end
+    val (prems, concl) = strip_imp t
+    val subst = map subst_of (map_filter get_match prems)
+    val t' = Term.subst_free subst
+     (fold_rev (curry HOLogic.mk_imp) (filter_out matches prems) concl)
+  in
+    (T, (t', ts))
+  end
+
 (* instantiation of type variables with concrete types *)
  
 fun instantiate_goals lthy insts goals =
@@ -333,6 +367,7 @@ fun collect_results f [] results = results
 
 fun generator_test_goal_terms generator ctxt catch_code_errors insts goals =
   let
+    val use_subtype = Config.get ctxt Quickcheck.use_subtype
     fun add_eval_term t ts = if is_Free t then ts else ts @ [t]
     fun add_equation_eval_terms (t, eval_terms) =
       case try HOLogic.dest_eq (snd (strip_imp t)) of
@@ -343,6 +378,7 @@ fun generator_test_goal_terms generator ctxt catch_code_errors insts goals =
         [(NONE, t)] => test_term generator ctxt catch_code_errors t
       | ts => test_term_with_cardinality generator ctxt catch_code_errors (map snd ts)
     val goals' = instantiate_goals ctxt insts goals
+      |> (if use_subtype then map (map (subtype_preprocess ctxt)) else I)
       |> map (map (apsnd add_equation_eval_terms))
   in
     if Config.get ctxt Quickcheck.finite_types then

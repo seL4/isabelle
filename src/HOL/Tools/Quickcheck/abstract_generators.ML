@@ -32,8 +32,9 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
   let
     val ctxt = Proof_Context.init_global thy
     val tyco = prep_tyco ctxt tyco_raw
+    val opt_pred = Option.map (prep_term ctxt) opt_pred_raw
     val constrs = map (prep_term ctxt) constrs_raw
-    val _ = check_constrs ctxt tyco constrs 
+    val _ = check_constrs ctxt tyco constrs
     val vs = map dest_TFree (snd (dest_Type (body_type (fastype_of (hd constrs)))))
     val name = Long_Name.base_name tyco 
     fun mk_dconstrs (Const (s, T)) =
@@ -53,7 +54,9 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
   in
     thy
     |> ensure_sort (@{sort full_exhaustive}, Exhaustive_Generators.instantiate_full_exhaustive_datatype)
+    |> ensure_sort (@{sort exhaustive}, Exhaustive_Generators.instantiate_exhaustive_datatype)
     |> ensure_sort (@{sort random}, Random_Generators.instantiate_random_datatype)
+    |> (case opt_pred of NONE => I | SOME t => Context.theory_map (Quickcheck_Common.register_predicate (t, tyco)))
   end
 
 val quickcheck_generator = gen_quickcheck_generator (K I) (K I)

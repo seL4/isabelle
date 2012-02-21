@@ -182,7 +182,7 @@ enriched_type map: map
 
 subsection {* Quickcheck generators *}
 
-quickcheck_generator dlist constructors: empty, insert
+quickcheck_generator dlist predicate: distinct constructors: empty, insert
 
 hide_const (open) member fold foldr empty insert remove map filter null member length fold
 

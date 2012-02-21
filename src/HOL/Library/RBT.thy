@@ -171,6 +171,6 @@ lemma distinct_keys [iff]:
 
 subsection {* Quickcheck generators *}
 
-quickcheck_generator rbt constructors: empty, insert
+quickcheck_generator rbt predicate: is_rbt constructors: empty, insert
 
 end
