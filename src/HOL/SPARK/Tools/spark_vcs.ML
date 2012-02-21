@@ -50,6 +50,7 @@ structure VCs = Theory_Data
         defs: (binding * thm) list,
         types: fdl_type tab,
         funs: (string list * string) tab,
+        pfuns: ((string list * string) option * term) Symtab.table,
         ids: (term * string) Symtab.table * Name.context,
         proving: bool,
         vcs: (string * thm list option *
@@ -324,7 +325,8 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
                      case check_enum els' cs of
                        NONE => (thy, tyname)
                      | SOME msg => assoc_ty_err thy T s msg
-                   end));
+                   end)
+          | SOME T => assoc_ty_err thy T s "is not a datatype");
         val cs = map Const (the (Datatype.get_constrs thy' tyname));
       in
         ((fold (Symtab.update_new o apsnd (rpair s)) (els ~~ cs) tab,
@@ -725,11 +727,14 @@ fun check_pfun_type thy prfx s t optty1 optty2 =
 
 fun upd_option x y = if is_some x then x else y;
 
+fun unprefix_pfun "" s = s
+  | unprefix_pfun prfx s =
+      let val (prfx', s') = strip_prfx s
+      in if prfx = prfx' then s' else s end;
+
 fun check_pfuns_types thy prfx funs =
   Symtab.map (fn s => fn (optty, t) =>
-   let val optty' = lookup funs
-     (if prfx = "" then s
-      else unprefix (prfx ^ "__") s handle Fail _ => s)
+   let val optty' = lookup funs (unprefix_pfun prfx s)
    in
      (check_pfun_type thy prfx s t optty optty';
       (NONE |> upd_option optty |> upd_option optty', t))
@@ -742,11 +747,15 @@ fun err_vcs names = error (Pretty.string_of
   (Pretty.big_list "The following verification conditions have not been proved:"
     (map Pretty.str names)))
 
-fun set_env (env as {funs, prefix, ...}) thy = VCs.map (fn
+fun set_env ctxt defs types funs ids vcs path prefix thy = VCs.map (fn
     {pfuns, type_map, env = NONE} =>
-      {pfuns = check_pfuns_types thy prefix funs pfuns,
+      {pfuns = pfuns,
        type_map = type_map,
-       env = SOME env}
+       env = SOME
+         {ctxt = ctxt, defs = defs, types = types, funs = funs,
+          pfuns = check_pfuns_types thy prefix funs pfuns,
+          ids = ids, proving = false, vcs = vcs, path = path,
+          prefix = prefix}}
   | _ => err_unfinished ()) thy;
 
 fun mk_pat s = (case Int.fromString s of
@@ -786,33 +795,44 @@ fun declare_missing_pfuns thy prfx funs pfuns vcs (tab, ctxt) =
      (tab, ctxt'))
   end;
 
+fun map_pfuns f {pfuns, type_map, env} =
+  {pfuns = f pfuns, type_map = type_map, env = env}
+
+fun map_pfuns_env f {pfuns, type_map,
+      env = SOME {ctxt, defs, types, funs, pfuns = pfuns_env,
+        ids, proving, vcs, path, prefix}} =
+  if proving then err_unfinished ()
+  else
+    {pfuns = pfuns, type_map = type_map,
+     env = SOME {ctxt = ctxt, defs = defs, types = types, funs = funs,
+       pfuns = f pfuns_env, ids = ids, proving = false, vcs = vcs,
+       path = path, prefix = prefix}};
+
 fun add_proof_fun prep (s, (optty, raw_t)) thy =
-  VCs.map (fn
-      {env = SOME {proving = true, ...}, ...} => err_unfinished ()
-    | {pfuns, type_map, env} =>
-        let
-          val (optty', prfx) = (case env of
-              SOME {funs, prefix, ...} => (lookup funs s, prefix)
-            | NONE => (NONE, ""));
-          val optty'' = NONE |> upd_option optty |> upd_option optty';
-          val t = prep (Option.map (pfun_type thy prfx) optty'') raw_t;
-          val _ = (case fold_aterms (fn u =>
-              if is_Var u orelse is_Free u then insert (op =) u else I) t [] of
-              [] => ()
-            | ts => error ("Term\n" ^ Syntax.string_of_term_global thy t ^
-                "\nto be associated with proof function " ^ s ^
-                " contains free variable(s) " ^
-                commas (map (Syntax.string_of_term_global thy) ts)));
-        in
-          (check_pfun_type thy prfx s t optty optty';
-           if is_some optty'' orelse is_none env then
-             {pfuns = Symtab.update_new (s, (optty'', t)) pfuns,
-              type_map = type_map,
-              env = env}
-               handle Symtab.DUP _ => error ("Proof function " ^ s ^
-                 " already associated with function")
-           else error ("Undeclared proof function " ^ s))
-        end) thy;
+  VCs.map (fn data as {env, ...} =>
+    let
+      val (optty', prfx, map_pf) = (case env of
+          SOME {funs, prefix, ...} =>
+            (lookup funs (unprefix_pfun prefix s),
+             prefix, map_pfuns_env)
+        | NONE => (NONE, "", map_pfuns));
+      val optty'' = NONE |> upd_option optty |> upd_option optty';
+      val t = prep (Option.map (pfun_type thy prfx) optty'') raw_t;
+      val _ = (case fold_aterms (fn u =>
+          if is_Var u orelse is_Free u then insert (op =) u else I) t [] of
+          [] => ()
+        | ts => error ("Term\n" ^ Syntax.string_of_term_global thy t ^
+            "\nto be associated with proof function " ^ s ^
+            " contains free variable(s) " ^
+            commas (map (Syntax.string_of_term_global thy) ts)));
+    in
+      (check_pfun_type thy prfx s t optty optty';
+       if is_some optty'' orelse is_none env then
+         map_pf (Symtab.update_new (s, (optty'', t))) data
+           handle Symtab.DUP _ => error ("Proof function " ^ s ^
+             " already associated with function")
+       else error ("Undeclared proof function " ^ s))
+    end) thy;
 
 fun add_type (s, T as Type (tyname, Ts)) thy =
       thy |>
@@ -842,7 +862,7 @@ val is_closed = is_none o #env o VCs.get;
 
 fun lookup_vc thy name =
   (case VCs.get thy of
-    {env = SOME {vcs, types, funs, ids, ctxt, prefix, ...}, pfuns, ...} =>
+    {env = SOME {vcs, types, funs, pfuns, ids, ctxt, prefix, ...}, ...} =>
       (case VCtab.lookup vcs name of
          SOME vc =>
            let val (pfuns', ctxt', ids') =
@@ -852,7 +872,7 @@ fun lookup_vc thy name =
   | _ => NONE);
 
 fun get_vcs thy = (case VCs.get thy of
-    {env = SOME {vcs, types, funs, ids, ctxt, defs, prefix, ...}, pfuns, ...} =>
+    {env = SOME {vcs, types, funs, pfuns, ids, ctxt, defs, prefix, ...}, ...} =>
       let val (pfuns', ctxt', ids') =
         declare_missing_pfuns thy prefix funs pfuns vcs ids
       in
@@ -864,11 +884,13 @@ fun get_vcs thy = (case VCs.get thy of
 
 fun mark_proved name thms = VCs.map (fn
     {pfuns, type_map,
-     env = SOME {ctxt, defs, types, funs, ids, vcs, path, prefix, ...}} =>
+     env = SOME {ctxt, defs, types, funs, pfuns = pfuns_env,
+        ids, vcs, path, prefix, ...}} =>
       {pfuns = pfuns,
        type_map = type_map,
        env = SOME {ctxt = ctxt, defs = defs,
-         types = types, funs = funs, ids = ids,
+         types = types, funs = funs, pfuns = pfuns_env,
+         ids = ids,
          proving = true,
          vcs = VCtab.map_entry name (fn (trace, _, ps, cs) =>
            (trace, SOME thms, ps, cs)) vcs,
@@ -1024,8 +1046,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
        Element.Notes ("", [((Binding.name "defns", []), map (rpair [] o single o snd) defs')])]
           
   in
-    set_env {ctxt = ctxt, defs = defs', types = types, funs = funs,
-      ids = ids, proving = false, vcs = vcs', path = path, prefix = prfx} thy'
+    set_env ctxt defs' types funs ids vcs' path prfx thy'
   end;
 
 end;
