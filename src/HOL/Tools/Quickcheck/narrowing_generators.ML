@@ -512,7 +512,7 @@ fun test_goals ctxt catch_code_errors insts goals =
 
 (* setup *)
 
-val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K true);
+val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K false);
 
 val setup =
   Code.datatype_interpretation ensure_partial_term_of
