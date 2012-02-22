@@ -1513,6 +1513,7 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
 HOL-Quickcheck_Examples: HOL $(LOG)/HOL-Quickcheck_Examples.gz
 
 $(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
+  Quickcheck_Examples/Find_Unused_Assms.thy				\  
   Quickcheck_Examples/Quickcheck_Examples.thy				\
   Quickcheck_Examples/Quickcheck_Lattice_Examples.thy			\
   Quickcheck_Examples/Quickcheck_Narrowing_Examples.thy
