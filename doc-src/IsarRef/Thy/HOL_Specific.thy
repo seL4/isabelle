@@ -1643,7 +1643,8 @@ text {*
     @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "refute_params"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "quickcheck_generator"} & : & @{text "theory \<rightarrow> theory"}
+    @{command_def (HOL) "quickcheck_generator"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "find_unused_assms"} & : & @{text "context \<rightarrow>"}
   \end{matharray}
 
   @{rail "
@@ -1660,8 +1661,12 @@ text {*
     (@@{command (HOL) quickcheck_params} | @@{command (HOL) refute_params} |
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
+
     @@{command (HOL) quickcheck_generator} typeconstructor \\
       'operations:' ( @{syntax term} +)
+    ;
+
+    @@{command (HOL) find_unused_assms} theoryname?
     ;
 
     modes: '(' (@{syntax name} +) ')'
@@ -1743,6 +1748,10 @@ text {*
     \item[@{text report}] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
+    \item[@{text use_subtype}] if set quickcheck automatically lifts
+    conjectures to registered subtypes if possible, and tests the
+    lifted conjecture.
+
     \item[@{text quiet}] if set quickcheck does not output anything
     while testing.
     
@@ -1805,6 +1814,13 @@ text {*
 
   \item @{command (HOL) "nitpick_params"} changes @{command (HOL)
   "nitpick"} configuration options persistently.
+
+  \item @{command (HOL) "find_unused_assms"} finds potentially superfluous
+  assumptions in theorems using quickcheck.
+  It takes the theory name to be checked for superfluous assumptions as
+  optional argument. If not provided, it checks the current theory.
+  Options to the internal quickcheck invocations can be changed with
+  common configuration declarations.
 
   \end{description}
 *}

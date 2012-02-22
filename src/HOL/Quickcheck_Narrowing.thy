@@ -8,6 +8,7 @@ uses
   ("Tools/Quickcheck/PNF_Narrowing_Engine.hs")
   ("Tools/Quickcheck/Narrowing_Engine.hs")
   ("Tools/Quickcheck/narrowing_generators.ML")
+  ("Tools/Quickcheck/find_unused_assms.ML")
 begin
 
 subsection {* Counterexample generator *}
@@ -452,10 +453,15 @@ by (rule partial_term_of_anything)
 
 *)
 
+subsection {* The @{text find_unused_assms} command *}
+
+use "Tools/Quickcheck/find_unused_assms.ML"
+
+subsection {* Closing up *}
+
 hide_type code_int narrowing_type narrowing_term cons property
 hide_const int_of of_int nat_of map_cons nth error toEnum marker empty C conv nonEmpty ensure_testable all exists drawn_from around_zero
 hide_const (open) Var Ctr "apply" sum cons
 hide_fact empty_def cons_def conv.simps nonEmpty.simps apply_def sum_def ensure_testable_def all_def exists_def
-
 
 end
