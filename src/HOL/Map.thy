@@ -422,8 +422,7 @@ apply simp
 done
 
 lemma map_upds_list_update2_drop [simp]:
-  "\<lbrakk>size xs \<le> i; i < size ys\<rbrakk>
-    \<Longrightarrow> m(xs[\<mapsto>]ys[i:=y]) = m(xs[\<mapsto>]ys)"
+  "size xs \<le> i \<Longrightarrow> m(xs[\<mapsto>]ys[i:=y]) = m(xs[\<mapsto>]ys)"
 apply (induct xs arbitrary: m ys i)
  apply simp
 apply (case_tac ys)
@@ -512,9 +511,8 @@ lemma dom_map_of_conv_image_fst:
   "dom (map_of xys) = fst ` set xys"
   by (induct xys) (auto simp add: dom_if)
 
-lemma dom_map_of_zip [simp]: "[| length xs = length ys; distinct xs |] ==>
-  dom(map_of(zip xs ys)) = set xs"
-by (induct rule: list_induct2) simp_all
+lemma dom_map_of_zip [simp]: "length xs = length ys ==> dom (map_of (zip xs ys)) = set xs"
+by (induct rule: list_induct2) (auto simp add: dom_if)
 
 lemma finite_dom_map_of: "finite (dom (map_of l))"
 by (induct l) (auto simp add: dom_def insert_Collect [symmetric])
@@ -669,7 +667,7 @@ by(fastforce simp: map_add_def map_le_def fun_eq_iff split: option.splits)
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
 by (fastforce simp add: map_le_def map_add_def dom_def)
 
-lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
+lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
 
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
