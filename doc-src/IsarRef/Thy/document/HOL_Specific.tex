@@ -2341,7 +2341,8 @@ Identifying incorrect propositions usually involves evaluation of
     \indexdef{HOL}{command}{quickcheck\_params}\hypertarget{command.HOL.quickcheck-params}{\hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{refute\_params}\hypertarget{command.HOL.refute-params}{\hyperlink{command.HOL.refute-params}{\mbox{\isa{\isacommand{refute{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{nitpick\_params}\hypertarget{command.HOL.nitpick-params}{\hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{quickcheck\_generator}\hypertarget{command.HOL.quickcheck-generator}{\hyperlink{command.HOL.quickcheck-generator}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}generator}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
+    \indexdef{HOL}{command}{quickcheck\_generator}\hypertarget{command.HOL.quickcheck-generator}{\hyperlink{command.HOL.quickcheck-generator}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}generator}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{find\_unused\_assms}\hypertarget{command.HOL.find-unused-assms}{\hyperlink{command.HOL.find-unused-assms}{\mbox{\isa{\isacommand{find{\isaliteral{5F}{\isacharunderscore}}unused{\isaliteral{5F}{\isacharunderscore}}assms}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
   \begin{railoutput}
@@ -2414,6 +2415,13 @@ Identifying incorrect propositions usually involves evaluation of
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@nextplus{3}
 \rail@endplus
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.find-unused-assms}{\mbox{\isa{\isacommand{find{\isaliteral{5F}{\isacharunderscore}}unused{\isaliteral{5F}{\isacharunderscore}}assms}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{theoryname}}[]
+\rail@endbar
 \rail@end
 \rail@begin{2}{\isa{modes}}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
@@ -2504,6 +2512,10 @@ Identifying incorrect propositions usually involves evaluation of
     \item[\isa{report}] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
+    \item[\isa{use{\isaliteral{5F}{\isacharunderscore}}subtype}] if set quickcheck automatically lifts
+    conjectures to registered subtypes if possible, and tests the
+    lifted conjecture.
+
     \item[\isa{quiet}] if set quickcheck does not output anything
     while testing.
     
@@ -2561,6 +2573,13 @@ Identifying incorrect propositions usually involves evaluation of
   logic. See the Nitpick manual \cite{isabelle-nitpick} for details.
 
   \item \hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}} changes \hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}} configuration options persistently.
+
+  \item \hyperlink{command.HOL.find-unused-assms}{\mbox{\isa{\isacommand{find{\isaliteral{5F}{\isacharunderscore}}unused{\isaliteral{5F}{\isacharunderscore}}assms}}}} finds potentially superfluous
+  assumptions in theorems using quickcheck.
+  It takes the theory name to be checked for superfluous assumptions as
+  optional argument. If not provided, it checks the current theory.
+  Options to the internal quickcheck invocations can be changed with
+  common configuration declarations.
 
   \end{description}%
 \end{isamarkuptext}%
