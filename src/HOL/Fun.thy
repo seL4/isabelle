@@ -166,7 +166,7 @@ lemma inj_on_id[simp]: "inj_on id A"
 lemma inj_on_id2[simp]: "inj_on (%x. x) A"
 by (simp add: inj_on_def)
 
-lemma inj_on_Int: "\<lbrakk>inj_on f A; inj_on f B\<rbrakk> \<Longrightarrow> inj_on f (A \<inter> B)"
+lemma inj_on_Int: "inj_on f A \<or> inj_on f B \<Longrightarrow> inj_on f (A \<inter> B)"
 unfolding inj_on_def by blast
 
 lemma inj_on_INTER:
