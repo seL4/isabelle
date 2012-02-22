@@ -296,6 +296,9 @@ a list and a nat.
 
 * Improved code generation of multisets.
 
+* New diagnostic command find_unused_assms to find potentially superfluous
+  assumptions in theorems using Quickcheck.
+
 * Quickcheck:
   - Quickcheck returns variable assignments as counterexamples, which
     allows to reveal the underspecification of functions under test.
@@ -318,6 +321,8 @@ a list and a nat.
 
   - Support for multisets.
 
+  - Added "use_subtype" options.
+ 
 * Nitpick:
   - Fixed infinite loop caused by the 'peephole_optim' option and
     affecting 'rat' and 'real'.
