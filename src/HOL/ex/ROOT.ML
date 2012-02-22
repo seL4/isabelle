@@ -60,8 +60,6 @@ use_thys [
   "Arithmetic_Series_Complex",
   "HarmonicSeries",
   "Refute_Examples",
-  "Quickcheck_Examples",
-  "Quickcheck_Lattice_Examples",
   "Landau",
   "Execute_Choice",
   "Summation",
@@ -75,9 +73,6 @@ use_thys [
   "Simproc_Tests",
   "Executable_Relation"
 ];
-
-if getenv "ISABELLE_GHC" = "" then ()
-else use_thy "Quickcheck_Narrowing_Examples";
 
 use_thy "SVC_Oracle";
 if getenv "SVC_HOME" = "" then ()

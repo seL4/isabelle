@@ -61,6 +61,7 @@ test: \
   HOL-Nitpick_Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Quickcheck_Examples \
   HOL-Quotient_Examples \
   HOL-Predicate_Compile_Examples \
   HOL-Prolog \
@@ -1061,8 +1062,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy			\
   ex/Normalization_by_Evaluation.thy ex/Numeral_Representation.thy	\
   ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy				\
-  ex/Quickcheck_Examples.thy ex/Quickcheck_Lattice_Examples.thy		\
-  ex/Quickcheck_Narrowing_Examples.thy ex/Quicksort.thy ex/ROOT.ML	\
+  ex/Quicksort.thy ex/ROOT.ML						\
   ex/Records.thy ex/ReflectionEx.thy ex/Refute_Examples.thy		\
   ex/SAT_Examples.thy ex/Serbian.thy ex/Set_Theory.thy			\
   ex/Set_Algebras.thy ex/Simproc_Tests.thy ex/SVC_Oracle.thy		\
@@ -1508,6 +1508,15 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
   Mutabelle/mutabelle_extra.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mutabelle
 
+## HOL-Quickcheck_Examples
+
+HOL-Quickcheck_Examples: HOL $(LOG)/HOL-Quickcheck_Examples.gz
+
+$(LOG)/HOL-Quickcheck_Examples.gz: $(OUT)/HOL				\
+  Quickcheck_Examples/Quickcheck_Examples.thy				\
+  Quickcheck_Examples/Quickcheck_Lattice_Examples.thy			\
+  Quickcheck_Examples/Quickcheck_Narrowing_Examples.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quickcheck_Examples
 
 ## HOL-Quotient_Examples
 
