@@ -375,18 +375,14 @@ lemma bin_clr_le:
   "bin_sc n 0 w <= w"
   apply (induct n arbitrary: w)
    apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp del: BIT_simps)
-   apply (unfold Bit_def)
-   apply (simp_all add: bitval_def split: bit.split)
+   apply (auto simp: le_Bits)
   done
 
 lemma bin_set_ge:
   "bin_sc n 1 w >= w"
   apply (induct n arbitrary: w)
    apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp del: BIT_simps)
-   apply (unfold Bit_def)
-   apply (simp_all add: bitval_def split: bit.split)
+   apply (auto simp: le_Bits)
   done
 
 lemma bintr_bin_clr_le:
@@ -395,9 +391,7 @@ lemma bintr_bin_clr_le:
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply (auto simp del: BIT_simps)
-   apply (unfold Bit_def)
-   apply (simp_all add: bitval_def split: bit.split)
+   apply (auto simp: le_Bits)
   done
 
 lemma bintr_bin_set_ge:
@@ -406,9 +400,7 @@ lemma bintr_bin_set_ge:
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply (auto simp del: BIT_simps)
-   apply (unfold Bit_def)
-   apply (simp_all add: bitval_def split: bit.split)
+   apply (auto simp: le_Bits)
   done
 
 lemma bin_sc_FP [simp]: "bin_sc n 0 Int.Pls = Int.Pls"
