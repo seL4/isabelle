@@ -779,8 +779,8 @@ lemma to_bl_of_bin:
   unfolding uint_bl by (clarsimp simp add: word_ubin.eq_norm word_size)
 
 lemma to_bl_no_bin [simp]:
-  "to_bl (number_of bin::'a::len0 word) = bin_to_bl (len_of TYPE('a)) bin"
-  by (fact to_bl_of_bin [folded word_number_of_def])
+  "to_bl (number_of bin::'a::len0 word) = bin_to_bl (len_of TYPE('a)) (number_of bin)"
+  unfolding word_number_of_alt by (rule to_bl_of_bin)
 
 lemma to_bl_to_bin [simp] : "bl_to_bin (to_bl w) = uint w"
   unfolding uint_bl by (simp add : word_size)
@@ -3251,12 +3251,12 @@ lemmas ucast_down =
 subsubsection "Slices"
 
 lemma slice1_no_bin [simp]:
-  "slice1 n (number_of w :: 'b word) = of_bl (takefill False n (bin_to_bl (len_of TYPE('b :: len0)) w))"
+  "slice1 n (number_of w :: 'b word) = of_bl (takefill False n (bin_to_bl (len_of TYPE('b :: len0)) (number_of w)))"
   by (simp add: slice1_def)
 
 lemma slice_no_bin [simp]:
   "slice n (number_of w :: 'b word) = of_bl (takefill False (len_of TYPE('b :: len0) - n)
-    (bin_to_bl (len_of TYPE('b :: len0)) w))"
+    (bin_to_bl (len_of TYPE('b :: len0)) (number_of w)))"
   by (simp add: slice_def word_size)
 
 lemma slice1_0 [simp] : "slice1 n 0 = 0"
