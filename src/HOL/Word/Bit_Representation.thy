@@ -111,12 +111,6 @@ lemma B_mod_2':
   apply (simp add: z1pmod2)
   done
 
-lemma B1_mod_2 [simp]: "(Int.Bit1 w) mod 2 = 1"
-  unfolding numeral_simps number_of_is_id by (simp add: z1pmod2)
-
-lemma B0_mod_2 [simp]: "(Int.Bit0 w) mod 2 = 0"
-  unfolding numeral_simps number_of_is_id by simp
-
 lemma neB1E [elim!]:
   assumes ne: "y \<noteq> (1::bit)"
   assumes y: "y = (0::bit) \<Longrightarrow> P"
