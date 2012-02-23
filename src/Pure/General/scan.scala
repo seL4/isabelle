@@ -7,8 +7,7 @@ Efficient scanning of keywords and tokens.
 package isabelle
 
 
-import scala.collection.generic.Addable
-import scala.collection.IndexedSeq
+import scala.collection.{IndexedSeq, TraversableOnce}
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
@@ -41,8 +40,7 @@ object Scan
     def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  class Lexicon private(private val main_tree: Lexicon.Tree)
-    extends Addable[String, Lexicon] with RegexParsers
+  class Lexicon private(main_tree: Lexicon.Tree) extends RegexParsers
   {
     import Lexicon.Tree
 
@@ -93,9 +91,7 @@ object Scan
       }
 
 
-    /* Addable methods */
-
-    def repr = this
+    /* add elements */
 
     def + (elem: String): Lexicon =
       if (contains(elem)) this
@@ -115,9 +111,10 @@ object Scan
             }
           }
           else tree
-        val old = this
-        new Lexicon(extend(old.main_tree, 0))
+        new Lexicon(extend(main_tree, 0))
       }
+
+    def ++ (elems: TraversableOnce[String]): Lexicon = (this /: elems)(_ + _)
 
 
 
