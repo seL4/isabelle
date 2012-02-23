@@ -91,6 +91,11 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   def all_preds(xs: List[Key]): List[Key] = reachable(imm_preds, xs)._1.flatten
   def all_succs(xs: List[Key]): List[Key] = reachable(imm_succs, xs)._1.flatten
 
+  /*strongly connected components; see: David King and John Launchbury,
+    "Structuring Depth First Search Algorithms in Haskell"*/
+  def strong_conn: List[List[Key]] =
+    reachable(imm_preds, all_succs(keys.toList))._1.filterNot(_.isEmpty).reverse
+
 
   /* minimal and maximal elements */
 
@@ -112,6 +117,12 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
   {
     if (rep.isDefinedAt(x)) throw new Graph.Duplicate(x)
     else new Graph[Key, A](rep + (x -> (info, (Set.empty, Set.empty))))
+  }
+
+  def default_node(x: Key, info: A): Graph[Key, A] =
+  {
+    if (rep.isDefinedAt(x)) this
+    else new_node(x, info)
   }
 
   def del_nodes(xs: List[Key]): Graph[Key, A] =

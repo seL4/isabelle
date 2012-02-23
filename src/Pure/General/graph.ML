@@ -37,11 +37,11 @@ sig
   val immediate_succs: 'a T -> key -> key list
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
+  val strong_conn: 'a T -> key list list
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val is_minimal: 'a T -> key -> bool
   val is_maximal: 'a T -> key -> bool
-  val strong_conn: 'a T -> key list list
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -169,16 +169,18 @@ fun immediate_succs G = Keys.dest o imm_succs G;
 fun all_preds G = flat o #1 o reachable (imm_preds G);
 fun all_succs G = flat o #1 o reachable (imm_succs G);
 
-(*minimal and maximal elements*)
-fun minimals G = fold_graph (fn (m, (_, (preds, _))) => Keys.is_empty preds ? cons m) G [];
-fun maximals G = fold_graph (fn (m, (_, (_, succs))) => Keys.is_empty succs ? cons m) G [];
-fun is_minimal G x = Keys.is_empty (imm_preds G x);
-fun is_maximal G x = Keys.is_empty (imm_succs G x);
-
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G =
   rev (filter_out null (#1 (reachable (imm_preds G) (all_succs G (keys G)))));
+
+
+(* minimal and maximal elements *)
+
+fun minimals G = fold_graph (fn (m, (_, (preds, _))) => Keys.is_empty preds ? cons m) G [];
+fun maximals G = fold_graph (fn (m, (_, (_, succs))) => Keys.is_empty succs ? cons m) G [];
+fun is_minimal G x = Keys.is_empty (imm_preds G x);
+fun is_maximal G x = Keys.is_empty (imm_succs G x);
 
 
 (* nodes *)
