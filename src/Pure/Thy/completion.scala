@@ -12,9 +12,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 object Completion
 {
-  val empty: Completion =
-    new Completion(Scan.Lexicon(), Map.empty, Scan.Lexicon(), Map.empty)
-
+  val empty: Completion = new Completion()
   def init(): Completion = empty.add_symbols()
 
 
@@ -43,10 +41,10 @@ object Completion
 }
 
 class Completion private(
-  words_lex: Scan.Lexicon,
-  words_map: Map[String, String],
-  abbrevs_lex: Scan.Lexicon,
-  abbrevs_map: Map[String, (String, String)])
+  words_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  words_map: Map[String, String] = Map.empty,
+  abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  abbrevs_map: Map[String, (String, String)] = Map.empty)
 {
   /* adding stuff */
 
