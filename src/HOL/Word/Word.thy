@@ -790,14 +790,6 @@ lemma uint_bl_bin:
   shows "bl_to_bin (bin_to_bl (len_of TYPE('a)) (uint x)) = uint x"
   by (rule trans [OF bin_bl_bin word_ubin.norm_Rep])
 
-(* FIXME: the next two lemmas should be unnecessary, because the lhs
-terms should never occur in practice *)
-lemma num_AB_u [simp]: "number_of (uint x) = x"
-  unfolding word_number_of_def by (rule word_uint.Rep_inverse)
-
-lemma num_AB_s [simp]: "number_of (sint x) = x"
-  unfolding word_number_of_def by (rule word_sint.Rep_inverse)
-
 (* naturals *)
 lemma uints_unats: "uints n = int ` unats n"
   apply (unfold unats_def uints_num)
