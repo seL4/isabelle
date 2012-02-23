@@ -488,9 +488,6 @@ lemma bin_cat_assoc_sym:
 lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
   by (induct n arbitrary: w) auto
 
-lemma bin_cat_Pls [simp]: "bin_cat Int.Pls n w = bintrunc n w"
-  unfolding Pls_def by (rule bin_cat_zero)
-
 lemma bintr_cat1: 
   "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b"
   by (induct n arbitrary: b) auto
