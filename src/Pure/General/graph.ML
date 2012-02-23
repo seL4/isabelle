@@ -27,10 +27,10 @@ sig
   val fold: (key * ('a * (Keys.T * Keys.T)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val subgraph: (key -> bool) -> 'a T -> 'a T
   val get_entry: 'a T -> key -> key * ('a * (Keys.T * Keys.T))        (*exception UNDEF*)
-  val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_node_yield: key -> ('a -> 'b * 'a) -> 'a T -> 'b * 'a T
+  val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val imm_preds: 'a T -> key -> Keys.T
   val imm_succs: 'a T -> key -> Keys.T
   val immediate_preds: 'a T -> key -> key list
@@ -137,14 +137,14 @@ fun map_entry_yield x f (G as Graph tab) =
 
 (* nodes *)
 
-fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
-
 fun get_node G = #1 o #2 o get_entry G;
 
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 
 fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
   let val (a, i') = f i in (a, (i', ps)) end);
+
+fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
 
 
 (* reachability *)
