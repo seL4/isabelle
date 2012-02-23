@@ -311,7 +311,7 @@ fun project_program thy abortable names_hidden names1 program2 =
   let
     val ctxt = Proof_Context.init_global thy;
     val names2 = subtract (op =) names_hidden names1;
-    val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
+    val program3 = Graph.restrict (not o member (op =) names_hidden) program2;
     val names4 = Graph.all_succs program3 names2;
     val empty_funs = filter_out (member (op =) abortable)
       (Code_Thingol.empty_funs program3);
@@ -319,7 +319,7 @@ fun project_program thy abortable names_hidden names1 program2 =
       if null empty_funs then ()
       else error ("No code equations for " ^
         commas (map (Proof_Context.extern_const ctxt) empty_funs));
-    val program4 = Graph.subgraph (member (op =) names4) program3;
+    val program4 = Graph.restrict (member (op =) names4) program3;
   in (names4, program4) end;
 
 fun prepare_serializer thy abortable serializer literals reserved all_includes

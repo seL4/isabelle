@@ -476,7 +476,7 @@ fun mk_program ctxt moded_gr moded_preds (prog, (moded_pred_table, constant_tabl
 fun generate (use_modes, ensure_groundness) ctxt const =
   let 
     fun strong_conn_of gr keys =
-      Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
+      Graph.strong_conn (Graph.restrict (member (op =) (Graph.all_succs gr keys)) gr)
     val gr = Core_Data.intros_graph_of ctxt
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
@@ -487,7 +487,7 @@ fun generate (use_modes, ensure_groundness) ctxt const =
       SOME mode =>
         let
           val moded_gr = mk_moded_clauses_graph ctxt scc gr
-          val moded_gr' = Mode_Graph.subgraph
+          val moded_gr' = Mode_Graph.restrict
             (member (op =) (Mode_Graph.all_succs moded_gr [(const, (true, mode))])) moded_gr
           val scc = Mode_Graph.strong_conn moded_gr' 
         in
