@@ -708,10 +708,6 @@ lemma sbintr_ge: "(- (2 ^ n) :: int) <= number_of (sbintrunc n w)"
 lemma sbintr_lt: "number_of (sbintrunc n w) < (2 ^ n :: int)"
   by (simp add : no_sbintr m2pths)
 
-lemma bintrunc_Suc:
-  "bintrunc (Suc n) bin = bintrunc n (bin_rest bin) BIT bin_last bin"
-  by (case_tac bin rule: bin_exhaust) auto
-
 lemma sign_Pls_ge_0: 
   "(bin_sign bin = 0) = (bin >= (0 :: int))"
   unfolding bin_sign_def by simp
