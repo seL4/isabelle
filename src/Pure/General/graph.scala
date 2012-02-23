@@ -51,13 +51,13 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
 
   /* nodes */
 
-  def map_nodes[B](f: A => B): Graph[Key, B] =
-    new Graph[Key, B](rep mapValues { case (i, ps) => (f(i), ps) })
-
   def get_node(x: Key): A = get_entry(x)._1
 
   def map_node(x: Key, f: A => A): Graph[Key, A] =
     map_entry(x, { case (i, ps) => (f(i), ps) })
+
+  def map_nodes[B](f: A => B): Graph[Key, B] =
+    new Graph[Key, B](rep mapValues { case (i, ps) => (f(i), ps) })
 
 
   /* reachability */
