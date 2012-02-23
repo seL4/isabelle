@@ -519,13 +519,9 @@ lemma bin_split_cat:
 lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
   by (induct n) auto
 
-lemma bin_split_Pls [simp]:
-  "bin_split n Int.Pls = (Int.Pls, Int.Pls)"
-  unfolding Pls_def by (rule bin_split_zero)
-
-lemma bin_split_Min [simp]:
-  "bin_split n Int.Min = (Int.Min, bintrunc n Int.Min)"
-  by (induct n) (auto simp: Let_def split: ls_splits)
+lemma bin_split_minus1 [simp]:
+  "bin_split n -1 = (-1, bintrunc n -1)"
+  by (induct n) auto
 
 lemma bin_split_trunc:
   "bin_split (min m n) c = (a, b) ==> 
@@ -553,7 +549,7 @@ lemma bin_cat_num:
 
 lemma bin_split_num:
   "bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
-  apply (induct n arbitrary: b, simp add: Pls_def)
+  apply (induct n arbitrary: b, simp)
   apply (simp add: bin_rest_def zdiv_zmult2_eq)
   apply (case_tac b rule: bin_exhaust)
   apply simp
