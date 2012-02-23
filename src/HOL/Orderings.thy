@@ -1111,10 +1111,6 @@ lemma less_top:
 
 end
 
-no_notation
-  bot ("\<bottom>") and
-  top ("\<top>")
-
 
 subsection {* Dense orders *}
 
@@ -1227,7 +1223,7 @@ done
 end
 
 
-subsection {* Order on bool *}
+subsection {* Order on @{typ bool} *}
 
 instantiation bool :: "{bot, top, linorder}"
 begin
@@ -1239,10 +1235,10 @@ definition
   [simp]: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
 
 definition
-  [simp]: "bot \<longleftrightarrow> False"
+  [simp]: "\<bottom> \<longleftrightarrow> False"
 
 definition
-  [simp]: "top \<longleftrightarrow> True"
+  [simp]: "\<top> \<longleftrightarrow> True"
 
 instance proof
 qed auto
@@ -1261,10 +1257,10 @@ lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrighta
 lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
   by simp
 
-lemma bot_boolE: "bot \<Longrightarrow> P"
+lemma bot_boolE: "\<bottom> \<Longrightarrow> P"
   by simp
 
-lemma top_boolI: top
+lemma top_boolI: \<top>
   by simp
 
 lemma [code]:
@@ -1275,7 +1271,7 @@ lemma [code]:
   by simp_all
 
 
-subsection {* Order on functions *}
+subsection {* Order on @{typ "_ \<Rightarrow> _"} *}
 
 instantiation "fun" :: (type, ord) ord
 begin
@@ -1301,10 +1297,10 @@ instantiation "fun" :: (type, bot) bot
 begin
 
 definition
-  "bot = (\<lambda>x. bot)"
+  "\<bottom> = (\<lambda>x. \<bottom>)"
 
 lemma bot_apply:
-  "bot x = bot"
+  "\<bottom> x = \<bottom>"
   by (simp add: bot_fun_def)
 
 instance proof
@@ -1316,11 +1312,11 @@ instantiation "fun" :: (type, top) top
 begin
 
 definition
-  [no_atp]: "top = (\<lambda>x. top)"
+  [no_atp]: "\<top> = (\<lambda>x. \<top>)"
 declare top_fun_def_raw [no_atp]
 
 lemma top_apply:
-  "top x = top"
+  "\<top> x = \<top>"
   by (simp add: top_fun_def)
 
 instance proof
@@ -1336,6 +1332,61 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   unfolding le_fun_def by simp
+
+
+subsection {* Order on unary and binary predicates *}
+
+lemma predicate1I:
+  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
+  shows "P \<le> Q"
+  apply (rule le_funI)
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate1D:
+  "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
+  apply (erule le_funE)
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate1D:
+  "P x \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x"
+  by (rule predicate1D)
+
+lemma predicate2I:
+  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
+  shows "P \<le> Q"
+  apply (rule le_funI)+
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate2D:
+  "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  apply (erule le_funE)+
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate2D:
+  "P x y \<Longrightarrow> P \<le> Q \<Longrightarrow> Q x y"
+  by (rule predicate2D)
+
+lemma bot1E [no_atp]: "\<bottom> x \<Longrightarrow> P"
+  by (simp add: bot_fun_def)
+
+lemma bot2E: "\<bottom> x y \<Longrightarrow> P"
+  by (simp add: bot_fun_def)
+
+lemma top1I: "\<top> x"
+  by (simp add: top_fun_def)
+
+lemma top2I: "\<top> x y"
+  by (simp add: top_fun_def)
 
 
 subsection {* Name duplicates *}
@@ -1374,5 +1425,9 @@ lemmas linorder_neqE = linorder_class.neqE
 lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
 lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
+
+no_notation
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 end

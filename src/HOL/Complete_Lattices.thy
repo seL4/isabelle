@@ -536,7 +536,7 @@ lemma INF_eq_bot_iff [simp]:
 end
 
 
-subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
+subsection {* Complete lattice on @{typ bool} *}
 
 instantiation bool :: complete_lattice
 begin
@@ -573,6 +573,9 @@ qed
 instance bool :: complete_boolean_algebra proof
 qed (auto intro: bool_induct)
 
+
+subsection {* Complete lattice on @{typ "_ \<Rightarrow> _"} *}
+
 instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
 
@@ -608,6 +611,54 @@ qed (auto simp add: inf_apply sup_apply Inf_apply Sup_apply INF_def SUP_def inf_
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
+
+subsection {* Complete lattice on unary and binary predicates *}
+
+lemma INF1_iff: "(\<Sqinter>x\<in>A. B x) b = (\<forall>x\<in>A. B x b)"
+  by (simp add: INF_apply)
+
+lemma INF2_iff: "(\<Sqinter>x\<in>A. B x) b c = (\<forall>x\<in>A. B x b c)"
+  by (simp add: INF_apply)
+
+lemma INF1_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
+  by (auto simp add: INF_apply)
+
+lemma INF2_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
+  by (auto simp add: INF_apply)
+
+lemma INF1_D: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
+  by (auto simp add: INF_apply)
+
+lemma INF2_D: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
+  by (auto simp add: INF_apply)
+
+lemma INF1_E: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: INF_apply)
+
+lemma INF2_E: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: INF_apply)
+
+lemma SUP1_iff: "(\<Squnion>x\<in>A. B x) b = (\<exists>x\<in>A. B x b)"
+  by (simp add: SUP_apply)
+
+lemma SUP2_iff: "(\<Squnion>x\<in>A. B x) b c = (\<exists>x\<in>A. B x b c)"
+  by (simp add: SUP_apply)
+
+lemma SUP1_I: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
+  by (auto simp add: SUP_apply)
+
+lemma SUP2_I: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
+  by (auto simp add: SUP_apply)
+
+lemma SUP1_E: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: SUP_apply)
+
+lemma SUP2_E: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: SUP_apply)
+
+
+subsection {* Complete lattice on @{typ "_ set"} *}
+
 instantiation "set" :: (type) complete_lattice
 begin
 
@@ -627,7 +678,7 @@ proof
 qed (auto simp add: INF_def SUP_def Inf_set_def Sup_set_def image_def)
   
 
-subsection {* Inter *}
+subsubsection {* Inter *}
 
 abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
   "Inter S \<equiv> \<Sqinter>S"
@@ -699,7 +750,7 @@ lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> 
   by (fact Inf_superset_mono)
 
 
-subsection {* Intersections of families *}
+subsubsection {* Intersections of families *}
 
 abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
   "INTER \<equiv> INFI"
@@ -810,7 +861,7 @@ lemma vimage_INT: "f -` (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. f -` B x)"
   by blast
 
 
-subsection {* Union *}
+subsubsection {* Union *}
 
 abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
   "Union S \<equiv> \<Squnion>S"
@@ -879,7 +930,7 @@ lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Uni
   by (fact Sup_subset_mono)
 
 
-subsection {* Unions of families *}
+subsubsection {* Unions of families *}
 
 abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
   "UNION \<equiv> SUPR"
@@ -1042,7 +1093,7 @@ lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
 
-subsection {* Distributive laws *}
+subsubsection {* Distributive laws *}
 
 lemma Int_Union: "A \<inter> \<Union>B = (\<Union>C\<in>B. A \<inter> C)"
   by (fact inf_Sup)
@@ -1084,7 +1135,7 @@ lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<fora
   by (fact Sup_inf_eq_bot_iff)
 
 
-subsection {* Complement *}
+subsubsection {* Complement *}
 
 lemma Compl_INT [simp]: "- (\<Inter>x\<in>A. B x) = (\<Union>x\<in>A. -B x)"
   by (fact uminus_INF)
@@ -1093,7 +1144,7 @@ lemma Compl_UN [simp]: "- (\<Union>x\<in>A. B x) = (\<Inter>x\<in>A. -B x)"
   by (fact uminus_SUP)
 
 
-subsection {* Miniscoping and maxiscoping *}
+subsubsection {* Miniscoping and maxiscoping *}
 
 text {* \medskip Miniscoping: pushing in quantifiers and big Unions
            and Intersections. *}
