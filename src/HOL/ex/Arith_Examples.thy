@@ -99,34 +99,30 @@ lemma "i < j ==> nat (i - j) = 0"
   by linarith
 
 lemma "(i::nat) mod 0 = i"
-  (* FIXME: need to replace 0 by its numeral representation *)
-  apply (subst nat_numeral_0_eq_0 [symmetric])
+  (* rule split_mod is only declared by default for numerals *)
+  using split_mod [of _ _ "0", arith_split]
   by linarith
 
 lemma "(i::nat) mod 1 = 0"
-  (* FIXME: need to replace 1 by its numeral representation *)
-  apply (subst nat_numeral_1_eq_1 [symmetric])
+  (* rule split_mod is only declared by default for numerals *)
+  using split_mod [of _ _ "1", arith_split]
   by linarith
 
 lemma "(i::nat) mod 42 <= 41"
   by linarith
 
 lemma "(i::int) mod 0 = i"
-  (* FIXME: need to replace 0 by its numeral representation *)
-  apply (subst numeral_0_eq_0 [symmetric])
+  (* rule split_zmod is only declared by default for numerals *)
+  using split_zmod [of _ _ "0", arith_split]
   by linarith
 
 lemma "(i::int) mod 1 = 0"
-  (* FIXME: need to replace 1 by its numeral representation *)
-  apply (subst numeral_1_eq_1 [symmetric])
-  (* FIXME: arith does not know about iszero *)
-  apply (tactic {* Lin_Arith.pre_tac @{simpset} 1 *})
-oops
+  (* rule split_zmod is only declared by default for numerals *)
+  using split_zmod [of _ _ "1", arith_split]
+  by linarith
 
 lemma "(i::int) mod 42 <= 41"
-  (* FIXME: arith does not know about iszero *)
-  apply (tactic {* Lin_Arith.pre_tac @{simpset} 1 *})
-oops
+  by linarith
 
 lemma "-(i::int) * 1 = 0 ==> i = 0"
   by linarith
