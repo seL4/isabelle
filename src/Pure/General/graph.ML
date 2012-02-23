@@ -25,7 +25,6 @@ sig
   val dest: 'a T -> (key * key list) list
   val get_first: (key * ('a * (Keys.T * Keys.T)) -> 'b option) -> 'a T -> 'b option
   val fold: (key * ('a * (Keys.T * Keys.T)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
-  val subgraph: (key -> bool) -> 'a T -> 'a T
   val get_entry: 'a T -> key -> key * ('a * (Keys.T * Keys.T))        (*exception UNDEF*)
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
@@ -49,6 +48,7 @@ sig
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
+  val restrict: (key -> bool) -> 'a T -> 'a T
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUP*)
@@ -114,13 +114,6 @@ fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, Keys.dest succs)) (Ta
 
 fun get_first f (Graph tab) = Table.get_first f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
-
-fun subgraph P G =
-  let
-    fun subg (k, (i, (preds, succs))) =
-      if P k then Table.update (k, (i, (Keys.filter P preds, Keys.filter P succs)))
-      else I;
-  in Graph (fold_graph subg G Table.empty) end;
 
 fun get_entry (Graph tab) x =
   (case Table.lookup_key tab x of
@@ -208,6 +201,9 @@ fun del_node x (G as Graph tab) =
       |> Keys.fold (del_adjacent apsnd) preds
       |> Keys.fold (del_adjacent apfst) succs)
   end;
+
+fun restrict pred G =
+  fold_graph (fn (x, _) => not (pred x) ? del_node x) G G;
 
 
 (* edges *)

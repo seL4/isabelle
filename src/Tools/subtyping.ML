@@ -88,8 +88,7 @@ val tmaps_of = #tmaps o rep_data;
 
 (** utils **)
 
-fun restrict_graph G =
-  Graph.subgraph (fn key => if Graph.get_node G key = 0 then true else false) G;
+fun restrict_graph G = Graph.restrict (fn x => Graph.get_node G x = 0) G;
 
 fun nameT (Type (s, [])) = s;
 fun t_of s = Type (s, []);

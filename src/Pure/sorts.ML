@@ -308,7 +308,7 @@ fun subalgebra ctxt P sargs (algebra as Algebra {classes, arities}) =
             SOME (c, Ss |> map2 (curry (inter_sort algebra)) sorts |> map restrict_sort)
         | NONE => NONE)
       else NONE;
-    val classes' = classes |> Graph.subgraph P;
+    val classes' = classes |> Graph.restrict P;
     val arities' = arities |> Symtab.map (map_filter o restrict_arity);
   in (restrict_sort, rebuild_arities ctxt (make_algebra (classes', arities'))) end;
 

@@ -908,7 +908,7 @@ fun consts_program thy permissive consts =
   let
     fun project_consts consts (naming, program) =
       if permissive then (consts, (naming, program))
-      else (consts, (naming, Graph.subgraph
+      else (consts, (naming, Graph.restrict
         (member (op =) (Graph.all_succs program consts)) program));
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr permissive);
@@ -940,7 +940,7 @@ fun ensure_value thy algbr eqngr t =
         val deps = Graph.immediate_succs program1 Term.dummy_patternN;
         val program2 = Graph.del_nodes [Term.dummy_patternN] program1;
         val deps_all = Graph.all_succs program2 deps;
-        val program3 = Graph.subgraph (member (op =) deps_all) program2;
+        val program3 = Graph.restrict (member (op =) deps_all) program2;
       in (((naming, program3), ((vs_ty, t), deps)), (dep, (naming, program2))) end;
   in
     ensure_stmt ((K o K) NONE) pair stmt_value Term.dummy_patternN
@@ -1015,7 +1015,7 @@ fun code_depgr thy consts =
   let
     val (_, eqngr) = Code_Preproc.obtain true thy consts [];
     val all_consts = Graph.all_succs eqngr consts;
-  in Graph.subgraph (member (op =) all_consts) eqngr end;
+  in Graph.restrict (member (op =) all_consts) eqngr end;
 
 fun code_thms thy = Pretty.writeln o Code_Preproc.pretty thy o code_depgr thy;
 

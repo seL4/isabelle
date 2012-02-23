@@ -146,6 +146,9 @@ class Graph[Key, A] private(rep: Map[Key, (A, (Set[Key], Set[Key]))])
       (((rep - x) /: preds)(del_adjacent(false, x)) /: succs)(del_adjacent(true, x)))
   }
 
+  def restrict(pred: Key => Boolean): Graph[Key, A] =
+    (this /: iterator){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
+
 
   /* edges */
 
