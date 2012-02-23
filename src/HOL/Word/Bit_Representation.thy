@@ -291,15 +291,12 @@ definition bin_sign :: "int \<Rightarrow> int" where
 
 lemma bin_sign_simps [simp]:
   "bin_sign 0 = 0"
+  "bin_sign 1 = 0"
   "bin_sign -1 = -1"
   "bin_sign (number_of (Int.Bit0 w)) = bin_sign (number_of w)"
   "bin_sign (number_of (Int.Bit1 w)) = bin_sign (number_of w)"
-  "bin_sign Int.Pls = Int.Pls"
-  "bin_sign Int.Min = Int.Min"
-  "bin_sign (Int.Bit0 w) = bin_sign w"
-  "bin_sign (Int.Bit1 w) = bin_sign w"
   "bin_sign (w BIT b) = bin_sign w"
-  unfolding bin_sign_def numeral_simps Bit_def bitval_def number_of_is_id
+  unfolding bin_sign_def Bit_def bitval_def
   by (simp_all split: bit.split)
 
 lemma bin_sign_rest [simp]: 
@@ -722,12 +719,12 @@ lemma bintrunc_Suc:
   by (case_tac bin rule: bin_exhaust) auto
 
 lemma sign_Pls_ge_0: 
-  "(bin_sign bin = Int.Pls) = (number_of bin >= (0 :: int))"
-  by (induct bin rule: numeral_induct) auto
+  "(bin_sign bin = 0) = (bin >= (0 :: int))"
+  unfolding bin_sign_def by simp
 
 lemma sign_Min_lt_0: 
-  "(bin_sign bin = Int.Min) = (number_of bin < (0 :: int))"
-  by (induct bin rule: numeral_induct) auto
+  "(bin_sign bin = -1) = (bin < (0 :: int))"
+  unfolding bin_sign_def by simp
 
 lemmas sign_Min_neg = trans [OF sign_Min_lt_0 neg_def [symmetric]] 
 

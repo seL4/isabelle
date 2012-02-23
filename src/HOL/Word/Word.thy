@@ -561,7 +561,7 @@ lemma sint_lt: "sint (x::'a::len word) < 2 ^ (len_of TYPE('a) - 1)"
   using word_sint.Rep [of x] by (simp add: sints_num)
 
 lemma sign_uint_Pls [simp]: 
-  "bin_sign (uint x) = Int.Pls"
+  "bin_sign (uint x) = 0"
   by (simp add: sign_Pls_ge_0 number_of_eq)
 
 lemma uint_m2p_neg: "uint (x::'a::len0 word) - 2 ^ len_of TYPE('a) < 0"
@@ -587,7 +587,7 @@ lemma uint_number_of:
   by (simp only: int_word_uint)
 
 lemma unat_number_of: 
-  "bin_sign b = Int.Pls \<Longrightarrow> 
+  "bin_sign (number_of b) = 0 \<Longrightarrow> 
   unat (number_of b::'a::len0 word) = number_of b mod 2 ^ len_of TYPE ('a)"
   apply (unfold unat_def)
   apply (clarsimp simp only: uint_number_of)
@@ -2299,8 +2299,7 @@ lemma word_lsb_int: "lsb w = (uint w mod 2 = 1)"
   unfolding word_lsb_def bin_last_def by auto
 
 lemma word_msb_sint: "msb w = (sint w < 0)" 
-  unfolding word_msb_def
-  by (simp add : sign_Min_lt_0 number_of_is_id)
+  unfolding word_msb_def sign_Min_lt_0 ..
 
 lemma msb_word_of_int:
   "msb (word_of_int x::'a::len word) = bin_nth x (len_of TYPE('a) - 1)"

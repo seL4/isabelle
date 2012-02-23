@@ -279,14 +279,15 @@ lemma plus_and_or [rule_format]:
   done
 
 lemma le_int_or:
-  "bin_sign (y::int) = Int.Pls ==> x <= x OR y"
+  "bin_sign (y::int) = 0 ==> x <= x OR y"
   apply (induct y arbitrary: x rule: bin_induct)
     apply clarsimp
+   apply (simp only: Min_def)
    apply clarsimp
   apply (case_tac x rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] bit)
-     apply (auto simp: less_eq_int_code BIT_simps)
+     apply (auto simp: le_Bits)
   done
 
 lemmas int_and_le =
