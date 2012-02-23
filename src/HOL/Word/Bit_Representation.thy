@@ -35,11 +35,11 @@ lemma bin_rl_simp [simp]:
   using mod_div_equality [of w 2]
   by (cases "w mod 2 = 0", simp_all)
 
-lemma bin_rest_BIT: "bin_rest (x BIT b) = x"
+lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"
   unfolding bin_rest_def Bit_def
   by (cases b, simp_all)
 
-lemma bin_last_BIT: "bin_last (x BIT b) = b"
+lemma bin_last_BIT [simp]: "bin_last (x BIT b) = b"
   unfolding bin_last_def Bit_def
   by (cases b, simp_all add: z1pmod2)
 
@@ -209,7 +209,6 @@ lemma bin_rest_simps [simp]:
   "bin_rest Int.Min = Int.Min"
   "bin_rest (Int.Bit0 w) = w"
   "bin_rest (Int.Bit1 w) = w"
-  "bin_rest (w BIT b) = w"
   using bin_rl_simps bin_rl_def by auto
 
 lemma bin_last_simps [simp]: 
@@ -217,30 +216,29 @@ lemma bin_last_simps [simp]:
   "bin_last Int.Min = (1::bit)"
   "bin_last (Int.Bit0 w) = (0::bit)"
   "bin_last (Int.Bit1 w) = (1::bit)"
-  "bin_last (w BIT b) = b"
   using bin_rl_simps bin_rl_def by auto
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
-  unfolding bin_rest_def [symmetric] by auto
+  unfolding bin_rest_def [symmetric] by (rule bin_rest_BIT)
 
 lemma bin_nth_lem [rule_format]:
   "ALL y. bin_nth x = bin_nth y --> x = y"
-  apply (induct x rule: bin_induct)
+  apply (induct x rule: bin_induct [unfolded Pls_def Min_def])
     apply safe
     apply (erule rev_mp)
-    apply (induct_tac y rule: bin_induct)
+    apply (induct_tac y rule: bin_induct [unfolded Pls_def Min_def])
       apply safe
       apply (drule_tac x=0 in fun_cong, force)
      apply (erule notE, rule ext, 
             drule_tac x="Suc x" in fun_cong, force)
-    apply (drule_tac x=0 in fun_cong, force simp: BIT_simps)
+    apply (drule_tac x=0 in fun_cong, force)
    apply (erule rev_mp)
-   apply (induct_tac y rule: bin_induct)
+   apply (induct_tac y rule: bin_induct [unfolded Pls_def Min_def])
      apply safe
      apply (drule_tac x=0 in fun_cong, force)
     apply (erule notE, rule ext, 
            drule_tac x="Suc x" in fun_cong, force)
-   apply (drule_tac x=0 in fun_cong, force simp: BIT_simps)
+   apply (drule_tac x=0 in fun_cong, force)
   apply (case_tac y rule: bin_exhaust)
   apply clarify
   apply (erule allE)
@@ -453,7 +451,7 @@ lemmas bintrunc_Min [simp] =
   bintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps]
 
 lemmas bintrunc_BIT  [simp] = 
-  bintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps] for w b
+  bintrunc.Suc [where bin="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
 
 lemma bintrunc_Bit0 [simp]:
   "bintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (bintrunc n w)"
@@ -474,7 +472,7 @@ lemmas sbintrunc_Suc_Min =
   sbintrunc.Suc [where bin="Int.Min", simplified bin_last_simps bin_rest_simps]
 
 lemmas sbintrunc_Suc_BIT [simp] = 
-  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps] for w b
+  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
 
 lemma sbintrunc_Suc_Bit0 [simp]:
   "sbintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (sbintrunc n w)"
