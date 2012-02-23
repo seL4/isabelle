@@ -2662,7 +2662,6 @@ lemma (in complete_lattice) Sup_set_foldr:
   by (simp add: Sup_set_fold ac_simps foldr_fold fun_eq_iff)
 
 declare Inf_set_foldr [where 'a = "'a set", code] Sup_set_foldr [where 'a = "'a set", code]
-declare Inf_set_foldr [where 'a = "'a Predicate.pred", code] Sup_set_foldr [where 'a = "'a Predicate.pred", code]
 
 lemma (in complete_lattice) INF_set_foldr [code]:
   "INFI (set xs) f = foldr (inf \<circ> f) xs top"
@@ -2671,29 +2670,6 @@ lemma (in complete_lattice) INF_set_foldr [code]:
 lemma (in complete_lattice) SUP_set_foldr [code]:
   "SUPR (set xs) f = foldr (sup \<circ> f) xs bot"
   by (simp only: SUP_def Sup_set_foldr foldr_map set_map [symmetric])
-
-(* FIXME: better implement conversion by bisection *)
-
-lemma pred_of_set_fold_sup:
-  assumes "finite A"
-  shows "pred_of_set A = Finite_Set.fold sup bot (Predicate.single ` A)" (is "?lhs = ?rhs")
-proof (rule sym)
-  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
-    by (fact comp_fun_idem_sup)
-  from `finite A` show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
-qed
-
-lemma pred_of_set_set_fold_sup:
-  "pred_of_set (set xs) = fold sup (map Predicate.single xs) bot"
-proof -
-  interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
-    by (fact comp_fun_idem_sup)
-  show ?thesis by (simp add: pred_of_set_fold_sup fold_set_fold [symmetric])
-qed
-
-lemma pred_of_set_set_foldr_sup [code]:
-  "pred_of_set (set xs) = foldr sup (map Predicate.single xs) bot"
-  by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
 
 
 subsubsection {* @{text upt} *}

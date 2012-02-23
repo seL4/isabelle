@@ -197,7 +197,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Partial_Function.thy \
   Plain.thy \
   Power.thy \
-  Predicate.thy \
   Product_Type.thy \
   Relation.thy \
   Rings.thy \
@@ -294,6 +293,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Nitpick.thy \
   Numeral_Simprocs.thy \
   Presburger.thy \
+  Predicate.thy \
   Predicate_Compile.thy \
   Quickcheck.thy \
   Quickcheck_Exhaustive.thy \

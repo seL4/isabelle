@@ -281,18 +281,7 @@ proof -
 qed
 
 
-text {* Lazy Evaluation of an indexed function *}
-
-function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a Predicate.pred"
-where
-  "iterate_upto f n m =
-    Predicate.Seq (%u. if n > m then Predicate.Empty
-     else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
-by pat_completeness auto
-
-termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
-
-hide_const (open) of_nat nat_of Suc  subtract int_of iterate_upto
+hide_const (open) of_nat nat_of Suc subtract int_of
 
 
 subsection {* Code generator setup *}
@@ -377,3 +366,4 @@ code_modulename Haskell
   Code_Numeral Arith
 
 end
+

@@ -5,7 +5,7 @@
 header {* A compiler for predicates defined by introduction rules *}
 
 theory Predicate_Compile
-imports New_Random_Sequence Quickcheck_Exhaustive
+imports Predicate New_Random_Sequence Quickcheck_Exhaustive
 uses
   "Tools/Predicate_Compile/predicate_compile_aux.ML"
   "Tools/Predicate_Compile/predicate_compile_compilations.ML"
