@@ -90,14 +90,14 @@ lemma bin_to_bl_aux_zero_minus_simp [simp]:
     bin_to_bl_aux (n - 1) 0 (False # bl)"
   by (cases n) auto
 
-lemma bin_to_bl_aux_Pls_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n Int.Pls bl = 
-    bin_to_bl_aux (n - 1) Int.Pls (False # bl)"
+lemma bin_to_bl_aux_minus1_minus_simp [simp]:
+  "0 < n ==> bin_to_bl_aux n -1 bl = 
+    bin_to_bl_aux (n - 1) -1 (True # bl)"
   by (cases n) auto
 
-lemma bin_to_bl_aux_Min_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n Int.Min bl = 
-    bin_to_bl_aux (n - 1) Int.Min (True # bl)"
+lemma bin_to_bl_aux_one_minus_simp [simp]:
+  "0 < n \<Longrightarrow> bin_to_bl_aux n 1 bl = 
+    bin_to_bl_aux (n - 1) 0 (True # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit_minus_simp [simp]:
@@ -106,13 +106,13 @@ lemma bin_to_bl_aux_Bit_minus_simp [simp]:
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n (Int.Bit0 w) bl = 
-    bin_to_bl_aux (n - 1) w (False # bl)"
+  "0 < n ==> bin_to_bl_aux n (number_of (Int.Bit0 w)) bl = 
+    bin_to_bl_aux (n - 1) (number_of w) (False # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n (Int.Bit1 w) bl = 
-    bin_to_bl_aux (n - 1) w (True # bl)"
+  "0 < n ==> bin_to_bl_aux n (number_of (Int.Bit1 w)) bl = 
+    bin_to_bl_aux (n - 1) (number_of w) (True # bl)"
   by (cases n) auto
 
 text {* Link between bin and bool list. *}
@@ -188,19 +188,15 @@ lemma bin_to_bl_zero_aux:
   "bin_to_bl_aux n 0 bl = replicate n False @ bl"
   by (induct n arbitrary: bl) (auto simp: replicate_app_Cons_same)
 
-lemma bin_to_bl_Pls_aux: 
-  "bin_to_bl_aux n Int.Pls bl = replicate n False @ bl"
+lemma bin_to_bl_zero: "bin_to_bl n 0 = replicate n False"
+  unfolding bin_to_bl_def by (simp add: bin_to_bl_zero_aux)
+
+lemma bin_to_bl_minus1_aux:
+  "bin_to_bl_aux n -1 bl = replicate n True @ bl"
   by (induct n arbitrary: bl) (auto simp: replicate_app_Cons_same)
 
-lemma bin_to_bl_Pls: "bin_to_bl n Int.Pls = replicate n False"
-  unfolding bin_to_bl_def by (simp add : bin_to_bl_Pls_aux)
-
-lemma bin_to_bl_Min_aux:
-  "bin_to_bl_aux n Int.Min bl = replicate n True @ bl"
-  by (induct n arbitrary: bl) (auto simp: replicate_app_Cons_same)
-
-lemma bin_to_bl_Min: "bin_to_bl n Int.Min = replicate n True"
-  unfolding bin_to_bl_def by (simp add : bin_to_bl_Min_aux)
+lemma bin_to_bl_minus1: "bin_to_bl n -1 = replicate n True"
+  unfolding bin_to_bl_def by (simp add: bin_to_bl_minus1_aux)
 
 lemma bl_to_bin_rep_F: 
   "bl_to_bin (replicate n False @ bl) = bl_to_bin bl"
@@ -238,7 +234,7 @@ lemma len_bin_to_bl_aux:
   by (induct n arbitrary: w bs) auto
 
 lemma len_bin_to_bl [simp]: "length (bin_to_bl n w) = n"
-  unfolding bin_to_bl_def len_bin_to_bl_aux by auto
+  by (fact size_bin_to_bl) (* FIXME: duplicate *)
   
 lemma sign_bl_bin': 
   "bin_sign (bl_to_bin_aux bs w) = bin_sign w"
@@ -344,7 +340,7 @@ lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
   apply (unfold bl_to_bin_def)
   apply (rule xtr4)
    apply (rule bl_to_bin_ge2p_aux)
-  apply (simp add: Pls_def)
+  apply simp
   done
 
 lemma butlast_rest_bin: 

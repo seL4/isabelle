@@ -1102,7 +1102,7 @@ lemma of_bl_0 [simp]: "of_bl (replicate n False) = 0"
 lemma to_bl_0 [simp]:
   "to_bl (0::'a::len0 word) = replicate (len_of TYPE('a)) False"
   unfolding uint_bl
-  by (simp add : word_size bin_to_bl_Pls Pls_def [symmetric])
+  by (simp add: word_size bin_to_bl_zero)
 
 lemma uint_0_iff: "(uint x = 0) = (x = 0)"
   by (auto intro!: word_uint.Rep_eqD)
