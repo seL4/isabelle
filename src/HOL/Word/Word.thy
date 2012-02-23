@@ -1645,16 +1645,6 @@ lemma rtb_rbl_ariths:
 
 subsection "Arithmetic type class instantiations"
 
-(* note that iszero_def is only for class comm_semiring_1_cancel,
-   which requires word length >= 1, ie 'a :: len word *) 
-lemma zero_bintrunc:
-  "iszero (number_of x :: 'a :: len word) = 
-    (bintrunc (len_of TYPE('a)) x = Int.Pls)"
-  apply (unfold iszero_def word_0_wi word_no_wi)
-  apply (rule word_ubin.norm_eq_iff [symmetric, THEN trans])
-  apply (simp add : Pls_def [symmetric])
-  done
-
 lemmas word_le_0_iff [simp] =
   word_zero_le [THEN leD, THEN linorder_antisym_conv1]
 
@@ -1662,14 +1652,14 @@ lemma word_of_int_nat:
   "0 <= x \<Longrightarrow> word_of_int x = of_nat (nat x)"
   by (simp add: of_nat_nat word_of_int)
 
-lemma iszero_word_no [simp] : 
+(* note that iszero_def is only for class comm_semiring_1_cancel,
+   which requires word length >= 1, ie 'a :: len word *) 
+lemma iszero_word_no [simp]:
   "iszero (number_of bin :: 'a :: len word) = 
     iszero (bintrunc (len_of TYPE('a)) (number_of bin))"
-  apply (simp add: zero_bintrunc number_of_is_id)
-  apply (unfold iszero_def Pls_def)
-  apply (rule refl)
-  done
-    
+  using word_ubin.norm_eq_iff [where 'a='a, of "number_of bin" 0]
+  by (simp add: iszero_def [symmetric])
+
 
 subsection "Word and nat"
 
