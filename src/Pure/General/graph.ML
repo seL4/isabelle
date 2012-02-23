@@ -25,23 +25,22 @@ sig
   val dest: 'a T -> (key * key list) list
   val get_first: (key * ('a * (Keys.T * Keys.T)) -> 'b option) -> 'a T -> 'b option
   val fold: (key * ('a * (Keys.T * Keys.T)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
-  val subgraph: (key -> bool) -> 'a T -> 'a T
   val get_entry: 'a T -> key -> key * ('a * (Keys.T * Keys.T))        (*exception UNDEF*)
-  val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_node_yield: key -> ('a -> 'b * 'a) -> 'a T -> 'b * 'a T
+  val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val imm_preds: 'a T -> key -> Keys.T
   val imm_succs: 'a T -> key -> Keys.T
   val immediate_preds: 'a T -> key -> key list
   val immediate_succs: 'a T -> key -> key list
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
+  val strong_conn: 'a T -> key list list
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val is_minimal: 'a T -> key -> bool
   val is_maximal: 'a T -> key -> bool
-  val strong_conn: 'a T -> key list list
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -49,6 +48,7 @@ sig
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
+  val restrict: (key -> bool) -> 'a T -> 'a T
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUP*)
@@ -91,7 +91,6 @@ fun remove x (Keys tab) = Keys (Table.delete_safe x tab);
 fun fold f (Keys tab) = Table.fold (f o #1) tab;
 fun fold_rev f (Keys tab) = Table.fold_rev (f o #1) tab;
 
-fun make xs = Basics.fold insert xs empty;
 fun dest keys = fold_rev cons keys [];
 
 fun filter P keys = fold (fn x => P x ? insert x) keys empty;
@@ -116,13 +115,6 @@ fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, Keys.dest succs)) (Ta
 fun get_first f (Graph tab) = Table.get_first f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
 
-fun subgraph P G =
-  let
-    fun subg (k, (i, (preds, succs))) =
-      if P k then Table.update (k, (i, (Keys.filter P preds, Keys.filter P succs)))
-      else I;
-  in Graph (fold_graph subg G Table.empty) end;
-
 fun get_entry (Graph tab) x =
   (case Table.lookup_key tab x of
     SOME entry => entry
@@ -137,14 +129,14 @@ fun map_entry_yield x f (G as Graph tab) =
 
 (* nodes *)
 
-fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
-
 fun get_node G = #1 o #2 o get_entry G;
 
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 
 fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
   let val (a, i') = f i in (a, (i', ps)) end);
+
+fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
 
 
 (* reachability *)
@@ -170,16 +162,18 @@ fun immediate_succs G = Keys.dest o imm_succs G;
 fun all_preds G = flat o #1 o reachable (imm_preds G);
 fun all_succs G = flat o #1 o reachable (imm_succs G);
 
-(*minimal and maximal elements*)
-fun minimals G = fold_graph (fn (m, (_, (preds, _))) => Keys.is_empty preds ? cons m) G [];
-fun maximals G = fold_graph (fn (m, (_, (_, succs))) => Keys.is_empty succs ? cons m) G [];
-fun is_minimal G x = Keys.is_empty (imm_preds G x);
-fun is_maximal G x = Keys.is_empty (imm_succs G x);
-
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G =
   rev (filter_out null (#1 (reachable (imm_preds G) (all_succs G (keys G)))));
+
+
+(* minimal and maximal elements *)
+
+fun minimals G = fold_graph (fn (m, (_, (preds, _))) => Keys.is_empty preds ? cons m) G [];
+fun maximals G = fold_graph (fn (m, (_, (_, succs))) => Keys.is_empty succs ? cons m) G [];
+fun is_minimal G x = Keys.is_empty (imm_preds G x);
+fun is_maximal G x = Keys.is_empty (imm_succs G x);
 
 
 (* nodes *)
@@ -207,6 +201,9 @@ fun del_node x (G as Graph tab) =
       |> Keys.fold (del_adjacent apsnd) preds
       |> Keys.fold (del_adjacent apfst) succs)
   end;
+
+fun restrict pred G =
+  fold_graph (fn (x, _) => not (pred x) ? del_node x) G G;
 
 
 (* edges *)
