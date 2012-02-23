@@ -10,14 +10,18 @@ import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 
-private object Completion
+object Completion
 {
+  val empty: Completion = new Completion()
+  def init(): Completion = empty.add_symbols()
+
+
   /** word completion **/
 
-  val word_regex = "[a-zA-Z0-9_']+".r
-  def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
+  private val word_regex = "[a-zA-Z0-9_']+".r
+  private def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
 
-  object Parse extends RegexParsers
+  private object Parse extends RegexParsers
   {
     override val whiteSpace = "".r
 
@@ -36,33 +40,24 @@ private object Completion
   }
 }
 
-class Completion
+class Completion private(
+  words_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  words_map: Map[String, String] = Map.empty,
+  abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  abbrevs_map: Map[String, (String, String)] = Map.empty)
 {
-  /* representation */
-
-  protected val words_lex = Scan.Lexicon()
-  protected val words_map = Map[String, String]()
-
-  protected val abbrevs_lex = Scan.Lexicon()
-  protected val abbrevs_map = Map[String, (String, String)]()
-
-
   /* adding stuff */
 
   def + (keyword: String, replace: String): Completion =
-  {
-    val old = this
-    new Completion {
-      override val words_lex = old.words_lex + keyword
-      override val words_map = old.words_map + (keyword -> replace)
-      override val abbrevs_lex = old.abbrevs_lex
-      override val abbrevs_map = old.abbrevs_map
-    }
-  }
+    new Completion(
+      words_lex + keyword,
+      words_map + (keyword -> replace),
+      abbrevs_lex,
+      abbrevs_map)
 
   def + (keyword: String): Completion = this + (keyword, keyword)
 
-  def add_symbols: Completion =
+  private def add_symbols(): Completion =
   {
     val words =
       (for ((x, _) <- Symbol.names) yield (x, x)).toList :::
@@ -73,13 +68,11 @@ class Completion
       (for ((x, y) <- Symbol.abbrevs if !Completion.is_word(y))
         yield (y.reverse.toString, (y, x))).toList
 
-    val old = this
-    new Completion {
-      override val words_lex = old.words_lex ++ words.map(_._1)
-      override val words_map = old.words_map ++ words
-      override val abbrevs_lex = old.abbrevs_lex ++ abbrs.map(_._1)
-      override val abbrevs_map = old.abbrevs_map ++ abbrs
-    }
+    new Completion(
+      words_lex ++ words.map(_._1),
+      words_map ++ words,
+      abbrevs_lex ++ abbrs.map(_._1),
+      abbrevs_map ++ abbrs)
   }
 
 

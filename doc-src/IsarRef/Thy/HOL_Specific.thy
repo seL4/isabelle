@@ -1648,7 +1648,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) value} ( '[' name ']' )? modes? @{syntax term}
+    @@{command (HOL) value} ( '[' @{syntax name} ']' )? modes? @{syntax term}
     ;
 
     @@{command (HOL) values} modes? @{syntax nat}? @{syntax term}
@@ -1662,11 +1662,11 @@ text {*
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
 
-    @@{command (HOL) quickcheck_generator} typeconstructor \\
+    @@{command (HOL) quickcheck_generator} @{syntax nameref} \\
       'operations:' ( @{syntax term} +)
     ;
 
-    @@{command (HOL) find_unused_assms} theoryname?
+    @@{command (HOL) find_unused_assms} @{syntax name}?
     ;
 
     modes: '(' (@{syntax name} +) ')'

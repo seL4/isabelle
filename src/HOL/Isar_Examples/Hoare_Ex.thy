@@ -249,9 +249,9 @@ theorem
   by hoare auto
 
 
-subsection{* Time *}
+subsection {* Time *}
 
-text{* A simple embedding of time in Hoare logic: function @{text
+text {* A simple embedding of time in Hoare logic: function @{text
   timeit} inserts an extra variable to keep track of the elapsed time. *}
 
 record tstate = time :: nat

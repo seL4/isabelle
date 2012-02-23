@@ -17,7 +17,8 @@ object Graph
   class Undefined[Key](x: Key) extends Exception
   class Cycles[Key](cycles: List[List[Key]]) extends Exception
 
-  def empty[Key, A]: Graph[Key, A] = new Graph[Key, A](Map.empty)
+  private val empty_val: Graph[Any, Nothing] = new Graph[Any, Nothing](Map.empty)
+  def empty[Key, A]: Graph[Key, A] = empty_val.asInstanceOf[Graph[Key, A]]
 }
 
 
