@@ -145,23 +145,9 @@ lemma bin_exhaust:
 
 subsection {* Destructors for binary integers *}
 
-definition bin_rl :: "int \<Rightarrow> int \<times> bit" where 
-  "bin_rl w = (bin_rest w, bin_last w)"
-
-lemma bin_rl_char: "bin_rl w = (r, l) \<longleftrightarrow> r BIT l = w"
-  unfolding bin_rl_def by (auto simp: bin_rest_BIT bin_last_BIT)
-
 primrec bin_nth where
   Z: "bin_nth w 0 = (bin_last w = (1::bit))"
   | Suc: "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
-
-lemma bin_rl_simps [simp]:
-  "bin_rl Int.Pls = (Int.Pls, (0::bit))"
-  "bin_rl Int.Min = (Int.Min, (1::bit))"
-  "bin_rl (Int.Bit0 r) = (r, (0::bit))"
-  "bin_rl (Int.Bit1 r) = (r, (1::bit))"
-  "bin_rl (r BIT b) = (r, b)"
-  unfolding bin_rl_char by (simp_all add: BIT_simps)
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
@@ -209,14 +195,14 @@ lemma bin_rest_simps [simp]:
   "bin_rest Int.Min = Int.Min"
   "bin_rest (Int.Bit0 w) = w"
   "bin_rest (Int.Bit1 w) = w"
-  using bin_rl_simps bin_rl_def by auto
+  unfolding numeral_simps by (auto simp: bin_rest_def)
 
 lemma bin_last_simps [simp]: 
   "bin_last Int.Pls = (0::bit)"
   "bin_last Int.Min = (1::bit)"
   "bin_last (Int.Bit0 w) = (0::bit)"
   "bin_last (Int.Bit1 w) = (1::bit)"
-  using bin_rl_simps bin_rl_def by auto
+  unfolding numeral_simps by (auto simp: bin_last_def z1pmod2)
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_def [symmetric] by (rule bin_rest_BIT)
