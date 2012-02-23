@@ -91,7 +91,6 @@ fun remove x (Keys tab) = Keys (Table.delete_safe x tab);
 fun fold f (Keys tab) = Table.fold (f o #1) tab;
 fun fold_rev f (Keys tab) = Table.fold_rev (f o #1) tab;
 
-fun make xs = Basics.fold insert xs empty;
 fun dest keys = fold_rev cons keys [];
 
 fun filter P keys = fold (fn x => P x ? insert x) keys empty;
